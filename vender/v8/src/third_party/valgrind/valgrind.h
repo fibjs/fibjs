@@ -3700,7 +3700,7 @@ VALGRIND_PRINTF(const char *format, ...)
 #endif
    va_list vargs;
    va_start(vargs, format);
-#if defined(_MSC_VER)
+#if defined(WIN64)
    _qzz_res = VALGRIND_DO_CLIENT_REQUEST_EXPR(0,
                               VG_USERREQ__PRINTF_VALIST_BY_REF,
                               (uintptr_t)format,
@@ -3710,7 +3710,7 @@ VALGRIND_PRINTF(const char *format, ...)
    _qzz_res = VALGRIND_DO_CLIENT_REQUEST_EXPR(0,
                               VG_USERREQ__PRINTF_VALIST_BY_REF,
                               (unsigned long)format,
-                              (unsigned long)&vargs, 
+                              (unsigned long)&vargs,
                               0, 0, 0);
 #endif
    va_end(vargs);
@@ -3738,7 +3738,7 @@ VALGRIND_PRINTF_BACKTRACE(const char *format, ...)
 #endif
    va_list vargs;
    va_start(vargs, format);
-#if defined(_MSC_VER)
+#if defined(WIN64)
    _qzz_res = VALGRIND_DO_CLIENT_REQUEST_EXPR(0,
                               VG_USERREQ__PRINTF_BACKTRACE_VALIST_BY_REF,
                               (uintptr_t)format,

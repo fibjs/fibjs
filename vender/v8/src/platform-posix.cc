@@ -29,6 +29,11 @@
 // own but contains the parts which are the same across POSIX platforms Linux,
 // Mac OS, FreeBSD and OpenBSD.
 
+#include <osconfig.h>
+
+#ifndef Windows
+
+
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
@@ -498,3 +503,5 @@ Socket* OS::CreateSocket() {
 
 
 } }  // namespace v8::internal
+
+#endif
