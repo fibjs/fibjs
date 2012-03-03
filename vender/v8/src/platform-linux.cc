@@ -787,7 +787,6 @@ Thread::LocalStorageKey Thread::CreateThreadLocalKey() {
   int result = pthread_key_create(&key, NULL);
   USE(result);
   ASSERT(result == 0);
-  puts("CreateThreadLocalKey");
   return static_cast<LocalStorageKey>(key);
 }
 
@@ -801,21 +800,18 @@ void Thread::DeleteThreadLocalKey(LocalStorageKey key) {
 
 
 void* Thread::GetThreadLocal(LocalStorageKey key) {
-	printf("GetThreadLocal: %d\n", key);
   pthread_key_t pthread_key = static_cast<pthread_key_t>(key);
   return pthread_getspecific(pthread_key);
 }
 
 
 void Thread::SetThreadLocal(LocalStorageKey key, void* value) {
-	printf("SetThreadLocal: %d\n", key);
   pthread_key_t pthread_key = static_cast<pthread_key_t>(key);
   pthread_setspecific(pthread_key, value);
 }
 
 
 void Thread::YieldCPU() {
-	puts("YieldCPU");
   sched_yield();
 }
 
