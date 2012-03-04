@@ -26,6 +26,19 @@
 #include "pcl.h"
 #include "pcl_private.h"
 
+#ifdef Windows
+extern int win_setjmp(jmp_buf _Buf);
+extern int win_longjmp(jmp_buf _Buf, int _Value);
+
+#undef setjmp
+#define setjmp win_setjmp
+
+#undef longjmp
+#define longjmp win_longjmp
+
+#endif
+
+
 #if defined(CO_USE_SIGCONTEXT)
 #include <signal.h>
 #endif
@@ -318,8 +331,13 @@ static int co_set_context(co_ctx_t *ctx, void *func, char *stkbase, long stksiz)
 	*(char**) &ctx->cc[0].__jmpbuf[0].__pc = (char*)func;
 	*(char**) &ctx->cc[0].__jmpbuf[0].__sp = (char*)stack;
 #elif defined(__MINGW32__)
-	*(char**) &ctx->cc[5] = (char*) func;
-	*(char**) &ctx->cc[4] = (char*) stack;
+#if defined(__x86_64__)
+	*(char**) ((char *) &ctx->cc + 0x48) = (char*) func;
+	*(char**) ((char *) &ctx->cc + 0x40) = (char*) stack;
+#else
+	*(char**) ((char *) &ctx->cc + 0x14) = (char*) func;
+	*(char**) ((char *) &ctx->cc + 0x10) = (char*) stack;
+#endif
 #elif defined(__APPLE__)
 /* START Apple */
 #if defined(__x86_64__)
