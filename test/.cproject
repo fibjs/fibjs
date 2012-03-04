@@ -44,7 +44,7 @@
 								<option id="gnu.cpp.link.option.paths.834194039" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/Debug}&quot;"/>
 								</option>
-								<option id="gnu.cpp.link.option.flags.703087209" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-static" valueType="string"/>
+								<option id="gnu.cpp.link.option.flags.703087209" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1638854799" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -497,7 +497,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.exe.release.1269793948." name="/" resourcePath="">
 						<toolChain errorParsers="" id="cdt.managedbuild.toolchain.gnu.exe.release.267013792" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.release">
 							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.exe.release.330464245" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.release"/>
-							<builder buildPath="${workspace_loc:/test/Release}" id="cdt.managedbuild.target.gnu.builder.base.1933216493" superClass="cdt.managedbuild.target.gnu.builder.base"/>
+							<builder buildPath="${workspace_loc:/test/Release}" id="cdt.managedbuild.target.gnu.builder.base.1933216493" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1041687578" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GCCErrorParser" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.236985667" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release">
 								<option id="gnu.cpp.compiler.exe.release.option.optimization.level.2002026416" name="Optimization Level" superClass="gnu.cpp.compiler.exe.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
@@ -522,7 +522,7 @@
 								<option id="gnu.cpp.link.option.paths.680892328" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/Release}&quot;"/>
 								</option>
-								<option id="gnu.cpp.link.option.flags.1572380450" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-static" valueType="string"/>
+								<option id="gnu.cpp.link.option.flags.1572380450" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.950395195" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -975,7 +975,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.exe.debug.24469453.340306668." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.exe.debug.1565256188" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.debug">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.debug.1661077515" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.debug"/>
-							<builder buildPath="${workspace_loc:/test/Debug32}" id="cdt.managedbuild.target.gnu.builder.base.1792527146" superClass="cdt.managedbuild.target.gnu.builder.base"/>
+							<builder buildPath="${workspace_loc:/test/Debug32}" id="cdt.managedbuild.target.gnu.builder.base.1792527146" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.635515399" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.554610839" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug">
 								<option id="gnu.cpp.compiler.exe.debug.option.optimization.level.1655794657" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
@@ -1001,7 +1001,7 @@
 								<option id="gnu.cpp.link.option.paths.1263290048" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/Debug32}&quot;"/>
 								</option>
-								<option id="gnu.cpp.link.option.flags.319362030" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-m32 -static" valueType="string"/>
+								<option id="gnu.cpp.link.option.flags.319362030" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-m32" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.19768042" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -1454,7 +1454,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.exe.release.1269793948.1546829418." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.exe.release.1941915205" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.release">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.release.700269827" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.release"/>
-							<builder buildPath="${workspace_loc:/test/Release32}" id="cdt.managedbuild.target.gnu.builder.base.1585726448" superClass="cdt.managedbuild.target.gnu.builder.base"/>
+							<builder buildPath="${workspace_loc:/test/Release32}" id="cdt.managedbuild.target.gnu.builder.base.1585726448" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1226421418" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1355456820" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release">
 								<option id="gnu.cpp.compiler.exe.release.option.optimization.level.650884711" name="Optimization Level" superClass="gnu.cpp.compiler.exe.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
@@ -1480,7 +1480,7 @@
 								<option id="gnu.cpp.link.option.paths.763440856" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/Release32}&quot;"/>
 								</option>
-								<option id="gnu.cpp.link.option.flags.231716001" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-m32 -static" valueType="string"/>
+								<option id="gnu.cpp.link.option.flags.231716001" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-m32" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.757137721" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -1933,7 +1933,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.exe.debug.24469453.340306668.2000656262." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.base.842544546" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.base">
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.base.936561563" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.gnu.platform.base"/>
-							<builder buildPath="${workspace_loc:/test/WinDebug32}" id="cdt.managedbuild.target.gnu.builder.base.1011567458" superClass="cdt.managedbuild.target.gnu.builder.base"/>
+							<builder buildPath="${workspace_loc:/test/WinDebug32}" id="cdt.managedbuild.target.gnu.builder.base.1011567458" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
 							<tool command="i686-w64-mingw32-g++" id="cdt.managedbuild.tool.gnu.archiver.base.2101699977" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool command="i686-w64-mingw32-g++" id="cdt.managedbuild.tool.gnu.cpp.compiler.base.1175301607" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base">
 								<option id="gnu.cpp.compiler.option.include.paths.641428078" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
@@ -2411,7 +2411,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.exe.release.1269793948.1546829418.1747451676." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.base.597814316" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.base">
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.base.1591439509" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.gnu.platform.base"/>
-							<builder buildPath="${workspace_loc:/test/WinRelease32}" id="cdt.managedbuild.target.gnu.builder.base.1469720100" superClass="cdt.managedbuild.target.gnu.builder.base"/>
+							<builder buildPath="${workspace_loc:/test/WinRelease32}" id="cdt.managedbuild.target.gnu.builder.base.1469720100" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
 							<tool command="i686-w64-mingw32-g++" id="cdt.managedbuild.tool.gnu.archiver.base.1952121674" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool command="i686-w64-mingw32-g++" id="cdt.managedbuild.tool.gnu.cpp.compiler.base.587421575" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base">
 								<option id="gnu.cpp.compiler.option.include.paths.1612353543" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
@@ -3367,7 +3367,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.exe.release.1269793948.1546829418.1747451676.299145098." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.base.764616025" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.base">
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.base.55053609" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.gnu.platform.base"/>
-							<builder buildPath="${workspace_loc:/test/WinRelease}" id="cdt.managedbuild.target.gnu.builder.base.1125777709" superClass="cdt.managedbuild.target.gnu.builder.base"/>
+							<builder buildPath="${workspace_loc:/test/WinRelease}" id="cdt.managedbuild.target.gnu.builder.base.1125777709" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
 							<tool command="x86_64-w64-mingw32-g++" id="cdt.managedbuild.tool.gnu.archiver.base.1222763072" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool command="x86_64-w64-mingw32-g++" id="cdt.managedbuild.tool.gnu.cpp.compiler.base.767225023" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base">
 								<option id="gnu.cpp.compiler.option.include.paths.1351374300" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
