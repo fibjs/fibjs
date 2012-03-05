@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeLite_Workspace Name="exlib" Database="./exlib.tags">
+  <Project Name="vender" Path="vender/vender.project" Active="No"/>
+  <Project Name="test" Path="test/test.project" Active="Yes"/>
+  <BuildMatrix>
+    <WorkspaceConfiguration Name="Debug" Selected="yes">
+      <Project Name="vender" ConfigName="Debug"/>
+      <Project Name="test" ConfigName="Debug"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Release" Selected="no">
+      <Project Name="vender" ConfigName="Release"/>
+      <Project Name="test" ConfigName="Release"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Debug32" Selected="no">
+      <Project Name="vender" ConfigName="Debug32"/>
+      <Project Name="test" ConfigName="Debug32"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Release32" Selected="no">
+      <Project Name="vender" ConfigName="Release32"/>
+      <Project Name="test" ConfigName="Release32"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="WinDebug" Selected="no">
+      <Project Name="vender" ConfigName="WinDebug"/>
+      <Project Name="test" ConfigName="WinDebug"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="WinDebug32" Selected="no">
+      <Project Name="vender" ConfigName="WinDebug32"/>
+      <Project Name="test" ConfigName="WinDebug32"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="WinRelease" Selected="no">
+      <Project Name="vender" ConfigName="WinRelease"/>
+      <Project Name="test" ConfigName="WinRelease"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="WinRelease32" Selected="no">
+      <Project Name="vender" ConfigName="WinRelease32"/>
+      <Project Name="test" ConfigName="WinRelease32"/>
+    </WorkspaceConfiguration>
+  </BuildMatrix>
+</CodeLite_Workspace>
