@@ -26,19 +26,6 @@
 #include "pcl.h"
 #include "pcl_private.h"
 
-#ifdef Windows
-extern int win_setjmp(jmp_buf _Buf);
-extern int win_longjmp(jmp_buf _Buf, int _Value);
-
-#undef setjmp
-#define setjmp win_setjmp
-
-#undef longjmp
-#define longjmp win_longjmp
-
-#endif
-
-
 #if defined(CO_USE_SIGCONTEXT)
 #include <signal.h>
 #endif
@@ -148,8 +135,8 @@ static void co_ctx_bootstrap(void)
 	 * Save current machine state (on new stack) and
 	 * go back to caller until we're scheduled for real...
 	 */
-	if (!setjmp(ctx_starting->cc))
-		longjmp(ctx_caller.cc, 1);
+	if (!pcl_setjmp(ctx_starting->cc))
+		pcl_longjmp(ctx_caller.cc, 1);
 
 	/*
 	 * The new thread is now running: GREAT!
@@ -173,13 +160,13 @@ static void co_ctx_trampoline(int sig)
 	 * good (for instance it wouldn't allow us to spawn a thread
 	 * from within a thread, etc.)
 	 */
-	if (setjmp(ctx_trampoline.cc) == 0) {
+	if (pcl_setjmp(ctx_trampoline.cc) == 0) {
 		ctx_called = 1;
 		return;
 	}
 
 	/*
-	 * Ok, the caller has longjmp'ed back to us, so now prepare
+	 * Ok, the caller has pcl_longjmp'ed back to us, so now prepare
 	 * us for the real machine state switching. We have to jump
 	 * into another function here to get a new stack context for
 	 * the auto variables (which have to be auto-variables
@@ -252,7 +239,7 @@ static int co_set_context(co_ctx_t *ctx, void *func, char *stkbase, long stksiz)
 
 	/*
 	 * Now transfer control onto the signal stack and set it up.
-	 * It will return immediately via "return" after the setjmp()
+	 * It will return immediately via "return" after the pcl_setjmp()
 	 * was performed. Be careful here with race conditions.  The
 	 * signal can be delivered the first time sigsuspend() is
 	 * called.
@@ -303,8 +290,8 @@ static int co_set_context(co_ctx_t *ctx, void *func, char *stkbase, long stksiz)
 	 * Now enter the trampoline again, but this time not as a signal
 	 * handler. Instead we jump into it directly.
 	 */
-	if (setjmp(ctx_caller.cc) == 0)
-		longjmp(ctx_trampoline.cc, 1);
+	if (pcl_setjmp(ctx_caller.cc) == 0)
+		pcl_longjmp(ctx_trampoline.cc, 1);
 
 	return 0;
 }
@@ -317,60 +304,14 @@ static int co_set_context(co_ctx_t *ctx, void *func, char *stkbase, long stksiz)
 
 	stack = stkbase + stksiz - sizeof(long);
 
-	setjmp(ctx->cc);
+	pcl_setjmp(ctx->cc);
 
-#if defined(__GLIBC__) && defined(__GLIBC_MINOR__)			\
-	&& __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 0 && defined(JB_PC) && defined(JB_SP)
-	*(char**) &ctx->cc[0].__jmpbuf[JB_PC] = (char*) func;
-	*(char**) &ctx->cc[0].__jmpbuf[JB_SP] = (char*) stack;
-#elif defined(__GLIBC__) && defined(__GLIBC_MINOR__)			\
-	&& __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 0 && defined(__mc68000__)
-	*(char**) &ctx->cc[0].__jmpbuf[0].__aregs[0] = (char*) func;
-	*(char**) &ctx->cc[0].__jmpbuf[0].__sp = (char *) stack;
-#elif defined(__GNU_LIBRARY__) && defined(__i386__)
-	*(char**) &ctx->cc[0].__jmpbuf[0].__pc = (char*)func;
-	*(char**) &ctx->cc[0].__jmpbuf[0].__sp = (char*)stack;
-#elif defined(__MINGW32__)
 #if defined(__x86_64__)
 	*(char**) ((char *) &ctx->cc + 0x48) = (char*) func;
 	*(char**) ((char *) &ctx->cc + 0x40) = (char*) stack;
 #else
 	*(char**) ((char *) &ctx->cc + 0x14) = (char*) func;
 	*(char**) ((char *) &ctx->cc + 0x10) = (char*) stack;
-#endif
-#elif defined(__APPLE__)
-/* START Apple */
-#if defined(__x86_64__)
-	*(char**) ((char *) &ctx->cc + 56) = (char*) func;
-	*(char**) ((char *) &ctx->cc + 16) = (char*) stack;
-#elif defined(__i386__)
-	*(char* *) ((char *) &ctx->cc + 48) = (char*) func;
-	*(char* *) ((char *) &ctx->cc + 36) = (char*) stack;
-#elif defined(__arm__)
-	*(char* *) ((char *) &ctx->cc + 32) = (char*) func;
-	*(char* *) ((char *) &ctx->cc + 28) = (char*) stack;
-#else
-#error "PCL: Unsupported setjmp/longjmp OSX CPU. Please report to <davidel@xmailserver.org>"
-#endif
-/* END Apple */
-#elif defined(_WIN32) && defined(_MSC_VER)
-/* START Windows */
-#if defined(_M_IX86)
-	((_JUMP_BUFFER *) &ctx->cc)->Eip = (char*) func;
-	((_JUMP_BUFFER *) &ctx->cc)->Esp = (char*) stack;
-#elif defined(_M_AMD64)
-	((_JUMP_BUFFER *) &ctx->cc)->Rip = (char*) func;
-	((_JUMP_BUFFER *) &ctx->cc)->Rsp = (char*) stack;
-#else
-#error "PCL: Unsupported setjmp/longjmp Windows CPU. Please report to <davidel@xmailserver.org>"
-#endif
-/* END Windows */
-#elif defined(__GLIBC__) && defined(__GLIBC_MINOR__)			\
-	&& __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 0 && (defined(__powerpc64__) || defined(__powerpc__))
-	ctx->cc[0].__jmpbuf[JB_LR] = (char*) func;
-	ctx->cc[0].__jmpbuf[JB_GPR1] = (char*) stack;
-#else
-#error "PCL: Unsupported setjmp/longjmp platform. Please report to <davidel@xmailserver.org>"
 #endif
 
 	return 0;
@@ -380,8 +321,8 @@ static int co_set_context(co_ctx_t *ctx, void *func, char *stkbase, long stksiz)
 
 static void co_switch_context(co_ctx_t *octx, co_ctx_t *nctx)
 {
-	if (setjmp(octx->cc) == 0)
-		longjmp(nctx->cc, 1);
+	if (pcl_setjmp(octx->cc) == 0)
+		pcl_longjmp(nctx->cc, 1);
 }
 
 #endif /* #if defined(CO_USE_UCONEXT) */

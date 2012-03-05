@@ -46,7 +46,7 @@
  * Use this if the system has a working getcontext/makecontext/swapcontext
  * implementation.
  */
-#define CO_USE_UCONEXT
+//#define CO_USE_UCONEXT
 /*
  * Use threads.
  */

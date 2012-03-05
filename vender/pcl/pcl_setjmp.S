@@ -1,36 +1,10 @@
+#include <osconfig.h>
+
 .section	.text
 
-.ifdef x86
-
-.globl _win_setjmp, _win_longjmp
-_win_setjmp:
-	movl	(%esp), %ecx
-	leal	4(%esp), %edx
-	movl	(%edx), %eax
-	movl	%ebx, (%eax)
-	movl	%esi, 0x04(%eax)
-	movl	%edi, 0x08(%eax)
-	movl	%ebp, 0x0c(%eax)
-	movl	%edx, 0x10(%eax)
-	movl	%ecx, 0x14(%eax)
-	xorl	%eax, %eax
-	ret
-
-_win_longjmp:
-	movl	0x4(%esp), %ecx
-	movl	0x8(%esp), %eax
-	movl	(%ecx), %ebx
-	movl	0x04(%ecx), %esi
-	movl	0x08(%ecx), %edi
-	movl	0x0c(%ecx), %ebp
-	movl	0x10(%ecx), %esp
-	movl	0x14(%ecx), %edx
-	jmp 	*%edx
-
-.else
+#ifdef x64
 
 .globl win_setjmp, win_longjmp, nix_setjmp, nix_longjmp
-nix_setjmp:
 win_setjmp:
 	leaq	8(%rsp),%rdx
 	movq	(%rsp),%rax
@@ -47,7 +21,6 @@ win_setjmp:
 	xorq	%rax,%rax
 	ret
 
-nix_longjmp:
 win_longjmp:
 	movq	(%rcx), %rbx
 	movq	0x08(%rcx), %rbp
@@ -62,4 +35,64 @@ win_longjmp:
 	xchgq	%rdx, %rax
 	jmp *%rdx
 
-.endif
+nix_setjmp:
+	leaq	8(%rsp),%rdx
+	movq	(%rsp),%rax
+	movq	%rbx,(%rdi)
+	movq	%rbp,0x08(%rdi)
+#	movq	%rsi,0x10(%rdi)
+#	movq	%rdi,0x18(%rdi)
+	movq	%r12,0x20(%rdi)
+	movq	%r13,0x28(%rdi)
+	movq	%r14,0x30(%rdi)
+	movq	%r15,0x38(%rdi)
+	movq	%rdx,0x40(%rdi)
+	movq	%rax,0x48(%rdi)
+	xorq	%rax,%rax
+	ret
+
+nix_longjmp:
+	movq	(%rdi), %rbx
+	movq	0x08(%rdi), %rbp
+#	movq	0x10(%rdi), %rsi
+#	movq	0x18(%rdi), %rdi
+	movq	0x20(%rdi), %r12
+	movq	0x28(%rdi), %r13
+	movq	0x30(%rdi), %r14
+	movq	0x38(%rdi), %r15
+	movq	0x40(%rdi), %rsp
+	movq	0x48(%rdi), %rax
+	xchgq	%rsi, %rax
+	jmp *%rsi
+
+#else
+
+.globl _win_setjmp, _win_longjmp, nix_setjmp, nix_longjmp
+nix_setjmp:
+_win_setjmp:
+	movl	(%esp), %ecx
+	leal	4(%esp), %edx
+	movl	(%edx), %eax
+	movl	%ebx, (%eax)
+	movl	%esi, 0x04(%eax)
+	movl	%edi, 0x08(%eax)
+	movl	%ebp, 0x0c(%eax)
+	movl	%edx, 0x10(%eax)
+	movl	%ecx, 0x14(%eax)
+	xorl	%eax, %eax
+	ret
+
+nix_longjmp:
+_win_longjmp:
+	movl	0x4(%esp), %ecx
+	movl	0x8(%esp), %eax
+	movl	(%ecx), %ebx
+	movl	0x04(%ecx), %esi
+	movl	0x08(%ecx), %edi
+	movl	0x0c(%ecx), %ebp
+	movl	0x10(%ecx), %esp
+	movl	0x14(%ecx), %edx
+	jmp 	*%edx
+
+#endif
+

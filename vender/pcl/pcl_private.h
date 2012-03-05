@@ -33,9 +33,9 @@
 
 typedef ucontext_t co_core_ctx_t;
 #else
-#include <setjmp.h>
+#include "pcl_setjmp.h"
 
-typedef jmp_buf co_core_ctx_t;
+typedef pcl_buf co_core_ctx_t;
 #endif
 
 /*
