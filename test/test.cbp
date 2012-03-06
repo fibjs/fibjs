@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="test" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/test" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add library="pthread" />
+					<Add directory="../vender/bin/Debug" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/test" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="pthread" />
+					<Add directory="../vender/bin/Release" />
+				</Linker>
+			</Target>
+			<Target title="Debug32">
+				<Option output="bin/Debug32/test" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug32/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-m32" />
+				</Compiler>
+				<Linker>
+					<Add option="-m32" />
+					<Add library="pthread" />
+					<Add directory="../vender/bin/Debug32" />
+				</Linker>
+			</Target>
+			<Target title="Release32">
+				<Option output="bin/Release32/test" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release32/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+					<Add option="-m32" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-m32" />
+					<Add library="pthread" />
+					<Add directory="../vender/bin/Release32" />
+				</Linker>
+			</Target>
+			<Target title="WinDebug">
+				<Option output="bin/WinDebug/test.exe" prefix_auto="1" extension_auto="0" />
+				<Option object_output="obj/WinDebug/" />
+				<Option type="1" />
+				<Option compiler="gnu_gcc_compiler_for_mingw64" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add library="winmm" />
+					<Add library="ws2_32" />
+					<Add directory="../vender/bin/WinDebug" />
+				</Linker>
+			</Target>
+			<Target title="WinRelease">
+				<Option output="bin/WinRelease/test.exe" prefix_auto="1" extension_auto="0" />
+				<Option object_output="obj/WinRelease/" />
+				<Option type="1" />
+				<Option compiler="gnu_gcc_compiler_for_mingw64" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="winmm" />
+					<Add library="ws2_32" />
+					<Add directory="../vender/bin/WinRelease" />
+				</Linker>
+			</Target>
+			<Target title="WinDebug32">
+				<Option output="bin/WinDebug32/test.exe" prefix_auto="1" extension_auto="0" />
+				<Option object_output="obj/WinDebug32/" />
+				<Option type="1" />
+				<Option compiler="gnu_gcc_compiler_for_mingw" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add library="winmm" />
+					<Add library="ws2_32" />
+					<Add directory="../vender/bin/WinDebug32" />
+				</Linker>
+			</Target>
+			<Target title="WinRelease32">
+				<Option output="bin/WinRelease32/test.exe" prefix_auto="1" extension_auto="0" />
+				<Option object_output="obj/WinRelease32/" />
+				<Option type="1" />
+				<Option compiler="gnu_gcc_compiler_for_mingw" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="winmm" />
+					<Add library="ws2_32" />
+					<Add directory="../vender/bin/WinRelease32" />
+				</Linker>
+			</Target>
+		</Build>
+		<VirtualTargets>
+			<Add alias="posix" targets="Debug;Release;Debug32;Release32;" />
+			<Add alias="windows" targets="WinDebug;WinRelease;WinDebug32;WinRelease32;" />
+		</VirtualTargets>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+			<Add directory="../vender/include" />
+		</Compiler>
+		<Linker>
+			<Add library="vender" />
+		</Linker>
+		<Unit filename="src/pcl.cpp" />
+		<Unit filename="src/test.cpp" />
+		<Unit filename="src/v8.cpp" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

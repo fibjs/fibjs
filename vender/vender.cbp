@@ -1,0 +1,504 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="vender" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/libvender" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Debug/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/libvender" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="Debug32">
+				<Option output="bin/Debug32/libvender" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Debug32/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-m32" />
+				</Compiler>
+				<Linker>
+					<Add option="-m32" />
+				</Linker>
+			</Target>
+			<Target title="Release32">
+				<Option output="bin/Release32/libvender" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release32/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+					<Add option="-m32" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-m32" />
+				</Linker>
+			</Target>
+			<Target title="WinDebug">
+				<Option output="bin/WinDebug/libvender" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/WinDebug/" />
+				<Option type="2" />
+				<Option compiler="gnu_gcc_compiler_for_mingw64" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="WinRelease">
+				<Option output="bin/WinRelease/libvender" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/WinRelease/" />
+				<Option type="2" />
+				<Option compiler="gnu_gcc_compiler_for_mingw64" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="WinDebug32">
+				<Option output="bin/WinDebug32/libvender" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/WinDebug32/" />
+				<Option type="2" />
+				<Option compiler="gnu_gcc_compiler_for_mingw" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="WinRelease32">
+				<Option output="bin/WinRelease32/libvender" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/WinRelease32/" />
+				<Option type="2" />
+				<Option compiler="gnu_gcc_compiler_for_mingw" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<VirtualTargets>
+			<Add alias="posix" targets="Debug;Release;Debug32;Release32;" />
+			<Add alias="windows" targets="WinDebug;WinRelease;WinDebug32;WinRelease32;" />
+		</VirtualTargets>
+		<Compiler>
+			<Add directory="include" />
+			<Add directory="v8/src" />
+		</Compiler>
+		<Unit filename="include/osconfig.h" />
+		<Unit filename="include/pcl/pcl.h" />
+		<Unit filename="include/v8/v8-debug.h" />
+		<Unit filename="include/v8/v8-preparser.h" />
+		<Unit filename="include/v8/v8-profiler.h" />
+		<Unit filename="include/v8/v8-testing.h" />
+		<Unit filename="include/v8/v8.h" />
+		<Unit filename="include/v8/v8stdint.h" />
+		<Unit filename="pcl/config.h" />
+		<Unit filename="pcl/pcl.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="pcl/pcl.h" />
+		<Unit filename="pcl/pcl_config.h" />
+		<Unit filename="pcl/pcl_private.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="pcl/pcl_private.h" />
+		<Unit filename="pcl/pcl_setjmp.S" />
+		<Unit filename="pcl/pcl_setjmp.h" />
+		<Unit filename="pcl/winconfig.h" />
+		<Unit filename="v8/include/v8-debug.h" />
+		<Unit filename="v8/include/v8-preparser.h" />
+		<Unit filename="v8/include/v8-profiler.h" />
+		<Unit filename="v8/include/v8-testing.h" />
+		<Unit filename="v8/include/v8.h" />
+		<Unit filename="v8/include/v8stdint.h" />
+		<Unit filename="v8/src/accessors.cc" />
+		<Unit filename="v8/src/accessors.h" />
+		<Unit filename="v8/src/allocation-inl.h" />
+		<Unit filename="v8/src/allocation.cc" />
+		<Unit filename="v8/src/allocation.h" />
+		<Unit filename="v8/src/api.cc" />
+		<Unit filename="v8/src/api.h" />
+		<Unit filename="v8/src/apiutils.h" />
+		<Unit filename="v8/src/arguments.h" />
+		<Unit filename="v8/src/assembler.cc" />
+		<Unit filename="v8/src/assembler.h" />
+		<Unit filename="v8/src/ast.cc" />
+		<Unit filename="v8/src/ast.h" />
+		<Unit filename="v8/src/atomicops.h" />
+		<Unit filename="v8/src/atomicops_internals_x86_gcc.cc" />
+		<Unit filename="v8/src/atomicops_internals_x86_gcc.h" />
+		<Unit filename="v8/src/atomicops_internals_x86_macosx.h" />
+		<Unit filename="v8/src/bignum-dtoa.cc" />
+		<Unit filename="v8/src/bignum-dtoa.h" />
+		<Unit filename="v8/src/bignum.cc" />
+		<Unit filename="v8/src/bignum.h" />
+		<Unit filename="v8/src/bootstrapper.cc" />
+		<Unit filename="v8/src/bootstrapper.h" />
+		<Unit filename="v8/src/builtins.cc" />
+		<Unit filename="v8/src/builtins.h" />
+		<Unit filename="v8/src/bytecodes-irregexp.h" />
+		<Unit filename="v8/src/cached-powers.cc" />
+		<Unit filename="v8/src/cached-powers.h" />
+		<Unit filename="v8/src/char-predicates-inl.h" />
+		<Unit filename="v8/src/char-predicates.h" />
+		<Unit filename="v8/src/checks.cc" />
+		<Unit filename="v8/src/checks.h" />
+		<Unit filename="v8/src/circular-queue-inl.h" />
+		<Unit filename="v8/src/circular-queue.cc" />
+		<Unit filename="v8/src/circular-queue.h" />
+		<Unit filename="v8/src/code-stubs.cc" />
+		<Unit filename="v8/src/code-stubs.h" />
+		<Unit filename="v8/src/code.h" />
+		<Unit filename="v8/src/codegen.cc" />
+		<Unit filename="v8/src/codegen.h" />
+		<Unit filename="v8/src/compilation-cache.cc" />
+		<Unit filename="v8/src/compilation-cache.h" />
+		<Unit filename="v8/src/compiler-intrinsics.h" />
+		<Unit filename="v8/src/compiler.cc" />
+		<Unit filename="v8/src/compiler.h" />
+		<Unit filename="v8/src/contexts.cc" />
+		<Unit filename="v8/src/contexts.h" />
+		<Unit filename="v8/src/conversions-inl.h" />
+		<Unit filename="v8/src/conversions.cc" />
+		<Unit filename="v8/src/conversions.h" />
+		<Unit filename="v8/src/counters.cc" />
+		<Unit filename="v8/src/counters.h" />
+		<Unit filename="v8/src/cpu-profiler-inl.h" />
+		<Unit filename="v8/src/cpu-profiler.cc" />
+		<Unit filename="v8/src/cpu-profiler.h" />
+		<Unit filename="v8/src/cpu.h" />
+		<Unit filename="v8/src/data-flow.cc" />
+		<Unit filename="v8/src/data-flow.h" />
+		<Unit filename="v8/src/dateparser-inl.h" />
+		<Unit filename="v8/src/dateparser.cc" />
+		<Unit filename="v8/src/dateparser.h" />
+		<Unit filename="v8/src/debug-agent.cc" />
+		<Unit filename="v8/src/debug-agent.h" />
+		<Unit filename="v8/src/debug.cc" />
+		<Unit filename="v8/src/debug.h" />
+		<Unit filename="v8/src/deoptimizer.cc" />
+		<Unit filename="v8/src/deoptimizer.h" />
+		<Unit filename="v8/src/disasm.h" />
+		<Unit filename="v8/src/disassembler.cc" />
+		<Unit filename="v8/src/disassembler.h" />
+		<Unit filename="v8/src/diy-fp.cc" />
+		<Unit filename="v8/src/diy-fp.h" />
+		<Unit filename="v8/src/double.h" />
+		<Unit filename="v8/src/dtoa.cc" />
+		<Unit filename="v8/src/dtoa.h" />
+		<Unit filename="v8/src/elements.cc" />
+		<Unit filename="v8/src/elements.h" />
+		<Unit filename="v8/src/execution.cc" />
+		<Unit filename="v8/src/execution.h" />
+		<Unit filename="v8/src/experimental-libraries.cc" />
+		<Unit filename="v8/src/extensions/externalize-string-extension.cc" />
+		<Unit filename="v8/src/extensions/externalize-string-extension.h" />
+		<Unit filename="v8/src/extensions/gc-extension.cc" />
+		<Unit filename="v8/src/extensions/gc-extension.h" />
+		<Unit filename="v8/src/factory.cc" />
+		<Unit filename="v8/src/factory.h" />
+		<Unit filename="v8/src/fast-dtoa.cc" />
+		<Unit filename="v8/src/fast-dtoa.h" />
+		<Unit filename="v8/src/fixed-dtoa.cc" />
+		<Unit filename="v8/src/fixed-dtoa.h" />
+		<Unit filename="v8/src/flag-definitions.h" />
+		<Unit filename="v8/src/flags.cc" />
+		<Unit filename="v8/src/flags.h" />
+		<Unit filename="v8/src/frames-inl.h" />
+		<Unit filename="v8/src/frames.cc" />
+		<Unit filename="v8/src/frames.h" />
+		<Unit filename="v8/src/full-codegen.cc" />
+		<Unit filename="v8/src/full-codegen.h" />
+		<Unit filename="v8/src/func-name-inferrer.cc" />
+		<Unit filename="v8/src/func-name-inferrer.h" />
+		<Unit filename="v8/src/gdb-jit.cc" />
+		<Unit filename="v8/src/gdb-jit.h" />
+		<Unit filename="v8/src/global-handles.cc" />
+		<Unit filename="v8/src/global-handles.h" />
+		<Unit filename="v8/src/globals.h" />
+		<Unit filename="v8/src/handles-inl.h" />
+		<Unit filename="v8/src/handles.cc" />
+		<Unit filename="v8/src/handles.h" />
+		<Unit filename="v8/src/hashmap.h" />
+		<Unit filename="v8/src/heap-inl.h" />
+		<Unit filename="v8/src/heap-profiler.cc" />
+		<Unit filename="v8/src/heap-profiler.h" />
+		<Unit filename="v8/src/heap.cc" />
+		<Unit filename="v8/src/heap.h" />
+		<Unit filename="v8/src/hydrogen-instructions.cc" />
+		<Unit filename="v8/src/hydrogen-instructions.h" />
+		<Unit filename="v8/src/hydrogen.cc" />
+		<Unit filename="v8/src/hydrogen.h" />
+		<Unit filename="v8/src/ia32/assembler-ia32-inl.h" />
+		<Unit filename="v8/src/ia32/assembler-ia32.cc" />
+		<Unit filename="v8/src/ia32/assembler-ia32.h" />
+		<Unit filename="v8/src/ia32/builtins-ia32.cc" />
+		<Unit filename="v8/src/ia32/code-stubs-ia32.cc" />
+		<Unit filename="v8/src/ia32/code-stubs-ia32.h" />
+		<Unit filename="v8/src/ia32/codegen-ia32.cc" />
+		<Unit filename="v8/src/ia32/codegen-ia32.h" />
+		<Unit filename="v8/src/ia32/cpu-ia32.cc" />
+		<Unit filename="v8/src/ia32/debug-ia32.cc" />
+		<Unit filename="v8/src/ia32/deoptimizer-ia32.cc" />
+		<Unit filename="v8/src/ia32/disasm-ia32.cc" />
+		<Unit filename="v8/src/ia32/frames-ia32.cc" />
+		<Unit filename="v8/src/ia32/frames-ia32.h" />
+		<Unit filename="v8/src/ia32/full-codegen-ia32.cc" />
+		<Unit filename="v8/src/ia32/ic-ia32.cc" />
+		<Unit filename="v8/src/ia32/lithium-codegen-ia32.cc" />
+		<Unit filename="v8/src/ia32/lithium-codegen-ia32.h" />
+		<Unit filename="v8/src/ia32/lithium-gap-resolver-ia32.cc" />
+		<Unit filename="v8/src/ia32/lithium-gap-resolver-ia32.h" />
+		<Unit filename="v8/src/ia32/lithium-ia32.cc" />
+		<Unit filename="v8/src/ia32/lithium-ia32.h" />
+		<Unit filename="v8/src/ia32/macro-assembler-ia32.cc" />
+		<Unit filename="v8/src/ia32/macro-assembler-ia32.h" />
+		<Unit filename="v8/src/ia32/regexp-macro-assembler-ia32.cc" />
+		<Unit filename="v8/src/ia32/regexp-macro-assembler-ia32.h" />
+		<Unit filename="v8/src/ia32/simulator-ia32.cc" />
+		<Unit filename="v8/src/ia32/simulator-ia32.h" />
+		<Unit filename="v8/src/ia32/stub-cache-ia32.cc" />
+		<Unit filename="v8/src/ic-inl.h" />
+		<Unit filename="v8/src/ic.cc" />
+		<Unit filename="v8/src/ic.h" />
+		<Unit filename="v8/src/incremental-marking-inl.h" />
+		<Unit filename="v8/src/incremental-marking.cc" />
+		<Unit filename="v8/src/incremental-marking.h" />
+		<Unit filename="v8/src/inspector.cc" />
+		<Unit filename="v8/src/inspector.h" />
+		<Unit filename="v8/src/interpreter-irregexp.cc" />
+		<Unit filename="v8/src/interpreter-irregexp.h" />
+		<Unit filename="v8/src/isolate-inl.h" />
+		<Unit filename="v8/src/isolate.cc" />
+		<Unit filename="v8/src/isolate.h" />
+		<Unit filename="v8/src/json-parser.h" />
+		<Unit filename="v8/src/jsregexp.cc" />
+		<Unit filename="v8/src/jsregexp.h" />
+		<Unit filename="v8/src/libraries.cc" />
+		<Unit filename="v8/src/list-inl.h" />
+		<Unit filename="v8/src/list.h" />
+		<Unit filename="v8/src/lithium-allocator-inl.h" />
+		<Unit filename="v8/src/lithium-allocator.cc" />
+		<Unit filename="v8/src/lithium-allocator.h" />
+		<Unit filename="v8/src/lithium.cc" />
+		<Unit filename="v8/src/lithium.h" />
+		<Unit filename="v8/src/liveedit.cc" />
+		<Unit filename="v8/src/liveedit.h" />
+		<Unit filename="v8/src/liveobjectlist-inl.h" />
+		<Unit filename="v8/src/liveobjectlist.cc" />
+		<Unit filename="v8/src/liveobjectlist.h" />
+		<Unit filename="v8/src/log-inl.h" />
+		<Unit filename="v8/src/log-utils.cc" />
+		<Unit filename="v8/src/log-utils.h" />
+		<Unit filename="v8/src/log.cc" />
+		<Unit filename="v8/src/log.h" />
+		<Unit filename="v8/src/macro-assembler.h" />
+		<Unit filename="v8/src/mark-compact-inl.h" />
+		<Unit filename="v8/src/mark-compact.cc" />
+		<Unit filename="v8/src/mark-compact.h" />
+		<Unit filename="v8/src/messages.cc" />
+		<Unit filename="v8/src/messages.h" />
+		<Unit filename="v8/src/misc-intrinsics.h" />
+		<Unit filename="v8/src/natives.h" />
+		<Unit filename="v8/src/objects-debug.cc" />
+		<Unit filename="v8/src/objects-inl.h" />
+		<Unit filename="v8/src/objects-printer.cc" />
+		<Unit filename="v8/src/objects-visiting-inl.h" />
+		<Unit filename="v8/src/objects-visiting.cc" />
+		<Unit filename="v8/src/objects-visiting.h" />
+		<Unit filename="v8/src/objects.cc" />
+		<Unit filename="v8/src/objects.h" />
+		<Unit filename="v8/src/parser.cc" />
+		<Unit filename="v8/src/parser.h" />
+		<Unit filename="v8/src/platform-freebsd.cc" />
+		<Unit filename="v8/src/platform-linux.cc" />
+		<Unit filename="v8/src/platform-macos.cc" />
+		<Unit filename="v8/src/platform-openbsd.cc" />
+		<Unit filename="v8/src/platform-posix.cc" />
+		<Unit filename="v8/src/platform-solaris.cc" />
+		<Unit filename="v8/src/platform-tls-mac.h" />
+		<Unit filename="v8/src/platform-tls-win32.h" />
+		<Unit filename="v8/src/platform-tls.h" />
+		<Unit filename="v8/src/platform-win32.cc" />
+		<Unit filename="v8/src/platform.h" />
+		<Unit filename="v8/src/preparse-data-format.h" />
+		<Unit filename="v8/src/preparse-data.cc" />
+		<Unit filename="v8/src/preparse-data.h" />
+		<Unit filename="v8/src/preparser-api.cc" />
+		<Unit filename="v8/src/preparser.cc" />
+		<Unit filename="v8/src/preparser.h" />
+		<Unit filename="v8/src/prettyprinter.cc" />
+		<Unit filename="v8/src/prettyprinter.h" />
+		<Unit filename="v8/src/profile-generator-inl.h" />
+		<Unit filename="v8/src/profile-generator.cc" />
+		<Unit filename="v8/src/profile-generator.h" />
+		<Unit filename="v8/src/property-details.h" />
+		<Unit filename="v8/src/property.cc" />
+		<Unit filename="v8/src/property.h" />
+		<Unit filename="v8/src/regexp-macro-assembler-irregexp-inl.h" />
+		<Unit filename="v8/src/regexp-macro-assembler-irregexp.cc" />
+		<Unit filename="v8/src/regexp-macro-assembler-irregexp.h" />
+		<Unit filename="v8/src/regexp-macro-assembler-tracer.cc" />
+		<Unit filename="v8/src/regexp-macro-assembler-tracer.h" />
+		<Unit filename="v8/src/regexp-macro-assembler.cc" />
+		<Unit filename="v8/src/regexp-macro-assembler.h" />
+		<Unit filename="v8/src/regexp-stack.cc" />
+		<Unit filename="v8/src/regexp-stack.h" />
+		<Unit filename="v8/src/rewriter.cc" />
+		<Unit filename="v8/src/rewriter.h" />
+		<Unit filename="v8/src/runtime-profiler.cc" />
+		<Unit filename="v8/src/runtime-profiler.h" />
+		<Unit filename="v8/src/runtime.cc" />
+		<Unit filename="v8/src/runtime.h" />
+		<Unit filename="v8/src/safepoint-table.cc" />
+		<Unit filename="v8/src/safepoint-table.h" />
+		<Unit filename="v8/src/scanner-character-streams.cc" />
+		<Unit filename="v8/src/scanner-character-streams.h" />
+		<Unit filename="v8/src/scanner.cc" />
+		<Unit filename="v8/src/scanner.h" />
+		<Unit filename="v8/src/scopeinfo.cc" />
+		<Unit filename="v8/src/scopeinfo.h" />
+		<Unit filename="v8/src/scopes.cc" />
+		<Unit filename="v8/src/scopes.h" />
+		<Unit filename="v8/src/serialize.cc" />
+		<Unit filename="v8/src/serialize.h" />
+		<Unit filename="v8/src/simulator.h" />
+		<Unit filename="v8/src/small-pointer-list.h" />
+		<Unit filename="v8/src/smart-array-pointer.h" />
+		<Unit filename="v8/src/snapshot-common.cc" />
+		<Unit filename="v8/src/snapshot-empty.cc" />
+		<Unit filename="v8/src/snapshot.h" />
+		<Unit filename="v8/src/spaces-inl.h" />
+		<Unit filename="v8/src/spaces.cc" />
+		<Unit filename="v8/src/spaces.h" />
+		<Unit filename="v8/src/splay-tree-inl.h" />
+		<Unit filename="v8/src/splay-tree.h" />
+		<Unit filename="v8/src/store-buffer-inl.h" />
+		<Unit filename="v8/src/store-buffer.cc" />
+		<Unit filename="v8/src/store-buffer.h" />
+		<Unit filename="v8/src/string-search.cc" />
+		<Unit filename="v8/src/string-search.h" />
+		<Unit filename="v8/src/string-stream.cc" />
+		<Unit filename="v8/src/string-stream.h" />
+		<Unit filename="v8/src/strtod.cc" />
+		<Unit filename="v8/src/strtod.h" />
+		<Unit filename="v8/src/stub-cache.cc" />
+		<Unit filename="v8/src/stub-cache.h" />
+		<Unit filename="v8/src/third_party/valgrind/valgrind.h" />
+		<Unit filename="v8/src/token.cc" />
+		<Unit filename="v8/src/token.h" />
+		<Unit filename="v8/src/type-info.cc" />
+		<Unit filename="v8/src/type-info.h" />
+		<Unit filename="v8/src/unbound-queue-inl.h" />
+		<Unit filename="v8/src/unbound-queue.h" />
+		<Unit filename="v8/src/unicode-inl.h" />
+		<Unit filename="v8/src/unicode.cc" />
+		<Unit filename="v8/src/unicode.h" />
+		<Unit filename="v8/src/utils-inl.h" />
+		<Unit filename="v8/src/utils.cc" />
+		<Unit filename="v8/src/utils.h" />
+		<Unit filename="v8/src/v8-counters.cc" />
+		<Unit filename="v8/src/v8-counters.h" />
+		<Unit filename="v8/src/v8.cc" />
+		<Unit filename="v8/src/v8.h" />
+		<Unit filename="v8/src/v8checks.h" />
+		<Unit filename="v8/src/v8conversions.cc" />
+		<Unit filename="v8/src/v8conversions.h" />
+		<Unit filename="v8/src/v8globals.h" />
+		<Unit filename="v8/src/v8memory.h" />
+		<Unit filename="v8/src/v8threads.cc" />
+		<Unit filename="v8/src/v8threads.h" />
+		<Unit filename="v8/src/v8utils.cc" />
+		<Unit filename="v8/src/v8utils.h" />
+		<Unit filename="v8/src/variables.cc" />
+		<Unit filename="v8/src/variables.h" />
+		<Unit filename="v8/src/version.cc" />
+		<Unit filename="v8/src/version.h" />
+		<Unit filename="v8/src/vm-state-inl.h" />
+		<Unit filename="v8/src/vm-state.h" />
+		<Unit filename="v8/src/win32-headers.h" />
+		<Unit filename="v8/src/win32-math.cc" />
+		<Unit filename="v8/src/win32-math.h" />
+		<Unit filename="v8/src/x64/assembler-x64-inl.h" />
+		<Unit filename="v8/src/x64/assembler-x64.cc" />
+		<Unit filename="v8/src/x64/assembler-x64.h" />
+		<Unit filename="v8/src/x64/builtins-x64.cc" />
+		<Unit filename="v8/src/x64/code-stubs-x64.cc" />
+		<Unit filename="v8/src/x64/code-stubs-x64.h" />
+		<Unit filename="v8/src/x64/codegen-x64.cc" />
+		<Unit filename="v8/src/x64/codegen-x64.h" />
+		<Unit filename="v8/src/x64/cpu-x64.cc" />
+		<Unit filename="v8/src/x64/debug-x64.cc" />
+		<Unit filename="v8/src/x64/deoptimizer-x64.cc" />
+		<Unit filename="v8/src/x64/disasm-x64.cc" />
+		<Unit filename="v8/src/x64/frames-x64.cc" />
+		<Unit filename="v8/src/x64/frames-x64.h" />
+		<Unit filename="v8/src/x64/full-codegen-x64.cc" />
+		<Unit filename="v8/src/x64/ic-x64.cc" />
+		<Unit filename="v8/src/x64/lithium-codegen-x64.cc" />
+		<Unit filename="v8/src/x64/lithium-codegen-x64.h" />
+		<Unit filename="v8/src/x64/lithium-gap-resolver-x64.cc" />
+		<Unit filename="v8/src/x64/lithium-gap-resolver-x64.h" />
+		<Unit filename="v8/src/x64/lithium-x64.cc" />
+		<Unit filename="v8/src/x64/lithium-x64.h" />
+		<Unit filename="v8/src/x64/macro-assembler-x64.cc" />
+		<Unit filename="v8/src/x64/macro-assembler-x64.h" />
+		<Unit filename="v8/src/x64/regexp-macro-assembler-x64.cc" />
+		<Unit filename="v8/src/x64/regexp-macro-assembler-x64.h" />
+		<Unit filename="v8/src/x64/simulator-x64.cc" />
+		<Unit filename="v8/src/x64/simulator-x64.h" />
+		<Unit filename="v8/src/x64/stub-cache-x64.cc" />
+		<Unit filename="v8/src/zone-inl.h" />
+		<Unit filename="v8/src/zone.cc" />
+		<Unit filename="v8/src/zone.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
