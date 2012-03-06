@@ -1,10 +1,10 @@
 #include <osconfig.h>
 
-.section	.text
+.section	__TEXT,__text
 
 #ifdef x64
 
-.globl win_setjmp, win_longjmp, nix_setjmp, nix_longjmp
+.globl win_setjmp, win_longjmp, nix_setjmp, nix_longjmp, _nix_setjmp, _nix_longjmp
 win_setjmp:
 	leaq	8(%rsp),%rdx
 	movq	(%rsp),%rax
@@ -55,6 +55,7 @@ win_longjmp:
 	xchgq	%rdx, %rax
 	jmp *%rdx
 
+_nix_setjmp:
 nix_setjmp:
 	leaq	8(%rsp),%rdx
 	movq	(%rsp),%rax
@@ -81,6 +82,7 @@ nix_setjmp:
 	xorq	%rax,%rax
 	ret
 
+_nix_longjmp:
 nix_longjmp:
 	movq	(%rdi), %rbp
 	movq	0x08(%rdi), %rbx
@@ -107,8 +109,9 @@ nix_longjmp:
 
 #else
 
-.globl _win_setjmp, _win_longjmp, nix_setjmp, nix_longjmp
+.globl _win_setjmp, _win_longjmp, nix_setjmp, nix_longjmp, _nix_setjmp, _nix_longjmp
 nix_setjmp:
+_nix_setjmp:
 _win_setjmp:
 	leal	4(%esp), %edx
 	movl	(%edx), %eax
@@ -124,6 +127,7 @@ _win_setjmp:
 	ret
 
 nix_longjmp:
+_nix_longjmp:
 _win_longjmp:
 	movl	0x4(%esp), %eax
 	movl	0x8(%esp), %edx
