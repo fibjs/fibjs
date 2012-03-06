@@ -1,6 +1,10 @@
 #include <osconfig.h>
 
+#ifdef MacOS
 .section	__TEXT,__text
+#else
+.section	_text
+#endif
 
 #ifdef x64
 
