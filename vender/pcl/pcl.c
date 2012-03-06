@@ -135,8 +135,8 @@ static void co_ctx_bootstrap(void)
 	 * Save current machine state (on new stack) and
 	 * go back to caller until we're scheduled for real...
 	 */
-	if (!pcl_setjmp(ctx_starting->cc))
-		pcl_longjmp(ctx_caller.cc, 1);
+	if (!pcl_setjmp(&ctx_starting->cc))
+		pcl_longjmp(&ctx_caller.cc, 1);
 
 	/*
 	 * The new thread is now running: GREAT!
@@ -160,7 +160,7 @@ static void co_ctx_trampoline(int sig)
 	 * good (for instance it wouldn't allow us to spawn a thread
 	 * from within a thread, etc.)
 	 */
-	if (pcl_setjmp(ctx_trampoline.cc) == 0) {
+	if (pcl_setjmp(&ctx_trampoline.cc) == 0) {
 		ctx_called = 1;
 		return;
 	}
@@ -290,8 +290,8 @@ static int co_set_context(co_ctx_t *ctx, void *func, char *stkbase, long stksiz)
 	 * Now enter the trampoline again, but this time not as a signal
 	 * handler. Instead we jump into it directly.
 	 */
-	if (pcl_setjmp(ctx_caller.cc) == 0)
-		pcl_longjmp(ctx_trampoline.cc, 1);
+	if (pcl_setjmp(&ctx_caller.cc) == 0)
+		pcl_longjmp(&ctx_trampoline.cc, 1);
 
 	return 0;
 }
@@ -304,14 +304,14 @@ static int co_set_context(co_ctx_t *ctx, void *func, char *stkbase, long stksiz)
 
 	stack = stkbase + stksiz - sizeof(long);
 
-	pcl_setjmp(ctx->cc);
+	pcl_setjmp(&ctx->cc);
 
 #if defined(__x86_64__)
-	*(char**) ((char *) &ctx->cc + 0x48) = (char*) func;
-	*(char**) ((char *) &ctx->cc + 0x40) = (char*) stack;
+	ctx->cc.Rip = (unsigned long long) func;
+	ctx->cc.Rsp = (unsigned long long) stack;
 #else
-	*(char**) ((char *) &ctx->cc + 0x14) = (char*) func;
-	*(char**) ((char *) &ctx->cc + 0x10) = (char*) stack;
+	ctx->cc.Eip = (unsigned long) func;
+	ctx->cc.Esp = (unsigned long) stack;
 #endif
 
 	return 0;
@@ -321,8 +321,8 @@ static int co_set_context(co_ctx_t *ctx, void *func, char *stkbase, long stksiz)
 
 static void co_switch_context(co_ctx_t *octx, co_ctx_t *nctx)
 {
-	if (pcl_setjmp(octx->cc) == 0)
-		pcl_longjmp(nctx->cc, 1);
+	if (pcl_setjmp(&octx->cc) == 0)
+		pcl_longjmp(&nctx->cc, 1);
 }
 
 #endif /* #if defined(CO_USE_UCONEXT) */
