@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "pcl_config.h"
 #include "pcl.h"
 #include "pcl_private.h"
 
@@ -37,32 +36,11 @@ static cothread_ctx *co_get_global_ctx(void)
 	return &tctx;
 }
 
-#if !defined(CO_MULTI_THREAD)
-/*
- * Simple case, the single thread one ...
- */
-
-int co_thread_init(void)
-{
-	return 0;
-}
-
-void co_thread_cleanup(void)
-{
-
-}
-
-cothread_ctx *co_get_thread_ctx(void)
-{
-	return co_get_global_ctx();
-}
-
-#else
 /*
  * MultiThread cases ...
  */
 
-# ifdef Windows
+# ifdef _WIN32
 /*
  * On Windows, we can use the native TLS capabilities. Pretty easy ...
  */
@@ -154,6 +132,5 @@ cothread_ctx *co_get_thread_ctx(void)
 	return tctx != NULL ? tctx: co_get_global_ctx();
 }
 
-#endif
 #endif
 

@@ -25,18 +25,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "pcl_config.h"
 #include "pcl.h"
 
-#if defined(CO_USE_UCONEXT)
-#include <ucontext.h>
-
-typedef ucontext_t co_core_ctx_t;
-#else
 #include "pcl_setjmp.h"
-
 typedef pcl_buf co_core_ctx_t;
-#endif
 
 /*
  * The following value must be power of two (N^2).
