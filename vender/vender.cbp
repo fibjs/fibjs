@@ -137,19 +137,16 @@
 		<Unit filename="include/v8/v8-testing.h" />
 		<Unit filename="include/v8/v8.h" />
 		<Unit filename="include/v8/v8stdint.h" />
-		<Unit filename="pcl/config.h" />
 		<Unit filename="pcl/pcl.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="pcl/pcl.h" />
-		<Unit filename="pcl/pcl_config.h" />
 		<Unit filename="pcl/pcl_private.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="pcl/pcl_private.h" />
 		<Unit filename="pcl/pcl_setjmp.S" />
 		<Unit filename="pcl/pcl_setjmp.h" />
-		<Unit filename="pcl/winconfig.h" />
 		<Unit filename="v8/include/v8-debug.h" />
 		<Unit filename="v8/include/v8-preparser.h" />
 		<Unit filename="v8/include/v8-profiler.h" />
