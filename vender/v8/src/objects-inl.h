@@ -1988,7 +1988,8 @@ AccessorDescriptor* DescriptorArray::GetCallbacks(int descriptor_number) {
 
 
 bool DescriptorArray::IsProperty(int descriptor_number) {
-  return IsRealProperty(GetType(descriptor_number));
+  Entry entry(this, descriptor_number);
+  return IsPropertyDescriptor(&entry);
 }
 
 
@@ -3085,6 +3086,21 @@ void Code::set_compiled_optimizable(bool value) {
   ASSERT(kind() == FUNCTION);
   byte flags = READ_BYTE_FIELD(this, kFullCodeFlags);
   flags = FullCodeFlagsIsCompiledOptimizable::update(flags, value);
+  WRITE_BYTE_FIELD(this, kFullCodeFlags, flags);
+}
+
+
+bool Code::has_self_optimization_header() {
+  ASSERT(kind() == FUNCTION);
+  byte flags = READ_BYTE_FIELD(this, kFullCodeFlags);
+  return FullCodeFlagsHasSelfOptimizationHeader::decode(flags);
+}
+
+
+void Code::set_self_optimization_header(bool value) {
+  ASSERT(kind() == FUNCTION);
+  byte flags = READ_BYTE_FIELD(this, kFullCodeFlags);
+  flags = FullCodeFlagsHasSelfOptimizationHeader::update(flags, value);
   WRITE_BYTE_FIELD(this, kFullCodeFlags, flags);
 }
 

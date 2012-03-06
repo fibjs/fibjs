@@ -118,6 +118,8 @@ bool CompilationInfo::ShouldSelfOptimize() {
       FLAG_crankshaft &&
       !Serializer::enabled() &&
       !function()->flags()->Contains(kDontSelfOptimize) &&
+      !function()->flags()->Contains(kDontOptimize) &&
+      function()->scope()->allows_lazy_recompilation() &&
       (shared_info().is_null() || !shared_info()->optimization_disabled());
 }
 

@@ -168,12 +168,15 @@ LanguageMode FunctionLiteral::language_mode() const {
 }
 
 
-ObjectLiteral::Property::Property(Literal* key, Expression* value) {
+ObjectLiteral::Property::Property(Literal* key,
+                                  Expression* value,
+                                  Isolate* isolate) {
   emit_store_ = true;
   key_ = key;
   value_ = value;
   Object* k = *key->handle();
-  if (k->IsSymbol() && HEAP->Proto_symbol()->Equals(String::cast(k))) {
+  if (k->IsSymbol() &&
+      isolate->heap()->Proto_symbol()->Equals(String::cast(k))) {
     kind_ = PROTOTYPE;
   } else if (value_->AsMaterializedLiteral() != NULL) {
     kind_ = MATERIALIZED_LITERAL;
@@ -417,8 +420,8 @@ bool Declaration::IsInlineable() const {
   return proxy()->var()->IsStackAllocated();
 }
 
-bool VariableDeclaration::IsInlineable() const {
-  return Declaration::IsInlineable() && fun() == NULL;
+bool FunctionDeclaration::IsInlineable() const {
+  return false;
 }
 
 
@@ -517,13 +520,27 @@ bool Call::ComputeTarget(Handle<Map> type, Handle<String> name) {
   LookupResult lookup(type->GetIsolate());
   while (true) {
     type->LookupInDescriptors(NULL, *name, &lookup);
-    // For properties we know the target iff we have a constant function.
-    if (lookup.IsFound() && lookup.IsProperty()) {
-      if (lookup.type() == CONSTANT_FUNCTION) {
-        target_ = Handle<JSFunction>(lookup.GetConstantFunctionFromMap(*type));
-        return true;
+    if (lookup.IsFound()) {
+      switch (lookup.type()) {
+        case CONSTANT_FUNCTION:
+          // We surely know the target for a constant function.
+          target_ =
+              Handle<JSFunction>(lookup.GetConstantFunctionFromMap(*type));
+          return true;
+        case NORMAL:
+        case FIELD:
+        case CALLBACKS:
+        case HANDLER:
+        case INTERCEPTOR:
+          // We don't know the target.
+          return false;
+        case MAP_TRANSITION:
+        case ELEMENTS_TRANSITION:
+        case CONSTANT_TRANSITION:
+        case NULL_DESCRIPTOR:
+          // Perhaps something interesting is up in the prototype chain...
+          break;
       }
-      return false;
     }
     // If we reach the end of the prototype chain, we don't know the target.
     if (!type->prototype()->IsJSObject()) return false;
@@ -592,6 +609,14 @@ void Call::RecordTypeFeedback(TypeFeedbackOracle* oracle,
       }
       is_monomorphic_ = ComputeTarget(map, name);
     }
+  }
+}
+
+
+void CallNew::RecordTypeFeedback(TypeFeedbackOracle* oracle) {
+  is_monomorphic_ = oracle->CallNewIsMonomorphic(this);
+  if (is_monomorphic_) {
+    target_ = oracle->GetCallNewTarget(this);
   }
 }
 
@@ -995,7 +1020,10 @@ CaseClause::CaseClause(Isolate* isolate,
   }
 
 INCREASE_NODE_COUNT(VariableDeclaration)
+INCREASE_NODE_COUNT(FunctionDeclaration)
 INCREASE_NODE_COUNT(ModuleDeclaration)
+INCREASE_NODE_COUNT(ImportDeclaration)
+INCREASE_NODE_COUNT(ExportDeclaration)
 INCREASE_NODE_COUNT(ModuleLiteral)
 INCREASE_NODE_COUNT(ModuleVariable)
 INCREASE_NODE_COUNT(ModulePath)

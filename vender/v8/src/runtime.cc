@@ -882,14 +882,6 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_IsInPrototypeChain) {
 }
 
 
-RUNTIME_FUNCTION(MaybeObject*, Runtime_IsConstructCall) {
-  NoHandleAllocation ha;
-  ASSERT(args.length() == 0);
-  JavaScriptFrameIterator it(isolate);
-  return isolate->heap()->ToBoolean(it.frame()->IsConstructor());
-}
-
-
 // Recursively traverses hidden prototypes if property is not found
 static void GetOwnPropertyImplementation(JSObject* obj,
                                          String* name,
@@ -3771,7 +3763,7 @@ static RegExpImpl::IrregexpResult SearchRegExpNoCaptureMultiple(
   int required_registers = RegExpImpl::IrregexpPrepare(regexp, subject);
   if (required_registers < 0) return RegExpImpl::RE_EXCEPTION;
 
-  OffsetsVector registers(required_registers);
+  OffsetsVector registers(required_registers, isolate);
   Vector<int32_t> register_vector(registers.vector(), registers.length());
   int subject_length = subject->length();
   bool first = true;
@@ -3844,7 +3836,7 @@ static RegExpImpl::IrregexpResult SearchRegExpMultiple(
   int required_registers = RegExpImpl::IrregexpPrepare(regexp, subject);
   if (required_registers < 0) return RegExpImpl::RE_EXCEPTION;
 
-  OffsetsVector registers(required_registers);
+  OffsetsVector registers(required_registers, isolate);
   Vector<int32_t> register_vector(registers.vector(), registers.length());
 
   RegExpImpl::IrregexpResult result =
@@ -3863,7 +3855,7 @@ static RegExpImpl::IrregexpResult SearchRegExpMultiple(
   if (result == RegExpImpl::RE_SUCCESS) {
     // Need to keep a copy of the previous match for creating last_match_info
     // at the end, so we have two vectors that we swap between.
-    OffsetsVector registers2(required_registers);
+    OffsetsVector registers2(required_registers, isolate);
     Vector<int> prev_register_vector(registers2.vector(), registers2.length());
     bool first = true;
     do {
@@ -4326,7 +4318,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DefineOrRedefineAccessorProperty) {
   HandleScope scope(isolate);
   CONVERT_ARG_HANDLE_CHECKED(JSObject, obj, 0);
   CONVERT_ARG_CHECKED(String, name, 1);
-  CONVERT_SMI_ARG_CHECKED(flag_setter, 2);
+  CONVERT_SMI_ARG_CHECKED(flag, 2);
   Object* fun = args[3];
   CONVERT_SMI_ARG_CHECKED(unchecked, 4);
 
@@ -4335,7 +4327,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DefineOrRedefineAccessorProperty) {
 
   RUNTIME_ASSERT(!obj->IsNull());
   RUNTIME_ASSERT(fun->IsSpecFunction() || fun->IsUndefined());
-  return obj->DefineAccessor(name, flag_setter == 0, fun, attr);
+  AccessorComponent component = flag == 0 ? ACCESSOR_GETTER : ACCESSOR_SETTER;
+  return obj->DefineAccessor(name, component, fun, attr);
 }
 
 // Implements part of 8.12.9 DefineOwnProperty.
@@ -9208,13 +9201,13 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StackGuard) {
     return isolate->StackOverflow();
   }
 
-  return Execution::HandleStackGuardInterrupt();
+  return Execution::HandleStackGuardInterrupt(isolate);
 }
 
 
 RUNTIME_FUNCTION(MaybeObject*, Runtime_Interrupt) {
   ASSERT(args.length() == 0);
-  return Execution::HandleStackGuardInterrupt();
+  return Execution::HandleStackGuardInterrupt(isolate);
 }
 
 
@@ -10300,7 +10293,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_LookupAccessor) {
   CONVERT_ARG_CHECKED(JSObject, obj, 0);
   CONVERT_ARG_CHECKED(String, name, 1);
   CONVERT_SMI_ARG_CHECKED(flag, 2);
-  return obj->LookupAccessor(name, flag == 0);
+  AccessorComponent component = flag == 0 ? ACCESSOR_GETTER : ACCESSOR_SETTER;
+  return obj->LookupAccessor(name, component);
 }
 
 
@@ -10640,6 +10634,7 @@ class FrameInspector {
           frame, inlined_jsframe_index, isolate);
     }
     has_adapted_arguments_ = frame_->has_adapted_arguments();
+    is_bottommost_ = inlined_jsframe_index == 0;
     is_optimized_ = frame_->is_optimized();
   }
 
@@ -10677,6 +10672,11 @@ class FrameInspector {
         ? deoptimized_frame_->GetSourcePosition()
         : frame_->LookupCode()->SourcePosition(frame_->pc());
   }
+  bool IsConstructor() {
+    return is_optimized_ && !is_bottommost_
+        ? deoptimized_frame_->HasConstructStub()
+        : frame_->IsConstructor();
+  }
 
   // To inspect all the provided arguments the frame might need to be
   // replaced with the arguments frame.
@@ -10692,6 +10692,7 @@ class FrameInspector {
   DeoptimizedFrameInfo* deoptimized_frame_;
   Isolate* isolate_;
   bool is_optimized_;
+  bool is_bottommost_;
   bool has_adapted_arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(FrameInspector);
@@ -10718,6 +10719,16 @@ static SaveContext* FindSavedContextForFrame(Isolate* isolate,
   }
   ASSERT(save != NULL);
   return save;
+}
+
+
+RUNTIME_FUNCTION(MaybeObject*, Runtime_IsConstructCall) {
+  NoHandleAllocation ha;
+  ASSERT(args.length() == 0);
+  JavaScriptFrameIterator it(isolate);
+  JavaScriptFrame* frame = it.frame();
+  FrameInspector frame_inspector(frame, frame->GetInlineCount() - 1, isolate);
+  return isolate->heap()->ToBoolean(frame_inspector.IsConstructor());
 }
 
 
@@ -10785,9 +10796,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_GetFrameDetails) {
   // Find source position in unoptimized code.
   int position = frame_inspector.GetSourcePosition();
 
-  // Check for constructor frame. Inlined frames cannot be construct calls.
-  bool inlined_frame = is_optimized && inlined_jsframe_index != 0;
-  bool constructor = !inlined_frame && it.frame()->IsConstructor();
+  // Check for constructor frame.
+  bool constructor = frame_inspector.IsConstructor();
 
   // Get scope info and read from it for local variable information.
   Handle<JSFunction> function(JSFunction::cast(frame_inspector.GetFunction()));

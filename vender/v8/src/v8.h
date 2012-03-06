@@ -29,6 +29,18 @@
 // Top include for all V8 .cc files.
 //
 
+
+// mingw-w64
+#if defined(_WIN32) && !defined(WIN32)
+#define WIN32
+#endif
+
+#if !defined(ENABLE_DEBUGGER_SUPPORT)
+#define ENABLE_DEBUGGER_SUPPORT
+#endif
+
+
+
 #ifndef V8_V8_H_
 #define V8_V8_H_
 
@@ -95,6 +107,9 @@ class V8 : public AllStatic {
   // Allows an entropy source to be provided for use in random number
   // generation.
   static void SetEntropySource(EntropySource source);
+  // Support for return-address rewriting profilers.
+  static void SetReturnAddressLocationResolver(
+      ReturnAddressLocationResolver resolver);
   // Random number generation support. Not cryptographically safe.
   static uint32_t Random(Context* context);
   // We use random numbers internally in memory allocation and in the

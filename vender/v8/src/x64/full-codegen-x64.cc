@@ -100,6 +100,11 @@ class JumpPatchSite BASE_EMBEDDED {
 };
 
 
+int FullCodeGenerator::self_optimization_header_size() {
+  return 20;
+}
+
+
 // Generate code for a JS function.  On entry to the function the receiver
 // and arguments have been pushed on the stack left to right, with the
 // return address on top of them.  The actual argument count matches the
@@ -120,13 +125,6 @@ void FullCodeGenerator::Generate() {
   SetFunctionPosition(function());
   Comment cmnt(masm_, "[ function compiled by full code generator");
 
-#ifdef DEBUG
-  if (strlen(FLAG_stop_at) > 0 &&
-      info->function()->name()->IsEqualTo(CStrVector(FLAG_stop_at))) {
-    __ int3();
-  }
-#endif
-
   // We can optionally optimize based on counters rather than statistical
   // sampling.
   if (info->ShouldSelfOptimize()) {
@@ -134,6 +132,7 @@ void FullCodeGenerator::Generate() {
       PrintF("[adding self-optimization header to %s]\n",
              *info->function()->debug_name()->ToCString());
     }
+    has_self_optimization_header_ = true;
     MaybeObject* maybe_cell = isolate()->heap()->AllocateJSGlobalPropertyCell(
         Smi::FromInt(Compiler::kCallsUntilPrimitiveOpt));
     JSGlobalPropertyCell* cell;
@@ -145,8 +144,16 @@ void FullCodeGenerator::Generate() {
       Handle<Code> compile_stub(
           isolate()->builtins()->builtin(Builtins::kLazyRecompile));
       __ j(zero, compile_stub, RelocInfo::CODE_TARGET);
+      ASSERT(masm_->pc_offset() == self_optimization_header_size());
     }
   }
+
+#ifdef DEBUG
+  if (strlen(FLAG_stop_at) > 0 &&
+      info->function()->name()->IsEqualTo(CStrVector(FLAG_stop_at))) {
+    __ int3();
+  }
+#endif
 
   // Strict mode functions and builtins need to replace the receiver
   // with undefined when called as functions (without an explicit
@@ -962,6 +969,16 @@ void FullCodeGenerator::VisitForInStatement(ForInStatement* stmt) {
   // We got a fixed array in register rax. Iterate through that.
   Label non_proxy;
   __ bind(&fixed_array);
+
+  Handle<JSGlobalPropertyCell> cell =
+      isolate()->factory()->NewJSGlobalPropertyCell(
+          Handle<Object>(
+              Smi::FromInt(TypeFeedbackCells::kForInFastCaseMarker)));
+  RecordTypeFeedbackCell(stmt->PrepareId(), cell);
+  __ LoadHeapObject(rbx, cell);
+  __ Move(FieldOperand(rbx, JSGlobalPropertyCell::kValueOffset),
+          Smi::FromInt(TypeFeedbackCells::kForInSlowCaseMarker));
+
   __ Move(rbx, Smi::FromInt(1));  // Smi indicates slow check
   __ movq(rcx, Operand(rsp, 0 * kPointerSize));  // Get enumerated object
   STATIC_ASSERT(FIRST_JS_PROXY_TYPE == FIRST_SPEC_OBJECT_TYPE);
@@ -2273,6 +2290,7 @@ void FullCodeGenerator::VisitCallNew(CallNew* expr) {
 
   CallConstructStub stub(flags);
   __ Call(stub.GetCode(), RelocInfo::CONSTRUCT_CALL);
+  PrepareForBailoutForId(expr->ReturnId(), TOS_REG);
   context()->Plug(rax);
 }
 

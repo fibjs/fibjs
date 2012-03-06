@@ -36,6 +36,7 @@
 
 #include "v8.h"
 
+#include "codegen.h"
 #include "platform.h"
 #include "vm-state-inl.h"
 
@@ -114,6 +115,17 @@ int strncpy_s(char* dest, size_t dest_size, const char* source, size_t count) {
   *dest = 0;
   return 0;
 }
+
+
+#ifndef __MINGW64_VERSION_MAJOR
+
+inline void MemoryBarrier() {
+  int barrier = 0;
+  __asm__ __volatile__("xchgl %%eax,%0 ":"=r" (barrier));
+}
+
+#endif  // __MINGW64_VERSION_MAJOR
+
 
 #endif  // __MINGW32__
 
@@ -198,6 +210,30 @@ double modulo(double x, double y) {
 }
 
 #endif  // _WIN64
+
+
+static Mutex* transcendental_function_mutex = OS::CreateMutex();
+
+#define TRANSCENDENTAL_FUNCTION(name, type)                   \
+static TranscendentalFunction fast_##name##_function = NULL;  \
+double fast_##name(double x) {                                \
+  if (fast_##name##_function == NULL) {                       \
+    ScopedLock lock(transcendental_function_mutex);           \
+    TranscendentalFunction temp =                             \
+        CreateTranscendentalFunction(type);                   \
+    MemoryBarrier();                                          \
+    fast_##name##_function = temp;                            \
+  }                                                           \
+  return (*fast_##name##_function)(x);                        \
+}
+
+TRANSCENDENTAL_FUNCTION(sin, TranscendentalCache::SIN)
+TRANSCENDENTAL_FUNCTION(cos, TranscendentalCache::COS)
+TRANSCENDENTAL_FUNCTION(tan, TranscendentalCache::TAN)
+TRANSCENDENTAL_FUNCTION(log, TranscendentalCache::LOG)
+
+#undef TRANSCENDENTAL_FUNCTION
+
 
 // ----------------------------------------------------------------------------
 // The Time class represents time on win32. A timestamp is represented as
@@ -883,7 +919,6 @@ void* OS::Allocate(const size_t requested,
                    bool is_executable) {
   // VirtualAlloc rounds allocated size to page size automatically.
   size_t msize = RoundUp(requested, static_cast<int>(GetPageSize()));
-  void* address = 0;
 
   // Windows XP SP2 allows Data Excution Prevention (DEP).
   int prot = is_executable ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
@@ -936,12 +971,8 @@ void OS::Sleep(int milliseconds) {
 
 void OS::Abort() {
   if (!IsDebuggerPresent()) {
-#ifdef _MSC_VER
     // Make the MSVCRT do a silent abort.
-    _set_abort_behavior(0, _WRITE_ABORT_MSG);
-    _set_abort_behavior(0, _CALL_REPORTFAULT);
-#endif  // _MSC_VER
-    abort();
+    raise(SIGABRT);
   } else {
     DebugBreak();
   }

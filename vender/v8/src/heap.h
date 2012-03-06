@@ -150,7 +150,8 @@ namespace internal {
   V(Script, empty_script, EmptyScript)                                         \
   V(Smi, real_stack_limit, RealStackLimit)                                     \
   V(StringDictionary, intrinsic_function_names, IntrinsicFunctionNames)        \
-  V(Smi, arguments_adaptor_deopt_pc_offset, ArgumentsAdaptorDeoptPCOffset)
+  V(Smi, arguments_adaptor_deopt_pc_offset, ArgumentsAdaptorDeoptPCOffset)     \
+  V(Smi, construct_stub_deopt_pc_offset, ConstructStubDeoptPCOffset)
 
 #define ROOT_LIST(V)                                  \
   STRONG_ROOT_LIST(V)                                 \
@@ -177,6 +178,7 @@ namespace internal {
   V(eval_symbol, "eval")                                                 \
   V(function_symbol, "function")                                         \
   V(length_symbol, "length")                                             \
+  V(module_symbol, "module")                                             \
   V(name_symbol, "name")                                                 \
   V(native_symbol, "native")                                             \
   V(null_symbol, "null")                                                 \
@@ -1564,6 +1566,11 @@ class Heap {
   void SetArgumentsAdaptorDeoptPCOffset(int pc_offset) {
     ASSERT(arguments_adaptor_deopt_pc_offset() == Smi::FromInt(0));
     set_arguments_adaptor_deopt_pc_offset(Smi::FromInt(pc_offset));
+  }
+
+  void SetConstructStubDeoptPCOffset(int pc_offset) {
+    ASSERT(construct_stub_deopt_pc_offset() == Smi::FromInt(0));
+    set_construct_stub_deopt_pc_offset(Smi::FromInt(pc_offset));
   }
 
  private:

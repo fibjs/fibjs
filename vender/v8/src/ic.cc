@@ -315,10 +315,13 @@ void IC::PostPatching(Address address, Code* target, Code* old_target) {
       if (delta != 0) {
         Code* host = target->GetHeap()->isolate()->
             inner_pointer_to_code_cache()->GetCacheEntry(address)->code;
-        TypeFeedbackInfo* info =
-            TypeFeedbackInfo::cast(host->type_feedback_info());
-        info->set_ic_with_typeinfo_count(
-            info->ic_with_typeinfo_count() + delta);
+        // Not all Code objects have TypeFeedbackInfo.
+        if (host->type_feedback_info()->IsTypeFeedbackInfo()) {
+          TypeFeedbackInfo* info =
+              TypeFeedbackInfo::cast(host->type_feedback_info());
+          info->set_ic_with_typeinfo_count(
+              info->ic_with_typeinfo_count() + delta);
+        }
       }
     }
   }
@@ -2479,6 +2482,14 @@ CompareIC::State CompareIC::TargetState(State state,
     case UNINITIALIZED:
       if (x->IsSmi() && y->IsSmi()) return SMIS;
       if (x->IsNumber() && y->IsNumber()) return HEAP_NUMBERS;
+      if (Token::IsOrderedRelationalCompareOp(op_)) {
+        // Ordered comparisons treat undefined as NaN, so the
+        // HEAP_NUMBER stub will do the right thing.
+        if ((x->IsNumber() && y->IsUndefined()) ||
+            (y->IsNumber() && x->IsUndefined())) {
+          return HEAP_NUMBERS;
+        }
+      }
       if (!Token::IsEqualityOp(op_)) return GENERIC;
       if (x->IsSymbol() && y->IsSymbol()) return SYMBOLS;
       if (x->IsString() && y->IsString()) return STRINGS;

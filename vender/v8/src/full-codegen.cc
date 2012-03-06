@@ -55,8 +55,20 @@ void BreakableStatementChecker::VisitVariableDeclaration(
     VariableDeclaration* decl) {
 }
 
+void BreakableStatementChecker::VisitFunctionDeclaration(
+    FunctionDeclaration* decl) {
+}
+
 void BreakableStatementChecker::VisitModuleDeclaration(
     ModuleDeclaration* decl) {
+}
+
+void BreakableStatementChecker::VisitImportDeclaration(
+    ImportDeclaration* decl) {
+}
+
+void BreakableStatementChecker::VisitExportDeclaration(
+    ExportDeclaration* decl) {
 }
 
 
@@ -302,6 +314,7 @@ bool FullCodeGenerator::MakeCode(CompilationInfo* info) {
   Code::Flags flags = Code::ComputeFlags(Code::FUNCTION);
   Handle<Code> code = CodeGenerator::MakeCodeEpilogue(&masm, flags, info);
   code->set_optimizable(info->IsOptimizable());
+  code->set_self_optimization_header(cgen.has_self_optimization_header_);
   cgen.PopulateDeoptimizationData(code);
   cgen.PopulateTypeFeedbackInfo(code);
   cgen.PopulateTypeFeedbackCells(code);
@@ -365,6 +378,7 @@ void FullCodeGenerator::PopulateDeoptimizationData(Handle<Code> code) {
 void FullCodeGenerator::PopulateTypeFeedbackInfo(Handle<Code> code) {
   Handle<TypeFeedbackInfo> info = isolate()->factory()->NewTypeFeedbackInfo();
   info->set_ic_total_count(ic_total_count_);
+  ASSERT(!isolate()->heap()->InNewSpace(*info));
   code->set_type_feedback_info(*info);
 }
 
@@ -567,29 +581,28 @@ void FullCodeGenerator::VisitDeclarations(
        isolate()->factory()->NewFixedArray(2 * global_count_, TENURED);
     int length = declarations->length();
     for (int j = 0, i = 0; i < length; i++) {
-      VariableDeclaration* decl = declarations->at(i)->AsVariableDeclaration();
-      if (decl != NULL) {
-        Variable* var = decl->proxy()->var();
+      Declaration* decl = declarations->at(i);
+      Variable* var = decl->proxy()->var();
 
-        if (var->IsUnallocated()) {
-          array->set(j++, *(var->name()));
-          if (decl->fun() == NULL) {
-            if (var->binding_needs_init()) {
-              // In case this binding needs initialization use the hole.
-              array->set_the_hole(j++);
-            } else {
-              array->set_undefined(j++);
-            }
+      if (var->IsUnallocated()) {
+        array->set(j++, *(var->name()));
+        FunctionDeclaration* fun_decl = decl->AsFunctionDeclaration();
+        if (fun_decl == NULL) {
+          if (var->binding_needs_init()) {
+            // In case this binding needs initialization use the hole.
+            array->set_the_hole(j++);
           } else {
-            Handle<SharedFunctionInfo> function =
-                Compiler::BuildFunctionInfo(decl->fun(), script());
-            // Check for stack-overflow exception.
-            if (function.is_null()) {
-              SetStackOverflow();
-              return;
-            }
-            array->set(j++, *function);
+            array->set_undefined(j++);
           }
+        } else {
+          Handle<SharedFunctionInfo> function =
+              Compiler::BuildFunctionInfo(fun_decl->fun(), script());
+          // Check for stack-overflow exception.
+          if (function.is_null()) {
+            SetStackOverflow();
+            return;
+          }
+          array->set(j++, *function);
         }
       }
     }
@@ -603,11 +616,26 @@ void FullCodeGenerator::VisitDeclarations(
 
 
 void FullCodeGenerator::VisitVariableDeclaration(VariableDeclaration* decl) {
+  EmitDeclaration(decl->proxy(), decl->mode(), NULL);
+}
+
+
+void FullCodeGenerator::VisitFunctionDeclaration(FunctionDeclaration* decl) {
   EmitDeclaration(decl->proxy(), decl->mode(), decl->fun());
 }
 
 
 void FullCodeGenerator::VisitModuleDeclaration(ModuleDeclaration* decl) {
+  EmitDeclaration(decl->proxy(), decl->mode(), NULL);
+}
+
+
+void FullCodeGenerator::VisitImportDeclaration(ImportDeclaration* decl) {
+  EmitDeclaration(decl->proxy(), decl->mode(), NULL);
+}
+
+
+void FullCodeGenerator::VisitExportDeclaration(ExportDeclaration* decl) {
   // TODO(rossberg)
 }
 
