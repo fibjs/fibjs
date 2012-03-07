@@ -14,6 +14,7 @@
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
+					<Add option="-fpermissive" />
 				</Compiler>
 				<Linker>
 					<Add library="pthread" />
@@ -145,6 +146,7 @@
 		</Linker>
 		<Unit filename="src/pcl.cpp" />
 		<Unit filename="src/test.cpp" />
+		<Unit filename="src/test.h" />
 		<Unit filename="src/v8.cpp" />
 		<Extensions>
 			<code_completion />
