@@ -12,6 +12,8 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <pcl/pcl.h>
+#include "test.h"
+
 
 #define MIN_MEASURE_TIME 2000000ULL
 #define CO_STACK_SIZE (8 * 1024)
@@ -39,8 +41,9 @@ static void *run_test(void *data) {
 	unsigned long nswitches, sw_counter;
 	unsigned long long ts, te;
 
-	fprintf(stdout, "measuring co_create+co_delete performance ...\n");
-	fflush(stdout);
+	log4cpp::Category& pcl = log4cpp::Category::getInstance(std::string("pcl"));
+
+	pcl.debug("measuring co_create+co_delete performance ...");
 
 	ntimes = 10000;
 	do {
@@ -54,12 +57,11 @@ static void *run_test(void *data) {
 		ntimes *= 4;
 	} while ((te - ts) < MIN_MEASURE_TIME);
 
-	fprintf(stdout, "%g usec\n", (double) (te - ts) / (double) ntimes);
+	pcl.debug("%g usec", (double) (te - ts) / (double) ntimes);
 
 	if ((coro = co_create(switch_bench, &sw_counter, NULL, CO_STACK_SIZE))
 			!= NULL) {
-		fprintf(stdout, "measuring switch performance ...\n");
-		fflush(stdout);
+		pcl.debug("measuring switch performance ...");
 
 		sw_counter = nswitches = 10000;
 		do {
@@ -70,7 +72,7 @@ static void *run_test(void *data) {
 			sw_counter = (nswitches *= 4);
 		} while ((te - ts) < MIN_MEASURE_TIME);
 
-		fprintf(stdout, "%g usec\n",
+		pcl.debug("%g usec",
 				(double) (te - ts) / (double) (2 * nswitches));
 
 		co_delete(coro);
@@ -90,7 +92,9 @@ static void *thread_proc(void *data) {
 }
 
 void pcl_main() {
-	puts("--------- pcl performance --------");
+    log4cpp::Category& pcl = log4cpp::Category::getInstance(std::string("pcl"));
+
+    pcl.debug("--------- pcl performance --------");
 	run_test(NULL);
-	puts("--------- pcl performance --------");
+	pcl.debug("--------- pcl performance --------");
 }
