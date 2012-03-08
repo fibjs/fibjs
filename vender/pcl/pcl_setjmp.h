@@ -10,7 +10,7 @@
 #define PCL_SETJMP_H_
 
 #pragma pack (1)
-#if defined(__x86_64)
+#if defined(__x86_64__)
 
 typedef struct {
 	unsigned long long Part[2];
@@ -54,7 +54,7 @@ typedef struct __JUMP_BUFFER {
 #endif
 #pragma pack ()
 
-#if defined(Windows)
+#if defined(_WIN32)
 
 extern int win_setjmp(pcl_buf* _Buf);
 extern int win_longjmp(pcl_buf* _Buf, int _Value);
