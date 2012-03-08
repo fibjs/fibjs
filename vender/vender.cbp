@@ -122,6 +122,7 @@
 			</Target>
 		</Build>
 		<VirtualTargets>
+			<Add alias="all" targets="Debug;Release;Debug32;Release32;WinDebug;WinRelease;WinDebug32;WinRelease32;" />
 			<Add alias="posix" targets="Debug;Release;Debug32;Release32;" />
 			<Add alias="windows" targets="WinDebug;WinRelease;WinDebug32;WinRelease32;" />
 		</VirtualTargets>
