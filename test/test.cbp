@@ -145,6 +145,7 @@
 		<Linker>
 			<Add library="vender" />
 		</Linker>
+		<Unit filename="src/asio.cpp" />
 		<Unit filename="src/pcl.cpp" />
 		<Unit filename="src/test.cpp" />
 		<Unit filename="src/test.h" />
