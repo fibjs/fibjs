@@ -81,6 +81,7 @@
 				<Linker>
 					<Add library="winmm" />
 					<Add library="ws2_32" />
+					<Add library="mswsock" />
 					<Add directory="../vender/bin/WinDebug" />
 				</Linker>
 			</Target>
@@ -97,6 +98,7 @@
 					<Add option="-s" />
 					<Add library="winmm" />
 					<Add library="ws2_32" />
+					<Add library="mswsock" />
 					<Add directory="../vender/bin/WinRelease" />
 				</Linker>
 			</Target>
@@ -112,6 +114,7 @@
 				<Linker>
 					<Add library="winmm" />
 					<Add library="ws2_32" />
+					<Add library="mswsock" />
 					<Add directory="../vender/bin/WinDebug32" />
 				</Linker>
 			</Target>
@@ -128,6 +131,7 @@
 					<Add option="-s" />
 					<Add library="winmm" />
 					<Add library="ws2_32" />
+					<Add library="mswsock" />
 					<Add directory="../vender/bin/WinRelease32" />
 				</Linker>
 			</Target>
