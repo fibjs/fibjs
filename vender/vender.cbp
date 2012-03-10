@@ -132,6 +132,10 @@
 		</Compiler>
 		<Unit filename="boost/system/error_code.cpp" />
 		<Unit filename="boost/system/local_free_on_destruction.hpp" />
+		<Unit filename="boost/thread/pthread/once.cpp" />
+		<Unit filename="boost/thread/pthread/thread.cpp" />
+		<Unit filename="boost/thread/win32/thread.cpp" />
+		<Unit filename="boost/thread/win32/tss_pe.cpp" />
 		<Unit filename="include/boost/algorithm/minmax.hpp" />
 		<Unit filename="include/boost/algorithm/minmax_element.hpp" />
 		<Unit filename="include/boost/algorithm/string.hpp" />

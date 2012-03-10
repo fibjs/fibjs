@@ -3,6 +3,7 @@
 void pcl_main();
 void v8_main();
 void asio_main();
+void lockfree_main();
 
 int main(int argc, char **argv)
 {
@@ -22,8 +23,9 @@ int main(int argc, char **argv)
         root.warn(e.what());
     }
 
-    pcl_main();
-    asio_main();
+//    pcl_main();
+//    asio_main();
 //	v8_main();
+	lockfree_main();
     return 0;
 }

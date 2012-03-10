@@ -68,7 +68,7 @@ void v8_main() {
 	// running the hello world script.
 	Context::Scope context_scope(context);
 	// Create a string containing the JavaScript source code.
-	Handle < String > source = String::New("function t(n){var n1 = n + 1;if(n %1 == 1)print('Hello, World! ' + n);else print('Hello, World? ' + n);t(n1);};t(0)");
+	Handle < String > source = String::New("print('Hello, World? ');console.log('aaaaa')");
 	// Compile the source code.
 	Handle < Script > script = Script::Compile(source);
 	// Run the script to get the result.
