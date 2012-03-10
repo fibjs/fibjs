@@ -134,8 +134,137 @@
 		<Unit filename="boost/system/local_free_on_destruction.hpp" />
 		<Unit filename="boost/thread/pthread/once.cpp" />
 		<Unit filename="boost/thread/pthread/thread.cpp" />
+		<Unit filename="boost/thread/pthread/timeconv.inl" />
+		<Unit filename="boost/thread/tss_null.cpp" />
 		<Unit filename="boost/thread/win32/thread.cpp" />
+		<Unit filename="boost/thread/win32/timeconv.inl" />
+		<Unit filename="boost/thread/win32/tss_dll.cpp" />
 		<Unit filename="boost/thread/win32/tss_pe.cpp" />
+		<Unit filename="gd/bmp.h" />
+		<Unit filename="gd/config.h" />
+		<Unit filename="gd/entities.h" />
+		<Unit filename="gd/gd.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd.h" />
+		<Unit filename="gd/gd_bmp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_color.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_color.h" />
+		<Unit filename="gd/gd_color_map.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_color_map.h" />
+		<Unit filename="gd/gd_crop.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_gd.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_gd2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_gif_in.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_gif_out.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_io.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_io.h" />
+		<Unit filename="gd/gd_io_dp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_io_file.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_io_ss.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_io_stream.h" />
+		<Unit filename="gd/gd_jpeg.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_nnquant.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_nnquant.h" />
+		<Unit filename="gd/gd_pixelate.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_png.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_security.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_ss.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_tga.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_tga.h" />
+		<Unit filename="gd/gd_tiff.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_topal.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_transform.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gd_wbmp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gdcache.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gdfontg.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gdfontg.h" />
+		<Unit filename="gd/gdfontl.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gdfontl.h" />
+		<Unit filename="gd/gdfontmb.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gdfontmb.h" />
+		<Unit filename="gd/gdfonts.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gdfonts.h" />
+		<Unit filename="gd/gdfontt.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gdfontt.h" />
+		<Unit filename="gd/gdft.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gdfx.h" />
+		<Unit filename="gd/gdhelpers.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gdhelpers.h" />
+		<Unit filename="gd/gdkanji.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gdpp.h" />
+		<Unit filename="gd/gdtables.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/gdxpm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gd/jisx0208.h" />
+		<Unit filename="gd/wbmp.h" />
 		<Unit filename="include/boost/algorithm/minmax.hpp" />
 		<Unit filename="include/boost/algorithm/minmax_element.hpp" />
 		<Unit filename="include/boost/algorithm/string.hpp" />
@@ -251,14 +380,51 @@
 		<Unit filename="include/boost/asio/detail/handler_tracking.hpp" />
 		<Unit filename="include/boost/asio/detail/handler_type_requirements.hpp" />
 		<Unit filename="include/boost/asio/detail/hash_map.hpp" />
+		<Unit filename="include/boost/asio/detail/impl/descriptor_ops.ipp" />
 		<Unit filename="include/boost/asio/detail/impl/dev_poll_reactor.hpp" />
+		<Unit filename="include/boost/asio/detail/impl/dev_poll_reactor.ipp" />
 		<Unit filename="include/boost/asio/detail/impl/epoll_reactor.hpp" />
+		<Unit filename="include/boost/asio/detail/impl/epoll_reactor.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/eventfd_select_interrupter.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/handler_tracking.ipp" />
 		<Unit filename="include/boost/asio/detail/impl/kqueue_reactor.hpp" />
+		<Unit filename="include/boost/asio/detail/impl/kqueue_reactor.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/pipe_select_interrupter.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/posix_event.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/posix_mutex.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/posix_thread.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/posix_tss_ptr.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/reactive_descriptor_service.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/reactive_serial_port_service.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/reactive_socket_service_base.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/resolver_service_base.ipp" />
 		<Unit filename="include/boost/asio/detail/impl/select_reactor.hpp" />
+		<Unit filename="include/boost/asio/detail/impl/select_reactor.ipp" />
 		<Unit filename="include/boost/asio/detail/impl/service_registry.hpp" />
+		<Unit filename="include/boost/asio/detail/impl/service_registry.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/signal_set_service.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/socket_ops.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/socket_select_interrupter.ipp" />
 		<Unit filename="include/boost/asio/detail/impl/strand_service.hpp" />
+		<Unit filename="include/boost/asio/detail/impl/strand_service.ipp" />
 		<Unit filename="include/boost/asio/detail/impl/task_io_service.hpp" />
+		<Unit filename="include/boost/asio/detail/impl/task_io_service.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/throw_error.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/timer_queue.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/timer_queue_ptime.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/timer_queue_set.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/win_event.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/win_iocp_handle_service.ipp" />
 		<Unit filename="include/boost/asio/detail/impl/win_iocp_io_service.hpp" />
+		<Unit filename="include/boost/asio/detail/impl/win_iocp_io_service.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/win_iocp_serial_port_service.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/win_iocp_socket_service_base.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/win_mutex.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/win_object_handle_service.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/win_static_mutex.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/win_thread.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/win_tss_ptr.ipp" />
+		<Unit filename="include/boost/asio/detail/impl/winsock_init.ipp" />
 		<Unit filename="include/boost/asio/detail/io_control.hpp" />
 		<Unit filename="include/boost/asio/detail/kqueue_reactor.hpp" />
 		<Unit filename="include/boost/asio/detail/kqueue_reactor_fwd.hpp" />
@@ -378,11 +544,14 @@
 		<Unit filename="include/boost/asio/handler_invoke_hook.hpp" />
 		<Unit filename="include/boost/asio/high_resolution_timer.hpp" />
 		<Unit filename="include/boost/asio/impl/connect.hpp" />
+		<Unit filename="include/boost/asio/impl/error.ipp" />
 		<Unit filename="include/boost/asio/impl/io_service.hpp" />
+		<Unit filename="include/boost/asio/impl/io_service.ipp" />
 		<Unit filename="include/boost/asio/impl/read.hpp" />
 		<Unit filename="include/boost/asio/impl/read_at.hpp" />
 		<Unit filename="include/boost/asio/impl/read_until.hpp" />
 		<Unit filename="include/boost/asio/impl/serial_port_base.hpp" />
+		<Unit filename="include/boost/asio/impl/serial_port_base.ipp" />
 		<Unit filename="include/boost/asio/impl/src.hpp" />
 		<Unit filename="include/boost/asio/impl/write.hpp" />
 		<Unit filename="include/boost/asio/impl/write_at.hpp" />
@@ -396,13 +565,18 @@
 		<Unit filename="include/boost/asio/ip/basic_resolver_iterator.hpp" />
 		<Unit filename="include/boost/asio/ip/basic_resolver_query.hpp" />
 		<Unit filename="include/boost/asio/ip/detail/endpoint.hpp" />
+		<Unit filename="include/boost/asio/ip/detail/impl/endpoint.ipp" />
 		<Unit filename="include/boost/asio/ip/detail/socket_option.hpp" />
 		<Unit filename="include/boost/asio/ip/host_name.hpp" />
 		<Unit filename="include/boost/asio/ip/icmp.hpp" />
 		<Unit filename="include/boost/asio/ip/impl/address.hpp" />
+		<Unit filename="include/boost/asio/ip/impl/address.ipp" />
 		<Unit filename="include/boost/asio/ip/impl/address_v4.hpp" />
+		<Unit filename="include/boost/asio/ip/impl/address_v4.ipp" />
 		<Unit filename="include/boost/asio/ip/impl/address_v6.hpp" />
+		<Unit filename="include/boost/asio/ip/impl/address_v6.ipp" />
 		<Unit filename="include/boost/asio/ip/impl/basic_endpoint.hpp" />
+		<Unit filename="include/boost/asio/ip/impl/host_name.ipp" />
 		<Unit filename="include/boost/asio/ip/multicast.hpp" />
 		<Unit filename="include/boost/asio/ip/resolver_query_base.hpp" />
 		<Unit filename="include/boost/asio/ip/resolver_service.hpp" />
@@ -416,6 +590,7 @@
 		<Unit filename="include/boost/asio/local/connect_pair.hpp" />
 		<Unit filename="include/boost/asio/local/datagram_protocol.hpp" />
 		<Unit filename="include/boost/asio/local/detail/endpoint.hpp" />
+		<Unit filename="include/boost/asio/local/detail/impl/endpoint.ipp" />
 		<Unit filename="include/boost/asio/local/stream_protocol.hpp" />
 		<Unit filename="include/boost/asio/placeholders.hpp" />
 		<Unit filename="include/boost/asio/posix/basic_descriptor.hpp" />
@@ -442,6 +617,8 @@
 		<Unit filename="include/boost/asio/ssl/context_service.hpp" />
 		<Unit filename="include/boost/asio/ssl/detail/engine.hpp" />
 		<Unit filename="include/boost/asio/ssl/detail/handshake_op.hpp" />
+		<Unit filename="include/boost/asio/ssl/detail/impl/engine.ipp" />
+		<Unit filename="include/boost/asio/ssl/detail/impl/openssl_init.ipp" />
 		<Unit filename="include/boost/asio/ssl/detail/io.hpp" />
 		<Unit filename="include/boost/asio/ssl/detail/openssl_init.hpp" />
 		<Unit filename="include/boost/asio/ssl/detail/openssl_types.hpp" />
@@ -453,6 +630,9 @@
 		<Unit filename="include/boost/asio/ssl/detail/write_op.hpp" />
 		<Unit filename="include/boost/asio/ssl/error.hpp" />
 		<Unit filename="include/boost/asio/ssl/impl/context.hpp" />
+		<Unit filename="include/boost/asio/ssl/impl/context.ipp" />
+		<Unit filename="include/boost/asio/ssl/impl/error.ipp" />
+		<Unit filename="include/boost/asio/ssl/impl/rfc2818_verification.ipp" />
 		<Unit filename="include/boost/asio/ssl/impl/src.hpp" />
 		<Unit filename="include/boost/asio/ssl/old/basic_context.hpp" />
 		<Unit filename="include/boost/asio/ssl/old/context_service.hpp" />
@@ -490,6 +670,21 @@
 		<Unit filename="include/boost/asio/write.hpp" />
 		<Unit filename="include/boost/asio/write_at.hpp" />
 		<Unit filename="include/boost/assert.hpp" />
+		<Unit filename="include/boost/atomic.hpp" />
+		<Unit filename="include/boost/atomic/detail/base.hpp" />
+		<Unit filename="include/boost/atomic/detail/builder.hpp" />
+		<Unit filename="include/boost/atomic/detail/fallback.hpp" />
+		<Unit filename="include/boost/atomic/detail/gcc-alpha.hpp" />
+		<Unit filename="include/boost/atomic/detail/gcc-armv6+.hpp" />
+		<Unit filename="include/boost/atomic/detail/gcc-ppc.hpp" />
+		<Unit filename="include/boost/atomic/detail/gcc-x86.hpp" />
+		<Unit filename="include/boost/atomic/detail/generic-cas.hpp" />
+		<Unit filename="include/boost/atomic/detail/integral-casts.hpp" />
+		<Unit filename="include/boost/atomic/detail/interlocked.hpp" />
+		<Unit filename="include/boost/atomic/detail/linux-arm.hpp" />
+		<Unit filename="include/boost/atomic/detail/valid_integral_types.hpp" />
+		<Unit filename="include/boost/atomic/platform.hpp" />
+		<Unit filename="include/boost/bind.hpp" />
 		<Unit filename="include/boost/bind/apply.hpp" />
 		<Unit filename="include/boost/bind/arg.hpp" />
 		<Unit filename="include/boost/bind/bind.hpp" />
@@ -676,6 +871,7 @@
 		<Unit filename="include/boost/date_time/gregorian/gregorian_types.hpp" />
 		<Unit filename="include/boost/date_time/gregorian/parsers.hpp" />
 		<Unit filename="include/boost/date_time/gregorian_calendar.hpp" />
+		<Unit filename="include/boost/date_time/gregorian_calendar.ipp" />
 		<Unit filename="include/boost/date_time/int_adapter.hpp" />
 		<Unit filename="include/boost/date_time/iso_format.hpp" />
 		<Unit filename="include/boost/date_time/local_time/conversion.hpp" />
@@ -794,6 +990,7 @@
 		<Unit filename="include/boost/detail/win/time.hpp" />
 		<Unit filename="include/boost/detail/win/timers.hpp" />
 		<Unit filename="include/boost/detail/workaround.hpp" />
+		<Unit filename="include/boost/enable_shared_from_this.hpp" />
 		<Unit filename="include/boost/exception/all.hpp" />
 		<Unit filename="include/boost/exception/current_exception_cast.hpp" />
 		<Unit filename="include/boost/exception/detail/attribute_noreturn.hpp" />
@@ -821,8 +1018,10 @@
 		<Unit filename="include/boost/exception/info_tuple.hpp" />
 		<Unit filename="include/boost/exception/to_string.hpp" />
 		<Unit filename="include/boost/exception/to_string_stub.hpp" />
+		<Unit filename="include/boost/get_pointer.hpp" />
 		<Unit filename="include/boost/implicit_cast.hpp" />
 		<Unit filename="include/boost/integer_traits.hpp" />
+		<Unit filename="include/boost/intrusive_ptr.hpp" />
 		<Unit filename="include/boost/io/detail/quoted_manip.hpp" />
 		<Unit filename="include/boost/io/ios_state.hpp" />
 		<Unit filename="include/boost/io_fwd.hpp" />
@@ -854,6 +1053,16 @@
 		<Unit filename="include/boost/iterator/zip_iterator.hpp" />
 		<Unit filename="include/boost/lexical_cast.hpp" />
 		<Unit filename="include/boost/limits.hpp" />
+		<Unit filename="include/boost/lockfree/detail/atomic.hpp" />
+		<Unit filename="include/boost/lockfree/detail/branch_hints.hpp" />
+		<Unit filename="include/boost/lockfree/detail/freelist.hpp" />
+		<Unit filename="include/boost/lockfree/detail/prefix.hpp" />
+		<Unit filename="include/boost/lockfree/detail/tagged_ptr.hpp" />
+		<Unit filename="include/boost/lockfree/detail/tagged_ptr_dcas.hpp" />
+		<Unit filename="include/boost/lockfree/detail/tagged_ptr_ptrcompression.hpp" />
+		<Unit filename="include/boost/lockfree/fifo.hpp" />
+		<Unit filename="include/boost/lockfree/ringbuffer.hpp" />
+		<Unit filename="include/boost/lockfree/stack.hpp" />
 		<Unit filename="include/boost/math/bindings/detail/big_digamma.hpp" />
 		<Unit filename="include/boost/math/bindings/detail/big_lanczos.hpp" />
 		<Unit filename="include/boost/math/bindings/e_float.hpp" />
@@ -1133,7 +1342,11 @@
 		<Unit filename="include/boost/math/tools/user.hpp" />
 		<Unit filename="include/boost/math/tools/workaround.hpp" />
 		<Unit filename="include/boost/math/tr1.hpp" />
+		<Unit filename="include/boost/math/tr1_c_macros.ipp" />
+		<Unit filename="include/boost/mem_fn.hpp" />
 		<Unit filename="include/boost/memory_order.hpp" />
+		<Unit filename="include/boost/move/move.hpp" />
+		<Unit filename="include/boost/move/move_helpers.hpp" />
 		<Unit filename="include/boost/mpl/O1_size.hpp" />
 		<Unit filename="include/boost/mpl/O1_size_fwd.hpp" />
 		<Unit filename="include/boost/mpl/accumulate.hpp" />
@@ -2176,7 +2389,10 @@
 		<Unit filename="include/boost/mpl/void_fwd.hpp" />
 		<Unit filename="include/boost/mpl/zip_view.hpp" />
 		<Unit filename="include/boost/next_prior.hpp" />
+		<Unit filename="include/boost/non_type.hpp" />
 		<Unit filename="include/boost/noncopyable.hpp" />
+		<Unit filename="include/boost/none.hpp" />
+		<Unit filename="include/boost/none_t.hpp" />
 		<Unit filename="include/boost/numeric/conversion/bounds.hpp" />
 		<Unit filename="include/boost/numeric/conversion/cast.hpp" />
 		<Unit filename="include/boost/numeric/conversion/conversion_traits.hpp" />
@@ -2293,6 +2509,10 @@
 		<Unit filename="include/boost/numeric/ublas/vector_proxy.hpp" />
 		<Unit filename="include/boost/numeric/ublas/vector_sparse.hpp" />
 		<Unit filename="include/boost/operators.hpp" />
+		<Unit filename="include/boost/optional.hpp" />
+		<Unit filename="include/boost/optional/optional.hpp" />
+		<Unit filename="include/boost/optional/optional_fwd.hpp" />
+		<Unit filename="include/boost/optional/optional_io.hpp" />
 		<Unit filename="include/boost/preprocessor/arithmetic.hpp" />
 		<Unit filename="include/boost/preprocessor/arithmetic/add.hpp" />
 		<Unit filename="include/boost/preprocessor/arithmetic/dec.hpp" />
@@ -2698,6 +2918,7 @@
 		<Unit filename="include/boost/range/size_type.hpp" />
 		<Unit filename="include/boost/range/sub_range.hpp" />
 		<Unit filename="include/boost/range/value_type.hpp" />
+		<Unit filename="include/boost/ref.hpp" />
 		<Unit filename="include/boost/regex.h" />
 		<Unit filename="include/boost/regex.hpp" />
 		<Unit filename="include/boost/regex/concepts.hpp" />
@@ -2824,6 +3045,51 @@
 		<Unit filename="include/boost/system/system_error.hpp" />
 		<Unit filename="include/boost/system/windows_error.hpp" />
 		<Unit filename="include/boost/thread.hpp" />
+		<Unit filename="include/boost/thread/barrier.hpp" />
+		<Unit filename="include/boost/thread/condition.hpp" />
+		<Unit filename="include/boost/thread/condition_variable.hpp" />
+		<Unit filename="include/boost/thread/detail/config.hpp" />
+		<Unit filename="include/boost/thread/detail/force_cast.hpp" />
+		<Unit filename="include/boost/thread/detail/move.hpp" />
+		<Unit filename="include/boost/thread/detail/platform.hpp" />
+		<Unit filename="include/boost/thread/detail/singleton.hpp" />
+		<Unit filename="include/boost/thread/detail/thread.hpp" />
+		<Unit filename="include/boost/thread/detail/thread_group.hpp" />
+		<Unit filename="include/boost/thread/detail/thread_heap_alloc.hpp" />
+		<Unit filename="include/boost/thread/detail/thread_interruption.hpp" />
+		<Unit filename="include/boost/thread/detail/tss_hooks.hpp" />
+		<Unit filename="include/boost/thread/exceptions.hpp" />
+		<Unit filename="include/boost/thread/future.hpp" />
+		<Unit filename="include/boost/thread/locks.hpp" />
+		<Unit filename="include/boost/thread/mutex.hpp" />
+		<Unit filename="include/boost/thread/once.hpp" />
+		<Unit filename="include/boost/thread/pthread/condition_variable.hpp" />
+		<Unit filename="include/boost/thread/pthread/condition_variable_fwd.hpp" />
+		<Unit filename="include/boost/thread/pthread/mutex.hpp" />
+		<Unit filename="include/boost/thread/pthread/once.hpp" />
+		<Unit filename="include/boost/thread/pthread/pthread_mutex_scoped_lock.hpp" />
+		<Unit filename="include/boost/thread/pthread/recursive_mutex.hpp" />
+		<Unit filename="include/boost/thread/pthread/shared_mutex.hpp" />
+		<Unit filename="include/boost/thread/pthread/thread_data.hpp" />
+		<Unit filename="include/boost/thread/pthread/thread_heap_alloc.hpp" />
+		<Unit filename="include/boost/thread/pthread/timespec.hpp" />
+		<Unit filename="include/boost/thread/recursive_mutex.hpp" />
+		<Unit filename="include/boost/thread/shared_mutex.hpp" />
+		<Unit filename="include/boost/thread/thread.hpp" />
+		<Unit filename="include/boost/thread/thread_time.hpp" />
+		<Unit filename="include/boost/thread/tss.hpp" />
+		<Unit filename="include/boost/thread/win32/basic_recursive_mutex.hpp" />
+		<Unit filename="include/boost/thread/win32/basic_timed_mutex.hpp" />
+		<Unit filename="include/boost/thread/win32/condition_variable.hpp" />
+		<Unit filename="include/boost/thread/win32/interlocked_read.hpp" />
+		<Unit filename="include/boost/thread/win32/mutex.hpp" />
+		<Unit filename="include/boost/thread/win32/once.hpp" />
+		<Unit filename="include/boost/thread/win32/recursive_mutex.hpp" />
+		<Unit filename="include/boost/thread/win32/shared_mutex.hpp" />
+		<Unit filename="include/boost/thread/win32/thread_data.hpp" />
+		<Unit filename="include/boost/thread/win32/thread_heap_alloc.hpp" />
+		<Unit filename="include/boost/thread/win32/thread_primitives.hpp" />
+		<Unit filename="include/boost/thread/xtime.hpp" />
 		<Unit filename="include/boost/throw_exception.hpp" />
 		<Unit filename="include/boost/token_functions.hpp" />
 		<Unit filename="include/boost/token_iterator.hpp" />
@@ -3010,7 +3276,18 @@
 		<Unit filename="include/boost/utility/value_init.hpp" />
 		<Unit filename="include/boost/variant.hpp" />
 		<Unit filename="include/boost/version.hpp" />
+		<Unit filename="include/boost/visit_each.hpp" />
 		<Unit filename="include/boost/weak_ptr.hpp" />
+		<Unit filename="include/gd.h" />
+		<Unit filename="include/gd_io.h" />
+		<Unit filename="include/gdcache.h" />
+		<Unit filename="include/gdfonts.h" />
+		<Unit filename="include/gdfx.h" />
+		<Unit filename="include/jconfig.h" />
+		<Unit filename="include/jerror.h" />
+		<Unit filename="include/jmorecfg.h" />
+		<Unit filename="include/jpegint.h" />
+		<Unit filename="include/jpeglib.h" />
 		<Unit filename="include/log4cpp/AbortAppender.hh" />
 		<Unit filename="include/log4cpp/Appender.hh" />
 		<Unit filename="include/log4cpp/AppenderSkeleton.hh" />
@@ -3065,12 +3342,170 @@
 		<Unit filename="include/log4cpp/threading/Threading.hh" />
 		<Unit filename="include/osconfig.h" />
 		<Unit filename="include/pcl/pcl.h" />
+		<Unit filename="include/png.h" />
+		<Unit filename="include/pngconf.h" />
+		<Unit filename="include/pnglibconf.h" />
+		<Unit filename="include/tif_config.h" />
+		<Unit filename="include/tiff.h" />
+		<Unit filename="include/tiffio.h" />
+		<Unit filename="include/tiffvers.h" />
 		<Unit filename="include/v8/v8-debug.h" />
 		<Unit filename="include/v8/v8-preparser.h" />
 		<Unit filename="include/v8/v8-profiler.h" />
 		<Unit filename="include/v8/v8-testing.h" />
 		<Unit filename="include/v8/v8.h" />
 		<Unit filename="include/v8/v8stdint.h" />
+		<Unit filename="include/zconf.h" />
+		<Unit filename="include/zlib.h" />
+		<Unit filename="jpeg/jaricom.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jcapimin.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jcapistd.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jcarith.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jccoefct.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jccolor.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jcdctmgr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jchuff.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jcinit.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jcmainct.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jcmarker.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jcmaster.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jcomapi.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jconfig.h" />
+		<Unit filename="jpeg/jcparam.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jcprepct.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jcsample.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jctrans.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jdapimin.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jdapistd.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jdarith.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jdatadst.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jdatasrc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jdcoefct.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jdcolor.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jdct.h" />
+		<Unit filename="jpeg/jddctmgr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jdhuff.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jdinput.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jdmainct.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jdmarker.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jdmaster.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jdmerge.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jdpostct.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jdsample.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jdtrans.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jerror.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jerror.h" />
+		<Unit filename="jpeg/jfdctflt.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jfdctfst.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jfdctint.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jidctflt.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jidctfst.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jidctint.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jinclude.h" />
+		<Unit filename="jpeg/jmemmgr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jmemnobs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jmemsys.h" />
+		<Unit filename="jpeg/jpegint.h" />
+		<Unit filename="jpeg/jquant1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jquant2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jutils.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/jversion.h" />
+		<Unit filename="jpeg/transupp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jpeg/transupp.h" />
 		<Unit filename="log4cpp/AbortAppender.cpp" />
 		<Unit filename="log4cpp/Appender.cpp" />
 		<Unit filename="log4cpp/AppenderSkeleton.cpp" />
@@ -3130,6 +3565,173 @@
 		<Unit filename="pcl/pcl_private.h" />
 		<Unit filename="pcl/pcl_setjmp.S" />
 		<Unit filename="pcl/pcl_setjmp.h" />
+		<Unit filename="png/png.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="png/png.h" />
+		<Unit filename="png/pngconf.h" />
+		<Unit filename="png/pngdebug.h" />
+		<Unit filename="png/pngerror.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="png/pngget.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="png/pnginfo.h" />
+		<Unit filename="png/pngmem.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="png/pngpread.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="png/pngpriv.h" />
+		<Unit filename="png/pngread.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="png/pngrio.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="png/pngrtran.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="png/pngrutil.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="png/pngset.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="png/pngstruct.h" />
+		<Unit filename="png/pngtrans.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="png/pngwio.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="png/pngwrite.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="png/pngwtran.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="png/pngwutil.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/t4.h" />
+		<Unit filename="tiff/tif_aux.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_close.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_codec.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_color.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_compress.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_dir.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_dir.h" />
+		<Unit filename="tiff/tif_dirinfo.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_dirread.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_dirwrite.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_dumpmode.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_error.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_extension.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_fax3.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_fax3.h" />
+		<Unit filename="tiff/tif_fax3sm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_flush.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_getimage.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_jpeg.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_luv.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_lzw.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_memory.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_next.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_ojpeg.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_open.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_packbits.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_pixarlog.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_predict.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_predict.h" />
+		<Unit filename="tiff/tif_print.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_read.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_strip.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_swab.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_thunder.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_tile.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_version.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_warning.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_write.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tif_zip.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tiff/tiff.h" />
+		<Unit filename="tiff/tiffio.h" />
+		<Unit filename="tiff/tiffiop.h" />
+		<Unit filename="tiff/uvcode.h" />
 		<Unit filename="v8/include/v8-debug.h" />
 		<Unit filename="v8/include/v8-preparser.h" />
 		<Unit filename="v8/include/v8-profiler.h" />
@@ -3476,6 +4078,46 @@
 		<Unit filename="v8/src/zone-inl.h" />
 		<Unit filename="v8/src/zone.cc" />
 		<Unit filename="v8/src/zone.h" />
+		<Unit filename="zlib/adler32.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="zlib/compress.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="zlib/crc32.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="zlib/crc32.h" />
+		<Unit filename="zlib/deflate.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="zlib/deflate.h" />
+		<Unit filename="zlib/inffast.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="zlib/inffast.h" />
+		<Unit filename="zlib/inffixed.h" />
+		<Unit filename="zlib/inflate.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="zlib/inflate.h" />
+		<Unit filename="zlib/inftrees.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="zlib/inftrees.h" />
+		<Unit filename="zlib/trees.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="zlib/trees.h" />
+		<Unit filename="zlib/uncompr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="zlib/zconf.h" />
+		<Unit filename="zlib/zlib.h" />
+		<Unit filename="zlib/zutil.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="zlib/zutil.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

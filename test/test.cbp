@@ -150,6 +150,7 @@
 			<Add library="vender" />
 		</Linker>
 		<Unit filename="src/asio.cpp" />
+		<Unit filename="src/gd.cpp" />
 		<Unit filename="src/lockfree.cpp" />
 		<Unit filename="src/pcl.cpp" />
 		<Unit filename="src/test.cpp" />
