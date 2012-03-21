@@ -465,7 +465,7 @@ bool VirtualMemory::ReleaseRegion(void* base, size_t size) {
   return munmap(base, size) == 0;
 }
 
-
+#if 0
 class Thread::PlatformData : public Malloced {
  public:
   pthread_t thread_;  // Thread handle for pthread.
@@ -652,7 +652,7 @@ bool FreeBSDSemaphore::Wait(int timeout) {
 Semaphore* OS::CreateSemaphore(int count) {
   return new FreeBSDSemaphore(count);
 }
-
+#endif
 
 static pthread_t GetThreadID() {
   pthread_t thread_id = pthread_self();

@@ -720,7 +720,7 @@ bool VirtualMemory::ReleaseRegion(void* base, size_t size) {
   return munmap(base, size) == 0;
 }
 
-
+#if 0
 class Thread::PlatformData : public Malloced {
  public:
   PlatformData() : thread_(kNoThread) {}
@@ -929,7 +929,7 @@ bool LinuxSemaphore::Wait(int timeout) {
 Semaphore* OS::CreateSemaphore(int count) {
   return new LinuxSemaphore(count);
 }
-
+#endif
 
 #if !defined(__GLIBC__) && (defined(__arm__) || defined(__thumb__))
 // Android runs a fairly new Linux kernel, so signal info is there,

@@ -26,8 +26,8 @@
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
 				<Compiler>
-					<Add option="-Wall" />
 					<Add option="-O2" />
+					<Add option="-Wall" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -103,6 +103,7 @@
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
+					<Add option="-DBOOST_EXCEPTION_DISABLE" />
 				</Compiler>
 			</Target>
 			<Target title="WinRelease32">
@@ -127,6 +128,9 @@
 			<Add alias="windows" targets="WinDebug;WinRelease;WinDebug32;WinRelease32;" />
 		</VirtualTargets>
 		<Compiler>
+			<Add option="-pedantic" />
+			<Add option="-fpermissive" />
+			<Add option="-Wno-long-long" />
 			<Add directory="include" />
 			<Add directory="v8/src" />
 		</Compiler>
@@ -138,8 +142,13 @@
 		<Unit filename="boost/thread/tss_null.cpp" />
 		<Unit filename="boost/thread/win32/thread.cpp" />
 		<Unit filename="boost/thread/win32/timeconv.inl" />
-		<Unit filename="boost/thread/win32/tss_dll.cpp" />
 		<Unit filename="boost/thread/win32/tss_pe.cpp" />
+		<Unit filename="fiber/fbCondVar.cpp" />
+		<Unit filename="fiber/fbLocker.cpp" />
+		<Unit filename="fiber/fbSemaphore.cpp" />
+		<Unit filename="fiber/fbService.cpp" />
+		<Unit filename="fiber/fbTls.cpp" />
+		<Unit filename="fiber/fb_setjmp.S" />
 		<Unit filename="gd/bmp.h" />
 		<Unit filename="gd/config.h" />
 		<Unit filename="gd/entities.h" />
@@ -3278,6 +3287,7 @@
 		<Unit filename="include/boost/version.hpp" />
 		<Unit filename="include/boost/visit_each.hpp" />
 		<Unit filename="include/boost/weak_ptr.hpp" />
+		<Unit filename="include/fiber.h" />
 		<Unit filename="include/gd.h" />
 		<Unit filename="include/gd_io.h" />
 		<Unit filename="include/gdcache.h" />
@@ -3341,7 +3351,6 @@
 		<Unit filename="include/log4cpp/threading/PThreads.hh" />
 		<Unit filename="include/log4cpp/threading/Threading.hh" />
 		<Unit filename="include/osconfig.h" />
-		<Unit filename="include/pcl/pcl.h" />
 		<Unit filename="include/png.h" />
 		<Unit filename="include/pngconf.h" />
 		<Unit filename="include/pnglibconf.h" />
@@ -3555,16 +3564,6 @@
 		<Unit filename="log4cpp/TimeStamp.cpp" />
 		<Unit filename="log4cpp/TriggeringEventEvaluatorFactory.cpp" />
 		<Unit filename="log4cpp/Win32DebugAppender.cpp" />
-		<Unit filename="pcl/pcl.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="pcl/pcl.h" />
-		<Unit filename="pcl/pcl_private.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="pcl/pcl_private.h" />
-		<Unit filename="pcl/pcl_setjmp.S" />
-		<Unit filename="pcl/pcl_setjmp.h" />
 		<Unit filename="png/png.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -3937,6 +3936,7 @@
 		<Unit filename="v8/src/objects.h" />
 		<Unit filename="v8/src/parser.cc" />
 		<Unit filename="v8/src/parser.h" />
+		<Unit filename="v8/src/platform-fiber.cc" />
 		<Unit filename="v8/src/platform-freebsd.cc" />
 		<Unit filename="v8/src/platform-linux.cc" />
 		<Unit filename="v8/src/platform-macos.cc" />

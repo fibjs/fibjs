@@ -455,7 +455,7 @@ bool VirtualMemory::ReleaseRegion(void* base, size_t size) {
   return munmap(base, size) == 0;
 }
 
-
+#if 0
 class Thread::PlatformData : public Malloced {
  public:
   PlatformData() : thread_(kNoThread) {  }
@@ -657,7 +657,7 @@ bool SolarisSemaphore::Wait(int timeout) {
 Semaphore* OS::CreateSemaphore(int count) {
   return new SolarisSemaphore(count);
 }
-
+#endif
 
 static pthread_t GetThreadID() {
   return pthread_self();

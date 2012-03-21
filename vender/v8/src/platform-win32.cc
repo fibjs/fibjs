@@ -1560,7 +1560,7 @@ bool VirtualMemory::ReleaseRegion(void* base, size_t size) {
   return VirtualFree(base, 0, MEM_RELEASE) != 0;
 }
 
-
+#if 0
 // ----------------------------------------------------------------------------
 // Win32 thread support.
 
@@ -1745,6 +1745,7 @@ Semaphore* OS::CreateSemaphore(int count) {
   return new Win32Semaphore(count);
 }
 
+#endif
 
 // ----------------------------------------------------------------------------
 // Win32 socket support.

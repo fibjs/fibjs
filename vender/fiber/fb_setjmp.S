@@ -11,30 +11,34 @@
 .globl win_setjmp, win_longjmp, nix_setjmp, nix_longjmp, _nix_setjmp, _nix_longjmp
 _nix_setjmp:
 nix_setjmp:
+    movq	%rcx,0x10(%rdi)
     movq    %rdi, %rcx
 win_setjmp:
+    movq	%rdx,0x18(%rcx)
+
 	leaq	8(%rsp),%rdx
 	movq	(%rsp),%rax
 	movq	%rbp,(%rcx)
 	movq	%rbx,0x08(%rcx)
-	movq	%rsi,0x10(%rcx)
-	movq	%rdi,0x18(%rcx)
-	movq	%r12,0x20(%rcx)
-	movq	%r13,0x28(%rcx)
-	movq	%r14,0x30(%rcx)
-	movq	%r15,0x38(%rcx)
-	movq	%rdx,0x40(%rcx)
-	movq	%rax,0x48(%rcx)
-	movdqa	%xmm6, 0x50(%rcx)
-	movdqa	%xmm7, 0x60(%rcx)
-	movdqa	%xmm8, 0x70(%rcx)
-	movdqa	%xmm9, 0x80(%rcx)
-	movdqa	%xmm10, 0x90(%rcx)
-	movdqa	%xmm11, 0xa0(%rcx)
-	movdqa	%xmm12, 0xb0(%rcx)
-	movdqa	%xmm13, 0xc0(%rcx)
-	movdqa	%xmm14, 0xd0(%rcx)
-	movdqa	%xmm15, 0xe0(%rcx)
+
+	movq	%rsi,0x20(%rcx)
+	movq	%rdi,0x28(%rcx)
+	movq	%r12,0x30(%rcx)
+	movq	%r13,0x38(%rcx)
+	movq	%r14,0x40(%rcx)
+	movq	%r15,0x48(%rcx)
+	movq	%rdx,0x50(%rcx)
+	movq	%rax,0x58(%rcx)
+	movdqa	%xmm6, 0x60(%rcx)
+	movdqa	%xmm7, 0x70(%rcx)
+	movdqa	%xmm8, 0x80(%rcx)
+	movdqa	%xmm9, 0x90(%rcx)
+	movdqa	%xmm10, 0xa0(%rcx)
+	movdqa	%xmm11, 0xb0(%rcx)
+	movdqa	%xmm12, 0xc0(%rcx)
+	movdqa	%xmm13, 0xd0(%rcx)
+	movdqa	%xmm14, 0xe0(%rcx)
+	movdqa	%xmm15, 0xf0(%rcx)
 	xorq	%rax,%rax
 	ret
 
@@ -45,26 +49,30 @@ nix_longjmp:
 win_longjmp:
 	movq	(%rcx), %rbp
 	movq	0x08(%rcx), %rbx
-	movq	0x10(%rcx), %rsi
-	movq	0x18(%rcx), %rdi
-	movq	0x20(%rcx), %r12
-	movq	0x28(%rcx), %r13
-	movq	0x30(%rcx), %r14
-	movq	0x38(%rcx), %r15
-	movq	0x40(%rcx), %rsp
-	movq	0x48(%rcx), %rax
-	movdqa	0x50(%rcx), %xmm6
-	movdqa	0x60(%rcx), %xmm7
-	movdqa	0x70(%rcx), %xmm8
-	movdqa	0x80(%rcx), %xmm9
-	movdqa	0x90(%rcx), %xmm10
-	movdqa	0xa0(%rcx), %xmm11
-	movdqa	0xb0(%rcx), %xmm12
-	movdqa	0xc0(%rcx), %xmm13
-	movdqa	0xd0(%rcx), %xmm14
-	movdqa	0xe0(%rcx), %xmm15
+
+	movq	0x20(%rcx), %rsi
+	movq	0x28(%rcx), %rdi
+	movq	0x30(%rcx), %r12
+	movq	0x38(%rcx), %r13
+	movq	0x40(%rcx), %r14
+	movq	0x48(%rcx), %r15
+	movq	0x50(%rcx), %rsp
+	movq	0x58(%rcx), %rax
+	movdqa	0x60(%rcx), %xmm6
+	movdqa	0x70(%rcx), %xmm7
+	movdqa	0x80(%rcx), %xmm8
+	movdqa	0x90(%rcx), %xmm9
+	movdqa	0xa0(%rcx), %xmm10
+	movdqa	0xb0(%rcx), %xmm11
+	movdqa	0xc0(%rcx), %xmm12
+	movdqa	0xd0(%rcx), %xmm13
+	movdqa	0xe0(%rcx), %xmm14
+	movdqa	0xf0(%rcx), %xmm15
 	xchgq	%rdx, %rax
-	jmp *%rdx
+	pushq %rdx
+	movq	0x18(%rcx), %rdx
+	movq	0x10(%rcx), %rcx
+	ret
 
 #else
 
