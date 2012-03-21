@@ -7,33 +7,26 @@
  */
 
 #include <v8/v8.h>
+#include <fiber.h>
 #include "test.h"
 
 using namespace v8;
 
+Isolate* isolate;
 
-char* p, *p1;
-
-void putStack()
+Handle<Value> Print(const Arguments& args)
 {
-    char n = 0;
+    HandleScope handle_scope;
+    {
+        Unlocker unlocker(isolate);
+        fiber::Service::Suspend();
+    }
 
-    if(p == 0)
-        p = &n;
-
-    log4cpp::Category::getInstance(std::string("v8")).debug("--- %d, %d", (p - &n), (p1 - &n));
-    p1 = &n;
-}
-
-// The callback that is invoked by v8 whenever the JavaScript 'print'
-// function is called. Prints its arguments on stdout separated by
-// spaces and ending with a newline.
-Handle<Value> Print(const Arguments& args) {
-    putStack();
     bool first = true;
     for (int i = 0; i < args.Length(); i++)
     {
-        HandleScope handle_scope;
+        //HandleScope handle_scope;
+
         if (first)
         {
             first = false;
@@ -44,38 +37,60 @@ Handle<Value> Print(const Arguments& args) {
         }
         //convert the args[i] type to normal char* string
         String::AsciiValue str(args[i]);
-        printf("%s", *str);
+        printf("%x: %s",  fiber::Service::Current(), *str);
     }
     printf("\n");
     //returning Undefined is the same as returning void...
     return Undefined();
 }
 
-void v8_main() {
+Persistent<ObjectTemplate> g_global;
+
+void* t(void* p)
+{
+    Locker locker(isolate);
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope;
+
+    Handle<Context> context = Context::New(NULL, g_global);
+    Context::Scope context_scope(context);
+
+    Handle<String> source = String::New("var n = 0;{print('Hello, World? ' + n);n = n + 1;}//console.log('aaaaa')");
+    Handle<Script> script = Script::Compile(source);
+    script->Run();
+
+    return NULL;
+}
+
+#define COUNT 10
+
+void v8_main()
+{
     log4cpp::Category& v8log = log4cpp::Category::getInstance(std::string("v8"));
 
-	v8log.debug("--------- v8 sample --------");
-	// Create a stack-allocated handle scope.
-	HandleScope handle_scope;
+    v8log.debug("--------- v8 sample --------");
 
-	Handle<ObjectTemplate> global = ObjectTemplate::New();
+    int i;
+    isolate = Isolate::New();
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope;
 
+    Handle<ObjectTemplate> global = ObjectTemplate::New();
     global->Set(String::New("print"), FunctionTemplate::New(Print));
 
-	// Create a new context.
-	Handle < Context > context = Context::New(NULL, global);
-	// Enter the created context for compiling and
-	// running the hello world script.
-	Context::Scope context_scope(context);
-	// Create a string containing the JavaScript source code.
-	Handle < String > source = String::New("print('Hello, World? ');console.log('aaaaa')");
-	// Compile the source code.
-	Handle < Script > script = Script::Compile(source);
-	// Run the script to get the result.
+    g_global = Persistent<ObjectTemplate>(global);
 
-	putStack();
-	script->Run();
-	putStack();
+    while(1)
+    {
+        for(int i = 0; i < COUNT; i ++)
+        {
+            fiber::Service::CreateFiber(t, (void*)i);
+            printf("new fiber: %d\n", i);
+        }
 
-	v8log.debug("--------- v8 sample --------");
+        fiber::Service::Run();
+    }
+
+    v8log.debug("--------- v8 sample --------");
 }
+

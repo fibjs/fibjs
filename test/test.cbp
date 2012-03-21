@@ -9,12 +9,12 @@
 			<Target title="Debug">
 				<Option output="bin/Debug/test" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
+				<Option external_deps="../vender/bin/Debug/libvender.a;" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
-					<Add option="-fpermissive" />
 				</Compiler>
 				<Linker>
 					<Add library="pthread" />
@@ -24,6 +24,7 @@
 			<Target title="Release">
 				<Option output="bin/Release/test" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
+				<Option external_deps="../vender/bin/Release/libvender.a;" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -39,6 +40,7 @@
 			<Target title="Debug32">
 				<Option output="bin/Debug32/test" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug32/" />
+				<Option external_deps="../vender/bin/Debug32/libvender.a;" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -55,6 +57,7 @@
 			<Target title="Release32">
 				<Option output="bin/Release32/test" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release32/" />
+				<Option external_deps="../vender/bin/Release32/libvender.a;" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -72,6 +75,7 @@
 			<Target title="WinDebug">
 				<Option output="bin/WinDebug/test.exe" prefix_auto="1" extension_auto="0" />
 				<Option object_output="obj/WinDebug/" />
+				<Option external_deps="../vender/bin/WinDebug/libvender.a;" />
 				<Option type="1" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
@@ -88,6 +92,7 @@
 			<Target title="WinRelease">
 				<Option output="bin/WinRelease/test.exe" prefix_auto="1" extension_auto="0" />
 				<Option object_output="obj/WinRelease/" />
+				<Option external_deps="../vender/bin/WinRelease/libvender.a;" />
 				<Option type="1" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
@@ -105,6 +110,7 @@
 			<Target title="WinDebug32">
 				<Option output="bin/WinDebug32/test.exe" prefix_auto="1" extension_auto="0" />
 				<Option object_output="obj/WinDebug32/" />
+				<Option external_deps="../vender/bin/WinDebug32/libvender.a;" />
 				<Option type="1" />
 				<Option compiler="gnu_gcc_compiler_for_mingw" />
 				<Compiler>
@@ -121,6 +127,7 @@
 			<Target title="WinRelease32">
 				<Option output="bin/WinRelease32/test.exe" prefix_auto="1" extension_auto="0" />
 				<Option object_output="obj/WinRelease32/" />
+				<Option external_deps="../vender/bin/WinRelease32/libvender.a;" />
 				<Option type="1" />
 				<Option compiler="gnu_gcc_compiler_for_mingw" />
 				<Compiler>
@@ -143,16 +150,18 @@
 		</VirtualTargets>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-fexceptions" />
+			<Add option="-fpermissive" />
+			<Add option="-Wno-long-long" />
 			<Add directory="../vender/include" />
 		</Compiler>
 		<Linker>
 			<Add library="vender" />
 		</Linker>
 		<Unit filename="src/asio.cpp" />
+		<Unit filename="src/fiber.cpp" />
 		<Unit filename="src/gd.cpp" />
+		<Unit filename="src/js.cpp" />
 		<Unit filename="src/lockfree.cpp" />
-		<Unit filename="src/pcl.cpp" />
 		<Unit filename="src/test.cpp" />
 		<Unit filename="src/test.h" />
 		<Unit filename="src/v8.cpp" />
