@@ -9,6 +9,7 @@
 #include <v8/v8.h>
 #include <fiber.h>
 #include "test.h"
+//#include <pthread.h>
 
 using namespace v8;
 
@@ -20,6 +21,7 @@ Handle<Value> Print(const Arguments& args)
     {
         Unlocker unlocker(isolate);
         fiber::Service::Suspend();
+        //pthread_yield();
     }
 
     bool first = true;
@@ -37,7 +39,8 @@ Handle<Value> Print(const Arguments& args)
         }
         //convert the args[i] type to normal char* string
         String::AsciiValue str(args[i]);
-        printf("%x: %s",  fiber::Service::Current(), *str);
+        printf("%s",  *str);
+        //printf("%x: %s",  fiber::Service::Current(), *str);
     }
     printf("\n");
     //returning Undefined is the same as returning void...
@@ -50,19 +53,20 @@ void* t(void* p)
 {
     Locker locker(isolate);
     Isolate::Scope isolate_scope(isolate);
+
     HandleScope handle_scope;
 
     Handle<Context> context = Context::New(NULL, g_global);
     Context::Scope context_scope(context);
 
-    Handle<String> source = String::New("var n = 0;{print('Hello, World? ' + n);n = n + 1;}//console.log('aaaaa')");
+    Handle<String> source = String::New("var n = 0;while(1){print('Hello, World? ' + n);n = n + 1;}//console.log('aaaaa')");
     Handle<Script> script = Script::Compile(source);
     script->Run();
 
     return NULL;
 }
 
-#define COUNT 10
+#define COUNT 1000
 
 void v8_main()
 {
@@ -70,26 +74,31 @@ void v8_main()
 
     v8log.debug("--------- v8 sample --------");
 
-    int i;
     isolate = Isolate::New();
+
+    Locker lock(isolate);
     Isolate::Scope isolate_scope(isolate);
+
     HandleScope handle_scope;
 
-    Handle<ObjectTemplate> global = ObjectTemplate::New();
-    global->Set(String::New("print"), FunctionTemplate::New(Print));
-
-    g_global = Persistent<ObjectTemplate>(global);
-
-    while(1)
     {
-        for(int i = 0; i < COUNT; i ++)
-        {
-            fiber::Service::CreateFiber(t, (void*)i, 80000);
-            printf("new fiber: %d\n", i);
-        }
-
-        fiber::Service::Run();
+        Handle<ObjectTemplate> global = ObjectTemplate::New();
+        global->Set(String::New("print"), FunctionTemplate::New(Print));
+        g_global = Persistent<ObjectTemplate>(global);
     }
+
+    Unlocker unlocker(isolate);
+
+    for(int i = 0; i < COUNT; i ++)
+    {
+        fiber::Service::CreateFiber(t, (void*)i, 200000);
+        //pthread_t ptid;
+        //pthread_create(&ptid, NULL, t, (void*)i);
+        printf("new fiber: %d\n", i);
+    }
+
+    fiber::Service::Run();
+    //usleep(30000);
 
     v8log.debug("--------- v8 sample --------");
 }

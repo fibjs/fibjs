@@ -1021,6 +1021,14 @@ class String : public Primitive {
   V8EXPORT int Utf8Length() const;
 
   /**
+   * A fast conservative check for non-ASCII characters.  May
+   * return true even for ASCII strings, but if it returns
+   * false you can be sure that all characters are in the range
+   * 0-127.
+   */
+  V8EXPORT bool MayContainNonAscii() const;
+
+  /**
    * Write the contents of the string to an external buffer.
    * If no arguments are given, expects the buffer to be large
    * enough to hold the entire string and NULL terminator. Copies
@@ -3871,7 +3879,7 @@ class Internals {
   static const int kFullStringRepresentationMask = 0x07;
   static const int kExternalTwoByteRepresentationTag = 0x02;
 
-  static const int kJSObjectType = 0xa9;
+  static const int kJSObjectType = 0xaa;
   static const int kFirstNonstringType = 0x80;
   static const int kForeignType = 0x85;
 

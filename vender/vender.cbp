@@ -3795,6 +3795,8 @@
 		<Unit filename="v8/src/cpu.h" />
 		<Unit filename="v8/src/data-flow.cc" />
 		<Unit filename="v8/src/data-flow.h" />
+		<Unit filename="v8/src/date.cc" />
+		<Unit filename="v8/src/date.h" />
 		<Unit filename="v8/src/dateparser-inl.h" />
 		<Unit filename="v8/src/dateparser.cc" />
 		<Unit filename="v8/src/dateparser.h" />
@@ -3892,6 +3894,8 @@
 		<Unit filename="v8/src/incremental-marking.h" />
 		<Unit filename="v8/src/inspector.cc" />
 		<Unit filename="v8/src/inspector.h" />
+		<Unit filename="v8/src/interface.cc" />
+		<Unit filename="v8/src/interface.h" />
 		<Unit filename="v8/src/interpreter-irregexp.cc" />
 		<Unit filename="v8/src/interpreter-irregexp.h" />
 		<Unit filename="v8/src/isolate-inl.h" />
@@ -3900,6 +3904,7 @@
 		<Unit filename="v8/src/json-parser.h" />
 		<Unit filename="v8/src/jsregexp.cc" />
 		<Unit filename="v8/src/jsregexp.h" />
+		<Unit filename="v8/src/lazy-instance.h" />
 		<Unit filename="v8/src/libraries.cc" />
 		<Unit filename="v8/src/list-inl.h" />
 		<Unit filename="v8/src/list.h" />
@@ -3934,6 +3939,8 @@
 		<Unit filename="v8/src/objects-visiting.h" />
 		<Unit filename="v8/src/objects.cc" />
 		<Unit filename="v8/src/objects.h" />
+		<Unit filename="v8/src/once.cc" />
+		<Unit filename="v8/src/once.h" />
 		<Unit filename="v8/src/parser.cc" />
 		<Unit filename="v8/src/parser.h" />
 		<Unit filename="v8/src/platform-fiber.cc" />

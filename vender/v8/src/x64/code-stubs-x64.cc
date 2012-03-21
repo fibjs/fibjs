@@ -5229,12 +5229,12 @@ void SubStringStub::Generate(MacroAssembler* masm) {
     __ bind(&two_byte_slice);
     __ AllocateTwoByteSlicedString(rax, rbx, r14, &runtime);
     __ bind(&set_slice_header);
-    __ movq(FieldOperand(rax, SlicedString::kOffsetOffset), rdx);
     __ Integer32ToSmi(rcx, rcx);
     __ movq(FieldOperand(rax, SlicedString::kLengthOffset), rcx);
-    __ movq(FieldOperand(rax, SlicedString::kParentOffset), rdi);
     __ movq(FieldOperand(rax, SlicedString::kHashFieldOffset),
            Immediate(String::kEmptyHashField));
+    __ movq(FieldOperand(rax, SlicedString::kParentOffset), rdi);
+    __ movq(FieldOperand(rax, SlicedString::kOffsetOffset), rdx);
     __ IncrementCounter(counters->sub_string_native(), 1);
     __ ret(kArgumentsSize);
 
@@ -5454,7 +5454,7 @@ void StringCompareStub::GenerateAsciiCharsCompareLoop(
   __ movb(scratch, Operand(left, index, times_1, 0));
   __ cmpb(scratch, Operand(right, index, times_1, 0));
   __ j(not_equal, chars_not_equal, near_jump);
-  __ addq(index, Immediate(1));
+  __ incq(index);
   __ j(not_zero, &loop);
 }
 
@@ -5625,8 +5625,9 @@ void ICCompareStub::GenerateSymbols(MacroAssembler* masm) {
 
 void ICCompareStub::GenerateStrings(MacroAssembler* masm) {
   ASSERT(state_ == CompareIC::STRINGS);
-  ASSERT(GetCondition() == equal);
   Label miss;
+
+  bool equality = Token::IsEqualityOp(op_);
 
   // Registers containing left and right operands respectively.
   Register left = rdx;
@@ -5665,24 +5666,31 @@ void ICCompareStub::GenerateStrings(MacroAssembler* masm) {
 
   // Check that both strings are symbols. If they are, we're done
   // because we already know they are not identical.
-  Label do_compare;
-  STATIC_ASSERT(kSymbolTag != 0);
-  __ and_(tmp1, tmp2);
-  __ testb(tmp1, Immediate(kIsSymbolMask));
-  __ j(zero, &do_compare, Label::kNear);
-  // Make sure rax is non-zero. At this point input operands are
-  // guaranteed to be non-zero.
-  ASSERT(right.is(rax));
-  __ ret(0);
+  if (equality) {
+    Label do_compare;
+    STATIC_ASSERT(kSymbolTag != 0);
+    __ and_(tmp1, tmp2);
+    __ testb(tmp1, Immediate(kIsSymbolMask));
+    __ j(zero, &do_compare, Label::kNear);
+    // Make sure rax is non-zero. At this point input operands are
+    // guaranteed to be non-zero.
+    ASSERT(right.is(rax));
+    __ ret(0);
+    __ bind(&do_compare);
+  }
 
   // Check that both strings are sequential ASCII.
   Label runtime;
-  __ bind(&do_compare);
   __ JumpIfNotBothSequentialAsciiStrings(left, right, tmp1, tmp2, &runtime);
 
   // Compare flat ASCII strings. Returns when done.
-  StringCompareStub::GenerateFlatAsciiStringEquals(
-      masm, left, right, tmp1, tmp2);
+  if (equality) {
+    StringCompareStub::GenerateFlatAsciiStringEquals(
+        masm, left, right, tmp1, tmp2);
+  } else {
+    StringCompareStub::GenerateCompareFlatAsciiStrings(
+        masm, left, right, tmp1, tmp2, tmp3, kScratchRegister);
+  }
 
   // Handle more complex cases in runtime.
   __ bind(&runtime);
@@ -5690,7 +5698,11 @@ void ICCompareStub::GenerateStrings(MacroAssembler* masm) {
   __ push(left);
   __ push(right);
   __ push(tmp1);
-  __ TailCallRuntime(Runtime::kStringEquals, 2, 1);
+  if (equality) {
+    __ TailCallRuntime(Runtime::kStringEquals, 2, 1);
+  } else {
+    __ TailCallRuntime(Runtime::kStringCompare, 2, 1);
+  }
 
   __ bind(&miss);
   GenerateMiss(masm);
@@ -5979,42 +5991,45 @@ struct AheadOfTimeWriteBarrierStubList {
 };
 
 
+#define REG(Name) { kRegister_ ## Name ## _Code }
+
 struct AheadOfTimeWriteBarrierStubList kAheadOfTime[] = {
   // Used in RegExpExecStub.
-  { rbx, rax, rdi, EMIT_REMEMBERED_SET },
+  { REG(rbx), REG(rax), REG(rdi), EMIT_REMEMBERED_SET },
   // Used in CompileArrayPushCall.
-  { rbx, rcx, rdx, EMIT_REMEMBERED_SET },
+  { REG(rbx), REG(rcx), REG(rdx), EMIT_REMEMBERED_SET },
   // Used in CompileStoreGlobal.
-  { rbx, rcx, rdx, OMIT_REMEMBERED_SET },
+  { REG(rbx), REG(rcx), REG(rdx), OMIT_REMEMBERED_SET },
   // Used in StoreStubCompiler::CompileStoreField and
   // KeyedStoreStubCompiler::CompileStoreField via GenerateStoreField.
-  { rdx, rcx, rbx, EMIT_REMEMBERED_SET },
+  { REG(rdx), REG(rcx), REG(rbx), EMIT_REMEMBERED_SET },
   // GenerateStoreField calls the stub with two different permutations of
   // registers.  This is the second.
-  { rbx, rcx, rdx, EMIT_REMEMBERED_SET },
+  { REG(rbx), REG(rcx), REG(rdx), EMIT_REMEMBERED_SET },
   // StoreIC::GenerateNormal via GenerateDictionaryStore.
-  { rbx, r8, r9, EMIT_REMEMBERED_SET },
+  { REG(rbx), REG(r8), REG(r9), EMIT_REMEMBERED_SET },
   // KeyedStoreIC::GenerateGeneric.
-  { rbx, rdx, rcx, EMIT_REMEMBERED_SET},
+  { REG(rbx), REG(rdx), REG(rcx), EMIT_REMEMBERED_SET},
   // KeyedStoreStubCompiler::GenerateStoreFastElement.
-  { rdi, rbx, rcx, EMIT_REMEMBERED_SET},
-  { rdx, rdi, rbx, EMIT_REMEMBERED_SET},
+  { REG(rdi), REG(rbx), REG(rcx), EMIT_REMEMBERED_SET},
+  { REG(rdx), REG(rdi), REG(rbx), EMIT_REMEMBERED_SET},
   // ElementsTransitionGenerator::GenerateSmiOnlyToObject
   // and ElementsTransitionGenerator::GenerateSmiOnlyToObject
   // and ElementsTransitionGenerator::GenerateDoubleToObject
-  { rdx, rbx, rdi, EMIT_REMEMBERED_SET},
-  { rdx, rbx, rdi, OMIT_REMEMBERED_SET},
+  { REG(rdx), REG(rbx), REG(rdi), EMIT_REMEMBERED_SET},
+  { REG(rdx), REG(rbx), REG(rdi), OMIT_REMEMBERED_SET},
   // ElementsTransitionGenerator::GenerateSmiOnlyToDouble
   // and ElementsTransitionGenerator::GenerateDoubleToObject
-  { rdx, r11, r15, EMIT_REMEMBERED_SET},
+  { REG(rdx), REG(r11), REG(r15), EMIT_REMEMBERED_SET},
   // ElementsTransitionGenerator::GenerateDoubleToObject
-  { r11, rax, r15, EMIT_REMEMBERED_SET},
+  { REG(r11), REG(rax), REG(r15), EMIT_REMEMBERED_SET},
   // StoreArrayLiteralElementStub::Generate
-  { rbx, rax, rcx, EMIT_REMEMBERED_SET},
+  { REG(rbx), REG(rax), REG(rcx), EMIT_REMEMBERED_SET},
   // Null termination.
-  { no_reg, no_reg, no_reg, EMIT_REMEMBERED_SET}
+  { REG(no_reg), REG(no_reg), REG(no_reg), EMIT_REMEMBERED_SET}
 };
 
+#undef REG
 
 bool RecordWriteStub::IsPregenerated() {
   for (AheadOfTimeWriteBarrierStubList* entry = kAheadOfTime;

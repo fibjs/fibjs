@@ -258,7 +258,7 @@ Handle<String> Parser::LookupSymbol(int symbol_id) {
           scanner().literal_ascii_string());
     } else {
       return isolate()->factory()->LookupTwoByteSymbol(
-          scanner().literal_uc16_string());
+          scanner().literal_utf16_string());
     }
   }
   return LookupCachedSymbol(symbol_id);
@@ -279,7 +279,7 @@ Handle<String> Parser::LookupCachedSymbol(int symbol_id) {
           scanner().literal_ascii_string());
     } else {
       result = isolate()->factory()->LookupTwoByteSymbol(
-          scanner().literal_uc16_string());
+          scanner().literal_utf16_string());
     }
     symbol_cache_.at(symbol_id) = result;
     return result;
@@ -576,12 +576,12 @@ FunctionLiteral* Parser::ParseProgram(CompilationInfo* info) {
     // Notice that the stream is destroyed at the end of the branch block.
     // The last line of the blocks can't be moved outside, even though they're
     // identical calls.
-    ExternalTwoByteStringUC16CharacterStream stream(
+    ExternalTwoByteStringUtf16CharacterStream stream(
         Handle<ExternalTwoByteString>::cast(source), 0, source->length());
     scanner_.Initialize(&stream);
     return DoParseProgram(info, source, &zone_scope);
   } else {
-    GenericStringUC16CharacterStream stream(source, 0, source->length());
+    GenericStringUtf16CharacterStream stream(source, 0, source->length());
     scanner_.Initialize(&stream);
     return DoParseProgram(info, source, &zone_scope);
   }
@@ -604,10 +604,14 @@ FunctionLiteral* Parser::DoParseProgram(CompilationInfo* info,
   FunctionLiteral* result = NULL;
   { Scope* scope = NewScope(top_scope_, GLOBAL_SCOPE);
     info->SetGlobalScope(scope);
-    if (!info->is_global() &&
-        (info->shared_info().is_null() || info->shared_info()->is_function())) {
-      scope = Scope::DeserializeScopeChain(*info->calling_context(), scope);
-      scope = NewScope(scope, EVAL_SCOPE);
+    if (info->is_eval()) {
+      Handle<SharedFunctionInfo> shared = info->shared_info();
+      if (!info->is_global() && (shared.is_null() || shared->is_function())) {
+        scope = Scope::DeserializeScopeChain(*info->calling_context(), scope);
+      }
+      if (!scope->is_global_scope() || info->language_mode() != CLASSIC_MODE) {
+        scope = NewScope(scope, EVAL_SCOPE);
+      }
     }
     scope->set_start_position(0);
     scope->set_end_position(source->length());
@@ -616,13 +620,13 @@ FunctionLiteral* Parser::DoParseProgram(CompilationInfo* info,
     ZoneList<Statement*>* body = new(zone()) ZoneList<Statement*>(16);
     bool ok = true;
     int beg_loc = scanner().location().beg_pos;
-    ParseSourceElements(body, Token::EOS, &ok);
+    ParseSourceElements(body, Token::EOS, info->is_eval(), &ok);
     if (ok && !top_scope_->is_classic_mode()) {
       CheckOctalLiteral(beg_loc, scanner().location().end_pos, &ok);
     }
 
     if (ok && is_extended_mode()) {
-      CheckConflictingVarDeclarations(scope, &ok);
+      CheckConflictingVarDeclarations(top_scope_, &ok);
     }
 
     if (ok) {
@@ -665,16 +669,16 @@ FunctionLiteral* Parser::ParseLazy(CompilationInfo* info) {
   // Initialize parser state.
   source->TryFlatten();
   if (source->IsExternalTwoByteString()) {
-    ExternalTwoByteStringUC16CharacterStream stream(
+    ExternalTwoByteStringUtf16CharacterStream stream(
         Handle<ExternalTwoByteString>::cast(source),
         shared_info->start_position(),
         shared_info->end_position());
     FunctionLiteral* result = ParseLazy(info, &stream, &zone_scope);
     return result;
   } else {
-    GenericStringUC16CharacterStream stream(source,
-                                            shared_info->start_position(),
-                                            shared_info->end_position());
+    GenericStringUtf16CharacterStream stream(source,
+                                             shared_info->start_position(),
+                                             shared_info->end_position());
     FunctionLiteral* result = ParseLazy(info, &stream, &zone_scope);
     return result;
   }
@@ -682,7 +686,7 @@ FunctionLiteral* Parser::ParseLazy(CompilationInfo* info) {
 
 
 FunctionLiteral* Parser::ParseLazy(CompilationInfo* info,
-                                   UC16CharacterStream* source,
+                                   Utf16CharacterStream* source,
                                    ZoneScope* zone_scope) {
   Handle<SharedFunctionInfo> shared_info = info->shared_info();
   scanner_.Initialize(source);
@@ -752,6 +756,12 @@ Handle<String> Parser::GetSymbol(bool* ok) {
 
 
 void Parser::ReportMessage(const char* type, Vector<const char*> args) {
+  Scanner::Location source_location = scanner().location();
+  ReportMessageAt(source_location, type, args);
+}
+
+
+void Parser::ReportMessage(const char* type, Vector<Handle<String> > args) {
   Scanner::Location source_location = scanner().location();
   ReportMessageAt(source_location, type, args);
 }
@@ -1090,6 +1100,7 @@ class ThisNamedPropertyAssignmentFinder : public ParserFinder {
 
 void* Parser::ParseSourceElements(ZoneList<Statement*>* processor,
                                   int end_token,
+                                  bool is_eval,
                                   bool* ok) {
   // SourceElements ::
   //   (ModuleElement)* <end_token>
@@ -1132,6 +1143,17 @@ void* Parser::ParseSourceElements(ZoneList<Statement*>* processor,
             directive->Equals(isolate()->heap()->use_strict()) &&
             token_loc.end_pos - token_loc.beg_pos ==
               isolate()->heap()->use_strict()->length() + 2) {
+          // TODO(mstarzinger): Global strict eval calls, need their own scope
+          // as specified in ES5 10.4.2(3). The correct fix would be to always
+          // add this scope in DoParseProgram(), but that requires adaptations
+          // all over the code base, so we go with a quick-fix for now.
+          if (is_eval && !top_scope_->is_eval_scope()) {
+            ASSERT(top_scope_->is_global_scope());
+            Scope* scope = NewScope(top_scope_, EVAL_SCOPE);
+            scope->set_start_position(top_scope_->start_position());
+            scope->set_end_position(top_scope_->end_position());
+            top_scope_ = scope;
+          }
           // TODO(ES6): Fix entering extended mode, once it is specified.
           top_scope_->SetLanguageMode(FLAG_harmony_scoping
                                       ? EXTENDED_MODE : STRICT_MODE);
@@ -1163,6 +1185,7 @@ void* Parser::ParseSourceElements(ZoneList<Statement*>* processor,
           this_property_assignment_finder.GetThisPropertyAssignments());
     }
   }
+
   return 0;
 }
 
@@ -1221,11 +1244,27 @@ Block* Parser::ParseModuleDeclaration(ZoneStringList* names, bool* ok) {
   // Create new block with one expected declaration.
   Block* block = factory()->NewBlock(NULL, 1, true);
   Handle<String> name = ParseIdentifier(CHECK_OK);
+
+#ifdef DEBUG
+  if (FLAG_print_interface_details)
+    PrintF("# Module %s...\n", name->ToAsciiArray());
+#endif
+
   Module* module = ParseModule(CHECK_OK);
-  VariableProxy* proxy = NewUnresolved(name, LET);
+  VariableProxy* proxy = NewUnresolved(name, LET, module->interface());
   Declaration* declaration =
       factory()->NewModuleDeclaration(proxy, module, top_scope_);
   Declare(declaration, true, CHECK_OK);
+
+#ifdef DEBUG
+  if (FLAG_print_interface_details)
+    PrintF("# Module %s.\n", name->ToAsciiArray());
+
+  if (FLAG_print_interfaces) {
+    PrintF("module %s : ", name->ToAsciiArray());
+    module->interface()->Print();
+  }
+#endif
 
   // TODO(rossberg): Add initialization statement to block.
 
@@ -1267,6 +1306,9 @@ Module* Parser::ParseModuleLiteral(bool* ok) {
 
   // Construct block expecting 16 statements.
   Block* body = factory()->NewBlock(NULL, 16, false);
+#ifdef DEBUG
+  if (FLAG_print_interface_details) PrintF("# Literal ");
+#endif
   Scope* scope = NewScope(top_scope_, MODULE_SCOPE);
 
   Expect(Token::LBRACE, CHECK_OK);
@@ -1292,7 +1334,10 @@ Module* Parser::ParseModuleLiteral(bool* ok) {
   Expect(Token::RBRACE, CHECK_OK);
   scope->set_end_position(scanner().location().end_pos);
   body->set_block_scope(scope);
-  return factory()->NewModuleLiteral(body);
+
+  scope->interface()->Freeze(ok);
+  ASSERT(ok);
+  return factory()->NewModuleLiteral(body, scope->interface());
 }
 
 
@@ -1302,10 +1347,28 @@ Module* Parser::ParseModulePath(bool* ok) {
   //    ModulePath '.' Identifier
 
   Module* result = ParseModuleVariable(CHECK_OK);
-
   while (Check(Token::PERIOD)) {
     Handle<String> name = ParseIdentifierName(CHECK_OK);
-    result = factory()->NewModulePath(result, name);
+#ifdef DEBUG
+    if (FLAG_print_interface_details)
+      PrintF("# Path .%s ", name->ToAsciiArray());
+#endif
+    Module* member = factory()->NewModulePath(result, name);
+    result->interface()->Add(name, member->interface(), ok);
+    if (!*ok) {
+#ifdef DEBUG
+      if (FLAG_print_interfaces) {
+        PrintF("PATH TYPE ERROR at '%s'\n", name->ToAsciiArray());
+        PrintF("result: ");
+        result->interface()->Print();
+        PrintF("member: ");
+        member->interface()->Print();
+      }
+#endif
+      ReportMessage("invalid_module_path", Vector<Handle<String> >(&name, 1));
+      return NULL;
+    }
+    result = member;
   }
 
   return result;
@@ -1317,8 +1380,13 @@ Module* Parser::ParseModuleVariable(bool* ok) {
   //    Identifier
 
   Handle<String> name = ParseIdentifier(CHECK_OK);
+#ifdef DEBUG
+  if (FLAG_print_interface_details)
+    PrintF("# Module variable %s ", name->ToAsciiArray());
+#endif
   VariableProxy* proxy = top_scope_->NewUnresolved(
-      factory(), name, scanner().location().beg_pos);
+      factory(), name, scanner().location().beg_pos, Interface::NewModule());
+
   return factory()->NewModuleVariable(proxy);
 }
 
@@ -1330,6 +1398,11 @@ Module* Parser::ParseModuleUrl(bool* ok) {
   Expect(Token::STRING, CHECK_OK);
   Handle<String> symbol = GetSymbol(CHECK_OK);
 
+  // TODO(ES6): Request JS resource from environment...
+
+#ifdef DEBUG
+  if (FLAG_print_interface_details) PrintF("# Url ");
+#endif
   return factory()->NewModuleUrl(symbol);
 }
 
@@ -1357,6 +1430,7 @@ Block* Parser::ParseImportDeclaration(bool* ok) {
   ZoneStringList names(1);
 
   Handle<String> name = ParseIdentifierName(CHECK_OK);
+  names.Add(name);
   while (peek() == Token::COMMA) {
     Consume(Token::COMMA);
     name = ParseIdentifierName(CHECK_OK);
@@ -1371,13 +1445,29 @@ Block* Parser::ParseImportDeclaration(bool* ok) {
   // TODO(ES6): once we implement destructuring, make that one declaration.
   Block* block = factory()->NewBlock(NULL, 1, true);
   for (int i = 0; i < names.length(); ++i) {
-    VariableProxy* proxy = NewUnresolved(names[i], LET);
+#ifdef DEBUG
+    if (FLAG_print_interface_details)
+      PrintF("# Import %s ", names[i]->ToAsciiArray());
+#endif
+    Interface* interface = Interface::NewUnknown();
+    module->interface()->Add(names[i], interface, ok);
+    if (!*ok) {
+#ifdef DEBUG
+      if (FLAG_print_interfaces) {
+        PrintF("IMPORT TYPE ERROR at '%s'\n", names[i]->ToAsciiArray());
+        PrintF("module: ");
+        module->interface()->Print();
+      }
+#endif
+      ReportMessage("invalid_module_path", Vector<Handle<String> >(&name, 1));
+      return NULL;
+    }
+    VariableProxy* proxy = NewUnresolved(names[i], LET, interface);
     Declaration* declaration =
         factory()->NewImportDeclaration(proxy, module, top_scope_);
     Declare(declaration, true, CHECK_OK);
     // TODO(rossberg): Add initialization statement to block.
   }
-
 
   return block;
 }
@@ -1431,12 +1521,22 @@ Statement* Parser::ParseExportDeclaration(bool* ok) {
       return NULL;
   }
 
-  // Extract declared names into export declarations.
+  // Extract declared names into export declarations and interface.
+  Interface* interface = top_scope_->interface();
   for (int i = 0; i < names.length(); ++i) {
-    VariableProxy* proxy = NewUnresolved(names[i], LET);
-    Declaration* declaration =
-        factory()->NewExportDeclaration(proxy, top_scope_);
-    top_scope_->AddDeclaration(declaration);
+#ifdef DEBUG
+    if (FLAG_print_interface_details)
+      PrintF("# Export %s ", names[i]->ToAsciiArray());
+#endif
+    Interface* inner = Interface::NewUnknown();
+    interface->Add(names[i], inner, CHECK_OK);
+    VariableProxy* proxy = NewUnresolved(names[i], LET, inner);
+    USE(proxy);
+    // TODO(rossberg): Rethink whether we actually need to store export
+    // declarations (for compilation?).
+    // ExportDeclaration* declaration =
+    //     factory()->NewExportDeclaration(proxy, top_scope_);
+    // top_scope_->AddDeclaration(declaration);
   }
 
   ASSERT(result != NULL);
@@ -1597,19 +1697,21 @@ Statement* Parser::ParseStatement(ZoneStringList* labels, bool* ok) {
 }
 
 
-VariableProxy* Parser::NewUnresolved(Handle<String> name, VariableMode mode) {
+VariableProxy* Parser::NewUnresolved(
+    Handle<String> name, VariableMode mode, Interface* interface) {
   // If we are inside a function, a declaration of a var/const variable is a
   // truly local variable, and the scope of the variable is always the function
   // scope.
   // Let/const variables in harmony mode are always added to the immediately
   // enclosing scope.
   return DeclarationScope(mode)->NewUnresolved(
-      factory(), name, scanner().location().beg_pos);
+      factory(), name, scanner().location().beg_pos, interface);
 }
 
 
 void Parser::Declare(Declaration* declaration, bool resolve, bool* ok) {
-  Handle<String> name = declaration->proxy()->name();
+  VariableProxy* proxy = declaration->proxy();
+  Handle<String> name = proxy->name();
   VariableMode mode = declaration->mode();
   Scope* declaration_scope = DeclarationScope(mode);
   Variable* var = NULL;
@@ -1627,13 +1729,14 @@ void Parser::Declare(Declaration* declaration, bool resolve, bool* ok) {
   if (declaration_scope->is_function_scope() ||
       declaration_scope->is_strict_or_extended_eval_scope() ||
       declaration_scope->is_block_scope() ||
-      declaration_scope->is_module_scope()) {
+      declaration_scope->is_module_scope() ||
+      declaration->AsModuleDeclaration() != NULL) {
     // Declare the variable in the function scope.
     var = declaration_scope->LocalLookup(name);
     if (var == NULL) {
       // Declare the name.
       var = declaration_scope->DeclareLocal(
-          name, mode, declaration->initialization());
+          name, mode, declaration->initialization(), proxy->interface());
     } else {
       // The name was declared in this scope before; check for conflicting
       // re-declarations. We have a conflict if either of the declarations is
@@ -1743,7 +1846,30 @@ void Parser::Declare(Declaration* declaration, bool resolve, bool* ok) {
   // initialization code. Thus, inside the 'with' statement, we need
   // both access to the static and the dynamic context chain; the
   // runtime needs to provide both.
-  if (resolve && var != NULL) declaration->proxy()->BindTo(var);
+  if (resolve && var != NULL) {
+    proxy->BindTo(var);
+
+    if (FLAG_harmony_modules) {
+      bool ok;
+#ifdef DEBUG
+      if (FLAG_print_interface_details)
+        PrintF("# Declare %s\n", var->name()->ToAsciiArray());
+#endif
+      proxy->interface()->Unify(var->interface(), &ok);
+      if (!ok) {
+#ifdef DEBUG
+        if (FLAG_print_interfaces) {
+          PrintF("DECLARE TYPE ERROR\n");
+          PrintF("proxy: ");
+          proxy->interface()->Print();
+          PrintF("var: ");
+          var->interface()->Print();
+        }
+#endif
+        ReportMessage("module_type_error", Vector<Handle<String> >(&name, 1));
+      }
+    }
+  }
 }
 
 
@@ -3498,8 +3624,14 @@ Expression* Parser::ParsePrimaryExpression(bool* ok) {
     case Token::FUTURE_STRICT_RESERVED_WORD: {
       Handle<String> name = ParseIdentifier(CHECK_OK);
       if (fni_ != NULL) fni_->PushVariableName(name);
+      // The name may refer to a module instance object, so its type is unknown.
+#ifdef DEBUG
+      if (FLAG_print_interface_details)
+        PrintF("# Variable %s ", name->ToAsciiArray());
+#endif
+      Interface* interface = Interface::NewUnknown();
       result = top_scope_->NewUnresolved(
-          factory(), name, scanner().location().beg_pos);
+          factory(), name, scanner().location().beg_pos, interface);
       break;
     }
 
@@ -3783,17 +3915,11 @@ Handle<Object> Parser::GetBoilerplateValue(Expression* expression) {
   return isolate()->factory()->undefined_value();
 }
 
-// Defined in ast.cc
-bool IsEqualString(void* first, void* second);
-bool IsEqualNumber(void* first, void* second);
-
-
 // Validation per 11.1.5 Object Initialiser
 class ObjectLiteralPropertyChecker {
  public:
   ObjectLiteralPropertyChecker(Parser* parser, LanguageMode language_mode) :
-    props(&IsEqualString),
-    elems(&IsEqualNumber),
+    props_(Literal::Match),
     parser_(parser),
     language_mode_(language_mode) {
   }
@@ -3822,8 +3948,7 @@ class ObjectLiteralPropertyChecker {
     }
   }
 
-  HashMap props;
-  HashMap elems;
+  HashMap props_;
   Parser* parser_;
   LanguageMode language_mode_;
 };
@@ -3833,44 +3958,9 @@ void ObjectLiteralPropertyChecker::CheckProperty(
     ObjectLiteral::Property* property,
     Scanner::Location loc,
     bool* ok) {
-
   ASSERT(property != NULL);
-
-  Literal* lit = property->key();
-  Handle<Object> handle = lit->handle();
-
-  uint32_t hash;
-  HashMap* map;
-  void* key;
-
-  if (handle->IsSymbol()) {
-    Handle<String> name(String::cast(*handle));
-    if (name->AsArrayIndex(&hash)) {
-      Handle<Object> key_handle = FACTORY->NewNumberFromUint(hash);
-      key = key_handle.location();
-      map = &elems;
-    } else {
-      key = handle.location();
-      hash = name->Hash();
-      map = &props;
-    }
-  } else if (handle->ToArrayIndex(&hash)) {
-    key = handle.location();
-    map = &elems;
-  } else {
-    ASSERT(handle->IsNumber());
-    double num = handle->Number();
-    char arr[100];
-    Vector<char> buffer(arr, ARRAY_SIZE(arr));
-    const char* str = DoubleToCString(num, buffer);
-    Handle<String> name = FACTORY->NewStringFromAscii(CStrVector(str));
-    key = name.location();
-    hash = name->Hash();
-    map = &props;
-  }
-
-  // Lookup property previously defined, if any.
-  HashMap::Entry* entry = map->Lookup(key, hash, true);
+  Literal* literal = property->key();
+  HashMap::Entry* entry = props_.Lookup(literal, literal->Hash(), true);
   intptr_t prev = reinterpret_cast<intptr_t> (entry->value);
   intptr_t curr = GetPropertyKind(property);
 
@@ -4211,7 +4301,7 @@ class SingletonLogger : public ParserRecorder {
 
   // Logs a symbol creation of a literal or identifier.
   virtual void LogAsciiSymbol(int start, Vector<const char> literal) { }
-  virtual void LogUC16Symbol(int start, Vector<const uc16> literal) { }
+  virtual void LogUtf16Symbol(int start, Vector<const uc16> literal) { }
 
   // Logs an error message and marks the log as containing an error.
   // Further logging will be ignored, and ExtractData will return a vector
@@ -4474,7 +4564,7 @@ FunctionLiteral* Parser::ParseFunctionLiteral(Handle<String> function_name,
                                      factory()->NewThisFunction(),
                                      RelocInfo::kNoPosition)));
       }
-      ParseSourceElements(body, Token::RBRACE, CHECK_OK);
+      ParseSourceElements(body, Token::RBRACE, false, CHECK_OK);
 
       materialized_literal_count = function_state.materialized_literal_count();
       expected_property_count = function_state.expected_property_count();
@@ -5800,7 +5890,7 @@ int ScriptDataImpl::ReadNumber(byte** source) {
 
 
 // Create a Scanner for the preparser to use as input, and preparse the source.
-static ScriptDataImpl* DoPreParse(UC16CharacterStream* source,
+static ScriptDataImpl* DoPreParse(Utf16CharacterStream* source,
                                   int flags,
                                   ParserRecorder* recorder) {
   Isolate* isolate = Isolate::Current();
@@ -5841,17 +5931,17 @@ ScriptDataImpl* ParserApi::PartialPreParse(Handle<String> source,
   PartialParserRecorder recorder;
   int source_length = source->length();
   if (source->IsExternalTwoByteString()) {
-    ExternalTwoByteStringUC16CharacterStream stream(
+    ExternalTwoByteStringUtf16CharacterStream stream(
         Handle<ExternalTwoByteString>::cast(source), 0, source_length);
     return DoPreParse(&stream, flags, &recorder);
   } else {
-    GenericStringUC16CharacterStream stream(source, 0, source_length);
+    GenericStringUtf16CharacterStream stream(source, 0, source_length);
     return DoPreParse(&stream, flags, &recorder);
   }
 }
 
 
-ScriptDataImpl* ParserApi::PreParse(UC16CharacterStream* source,
+ScriptDataImpl* ParserApi::PreParse(Utf16CharacterStream* source,
                                     v8::Extension* extension,
                                     int flags) {
   Handle<Script> no_script;

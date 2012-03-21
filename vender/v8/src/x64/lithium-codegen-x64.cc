@@ -540,7 +540,6 @@ void LCodeGen::DeoptimizeIf(Condition cc, LEnvironment* environment) {
   ASSERT(environment->HasBeenRegistered());
   int id = environment->deoptimization_index();
   Address entry = Deoptimizer::GetDeoptimizationEntry(id, Deoptimizer::EAGER);
-  ASSERT(entry != NULL);
   if (entry == NULL) {
     Abort("bailout was not prepared");
     return;
@@ -1221,6 +1220,49 @@ void LCodeGen::DoValueOf(LValueOf* instr) {
   __ movq(result, FieldOperand(input, JSValue::kValueOffset));
 
   __ bind(&done);
+}
+
+
+void LCodeGen::DoDateField(LDateField* instr) {
+  Register object = ToRegister(instr->InputAt(0));
+  Register result = ToRegister(instr->result());
+  Smi* index = instr->index();
+  Label runtime, done;
+  ASSERT(object.is(result));
+  ASSERT(object.is(rax));
+
+#ifdef DEBUG
+  __ AbortIfSmi(object);
+  __ CmpObjectType(object, JS_DATE_TYPE, kScratchRegister);
+  __ Assert(equal, "Trying to get date field from non-date.");
+#endif
+
+  if (index->value() == 0) {
+    __ movq(result, FieldOperand(object, JSDate::kValueOffset));
+  } else {
+    if (index->value() < JSDate::kFirstUncachedField) {
+      ExternalReference stamp = ExternalReference::date_cache_stamp(isolate());
+      __ movq(kScratchRegister, stamp);
+      __ cmpq(kScratchRegister, FieldOperand(object,
+                                             JSDate::kCacheStampOffset));
+      __ j(not_equal, &runtime, Label::kNear);
+      __ movq(result, FieldOperand(object, JSDate::kValueOffset +
+                                           kPointerSize * index->value()));
+      __ jmp(&done);
+    }
+    __ bind(&runtime);
+    __ PrepareCallCFunction(2);
+#ifdef _WIN64
+  __ movq(rcx, object);
+  __ movq(rdx, index, RelocInfo::NONE);
+#else
+  __ movq(rdi, object);
+  __ movq(rsi, index, RelocInfo::NONE);
+#endif
+    __ CallCFunction(ExternalReference::get_date_field_function(isolate()), 2);
+    __ movq(rsi, Operand(rbp, StandardFrameConstants::kContextOffset));
+    __ bind(&done);
+  }
 }
 
 
@@ -2501,14 +2543,9 @@ void LCodeGen::DoArgumentsLength(LArgumentsLength* instr) {
 }
 
 
-void LCodeGen::DoApplyArguments(LApplyArguments* instr) {
+void LCodeGen::DoWrapReceiver(LWrapReceiver* instr) {
   Register receiver = ToRegister(instr->receiver());
   Register function = ToRegister(instr->function());
-  Register length = ToRegister(instr->length());
-  Register elements = ToRegister(instr->elements());
-  ASSERT(receiver.is(rax));  // Used for parameter count.
-  ASSERT(function.is(rdi));  // Required by InvokeFunction.
-  ASSERT(ToRegister(instr->result()).is(rax));
 
   // If the receiver is null or undefined, we have to pass the global
   // object as a receiver to normal functions. Values have to be
@@ -2551,6 +2588,17 @@ void LCodeGen::DoApplyArguments(LApplyArguments* instr) {
   __ movq(receiver,
           FieldOperand(receiver, JSGlobalObject::kGlobalReceiverOffset));
   __ bind(&receiver_ok);
+}
+
+
+void LCodeGen::DoApplyArguments(LApplyArguments* instr) {
+  Register receiver = ToRegister(instr->receiver());
+  Register function = ToRegister(instr->function());
+  Register length = ToRegister(instr->length());
+  Register elements = ToRegister(instr->elements());
+  ASSERT(receiver.is(rax));  // Used for parameter count.
+  ASSERT(function.is(rdi));  // Required by InvokeFunction.
+  ASSERT(ToRegister(instr->result()).is(rax));
 
   // Copy the arguments to this function possibly from the
   // adaptor frame below it.
@@ -2966,6 +3014,18 @@ void LCodeGen::DoPower(LPower* instr) {
 
 
 void LCodeGen::DoRandom(LRandom* instr) {
+  class DeferredDoRandom: public LDeferredCode {
+   public:
+    DeferredDoRandom(LCodeGen* codegen, LRandom* instr)
+        : LDeferredCode(codegen), instr_(instr) { }
+    virtual void Generate() { codegen()->DoDeferredRandom(instr_); }
+    virtual LInstruction* instr() { return instr_; }
+   private:
+    LRandom* instr_;
+  };
+
+  DeferredDoRandom* deferred = new DeferredDoRandom(this, instr);
+
   // Having marked this instruction as a call we can use any
   // registers.
   ASSERT(ToDoubleRegister(instr->result()).is(xmm1));
@@ -2980,12 +3040,49 @@ void LCodeGen::DoRandom(LRandom* instr) {
   Register global_object = rdi;
 #endif
 
-  __ PrepareCallCFunction(1);
+  static const int kSeedSize = sizeof(uint32_t);
+  STATIC_ASSERT(kPointerSize == 2 * kSeedSize);
+
   __ movq(global_object,
           FieldOperand(global_object, GlobalObject::kGlobalContextOffset));
-  __ CallCFunction(ExternalReference::random_uint32_function(isolate()), 1);
-  __ movq(rsi, Operand(rbp, StandardFrameConstants::kContextOffset));
+  static const int kRandomSeedOffset =
+      FixedArray::kHeaderSize + Context::RANDOM_SEED_INDEX * kPointerSize;
+  __ movq(rbx, FieldOperand(global_object, kRandomSeedOffset));
+  // rbx: FixedArray of the global context's random seeds
 
+  // Load state[0].
+  __ movl(rax, FieldOperand(rbx, ByteArray::kHeaderSize));
+  // If state[0] == 0, call runtime to initialize seeds.
+  __ testl(rax, rax);
+  __ j(zero, deferred->entry());
+  // Load state[1].
+  __ movl(rcx, FieldOperand(rbx, ByteArray::kHeaderSize + kSeedSize));
+
+  // state[0] = 18273 * (state[0] & 0xFFFF) + (state[0] >> 16)
+  // Only operate on the lower 32 bit of rax.
+  __ movl(rdx, rax);
+  __ andl(rdx, Immediate(0xFFFF));
+  __ imull(rdx, rdx, Immediate(18273));
+  __ shrl(rax, Immediate(16));
+  __ addl(rax, rdx);
+  // Save state[0].
+  __ movl(FieldOperand(rbx, ByteArray::kHeaderSize), rax);
+
+  // state[1] = 36969 * (state[1] & 0xFFFF) + (state[1] >> 16)
+  __ movl(rdx, rcx);
+  __ andl(rdx, Immediate(0xFFFF));
+  __ imull(rdx, rdx, Immediate(36969));
+  __ shrl(rcx, Immediate(16));
+  __ addl(rcx, rdx);
+  // Save state[1].
+  __ movl(FieldOperand(rbx, ByteArray::kHeaderSize + kSeedSize), rcx);
+
+  // Random bit pattern = (state[0] << 14) + (state[1] & 0x3FFFF)
+  __ shll(rax, Immediate(14));
+  __ andl(rcx, Immediate(0x3FFFF));
+  __ addl(rax, rcx);
+
+  __ bind(deferred->exit());
   // Convert 32 random bits in rax to 0.(32 random bits) in a double
   // by computing:
   // ( 1.(20 0s)(32 random bits) x 2^20 ) - (1.0 x 2^20)).
@@ -2995,6 +3092,14 @@ void LCodeGen::DoRandom(LRandom* instr) {
   __ cvtss2sd(xmm2, xmm2);
   __ xorps(xmm1, xmm2);
   __ subsd(xmm1, xmm2);
+}
+
+
+void LCodeGen::DoDeferredRandom(LRandom* instr) {
+  __ PrepareCallCFunction(1);
+  __ CallCFunction(ExternalReference::random_uint32_function(isolate()), 1);
+  __ movq(rsi, Operand(rbp, StandardFrameConstants::kContextOffset));
+  // Return value is in rax.
 }
 
 

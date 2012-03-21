@@ -79,9 +79,6 @@ bool LCodeGen::GenerateCode() {
   // the frame (that is done in GeneratePrologue).
   FrameScope frame_scope(masm_, StackFrame::MANUAL);
 
-  dynamic_frame_alignment_ = chunk()->num_double_slots() > 2 ||
-                             info()->osr_ast_id() != AstNode::kNoNumber;
-
   return GeneratePrologue() &&
       GenerateBody() &&
       GenerateDeferredCode() &&
@@ -154,29 +151,6 @@ bool LCodeGen::GeneratePrologue() {
     __ mov(Operand(esp, receiver_offset),
            Immediate(isolate()->factory()->undefined_value()));
     __ bind(&ok);
-  }
-
-  if (dynamic_frame_alignment_) {
-    Label do_not_pad, align_loop;
-    STATIC_ASSERT(kDoubleSize == 2 * kPointerSize);
-    // Align esp to a multiple of 2 * kPointerSize.
-    __ test(esp, Immediate(kPointerSize));
-    __ j(zero, &do_not_pad, Label::kNear);
-    __ push(Immediate(0));
-    __ mov(ebx, esp);
-    // Copy arguments, receiver, and return address.
-    __ mov(ecx, Immediate(scope()->num_parameters() + 2));
-
-    __ bind(&align_loop);
-    __ mov(eax, Operand(ebx, 1 * kPointerSize));
-    __ mov(Operand(ebx, 0), eax);
-    __ add(Operand(ebx), Immediate(kPointerSize));
-    __ dec(ecx);
-    __ j(not_zero, &align_loop, Label::kNear);
-    __ mov(Operand(ebx, 0),
-           Immediate(isolate()->factory()->frame_alignment_marker()));
-
-    __ bind(&do_not_pad);
   }
 
   __ push(ebp);  // Caller's frame pointer.
@@ -579,7 +553,6 @@ void LCodeGen::DeoptimizeIf(Condition cc, LEnvironment* environment) {
   ASSERT(environment->HasBeenRegistered());
   int id = environment->deoptimization_index();
   Address entry = Deoptimizer::GetDeoptimizationEntry(id, Deoptimizer::EAGER);
-  ASSERT(entry != NULL);
   if (entry == NULL) {
     Abort("bailout was not prepared");
     return;
@@ -1273,6 +1246,7 @@ void LCodeGen::DoValueOf(LValueOf* instr) {
   Register result = ToRegister(instr->result());
   Register map = ToRegister(instr->TempAt(0));
   ASSERT(input.is(result));
+
   Label done;
   // If the object is a smi return the object.
   __ JumpIfSmi(input, &done, Label::kNear);
@@ -1283,6 +1257,43 @@ void LCodeGen::DoValueOf(LValueOf* instr) {
   __ mov(result, FieldOperand(input, JSValue::kValueOffset));
 
   __ bind(&done);
+}
+
+
+void LCodeGen::DoDateField(LDateField* instr) {
+  Register object = ToRegister(instr->InputAt(0));
+  Register result = ToRegister(instr->result());
+  Register scratch = ToRegister(instr->TempAt(0));
+  Smi* index = instr->index();
+  Label runtime, done;
+  ASSERT(object.is(result));
+  ASSERT(object.is(eax));
+
+#ifdef DEBUG
+  __ AbortIfSmi(object);
+  __ CmpObjectType(object, JS_DATE_TYPE, scratch);
+  __ Assert(equal, "Trying to get date field from non-date.");
+#endif
+
+  if (index->value() == 0) {
+    __ mov(result, FieldOperand(object, JSDate::kValueOffset));
+  } else {
+    if (index->value() < JSDate::kFirstUncachedField) {
+      ExternalReference stamp = ExternalReference::date_cache_stamp(isolate());
+      __ mov(scratch, Operand::StaticVariable(stamp));
+      __ cmp(scratch, FieldOperand(object, JSDate::kCacheStampOffset));
+      __ j(not_equal, &runtime, Label::kNear);
+      __ mov(result, FieldOperand(object, JSDate::kValueOffset +
+                                          kPointerSize * index->value()));
+      __ jmp(&done);
+    }
+    __ bind(&runtime);
+    __ PrepareCallCFunction(2, scratch);
+    __ mov(Operand(esp, 0), object);
+    __ mov(Operand(esp, 1 * kPointerSize), Immediate(index));
+    __ CallCFunction(ExternalReference::get_date_field_function(isolate()), 2);
+    __ bind(&done);
+  }
 }
 
 
@@ -2087,17 +2098,6 @@ void LCodeGen::DoReturn(LReturn* instr) {
   }
   __ mov(esp, ebp);
   __ pop(ebp);
-  if (dynamic_frame_alignment_) {
-    Label aligned;
-    // Frame alignment marker (padding) is below arguments,
-    // and receiver, so its return-address-relative offset is
-    // (num_arguments + 2) words.
-    __ cmp(Operand(esp, (GetParameterCount() + 2) * kPointerSize),
-           Immediate(factory()->frame_alignment_marker()));
-    __ j(not_equal, &aligned);
-    __ Ret((GetParameterCount() + 2) * kPointerSize, ecx);
-    __ bind(&aligned);
-  }
   __ Ret((GetParameterCount() + 1) * kPointerSize, ecx);
 }
 
@@ -2587,15 +2587,10 @@ void LCodeGen::DoArgumentsLength(LArgumentsLength* instr) {
 }
 
 
-void LCodeGen::DoApplyArguments(LApplyArguments* instr) {
+void LCodeGen::DoWrapReceiver(LWrapReceiver* instr) {
   Register receiver = ToRegister(instr->receiver());
   Register function = ToRegister(instr->function());
-  Register length = ToRegister(instr->length());
-  Register elements = ToRegister(instr->elements());
   Register scratch = ToRegister(instr->TempAt(0));
-  ASSERT(receiver.is(eax));  // Used for parameter count.
-  ASSERT(function.is(edi));  // Required by InvokeFunction.
-  ASSERT(ToRegister(instr->result()).is(eax));
 
   // If the receiver is null or undefined, we have to pass the global
   // object as a receiver to normal functions. Values have to be
@@ -2637,6 +2632,17 @@ void LCodeGen::DoApplyArguments(LApplyArguments* instr) {
   __ mov(receiver,
          FieldOperand(receiver, JSGlobalObject::kGlobalReceiverOffset));
   __ bind(&receiver_ok);
+}
+
+
+void LCodeGen::DoApplyArguments(LApplyArguments* instr) {
+  Register receiver = ToRegister(instr->receiver());
+  Register function = ToRegister(instr->function());
+  Register length = ToRegister(instr->length());
+  Register elements = ToRegister(instr->elements());
+  ASSERT(receiver.is(eax));  // Used for parameter count.
+  ASSERT(function.is(edi));  // Required by InvokeFunction.
+  ASSERT(ToRegister(instr->result()).is(eax));
 
   // Copy the arguments to this function possibly from the
   // adaptor frame below it.
@@ -3050,16 +3056,64 @@ void LCodeGen::DoPower(LPower* instr) {
 
 
 void LCodeGen::DoRandom(LRandom* instr) {
+  class DeferredDoRandom: public LDeferredCode {
+   public:
+    DeferredDoRandom(LCodeGen* codegen, LRandom* instr)
+        : LDeferredCode(codegen), instr_(instr) { }
+    virtual void Generate() { codegen()->DoDeferredRandom(instr_); }
+    virtual LInstruction* instr() { return instr_; }
+   private:
+    LRandom* instr_;
+  };
+
+  DeferredDoRandom* deferred = new DeferredDoRandom(this, instr);
+
   // Having marked this instruction as a call we can use any
   // registers.
   ASSERT(ToDoubleRegister(instr->result()).is(xmm1));
   ASSERT(ToRegister(instr->InputAt(0)).is(eax));
+  // Assert that the register size is indeed the size of each seed.
+  static const int kSeedSize = sizeof(uint32_t);
+  STATIC_ASSERT(kPointerSize == kSeedSize);
 
-  __ PrepareCallCFunction(1, ebx);
   __ mov(eax, FieldOperand(eax, GlobalObject::kGlobalContextOffset));
-  __ mov(Operand(esp, 0), eax);
-  __ CallCFunction(ExternalReference::random_uint32_function(isolate()), 1);
+  static const int kRandomSeedOffset =
+      FixedArray::kHeaderSize + Context::RANDOM_SEED_INDEX * kPointerSize;
+  __ mov(ebx, FieldOperand(eax, kRandomSeedOffset));
+  // ebx: FixedArray of the global context's random seeds
 
+  // Load state[0].
+  __ mov(ecx, FieldOperand(ebx, ByteArray::kHeaderSize));
+  // If state[0] == 0, call runtime to initialize seeds.
+  __ test(ecx, ecx);
+  __ j(zero, deferred->entry());
+  // Load state[1].
+  __ mov(eax, FieldOperand(ebx, ByteArray::kHeaderSize + kSeedSize));
+  // ecx: state[0]
+  // eax: state[1]
+
+  // state[0] = 18273 * (state[0] & 0xFFFF) + (state[0] >> 16)
+  __ movzx_w(edx, ecx);
+  __ imul(edx, edx, 18273);
+  __ shr(ecx, 16);
+  __ add(ecx, edx);
+  // Save state[0].
+  __ mov(FieldOperand(ebx, ByteArray::kHeaderSize), ecx);
+
+  // state[1] = 36969 * (state[1] & 0xFFFF) + (state[1] >> 16)
+  __ movzx_w(edx, eax);
+  __ imul(edx, edx, 36969);
+  __ shr(eax, 16);
+  __ add(eax, edx);
+  // Save state[1].
+  __ mov(FieldOperand(ebx, ByteArray::kHeaderSize + kSeedSize), eax);
+
+  // Random bit pattern = (state[0] << 14) + (state[1] & 0x3FFFF)
+  __ shl(ecx, 14);
+  __ and_(eax, Immediate(0x3FFFF));
+  __ add(eax, ecx);
+
+  __ bind(deferred->exit());
   // Convert 32 random bits in eax to 0.(32 random bits) in a double
   // by computing:
   // ( 1.(20 0s)(32 random bits) x 2^20 ) - (1.0 x 2^20)).
@@ -3069,6 +3123,14 @@ void LCodeGen::DoRandom(LRandom* instr) {
   __ cvtss2sd(xmm2, xmm2);
   __ xorps(xmm1, xmm2);
   __ subsd(xmm1, xmm2);
+}
+
+
+void LCodeGen::DoDeferredRandom(LRandom* instr) {
+  __ PrepareCallCFunction(1, ebx);
+  __ mov(Operand(esp, 0), eax);
+  __ CallCFunction(ExternalReference::random_uint32_function(isolate()), 1);
+  // Return value is in eax.
 }
 
 

@@ -72,9 +72,9 @@ int fopen_s(FILE** pFile, const char* filename, const char* mode) {
 #ifndef __MINGW64_VERSION_MAJOR
 
 // Not sure this the correct interpretation of _mkgmtime
-time_t _mkgmtime(tm* timeptr) {
-  return mktime(timeptr);
-}
+//time_t _mkgmtime(tm* timeptr) {
+//  return mktime(timeptr);
+//}
 
 
 #define _TRUNCATE 0
@@ -119,10 +119,10 @@ int strncpy_s(char* dest, size_t dest_size, const char* source, size_t count) {
 
 #ifndef __MINGW64_VERSION_MAJOR
 
-inline void MemoryBarrier() {
-  int barrier = 0;
-  __asm__ __volatile__("xchgl %%eax,%0 ":"=r" (barrier));
-}
+//inline void MemoryBarrier() {
+//  int barrier = 0;
+//  __asm__ __volatile__("xchgl %%eax,%0 ":"=r" (barrier));
+//}
 
 #endif  // __MINGW64_VERSION_MAJOR
 
@@ -153,14 +153,14 @@ static Mutex* limit_mutex = NULL;
 
 #if defined(V8_TARGET_ARCH_IA32)
 static OS::MemCopyFunction memcopy_function = NULL;
-static Mutex* memcopy_function_mutex = OS::CreateMutex();
+static LazyMutex memcopy_function_mutex = LAZY_MUTEX_INITIALIZER;
 // Defined in codegen-ia32.cc.
 OS::MemCopyFunction CreateMemCopyFunction();
 
 // Copy memory area to disjoint memory area.
 void OS::MemCopy(void* dest, const void* src, size_t size) {
   if (memcopy_function == NULL) {
-    ScopedLock lock(memcopy_function_mutex);
+    ScopedLock lock(memcopy_function_mutex.Pointer());
     if (memcopy_function == NULL) {
       OS::MemCopyFunction temp = CreateMemCopyFunction();
       MemoryBarrier();
@@ -179,19 +179,16 @@ void OS::MemCopy(void* dest, const void* src, size_t size) {
 #ifdef _WIN64
 typedef double (*ModuloFunction)(double, double);
 static ModuloFunction modulo_function = NULL;
-static Mutex* modulo_function_mutex = OS::CreateMutex();
+V8_DECLARE_ONCE(modulo_function_init_once);
 // Defined in codegen-x64.cc.
 ModuloFunction CreateModuloFunction();
 
+void init_modulo_function() {
+  modulo_function = CreateModuloFunction();
+}
+
 double modulo(double x, double y) {
-  if (modulo_function == NULL) {
-    ScopedLock lock(modulo_function_mutex);
-    if (modulo_function == NULL) {
-      ModuloFunction temp = CreateModuloFunction();
-      MemoryBarrier();
-      modulo_function = temp;
-    }
-  }
+  CallOnce(&modulo_function_init_once, &init_modulo_function);
   // Note: here we rely on dependent reads being ordered. This is true
   // on all architectures we currently support.
   return (*modulo_function)(x, y);
@@ -212,27 +209,25 @@ double modulo(double x, double y) {
 #endif  // _WIN64
 
 
-static Mutex* transcendental_function_mutex = OS::CreateMutex();
-
-#define TRANSCENDENTAL_FUNCTION(name, type)                   \
-static TranscendentalFunction fast_##name##_function = NULL;  \
-double fast_##name(double x) {                                \
-  if (fast_##name##_function == NULL) {                       \
-    ScopedLock lock(transcendental_function_mutex);           \
-    TranscendentalFunction temp =                             \
-        CreateTranscendentalFunction(type);                   \
-    MemoryBarrier();                                          \
-    fast_##name##_function = temp;                            \
-  }                                                           \
-  return (*fast_##name##_function)(x);                        \
+#define UNARY_MATH_FUNCTION(name, generator)             \
+static UnaryMathFunction fast_##name##_function = NULL;  \
+V8_DECLARE_ONCE(fast_##name##_init_once);                \
+void init_fast_##name##_function() {                     \
+  fast_##name##_function = generator;                    \
+}                                                        \
+double fast_##name(double x) {                           \
+  CallOnce(&fast_##name##_init_once,                     \
+           &init_fast_##name##_function);                \
+  return (*fast_##name##_function)(x);                   \
 }
 
-TRANSCENDENTAL_FUNCTION(sin, TranscendentalCache::SIN)
-TRANSCENDENTAL_FUNCTION(cos, TranscendentalCache::COS)
-TRANSCENDENTAL_FUNCTION(tan, TranscendentalCache::TAN)
-TRANSCENDENTAL_FUNCTION(log, TranscendentalCache::LOG)
+UNARY_MATH_FUNCTION(sin, CreateTranscendentalFunction(TranscendentalCache::SIN))
+UNARY_MATH_FUNCTION(cos, CreateTranscendentalFunction(TranscendentalCache::COS))
+UNARY_MATH_FUNCTION(tan, CreateTranscendentalFunction(TranscendentalCache::TAN))
+UNARY_MATH_FUNCTION(log, CreateTranscendentalFunction(TranscendentalCache::LOG))
+UNARY_MATH_FUNCTION(sqrt, CreateSqrtFunction())
 
-#undef TRANSCENDENTAL_FUNCTION
+#undef MATH_FUNCTION
 
 
 // ----------------------------------------------------------------------------
@@ -970,11 +965,11 @@ void OS::Sleep(int milliseconds) {
 
 
 void OS::Abort() {
-  if (!IsDebuggerPresent()) {
+  if (IsDebuggerPresent() || FLAG_break_on_abort) {
+    DebugBreak();
+  } else {
     // Make the MSVCRT do a silent abort.
     raise(SIGABRT);
-  } else {
-    DebugBreak();
   }
 }
 
@@ -1966,7 +1961,7 @@ class SamplerThread : public Thread {
         interval_(interval) {}
 
   static void AddActiveSampler(Sampler* sampler) {
-    ScopedLock lock(mutex_);
+    ScopedLock lock(mutex_.Pointer());
     SamplerRegistry::AddActiveSampler(sampler);
     if (instance_ == NULL) {
       instance_ = new SamplerThread(sampler->interval());
@@ -1977,7 +1972,7 @@ class SamplerThread : public Thread {
   }
 
   static void RemoveActiveSampler(Sampler* sampler) {
-    ScopedLock lock(mutex_);
+    ScopedLock lock(mutex_.Pointer());
     SamplerRegistry::RemoveActiveSampler(sampler);
     if (SamplerRegistry::GetState() == SamplerRegistry::HAS_NO_SAMPLERS) {
       RuntimeProfiler::StopRuntimeProfilerThreadBeforeShutdown(instance_);
@@ -2063,7 +2058,7 @@ class SamplerThread : public Thread {
   RuntimeProfilerRateLimiter rate_limiter_;
 
   // Protects the process wide state below.
-  static Mutex* mutex_;
+  static LazyMutex mutex_;
   static SamplerThread* instance_;
 
  private:
@@ -2071,7 +2066,7 @@ class SamplerThread : public Thread {
 };
 
 
-Mutex* SamplerThread::mutex_ = OS::CreateMutex();
+LazyMutex SamplerThread::mutex_ = LAZY_MUTEX_INITIALIZER;
 SamplerThread* SamplerThread::instance_ = NULL;
 
 

@@ -60,6 +60,8 @@ MarkCompactCollector::MarkCompactCollector() :  // NOLINT
       state_(IDLE),
 #endif
       sweep_precisely_(false),
+      reduce_memory_footprint_(false),
+      abort_incremental_marking_(false),
       compacting_(false),
       was_marked_incrementally_(false),
       collect_maps_(FLAG_collect_maps),
@@ -686,8 +688,8 @@ void MarkCompactCollector::Prepare(GCTracer* tracer) {
   }
 #endif
 
-  // Clear marking bits for precise sweeping to collect all garbage.
-  if (was_marked_incrementally_ && PreciseSweepingRequired()) {
+  // Clear marking bits if incremental marking is aborted.
+  if (was_marked_incrementally_ && abort_incremental_marking_) {
     heap()->incremental_marking()->Abort();
     ClearMarkbits();
     AbortCompaction();
@@ -3425,7 +3427,6 @@ void MarkCompactCollector::EvacuateNewSpaceAndCandidates() {
     space->Free(p->area_start(), p->area_size());
     p->set_scan_on_scavenge(false);
     slots_buffer_allocator_.DeallocateChain(p->slots_buffer_address());
-    p->ClearEvacuationCandidate();
     p->ResetLiveBytes();
     space->ReleasePage(p);
   }
