@@ -30,6 +30,8 @@
 #ifndef V8_PLATFORM_TLS_H_
 #define V8_PLATFORM_TLS_H_
 
+#define V8_NO_FAST_TLS
+
 #ifndef V8_NO_FAST_TLS
 
 // When fast TLS is requested we include the appropriate

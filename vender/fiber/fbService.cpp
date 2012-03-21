@@ -8,7 +8,7 @@
 
 #include <fiber.h>
 #include <stdio.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 namespace fiber
 {

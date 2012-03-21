@@ -84,7 +84,7 @@ void v8_main()
     {
         for(int i = 0; i < COUNT; i ++)
         {
-            fiber::Service::CreateFiber(t, (void*)i);
+            fiber::Service::CreateFiber(t, (void*)i, 80000);
             printf("new fiber: %d\n", i);
         }
 
