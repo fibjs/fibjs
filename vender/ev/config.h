@@ -32,9 +32,6 @@
 /* Define to 1 if you have the `epoll_ctl' function. */
 #define HAVE_EPOLL_CTL 1
 
-/* Define to 1 if you have the `eventfd' function. */
-#define HAVE_EVENTFD 1
-
 /* Define to 1 if you have the `poll' function. */
 #define HAVE_POLL 1
 
@@ -47,10 +44,13 @@
 /* Define to 1 if you have the <port.h> header file. */
 /* #undef HAVE_PORT_H */
 
+#ifdef Linux
+/* Define to 1 if you have the `eventfd' function. */
+#define HAVE_EVENTFD 1
+
 /* Define to 1 if you have the `signalfd' function. */
 #define HAVE_SIGNALFD 1
 
-#ifdef Linux
 /* Define to 1 if you have the <sys/epoll.h> header file. */
 #define HAVE_SYS_EPOLL_H 1
 
