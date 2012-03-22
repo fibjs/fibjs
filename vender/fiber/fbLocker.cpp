@@ -19,7 +19,7 @@ void Locker::lock()
     if(m_locked && current != m_locker)
     {
         m_blocks.push_back(current);
-        pService->switchto(&pService->m_main, FB_SUSPEND);
+        pService->switchtonext();
     }
     else if(++ m_count == 1)
     {

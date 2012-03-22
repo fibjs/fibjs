@@ -6,6 +6,7 @@
  *  lion@9465.net
  */
 
+#include <osconfig.h>
 #include <fiber.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,7 +24,47 @@ extern "C" int win_longjmp(context* _Buf, int _Value);
 #define fb_setjmp win_setjmp
 #define fb_longjmp win_longjmp
 
-static __declspec(thread) Service* th_Service;
+#else
+
+extern "C" int nix_setjmp(context* _Buf);
+extern "C" int nix_longjmp(context* _Buf, int _Value);
+
+#define fb_setjmp nix_setjmp
+#define fb_longjmp nix_longjmp
+
+#endif
+
+#ifdef MacOS
+
+#include <pthread.h>
+
+static pthread_key_t keyService;
+static pthread_once_t once = PTHREAD_ONCE_INIT;
+__thread int number = 1;
+
+static void once_run(void)
+{
+    pthread_key_create(&keyService, NULL);
+}
+
+Service* Service::getTLSService()
+{
+    pthread_once(&once, once_run);
+
+    Service* pService = (Service*)pthread_getspecific(keyService);
+
+    if(pService == NULL)
+    {
+        pService = new Service();
+        pthread_setspecific(keyService, pService);
+    }
+
+    return pService;
+}
+
+#else
+
+__thread Service* th_Service = NULL;
 
 Service* Service::getTLSService()
 {
@@ -38,57 +79,14 @@ Service* Service::getTLSService()
     return pService;
 }
 
-#else
-
-extern "C" int nix_setjmp(context* _Buf);
-extern "C" int nix_longjmp(context* _Buf, int _Value);
-
-#define fb_setjmp nix_setjmp
-#define fb_longjmp nix_longjmp
-
-#include <pthread.h>
-
-static pthread_key_t keyService;
-static int key_inited = 0;
-
-Service* Service::getTLSService()
-{
-    if(!key_inited)
-    {
-        key_inited = 1;
-        pthread_key_create(&keyService, NULL);
-    }
-
-    Service* pService = (Service*)pthread_getspecific(keyService);
-
-    if(pService == NULL)
-    {
-        pService = new Service();
-        pthread_setspecific(keyService, pService);
-    }
-
-    return pService;
-}
-
 #endif
 
 Service::Service()
 {
+    m_recycle = NULL;
     m_running = &m_main;
     memset(&m_main, 0, sizeof(m_main));
     memset(&m_tls, 0, sizeof(m_tls));
-}
-
-int Service::switchto(Fiber* to, int state)
-{
-    Fiber* old = m_running;
-    m_running = to;
-
-    int r = fb_setjmp(&old->m_cntxt);
-    if(r == 0)
-        fb_longjmp(&to->m_cntxt, state);
-
-    return r;
 }
 
 static void fiber_proc(void* (*func)(void *), void *data)
@@ -96,7 +94,9 @@ static void fiber_proc(void* (*func)(void *), void *data)
     func(data);
 
     Service* pService = Service::getTLSService();
-    pService->switchto(&pService->m_main, FB_TERMINATE);
+
+    pService->m_recycle = pService->m_running;
+    pService->switchtonext();
 }
 
 Fiber* Service::CreateFiber(void* (*func)(void *), void *data, int stacksize)
@@ -129,7 +129,7 @@ Fiber* Service::CreateFiber(void* (*func)(void *), void *data, int stacksize)
     fb->m_cntxt.Eip = (unsigned long) fiber_proc;
     fb->m_cntxt.Esp = (unsigned long) stack;
 
-    stack[1] = func;
+    stack[1] = (void*)func;
     stack[2] = data;
 #endif
 
@@ -138,29 +138,27 @@ Fiber* Service::CreateFiber(void* (*func)(void *), void *data, int stacksize)
     return fb;
 }
 
-void Service::Run()
+void Service::switchtonext()
 {
-    Service* pService = Service::getTLSService();
-    Fiber *now, *cntxt_join;
-    int state;
-
-    while(!pService->m_resume.empty())
+    if(!m_resume.empty())
     {
-        now = pService->m_resume.front();
-        pService->m_resume.pop_front();
+        Fiber* old = m_running;
 
-        state = pService->switchto(now, FB_RESUME);
+        m_running = m_resume.front();
+        m_resume.pop_front();
 
-        pService->m_running = &pService->m_main;
+        int r = fb_setjmp(&old->m_cntxt);
+        if(r == 0)
+            fb_longjmp(&m_running->m_cntxt, 1);
 
-        if(state == FB_TERMINATE)
+
+        if(m_recycle)
         {
-            cntxt_join = now->m_join;
-            free(now);
-
-            if(cntxt_join)
-                pService->m_resume.push_back(cntxt_join);
+            free(m_recycle);
+            m_recycle = NULL;
         }
+    }else{
+// TODO: maybe deadlock.
     }
 }
 
@@ -174,8 +172,7 @@ void Service::Join(Fiber* fb)
     Service* pService = Service::getTLSService();
 
     fb->m_join = pService->m_running;
-
-    pService->switchto(&pService->m_main, FB_SUSPEND);
+    pService->switchtonext();
 }
 
 void Service::Suspend()
@@ -183,7 +180,7 @@ void Service::Suspend()
     Service* pService = Service::getTLSService();
 
     pService->m_resume.push_back(pService->m_running);
-    pService->switchto(&pService->m_main, FB_SUSPEND);
+    pService->switchtonext();
 }
 
 }

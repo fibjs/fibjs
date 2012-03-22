@@ -97,7 +97,8 @@ void v8_main()
         printf("new fiber: %d\n", i);
     }
 
-    fiber::Service::Run();
+    while(1)
+        fiber::Service::Suspend();
     //usleep(30000);
 
     v8log.debug("--------- v8 sample --------");

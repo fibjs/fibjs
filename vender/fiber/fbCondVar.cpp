@@ -18,7 +18,7 @@ void CondVar::wait(Locker& l)
     m_blocks.push_back(pService->m_running);
 
     l.unlock();
-    pService->switchto(&pService->m_main, FB_SUSPEND);
+    pService->switchtonext();
     l.lock();
 }
 

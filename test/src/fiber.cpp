@@ -37,5 +37,6 @@ void* main_fiber(void* p)
 void fiber_main()
 {
     fiber::Service::CreateFiber(main_fiber, (void*)0x01234567, 32768);
-    fiber::Service::Run();
+    while(1)
+        fiber::Service::Suspend();
 }

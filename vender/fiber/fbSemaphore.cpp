@@ -18,7 +18,7 @@ void Semaphore::wait()
         Service* pService = Service::getTLSService();
 
         m_blocks.push_back(pService->m_running);
-        pService->switchto(&pService->m_main, FB_SUSPEND);
+        pService->switchtonext();
     }else
         m_count --;
 }

@@ -134,7 +134,6 @@ public:
 
 public:
     static Fiber* CreateFiber(void* (*func)(void *), void *data = NULL, int stacksize = FIBER_STACK_SIZE);
-    static void Run();
     static void Suspend();
     static void Join(Fiber* cntxt);
     static Fiber* Current();
@@ -145,12 +144,13 @@ public:
     static void tlsFree(int idx);
 
 public:
-    int switchto(Fiber* cntxt, int state);
+    void switchtonext();
     static Service* getTLSService();
 
 public:
     Fiber m_main;
     Fiber* m_running;
+    Fiber* m_recycle;
     char m_tls[TLS_SIZE];
     std::list<Fiber*> m_resume;
 
