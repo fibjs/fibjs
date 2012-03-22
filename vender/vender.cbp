@@ -143,6 +143,22 @@
 		<Unit filename="boost/thread/win32/thread.cpp" />
 		<Unit filename="boost/thread/win32/timeconv.inl" />
 		<Unit filename="boost/thread/win32/tss_pe.cpp" />
+		<Unit filename="ev/config.h" />
+		<Unit filename="ev/ev.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ev/ev_epoll.inl" />
+		<Unit filename="ev/ev_kqueue.inl" />
+		<Unit filename="ev/ev_poll.inl" />
+		<Unit filename="ev/ev_port.inl" />
+		<Unit filename="ev/ev_select.inl" />
+		<Unit filename="ev/ev_vars.h" />
+		<Unit filename="ev/ev_win32.inl" />
+		<Unit filename="ev/ev_wrap.h" />
+		<Unit filename="ev/event.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ev/event.h" />
 		<Unit filename="fiber/fbCondVar.cpp" />
 		<Unit filename="fiber/fbLocker.cpp" />
 		<Unit filename="fiber/fbSemaphore.cpp" />
@@ -3287,6 +3303,8 @@
 		<Unit filename="include/boost/version.hpp" />
 		<Unit filename="include/boost/visit_each.hpp" />
 		<Unit filename="include/boost/weak_ptr.hpp" />
+		<Unit filename="include/ev++.h" />
+		<Unit filename="include/ev.h" />
 		<Unit filename="include/fiber.h" />
 		<Unit filename="include/gd.h" />
 		<Unit filename="include/gd_io.h" />
@@ -3351,6 +3369,7 @@
 		<Unit filename="include/log4cpp/threading/PThreads.hh" />
 		<Unit filename="include/log4cpp/threading/Threading.hh" />
 		<Unit filename="include/osconfig.h" />
+		<Unit filename="include/pcl/pcl.h" />
 		<Unit filename="include/png.h" />
 		<Unit filename="include/pngconf.h" />
 		<Unit filename="include/pnglibconf.h" />
