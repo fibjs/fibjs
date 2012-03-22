@@ -56,6 +56,7 @@ typedef struct __JUMP_BUFFER
     unsigned long Ebp;
     unsigned long Ebx;
     unsigned long Ecx;
+    unsigned long Edx;
     unsigned long Esi;
     unsigned long Edi;
     unsigned long Esp;

@@ -17,21 +17,11 @@ namespace fiber
 #define FB_STK_ALIGN 256
 
 #ifdef _WIN32
-
-extern "C" int win_setjmp(context* _Buf);
-extern "C" int win_longjmp(context* _Buf, int _Value);
-
-#define fb_setjmp win_setjmp
-#define fb_longjmp win_longjmp
-
+extern "C" int win_switch(context* from, context* to);
+#define fb_switch win_switch
 #else
-
-extern "C" int nix_setjmp(context* _Buf);
-extern "C" int nix_longjmp(context* _Buf, int _Value);
-
-#define fb_setjmp nix_setjmp
-#define fb_longjmp nix_longjmp
-
+extern "C" int nix_switch(context* from, context* to);
+#define fb_switch nix_switch
 #endif
 
 #ifdef MacOS
@@ -146,17 +136,16 @@ void Service::switchtonext()
         m_running = m_resume.front();
         m_resume.pop_front();
 
-        int r = fb_setjmp(&old->m_cntxt);
-        if(r == 0)
-            fb_longjmp(&m_running->m_cntxt, 1);
-
+        fb_switch(&old->m_cntxt, &m_running->m_cntxt);
 
         if(m_recycle)
         {
             free(m_recycle);
             m_recycle = NULL;
         }
-    }else{
+    }
+    else
+    {
 // TODO: maybe deadlock.
     }
 }
