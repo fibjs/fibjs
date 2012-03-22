@@ -64,13 +64,13 @@
 /* Define to 1 if you have the `kqueue' function. */
 #define HAVE_KQUEUE 1
 
+/* Define to 1 if you have the <sys/event.h> header file. */
+#define HAVE_SYS_EVENT_H 1
+
 #endif
 
 /* Define to 1 if you have the <sys/eventfd.h> header file. */
 #define HAVE_SYS_EVENTFD_H 1
-
-/* Define to 1 if you have the <sys/event.h> header file. */
-/* #undef HAVE_SYS_EVENT_H */
 
 /* Define to 1 if you have the <sys/select.h> header file. */
 #define HAVE_SYS_SELECT_H 1

@@ -40,7 +40,6 @@ extern "C" int nix_longjmp(context* _Buf, int _Value);
 
 static pthread_key_t keyService;
 static pthread_once_t once = PTHREAD_ONCE_INIT;
-__thread int number = 1;
 
 static void once_run(void)
 {
