@@ -6,7 +6,6 @@
 /* Define to 1 if you have the `clock_gettime' function. */
 /* #undef HAVE_CLOCK_GETTIME */
 
-/* Define to 1 to use the syscall interface for clock_gettime */
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #define HAVE_DLFCN_H 1
 
@@ -19,17 +18,13 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
-/* Define to 1 if you have the `kqueue' function. */
-/* #undef HAVE_KQUEUE */
-
 /* Define to 1 if you have the `rt' library (-lrt). */
 /* #undef HAVE_LIBRT */
 
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
 
-#ifndef _WIN32
-#define HAVE_CLOCK_SYSCALL 1
+#ifndef Windows
 
 /* Define to 1 if you have the `nanosleep' function. */
 #define HAVE_NANOSLEEP 1
@@ -55,17 +50,27 @@
 /* Define to 1 if you have the `signalfd' function. */
 #define HAVE_SIGNALFD 1
 
+#ifdef Linux
 /* Define to 1 if you have the <sys/epoll.h> header file. */
 #define HAVE_SYS_EPOLL_H 1
+
+/* Define to 1 to use the syscall interface for clock_gettime */
+#define HAVE_CLOCK_SYSCALL 1
+
+/* Define to 1 if you have the <sys/inotify.h> header file. */
+#define HAVE_SYS_INOTIFY_H 1
+
+#else
+/* Define to 1 if you have the `kqueue' function. */
+#define HAVE_KQUEUE 1
+
+#endif
 
 /* Define to 1 if you have the <sys/eventfd.h> header file. */
 #define HAVE_SYS_EVENTFD_H 1
 
 /* Define to 1 if you have the <sys/event.h> header file. */
 /* #undef HAVE_SYS_EVENT_H */
-
-/* Define to 1 if you have the <sys/inotify.h> header file. */
-#define HAVE_SYS_INOTIFY_H 1
 
 /* Define to 1 if you have the <sys/select.h> header file. */
 #define HAVE_SYS_SELECT_H 1
