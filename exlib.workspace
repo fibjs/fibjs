@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_file>
 	<Workspace title="exlib">
-		<Project filename="test/test.cbp" active="1">
+		<Project filename="test/test.cbp">
 			<Depends filename="vender/vender.cbp" />
 		</Project>
 		<Project filename="vender/vender.cbp" />
+		<Project filename="fibjs/fibjs.cbp" active="1">
+			<Depends filename="vender/vender.cbp" />
+		</Project>
 	</Workspace>
 </CodeBlocks_workspace_file>
