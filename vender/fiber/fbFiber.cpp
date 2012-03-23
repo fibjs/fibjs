@@ -33,7 +33,7 @@ void Fiber::yield()
 
     if(!pService->m_resume.empty())
     {
-        pService->m_resume.push_back(pService->m_running);
+        pService->m_resume.put(pService->m_running);
         pService->switchtonext();
     }
 }

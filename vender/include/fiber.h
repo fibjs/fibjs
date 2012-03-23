@@ -7,7 +7,6 @@
  */
 
 #include <string.h>
-#include <list>
 
 #ifndef fiber_h__
 #define fiber_h__
@@ -82,8 +81,52 @@ public:
 
 public:
     context m_cntxt;
+    Fiber* m_next;
     Fiber* m_join;
     void* m_tls[TLS_SIZE];
+};
+
+class FiberList
+{
+public:
+    FiberList() : m_first(NULL), m_last(NULL)
+    {
+    }
+
+    void put(Fiber* pNew)
+    {
+        if(m_last)
+            m_last->m_next = pNew;
+        else
+            m_first = pNew;
+
+        m_last = pNew;
+    }
+
+    Fiber* get()
+    {
+        Fiber* pNow = m_first;
+
+        if(pNow)
+        {
+            m_first = pNow->m_next;
+            if(m_first == NULL)
+                m_last = NULL;
+
+            pNow->m_next = NULL;
+        }
+
+        return pNow;
+    }
+
+    bool empty()
+    {
+        return m_first == NULL;
+    }
+
+private:
+    Fiber* m_first;
+    Fiber* m_last;
 };
 
 #define FIBER_STACK_SIZE    (65536 - sizeof(Fiber))
@@ -104,7 +147,7 @@ private:
     bool m_locked;
     int m_count;
     Fiber* m_locker;
-    std::list<Fiber*> m_blocks;
+    FiberList m_blocks;
 };
 
 class CondVar
@@ -115,7 +158,7 @@ public:
     void notify_all();
 
 private:
-    std::list<Fiber*> m_blocks;
+    FiberList m_blocks;
 };
 
 class Semaphore
@@ -132,7 +175,7 @@ public:
 
 private:
     int m_count;
-    std::list<Fiber*> m_blocks;
+    FiberList m_blocks;
 };
 
 class Service
@@ -157,7 +200,7 @@ public:
     Fiber* m_running;
     Fiber* m_recycle;
     char m_tls[TLS_SIZE];
-    std::list<Fiber*> m_resume;
+    FiberList m_resume;
 
     friend class Locker;
     friend class CondVar;

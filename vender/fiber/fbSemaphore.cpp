@@ -17,7 +17,7 @@ void Semaphore::wait()
     {
         Service* pService = Service::getTLSService();
 
-        m_blocks.push_back(pService->m_running);
+        m_blocks.put(pService->m_running);
         pService->switchtonext();
     }else
         m_count --;
@@ -30,9 +30,8 @@ void Semaphore::post()
         Service* pService = Service::getTLSService();
         Fiber* cntxt;
 
-        cntxt = m_blocks.front();
-        m_blocks.pop_front();
-        pService->m_resume.push_back(cntxt);
+        cntxt = m_blocks.get();
+        pService->m_resume.put(cntxt);
     }else m_count ++;
 }
 

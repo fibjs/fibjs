@@ -122,7 +122,7 @@ Fiber* Service::CreateFiber(void* (*func)(void *), void *data, int stacksize)
     stack[2] = data;
 #endif
 
-    pService->m_resume.push_back(fb);
+    pService->m_resume.put(fb);
 
     return fb;
 }
@@ -133,8 +133,7 @@ void Service::switchtonext()
     {
         Fiber* old = m_running;
 
-        m_running = m_resume.front();
-        m_resume.pop_front();
+        m_running = m_resume.get();
 
         fb_switch(&old->m_cntxt, &m_running->m_cntxt);
 

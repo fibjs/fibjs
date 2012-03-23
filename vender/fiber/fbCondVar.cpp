@@ -15,7 +15,7 @@ void CondVar::wait(Locker& l)
 {
     Service* pService = Service::getTLSService();
 
-    m_blocks.push_back(pService->m_running);
+    m_blocks.put(pService->m_running);
 
     l.unlock();
     pService->switchtonext();
@@ -29,9 +29,8 @@ void CondVar::notify_one()
         Service* pService = Service::getTLSService();
         Fiber* cntxt;
 
-        cntxt = m_blocks.front();
-        m_blocks.pop_front();
-        pService->m_resume.push_back(cntxt);
+        cntxt = m_blocks.get();
+        pService->m_resume.put(cntxt);
     }
 }
 
@@ -44,9 +43,8 @@ void CondVar::notify_all()
 
         while(!m_blocks.empty())
         {
-            cntxt = m_blocks.front();
-            m_blocks.pop_front();
-            pService->m_resume.push_back(cntxt);
+            cntxt = m_blocks.get();
+            pService->m_resume.put(cntxt);
         }
     }
 }

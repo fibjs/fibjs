@@ -18,7 +18,7 @@ void Locker::lock()
 
     if(m_locked && current != m_locker)
     {
-        m_blocks.push_back(current);
+        m_blocks.put(current);
         pService->switchtonext();
     }
     else if(++ m_count == 1)
@@ -62,9 +62,8 @@ void Locker::unlock()
             else
             {
                 m_count ++;
-                m_locker = m_blocks.front();
-                m_blocks.pop_front();
-                pService->m_resume.push_back(m_locker);
+                m_locker = m_blocks.get();
+                pService->m_resume.put(m_locker);
             }
         }
     }
