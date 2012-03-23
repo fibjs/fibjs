@@ -84,7 +84,12 @@ static void fiber_proc(void* (*func)(void *), void *data)
 
     Service* pService = Service::getTLSService();
 
-    pService->m_recycle = pService->m_running;
+    Fiber* now = pService->m_running;
+
+    if(now->m_join)
+        pService->m_resume.put(now->m_join);
+
+    pService->m_recycle = now;
     pService->switchtonext();
 }
 
