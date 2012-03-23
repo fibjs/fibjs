@@ -91,7 +91,7 @@ _win_switch:
 	movl	%esi, 0x10(%eax)
 	movl	%edi, 0x14(%eax)
 
-	leal	8(%esp), %edx
+	leal	4(%esp), %edx
 	movl	%edx, 0x18(%eax)
 	movl	(%esp), %edx
 	movl	%edx, 0x1c(%eax)

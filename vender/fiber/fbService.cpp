@@ -98,7 +98,7 @@ Fiber* Service::CreateFiber(void* (*func)(void *), void *data, int stacksize)
     fb = (Fiber*)malloc(stacksize);
     if (fb == NULL)
         return NULL;
-    stack = (void**)fb + stacksize / sizeof(void*) - 3;
+    stack = (void**)fb + stacksize / sizeof(void*) - 5;
 
     memset(fb, 0, sizeof(Fiber));
 
