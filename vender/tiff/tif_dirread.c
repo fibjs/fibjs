@@ -4,23 +4,23 @@
  * Copyright (c) 1988-1997 Sam Leffler
  * Copyright (c) 1991-1997 Silicon Graphics, Inc.
  *
- * Permission to use, copy, modify, distribute, and sell this software and 
+ * Permission to use, copy, modify, distribute, and sell this software and
  * its documentation for any purpose is hereby granted without fee, provided
  * that (i) the above copyright notices and this permission notice appear in
  * all copies of the software and related documentation, and (ii) the names of
  * Sam Leffler and Silicon Graphics may not be used in any advertising or
  * publicity relating to the software without the specific, prior written
  * permission of Sam Leffler and Silicon Graphics.
- * 
- * THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND, 
- * EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY 
- * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  
- * 
+ *
+ * THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
+ * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+ *
  * IN NO EVENT SHALL SAM LEFFLER OR SILICON GRAPHICS BE LIABLE FOR
  * ANY SPECIAL, INCIDENTAL, INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND,
  * OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
- * WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF 
- * LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 
+ * WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF
+ * LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
  * OF THIS SOFTWARE.
  */
 
@@ -393,7 +393,7 @@ TIFFReadDirectory(TIFF* tif)
 		MissingRequired(tif, "ImageLength");
 		goto bad;
 	}
-	/* 
+	/*
 	 * Setup appropriate structures (by strip or by tile)
 	 */
 	if (!TIFFFieldSet(tif, FIELD_TILEDIMENSIONS)) {
@@ -729,12 +729,12 @@ TIFFReadDirectory(TIFF* tif)
 			   && td->td_nstrips > 2
 			   && td->td_compression == COMPRESSION_NONE
 			   && td->td_stripbytecount[0] != td->td_stripbytecount[1]
-                           && td->td_stripbytecount[0] != 0 
+                           && td->td_stripbytecount[0] != 0
                            && td->td_stripbytecount[1] != 0 ) {
 			/*
-			 * XXX: Some vendors fill StripByteCount array with 
-                         * absolutely wrong values (it can be equal to 
-                         * StripOffset array, for example). Catch this case 
+			 * XXX: Some vendors fill StripByteCount array with
+                         * absolutely wrong values (it can be equal to
+                         * StripOffset array, for example). Catch this case
                          * here.
 			 */
 			TIFFWarningExt(tif->tif_clientdata, module,
@@ -957,7 +957,7 @@ TIFFReadCustomDirectory(TIFF* tif, toff_t diroff,
 				break;
 		}
 	}
-	
+
 	if (dir)
 		_TIFFfree(dir);
 	return 1;
@@ -1027,7 +1027,7 @@ EstimateStripByteCounts(TIFF* tif, TIFFDirEntry* dir, uint16 dircount)
 		 * should begin.  Since a strip of data must be contiguous,
 		 * it's safe to assume that we've overestimated the amount
 		 * of data in the strip and trim this number back accordingly.
-		 */ 
+		 */
 		strip--;
 		if (((toff_t)(td->td_stripoffset[strip]+
 			      td->td_stripbytecount[strip])) > filesize)
@@ -1241,7 +1241,7 @@ static tsize_t
 TIFFFetchData(TIFF* tif, TIFFDirEntry* dir, char* cp)
 {
 	uint32 w = TIFFDataWidth((TIFFDataType) dir->tdir_type);
-	/* 
+	/*
 	 * FIXME: butecount should have tsize_t type, but for now libtiff
 	 * defines tsize_t as a signed 32-bit integer and we are losing
 	 * ability to read arrays larger than 2^31 bytes. So we are using
@@ -1450,14 +1450,14 @@ TIFFFetchShortPair(TIFF* tif, TIFFDirEntry* dir)
 		case TIFF_BYTE:
 		case TIFF_SBYTE:
 			{
-			uint8 v[4];
+			uint8 v[4] = {0};
 			return TIFFFetchByteArray(tif, dir, v)
 				&& TIFFSetField(tif, dir->tdir_tag, v[0], v[1]);
 			}
 		case TIFF_SHORT:
 		case TIFF_SSHORT:
 			{
-			uint16 v[2];
+			uint16 v[2] = {0};
 			return TIFFFetchShortArray(tif, dir, v)
 				&& TIFFSetField(tif, dir->tdir_tag, v[0], v[1]);
 			}
@@ -1734,7 +1734,7 @@ TIFFFetchNormalTag(TIFF* tif, TIFFDirEntry* dp)
 		case TIFF_SLONG:
 			{ uint32 v32 =
 		    TIFFExtractData(tif, dp->tdir_type, dp->tdir_offset);
-			  ok = (fip->field_passcount ? 
+			  ok = (fip->field_passcount ?
 			      TIFFSetField(tif, dp->tdir_tag, 1, &v32)
 			    : TIFFSetField(tif, dp->tdir_tag, v32));
 			}
@@ -1742,7 +1742,7 @@ TIFFFetchNormalTag(TIFF* tif, TIFFDirEntry* dp)
 		case TIFF_RATIONAL:
 		case TIFF_SRATIONAL:
 		case TIFF_FLOAT:
-			{ float v = (dp->tdir_type == TIFF_FLOAT ? 
+			{ float v = (dp->tdir_type == TIFF_FLOAT ?
 			      TIFFFetchFloat(tif, dp)
 			    : TIFFFetchRational(tif, dp));
 			  ok = (fip->field_passcount ?
@@ -1777,7 +1777,7 @@ TIFFFetchNormalTag(TIFF* tif, TIFFDirEntry* dp)
 
 #define	NITEMS(x)	(sizeof (x) / sizeof (x[0]))
 /*
- * Fetch samples/pixel short values for 
+ * Fetch samples/pixel short values for
  * the specified tag and verify that
  * all values are the same.
  */
@@ -1818,7 +1818,7 @@ TIFFFetchPerSampleShorts(TIFF* tif, TIFFDirEntry* dir, uint16* pl)
 }
 
 /*
- * Fetch samples/pixel long values for 
+ * Fetch samples/pixel long values for
  * the specified tag and verify that
  * all values are the same.
  */
@@ -1930,7 +1930,7 @@ TIFFFetchStripThing(TIFF* tif, TIFFDirEntry* dir, long nstrips, uint32** lpp)
 			return (0);
 		if( (status = TIFFFetchShortArray(tif, dir, dp)) != 0 ) {
                     int i;
-                    
+
                     for( i = 0; i < nstrips && i < (int) dir->tdir_count; i++ )
                     {
                         lp[i] = dp[i];
@@ -1959,7 +1959,7 @@ TIFFFetchStripThing(TIFF* tif, TIFFDirEntry* dir, long nstrips, uint32** lpp)
             _TIFFfree( (char *) dp );
 	} else
             status = TIFFFetchLongArray(tif, dir, lp);
-        
+
 	return (status);
 }
 
@@ -2058,7 +2058,7 @@ ChopUpSingleUncompressedStrip(TIFF* tif)
         else
             return;
 
-	/* 
+	/*
 	 * never increase the number of strips in an image
 	 */
 	if (rowsperstrip >= td->td_rowsperstrip)

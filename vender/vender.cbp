@@ -14,7 +14,6 @@
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
 				<Compiler>
-					<Add option="-Wall" />
 					<Add option="-g" />
 				</Compiler>
 			</Target>
@@ -26,8 +25,7 @@
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
 				<Compiler>
-					<Add option="-O2" />
-					<Add option="-Wall" />
+					<Add option="-O3" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -41,7 +39,6 @@
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
 				<Compiler>
-					<Add option="-Wall" />
 					<Add option="-g" />
 					<Add option="-m32" />
 				</Compiler>
@@ -57,8 +54,7 @@
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
 				<Compiler>
-					<Add option="-O2" />
-					<Add option="-Wall" />
+					<Add option="-O3" />
 					<Add option="-m32" />
 				</Compiler>
 				<Linker>
@@ -74,7 +70,6 @@
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Option createDefFile="1" />
 				<Compiler>
-					<Add option="-Wall" />
 					<Add option="-g" />
 				</Compiler>
 			</Target>
@@ -86,8 +81,7 @@
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Option createDefFile="1" />
 				<Compiler>
-					<Add option="-O2" />
-					<Add option="-Wall" />
+					<Add option="-O3" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -101,7 +95,6 @@
 				<Option compiler="gnu_gcc_compiler_for_mingw" />
 				<Option createDefFile="1" />
 				<Compiler>
-					<Add option="-Wall" />
 					<Add option="-g" />
 					<Add option="-DBOOST_EXCEPTION_DISABLE" />
 				</Compiler>
@@ -114,8 +107,7 @@
 				<Option compiler="gnu_gcc_compiler_for_mingw" />
 				<Option createDefFile="1" />
 				<Compiler>
-					<Add option="-O2" />
-					<Add option="-Wall" />
+					<Add option="-O3" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -129,6 +121,7 @@
 		</VirtualTargets>
 		<Compiler>
 			<Add option="-pedantic" />
+			<Add option="-Wall" />
 			<Add option="-fpermissive" />
 			<Add option="-Wno-long-long" />
 			<Add directory="include" />

@@ -13,7 +13,6 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-Wall" />
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
@@ -28,8 +27,7 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O2" />
-					<Add option="-Wall" />
+					<Add option="-O3" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -44,7 +42,6 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-Wall" />
 					<Add option="-g" />
 					<Add option="-m32" />
 				</Compiler>
@@ -61,8 +58,7 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O2" />
-					<Add option="-Wall" />
+					<Add option="-O3" />
 					<Add option="-m32" />
 				</Compiler>
 				<Linker>
@@ -79,7 +75,6 @@
 				<Option type="1" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
-					<Add option="-Wall" />
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
@@ -96,8 +91,7 @@
 				<Option type="1" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
-					<Add option="-O2" />
-					<Add option="-Wall" />
+					<Add option="-O3" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -114,7 +108,6 @@
 				<Option type="1" />
 				<Option compiler="gnu_gcc_compiler_for_mingw" />
 				<Compiler>
-					<Add option="-Wall" />
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
@@ -131,8 +124,7 @@
 				<Option type="1" />
 				<Option compiler="gnu_gcc_compiler_for_mingw" />
 				<Compiler>
-					<Add option="-O2" />
-					<Add option="-Wall" />
+					<Add option="-O3" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
