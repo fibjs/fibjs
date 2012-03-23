@@ -66,7 +66,6 @@ typedef struct __JUMP_BUFFER
 #endif
 #pragma pack ()
 
-#define FIBER_STACK_SIZE    65000
 #define TLS_SIZE    8
 
 #define FB_RESUME 1
@@ -76,10 +75,18 @@ typedef struct __JUMP_BUFFER
 class Fiber
 {
 public:
+    void join();
+
+    static void yield();
+    static Fiber* Current();
+
+public:
     context m_cntxt;
     Fiber* m_join;
     void* m_tls[TLS_SIZE];
 };
+
+#define FIBER_STACK_SIZE    (65536 - sizeof(Fiber))
 
 class Locker
 {
@@ -135,9 +142,6 @@ public:
 
 public:
     static Fiber* CreateFiber(void* (*func)(void *), void *data = NULL, int stacksize = FIBER_STACK_SIZE);
-    static void Suspend();
-    static void Join(Fiber* cntxt);
-    static Fiber* Current();
 
     static int tlsAlloc();
     static void* tlsGet(int idx);

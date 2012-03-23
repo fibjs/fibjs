@@ -150,25 +150,4 @@ void Service::switchtonext()
     }
 }
 
-Fiber* Service::Current()
-{
-    return Service::getTLSService()->m_running;
-}
-
-void Service::Join(Fiber* fb)
-{
-    Service* pService = Service::getTLSService();
-
-    fb->m_join = pService->m_running;
-    pService->switchtonext();
-}
-
-void Service::Suspend()
-{
-    Service* pService = Service::getTLSService();
-
-    pService->m_resume.push_back(pService->m_running);
-    pService->switchtonext();
-}
-
 }

@@ -32,7 +32,7 @@ Thread::~Thread() {
 static void* ThreadEntry(void* arg) {
   Thread* thread = reinterpret_cast<Thread*>(arg);
 
-  thread->data()->thread_ = fiber::Service::Current();
+  thread->data()->thread_ = fiber::Fiber::Current();
   ASSERT(thread->data()->thread_ != NULL);
   thread->Run();
   return NULL;
@@ -51,7 +51,7 @@ void Thread::Start() {
 
 
 void Thread::Join() {
-  fiber::Service::Join(data_->thread_);
+  data_->thread_->join();
 }
 
 
@@ -77,7 +77,7 @@ void Thread::SetThreadLocal(LocalStorageKey key, void* value) {
 
 
 void Thread::YieldCPU() {
-  fiber::Service::Suspend();
+  fiber::Fiber::yield();
 }
 
 

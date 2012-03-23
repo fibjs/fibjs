@@ -153,6 +153,7 @@
 		</Unit>
 		<Unit filename="ev/event.h" />
 		<Unit filename="fiber/fbCondVar.cpp" />
+		<Unit filename="fiber/fbFiber.cpp" />
 		<Unit filename="fiber/fbLocker.cpp" />
 		<Unit filename="fiber/fbSemaphore.cpp" />
 		<Unit filename="fiber/fbService.cpp" />
