@@ -3369,7 +3369,6 @@
 		<Unit filename="include/log4cpp/threading/PThreads.hh" />
 		<Unit filename="include/log4cpp/threading/Threading.hh" />
 		<Unit filename="include/osconfig.h" />
-		<Unit filename="include/pcl/pcl.h" />
 		<Unit filename="include/png.h" />
 		<Unit filename="include/pngconf.h" />
 		<Unit filename="include/pnglibconf.h" />
