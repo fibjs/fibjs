@@ -1,9 +1,10 @@
-
 #include <string>
 #include <vector>
 #include <iostream>
 #include <sstream>
 #include <sys/time.h>
+
+#include <v8/v8.h>
 
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
@@ -64,15 +65,17 @@ void ReportException(v8::TryCatch* try_catch, bool rt = false)
             v8::String::Utf8Value stack_trace(try_catch->StackTrace());
             if (stack_trace.length() > 0)
                 root.error(ToCString(stack_trace));
-        }else
+        }
+        else
         {
             std::stringstream strError;
 
             v8::String::Utf8Value filename(message->GetScriptResourceName());
             strError << ToCString(exception) << "\n    at ";
-            strError << ToCString(filename) << ':';
-            strError << message->GetLineNumber() << ':';
-            strError << (message->GetStartColumn() + 1);
+            strError << ToCString(filename);
+            int lineNumber = message->GetLineNumber();
+            if(lineNumber > 0)
+                strError << ':' << lineNumber << ':' << (message->GetStartColumn() + 1);
 
             root.error(strError.str());
         }
