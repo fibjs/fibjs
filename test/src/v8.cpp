@@ -20,7 +20,7 @@ Handle<Value> Print(const Arguments& args)
     HandleScope handle_scope;
     {
         Unlocker unlocker(isolate);
-        fiber::Service::Suspend();
+        fiber::Fiber::yield();
         //pthread_yield();
     }
 
@@ -98,7 +98,7 @@ void v8_main()
     }
 
     while(1)
-        fiber::Service::Suspend();
+        fiber::Fiber::yield();
     //usleep(30000);
 
     v8log.debug("--------- v8 sample --------");
