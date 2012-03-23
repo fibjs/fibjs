@@ -144,11 +144,13 @@
 			<Add option="-Wall" />
 			<Add option="-fpermissive" />
 			<Add option="-Wno-long-long" />
-			<Add directory="../include" />
+			<Add directory="../vender/include" />
+			<Add directory="include" />
 		</Compiler>
 		<Linker>
 			<Add library="vender" />
 		</Linker>
+		<Unit filename="include/v8_object.h" />
 		<Unit filename="src/fibjs.cpp" />
 		<Extensions>
 			<code_completion />
