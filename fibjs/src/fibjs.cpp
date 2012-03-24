@@ -82,42 +82,142 @@ void ReportException(v8::TryCatch* try_catch, bool rt = false)
     }
 }
 
+Handle<Value> Print(const Arguments& args)
+{
+    HandleScope handle_scope;
+
+    bool first = true;
+    for (int i = 0; i < args.Length(); i++)
+    {
+        if (first)
+            first = false;
+        else
+            printf(" ");
+
+        String::AsciiValue str(args[i]);
+        printf("%s",  *str);
+    }
+    printf("\n");
+
+    return Undefined();
+}
+
+class fiber_data
+{
+public:
+    fiber_data() : m_next(NULL)
+    {
+    }
+
+    ~fiber_data()
+    {
+        m_func.Dispose();
+        m_func.Clear();
+    }
+public:
+    Persistent<Value> m_func;
+    fiber_data* m_next;
+};
+
+fiber::List<fiber_data> g_jobs;
+fiber::Semaphore g_job_sem;
+
 void* t(void* p)
 {
     Locker locker(isolate);
     Isolate::Scope isolate_scope(isolate);
 
-    HandleScope handle_scope;
+//    HandleScope handle_scope;
+//    Handle<Context> context = Context::New();
+//    Context::Scope context_scope(context);
 
-    Handle<Context> context = Context::New(NULL, g_global);
-    Context::Scope context_scope(context);
-
-    std::vector<char> buf;
-
-    ReadFile("main.js", buf);
-
-    TryCatch try_catch;
-    Handle<Script> script = Script::Compile(String::New(&buf.front(), buf.size()), String::New("main.js"));
-    if (script.IsEmpty())
+    while(1)
     {
-        ReportException(&try_catch);
-        return false;
-    }
-    else
-    {
-        Handle<Value> result = script->Run();
-        if (result.IsEmpty())
         {
-            ReportException(&try_catch, true);
-            return false;
+            Unlocker unlocker(isolate);
+            g_job_sem.wait();
         }
+
+        HandleScope handle_scope;
+
+        fiber_data* fb = g_jobs.get();
+
+        Handle<Function> func = Handle<Function>::Cast(fb->m_func);
+        delete fb;
+
+        TryCatch try_catch;
+        Handle<Value> result = func->Call(func, 0, NULL);
+        if (result.IsEmpty())
+            ReportException(&try_catch, true);
     }
 
     return NULL;
 }
 
+Handle<Value> fb_start(const Arguments& args)
+{
+    if (args.Length() != 1 || !args[0]->IsFunction())
+        return ThrowException(String::New("Invalid arguments. Use 'new Fiber(name{string}, func{function() : void})'"));
 
-int main()
+    fiber_data* fb = new fiber_data();
+
+    fb->m_func = Persistent<Value>::New(args[0]);
+
+    if(g_job_sem.blocked() == 0)
+        fiber::Service::CreateFiber(t);
+
+    g_jobs.put(fb);
+    g_job_sem.post();
+
+    return Undefined();
+}
+
+Handle<Value> fb_yield(const Arguments& args)
+{
+    Unlocker unlocker(isolate);
+    fiber::Fiber::yield();
+    return Undefined();
+}
+
+Handle<Value> runScript(const char* name)
+{
+    HandleScope handle_scope;
+
+    Persistent<Context> context = Context::New(NULL, g_global);
+    Context::Scope context_scope(context);
+
+    std::vector<char> buf;
+
+    ReadFile(name, buf);
+
+    TryCatch try_catch;
+    Handle<Value> result = Undefined();
+    Handle<Script> script = Script::Compile(String::New(&buf.front(), buf.size()), String::New(name));
+    if (script.IsEmpty())
+        ReportException(&try_catch);
+    else
+    {
+        result = script->Run();
+        if (result.IsEmpty())
+            ReportException(&try_catch, true);
+    }
+
+    context.Dispose();
+
+    return result;
+}
+
+Handle<Value> Run(const Arguments& args)
+{
+    if (args.Length() != 1 || !args[0]->IsString())
+        return ThrowException(String::New("Invalid arguments. Use 'new Fiber(name{string}, func{function() : void})'"));
+
+    String::AsciiValue str(args[0]);
+
+    return runScript(*str);
+}
+
+int main(int argc, char* argv[])
 {
     try
     {
@@ -135,6 +235,8 @@ int main()
         root.warn(e.what());
     }
 
+    v8::V8::Initialize();
+
     isolate = Isolate::New();
 
     Locker lock(isolate);
@@ -142,10 +244,14 @@ int main()
 
     HandleScope handle_scope;
     g_global = Persistent<ObjectTemplate>(ObjectTemplate::New());
+    g_global->Set(String::New("print"), FunctionTemplate::New(Print));
+    g_global->Set(String::New("run"), FunctionTemplate::New(Run));
+    g_global->Set(String::New("start"), FunctionTemplate::New(fb_start));
+    g_global->Set(String::New("yield"), FunctionTemplate::New(fb_yield));
 
-    Unlocker unlocker(isolate);
-
-    fiber::Service::CreateFiber(t, NULL)->join();
+    if(argc == 2)
+        runScript(argv[1]);
+    else runScript("main.js");
 
     return 0;
 }
