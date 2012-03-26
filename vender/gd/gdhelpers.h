@@ -12,6 +12,10 @@ extern "C" {
 #include <stdlib.h>
 #endif /* _WIN32_WCE */
 
+#if defined(_MSC_VER)
+#include <stdio.h>
+#endif
+
 /* TBB: strtok_r is not universal; provide an implementation of it. */
 
  char * gd_strtok_r (char *s, char *sep, char **state);
@@ -33,7 +37,7 @@ int overflow2(int a, int b);
 
 /* 2.0.16: portable mutex support for thread safety. */
 
-#ifdef WIN32
+#ifdef _WIN32
 /* 2.0.18: must include windows.h to get CRITICAL_SECTION. */
 #include <windows.h>
 #define gdMutexDeclare(x) CRITICAL_SECTION x

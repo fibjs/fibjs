@@ -16,6 +16,8 @@ void* t_fiber(void* p)
         fiber::Fiber::yield();
     }
     lk.unlock();
+
+	return NULL;
 }
 
 void* main_fiber(void* p)
@@ -32,6 +34,8 @@ void* main_fiber(void* p)
     puts("f2 ok");
 //    fiber::Service::Join(f3);
 //    puts("f3 ok");
+
+	return NULL;
 }
 
 void fiber_main()

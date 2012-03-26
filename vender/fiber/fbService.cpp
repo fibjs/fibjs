@@ -53,7 +53,11 @@ Service* Service::getTLSService()
 
 #else
 
+#if defined(_MSC_VER)
+__declspec(thread) Service* th_Service = NULL;
+#else
 __thread Service* th_Service = NULL;
+#endif
 
 Service* Service::getTLSService()
 {
@@ -107,7 +111,7 @@ Fiber* Service::CreateFiber(void* (*func)(void *), void *data, int stacksize)
 
     memset(fb, 0, sizeof(Fiber));
 
-#if defined(__x86_64__)
+#if defined(x64)
     fb->m_cntxt.Rip = (unsigned long long) fiber_proc;
     fb->m_cntxt.Rsp = (unsigned long long) stack;
 

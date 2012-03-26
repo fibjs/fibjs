@@ -1,0 +1,851 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="fiber\fbCondVar.cpp" />
+    <ClCompile Include="fiber\fbFiber.cpp" />
+    <ClCompile Include="fiber\fbLocker.cpp" />
+    <ClCompile Include="fiber\fbSemaphore.cpp" />
+    <ClCompile Include="fiber\fbService.cpp" />
+    <ClCompile Include="fiber\fbSwitch.cpp" />
+    <ClCompile Include="fiber\fbTls.cpp" />
+    <ClCompile Include="gd\gd.c" />
+    <ClCompile Include="gd\gdcache.c" />
+    <ClCompile Include="gd\gdfontg.c" />
+    <ClCompile Include="gd\gdfontl.c" />
+    <ClCompile Include="gd\gdfontmb.c" />
+    <ClCompile Include="gd\gdfonts.c" />
+    <ClCompile Include="gd\gdfontt.c" />
+    <ClCompile Include="gd\gdft.c" />
+    <ClCompile Include="gd\gdhelpers.c" />
+    <ClCompile Include="gd\gdkanji.c" />
+    <ClCompile Include="gd\gdtables.c" />
+    <ClCompile Include="gd\gdxpm.c" />
+    <ClCompile Include="gd\gd_bmp.c" />
+    <ClCompile Include="gd\gd_color.c" />
+    <ClCompile Include="gd\gd_color_map.c" />
+    <ClCompile Include="gd\gd_crop.c" />
+    <ClCompile Include="gd\gd_gd.c" />
+    <ClCompile Include="gd\gd_gd2.c" />
+    <ClCompile Include="gd\gd_gif_in.c" />
+    <ClCompile Include="gd\gd_gif_out.c" />
+    <ClCompile Include="gd\gd_io.c" />
+    <ClCompile Include="gd\gd_io_dp.c" />
+    <ClCompile Include="gd\gd_io_file.c" />
+    <ClCompile Include="gd\gd_io_ss.c" />
+    <ClCompile Include="gd\gd_jpeg.c" />
+    <ClCompile Include="gd\gd_nnquant.c" />
+    <ClCompile Include="gd\gd_pixelate.c" />
+    <ClCompile Include="gd\gd_png.c" />
+    <ClCompile Include="gd\gd_security.c" />
+    <ClCompile Include="gd\gd_ss.c" />
+    <ClCompile Include="gd\gd_tga.c" />
+    <ClCompile Include="gd\gd_tiff.c" />
+    <ClCompile Include="gd\gd_topal.c" />
+    <ClCompile Include="gd\gd_transform.c" />
+    <ClCompile Include="gd\gd_wbmp.c" />
+    <ClCompile Include="jpeg\jaricom.c" />
+    <ClCompile Include="jpeg\jcapimin.c" />
+    <ClCompile Include="jpeg\jcapistd.c" />
+    <ClCompile Include="jpeg\jcarith.c" />
+    <ClCompile Include="jpeg\jccoefct.c" />
+    <ClCompile Include="jpeg\jccolor.c" />
+    <ClCompile Include="jpeg\jcdctmgr.c" />
+    <ClCompile Include="jpeg\jchuff.c" />
+    <ClCompile Include="jpeg\jcinit.c" />
+    <ClCompile Include="jpeg\jcmainct.c" />
+    <ClCompile Include="jpeg\jcmarker.c" />
+    <ClCompile Include="jpeg\jcmaster.c" />
+    <ClCompile Include="jpeg\jcomapi.c" />
+    <ClCompile Include="jpeg\jcparam.c" />
+    <ClCompile Include="jpeg\jcprepct.c" />
+    <ClCompile Include="jpeg\jcsample.c" />
+    <ClCompile Include="jpeg\jctrans.c" />
+    <ClCompile Include="jpeg\jdapimin.c" />
+    <ClCompile Include="jpeg\jdapistd.c" />
+    <ClCompile Include="jpeg\jdarith.c" />
+    <ClCompile Include="jpeg\jdatadst.c" />
+    <ClCompile Include="jpeg\jdatasrc.c" />
+    <ClCompile Include="jpeg\jdcoefct.c" />
+    <ClCompile Include="jpeg\jdcolor.c" />
+    <ClCompile Include="jpeg\jddctmgr.c" />
+    <ClCompile Include="jpeg\jdhuff.c" />
+    <ClCompile Include="jpeg\jdinput.c" />
+    <ClCompile Include="jpeg\jdmainct.c" />
+    <ClCompile Include="jpeg\jdmarker.c" />
+    <ClCompile Include="jpeg\jdmaster.c" />
+    <ClCompile Include="jpeg\jdmerge.c" />
+    <ClCompile Include="jpeg\jdpostct.c" />
+    <ClCompile Include="jpeg\jdsample.c" />
+    <ClCompile Include="jpeg\jdtrans.c" />
+    <ClCompile Include="jpeg\jerror.c" />
+    <ClCompile Include="jpeg\jfdctflt.c" />
+    <ClCompile Include="jpeg\jfdctfst.c" />
+    <ClCompile Include="jpeg\jfdctint.c" />
+    <ClCompile Include="jpeg\jidctflt.c" />
+    <ClCompile Include="jpeg\jidctfst.c" />
+    <ClCompile Include="jpeg\jidctint.c" />
+    <ClCompile Include="jpeg\jmemmgr.c" />
+    <ClCompile Include="jpeg\jmemnobs.c" />
+    <ClCompile Include="jpeg\jquant1.c" />
+    <ClCompile Include="jpeg\jquant2.c" />
+    <ClCompile Include="jpeg\jutils.c" />
+    <ClCompile Include="jpeg\transupp.c" />
+    <ClCompile Include="log4cpp\AbortAppender.cpp" />
+    <ClCompile Include="log4cpp\Appender.cpp" />
+    <ClCompile Include="log4cpp\AppendersFactory.cpp" />
+    <ClCompile Include="log4cpp\AppenderSkeleton.cpp" />
+    <ClCompile Include="log4cpp\BasicConfigurator.cpp" />
+    <ClCompile Include="log4cpp\BasicLayout.cpp" />
+    <ClCompile Include="log4cpp\BufferingAppender.cpp" />
+    <ClCompile Include="log4cpp\Category.cpp" />
+    <ClCompile Include="log4cpp\CategoryStream.cpp" />
+    <ClCompile Include="log4cpp\Configurator.cpp" />
+    <ClCompile Include="log4cpp\DummyThreads.cpp" />
+    <ClCompile Include="log4cpp\FactoryParams.cpp" />
+    <ClCompile Include="log4cpp\FileAppender.cpp" />
+    <ClCompile Include="log4cpp\Filter.cpp" />
+    <ClCompile Include="log4cpp\FixedContextCategory.cpp" />
+    <ClCompile Include="log4cpp\HierarchyMaintainer.cpp" />
+    <ClCompile Include="log4cpp\IdsaAppender.cpp" />
+    <ClCompile Include="log4cpp\LayoutAppender.cpp" />
+    <ClCompile Include="log4cpp\LayoutsFactory.cpp" />
+    <ClCompile Include="log4cpp\LevelEvaluator.cpp" />
+    <ClCompile Include="log4cpp\Localtime.cpp" />
+    <ClCompile Include="log4cpp\LoggingEvent.cpp" />
+    <ClCompile Include="log4cpp\MSThreads.cpp" />
+    <ClCompile Include="log4cpp\NDC.cpp" />
+    <ClCompile Include="log4cpp\NTEventLogAppender.cpp" />
+    <ClCompile Include="log4cpp\OmniThreads.cpp" />
+    <ClCompile Include="log4cpp\OstreamAppender.cpp" />
+    <ClCompile Include="log4cpp\PassThroughLayout.cpp" />
+    <ClCompile Include="log4cpp\PatternLayout.cpp" />
+    <ClCompile Include="log4cpp\PortabilityImpl.cpp" />
+    <ClCompile Include="log4cpp\Priority.cpp" />
+    <ClCompile Include="log4cpp\Properties.cpp" />
+    <ClCompile Include="log4cpp\PropertyConfigurator.cpp" />
+    <ClCompile Include="log4cpp\PropertyConfiguratorImpl.cpp" />
+    <ClCompile Include="log4cpp\PThreads.cpp" />
+    <ClCompile Include="log4cpp\RemoteSyslogAppender.cpp" />
+    <ClCompile Include="log4cpp\RollingFileAppender.cpp" />
+    <ClCompile Include="log4cpp\SimpleLayout.cpp" />
+    <ClCompile Include="log4cpp\StringQueueAppender.cpp" />
+    <ClCompile Include="log4cpp\StringUtil.cpp" />
+    <ClCompile Include="log4cpp\SyslogAppender.cpp" />
+    <ClCompile Include="log4cpp\TimeStamp.cpp" />
+    <ClCompile Include="log4cpp\TriggeringEventEvaluatorFactory.cpp" />
+    <ClCompile Include="log4cpp\Win32DebugAppender.cpp" />
+    <ClCompile Include="png\png.c" />
+    <ClCompile Include="png\pngerror.c" />
+    <ClCompile Include="png\pngget.c" />
+    <ClCompile Include="png\pngmem.c" />
+    <ClCompile Include="png\pngpread.c" />
+    <ClCompile Include="png\pngread.c" />
+    <ClCompile Include="png\pngrio.c" />
+    <ClCompile Include="png\pngrtran.c" />
+    <ClCompile Include="png\pngrutil.c" />
+    <ClCompile Include="png\pngset.c" />
+    <ClCompile Include="png\pngtrans.c" />
+    <ClCompile Include="png\pngwio.c" />
+    <ClCompile Include="png\pngwrite.c" />
+    <ClCompile Include="png\pngwtran.c" />
+    <ClCompile Include="png\pngwutil.c" />
+    <ClCompile Include="tiff\tif_aux.c" />
+    <ClCompile Include="tiff\tif_close.c" />
+    <ClCompile Include="tiff\tif_codec.c" />
+    <ClCompile Include="tiff\tif_color.c" />
+    <ClCompile Include="tiff\tif_compress.c" />
+    <ClCompile Include="tiff\tif_dir.c" />
+    <ClCompile Include="tiff\tif_dirinfo.c" />
+    <ClCompile Include="tiff\tif_dirread.c" />
+    <ClCompile Include="tiff\tif_dirwrite.c" />
+    <ClCompile Include="tiff\tif_dumpmode.c" />
+    <ClCompile Include="tiff\tif_error.c" />
+    <ClCompile Include="tiff\tif_extension.c" />
+    <ClCompile Include="tiff\tif_fax3.c" />
+    <ClCompile Include="tiff\tif_fax3sm.c" />
+    <ClCompile Include="tiff\tif_flush.c" />
+    <ClCompile Include="tiff\tif_getimage.c" />
+    <ClCompile Include="tiff\tif_jpeg.c" />
+    <ClCompile Include="tiff\tif_luv.c" />
+    <ClCompile Include="tiff\tif_lzw.c" />
+    <ClCompile Include="tiff\tif_memory.c" />
+    <ClCompile Include="tiff\tif_next.c" />
+    <ClCompile Include="tiff\tif_ojpeg.c" />
+    <ClCompile Include="tiff\tif_open.c" />
+    <ClCompile Include="tiff\tif_packbits.c" />
+    <ClCompile Include="tiff\tif_pixarlog.c" />
+    <ClCompile Include="tiff\tif_predict.c" />
+    <ClCompile Include="tiff\tif_print.c" />
+    <ClCompile Include="tiff\tif_read.c" />
+    <ClCompile Include="tiff\tif_strip.c" />
+    <ClCompile Include="tiff\tif_swab.c" />
+    <ClCompile Include="tiff\tif_thunder.c" />
+    <ClCompile Include="tiff\tif_tile.c" />
+    <ClCompile Include="tiff\tif_version.c" />
+    <ClCompile Include="tiff\tif_warning.c" />
+    <ClCompile Include="tiff\tif_write.c" />
+    <ClCompile Include="tiff\tif_zip.c" />
+    <ClCompile Include="v8\src\accessors.cc" />
+    <ClCompile Include="v8\src\allocation.cc" />
+    <ClCompile Include="v8\src\api.cc" />
+    <ClCompile Include="v8\src\assembler.cc" />
+    <ClCompile Include="v8\src\ast.cc" />
+    <ClCompile Include="v8\src\atomicops_internals_x86_gcc.cc" />
+    <ClCompile Include="v8\src\bignum-dtoa.cc" />
+    <ClCompile Include="v8\src\bignum.cc" />
+    <ClCompile Include="v8\src\bootstrapper.cc" />
+    <ClCompile Include="v8\src\builtins.cc" />
+    <ClCompile Include="v8\src\cached-powers.cc" />
+    <ClCompile Include="v8\src\checks.cc" />
+    <ClCompile Include="v8\src\circular-queue.cc" />
+    <ClCompile Include="v8\src\code-stubs.cc" />
+    <ClCompile Include="v8\src\codegen.cc" />
+    <ClCompile Include="v8\src\compilation-cache.cc" />
+    <ClCompile Include="v8\src\compiler.cc" />
+    <ClCompile Include="v8\src\contexts.cc" />
+    <ClCompile Include="v8\src\conversions.cc" />
+    <ClCompile Include="v8\src\counters.cc" />
+    <ClCompile Include="v8\src\cpu-profiler.cc" />
+    <ClCompile Include="v8\src\data-flow.cc" />
+    <ClCompile Include="v8\src\date.cc" />
+    <ClCompile Include="v8\src\dateparser.cc" />
+    <ClCompile Include="v8\src\debug-agent.cc" />
+    <ClCompile Include="v8\src\debug.cc" />
+    <ClCompile Include="v8\src\deoptimizer.cc" />
+    <ClCompile Include="v8\src\disassembler.cc" />
+    <ClCompile Include="v8\src\diy-fp.cc" />
+    <ClCompile Include="v8\src\dtoa.cc" />
+    <ClCompile Include="v8\src\elements.cc" />
+    <ClCompile Include="v8\src\execution.cc" />
+    <ClCompile Include="v8\src\experimental-libraries.cc" />
+    <ClCompile Include="v8\src\extensions\externalize-string-extension.cc" />
+    <ClCompile Include="v8\src\extensions\gc-extension.cc" />
+    <ClCompile Include="v8\src\factory.cc" />
+    <ClCompile Include="v8\src\fast-dtoa.cc" />
+    <ClCompile Include="v8\src\fixed-dtoa.cc" />
+    <ClCompile Include="v8\src\flags.cc" />
+    <ClCompile Include="v8\src\frames.cc" />
+    <ClCompile Include="v8\src\full-codegen.cc" />
+    <ClCompile Include="v8\src\func-name-inferrer.cc" />
+    <ClCompile Include="v8\src\gdb-jit.cc" />
+    <ClCompile Include="v8\src\global-handles.cc" />
+    <ClCompile Include="v8\src\handles.cc" />
+    <ClCompile Include="v8\src\heap-profiler.cc" />
+    <ClCompile Include="v8\src\heap.cc" />
+    <ClCompile Include="v8\src\hydrogen-instructions.cc" />
+    <ClCompile Include="v8\src\hydrogen.cc" />
+    <ClCompile Include="v8\src\ia32\assembler-ia32.cc" />
+    <ClCompile Include="v8\src\ia32\builtins-ia32.cc" />
+    <ClCompile Include="v8\src\ia32\code-stubs-ia32.cc" />
+    <ClCompile Include="v8\src\ia32\codegen-ia32.cc" />
+    <ClCompile Include="v8\src\ia32\cpu-ia32.cc" />
+    <ClCompile Include="v8\src\ia32\debug-ia32.cc" />
+    <ClCompile Include="v8\src\ia32\deoptimizer-ia32.cc" />
+    <ClCompile Include="v8\src\ia32\disasm-ia32.cc" />
+    <ClCompile Include="v8\src\ia32\frames-ia32.cc" />
+    <ClCompile Include="v8\src\ia32\full-codegen-ia32.cc" />
+    <ClCompile Include="v8\src\ia32\ic-ia32.cc" />
+    <ClCompile Include="v8\src\ia32\lithium-codegen-ia32.cc" />
+    <ClCompile Include="v8\src\ia32\lithium-gap-resolver-ia32.cc" />
+    <ClCompile Include="v8\src\ia32\lithium-ia32.cc" />
+    <ClCompile Include="v8\src\ia32\macro-assembler-ia32.cc" />
+    <ClCompile Include="v8\src\ia32\regexp-macro-assembler-ia32.cc" />
+    <ClCompile Include="v8\src\ia32\simulator-ia32.cc" />
+    <ClCompile Include="v8\src\ia32\stub-cache-ia32.cc" />
+    <ClCompile Include="v8\src\ic.cc" />
+    <ClCompile Include="v8\src\incremental-marking.cc" />
+    <ClCompile Include="v8\src\inspector.cc" />
+    <ClCompile Include="v8\src\interface.cc" />
+    <ClCompile Include="v8\src\interpreter-irregexp.cc" />
+    <ClCompile Include="v8\src\isolate.cc" />
+    <ClCompile Include="v8\src\jsregexp.cc" />
+    <ClCompile Include="v8\src\libraries.cc" />
+    <ClCompile Include="v8\src\lithium-allocator.cc" />
+    <ClCompile Include="v8\src\lithium.cc" />
+    <ClCompile Include="v8\src\liveedit.cc" />
+    <ClCompile Include="v8\src\liveobjectlist.cc" />
+    <ClCompile Include="v8\src\log-utils.cc" />
+    <ClCompile Include="v8\src\log.cc" />
+    <ClCompile Include="v8\src\mark-compact.cc" />
+    <ClCompile Include="v8\src\messages.cc" />
+    <ClCompile Include="v8\src\objects-debug.cc" />
+    <ClCompile Include="v8\src\objects-printer.cc" />
+    <ClCompile Include="v8\src\objects-visiting.cc" />
+    <ClCompile Include="v8\src\objects.cc" />
+    <ClCompile Include="v8\src\once.cc" />
+    <ClCompile Include="v8\src\parser.cc" />
+    <ClCompile Include="v8\src\platform-fiber.cc" />
+    <ClCompile Include="v8\src\platform-freebsd.cc" />
+    <ClCompile Include="v8\src\platform-linux.cc" />
+    <ClCompile Include="v8\src\platform-macos.cc" />
+    <ClCompile Include="v8\src\platform-openbsd.cc" />
+    <ClCompile Include="v8\src\platform-posix.cc" />
+    <ClCompile Include="v8\src\platform-solaris.cc" />
+    <ClCompile Include="v8\src\platform-win32.cc" />
+    <ClCompile Include="v8\src\preparse-data.cc" />
+    <ClCompile Include="v8\src\preparser.cc" />
+    <ClCompile Include="v8\src\prettyprinter.cc" />
+    <ClCompile Include="v8\src\profile-generator.cc" />
+    <ClCompile Include="v8\src\property.cc" />
+    <ClCompile Include="v8\src\regexp-macro-assembler-irregexp.cc" />
+    <ClCompile Include="v8\src\regexp-macro-assembler-tracer.cc" />
+    <ClCompile Include="v8\src\regexp-macro-assembler.cc" />
+    <ClCompile Include="v8\src\regexp-stack.cc" />
+    <ClCompile Include="v8\src\rewriter.cc" />
+    <ClCompile Include="v8\src\runtime-profiler.cc" />
+    <ClCompile Include="v8\src\runtime.cc" />
+    <ClCompile Include="v8\src\safepoint-table.cc" />
+    <ClCompile Include="v8\src\scanner-character-streams.cc" />
+    <ClCompile Include="v8\src\scanner.cc" />
+    <ClCompile Include="v8\src\scopeinfo.cc" />
+    <ClCompile Include="v8\src\scopes.cc" />
+    <ClCompile Include="v8\src\serialize.cc" />
+    <ClCompile Include="v8\src\snapshot-common.cc" />
+    <ClCompile Include="v8\src\snapshot-empty.cc" />
+    <ClCompile Include="v8\src\spaces.cc" />
+    <ClCompile Include="v8\src\store-buffer.cc" />
+    <ClCompile Include="v8\src\string-search.cc" />
+    <ClCompile Include="v8\src\string-stream.cc" />
+    <ClCompile Include="v8\src\strtod.cc" />
+    <ClCompile Include="v8\src\stub-cache.cc" />
+    <ClCompile Include="v8\src\token.cc" />
+    <ClCompile Include="v8\src\type-info.cc" />
+    <ClCompile Include="v8\src\unicode.cc" />
+    <ClCompile Include="v8\src\utils.cc" />
+    <ClCompile Include="v8\src\v8-counters.cc" />
+    <ClCompile Include="v8\src\v8.cc" />
+    <ClCompile Include="v8\src\v8conversions.cc" />
+    <ClCompile Include="v8\src\v8threads.cc" />
+    <ClCompile Include="v8\src\v8utils.cc" />
+    <ClCompile Include="v8\src\variables.cc" />
+    <ClCompile Include="v8\src\version.cc" />
+    <ClCompile Include="v8\src\win32-math.cc" />
+    <ClCompile Include="v8\src\x64\assembler-x64.cc" />
+    <ClCompile Include="v8\src\x64\builtins-x64.cc" />
+    <ClCompile Include="v8\src\x64\code-stubs-x64.cc" />
+    <ClCompile Include="v8\src\x64\codegen-x64.cc" />
+    <ClCompile Include="v8\src\x64\cpu-x64.cc" />
+    <ClCompile Include="v8\src\x64\debug-x64.cc" />
+    <ClCompile Include="v8\src\x64\deoptimizer-x64.cc" />
+    <ClCompile Include="v8\src\x64\disasm-x64.cc" />
+    <ClCompile Include="v8\src\x64\frames-x64.cc" />
+    <ClCompile Include="v8\src\x64\full-codegen-x64.cc" />
+    <ClCompile Include="v8\src\x64\ic-x64.cc" />
+    <ClCompile Include="v8\src\x64\lithium-codegen-x64.cc" />
+    <ClCompile Include="v8\src\x64\lithium-gap-resolver-x64.cc" />
+    <ClCompile Include="v8\src\x64\lithium-x64.cc" />
+    <ClCompile Include="v8\src\x64\macro-assembler-x64.cc" />
+    <ClCompile Include="v8\src\x64\regexp-macro-assembler-x64.cc" />
+    <ClCompile Include="v8\src\x64\simulator-x64.cc" />
+    <ClCompile Include="v8\src\x64\stub-cache-x64.cc" />
+    <ClCompile Include="v8\src\zone.cc" />
+    <ClCompile Include="zlib\adler32.c" />
+    <ClCompile Include="zlib\compress.c" />
+    <ClCompile Include="zlib\crc32.c" />
+    <ClCompile Include="zlib\deflate.c" />
+    <ClCompile Include="zlib\inffast.c" />
+    <ClCompile Include="zlib\inflate.c" />
+    <ClCompile Include="zlib\inftrees.c" />
+    <ClCompile Include="zlib\trees.c" />
+    <ClCompile Include="zlib\uncompr.c" />
+    <ClCompile Include="zlib\zutil.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="gd\bmp.h" />
+    <ClInclude Include="gd\config.h" />
+    <ClInclude Include="gd\entities.h" />
+    <ClInclude Include="gd\gd.h" />
+    <ClInclude Include="gd\gdfontg.h" />
+    <ClInclude Include="gd\gdfontl.h" />
+    <ClInclude Include="gd\gdfontmb.h" />
+    <ClInclude Include="gd\gdfonts.h" />
+    <ClInclude Include="gd\gdfontt.h" />
+    <ClInclude Include="gd\gdfx.h" />
+    <ClInclude Include="gd\gdhelpers.h" />
+    <ClInclude Include="gd\gdpp.h" />
+    <ClInclude Include="gd\gd_color.h" />
+    <ClInclude Include="gd\gd_color_map.h" />
+    <ClInclude Include="gd\gd_io.h" />
+    <ClInclude Include="gd\gd_io_stream.h" />
+    <ClInclude Include="gd\gd_nnquant.h" />
+    <ClInclude Include="gd\gd_tga.h" />
+    <ClInclude Include="gd\jisx0208.h" />
+    <ClInclude Include="gd\wbmp.h" />
+    <ClInclude Include="include\ev++.h" />
+    <ClInclude Include="include\ev.h" />
+    <ClInclude Include="include\fiber.h" />
+    <ClInclude Include="include\gd.h" />
+    <ClInclude Include="include\gdcache.h" />
+    <ClInclude Include="include\gdfonts.h" />
+    <ClInclude Include="include\gdfx.h" />
+    <ClInclude Include="include\gd_io.h" />
+    <ClInclude Include="include\jconfig.h" />
+    <ClInclude Include="include\jerror.h" />
+    <ClInclude Include="include\jmorecfg.h" />
+    <ClInclude Include="include\jpegint.h" />
+    <ClInclude Include="include\jpeglib.h" />
+    <ClInclude Include="include\log4cpp\config-MinGW32.h" />
+    <ClInclude Include="include\log4cpp\config-openvms.h" />
+    <ClInclude Include="include\log4cpp\config-win32.h" />
+    <ClInclude Include="include\log4cpp\config.h" />
+    <ClInclude Include="include\log4cpp\convenience.h" />
+    <ClInclude Include="include\osconfig.h" />
+    <ClInclude Include="include\png.h" />
+    <ClInclude Include="include\pngconf.h" />
+    <ClInclude Include="include\pnglibconf.h" />
+    <ClInclude Include="include\tiff.h" />
+    <ClInclude Include="include\tiffio.h" />
+    <ClInclude Include="include\tiffvers.h" />
+    <ClInclude Include="include\tif_config.h" />
+    <ClInclude Include="include\v8\v8-debug.h" />
+    <ClInclude Include="include\v8\v8-preparser.h" />
+    <ClInclude Include="include\v8\v8-profiler.h" />
+    <ClInclude Include="include\v8\v8-testing.h" />
+    <ClInclude Include="include\v8\v8.h" />
+    <ClInclude Include="include\v8\v8stdint.h" />
+    <ClInclude Include="include\zconf.h" />
+    <ClInclude Include="include\zlib.h" />
+    <ClInclude Include="jpeg\jconfig.h" />
+    <ClInclude Include="jpeg\jdct.h" />
+    <ClInclude Include="jpeg\jerror.h" />
+    <ClInclude Include="jpeg\jinclude.h" />
+    <ClInclude Include="jpeg\jmemsys.h" />
+    <ClInclude Include="jpeg\jpegint.h" />
+    <ClInclude Include="jpeg\jversion.h" />
+    <ClInclude Include="jpeg\transupp.h" />
+    <ClInclude Include="png\png.h" />
+    <ClInclude Include="png\pngconf.h" />
+    <ClInclude Include="png\pngdebug.h" />
+    <ClInclude Include="png\pnginfo.h" />
+    <ClInclude Include="png\pngpriv.h" />
+    <ClInclude Include="png\pngstruct.h" />
+    <ClInclude Include="tiff\t4.h" />
+    <ClInclude Include="tiff\tiff.h" />
+    <ClInclude Include="tiff\tiffio.h" />
+    <ClInclude Include="tiff\tiffiop.h" />
+    <ClInclude Include="tiff\tif_dir.h" />
+    <ClInclude Include="tiff\tif_fax3.h" />
+    <ClInclude Include="tiff\tif_predict.h" />
+    <ClInclude Include="tiff\uvcode.h" />
+    <ClInclude Include="v8\include\v8-debug.h" />
+    <ClInclude Include="v8\include\v8-preparser.h" />
+    <ClInclude Include="v8\include\v8-profiler.h" />
+    <ClInclude Include="v8\include\v8-testing.h" />
+    <ClInclude Include="v8\include\v8.h" />
+    <ClInclude Include="v8\include\v8stdint.h" />
+    <ClInclude Include="v8\src\accessors.h" />
+    <ClInclude Include="v8\src\allocation-inl.h" />
+    <ClInclude Include="v8\src\allocation.h" />
+    <ClInclude Include="v8\src\api.h" />
+    <ClInclude Include="v8\src\apiutils.h" />
+    <ClInclude Include="v8\src\arguments.h" />
+    <ClInclude Include="v8\src\assembler.h" />
+    <ClInclude Include="v8\src\ast.h" />
+    <ClInclude Include="v8\src\atomicops.h" />
+    <ClInclude Include="v8\src\atomicops_internals_x86_gcc.h" />
+    <ClInclude Include="v8\src\atomicops_internals_x86_macosx.h" />
+    <ClInclude Include="v8\src\atomicops_internals_x86_msvc.h" />
+    <ClInclude Include="v8\src\bignum-dtoa.h" />
+    <ClInclude Include="v8\src\bignum.h" />
+    <ClInclude Include="v8\src\bootstrapper.h" />
+    <ClInclude Include="v8\src\builtins.h" />
+    <ClInclude Include="v8\src\bytecodes-irregexp.h" />
+    <ClInclude Include="v8\src\cached-powers.h" />
+    <ClInclude Include="v8\src\char-predicates-inl.h" />
+    <ClInclude Include="v8\src\char-predicates.h" />
+    <ClInclude Include="v8\src\checks.h" />
+    <ClInclude Include="v8\src\circular-queue-inl.h" />
+    <ClInclude Include="v8\src\circular-queue.h" />
+    <ClInclude Include="v8\src\code-stubs.h" />
+    <ClInclude Include="v8\src\code.h" />
+    <ClInclude Include="v8\src\codegen.h" />
+    <ClInclude Include="v8\src\compilation-cache.h" />
+    <ClInclude Include="v8\src\compiler-intrinsics.h" />
+    <ClInclude Include="v8\src\compiler.h" />
+    <ClInclude Include="v8\src\contexts.h" />
+    <ClInclude Include="v8\src\conversions-inl.h" />
+    <ClInclude Include="v8\src\conversions.h" />
+    <ClInclude Include="v8\src\counters.h" />
+    <ClInclude Include="v8\src\cpu-profiler-inl.h" />
+    <ClInclude Include="v8\src\cpu-profiler.h" />
+    <ClInclude Include="v8\src\cpu.h" />
+    <ClInclude Include="v8\src\data-flow.h" />
+    <ClInclude Include="v8\src\date.h" />
+    <ClInclude Include="v8\src\dateparser-inl.h" />
+    <ClInclude Include="v8\src\dateparser.h" />
+    <ClInclude Include="v8\src\debug-agent.h" />
+    <ClInclude Include="v8\src\debug.h" />
+    <ClInclude Include="v8\src\deoptimizer.h" />
+    <ClInclude Include="v8\src\disasm.h" />
+    <ClInclude Include="v8\src\disassembler.h" />
+    <ClInclude Include="v8\src\diy-fp.h" />
+    <ClInclude Include="v8\src\double.h" />
+    <ClInclude Include="v8\src\dtoa.h" />
+    <ClInclude Include="v8\src\elements.h" />
+    <ClInclude Include="v8\src\execution.h" />
+    <ClInclude Include="v8\src\extensions\externalize-string-extension.h" />
+    <ClInclude Include="v8\src\extensions\gc-extension.h" />
+    <ClInclude Include="v8\src\factory.h" />
+    <ClInclude Include="v8\src\fast-dtoa.h" />
+    <ClInclude Include="v8\src\fixed-dtoa.h" />
+    <ClInclude Include="v8\src\flag-definitions.h" />
+    <ClInclude Include="v8\src\flags.h" />
+    <ClInclude Include="v8\src\frames-inl.h" />
+    <ClInclude Include="v8\src\frames.h" />
+    <ClInclude Include="v8\src\full-codegen.h" />
+    <ClInclude Include="v8\src\func-name-inferrer.h" />
+    <ClInclude Include="v8\src\gdb-jit.h" />
+    <ClInclude Include="v8\src\global-handles.h" />
+    <ClInclude Include="v8\src\globals.h" />
+    <ClInclude Include="v8\src\handles-inl.h" />
+    <ClInclude Include="v8\src\handles.h" />
+    <ClInclude Include="v8\src\hashmap.h" />
+    <ClInclude Include="v8\src\heap-inl.h" />
+    <ClInclude Include="v8\src\heap-profiler.h" />
+    <ClInclude Include="v8\src\heap.h" />
+    <ClInclude Include="v8\src\hydrogen-instructions.h" />
+    <ClInclude Include="v8\src\hydrogen.h" />
+    <ClInclude Include="v8\src\ia32\assembler-ia32-inl.h" />
+    <ClInclude Include="v8\src\ia32\assembler-ia32.h" />
+    <ClInclude Include="v8\src\ia32\code-stubs-ia32.h" />
+    <ClInclude Include="v8\src\ia32\codegen-ia32.h" />
+    <ClInclude Include="v8\src\ia32\frames-ia32.h" />
+    <ClInclude Include="v8\src\ia32\lithium-codegen-ia32.h" />
+    <ClInclude Include="v8\src\ia32\lithium-gap-resolver-ia32.h" />
+    <ClInclude Include="v8\src\ia32\lithium-ia32.h" />
+    <ClInclude Include="v8\src\ia32\macro-assembler-ia32.h" />
+    <ClInclude Include="v8\src\ia32\regexp-macro-assembler-ia32.h" />
+    <ClInclude Include="v8\src\ia32\simulator-ia32.h" />
+    <ClInclude Include="v8\src\ic-inl.h" />
+    <ClInclude Include="v8\src\ic.h" />
+    <ClInclude Include="v8\src\incremental-marking-inl.h" />
+    <ClInclude Include="v8\src\incremental-marking.h" />
+    <ClInclude Include="v8\src\inspector.h" />
+    <ClInclude Include="v8\src\interface.h" />
+    <ClInclude Include="v8\src\interpreter-irregexp.h" />
+    <ClInclude Include="v8\src\isolate-inl.h" />
+    <ClInclude Include="v8\src\isolate.h" />
+    <ClInclude Include="v8\src\json-parser.h" />
+    <ClInclude Include="v8\src\jsregexp.h" />
+    <ClInclude Include="v8\src\lazy-instance.h" />
+    <ClInclude Include="v8\src\list-inl.h" />
+    <ClInclude Include="v8\src\list.h" />
+    <ClInclude Include="v8\src\lithium-allocator-inl.h" />
+    <ClInclude Include="v8\src\lithium-allocator.h" />
+    <ClInclude Include="v8\src\lithium.h" />
+    <ClInclude Include="v8\src\liveedit.h" />
+    <ClInclude Include="v8\src\liveobjectlist-inl.h" />
+    <ClInclude Include="v8\src\liveobjectlist.h" />
+    <ClInclude Include="v8\src\log-inl.h" />
+    <ClInclude Include="v8\src\log-utils.h" />
+    <ClInclude Include="v8\src\log.h" />
+    <ClInclude Include="v8\src\macro-assembler.h" />
+    <ClInclude Include="v8\src\mark-compact-inl.h" />
+    <ClInclude Include="v8\src\mark-compact.h" />
+    <ClInclude Include="v8\src\messages.h" />
+    <ClInclude Include="v8\src\misc-intrinsics.h" />
+    <ClInclude Include="v8\src\natives.h" />
+    <ClInclude Include="v8\src\objects-inl.h" />
+    <ClInclude Include="v8\src\objects-visiting-inl.h" />
+    <ClInclude Include="v8\src\objects-visiting.h" />
+    <ClInclude Include="v8\src\objects.h" />
+    <ClInclude Include="v8\src\once.h" />
+    <ClInclude Include="v8\src\parser.h" />
+    <ClInclude Include="v8\src\platform-tls-mac.h" />
+    <ClInclude Include="v8\src\platform-tls-win32.h" />
+    <ClInclude Include="v8\src\platform-tls.h" />
+    <ClInclude Include="v8\src\platform.h" />
+    <ClInclude Include="v8\src\preparse-data-format.h" />
+    <ClInclude Include="v8\src\preparse-data.h" />
+    <ClInclude Include="v8\src\preparser.h" />
+    <ClInclude Include="v8\src\prettyprinter.h" />
+    <ClInclude Include="v8\src\profile-generator-inl.h" />
+    <ClInclude Include="v8\src\profile-generator.h" />
+    <ClInclude Include="v8\src\property-details.h" />
+    <ClInclude Include="v8\src\property.h" />
+    <ClInclude Include="v8\src\regexp-macro-assembler-irregexp-inl.h" />
+    <ClInclude Include="v8\src\regexp-macro-assembler-irregexp.h" />
+    <ClInclude Include="v8\src\regexp-macro-assembler-tracer.h" />
+    <ClInclude Include="v8\src\regexp-macro-assembler.h" />
+    <ClInclude Include="v8\src\regexp-stack.h" />
+    <ClInclude Include="v8\src\rewriter.h" />
+    <ClInclude Include="v8\src\runtime-profiler.h" />
+    <ClInclude Include="v8\src\runtime.h" />
+    <ClInclude Include="v8\src\safepoint-table.h" />
+    <ClInclude Include="v8\src\scanner-character-streams.h" />
+    <ClInclude Include="v8\src\scanner.h" />
+    <ClInclude Include="v8\src\scopeinfo.h" />
+    <ClInclude Include="v8\src\scopes.h" />
+    <ClInclude Include="v8\src\serialize.h" />
+    <ClInclude Include="v8\src\simulator.h" />
+    <ClInclude Include="v8\src\small-pointer-list.h" />
+    <ClInclude Include="v8\src\smart-array-pointer.h" />
+    <ClInclude Include="v8\src\snapshot.h" />
+    <ClInclude Include="v8\src\spaces-inl.h" />
+    <ClInclude Include="v8\src\spaces.h" />
+    <ClInclude Include="v8\src\splay-tree-inl.h" />
+    <ClInclude Include="v8\src\splay-tree.h" />
+    <ClInclude Include="v8\src\store-buffer-inl.h" />
+    <ClInclude Include="v8\src\store-buffer.h" />
+    <ClInclude Include="v8\src\string-search.h" />
+    <ClInclude Include="v8\src\string-stream.h" />
+    <ClInclude Include="v8\src\strtod.h" />
+    <ClInclude Include="v8\src\stub-cache.h" />
+    <ClInclude Include="v8\src\third_party\valgrind\valgrind.h" />
+    <ClInclude Include="v8\src\token.h" />
+    <ClInclude Include="v8\src\type-info.h" />
+    <ClInclude Include="v8\src\unbound-queue-inl.h" />
+    <ClInclude Include="v8\src\unbound-queue.h" />
+    <ClInclude Include="v8\src\unicode-inl.h" />
+    <ClInclude Include="v8\src\unicode.h" />
+    <ClInclude Include="v8\src\utils-inl.h" />
+    <ClInclude Include="v8\src\utils.h" />
+    <ClInclude Include="v8\src\v8-counters.h" />
+    <ClInclude Include="v8\src\v8.h" />
+    <ClInclude Include="v8\src\v8checks.h" />
+    <ClInclude Include="v8\src\v8conversions.h" />
+    <ClInclude Include="v8\src\v8globals.h" />
+    <ClInclude Include="v8\src\v8memory.h" />
+    <ClInclude Include="v8\src\v8threads.h" />
+    <ClInclude Include="v8\src\v8utils.h" />
+    <ClInclude Include="v8\src\variables.h" />
+    <ClInclude Include="v8\src\version.h" />
+    <ClInclude Include="v8\src\vm-state-inl.h" />
+    <ClInclude Include="v8\src\vm-state.h" />
+    <ClInclude Include="v8\src\win32-headers.h" />
+    <ClInclude Include="v8\src\win32-math.h" />
+    <ClInclude Include="v8\src\x64\assembler-x64-inl.h" />
+    <ClInclude Include="v8\src\x64\assembler-x64.h" />
+    <ClInclude Include="v8\src\x64\code-stubs-x64.h" />
+    <ClInclude Include="v8\src\x64\codegen-x64.h" />
+    <ClInclude Include="v8\src\x64\frames-x64.h" />
+    <ClInclude Include="v8\src\x64\lithium-codegen-x64.h" />
+    <ClInclude Include="v8\src\x64\lithium-gap-resolver-x64.h" />
+    <ClInclude Include="v8\src\x64\lithium-x64.h" />
+    <ClInclude Include="v8\src\x64\macro-assembler-x64.h" />
+    <ClInclude Include="v8\src\x64\regexp-macro-assembler-x64.h" />
+    <ClInclude Include="v8\src\x64\simulator-x64.h" />
+    <ClInclude Include="v8\src\zone-inl.h" />
+    <ClInclude Include="v8\src\zone.h" />
+    <ClInclude Include="zlib\crc32.h" />
+    <ClInclude Include="zlib\deflate.h" />
+    <ClInclude Include="zlib\inffast.h" />
+    <ClInclude Include="zlib\inffixed.h" />
+    <ClInclude Include="zlib\inflate.h" />
+    <ClInclude Include="zlib\inftrees.h" />
+    <ClInclude Include="zlib\trees.h" />
+    <ClInclude Include="zlib\zconf.h" />
+    <ClInclude Include="zlib\zlib.h" />
+    <ClInclude Include="zlib\zutil.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="fiber\fb_switch.asm">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ml64 /c fiber\fb_switch.asm</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml64 /c fiber\fb_switch.asm</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">fb_switch.obj</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">fb_switch.obj</Outputs>
+    </CustomBuild>
+    <None Include="include\log4cpp\AbortAppender.hh" />
+    <None Include="include\log4cpp\Appender.hh" />
+    <None Include="include\log4cpp\AppendersFactory.hh" />
+    <None Include="include\log4cpp\AppenderSkeleton.hh" />
+    <None Include="include\log4cpp\BasicConfigurator.hh" />
+    <None Include="include\log4cpp\BasicLayout.hh" />
+    <None Include="include\log4cpp\BufferingAppender.hh" />
+    <None Include="include\log4cpp\Category.hh" />
+    <None Include="include\log4cpp\CategoryStream.hh" />
+    <None Include="include\log4cpp\Configurator.hh" />
+    <None Include="include\log4cpp\Export.hh" />
+    <None Include="include\log4cpp\FactoryParams.hh" />
+    <None Include="include\log4cpp\FileAppender.hh" />
+    <None Include="include\log4cpp\Filter.hh" />
+    <None Include="include\log4cpp\FixedContextCategory.hh" />
+    <None Include="include\log4cpp\HierarchyMaintainer.hh" />
+    <None Include="include\log4cpp\IdsaAppender.hh" />
+    <None Include="include\log4cpp\Layout.hh" />
+    <None Include="include\log4cpp\LayoutAppender.hh" />
+    <None Include="include\log4cpp\LayoutsFactory.hh" />
+    <None Include="include\log4cpp\LevelEvaluator.hh" />
+    <None Include="include\log4cpp\LoggingEvent.hh" />
+    <None Include="include\log4cpp\Manipulator.hh" />
+    <None Include="include\log4cpp\NDC.hh" />
+    <None Include="include\log4cpp\NTEventLogAppender.hh" />
+    <None Include="include\log4cpp\OstreamAppender.hh" />
+    <None Include="include\log4cpp\PassThroughLayout.hh" />
+    <None Include="include\log4cpp\PatternLayout.hh" />
+    <None Include="include\log4cpp\Portability.hh" />
+    <None Include="include\log4cpp\Priority.hh" />
+    <None Include="include\log4cpp\PropertyConfigurator.hh" />
+    <None Include="include\log4cpp\RemoteSyslogAppender.hh" />
+    <None Include="include\log4cpp\RollingFileAppender.hh" />
+    <None Include="include\log4cpp\SimpleConfigurator.hh" />
+    <None Include="include\log4cpp\SimpleLayout.hh" />
+    <None Include="include\log4cpp\StringQueueAppender.hh" />
+    <None Include="include\log4cpp\SyslogAppender.hh" />
+    <None Include="include\log4cpp\threading\BoostThreads.hh" />
+    <None Include="include\log4cpp\threading\DummyThreads.hh" />
+    <None Include="include\log4cpp\threading\MSThreads.hh" />
+    <None Include="include\log4cpp\threading\OmniThreads.hh" />
+    <None Include="include\log4cpp\threading\PThreads.hh" />
+    <None Include="include\log4cpp\threading\Threading.hh" />
+    <None Include="include\log4cpp\TimeStamp.hh" />
+    <None Include="include\log4cpp\TriggeringEventEvaluator.hh" />
+    <None Include="include\log4cpp\TriggeringEventEvaluatorFactory.hh" />
+    <None Include="include\log4cpp\Win32DebugAppender.hh" />
+    <None Include="log4cpp\Localtime.hh" />
+    <None Include="log4cpp\PortabilityImpl.hh" />
+    <None Include="log4cpp\Properties.hh" />
+    <None Include="log4cpp\PropertyConfiguratorImpl.hh" />
+    <None Include="log4cpp\StringUtil.hh" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{1F77AB58-706B-4BB5-BE73-5AF083D21DF6}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>vender</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)bin\$(Platform)_$(Configuration)\</OutDir>
+    <IntDir>obj\$(Platform)_$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)bin\$(Platform)_$(Configuration)\</OutDir>
+    <IntDir>obj\$(Platform)_$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)bin\$(Platform)_$(Configuration)\</OutDir>
+    <IntDir>obj\$(Platform)_$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)bin\$(Platform)_$(Configuration)\</OutDir>
+    <IntDir>obj\$(Platform)_$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\v8\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\v8\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\v8\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\v8\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -11,7 +11,7 @@
 #ifndef OSCONFIG_H_
 #define OSCONFIG_H_
 
-# if defined(_WIN32) || defined(_WIN64)
+# if defined(_WIN32) || defined(_WIN64) || defined(WIN32) || defined(WIN64)
 #  ifndef Windows
 #   define Windows
 #  endif
@@ -54,13 +54,13 @@
 #  endif
 # endif
 
-# if defined(i386) || defined(__i386__) || defined(_M_I386) || defined(_X86_) || defined(x86)
+# if defined(i386) || defined(__i386__) || defined(_M_IX86) || defined(_X86_) || defined(x86)
 #  ifndef I386
 #   define I386
 #  endif
 # endif
 
-# if defined(__amd64) || defined(__x86_64__) || defined(__ia64) || defined(__ia64__) || defined(_M_IA64)
+# if defined(__amd64) || defined(__x86_64__) || defined(__ia64) || defined(__ia64__) || defined(_M_X64) || defined(_M_IA64)
 #  ifndef x64
 #   define x64
 #  endif

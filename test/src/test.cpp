@@ -26,10 +26,10 @@ int main(int argc, char **argv)
         root.warn(e.what());
     }
 
-//    fiber_main();
+    fiber_main();
 //    asio_main();
 //	js_main();
-    v8_main();
+//    v8_main();
 //	lockfree_main();
     return 0;
 }

@@ -7,6 +7,7 @@
  */
 
 #include <string.h>
+#include <osconfig.h>
 
 #ifndef fiber_h__
 #define fiber_h__
@@ -15,7 +16,7 @@ namespace fiber
 {
 
 #pragma pack (1)
-#if defined(__x86_64__)
+#if defined(x64)
 
 typedef struct
 {
@@ -86,14 +87,15 @@ public:
     void* m_tls[TLS_SIZE];
 };
 
-class FiberList
+template<class T>
+class List
 {
 public:
-    FiberList() : m_first(NULL), m_last(NULL)
+    List() : m_first(NULL), m_last(NULL), m_count(0)
     {
     }
 
-    void put(Fiber* pNew)
+    void put(T* pNew)
     {
         if(m_last)
             m_last->m_next = pNew;
@@ -101,11 +103,13 @@ public:
             m_first = pNew;
 
         m_last = pNew;
+
+        m_count ++;
     }
 
-    Fiber* get()
+    T* get()
     {
-        Fiber* pNow = m_first;
+        T* pNow = m_first;
 
         if(pNow)
         {
@@ -114,19 +118,27 @@ public:
                 m_last = NULL;
 
             pNow->m_next = NULL;
+
+            m_count --;
         }
 
         return pNow;
     }
 
-    bool empty()
+    bool empty() const
     {
-        return m_first == NULL;
+        return m_count == 0;
+    }
+
+    int count() const
+    {
+        return m_count;
     }
 
 private:
-    Fiber* m_first;
-    Fiber* m_last;
+    T* m_first;
+    T* m_last;
+    int m_count;
 };
 
 #define FIBER_STACK_SIZE    (65536 - sizeof(Fiber))
@@ -143,11 +155,16 @@ public:
     void unlock();
     bool trylock();
 
+    int blocked() const
+    {
+        return m_blocks.count();
+    }
+
 private:
     bool m_locked;
     int m_count;
     Fiber* m_locker;
-    FiberList m_blocks;
+    List<Fiber> m_blocks;
 };
 
 class CondVar
@@ -157,8 +174,13 @@ public:
     void notify_one();
     void notify_all();
 
+    int blocked() const
+    {
+        return m_blocks.count();
+    }
+
 private:
-    FiberList m_blocks;
+    List<Fiber> m_blocks;
 };
 
 class Semaphore
@@ -173,9 +195,14 @@ public:
     void post();
     bool trywait();
 
+    int blocked() const
+    {
+        return m_blocks.count();
+    }
+
 private:
     int m_count;
-    FiberList m_blocks;
+    List<Fiber> m_blocks;
 };
 
 class Service
@@ -200,7 +227,7 @@ public:
     Fiber* m_running;
     Fiber* m_recycle;
     char m_tls[TLS_SIZE];
-    FiberList m_resume;
+    List<Fiber> m_resume;
 
     friend class Locker;
     friend class CondVar;

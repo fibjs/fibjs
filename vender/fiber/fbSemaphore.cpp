@@ -25,7 +25,7 @@ void Semaphore::wait()
 
 void Semaphore::post()
 {
-    if(m_count == 0 && !m_blocks.empty())
+    if(!m_blocks.empty())
     {
         Service* pService = Service::getTLSService();
         Fiber* cntxt;

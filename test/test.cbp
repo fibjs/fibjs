@@ -149,11 +149,9 @@
 		<Linker>
 			<Add library="vender" />
 		</Linker>
-		<Unit filename="src/asio.cpp" />
 		<Unit filename="src/ev.cpp" />
 		<Unit filename="src/fiber.cpp" />
 		<Unit filename="src/gd.cpp" />
-		<Unit filename="src/lockfree.cpp" />
 		<Unit filename="src/test.cpp" />
 		<Unit filename="src/test.h" />
 		<Unit filename="src/v8.cpp" />

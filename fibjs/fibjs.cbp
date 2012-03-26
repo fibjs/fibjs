@@ -152,6 +152,9 @@
 			<Add option="-Wall" />
 			<Add option="-fpermissive" />
 			<Add option="-Wno-long-long" />
+			<Add option="-fdata-sections" />
+			<Add option="-ffunction-sections" />
+			<Add option="-fno-rtti" />
 			<Add directory="../vender/include" />
 			<Add directory="include" />
 		</Compiler>

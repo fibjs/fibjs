@@ -96,7 +96,6 @@
 				<Option createDefFile="1" />
 				<Compiler>
 					<Add option="-g" />
-					<Add option="-DBOOST_EXCEPTION_DISABLE" />
 				</Compiler>
 			</Target>
 			<Target title="WinRelease32">
@@ -124,18 +123,14 @@
 			<Add option="-Wall" />
 			<Add option="-fpermissive" />
 			<Add option="-Wno-long-long" />
+			<Add option="-fdata-sections" />
+			<Add option="-ffunction-sections" />
+			<Add option="-fno-rtti" />
 			<Add directory="include" />
 			<Add directory="v8/src" />
 		</Compiler>
-		<Unit filename="boost/system/error_code.cpp" />
-		<Unit filename="boost/system/local_free_on_destruction.hpp" />
-		<Unit filename="boost/thread/pthread/once.cpp" />
-		<Unit filename="boost/thread/pthread/thread.cpp" />
 		<Unit filename="boost/thread/pthread/timeconv.inl" />
-		<Unit filename="boost/thread/tss_null.cpp" />
-		<Unit filename="boost/thread/win32/thread.cpp" />
 		<Unit filename="boost/thread/win32/timeconv.inl" />
-		<Unit filename="boost/thread/win32/tss_pe.cpp" />
 		<Unit filename="ev/config.h" />
 		<Unit filename="ev/ev.c">
 			<Option compilerVar="CC" />
@@ -3970,7 +3965,6 @@
 		<Unit filename="v8/src/preparse-data-format.h" />
 		<Unit filename="v8/src/preparse-data.cc" />
 		<Unit filename="v8/src/preparse-data.h" />
-		<Unit filename="v8/src/preparser-api.cc" />
 		<Unit filename="v8/src/preparser.cc" />
 		<Unit filename="v8/src/preparser.h" />
 		<Unit filename="v8/src/prettyprinter.cc" />
