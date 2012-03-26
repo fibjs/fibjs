@@ -2,7 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
-#include <sys/time.h>
+//#include <sys/time.h>
 
 #include <v8/v8.h>
 
@@ -17,7 +17,6 @@
 using namespace v8;
 
 Isolate* isolate;
-Persistent<ObjectTemplate> g_global;
 
 static int ReadFile(const char* name, std::vector<char>& buf)
 {
@@ -55,30 +54,29 @@ void ReportException(v8::TryCatch* try_catch, bool rt = false)
 
     Handle<Message> message = try_catch->Message();
     if (message.IsEmpty())
-    {
         root.error(ToCString(exception));
-    }
     else
     {
         if(rt)
         {
             v8::String::Utf8Value stack_trace(try_catch->StackTrace());
             if (stack_trace.length() > 0)
+            {
                 root.error(ToCString(stack_trace));
+                return;
+            }
         }
-        else
-        {
-            std::stringstream strError;
 
-            v8::String::Utf8Value filename(message->GetScriptResourceName());
-            strError << ToCString(exception) << "\n    at ";
-            strError << ToCString(filename);
-            int lineNumber = message->GetLineNumber();
-            if(lineNumber > 0)
-                strError << ':' << lineNumber << ':' << (message->GetStartColumn() + 1);
+        std::stringstream strError;
 
-            root.error(strError.str());
-        }
+        v8::String::Utf8Value filename(message->GetScriptResourceName());
+        strError << ToCString(exception) << "\n    at ";
+        strError << ToCString(filename);
+        int lineNumber = message->GetLineNumber();
+        if(lineNumber > 0)
+            strError << ':' << lineNumber << ':' << (message->GetStartColumn() + 1);
+
+        root.error(strError.str());
     }
 }
 
@@ -94,7 +92,7 @@ Handle<Value> Print(const Arguments& args)
         else
             printf(" ");
 
-        String::AsciiValue str(args[i]);
+        String::Utf8Value str(args[i]);
         printf("%s",  *str);
     }
     printf("\n");
@@ -111,11 +109,16 @@ public:
 
     ~fiber_data()
     {
+        size_t i;
+
+        for(i = 0; i < argv.size(); i ++)
+            argv[i].Dispose();
+
         m_func.Dispose();
-        m_func.Clear();
     }
 public:
     Persistent<Value> m_func;
+    std::vector< Persistent<Value> > argv;
     fiber_data* m_next;
 };
 
@@ -141,14 +144,21 @@ void* t(void* p)
         HandleScope handle_scope;
 
         fiber_data* fb = g_jobs.get();
+        size_t i;
 
         Handle<Function> func = Handle<Function>::Cast(fb->m_func);
-        delete fb;
+        std::vector< Handle<Value> > argv;
+
+        argv.resize(fb->argv.size());
+        for(i = 0; i < fb->argv.size(); i ++)
+            argv[i] = fb->argv[i];
 
         TryCatch try_catch;
-        Handle<Value> result = func->Call(func, 0, NULL);
-        if (result.IsEmpty())
+        func->Call(func, argv.size(), argv.size() ? &argv[0] : NULL);
+        if (try_catch.HasCaught())
             ReportException(&try_catch, true);
+
+        delete fb;
     }
 
     return NULL;
@@ -156,12 +166,16 @@ void* t(void* p)
 
 Handle<Value> fb_start(const Arguments& args)
 {
-    if (args.Length() != 1 || !args[0]->IsFunction())
-        return ThrowException(String::New("Invalid arguments. Use 'new Fiber(name{string}, func{function() : void})'"));
+    if (!args.This()->IsFunction())
+        return ThrowException(String::New("Invalid arguments. Use function.start(...);'"));
 
     fiber_data* fb = new fiber_data();
+    int i;
 
-    fb->m_func = Persistent<Value>::New(args[0]);
+    fb->argv.resize(args.Length());
+    for(i = 0; i < args.Length(); i ++)
+        fb->argv[i] = Persistent<Value>::New(args[i]);
+    fb->m_func = Persistent<Value>::New(args.This());
 
     if(g_job_sem.blocked() == 0)
         fiber::Service::CreateFiber(t);
@@ -179,33 +193,7 @@ Handle<Value> fb_yield(const Arguments& args)
     return Undefined();
 }
 
-Handle<Value> runScript(const char* name)
-{
-    HandleScope handle_scope;
-
-    Persistent<Context> context = Context::New(NULL, g_global);
-    Context::Scope context_scope(context);
-
-    std::vector<char> buf;
-
-    ReadFile(name, buf);
-
-    TryCatch try_catch;
-    Handle<Value> result = Undefined();
-    Handle<Script> script = Script::Compile(String::New(&buf.front(), buf.size()), String::New(name));
-    if (script.IsEmpty())
-        ReportException(&try_catch);
-    else
-    {
-        result = script->Run();
-        if (result.IsEmpty())
-            ReportException(&try_catch, true);
-    }
-
-    context.Dispose();
-
-    return result;
-}
+void initGlobal(Persistent<Context>& context);
 
 Handle<Value> Run(const Arguments& args)
 {
@@ -213,8 +201,84 @@ Handle<Value> Run(const Arguments& args)
         return ThrowException(String::New("Invalid arguments. Use 'new Fiber(name{string}, func{function() : void})'"));
 
     String::AsciiValue str(args[0]);
+    const char* name = *str;
 
-    return runScript(*str);
+    HandleScope handle_scope;
+
+    Persistent<Context> context = Context::New();
+    Context::Scope context_scope(context);
+
+    initGlobal(context);
+
+    std::vector<char> buf;
+
+    ReadFile(name, buf);
+
+    TryCatch try_catch;
+    Handle<Value> result;
+    Handle<Script> script = Script::Compile(String::New(&buf.front(), buf.size()), String::New(name));
+    if (!script.IsEmpty())
+        result = script->Run();
+
+    if (try_catch.HasCaught())
+    {
+        ReportException(&try_catch, !script.IsEmpty());
+
+        std::string strMessage(name);
+
+        strMessage += script.IsEmpty() ? ": Script Compile Error." : ": Script Runtime Error.";
+        result = ThrowException(String::New(strMessage.c_str()));
+    }
+
+    context.Dispose();
+
+    return result;
+}
+
+Handle<Value> runScript(const char* name)
+{
+    HandleScope handle_scope;
+
+    Handle<ObjectTemplate> global_templ = ObjectTemplate::New();
+    global_templ->Set(String::New("print"), FunctionTemplate::New(Print));
+
+    Persistent<Context> context = Context::New(NULL, global_templ);
+    Context::Scope context_scope(context);
+
+    initGlobal(context);
+
+    std::vector<char> buf;
+
+    ReadFile(name, buf);
+
+    TryCatch try_catch;
+    Handle<Value> result;
+    Handle<Script> script = Script::Compile(String::New(&buf.front(), buf.size()), String::New(name));
+    if (!script.IsEmpty())
+        result = script->Run();
+
+    if (try_catch.HasCaught())
+        ReportException(&try_catch, !script.IsEmpty());
+
+    context.Dispose();
+
+    return result;
+}
+
+void initGlobal(Persistent<Context>& context)
+{
+    HandleScope handle_scope;
+
+    Local<Object> global = context->Global();
+
+    global->Set(String::New("print"), FunctionTemplate::New(Print)->GetFunction());
+    global->Set(String::New("run"), FunctionTemplate::New(Run)->GetFunction());
+    global->Set(String::New("yield"), FunctionTemplate::New(fb_yield)->GetFunction());
+
+    Local<Object> fun = global->Get(String::New("Function"))->ToObject();
+    Local<Object> proto = fun->GetPrototype()->ToObject();
+
+    proto->Set(String::New("start"), FunctionTemplate::New(fb_start)->GetFunction());
 }
 
 int main(int argc, char* argv[])
@@ -235,19 +299,12 @@ int main(int argc, char* argv[])
         root.warn(e.what());
     }
 
-    v8::V8::Initialize();
+    V8::Initialize();
 
     isolate = Isolate::New();
 
     Locker lock(isolate);
     Isolate::Scope isolate_scope(isolate);
-
-    HandleScope handle_scope;
-    g_global = Persistent<ObjectTemplate>(ObjectTemplate::New());
-    g_global->Set(String::New("print"), FunctionTemplate::New(Print));
-    g_global->Set(String::New("run"), FunctionTemplate::New(Run));
-    g_global->Set(String::New("start"), FunctionTemplate::New(fb_start));
-    g_global->Set(String::New("yield"), FunctionTemplate::New(fb_yield));
 
     if(argc == 2)
         runScript(argv[1]);
