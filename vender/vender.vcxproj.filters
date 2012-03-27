@@ -67,6 +67,27 @@
     <Filter Include="Source Files\v8\src\third_party\valgrind">
       <UniqueIdentifier>{b28161af-de88-42bc-bea7-c6f909341d3b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\lfds">
+      <UniqueIdentifier>{4a60a290-967b-4b45-83f9-e346cf431ab7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lfds\abstraction">
+      <UniqueIdentifier>{fdbd69a0-560e-438a-b00d-d21c74e52317}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lfds\freelist">
+      <UniqueIdentifier>{ac211f3f-3329-4921-93b8-4c2e2b27d24f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lfds\queue">
+      <UniqueIdentifier>{7fa1e01b-5bbc-41ef-949f-78107f276503}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lfds\ringbuffer">
+      <UniqueIdentifier>{64f5a40b-45e9-4195-9a92-5b0a0113cc57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lfds\slist">
+      <UniqueIdentifier>{b2ca6744-5533-43d5-be93-d62b8c43a8b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lfds\stack">
+      <UniqueIdentifier>{142007cc-40c3-49d9-872f-98cad36365f8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="zlib\adler32.c">
@@ -1113,6 +1134,84 @@
     <ClCompile Include="fiber\fbSwitch.cpp">
       <Filter>Source Files\fiber</Filter>
     </ClCompile>
+    <ClCompile Include="lfds\abstraction\abstraction_aligned_free.c">
+      <Filter>Source Files\lfds\abstraction</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\abstraction\abstraction_aligned_malloc.c">
+      <Filter>Source Files\lfds\abstraction</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\abstraction\abstraction_cas.c">
+      <Filter>Source Files\lfds\abstraction</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\abstraction\abstraction_dcas.c">
+      <Filter>Source Files\lfds\abstraction</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\abstraction\abstraction_increment.c">
+      <Filter>Source Files\lfds\abstraction</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\freelist\freelist_delete.c">
+      <Filter>Source Files\lfds\freelist</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\freelist\freelist_get_and_set.c">
+      <Filter>Source Files\lfds\freelist</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\freelist\freelist_new.c">
+      <Filter>Source Files\lfds\freelist</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\freelist\freelist_pop_push.c">
+      <Filter>Source Files\lfds\freelist</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\freelist\freelist_query.c">
+      <Filter>Source Files\lfds\freelist</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\queue\queue_delete.c">
+      <Filter>Source Files\lfds\queue</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\queue\queue_query.c">
+      <Filter>Source Files\lfds\queue</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\queue\queue_new.c">
+      <Filter>Source Files\lfds\queue</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\queue\queue_queue.c">
+      <Filter>Source Files\lfds\queue</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\stack\stack_delete.c">
+      <Filter>Source Files\lfds\stack</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\stack\stack_new.c">
+      <Filter>Source Files\lfds\stack</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\stack\stack_push_pop.c">
+      <Filter>Source Files\lfds\stack</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\stack\stack_query.c">
+      <Filter>Source Files\lfds\stack</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\slist\slist_delete.c">
+      <Filter>Source Files\lfds\slist</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\slist\slist_get_and_set.c">
+      <Filter>Source Files\lfds\slist</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\slist\slist_link.c">
+      <Filter>Source Files\lfds\slist</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\slist\slist_new.c">
+      <Filter>Source Files\lfds\slist</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\ringbuffer\ringbuffer_delete.c">
+      <Filter>Source Files\lfds\ringbuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\ringbuffer\ringbuffer_get_and_put.c">
+      <Filter>Source Files\lfds\ringbuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\ringbuffer\ringbuffer_new.c">
+      <Filter>Source Files\lfds\ringbuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="lfds\ringbuffer\ringbuffer_query.c">
+      <Filter>Source Files\lfds\ringbuffer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="zlib\crc32.h">
@@ -1972,6 +2071,30 @@
     </ClInclude>
     <ClInclude Include="v8\src\third_party\valgrind\valgrind.h">
       <Filter>Source Files\v8\src\third_party\valgrind</Filter>
+    </ClInclude>
+    <ClInclude Include="include\lfds.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lfds\liblfds_internal.h">
+      <Filter>Source Files\lfds</Filter>
+    </ClInclude>
+    <ClInclude Include="lfds\abstraction\abstraction_internal.h">
+      <Filter>Source Files\lfds\abstraction</Filter>
+    </ClInclude>
+    <ClInclude Include="lfds\freelist\freelist_internal.h">
+      <Filter>Source Files\lfds\freelist</Filter>
+    </ClInclude>
+    <ClInclude Include="lfds\queue\queue_internal.h">
+      <Filter>Source Files\lfds\queue</Filter>
+    </ClInclude>
+    <ClInclude Include="lfds\stack\stack_internal.h">
+      <Filter>Source Files\lfds\stack</Filter>
+    </ClInclude>
+    <ClInclude Include="lfds\slist\slist_internal.h">
+      <Filter>Source Files\lfds\slist</Filter>
+    </ClInclude>
+    <ClInclude Include="lfds\ringbuffer\ringbuffer_internal.h">
+      <Filter>Source Files\lfds\ringbuffer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
