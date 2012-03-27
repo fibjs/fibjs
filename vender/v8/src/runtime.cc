@@ -7582,7 +7582,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DateSetValue) {
     }
   }
   date->SetValue(value, is_value_nan);
-  return *date;
+  return value;
 }
 
 
@@ -8358,7 +8358,9 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_CompileForOnStackReplacement) {
     PrintF("]\n");
   }
   Handle<Code> check_code;
-#if defined(V8_TARGET_ARCH_IA32) || defined(V8_TARGET_ARCH_ARM)
+#if defined(V8_TARGET_ARCH_IA32) || \
+    defined(V8_TARGET_ARCH_ARM) || \
+    defined(V8_TARGET_ARCH_MIPS)
   if (FLAG_count_based_interrupts) {
     InterruptStub interrupt_stub;
     check_code = interrupt_stub.GetCode();

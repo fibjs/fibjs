@@ -7869,6 +7869,14 @@ void SharedFunctionInfo::AttachInitialMap(Map* map) {
 }
 
 
+void SharedFunctionInfo::ResetForNewContext(int new_ic_age) {
+  code()->ClearInlineCaches();
+  set_ic_age(new_ic_age);
+  set_opt_count(0);
+  set_profiler_ticks(0);
+}
+
+
 static void GetMinInobjectSlack(Map* map, void* data) {
   int slack = map->unused_property_fields();
   if (*reinterpret_cast<int*>(data) > slack) {
@@ -8113,6 +8121,21 @@ Map* Code::FindFirstMap() {
     if (object->IsMap()) return Map::cast(object);
   }
   return NULL;
+}
+
+
+void Code::ClearInlineCaches() {
+  int mask = RelocInfo::ModeMask(RelocInfo::CODE_TARGET) |
+             RelocInfo::ModeMask(RelocInfo::CONSTRUCT_CALL) |
+             RelocInfo::ModeMask(RelocInfo::CODE_TARGET_WITH_ID) |
+             RelocInfo::ModeMask(RelocInfo::CODE_TARGET_CONTEXT);
+  for (RelocIterator it(this, mask); !it.done(); it.next()) {
+    RelocInfo* info = it.rinfo();
+    Code* target(Code::GetCodeFromTargetAddress(info->target_address()));
+    if (target->is_inline_cache_stub()) {
+      IC::Clear(info->pc());
+    }
+  }
 }
 
 
@@ -8454,7 +8477,7 @@ MaybeObject* JSObject::SetFastElementsCapacityAndLength(
       ? FAST_SMI_ONLY_ELEMENTS
       : FAST_ELEMENTS;
   //  int copy_size = Min(old_elements_raw->length(), new_elements->length());
-  accessor->CopyElements(this, new_elements, to_kind, SKIP_WRITE_BARRIER);
+  accessor->CopyElements(this, new_elements, to_kind);
   if (elements_kind != NON_STRICT_ARGUMENTS_ELEMENTS) {
     set_map_and_elements(new_map, new_elements);
   } else {
@@ -8498,8 +8521,7 @@ MaybeObject* JSObject::SetFastDoubleElementsCapacityAndLength(
   FixedArrayBase* old_elements = elements();
   ElementsKind elements_kind = GetElementsKind();
   ElementsAccessor* accessor = ElementsAccessor::ForKind(elements_kind);
-  accessor->CopyElements(this, elems, FAST_DOUBLE_ELEMENTS,
-                         SKIP_WRITE_BARRIER);
+  accessor->CopyElements(this, elems, FAST_DOUBLE_ELEMENTS);
   if (elements_kind != NON_STRICT_ARGUMENTS_ELEMENTS) {
     set_map_and_elements(new_map, elems);
   } else {
