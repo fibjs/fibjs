@@ -21,6 +21,8 @@
   <ItemGroup>
     <ClCompile Include="src\Console.cpp" />
     <ClCompile Include="src\fibjs.cpp" />
+    <ClCompile Include="src\File.cpp" />
+    <ClCompile Include="src\fs.cpp" />
     <ClCompile Include="src\os.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -29,7 +31,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\File.h" />
     <ClInclude Include="include\ifs\console.h" />
+    <ClInclude Include="include\ifs\file.h" />
+    <ClInclude Include="include\ifs\fs.h" />
     <ClInclude Include="include\ifs\if.h" />
     <ClInclude Include="include\ifs\os.h" />
   </ItemGroup>
