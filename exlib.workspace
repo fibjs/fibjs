@@ -4,9 +4,9 @@
 		<Project filename="test/test.cbp">
 			<Depends filename="vender/vender.cbp" />
 		</Project>
-		<Project filename="vender/vender.cbp" />
 		<Project filename="fibjs/fibjs.cbp" active="1">
 			<Depends filename="vender/vender.cbp" />
 		</Project>
+		<Project filename="vender/vender.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

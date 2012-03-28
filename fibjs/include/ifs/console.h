@@ -24,26 +24,26 @@ public:
 	static result_t debug(const char* fmt, const v8::Arguments& args);
 	static result_t warn(const char* fmt, const v8::Arguments& args);
 	static result_t error(const char* fmt, const v8::Arguments& args);
-	static result_t time(const char* label = "");
-	static result_t timeEnd(const char* label = "");
-	static result_t trace(const char* label = "");
+	static result_t time(const char* label);
+	static result_t timeEnd(const char* label);
+	static result_t trace(const char* label);
 
 public:
 	static ClassInfo& info()
 	{
 		static ClassMethod s_smethod[] = 
 		{
-			{"log", CLASS_METHOD, {s_log}},
-			{"info", CLASS_METHOD, {s_info}},
-			{"debug", CLASS_METHOD, {s_debug}},
-			{"warn", CLASS_METHOD, {s_warn}},
-			{"error", CLASS_METHOD, {s_error}},
-			{"time", CLASS_METHOD, {s_time}},
-			{"timeEnd", CLASS_METHOD, {s_timeEnd}},
-			{"trace", CLASS_METHOD, {s_trace}}
+			{"log", s_log},
+			{"info", s_info},
+			{"debug", s_debug},
+			{"warn", s_warn},
+			{"error", s_error},
+			{"time", s_time},
+			{"timeEnd", s_timeEnd},
+			{"trace", s_trace}
 		};
 
-		static ClassInfo s_ci("console", 0, NULL, 8, s_smethod);
+		static ClassInfo s_ci("console", 0, NULL, 0, NULL, 8, s_smethod, 0, NULL);
 
 		return s_ci;
 	}

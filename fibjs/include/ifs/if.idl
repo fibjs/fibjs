@@ -61,13 +61,71 @@ class console
 	static trace(string label = "");
 };
 
+/*! \brief 操作系统信息查询，全局对象*/
 class os
 {
+	/*! \brief 查询当前运行环境主机名*/
 	static string hostname();
+	/*! \brief 查询当前运行环境操作系统名称*/
 	static string type();
+	/*! \brief 查询当前运行环境操作系统版本*/
 	static string release();
+	/*! \brief 查询当前运行环境*/
 	static string arch();
+	/*! \brief 查询当前运行环境 cpu 个数和参数*/
 	static array CPUInfo();
+	/*! \brief 查询当前运行环境网络信息*/
 	static array networkInfo();
+};
+
+class file
+{
+	const integer FSEEK_SET = 0;
+	const integer FSEEK_CUR = 1;
+	const integer FSEEK_END = 2;
+
+	number data;
+	number getData();
+
+/*
+	close();
+	boolean closed();
+	flush();
+	readable();
+	string readline(integer limit = -1);
+	integer seek(integer offset, integer whence = SEEK_SET);
+	boolean seekable();
+	integer tell();
+	integer truncate(integer size = -1);
+	boolean writeable();
+
+	data read(integer size = -1);
+	data readall();
+	write(data d);*/
+};
+
+/*! \brief 文件处理对象，全局对象*/
+class fs
+{
+	const integer FSEEK_SET = 0;
+	const integer FSEEK_CUR = 1;
+	const integer FSEEK_END = 2;
+
+	static file open(string fname, string IOMode = "r", string encoding = "utf-8");
+	static file create(string fname, boolean Overwrite = true);
+	static file tmpFile();
+};
+
+/*! \brief 全局对象，所有脚本均可以访问的基础对象*/
+class global
+{
+	/*! \brief 出让当前协程占用的运行时间，切换到下一个排队的协程*/
+	yield();
+	/*! \brief 控制台访问对象*/
+	readonly console console;
+	/*! \brief 操作系统信息查询*/
+	readonly os os;
+	/*! \brief 文件处理对象*/
+	readonly fs fs;
 };
 

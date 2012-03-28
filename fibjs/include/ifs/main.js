@@ -12,8 +12,10 @@ function parserIDL(fname) {
 	sifs,
 	svs,
 	ffs,
-	difs,
-	dsifs,
+	difms,
+	difps,
+	dsifms,
+	dsifps,
 	dsvs,
 	refCls,
 	ids,
@@ -23,15 +25,16 @@ function parserIDL(fname) {
 	clsName,
 	isRem = false,
 	typeMap = {
-		"integer" : "int",
+		"integer" : "int32_t",
 		"number" : "double",
 		"boolean" : "bool",
 		"string" : "std::string",
 		"object" : "v8::Local<v8::Object>",
-		"array" : "v8::Local<v8::Array>"
+		"array" : "v8::Local<v8::Array>",
+		"data" : ""
 	},
 	aTypeMap = {
-		"integer" : "int",
+		"integer" : "int32_t",
 		"number" : "double",
 		"boolean" : "bool",
 		"string" : "const char*",
@@ -75,8 +78,10 @@ function parserIDL(fname) {
 		svs = [];
 		ffs = [];
 		
-		difs = [];
-		dsifs = [];
+		difms = [];
+		difps = [];
+		dsifms = [];
+		dsifps = [];
 		
 		refCls = {};
 		ids = {};
@@ -157,27 +162,49 @@ function parserIDL(fname) {
 		
 		txt.push("public:\n	static ClassInfo& info()\n	{")
 		
-		if (dsifs.length) {
+		if (dsifms.length) {
 			txt.push("		static ClassMethod s_smethod[] = \n		{");
-			txt.push(dsifs.join(",\n"));
+			txt.push(dsifms.join(",\n"));
+			txt.push("		};\n");
+		}
+
+		if (dsifps.length) {
+			txt.push("		static ClassProperty s_sproperty[] = \n		{");
+			txt.push(dsifps.join(",\n"));
 			txt.push("		};\n");
 		}
 		
-		if (difs.length) {
+		if (difms.length) {
 			txt.push("		static ClassMethod s_method[] = \n		{");
-			txt.push(difs.join(",\n"));
+			txt.push(difms.join(",\n"));
+			txt.push("		};\n");
+		}
+
+		if (difps.length) {
+			txt.push("		static ClassProperty s_property[] = \n		{");
+			txt.push(difps.join(",\n"));
 			txt.push("		};\n");
 		}
 		
 		var strClass = "		static ClassInfo s_ci(\"" + ns + "\"";
 		
-		if (difs.length)
-			strClass += ", " + difs.length + ", s_method";
+		if (difms.length)
+			strClass += ", " + difms.length + ", s_method";
+		else
+			strClass += ", 0, NULL";
+
+		if (difps.length)
+			strClass += ", " + difps.length + ", s_property";
 		else
 			strClass += ", 0, NULL";
 		
-		if (dsifs.length)
-			strClass += ", " + dsifs.length + ", s_smethod";
+		if (dsifms.length)
+			strClass += ", " + dsifms.length + ", s_smethod";
+		else
+			strClass += ", 0, NULL";
+
+		if (dsifps.length)
+			strClass += ", " + dsifps.length + ", s_sproperty";
 		else
 			strClass += ", 0, NULL";
 		
@@ -190,7 +217,7 @@ function parserIDL(fname) {
 		txt.push("};\n\n}\n");
 		
 		for (cls in refCls)
-			txt.push("#include \"x" + cls + ".h\"");
+			txt.push("#include \"" + cls + ".h\"");
 		
 		if (bRef)
 			txt.push("");
@@ -255,7 +282,7 @@ function parserIDL(fname) {
 			if (attr == "static")
 				ifStr = "	static result_t " + fname + "(";
 			else
-				ifStr = "	STDMETHOD(" + fname + ")(";
+				ifStr = "	virtual result_t " + fname + "(";
 			
 			pos++;
 			
@@ -311,7 +338,7 @@ function parserIDL(fname) {
 					argVars += "		ARG_" + type + "(" + argCount + ");\n";
 				else {
 					argVars += "		OPT_ARG_" + type + "(" + argCount + ", " + arg_value(type, value) + ");\n";
-					ifStr += " = " + arg_value(type, value);
+					//ifStr += " = " + arg_value(type, value);
 				}
 				
 				argCount++;
@@ -320,7 +347,7 @@ function parserIDL(fname) {
 			}
 			
 			if (attr == "")
-				fnStr = "	static v8::Handle<v8::Value> m_" + fname + "(const v8::Arguments& args)\n	{\n		METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n		CHECK_INSTANCE(" + ns + "_base, 0);\n";
+				fnStr = "	static v8::Handle<v8::Value> m_" + fname + "(const v8::Arguments& args)\n	{\n		METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n		METHOD_INSTANCE(" + ns + "_base);\n";
 			else
 				fnStr = "	static v8::Handle<v8::Value> s_" + fname + "(const v8::Arguments& args)\n	{\n		METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n";
 			
@@ -341,7 +368,7 @@ function parserIDL(fname) {
 				ifStr += ");";
 				fnStr += "		hr = " + fname + "(";
 			} else {
-				ifStr += ") PURE;";
+				ifStr += ") = 0;";
 				fnStr += "		hr = pInst->" + fname + "(";
 			}
 			
@@ -352,7 +379,9 @@ function parserIDL(fname) {
 			}
 			
 			if (argArray)
-				fnStr += ", args";
+				if(argCount > 0)
+					fnStr += ", args";
+				else fnStr += "args";
 			
 			if (ftype != "") {
 				if (argCount)
@@ -372,10 +401,10 @@ function parserIDL(fname) {
 			
 			if (attr == "static") {
 				sifs.push(ifStr);
-				dsifs.push("			{\"" + fname + "\", CLASS_METHOD, {s_" + fname + "}}");
+				dsifms.push("			{\"" + fname + "\", s_" + fname + "}");
 			} else {
 				ifs.push(ifStr);
-				difs.push("			{\"" + fname + "\", CLASS_METHOD, {m_" + fname + "}}");
+				difms.push("			{\"" + fname + "\", m_" + fname + "}");
 			}
 			
 			pos++;
@@ -390,14 +419,14 @@ function parserIDL(fname) {
 				fnStr = "	static v8::Handle<v8::Value> s_get_" + fname + "(v8::Local<v8::String> property, const v8::AccessorInfo &info)\n	{\n		PROPERTY_ENTER();\n\n";
 				
 				fnStr += "		" + map_type(ftype) + " vr = " + fname;
-				fnStr += ";\n\n		PROPERTY_RETURN();\n	}\n";
+				fnStr += ";\n\n		METHOD_RETURN();\n	}\n";
 				ffs.push(fnStr)
 				
 				ifStr = "	static const " + arg_type(ftype) + " " + fname + " = " + arg_value(ftype, value) + ";";
 				
 				svs.push(ifStr);
 				
-				dsifs.push("			{\"" + fname + "\", CLASS_PROPERTY, {s_get_" + fname + "}}");
+				dsifps.push("			{\"" + fname + "\", s_get_" + fname + "}");
 			} else if (attr == "static") {
 				if (st[pos] != ";")
 					return reportErr();
@@ -413,14 +442,14 @@ function parserIDL(fname) {
 				ifStr = "	static result_t get_" + fname + "(" + map_type(ftype) + "& retVal);";
 				sifs.push(ifStr);
 				
-				dsifs.push("			{\"" + fname + "\", CLASS_PROPERTY, {s_get_" + fname + "}}");
+				dsifps.push("			{\"" + fname + "\", s_get_" + fname + "}");
 				
 			} else {
 				if (st[pos] != ";")
 					return reportErr();
 				
-				fnStr = "	static v8::Handle<v8::Value> m_get_" + fname + "(v8::Local<v8:String> property, const v8::AccessorInfo &info)\n	{\n		PROPERTY_ENTER();\n";
-				fnStr += "		CHECK_INSTANCE(" + ns + "_base);\n\n";
+				fnStr = "	static v8::Handle<v8::Value> m_get_" + fname + "(v8::Local<v8::String> property, const v8::AccessorInfo &info)\n	{\n		PROPERTY_ENTER();\n";
+				fnStr += "		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 				fnStr += "		" + map_type(ftype) + " vr;\n";
 				
 				fnStr += "		hr = pInst->get_" + fname + "(";
@@ -428,24 +457,24 @@ function parserIDL(fname) {
 				fnStr += ");\n\n		METHOD_RETURN();\n	}\n";
 				ffs.push(fnStr)
 				
-				ifStr = "	STDMETHOD(get_" + fname + ")(" + map_type(ftype) + "& retVal) PURE;";
+				ifStr = "	virtual result_t get_" + fname + "(" + map_type(ftype) + "& retVal) = 0;";
 				ifs.push(ifStr);
 				
 				if (attr != "readonly") {
 					fnStr = "	static void m_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)\n	{\n		PROPERTY_ENTER();\n";
-					fnStr += "		CHECK_INSTANCE(" + ns + "_base);\n\n";
-					fnStr += "		PROPERTY_VALUE(" + arg_type(ftype) + ");\n"
-					fnStr += "		hr = pInst->set_" + fname + "(v0);\n\n		METHOD_VOID();\n	}\n";
+					fnStr += "		PROPERTY_SET_INSTANCE(" + ns + "_base);\n\n";
+					fnStr += "		PROPERTY_VAL_" + ftype + "();\n"
+					fnStr += "		hr = pInst->set_" + fname + "(v0);\n\n		PROPERTY_SET_LEAVE();\n	}\n";
 					ffs.push(fnStr)
 					
-					ifStr = "	STDMETHOD(set_" + fname + ")(" + map_type(ftype) + " newVal) PURE;";
+					ifStr = "	virtual result_t set_" + fname + "(" + map_type(ftype) + " newVal) = 0;";
 					ifs.push(ifStr);
 				}
 				
 				if (attr == "readonly")
-					difs.push("			{\"" + fname + "\", CLASS_PROPERTY, {m_get_" + fname + "}}");
+					difps.push("			{\"" + fname + "\", m_get_" + fname + "}");
 				else
-					difs.push("			{\"" + fname + "\", CLASS_PROPERTY, {m_get_" + fname + ", m_set_" + fname + "}}");
+					difps.push("			{\"" + fname + "\", m_get_" + fname + ", m_set_" + fname + "}");
 			}
 		}else
 			return reportErr();

@@ -31,15 +31,15 @@ public:
 	{
 		static ClassMethod s_smethod[] = 
 		{
-			{"hostname", CLASS_METHOD, {s_hostname}},
-			{"type", CLASS_METHOD, {s_type}},
-			{"release", CLASS_METHOD, {s_release}},
-			{"arch", CLASS_METHOD, {s_arch}},
-			{"CPUInfo", CLASS_METHOD, {s_CPUInfo}},
-			{"networkInfo", CLASS_METHOD, {s_networkInfo}}
+			{"hostname", s_hostname},
+			{"type", s_type},
+			{"release", s_release},
+			{"arch", s_arch},
+			{"CPUInfo", s_CPUInfo},
+			{"networkInfo", s_networkInfo}
 		};
 
-		static ClassInfo s_ci("os", 0, NULL, 6, s_smethod);
+		static ClassInfo s_ci("os", 0, NULL, 0, NULL, 6, s_smethod, 0, NULL);
 
 		return s_ci;
 	}

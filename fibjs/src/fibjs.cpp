@@ -14,6 +14,8 @@
 
 #include "ifs/console.h"
 #include "ifs/os.h"
+#include "ifs/file.h"
+#include "ifs/fs.h"
 
 
 using namespace v8;
@@ -335,6 +337,7 @@ void initGlobal(Persistent<Context>& context)
 
     global->Set(v8::String::New("console"), console_base::info());
     global->Set(v8::String::New("os"), os_base::info());
+    global->Set(v8::String::New("fs"), fs_base::info());
 
     Local<Object> fun = global->Get(String::New("Function"))->ToObject();
     Local<Object> proto = fun->GetPrototype()->ToObject();
