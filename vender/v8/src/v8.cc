@@ -103,7 +103,11 @@ void V8::TearDown() {
   ASSERT(isolate->IsDefaultIsolate());
 
   if (!has_been_set_up_ || has_been_disposed_) return;
+
+  ElementsAccessor::TearDown();
+
   isolate->TearDown();
+  delete isolate;
 
   is_running_ = false;
   has_been_disposed_ = true;
