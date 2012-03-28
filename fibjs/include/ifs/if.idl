@@ -1,0 +1,73 @@
+
+/*! \brief 控制台访问对象
+*
+* 全局对象。可用于提示信息，警告和错误记录。通过启动配置文件，可将日志定位
+* 到不同的设备，以便于跟踪。日志支持格式化输出，例如：
+*
+* console.log("%d + %d = %d", 100, 200, 100 + 200); 
+*/
+class console
+{
+	/*! \brief 记录普通日志信息，与 info 等同
+	*
+	* 记录一般等级的日志信息。通常用于输出非错误性提示信息。非重要。
+	* \param fmt 格式化字符串
+	* \param ... 可选参数列表
+	*/
+	static log(string fmt, ...);
+	/*! \brief 记录普通日志信息，与 log 等同
+	*
+	* 记录一般等级的日志信息。通常用于输出非错误性提示信息。非重要。
+	* \param fmt 格式化字符串
+	* \param ... 可选参数列表
+	*/
+	static info(string fmt, ...);
+	/*! \brief 记录调试日志信息
+	*
+	* 记录用于调试的日志信息。通常用于输出非错误性调试信息。一般重要。
+	* \param fmt 格式化字符串
+	* \param ... 可选参数列表
+	*/
+	static debug(string fmt, ...);
+	/*! \brief 记录警告日志信息
+	*
+	* 记录警告日志信息。通常用于输出非错误性调试信息。重要。
+	* \param fmt 格式化字符串
+	* \param ... 可选参数列表
+	*/
+	static warn(string fmt, ...);
+	/*! \brief 记录错误日志信息
+	*
+	* 记录用于错误日志信息。通常用于输出非错误性调试信息。非常重要。系统的出错信息也会以此等级记录。
+	* \param fmt 格式化字符串
+	* \param ... 可选参数列表
+	*/
+	static error(string fmt, ...);
+	/*! \brief 启动一个计时器
+	*
+	* \param label 标题，缺省为空字符串。
+	*/
+	static time(string label = "");
+	/*! \brief 统计指定计时器的数值
+	*
+	* \param label 标题，缺省为空字符串。
+	*/
+	static timeEnd(string label = "");
+	/*! \brief 输出当前调用堆栈
+	*
+	* 通过日志输出当前调用堆栈。
+	* \param label 标题，缺省为空字符串。
+	*/
+	static trace(string label = "");
+};
+
+class os
+{
+	static string hostname();
+	static string type();
+	static string release();
+	static string arch();
+	static array CPUInfo();
+	static array networkInfo();
+};
+

@@ -2,7 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
-//#include <sys/time.h>
+#include "Console.h"
 
 #include <v8/v8.h>
 
@@ -13,32 +13,14 @@
 
 #include <fiber.h>
 
+#include "ifs/console.h"
+#include "ifs/os.h"
+
 
 using namespace v8;
+using namespace fibjs;
 
 Isolate* isolate;
-
-static int ReadFile(const char* name, std::vector<char>& buf)
-{
-    FILE* file = fopen(name, "rb");
-    if (file == NULL)
-        return -1;
-
-    fseek(file, 0, SEEK_END);
-    int size = ftell(file);
-    rewind(file);
-
-    buf.resize(size);
-
-    for (int i = 0; i < size;)
-    {
-        int read = static_cast<int>(fread(&buf[i], 1, size - i, file));
-        i += read;
-    }
-    fclose(file);
-
-    return 0;
-}
 
 const char* ToCString(const v8::String::Utf8Value& value)
 {
@@ -136,6 +118,7 @@ void* t(void* p)
 
     while(1)
     {
+        V8::AdjustAmountOfExternalAllocatedMemory(128);
         {
             Unlocker unlocker(isolate);
             g_job_sem.wait();
@@ -159,6 +142,7 @@ void* t(void* p)
             ReportException(&try_catch, true);
 
         delete fb;
+        V8::AdjustAmountOfExternalAllocatedMemory(-128);
     }
 
     return NULL;
@@ -193,6 +177,28 @@ Handle<Value> fb_yield(const Arguments& args)
     return Undefined();
 }
 
+static int ReadFile(const char* name, std::vector<char>& buf)
+{
+    FILE* file = fopen(name, "rb");
+    if (file == NULL)
+        return -1;
+
+    fseek(file, 0, SEEK_END);
+    int size = ftell(file);
+    rewind(file);
+
+    buf.resize(size);
+
+    for (int i = 0; i < size;)
+    {
+        int read = static_cast<int>(fread(&buf[i], 1, size - i, file));
+        i += read;
+    }
+    fclose(file);
+
+    return 0;
+}
+
 void initGlobal(Persistent<Context>& context);
 
 Handle<Value> Run(const Arguments& args)
@@ -200,7 +206,7 @@ Handle<Value> Run(const Arguments& args)
     if (args.Length() != 1 || !args[0]->IsString())
         return ThrowException(String::New("Invalid arguments. Use 'new Fiber(name{string}, func{function() : void})'"));
 
-    String::AsciiValue str(args[0]);
+    String::Utf8Value str(args[0]);
     const char* name = *str;
 
     HandleScope handle_scope;
@@ -265,6 +271,56 @@ Handle<Value> runScript(const char* name)
     return result;
 }
 
+Handle<Value> ReadFile(const Arguments& args)
+{
+    if (args.Length() != 1 || !args[0]->IsString())
+        return ThrowException(String::New("Invalid arguments. Use 'new Fiber(name{string}, func{function() : void})'"));
+
+    String::Utf8Value name(args[0]);
+
+    FILE* file = fopen(*name, "rb");
+    if (file == NULL)
+        return Undefined();
+
+    fseek(file, 0, SEEK_END);
+    int size = ftell(file);
+    rewind(file);
+
+    std::vector<char> buf;
+
+    buf.resize(size);
+
+    for (int i = 0; i < size;)
+    {
+        int read = static_cast<int>(fread(&buf[i], 1, size - i, file));
+        i += read;
+    }
+    fclose(file);
+
+    return String::New(&buf[0], size);
+}
+
+
+Handle<Value> WriteFile(const Arguments& args)
+{
+    if (args.Length() != 2 || !args[0]->IsString())
+        return ThrowException(String::New("Invalid arguments. Use 'new Fiber(name{string}, func{function() : void})'"));
+
+    String::Utf8Value name(args[0]);
+    String::Utf8Value data(args[1]);
+
+    FILE* file = fopen(*name, "wb+");
+    if (file == NULL)
+        return Undefined();
+
+    int size = strlen(*data);
+
+    fwrite(*data, 1, size, file);
+    fclose(file);
+
+    return Int32::New(size);
+}
+
 void initGlobal(Persistent<Context>& context)
 {
     HandleScope handle_scope;
@@ -274,6 +330,12 @@ void initGlobal(Persistent<Context>& context)
     global->Set(String::New("print"), FunctionTemplate::New(Print)->GetFunction());
     global->Set(String::New("run"), FunctionTemplate::New(Run)->GetFunction());
     global->Set(String::New("yield"), FunctionTemplate::New(fb_yield)->GetFunction());
+
+    global->Set(String::New("ReadFile"), FunctionTemplate::New(ReadFile)->GetFunction());
+    global->Set(String::New("WriteFile"), FunctionTemplate::New(WriteFile)->GetFunction());
+
+    global->Set(v8::String::New("console"), console_base::info());
+    global->Set(v8::String::New("os"), os_base::info());
 
     Local<Object> fun = global->Get(String::New("Function"))->ToObject();
     Local<Object> proto = fun->GetPrototype()->ToObject();
@@ -301,9 +363,8 @@ int main(int argc, char* argv[])
 
     V8::Initialize();
 
-    isolate = Isolate::New();
-
-    Locker lock(isolate);
+    isolate = Isolate::GetCurrent();
+    Locker locker(isolate);
     Isolate::Scope isolate_scope(isolate);
 
     if(argc == 2)

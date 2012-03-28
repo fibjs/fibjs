@@ -161,7 +161,12 @@
 		<Linker>
 			<Add library="vender" />
 		</Linker>
+		<Unit filename="include/ifs/console.h" />
+		<Unit filename="include/ifs/if.h" />
+		<Unit filename="include/ifs/os.h" />
+		<Unit filename="src/console.cpp" />
 		<Unit filename="src/fibjs.cpp" />
+		<Unit filename="src/os.cpp" />
 		<Extensions>
 			<code_completion />
 			<debugger />

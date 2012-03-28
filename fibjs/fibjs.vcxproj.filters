@@ -16,10 +16,33 @@
     <Filter Include="Source Files\src">
       <UniqueIdentifier>{bf6bbfaf-c9c3-4801-8492-c7387a69f764}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\include">
+      <UniqueIdentifier>{e879a06f-b83d-4000-89bd-5c2c69ef638e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\ifs">
+      <UniqueIdentifier>{6dd29b21-8e3a-4aac-b4d7-6d9011b3c331}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\fibjs.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Console.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\os.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\ifs\console.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\if.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\os.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
