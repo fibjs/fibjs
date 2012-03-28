@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <osconfig.h>
 
 #define INLINE
 
@@ -28,20 +29,18 @@ typedef unsigned long int     atom_t;
 
 #endif
 
-#endif
-
-#if (defined __unix__ && __GNUC__)
+#else
 
 #define ALIGN(alignment)        __attribute__( (aligned(alignment)) )
 
-#if (defined __x86_64__)
+#if (defined x64)
 // TRD : any UNIX with GCC on x64
 typedef unsigned long long int  atom_t;
 #define ALIGN_SINGLE_POINTER    8
 #define ALIGN_DOUBLE_POINTER    16
 #endif
 
-#if (defined __i686__)
+#if (defined I386)
 // TRD : any UNIX with GCC on x86
 typedef unsigned long int     atom_t;
 #define ALIGN_SINGLE_POINTER  4

@@ -2,7 +2,6 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
-#include "Console.h"
 
 #include <v8/v8.h>
 

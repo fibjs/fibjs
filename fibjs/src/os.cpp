@@ -1,6 +1,8 @@
 #include "ifs/os.h"
 #include "string.h"
 
+#include <osconfig.h>
+
 #ifndef _WIN32
 # include <unistd.h>  // gethostname, sysconf
 # include <sys/utsname.h>
@@ -10,6 +12,13 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
+#endif
+
+#ifdef MacOS
+#include <mach/task.h>
+#include <mach/mach.h>
+#include <mach/mach_host.h>
+#include <sys/sysctl.h>
 #endif
 
 
@@ -128,7 +137,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array>& retVal)
         retVal->Set(i,cpu_info);
     }
 
-#else
+#elif defined(Linux)
     v8::Local<v8::Object> cpuinfo;
     v8::Local<v8::Object> cputimes;
     unsigned int ticks = (unsigned int)sysconf(_SC_CLK_TCK),
@@ -205,6 +214,54 @@ result_t os_base::CPUInfo(v8::Local<v8::Array>& retVal)
         }
         fclose(fpStat);
     }
+#elif defined(MacOS)
+    v8::Local<v8::Object> cpuinfo;
+    v8::Local<v8::Object> cputimes;
+    unsigned int ticks = (unsigned int)sysconf(_SC_CLK_TCK),
+                         multiplier = ((uint64_t)1000L / ticks);
+    char model[512];
+    uint64_t cpuspeed;
+    size_t size;
+
+    size = sizeof(model);
+    if (sysctlbyname("hw.model", &model, &size, NULL, 0) < 0)
+        return Error();
+
+    size = sizeof(cpuspeed);
+    if (sysctlbyname("hw.cpufrequency", &cpuspeed, &size, NULL, 0) < 0)
+        return Error();
+
+    natural_t numcpus;
+    mach_msg_type_number_t count;
+    processor_cpu_load_info_data_t *info;
+    if (host_processor_info(mach_host_self(), PROCESSOR_CPU_LOAD_INFO, &numcpus,
+                            reinterpret_cast<processor_info_array_t*>(&info),
+                            &count) != KERN_SUCCESS)
+        return Error();
+
+    retVal = v8::Array::New(numcpus);
+    for (unsigned int i = 0; i < numcpus; i++)
+    {
+        cpuinfo = v8::Object::New();
+        cputimes = v8::Object::New();
+        cputimes->Set(v8::String::New("user"),
+                      v8::Number::New((uint64_t)(info[i].cpu_ticks[0]) * multiplier));
+        cputimes->Set(v8::String::New("nice"),
+                      v8::Number::New((uint64_t)(info[i].cpu_ticks[3]) * multiplier));
+        cputimes->Set(v8::String::New("sys"),
+                      v8::Number::New((uint64_t)(info[i].cpu_ticks[1]) * multiplier));
+        cputimes->Set(v8::String::New("idle"),
+                      v8::Number::New((uint64_t)(info[i].cpu_ticks[2]) * multiplier));
+        cputimes->Set(v8::String::New("irq"), v8::Number::New(0));
+
+        cpuinfo->Set(v8::String::New("model"), v8::String::New(model));
+        cpuinfo->Set(v8::String::New("speed"), v8::Number::New(cpuspeed/1000000));
+
+        cpuinfo->Set(v8::String::New("times"), cputimes);
+        retVal->Set(i, cpuinfo);
+    }
+    vm_deallocate(mach_task_self(), (vm_address_t)info, count);
+
 
 #endif
 
@@ -240,7 +297,7 @@ result_t os_base::networkInfo(v8::Local<v8::Array>& retVal)
         if (ent->ifa_addr == NULL)
             continue;
 
-        if (ent->ifa_addr->sa_family == PF_PACKET)
+        if (ent->ifa_addr->sa_family != AF_INET6 && ent->ifa_addr->sa_family != AF_INET)
             continue;
 
         name = v8::String::New(ent->ifa_name);
@@ -265,11 +322,6 @@ result_t os_base::networkInfo(v8::Local<v8::Array>& retVal)
             in4 = (struct sockaddr_in *)ent->ifa_addr;
             inet_ntop(AF_INET, &(in4->sin_addr), ip, INET6_ADDRSTRLEN);
             family = v8::String::New("IPv4");
-        }
-        else
-        {
-            strcpy(ip, "<unknown sa family>");
-            family = v8::String::New("<unknown>");
         }
 
         o = v8::Object::New();
