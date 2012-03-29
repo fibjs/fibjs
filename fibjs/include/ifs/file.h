@@ -32,13 +32,6 @@ public:
 public:
 	static ClassInfo& info()
 	{
-		static ClassProperty s_sproperty[] = 
-		{
-			{"FSEEK_SET", s_get_FSEEK_SET},
-			{"FSEEK_CUR", s_get_FSEEK_CUR},
-			{"FSEEK_END", s_get_FSEEK_END}
-		};
-
 		static ClassMethod s_method[] = 
 		{
 			{"getData", m_getData}
@@ -46,12 +39,20 @@ public:
 
 		static ClassProperty s_property[] = 
 		{
+			{"FSEEK_SET", s_get_FSEEK_SET},
+			{"FSEEK_CUR", s_get_FSEEK_CUR},
+			{"FSEEK_END", s_get_FSEEK_END},
 			{"data", m_get_data, m_set_data}
 		};
 
-		static ClassInfo s_ci("file", 1, s_method, 1, s_property, 0, NULL, 3, s_sproperty);
+		static ClassInfo s_ci("file", object_base::info(), 1, s_method, 4, s_property);
 
 		return s_ci;
+	}
+
+    virtual v8::Handle<v8::Value> ToJSObject()
+	{
+		return info().wrap(this);
 	}
 
 private:

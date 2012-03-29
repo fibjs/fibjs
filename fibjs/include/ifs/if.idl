@@ -1,12 +1,34 @@
+/*! \mainpage My Personal Index Page
+ *
+ * \section intro_sec Introduction
+ *
+ * This is the introduction.
+ *
+ * \section install_sec Installation
+ *
+ * \subsection step1 Step 1: Opening the box
+ *
+ * etc...
+ */
+
+
+/*! \brief 基础对象，所有对象均继承于此*/
+class object
+{
+	/*! \brief 强制回收对象，调用此方法后，对象资源将立即释放*/
+	dispose();
+	string toString();
+};
 
 /*! \brief 控制台访问对象
 *
 * 全局对象。可用于提示信息，警告和错误记录。通过启动配置文件，可将日志定位
 * 到不同的设备，以便于跟踪。日志支持格式化输出，例如：
-*
+* \code
 * console.log("%d + %d = %d", 100, 200, 100 + 200); 
+* \endcode
 */
-class console
+class console : object
 {
 	/*! \brief 记录普通日志信息，与 info 等同
 	*
@@ -62,7 +84,7 @@ class console
 };
 
 /*! \brief 操作系统信息查询，全局对象*/
-class os
+class os : object
 {
 	/*! \brief 查询当前运行环境主机名*/
 	static string hostname();
@@ -78,7 +100,7 @@ class os
 	static array networkInfo();
 };
 
-class file
+class file : object
 {
 	const integer FSEEK_SET = 0;
 	const integer FSEEK_CUR = 1;
@@ -105,7 +127,7 @@ class file
 };
 
 /*! \brief 文件处理对象，全局对象*/
-class fs
+class fs : object
 {
 	const integer FSEEK_SET = 0;
 	const integer FSEEK_CUR = 1;

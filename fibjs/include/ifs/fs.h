@@ -26,6 +26,7 @@ public:
 	static const int32_t FSEEK_END = 2;
 
 public:
+	// fs_base
 	static result_t open(const char* fname, const char* IOMode, const char* encoding, file_base*& retVal);
 	static result_t create(const char* fname, bool Overwrite, file_base*& retVal);
 	static result_t tmpFile(file_base*& retVal);
@@ -33,23 +34,28 @@ public:
 public:
 	static ClassInfo& info()
 	{
-		static ClassMethod s_smethod[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"open", s_open},
 			{"create", s_create},
 			{"tmpFile", s_tmpFile}
 		};
 
-		static ClassProperty s_sproperty[] = 
+		static ClassProperty s_property[] = 
 		{
 			{"FSEEK_SET", s_get_FSEEK_SET},
 			{"FSEEK_CUR", s_get_FSEEK_CUR},
 			{"FSEEK_END", s_get_FSEEK_END}
 		};
 
-		static ClassInfo s_ci("fs", 0, NULL, 0, NULL, 3, s_smethod, 3, s_sproperty);
+		static ClassInfo s_ci("fs", object_base::info(), 3, s_method, 3, s_property);
 
 		return s_ci;
+	}
+
+    virtual v8::Handle<v8::Value> ToJSObject()
+	{
+		return info().wrap(this);
 	}
 
 private:

@@ -19,6 +19,7 @@ namespace fibjs
 class os_base : public object_base
 {
 public:
+	// os_base
 	static result_t hostname(std::string& retVal);
 	static result_t type(std::string& retVal);
 	static result_t release(std::string& retVal);
@@ -29,7 +30,7 @@ public:
 public:
 	static ClassInfo& info()
 	{
-		static ClassMethod s_smethod[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"hostname", s_hostname},
 			{"type", s_type},
@@ -39,9 +40,14 @@ public:
 			{"networkInfo", s_networkInfo}
 		};
 
-		static ClassInfo s_ci("os", 0, NULL, 0, NULL, 6, s_smethod, 0, NULL);
+		static ClassInfo s_ci("os", object_base::info(), 6, s_method, 0, NULL);
 
 		return s_ci;
+	}
+
+    virtual v8::Handle<v8::Value> ToJSObject()
+	{
+		return info().wrap(this);
 	}
 
 private:

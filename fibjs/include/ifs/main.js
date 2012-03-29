@@ -9,18 +9,15 @@ function parserIDL(fname) {
 	f,
 	line,
 	ifs,
-	sifs,
 	svs,
 	ffs,
 	difms,
 	difps,
-	dsifms,
-	dsifps,
 	dsvs,
 	refCls,
 	ids,
-	sids,
 	ns,
+	baseClass,
 	basePath = "",
 	clsName,
 	isRem = false,
@@ -58,34 +55,40 @@ function parserIDL(fname) {
 				if (clsName[st[1]])
 					return reportErr();
 				
-				if (st.length == 2) {
-					if (!_class(st[1]))
+				if (st.length == 2 || (st.length == 4 && st[2] == ":" && clsName[st[3]])) {
+					if (!_class(st[1], st[3]))
 						return false;
 				} else if (st.length == 3 && st[2] == ";")
 					clsName[st[1]] = true;
+				else return reportErr(); 
 			} else
 				return reportErr();
 		}
 	}
 	
-	function _class(name) {
+	function _class(name, base) {
 		var st;
 		
 		ns = name;
+		baseClass = base;
 		clsName[name] = true;
 		ifs = [];
-		sifs = [];
 		svs = [];
 		ffs = [];
 		
 		difms = [];
 		difps = [];
-		dsifms = [];
-		dsifps = [];
 		
 		refCls = {};
+		
+		if(!baseClass)
+			baseClass = "object";
+		
+		if(baseClass != "object")
+			refCls[baseClass] = true;
+		
 		ids = {};
-		sids = {};
+
 		while (f.length) {
 			st = getStock();
 			
@@ -96,6 +99,7 @@ function parserIDL(fname) {
 					break;
 			}
 		}
+
 		while (f.length) {
 			st = getStock();
 			
@@ -143,7 +147,7 @@ function parserIDL(fname) {
 		if (bRef)
 			txt.push("");
 		
-		txt.push("class " + ns + "_base : public object_base\n{");
+		txt.push("class " + ns + "_base : public " + baseClass + "_base\n{");
 		
 		if (svs.length) {
 			txt.push("public:");
@@ -155,24 +159,7 @@ function parserIDL(fname) {
 			txt.push(ifs.join("\n") + "\n");
 		}
 		
-		if (sifs.length) {
-			txt.push("public:");
-			txt.push(sifs.join("\n") + "\n");
-		}
-		
 		txt.push("public:\n	static ClassInfo& info()\n	{")
-		
-		if (dsifms.length) {
-			txt.push("		static ClassMethod s_smethod[] = \n		{");
-			txt.push(dsifms.join(",\n"));
-			txt.push("		};\n");
-		}
-
-		if (dsifps.length) {
-			txt.push("		static ClassProperty s_sproperty[] = \n		{");
-			txt.push(dsifps.join(",\n"));
-			txt.push("		};\n");
-		}
 		
 		if (difms.length) {
 			txt.push("		static ClassMethod s_method[] = \n		{");
@@ -187,6 +174,9 @@ function parserIDL(fname) {
 		}
 		
 		var strClass = "		static ClassInfo s_ci(\"" + ns + "\"";
+
+		if(ns != "object")
+			strClass += ", " + baseClass + "_base::info()";
 		
 		if (difms.length)
 			strClass += ", " + difms.length + ", s_method";
@@ -198,23 +188,17 @@ function parserIDL(fname) {
 		else
 			strClass += ", 0, NULL";
 		
-		if (dsifms.length)
-			strClass += ", " + dsifms.length + ", s_smethod";
-		else
-			strClass += ", 0, NULL";
-
-		if (dsifps.length)
-			strClass += ", " + dsifps.length + ", s_sproperty";
-		else
-			strClass += ", 0, NULL";
-		
 		txt.push(strClass + ");\n");
 		txt.push("		return s_ci;\n	}\n");
+
+		txt.push("    virtual v8::Handle<v8::Value> ToJSObject()\n	{\n		return info().wrap(this);\n	}\n");
+
 		
 		txt.push("private:")
 		txt.push(ffs.join("\n"))
 		
 		txt.push("};\n\n}\n");
+
 		
 		for (cls in refCls)
 			txt.push("#include \"" + cls + ".h\"");
@@ -265,15 +249,9 @@ function parserIDL(fname) {
 		if (!_checkID(fname))
 			return reportErr();
 		
-		if (attr == "const" || attr == "static") {
-			if (sids[fname])
-				return reportErr();
-			sids[fname] = true;
-		} else {
-			if (ids[fname])
-				return reportErr();
-			ids[fname] = true;
-		}
+		if (ids.hasOwnProperty(fname))
+			return reportErr();
+		ids[fname] = true;
 		
 		if (st[pos] == "(") {
 			if (attr == "const" || attr == "readonly")
@@ -399,13 +377,11 @@ function parserIDL(fname) {
 			
 			ffs.push(fnStr);
 			
-			if (attr == "static") {
-				sifs.push(ifStr);
-				dsifms.push("			{\"" + fname + "\", s_" + fname + "}");
-			} else {
-				ifs.push(ifStr);
+			ifs.push(ifStr);
+			if (attr == "static")
+				difms.push("			{\"" + fname + "\", s_" + fname + "}");
+			else
 				difms.push("			{\"" + fname + "\", m_" + fname + "}");
-			}
 			
 			pos++;
 		} else if(ftype != ""){
@@ -426,7 +402,7 @@ function parserIDL(fname) {
 				
 				svs.push(ifStr);
 				
-				dsifps.push("			{\"" + fname + "\", s_get_" + fname + "}");
+				difps.push("			{\"" + fname + "\", s_get_" + fname + "}");
 			} else if (attr == "static") {
 				if (st[pos] != ";")
 					return reportErr();
@@ -440,9 +416,9 @@ function parserIDL(fname) {
 				ffs.push(fnStr)
 				
 				ifStr = "	static result_t get_" + fname + "(" + map_type(ftype) + "& retVal);";
-				sifs.push(ifStr);
+				ifs.push(ifStr);
 				
-				dsifps.push("			{\"" + fname + "\", s_get_" + fname + "}");
+				difps.push("			{\"" + fname + "\", s_get_" + fname + "}");
 				
 			} else {
 				if (st[pos] != ";")
@@ -523,7 +499,7 @@ function parserIDL(fname) {
 		
 		if (s == "namespace" || s == "class" || s == "const" || s == "static" || s == "readonly" || s == "unsigned" ||
 			s == "int" || s == "long" || s == "float" || s == "boolean" || s == "date" ||
-			s == "string" || s == "object" || s == "array" || s == "blob" || s == "")
+			s == "string" || s == "array" || s == "")
 			return reportErr();
 		
 		return true;
@@ -610,7 +586,7 @@ function parserIDL(fname) {
 	}
 	
 	function reportErr() {
-		print("Line " + line + ": Syntax Error.")
+		throw new Error("Line " + line + ": Syntax Error.");
 	}
 	
 }

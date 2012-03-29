@@ -19,6 +19,7 @@ namespace fibjs
 class console_base : public object_base
 {
 public:
+	// console_base
 	static result_t log(const char* fmt, const v8::Arguments& args);
 	static result_t info(const char* fmt, const v8::Arguments& args);
 	static result_t debug(const char* fmt, const v8::Arguments& args);
@@ -31,7 +32,7 @@ public:
 public:
 	static ClassInfo& info()
 	{
-		static ClassMethod s_smethod[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"log", s_log},
 			{"info", s_info},
@@ -43,9 +44,14 @@ public:
 			{"trace", s_trace}
 		};
 
-		static ClassInfo s_ci("console", 0, NULL, 0, NULL, 8, s_smethod, 0, NULL);
+		static ClassInfo s_ci("console", object_base::info(), 8, s_method, 0, NULL);
 
 		return s_ci;
+	}
+
+    virtual v8::Handle<v8::Value> ToJSObject()
+	{
+		return info().wrap(this);
 	}
 
 private:
