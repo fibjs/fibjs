@@ -160,13 +160,17 @@
 		<Linker>
 			<Add library="vender" />
 		</Linker>
+		<Unit filename="include/Buffer.h" />
 		<Unit filename="include/File.h" />
+		<Unit filename="include/ifs/Buffer.h" />
 		<Unit filename="include/ifs/console.h" />
 		<Unit filename="include/ifs/file.h" />
 		<Unit filename="include/ifs/fs.h" />
 		<Unit filename="include/ifs/global.h" />
 		<Unit filename="include/ifs/if.h" />
 		<Unit filename="include/ifs/os.h" />
+		<Unit filename="include/ifs/stream.h" />
+		<Unit filename="src/Buffer.cpp" />
 		<Unit filename="src/File.cpp" />
 		<Unit filename="src/console.cpp" />
 		<Unit filename="src/fibjs.cpp" />
