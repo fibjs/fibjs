@@ -4,8 +4,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _os_H_
-#define _os_H_
+#ifndef _os_base_H_
+#define _os_base_H_
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -40,7 +40,7 @@ public:
 			{"networkInfo", s_networkInfo}
 		};
 
-		static ClassInfo s_ci("os", 6, s_method, 0, NULL, &object_base::info());
+		static ClassInfo s_ci("os", NULL, 6, s_method, 0, NULL, NULL, &object_base::info());
 
 		return s_ci;
 	}

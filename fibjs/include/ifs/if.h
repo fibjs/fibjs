@@ -21,6 +21,8 @@
 #include <string.h>
 #endif
 
+#include <stdlib.h>
+
 #include <fiber.h>
 
 namespace fibjs
@@ -32,52 +34,55 @@ namespace fibjs
     result_t hr = 0; \
     int argc; \
     argc = args.Length(); \
-    if((c) >= 0 && argc > (c))return ThrowException(v8::String::NewSymbol("Invalid number of parameters.")); \
-    if((o) > 0 && argc < (o))return ThrowException(v8::String::NewSymbol("Parameter not optional."));
+    if((c) >= 0 && argc > (c))return ThrowTypeError("Invalid number of parameters."); \
+    if((o) > 0 && argc < (o))return ThrowTypeError("Parameter not optional.");
 
+#define CONSTRUCT_ENTER(c, o) \
+    if (!args.IsConstructCall())return ThrowTypeError("Constructor cannot be called as a function."); \
+    METHOD_ENTER(c, o)
 
-#define ARG_string(n) \
+#define ARG_String(n) \
     v8::String::Utf8Value tv##n(args[n]); \
     const char* v##n = *tv##n;
 
-#define OPT_ARG_string(n, d) \
+#define OPT_ARG_String(n, d) \
     v8::Local<v8::Value> tvv##n; \
     if(n < argc)tvv##n = args[n]; \
     v8::String::Utf8Value tv##n(tvv##n); \
     const char* v##n = (n) < argc ? *tv##n : (d);
 
-#define PROPERTY_VAL_string() \
+#define PROPERTY_VAL_String() \
     v8::String::Utf8Value tv0(value); \
     const char* v0 = *tv0;
 
 
-#define ARG_integer(n) \
+#define ARG_Integer(n) \
     int32_t v##n = args[n]->Int32Value();
 
-#define OPT_ARG_integer(n, d) \
+#define OPT_ARG_Integer(n, d) \
     int32_t v##n = (n) < argc ? args[n]->Int32Value() : (d);
 
-#define PROPERTY_VAL_integer() \
+#define PROPERTY_VAL_Integer() \
     int32_t v0 = value->Int32Value();
 
 
-#define ARG_number(n) \
+#define ARG_Number(n) \
     double v##n = args[n]->NumberValue();
 
-#define OPT_ARG_number(n, d) \
+#define OPT_ARG_Number(n, d) \
     double v##n = (n) < argc ? args[n]->NumberValue() : (d);
 
-#define PROPERTY_VAL_number() \
+#define PROPERTY_VAL_Number() \
     double v0 = value->NumberValue();
 
 
-#define ARG_boolean(n) \
+#define ARG_Boolean(n) \
     bool v##n = args[n]->BooleanValue();
 
-#define OPT_ARG_boolean(n, d) \
+#define OPT_ARG_Boolean(n, d) \
     bool v##n = (n) < argc ? args[n]->BooleanValue() : (d);
 
-#define PROPERTY_VAL_boolean() \
+#define PROPERTY_VAL_Boolean() \
     bool v0 = value->BooleanValue();
 
 #define PROPERTY_SET_LEAVE() \
@@ -92,17 +97,22 @@ namespace fibjs
     return v8::Undefined();
 
 
+#define CONSTRUCT_RETURN() \
+    if(hr < 0)return ThrowResult(hr); \
+    return vr->wrapThis(args.This());
+
+
 #define METHOD_INSTANCE(cls) \
     cls* pInst = (cls*)cls::info().getInstance(args.This()); \
-    if(pInst == NULL)return ThrowException(v8::String::NewSymbol("Object is not an instance of declaring class."));
+    if(pInst == NULL)return ThrowTypeError("Object is not an instance of declaring class.");
 
 #define PROPERTY_INSTANCE(cls) \
     cls* pInst = (cls*)cls::info().getInstance(info.This()); \
-    if(pInst == NULL)return ThrowException(v8::String::NewSymbol("Object is not an instance of declaring class."));
+    if(pInst == NULL)return ThrowTypeError("Object is not an instance of declaring class.");
 
 #define PROPERTY_SET_INSTANCE(cls) \
     cls* pInst = (cls*)cls::info().getInstance(info.This()); \
-    if(pInst == NULL){ThrowException(v8::String::NewSymbol("Object is not an instance of declaring class."));return;}
+    if(pInst == NULL){ThrowTypeError("Object is not an instance of declaring class.");return;}
 
 typedef int result_t;
 
@@ -128,17 +138,24 @@ protected:
         v8::InvocationCallback invoker;
     };
 
+    struct ClassIndexed
+    {
+        v8::IndexedPropertyGetter getter;
+        v8::IndexedPropertySetter setter;
+    };
+
     class ClassInfo
     {
     public:
-        ClassInfo(const char* name,
+        ClassInfo(const char* name, v8::InvocationCallback cor,
                   int mc, const ClassMethod* cms,
                   int pc, const ClassProperty* cps,
+                  const ClassIndexed* cis,
                   ClassInfo *base = NULL)
         {
             v8::HandleScope handle_scope;
 
-            m_class = v8::Persistent<v8::FunctionTemplate>::New(v8::FunctionTemplate::New());
+            m_class = v8::Persistent<v8::FunctionTemplate>::New(v8::FunctionTemplate::New(cor));
 
             m_class->SetClassName(v8::String::NewSymbol(name));
 
@@ -146,7 +163,10 @@ protected:
                 m_class->Inherit(base->m_class);
 
             v8::Handle<v8::ObjectTemplate> ot = m_class->InstanceTemplate();
+
             ot->SetInternalFieldCount(1);
+            if(cis)
+                ot->SetIndexedPropertyHandler(cis->getter, cis->setter);
 
             v8::Local<v8::ObjectTemplate> pt = m_class->PrototypeTemplate();
             int i;
@@ -178,7 +198,12 @@ protected:
             return m_cache->Clone();
         }
 
-    private:
+        v8::Handle<v8::FunctionTemplate> getTemplate() const
+        {
+            return m_class;
+        }
+
+    protected:
         static void block_set(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
         {
             std::string strError = "Property \'";
@@ -246,6 +271,21 @@ protected:
         return ThrowException(v8::String::NewSymbol(strerror(-hr)));
     }
 
+    static v8::Handle<v8::Value> ThrowError(const char* msg)
+    {
+        return v8::ThrowException(v8::Exception::Error(v8::String::New(msg)));
+    }
+
+    static v8::Handle<v8::Value> ThrowTypeError(const char* msg)
+    {
+        return v8::ThrowException(v8::Exception::TypeError(v8::String::New(msg)));
+    }
+
+    static v8::Handle<v8::Value> ThrowRangeError(const char* msg)
+    {
+        return v8::ThrowException(v8::Exception::RangeError(v8::String::New(msg)));
+    }
+
 public:
     static result_t Error()
     {
@@ -257,53 +297,33 @@ public:
     }
 
 private:
-#define GC_LEVEL    10
-#define GC_MASK    ((1 << GC_LEVEL) - 1)
+
+#define GC_MAX  20480
 
     class GC
     {
     public:
-        GC() : m_count(1)
+        GC() : m_count(0)
         {
         }
 
     public:
-        void Collect()
+        void Counter(int n = 1)
         {
-        }
+            m_count += n;
 
-        void Register(object_base* obj)
-        {
-            int i, n = 1 << (GC_LEVEL - 1), m = GC_MASK;
-            object_base *o;
+            if(m_count < 0)
+                m_count = 0;
 
-            m_count = (m_count + 1) & GC_MASK;
-
-            for(i = GC_LEVEL; i >= 0; i --, n >>= 1, m >>= 1)
-                if(n == (m_count & m))
-                {
-                    object_base *pHead = NULL;
-
-                    while(((o = gcs[i].get()) != NULL) && (o != pHead))
-                    {
-                        if(o->try_dispose())
-                            o->Unref();
-                        else if(i == GC_LEVEL)
-                        {
-                            gcs[i].put(o);
-                            if(pHead == NULL)
-                                pHead = o;
-                        }else gcs[i + 1].put(o);
-                    }
-                }
-
-            obj->Ref();
-            gcs[0].put(obj);
+            if(GC_MAX <= m_count)
+            {
+                v8::V8::LowMemoryNotification();
+                m_count = 0;
+            }
         }
 
     private:
         int m_count;
-        fiber::List<object_base> gcs[GC_LEVEL + 1];
     };
 
 public:
@@ -319,7 +339,6 @@ public:
     object_base()
     {
         refs_ = 0;
-        m_next = NULL;
     }
 
     virtual ~object_base()
@@ -337,23 +356,6 @@ public:
             delete this;
     }
 
-    bool try_dispose()
-    {
-        if(handle_.IsEmpty())
-            return true;
-
-        if(handle_.IsWeak())
-        {
-            dispose();
-            return true;
-        }
-
-        return false;
-    }
-
-public:
-    object_base* m_next;
-
 private:
     static void WeakCallback(v8::Persistent<v8::Value> value, void* data)
     {
@@ -367,18 +369,26 @@ protected:
     v8::Handle<v8::Value> wrap(ClassInfo& i)
     {
         if (handle_.IsEmpty())
+            wrapThis(i.CreateInstance());
+
+        return handle_;
+    }
+
+    v8::Handle<v8::Value> wrapThis(v8::Handle<v8::Object> o)
+    {
+        if (handle_.IsEmpty())
         {
-            handle_ = v8::Persistent<v8::Object>::New(i.CreateInstance());
+            handle_ = v8::Persistent<v8::Object>::New(o);
             handle_->SetPointerInInternalField(0, this);
 
             handle_.MakeWeak(this, WeakCallback);
             handle_.MarkIndependent();
 
-            v8::V8::AdjustAmountOfExternalAllocatedMemory(128);
-
-            getGC().Register(this);
-
             Ref();
+
+            v8::V8::AdjustAmountOfExternalAllocatedMemory(1024);
+
+            getGC().Counter();
         }
 
         return handle_;
@@ -388,15 +398,18 @@ public:
     // object_base
     result_t dispose()
     {
-        if (!handle_.IsEmpty()) {
-            v8::V8::AdjustAmountOfExternalAllocatedMemory(-128);
-
+        if (!handle_.IsEmpty())
+        {
             handle_.ClearWeak();
-            handle_->SetInternalField(0, v8::Undefined());
+            handle_->SetPointerInInternalField(0, 0);
             handle_.Dispose();
             handle_.Clear();
 
             Unref();
+
+            v8::V8::AdjustAmountOfExternalAllocatedMemory(-1024);
+
+            getGC().Counter(-1);
         }
 
         return 0;
@@ -417,14 +430,13 @@ public:
             {"toString", m_toString}
         };
 
-        static ClassInfo s_ci("object", 2, s_method, 0, NULL);
+        static ClassInfo s_ci("object", NULL, 2, s_method, 0, NULL, NULL);
 
         return s_ci;
     }
 
     virtual v8::Handle<v8::Value> ToJSObject()
     {
-        //GC_Collect(this);
         return wrap(info());
     }
 

@@ -21,22 +21,25 @@ function parserIDL(fname) {
 	basePath = "",
 	clsName,
 	isRem = false,
+	hasNew = false,
+	hasIndexed = false,
 	typeMap = {
-		"integer" : "int32_t",
-		"number" : "double",
-		"boolean" : "bool",
-		"string" : "std::string",
-		"object" : "v8::Local<v8::Object>",
-		"array" : "v8::Local<v8::Array>",
-		"data" : ""
+		"Integer" : "int32_t",
+		"Number" : "double",
+		"Boolean" : "bool",
+		"String" : "std::string",
+		"Object" : "v8::Local<v8::Object>",
+		"Array" : "v8::Local<v8::Array>",
+		"Value" : "v8::Local<v8::Value>"
 	},
 	aTypeMap = {
-		"integer" : "int32_t",
-		"number" : "double",
-		"boolean" : "bool",
-		"string" : "const char*",
-		"object" : "v8::Local<v8::Object>",
-		"array" : "v8::Local<v8::Array>"
+		"Integer" : "int32_t",
+		"Number" : "double",
+		"Boolean" : "bool",
+		"String" : "const char*",
+		"Object" : "v8::Local<v8::Object>",
+		"Array" : "v8::Local<v8::Array>",
+		"Value" : "v8::Local<v8::Value>"
 	};
 	
 	f = ReadFile(basePath + fname).replace(/\r/g, "").split("\n");
@@ -72,6 +75,8 @@ function parserIDL(fname) {
 		ns = name;
 		baseClass = base;
 		clsName[name] = true;
+		hasNew = false;
+		hasIndexed = false;
 		ifs = [];
 		svs = [];
 		ffs = [];
@@ -131,13 +136,17 @@ function parserIDL(fname) {
 			 + " *   lion@9465.net                                                         *\n"
 			 + " *                                                                         *\n"
 			 + " ***************************************************************************/\n\n"
-			 + "#ifndef _" + ns + "_H_\n"
-			 + "#define _" + ns + "_H_\n\n"
+			 + "#ifndef _" + ns + "_base_H_\n"
+			 + "#define _" + ns + "_base_H_\n\n"
 			 + "/**\n"
 			 + " @author Leo Hoo <lion@9465.net>\n"
 			 + " */\n\n"
-			 + "#include \"if.h\"\n\n"
-			 + "namespace fibjs\n{\n");
+			 + "#include \"if.h\"");
+
+		if(baseClass !== "object")
+			txt.push("#include \"" + baseClass + ".h\"");
+
+		txt.push("\nnamespace fibjs\n{\n");
 		
 		for (cls in refCls) {
 			txt.push("class " + cls + "_base;");
@@ -173,7 +182,18 @@ function parserIDL(fname) {
 			txt.push("		};\n");
 		}
 		
+		if(hasIndexed)
+		{
+			txt.push("		static ClassIndexed s_indexed = \n		{");
+			txt.push("			i_IndexedGetter, i_IndexedSetter");
+			txt.push("		};\n");
+		}
+		
 		var strClass = "		static ClassInfo s_ci(\"" + ns + "\"";
+
+		if(hasNew)
+			strClass += ", c__new"
+		else strClass += ", NULL"
 
 		if (difms.length)
 			strClass += ", " + difms.length + ", s_method";
@@ -184,6 +204,11 @@ function parserIDL(fname) {
 			strClass += ", " + difps.length + ", s_property";
 		else
 			strClass += ", 0, NULL";
+			
+		if(hasIndexed)
+			strClass += ", &s_indexed";
+		else
+			strClass += ", NULL";
 
 		if(ns != "object")
 			strClass += ", &" + baseClass + "_base::info()";
@@ -201,7 +226,8 @@ function parserIDL(fname) {
 
 		
 		for (cls in refCls)
-			txt.push("#include \"" + cls + ".h\"");
+			if(cls !== baseClass)
+				txt.push("#include \"" + cls + ".h\"");
 		
 		if (bRef)
 			txt.push("");
@@ -218,15 +244,15 @@ function parserIDL(fname) {
 		name,
 		value,
 		args,
-		argArray = false;
-		var pos = 0,
+		argArray = false,
+		pos = 0,
 		s,
 		argCount = 0,
-		argOpt = 0;
-		var ifStr = "";
-		var fnStr = "";
-		var argVars = "";
-		
+		argOpt = 0,
+		ifStr = "",
+		fnStr = "",
+		argVars = "";
+
 		args = [];
 		
 		if (st[0] == "const" || st[0] == "static" || st[0] == "readonly") {
@@ -237,17 +263,28 @@ function parserIDL(fname) {
 		
 		ftype = "";
 		s = st[pos];
-		if (typeMap[s]) {
-			ftype = s;
-			pos++;
-		} else if (clsName[s]) {
-			ftype = s;
-			pos++;
-		}
+		if(s === ns)
+		{
+			attr = "static";
+			fname = "_new";
+			hasNew = true;
+			ftype = ns;		
+			pos ++;
+		}else
+		{
+			if (typeMap[s]) {
+				ftype = s;
+				pos++;
+			} else if (clsName[s]) {
+				ftype = s;
+				pos++;
+			}
 		
-		fname = st[pos++];
-		if (!_checkID(fname))
-			return reportErr();
+			fname = st[pos++];
+
+			if (!_checkID(fname))
+				return reportErr();
+		}
 		
 		if (ids.hasOwnProperty(fname))
 			return reportErr();
@@ -326,8 +363,11 @@ function parserIDL(fname) {
 			
 			if (attr == "")
 				fnStr = "	static v8::Handle<v8::Value> m_" + fname + "(const v8::Arguments& args)\n	{\n		METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n		METHOD_INSTANCE(" + ns + "_base);\n";
-			else
+			else if(fname !== "_new")
 				fnStr = "	static v8::Handle<v8::Value> s_" + fname + "(const v8::Arguments& args)\n	{\n		METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n";
+			else
+				fnStr = "	static v8::Handle<v8::Value> c_" + fname + "(const v8::Arguments& args)\n	{\n		CONSTRUCT_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n";
+
 			
 			fnStr += "\n";
 			
@@ -372,15 +412,18 @@ function parserIDL(fname) {
 			
 			if (ftype == "")
 				fnStr += "		METHOD_VOID();\n	}\n";
-			else
+			else if(fname !== "_new")
 				fnStr += "		METHOD_RETURN();\n	}\n";
+			else fnStr += "		CONSTRUCT_RETURN();\n	}\n";
 			
 			ffs.push(fnStr);
 			
 			ifs.push(ifStr);
 			if (attr == "static")
-				difms.push("			{\"" + fname + "\", s_" + fname + "}");
-			else
+			{
+				if(fname !== "_new")
+					difms.push("			{\"" + fname + "\", s_" + fname + "}");
+			}else
 				difms.push("			{\"" + fname + "\", m_" + fname + "}");
 			
 			pos++;
@@ -420,7 +463,42 @@ function parserIDL(fname) {
 				
 				difps.push("			{\"" + fname + "\", s_get_" + fname + "}");
 				
-			} else {
+			} else if(fname === "operator")
+			{
+				if ((st[pos] !== "[") || (st[pos + 1] !== "]") || (st[pos + 2] !== ";"))
+					return reportErr();
+			
+				pos += 2;
+				hasIndexed = true;
+			
+				fnStr = "	static v8::Handle<v8::Value> i_IndexedGetter(uint32_t index, const v8::AccessorInfo& info)\n	{\n		PROPERTY_ENTER();\n";
+				fnStr += "		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
+				fnStr += "		" + map_type(ftype) + " vr;\n";
+				
+				fnStr += "		hr = pInst->_indexed_getter(index, vr);\n\n		METHOD_RETURN();\n	}\n";
+				ffs.push(fnStr)
+
+				ifStr = "	virtual result_t _indexed_getter(uint32_t index, " + map_type(ftype) + "& retVal) = 0;";
+				ifs.push(ifStr);
+
+				if (attr != "readonly") {
+					fnStr = "	static v8::Handle<v8::Value> i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::AccessorInfo& info)\n	{\n		PROPERTY_ENTER();\n";
+					fnStr += "		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
+					fnStr += "		PROPERTY_VAL_" + ftype + "();\n"
+					fnStr += "		hr = pInst->_indexed_setter(index, v0);\n\n		METHOD_VOID();\n	}\n";
+					ffs.push(fnStr);
+					
+					ifStr = "	virtual result_t _indexed_setter(uint32_t index, " + map_type(ftype) + " newVal) = 0;";
+					ifs.push(ifStr);
+				}else
+				{
+					fnStr = "	static v8::Handle<v8::Value> i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::AccessorInfo& info)\n	{\n";
+					fnStr += "		return ThrowException(v8::String::NewSymbol(\"Indexed Property is read-only.\"));\n	}\n";
+					ffs.push(fnStr);
+				}
+		
+			}else
+			{
 				if (st[pos] != ";")
 					return reportErr();
 				
@@ -557,6 +635,8 @@ function parserIDL(fname) {
 					s = s.replace(/=/g, " = ");
 					s = s.replace(/\(/g, " ( ");
 					s = s.replace(/\)/g, " ) ");
+					s = s.replace(/\[/g, " [ ");
+					s = s.replace(/\]/g, " ] ");
 					s = s.replace(/,/g, " , ");
 					s = s.replace(/;/g, " ; ");
 					s = s.replace(/\s+/g, " ").trim();

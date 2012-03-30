@@ -4,8 +4,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _global_H_
-#define _global_H_
+#ifndef _global_base_H_
+#define _global_base_H_
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -44,7 +44,7 @@ public:
 			{"fs", m_get_fs}
 		};
 
-		static ClassInfo s_ci("global", 1, s_method, 3, s_property, &object_base::info());
+		static ClassInfo s_ci("global", NULL, 1, s_method, 3, s_property, NULL, &object_base::info());
 
 		return s_ci;
 	}

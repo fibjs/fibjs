@@ -4,8 +4,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _console_H_
-#define _console_H_
+#ifndef _console_base_H_
+#define _console_base_H_
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -44,7 +44,7 @@ public:
 			{"trace", s_trace}
 		};
 
-		static ClassInfo s_ci("console", 8, s_method, 0, NULL, &object_base::info());
+		static ClassInfo s_ci("console", NULL, 8, s_method, 0, NULL, NULL, &object_base::info());
 
 		return s_ci;
 	}
@@ -59,7 +59,7 @@ private:
 	{
 		METHOD_ENTER(-1, 1);
 
-		ARG_string(0);
+		ARG_String(0);
 
 		hr = log(v0, args);
 
@@ -70,7 +70,7 @@ private:
 	{
 		METHOD_ENTER(-1, 1);
 
-		ARG_string(0);
+		ARG_String(0);
 
 		hr = info(v0, args);
 
@@ -81,7 +81,7 @@ private:
 	{
 		METHOD_ENTER(-1, 1);
 
-		ARG_string(0);
+		ARG_String(0);
 
 		hr = debug(v0, args);
 
@@ -92,7 +92,7 @@ private:
 	{
 		METHOD_ENTER(-1, 1);
 
-		ARG_string(0);
+		ARG_String(0);
 
 		hr = warn(v0, args);
 
@@ -103,7 +103,7 @@ private:
 	{
 		METHOD_ENTER(-1, 1);
 
-		ARG_string(0);
+		ARG_String(0);
 
 		hr = error(v0, args);
 
@@ -114,7 +114,7 @@ private:
 	{
 		METHOD_ENTER(1, 0);
 
-		OPT_ARG_string(0, "");
+		OPT_ARG_String(0, "");
 
 		hr = time(v0);
 
@@ -125,7 +125,7 @@ private:
 	{
 		METHOD_ENTER(1, 0);
 
-		OPT_ARG_string(0, "");
+		OPT_ARG_String(0, "");
 
 		hr = timeEnd(v0);
 
@@ -136,7 +136,7 @@ private:
 	{
 		METHOD_ENTER(1, 0);
 
-		OPT_ARG_string(0, "");
+		OPT_ARG_String(0, "");
 
 		hr = trace(v0);
 

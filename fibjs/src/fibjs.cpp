@@ -16,6 +16,7 @@
 #include "ifs/os.h"
 #include "ifs/file.h"
 #include "ifs/fs.h"
+#include "ifs/Buffer.h"
 
 
 using namespace v8;
@@ -113,9 +114,9 @@ void* t(void* p)
     Locker locker(isolate);
     Isolate::Scope isolate_scope(isolate);
 
-//    HandleScope handle_scope;
-//    Handle<Context> context = Context::New();
-//    Context::Scope context_scope(context);
+    HandleScope handle_scope;
+    Handle<Context> context = Context::New();
+    Context::Scope context_scope(context);
 
     while(1)
     {
@@ -338,6 +339,8 @@ void initGlobal(Persistent<Context>& context)
     global->Set(v8::String::New("console"), console_base::info().CreateInstance());
     global->Set(v8::String::New("os"), os_base::info().CreateInstance());
     global->Set(v8::String::New("fs"), fs_base::info().CreateInstance());
+
+    global->Set(String::New("Buffer"), Buffer_base::info().getTemplate()->GetFunction());
 
     Local<Object> fun = global->Get(String::New("Function"))->ToObject();
     Local<Object> proto = fun->GetPrototype()->ToObject();
