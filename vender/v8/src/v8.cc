@@ -105,6 +105,8 @@ void V8::TearDown() {
   if (!has_been_set_up_ || has_been_disposed_) return;
 
   ElementsAccessor::TearDown();
+  LOperand::TearDownCaches();
+  RegisteredExtension::UnregisterAll();
 
   isolate->TearDown();
   delete isolate;
