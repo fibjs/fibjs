@@ -44,14 +44,14 @@ public:
 			{"trace", s_trace}
 		};
 
-		static ClassInfo s_ci("console", object_base::info(), 8, s_method, 0, NULL);
+		static ClassInfo s_ci("console", 8, s_method, 0, NULL, &object_base::info());
 
 		return s_ci;
 	}
 
     virtual v8::Handle<v8::Value> ToJSObject()
 	{
-		return info().wrap(this);
+		return wrap(info());
 	}
 
 private:

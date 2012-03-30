@@ -40,14 +40,14 @@ public:
 			{"networkInfo", s_networkInfo}
 		};
 
-		static ClassInfo s_ci("os", object_base::info(), 6, s_method, 0, NULL);
+		static ClassInfo s_ci("os", 6, s_method, 0, NULL, &object_base::info());
 
 		return s_ci;
 	}
 
     virtual v8::Handle<v8::Value> ToJSObject()
 	{
-		return info().wrap(this);
+		return wrap(info());
 	}
 
 private:

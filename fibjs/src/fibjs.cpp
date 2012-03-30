@@ -335,9 +335,9 @@ void initGlobal(Persistent<Context>& context)
     global->Set(String::New("ReadFile"), FunctionTemplate::New(ReadFile)->GetFunction());
     global->Set(String::New("WriteFile"), FunctionTemplate::New(WriteFile)->GetFunction());
 
-    global->Set(v8::String::New("console"), console_base::info());
-    global->Set(v8::String::New("os"), os_base::info());
-    global->Set(v8::String::New("fs"), fs_base::info());
+    global->Set(v8::String::New("console"), console_base::info().CreateInstance());
+    global->Set(v8::String::New("os"), os_base::info().CreateInstance());
+    global->Set(v8::String::New("fs"), fs_base::info().CreateInstance());
 
     Local<Object> fun = global->Get(String::New("Function"))->ToObject();
     Local<Object> proto = fun->GetPrototype()->ToObject();
@@ -362,7 +362,15 @@ int main(int argc, char* argv[])
 
         root.warn(e.what());
     }
+/*
+    v8::ResourceConstraints rc;
+    rc.set_max_young_space_size(2048); //KB
+    rc.set_max_old_space_size(10); //MB
+    rc.set_max_executable_size(10); //MB
+    rc.set_stack_limit(reinterpret_cast<uint32_t*>((char*)&rc- 1024 * 400));
 
+    SetResourceConstraints(&rc);
+*/
     V8::Initialize();
 
     isolate = Isolate::GetCurrent();

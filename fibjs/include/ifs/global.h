@@ -44,14 +44,14 @@ public:
 			{"fs", m_get_fs}
 		};
 
-		static ClassInfo s_ci("global", object_base::info(), 1, s_method, 3, s_property);
+		static ClassInfo s_ci("global", 1, s_method, 3, s_property, &object_base::info());
 
 		return s_ci;
 	}
 
     virtual v8::Handle<v8::Value> ToJSObject()
 	{
-		return info().wrap(this);
+		return wrap(info());
 	}
 
 private:

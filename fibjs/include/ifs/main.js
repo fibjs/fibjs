@@ -175,9 +175,6 @@ function parserIDL(fname) {
 		
 		var strClass = "		static ClassInfo s_ci(\"" + ns + "\"";
 
-		if(ns != "object")
-			strClass += ", " + baseClass + "_base::info()";
-		
 		if (difms.length)
 			strClass += ", " + difms.length + ", s_method";
 		else
@@ -187,11 +184,14 @@ function parserIDL(fname) {
 			strClass += ", " + difps.length + ", s_property";
 		else
 			strClass += ", 0, NULL";
+
+		if(ns != "object")
+			strClass += ", &" + baseClass + "_base::info()";
 		
 		txt.push(strClass + ");\n");
 		txt.push("		return s_ci;\n	}\n");
 
-		txt.push("    virtual v8::Handle<v8::Value> ToJSObject()\n	{\n		return info().wrap(this);\n	}\n");
+		txt.push("    virtual v8::Handle<v8::Value> ToJSObject()\n	{\n		return wrap(info());\n	}\n");
 
 		
 		txt.push("private:")

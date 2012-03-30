@@ -48,14 +48,14 @@ public:
 			{"FSEEK_END", s_get_FSEEK_END}
 		};
 
-		static ClassInfo s_ci("fs", object_base::info(), 3, s_method, 3, s_property);
+		static ClassInfo s_ci("fs", 3, s_method, 3, s_property, &object_base::info());
 
 		return s_ci;
 	}
 
     virtual v8::Handle<v8::Value> ToJSObject()
 	{
-		return info().wrap(this);
+		return wrap(info());
 	}
 
 private:

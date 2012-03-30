@@ -21,6 +21,8 @@
 #include <string.h>
 #endif
 
+#include <fiber.h>
+
 namespace fibjs
 {
 
@@ -128,15 +130,20 @@ protected:
 
     class ClassInfo
     {
-        void _initTemplate(const char* name,
+    public:
+        ClassInfo(const char* name,
                   int mc, const ClassMethod* cms,
-                  int pc, const ClassProperty* cps)
+                  int pc, const ClassProperty* cps,
+                  ClassInfo *base = NULL)
         {
             v8::HandleScope handle_scope;
 
             m_class = v8::Persistent<v8::FunctionTemplate>::New(v8::FunctionTemplate::New());
 
             m_class->SetClassName(v8::String::NewSymbol(name));
+
+            if(base)
+                m_class->Inherit(base->m_class);
 
             v8::Handle<v8::ObjectTemplate> ot = m_class->InstanceTemplate();
             ot->SetInternalFieldCount(1);
@@ -154,22 +161,8 @@ protected:
                     pt->SetAccessor(v8::String::NewSymbol(cps[i].name), cps[i].getter, cps[i].setter);
                 else
                     pt->SetAccessor(v8::String::NewSymbol(cps[i].name), cps[i].getter, block_set);
-        }
 
-    public:
-        ClassInfo(const char* name, ClassInfo& base,
-                  int mc, const ClassMethod* cms,
-                  int pc, const ClassProperty* cps)
-        {
-            _initTemplate(name, mc, cms, pc, cps);
-            m_class->Inherit(base.m_class);
-        }
-
-        ClassInfo(const char* name,
-                  int mc, const ClassMethod* cms,
-                  int pc, const ClassProperty* cps)
-        {
-            _initTemplate(name, mc, cms, pc, cps);
+            m_cache = v8::Persistent<v8::Object>::New(m_class->GetFunction()->NewInstance());
         }
 
         void* getInstance(v8::Handle<v8::Value> o)
@@ -180,32 +173,12 @@ protected:
             return o->ToObject()->GetPointerFromInternalField(0);
         }
 
-        operator v8::Handle<v8::Value>() const
+        v8::Handle<v8::Object> CreateInstance() const
         {
-            return m_class->GetFunction()->NewInstance();
-        }
-
-        v8::Handle<v8::Value> wrap(void* o)
-        {
-            v8::Persistent<v8::Object> obj = v8::Persistent<v8::Object>::New(m_class->GetFunction()->NewInstance());
-            obj->SetPointerInInternalField(0, o);
-
-            obj.MakeWeak(NULL, WeakCallback);
-
-            return obj;
+            return m_cache->Clone();
         }
 
     private:
-        static void WeakCallback(v8::Persistent<v8::Value> value, void* data)
-        {
-            v8::Object* obj = v8::Object::Cast(*value);
-
-            delete (object_base*)obj->GetPointerFromInternalField(0);
-
-            value.ClearWeak();
-            value.Dispose();
-        }
-
         static void block_set(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
         {
             std::string strError = "Property \'";
@@ -217,6 +190,7 @@ protected:
 
     private:
         v8::Persistent<v8::FunctionTemplate> m_class;
+        v8::Persistent<v8::Object> m_cache;
     };
 
     class ReturnValue
@@ -282,71 +256,199 @@ public:
 #endif
     }
 
+private:
+#define GC_LEVEL    10
+#define GC_MASK    ((1 << GC_LEVEL) - 1)
+
+    class GC
+    {
+    public:
+        GC() : m_count(1)
+        {
+        }
+
+    public:
+        void Collect()
+        {
+        }
+
+        void Register(object_base* obj)
+        {
+            int i, n = 1 << (GC_LEVEL - 1), m = GC_MASK;
+            object_base *o;
+
+            m_count = (m_count + 1) & GC_MASK;
+
+            for(i = GC_LEVEL; i >= 0; i --, n >>= 1, m >>= 1)
+                if(n == (m_count & m))
+                {
+                    object_base *pHead = NULL;
+
+                    while(((o = gcs[i].get()) != NULL) && (o != pHead))
+                    {
+                        if(o->try_dispose())
+                            o->Unref();
+                        else if(i == GC_LEVEL)
+                        {
+                            gcs[i].put(o);
+                            if(pHead == NULL)
+                                pHead = o;
+                        }else gcs[i + 1].put(o);
+                    }
+                }
+
+            obj->Ref();
+            gcs[0].put(obj);
+        }
+
+    private:
+        int m_count;
+        fiber::List<object_base> gcs[GC_LEVEL + 1];
+    };
+
+public:
+    static GC& getGC()
+    {
+        static GC gc;
+        return gc;
+    }
+
 //----------------------------------------------------------------------
+
 public:
     object_base()
     {
-        v8::V8::AdjustAmountOfExternalAllocatedMemory(128);
+        refs_ = 0;
+        m_next = NULL;
     }
 
     virtual ~object_base()
     {
-        v8::V8::AdjustAmountOfExternalAllocatedMemory(-128);
+    }
+
+    void Ref()
+    {
+        refs_ ++;
+    }
+
+    void Unref()
+    {
+        if (--refs_ == 0)
+            delete this;
+    }
+
+    bool try_dispose()
+    {
+        if(handle_.IsEmpty())
+            return true;
+
+        if(handle_.IsWeak())
+        {
+            dispose();
+            return true;
+        }
+
+        return false;
     }
 
 public:
-	// object_base
-	result_t dispose()
-	{
-	    return 0;
-	}
-
-	virtual result_t toString(std::string& retVal)
-	{
-	    retVal = "[Native Object]";
-	    return 0;
-	}
-
-public:
-	static ClassInfo& info()
-	{
-		static ClassMethod s_method[] =
-		{
-			{"dispose", m_dispose},
-			{"toString", m_toString}
-		};
-
-		static ClassInfo s_ci("object", 2, s_method, 0, NULL);
-
-		return s_ci;
-	}
-
-    virtual v8::Handle<v8::Value> ToJSObject()
-	{
-		return info().wrap(this);
-	}
+    object_base* m_next;
 
 private:
-	static v8::Handle<v8::Value> m_dispose(const v8::Arguments& args)
-	{
-		METHOD_ENTER(0, 0);
-		METHOD_INSTANCE(object_base);
+    static void WeakCallback(v8::Persistent<v8::Value> value, void* data)
+    {
+        (static_cast<object_base*>(data))->dispose();
+    }
 
-		hr = pInst->dispose();
+protected:
+    v8::Persistent<v8::Object> handle_;
+    int refs_;
 
-		METHOD_VOID();
-	}
+    v8::Handle<v8::Value> wrap(ClassInfo& i)
+    {
+        if (handle_.IsEmpty())
+        {
+            handle_ = v8::Persistent<v8::Object>::New(i.CreateInstance());
+            handle_->SetPointerInInternalField(0, this);
 
-	static v8::Handle<v8::Value> m_toString(const v8::Arguments& args)
-	{
-		METHOD_ENTER(0, 0);
-		METHOD_INSTANCE(object_base);
+            handle_.MakeWeak(this, WeakCallback);
+            handle_.MarkIndependent();
 
-		std::string vr;
-		hr = pInst->toString(vr);
+            v8::V8::AdjustAmountOfExternalAllocatedMemory(128);
 
-		METHOD_RETURN();
-	}
+            getGC().Register(this);
+
+            Ref();
+        }
+
+        return handle_;
+    }
+
+public:
+    // object_base
+    result_t dispose()
+    {
+        if (!handle_.IsEmpty()) {
+            v8::V8::AdjustAmountOfExternalAllocatedMemory(-128);
+
+            handle_.ClearWeak();
+            handle_->SetInternalField(0, v8::Undefined());
+            handle_.Dispose();
+            handle_.Clear();
+
+            Unref();
+        }
+
+        return 0;
+    }
+
+    virtual result_t toString(std::string& retVal)
+    {
+        retVal = "[Native Object]";
+        return 0;
+    }
+
+public:
+    static ClassInfo& info()
+    {
+        static ClassMethod s_method[] =
+        {
+            {"dispose", m_dispose},
+            {"toString", m_toString}
+        };
+
+        static ClassInfo s_ci("object", 2, s_method, 0, NULL);
+
+        return s_ci;
+    }
+
+    virtual v8::Handle<v8::Value> ToJSObject()
+    {
+        //GC_Collect(this);
+        return wrap(info());
+    }
+
+private:
+    static v8::Handle<v8::Value> m_dispose(const v8::Arguments& args)
+    {
+        METHOD_ENTER(0, 0);
+        METHOD_INSTANCE(object_base);
+
+        hr = pInst->dispose();
+
+        METHOD_VOID();
+    }
+
+    static v8::Handle<v8::Value> m_toString(const v8::Arguments& args)
+    {
+        METHOD_ENTER(0, 0);
+        METHOD_INSTANCE(object_base);
+
+        std::string vr;
+        hr = pInst->toString(vr);
+
+        METHOD_RETURN();
+    }
 };
 
 }
