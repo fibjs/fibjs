@@ -32,26 +32,42 @@ public:
 	{
 		static ClassMethod s_method[] = 
 		{
-			{"getData", m_getData}
+			{"getData", s_getData}
 		};
 
 		static ClassProperty s_property[] = 
 		{
-			{"data", m_get_data, m_set_data}
+			{"data", s_get_data, s_set_data}
 		};
 
-		static ClassInfo s_ci("file", NULL, 1, s_method, 1, s_property, NULL, &stream_base::info());
+		static ClassData s_cd = 
+		{ 
+			"file", NULL, 
+			1, s_method, 1, s_property, NULL,
+			&stream_base::info()
+		};
 
+		static ClassInfo s_ci(s_cd);
 		return s_ci;
 	}
 
-    virtual v8::Handle<v8::Value> ToJSObject()
+	virtual v8::Handle<v8::Value> JSObject()
 	{
 		return wrap(info());
 	}
 
 private:
-	static v8::Handle<v8::Value> m_get_data(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	static v8::Handle<v8::Value> s_get_data(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_getData(const v8::Arguments& args);
+};
+
+}
+
+
+namespace fibjs
+{
+	inline v8::Handle<v8::Value> file_base::s_get_data(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(file_base);
@@ -62,18 +78,18 @@ private:
 		METHOD_RETURN();
 	}
 
-	static void m_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void file_base::s_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
 	{
 		PROPERTY_ENTER();
-		PROPERTY_SET_INSTANCE(file_base);
+		PROPERTY_INSTANCE(file_base);
 
-		PROPERTY_VAL_Number();
+		PROPERTY_VAL(double);
 		hr = pInst->set_data(v0);
 
 		PROPERTY_SET_LEAVE();
 	}
 
-	static v8::Handle<v8::Value> m_getData(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> file_base::s_getData(const v8::Arguments& args)
 	{
 		METHOD_ENTER(0, 0);
 		METHOD_INSTANCE(file_base);
@@ -84,10 +100,7 @@ private:
 		METHOD_RETURN();
 	}
 
-};
-
 }
-
 
 #endif
 

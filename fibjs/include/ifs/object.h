@@ -28,22 +28,35 @@ public:
 	{
 		static ClassMethod s_method[] = 
 		{
-			{"dispose", m_dispose},
-			{"toString", m_toString}
+			{"dispose", s_dispose},
+			{"toString", s_toString}
 		};
 
-		static ClassInfo s_ci("object", NULL, 2, s_method, 0, NULL, NULL);
+		static ClassData s_cd = 
+		{ 
+			"object", NULL, 
+			2, s_method, 0, NULL, NULL
+		};
 
+		static ClassInfo s_ci(s_cd);
 		return s_ci;
 	}
 
-    virtual v8::Handle<v8::Value> ToJSObject()
+	virtual v8::Handle<v8::Value> JSObject()
 	{
 		return wrap(info());
 	}
 
 private:
-	static v8::Handle<v8::Value> m_dispose(const v8::Arguments& args)
+	static v8::Handle<v8::Value> s_dispose(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_toString(const v8::Arguments& args);
+};
+
+}
+
+namespace fibjs
+{
+	inline v8::Handle<v8::Value> object_base::s_dispose(const v8::Arguments& args)
 	{
 		METHOD_ENTER(0, 0);
 		METHOD_INSTANCE(object_base);
@@ -53,7 +66,7 @@ private:
 		METHOD_VOID();
 	}
 
-	static v8::Handle<v8::Value> m_toString(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> object_base::s_toString(const v8::Arguments& args)
 	{
 		METHOD_ENTER(0, 0);
 		METHOD_INSTANCE(object_base);
@@ -63,8 +76,6 @@ private:
 
 		METHOD_RETURN();
 	}
-
-};
 
 }
 

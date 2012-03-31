@@ -22,7 +22,6 @@ public:
 	// console_base
 	static result_t log(const char* fmt, const v8::Arguments& args);
 	static result_t info(const char* fmt, const v8::Arguments& args);
-	static result_t debug(const char* fmt, const v8::Arguments& args);
 	static result_t warn(const char* fmt, const v8::Arguments& args);
 	static result_t error(const char* fmt, const v8::Arguments& args);
 	static result_t time(const char* label);
@@ -36,7 +35,6 @@ public:
 		{
 			{"log", s_log},
 			{"info", s_info},
-			{"debug", s_debug},
 			{"warn", s_warn},
 			{"error", s_error},
 			{"time", s_time},
@@ -44,18 +42,37 @@ public:
 			{"trace", s_trace}
 		};
 
-		static ClassInfo s_ci("console", NULL, 8, s_method, 0, NULL, NULL, &object_base::info());
+		static ClassData s_cd = 
+		{ 
+			"console", NULL, 
+			7, s_method, 0, NULL, NULL,
+			&object_base::info()
+		};
 
+		static ClassInfo s_ci(s_cd);
 		return s_ci;
 	}
 
-    virtual v8::Handle<v8::Value> ToJSObject()
+	virtual v8::Handle<v8::Value> JSObject()
 	{
 		return wrap(info());
 	}
 
 private:
-	static v8::Handle<v8::Value> s_log(const v8::Arguments& args)
+	static v8::Handle<v8::Value> s_log(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_info(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_warn(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_error(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_time(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_timeEnd(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_trace(const v8::Arguments& args);
+};
+
+}
+
+namespace fibjs
+{
+	inline v8::Handle<v8::Value> console_base::s_log(const v8::Arguments& args)
 	{
 		METHOD_ENTER(-1, 1);
 
@@ -66,7 +83,7 @@ private:
 		METHOD_VOID();
 	}
 
-	static v8::Handle<v8::Value> s_info(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> console_base::s_info(const v8::Arguments& args)
 	{
 		METHOD_ENTER(-1, 1);
 
@@ -77,18 +94,7 @@ private:
 		METHOD_VOID();
 	}
 
-	static v8::Handle<v8::Value> s_debug(const v8::Arguments& args)
-	{
-		METHOD_ENTER(-1, 1);
-
-		ARG_String(0);
-
-		hr = debug(v0, args);
-
-		METHOD_VOID();
-	}
-
-	static v8::Handle<v8::Value> s_warn(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> console_base::s_warn(const v8::Arguments& args)
 	{
 		METHOD_ENTER(-1, 1);
 
@@ -99,7 +105,7 @@ private:
 		METHOD_VOID();
 	}
 
-	static v8::Handle<v8::Value> s_error(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> console_base::s_error(const v8::Arguments& args)
 	{
 		METHOD_ENTER(-1, 1);
 
@@ -110,7 +116,7 @@ private:
 		METHOD_VOID();
 	}
 
-	static v8::Handle<v8::Value> s_time(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> console_base::s_time(const v8::Arguments& args)
 	{
 		METHOD_ENTER(1, 0);
 
@@ -121,7 +127,7 @@ private:
 		METHOD_VOID();
 	}
 
-	static v8::Handle<v8::Value> s_timeEnd(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> console_base::s_timeEnd(const v8::Arguments& args)
 	{
 		METHOD_ENTER(1, 0);
 
@@ -132,7 +138,7 @@ private:
 		METHOD_VOID();
 	}
 
-	static v8::Handle<v8::Value> s_trace(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> console_base::s_trace(const v8::Arguments& args)
 	{
 		METHOD_ENTER(1, 0);
 
@@ -142,8 +148,6 @@ private:
 
 		METHOD_VOID();
 	}
-
-};
 
 }
 

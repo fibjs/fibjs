@@ -163,6 +163,7 @@
 		<Unit filename="include/Buffer.h" />
 		<Unit filename="include/File.h" />
 		<Unit filename="include/ifs/Buffer.h" />
+		<Unit filename="include/ifs/Function.h" />
 		<Unit filename="include/ifs/console.h" />
 		<Unit filename="include/ifs/file.h" />
 		<Unit filename="include/ifs/fs.h" />
@@ -172,9 +173,11 @@
 		<Unit filename="include/ifs/stream.h" />
 		<Unit filename="src/Buffer.cpp" />
 		<Unit filename="src/File.cpp" />
+		<Unit filename="src/Function.cpp" />
 		<Unit filename="src/console.cpp" />
 		<Unit filename="src/fibjs.cpp" />
 		<Unit filename="src/fs.cpp" />
+		<Unit filename="src/global.cpp" />
 		<Unit filename="src/os.cpp" />
 		<Extensions>
 			<code_completion />

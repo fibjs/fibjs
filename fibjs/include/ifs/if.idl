@@ -1,125 +1,180 @@
-/*! \mainpage My Personal Index Page
+/*! @mainpage My Personal Index Page
  *
- * \section intro_sec Introduction
+ * @section intro_sec Introduction
  *
  * This is the introduction.
  *
- * \section install_sec Installation
+ * @section install_sec Installation
  *
- * \subsection step1 Step 1: Opening the box
+ * @subsection step1 Step 1: Opening the box
  *
  * etc...
  */
 
 
-/*! \brief 基础对象，所有对象均继承于此*/
+/*! @brief 基础对象，所有对象均继承于此*/
 class object
 {
-	/*! \brief 强制回收对象，调用此方法后，对象资源将立即释放*/
+	/*! @brief 强制回收对象，调用此方法后，对象资源将立即释放*/
 	dispose();
+
+	/*! @brief 返回对象的字符串表示，一般返回 "[Native Object]"，对象可以根据自己的特性重新实现*/
 	String toString();
 };
 
-/*! \brief 二进制数据缓存对象，用于 io 读写的数据处理
+
+
+/*! @brief 二进制数据缓存对象，用于 io 读写的数据处理
  *
  * Buffer 对象为全局基础类，在任何时候都可以直接以 new Buffer(...) 创建。
 */
 class Buffer : object
 {
-	/*! \brief 缓存对象构造函数
-	* \param str 初始化字符串，缺省则创建一个空对象
-	* \param encoding 指定字符串的编码，允许的编码为：utf-8, utf8, ascii, ucs2, binary。缺省为 utf-8
+	/*! @brief 缓存对象构造函数
+	* @param str 初始化字符串，字符串将以 utf-8 格式写入，缺省则创建一个空对象
 	*/
-	Buffer(String str = "", String encoding = "utf-8");
+	Buffer(String str = "");
+
+	/*! @brief 缓存对象可使用下标直接访问二进制数据*/
 	Integer operator[];
+
+	/*! @brief 获取缓存对象的尺寸 */
+	readonly Integer length;
+
+	/*! @brief 修改缓存对象尺寸 */
+	resize(Integer sz);
+	
+	/*! @brief 向缓存对象写入字符串，字符串将以 utf-8 格式写入 */
+	write(String str);
+
+	/*! @brief 返回一个新缓存对象，包含指定范围的数据，若范围超出缓存，则只返回有效部分数据
+	* @param start 指定范围的起始，缺省从头开始
+	* @param end 指定范围的结束，缺省到缓存结尾
+	*/
+	Buffer slice(Integer start = 0, Integer end = -1);
+
+	/*! @brief 以字符串形式返回缓存内的数据，字符串将以 utf-8 编码读出 */
+	String toString();
 };
 
-/*! \brief 控制台访问对象
+
+
+/*! @brief 控制台访问对象
 *
 * 全局对象。可用于提示信息，警告和错误记录。通过启动配置文件，可将日志定位
 * 到不同的设备，以便于跟踪。日志支持格式化输出，例如：
-* \code
+* @code
 * console.log("%d + %d = %d", 100, 200, 100 + 200); 
-* \endcode
+* @endcode
+* 可以使用的格式化参数如下：
+* - %s - 字符串
+* - %d - 数字，包括整数和数字
+* - %j - 以 JSON 格式输出对象
+* - %% - 输出字符 '%' 本身
 */
 class console : object
 {
-	/*! \brief 记录普通日志信息，与 info 等同
+	/*! @brief 记录普通日志信息，与 info 等同
 	*
-	* 记录一般等级的日志信息。通常用于输出非错误性提示信息。非重要。
-	* \param fmt 格式化字符串
-	* \param ... 可选参数列表
+	* 记录一般等级的日志信息。通常用于输出非错误性提示信息。
+	* @param fmt 格式化字符串
+	* @param ... 可选参数列表
 	*/
 	static log(String fmt, ...);
-	/*! \brief 记录普通日志信息，与 log 等同
+
+	/*! @brief 记录普通日志信息，与 log 等同
 	*
-	* 记录一般等级的日志信息。通常用于输出非错误性提示信息。非重要。
-	* \param fmt 格式化字符串
-	* \param ... 可选参数列表
+	* 记录一般等级的日志信息。通常用于输出非错误性提示信息。
+	* @param fmt 格式化字符串
+	* @param ... 可选参数列表
 	*/
 	static info(String fmt, ...);
-	/*! \brief 记录调试日志信息
-	*
-	* 记录用于调试的日志信息。通常用于输出非错误性调试信息。一般重要。
-	* \param fmt 格式化字符串
-	* \param ... 可选参数列表
-	*/
-	static debug(String fmt, ...);
-	/*! \brief 记录警告日志信息
+
+	/*! @brief 记录警告日志信息
 	*
 	* 记录警告日志信息。通常用于输出非错误性调试信息。重要。
-	* \param fmt 格式化字符串
-	* \param ... 可选参数列表
+	* @param fmt 格式化字符串
+	* @param ... 可选参数列表
 	*/
 	static warn(String fmt, ...);
-	/*! \brief 记录错误日志信息
+
+	/*! @brief 记录错误日志信息
 	*
 	* 记录用于错误日志信息。通常用于输出非错误性调试信息。非常重要。系统的出错信息也会以此等级记录。
-	* \param fmt 格式化字符串
-	* \param ... 可选参数列表
+	* @param fmt 格式化字符串
+	* @param ... 可选参数列表
 	*/
 	static error(String fmt, ...);
-	/*! \brief 启动一个计时器
+
+	/*! @brief 启动一个计时器
 	*
-	* \param label 标题，缺省为空字符串。
+	* @param label 标题，缺省为空字符串。
 	*/
 	static time(String label = "");
-	/*! \brief 统计指定计时器的数值
+
+	/*! @brief 统计指定计时器的数值
 	*
-	* \param label 标题，缺省为空字符串。
+	* @param label 标题，缺省为空字符串。
 	*/
 	static timeEnd(String label = "");
-	/*! \brief 输出当前调用堆栈
+
+	/*! @brief 输出当前调用堆栈
 	*
 	* 通过日志输出当前调用堆栈。
-	* \param label 标题，缺省为空字符串。
+	* @param label 标题，缺省为空字符串。
 	*/
 	static trace(String label = "");
 };
 
-/*! \brief 操作系统信息查询，全局对象*/
+
+
+/*! @brief 操作系统信息查询，全局对象*/
 class os : object
 {
-	/*! \brief 查询当前运行环境主机名*/
+	/*! @brief 查询当前运行环境主机名*/
 	static String hostname();
-	/*! \brief 查询当前运行环境操作系统名称*/
+
+	/*! @brief 查询当前运行环境操作系统名称*/
 	static String type();
-	/*! \brief 查询当前运行环境操作系统版本*/
+
+	/*! @brief 查询当前运行环境操作系统版本*/
 	static String release();
-	/*! \brief 查询当前运行环境*/
+
+	/*! @brief 查询当前运行环境*/
 	static String arch();
-	/*! \brief 查询当前运行环境 cpu 个数和参数*/
+
+	/*! @brief 查询当前运行环境 cpu 个数和参数*/
 	static Array CPUInfo();
-	/*! \brief 查询当前运行环境网络信息*/
+
+	/*! @brief 查询当前运行环境网络信息*/
 	static Array networkInfo();
 };
 
 
+
+/*! @brief 流操作对象，用于二进制数据流读写*/
 class stream : object
 {
 	const Integer FSEEK_SET = 0;
 	const Integer FSEEK_CUR = 1;
 	const Integer FSEEK_END = 2;
+
+	/*! @brief 查询当前流是否允许读*/
+	readonly Boolean readable;
+
+	/*! @brief 查询当前流是否允许写*/
+	readonly Boolean writable;
+
+	/*! @brief 从流内读取指定大小的数据
+	* @param size 指定要读取的数据量，缺省为读取剩余全部数据
+	* @return 返回从流内读取的数据
+	*/
+	Buffer read(Integer size = -1);
+
+	/*! @brief 将给定的数据写入流
+	* @param data 给定要写入的数据
+	*/
+	write(Buffer data);
 /*
 	Boolean readable;
 	Boolean writable;
@@ -129,6 +184,8 @@ class stream : object
 	String readutil(String eos);
 	write(String str);*/
 };
+
+
 
 class file : stream
 {
@@ -152,28 +209,58 @@ class file : stream
 	write(data d);*/
 };
 
-/*! \brief 文件处理对象，全局对象*/
+
+
+/*! @brief 文件处理对象，全局对象*/
 class fs : object
 {
 	const Integer FSEEK_SET = 0;
 	const Integer FSEEK_CUR = 1;
 	const Integer FSEEK_END = 2;
 
-	static file open(String fname, String IOMode = "r", String encoding = "utf-8");
+	/*! @brief 打开文件，用于读取，写入，或者同时读写
+	* @param fname 指定文件名
+	* @param mode 指定文件打开方式，缺省为 "r"，只读方式。支持的方式如下：
+	* - 'r' 只读方式，文件不存在则抛出错误。
+	* - 'r+' 读写方式，文件不存在则抛出错误。
+	* - 'w' 只写方式，文件不存在则自动创建，存在则将被清空。
+	* - 'w+' 读写方式，文件不存在则自动创建。
+	* - 'a' 只写添加方式，文件不存在则自动创建。
+	* - 'a+' 读写添加方式，文件不存在则自动创建。
+	* @return 返回打开的文件对象
+	*/
+	static file open(String fname, String mode = "r");
 	static file create(String fname, Boolean Overwrite = true);
 	static file tmpFile();
 };
 
-/*! \brief 全局对象，所有脚本均可以访问的基础对象*/
+
+/*! @brief 全局对象，所有脚本均可以访问的基础对象*/
 class global
 {
-	/*! \brief 出让当前协程占用的运行时间，切换到下一个排队的协程*/
-	yield();
-	/*! \brief 控制台访问对象*/
-	readonly console console;
-	/*! \brief 操作系统信息查询*/
-	readonly os os;
-	/*! \brief 文件处理对象*/
-	readonly fs fs;
+	/*! @brief 出让当前协程占用的运行时间，切换到下一个排队的协程*/
+	static yield();
+
+	/*! @brief 控制台访问对象*/
+	static console console;
+
+	/*! @brief 操作系统信息查询*/
+	static os os;
+
+	/*! @brief 文件处理对象*/
+	static fs fs;
+
+	/*! @brief 记录普通日志信息，与 console.log 等同
+	* @param fmt 格式化字符串
+	* @param ... 可选参数列表
+	*/
+	static print(String fmt, ...);
 };
+
+
+class Function
+{
+	static start(...);
+};
+
 

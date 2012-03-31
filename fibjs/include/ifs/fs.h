@@ -27,9 +27,9 @@ public:
 
 public:
 	// fs_base
-	static result_t open(const char* fname, const char* IOMode, const char* encoding, file_base*& retVal);
-	static result_t create(const char* fname, bool Overwrite, file_base*& retVal);
-	static result_t tmpFile(file_base*& retVal);
+	static result_t open(const char* fname, const char* mode, obj_ptr<file_base>& retVal);
+	static result_t create(const char* fname, bool Overwrite, obj_ptr<file_base>& retVal);
+	static result_t tmpFile(obj_ptr<file_base>& retVal);
 
 public:
 	static ClassInfo& info()
@@ -48,18 +48,38 @@ public:
 			{"FSEEK_END", s_get_FSEEK_END}
 		};
 
-		static ClassInfo s_ci("fs", NULL, 3, s_method, 3, s_property, NULL, &object_base::info());
+		static ClassData s_cd = 
+		{ 
+			"fs", NULL, 
+			3, s_method, 3, s_property, NULL,
+			&object_base::info()
+		};
 
+		static ClassInfo s_ci(s_cd);
 		return s_ci;
 	}
 
-    virtual v8::Handle<v8::Value> ToJSObject()
+	virtual v8::Handle<v8::Value> JSObject()
 	{
 		return wrap(info());
 	}
 
 private:
-	static v8::Handle<v8::Value> s_get_FSEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	static v8::Handle<v8::Value> s_get_FSEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_FSEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_FSEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_open(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_create(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_tmpFile(const v8::Arguments& args);
+};
+
+}
+
+#include "file.h"
+
+namespace fibjs
+{
+	inline v8::Handle<v8::Value> fs_base::s_get_FSEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		PROPERTY_ENTER();
 
@@ -68,7 +88,7 @@ private:
 		METHOD_RETURN();
 	}
 
-	static v8::Handle<v8::Value> s_get_FSEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline v8::Handle<v8::Value> fs_base::s_get_FSEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		PROPERTY_ENTER();
 
@@ -77,7 +97,7 @@ private:
 		METHOD_RETURN();
 	}
 
-	static v8::Handle<v8::Value> s_get_FSEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline v8::Handle<v8::Value> fs_base::s_get_FSEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		PROPERTY_ENTER();
 
@@ -86,48 +106,43 @@ private:
 		METHOD_RETURN();
 	}
 
-	static v8::Handle<v8::Value> s_open(const v8::Arguments& args)
-	{
-		METHOD_ENTER(3, 1);
-
-		ARG_String(0);
-		OPT_ARG_String(1, "r");
-		OPT_ARG_String(2, "utf-8");
-
-		file_base* vr;
-		hr = open(v0, v1, v2, vr);
-
-		METHOD_RETURN();
-	}
-
-	static v8::Handle<v8::Value> s_create(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> fs_base::s_open(const v8::Arguments& args)
 	{
 		METHOD_ENTER(2, 1);
 
 		ARG_String(0);
-		OPT_ARG_Boolean(1, true);
+		OPT_ARG_String(1, "r");
 
-		file_base* vr;
+		obj_ptr<file_base> vr;
+		hr = open(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> fs_base::s_create(const v8::Arguments& args)
+	{
+		METHOD_ENTER(2, 1);
+
+		ARG_String(0);
+		OPT_ARG(bool, 1, true);
+
+		obj_ptr<file_base> vr;
 		hr = create(v0, v1, vr);
 
 		METHOD_RETURN();
 	}
 
-	static v8::Handle<v8::Value> s_tmpFile(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> fs_base::s_tmpFile(const v8::Arguments& args)
 	{
 		METHOD_ENTER(0, 0);
 
-		file_base* vr;
+		obj_ptr<file_base> vr;
 		hr = tmpFile(vr);
 
 		METHOD_RETURN();
 	}
 
-};
-
 }
-
-#include "file.h"
 
 #endif
 

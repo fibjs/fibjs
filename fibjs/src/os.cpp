@@ -31,7 +31,7 @@ result_t os_base::hostname(std::string& retVal)
     int r = gethostname(s, 255);
 
     if (r < 0)
-        return Error();
+        return LastError();
 
     retVal = s;
     return 0;
@@ -59,7 +59,7 @@ result_t os_base::release(std::string& retVal)
     char release[256];
 
     if (GetVersionEx(&info) == 0)
-        return Error();
+        return LastError();
 
     sprintf(release, "%d.%d.%d", static_cast<int>(info.dwMajorVersion),
             static_cast<int>(info.dwMinorVersion), static_cast<int>(info.dwBuildNumber));
@@ -106,7 +106,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array>& retVal)
                          &processor_key) != ERROR_SUCCESS)
         {
             if (i == 0)
-                return Error();
+                return LastError();
 
             continue;
         }
@@ -114,12 +114,12 @@ result_t os_base::CPUInfo(v8::Local<v8::Array>& retVal)
         if (RegQueryValueEx(processor_key, "~MHz", NULL, NULL,
                             (LPBYTE)&cpu_speed, &cpu_speed_length)
                 != ERROR_SUCCESS)
-            return Error();
+            return LastError();
 
         if (RegQueryValueEx(processor_key, "ProcessorNameString", NULL, NULL,
                             (LPBYTE)&cpu_brand, &cpu_brand_length)
                 != ERROR_SUCCESS)
-            return Error();
+            return LastError();
 
         RegCloseKey(processor_key);
 
@@ -225,11 +225,11 @@ result_t os_base::CPUInfo(v8::Local<v8::Array>& retVal)
 
     size = sizeof(model);
     if (sysctlbyname("hw.model", &model, &size, NULL, 0) < 0)
-        return Error();
+        return LastError();
 
     size = sizeof(cpuspeed);
     if (sysctlbyname("hw.cpufrequency", &cpuspeed, &size, NULL, 0) < 0)
-        return Error();
+        return LastError();
 
     natural_t numcpus;
     mach_msg_type_number_t count;
@@ -237,7 +237,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array>& retVal)
     if (host_processor_info(mach_host_self(), PROCESSOR_CPU_LOAD_INFO, &numcpus,
                             reinterpret_cast<processor_info_array_t*>(&info),
                             &count) != KERN_SUCCESS)
-        return Error();
+        return LastError();
 
     retVal = v8::Array::New(numcpus);
     for (unsigned int i = 0; i < numcpus; i++)
@@ -284,7 +284,7 @@ result_t os_base::networkInfo(v8::Local<v8::Array>& retVal)
     v8::Local<v8::String> name, ipaddr, family;
 
     if (getifaddrs(&addrs) != 0)
-        return Error();
+        return LastError();
 
     ret = v8::Object::New();
 

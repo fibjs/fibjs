@@ -9,22 +9,22 @@
 #include <log4cpp/PropertyConfigurator.hh>
 #include <log4cpp/OstreamAppender.hh>
 #include <log4cpp/BasicLayout.hh>
+#include <log4cpp/SimpleLayout.hh>
 
 #include <fiber.h>
 
-#include "ifs/console.h"
-#include "ifs/os.h"
-#include "ifs/file.h"
-#include "ifs/fs.h"
 #include "ifs/Buffer.h"
-
+#include "ifs/global.h"
+#include "ifs/Function.h"
 
 using namespace v8;
-using namespace fibjs;
+
+namespace fibjs
+{
 
 Isolate* isolate;
 
-const char* ToCString(const v8::String::Utf8Value& value)
+inline const char* ToCString(const v8::String::Utf8Value& value)
 {
     return *value ? *value : "<string conversion failed>";
 }
@@ -64,121 +64,6 @@ void ReportException(v8::TryCatch* try_catch, bool rt = false)
     }
 }
 
-Handle<Value> Print(const Arguments& args)
-{
-    HandleScope handle_scope;
-
-    bool first = true;
-    for (int i = 0; i < args.Length(); i++)
-    {
-        if (first)
-            first = false;
-        else
-            printf(" ");
-
-        String::Utf8Value str(args[i]);
-        printf("%s",  *str);
-    }
-    printf("\n");
-
-    return Undefined();
-}
-
-class fiber_data
-{
-public:
-    fiber_data() : m_next(NULL)
-    {
-    }
-
-    ~fiber_data()
-    {
-        size_t i;
-
-        for(i = 0; i < argv.size(); i ++)
-            argv[i].Dispose();
-
-        m_func.Dispose();
-    }
-public:
-    Persistent<Value> m_func;
-    std::vector< Persistent<Value> > argv;
-    fiber_data* m_next;
-};
-
-fiber::List<fiber_data> g_jobs;
-fiber::Semaphore g_job_sem;
-
-void* t(void* p)
-{
-    Locker locker(isolate);
-    Isolate::Scope isolate_scope(isolate);
-
-    HandleScope handle_scope;
-    Handle<Context> context = Context::New();
-    Context::Scope context_scope(context);
-
-    while(1)
-    {
-        V8::AdjustAmountOfExternalAllocatedMemory(128);
-        {
-            Unlocker unlocker(isolate);
-            g_job_sem.wait();
-        }
-
-        HandleScope handle_scope;
-
-        fiber_data* fb = g_jobs.get();
-        size_t i;
-
-        Handle<Function> func = Handle<Function>::Cast(fb->m_func);
-        std::vector< Handle<Value> > argv;
-
-        argv.resize(fb->argv.size());
-        for(i = 0; i < fb->argv.size(); i ++)
-            argv[i] = fb->argv[i];
-
-        TryCatch try_catch;
-        func->Call(func, argv.size(), argv.size() ? &argv[0] : NULL);
-        if (try_catch.HasCaught())
-            ReportException(&try_catch, true);
-
-        delete fb;
-        V8::AdjustAmountOfExternalAllocatedMemory(-128);
-    }
-
-    return NULL;
-}
-
-Handle<Value> fb_start(const Arguments& args)
-{
-    if (!args.This()->IsFunction())
-        return ThrowException(String::New("Invalid arguments. Use function.start(...);'"));
-
-    fiber_data* fb = new fiber_data();
-    int i;
-
-    fb->argv.resize(args.Length());
-    for(i = 0; i < args.Length(); i ++)
-        fb->argv[i] = Persistent<Value>::New(args[i]);
-    fb->m_func = Persistent<Value>::New(args.This());
-
-    if(g_job_sem.blocked() == 0)
-        fiber::Service::CreateFiber(t);
-
-    g_jobs.put(fb);
-    g_job_sem.post();
-
-    return Undefined();
-}
-
-Handle<Value> fb_yield(const Arguments& args)
-{
-    Unlocker unlocker(isolate);
-    fiber::Fiber::yield();
-    return Undefined();
-}
-
 static int ReadFile(const char* name, std::vector<char>& buf)
 {
     FILE* file = fopen(name, "rb");
@@ -212,6 +97,7 @@ Handle<Value> Run(const Arguments& args)
     const char* name = *str;
 
     HandleScope handle_scope;
+
 
     Persistent<Context> context = Context::New();
     Context::Scope context_scope(context);
@@ -247,10 +133,7 @@ Handle<Value> runScript(const char* name)
 {
     HandleScope handle_scope;
 
-    Handle<ObjectTemplate> global_templ = ObjectTemplate::New();
-    global_templ->Set(String::New("print"), FunctionTemplate::New(Print));
-
-    Persistent<Context> context = Context::New(NULL, global_templ);
+    Persistent<Context> context = Context::New();
     Context::Scope context_scope(context);
 
     initGlobal(context);
@@ -329,26 +212,31 @@ void initGlobal(Persistent<Context>& context)
 
     Local<Object> global = context->Global();
 
-    global->Set(String::New("print"), FunctionTemplate::New(Print)->GetFunction());
     global->Set(String::New("run"), FunctionTemplate::New(Run)->GetFunction());
-    global->Set(String::New("yield"), FunctionTemplate::New(fb_yield)->GetFunction());
 
     global->Set(String::New("ReadFile"), FunctionTemplate::New(ReadFile)->GetFunction());
     global->Set(String::New("WriteFile"), FunctionTemplate::New(WriteFile)->GetFunction());
 
-    global->Set(v8::String::New("console"), console_base::info().CreateInstance());
-    global->Set(v8::String::New("os"), os_base::info().CreateInstance());
-    global->Set(v8::String::New("fs"), fs_base::info().CreateInstance());
+    global_base::info().Attach(global);
 
     global->Set(String::New("Buffer"), Buffer_base::info().getTemplate()->GetFunction());
 
-    Local<Object> fun = global->Get(String::New("Function"))->ToObject();
-    Local<Object> proto = fun->GetPrototype()->ToObject();
+    Local<Object> proto = global->Get(String::New("Function"))->ToObject()
+                          ->GetPrototype()->ToObject();
 
-    proto->Set(String::New("start"), FunctionTemplate::New(fb_start)->GetFunction());
+    Function_base::info().Attach(proto);
 }
 
-int main(int argc, char* argv[])
+class MyLayout : public log4cpp::Layout
+{
+public:
+    std::string format(const log4cpp::LoggingEvent& event)
+    {
+        return event.message + '\n';
+    }
+};
+
+extern "C" int main(int argc, char* argv[])
 {
     try
     {
@@ -359,21 +247,22 @@ int main(int argc, char* argv[])
         log4cpp::Category& root = log4cpp::Category::getRoot();
 
         log4cpp::Appender* appender = new log4cpp::OstreamAppender("console", &std::cout);
-        appender->setLayout(new log4cpp::BasicLayout());
+        appender->setLayout(new MyLayout());
         root.addAppender(appender);
         root.setPriority(log4cpp::Priority::DEBUG);
 
         root.warn(e.what());
     }
-/*
-    v8::ResourceConstraints rc;
-    rc.set_max_young_space_size(2048); //KB
-    rc.set_max_old_space_size(10); //MB
-    rc.set_max_executable_size(10); //MB
-    rc.set_stack_limit(reinterpret_cast<uint32_t*>((char*)&rc- 1024 * 400));
 
-    SetResourceConstraints(&rc);
-*/
+    /*
+        v8::ResourceConstraints rc;
+        rc.set_max_young_space_size(2048); //KB
+        rc.set_max_old_space_size(10); //MB
+        rc.set_max_executable_size(10); //MB
+        rc.set_stack_limit(reinterpret_cast<uint32_t*>((char*)&rc- 1024 * 400));
+
+        SetResourceConstraints(&rc);
+    */
     V8::Initialize();
 
     isolate = Isolate::GetCurrent();
@@ -385,4 +274,6 @@ int main(int argc, char* argv[])
     else runScript("main.js");
 
     return 0;
+}
+
 }

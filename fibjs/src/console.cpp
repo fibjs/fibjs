@@ -76,7 +76,6 @@ std::string Format(const char* fmt, const v8::Arguments& args, int idx = 1)
             }
         }
         else break;
-
     }
 
     while(idx < argc)
@@ -94,12 +93,6 @@ result_t console_base::log(const char* fmt, const v8::Arguments& args)
 result_t console_base::info(const char* fmt, const v8::Arguments& args)
 {
     log4cpp::Category::getRoot().info(Format(fmt, args));
-    return 0;
-}
-
-result_t console_base::debug(const char* fmt, const v8::Arguments& args)
-{
-    log4cpp::Category::getRoot().debug(Format(fmt, args));
     return 0;
 }
 
@@ -121,7 +114,7 @@ result_t console_base::time(const char* label)
 {
     s_timers[std::string(label)] = Ticks();
 
-	return 0;
+    return 0;
 }
 
 result_t console_base::timeEnd(const char* label)
@@ -132,10 +125,10 @@ result_t console_base::timeEnd(const char* label)
 
     printf("%s: %ldms\n", label, t);
 
-	return 0;
+    return 0;
 }
 
-const char* ToCString(const v8::String::Utf8Value& value)
+inline const char* ToCString(const v8::String::Utf8Value& value)
 {
     return *value ? *value : "<string conversion failed>";
 }

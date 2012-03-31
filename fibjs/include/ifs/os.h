@@ -40,18 +40,36 @@ public:
 			{"networkInfo", s_networkInfo}
 		};
 
-		static ClassInfo s_ci("os", NULL, 6, s_method, 0, NULL, NULL, &object_base::info());
+		static ClassData s_cd = 
+		{ 
+			"os", NULL, 
+			6, s_method, 0, NULL, NULL,
+			&object_base::info()
+		};
 
+		static ClassInfo s_ci(s_cd);
 		return s_ci;
 	}
 
-    virtual v8::Handle<v8::Value> ToJSObject()
+	virtual v8::Handle<v8::Value> JSObject()
 	{
 		return wrap(info());
 	}
 
 private:
-	static v8::Handle<v8::Value> s_hostname(const v8::Arguments& args)
+	static v8::Handle<v8::Value> s_hostname(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_type(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_release(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_arch(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_CPUInfo(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_networkInfo(const v8::Arguments& args);
+};
+
+}
+
+namespace fibjs
+{
+	inline v8::Handle<v8::Value> os_base::s_hostname(const v8::Arguments& args)
 	{
 		METHOD_ENTER(0, 0);
 
@@ -61,7 +79,7 @@ private:
 		METHOD_RETURN();
 	}
 
-	static v8::Handle<v8::Value> s_type(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> os_base::s_type(const v8::Arguments& args)
 	{
 		METHOD_ENTER(0, 0);
 
@@ -71,7 +89,7 @@ private:
 		METHOD_RETURN();
 	}
 
-	static v8::Handle<v8::Value> s_release(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> os_base::s_release(const v8::Arguments& args)
 	{
 		METHOD_ENTER(0, 0);
 
@@ -81,7 +99,7 @@ private:
 		METHOD_RETURN();
 	}
 
-	static v8::Handle<v8::Value> s_arch(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> os_base::s_arch(const v8::Arguments& args)
 	{
 		METHOD_ENTER(0, 0);
 
@@ -91,7 +109,7 @@ private:
 		METHOD_RETURN();
 	}
 
-	static v8::Handle<v8::Value> s_CPUInfo(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> os_base::s_CPUInfo(const v8::Arguments& args)
 	{
 		METHOD_ENTER(0, 0);
 
@@ -101,7 +119,7 @@ private:
 		METHOD_RETURN();
 	}
 
-	static v8::Handle<v8::Value> s_networkInfo(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> os_base::s_networkInfo(const v8::Arguments& args)
 	{
 		METHOD_ENTER(0, 0);
 
@@ -110,8 +128,6 @@ private:
 
 		METHOD_RETURN();
 	}
-
-};
 
 }
 
