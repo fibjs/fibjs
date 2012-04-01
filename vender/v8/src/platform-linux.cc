@@ -61,6 +61,7 @@
 
 #include "v8.h"
 
+#include "platform-posix.h"
 #include "platform.h"
 #include "v8threads.h"
 #include "vm-state-inl.h"
@@ -106,6 +107,13 @@ void OS::SetUp() {
 #endif
   }
 #endif
+}
+
+
+void OS::PostSetUp() {
+  // Math functions depend on CPU features therefore they are initialized after
+  // CPU.
+  MathSetup();
 }
 
 

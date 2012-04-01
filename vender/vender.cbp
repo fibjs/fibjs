@@ -831,6 +831,7 @@
 		<Unit filename="v8/src/atomicops_internals_x86_gcc.cc" />
 		<Unit filename="v8/src/atomicops_internals_x86_gcc.h" />
 		<Unit filename="v8/src/atomicops_internals_x86_macosx.h" />
+		<Unit filename="v8/src/atomicops_internals_x86_msvc.h" />
 		<Unit filename="v8/src/bignum-dtoa.cc" />
 		<Unit filename="v8/src/bignum-dtoa.h" />
 		<Unit filename="v8/src/bignum.cc" />
@@ -1026,6 +1027,7 @@
 		<Unit filename="v8/src/platform-macos.cc" />
 		<Unit filename="v8/src/platform-openbsd.cc" />
 		<Unit filename="v8/src/platform-posix.cc" />
+		<Unit filename="v8/src/platform-posix.h" />
 		<Unit filename="v8/src/platform-solaris.cc" />
 		<Unit filename="v8/src/platform-tls-mac.h" />
 		<Unit filename="v8/src/platform-tls-win32.h" />
