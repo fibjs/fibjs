@@ -2096,6 +2096,9 @@
     <ClInclude Include="lfds\ringbuffer\ringbuffer_internal.h">
       <Filter>Source Files\lfds\ringbuffer</Filter>
     </ClInclude>
+    <ClInclude Include="v8\src\platform-posix.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\log4cpp\AbortAppender.hh">

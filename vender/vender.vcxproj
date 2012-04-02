@@ -603,6 +603,7 @@
     <ClInclude Include="v8\src\objects.h" />
     <ClInclude Include="v8\src\once.h" />
     <ClInclude Include="v8\src\parser.h" />
+    <ClInclude Include="v8\src\platform-posix.h" />
     <ClInclude Include="v8\src\platform-tls-mac.h" />
     <ClInclude Include="v8\src\platform-tls-win32.h" />
     <ClInclude Include="v8\src\platform-tls.h" />

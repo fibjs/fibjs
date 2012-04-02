@@ -604,7 +604,7 @@ int OS::GetUserTime(uint32_t* secs,  uint32_t* usecs) {
   return 0;
 }
 
-
+#if 0
 // Returns current time as the number of milliseconds since
 // 00:00:00 UTC, January 1, 1970.
 double OS::TimeCurrentMillis() {
@@ -617,7 +617,7 @@ double OS::TimeCurrentMillis() {
 int64_t OS::Ticks() {
   return timeGetTime() * 1000;  // Convert to microseconds.
 }
-
+#endif
 
 // Returns a string identifying the current timezone taking into
 // account daylight saving.
