@@ -29,14 +29,16 @@ public:
 	static result_t get_os(obj_ptr<os_base>& retVal);
 	static result_t get_fs(obj_ptr<fs_base>& retVal);
 	static result_t print(const char* fmt, const v8::Arguments& args);
+	static result_t GC();
 
 public:
-	static ClassInfo& info()
+	static ClassInfo& class_info()
 	{
 		static ClassMethod s_method[] = 
 		{
 			{"yield", s_yield},
-			{"print", s_print}
+			{"print", s_print},
+			{"GC", s_GC}
 		};
 
 		static ClassProperty s_property[] = 
@@ -49,17 +51,17 @@ public:
 		static ClassData s_cd = 
 		{ 
 			"global", NULL, 
-			2, s_method, 3, s_property, NULL,
-			&object_base::info()
+			3, s_method, 3, s_property, NULL,
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
 	}
 
-	virtual v8::Handle<v8::Value> JSObject()
+	virtual ClassInfo& Classinfo()
 	{
-		return wrap(info());
+		return class_info();
 	}
 
 private:
@@ -68,6 +70,7 @@ private:
 	static v8::Handle<v8::Value> s_get_os(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_fs(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_print(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_GC(const v8::Arguments& args);
 };
 
 }
@@ -124,6 +127,15 @@ namespace fibjs
 		ARG_String(0);
 
 		hr = print(v0, args);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> global_base::s_GC(const v8::Arguments& args)
+	{
+		METHOD_ENTER(0, 0);
+
+		hr = GC();
 
 		METHOD_VOID();
 	}

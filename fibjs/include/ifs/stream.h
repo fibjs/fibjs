@@ -33,7 +33,7 @@ public:
 	virtual result_t write(obj_ptr<Buffer_base> data) = 0;
 
 public:
-	static ClassInfo& info()
+	static ClassInfo& class_info()
 	{
 		static ClassMethod s_method[] = 
 		{
@@ -54,16 +54,16 @@ public:
 		{ 
 			"stream", NULL, 
 			2, s_method, 5, s_property, NULL,
-			&object_base::info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
 	}
 
-	virtual v8::Handle<v8::Value> JSObject()
+	virtual ClassInfo& Classinfo()
 	{
-		return wrap(info());
+		return class_info();
 	}
 
 private:

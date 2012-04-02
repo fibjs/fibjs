@@ -29,7 +29,7 @@ public:
 	static result_t trace(const char* label);
 
 public:
-	static ClassInfo& info()
+	static ClassInfo& class_info()
 	{
 		static ClassMethod s_method[] = 
 		{
@@ -46,16 +46,16 @@ public:
 		{ 
 			"console", NULL, 
 			7, s_method, 0, NULL, NULL,
-			&object_base::info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
 	}
 
-	virtual v8::Handle<v8::Value> JSObject()
+	virtual ClassInfo& Classinfo()
 	{
-		return wrap(info());
+		return class_info();
 	}
 
 private:
@@ -120,7 +120,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG_String(0, "time");
 
 		hr = time(v0);
 
@@ -131,7 +131,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG_String(0, "time");
 
 		hr = timeEnd(v0);
 
@@ -142,7 +142,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG_String(0, "trace");
 
 		hr = trace(v0);
 

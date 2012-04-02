@@ -32,7 +32,7 @@ public:
 	static result_t tmpFile(obj_ptr<file_base>& retVal);
 
 public:
-	static ClassInfo& info()
+	static ClassInfo& class_info()
 	{
 		static ClassMethod s_method[] = 
 		{
@@ -52,16 +52,16 @@ public:
 		{ 
 			"fs", NULL, 
 			3, s_method, 3, s_property, NULL,
-			&object_base::info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
 	}
 
-	virtual v8::Handle<v8::Value> JSObject()
+	virtual ClassInfo& Classinfo()
 	{
-		return wrap(info());
+		return class_info();
 	}
 
 private:

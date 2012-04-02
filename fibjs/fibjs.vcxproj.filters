@@ -39,6 +39,15 @@
     <ClCompile Include="src\fs.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Buffer.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Function.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\global.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -57,6 +66,27 @@
       <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\File.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\Buffer.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\Fiber.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\Function.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\global.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\object.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\stream.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Buffer.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>

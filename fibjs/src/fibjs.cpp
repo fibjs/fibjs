@@ -8,8 +8,6 @@
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
 #include <log4cpp/OstreamAppender.hh>
-#include <log4cpp/BasicLayout.hh>
-#include <log4cpp/SimpleLayout.hh>
 
 #include <fiber.h>
 
@@ -57,7 +55,9 @@ void ReportException(v8::TryCatch* try_catch, bool rt = false)
         strError << ToCString(exception) << "\n    at ";
         strError << ToCString(filename);
         int lineNumber = message->GetLineNumber();
-        if(lineNumber > 0)
+        if(lineNumber == 1)
+            strError << ':' << lineNumber << ':' << (message->GetStartColumn() - 12);
+        else if(lineNumber > 1)
             strError << ':' << lineNumber << ':' << (message->GetStartColumn() + 1);
 
         root.error(strError.str());
@@ -74,11 +74,12 @@ static int ReadFile(const char* name, std::vector<char>& buf)
     int size = ftell(file);
     rewind(file);
 
-    buf.resize(size);
+    buf.resize(size + 13);
+    memcpy(&buf[0], "\"use1strict\";", 13);
 
     for (int i = 0; i < size;)
     {
-        int read = static_cast<int>(fread(&buf[i], 1, size - i, file));
+        int read = static_cast<int>(fread(&buf[i + 13], 1, size - i, file));
         i += read;
     }
     fclose(file);
@@ -217,22 +218,34 @@ void initGlobal(Persistent<Context>& context)
     global->Set(String::New("ReadFile"), FunctionTemplate::New(ReadFile)->GetFunction());
     global->Set(String::New("WriteFile"), FunctionTemplate::New(WriteFile)->GetFunction());
 
-    global_base::info().Attach(global);
+    global_base::class_info().Attach(global);
 
-    global->Set(String::New("Buffer"), Buffer_base::info().getTemplate()->GetFunction());
+    global->Set(String::New("Buffer"), Buffer_base::class_info().getTemplate()->GetFunction());
 
     Local<Object> proto = global->Get(String::New("Function"))->ToObject()
                           ->GetPrototype()->ToObject();
 
-    Function_base::info().Attach(proto);
+    Function_base::class_info().Attach(proto);
 }
 
-class MyLayout : public log4cpp::Layout
+class MyAppender : public log4cpp::LayoutAppender
 {
 public:
-    std::string format(const log4cpp::LoggingEvent& event)
+    MyAppender() : LayoutAppender("console")
     {
-        return event.message + '\n';
+        puts("MyAppender");
+    }
+
+    void close()
+    {
+    }
+
+protected:
+    void _append(const log4cpp::LoggingEvent& event)
+    {
+        if(event.priority > log4cpp::Priority::NOTICE)
+            std::cerr << event.message << std::endl;
+        else std::cout << event.message << std::endl;
     }
 };
 
@@ -245,12 +258,7 @@ extern "C" int main(int argc, char* argv[])
     catch (log4cpp::ConfigureFailure e)
     {
         log4cpp::Category& root = log4cpp::Category::getRoot();
-
-        log4cpp::Appender* appender = new log4cpp::OstreamAppender("console", &std::cout);
-        appender->setLayout(new MyLayout());
-        root.addAppender(appender);
-        root.setPriority(log4cpp::Priority::DEBUG);
-
+        root.addAppender(new MyAppender());
         root.warn(e.what());
     }
 

@@ -28,7 +28,7 @@ public:
 	virtual result_t getData(double& retVal) = 0;
 
 public:
-	static ClassInfo& info()
+	static ClassInfo& class_info()
 	{
 		static ClassMethod s_method[] = 
 		{
@@ -44,16 +44,16 @@ public:
 		{ 
 			"file", NULL, 
 			1, s_method, 1, s_property, NULL,
-			&stream_base::info()
+			&stream_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
 	}
 
-	virtual v8::Handle<v8::Value> JSObject()
+	virtual ClassInfo& Classinfo()
 	{
-		return wrap(info());
+		return class_info();
 	}
 
 private:

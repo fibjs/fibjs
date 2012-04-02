@@ -80,7 +80,7 @@ result_t os_base::arch(std::string& retVal)
     return 0;
 }
 
-result_t os_base::CPUInfo(v8::Local<v8::Array>& retVal)
+result_t os_base::CPUInfo(v8::Handle<v8::Array>& retVal)
 {
     v8::HandleScope scope;
     retVal = v8::Array::New();
@@ -268,7 +268,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array>& retVal)
     return 0;
 }
 
-result_t os_base::networkInfo(v8::Local<v8::Array>& retVal)
+result_t os_base::networkInfo(v8::Handle<v8::Array>& retVal)
 {
     v8::HandleScope scope;
 

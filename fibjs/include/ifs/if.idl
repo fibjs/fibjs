@@ -110,20 +110,20 @@ class console : object
 	*
 	* @param label 标题，缺省为空字符串。
 	*/
-	static time(String label = "");
+	static time(String label = "time");
 
 	/*! @brief 统计指定计时器的数值
 	*
 	* @param label 标题，缺省为空字符串。
 	*/
-	static timeEnd(String label = "");
+	static timeEnd(String label = "time");
 
 	/*! @brief 输出当前调用堆栈
 	*
 	* 通过日志输出当前调用堆栈。
 	* @param label 标题，缺省为空字符串。
 	*/
-	static trace(String label = "");
+	static trace(String label = "trace");
 };
 
 
@@ -255,12 +255,19 @@ class global
 	* @param ... 可选参数列表
 	*/
 	static print(String fmt, ...);
+
+	/*! @brief 强制要求进行垃圾回收*/
+	static GC();
 };
 
+class Fiber
+{
+	readonly Function func;
+};
 
 class Function
 {
-	static start(...);
+	static Fiber start(...);
 };
 
 

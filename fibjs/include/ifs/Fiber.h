@@ -4,8 +4,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Function_base_H_
-#define _Function_base_H_
+#ifndef _Fiber_base_H_
+#define _Fiber_base_H_
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -16,26 +16,24 @@
 namespace fibjs
 {
 
-class Fiber_base;
-
-class Function_base : public object_base
+class Fiber_base : public object_base
 {
 public:
-	// Function_base
-	static result_t start(const v8::Arguments& args, obj_ptr<Fiber_base>& retVal);
+	// Fiber_base
+	virtual result_t get_func(v8::Handle<v8::Function>& retVal) = 0;
 
 public:
 	static ClassInfo& class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassProperty s_property[] = 
 		{
-			{"start", s_start}
+			{"func", s_get_func}
 		};
 
 		static ClassData s_cd = 
 		{ 
-			"Function", NULL, 
-			1, s_method, 0, NULL, NULL,
+			"Fiber", NULL, 
+			0, NULL, 1, s_property, NULL,
 			&object_base::class_info()
 		};
 
@@ -49,21 +47,20 @@ public:
 	}
 
 private:
-	static v8::Handle<v8::Value> s_start(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_get_func(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 };
 
 }
 
-#include "Fiber.h"
-
 namespace fibjs
 {
-	inline v8::Handle<v8::Value> Function_base::s_start(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> Fiber_base::s_get_func(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		METHOD_ENTER(-1, 0);
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Fiber_base);
 
-		obj_ptr<Fiber_base> vr;
-		hr = start(args, vr);
+		v8::Handle<v8::Function> vr;
+		hr = pInst->get_func(vr);
 
 		METHOD_RETURN();
 	}

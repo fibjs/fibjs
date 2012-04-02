@@ -24,11 +24,11 @@ public:
 	static result_t type(std::string& retVal);
 	static result_t release(std::string& retVal);
 	static result_t arch(std::string& retVal);
-	static result_t CPUInfo(v8::Local<v8::Array>& retVal);
-	static result_t networkInfo(v8::Local<v8::Array>& retVal);
+	static result_t CPUInfo(v8::Handle<v8::Array>& retVal);
+	static result_t networkInfo(v8::Handle<v8::Array>& retVal);
 
 public:
-	static ClassInfo& info()
+	static ClassInfo& class_info()
 	{
 		static ClassMethod s_method[] = 
 		{
@@ -44,16 +44,16 @@ public:
 		{ 
 			"os", NULL, 
 			6, s_method, 0, NULL, NULL,
-			&object_base::info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
 	}
 
-	virtual v8::Handle<v8::Value> JSObject()
+	virtual ClassInfo& Classinfo()
 	{
-		return wrap(info());
+		return class_info();
 	}
 
 private:
@@ -113,7 +113,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(0, 0);
 
-		v8::Local<v8::Array> vr;
+		v8::Handle<v8::Array> vr;
 		hr = CPUInfo(vr);
 
 		METHOD_RETURN();
@@ -123,7 +123,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(0, 0);
 
-		v8::Local<v8::Array> vr;
+		v8::Handle<v8::Array> vr;
 		hr = networkInfo(vr);
 
 		METHOD_RETURN();

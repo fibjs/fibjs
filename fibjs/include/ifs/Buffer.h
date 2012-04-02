@@ -30,7 +30,7 @@ public:
 	virtual result_t toString(std::string& retVal) = 0;
 
 public:
-	static ClassInfo& info()
+	static ClassInfo& class_info()
 	{
 		static ClassMethod s_method[] = 
 		{
@@ -54,16 +54,16 @@ public:
 		{ 
 			"Buffer", s__new, 
 			4, s_method, 1, s_property, &s_indexed,
-			&object_base::info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
 	}
 
-	virtual v8::Handle<v8::Value> JSObject()
+	virtual ClassInfo& Classinfo()
 	{
-		return wrap(info());
+		return class_info();
 	}
 
 private:

@@ -4,8 +4,9 @@
 #include <map>
 
 #ifdef _WIN32
+#include <windows.h>
 #include <mmsystem.h>
-int64_t Ticks()
+inline int64_t Ticks()
 {
     return timeGetTime();  // Convert to microseconds.
 }
@@ -13,7 +14,7 @@ int64_t Ticks()
 #else
 #include <sys/time.h>
 
-int64_t Ticks()
+inline int64_t Ticks()
 {
     struct timeval tv;
     if (gettimeofday(&tv, NULL) < 0)
@@ -119,11 +120,11 @@ result_t console_base::time(const char* label)
 
 result_t console_base::timeEnd(const char* label)
 {
-    int64_t t = Ticks() - s_timers[label];
+    long t = Ticks() - s_timers[label];
 
     s_timers.erase(label);
 
-    printf("%s: %ldms\n", label, t);
+    log4cpp::Category::getRoot().info("%s: %ldms", label, t);
 
     return 0;
 }
@@ -155,13 +156,17 @@ result_t console_base::trace(const char* label)
         if(**funname)
             strBuffer << *funname << " (";
 
-        strBuffer << *filename << ':' << f->GetLineNumber() << ':' << f->GetColumn();
+        int lineNumber = f->GetLineNumber();
+        if(lineNumber == 1)
+            strBuffer << *filename << ':' << f->GetLineNumber() << ':' << (f->GetColumn() - 13);
+        else
+            strBuffer << *filename << ':' << f->GetLineNumber() << ':' << f->GetColumn();
 
         if(**funname)
             strBuffer << ')';
     }
 
-    log4cpp::Category::getRoot().debug(strBuffer.str());
+    log4cpp::Category::getRoot().warn(strBuffer.str());
 
     return 0;
 }

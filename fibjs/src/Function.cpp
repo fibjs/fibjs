@@ -4,7 +4,7 @@
 namespace fibjs
 {
 
-class fiber_data
+class fiber_data : public Fiber_base
 {
 public:
     fiber_data() : m_next(NULL)
@@ -20,8 +20,15 @@ public:
 
         m_func.Dispose();
     }
+
+    result_t get_func(v8::Handle<v8::Function>& retVal)
+    {
+        retVal = m_func;
+        return 0;
+    }
+
 public:
-    v8::Persistent<v8::Value> m_func;
+    v8::Persistent<v8::Function> m_func;
     std::vector< v8::Persistent<v8::Value> > argv;
     fiber_data* m_next;
 };
@@ -45,7 +52,7 @@ void* t(void* p)
     while(1)
     {
         {
-            v8::Unlocker unlocker();
+            v8::Unlocker unlocker(isolate);
             g_job_sem.wait();
         }
 
@@ -54,7 +61,7 @@ void* t(void* p)
         fiber_data* fb = g_jobs.get();
         size_t i;
 
-        v8::Handle<v8::Function> func = v8::Handle<v8::Function>::Cast(fb->m_func);
+        v8::Handle<v8::Function> func = fb->m_func;
         std::vector< v8::Handle<v8::Value> > argv;
 
         argv.resize(fb->argv.size());
@@ -66,13 +73,13 @@ void* t(void* p)
         if (try_catch.HasCaught())
             ReportException(&try_catch, true);
 
-        delete fb;
+        fb->Unref();
     }
 
     return NULL;
 }
 
-result_t Function_base::start(const v8::Arguments& args)
+result_t Function_base::start(const v8::Arguments& args, obj_ptr<Fiber_base>& retVal)
 {
     if (!args.This()->IsFunction())
         return CALL_E_NOTINSTANCE;
@@ -83,13 +90,16 @@ result_t Function_base::start(const v8::Arguments& args)
     fb->argv.resize(args.Length());
     for(i = 0; i < args.Length(); i ++)
         fb->argv[i] = v8::Persistent<v8::Value>::New(args[i]);
-    fb->m_func = v8::Persistent<v8::Value>::New(args.This());
+    fb->m_func = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(args.This()));
 
     if(g_job_sem.blocked() == 0)
         fiber::Service::CreateFiber(t);
 
+    fb->Ref();
     g_jobs.put(fb);
     g_job_sem.post();
+
+    retVal = fb;
 
     return 0;
 }

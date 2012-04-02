@@ -65,11 +65,11 @@ typedef int result_t;
     METHOD_ENTER(c, o)
 
 #define METHOD_INSTANCE(cls) \
-    obj_ptr<cls> pInst = (cls*)cls::info().getInstance(args.This()); \
+    obj_ptr<cls> pInst = (cls*)cls::class_info().getInstance(args.This()); \
     if(pInst == NULL){hr = CALL_E_NOTINSTANCE;break;}
 
 #define PROPERTY_INSTANCE(cls) \
-    obj_ptr<cls> pInst = (cls*)cls::info().getInstance(info.This()); \
+    obj_ptr<cls> pInst = (cls*)cls::class_info().getInstance(info.This()); \
     if(pInst == NULL){hr = CALL_E_NOTINSTANCE;break;}
 
 
@@ -94,7 +94,7 @@ typedef int result_t;
 
 
 #define ARG_CLASS(cls, n) \
-    obj_ptr<cls> v##n = (cls*)cls::info().getInstance(args[n]); \
+    obj_ptr<cls> v##n = (cls*)cls::class_info().getInstance(args[n]); \
     if(v##n == NULL){hr = CALL_E_NOTINSTANCE;break;}
 
 
@@ -131,6 +131,7 @@ typedef int result_t;
     t v0; \
     hr = SafeGetValue(value, v0); \
     if(hr < 0)break;
+
 
 template<class T>
 class obj_ptr
@@ -226,6 +227,160 @@ public:
     T* p;
 };
 
+#ifdef _MSC_VER
+#define isnan _isnan
+#endif
+
+inline result_t SafeGetValue(v8::Handle<v8::Value> v, double& n)
+{
+    if(v.IsEmpty())
+        return CALL_E_INVALIDARG;
+
+    n = v->NumberValue();
+    if(isnan(n))
+        return CALL_E_INVALIDARG;
+
+    return 0;
+}
+
+inline result_t SafeGetValue(v8::Handle<v8::Value> v, int64_t& n)
+{
+    double num;
+
+    result_t hr = SafeGetValue(v, num);
+    if(hr < 0)return hr;
+
+    if(num < -9007199254740992ll || num > 9007199254740992ll)
+        return CALL_E_OUTRANGE;
+
+    n = (int64_t)num;
+
+    return 0;
+}
+
+inline result_t SafeGetValue(v8::Handle<v8::Value> v, int32_t& n)
+{
+    double num;
+
+    result_t hr = SafeGetValue(v, num);
+    if(hr < 0)return hr;
+
+    if(num < -2147483648ll || num > 2147483647ll)
+        return CALL_E_OUTRANGE;
+
+    n = (int32_t)num;
+
+    return 0;
+}
+
+inline result_t SafeGetValue(v8::Handle<v8::Value> v, bool& n)
+{
+    n = v->BooleanValue();
+    return 0;
+}
+
+inline v8::Handle<v8::Value> ReturnValue(int32_t v)
+{
+    return v8::Int32::New(v);
+}
+
+inline v8::Handle<v8::Value> ReturnValue(bool v)
+{
+    return v ? v8::True() : v8::False();
+}
+
+inline v8::Handle<v8::Value> ReturnValue(double v)
+{
+    return v8::Number::New(v);
+}
+
+inline v8::Handle<v8::Value> ReturnValue(std::string& str)
+{
+    return v8::String::New(str.c_str(), str.length());
+}
+
+inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Object>& obj)
+{
+    return obj;
+}
+
+inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Array>& array)
+{
+    return array;
+}
+
+inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Function>& func)
+{
+    return func;
+}
+
+template<class T>
+inline v8::Handle<v8::Value> ReturnValue(obj_ptr<T>& obj)
+{
+    return obj->JSObject();
+}
+
+inline v8::Handle<v8::Value> ThrowError(const char* msg)
+{
+    return v8::ThrowException(v8::Exception::Error(v8::String::New(msg)));
+}
+
+inline v8::Handle<v8::Value> ThrowTypeError(const char* msg)
+{
+    return v8::ThrowException(v8::Exception::TypeError(v8::String::New(msg)));
+}
+
+inline v8::Handle<v8::Value> ThrowRangeError(const char* msg)
+{
+    return v8::ThrowException(v8::Exception::RangeError(v8::String::New(msg)));
+}
+
+inline v8::Handle<v8::Value> ThrowResult(result_t hr)
+{
+    static const char* s_errors[] =
+    {
+        "",
+        "Invalid number of parameters.",
+        "Parameter not optional.",
+        "Constructor cannot be called as a function.",
+        "Object is not an instance of declaring class.",
+        "The input parameter is not a valid type.",
+        "An argument is invalid.",
+        "The argument could not be coerced to the specified type.",
+        "Value is out of range.",
+        "Index was out of range."
+    };
+
+    if(hr < 0 && hr > CALL_E_MAX)
+        return ThrowError(s_errors[-hr]);
+
+#ifdef _WIN32
+    LPWSTR pMsgBuf = NULL;
+    if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                       NULL, CALL_E_MAX - hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &pMsgBuf, 0, NULL ) && pMsgBuf)
+    {
+        v8::ThrowException(v8::Exception::Error(v8::String::New((const uint16_t*)pMsgBuf)));
+        LocalFree(pMsgBuf);
+    }
+    else
+        ThrowError("Unknown error.");
+
+    return v8::Undefined();
+//    return GetLastError();
+#else
+    return ThrowError(strerror(CALL_E_MAX - hr));
+#endif
+}
+
+inline result_t LastError()
+{
+#ifdef _WIN32
+    return CALL_E_MAX - GetLastError();
+#else
+    return CALL_E_MAX - errno;
+#endif
+}
+
 struct ClassProperty
 {
     const char* name;
@@ -304,7 +459,7 @@ public:
         return o->ToObject()->GetPointerFromInternalField(0);
     }
 
-    v8::Handle<v8::Object> CreateInstance() const
+    v8::Handle<v8::Object> CreateInstance()
     {
         return m_cache->Clone();
     }
@@ -312,6 +467,11 @@ public:
     v8::Handle<v8::FunctionTemplate> getTemplate() const
     {
         return m_class;
+    }
+
+    const char* name()
+    {
+        return m_cd.name;
     }
 
     void Attach(v8::Handle<v8::Object> o)
@@ -343,152 +503,6 @@ private:
     v8::Persistent<v8::Object> m_cache;
     ClassData& m_cd;
 };
-
-
-inline result_t SafeGetValue(v8::Handle<v8::Value> v, double& n)
-{
-    if(v.IsEmpty())
-        return CALL_E_INVALIDARG;
-
-    n = v->NumberValue();
-    if(isnan(n))
-        return CALL_E_INVALIDARG;
-
-    return 0;
-}
-
-inline result_t SafeGetValue(v8::Handle<v8::Value> v, int64_t& n)
-{
-    double num;
-
-    result_t hr = SafeGetValue(v, num);
-    if(hr < 0)return hr;
-
-    if(num < -9007199254740992ll || num > 9007199254740992ll)
-        return CALL_E_OUTRANGE;
-
-    n = (int64_t)num;
-
-    return 0;
-}
-
-inline result_t SafeGetValue(v8::Handle<v8::Value> v, int32_t& n)
-{
-    double num;
-
-    result_t hr = SafeGetValue(v, num);
-    if(hr < 0)return hr;
-
-    if(num < -2147483647 || num > 2147483647)
-        return CALL_E_OUTRANGE;
-
-    n = (int32_t)num;
-
-    return 0;
-}
-
-inline result_t SafeGetValue(v8::Handle<v8::Value> v, bool& n)
-{
-    n = v->BooleanValue();
-    return 0;
-}
-
-inline v8::Handle<v8::Value> ReturnValue(int32_t v)
-{
-    return v8::Int32::New(v);
-}
-
-inline v8::Handle<v8::Value> ReturnValue(bool v)
-{
-    return v ? v8::True() : v8::False();
-}
-
-inline v8::Handle<v8::Value> ReturnValue(double v)
-{
-    return v8::Number::New(v);
-}
-
-inline v8::Handle<v8::Value> ReturnValue(std::string& str)
-{
-    return v8::String::New(str.c_str(), str.length());
-}
-
-inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Object>& obj)
-{
-    return obj;
-}
-
-inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Array>& array)
-{
-    return array;
-}
-
-template<class T>
-inline v8::Handle<v8::Value> ReturnValue(obj_ptr<T>& obj)
-{
-    return obj->JSObject();
-}
-
-inline v8::Handle<v8::Value> ThrowError(const char* msg)
-{
-    return v8::ThrowException(v8::Exception::Error(v8::String::New(msg)));
-}
-
-inline v8::Handle<v8::Value> ThrowTypeError(const char* msg)
-{
-    return v8::ThrowException(v8::Exception::TypeError(v8::String::New(msg)));
-}
-
-inline v8::Handle<v8::Value> ThrowRangeError(const char* msg)
-{
-    return v8::ThrowException(v8::Exception::RangeError(v8::String::New(msg)));
-}
-
-inline v8::Handle<v8::Value> ThrowResult(result_t hr)
-{
-    static const char* s_errors[] =
-    {
-        "",
-        "Invalid number of parameters.",
-        "Parameter not optional.",
-        "Constructor cannot be called as a function.",
-        "Object is not an instance of declaring class.",
-        "The input parameter is not a valid type.",
-        "An argument is invalid.",
-        "The argument could not be coerced to the specified type.",
-        "Value is out of range.",
-        "Index was out of range."
-    };
-
-    if(hr < 0 && hr > CALL_E_MAX)
-        return ThrowError(s_errors[-hr]);
-
-#ifdef _WIN32
-    LPWSTR pMsgBuf = NULL;
-    if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                       NULL, CALL_E_MAX - hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &pMsgBuf, 0, NULL ) && pMsgBuf)
-    {
-        v8::ThrowException(v8::Exception::Error(v8::String::New((const uint16_t*)pMsgBuf)));
-        LocalFree(pMsgBuf);
-    }
-    else
-        ThrowError("Unknown error.");
-
-    return v8::Undefined();
-//    return GetLastError();
-#else
-    return ThrowError(strerror(CALL_E_MAX - hr));
-#endif
-}
-
-inline result_t LastError()
-{
-#ifdef _WIN32
-    return CALL_E_MAX - GetLastError();
-#else
-    return CALL_E_MAX - errno;
-#endif
-}
 
 class object_base
 {
@@ -526,7 +540,7 @@ protected:
     v8::Handle<v8::Value> wrap(ClassInfo& i)
     {
         if (handle_.IsEmpty())
-            wrap(i.CreateInstance());
+            return wrap(i.CreateInstance());
 
         return handle_;
     }
@@ -537,9 +551,7 @@ protected:
         {
             handle_ = v8::Persistent<v8::Object>::New(o);
             handle_->SetPointerInInternalField(0, this);
-
             handle_.MakeWeak(this, WeakCallback);
-            handle_.MarkIndependent();
 
             Ref();
         }
@@ -566,12 +578,12 @@ public:
 
     virtual result_t toString(std::string& retVal)
     {
-        retVal = "[Native Object]";
+        retVal = Classinfo().name();
         return 0;
     }
 
 public:
-    static ClassInfo& info()
+    static ClassInfo& class_info()
     {
         static ClassMethod s_method[] =
         {
@@ -579,20 +591,25 @@ public:
             {"toString", m_toString}
         };
 
-		static ClassData s_cd =
-		{
-			"object", NULL,
-			2, s_method, 0, NULL, NULL
-		};
+        static ClassData s_cd =
+        {
+            "object", NULL,
+            2, s_method, 0, NULL, NULL
+        };
 
-		static ClassInfo s_ci(s_cd);
+        static ClassInfo s_ci(s_cd);
 
         return s_ci;
     }
 
-    virtual v8::Handle<v8::Value> JSObject()
+    virtual ClassInfo& Classinfo()
     {
-        return wrap(info());
+        return class_info();
+    }
+
+    v8::Handle<v8::Value> JSObject()
+    {
+        return wrap(Classinfo());
     }
 
 private:

@@ -30,9 +30,10 @@ function parserIDL(fname) {
 		"Number" : "double",
 		"Boolean" : "bool",
 		"String" : "std::string",
-		"Object" : "v8::Local<v8::Object>",
-		"Array" : "v8::Local<v8::Array>",
-		"Value" : "v8::Local<v8::Value>"
+		"Object" : "v8::Handle<v8::Object>",
+		"Array" : "v8::Handle<v8::Array>",
+		"Function" : "v8::Handle<v8::Function>",
+		"Value" : "v8::Handle<v8::Value>"
 	},
 	aTypeMap = {
 		"Integer" : "int32_t",
@@ -40,9 +41,9 @@ function parserIDL(fname) {
 		"Number" : "double",
 		"Boolean" : "bool",
 		"String" : "const char*",
-		"Object" : "v8::Local<v8::Object>",
-		"Array" : "v8::Local<v8::Array>",
-		"Value" : "v8::Local<v8::Value>"
+		"Object" : "v8::Handle<v8::Object>",
+		"Function" : "v8::Handle<v8::Function>",
+		"Value" : "v8::Handle<v8::Value>"
 	};
 	
 	f = ReadFile(basePath + fname).replace(/\r/g, "").split("\n");
@@ -172,7 +173,7 @@ function parserIDL(fname) {
 			txt.push(ifs.join("\n") + "\n");
 		}
 		
-		txt.push("public:\n	static ClassInfo& info()\n	{")
+		txt.push("public:\n	static ClassInfo& class_info()\n	{")
 		
 		if (difms.length) {
 			txt.push("		static ClassMethod s_method[] = \n		{");
@@ -215,13 +216,13 @@ function parserIDL(fname) {
 			strClass += ", NULL";
 
 		if(ns != "object")
-			strClass += ",\n			&" + baseClass + "_base::info()";
+			strClass += ",\n			&" + baseClass + "_base::class_info()";
 		
 		txt.push(strClass + "\n		};\n");
 		txt.push("		static ClassInfo s_ci(s_cd);");
 		txt.push("		return s_ci;\n	}\n");
 
-		txt.push("	virtual v8::Handle<v8::Value> JSObject()\n	{\n		return wrap(info());\n	}\n");
+		txt.push("	virtual ClassInfo& Classinfo()\n	{\n		return class_info();\n	}\n");
 		
 		txt.push("private:");
 		txt.push(iffs.join("\n"));
@@ -401,7 +402,7 @@ function parserIDL(fname) {
 				fnStr += argVars + "\n";
 			
 			if (ftype != "") {
-				if (argCount)
+				if (argCount || argArray)
 					ifStr += ", ";
 				
 				ifStr += map_type(ftype) + "& retVal";
@@ -428,7 +429,7 @@ function parserIDL(fname) {
 				else fnStr += "args";
 			
 			if (ftype != "") {
-				if (argCount)
+				if (argCount || argArray)
 					fnStr += ", ";
 				
 				fnStr += "vr";
