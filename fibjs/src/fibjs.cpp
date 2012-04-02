@@ -19,8 +19,7 @@ using namespace v8;
 
 namespace fibjs
 {
-
-Isolate* isolate;
+    Isolate* isolate;
 
 inline const char* ToCString(const v8::String::Utf8Value& value)
 {
@@ -218,14 +217,16 @@ void initGlobal(Persistent<Context>& context)
     global->Set(String::New("ReadFile"), FunctionTemplate::New(ReadFile)->GetFunction());
     global->Set(String::New("WriteFile"), FunctionTemplate::New(WriteFile)->GetFunction());
 
-    global_base::class_info().Attach(global);
+    fibjs::global_base::class_info().Attach(global);
 
-    global->Set(String::New("Buffer"), Buffer_base::class_info().getTemplate()->GetFunction());
+    global->Set(String::New("Buffer"), fibjs::Buffer_base::class_info().getTemplate()->GetFunction());
 
     Local<Object> proto = global->Get(String::New("Function"))->ToObject()
                           ->GetPrototype()->ToObject();
 
-    Function_base::class_info().Attach(proto);
+    fibjs::Function_base::class_info().Attach(proto);
+}
+
 }
 
 class MyAppender : public log4cpp::LayoutAppender
@@ -233,7 +234,6 @@ class MyAppender : public log4cpp::LayoutAppender
 public:
     MyAppender() : LayoutAppender("console")
     {
-        puts("MyAppender");
     }
 
     void close()
@@ -249,7 +249,7 @@ protected:
     }
 };
 
-extern "C" int main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     try
     {
@@ -273,15 +273,13 @@ extern "C" int main(int argc, char* argv[])
     */
     V8::Initialize();
 
-    isolate = Isolate::GetCurrent();
-    Locker locker(isolate);
-    Isolate::Scope isolate_scope(isolate);
+    fibjs::isolate = Isolate::GetCurrent();
+    Locker locker(fibjs::isolate);
+    Isolate::Scope isolate_scope(fibjs::isolate);
 
     if(argc == 2)
-        runScript(argv[1]);
-    else runScript("main.js");
+        fibjs::runScript(argv[1]);
+    else fibjs::runScript("main.js");
 
     return 0;
-}
-
 }
