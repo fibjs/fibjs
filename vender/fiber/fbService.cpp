@@ -8,8 +8,6 @@
 
 #include <osconfig.h>
 #include <fiber.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 namespace fiber
 {
@@ -133,6 +131,9 @@ Fiber* Service::CreateFiber(void* (*func)(void *), void *data, int stacksize)
 
     pService->m_resume.put(fb);
 
+    fb->Ref();
+    fb->Ref();
+
     return fb;
 }
 
@@ -148,7 +149,7 @@ void Service::switchtonext()
 
         if(m_recycle)
         {
-            free(m_recycle);
+            m_recycle->Unref();
             m_recycle = NULL;
         }
     }

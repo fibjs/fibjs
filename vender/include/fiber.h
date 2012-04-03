@@ -8,6 +8,8 @@
 
 #include <string.h>
 #include <osconfig.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #ifndef fiber_h__
 #define fiber_h__
@@ -75,6 +77,17 @@ typedef struct __JUMP_BUFFER
 class Fiber
 {
 public:
+    void Ref()
+    {
+        refs_ ++;
+    }
+
+    void Unref()
+    {
+        if (--refs_ == 0)
+            free(this);
+    }
+
     void join();
 
     static void yield();
@@ -82,6 +95,7 @@ public:
 
 public:
     context m_cntxt;
+    int refs_;
     Fiber* m_next;
     Fiber* m_join;
     void* m_tls[TLS_SIZE];
@@ -164,6 +178,26 @@ private:
     bool m_locked;
     int m_count;
     Fiber* m_locker;
+    List<Fiber> m_blocks;
+};
+
+class Event
+{
+public:
+    Event()
+    {
+        m_set = false;
+    }
+
+public:
+    void wait();
+    void pulse();
+    void set();
+    void reset();
+    bool trywait();
+
+private:
+    bool m_set;
     List<Fiber> m_blocks;
 };
 
