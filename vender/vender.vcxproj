@@ -19,13 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="fiber\fbCondVar.cpp" />
-    <ClCompile Include="fiber\fbFiber.cpp" />
-    <ClCompile Include="fiber\fbLocker.cpp" />
-    <ClCompile Include="fiber\fbSemaphore.cpp" />
-    <ClCompile Include="fiber\fbService.cpp" />
-    <ClCompile Include="fiber\fbSwitch.cpp" />
-    <ClCompile Include="fiber\fbTls.cpp" />
+    <ClCompile Include="exlib\fiber\fbCondVar.cpp" />
+    <ClCompile Include="exlib\fiber\fbEvent.cpp" />
+    <ClCompile Include="exlib\fiber\fbFiber.cpp" />
+    <ClCompile Include="exlib\fiber\fbLocker.cpp" />
+    <ClCompile Include="exlib\fiber\fbSemaphore.cpp" />
+    <ClCompile Include="exlib\fiber\fbService.cpp" />
+    <ClCompile Include="exlib\fiber\fbSwitch.cpp" />
+    <ClCompile Include="exlib\fiber\fbTls.cpp" />
     <ClCompile Include="gd\gd.c" />
     <ClCompile Include="gd\gdcache.c" />
     <ClCompile Include="gd\gdfontg.c" />
@@ -692,10 +693,10 @@
     <ClInclude Include="zlib\zutil.h" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="fiber\fb_switch.asm">
+    <CustomBuild Include="exlib\fiber\fb_switch.asm">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ml64 /c fiber\fb_switch.asm</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml64 /c fiber\fb_switch.asm</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ml64 /c exlib\fiber\fb_switch.asm</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml64 /c exlib\fiber\fb_switch.asm</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">fb_switch.obj</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">fb_switch.obj</Outputs>
     </CustomBuild>

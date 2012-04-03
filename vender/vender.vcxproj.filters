@@ -25,9 +25,6 @@
     <Filter Include="Header Files\log4cpp\threading">
       <UniqueIdentifier>{1de709c3-d42b-421b-b65f-b93bc982b522}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\fiber">
-      <UniqueIdentifier>{757744cb-c8ec-4d55-ace4-dd9bf1359ba8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\gd">
       <UniqueIdentifier>{2825c9f1-61a4-4175-a1e6-3b5f7970f34c}</UniqueIdentifier>
     </Filter>
@@ -88,6 +85,12 @@
     <Filter Include="Source Files\lfds\stack">
       <UniqueIdentifier>{142007cc-40c3-49d9-872f-98cad36365f8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\exlib">
+      <UniqueIdentifier>{21b5d08f-d334-44cb-8114-dd8556aa6cc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\exlib\fiber">
+      <UniqueIdentifier>{879daaae-bf43-45d4-a578-fff1c5a62291}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="zlib\adler32.c">
@@ -119,24 +122,6 @@
     </ClCompile>
     <ClCompile Include="zlib\zutil.c">
       <Filter>Source Files\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="fiber\fbCondVar.cpp">
-      <Filter>Source Files\fiber</Filter>
-    </ClCompile>
-    <ClCompile Include="fiber\fbFiber.cpp">
-      <Filter>Source Files\fiber</Filter>
-    </ClCompile>
-    <ClCompile Include="fiber\fbLocker.cpp">
-      <Filter>Source Files\fiber</Filter>
-    </ClCompile>
-    <ClCompile Include="fiber\fbSemaphore.cpp">
-      <Filter>Source Files\fiber</Filter>
-    </ClCompile>
-    <ClCompile Include="fiber\fbService.cpp">
-      <Filter>Source Files\fiber</Filter>
-    </ClCompile>
-    <ClCompile Include="fiber\fbTls.cpp">
-      <Filter>Source Files\fiber</Filter>
     </ClCompile>
     <ClCompile Include="gd\gd.c">
       <Filter>Source Files\gd</Filter>
@@ -1131,9 +1116,6 @@
     <ClCompile Include="v8\src\x64\stub-cache-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="fiber\fbSwitch.cpp">
-      <Filter>Source Files\fiber</Filter>
-    </ClCompile>
     <ClCompile Include="lfds\abstraction\abstraction_aligned_free.c">
       <Filter>Source Files\lfds\abstraction</Filter>
     </ClCompile>
@@ -1211,6 +1193,30 @@
     </ClCompile>
     <ClCompile Include="lfds\ringbuffer\ringbuffer_query.c">
       <Filter>Source Files\lfds\ringbuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="exlib\fiber\fbCondVar.cpp">
+      <Filter>Source Files\exlib\fiber</Filter>
+    </ClCompile>
+    <ClCompile Include="exlib\fiber\fbEvent.cpp">
+      <Filter>Source Files\exlib\fiber</Filter>
+    </ClCompile>
+    <ClCompile Include="exlib\fiber\fbFiber.cpp">
+      <Filter>Source Files\exlib\fiber</Filter>
+    </ClCompile>
+    <ClCompile Include="exlib\fiber\fbLocker.cpp">
+      <Filter>Source Files\exlib\fiber</Filter>
+    </ClCompile>
+    <ClCompile Include="exlib\fiber\fbSemaphore.cpp">
+      <Filter>Source Files\exlib\fiber</Filter>
+    </ClCompile>
+    <ClCompile Include="exlib\fiber\fbService.cpp">
+      <Filter>Source Files\exlib\fiber</Filter>
+    </ClCompile>
+    <ClCompile Include="exlib\fiber\fbSwitch.cpp">
+      <Filter>Source Files\exlib\fiber</Filter>
+    </ClCompile>
+    <ClCompile Include="exlib\fiber\fbTls.cpp">
+      <Filter>Source Files\exlib\fiber</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2259,8 +2265,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="fiber\fb_switch.asm">
-      <Filter>Source Files\fiber</Filter>
+    <CustomBuild Include="exlib\fiber\fb_switch.asm">
+      <Filter>Source Files\exlib\fiber</Filter>
     </CustomBuild>
   </ItemGroup>
 </Project>
