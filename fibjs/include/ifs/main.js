@@ -46,7 +46,7 @@ function parserIDL(fname) {
 		"Value" : "v8::Handle<v8::Value>"
 	};
 	
-	f = ReadFile(basePath + fname).replace(/\r/g, "").split("\n");
+	f = fs.readFile(basePath + fname).replace(/\r/g, "").split("\n");
 	f.reverse();
 	
 	line = 0;
@@ -243,7 +243,7 @@ function parserIDL(fname) {
 		
 		txt.push("#endif\n\n");
 		
-		WriteFile(basePath + ns + ".h", txt.join("\n"));
+		fs.writeFile(basePath + ns + ".h", txt.join("\n"));
 	}
 	
 	function _member(st) {

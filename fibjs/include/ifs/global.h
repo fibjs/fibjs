@@ -29,6 +29,7 @@ public:
 	static result_t get_os(obj_ptr<os_base>& retVal);
 	static result_t get_fs(obj_ptr<fs_base>& retVal);
 	static result_t print(const char* fmt, const v8::Arguments& args);
+	static result_t run(const char* fname);
 	static result_t GC();
 
 public:
@@ -38,6 +39,7 @@ public:
 		{
 			{"yield", s_yield},
 			{"print", s_print},
+			{"run", s_run},
 			{"GC", s_GC}
 		};
 
@@ -51,7 +53,7 @@ public:
 		static ClassData s_cd = 
 		{ 
 			"global", NULL, 
-			3, s_method, 3, s_property, NULL,
+			4, s_method, 3, s_property, NULL,
 			&object_base::class_info()
 		};
 
@@ -70,6 +72,7 @@ private:
 	static v8::Handle<v8::Value> s_get_os(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_fs(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_print(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_run(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_GC(const v8::Arguments& args);
 };
 
@@ -127,6 +130,17 @@ namespace fibjs
 		ARG_String(0);
 
 		hr = print(v0, args);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> global_base::s_run(const v8::Arguments& args)
+	{
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = run(v0);
 
 		METHOD_VOID();
 	}

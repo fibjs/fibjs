@@ -1,19 +1,14 @@
-#include <string>
-#include <vector>
-#include <iostream>
-#include <sstream>
-
 #include <v8/v8.h>
 
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
-#include <log4cpp/OstreamAppender.hh>
+#include <log4cpp/LayoutAppender.hh>
 
-#include <fiber.h>
+#ifdef assert
+#undef assert
+#endif
 
-#include "ifs/Buffer.h"
 #include "ifs/global.h"
-#include "ifs/Function.h"
 
 using namespace v8;
 
@@ -21,210 +16,53 @@ namespace fibjs
 {
     Isolate* isolate;
 
-inline const char* ToCString(const v8::String::Utf8Value& value)
+result_t test(int a1, const char* s, double n)
 {
-    return *value ? *value : "<string conversion failed>";
-}
-
-void ReportException(v8::TryCatch* try_catch, bool rt = false)
-{
-    log4cpp::Category& root = log4cpp::Category::getRoot();
-    HandleScope handle_scope;
-
-    v8::String::Utf8Value exception(try_catch->Exception());
-
-    Handle<Message> message = try_catch->Message();
-    if (message.IsEmpty())
-        root.error(ToCString(exception));
-    else
-    {
-        if(rt)
-        {
-            v8::String::Utf8Value stack_trace(try_catch->StackTrace());
-            if (stack_trace.length() > 0)
-            {
-                root.error(ToCString(stack_trace));
-                return;
-            }
-        }
-
-        std::stringstream strError;
-
-        v8::String::Utf8Value filename(message->GetScriptResourceName());
-        strError << ToCString(exception) << "\n    at ";
-        strError << ToCString(filename);
-        int lineNumber = message->GetLineNumber();
-        if(lineNumber == 1)
-            strError << ':' << lineNumber << ':' << (message->GetStartColumn() - 12);
-        else if(lineNumber > 1)
-            strError << ':' << lineNumber << ':' << (message->GetStartColumn() + 1);
-
-        root.error(strError.str());
-    }
-}
-
-static int ReadFile(const char* name, std::vector<char>& buf)
-{
-    FILE* file = fopen(name, "rb");
-    if (file == NULL)
-        return -1;
-
-    fseek(file, 0, SEEK_END);
-    int size = ftell(file);
-    rewind(file);
-
-    buf.resize(size + 13);
-    memcpy(&buf[0], "\"use1strict\";", 13);
-
-    for (int i = 0; i < size;)
-    {
-        int read = static_cast<int>(fread(&buf[i + 13], 1, size - i, file));
-        i += read;
-    }
-    fclose(file);
-
+    printf("%d, %s, %g\n", a1, s, n);
     return 0;
 }
 
-void initGlobal(Persistent<Context>& context);
-
-Handle<Value> Run(const Arguments& args)
+result_t test1(int a1, const char* s, double n, const char* s1)
 {
-    if (args.Length() != 1 || !args[0]->IsString())
-        return ThrowException(String::New("Invalid arguments. Use 'new Fiber(name{string}, func{function() : void})'"));
-
-    String::Utf8Value str(args[0]);
-    const char* name = *str;
-
-    HandleScope handle_scope;
-
-
-    Persistent<Context> context = Context::New();
-    Context::Scope context_scope(context);
-
-    initGlobal(context);
-
-    std::vector<char> buf;
-
-    ReadFile(name, buf);
-
-    TryCatch try_catch;
-    Handle<Value> result;
-    Handle<Script> script = Script::Compile(String::New(&buf.front(), buf.size()), String::New(name));
-    if (!script.IsEmpty())
-        result = script->Run();
-
-    if (try_catch.HasCaught())
-    {
-        ReportException(&try_catch, !script.IsEmpty());
-
-        std::string strMessage(name);
-
-        strMessage += script.IsEmpty() ? ": Script Compile Error." : ": Script Runtime Error.";
-        result = ThrowException(String::New(strMessage.c_str()));
-    }
-
-    context.Dispose();
-
-    return result;
+    printf("%d, %s, %g, %s\n", a1, s, n, s1);
+    return 0;
 }
 
-Handle<Value> runScript(const char* name)
+result_t test2(int a1, const char* s, double n, const char* s1, int& vr)
 {
-    HandleScope handle_scope;
-
-    Persistent<Context> context = Context::New();
-    Context::Scope context_scope(context);
-
-    initGlobal(context);
-
-    std::vector<char> buf;
-
-    ReadFile(name, buf);
-
-    TryCatch try_catch;
-    Handle<Value> result;
-    Handle<Script> script = Script::Compile(String::New(&buf.front(), buf.size()), String::New(name));
-    if (!script.IsEmpty())
-        result = script->Run();
-
-    if (try_catch.HasCaught())
-        ReportException(&try_catch, !script.IsEmpty());
-
-    context.Dispose();
-
-    return result;
+    printf("%d, %s, %g, %s\n", a1, s, n, s1);
+    vr = 100;
+    return 0;
 }
 
-Handle<Value> ReadFile(const Arguments& args)
+result_t test3(int a1, const char* s, double n, const char* s1, int v)
 {
-    if (args.Length() != 1 || !args[0]->IsString())
-        return ThrowException(String::New("Invalid arguments. Use 'new Fiber(name{string}, func{function() : void})'"));
-
-    String::Utf8Value name(args[0]);
-
-    FILE* file = fopen(*name, "rb");
-    if (file == NULL)
-        return Undefined();
-
-    fseek(file, 0, SEEK_END);
-    int size = ftell(file);
-    rewind(file);
-
-    std::vector<char> buf;
-
-    buf.resize(size);
-
-    for (int i = 0; i < size;)
-    {
-        int read = static_cast<int>(fread(&buf[i], 1, size - i, file));
-        i += read;
-    }
-    fclose(file);
-
-    return String::New(&buf[0], size);
+    printf("%d, %s, %g, %s, %d\n", a1, s, n, s1, v);
+    return 0;
 }
 
-
-Handle<Value> WriteFile(const Arguments& args)
+template<typename T1, typename T2, typename T3>
+result_t call_stub(result_t (*func)(T1,T2,T3), void** args)
 {
-    if (args.Length() != 2 || !args[0]->IsString())
-        return ThrowException(String::New("Invalid arguments. Use 'new Fiber(name{string}, func{function() : void})'"));
-
-    String::Utf8Value name(args[0]);
-    String::Utf8Value data(args[1]);
-
-    FILE* file = fopen(*name, "wb+");
-    if (file == NULL)
-        return Undefined();
-
-    int size = strlen(*data);
-
-    fwrite(*data, 1, size, file);
-    fclose(file);
-
-    return Int32::New(size);
+    return func(*static_cast<T1*>(args[0]), *static_cast<T2*>(args[1]), *static_cast<T3*>(args[2]));
 }
 
-void initGlobal(Persistent<Context>& context)
+template<typename T1, typename T2, typename T3, typename T4>
+result_t call_stub(result_t (*func)(T1,T2,T3,T4), void** args)
 {
-    HandleScope handle_scope;
+    return func(*static_cast<T1*>(args[0]), *static_cast<T2*>(args[1]), *static_cast<T3*>(args[2]), *static_cast<T4*>(args[3]));
+}
 
-    Local<Object> global = context->Global();
+template<typename T1, typename T2, typename T3, typename T4, typename T5>
+result_t call_stub(result_t (*func)(T1,T2,T3,T4,T5&), void** args)
+{
+    return func(*static_cast<T1*>(args[0]), *static_cast<T2*>(args[1]), *static_cast<T3*>(args[2]), *static_cast<T4*>(args[3]), *static_cast<T5*>(args[4]));
+}
 
-    global->Set(String::New("run"), FunctionTemplate::New(Run)->GetFunction());
-
-    global->Set(String::New("ReadFile"), FunctionTemplate::New(ReadFile)->GetFunction());
-    global->Set(String::New("WriteFile"), FunctionTemplate::New(WriteFile)->GetFunction());
-
-    fibjs::global_base::class_info().Attach(global);
-
-    global->Set(String::New("Buffer"), fibjs::Buffer_base::class_info().getTemplate()->GetFunction());
-
-    Local<Object> proto = global->Get(String::New("Function"))->ToObject()
-                          ->GetPrototype()->ToObject();
-
-    fibjs::Function_base::class_info().Attach(proto);
+template<typename T1, typename T2, typename T3, typename T4, typename T5>
+result_t call_stub(result_t (*func)(T1,T2,T3,T4,T5), void** args)
+{
+    return func(*static_cast<T1*>(args[0]), *static_cast<T2*>(args[1]), *static_cast<T3*>(args[2]), *static_cast<T4*>(args[3]), *static_cast<T5*>(args[4]));
 }
 
 }
@@ -249,6 +87,7 @@ protected:
     }
 };
 
+
 int main(int argc, char* argv[])
 {
     try
@@ -261,7 +100,20 @@ int main(int argc, char* argv[])
         root.addAppender(new MyAppender());
         root.warn(e.what());
     }
+/*
+    int a = 100;
+    double n = 100.123;
+    const char *s = "aaaaaaa";
+    const char *s1 = "bbbbb";
+    int vr = 0;
+    void* args[] = {&a, &s, &n, &s1, &vr};
 
+    fibjs::call_stub(fibjs::test, args);
+    fibjs::call_stub(fibjs::test1, args);
+    fibjs::call_stub(fibjs::test2, args);
+    fibjs::call_stub(fibjs::test3, args);
+
+*/
     /*
         v8::ResourceConstraints rc;
         rc.set_max_young_space_size(2048); //KB
@@ -271,6 +123,7 @@ int main(int argc, char* argv[])
 
         SetResourceConstraints(&rc);
     */
+
     V8::Initialize();
 
     fibjs::isolate = Isolate::GetCurrent();
@@ -278,8 +131,8 @@ int main(int argc, char* argv[])
     Isolate::Scope isolate_scope(fibjs::isolate);
 
     if(argc == 2)
-        fibjs::runScript(argv[1]);
-    else fibjs::runScript("main.js");
+        fibjs::global_base::run(argv[1]);
+    else fibjs::global_base::run("main.js");
 
     return 0;
 }

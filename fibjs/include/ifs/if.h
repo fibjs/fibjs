@@ -132,6 +132,9 @@ typedef int result_t;
     hr = SafeGetValue(value, v0); \
     if(hr < 0)break;
 
+#ifdef _MSC_VER
+#define isnan _isnan
+#endif
 
 template<class T>
 class obj_ptr
@@ -226,10 +229,6 @@ public:
 
     T* p;
 };
-
-#ifdef _MSC_VER
-#define isnan _isnan
-#endif
 
 inline result_t SafeGetValue(v8::Handle<v8::Value> v, double& n)
 {
@@ -335,43 +334,6 @@ inline v8::Handle<v8::Value> ThrowRangeError(const char* msg)
     return v8::ThrowException(v8::Exception::RangeError(v8::String::New(msg)));
 }
 
-inline v8::Handle<v8::Value> ThrowResult(result_t hr)
-{
-    static const char* s_errors[] =
-    {
-        "",
-        "Invalid number of parameters.",
-        "Parameter not optional.",
-        "Constructor cannot be called as a function.",
-        "Object is not an instance of declaring class.",
-        "The input parameter is not a valid type.",
-        "An argument is invalid.",
-        "The argument could not be coerced to the specified type.",
-        "Value is out of range.",
-        "Index was out of range."
-    };
-
-    if(hr < 0 && hr > CALL_E_MAX)
-        return ThrowError(s_errors[-hr]);
-
-#ifdef _WIN32
-    LPWSTR pMsgBuf = NULL;
-    if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                       NULL, CALL_E_MAX - hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &pMsgBuf, 0, NULL ) && pMsgBuf)
-    {
-        v8::ThrowException(v8::Exception::Error(v8::String::New((const uint16_t*)pMsgBuf)));
-        LocalFree(pMsgBuf);
-    }
-    else
-        ThrowError("Unknown error.");
-
-    return v8::Undefined();
-//    return GetLastError();
-#else
-    return ThrowError(strerror(CALL_E_MAX - hr));
-#endif
-}
-
 inline result_t LastError()
 {
 #ifdef _WIN32
@@ -380,6 +342,10 @@ inline result_t LastError()
     return CALL_E_MAX - errno;
 #endif
 }
+
+v8::Handle<v8::Value> ThrowResult(result_t hr);
+std::string traceInfo();
+void ReportException(v8::TryCatch* try_catch, bool rt = false);
 
 struct ClassProperty
 {
@@ -428,12 +394,6 @@ public:
         if(cd.base)
             m_class->Inherit(cd.base->m_class);
 
-        v8::Handle<v8::ObjectTemplate> ot = m_class->InstanceTemplate();
-
-        ot->SetInternalFieldCount(1);
-        if(cd.cis)
-            ot->SetIndexedPropertyHandler(cd.cis->getter, cd.cis->setter);
-
         v8::Local<v8::ObjectTemplate> pt = m_class->PrototypeTemplate();
         int i;
 
@@ -447,6 +407,12 @@ public:
                 pt->SetAccessor(v8::String::NewSymbol(cd.cps[i].name), cd.cps[i].getter, cd.cps[i].setter);
             else
                 pt->SetAccessor(v8::String::NewSymbol(cd.cps[i].name), cd.cps[i].getter, block_set);
+
+        v8::Local<v8::ObjectTemplate> ot = m_class->InstanceTemplate();
+
+        ot->SetInternalFieldCount(1);
+        if(cd.cis)
+            ot->SetIndexedPropertyHandler(cd.cis->getter, cd.cis->setter);
 
         m_cache = v8::Persistent<v8::Object>::New(m_class->GetFunction()->NewInstance());
     }
@@ -464,7 +430,7 @@ public:
         return m_cache->Clone();
     }
 
-    v8::Handle<v8::FunctionTemplate> getTemplate() const
+    v8::Handle<v8::FunctionTemplate> FunctionTemplate() const
     {
         return m_class;
     }
@@ -527,6 +493,9 @@ public:
             delete this;
     }
 
+protected:
+    int refs_;
+
 private:
     static void WeakCallback(v8::Persistent<v8::Value> value, void* data)
     {
@@ -535,7 +504,6 @@ private:
 
 protected:
     v8::Persistent<v8::Object> handle_;
-    int refs_;
 
     v8::Handle<v8::Value> wrap(ClassInfo& i)
     {

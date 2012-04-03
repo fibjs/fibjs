@@ -20,11 +20,17 @@ class Fiber_base : public object_base
 {
 public:
 	// Fiber_base
+	virtual result_t join() = 0;
 	virtual result_t get_func(v8::Handle<v8::Function>& retVal) = 0;
 
 public:
 	static ClassInfo& class_info()
 	{
+		static ClassMethod s_method[] = 
+		{
+			{"join", s_join}
+		};
+
 		static ClassProperty s_property[] = 
 		{
 			{"func", s_get_func}
@@ -33,7 +39,7 @@ public:
 		static ClassData s_cd = 
 		{ 
 			"Fiber", NULL, 
-			0, NULL, 1, s_property, NULL,
+			1, s_method, 1, s_property, NULL,
 			&object_base::class_info()
 		};
 
@@ -47,6 +53,7 @@ public:
 	}
 
 private:
+	static v8::Handle<v8::Value> s_join(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_func(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 };
 
@@ -54,6 +61,16 @@ private:
 
 namespace fibjs
 {
+	inline v8::Handle<v8::Value> Fiber_base::s_join(const v8::Arguments& args)
+	{
+		METHOD_ENTER(0, 0);
+		METHOD_INSTANCE(Fiber_base);
+
+		hr = pInst->join();
+
+		METHOD_VOID();
+	}
+
 	inline v8::Handle<v8::Value> Fiber_base::s_get_func(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		PROPERTY_ENTER();

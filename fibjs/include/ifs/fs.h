@@ -30,6 +30,8 @@ public:
 	static result_t open(const char* fname, const char* mode, obj_ptr<file_base>& retVal);
 	static result_t create(const char* fname, bool Overwrite, obj_ptr<file_base>& retVal);
 	static result_t tmpFile(obj_ptr<file_base>& retVal);
+	static result_t readFile(const char* fname, std::string& retVal);
+	static result_t writeFile(const char* fname, const char* txt);
 
 public:
 	static ClassInfo& class_info()
@@ -38,7 +40,9 @@ public:
 		{
 			{"open", s_open},
 			{"create", s_create},
-			{"tmpFile", s_tmpFile}
+			{"tmpFile", s_tmpFile},
+			{"readFile", s_readFile},
+			{"writeFile", s_writeFile}
 		};
 
 		static ClassProperty s_property[] = 
@@ -51,7 +55,7 @@ public:
 		static ClassData s_cd = 
 		{ 
 			"fs", NULL, 
-			3, s_method, 3, s_property, NULL,
+			5, s_method, 3, s_property, NULL,
 			&object_base::class_info()
 		};
 
@@ -71,6 +75,8 @@ private:
 	static v8::Handle<v8::Value> s_open(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_create(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_tmpFile(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_readFile(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_writeFile(const v8::Arguments& args);
 };
 
 }
@@ -140,6 +146,30 @@ namespace fibjs
 		hr = tmpFile(vr);
 
 		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> fs_base::s_readFile(const v8::Arguments& args)
+	{
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		std::string vr;
+		hr = readFile(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> fs_base::s_writeFile(const v8::Arguments& args)
+	{
+		METHOD_ENTER(2, 2);
+
+		ARG_String(0);
+		ARG_String(1);
+
+		hr = writeFile(v0, v1);
+
+		METHOD_VOID();
 	}
 
 }

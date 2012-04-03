@@ -1,5 +1,6 @@
 #include "ifs/global.h"
 #include "ifs/Fiber.h"
+#include "ifs/Function.h"
 
 #ifdef _WIN32
 #include <mmsystem.h>
@@ -75,6 +76,46 @@ result_t global_base::get_fs(obj_ptr<fs_base>& retVal)
 result_t global_base::print(const char* fmt, const v8::Arguments& args)
 {
     return console_base::log(fmt, args);
+}
+
+result_t global_base::run(const char* fname)
+{
+    std::string buf;
+
+    result_t hr = fs_base::readFile(fname, buf);
+    if(hr < 0)
+        return hr;
+
+    v8::HandleScope handle_scope;
+
+    v8::Persistent<v8::Context> context = v8::Context::New();
+    v8::Context::Scope context_scope(context);
+
+
+    v8::Local<v8::Object> global = context->Global();
+
+    fibjs::global_base::class_info().Attach(global);
+
+    global->Set(v8::String::New("Buffer"), fibjs::Buffer_base::class_info().FunctionTemplate()->GetFunction());
+
+    v8::Local<v8::Object> proto = global->Get(v8::String::New("Function"))->ToObject()
+                          ->GetPrototype()->ToObject();
+
+    fibjs::Function_base::class_info().Attach(proto);
+
+
+    v8::TryCatch try_catch;
+    v8::Handle<v8::Value> result;
+    v8::Handle<v8::Script> script = v8::Script::Compile(v8::String::New(buf.c_str(), buf.length()), v8::String::New(fname));
+    if (!script.IsEmpty())
+        result = script->Run();
+
+    if (try_catch.HasCaught())
+        ReportException(&try_catch, !script.IsEmpty());
+
+    context.Dispose();
+
+    return 0;
 }
 
 result_t global_base::GC()

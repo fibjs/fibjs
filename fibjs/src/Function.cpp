@@ -4,6 +4,8 @@
 namespace fibjs
 {
 
+extern v8::Isolate* isolate;
+
 class fiber_data : public Fiber_base
 {
 public:
@@ -27,18 +29,21 @@ public:
         return 0;
     }
 
+    result_t join()
+    {
+        v8::Unlocker unlocker(isolate);
+        m_quit.wait();
+    }
+
 public:
     v8::Persistent<v8::Function> m_func;
     std::vector< v8::Persistent<v8::Value> > argv;
     fiber_data* m_next;
+    fiber::Event m_quit;
 };
 
 fiber::List<fiber_data> g_jobs;
 fiber::Semaphore g_job_sem;
-
-extern v8::Isolate* isolate;
-
-extern void ReportException(v8::TryCatch* try_catch, bool rt = false);
 
 void* t(void* p)
 {
@@ -73,6 +78,7 @@ void* t(void* p)
         if (try_catch.HasCaught())
             ReportException(&try_catch, true);
 
+        fb->m_quit.set();
         fb->Unref();
     }
 
@@ -93,7 +99,7 @@ result_t Function_base::start(const v8::Arguments& args, obj_ptr<Fiber_base>& re
     fb->m_func = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(args.This()));
 
     if(g_job_sem.blocked() == 0)
-        fiber::Service::CreateFiber(t);
+        fiber::Service::CreateFiber(t)->Unref();
 
     fb->Ref();
     g_jobs.put(fb);

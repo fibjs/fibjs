@@ -1,14 +1,22 @@
 #include "ifs/console.h"
 #include <log4cpp/Category.hh>
 #include <sstream>
-#include <map>
 
 #ifdef _WIN32
 #include <windows.h>
-#include <mmsystem.h>
+
+static LARGE_INTEGER systemFrequency;
+
 inline int64_t Ticks()
 {
-    return timeGetTime();  // Convert to microseconds.
+    LARGE_INTEGER t;
+
+    if(systemFrequency.QuadPart == 0)
+        QueryPerformanceFrequency(&systemFrequency);
+
+    QueryPerformanceCounter(&t);
+
+    return t.QuadPart * 1000000 / systemFrequency.QuadPart;
 }
 
 #else
@@ -19,7 +27,7 @@ inline int64_t Ticks()
     struct timeval tv;
     if (gettimeofday(&tv, NULL) < 0)
         return 0;
-    return (tv.tv_sec * 1000ll) + tv.tv_usec / 1000;
+    return (tv.tv_sec * 1000000ll) + tv.tv_usec;
 }
 
 #endif
@@ -124,7 +132,7 @@ result_t console_base::timeEnd(const char* label)
 
     s_timers.erase(label);
 
-    log4cpp::Category::getRoot().info("%s: %ldms", label, t);
+    log4cpp::Category::getRoot().info("%s: %Gms", label, t / 1000.0);
 
     return 0;
 }
@@ -136,37 +144,31 @@ inline const char* ToCString(const v8::String::Utf8Value& value)
 
 result_t console_base::trace(const char* label)
 {
-    v8::Handle<v8::StackTrace> stackTrace =
-        v8::StackTrace::CurrentStackTrace(10, v8::StackTrace::kOverview);
-    int count = stackTrace->GetFrameCount();
-    int i;
     std::stringstream strBuffer;
 
     strBuffer << "console.trace: " << label;
-
-    for(i = 0; i < count; i ++)
-    {
-        v8::Local<v8::StackFrame> f = stackTrace->GetFrame(i);
-
-        v8::String::Utf8Value funname(f->GetFunctionName());
-        v8::String::Utf8Value filename(f->GetScriptName());
-
-        strBuffer << "\n    at ";
-
-        if(**funname)
-            strBuffer << *funname << " (";
-
-        int lineNumber = f->GetLineNumber();
-        if(lineNumber == 1)
-            strBuffer << *filename << ':' << f->GetLineNumber() << ':' << (f->GetColumn() - 13);
-        else
-            strBuffer << *filename << ':' << f->GetLineNumber() << ':' << f->GetColumn();
-
-        if(**funname)
-            strBuffer << ')';
-    }
+    strBuffer << traceInfo();
 
     log4cpp::Category::getRoot().warn(strBuffer.str());
+
+    return 0;
+}
+
+#ifdef assert
+#undef assert
+#endif
+
+result_t console_base::assert(bool value, const char* msg)
+{
+    if(!value)
+    {
+        std::stringstream strBuffer;
+
+        strBuffer << "assert: " << msg;
+        strBuffer << traceInfo();
+
+        log4cpp::Category::getRoot().warn(strBuffer.str());
+    }
 
     return 0;
 }

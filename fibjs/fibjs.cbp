@@ -185,6 +185,7 @@
 		<Unit filename="src/fs.cpp" />
 		<Unit filename="src/global.cpp" />
 		<Unit filename="src/os.cpp" />
+		<Unit filename="src/utils.cpp" />
 		<Extensions>
 			<code_completion />
 			<debugger />

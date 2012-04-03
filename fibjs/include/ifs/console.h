@@ -27,6 +27,7 @@ public:
 	static result_t time(const char* label);
 	static result_t timeEnd(const char* label);
 	static result_t trace(const char* label);
+	static result_t assert(bool value, const char* msg);
 
 public:
 	static ClassInfo& class_info()
@@ -39,13 +40,14 @@ public:
 			{"error", s_error},
 			{"time", s_time},
 			{"timeEnd", s_timeEnd},
-			{"trace", s_trace}
+			{"trace", s_trace},
+			{"assert", s_assert}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"console", NULL, 
-			7, s_method, 0, NULL, NULL,
+			8, s_method, 0, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -66,6 +68,7 @@ private:
 	static v8::Handle<v8::Value> s_time(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_timeEnd(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_trace(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_assert(const v8::Arguments& args);
 };
 
 }
@@ -145,6 +148,18 @@ namespace fibjs
 		OPT_ARG_String(0, "trace");
 
 		hr = trace(v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> console_base::s_assert(const v8::Arguments& args)
+	{
+		METHOD_ENTER(2, 1);
+
+		ARG(bool, 0);
+		OPT_ARG_String(1, "");
+
+		hr = assert(v0, v1);
 
 		METHOD_VOID();
 	}
