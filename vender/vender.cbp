@@ -153,6 +153,8 @@
 		<Unit filename="exlib/fiber/fbSwitch.cpp" />
 		<Unit filename="exlib/fiber/fbTls.cpp" />
 		<Unit filename="exlib/fiber/fb_setjmp.S" />
+		<Unit filename="exlib/thread.cpp" />
+		<Unit filename="exlib/utils.cpp" />
 		<Unit filename="gd/bmp.h" />
 		<Unit filename="gd/config.h" />
 		<Unit filename="gd/entities.h" />
@@ -282,6 +284,8 @@
 		<Unit filename="include/ev.h" />
 		<Unit filename="include/exlib/fiber.h" />
 		<Unit filename="include/exlib/lockfree.h" />
+		<Unit filename="include/exlib/thread.h" />
+		<Unit filename="include/exlib/utils.h" />
 		<Unit filename="include/gd.h" />
 		<Unit filename="include/gd_io.h" />
 		<Unit filename="include/gdcache.h" />

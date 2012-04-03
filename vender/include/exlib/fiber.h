@@ -11,8 +11,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifndef fiber_h__
-#define fiber_h__
+#ifndef _ex_fiber_h__
+#define _ex_fiber_h__
 
 namespace exlib
 {
