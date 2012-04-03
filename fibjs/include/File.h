@@ -1,4 +1,4 @@
-#include "ifs/file.h"
+#include "ifs/File.h"
 
 #ifndef FILE_H
 #define FILE_H
@@ -6,7 +6,7 @@
 namespace fibjs
 {
 
-class File : public file_base
+class File : public File_base
 {
 public:
     File() : m_data(0), m_file(NULL)

@@ -159,7 +159,7 @@ class os : object
 
 
 /*! @brief 流操作对象，用于二进制数据流读写*/
-class stream : object
+class Stream : object
 {
 	const Integer FSEEK_SET = 0;
 	const Integer FSEEK_CUR = 1;
@@ -192,8 +192,7 @@ class stream : object
 };
 
 
-
-class file : stream
+class File : Stream
 {
 	Number data;
 	Number getData();
@@ -233,9 +232,9 @@ class fs : object
 	* - 'a+' 读写添加方式，文件不存在则自动创建。
 	* @return 返回打开的文件对象
 	*/
-	static file open(String fname, String mode = "r");
-	static file create(String fname, Boolean Overwrite = true);
-	static file tmpFile();
+	static File open(String fname, String mode = "r");
+	static File create(String fname, Boolean Overwrite = true);
+	static File tmpFile();
 	
 	/*! @brief 打开文件，并读取内容
 	* @param fname 指定文件名

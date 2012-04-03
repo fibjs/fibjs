@@ -30,7 +30,7 @@ extern v8::Isolate* isolate;
 result_t global_base::yield()
 {
     v8::Unlocker unlocker(isolate);
-    fiber::Fiber::yield();
+    exlib::Fiber::yield();
 
     return 0;
 }

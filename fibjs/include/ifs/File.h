@@ -4,25 +4,25 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _file_base_H_
-#define _file_base_H_
+#ifndef _File_base_H_
+#define _File_base_H_
 
 /**
  @author Leo Hoo <lion@9465.net>
  */
 
 #include "if.h"
-#include "stream.h"
+#include "Stream.h"
 
 namespace fibjs
 {
 
-class stream_base;
+class Stream_base;
 
-class file_base : public stream_base
+class File_base : public Stream_base
 {
 public:
-	// file_base
+	// File_base
 	virtual result_t get_data(double& retVal) = 0;
 	virtual result_t set_data(double newVal) = 0;
 	virtual result_t getData(double& retVal) = 0;
@@ -42,9 +42,9 @@ public:
 
 		static ClassData s_cd = 
 		{ 
-			"file", NULL, 
+			"File", NULL, 
 			1, s_method, 1, s_property, NULL,
-			&stream_base::class_info()
+			&Stream_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
@@ -67,10 +67,10 @@ private:
 
 namespace fibjs
 {
-	inline v8::Handle<v8::Value> file_base::s_get_data(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline v8::Handle<v8::Value> File_base::s_get_data(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(file_base);
+		PROPERTY_INSTANCE(File_base);
 
 		double vr;
 		hr = pInst->get_data(vr);
@@ -78,10 +78,10 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void file_base::s_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void File_base::s_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
 	{
 		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(file_base);
+		PROPERTY_INSTANCE(File_base);
 
 		PROPERTY_VAL(double);
 		hr = pInst->set_data(v0);
@@ -89,10 +89,10 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> file_base::s_getData(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> File_base::s_getData(const v8::Arguments& args)
 	{
 		METHOD_ENTER(0, 0);
-		METHOD_INSTANCE(file_base);
+		METHOD_INSTANCE(File_base);
 
 		double vr;
 		hr = pInst->getData(vr);

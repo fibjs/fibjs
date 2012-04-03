@@ -16,7 +16,7 @@
 namespace fibjs
 {
 
-class file_base;
+class File_base;
 
 class fs_base : public object_base
 {
@@ -27,9 +27,9 @@ public:
 
 public:
 	// fs_base
-	static result_t open(const char* fname, const char* mode, obj_ptr<file_base>& retVal);
-	static result_t create(const char* fname, bool Overwrite, obj_ptr<file_base>& retVal);
-	static result_t tmpFile(obj_ptr<file_base>& retVal);
+	static result_t open(const char* fname, const char* mode, obj_ptr<File_base>& retVal);
+	static result_t create(const char* fname, bool Overwrite, obj_ptr<File_base>& retVal);
+	static result_t tmpFile(obj_ptr<File_base>& retVal);
 	static result_t readFile(const char* fname, std::string& retVal);
 	static result_t writeFile(const char* fname, const char* txt);
 
@@ -81,7 +81,7 @@ private:
 
 }
 
-#include "file.h"
+#include "File.h"
 
 namespace fibjs
 {
@@ -119,7 +119,7 @@ namespace fibjs
 		ARG_String(0);
 		OPT_ARG_String(1, "r");
 
-		obj_ptr<file_base> vr;
+		obj_ptr<File_base> vr;
 		hr = open(v0, v1, vr);
 
 		METHOD_RETURN();
@@ -132,7 +132,7 @@ namespace fibjs
 		ARG_String(0);
 		OPT_ARG(bool, 1, true);
 
-		obj_ptr<file_base> vr;
+		obj_ptr<File_base> vr;
 		hr = create(v0, v1, vr);
 
 		METHOD_RETURN();
@@ -142,7 +142,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(0, 0);
 
-		obj_ptr<file_base> vr;
+		obj_ptr<File_base> vr;
 		hr = tmpFile(vr);
 
 		METHOD_RETURN();

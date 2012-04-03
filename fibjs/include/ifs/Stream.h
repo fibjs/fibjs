@@ -4,8 +4,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _stream_base_H_
-#define _stream_base_H_
+#ifndef _Stream_base_H_
+#define _Stream_base_H_
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -18,7 +18,7 @@ namespace fibjs
 
 class Buffer_base;
 
-class stream_base : public object_base
+class Stream_base : public object_base
 {
 public:
 	static const int32_t FSEEK_SET = 0;
@@ -26,7 +26,7 @@ public:
 	static const int32_t FSEEK_END = 2;
 
 public:
-	// stream_base
+	// Stream_base
 	virtual result_t get_readable(bool& retVal) = 0;
 	virtual result_t get_writable(bool& retVal) = 0;
 	virtual result_t read(int32_t size, obj_ptr<Buffer_base>& retVal) = 0;
@@ -52,7 +52,7 @@ public:
 
 		static ClassData s_cd = 
 		{ 
-			"stream", NULL, 
+			"Stream", NULL, 
 			2, s_method, 5, s_property, NULL,
 			&object_base::class_info()
 		};
@@ -82,7 +82,7 @@ private:
 
 namespace fibjs
 {
-	inline v8::Handle<v8::Value> stream_base::s_get_FSEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline v8::Handle<v8::Value> Stream_base::s_get_FSEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		PROPERTY_ENTER();
 
@@ -91,7 +91,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> stream_base::s_get_FSEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline v8::Handle<v8::Value> Stream_base::s_get_FSEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		PROPERTY_ENTER();
 
@@ -100,7 +100,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> stream_base::s_get_FSEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline v8::Handle<v8::Value> Stream_base::s_get_FSEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		PROPERTY_ENTER();
 
@@ -109,10 +109,10 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> stream_base::s_get_readable(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline v8::Handle<v8::Value> Stream_base::s_get_readable(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(stream_base);
+		PROPERTY_INSTANCE(Stream_base);
 
 		bool vr;
 		hr = pInst->get_readable(vr);
@@ -120,10 +120,10 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> stream_base::s_get_writable(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline v8::Handle<v8::Value> Stream_base::s_get_writable(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(stream_base);
+		PROPERTY_INSTANCE(Stream_base);
 
 		bool vr;
 		hr = pInst->get_writable(vr);
@@ -131,10 +131,10 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> stream_base::s_read(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> Stream_base::s_read(const v8::Arguments& args)
 	{
 		METHOD_ENTER(1, 0);
-		METHOD_INSTANCE(stream_base);
+		METHOD_INSTANCE(Stream_base);
 
 		OPT_ARG(int32_t, 0, -1);
 
@@ -144,10 +144,10 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> stream_base::s_write(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> Stream_base::s_write(const v8::Arguments& args)
 	{
 		METHOD_ENTER(1, 1);
-		METHOD_INSTANCE(stream_base);
+		METHOD_INSTANCE(Stream_base);
 
 		ARG_CLASS(Buffer_base, 0);
 

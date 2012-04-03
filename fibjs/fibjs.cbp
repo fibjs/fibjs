@@ -165,10 +165,11 @@
 		<Unit filename="include/File.h" />
 		<Unit filename="include/ifs/Buffer.h" />
 		<Unit filename="include/ifs/Fiber.h" />
+		<Unit filename="include/ifs/File.h" />
 		<Unit filename="include/ifs/Function.h" />
+		<Unit filename="include/ifs/Stream.h" />
 		<Unit filename="include/ifs/console.h" />
 		<Unit filename="include/ifs/fibjs" />
-		<Unit filename="include/ifs/file.h" />
 		<Unit filename="include/ifs/fs.h" />
 		<Unit filename="include/ifs/global.h" />
 		<Unit filename="include/ifs/if.h" />
@@ -176,7 +177,6 @@
 		<Unit filename="include/ifs/main.js" />
 		<Unit filename="include/ifs/object.h" />
 		<Unit filename="include/ifs/os.h" />
-		<Unit filename="include/ifs/stream.h" />
 		<Unit filename="src/Buffer.cpp" />
 		<Unit filename="src/File.cpp" />
 		<Unit filename="src/Function.cpp" />

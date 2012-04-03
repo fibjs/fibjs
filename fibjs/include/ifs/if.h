@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <fiber.h>
+#include <exlib/fiber.h>
 
 namespace fibjs
 {
