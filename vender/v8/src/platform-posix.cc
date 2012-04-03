@@ -179,9 +179,8 @@ int OS::GetUserTime(uint32_t* secs,  uint32_t* usecs) {
   return 0;
 }
 
-#if 0
+
 double OS::TimeCurrentMillis() {
-    puts("TimeCurrentMillis");
   struct timeval tv;
   if (gettimeofday(&tv, NULL) < 0) return 0.0;
   return (static_cast<double>(tv.tv_sec) * 1000) +
@@ -196,7 +195,7 @@ int64_t OS::Ticks() {
     return 0;
   return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
 }
-#endif
+
 
 double OS::DaylightSavingsOffset(double time) {
   if (isnan(time)) return nan_value();

@@ -33,6 +33,7 @@ Thread::Thread(const Options& options)
 
 Thread::~Thread()
 {
+    data_->thread_->Unref();
 }
 
 
@@ -162,82 +163,7 @@ Semaphore* OS::CreateSemaphore(int count)
     return new FiberSemaphore(count);
 }
 
-static int64_t s_time;
-
-double OS::TimeCurrentMillis()
-{
-    return getTime() / 1000.0;
-}
-
-int64_t OS::Ticks()
-{
-    return getTime();
-}
-
 }
 }
-
-#ifdef _WIN32
-#include <windows.h>
-#include <mmsystem.h>
-inline int64_t getTime()
-{
-    union TimeStamp
-    {
-        FILETIME ft_;
-        int64_t t_;
-    };
-
-    static bool initialized = false;
-    static TimeStamp init_time;
-    static DWORD init_ticks;
-    static const int64_t kHundredNanosecondsPerSecond = 10000000;
-    static const int64_t kMaxClockElapsedTime =
-        60*kHundredNanosecondsPerSecond;  // 1 minute
-
-    // If we are uninitialized, we need to resync the clock.
-    bool needs_resync = !initialized;
-
-    // Get the current time.
-    TimeStamp time_now;
-    GetSystemTimeAsFileTime(&time_now.ft_);
-    DWORD ticks_now = timeGetTime();
-
-    // Check if we need to resync due to clock rollover.
-    needs_resync |= ticks_now < init_ticks;
-
-    // Check if we need to resync due to elapsed time.
-    needs_resync |= (time_now.t_ - init_time.t_) > kMaxClockElapsedTime;
-
-    // Check if we need to resync due to backwards time change.
-    needs_resync |= time_now.t_ < init_time.t_;
-
-    // Resync the clock if necessary.
-    if (needs_resync)
-    {
-        GetSystemTimeAsFileTime(&init_time.ft_);
-        init_ticks = ticks_now = timeGetTime();
-        initialized = true;
-    }
-
-    // Finally, compute the actual time.  Why is this so hard.
-    DWORD elapsed = ticks_now - init_ticks;
-    return init_time.t_ + (static_cast<int64_t>(elapsed) * 10000);
-
-}
-
-#else
-#include <sys/time.h>
-
-inline int64_t getTime()
-{
-    // gettimeofday has microsecond resolution.
-    struct timeval tv;
-    if (gettimeofday(&tv, NULL) < 0)
-        return 0;
-    return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
-}
-
-#endif
 
 #endif
