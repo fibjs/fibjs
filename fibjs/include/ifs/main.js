@@ -146,7 +146,7 @@ function parserIDL(fname) {
 			 + "/**\n"
 			 + " @author Leo Hoo <lion@9465.net>\n"
 			 + " */\n\n"
-			 + "#include \"if.h\"");
+			 + "#include \"../object.h\"");
 
 		if(baseClass !== "object")
 			txt.push("#include \"" + baseClass + ".h\"");

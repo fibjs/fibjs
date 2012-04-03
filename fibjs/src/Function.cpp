@@ -1,4 +1,5 @@
 #include "ifs/Function.h"
+#include <exlib/fiber.h>
 #include <vector>
 
 namespace fibjs

@@ -1,6 +1,7 @@
 #include "ifs/global.h"
 #include "ifs/Fiber.h"
 #include "ifs/Function.h"
+#include <exlib/fiber.h>
 
 #ifdef _WIN32
 #include <mmsystem.h>

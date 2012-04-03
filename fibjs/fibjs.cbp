@@ -162,6 +162,7 @@
 			<Add library="vender" />
 		</Linker>
 		<Unit filename="include/Buffer.h" />
+		<Unit filename="include/ClassInfo.h" />
 		<Unit filename="include/File.h" />
 		<Unit filename="include/ifs/Buffer.h" />
 		<Unit filename="include/ifs/Fiber.h" />
@@ -172,11 +173,12 @@
 		<Unit filename="include/ifs/fibjs" />
 		<Unit filename="include/ifs/fs.h" />
 		<Unit filename="include/ifs/global.h" />
-		<Unit filename="include/ifs/if.h" />
 		<Unit filename="include/ifs/if.idl" />
 		<Unit filename="include/ifs/main.js" />
 		<Unit filename="include/ifs/object.h" />
 		<Unit filename="include/ifs/os.h" />
+		<Unit filename="include/object.h" />
+		<Unit filename="include/utils.h" />
 		<Unit filename="src/Buffer.cpp" />
 		<Unit filename="src/File.cpp" />
 		<Unit filename="src/Function.cpp" />
@@ -185,6 +187,8 @@
 		<Unit filename="src/fs.cpp" />
 		<Unit filename="src/global.cpp" />
 		<Unit filename="src/os.cpp" />
+		<Unit filename="src/test.cpp" />
+		<Unit filename="src/timer.cpp" />
 		<Unit filename="src/utils.cpp" />
 		<Extensions>
 			<code_completion />

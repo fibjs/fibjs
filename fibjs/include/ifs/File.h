@@ -11,7 +11,7 @@
  @author Leo Hoo <lion@9465.net>
  */
 
-#include "if.h"
+#include "../object.h"
 #include "Stream.h"
 
 namespace fibjs

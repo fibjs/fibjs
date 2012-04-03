@@ -4,8 +4,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _IF_H_
-#define _IF_H_
+#ifndef _fj_utils_H_
+#define _fj_utils_H_
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -13,18 +13,13 @@
 
 #include <v8/v8.h>
 #include <string>
+#include <math.h>
 
 #ifdef _WIN32
 #include <windows.h>
 #else
 #include <errno.h>
-#include <string.h>
 #endif
-
-#include <stdlib.h>
-#include <math.h>
-
-#include <exlib/fiber.h>
 
 namespace fibjs
 {
@@ -346,262 +341,6 @@ inline result_t LastError()
 v8::Handle<v8::Value> ThrowResult(result_t hr);
 std::string traceInfo();
 void ReportException(v8::TryCatch* try_catch, bool rt = false);
-
-struct ClassProperty
-{
-    const char* name;
-    v8::AccessorGetter getter;
-    v8::AccessorSetter setter;
-};
-
-struct ClassMethod
-{
-    const char* name;
-    v8::InvocationCallback invoker;
-};
-
-struct ClassIndexed
-{
-    v8::IndexedPropertyGetter getter;
-    v8::IndexedPropertySetter setter;
-};
-
-class ClassInfo;
-
-struct ClassData
-{
-    const char* name;
-    v8::InvocationCallback cor;
-    int mc;
-    const ClassMethod* cms;
-    int pc;
-    const ClassProperty* cps;
-    const ClassIndexed* cis;
-    ClassInfo *base;
-};
-
-class ClassInfo
-{
-public:
-    ClassInfo(ClassData& cd) : m_cd(cd)
-    {
-        v8::HandleScope handle_scope;
-
-        m_class = v8::Persistent<v8::FunctionTemplate>::New(v8::FunctionTemplate::New(cd.cor));
-
-        m_class->SetClassName(v8::String::NewSymbol(cd.name));
-
-        if(cd.base)
-            m_class->Inherit(cd.base->m_class);
-
-        v8::Local<v8::ObjectTemplate> pt = m_class->PrototypeTemplate();
-        int i;
-
-        pt->MarkAsUndetectable();
-
-        for(i = 0; i < cd.mc; i ++)
-            pt->Set(cd.cms[i].name, v8::FunctionTemplate::New(cd.cms[i].invoker));
-
-        for(i = 0; i < cd.pc; i ++)
-            if(cd.cps[i].setter)
-                pt->SetAccessor(v8::String::NewSymbol(cd.cps[i].name), cd.cps[i].getter, cd.cps[i].setter);
-            else
-                pt->SetAccessor(v8::String::NewSymbol(cd.cps[i].name), cd.cps[i].getter, block_set);
-
-        v8::Local<v8::ObjectTemplate> ot = m_class->InstanceTemplate();
-
-        ot->SetInternalFieldCount(1);
-        if(cd.cis)
-            ot->SetIndexedPropertyHandler(cd.cis->getter, cd.cis->setter);
-
-        m_cache = v8::Persistent<v8::Object>::New(m_class->GetFunction()->NewInstance());
-    }
-
-    void* getInstance(v8::Handle<v8::Value> o)
-    {
-        if(o.IsEmpty() || !o->IsObject() || !m_class->HasInstance(o))
-            return NULL;
-
-        return o->ToObject()->GetPointerFromInternalField(0);
-    }
-
-    v8::Handle<v8::Object> CreateInstance()
-    {
-        return m_cache->Clone();
-    }
-
-    v8::Handle<v8::FunctionTemplate> FunctionTemplate() const
-    {
-        return m_class;
-    }
-
-    const char* name()
-    {
-        return m_cd.name;
-    }
-
-    void Attach(v8::Handle<v8::Object> o)
-    {
-        int i;
-
-        for(i = 0; i < m_cd.mc; i ++)
-            o->Set(v8::String::NewSymbol(m_cd.cms[i].name), v8::FunctionTemplate::New(m_cd.cms[i].invoker)->GetFunction());
-
-        for(i = 0; i < m_cd.pc; i ++)
-            if(m_cd.cps[i].setter)
-                o->SetAccessor(v8::String::NewSymbol(m_cd.cps[i].name), m_cd.cps[i].getter, m_cd.cps[i].setter);
-            else
-                o->SetAccessor(v8::String::NewSymbol(m_cd.cps[i].name), m_cd.cps[i].getter, block_set);
-    }
-
-protected:
-    static void block_set(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
-    {
-        std::string strError = "Property \'";
-
-        strError += *v8::String::Utf8Value(property);
-        strError += "\' is read-only.";
-        ThrowException(v8::String::New(strError.c_str(), strError.length()));
-    }
-
-private:
-    v8::Persistent<v8::FunctionTemplate> m_class;
-    v8::Persistent<v8::Object> m_cache;
-    ClassData& m_cd;
-};
-
-class object_base
-{
-public:
-    object_base()
-    {
-        refs_ = 0;
-    }
-
-    virtual ~object_base()
-    {
-    }
-
-    void Ref()
-    {
-        refs_ ++;
-    }
-
-    void Unref()
-    {
-        if (--refs_ == 0)
-            delete this;
-    }
-
-protected:
-    int refs_;
-
-private:
-    static void WeakCallback(v8::Persistent<v8::Value> value, void* data)
-    {
-        (static_cast<object_base*>(data))->dispose();
-    }
-
-protected:
-    v8::Persistent<v8::Object> handle_;
-
-    v8::Handle<v8::Value> wrap(ClassInfo& i)
-    {
-        if (handle_.IsEmpty())
-            return wrap(i.CreateInstance());
-
-        return handle_;
-    }
-
-    v8::Handle<v8::Value> wrap(v8::Handle<v8::Object> o)
-    {
-        if (handle_.IsEmpty())
-        {
-            handle_ = v8::Persistent<v8::Object>::New(o);
-            handle_->SetPointerInInternalField(0, this);
-            handle_.MakeWeak(this, WeakCallback);
-
-            Ref();
-        }
-
-        return handle_;
-    }
-
-public:
-    // object_base
-    result_t dispose()
-    {
-        if (!handle_.IsEmpty())
-        {
-            handle_.ClearWeak();
-            handle_->SetPointerInInternalField(0, 0);
-            handle_.Dispose();
-            handle_.Clear();
-
-            Unref();
-        }
-
-        return 0;
-    }
-
-    virtual result_t toString(std::string& retVal)
-    {
-        retVal = Classinfo().name();
-        return 0;
-    }
-
-public:
-    static ClassInfo& class_info()
-    {
-        static ClassMethod s_method[] =
-        {
-            {"dispose", m_dispose},
-            {"toString", m_toString}
-        };
-
-        static ClassData s_cd =
-        {
-            "object", NULL,
-            2, s_method, 0, NULL, NULL
-        };
-
-        static ClassInfo s_ci(s_cd);
-
-        return s_ci;
-    }
-
-    virtual ClassInfo& Classinfo()
-    {
-        return class_info();
-    }
-
-    v8::Handle<v8::Value> JSObject()
-    {
-        return wrap(Classinfo());
-    }
-
-private:
-    static v8::Handle<v8::Value> m_dispose(const v8::Arguments& args)
-    {
-        METHOD_ENTER(0, 0);
-        METHOD_INSTANCE(object_base);
-
-        hr = pInst->dispose();
-
-        METHOD_VOID();
-    }
-
-    static v8::Handle<v8::Value> m_toString(const v8::Arguments& args)
-    {
-        METHOD_ENTER(0, 0);
-        METHOD_INSTANCE(object_base);
-
-        std::string vr;
-        hr = pInst->toString(vr);
-
-        METHOD_RETURN();
-    }
-};
 
 }
 
