@@ -254,6 +254,7 @@ public:
 
 public:
     void switchtonext();
+    void setIdleCallBack(void(*func)());
     static Service* getTLSService();
 
 public:
@@ -262,6 +263,8 @@ public:
     Fiber* m_recycle;
     char m_tls[TLS_SIZE];
     List<Fiber> m_resume;
+
+    void(*m_Idle)();
 
     friend class Locker;
     friend class CondVar;

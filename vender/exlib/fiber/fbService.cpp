@@ -8,6 +8,7 @@
 
 #include <osconfig.h>
 #include <exlib/fiber.h>
+#include <exlib/thread.h>
 
 namespace exlib
 {
@@ -76,6 +77,7 @@ Service::Service()
 {
     m_recycle = NULL;
     m_running = &m_main;
+    m_Idle = NULL;
     memset(&m_main, 0, sizeof(m_main));
     memset(&m_tls, 0, sizeof(m_tls));
 }
@@ -139,24 +141,34 @@ Fiber* Service::CreateFiber(void* (*func)(void *), void *data, int stacksize)
 
 void Service::switchtonext()
 {
-    if(!m_resume.empty())
+    while(1)
     {
-        Fiber* old = m_running;
+        if(m_Idle)
+            m_Idle();
 
-        m_running = m_resume.get();
-
-        fb_switch(&old->m_cntxt, &m_running->m_cntxt);
-
-        if(m_recycle)
+        if(!m_resume.empty())
         {
-            m_recycle->Unref();
-            m_recycle = NULL;
+            Fiber* old = m_running;
+
+            m_running = m_resume.get();
+
+            fb_switch(&old->m_cntxt, &m_running->m_cntxt);
+
+            if(m_recycle)
+            {
+                m_recycle->Unref();
+                m_recycle = NULL;
+            }
+            break;
         }
+        else
+            Thread::Sleep(1);
     }
-    else
-    {
-// TODO: maybe deadlock.
-    }
+}
+
+void Service::setIdleCallBack(void(*func)())
+{
+    m_Idle = func;
 }
 
 }

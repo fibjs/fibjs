@@ -91,6 +91,9 @@
     <Filter Include="Source Files\exlib\fiber">
       <UniqueIdentifier>{879daaae-bf43-45d4-a578-fff1c5a62291}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\exlib">
+      <UniqueIdentifier>{0f30b329-e008-4c27-9920-281e60a18f08}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="zlib\adler32.c">
@@ -1218,6 +1221,12 @@
     <ClCompile Include="exlib\fiber\fbTls.cpp">
       <Filter>Source Files\exlib\fiber</Filter>
     </ClCompile>
+    <ClCompile Include="exlib\thread.cpp">
+      <Filter>Source Files\exlib</Filter>
+    </ClCompile>
+    <ClCompile Include="exlib\utils.cpp">
+      <Filter>Source Files\exlib</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="zlib\crc32.h">
@@ -2104,6 +2113,18 @@
     </ClInclude>
     <ClInclude Include="v8\src\platform-posix.h">
       <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="include\exlib\fiber.h">
+      <Filter>Header Files\exlib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\exlib\lockfree.h">
+      <Filter>Header Files\exlib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\exlib\thread.h">
+      <Filter>Header Files\exlib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\exlib\utils.h">
+      <Filter>Header Files\exlib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

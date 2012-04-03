@@ -9,7 +9,7 @@
 #include "../osconfig.h"
 
 #ifdef _MSC_VER
-#include <winbase.h>
+#include <windows.h>
 #endif
 
 #ifndef _ex_utils_h__

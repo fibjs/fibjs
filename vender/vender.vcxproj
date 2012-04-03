@@ -27,6 +27,8 @@
     <ClCompile Include="exlib\fiber\fbService.cpp" />
     <ClCompile Include="exlib\fiber\fbSwitch.cpp" />
     <ClCompile Include="exlib\fiber\fbTls.cpp" />
+    <ClCompile Include="exlib\thread.cpp" />
+    <ClCompile Include="exlib\utils.cpp" />
     <ClCompile Include="gd\gd.c" />
     <ClCompile Include="gd\gdcache.c" />
     <ClCompile Include="gd\gdfontg.c" />
@@ -418,6 +420,10 @@
     <ClInclude Include="gd\wbmp.h" />
     <ClInclude Include="include\ev++.h" />
     <ClInclude Include="include\ev.h" />
+    <ClInclude Include="include\exlib\fiber.h" />
+    <ClInclude Include="include\exlib\lockfree.h" />
+    <ClInclude Include="include\exlib\thread.h" />
+    <ClInclude Include="include\exlib\utils.h" />
     <ClInclude Include="include\fiber.h" />
     <ClInclude Include="include\gd.h" />
     <ClInclude Include="include\gdcache.h" />
