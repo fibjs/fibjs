@@ -7,11 +7,11 @@
  */
 
 #include <osconfig.h>
-#include <fiber.h>
+#include <exlib/fiber.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-namespace fiber
+namespace exlib
 {
 
 Fiber* Fiber::Current()

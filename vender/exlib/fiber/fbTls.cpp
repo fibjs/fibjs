@@ -6,10 +6,10 @@
  *  lion@9465.net
  */
 
-#include <fiber.h>
+#include <exlib/fiber.h>
 #include <stdio.h>
 
-namespace fiber
+namespace exlib
 {
 
 int Service::tlsAlloc()

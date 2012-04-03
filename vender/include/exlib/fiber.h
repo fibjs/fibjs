@@ -14,7 +14,7 @@
 #ifndef fiber_h__
 #define fiber_h__
 
-namespace fiber
+namespace exlib
 {
 
 #pragma pack (1)

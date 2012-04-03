@@ -6,9 +6,9 @@
  *  lion@9465.net
  */
 
-#include <fiber.h>
+#include <exlib/fiber.h>
 
-namespace fiber
+namespace exlib
 {
 
 void CondVar::wait(Locker& l)

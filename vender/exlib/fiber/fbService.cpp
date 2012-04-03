@@ -7,9 +7,9 @@
  */
 
 #include <osconfig.h>
-#include <fiber.h>
+#include <exlib/fiber.h>
 
-namespace fiber
+namespace exlib
 {
 
 #define FB_STK_ALIGN 256

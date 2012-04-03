@@ -1,4 +1,4 @@
-#include <fiber.h>
+#include <exlib/fiber.h>
 #include "v8.h"
 
 #include "platform.h"
@@ -20,7 +20,7 @@ class Thread::PlatformData : public Malloced
 public:
     PlatformData() : thread_(NULL) {}
 
-    fiber::Fiber* thread_;  // Thread handle for pthread.
+    exlib::Fiber* thread_;  // Thread handle for pthread.
 };
 
 Thread::Thread(const Options& options)
@@ -41,7 +41,7 @@ static void* ThreadEntry(void* arg)
 {
     Thread* thread = reinterpret_cast<Thread*>(arg);
 
-    thread->data()->thread_ = fiber::Fiber::Current();
+    thread->data()->thread_ = exlib::Fiber::Current();
     ASSERT(thread->data()->thread_ != NULL);
     thread->Run();
     return NULL;
@@ -57,7 +57,7 @@ void Thread::set_name(const char* name)
 
 void Thread::Start()
 {
-    data_->thread_ = fiber::Service::CreateFiber(ThreadEntry, this);
+    data_->thread_ = exlib::Service::CreateFiber(ThreadEntry, this);
 }
 
 
@@ -70,31 +70,31 @@ void Thread::Join()
 
 Thread::LocalStorageKey Thread::CreateThreadLocalKey()
 {
-    return static_cast<LocalStorageKey>(fiber::Service::tlsAlloc());
+    return static_cast<LocalStorageKey>(exlib::Service::tlsAlloc());
 }
 
 void Thread::DeleteThreadLocalKey(LocalStorageKey key)
 {
-    fiber::Service::tlsFree(static_cast<int>(key));
+    exlib::Service::tlsFree(static_cast<int>(key));
 }
 
 
 void* Thread::GetThreadLocal(LocalStorageKey key)
 {
-    return fiber::Service::tlsGet(static_cast<int>(key));
+    return exlib::Service::tlsGet(static_cast<int>(key));
 }
 
 
 void Thread::SetThreadLocal(LocalStorageKey key, void* value)
 {
-    fiber::Service::tlsPut(static_cast<int>(key), value);
+    exlib::Service::tlsPut(static_cast<int>(key), value);
 }
 
 
 
 void Thread::YieldCPU()
 {
-    fiber::Fiber::yield();
+    exlib::Fiber::yield();
 }
 
 
@@ -120,7 +120,7 @@ public:
     }
 
 private:
-    fiber::Locker _mutex;
+    exlib::Locker _mutex;
 };
 
 
@@ -141,7 +141,7 @@ public:
         sem_.post();
     }
 private:
-    fiber::Semaphore sem_;
+    exlib::Semaphore sem_;
 };
 
 

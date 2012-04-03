@@ -144,14 +144,15 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="ev/event.h" />
-		<Unit filename="fiber/fbCondVar.cpp" />
-		<Unit filename="fiber/fbEvent.cpp" />
-		<Unit filename="fiber/fbFiber.cpp" />
-		<Unit filename="fiber/fbLocker.cpp" />
-		<Unit filename="fiber/fbSemaphore.cpp" />
-		<Unit filename="fiber/fbService.cpp" />
-		<Unit filename="fiber/fbTls.cpp" />
-		<Unit filename="fiber/fb_setjmp.S" />
+		<Unit filename="exlib/fiber/fbCondVar.cpp" />
+		<Unit filename="exlib/fiber/fbEvent.cpp" />
+		<Unit filename="exlib/fiber/fbFiber.cpp" />
+		<Unit filename="exlib/fiber/fbLocker.cpp" />
+		<Unit filename="exlib/fiber/fbSemaphore.cpp" />
+		<Unit filename="exlib/fiber/fbService.cpp" />
+		<Unit filename="exlib/fiber/fbSwitch.cpp" />
+		<Unit filename="exlib/fiber/fbTls.cpp" />
+		<Unit filename="exlib/fiber/fb_setjmp.S" />
 		<Unit filename="gd/bmp.h" />
 		<Unit filename="gd/config.h" />
 		<Unit filename="gd/entities.h" />
@@ -279,7 +280,8 @@
 		<Unit filename="gd/wbmp.h" />
 		<Unit filename="include/ev++.h" />
 		<Unit filename="include/ev.h" />
-		<Unit filename="include/fiber.h" />
+		<Unit filename="include/exlib/fiber.h" />
+		<Unit filename="include/exlib/lockfree.h" />
 		<Unit filename="include/gd.h" />
 		<Unit filename="include/gd_io.h" />
 		<Unit filename="include/gdcache.h" />
