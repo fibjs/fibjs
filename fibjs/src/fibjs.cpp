@@ -9,12 +9,12 @@
 #endif
 
 #include "ifs/global.h"
-
-using namespace v8;
+#include <exlib/lockfree.h>
+#include "AsyncCall.h"
 
 namespace fibjs
 {
-    Isolate* isolate;
+    v8::Isolate* isolate;
 
 result_t test(int a1, const char* s, double n)
 {
@@ -65,8 +65,6 @@ result_t call_stub(result_t (*func)(T1,T2,T3,T4,T5), void** args)
     return func(*static_cast<T1*>(args[0]), *static_cast<T2*>(args[1]), *static_cast<T3*>(args[2]), *static_cast<T4*>(args[3]), *static_cast<T5*>(args[4]));
 }
 
-}
-
 class MyAppender : public log4cpp::LayoutAppender
 {
 public:
@@ -87,8 +85,9 @@ protected:
     }
 };
 
+void on_async_ready();
 
-int main(int argc, char* argv[])
+void _main(const char* fname)
 {
     try
     {
@@ -100,6 +99,7 @@ int main(int argc, char* argv[])
         root.addAppender(new MyAppender());
         root.warn(e.what());
     }
+
 /*
     int a = 100;
     double n = 100.123;
@@ -124,15 +124,24 @@ int main(int argc, char* argv[])
         SetResourceConstraints(&rc);
     */
 
-    V8::Initialize();
 
-    fibjs::isolate = Isolate::GetCurrent();
-    Locker locker(fibjs::isolate);
-    Isolate::Scope isolate_scope(fibjs::isolate);
+    exlib::Service::getTLSService()->setIdleCallBack(on_async_ready);
 
+    v8::V8::Initialize();
+
+    fibjs::isolate = v8::Isolate::GetCurrent();
+    v8::Locker locker(fibjs::isolate);
+    v8::Isolate::Scope isolate_scope(fibjs::isolate);
+    fibjs::global_base::run(fname);
+}
+
+}
+
+int main(int argc, char* argv[])
+{
     if(argc == 2)
-        fibjs::global_base::run(argv[1]);
-    else fibjs::global_base::run("main.js");
+        fibjs::_main(argv[1]);
+    else fibjs::_main("main.js");
 
     return 0;
 }

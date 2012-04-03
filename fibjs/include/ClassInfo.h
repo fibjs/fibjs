@@ -131,7 +131,7 @@ protected:
 
         strError += *v8::String::Utf8Value(property);
         strError += "\' is read-only.";
-        ThrowException(v8::String::New(strError.c_str(), strError.length()));
+        ThrowException(v8::String::New(strError.c_str(), (int)strError.length()));
     }
 
 private:

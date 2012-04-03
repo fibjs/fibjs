@@ -128,7 +128,7 @@ result_t console_base::time(const char* label)
 
 result_t console_base::timeEnd(const char* label)
 {
-    long t = Ticks() - s_timers[label];
+    long t = (long)(Ticks() - s_timers[label]);
 
     s_timers.erase(label);
 

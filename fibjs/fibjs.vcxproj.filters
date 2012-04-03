@@ -51,12 +51,15 @@
     <ClCompile Include="src\utils.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\test.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\timer.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\if.h">
       <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\os.h">
@@ -90,6 +93,18 @@
       <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\Buffer.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\AsyncCall.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ClassInfo.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\object.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utils.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>

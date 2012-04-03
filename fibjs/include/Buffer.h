@@ -3,8 +3,8 @@
 
 #include "ifs/Buffer.h"
 
-#ifndef BUFFER_H
-#define BUFFER_H
+#ifndef _fj_BUFFER_H
+#define _fj_BUFFER_H
 
 namespace fibjs
 {

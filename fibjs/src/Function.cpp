@@ -77,7 +77,7 @@ void* t(void* p)
             argv[i] = fb->argv[i];
 
         v8::TryCatch try_catch;
-        func->Call(func, argv.size(), argv.size() ? &argv[0] : NULL);
+        func->Call(func, (int)argv.size(), argv.size() ? &argv[0] : NULL);
         if (try_catch.HasCaught())
             ReportException(&try_catch, true);
 

@@ -1,7 +1,7 @@
 #include "ifs/File.h"
 
-#ifndef FILE_H
-#define FILE_H
+#ifndef _fj_FILE_H
+#define _fj_FILE_H
 
 namespace fibjs
 {

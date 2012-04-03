@@ -2,6 +2,8 @@
 #include "ifs/Fiber.h"
 #include "ifs/Function.h"
 #include <exlib/fiber.h>
+#include <exlib/lockfree.h>
+#include "AsyncCall.h"
 
 #ifdef _WIN32
 #include <mmsystem.h>
@@ -27,14 +29,6 @@ namespace fibjs
 {
 
 extern v8::Isolate* isolate;
-
-result_t global_base::yield()
-{
-    v8::Unlocker unlocker(isolate);
-    exlib::Fiber::yield();
-
-    return 0;
-}
 
 result_t global_base::get_console(obj_ptr<console_base>& retVal)
 {
@@ -107,7 +101,7 @@ result_t global_base::run(const char* fname)
 
     v8::TryCatch try_catch;
     v8::Handle<v8::Value> result;
-    v8::Handle<v8::Script> script = v8::Script::Compile(v8::String::New(buf.c_str(), buf.length()), v8::String::New(fname));
+    v8::Handle<v8::Script> script = v8::Script::Compile(v8::String::New(buf.c_str(), (int)buf.length()), v8::String::New(fname));
     if (!script.IsEmpty())
         result = script->Run();
 
@@ -115,6 +109,24 @@ result_t global_base::run(const char* fname)
         ReportException(&try_catch, !script.IsEmpty());
 
     context.Dispose();
+
+    return 0;
+}
+
+extern exlib::lockfree<AsyncCall> s_acs;
+
+result_t global_base::sleep(int32_t ms)
+{
+    v8::Unlocker unlocker(isolate);
+
+    if(ms > 0)
+    {
+        void* args[] = {&ms};
+        AsyncCall ac(args);
+        s_acs.put(&ac);
+        ac.weak.wait();
+    }else
+        exlib::Fiber::yield();
 
     return 0;
 }

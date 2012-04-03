@@ -161,6 +161,7 @@
 		<Linker>
 			<Add library="vender" />
 		</Linker>
+		<Unit filename="include/AsyncCall.h" />
 		<Unit filename="include/Buffer.h" />
 		<Unit filename="include/ClassInfo.h" />
 		<Unit filename="include/File.h" />

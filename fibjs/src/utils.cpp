@@ -1,4 +1,5 @@
-#include "ifs/if.h"
+#include "utils.h"
+#include <string.h>
 #include <sstream>
 #include <log4cpp/Category.hh>
 

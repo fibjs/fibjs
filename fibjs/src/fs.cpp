@@ -1,5 +1,6 @@
 #include "ifs/fs.h"
 #include "File.h"
+#include <string.h>
 
 namespace fibjs
 {
@@ -61,7 +62,7 @@ result_t fs_base::writeFile(const char* fname, const char* txt)
     if (file == NULL)
         return LastError();
 
-    int size = strlen(txt);
+    int size = (int)strlen(txt);
 
     fwrite(txt, 1, size, file);
     fclose(file);

@@ -26,7 +26,7 @@ result_t Buffer::_indexed_setter(uint32_t index, int32_t newVal)
 
 result_t Buffer::get_length(int32_t& retVal)
 {
-    retVal = m_data.length();
+    retVal = (int32_t)m_data.length();
     return 0;
 }
 
@@ -52,7 +52,7 @@ result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal)
         return CALL_E_INVALIDARG;
 
     if(end < 0)
-        end = m_data.length();
+        end = (int32_t)m_data.length();
 
     obj_ptr<Buffer> pNew = new Buffer();
 

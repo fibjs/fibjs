@@ -260,9 +260,6 @@ class Fiber : object
 /*! @brief 全局对象，所有脚本均可以访问的基础对象*/
 class global
 {
-	/*! @brief 出让当前协程占用的运行时间，切换到下一个排队的协程*/
-	static yield();
-
 	/*! @brief 控制台访问对象*/
 	static console console;
 
@@ -282,6 +279,11 @@ class global
 	* @param fname 指定要运行的脚本路径
 	*/
 	static run(String fname);
+
+	/*! @brief 暂停当前纤程指定的时间
+	* @param ms 指定要暂停的时间，以毫秒为单位，缺省为 0，即有空闲立即回恢复运行
+	*/
+	static sleep(Integer ms = 0);
 
 	/*! @brief 强制要求进行垃圾回收*/
 	static GC();

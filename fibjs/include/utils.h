@@ -290,7 +290,7 @@ inline v8::Handle<v8::Value> ReturnValue(double v)
 
 inline v8::Handle<v8::Value> ReturnValue(std::string& str)
 {
-    return v8::String::New(str.c_str(), str.length());
+    return v8::String::New(str.c_str(), (int)str.length());
 }
 
 inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Object>& obj)
