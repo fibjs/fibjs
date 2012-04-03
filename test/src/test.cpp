@@ -1,5 +1,5 @@
 #include "test.h"
-#include <fiber.h>
+#include <exlib/fiber.h>
 #include <stdio.h>
 
 void v8_main();

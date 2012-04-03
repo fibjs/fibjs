@@ -7,7 +7,7 @@
  */
 
 #include <v8/v8.h>
-#include <fiber.h>
+#include <exlib/fiber.h>
 #include "test.h"
 //#include <pthread.h>
 
@@ -20,7 +20,7 @@ Handle<Value> Print(const Arguments& args)
     HandleScope handle_scope;
     {
         Unlocker unlocker(isolate);
-        fiber::Fiber::yield();
+        exlib::Fiber::yield();
         //pthread_yield();
     }
 
@@ -40,7 +40,7 @@ Handle<Value> Print(const Arguments& args)
         //convert the args[i] type to normal char* string
         String::AsciiValue str(args[i]);
         printf("%s",  *str);
-        //printf("%x: %s",  fiber::Service::Current(), *str);
+        //printf("%x: %s",  exlib::Service::Current(), *str);
     }
     printf("\n");
     //returning Undefined is the same as returning void...
@@ -91,14 +91,14 @@ void v8_main()
 
     for(int i = 0; i < COUNT; i ++)
     {
-        fiber::Service::CreateFiber(t, (void*)i, 200000);
+        exlib::Service::CreateFiber(t, (void*)i, 200000);
         //pthread_t ptid;
         //pthread_create(&ptid, NULL, t, (void*)i);
         printf("new fiber: %d\n", i);
     }
 
     while(1)
-        fiber::Fiber::yield();
+        exlib::Fiber::yield();
     //usleep(30000);
 
     v8log.debug("--------- v8 sample --------");
