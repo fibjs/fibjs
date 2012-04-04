@@ -1,9 +1,14 @@
 #include "ifs/fs.h"
 #include "File.h"
 #include <string.h>
+#include <exlib/thread.h>
+#include <exlib/lockfree.h>
+#include "AsyncCall.h"
 
 namespace fibjs
 {
+
+extern v8::Isolate* isolate;
 
 result_t fs_base::open(const char* fname, const char* mode, obj_ptr<File_base>& retVal)
 {
@@ -30,7 +35,9 @@ result_t fs_base::tmpFile(obj_ptr<File_base>& retVal)
     return 0;
 }
 
-result_t fs_base::readFile(const char* fname, std::string& retVal)
+static int ttt = 0;
+
+static result_t real_readFile(const char* fname, std::string& retVal)
 {
     FILE* file = fopen(fname, "rb");
     if (file == NULL)
@@ -54,6 +61,27 @@ result_t fs_base::readFile(const char* fname, std::string& retVal)
     retVal = buf;
 
     return 0;
+}
+
+static void stub_readFile(AsyncCall* ac)
+{
+    ac->hr = real_readFile(*(const char**)ac->args[0], *(std::string*)ac->args[1]);
+    ac->post();
+}
+
+extern exlib::lockfree<AsyncCall> s_acPool;
+
+result_t fs_base::readFile(const char* fname, std::string& retVal)
+{
+//    return real_readFile(fname, retVal);
+    void* args[] = {&fname, &retVal};
+    AsyncCall ac(args, stub_readFile);
+    s_acPool.put(&ac);
+
+    v8::Unlocker unlocker(isolate);
+    ac.weak.wait();
+
+    return ac.hr;
 }
 
 result_t fs_base::writeFile(const char* fname, const char* txt)

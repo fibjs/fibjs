@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\acPool.cpp" />
     <ClCompile Include="src\Buffer.cpp" />
     <ClCompile Include="src\Console.cpp" />
     <ClCompile Include="src\fibjs.cpp" />
@@ -28,7 +29,6 @@
     <ClCompile Include="src\global.cpp" />
     <ClCompile Include="src\os.cpp" />
     <ClCompile Include="src\test.cpp" />
-    <ClCompile Include="src\timer.cpp" />
     <ClCompile Include="src\utils.cpp" />
   </ItemGroup>
   <ItemGroup>

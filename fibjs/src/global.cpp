@@ -113,20 +113,23 @@ result_t global_base::run(const char* fname)
     return 0;
 }
 
-extern exlib::lockfree<AsyncCall> s_acs;
+extern exlib::lockfree<AsyncCall> s_acSleep;
 
 result_t global_base::sleep(int32_t ms)
 {
-    v8::Unlocker unlocker(isolate);
-
     if(ms > 0)
     {
         void* args[] = {&ms};
         AsyncCall ac(args);
-        s_acs.put(&ac);
+        s_acSleep.put(&ac);
+
+        v8::Unlocker unlocker(isolate);
         ac.weak.wait();
     }else
+    {
+        v8::Unlocker unlocker(isolate);
         exlib::Fiber::yield();
+    }
 
     return 0;
 }

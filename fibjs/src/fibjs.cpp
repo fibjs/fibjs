@@ -85,8 +85,6 @@ protected:
     }
 };
 
-void on_async_ready();
-
 void _main(const char* fname)
 {
     try
@@ -124,14 +122,12 @@ void _main(const char* fname)
         SetResourceConstraints(&rc);
     */
 
-
-    exlib::Service::getTLSService()->setIdleCallBack(on_async_ready);
-
     v8::V8::Initialize();
 
     fibjs::isolate = v8::Isolate::GetCurrent();
     v8::Locker locker(fibjs::isolate);
     v8::Isolate::Scope isolate_scope(fibjs::isolate);
+
     fibjs::global_base::run(fname);
 }
 

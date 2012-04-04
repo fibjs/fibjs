@@ -183,13 +183,13 @@
 		<Unit filename="src/Buffer.cpp" />
 		<Unit filename="src/File.cpp" />
 		<Unit filename="src/Function.cpp" />
+		<Unit filename="src/acPool.cpp" />
 		<Unit filename="src/console.cpp" />
 		<Unit filename="src/fibjs.cpp" />
 		<Unit filename="src/fs.cpp" />
 		<Unit filename="src/global.cpp" />
 		<Unit filename="src/os.cpp" />
 		<Unit filename="src/test.cpp" />
-		<Unit filename="src/timer.cpp" />
 		<Unit filename="src/utils.cpp" />
 		<Extensions>
 			<code_completion />

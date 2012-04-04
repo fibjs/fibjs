@@ -54,7 +54,7 @@
     <ClCompile Include="src\test.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\timer.cpp">
+    <ClCompile Include="src\acPool.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
   </ItemGroup>

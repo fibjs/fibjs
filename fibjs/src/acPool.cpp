@@ -1,9 +1,9 @@
 #include <exlib/thread.h>
 #include <exlib/lockfree.h>
 #include "AsyncCall.h"
+#include <stdio.h>
 
 #include <map>
-#include <stdio.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -38,19 +38,46 @@ inline int64_t Ticks()
 namespace fibjs
 {
 
-exlib::lockfree<AsyncCall> s_acReady;
-exlib::lockfree<AsyncCall> s_acs;
+#define MAX_WORKER 128
+#define MIN_WORKER 6
+
+exlib::lockfree<AsyncCall> s_acPool;
+exlib::lockfree<AsyncCall> s_acSleep;
 
 std::multimap<int64_t, AsyncCall*> s_tms;
 static int64_t s_time;
 
-class timerThread : public exlib::Thread
+static class _acThread : public exlib::Thread
 {
 public:
-    timerThread()
+    _acThread()
+    {
+        for(int i = 0; i < MIN_WORKER; i ++)
+        {
+            start();
+            detach();
+        }
+    }
+
+    virtual void Run()
+    {
+        AsyncCall *p;
+
+        while(1)
+        {
+            p = s_acPool.wait();
+            p->func(p);
+        }
+    }
+}s_ac;
+
+static class _timerThread : public exlib::Thread
+{
+public:
+    _timerThread()
     {
         s_time = Ticks();
-        Start();
+        start();
     }
 
     virtual void Run()
@@ -65,7 +92,7 @@ public:
 
             while(1)
             {
-                p = s_acs.get();
+                p = s_acSleep.get();
                 if(p == NULL)
                     break;
 
@@ -83,27 +110,11 @@ public:
                 if(e->first > s_time)
                     break;
 
-                s_acReady.put(e->second);
+                e->second->post();
                 s_tms.erase(e);
             }
         }
     }
-};
-
-static timerThread s_timer;
-
-void on_async_ready()
-{
-    AsyncCall *p;
-
-    while(1)
-    {
-        p = s_acReady.get();
-        if(p == NULL)
-            break;
-
-        p->weak.set();
-    }
-}
+}s_timer;
 
 }

@@ -7,21 +7,18 @@
 namespace fibjs
 {
 
-class AsyncCall
+class AsyncCall : public exlib::AsyncEvent
 {
 public:
-    AsyncCall(void ** a, result_t (*f)(void**) = NULL) :
-        func(f), args(a), hr(0), m_next(NULL)
+    AsyncCall(void ** a, void (*f)(AsyncCall*) = NULL) :
+        func(f), args(a), hr(0)
     {
     }
 
 public:
-    result_t (*func)(void**);
+    void (*func)(AsyncCall*);
     void ** args;
     result_t hr;
-    exlib::Event weak;
-
-    AsyncCall* m_next;
 };
 
 }
