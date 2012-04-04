@@ -863,6 +863,7 @@ class CallOptimization BASE_EMBEDDED {
   }
 
   bool is_simple_api_call() const {
+      return false;
     return is_simple_api_call_;
   }
 

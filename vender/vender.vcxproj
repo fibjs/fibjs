@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="exlib\fiber\fbAsyncEvent.cpp" />
     <ClCompile Include="exlib\fiber\fbCondVar.cpp" />
     <ClCompile Include="exlib\fiber\fbEvent.cpp" />
     <ClCompile Include="exlib\fiber\fbFiber.cpp" />

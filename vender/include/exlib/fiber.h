@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "lockfree.h"
+
 #ifndef _ex_fiber_h__
 #define _ex_fiber_h__
 
@@ -239,6 +241,19 @@ private:
     List<Fiber> m_blocks;
 };
 
+class Service;
+class AsyncEvent
+{
+public:
+    AsyncEvent();
+    void post();
+
+public:
+    Event weak;
+    AsyncEvent* m_next;
+    Service* m_service;
+};
+
 class Service
 {
 public:
@@ -254,7 +269,6 @@ public:
 
 public:
     void switchtonext();
-    void setIdleCallBack(void(*func)());
     static Service* getTLSService();
 
 public:
@@ -263,12 +277,9 @@ public:
     Fiber* m_recycle;
     char m_tls[TLS_SIZE];
     List<Fiber> m_resume;
+    lockfree<AsyncEvent> m_aEvents;
 
     void(*m_Idle)();
-
-    friend class Locker;
-    friend class CondVar;
-    friend class Semaphore;
 };
 
 }

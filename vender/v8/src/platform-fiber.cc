@@ -1,5 +1,6 @@
-#include <exlib/fiber.h>
 #include "v8.h"
+
+#include <exlib/fiber.h>
 
 #include "platform.h"
 #include "v8threads.h"

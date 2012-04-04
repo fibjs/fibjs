@@ -1227,6 +1227,9 @@
     <ClCompile Include="exlib\utils.cpp">
       <Filter>Source Files\exlib</Filter>
     </ClCompile>
+    <ClCompile Include="exlib\fiber\fbAsyncEvent.cpp">
+      <Filter>Source Files\exlib\fiber</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="zlib\crc32.h">

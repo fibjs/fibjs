@@ -22,39 +22,46 @@ Thread::Thread() : thread_(0)
 {
 }
 
+Thread::~Thread()
+{
+    detach();
+}
+
 #ifdef Windows
 
-Thread::~Thread()
+void Thread::detach()
 {
     if(thread_)
         CloseHandle(thread_);
+    thread_ = NULL;
 }
 
-void Thread::Start()
+void Thread::start()
 {
     DWORD threadid;
     thread_ = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadEntry, this, 0, &threadid);
 }
 
-void Thread::Join()
+void Thread::join()
 {
     WaitForSingleObject(thread_, INFINITE);
 }
 
 #else
 
-Thread::~Thread()
+void Thread::detach()
 {
     if(thread_)
         pthread_detach(thread_);
+    thread_ = NULL;
 }
 
-void Thread::Start()
+void Thread::start()
 {
     pthread_create(&thread_, NULL, ThreadEntry, this);
 }
 
-void Thread::Join()
+void Thread::join()
 {
     pthread_join(thread_, NULL);
 }

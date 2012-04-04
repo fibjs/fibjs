@@ -27,8 +27,9 @@ public:
     Thread();
     virtual ~Thread();
 
-    void Start();
-    void Join();
+    void start();
+    void detach();
+    void join();
     virtual void Run() = 0;
 
     static void Sleep(int ms)

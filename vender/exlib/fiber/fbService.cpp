@@ -143,8 +143,14 @@ void Service::switchtonext()
 {
     while(1)
     {
-        if(m_Idle)
-            m_Idle();
+        while(1)
+        {
+            AsyncEvent* p = m_aEvents.get();
+            if(p == NULL)
+                break;
+
+            p->weak.set();
+        }
 
         if(!m_resume.empty())
         {
@@ -162,13 +168,10 @@ void Service::switchtonext()
             break;
         }
         else
-            Thread::Sleep(1);
+        {
+            m_aEvents.wait()->weak.set();
+        }
     }
-}
-
-void Service::setIdleCallBack(void(*func)())
-{
-    m_Idle = func;
 }
 
 }
