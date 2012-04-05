@@ -144,7 +144,6 @@
 		<Unit filename="include/jmorecfg.h" />
 		<Unit filename="include/jpegint.h" />
 		<Unit filename="include/jpeglib.h" />
-		<Unit filename="include/lfds.h" />
 		<Unit filename="include/log4cpp/AbortAppender.hh" />
 		<Unit filename="include/log4cpp/Appender.hh" />
 		<Unit filename="include/log4cpp/AppenderSkeleton.hh" />
@@ -515,91 +514,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="src/jpeg/transupp.h" />
-		<Unit filename="src/lfds/abstraction/abstraction_aligned_free.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/abstraction/abstraction_aligned_malloc.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/abstraction/abstraction_cas.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/abstraction/abstraction_dcas.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/abstraction/abstraction_increment.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/abstraction/abstraction_internal.h" />
-		<Unit filename="src/lfds/freelist/freelist_delete.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/freelist/freelist_get_and_set.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/freelist/freelist_internal.h" />
-		<Unit filename="src/lfds/freelist/freelist_new.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/freelist/freelist_pop_push.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/freelist/freelist_query.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/liblfds_internal.h" />
-		<Unit filename="src/lfds/queue/queue_delete.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/queue/queue_internal.h" />
-		<Unit filename="src/lfds/queue/queue_new.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/queue/queue_query.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/queue/queue_queue.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/ringbuffer/ringbuffer_delete.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/ringbuffer/ringbuffer_get_and_put.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/ringbuffer/ringbuffer_internal.h" />
-		<Unit filename="src/lfds/ringbuffer/ringbuffer_new.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/ringbuffer/ringbuffer_query.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/slist/slist_delete.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/slist/slist_get_and_set.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/slist/slist_internal.h" />
-		<Unit filename="src/lfds/slist/slist_link.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/slist/slist_new.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/stack/stack_delete.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/stack/stack_internal.h" />
-		<Unit filename="src/lfds/stack/stack_new.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/stack/stack_push_pop.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/lfds/stack/stack_query.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="src/log4cpp/AbortAppender.cpp" />
 		<Unit filename="src/log4cpp/Appender.cpp" />
 		<Unit filename="src/log4cpp/AppenderSkeleton.cpp" />
