@@ -96,2037 +96,2037 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="zlib\adler32.c">
+    <ClCompile Include="src\zlib\adler32.c">
       <Filter>Source Files\zlib</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\compress.c">
+    <ClCompile Include="src\zlib\compress.c">
       <Filter>Source Files\zlib</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\crc32.c">
+    <ClCompile Include="src\zlib\crc32.c">
       <Filter>Source Files\zlib</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\deflate.c">
+    <ClCompile Include="src\zlib\deflate.c">
       <Filter>Source Files\zlib</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\inffast.c">
+    <ClCompile Include="src\zlib\inffast.c">
       <Filter>Source Files\zlib</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\inflate.c">
+    <ClCompile Include="src\zlib\inflate.c">
       <Filter>Source Files\zlib</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\inftrees.c">
+    <ClCompile Include="src\zlib\inftrees.c">
       <Filter>Source Files\zlib</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\trees.c">
+    <ClCompile Include="src\zlib\trees.c">
       <Filter>Source Files\zlib</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\uncompr.c">
+    <ClCompile Include="src\zlib\uncompr.c">
       <Filter>Source Files\zlib</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\zutil.c">
+    <ClCompile Include="src\zlib\zutil.c">
       <Filter>Source Files\zlib</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd.c">
+    <ClCompile Include="src\gd\gd.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_bmp.c">
+    <ClCompile Include="src\gd\gd_bmp.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_color.c">
+    <ClCompile Include="src\gd\gd_color.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_color_map.c">
+    <ClCompile Include="src\gd\gd_color_map.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_crop.c">
+    <ClCompile Include="src\gd\gd_crop.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_gd.c">
+    <ClCompile Include="src\gd\gd_gd.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_gd2.c">
+    <ClCompile Include="src\gd\gd_gd2.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_gif_in.c">
+    <ClCompile Include="src\gd\gd_gif_in.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_gif_out.c">
+    <ClCompile Include="src\gd\gd_gif_out.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_io.c">
+    <ClCompile Include="src\gd\gd_io.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_io_dp.c">
+    <ClCompile Include="src\gd\gd_io_dp.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_io_file.c">
+    <ClCompile Include="src\gd\gd_io_file.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_io_ss.c">
+    <ClCompile Include="src\gd\gd_io_ss.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_jpeg.c">
+    <ClCompile Include="src\gd\gd_jpeg.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_nnquant.c">
+    <ClCompile Include="src\gd\gd_nnquant.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_pixelate.c">
+    <ClCompile Include="src\gd\gd_pixelate.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_png.c">
+    <ClCompile Include="src\gd\gd_png.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_security.c">
+    <ClCompile Include="src\gd\gd_security.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_ss.c">
+    <ClCompile Include="src\gd\gd_ss.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_tga.c">
+    <ClCompile Include="src\gd\gd_tga.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_tiff.c">
+    <ClCompile Include="src\gd\gd_tiff.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_topal.c">
+    <ClCompile Include="src\gd\gd_topal.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_transform.c">
+    <ClCompile Include="src\gd\gd_transform.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gd_wbmp.c">
+    <ClCompile Include="src\gd\gd_wbmp.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gdcache.c">
+    <ClCompile Include="src\gd\gdcache.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gdfontg.c">
+    <ClCompile Include="src\gd\gdfontg.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gdfontl.c">
+    <ClCompile Include="src\gd\gdfontl.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gdfontmb.c">
+    <ClCompile Include="src\gd\gdfontmb.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gdfonts.c">
+    <ClCompile Include="src\gd\gdfonts.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gdfontt.c">
+    <ClCompile Include="src\gd\gdfontt.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gdft.c">
+    <ClCompile Include="src\gd\gdft.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gdhelpers.c">
+    <ClCompile Include="src\gd\gdhelpers.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gdkanji.c">
+    <ClCompile Include="src\gd\gdkanji.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gdtables.c">
+    <ClCompile Include="src\gd\gdtables.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="gd\gdxpm.c">
+    <ClCompile Include="src\gd\gdxpm.c">
       <Filter>Source Files\gd</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jaricom.c">
+    <ClCompile Include="src\jpeg\jaricom.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jcapimin.c">
+    <ClCompile Include="src\jpeg\jcapimin.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jcapistd.c">
+    <ClCompile Include="src\jpeg\jcapistd.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jcarith.c">
+    <ClCompile Include="src\jpeg\jcarith.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jccoefct.c">
+    <ClCompile Include="src\jpeg\jccoefct.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jccolor.c">
+    <ClCompile Include="src\jpeg\jccolor.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jcdctmgr.c">
+    <ClCompile Include="src\jpeg\jcdctmgr.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jchuff.c">
+    <ClCompile Include="src\jpeg\jchuff.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jcinit.c">
+    <ClCompile Include="src\jpeg\jcinit.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jcmainct.c">
+    <ClCompile Include="src\jpeg\jcmainct.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jcmarker.c">
+    <ClCompile Include="src\jpeg\jcmarker.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jcmaster.c">
+    <ClCompile Include="src\jpeg\jcmaster.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jcomapi.c">
+    <ClCompile Include="src\jpeg\jcomapi.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jcparam.c">
+    <ClCompile Include="src\jpeg\jcparam.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jcprepct.c">
+    <ClCompile Include="src\jpeg\jcprepct.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jcsample.c">
+    <ClCompile Include="src\jpeg\jcsample.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jctrans.c">
+    <ClCompile Include="src\jpeg\jctrans.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jdapimin.c">
+    <ClCompile Include="src\jpeg\jdapimin.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jdapistd.c">
+    <ClCompile Include="src\jpeg\jdapistd.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jdarith.c">
+    <ClCompile Include="src\jpeg\jdarith.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jdatadst.c">
+    <ClCompile Include="src\jpeg\jdatadst.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jdatasrc.c">
+    <ClCompile Include="src\jpeg\jdatasrc.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jdcoefct.c">
+    <ClCompile Include="src\jpeg\jdcoefct.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jdcolor.c">
+    <ClCompile Include="src\jpeg\jdcolor.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jddctmgr.c">
+    <ClCompile Include="src\jpeg\jddctmgr.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jdhuff.c">
+    <ClCompile Include="src\jpeg\jdhuff.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jdinput.c">
+    <ClCompile Include="src\jpeg\jdinput.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jdmainct.c">
+    <ClCompile Include="src\jpeg\jdmainct.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jdmarker.c">
+    <ClCompile Include="src\jpeg\jdmarker.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jdmaster.c">
+    <ClCompile Include="src\jpeg\jdmaster.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jdmerge.c">
+    <ClCompile Include="src\jpeg\jdmerge.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jdpostct.c">
+    <ClCompile Include="src\jpeg\jdpostct.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jdsample.c">
+    <ClCompile Include="src\jpeg\jdsample.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jdtrans.c">
+    <ClCompile Include="src\jpeg\jdtrans.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jerror.c">
+    <ClCompile Include="src\jpeg\jerror.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jfdctflt.c">
+    <ClCompile Include="src\jpeg\jfdctflt.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jfdctfst.c">
+    <ClCompile Include="src\jpeg\jfdctfst.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jfdctint.c">
+    <ClCompile Include="src\jpeg\jfdctint.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jidctflt.c">
+    <ClCompile Include="src\jpeg\jidctflt.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jidctfst.c">
+    <ClCompile Include="src\jpeg\jidctfst.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jidctint.c">
+    <ClCompile Include="src\jpeg\jidctint.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jmemmgr.c">
+    <ClCompile Include="src\jpeg\jmemmgr.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jmemnobs.c">
+    <ClCompile Include="src\jpeg\jmemnobs.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jquant1.c">
+    <ClCompile Include="src\jpeg\jquant1.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jquant2.c">
+    <ClCompile Include="src\jpeg\jquant2.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\jutils.c">
+    <ClCompile Include="src\jpeg\jutils.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="jpeg\transupp.c">
+    <ClCompile Include="src\jpeg\transupp.c">
       <Filter>Source Files\jpeg</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\AbortAppender.cpp">
+    <ClCompile Include="src\log4cpp\AbortAppender.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\Appender.cpp">
+    <ClCompile Include="src\log4cpp\Appender.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\AppendersFactory.cpp">
+    <ClCompile Include="src\log4cpp\AppendersFactory.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\AppenderSkeleton.cpp">
+    <ClCompile Include="src\log4cpp\AppenderSkeleton.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\BasicConfigurator.cpp">
+    <ClCompile Include="src\log4cpp\BasicConfigurator.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\BasicLayout.cpp">
+    <ClCompile Include="src\log4cpp\BasicLayout.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\BufferingAppender.cpp">
+    <ClCompile Include="src\log4cpp\BufferingAppender.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\Category.cpp">
+    <ClCompile Include="src\log4cpp\Category.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\CategoryStream.cpp">
+    <ClCompile Include="src\log4cpp\CategoryStream.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\Configurator.cpp">
+    <ClCompile Include="src\log4cpp\Configurator.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\DummyThreads.cpp">
+    <ClCompile Include="src\log4cpp\DummyThreads.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\FactoryParams.cpp">
+    <ClCompile Include="src\log4cpp\FactoryParams.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\FileAppender.cpp">
+    <ClCompile Include="src\log4cpp\FileAppender.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\Filter.cpp">
+    <ClCompile Include="src\log4cpp\Filter.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\FixedContextCategory.cpp">
+    <ClCompile Include="src\log4cpp\FixedContextCategory.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\HierarchyMaintainer.cpp">
+    <ClCompile Include="src\log4cpp\HierarchyMaintainer.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\IdsaAppender.cpp">
+    <ClCompile Include="src\log4cpp\IdsaAppender.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\LayoutAppender.cpp">
+    <ClCompile Include="src\log4cpp\LayoutAppender.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\LayoutsFactory.cpp">
+    <ClCompile Include="src\log4cpp\LayoutsFactory.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\LevelEvaluator.cpp">
+    <ClCompile Include="src\log4cpp\LevelEvaluator.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\Localtime.cpp">
+    <ClCompile Include="src\log4cpp\Localtime.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\LoggingEvent.cpp">
+    <ClCompile Include="src\log4cpp\LoggingEvent.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\MSThreads.cpp">
+    <ClCompile Include="src\log4cpp\MSThreads.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\NDC.cpp">
+    <ClCompile Include="src\log4cpp\NDC.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\NTEventLogAppender.cpp">
+    <ClCompile Include="src\log4cpp\NTEventLogAppender.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\OmniThreads.cpp">
+    <ClCompile Include="src\log4cpp\OmniThreads.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\OstreamAppender.cpp">
+    <ClCompile Include="src\log4cpp\OstreamAppender.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\PassThroughLayout.cpp">
+    <ClCompile Include="src\log4cpp\PassThroughLayout.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\PatternLayout.cpp">
+    <ClCompile Include="src\log4cpp\PatternLayout.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\PortabilityImpl.cpp">
+    <ClCompile Include="src\log4cpp\PortabilityImpl.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\Priority.cpp">
+    <ClCompile Include="src\log4cpp\Priority.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\Properties.cpp">
+    <ClCompile Include="src\log4cpp\Properties.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\PropertyConfigurator.cpp">
+    <ClCompile Include="src\log4cpp\PropertyConfigurator.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\PropertyConfiguratorImpl.cpp">
+    <ClCompile Include="src\log4cpp\PropertyConfiguratorImpl.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\PThreads.cpp">
+    <ClCompile Include="src\log4cpp\PThreads.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\RemoteSyslogAppender.cpp">
+    <ClCompile Include="src\log4cpp\RemoteSyslogAppender.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\RollingFileAppender.cpp">
+    <ClCompile Include="src\log4cpp\RollingFileAppender.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\SimpleLayout.cpp">
+    <ClCompile Include="src\log4cpp\SimpleLayout.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\StringQueueAppender.cpp">
+    <ClCompile Include="src\log4cpp\StringQueueAppender.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\StringUtil.cpp">
+    <ClCompile Include="src\log4cpp\StringUtil.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\SyslogAppender.cpp">
+    <ClCompile Include="src\log4cpp\SyslogAppender.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\TimeStamp.cpp">
+    <ClCompile Include="src\log4cpp\TimeStamp.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\TriggeringEventEvaluatorFactory.cpp">
+    <ClCompile Include="src\log4cpp\TriggeringEventEvaluatorFactory.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="log4cpp\Win32DebugAppender.cpp">
+    <ClCompile Include="src\log4cpp\Win32DebugAppender.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
-    <ClCompile Include="png\png.c">
+    <ClCompile Include="src\png\png.c">
       <Filter>Source Files\png</Filter>
     </ClCompile>
-    <ClCompile Include="png\pngerror.c">
+    <ClCompile Include="src\png\pngerror.c">
       <Filter>Source Files\png</Filter>
     </ClCompile>
-    <ClCompile Include="png\pngget.c">
+    <ClCompile Include="src\png\pngget.c">
       <Filter>Source Files\png</Filter>
     </ClCompile>
-    <ClCompile Include="png\pngmem.c">
+    <ClCompile Include="src\png\pngmem.c">
       <Filter>Source Files\png</Filter>
     </ClCompile>
-    <ClCompile Include="png\pngpread.c">
+    <ClCompile Include="src\png\pngpread.c">
       <Filter>Source Files\png</Filter>
     </ClCompile>
-    <ClCompile Include="png\pngread.c">
+    <ClCompile Include="src\png\pngread.c">
       <Filter>Source Files\png</Filter>
     </ClCompile>
-    <ClCompile Include="png\pngrio.c">
+    <ClCompile Include="src\png\pngrio.c">
       <Filter>Source Files\png</Filter>
     </ClCompile>
-    <ClCompile Include="png\pngrtran.c">
+    <ClCompile Include="src\png\pngrtran.c">
       <Filter>Source Files\png</Filter>
     </ClCompile>
-    <ClCompile Include="png\pngrutil.c">
+    <ClCompile Include="src\png\pngrutil.c">
       <Filter>Source Files\png</Filter>
     </ClCompile>
-    <ClCompile Include="png\pngset.c">
+    <ClCompile Include="src\png\pngset.c">
       <Filter>Source Files\png</Filter>
     </ClCompile>
-    <ClCompile Include="png\pngtrans.c">
+    <ClCompile Include="src\png\pngtrans.c">
       <Filter>Source Files\png</Filter>
     </ClCompile>
-    <ClCompile Include="png\pngwio.c">
+    <ClCompile Include="src\png\pngwio.c">
       <Filter>Source Files\png</Filter>
     </ClCompile>
-    <ClCompile Include="png\pngwrite.c">
+    <ClCompile Include="src\png\pngwrite.c">
       <Filter>Source Files\png</Filter>
     </ClCompile>
-    <ClCompile Include="png\pngwtran.c">
+    <ClCompile Include="src\png\pngwtran.c">
       <Filter>Source Files\png</Filter>
     </ClCompile>
-    <ClCompile Include="png\pngwutil.c">
+    <ClCompile Include="src\png\pngwutil.c">
       <Filter>Source Files\png</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_aux.c">
+    <ClCompile Include="src\tiff\tif_aux.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_close.c">
+    <ClCompile Include="src\tiff\tif_close.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_codec.c">
+    <ClCompile Include="src\tiff\tif_codec.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_color.c">
+    <ClCompile Include="src\tiff\tif_color.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_compress.c">
+    <ClCompile Include="src\tiff\tif_compress.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_dir.c">
+    <ClCompile Include="src\tiff\tif_dir.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_dirinfo.c">
+    <ClCompile Include="src\tiff\tif_dirinfo.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_dirread.c">
+    <ClCompile Include="src\tiff\tif_dirread.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_dirwrite.c">
+    <ClCompile Include="src\tiff\tif_dirwrite.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_dumpmode.c">
+    <ClCompile Include="src\tiff\tif_dumpmode.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_error.c">
+    <ClCompile Include="src\tiff\tif_error.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_extension.c">
+    <ClCompile Include="src\tiff\tif_extension.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_fax3.c">
+    <ClCompile Include="src\tiff\tif_fax3.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_fax3sm.c">
+    <ClCompile Include="src\tiff\tif_fax3sm.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_flush.c">
+    <ClCompile Include="src\tiff\tif_flush.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_getimage.c">
+    <ClCompile Include="src\tiff\tif_getimage.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_jpeg.c">
+    <ClCompile Include="src\tiff\tif_jpeg.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_luv.c">
+    <ClCompile Include="src\tiff\tif_luv.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_lzw.c">
+    <ClCompile Include="src\tiff\tif_lzw.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_memory.c">
+    <ClCompile Include="src\tiff\tif_memory.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_next.c">
+    <ClCompile Include="src\tiff\tif_next.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_ojpeg.c">
+    <ClCompile Include="src\tiff\tif_ojpeg.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_open.c">
+    <ClCompile Include="src\tiff\tif_open.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_packbits.c">
+    <ClCompile Include="src\tiff\tif_packbits.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_pixarlog.c">
+    <ClCompile Include="src\tiff\tif_pixarlog.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_predict.c">
+    <ClCompile Include="src\tiff\tif_predict.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_print.c">
+    <ClCompile Include="src\tiff\tif_print.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_read.c">
+    <ClCompile Include="src\tiff\tif_read.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_strip.c">
+    <ClCompile Include="src\tiff\tif_strip.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_swab.c">
+    <ClCompile Include="src\tiff\tif_swab.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_thunder.c">
+    <ClCompile Include="src\tiff\tif_thunder.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_tile.c">
+    <ClCompile Include="src\tiff\tif_tile.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_version.c">
+    <ClCompile Include="src\tiff\tif_version.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_warning.c">
+    <ClCompile Include="src\tiff\tif_warning.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_write.c">
+    <ClCompile Include="src\tiff\tif_write.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="tiff\tif_zip.c">
+    <ClCompile Include="src\tiff\tif_zip.c">
       <Filter>Source Files\tiff</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\accessors.cc">
+    <ClCompile Include="src\v8\src\accessors.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\allocation.cc">
+    <ClCompile Include="src\v8\src\allocation.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\api.cc">
+    <ClCompile Include="src\v8\src\api.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\assembler.cc">
+    <ClCompile Include="src\v8\src\assembler.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ast.cc">
+    <ClCompile Include="src\v8\src\ast.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\atomicops_internals_x86_gcc.cc">
+    <ClCompile Include="src\v8\src\atomicops_internals_x86_gcc.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\bignum.cc">
+    <ClCompile Include="src\v8\src\bignum.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\bignum-dtoa.cc">
+    <ClCompile Include="src\v8\src\bignum-dtoa.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\bootstrapper.cc">
+    <ClCompile Include="src\v8\src\bootstrapper.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\builtins.cc">
+    <ClCompile Include="src\v8\src\builtins.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\cached-powers.cc">
+    <ClCompile Include="src\v8\src\cached-powers.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\checks.cc">
+    <ClCompile Include="src\v8\src\checks.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\circular-queue.cc">
+    <ClCompile Include="src\v8\src\circular-queue.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\codegen.cc">
+    <ClCompile Include="src\v8\src\codegen.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\code-stubs.cc">
+    <ClCompile Include="src\v8\src\code-stubs.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\compilation-cache.cc">
+    <ClCompile Include="src\v8\src\compilation-cache.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\compiler.cc">
+    <ClCompile Include="src\v8\src\compiler.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\contexts.cc">
+    <ClCompile Include="src\v8\src\contexts.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\conversions.cc">
+    <ClCompile Include="src\v8\src\conversions.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\counters.cc">
+    <ClCompile Include="src\v8\src\counters.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\cpu-profiler.cc">
+    <ClCompile Include="src\v8\src\cpu-profiler.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\data-flow.cc">
+    <ClCompile Include="src\v8\src\data-flow.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\date.cc">
+    <ClCompile Include="src\v8\src\date.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\dateparser.cc">
+    <ClCompile Include="src\v8\src\dateparser.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\debug.cc">
+    <ClCompile Include="src\v8\src\debug.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\debug-agent.cc">
+    <ClCompile Include="src\v8\src\debug-agent.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\deoptimizer.cc">
+    <ClCompile Include="src\v8\src\deoptimizer.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\disassembler.cc">
+    <ClCompile Include="src\v8\src\disassembler.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\diy-fp.cc">
+    <ClCompile Include="src\v8\src\diy-fp.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\dtoa.cc">
+    <ClCompile Include="src\v8\src\dtoa.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\elements.cc">
+    <ClCompile Include="src\v8\src\elements.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\execution.cc">
+    <ClCompile Include="src\v8\src\execution.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\experimental-libraries.cc">
+    <ClCompile Include="src\v8\src\experimental-libraries.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\factory.cc">
+    <ClCompile Include="src\v8\src\factory.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\fast-dtoa.cc">
+    <ClCompile Include="src\v8\src\fast-dtoa.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\fixed-dtoa.cc">
+    <ClCompile Include="src\v8\src\fixed-dtoa.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\flags.cc">
+    <ClCompile Include="src\v8\src\flags.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\frames.cc">
+    <ClCompile Include="src\v8\src\frames.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\full-codegen.cc">
+    <ClCompile Include="src\v8\src\full-codegen.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\func-name-inferrer.cc">
+    <ClCompile Include="src\v8\src\func-name-inferrer.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\gdb-jit.cc">
+    <ClCompile Include="src\v8\src\gdb-jit.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\global-handles.cc">
+    <ClCompile Include="src\v8\src\global-handles.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\handles.cc">
+    <ClCompile Include="src\v8\src\handles.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\heap.cc">
+    <ClCompile Include="src\v8\src\heap.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\heap-profiler.cc">
+    <ClCompile Include="src\v8\src\heap-profiler.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\hydrogen.cc">
+    <ClCompile Include="src\v8\src\hydrogen.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\hydrogen-instructions.cc">
+    <ClCompile Include="src\v8\src\hydrogen-instructions.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ic.cc">
+    <ClCompile Include="src\v8\src\ic.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\incremental-marking.cc">
+    <ClCompile Include="src\v8\src\incremental-marking.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\inspector.cc">
+    <ClCompile Include="src\v8\src\inspector.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\interface.cc">
+    <ClCompile Include="src\v8\src\interface.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\interpreter-irregexp.cc">
+    <ClCompile Include="src\v8\src\interpreter-irregexp.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\isolate.cc">
+    <ClCompile Include="src\v8\src\isolate.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\jsregexp.cc">
+    <ClCompile Include="src\v8\src\jsregexp.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\libraries.cc">
+    <ClCompile Include="src\v8\src\libraries.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\lithium.cc">
+    <ClCompile Include="src\v8\src\lithium.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\lithium-allocator.cc">
+    <ClCompile Include="src\v8\src\lithium-allocator.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\liveedit.cc">
+    <ClCompile Include="src\v8\src\liveedit.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\liveobjectlist.cc">
+    <ClCompile Include="src\v8\src\liveobjectlist.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\log.cc">
+    <ClCompile Include="src\v8\src\log.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\log-utils.cc">
+    <ClCompile Include="src\v8\src\log-utils.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\mark-compact.cc">
+    <ClCompile Include="src\v8\src\mark-compact.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\messages.cc">
+    <ClCompile Include="src\v8\src\messages.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\objects.cc">
+    <ClCompile Include="src\v8\src\objects.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\objects-debug.cc">
+    <ClCompile Include="src\v8\src\objects-debug.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\objects-printer.cc">
+    <ClCompile Include="src\v8\src\objects-printer.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\objects-visiting.cc">
+    <ClCompile Include="src\v8\src\objects-visiting.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\once.cc">
+    <ClCompile Include="src\v8\src\once.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\parser.cc">
+    <ClCompile Include="src\v8\src\parser.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\platform-fiber.cc">
+    <ClCompile Include="src\v8\src\platform-fiber.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\platform-freebsd.cc">
+    <ClCompile Include="src\v8\src\platform-freebsd.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\platform-linux.cc">
+    <ClCompile Include="src\v8\src\platform-linux.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\platform-macos.cc">
+    <ClCompile Include="src\v8\src\platform-macos.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\platform-openbsd.cc">
+    <ClCompile Include="src\v8\src\platform-openbsd.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\platform-posix.cc">
+    <ClCompile Include="src\v8\src\platform-posix.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\platform-solaris.cc">
+    <ClCompile Include="src\v8\src\platform-solaris.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\platform-win32.cc">
+    <ClCompile Include="src\v8\src\platform-win32.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\preparse-data.cc">
+    <ClCompile Include="src\v8\src\preparse-data.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\preparser.cc">
+    <ClCompile Include="src\v8\src\preparser.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\prettyprinter.cc">
+    <ClCompile Include="src\v8\src\prettyprinter.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\profile-generator.cc">
+    <ClCompile Include="src\v8\src\profile-generator.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\property.cc">
+    <ClCompile Include="src\v8\src\property.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\regexp-macro-assembler.cc">
+    <ClCompile Include="src\v8\src\regexp-macro-assembler.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\regexp-macro-assembler-irregexp.cc">
+    <ClCompile Include="src\v8\src\regexp-macro-assembler-irregexp.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\regexp-macro-assembler-tracer.cc">
+    <ClCompile Include="src\v8\src\regexp-macro-assembler-tracer.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\regexp-stack.cc">
+    <ClCompile Include="src\v8\src\regexp-stack.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\rewriter.cc">
+    <ClCompile Include="src\v8\src\rewriter.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\runtime.cc">
+    <ClCompile Include="src\v8\src\runtime.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\runtime-profiler.cc">
+    <ClCompile Include="src\v8\src\runtime-profiler.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\safepoint-table.cc">
+    <ClCompile Include="src\v8\src\safepoint-table.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\scanner.cc">
+    <ClCompile Include="src\v8\src\scanner.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\scanner-character-streams.cc">
+    <ClCompile Include="src\v8\src\scanner-character-streams.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\scopeinfo.cc">
+    <ClCompile Include="src\v8\src\scopeinfo.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\scopes.cc">
+    <ClCompile Include="src\v8\src\scopes.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\serialize.cc">
+    <ClCompile Include="src\v8\src\serialize.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\snapshot-common.cc">
+    <ClCompile Include="src\v8\src\snapshot-common.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\snapshot-empty.cc">
+    <ClCompile Include="src\v8\src\snapshot-empty.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\spaces.cc">
+    <ClCompile Include="src\v8\src\spaces.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\store-buffer.cc">
+    <ClCompile Include="src\v8\src\store-buffer.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\string-search.cc">
+    <ClCompile Include="src\v8\src\string-search.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\string-stream.cc">
+    <ClCompile Include="src\v8\src\string-stream.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\strtod.cc">
+    <ClCompile Include="src\v8\src\strtod.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\stub-cache.cc">
+    <ClCompile Include="src\v8\src\stub-cache.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\token.cc">
+    <ClCompile Include="src\v8\src\token.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\type-info.cc">
+    <ClCompile Include="src\v8\src\type-info.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\unicode.cc">
+    <ClCompile Include="src\v8\src\unicode.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\utils.cc">
+    <ClCompile Include="src\v8\src\utils.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\v8.cc">
+    <ClCompile Include="src\v8\src\v8.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\v8conversions.cc">
+    <ClCompile Include="src\v8\src\v8conversions.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\v8-counters.cc">
+    <ClCompile Include="src\v8\src\v8-counters.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\v8threads.cc">
+    <ClCompile Include="src\v8\src\v8threads.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\v8utils.cc">
+    <ClCompile Include="src\v8\src\v8utils.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\variables.cc">
+    <ClCompile Include="src\v8\src\variables.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\version.cc">
+    <ClCompile Include="src\v8\src\version.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\win32-math.cc">
+    <ClCompile Include="src\v8\src\win32-math.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\zone.cc">
+    <ClCompile Include="src\v8\src\zone.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\assembler-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\assembler-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\builtins-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\builtins-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\codegen-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\codegen-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\code-stubs-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\code-stubs-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\cpu-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\cpu-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\debug-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\debug-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\deoptimizer-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\deoptimizer-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\disasm-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\disasm-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\frames-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\frames-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\full-codegen-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\full-codegen-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\ic-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\ic-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\lithium-codegen-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\lithium-codegen-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\lithium-gap-resolver-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\lithium-gap-resolver-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\lithium-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\lithium-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\macro-assembler-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\macro-assembler-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\regexp-macro-assembler-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\regexp-macro-assembler-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\simulator-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\simulator-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\ia32\stub-cache-ia32.cc">
+    <ClCompile Include="src\v8\src\ia32\stub-cache-ia32.cc">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\extensions\externalize-string-extension.cc">
+    <ClCompile Include="src\v8\src\extensions\externalize-string-extension.cc">
       <Filter>Source Files\v8\src\extensions</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\extensions\gc-extension.cc">
+    <ClCompile Include="src\v8\src\extensions\gc-extension.cc">
       <Filter>Source Files\v8\src\extensions</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\assembler-x64.cc">
+    <ClCompile Include="src\v8\src\x64\assembler-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\builtins-x64.cc">
+    <ClCompile Include="src\v8\src\x64\builtins-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\codegen-x64.cc">
+    <ClCompile Include="src\v8\src\x64\codegen-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\code-stubs-x64.cc">
+    <ClCompile Include="src\v8\src\x64\code-stubs-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\cpu-x64.cc">
+    <ClCompile Include="src\v8\src\x64\cpu-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\debug-x64.cc">
+    <ClCompile Include="src\v8\src\x64\debug-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\deoptimizer-x64.cc">
+    <ClCompile Include="src\v8\src\x64\deoptimizer-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\disasm-x64.cc">
+    <ClCompile Include="src\v8\src\x64\disasm-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\frames-x64.cc">
+    <ClCompile Include="src\v8\src\x64\frames-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\full-codegen-x64.cc">
+    <ClCompile Include="src\v8\src\x64\full-codegen-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\ic-x64.cc">
+    <ClCompile Include="src\v8\src\x64\ic-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\lithium-codegen-x64.cc">
+    <ClCompile Include="src\v8\src\x64\lithium-codegen-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\lithium-gap-resolver-x64.cc">
+    <ClCompile Include="src\v8\src\x64\lithium-gap-resolver-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\lithium-x64.cc">
+    <ClCompile Include="src\v8\src\x64\lithium-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\macro-assembler-x64.cc">
+    <ClCompile Include="src\v8\src\x64\macro-assembler-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\regexp-macro-assembler-x64.cc">
+    <ClCompile Include="src\v8\src\x64\regexp-macro-assembler-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\simulator-x64.cc">
+    <ClCompile Include="src\v8\src\x64\simulator-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="v8\src\x64\stub-cache-x64.cc">
+    <ClCompile Include="src\v8\src\x64\stub-cache-x64.cc">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\abstraction\abstraction_aligned_free.c">
+    <ClCompile Include="src\lfds\abstraction\abstraction_aligned_free.c">
       <Filter>Source Files\lfds\abstraction</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\abstraction\abstraction_aligned_malloc.c">
+    <ClCompile Include="src\lfds\abstraction\abstraction_aligned_malloc.c">
       <Filter>Source Files\lfds\abstraction</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\abstraction\abstraction_cas.c">
+    <ClCompile Include="src\lfds\abstraction\abstraction_cas.c">
       <Filter>Source Files\lfds\abstraction</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\abstraction\abstraction_dcas.c">
+    <ClCompile Include="src\lfds\abstraction\abstraction_dcas.c">
       <Filter>Source Files\lfds\abstraction</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\abstraction\abstraction_increment.c">
+    <ClCompile Include="src\lfds\abstraction\abstraction_increment.c">
       <Filter>Source Files\lfds\abstraction</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\freelist\freelist_delete.c">
+    <ClCompile Include="src\lfds\freelist\freelist_delete.c">
       <Filter>Source Files\lfds\freelist</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\freelist\freelist_get_and_set.c">
+    <ClCompile Include="src\lfds\freelist\freelist_get_and_set.c">
       <Filter>Source Files\lfds\freelist</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\freelist\freelist_new.c">
+    <ClCompile Include="src\lfds\freelist\freelist_new.c">
       <Filter>Source Files\lfds\freelist</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\freelist\freelist_pop_push.c">
+    <ClCompile Include="src\lfds\freelist\freelist_pop_push.c">
       <Filter>Source Files\lfds\freelist</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\freelist\freelist_query.c">
+    <ClCompile Include="src\lfds\freelist\freelist_query.c">
       <Filter>Source Files\lfds\freelist</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\queue\queue_delete.c">
+    <ClCompile Include="src\lfds\queue\queue_delete.c">
       <Filter>Source Files\lfds\queue</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\queue\queue_query.c">
+    <ClCompile Include="src\lfds\queue\queue_query.c">
       <Filter>Source Files\lfds\queue</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\queue\queue_new.c">
+    <ClCompile Include="src\lfds\queue\queue_new.c">
       <Filter>Source Files\lfds\queue</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\queue\queue_queue.c">
+    <ClCompile Include="src\lfds\queue\queue_queue.c">
       <Filter>Source Files\lfds\queue</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\stack\stack_delete.c">
+    <ClCompile Include="src\lfds\stack\stack_delete.c">
       <Filter>Source Files\lfds\stack</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\stack\stack_new.c">
+    <ClCompile Include="src\lfds\stack\stack_new.c">
       <Filter>Source Files\lfds\stack</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\stack\stack_push_pop.c">
+    <ClCompile Include="src\lfds\stack\stack_push_pop.c">
       <Filter>Source Files\lfds\stack</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\stack\stack_query.c">
+    <ClCompile Include="src\lfds\stack\stack_query.c">
       <Filter>Source Files\lfds\stack</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\slist\slist_delete.c">
+    <ClCompile Include="src\lfds\slist\slist_delete.c">
       <Filter>Source Files\lfds\slist</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\slist\slist_get_and_set.c">
+    <ClCompile Include="src\lfds\slist\slist_get_and_set.c">
       <Filter>Source Files\lfds\slist</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\slist\slist_link.c">
+    <ClCompile Include="src\lfds\slist\slist_link.c">
       <Filter>Source Files\lfds\slist</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\slist\slist_new.c">
+    <ClCompile Include="src\lfds\slist\slist_new.c">
       <Filter>Source Files\lfds\slist</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\ringbuffer\ringbuffer_delete.c">
+    <ClCompile Include="src\lfds\ringbuffer\ringbuffer_delete.c">
       <Filter>Source Files\lfds\ringbuffer</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\ringbuffer\ringbuffer_get_and_put.c">
+    <ClCompile Include="src\lfds\ringbuffer\ringbuffer_get_and_put.c">
       <Filter>Source Files\lfds\ringbuffer</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\ringbuffer\ringbuffer_new.c">
+    <ClCompile Include="src\lfds\ringbuffer\ringbuffer_new.c">
       <Filter>Source Files\lfds\ringbuffer</Filter>
     </ClCompile>
-    <ClCompile Include="lfds\ringbuffer\ringbuffer_query.c">
+    <ClCompile Include="src\lfds\ringbuffer\ringbuffer_query.c">
       <Filter>Source Files\lfds\ringbuffer</Filter>
     </ClCompile>
-    <ClCompile Include="exlib\fiber\fbCondVar.cpp">
+    <ClCompile Include="src\exlib\fiber\fbCondVar.cpp">
       <Filter>Source Files\exlib\fiber</Filter>
     </ClCompile>
-    <ClCompile Include="exlib\fiber\fbEvent.cpp">
+    <ClCompile Include="src\exlib\fiber\fbEvent.cpp">
       <Filter>Source Files\exlib\fiber</Filter>
     </ClCompile>
-    <ClCompile Include="exlib\fiber\fbFiber.cpp">
+    <ClCompile Include="src\exlib\fiber\fbFiber.cpp">
       <Filter>Source Files\exlib\fiber</Filter>
     </ClCompile>
-    <ClCompile Include="exlib\fiber\fbLocker.cpp">
+    <ClCompile Include="src\exlib\fiber\fbLocker.cpp">
       <Filter>Source Files\exlib\fiber</Filter>
     </ClCompile>
-    <ClCompile Include="exlib\fiber\fbSemaphore.cpp">
+    <ClCompile Include="src\exlib\fiber\fbSemaphore.cpp">
       <Filter>Source Files\exlib\fiber</Filter>
     </ClCompile>
-    <ClCompile Include="exlib\fiber\fbService.cpp">
+    <ClCompile Include="src\exlib\fiber\fbService.cpp">
       <Filter>Source Files\exlib\fiber</Filter>
     </ClCompile>
-    <ClCompile Include="exlib\fiber\fbSwitch.cpp">
+    <ClCompile Include="src\exlib\fiber\fbSwitch.cpp">
       <Filter>Source Files\exlib\fiber</Filter>
     </ClCompile>
-    <ClCompile Include="exlib\fiber\fbTls.cpp">
+    <ClCompile Include="src\exlib\fiber\fbTls.cpp">
       <Filter>Source Files\exlib\fiber</Filter>
     </ClCompile>
-    <ClCompile Include="exlib\thread.cpp">
+    <ClCompile Include="src\exlib\thread.cpp">
       <Filter>Source Files\exlib</Filter>
     </ClCompile>
-    <ClCompile Include="exlib\utils.cpp">
+    <ClCompile Include="src\exlib\utils.cpp">
       <Filter>Source Files\exlib</Filter>
     </ClCompile>
-    <ClCompile Include="exlib\fiber\fbAsyncEvent.cpp">
+    <ClCompile Include="src\exlib\fiber\fbAsyncEvent.cpp">
       <Filter>Source Files\exlib\fiber</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="zlib\crc32.h">
+    <ClInclude Include="src\zlib\crc32.h">
       <Filter>Source Files\zlib</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\deflate.h">
+    <ClInclude Include="src\zlib\deflate.h">
       <Filter>Source Files\zlib</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\inffast.h">
+    <ClInclude Include="src\zlib\inffast.h">
       <Filter>Source Files\zlib</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\inffixed.h">
+    <ClInclude Include="src\zlib\inffixed.h">
       <Filter>Source Files\zlib</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\inflate.h">
+    <ClInclude Include="src\zlib\inflate.h">
       <Filter>Source Files\zlib</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\inftrees.h">
+    <ClInclude Include="src\zlib\inftrees.h">
       <Filter>Source Files\zlib</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\trees.h">
+    <ClInclude Include="src\zlib\trees.h">
       <Filter>Source Files\zlib</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\zconf.h">
+    <ClInclude Include="src\zlib\zconf.h">
       <Filter>Source Files\zlib</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\zlib.h">
+    <ClInclude Include="src\zlib\zlib.h">
       <Filter>Source Files\zlib</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\zutil.h">
+    <ClInclude Include="src\zlib\zutil.h">
       <Filter>Source Files\zlib</Filter>
     </ClInclude>
-    <ClInclude Include="include\ev.h">
+    <ClInclude Include="src\include\ev.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\ev++.h">
+    <ClInclude Include="src\include\ev++.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\fiber.h">
+    <ClInclude Include="src\include\fiber.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\gd.h">
+    <ClInclude Include="src\include\gd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\gd_io.h">
+    <ClInclude Include="src\include\gd_io.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\gdcache.h">
+    <ClInclude Include="src\include\gdcache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\gdfonts.h">
+    <ClInclude Include="src\include\gdfonts.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\gdfx.h">
+    <ClInclude Include="src\include\gdfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\jconfig.h">
+    <ClInclude Include="src\include\jconfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\jerror.h">
+    <ClInclude Include="src\include\jerror.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\jmorecfg.h">
+    <ClInclude Include="src\include\jmorecfg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\jpegint.h">
+    <ClInclude Include="src\include\jpegint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\jpeglib.h">
+    <ClInclude Include="src\include\jpeglib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\osconfig.h">
+    <ClInclude Include="src\include\osconfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\png.h">
+    <ClInclude Include="src\include\png.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\pngconf.h">
+    <ClInclude Include="src\include\pngconf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\pnglibconf.h">
+    <ClInclude Include="src\include\pnglibconf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\tif_config.h">
+    <ClInclude Include="src\include\tif_config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\tiff.h">
+    <ClInclude Include="src\include\tiff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\tiffio.h">
+    <ClInclude Include="src\include\tiffio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\tiffvers.h">
+    <ClInclude Include="src\include\tiffvers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\zconf.h">
+    <ClInclude Include="src\include\zconf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\zlib.h">
+    <ClInclude Include="src\include\zlib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\v8\v8.h">
+    <ClInclude Include="src\include\v8\v8.h">
       <Filter>Header Files\v8</Filter>
     </ClInclude>
-    <ClInclude Include="include\v8\v8-debug.h">
+    <ClInclude Include="src\include\v8\v8-debug.h">
       <Filter>Header Files\v8</Filter>
     </ClInclude>
-    <ClInclude Include="include\v8\v8-preparser.h">
+    <ClInclude Include="src\include\v8\v8-preparser.h">
       <Filter>Header Files\v8</Filter>
     </ClInclude>
-    <ClInclude Include="include\v8\v8-profiler.h">
+    <ClInclude Include="src\include\v8\v8-profiler.h">
       <Filter>Header Files\v8</Filter>
     </ClInclude>
-    <ClInclude Include="include\v8\v8stdint.h">
+    <ClInclude Include="src\include\v8\v8stdint.h">
       <Filter>Header Files\v8</Filter>
     </ClInclude>
-    <ClInclude Include="include\v8\v8-testing.h">
+    <ClInclude Include="src\include\v8\v8-testing.h">
       <Filter>Header Files\v8</Filter>
     </ClInclude>
-    <ClInclude Include="include\log4cpp\config.h">
+    <ClInclude Include="src\include\log4cpp\config.h">
       <Filter>Header Files\log4cpp</Filter>
     </ClInclude>
-    <ClInclude Include="include\log4cpp\config-MinGW32.h">
+    <ClInclude Include="src\include\log4cpp\config-MinGW32.h">
       <Filter>Header Files\log4cpp</Filter>
     </ClInclude>
-    <ClInclude Include="include\log4cpp\config-openvms.h">
+    <ClInclude Include="src\include\log4cpp\config-openvms.h">
       <Filter>Header Files\log4cpp</Filter>
     </ClInclude>
-    <ClInclude Include="include\log4cpp\config-win32.h">
+    <ClInclude Include="src\include\log4cpp\config-win32.h">
       <Filter>Header Files\log4cpp</Filter>
     </ClInclude>
-    <ClInclude Include="include\log4cpp\convenience.h">
+    <ClInclude Include="src\include\log4cpp\convenience.h">
       <Filter>Header Files\log4cpp</Filter>
     </ClInclude>
-    <ClInclude Include="gd\bmp.h">
+    <ClInclude Include="src\gd\bmp.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\config.h">
+    <ClInclude Include="src\gd\config.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\entities.h">
+    <ClInclude Include="src\gd\entities.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\gd.h">
+    <ClInclude Include="src\gd\gd.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\gd_color.h">
+    <ClInclude Include="src\gd\gd_color.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\gd_color_map.h">
+    <ClInclude Include="src\gd\gd_color_map.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\gd_io.h">
+    <ClInclude Include="src\gd\gd_io.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\gd_io_stream.h">
+    <ClInclude Include="src\gd\gd_io_stream.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\gd_nnquant.h">
+    <ClInclude Include="src\gd\gd_nnquant.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\gd_tga.h">
+    <ClInclude Include="src\gd\gd_tga.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\gdfontg.h">
+    <ClInclude Include="src\gd\gdfontg.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\gdfontl.h">
+    <ClInclude Include="src\gd\gdfontl.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\gdfontmb.h">
+    <ClInclude Include="src\gd\gdfontmb.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\gdfonts.h">
+    <ClInclude Include="src\gd\gdfonts.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\gdfontt.h">
+    <ClInclude Include="src\gd\gdfontt.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\gdfx.h">
+    <ClInclude Include="src\gd\gdfx.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\gdhelpers.h">
+    <ClInclude Include="src\gd\gdhelpers.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\gdpp.h">
+    <ClInclude Include="src\gd\gdpp.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\jisx0208.h">
+    <ClInclude Include="src\gd\jisx0208.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="gd\wbmp.h">
+    <ClInclude Include="src\gd\wbmp.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
-    <ClInclude Include="jpeg\jconfig.h">
+    <ClInclude Include="src\jpeg\jconfig.h">
       <Filter>Source Files\jpeg</Filter>
     </ClInclude>
-    <ClInclude Include="jpeg\jdct.h">
+    <ClInclude Include="src\jpeg\jdct.h">
       <Filter>Source Files\jpeg</Filter>
     </ClInclude>
-    <ClInclude Include="jpeg\jerror.h">
+    <ClInclude Include="src\jpeg\jerror.h">
       <Filter>Source Files\jpeg</Filter>
     </ClInclude>
-    <ClInclude Include="jpeg\jinclude.h">
+    <ClInclude Include="src\jpeg\jinclude.h">
       <Filter>Source Files\jpeg</Filter>
     </ClInclude>
-    <ClInclude Include="jpeg\jmemsys.h">
+    <ClInclude Include="src\jpeg\jmemsys.h">
       <Filter>Source Files\jpeg</Filter>
     </ClInclude>
-    <ClInclude Include="jpeg\jpegint.h">
+    <ClInclude Include="src\jpeg\jpegint.h">
       <Filter>Source Files\jpeg</Filter>
     </ClInclude>
-    <ClInclude Include="jpeg\jversion.h">
+    <ClInclude Include="src\jpeg\jversion.h">
       <Filter>Source Files\jpeg</Filter>
     </ClInclude>
-    <ClInclude Include="jpeg\transupp.h">
+    <ClInclude Include="src\jpeg\transupp.h">
       <Filter>Source Files\jpeg</Filter>
     </ClInclude>
-    <ClInclude Include="png\png.h">
+    <ClInclude Include="src\png\png.h">
       <Filter>Source Files\png</Filter>
     </ClInclude>
-    <ClInclude Include="png\pngconf.h">
+    <ClInclude Include="src\png\pngconf.h">
       <Filter>Source Files\png</Filter>
     </ClInclude>
-    <ClInclude Include="png\pngdebug.h">
+    <ClInclude Include="src\png\pngdebug.h">
       <Filter>Source Files\png</Filter>
     </ClInclude>
-    <ClInclude Include="png\pnginfo.h">
+    <ClInclude Include="src\png\pnginfo.h">
       <Filter>Source Files\png</Filter>
     </ClInclude>
-    <ClInclude Include="png\pngpriv.h">
+    <ClInclude Include="src\png\pngpriv.h">
       <Filter>Source Files\png</Filter>
     </ClInclude>
-    <ClInclude Include="png\pngstruct.h">
+    <ClInclude Include="src\png\pngstruct.h">
       <Filter>Source Files\png</Filter>
     </ClInclude>
-    <ClInclude Include="tiff\t4.h">
+    <ClInclude Include="src\tiff\t4.h">
       <Filter>Source Files\tiff</Filter>
     </ClInclude>
-    <ClInclude Include="tiff\tif_dir.h">
+    <ClInclude Include="src\tiff\tif_dir.h">
       <Filter>Source Files\tiff</Filter>
     </ClInclude>
-    <ClInclude Include="tiff\tif_fax3.h">
+    <ClInclude Include="src\tiff\tif_fax3.h">
       <Filter>Source Files\tiff</Filter>
     </ClInclude>
-    <ClInclude Include="tiff\tif_predict.h">
+    <ClInclude Include="src\tiff\tif_predict.h">
       <Filter>Source Files\tiff</Filter>
     </ClInclude>
-    <ClInclude Include="tiff\tiff.h">
+    <ClInclude Include="src\tiff\tiff.h">
       <Filter>Source Files\tiff</Filter>
     </ClInclude>
-    <ClInclude Include="tiff\tiffio.h">
+    <ClInclude Include="src\tiff\tiffio.h">
       <Filter>Source Files\tiff</Filter>
     </ClInclude>
-    <ClInclude Include="tiff\tiffiop.h">
+    <ClInclude Include="src\tiff\tiffiop.h">
       <Filter>Source Files\tiff</Filter>
     </ClInclude>
-    <ClInclude Include="tiff\uvcode.h">
+    <ClInclude Include="src\tiff\uvcode.h">
       <Filter>Source Files\tiff</Filter>
     </ClInclude>
-    <ClInclude Include="v8\include\v8.h">
+    <ClInclude Include="src\v8\include\v8.h">
       <Filter>Source Files\v8\include</Filter>
     </ClInclude>
-    <ClInclude Include="v8\include\v8-debug.h">
+    <ClInclude Include="src\v8\include\v8-debug.h">
       <Filter>Source Files\v8\include</Filter>
     </ClInclude>
-    <ClInclude Include="v8\include\v8-preparser.h">
+    <ClInclude Include="src\v8\include\v8-preparser.h">
       <Filter>Source Files\v8\include</Filter>
     </ClInclude>
-    <ClInclude Include="v8\include\v8-profiler.h">
+    <ClInclude Include="src\v8\include\v8-profiler.h">
       <Filter>Source Files\v8\include</Filter>
     </ClInclude>
-    <ClInclude Include="v8\include\v8stdint.h">
+    <ClInclude Include="src\v8\include\v8stdint.h">
       <Filter>Source Files\v8\include</Filter>
     </ClInclude>
-    <ClInclude Include="v8\include\v8-testing.h">
+    <ClInclude Include="src\v8\include\v8-testing.h">
       <Filter>Source Files\v8\include</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\accessors.h">
+    <ClInclude Include="src\v8\src\accessors.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\allocation.h">
+    <ClInclude Include="src\v8\src\allocation.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\allocation-inl.h">
+    <ClInclude Include="src\v8\src\allocation-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\api.h">
+    <ClInclude Include="src\v8\src\api.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\apiutils.h">
+    <ClInclude Include="src\v8\src\apiutils.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\arguments.h">
+    <ClInclude Include="src\v8\src\arguments.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\assembler.h">
+    <ClInclude Include="src\v8\src\assembler.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\ast.h">
+    <ClInclude Include="src\v8\src\ast.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\atomicops.h">
+    <ClInclude Include="src\v8\src\atomicops.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\atomicops_internals_x86_gcc.h">
+    <ClInclude Include="src\v8\src\atomicops_internals_x86_gcc.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\atomicops_internals_x86_macosx.h">
+    <ClInclude Include="src\v8\src\atomicops_internals_x86_macosx.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\atomicops_internals_x86_msvc.h">
+    <ClInclude Include="src\v8\src\atomicops_internals_x86_msvc.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\bignum.h">
+    <ClInclude Include="src\v8\src\bignum.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\bignum-dtoa.h">
+    <ClInclude Include="src\v8\src\bignum-dtoa.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\bootstrapper.h">
+    <ClInclude Include="src\v8\src\bootstrapper.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\builtins.h">
+    <ClInclude Include="src\v8\src\builtins.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\bytecodes-irregexp.h">
+    <ClInclude Include="src\v8\src\bytecodes-irregexp.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\cached-powers.h">
+    <ClInclude Include="src\v8\src\cached-powers.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\char-predicates.h">
+    <ClInclude Include="src\v8\src\char-predicates.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\char-predicates-inl.h">
+    <ClInclude Include="src\v8\src\char-predicates-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\checks.h">
+    <ClInclude Include="src\v8\src\checks.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\circular-queue.h">
+    <ClInclude Include="src\v8\src\circular-queue.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\circular-queue-inl.h">
+    <ClInclude Include="src\v8\src\circular-queue-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\code.h">
+    <ClInclude Include="src\v8\src\code.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\codegen.h">
+    <ClInclude Include="src\v8\src\codegen.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\code-stubs.h">
+    <ClInclude Include="src\v8\src\code-stubs.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\compilation-cache.h">
+    <ClInclude Include="src\v8\src\compilation-cache.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\compiler.h">
+    <ClInclude Include="src\v8\src\compiler.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\compiler-intrinsics.h">
+    <ClInclude Include="src\v8\src\compiler-intrinsics.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\contexts.h">
+    <ClInclude Include="src\v8\src\contexts.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\conversions.h">
+    <ClInclude Include="src\v8\src\conversions.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\conversions-inl.h">
+    <ClInclude Include="src\v8\src\conversions-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\counters.h">
+    <ClInclude Include="src\v8\src\counters.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\cpu.h">
+    <ClInclude Include="src\v8\src\cpu.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\cpu-profiler.h">
+    <ClInclude Include="src\v8\src\cpu-profiler.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\cpu-profiler-inl.h">
+    <ClInclude Include="src\v8\src\cpu-profiler-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\data-flow.h">
+    <ClInclude Include="src\v8\src\data-flow.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\date.h">
+    <ClInclude Include="src\v8\src\date.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\dateparser.h">
+    <ClInclude Include="src\v8\src\dateparser.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\dateparser-inl.h">
+    <ClInclude Include="src\v8\src\dateparser-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\debug.h">
+    <ClInclude Include="src\v8\src\debug.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\debug-agent.h">
+    <ClInclude Include="src\v8\src\debug-agent.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\deoptimizer.h">
+    <ClInclude Include="src\v8\src\deoptimizer.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\disasm.h">
+    <ClInclude Include="src\v8\src\disasm.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\disassembler.h">
+    <ClInclude Include="src\v8\src\disassembler.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\diy-fp.h">
+    <ClInclude Include="src\v8\src\diy-fp.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\double.h">
+    <ClInclude Include="src\v8\src\double.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\dtoa.h">
+    <ClInclude Include="src\v8\src\dtoa.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\elements.h">
+    <ClInclude Include="src\v8\src\elements.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\execution.h">
+    <ClInclude Include="src\v8\src\execution.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\factory.h">
+    <ClInclude Include="src\v8\src\factory.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\fast-dtoa.h">
+    <ClInclude Include="src\v8\src\fast-dtoa.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\fixed-dtoa.h">
+    <ClInclude Include="src\v8\src\fixed-dtoa.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\flag-definitions.h">
+    <ClInclude Include="src\v8\src\flag-definitions.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\flags.h">
+    <ClInclude Include="src\v8\src\flags.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\frames.h">
+    <ClInclude Include="src\v8\src\frames.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\frames-inl.h">
+    <ClInclude Include="src\v8\src\frames-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\full-codegen.h">
+    <ClInclude Include="src\v8\src\full-codegen.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\func-name-inferrer.h">
+    <ClInclude Include="src\v8\src\func-name-inferrer.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\gdb-jit.h">
+    <ClInclude Include="src\v8\src\gdb-jit.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\global-handles.h">
+    <ClInclude Include="src\v8\src\global-handles.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\globals.h">
+    <ClInclude Include="src\v8\src\globals.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\handles.h">
+    <ClInclude Include="src\v8\src\handles.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\handles-inl.h">
+    <ClInclude Include="src\v8\src\handles-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\hashmap.h">
+    <ClInclude Include="src\v8\src\hashmap.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\heap.h">
+    <ClInclude Include="src\v8\src\heap.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\heap-inl.h">
+    <ClInclude Include="src\v8\src\heap-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\heap-profiler.h">
+    <ClInclude Include="src\v8\src\heap-profiler.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\hydrogen.h">
+    <ClInclude Include="src\v8\src\hydrogen.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\hydrogen-instructions.h">
+    <ClInclude Include="src\v8\src\hydrogen-instructions.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\ic.h">
+    <ClInclude Include="src\v8\src\ic.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\ic-inl.h">
+    <ClInclude Include="src\v8\src\ic-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\incremental-marking.h">
+    <ClInclude Include="src\v8\src\incremental-marking.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\incremental-marking-inl.h">
+    <ClInclude Include="src\v8\src\incremental-marking-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\inspector.h">
+    <ClInclude Include="src\v8\src\inspector.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\interface.h">
+    <ClInclude Include="src\v8\src\interface.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\interpreter-irregexp.h">
+    <ClInclude Include="src\v8\src\interpreter-irregexp.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\isolate.h">
+    <ClInclude Include="src\v8\src\isolate.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\isolate-inl.h">
+    <ClInclude Include="src\v8\src\isolate-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\json-parser.h">
+    <ClInclude Include="src\v8\src\json-parser.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\jsregexp.h">
+    <ClInclude Include="src\v8\src\jsregexp.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\lazy-instance.h">
+    <ClInclude Include="src\v8\src\lazy-instance.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\list.h">
+    <ClInclude Include="src\v8\src\list.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\list-inl.h">
+    <ClInclude Include="src\v8\src\list-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\lithium.h">
+    <ClInclude Include="src\v8\src\lithium.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\lithium-allocator.h">
+    <ClInclude Include="src\v8\src\lithium-allocator.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\lithium-allocator-inl.h">
+    <ClInclude Include="src\v8\src\lithium-allocator-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\liveedit.h">
+    <ClInclude Include="src\v8\src\liveedit.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\liveobjectlist.h">
+    <ClInclude Include="src\v8\src\liveobjectlist.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\liveobjectlist-inl.h">
+    <ClInclude Include="src\v8\src\liveobjectlist-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\log.h">
+    <ClInclude Include="src\v8\src\log.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\log-inl.h">
+    <ClInclude Include="src\v8\src\log-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\log-utils.h">
+    <ClInclude Include="src\v8\src\log-utils.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\macro-assembler.h">
+    <ClInclude Include="src\v8\src\macro-assembler.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\mark-compact.h">
+    <ClInclude Include="src\v8\src\mark-compact.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\mark-compact-inl.h">
+    <ClInclude Include="src\v8\src\mark-compact-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\messages.h">
+    <ClInclude Include="src\v8\src\messages.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\misc-intrinsics.h">
+    <ClInclude Include="src\v8\src\misc-intrinsics.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\natives.h">
+    <ClInclude Include="src\v8\src\natives.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\objects.h">
+    <ClInclude Include="src\v8\src\objects.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\objects-inl.h">
+    <ClInclude Include="src\v8\src\objects-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\objects-visiting.h">
+    <ClInclude Include="src\v8\src\objects-visiting.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\objects-visiting-inl.h">
+    <ClInclude Include="src\v8\src\objects-visiting-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\once.h">
+    <ClInclude Include="src\v8\src\once.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\parser.h">
+    <ClInclude Include="src\v8\src\parser.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\platform.h">
+    <ClInclude Include="src\v8\src\platform.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\platform-tls.h">
+    <ClInclude Include="src\v8\src\platform-tls.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\platform-tls-mac.h">
+    <ClInclude Include="src\v8\src\platform-tls-mac.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\platform-tls-win32.h">
+    <ClInclude Include="src\v8\src\platform-tls-win32.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\preparse-data.h">
+    <ClInclude Include="src\v8\src\preparse-data.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\preparse-data-format.h">
+    <ClInclude Include="src\v8\src\preparse-data-format.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\preparser.h">
+    <ClInclude Include="src\v8\src\preparser.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\prettyprinter.h">
+    <ClInclude Include="src\v8\src\prettyprinter.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\profile-generator.h">
+    <ClInclude Include="src\v8\src\profile-generator.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\profile-generator-inl.h">
+    <ClInclude Include="src\v8\src\profile-generator-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\property.h">
+    <ClInclude Include="src\v8\src\property.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\property-details.h">
+    <ClInclude Include="src\v8\src\property-details.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\regexp-macro-assembler.h">
+    <ClInclude Include="src\v8\src\regexp-macro-assembler.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\regexp-macro-assembler-irregexp.h">
+    <ClInclude Include="src\v8\src\regexp-macro-assembler-irregexp.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\regexp-macro-assembler-irregexp-inl.h">
+    <ClInclude Include="src\v8\src\regexp-macro-assembler-irregexp-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\regexp-macro-assembler-tracer.h">
+    <ClInclude Include="src\v8\src\regexp-macro-assembler-tracer.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\regexp-stack.h">
+    <ClInclude Include="src\v8\src\regexp-stack.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\rewriter.h">
+    <ClInclude Include="src\v8\src\rewriter.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\runtime.h">
+    <ClInclude Include="src\v8\src\runtime.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\runtime-profiler.h">
+    <ClInclude Include="src\v8\src\runtime-profiler.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\safepoint-table.h">
+    <ClInclude Include="src\v8\src\safepoint-table.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\scanner.h">
+    <ClInclude Include="src\v8\src\scanner.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\scanner-character-streams.h">
+    <ClInclude Include="src\v8\src\scanner-character-streams.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\scopeinfo.h">
+    <ClInclude Include="src\v8\src\scopeinfo.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\scopes.h">
+    <ClInclude Include="src\v8\src\scopes.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\serialize.h">
+    <ClInclude Include="src\v8\src\serialize.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\simulator.h">
+    <ClInclude Include="src\v8\src\simulator.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\small-pointer-list.h">
+    <ClInclude Include="src\v8\src\small-pointer-list.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\smart-array-pointer.h">
+    <ClInclude Include="src\v8\src\smart-array-pointer.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\snapshot.h">
+    <ClInclude Include="src\v8\src\snapshot.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\spaces.h">
+    <ClInclude Include="src\v8\src\spaces.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\spaces-inl.h">
+    <ClInclude Include="src\v8\src\spaces-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\splay-tree.h">
+    <ClInclude Include="src\v8\src\splay-tree.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\splay-tree-inl.h">
+    <ClInclude Include="src\v8\src\splay-tree-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\store-buffer.h">
+    <ClInclude Include="src\v8\src\store-buffer.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\store-buffer-inl.h">
+    <ClInclude Include="src\v8\src\store-buffer-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\string-search.h">
+    <ClInclude Include="src\v8\src\string-search.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\string-stream.h">
+    <ClInclude Include="src\v8\src\string-stream.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\strtod.h">
+    <ClInclude Include="src\v8\src\strtod.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\stub-cache.h">
+    <ClInclude Include="src\v8\src\stub-cache.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\token.h">
+    <ClInclude Include="src\v8\src\token.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\type-info.h">
+    <ClInclude Include="src\v8\src\type-info.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\unbound-queue.h">
+    <ClInclude Include="src\v8\src\unbound-queue.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\unbound-queue-inl.h">
+    <ClInclude Include="src\v8\src\unbound-queue-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\unicode.h">
+    <ClInclude Include="src\v8\src\unicode.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\unicode-inl.h">
+    <ClInclude Include="src\v8\src\unicode-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\utils.h">
+    <ClInclude Include="src\v8\src\utils.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\utils-inl.h">
+    <ClInclude Include="src\v8\src\utils-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\v8.h">
+    <ClInclude Include="src\v8\src\v8.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\v8checks.h">
+    <ClInclude Include="src\v8\src\v8checks.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\v8conversions.h">
+    <ClInclude Include="src\v8\src\v8conversions.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\v8-counters.h">
+    <ClInclude Include="src\v8\src\v8-counters.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\v8globals.h">
+    <ClInclude Include="src\v8\src\v8globals.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\v8memory.h">
+    <ClInclude Include="src\v8\src\v8memory.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\v8threads.h">
+    <ClInclude Include="src\v8\src\v8threads.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\v8utils.h">
+    <ClInclude Include="src\v8\src\v8utils.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\variables.h">
+    <ClInclude Include="src\v8\src\variables.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\version.h">
+    <ClInclude Include="src\v8\src\version.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\vm-state.h">
+    <ClInclude Include="src\v8\src\vm-state.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\vm-state-inl.h">
+    <ClInclude Include="src\v8\src\vm-state-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\win32-headers.h">
+    <ClInclude Include="src\v8\src\win32-headers.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\win32-math.h">
+    <ClInclude Include="src\v8\src\win32-math.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\zone.h">
+    <ClInclude Include="src\v8\src\zone.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\zone-inl.h">
+    <ClInclude Include="src\v8\src\zone-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\ia32\assembler-ia32.h">
+    <ClInclude Include="src\v8\src\ia32\assembler-ia32.h">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\ia32\assembler-ia32-inl.h">
+    <ClInclude Include="src\v8\src\ia32\assembler-ia32-inl.h">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\ia32\codegen-ia32.h">
+    <ClInclude Include="src\v8\src\ia32\codegen-ia32.h">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\ia32\code-stubs-ia32.h">
+    <ClInclude Include="src\v8\src\ia32\code-stubs-ia32.h">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\ia32\frames-ia32.h">
+    <ClInclude Include="src\v8\src\ia32\frames-ia32.h">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\ia32\lithium-codegen-ia32.h">
+    <ClInclude Include="src\v8\src\ia32\lithium-codegen-ia32.h">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\ia32\lithium-gap-resolver-ia32.h">
+    <ClInclude Include="src\v8\src\ia32\lithium-gap-resolver-ia32.h">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\ia32\lithium-ia32.h">
+    <ClInclude Include="src\v8\src\ia32\lithium-ia32.h">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\ia32\macro-assembler-ia32.h">
+    <ClInclude Include="src\v8\src\ia32\macro-assembler-ia32.h">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\ia32\regexp-macro-assembler-ia32.h">
+    <ClInclude Include="src\v8\src\ia32\regexp-macro-assembler-ia32.h">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\ia32\simulator-ia32.h">
+    <ClInclude Include="src\v8\src\ia32\simulator-ia32.h">
       <Filter>Source Files\v8\src\ia32</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\extensions\externalize-string-extension.h">
+    <ClInclude Include="src\v8\src\extensions\externalize-string-extension.h">
       <Filter>Source Files\v8\src\extensions</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\extensions\gc-extension.h">
+    <ClInclude Include="src\v8\src\extensions\gc-extension.h">
       <Filter>Source Files\v8\src\extensions</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\x64\assembler-x64.h">
+    <ClInclude Include="src\v8\src\x64\assembler-x64.h">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\x64\assembler-x64-inl.h">
+    <ClInclude Include="src\v8\src\x64\assembler-x64-inl.h">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\x64\codegen-x64.h">
+    <ClInclude Include="src\v8\src\x64\codegen-x64.h">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\x64\code-stubs-x64.h">
+    <ClInclude Include="src\v8\src\x64\code-stubs-x64.h">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\x64\frames-x64.h">
+    <ClInclude Include="src\v8\src\x64\frames-x64.h">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\x64\lithium-codegen-x64.h">
+    <ClInclude Include="src\v8\src\x64\lithium-codegen-x64.h">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\x64\lithium-gap-resolver-x64.h">
+    <ClInclude Include="src\v8\src\x64\lithium-gap-resolver-x64.h">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\x64\lithium-x64.h">
+    <ClInclude Include="src\v8\src\x64\lithium-x64.h">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\x64\macro-assembler-x64.h">
+    <ClInclude Include="src\v8\src\x64\macro-assembler-x64.h">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\x64\regexp-macro-assembler-x64.h">
+    <ClInclude Include="src\v8\src\x64\regexp-macro-assembler-x64.h">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\x64\simulator-x64.h">
+    <ClInclude Include="src\v8\src\x64\simulator-x64.h">
       <Filter>Source Files\v8\src\x64</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\third_party\valgrind\valgrind.h">
+    <ClInclude Include="src\v8\src\third_party\valgrind\valgrind.h">
       <Filter>Source Files\v8\src\third_party\valgrind</Filter>
     </ClInclude>
-    <ClInclude Include="include\lfds.h">
+    <ClInclude Include="src\include\lfds.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="lfds\liblfds_internal.h">
+    <ClInclude Include="src\lfds\liblfds_internal.h">
       <Filter>Source Files\lfds</Filter>
     </ClInclude>
-    <ClInclude Include="lfds\abstraction\abstraction_internal.h">
+    <ClInclude Include="src\lfds\abstraction\abstraction_internal.h">
       <Filter>Source Files\lfds\abstraction</Filter>
     </ClInclude>
-    <ClInclude Include="lfds\freelist\freelist_internal.h">
+    <ClInclude Include="src\lfds\freelist\freelist_internal.h">
       <Filter>Source Files\lfds\freelist</Filter>
     </ClInclude>
-    <ClInclude Include="lfds\queue\queue_internal.h">
+    <ClInclude Include="src\lfds\queue\queue_internal.h">
       <Filter>Source Files\lfds\queue</Filter>
     </ClInclude>
-    <ClInclude Include="lfds\stack\stack_internal.h">
+    <ClInclude Include="src\lfds\stack\stack_internal.h">
       <Filter>Source Files\lfds\stack</Filter>
     </ClInclude>
-    <ClInclude Include="lfds\slist\slist_internal.h">
+    <ClInclude Include="src\lfds\slist\slist_internal.h">
       <Filter>Source Files\lfds\slist</Filter>
     </ClInclude>
-    <ClInclude Include="lfds\ringbuffer\ringbuffer_internal.h">
+    <ClInclude Include="src\lfds\ringbuffer\ringbuffer_internal.h">
       <Filter>Source Files\lfds\ringbuffer</Filter>
     </ClInclude>
-    <ClInclude Include="v8\src\platform-posix.h">
+    <ClInclude Include="src\v8\src\platform-posix.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="include\exlib\fiber.h">
+    <ClInclude Include="src\include\exlib\fiber.h">
       <Filter>Header Files\exlib</Filter>
     </ClInclude>
-    <ClInclude Include="include\exlib\lockfree.h">
+    <ClInclude Include="src\include\exlib\lockfree.h">
       <Filter>Header Files\exlib</Filter>
     </ClInclude>
-    <ClInclude Include="include\exlib\thread.h">
+    <ClInclude Include="src\include\exlib\thread.h">
       <Filter>Header Files\exlib</Filter>
     </ClInclude>
-    <ClInclude Include="include\exlib\utils.h">
+    <ClInclude Include="src\include\exlib\utils.h">
       <Filter>Header Files\exlib</Filter>
     </ClInclude>
   </ItemGroup>
@@ -2289,7 +2289,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="exlib\fiber\fb_switch.asm">
+    <CustomBuild Include="src\exlib\fiber\fb_switch.asm">
       <Filter>Source Files\exlib\fiber</Filter>
     </CustomBuild>
   </ItemGroup>

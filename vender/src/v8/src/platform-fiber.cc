@@ -6,6 +6,18 @@
 #include "v8threads.h"
 #include "vm-state-inl.h"
 
+#ifdef _WIN32
+
+#ifdef CreateMutex
+#undef CreateMutex
+#endif
+
+#ifdef CreateSemaphore
+#undef CreateSemaphore
+#endif
+
+#endif
+
 #if 1
 
 inline int64_t getTime();
