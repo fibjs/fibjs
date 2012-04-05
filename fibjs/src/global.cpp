@@ -113,14 +113,14 @@ result_t global_base::run(const char* fname)
     return 0;
 }
 
-extern exlib::lockfree<AsyncCall> s_acSleep;
+extern AsyncQueue s_acSleep;
 
 result_t global_base::sleep(int32_t ms)
 {
     if(ms > 0)
     {
         void* args[] = {&ms};
-        AsyncCall ac(args);
+        _AsyncCall ac(args);
         s_acSleep.put(&ac);
 
         v8::Unlocker unlocker(isolate);

@@ -122,7 +122,8 @@ function parserIDL(fname) {
 						return true;
 					} else
 						return reportErr();
-				} {
+				}else
+				{
 					if (!_member(st))
 						return false;
 				}

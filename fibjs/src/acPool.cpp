@@ -12,14 +12,14 @@ static LARGE_INTEGER systemFrequency;
 
 inline int64_t Ticks()
 {
-    LARGE_INTEGER t;
+	LARGE_INTEGER t;
 
-    if(systemFrequency.QuadPart == 0)
-        QueryPerformanceFrequency(&systemFrequency);
+	if(systemFrequency.QuadPart == 0)
+	QueryPerformanceFrequency(&systemFrequency);
 
-    QueryPerformanceCounter(&t);
+	QueryPerformanceCounter(&t);
 
-    return t.QuadPart * 1000000 / systemFrequency.QuadPart;
+	return t.QuadPart * 1000000 / systemFrequency.QuadPart;
 }
 
 #else
@@ -27,10 +27,10 @@ inline int64_t Ticks()
 
 inline int64_t Ticks()
 {
-    struct timeval tv;
-    if (gettimeofday(&tv, NULL) < 0)
-        return 0;
-    return (tv.tv_sec * 1000000ll) + tv.tv_usec;
+	struct timeval tv;
+	if (gettimeofday(&tv, NULL) < 0)
+		return 0;
+	return (tv.tv_sec * 1000000ll) + tv.tv_usec;
 }
 
 #endif
@@ -41,80 +41,80 @@ namespace fibjs
 #define MAX_WORKER 128
 #define MIN_WORKER 6
 
-exlib::lockfree<AsyncCall> s_acPool;
-exlib::lockfree<AsyncCall> s_acSleep;
+AsyncQueue s_acPool;
+AsyncQueue s_acSleep;
 
-std::multimap<int64_t, AsyncCall*> s_tms;
+std::multimap<int64_t, _AsyncCall*> s_tms;
 static int64_t s_time;
 
-static class _acThread : public exlib::Thread
+static class _acThread: public exlib::Thread
 {
 public:
-    _acThread()
-    {
-        for(int i = 0; i < MIN_WORKER; i ++)
-        {
-            start();
-            detach();
-        }
-    }
+	_acThread()
+	{
+		for (int i = 0; i < MIN_WORKER; i++)
+		{
+			start();
+			detach();
+		}
+	}
 
-    virtual void Run()
-    {
-        AsyncCall *p;
+	virtual void Run()
+	{
+		_AsyncCall *p;
 
-        while(1)
-        {
-            p = s_acPool.wait();
-            p->func(p);
-        }
-    }
-}s_ac;
+		while (1)
+		{
+			p = s_acPool.wait();
+			p->func(p);
+		}
+	}
+} s_ac;
 
-static class _timerThread : public exlib::Thread
+static class _timerThread: public exlib::Thread
 {
 public:
-    _timerThread()
-    {
-        s_time = Ticks();
-        start();
-    }
+	_timerThread()
+	{
+		s_time = Ticks();
+		start();
+	}
 
-    virtual void Run()
-    {
-        AsyncCall *p;
-        int64_t tm;
-        std::multimap <int64_t, AsyncCall*>::iterator e;
+	virtual void Run()
+	{
+		_AsyncCall *p;
+		int64_t tm;
+		std::multimap<int64_t, _AsyncCall*>::iterator e;
 
-        while(1)
-        {
-            Sleep(1);
+		while (1)
+		{
+			Sleep(1);
 
-            while(1)
-            {
-                p = s_acSleep.get();
-                if(p == NULL)
-                    break;
+			while (1)
+			{
+				p = s_acSleep.get();
+				if (p == NULL)
+					break;
 
-                tm = s_time + *(int*)p->args[0] * 1000;
-                s_tms.insert(std::make_pair(tm, p));
-            }
+				tm = s_time + *(int*) p->args[0] * 1000;
+				s_tms.insert(std::make_pair(tm, p));
+			}
 
-            s_time = Ticks();
+			s_time = Ticks();
 
-            while(1)
-            {
-                e = s_tms.begin();
-                if(e == s_tms.end())
-                    break;
-                if(e->first > s_time)
-                    break;
+			while (1)
+			{
+				e = s_tms.begin();
+				if (e == s_tms.end())
+					break;
+				if (e->first > s_time)
+					break;
 
-                e->second->post();
-                s_tms.erase(e);
-            }
-        }
-    }
-}s_timer;
+				e->second->post();
+				s_tms.erase(e);
+			}
+		}
+	}
+} s_timer;
 
 }
