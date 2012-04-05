@@ -44,7 +44,7 @@ namespace fibjs
 AsyncQueue s_acPool;
 AsyncQueue s_acSleep;
 
-std::multimap<int64_t, _AsyncCall*> s_tms;
+std::multimap<int64_t, AsyncCall*> s_tms;
 static int64_t s_time;
 
 static class _acThread: public exlib::Thread
@@ -61,7 +61,7 @@ public:
 
 	virtual void Run()
 	{
-		_AsyncCall *p;
+		AsyncCall *p;
 
 		while (1)
 		{
@@ -82,9 +82,9 @@ public:
 
 	virtual void Run()
 	{
-		_AsyncCall *p;
+		AsyncCall *p;
 		int64_t tm;
-		std::multimap<int64_t, _AsyncCall*>::iterator e;
+		std::multimap<int64_t, AsyncCall*>::iterator e;
 
 		while (1)
 		{

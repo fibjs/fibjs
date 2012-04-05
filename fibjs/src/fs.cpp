@@ -2,8 +2,6 @@
 #include "File.h"
 #include <string.h>
 #include <exlib/thread.h>
-#include <exlib/lockfree.h>
-#include "AsyncCall.h"
 
 namespace fibjs
 {
@@ -68,7 +66,7 @@ extern AsyncQueue s_acPool;
 result_t fs_base::readFile(const char* fname, std::string& retVal)
 {
 	v8::Unlocker unlocker(isolate);
-	return AryncCallProc(s_acPool, real_readFile, fname, retVal);
+	return asyncCall(s_acPool, real_readFile, fname, retVal);
 }
 
 result_t fs_base::writeFile(const char* fname, const char* txt)

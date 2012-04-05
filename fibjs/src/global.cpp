@@ -120,7 +120,7 @@ result_t global_base::sleep(int32_t ms)
     if(ms > 0)
     {
         void* args[] = {&ms};
-        _AsyncCall ac(args);
+        AsyncCall ac(args);
         s_acSleep.put(&ac);
 
         v8::Unlocker unlocker(isolate);

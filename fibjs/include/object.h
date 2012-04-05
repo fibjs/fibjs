@@ -13,6 +13,7 @@
 
 #include "utils.h"
 #include "ClassInfo.h"
+#include "AsyncCall.h"
 
 namespace fibjs
 {
@@ -20,134 +21,133 @@ namespace fibjs
 class object_base
 {
 public:
-    object_base()
-    {
-        refs_ = 0;
-    }
+	object_base()
+	{
+		refs_ = 0;
+	}
 
-    virtual ~object_base()
-    {
-    }
+	virtual ~object_base()
+	{
+	}
 
-    void Ref()
-    {
-        refs_ ++;
-    }
+	void Ref()
+	{
+		refs_++;
+	}
 
-    void Unref()
-    {
-        if (--refs_ == 0)
-            delete this;
-    }
-
-protected:
-    int refs_;
-
-private:
-    static void WeakCallback(v8::Persistent<v8::Value> value, void* data)
-    {
-        (static_cast<object_base*>(data))->dispose();
-    }
+	void Unref()
+	{
+		if (--refs_ == 0)
+			delete this;
+	}
 
 protected:
-    v8::Persistent<v8::Object> handle_;
-
-    v8::Handle<v8::Value> wrap(ClassInfo& i)
-    {
-        if (handle_.IsEmpty())
-            return wrap(i.CreateInstance());
-
-        return handle_;
-    }
-
-    v8::Handle<v8::Value> wrap(v8::Handle<v8::Object> o)
-    {
-        if (handle_.IsEmpty())
-        {
-            handle_ = v8::Persistent<v8::Object>::New(o);
-            handle_->SetPointerInInternalField(0, this);
-            handle_.MakeWeak(this, WeakCallback);
-
-            Ref();
-        }
-
-        return handle_;
-    }
-
-public:
-    // object_base
-    result_t dispose()
-    {
-        if (!handle_.IsEmpty())
-        {
-            handle_.ClearWeak();
-            handle_->SetPointerInInternalField(0, 0);
-            handle_.Dispose();
-            handle_.Clear();
-
-            Unref();
-        }
-
-        return 0;
-    }
-
-    virtual result_t toString(std::string& retVal)
-    {
-        retVal = Classinfo().name();
-        return 0;
-    }
-
-public:
-    static ClassInfo& class_info()
-    {
-        static ClassMethod s_method[] =
-        {
-            {"dispose", m_dispose},
-            {"toString", m_toString}
-        };
-
-        static ClassData s_cd =
-        {
-            "object", NULL,
-            2, s_method, 0, NULL, NULL
-        };
-
-        static ClassInfo s_ci(s_cd);
-
-        return s_ci;
-    }
-
-    virtual ClassInfo& Classinfo()
-    {
-        return class_info();
-    }
-
-    v8::Handle<v8::Value> JSObject()
-    {
-        return wrap(Classinfo());
-    }
+	int refs_;
 
 private:
-    static v8::Handle<v8::Value> m_dispose(const v8::Arguments& args)
-    {
-        METHOD_ENTER(0, 0);
-        METHOD_INSTANCE(object_base);
+	static void WeakCallback(v8::Persistent<v8::Value> value, void* data)
+	{
+		(static_cast<object_base*>(data))->dispose();
+	}
 
-        hr = pInst->dispose();
+protected:
+	v8::Persistent<v8::Object> handle_;
 
-        METHOD_VOID();
-    }
+	v8::Handle<v8::Value> wrap(ClassInfo& i)
+	{
+		if (handle_.IsEmpty())
+			return wrap(i.CreateInstance());
 
-    static v8::Handle<v8::Value> m_toString(const v8::Arguments& args)
-    {
-        METHOD_ENTER(0, 0);
-        METHOD_INSTANCE(object_base);
+		return handle_;
+	}
 
-        std::string vr;
-        hr = pInst->toString(vr);
+	v8::Handle<v8::Value> wrap(v8::Handle<v8::Object> o)
+	{
+		if (handle_.IsEmpty())
+		{
+			handle_ = v8::Persistent<v8::Object>::New(o);
+			handle_->SetPointerInInternalField(0, this);
+			handle_.MakeWeak(this, WeakCallback);
 
-        METHOD_RETURN();
-    }
+			Ref();
+		}
+
+		return handle_;
+	}
+
+public:
+	// object_base
+	result_t dispose()
+	{
+		if (!handle_.IsEmpty())
+		{
+			handle_.ClearWeak();
+			handle_->SetPointerInInternalField(0, 0);
+			handle_.Dispose();
+			handle_.Clear();
+
+			Unref();
+		}
+
+		return 0;
+	}
+
+	virtual result_t toString(std::string& retVal)
+	{
+		retVal = Classinfo().name();
+		return 0;
+	}
+
+public:
+	static ClassInfo& class_info()
+	{
+		static ClassMethod s_method[] =
+		{
+		{ "dispose", m_dispose },
+		{ "toString", m_toString } };
+
+		static ClassData s_cd =
+		{ "object", NULL, 2, s_method, 0, NULL, NULL };
+
+		static ClassInfo s_ci(s_cd);
+
+		return s_ci;
+	}
+
+	virtual ClassInfo& Classinfo()
+	{
+		return class_info();
+	}
+
+	v8::Handle<v8::Value> JSObject()
+	{
+		return wrap(Classinfo());
+	}
+
+private:
+	static v8::Handle<v8::Value> m_dispose(const v8::Arguments& args)
+	{
+		METHOD_ENTER(0, 0);
+		METHOD_INSTANCE(object_base);
+
+		hr = pInst->dispose();
+
+		METHOD_VOID();
+	}
+
+	static v8::Handle<v8::Value> m_toString(const v8::Arguments& args)
+	{
+		METHOD_ENTER(0, 0);
+		METHOD_INSTANCE(object_base);
+
+		std::string vr;
+		hr = pInst->toString(vr);
+
+		METHOD_RETURN();
+	}
+
+protected:
+#include "object_async.inl"
 };
 
 }
