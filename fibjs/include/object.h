@@ -46,6 +46,7 @@ public:
 
 protected:
 	int refs_;
+	exlib::Locker m_lock;
 
 private:
 	static void WeakCallback(v8::Persistent<v8::Value> value, void* data)

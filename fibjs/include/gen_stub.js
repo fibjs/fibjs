@@ -73,6 +73,8 @@ function gen_stub(argn, bInst)
 	}else
 		txt.push('	AsyncCall ac(NULL, _t::_stub); \\');
 
-	txt.push('	q.put(&ac); \\\n	v8::Unlocker unlocker(isolate); \\\n	ac.weak.wait(); \\');
+	txt.push('	q.put(&ac); \\\n	v8::Unlocker unlocker(isolate); \\');
+	if(bInst)txt.push('	m_lock.lock(); \\\n	ac.weak.wait(); \\\n	m_lock.unlock(); \\');
+	else txt.push('	ac.weak.wait(); \\');
 	txt.push('	return ac.hr;}\n');
 }
