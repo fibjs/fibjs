@@ -13,7 +13,7 @@ inline int64_t Ticks()
 	LARGE_INTEGER t;
 
 	if(systemFrequency.QuadPart == 0)
-		QueryPerformanceFrequency(&systemFrequency);
+	QueryPerformanceFrequency(&systemFrequency);
 
 	QueryPerformanceCounter(&t);
 
@@ -66,32 +66,16 @@ public:
 } s_ac;
 
 AsyncLogQueue s_acLog;
-
-static class _acLog: public exlib::Thread
-{
-public:
-	_acLog()
-	{
-		start();
-	}
-
-	virtual void Run()
-	{
-		AsyncLog *p;
-		log4cpp::Category& root = log4cpp::Category::getRoot();
-
-		while (1)
-		{
-			p = s_acLog.wait();
-			root.log(p->m_priority, p->m_msg);
-			delete p;
-		}
-	}
-} s_Log;
-
 AsyncQueue s_acSleep;
 std::multimap<int64_t, AsyncCall*> s_tms;
 static int64_t s_time;
+static bool s_logEmpty;
+
+void flushLog()
+{
+	while (!s_acLog.empty() || !s_logEmpty)
+		exlib::Thread::Sleep(1);
+}
 
 static class _timerThread: public exlib::Thread
 {
@@ -107,10 +91,38 @@ public:
 		AsyncCall *p;
 		int64_t tm;
 		std::multimap<int64_t, AsyncCall*>::iterator e;
+		AsyncLog *p1, *p2, *pn;
+		log4cpp::Category& root = log4cpp::Category::getRoot();
 
 		while (1)
 		{
-			Sleep(1);
+			s_logEmpty = false;
+			p1 = s_acLog.getList();
+			if (p1)
+			{
+				pn = NULL;
+
+				while (p1)
+				{
+					p2 = p1;
+					p1 = (AsyncLog*) p1->m_next;
+					p2->m_next = pn;
+					pn = p2;
+				}
+
+				while (pn)
+				{
+					p1 = pn;
+					pn = (AsyncLog*) pn->m_next;
+					root.log(p1->m_priority, p1->m_msg);
+					delete p1;
+				}
+			}
+			else
+			{
+				s_logEmpty = true;
+				Sleep(1);
+			}
 
 			while (1)
 			{
