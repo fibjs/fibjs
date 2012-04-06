@@ -17,19 +17,16 @@ namespace fibjs
 {
 
 class console_base;
-class os_base;
-class fs_base;
 
 class global_base : public object_base
 {
 public:
 	// global_base
 	static result_t get_console(obj_ptr<console_base>& retVal);
-	static result_t get_os(obj_ptr<os_base>& retVal);
-	static result_t get_fs(obj_ptr<fs_base>& retVal);
 	static result_t print(const char* fmt, const v8::Arguments& args);
 	static result_t run(const char* fname);
 	static result_t sleep(int32_t ms);
+	static result_t require(const char* mod, v8::Handle<v8::Value>& retVal);
 	static result_t GC();
 
 public:
@@ -40,20 +37,19 @@ public:
 			{"print", s_print},
 			{"run", s_run},
 			{"sleep", s_sleep},
+			{"require", s_require},
 			{"GC", s_GC}
 		};
 
 		static ClassProperty s_property[] = 
 		{
-			{"console", s_get_console},
-			{"os", s_get_os},
-			{"fs", s_get_fs}
+			{"console", s_get_console}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"global", NULL, 
-			4, s_method, 3, s_property, NULL,
+			5, s_method, 1, s_property, NULL,
 			&object_base::class_info()
 		};
 
@@ -68,19 +64,16 @@ public:
 
 private:
 	static v8::Handle<v8::Value> s_get_console(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_os(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_fs(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_print(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_run(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_sleep(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_require(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_GC(const v8::Arguments& args);
 };
 
 }
 
 #include "console.h"
-#include "os.h"
-#include "fs.h"
 
 namespace fibjs
 {
@@ -90,26 +83,6 @@ namespace fibjs
 
 		obj_ptr<console_base> vr;
 		hr = get_console(vr);
-
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> global_base::s_get_os(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		PROPERTY_ENTER();
-
-		obj_ptr<os_base> vr;
-		hr = get_os(vr);
-
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> global_base::s_get_fs(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		PROPERTY_ENTER();
-
-		obj_ptr<fs_base> vr;
-		hr = get_fs(vr);
 
 		METHOD_RETURN();
 	}
@@ -145,6 +118,18 @@ namespace fibjs
 		hr = sleep(v0);
 
 		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> global_base::s_require(const v8::Arguments& args)
+	{
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		v8::Handle<v8::Value> vr;
+		hr = require(v0, vr);
+
+		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> global_base::s_GC(const v8::Arguments& args)

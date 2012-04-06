@@ -1,7 +1,6 @@
 #include "ifs/fs.h"
 #include "File.h"
 #include <string.h>
-#include <exlib/thread.h>
 
 namespace fibjs
 {

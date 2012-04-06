@@ -1,8 +1,5 @@
 #include <exlib/thread.h>
-#include <exlib/lockfree.h>
 #include "AsyncCall.h"
-#include <stdio.h>
-
 #include <map>
 
 #ifdef _WIN32

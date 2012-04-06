@@ -1,9 +1,8 @@
 #include "ifs/global.h"
 #include "ifs/Fiber.h"
 #include "ifs/Function.h"
-#include <exlib/fiber.h>
-#include <exlib/lockfree.h>
-#include "AsyncCall.h"
+#include "ifs/os.h"
+#include "ifs/fs.h"
 
 #ifdef _WIN32
 #include <mmsystem.h>
@@ -42,35 +41,21 @@ result_t global_base::get_console(obj_ptr<console_base>& retVal)
     return 0;
 }
 
-result_t global_base::get_os(obj_ptr<os_base>& retVal)
-{
-    static obj_ptr<os_base> s_os;
-
-    if(s_os == NULL)
-        s_os = new os_base();
-
-    retVal = s_os;
-
-    return 0;
-}
-
-result_t global_base::get_fs(obj_ptr<fs_base>& retVal)
-{
-    static obj_ptr<fs_base> s_fs;
-
-    if(s_fs == NULL)
-        s_fs = new fs_base();
-
-    retVal = s_fs;
-
-    Ticks();
-
-    return 0;
-}
-
 result_t global_base::print(const char* fmt, const v8::Arguments& args)
 {
     return console_base::log(fmt, args);
+}
+
+void initGlobal(v8::Handle<v8::Object> global)
+{
+    fibjs::global_base::class_info().Attach(global);
+
+    global->Set(v8::String::New("Buffer"), fibjs::Buffer_base::class_info().FunctionTemplate()->GetFunction());
+
+    v8::Local<v8::Object> proto = global->Get(v8::String::New("Function"))->ToObject()
+                          ->GetPrototype()->ToObject();
+
+    fibjs::Function_base::class_info().Attach(proto);
 }
 
 result_t global_base::run(const char* fname)
@@ -86,18 +71,7 @@ result_t global_base::run(const char* fname)
     v8::Persistent<v8::Context> context = v8::Context::New();
     v8::Context::Scope context_scope(context);
 
-
-    v8::Local<v8::Object> global = context->Global();
-
-    fibjs::global_base::class_info().Attach(global);
-
-    global->Set(v8::String::New("Buffer"), fibjs::Buffer_base::class_info().FunctionTemplate()->GetFunction());
-
-    v8::Local<v8::Object> proto = global->Get(v8::String::New("Function"))->ToObject()
-                          ->GetPrototype()->ToObject();
-
-    fibjs::Function_base::class_info().Attach(proto);
-
+    initGlobal(context->Global());
 
     v8::TryCatch try_catch;
     v8::Handle<v8::Value> result;
@@ -111,6 +85,24 @@ result_t global_base::run(const char* fname)
     context.Dispose();
 
     return 0;
+}
+
+v8::Persistent<v8::Object> s_Modules;
+
+void initMdule()
+{
+	v8::HandleScope handle_scope;
+
+	s_Modules = v8::Persistent<v8::Object>::New(v8::Object::New());
+
+	s_Modules->Set(v8::String::New("fs"), fs_base::class_info().CreateInstance());
+	s_Modules->Set(v8::String::New("os"), os_base::class_info().CreateInstance());
+}
+
+result_t global_base::require(const char* mod, v8::Handle<v8::Value>& retVal)
+{
+	retVal = s_Modules->Get(v8::String::New(mod));
+	return 0;
 }
 
 extern AsyncQueue s_acSleep;

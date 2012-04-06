@@ -85,6 +85,8 @@ protected:
     }
 };
 
+void initMdule();
+
 void _main(const char* fname)
 {
     try
@@ -98,37 +100,22 @@ void _main(const char* fname)
         root.warn(e.what());
     }
 
-/*
-    int a = 100;
-    double n = 100.123;
-    const char *s = "aaaaaaa";
-    const char *s1 = "bbbbb";
-    int vr = 0;
-    void* args[] = {&a, &s, &n, &s1, &vr};
-
-    fibjs::call_stub(fibjs::test, args);
-    fibjs::call_stub(fibjs::test1, args);
-    fibjs::call_stub(fibjs::test2, args);
-    fibjs::call_stub(fibjs::test3, args);
-
-*/
-    /*
-        v8::ResourceConstraints rc;
-        rc.set_max_young_space_size(2048); //KB
-        rc.set_max_old_space_size(10); //MB
-        rc.set_max_executable_size(10); //MB
-        rc.set_stack_limit(reinterpret_cast<uint32_t*>((char*)&rc- 1024 * 400));
-
-        SetResourceConstraints(&rc);
-    */
-
     v8::V8::Initialize();
 
     fibjs::isolate = v8::Isolate::GetCurrent();
     v8::Locker locker(fibjs::isolate);
     v8::Isolate::Scope isolate_scope(fibjs::isolate);
 
+	v8::HandleScope handle_scope;
+
+    v8::Persistent<v8::Context> context = v8::Context::New();
+    v8::Context::Scope context_scope(context);
+
+    initMdule();
+
     fibjs::global_base::run(fname);
+
+    context.Dispose();
 }
 
 }

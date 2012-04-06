@@ -133,8 +133,10 @@ class console : object
 };
 
 
-
-/*! @brief 操作系统信息查询，全局对象*/
+/*! @brief 操作系统信息查询模块
+*
+* 使用方法：var os = require('os');
+*/
 class os : object
 {
 	/*! @brief 查询当前运行环境主机名*/
@@ -214,7 +216,10 @@ class File : Stream
 };
 
 
-/*! @brief 文件处理对象，全局对象*/
+/*! @brief 文件处理模块
+*
+* 使用方法：var fs = require('fs');
+*/
 class fs : object
 {
 	const Integer FSEEK_SET = 0;
@@ -263,12 +268,6 @@ class global
 	/*! @brief 控制台访问对象*/
 	static console console;
 
-	/*! @brief 操作系统信息查询*/
-	static os os;
-
-	/*! @brief 文件处理对象*/
-	static fs fs;
-
 	/*! @brief 记录普通日志信息，与 console.log 等同
 	* @param fmt 格式化字符串
 	* @param ... 可选参数列表
@@ -284,6 +283,11 @@ class global
 	* @param ms 指定要暂停的时间，以毫秒为单位，缺省为 0，即有空闲立即回恢复运行
 	*/
 	static sleep(Integer ms = 0);
+
+    /*! @brief 加载一个模块并返回模块对象
+    * @param mod 指定要加载的模块名称
+    */
+    static Value require(String mod);
 
 	/*! @brief 强制要求进行垃圾回收*/
 	static GC();
