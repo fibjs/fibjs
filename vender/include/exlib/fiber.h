@@ -183,6 +183,24 @@ private:
     List<Fiber> m_blocks;
 };
 
+class autoLocker
+{
+public:
+	autoLocker(Locker& l)
+		: m_l(l)
+	{
+		m_l.lock();
+	}
+
+	~autoLocker()
+	{
+		m_l.unlock();
+	}
+
+private:
+	Locker& m_l;
+};
+
 class Event
 {
 public:
