@@ -40,6 +40,11 @@ public:
     {
     }
 
+    bool empty()
+    {
+    	return m_first == NULL;
+    }
+
     void put(T* o)
     {
         T* p;
@@ -71,6 +76,27 @@ public:
 
         if(p != NULL)
             p->m_next = NULL;
+
+        return p;
+    }
+
+    T* getList()
+    {
+        T* p;
+
+        if(m_first == NULL)
+            return NULL;
+
+        while(CompareAndSwap(&m_lock, reinterpret_cast<T*>(0), reinterpret_cast<T*>(-1)));
+
+        do
+        {
+            p = (T*)m_first;
+            if(p == NULL)
+                break;
+        }while(CompareAndSwap((T**)&m_first, p, reinterpret_cast<T*>(NULL)) != p);
+
+        m_lock = 0;
 
         return p;
     }
