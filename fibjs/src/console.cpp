@@ -95,25 +95,25 @@ std::string Format(const char* fmt, const v8::Arguments& args, int idx = 1)
 
 result_t console_base::log(const char* fmt, const v8::Arguments& args)
 {
-    log4cpp::Category::getRoot().info(Format(fmt, args));
+	s_acLog.put(new AsyncLog(log4cpp::Priority::INFO, Format(fmt, args)));
     return 0;
 }
 
 result_t console_base::info(const char* fmt, const v8::Arguments& args)
 {
-    log4cpp::Category::getRoot().info(Format(fmt, args));
+	s_acLog.put(new AsyncLog(log4cpp::Priority::INFO, Format(fmt, args)));
     return 0;
 }
 
 result_t console_base::warn(const char* fmt, const v8::Arguments& args)
 {
-    log4cpp::Category::getRoot().warn(Format(fmt, args));
+	s_acLog.put(new AsyncLog(log4cpp::Priority::WARN, Format(fmt, args)));
     return 0;
 }
 
 result_t console_base::error(const char* fmt, const v8::Arguments& args)
 {
-    log4cpp::Category::getRoot().error(Format(fmt, args));
+	s_acLog.put(new AsyncLog(log4cpp::Priority::ERROR, Format(fmt, args)));
     return 0;
 }
 
@@ -132,7 +132,11 @@ result_t console_base::timeEnd(const char* label)
 
     s_timers.erase(label);
 
-    log4cpp::Category::getRoot().info("%s: %Gms", label, t / 1000.0);
+    std::stringstream strBuffer;
+
+    strBuffer << label << ". " << (t / 1000.0) << "ms";
+
+    s_acLog.put(new AsyncLog(log4cpp::Priority::INFO, strBuffer.str()));
 
     return 0;
 }
@@ -149,7 +153,7 @@ result_t console_base::trace(const char* label)
     strBuffer << "console.trace: " << label;
     strBuffer << traceInfo();
 
-    log4cpp::Category::getRoot().warn(strBuffer.str());
+    s_acLog.put(new AsyncLog(log4cpp::Priority::WARN, strBuffer.str()));
 
     return 0;
 }
@@ -167,7 +171,7 @@ result_t console_base::assert(bool value, const char* msg)
         strBuffer << "assert: " << msg;
         strBuffer << traceInfo();
 
-        log4cpp::Category::getRoot().warn(strBuffer.str());
+        s_acLog.put(new AsyncLog(log4cpp::Priority::WARN, strBuffer.str()));
     }
 
     return 0;

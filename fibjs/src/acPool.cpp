@@ -1,6 +1,7 @@
 #include <exlib/thread.h>
-#include "AsyncCall.h"
+#include <acPool.h>
 #include <map>
+#include <log4cpp/Category.hh>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -12,7 +13,7 @@ inline int64_t Ticks()
 	LARGE_INTEGER t;
 
 	if(systemFrequency.QuadPart == 0)
-	QueryPerformanceFrequency(&systemFrequency);
+		QueryPerformanceFrequency(&systemFrequency);
 
 	QueryPerformanceCounter(&t);
 
@@ -39,10 +40,6 @@ namespace fibjs
 #define MIN_WORKER 6
 
 AsyncQueue s_acPool;
-AsyncQueue s_acSleep;
-
-std::multimap<int64_t, AsyncCall*> s_tms;
-static int64_t s_time;
 
 static class _acThread: public exlib::Thread
 {
@@ -67,6 +64,34 @@ public:
 		}
 	}
 } s_ac;
+
+AsyncLogQueue s_acLog;
+
+static class _acLog: public exlib::Thread
+{
+public:
+	_acLog()
+	{
+		start();
+	}
+
+	virtual void Run()
+	{
+		AsyncLog *p;
+		log4cpp::Category& root = log4cpp::Category::getRoot();
+
+		while (1)
+		{
+			p = s_acLog.wait();
+			root.log(p->m_priority, p->m_msg);
+			delete p;
+		}
+	}
+} s_Log;
+
+AsyncQueue s_acSleep;
+std::multimap<int64_t, AsyncCall*> s_tms;
+static int64_t s_time;
 
 static class _timerThread: public exlib::Thread
 {

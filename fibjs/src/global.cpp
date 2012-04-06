@@ -105,8 +105,6 @@ result_t global_base::require(const char* mod, v8::Handle<v8::Value>& retVal)
 	return 0;
 }
 
-extern AsyncQueue s_acSleep;
-
 result_t global_base::sleep(int32_t ms)
 {
     if(ms > 0)

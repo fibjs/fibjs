@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "acPool.h"
 #include <string.h>
 #include <sstream>
 #include <log4cpp/Category.hh>
@@ -50,14 +51,13 @@ inline const char* ToCString(const v8::String::Utf8Value& value)
 
 void ReportException(v8::TryCatch* try_catch, bool rt)
 {
-    log4cpp::Category& root = log4cpp::Category::getRoot();
     v8::HandleScope handle_scope;
 
     v8::String::Utf8Value exception(try_catch->Exception());
 
     v8::Handle<v8::Message> message = try_catch->Message();
     if (message.IsEmpty())
-        root.error(ToCString(exception));
+    	s_acLog.put(new AsyncLog(log4cpp::Priority::ERROR, ToCString(exception)));
     else
     {
         if(rt)
@@ -65,7 +65,7 @@ void ReportException(v8::TryCatch* try_catch, bool rt)
             v8::String::Utf8Value stack_trace(try_catch->StackTrace());
             if (stack_trace.length() > 0)
             {
-                root.error(ToCString(stack_trace));
+            	s_acLog.put(new AsyncLog(log4cpp::Priority::ERROR, ToCString(stack_trace)));
                 return;
             }
         }
@@ -78,7 +78,7 @@ void ReportException(v8::TryCatch* try_catch, bool rt)
         int lineNumber = message->GetLineNumber();
         strError << ':' << lineNumber << ':' << (message->GetStartColumn() + 1);
 
-        root.error(strError.str());
+        s_acLog.put(new AsyncLog(log4cpp::Priority::ERROR, strError.str()));
     }
 }
 

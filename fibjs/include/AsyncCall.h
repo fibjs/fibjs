@@ -4,6 +4,7 @@
 #include <exlib/fiber.h>
 #include <exlib/lockfree.h>
 #include "utils.h"
+#include <string>
 
 namespace fibjs
 {
@@ -23,6 +24,20 @@ public:
 };
 
 typedef exlib::lockfree<AsyncCall> AsyncQueue;
+
+class AsyncLog: public exlib::AsyncEvent
+{
+public:
+	AsyncLog(int priority, std::string msg) :
+		m_priority(priority), m_msg(msg)
+	{}
+
+public:
+	int m_priority;
+	std::string m_msg;
+};
+
+typedef exlib::lockfree<AsyncLog> AsyncLogQueue;
 
 }
 
