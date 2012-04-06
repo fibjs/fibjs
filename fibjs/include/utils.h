@@ -61,11 +61,13 @@ typedef int result_t;
 
 #define METHOD_INSTANCE(cls) \
     obj_ptr<cls> pInst = (cls*)cls::class_info().getInstance(args.This()); \
-    if(pInst == NULL){hr = CALL_E_NOTINSTANCE;break;}
+    if(pInst == NULL){hr = CALL_E_NOTINSTANCE;break;} \
+    exlib::autoLocker l(pInst->m_lock);
 
 #define PROPERTY_INSTANCE(cls) \
     obj_ptr<cls> pInst = (cls*)cls::class_info().getInstance(info.This()); \
-    if(pInst == NULL){hr = CALL_E_NOTINSTANCE;break;}
+    if(pInst == NULL){hr = CALL_E_NOTINSTANCE;break;} \
+    exlib::autoLocker l(pInst->m_lock);
 
 
 #define PROPERTY_SET_LEAVE() \
@@ -301,6 +303,11 @@ inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Object>& obj)
 inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Array>& array)
 {
     return array;
+}
+
+inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Value>& value)
+{
+    return value;
 }
 
 inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Function>& func)
