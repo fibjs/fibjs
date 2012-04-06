@@ -18,6 +18,9 @@
 namespace fibjs
 {
 
+extern AsyncQueue s_acPool;
+extern v8::Isolate* isolate;
+
 class object_base
 {
 public:
@@ -145,10 +148,9 @@ private:
 
 		METHOD_RETURN();
 	}
-
-protected:
-#include "object_async.inl"
 };
+
+#include "object_async.inl"
 
 }
 

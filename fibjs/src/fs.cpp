@@ -6,8 +6,6 @@
 namespace fibjs
 {
 
-extern v8::Isolate* isolate;
-
 result_t fs_base::open(const char* fname, const char* mode,
 		obj_ptr<File_base>& retVal)
 {
@@ -35,7 +33,7 @@ result_t fs_base::tmpFile(obj_ptr<File_base>& retVal)
 	return 0;
 }
 
-static result_t real_readFile(const char* fname, std::string& retVal)
+result_t fs_base::readFile(const char* fname, std::string& retVal)
 {
 	FILE* file = fopen(fname, "rb");
 	if (file == NULL)
@@ -59,14 +57,6 @@ static result_t real_readFile(const char* fname, std::string& retVal)
 	retVal = buf;
 
 	return 0;
-}
-
-extern AsyncQueue s_acPool;
-
-result_t fs_base::readFile(const char* fname, std::string& retVal)
-{
-	v8::Unlocker unlocker(isolate);
-	return asyncCall(s_acPool, real_readFile, fname, retVal);
 }
 
 result_t fs_base::writeFile(const char* fname, const char* txt)

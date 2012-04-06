@@ -77,6 +77,13 @@ private:
 	static v8::Handle<v8::Value> s_tmpFile(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_readFile(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_writeFile(const v8::Arguments& args);
+
+private:
+	ASYNC_STATIC3(fs_base, open);
+	ASYNC_STATIC3(fs_base, create);
+	ASYNC_STATIC1(fs_base, tmpFile);
+	ASYNC_STATIC2(fs_base, readFile);
+	ASYNC_STATIC2(fs_base, writeFile);
 };
 
 }
@@ -120,7 +127,7 @@ namespace fibjs
 		OPT_ARG_String(1, "r");
 
 		obj_ptr<File_base> vr;
-		hr = open(v0, v1, vr);
+		hr = ac_open(s_acPool, v0, v1, vr);
 
 		METHOD_RETURN();
 	}
@@ -133,7 +140,7 @@ namespace fibjs
 		OPT_ARG(bool, 1, true);
 
 		obj_ptr<File_base> vr;
-		hr = create(v0, v1, vr);
+		hr = ac_create(s_acPool, v0, v1, vr);
 
 		METHOD_RETURN();
 	}
@@ -143,7 +150,7 @@ namespace fibjs
 		METHOD_ENTER(0, 0);
 
 		obj_ptr<File_base> vr;
-		hr = tmpFile(vr);
+		hr = ac_tmpFile(s_acPool, vr);
 
 		METHOD_RETURN();
 	}
@@ -155,7 +162,7 @@ namespace fibjs
 		ARG_String(0);
 
 		std::string vr;
-		hr = readFile(v0, vr);
+		hr = ac_readFile(s_acPool, v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -167,7 +174,7 @@ namespace fibjs
 		ARG_String(0);
 		ARG_String(1);
 
-		hr = writeFile(v0, v1);
+		hr = ac_writeFile(s_acPool, v0, v1);
 
 		METHOD_VOID();
 	}

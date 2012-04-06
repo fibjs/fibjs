@@ -9,6 +9,7 @@ function parserIDL(fname) {
 	f,
 	line,
 	ifs,
+	afs,
 	svs,
 	ffs,
 	iffs,
@@ -82,6 +83,7 @@ function parserIDL(fname) {
 		hasNew = false;
 		hasIndexed = false;
 		ifs = [];
+		afs = [];
 		svs = [];
 		ffs = [];
 		iffs = [];
@@ -227,6 +229,12 @@ function parserIDL(fname) {
 		
 		txt.push("private:");
 		txt.push(iffs.join("\n"));
+		
+		if(afs.length)
+		{
+			txt.push("\nprivate:");
+			txt.push(afs.join("\n"));
+		}
 		
 		txt.push("};\n\n}\n");
 
@@ -387,6 +395,8 @@ function parserIDL(fname) {
 					argOpt = argCount;
 			}
 			
+			pos++;
+			
 			iffs.push("	static v8::Handle<v8::Value> s_" + fname + "(const v8::Arguments& args);");
 			fnStr = "	inline v8::Handle<v8::Value> " + ns + "_base::s_" + fname + "(const v8::Arguments& args)\n	{\n";
 			if (attr == "")
@@ -409,13 +419,29 @@ function parserIDL(fname) {
 				ifStr += map_type(ftype) + "& retVal";
 				fnStr += "		" + map_type(ftype) + " vr;\n";
 			}
-			
-			if (attr == "static") {
-				ifStr += ");";
-				fnStr += "		hr = " + fname + "(";
-			} else {
-				ifStr += ") = 0;";
-				fnStr += "		hr = pInst->" + fname + "(";
+
+			if (st[pos] == ":" && st[pos+1] == "async")
+			{
+				pos += 2;
+
+				if (attr == "static") {
+					ifStr += ");";
+					fnStr += "		hr = ac_" + fname + "(s_acPool, ";
+					afs.push('	ASYNC_STATIC' + (ftype == "" ? argCount : argCount + 1) + '('+ns+'_base, '+fname+');');
+				} else {
+					ifStr += ") = 0;";
+					fnStr += "		hr = pInst->ac_" + fname + "(s_acPool, ";
+					afs.push('	ASYNC_MEMBER' + (ftype == "" ? argCount : argCount + 1) + '('+ns+'_base, '+fname+');');
+				}
+			}else
+			{
+				if (attr == "static") {
+					ifStr += ");";
+					fnStr += "		hr = " + fname + "(";
+				} else {
+					ifStr += ") = 0;";
+					fnStr += "		hr = pInst->" + fname + "(";
+				}
 			}
 			
 			for (var i = 0; i < argCount; i++) {
@@ -445,16 +471,14 @@ function parserIDL(fname) {
 			else fnStr += "		CONSTRUCT_RETURN();\n	}\n";
 			
 			ffs.push(fnStr);
-			
 			ifs.push(ifStr);
+
 			if (attr == "static")
 			{
 				if(fname !== "_new")
 					difms.push("			{\"" + fname + "\", s_" + fname + "}");
 			}else
 				difms.push("			{\"" + fname + "\", s_" + fname + "}");
-			
-			pos++;
 		} else if(ftype != ""){
 			if (attr == "const") {
 				if (st[pos] != "=")
@@ -676,6 +700,7 @@ function parserIDL(fname) {
 					s = s.replace(/\[/g, " [ ");
 					s = s.replace(/\]/g, " ] ");
 					s = s.replace(/,/g, " , ");
+					s = s.replace(/:/g, " : ");
 					s = s.replace(/;/g, " ; ");
 					s = s.replace(/\s+/g, " ").trim();
 					

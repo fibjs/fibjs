@@ -108,4 +108,9 @@
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="include\object_async.inl">
+      <Filter>Header Files\include</Filter>
+    </None>
+  </ItemGroup>
 </Project>
