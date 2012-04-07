@@ -63,14 +63,14 @@ public:
         if(m_first == NULL)
             return NULL;
 
-        while(CompareAndSwap(&m_lock, reinterpret_cast<T*>(0), reinterpret_cast<T*>(-1)));
+        while(CompareAndSwap((void**)&m_lock, (void*)(0), (void*)(-1)));
 
         do
         {
             p = (T*)m_first;
             if(p == NULL)
                 break;
-        }while(CompareAndSwap((T**)&m_first, p, reinterpret_cast<T*>(p->m_next)) != p);
+        }while(CompareAndSwap((T**)&m_first, p, (T*)(p->m_next)) != p);
 
         m_lock = 0;
 
@@ -87,14 +87,14 @@ public:
         if(m_first == NULL)
             return NULL;
 
-        while(CompareAndSwap(&m_lock, reinterpret_cast<T*>(0), reinterpret_cast<T*>(-1)));
+        while(CompareAndSwap((void**)&m_lock, (void*)(0), (void*)(-1)));
 
         do
         {
             p = (T*)m_first;
             if(p == NULL)
                 break;
-        }while(CompareAndSwap((T**)&m_first, p, reinterpret_cast<T*>(NULL)) != p);
+        }while(CompareAndSwap((T**)&m_first, p, (T*)(NULL)) != p);
 
         m_lock = 0;
 
@@ -125,7 +125,7 @@ public:
 
 private:
     volatile T* m_first;
-    T* m_lock;
+    volatile void* m_lock;
 };
 
 }
