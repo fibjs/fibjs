@@ -288,6 +288,9 @@ function parserIDL(fname) {
 			hasNew = true;
 			ftype = ns;		
 			pos ++;
+		}else if(st[pos + 1] === "(")
+		{
+			fname = st[pos++];
 		}else
 		{
 			if (typeMap[s]) {
@@ -299,9 +302,6 @@ function parserIDL(fname) {
 			}
 		
 			fname = st[pos++];
-
-			if (!_checkID(fname))
-				return reportErr();
 		}
 		
 		if (ids.hasOwnProperty(fname))

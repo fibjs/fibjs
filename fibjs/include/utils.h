@@ -24,6 +24,121 @@
 namespace fibjs
 {
 
+template<typename T>
+inline int qchricmp(T ch1, T ch2)
+{
+	if (ch1 >= 'A' && ch1 <= 'Z')
+		ch1 += 'a' - 'A';
+
+	if (ch2 >= 'A' && ch2 <= 'Z')
+		ch2 += 'a' - 'A';
+
+	return ch1 - ch2;
+}
+
+template<typename T>
+inline int qstricmp(const T* s1, const T* s2, int sz = -1)
+{
+	int n = 0;
+
+	while (*s1 && !(n = qchricmp(*s1++, *s2++)))
+		if ((sz > 0) && (!--sz))
+			return 0;
+
+	return n ? n : -*s2;
+}
+
+template<typename T>
+inline int qstrcmp(const T* s1, const T* s2, int sz = -1)
+{
+	int n = 0;
+
+	while (*s1 && !(n = *s1++ - *s2++))
+		if ((sz > 0) && (!--sz))
+			return 0;
+
+	return n ? n : -*s2;
+}
+
+template<typename T>
+const T *qstrichr(const T *s, T c)
+{
+	do
+	{
+		if (!qchricmp(*s, c))
+			return s;
+	} while (*s++);
+	return (0);
+}
+
+template<typename T>
+const T *qstrchr(const T *s, T c)
+{
+	do
+	{
+		if (*s == c)
+			return s;
+	} while (*s++);
+
+	return (0);
+}
+
+template<typename T>
+size_t qstrlen(const T *pStr)
+{
+	const T *pEnd;
+
+	for (pEnd = pStr; *pEnd != 0; pEnd++)
+		continue;
+
+	return pEnd - pStr;
+}
+
+template<typename T>
+const T * qstristr(const T *in, const T *str)
+{
+	T c;
+
+	c = *str;
+	if (!c)
+		return NULL;
+
+	int len = (int) qstrlen(str);
+
+	while ((in = qstrichr(in, c)) && qstricmp(in, str, len))
+		in++;
+	return in;
+}
+
+template<typename T>
+const T * qstrstr(const T *in, const T *str)
+{
+	T c;
+
+	c = *str;
+	if (!c)
+		return NULL;
+
+	int len = (int) qstrlen(str);
+
+	while ((in = qstrchr(in, c)) && qstrcmp(in, str, len))
+		in++;
+	return in;
+}
+
+template<typename T>
+void qstrlwr(T *s)
+{
+	int c;
+
+	while (c = *s)
+	{
+		if (c >= 'A' && c <= 'Z')
+			*s = c + 'a' - 'A';
+		s++;
+	}
+}
+
 typedef int result_t;
 
 // Invalid number of parameters.
@@ -69,7 +184,6 @@ typedef int result_t;
     if(pInst == NULL){hr = CALL_E_NOTINSTANCE;break;} \
     exlib::autoLocker l(pInst->m_lock);
 
-
 #define PROPERTY_SET_LEAVE() \
     }while(0); \
     if(hr < 0)ThrowResult(hr);
@@ -89,11 +203,9 @@ typedef int result_t;
     }while(0); \
     return ThrowResult(hr);
 
-
 #define ARG_CLASS(cls, n) \
     obj_ptr<cls> v##n = (cls*)cls::class_info().getInstance(args[n]); \
     if(v##n == NULL){hr = CALL_E_NOTINSTANCE;break;}
-
 
 #define ARG_String(n) \
     v8::String::Utf8Value tv##n(args[n]); \
@@ -137,217 +249,239 @@ template<class T>
 class obj_ptr
 {
 public:
-    obj_ptr() : p(NULL)
-    {}
+	obj_ptr() :
+		p(NULL)
+	{
+	}
 
-    obj_ptr(T* lp) : p(NULL)
-    {
-        operator=(lp);
-    }
+	obj_ptr(T* lp) :
+		p(NULL)
+	{
+		operator=(lp);
+	}
 
-    obj_ptr(const obj_ptr<T>& lp) : p(NULL)
-    {
-        operator=(lp);
-    }
+	obj_ptr(const obj_ptr<T>& lp) :
+		p(NULL)
+	{
+		operator=(lp);
+	}
 
-    ~obj_ptr()
-    {
-        Release();
-    }
+	~obj_ptr()
+	{
+		Release();
+	}
 
-    T* operator=(T* lp)
-    {
-        if (lp != NULL)
-            lp->Ref();
+	T* operator=(T* lp)
+	{
+		if (lp != NULL)
+			lp->Ref();
 
-        return Attach(lp);
-    }
+		return Attach(lp);
+	}
 
-    T* operator=(const obj_ptr<T>& lp)
-    {
-        return operator=(lp.p);
-    }
+	T* operator=(const obj_ptr<T>& lp)
+	{
+		return operator=(lp.p);
+	}
 
-    operator T*() const
-    {
-        return p;
-    }
+	operator T*() const
+	{
+		return p;
+	}
 
-    T& operator*() const
-    {
-        return *p;
-    }
+	T& operator*() const
+	{
+		return *p;
+	}
 
-    T** operator&()
-    {
-        return &p;
-    }
+	T** operator&()
+	{
+		return &p;
+	}
 
-    bool operator!() const
-    {
-        return (p == NULL);
-    }
+	bool operator!() const
+	{
+		return (p == NULL);
+	}
 
-    bool operator==(T* pT) const
-    {
-        return p == pT;
-    }
+	bool operator==(T* pT) const
+	{
+		return p == pT;
+	}
 
-    T* operator->()
-    {
-        return p;
-    }
+	T* operator->()
+	{
+		return p;
+	}
 
-    void Release()
-    {
-        T* pTemp = Detach();
-        if (pTemp)
-            pTemp->Unref();
-    }
+	void Release()
+	{
+		T* pTemp = Detach();
+		if (pTemp)
+			pTemp->Unref();
+	}
 
-    T* Attach(T* p2)
-    {
-        T* p1 = p;
-        p = p2;
+	T* Attach(T* p2)
+	{
+		T* p1 = p;
+		p = p2;
 
-        if (p1)
-            p1->Unref();
+		if (p1)
+			p1->Unref();
 
-        return p2;
-    }
+		return p2;
+	}
 
-    T* Detach()
-    {
-        T* p1 = p;
+	T* Detach()
+	{
+		T* p1 = p;
 
-        p = NULL;
-        return p1;
-    }
+		p = NULL;
+		return p1;
+	}
 
-    T* p;
+	T* p;
 };
 
 inline result_t SafeGetValue(v8::Handle<v8::Value> v, double& n)
 {
-    if(v.IsEmpty())
-        return CALL_E_INVALIDARG;
+	if (v.IsEmpty())
+		return CALL_E_INVALIDARG;
 
-    n = v->NumberValue();
-    if(isnan(n))
-        return CALL_E_INVALIDARG;
+	n = v->NumberValue();
+	if (isnan(n))
+		return CALL_E_INVALIDARG;
 
-    return 0;
+	return 0;
 }
 
 inline result_t SafeGetValue(v8::Handle<v8::Value> v, int64_t& n)
 {
-    double num;
+	double num;
 
-    result_t hr = SafeGetValue(v, num);
-    if(hr < 0)return hr;
+	result_t hr = SafeGetValue(v, num);
+	if (hr < 0)
+		return hr;
 
-    if(num < -9007199254740992ll || num > 9007199254740992ll)
-        return CALL_E_OUTRANGE;
+	if (num < -9007199254740992ll || num > 9007199254740992ll)
+		return CALL_E_OUTRANGE;
 
-    n = (int64_t)num;
+	n = (int64_t) num;
 
-    return 0;
+	return 0;
 }
 
 inline result_t SafeGetValue(v8::Handle<v8::Value> v, int32_t& n)
 {
-    double num;
+	double num;
 
-    result_t hr = SafeGetValue(v, num);
-    if(hr < 0)return hr;
+	result_t hr = SafeGetValue(v, num);
+	if (hr < 0)
+		return hr;
 
-    if(num < -2147483648ll || num > 2147483647ll)
-        return CALL_E_OUTRANGE;
+	if (num < -2147483648ll || num > 2147483647ll)
+		return CALL_E_OUTRANGE;
 
-    n = (int32_t)num;
+	n = (int32_t) num;
 
-    return 0;
+	return 0;
 }
 
 inline result_t SafeGetValue(v8::Handle<v8::Value> v, bool& n)
 {
-    n = v->BooleanValue();
-    return 0;
+	n = v->BooleanValue();
+	return 0;
+}
+
+inline result_t SafeGetValue(v8::Handle<v8::Value> v, v8::Handle<v8::Value>& vr)
+{
+	vr = v;
+	return 0;
+}
+
+inline result_t SafeGetValue(v8::Handle<v8::Value> v,
+		v8::Handle<v8::Function>& vr)
+{
+	if (!v->IsFunction())
+		return CALL_E_INVALIDARG;
+	vr = v8::Handle<v8::Function>::Cast(v);
+	return 0;
 }
 
 inline v8::Handle<v8::Value> ReturnValue(int32_t v)
 {
-    return v8::Int32::New(v);
+	return v8::Int32::New(v);
 }
 
 inline v8::Handle<v8::Value> ReturnValue(bool v)
 {
-    return v ? v8::True() : v8::False();
+	return v ? v8::True() : v8::False();
 }
 
 inline v8::Handle<v8::Value> ReturnValue(double v)
 {
-    return v8::Number::New(v);
+	return v8::Number::New(v);
 }
 
 inline v8::Handle<v8::Value> ReturnValue(std::string& str)
 {
-    return v8::String::New(str.c_str(), (int)str.length());
+	return v8::String::New(str.c_str(), (int) str.length());
 }
 
 inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Object>& obj)
 {
-    return obj;
+	return obj;
 }
 
 inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Array>& array)
 {
-    return array;
+	return array;
 }
 
 inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Value>& value)
 {
-    return value;
+	return value;
 }
 
 inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Function>& func)
 {
-    return func;
+	return func;
 }
 
 template<class T>
 inline v8::Handle<v8::Value> ReturnValue(obj_ptr<T>& obj)
 {
-    return obj->JSObject();
+	return obj->JSObject();
 }
 
 inline v8::Handle<v8::Value> ThrowError(const char* msg)
 {
-    return v8::ThrowException(v8::Exception::Error(v8::String::New(msg)));
+	return v8::ThrowException(v8::Exception::Error(v8::String::New(msg)));
 }
 
 inline v8::Handle<v8::Value> ThrowTypeError(const char* msg)
 {
-    return v8::ThrowException(v8::Exception::TypeError(v8::String::New(msg)));
+	return v8::ThrowException(v8::Exception::TypeError(v8::String::New(msg)));
 }
 
 inline v8::Handle<v8::Value> ThrowRangeError(const char* msg)
 {
-    return v8::ThrowException(v8::Exception::RangeError(v8::String::New(msg)));
+	return v8::ThrowException(v8::Exception::RangeError(v8::String::New(msg)));
 }
 
 inline result_t LastError()
 {
 #ifdef _WIN32
-    return CALL_E_MAX - GetLastError();
+	return CALL_E_MAX - GetLastError();
 #else
-    return CALL_E_MAX - errno;
+	return CALL_E_MAX - errno;
 #endif
 }
 
 v8::Handle<v8::Value> ThrowResult(result_t hr);
 std::string traceInfo();
 void ReportException(v8::TryCatch* try_catch, bool rt = false);
+std::string toJSON(v8::Handle<v8::Value> v);
 
 }
 

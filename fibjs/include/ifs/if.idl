@@ -58,6 +58,73 @@ class Buffer : object
 };
 
 
+/*! @brief 断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出
+*
+* 引用方法：var assert = require('assert');
+*/
+class assert : object
+{
+    /*! @brief 测试数值为真，为假则断言失败
+    * @param value 要测试的数值
+    * @param msg 断言失败时的提示信息
+    */
+    static ok(Boolean value, String msg = "");
+
+    /*! @brief 测试数值等于预期值，不相等则断言失败
+    * @param actual 要测试的数值
+    * @param expected 预期的数值
+    * @param msg 断言失败时的提示信息
+    */
+    static equal(Value actual, Value expected, String msg = "");
+
+    /*! @brief 测试数值不等于预期值，相等则断言失败
+    * @param actual 要测试的数值
+    * @param expected 预期的数值
+    * @param msg 断言失败时的提示信息
+    */
+    static notEqual(Value actual, Value expected, String msg = "");
+
+    /*! @brief 测试数值严格等于预期值，不相等则断言失败
+    * @param actual 要测试的数值
+    * @param expected 预期的数值
+    * @param msg 断言失败时的提示信息
+    */
+    static strictEqual(Value actual, Value expected, String msg = "");
+
+    /*! @brief 测试数值不严格等于预期值，相等则断言失败
+    * @param actual 要测试的数值
+    * @param expected 预期的数值
+    * @param msg 断言失败时的提示信息
+    */
+    static notStrictEqual(Value actual, Value expected, String msg = "");
+
+    /*! @brief 测试给定的代码会抛出错误，未抛出则断言失败
+    * @param block 指定测试的代码，以函数形式给出
+    * @param msg 断言失败时的提示信息
+    */
+    static throws(Function block, String msg = "");
+
+    /*! @brief 测试给定的代码不会抛出错误，抛出则断言失败
+    * @param block 指定测试的代码，以函数形式给出
+    * @param msg 断言失败时的提示信息
+    */
+    static doesNotThrow(Function block, String msg = "");
+
+    /*! @brief 设定断言失败的策略，系统启动时为 false
+    * @param bThrow 为 true 时，断言失败将被抛出错误，否则只输出错误信息到警告日志
+    */
+    static throwAssert(Boolean bThrow = true);
+};
+
+
+class path : object
+{
+    static String normalize(String path);
+    static String basename(String path, String ext = "");
+    static String extname(String path);
+    static String dirname(String path);
+};
+
 
 /*! @brief 控制台访问对象
 *
@@ -317,5 +384,4 @@ class Function
 	*/
 	static Fiber start(...);
 };
-
 

@@ -84,7 +84,9 @@ void ReportException(v8::TryCatch* try_catch, bool rt)
 
 std::string traceInfo()
 {
-    v8::Handle<v8::StackTrace> stackTrace =
+	v8::HandleScope handle_scope;
+
+	v8::Handle<v8::StackTrace> stackTrace =
         v8::StackTrace::CurrentStackTrace(10, v8::StackTrace::kOverview);
     int count = stackTrace->GetFrameCount();
     int i;
@@ -109,6 +111,24 @@ std::string traceInfo()
     }
 
     return strBuffer.str();
+}
+
+std::string toJSON(v8::Handle<v8::Value> v)
+{
+	std::string str;
+	v8::HandleScope handle_scope;
+
+    v8::Handle<v8::Context> context = v8::Context::GetCurrent();
+    v8::Handle<v8::Object> global = context->Global();
+
+    v8::Handle<v8::Object> JSON = global->Get(v8::String::New("JSON"))->ToObject();
+    v8::Handle<v8::Function> JSON_stringify = v8::Handle<v8::Function>::Cast(JSON->Get(v8::String::New("stringify")));
+
+    v8::Handle<v8::Value> myargs[] = {v};
+
+    str = *v8::String::Utf8Value(JSON_stringify->Call(JSON, 1, myargs));
+
+	return str;
 }
 
 }

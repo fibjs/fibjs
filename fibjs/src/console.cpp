@@ -1,4 +1,12 @@
+/*
+ * console.cpp
+ *
+ *  Created on: Apr 7, 2012
+ *      Author: lion
+ */
+
 #include "ifs/console.h"
+#include "ifs/assert.h"
 #include <log4cpp/Category.hh>
 #include <sstream>
 
@@ -68,17 +76,7 @@ std::string Format(const char* fmt, const v8::Arguments& args, int idx = 1)
                 strBuffer << *v8::String::Utf8Value(args[idx ++]);
                 break;
             case 'j':
-            {
-                v8::Handle<v8::Context> context = v8::Context::GetCurrent();
-                v8::Handle<v8::Object> global = context->Global();
-
-                v8::Handle<v8::Object> JSON = global->Get(v8::String::New("JSON"))->ToObject();
-                v8::Handle<v8::Function> JSON_stringify = v8::Handle<v8::Function>::Cast(JSON->Get(v8::String::New("stringify")));
-
-                v8::Handle<v8::Value> myargs[] = {args[idx ++]};
-
-                strBuffer << *v8::String::Utf8Value(JSON_stringify->Call(JSON, 1, myargs));
-            }
+                strBuffer << toJSON(args[idx ++]);
             break;
             default:
                 strBuffer << '%';
@@ -167,17 +165,7 @@ result_t console_base::trace(const char* label)
 
 result_t console_base::assert(bool value, const char* msg)
 {
-    if(!value)
-    {
-        std::stringstream strBuffer;
-
-        strBuffer << "assert: " << msg;
-        strBuffer << traceInfo();
-
-        asyncLog(log4cpp::Priority::WARN, strBuffer.str());
-    }
-
-    return 0;
+	return assert_base::ok(value, msg);
 }
 
 };

@@ -1,3 +1,10 @@
+/*
+ * File.cpp
+ *
+ *  Created on: Apr 7, 2012
+ *      Author: lion
+ */
+
 #include "File.h"
 
 namespace fibjs

@@ -1,3 +1,10 @@
+/*
+ * os.cpp
+ *
+ *  Created on: Apr 7, 2012
+ *      Author: lion
+ */
+
 #include "ifs/os.h"
 #include "string.h"
 

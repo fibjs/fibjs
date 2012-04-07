@@ -1,3 +1,10 @@
+/*
+ * fs.cpp
+ *
+ *  Created on: Apr 7, 2012
+ *      Author: lion
+ */
+
 #include "ifs/fs.h"
 #include "File.h"
 #include <string.h>

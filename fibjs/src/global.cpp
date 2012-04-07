@@ -1,6 +1,10 @@
 #include "ifs/global.h"
 #include "ifs/Fiber.h"
 #include "ifs/Function.h"
+
+#include "ifs/Buffer.h"
+#include "ifs/assert.h"
+#include "ifs/path.h"
 #include "ifs/os.h"
 #include "ifs/fs.h"
 
@@ -94,6 +98,9 @@ void initMdule()
 	v8::HandleScope handle_scope;
 
 	s_Modules = v8::Persistent<v8::Object>::New(v8::Object::New());
+
+	s_Modules->Set(v8::String::New("assert"), assert_base::class_info().CreateInstance());
+	s_Modules->Set(v8::String::New("path"), path_base::class_info().CreateInstance());
 
 	s_Modules->Set(v8::String::New("fs"), fs_base::class_info().CreateInstance());
 	s_Modules->Set(v8::String::New("os"), os_base::class_info().CreateInstance());
