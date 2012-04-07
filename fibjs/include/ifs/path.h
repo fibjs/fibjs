@@ -24,6 +24,7 @@ public:
 	static result_t basename(const char* path, const char* ext, std::string& retVal);
 	static result_t extname(const char* path, std::string& retVal);
 	static result_t dirname(const char* path, std::string& retVal);
+	static result_t join(const v8::Arguments& args, std::string& retVal);
 
 public:
 	static ClassInfo& class_info()
@@ -33,13 +34,14 @@ public:
 			{"normalize", s_normalize},
 			{"basename", s_basename},
 			{"extname", s_extname},
-			{"dirname", s_dirname}
+			{"dirname", s_dirname},
+			{"join", s_join}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"path", NULL, 
-			4, s_method, 0, NULL, NULL,
+			5, s_method, 0, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -57,6 +59,7 @@ private:
 	static v8::Handle<v8::Value> s_basename(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_extname(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_dirname(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_join(const v8::Arguments& args);
 };
 
 }
@@ -108,6 +111,16 @@ namespace fibjs
 
 		std::string vr;
 		hr = dirname(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> path_base::s_join(const v8::Arguments& args)
+	{
+		METHOD_ENTER(-1, 0);
+
+		std::string vr;
+		hr = join(args, vr);
 
 		METHOD_RETURN();
 	}

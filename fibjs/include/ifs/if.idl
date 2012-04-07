@@ -123,6 +123,7 @@ class path : object
     static String basename(String path, String ext = "");
     static String extname(String path);
     static String dirname(String path);
+    static String join(...);
 };
 
 

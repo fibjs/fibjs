@@ -2,6 +2,8 @@ String.prototype.trim = function () {
 	return this.replace(/(^\s*)|(\s*$)/g, "");
 }
 
+var fs = require('fs');
+
 parserIDL("if.idl");
 
 function parserIDL(fname) {
