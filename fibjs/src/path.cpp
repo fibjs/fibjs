@@ -13,23 +13,29 @@ namespace fibjs
 
 #ifdef _WIN32
 
+#define PATH_CHAR	'\\'
+#define pathcmpchr qchricmp
+#define pathcmp qstricmp
+
 inline bool isSeparator(char ch)
 {
 	return ch == '/' || ch == '\\';
 }
 
-#define pathcmp qstricmp
-#define PATH_CHAR	'\\'
-
 #else
+
+#define PATH_CHAR	'/'
+#define pathcmp qstrcmp
 
 inline bool isSeparator(char ch)
 {
 	return ch == '/';
 }
 
-#define pathcmp qstrcmp
-#define PATH_CHAR	'/'
+inline bool pathcmpchr(char ch1, char ch2)
+{
+	return ch1 - ch2;
+}
 
 #endif
 
@@ -148,6 +154,7 @@ result_t path_base::normalize(const char* path, std::string& retVal)
 	char *pstr;
 	int pos = 0;
 	int root = 0;
+	bool bRoot = false;
 
 	str.resize(4096);
 	pstr = &str[0];
@@ -163,6 +170,7 @@ result_t path_base::normalize(const char* path, std::string& retVal)
 		{
 			pstr[pos++] = PATH_CHAR;
 			p1++;
+			bRoot = true;
 		}
 	}
 	else if (isSeparator(p1[0]) && isSeparator(p1[1]))
@@ -186,6 +194,7 @@ result_t path_base::normalize(const char* path, std::string& retVal)
 			{
 				pstr[pos++] = PATH_CHAR;
 				p1++;
+				bRoot = true;
 			}
 		}
 	}
@@ -195,6 +204,7 @@ result_t path_base::normalize(const char* path, std::string& retVal)
 	{
 		pstr[pos++] = PATH_CHAR;
 		p1++;
+		bRoot = true;
 	}
 
 	root = pos;
@@ -209,12 +219,12 @@ result_t path_base::normalize(const char* path, std::string& retVal)
 		{
 			p1 += p1[1] ? 2 : 1;
 		}
-		else if (p1[0] == '.' && p1[1] == '.' && (!p1[2] || isSeparator(p1[2])))
+		else if ((p1[0] == '.') && (p1[1] == '.') && (!p1[2] || isSeparator(p1[2])))
 		{
 			if (pos > root)
 			{
-				if (pstr[pos - 2] == '.' && pstr[pos - 3] == '.'
-						&& (pstr[pos - 4] == PATH_CHAR || root == pos - 3))
+				if ((pstr[pos - 2] == '.') && (pstr[pos - 3] == '.')
+						&& ((root == pos - 3) || (pstr[pos - 4] == PATH_CHAR)))
 				{
 					pstr[pos++] = '.';
 					pstr[pos++] = '.';
@@ -227,7 +237,7 @@ result_t path_base::normalize(const char* path, std::string& retVal)
 						pos--;
 				}
 			}
-			else if (root == 0)
+			else if (!bRoot)
 			{
 				pstr[pos++] = '.';
 				pstr[pos++] = '.';
@@ -258,13 +268,14 @@ result_t path_base::normalize(const char* path, std::string& retVal)
 	return 0;
 }
 
-result_t path_base::join(const v8::Arguments& args, std::string& retVal)
+result_t path_base::combine(const v8::Arguments& args, std::string& retVal)
 {
 	v8::HandleScope handle_scope;
 	std::stringstream strBuffer;
 	int argc = args.Length();
 	int i;
 	bool bRoot;
+	char diskID = 0;
 
 	for (i = 0; i < argc; i++)
 	{
@@ -274,14 +285,28 @@ result_t path_base::join(const v8::Arguments& args, std::string& retVal)
 		if (p && *p)
 		{
 #ifdef _WIN32
-			if ((p[0] != 0 && p[1] == ':')
-					|| (isSeparator(p[0]) && isSeparator(p[1])))
+			if (p[0] != 0 && p[1] == ':')
+			{
+				if(!pathcmpchr(p[0], diskID) && !isSeparator(p[2]))
+				{
+					p += 2;
+					bRoot = false;
+				}else
+				{
+					bRoot = true;
+					diskID = p[0];
+				}
+			}else if(isSeparator(p[0]) && isSeparator(p[1]))
+			{
 				bRoot = true;
-			else
+				diskID = 0;
+			}else
 #endif
 			if (isSeparator(p[0]))
+			{
 				bRoot = true;
-			else
+				diskID = 0;
+			}else
 				bRoot = false;
 
 			if (bRoot)

@@ -422,9 +422,9 @@ function parserIDL(fname) {
 				fnStr += "		" + map_type(ftype) + " vr;\n";
 			}
 
-			if (st[pos] == ":" && st[pos+1] == "async")
+			if (st[pos] == "async")
 			{
-				pos += 2;
+				pos += 1;
 
 				if (attr == "static") {
 					ifStr += ");";

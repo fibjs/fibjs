@@ -24,7 +24,7 @@ public:
 	static result_t basename(const char* path, const char* ext, std::string& retVal);
 	static result_t extname(const char* path, std::string& retVal);
 	static result_t dirname(const char* path, std::string& retVal);
-	static result_t join(const v8::Arguments& args, std::string& retVal);
+	static result_t combine(const v8::Arguments& args, std::string& retVal);
 
 public:
 	static ClassInfo& class_info()
@@ -35,7 +35,7 @@ public:
 			{"basename", s_basename},
 			{"extname", s_extname},
 			{"dirname", s_dirname},
-			{"join", s_join}
+			{"combine", s_combine}
 		};
 
 		static ClassData s_cd = 
@@ -59,7 +59,7 @@ private:
 	static v8::Handle<v8::Value> s_basename(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_extname(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_dirname(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_join(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_combine(const v8::Arguments& args);
 };
 
 }
@@ -115,12 +115,12 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> path_base::s_join(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> path_base::s_combine(const v8::Arguments& args)
 	{
 		METHOD_ENTER(-1, 0);
 
 		std::string vr;
-		hr = join(args, vr);
+		hr = combine(args, vr);
 
 		METHOD_RETURN();
 	}

@@ -121,6 +121,8 @@ if (isWindows) {
 	assert.equal(path.normalize('a//b//.'), 'a\\b');
 	assert.equal(path.normalize('c:/foo/../../../bar'), 'c:\\bar');
 	assert.equal(path.normalize('f:/'), 'f:\\');
+	assert.equal(path.normalize('f:path/to/../../../../path1'),
+			'f:..\\..\\path1');
 	assert.equal(path.normalize('\\\\unc\\share\/foo/..//.///../../bar\\'),
 			'\\\\unc\\share\\bar');
 	assert.equal(path.normalize('\\\\unc\\share\\'), '\\\\unc\\share\\');
@@ -134,7 +136,7 @@ if (isWindows) {
 }
 
 var failures = [];
-var joinTests = [ [ [ '.', 'x/b', '..', 'b/c.js' ], 'x/b/c.js' ],
+var combineTests = [ [ [ '.', 'x/b', '..', 'b/c.js' ], 'x/b/c.js' ],
 		[ [ '/.', 'x/b', '..', 'b/c.js' ], '/x/b/c.js' ],
 		[ [ '/.', 'x/b', '..', '/b/c.js' ], '/b/c.js' ],
 		[ [ '/foo', '../../../bar' ], '/bar' ],
@@ -146,12 +148,11 @@ var joinTests = [ [ [ '.', 'x/b', '..', 'b/c.js' ], 'x/b/c.js' ],
 		[ [ 'foo/x/', '.', 'bar' ], 'foo/x/bar' ], [ [ './' ], '' ],
 		[ [ '.', './' ], '' ], [ [ '.', '.', '.' ], '' ],
 		[ [ '.', './', '.' ], '' ], [ [ '.', '/./', '.' ], '/' ],
-		[ [ '.' ], '' ], [ [ '', '.' ], '' ],
-		[ [ '', 'foo' ], 'foo' ], [ [ 'foo', '/bar' ], '/bar' ],
-		[ [ '', '/foo' ], '/foo' ], [ [ '', '', '/foo' ], '/foo' ],
-		[ [ '', '', 'foo' ], 'foo' ], [ [ 'foo', '' ], 'foo' ],
-		[ [ 'foo/', '' ], 'foo' ], [ [ 'foo', '', '/bar' ], '/bar' ],
-		[ [ './', '..', '/foo' ], '/foo' ],
+		[ [ '.' ], '' ], [ [ '', '.' ], '' ], [ [ '', 'foo' ], 'foo' ],
+		[ [ 'foo', '/bar' ], '/bar' ], [ [ '', '/foo' ], '/foo' ],
+		[ [ '', '', '/foo' ], '/foo' ], [ [ '', '', 'foo' ], 'foo' ],
+		[ [ 'foo', '' ], 'foo' ], [ [ 'foo/', '' ], 'foo' ],
+		[ [ 'foo', '', '/bar' ], '/bar' ], [ [ './', '..', '/foo' ], '/foo' ],
 		[ [ './', '..', '..', 'foo' ], '../../foo' ],
 		[ [ '.', '..', '..', 'foo' ], '../../foo' ],
 		[ [ '', '..', '..', 'foo' ], '../../foo' ], [ [ '/' ], '/' ],
@@ -159,13 +160,19 @@ var joinTests = [ [ [ '.', 'x/b', '..', 'b/c.js' ], 'x/b/c.js' ],
 		[ [ '/', '..', '..' ], '/' ], [ [ '' ], '' ], [ [ '', '' ], '' ],
 		[ [ ' /foo' ], ' /foo' ], [ [ ' ', 'foo' ], ' /foo' ],
 		[ [ ' ', '.' ], ' ' ], [ [ ' ', '/' ], '/' ], [ [ ' ', '' ], ' ' ] ];
-joinTests.forEach(function(test) {
-	var actual = path.join.apply(path, test[0]);
+combineTests.forEach(function(test) {
+	var actual = path.combine.apply(path, test[0]);
 	var expected = isWindows ? test[1].replace(/\//g, '\\') : test[1];
-	var message = 'path.join(' + test[0].map(JSON.stringify).join(',') + ')'
+	var message = 'path.combine(' + test[0].map(JSON.stringify).join(',') + ')'
 			+ '\n  expect=' + JSON.stringify(expected) + '\n  actual='
 			+ JSON.stringify(actual);
 	if (actual !== expected)
 		failures.push('\n' + message);
 });
 assert.equal(failures.length, 0, failures.join(''));
+
+if (isWindows) {
+	assert.equal(path.combine('c:/path1', 'c:path2'), 'c:\\path1\\path2');
+	assert.equal(path.combine('c:/path1', 'd:path2'), 'd:path2');
+}
+
