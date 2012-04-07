@@ -43,6 +43,9 @@ std::string Format(const char* fmt, const v8::Arguments& args, int idx = 1)
     int argc = args.Length();
     std::stringstream strBuffer;
 
+    if(argc == 1)
+    	return fmt;
+
     while(1)
     {
         if(idx >= argc)
@@ -95,25 +98,25 @@ std::string Format(const char* fmt, const v8::Arguments& args, int idx = 1)
 
 result_t console_base::log(const char* fmt, const v8::Arguments& args)
 {
-	s_acLog.put(new AsyncLog(log4cpp::Priority::INFO, Format(fmt, args)));
+	asyncLog(log4cpp::Priority::INFO, Format(fmt, args));
     return 0;
 }
 
 result_t console_base::info(const char* fmt, const v8::Arguments& args)
 {
-	s_acLog.put(new AsyncLog(log4cpp::Priority::INFO, Format(fmt, args)));
+	asyncLog(log4cpp::Priority::INFO, Format(fmt, args));
     return 0;
 }
 
 result_t console_base::warn(const char* fmt, const v8::Arguments& args)
 {
-	s_acLog.put(new AsyncLog(log4cpp::Priority::WARN, Format(fmt, args)));
+	asyncLog(log4cpp::Priority::WARN, Format(fmt, args));
     return 0;
 }
 
 result_t console_base::error(const char* fmt, const v8::Arguments& args)
 {
-	s_acLog.put(new AsyncLog(log4cpp::Priority::ERROR, Format(fmt, args)));
+	asyncLog(log4cpp::Priority::ERROR, Format(fmt, args));
     return 0;
 }
 
@@ -134,9 +137,9 @@ result_t console_base::timeEnd(const char* label)
 
     std::stringstream strBuffer;
 
-    strBuffer << label << ". " << (t / 1000.0) << "ms";
+    strBuffer << label << ": " << (t / 1000.0) << "ms";
 
-    s_acLog.put(new AsyncLog(log4cpp::Priority::INFO, strBuffer.str()));
+    asyncLog(log4cpp::Priority::INFO, strBuffer.str());
 
     return 0;
 }
@@ -153,7 +156,7 @@ result_t console_base::trace(const char* label)
     strBuffer << "console.trace: " << label;
     strBuffer << traceInfo();
 
-    s_acLog.put(new AsyncLog(log4cpp::Priority::WARN, strBuffer.str()));
+    asyncLog(log4cpp::Priority::WARN, strBuffer.str());
 
     return 0;
 }
@@ -171,7 +174,7 @@ result_t console_base::assert(bool value, const char* msg)
         strBuffer << "assert: " << msg;
         strBuffer << traceInfo();
 
-        s_acLog.put(new AsyncLog(log4cpp::Priority::WARN, strBuffer.str()));
+        asyncLog(log4cpp::Priority::WARN, strBuffer.str());
     }
 
     return 0;

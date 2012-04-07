@@ -65,11 +65,17 @@ public:
 	}
 } s_ac;
 
-AsyncLogQueue s_acLog;
+static AsyncLogQueue s_acLog;
 AsyncQueue s_acSleep;
 std::multimap<int64_t, AsyncCall*> s_tms;
 static int64_t s_time;
 static bool s_logEmpty;
+
+void asyncLog(int priority, std::string msg)
+{
+//	log4cpp::Category::getRoot().log(priority, msg);
+	s_acLog.put(new AsyncLog(priority, msg));
+}
 
 void flushLog()
 {

@@ -57,7 +57,7 @@ void ReportException(v8::TryCatch* try_catch, bool rt)
 
     v8::Handle<v8::Message> message = try_catch->Message();
     if (message.IsEmpty())
-    	s_acLog.put(new AsyncLog(log4cpp::Priority::ERROR, ToCString(exception)));
+    	asyncLog(log4cpp::Priority::ERROR, ToCString(exception));
     else
     {
         if(rt)
@@ -65,7 +65,7 @@ void ReportException(v8::TryCatch* try_catch, bool rt)
             v8::String::Utf8Value stack_trace(try_catch->StackTrace());
             if (stack_trace.length() > 0)
             {
-            	s_acLog.put(new AsyncLog(log4cpp::Priority::ERROR, ToCString(stack_trace)));
+            	asyncLog(log4cpp::Priority::ERROR, ToCString(stack_trace));
                 return;
             }
         }
@@ -78,7 +78,7 @@ void ReportException(v8::TryCatch* try_catch, bool rt)
         int lineNumber = message->GetLineNumber();
         strError << ':' << lineNumber << ':' << (message->GetStartColumn() + 1);
 
-        s_acLog.put(new AsyncLog(log4cpp::Priority::ERROR, strError.str()));
+        asyncLog(log4cpp::Priority::ERROR, strError.str());
     }
 }
 
