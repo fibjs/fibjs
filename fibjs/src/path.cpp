@@ -185,7 +185,7 @@ result_t path_base::normalize(const char* path, std::string& retVal)
 			if (*p1)
 			{
 				pstr[pos++] = PATH_CHAR;
-				*p1++;
+				p1++;
 			}
 		}
 	}
@@ -260,6 +260,7 @@ result_t path_base::normalize(const char* path, std::string& retVal)
 
 result_t path_base::join(const v8::Arguments& args, std::string& retVal)
 {
+	v8::HandleScope handle_scope;
 	std::stringstream strBuffer;
 	int argc = args.Length();
 	int i;
@@ -267,7 +268,8 @@ result_t path_base::join(const v8::Arguments& args, std::string& retVal)
 
 	for (i = 0; i < argc; i++)
 	{
-		const char *p = *v8::String::Utf8Value(args[i]);
+		v8::String::Utf8Value s(args[i]);
+		const char *p = *s;
 
 		if (p && *p)
 		{
@@ -286,11 +288,16 @@ result_t path_base::join(const v8::Arguments& args, std::string& retVal)
 				strBuffer.str("");
 
 			strBuffer << p;
+
+			if (i < argc - 1 && !isSeparator(p[s.length() - 1]))
+				strBuffer << PATH_CHAR;
 		}
 		else
+		{
 			strBuffer << '.';
-		if (i < argc - 1)
-			strBuffer << PATH_CHAR;
+			if (i < argc - 1)
+				strBuffer << PATH_CHAR;
+		}
 	}
 
 	return normalize(strBuffer.str().c_str(), retVal);
