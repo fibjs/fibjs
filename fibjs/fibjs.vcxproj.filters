@@ -57,6 +57,12 @@
     <ClCompile Include="src\acPool.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\path.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\assert.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -107,9 +113,21 @@
     <ClInclude Include="include\utils.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\assert.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\path.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\acPool.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl">
+      <Filter>Header Files\include</Filter>
+    </None>
+    <None Include="include\gen_stub.js">
       <Filter>Header Files\include</Filter>
     </None>
   </ItemGroup>

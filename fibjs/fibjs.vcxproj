@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\acPool.cpp" />
+    <ClCompile Include="src\assert.cpp" />
     <ClCompile Include="src\Buffer.cpp" />
     <ClCompile Include="src\Console.cpp" />
     <ClCompile Include="src\fibjs.cpp" />
@@ -28,6 +29,7 @@
     <ClCompile Include="src\Function.cpp" />
     <ClCompile Include="src\global.cpp" />
     <ClCompile Include="src\os.cpp" />
+    <ClCompile Include="src\path.cpp" />
     <ClCompile Include="src\test.cpp" />
     <ClCompile Include="src\utils.cpp" />
   </ItemGroup>
@@ -37,10 +39,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\acPool.h" />
     <ClInclude Include="include\AsyncCall.h" />
     <ClInclude Include="include\Buffer.h" />
     <ClInclude Include="include\ClassInfo.h" />
     <ClInclude Include="include\File.h" />
+    <ClInclude Include="include\ifs\assert.h" />
     <ClInclude Include="include\ifs\Buffer.h" />
     <ClInclude Include="include\ifs\console.h" />
     <ClInclude Include="include\ifs\Fiber.h" />
@@ -50,11 +54,13 @@
     <ClInclude Include="include\ifs\global.h" />
     <ClInclude Include="include\ifs\object.h" />
     <ClInclude Include="include\ifs\os.h" />
+    <ClInclude Include="include\ifs\path.h" />
     <ClInclude Include="include\ifs\Stream.h" />
     <ClInclude Include="include\object.h" />
     <ClInclude Include="include\utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="include\gen_stub.js" />
     <None Include="include\object_async.inl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
