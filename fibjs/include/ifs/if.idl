@@ -31,7 +31,7 @@ class object
 };
 
 /*! @brief 基础模块对象，所有模块对象均继承于此*/
-class module : object
+class module
 {
 };
 
@@ -447,7 +447,7 @@ class Fiber : Event
 	readonly Function func;
 };
 
-class fiber : module
+class coroutine : module
 {
 	static Fiber start(Function func);
 	static Fiber current();
@@ -486,7 +486,7 @@ class global : module
 };
 
 /*! @brief Function 对象不可创建，仅用于实现对 javascript Function 对象的扩展*/
-class Function : module
+class Function : object
 {
 	/*! @brief 启动一个纤程
 	 *
