@@ -12,11 +12,14 @@
  */
 
 #include "../object.h"
+#include "module.h"
 
 namespace fibjs
 {
 
-class os_base : public object_base
+class module_base;
+
+class os_base : public module_base
 {
 public:
 	// os_base
@@ -44,7 +47,7 @@ public:
 		{ 
 			"os", NULL, 
 			6, s_method, 0, NULL, NULL,
-			&object_base::class_info()
+			&module_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
@@ -66,6 +69,7 @@ private:
 };
 
 }
+
 
 namespace fibjs
 {

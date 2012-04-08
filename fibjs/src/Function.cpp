@@ -9,6 +9,7 @@ extern v8::Isolate* isolate;
 
 class fiber_data : public Fiber_base
 {
+	EVENT_SUPPORT();
 public:
     fiber_data() : m_next(NULL)
     {

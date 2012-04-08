@@ -81,8 +81,15 @@ protected:
 	}
 
 public:
+	// Event
+	result_t on(const char* ev, v8::Handle<v8::Function> func);
+	result_t once(const char* ev, v8::Handle<v8::Function> func);
+	result_t off(const char* ev, v8::Handle<v8::Function> func);
+	result_t trigger(const char* ev, const v8::Arguments& args);
+
+public:
 	// object_base
-	result_t dispose()
+	virtual result_t dispose()
 	{
 		if (!handle_.IsEmpty())
 		{
@@ -105,6 +112,7 @@ public:
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{
+		retVal = v8::Object::New();
 		return 0;
 	}
 

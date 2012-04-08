@@ -57,7 +57,7 @@ result_t path_base::basename(const char* path, const char* ext,
 			&& !pathcmp(ext, path - extlen, extlen))
 		path -= extlen;
 
-	retVal.append(p1, (int) (path - p1));
+	retVal.assign(p1, (int) (path - p1));
 
 	return 0;
 }
@@ -84,7 +84,7 @@ result_t path_base::extname(const char* path, std::string& retVal)
 	}
 
 	if (p1)
-		retVal.append(p1, (int) (path - p1));
+		retVal.assign(p1, (int) (path - p1));
 
 	return 0;
 }
@@ -137,7 +137,7 @@ result_t path_base::dirname(const char* path, std::string& retVal)
 	if (isSeparator(*p2) && p2 == p1)
 		p2++;
 
-	retVal.append(p1, (int) (p2 - p1));
+	retVal.assign(p1, (int) (p2 - p1));
 
 	return 0;
 }

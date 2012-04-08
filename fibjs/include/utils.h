@@ -140,7 +140,6 @@ void qstrlwr(T *s)
 }
 
 typedef int result_t;
-typedef int64_t JS_DATE;
 
 // Invalid number of parameters.
 #define CALL_E_BADPARAMCOUNT    -1
@@ -241,6 +240,31 @@ typedef int64_t JS_DATE;
     t v0; \
     hr = SafeGetValue(value, v0); \
     if(hr < 0)break;
+
+#define CLONE_CLASS(n, cls) \
+		{obj_ptr<cls> v; hr = get_##n(v); if(hr < 0)return hr; \
+		retVal->Set(v8::String::NewSymbol(#n), ReturnValue(v));}
+
+#define CLONE_String(n) \
+		{std::string v; hr = get_##n(v); if(hr < 0)return hr; \
+		retVal->Set(v8::String::NewSymbol(#n), ReturnValue(v));}
+
+#define CLONE(n, t) \
+	{t v; hr = get_##n(v); if(hr < 0)return hr; \
+	retVal->Set(v8::String::NewSymbol(#n), ReturnValue(v));}
+
+
+#define EVENT_SUPPORT() \
+		public: \
+			virtual result_t on(const char* ev, v8::Handle<v8::Function> func) \
+			{	return object_base::on(ev, func);} \
+			virtual result_t once(const char* ev, v8::Handle<v8::Function> func) \
+			{	return object_base::once(ev, func);} \
+			virtual result_t off(const char* ev, v8::Handle<v8::Function> func) \
+			{	return object_base::off(ev, func);} \
+			virtual result_t trigger(const char* ev, const v8::Arguments& args) \
+			{	return object_base::trigger(ev, args);}
+
 
 #ifdef _MSC_VER
 #define isnan _isnan
@@ -394,7 +418,8 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, bool& n)
 	return 0;
 }
 
-inline result_t SafeGetValue(v8::Handle<v8::Value> v, v8::Handle<v8::Object>& vr)
+inline result_t SafeGetValue(v8::Handle<v8::Value> v,
+		v8::Handle<v8::Object>& vr)
 {
 	if (!v->IsObject())
 		return CALL_E_INVALIDARG;
@@ -433,7 +458,7 @@ inline v8::Handle<v8::Value> ReturnValue(double v)
 	return v8::Number::New(v);
 }
 
-inline v8::Handle<v8::Value> ReturnValue(JS_DATE v)
+inline v8::Handle<v8::Value> ReturnValue(int64_t v)
 {
 	return v8::Date::New(v);
 }

@@ -106,9 +106,9 @@ public:
 		return m_cache->Clone();
 	}
 
-	v8::Handle<v8::FunctionTemplate> FunctionTemplate() const
+	v8::Handle<v8::Function> GetFunction() const
 	{
-		return m_class;
+		return m_class->GetFunction();
 	}
 
 	const char* name()

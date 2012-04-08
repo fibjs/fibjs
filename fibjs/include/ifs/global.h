@@ -12,13 +12,15 @@
  */
 
 #include "../object.h"
+#include "module.h"
 
 namespace fibjs
 {
 
+class module_base;
 class console_base;
 
-class global_base : public object_base
+class global_base : public module_base
 {
 public:
 	// global_base
@@ -50,7 +52,7 @@ public:
 		{ 
 			"global", NULL, 
 			5, s_method, 1, s_property, NULL,
-			&object_base::class_info()
+			&module_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

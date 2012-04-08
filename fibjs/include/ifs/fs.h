@@ -12,14 +12,16 @@
  */
 
 #include "../object.h"
+#include "module.h"
 
 namespace fibjs
 {
 
+class module_base;
 class File_base;
 class Stat_base;
 
-class fs_base : public object_base
+class fs_base : public module_base
 {
 public:
 	static const int32_t SEEK_SET = 0;
@@ -67,7 +69,7 @@ public:
 		{ 
 			"fs", NULL, 
 			10, s_method, 3, s_property, NULL,
-			&object_base::class_info()
+			&module_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

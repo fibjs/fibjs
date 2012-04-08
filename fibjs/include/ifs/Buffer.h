@@ -66,6 +66,16 @@ public:
 		return class_info();
 	}
 
+	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
+	{
+		result_t hr = object_base::toJSON(key, retVal);
+		if(hr < 0)return hr;
+
+		CLONE(length, int32_t);
+
+		return 0;
+	}
+
 private:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> i_IndexedGetter(uint32_t index, const v8::AccessorInfo& info);

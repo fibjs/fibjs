@@ -56,6 +56,16 @@ public:
 		return class_info();
 	}
 
+	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
+	{
+		result_t hr = Stream_base::toJSON(key, retVal);
+		if(hr < 0)return hr;
+
+		CLONE(data, double);
+
+		return 0;
+	}
+
 private:
 	static v8::Handle<v8::Value> s_get_data(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);

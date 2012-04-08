@@ -18,13 +18,13 @@ class Stat : public Stat_base
 public:
 	// Stat_base
 	virtual result_t get_size(double& retVal);
-	virtual result_t get_mtime(JS_DATE& retVal);
-	virtual result_t get_atime(JS_DATE& retVal);
-	virtual result_t get_ctime(JS_DATE& retVal);
+	virtual result_t get_mtime(int64_t& retVal);
+	virtual result_t get_atime(int64_t& retVal);
+	virtual result_t get_ctime(int64_t& retVal);
 
 public:
 	double size;
-	JS_DATE mtime, atime, ctime;
+	int64_t mtime, atime, ctime;
 };
 
 }

@@ -16,19 +16,19 @@ result_t Stat::get_size(double& retVal)
 	return 0;
 }
 
-result_t Stat::get_mtime(JS_DATE& retVal)
+result_t Stat::get_mtime(int64_t& retVal)
 {
 	retVal = mtime;
 	return 0;
 }
 
-result_t Stat::get_atime(JS_DATE& retVal)
+result_t Stat::get_atime(int64_t& retVal)
 {
 	retVal = atime;
 	return 0;
 }
 
-result_t Stat::get_ctime(JS_DATE& retVal)
+result_t Stat::get_ctime(int64_t& retVal)
 {
 	retVal = ctime;
 	return 0;

@@ -15,6 +15,7 @@ function parserIDL(fname) {
 	svs,
 	ffs,
 	iffs,
+	tjfs,
 	difms,
 	difps,
 	dsvs,
@@ -33,7 +34,7 @@ function parserIDL(fname) {
 		"Number" : "double",
 		"Boolean" : "bool",
 		"String" : "std::string",
-		"Date" : "JS_DATE",
+		"Date" : "int64_t",
 		"Object" : "v8::Handle<v8::Object>",
 		"Array" : "v8::Handle<v8::Array>",
 		"Function" : "v8::Handle<v8::Function>",
@@ -45,7 +46,7 @@ function parserIDL(fname) {
 		"Number" : "double",
 		"Boolean" : "bool",
 		"String" : "const char*",
-		"Date" : "JS_DATE",
+		"Date" : "int64_t",
 		"Object" : "v8::Handle<v8::Object>",
 		"Function" : "v8::Handle<v8::Function>",
 		"Value" : "v8::Handle<v8::Value>"
@@ -91,6 +92,7 @@ function parserIDL(fname) {
 		svs = [];
 		ffs = [];
 		iffs = [];
+		tjfs = [];
 		
 		difms = [];
 		difps = [];
@@ -230,6 +232,13 @@ function parserIDL(fname) {
 		txt.push("		return s_ci;\n	}\n");
 
 		txt.push("	virtual ClassInfo& Classinfo()\n	{\n		return class_info();\n	}\n");
+		
+		if(tjfs.length)
+		{
+			txt.push("	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)\n	{\n		result_t hr = " + baseClass + "_base::toJSON(key, retVal);\n		if(hr < 0)return hr;\n");
+			txt.push(tjfs.join("\n"));
+			txt.push("\n		return 0;\n	}\n");
+		}
 		
 		txt.push("private:");
 		txt.push(iffs.join("\n"));
@@ -563,6 +572,13 @@ function parserIDL(fname) {
 			{
 				if (st[pos] != ";")
 					return reportErr();
+				
+				if(ftype === "String")
+					tjfs.push("		CLONE_String(" + fname + ");");
+				else if(clsName[ftype])
+					tjfs.push("		CLONE_CLASS(" + fname + ", " + ftype + ");");
+				else
+					tjfs.push("		CLONE(" + fname + ", " + map_type(ftype) + ");");
 				
 				iffs.push("	static v8::Handle<v8::Value> s_get_" + fname + "(v8::Local<v8::String> property, const v8::AccessorInfo &info);");
 				fnStr = "	inline v8::Handle<v8::Value> " + ns + "_base::s_get_" + fname + "(v8::Local<v8::String> property, const v8::AccessorInfo &info)\n	{\n		PROPERTY_ENTER();\n";

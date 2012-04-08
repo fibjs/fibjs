@@ -66,6 +66,17 @@ public:
 		return class_info();
 	}
 
+	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
+	{
+		result_t hr = object_base::toJSON(key, retVal);
+		if(hr < 0)return hr;
+
+		CLONE(readable, bool);
+		CLONE(writable, bool);
+
+		return 0;
+	}
+
 private:
 	static v8::Handle<v8::Value> s_get_SEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info);

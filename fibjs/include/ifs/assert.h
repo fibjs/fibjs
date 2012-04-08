@@ -12,11 +12,14 @@
  */
 
 #include "../object.h"
+#include "module.h"
 
 namespace fibjs
 {
 
-class assert_base : public object_base
+class module_base;
+
+class assert_base : public module_base
 {
 public:
 	// assert_base
@@ -48,7 +51,7 @@ public:
 		{ 
 			"assert", NULL, 
 			8, s_method, 0, NULL, NULL,
-			&object_base::class_info()
+			&module_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
@@ -72,6 +75,7 @@ private:
 };
 
 }
+
 
 namespace fibjs
 {
