@@ -24,6 +24,7 @@ public:
 	static result_t info(const char* fmt, const v8::Arguments& args);
 	static result_t warn(const char* fmt, const v8::Arguments& args);
 	static result_t error(const char* fmt, const v8::Arguments& args);
+	static result_t dir(v8::Handle<v8::Object> obj);
 	static result_t time(const char* label);
 	static result_t timeEnd(const char* label);
 	static result_t trace(const char* label);
@@ -38,6 +39,7 @@ public:
 			{"info", s_info},
 			{"warn", s_warn},
 			{"error", s_error},
+			{"dir", s_dir},
 			{"time", s_time},
 			{"timeEnd", s_timeEnd},
 			{"trace", s_trace},
@@ -47,7 +49,7 @@ public:
 		static ClassData s_cd = 
 		{ 
 			"console", NULL, 
-			8, s_method, 0, NULL, NULL,
+			9, s_method, 0, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -65,6 +67,7 @@ private:
 	static v8::Handle<v8::Value> s_info(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_warn(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_error(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_dir(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_time(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_timeEnd(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_trace(const v8::Arguments& args);
@@ -115,6 +118,17 @@ namespace fibjs
 		ARG_String(0);
 
 		hr = error(v0, args);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> console_base::s_dir(const v8::Arguments& args)
+	{
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Object>, 0);
+
+		hr = dir(v0);
 
 		METHOD_VOID();
 	}

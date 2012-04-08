@@ -22,6 +22,8 @@ public:
 	// object_base
 	virtual result_t dispose() = 0;
 	virtual result_t toString(std::string& retVal) = 0;
+	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal) = 0;
+	virtual result_t ValueOf(v8::Handle<v8::Object>& retVal) = 0;
 
 public:
 	static ClassInfo& class_info()
@@ -29,13 +31,15 @@ public:
 		static ClassMethod s_method[] = 
 		{
 			{"dispose", s_dispose},
-			{"toString", s_toString}
+			{"toString", s_toString},
+			{"toJSON", s_toJSON},
+			{"ValueOf", s_ValueOf}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"object", NULL, 
-			2, s_method, 0, NULL, NULL
+			4, s_method, 0, NULL, NULL
 		};
 
 		static ClassInfo s_ci(s_cd);
@@ -50,6 +54,8 @@ public:
 private:
 	static v8::Handle<v8::Value> s_dispose(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_toString(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_toJSON(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_ValueOf(const v8::Arguments& args);
 };
 
 }
@@ -73,6 +79,30 @@ namespace fibjs
 
 		std::string vr;
 		hr = pInst->toString(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> object_base::s_toJSON(const v8::Arguments& args)
+	{
+		METHOD_ENTER(1, 0);
+		METHOD_INSTANCE(object_base);
+
+		OPT_ARG_String(0, "");
+
+		v8::Handle<v8::Object> vr;
+		hr = pInst->toJSON(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> object_base::s_ValueOf(const v8::Arguments& args)
+	{
+		METHOD_ENTER(0, 0);
+		METHOD_INSTANCE(object_base);
+
+		v8::Handle<v8::Object> vr;
+		hr = pInst->ValueOf(vr);
 
 		METHOD_RETURN();
 	}

@@ -33,6 +33,7 @@ function parserIDL(fname) {
 		"Number" : "double",
 		"Boolean" : "bool",
 		"String" : "std::string",
+		"Date" : "JS_DATE",
 		"Object" : "v8::Handle<v8::Object>",
 		"Array" : "v8::Handle<v8::Array>",
 		"Function" : "v8::Handle<v8::Function>",
@@ -44,6 +45,7 @@ function parserIDL(fname) {
 		"Number" : "double",
 		"Boolean" : "bool",
 		"String" : "const char*",
+		"Date" : "JS_DATE",
 		"Object" : "v8::Handle<v8::Object>",
 		"Function" : "v8::Handle<v8::Function>",
 		"Value" : "v8::Handle<v8::Value>"

@@ -275,7 +275,10 @@ result_t path_base::combine(const v8::Arguments& args, std::string& retVal)
 	int argc = args.Length();
 	int i;
 	bool bRoot;
+
+#ifdef _WIN32
 	char diskID = 0;
+#endif
 
 	for (i = 0; i < argc; i++)
 	{
@@ -305,7 +308,9 @@ result_t path_base::combine(const v8::Arguments& args, std::string& retVal)
 			if (isSeparator(p[0]))
 			{
 				bRoot = true;
+#ifdef _WIN32
 				diskID = 0;
+#endif
 			}else
 				bRoot = false;
 

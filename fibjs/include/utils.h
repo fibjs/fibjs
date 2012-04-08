@@ -140,6 +140,7 @@ void qstrlwr(T *s)
 }
 
 typedef int result_t;
+typedef int64_t JS_DATE;
 
 // Invalid number of parameters.
 #define CALL_E_BADPARAMCOUNT    -1
@@ -393,6 +394,15 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, bool& n)
 	return 0;
 }
 
+inline result_t SafeGetValue(v8::Handle<v8::Value> v, v8::Handle<v8::Object>& vr)
+{
+	if (!v->IsObject())
+		return CALL_E_INVALIDARG;
+
+	vr = v8::Handle<v8::Object>::Cast(v);
+	return 0;
+}
+
 inline result_t SafeGetValue(v8::Handle<v8::Value> v, v8::Handle<v8::Value>& vr)
 {
 	vr = v;
@@ -423,6 +433,11 @@ inline v8::Handle<v8::Value> ReturnValue(double v)
 	return v8::Number::New(v);
 }
 
+inline v8::Handle<v8::Value> ReturnValue(JS_DATE v)
+{
+	return v8::Date::New(v);
+}
+
 inline v8::Handle<v8::Value> ReturnValue(std::string& str)
 {
 	return v8::String::New(str.c_str(), (int) str.length());
@@ -451,7 +466,10 @@ inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Function>& func)
 template<class T>
 inline v8::Handle<v8::Value> ReturnValue(obj_ptr<T>& obj)
 {
-	return obj->JSObject();
+	v8::Handle<v8::Object> retVal;
+	obj->ValueOf(retVal);
+
+	return retVal;
 }
 
 inline v8::Handle<v8::Value> ThrowError(const char* msg)
@@ -481,7 +499,7 @@ inline result_t LastError()
 v8::Handle<v8::Value> ThrowResult(result_t hr);
 std::string traceInfo();
 void ReportException(v8::TryCatch* try_catch, bool rt = false);
-std::string toJSON(v8::Handle<v8::Value> v);
+std::string JSON_stringify(v8::Handle<v8::Value> v);
 
 }
 

@@ -113,7 +113,7 @@ std::string traceInfo()
     return strBuffer.str();
 }
 
-std::string toJSON(v8::Handle<v8::Value> v)
+std::string JSON_stringify(v8::Handle<v8::Value> v)
 {
 	std::string str;
 	v8::HandleScope handle_scope;
@@ -126,7 +126,12 @@ std::string toJSON(v8::Handle<v8::Value> v)
 
     v8::Handle<v8::Value> myargs[] = {v};
 
-    str = *v8::String::Utf8Value(JSON_stringify->Call(JSON, 1, myargs));
+    v8::Handle<v8::Value> sJSON = JSON_stringify->Call(JSON, 1, myargs);
+
+    if(sJSON.IsEmpty())
+    	return str;
+
+    str = *v8::String::Utf8Value(sJSON);
 
 	return str;
 }

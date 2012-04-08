@@ -5,9 +5,21 @@
  *      Author: lion
  */
 
+
+#include "object.h"
+
+#ifdef SEEK_SET
+#undef SEEK_SET
+#undef SEEK_CUR
+#undef SEEK_END
+#endif
+
 #include "ifs/fs.h"
 #include "File.h"
 #include <string.h>
+#include "Stat.h"
+
+#include <sys/stat.h>
 
 namespace fibjs
 {
@@ -79,4 +91,51 @@ result_t fs_base::writeFile(const char* fname, const char* txt)
 	return 0;
 }
 
+result_t fs_base::exists(const char* path, bool& retVal)
+{
+	retVal = access(path, F_OK) == 0;
+	return 0;
+}
+
+result_t fs_base::mkdir(const char* path)
+{
+	if(::mkdir(path, 777))
+		return LastError();
+
+	return 0;
+}
+
+result_t fs_base::rmdir(const char* path)
+{
+	if(::rmdir(path))
+		return LastError();
+
+	return 0;
+}
+
+result_t fs_base::rename(const char* from, const char* to)
+{
+	if(::rename(from, to))
+		return LastError();
+
+	return 0;
+}
+
+result_t fs_base::stat(const char* path, obj_ptr<Stat_base>& retVal)
+{
+	struct stat st;
+	if (::stat(path, &st))
+		return LastError();
+
+	obj_ptr<Stat> pStat = new Stat();
+
+	pStat->size = st.st_size;
+	pStat->mtime = st.st_mtime * 1000ll;
+	pStat->atime = st.st_atime * 1000ll;
+	pStat->ctime = st.st_ctime * 1000ll;
+
+	retVal = pStat;
+
+	return 0;
+}
 }

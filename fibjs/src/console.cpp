@@ -76,7 +76,7 @@ std::string Format(const char* fmt, const v8::Arguments& args, int idx = 1)
                 strBuffer << *v8::String::Utf8Value(args[idx ++]);
                 break;
             case 'j':
-                strBuffer << toJSON(args[idx ++]);
+                strBuffer << JSON_stringify(args[idx ++]);
             break;
             default:
                 strBuffer << '%';
@@ -116,6 +116,12 @@ result_t console_base::error(const char* fmt, const v8::Arguments& args)
 {
 	asyncLog(log4cpp::Priority::ERROR, Format(fmt, args));
     return 0;
+}
+
+result_t console_base::dir(v8::Handle<v8::Object> obj)
+{
+	asyncLog(log4cpp::Priority::INFO, JSON_stringify(obj));
+	return 0;
 }
 
 static std::map<std::string, int64_t> s_timers;

@@ -6,6 +6,13 @@
 #include "ifs/assert.h"
 #include "ifs/path.h"
 #include "ifs/os.h"
+
+#ifdef SEEK_SET
+#undef SEEK_SET
+#undef SEEK_CUR
+#undef SEEK_END
+#endif
+
 #include "ifs/fs.h"
 
 #ifdef _WIN32

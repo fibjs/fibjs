@@ -21,9 +21,9 @@ class Buffer_base;
 class Stream_base : public object_base
 {
 public:
-	static const int32_t FSEEK_SET = 0;
-	static const int32_t FSEEK_CUR = 1;
-	static const int32_t FSEEK_END = 2;
+	static const int32_t SEEK_SET = 0;
+	static const int32_t SEEK_CUR = 1;
+	static const int32_t SEEK_END = 2;
 
 public:
 	// Stream_base
@@ -43,9 +43,9 @@ public:
 
 		static ClassProperty s_property[] = 
 		{
-			{"FSEEK_SET", s_get_FSEEK_SET},
-			{"FSEEK_CUR", s_get_FSEEK_CUR},
-			{"FSEEK_END", s_get_FSEEK_END},
+			{"SEEK_SET", s_get_SEEK_SET},
+			{"SEEK_CUR", s_get_SEEK_CUR},
+			{"SEEK_END", s_get_SEEK_END},
 			{"readable", s_get_readable},
 			{"writable", s_get_writable}
 		};
@@ -67,9 +67,9 @@ public:
 	}
 
 private:
-	static v8::Handle<v8::Value> s_get_FSEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_FSEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_FSEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_SEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_SEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_readable(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_writable(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_read(const v8::Arguments& args);
@@ -82,29 +82,29 @@ private:
 
 namespace fibjs
 {
-	inline v8::Handle<v8::Value> Stream_base::s_get_FSEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline v8::Handle<v8::Value> Stream_base::s_get_SEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		PROPERTY_ENTER();
 
-		int32_t vr = FSEEK_SET;
+		int32_t vr = SEEK_SET;
 
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stream_base::s_get_FSEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline v8::Handle<v8::Value> Stream_base::s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		PROPERTY_ENTER();
 
-		int32_t vr = FSEEK_CUR;
+		int32_t vr = SEEK_CUR;
 
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stream_base::s_get_FSEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline v8::Handle<v8::Value> Stream_base::s_get_SEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		PROPERTY_ENTER();
 
-		int32_t vr = FSEEK_END;
+		int32_t vr = SEEK_END;
 
 		METHOD_RETURN();
 	}

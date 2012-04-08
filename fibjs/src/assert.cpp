@@ -48,9 +48,9 @@ result_t assert_base::equal(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> 
 
 		if(!*msg)
 		{
-			str = toJSON(expected);
+			str = JSON_stringify(expected);
 			str += " == ";
-			str += toJSON(actual);
+			str += JSON_stringify(actual);
 
 			msg = str.c_str();
 		}
@@ -68,9 +68,9 @@ result_t assert_base::notEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Valu
 
 		if(!*msg)
 		{
-			str = toJSON(expected);
+			str = JSON_stringify(expected);
 			str += " != ";
-			str += toJSON(actual);
+			str += JSON_stringify(actual);
 
 			msg = str.c_str();
 		}
@@ -88,9 +88,9 @@ result_t assert_base::strictEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::V
 
 		if(!*msg)
 		{
-			str = toJSON(expected);
+			str = JSON_stringify(expected);
 			str += " === ";
-			str += toJSON(actual);
+			str += JSON_stringify(actual);
 
 			msg = str.c_str();
 		}
@@ -108,9 +108,9 @@ result_t assert_base::notStrictEqual(v8::Handle<v8::Value> actual, v8::Handle<v8
 
 		if(!*msg)
 		{
-			str = toJSON(expected);
+			str = JSON_stringify(expected);
 			str += " !== ";
-			str += toJSON(actual);
+			str += JSON_stringify(actual);
 
 			msg = str.c_str();
 		}
