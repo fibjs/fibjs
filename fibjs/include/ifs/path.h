@@ -72,11 +72,12 @@ namespace fibjs
 {
 	inline v8::Handle<v8::Value> path_base::s_normalize(const v8::Arguments& args)
 	{
+		std::string vr;
+
 		METHOD_ENTER(1, 1);
 
 		ARG_String(0);
 
-		std::string vr;
 		hr = normalize(v0, vr);
 
 		METHOD_RETURN();
@@ -84,12 +85,13 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> path_base::s_basename(const v8::Arguments& args)
 	{
+		std::string vr;
+
 		METHOD_ENTER(2, 1);
 
 		ARG_String(0);
 		OPT_ARG_String(1, "");
 
-		std::string vr;
 		hr = basename(v0, v1, vr);
 
 		METHOD_RETURN();
@@ -97,11 +99,12 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> path_base::s_extname(const v8::Arguments& args)
 	{
+		std::string vr;
+
 		METHOD_ENTER(1, 1);
 
 		ARG_String(0);
 
-		std::string vr;
 		hr = extname(v0, vr);
 
 		METHOD_RETURN();
@@ -109,11 +112,12 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> path_base::s_dirname(const v8::Arguments& args)
 	{
+		std::string vr;
+
 		METHOD_ENTER(1, 1);
 
 		ARG_String(0);
 
-		std::string vr;
 		hr = dirname(v0, vr);
 
 		METHOD_RETURN();
@@ -121,9 +125,10 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> path_base::s_combine(const v8::Arguments& args)
 	{
+		std::string vr;
+
 		METHOD_ENTER(-1, 0);
 
-		std::string vr;
 		hr = combine(args, vr);
 
 		METHOD_RETURN();

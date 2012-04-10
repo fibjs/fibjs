@@ -118,39 +118,34 @@ namespace fibjs
 {
 	inline v8::Handle<v8::Value> fs_base::s_get_SEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		PROPERTY_ENTER();
-
 		int32_t vr = SEEK_SET;
-
+		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> fs_base::s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		PROPERTY_ENTER();
-
 		int32_t vr = SEEK_CUR;
-
+		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> fs_base::s_get_SEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		PROPERTY_ENTER();
-
 		int32_t vr = SEEK_END;
-
+		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> fs_base::s_open(const v8::Arguments& args)
 	{
+		obj_ptr<File_base> vr;
+
 		METHOD_ENTER(2, 1);
 
 		ARG_String(0);
 		OPT_ARG_String(1, "r");
 
-		obj_ptr<File_base> vr;
 		hr = ac_open(s_acPool, v0, v1, vr);
 
 		METHOD_RETURN();
@@ -158,12 +153,13 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> fs_base::s_create(const v8::Arguments& args)
 	{
+		obj_ptr<File_base> vr;
+
 		METHOD_ENTER(2, 1);
 
 		ARG_String(0);
 		OPT_ARG(bool, 1, true);
 
-		obj_ptr<File_base> vr;
 		hr = ac_create(s_acPool, v0, v1, vr);
 
 		METHOD_RETURN();
@@ -171,9 +167,10 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> fs_base::s_tmpFile(const v8::Arguments& args)
 	{
+		obj_ptr<File_base> vr;
+
 		METHOD_ENTER(0, 0);
 
-		obj_ptr<File_base> vr;
 		hr = ac_tmpFile(s_acPool, vr);
 
 		METHOD_RETURN();
@@ -181,11 +178,12 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> fs_base::s_readFile(const v8::Arguments& args)
 	{
+		std::string vr;
+
 		METHOD_ENTER(1, 1);
 
 		ARG_String(0);
 
-		std::string vr;
 		hr = ac_readFile(s_acPool, v0, vr);
 
 		METHOD_RETURN();
@@ -205,11 +203,12 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> fs_base::s_exists(const v8::Arguments& args)
 	{
+		bool vr;
+
 		METHOD_ENTER(1, 1);
 
 		ARG_String(0);
 
-		bool vr;
 		hr = ac_exists(s_acPool, v0, vr);
 
 		METHOD_RETURN();
@@ -251,11 +250,12 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> fs_base::s_stat(const v8::Arguments& args)
 	{
+		obj_ptr<Stat_base> vr;
+
 		METHOD_ENTER(1, 1);
 
 		ARG_String(0);
 
-		obj_ptr<Stat_base> vr;
 		hr = ac_stat(s_acPool, v0, vr);
 
 		METHOD_RETURN();

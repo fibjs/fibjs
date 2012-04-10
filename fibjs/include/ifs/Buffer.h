@@ -93,11 +93,12 @@ namespace fibjs
 {
 	inline v8::Handle<v8::Value> Buffer_base::s__new(const v8::Arguments& args)
 	{
+		obj_ptr<Buffer_base> vr;
+
 		CONSTRUCT_ENTER(1, 0);
 
 		OPT_ARG_String(0, "");
 
-		obj_ptr<Buffer_base> vr;
 		hr = _new(v0, vr);
 
 		CONSTRUCT_RETURN();
@@ -105,10 +106,11 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Buffer_base::i_IndexedGetter(uint32_t index, const v8::AccessorInfo& info)
 	{
+		int32_t vr;
+
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Buffer_base);
 
-		int32_t vr;
 		hr = pInst->_indexed_getter(index, vr);
 
 		METHOD_RETURN();
@@ -127,10 +129,11 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Buffer_base::s_get_length(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
+		int32_t vr;
+
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Buffer_base);
 
-		int32_t vr;
 		hr = pInst->get_length(vr);
 
 		METHOD_RETURN();
@@ -138,8 +141,8 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Buffer_base::s_resize(const v8::Arguments& args)
 	{
-		METHOD_ENTER(1, 1);
 		METHOD_INSTANCE(Buffer_base);
+		METHOD_ENTER(1, 1);
 
 		ARG(int32_t, 0);
 
@@ -150,8 +153,8 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Buffer_base::s_write(const v8::Arguments& args)
 	{
-		METHOD_ENTER(1, 1);
 		METHOD_INSTANCE(Buffer_base);
+		METHOD_ENTER(1, 1);
 
 		ARG_String(0);
 
@@ -162,13 +165,14 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Buffer_base::s_slice(const v8::Arguments& args)
 	{
-		METHOD_ENTER(2, 0);
+		obj_ptr<Buffer_base> vr;
+
 		METHOD_INSTANCE(Buffer_base);
+		METHOD_ENTER(2, 0);
 
 		OPT_ARG(int32_t, 0, 0);
 		OPT_ARG(int32_t, 1, -1);
 
-		obj_ptr<Buffer_base> vr;
 		hr = pInst->slice(v0, v1, vr);
 
 		METHOD_RETURN();
@@ -176,10 +180,11 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Buffer_base::s_toString(const v8::Arguments& args)
 	{
-		METHOD_ENTER(0, 0);
-		METHOD_INSTANCE(Buffer_base);
-
 		std::string vr;
+
+		METHOD_INSTANCE(Buffer_base);
+		METHOD_ENTER(0, 0);
+
 		hr = pInst->toString(vr);
 
 		METHOD_RETURN();

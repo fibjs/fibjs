@@ -64,8 +64,8 @@ namespace fibjs
 {
 	inline v8::Handle<v8::Value> object_base::s_dispose(const v8::Arguments& args)
 	{
-		METHOD_ENTER(0, 0);
 		METHOD_INSTANCE(object_base);
+		METHOD_ENTER(0, 0);
 
 		hr = pInst->dispose();
 
@@ -74,10 +74,11 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> object_base::s_toString(const v8::Arguments& args)
 	{
-		METHOD_ENTER(0, 0);
-		METHOD_INSTANCE(object_base);
-
 		std::string vr;
+
+		METHOD_INSTANCE(object_base);
+		METHOD_ENTER(0, 0);
+
 		hr = pInst->toString(vr);
 
 		METHOD_RETURN();
@@ -85,12 +86,13 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> object_base::s_toJSON(const v8::Arguments& args)
 	{
-		METHOD_ENTER(1, 0);
+		v8::Handle<v8::Object> vr;
+
 		METHOD_INSTANCE(object_base);
+		METHOD_ENTER(1, 0);
 
 		OPT_ARG_String(0, "");
 
-		v8::Handle<v8::Object> vr;
 		hr = pInst->toJSON(v0, vr);
 
 		METHOD_RETURN();
@@ -98,10 +100,11 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> object_base::s_ValueOf(const v8::Arguments& args)
 	{
-		METHOD_ENTER(0, 0);
-		METHOD_INSTANCE(object_base);
-
 		v8::Handle<v8::Object> vr;
+
+		METHOD_INSTANCE(object_base);
+		METHOD_ENTER(0, 0);
+
 		hr = pInst->ValueOf(vr);
 
 		METHOD_RETURN();

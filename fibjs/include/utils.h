@@ -163,12 +163,16 @@ typedef int result_t;
 
 #define PROPERTY_ENTER() result_t hr = 0;do{
 
-#define METHOD_ENTER(c, o) \
-    result_t hr = 0; do{\
+#define METHOD_OVER(c, o) \
+	}while(0);  if(hr >= 0)do{\
     int argc; \
     argc = args.Length(); \
     if((c) >= 0 && argc > (c)){hr = CALL_E_BADPARAMCOUNT;break;} \
     if((o) > 0 && argc < (o)){hr = CALL_E_PARAMNOTOPTIONAL;break;}
+
+#define METHOD_ENTER(c, o) \
+    result_t hr = 0; do{\
+    METHOD_OVER(c, o)
 
 #define CONSTRUCT_ENTER(c, o) \
     if (!args.IsConstructCall())return ThrowResult(CALL_E_CONSTRUCTOR); \
@@ -176,7 +180,7 @@ typedef int result_t;
 
 #define METHOD_INSTANCE(cls) \
     obj_ptr<cls> pInst = (cls*)cls::class_info().getInstance(args.This()); \
-    if(pInst == NULL){hr = CALL_E_NOTINSTANCE;break;} \
+    if(pInst == NULL)return ThrowResult(CALL_E_NOTINSTANCE); \
     exlib::autoLocker l(pInst->m_lock);
 
 #define PROPERTY_INSTANCE(cls) \
@@ -189,18 +193,18 @@ typedef int result_t;
     if(hr < 0)ThrowResult(hr);
 
 #define METHOD_RETURN() \
-    if(hr >= 0)return ReturnValue(vr); \
     }while(0); \
+    if(hr >= 0)return ReturnValue(vr); \
     return ThrowResult(hr);
 
 #define METHOD_VOID() \
-    if(hr >= 0)return v8::Undefined(); \
     }while(0); \
+    if(hr >= 0)return v8::Undefined(); \
     return ThrowResult(hr);
 
 #define CONSTRUCT_RETURN() \
-    if(hr >= 0)return vr->wrap(args.This()); \
     }while(0); \
+    if(hr >= 0)return vr->wrap(args.This()); \
     return ThrowResult(hr);
 
 #define ARG_CLASS(cls, n) \

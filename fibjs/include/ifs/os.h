@@ -78,9 +78,10 @@ namespace fibjs
 {
 	inline v8::Handle<v8::Value> os_base::s_hostname(const v8::Arguments& args)
 	{
+		std::string vr;
+
 		METHOD_ENTER(0, 0);
 
-		std::string vr;
 		hr = hostname(vr);
 
 		METHOD_RETURN();
@@ -88,9 +89,10 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> os_base::s_type(const v8::Arguments& args)
 	{
+		std::string vr;
+
 		METHOD_ENTER(0, 0);
 
-		std::string vr;
 		hr = type(vr);
 
 		METHOD_RETURN();
@@ -98,9 +100,10 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> os_base::s_release(const v8::Arguments& args)
 	{
+		std::string vr;
+
 		METHOD_ENTER(0, 0);
 
-		std::string vr;
 		hr = release(vr);
 
 		METHOD_RETURN();
@@ -108,9 +111,10 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> os_base::s_arch(const v8::Arguments& args)
 	{
+		std::string vr;
+
 		METHOD_ENTER(0, 0);
 
-		std::string vr;
 		hr = arch(vr);
 
 		METHOD_RETURN();
@@ -118,9 +122,10 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> os_base::s_CPUInfo(const v8::Arguments& args)
 	{
+		v8::Handle<v8::Array> vr;
+
 		METHOD_ENTER(0, 0);
 
-		v8::Handle<v8::Array> vr;
 		hr = CPUInfo(vr);
 
 		METHOD_RETURN();
@@ -128,9 +133,10 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> os_base::s_CPUs(const v8::Arguments& args)
 	{
+		int32_t vr;
+
 		METHOD_ENTER(0, 0);
 
-		int32_t vr;
 		hr = CPUs(vr);
 
 		METHOD_RETURN();
@@ -138,9 +144,10 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> os_base::s_networkInfo(const v8::Arguments& args)
 	{
+		v8::Handle<v8::Array> vr;
+
 		METHOD_ENTER(0, 0);
 
-		v8::Handle<v8::Array> vr;
 		hr = networkInfo(vr);
 
 		METHOD_RETURN();

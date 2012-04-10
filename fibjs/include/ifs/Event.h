@@ -67,9 +67,10 @@ namespace fibjs
 {
 	inline v8::Handle<v8::Value> Event_base::s__new(const v8::Arguments& args)
 	{
+		obj_ptr<Event_base> vr;
+
 		CONSTRUCT_ENTER(0, 0);
 
-		obj_ptr<Event_base> vr;
 		hr = _new(vr);
 
 		CONSTRUCT_RETURN();
@@ -77,8 +78,8 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Event_base::s_on(const v8::Arguments& args)
 	{
-		METHOD_ENTER(2, 2);
 		METHOD_INSTANCE(Event_base);
+		METHOD_ENTER(2, 2);
 
 		ARG_String(0);
 		ARG(v8::Handle<v8::Function>, 1);
@@ -90,8 +91,8 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Event_base::s_once(const v8::Arguments& args)
 	{
-		METHOD_ENTER(2, 2);
 		METHOD_INSTANCE(Event_base);
+		METHOD_ENTER(2, 2);
 
 		ARG_String(0);
 		ARG(v8::Handle<v8::Function>, 1);
@@ -103,8 +104,8 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Event_base::s_off(const v8::Arguments& args)
 	{
-		METHOD_ENTER(2, 2);
 		METHOD_INSTANCE(Event_base);
+		METHOD_ENTER(2, 2);
 
 		ARG_String(0);
 		ARG(v8::Handle<v8::Function>, 1);
@@ -116,8 +117,8 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Event_base::s_trigger(const v8::Arguments& args)
 	{
-		METHOD_ENTER(-1, 1);
 		METHOD_INSTANCE(Event_base);
+		METHOD_ENTER(-1, 1);
 
 		ARG_String(0);
 

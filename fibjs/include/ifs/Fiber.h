@@ -77,8 +77,8 @@ namespace fibjs
 {
 	inline v8::Handle<v8::Value> Fiber_base::s_join(const v8::Arguments& args)
 	{
-		METHOD_ENTER(0, 0);
 		METHOD_INSTANCE(Fiber_base);
+		METHOD_ENTER(0, 0);
 
 		hr = pInst->join();
 
@@ -87,10 +87,11 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Fiber_base::s_get_func(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
+		v8::Handle<v8::Function> vr;
+
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Fiber_base);
 
-		v8::Handle<v8::Function> vr;
 		hr = pInst->get_func(vr);
 
 		METHOD_RETURN();

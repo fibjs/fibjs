@@ -68,11 +68,12 @@ namespace fibjs
 {
 	inline v8::Handle<v8::Value> coroutine_base::s_start(const v8::Arguments& args)
 	{
+		obj_ptr<Fiber_base> vr;
+
 		METHOD_ENTER(-1, 1);
 
 		ARG(v8::Handle<v8::Function>, 0);
 
-		obj_ptr<Fiber_base> vr;
 		hr = start(v0, args, vr);
 
 		METHOD_RETURN();
@@ -80,9 +81,10 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> coroutine_base::s_current(const v8::Arguments& args)
 	{
+		obj_ptr<Fiber_base> vr;
+
 		METHOD_ENTER(0, 0);
 
-		obj_ptr<Fiber_base> vr;
 		hr = current(vr);
 
 		METHOD_RETURN();

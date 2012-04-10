@@ -30,7 +30,6 @@ function parserIDL(fname) {
 	hasIndexed = false,
 	typeMap = {
 		"Integer" : "int32_t",
-		"Long" : "int64_t",
 		"Number" : "double",
 		"Boolean" : "bool",
 		"String" : "std::string",
@@ -42,12 +41,12 @@ function parserIDL(fname) {
 	},
 	aTypeMap = {
 		"Integer" : "int32_t",
-		"Long" : "int64_t",
 		"Number" : "double",
 		"Boolean" : "bool",
 		"String" : "const char*",
 		"Date" : "int64_t",
 		"Object" : "v8::Handle<v8::Object>",
+		"Array" : "v8::Handle<v8::Array>",
 		"Function" : "v8::Handle<v8::Function>",
 		"Value" : "v8::Handle<v8::Value>"
 	};
@@ -412,8 +411,12 @@ function parserIDL(fname) {
 			
 			iffs.push("	static v8::Handle<v8::Value> s_" + fname + "(const v8::Arguments& args);");
 			fnStr = "	inline v8::Handle<v8::Value> " + ns + "_base::s_" + fname + "(const v8::Arguments& args)\n	{\n";
+
+			if (ftype != "")
+				fnStr += "		" + map_type(ftype) + " vr;\n\n";
+
 			if (attr == "")
-				fnStr += "		METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n		METHOD_INSTANCE(" + ns + "_base);\n";
+				fnStr += "		METHOD_INSTANCE(" + ns + "_base);\n		METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n";
 			else if(fname !== "_new")
 				fnStr += "		METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n";
 			else
@@ -430,7 +433,6 @@ function parserIDL(fname) {
 					ifStr += ", ";
 				
 				ifStr += map_type(ftype) + "& retVal";
-				fnStr += "		" + map_type(ftype) + " vr;\n";
 			}
 
 			if (st[pos] == "async")
@@ -501,10 +503,9 @@ function parserIDL(fname) {
 				value = st[pos++];
 				
 				iffs.push("	static v8::Handle<v8::Value> s_get_" + fname + "(v8::Local<v8::String> property, const v8::AccessorInfo &info);");
-				fnStr = "	inline v8::Handle<v8::Value> " + ns + "_base::s_get_" + fname + "(v8::Local<v8::String> property, const v8::AccessorInfo &info)\n	{\n		PROPERTY_ENTER();\n\n";
-				
-				fnStr += "		" + map_type(ftype) + " vr = " + fname;
-				fnStr += ";\n\n		METHOD_RETURN();\n	}\n";
+				fnStr = "	inline v8::Handle<v8::Value> " + ns + "_base::s_get_" + fname + "(v8::Local<v8::String> property, const v8::AccessorInfo &info)\n	{\n";
+				fnStr += "		" + map_type(ftype) + " vr = " + fname + ";\n";
+				fnStr += "		PROPERTY_ENTER();\n		METHOD_RETURN();\n	}\n";
 				ffs.push(fnStr)
 				
 				ifStr = "	static const " + arg_type(ftype) + " " + fname + " = " + arg_value(ftype, value) + ";";
@@ -517,8 +518,8 @@ function parserIDL(fname) {
 					return reportErr();
 				
 				iffs.push("	static v8::Handle<v8::Value> s_get_" + fname + "(v8::Local<v8::String> property, const v8::AccessorInfo &info);");
-				fnStr = "	inline v8::Handle<v8::Value> " + ns + "_base::s_get_" + fname + "(v8::Local<v8::String> property, const v8::AccessorInfo &info)\n	{\n		PROPERTY_ENTER();\n\n";
-				fnStr += "		" + map_type(ftype) + " vr;\n";
+				fnStr = "	inline v8::Handle<v8::Value> " + ns + "_base::s_get_" + fname + "(v8::Local<v8::String> property, const v8::AccessorInfo &info)\n	{\n";
+				fnStr += "		" + map_type(ftype) + " vr;\n\n		PROPERTY_ENTER();\n\n";
 				
 				fnStr += "		hr = get_" + fname + "(";
 				fnStr += "vr";
@@ -539,9 +540,9 @@ function parserIDL(fname) {
 				hasIndexed = true;
 			
 				iffs.push("	static v8::Handle<v8::Value> i_IndexedGetter(uint32_t index, const v8::AccessorInfo& info);");
-				fnStr = "	inline v8::Handle<v8::Value> " + ns + "_base::i_IndexedGetter(uint32_t index, const v8::AccessorInfo& info)\n	{\n		PROPERTY_ENTER();\n";
-				fnStr += "		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
-				fnStr += "		" + map_type(ftype) + " vr;\n";
+				fnStr = "	inline v8::Handle<v8::Value> " + ns + "_base::i_IndexedGetter(uint32_t index, const v8::AccessorInfo& info)\n	{\n";
+				fnStr += "		" + map_type(ftype) + " vr;\n\n";
+				fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 				
 				fnStr += "		hr = pInst->_indexed_getter(index, vr);\n\n		METHOD_RETURN();\n	}\n";
 				ffs.push(fnStr)
@@ -581,9 +582,9 @@ function parserIDL(fname) {
 					tjfs.push("		CLONE(" + fname + ", " + map_type(ftype) + ");");
 				
 				iffs.push("	static v8::Handle<v8::Value> s_get_" + fname + "(v8::Local<v8::String> property, const v8::AccessorInfo &info);");
-				fnStr = "	inline v8::Handle<v8::Value> " + ns + "_base::s_get_" + fname + "(v8::Local<v8::String> property, const v8::AccessorInfo &info)\n	{\n		PROPERTY_ENTER();\n";
-				fnStr += "		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
-				fnStr += "		" + map_type(ftype) + " vr;\n";
+				fnStr = "	inline v8::Handle<v8::Value> " + ns + "_base::s_get_" + fname + "(v8::Local<v8::String> property, const v8::AccessorInfo &info)\n	{\n";
+				fnStr += "		" + map_type(ftype) + " vr;\n\n";
+				fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 				
 				fnStr += "		hr = pInst->get_" + fname + "(";
 				fnStr += "vr";

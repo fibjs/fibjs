@@ -351,6 +351,41 @@ class Stat : object
 
 	/*! @brief 文件创建时间 */
 	readonly Date ctime;
+
+	/*! @brief 查询文件是否有写入权限
+	 * @return 为 true 则有写入权限
+	 */
+	Boolean isWritable();
+
+	/*! @brief 查询文件是否有读权限
+	 * @return 为 true 则有读权限
+	 */
+	Boolean isReadable();
+
+	/*! @brief 查询文件是否有执行权限
+	 * @return 为 true 则有执行权限
+	 */
+	Boolean isExecutable();
+
+	/*! @brief 查询文件是否隐藏
+	 * @return 为 true 则隐藏
+	 */
+	Boolean isHidden();
+
+	/*! @brief 查询文件是否是目录
+	 * @return 为 true 则是目录
+	 */
+	Boolean isDirectory();
+
+	/*! @brief 查询文件是否是文件
+	 * @return 为 true 则是文件
+	 */
+	Boolean isFile();
+
+	/*! @brief 查询文件是否是符号链接
+	 * @return 为 true 则是符号链接
+	 */
+	Boolean isSymbolicLink();
 };
 
 class File : Stream

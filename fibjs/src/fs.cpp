@@ -19,8 +19,6 @@
 #include <string.h>
 #include "Stat.h"
 
-#include <sys/stat.h>
-
 namespace fibjs
 {
 
@@ -127,12 +125,7 @@ result_t fs_base::stat(const char* path, obj_ptr<Stat_base>& retVal)
 	if (::stat(path, &st))
 		return LastError();
 
-	obj_ptr<Stat> pStat = new Stat();
-
-	pStat->size = st.st_size;
-	pStat->mtime = st.st_mtime * 1000ll;
-	pStat->atime = st.st_atime * 1000ll;
-	pStat->ctime = st.st_ctime * 1000ll;
+	obj_ptr<Stat> pStat = new Stat(st);
 
 	retVal = pStat;
 

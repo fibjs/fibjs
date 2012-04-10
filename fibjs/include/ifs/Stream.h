@@ -95,37 +95,32 @@ namespace fibjs
 {
 	inline v8::Handle<v8::Value> Stream_base::s_get_SEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		PROPERTY_ENTER();
-
 		int32_t vr = SEEK_SET;
-
+		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> Stream_base::s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		PROPERTY_ENTER();
-
 		int32_t vr = SEEK_CUR;
-
+		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> Stream_base::s_get_SEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		PROPERTY_ENTER();
-
 		int32_t vr = SEEK_END;
-
+		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> Stream_base::s_get_readable(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
+		bool vr;
+
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Stream_base);
 
-		bool vr;
 		hr = pInst->get_readable(vr);
 
 		METHOD_RETURN();
@@ -133,10 +128,11 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Stream_base::s_get_writable(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
+		bool vr;
+
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Stream_base);
 
-		bool vr;
 		hr = pInst->get_writable(vr);
 
 		METHOD_RETURN();
@@ -144,12 +140,13 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Stream_base::s_read(const v8::Arguments& args)
 	{
-		METHOD_ENTER(1, 0);
+		obj_ptr<Buffer_base> vr;
+
 		METHOD_INSTANCE(Stream_base);
+		METHOD_ENTER(1, 0);
 
 		OPT_ARG(int32_t, 0, -1);
 
-		obj_ptr<Buffer_base> vr;
 		hr = pInst->read(v0, vr);
 
 		METHOD_RETURN();
@@ -157,8 +154,8 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Stream_base::s_write(const v8::Arguments& args)
 	{
-		METHOD_ENTER(1, 1);
 		METHOD_INSTANCE(Stream_base);
+		METHOD_ENTER(1, 1);
 
 		ARG_CLASS(Buffer_base, 0);
 

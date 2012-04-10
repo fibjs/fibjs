@@ -79,10 +79,11 @@ namespace fibjs
 {
 	inline v8::Handle<v8::Value> File_base::s_get_data(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
+		double vr;
+
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(File_base);
 
-		double vr;
 		hr = pInst->get_data(vr);
 
 		METHOD_RETURN();
@@ -101,10 +102,11 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> File_base::s_getData(const v8::Arguments& args)
 	{
-		METHOD_ENTER(0, 0);
-		METHOD_INSTANCE(File_base);
-
 		double vr;
+
+		METHOD_INSTANCE(File_base);
+		METHOD_ENTER(0, 0);
+
 		hr = pInst->getData(vr);
 
 		METHOD_RETURN();

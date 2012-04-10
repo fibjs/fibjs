@@ -81,9 +81,10 @@ namespace fibjs
 {
 	inline v8::Handle<v8::Value> global_base::s_get_console(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
+		obj_ptr<console_base> vr;
+
 		PROPERTY_ENTER();
 
-		obj_ptr<console_base> vr;
 		hr = get_console(vr);
 
 		METHOD_RETURN();
@@ -124,11 +125,12 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> global_base::s_require(const v8::Arguments& args)
 	{
+		v8::Handle<v8::Value> vr;
+
 		METHOD_ENTER(1, 1);
 
 		ARG_String(0);
 
-		v8::Handle<v8::Value> vr;
 		hr = require(v0, vr);
 
 		METHOD_RETURN();
