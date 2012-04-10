@@ -2,5 +2,11 @@
  * 
  */
 
+var assert = require('assert');
 
-console.dir({a : 100, b : 234, "c": "aaa"});
+var buf = new Buffer(100);
+assert.equal(buf.length, 100);
+
+var buf = new Buffer("abcd");
+assert.equal(buf.length, 4);
+
