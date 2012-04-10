@@ -70,6 +70,7 @@ private:
 
 namespace fibjs
 {
+
 	inline v8::Handle<v8::Value> path_base::s_normalize(const v8::Arguments& args)
 	{
 		std::string vr;

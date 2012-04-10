@@ -82,6 +82,7 @@ private:
 
 namespace fibjs
 {
+
 	inline v8::Handle<v8::Value> console_base::s_log(const v8::Arguments& args)
 	{
 		METHOD_ENTER(-1, 1);

@@ -66,6 +66,7 @@ private:
 
 namespace fibjs
 {
+
 	inline v8::Handle<v8::Value> coroutine_base::s_start(const v8::Arguments& args)
 	{
 		obj_ptr<Fiber_base> vr;

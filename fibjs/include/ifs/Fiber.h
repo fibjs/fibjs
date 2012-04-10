@@ -75,16 +75,6 @@ private:
 
 namespace fibjs
 {
-	inline v8::Handle<v8::Value> Fiber_base::s_join(const v8::Arguments& args)
-	{
-		METHOD_INSTANCE(Fiber_base);
-		METHOD_ENTER(0, 0);
-
-		hr = pInst->join();
-
-		METHOD_VOID();
-	}
-
 	inline v8::Handle<v8::Value> Fiber_base::s_get_func(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		v8::Handle<v8::Function> vr;
@@ -95,6 +85,16 @@ namespace fibjs
 		hr = pInst->get_func(vr);
 
 		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Fiber_base::s_join(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Fiber_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->join();
+
+		METHOD_VOID();
 	}
 
 }

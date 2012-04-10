@@ -79,6 +79,7 @@ private:
 
 namespace fibjs
 {
+
 	inline v8::Handle<v8::Value> assert_base::s_ok(const v8::Arguments& args)
 	{
 		METHOD_ENTER(2, 1);

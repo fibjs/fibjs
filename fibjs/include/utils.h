@@ -164,14 +164,14 @@ typedef int result_t;
 #define PROPERTY_ENTER() result_t hr = 0;do{
 
 #define METHOD_OVER(c, o) \
-	}while(0);  if(hr >= 0)do{\
+	}while(0);  if(hr < 0)do{hr = 0;\
     int argc; \
     argc = args.Length(); \
     if((c) >= 0 && argc > (c)){hr = CALL_E_BADPARAMCOUNT;break;} \
     if((o) > 0 && argc < (o)){hr = CALL_E_PARAMNOTOPTIONAL;break;}
 
 #define METHOD_ENTER(c, o) \
-    result_t hr = 0; do{\
+    result_t hr = -1; do{\
     METHOD_OVER(c, o)
 
 #define CONSTRUCT_ENTER(c, o) \
@@ -429,6 +429,16 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v,
 		return CALL_E_INVALIDARG;
 
 	vr = v8::Handle<v8::Object>::Cast(v);
+	return 0;
+}
+
+inline result_t SafeGetValue(v8::Handle<v8::Value> v,
+		v8::Handle<v8::Array>& vr)
+{
+	if (!v->IsArray())
+		return CALL_E_INVALIDARG;
+
+	vr = v8::Handle<v8::Array>::Cast(v);
 	return 0;
 }
 

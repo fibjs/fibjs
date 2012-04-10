@@ -76,6 +76,7 @@ private:
 
 namespace fibjs
 {
+
 	inline v8::Handle<v8::Value> os_base::s_hostname(const v8::Arguments& args)
 	{
 		std::string vr;

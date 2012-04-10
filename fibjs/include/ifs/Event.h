@@ -65,6 +65,7 @@ private:
 
 namespace fibjs
 {
+
 	inline v8::Handle<v8::Value> Event_base::s__new(const v8::Arguments& args)
 	{
 		obj_ptr<Event_base> vr;

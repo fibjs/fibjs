@@ -62,6 +62,7 @@ private:
 
 namespace fibjs
 {
+
 	inline v8::Handle<v8::Value> object_base::s_dispose(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(object_base);

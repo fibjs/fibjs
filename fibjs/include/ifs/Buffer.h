@@ -20,6 +20,7 @@ class Buffer_base : public object_base
 {
 public:
 	// Buffer_base
+	static result_t _new(int32_t size, obj_ptr<Buffer_base>& retVal);
 	static result_t _new(const char* str, obj_ptr<Buffer_base>& retVal);
 	virtual result_t _indexed_getter(uint32_t index, int32_t& retVal) = 0;
 	virtual result_t _indexed_setter(uint32_t index, int32_t newVal) = 0;
@@ -91,19 +92,6 @@ private:
 
 namespace fibjs
 {
-	inline v8::Handle<v8::Value> Buffer_base::s__new(const v8::Arguments& args)
-	{
-		obj_ptr<Buffer_base> vr;
-
-		CONSTRUCT_ENTER(1, 0);
-
-		OPT_ARG_String(0, "");
-
-		hr = _new(v0, vr);
-
-		CONSTRUCT_RETURN();
-	}
-
 	inline v8::Handle<v8::Value> Buffer_base::i_IndexedGetter(uint32_t index, const v8::AccessorInfo& info)
 	{
 		int32_t vr;
@@ -137,6 +125,25 @@ namespace fibjs
 		hr = pInst->get_length(vr);
 
 		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Buffer_base::s__new(const v8::Arguments& args)
+	{
+		obj_ptr<Buffer_base> vr;
+
+		CONSTRUCT_ENTER(1, 1);
+
+		ARG(int32_t, 0);
+
+		hr = _new(v0, vr);
+
+		METHOD_OVER(1, 0);
+
+		OPT_ARG_String(0, "");
+
+		hr = _new(v0, vr);
+
+		CONSTRUCT_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> Buffer_base::s_resize(const v8::Arguments& args)
