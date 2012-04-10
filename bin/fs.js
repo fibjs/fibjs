@@ -35,3 +35,8 @@ assert.equal(fs.exists(pathname1), false);
 
 var st = fs.stat('.');
 
+assert.equal(st.isDirectory(), true);
+assert.equal(st.isFile(), false);
+assert.equal(st.isExecutable(), true);
+assert.equal(st.isReadable(), true);
+assert.equal(st.isWritable(), true);
