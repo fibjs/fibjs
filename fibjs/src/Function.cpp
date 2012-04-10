@@ -1,117 +1,16 @@
 #include "ifs/Function.h"
-#include <exlib/fiber.h>
-#include <vector>
 
 namespace fibjs
 {
 
-extern v8::Isolate* isolate;
-
-class fiber_data : public Fiber_base
-{
-	EVENT_SUPPORT();
-public:
-    fiber_data() : m_next(NULL)
-    {
-    }
-
-    ~fiber_data()
-    {
-        size_t i;
-
-        for(i = 0; i < argv.size(); i ++)
-            argv[i].Dispose();
-
-        m_func.Dispose();
-    }
-
-    result_t get_func(v8::Handle<v8::Function>& retVal)
-    {
-        retVal = m_func;
-        return 0;
-    }
-
-    result_t join()
-    {
-        v8::Unlocker unlocker(isolate);
-        m_quit.wait();
-
-		return 0;
-    }
-
-public:
-    v8::Persistent<v8::Function> m_func;
-    std::vector< v8::Persistent<v8::Value> > argv;
-    fiber_data* m_next;
-    exlib::Event m_quit;
-};
-
-exlib::List<fiber_data> g_jobs;
-exlib::Semaphore g_job_sem;
-
-void* t(void* p)
-{
-    v8::Locker locker(isolate);
-    v8::Isolate::Scope isolate_scope(isolate);
-
-    v8::HandleScope handle_scope;
-    v8::Handle<v8::Context> context = v8::Context::New();
-    v8::Context::Scope context_scope(context);
-
-    while(1)
-    {
-        {
-            v8::Unlocker unlocker(isolate);
-            g_job_sem.wait();
-        }
-
-        v8::HandleScope handle_scope;
-
-        fiber_data* fb = g_jobs.get();
-        size_t i;
-
-        v8::Handle<v8::Function> func = fb->m_func;
-        std::vector< v8::Handle<v8::Value> > argv;
-
-        argv.resize(fb->argv.size());
-        for(i = 0; i < fb->argv.size(); i ++)
-            argv[i] = fb->argv[i];
-
-        v8::TryCatch try_catch;
-        func->Call(func, (int)argv.size(), argv.size() ? &argv[0] : NULL);
-        if (try_catch.HasCaught())
-            ReportException(&try_catch, true);
-
-        fb->m_quit.set();
-        fb->Unref();
-    }
-
-    return NULL;
-}
+result_t startJSFiber(v8::Handle<v8::Function> func, const v8::Arguments& args, int nArgStart, obj_ptr<Fiber_base>& retVal);
 
 result_t Function_base::start(const v8::Arguments& args, obj_ptr<Fiber_base>& retVal)
 {
     if (!args.This()->IsFunction())
         return CALL_E_NOTINSTANCE;
 
-    fiber_data* fb = new fiber_data();
-    int i;
-
-    fb->argv.resize(args.Length());
-    for(i = 0; i < args.Length(); i ++)
-        fb->argv[i] = v8::Persistent<v8::Value>::New(args[i]);
-    fb->m_func = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(args.This()));
-
-    if(g_job_sem.blocked() == 0)
-        exlib::Service::CreateFiber(t)->Unref();
-
-    fb->Ref();
-    g_jobs.put(fb);
-    g_job_sem.post();
-
-    retVal = fb;
-
-    return 0;
+    return startJSFiber(v8::Handle<v8::Function>::Cast(args.This()), args, 0, retVal);
 }
 
 }

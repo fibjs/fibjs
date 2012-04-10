@@ -87,6 +87,59 @@ result_t os_base::arch(std::string& retVal)
     return 0;
 }
 
+result_t os_base::CPUs(int32_t& retVal)
+{
+#ifdef _WIN32
+    for (int i = 0; i < 32; i++)
+    {
+        char key[128] = "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\";
+        char processor_number[32];
+        itoa(i, processor_number, 10);
+        strncat(key, processor_number, 2);
+
+        HKEY processor_key = NULL;
+
+        if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, key, 0, KEY_QUERY_VALUE,
+                         &processor_key) != ERROR_SUCCESS)
+        {
+            if (i == 0)
+                return LastError();
+            break;
+        }
+        RegCloseKey(processor_key);
+    }
+    retVal = i;
+#elif defined(Linux)
+    int numcpus = 0;
+    char line[512];
+    FILE *fpModel = fopen("/proc/cpuinfo", "r");
+
+    if (fpModel)
+    {
+        while (fgets(line, 511, fpModel) != NULL)
+            if (strncmp(line, "model name", 10) == 0)
+                numcpus++;
+        fclose(fpModel);
+
+        retVal = numcpus;
+    }else return LastError();
+#elif defined(MacOS)
+    natural_t numcpus;
+    mach_msg_type_number_t count;
+    processor_cpu_load_info_data_t *info;
+    if (host_processor_info(mach_host_self(), PROCESSOR_CPU_LOAD_INFO, &numcpus,
+                            reinterpret_cast<processor_info_array_t*>(&info),
+                            &count) != KERN_SUCCESS)
+        return LastError();
+
+    vm_deallocate(mach_task_self(), (vm_address_t)info, count);
+
+    retVal = numcpus;
+#endif
+
+    return 0;
+}
+
 result_t os_base::CPUInfo(v8::Handle<v8::Array>& retVal)
 {
     v8::HandleScope scope;

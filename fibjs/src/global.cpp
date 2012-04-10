@@ -7,6 +7,7 @@
 #include "ifs/assert.h"
 #include "ifs/path.h"
 #include "ifs/os.h"
+#include "ifs/coroutine.h"
 
 #ifdef SEEK_SET
 #undef SEEK_SET
@@ -119,6 +120,9 @@ void initMdule()
 	s_Modules->Set(v8::String::New("path"),
 			path_base::class_info().CreateInstance());
 
+	s_Modules->Set(v8::String::New("coroutine"),
+			coroutine_base::class_info().CreateInstance());
+
 	s_Modules->Set(v8::String::New("fs"),
 			fs_base::class_info().CreateInstance());
 	s_Modules->Set(v8::String::New("os"),
@@ -133,23 +137,7 @@ result_t global_base::require(const char* mod, v8::Handle<v8::Value>& retVal)
 
 result_t global_base::sleep(int32_t ms)
 {
-	if (ms > 0)
-	{
-		void* args[] =
-		{ &ms };
-		AsyncCall ac(args);
-		s_acSleep.put(&ac);
-
-		v8::Unlocker unlocker(isolate);
-		ac.weak.wait();
-	}
-	else
-	{
-		v8::Unlocker unlocker(isolate);
-		exlib::Fiber::yield();
-	}
-
-	return 0;
+	return coroutine_base::sleep(ms);
 }
 
 result_t global_base::GC()

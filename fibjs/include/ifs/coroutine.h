@@ -24,7 +24,7 @@ class coroutine_base : public module_base
 {
 public:
 	// coroutine_base
-	static result_t start(v8::Handle<v8::Function> func, obj_ptr<Fiber_base>& retVal);
+	static result_t start(v8::Handle<v8::Function> func, const v8::Arguments& args, obj_ptr<Fiber_base>& retVal);
 	static result_t current(obj_ptr<Fiber_base>& retVal);
 	static result_t sleep(int32_t ms);
 
@@ -68,12 +68,12 @@ namespace fibjs
 {
 	inline v8::Handle<v8::Value> coroutine_base::s_start(const v8::Arguments& args)
 	{
-		METHOD_ENTER(1, 1);
+		METHOD_ENTER(-1, 1);
 
 		ARG(v8::Handle<v8::Function>, 0);
 
 		obj_ptr<Fiber_base> vr;
-		hr = start(v0, vr);
+		hr = start(v0, args, vr);
 
 		METHOD_RETURN();
 	}
@@ -90,9 +90,9 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> coroutine_base::s_sleep(const v8::Arguments& args)
 	{
-		METHOD_ENTER(1, 1);
+		METHOD_ENTER(1, 0);
 
-		ARG(int32_t, 0);
+		OPT_ARG(int32_t, 0, 0);
 
 		hr = sleep(v0);
 

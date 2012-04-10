@@ -28,6 +28,7 @@ public:
 	static result_t release(std::string& retVal);
 	static result_t arch(std::string& retVal);
 	static result_t CPUInfo(v8::Handle<v8::Array>& retVal);
+	static result_t CPUs(int32_t& retVal);
 	static result_t networkInfo(v8::Handle<v8::Array>& retVal);
 
 public:
@@ -40,13 +41,14 @@ public:
 			{"release", s_release},
 			{"arch", s_arch},
 			{"CPUInfo", s_CPUInfo},
+			{"CPUs", s_CPUs},
 			{"networkInfo", s_networkInfo}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"os", NULL, 
-			6, s_method, 0, NULL, NULL,
+			7, s_method, 0, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -65,6 +67,7 @@ private:
 	static v8::Handle<v8::Value> s_release(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_arch(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_CPUInfo(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_CPUs(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_networkInfo(const v8::Arguments& args);
 };
 
@@ -119,6 +122,16 @@ namespace fibjs
 
 		v8::Handle<v8::Array> vr;
 		hr = CPUInfo(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_CPUs(const v8::Arguments& args)
+	{
+		METHOD_ENTER(0, 0);
+
+		int32_t vr;
+		hr = CPUs(vr);
 
 		METHOD_RETURN();
 	}

@@ -296,6 +296,9 @@ class os : module
 	/*! @brief 查询当前运行环境 cpu 个数和参数*/
 	static Array CPUInfo();
 
+	/*! @brief 查询当前运行环境 cpu 个数*/
+	static Integer CPUs();
+
 	/*! @brief 查询当前运行环境网络信息*/
 	static Array networkInfo();
 };
@@ -439,7 +442,21 @@ class fs : module
 	static Stat stat(String path) async;
 };
 
-/*! @brief 纤程操作对象，此对象不可直接创建，可通过 Function.start 取得*/
+/*! @brief 纤程操作对象，此对象不可直接创建
+ * 
+ * Function.start 或 coroutine.start 创建纤程后，将返回此对象，用于纤程处理和纤程间通信。
+ * 纤程主函数可以通过 this 访问本纤程对象，也可通过 coroutine.current 获取当前纤程。
+ * @code
+ * function func(v1)
+ * {
+ *   print(v1 + this.v);
+ * }
+ *
+ * var fb = func.start(100);
+ * fb.v = 123;
+ * fb.join();
+ * @endcode
+ */
 class Fiber : Event
 {
 	/*! 等待纤程结束 */
@@ -447,11 +464,28 @@ class Fiber : Event
 	readonly Function func;
 };
 
+/*! @brief 并发控制模块
+ * 
+ * 饮用方法：var coroutine = require('coroutine');
+ */
 class coroutine : module
 {
-	static Fiber start(Function func);
+	/*!	@brief 启动一个纤程并返回纤程对象
+	 * @param func 制定纤程执行的函数
+	 * @param ... 可变参数序列，此序列会在纤程内传递给函数
+	 * @return 返回纤程对象
+	 */
+	static Fiber start(Function func, ...);
+
+	/*! @brief 返回当前纤程
+	 * @return 当前纤程对象
+	 */
 	static Fiber current();
-	static sleep(Integer ms);
+
+	/*! @brief 暂停当前纤程指定的时间
+	 * @param ms 指定要暂停的时间，以毫秒为单位，缺省为 0，即有空闲立即回恢复运行
+	 */
+	static sleep(Integer ms = 0);
 };
 
 /*! @brief 全局对象，所有脚本均可以访问的基础对象*/

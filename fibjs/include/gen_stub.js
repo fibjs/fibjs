@@ -4,6 +4,8 @@
 
 var txt = [];
 
+var fs = require('fs');
+
 for(var i = 0; i < 10; i ++)
 {
 	gen_stub(i, false);
@@ -73,6 +75,6 @@ function gen_stub(argn, bInst)
 	}else
 		txt.push('	AsyncCall ac(NULL, _t::_stub); \\');
 
-	txt.push('	q.put(&ac); \\\n	v8::Unlocker unlocker(isolate); \\\n	ac.weak.wait(); \\');
+	txt.push('	q.put(&ac); \\\n	v8::Unlocker unlocker(isolate); \\\n	ac.wait(); \\');
 	txt.push('	return ac.hr;}\n');
 }

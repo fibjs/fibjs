@@ -58,14 +58,7 @@ private:
 protected:
 	v8::Persistent<v8::Object> handle_;
 
-	v8::Handle<v8::Object> wrap(ClassInfo& i)
-	{
-		if (handle_.IsEmpty())
-			return wrap(i.CreateInstance());
-
-		return handle_;
-	}
-
+public:
 	v8::Handle<v8::Object> wrap(v8::Handle<v8::Object> o)
 	{
 		if (handle_.IsEmpty())
@@ -76,6 +69,14 @@ protected:
 
 			Ref();
 		}
+
+		return handle_;
+	}
+
+	v8::Handle<v8::Object> wrap()
+	{
+		if (handle_.IsEmpty())
+			return wrap(Classinfo().CreateInstance());
 
 		return handle_;
 	}
@@ -118,7 +119,7 @@ public:
 
 	virtual result_t ValueOf(v8::Handle<v8::Object>& retVal)
 	{
-		retVal = wrap(Classinfo());
+		retVal = wrap();
 		return 0;
 	}
 

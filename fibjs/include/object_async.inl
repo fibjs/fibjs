@@ -8,7 +8,7 @@
 	AsyncCall ac(NULL, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_MEMBER0(cls, m) \
@@ -22,7 +22,7 @@
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_STATIC1(cls, m) \
@@ -38,7 +38,7 @@ template<typename T0> \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_MEMBER1(cls, m) \
@@ -54,7 +54,7 @@ template<typename T0> \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_STATIC2(cls, m) \
@@ -70,7 +70,7 @@ template<typename T0, typename T1> \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_MEMBER2(cls, m) \
@@ -86,7 +86,7 @@ template<typename T0, typename T1> \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_STATIC3(cls, m) \
@@ -102,7 +102,7 @@ template<typename T0, typename T1, typename T2> \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_MEMBER3(cls, m) \
@@ -118,7 +118,7 @@ template<typename T0, typename T1, typename T2> \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_STATIC4(cls, m) \
@@ -134,7 +134,7 @@ template<typename T0, typename T1, typename T2, typename T3> \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_MEMBER4(cls, m) \
@@ -150,7 +150,7 @@ template<typename T0, typename T1, typename T2, typename T3> \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_STATIC5(cls, m) \
@@ -166,7 +166,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_MEMBER5(cls, m) \
@@ -182,7 +182,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_STATIC6(cls, m) \
@@ -198,7 +198,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_MEMBER6(cls, m) \
@@ -214,7 +214,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_STATIC7(cls, m) \
@@ -230,7 +230,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_MEMBER7(cls, m) \
@@ -246,7 +246,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_STATIC8(cls, m) \
@@ -262,7 +262,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_MEMBER8(cls, m) \
@@ -278,7 +278,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_STATIC9(cls, m) \
@@ -294,7 +294,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}
 
 #define ASYNC_MEMBER9(cls, m) \
@@ -310,5 +310,5 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
 	v8::Unlocker unlocker(isolate); \
-	ac.weak.wait(); \
+	ac.wait(); \
 	return ac.hr;}

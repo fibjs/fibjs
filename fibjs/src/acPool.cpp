@@ -2,6 +2,7 @@
 #include <acPool.h>
 #include <map>
 #include <log4cpp/Category.hh>
+#include "ifs/os.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -36,9 +37,6 @@ inline int64_t Ticks()
 namespace fibjs
 {
 
-#define MAX_WORKER 128
-#define MIN_WORKER 6
-
 AsyncQueue s_acPool;
 
 static class _acThread: public exlib::Thread
@@ -46,7 +44,11 @@ static class _acThread: public exlib::Thread
 public:
 	_acThread()
 	{
-		for (int i = 0; i < MIN_WORKER; i++)
+		int32_t cpus;
+		if (os_base::CPUs(cpus) < 0)
+			cpus = 4;
+
+		for (int i = 0; i < cpus * 2 - 2; i++)
 		{
 			start();
 			detach();

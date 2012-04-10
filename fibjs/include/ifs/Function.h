@@ -12,15 +12,13 @@
  */
 
 #include "../object.h"
-#include "module.h"
 
 namespace fibjs
 {
 
-class module_base;
 class Fiber_base;
 
-class Function_base : public module_base
+class Function_base : public object_base
 {
 public:
 	// Function_base
@@ -38,7 +36,7 @@ public:
 		{ 
 			"Function", NULL, 
 			1, s_method, 0, NULL, NULL,
-			&module_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

@@ -99,7 +99,7 @@ result_t fs_base::exists(const char* path, bool& retVal)
 
 result_t fs_base::mkdir(const char* path)
 {
-	if(::mkdir(path, 777))
+	if(::mkdir(path, 715))
 		return LastError();
 
 	return 0;
