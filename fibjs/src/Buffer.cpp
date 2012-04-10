@@ -70,7 +70,6 @@ result_t Buffer::toString(std::string& retVal)
 
 result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base>& retVal)
 {
-	puts("_new int");
     retVal = new Buffer();
     retVal->resize(size);
 
@@ -79,8 +78,6 @@ result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base>& retVal)
 
 result_t Buffer_base::_new(const char* str, obj_ptr<Buffer_base>& retVal)
 {
-	puts("_new string");
-
 	retVal = new Buffer();
     retVal->write(str);
 
