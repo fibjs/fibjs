@@ -16,12 +16,12 @@ namespace exlib
 
 Fiber* Fiber::Current()
 {
-    return Service::getTLSService()->m_running;
+    return Service::getFiberService()->m_running;
 }
 
 void Fiber::join()
 {
-    Service* pService = Service::getTLSService();
+    Service* pService = Service::getFiberService();
 
     m_join = pService->m_running;
     pService->switchtonext();
@@ -29,13 +29,7 @@ void Fiber::join()
 
 void Fiber::yield()
 {
-    Service* pService = Service::getTLSService();
-
-    if(!pService->m_resume.empty())
-    {
-        pService->m_resume.put(pService->m_running);
-        pService->switchtonext();
-    }
+    Service::getFiberService()->yield();
 }
 
 }

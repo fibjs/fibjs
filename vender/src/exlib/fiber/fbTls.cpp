@@ -14,7 +14,7 @@ namespace exlib
 
 int Service::tlsAlloc()
 {
-    Service* pService = Service::getTLSService();
+    Service* pService = Service::getFiberService();
     int i;
 
     for(i = 0; i < TLS_SIZE; i ++)
@@ -29,17 +29,17 @@ int Service::tlsAlloc()
 
 void* Service::tlsGet(int idx)
 {
-    return Service::getTLSService()->m_running->m_tls[idx];
+    return Service::getFiberService()->m_running->m_tls[idx];
 }
 
 void Service::tlsPut(int idx, void* v)
 {
-    Service::getTLSService()->m_running->m_tls[idx] = v;
+    Service::getFiberService()->m_running->m_tls[idx] = v;
 }
 
 void Service::tlsFree(int idx)
 {
-    getTLSService()->m_tls[idx] = 0;
+	getFiberService()->m_tls[idx] = 0;
 }
 
 }

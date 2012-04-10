@@ -13,7 +13,7 @@ namespace exlib
 
 void CondVar::wait(Locker& l)
 {
-    Service* pService = Service::getTLSService();
+    Service* pService = Service::getFiberService();
 
     m_blocks.put(pService->m_running);
 
@@ -26,7 +26,7 @@ void CondVar::notify_one()
 {
     if(!m_blocks.empty())
     {
-        Service* pService = Service::getTLSService();
+        Service* pService = Service::getFiberService();
         Fiber* cntxt;
 
         cntxt = m_blocks.get();
@@ -38,7 +38,7 @@ void CondVar::notify_all()
 {
     if(!m_blocks.empty())
     {
-        Service* pService = Service::getTLSService();
+        Service* pService = Service::getFiberService();
         Fiber* cntxt;
 
         while(!m_blocks.empty())

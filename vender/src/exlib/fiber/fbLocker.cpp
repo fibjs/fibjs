@@ -13,7 +13,7 @@ namespace exlib
 
 void Locker::lock()
 {
-    Service* pService = Service::getTLSService();
+    Service* pService = Service::getFiberService();
     Fiber* current = pService->m_running;
 
     if(m_locked && current != m_locker)
@@ -30,7 +30,7 @@ void Locker::lock()
 
 bool Locker::trylock()
 {
-    Service* pService = Service::getTLSService();
+    Service* pService = Service::getFiberService();
     Fiber* current = pService->m_running;
 
     if(m_locked && current != m_locker)
@@ -47,7 +47,7 @@ bool Locker::trylock()
 
 void Locker::unlock()
 {
-    Service* pService = Service::getTLSService();
+    Service* pService = Service::getFiberService();
     Fiber* current = pService->m_running;
 
     if(current == m_locker)

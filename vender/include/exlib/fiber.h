@@ -24,48 +24,48 @@ namespace exlib
 
 typedef struct
 {
-    unsigned long long Part[2];
+	unsigned long long Part[2];
 } SETJMP_FLOAT128;
 
 typedef struct
 {
-    unsigned long long Rbp;
-    unsigned long long Rbx;
-    unsigned long long Rcx;
-    unsigned long long Rdx;
-    unsigned long long Rsi;
-    unsigned long long Rdi;
-    unsigned long long R12;
-    unsigned long long R13;
-    unsigned long long R14;
-    unsigned long long R15;
-    unsigned long long Rsp;
-    unsigned long long Rip;
-    SETJMP_FLOAT128 Xmm6;
-    SETJMP_FLOAT128 Xmm7;
-    SETJMP_FLOAT128 Xmm8;
-    SETJMP_FLOAT128 Xmm9;
-    SETJMP_FLOAT128 Xmm10;
-    SETJMP_FLOAT128 Xmm11;
-    SETJMP_FLOAT128 Xmm12;
-    SETJMP_FLOAT128 Xmm13;
-    SETJMP_FLOAT128 Xmm14;
-    SETJMP_FLOAT128 Xmm15;
+	unsigned long long Rbp;
+	unsigned long long Rbx;
+	unsigned long long Rcx;
+	unsigned long long Rdx;
+	unsigned long long Rsi;
+	unsigned long long Rdi;
+	unsigned long long R12;
+	unsigned long long R13;
+	unsigned long long R14;
+	unsigned long long R15;
+	unsigned long long Rsp;
+	unsigned long long Rip;
+	SETJMP_FLOAT128 Xmm6;
+	SETJMP_FLOAT128 Xmm7;
+	SETJMP_FLOAT128 Xmm8;
+	SETJMP_FLOAT128 Xmm9;
+	SETJMP_FLOAT128 Xmm10;
+	SETJMP_FLOAT128 Xmm11;
+	SETJMP_FLOAT128 Xmm12;
+	SETJMP_FLOAT128 Xmm13;
+	SETJMP_FLOAT128 Xmm14;
+	SETJMP_FLOAT128 Xmm15;
 } context;
 
 #else
 
 typedef struct __JUMP_BUFFER
 {
-    unsigned long Ebp;
-    unsigned long Ebx;
-    unsigned long Ecx;
-    unsigned long Edx;
-    unsigned long Esi;
-    unsigned long Edi;
-    unsigned long Esp;
-    unsigned long Eip;
-} context;
+	unsigned long Ebp;
+	unsigned long Ebx;
+	unsigned long Ecx;
+	unsigned long Edx;
+	unsigned long Esi;
+	unsigned long Edi;
+	unsigned long Esp;
+	unsigned long Eip;
+}context;
 
 #endif
 #pragma pack ()
@@ -79,82 +79,83 @@ typedef struct __JUMP_BUFFER
 class Fiber
 {
 public:
-    void Ref()
-    {
-        refs_ ++;
-    }
+	void Ref()
+	{
+		refs_++;
+	}
 
-    void Unref()
-    {
-        if (--refs_ == 0)
-            free(this);
-    }
+	void Unref()
+	{
+		if (--refs_ == 0)
+			free(this);
+	}
 
-    void join();
+	void join();
 
-    static void yield();
-    static Fiber* Current();
+	static void yield();
+	static Fiber* Current();
 
 public:
-    context m_cntxt;
-    int refs_;
-    Fiber* m_next;
-    Fiber* m_join;
-    void* m_tls[TLS_SIZE];
+	context m_cntxt;
+	int refs_;
+	Fiber* m_next;
+	Fiber* m_join;
+	void* m_tls[TLS_SIZE];
 };
 
 template<class T>
 class List
 {
 public:
-    List() : m_first(NULL), m_last(NULL), m_count(0)
-    {
-    }
+	List() :
+			m_first(NULL), m_last(NULL), m_count(0)
+	{
+	}
 
-    void put(T* pNew)
-    {
-        if(m_last)
-            m_last->m_next = pNew;
-        else
-            m_first = pNew;
+	void put(T* pNew)
+	{
+		if (m_last)
+			m_last->m_next = pNew;
+		else
+			m_first = pNew;
 
-        m_last = pNew;
+		m_last = pNew;
 
-        m_count ++;
-    }
+		m_count++;
+	}
 
-    T* get()
-    {
-        T* pNow = m_first;
+	T* get()
+	{
+		T* pNow = m_first;
 
-        if(pNow)
-        {
-            m_first = pNow->m_next;
-            if(m_first == NULL)
-                m_last = NULL;
+		if (pNow)
+		{
+			m_first = pNow->m_next;
+			if (m_first == NULL)
+				m_last = NULL;
 
-            pNow->m_next = NULL;
+			pNow->m_next = NULL;
 
-            m_count --;
-        }
+			m_count--;
+		}
 
-        return pNow;
-    }
+		return pNow;
+	}
 
-    bool empty() const
-    {
-        return m_count == 0;
-    }
+	bool empty() const
+	{
+		return m_count == 0;
+	}
 
-    int count() const
-    {
-        return m_count;
-    }
+	int count() const
+	{
+		return m_count;
+	}
 
 private:
-    T* m_first;
-    T* m_last;
-    int m_count;
+	T* m_first;
+	T* m_last;
+	int m_count;
 };
 
 #define FIBER_STACK_SIZE    (65536 - sizeof(Fiber))
@@ -162,32 +163,33 @@ private:
 class Locker
 {
 public:
-    Locker() :
-        m_locked(false), m_count(0), m_locker(0)
-    {}
+	Locker() :
+			m_locked(false), m_count(0), m_locker(0)
+	{
+	}
 
 public:
-    void lock();
-    void unlock();
-    bool trylock();
+	void lock();
+	void unlock();
+	bool trylock();
 
-    int blocked() const
-    {
-        return m_blocks.count();
-    }
+	int blocked() const
+	{
+		return m_blocks.count();
+	}
 
 private:
-    bool m_locked;
-    int m_count;
-    Fiber* m_locker;
-    List<Fiber> m_blocks;
+	bool m_locked;
+	int m_count;
+	Fiber* m_locker;
+	List<Fiber> m_blocks;
 };
 
 class autoLocker
 {
 public:
-	autoLocker(Locker& l)
-		: m_l(l)
+	autoLocker(Locker& l) :
+			m_l(l)
 	{
 		m_l.lock();
 	}
@@ -204,100 +206,162 @@ private:
 class Event
 {
 public:
-    Event()
-    {
-        m_set = false;
-    }
+	Event()
+	{
+		m_set = false;
+	}
 
 public:
-    void wait();
-    void pulse();
-    void set();
-    void reset();
-    bool trywait();
+	void wait();
+	void pulse();
+	void set();
+	void reset();
+	bool trywait();
 
 private:
-    bool m_set;
-    List<Fiber> m_blocks;
+	bool m_set;
+	List<Fiber> m_blocks;
 };
 
 class CondVar
 {
 public:
-    void wait(Locker& l);
-    void notify_one();
-    void notify_all();
+	void wait(Locker& l);
+	void notify_one();
+	void notify_all();
 
-    int blocked() const
-    {
-        return m_blocks.count();
-    }
+	int blocked() const
+	{
+		return m_blocks.count();
+	}
 
 private:
-    List<Fiber> m_blocks;
+	List<Fiber> m_blocks;
 };
 
 class Semaphore
 {
 public:
-    Semaphore(int count = 0) : m_count(count)
-    {
-    }
+	Semaphore(int count = 0) :
+			m_count(count)
+	{
+	}
 
 public:
-    void wait();
-    void post();
-    bool trywait();
+	void wait();
+	void post();
+	bool trywait();
 
-    int blocked() const
-    {
-        return m_blocks.count();
-    }
+	int blocked() const
+	{
+		return m_blocks.count();
+	}
 
 private:
-    int m_count;
-    List<Fiber> m_blocks;
+	int m_count;
+	List<Fiber> m_blocks;
+};
+
+template<class T>
+class Queue
+{
+public:
+	void put(T* pNew)
+	{
+		m_list.put(pNew);
+		m_sem.post();
+	}
+
+	T* get()
+	{
+		m_sem.wait();
+		return m_list.get();
+	}
+
+	T* tryget()
+	{
+		if (!m_sem.trywait())
+			return NULL;
+		return m_list.get();
+	}
+
+	bool empty() const
+	{
+		return m_list.empty();
+	}
+
+	int count() const
+	{
+		return m_list.count();
+	}
+
+public:
+	List<T> m_list;
+	Semaphore m_sem;
 };
 
 class Service;
 class AsyncEvent
 {
 public:
-    AsyncEvent();
-    void post();
+	AsyncEvent();
+	void post();
+
+	void set()
+	{
+		weak.set();
+	}
+
+	void wait()
+	{
+		weak.wait();
+	}
 
 public:
-    Event weak;
-    AsyncEvent* m_next;
-    Service* m_service;
+	AsyncEvent* m_next;
+
+private:
+	Event weak;
+	Service* m_service;
 };
+
+typedef void (*IDLE_PROC)();
 
 class Service
 {
 public:
-    Service();
+	Service();
 
 public:
-    static Fiber* CreateFiber(void* (*func)(void *), void *data = NULL, int stacksize = FIBER_STACK_SIZE);
+	static Fiber* CreateFiber(void* (*func)(void *), void *data = NULL,
+			int stacksize = FIBER_STACK_SIZE);
 
-    static int tlsAlloc();
-    static void* tlsGet(int idx);
-    static void tlsPut(int idx, void* v);
-    static void tlsFree(int idx);
-
-public:
-    void switchtonext();
-    static Service* getTLSService();
+	static int tlsAlloc();
+	static void* tlsGet(int idx);
+	static void tlsPut(int idx, void* v);
+	static void tlsFree(int idx);
 
 public:
-    Fiber m_main;
-    Fiber* m_running;
-    Fiber* m_recycle;
-    char m_tls[TLS_SIZE];
-    List<Fiber> m_resume;
-    lockfree<AsyncEvent> m_aEvents;
+	void switchtonext();
+	void yield();
+	static Service* getFiberService();
 
-    void(*m_Idle)();
+	IDLE_PROC onIdle(IDLE_PROC proc)
+	{
+		IDLE_PROC p = m_Idle;
+		m_Idle = proc;
+		return p;
+	}
+
+public:
+	Fiber m_main;
+	Fiber* m_running;
+	Fiber* m_recycle;
+	char m_tls[TLS_SIZE];
+	List<Fiber> m_resume;
+	lockfree<AsyncEvent> m_aEvents;
+
+	IDLE_PROC m_Idle;
 };
 
 }

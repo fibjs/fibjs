@@ -32,22 +32,22 @@ static pthread_once_t once = PTHREAD_ONCE_INIT;
 
 static void once_run(void)
 {
-    pthread_key_create(&keyService, NULL);
+	pthread_key_create(&keyService, NULL);
 }
 
-Service* Service::getTLSService()
+Service* Service::getFiberService()
 {
-    pthread_once(&once, once_run);
+	pthread_once(&once, once_run);
 
-    Service* pService = (Service*)pthread_getspecific(keyService);
+	Service* pService = (Service*) pthread_getspecific(keyService);
 
-    if(pService == NULL)
-    {
-        pService = new Service();
-        pthread_setspecific(keyService, pService);
-    }
+	if (pService == NULL)
+	{
+		pService = new Service();
+		pthread_setspecific(keyService, pService);
+	}
 
-    return pService;
+	return pService;
 }
 
 #else
@@ -60,118 +60,153 @@ __thread Service* th_Service = NULL;
 
 Service* Service::getTLSService()
 {
-    Service* pService = th_Service;
+	Service* pService = th_Service;
 
-    if(pService == NULL)
-    {
-        pService = new Service();
-        th_Service = pService;
-    }
+	if(pService == NULL)
+	{
+		pService = new Service();
+		th_Service = pService;
+	}
 
-    return pService;
+	return pService;
 }
 
 #endif
 
 Service::Service()
 {
-    m_recycle = NULL;
-    m_running = &m_main;
-    m_Idle = NULL;
-    memset(&m_main, 0, sizeof(m_main));
-    memset(&m_tls, 0, sizeof(m_tls));
+	m_recycle = NULL;
+	m_running = &m_main;
+	m_Idle = NULL;
+	memset(&m_main, 0, sizeof(m_main));
+	memset(&m_tls, 0, sizeof(m_tls));
 }
 
 static void fiber_proc(void* (*func)(void *), void *data)
 {
-    func(data);
+	func(data);
 
-    Service* pService = Service::getTLSService();
+	Service* pService = Service::getFiberService();
 
-    Fiber* now = pService->m_running;
+	Fiber* now = pService->m_running;
 
-    if(now->m_join)
-        pService->m_resume.put(now->m_join);
+	if (now->m_join)
+		pService->m_resume.put(now->m_join);
 
-    pService->m_recycle = now;
-    pService->switchtonext();
+	pService->m_recycle = now;
+	pService->switchtonext();
 }
 
 Fiber* Service::CreateFiber(void* (*func)(void *), void *data, int stacksize)
 {
-    Service* pService = Service::getTLSService();
-    Fiber* fb;
-    void** stack;
+	Service* pService = Service::getFiberService();
+	Fiber* fb;
+	void** stack;
 
-    stacksize = (stacksize+ sizeof(Fiber) + FB_STK_ALIGN - 1) & ~(FB_STK_ALIGN - 1);
-    fb = (Fiber*)malloc(stacksize);
-    if (fb == NULL)
-        return NULL;
-    stack = (void**)fb + stacksize / sizeof(void*) - 5;
+	stacksize = (stacksize + sizeof(Fiber) + FB_STK_ALIGN - 1)
+			& ~(FB_STK_ALIGN - 1);
+	fb = (Fiber*) malloc(stacksize);
+	if (fb == NULL)
+		return NULL;
+	stack = (void**) fb + stacksize / sizeof(void*) - 5;
 
-    memset(fb, 0, sizeof(Fiber));
+	memset(fb, 0, sizeof(Fiber));
 
 #if defined(x64)
-    fb->m_cntxt.Rip = (unsigned long long) fiber_proc;
-    fb->m_cntxt.Rsp = (unsigned long long) stack;
+	fb->m_cntxt.Rip = (unsigned long long) fiber_proc;
+	fb->m_cntxt.Rsp = (unsigned long long) stack;
 
 #ifdef _WIN32
-    fb->m_cntxt.Rcx = (unsigned long long) func;
-    fb->m_cntxt.Rdx = (unsigned long long) data;
+	fb->m_cntxt.Rcx = (unsigned long long) func;
+	fb->m_cntxt.Rdx = (unsigned long long) data;
 #else
-    fb->m_cntxt.Rdi = (unsigned long long) func;
-    fb->m_cntxt.Rsi = (unsigned long long) data;
+	fb->m_cntxt.Rdi = (unsigned long long) func;
+	fb->m_cntxt.Rsi = (unsigned long long) data;
 #endif
 
 #else
-    fb->m_cntxt.Eip = (unsigned long) fiber_proc;
-    fb->m_cntxt.Esp = (unsigned long) stack;
+	fb->m_cntxt.Eip = (unsigned long) fiber_proc;
+	fb->m_cntxt.Esp = (unsigned long) stack;
 
-    stack[1] = (void*)func;
-    stack[2] = data;
+	stack[1] = (void*)func;
+	stack[2] = data;
 #endif
 
-    pService->m_resume.put(fb);
+	pService->m_resume.put(fb);
 
-    fb->Ref();
-    fb->Ref();
+	fb->Ref();
+	fb->Ref();
 
-    return fb;
+	return fb;
 }
+
+static List<AsyncEvent> s_yieldList;
 
 void Service::switchtonext()
 {
-    while(1)
-    {
-        while(1)
-        {
-            AsyncEvent* p = m_aEvents.get();
-            if(p == NULL)
-                break;
+	while (1)
+	{
+		// First switch if we have work to do.
+		if (!m_resume.empty())
+		{
+			Fiber* old = m_running;
 
-            p->weak.set();
-        }
+			m_running = m_resume.get();
 
-        if(!m_resume.empty())
-        {
-            Fiber* old = m_running;
+			fb_switch(&old->m_cntxt, &m_running->m_cntxt);
 
-            m_running = m_resume.get();
+			if (m_recycle)
+			{
+				m_recycle->Unref();
+				m_recycle = NULL;
+			}
+			break;
+		}
 
-            fb_switch(&old->m_cntxt, &m_running->m_cntxt);
+		// Then weakup async event.
+		while (1)
+		{
+			AsyncEvent* p = m_aEvents.get();
+			if (p == NULL)
+				break;
 
-            if(m_recycle)
-            {
-                m_recycle->Unref();
-                m_recycle = NULL;
-            }
-            break;
-        }
-        else
-        {
-            m_aEvents.wait()->weak.set();
-        }
-    }
+			p->set();
+		}
+
+		if (!m_resume.empty())
+			continue;
+
+		// doing smoething when we have time.
+		if (m_Idle)
+			m_Idle();
+
+		if (!m_resume.empty())
+			continue;
+
+		// if we still have time, weakup yield fiber.
+		while (1)
+		{
+			AsyncEvent* p = s_yieldList.get();
+			if (p == NULL)
+				break;
+
+			p->set();
+		}
+
+		if (!m_resume.empty())
+			continue;
+
+		// still no work, we wait, and wait, and wait.....
+		m_aEvents.wait()->set();
+	}
+}
+
+void Service::yield()
+{
+	AsyncEvent ae;
+
+	s_yieldList.put(&ae);
+	ae.wait();
 }
 
 }

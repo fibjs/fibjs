@@ -14,7 +14,7 @@ namespace exlib
 AsyncEvent::AsyncEvent()
 {
     m_next = NULL;
-    m_service = Service::getTLSService();
+    m_service = Service::getFiberService();
 }
 
 void AsyncEvent::post()

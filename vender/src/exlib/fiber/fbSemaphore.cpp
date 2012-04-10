@@ -15,7 +15,7 @@ void Semaphore::wait()
 {
     if(m_count == 0)
     {
-        Service* pService = Service::getTLSService();
+        Service* pService = Service::getFiberService();
 
         m_blocks.put(pService->m_running);
         pService->switchtonext();
@@ -27,7 +27,7 @@ void Semaphore::post()
 {
     if(!m_blocks.empty())
     {
-        Service* pService = Service::getTLSService();
+        Service* pService = Service::getFiberService();
         Fiber* cntxt;
 
         cntxt = m_blocks.get();

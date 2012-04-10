@@ -14,7 +14,7 @@ void Event::wait()
 {
     if(!m_set)
     {
-        Service* pService = Service::getTLSService();
+        Service* pService = Service::getFiberService();
 
         m_blocks.put(pService->m_running);
         pService->switchtonext();
@@ -23,7 +23,7 @@ void Event::wait()
 
 void Event::pulse()
 {
-    Service* pService = Service::getTLSService();
+    Service* pService = Service::getFiberService();
     Fiber* cntxt;
 
     while(!m_blocks.empty())
