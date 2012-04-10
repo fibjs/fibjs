@@ -8,6 +8,7 @@
 #include "ifs/path.h"
 #include "ifs/os.h"
 #include "ifs/coroutine.h"
+#include "ifs/encoding.h"
 
 #ifdef SEEK_SET
 #undef SEEK_SET
@@ -127,6 +128,9 @@ void initMdule()
 			fs_base::class_info().CreateInstance());
 	s_Modules->Set(v8::String::New("os"),
 			os_base::class_info().CreateInstance());
+
+	s_Modules->Set(v8::String::New("encoding"),
+			encoding_base::class_info().CreateInstance());
 }
 
 result_t global_base::require(const char* mod, v8::Handle<v8::Value>& retVal)
