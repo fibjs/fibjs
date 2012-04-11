@@ -32,12 +32,6 @@ class File: Stream
 
 	/*! @brief 移动当前位置到文件开头 */
 	rewind() async;
-
-	/*! @brief 将文件缓冲区内容写入文件 */
-	flush() async;
-	
-	/*! @brief 关闭当前文件 */
-	close() async;
 	
 	/*! @brief 修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
 	 *  @param bytes 新的文件尺寸

@@ -22,6 +22,8 @@ public:
 	// Stream_base
 	virtual result_t read(double bytes, obj_ptr<Buffer_base>& retVal);
 	virtual result_t write(obj_ptr<Buffer_base> data);
+	virtual result_t flush();
+	virtual result_t close();
 
 public:
 	// File_base
@@ -32,8 +34,6 @@ public:
 	virtual result_t seek(double offset, int32_t whence);
 	virtual result_t tell(double& retVal);
 	virtual result_t rewind();
-	virtual result_t flush();
-	virtual result_t close();
 	virtual result_t truncate(double bytes);
 
 public:

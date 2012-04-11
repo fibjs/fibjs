@@ -31,8 +31,6 @@ public:
 	virtual result_t seek(double offset, int32_t whence) = 0;
 	virtual result_t tell(double& retVal) = 0;
 	virtual result_t rewind() = 0;
-	virtual result_t flush() = 0;
-	virtual result_t close() = 0;
 	virtual result_t truncate(double bytes) = 0;
 
 public:
@@ -46,8 +44,6 @@ public:
 			{"seek", s_seek},
 			{"tell", s_tell},
 			{"rewind", s_rewind},
-			{"flush", s_flush},
-			{"close", s_close},
 			{"truncate", s_truncate}
 		};
 
@@ -59,7 +55,7 @@ public:
 		static ClassData s_cd = 
 		{ 
 			"File", NULL, 
-			9, s_method, 1, s_property, NULL,
+			7, s_method, 1, s_property, NULL,
 			&Stream_base::class_info()
 		};
 
@@ -90,8 +86,6 @@ private:
 	static v8::Handle<v8::Value> s_seek(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_tell(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_rewind(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_flush(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_close(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_truncate(const v8::Arguments& args);
 
 private:
@@ -101,8 +95,6 @@ private:
 	ASYNC_MEMBER2(File_base, seek);
 	ASYNC_MEMBER1(File_base, tell);
 	ASYNC_MEMBER0(File_base, rewind);
-	ASYNC_MEMBER0(File_base, flush);
-	ASYNC_MEMBER0(File_base, close);
 	ASYNC_MEMBER1(File_base, truncate);
 };
 
@@ -191,26 +183,6 @@ namespace fibjs
 		METHOD_ENTER(0, 0);
 
 		hr = pInst->ac_rewind(s_acPool);
-
-		METHOD_VOID();
-	}
-
-	inline v8::Handle<v8::Value> File_base::s_flush(const v8::Arguments& args)
-	{
-		METHOD_INSTANCE(File_base);
-		METHOD_ENTER(0, 0);
-
-		hr = pInst->ac_flush(s_acPool);
-
-		METHOD_VOID();
-	}
-
-	inline v8::Handle<v8::Value> File_base::s_close(const v8::Arguments& args)
-	{
-		METHOD_INSTANCE(File_base);
-		METHOD_ENTER(0, 0);
-
-		hr = pInst->ac_close(s_acPool);
 
 		METHOD_VOID();
 	}

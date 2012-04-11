@@ -29,6 +29,8 @@ public:
 	// Stream_base
 	virtual result_t read(double bytes, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t write(obj_ptr<Buffer_base> data) = 0;
+	virtual result_t flush() = 0;
+	virtual result_t close() = 0;
 
 public:
 	static ClassInfo& class_info()
@@ -36,7 +38,9 @@ public:
 		static ClassMethod s_method[] = 
 		{
 			{"read", s_read},
-			{"write", s_write}
+			{"write", s_write},
+			{"flush", s_flush},
+			{"close", s_close}
 		};
 
 		static ClassProperty s_property[] = 
@@ -49,7 +53,7 @@ public:
 		static ClassData s_cd = 
 		{ 
 			"Stream", NULL, 
-			2, s_method, 3, s_property, NULL,
+			4, s_method, 3, s_property, NULL,
 			&object_base::class_info()
 		};
 
@@ -68,6 +72,14 @@ private:
 	static v8::Handle<v8::Value> s_get_SEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_read(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_write(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_flush(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_close(const v8::Arguments& args);
+
+private:
+	ASYNC_MEMBER2(Stream_base, read);
+	ASYNC_MEMBER1(Stream_base, write);
+	ASYNC_MEMBER0(Stream_base, flush);
+	ASYNC_MEMBER0(Stream_base, close);
 };
 
 }
@@ -106,7 +118,7 @@ namespace fibjs
 
 		OPT_ARG(double, 0, -1);
 
-		hr = pInst->read(v0, vr);
+		hr = pInst->ac_read(s_acPool, v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -118,7 +130,27 @@ namespace fibjs
 
 		ARG(obj_ptr<Buffer_base>, 0);
 
-		hr = pInst->write(v0);
+		hr = pInst->ac_write(s_acPool, v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Stream_base::s_flush(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Stream_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->ac_flush(s_acPool);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Stream_base::s_close(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Stream_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->ac_close(s_acPool);
 
 		METHOD_VOID();
 	}
