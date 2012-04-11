@@ -6,28 +6,14 @@ class Stream : object
 	const Integer SEEK_CUR = 1;
 	const Integer SEEK_END = 2;
 
-	/*! @brief 查询当前流是否允许读*/
-	readonly Boolean readable;
-
-	/*! @brief 查询当前流是否允许写*/
-	readonly Boolean writable;
-
 	/*! @brief 从流内读取指定大小的数据
-	 * @param size 指定要读取的数据量，缺省为读取剩余全部数据
+	 * @param bytes 指定要读取的数据量，缺省为读取剩余全部数据
 	 * @return 返回从流内读取的数据
 	 */
-	Buffer read(Integer size = -1);
+	Buffer read(Number bytes = -1);
 
 	/*! @brief 将给定的数据写入流
 	 * @param data 给定要写入的数据
 	 */
 	write(Buffer data);
-
-	/*	Boolean readable;
-	 Boolean writable;
-	 setEncoding(String encoding = "utf-8");
-	 String read(Integer size = 0);
-	 String readln();
-	 String readutil(String eos);
-	 write(String str);*/
 };

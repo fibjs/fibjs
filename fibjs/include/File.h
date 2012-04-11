@@ -15,26 +15,32 @@ public:
 
     ~File()
     {
-        Close();
+        close();
     }
 
 public:
-    result_t get_readable(bool& retVal);
-    result_t get_writable(bool& retVal);
-    result_t read(int32_t size, obj_ptr<Buffer_base>& retVal);
-    result_t write(obj_ptr<Buffer_base> data);
+	// Stream_base
+	virtual result_t read(double bytes, obj_ptr<Buffer_base>& retVal);
+	virtual result_t write(obj_ptr<Buffer_base> data);
 
 public:
-    result_t get_data(double& retVal);
-    result_t set_data(double newVal);
-    result_t getData(double& retVal);
-
+	// File_base
+	virtual result_t get_name(std::string& retVal);
+	virtual result_t stat(obj_ptr<Stat_base>& retVal);
+	virtual result_t size(double& retVal);
+	virtual result_t eof(bool& retVal);
+	virtual result_t seek(double offset, int32_t whence);
+	virtual result_t tell(double& retVal);
+	virtual result_t rewind();
+	virtual result_t flush();
+	virtual result_t close();
+	virtual result_t truncate(double bytes);
 
 public:
     result_t Open(const char* fname, const char* mode);
-    result_t Close();
 
 private:
+    std::string name;
     double m_data;
     FILE* m_file;
 };

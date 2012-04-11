@@ -1,21 +1,46 @@
-
-class File : Stream
+/*! @brief 文件操作对象，用于二进制文件读写
+ * 
+ * 文件操作对象用于对二进制文件进行操作，可使用 fs 模块打开和创建文件：
+ * @code
+ * var f = fs.open('test.txt');
+ * @endcode
+ */
+class File: Stream
 {
-	Number data;
-	Number getData();
+	/*! @brief 查询当前文件名 */
+	readonly String name;
+	
+	/*! @brief 查询当前文件的基础信息
+	 * @return 返回 Stat 对象描述文件信息
+	 */
+	Stat stat() async;
+	
+	/*! @brief 查询文件尺寸 */
+	Number size() async;
 
-	/*	close();
-	 Boolean closed();
-	 flush();
-	 readable();
-	 String readline(Integer limit = -1);
-	 Integer seek(Integer offset, Integer whence = SEEK_SET);
-	 Boolean seekable();
-	 Integer tell();
-	 Integer truncate(Integer size = -1);
-	 Boolean writeable();
+	/*! @brief 查询文件是否到结尾 */
+	Boolean eof() async;
 
-	 data read(Integer size = -1);
-	 data readall();
-	 write(data d);*/
+	/*! @brief 移动文件当前操作位置
+	 *  @param offset 指定新的位置
+	 *  @param whence 指定位置基准，允许的值为：SEEK_SET, SEEK_CUR, SEEK_END
+	 */
+	seek(Number offset, Integer whence = SEEK_SET) async;
+
+	/*! @brief 查询文件当前位置 */
+	Number tell() async;
+
+	/*! @brief 移动当前位置到文件开头 */
+	rewind() async;
+
+	/*! @brief 将文件缓冲区内容写入文件 */
+	flush() async;
+	
+	/*! @brief 关闭当前文件 */
+	close() async;
+	
+	/*! @brief 修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
+	 *  @param bytes 新的文件尺寸
+	 */
+	truncate(Number bytes) async;
 };

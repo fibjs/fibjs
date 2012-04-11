@@ -542,17 +542,20 @@ function parserIDL(fname) {
 
 				if (attr == "static") {
 					ifStr += ");";
-					fnStr += "		hr = ac_" + fname + "(s_acPool, ";
+					fnStr += "		hr = ac_" + fname + "(s_acPool";
 					afs.push('	ASYNC_STATIC'
 							+ (ftype == "" ? argCount : argCount + 1) + '('
 							+ ns + '_base, ' + fname + ');');
 				} else {
 					ifStr += ") = 0;";
-					fnStr += "		hr = pInst->ac_" + fname + "(s_acPool, ";
+					fnStr += "		hr = pInst->ac_" + fname + "(s_acPool";
 					afs.push('	ASYNC_MEMBER'
 							+ (ftype == "" ? argCount : argCount + 1) + '('
 							+ ns + '_base, ' + fname + ');');
 				}
+
+				if (argArray || (ftype != "") || (argCount > 0))
+					fnStr += ", ";
 			} else {
 				if (attr == "static") {
 					ifStr += ");";

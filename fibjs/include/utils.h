@@ -151,15 +151,17 @@ typedef int result_t;
 #define CALL_E_NOTINSTANCE      -4
 // The input parameter is not a valid type.
 #define CALL_E_BADVARTYPE       -5
-// An argument is invalid.
+// Invalid argument.
 #define CALL_E_INVALIDARG       -6
+// Invalid procedure call.
+#define CALL_E_INVALID_CALL		-7
 // The argument could not be coerced to the specified type.
-#define CALL_E_TYPEMISMATCH     -7
+#define CALL_E_TYPEMISMATCH     -8
 // Value is out of range.
-#define CALL_E_OUTRANGE         -8
+#define CALL_E_OUTRANGE         -9
 // Index was out of range.
-#define CALL_E_BADINDEX         -9
-#define CALL_E_MAX              -10
+#define CALL_E_BADINDEX         -10
+#define CALL_E_MAX              -64
 
 #define PROPERTY_ENTER() result_t hr = 0;do{
 

@@ -53,28 +53,19 @@ result_t fs_base::tmpFile(obj_ptr<File_base>& retVal)
 
 result_t fs_base::readFile(const char* fname, std::string& retVal)
 {
-	FILE* file = fopen(fname, "rb");
-	if (file == NULL)
-		return LastError();
+	obj_ptr<File_base> f;
+	obj_ptr<Buffer_base> buf;
+	result_t hr;
 
-	fseek(file, 0, SEEK_END);
-	int size = ftell(file);
-	rewind(file);
+	hr = open(fname, "r+", f);
+	if(hr < 0)
+		return hr;
 
-	std::string buf;
+	hr = f->read(-1, buf);
+	if(hr < 0)
+		return hr;
 
-	buf.resize(size);
-
-	for (int i = 0; i < size;)
-	{
-		int read = static_cast<int>(fread(&buf[i], 1, size - i, file));
-		i += read;
-	}
-	fclose(file);
-
-	retVal = buf;
-
-	return 0;
+	return buf->toString(retVal);
 }
 
 result_t fs_base::writeFile(const char* fname, const char* txt)
@@ -94,6 +85,14 @@ result_t fs_base::writeFile(const char* fname, const char* txt)
 result_t fs_base::exists(const char* path, bool& retVal)
 {
 	retVal = access(path, F_OK) == 0;
+	return 0;
+}
+
+result_t fs_base::unlink(const char* path)
+{
+	if(::unlink(path))
+		return LastError();
+
 	return 0;
 }
 

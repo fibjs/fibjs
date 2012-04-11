@@ -44,6 +44,11 @@ class fs : module
 	 */
 	static Boolean exists(String path) async;
 
+	/*! @brief 删除指定的文件
+	 * @param path 指定要删除的路径
+	 */
+	static unlink(String path) async;
+
 	/*! @brief 创建一个目录
 	 * @param path 指定要创建的目录名
 	 */

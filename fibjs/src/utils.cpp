@@ -17,7 +17,8 @@ v8::Handle<v8::Value> ThrowResult(result_t hr)
         "Constructor cannot be called as a function.",
         "Object is not an instance of declaring class.",
         "The input parameter is not a valid type.",
-        "An argument is invalid.",
+        "Invalid argument.",
+        "Invalid procedure call.",
         "The argument could not be coerced to the specified type.",
         "Value is out of range.",
         "Index was out of range."

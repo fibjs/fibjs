@@ -37,6 +37,7 @@ public:
 	static result_t readFile(const char* fname, std::string& retVal);
 	static result_t writeFile(const char* fname, const char* txt);
 	static result_t exists(const char* path, bool& retVal);
+	static result_t unlink(const char* path);
 	static result_t mkdir(const char* path);
 	static result_t rmdir(const char* path);
 	static result_t rename(const char* from, const char* to);
@@ -54,6 +55,7 @@ public:
 			{"readFile", s_readFile},
 			{"writeFile", s_writeFile},
 			{"exists", s_exists},
+			{"unlink", s_unlink},
 			{"mkdir", s_mkdir},
 			{"rmdir", s_rmdir},
 			{"rename", s_rename},
@@ -71,7 +73,7 @@ public:
 		static ClassData s_cd = 
 		{ 
 			"fs", NULL, 
-			11, s_method, 3, s_property, NULL,
+			12, s_method, 3, s_property, NULL,
 			&module_base::class_info()
 		};
 
@@ -94,6 +96,7 @@ private:
 	static v8::Handle<v8::Value> s_readFile(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_writeFile(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_exists(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_unlink(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_mkdir(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_rmdir(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_rename(const v8::Arguments& args);
@@ -107,6 +110,7 @@ private:
 	ASYNC_STATIC2(fs_base, readFile);
 	ASYNC_STATIC2(fs_base, writeFile);
 	ASYNC_STATIC2(fs_base, exists);
+	ASYNC_STATIC1(fs_base, unlink);
 	ASYNC_STATIC1(fs_base, mkdir);
 	ASYNC_STATIC1(fs_base, rmdir);
 	ASYNC_STATIC2(fs_base, rename);
@@ -218,6 +222,17 @@ namespace fibjs
 		hr = ac_exists(s_acPool, v0, vr);
 
 		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> fs_base::s_unlink(const v8::Arguments& args)
+	{
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = ac_unlink(s_acPool, v0);
+
+		METHOD_VOID();
 	}
 
 	inline v8::Handle<v8::Value> fs_base::s_mkdir(const v8::Arguments& args)
