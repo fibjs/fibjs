@@ -85,12 +85,35 @@ class Buffer : object
 	/*! @brief 返回一个新缓存对象，包含指定范围的数据，若范围超出缓存，则只返回有效部分数据
 	 * @param start 指定范围的起始，缺省从头开始
 	 * @param end 指定范围的结束，缺省到缓存结尾
+	 * @return 返回新的缓存对象
 	 */
 	Buffer slice(Integer start = 0, Integer end = -1);
 
 	/*! @brief 以字符串形式返回缓存内的数据，字符串将以 utf-8 编码读出 */
 	String toString();
 };
+
+
+/*! @brief 对象数组，一般用以返回一组对象数据 */
+class ObjectArray : object
+{
+	/*! @brief 对象数组可使用下标直接访问对象数据*/
+	object operator[];
+
+	/*! @brief 获取缓存对象的尺寸 */
+	readonly Integer length;
+
+	/*! @brief 修改缓存对象尺寸 */
+	resize(Integer sz);
+
+	/*! @brief 返回一个新对象数组，包含指定范围的数据，若范围超出缓存，则只返回有效部分数据
+	 * @param start 指定范围的起始，缺省从头开始
+	 * @param end 指定范围的结束，缺省到缓存结尾
+	 * @return 返回新的对象数组
+	 */
+	ObjectArray slice(Integer start = 0, Integer end = -1);
+};
+
 
 /*! @brief 断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出
  *
@@ -397,6 +420,9 @@ class Stream : object
  */
 class Stat : object
 {
+	/*! @brief 文件名称 */
+	readonly String name;
+
 	/*! @brief 文件尺寸 */
 	readonly Number size;
 
@@ -532,6 +558,14 @@ class fs : module
 	 * @return 返回文件的基础信息
 	 */
 	static Stat stat(String path) async;
+
+	/*! @brief 读取指定目录的文件信息
+	 * 
+	 * 
+	 * @param path 指定查询的目录
+	 * @return 返回目录的文件信息数组
+	 */
+	static ObjectArray readdir(String path) async;
 };
 
 /*! @brief 纤程操作对象，此对象不可直接创建

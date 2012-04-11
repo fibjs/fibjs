@@ -20,6 +20,7 @@ namespace fibjs
 class module_base;
 class File_base;
 class Stat_base;
+class ObjectArray_base;
 
 class fs_base : public module_base
 {
@@ -40,6 +41,7 @@ public:
 	static result_t rmdir(const char* path);
 	static result_t rename(const char* from, const char* to);
 	static result_t stat(const char* path, obj_ptr<Stat_base>& retVal);
+	static result_t readdir(const char* path, obj_ptr<ObjectArray_base>& retVal);
 
 public:
 	static ClassInfo& class_info()
@@ -55,7 +57,8 @@ public:
 			{"mkdir", s_mkdir},
 			{"rmdir", s_rmdir},
 			{"rename", s_rename},
-			{"stat", s_stat}
+			{"stat", s_stat},
+			{"readdir", s_readdir}
 		};
 
 		static ClassProperty s_property[] = 
@@ -68,7 +71,7 @@ public:
 		static ClassData s_cd = 
 		{ 
 			"fs", NULL, 
-			10, s_method, 3, s_property, NULL,
+			11, s_method, 3, s_property, NULL,
 			&module_base::class_info()
 		};
 
@@ -95,6 +98,7 @@ private:
 	static v8::Handle<v8::Value> s_rmdir(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_rename(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_stat(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_readdir(const v8::Arguments& args);
 
 private:
 	ASYNC_STATIC3(fs_base, open);
@@ -107,12 +111,14 @@ private:
 	ASYNC_STATIC1(fs_base, rmdir);
 	ASYNC_STATIC2(fs_base, rename);
 	ASYNC_STATIC2(fs_base, stat);
+	ASYNC_STATIC2(fs_base, readdir);
 };
 
 }
 
 #include "File.h"
 #include "Stat.h"
+#include "ObjectArray.h"
 
 namespace fibjs
 {
@@ -257,6 +263,19 @@ namespace fibjs
 		ARG_String(0);
 
 		hr = ac_stat(s_acPool, v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> fs_base::s_readdir(const v8::Arguments& args)
+	{
+		obj_ptr<ObjectArray_base> vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = ac_readdir(s_acPool, v0, vr);
 
 		METHOD_RETURN();
 	}

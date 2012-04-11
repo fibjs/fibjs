@@ -5,7 +5,6 @@
  *      Author: lion
  */
 
-
 #include "object.h"
 
 #ifdef SEEK_SET
@@ -14,10 +13,13 @@
 #undef SEEK_END
 #endif
 
+#include <string.h>
+#include <dirent.h>
+
 #include "ifs/fs.h"
 #include "File.h"
-#include <string.h>
 #include "Stat.h"
+#include "ObjectArray.h"
 
 namespace fibjs
 {
@@ -65,7 +67,7 @@ result_t fs_base::readFile(const char* fname, std::string& retVal)
 
 	for (int i = 0; i < size;)
 	{
-		int read = static_cast<int> (fread(&buf[i], 1, size - i, file));
+		int read = static_cast<int>(fread(&buf[i], 1, size - i, file));
 		i += read;
 	}
 	fclose(file);
@@ -97,7 +99,7 @@ result_t fs_base::exists(const char* path, bool& retVal)
 
 result_t fs_base::mkdir(const char* path)
 {
-	if(::mkdir(path, 715))
+	if (::mkdir(path, 715))
 		return LastError();
 
 	return 0;
@@ -105,7 +107,7 @@ result_t fs_base::mkdir(const char* path)
 
 result_t fs_base::rmdir(const char* path)
 {
-	if(::rmdir(path))
+	if (::rmdir(path))
 		return LastError();
 
 	return 0;
@@ -113,7 +115,7 @@ result_t fs_base::rmdir(const char* path)
 
 result_t fs_base::rename(const char* from, const char* to)
 {
-	if(::rename(from, to))
+	if (::rename(from, to))
 		return LastError();
 
 	return 0;
@@ -125,10 +127,44 @@ result_t fs_base::stat(const char* path, obj_ptr<Stat_base>& retVal)
 	if (::stat(path, &st))
 		return LastError();
 
-	obj_ptr<Stat> pStat = new Stat(st);
+	obj_ptr<Stat> pStat = new Stat(path, st);
 
 	retVal = pStat;
 
 	return 0;
 }
+
+result_t fs_base::readdir(const char* path, obj_ptr<ObjectArray_base>& retVal)
+{
+	DIR * dp;
+	struct dirent * ep;
+	std::string fpath;
+	result_t hr;
+	obj_ptr<ObjectArray> oa;
+
+	dp = ::opendir(path);
+	if (dp == NULL)
+		return LastError();
+
+	oa = new ObjectArray();
+
+	while ((ep = ::readdir(dp)))
+	{
+		obj_ptr<Stat_base> fstat;
+
+		fpath = path;
+		fpath += '/';
+		fpath += ep->d_name;
+
+		hr = stat(fpath.c_str(), fstat);
+		if (hr >= 0)
+			oa->push(fstat);
+	}
+	::closedir(dp);
+
+	retVal = oa;
+
+	return 0;
+}
+
 }

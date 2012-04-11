@@ -20,6 +20,7 @@ class Stat_base : public object_base
 {
 public:
 	// Stat_base
+	virtual result_t get_name(std::string& retVal) = 0;
 	virtual result_t get_size(double& retVal) = 0;
 	virtual result_t get_mtime(int64_t& retVal) = 0;
 	virtual result_t get_atime(int64_t& retVal) = 0;
@@ -48,6 +49,7 @@ public:
 
 		static ClassProperty s_property[] = 
 		{
+			{"name", s_get_name},
 			{"size", s_get_size},
 			{"mtime", s_get_mtime},
 			{"atime", s_get_atime},
@@ -57,7 +59,7 @@ public:
 		static ClassData s_cd = 
 		{ 
 			"Stat", NULL, 
-			7, s_method, 4, s_property, NULL,
+			7, s_method, 5, s_property, NULL,
 			&object_base::class_info()
 		};
 
@@ -75,6 +77,7 @@ public:
 		result_t hr = object_base::toJSON(key, retVal);
 		if(hr < 0)return hr;
 
+		CLONE_String(name);
 		CLONE(size, double);
 		CLONE(mtime, int64_t);
 		CLONE(atime, int64_t);
@@ -84,6 +87,7 @@ public:
 	}
 
 private:
+	static v8::Handle<v8::Value> s_get_name(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_size(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_mtime(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_atime(v8::Local<v8::String> property, const v8::AccessorInfo &info);
@@ -101,6 +105,18 @@ private:
 
 namespace fibjs
 {
+	inline v8::Handle<v8::Value> Stat_base::s_get_name(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		std::string vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Stat_base);
+
+		hr = pInst->get_name(vr);
+
+		METHOD_RETURN();
+	}
+
 	inline v8::Handle<v8::Value> Stat_base::s_get_size(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		double vr;

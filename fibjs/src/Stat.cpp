@@ -6,13 +6,14 @@
  */
 
 #include "Stat.h"
+#include "ifs/path.h"
 
 namespace fibjs
 {
 
-Stat::Stat(struct stat& st)
+Stat::Stat(const char* path, struct stat& st)
 {
-
+	path_base::basename(path, "", name);
 	size = st.st_size;
 	mtime = st.st_mtime * 1000ll;
 	atime = st.st_atime * 1000ll;
@@ -25,6 +26,12 @@ Stat::Stat(struct stat& st)
 	m_isDirectory = S_ISDIR(st.st_mode);
 	m_isFile = S_ISREG(st.st_mode);
 	m_isSymbolicLink = S_ISLNK(st.st_mode);
+}
+
+result_t Stat::get_name(std::string& retVal)
+{
+	retVal = name;
+	return 0;
 }
 
 result_t Stat::get_size(double& retVal)

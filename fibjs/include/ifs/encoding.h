@@ -82,7 +82,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_CLASS(Buffer_base, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = base32Encode(v0, vr);
 
@@ -108,7 +108,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_CLASS(Buffer_base, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = base64Encode(v0, vr);
 
@@ -134,7 +134,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_CLASS(Buffer_base, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = hexEncode(v0, vr);
 

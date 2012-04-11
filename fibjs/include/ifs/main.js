@@ -3,11 +3,115 @@ String.prototype.trim = function() {
 }
 
 var fs = require('fs');
+var clsName = {};
 
+preparserIDL("if.idl");
 parserIDL("if.idl");
 
+function preparserIDL(fname) {
+	var f, line = 0, isRem;
+
+	f = fs.readFile(fname).replace(/\r/g, "").split("\n");
+	f.reverse();
+
+	while (f.length) {
+		st = getStock();
+
+		if (st.length > 0) {
+			if (st[0] == "class" && st.length > 1) {
+				if (clsName[st[1]])
+					return reportErr();
+
+				if (st.length == 2 || (st.length == 4 && st[2] == ":"))
+					clsName[st[1]] = true;
+			}
+		}
+	}
+
+	function getStock() {
+		var pos = 0, n, n1;
+		var bString = false;
+		var s = f.pop();
+		line++;
+
+		if (isRem) {
+			n = s.indexOf("*/", 0);
+			if (n >= 0) {
+				s = s.substr(n + 2);
+				isRem = false;
+			}
+		}
+
+		var st = s.split("\"");
+		var st1 = [];
+		while (pos < st.length) {
+			s = st[pos++];
+
+			if (isRem) {
+				n = s.indexOf("*/", 0);
+				if (n >= 0) {
+					s = s.substr(n + 2);
+					isRem = false;
+				}
+			}
+
+			if (!isRem) {
+				if (!bString) {
+					n = s.indexOf("//");
+					if (n >= 0)
+						s = s.substr(0, n);
+
+					while (1) {
+						n = s.indexOf("/*");
+						if (n >= 0) {
+							n1 = s.indexOf("*/", n + 2);
+							if (n1 >= 0)
+								s = s.substr(0, n) + s.substr(n1 + 2);
+							else {
+								isRem = true;
+								s = s.substr(0, n);
+							}
+						} else
+							break;
+					}
+
+					s = s.replace(/=/g, " = ");
+					s = s.replace(/\(/g, " ( ");
+					s = s.replace(/\)/g, " ) ");
+					s = s.replace(/\[/g, " [ ");
+					s = s.replace(/\]/g, " ] ");
+					s = s.replace(/,/g, " , ");
+					s = s.replace(/:/g, " : ");
+					s = s.replace(/;/g, " ; ");
+					s = s.replace(/\s+/g, " ").trim();
+
+					if (s != "") {
+						st2 = s.split(" ");
+
+						for (i = 0; i < st2.length; i++) {
+							s = st2[i];
+							st1.push(s);
+						}
+					}
+
+					if (!isRem)
+						bString = true;
+				} else {
+					while ((s.charAt(s.length - 1) == "\\") && pos < st.length)
+						s = s + "\"" + st[pos++];
+
+					st1.push("\"" + s + "\"")
+					bString = false;
+				}
+			}
+		}
+
+		return st1;
+	}
+}
+
 function parserIDL(fname) {
-	var st, f, line, ifs, afs, svs, ffs, iffs, tjfs, difms, difps, dsvs, refCls, ids, ns, baseClass, basePath = "", clsName, isRem = false, hasNew = false, hasIndexed = false, typeMap = {
+	var st, f, line, ifs, afs, svs, ffs, iffs, tjfs, difms, difps, dsvs, refCls, ids, ns, baseClass, isRem = false, hasNew = false, hasIndexed = false, typeMap = {
 		"Integer" : "int32_t",
 		"Number" : "double",
 		"Boolean" : "bool",
@@ -29,11 +133,10 @@ function parserIDL(fname) {
 		"Value" : "v8::Handle<v8::Value>"
 	};
 
-	f = fs.readFile(basePath + fname).replace(/\r/g, "").split("\n");
+	f = fs.readFile(fname).replace(/\r/g, "").split("\n");
 	f.reverse();
 
 	line = 0;
-	clsName = {};
 	while (f.length) {
 		st = getStock();
 
@@ -41,9 +144,6 @@ function parserIDL(fname) {
 			if (st[0] == "class" && st.length > 1) {
 				if (!_checkID(st[1]))
 					return false;
-
-				if (clsName[st[1]])
-					return reportErr();
 
 				if (st.length == 2
 						|| (st.length == 4 && st[2] == ":" && clsName[st[3]])) {
@@ -246,9 +346,8 @@ function parserIDL(fname) {
 		txt.push("namespace fibjs\n{");
 		txt.push(ffs.join("\n"));
 
-		for(var fname in ids)
-			if(ids[fname].length > 0)
-			{
+		for ( var fname in ids)
+			if (ids[fname].length > 0) {
 				txt.push(ids[fname][1]);
 				if (ids[fname][0] == "")
 					txt.push("		METHOD_VOID();\n	}\n");
@@ -257,12 +356,12 @@ function parserIDL(fname) {
 				else
 					txt.push("		CONSTRUCT_RETURN();\n	}\n");
 			}
-		
+
 		txt.push("}\n");
 
 		txt.push("#endif\n\n");
 
-		fs.writeFile(basePath + ns + ".h", txt.join("\n"));
+		fs.writeFile(ns + ".h", txt.join("\n"));
 	}
 
 	function _member(st) {
@@ -308,9 +407,10 @@ function parserIDL(fname) {
 			if (attr == "const" || attr == "readonly")
 				return reportErr();
 
-			if (ids.hasOwnProperty(fname) && (ids[fname].length == 0 || ids[fname][0] != ftype))
+			if (ids.hasOwnProperty(fname)
+					&& (ids[fname].length == 0 || ids[fname][0] != ftype))
 				return reportErr();
-			
+
 			if (attr == "static")
 				ifStr = "	static result_t " + fname + "(";
 			else
@@ -366,13 +466,6 @@ function parserIDL(fname) {
 					ifStr += ", ";
 				ifStr += arg_type(type) + " " + name;
 
-				if (clsName[type]) {
-					if (value == "")
-						argVars += "		ARG_CLASS(" + type + "_base, " + argCount
-								+ ");\n";
-					else
-						return reportErr();
-				} else {
 					if (type === "String") {
 						if (value == "")
 							argVars += "		ARG_String(" + argCount + ");\n";
@@ -388,7 +481,6 @@ function parserIDL(fname) {
 									+ argCount + ", " + arg_value(type, value)
 									+ ");\n";
 					}
-				}
 
 				argCount++;
 				if (value == "")
@@ -397,27 +489,27 @@ function parserIDL(fname) {
 
 			pos++;
 
-			if (ids.hasOwnProperty(fname))
-			{
-				fnStr = ids[fname][1] + "\n		METHOD_OVER(" + (argArray ? -1 : argCount) + ", "
-							+ argOpt + ");\n\n";
-			}else
-			{
+			if (ids.hasOwnProperty(fname)) {
+				fnStr = ids[fname][1] + "\n		METHOD_OVER("
+						+ (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
+			} else {
 				iffs.push("	static v8::Handle<v8::Value> s_" + fname
 						+ "(const v8::Arguments& args);");
 
-				fnStr = "	inline v8::Handle<v8::Value> " + ns + "_base::s_" + fname
-						+ "(const v8::Arguments& args)\n	{\n";
-	
+				fnStr = "	inline v8::Handle<v8::Value> " + ns + "_base::s_"
+						+ fname + "(const v8::Arguments& args)\n	{\n";
+
 				if (ftype != "")
 					fnStr += "		" + map_type(ftype) + " vr;\n\n";
-	
+
 				if (attr == "")
-					fnStr += "		METHOD_INSTANCE(" + ns + "_base);\n		METHOD_ENTER("
-							+ (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
+					fnStr += "		METHOD_INSTANCE(" + ns
+							+ "_base);\n		METHOD_ENTER("
+							+ (argArray ? -1 : argCount) + ", " + argOpt
+							+ ");\n\n";
 				else if (fname !== "_new")
-					fnStr += "		METHOD_ENTER(" + (argArray ? -1 : argCount) + ", "
-							+ argOpt + ");\n\n";
+					fnStr += "		METHOD_ENTER(" + (argArray ? -1 : argCount)
+							+ ", " + argOpt + ");\n\n";
 				else
 					fnStr += "		CONSTRUCT_ENTER(" + (argArray ? -1 : argCount)
 							+ ", " + argOpt + ");\n\n";
@@ -480,8 +572,8 @@ function parserIDL(fname) {
 
 			fnStr += ");\n";
 
-			ids[fname] = [ftype, fnStr];
-//			ffs.push(fnStr);
+			ids[fname] = [ ftype, fnStr ];
+			// ffs.push(fnStr);
 			ifs.push(ifStr);
 
 			if (attr == "static") {
@@ -596,11 +688,11 @@ function parserIDL(fname) {
 
 				if (ftype === "String")
 					tjfs.push("		CLONE_String(" + fname + ");");
-				else if (clsName[ftype])
-					tjfs.push("		CLONE_CLASS(" + fname + ", " + ftype + ");");
-				else
+				else if (typeMap[ftype])
 					tjfs.push("		CLONE(" + fname + ", " + map_type(ftype)
 							+ ");");
+				else if (clsName[ftype])
+					tjfs.push("		CLONE_CLASS(" + fname + ", " + ftype + ");");
 
 				iffs
 						.push("	static v8::Handle<v8::Value> s_get_"
@@ -673,23 +765,29 @@ function parserIDL(fname) {
 	}
 
 	function arg_type(n) {
+		if (aTypeMap[n])
+			return aTypeMap[n];
+
 		if (clsName[n]) {
 			if (n != ns)
 				refCls[n] = true;
 			return "obj_ptr<" + n + "_base>";
 		}
 
-		return aTypeMap[n];
+		return reportErr();
 	}
 
 	function map_type(n) {
+		if (typeMap[n])
+			return typeMap[n];
+
 		if (clsName[n]) {
 			if (n != ns)
 				refCls[n] = true;
 			return "obj_ptr<" + n + "_base>";
 		}
 
-		return typeMap[n];
+		return reportErr();
 	}
 
 	function _checkID(s) {

@@ -157,7 +157,7 @@ namespace fibjs
 		METHOD_INSTANCE(Stream_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_CLASS(Buffer_base, 0);
+		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->write(v0);
 

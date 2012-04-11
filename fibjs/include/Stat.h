@@ -17,10 +17,11 @@ namespace fibjs
 class Stat: public Stat_base
 {
 public:
-	Stat(struct stat& st);
+	Stat(const char* path, struct stat& st);
 
 public:
 	// Stat_base
+	virtual result_t get_name(std::string& retVal);
 	virtual result_t get_size(double& retVal);
 	virtual result_t get_mtime(int64_t& retVal);
 	virtual result_t get_atime(int64_t& retVal);
@@ -34,6 +35,7 @@ public:
 	virtual result_t isSymbolicLink(bool& retVal);
 
 public:
+	std::string name;
 	double size;
 	int64_t mtime, atime, ctime;
 	bool m_isWritable, m_isReadable, m_isExecutable, m_isHidden;

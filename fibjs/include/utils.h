@@ -207,10 +207,6 @@ typedef int result_t;
     if(hr >= 0)return vr->wrap(args.This()); \
     return ThrowResult(hr);
 
-#define ARG_CLASS(cls, n) \
-    obj_ptr<cls> v##n = (cls*)cls::class_info().getInstance(args[n]); \
-    if(v##n == NULL){hr = CALL_E_NOTINSTANCE;break;}
-
 #define ARG_String(n) \
     v8::String::Utf8Value tv##n(args[n]); \
     const char* v##n = *tv##n; \
@@ -228,6 +224,11 @@ typedef int result_t;
     const char* v0 = *tv0; \
     if(v0 == NULL){hr = CALL_E_INVALIDARG;break;}
 
+#define PROPERTY_VAL(t) \
+    t v0; \
+    hr = SafeGetValue(value, v0); \
+    if(hr < 0)break;
+
 #define ARG(t, n) \
     t v##n; \
     hr = SafeGetValue(args[n], v##n); \
@@ -239,11 +240,6 @@ typedef int result_t;
         hr = SafeGetValue(args[n], v##n); \
         if(hr < 0)break; \
     }else v##n = (d);
-
-#define PROPERTY_VAL(t) \
-    t v0; \
-    hr = SafeGetValue(value, v0); \
-    if(hr < 0)break;
 
 #define CLONE_CLASS(n, cls) \
 		{obj_ptr<cls> v; hr = get_##n(v); if(hr < 0)return hr; \
@@ -257,7 +253,6 @@ typedef int result_t;
 	{t v; hr = get_##n(v); if(hr < 0)return hr; \
 	retVal->Set(v8::String::NewSymbol(#n), ReturnValue(v));}
 
-
 #define EVENT_SUPPORT() \
 		public: \
 			virtual result_t on(const char* ev, v8::Handle<v8::Function> func) \
@@ -269,7 +264,6 @@ typedef int result_t;
 			virtual result_t trigger(const char* ev, const v8::Arguments& args) \
 			{	return object_base::trigger(ev, args);}
 
-
 #ifdef _MSC_VER
 #define isnan _isnan
 #endif
@@ -279,18 +273,18 @@ class obj_ptr
 {
 public:
 	obj_ptr() :
-		p(NULL)
+			p(NULL)
 	{
 	}
 
 	obj_ptr(T* lp) :
-		p(NULL)
+			p(NULL)
 	{
 		operator=(lp);
 	}
 
 	obj_ptr(const obj_ptr<T>& lp) :
-		p(NULL)
+			p(NULL)
 	{
 		operator=(lp);
 	}
@@ -422,6 +416,16 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, bool& n)
 	return 0;
 }
 
+template<class T>
+inline result_t SafeGetValue(v8::Handle<v8::Value> v, obj_ptr<T>& vr)
+{
+	vr = (T*) T::class_info().getInstance(v);
+	if (vr == NULL)
+		return CALL_E_NOTINSTANCE;
+
+	return 0;
+}
+
 inline result_t SafeGetValue(v8::Handle<v8::Value> v,
 		v8::Handle<v8::Object>& vr)
 {
@@ -432,8 +436,7 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v,
 	return 0;
 }
 
-inline result_t SafeGetValue(v8::Handle<v8::Value> v,
-		v8::Handle<v8::Array>& vr)
+inline result_t SafeGetValue(v8::Handle<v8::Value> v, v8::Handle<v8::Array>& vr)
 {
 	if (!v->IsArray())
 		return CALL_E_INVALIDARG;
