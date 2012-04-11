@@ -509,7 +509,9 @@ template<class T>
 inline v8::Handle<v8::Value> ReturnValue(obj_ptr<T>& obj)
 {
 	v8::Handle<v8::Object> retVal;
-	obj->ValueOf(retVal);
+
+	if(obj)
+		obj->ValueOf(retVal);
 
 	return retVal;
 }
