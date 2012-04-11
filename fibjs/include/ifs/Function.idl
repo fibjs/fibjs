@@ -1,0 +1,25 @@
+
+/*! @brief Function 对象不可创建，仅用于实现对 javascript Function 对象的扩展*/
+class Function : object
+{
+	/*! @brief 启动一个纤程
+	 *
+	 * 启动纤程不需要特殊创建对象，之需要调用需要在纤程内执行的函数的 start 方法即可：
+	 * @code
+	 * function func(v1, v2)
+	 * {
+	 *     if(v1 > v2)
+	 *         print(v1);
+	 *     else
+	 *         print(v2);
+	 * }
+	 *
+	 * var fb = func.start(100, 200);
+	 * fb.join();
+	 * @endcode
+	 *
+	 * @param ... 可变参数序列，此序列会在纤程内传递给函数
+	 * @return 返回纤程对象
+	 */
+	static Fiber start(...);
+};

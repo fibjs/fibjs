@@ -1,0 +1,78 @@
+
+/*! @brief 控制台访问对象
+ *
+ * 全局对象。可用于提示信息，警告和错误记录。通过启动配置文件，可将日志定位
+ * 到不同的设备，以便于跟踪。日志支持格式化输出，例如：
+ * @code
+ * console.log("%d + %d = %d", 100, 200, 100 + 200);
+ * @endcode
+ * 可以使用的格式化参数如下：
+ * - %s - 字符串
+ * - %d - 数字，包括整数和数字
+ * - %j - 以 JSON 格式输出对象
+ * - %% - 输出字符 '%' 本身
+ */
+class console : module
+{
+	/*! @brief 记录普通日志信息，与 info 等同
+	 *
+	 * 记录一般等级的日志信息。通常用于输出非错误性提示信息。
+	 * @param fmt 格式化字符串
+	 * @param ... 可选参数列表
+	 */
+	static log(String fmt, ...);
+
+	/*! @brief 记录普通日志信息，与 log 等同
+	 *
+	 * 记录一般等级的日志信息。通常用于输出非错误性提示信息。
+	 * @param fmt 格式化字符串
+	 * @param ... 可选参数列表
+	 */
+	static info(String fmt, ...);
+
+	/*! @brief 记录警告日志信息
+	 *
+	 * 记录警告日志信息。通常用于输出非错误性调试信息。重要。
+	 * @param fmt 格式化字符串
+	 * @param ... 可选参数列表
+	 */
+	static warn(String fmt, ...);
+
+	/*! @brief 记录错误日志信息
+	 *
+	 * 记录用于错误日志信息。通常用于输出非错误性调试信息。非常重要。系统的出错信息也会以此等级记录。
+	 * @param fmt 格式化字符串
+	 * @param ... 可选参数列表
+	 */
+	static error(String fmt, ...);
+
+	/*! @brief 用 JSON 格式输出对象
+	 * @param obj 给定要显示的对象
+	 */
+	static dir(Object obj);
+
+	/*! @brief 启动一个计时器
+	 *
+	 * @param label 标题，缺省为空字符串。
+	 */
+	static time(String label = "time");
+
+	/*! @brief 统计指定计时器的数值
+	 *
+	 * @param label 标题，缺省为空字符串。
+	 */
+	static timeEnd(String label = "time");
+
+	/*! @brief 输出当前调用堆栈
+	 *
+	 * 通过日志输出当前调用堆栈。
+	 * @param label 标题，缺省为空字符串。
+	 */
+	static trace(String label = "trace");
+
+	/*! @brief 断言测试，如果测试值为假，则报错
+	 * @param value 测试的数值
+	 * @param msg 报错信息
+	 */
+	static assert(Boolean value, String msg = "");
+};

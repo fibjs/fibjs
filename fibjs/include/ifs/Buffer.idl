@@ -1,0 +1,43 @@
+
+/*! @brief 二进制数据缓存对象，用于 io 读写的数据处理
+ *
+ * Buffer 对象为全局基础类，在任何时候都可以直接以 new Buffer(...) 创建：
+ * @code
+ * var buf = new Buffer();
+ * @endcode
+ */
+class Buffer : object
+{
+	/*! @brief 缓存对象构造函数
+	 * @param size 指定初始化缓存尺寸
+	 */
+	Buffer(Integer size);
+	
+	/*! @brief 缓存对象构造函数
+	 * @param str 初始化字符串，字符串将以 utf-8 格式写入，缺省则创建一个空对象
+	 */
+	Buffer(String str = "");
+
+	/*! @brief 缓存对象可使用下标直接访问二进制数据*/
+	Integer operator[];
+
+	/*! @brief 获取缓存对象的尺寸 */
+	readonly Integer length;
+
+	/*! @brief 修改缓存对象尺寸 */
+	resize(Integer sz);
+
+	/*! @brief 向缓存对象写入字符串，字符串将以 utf-8 格式写入 */
+	write(String str);
+
+	/*! @brief 返回一个新缓存对象，包含指定范围的数据，若范围超出缓存，则只返回有效部分数据
+	 * @param start 指定范围的起始，缺省从头开始
+	 * @param end 指定范围的结束，缺省到缓存结尾
+	 * @return 返回新的缓存对象
+	 */
+	Buffer slice(Integer start = 0, Integer end = -1);
+
+	/*! @brief 以字符串形式返回缓存内的数据，字符串将以 utf-8 编码读出 */
+	String toString();
+};
+

@@ -1,0 +1,21 @@
+
+class File : Stream
+{
+	Number data;
+	Number getData();
+
+	/*	close();
+	 Boolean closed();
+	 flush();
+	 readable();
+	 String readline(Integer limit = -1);
+	 Integer seek(Integer offset, Integer whence = SEEK_SET);
+	 Boolean seekable();
+	 Integer tell();
+	 Integer truncate(Integer size = -1);
+	 Boolean writeable();
+
+	 data read(Integer size = -1);
+	 data readall();
+	 write(data d);*/
+};

@@ -1,0 +1,31 @@
+
+/*! @brief 全局对象，所有脚本均可以访问的基础对象*/
+class global : module
+{
+	/*! @brief 控制台访问对象*/
+	static console console;
+
+	/*! @brief 记录普通日志信息，与 console.log 等同
+	 * @param fmt 格式化字符串
+	 * @param ... 可选参数列表
+	 */
+	static print(String fmt, ...);
+
+	/*! @brief 运行一个脚本
+	 * @param fname 指定要运行的脚本路径
+	 */
+	static run(String fname);
+
+	/*! @brief 暂停当前纤程指定的时间
+	 * @param ms 指定要暂停的时间，以毫秒为单位，缺省为 0，即有空闲立即回恢复运行
+	 */
+	static sleep(Integer ms = 0);
+
+	/*! @brief 加载一个模块并返回模块对象
+	 * @param mod 指定要加载的模块名称
+	 */
+	static Value require(String mod);
+
+	/*! @brief 强制要求进行垃圾回收*/
+	static GC();
+};

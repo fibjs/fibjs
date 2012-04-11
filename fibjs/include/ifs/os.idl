@@ -1,0 +1,31 @@
+
+/*! @brief 操作系统信息查询模块
+ *
+ * 使用方法：
+ * @code
+ * var os = require('os');
+ * @endcode
+ */
+class os : module
+{
+	/*! @brief 查询当前运行环境主机名*/
+	static String hostname();
+
+	/*! @brief 查询当前运行环境操作系统名称*/
+	static String type();
+
+	/*! @brief 查询当前运行环境操作系统版本*/
+	static String release();
+
+	/*! @brief 查询当前运行环境*/
+	static String arch();
+
+	/*! @brief 查询当前运行环境 cpu 个数和参数*/
+	static Array CPUInfo();
+
+	/*! @brief 查询当前运行环境 cpu 个数*/
+	static Integer CPUs();
+
+	/*! @brief 查询当前运行环境网络信息*/
+	static Array networkInfo();
+};

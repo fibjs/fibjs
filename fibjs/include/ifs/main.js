@@ -3,10 +3,19 @@ String.prototype.trim = function() {
 }
 
 var fs = require('fs');
+var path = require('path');
+
 var clsName = {};
 
-preparserIDL("if.idl");
-parserIDL("if.idl");
+var dir = fs.readdir('.');
+
+for ( var idx = 0; idx < dir.length; idx++)
+	if (path.extname(dir[idx].name) === '.idl')
+		preparserIDL(dir[idx].name);
+
+for ( var idx = 0; idx < dir.length; idx++)
+	if (path.extname(dir[idx].name) === '.idl')
+		parserIDL(dir[idx].name);
 
 function preparserIDL(fname) {
 	var f, line = 0, isRem;
@@ -20,7 +29,10 @@ function preparserIDL(fname) {
 		if (st.length > 0) {
 			if (st[0] == "class" && st.length > 1) {
 				if (clsName[st[1]])
+				{
+					print(st[1]);
 					return reportErr();
+				}
 
 				if (st.length == 2 || (st.length == 4 && st[2] == ":"))
 					clsName[st[1]] = true;
@@ -466,21 +478,21 @@ function parserIDL(fname) {
 					ifStr += ", ";
 				ifStr += arg_type(type) + " " + name;
 
-					if (type === "String") {
-						if (value == "")
-							argVars += "		ARG_String(" + argCount + ");\n";
-						else
-							argVars += "		OPT_ARG_String(" + argCount + ", "
-									+ arg_value(type, value) + ");\n";
-					} else {
-						if (value == "")
-							argVars += "		ARG(" + arg_type(type) + ", "
-									+ argCount + ");\n";
-						else
-							argVars += "		OPT_ARG(" + arg_type(type) + ", "
-									+ argCount + ", " + arg_value(type, value)
-									+ ");\n";
-					}
+				if (type === "String") {
+					if (value == "")
+						argVars += "		ARG_String(" + argCount + ");\n";
+					else
+						argVars += "		OPT_ARG_String(" + argCount + ", "
+								+ arg_value(type, value) + ");\n";
+				} else {
+					if (value == "")
+						argVars += "		ARG(" + arg_type(type) + ", " + argCount
+								+ ");\n";
+					else
+						argVars += "		OPT_ARG(" + arg_type(type) + ", "
+								+ argCount + ", " + arg_value(type, value)
+								+ ");\n";
+				}
 
 				argCount++;
 				if (value == "")
@@ -888,7 +900,7 @@ function parserIDL(fname) {
 	}
 
 	function reportErr() {
-		throw new Error("Line " + line + ": Syntax Error.");
+		throw new Error("<" + fname + "> Line " + line + ": Syntax Error.");
 	}
 
 }
