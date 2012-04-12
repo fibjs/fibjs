@@ -90,11 +90,6 @@ private:
 
 private:
 	ASYNC_MEMBER1(File_base, stat);
-	ASYNC_MEMBER1(File_base, size);
-	ASYNC_MEMBER1(File_base, eof);
-	ASYNC_MEMBER2(File_base, seek);
-	ASYNC_MEMBER1(File_base, tell);
-	ASYNC_MEMBER0(File_base, rewind);
 	ASYNC_MEMBER1(File_base, truncate);
 };
 
@@ -135,7 +130,7 @@ namespace fibjs
 		METHOD_INSTANCE(File_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->ac_size(s_acPool, vr);
+		hr = pInst->size(vr);
 
 		METHOD_RETURN();
 	}
@@ -147,7 +142,7 @@ namespace fibjs
 		METHOD_INSTANCE(File_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->ac_eof(s_acPool, vr);
+		hr = pInst->eof(vr);
 
 		METHOD_RETURN();
 	}
@@ -160,7 +155,7 @@ namespace fibjs
 		ARG(double, 0);
 		OPT_ARG(int32_t, 1, SEEK_SET);
 
-		hr = pInst->ac_seek(s_acPool, v0, v1);
+		hr = pInst->seek(v0, v1);
 
 		METHOD_VOID();
 	}
@@ -172,7 +167,7 @@ namespace fibjs
 		METHOD_INSTANCE(File_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->ac_tell(s_acPool, vr);
+		hr = pInst->tell(vr);
 
 		METHOD_RETURN();
 	}
@@ -182,7 +177,7 @@ namespace fibjs
 		METHOD_INSTANCE(File_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->ac_rewind(s_acPool);
+		hr = pInst->rewind();
 
 		METHOD_VOID();
 	}

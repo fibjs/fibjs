@@ -173,7 +173,7 @@ typedef int result_t;
     if((o) > 0 && argc < (o)){hr = CALL_E_PARAMNOTOPTIONAL;break;}
 
 #define METHOD_ENTER(c, o) \
-    result_t hr = -1; do{\
+    result_t hr = CALL_E_INVALID_CALL; do{\
     METHOD_OVER(c, o)
 
 #define CONSTRUCT_ENTER(c, o) \

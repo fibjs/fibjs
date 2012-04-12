@@ -28,6 +28,7 @@ public:
 	static result_t print(const char* fmt, const v8::Arguments& args);
 	static result_t run(const char* fname);
 	static result_t sleep(int32_t ms);
+	static result_t define(const char* mod, v8::Handle<v8::Array> deps, v8::Handle<v8::Value> factory);
 	static result_t require(const char* mod, v8::Handle<v8::Value>& retVal);
 	static result_t GC();
 
@@ -39,6 +40,7 @@ public:
 			{"print", s_print},
 			{"run", s_run},
 			{"sleep", s_sleep},
+			{"define", s_define},
 			{"require", s_require},
 			{"GC", s_GC}
 		};
@@ -51,7 +53,7 @@ public:
 		static ClassData s_cd = 
 		{ 
 			"global", NULL, 
-			5, s_method, 1, s_property, NULL,
+			6, s_method, 1, s_property, NULL,
 			&module_base::class_info()
 		};
 
@@ -69,6 +71,7 @@ private:
 	static v8::Handle<v8::Value> s_print(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_run(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_sleep(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_define(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_require(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_GC(const v8::Arguments& args);
 };
@@ -119,6 +122,19 @@ namespace fibjs
 		OPT_ARG(int32_t, 0, 0);
 
 		hr = sleep(v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> global_base::s_define(const v8::Arguments& args)
+	{
+		METHOD_ENTER(3, 3);
+
+		ARG_String(0);
+		ARG(v8::Handle<v8::Array>, 1);
+		ARG(v8::Handle<v8::Value>, 2);
+
+		hr = define(v0, v1, v2);
 
 		METHOD_VOID();
 	}

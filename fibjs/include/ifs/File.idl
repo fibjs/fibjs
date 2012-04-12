@@ -16,22 +16,22 @@ class File: Stream
 	Stat stat() async;
 	
 	/*! @brief 查询文件尺寸 */
-	Number size() async;
+	Number size();
 
 	/*! @brief 查询文件是否到结尾 */
-	Boolean eof() async;
+	Boolean eof();
 
 	/*! @brief 移动文件当前操作位置
 	 *  @param offset 指定新的位置
 	 *  @param whence 指定位置基准，允许的值为：SEEK_SET, SEEK_CUR, SEEK_END
 	 */
-	seek(Number offset, Integer whence = SEEK_SET) async;
+	seek(Number offset, Integer whence = SEEK_SET);
 
 	/*! @brief 查询文件当前位置 */
-	Number tell() async;
+	Number tell();
 
 	/*! @brief 移动当前位置到文件开头 */
-	rewind() async;
+	rewind();
 	
 	/*! @brief 修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
 	 *  @param bytes 新的文件尺寸

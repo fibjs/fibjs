@@ -46,10 +46,10 @@ result_t File::read(double bytes, obj_ptr<Buffer_base>& retVal)
 			int n = fread(p, 1, sz, m_file);
 			sz -= n;
 			p += n;
-		}
 
-		if (ferror(m_file))
-			return LastError();
+			if (n == 0 && ferror(m_file))
+				return LastError();
+		}
 
 		strBuf.resize(bytes - sz);
 	}
@@ -77,7 +77,7 @@ result_t File::write(obj_ptr<Buffer_base> data)
 		sz -= n;
 		p += n;
 
-		if (ferror(m_file))
+		if (n == 0 && ferror(m_file))
 			return LastError();
 	}
 
