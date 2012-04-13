@@ -126,7 +126,7 @@ public:
 
 	T* get()
 	{
-		T* pNow = m_first;
+		T* pNow = (T*)m_first;
 
 		if (pNow)
 		{
@@ -153,8 +153,8 @@ public:
 	}
 
 private:
-	T* m_first;
-	T* m_last;
+	volatile T* m_first;
+	volatile T* m_last;
 	int m_count;
 };
 
