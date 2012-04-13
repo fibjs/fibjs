@@ -142,7 +142,6 @@ result_t os_base::CPUs(int32_t& retVal)
 
 result_t os_base::CPUInfo(v8::Handle<v8::Array>& retVal)
 {
-    v8::HandleScope scope;
     retVal = v8::Array::New();
 
 #ifdef _WIN32
@@ -330,8 +329,6 @@ result_t os_base::CPUInfo(v8::Handle<v8::Array>& retVal)
 
 result_t os_base::networkInfo(v8::Handle<v8::Array>& retVal)
 {
-    v8::HandleScope scope;
-
 #ifdef _WIN32
 
 

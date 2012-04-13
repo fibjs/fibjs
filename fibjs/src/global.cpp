@@ -19,36 +19,6 @@
 
 #include "ifs/fs.h"
 
-#ifdef _WIN32
-#include <mmsystem.h>
-inline int64_t Ticks()
-{
-	return timeGetTime(); // Convert to microseconds.
-}
-
-inline bool isSeparator(char ch)
-{
-	return ch == '/' || ch == '\\';
-}
-
-#else
-#include <sys/time.h>
-
-inline int64_t Ticks()
-{
-	struct timeval tv;
-	if (gettimeofday(&tv, NULL) < 0)
-		return 0;
-	return (tv.tv_sec * 1000ll) + tv.tv_usec / 1000;
-}
-
-inline bool isSeparator(char ch)
-{
-	return ch == '/';
-}
-
-#endif
-
 namespace fibjs
 {
 
@@ -82,8 +52,6 @@ inline void InstallNativeModule(const char* name, ClassInfo& ci)
 
 void initMdule()
 {
-	v8::HandleScope handle_scope;
-
 	s_Modules = v8::Persistent<v8::Object>::New(v8::Object::New());
 
 	InstallNativeModule("assert", assert_base::class_info());
@@ -135,7 +103,7 @@ inline std::string resolvePath(const char* id)
 	std::string fname;
 
 	if (id[0] == '.'
-			&& (isSeparator(id[1]) || (id[1] == '.' && isSeparator(id[2]))))
+			&& (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
 	{
 		v8::Handle<v8::Value> mod = v8::Context::GetCurrent()->Global()->Get(
 				v8::String::NewSymbol("module"));
@@ -239,6 +207,8 @@ inline v8::Handle<v8::Object> initRuntime(v8::Handle<v8::Context> context,
 	return mod;
 }
 
+extern void doDefine(v8::Handle<v8::Object>& mod);
+
 inline result_t runScript(std::string& fname, v8::Handle<v8::Value>& retVal)
 {
 	std::string buf;
@@ -259,18 +229,19 @@ inline result_t runScript(std::string& fname, v8::Handle<v8::Value>& retVal)
 
 	v8::Handle<v8::Object> mod = initRuntime(context, fname);
 
-	script->Run();
+	retVal = script->Run();
 
 	context.Dispose();
 
+	doDefine(mod);
 	retVal = mod->Get(v8::String::NewSymbol("exports"));
+
 	return 1;
 }
 
 result_t global_base::run(const char* fname)
 {
 	std::string strname = resolvePath(fname);
-	v8::HandleScope handle_scope;
 	v8::Handle<v8::Value> retVal;
 
 	return runScript(strname, retVal);
@@ -278,7 +249,6 @@ result_t global_base::run(const char* fname)
 
 result_t global_base::require(const char* id, v8::Handle<v8::Value>& retVal)
 {
-	v8::HandleScope handle_scope;
 	std::string fname = resolvePath(id);
 
 	{

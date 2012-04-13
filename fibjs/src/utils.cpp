@@ -46,8 +46,6 @@ inline const char* ToCString(const v8::String::Utf8Value& value)
 
 void ReportException(v8::TryCatch* try_catch, bool rt)
 {
-	v8::HandleScope handle_scope;
-
 	v8::String::Utf8Value exception(try_catch->Exception());
 
 	v8::Handle<v8::Message> message = try_catch->Message();
@@ -79,8 +77,6 @@ void ReportException(v8::TryCatch* try_catch, bool rt)
 
 std::string traceInfo()
 {
-	v8::HandleScope handle_scope;
-
 	v8::Handle<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
 			10, v8::StackTrace::kOverview);
 	int count = stackTrace->GetFrameCount();
@@ -112,7 +108,6 @@ std::string traceInfo()
 std::string JSON_stringify(v8::Handle<v8::Value> v)
 {
 	std::string str;
-	v8::HandleScope handle_scope;
 
 	v8::Handle<v8::Context> context = v8::Context::GetCurrent();
 	v8::Handle<v8::Object> global = context->Global();

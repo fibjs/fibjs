@@ -163,7 +163,9 @@ typedef int result_t;
 #define CALL_E_BADINDEX         -10
 #define CALL_E_MAX              -64
 
-#define PROPERTY_ENTER() result_t hr = 0;do{
+#define PROPERTY_ENTER() \
+	v8::HandleScope handle_scope; \
+	result_t hr = 0;do{
 
 #define METHOD_OVER(c, o) \
 	}while(0);  if(hr < 0)do{hr = 0;\
@@ -173,6 +175,7 @@ typedef int result_t;
     if((o) > 0 && argc < (o)){hr = CALL_E_PARAMNOTOPTIONAL;break;}
 
 #define METHOD_ENTER(c, o) \
+	v8::HandleScope handle_scope; \
     result_t hr = CALL_E_INVALID_CALL; do{\
     METHOD_OVER(c, o)
 
@@ -196,7 +199,7 @@ typedef int result_t;
 
 #define METHOD_RETURN() \
     }while(0); \
-    if(hr >= 0)return ReturnValue(vr); \
+    if(hr >= 0)return handle_scope.Close(ReturnValue(vr)); \
     return ThrowResult(hr);
 
 #define METHOD_VOID() \
@@ -206,7 +209,7 @@ typedef int result_t;
 
 #define CONSTRUCT_RETURN() \
     }while(0); \
-    if(hr >= 0)return vr->wrap(args.This()); \
+    if(hr >= 0)return handle_scope.Close(vr->wrap(args.This())); \
     return ThrowResult(hr);
 
 #define ARG_String(n) \
@@ -512,7 +515,7 @@ inline v8::Handle<v8::Value> ReturnValue(obj_ptr<T>& obj)
 {
 	v8::Handle<v8::Object> retVal;
 
-	if(obj)
+	if (obj)
 		obj->ValueOf(retVal);
 
 	return retVal;
@@ -546,6 +549,26 @@ v8::Handle<v8::Value> ThrowResult(result_t hr);
 std::string traceInfo();
 void ReportException(v8::TryCatch* try_catch, bool rt);
 std::string JSON_stringify(v8::Handle<v8::Value> v);
+
+#ifdef _WIN32
+
+#define PATH_SLASH	'\\'
+
+inline bool isPathSlash(char ch)
+{
+	return ch == '/' || ch == '\\';
+}
+
+#else
+
+#define PATH_SLASH	'/'
+
+inline bool isPathSlash(char ch)
+{
+	return ch == '/';
+}
+
+#endif
 
 }
 

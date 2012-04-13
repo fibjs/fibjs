@@ -1,0 +1,16 @@
+/*! @page module 模块管理
+  @tableofcontents
+  fibjs 采用 CommonJS 模块加载机制进行模块管理，支持直接使用同步和异步加载语法，以兼容前端代码。
+  @section element 基本组成
+  模块加载由四个基本元素组成，包含两个函数 @ref fun_require, @ref fun_define 和两个对象 @ref obj_module, @ref obj_exports 。
+  This page contains the subsections @ref subsection1 and @ref subsection2.
+  For more info see page @ref page2.
+  @subsection fun_require require() 函数
+  Text.
+  @subsection fun_define define() 函数
+  More text.
+  @subsection obj_module module 对象
+  More text.
+  @subsection obj_exports exports 对象
+  More text.
+*/
