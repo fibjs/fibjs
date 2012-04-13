@@ -66,7 +66,10 @@ void _main(const char* fname)
 
 	initMdule();
 
+	v8::TryCatch try_catch;
 	fibjs::global_base::run(fname);
+	if (try_catch.HasCaught())
+		ReportException(&try_catch, true);
 
 	flushLog();
 	context.Dispose();

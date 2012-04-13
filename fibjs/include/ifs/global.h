@@ -28,8 +28,8 @@ public:
 	static result_t print(const char* fmt, const v8::Arguments& args);
 	static result_t run(const char* fname);
 	static result_t sleep(int32_t ms);
-	static result_t define(const char* mod, v8::Handle<v8::Array> deps, v8::Handle<v8::Value> factory);
-	static result_t require(const char* mod, v8::Handle<v8::Value>& retVal);
+	static result_t define(const char* id, v8::Handle<v8::Array> deps, v8::Handle<v8::Value> factory);
+	static result_t require(const char* id, v8::Handle<v8::Value>& retVal);
 	static result_t GC();
 
 public:

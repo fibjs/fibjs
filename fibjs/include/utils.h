@@ -544,7 +544,7 @@ inline result_t LastError()
 
 v8::Handle<v8::Value> ThrowResult(result_t hr);
 std::string traceInfo();
-void ReportException(v8::TryCatch* try_catch, bool rt = false);
+void ReportException(v8::TryCatch* try_catch, bool rt);
 std::string JSON_stringify(v8::Handle<v8::Value> v);
 
 }

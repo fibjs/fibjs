@@ -54,7 +54,7 @@ class ClassInfo
 {
 public:
 	ClassInfo(ClassData& cd) :
-		m_cd(cd)
+			m_cd(cd)
 	{
 		v8::HandleScope handle_scope;
 
@@ -121,8 +121,7 @@ public:
 		int i;
 
 		for (i = 0; i < m_cd.mc; i++)
-			o->Set(
-					v8::String::NewSymbol(m_cd.cms[i].name),
+			o->Set(v8::String::NewSymbol(m_cd.cms[i].name),
 					v8::FunctionTemplate::New(m_cd.cms[i].invoker)->GetFunction());
 
 		for (i = 0; i < m_cd.pc; i++)

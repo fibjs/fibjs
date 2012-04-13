@@ -9,7 +9,7 @@
 
 namespace fibjs
 {
-result_t global_base::define(const char* mod, v8::Handle<v8::Array> deps, v8::Handle<v8::Value> factory)
+result_t global_base::define(const char* id, v8::Handle<v8::Array> deps, v8::Handle<v8::Value> factory)
 {
 	return 0;
 }

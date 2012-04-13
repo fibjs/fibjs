@@ -26,12 +26,12 @@ class global : module
 	 * @param deps 依赖模块列表
 	 * @param factory 模块定义
 	 */
-	static define(String mod, Array deps, Value factory);
+	static define(String id, Array deps, Value factory);
 
 	/*! @brief 加载一个模块并返回模块对象
 	 * @param mod 指定要加载的模块名称
 	 */
-	static Value require(String mod);
+	static Value require(String id);
 
 	/*! @brief 强制要求进行垃圾回收*/
 	static GC();
