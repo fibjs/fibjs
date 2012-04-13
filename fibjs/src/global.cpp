@@ -69,18 +69,32 @@ result_t global_base::print(const char* fmt, const v8::Arguments& args)
 	return console_base::log(fmt, args);
 }
 
-static void initGlobal(v8::Handle<v8::Object> global)
+v8::Persistent<v8::Object> s_Modules;
+
+inline void InstallNativeModule(const char* name, ClassInfo& ci)
 {
-	fibjs::global_base::class_info().Attach(global);
+	v8::Handle<v8::Object> mod = v8::Object::New();
 
-	global->Set(v8::String::NewSymbol("Buffer"),
-			fibjs::Buffer_base::class_info().GetFunction());
+	mod->Set(v8::String::NewSymbol("exports"), ci.CreateInstance(),
+			v8::ReadOnly);
+	s_Modules->Set(v8::String::New(name), mod, v8::ReadOnly);
+}
 
-	global->Set(v8::String::NewSymbol("Event"),
-			fibjs::Event_base::class_info().GetFunction());
+void initMdule()
+{
+	v8::HandleScope handle_scope;
 
-	fibjs::Function_base::class_info().Attach(
-			global->Get(v8::String::NewSymbol("Function"))->ToObject()->GetPrototype()->ToObject());
+	s_Modules = v8::Persistent<v8::Object>::New(v8::Object::New());
+
+	InstallNativeModule("assert", assert_base::class_info());
+	InstallNativeModule("path", path_base::class_info());
+
+	InstallNativeModule("coroutine", coroutine_base::class_info());
+
+	InstallNativeModule("fs", fs_base::class_info());
+	InstallNativeModule("os", os_base::class_info());
+
+	InstallNativeModule("encoding", encoding_base::class_info());
 }
 
 inline const char* ToCString(const v8::String::Utf8Value& value)
@@ -88,7 +102,7 @@ inline const char* ToCString(const v8::String::Utf8Value& value)
 	return *value ? *value : "<string conversion failed>";
 }
 
-static void throwSyntaxError(v8::TryCatch& try_catch)
+inline void throwSyntaxError(v8::TryCatch& try_catch)
 {
 	v8::String::Utf8Value exception(try_catch.Exception());
 
@@ -116,105 +130,156 @@ static void throwSyntaxError(v8::TryCatch& try_catch)
 	}
 }
 
-result_t global_base::run(const char* fname)
+inline std::string resolvePath(const char* id)
 {
-	std::string buf;
-	static bool s_top = true;
-
-	result_t hr = fs_base::readFile(fname, buf);
-	if (hr < 0)
-		return hr;
-
-	v8::HandleScope handle_scope;
-
-	v8::Persistent<v8::Context> context = v8::Context::New();
-	v8::Context::Scope context_scope(context);
-
-	v8::Handle<v8::Object> glob = context->Global();
-	initGlobal(glob);
-
-	v8::Handle<v8::Script> script;
-	{
-		v8::TryCatch try_catch;
-
-		script = v8::Script::Compile(
-				v8::String::New(buf.c_str(), (int) buf.length()),
-				v8::String::New(fname));
-		if (script.IsEmpty())
-		{
-			if (s_top)
-				ReportException(&try_catch, false);
-			else
-				throwSyntaxError(try_catch);
-			context.Dispose();
-			return 0;
-		}
-	}
-
-	path_base::dirname(fname, buf);
-	glob->SetHiddenValue(v8::String::NewSymbol("path"),
-			v8::String::New(buf.c_str()));
-
-	s_top = false;
-	script->Run();
-
-	context.Dispose();
-
-	return 1;
-}
-
-v8::Persistent<v8::Object> s_Modules;
-
-static void InstallNativeModule(const char* name, ClassInfo& ci)
-{
-	v8::Handle<v8::Object> mod = v8::Object::New();
-
-	mod->Set(v8::String::NewSymbol("exports"), ci.CreateInstance());
-	s_Modules->Set(v8::String::New(name), mod);
-}
-
-void initMdule()
-{
-	v8::HandleScope handle_scope;
-
-	s_Modules = v8::Persistent<v8::Object>::New(v8::Object::New());
-
-	InstallNativeModule("assert", assert_base::class_info());
-	InstallNativeModule("path", path_base::class_info());
-
-	InstallNativeModule("coroutine", coroutine_base::class_info());
-
-	InstallNativeModule("fs", fs_base::class_info());
-	InstallNativeModule("os", os_base::class_info());
-
-	InstallNativeModule("encoding", encoding_base::class_info());
-}
-
-result_t global_base::require(const char* id, v8::Handle<v8::Value>& retVal)
-{
-	v8::HandleScope handle_scope;
 	std::string fname;
 
 	if (id[0] == '.'
 			&& (isSeparator(id[1]) || (id[1] == '.' && isSeparator(id[2]))))
 	{
-		v8::Handle<v8::Value> path =
-				v8::Context::GetCurrent()->Global()->GetHiddenValue(
-						v8::String::NewSymbol("path"));
+		v8::Handle<v8::Value> mod = v8::Context::GetCurrent()->Global()->Get(
+				v8::String::NewSymbol("module"));
 
-		if (!path.IsEmpty())
+		if (!mod.IsEmpty() && mod->IsObject())
 		{
-			std::string strPath = *v8::String::Utf8Value(path);
-			if (strPath.length())
-				strPath += '/';
-			strPath += id;
-			path_base::normalize(strPath.c_str(), fname);
+			v8::Handle<v8::Value> path = mod->ToObject()->Get(
+					v8::String::NewSymbol("id"));
+
+			if (!path.IsEmpty())
+			{
+				std::string strPath;
+
+				path_base::dirname(*v8::String::Utf8Value(path), strPath);
+				if (strPath.length())
+					strPath += '/';
+				strPath += id;
+				path_base::normalize(strPath.c_str(), fname);
+
+				return fname;
+			}
 		}
+	}
+
+	path_base::normalize(id, fname);
+
+	return fname;
+}
+
+inline v8::Handle<v8::Script> compileScript(const char* fname, std::string& buf)
+{
+	static bool s_top = true;
+	v8::Handle<v8::Script> script;
+
+	v8::TryCatch try_catch;
+
+	script = v8::Script::Compile(
+			v8::String::New(buf.c_str(), (int) buf.length()),
+			v8::String::New(fname));
+	if (script.IsEmpty())
+	{
+		if (s_top)
+			ReportException(&try_catch, false);
 		else
-			path_base::normalize(id, fname);
+			throwSyntaxError(try_catch);
 	}
 	else
-		path_base::normalize(id, fname);
+		s_top = false;
+
+	return script;
+}
+
+v8::Handle<v8::Value> _define(const v8::Arguments& args);
+
+inline v8::Handle<v8::Object> initRuntime(v8::Handle<v8::Context> context,
+		std::string fname)
+{
+	v8::Handle<v8::Object> glob = context->Global();
+
+	// define first.
+	v8::Handle<v8::Function> def =
+			v8::FunctionTemplate::New(_define)->GetFunction();
+	glob->Set(v8::String::NewSymbol("define"), def, v8::ReadOnly);
+	def->ToObject()->Set(v8::String::NewSymbol("amd"), v8::Object::New(),
+			v8::ReadOnly);
+
+	// clone global function
+	fibjs::global_base::class_info().Attach(glob);
+
+	// basic class Buffer
+	glob->Set(v8::String::NewSymbol("Buffer"),
+			fibjs::Buffer_base::class_info().GetFunction(), v8::ReadOnly);
+
+	// basic class Event
+	glob->Set(v8::String::NewSymbol("Event"),
+			fibjs::Event_base::class_info().GetFunction(), v8::ReadOnly);
+
+	// clone Function.start
+	fibjs::Function_base::class_info().Attach(
+			glob->Get(v8::String::NewSymbol("Function"))->ToObject()->GetPrototype()->ToObject());
+
+	// module and exports object
+	v8::Handle<v8::Object> mod = v8::Object::New();
+	v8::Handle<v8::Object> exports = v8::Object::New();
+	mod->Set(v8::String::NewSymbol("exports"), exports);
+	mod->Set(v8::String::NewSymbol("require"),
+			glob->Get(v8::String::NewSymbol("require")), v8::ReadOnly);
+
+	// attach to global
+	glob->Set(v8::String::NewSymbol("module"), mod, v8::ReadOnly);
+	glob->Set(v8::String::NewSymbol("exports"), exports, v8::ReadOnly);
+
+	// module.id
+	fname.resize(fname.length() - 3);
+	v8::Handle<v8::String> strFname = v8::String::New(fname.c_str());
+	mod->Set(v8::String::NewSymbol("id"), strFname, v8::ReadOnly);
+
+	// the end, add to modules
+	s_Modules->Set(strFname, mod, v8::ReadOnly);
+
+	return mod;
+}
+
+inline result_t runScript(std::string& fname, v8::Handle<v8::Value>& retVal)
+{
+	std::string buf;
+
+	result_t hr = fs_base::readFile(fname.c_str(), buf);
+	if (hr < 0)
+		return hr;
+
+	v8::Persistent<v8::Context> context = v8::Context::New();
+	v8::Context::Scope context_scope(context);
+
+	v8::Handle<v8::Script> script = compileScript(fname.c_str(), buf);
+	if (script.IsEmpty())
+	{
+		context.Dispose();
+		return 0;
+	}
+
+	v8::Handle<v8::Object> mod = initRuntime(context, fname);
+
+	script->Run();
+
+	context.Dispose();
+
+	retVal = mod->Get(v8::String::NewSymbol("exports"));
+	return 1;
+}
+
+result_t global_base::run(const char* fname)
+{
+	std::string strname = resolvePath(fname);
+	v8::HandleScope handle_scope;
+	v8::Handle<v8::Value> retVal;
+
+	return runScript(strname, retVal);
+}
+
+result_t global_base::require(const char* id, v8::Handle<v8::Value>& retVal)
+{
+	v8::HandleScope handle_scope;
+	std::string fname = resolvePath(id);
 
 	{
 		v8::Handle<v8::Value> mod = s_Modules->Get(
@@ -227,59 +292,8 @@ result_t global_base::require(const char* id, v8::Handle<v8::Value>& retVal)
 		}
 	}
 
-	{
-		std::string buf;
-
-		fname += ".js";
-		result_t hr = fs_base::readFile(fname.c_str(), buf);
-		if (hr < 0)
-			return hr;
-
-		v8::Persistent<v8::Context> context = v8::Context::New();
-		v8::Context::Scope context_scope(context);
-
-		v8::Handle<v8::Script> script;
-
-		{
-			v8::TryCatch try_catch;
-
-			script = v8::Script::Compile(
-					v8::String::New(buf.c_str(), (int) buf.length()),
-					v8::String::New(fname.c_str()));
-			if (script.IsEmpty())
-			{
-				throwSyntaxError(try_catch);
-				context.Dispose();
-				return 0;
-			}
-		}
-
-		v8::Handle<v8::Object> glob = context->Global();
-		initGlobal(glob);
-
-		v8::Handle<v8::Object> mod = v8::Object::New();
-
-		fname.resize(fname.length() - 3);
-		glob->Set(v8::String::NewSymbol("module"), mod);
-
-		v8::Handle<v8::Object> exports = v8::Object::New();
-		mod->Set(v8::String::NewSymbol("exports"), exports);
-		glob->Set(v8::String::NewSymbol("exports"), exports);
-
-		path_base::dirname(fname.c_str(), buf);
-		glob->SetHiddenValue(v8::String::NewSymbol("path"),
-				v8::String::New(buf.c_str()));
-
-		s_Modules->Set(v8::String::New(fname.c_str()), mod);
-
-		script->Run();
-
-		context.Dispose();
-
-		retVal = mod->Get(v8::String::NewSymbol("exports"));
-	}
-
-	return 0;
+	fname += ".js";
+	return runScript(fname, retVal);
 }
 
 result_t global_base::sleep(int32_t ms)

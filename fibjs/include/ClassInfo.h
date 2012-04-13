@@ -122,7 +122,7 @@ public:
 
 		for (i = 0; i < m_cd.mc; i++)
 			o->Set(v8::String::NewSymbol(m_cd.cms[i].name),
-					v8::FunctionTemplate::New(m_cd.cms[i].invoker)->GetFunction());
+					v8::FunctionTemplate::New(m_cd.cms[i].invoker)->GetFunction(), v8::ReadOnly);
 
 		for (i = 0; i < m_cd.pc; i++)
 			if (m_cd.cps[i].setter)
