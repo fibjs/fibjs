@@ -80,6 +80,7 @@ assert.equal(path.dirname('/a/b/'), '/a');
 assert.equal(path.dirname('/a/b'), '/a');
 assert.equal(path.dirname('/a'), '/');
 assert.equal(path.dirname('/'), '/');
+assert.equal(path.dirname('main.js'), '');
 
 if (isWindows) {
 	assert.equal(path.dirname('c:\\'), 'c:\\');
