@@ -132,7 +132,7 @@ result_t path_base::dirname(const char* path, std::string& retVal)
 	}
 
 	if (p2 == NULL)
-		p2 = path;
+		p2 = p1;
 
 	if (isSeparator(*p2) && p2 == p1)
 		p2++;
