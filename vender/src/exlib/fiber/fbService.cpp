@@ -58,7 +58,7 @@ __declspec(thread) Service* th_Service = NULL;
 __thread Service* th_Service = NULL;
 #endif
 
-Service* Service::getTLSService()
+Service* Service::getFiberService()
 {
 	Service* pService = th_Service;
 

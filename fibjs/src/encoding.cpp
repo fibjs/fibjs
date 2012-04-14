@@ -27,7 +27,7 @@ inline int utf8_charWidth(unsigned char ch)
 	return utf8_length[ch - 0x80];
 }
 
-uint32_t utf8_getChar(const char*& src)
+inline uint32_t utf8_getChar(const char*& src)
 {
 	static const unsigned char utf8_mask[6] =
 	{ 0x7f, 0x1f, 0x0f, 0x07, 0x03, 0x01 };
@@ -99,13 +99,13 @@ uint32_t utf8_getChar(const char*& src)
 	return res;
 }
 
-static void baseEncode(const char *pEncodingTable, int dwBits,
+inline void baseEncode(const char *pEncodingTable, int dwBits,
 		obj_ptr<Buffer_base>& data, std::string& retVal)
 {
 	std::string strData;
-	int i, len = 0, len1, bits = 0;
+	int i, len = 0, bits = 0;
 	int dwData = 0;
-	int dwSize;
+	int dwSize = 0;
 	char bMask = 0xff >> (8 - dwBits);
 
 	data->toString(strData);
@@ -117,7 +117,6 @@ static void baseEncode(const char *pEncodingTable, int dwBits,
 
 	retVal.resize(dwSize);
 
-	len1 = 0;
 	for (i = 0; i < (int) strData.length(); i++)
 	{
 		dwData <<= 8;
@@ -140,7 +139,7 @@ static void baseEncode(const char *pEncodingTable, int dwBits,
 	retVal.resize(len);
 }
 
-static void baseDecode(const char *pdecodeTable, int dwBits,
+inline void baseDecode(const char *pdecodeTable, int dwBits,
 		const char* baseString, obj_ptr<Buffer_base>& retVal)
 {
 	int nWritten = 0, len = qstrlen(baseString);
