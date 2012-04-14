@@ -19,8 +19,8 @@ inline std::string resolvePath(std::string base, const char* id)
 {
 	std::string fname;
 
-	if (id[0] == '.'
-			&& (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
+	if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(
+			id[2]))))
 	{
 		if (base.length())
 			base += '/';
@@ -47,25 +47,33 @@ v8::Handle<v8::Value> _define(const v8::Arguments& args)
 
 	v8::Handle<v8::Object> glob = v8::Context::GetCurrent()->Global();
 
-	v8::Handle<v8::Object> mod =
-			glob->Get(v8::String::NewSymbol("module"))->ToObject();
+	// cache string
+	v8::Handle<v8::String> strRequire = v8::String::NewSymbol("require");
+	v8::Handle<v8::String> strExports = v8::String::NewSymbol("exports");
+	v8::Handle<v8::String> strModule = v8::String::NewSymbol("module");
+	v8::Handle<v8::String> strDefs = v8::String::NewSymbol("defs");
+	v8::Handle<v8::String> strId = v8::String::NewSymbol("id");
 
+	// fetch default module object
+	v8::Handle<v8::Object> mod = glob->Get(strModule)->ToObject();
+
+	// fetch module.id
 	std::string path;
-	path_base::dirname(
-			*v8::String::Utf8Value(mod->Get(v8::String::NewSymbol("id"))),
-			path);
+	path_base::dirname(*v8::String::Utf8Value(mod->Get(strId)), path);
 
 	v8::Handle<v8::Array> defs;
 	{
 		v8::Handle<v8::Value> v;
 
-		v = mod->GetHiddenValue(v8::String::NewSymbol("defs"));
+		// fetch hidden value module.defs
+		v = mod->GetHiddenValue(strDefs);
 		if (!v.IsEmpty() && v->IsArray())
 			defs = v8::Handle<v8::Array>::Cast(v);
 		else
 		{
+			// create one if not exists.
 			defs = v8::Array::New(0);
-			mod->SetHiddenValue(v8::String::NewSymbol("defs"), defs);
+			mod->SetHiddenValue(strDefs, defs);
 		}
 	}
 
@@ -74,6 +82,7 @@ v8::Handle<v8::Value> _define(const v8::Arguments& args)
 
 	int n = argc - 1, i;
 
+	// check deps array
 	if ((n > 0) && (args[n - 1]->IsArray()))
 	{
 		v8::Handle<v8::Array> a = v8::Handle<v8::Array>::Cast(args[n - 1]);
@@ -81,14 +90,10 @@ v8::Handle<v8::Value> _define(const v8::Arguments& args)
 
 		deps = v8::Array::New(an);
 
+		// copy deps array to module.deps
 		for (i = 0; i < an; i++)
 		{
-			v8::Handle<v8::Value> v = a->Get(i);
-			v8::String::Utf8Value s(v);
-
-			if (*s == NULL)
-				return ThrowResult(CALL_E_INVALIDARG);
-
+			v8::String::Utf8Value s(a->Get(i));
 			deps->Set(i, v8::String::New(resolvePath(path, *s).c_str()));
 		}
 		n--;
@@ -97,47 +102,52 @@ v8::Handle<v8::Value> _define(const v8::Arguments& args)
 	{
 		deps = v8::Array::New(3);
 
-		deps->Set(0, v8::String::NewSymbol("require"));
-		deps->Set(1, v8::String::NewSymbol("exports"));
-		deps->Set(2, v8::String::NewSymbol("module"));
+		// default deps: ['require', 'exports', 'module']
+		deps->Set(0, strRequire);
+		deps->Set(1, strExports);
+		deps->Set(2, strModule);
 	}
 
 	if (n > 1)
 		return ThrowResult(CALL_E_INVALIDARG);
 	else if (n == 1)
 	{
+		// we have an id name
 		v8::String::Utf8Value s(args[0]);
-
-		if (*s == NULL)
-			return ThrowResult(CALL_E_INVALIDARG);
-
 		id = *s;
 	}
 
 	v8::Handle<v8::Object> modDef;
 
 	if (id.empty())
+	{
+		// anonymous module attach default module
 		modDef = mod;
+	}
 	else
 	{
+		// named module
 		id = resolvePath(path, id.c_str());
 
 		modDef = v8::Object::New();
 		v8::Handle<v8::Object> exports = v8::Object::New();
 
-		modDef->Set(v8::String::NewSymbol("exports"), exports);
-		modDef->Set(v8::String::NewSymbol("require"),
-				glob->Get(v8::String::NewSymbol("require")), v8::ReadOnly);
+		// init module properties
+		modDef->Set(strExports, exports);
+		modDef->Set(strRequire, glob->Get(strRequire), v8::ReadOnly);
 
 		v8::Handle<v8::String> strFname = v8::String::New(id.c_str());
-		modDef->Set(v8::String::NewSymbol("id"), strFname, v8::ReadOnly);
+		modDef->Set(strId, strFname, v8::ReadOnly);
 
-		s_Modules->Set(strFname, mod, v8::ReadOnly);
+		// add to modules
+		s_Modules->Set(strFname, modDef, v8::ReadOnly);
 	}
 
+	// set hidden value module.deps and module.factory
 	modDef->SetHiddenValue(v8::String::NewSymbol("deps"), deps);
 	modDef->SetHiddenValue(v8::String::NewSymbol("factory"), args[argc - 1]);
 
+	// append to define array
 	defs->Set(defs->Length(), modDef);
 
 	return v8::Undefined();
@@ -148,9 +158,11 @@ void doDefine(v8::Handle<v8::Object>& mod)
 	v8::Handle<v8::Array> defs;
 	{
 		v8::Handle<v8::Value> v;
+		v8::Handle<v8::String> strDefs = v8::String::NewSymbol("defs");
 
-		v = mod->GetHiddenValue(v8::String::NewSymbol("defs"));
-		mod->DeleteHiddenValue(v8::String::NewSymbol("defs"));
+		// get define array from default module
+		v = mod->GetHiddenValue(strDefs);
+		mod->DeleteHiddenValue(strDefs);
 
 		if (!v.IsEmpty() && v->IsArray())
 			defs = v8::Handle<v8::Array>::Cast(v);
@@ -163,16 +175,24 @@ void doDefine(v8::Handle<v8::Object>& mod)
 	std::vector<std::string> modIds;
 	std::set<std::string> depns;
 
+	// cache string
+	v8::Handle<v8::String> strRequire = v8::String::NewSymbol("require");
+	v8::Handle<v8::String> strExports = v8::String::NewSymbol("exports");
+	v8::Handle<v8::String> strDeps = v8::String::NewSymbol("deps");
+	v8::Handle<v8::String> strFactory = v8::String::NewSymbol("factory");
+	v8::Handle<v8::String> strId = v8::String::NewSymbol("id");
+
+	// copy data to local
 	mods.resize(an);
 	modIds.resize(an);
 	for (i = 0; i < an; i++)
 	{
 		mods[i] = defs->Get(i)->ToObject();
-		modIds[i] = *v8::String::Utf8Value(
-				mods[i]->Get(v8::String::NewSymbol("id")));
+		modIds[i] = *v8::String::Utf8Value(mods[i]->Get(strId));
 		depns.insert(modIds[i]);
 	}
 
+	// two step
 	int doStep = 2;
 	bool bNext = false;
 
@@ -181,34 +201,31 @@ void doDefine(v8::Handle<v8::Object>& mod)
 		bNext = true;
 
 		for (i = 0; i < an; i++)
+		{
 			if (!modIds[i].empty())
 			{
-				v8::Handle<v8::Value> a1 = mods[i]->GetHiddenValue(
-						v8::String::NewSymbol("deps"));
+				// get deps array
+				v8::Handle<v8::Value> a1 = mods[i]->GetHiddenValue(strDeps);
 
 				if (a1.IsEmpty() || !a1->IsArray())
 				{
+					// not found deps array
 					depns.erase(modIds[i]);
 					modIds[i].resize(0);
+					bNext = false;
 
 					continue;
 				}
 
 				v8::Handle<v8::Array> a = v8::Handle<v8::Array>::Cast(a1);
-				mods[i]->DeleteHiddenValue(v8::String::NewSymbol("deps"));
 
 				int n = a->Length();
-				std::vector<std::string> ids;
 
-				ids.resize(n);
-
+				// check if the module depend a module defined in same script
 				for (j = 0; j < n; j++)
-				{
-					ids[j] = *v8::String::Utf8Value(a->Get(j));
-
-					if (doStep == 2 && depns.find(ids[j]) != depns.end())
+					if (doStep == 2 && depns.find(
+							*v8::String::Utf8Value(a->Get(j))) != depns.end())
 						break;
-				}
 
 				if (j == n)
 				{
@@ -217,30 +234,42 @@ void doDefine(v8::Handle<v8::Object>& mod)
 
 					for (j = 0; j < n; j++)
 					{
-						result_t hr;
-						v8::TryCatch try_catch;
+						v8::String::Utf8Value id(a->Get(j));
 
-						hr = global_base::require(ids[j].c_str(), deps[j]);
-
-						if(hr < 0)
+						if (!qstrcmp(*id, "require"))
+							deps[j] = mods[i]->Get(strRequire);
+						else if (!qstrcmp(*id, "exports"))
+							deps[j] = mods[i]->Get(strExports);
+						else if (!qstrcmp(*id, "module"))
+							deps[j] = mods[i];
+						else
 						{
-							ThrowResult(hr);
-							return;
-						}
+							// load module use require
+							result_t hr;
+							v8::TryCatch try_catch;
 
-						if (try_catch.HasCaught())
-						{
-							try_catch.ReThrow();
-							return;
+							hr = global_base::require(*id, deps[j]);
+
+							if (hr < 0)
+							{
+								ThrowResult(hr);
+								return;
+							}
+
+							if (try_catch.HasCaught())
+							{
+								try_catch.ReThrow();
+								return;
+							}
 						}
 					}
 
 					v8::Handle<v8::Value> v;
 
-					v = mods[i]->GetHiddenValue(
-							v8::String::NewSymbol("factory"));
-					mods[i]->DeleteHiddenValue(
-							v8::String::NewSymbol("factory"));
+					// get factory and remove hidden value.
+					v = mods[i]->GetHiddenValue(strFactory);
+					mods[i]->DeleteHiddenValue(strFactory);
+					mods[i]->DeleteHiddenValue(strDeps);
 
 					if (v->IsFunction())
 					{
@@ -256,15 +285,18 @@ void doDefine(v8::Handle<v8::Object>& mod)
 						}
 					}
 
+					// use the result as exports if the factory return something
 					if (!v->IsUndefined())
-						mods[i]->Set(v8::String::NewSymbol("exports"), v);
+						mods[i]->Set(strExports, v);
 
+					// remove id name, we don't like to call it again
 					depns.erase(modIds[i]);
 					modIds[i].resize(0);
-				}
-				else
 					bNext = false;
+				}
 			}
+		}
+
 		if (bNext)
 			doStep--;
 	}

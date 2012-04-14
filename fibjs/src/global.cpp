@@ -90,8 +90,8 @@ inline void throwSyntaxError(v8::TryCatch& try_catch)
 		strError << ToCString(filename);
 		int lineNumber = message->GetLineNumber();
 		if (lineNumber > 0)
-			strError << ':' << lineNumber << ':'
-					<< (message->GetStartColumn() + 1);
+			strError << ':' << lineNumber << ':' << (message->GetStartColumn()
+					+ 1);
 		v8::ThrowException(
 				v8::Exception::SyntaxError(
 						v8::String::New(strError.str().c_str())));
@@ -102,29 +102,24 @@ inline std::string resolvePath(const char* id)
 {
 	std::string fname;
 
-	if (id[0] == '.'
-			&& (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
+	if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(
+			id[2]))))
 	{
-		v8::Handle<v8::Value> mod = v8::Context::GetCurrent()->Global()->Get(
-				v8::String::NewSymbol("module"));
+		v8::Handle<v8::Value> path =
+				v8::Context::GetCurrent()->Global()->GetHiddenValue(
+						v8::String::NewSymbol("id"));
 
-		if (!mod.IsEmpty() && mod->IsObject())
+		if (!path.IsEmpty())
 		{
-			v8::Handle<v8::Value> path = mod->ToObject()->Get(
-					v8::String::NewSymbol("id"));
+			std::string strPath;
 
-			if (!path.IsEmpty())
-			{
-				std::string strPath;
+			path_base::dirname(*v8::String::Utf8Value(path), strPath);
+			if (strPath.length())
+				strPath += '/';
+			strPath += id;
+			path_base::normalize(strPath.c_str(), fname);
 
-				path_base::dirname(*v8::String::Utf8Value(path), strPath);
-				if (strPath.length())
-					strPath += '/';
-				strPath += id;
-				path_base::normalize(strPath.c_str(), fname);
-
-				return fname;
-			}
+			return fname;
 		}
 	}
 
@@ -157,59 +152,10 @@ inline v8::Handle<v8::Script> compileScript(const char* fname, std::string& buf)
 }
 
 v8::Handle<v8::Value> _define(const v8::Arguments& args);
+void doDefine(v8::Handle<v8::Object>& mod);
 
-inline v8::Handle<v8::Object> initRuntime(v8::Handle<v8::Context> context,
-		std::string fname)
-{
-	v8::Handle<v8::Object> glob = context->Global();
-
-	// define first.
-	v8::Handle<v8::Function> def =
-			v8::FunctionTemplate::New(_define)->GetFunction();
-	glob->Set(v8::String::NewSymbol("define"), def, v8::ReadOnly);
-	def->ToObject()->Set(v8::String::NewSymbol("amd"), v8::Object::New(),
-			v8::ReadOnly);
-
-	// clone global function
-	fibjs::global_base::class_info().Attach(glob);
-
-	// basic class Buffer
-	glob->Set(v8::String::NewSymbol("Buffer"),
-			fibjs::Buffer_base::class_info().GetFunction(), v8::ReadOnly);
-
-	// basic class Event
-	glob->Set(v8::String::NewSymbol("Event"),
-			fibjs::Event_base::class_info().GetFunction(), v8::ReadOnly);
-
-	// clone Function.start
-	fibjs::Function_base::class_info().Attach(
-			glob->Get(v8::String::NewSymbol("Function"))->ToObject()->GetPrototype()->ToObject());
-
-	// module and exports object
-	v8::Handle<v8::Object> mod = v8::Object::New();
-	v8::Handle<v8::Object> exports = v8::Object::New();
-	mod->Set(v8::String::NewSymbol("exports"), exports);
-	mod->Set(v8::String::NewSymbol("require"),
-			glob->Get(v8::String::NewSymbol("require")), v8::ReadOnly);
-
-	// attach to global
-	glob->Set(v8::String::NewSymbol("module"), mod, v8::ReadOnly);
-	glob->Set(v8::String::NewSymbol("exports"), exports, v8::ReadOnly);
-
-	// module.id
-	fname.resize(fname.length() - 3);
-	v8::Handle<v8::String> strFname = v8::String::New(fname.c_str());
-	mod->Set(v8::String::NewSymbol("id"), strFname, v8::ReadOnly);
-
-	// the end, add to modules
-	s_Modules->Set(strFname, mod, v8::ReadOnly);
-
-	return mod;
-}
-
-extern void doDefine(v8::Handle<v8::Object>& mod);
-
-inline result_t runScript(std::string& fname, v8::Handle<v8::Value>& retVal)
+inline result_t runScript(std::string& fname, v8::Handle<v8::Value>& retVal,
+		bool bMod)
 {
 	std::string buf;
 
@@ -227,14 +173,86 @@ inline result_t runScript(std::string& fname, v8::Handle<v8::Value>& retVal)
 		return 0;
 	}
 
-	v8::Handle<v8::Object> mod = initRuntime(context, fname);
+	// cache string
+	v8::Handle<v8::String> strRequire = v8::String::NewSymbol("require");
+	v8::Handle<v8::String> strExports = v8::String::NewSymbol("exports");
+	v8::Handle<v8::String> strModule = v8::String::NewSymbol("module");
+	v8::Handle<v8::String> strDefine = v8::String::NewSymbol("define");
+	v8::Handle<v8::String> strId = v8::String::NewSymbol("id");
 
-	retVal = script->Run();
+	v8::Handle<v8::Object> glob = context->Global();
+
+	// define first.
+	if (bMod)
+	{
+		v8::Handle<v8::Function> def =
+				v8::FunctionTemplate::New(_define)->GetFunction();
+
+		def->ToObject()->Set(v8::String::NewSymbol("amd"), v8::Object::New(),
+				v8::ReadOnly);
+		glob->Set(strDefine, def, v8::ReadOnly);
+	}
+
+	// clone global function
+	fibjs::global_base::class_info().Attach(glob);
+
+	// basic class Buffer
+	glob->Set(v8::String::NewSymbol("Buffer"),
+			fibjs::Buffer_base::class_info().GetFunction(), v8::ReadOnly);
+
+	// basic class Event
+	glob->Set(v8::String::NewSymbol("Event"),
+			fibjs::Event_base::class_info().GetFunction(), v8::ReadOnly);
+
+	// clone Function.start
+	fibjs::Function_base::class_info().Attach(
+			glob->Get(v8::String::NewSymbol("Function"))->ToObject()->GetPrototype()->ToObject());
+
+	// module.id
+	fname.resize(fname.length() - 3);
+	v8::Handle<v8::String> strFname = v8::String::New(fname.c_str());
+	glob->SetHiddenValue(strId, strFname);
+
+	// module and exports object
+	v8::Handle<v8::Object> mod = v8::Object::New();
+
+	if (bMod)
+	{
+		v8::Handle<v8::Object> exports = v8::Object::New();
+
+		// init module
+		mod->Set(strExports, exports);
+		mod->Set(strRequire, glob->Get(strRequire), v8::ReadOnly);
+
+		mod->Set(strId, strFname, v8::ReadOnly);
+
+		// add to modules
+		s_Modules->Set(strFname, mod, v8::ReadOnly);
+
+		// attach to global
+		glob->Set(strModule, mod, v8::ReadOnly);
+		glob->Set(strExports, exports, v8::ReadOnly);
+	}
+	else
+		// remove define function
+		glob->ForceDelete(strDefine);
+
+	script->Run();
+
+	if (bMod)
+	{
+		// process define modules. remove commonjs function
+		glob->ForceDelete(strDefine);
+		glob->ForceDelete(strModule);
+		glob->ForceDelete(strExports);
+
+		doDefine(mod);
+
+		// use module.exports as result value
+		retVal = mod->Get(strExports);
+	}
 
 	context.Dispose();
-
-	doDefine(mod);
-	retVal = mod->Get(v8::String::NewSymbol("exports"));
 
 	return 1;
 }
@@ -244,7 +262,7 @@ result_t global_base::run(const char* fname)
 	std::string strname = resolvePath(fname);
 	v8::Handle<v8::Value> retVal;
 
-	return runScript(strname, retVal);
+	return runScript(strname, retVal, false);
 }
 
 result_t global_base::require(const char* id, v8::Handle<v8::Value>& retVal)
@@ -263,7 +281,7 @@ result_t global_base::require(const char* id, v8::Handle<v8::Value>& retVal)
 	}
 
 	fname += ".js";
-	return runScript(fname, retVal);
+	return runScript(fname, retVal, true);
 }
 
 result_t global_base::sleep(int32_t ms)
