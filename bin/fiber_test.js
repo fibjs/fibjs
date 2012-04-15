@@ -44,16 +44,42 @@ f.v = 2000;
 f.join();
 assert.equal(n, 2300);
 
+var nCount = 1000000;
+var bDone = false;
 
 function t_switch()
 {
-	while(1)
+	while(!bDone)
 		coroutine.sleep();
 }
 
 t_switch.start();
-console.time('switch 100000 times');
-for(var i = 0; i < 100000; i ++)
+console.time('switch '+nCount+' times');
+for(var i = 0; i < nCount; i ++)
 	coroutine.sleep();
-console.timeEnd('switch 100000 times');
+console.timeEnd('switch '+nCount+' times');
+
+bDone = true;
+coroutine.sleep();
+
+var n = 0;
+
+function t_nop(a, b)
+{
+	return n + a + b;
+}
+
+console.time('start '+nCount+' times');
+for(var i = 0; i < nCount; i ++)
+	t_nop.start(1, 2);
+console.timeEnd('start '+nCount+' times');
+
+console.time('run '+nCount+' times');
+coroutine.sleep();
+console.timeEnd('run '+nCount+' times');
+
+console.time('call '+nCount+' times');
+for(var i = 0; i < nCount; i ++)
+	n = t_nop(1, 2);
+console.timeEnd('call '+nCount+' times');
 
