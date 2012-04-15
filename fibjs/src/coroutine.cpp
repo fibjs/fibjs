@@ -90,6 +90,8 @@ public:
 		while (1)
 		{
 			fiber_data* fb;
+
+			if ((fb = g_jobs.tryget()) == NULL)
 			{
 				v8::Unlocker unlocker(isolate);
 				fb = g_jobs.get();
@@ -101,20 +103,21 @@ public:
 
 			size_t i;
 
-			v8::Handle<v8::Function> func = fb->m_func;
+			v8::Handle<v8::Function> func;
 			std::vector<v8::Handle<v8::Value> > argv;
 
+			func = fb->m_func;
 			argv.resize(fb->argv.size());
 			for (i = 0; i < fb->argv.size(); i++)
 				argv[i] = fb->argv[i];
 
 			v8::TryCatch try_catch;
-			func->Call(fb->wrap(), (int) argv.size(),
-					argv.size() ? &argv[0] : NULL);
+			func->Call(fb->wrap(), (int) argv.size(), argv.data());
 			if (try_catch.HasCaught())
 				ReportException(&try_catch, true);
 
 			fb->m_quit.set();
+			fb->dispose();
 			fb->Unref();
 		}
 
@@ -125,7 +128,7 @@ public:
 	{
 		if (!g_jobs.empty() && (s_fibers < s_cpus * FIBER_PER_CPU))
 		{
-			s_fibers ++;
+			s_fibers++;
 			exlib::Service::CreateFiber(fiber_proc)->Unref();
 		}
 
@@ -162,9 +165,9 @@ result_t coroutine_base::start(v8::Handle<v8::Function> func,
 result_t coroutine_base::current(obj_ptr<Fiber_base>& retVal)
 {
 	exlib::Service* pService = exlib::Service::getFiberService();
-	Fiber_base* fb = (Fiber_base*)pService->tlsGet(s_tlsCurrent);
+	Fiber_base* fb = (Fiber_base*) pService->tlsGet(s_tlsCurrent);
 
-	if(!fb)
+	if (!fb)
 	{
 		fb = new fiber_data();
 		pService->tlsPut(s_tlsCurrent, fb);

@@ -277,7 +277,7 @@ void doDefine(v8::Handle<v8::Object>& mod)
 								v8::Handle<v8::Function>::Cast(v);
 
 						v8::TryCatch try_catch;
-						v = func->Call(func, n, &deps[0]);
+						v = func->Call(func, n, deps.data());
 						if (try_catch.HasCaught())
 						{
 							try_catch.ReThrow();
