@@ -482,7 +482,7 @@ inline v8::Handle<v8::Value> ReturnValue(double v)
 
 inline v8::Handle<v8::Value> ReturnValue(int64_t v)
 {
-	return v8::Date::New(v);
+	return v8::Date::New((double)v);
 }
 
 inline v8::Handle<v8::Value> ReturnValue(std::string& str)

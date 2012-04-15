@@ -90,7 +90,8 @@ result_t os_base::arch(std::string& retVal)
 result_t os_base::CPUs(int32_t& retVal)
 {
 #ifdef _WIN32
-    for (int i = 0; i < 32; i++)
+	int i;
+    for (i = 0; i < 32; i++)
     {
         char key[128] = "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\";
         char processor_number[32];

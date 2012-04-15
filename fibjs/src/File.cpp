@@ -17,6 +17,11 @@
 #include "Buffer.h"
 #include "Stat.h"
 
+#ifdef _WIN32
+#include <io.h>
+#endif
+#include "utf8.h"
+
 namespace fibjs
 {
 
@@ -43,7 +48,7 @@ result_t File::read(double bytes, obj_ptr<Buffer_base>& retVal)
 
 		while (sz && !feof(m_file))
 		{
-			int n = fread(p, 1, sz, m_file);
+			int n = (int)fread(p, 1, sz, m_file);
 			sz -= n;
 			p += n;
 
@@ -59,21 +64,14 @@ result_t File::read(double bytes, obj_ptr<Buffer_base>& retVal)
 	return 0;
 }
 
-result_t File::write(obj_ptr<Buffer_base> data)
+result_t File::Write(const char* p, int sz)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
-	std::string strBuf;
-
-	data->toString(strBuf);
-
-	int sz = strBuf.length();
-	const char* p = strBuf.c_str();
-
 	while (sz)
 	{
-		int n = fwrite(p, 1, sz, m_file);
+		int n = (int)fwrite(p, 1, sz, m_file);
 		sz -= n;
 		p += n;
 
@@ -84,8 +82,35 @@ result_t File::write(obj_ptr<Buffer_base> data)
 	return 0;
 }
 
+result_t File::write(obj_ptr<Buffer_base> data)
+{
+	if (!m_file)
+		return CALL_E_INVALID_CALL;
+
+	std::string strBuf;
+	data->toString(strBuf);
+
+	return Write(strBuf.c_str(), (int)strBuf.length());
+}
+
 result_t File::Open(const char* fname, const char* mode)
 {
+#ifdef _WIN32
+	wchar_t m[] = L"rb\0";
+
+	if ((*mode != 'a' && *mode != 'r' && *mode != 'w')
+			|| (mode[1] != '+' && mode[1]))
+		return CALL_E_INVALIDARG;
+
+	m[0] = mode[0];
+	m[2] = mode[1];
+
+	close();
+
+	m_file = _wfopen(UTF8_W(fname), m);
+	if (m_file == NULL)
+		return LastError();
+#else
 	char m[] = "rb\0";
 
 	if ((*mode != 'a' && *mode != 'r' && *mode != 'w')
@@ -100,6 +125,7 @@ result_t File::Open(const char* fname, const char* mode)
 	m_file = fopen(fname, m);
 	if (m_file == NULL)
 		return LastError();
+#endif
 
 	name = fname;
 
@@ -123,7 +149,8 @@ result_t File::stat(obj_ptr<Stat_base>& retVal)
 	struct stat st;
 	fstat(fileno(m_file), &st);
 
-	obj_ptr<Stat> pStat = new Stat(name.c_str(), st);
+	obj_ptr<Stat> pStat = new Stat();
+	pStat->fillStat(name.c_str(), st);
 	retVal = pStat;
 
 	return 0;
@@ -217,8 +244,13 @@ result_t File::truncate(double bytes)
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
+#ifdef _WIN32
+	if(_chsize(_fileno(m_file), (long)bytes) < 0)
+		return LastError();
+#else
 	if (ftruncate(fileno(m_file), bytes) < 0)
 		return LastError();
+#endif
 
 	return 0;
 }

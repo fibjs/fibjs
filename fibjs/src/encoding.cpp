@@ -111,9 +111,9 @@ inline void baseEncode(const char *pEncodingTable, int dwBits,
 	data->toString(strData);
 
 	if (dwBits == 6)
-		dwSize = (strData.length() + 2) / 3 * 4;
+		dwSize = ((int)strData.length() + 2) / 3 * 4;
 	else if (dwBits == 5)
-		dwSize = (strData.length() + 4) / 5 * 8;
+		dwSize = ((int)strData.length() + 4) / 5 * 8;
 
 	retVal.resize(dwSize);
 
@@ -142,7 +142,7 @@ inline void baseEncode(const char *pEncodingTable, int dwBits,
 inline void baseDecode(const char *pdecodeTable, int dwBits,
 		const char* baseString, obj_ptr<Buffer_base>& retVal)
 {
-	int nWritten = 0, len = qstrlen(baseString);
+	int nWritten = 0, len = (int)qstrlen(baseString);
 	std::string strBuf;
 
 	strBuf.resize(len * dwBits / 8);
@@ -231,7 +231,7 @@ result_t encoding_base::hexEncode(obj_ptr<Buffer_base> data,
 
 	data->toString(strData);
 
-	i = strData.length() * 2;
+	i = (int)strData.length() * 2;
 	retVal.resize(i);
 
 	len1 = 0;
@@ -251,7 +251,7 @@ result_t encoding_base::hexEncode(obj_ptr<Buffer_base> data,
 result_t encoding_base::hexDecode(const char* data,
 		obj_ptr<Buffer_base>& retVal)
 {
-	int pos, len = qstrlen(data);
+	int pos, len = (int)qstrlen(data);
 	std::string strBuf;
 	uint32_t ch1, ch2;
 

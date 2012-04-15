@@ -14,8 +14,8 @@
 #endif
 
 #include <string.h>
-#include <dirent.h>
 
+#include "utf8.h"
 #include "ifs/fs.h"
 #include "File.h"
 #include "Stat.h"
@@ -47,7 +47,7 @@ result_t fs_base::create(const char* fname, bool Overwrite,
 
 result_t fs_base::tmpFile(obj_ptr<File_base>& retVal)
 {
-	retVal = new (File);
+	retVal = new File();
 	return 0;
 }
 
@@ -70,17 +70,36 @@ result_t fs_base::readFile(const char* fname, std::string& retVal)
 
 result_t fs_base::writeFile(const char* fname, const char* txt)
 {
-	FILE* file = fopen(fname, "wb+");
-	if (file == NULL)
-		return LastError();
+	obj_ptr<File> pFile = new File;
+	result_t hr;
 
-	int size = (int) strlen(txt);
+	hr = pFile->Open(fname, "w+");
+	if (hr < 0)
+		return hr;
 
-	fwrite(txt, 1, size, file);
-	fclose(file);
+	return pFile->Write(txt, (int)qstrlen(txt));
+}
+
+result_t fs_base::stat(const char* path, obj_ptr<Stat_base>& retVal)
+{
+	obj_ptr<Stat> pStat = new Stat();
+
+	result_t hr = pStat->getStat(path);
+	if(hr < 0)
+		return hr;
+
+	retVal = pStat;
 
 	return 0;
 }
+
+}
+
+#ifndef _WIN32
+#include <dirent.h>
+
+namespace fibjs
+{
 
 result_t fs_base::exists(const char* path, bool& retVal)
 {
@@ -120,19 +139,6 @@ result_t fs_base::rename(const char* from, const char* to)
 	return 0;
 }
 
-result_t fs_base::stat(const char* path, obj_ptr<Stat_base>& retVal)
-{
-	struct stat st;
-	if (::stat(path, &st))
-		return LastError();
-
-	obj_ptr<Stat> pStat = new Stat(path, st);
-
-	retVal = pStat;
-
-	return 0;
-}
-
 result_t fs_base::readdir(const char* path, obj_ptr<ObjectArray_base>& retVal)
 {
 	DIR * dp;
@@ -167,3 +173,83 @@ result_t fs_base::readdir(const char* path, obj_ptr<ObjectArray_base>& retVal)
 }
 
 }
+
+#else
+
+#include <direct.h>
+
+namespace fibjs
+{
+
+result_t fs_base::exists(const char* path, bool& retVal)
+{
+	retVal = _waccess(UTF8_W(path), 0) == 0;
+	return 0;
+}
+
+result_t fs_base::unlink(const char* path)
+{
+	if(::_wunlink(UTF8_W(path)))
+		return LastError();
+
+	return 0;
+}
+
+result_t fs_base::mkdir(const char* path)
+{
+	if (::_wmkdir(UTF8_W(path)))
+		return LastError();
+
+	return 0;
+}
+
+result_t fs_base::rmdir(const char* path)
+{
+	if (::_wrmdir(UTF8_W(path)))
+		return LastError();
+
+	return 0;
+}
+
+result_t fs_base::rename(const char* from, const char* to)
+{
+	if (::_wrename(UTF8_W(from), UTF8_W(to)))
+		return LastError();
+	
+	return 0;
+}
+
+result_t fs_base::readdir(const char* path, obj_ptr<ObjectArray_base>& retVal)
+{
+	WIN32_FIND_DATAW fd;
+	HANDLE hFind;
+	std::wstring fpath;
+	obj_ptr<ObjectArray> oa;
+
+	fpath = utf8to16String(path);
+	fpath.append(L"/*", 2);
+
+	hFind = FindFirstFileW(fpath.c_str(), &fd);
+	if (hFind == INVALID_HANDLE_VALUE)
+		return LastError();
+
+	oa = new ObjectArray();
+
+	do
+	{
+		obj_ptr<Stat> pStat = new Stat();
+		pStat->fillStat(fd);
+		oa->push(pStat);
+	}while(FindNextFileW(hFind, &fd));
+
+	FindClose(hFind);
+
+	retVal = oa;
+
+	return 0;
+}
+
+}
+
+#endif
+

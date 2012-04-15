@@ -7,13 +7,62 @@
 
 #include "Stat.h"
 #include "ifs/path.h"
+#include "utf8.h"
 
 namespace fibjs
 {
 
-Stat::Stat(const char* path, struct stat& st)
+#ifdef _WIN32
+
+#ifndef S_IRUSR
+#define S_IRUSR S_IREAD
+#define S_IWUSR S_IWRITE
+#define S_IXUSR S_IEXEC
+#endif
+
+#define S_ISLNK(m) 0
+
+inline int64_t FileTimeToJSTime(FILETIME &ft)
+{
+	return (*(int64_t*)&ft - 116444736000000000) / 10000;
+}
+
+void Stat::fillStat(WIN32_FIND_DATAW& fd)
+{
+	name = utf16to8String(fd.cFileName);
+
+	size = (int64_t)fd.nFileSizeHigh << 32 | fd.nFileSizeLow;
+	mtime = FileTimeToJSTime(fd.ftLastWriteTime);
+	atime = FileTimeToJSTime(fd.ftLastAccessTime);
+	ctime = FileTimeToJSTime(fd.ftCreationTime);
+
+	m_isDirectory = (FILE_ATTRIBUTE_DIRECTORY & fd.dwFileAttributes) != 0;
+	m_isFile = (FILE_ATTRIBUTE_DIRECTORY & fd.dwFileAttributes) == 0;
+
+	m_isReadable = true;
+	m_isWritable = (FILE_ATTRIBUTE_READONLY & fd.dwFileAttributes) == 0;
+	m_isExecutable = true;
+
+	m_isSymbolicLink = false;
+}
+
+#endif
+
+result_t Stat::getStat(const char* path)
+{
+	struct stat st;
+	if (::stat(path, &st))
+		return LastError();
+
+	fillStat(path, st);
+
+	return 0;
+}
+
+void Stat::fillStat(const char* path, struct stat& st)
 {
 	path_base::basename(path, "", name);
+
 	size = st.st_size;
 	mtime = st.st_mtime * 1000ll;
 	atime = st.st_atime * 1000ll;
@@ -23,8 +72,9 @@ Stat::Stat(const char* path, struct stat& st)
 	m_isWritable = (st.st_mode | S_IWUSR) != 0;
 	m_isExecutable = (st.st_mode | S_IXUSR) != 0;
 
-	m_isDirectory = S_ISDIR(st.st_mode);
-	m_isFile = S_ISREG(st.st_mode);
+	m_isDirectory = (S_IFDIR & st.st_mode) != 0;
+	m_isFile = (S_IFREG & st.st_mode) != 0;
+
 	m_isSymbolicLink = S_ISLNK(st.st_mode);
 }
 

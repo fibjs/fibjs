@@ -100,7 +100,6 @@ public:
 		int64_t tm;
 		std::multimap<int64_t, AsyncCall*>::iterator e;
 		AsyncLog *p1, *p2, *pn;
-		log4cpp::Category& root = log4cpp::Category::getRoot();
 
 		while (1)
 		{
@@ -108,6 +107,7 @@ public:
 			p1 = s_acLog.getList();
 			if (p1)
 			{
+				log4cpp::Category& root = log4cpp::Category::getRoot();
 				pn = NULL;
 
 				while (p1)

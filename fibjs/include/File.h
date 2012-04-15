@@ -38,6 +38,7 @@ public:
 
 public:
     result_t Open(const char* fname, const char* mode);
+    result_t Write(const char* p, int sz);
 
 private:
     std::string name;

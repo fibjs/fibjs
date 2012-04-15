@@ -17,7 +17,12 @@ namespace fibjs
 class Stat: public Stat_base
 {
 public:
-	Stat(const char* path, struct stat& st);
+	result_t getStat(const char* path);
+	void fillStat(const char* path, struct stat& st);
+
+#ifdef _WIN32
+	void fillStat(WIN32_FIND_DATAW& fd);
+#endif
 
 public:
 	// Stat_base
