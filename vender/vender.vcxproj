@@ -29,7 +29,6 @@
     <ClCompile Include="src\exlib\fiber\fbSwitch.cpp" />
     <ClCompile Include="src\exlib\fiber\fbTls.cpp" />
     <ClCompile Include="src\exlib\thread.cpp" />
-    <ClCompile Include="src\exlib\utils.cpp" />
     <ClCompile Include="src\gd\gd.c" />
     <ClCompile Include="src\gd\gdcache.c" />
     <ClCompile Include="src\gd\gdfontg.c" />

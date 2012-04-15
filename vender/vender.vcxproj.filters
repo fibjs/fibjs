@@ -1125,9 +1125,6 @@
     <ClCompile Include="src\exlib\thread.cpp">
       <Filter>Source Files\exlib</Filter>
     </ClCompile>
-    <ClCompile Include="src\exlib\utils.cpp">
-      <Filter>Source Files\exlib</Filter>
-    </ClCompile>
     <ClCompile Include="src\exlib\fiber\fbAsyncEvent.cpp">
       <Filter>Source Files\exlib\fiber</Filter>
     </ClCompile>
