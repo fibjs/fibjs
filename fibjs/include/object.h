@@ -67,6 +67,8 @@ public:
 			handle_->SetPointerInInternalField(0, this);
 			handle_.MakeWeak(this, WeakCallback);
 
+			v8::V8::AdjustAmountOfExternalAllocatedMemory(32);
+
 			Ref();
 		}
 
@@ -98,6 +100,8 @@ public:
 			handle_->SetPointerInInternalField(0, 0);
 			handle_.Dispose();
 			handle_.Clear();
+
+			v8::V8::AdjustAmountOfExternalAllocatedMemory(-32);
 
 			Unref();
 		}

@@ -89,6 +89,14 @@ result_t os_base::arch(std::string& retVal)
 
 result_t os_base::CPUs(int32_t& retVal)
 {
+	static int cpus = 0;
+
+	if(cpus > 0)
+	{
+		retVal = cpus;
+		return 0;
+	}
+
 #ifdef _WIN32
 	int i;
     for (i = 0; i < 32; i++)
@@ -109,7 +117,7 @@ result_t os_base::CPUs(int32_t& retVal)
         }
         RegCloseKey(processor_key);
     }
-    retVal = i;
+    retVal = cpus = i;
 #elif defined(Linux)
     int numcpus = 0;
     char line[512];
@@ -122,7 +130,7 @@ result_t os_base::CPUs(int32_t& retVal)
                 numcpus++;
         fclose(fpModel);
 
-        retVal = numcpus;
+        retVal = cpus = numcpus;
     }else return LastError();
 #elif defined(MacOS)
     natural_t numcpus;
@@ -135,7 +143,7 @@ result_t os_base::CPUs(int32_t& retVal)
 
     vm_deallocate(mach_task_self(), (vm_address_t)info, count);
 
-    retVal = numcpus;
+    retVal = cpus = numcpus;
 #endif
 
     return 0;

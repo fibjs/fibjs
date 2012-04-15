@@ -1,5 +1,6 @@
 
 var assert = require('assert');
+var os = require('os');
 var coroutine = require('coroutine');
 
 var n = 123;
@@ -44,7 +45,8 @@ f.v = 2000;
 f.join();
 assert.equal(n, 2300);
 
-var nCount = 1000000;
+var nCount = 2000000;
+
 var bDone = false;
 
 function t_switch()
@@ -53,7 +55,7 @@ function t_switch()
 		coroutine.sleep();
 }
 
-t_switch.start();
+//t_switch.start();
 console.time('switch '+nCount+' times');
 for(var i = 0; i < nCount; i ++)
 	coroutine.sleep();
@@ -64,14 +66,13 @@ coroutine.sleep();
 
 var n = 0;
 
-function t_nop(a, b)
+function t_nop()
 {
-	return n + a + b;
 }
 
 console.time('start '+nCount+' times');
 for(var i = 0; i < nCount; i ++)
-	t_nop.start(1, 2);
+	t_nop.start();
 console.timeEnd('start '+nCount+' times');
 
 console.time('run '+nCount+' times');
@@ -80,6 +81,25 @@ console.timeEnd('run '+nCount+' times');
 
 console.time('call '+nCount+' times');
 for(var i = 0; i < nCount; i ++)
-	n = t_nop(1, 2);
+	n = t_nop();
 console.timeEnd('call '+nCount+' times');
+
+
+console.time('os.CPUs '+nCount+' times');
+for(var i = 0; i < nCount; i ++)
+	os.CPUs();
+console.timeEnd('os.CPUs '+nCount+' times');
+
+console.time('new Buffer '+nCount+' times');
+for(var i = 0; i < nCount; i ++)
+	(new Buffer()).dispose();
+console.timeEnd('new Buffer '+nCount+' times');
+
+while(1)
+{
+	console.time('start&run '+nCount+' times');
+	for(var i = 0; i < nCount; i ++)
+		t_nop.start().join();
+	console.timeEnd('start&run '+nCount+' times');
+}
 
