@@ -27,7 +27,7 @@ public:
 
 public:
 	// Stream_base
-	virtual result_t read(double bytes, obj_ptr<Buffer_base>& retVal) = 0;
+	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t write(obj_ptr<Buffer_base> data) = 0;
 	virtual result_t flush() = 0;
 	virtual result_t close() = 0;
@@ -116,7 +116,7 @@ namespace fibjs
 		METHOD_INSTANCE(Stream_base);
 		METHOD_ENTER(1, 0);
 
-		OPT_ARG(double, 0, -1);
+		OPT_ARG(int32_t, 0, -1);
 
 		hr = pInst->ac_read(s_acPool, v0, vr);
 

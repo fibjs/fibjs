@@ -20,7 +20,7 @@ public:
 
 public:
 	// Stream_base
-	virtual result_t read(double bytes, obj_ptr<Buffer_base>& retVal);
+	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal);
 	virtual result_t write(obj_ptr<Buffer_base> data);
 	virtual result_t flush();
 	virtual result_t close();

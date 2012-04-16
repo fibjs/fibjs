@@ -31,7 +31,10 @@ std::string getResultMessage(result_t hr)
 			// CALL_E_OUTRANGE
 			"Value is out of range.",
 			// CALL_E_BADINDEX
-			"Index was out of range." };
+			"Index was out of range.",
+			// CALL_E_OVERFLOW
+			"Memory overflow error."
+	};
 
 	if (hr < 0 && hr > CALL_E_MAX)
 		return s_errors[-hr];

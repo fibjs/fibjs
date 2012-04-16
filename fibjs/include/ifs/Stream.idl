@@ -10,7 +10,7 @@ class Stream : object
 	 * @param bytes 指定要读取的数据量，缺省为读取剩余全部数据
 	 * @return 返回从流内读取的数据
 	 */
-	Buffer read(Number bytes = -1) async;
+	Buffer read(Integer bytes = -1) async;
 
 	/*! @brief 将给定的数据写入流
 	 * @param data 给定要写入的数据

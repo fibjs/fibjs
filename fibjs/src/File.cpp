@@ -16,16 +16,12 @@
 #include "File.h"
 #include "Buffer.h"
 #include "Stat.h"
-
-#ifdef _WIN32
-#include <io.h>
-#endif
 #include "utf8.h"
 
 namespace fibjs
 {
 
-result_t File::read(double bytes, obj_ptr<Buffer_base>& retVal)
+result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
@@ -35,9 +31,16 @@ result_t File::read(double bytes, obj_ptr<Buffer_base>& retVal)
 
 	if (bytes < 0)
 	{
-		hr = this->size(bytes);
+		double sz;
+
+		hr = this->size(sz);
 		if (hr < 0)
 			return hr;
+
+		if(sz > 2147483647ll)
+			return CALL_E_OVERFLOW;
+
+		bytes = (int32_t)sz;
 	}
 
 	if (bytes > 0)
@@ -97,21 +100,9 @@ result_t File::Open(const char* fname, const char* mode)
 {
 #ifdef _WIN32
 	wchar_t m[] = L"rb\0";
-
-	if ((*mode != 'a' && *mode != 'r' && *mode != 'w')
-			|| (mode[1] != '+' && mode[1]))
-		return CALL_E_INVALIDARG;
-
-	m[0] = mode[0];
-	m[2] = mode[1];
-
-	close();
-
-	m_file = _wfopen(UTF8_W(fname), m);
-	if (m_file == NULL)
-		return LastError();
 #else
 	char m[] = "rb\0";
+#endif
 
 	if ((*mode != 'a' && *mode != 'r' && *mode != 'w')
 			|| (mode[1] != '+' && mode[1]))
@@ -122,10 +113,13 @@ result_t File::Open(const char* fname, const char* mode)
 
 	close();
 
+#ifdef _WIN32
+	m_file = _wfopen(UTF8_W(fname), m);
+#else
 	m_file = fopen(fname, m);
+#endif
 	if (m_file == NULL)
 		return LastError();
-#endif
 
 	name = fname;
 
@@ -146,8 +140,8 @@ result_t File::stat(obj_ptr<Stat_base>& retVal)
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
-	struct stat st;
-	fstat(fileno(m_file), &st);
+	struct stat64 st;
+	fstat64(fileno(m_file), &st);
 
 	obj_ptr<Stat> pStat = new Stat();
 	pStat->fillStat(name.c_str(), st);
@@ -161,11 +155,11 @@ result_t File::size(double& retVal)
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
-	long p = ftell(m_file);
-	if (0 == fseek(m_file, 0, SEEK_END))
+	int64_t p = ftello64(m_file);
+	if (0 == fseeko64(m_file, 0, SEEK_END))
 	{
-		retVal = ftell(m_file);
-		fseek(m_file, p, SEEK_SET);
+		retVal = (double)ftello64(m_file);
+		fseeko64(m_file, p, SEEK_SET);
 	}
 	else
 		return LastError();
@@ -191,7 +185,7 @@ result_t File::seek(double offset, int32_t whence)
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
-	if (fseek(m_file, offset, whence) < 0)
+	if (fseeko64(m_file, (int64_t)offset, whence) < 0)
 		return LastError();
 
 	return 0;
@@ -202,7 +196,7 @@ result_t File::tell(double& retVal)
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
-	retVal = ftell(m_file);
+	retVal = (double)ftello64(m_file);
 
 	if (ferror(m_file))
 		return LastError();
@@ -244,13 +238,8 @@ result_t File::truncate(double bytes)
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
-#ifdef _WIN32
-	if(_chsize(_fileno(m_file), (long)bytes) < 0)
+	if (ftruncate64(fileno(m_file), (int64_t)bytes) < 0)
 		return LastError();
-#else
-	if (ftruncate(fileno(m_file), bytes) < 0)
-		return LastError();
-#endif
 
 	return 0;
 }

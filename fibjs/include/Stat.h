@@ -5,6 +5,28 @@
  *      Author: lion
  */
 
+
+#ifdef _WIN32
+#define MINGW_HAS_SECURE_API
+#include <io.h>
+
+#define ftruncate64 _chsize_s
+
+#define S_ISLNK(m) 0
+
+#ifdef _MSC_VER
+#define stat64 _stati64
+#define ftello64 _ftelli64
+#define fseeko64 _fseeki64
+#define fstat64 _fstati64
+
+#define S_IRUSR S_IREAD
+#define S_IWUSR S_IWRITE
+#define S_IXUSR S_IEXEC
+#endif
+
+#endif
+
 #ifndef STAT_H_
 #define STAT_H_
 
@@ -18,7 +40,7 @@ class Stat: public Stat_base
 {
 public:
 	result_t getStat(const char* path);
-	void fillStat(const char* path, struct stat& st);
+	void fillStat(const char* path, struct stat64& st);
 
 #ifdef _WIN32
 	void fillStat(WIN32_FIND_DATAW& fd);

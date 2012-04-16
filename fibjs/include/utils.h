@@ -161,6 +161,8 @@ typedef int result_t;
 #define CALL_E_OUTRANGE         -9
 // Index was out of range.
 #define CALL_E_BADINDEX         -10
+// Memory overflow error.
+#define CALL_E_OVERFLOW         -11
 #define CALL_E_MAX              -64
 
 #define PROPERTY_ENTER() \

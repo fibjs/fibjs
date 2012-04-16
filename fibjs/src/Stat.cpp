@@ -14,14 +14,6 @@ namespace fibjs
 
 #ifdef _WIN32
 
-#ifndef S_IRUSR
-#define S_IRUSR S_IREAD
-#define S_IWUSR S_IWRITE
-#define S_IXUSR S_IEXEC
-#endif
-
-#define S_ISLNK(m) 0
-
 inline int64_t FileTimeToJSTime(FILETIME &ft)
 {
 	return (*(int64_t*)&ft - 116444736000000000) / 10000;
@@ -31,7 +23,7 @@ void Stat::fillStat(WIN32_FIND_DATAW& fd)
 {
 	name = utf16to8String(fd.cFileName);
 
-	size = (int64_t)fd.nFileSizeHigh << 32 | fd.nFileSizeLow;
+	size = (double)((int64_t)fd.nFileSizeHigh << 32 | fd.nFileSizeLow);
 	mtime = FileTimeToJSTime(fd.ftLastWriteTime);
 	atime = FileTimeToJSTime(fd.ftLastAccessTime);
 	ctime = FileTimeToJSTime(fd.ftCreationTime);
@@ -50,8 +42,8 @@ void Stat::fillStat(WIN32_FIND_DATAW& fd)
 
 result_t Stat::getStat(const char* path)
 {
-	struct stat st;
-	if (::stat(path, &st))
+	struct stat64 st;
+	if (::stat64(path, &st))
 		return LastError();
 
 	fillStat(path, st);
@@ -59,11 +51,11 @@ result_t Stat::getStat(const char* path)
 	return 0;
 }
 
-void Stat::fillStat(const char* path, struct stat& st)
+void Stat::fillStat(const char* path, struct stat64& st)
 {
 	path_base::basename(path, "", name);
 
-	size = st.st_size;
+	size = (double)st.st_size;
 	mtime = st.st_mtime * 1000ll;
 	atime = st.st_atime * 1000ll;
 	ctime = st.st_ctime * 1000ll;
