@@ -164,7 +164,6 @@ typedef int result_t;
 #define CALL_E_MAX              -64
 
 #define PROPERTY_ENTER() \
-	v8::HandleScope handle_scope; \
 	result_t hr = 0;do{
 
 #define METHOD_OVER(c, o) \
@@ -175,7 +174,6 @@ typedef int result_t;
     if((o) > 0 && argc < (o)){hr = CALL_E_PARAMNOTOPTIONAL;break;}
 
 #define METHOD_ENTER(c, o) \
-	v8::HandleScope handle_scope; \
     result_t hr = CALL_E_INVALID_CALL; do{\
     METHOD_OVER(c, o)
 
@@ -199,7 +197,7 @@ typedef int result_t;
 
 #define METHOD_RETURN() \
     }while(0); \
-    if(hr >= 0)return handle_scope.Close(ReturnValue(vr)); \
+    if(hr >= 0)return ReturnValue(vr); \
     return ThrowResult(hr);
 
 #define METHOD_VOID() \
@@ -209,7 +207,7 @@ typedef int result_t;
 
 #define CONSTRUCT_RETURN() \
     }while(0); \
-    if(hr >= 0)return handle_scope.Close(vr->wrap(args.This())); \
+    if(hr >= 0)return vr->wrap(args.This()); \
     return ThrowResult(hr);
 
 #define ARG_String(n) \
@@ -545,8 +543,9 @@ inline result_t LastError()
 #endif
 }
 
-v8::Handle<v8::Value> ThrowResult(result_t hr);
 std::string traceInfo();
+std::string getResultMessage(result_t hr);
+v8::Handle<v8::Value> ThrowResult(result_t hr);
 void ReportException(v8::TryCatch* try_catch, bool rt);
 std::string JSON_stringify(v8::Handle<v8::Value> v);
 

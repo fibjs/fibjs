@@ -9,6 +9,7 @@
 #include "ifs/path.h"
 #include <vector>
 #include <set>
+#include <sstream>
 
 namespace fibjs
 {
@@ -19,8 +20,8 @@ inline std::string resolvePath(std::string base, const char* id)
 {
 	std::string fname;
 
-	if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(
-			id[2]))))
+	if (id[0] == '.'
+			&& (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
 	{
 		if (base.length())
 			base += '/';
@@ -136,16 +137,40 @@ v8::Handle<v8::Value> _define(const v8::Arguments& args)
 		modDef->Set(strExports, exports);
 		modDef->Set(strRequire, glob->Get(strRequire), v8::ReadOnly);
 
-		v8::Handle<v8::String> strFname = v8::String::New(id.c_str());
+		v8::Handle<v8::String> strFname = v8::String::New(id.c_str(),
+				id.length());
 		modDef->Set(strId, strFname, v8::ReadOnly);
 
 		// add to modules
 		s_Modules->Set(strFname, modDef, v8::ReadOnly);
 	}
 
+	v8::Handle<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(1,
+			v8::StackTrace::kOverview);
+	std::stringstream strBuffer;
+
+	v8::Local<v8::StackFrame> f = stackTrace->GetFrame(0);
+
+	v8::String::Utf8Value funname(f->GetFunctionName());
+	v8::String::Utf8Value filename(f->GetScriptName());
+
+	strBuffer << "\n    at ";
+
+	if (**funname)
+		strBuffer << *funname << " (";
+
+	strBuffer << *filename << ':' << f->GetLineNumber() << ':'
+			<< f->GetColumn();
+
+	if (**funname)
+		strBuffer << ')';
+	std::string strStack = strBuffer.str();
+
 	// set hidden value module.deps and module.factory
 	modDef->SetHiddenValue(v8::String::NewSymbol("deps"), deps);
 	modDef->SetHiddenValue(v8::String::NewSymbol("factory"), args[argc - 1]);
+	modDef->SetHiddenValue(v8::String::NewSymbol("stack"),
+			v8::String::New(strStack.c_str(), strStack.length()));
 
 	// append to define array
 	defs->Set(defs->Length(), modDef);
@@ -223,8 +248,9 @@ void doDefine(v8::Handle<v8::Object>& mod)
 
 				// check if the module depend a module defined in same script
 				for (j = 0; j < n; j++)
-					if (doStep == 2 && depns.find(
-							*v8::String::Utf8Value(a->Get(j))) != depns.end())
+					if (doStep == 2
+							&& depns.find(*v8::String::Utf8Value(a->Get(j)))
+									!= depns.end())
 						break;
 
 				if (j == n)
@@ -252,11 +278,18 @@ void doDefine(v8::Handle<v8::Object>& mod)
 
 							if (hr < 0)
 							{
-								ThrowResult(hr);
-								return;
-							}
+								std::string str = getResultMessage(hr);
 
-							if (try_catch.HasCaught())
+								str.append(
+										*v8::String::Utf8Value(
+												mods[i]->GetHiddenValue(
+														v8::String::NewSymbol(
+																"stack"))));
+								ThrowError(str.c_str());
+								return;
+							}else if(hr == 0)
+								return;
+							else if (try_catch.HasCaught())
 							{
 								try_catch.ReThrow();
 								return;

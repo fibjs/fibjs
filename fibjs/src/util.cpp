@@ -3,40 +3,63 @@
 #include <string.h>
 #include <sstream>
 #include <log4cpp/Category.hh>
+#include "utf8.h"
 
 namespace fibjs
 {
 
-v8::Handle<v8::Value> ThrowResult(result_t hr)
+std::string getResultMessage(result_t hr)
 {
 	static const char* s_errors[] =
-	{ "", "Invalid number of parameters.", "Parameter not optional.",
+	{ "",
+	// CALL_E_BADPARAMCOUNT
+			"Invalid number of parameters.",
+			// CALL_E_PARAMNOTOPTIONAL
+			"Parameter not optional.",
+			// CALL_E_CONSTRUCTOR
 			"Constructor cannot be called as a function.",
+			// CALL_E_NOTINSTANCE
 			"Object is not an instance of declaring class.",
-			"The input parameter is not a valid type.", "Invalid argument.",
+			// CALL_E_BADVARTYPE
+			"The input parameter is not a valid type.",
+			// CALL_E_INVALIDARG
+			"Invalid argument.",
+			// CALL_E_INVALID_CALL
 			"Invalid procedure call.",
+			// CALL_E_TYPEMISMATCH
 			"The argument could not be coerced to the specified type.",
-			"Value is out of range.", "Index was out of range." };
+			// CALL_E_OUTRANGE
+			"Value is out of range.",
+			// CALL_E_BADINDEX
+			"Index was out of range." };
 
 	if (hr < 0 && hr > CALL_E_MAX)
-		return ThrowError(s_errors[-hr]);
+		return s_errors[-hr];
 
 #ifdef _WIN32
 	LPWSTR pMsgBuf = NULL;
+
 	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 					NULL, CALL_E_MAX - hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &pMsgBuf, 0, NULL ) && pMsgBuf)
 	{
-		v8::ThrowException(v8::Exception::Error(v8::String::New((const uint16_t*)pMsgBuf)));
+		std::string str = utf16to8String(pMsgBuf);
 		LocalFree(pMsgBuf);
+		return str;
 	}
 	else
-	ThrowError("Unknown error.");
+	{
+		return "Unknown error.";
+	}
 
 	return v8::Undefined();
-//    return GetLastError();
 #else
-	return ThrowError(strerror(CALL_E_MAX - hr));
+	return strerror(CALL_E_MAX - hr);
 #endif
+}
+
+v8::Handle<v8::Value> ThrowResult(result_t hr)
+{
+	return ThrowError(getResultMessage(hr).c_str());
 }
 
 inline const char* ToCString(const v8::String::Utf8Value& value)

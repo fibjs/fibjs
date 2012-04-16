@@ -90,8 +90,8 @@ inline void throwSyntaxError(v8::TryCatch& try_catch)
 		strError << ToCString(filename);
 		int lineNumber = message->GetLineNumber();
 		if (lineNumber > 0)
-			strError << ':' << lineNumber << ':' << (message->GetStartColumn()
-					+ 1);
+			strError << ':' << lineNumber << ':'
+					<< (message->GetStartColumn() + 1);
 		v8::ThrowException(
 				v8::Exception::SyntaxError(
 						v8::String::New(strError.str().c_str())));
@@ -102,8 +102,8 @@ inline std::string resolvePath(const char* id)
 {
 	std::string fname;
 
-	if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(
-			id[2]))))
+	if (id[0] == '.'
+			&& (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
 	{
 		v8::Handle<v8::Value> path =
 				v8::Context::GetCurrent()->Global()->GetHiddenValue(
@@ -154,9 +154,26 @@ inline v8::Handle<v8::Script> compileScript(const char* fname, std::string& buf)
 v8::Handle<v8::Value> _define(const v8::Arguments& args);
 void doDefine(v8::Handle<v8::Object>& mod);
 
-inline result_t runScript(std::string& fname, v8::Handle<v8::Value>& retVal,
+inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 		bool bMod)
 {
+	std::string fname = resolvePath(id);
+	v8::HandleScope handle_scope;
+
+	if (bMod)
+	{
+		v8::Handle<v8::Value> mod = s_Modules->Get(
+				v8::String::New(fname.c_str()));
+
+		if (!mod.IsEmpty() && mod->IsObject())
+		{
+			retVal = handle_scope.Close(mod->ToObject()->Get(v8::String::NewSymbol("exports")));
+			return 1;
+		}
+
+		fname += ".js";
+	}
+
 	std::string buf;
 
 	result_t hr = fs_base::readFile(fname.c_str(), buf);
@@ -249,7 +266,7 @@ inline result_t runScript(std::string& fname, v8::Handle<v8::Value>& retVal,
 		doDefine(mod);
 
 		// use module.exports as result value
-		retVal = mod->Get(strExports);
+		retVal = handle_scope.Close(mod->Get(strExports));
 	}
 
 	context.Dispose();
@@ -259,29 +276,13 @@ inline result_t runScript(std::string& fname, v8::Handle<v8::Value>& retVal,
 
 result_t global_base::run(const char* fname)
 {
-	std::string strname = resolvePath(fname);
-	v8::Handle<v8::Value> retVal;
-
-	return runScript(strname, retVal, false);
+	v8::Handle<v8::Value> retTemp;
+	return runScript(fname, retTemp, false);
 }
 
 result_t global_base::require(const char* id, v8::Handle<v8::Value>& retVal)
 {
-	std::string fname = resolvePath(id);
-
-	{
-		v8::Handle<v8::Value> mod = s_Modules->Get(
-				v8::String::New(fname.c_str()));
-
-		if (!mod.IsEmpty() && mod->IsObject())
-		{
-			retVal = mod->ToObject()->Get(v8::String::NewSymbol("exports"));
-			return 0;
-		}
-	}
-
-	fname += ".js";
-	return runScript(fname, retVal, true);
+	return runScript(id, retVal, true);
 }
 
 result_t global_base::sleep(int32_t ms)
