@@ -5,8 +5,16 @@
  *      Author: lion
  */
 
+#include <osconfig.h>
 
-#ifdef _WIN32
+#ifdef MacOS
+
+#define ftello64 ftell
+#define fseeko64 fseek
+#define ftruncate64 ftruncate
+
+#elif defined(_WIN32)
+
 #define MINGW_HAS_SECURE_API
 #include <io.h>
 
@@ -15,7 +23,7 @@
 #define S_ISLNK(m) 0
 
 #ifdef _MSC_VER
-#define stat64 _stati64
+#define _stat64 _stati64
 #define ftello64 _ftelli64
 #define fseeko64 _fseeki64
 #define fstat64 _fstati64
@@ -26,6 +34,7 @@
 #endif
 
 #endif
+
 
 #ifndef STAT_H_
 #define STAT_H_
