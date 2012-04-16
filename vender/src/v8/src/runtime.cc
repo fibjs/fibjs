@@ -4669,7 +4669,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StoreArrayLiteralElement) {
   HandleScope scope;
 
   Object* raw_boilerplate_object = literals->get(literal_index);
-  Handle<JSArray> boilerplate_object(JSArray::cast(raw_boilerplate_object));
+  Handle<JSArray> boilerplate(JSArray::cast(raw_boilerplate_object));
 #if DEBUG
   ElementsKind elements_kind = object->GetElementsKind();
 #endif
@@ -4680,19 +4680,23 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StoreArrayLiteralElement) {
   if (value->IsNumber()) {
     ASSERT(elements_kind == FAST_SMI_ONLY_ELEMENTS);
     JSObject::TransitionElementsKind(object, FAST_DOUBLE_ELEMENTS);
-    JSObject::TransitionElementsKind(boilerplate_object, FAST_DOUBLE_ELEMENTS);
+    if (IsMoreGeneralElementsKindTransition(boilerplate->GetElementsKind(),
+                                            FAST_DOUBLE_ELEMENTS)) {
+      JSObject::TransitionElementsKind(boilerplate, FAST_DOUBLE_ELEMENTS);
+    }
     ASSERT(object->GetElementsKind() == FAST_DOUBLE_ELEMENTS);
-    FixedDoubleArray* double_array =
-        FixedDoubleArray::cast(object->elements());
+    FixedDoubleArray* double_array = FixedDoubleArray::cast(object->elements());
     HeapNumber* number = HeapNumber::cast(*value);
     double_array->set(store_index, number->Number());
   } else {
     ASSERT(elements_kind == FAST_SMI_ONLY_ELEMENTS ||
            elements_kind == FAST_DOUBLE_ELEMENTS);
     JSObject::TransitionElementsKind(object, FAST_ELEMENTS);
-    JSObject::TransitionElementsKind(boilerplate_object, FAST_ELEMENTS);
-    FixedArray* object_array =
-        FixedArray::cast(object->elements());
+    if (IsMoreGeneralElementsKindTransition(boilerplate->GetElementsKind(),
+                                            FAST_ELEMENTS)) {
+      JSObject::TransitionElementsKind(boilerplate, FAST_ELEMENTS);
+    }
+    FixedArray* object_array = FixedArray::cast(object->elements());
     object_array->set(store_index, *value);
   }
   return *object;
@@ -8122,6 +8126,14 @@ static void MaterializeArgumentsObjectInFrame(Isolate* isolate,
         ASSERT(*arguments != isolate->heap()->undefined_value());
       }
       frame->SetExpression(i, *arguments);
+      if (FLAG_trace_deopt) {
+        PrintF("Materializing arguments object for frame %p - %p: %p ",
+               reinterpret_cast<void*>(frame->sp()),
+               reinterpret_cast<void*>(frame->fp()),
+               reinterpret_cast<void*>(*arguments));
+        arguments->ShortPrint();
+        PrintF("\n");
+      }
     }
   }
 }

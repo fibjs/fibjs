@@ -368,16 +368,20 @@ class V8EXPORT HeapSnapshot {
    * with the following structure:
    *
    *  {
-   *    snapshot: {title: "...", uid: nnn},
-   *    nodes: [
-   *      meta-info (JSON string),
-   *      nodes themselves
-   *    ],
-   *    strings: [strings]
+   *    snapshot: {
+   *      title: "...",
+   *      uid: nnn,
+   *      meta: { meta-info },
+   *      node_count: nnn,
+   *      edge_count: nnn
+   *    },
+   *    nodes: [nodes array],
+   *    edges: [edges array],
+   *    strings: [strings array]
    *  }
    *
-   * Outgoing node links are stored after each node. Nodes reference strings
-   * and other nodes by their indexes in corresponding arrays.
+   * Nodes reference strings, other nodes, and edges by their indexes
+   * in corresponding arrays.
    */
   void Serialize(OutputStream* stream, SerializationFormat format) const;
 };
@@ -416,6 +420,33 @@ class V8EXPORT HeapProfiler {
       Handle<String> title,
       HeapSnapshot::Type type = HeapSnapshot::kFull,
       ActivityControl* control = NULL);
+
+  /**
+   * Starts tracking of heap objects population statistics. After calling
+   * this method, all heap objects relocations done by the garbage collector
+   * are being registered.
+   */
+  static void StartHeapObjectsTracking();
+
+  /**
+   * Adds a new time interval entry to the aggregated statistics array. The
+   * time interval entry contains information on the current heap objects
+   * population size. The method also updates aggregated statistics and
+   * reports updates for all previous time intervals via the OutputStream
+   * object. Updates on each time interval are provided as pairs of time
+   * interval index and updated heap objects count.
+   *
+   * StartHeapObjectsTracking must be called before the first call to this
+   * method.
+   */
+  static void PushHeapObjectsStats(OutputStream* stream);
+
+  /**
+   * Stops tracking of heap objects population statistics, cleans up all
+   * collected data. StartHeapObjectsTracking must be called again prior to
+   * calling PushHeapObjectsStats next time.
+   */
+  static void StopHeapObjectsTracking();
 
   /**
    * Deletes all snapshots taken. All previously returned pointers to
