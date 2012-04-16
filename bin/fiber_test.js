@@ -92,14 +92,10 @@ console.timeEnd('os.CPUs '+nCount+' times');
 
 console.time('new Buffer '+nCount+' times');
 for(var i = 0; i < nCount; i ++)
-	(new Buffer()).dispose();
+	new Buffer();
 console.timeEnd('new Buffer '+nCount+' times');
 
-while(1)
-{
-	console.time('start&run '+nCount+' times');
-	for(var i = 0; i < nCount; i ++)
-		t_nop.start().join();
-	console.timeEnd('start&run '+nCount+' times');
-}
-
+console.time('require '+nCount+' times');
+for(var i = 0; i < nCount; i ++)
+	require('os');
+console.timeEnd('require '+nCount+' times');

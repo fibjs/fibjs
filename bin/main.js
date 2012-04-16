@@ -1,5 +1,5 @@
 
-require("buffer_test");
+require("buffer_test.js");
 require("path_test");
 require("fiber_test");
 require("fs_test");
