@@ -9,19 +9,21 @@
 #include "ifs/path.h"
 #include <vector>
 #include <set>
+#include <map>
 #include <sstream>
 
 namespace fibjs
 {
 
-extern v8::Persistent<v8::Object> s_Modules;
+//extern v8::Persistent<v8::Object> s_Modules;
+void InstallModule(std::string fname, v8::Handle<v8::Value> o);
 
 inline std::string resolvePath(std::string base, const char* id)
 {
 	std::string fname;
 
-	if (id[0] == '.'
-			&& (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
+	if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(
+			id[2]))))
 	{
 		if (base.length())
 			base += '/';
@@ -142,11 +144,11 @@ v8::Handle<v8::Value> _define(const v8::Arguments& args)
 		modDef->Set(strId, strFname, v8::ReadOnly);
 
 		// add to modules
-		s_Modules->Set(strFname, modDef, v8::ReadOnly);
+		InstallModule(id, exports);
 	}
 
-	v8::Handle<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(1,
-			v8::StackTrace::kOverview);
+	v8::Handle<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
+			1, v8::StackTrace::kOverview);
 	std::stringstream strBuffer;
 
 	v8::Local<v8::StackFrame> f = stackTrace->GetFrame(0);
@@ -248,9 +250,8 @@ void doDefine(v8::Handle<v8::Object>& mod)
 
 				// check if the module depend a module defined in same script
 				for (j = 0; j < n; j++)
-					if (doStep == 2
-							&& depns.find(*v8::String::Utf8Value(a->Get(j)))
-									!= depns.end())
+					if (doStep == 2 && depns.find(
+							*v8::String::Utf8Value(a->Get(j))) != depns.end())
 						break;
 
 				if (j == n)
@@ -287,7 +288,8 @@ void doDefine(v8::Handle<v8::Object>& mod)
 																"stack"))));
 								ThrowError(str.c_str());
 								return;
-							}else if(hr == 0)
+							}
+							else if (hr == 0)
 								return;
 							else if (try_catch.HasCaught())
 							{
@@ -321,6 +323,10 @@ void doDefine(v8::Handle<v8::Object>& mod)
 					// use the result as exports if the factory return something
 					if (!v->IsUndefined())
 						mods[i]->Set(strExports, v);
+					else
+						v = mods[i]->Get(strExports);
+
+					InstallModule(modIds[i], v);
 
 					// remove id name, we don't like to call it again
 					depns.erase(modIds[i]);
