@@ -46,12 +46,8 @@ std::string getResultMessage(result_t hr)
 		LocalFree(pMsgBuf);
 		return str;
 	}
-	else
-	{
-		return "Unknown error.";
-	}
 
-	return v8::Undefined();
+	return "Unknown error.";
 #else
 	return strerror(CALL_E_MAX - hr);
 #endif
