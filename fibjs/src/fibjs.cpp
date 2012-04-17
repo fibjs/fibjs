@@ -15,6 +15,7 @@
 namespace fibjs
 {
 v8::Isolate* isolate;
+v8::Persistent<v8::Context> s_context;
 
 class MyAppender: public log4cpp::LayoutAppender
 {
@@ -61,8 +62,8 @@ void _main(const char* fname)
 
 	v8::HandleScope handle_scope;
 
-	v8::Persistent<v8::Context> context = v8::Context::New();
-	v8::Context::Scope context_scope(context);
+	s_context = v8::Context::New();
+	v8::Context::Scope context_scope(s_context);
 
 	initMdule();
 
@@ -72,7 +73,7 @@ void _main(const char* fname)
 		ReportException(&try_catch, true);
 
 	flushLog();
-	context.Dispose();
+	s_context.Dispose();
 }
 
 }

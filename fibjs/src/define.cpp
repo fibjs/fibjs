@@ -15,7 +15,6 @@
 namespace fibjs
 {
 
-//extern v8::Persistent<v8::Object> s_Modules;
 void InstallModule(std::string fname, v8::Handle<v8::Value> o);
 
 inline std::string resolvePath(std::string base, const char* id)

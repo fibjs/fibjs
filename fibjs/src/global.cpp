@@ -49,7 +49,7 @@ void InstallModule(std::string fname, v8::Handle<v8::Value> o)
 
 	if (it == s_mapModules.end())
 		s_mapModules[fname] = v8::Persistent<v8::Value>::New(o);
-	else
+	else if(!o->StrictEquals(it->second))
 	{
 		it->second.Dispose();
 		it->second = v8::Persistent<v8::Value>::New(o);

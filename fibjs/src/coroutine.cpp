@@ -12,6 +12,27 @@
 namespace fibjs
 {
 
+static class null_fiber_data: public Fiber_base
+{
+EVENT_SUPPORT()
+	;
+public:
+	null_fiber_data()
+	{
+		Ref();
+	}
+
+	result_t get_func(v8::Handle<v8::Function>& retVal)
+	{
+		return CALL_E_INVALID_CALL;
+	}
+
+	result_t join()
+	{
+		return 0;
+	}
+}s_null;
+
 class fiber_data: public Fiber_base
 {
 EVENT_SUPPORT()
@@ -59,8 +80,8 @@ static int32_t s_cpus;
 static int32_t s_fibers;
 static int s_tlsCurrent;
 
-#define FIBER_PER_CPU	8
-
+#define FIBER_PER_CPU	3000
+extern v8::Persistent<v8::Context> s_context;
 static class _fiber_init
 {
 public:
@@ -82,10 +103,7 @@ public:
 
 		v8::Locker locker(isolate);
 		v8::Isolate::Scope isolate_scope(isolate);
-
-		v8::HandleScope handle_scope;
-		v8::Handle<v8::Context> context = v8::Context::New();
-		v8::Context::Scope context_scope(context);
+		v8::Context::Scope context_scope(s_context);
 
 		while (1)
 		{
@@ -96,6 +114,9 @@ public:
 				v8::Unlocker unlocker(isolate);
 				fb = g_jobs.get();
 			}
+
+			if (fb == NULL)
+				break;
 
 			pService->tlsPut(s_tlsCurrent, fb);
 
@@ -111,14 +132,19 @@ public:
 			for (i = 0; i < fb->argv.size(); i++)
 				argv[i] = fb->argv[i];
 
+			v8::Handle<v8::Object> o = fb->wrap();
+
 			v8::TryCatch try_catch;
-			func->Call(fb->wrap(), (int) argv.size(), argv.data());
+			func->Call(o, (int) argv.size(), argv.data());
 			if (try_catch.HasCaught())
 				ReportException(&try_catch, true);
 
 			fb->m_quit.set();
 			fb->dispose();
 			fb->Unref();
+
+			s_null.Ref();
+			o->SetPointerInInternalField(0, &s_null);
 		}
 
 		return NULL;
