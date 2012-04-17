@@ -45,6 +45,13 @@ f.v = 2000;
 f.join();
 assert.equal(n, 2300);
 
+var f = t_fiber1.start(100, 200);
+assert.equal(n, 2300);
+f.v = 1000;
+coroutine.sleep(100);
+f.join();
+assert.equal(n, 1300);
+
 var nCount = 2000000;
 
 var bDone = false;
