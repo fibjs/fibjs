@@ -23,7 +23,7 @@
 #define S_ISLNK(m) 0
 
 #ifdef _MSC_VER
-#define _stat64 _stati64
+#define stat64 _stati64
 #define ftello64 _ftelli64
 #define fseeko64 _fseeki64
 #define fstat64 _fstati64
