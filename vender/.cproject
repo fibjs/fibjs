@@ -33,7 +33,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.1751266537" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.1253521260" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.1253521260" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.467579095" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.lib.debug.728035707" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.debug">
@@ -42,7 +42,7 @@
 								<option id="gnu.c.compiler.option.include.paths.1990821639" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.628352429" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.628352429" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1299235319" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.95938637" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
@@ -58,9 +58,10 @@
 					</folderInfo>
 					<folderInfo id="cdt.managedbuild.config.gnu.lib.debug.1081920998.1450419361" name="/" resourcePath="src/v8">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.debug.2137035764" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.lib.debug" unusedChildren="">
+							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.debug" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.lib.debug.283889309" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.lib.debug.555097464"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug.291920116" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug.92412598">
-								<option id="gnu.cpp.compiler.option.include.paths.1810044730" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+								<option id="gnu.cpp.compiler.option.include.paths.1810044730" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/src/v8/src}&quot;"/>
 								</option>
@@ -72,7 +73,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1356049210" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.95938637"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.896883798" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.1990177581"/>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.lib.debug.372523496" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.lib.debug.753348">
-								<option id="gnu.both.asm.option.include.paths.1742407438" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+								<option id="gnu.both.asm.option.include.paths.1742407438" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.180472598" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
@@ -90,7 +91,6 @@
 			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
 				<buildTargets/>
 			</storageModule>
-			<storageModule moduleId="scannerConfiguration"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.lib.release.1852890699">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.lib.release.1852890699" moduleId="org.eclipse.cdt.core.settings" name="Release">
@@ -122,7 +122,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.381214664" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.2005307346" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.2005307346" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.383100507" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.c.compiler.lib.release.379040034" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.release">
@@ -131,7 +131,7 @@
 								<option id="gnu.c.compiler.option.include.paths.935519708" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.2064604890" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.2064604890" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1224864097" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.465628868" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
@@ -147,9 +147,10 @@
 					</folderInfo>
 					<folderInfo id="cdt.managedbuild.config.gnu.lib.release.1852890699.1961069199" name="/" resourcePath="src/v8">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.release.1783816576" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.lib.release" unusedChildren="">
+							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.release" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.release"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.lib.release.1189501929" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.lib.release.1165058666"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.release.986289765" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.release.1889069622">
-								<option id="gnu.cpp.compiler.option.include.paths.152000311" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+								<option id="gnu.cpp.compiler.option.include.paths.152000311" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/src/v8/src}&quot;"/>
 								</option>
@@ -161,7 +162,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.228063144" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.465628868"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.1537771192" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.923525953"/>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.lib.release.442063100" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.lib.release.1052912260">
-								<option id="gnu.both.asm.option.include.paths.1812920453" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+								<option id="gnu.both.asm.option.include.paths.1812920453" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.739783994" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
@@ -179,7 +180,6 @@
 			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
 				<buildTargets/>
 			</storageModule>
-			<storageModule moduleId="scannerConfiguration"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.lib.debug.1081920998.1617246534">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.lib.debug.1081920998.1617246534" moduleId="org.eclipse.cdt.core.settings" name="Debug32">
@@ -214,7 +214,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.294629706" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.472913496" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.472913496" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1670533207" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.lib.debug.1164932493" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.debug">
@@ -223,7 +223,7 @@
 								<option id="gnu.c.compiler.option.include.paths.954720191" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.1855157353" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.1855157353" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.888556864" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1282146075" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
@@ -239,9 +239,10 @@
 					</folderInfo>
 					<folderInfo id="cdt.managedbuild.config.gnu.lib.debug.1081920998.1617246534.525083918" name="/" resourcePath="src/v8">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.debug.1308337232" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.lib.debug" unusedChildren="">
+							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.debug" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.lib.debug.1435045463" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.lib.debug.693999505"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug.326971594" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug.84122777">
-								<option id="gnu.cpp.compiler.option.include.paths.1336279311" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+								<option id="gnu.cpp.compiler.option.include.paths.1336279311" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/src/v8/src}&quot;"/>
 								</option>
@@ -253,7 +254,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.88712678" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.1282146075"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.1841558911" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.1466412602"/>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.lib.debug.648968636" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.lib.debug.1469952622">
-								<option id="gnu.both.asm.option.include.paths.428621466" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+								<option id="gnu.both.asm.option.include.paths.428621466" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.278091326" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
@@ -271,7 +272,6 @@
 			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
 				<buildTargets/>
 			</storageModule>
-			<storageModule moduleId="scannerConfiguration"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.lib.release.1852890699.57212759">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.lib.release.1852890699.57212759" moduleId="org.eclipse.cdt.core.settings" name="Release32">
@@ -306,7 +306,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.1893207637" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.1985164911" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.1985164911" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1823581347" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.c.compiler.lib.release.353854224" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.release">
@@ -315,7 +315,7 @@
 								<option id="gnu.c.compiler.option.include.paths.1389488616" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.354923917" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.354923917" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.261077579" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1075048391" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
@@ -331,9 +331,10 @@
 					</folderInfo>
 					<folderInfo id="cdt.managedbuild.config.gnu.lib.release.1852890699.57212759.223239429" name="/" resourcePath="src/v8">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.release.883032783" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.lib.release" unusedChildren="">
+							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.release" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.release"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.lib.release.591019760" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.lib.release.2013033334"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.release.1810306562" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.release.1766858443">
-								<option id="gnu.cpp.compiler.option.include.paths.409554494" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+								<option id="gnu.cpp.compiler.option.include.paths.409554494" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/src/v8/src}&quot;"/>
 								</option>
@@ -345,7 +346,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.682377984" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.1075048391"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.2034237723" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.899098009"/>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.lib.release.356787086" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.lib.release.792256859">
-								<option id="gnu.both.asm.option.include.paths.1967436269" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+								<option id="gnu.both.asm.option.include.paths.1967436269" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.910125024" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
@@ -363,7 +364,6 @@
 			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
 				<buildTargets/>
 			</storageModule>
-			<storageModule moduleId="scannerConfiguration"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.lib.debug.1081920998.2108911278">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.lib.debug.1081920998.2108911278" moduleId="org.eclipse.cdt.core.settings" name="WinDebug">
@@ -396,7 +396,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.1913088224" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.580745614" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.580745614" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1308202666" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool command="x86_64-w64-mingw32-gcc" id="cdt.managedbuild.tool.gnu.c.compiler.lib.debug.656133541" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.debug">
@@ -405,7 +405,7 @@
 								<option id="gnu.c.compiler.option.include.paths.765992038" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.153669630" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.153669630" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1531904897" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.860348791" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
@@ -421,9 +421,10 @@
 					</folderInfo>
 					<folderInfo id="cdt.managedbuild.config.gnu.lib.debug.1081920998.2108911278.1177437294" name="/" resourcePath="src/v8">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.debug.466158268" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.lib.debug" unusedChildren="">
+							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.debug" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.lib.debug.1054182035" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.lib.debug.498152277"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug.1974528971" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug.152765442">
-								<option id="gnu.cpp.compiler.option.include.paths.1451356809" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+								<option id="gnu.cpp.compiler.option.include.paths.1451356809" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/src/v8/src}&quot;"/>
 								</option>
@@ -435,7 +436,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.630550854" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.860348791"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.895742585" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.1463570219"/>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.lib.debug.1495072812" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.lib.debug.2113034320">
-								<option id="gnu.both.asm.option.include.paths.453568464" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+								<option id="gnu.both.asm.option.include.paths.453568464" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.702052047" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
@@ -453,7 +454,6 @@
 			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
 				<buildTargets/>
 			</storageModule>
-			<storageModule moduleId="scannerConfiguration"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.lib.release.1852890699.1830523187">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.lib.release.1852890699.1830523187" moduleId="org.eclipse.cdt.core.settings" name="WinRelease">
@@ -486,7 +486,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.1236152796" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.351123970" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.351123970" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.996158444" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool command="x86_64-w64-mingw32-gcc" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.c.compiler.lib.release.1951708202" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.release">
@@ -495,7 +495,7 @@
 								<option id="gnu.c.compiler.option.include.paths.1566083658" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.1923616713" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.1923616713" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.157727008" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.230315267" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
@@ -511,9 +511,10 @@
 					</folderInfo>
 					<folderInfo id="cdt.managedbuild.config.gnu.lib.release.1852890699.1830523187.2090627024" name="/" resourcePath="src/v8">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.release.1502463425" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.lib.release" unusedChildren="">
+							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.release" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.release"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.lib.release.1887743734" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.lib.release.20625732"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.release.772719490" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.release.1651053696">
-								<option id="gnu.cpp.compiler.option.include.paths.130479936" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+								<option id="gnu.cpp.compiler.option.include.paths.130479936" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/src/v8/src}&quot;"/>
 								</option>
@@ -525,7 +526,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.357505494" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.230315267"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.982852322" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.1635833919"/>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.lib.release.1032814206" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.lib.release.1393304751">
-								<option id="gnu.both.asm.option.include.paths.1483586507" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+								<option id="gnu.both.asm.option.include.paths.1483586507" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1067787292" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
@@ -543,7 +544,6 @@
 			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
 				<buildTargets/>
 			</storageModule>
-			<storageModule moduleId="scannerConfiguration"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.lib.debug.1081920998.2108911278.481692281">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.lib.debug.1081920998.2108911278.481692281" moduleId="org.eclipse.cdt.core.settings" name="WinDebug32">
@@ -577,7 +577,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.932093135" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.1266438221" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.1266438221" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1393946848" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool command="i686-w64-mingw32-gcc" id="cdt.managedbuild.tool.gnu.c.compiler.lib.debug.691073514" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.debug">
@@ -586,7 +586,7 @@
 								<option id="gnu.c.compiler.option.include.paths.818283639" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.921434244" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.921434244" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.158329458" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.799355292" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
@@ -602,9 +602,10 @@
 					</folderInfo>
 					<folderInfo id="cdt.managedbuild.config.gnu.lib.debug.1081920998.2108911278.481692281.1904865631" name="/" resourcePath="src/v8">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.debug.351617300" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.lib.debug" unusedChildren="">
+							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.debug" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.lib.debug.263974748" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.lib.debug.1441259667"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug.901836104" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug.1973334557">
-								<option id="gnu.cpp.compiler.option.include.paths.632887077" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+								<option id="gnu.cpp.compiler.option.include.paths.632887077" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/src/v8/src}&quot;"/>
 								</option>
@@ -616,7 +617,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.994417979" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.799355292"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.1996581233" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.457767193"/>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.lib.debug.540447344" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.lib.debug.1501696776">
-								<option id="gnu.both.asm.option.include.paths.121627365" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+								<option id="gnu.both.asm.option.include.paths.121627365" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1955123580" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
@@ -634,7 +635,6 @@
 			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
 				<buildTargets/>
 			</storageModule>
-			<storageModule moduleId="scannerConfiguration"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.lib.release.1852890699.1830523187.480881554">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.lib.release.1852890699.1830523187.480881554" moduleId="org.eclipse.cdt.core.settings" name="WinRelease32">
@@ -668,7 +668,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.882811182" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.247228870" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.247228870" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.551267437" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool command="i686-w64-mingw32-gcc" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.c.compiler.lib.release.343607872" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.release">
@@ -677,7 +677,7 @@
 								<option id="gnu.c.compiler.option.include.paths.636447679" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.1614468316" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.1614468316" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1805469556" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1490492809" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
@@ -693,9 +693,10 @@
 					</folderInfo>
 					<folderInfo id="cdt.managedbuild.config.gnu.lib.release.1852890699.1830523187.480881554.1525175242" name="/" resourcePath="src/v8">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.release.1670641165" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.lib.release" unusedChildren="">
+							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.release" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.release"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.lib.release.1373220262" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.lib.release.315726896"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.release.1306879957" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.release.786808334">
-								<option id="gnu.cpp.compiler.option.include.paths.1682454767" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+								<option id="gnu.cpp.compiler.option.include.paths.1682454767" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/src/v8/src}&quot;"/>
 								</option>
@@ -707,7 +708,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.877174226" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.1490492809"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.252437414" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.1368964058"/>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.lib.release.1863767400" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.lib.release.339300819">
-								<option id="gnu.both.asm.option.include.paths.1323870165" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+								<option id="gnu.both.asm.option.include.paths.1323870165" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.280231139" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
@@ -725,7 +726,6 @@
 			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
 				<buildTargets/>
 			</storageModule>
-			<storageModule moduleId="scannerConfiguration"/>
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">

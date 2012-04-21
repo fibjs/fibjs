@@ -29,7 +29,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.337844997" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.337844997" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.330415210" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1193055837" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -39,7 +39,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.1328386947" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.1328386947" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.2082076671" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1799034399" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
@@ -70,7 +70,6 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-			<storageModule moduleId="scannerConfiguration"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.release.355295612">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.355295612" moduleId="org.eclipse.cdt.core.settings" name="Release">
@@ -98,7 +97,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.421798739" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.421798739" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.165389501" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.898756282" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
@@ -108,7 +107,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.399951002" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.399951002" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.20317112" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.607130722" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
@@ -139,7 +138,6 @@
 			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-			<storageModule moduleId="scannerConfiguration"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.debug.861659746.33572349">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.debug.861659746.33572349" moduleId="org.eclipse.cdt.core.settings" name="Debug32">
@@ -167,7 +165,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.541380481" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.541380481" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1135180935" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1290504725" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -177,7 +175,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.349268623" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.349268623" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.102645476" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.412741612" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
@@ -210,7 +208,6 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-			<storageModule moduleId="scannerConfiguration"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.release.355295612.1402877841">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.355295612.1402877841" moduleId="org.eclipse.cdt.core.settings" name="Release32">
@@ -238,7 +235,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.1045466208" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.1045466208" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1173415019" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.1285734990" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
@@ -248,7 +245,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.1026768401" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.1026768401" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.439652468" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.550140708" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
@@ -281,7 +278,6 @@
 			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-			<storageModule moduleId="scannerConfiguration"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.debug.861659746.25152672">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.debug.861659746.25152672" moduleId="org.eclipse.cdt.core.settings" name="WinDebug">
@@ -309,7 +305,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.968488490" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.968488490" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.93624723" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool command="x86_64-w64-mingw32-gcc" id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1457014264" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -319,7 +315,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.433428352" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.433428352" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.946328815" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1800112738" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
@@ -332,6 +328,7 @@
 									<listOptionValue builtIn="false" value="ws2_32"/>
 									<listOptionValue builtIn="false" value="winmm"/>
 								</option>
+								<option id="gnu.cpp.link.option.flags.1050032246" superClass="gnu.cpp.link.option.flags" value="-static" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1837797597" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -351,7 +348,6 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-			<storageModule moduleId="scannerConfiguration"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.release.355295612.885726427">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.355295612.885726427" moduleId="org.eclipse.cdt.core.settings" name="WinRelease">
@@ -379,7 +375,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.821882126" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.821882126" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.199132834" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool command="x86_64-w64-mingw32-gcc" id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.935580611" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
@@ -389,7 +385,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.1992043399" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.1992043399" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.297113489" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.1337177338" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
@@ -402,6 +398,7 @@
 									<listOptionValue builtIn="false" value="ws2_32"/>
 									<listOptionValue builtIn="false" value="winmm"/>
 								</option>
+								<option id="gnu.cpp.link.option.flags.406923033" superClass="gnu.cpp.link.option.flags" value="-static" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1292071664" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -421,7 +418,6 @@
 			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-			<storageModule moduleId="scannerConfiguration"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.debug.861659746.25152672.1243251405">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.debug.861659746.25152672.1243251405" moduleId="org.eclipse.cdt.core.settings" name="WinDebug32">
@@ -449,7 +445,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.541874698" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.541874698" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1329958445" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool command="i686-w64-mingw32-gcc" id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1371585172" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -459,7 +455,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.1236757567" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.1236757567" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1483702843" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.436789881" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
@@ -472,6 +468,7 @@
 									<listOptionValue builtIn="false" value="ws2_32"/>
 									<listOptionValue builtIn="false" value="winmm"/>
 								</option>
+								<option id="gnu.cpp.link.option.flags.1973746319" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-static" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1510723481" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -491,7 +488,6 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-			<storageModule moduleId="scannerConfiguration"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.release.355295612.885726427.523000989">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.355295612.885726427.523000989" moduleId="org.eclipse.cdt.core.settings" name="WinRelease32">
@@ -519,7 +515,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.995142329" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.995142329" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.634073792" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool command="i686-w64-mingw32-gcc" id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.827583650" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
@@ -529,7 +525,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.1048288013" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.1048288013" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.88653434" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.841654989" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
@@ -542,6 +538,7 @@
 									<listOptionValue builtIn="false" value="ws2_32"/>
 									<listOptionValue builtIn="false" value="winmm"/>
 								</option>
+								<option id="gnu.cpp.link.option.flags.1938378435" superClass="gnu.cpp.link.option.flags" value="-static" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1465137530" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -561,7 +558,6 @@
 			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-			<storageModule moduleId="scannerConfiguration"/>
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
