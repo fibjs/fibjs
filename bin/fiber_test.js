@@ -34,23 +34,34 @@ f.join();
 assert.equal(n, 1300);
 
 
-function t_fiber1(v1, v2)
+function t_fiber2(v1, v2)
 {
 	n = v1 + v2 + coroutine.current().v;
 }
 
-var f = t_fiber1.start(100, 200);
+var f = t_fiber2.start(100, 200);
 assert.equal(n, 1300);
 f.v = 2000;
 f.join();
 assert.equal(n, 2300);
 
-var f = t_fiber1.start(100, 200);
+var f = t_fiber2.start(100, 200);
 assert.equal(n, 2300);
 f.v = 1000;
 coroutine.sleep(100);
 f.join();
 assert.equal(n, 1300);
+
+function t_fiber3(v1, v2)
+{
+	n = v1 + v2 + this.caller.v;
+}
+
+var f = t_fiber3.start(100, 200);
+assert.equal(n, 1300);
+coroutine.current().v = 1234;
+f.join();
+assert.equal(n, 1534);
 
 var nCount = 2000000;
 
