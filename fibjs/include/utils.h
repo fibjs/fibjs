@@ -186,12 +186,12 @@ typedef int result_t;
 #define METHOD_INSTANCE(cls) \
     obj_ptr<cls> pInst = (cls*)cls::class_info().getInstance(args.This()); \
     if(pInst == NULL)return ThrowResult(CALL_E_NOTINSTANCE); \
-    exlib::autoLocker l(pInst->m_lock);
+    scope l(pInst);
 
 #define PROPERTY_INSTANCE(cls) \
     obj_ptr<cls> pInst = (cls*)cls::class_info().getInstance(info.This()); \
     if(pInst == NULL){hr = CALL_E_NOTINSTANCE;break;} \
-    exlib::autoLocker l(pInst->m_lock);
+    scope l(pInst);
 
 #define PROPERTY_SET_LEAVE() \
     }while(0); \
@@ -268,6 +268,13 @@ typedef int result_t;
 			{	return object_base::off(ev, func);} \
 			virtual result_t trigger(const char* ev, const v8::Arguments& args) \
 			{	return object_base::trigger(ev, args);}
+
+#define FIBER_FREE() \
+		public: \
+			virtual void enter() \
+			{} \
+			virtual void leave() \
+			{} \
 
 #ifdef _MSC_VER
 #define isnan _isnan

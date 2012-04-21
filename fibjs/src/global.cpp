@@ -4,11 +4,14 @@
 
 #include "ifs/Event.h"
 #include "ifs/Buffer.h"
+
 #include "ifs/assert.h"
 #include "ifs/path.h"
 #include "ifs/os.h"
 #include "ifs/coroutine.h"
 #include "ifs/encoding.h"
+#include "ifs/net.h"
+
 #include <sstream>
 #include <map>
 
@@ -70,6 +73,7 @@ void initMdule()
 
 	InstallNativeModule("fs", fs_base::class_info());
 	InstallNativeModule("os", os_base::class_info());
+	InstallNativeModule("net", os_base::class_info());
 
 	InstallNativeModule("encoding", encoding_base::class_info());
 }

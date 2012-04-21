@@ -14,8 +14,9 @@ namespace fibjs
 
 static class null_fiber_data: public Fiber_base
 {
-EVENT_SUPPORT()
-	;
+	EVENT_SUPPORT();
+	FIBER_FREE();
+
 public:
 	null_fiber_data()
 	{
@@ -31,15 +32,22 @@ public:
 	{
 		return 0;
 	}
-}s_null;
+
+	result_t get_caller(obj_ptr<Fiber_base>& retVal)
+	{
+		return CALL_E_INVALID_CALL;
+	}
+
+} s_null;
 
 class fiber_data: public Fiber_base
 {
-EVENT_SUPPORT()
-	;
+	EVENT_SUPPORT();
+	FIBER_FREE();
+
 public:
 	fiber_data() :
-			m_next(NULL)
+		m_next(NULL)
 	{
 	}
 
@@ -67,11 +75,18 @@ public:
 		return 0;
 	}
 
+	result_t get_caller(obj_ptr<Fiber_base>& retVal)
+	{
+		retVal = m_caller;
+		return 0;
+	}
+
 public:
 	v8::Persistent<v8::Function> m_func;
 	std::vector<v8::Persistent<v8::Value> > argv;
 	fiber_data* m_next;
 	exlib::Event m_quit;
+	obj_ptr<Fiber_base> m_caller;
 };
 
 static exlib::Queue<fiber_data> g_jobs;
@@ -103,6 +118,8 @@ public:
 
 		v8::Locker locker(isolate);
 		v8::Isolate::Scope isolate_scope(isolate);
+
+		v8::HandleScope handle_scope;
 		v8::Context::Scope context_scope(s_context);
 
 		while (1)
@@ -124,10 +141,8 @@ public:
 
 			size_t i;
 
-			v8::Handle<v8::Function> func;
 			std::vector<v8::Handle<v8::Value> > argv;
 
-			func = fb->m_func;
 			argv.resize(fb->argv.size());
 			for (i = 0; i < fb->argv.size(); i++)
 				argv[i] = fb->argv[i];
@@ -135,7 +150,7 @@ public:
 			v8::Handle<v8::Object> o = fb->wrap();
 
 			v8::TryCatch try_catch;
-			func->Call(o, (int) argv.size(), argv.data());
+			fb->m_func->Call(o, (int) argv.size(), argv.data());
 			if (try_catch.HasCaught())
 				ReportException(&try_catch, true);
 
@@ -166,8 +181,12 @@ public:
 result_t startJSFiber(v8::Handle<v8::Function> func, const v8::Arguments& args,
 		int nArgStart, obj_ptr<Fiber_base>& retVal)
 {
+	v8::HandleScope handle_scope;
+
 	fiber_data* fb = new fiber_data();
 	int i;
+
+	coroutine_base::current(fb->m_caller);
 
 	fb->argv.resize(args.Length() - nArgStart);
 	for (i = nArgStart; i < args.Length(); i++)
@@ -197,6 +216,7 @@ result_t coroutine_base::current(obj_ptr<Fiber_base>& retVal)
 	{
 		fb = new fiber_data();
 		pService->tlsPut(s_tlsCurrent, fb);
+		fb->Ref();
 	}
 
 	retVal = fb;

@@ -25,6 +25,7 @@ public:
 	// Fiber_base
 	virtual result_t join() = 0;
 	virtual result_t get_func(v8::Handle<v8::Function>& retVal) = 0;
+	virtual result_t get_caller(obj_ptr<Fiber_base>& retVal) = 0;
 
 public:
 	static ClassInfo& class_info()
@@ -36,13 +37,14 @@ public:
 
 		static ClassProperty s_property[] = 
 		{
-			{"func", s_get_func}
+			{"func", s_get_func},
+			{"caller", s_get_caller}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"Fiber", NULL, 
-			1, s_method, 1, s_property, NULL,
+			1, s_method, 2, s_property, NULL,
 			&Event_base::class_info()
 		};
 
@@ -61,6 +63,7 @@ public:
 		if(hr < 0)return hr;
 
 		CLONE(func, v8::Handle<v8::Function>);
+		CLONE_CLASS(caller, Fiber_base);
 
 		return 0;
 	}
@@ -68,6 +71,7 @@ public:
 private:
 	static v8::Handle<v8::Value> s_join(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_func(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_caller(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 };
 
 }
@@ -83,6 +87,18 @@ namespace fibjs
 		PROPERTY_INSTANCE(Fiber_base);
 
 		hr = pInst->get_func(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Fiber_base::s_get_caller(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		obj_ptr<Fiber_base> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Fiber_base);
+
+		hr = pInst->get_caller(vr);
 
 		METHOD_RETURN();
 	}

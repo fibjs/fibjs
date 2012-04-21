@@ -18,5 +18,10 @@ class Fiber : Event
 {
 	/*! 等待纤程结束 */
 	join();
+
+	/*! 查询纤程执行函数 */
 	readonly Function func;
+
+	/*! 查询纤程的调用纤程 */
+	readonly Fiber caller;
 };

@@ -707,7 +707,7 @@ function parserIDL(fname) {
 					tjfs.push("		CLONE(" + fname + ", " + map_type(ftype)
 							+ ");");
 				else if (clsName[ftype])
-					tjfs.push("		CLONE_CLASS(" + fname + ", " + ftype + ");");
+					tjfs.push("		CLONE_CLASS(" + fname + ", " + ftype + "_base);");
 
 				iffs
 						.push("	static v8::Handle<v8::Value> s_get_"
