@@ -25,9 +25,9 @@ class ObjectArray_base;
 class fs_base : public module_base
 {
 public:
-	static const int32_t SEEK_SET = 0;
-	static const int32_t SEEK_CUR = 1;
-	static const int32_t SEEK_END = 2;
+	static const int32_t _SEEK_SET = 0;
+	static const int32_t _SEEK_CUR = 1;
+	static const int32_t _SEEK_END = 2;
 
 public:
 	// fs_base
@@ -128,21 +128,21 @@ namespace fibjs
 {
 	inline v8::Handle<v8::Value> fs_base::s_get_SEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		int32_t vr = SEEK_SET;
+		int32_t vr = _SEEK_SET;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> fs_base::s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		int32_t vr = SEEK_CUR;
+		int32_t vr = _SEEK_CUR;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> fs_base::s_get_SEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		int32_t vr = SEEK_END;
+		int32_t vr = _SEEK_END;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}

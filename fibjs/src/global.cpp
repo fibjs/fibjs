@@ -10,18 +10,12 @@
 #include "ifs/os.h"
 #include "ifs/coroutine.h"
 #include "ifs/encoding.h"
+
 #include "ifs/net.h"
+#include "ifs/fs.h"
 
 #include <sstream>
 #include <map>
-
-#ifdef SEEK_SET
-#undef SEEK_SET
-#undef SEEK_CUR
-#undef SEEK_END
-#endif
-
-#include "ifs/fs.h"
 
 namespace fibjs
 {
@@ -73,7 +67,7 @@ void initMdule()
 
 	InstallNativeModule("fs", fs_base::class_info());
 	InstallNativeModule("os", os_base::class_info());
-	InstallNativeModule("net", os_base::class_info());
+	InstallNativeModule("net", net_base::class_info());
 
 	InstallNativeModule("encoding", encoding_base::class_info());
 }

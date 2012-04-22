@@ -1,0 +1,18 @@
+
+/*! @brief 网络套接口对象
+ */
+class Socket : Stream
+{
+	readonly Integer family;
+	readonly Integer type;
+
+	connect(String host, Integer port);
+	bind(String addr, Integer port);
+	bind(Integer port);
+	listen();
+	Socket accept();
+	Buffer recv(Integer size);
+	Buffer recvFrom(Integer size);
+	send(Buffer data);
+	sendto(Buffer data, String host, Integer port);
+};

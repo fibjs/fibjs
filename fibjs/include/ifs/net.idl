@@ -16,4 +16,6 @@ class net : module
 
 	const Integer SOCK_STREAM = 1;
 	const Integer SOCK_DGRAM = 2;
+
+	static Socket socket(Integer family = AF_INET, Integer type = SOCK_STREAM);
 };

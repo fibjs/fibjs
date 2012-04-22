@@ -18,18 +18,28 @@ namespace fibjs
 {
 
 class module_base;
+class Socket_base;
 
 class net_base : public module_base
 {
 public:
-	static const int32_t AF_INET = 2;
-	static const int32_t AF_INET6 = 10;
-	static const int32_t SOCK_STREAM = 1;
-	static const int32_t SOCK_DGRAM = 2;
+	static const int32_t _AF_INET = 2;
+	static const int32_t _AF_INET6 = 10;
+	static const int32_t _SOCK_STREAM = 1;
+	static const int32_t _SOCK_DGRAM = 2;
+
+public:
+	// net_base
+	static result_t socket(int32_t family, int32_t type, obj_ptr<Socket_base>& retVal);
 
 public:
 	static ClassInfo& class_info()
 	{
+		static ClassMethod s_method[] = 
+		{
+			{"socket", s_socket}
+		};
+
 		static ClassProperty s_property[] = 
 		{
 			{"AF_INET", s_get_AF_INET},
@@ -41,7 +51,7 @@ public:
 		static ClassData s_cd = 
 		{ 
 			"net", NULL, 
-			0, NULL, 4, s_property, NULL,
+			1, s_method, 4, s_property, NULL,
 			&module_base::class_info()
 		};
 
@@ -59,38 +69,54 @@ private:
 	static v8::Handle<v8::Value> s_get_AF_INET6(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_socket(const v8::Arguments& args);
 };
 
 }
 
+#include "Socket.h"
 
 namespace fibjs
 {
 	inline v8::Handle<v8::Value> net_base::s_get_AF_INET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		int32_t vr = AF_INET;
+		int32_t vr = _AF_INET;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> net_base::s_get_AF_INET6(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		int32_t vr = AF_INET6;
+		int32_t vr = _AF_INET6;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> net_base::s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		int32_t vr = SOCK_STREAM;
+		int32_t vr = _SOCK_STREAM;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> net_base::s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		int32_t vr = SOCK_DGRAM;
+		int32_t vr = _SOCK_DGRAM;
 		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> net_base::s_socket(const v8::Arguments& args)
+	{
+		obj_ptr<Socket_base> vr;
+
+		METHOD_ENTER(2, 0);
+
+		OPT_ARG(int32_t, 0, _AF_INET);
+		OPT_ARG(int32_t, 1, _SOCK_STREAM);
+
+		hr = socket(v0, v1, vr);
+
 		METHOD_RETURN();
 	}
 

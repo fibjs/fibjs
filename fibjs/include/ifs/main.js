@@ -29,10 +29,7 @@ function preparserIDL(fname) {
 		if (st.length > 0) {
 			if (st[0] == "class" && st.length > 1) {
 				if (clsName[st[1]])
-				{
-					print(st[1]);
 					return reportErr();
-				}
 
 				if (st.length == 2 || (st.length == 4 && st[2] == ":"))
 					clsName[st[1]] = true;
@@ -123,7 +120,7 @@ function preparserIDL(fname) {
 }
 
 function parserIDL(fname) {
-	var st, f, line, ifs, afs, svs, ffs, iffs, tjfs, difms, difps, dsvs, refCls, ids, ns, baseClass, isRem = false, hasNew = false, hasIndexed = false, typeMap = {
+	var st, f, line, cvs, ifs, afs, svs, ffs, iffs, tjfs, difms, difps, dsvs, refCls, ids, ns, baseClass, isRem = false, hasNew = false, hasIndexed = false, typeMap = {
 		"Integer" : "int32_t",
 		"Number" : "double",
 		"Boolean" : "bool",
@@ -178,6 +175,7 @@ function parserIDL(fname) {
 		clsName[name] = true;
 		hasNew = false;
 		hasIndexed = false;
+		
 		ifs = [];
 		afs = [];
 		svs = [];
@@ -188,6 +186,7 @@ function parserIDL(fname) {
 		difms = [];
 		difps = [];
 
+		cvs = {};
 		refCls = {};
 
 		if (!baseClass)
@@ -463,6 +462,8 @@ function parserIDL(fname) {
 					pos++;
 
 					value = st[pos++];
+					if(cvs[value])
+						value = "_" + value;
 				} else
 					value = "";
 
@@ -601,6 +602,7 @@ function parserIDL(fname) {
 				if (st[pos] != "=")
 					return reportErr();
 
+				cvs[fname] = true;
 				pos++;
 				value = st[pos++];
 
@@ -613,11 +615,11 @@ function parserIDL(fname) {
 						+ "_base::s_get_"
 						+ fname
 						+ "(v8::Local<v8::String> property, const v8::AccessorInfo &info)\n	{\n";
-				fnStr += "		" + map_type(ftype) + " vr = " + fname + ";\n";
+				fnStr += "		" + map_type(ftype) + " vr = _" + fname + ";\n";
 				fnStr += "		PROPERTY_ENTER();\n		METHOD_RETURN();\n	}\n";
 				ffs.push(fnStr)
 
-				ifStr = "	static const " + arg_type(ftype) + " " + fname
+				ifStr = "	static const " + arg_type(ftype) + " _" + fname
 						+ " = " + arg_value(ftype, value) + ";";
 
 				svs.push(ifStr);
@@ -707,7 +709,8 @@ function parserIDL(fname) {
 					tjfs.push("		CLONE(" + fname + ", " + map_type(ftype)
 							+ ");");
 				else if (clsName[ftype])
-					tjfs.push("		CLONE_CLASS(" + fname + ", " + ftype + "_base);");
+					tjfs.push("		CLONE_CLASS(" + fname + ", " + ftype
+							+ "_base);");
 
 				iffs
 						.push("	static v8::Handle<v8::Value> s_get_"

@@ -1,0 +1,63 @@
+/*
+ * Socket.h
+ *
+ *  Created on: Apr 22, 2012
+ *      Author: lion
+ */
+
+#ifdef _WIN32
+#include <winsock2.h>
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+
+typedef int SOCKET;
+#define SOCKET_ERROR -1
+#define closesocket close
+#endif
+
+#include "ifs/Socket.h"
+
+#ifndef SOCKET_H_
+#define SOCKET_H_
+
+namespace fibjs
+{
+
+class Socket: public Socket_base
+{
+public:
+	Socket();
+	virtual ~Socket();
+
+public:
+	// Stream_base
+	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal);
+	virtual result_t write(obj_ptr<Buffer_base> data);
+	virtual result_t flush();
+	virtual result_t close();
+
+public:
+	// Socket_base
+	virtual result_t get_family(int32_t& retVal);
+	virtual result_t get_type(int32_t& retVal);
+	virtual result_t connect(const char* host, int32_t port);
+	virtual result_t bind(const char* addr, int32_t port);
+	virtual result_t bind(int32_t port);
+	virtual result_t listen();
+	virtual result_t accept(obj_ptr<Socket_base>& retVal);
+	virtual result_t recv(int32_t size, obj_ptr<Buffer_base>& retVal);
+	virtual result_t recvFrom(int32_t size, obj_ptr<Buffer_base>& retVal);
+	virtual result_t send(obj_ptr<Buffer_base> data);
+	virtual result_t sendto(obj_ptr<Buffer_base> data, const char* host, int32_t port);
+
+public:
+	result_t create(int32_t family, int32_t type);
+
+private:
+	SOCKET m_sock;
+};
+
+}
+
+#endif /* SOCKET_H_ */
