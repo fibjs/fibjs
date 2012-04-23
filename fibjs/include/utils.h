@@ -16,8 +16,6 @@
 #include <ws2tcpip.h>
 #include <winsock2.h>
 
-#define MSG_NOSIGNAL 0
-
 #ifndef IPV6_V6ONLY
 #define IPV6_V6ONLY 27
 #endif
@@ -33,6 +31,10 @@ typedef int SOCKET;
 #define INVALID_SOCKET -1
 #define closesocket close
 
+#endif
+
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
 #endif
 
 #include <v8/v8.h>
