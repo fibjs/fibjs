@@ -7,6 +7,12 @@
 
 #include <osconfig.h>
 
+#ifndef STAT_H_
+#define STAT_H_
+
+#include "ifs/Stat.h"
+#include <sys/stat.h>
+
 #ifdef MacOS
 
 #define ftello64 ftell
@@ -18,7 +24,16 @@
 #define MINGW_HAS_SECURE_API
 #include <io.h>
 
-#define ftruncate64 _chsize_s
+inline int ftruncate64(int fd, __int64 where)
+{
+	if(_lseeki64(fd, where, SEEK_SET) < 0)
+		return -1;
+
+	if(!SetEndOfFile((HANDLE)_get_osfhandle(fd)))
+		return -1;
+
+	return 0;
+}
 
 #define S_ISLNK(m) 0
 
@@ -34,13 +49,6 @@
 #endif
 
 #endif
-
-
-#ifndef STAT_H_
-#define STAT_H_
-
-#include "ifs/Stat.h"
-#include <sys/stat.h>
 
 namespace fibjs
 {

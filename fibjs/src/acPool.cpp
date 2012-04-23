@@ -46,8 +46,8 @@ public:
 	_acThread()
 	{
 		int32_t cpus;
-		if (os_base::CPUs(cpus) < 0)
-			cpus = 4;
+		if (os_base::CPUs(cpus) < 3)
+			cpus = 3;
 
 		for (int i = 0; i < cpus * 2 - 2; i++)
 		{

@@ -139,7 +139,7 @@ v8::Handle<v8::Value> _define(const v8::Arguments& args)
 		modDef->Set(strRequire, glob->Get(strRequire), v8::ReadOnly);
 
 		v8::Handle<v8::String> strFname = v8::String::New(id.c_str(),
-				id.length());
+				(int)id.length());
 		modDef->Set(strId, strFname, v8::ReadOnly);
 
 		// add to modules
@@ -171,7 +171,7 @@ v8::Handle<v8::Value> _define(const v8::Arguments& args)
 	modDef->SetHiddenValue(v8::String::NewSymbol("deps"), deps);
 	modDef->SetHiddenValue(v8::String::NewSymbol("factory"), args[argc - 1]);
 	modDef->SetHiddenValue(v8::String::NewSymbol("stack"),
-			v8::String::New(strStack.c_str(), strStack.length()));
+			v8::String::New(strStack.c_str(), (int)strStack.length()));
 
 	// append to define array
 	defs->Set(defs->Length(), modDef);

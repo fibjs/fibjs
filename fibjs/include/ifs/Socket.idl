@@ -6,13 +6,13 @@ class Socket : Stream
 	readonly Integer family;
 	readonly Integer type;
 
-	connect(String host, Integer port);
-	bind(String addr, Integer port);
-	bind(Integer port);
-	listen();
-	Socket accept();
-	Buffer recv(Integer size = -1);
-	Buffer recvFrom(Integer size = -1);
-	send(Buffer data);
-	sendto(Buffer data, String host, Integer port);
+	connect(String addr, Integer port) async;
+	bind(Integer port, Boolean onlyIPv6 = false);
+	bind(String addr, Integer port, Boolean onlyIPv6 = false);
+	listen(Integer backlog = 20);
+	Socket accept() async;
+	Buffer recv(Integer bytes = -1) async;
+	Buffer recvFrom(Integer bytes = -1) async;
+	send(Buffer data) async;
+	sendto(Buffer data, String host, Integer port) async;
 };

@@ -12,9 +12,18 @@
  */
 
 #ifdef _WIN32
+
 #include <ws2tcpip.h>
 #include <winsock2.h>
+
+#define MSG_NOSIGNAL 0
+
+#ifndef IPV6_V6ONLY
+#define IPV6_V6ONLY 27
+#endif
+
 #else
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -23,6 +32,7 @@ typedef int SOCKET;
 #define SOCKET_ERROR -1
 #define INVALID_SOCKET -1
 #define closesocket close
+
 #endif
 
 #include <v8/v8.h>
@@ -75,7 +85,7 @@ inline int qstrcmp(const T* s1, const T* s2, int sz = -1)
 }
 
 template<typename T>
-const T *qstrichr(const T *s, T c)
+const T *qstrichr(const T *s, int c)
 {
 	do
 	{
@@ -86,7 +96,7 @@ const T *qstrichr(const T *s, T c)
 }
 
 template<typename T>
-const T *qstrchr(const T *s, T c)
+const T *qstrchr(const T *s, int c)
 {
 	do
 	{
@@ -151,6 +161,14 @@ void qstrlwr(T *s)
 			*s = c + 'a' - 'A';
 		s++;
 	}
+}
+
+template<typename T>
+T qtolower(T c)
+{
+	if (c >= 'A' && c <= 'Z')
+		return c + 'a' - 'A';
+	return c;
 }
 
 typedef int result_t;
@@ -299,18 +317,18 @@ class obj_ptr
 {
 public:
 	obj_ptr() :
-			p(NULL)
+		p(NULL)
 	{
 	}
 
 	obj_ptr(T* lp) :
-			p(NULL)
+		p(NULL)
 	{
 		operator=(lp);
 	}
 
 	obj_ptr(const obj_ptr<T>& lp) :
-			p(NULL)
+		p(NULL)
 	{
 		operator=(lp);
 	}
@@ -503,7 +521,7 @@ inline v8::Handle<v8::Value> ReturnValue(double v)
 
 inline v8::Handle<v8::Value> ReturnValue(int64_t v)
 {
-	return v8::Date::New((double)v);
+	return v8::Date::New((double) v);
 }
 
 inline v8::Handle<v8::Value> ReturnValue(std::string& str)

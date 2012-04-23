@@ -32,7 +32,7 @@ result_t path_base::basename(const char* path, const char* ext,
 {
 	char ch;
 	const char *p1 = path;
-	int extlen = qstrlen(ext);
+	int extlen = (int)qstrlen(ext);
 
 	while (*path)
 	{

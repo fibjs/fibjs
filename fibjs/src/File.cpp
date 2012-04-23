@@ -46,11 +46,11 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal)
 		while (sz && !feof(m_file))
 		{
 			int n = (int)fread(p, 1, sz, m_file);
-			sz -= n;
-			p += n;
-
 			if (n == 0 && ferror(m_file))
 				return LastError();
+
+			sz -= n;
+			p += n;
 		}
 
 		strBuf.resize(bytes - sz);
@@ -69,11 +69,11 @@ result_t File::Write(const char* p, int sz)
 	while (sz)
 	{
 		int n = (int)fwrite(p, 1, sz, m_file);
-		sz -= n;
-		p += n;
-
 		if (n == 0 && ferror(m_file))
 			return LastError();
+
+		sz -= n;
+		p += n;
 	}
 
 	return 0;
@@ -81,9 +81,6 @@ result_t File::Write(const char* p, int sz)
 
 result_t File::write(obj_ptr<Buffer_base> data)
 {
-	if (!m_file)
-		return CALL_E_INVALID_CALL;
-
 	std::string strBuf;
 	data->toString(strBuf);
 

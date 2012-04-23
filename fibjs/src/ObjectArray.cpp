@@ -32,7 +32,7 @@ result_t ObjectArray::_indexed_setter(uint32_t index, obj_ptr<object_base> newVa
 
 result_t ObjectArray::get_length(int32_t& retVal)
 {
-	retVal = m_array.size();
+	retVal = (int32_t)m_array.size();
 	return 0;
 }
 
@@ -49,7 +49,7 @@ result_t ObjectArray::slice(int32_t start, int32_t end, obj_ptr<ObjectArray_base
 
 result_t ObjectArray::toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 {
-	v8::Handle<v8::Array> a = v8::Array::New(m_array.size());
+	v8::Handle<v8::Array> a = v8::Array::New((int)m_array.size());
 	int i;
 
 	for(i = 0; i < (int)m_array.size(); i ++)

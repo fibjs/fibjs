@@ -44,20 +44,12 @@ std::string getResultMessage(result_t hr)
 
 	hr = CALL_E_MAX - hr;
 
-	if(hr > 9000)
+	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+					NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &pMsgBuf, 0, NULL ) && pMsgBuf)
 	{
-
-
-
-	}else
-	{
-		if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-						NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &pMsgBuf, 0, NULL ) && pMsgBuf)
-		{
-			std::string str = utf16to8String(pMsgBuf);
-			LocalFree(pMsgBuf);
-			return str;
-		}
+		std::string str = utf16to8String(pMsgBuf);
+		LocalFree(pMsgBuf);
+		return str;
 	}
 
 	return "Unknown error.";

@@ -242,7 +242,7 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 	// module.id
 	fname.resize(fname.length() - 3);
 	v8::Handle<v8::String> strFname = v8::String::New(fname.c_str(),
-			fname.length());
+			(int)fname.length());
 	glob->SetHiddenValue(strId, strFname);
 
 	if (bMod)

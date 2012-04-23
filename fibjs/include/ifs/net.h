@@ -70,6 +70,9 @@ private:
 	static v8::Handle<v8::Value> s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_socket(const v8::Arguments& args);
+
+private:
+	ASYNC_STATIC3(net_base, socket);
 };
 
 }
@@ -115,7 +118,7 @@ namespace fibjs
 		OPT_ARG(int32_t, 0, _AF_INET);
 		OPT_ARG(int32_t, 1, _SOCK_STREAM);
 
-		hr = socket(v0, v1, vr);
+		hr = ac_socket(s_acPool, v0, v1, vr);
 
 		METHOD_RETURN();
 	}

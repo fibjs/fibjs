@@ -7,6 +7,7 @@
 
 #include "Socket.h"
 #include "ifs/net.h"
+#include "Buffer.h"
 #include <string.h>
 
 namespace fibjs
@@ -16,7 +17,7 @@ namespace fibjs
 #define NS_IN6ADDRSZ 16
 #define NS_INT16SZ 2
 
-static int inet_pton4(const char * src, unsigned char * dst)
+static int inet_pton4(const char * src, void* dst)
 {
 	int saw_digit, octets, ch;
 	unsigned char tmp[NS_INADDRSZ], *tp;
@@ -24,46 +25,51 @@ static int inet_pton4(const char * src, unsigned char * dst)
 	saw_digit = 0;
 	octets = 0;
 	*(tp = tmp) = 0;
+
 	while ((ch = *src++) != '\0')
 	{
-
 		if (ch >= '0' && ch <= '9')
 		{
 			unsigned p = *tp * 10 + (ch - '0');
 
 			if (saw_digit && *tp == 0)
 				return (0);
+
 			if (p > 255)
-				return (0);
+				return -1;
+
 			*tp = p;
+
 			if (!saw_digit)
 			{
 				if (++octets > 4)
-					return (0);
+					return -1;
 				saw_digit = 1;
 			}
 		}
 		else if (ch == '.' && saw_digit)
 		{
 			if (octets == 4)
-				return (0);
+				return -1;
+
 			*++tp = 0;
 			saw_digit = 0;
 		}
 		else
-			return (0);
+			return -1;
 	}
+
 	if (octets < 4)
-		return (0);
+		return -1;
+
 	memcpy(dst, tmp, NS_INADDRSZ);
+
 	return (1);
 }
 
-static int inet_pton6(const char * src, struct in6_addr* dst)
+static int inet_pton6(const char * src, void* dst)
 {
-	static const char xdigits[] = "0123456789abcdef";
 	unsigned char tmp[NS_IN6ADDRSZ], *tp, *endp, *colonp;
-	const char *curtok;
 	int ch, saw_xdigit;
 	unsigned val;
 
@@ -71,86 +77,83 @@ static int inet_pton6(const char * src, struct in6_addr* dst)
 	endp = tp + NS_IN6ADDRSZ;
 	colonp = NULL;
 	/* Leading :: requires some special handling. */
-	if (*src == ':')
-		if (*++src != ':')
-			return (0);
-	curtok = src;
+	if (*src == ':' && *++src != ':')
+		return (0);
+
 	saw_xdigit = 0;
 	val = 0;
-	while ((ch = tolower(*src++)) != '\0')
-	{
-		const char *pch;
 
-		pch = strchr(xdigits, ch);
-		if (pch != NULL)
-		{
-			val <<= 4;
-			val |= (pch - xdigits);
-			if (val > 0xffff)
-				return (0);
-			saw_xdigit = 1;
-			continue;
-		}
+	while ((ch = *src++) != '\0')
+	{
 		if (ch == ':')
 		{
-			curtok = src;
 			if (!saw_xdigit)
 			{
 				if (colonp)
-					return (0);
+					return -1;
+
 				colonp = tp;
 				continue;
 			}
 			else if (*src == '\0')
-			{
-				return (0);
-			}
+				return -1;
+
 			if (tp + NS_INT16SZ > endp)
-				return (0);
+				return -1;
 			*tp++ = (u_char) (val >> 8) & 0xff;
 			*tp++ = (u_char) val & 0xff;
 			saw_xdigit = 0;
 			val = 0;
 			continue;
 		}
-		if (ch == '.' && ((tp + NS_INADDRSZ) <= endp)
-				&& inet_pton4(curtok, tp) > 0)
-		{
-			tp += NS_INADDRSZ;
-			saw_xdigit = 0;
-			break; /* '\0' was seen by inet_pton4(). */
-		}
-		return (0);
+
+		if (ch >= '0' && ch <= '9')
+			ch = ch - '0';
+		else if (ch >= 'a' && ch <= 'f')
+			ch = ch - 'a' + 10;
+		else if (ch >= 'A' && ch <= 'f')
+			ch = ch - 'A' + 10;
+		else
+			return -1;
+
+		val <<= 4;
+		val |= ch;
+
+		if (val > 0xffff)
+			return -1;
+		saw_xdigit = 1;
 	}
+
 	if (saw_xdigit)
 	{
 		if (tp + NS_INT16SZ > endp)
-			return (0);
+			return -1;
 		*tp++ = (u_char) (val >> 8) & 0xff;
 		*tp++ = (u_char) val & 0xff;
 	}
+
 	if (colonp != NULL)
 	{
-		/*
-		 * Since some memmove()'s erroneously fail to handle
-		 * overlapping regions, we'll do the shift by hand.
-		 */
-		const int n = tp - colonp;
+		const int n = (int) (tp - colonp);
 		int i;
 
 		if (tp == endp)
-			return (0);
+			return -1;
+
 		for (i = 1; i <= n; i++)
 		{
 			endp[-i] = colonp[n - i];
 			colonp[n - i] = 0;
 		}
+
 		tp = endp;
 	}
+
 	if (tp != endp)
-		return (0);
+		return -1;
 
 	memcpy(dst, tmp, NS_IN6ADDRSZ);
+
 	return (1);
 }
 
@@ -171,7 +174,6 @@ public:
 		}
 	}
 }s_initWinSock;
-
 #endif
 
 Socket::Socket()
@@ -263,65 +265,91 @@ result_t Socket::get_type(int32_t& retVal)
 	return 0;
 }
 
-result_t Socket::connect(const char* host, int32_t port)
+result_t Socket::getAddrInfo(const char* addr, int32_t port,
+		_sockaddr& addr_info)
 {
-	if (m_sock == INVALID_SOCKET)
-		return CALL_E_INVALID_CALL;
+	memset(&addr_info, 0, sizeof(addr_info));
 
 	if (m_family == net_base::_AF_INET)
 	{
-		struct sockaddr_in addr;
+		addr_info.addr4.sin_family = PF_INET;
+		addr_info.addr4.sin_port = htons(port);
 
-		memset(&addr, 0, sizeof(addr));
-
-		addr.sin_family = PF_INET;
-
-		if ((addr.sin_addr.s_addr = inet_addr(host)) == INADDR_NONE)
+		if (addr == NULL)
+			addr_info.addr4.sin_addr.s_addr = INADDR_ANY;
+		else if (inet_pton4(addr, &addr_info.addr4.sin_addr.s_addr) < 0)
 			return CALL_E_INVALIDARG;
-
-		addr.sin_port = htons(port);
-
-		if (::connect(m_sock, (struct sockaddr*) &addr,
-				sizeof(addr)) == SOCKET_ERROR)
-			return SocketError();
 	}
 	else
 	{
-		struct sockaddr_in6 addr;
+		addr_info.addr6.sin6_family = PF_INET6;
+		addr_info.addr6.sin6_port = htons(port);
 
-		memset(&addr, 0, sizeof(addr));
-
-		addr.sin6_family = PF_INET6;
-		if (inet_pton6(host, &addr.sin6_addr) < 0)
+		if (addr == NULL)
+			addr_info.addr6.sin6_addr = in6addr_any;
+		else if (inet_pton6(addr, &addr_info.addr6.sin6_addr) < 0)
 			return CALL_E_INVALIDARG;
-
-		addr.sin6_port = htons(port);
-
-		if (::connect(m_sock, (struct sockaddr*) &addr,
-				sizeof(addr)) == SOCKET_ERROR)
-			return SocketError();
 	}
 
 	return 0;
 }
 
-result_t Socket::bind(const char* addr, int32_t port)
+result_t Socket::connect(const char* addr, int32_t port)
 {
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
+
+	_sockaddr addr_info;
+	result_t hr = getAddrInfo(addr, port, addr_info);
+	if (hr < 0)
+		return hr;
+
+	if (::connect(m_sock, (struct sockaddr*) &addr_info, sizeof(addr_info))
+			== SOCKET_ERROR)
+		return SocketError();
 
 	return 0;
 }
 
-result_t Socket::bind(int32_t port)
-{
-	return bind("", port);
-}
-
-result_t Socket::listen()
+result_t Socket::bind(const char* addr, int32_t port, bool onlyIPv6)
 {
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
+
+	_sockaddr addr_info;
+	result_t hr = getAddrInfo(addr, port, addr_info);
+	if (hr < 0)
+		return hr;
+
+	int on = 1;
+	setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (const char*) &on, sizeof(on));
+
+	if (m_family == net_base::_AF_INET6)
+	{
+		if (!onlyIPv6)
+			on = 0;
+		setsockopt(m_sock, IPPROTO_IPV6, IPV6_V6ONLY, (const char*) &on, sizeof(on));
+	}
+
+	if (::bind(m_sock, (struct sockaddr*) &addr_info, sizeof(addr_info))
+			== SOCKET_ERROR)
+		return SocketError();
+
+	return 0;
+}
+
+result_t Socket::bind(int32_t port, bool onlyIPv6)
+{
+	return bind(NULL, port, onlyIPv6);
+}
+
+result_t Socket::listen(int32_t backlog)
+{
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
+	if (::listen(m_sock, backlog) == SOCKET_ERROR)
+		return SocketError();
 
 	return 0;
 }
@@ -331,10 +359,57 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal)
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
 
+	_sockaddr addr_info;
+	socklen_t sz = sizeof(addr_info);
+
+	memset(&addr_info, 0, sizeof(addr_info));
+
+	SOCKET s = ::accept(m_sock, (sockaddr*) &addr_info, &sz);
+	if (s == INVALID_SOCKET)
+		return SocketError();
+
+	obj_ptr<Socket> sock = new Socket();
+
+	sock->m_sock = s;
+	if (addr_info.addr6.sin6_family == PF_INET6)
+		sock->m_family = net_base::_AF_INET6;
+
+	retVal = sock;
+
 	return 0;
 }
 
-result_t Socket::recv(int32_t size, obj_ptr<Buffer_base>& retVal)
+result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal)
+{
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
+	std::string buf;
+	int sz = bytes > 0 ? bytes : 4096;
+
+	buf.resize(sz);
+	char* p = &buf[0];
+
+	do
+	{
+		int n = (int) ::recv(m_sock, p, sz, MSG_NOSIGNAL);
+		if (n == SOCKET_ERROR)
+			return SocketError();
+
+		if (n == 0)
+			break;
+
+		sz -= n;
+		p += n;
+	} while (bytes > sz);
+
+	buf.resize((bytes > 0 ? bytes : 4096) - sz);
+	retVal = new Buffer(buf);
+
+	return 0;
+}
+
+result_t Socket::recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal)
 {
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
@@ -342,24 +417,30 @@ result_t Socket::recv(int32_t size, obj_ptr<Buffer_base>& retVal)
 	return 0;
 }
 
-result_t Socket::recvFrom(int32_t size, obj_ptr<Buffer_base>& retVal)
+result_t Socket::send(const char* p, int sz)
 {
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
+
+	while (sz)
+	{
+		int n = (int) ::send(m_sock, p, sz, MSG_NOSIGNAL);
+		if (n == SOCKET_ERROR)
+			return SocketError();
+
+		sz -= n;
+		p += n;
+	}
 
 	return 0;
 }
 
 result_t Socket::send(obj_ptr<Buffer_base> data)
 {
-	if (m_sock == INVALID_SOCKET)
-		return CALL_E_INVALID_CALL;
+	std::string strBuf;
+	data->toString(strBuf);
 
-
-
-
-
-	return 0;
+	return send(strBuf.c_str(), (int) strBuf.length());
 }
 
 result_t Socket::sendto(obj_ptr<Buffer_base> data, const char* host,

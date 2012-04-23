@@ -26,13 +26,13 @@ public:
 	// Socket_base
 	virtual result_t get_family(int32_t& retVal) = 0;
 	virtual result_t get_type(int32_t& retVal) = 0;
-	virtual result_t connect(const char* host, int32_t port) = 0;
-	virtual result_t bind(const char* addr, int32_t port) = 0;
-	virtual result_t bind(int32_t port) = 0;
-	virtual result_t listen() = 0;
+	virtual result_t connect(const char* addr, int32_t port) = 0;
+	virtual result_t bind(int32_t port, bool onlyIPv6) = 0;
+	virtual result_t bind(const char* addr, int32_t port, bool onlyIPv6) = 0;
+	virtual result_t listen(int32_t backlog) = 0;
 	virtual result_t accept(obj_ptr<Socket_base>& retVal) = 0;
-	virtual result_t recv(int32_t size, obj_ptr<Buffer_base>& retVal) = 0;
-	virtual result_t recvFrom(int32_t size, obj_ptr<Buffer_base>& retVal) = 0;
+	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
+	virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t send(obj_ptr<Buffer_base> data) = 0;
 	virtual result_t sendto(obj_ptr<Buffer_base> data, const char* host, int32_t port) = 0;
 
@@ -96,6 +96,14 @@ private:
 	static v8::Handle<v8::Value> s_recvFrom(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_send(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_sendto(const v8::Arguments& args);
+
+private:
+	ASYNC_MEMBER2(Socket_base, connect);
+	ASYNC_MEMBER1(Socket_base, accept);
+	ASYNC_MEMBER2(Socket_base, recv);
+	ASYNC_MEMBER2(Socket_base, recvFrom);
+	ASYNC_MEMBER1(Socket_base, send);
+	ASYNC_MEMBER3(Socket_base, sendto);
 };
 
 }
@@ -136,7 +144,7 @@ namespace fibjs
 		ARG_String(0);
 		ARG(int32_t, 1);
 
-		hr = pInst->connect(v0, v1);
+		hr = pInst->ac_connect(s_acPool, v0, v1);
 
 		METHOD_VOID();
 	}
@@ -144,18 +152,20 @@ namespace fibjs
 	inline v8::Handle<v8::Value> Socket_base::s_bind(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(Socket_base);
-		METHOD_ENTER(2, 2);
+		METHOD_ENTER(2, 1);
 
-		ARG_String(0);
-		ARG(int32_t, 1);
+		ARG(int32_t, 0);
+		OPT_ARG(bool, 1, false);
 
 		hr = pInst->bind(v0, v1);
 
-		METHOD_OVER(1, 1);
+		METHOD_OVER(3, 2);
 
-		ARG(int32_t, 0);
+		ARG_String(0);
+		ARG(int32_t, 1);
+		OPT_ARG(bool, 2, false);
 
-		hr = pInst->bind(v0);
+		hr = pInst->bind(v0, v1, v2);
 
 		METHOD_VOID();
 	}
@@ -163,9 +173,11 @@ namespace fibjs
 	inline v8::Handle<v8::Value> Socket_base::s_listen(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(Socket_base);
-		METHOD_ENTER(0, 0);
+		METHOD_ENTER(1, 0);
 
-		hr = pInst->listen();
+		OPT_ARG(int32_t, 0, 20);
+
+		hr = pInst->listen(v0);
 
 		METHOD_VOID();
 	}
@@ -177,7 +189,7 @@ namespace fibjs
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->accept(vr);
+		hr = pInst->ac_accept(s_acPool, vr);
 
 		METHOD_RETURN();
 	}
@@ -191,7 +203,7 @@ namespace fibjs
 
 		OPT_ARG(int32_t, 0, -1);
 
-		hr = pInst->recv(v0, vr);
+		hr = pInst->ac_recv(s_acPool, v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -205,7 +217,7 @@ namespace fibjs
 
 		OPT_ARG(int32_t, 0, -1);
 
-		hr = pInst->recvFrom(v0, vr);
+		hr = pInst->ac_recvFrom(s_acPool, v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -217,7 +229,7 @@ namespace fibjs
 
 		ARG(obj_ptr<Buffer_base>, 0);
 
-		hr = pInst->send(v0);
+		hr = pInst->ac_send(s_acPool, v0);
 
 		METHOD_VOID();
 	}
@@ -231,7 +243,7 @@ namespace fibjs
 		ARG_String(1);
 		ARG(int32_t, 2);
 
-		hr = pInst->sendto(v0, v1, v2);
+		hr = pInst->ac_sendto(s_acPool, v0, v1, v2);
 
 		METHOD_VOID();
 	}
