@@ -35,6 +35,7 @@
 #define WIN32
 #endif
 
+#define ENABLE_DEBUGGER_SUPPORT
 
 #ifndef V8_V8_H_
 #define V8_V8_H_

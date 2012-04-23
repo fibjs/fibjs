@@ -1223,6 +1223,7 @@ class HChange: public HUnaryOperation {
     SetFlag(kUseGVN);
     if (deoptimize_on_undefined) SetFlag(kDeoptimizeOnUndefined);
     if (is_truncating) SetFlag(kTruncatingToInt32);
+    if (to.IsTagged()) SetGVNFlag(kChangesNewSpacePromotion);
   }
 
   virtual HValue* EnsureAndPropagateNotMinusZero(BitVector* visited);
@@ -1348,6 +1349,7 @@ class HStackCheck: public HTemplateInstruction<1> {
 
   HStackCheck(HValue* context, Type type) : type_(type) {
     SetOperandAt(0, context);
+    SetGVNFlag(kChangesNewSpacePromotion);
   }
 
   HValue* context() { return OperandAt(0); }
@@ -1644,14 +1646,26 @@ class HInvokeFunction: public HBinaryCall {
       : HBinaryCall(context, function, argument_count) {
   }
 
+  HInvokeFunction(HValue* context,
+                  HValue* function,
+                  Handle<JSFunction> known_function,
+                  int argument_count)
+      : HBinaryCall(context, function, argument_count),
+        known_function_(known_function) {
+  }
+
   virtual Representation RequiredInputRepresentation(int index) {
     return Representation::Tagged();
   }
 
   HValue* context() { return first(); }
   HValue* function() { return second(); }
+  Handle<JSFunction> known_function() { return known_function_; }
 
   DECLARE_CONCRETE_INSTRUCTION(InvokeFunction)
+
+ private:
+  Handle<JSFunction> known_function_;
 };
 
 
@@ -1904,6 +1918,8 @@ class HBitNot: public HUnaryOperation {
   }
   virtual HType CalculateInferredType();
 
+  virtual HValue* Canonicalize();
+
   DECLARE_CONCRETE_INSTRUCTION(BitNot)
 
  protected:
@@ -1926,6 +1942,7 @@ class HUnaryMathOperation: public HTemplateInstruction<2> {
       case kMathAbs:
         set_representation(Representation::Tagged());
         SetFlag(kFlexibleRepresentation);
+        SetGVNFlag(kChangesNewSpacePromotion);
         break;
       case kMathSqrt:
       case kMathPowHalf:
@@ -1934,6 +1951,7 @@ class HUnaryMathOperation: public HTemplateInstruction<2> {
       case kMathCos:
       case kMathTan:
         set_representation(Representation::Double());
+        SetGVNFlag(kChangesNewSpacePromotion);
         break;
       default:
         UNREACHABLE();
@@ -3154,6 +3172,7 @@ class HPower: public HTemplateInstruction<2> {
     SetOperandAt(1, right);
     set_representation(Representation::Double());
     SetFlag(kUseGVN);
+    SetGVNFlag(kChangesNewSpacePromotion);
   }
 
   HValue* left() { return OperandAt(0); }
@@ -3352,6 +3371,8 @@ class HBitwise: public HBitwiseBinaryOperation {
                                    HValue* context,
                                    HValue* left,
                                    HValue* right);
+
+  virtual void PrintDataTo(StringStream* stream);
 
   DECLARE_CONCRETE_INSTRUCTION(Bitwise)
 
@@ -4321,6 +4342,7 @@ class HTransitionElementsKind: public HTemplateInstruction<1> {
     SetFlag(kUseGVN);
     SetGVNFlag(kChangesElementsKind);
     SetGVNFlag(kChangesElementsPointer);
+    SetGVNFlag(kChangesNewSpacePromotion);
     set_representation(Representation::Tagged());
   }
 
@@ -4382,6 +4404,7 @@ class HStringCharCodeAt: public HTemplateInstruction<3> {
     set_representation(Representation::Integer32());
     SetFlag(kUseGVN);
     SetGVNFlag(kDependsOnMaps);
+    SetGVNFlag(kChangesNewSpacePromotion);
   }
 
   virtual Representation RequiredInputRepresentation(int index) {
@@ -4413,6 +4436,7 @@ class HStringCharFromCode: public HTemplateInstruction<2> {
     SetOperandAt(1, char_code);
     set_representation(Representation::Tagged());
     SetFlag(kUseGVN);
+    SetGVNFlag(kChangesNewSpacePromotion);
   }
 
   virtual Representation RequiredInputRepresentation(int index) {
@@ -4514,6 +4538,7 @@ class HFastLiteral: public HMaterializedLiteral<1> {
         boilerplate_(boilerplate),
         total_size_(total_size) {
     SetOperandAt(0, context);
+    SetGVNFlag(kChangesNewSpacePromotion);
   }
 
   // Maximum depth and total number of elements and properties for literal
@@ -4549,6 +4574,7 @@ class HArrayLiteral: public HMaterializedLiteral<1> {
         length_(length),
         boilerplate_object_(boilerplate_object) {
     SetOperandAt(0, context);
+    SetGVNFlag(kChangesNewSpacePromotion);
   }
 
   HValue* context() { return OperandAt(0); }
@@ -4589,6 +4615,7 @@ class HObjectLiteral: public HMaterializedLiteral<1> {
         fast_elements_(fast_elements),
         has_function_(has_function) {
     SetOperandAt(0, context);
+    SetGVNFlag(kChangesNewSpacePromotion);
   }
 
   HValue* context() { return OperandAt(0); }
@@ -4650,6 +4677,7 @@ class HFunctionLiteral: public HTemplateInstruction<1> {
       : shared_info_(shared), pretenure_(pretenure) {
     SetOperandAt(0, context);
     set_representation(Representation::Tagged());
+    SetGVNFlag(kChangesNewSpacePromotion);
   }
 
   HValue* context() { return OperandAt(0); }

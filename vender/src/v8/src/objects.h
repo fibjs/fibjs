@@ -59,6 +59,7 @@
 //           - JSWeakMap
 //           - JSRegExp
 //           - JSFunction
+//           - JSModule
 //           - GlobalObject
 //             - JSGlobalObject
 //             - JSBuiltinsObject
@@ -306,6 +307,7 @@ const int kVariableSizeSentinel = 0;
   V(JS_DATE_TYPE)                                                              \
   V(JS_OBJECT_TYPE)                                                            \
   V(JS_CONTEXT_EXTENSION_OBJECT_TYPE)                                          \
+  V(JS_MODULE_TYPE)                                                            \
   V(JS_GLOBAL_OBJECT_TYPE)                                                     \
   V(JS_BUILTINS_OBJECT_TYPE)                                                   \
   V(JS_GLOBAL_PROXY_TYPE)                                                      \
@@ -626,6 +628,7 @@ enum InstanceType {
   JS_DATE_TYPE,
   JS_OBJECT_TYPE,
   JS_CONTEXT_EXTENSION_OBJECT_TYPE,
+  JS_MODULE_TYPE,
   JS_GLOBAL_OBJECT_TYPE,
   JS_BUILTINS_OBJECT_TYPE,
   JS_GLOBAL_PROXY_TYPE,
@@ -677,6 +680,7 @@ const int kExternalArrayTypeCount =
 
 STATIC_CHECK(JS_OBJECT_TYPE == Internals::kJSObjectType);
 STATIC_CHECK(FIRST_NONSTRING_TYPE == Internals::kFirstNonstringType);
+STATIC_CHECK(ODDBALL_TYPE == Internals::kOddballType);
 STATIC_CHECK(FOREIGN_TYPE == Internals::kForeignType);
 
 
@@ -803,6 +807,7 @@ class MaybeObject BASE_EMBEDDED {
   V(JSReceiver)                                \
   V(JSObject)                                  \
   V(JSContextExtensionObject)                  \
+  V(JSModule)                                  \
   V(Map)                                       \
   V(DescriptorArray)                           \
   V(DeoptimizationInputData)                   \
@@ -812,6 +817,7 @@ class MaybeObject BASE_EMBEDDED {
   V(FixedDoubleArray)                          \
   V(Context)                                   \
   V(GlobalContext)                             \
+  V(ModuleContext)                             \
   V(ScopeInfo)                                 \
   V(JSFunction)                                \
   V(Code)                                      \
@@ -2468,7 +2474,7 @@ class DescriptorArray: public FixedArray {
   // Accessors for fetching instance descriptor at descriptor number.
   inline String* GetKey(int descriptor_number);
   inline Object* GetValue(int descriptor_number);
-  inline Smi* GetDetails(int descriptor_number);
+  inline PropertyDetails GetDetails(int descriptor_number);
   inline PropertyType GetType(int descriptor_number);
   inline int GetFieldIndex(int descriptor_number);
   inline JSFunction* GetConstantFunction(int descriptor_number);
@@ -2477,7 +2483,6 @@ class DescriptorArray: public FixedArray {
   inline bool IsProperty(int descriptor_number);
   inline bool IsTransitionOnly(int descriptor_number);
   inline bool IsNullDescriptor(int descriptor_number);
-  inline bool IsDontEnum(int descriptor_number);
 
   class WhitenessWitness {
    public:
@@ -2631,10 +2636,6 @@ class DescriptorArray: public FixedArray {
     return descriptor_number << 1;
   }
 
-  bool is_null_descriptor(int descriptor_number) {
-    return PropertyDetails(GetDetails(descriptor_number)).type() ==
-        NULL_DESCRIPTOR;
-  }
   // Swap operation on FixedArray without using write barriers.
   static inline void NoIncrementalWriteBarrierSwap(
       FixedArray* array, int first, int second);
@@ -5691,6 +5692,35 @@ class SharedFunctionInfo: public HeapObject {
 };
 
 
+// Representation for module instance objects.
+class JSModule: public JSObject {
+ public:
+  // [context]: the context holding the module's locals, or undefined if none.
+  DECL_ACCESSORS(context, Object)
+
+  // Casting.
+  static inline JSModule* cast(Object* obj);
+
+  // Dispatched behavior.
+#ifdef OBJECT_PRINT
+  inline void JSModulePrint() {
+    JSModulePrint(stdout);
+  }
+  void JSModulePrint(FILE* out);
+#endif
+#ifdef DEBUG
+  void JSModuleVerify();
+#endif
+
+  // Layout description.
+  static const int kContextOffset = JSObject::kHeaderSize;
+  static const int kSize = kContextOffset + kPointerSize;
+
+ private:
+  DISALLOW_IMPLICIT_CONSTRUCTORS(JSModule);
+};
+
+
 // JSFunction describes JavaScript functions.
 class JSFunction: public JSObject {
  public:
@@ -7606,6 +7636,10 @@ class Oddball: public HeapObject {
   typedef FixedBodyDescriptor<kToStringOffset,
                               kToNumberOffset + kPointerSize,
                               kSize> BodyDescriptor;
+
+  STATIC_CHECK(kKindOffset == Internals::kOddballKindOffset);
+  STATIC_CHECK(kNull == Internals::kNullOddballKind);
+  STATIC_CHECK(kUndefined == Internals::kUndefinedOddballKind);
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(Oddball);

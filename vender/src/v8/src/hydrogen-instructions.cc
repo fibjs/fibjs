@@ -870,6 +870,17 @@ HValue* HBitwise::Canonicalize() {
 }
 
 
+HValue* HBitNot::Canonicalize() {
+  // Optimize ~~x, a common pattern used for ToInt32(x).
+  if (value()->IsBitNot()) {
+    HValue* result = HBitNot::cast(value())->value();
+    ASSERT(result->representation().IsInteger32());
+    return result;
+  }
+  return this;
+}
+
+
 HValue* HAdd::Canonicalize() {
   if (!representation().IsInteger32()) return this;
   if (CheckUsesForFlag(kTruncatingToInt32)) ClearFlag(kCanOverflow);
@@ -2269,6 +2280,13 @@ void HIn::PrintDataTo(StringStream* stream) {
   key()->PrintNameTo(stream);
   stream->Add(" ");
   object()->PrintNameTo(stream);
+}
+
+
+void HBitwise::PrintDataTo(StringStream* stream) {
+  stream->Add(Token::Name(op_));
+  stream->Add(" ");
+  HBitwiseBinaryOperation::PrintDataTo(stream);
 }
 
 

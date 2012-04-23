@@ -413,6 +413,19 @@ class V8EXPORT HeapProfiler {
   static const HeapSnapshot* FindSnapshot(unsigned uid);
 
   /**
+   * Returns SnapshotObjectId for a heap object referenced by |value| if
+   * it has been seen by the heap profiler, kUnknownObjectId otherwise.
+   */
+  static SnapshotObjectId GetSnapshotObjectId(Handle<Value> value);
+
+  /**
+   * A constant for invalid SnapshotObjectId. GetSnapshotObjectId will return
+   * it in case heap profiler cannot find id  for the object passed as
+   * parameter. HeapSnapshot::GetNodeById will always return NULL for such id.
+   */
+  static const SnapshotObjectId kUnknownObjectId = 0;
+
+  /**
    * Takes a heap snapshot and returns it. Title may be an empty string.
    * See HeapSnapshot::Type for types description.
    */
@@ -433,8 +446,8 @@ class V8EXPORT HeapProfiler {
    * time interval entry contains information on the current heap objects
    * population size. The method also updates aggregated statistics and
    * reports updates for all previous time intervals via the OutputStream
-   * object. Updates on each time interval are provided as pairs of time
-   * interval index and updated heap objects count.
+   * object. Updates on each time interval are provided as a stream of the
+   * HeapStatsUpdate structure instances.
    *
    * StartHeapObjectsTracking must be called before the first call to this
    * method.
@@ -542,6 +555,19 @@ class V8EXPORT RetainedObjectInfo {  // NOLINT
  private:
   RetainedObjectInfo(const RetainedObjectInfo&);
   RetainedObjectInfo& operator=(const RetainedObjectInfo&);
+};
+
+
+/**
+ * A struct for exporting HeapStats data from V8, using "push" model.
+ * See HeapProfiler::PushHeapObjectsStats.
+ */
+struct HeapStatsUpdate {
+  HeapStatsUpdate(uint32_t index, uint32_t count, uint32_t size)
+    : index(index), count(count), size(size) { }
+  uint32_t index;  // Index of the time interval that was changed.
+  uint32_t count;  // New value of count field for the interval with this index.
+  uint32_t size;  // New value of size field for the interval with this index.
 };
 
 

@@ -296,8 +296,6 @@ void MarkCompactCollector::CollectGarbage() {
 
   if (!collect_maps_) ReattachInitialMaps();
 
-  heap_->isolate()->inner_pointer_to_code_cache()->Flush();
-
   Finish();
 
   tracer_ = NULL;
@@ -1152,9 +1150,10 @@ class StaticMarkingVisitor : public StaticVisitorBase {
     JSWeakMap* weak_map = reinterpret_cast<JSWeakMap*>(object);
 
     // Enqueue weak map in linked list of encountered weak maps.
-    ASSERT(weak_map->next() == Smi::FromInt(0));
-    weak_map->set_next(collector->encountered_weak_maps());
-    collector->set_encountered_weak_maps(weak_map);
+    if (weak_map->next() == Smi::FromInt(0)) {
+      weak_map->set_next(collector->encountered_weak_maps());
+      collector->set_encountered_weak_maps(weak_map);
+    }
 
     // Skip visiting the backing hash table containing the mappings.
     int object_size = JSWeakMap::BodyDescriptor::SizeOf(map, object);
@@ -1170,9 +1169,15 @@ class StaticMarkingVisitor : public StaticVisitorBase {
         object_size);
 
     // Mark the backing hash table without pushing it on the marking stack.
-    ObjectHashTable* table = ObjectHashTable::cast(weak_map->table());
-    ASSERT(!MarkCompactCollector::IsMarked(table));
-    collector->SetMark(table, Marking::MarkBitFrom(table));
+    Object* table_object = weak_map->table();
+    if (!table_object->IsHashTable()) return;
+    ObjectHashTable* table = ObjectHashTable::cast(table_object);
+    Object** table_slot =
+        HeapObject::RawField(weak_map, JSWeakMap::kTableOffset);
+    MarkBit table_mark = Marking::MarkBitFrom(table);
+    collector->RecordSlot(table_slot, table_slot, table);
+    if (!table_mark.Get()) collector->SetMark(table, table_mark);
+    // Recording the map slot can be skipped, because maps are not compacted.
     collector->MarkObject(table->map(), Marking::MarkBitFrom(table->map()));
     ASSERT(MarkCompactCollector::IsMarked(table->map()));
   }
@@ -1525,12 +1530,6 @@ class StaticMarkingVisitor : public StaticVisitorBase {
                              JSFunction::kCodeEntryOffset + kPointerSize),
         HeapObject::RawField(object,
                              JSFunction::kNonWeakFieldsEndOffset));
-
-    // Don't visit the next function list field as it is a weak reference.
-    Object** next_function =
-        HeapObject::RawField(object, JSFunction::kNextFunctionLinkOffset);
-    heap->mark_compact_collector()->RecordSlot(
-        next_function, next_function, *next_function);
   }
 
   static inline void VisitJSRegExpFields(Map* map,
@@ -3421,6 +3420,8 @@ void MarkCompactCollector::EvacuateNewSpaceAndCandidates() {
   // Visit invalidated code (we ignored all slots on it) and clear mark-bits
   // under it.
   ProcessInvalidatedCode(&updating_visitor);
+
+  heap_->isolate()->inner_pointer_to_code_cache()->Flush();
 
 #ifdef DEBUG
   if (FLAG_verify_heap) {

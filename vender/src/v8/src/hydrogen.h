@@ -868,15 +868,11 @@ class HGraphBuilder: public AstVisitor {
   static const int kMaxLoadPolymorphism = 4;
   static const int kMaxStorePolymorphism = 4;
 
-  static const int kMaxInlinedNodes = 196;
-  static const int kMaxInlinedSize = 196;
-  static const int kMaxSourceSize = 600;
-
   // Even in the 'unlimited' case we have to have some limit in order not to
   // overflow the stack.
-  static const int kUnlimitedMaxInlinedNodes = 1000;
-  static const int kUnlimitedMaxInlinedSize = 1000;
-  static const int kUnlimitedMaxSourceSize = 600;
+  static const int kUnlimitedMaxInlinedSourceSize = 100000;
+  static const int kUnlimitedMaxInlinedNodes = 10000;
+  static const int kUnlimitedMaxInlinedNodesCumulative = 10000;
 
   // Simple accessors.
   void set_function_state(FunctionState* state) { function_state_ = state; }
@@ -912,11 +908,6 @@ class HGraphBuilder: public AstVisitor {
   INLINE_FUNCTION_LIST(INLINE_FUNCTION_GENERATOR_DECLARATION)
   INLINE_RUNTIME_FUNCTION_LIST(INLINE_FUNCTION_GENERATOR_DECLARATION)
 #undef INLINE_FUNCTION_GENERATOR_DECLARATION
-
-  void HandleDeclaration(VariableProxy* proxy,
-                         VariableMode mode,
-                         FunctionLiteral* function,
-                         int* global_count);
 
   void VisitDelete(UnaryOperation* expr);
   void VisitVoid(UnaryOperation* expr);
@@ -1167,6 +1158,7 @@ class HGraphBuilder: public AstVisitor {
   HBasicBlock* current_block_;
 
   int inlined_count_;
+  ZoneList<Handle<Object> > globals_;
 
   Zone* zone_;
 
