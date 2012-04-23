@@ -64,7 +64,7 @@ static int inet_pton4(const char * src, void* dst)
 
 	memcpy(dst, tmp, NS_INADDRSZ);
 
-	return (1);
+	return 0;
 }
 
 static int inet_pton6(const char * src, void* dst)
@@ -100,6 +100,7 @@ static int inet_pton6(const char * src, void* dst)
 
 			if (tp + NS_INT16SZ > endp)
 				return -1;
+
 			*tp++ = (u_char) (val >> 8) & 0xff;
 			*tp++ = (u_char) val & 0xff;
 			saw_xdigit = 0;
@@ -128,6 +129,7 @@ static int inet_pton6(const char * src, void* dst)
 	{
 		if (tp + NS_INT16SZ > endp)
 			return -1;
+
 		*tp++ = (u_char) (val >> 8) & 0xff;
 		*tp++ = (u_char) val & 0xff;
 	}
@@ -154,7 +156,7 @@ static int inet_pton6(const char * src, void* dst)
 
 	memcpy(dst, tmp, NS_IN6ADDRSZ);
 
-	return (1);
+	return 0;
 }
 
 #ifdef _WIN32
@@ -289,6 +291,8 @@ result_t Socket::getAddrInfo(const char* addr, int32_t port,
 			addr_info.addr6.sin6_addr = in6addr_any;
 		else if (inet_pton6(addr, &addr_info.addr6.sin6_addr) < 0)
 			return CALL_E_INVALIDARG;
+
+
 	}
 
 	return 0;

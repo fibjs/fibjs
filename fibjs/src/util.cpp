@@ -1,12 +1,24 @@
 #include "utils.h"
 #include "acPool.h"
 #include <string.h>
+#include <stdio.h>
 #include <sstream>
 #include <log4cpp/Category.hh>
 #include "utf8.h"
 
 namespace fibjs
 {
+
+static std::string fmtString(result_t hr, const char* str)
+{
+	std::string s;
+	int len = qstrlen(str);
+
+	s.resize(len + 16);
+	s.resize(sprintf(&s[0], "[%d] %s", -hr, str));
+
+	return s;
+}
 
 std::string getResultMessage(result_t hr)
 {
@@ -33,28 +45,26 @@ std::string getResultMessage(result_t hr)
 			// CALL_E_BADINDEX
 			"Index was out of range.",
 			// CALL_E_OVERFLOW
-			"Memory overflow error."
-	};
+			"Memory overflow error." };
 
-	if (hr < 0 && hr > CALL_E_MAX)
-		return s_errors[-hr];
+	if (hr > CALL_E_MIN && hr < CALL_E_MAX)
+		return fmtString(hr, s_errors[CALL_E_MAX - hr]);
 
 #ifdef _WIN32
-	LPWSTR pMsgBuf = NULL;
+	LPSTR pMsgBuf = NULL;
 
-	hr = CALL_E_MAX - hr;
-
-	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-					NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &pMsgBuf, 0, NULL ) && pMsgBuf)
+	if (FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+					NULL, -hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR) &pMsgBuf, 0, NULL ) && pMsgBuf)
 	{
-		std::string str = utf16to8String(pMsgBuf);
+		std::string s = fmtString(hr, pMsgBuf);
+
 		LocalFree(pMsgBuf);
-		return str;
+		return s;
 	}
 
-	return "Unknown error.";
+	return fmtString(hr, "Unknown error.");
 #else
-	return strerror(CALL_E_MAX - hr);
+	return fmtString(hr, strerror(-hr));
 #endif
 }
 

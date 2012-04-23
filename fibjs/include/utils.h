@@ -175,29 +175,31 @@ T qtolower(T c)
 
 typedef int result_t;
 
+#define CALL_E_MAX              -100000
 // Invalid number of parameters.
-#define CALL_E_BADPARAMCOUNT    -1
+#define CALL_E_BADPARAMCOUNT    (CALL_E_MAX - 1)
 // Parameter not optional.
-#define CALL_E_PARAMNOTOPTIONAL -2
+#define CALL_E_PARAMNOTOPTIONAL (CALL_E_MAX - 2)
 // Constructor cannot be called as a function.
-#define CALL_E_CONSTRUCTOR      -3
+#define CALL_E_CONSTRUCTOR      (CALL_E_MAX - 3)
 // Object is not an instance of declaring class.
-#define CALL_E_NOTINSTANCE      -4
+#define CALL_E_NOTINSTANCE      (CALL_E_MAX - 4)
 // The input parameter is not a valid type.
-#define CALL_E_BADVARTYPE       -5
+#define CALL_E_BADVARTYPE       (CALL_E_MAX - 5)
 // Invalid argument.
-#define CALL_E_INVALIDARG       -6
+#define CALL_E_INVALIDARG       (CALL_E_MAX - 6)
 // Invalid procedure call.
-#define CALL_E_INVALID_CALL		-7
+#define CALL_E_INVALID_CALL		 (CALL_E_MAX - 7)
 // The argument could not be coerced to the specified type.
-#define CALL_E_TYPEMISMATCH     -8
+#define CALL_E_TYPEMISMATCH     (CALL_E_MAX - 8)
 // Value is out of range.
-#define CALL_E_OUTRANGE         -9
+#define CALL_E_OUTRANGE         (CALL_E_MAX - 9)
 // Index was out of range.
-#define CALL_E_BADINDEX         -10
+#define CALL_E_BADINDEX         (CALL_E_MAX - 10)
 // Memory overflow error.
-#define CALL_E_OVERFLOW         -11
-#define CALL_E_MAX              -64
+#define CALL_E_OVERFLOW         (CALL_E_MAX - 11)
+
+#define CALL_E_MIN              -100100
 
 #define PROPERTY_ENTER() \
 	result_t hr = 0;do{
@@ -580,18 +582,18 @@ inline v8::Handle<v8::Value> ThrowRangeError(const char* msg)
 inline result_t LastError()
 {
 #ifdef _WIN32
-	return CALL_E_MAX - GetLastError();
+	return - GetLastError();
 #else
-	return CALL_E_MAX - errno;
+	return - errno;
 #endif
 }
 
 inline result_t SocketError()
 {
 #ifdef _WIN32
-	return CALL_E_MAX - WSAGetLastError();
+	return - WSAGetLastError();
 #else
-	return CALL_E_MAX - errno;
+	return - errno;
 #endif
 }
 
