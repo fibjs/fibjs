@@ -11,8 +11,8 @@ class Socket : Stream
 	bind(Integer port);
 	listen();
 	Socket accept();
-	Buffer recv(Integer size);
-	Buffer recvFrom(Integer size);
+	Buffer recv(Integer size = -1);
+	Buffer recvFrom(Integer size = -1);
 	send(Buffer data);
 	sendto(Buffer data, String host, Integer port);
 };

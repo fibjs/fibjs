@@ -42,12 +42,22 @@ std::string getResultMessage(result_t hr)
 #ifdef _WIN32
 	LPWSTR pMsgBuf = NULL;
 
-	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-					NULL, CALL_E_MAX - hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &pMsgBuf, 0, NULL ) && pMsgBuf)
+	hr = CALL_E_MAX - hr;
+
+	if(hr > 9000)
 	{
-		std::string str = utf16to8String(pMsgBuf);
-		LocalFree(pMsgBuf);
-		return str;
+
+
+
+	}else
+	{
+		if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+						NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &pMsgBuf, 0, NULL ) && pMsgBuf)
+		{
+			std::string str = utf16to8String(pMsgBuf);
+			LocalFree(pMsgBuf);
+			return str;
+		}
 	}
 
 	return "Unknown error.";

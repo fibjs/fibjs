@@ -5,17 +5,6 @@
  *      Author: lion
  */
 
-#ifdef _WIN32
-#include <winsock2.h>
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-
-typedef int SOCKET;
-#define SOCKET_ERROR -1
-#define closesocket close
-#endif
-
 #include "ifs/Socket.h"
 
 #ifndef SOCKET_H_
@@ -56,6 +45,8 @@ public:
 
 private:
 	SOCKET m_sock;
+	int32_t m_family;
+	int32_t m_type;
 };
 
 }

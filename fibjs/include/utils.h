@@ -11,6 +11,20 @@
  @author Leo Hoo <lion@9465.net>
  */
 
+#ifdef _WIN32
+#include <ws2tcpip.h>
+#include <winsock2.h>
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+typedef int SOCKET;
+#define SOCKET_ERROR -1
+#define INVALID_SOCKET -1
+#define closesocket close
+#endif
+
 #include <v8/v8.h>
 #include <string>
 #include <math.h>
@@ -547,6 +561,15 @@ inline result_t LastError()
 {
 #ifdef _WIN32
 	return CALL_E_MAX - GetLastError();
+#else
+	return CALL_E_MAX - errno;
+#endif
+}
+
+inline result_t SocketError()
+{
+#ifdef _WIN32
+	return CALL_E_MAX - WSAGetLastError();
 #else
 	return CALL_E_MAX - errno;
 #endif

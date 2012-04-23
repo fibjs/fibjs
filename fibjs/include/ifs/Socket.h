@@ -187,9 +187,9 @@ namespace fibjs
 		obj_ptr<Buffer_base> vr;
 
 		METHOD_INSTANCE(Socket_base);
-		METHOD_ENTER(1, 1);
+		METHOD_ENTER(1, 0);
 
-		ARG(int32_t, 0);
+		OPT_ARG(int32_t, 0, -1);
 
 		hr = pInst->recv(v0, vr);
 
@@ -201,9 +201,9 @@ namespace fibjs
 		obj_ptr<Buffer_base> vr;
 
 		METHOD_INSTANCE(Socket_base);
-		METHOD_ENTER(1, 1);
+		METHOD_ENTER(1, 0);
 
-		ARG(int32_t, 0);
+		OPT_ARG(int32_t, 0, -1);
 
 		hr = pInst->recvFrom(v0, vr);
 

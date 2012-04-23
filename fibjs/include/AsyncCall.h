@@ -1,9 +1,9 @@
 #ifndef _fj_ASYNCCALL_H
 #define _fj_ASYNCCALL_H
 
+#include "utils.h"
 #include <exlib/fiber.h>
 #include <exlib/lockfree.h>
-#include "utils.h"
 #include <string>
 
 namespace fibjs
