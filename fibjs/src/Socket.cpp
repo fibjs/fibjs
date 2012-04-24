@@ -563,8 +563,10 @@ result_t Socket::connect(const char* addr, int32_t port)
 	if (hr < 0)
 		return hr;
 
-	if (::connect(m_sock, (struct sockaddr*) &addr_info, sizeof(addr_info))
-			== SOCKET_ERROR)
+	if (::connect(m_sock, (struct sockaddr*) &addr_info,
+			m_family == net_base::_AF_INET ?
+					sizeof(addr_info.addr4) :
+					sizeof(addr_info.addr6)) == SOCKET_ERROR)
 		return SocketError();
 
 	return 0;
@@ -592,8 +594,10 @@ result_t Socket::bind(const char* addr, int32_t port, bool onlyIPv6)
 				sizeof(on));
 	}
 
-	if (::bind(m_sock, (struct sockaddr*) &addr_info, sizeof(addr_info))
-			== SOCKET_ERROR)
+	if (::bind(m_sock, (struct sockaddr*) &addr_info,
+			m_family == net_base::_AF_INET ?
+					sizeof(addr_info.addr4) :
+					sizeof(addr_info.addr6)) == SOCKET_ERROR)
 		return SocketError();
 
 	return 0;
