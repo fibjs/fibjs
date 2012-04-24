@@ -31,8 +31,8 @@ public:
 	virtual result_t get_localAddress(std::string& retVal) = 0;
 	virtual result_t get_localPort(int32_t& retVal) = 0;
 	virtual result_t connect(const char* addr, int32_t port) = 0;
-	virtual result_t bind(int32_t port, bool onlyIPv6) = 0;
-	virtual result_t bind(const char* addr, int32_t port, bool onlyIPv6) = 0;
+	virtual result_t bind(int32_t port, bool allowIPv4) = 0;
+	virtual result_t bind(const char* addr, int32_t port, bool allowIPv4) = 0;
 	virtual result_t listen(int32_t backlog) = 0;
 	virtual result_t accept(obj_ptr<Socket_base>& retVal) = 0;
 	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
@@ -219,7 +219,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(int32_t, 0);
-		OPT_ARG(bool, 1, false);
+		OPT_ARG(bool, 1, true);
 
 		hr = pInst->bind(v0, v1);
 
@@ -227,7 +227,7 @@ namespace fibjs
 
 		ARG_String(0);
 		ARG(int32_t, 1);
-		OPT_ARG(bool, 2, false);
+		OPT_ARG(bool, 2, true);
 
 		hr = pInst->bind(v0, v1, v2);
 

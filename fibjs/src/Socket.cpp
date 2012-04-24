@@ -572,7 +572,7 @@ result_t Socket::connect(const char* addr, int32_t port)
 	return 0;
 }
 
-result_t Socket::bind(const char* addr, int32_t port, bool onlyIPv6)
+result_t Socket::bind(const char* addr, int32_t port, bool allowIPv4)
 {
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
@@ -587,7 +587,7 @@ result_t Socket::bind(const char* addr, int32_t port, bool onlyIPv6)
 
 	if (m_family == net_base::_AF_INET6)
 	{
-		if (!onlyIPv6)
+		if (allowIPv4)
 			on = 0;
 
 		setsockopt(m_sock, IPPROTO_IPV6, IPV6_V6ONLY, (const char*) &on,
@@ -603,9 +603,9 @@ result_t Socket::bind(const char* addr, int32_t port, bool onlyIPv6)
 	return 0;
 }
 
-result_t Socket::bind(int32_t port, bool onlyIPv6)
+result_t Socket::bind(int32_t port, bool allowIPv4)
 {
-	return bind(NULL, port, onlyIPv6);
+	return bind(NULL, port, allowIPv4);
 }
 
 result_t Socket::listen(int32_t backlog)

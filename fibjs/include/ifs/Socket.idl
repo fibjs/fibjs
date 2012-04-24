@@ -12,8 +12,8 @@ class Socket : Stream
 	readonly Integer localPort;
 
 	connect(String addr, Integer port) async;
-	bind(Integer port, Boolean onlyIPv6 = false);
-	bind(String addr, Integer port, Boolean onlyIPv6 = false);
+	bind(Integer port, Boolean allowIPv4 = true);
+	bind(String addr, Integer port, Boolean allowIPv4 = true);
 	listen(Integer backlog = 20);
 	Socket accept() async;
 	Buffer recv(Integer bytes = -1) async;
