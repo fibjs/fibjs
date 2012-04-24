@@ -6,6 +6,11 @@ class Socket : Stream
 	readonly Integer family;
 	readonly Integer type;
 
+	readonly String remoteAddress;
+	readonly Integer remotePort;
+	readonly String localAddress;
+	readonly Integer localPort;
+
 	connect(String addr, Integer port) async;
 	bind(Integer port, Boolean onlyIPv6 = false);
 	bind(String addr, Integer port, Boolean onlyIPv6 = false);

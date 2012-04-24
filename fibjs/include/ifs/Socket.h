@@ -26,6 +26,10 @@ public:
 	// Socket_base
 	virtual result_t get_family(int32_t& retVal) = 0;
 	virtual result_t get_type(int32_t& retVal) = 0;
+	virtual result_t get_remoteAddress(std::string& retVal) = 0;
+	virtual result_t get_remotePort(int32_t& retVal) = 0;
+	virtual result_t get_localAddress(std::string& retVal) = 0;
+	virtual result_t get_localPort(int32_t& retVal) = 0;
 	virtual result_t connect(const char* addr, int32_t port) = 0;
 	virtual result_t bind(int32_t port, bool onlyIPv6) = 0;
 	virtual result_t bind(const char* addr, int32_t port, bool onlyIPv6) = 0;
@@ -55,13 +59,17 @@ public:
 		static ClassProperty s_property[] = 
 		{
 			{"family", s_get_family},
-			{"type", s_get_type}
+			{"type", s_get_type},
+			{"remoteAddress", s_get_remoteAddress},
+			{"remotePort", s_get_remotePort},
+			{"localAddress", s_get_localAddress},
+			{"localPort", s_get_localPort}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"Socket", NULL, 
-			9, s_method, 2, s_property, NULL,
+			9, s_method, 6, s_property, NULL,
 			&Stream_base::class_info()
 		};
 
@@ -81,6 +89,10 @@ public:
 
 		CLONE(family, int32_t);
 		CLONE(type, int32_t);
+		CLONE_String(remoteAddress);
+		CLONE(remotePort, int32_t);
+		CLONE_String(localAddress);
+		CLONE(localPort, int32_t);
 
 		return 0;
 	}
@@ -88,6 +100,10 @@ public:
 private:
 	static v8::Handle<v8::Value> s_get_family(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_remoteAddress(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_remotePort(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_localAddress(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_localPort(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_connect(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_bind(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_listen(const v8::Arguments& args);
@@ -132,6 +148,54 @@ namespace fibjs
 		PROPERTY_INSTANCE(Socket_base);
 
 		hr = pInst->get_type(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Socket_base::s_get_remoteAddress(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		std::string vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Socket_base);
+
+		hr = pInst->get_remoteAddress(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Socket_base::s_get_remotePort(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Socket_base);
+
+		hr = pInst->get_remotePort(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Socket_base::s_get_localAddress(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		std::string vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Socket_base);
+
+		hr = pInst->get_localAddress(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Socket_base::s_get_localPort(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Socket_base);
+
+		hr = pInst->get_localPort(vr);
 
 		METHOD_RETURN();
 	}
