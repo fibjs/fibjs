@@ -41,6 +41,14 @@ public:
     result_t Write(const char* p, int sz);
 
 private:
+	result_t sync_read(int32_t bytes, obj_ptr<Buffer_base>& retVal);
+	result_t sync_write(obj_ptr<Buffer_base> data);
+
+private:
+	ASYNC_MEMBER2(File, sync_read);
+	ASYNC_MEMBER1(File, sync_write);
+
+private:
     std::string name;
     double m_data;
     FILE* m_file;

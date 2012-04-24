@@ -36,8 +36,11 @@ public:
 	virtual result_t listen(int32_t backlog) = 0;
 	virtual result_t accept(obj_ptr<Socket_base>& retVal) = 0;
 	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
+	virtual result_t recv(v8::Handle<v8::Function> cb, obj_ptr<Buffer_base>& retVal) = 0;
+	virtual result_t recv(int32_t bytes, v8::Handle<v8::Function> cb, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t send(obj_ptr<Buffer_base> data) = 0;
+	virtual result_t send(obj_ptr<Buffer_base> data, v8::Handle<v8::Function> cb) = 0;
 	virtual result_t sendto(obj_ptr<Buffer_base> data, const char* host, int32_t port) = 0;
 
 public:
@@ -51,7 +54,10 @@ public:
 			{"listen", s_listen},
 			{"accept", s_accept},
 			{"recv", s_recv},
+			{"recv", s_recv},
+			{"recv", s_recv},
 			{"recvFrom", s_recvFrom},
+			{"send", s_send},
 			{"send", s_send},
 			{"sendto", s_sendto}
 		};
@@ -69,7 +75,7 @@ public:
 		static ClassData s_cd = 
 		{ 
 			"Socket", NULL, 
-			9, s_method, 6, s_property, NULL,
+			12, s_method, 6, s_property, NULL,
 			&Stream_base::class_info()
 		};
 
@@ -116,10 +122,6 @@ private:
 private:
 	ASYNC_MEMBER2(Socket_base, connect);
 	ASYNC_MEMBER1(Socket_base, accept);
-	ASYNC_MEMBER2(Socket_base, recv);
-	ASYNC_MEMBER2(Socket_base, recvFrom);
-	ASYNC_MEMBER1(Socket_base, send);
-	ASYNC_MEMBER3(Socket_base, sendto);
 };
 
 }
@@ -267,7 +269,20 @@ namespace fibjs
 
 		OPT_ARG(int32_t, 0, -1);
 
-		hr = pInst->ac_recv(s_acPool, v0, vr);
+		hr = pInst->recv(v0, vr);
+
+		METHOD_OVER(1, 1);
+
+		ARG(v8::Handle<v8::Function>, 0);
+
+		hr = pInst->recv(v0, vr);
+
+		METHOD_OVER(2, 2);
+
+		ARG(int32_t, 0);
+		ARG(v8::Handle<v8::Function>, 1);
+
+		hr = pInst->recv(v0, v1, vr);
 
 		METHOD_RETURN();
 	}
@@ -281,7 +296,7 @@ namespace fibjs
 
 		OPT_ARG(int32_t, 0, -1);
 
-		hr = pInst->ac_recvFrom(s_acPool, v0, vr);
+		hr = pInst->recvFrom(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -293,7 +308,14 @@ namespace fibjs
 
 		ARG(obj_ptr<Buffer_base>, 0);
 
-		hr = pInst->ac_send(s_acPool, v0);
+		hr = pInst->send(v0);
+
+		METHOD_OVER(2, 2);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(v8::Handle<v8::Function>, 1);
+
+		hr = pInst->send(v0, v1);
 
 		METHOD_VOID();
 	}
@@ -307,7 +329,7 @@ namespace fibjs
 		ARG_String(1);
 		ARG(int32_t, 2);
 
-		hr = pInst->ac_sendto(s_acPool, v0, v1, v2);
+		hr = pInst->sendto(v0, v1, v2);
 
 		METHOD_VOID();
 	}

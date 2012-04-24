@@ -61,8 +61,6 @@ private:
 	static v8::Handle<v8::Value> s_close(const v8::Arguments& args);
 
 private:
-	ASYNC_MEMBER2(Stream_base, read);
-	ASYNC_MEMBER1(Stream_base, write);
 	ASYNC_MEMBER0(Stream_base, flush);
 	ASYNC_MEMBER0(Stream_base, close);
 };
@@ -83,7 +81,7 @@ namespace fibjs
 
 		OPT_ARG(int32_t, 0, -1);
 
-		hr = pInst->ac_read(s_acPool, v0, vr);
+		hr = pInst->read(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -95,7 +93,7 @@ namespace fibjs
 
 		ARG(obj_ptr<Buffer_base>, 0);
 
-		hr = pInst->ac_write(s_acPool, v0);
+		hr = pInst->write(v0);
 
 		METHOD_VOID();
 	}

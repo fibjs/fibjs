@@ -15,7 +15,7 @@
 namespace fibjs
 {
 
-result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal)
+result_t File::sync_read(int32_t bytes, obj_ptr<Buffer_base>& retVal)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
@@ -61,6 +61,11 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal)
 	return 0;
 }
 
+result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal)
+{
+	return ac_sync_read(s_acPool, bytes, retVal);
+}
+
 result_t File::Write(const char* p, int sz)
 {
 	if (!m_file)
@@ -79,12 +84,17 @@ result_t File::Write(const char* p, int sz)
 	return 0;
 }
 
-result_t File::write(obj_ptr<Buffer_base> data)
+result_t File::sync_write(obj_ptr<Buffer_base> data)
 {
 	std::string strBuf;
 	data->toString(strBuf);
 
 	return Write(strBuf.c_str(), (int)strBuf.length());
+}
+
+result_t File::write(obj_ptr<Buffer_base> data)
+{
+	return ac_sync_write(s_acPool, data);
 }
 
 result_t File::Open(const char* fname, const char* mode)

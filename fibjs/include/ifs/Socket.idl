@@ -16,8 +16,11 @@ class Socket : Stream
 	bind(String addr, Integer port, Boolean allowIPv4 = true);
 	listen(Integer backlog = 20);
 	Socket accept() async;
-	Buffer recv(Integer bytes = -1) async;
-	Buffer recvFrom(Integer bytes = -1) async;
-	send(Buffer data) async;
-	sendto(Buffer data, String host, Integer port) async;
+	Buffer recv(Integer bytes = -1);
+	Buffer recv(Function cb);
+	Buffer recv(Integer bytes, Function cb);
+	Buffer recvFrom(Integer bytes = -1);
+	send(Buffer data);
+	send(Buffer data, Function cb);
+	sendto(Buffer data, String host, Integer port);
 };

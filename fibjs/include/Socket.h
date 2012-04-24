@@ -47,8 +47,11 @@ public:
 	virtual result_t listen(int32_t backlog);
 	virtual result_t accept(obj_ptr<Socket_base>& retVal);
 	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal);
+	virtual result_t recv(v8::Handle<v8::Function> cb, obj_ptr<Buffer_base>& retVal);
+	virtual result_t recv(int32_t bytes, v8::Handle<v8::Function> cb, obj_ptr<Buffer_base>& retVal);
 	virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal);
 	virtual result_t send(obj_ptr<Buffer_base> data);
+	virtual result_t send(obj_ptr<Buffer_base> data, v8::Handle<v8::Function> cb);
 	virtual result_t sendto(obj_ptr<Buffer_base> data, const char* host,
 			int32_t port);
 
@@ -58,6 +61,14 @@ public:
 
 private:
 	result_t getAddrInfo(const char* addr, int32_t port, _sockaddr& addr_info);
+
+private:
+	result_t sync_recv(int32_t bytes, obj_ptr<Buffer_base>& retVal);
+	result_t sync_send(obj_ptr<Buffer_base> data);
+
+private:
+	ASYNC_MEMBER2(Socket, sync_recv);
+	ASYNC_MEMBER1(Socket, sync_send);
 
 private:
 	SOCKET m_sock;
