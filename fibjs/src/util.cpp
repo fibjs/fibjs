@@ -24,23 +24,24 @@ std::string getResultMessage(result_t hr)
 {
 	static const char* s_errors[] =
 	{ "",
-	// CALL_E_BADPARAMCOUNT
+			// CALL_E_BADPARAMCOUNT
 			"Invalid number of parameters.",
 			// CALL_E_PARAMNOTOPTIONAL
-			"Parameter not optional.",
-			// CALL_E_CONSTRUCTOR
-			"Constructor cannot be called as a function.",
-			// CALL_E_NOTINSTANCE
 			"Object is not an instance of declaring class.",
 			// CALL_E_BADVARTYPE
 			"The input parameter is not a valid type.",
 			// CALL_E_INVALIDARG
-			"Invalid argument.",
-			// CALL_E_INVALID_CALL
 			"Invalid procedure call.",
 			// CALL_E_TYPEMISMATCH
 			"The argument could not be coerced to the specified type.",
 			// CALL_E_OUTRANGE
+
+			"Parameter not optional.",
+			// CALL_E_CONSTRUCTOR
+			"Constructor cannot be called as a function.",
+			// CALL_E_NOTINSTANCE
+			"Invalid argument.",
+			// CALL_E_INVALID_CALL
 			"Value is out of range.",
 			// CALL_E_BADINDEX
 			"Index was out of range.",

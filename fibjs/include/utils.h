@@ -180,20 +180,23 @@ typedef int result_t;
 #define CALL_E_BADPARAMCOUNT    (CALL_E_MAX - 1)
 // Parameter not optional.
 #define CALL_E_PARAMNOTOPTIONAL (CALL_E_MAX - 2)
-// Constructor cannot be called as a function.
-#define CALL_E_CONSTRUCTOR      (CALL_E_MAX - 3)
-// Object is not an instance of declaring class.
-#define CALL_E_NOTINSTANCE      (CALL_E_MAX - 4)
 // The input parameter is not a valid type.
-#define CALL_E_BADVARTYPE       (CALL_E_MAX - 5)
+#define CALL_E_BADVARTYPE       (CALL_E_MAX - 3)
 // Invalid argument.
-#define CALL_E_INVALIDARG       (CALL_E_MAX - 6)
-// Invalid procedure call.
-#define CALL_E_INVALID_CALL		 (CALL_E_MAX - 7)
+#define CALL_E_INVALIDARG       (CALL_E_MAX - 4)
 // The argument could not be coerced to the specified type.
-#define CALL_E_TYPEMISMATCH     (CALL_E_MAX - 8)
+#define CALL_E_TYPEMISMATCH     (CALL_E_MAX - 5)
 // Value is out of range.
-#define CALL_E_OUTRANGE         (CALL_E_MAX - 9)
+#define CALL_E_OUTRANGE         (CALL_E_MAX - 6)
+
+#define CALL_E_MIN_ARG			(CALL_E_OUTRANGE - 1)
+
+// Constructor cannot be called as a function.
+#define CALL_E_CONSTRUCTOR      (CALL_E_MAX - 7)
+// Object is not an instance of declaring class.
+#define CALL_E_NOTINSTANCE      (CALL_E_MAX - 8)
+// Invalid procedure call.
+#define CALL_E_INVALID_CALL		 (CALL_E_MAX - 9)
 // Index was out of range.
 #define CALL_E_BADINDEX         (CALL_E_MAX - 10)
 // Memory overflow error.
@@ -205,14 +208,15 @@ typedef int result_t;
 	result_t hr = 0;do{
 
 #define METHOD_OVER(c, o) \
-	}while(0);  if(hr < 0)do{hr = 0;\
+	}while(0); \
+	if(hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)do{hr = 0;\
     int argc; \
     argc = args.Length(); \
     if((c) >= 0 && argc > (c)){hr = CALL_E_BADPARAMCOUNT;break;} \
     if((o) > 0 && argc < (o)){hr = CALL_E_PARAMNOTOPTIONAL;break;}
 
 #define METHOD_ENTER(c, o) \
-    result_t hr = CALL_E_INVALID_CALL; do{\
+    result_t hr = CALL_E_BADPARAMCOUNT; do{\
     METHOD_OVER(c, o)
 
 #define CONSTRUCT_ENTER(c, o) \
