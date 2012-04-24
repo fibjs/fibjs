@@ -10,7 +10,7 @@ function accept(s)
 	while(1)
 	{
 		var c = s.accept();
-		console.log(c.family);
+		console.log(c.remoteAddress, c.remotePort, "->", c.localAddress, c.localPort);
 		c.write(c.read());
 		c.close();
 		c.dispose();
@@ -24,8 +24,8 @@ accept.start(s);
 
 for(var i = 0; i < 100; i ++)
 {
-	var s1 = net.socket(net.AF_INET6, net.SOCK_STREAM);
-	s1.connect('', 8080);
+	var s1 = net.socket(net.AF_INET, net.SOCK_STREAM);
+	s1.connect('192.168.65.52', 8080);
 	s1.write(new Buffer("GET / HTTP/1.0\n\n"));
 	console.log(s1.read());
 }
