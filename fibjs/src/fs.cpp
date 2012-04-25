@@ -47,15 +47,15 @@ result_t fs_base::tmpFile(obj_ptr<File_base>& retVal)
 
 result_t fs_base::readFile(const char* fname, std::string& retVal)
 {
-	obj_ptr<File_base> f;
+	obj_ptr<File> f = new File;
 	obj_ptr<Buffer_base> buf;
 	result_t hr;
 
-	hr = open(fname, "r+", f);
-	if(hr < 0)
+	hr = f->Open(fname, "r");
+	if (hr < 0)
 		return hr;
 
-	hr = f->read(-1, buf);
+	hr = f->sync_read(-1, buf);
 	if(hr < 0)
 		return hr;
 
@@ -67,7 +67,7 @@ result_t fs_base::writeFile(const char* fname, const char* txt)
 	obj_ptr<File> pFile = new File;
 	result_t hr;
 
-	hr = pFile->Open(fname, "w+");
+	hr = pFile->Open(fname, "w");
 	if (hr < 0)
 		return hr;
 

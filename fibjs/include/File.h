@@ -40,7 +40,7 @@ public:
     result_t Open(const char* fname, const char* mode);
     result_t Write(const char* p, int sz);
 
-private:
+public:
 	result_t sync_read(int32_t bytes, obj_ptr<Buffer_base>& retVal);
 	result_t sync_write(obj_ptr<Buffer_base> data);
 
