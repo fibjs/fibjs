@@ -49,7 +49,11 @@ public:
 public:
 	virtual void enter()
 	{
-		m_lock.lock();
+		if(!m_lock.trylock())
+		{
+			v8::Unlocker unlocker(isolate);
+			m_lock.lock();
+		}
 	}
 
 	virtual void leave()

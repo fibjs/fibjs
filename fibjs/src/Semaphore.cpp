@@ -22,13 +22,13 @@ result_t Semaphore_base::_new(int32_t value, obj_ptr<Semaphore_base>& retVal)
 
 result_t Semaphore::acquire(bool blocking, bool& retVal)
 {
-	if (blocking)
-	{
-		m_sem.wait();
-		return true;
-	}
+	if (!blocking)
+		return m_sem.trywait();
 
-	return m_sem.trywait();
+	if (!m_sem.trywait())
+		wait();
+
+	return true;
 }
 
 result_t Semaphore::release()
@@ -40,6 +40,7 @@ result_t Semaphore::release()
 
 result_t Semaphore::wait()
 {
+	v8::Unlocker unlocker(isolate);
 	m_sem.wait();
 
 	return 0;

@@ -37,6 +37,7 @@ result_t Condition::release()
 
 result_t Condition::wait()
 {
+	v8::Unlocker unlocker(isolate);
 	m_cond.wait(m_lockCond->m_lock);
 
 	return 0;

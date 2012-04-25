@@ -19,13 +19,16 @@ result_t Lock_base::_new(obj_ptr<Lock_base>& retVal)
 
 result_t Lock::acquire(bool blocking, bool& retVal)
 {
-	if (blocking)
+	if (!blocking)
+		return m_lock.trylock();
+
+	if(!m_lock.trylock())
 	{
+		v8::Unlocker unlocker(isolate);
 		m_lock.lock();
-		return true;
 	}
 
-	return m_lock.trylock();
+	return true;
 }
 
 result_t Lock::release()
