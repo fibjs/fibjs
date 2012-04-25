@@ -172,6 +172,7 @@ public:
 	void lock();
 	void unlock();
 	bool trylock();
+	bool owned();
 
 	int blocked() const
 	{
