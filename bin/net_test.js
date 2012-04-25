@@ -22,10 +22,10 @@ s.bind(8080);
 s.listen();
 accept.start(s);
 
-for(var i = 0; i < 100; i ++)
+for(var i = 0; i < 10; i ++)
 {
-	var s1 = new net.Socket(net.AF_INET, net.SOCK_STREAM);
-	s1.connect('192.168.65.52', 8080);
+	var s1 = new net.Socket(net.AF_INET6, net.SOCK_STREAM);
+	s1.connect('::1', 8080);
 	s1.write(new Buffer("GET / HTTP/1.0\n\n"));
 	console.log(s1.read());
 }
