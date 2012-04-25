@@ -65,6 +65,9 @@ assert.equal(true, f.eof());
 
 f.close();
 
+var s = fs.readFile("fs_test.js");
+assert.equal(s, b.toString());
+
 st = fs.stat('fs_test.js');
 assert.equal(st.size, f1.size());
 
