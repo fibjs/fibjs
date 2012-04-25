@@ -12,7 +12,7 @@ namespace fibjs
 static std::string fmtString(result_t hr, const char* str)
 {
 	std::string s;
-	int len = qstrlen(str);
+	int len = (int)qstrlen(str);
 
 	s.resize(len + 16);
 	s.resize(sprintf(&s[0], "[%d] %s", -hr, str));

@@ -87,7 +87,7 @@
     <ClCompile Include="src\Socket.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\net.cpp">
+    <ClCompile Include="src\module.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -191,9 +191,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl">
-      <Filter>Header Files\include</Filter>
-    </None>
-    <None Include="include\gen_stub.js">
       <Filter>Header Files\include</Filter>
     </None>
   </ItemGroup>

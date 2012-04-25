@@ -32,7 +32,7 @@
     <ClCompile Include="src\fs.cpp" />
     <ClCompile Include="src\Function.cpp" />
     <ClCompile Include="src\global.cpp" />
-    <ClCompile Include="src\net.cpp" />
+    <ClCompile Include="src\module.cpp" />
     <ClCompile Include="src\ObjectArray.cpp" />
     <ClCompile Include="src\os.cpp" />
     <ClCompile Include="src\path.cpp" />
@@ -82,7 +82,6 @@
     <ClInclude Include="include\utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="include\gen_stub.js" />
     <None Include="include\object_async.inl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
