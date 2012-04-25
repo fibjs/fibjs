@@ -12,7 +12,7 @@ namespace fibjs
 static std::string fmtString(result_t hr, const char* str)
 {
 	std::string s;
-	int len = (int)qstrlen(str);
+	int len = (int) qstrlen(str);
 
 	s.resize(len + 16);
 	s.resize(sprintf(&s[0], "[%d] %s", -hr, str));
@@ -27,22 +27,22 @@ std::string getResultMessage(result_t hr)
 			// CALL_E_BADPARAMCOUNT
 			"Invalid number of parameters.",
 			// CALL_E_PARAMNOTOPTIONAL
-			"Object is not an instance of declaring class.",
+			"Parameter not optional.",
 			// CALL_E_BADVARTYPE
 			"The input parameter is not a valid type.",
 			// CALL_E_INVALIDARG
-			"Invalid procedure call.",
+			"Invalid argument.",
 			// CALL_E_TYPEMISMATCH
 			"The argument could not be coerced to the specified type.",
 			// CALL_E_OUTRANGE
+			"Value is out of range.",
 
-			"Parameter not optional.",
 			// CALL_E_CONSTRUCTOR
 			"Constructor cannot be called as a function.",
 			// CALL_E_NOTINSTANCE
-			"Invalid argument.",
+			"Object is not an instance of declaring class.",
 			// CALL_E_INVALID_CALL
-			"Value is out of range.",
+			"Invalid procedure call.",
 			// CALL_E_BADINDEX
 			"Index was out of range.",
 			// CALL_E_OVERFLOW
