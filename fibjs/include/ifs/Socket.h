@@ -23,7 +23,14 @@ class Buffer_base;
 class Socket_base : public Stream_base
 {
 public:
+	static const int32_t _AF_INET = 2;
+	static const int32_t _AF_INET6 = 10;
+	static const int32_t _SOCK_STREAM = 1;
+	static const int32_t _SOCK_DGRAM = 2;
+
+public:
 	// Socket_base
+	static result_t _new(int32_t family, int32_t type, obj_ptr<Socket_base>& retVal);
 	virtual result_t get_family(int32_t& retVal) = 0;
 	virtual result_t get_type(int32_t& retVal) = 0;
 	virtual result_t get_remoteAddress(std::string& retVal) = 0;
@@ -44,44 +51,7 @@ public:
 	virtual result_t sendto(obj_ptr<Buffer_base> data, const char* host, int32_t port) = 0;
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"connect", s_connect},
-			{"bind", s_bind},
-			{"bind", s_bind},
-			{"listen", s_listen},
-			{"accept", s_accept},
-			{"recv", s_recv},
-			{"recv", s_recv},
-			{"recv", s_recv},
-			{"recvFrom", s_recvFrom},
-			{"send", s_send},
-			{"send", s_send},
-			{"sendto", s_sendto}
-		};
-
-		static ClassProperty s_property[] = 
-		{
-			{"family", s_get_family},
-			{"type", s_get_type},
-			{"remoteAddress", s_get_remoteAddress},
-			{"remotePort", s_get_remotePort},
-			{"localAddress", s_get_localAddress},
-			{"localPort", s_get_localPort}
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"Socket", NULL, 
-			12, s_method, 6, s_property, NULL,
-			&Stream_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -104,6 +74,11 @@ public:
 	}
 
 private:
+	static v8::Handle<v8::Value> s_get_AF_INET(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_AF_INET6(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_family(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_remoteAddress(v8::Local<v8::String> property, const v8::AccessorInfo &info);
@@ -130,6 +105,77 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& Socket_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"connect", s_connect},
+			{"bind", s_bind},
+			{"bind", s_bind},
+			{"listen", s_listen},
+			{"accept", s_accept},
+			{"recv", s_recv},
+			{"recv", s_recv},
+			{"recv", s_recv},
+			{"recvFrom", s_recvFrom},
+			{"send", s_send},
+			{"send", s_send},
+			{"sendto", s_sendto}
+		};
+
+		static ClassProperty s_property[] = 
+		{
+			{"AF_INET", s_get_AF_INET},
+			{"AF_INET6", s_get_AF_INET6},
+			{"SOCK_STREAM", s_get_SOCK_STREAM},
+			{"SOCK_DGRAM", s_get_SOCK_DGRAM},
+			{"family", s_get_family},
+			{"type", s_get_type},
+			{"remoteAddress", s_get_remoteAddress},
+			{"remotePort", s_get_remotePort},
+			{"localAddress", s_get_localAddress},
+			{"localPort", s_get_localPort}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"Socket", s__new, 
+			12, s_method, 0, NULL, 10, s_property, NULL,
+			&Stream_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
+	inline v8::Handle<v8::Value> Socket_base::s_get_AF_INET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _AF_INET;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Socket_base::s_get_AF_INET6(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _AF_INET6;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Socket_base::s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _SOCK_STREAM;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Socket_base::s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _SOCK_DGRAM;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
 	inline v8::Handle<v8::Value> Socket_base::s_get_family(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		int32_t vr;
@@ -200,6 +246,20 @@ namespace fibjs
 		hr = pInst->get_localPort(vr);
 
 		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Socket_base::s__new(const v8::Arguments& args)
+	{
+		obj_ptr<Socket_base> vr;
+
+		CONSTRUCT_ENTER(2, 0);
+
+		OPT_ARG(int32_t, 0, _AF_INET);
+		OPT_ARG(int32_t, 1, _SOCK_STREAM);
+
+		hr = _new(v0, v1, vr);
+
+		CONSTRUCT_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> Socket_base::s_connect(const v8::Arguments& args)

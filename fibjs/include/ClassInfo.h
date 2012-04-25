@@ -17,6 +17,8 @@
 namespace fibjs
 {
 
+class ClassInfo;
+
 struct ClassProperty
 {
 	const char* name;
@@ -30,13 +32,17 @@ struct ClassMethod
 	v8::InvocationCallback invoker;
 };
 
+struct ClassObject
+{
+	const char* name;
+	ClassInfo& (*invoker)();
+};
+
 struct ClassIndexed
 {
 	v8::IndexedPropertyGetter getter;
 	v8::IndexedPropertySetter setter;
 };
-
-class ClassInfo;
 
 struct ClassData
 {
@@ -44,6 +50,8 @@ struct ClassData
 	v8::InvocationCallback cor;
 	int mc;
 	const ClassMethod* cms;
+	int oc;
+	const ClassObject* cos;
 	int pc;
 	const ClassProperty* cps;
 	const ClassIndexed* cis;
@@ -54,7 +62,7 @@ class ClassInfo
 {
 public:
 	ClassInfo(ClassData& cd) :
-			m_cd(cd)
+		m_cd(cd)
 	{
 		v8::HandleScope handle_scope;
 
@@ -74,6 +82,9 @@ public:
 		for (i = 0; i < cd.mc; i++)
 			pt->Set(cd.cms[i].name,
 					v8::FunctionTemplate::New(cd.cms[i].invoker));
+
+		for (i = 0; i < cd.oc; i++)
+			pt->Set(cd.cos[i].name, cd.cos[i].invoker().m_class);
 
 		for (i = 0; i < cd.pc; i++)
 			if (cd.cps[i].setter)
@@ -121,8 +132,14 @@ public:
 		int i;
 
 		for (i = 0; i < m_cd.mc; i++)
-			o->Set(v8::String::NewSymbol(m_cd.cms[i].name),
-					v8::FunctionTemplate::New(m_cd.cms[i].invoker)->GetFunction(), v8::ReadOnly);
+			o->Set(
+					v8::String::NewSymbol(m_cd.cms[i].name),
+					v8::FunctionTemplate::New(m_cd.cms[i].invoker)->GetFunction(),
+					v8::ReadOnly);
+
+		for (i = 0; i < m_cd.oc; i++)
+			o->Set(v8::String::NewSymbol(m_cd.cos[i].name),
+					m_cd.cos[i].invoker().m_class->GetFunction(), v8::ReadOnly);
 
 		for (i = 0; i < m_cd.pc; i++)
 			if (m_cd.cps[i].setter)

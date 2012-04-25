@@ -27,26 +27,7 @@ public:
 	virtual result_t trigger(const char* ev, const v8::Arguments& args) = 0;
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"on", s_on},
-			{"once", s_once},
-			{"off", s_off},
-			{"trigger", s_trigger}
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"Event", s__new, 
-			4, s_method, 0, NULL, NULL,
-			&object_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -65,6 +46,27 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& Event_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"on", s_on},
+			{"once", s_once},
+			{"off", s_off},
+			{"trigger", s_trigger}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"Event", s__new, 
+			4, s_method, 0, NULL, 0, NULL, NULL,
+			&object_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 
 	inline v8::Handle<v8::Value> Event_base::s__new(const v8::Arguments& args)
 	{

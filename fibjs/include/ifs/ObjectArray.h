@@ -29,34 +29,7 @@ public:
 	virtual result_t slice(int32_t start, int32_t end, obj_ptr<ObjectArray_base>& retVal) = 0;
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"resize", s_resize},
-			{"slice", s_slice}
-		};
-
-		static ClassProperty s_property[] = 
-		{
-			{"length", s_get_length}
-		};
-
-		static ClassIndexed s_indexed = 
-		{
-			i_IndexedGetter, i_IndexedSetter
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"ObjectArray", NULL, 
-			2, s_method, 1, s_property, &s_indexed,
-			&object_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -86,6 +59,35 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& ObjectArray_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"resize", s_resize},
+			{"slice", s_slice}
+		};
+
+		static ClassProperty s_property[] = 
+		{
+			{"length", s_get_length}
+		};
+
+		static ClassIndexed s_indexed = 
+		{
+			i_IndexedGetter, i_IndexedSetter
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"ObjectArray", NULL, 
+			2, s_method, 0, NULL, 1, s_property, &s_indexed,
+			&object_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 	inline v8::Handle<v8::Value> ObjectArray_base::i_IndexedGetter(uint32_t index, const v8::AccessorInfo& info)
 	{
 		obj_ptr<object_base> vr;

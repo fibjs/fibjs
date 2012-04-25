@@ -31,36 +31,7 @@ public:
 	virtual result_t toString(std::string& retVal) = 0;
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"resize", s_resize},
-			{"write", s_write},
-			{"slice", s_slice},
-			{"toString", s_toString}
-		};
-
-		static ClassProperty s_property[] = 
-		{
-			{"length", s_get_length}
-		};
-
-		static ClassIndexed s_indexed = 
-		{
-			i_IndexedGetter, i_IndexedSetter
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"Buffer", s__new, 
-			4, s_method, 1, s_property, &s_indexed,
-			&object_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -92,6 +63,37 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& Buffer_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"resize", s_resize},
+			{"write", s_write},
+			{"slice", s_slice},
+			{"toString", s_toString}
+		};
+
+		static ClassProperty s_property[] = 
+		{
+			{"length", s_get_length}
+		};
+
+		static ClassIndexed s_indexed = 
+		{
+			i_IndexedGetter, i_IndexedSetter
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"Buffer", s__new, 
+			4, s_method, 0, NULL, 1, s_property, &s_indexed,
+			&object_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 	inline v8::Handle<v8::Value> Buffer_base::i_IndexedGetter(uint32_t index, const v8::AccessorInfo& info)
 	{
 		int32_t vr;

@@ -45,41 +45,7 @@ public:
 	static result_t readdir(const char* path, obj_ptr<ObjectArray_base>& retVal);
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"open", s_open},
-			{"create", s_create},
-			{"tmpFile", s_tmpFile},
-			{"readFile", s_readFile},
-			{"writeFile", s_writeFile},
-			{"exists", s_exists},
-			{"unlink", s_unlink},
-			{"mkdir", s_mkdir},
-			{"rmdir", s_rmdir},
-			{"rename", s_rename},
-			{"stat", s_stat},
-			{"readdir", s_readdir}
-		};
-
-		static ClassProperty s_property[] = 
-		{
-			{"SEEK_SET", s_get_SEEK_SET},
-			{"SEEK_CUR", s_get_SEEK_CUR},
-			{"SEEK_END", s_get_SEEK_END}
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"fs", NULL, 
-			12, s_method, 3, s_property, NULL,
-			&module_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -126,6 +92,42 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& fs_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"open", s_open},
+			{"create", s_create},
+			{"tmpFile", s_tmpFile},
+			{"readFile", s_readFile},
+			{"writeFile", s_writeFile},
+			{"exists", s_exists},
+			{"unlink", s_unlink},
+			{"mkdir", s_mkdir},
+			{"rmdir", s_rmdir},
+			{"rename", s_rename},
+			{"stat", s_stat},
+			{"readdir", s_readdir}
+		};
+
+		static ClassProperty s_property[] = 
+		{
+			{"SEEK_SET", s_get_SEEK_SET},
+			{"SEEK_CUR", s_get_SEEK_CUR},
+			{"SEEK_END", s_get_SEEK_END}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"fs", NULL, 
+			12, s_method, 0, NULL, 3, s_property, NULL,
+			&module_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 	inline v8::Handle<v8::Value> fs_base::s_get_SEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		int32_t vr = _SEEK_SET;

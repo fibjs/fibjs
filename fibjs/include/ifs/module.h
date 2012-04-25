@@ -19,18 +19,7 @@ namespace fibjs
 class module_base : public object_base
 {
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassData s_cd = 
-		{ 
-			"module", NULL, 
-			0, NULL, 0, NULL, NULL,
-			&object_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -45,6 +34,19 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& module_base::class_info()
+	{
+		static ClassData s_cd = 
+		{ 
+			"module", NULL, 
+			0, NULL, 0, NULL, 0, NULL, NULL,
+			&object_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 
 }
 

@@ -32,28 +32,7 @@ public:
 	static result_t hexDecode(const char* data, obj_ptr<Buffer_base>& retVal);
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"base32Encode", s_base32Encode},
-			{"base32Decode", s_base32Decode},
-			{"base64Encode", s_base64Encode},
-			{"base64Decode", s_base64Decode},
-			{"hexEncode", s_hexEncode},
-			{"hexDecode", s_hexDecode}
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"encoding", NULL, 
-			6, s_method, 0, NULL, NULL,
-			&module_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -75,6 +54,29 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& encoding_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"base32Encode", s_base32Encode},
+			{"base32Decode", s_base32Decode},
+			{"base64Encode", s_base64Encode},
+			{"base64Decode", s_base64Decode},
+			{"hexEncode", s_hexEncode},
+			{"hexDecode", s_hexDecode}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"encoding", NULL, 
+			6, s_method, 0, NULL, 0, NULL, NULL,
+			&module_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 
 	inline v8::Handle<v8::Value> encoding_base::s_base32Encode(const v8::Arguments& args)
 	{

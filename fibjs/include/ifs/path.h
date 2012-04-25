@@ -30,27 +30,7 @@ public:
 	static result_t combine(const v8::Arguments& args, std::string& retVal);
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"normalize", s_normalize},
-			{"basename", s_basename},
-			{"extname", s_extname},
-			{"dirname", s_dirname},
-			{"combine", s_combine}
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"path", NULL, 
-			5, s_method, 0, NULL, NULL,
-			&module_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -70,6 +50,28 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& path_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"normalize", s_normalize},
+			{"basename", s_basename},
+			{"extname", s_extname},
+			{"dirname", s_dirname},
+			{"combine", s_combine}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"path", NULL, 
+			5, s_method, 0, NULL, 0, NULL, NULL,
+			&module_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 
 	inline v8::Handle<v8::Value> path_base::s_normalize(const v8::Arguments& args)
 	{

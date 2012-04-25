@@ -34,38 +34,7 @@ public:
 	virtual result_t isSymbolicLink(bool& retVal) = 0;
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"isWritable", s_isWritable},
-			{"isReadable", s_isReadable},
-			{"isExecutable", s_isExecutable},
-			{"isHidden", s_isHidden},
-			{"isDirectory", s_isDirectory},
-			{"isFile", s_isFile},
-			{"isSymbolicLink", s_isSymbolicLink}
-		};
-
-		static ClassProperty s_property[] = 
-		{
-			{"name", s_get_name},
-			{"size", s_get_size},
-			{"mtime", s_get_mtime},
-			{"atime", s_get_atime},
-			{"ctime", s_get_ctime}
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"Stat", NULL, 
-			7, s_method, 5, s_property, NULL,
-			&object_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -105,6 +74,39 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& Stat_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"isWritable", s_isWritable},
+			{"isReadable", s_isReadable},
+			{"isExecutable", s_isExecutable},
+			{"isHidden", s_isHidden},
+			{"isDirectory", s_isDirectory},
+			{"isFile", s_isFile},
+			{"isSymbolicLink", s_isSymbolicLink}
+		};
+
+		static ClassProperty s_property[] = 
+		{
+			{"name", s_get_name},
+			{"size", s_get_size},
+			{"mtime", s_get_mtime},
+			{"atime", s_get_atime},
+			{"ctime", s_get_ctime}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"Stat", NULL, 
+			7, s_method, 0, NULL, 5, s_property, NULL,
+			&object_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 	inline v8::Handle<v8::Value> Stat_base::s_get_name(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		std::string vr;

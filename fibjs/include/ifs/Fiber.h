@@ -28,29 +28,7 @@ public:
 	virtual result_t get_caller(obj_ptr<Fiber_base>& retVal) = 0;
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"join", s_join}
-		};
-
-		static ClassProperty s_property[] = 
-		{
-			{"func", s_get_func},
-			{"caller", s_get_caller}
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"Fiber", NULL, 
-			1, s_method, 2, s_property, NULL,
-			&Event_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -79,6 +57,30 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& Fiber_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"join", s_join}
+		};
+
+		static ClassProperty s_property[] = 
+		{
+			{"func", s_get_func},
+			{"caller", s_get_caller}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"Fiber", NULL, 
+			1, s_method, 0, NULL, 2, s_property, NULL,
+			&Event_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 	inline v8::Handle<v8::Value> Fiber_base::s_get_func(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		v8::Handle<v8::Function> vr;

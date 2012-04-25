@@ -157,23 +157,8 @@ public:
 	}
 
 	//------------------------------------------------------------------
-
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] =
-		{
-		{ "dispose", s_dispose },
-		{ "toString", s_toString },
-		{ "toJSON", s_toJSON },
-		{ "ValueOf", s_ValueOf } };
-
-		static ClassData s_cd =
-		{ "object", NULL, 4, s_method, 0, NULL, NULL };
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -191,49 +176,74 @@ private:
 
 namespace fibjs
 {
-inline v8::Handle<v8::Value> object_base::s_dispose(const v8::Arguments& args)
-{
-	METHOD_INSTANCE(object_base);
-	METHOD_ENTER(0, 0);
+	inline ClassInfo& object_base::class_info()
+	{
+		ClassMethod s_method[] =
+		{
+			{"dispose", s_dispose},
+			{"toString", s_toString},
+			{"toJSON", s_toJSON},
+			{"ValueOf", s_ValueOf}
+		};
 
-				hr = pInst->dispose();
+		static ClassData s_cd =
+		{
+			"object", NULL,
+			4, s_method, 0, NULL, 0, NULL, NULL
+		};
 
-			METHOD_VOID();
-}
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
 
-inline v8::Handle<v8::Value> object_base::s_toString(const v8::Arguments& args)
-{
-	std::string vr;
-	METHOD_INSTANCE(object_base);
-	METHOD_ENTER(0, 0);
 
-				hr = pInst->toString(vr);
+	inline v8::Handle<v8::Value> object_base::s_dispose(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(object_base);
+		METHOD_ENTER(0, 0);
 
-			METHOD_RETURN();
-}
+		hr = pInst->dispose();
 
-inline v8::Handle<v8::Value> object_base::s_toJSON(const v8::Arguments& args)
-{
-	v8::Handle<v8::Object> vr;
-	METHOD_INSTANCE(object_base);
-	METHOD_ENTER(1, 0);
-				OPT_ARG_String(0, "");
+		METHOD_VOID();
+	}
 
-				hr = pInst->toJSON(v0, vr);
+	inline v8::Handle<v8::Value> object_base::s_toString(const v8::Arguments& args)
+	{
+		std::string vr;
 
-			METHOD_RETURN();
-}
+		METHOD_INSTANCE(object_base);
+		METHOD_ENTER(0, 0);
 
-inline v8::Handle<v8::Value> object_base::s_ValueOf(const v8::Arguments& args)
-{
-	v8::Handle<v8::Object> vr;
-	METHOD_INSTANCE(object_base);
-	METHOD_ENTER(0, 0);
+		hr = pInst->toString(vr);
 
-				hr = pInst->ValueOf(vr);
+		METHOD_RETURN();
+	}
 
-			METHOD_RETURN();
-}
+	inline v8::Handle<v8::Value> object_base::s_toJSON(const v8::Arguments& args)
+	{
+		v8::Handle<v8::Object> vr;
+
+		METHOD_INSTANCE(object_base);
+		METHOD_ENTER(1, 0);
+
+		OPT_ARG_String(0, "");
+
+		hr = pInst->toJSON(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> object_base::s_ValueOf(const v8::Arguments& args)
+	{
+		v8::Handle<v8::Object> vr;
+
+		METHOD_INSTANCE(object_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->ValueOf(vr);
+
+		METHOD_RETURN();
+	}
 
 }
 

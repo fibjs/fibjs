@@ -33,30 +33,7 @@ public:
 	static result_t throwAssert(bool bThrow);
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"ok", s_ok},
-			{"equal", s_equal},
-			{"notEqual", s_notEqual},
-			{"strictEqual", s_strictEqual},
-			{"notStrictEqual", s_notStrictEqual},
-			{"throws", s_throws},
-			{"doesNotThrow", s_doesNotThrow},
-			{"throwAssert", s_throwAssert}
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"assert", NULL, 
-			8, s_method, 0, NULL, NULL,
-			&module_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -79,6 +56,31 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& assert_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"ok", s_ok},
+			{"equal", s_equal},
+			{"notEqual", s_notEqual},
+			{"strictEqual", s_strictEqual},
+			{"notStrictEqual", s_notStrictEqual},
+			{"throws", s_throws},
+			{"doesNotThrow", s_doesNotThrow},
+			{"throwAssert", s_throwAssert}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"assert", NULL, 
+			8, s_method, 0, NULL, 0, NULL, NULL,
+			&module_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 
 	inline v8::Handle<v8::Value> assert_base::s_ok(const v8::Arguments& args)
 	{

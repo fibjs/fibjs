@@ -34,31 +34,7 @@ public:
 	static result_t assert(bool value, const char* msg);
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"log", s_log},
-			{"info", s_info},
-			{"warn", s_warn},
-			{"error", s_error},
-			{"dir", s_dir},
-			{"time", s_time},
-			{"timeEnd", s_timeEnd},
-			{"trace", s_trace},
-			{"assert", s_assert}
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"console", NULL, 
-			9, s_method, 0, NULL, NULL,
-			&module_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -82,6 +58,32 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& console_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"log", s_log},
+			{"info", s_info},
+			{"warn", s_warn},
+			{"error", s_error},
+			{"dir", s_dir},
+			{"time", s_time},
+			{"timeEnd", s_timeEnd},
+			{"trace", s_trace},
+			{"assert", s_assert}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"console", NULL, 
+			9, s_method, 0, NULL, 0, NULL, NULL,
+			&module_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 
 	inline v8::Handle<v8::Value> console_base::s_log(const v8::Arguments& args)
 	{

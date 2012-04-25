@@ -32,29 +32,7 @@ public:
 	static result_t networkInfo(v8::Handle<v8::Array>& retVal);
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"hostname", s_hostname},
-			{"type", s_type},
-			{"release", s_release},
-			{"arch", s_arch},
-			{"CPUInfo", s_CPUInfo},
-			{"CPUs", s_CPUs},
-			{"networkInfo", s_networkInfo}
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"os", NULL, 
-			7, s_method, 0, NULL, NULL,
-			&module_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -76,6 +54,30 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& os_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"hostname", s_hostname},
+			{"type", s_type},
+			{"release", s_release},
+			{"arch", s_arch},
+			{"CPUInfo", s_CPUInfo},
+			{"CPUs", s_CPUs},
+			{"networkInfo", s_networkInfo}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"os", NULL, 
+			7, s_method, 0, NULL, 0, NULL, NULL,
+			&module_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 
 	inline v8::Handle<v8::Value> os_base::s_hostname(const v8::Arguments& args)
 	{

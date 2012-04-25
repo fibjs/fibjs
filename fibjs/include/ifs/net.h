@@ -29,15 +29,31 @@ public:
 	static const int32_t _SOCK_DGRAM = 2;
 
 public:
-	// net_base
-	static result_t socket(int32_t family, int32_t type, obj_ptr<Socket_base>& retVal);
+	static ClassInfo& class_info();
 
-public:
-	static ClassInfo& class_info()
+	virtual ClassInfo& Classinfo()
 	{
-		static ClassMethod s_method[] = 
+		return class_info();
+	}
+
+private:
+	static v8::Handle<v8::Value> s_get_AF_INET(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_AF_INET6(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+};
+
+}
+
+#include "Socket.h"
+
+namespace fibjs
+{
+	inline ClassInfo& net_base::class_info()
+	{
+		static ClassObject s_object[] = 
 		{
-			{"socket", s_socket}
+			{"Socket", Socket_base::class_info}
 		};
 
 		static ClassProperty s_property[] = 
@@ -51,7 +67,7 @@ public:
 		static ClassData s_cd = 
 		{ 
 			"net", NULL, 
-			1, s_method, 4, s_property, NULL,
+			0, NULL, 1, s_object, 4, s_property, NULL,
 			&module_base::class_info()
 		};
 
@@ -59,28 +75,6 @@ public:
 		return s_ci;
 	}
 
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
-
-private:
-	static v8::Handle<v8::Value> s_get_AF_INET(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_AF_INET6(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_socket(const v8::Arguments& args);
-
-private:
-	ASYNC_STATIC3(net_base, socket);
-};
-
-}
-
-#include "Socket.h"
-
-namespace fibjs
-{
 	inline v8::Handle<v8::Value> net_base::s_get_AF_INET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		int32_t vr = _AF_INET;
@@ -106,20 +100,6 @@ namespace fibjs
 	{
 		int32_t vr = _SOCK_DGRAM;
 		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> net_base::s_socket(const v8::Arguments& args)
-	{
-		obj_ptr<Socket_base> vr;
-
-		METHOD_ENTER(2, 0);
-
-		OPT_ARG(int32_t, 0, _AF_INET);
-		OPT_ARG(int32_t, 1, _SOCK_STREAM);
-
-		hr = ac_socket(s_acPool, v0, v1, vr);
-
 		METHOD_RETURN();
 	}
 

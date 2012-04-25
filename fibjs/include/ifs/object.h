@@ -26,25 +26,7 @@ public:
 	virtual result_t ValueOf(v8::Handle<v8::Object>& retVal) = 0;
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"dispose", s_dispose},
-			{"toString", s_toString},
-			{"toJSON", s_toJSON},
-			{"ValueOf", s_ValueOf}
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"object", NULL, 
-			4, s_method, 0, NULL, NULL
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -62,6 +44,26 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& object_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"dispose", s_dispose},
+			{"toString", s_toString},
+			{"toJSON", s_toJSON},
+			{"ValueOf", s_ValueOf}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"object", NULL, 
+			4, s_method, 0, NULL, 0, NULL, NULL
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 
 	inline v8::Handle<v8::Value> object_base::s_dispose(const v8::Arguments& args)
 	{

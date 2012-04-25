@@ -120,7 +120,7 @@ function preparserIDL(fname) {
 }
 
 function parserIDL(fname) {
-	var st, f, line, cvs, ifs, afs, svs, ffs, iffs, tjfs, difms, difps, dsvs, refCls, ids, ns, baseClass, isRem = false, hasNew = false, hasIndexed = false, typeMap = {
+	var st, f, line, cvs, ifs, afs, svs, ffs, iffs, tjfs, difms, difos, difps, dsvs, refCls, ids, ns, baseClass, isRem = false, hasNew = false, hasIndexed = false, typeMap = {
 		"Integer" : "int32_t",
 		"Number" : "double",
 		"Boolean" : "bool",
@@ -175,7 +175,7 @@ function parserIDL(fname) {
 		clsName[name] = true;
 		hasNew = false;
 		hasIndexed = false;
-		
+
 		ifs = [];
 		afs = [];
 		svs = [];
@@ -184,6 +184,7 @@ function parserIDL(fname) {
 		tjfs = [];
 
 		difms = [];
+		difos = [];
 		difps = [];
 
 		cvs = {};
@@ -276,54 +277,7 @@ function parserIDL(fname) {
 			txt.push(ifs.join("\n") + "\n");
 		}
 
-		txt.push("public:\n	static ClassInfo& class_info()\n	{")
-
-		if (difms.length) {
-			txt.push("		static ClassMethod s_method[] = \n		{");
-			txt.push(difms.join(",\n"));
-			txt.push("		};\n");
-		}
-
-		if (difps.length) {
-			txt.push("		static ClassProperty s_property[] = \n		{");
-			txt.push(difps.join(",\n"));
-			txt.push("		};\n");
-		}
-
-		if (hasIndexed) {
-			txt.push("		static ClassIndexed s_indexed = \n		{");
-			txt.push("			i_IndexedGetter, i_IndexedSetter");
-			txt.push("		};\n");
-		}
-
-		var strClass = "		static ClassData s_cd = \n		{ \n			\"" + ns + "\"";
-
-		if (hasNew)
-			strClass += ", s__new"
-		else
-			strClass += ", NULL"
-
-		if (difms.length)
-			strClass += ", \n			" + difms.length + ", s_method";
-		else
-			strClass += ", \n			0, NULL";
-
-		if (difps.length)
-			strClass += ", " + difps.length + ", s_property";
-		else
-			strClass += ", 0, NULL";
-
-		if (hasIndexed)
-			strClass += ", &s_indexed";
-		else
-			strClass += ", NULL";
-
-		if (ns != "object")
-			strClass += ",\n			&" + baseClass + "_base::class_info()";
-
-		txt.push(strClass + "\n		};\n");
-		txt.push("		static ClassInfo s_ci(s_cd);");
-		txt.push("		return s_ci;\n	}\n");
+		txt.push("public:\n	static ClassInfo& class_info();\n")
 
 		txt
 				.push("	virtual ClassInfo& Classinfo()\n	{\n		return class_info();\n	}\n");
@@ -355,6 +309,67 @@ function parserIDL(fname) {
 			txt.push("");
 
 		txt.push("namespace fibjs\n{");
+
+		txt.push("	inline ClassInfo& " + ns + "_base::class_info()\n	{")
+
+		if (difms.length) {
+			txt.push("		ClassMethod s_method[] = \n		{");
+			txt.push(difms.join(",\n"));
+			txt.push("		};\n");
+		}
+
+		if (difos.length) {
+			txt.push("		static ClassObject s_object[] = \n		{");
+			txt.push(difos.join(",\n"));
+			txt.push("		};\n");
+		}
+
+		if (difps.length) {
+			txt.push("		static ClassProperty s_property[] = \n		{");
+			txt.push(difps.join(",\n"));
+			txt.push("		};\n");
+		}
+
+		if (hasIndexed) {
+			txt.push("		static ClassIndexed s_indexed = \n		{");
+			txt.push("			i_IndexedGetter, i_IndexedSetter");
+			txt.push("		};\n");
+		}
+
+		var strClass = "		static ClassData s_cd = \n		{ \n			\"" + ns + "\"";
+
+		if (hasNew)
+			strClass += ", s__new"
+		else
+			strClass += ", NULL"
+
+		if (difms.length)
+			strClass += ", \n			" + difms.length + ", s_method";
+		else
+			strClass += ", \n			0, NULL";
+
+		if (difos.length)
+			strClass += ", " + difos.length + ", s_object";
+		else
+			strClass += ", 0, NULL";
+
+		if (difps.length)
+			strClass += ", " + difps.length + ", s_property";
+		else
+			strClass += ", 0, NULL";
+
+		if (hasIndexed)
+			strClass += ", &s_indexed";
+		else
+			strClass += ", NULL";
+
+		if (ns != "object")
+			strClass += ",\n			&" + baseClass + "_base::class_info()";
+
+		txt.push(strClass + "\n		};\n");
+		txt.push("		static ClassInfo s_ci(s_cd);");
+		txt.push("		return s_ci;\n	}\n");
+		
 		txt.push(ffs.join("\n"));
 
 		for ( var fname in ids)
@@ -408,13 +423,34 @@ function parserIDL(fname) {
 			fname = st[pos++];
 		}
 
+		if (fname == 'new') {
+			if (attr != 'static')
+				return reportErr();
+
+			if (clsName[ftype] && ftype != ns)
+				refCls[ftype] = true;
+			else
+				return reportErr();
+
+			attr = 'new';
+			fname = st[pos++];
+		}
+
 		if (st[pos] != "(") {
 			if (ids.hasOwnProperty(fname))
 				return reportErr();
 			ids[fname] = [];
 		}
 
-		if (st[pos] == "(") {
+		if (attr == 'new') {
+			if (st[pos] != "(" || st[pos + 1] != ")")
+				return reportErr();
+			pos += 2;
+
+			difos
+					.push("			{\"" + ftype + "\", " + fname
+							+ "_base::class_info}");
+		} else if (st[pos] == "(") {
 			if (attr == "const" || attr == "readonly")
 				return reportErr();
 
@@ -462,7 +498,7 @@ function parserIDL(fname) {
 					pos++;
 
 					value = st[pos++];
-					if(cvs[value])
+					if (cvs[value])
 						value = "_" + value;
 				} else
 					value = "";

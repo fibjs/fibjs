@@ -25,23 +25,7 @@ public:
 	static result_t start(const v8::Arguments& args, obj_ptr<Fiber_base>& retVal);
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"start", s_start}
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"Function", NULL, 
-			1, s_method, 0, NULL, NULL,
-			&object_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -58,6 +42,24 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& Function_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"start", s_start}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"Function", NULL, 
+			1, s_method, 0, NULL, 0, NULL, NULL,
+			&object_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 
 	inline v8::Handle<v8::Value> Function_base::s_start(const v8::Arguments& args)
 	{

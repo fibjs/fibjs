@@ -29,25 +29,7 @@ public:
 	static result_t sleep(int32_t ms);
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"start", s_start},
-			{"current", s_current},
-			{"sleep", s_sleep}
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"coroutine", NULL, 
-			3, s_method, 0, NULL, NULL,
-			&module_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -66,6 +48,26 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& coroutine_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"start", s_start},
+			{"current", s_current},
+			{"sleep", s_sleep}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"coroutine", NULL, 
+			3, s_method, 0, NULL, 0, NULL, NULL,
+			&module_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 
 	inline v8::Handle<v8::Value> coroutine_base::s_start(const v8::Arguments& args)
 	{

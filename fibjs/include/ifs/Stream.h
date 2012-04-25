@@ -28,26 +28,7 @@ public:
 	virtual result_t close() = 0;
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"read", s_read},
-			{"write", s_write},
-			{"flush", s_flush},
-			{"close", s_close}
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"Stream", NULL, 
-			4, s_method, 0, NULL, NULL,
-			&object_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -71,6 +52,27 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& Stream_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"read", s_read},
+			{"write", s_write},
+			{"flush", s_flush},
+			{"close", s_close}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"Stream", NULL, 
+			4, s_method, 0, NULL, 0, NULL, NULL,
+			&object_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 
 	inline v8::Handle<v8::Value> Stream_base::s_read(const v8::Arguments& args)
 	{

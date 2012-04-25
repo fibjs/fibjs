@@ -39,37 +39,7 @@ public:
 	virtual result_t truncate(double bytes) = 0;
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"stat", s_stat},
-			{"size", s_size},
-			{"eof", s_eof},
-			{"seek", s_seek},
-			{"tell", s_tell},
-			{"rewind", s_rewind},
-			{"truncate", s_truncate}
-		};
-
-		static ClassProperty s_property[] = 
-		{
-			{"SEEK_SET", s_get_SEEK_SET},
-			{"SEEK_CUR", s_get_SEEK_CUR},
-			{"SEEK_END", s_get_SEEK_END},
-			{"name", s_get_name}
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"File", NULL, 
-			7, s_method, 4, s_property, NULL,
-			&Stream_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -110,6 +80,38 @@ private:
 
 namespace fibjs
 {
+	inline ClassInfo& File_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"stat", s_stat},
+			{"size", s_size},
+			{"eof", s_eof},
+			{"seek", s_seek},
+			{"tell", s_tell},
+			{"rewind", s_rewind},
+			{"truncate", s_truncate}
+		};
+
+		static ClassProperty s_property[] = 
+		{
+			{"SEEK_SET", s_get_SEEK_SET},
+			{"SEEK_CUR", s_get_SEEK_CUR},
+			{"SEEK_END", s_get_SEEK_END},
+			{"name", s_get_name}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"File", NULL, 
+			7, s_method, 0, NULL, 4, s_property, NULL,
+			&Stream_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 	inline v8::Handle<v8::Value> File_base::s_get_SEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		int32_t vr = _SEEK_SET;

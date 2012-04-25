@@ -18,6 +18,8 @@ namespace fibjs
 {
 
 class module_base;
+class Buffer_base;
+class Event_base;
 class console_base;
 
 class global_base : public module_base
@@ -33,33 +35,7 @@ public:
 	static result_t GC();
 
 public:
-	static ClassInfo& class_info()
-	{
-		static ClassMethod s_method[] = 
-		{
-			{"print", s_print},
-			{"run", s_run},
-			{"sleep", s_sleep},
-			{"define", s_define},
-			{"require", s_require},
-			{"GC", s_GC}
-		};
-
-		static ClassProperty s_property[] = 
-		{
-			{"console", s_get_console}
-		};
-
-		static ClassData s_cd = 
-		{ 
-			"global", NULL, 
-			6, s_method, 1, s_property, NULL,
-			&module_base::class_info()
-		};
-
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo& class_info();
 
 	virtual ClassInfo& Classinfo()
 	{
@@ -78,10 +54,46 @@ private:
 
 }
 
+#include "Buffer.h"
+#include "Event.h"
 #include "console.h"
 
 namespace fibjs
 {
+	inline ClassInfo& global_base::class_info()
+	{
+		ClassMethod s_method[] = 
+		{
+			{"print", s_print},
+			{"run", s_run},
+			{"sleep", s_sleep},
+			{"define", s_define},
+			{"require", s_require},
+			{"GC", s_GC}
+		};
+
+		static ClassObject s_object[] = 
+		{
+			{"Buffer", Buffer_base::class_info},
+			{"Event", Event_base::class_info}
+		};
+
+		static ClassProperty s_property[] = 
+		{
+			{"console", s_get_console}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"global", NULL, 
+			6, s_method, 2, s_object, 1, s_property, NULL,
+			&module_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
 	inline v8::Handle<v8::Value> global_base::s_get_console(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		obj_ptr<console_base> vr;
