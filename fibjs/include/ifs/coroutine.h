@@ -18,6 +18,9 @@ namespace fibjs
 {
 
 class module_base;
+class Lock_base;
+class Semaphore_base;
+class Condition_base;
 class Fiber_base;
 
 class coroutine_base : public module_base
@@ -44,6 +47,9 @@ private:
 
 }
 
+#include "Lock.h"
+#include "Semaphore.h"
+#include "Condition.h"
 #include "Fiber.h"
 
 namespace fibjs
@@ -57,10 +63,17 @@ namespace fibjs
 			{"sleep", s_sleep}
 		};
 
+		static ClassObject s_object[] = 
+		{
+			{"Lock", Lock_base::class_info},
+			{"Semaphore", Semaphore_base::class_info},
+			{"Condition", Condition_base::class_info}
+		};
+
 		static ClassData s_cd = 
 		{ 
 			"coroutine", NULL, 
-			3, s_method, 0, NULL, 0, NULL, NULL,
+			3, s_method, 3, s_object, 0, NULL, NULL,
 			&module_base::class_info()
 		};
 

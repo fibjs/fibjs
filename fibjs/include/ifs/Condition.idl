@@ -1,0 +1,9 @@
+
+class Condition : Lock
+{
+	Condition();
+	Condition(Lock lock);
+	wait();
+	notify();
+	notifyAll();
+};

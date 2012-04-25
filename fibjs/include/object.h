@@ -57,9 +57,10 @@ public:
 		m_lock.unlock();
 	}
 
+	exlib::Locker m_lock;
+
 private:
 	int refs_;
-	exlib::Locker m_lock;
 	v8::Persistent<v8::Object> handle_;
 
 private:

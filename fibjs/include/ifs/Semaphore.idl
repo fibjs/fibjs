@@ -1,0 +1,8 @@
+
+class Semaphore : Lock
+{
+	Semaphore(Integer value = 1);
+	wait();
+	post();
+	Boolean trywait();
+};

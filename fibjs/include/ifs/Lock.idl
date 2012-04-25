@@ -1,0 +1,7 @@
+
+class Lock : object
+{
+	Lock();
+	Boolean acquire(Boolean blocking = true);
+	release();
+};
