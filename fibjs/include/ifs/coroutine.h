@@ -50,7 +50,7 @@ namespace fibjs
 {
 	inline ClassInfo& coroutine_base::class_info()
 	{
-		ClassMethod s_method[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"start", s_start},
 			{"current", s_current},

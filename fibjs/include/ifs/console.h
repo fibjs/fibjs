@@ -60,7 +60,7 @@ namespace fibjs
 {
 	inline ClassInfo& console_base::class_info()
 	{
-		ClassMethod s_method[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"log", s_log},
 			{"info", s_info},

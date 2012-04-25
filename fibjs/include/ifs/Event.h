@@ -48,7 +48,7 @@ namespace fibjs
 {
 	inline ClassInfo& Event_base::class_info()
 	{
-		ClassMethod s_method[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"on", s_on},
 			{"once", s_once},

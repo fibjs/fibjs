@@ -76,7 +76,7 @@ namespace fibjs
 {
 	inline ClassInfo& Stat_base::class_info()
 	{
-		ClassMethod s_method[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"isWritable", s_isWritable},
 			{"isReadable", s_isReadable},

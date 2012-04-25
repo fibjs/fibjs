@@ -46,7 +46,7 @@ namespace fibjs
 {
 	inline ClassInfo& object_base::class_info()
 	{
-		ClassMethod s_method[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"dispose", s_dispose},
 			{"toString", s_toString},

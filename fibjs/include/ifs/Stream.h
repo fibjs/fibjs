@@ -54,7 +54,7 @@ namespace fibjs
 {
 	inline ClassInfo& Stream_base::class_info()
 	{
-		ClassMethod s_method[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"read", s_read},
 			{"write", s_write},

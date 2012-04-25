@@ -62,7 +62,7 @@ namespace fibjs
 {
 	inline ClassInfo& global_base::class_info()
 	{
-		ClassMethod s_method[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"print", s_print},
 			{"run", s_run},

@@ -56,7 +56,7 @@ namespace fibjs
 {
 	inline ClassInfo& encoding_base::class_info()
 	{
-		ClassMethod s_method[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"base32Encode", s_base32Encode},
 			{"base32Decode", s_base32Decode},

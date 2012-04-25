@@ -82,7 +82,7 @@ namespace fibjs
 {
 	inline ClassInfo& File_base::class_info()
 	{
-		ClassMethod s_method[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"stat", s_stat},
 			{"size", s_size},

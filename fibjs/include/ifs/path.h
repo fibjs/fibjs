@@ -52,7 +52,7 @@ namespace fibjs
 {
 	inline ClassInfo& path_base::class_info()
 	{
-		ClassMethod s_method[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"normalize", s_normalize},
 			{"basename", s_basename},

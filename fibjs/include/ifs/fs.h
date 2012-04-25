@@ -94,7 +94,7 @@ namespace fibjs
 {
 	inline ClassInfo& fs_base::class_info()
 	{
-		ClassMethod s_method[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"open", s_open},
 			{"create", s_create},

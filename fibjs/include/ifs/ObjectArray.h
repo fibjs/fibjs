@@ -61,7 +61,7 @@ namespace fibjs
 {
 	inline ClassInfo& ObjectArray_base::class_info()
 	{
-		ClassMethod s_method[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"resize", s_resize},
 			{"slice", s_slice}

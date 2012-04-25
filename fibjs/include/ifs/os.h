@@ -56,7 +56,7 @@ namespace fibjs
 {
 	inline ClassInfo& os_base::class_info()
 	{
-		ClassMethod s_method[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"hostname", s_hostname},
 			{"type", s_type},

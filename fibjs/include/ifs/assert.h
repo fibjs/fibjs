@@ -58,7 +58,7 @@ namespace fibjs
 {
 	inline ClassInfo& assert_base::class_info()
 	{
-		ClassMethod s_method[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"ok", s_ok},
 			{"equal", s_equal},

@@ -313,7 +313,7 @@ function parserIDL(fname) {
 		txt.push("	inline ClassInfo& " + ns + "_base::class_info()\n	{")
 
 		if (difms.length) {
-			txt.push("		ClassMethod s_method[] = \n		{");
+			txt.push("		static ClassMethod s_method[] = \n		{");
 			txt.push(difms.join(",\n"));
 			txt.push("		};\n");
 		}

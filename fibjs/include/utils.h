@@ -586,7 +586,7 @@ inline v8::Handle<v8::Value> ThrowRangeError(const char* msg)
 inline result_t LastError()
 {
 #ifdef _WIN32
-	return - GetLastError();
+	return - (int)GetLastError();
 #else
 	return - errno;
 #endif

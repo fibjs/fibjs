@@ -65,7 +65,7 @@ namespace fibjs
 {
 	inline ClassInfo& Buffer_base::class_info()
 	{
-		ClassMethod s_method[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"resize", s_resize},
 			{"write", s_write},

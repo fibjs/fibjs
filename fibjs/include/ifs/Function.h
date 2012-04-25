@@ -44,7 +44,7 @@ namespace fibjs
 {
 	inline ClassInfo& Function_base::class_info()
 	{
-		ClassMethod s_method[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"start", s_start}
 		};

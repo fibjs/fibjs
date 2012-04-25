@@ -107,7 +107,7 @@ namespace fibjs
 {
 	inline ClassInfo& Socket_base::class_info()
 	{
-		ClassMethod s_method[] = 
+		static ClassMethod s_method[] = 
 		{
 			{"connect", s_connect},
 			{"bind", s_bind},
