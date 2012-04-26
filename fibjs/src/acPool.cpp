@@ -1,8 +1,5 @@
 
 #include "ifs/os.h"
-#include <exlib/thread.h>
-#include <acPool.h>
-#include <map>
 #include <log4cpp/Category.hh>
 
 #ifdef _WIN32
