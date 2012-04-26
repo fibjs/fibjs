@@ -5,8 +5,13 @@
  */
 class coroutine : module
 {
+	/*! @brief 锁对象，参见 Lock */
 	static Lock new Lock();
+
+	/*! @brief 信号量对象，参见 Semaphore */
 	static Semaphore new Semaphore();
+
+	/*! @brief 条件变量对象，参见 Condition */
 	static Condition new Condition();
 
 	/*!	@brief 启动一个纤程并返回纤程对象

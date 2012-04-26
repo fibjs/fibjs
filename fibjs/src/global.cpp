@@ -21,11 +21,6 @@ result_t global_base::print(const char* fmt, const v8::Arguments& args)
 	return console_base::log(fmt, args);
 }
 
-result_t global_base::sleep(int32_t ms)
-{
-	return coroutine_base::sleep(ms);
-}
-
 result_t global_base::GC()
 {
 	v8::V8::LowMemoryNotification();

@@ -29,7 +29,6 @@ public:
 	static result_t get_console(obj_ptr<console_base>& retVal);
 	static result_t print(const char* fmt, const v8::Arguments& args);
 	static result_t run(const char* fname);
-	static result_t sleep(int32_t ms);
 	static result_t define(const char* id, v8::Handle<v8::Array> deps, v8::Handle<v8::Value> factory);
 	static result_t require(const char* id, v8::Handle<v8::Value>& retVal);
 	static result_t GC();
@@ -46,7 +45,6 @@ private:
 	static v8::Handle<v8::Value> s_get_console(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_print(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_run(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_sleep(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_define(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_require(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_GC(const v8::Arguments& args);
@@ -66,7 +64,6 @@ namespace fibjs
 		{
 			{"print", s_print},
 			{"run", s_run},
-			{"sleep", s_sleep},
 			{"define", s_define},
 			{"require", s_require},
 			{"GC", s_GC}
@@ -86,7 +83,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"global", NULL, 
-			6, s_method, 2, s_object, 1, s_property, NULL,
+			5, s_method, 2, s_object, 1, s_property, NULL,
 			&module_base::class_info()
 		};
 
@@ -123,17 +120,6 @@ namespace fibjs
 		ARG_String(0);
 
 		hr = run(v0);
-
-		METHOD_VOID();
-	}
-
-	inline v8::Handle<v8::Value> global_base::s_sleep(const v8::Arguments& args)
-	{
-		METHOD_ENTER(1, 0);
-
-		OPT_ARG(int32_t, 0, 0);
-
-		hr = sleep(v0);
 
 		METHOD_VOID();
 	}

@@ -22,11 +22,6 @@ class global : module
 	 */
 	static run(String fname);
 
-	/*! @brief 暂停当前纤程指定的时间
-	 * @param ms 指定要暂停的时间，以毫秒为单位，缺省为 0，即有空闲立即回恢复运行
-	 */
-	static sleep(Integer ms = 0);
-
 	/*! @brief 定义一个模块，更多信息参阅 @ref module
 	 * @param id 定义的模块名称
 	 * @param deps 依赖模块列表
