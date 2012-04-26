@@ -63,7 +63,7 @@ coroutine.current().v = 1234;
 f.join();
 assert.equal(n, 1534);
 
-var nCount = 2000000;
+var nCount = 20000;
 
 var bDone = false;
 
