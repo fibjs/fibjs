@@ -581,6 +581,7 @@ result_t Socket::connect(const char* addr, int32_t port)
 					sizeof(addr_info.addr4) :
 					sizeof(addr_info.addr6)) == SOCKET_ERROR)
 		return SocketError();
+	fcntl(m_sock, F_SETFL, fcntl(m_sock, F_GETFL, 0) | O_NONBLOCK);
 
 	return 0;
 }

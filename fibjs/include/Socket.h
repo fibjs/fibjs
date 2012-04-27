@@ -62,14 +62,6 @@ private:
 	result_t getAddrInfo(const char* addr, int32_t port, _sockaddr& addr_info);
 
 private:
-	result_t sync_recv(int32_t bytes, obj_ptr<Buffer_base>& retVal);
-	result_t sync_send(obj_ptr<Buffer_base> data);
-
-private:
-	ASYNC_MEMBER2(Socket, sync_recv);
-	ASYNC_MEMBER1(Socket, sync_send);
-
-private:
 	SOCKET m_sock;
 	int32_t m_family;
 	int32_t m_type;
