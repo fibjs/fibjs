@@ -8,6 +8,7 @@
 #include "Socket.h"
 #include "Buffer.h"
 #include <string.h>
+#include  <fcntl.h>
 
 namespace fibjs
 {
@@ -349,12 +350,13 @@ public:
 }s_initWinSock;
 #endif
 
-result_t Socket_base::_new(int32_t family, int32_t type, obj_ptr<Socket_base>& retVal)
+result_t Socket_base::_new(int32_t family, int32_t type,
+		obj_ptr<Socket_base>& retVal)
 {
 	obj_ptr<Socket> sock = new Socket();
 
 	result_t hr = sock->create(family, type);
-	if(hr < 0)
+	if (hr < 0)
 		return hr;
 
 	retVal = sock;
@@ -624,31 +626,9 @@ result_t Socket::listen(int32_t backlog)
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
 
+	fcntl(m_sock, F_SETFL, fcntl(m_sock, F_GETFL, 0) | O_NONBLOCK);
 	if (::listen(m_sock, backlog) == SOCKET_ERROR)
 		return SocketError();
-
-	return 0;
-}
-
-result_t Socket::accept(obj_ptr<Socket_base>& retVal)
-{
-	if (m_sock == INVALID_SOCKET)
-		return CALL_E_INVALID_CALL;
-
-	_sockaddr addr_info;
-	socklen_t sz = sizeof(addr_info);
-
-	SOCKET s = ::accept(m_sock, (sockaddr*) &addr_info, &sz);
-	if (s == INVALID_SOCKET)
-		return SocketError();
-
-	obj_ptr<Socket> sock = new Socket();
-
-	sock->m_sock = s;
-	if (addr_info.addr6.sin6_family == PF_INET6)
-		sock->m_family = _AF_INET6;
-
-	retVal = sock;
 
 	return 0;
 }
@@ -675,7 +655,8 @@ result_t Socket::recv(v8::Handle<v8::Function> cb, obj_ptr<Buffer_base>& retVal)
 	return 0;
 }
 
-result_t Socket::recv(int32_t bytes, v8::Handle<v8::Function> cb, obj_ptr<Buffer_base>& retVal)
+result_t Socket::recv(int32_t bytes, v8::Handle<v8::Function> cb,
+		obj_ptr<Buffer_base>& retVal)
 {
 	return 0;
 }

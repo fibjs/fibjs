@@ -13,15 +13,14 @@
 namespace fibjs
 {
 
+union _sockaddr
+{
+	struct sockaddr_in addr4;
+	struct sockaddr_in6 addr6;
+};
+
 class Socket: public Socket_base
 {
-public:
-	union _sockaddr
-	{
-		struct sockaddr_in addr4;
-		struct sockaddr_in6 addr6;
-	};
-
 public:
 	Socket();
 	virtual ~Socket();

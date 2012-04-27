@@ -96,7 +96,6 @@ private:
 
 private:
 	ASYNC_MEMBER2(Socket_base, connect);
-	ASYNC_MEMBER1(Socket_base, accept);
 };
 
 }
@@ -315,7 +314,7 @@ namespace fibjs
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->ac_accept(s_acPool, vr);
+		hr = pInst->accept(vr);
 
 		METHOD_RETURN();
 	}
