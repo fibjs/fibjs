@@ -6,6 +6,7 @@
  */
 
 #include "Socket.h"
+#include "ifs/net.h"
 #include "Buffer.h"
 #include "ev.h"
 #include  <fcntl.h>
@@ -13,9 +14,37 @@
 namespace fibjs
 {
 
+static struct ev_loop *s_loop;
+
+result_t net_base::backend(std::string& retVal)
+{
+	switch(ev_backend(s_loop))
+	{
+	case EVBACKEND_SELECT:
+		retVal = "Select";
+		break;
+	case EVBACKEND_POLL:
+		retVal = "Poll";
+		break;
+	case EVBACKEND_EPOLL:
+		retVal = "EPoll";
+		break;
+	case EVBACKEND_KQUEUE:
+		retVal = "KQueue";
+		break;
+	case EVBACKEND_DEVPOLL:
+		retVal = "DevPoll";
+		break;
+	case EVBACKEND_PORT:
+		retVal = "Port";
+		break;
+	}
+
+	return 0;
+}
+
 class waitEV;
 
-static struct ev_loop *s_loop;
 static ev_async s_asEvent;
 static exlib::lockfree<waitEV> s_evWait;
 
