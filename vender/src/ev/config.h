@@ -135,3 +135,5 @@
 
 /* Version number of package */
 #define VERSION "4.11"
+
+#define NDEBUG

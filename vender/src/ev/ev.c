@@ -164,8 +164,6 @@
 
 #endif
 
-#define NDEBUG
-
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
@@ -2135,12 +2133,12 @@ ev_recommended_backends (void)
 #ifndef __NetBSD__
   /* kqueue is borked on everything but netbsd apparently */
   /* it usually doesn't work correctly on anything but sockets and pipes */
-  flags &= ~EVBACKEND_KQUEUE;
+//  flags &= ~EVBACKEND_KQUEUE;
 #endif
 #ifdef __APPLE__
   /* only select works correctly on that "unix-certified" platform */
-  flags &= ~EVBACKEND_KQUEUE; /* horribly broken, even for sockets */
-  flags &= ~EVBACKEND_POLL;   /* poll is based on kqueue from 10.5 onwards */
+//  flags &= ~EVBACKEND_KQUEUE; /* horribly broken, even for sockets */
+//  flags &= ~EVBACKEND_POLL;   /* poll is based on kqueue from 10.5 onwards */
 #endif
 #ifdef __FreeBSD__
   flags &= ~EVBACKEND_POLL;   /* poll return value is unusable (http://forums.freebsd.org/archive/index.php/t-10270.html) */
