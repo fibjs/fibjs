@@ -634,6 +634,87 @@ result_t Socket::listen(int32_t backlog)
 	return 0;
 }
 
+result_t Socket::accept(obj_ptr<Socket_base>& retVal)
+{
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
+	_sockaddr ai;
+	socklen_t sz = sizeof(_sockaddr);
+
+	SOCKET s = a_accept(m_sock, (sockaddr*) &ai, &sz);
+	if (s == INVALID_SOCKET)
+		return SocketError();
+
+	obj_ptr<Socket> sock = new Socket();
+
+	sock->m_sock = s;
+	if (ai.addr6.sin6_family == PF_INET6)
+		sock->m_family = _AF_INET6;
+
+	fcntl(s, F_SETFL, fcntl(s, F_GETFL, 0) | O_NONBLOCK);
+
+	retVal = sock;
+
+	return 0;
+}
+
+result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal)
+{
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
+	std::string buf;
+	int sz = bytes > 0 ? bytes : 4096;
+
+	buf.resize(sz);
+	char* p = &buf[0];
+
+	do
+	{
+		int n = (int) a_recv(m_sock, p, sz, MSG_NOSIGNAL);
+		if (n == SOCKET_ERROR)
+			return SocketError();
+
+		if (n == 0)
+			break;
+
+		sz -= n;
+		p += n;
+	} while (bytes > sz);
+
+	buf.resize((bytes > 0 ? bytes : 4096) - sz);
+	retVal = new Buffer(buf);
+
+	return 0;
+}
+
+result_t Socket::send(const char* p, int sz)
+{
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
+	while (sz)
+	{
+		int n = (int) a_send(m_sock, p, sz, MSG_NOSIGNAL);
+		if (n == SOCKET_ERROR)
+			return SocketError();
+
+		sz -= n;
+		p += n;
+	}
+
+	return 0;
+}
+
+result_t Socket::send(obj_ptr<Buffer_base> data)
+{
+	std::string strBuf;
+	data->toString(strBuf);
+
+	return send(strBuf.c_str(), (int) strBuf.length());
+}
+
 result_t Socket::recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal)
 {
 	if (m_sock == INVALID_SOCKET)

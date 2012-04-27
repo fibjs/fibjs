@@ -67,6 +67,10 @@ private:
 	int32_t m_type;
 };
 
+SOCKET a_accept(SOCKET s, sockaddr* ai, socklen_t* sz);
+int a_recv(SOCKET s, void *p, size_t sz, int f);
+int a_send(SOCKET s, const void *p, size_t sz, int f);
+
 }
 
 #endif /* SOCKET_H_ */

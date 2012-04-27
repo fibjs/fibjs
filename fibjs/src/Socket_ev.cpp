@@ -18,7 +18,7 @@ static struct ev_loop *s_loop;
 
 result_t net_base::backend(std::string& retVal)
 {
-	switch(ev_backend(s_loop))
+	switch (ev_backend(s_loop))
 	{
 	case EVBACKEND_SELECT:
 		retVal = "Select";
@@ -109,113 +109,52 @@ private:
 	}
 } s_acSock;
 
-result_t Socket::accept(obj_ptr<Socket_base>& retVal)
+SOCKET a_accept(SOCKET s, sockaddr* ai, socklen_t* sz)
 {
-	if (m_sock == INVALID_SOCKET)
-		return CALL_E_INVALID_CALL;
-
-	_sockaddr ai;
-	socklen_t sz = sizeof(_sockaddr);
-
-	SOCKET s = ::accept(m_sock, (sockaddr*) &ai, &sz);
-	if (s == INVALID_SOCKET)
+	SOCKET c = ::accept(s, ai, sz);
+	if (c == INVALID_SOCKET)
 	{
 		int e = errno;
-		if( e == EAGAIN || e == EWOULDBLOCK)
+		if (e == EAGAIN || e == EWOULDBLOCK)
 		{
-			waitEV ac(m_sock, EV_READ);
-			s = ::accept(m_sock, (sockaddr*) &ai, &sz);
+			waitEV ac(s, EV_READ);
+			c = ::accept(s, ai, sz);
 		}
 	}
-	if (s == INVALID_SOCKET)
-		return SocketError();
 
-	obj_ptr<Socket> sock = new Socket();
-
-	sock->m_sock = s;
-	if (ai.addr6.sin6_family == PF_INET6)
-		sock->m_family = _AF_INET6;
-
-	fcntl(s, F_SETFL, fcntl(s, F_GETFL, 0) | O_NONBLOCK);
-
-	retVal = sock;
-
-	return 0;
+	return c;
 }
 
-result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal)
+int a_recv(SOCKET s, void *p, size_t sz, int f)
 {
-	if (m_sock == INVALID_SOCKET)
-		return CALL_E_INVALID_CALL;
-
-	std::string buf;
-	int sz = bytes > 0 ? bytes : 4096;
-
-	buf.resize(sz);
-	char* p = &buf[0];
-
-	do
+	int n = (int) ::recv(s, p, sz, f);
+	if (n == INVALID_SOCKET)
 	{
-		int n = (int) ::recv(m_sock, p, sz, MSG_NOSIGNAL);
-		if (n == INVALID_SOCKET)
+		int e = errno;
+		if (e == EAGAIN || e == EWOULDBLOCK)
 		{
-			int e = errno;
-			if( e == EAGAIN || e == EWOULDBLOCK)
-			{
-				waitEV ac(m_sock, EV_READ);
-				n = (int) ::recv(m_sock, p, sz, MSG_NOSIGNAL);
-			}
+			waitEV ac(s, EV_READ);
+			n = (int) ::recv(s, p, sz, f);
 		}
-
-		if (n == SOCKET_ERROR)
-			return SocketError();
-
-		if (n == 0)
-			break;
-
-		sz -= n;
-		p += n;
-	} while (bytes > sz);
-
-	buf.resize((bytes > 0 ? bytes : 4096) - sz);
-	retVal = new Buffer(buf);
-
-	return 0;
-}
-
-result_t Socket::send(const char* p, int sz)
-{
-	if (m_sock == INVALID_SOCKET)
-		return CALL_E_INVALID_CALL;
-
-	while (sz)
-	{
-		int n = (int) ::send(m_sock, p, sz, MSG_NOSIGNAL);
-		if (n == INVALID_SOCKET)
-		{
-			int e = errno;
-			if( e == EAGAIN || e == EWOULDBLOCK)
-			{
-				waitEV ac(m_sock, EV_WRITE);
-				n = (int) ::send(m_sock, p, sz, MSG_NOSIGNAL);
-			}
-		}
-		if (n == SOCKET_ERROR)
-			return SocketError();
-
-		sz -= n;
-		p += n;
 	}
 
-	return 0;
+	return n;
 }
 
-result_t Socket::send(obj_ptr<Buffer_base> data)
+int a_send(SOCKET s, const void *p, size_t sz, int f)
 {
-	std::string strBuf;
-	data->toString(strBuf);
+	int n = (int) ::send(s, p, sz, f);
+	if (n == INVALID_SOCKET)
+	{
+		int e = errno;
+		if (e == EAGAIN || e == EWOULDBLOCK)
+		{
+			waitEV ac(s, EV_WRITE);
+			n = (int) ::send(s, p, sz, f);
+		}
+	}
 
-	return send(strBuf.c_str(), (int) strBuf.length());
+	return n;
 }
 
 }
