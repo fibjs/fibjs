@@ -24,7 +24,7 @@ std::string getResultMessage(result_t hr)
 {
 	static const char* s_errors[] =
 	{ "",
-			// CALL_E_BADPARAMCOUNT
+	// CALL_E_BADPARAMCOUNT
 			"Invalid number of parameters.",
 			// CALL_E_PARAMNOTOPTIONAL
 			"Parameter not optional.",
@@ -71,7 +71,11 @@ std::string getResultMessage(result_t hr)
 
 v8::Handle<v8::Value> ThrowResult(result_t hr)
 {
-	return ThrowError(getResultMessage(hr).c_str());
+	v8::Handle<v8::Value> e = v8::Exception::Error(
+			v8::String::New(getResultMessage(hr).c_str()));
+	e->ToObject()->Set(v8::String::NewSymbol("number"), v8::Int32::New(-hr));
+
+	return v8::ThrowException(e);
 }
 
 inline const char* ToCString(const v8::String::Utf8Value& value)
