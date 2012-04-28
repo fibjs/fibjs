@@ -48,6 +48,10 @@ result_t Condition::wait()
 
 result_t Condition::notify()
 {
+	result_t hr = m_lockCond->release();
+	if (hr < 0)
+		return hr;
+
 	m_cond.notify_one();
 
 	return 0;
@@ -55,6 +59,10 @@ result_t Condition::notify()
 
 result_t Condition::notifyAll()
 {
+	result_t hr = m_lockCond->release();
+	if (hr < 0)
+		return hr;
+
 	m_cond.notify_all();
 
 	return 0;
