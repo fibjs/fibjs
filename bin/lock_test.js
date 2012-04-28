@@ -71,11 +71,13 @@ function f3()
 
 f3.start();
 
+cond.acquire();
 coroutine.sleep();
 cond.notify();
 coroutine.sleep();
 assert.equal(0, v);
 
+cond.acquire();
 v = 100;
 cond.notify();
 coroutine.sleep();
