@@ -5,6 +5,8 @@ console.log('path testing....');
 require("path_test");
 console.log('fiber testing....');
 require("fiber_test");
+console.log('event testing....');
+require("event_test");
 console.log('lock testing....');
 require("lock_test");
 console.log('fs testing....');
