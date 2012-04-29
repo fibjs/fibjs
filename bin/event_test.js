@@ -44,5 +44,31 @@ coroutine.sleep();
 assert.equal(4812, v1);
 assert.equal(13983, v2);
 
+e.off('test', t2);
+e.trigger('test', 20, 10);
+coroutine.sleep();
+assert.equal(4812, v1);
+assert.equal(13983, v2);
 
+e.on({
+	test : t1,
+	test1 : t2
+});
+e.trigger('test', 20, 10);
+coroutine.sleep();
+assert.equal(6056, v1);
+assert.equal(13983, v2);
+e.trigger('test1', 20, 10);
+coroutine.sleep();
+assert.equal(6056, v1);
+assert.equal(18314, v2);
 
+e.off({
+	test : t1,
+	test1 : t2
+});
+e.trigger('test', 20, 10);
+e.trigger('test1', 20, 10);
+coroutine.sleep();
+assert.equal(6056, v1);
+assert.equal(18314, v2);
