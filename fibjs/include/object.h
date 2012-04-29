@@ -124,6 +124,9 @@ public:
 	result_t off(const char* ev, v8::Handle<v8::Function> func);
 	result_t trigger(const char* ev, const v8::Arguments& args);
 
+private:
+	v8::Handle<v8::Array> GetHiddenArray(const char* k, bool create = false, bool autoDelete = false);
+
 public:
 	// object_base
 	virtual result_t dispose()
