@@ -89,10 +89,20 @@ public:
 		ev_async_init(&s_asEvent, as_cb);
 		ev_async_start(s_loop, &s_asEvent);
 
+		ev_timer tm;
+		tm_cb(s_loop, &tm, 0);
+
 		ev_run(s_loop, 0);
 	}
 
 private:
+	static void tm_cb(struct ev_loop *loop, struct ev_timer *watcher,
+			int revents)
+	{
+		ev_timer_init(watcher, tm_cb, 1, 0);
+		ev_timer_start(s_loop, watcher);
+	}
+
 	static void as_cb(struct ev_loop *loop, struct ev_async *watcher,
 			int revents)
 	{
