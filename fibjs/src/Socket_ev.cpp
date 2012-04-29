@@ -96,15 +96,7 @@ public:
 	}
 
 private:
-	static void tm_cb(struct ev_loop *loop, struct ev_timer *watcher,
-			int revents)
-	{
-		ev_timer_init(watcher, tm_cb, 1, 0);
-		ev_timer_start(s_loop, watcher);
-	}
-
-	static void as_cb(struct ev_loop *loop, struct ev_async *watcher,
-			int revents)
+	static void doAsync()
 	{
 		waitEV *p = s_evWait.getList(), *p1;
 
@@ -116,6 +108,21 @@ private:
 
 			p = p1;
 		}
+	}
+
+	static void tm_cb(struct ev_loop *loop, struct ev_timer *watcher,
+			int revents)
+	{
+		ev_timer_init(watcher, tm_cb, 1, 0);
+		ev_timer_start(s_loop, watcher);
+
+		doAsync();
+	}
+
+	static void as_cb(struct ev_loop *loop, struct ev_async *watcher,
+			int revents)
+	{
+		doAsync();
 	}
 } s_acSock;
 
