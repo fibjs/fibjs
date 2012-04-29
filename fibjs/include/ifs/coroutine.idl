@@ -14,6 +14,9 @@ class coroutine : module
 	/*! @brief 条件变量对象，参见 Condition */
 	static Condition new Condition();
 
+	/*! @brief 事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此，参见 EventObject 对象。 */
+	static EventObject new EventObject();
+
 	/*!	@brief 启动一个纤程并返回纤程对象
 	 * @param func 制定纤程执行的函数
 	 * @param ... 可变参数序列，此序列会在纤程内传递给函数

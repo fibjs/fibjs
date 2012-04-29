@@ -5,9 +5,6 @@ class global : module
 	/*! @brief 二进制数据缓存对象，用于 io 读写的数据处理，参见 Buffer 对象。*/
 	static Buffer new Buffer();
 
-	/*! @brief 事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此，参见 Event 对象。 */
-	static Event new Event();
-
 	/*! @brief 控制台访问对象*/
 	static console console;
 

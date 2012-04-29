@@ -6,9 +6,9 @@
  * var e = new Event();
  * @endcode
  */
-class Event : object
+class EventObject : object
 {
-	Event();
+	EventObject();
 	on(String ev, Function func);
 	once(String ev, Function func);
 	off(String ev, Function func);

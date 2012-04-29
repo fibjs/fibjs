@@ -10,7 +10,7 @@
 namespace fibjs
 {
 
-result_t Event_base::_new(obj_ptr<Event_base>& retVal)
+result_t EventObject_base::_new(obj_ptr<EventObject_base>& retVal)
 {
 	retVal = new Event();
 	return 0;

@@ -12,13 +12,15 @@
  */
 
 #include "../object.h"
+#include "EventObject.h"
 
 namespace fibjs
 {
 
+class EventObject_base;
 class Buffer_base;
 
-class Stream_base : public object_base
+class Stream_base : public EventObject_base
 {
 public:
 	// Stream_base
@@ -66,7 +68,7 @@ namespace fibjs
 		{ 
 			"Stream", NULL, 
 			4, s_method, 0, NULL, 0, NULL, NULL,
-			&object_base::class_info()
+			&EventObject_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

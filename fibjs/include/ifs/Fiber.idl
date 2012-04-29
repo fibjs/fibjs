@@ -14,7 +14,7 @@
  * fb.join();
  * @endcode
  */
-class Fiber : Event
+class Fiber : EventObject
 {
 	/*! 等待纤程结束 */
 	join();

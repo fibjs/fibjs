@@ -8,6 +8,8 @@ namespace fibjs
 
 class File : public File_base
 {
+	EVENT_SUPPORT();
+
 public:
     File() : m_data(0), m_file(NULL)
     {

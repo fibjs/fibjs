@@ -1,6 +1,6 @@
 
 /*! @brief 流操作对象，用于二进制数据流读写*/
-class Stream : object
+class Stream : EventObject
 {
 	/*! @brief 从流内读取指定大小的数据
 	 * @param bytes 指定要读取的数据量，缺省为读取剩余全部数据

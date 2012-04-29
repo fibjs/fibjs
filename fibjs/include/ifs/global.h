@@ -19,7 +19,6 @@ namespace fibjs
 
 class module_base;
 class Buffer_base;
-class Event_base;
 class console_base;
 
 class global_base : public module_base
@@ -53,7 +52,6 @@ private:
 }
 
 #include "Buffer.h"
-#include "Event.h"
 #include "console.h"
 
 namespace fibjs
@@ -71,8 +69,7 @@ namespace fibjs
 
 		static ClassObject s_object[] = 
 		{
-			{"Buffer", Buffer_base::class_info},
-			{"Event", Event_base::class_info}
+			{"Buffer", Buffer_base::class_info}
 		};
 
 		static ClassProperty s_property[] = 
@@ -83,7 +80,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"global", NULL, 
-			5, s_method, 2, s_object, 1, s_property, NULL,
+			5, s_method, 1, s_object, 1, s_property, NULL,
 			&module_base::class_info()
 		};
 

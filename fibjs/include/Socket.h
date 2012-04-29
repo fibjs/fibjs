@@ -21,6 +21,8 @@ union _sockaddr
 
 class Socket: public Socket_base
 {
+	EVENT_SUPPORT();
+
 public:
 	Socket();
 	virtual ~Socket();

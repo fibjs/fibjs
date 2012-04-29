@@ -21,6 +21,7 @@ class module_base;
 class Lock_base;
 class Semaphore_base;
 class Condition_base;
+class EventObject_base;
 class Fiber_base;
 
 class coroutine_base : public module_base
@@ -50,6 +51,7 @@ private:
 #include "Lock.h"
 #include "Semaphore.h"
 #include "Condition.h"
+#include "EventObject.h"
 #include "Fiber.h"
 
 namespace fibjs
@@ -67,13 +69,14 @@ namespace fibjs
 		{
 			{"Lock", Lock_base::class_info},
 			{"Semaphore", Semaphore_base::class_info},
-			{"Condition", Condition_base::class_info}
+			{"Condition", Condition_base::class_info},
+			{"EventObject", EventObject_base::class_info}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"coroutine", NULL, 
-			3, s_method, 3, s_object, 0, NULL, NULL,
+			3, s_method, 4, s_object, 0, NULL, NULL,
 			&module_base::class_info()
 		};
 
