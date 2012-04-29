@@ -104,6 +104,8 @@ inline result_t _map(object_base* o, v8::Handle<v8::Object> m,
 		if (v->IsFunction())
 			(o->*fn)(*v8::String::Utf8Value(k),
 					v8::Handle<v8::Function>::Cast(v));
+		else
+			return CALL_E_BADVARTYPE;
 	}
 
 	return 0;
