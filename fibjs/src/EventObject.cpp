@@ -89,6 +89,26 @@ inline void removeFunction(v8::Handle<v8::Array> esa,
 	}
 }
 
+inline result_t _map(object_base* o, v8::Handle<v8::Object> m,
+		result_t (object_base::*fn)(const char*, v8::Handle<v8::Function>))
+{
+	v8::Handle<v8::Array> ks = m->GetPropertyNames();
+	int len = ks->Length();
+	int i;
+
+	for (i = 0; i < len; i++)
+	{
+		v8::Handle<v8::Value> k = ks->Get(i);
+		v8::Handle<v8::Value> v = m->Get(k);
+
+		if (v->IsFunction())
+			(o->*fn)(*v8::String::Utf8Value(k),
+					v8::Handle<v8::Function>::Cast(v));
+	}
+
+	return 0;
+}
+
 result_t object_base::on(const char* ev, v8::Handle<v8::Function> func)
 {
 	std::string strKey = "_e_";
@@ -98,6 +118,11 @@ result_t object_base::on(const char* ev, v8::Handle<v8::Function> func)
 	return 0;
 }
 
+result_t object_base::on(v8::Handle<v8::Object> map)
+{
+	return _map(this, map, &object_base::on);
+}
+
 result_t object_base::once(const char* ev, v8::Handle<v8::Function> func)
 {
 	std::string strKey = "_e1_";
@@ -105,6 +130,11 @@ result_t object_base::once(const char* ev, v8::Handle<v8::Function> func)
 	putFunction(GetHiddenArray(strKey.c_str(), true), func);
 
 	return 0;
+}
+
+result_t object_base::once(v8::Handle<v8::Object> map)
+{
+	return _map(this, map, &object_base::once);
 }
 
 result_t object_base::off(const char* ev, v8::Handle<v8::Function> func)
@@ -118,6 +148,11 @@ result_t object_base::off(const char* ev, v8::Handle<v8::Function> func)
 	removeFunction(GetHiddenArray(strKey.c_str()), func);
 
 	return 0;
+}
+
+result_t object_base::off(v8::Handle<v8::Object> map)
+{
+	return _map(this, map, &object_base::off);
 }
 
 result_t startJSFiber(v8::Handle<v8::Function> func, const v8::Arguments& args,

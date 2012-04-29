@@ -22,8 +22,11 @@ public:
 	// EventObject_base
 	static result_t _new(obj_ptr<EventObject_base>& retVal);
 	virtual result_t on(const char* ev, v8::Handle<v8::Function> func) = 0;
+	virtual result_t on(v8::Handle<v8::Object> map) = 0;
 	virtual result_t once(const char* ev, v8::Handle<v8::Function> func) = 0;
+	virtual result_t once(v8::Handle<v8::Object> map) = 0;
 	virtual result_t off(const char* ev, v8::Handle<v8::Function> func) = 0;
+	virtual result_t off(v8::Handle<v8::Object> map) = 0;
 	virtual result_t trigger(const char* ev, const v8::Arguments& args) = 0;
 
 public:
@@ -51,7 +54,10 @@ namespace fibjs
 		static ClassMethod s_method[] = 
 		{
 			{"on", s_on},
+			{"on", s_on},
 			{"once", s_once},
+			{"once", s_once},
+			{"off", s_off},
 			{"off", s_off},
 			{"trigger", s_trigger}
 		};
@@ -59,7 +65,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"EventObject", s__new, 
-			4, s_method, 0, NULL, 0, NULL, NULL,
+			7, s_method, 0, NULL, 0, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -89,6 +95,12 @@ namespace fibjs
 
 		hr = pInst->on(v0, v1);
 
+		METHOD_OVER(1, 1);
+
+		ARG(v8::Handle<v8::Object>, 0);
+
+		hr = pInst->on(v0);
+
 		METHOD_VOID();
 	}
 
@@ -102,6 +114,12 @@ namespace fibjs
 
 		hr = pInst->once(v0, v1);
 
+		METHOD_OVER(1, 1);
+
+		ARG(v8::Handle<v8::Object>, 0);
+
+		hr = pInst->once(v0);
+
 		METHOD_VOID();
 	}
 
@@ -114,6 +132,12 @@ namespace fibjs
 		ARG(v8::Handle<v8::Function>, 1);
 
 		hr = pInst->off(v0, v1);
+
+		METHOD_OVER(1, 1);
+
+		ARG(v8::Handle<v8::Object>, 0);
+
+		hr = pInst->off(v0);
 
 		METHOD_VOID();
 	}

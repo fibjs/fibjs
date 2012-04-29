@@ -120,8 +120,11 @@ public:
 public:
 	// Event
 	result_t on(const char* ev, v8::Handle<v8::Function> func);
+	result_t on(v8::Handle<v8::Object> map);
 	result_t once(const char* ev, v8::Handle<v8::Function> func);
+	result_t once(v8::Handle<v8::Object> map);
 	result_t off(const char* ev, v8::Handle<v8::Function> func);
+	result_t off(v8::Handle<v8::Object> map);
 	result_t trigger(const char* ev, const v8::Arguments& args);
 
 private:

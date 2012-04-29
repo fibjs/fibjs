@@ -10,8 +10,11 @@ class EventObject : object
 {
 	EventObject();
 	on(String ev, Function func);
+	on(Object map);
 	once(String ev, Function func);
+	once(Object map);
 	off(String ev, Function func);
+	off(Object map);
 	trigger(String ev, ...);
 };
 
