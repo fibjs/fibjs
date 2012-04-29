@@ -72,3 +72,16 @@ e.trigger('test1', 20, 10);
 coroutine.sleep();
 assert.equal(6056, v1);
 assert.equal(18314, v2);
+
+e.on('test', t1);
+e.once('test', t1);
+e.trigger('test', 20, 10);
+coroutine.sleep();
+assert.equal(7300, v1);
+assert.equal(18314, v2);
+
+e.trigger('test', 20, 10);
+coroutine.sleep();
+assert.equal(7300, v1);
+assert.equal(18314, v2);
+
