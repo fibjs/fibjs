@@ -117,6 +117,10 @@ result_t object_base::on(const char* ev, v8::Handle<v8::Function> func)
 	strKey.append(ev);
 	putFunction(GetHiddenArray(strKey.c_str(), true), func);
 
+	strKey = "_e1_";
+	strKey.append(ev);
+	removeFunction(GetHiddenArray(strKey.c_str()), func);
+
 	return 0;
 }
 
@@ -130,6 +134,10 @@ result_t object_base::once(const char* ev, v8::Handle<v8::Function> func)
 	std::string strKey = "_e1_";
 	strKey.append(ev);
 	putFunction(GetHiddenArray(strKey.c_str(), true), func);
+
+	strKey = "_e_";
+	strKey.append(ev);
+	removeFunction(GetHiddenArray(strKey.c_str()), func);
 
 	return 0;
 }
