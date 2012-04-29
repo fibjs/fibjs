@@ -5,14 +5,14 @@
  *      Author: lion
  */
 
-#include "Event.h"
+#include "EventObject.h"
 
 namespace fibjs
 {
 
 result_t EventObject_base::_new(obj_ptr<EventObject_base>& retVal)
 {
-	retVal = new Event();
+	retVal = new EventObject();
 	return 0;
 }
 

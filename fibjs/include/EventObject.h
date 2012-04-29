@@ -13,7 +13,7 @@
 namespace fibjs
 {
 
-class Event: public EventObject_base
+class EventObject: public EventObject_base
 {
 	EVENT_SUPPORT();
 };
