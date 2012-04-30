@@ -63,7 +63,7 @@ result_t Event::clear()
 
 result_t Event::wait()
 {
-	if (!m_event.isset())
+	if (m_event.isset())
 		return 0;
 
 	v8::Unlocker unlocker(isolate);
