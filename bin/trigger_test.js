@@ -5,7 +5,7 @@
 var assert = require('assert');
 var coroutine = require('coroutine');
 
-var e = new coroutine.EventObject();
+var e = new coroutine.Trigger();
 
 var v1, v2;
 
