@@ -8,12 +8,12 @@
 #ifndef EVENT_H_
 #define EVENT_H_
 
-#include "ifs/EventObject.h"
+#include "ifs/Trigger.h"
 
 namespace fibjs
 {
 
-class EventObject: public EventObject_base
+class Trigger: public Trigger_base
 {
 	EVENT_SUPPORT();
 };

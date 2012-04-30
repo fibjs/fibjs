@@ -1,0 +1,16 @@
+/*! @brief 信号量对象
+ *
+ */
+class Event : Lock
+{
+	Event(Boolean value = false);
+
+	Boolean isSet();
+
+	set();
+	pulse();
+
+	clear();
+
+	wait();
+};

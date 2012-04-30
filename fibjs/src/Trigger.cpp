@@ -5,15 +5,15 @@
  *      Author: lion
  */
 
-#include "EventObject.h"
+#include "Trigger.h"
 #include "ifs/coroutine.h"
 
 namespace fibjs
 {
 
-result_t EventObject_base::_new(obj_ptr<EventObject_base>& retVal)
+result_t Trigger_base::_new(obj_ptr<Trigger_base>& retVal)
 {
-	retVal = new EventObject();
+	retVal = new Trigger();
 	return 0;
 }
 

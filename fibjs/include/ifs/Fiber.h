@@ -12,14 +12,14 @@
  */
 
 #include "../object.h"
-#include "EventObject.h"
+#include "Trigger.h"
 
 namespace fibjs
 {
 
-class EventObject_base;
+class Trigger_base;
 
-class Fiber_base : public EventObject_base
+class Fiber_base : public Trigger_base
 {
 public:
 	// Fiber_base
@@ -37,7 +37,7 @@ public:
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{
-		result_t hr = EventObject_base::toJSON(key, retVal);
+		result_t hr = Trigger_base::toJSON(key, retVal);
 		if(hr < 0)return hr;
 
 		CLONE(func, v8::Handle<v8::Function>);
@@ -74,7 +74,7 @@ namespace fibjs
 		{ 
 			"Fiber", NULL, 
 			1, s_method, 0, NULL, 2, s_property, NULL,
-			&EventObject_base::class_info()
+			&Trigger_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

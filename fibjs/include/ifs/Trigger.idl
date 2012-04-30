@@ -3,13 +3,13 @@
  *
  * Event 对象可独立创建，以用于组建自定义的事件系统：
  * @code
- * var e = new Event();
+ * var e = new coroutine.Trigger();
  * @endcode
  */
-class EventObject : object
+class Trigger : object
 {
-	/*! @brief EventObject 构造函数 */
-	EventObject();
+	/*! @brief 构造函数 */
+	Trigger();
 	
 	/*! @brief 绑定一个事件处理函数到对象
 	 *  @param ev 指定事件的名称

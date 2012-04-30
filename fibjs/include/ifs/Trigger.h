@@ -4,8 +4,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _EventObject_base_H_
-#define _EventObject_base_H_
+#ifndef _Trigger_base_H_
+#define _Trigger_base_H_
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -16,11 +16,11 @@
 namespace fibjs
 {
 
-class EventObject_base : public object_base
+class Trigger_base : public object_base
 {
 public:
-	// EventObject_base
-	static result_t _new(obj_ptr<EventObject_base>& retVal);
+	// Trigger_base
+	static result_t _new(obj_ptr<Trigger_base>& retVal);
 	virtual result_t on(const char* ev, v8::Handle<v8::Function> func) = 0;
 	virtual result_t on(v8::Handle<v8::Object> map) = 0;
 	virtual result_t once(const char* ev, v8::Handle<v8::Function> func) = 0;
@@ -49,7 +49,7 @@ private:
 
 namespace fibjs
 {
-	inline ClassInfo& EventObject_base::class_info()
+	inline ClassInfo& Trigger_base::class_info()
 	{
 		static ClassMethod s_method[] = 
 		{
@@ -64,7 +64,7 @@ namespace fibjs
 
 		static ClassData s_cd = 
 		{ 
-			"EventObject", s__new, 
+			"Trigger", s__new, 
 			7, s_method, 0, NULL, 0, NULL, NULL,
 			&object_base::class_info()
 		};
@@ -74,9 +74,9 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> EventObject_base::s__new(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> Trigger_base::s__new(const v8::Arguments& args)
 	{
-		obj_ptr<EventObject_base> vr;
+		obj_ptr<Trigger_base> vr;
 
 		CONSTRUCT_ENTER(0, 0);
 
@@ -85,9 +85,9 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> EventObject_base::s_on(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> Trigger_base::s_on(const v8::Arguments& args)
 	{
-		METHOD_INSTANCE(EventObject_base);
+		METHOD_INSTANCE(Trigger_base);
 		METHOD_ENTER(2, 2);
 
 		ARG_String(0);
@@ -104,9 +104,9 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> EventObject_base::s_once(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> Trigger_base::s_once(const v8::Arguments& args)
 	{
-		METHOD_INSTANCE(EventObject_base);
+		METHOD_INSTANCE(Trigger_base);
 		METHOD_ENTER(2, 2);
 
 		ARG_String(0);
@@ -123,9 +123,9 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> EventObject_base::s_off(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> Trigger_base::s_off(const v8::Arguments& args)
 	{
-		METHOD_INSTANCE(EventObject_base);
+		METHOD_INSTANCE(Trigger_base);
 		METHOD_ENTER(2, 2);
 
 		ARG_String(0);
@@ -142,9 +142,9 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> EventObject_base::s_trigger(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> Trigger_base::s_trigger(const v8::Arguments& args)
 	{
-		METHOD_INSTANCE(EventObject_base);
+		METHOD_INSTANCE(Trigger_base);
 		METHOD_ENTER(-1, 1);
 
 		ARG_String(0);
