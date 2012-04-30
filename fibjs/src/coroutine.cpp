@@ -14,8 +14,9 @@ namespace fibjs
 
 static class null_fiber_data: public Fiber_base
 {
-	EVENT_SUPPORT();
-	FIBER_FREE();
+EVENT_SUPPORT()
+	;FIBER_FREE()
+	;
 
 public:
 	null_fiber_data()
@@ -36,6 +37,16 @@ public:
 	result_t get_caller(obj_ptr<Fiber_base>& retVal)
 	{
 		return CALL_E_INVALID_CALL;
+	}
+
+	result_t onerror(v8::Handle<v8::Function> trigger)
+	{
+		return 0;
+	}
+
+	result_t onexit(v8::Handle<v8::Function> trigger)
+	{
+		return 0;
 	}
 
 } s_null;
@@ -79,6 +90,16 @@ public:
 	{
 		retVal = m_caller;
 		return 0;
+	}
+
+	result_t onerror(v8::Handle<v8::Function> trigger)
+	{
+		return on("error", trigger);
+	}
+
+	result_t onexit(v8::Handle<v8::Function> trigger)
+	{
+		return on("exit", trigger);
 	}
 
 public:
@@ -150,9 +171,16 @@ public:
 			v8::Handle<v8::Object> o = fb->wrap();
 
 			v8::TryCatch try_catch;
-			fb->m_func->Call(o, (int) argv.size(), argv.data());
+			v8::Handle<v8::Value> retVal = fb->m_func->Call(o, (int) argv.size(), argv.data());
 			if (try_catch.HasCaught())
+			{
+				v8::Handle<v8::Value> err = try_catch.Exception();
+				fb->_trigger("error", &err, 1);
 				ReportException(&try_catch, true);
+				retVal = v8::Undefined();
+			}
+
+			fb->_trigger("exit", &retVal, 1);
 
 			fb->m_quit.set();
 			fb->dispose();
@@ -178,8 +206,9 @@ public:
 	}
 } s_fiber_init;
 
-result_t startJSFiber(v8::Handle<v8::Function> func, const v8::Arguments& args,
-		int nArgStart, obj_ptr<Fiber_base>& retVal)
+template<typename T>
+result_t startJSFiber(v8::Handle<v8::Function> func, T& args, int nArgStart,
+		int nArgCount, obj_ptr<Fiber_base>& retVal)
 {
 	v8::HandleScope handle_scope;
 
@@ -188,8 +217,8 @@ result_t startJSFiber(v8::Handle<v8::Function> func, const v8::Arguments& args,
 
 	coroutine_base::current(fb->m_caller);
 
-	fb->argv.resize(args.Length() - nArgStart);
-	for (i = nArgStart; i < args.Length(); i++)
+	fb->argv.resize(nArgCount - nArgStart);
+	for (i = nArgStart; i < nArgCount; i++)
 		fb->argv[i - nArgStart] = v8::Persistent<v8::Value>::New(args[i]);
 	fb->m_func = v8::Persistent<v8::Function>::New(func);
 
@@ -199,6 +228,18 @@ result_t startJSFiber(v8::Handle<v8::Function> func, const v8::Arguments& args,
 	retVal = fb;
 
 	return 0;
+}
+
+result_t startJSFiber(v8::Handle<v8::Function> func, const v8::Arguments& args,
+		int nArgStart, obj_ptr<Fiber_base>& retVal)
+{
+	return startJSFiber(func, args, nArgStart, args.Length(), retVal);
+}
+
+result_t startJSFiber(v8::Handle<v8::Function> func,
+		v8::Handle<v8::Value>* args, int argCount, obj_ptr<Fiber_base>& retVal)
+{
+	return startJSFiber(func, args, 0, argCount, retVal);
 }
 
 result_t coroutine_base::start(v8::Handle<v8::Function> func,
@@ -228,7 +269,8 @@ result_t coroutine_base::sleep(int32_t ms)
 {
 	if (ms > 0)
 	{
-		void* args[] = { &ms };
+		void* args[] =
+		{ &ms };
 		AsyncCall ac(args);
 		s_acSleep.put(&ac);
 

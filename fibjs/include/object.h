@@ -127,6 +127,7 @@ public:
 	result_t off(const char* ev, v8::Handle<v8::Function> func);
 	result_t off(v8::Handle<v8::Object> map);
 	result_t trigger(const char* ev, const v8::Arguments& args);
+	result_t _trigger(const char* ev, v8::Handle<v8::Value>* args, int argCount);
 
 private:
 	v8::Handle<v8::Array> GetHiddenArray(const char* k, bool create = false, bool autoDelete = false);

@@ -90,7 +90,7 @@ inline void removeFunction(v8::Handle<v8::Array> esa,
 }
 
 inline result_t _map(object_base* o, v8::Handle<v8::Object> m,
-		result_t (object_base::*fn)(const char*, v8::Handle<v8::Function>))
+		result_t(object_base::*fn)(const char*, v8::Handle<v8::Function>))
 {
 	v8::Handle<v8::Array> ks = m->GetPropertyNames();
 	int len = ks->Length();
@@ -171,8 +171,23 @@ result_t object_base::off(v8::Handle<v8::Object> map)
 
 result_t startJSFiber(v8::Handle<v8::Function> func, const v8::Arguments& args,
 		int nArgStart, obj_ptr<Fiber_base>& retVal);
+result_t startJSFiber(v8::Handle<v8::Function> func,
+		v8::Handle<v8::Value>* args, int argCount, obj_ptr<Fiber_base>& retVal);
 
-inline result_t _trigger(v8::Handle<v8::Array> esa, const v8::Arguments& args)
+inline result_t _fire(v8::Handle<v8::Function> func, const v8::Arguments& args, int argCount)
+{
+	obj_ptr<Fiber_base> retVal;
+	return startJSFiber(func, args, 1, retVal);
+}
+
+inline result_t _fire(v8::Handle<v8::Function> func, v8::Handle<v8::Value>* args, int argCount)
+{
+	obj_ptr<Fiber_base> retVal;
+	return startJSFiber(func, args, argCount, retVal);
+}
+
+template<typename T>
+result_t fireTrigger(v8::Handle<v8::Array> esa, T args, int argCount)
 {
 	if (esa.IsEmpty())
 		return 0;
@@ -186,9 +201,7 @@ inline result_t _trigger(v8::Handle<v8::Array> esa, const v8::Arguments& args)
 		v8::Handle<v8::Value> func = esa->Get(i);
 		if (func->IsFunction())
 		{
-			obj_ptr<Fiber_base> retVal;
-			hr = startJSFiber(v8::Handle<v8::Function>::Cast(func), args, 1,
-					retVal);
+			hr = _fire(v8::Handle<v8::Function>::Cast(func), args, argCount);
 			if (hr < 0)
 				return hr;
 		}
@@ -197,23 +210,46 @@ inline result_t _trigger(v8::Handle<v8::Array> esa, const v8::Arguments& args)
 	return 0;
 }
 
-result_t object_base::trigger(const char* ev, const v8::Arguments& args)
+result_t object_base::_trigger(const char* ev, v8::Handle<v8::Value>* args, int argCount)
 {
-	if(!m_bHasTrigger)
+	if (!m_bHasTrigger)
 		return 0;
 
 	result_t hr;
 	std::string strKey = "_e_";
 	strKey.append(ev);
 
-	hr = _trigger(GetHiddenArray(strKey.c_str()), args);
+	hr = fireTrigger(GetHiddenArray(strKey.c_str()), args, argCount);
 	if (hr < 0)
 		return hr;
 
 	strKey = "_e1_";
 	strKey.append(ev);
 
-	hr = _trigger(GetHiddenArray(strKey.c_str(), false, true), args);
+	hr = fireTrigger(GetHiddenArray(strKey.c_str(), false, true), args, argCount);
+	if (hr < 0)
+		return hr;
+
+	return 0;
+}
+
+result_t object_base::trigger(const char* ev, const v8::Arguments& args)
+{
+	if (!m_bHasTrigger)
+		return 0;
+
+	result_t hr;
+	std::string strKey = "_e_";
+	strKey.append(ev);
+
+	hr = fireTrigger(GetHiddenArray(strKey.c_str()), args, 0);
+	if (hr < 0)
+		return hr;
+
+	strKey = "_e1_";
+	strKey.append(ev);
+
+	hr = fireTrigger(GetHiddenArray(strKey.c_str(), false, true), args, 0);
 	if (hr < 0)
 		return hr;
 

@@ -16,12 +16,22 @@
  */
 class Fiber : Trigger
 {
-	/*! 等待纤程结束 */
+	/*! @brief 等待纤程结束 */
 	join();
 
-	/*! 查询纤程执行函数 */
+	/*! @brief 查询纤程执行函数 */
 	readonly Function func;
 
-	/*! 查询纤程的调用纤程 */
+	/*! @brief 查询纤程的调用纤程 */
 	readonly Fiber caller;
+
+	/*! @brief 设定纤程错误触发器，当纤程发生未被捕获的错误时，处罚此事件，等效于 on('error', trigger);
+	 * @param trigger 触发器函数，trigger 的定义为 function(err);其中 err 为纤程抛出的错误
+	 */
+	onerror(Function trigger);
+
+	/*! @brief 设定纤程退出触发器，等效于 on('exit', trigger);
+	 * @param trigger 触发器函数，trigger 的定义为 function(retVal);其中 retVal 为纤程返回值
+	 */
+	onexit(Function trigger);
 };
