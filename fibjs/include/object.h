@@ -28,6 +28,7 @@ public:
 	object_base()
 	{
 		refs_ = 0;
+		m_bHasTrigger = false;
 	}
 
 	virtual ~object_base()
@@ -129,6 +130,9 @@ public:
 
 private:
 	v8::Handle<v8::Array> GetHiddenArray(const char* k, bool create = false, bool autoDelete = false);
+
+private:
+	bool m_bHasTrigger;
 
 public:
 	// object_base
