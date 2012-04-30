@@ -46,7 +46,7 @@ void Event::reset()
 	m_set = false;
 }
 
-bool Event::trywait()
+bool Event::isset()
 {
 	return m_set;
 }

@@ -217,7 +217,7 @@ public:
 	void pulse();
 	void set();
 	void reset();
-	bool trywait();
+	bool isset();
 
 private:
 	bool m_set;
