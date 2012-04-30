@@ -113,6 +113,8 @@ inline result_t _map(object_base* o, v8::Handle<v8::Object> m,
 
 result_t object_base::on(const char* ev, v8::Handle<v8::Function> func)
 {
+	m_bHasTrigger = true;
+
 	std::string strKey = "_e_";
 	strKey.append(ev);
 	putFunction(GetHiddenArray(strKey.c_str(), true), func);
@@ -131,6 +133,8 @@ result_t object_base::on(v8::Handle<v8::Object> map)
 
 result_t object_base::once(const char* ev, v8::Handle<v8::Function> func)
 {
+	m_bHasTrigger = true;
+
 	std::string strKey = "_e1_";
 	strKey.append(ev);
 	putFunction(GetHiddenArray(strKey.c_str(), true), func);
@@ -195,6 +199,9 @@ inline result_t _trigger(v8::Handle<v8::Array> esa, const v8::Arguments& args)
 
 result_t object_base::trigger(const char* ev, const v8::Arguments& args)
 {
+	if(!m_bHasTrigger)
+		return 0;
+
 	result_t hr;
 	std::string strKey = "_e_";
 	strKey.append(ev);

@@ -20,7 +20,10 @@ result_t Lock_base::_new(obj_ptr<Lock_base>& retVal)
 result_t Lock::acquire(bool blocking, bool& retVal)
 {
 	if (!blocking)
-		return m_lock.trylock();
+	{
+		retVal = m_lock.trylock();
+		return 0;
+	}
 
 	if(!m_lock.trylock())
 	{
@@ -28,7 +31,9 @@ result_t Lock::acquire(bool blocking, bool& retVal)
 		m_lock.lock();
 	}
 
-	return true;
+	retVal = true;
+
+	return 0;
 }
 
 result_t Lock::release()

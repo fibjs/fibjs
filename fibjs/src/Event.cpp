@@ -21,8 +21,14 @@ result_t Event_base::_new(bool value, obj_ptr<Event_base>& retVal)
 
 result_t Event::acquire(bool blocking, bool& retVal)
 {
-	m_event.wait();
-	return 0;
+	if(!blocking)
+	{
+		retVal = m_event.isset();
+		return 0;
+	}
+
+	retVal = true;
+	return wait();
 }
 
 result_t Event::release()
@@ -57,6 +63,10 @@ result_t Event::clear()
 
 result_t Event::wait()
 {
+	if (!m_event.isset())
+		return 0;
+
+	v8::Unlocker unlocker(isolate);
 	m_event.wait();
 	return 0;
 }
