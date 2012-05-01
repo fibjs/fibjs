@@ -39,7 +39,7 @@ protected:
 	}
 };
 
-void initMdule();
+void initModule();
 void flushLog();
 
 void _main(const char* fname)
@@ -65,7 +65,7 @@ void _main(const char* fname)
 	s_context = v8::Context::New();
 	v8::Context::Scope context_scope(s_context);
 
-	initMdule();
+	initModule();
 
 	v8::TryCatch try_catch;
 	fibjs::global_base::run(fname);

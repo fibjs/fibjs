@@ -44,7 +44,7 @@ inline void InstallNativeModule(const char* fname, ClassInfo& ci)
 	InstallModule(fname, ci.CreateInstance());
 }
 
-void initMdule()
+void initModule()
 {
 	InstallNativeModule("assert", assert_base::class_info());
 	InstallNativeModule("path", path_base::class_info());
@@ -178,7 +178,6 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 		return hr;
 
 	v8::HandleScope handle_scope;
-	v8::Handle<v8::Object> mod;
 
 	v8::Persistent<v8::Context> context = v8::Context::New();
 	v8::Context::Scope context_scope(context);
@@ -190,14 +189,16 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 		return 0;
 	}
 
+	v8::Handle<v8::Object> glob = context->Global();
+	v8::Handle<v8::Object> mod;
+	v8::Handle<v8::Object> exports;
+
 	// cache string
 	v8::Handle<v8::String> strRequire = v8::String::NewSymbol("require");
 	v8::Handle<v8::String> strExports = v8::String::NewSymbol("exports");
 	v8::Handle<v8::String> strModule = v8::String::NewSymbol("module");
 	v8::Handle<v8::String> strDefine = v8::String::NewSymbol("define");
 	v8::Handle<v8::String> strId = v8::String::NewSymbol("id");
-
-	v8::Handle<v8::Object> glob = context->Global();
 
 	// attach define function first.
 	if (bMod)
@@ -225,7 +226,7 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 
 	if (bMod)
 	{
-		v8::Handle<v8::Object> exports = v8::Object::New();
+		exports = v8::Object::New();
 
 		// module and exports object
 		if (mod.IsEmpty())
@@ -259,6 +260,10 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 
 			// process defined modules
 			doDefine(mod);
+
+			// attach again
+			glob->Set(strModule, mod, v8::ReadOnly);
+			glob->Set(strExports, exports, v8::ReadOnly);
 
 			// use module.exports as result value
 			v8::Handle<v8::Value> v = mod->Get(strExports);
