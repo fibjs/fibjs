@@ -41,6 +41,7 @@ protected:
 
 void initModule();
 void flushLog();
+void clearTimer();
 
 void _main(const char* fname)
 {
@@ -72,6 +73,7 @@ void _main(const char* fname)
 	if (try_catch.HasCaught())
 		ReportException(&try_catch, true);
 
+	clearTimer();
 	flushLog();
 	s_context.Dispose();
 }

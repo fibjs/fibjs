@@ -1,4 +1,3 @@
-
 #include "ifs/os.h"
 #include <log4cpp/Category.hh>
 
@@ -83,27 +82,25 @@ void flushLog()
 		exlib::Thread::Sleep(1);
 }
 
-static class _timerThread: public exlib::Thread
+static class _loggerThread: public exlib::Thread
 {
 public:
-	_timerThread()
+	_loggerThread()
 	{
-		s_time = Ticks();
 		start();
 	}
 
 	virtual void Run()
 	{
-		AsyncCall *p;
-		int64_t tm;
 		std::multimap<int64_t, AsyncCall*>::iterator e;
 		AsyncLog *p1, *p2, *pn;
 
 		while (1)
 		{
 			s_logEmpty = false;
+
 			p1 = s_acLog.getList();
-			if (p1)
+			while (p1)
 			{
 				log4cpp::Category& root = log4cpp::Category::getRoot();
 				pn = NULL;
@@ -123,37 +120,97 @@ public:
 					root.log(p1->m_priority, p1->m_msg);
 					delete p1;
 				}
-			}
-			else
-			{
-				s_logEmpty = true;
-				Sleep(1);
+
+				p1 = s_acLog.getList();
 			}
 
-			while (1)
-			{
-				p = s_acSleep.get();
-				if (p == NULL)
-					break;
-
-				tm = s_time + *(int*) p->args[0] * 1000;
-				s_tms.insert(std::make_pair(tm, p));
-			}
-
-			s_time = Ticks();
-
-			while (1)
-			{
-				e = s_tms.begin();
-				if (e == s_tms.end())
-					break;
-				if (e->first > s_time)
-					break;
-
-				e->second->post();
-				s_tms.erase(e);
-			}
+			s_logEmpty = true;
+			Sleep(1);
 		}
+	}
+} s_logger;
+
+#ifndef _WIN32
+#define PASCAL
+#define DWORD_PTR unsigned long*
+#endif
+
+#ifdef _WIN32
+static int s_nTimer;
+void clearTimer()
+{
+	timeKillEvent(s_nTimer);
+}
+#else
+void clearTimer()
+{
+}
+#endif
+
+static class _timerThread: public exlib::Thread
+{
+public:
+	_timerThread()
+	{
+		s_time = Ticks();
+		start();
+		//timeBeginPeriod
+	}
+
+	static void PASCAL Timer(unsigned int uTimerID, unsigned int uMsg,
+			DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2)
+	{
+		AsyncCall *p;
+		int64_t tm;
+		std::multimap<int64_t, AsyncCall*>::iterator e;
+
+		while (1)
+		{
+			p = s_acSleep.get();
+			if (p == NULL)
+				break;
+
+			tm = s_time + *(int*) p->args[0] * 1000;
+			s_tms.insert(std::make_pair(tm, p));
+		}
+
+		s_time = Ticks();
+
+		while (1)
+		{
+			e = s_tms.begin();
+			if (e == s_tms.end())
+				break;
+			if (e->first > s_time)
+				break;
+
+			e->second->post();
+			s_tms.erase(e);
+		}
+	}
+
+	virtual void Run()
+	{
+#ifdef _WIN32
+		TIMECAPS tc;
+
+		timeGetDevCaps(&tc, sizeof(TIMECAPS));
+
+		if (tc.wPeriodMin < 1)
+			tc.wPeriodMin = 1;
+
+		timeBeginPeriod(tc.wPeriodMin);
+		s_nTimer = timeSetEvent(tc.wPeriodMin, tc.wPeriodMin, Timer, 0, TIME_PERIODIC);
+
+		MSG msg;
+		while (GetMessage(&msg, 0, 0, 0));
+#else
+		 while(1)
+		 {
+			 Sleep(1);
+			 Timer(0, 0, NULL, NULL, NULL);
+		 }
+#endif
 	}
 } s_timer;
 
