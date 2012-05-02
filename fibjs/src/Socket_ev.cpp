@@ -126,49 +126,46 @@ private:
 	}
 } s_acSock;
 
+inline bool wouldBlock()
+{
+#ifdef _WIN32
+	return WSAGetLastError() == WSAEWOULDBLOCK;
+#else
+	return errno == EWOULDBLOCK;
+#endif
+}
+
 SOCKET a_accept(SOCKET s, sockaddr* ai, socklen_t* sz)
 {
 	SOCKET c = ::accept(s, ai, sz);
-	if (c == INVALID_SOCKET)
+	if (c == INVALID_SOCKET && wouldBlock())
 	{
-		int e = errno;
-		if (e == EAGAIN || e == EWOULDBLOCK)
-		{
-			waitEV ac(s, EV_READ);
-			c = ::accept(s, ai, sz);
-		}
+		waitEV ac(s, EV_READ);
+		c = ::accept(s, ai, sz);
 	}
 
 	return c;
 }
 
-int a_recv(SOCKET s, void *p, size_t sz, int f)
+int a_recv(SOCKET s, char *p, size_t sz, int f)
 {
 	int n = (int) ::recv(s, p, sz, f);
-	if (n == INVALID_SOCKET)
+	if (n == INVALID_SOCKET && wouldBlock())
 	{
-		int e = errno;
-		if (e == EAGAIN || e == EWOULDBLOCK)
-		{
-			waitEV ac(s, EV_READ);
-			n = (int) ::recv(s, p, sz, f);
-		}
+		waitEV ac(s, EV_READ);
+		n = (int) ::recv(s, p, sz, f);
 	}
 
 	return n;
 }
 
-int a_send(SOCKET s, const void *p, size_t sz, int f)
+int a_send(SOCKET s, const char *p, size_t sz, int f)
 {
 	int n = (int) ::send(s, p, sz, f);
-	if (n == INVALID_SOCKET)
+	if (n == INVALID_SOCKET && wouldBlock())
 	{
-		int e = errno;
-		if (e == EAGAIN || e == EWOULDBLOCK)
-		{
-			waitEV ac(s, EV_WRITE);
-			n = (int) ::send(s, p, sz, f);
-		}
+		waitEV ac(s, EV_WRITE);
+		n = (int) ::send(s, p, sz, f);
 	}
 
 	return n;

@@ -70,8 +70,8 @@ private:
 };
 
 SOCKET a_accept(SOCKET s, sockaddr* ai, socklen_t* sz);
-int a_recv(SOCKET s, void *p, size_t sz, int f);
-int a_send(SOCKET s, const void *p, size_t sz, int f);
+int a_recv(SOCKET s, char *p, size_t sz, int f);
+int a_send(SOCKET s, const char *p, size_t sz, int f);
 
 }
 

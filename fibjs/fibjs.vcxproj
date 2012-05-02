@@ -22,6 +22,7 @@
     <ClCompile Include="src\acPool.cpp" />
     <ClCompile Include="src\assert.cpp" />
     <ClCompile Include="src\Buffer.cpp" />
+    <ClCompile Include="src\Condition.cpp" />
     <ClCompile Include="src\Console.cpp" />
     <ClCompile Include="src\coroutine.cpp" />
     <ClCompile Include="src\define.cpp" />
@@ -32,13 +33,17 @@
     <ClCompile Include="src\fs.cpp" />
     <ClCompile Include="src\Function.cpp" />
     <ClCompile Include="src\global.cpp" />
+    <ClCompile Include="src\Lock.cpp" />
     <ClCompile Include="src\module.cpp" />
     <ClCompile Include="src\ObjectArray.cpp" />
     <ClCompile Include="src\os.cpp" />
     <ClCompile Include="src\path.cpp" />
+    <ClCompile Include="src\Semaphore.cpp" />
     <ClCompile Include="src\Socket.cpp" />
+    <ClCompile Include="src\Socket_ev.cpp" />
     <ClCompile Include="src\Stat.cpp" />
     <ClCompile Include="src\test.cpp" />
+    <ClCompile Include="src\Trigger.cpp" />
     <ClCompile Include="src\utf8.cpp" />
     <ClCompile Include="src\util.cpp" />
   </ItemGroup>
@@ -52,10 +57,12 @@
     <ClInclude Include="include\AsyncCall.h" />
     <ClInclude Include="include\Buffer.h" />
     <ClInclude Include="include\ClassInfo.h" />
+    <ClInclude Include="include\Condition.h" />
     <ClInclude Include="include\Event.h" />
     <ClInclude Include="include\File.h" />
     <ClInclude Include="include\ifs\assert.h" />
     <ClInclude Include="include\ifs\Buffer.h" />
+    <ClInclude Include="include\ifs\Condition.h" />
     <ClInclude Include="include\ifs\console.h" />
     <ClInclude Include="include\ifs\coroutine.h" />
     <ClInclude Include="include\ifs\encoding.h" />
@@ -65,19 +72,25 @@
     <ClInclude Include="include\ifs\fs.h" />
     <ClInclude Include="include\ifs\Function.h" />
     <ClInclude Include="include\ifs\global.h" />
+    <ClInclude Include="include\ifs\Lock.h" />
     <ClInclude Include="include\ifs\module.h" />
     <ClInclude Include="include\ifs\net.h" />
     <ClInclude Include="include\ifs\object.h" />
     <ClInclude Include="include\ifs\ObjectArray.h" />
     <ClInclude Include="include\ifs\os.h" />
     <ClInclude Include="include\ifs\path.h" />
+    <ClInclude Include="include\ifs\Semaphore.h" />
     <ClInclude Include="include\ifs\Socket.h" />
     <ClInclude Include="include\ifs\Stat.h" />
     <ClInclude Include="include\ifs\Stream.h" />
+    <ClInclude Include="include\ifs\Trigger.h" />
+    <ClInclude Include="include\Lock.h" />
     <ClInclude Include="include\object.h" />
     <ClInclude Include="include\ObjectArray.h" />
+    <ClInclude Include="include\Semaphore.h" />
     <ClInclude Include="include\Socket.h" />
     <ClInclude Include="include\Stat.h" />
+    <ClInclude Include="include\Trigger.h" />
     <ClInclude Include="include\utf8.h" />
     <ClInclude Include="include\utils.h" />
   </ItemGroup>
