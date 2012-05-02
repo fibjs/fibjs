@@ -24,7 +24,7 @@
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
 
-#ifndef Windows
+#ifndef _WIN32
 
 /* Define to 1 if you have the `nanosleep' function. */
 #define HAVE_NANOSLEEP 1
@@ -72,9 +72,6 @@
 /* Define to 1 if you have the <sys/eventfd.h> header file. */
 #define HAVE_SYS_EVENTFD_H 1
 
-/* Define to 1 if you have the <sys/select.h> header file. */
-#define HAVE_SYS_SELECT_H 1
-
 /* Define to 1 if you have the <sys/signalfd.h> header file. */
 #define HAVE_SYS_SIGNALFD_H 1
 
@@ -88,6 +85,9 @@
 #define HAVE_UNISTD_H 1
 
 #endif
+
+/* Define to 1 if you have the <sys/select.h> header file. */
+#define HAVE_SYS_SELECT_H 1
 
 /* Define to 1 if you have the `select' function. */
 #define HAVE_SELECT 1
@@ -136,4 +136,7 @@
 /* Version number of package */
 #define VERSION "4.11"
 
+#ifndef NDEBUG
 #define NDEBUG
+#endif
+

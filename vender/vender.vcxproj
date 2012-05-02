@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\ev\ev.c" />
     <ClCompile Include="src\exlib\fiber\fbAsyncEvent.cpp" />
     <ClCompile Include="src\exlib\fiber\fbCondVar.cpp" />
     <ClCompile Include="src\exlib\fiber\fbEvent.cpp" />
@@ -372,6 +373,9 @@
     <ClCompile Include="src\zlib\zutil.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\ev\config.h" />
+    <ClInclude Include="src\ev\ev_vars.h" />
+    <ClInclude Include="src\ev\ev_wrap.h" />
     <ClInclude Include="src\gd\bmp.h" />
     <ClInclude Include="src\gd\config.h" />
     <ClInclude Include="src\gd\entities.h" />
@@ -724,6 +728,12 @@
     <None Include="log4cpp\Properties.hh" />
     <None Include="log4cpp\PropertyConfiguratorImpl.hh" />
     <None Include="log4cpp\StringUtil.hh" />
+    <None Include="src\ev\ev_epoll.inl" />
+    <None Include="src\ev\ev_kqueue.inl" />
+    <None Include="src\ev\ev_poll.inl" />
+    <None Include="src\ev\ev_port.inl" />
+    <None Include="src\ev\ev_select.inl" />
+    <None Include="src\ev\ev_win32.inl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1F77AB58-706B-4BB5-BE73-5AF083D21DF6}</ProjectGuid>

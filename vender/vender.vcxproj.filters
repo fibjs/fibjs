@@ -73,6 +73,9 @@
     <Filter Include="Header Files\exlib">
       <UniqueIdentifier>{0f30b329-e008-4c27-9920-281e60a18f08}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ev">
+      <UniqueIdentifier>{266270d3-9b7d-4646-b3a4-8697eb55336f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zlib\adler32.c">
@@ -1128,6 +1131,9 @@
     <ClCompile Include="src\exlib\fiber\fbAsyncEvent.cpp">
       <Filter>Source Files\exlib\fiber</Filter>
     </ClCompile>
+    <ClCompile Include="src\ev\ev.c">
+      <Filter>Source Files\ev</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -2003,6 +2009,15 @@
     <ClInclude Include="src\include\exlib\utils.h">
       <Filter>Header Files\exlib</Filter>
     </ClInclude>
+    <ClInclude Include="src\ev\config.h">
+      <Filter>Source Files\ev</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ev\ev_vars.h">
+      <Filter>Source Files\ev</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ev\ev_wrap.h">
+      <Filter>Source Files\ev</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\log4cpp\AbortAppender.hh">
@@ -2160,6 +2175,24 @@
     </None>
     <None Include="log4cpp\StringUtil.hh">
       <Filter>Source Files\log4cpp</Filter>
+    </None>
+    <None Include="src\ev\ev_epoll.inl">
+      <Filter>Source Files\ev</Filter>
+    </None>
+    <None Include="src\ev\ev_kqueue.inl">
+      <Filter>Source Files\ev</Filter>
+    </None>
+    <None Include="src\ev\ev_poll.inl">
+      <Filter>Source Files\ev</Filter>
+    </None>
+    <None Include="src\ev\ev_port.inl">
+      <Filter>Source Files\ev</Filter>
+    </None>
+    <None Include="src\ev\ev_select.inl">
+      <Filter>Source Files\ev</Filter>
+    </None>
+    <None Include="src\ev\ev_win32.inl">
+      <Filter>Source Files\ev</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
