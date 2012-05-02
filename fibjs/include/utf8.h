@@ -13,16 +13,8 @@
 
 #include <string>
 
-#ifdef _WIN32
-#define UTF16_CHAR wchar_t
-typedef std::basic_string<UTF16_CHAR> utf16string;
-#else
-#define UTF16_CHAR unsigned short
-typedef std::basic_string<UTF16_CHAR> utf16string;
-#endif
-
-int utf8_mbstowcs(const char *src, int srclen, UTF16_CHAR *dst, int dstlen);
-int utf8_wcstombs(const UTF16_CHAR *src, int srclen, char *dst, int dstlen);
+int utf8_mbstowcs(const char *src, int srclen, wchar_t *dst, int dstlen);
+int utf8_wcstombs(const wchar_t *src, int srclen, char *dst, int dstlen);
 
 
 template<typename T>
@@ -36,9 +28,9 @@ size_t _utf8_qstrlen(const T *pStr)
 	return pEnd - pStr;
 }
 
-inline utf16string utf8to16String(const char *src, int srclen = -1)
+inline std::wstring utf8to16String(const char *src, int srclen = -1)
 {
-	utf16string str;
+	std::wstring str;
 
 	if(srclen == -1)
 		srclen = (int)_utf8_qstrlen(src);
@@ -53,7 +45,7 @@ inline utf16string utf8to16String(const char *src, int srclen = -1)
 
 #define UTF8_W(s) utf8to16String(s).c_str()
 
-inline std::string utf16to8String(const UTF16_CHAR *src, int srclen = -1)
+inline std::string utf16to8String(const wchar_t *src, int srclen = -1)
 {
 	std::string str;
 

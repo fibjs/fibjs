@@ -75,7 +75,7 @@ inline static int get_length_mbs_utf8(const unsigned char *src, int srclen)
 
 /* UTF-8 to wide char string conversion */
 /* return -1 on dst buffer overflow, -2 on invalid input char */
-int utf8_mbstowcs(const char *src, int srclen, UTF16_CHAR *dst, int dstlen)
+int utf8_mbstowcs(const char *src, int srclen, wchar_t *dst, int dstlen)
 {
 	int len, count;
 	unsigned int res;
@@ -146,7 +146,7 @@ int utf8_mbstowcs(const char *src, int srclen, UTF16_CHAR *dst, int dstlen)
 			continue;
 		}
 bad:
-		*dst = (UTF16_CHAR)'?';
+		*dst = (wchar_t)'?';
 	}
 	if (src < srcend)
 		return -1; /* overflow */
@@ -155,7 +155,7 @@ done:
 }
 
 /* query necessary dst length for src string */
-inline static int get_length_wcs_utf8(const UTF16_CHAR *src, unsigned int srclen)
+inline static int get_length_wcs_utf8(const wchar_t *src, unsigned int srclen)
 {
 	int len;
 	for (len = 0; srclen; srclen--, src++, len++)
@@ -172,7 +172,7 @@ inline static int get_length_wcs_utf8(const UTF16_CHAR *src, unsigned int srclen
 
 /* wide char to UTF-8 string conversion */
 /* return -1 on dst buffer overflow */
-int utf8_wcstombs(const UTF16_CHAR *src, int srclen, char *dst, int dstlen)
+int utf8_wcstombs(const wchar_t *src, int srclen, char *dst, int dstlen)
 {
 	int len = dstlen;
 
@@ -181,7 +181,7 @@ int utf8_wcstombs(const UTF16_CHAR *src, int srclen, char *dst, int dstlen)
 
 	for (; srclen; srclen--, src++)
 	{
-		UTF16_CHAR ch = *src;
+		wchar_t ch = *src;
 
 		if (ch < 0x80) /* 0x00-0x7f: 1 byte */
 		{
