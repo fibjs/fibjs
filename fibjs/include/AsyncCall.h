@@ -9,12 +9,18 @@
 namespace fibjs
 {
 
+class AsyncCall;
+typedef exlib::lockfree<AsyncCall> AsyncQueue;
+
 class AsyncCall: public exlib::AsyncEvent
 {
 public:
-	AsyncCall(void ** a, void (*f)(AsyncCall*) = NULL) :
+	AsyncCall(AsyncQueue& q, void ** a, void (*f)(AsyncCall*) = NULL) :
 			func(f), args(a), hr(0)
 	{
+		q.put(this);
+		v8::Unlocker unlocker(isolate);
+		wait();
 	}
 
 public:
@@ -22,8 +28,6 @@ public:
 	void ** args;
 	result_t hr;
 };
-
-typedef exlib::lockfree<AsyncCall> AsyncQueue;
 
 class AsyncLog: public exlib::AsyncEvent
 {

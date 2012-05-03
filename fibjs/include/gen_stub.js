@@ -71,10 +71,9 @@ function gen_stub(argn, bInst)
 		s += bInst ? 'this}; \\' : '}; \\';
 		txt.push(s);
 
-		txt.push('	AsyncCall ac(args, _t::_stub); \\');
+		txt.push('	AsyncCall ac(q, args, _t::_stub); \\');
 	}else
-		txt.push('	AsyncCall ac(NULL, _t::_stub); \\');
+		txt.push('	AsyncCall ac(q, NULL, _t::_stub); \\');
 
-	txt.push('	q.put(&ac); \\\n	v8::Unlocker unlocker(isolate); \\\n	ac.wait(); \\');
 	txt.push('	return ac.hr;}\n');
 }

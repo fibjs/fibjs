@@ -271,11 +271,7 @@ result_t coroutine_base::sleep(int32_t ms)
 	{
 		void* args[] =
 		{ &ms };
-		AsyncCall ac(args);
-		s_acSleep.put(&ac);
-
-		v8::Unlocker unlocker(isolate);
-		ac.wait();
+		AsyncCall ac(s_acSleep, args);
 	}
 	else
 	{

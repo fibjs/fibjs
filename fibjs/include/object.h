@@ -20,8 +20,6 @@ namespace fibjs
 
 #include "object_async.inl"
 
-extern v8::Isolate* isolate;
-
 class object_base
 {
 public:

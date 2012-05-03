@@ -607,6 +607,8 @@ inline result_t SocketError()
 #endif
 }
 
+extern v8::Isolate* isolate;
+
 std::string traceInfo();
 std::string getResultMessage(result_t hr);
 v8::Handle<v8::Value> ThrowResult(result_t hr);
