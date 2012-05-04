@@ -15,7 +15,7 @@
 namespace fibjs
 {
 
-result_t File::sync_read(int32_t bytes, obj_ptr<Buffer_base>& retVal)
+result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncCall* ac)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
@@ -61,11 +61,6 @@ result_t File::sync_read(int32_t bytes, obj_ptr<Buffer_base>& retVal)
 	return 0;
 }
 
-result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal)
-{
-	return ac_sync_read(s_acPool, bytes, retVal);
-}
-
 result_t File::Write(const char* p, int sz)
 {
 	if (!m_file)
@@ -84,17 +79,12 @@ result_t File::Write(const char* p, int sz)
 	return 0;
 }
 
-result_t File::sync_write(obj_ptr<Buffer_base> data)
+result_t File::write(obj_ptr<Buffer_base> data, AsyncCall* ac)
 {
 	std::string strBuf;
 	data->toString(strBuf);
 
 	return Write(strBuf.c_str(), (int)strBuf.length());
-}
-
-result_t File::write(obj_ptr<Buffer_base> data)
-{
-	return ac_sync_write(s_acPool, data);
 }
 
 result_t File::Open(const char* fname, const char* mode)
@@ -112,7 +102,7 @@ result_t File::Open(const char* fname, const char* mode)
 	m[0] = mode[0];
 	m[2] = mode[1];
 
-	close();
+	close(NULL);
 
 #ifdef _WIN32
 	m_file = _wfopen(UTF8_W(fname), m);
@@ -136,7 +126,7 @@ result_t File::get_name(std::string& retVal)
 	return 0;
 }
 
-result_t File::stat(obj_ptr<Stat_base>& retVal)
+result_t File::stat(obj_ptr<Stat_base>& retVal, AsyncCall* ac)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
@@ -210,7 +200,7 @@ result_t File::rewind()
 	return seek(0, SEEK_SET);
 }
 
-result_t File::flush()
+result_t File::flush(AsyncCall* ac)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
@@ -223,7 +213,7 @@ result_t File::flush()
 	return 0;
 }
 
-result_t File::close()
+result_t File::close(AsyncCall* ac)
 {
 	if (m_file)
 	{
@@ -234,7 +224,7 @@ result_t File::close()
 	return 0;
 }
 
-result_t File::truncate(double bytes)
+result_t File::truncate(double bytes, AsyncCall* ac)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;

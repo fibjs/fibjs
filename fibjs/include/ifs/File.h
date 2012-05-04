@@ -30,13 +30,13 @@ public:
 public:
 	// File_base
 	virtual result_t get_name(std::string& retVal) = 0;
-	virtual result_t stat(obj_ptr<Stat_base>& retVal) = 0;
+	virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncCall* ac) = 0;
 	virtual result_t size(double& retVal) = 0;
 	virtual result_t eof(bool& retVal) = 0;
 	virtual result_t seek(double offset, int32_t whence) = 0;
 	virtual result_t tell(double& retVal) = 0;
 	virtual result_t rewind() = 0;
-	virtual result_t truncate(double bytes) = 0;
+	virtual result_t truncate(double bytes, AsyncCall* ac) = 0;
 
 public:
 	static ClassInfo& class_info();

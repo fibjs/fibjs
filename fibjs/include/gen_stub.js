@@ -51,11 +51,12 @@ function gen_stub(argn, bInst)
 	a = [];
 	for(i = 0; i < argn; i ++)
 		a.push('*(T'+i+'*) ac->args['+i+']');
+	a.push('ac');
 	s += a.join(', ');
 	s += '); \\'
 	txt.push(s);
 
-	txt.push('			ac->post(); } }; \\');
+	txt.push('			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \\');
 
 	if(argn > 0 || bInst)
 	{

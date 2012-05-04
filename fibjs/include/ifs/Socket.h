@@ -37,7 +37,7 @@ public:
 	virtual result_t get_remotePort(int32_t& retVal) = 0;
 	virtual result_t get_localAddress(std::string& retVal) = 0;
 	virtual result_t get_localPort(int32_t& retVal) = 0;
-	virtual result_t connect(const char* addr, int32_t port) = 0;
+	virtual result_t connect(const char* addr, int32_t port, AsyncCall* ac) = 0;
 	virtual result_t bind(int32_t port, bool allowIPv4) = 0;
 	virtual result_t bind(const char* addr, int32_t port, bool allowIPv4) = 0;
 	virtual result_t listen(int32_t backlog) = 0;

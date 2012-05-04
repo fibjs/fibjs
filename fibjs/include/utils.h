@@ -202,6 +202,8 @@ typedef int result_t;
 // Memory overflow error.
 #define CALL_E_OVERFLOW         (CALL_E_MAX - 11)
 
+#define CALL_E_PENDDING			(CALL_E_MAX - 12)
+
 #define CALL_E_MIN              -100100
 
 #define PROPERTY_ENTER() \

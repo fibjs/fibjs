@@ -24,10 +24,10 @@ class Stream_base : public Trigger_base
 {
 public:
 	// Stream_base
-	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
-	virtual result_t write(obj_ptr<Buffer_base> data) = 0;
-	virtual result_t flush() = 0;
-	virtual result_t close() = 0;
+	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncCall* ac) = 0;
+	virtual result_t write(obj_ptr<Buffer_base> data, AsyncCall* ac) = 0;
+	virtual result_t flush(AsyncCall* ac) = 0;
+	virtual result_t close(AsyncCall* ac) = 0;
 
 public:
 	static ClassInfo& class_info();
@@ -44,6 +44,8 @@ private:
 	static v8::Handle<v8::Value> s_close(const v8::Arguments& args);
 
 private:
+	ASYNC_MEMBER2(Stream_base, read);
+	ASYNC_MEMBER1(Stream_base, write);
 	ASYNC_MEMBER0(Stream_base, flush);
 	ASYNC_MEMBER0(Stream_base, close);
 };
@@ -85,7 +87,7 @@ namespace fibjs
 
 		OPT_ARG(int32_t, 0, -1);
 
-		hr = pInst->read(v0, vr);
+		hr = pInst->ac_read(s_acPool, v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -97,7 +99,7 @@ namespace fibjs
 
 		ARG(obj_ptr<Buffer_base>, 0);
 
-		hr = pInst->write(v0);
+		hr = pInst->ac_write(s_acPool, v0);
 
 		METHOD_VOID();
 	}

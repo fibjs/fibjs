@@ -577,14 +577,17 @@ function parserIDL(fname) {
 			if (st[pos] == "async") {
 				pos += 1;
 
+				if (ftype != "" || argCount || argArray)
+					ifStr += ", ";
+				
 				if (attr == "static") {
-					ifStr += ");";
+					ifStr += "AsyncCall* ac);";
 					fnStr += "		hr = ac_" + fname + "(s_acPool";
 					afs.push('	ASYNC_STATIC'
 							+ (ftype == "" ? argCount : argCount + 1) + '('
 							+ ns + '_base, ' + fname + ');');
 				} else {
-					ifStr += ") = 0;";
+					ifStr += "AsyncCall* ac) = 0;";
 					fnStr += "		hr = pInst->ac_" + fname + "(s_acPool";
 					afs.push('	ASYNC_MEMBER'
 							+ (ftype == "" ? argCount : argCount + 1) + '('

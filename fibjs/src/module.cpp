@@ -173,7 +173,7 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 
 	std::string buf;
 
-	result_t hr = fs_base::readFile(fname.c_str(), buf);
+	result_t hr = fs_base::readFile(fname.c_str(), buf, NULL);
 	if (hr < 0)
 		return hr;
 

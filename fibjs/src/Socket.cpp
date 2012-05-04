@@ -373,12 +373,12 @@ Socket::Socket()
 
 Socket::~Socket()
 {
-	close();
+	close(NULL);
 }
 
 result_t Socket::create(int32_t family, int32_t type)
 {
-	close();
+	close(NULL);
 
 	m_family = family;
 	m_type = type;
@@ -404,17 +404,17 @@ result_t Socket::create(int32_t family, int32_t type)
 	return 0;
 }
 
-result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal)
+result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncCall* ac)
 {
 	return recv(bytes, retVal);
 }
 
-result_t Socket::write(obj_ptr<Buffer_base> data)
+result_t Socket::write(obj_ptr<Buffer_base> data, AsyncCall* ac)
 {
 	return send(data);
 }
 
-result_t Socket::flush()
+result_t Socket::flush(AsyncCall* ac)
 {
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
@@ -422,7 +422,7 @@ result_t Socket::flush()
 	return 0;
 }
 
-result_t Socket::close()
+result_t Socket::close(AsyncCall* ac)
 {
 	if (m_sock != INVALID_SOCKET)
 		::closesocket(m_sock);
@@ -576,7 +576,7 @@ inline void setNonBlock(SOCKET s)
 #endif
 }
 
-result_t Socket::connect(const char* addr, int32_t port)
+result_t Socket::connect(const char* addr, int32_t port, AsyncCall* ac)
 {
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
