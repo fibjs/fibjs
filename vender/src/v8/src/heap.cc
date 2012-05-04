@@ -805,7 +805,7 @@ bool Heap::PerformGarbageCollection(GarbageCollector collector,
 
     UpdateSurvivalRateTrend(start_new_space_size);
 
-    size_of_old_gen_at_last_old_space_gc_ = PromotedSpaceSize();
+    size_of_old_gen_at_last_old_space_gc_ = PromotedSpaceSizeOfObjects();
 
     if (high_survival_rate_during_scavenges &&
         IsStableOrIncreasingSurvivalTrend()) {
@@ -3015,6 +3015,7 @@ MaybeObject* Heap::AllocateSharedFunctionInfo(Object* name) {
   share->set_this_property_assignments(undefined_value(), SKIP_WRITE_BARRIER);
   share->set_ast_node_count(0);
   share->set_deopt_counter(FLAG_deopt_every_n_times);
+  share->set_ic_age(0);
 
   // Set integer fields (smi or int, depending on the architecture).
   share->set_length(0);
@@ -3028,8 +3029,6 @@ MaybeObject* Heap::AllocateSharedFunctionInfo(Object* name) {
   share->set_compiler_hints(0);
   share->set_this_property_assignments_count(0);
   share->set_opt_count(0);
-  share->set_ic_age(0);
-  share->set_opt_reenable_tries(0);
 
   return share;
 }
@@ -4992,8 +4991,10 @@ void Heap::AdvanceIdleIncrementalMarking(intptr_t step_size) {
 
 bool Heap::IdleNotification(int hint) {
   const int kMaxHint = 1000;
-  intptr_t size_factor = Min(Max(hint, 30), kMaxHint) / 10;
-  // The size factor is in range [3..100].
+  intptr_t size_factor = Min(Max(hint, 20), kMaxHint) / 4;
+  // The size factor is in range [5..250]. The numbers here are chosen from
+  // experiments. If you changes them, make sure to test with
+  // chrome/performance_ui_tests --gtest_filter="GeneralMixMemoryTest.*
   intptr_t step_size = size_factor * IncrementalMarking::kAllocatedThreshold;
 
   if (contexts_disposed_ > 0) {
@@ -5017,11 +5018,14 @@ bool Heap::IdleNotification(int hint) {
     // Take into account that we might have decided to delay full collection
     // because incremental marking is in progress.
     ASSERT((contexts_disposed_ == 0) || !incremental_marking()->IsStopped());
+    // After context disposal there is likely a lot of garbage remaining, reset
+    // the idle notification counters in order to trigger more incremental GCs
+    // on subsequent idle notifications.
+    StartIdleRound();
     return false;
   }
 
-  if (hint >= kMaxHint || !FLAG_incremental_marking ||
-      FLAG_expose_gc || Serializer::enabled()) {
+  if (!FLAG_incremental_marking || FLAG_expose_gc || Serializer::enabled()) {
     return IdleGlobalGC();
   }
 
@@ -5060,10 +5064,6 @@ bool Heap::IdleNotification(int hint) {
   }
 
   if (incremental_marking()->IsStopped()) {
-    if (!WorthStartingGCWhenIdle()) {
-      FinishIdleRound();
-      return true;
-    }
     incremental_marking()->Start();
   }
 
@@ -5807,16 +5807,6 @@ void Heap::RecordStats(HeapStats* stats, bool take_snapshot) {
       stats->size_per_type[type] += obj->Size();
     }
   }
-}
-
-
-intptr_t Heap::PromotedSpaceSize() {
-  return old_pointer_space_->Size()
-      + old_data_space_->Size()
-      + code_space_->Size()
-      + map_space_->Size()
-      + cell_space_->Size()
-      + lo_space_->Size();
 }
 
 

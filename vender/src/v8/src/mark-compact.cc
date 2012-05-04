@@ -1186,16 +1186,7 @@ class StaticMarkingVisitor : public StaticVisitorBase {
     Heap* heap = map->GetHeap();
     Code* code = reinterpret_cast<Code*>(object);
     if (FLAG_cleanup_code_caches_at_gc) {
-      Object* raw_info = code->type_feedback_info();
-      if (raw_info->IsTypeFeedbackInfo()) {
-        TypeFeedbackCells* type_feedback_cells =
-            TypeFeedbackInfo::cast(raw_info)->type_feedback_cells();
-        for (int i = 0; i < type_feedback_cells->CellCount(); i++) {
-          ASSERT(type_feedback_cells->AstId(i)->IsSmi());
-          JSGlobalPropertyCell* cell = type_feedback_cells->Cell(i);
-          cell->set_value(TypeFeedbackCells::RawUninitializedSentinel(heap));
-        }
-      }
+      code->ClearTypeFeedbackCells(heap);
     }
     code->CodeIterateBody<StaticMarkingVisitor>(heap);
   }
@@ -1397,6 +1388,12 @@ class StaticMarkingVisitor : public StaticVisitorBase {
 
   static void VisitSharedFunctionInfoAndFlushCode(Map* map,
                                                   HeapObject* object) {
+    Heap* heap = map->GetHeap();
+    SharedFunctionInfo* shared = reinterpret_cast<SharedFunctionInfo*>(object);
+    if (shared->ic_age() != heap->global_ic_age()) {
+      shared->ResetForNewContext(heap->global_ic_age());
+    }
+
     MarkCompactCollector* collector = map->GetHeap()->mark_compact_collector();
     if (!collector->is_code_flushing_enabled()) {
       VisitSharedFunctionInfoGeneric(map, object);
@@ -1412,10 +1409,6 @@ class StaticMarkingVisitor : public StaticVisitorBase {
     SharedFunctionInfo* shared = reinterpret_cast<SharedFunctionInfo*>(object);
 
     if (shared->IsInobjectSlackTrackingInProgress()) shared->DetachInitialMap();
-
-    if (shared->ic_age() != heap->global_ic_age()) {
-      shared->ResetForNewContext(heap->global_ic_age());
-    }
 
     if (!known_flush_code_candidate) {
       known_flush_code_candidate = IsFlushable(heap, shared);
@@ -1975,6 +1968,7 @@ static inline int MarkWordToObjectStarts(uint32_t mark_bits, int* starts);
 
 
 static void DiscoverGreyObjectsOnPage(MarkingDeque* marking_deque, Page* p) {
+  ASSERT(!marking_deque->IsFull());
   ASSERT(strcmp(Marking::kWhiteBitPattern, "00") == 0);
   ASSERT(strcmp(Marking::kBlackBitPattern, "10") == 0);
   ASSERT(strcmp(Marking::kGreyBitPattern, "11") == 0);
@@ -3835,7 +3829,7 @@ void MarkCompactCollector::SweepSpace(PagedSpace* space, SweeperType sweeper) {
   bool lazy_sweeping_active = false;
   bool unused_page_present = false;
 
-  intptr_t old_space_size = heap()->PromotedSpaceSize();
+  intptr_t old_space_size = heap()->PromotedSpaceSizeOfObjects();
   intptr_t space_left =
       Min(heap()->OldGenPromotionLimit(old_space_size),
           heap()->OldGenAllocationLimit(old_space_size)) - old_space_size;

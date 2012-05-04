@@ -1114,13 +1114,20 @@ void StubCompiler::GenerateLoadInterceptor(Handle<JSObject> object,
                                           name, miss);
     ASSERT(holder_reg.is(receiver) || holder_reg.is(scratch1));
 
+    // Preserve the receiver register explicitly whenever it is different from
+    // the holder and it is needed should the interceptor return without any
+    // result. The CALLBACKS case needs the receiver to be passed into C++ code,
+    // the FIELD case might cause a miss during the prototype check.
+    bool must_perfrom_prototype_check = *interceptor_holder != lookup->holder();
+    bool must_preserve_receiver_reg = !receiver.is(holder_reg) &&
+        (lookup->type() == CALLBACKS || must_perfrom_prototype_check);
+
     // Save necessary data before invoking an interceptor.
     // Requires a frame to make GC aware of pushed pointers.
     {
       FrameScope frame_scope(masm(), StackFrame::INTERNAL);
 
-      if (lookup->type() == CALLBACKS && !receiver.is(holder_reg)) {
-        // CALLBACKS case needs a receiver to be passed into C++ callback.
+      if (must_preserve_receiver_reg) {
         __ push(receiver);
       }
       __ push(holder_reg);
@@ -1146,7 +1153,7 @@ void StubCompiler::GenerateLoadInterceptor(Handle<JSObject> object,
       __ bind(&interceptor_failed);
       __ pop(name_reg);
       __ pop(holder_reg);
-      if (lookup->type() == CALLBACKS && !receiver.is(holder_reg)) {
+      if (must_preserve_receiver_reg) {
         __ pop(receiver);
       }
 
@@ -1155,7 +1162,7 @@ void StubCompiler::GenerateLoadInterceptor(Handle<JSObject> object,
 
     // Check that the maps from interceptor's holder to lookup's holder
     // haven't changed.  And load lookup's holder into |holder| register.
-    if (*interceptor_holder != lookup->holder()) {
+    if (must_perfrom_prototype_check) {
       holder_reg = CheckPrototypes(interceptor_holder,
                                    holder_reg,
                                    Handle<JSObject>(lookup->holder()),
@@ -3401,30 +3408,28 @@ void KeyedStoreStubCompiler::GenerateStoreExternalArray(
     } else {
       // Perform float-to-int conversion with truncation (round-to-zero)
       // behavior.
+      // Fast path: use machine instruction to convert to int64. If that
+      // fails (out-of-range), go into the runtime.
+      __ cvttsd2siq(r8, xmm0);
+      __ Set(kScratchRegister, V8_UINT64_C(0x8000000000000000));
+      __ cmpq(r8, kScratchRegister);
+      __ j(equal, &slow);
 
-      // Convert to int32 and store the low byte/word.
-      // If the value is NaN or +/-infinity, the result is 0x80000000,
-      // which is automatically zero when taken mod 2^n, n < 32.
       // rdx: value (converted to an untagged integer)
       // rdi: untagged index
       // rbx: base pointer of external storage
       switch (elements_kind) {
         case EXTERNAL_BYTE_ELEMENTS:
         case EXTERNAL_UNSIGNED_BYTE_ELEMENTS:
-          __ cvttsd2si(rdx, xmm0);
-          __ movb(Operand(rbx, rdi, times_1, 0), rdx);
+          __ movb(Operand(rbx, rdi, times_1, 0), r8);
           break;
         case EXTERNAL_SHORT_ELEMENTS:
         case EXTERNAL_UNSIGNED_SHORT_ELEMENTS:
-          __ cvttsd2si(rdx, xmm0);
-          __ movw(Operand(rbx, rdi, times_2, 0), rdx);
+          __ movw(Operand(rbx, rdi, times_2, 0), r8);
           break;
         case EXTERNAL_INT_ELEMENTS:
         case EXTERNAL_UNSIGNED_INT_ELEMENTS:
-          // Convert to int64, so that NaN and infinities become
-          // 0x8000000000000000, which is zero mod 2^32.
-          __ cvttsd2siq(rdx, xmm0);
-          __ movl(Operand(rbx, rdi, times_4, 0), rdx);
+          __ movl(Operand(rbx, rdi, times_4, 0), r8);
           break;
         case EXTERNAL_PIXEL_ELEMENTS:
         case EXTERNAL_FLOAT_ELEMENTS:
@@ -3804,6 +3809,7 @@ void KeyedStoreStubCompiler::GenerateStoreFastDoubleElement(
 
     // Increment the length of the array.
     __ Move(FieldOperand(rdx, JSArray::kLengthOffset), Smi::FromInt(1));
+    __ movq(rdi, FieldOperand(rdx, JSObject::kElementsOffset));
     __ jmp(&finish_store);
 
     __ bind(&check_capacity);

@@ -704,12 +704,13 @@ enum CompareResult {
                          WriteBarrierMode mode = UPDATE_WRITE_BARRIER); \
 
 
+class AccessorPair;
 class DictionaryElementsAccessor;
 class ElementsAccessor;
+class Failure;
 class FixedArrayBase;
 class ObjectVisitor;
 class StringStream;
-class Failure;
 
 struct ValueInfo : public Malloced {
   ValueInfo() : type(FIRST_TYPE), ptr(NULL), str(NULL), number(0) { }
@@ -1642,6 +1643,14 @@ class JSObject: public JSReceiver {
                                               Object* getter,
                                               Object* setter,
                                               PropertyAttributes attributes);
+  // Try to define a single accessor paying attention to map transitions.
+  // Returns a JavaScript null if this was not possible and we have to use the
+  // slow case. Note that we can fail due to allocations, too.
+  MUST_USE_RESULT MaybeObject* DefineFastAccessor(
+      String* name,
+      AccessorComponent component,
+      Object* accessor,
+      PropertyAttributes attributes);
   Object* LookupAccessor(String* name, AccessorComponent component);
 
   MUST_USE_RESULT MaybeObject* DefineAccessor(AccessorInfo* info);
@@ -4291,6 +4300,11 @@ class Code: public HeapObject {
   inline byte compare_state();
   inline void set_compare_state(byte value);
 
+  // [compare_operation]: For kind COMPARE_IC tells what compare operation the
+  // stub was generated for.
+  inline byte compare_operation();
+  inline void set_compare_operation(byte value);
+
   // [to_boolean_foo]: For kind TO_BOOLEAN_IC tells what state the stub is in.
   inline byte to_boolean_state();
   inline void set_to_boolean_state(byte value);
@@ -4426,6 +4440,7 @@ class Code: public HeapObject {
   void CodeVerify();
 #endif
   void ClearInlineCaches();
+  void ClearTypeFeedbackCells(Heap* heap);
 
   // Max loop nesting marker used to postpose OSR. We don't take loop
   // nesting that is deeper than 5 levels into account.
@@ -4473,6 +4488,8 @@ class Code: public HeapObject {
   class FullCodeFlagsIsCompiledOptimizable: public BitField<bool, 2, 1> {};
 
   static const int kBinaryOpReturnTypeOffset = kBinaryOpTypeOffset + 1;
+
+  static const int kCompareOperationOffset = kCompareStateOffset + 1;
 
   static const int kAllowOSRAtLoopNestingLevelOffset = kFullCodeFlags + 1;
   static const int kProfilerTicksOffset = kAllowOSRAtLoopNestingLevelOffset + 1;
@@ -5461,13 +5478,6 @@ class SharedFunctionInfo: public HeapObject {
   inline int opt_count();
   inline void set_opt_count(int opt_count);
 
-  // Number of times we tried to reenable optimization.
-  inline int opt_reenable_tries();
-  inline void set_opt_reenable_tries(int opt_reenable_tries);
-
-  inline void TryReenableOptimization();
-
-
   // Source size of this function.
   int SourceSize();
 
@@ -5524,10 +5534,13 @@ class SharedFunctionInfo: public HeapObject {
       kInferredNameOffset + kPointerSize;
   static const int kThisPropertyAssignmentsOffset =
       kInitialMapOffset + kPointerSize;
+  // ic_age is a Smi field. It could be grouped with another Smi field into a
+  // PSEUDO_SMI_ACCESSORS pair (on x64), if one becomes available.
+  static const int kICAgeOffset = kThisPropertyAssignmentsOffset + kPointerSize;
 #if V8_HOST_ARCH_32_BIT
   // Smi fields.
   static const int kLengthOffset =
-      kThisPropertyAssignmentsOffset + kPointerSize;
+      kICAgeOffset + kPointerSize;
   static const int kFormalParameterCountOffset = kLengthOffset + kPointerSize;
   static const int kExpectedNofPropertiesOffset =
       kFormalParameterCountOffset + kPointerSize;
@@ -5547,10 +5560,10 @@ class SharedFunctionInfo: public HeapObject {
       kThisPropertyAssignmentsCountOffset + kPointerSize;
   static const int kAstNodeCountOffset = kOptCountOffset + kPointerSize;
   static const int kDeoptCounterOffset = kAstNodeCountOffset + kPointerSize;
-  static const int kICAgeOffset = kDeoptCounterOffset + kPointerSize;
-  static const int kOptReenableTriesOffset = kICAgeOffset + kPointerSize;
+
+
   // Total size.
-  static const int kSize = kOptReenableTriesOffset + kPointerSize;
+  static const int kSize = kDeoptCounterOffset + kPointerSize;
 #else
   // The only reason to use smi fields instead of int fields
   // is to allow iteration without maps decoding during
@@ -5562,7 +5575,7 @@ class SharedFunctionInfo: public HeapObject {
   // word is not set and thus this word cannot be treated as pointer
   // to HeapObject during old space traversal.
   static const int kLengthOffset =
-      kThisPropertyAssignmentsOffset + kPointerSize;
+      kICAgeOffset + kPointerSize;
   static const int kFormalParameterCountOffset =
       kLengthOffset + kIntSize;
 
@@ -5589,11 +5602,8 @@ class SharedFunctionInfo: public HeapObject {
   static const int kAstNodeCountOffset = kOptCountOffset + kIntSize;
   static const int kDeoptCounterOffset = kAstNodeCountOffset + kIntSize;
 
-  static const int kICAgeOffset = kDeoptCounterOffset + kIntSize;
-  static const int kOptReenableTriesOffset = kICAgeOffset + kIntSize;
-
   // Total size.
-  static const int kSize = kOptReenableTriesOffset + kIntSize;
+  static const int kSize = kDeoptCounterOffset + kIntSize;
 
 #endif
 
@@ -8107,6 +8117,18 @@ class AccessorPair: public Struct {
   static inline AccessorPair* cast(Object* obj);
 
   MUST_USE_RESULT MaybeObject* CopyWithoutTransitions();
+
+  Object* get(AccessorComponent component) {
+    return component == ACCESSOR_GETTER ? getter() : setter();
+  }
+
+  void set(AccessorComponent component, Object* value) {
+    if (component == ACCESSOR_GETTER) {
+      set_getter(value);
+    } else {
+      set_setter(value);
+    }
+  }
 
   // Note: Returns undefined instead in case of a hole.
   Object* GetComponent(AccessorComponent component);
