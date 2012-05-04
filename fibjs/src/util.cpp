@@ -46,7 +46,9 @@ std::string getResultMessage(result_t hr)
 			// CALL_E_BADINDEX
 			"Index was out of range.",
 			// CALL_E_OVERFLOW
-			"Memory overflow error." };
+			"Memory overflow error.",
+			// CALL_E_PENDDING
+			"Operation now in progress"};
 
 	if (hr > CALL_E_MIN && hr < CALL_E_MAX)
 		return fmtString(hr, s_errors[CALL_E_MAX - hr]);

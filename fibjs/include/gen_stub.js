@@ -45,7 +45,7 @@ function gen_stub(argn, bInst)
 
 	txt.push('	class _t { public: \\');
 	txt.push('		static void _stub(AsyncCall* ac) { \\');
-	txt.push('			ac->hr = ' + (bInst ? '((cls*)ac->args['+(argn)+'])->' : 'cls::') + 'm( \\');
+	txt.push('			result_t hr = ' + (bInst ? '((cls*)ac->args['+(argn)+'])->' : 'cls::') + 'm( \\');
 
 	s = '				';
 	a = [];
@@ -56,7 +56,7 @@ function gen_stub(argn, bInst)
 	s += '); \\'
 	txt.push(s);
 
-	txt.push('			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \\');
+	txt.push('			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \\');
 
 	if(argn > 0 || bInst)
 	{

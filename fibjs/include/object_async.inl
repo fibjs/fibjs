@@ -2,9 +2,9 @@
 	static result_t ac_##m(AsyncQueue& q) { \
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = cls::m( \
+			result_t hr = cls::m( \
 				ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	AsyncCall ac(q, NULL, _t::_stub); \
 	return ac.hr;}
 
@@ -12,9 +12,9 @@
 	result_t ac_##m(AsyncQueue& q) { \
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = ((cls*)ac->args[0])->m( \
+			result_t hr = ((cls*)ac->args[0])->m( \
 				ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {this}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -25,9 +25,9 @@ template<typename T0> \
 		T0& v0) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = cls::m( \
+			result_t hr = cls::m( \
 				*(T0*) ac->args[0], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -38,9 +38,9 @@ template<typename T0> \
 		T0& v0) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = ((cls*)ac->args[1])->m( \
+			result_t hr = ((cls*)ac->args[1])->m( \
 				*(T0*) ac->args[0], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0, this}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -51,9 +51,9 @@ template<typename T0, typename T1> \
 		T0& v0, T1& v1) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = cls::m( \
+			result_t hr = cls::m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0, &v1}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -64,9 +64,9 @@ template<typename T0, typename T1> \
 		T0& v0, T1& v1) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = ((cls*)ac->args[2])->m( \
+			result_t hr = ((cls*)ac->args[2])->m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0, &v1, this}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -77,9 +77,9 @@ template<typename T0, typename T1, typename T2> \
 		T0& v0, T1& v1, T2& v2) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = cls::m( \
+			result_t hr = cls::m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0, &v1, &v2}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -90,9 +90,9 @@ template<typename T0, typename T1, typename T2> \
 		T0& v0, T1& v1, T2& v2) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = ((cls*)ac->args[3])->m( \
+			result_t hr = ((cls*)ac->args[3])->m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0, &v1, &v2, this}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -103,9 +103,9 @@ template<typename T0, typename T1, typename T2, typename T3> \
 		T0& v0, T1& v1, T2& v2, T3& v3) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = cls::m( \
+			result_t hr = cls::m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -116,9 +116,9 @@ template<typename T0, typename T1, typename T2, typename T3> \
 		T0& v0, T1& v1, T2& v2, T3& v3) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = ((cls*)ac->args[4])->m( \
+			result_t hr = ((cls*)ac->args[4])->m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -129,9 +129,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = cls::m( \
+			result_t hr = cls::m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -142,9 +142,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = ((cls*)ac->args[5])->m( \
+			result_t hr = ((cls*)ac->args[5])->m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -155,9 +155,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = cls::m( \
+			result_t hr = cls::m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -168,9 +168,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = ((cls*)ac->args[6])->m( \
+			result_t hr = ((cls*)ac->args[6])->m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -181,9 +181,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = cls::m( \
+			result_t hr = cls::m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -194,9 +194,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = ((cls*)ac->args[7])->m( \
+			result_t hr = ((cls*)ac->args[7])->m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -207,9 +207,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = cls::m( \
+			result_t hr = cls::m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], *(T7*) ac->args[7], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -220,9 +220,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = ((cls*)ac->args[8])->m( \
+			result_t hr = ((cls*)ac->args[8])->m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], *(T7*) ac->args[7], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -233,9 +233,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = cls::m( \
+			result_t hr = cls::m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], *(T7*) ac->args[7], *(T8*) ac->args[8], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}
@@ -246,9 +246,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8) {\
 	class _t { public: \
 		static void _stub(AsyncCall* ac) { \
-			ac->hr = ((cls*)ac->args[9])->m( \
+			result_t hr = ((cls*)ac->args[9])->m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], *(T7*) ac->args[7], *(T8*) ac->args[8], ac); \
-			if(ac->hr != CALL_E_PENDDING)ac->post(); } }; \
+			if(hr != CALL_E_PENDDING){ac->hr = hr;ac->post();} } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
 	AsyncCall ac(q, args, _t::_stub); \
 	return ac.hr;}

@@ -579,26 +579,6 @@ result_t Socket::getAddrInfo(const char* addr, int32_t port,
 	return 0;
 }
 
-result_t Socket::connect(const char* addr, int32_t port)
-{
-	if (m_sock == INVALID_SOCKET)
-		return CALL_E_INVALID_CALL;
-
-	_sockaddr addr_info;
-	result_t hr = getAddrInfo(addr, port, addr_info);
-	if (hr < 0)
-		return hr;
-
-	if (a_connect(
-			m_sock,
-			(struct sockaddr*) &addr_info,
-			m_family == _AF_INET ? sizeof(addr_info.addr4)
-					: sizeof(addr_info.addr6)) == SOCKET_ERROR)
-		return -ETIMEDOUT;
-
-	return 0;
-}
-
 result_t Socket::bind(const char* addr, int32_t port, bool allowIPv4)
 {
 	if (m_sock == INVALID_SOCKET)

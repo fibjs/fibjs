@@ -42,7 +42,7 @@ public:
 	virtual result_t get_remotePort(int32_t& retVal);
 	virtual result_t get_localAddress(std::string& retVal);
 	virtual result_t get_localPort(int32_t& retVal);
-	virtual result_t connect(const char* addr, int32_t port);
+	virtual result_t connect(const char* addr, int32_t port, AsyncCall* ac);
 	virtual result_t bind(const char* addr, int32_t port, bool allowIPv4);
 	virtual result_t bind(int32_t port, bool allowIPv4);
 	virtual result_t listen(int32_t backlog);
