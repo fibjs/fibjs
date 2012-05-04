@@ -25,7 +25,7 @@ class Socket : Stream
 	bind(Integer port, Boolean allowIPv4 = true);
 	bind(String addr, Integer port, Boolean allowIPv4 = true);
 	listen(Integer backlog = 20);
-	Socket accept();
+	Socket accept() async;
 	Buffer recv(Integer bytes = -1);
 	Buffer recv(Function cb);
 	Buffer recv(Integer bytes, Function cb);

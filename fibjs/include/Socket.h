@@ -24,12 +24,22 @@ class Socket: public Socket_base
 	EVENT_SUPPORT();
 
 public:
-	Socket();
+	Socket() :
+			m_sock(INVALID_SOCKET), m_family(_AF_INET), m_type(_SOCK_STREAM)
+	{
+	}
+
+	Socket(SOCKET s, int32_t family, int32_t type) :
+			m_sock(s), m_family(family), m_type(type)
+	{
+	}
+
 	virtual ~Socket();
 
 public:
 	// Stream_base
-	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncCall* ac);
+	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
+			AsyncCall* ac);
 	virtual result_t write(obj_ptr<Buffer_base> data, AsyncCall* ac);
 	virtual result_t flush(AsyncCall* ac);
 	virtual result_t close(AsyncCall* ac);
@@ -46,13 +56,16 @@ public:
 	virtual result_t bind(const char* addr, int32_t port, bool allowIPv4);
 	virtual result_t bind(int32_t port, bool allowIPv4);
 	virtual result_t listen(int32_t backlog);
-	virtual result_t accept(obj_ptr<Socket_base>& retVal);
+	virtual result_t accept(obj_ptr<Socket_base>& retVal, AsyncCall* ac);
 	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal);
-	virtual result_t recv(v8::Handle<v8::Function> cb, obj_ptr<Buffer_base>& retVal);
-	virtual result_t recv(int32_t bytes, v8::Handle<v8::Function> cb, obj_ptr<Buffer_base>& retVal);
+	virtual result_t recv(v8::Handle<v8::Function> cb,
+			obj_ptr<Buffer_base>& retVal);
+	virtual result_t recv(int32_t bytes, v8::Handle<v8::Function> cb,
+			obj_ptr<Buffer_base>& retVal);
 	virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal);
 	virtual result_t send(obj_ptr<Buffer_base> data);
-	virtual result_t send(obj_ptr<Buffer_base> data, v8::Handle<v8::Function> cb);
+	virtual result_t send(obj_ptr<Buffer_base> data,
+			v8::Handle<v8::Function> cb);
 	virtual result_t sendto(obj_ptr<Buffer_base> data, const char* host,
 			int32_t port);
 

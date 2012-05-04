@@ -363,14 +363,6 @@ result_t Socket_base::_new(int32_t family, int32_t type,
 	return 0;
 }
 
-Socket::Socket()
-{
-	m_family = _AF_INET;
-	m_type = _SOCK_STREAM;
-
-	m_sock = INVALID_SOCKET;
-}
-
 Socket::~Socket()
 {
 	close(NULL);
@@ -601,11 +593,10 @@ result_t Socket::bind(const char* addr, int32_t port, bool allowIPv4)
 				sizeof(on));
 	}
 
-	if (::bind(
-			m_sock,
-			(struct sockaddr*) &addr_info,
-			m_family == _AF_INET ? sizeof(addr_info.addr4)
-					: sizeof(addr_info.addr6)) == SOCKET_ERROR)
+	if (::bind(m_sock, (struct sockaddr*) &addr_info,
+			m_family == _AF_INET ?
+					sizeof(addr_info.addr4) :
+					sizeof(addr_info.addr6)) == SOCKET_ERROR)
 		return SocketError();
 
 	return 0;
@@ -623,31 +614,6 @@ result_t Socket::listen(int32_t backlog)
 
 	if (::listen(m_sock, backlog) == SOCKET_ERROR)
 		return SocketError();
-
-	return 0;
-}
-
-result_t Socket::accept(obj_ptr<Socket_base>& retVal)
-{
-	if (m_sock == INVALID_SOCKET)
-		return CALL_E_INVALID_CALL;
-
-	_sockaddr ai;
-	socklen_t sz = sizeof(_sockaddr);
-
-	SOCKET s = a_accept(m_sock, (sockaddr*) &ai, &sz);
-	if (s == INVALID_SOCKET)
-		return SocketError();
-
-	obj_ptr<Socket> sock = new Socket();
-
-	sock->m_sock = s;
-	if (ai.addr6.sin6_family == PF_INET6)
-		sock->m_family = _AF_INET6;
-
-	setNonBlock(s);
-
-	retVal = sock;
 
 	return 0;
 }

@@ -41,7 +41,7 @@ public:
 	virtual result_t bind(int32_t port, bool allowIPv4) = 0;
 	virtual result_t bind(const char* addr, int32_t port, bool allowIPv4) = 0;
 	virtual result_t listen(int32_t backlog) = 0;
-	virtual result_t accept(obj_ptr<Socket_base>& retVal) = 0;
+	virtual result_t accept(obj_ptr<Socket_base>& retVal, AsyncCall* ac) = 0;
 	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t recv(v8::Handle<v8::Function> cb, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t recv(int32_t bytes, v8::Handle<v8::Function> cb, obj_ptr<Buffer_base>& retVal) = 0;
@@ -96,6 +96,7 @@ private:
 
 private:
 	ASYNC_MEMBER2(Socket_base, connect);
+	ASYNC_MEMBER1(Socket_base, accept);
 };
 
 }
@@ -314,7 +315,7 @@ namespace fibjs
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->accept(vr);
+		hr = pInst->ac_accept(s_acPool, vr);
 
 		METHOD_RETURN();
 	}

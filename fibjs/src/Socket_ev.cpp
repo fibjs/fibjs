@@ -52,7 +52,7 @@ class asyncProc: public ev_io
 {
 public:
 	asyncProc(SOCKET s, int op) :
-		m_s(s), m_op(op), m_next(NULL)
+			m_s(s), m_op(op), m_next(NULL)
 
 	{
 	}
@@ -145,7 +145,7 @@ class asyncWait: public asyncProc
 {
 public:
 	asyncWait(SOCKET s, int op) :
-		asyncProc(s, op)
+			asyncProc(s, op)
 	{
 		call();
 
@@ -226,17 +226,15 @@ class asyncConnect: public asyncProc
 {
 public:
 	asyncConnect(SOCKET s, _sockaddr& ai, AsyncCall* ac) :
-		asyncProc(s, EV_WRITE), m_ai(ai), m_ac(ac)
+			asyncProc(s, EV_WRITE), m_ai(ai), m_ac(ac)
 	{
 	}
 
 	result_t connect()
 	{
-		int n = ::connect(
-				m_s,
-				(struct sockaddr*) &m_ai,
-				m_ai.addr4.sin_family == PF_INET ? sizeof(m_ai.addr4)
-						: sizeof(m_ai.addr6));
+		int n = ::connect(m_s, (struct sockaddr*) &m_ai,
+				m_ai.addr4.sin_family == PF_INET ?
+						sizeof(m_ai.addr4) : sizeof(m_ai.addr6));
 		if (n == SOCKET_ERROR)
 		{
 			if (errno == EINPROGRESS)
@@ -280,6 +278,73 @@ result_t Socket::connect(const char* addr, int32_t port, AsyncCall* ac)
 		return hr;
 
 	return (new asyncConnect(m_sock, addr_info, ac))->connect();
+}
+
+inline void setNonBlock(SOCKET s)
+{
+#ifdef _WIN32
+	u_long mode = 1;
+	ioctlsocket(s, FIONBIO, &mode);
+#else
+	fcntl(s, F_SETFL, fcntl(s, F_GETFL, 0) | O_NONBLOCK);
+#endif
+}
+
+class asyncAccept: public asyncProc
+{
+public:
+	asyncAccept(SOCKET s, obj_ptr<Socket_base>& retVal, AsyncCall* ac) :
+			asyncProc(s, EV_READ), m_retVal(retVal), m_ac(ac)
+	{
+	}
+
+	result_t accept()
+	{
+		_sockaddr ai;
+		socklen_t sz = sizeof(ai);
+		SOCKET c = ::accept(m_s, (sockaddr*) &ai, &sz);
+		if (c == INVALID_SOCKET)
+		{
+			if (wouldBlock())
+				return CALL_E_PENDDING;
+			return SocketError();
+		}
+
+		setNonBlock(c);
+		obj_ptr<Socket> sock = new Socket(c,
+				ai.addr6.sin6_family == PF_INET6 ?
+						Socket::_AF_INET6 : Socket::_AF_INET,
+				Socket::_SOCK_STREAM);
+
+		m_retVal = sock;
+
+		return 0;
+	}
+
+	virtual void proc()
+	{
+		m_ac->hr = accept();
+		m_ac->post();
+		delete this;
+	}
+
+public:
+	obj_ptr<Socket_base>& m_retVal;
+	AsyncCall* m_ac;
+};
+
+result_t Socket::accept(obj_ptr<Socket_base>& retVal, AsyncCall* ac)
+{
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
+	asyncAccept* aAcc = new asyncAccept(m_sock, retVal, ac);
+
+	result_t hr = aAcc->accept();
+	if(hr == CALL_E_PENDDING)
+		aAcc->call();
+
+	return hr;
 }
 
 }
