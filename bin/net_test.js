@@ -20,7 +20,7 @@ tm.start();
 function connect(c)
 {
 	console.log(c.remoteAddress, c.remotePort, "->", c.localAddress, c.localPort);
-	c.write(c.read());
+	c.send(c.recv());
 	c.close();
 	c.dispose();
 }
@@ -41,8 +41,8 @@ accept.start(s);
 
 var s1 = new net.Socket(net.AF_INET6, net.SOCK_STREAM);
 s1.connect('::1', 8080);
-s1.write(new Buffer("GET / HTTP/1.0"));
-console.log(s1.read(1024));
+s1.send(new Buffer("GET / HTTP/1.0"));
+console.log(s1.recv(1024));
 s1.close();
 s1.dispose();
 
