@@ -42,7 +42,7 @@ public:
 	virtual result_t get_remotePort(int32_t& retVal);
 	virtual result_t get_localAddress(std::string& retVal);
 	virtual result_t get_localPort(int32_t& retVal);
-	virtual result_t connect(const char* addr, int32_t port, AsyncCall* ac);
+	virtual result_t connect(const char* addr, int32_t port);
 	virtual result_t bind(const char* addr, int32_t port, bool allowIPv4);
 	virtual result_t bind(int32_t port, bool allowIPv4);
 	virtual result_t listen(int32_t backlog);
@@ -69,6 +69,7 @@ private:
 	int32_t m_type;
 };
 
+int a_connect(SOCKET s, sockaddr* ai, int sz);
 SOCKET a_accept(SOCKET s, sockaddr* ai, socklen_t* sz);
 int a_recv(SOCKET s, char *p, size_t sz, int f);
 int a_send(SOCKET s, const char *p, size_t sz, int f);

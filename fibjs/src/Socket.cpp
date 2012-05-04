@@ -376,6 +376,16 @@ Socket::~Socket()
 	close(NULL);
 }
 
+inline void setNonBlock(SOCKET s)
+{
+#ifdef _WIN32
+	u_long mode = 1;
+	ioctlsocket(s, FIONBIO, &mode);
+#else
+	fcntl(s, F_SETFL, fcntl(s, F_GETFL, 0) | O_NONBLOCK);
+#endif
+}
+
 result_t Socket::create(int32_t family, int32_t type)
 {
 	close(NULL);
@@ -401,10 +411,13 @@ result_t Socket::create(int32_t family, int32_t type)
 	if (m_sock == INVALID_SOCKET)
 		return SocketError();
 
+	setNonBlock(m_sock);
+
 	return 0;
 }
 
-result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncCall* ac)
+result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
+		AsyncCall* ac)
 {
 	return recv(bytes, retVal);
 }
@@ -566,17 +579,7 @@ result_t Socket::getAddrInfo(const char* addr, int32_t port,
 	return 0;
 }
 
-inline void setNonBlock(SOCKET s)
-{
-#ifdef _WIN32
-	u_long mode = 1;
-	ioctlsocket(s, FIONBIO, &mode);
-#else
-	fcntl(s, F_SETFL, fcntl(s, F_GETFL, 0) | O_NONBLOCK);
-#endif
-}
-
-result_t Socket::connect(const char* addr, int32_t port, AsyncCall* ac)
+result_t Socket::connect(const char* addr, int32_t port)
 {
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
@@ -586,14 +589,12 @@ result_t Socket::connect(const char* addr, int32_t port, AsyncCall* ac)
 	if (hr < 0)
 		return hr;
 
-	if (::connect(
+	if (a_connect(
 			m_sock,
 			(struct sockaddr*) &addr_info,
 			m_family == _AF_INET ? sizeof(addr_info.addr4)
 					: sizeof(addr_info.addr6)) == SOCKET_ERROR)
-		return SocketError();
-
-	setNonBlock(m_sock);
+		return -ETIMEDOUT;
 
 	return 0;
 }
@@ -639,8 +640,6 @@ result_t Socket::listen(int32_t backlog)
 {
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
-
-	setNonBlock(m_sock);
 
 	if (::listen(m_sock, backlog) == SOCKET_ERROR)
 		return SocketError();

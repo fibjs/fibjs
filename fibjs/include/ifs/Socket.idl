@@ -21,7 +21,7 @@ class Socket : Stream
 	readonly String localAddress;
 	readonly Integer localPort;
 
-	connect(String addr, Integer port) async;
+	connect(String addr, Integer port);
 	bind(Integer port, Boolean allowIPv4 = true);
 	bind(String addr, Integer port, Boolean allowIPv4 = true);
 	listen(Integer backlog = 20);

@@ -37,7 +37,7 @@ public:
 	virtual result_t get_remotePort(int32_t& retVal) = 0;
 	virtual result_t get_localAddress(std::string& retVal) = 0;
 	virtual result_t get_localPort(int32_t& retVal) = 0;
-	virtual result_t connect(const char* addr, int32_t port, AsyncCall* ac) = 0;
+	virtual result_t connect(const char* addr, int32_t port) = 0;
 	virtual result_t bind(int32_t port, bool allowIPv4) = 0;
 	virtual result_t bind(const char* addr, int32_t port, bool allowIPv4) = 0;
 	virtual result_t listen(int32_t backlog) = 0;
@@ -93,9 +93,6 @@ private:
 	static v8::Handle<v8::Value> s_recvFrom(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_send(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_sendto(const v8::Arguments& args);
-
-private:
-	ASYNC_MEMBER2(Socket_base, connect);
 };
 
 }
@@ -269,7 +266,7 @@ namespace fibjs
 		ARG_String(0);
 		ARG(int32_t, 1);
 
-		hr = pInst->ac_connect(s_acPool, v0, v1);
+		hr = pInst->connect(v0, v1);
 
 		METHOD_VOID();
 	}
