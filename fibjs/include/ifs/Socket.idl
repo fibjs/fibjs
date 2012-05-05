@@ -30,7 +30,7 @@ class Socket : Stream
 	Buffer recv(Function cb);
 	Buffer recv(Integer bytes, Function cb);
 	Buffer recvFrom(Integer bytes = -1);
-	send(Buffer data);
+	send(Buffer data) async;
 	send(Buffer data, Function cb);
 	sendto(Buffer data, String host, Integer port);
 };

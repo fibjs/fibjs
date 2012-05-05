@@ -46,7 +46,7 @@ public:
 	virtual result_t recv(v8::Handle<v8::Function> cb, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t recv(int32_t bytes, v8::Handle<v8::Function> cb, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
-	virtual result_t send(obj_ptr<Buffer_base> data) = 0;
+	virtual result_t send(obj_ptr<Buffer_base> data, AsyncCall* ac) = 0;
 	virtual result_t send(obj_ptr<Buffer_base> data, v8::Handle<v8::Function> cb) = 0;
 	virtual result_t sendto(obj_ptr<Buffer_base> data, const char* host, int32_t port) = 0;
 
@@ -98,6 +98,7 @@ private:
 	ASYNC_MEMBER2(Socket_base, connect);
 	ASYNC_MEMBER1(Socket_base, accept);
 	ASYNC_MEMBER2(Socket_base, recv);
+	ASYNC_MEMBER1(Socket_base, send);
 };
 
 }
@@ -369,7 +370,7 @@ namespace fibjs
 
 		ARG(obj_ptr<Buffer_base>, 0);
 
-		hr = pInst->send(v0);
+		hr = pInst->ac_send(s_acPool, v0);
 
 		METHOD_OVER(2, 2);
 

@@ -285,6 +285,8 @@ inline void setNonBlock(SOCKET s)
 	ioctlsocket(s, FIONBIO, &mode);
 #else
 	fcntl(s, F_SETFL, fcntl(s, F_GETFL, 0) | O_NONBLOCK);
+	int set_option = 1;
+	setsockopt(s, SOL_SOCKET, SO_NOSIGPIPE, &set_option, sizeof(set_option));
 #endif
 }
 
@@ -385,6 +387,66 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 	result_t hr = aRecv->recv();
 	if (hr == CALL_E_PENDDING)
 		aRecv->call();
+
+	return hr;
+}
+
+class asyncSend: public asyncProc
+{
+public:
+	asyncSend(SOCKET s, obj_ptr<Buffer_base> data, AsyncCall* ac) :
+			asyncProc(s, EV_WRITE), m_ac(ac)
+	{
+		data->toString(m_buf);
+		m_p = m_buf.c_str();
+		m_sz = m_buf.length();
+	}
+
+	result_t send()
+	{
+		while (m_sz)
+		{
+			int n = (int) ::send(m_s, m_p, m_sz, MSG_NOSIGNAL);
+			if (n == SOCKET_ERROR)
+				return wouldBlock() ? CALL_E_PENDDING : SocketError();
+
+			m_sz -= n;
+			m_p += n;
+		}
+
+		return 0;
+	}
+
+	virtual void proc()
+	{
+		result_t hr = send();
+
+		if (hr == 0 && m_sz > 0)
+			call();
+		else
+		{
+			m_ac->hr = hr;
+			m_ac->post();
+			delete this;
+		}
+	}
+
+public:
+	std::string m_buf;
+	const char* m_p;
+	int m_sz;
+	AsyncCall* m_ac;
+};
+
+result_t Socket::send(obj_ptr<Buffer_base> data, AsyncCall* ac)
+{
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
+	asyncSend* aSend = new asyncSend(m_sock, data, ac);
+	result_t hr = aSend->send();
+	if (hr == CALL_E_PENDDING)
+		aSend->call();
 
 	return hr;
 }

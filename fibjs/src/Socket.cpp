@@ -375,6 +375,8 @@ inline void setNonBlock(SOCKET s)
 	ioctlsocket(s, FIONBIO, &mode);
 #else
 	fcntl(s, F_SETFL, fcntl(s, F_GETFL, 0) | O_NONBLOCK);
+	int set_option = 1;
+	setsockopt(s, SOL_SOCKET, SO_NOSIGPIPE, &set_option, sizeof(set_option));
 #endif
 }
 
@@ -416,7 +418,7 @@ result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
 result_t Socket::write(obj_ptr<Buffer_base> data, AsyncCall* ac)
 {
-	return send(data);
+	return send(data, ac);
 }
 
 result_t Socket::flush(AsyncCall* ac)
@@ -616,32 +618,6 @@ result_t Socket::listen(int32_t backlog)
 		return SocketError();
 
 	return 0;
-}
-
-result_t Socket::send(const char* p, int sz)
-{
-	if (m_sock == INVALID_SOCKET)
-		return CALL_E_INVALID_CALL;
-
-	while (sz)
-	{
-		int n = (int) a_send(m_sock, p, sz, MSG_NOSIGNAL);
-		if (n == SOCKET_ERROR)
-			return SocketError();
-
-		sz -= n;
-		p += n;
-	}
-
-	return 0;
-}
-
-result_t Socket::send(obj_ptr<Buffer_base> data)
-{
-	std::string strBuf;
-	data->toString(strBuf);
-
-	return send(strBuf.c_str(), (int) strBuf.length());
 }
 
 result_t Socket::recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal)
