@@ -57,7 +57,7 @@ public:
 	virtual result_t bind(int32_t port, bool allowIPv4);
 	virtual result_t listen(int32_t backlog);
 	virtual result_t accept(obj_ptr<Socket_base>& retVal, AsyncCall* ac);
-	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal);
+	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncCall* ac);
 	virtual result_t recv(v8::Handle<v8::Function> cb,
 			obj_ptr<Buffer_base>& retVal);
 	virtual result_t recv(int32_t bytes, v8::Handle<v8::Function> cb,

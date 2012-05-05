@@ -236,14 +236,7 @@ public:
 				m_ai.addr4.sin_family == PF_INET ?
 						sizeof(m_ai.addr4) : sizeof(m_ai.addr6));
 		if (n == SOCKET_ERROR)
-		{
-			if (errno == EINPROGRESS)
-			{
-				call();
-				return CALL_E_PENDDING;
-			}
-			return SocketError();
-		}
+			return errno == EINPROGRESS ? CALL_E_PENDDING : SocketError();
 
 		return 0;
 	}
@@ -277,7 +270,12 @@ result_t Socket::connect(const char* addr, int32_t port, AsyncCall* ac)
 	if (hr < 0)
 		return hr;
 
-	return (new asyncConnect(m_sock, addr_info, ac))->connect();
+	asyncConnect* aConn = new asyncConnect(m_sock, addr_info, ac);
+	hr = aConn->connect();
+	if (hr == CALL_E_PENDDING)
+		aConn->call();
+
+	return hr;
 }
 
 inline void setNonBlock(SOCKET s)
@@ -304,11 +302,7 @@ public:
 		socklen_t sz = sizeof(ai);
 		SOCKET c = ::accept(m_s, (sockaddr*) &ai, &sz);
 		if (c == INVALID_SOCKET)
-		{
-			if (wouldBlock())
-				return CALL_E_PENDDING;
-			return SocketError();
-		}
+			return wouldBlock() ? CALL_E_PENDDING : SocketError();
 
 		setNonBlock(c);
 		obj_ptr<Socket> sock = new Socket(c,
@@ -339,10 +333,58 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, AsyncCall* ac)
 		return CALL_E_INVALID_CALL;
 
 	asyncAccept* aAcc = new asyncAccept(m_sock, retVal, ac);
-
 	result_t hr = aAcc->accept();
-	if(hr == CALL_E_PENDDING)
+	if (hr == CALL_E_PENDDING)
 		aAcc->call();
+
+	return hr;
+}
+
+class asyncRecv: public asyncProc
+{
+public:
+	asyncRecv(SOCKET s, int32_t bytes, obj_ptr<Buffer_base>& retVal,
+			AsyncCall* ac) :
+			asyncProc(s, EV_READ), m_retVal(retVal), m_ac(ac)
+	{
+		m_buf.resize(bytes > 0 ? bytes : 4096);
+	}
+
+	result_t recv()
+	{
+		int n = (int) ::recv(m_s, &m_buf[0], m_buf.length(), MSG_NOSIGNAL);
+		if (n == SOCKET_ERROR)
+			return wouldBlock() ? CALL_E_PENDDING : SocketError();
+
+		m_buf.resize(n);
+		m_retVal = new Buffer(m_buf);
+
+		return 0;
+	}
+
+	virtual void proc()
+	{
+		m_ac->hr = recv();
+		m_ac->post();
+		delete this;
+	}
+
+public:
+	obj_ptr<Buffer_base>& m_retVal;
+	std::string m_buf;
+	AsyncCall* m_ac;
+};
+
+result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
+		AsyncCall* ac)
+{
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
+	asyncRecv* aRecv = new asyncRecv(m_sock, bytes, retVal, ac);
+	result_t hr = aRecv->recv();
+	if (hr == CALL_E_PENDDING)
+		aRecv->call();
 
 	return hr;
 }

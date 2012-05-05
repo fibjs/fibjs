@@ -411,7 +411,7 @@ result_t Socket::create(int32_t family, int32_t type)
 result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 		AsyncCall* ac)
 {
-	return recv(bytes, retVal);
+	return recv(bytes, retVal, ac);
 }
 
 result_t Socket::write(obj_ptr<Buffer_base> data, AsyncCall* ac)
@@ -614,36 +614,6 @@ result_t Socket::listen(int32_t backlog)
 
 	if (::listen(m_sock, backlog) == SOCKET_ERROR)
 		return SocketError();
-
-	return 0;
-}
-
-result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal)
-{
-	if (m_sock == INVALID_SOCKET)
-		return CALL_E_INVALID_CALL;
-
-	std::string buf;
-	int sz = bytes > 0 ? bytes : 4096;
-
-	buf.resize(sz);
-	char* p = &buf[0];
-
-	do
-	{
-		int n = (int) a_recv(m_sock, p, sz, MSG_NOSIGNAL);
-		if (n == SOCKET_ERROR)
-			return SocketError();
-
-		if (n == 0)
-			break;
-
-		sz -= n;
-		p += n;
-	} while (bytes > sz);
-
-	buf.resize((bytes > 0 ? bytes : 4096) - sz);
-	retVal = new Buffer(buf);
 
 	return 0;
 }
