@@ -61,7 +61,7 @@ public:
 	{
 	}
 
-	void call()
+	void post()
 	{
 		s_evWait.put(this);
 		ev_async_send(s_loop, &s_asEvent);
@@ -71,6 +71,20 @@ public:
 	{
 		ev_io_init(((ev_io*)this), io_cb, m_s, m_op);
 		ev_io_start(s_loop, this);
+	}
+
+	result_t call()
+	{
+		result_t hr = process();
+		if (hr == CALL_E_PENDDING)
+			post();
+
+		return hr;
+	}
+
+	virtual result_t process()
+	{
+		return 0;
 	}
 
 	virtual void proc()
@@ -147,9 +161,7 @@ public:
 	asyncWait(SOCKET s, int op) :
 			asyncProc(s, op)
 	{
-		call();
-
-		v8::Unlocker unlocker(isolate);
+		post();
 		m_aEvent.wait();
 	}
 
@@ -222,46 +234,46 @@ int a_send(SOCKET s, const char *p, size_t sz, int f)
 	return n;
 }
 
-class asyncConnect: public asyncProc
-{
-public:
-	asyncConnect(SOCKET s, _sockaddr& ai, AsyncCall* ac) :
-			asyncProc(s, EV_WRITE), m_ai(ai), m_ac(ac)
-	{
-	}
-
-	result_t connect()
-	{
-		int n = ::connect(m_s, (struct sockaddr*) &m_ai,
-				m_ai.addr4.sin_family == PF_INET ?
-						sizeof(m_ai.addr4) : sizeof(m_ai.addr6));
-		if (n == SOCKET_ERROR)
-			return errno == EINPROGRESS ? CALL_E_PENDDING : SocketError();
-
-		return 0;
-	}
-
-	virtual void proc()
-	{
-		_sockaddr addr_info;
-		socklen_t sz1 = sizeof(addr_info);
-
-		if (::getpeername(m_s, (sockaddr*) &addr_info, &sz1) == SOCKET_ERROR)
-			m_ac->hr = -ETIMEDOUT;
-		else
-			m_ac->hr = 0;
-
-		m_ac->post();
-		delete this;
-	}
-
-public:
-	_sockaddr m_ai;
-	AsyncCall* m_ac;
-};
-
 result_t Socket::connect(const char* addr, int32_t port, AsyncCall* ac)
 {
+	class asyncConnect: public asyncProc
+	{
+	public:
+		asyncConnect(SOCKET s, _sockaddr& ai, AsyncCall* ac) :
+				asyncProc(s, EV_WRITE), m_ai(ai), m_ac(ac)
+		{
+		}
+
+		virtual result_t process()
+		{
+			int n = ::connect(m_s, (struct sockaddr*) &m_ai,
+					m_ai.addr4.sin_family == PF_INET ?
+							sizeof(m_ai.addr4) : sizeof(m_ai.addr6));
+			if (n == SOCKET_ERROR)
+				return errno == EINPROGRESS ? CALL_E_PENDDING : SocketError();
+
+			return 0;
+		}
+
+		virtual void proc()
+		{
+			_sockaddr addr_info;
+			socklen_t sz1 = sizeof(addr_info);
+
+			if (::getpeername(m_s, (sockaddr*) &addr_info, &sz1) == SOCKET_ERROR)
+				m_ac->hr = -ETIMEDOUT;
+			else
+				m_ac->hr = 0;
+
+			m_ac->post();
+			delete this;
+		}
+
+	public:
+		_sockaddr m_ai;
+		AsyncCall* m_ac;
+	};
+
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
 
@@ -270,12 +282,7 @@ result_t Socket::connect(const char* addr, int32_t port, AsyncCall* ac)
 	if (hr < 0)
 		return hr;
 
-	asyncConnect* aConn = new asyncConnect(m_sock, addr_info, ac);
-	hr = aConn->connect();
-	if (hr == CALL_E_PENDDING)
-		aConn->call();
-
-	return hr;
+	return (new asyncConnect(m_sock, addr_info, ac))->call();
 }
 
 inline void setNonBlock(SOCKET s)
@@ -285,170 +292,159 @@ inline void setNonBlock(SOCKET s)
 	ioctlsocket(s, FIONBIO, &mode);
 #else
 	fcntl(s, F_SETFL, fcntl(s, F_GETFL, 0) | O_NONBLOCK);
+
+#ifdef MacOS
 	int set_option = 1;
 	setsockopt(s, SOL_SOCKET, SO_NOSIGPIPE, &set_option, sizeof(set_option));
 #endif
+
+#endif
 }
-
-class asyncAccept: public asyncProc
-{
-public:
-	asyncAccept(SOCKET s, obj_ptr<Socket_base>& retVal, AsyncCall* ac) :
-			asyncProc(s, EV_READ), m_retVal(retVal), m_ac(ac)
-	{
-	}
-
-	result_t accept()
-	{
-		_sockaddr ai;
-		socklen_t sz = sizeof(ai);
-		SOCKET c = ::accept(m_s, (sockaddr*) &ai, &sz);
-		if (c == INVALID_SOCKET)
-			return wouldBlock() ? CALL_E_PENDDING : SocketError();
-
-		setNonBlock(c);
-		obj_ptr<Socket> sock = new Socket(c,
-				ai.addr6.sin6_family == PF_INET6 ?
-						Socket::_AF_INET6 : Socket::_AF_INET,
-				Socket::_SOCK_STREAM);
-
-		m_retVal = sock;
-
-		return 0;
-	}
-
-	virtual void proc()
-	{
-		m_ac->hr = accept();
-		m_ac->post();
-		delete this;
-	}
-
-public:
-	obj_ptr<Socket_base>& m_retVal;
-	AsyncCall* m_ac;
-};
 
 result_t Socket::accept(obj_ptr<Socket_base>& retVal, AsyncCall* ac)
 {
+	class asyncAccept: public asyncProc
+	{
+	public:
+		asyncAccept(SOCKET s, obj_ptr<Socket_base>& retVal, AsyncCall* ac) :
+				asyncProc(s, EV_READ), m_retVal(retVal), m_ac(ac)
+		{
+		}
+
+		virtual result_t process()
+		{
+			_sockaddr ai;
+			socklen_t sz = sizeof(ai);
+			SOCKET c = ::accept(m_s, (sockaddr*) &ai, &sz);
+			if (c == INVALID_SOCKET)
+				return wouldBlock() ? CALL_E_PENDDING : SocketError();
+
+			setNonBlock(c);
+			obj_ptr<Socket> sock = new Socket(c,
+					ai.addr6.sin6_family == PF_INET6 ?
+							Socket::_AF_INET6 : Socket::_AF_INET,
+					Socket::_SOCK_STREAM);
+
+			m_retVal = sock;
+
+			return 0;
+		}
+
+		virtual void proc()
+		{
+			m_ac->hr = process();
+			m_ac->post();
+			delete this;
+		}
+
+	public:
+		obj_ptr<Socket_base>& m_retVal;
+		AsyncCall* m_ac;
+	};
+
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
 
-	asyncAccept* aAcc = new asyncAccept(m_sock, retVal, ac);
-	result_t hr = aAcc->accept();
-	if (hr == CALL_E_PENDDING)
-		aAcc->call();
-
-	return hr;
+	return (new asyncAccept(m_sock, retVal, ac))->call();
 }
-
-class asyncRecv: public asyncProc
-{
-public:
-	asyncRecv(SOCKET s, int32_t bytes, obj_ptr<Buffer_base>& retVal,
-			AsyncCall* ac) :
-			asyncProc(s, EV_READ), m_retVal(retVal), m_ac(ac)
-	{
-		m_buf.resize(bytes > 0 ? bytes : 4096);
-	}
-
-	result_t recv()
-	{
-		int n = (int) ::recv(m_s, &m_buf[0], m_buf.length(), MSG_NOSIGNAL);
-		if (n == SOCKET_ERROR)
-			return wouldBlock() ? CALL_E_PENDDING : SocketError();
-
-		m_buf.resize(n);
-		m_retVal = new Buffer(m_buf);
-
-		return 0;
-	}
-
-	virtual void proc()
-	{
-		m_ac->hr = recv();
-		m_ac->post();
-		delete this;
-	}
-
-public:
-	obj_ptr<Buffer_base>& m_retVal;
-	std::string m_buf;
-	AsyncCall* m_ac;
-};
 
 result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 		AsyncCall* ac)
 {
-	if (m_sock == INVALID_SOCKET)
-		return CALL_E_INVALID_CALL;
-
-	asyncRecv* aRecv = new asyncRecv(m_sock, bytes, retVal, ac);
-	result_t hr = aRecv->recv();
-	if (hr == CALL_E_PENDDING)
-		aRecv->call();
-
-	return hr;
-}
-
-class asyncSend: public asyncProc
-{
-public:
-	asyncSend(SOCKET s, obj_ptr<Buffer_base> data, AsyncCall* ac) :
-			asyncProc(s, EV_WRITE), m_ac(ac)
+	class asyncRecv: public asyncProc
 	{
-		data->toString(m_buf);
-		m_p = m_buf.c_str();
-		m_sz = m_buf.length();
-	}
-
-	result_t send()
-	{
-		while (m_sz)
+	public:
+		asyncRecv(SOCKET s, int32_t bytes, obj_ptr<Buffer_base>& retVal,
+				AsyncCall* ac) :
+				asyncProc(s, EV_READ), m_retVal(retVal), m_ac(ac)
 		{
-			int n = (int) ::send(m_s, m_p, m_sz, MSG_NOSIGNAL);
+			m_buf.resize(bytes > 0 ? bytes : 4096);
+		}
+
+		virtual result_t process()
+		{
+			int n = (int) ::recv(m_s, &m_buf[0], m_buf.length(), MSG_NOSIGNAL);
 			if (n == SOCKET_ERROR)
 				return wouldBlock() ? CALL_E_PENDDING : SocketError();
 
-			m_sz -= n;
-			m_p += n;
+			m_buf.resize(n);
+			m_retVal = new Buffer(m_buf);
+
+			return 0;
 		}
 
-		return 0;
-	}
-
-	virtual void proc()
-	{
-		result_t hr = send();
-
-		if (hr == 0 && m_sz > 0)
-			call();
-		else
+		virtual void proc()
 		{
-			m_ac->hr = hr;
+			m_ac->hr = process();
 			m_ac->post();
 			delete this;
 		}
-	}
 
-public:
-	std::string m_buf;
-	const char* m_p;
-	int m_sz;
-	AsyncCall* m_ac;
-};
+	public:
+		obj_ptr<Buffer_base>& m_retVal;
+		std::string m_buf;
+		AsyncCall* m_ac;
+	};
 
-result_t Socket::send(obj_ptr<Buffer_base> data, AsyncCall* ac)
-{
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
 
-	asyncSend* aSend = new asyncSend(m_sock, data, ac);
-	result_t hr = aSend->send();
-	if (hr == CALL_E_PENDDING)
-		aSend->call();
+	return (new asyncRecv(m_sock, bytes, retVal, ac))->call();
+}
 
-	return hr;
+result_t Socket::send(obj_ptr<Buffer_base> data, AsyncCall* ac)
+{
+	class asyncSend: public asyncProc
+	{
+	public:
+		asyncSend(SOCKET s, obj_ptr<Buffer_base> data, AsyncCall* ac) :
+				asyncProc(s, EV_WRITE), m_ac(ac)
+		{
+			data->toString(m_buf);
+			m_p = m_buf.c_str();
+			m_sz = m_buf.length();
+		}
+
+		virtual result_t process()
+		{
+			while (m_sz)
+			{
+				int n = (int) ::send(m_s, m_p, m_sz, MSG_NOSIGNAL);
+				if (n == SOCKET_ERROR)
+					return wouldBlock() ? CALL_E_PENDDING : SocketError();
+
+				m_sz -= n;
+				m_p += n;
+			}
+
+			return 0;
+		}
+
+		virtual void proc()
+		{
+			result_t hr = process();
+
+			if (hr == 0 && m_sz > 0)
+				post();
+			else
+			{
+				m_ac->hr = hr;
+				m_ac->post();
+				delete this;
+			}
+		}
+
+	public:
+		std::string m_buf;
+		const char* m_p;
+		int m_sz;
+		AsyncCall* m_ac;
+	};
+
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
+	return (new asyncSend(m_sock, data, ac))->call();
 }
 
 }

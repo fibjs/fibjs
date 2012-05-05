@@ -83,8 +83,13 @@ result_t os_base::release(std::string& retVal)
 
 result_t os_base::arch(std::string& retVal)
 {
+#ifdef x64
+	retVal = "x86_64";
+#else
+	retVal = "i686";
+#endif
 
-    return 0;
+	return 0;
 }
 
 result_t os_base::CPUs(int32_t& retVal)

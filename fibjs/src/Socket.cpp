@@ -375,8 +375,12 @@ inline void setNonBlock(SOCKET s)
 	ioctlsocket(s, FIONBIO, &mode);
 #else
 	fcntl(s, F_SETFL, fcntl(s, F_GETFL, 0) | O_NONBLOCK);
+
+#ifdef MacOS
 	int set_option = 1;
 	setsockopt(s, SOL_SOCKET, SO_NOSIGPIPE, &set_option, sizeof(set_option));
+#endif
+
 #endif
 }
 
