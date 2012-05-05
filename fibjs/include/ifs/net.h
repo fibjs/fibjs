@@ -23,10 +23,12 @@ class Socket_base;
 class net_base : public module_base
 {
 public:
-	static const int32_t _AF_INET = 2;
-	static const int32_t _AF_INET6 = 10;
-	static const int32_t _SOCK_STREAM = 1;
-	static const int32_t _SOCK_DGRAM = 2;
+	enum{
+		_AF_INET = 2,
+		_AF_INET6 = 10,
+		_SOCK_STREAM = 1,
+		_SOCK_DGRAM = 2
+	};
 
 public:
 	// net_base

@@ -23,9 +23,11 @@ class Stat_base;
 class File_base : public Stream_base
 {
 public:
-	static const int32_t _SEEK_SET = 0;
-	static const int32_t _SEEK_CUR = 1;
-	static const int32_t _SEEK_END = 2;
+	enum{
+		_SEEK_SET = 0,
+		_SEEK_CUR = 1,
+		_SEEK_END = 2
+	};
 
 public:
 	// File_base

@@ -25,9 +25,11 @@ class ObjectArray_base;
 class fs_base : public module_base
 {
 public:
-	static const int32_t _SEEK_SET = 0;
-	static const int32_t _SEEK_CUR = 1;
-	static const int32_t _SEEK_END = 2;
+	enum{
+		_SEEK_SET = 0,
+		_SEEK_CUR = 1,
+		_SEEK_END = 2
+	};
 
 public:
 	// fs_base

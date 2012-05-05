@@ -54,10 +54,7 @@ namespace fibjs
 		static ClassMethod s_method[] = 
 		{
 			{"on", s_on},
-			{"on", s_on},
 			{"once", s_once},
-			{"once", s_once},
-			{"off", s_off},
 			{"off", s_off},
 			{"trigger", s_trigger}
 		};
@@ -65,7 +62,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Trigger", s__new, 
-			7, s_method, 0, NULL, 0, NULL, NULL,
+			4, s_method, 0, NULL, 0, NULL, NULL,
 			&object_base::class_info()
 		};
 

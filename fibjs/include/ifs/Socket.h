@@ -23,10 +23,12 @@ class Buffer_base;
 class Socket_base : public Stream_base
 {
 public:
-	static const int32_t _AF_INET = 2;
-	static const int32_t _AF_INET6 = 10;
-	static const int32_t _SOCK_STREAM = 1;
-	static const int32_t _SOCK_DGRAM = 2;
+	enum{
+		_AF_INET = 2,
+		_AF_INET6 = 10,
+		_SOCK_STREAM = 1,
+		_SOCK_DGRAM = 2
+	};
 
 public:
 	// Socket_base
@@ -113,14 +115,10 @@ namespace fibjs
 		{
 			{"connect", s_connect},
 			{"bind", s_bind},
-			{"bind", s_bind},
 			{"listen", s_listen},
 			{"accept", s_accept},
 			{"recv", s_recv},
-			{"recv", s_recv},
-			{"recv", s_recv},
 			{"recvFrom", s_recvFrom},
-			{"send", s_send},
 			{"send", s_send},
 			{"sendto", s_sendto}
 		};
@@ -142,7 +140,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Socket", s__new, 
-			12, s_method, 0, NULL, 10, s_property, NULL,
+			8, s_method, 0, NULL, 10, s_property, NULL,
 			&Stream_base::class_info()
 		};
 

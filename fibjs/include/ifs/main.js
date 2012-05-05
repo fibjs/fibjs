@@ -268,8 +268,9 @@ function parserIDL(fname) {
 		txt.push("class " + ns + "_base : public " + baseClass + "_base\n{");
 
 		if (svs.length) {
-			txt.push("public:");
-			txt.push(svs.join("\n") + "\n");
+			txt.push("public:\n	enum{");
+			txt.push(svs.join(",\n"));
+			txt.push("	};\n");
 		}
 
 		if (ifs.length) {
@@ -627,18 +628,21 @@ function parserIDL(fname) {
 
 			fnStr += ");\n";
 
-			ids[fname] = [ ftype, fnStr ];
-			// ffs.push(fnStr);
 			ifs.push(ifStr);
 
-			if (attr == "static") {
-				if (fname !== "_new")
+			if (!ids.hasOwnProperty(fname))
+			{
+				if (attr == "static") {
+					if (fname !== "_new")
+						difms.push("			{\"" + fname + "\", s_" + fname + "}");
+				} else
 					difms.push("			{\"" + fname + "\", s_" + fname + "}");
-			} else
-				difms.push("			{\"" + fname + "\", s_" + fname + "}");
+			}
+
+			ids[fname] = [ ftype, fnStr ];
 		} else if (ftype != "") {
 			if (attr == "const") {
-				if (st[pos] != "=")
+				if (st[pos] != "=" || ftype != "Integer")
 					return reportErr();
 
 				cvs[fname] = true;
@@ -658,8 +662,8 @@ function parserIDL(fname) {
 				fnStr += "		PROPERTY_ENTER();\n		METHOD_RETURN();\n	}\n";
 				ffs.push(fnStr)
 
-				ifStr = "	static const " + arg_type(ftype) + " _" + fname
-						+ " = " + arg_value(ftype, value) + ";";
+				ifStr = "		_" + fname
+						+ " = " + arg_value(ftype, value);
 
 				svs.push(ifStr);
 
