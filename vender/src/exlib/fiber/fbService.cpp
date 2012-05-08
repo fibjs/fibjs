@@ -140,8 +140,6 @@ Fiber* Service::CreateFiber(void* (*func)(void *), void *data, int stacksize)
 	return fb;
 }
 
-static List<AsyncEvent> s_yieldList;
-
 void Service::switchtonext()
 {
 	while (1)
@@ -170,7 +168,7 @@ void Service::switchtonext()
 			if (p == NULL)
 				break;
 
-			p->set();
+			p->invoke();
 		}
 
 		if (!m_resume.empty())
@@ -186,26 +184,27 @@ void Service::switchtonext()
 		// if we still have time, weakup yield fiber.
 		while (1)
 		{
-			AsyncEvent* p = s_yieldList.get();
+			AsyncEvent* p = m_yieldList.get();
 			if (p == NULL)
 				break;
 
-			p->set();
+			p->invoke();
 		}
 
 		if (!m_resume.empty())
 			continue;
 
 		// still no work, we wait, and wait, and wait.....
-		m_aEvents.wait()->set();
+		m_aEvents.wait()->invoke();
 	}
 }
 
 void Service::yield()
 {
+	Service* pService = Service::getFiberService();
 	AsyncEvent ae;
 
-	s_yieldList.put(&ae);
+	pService->m_yieldList.put(&ae);
 	ae.wait();
 }
 

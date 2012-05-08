@@ -306,9 +306,9 @@ class AsyncEvent
 {
 public:
 	AsyncEvent();
-	void post();
 
-	void set()
+	virtual void post();
+	virtual void invoke()
 	{
 		weak.set();
 	}
@@ -361,6 +361,7 @@ public:
 	char m_tls[TLS_SIZE];
 	List<Fiber> m_resume;
 	lockfree<AsyncEvent> m_aEvents;
+	List<AsyncEvent> m_yieldList;
 
 	IDLE_PROC m_Idle;
 };
