@@ -23,6 +23,7 @@ public:
 public:
 	// Stream_base
 	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
+	virtual result_t asyncRead(int32_t bytes);
 	virtual result_t write(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac);
 	virtual result_t flush(exlib::AsyncEvent* ac);
 	virtual result_t close(exlib::AsyncEvent* ac);

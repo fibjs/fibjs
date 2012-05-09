@@ -25,6 +25,7 @@ class Stream_base : public Trigger_base
 public:
 	// Stream_base
 	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t asyncRead(int32_t bytes) = 0;
 	virtual result_t write(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac) = 0;
 	virtual result_t flush(exlib::AsyncEvent* ac) = 0;
 	virtual result_t close(exlib::AsyncEvent* ac) = 0;
@@ -39,6 +40,7 @@ public:
 
 private:
 	static v8::Handle<v8::Value> s_read(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_asyncRead(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_write(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_flush(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_close(const v8::Arguments& args);
@@ -61,6 +63,7 @@ namespace fibjs
 		static ClassMethod s_method[] = 
 		{
 			{"read", s_read},
+			{"asyncRead", s_asyncRead},
 			{"write", s_write},
 			{"flush", s_flush},
 			{"close", s_close}
@@ -69,7 +72,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Stream", NULL, 
-			4, s_method, 0, NULL, 0, NULL, NULL,
+			5, s_method, 0, NULL, 0, NULL, NULL,
 			&Trigger_base::class_info()
 		};
 
@@ -90,6 +93,18 @@ namespace fibjs
 		hr = pInst->ac_read(s_acPool, v0, vr);
 
 		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Stream_base::s_asyncRead(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Stream_base);
+		METHOD_ENTER(1, 0);
+
+		OPT_ARG(int32_t, 0, -1);
+
+		hr = pInst->asyncRead(v0);
+
+		METHOD_VOID();
 	}
 
 	inline v8::Handle<v8::Value> Stream_base::s_write(const v8::Arguments& args)

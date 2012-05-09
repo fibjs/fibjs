@@ -8,6 +8,8 @@ class Stream : Trigger
 	 */
 	Buffer read(Integer bytes = -1) async;
 
+	asyncRead(Integer bytes = -1);
+
 	/*! @brief 将给定的数据写入流
 	 * @param data 给定要写入的数据
 	 */

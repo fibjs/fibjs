@@ -32,12 +32,29 @@ public:
 	void ** args;
 };
 
+class object_base;
+class AsyncCallBack: public AsyncCall
+{
+public:
+	AsyncCallBack(AsyncQueue& q, object_base* pThis, void ** a, void (*f)(AsyncCall*) = NULL) :
+			AsyncCall(q, a, f), m_pThis(pThis)
+	{
+	}
+
+	virtual void invoke();
+	virtual void callback() = 0;
+
+public:
+	object_base* m_pThis;
+};
+
 class AsyncLog: public exlib::AsyncEvent
 {
 public:
 	AsyncLog(int priority, std::string msg) :
-		m_priority(priority), m_msg(msg)
-	{}
+			m_priority(priority), m_msg(msg)
+	{
+	}
 
 public:
 	int m_priority;

@@ -56,7 +56,7 @@ function gen_stub(argn, bInst)
 	s += '); \\'
 	txt.push(s);
 
-	txt.push('			if(hr != CALL_E_PENDDING){ac->post(hr);} } }; \\');
+	txt.push('			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \\');
 
 	if(argn > 0 || bInst)
 	{
@@ -72,9 +72,7 @@ function gen_stub(argn, bInst)
 		s += bInst ? 'this}; \\' : '}; \\';
 		txt.push(s);
 
-		txt.push('	AsyncCall ac(q, args, _t::_stub); \\');
+		txt.push('	return AsyncCall(q, args, _t::_stub).wait();}\n');
 	}else
-		txt.push('	AsyncCall ac(q, NULL, _t::_stub); \\');
-
-	txt.push('	return ac.wait();}\n');
+		txt.push('	return AsyncCall(q, NULL, _t::_stub).wait();}\n');
 }

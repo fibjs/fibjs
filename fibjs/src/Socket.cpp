@@ -420,6 +420,11 @@ result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 	return recv(bytes, retVal, ac);
 }
 
+result_t Socket::asyncRead(int32_t bytes)
+{
+	return 0;
+}
+
 result_t Socket::write(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac)
 {
 	return send(data, ac);
