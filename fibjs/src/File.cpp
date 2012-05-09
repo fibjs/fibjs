@@ -15,7 +15,7 @@
 namespace fibjs
 {
 
-result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncCall* ac)
+result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
@@ -79,7 +79,7 @@ result_t File::Write(const char* p, int sz)
 	return 0;
 }
 
-result_t File::write(obj_ptr<Buffer_base> data, AsyncCall* ac)
+result_t File::write(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac)
 {
 	std::string strBuf;
 	data->toString(strBuf);
@@ -126,7 +126,7 @@ result_t File::get_name(std::string& retVal)
 	return 0;
 }
 
-result_t File::stat(obj_ptr<Stat_base>& retVal, AsyncCall* ac)
+result_t File::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
@@ -200,7 +200,7 @@ result_t File::rewind()
 	return seek(0, SEEK_SET);
 }
 
-result_t File::flush(AsyncCall* ac)
+result_t File::flush(exlib::AsyncEvent* ac)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
@@ -213,7 +213,7 @@ result_t File::flush(AsyncCall* ac)
 	return 0;
 }
 
-result_t File::close(AsyncCall* ac)
+result_t File::close(exlib::AsyncEvent* ac)
 {
 	if (m_file)
 	{
@@ -224,7 +224,7 @@ result_t File::close(AsyncCall* ac)
 	return 0;
 }
 
-result_t File::truncate(double bytes, AsyncCall* ac)
+result_t File::truncate(double bytes, exlib::AsyncEvent* ac)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;

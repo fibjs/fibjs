@@ -415,17 +415,17 @@ result_t Socket::create(int32_t family, int32_t type)
 }
 
 result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-		AsyncCall* ac)
+		exlib::AsyncEvent* ac)
 {
 	return recv(bytes, retVal, ac);
 }
 
-result_t Socket::write(obj_ptr<Buffer_base> data, AsyncCall* ac)
+result_t Socket::write(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac)
 {
 	return send(data, ac);
 }
 
-result_t Socket::flush(AsyncCall* ac)
+result_t Socket::flush(exlib::AsyncEvent* ac)
 {
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
@@ -433,7 +433,7 @@ result_t Socket::flush(AsyncCall* ac)
 	return 0;
 }
 
-result_t Socket::close(AsyncCall* ac)
+result_t Socket::close(exlib::AsyncEvent* ac)
 {
 	if (m_sock != INVALID_SOCKET)
 		::closesocket(m_sock);

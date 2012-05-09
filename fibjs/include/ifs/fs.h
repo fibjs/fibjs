@@ -33,18 +33,18 @@ public:
 
 public:
 	// fs_base
-	static result_t open(const char* fname, const char* mode, obj_ptr<File_base>& retVal, AsyncCall* ac);
-	static result_t create(const char* fname, bool Overwrite, obj_ptr<File_base>& retVal, AsyncCall* ac);
-	static result_t tmpFile(obj_ptr<File_base>& retVal, AsyncCall* ac);
-	static result_t readFile(const char* fname, std::string& retVal, AsyncCall* ac);
-	static result_t writeFile(const char* fname, const char* txt, AsyncCall* ac);
-	static result_t exists(const char* path, bool& retVal, AsyncCall* ac);
-	static result_t unlink(const char* path, AsyncCall* ac);
-	static result_t mkdir(const char* path, AsyncCall* ac);
-	static result_t rmdir(const char* path, AsyncCall* ac);
-	static result_t rename(const char* from, const char* to, AsyncCall* ac);
-	static result_t stat(const char* path, obj_ptr<Stat_base>& retVal, AsyncCall* ac);
-	static result_t readdir(const char* path, obj_ptr<ObjectArray_base>& retVal, AsyncCall* ac);
+	static result_t open(const char* fname, const char* mode, obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t create(const char* fname, bool Overwrite, obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t tmpFile(obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t readFile(const char* fname, std::string& retVal, exlib::AsyncEvent* ac);
+	static result_t writeFile(const char* fname, const char* txt, exlib::AsyncEvent* ac);
+	static result_t exists(const char* path, bool& retVal, exlib::AsyncEvent* ac);
+	static result_t unlink(const char* path, exlib::AsyncEvent* ac);
+	static result_t mkdir(const char* path, exlib::AsyncEvent* ac);
+	static result_t rmdir(const char* path, exlib::AsyncEvent* ac);
+	static result_t rename(const char* from, const char* to, exlib::AsyncEvent* ac);
+	static result_t stat(const char* path, obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t readdir(const char* path, obj_ptr<ObjectArray_base>& retVal, exlib::AsyncEvent* ac);
 
 public:
 	static ClassInfo& class_info();

@@ -24,10 +24,10 @@ class Stream_base : public Trigger_base
 {
 public:
 	// Stream_base
-	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncCall* ac) = 0;
-	virtual result_t write(obj_ptr<Buffer_base> data, AsyncCall* ac) = 0;
-	virtual result_t flush(AsyncCall* ac) = 0;
-	virtual result_t close(AsyncCall* ac) = 0;
+	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t write(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac) = 0;
+	virtual result_t flush(exlib::AsyncEvent* ac) = 0;
+	virtual result_t close(exlib::AsyncEvent* ac) = 0;
 
 public:
 	static ClassInfo& class_info();

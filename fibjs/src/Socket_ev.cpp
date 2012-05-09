@@ -167,7 +167,7 @@ public:
 
 	virtual void proc()
 	{
-		m_aEvent.post();
+		m_aEvent.post(0);
 	}
 
 public:
@@ -234,12 +234,12 @@ int a_send(SOCKET s, const char *p, size_t sz, int f)
 	return n;
 }
 
-result_t Socket::connect(const char* addr, int32_t port, AsyncCall* ac)
+result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 {
 	class asyncConnect: public asyncProc
 	{
 	public:
-		asyncConnect(SOCKET s, _sockaddr& ai, AsyncCall* ac) :
+		asyncConnect(SOCKET s, _sockaddr& ai, exlib::AsyncEvent* ac) :
 				asyncProc(s, EV_WRITE), m_ai(ai), m_ac(ac)
 		{
 		}
@@ -261,17 +261,16 @@ result_t Socket::connect(const char* addr, int32_t port, AsyncCall* ac)
 			socklen_t sz1 = sizeof(addr_info);
 
 			if (::getpeername(m_s, (sockaddr*) &addr_info, &sz1) == SOCKET_ERROR)
-				m_ac->hr = -ETIMEDOUT;
+				m_ac->post(-ETIMEDOUT);
 			else
-				m_ac->hr = 0;
+				m_ac->post(0);
 
-			m_ac->post();
 			delete this;
 		}
 
 	public:
 		_sockaddr m_ai;
-		AsyncCall* m_ac;
+		exlib::AsyncEvent* m_ac;
 	};
 
 	if (m_sock == INVALID_SOCKET)
@@ -301,12 +300,12 @@ inline void setNonBlock(SOCKET s)
 #endif
 }
 
-result_t Socket::accept(obj_ptr<Socket_base>& retVal, AsyncCall* ac)
+result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 {
 	class asyncAccept: public asyncProc
 	{
 	public:
-		asyncAccept(SOCKET s, obj_ptr<Socket_base>& retVal, AsyncCall* ac) :
+		asyncAccept(SOCKET s, obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac) :
 				asyncProc(s, EV_READ), m_retVal(retVal), m_ac(ac)
 		{
 		}
@@ -332,14 +331,13 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, AsyncCall* ac)
 
 		virtual void proc()
 		{
-			m_ac->hr = process();
-			m_ac->post();
+			m_ac->post(process());
 			delete this;
 		}
 
 	public:
 		obj_ptr<Socket_base>& m_retVal;
-		AsyncCall* m_ac;
+		exlib::AsyncEvent* m_ac;
 	};
 
 	if (m_sock == INVALID_SOCKET)
@@ -349,13 +347,13 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, AsyncCall* ac)
 }
 
 result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-		AsyncCall* ac)
+		exlib::AsyncEvent* ac)
 {
 	class asyncRecv: public asyncProc
 	{
 	public:
 		asyncRecv(SOCKET s, int32_t bytes, obj_ptr<Buffer_base>& retVal,
-				AsyncCall* ac) :
+				exlib::AsyncEvent* ac) :
 				asyncProc(s, EV_READ), m_retVal(retVal), m_ac(ac)
 		{
 			m_buf.resize(bytes > 0 ? bytes : 4096);
@@ -375,15 +373,14 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
 		virtual void proc()
 		{
-			m_ac->hr = process();
-			m_ac->post();
+			m_ac->post(process());
 			delete this;
 		}
 
 	public:
 		obj_ptr<Buffer_base>& m_retVal;
 		std::string m_buf;
-		AsyncCall* m_ac;
+		exlib::AsyncEvent* m_ac;
 	};
 
 	if (m_sock == INVALID_SOCKET)
@@ -392,12 +389,12 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 	return (new asyncRecv(m_sock, bytes, retVal, ac))->call();
 }
 
-result_t Socket::send(obj_ptr<Buffer_base> data, AsyncCall* ac)
+result_t Socket::send(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac)
 {
 	class asyncSend: public asyncProc
 	{
 	public:
-		asyncSend(SOCKET s, obj_ptr<Buffer_base> data, AsyncCall* ac) :
+		asyncSend(SOCKET s, obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac) :
 				asyncProc(s, EV_WRITE), m_ac(ac)
 		{
 			data->toString(m_buf);
@@ -428,8 +425,7 @@ result_t Socket::send(obj_ptr<Buffer_base> data, AsyncCall* ac)
 				post();
 			else
 			{
-				m_ac->hr = hr;
-				m_ac->post();
+				m_ac->post(hr);
 				delete this;
 			}
 		}
@@ -438,7 +434,7 @@ result_t Socket::send(obj_ptr<Buffer_base> data, AsyncCall* ac)
 		std::string m_buf;
 		const char* m_p;
 		int m_sz;
-		AsyncCall* m_ac;
+		exlib::AsyncEvent* m_ac;
 	};
 
 	if (m_sock == INVALID_SOCKET)

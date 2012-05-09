@@ -14,9 +14,8 @@ namespace fibjs
 
 static class null_fiber_data: public Fiber_base
 {
-EVENT_SUPPORT()
-	;FIBER_FREE()
-	;
+	EVENT_SUPPORT();
+	FIBER_FREE();
 
 public:
 	null_fiber_data()
@@ -272,6 +271,7 @@ result_t coroutine_base::sleep(int32_t ms)
 		void* args[] =
 		{ &ms };
 		AsyncCall ac(s_acSleep, args);
+		ac.wait();
 	}
 	else
 	{

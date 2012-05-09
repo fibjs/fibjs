@@ -39,16 +39,16 @@ public:
 	virtual result_t get_remotePort(int32_t& retVal) = 0;
 	virtual result_t get_localAddress(std::string& retVal) = 0;
 	virtual result_t get_localPort(int32_t& retVal) = 0;
-	virtual result_t connect(const char* addr, int32_t port, AsyncCall* ac) = 0;
+	virtual result_t connect(const char* addr, int32_t port, exlib::AsyncEvent* ac) = 0;
 	virtual result_t bind(int32_t port, bool allowIPv4) = 0;
 	virtual result_t bind(const char* addr, int32_t port, bool allowIPv4) = 0;
 	virtual result_t listen(int32_t backlog) = 0;
-	virtual result_t accept(obj_ptr<Socket_base>& retVal, AsyncCall* ac) = 0;
-	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncCall* ac) = 0;
+	virtual result_t accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t recv(v8::Handle<v8::Function> cb, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t recv(int32_t bytes, v8::Handle<v8::Function> cb, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
-	virtual result_t send(obj_ptr<Buffer_base> data, AsyncCall* ac) = 0;
+	virtual result_t send(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac) = 0;
 	virtual result_t send(obj_ptr<Buffer_base> data, v8::Handle<v8::Function> cb) = 0;
 	virtual result_t sendto(obj_ptr<Buffer_base> data, const char* host, int32_t port) = 0;
 

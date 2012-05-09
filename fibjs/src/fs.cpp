@@ -19,7 +19,7 @@ namespace fibjs
 {
 
 result_t fs_base::open(const char* fname, const char* mode,
-		obj_ptr<File_base>& retVal, AsyncCall* ac)
+		obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac)
 {
 	obj_ptr<File> pFile = new File;
 	result_t hr;
@@ -34,18 +34,18 @@ result_t fs_base::open(const char* fname, const char* mode,
 }
 
 result_t fs_base::create(const char* fname, bool Overwrite,
-		obj_ptr<File_base>& retVal, AsyncCall* ac)
+		obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac)
 {
 	return 0;
 }
 
-result_t fs_base::tmpFile(obj_ptr<File_base>& retVal, AsyncCall* ac)
+result_t fs_base::tmpFile(obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac)
 {
 	retVal = new File();
 	return 0;
 }
 
-result_t fs_base::readFile(const char* fname, std::string& retVal, AsyncCall* ac)
+result_t fs_base::readFile(const char* fname, std::string& retVal, exlib::AsyncEvent* ac)
 {
 	obj_ptr<File> f = new File;
 	obj_ptr<Buffer_base> buf;
@@ -62,7 +62,7 @@ result_t fs_base::readFile(const char* fname, std::string& retVal, AsyncCall* ac
 	return buf->toString(retVal);
 }
 
-result_t fs_base::writeFile(const char* fname, const char* txt, AsyncCall* ac)
+result_t fs_base::writeFile(const char* fname, const char* txt, exlib::AsyncEvent* ac)
 {
 	obj_ptr<File> pFile = new File;
 	result_t hr;
@@ -74,7 +74,7 @@ result_t fs_base::writeFile(const char* fname, const char* txt, AsyncCall* ac)
 	return pFile->Write(txt, (int)qstrlen(txt));
 }
 
-result_t fs_base::stat(const char* path, obj_ptr<Stat_base>& retVal, AsyncCall* ac)
+result_t fs_base::stat(const char* path, obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
 {
 	obj_ptr<Stat> pStat = new Stat();
 
@@ -95,13 +95,13 @@ result_t fs_base::stat(const char* path, obj_ptr<Stat_base>& retVal, AsyncCall* 
 namespace fibjs
 {
 
-result_t fs_base::exists(const char* path, bool& retVal, AsyncCall* ac)
+result_t fs_base::exists(const char* path, bool& retVal, exlib::AsyncEvent* ac)
 {
 	retVal = access(path, F_OK) == 0;
 	return 0;
 }
 
-result_t fs_base::unlink(const char* path, AsyncCall* ac)
+result_t fs_base::unlink(const char* path, exlib::AsyncEvent* ac)
 {
 	if(::unlink(path))
 		return LastError();
@@ -109,7 +109,7 @@ result_t fs_base::unlink(const char* path, AsyncCall* ac)
 	return 0;
 }
 
-result_t fs_base::mkdir(const char* path, AsyncCall* ac)
+result_t fs_base::mkdir(const char* path, exlib::AsyncEvent* ac)
 {
 	if (::mkdir(path, 715))
 		return LastError();
@@ -117,7 +117,7 @@ result_t fs_base::mkdir(const char* path, AsyncCall* ac)
 	return 0;
 }
 
-result_t fs_base::rmdir(const char* path, AsyncCall* ac)
+result_t fs_base::rmdir(const char* path, exlib::AsyncEvent* ac)
 {
 	if (::rmdir(path))
 		return LastError();
@@ -125,7 +125,7 @@ result_t fs_base::rmdir(const char* path, AsyncCall* ac)
 	return 0;
 }
 
-result_t fs_base::rename(const char* from, const char* to, AsyncCall* ac)
+result_t fs_base::rename(const char* from, const char* to, exlib::AsyncEvent* ac)
 {
 	if (::rename(from, to))
 		return LastError();
@@ -133,7 +133,7 @@ result_t fs_base::rename(const char* from, const char* to, AsyncCall* ac)
 	return 0;
 }
 
-result_t fs_base::readdir(const char* path, obj_ptr<ObjectArray_base>& retVal, AsyncCall* ac)
+result_t fs_base::readdir(const char* path, obj_ptr<ObjectArray_base>& retVal, exlib::AsyncEvent* ac)
 {
 	DIR * dp;
 	struct dirent * ep;
@@ -175,13 +175,13 @@ result_t fs_base::readdir(const char* path, obj_ptr<ObjectArray_base>& retVal, A
 namespace fibjs
 {
 
-result_t fs_base::exists(const char* path, bool& retVal, AsyncCall* ac)
+result_t fs_base::exists(const char* path, bool& retVal, exlib::AsyncEvent* ac)
 {
 	retVal = _waccess(UTF8_W(path), 0) == 0;
 	return 0;
 }
 
-result_t fs_base::unlink(const char* path, AsyncCall* ac)
+result_t fs_base::unlink(const char* path, exlib::AsyncEvent* ac)
 {
 	if(::_wunlink(UTF8_W(path)))
 		return LastError();
@@ -189,7 +189,7 @@ result_t fs_base::unlink(const char* path, AsyncCall* ac)
 	return 0;
 }
 
-result_t fs_base::mkdir(const char* path, AsyncCall* ac)
+result_t fs_base::mkdir(const char* path, exlib::AsyncEvent* ac)
 {
 	if (::_wmkdir(UTF8_W(path)))
 		return LastError();
@@ -197,7 +197,7 @@ result_t fs_base::mkdir(const char* path, AsyncCall* ac)
 	return 0;
 }
 
-result_t fs_base::rmdir(const char* path, AsyncCall* ac)
+result_t fs_base::rmdir(const char* path, exlib::AsyncEvent* ac)
 {
 	if (::_wrmdir(UTF8_W(path)))
 		return LastError();
@@ -205,7 +205,7 @@ result_t fs_base::rmdir(const char* path, AsyncCall* ac)
 	return 0;
 }
 
-result_t fs_base::rename(const char* from, const char* to, AsyncCall* ac)
+result_t fs_base::rename(const char* from, const char* to, exlib::AsyncEvent* ac)
 {
 	if (::_wrename(UTF8_W(from), UTF8_W(to)))
 		return LastError();
@@ -213,7 +213,7 @@ result_t fs_base::rename(const char* from, const char* to, AsyncCall* ac)
 	return 0;
 }
 
-result_t fs_base::readdir(const char* path, obj_ptr<ObjectArray_base>& retVal, AsyncCall* ac)
+result_t fs_base::readdir(const char* path, obj_ptr<ObjectArray_base>& retVal, exlib::AsyncEvent* ac)
 {
 	WIN32_FIND_DATAW fd;
 	HANDLE hFind;

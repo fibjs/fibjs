@@ -16,17 +16,20 @@ class AsyncCall: public exlib::AsyncEvent
 {
 public:
 	AsyncCall(AsyncQueue& q, void ** a, void (*f)(AsyncCall*) = NULL) :
-			func(f), args(a), hr(0)
+			func(f), args(a)
 	{
 		q.put(this);
+	}
+
+	int wait()
+	{
 		v8::Unlocker unlocker(isolate);
-		wait();
+		return exlib::AsyncEvent::wait();
 	}
 
 public:
 	void (*func)(AsyncCall*);
 	void ** args;
-	result_t hr;
 };
 
 class AsyncLog: public exlib::AsyncEvent

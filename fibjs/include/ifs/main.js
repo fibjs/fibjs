@@ -582,13 +582,13 @@ function parserIDL(fname) {
 					ifStr += ", ";
 				
 				if (attr == "static") {
-					ifStr += "AsyncCall* ac);";
+					ifStr += "exlib::AsyncEvent* ac);";
 					fnStr += "		hr = ac_" + fname + "(s_acPool";
 					afs.push('	ASYNC_STATIC'
 							+ (ftype == "" ? argCount : argCount + 1) + '('
 							+ ns + '_base, ' + fname + ');');
 				} else {
-					ifStr += "AsyncCall* ac) = 0;";
+					ifStr += "exlib::AsyncEvent* ac) = 0;";
 					fnStr += "		hr = pInst->ac_" + fname + "(s_acPool";
 					afs.push('	ASYNC_MEMBER'
 							+ (ftype == "" ? argCount : argCount + 1) + '('
