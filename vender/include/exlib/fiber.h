@@ -307,15 +307,16 @@ class AsyncEvent
 public:
 	AsyncEvent();
 
-	virtual void post();
+	virtual void post(int v);
 	virtual void invoke()
 	{
 		weak.set();
 	}
 
-	void wait()
+	int wait()
 	{
 		weak.wait();
+		return m_v;
 	}
 
 public:
@@ -324,6 +325,7 @@ public:
 private:
 	Event weak;
 	Service* m_service;
+	int m_v;
 };
 
 typedef void (*IDLE_PROC)();

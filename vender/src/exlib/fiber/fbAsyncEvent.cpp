@@ -17,8 +17,9 @@ AsyncEvent::AsyncEvent()
     m_service = Service::getFiberService();
 }
 
-void AsyncEvent::post()
+void AsyncEvent::post(int v)
 {
+	m_v = v;
     m_service->m_aEvents.put(this);
 }
 
