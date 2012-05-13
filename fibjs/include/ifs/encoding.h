@@ -39,7 +39,7 @@ public:
 		return class_info();
 	}
 
-private:
+protected:
 	static v8::Handle<v8::Value> s_base32Encode(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_base32Decode(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_base64Encode(const v8::Arguments& args);

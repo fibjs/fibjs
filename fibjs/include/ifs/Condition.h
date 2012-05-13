@@ -37,7 +37,7 @@ public:
 		return class_info();
 	}
 
-private:
+protected:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_wait(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_notify(const v8::Arguments& args);

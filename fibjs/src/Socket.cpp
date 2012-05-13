@@ -422,12 +422,19 @@ result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
 result_t Socket::asyncRead(int32_t bytes)
 {
+	acb_read(s_acPool, bytes);
 	return 0;
 }
 
 result_t Socket::write(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac)
 {
 	return send(data, ac);
+}
+
+result_t Socket::asyncWrite(obj_ptr<Buffer_base> data)
+{
+	acb_write(s_acPool, data);
+	return 0;
 }
 
 result_t Socket::flush(exlib::AsyncEvent* ac)
@@ -438,6 +445,12 @@ result_t Socket::flush(exlib::AsyncEvent* ac)
 	return 0;
 }
 
+result_t Socket::asyncFlush()
+{
+	acb_flush(s_acPool);
+	return 0;
+}
+
 result_t Socket::close(exlib::AsyncEvent* ac)
 {
 	if (m_sock != INVALID_SOCKET)
@@ -445,6 +458,12 @@ result_t Socket::close(exlib::AsyncEvent* ac)
 
 	m_sock = INVALID_SOCKET;
 
+	return 0;
+}
+
+result_t Socket::asyncClose()
+{
+	acb_close(s_acPool);
 	return 0;
 }
 
@@ -646,19 +665,15 @@ result_t Socket::sendto(obj_ptr<Buffer_base> data, const char* host,
 	return 0;
 }
 
-result_t Socket::recv(v8::Handle<v8::Function> cb, obj_ptr<Buffer_base>& retVal)
+result_t Socket::asyncConnect(const char* addr, int32_t port)
 {
+	acb_connect(s_acPool, addr, port);
 	return 0;
 }
 
-result_t Socket::recv(int32_t bytes, v8::Handle<v8::Function> cb,
-		obj_ptr<Buffer_base>& retVal)
+result_t Socket::asyncAccept()
 {
-	return 0;
-}
-
-result_t Socket::send(obj_ptr<Buffer_base> data, v8::Handle<v8::Function> cb)
-{
+	acb_accept(s_acPool);
 	return 0;
 }
 

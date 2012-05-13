@@ -64,51 +64,7 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
 result_t File::asyncRead(int32_t bytes)
 {
-	class _t: public AsyncCallBack
-	{
-	public:
-		_t(AsyncQueue& q, File* pThis, int32_t v0) :
-				AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0)
-		{
-			pThis->Ref();
-		}
-
-		static void _stub(AsyncCall* ac)
-		{
-			_t* t = (_t*) ac;
-
-			result_t hr = ((File*)t->m_pThis)->read(t->m_v0, t->retVal, t);
-			if (hr != CALL_E_PENDDING)
-				t->post(hr);
-		}
-
-		virtual void post(int v)
-		{
-			if(m_pThis->hasTrigger())
-				AsyncCallBack::post(v);
-			else
-			{
-				m_pThis->Unref();
-				delete this;
-			}
-		}
-
-		virtual void callback()
-		{
-			v8::Handle<v8::Value> v = ReturnValue(retVal);
-			m_pThis->_trigger("read", &v, 1);
-
-			m_pThis->Unref();
-			delete this;
-		}
-
-	private:
-		obj_ptr<Buffer_base> retVal;
-		int32_t m_v0;
-	};
-
-	new _t(s_acPool, this, bytes);
-
+	acb_read(s_acPool, bytes);
 	return 0;
 }
 
@@ -136,6 +92,12 @@ result_t File::write(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac)
 	data->toString(strBuf);
 
 	return Write(strBuf.c_str(), (int) strBuf.length());
+}
+
+result_t File::asyncWrite(obj_ptr<Buffer_base> data)
+{
+	acb_write(s_acPool, data);
+	return 0;
 }
 
 result_t File::Open(const char* fname, const char* mode)
@@ -189,6 +151,12 @@ result_t File::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
 	pStat->fillStat(name.c_str(), st);
 	retVal = pStat;
 
+	return 0;
+}
+
+result_t File::asyncStat()
+{
+	acb_stat(s_acPool);
 	return 0;
 }
 
@@ -264,6 +232,12 @@ result_t File::flush(exlib::AsyncEvent* ac)
 	return 0;
 }
 
+result_t File::asyncFlush()
+{
+	acb_flush(s_acPool);
+	return 0;
+}
+
 result_t File::close(exlib::AsyncEvent* ac)
 {
 	if (m_file)
@@ -275,6 +249,12 @@ result_t File::close(exlib::AsyncEvent* ac)
 	return 0;
 }
 
+result_t File::asyncClose()
+{
+	acb_close(s_acPool);
+	return 0;
+}
+
 result_t File::truncate(double bytes, exlib::AsyncEvent* ac)
 {
 	if (!m_file)
@@ -283,6 +263,12 @@ result_t File::truncate(double bytes, exlib::AsyncEvent* ac)
 	if (ftruncate64(fileno(m_file), (int64_t) bytes) < 0)
 		return LastError();
 
+	return 0;
+}
+
+result_t File::asyncTruncate(double bytes)
+{
+	acb_truncate(s_acPool, bytes);
 	return 0;
 }
 

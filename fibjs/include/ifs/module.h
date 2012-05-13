@@ -26,7 +26,7 @@ public:
 		return class_info();
 	}
 
-private:
+protected:
 
 };
 

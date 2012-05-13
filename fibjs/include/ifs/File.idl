@@ -19,6 +19,8 @@ class File: Stream
 	 */
 	Stat stat() async;
 	
+	asyncStat();
+
 	/*! @brief 查询文件尺寸 */
 	Number size();
 
@@ -41,4 +43,6 @@ class File: Stream
 	 *  @param bytes 新的文件尺寸
 	 */
 	truncate(Number bytes) async;
+
+	asyncTruncate(Number bytes);
 };

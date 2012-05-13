@@ -33,7 +33,7 @@ public:
 		return class_info();
 	}
 
-private:
+protected:
 	static v8::Handle<v8::Value> s_dispose(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_toString(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_toJSON(const v8::Arguments& args);

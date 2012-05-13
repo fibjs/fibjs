@@ -41,7 +41,7 @@ public:
 		return class_info();
 	}
 
-private:
+protected:
 	static v8::Handle<v8::Value> s_start(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_current(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_sleep(const v8::Arguments& args);

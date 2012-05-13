@@ -292,11 +292,11 @@ function parserIDL(fname) {
 			txt.push("\n		return 0;\n	}\n");
 		}
 
-		txt.push("private:");
+		txt.push("protected:");
 		txt.push(iffs.join("\n"));
 
 		if (afs.length) {
-			txt.push("\nprivate:");
+			txt.push("\nprotected:");
 			txt.push(afs.join("\n"));
 		}
 
@@ -593,6 +593,11 @@ function parserIDL(fname) {
 					afs.push('	ASYNC_MEMBER'
 							+ (ftype == "" ? argCount : argCount + 1) + '('
 							+ ns + '_base, ' + fname + ');');
+
+					if(ftype == "")
+						afs.push('	ASYNC_CALLBACK' + argCount + '(' + ns + '_base, ' + fname + ');');
+					else
+						afs.push('	ASYNC_VALUEBACK' + argCount + '(' + ns + '_base, ' + fname + ', ' + map_type(ftype) +');');
 				}
 
 				if (argArray || (ftype != "") || (argCount > 0))

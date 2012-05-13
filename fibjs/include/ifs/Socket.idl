@@ -22,15 +22,17 @@ class Socket : Stream
 	readonly Integer localPort;
 
 	connect(String addr, Integer port) async;
+	asyncConnect(String addr, Integer port);
+
 	bind(Integer port, Boolean allowIPv4 = true);
 	bind(String addr, Integer port, Boolean allowIPv4 = true);
 	listen(Integer backlog = 20);
+
 	Socket accept() async;
+	asyncAccept();
+
 	Buffer recv(Integer bytes = -1) async;
-	Buffer recv(Function cb);
-	Buffer recv(Integer bytes, Function cb);
 	Buffer recvFrom(Integer bytes = -1);
 	send(Buffer data) async;
-	send(Buffer data, Function cb);
 	sendto(Buffer data, String host, Integer port);
 };

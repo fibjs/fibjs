@@ -15,9 +15,14 @@ class Stream : Trigger
 	 */
 	write(Buffer data) async;
 
+	asyncWrite(Buffer data);
+
 	/*! @brief 将文件缓冲区内容写入文件 */
 	flush() async;
+	asyncFlush();
 	
 	/*! @brief 关闭当前文件 */
 	close() async;
+
+	asyncClose();
 };
