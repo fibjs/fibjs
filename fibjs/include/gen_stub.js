@@ -74,9 +74,12 @@ function gen_stub(argn, bInst)
 		s += bInst ? 'this}; \\' : '}; \\';
 		txt.push(s);
 
-		txt.push('	return AsyncCall(q, args, _t::_stub).wait();}\n');
+		txt.push('	AsyncCall ac(args, _t::_stub); \\');
 	}else
-		txt.push('	return AsyncCall(q, NULL, _t::_stub).wait();}\n');
+		txt.push('	AsyncCall ac(NULL, _t::_stub); \\');
+
+	txt.push('	q.put(&ac); \\\n	return ac.wait();}\n');
+
 }
 
 function gen_callback(argn, bRet)
@@ -109,13 +112,13 @@ function gen_callback(argn, bRet)
 		txt.push('	void acb_##m(AsyncQueue& q) { \\');
 
 	txt.push('	class _t: public AsyncCallBack { \\\n	public: \\');
-	s = '		_t(AsyncQueue& q, cls* pThis';
+	s = '		_t(cls* pThis';
 	for(i = 0; i < argn; i ++)
 		s += ', T' + i + ' v' + i;
 	s += ') : \\';
 	txt.push(s);
 
-	s = '			AsyncCallBack(q, pThis, NULL, _stub)';
+	s = '			AsyncCallBack(pThis, NULL, _stub)';
 	for(i = 0; i < argn; i ++)
 		s += ', m_v' + i + '(v' + i + ')';
 	s += ' \\';
@@ -130,7 +133,7 @@ function gen_callback(argn, bRet)
 	s += 't); \\';
 	txt.push(s);
 
-	txt.push('				if (hr != CALL_E_PENDDING)t->post(hr); \\\n' +
+	txt.push('			if (hr != CALL_E_PENDDING)t->post(hr); \\\n' +
 			'		} \\\n' +
 			'		virtual void post(int v) \\\n' +
 			'		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \\\n' +
@@ -155,10 +158,10 @@ function gen_callback(argn, bRet)
 	
 	txt.push('	}; \\');
 
-	s = '	new _t(q, this';
+	s = '	q.put(new _t(this';
 	for(i = 0; i < argn; i ++)
 		s += ', v' + i;
-	s += '); \\';
+	s += ')); \\';
 	txt.push(s);
 	
 	txt.push('	}\n');

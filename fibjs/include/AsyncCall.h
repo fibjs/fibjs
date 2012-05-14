@@ -15,10 +15,9 @@ typedef exlib::lockfree<AsyncCall> AsyncQueue;
 class AsyncCall: public exlib::AsyncEvent
 {
 public:
-	AsyncCall(AsyncQueue& q, void ** a, void (*f)(AsyncCall*) = NULL) :
+	AsyncCall(void ** a, void (*f)(AsyncCall*) = NULL) :
 			func(f), args(a)
 	{
-		q.put(this);
 	}
 
 	int wait()
@@ -36,8 +35,8 @@ class object_base;
 class AsyncCallBack: public AsyncCall
 {
 public:
-	AsyncCallBack(AsyncQueue& q, object_base* pThis, void ** a, void (*f)(AsyncCall*) = NULL) :
-			AsyncCall(q, a, f), m_pThis(pThis)
+	AsyncCallBack(object_base* pThis, void ** a, void (*f)(AsyncCall*) = NULL) :
+			AsyncCall(a, f), m_pThis(pThis)
 	{
 	}
 

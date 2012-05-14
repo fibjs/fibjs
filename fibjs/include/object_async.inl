@@ -5,7 +5,9 @@
 			result_t hr = cls::m( \
 				ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
-	return AsyncCall(q, NULL, _t::_stub).wait();}
+	AsyncCall ac(NULL, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_MEMBER0(cls, m) \
 	result_t ac_##m(AsyncQueue& q) { \
@@ -15,19 +17,21 @@
 				ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {this}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_CALLBACK0(cls, m) \
 	void acb_##m(AsyncQueue& q) { \
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis) : \
-			AsyncCallBack(q, pThis, NULL, _stub) \
+		_t(cls* pThis) : \
+			AsyncCallBack(pThis, NULL, _stub) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -41,20 +45,20 @@
 		} \
 	private: \
 	}; \
-	new _t(q, this); \
+	q.put(new _t(this)); \
 	}
 
 #define ASYNC_VALUEBACK0(cls, m, rt) \
 	void acb_##m(AsyncQueue& q) { \
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis) : \
-			AsyncCallBack(q, pThis, NULL, _stub) \
+		_t(cls* pThis) : \
+			AsyncCallBack(pThis, NULL, _stub) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->retVal, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -69,7 +73,7 @@
 	private: \
 		rt retVal; \
 	}; \
-	new _t(q, this); \
+	q.put(new _t(this)); \
 	}
 
 #define ASYNC_STATIC1(cls, m) \
@@ -82,7 +86,9 @@ template<typename T0> \
 				*(T0*) ac->args[0], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_MEMBER1(cls, m) \
 template<typename T0> \
@@ -94,7 +100,9 @@ template<typename T0> \
 				*(T0*) ac->args[0], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0, this}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_CALLBACK1(cls, m) \
 	template<typename T0> \
@@ -102,13 +110,13 @@ template<typename T0> \
 		T0 v0) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0) \
+		_t(cls* pThis, T0 v0) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -123,7 +131,7 @@ template<typename T0> \
 	private: \
 		T0 m_v0; \
 	}; \
-	new _t(q, this, v0); \
+	q.put(new _t(this, v0)); \
 	}
 
 #define ASYNC_VALUEBACK1(cls, m, rt) \
@@ -132,13 +140,13 @@ template<typename T0> \
 		T0 v0) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0) \
+		_t(cls* pThis, T0 v0) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->retVal, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -154,7 +162,7 @@ template<typename T0> \
 		rt retVal; \
 		T0 m_v0; \
 	}; \
-	new _t(q, this, v0); \
+	q.put(new _t(this, v0)); \
 	}
 
 #define ASYNC_STATIC2(cls, m) \
@@ -167,7 +175,9 @@ template<typename T0, typename T1> \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0, &v1}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_MEMBER2(cls, m) \
 template<typename T0, typename T1> \
@@ -179,7 +189,9 @@ template<typename T0, typename T1> \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0, &v1, this}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_CALLBACK2(cls, m) \
 	template<typename T0, typename T1> \
@@ -187,13 +199,13 @@ template<typename T0, typename T1> \
 		T0 v0, T1 v1) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0, T1 v1) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0), m_v1(v1) \
+		_t(cls* pThis, T0 v0, T1 v1) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -209,7 +221,7 @@ template<typename T0, typename T1> \
 		T0 m_v0; \
 		T1 m_v1; \
 	}; \
-	new _t(q, this, v0, v1); \
+	q.put(new _t(this, v0, v1)); \
 	}
 
 #define ASYNC_VALUEBACK2(cls, m, rt) \
@@ -218,13 +230,13 @@ template<typename T0, typename T1> \
 		T0 v0, T1 v1) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0, T1 v1) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0), m_v1(v1) \
+		_t(cls* pThis, T0 v0, T1 v1) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->retVal, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -241,7 +253,7 @@ template<typename T0, typename T1> \
 		T0 m_v0; \
 		T1 m_v1; \
 	}; \
-	new _t(q, this, v0, v1); \
+	q.put(new _t(this, v0, v1)); \
 	}
 
 #define ASYNC_STATIC3(cls, m) \
@@ -254,7 +266,9 @@ template<typename T0, typename T1, typename T2> \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0, &v1, &v2}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_MEMBER3(cls, m) \
 template<typename T0, typename T1, typename T2> \
@@ -266,7 +280,9 @@ template<typename T0, typename T1, typename T2> \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0, &v1, &v2, this}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_CALLBACK3(cls, m) \
 	template<typename T0, typename T1, typename T2> \
@@ -274,13 +290,13 @@ template<typename T0, typename T1, typename T2> \
 		T0 v0, T1 v1, T2 v2) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0, T1 v1, T2 v2) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2) \
+		_t(cls* pThis, T0 v0, T1 v1, T2 v2) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -297,7 +313,7 @@ template<typename T0, typename T1, typename T2> \
 		T1 m_v1; \
 		T2 m_v2; \
 	}; \
-	new _t(q, this, v0, v1, v2); \
+	q.put(new _t(this, v0, v1, v2)); \
 	}
 
 #define ASYNC_VALUEBACK3(cls, m, rt) \
@@ -306,13 +322,13 @@ template<typename T0, typename T1, typename T2> \
 		T0 v0, T1 v1, T2 v2) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0, T1 v1, T2 v2) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2) \
+		_t(cls* pThis, T0 v0, T1 v1, T2 v2) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->retVal, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -330,7 +346,7 @@ template<typename T0, typename T1, typename T2> \
 		T1 m_v1; \
 		T2 m_v2; \
 	}; \
-	new _t(q, this, v0, v1, v2); \
+	q.put(new _t(this, v0, v1, v2)); \
 	}
 
 #define ASYNC_STATIC4(cls, m) \
@@ -343,7 +359,9 @@ template<typename T0, typename T1, typename T2, typename T3> \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_MEMBER4(cls, m) \
 template<typename T0, typename T1, typename T2, typename T3> \
@@ -355,7 +373,9 @@ template<typename T0, typename T1, typename T2, typename T3> \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_CALLBACK4(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3> \
@@ -363,13 +383,13 @@ template<typename T0, typename T1, typename T2, typename T3> \
 		T0 v0, T1 v1, T2 v2, T3 v3) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3) \
+		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -387,7 +407,7 @@ template<typename T0, typename T1, typename T2, typename T3> \
 		T2 m_v2; \
 		T3 m_v3; \
 	}; \
-	new _t(q, this, v0, v1, v2, v3); \
+	q.put(new _t(this, v0, v1, v2, v3)); \
 	}
 
 #define ASYNC_VALUEBACK4(cls, m, rt) \
@@ -396,13 +416,13 @@ template<typename T0, typename T1, typename T2, typename T3> \
 		T0 v0, T1 v1, T2 v2, T3 v3) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3) \
+		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->retVal, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -421,7 +441,7 @@ template<typename T0, typename T1, typename T2, typename T3> \
 		T2 m_v2; \
 		T3 m_v3; \
 	}; \
-	new _t(q, this, v0, v1, v2, v3); \
+	q.put(new _t(this, v0, v1, v2, v3)); \
 	}
 
 #define ASYNC_STATIC5(cls, m) \
@@ -434,7 +454,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_MEMBER5(cls, m) \
 template<typename T0, typename T1, typename T2, typename T3, typename T4> \
@@ -446,7 +468,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_CALLBACK5(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4> \
@@ -454,13 +478,13 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4) \
+		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -479,7 +503,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 		T3 m_v3; \
 		T4 m_v4; \
 	}; \
-	new _t(q, this, v0, v1, v2, v3, v4); \
+	q.put(new _t(this, v0, v1, v2, v3, v4)); \
 	}
 
 #define ASYNC_VALUEBACK5(cls, m, rt) \
@@ -488,13 +512,13 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4) \
+		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->retVal, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -514,7 +538,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 		T3 m_v3; \
 		T4 m_v4; \
 	}; \
-	new _t(q, this, v0, v1, v2, v3, v4); \
+	q.put(new _t(this, v0, v1, v2, v3, v4)); \
 	}
 
 #define ASYNC_STATIC6(cls, m) \
@@ -527,7 +551,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_MEMBER6(cls, m) \
 template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5> \
@@ -539,7 +565,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_CALLBACK6(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5> \
@@ -547,13 +575,13 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5) \
+		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->m_v5, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -573,7 +601,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T4 m_v4; \
 		T5 m_v5; \
 	}; \
-	new _t(q, this, v0, v1, v2, v3, v4, v5); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, v5)); \
 	}
 
 #define ASYNC_VALUEBACK6(cls, m, rt) \
@@ -582,13 +610,13 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5) \
+		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->m_v5, t->retVal, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -609,7 +637,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T4 m_v4; \
 		T5 m_v5; \
 	}; \
-	new _t(q, this, v0, v1, v2, v3, v4, v5); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, v5)); \
 	}
 
 #define ASYNC_STATIC7(cls, m) \
@@ -622,7 +650,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_MEMBER7(cls, m) \
 template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6> \
@@ -634,7 +664,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_CALLBACK7(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6> \
@@ -642,13 +674,13 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6) \
+		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->m_v5, t->m_v6, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -669,7 +701,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T5 m_v5; \
 		T6 m_v6; \
 	}; \
-	new _t(q, this, v0, v1, v2, v3, v4, v5, v6); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6)); \
 	}
 
 #define ASYNC_VALUEBACK7(cls, m, rt) \
@@ -678,13 +710,13 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6) \
+		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->m_v5, t->m_v6, t->retVal, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -706,7 +738,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T5 m_v5; \
 		T6 m_v6; \
 	}; \
-	new _t(q, this, v0, v1, v2, v3, v4, v5, v6); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6)); \
 	}
 
 #define ASYNC_STATIC8(cls, m) \
@@ -719,7 +751,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], *(T7*) ac->args[7], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_MEMBER8(cls, m) \
 template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7> \
@@ -731,7 +765,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], *(T7*) ac->args[7], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_CALLBACK8(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7> \
@@ -739,13 +775,13 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7) \
+		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->m_v5, t->m_v6, t->m_v7, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -767,7 +803,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T6 m_v6; \
 		T7 m_v7; \
 	}; \
-	new _t(q, this, v0, v1, v2, v3, v4, v5, v6, v7); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6, v7)); \
 	}
 
 #define ASYNC_VALUEBACK8(cls, m, rt) \
@@ -776,13 +812,13 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7) \
+		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->m_v5, t->m_v6, t->m_v7, t->retVal, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -805,7 +841,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T6 m_v6; \
 		T7 m_v7; \
 	}; \
-	new _t(q, this, v0, v1, v2, v3, v4, v5, v6, v7); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6, v7)); \
 	}
 
 #define ASYNC_STATIC9(cls, m) \
@@ -818,7 +854,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], *(T7*) ac->args[7], *(T8*) ac->args[8], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_MEMBER9(cls, m) \
 template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8> \
@@ -830,7 +868,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], *(T7*) ac->args[7], *(T8*) ac->args[8], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
-	return AsyncCall(q, args, _t::_stub).wait();}
+	AsyncCall ac(args, _t::_stub); \
+	q.put(&ac); \
+	return ac.wait();}
 
 #define ASYNC_CALLBACK9(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8> \
@@ -838,13 +878,13 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7), m_v8(v8) \
+		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7), m_v8(v8) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->m_v5, t->m_v6, t->m_v7, t->m_v8, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -867,7 +907,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T7 m_v7; \
 		T8 m_v8; \
 	}; \
-	new _t(q, this, v0, v1, v2, v3, v4, v5, v6, v7, v8); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6, v7, v8)); \
 	}
 
 #define ASYNC_VALUEBACK9(cls, m, rt) \
@@ -876,13 +916,13 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(AsyncQueue& q, cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) : \
-			AsyncCallBack(q, pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7), m_v8(v8) \
+		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7), m_v8(v8) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->m_v5, t->m_v6, t->m_v7, t->m_v8, t->retVal, t); \
-				if (hr != CALL_E_PENDDING)t->post(hr); \
+			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
 		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
@@ -906,5 +946,5 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T7 m_v7; \
 		T8 m_v8; \
 	}; \
-	new _t(q, this, v0, v1, v2, v3, v4, v5, v6, v7, v8); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6, v7, v8)); \
 	}

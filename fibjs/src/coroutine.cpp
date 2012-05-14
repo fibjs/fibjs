@@ -270,7 +270,8 @@ result_t coroutine_base::sleep(int32_t ms)
 	{
 		void* args[] =
 		{ &ms };
-		AsyncCall ac(s_acSleep, args);
+		AsyncCall ac(args);
+		s_acSleep.put(&ac);
 		ac.wait();
 	}
 	else
