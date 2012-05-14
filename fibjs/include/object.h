@@ -31,6 +31,11 @@ public:
 
 	virtual ~object_base()
 	{
+		if (m_events.IsEmpty())
+		{
+			m_events.Dispose();
+			m_events.Clear();
+		}
 	}
 
 public:
@@ -65,11 +70,19 @@ public:
 private:
 	int refs_;
 	v8::Persistent<v8::Object> handle_;
+	v8::Persistent<v8::Object> m_events;
 
 private:
 	static void WeakCallback(v8::Persistent<v8::Value> value, void* data)
 	{
 		(static_cast<object_base*> (data))->dispose();
+	}
+
+	v8::Handle<v8::Object> events()
+	{
+		if (m_events.IsEmpty())
+			m_events = v8::Persistent<v8::Object>::New(v8::Object::New());
+		return m_events;
 	}
 
 public:

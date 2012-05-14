@@ -21,7 +21,7 @@ v8::Handle<v8::Array> object_base::GetHiddenArray(const char* k, bool create,
 		bool autoDelete)
 {
 	v8::Local<v8::String> s = v8::String::NewSymbol(k);
-	v8::Handle<v8::Object> o = wrap();
+	v8::Handle<v8::Object> o = events();
 	v8::Handle<v8::Value> es = o->GetHiddenValue(s);
 	v8::Handle<v8::Array> esa;
 
