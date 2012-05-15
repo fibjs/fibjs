@@ -51,8 +51,8 @@ static exlib::lockfree<asyncProc> s_evWait;
 class asyncProc: public ev_io
 {
 public:
-	asyncProc(SOCKET s, int op) :
-			m_s(s), m_op(op), m_next(NULL)
+	asyncProc(SOCKET s, int op, exlib::AsyncEvent* ac) :
+			m_s(s), m_op(op), m_ac(ac), m_next(NULL)
 
 	{
 	}
@@ -78,6 +78,8 @@ public:
 		result_t hr = process();
 		if (hr == CALL_E_PENDDING)
 			post();
+		else
+			delete this;
 
 		return hr;
 	}
@@ -89,11 +91,14 @@ public:
 
 	virtual void proc()
 	{
+		m_ac->post(process());
+		delete this;
 	}
 
 public:
 	SOCKET m_s;
 	int m_op;
+	exlib::AsyncEvent* m_ac;
 	asyncProc* m_next;
 
 private:
@@ -159,15 +164,11 @@ class asyncWait: public asyncProc
 {
 public:
 	asyncWait(SOCKET s, int op) :
-			asyncProc(s, op)
+			asyncProc(s, op, NULL)
 	{
+		m_ac = &m_aEvent;
 		post();
 		m_aEvent.wait();
-	}
-
-	virtual void proc()
-	{
-		m_aEvent.post(0);
 	}
 
 public:
@@ -240,7 +241,7 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 	{
 	public:
 		asyncConnect(SOCKET s, _sockaddr& ai, exlib::AsyncEvent* ac) :
-				asyncProc(s, EV_WRITE), m_ai(ai), m_ac(ac)
+				asyncProc(s, EV_WRITE, ac), m_ai(ai)
 		{
 		}
 
@@ -270,7 +271,6 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 
 	public:
 		_sockaddr m_ai;
-		exlib::AsyncEvent* m_ac;
 	};
 
 	if (m_sock == INVALID_SOCKET)
@@ -305,8 +305,9 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 	class asyncAccept: public asyncProc
 	{
 	public:
-		asyncAccept(SOCKET s, obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac) :
-				asyncProc(s, EV_READ), m_retVal(retVal), m_ac(ac)
+		asyncAccept(SOCKET s, obj_ptr<Socket_base>& retVal,
+				exlib::AsyncEvent* ac) :
+				asyncProc(s, EV_READ, ac), m_retVal(retVal)
 		{
 		}
 
@@ -329,15 +330,8 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 			return 0;
 		}
 
-		virtual void proc()
-		{
-			m_ac->post(process());
-			delete this;
-		}
-
 	public:
 		obj_ptr<Socket_base>& m_retVal;
-		exlib::AsyncEvent* m_ac;
 	};
 
 	if (m_sock == INVALID_SOCKET)
@@ -354,7 +348,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 	public:
 		asyncRecv(SOCKET s, int32_t bytes, obj_ptr<Buffer_base>& retVal,
 				exlib::AsyncEvent* ac) :
-				asyncProc(s, EV_READ), m_retVal(retVal), m_ac(ac)
+				asyncProc(s, EV_READ, ac), m_retVal(retVal)
 		{
 			m_buf.resize(bytes > 0 ? bytes : 4096);
 		}
@@ -371,16 +365,9 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 			return 0;
 		}
 
-		virtual void proc()
-		{
-			m_ac->post(process());
-			delete this;
-		}
-
 	public:
 		obj_ptr<Buffer_base>& m_retVal;
 		std::string m_buf;
-		exlib::AsyncEvent* m_ac;
 	};
 
 	if (m_sock == INVALID_SOCKET)
@@ -395,7 +382,7 @@ result_t Socket::send(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac)
 	{
 	public:
 		asyncSend(SOCKET s, obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac) :
-				asyncProc(s, EV_WRITE), m_ac(ac)
+				asyncProc(s, EV_WRITE, ac)
 		{
 			data->toString(m_buf);
 			m_p = m_buf.c_str();
@@ -434,7 +421,6 @@ result_t Socket::send(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac)
 		std::string m_buf;
 		const char* m_p;
 		int m_sz;
-		exlib::AsyncEvent* m_ac;
 	};
 
 	if (m_sock == INVALID_SOCKET)
