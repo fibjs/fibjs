@@ -481,7 +481,7 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, obj_ptr<T>& vr)
 {
 	vr = (T*) T::class_info().getInstance(v);
 	if (vr == NULL)
-		return CALL_E_NOTINSTANCE;
+		return CALL_E_INVALIDARG;
 
 	return 0;
 }
