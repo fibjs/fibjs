@@ -34,6 +34,7 @@ public:
 
 		while (1)
 		{
+			v8::HandleScope handle_scope;
 			AsyncCallBack* ac;
 
 			if ((ac = (AsyncCallBack*)g_cbs.tryget()) == NULL)
