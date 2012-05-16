@@ -107,10 +107,10 @@ template<typename T0> \
 #define ASYNC_CALLBACK1(cls, m) \
 	template<typename T0> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0) {\
+		T0& v0) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0) : \
+		_t(cls* pThis, T0& v0) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
@@ -137,10 +137,10 @@ template<typename T0> \
 #define ASYNC_VALUEBACK1(cls, m, rt) \
 	template<typename T0> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0) {\
+		T0& v0) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0) : \
+		_t(cls* pThis, T0& v0) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
@@ -196,10 +196,10 @@ template<typename T0, typename T1> \
 #define ASYNC_CALLBACK2(cls, m) \
 	template<typename T0, typename T1> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0, T1 v1) {\
+		T0& v0, T1& v1) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0, T1 v1) : \
+		_t(cls* pThis, T0& v0, T1& v1) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
@@ -227,10 +227,10 @@ template<typename T0, typename T1> \
 #define ASYNC_VALUEBACK2(cls, m, rt) \
 	template<typename T0, typename T1> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0, T1 v1) {\
+		T0& v0, T1& v1) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0, T1 v1) : \
+		_t(cls* pThis, T0& v0, T1& v1) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
@@ -287,10 +287,10 @@ template<typename T0, typename T1, typename T2> \
 #define ASYNC_CALLBACK3(cls, m) \
 	template<typename T0, typename T1, typename T2> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0, T1 v1, T2 v2) {\
+		T0& v0, T1& v1, T2& v2) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0, T1 v1, T2 v2) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
@@ -319,10 +319,10 @@ template<typename T0, typename T1, typename T2> \
 #define ASYNC_VALUEBACK3(cls, m, rt) \
 	template<typename T0, typename T1, typename T2> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0, T1 v1, T2 v2) {\
+		T0& v0, T1& v1, T2& v2) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0, T1 v1, T2 v2) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
@@ -380,10 +380,10 @@ template<typename T0, typename T1, typename T2, typename T3> \
 #define ASYNC_CALLBACK4(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0, T1 v1, T2 v2, T3 v3) {\
+		T0& v0, T1& v1, T2& v2, T3& v3) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
@@ -413,10 +413,10 @@ template<typename T0, typename T1, typename T2, typename T3> \
 #define ASYNC_VALUEBACK4(cls, m, rt) \
 	template<typename T0, typename T1, typename T2, typename T3> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0, T1 v1, T2 v2, T3 v3) {\
+		T0& v0, T1& v1, T2& v2, T3& v3) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
@@ -475,10 +475,10 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 #define ASYNC_CALLBACK5(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
@@ -509,10 +509,10 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 #define ASYNC_VALUEBACK5(cls, m, rt) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
@@ -572,10 +572,10 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 #define ASYNC_CALLBACK6(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
@@ -607,10 +607,10 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 #define ASYNC_VALUEBACK6(cls, m, rt) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
@@ -671,10 +671,10 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 #define ASYNC_CALLBACK7(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
@@ -707,10 +707,10 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 #define ASYNC_VALUEBACK7(cls, m, rt) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
@@ -772,10 +772,10 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 #define ASYNC_CALLBACK8(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
@@ -809,10 +809,10 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 #define ASYNC_VALUEBACK8(cls, m, rt) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
@@ -875,10 +875,10 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 #define ASYNC_CALLBACK9(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7), m_v8(v8) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
@@ -913,10 +913,10 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 #define ASYNC_VALUEBACK9(cls, m, rt) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8> \
 	void acb_##m(AsyncQueue& q, \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8) : \
 			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7), m_v8(v8) \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \

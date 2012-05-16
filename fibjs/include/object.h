@@ -41,12 +41,12 @@ public:
 public:
 	void Ref()
 	{
-		refs_++;
+		exlib::atom_inc(&refs_);
 	}
 
 	void Unref()
 	{
-		if (--refs_ == 0)
+		if(exlib::atom_dec(&refs_) == 0)
 			delete this;
 	}
 
@@ -154,6 +154,12 @@ public:
 	// object_base
 	virtual result_t dispose()
 	{
+		if (!m_events.IsEmpty())
+		{
+			m_events.Dispose();
+			m_events.Clear();
+		}
+
 		if (!handle_.IsEmpty())
 		{
 			handle_.ClearWeak();

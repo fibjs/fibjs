@@ -104,7 +104,7 @@ function gen_callback(argn, bRet)
 		s = '		';
 		a = [];
 		for(i = 0; i < argn; i ++)
-			a.push('T' + i + ' v' + i);
+			a.push('T' + i + '& v' + i);
 		s += a.join(', ');
 		s += ') {\\';
 		txt.push(s);
@@ -114,7 +114,7 @@ function gen_callback(argn, bRet)
 	txt.push('	class _t: public AsyncCallBack { \\\n	public: \\');
 	s = '		_t(cls* pThis';
 	for(i = 0; i < argn; i ++)
-		s += ', T' + i + ' v' + i;
+		s += ', T' + i + '& v' + i;
 	s += ') : \\';
 	txt.push(s);
 

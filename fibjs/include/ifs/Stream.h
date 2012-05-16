@@ -59,37 +59,7 @@ protected:
 	ASYNC_MEMBER0(Stream_base, flush);
 	ASYNC_CALLBACK0(Stream_base, flush);
 	ASYNC_MEMBER0(Stream_base, close);
-//	ASYNC_CALLBACK0(Stream_base, close);
-
-	void acb_close(AsyncQueue& q) {
-	class _t: public AsyncCallBack {
-	public:
-		_t(Stream_base* pThis) :
-			AsyncCallBack(pThis, NULL, _stub)
-		{	pThis->Ref();}
-		static void _stub(AsyncCall* ac)
-		{	_t* t = (_t*) ac;
-			result_t hr = ((Stream_base*)t->m_pThis)->close(t);
-			if (hr != CALL_E_PENDDING)t->post(hr);
-		}
-		virtual void post(int v)
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v);
-			else{m_pThis->Unref();delete this;}
-		}
-		virtual void callback()
-		{
-			m_pThis->_trigger("close", NULL, 0);
-			m_pThis->Unref();
-			delete this;
-		}
-	private:
-	};
-	q.put(new _t(this));
-	}
-
-
-
-
+	ASYNC_CALLBACK0(Stream_base, close);
 };
 
 }
