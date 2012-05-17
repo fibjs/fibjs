@@ -96,6 +96,11 @@ inline int atom_dec(__volatile__ int *dest)
 
 #endif
 
+inline void* CompareAndSwap(void** ptr, void* old_value, void* new_value)
+{
+	return CompareAndSwap((char**) ptr, (char*) old_value, (char*) new_value);
+}
+
 }
 
 #endif

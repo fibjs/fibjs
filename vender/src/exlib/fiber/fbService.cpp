@@ -25,8 +25,6 @@ extern "C" int nix_switch(context* from, context* to);
 
 #ifdef MacOS
 
-#include <pthread.h>
-
 static pthread_key_t keyService;
 static pthread_once_t once = PTHREAD_ONCE_INIT;
 
