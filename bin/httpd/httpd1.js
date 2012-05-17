@@ -6,10 +6,10 @@ var net = require('net');
 
 function connect(c)
 {
-	c.read();
+	var b = c.read();
 	c.write(new Buffer("HTTP/1.0 200 ok\r\nConnection: close\r\n\r\nhello."));
 	c.close();
-	c.dispose();
+//	c.dispose();
 }
 
 var s = new net.Socket();
