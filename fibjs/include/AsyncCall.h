@@ -43,6 +43,19 @@ public:
 	virtual void invoke();
 	virtual void callback() = 0;
 
+protected:
+	static const char* m_v(const char*& s);
+	static const char* m_v(std::string& s)
+	{
+		return s.c_str();
+	}
+
+	template<typename T>
+	static T& m_v(T& v)
+	{
+		return v;
+	}
+
 public:
 	object_base* m_pThis;
 };

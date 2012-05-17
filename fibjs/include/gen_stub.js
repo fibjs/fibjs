@@ -127,7 +127,7 @@ function gen_callback(argn, bRet)
 	txt.push('		{	pThis->Ref();} \\\n		static void _stub(AsyncCall* ac) \\\n		{	_t* t = (_t*) ac; \\');
 	s = '			result_t hr = ((cls*)t->m_pThis)->m(';
 	for(i = 0; i < argn; i ++)
-		s += 't->m_v' + i + ', ';
+		s += 'm_v(t->m_v' + i + '), ';
 	if(bRet)
 		s += 't->retVal, ';
 	s += 't); \\';

@@ -115,7 +115,7 @@ template<typename T0> \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
@@ -145,7 +145,7 @@ template<typename T0> \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->retVal, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
@@ -204,7 +204,7 @@ template<typename T0, typename T1> \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
@@ -235,7 +235,7 @@ template<typename T0, typename T1> \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->retVal, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
@@ -295,7 +295,7 @@ template<typename T0, typename T1, typename T2> \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
@@ -327,7 +327,7 @@ template<typename T0, typename T1, typename T2> \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->retVal, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
@@ -388,7 +388,7 @@ template<typename T0, typename T1, typename T2, typename T3> \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
@@ -421,7 +421,7 @@ template<typename T0, typename T1, typename T2, typename T3> \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->retVal, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
@@ -483,7 +483,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
@@ -517,7 +517,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->retVal, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
@@ -580,7 +580,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->m_v5, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
@@ -615,7 +615,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->m_v5, t->retVal, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
@@ -679,7 +679,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->m_v5, t->m_v6, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
@@ -715,7 +715,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->m_v5, t->m_v6, t->retVal, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
@@ -780,7 +780,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->m_v5, t->m_v6, t->m_v7, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), m_v(t->m_v7), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
@@ -817,7 +817,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->m_v5, t->m_v6, t->m_v7, t->retVal, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), m_v(t->m_v7), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
@@ -883,7 +883,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->m_v5, t->m_v6, t->m_v7, t->m_v8, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), m_v(t->m_v7), m_v(t->m_v8), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \
@@ -921,7 +921,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		{	pThis->Ref();} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
-			result_t hr = ((cls*)t->m_pThis)->m(t->m_v0, t->m_v1, t->m_v2, t->m_v3, t->m_v4, t->m_v5, t->m_v6, t->m_v7, t->m_v8, t->retVal, t); \
+			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), m_v(t->m_v7), m_v(t->m_v8), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
 		virtual void post(int v) \

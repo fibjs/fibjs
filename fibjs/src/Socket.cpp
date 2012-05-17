@@ -667,7 +667,9 @@ result_t Socket::sendto(obj_ptr<Buffer_base> data, const char* host,
 
 result_t Socket::asyncConnect(const char* addr, int32_t port)
 {
-	acb_connect(s_acPool, addr, port);
+	std::string strAddr(addr);
+
+	acb_connect(s_acPool, strAddr, port);
 	return 0;
 }
 
