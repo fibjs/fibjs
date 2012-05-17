@@ -154,6 +154,8 @@ public:
 			handle_.Dispose();
 			handle_.Clear();
 
+			m_nTriggers = 0;
+
 			v8::V8::AdjustAmountOfExternalAllocatedMemory(-32);
 
 			if(refs_ == 0)
