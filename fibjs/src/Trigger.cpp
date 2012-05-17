@@ -21,7 +21,7 @@ v8::Handle<v8::Array> object_base::GetHiddenArray(const char* k, bool create,
 		bool autoDelete)
 {
 	v8::Local<v8::String> s = v8::String::NewSymbol(k);
-	v8::Handle<v8::Object> o = events();
+	v8::Handle<v8::Object> o = wrap();
 	v8::Handle<v8::Value> es = o->GetHiddenValue(s);
 	v8::Handle<v8::Array> esa;
 
@@ -42,7 +42,7 @@ v8::Handle<v8::Array> object_base::GetHiddenArray(const char* k, bool create,
 	return esa;
 }
 
-inline void putFunction(v8::Handle<v8::Array> esa,
+inline int putFunction(v8::Handle<v8::Array> esa,
 		v8::Handle<v8::Function> func)
 {
 	int len = esa->Length();
@@ -54,7 +54,7 @@ inline void putFunction(v8::Handle<v8::Array> esa,
 		if (v->IsFunction())
 		{
 			if (v->StrictEquals(func))
-				return;
+				return 0;
 		}
 		else if (p == -1)
 			p = i;
@@ -64,13 +64,15 @@ inline void putFunction(v8::Handle<v8::Array> esa,
 		p = len;
 
 	esa->Set(p, func);
+
+	return 1;
 }
 
-inline void removeFunction(v8::Handle<v8::Array> esa,
+inline int removeFunction(v8::Handle<v8::Array> esa,
 		v8::Handle<v8::Function> func)
 {
 	if (esa.IsEmpty())
-		return;
+		return 0;
 
 	int len = esa->Length();
 	int i;
@@ -83,10 +85,12 @@ inline void removeFunction(v8::Handle<v8::Array> esa,
 			if (v->StrictEquals(func))
 			{
 				esa->Delete(i);
-				return;
+				return -1;
 			}
 		}
 	}
+
+	return 0;
 }
 
 inline result_t _map(object_base* o, v8::Handle<v8::Object> m,
@@ -113,15 +117,13 @@ inline result_t _map(object_base* o, v8::Handle<v8::Object> m,
 
 result_t object_base::on(const char* ev, v8::Handle<v8::Function> func)
 {
-	m_bHasTrigger = true;
-
 	std::string strKey = "_e_";
 	strKey.append(ev);
-	putFunction(GetHiddenArray(strKey.c_str(), true), func);
+	m_nTriggers += putFunction(GetHiddenArray(strKey.c_str(), true), func);
 
 	strKey = "_e1_";
 	strKey.append(ev);
-	removeFunction(GetHiddenArray(strKey.c_str()), func);
+	m_nTriggers += removeFunction(GetHiddenArray(strKey.c_str()), func);
 
 	return 0;
 }
@@ -133,15 +135,13 @@ result_t object_base::on(v8::Handle<v8::Object> map)
 
 result_t object_base::once(const char* ev, v8::Handle<v8::Function> func)
 {
-	m_bHasTrigger = true;
-
 	std::string strKey = "_e1_";
 	strKey.append(ev);
-	putFunction(GetHiddenArray(strKey.c_str(), true), func);
+	m_nTriggers += putFunction(GetHiddenArray(strKey.c_str(), true), func);
 
 	strKey = "_e_";
 	strKey.append(ev);
-	removeFunction(GetHiddenArray(strKey.c_str()), func);
+	m_nTriggers += removeFunction(GetHiddenArray(strKey.c_str()), func);
 
 	return 0;
 }
@@ -153,19 +153,25 @@ result_t object_base::once(v8::Handle<v8::Object> map)
 
 result_t object_base::off(const char* ev, v8::Handle<v8::Function> func)
 {
+	if(!m_nTriggers)
+		return 0;
+
 	std::string strKey = "_e_";
 	strKey.append(ev);
-	removeFunction(GetHiddenArray(strKey.c_str()), func);
+	m_nTriggers += removeFunction(GetHiddenArray(strKey.c_str()), func);
 
 	strKey = "_e1_";
 	strKey.append(ev);
-	removeFunction(GetHiddenArray(strKey.c_str()), func);
+	m_nTriggers += removeFunction(GetHiddenArray(strKey.c_str()), func);
 
 	return 0;
 }
 
 result_t object_base::off(v8::Handle<v8::Object> map)
 {
+	if(!m_nTriggers)
+		return 0;
+
 	return _map(this, map, &object_base::off);
 }
 
@@ -212,7 +218,7 @@ result_t fireTrigger(v8::Handle<v8::Array> esa, T args, int argCount)
 
 result_t object_base::_trigger(const char* ev, v8::Handle<v8::Value>* args, int argCount)
 {
-	if (!m_bHasTrigger)
+	if (!m_nTriggers)
 		return 0;
 
 	result_t hr;
@@ -235,7 +241,7 @@ result_t object_base::_trigger(const char* ev, v8::Handle<v8::Value>* args, int 
 
 result_t object_base::trigger(const char* ev, const v8::Arguments& args)
 {
-	if (!m_bHasTrigger)
+	if (!m_nTriggers)
 		return 0;
 
 	result_t hr;

@@ -26,28 +26,32 @@ public:
 	object_base()
 	{
 		refs_ = 0;
-		m_bHasTrigger = false;
+		m_nTriggers = 0;
 	}
 
 	virtual ~object_base()
 	{
-		if (m_events.IsEmpty())
-		{
-			m_events.Dispose();
-			m_events.Clear();
-		}
 	}
 
 public:
 	void Ref()
 	{
-		exlib::atom_inc(&refs_);
+		if(exlib::atom_inc(&refs_) == 1)
+		{
+			if(!handle_.IsEmpty())
+				handle_.ClearWeak();
+		}
 	}
 
 	void Unref()
 	{
 		if(exlib::atom_dec(&refs_) == 0)
-			delete this;
+		{
+			if(!handle_.IsEmpty())
+				handle_.MakeWeak(this, WeakCallback);
+			else
+				delete this;
+		}
 	}
 
 public:
@@ -70,19 +74,11 @@ public:
 private:
 	int refs_;
 	v8::Persistent<v8::Object> handle_;
-	v8::Persistent<v8::Object> m_events;
 
 private:
 	static void WeakCallback(v8::Persistent<v8::Value> value, void* data)
 	{
 		(static_cast<object_base*> (data))->dispose();
-	}
-
-	v8::Handle<v8::Object> events()
-	{
-		if (m_events.IsEmpty())
-			m_events = v8::Persistent<v8::Object>::New(v8::Object::New());
-		return m_events;
 	}
 
 public:
@@ -92,11 +88,8 @@ public:
 		{
 			handle_ = v8::Persistent<v8::Object>::New(o);
 			handle_->SetPointerInInternalField(0, this);
-			handle_.MakeWeak(this, WeakCallback);
 
 			v8::V8::AdjustAmountOfExternalAllocatedMemory(32);
-
-			Ref();
 		}
 
 		return handle_;
@@ -141,25 +134,19 @@ public:
 	result_t _trigger(const char* ev, v8::Handle<v8::Value>* args, int argCount);
 	bool hasTrigger()
 	{
-		return m_bHasTrigger;
+		return m_nTriggers > 0;
 	}
 
 private:
 	v8::Handle<v8::Array> GetHiddenArray(const char* k, bool create = false, bool autoDelete = false);
 
 private:
-	bool m_bHasTrigger;
+	int m_nTriggers;
 
 public:
 	// object_base
 	virtual result_t dispose()
 	{
-		if (!m_events.IsEmpty())
-		{
-			m_events.Dispose();
-			m_events.Clear();
-		}
-
 		if (!handle_.IsEmpty())
 		{
 			handle_.ClearWeak();
@@ -169,7 +156,8 @@ public:
 
 			v8::V8::AdjustAmountOfExternalAllocatedMemory(-32);
 
-			Unref();
+			if(refs_ == 0)
+				delete this;
 		}
 
 		return 0;
