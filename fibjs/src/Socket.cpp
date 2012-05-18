@@ -426,6 +426,11 @@ result_t Socket::asyncRead(int32_t bytes)
 	return 0;
 }
 
+result_t Socket::onread(v8::Handle<v8::Function> func)
+{
+	return on("read", func);
+}
+
 result_t Socket::write(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac)
 {
 	return send(data, ac);
@@ -435,6 +440,11 @@ result_t Socket::asyncWrite(obj_ptr<Buffer_base> data)
 {
 	acb_write(s_acPool, data);
 	return 0;
+}
+
+result_t Socket::onwrite(v8::Handle<v8::Function> func)
+{
+	return on("write", func);
 }
 
 result_t Socket::flush(exlib::AsyncEvent* ac)
@@ -451,6 +461,11 @@ result_t Socket::asyncFlush()
 	return 0;
 }
 
+result_t Socket::onflush(v8::Handle<v8::Function> func)
+{
+	return on("flush", func);
+}
+
 result_t Socket::close(exlib::AsyncEvent* ac)
 {
 	if (m_sock != INVALID_SOCKET)
@@ -465,6 +480,16 @@ result_t Socket::asyncClose()
 {
 	acb_close(s_acPool);
 	return 0;
+}
+
+result_t Socket::onclose(v8::Handle<v8::Function> func)
+{
+	return on("close", func);
+}
+
+result_t Socket::onerror(v8::Handle<v8::Function> func)
+{
+	return on("error", func);
 }
 
 result_t Socket::get_family(int32_t& retVal)
@@ -673,10 +698,20 @@ result_t Socket::asyncConnect(const char* addr, int32_t port)
 	return 0;
 }
 
+result_t Socket::onconnect(v8::Handle<v8::Function> func)
+{
+	return on("connect", func);
+}
+
 result_t Socket::asyncAccept()
 {
 	acb_accept(s_acPool);
 	return 0;
+}
+
+result_t Socket::onaccept(v8::Handle<v8::Function> func)
+{
+	return on("accept", func);
 }
 
 }

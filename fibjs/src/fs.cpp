@@ -24,7 +24,7 @@ result_t fs_base::open(const char* fname, const char* mode,
 	obj_ptr<File> pFile = new File;
 	result_t hr;
 
-	hr = pFile->Open(fname, mode);
+	hr = pFile->open(fname, mode, NULL);
 	if (hr < 0)
 		return hr;
 
@@ -51,7 +51,7 @@ result_t fs_base::readFile(const char* fname, std::string& retVal, exlib::AsyncE
 	obj_ptr<Buffer_base> buf;
 	result_t hr;
 
-	hr = f->Open(fname, "r");
+	hr = f->open(fname, "r", NULL);
 	if (hr < 0)
 		return hr;
 
@@ -67,7 +67,7 @@ result_t fs_base::writeFile(const char* fname, const char* txt, exlib::AsyncEven
 	obj_ptr<File> pFile = new File;
 	result_t hr;
 
-	hr = pFile->Open(fname, "w");
+	hr = pFile->open(fname, "w", NULL);
 	if (hr < 0)
 		return hr;
 

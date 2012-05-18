@@ -12,6 +12,9 @@ class fs : module
 	const Integer SEEK_CUR = 1;
 	const Integer SEEK_END = 2;
 
+	/*! @brief 创建一个文件对象，参见 File */
+	static File new File();
+
 	/*! @brief 打开文件，用于读取，写入，或者同时读写
 	 * @param fname 指定文件名
 	 * @param mode 指定文件打开方式，缺省为 "r"，只读方式。支持的方式如下：

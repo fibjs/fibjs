@@ -112,6 +112,11 @@ namespace fibjs
 			{"readdir", s_readdir}
 		};
 
+		static ClassObject s_object[] = 
+		{
+			{"File", File_base::class_info}
+		};
+
 		static ClassProperty s_property[] = 
 		{
 			{"SEEK_SET", s_get_SEEK_SET},
@@ -122,7 +127,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"fs", NULL, 
-			12, s_method, 0, NULL, 3, s_property, NULL,
+			12, s_method, 1, s_object, 3, s_property, NULL,
 			&module_base::class_info()
 		};
 

@@ -26,12 +26,17 @@ public:
 	// Stream_base
 	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncRead(int32_t bytes) = 0;
+	virtual result_t onread(v8::Handle<v8::Function> func) = 0;
 	virtual result_t write(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncWrite(obj_ptr<Buffer_base> data) = 0;
+	virtual result_t onwrite(v8::Handle<v8::Function> func) = 0;
 	virtual result_t flush(exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncFlush() = 0;
+	virtual result_t onflush(v8::Handle<v8::Function> func) = 0;
 	virtual result_t close(exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncClose() = 0;
+	virtual result_t onclose(v8::Handle<v8::Function> func) = 0;
+	virtual result_t onerror(v8::Handle<v8::Function> func) = 0;
 
 public:
 	static ClassInfo& class_info();
@@ -44,12 +49,17 @@ public:
 protected:
 	static v8::Handle<v8::Value> s_read(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncRead(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_onread(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_write(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncWrite(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_onwrite(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_flush(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncFlush(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_onflush(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_close(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncClose(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_onclose(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_onerror(const v8::Arguments& args);
 
 protected:
 	ASYNC_MEMBER2(Stream_base, read);
@@ -74,18 +84,23 @@ namespace fibjs
 		{
 			{"read", s_read},
 			{"asyncRead", s_asyncRead},
+			{"onread", s_onread},
 			{"write", s_write},
 			{"asyncWrite", s_asyncWrite},
+			{"onwrite", s_onwrite},
 			{"flush", s_flush},
 			{"asyncFlush", s_asyncFlush},
+			{"onflush", s_onflush},
 			{"close", s_close},
-			{"asyncClose", s_asyncClose}
+			{"asyncClose", s_asyncClose},
+			{"onclose", s_onclose},
+			{"onerror", s_onerror}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"Stream", NULL, 
-			8, s_method, 0, NULL, 0, NULL, NULL,
+			13, s_method, 0, NULL, 0, NULL, NULL,
 			&Trigger_base::class_info()
 		};
 
@@ -120,6 +135,18 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
+	inline v8::Handle<v8::Value> Stream_base::s_onread(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Stream_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Function>, 0);
+
+		hr = pInst->onread(v0);
+
+		METHOD_VOID();
+	}
+
 	inline v8::Handle<v8::Value> Stream_base::s_write(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(Stream_base);
@@ -144,6 +171,18 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
+	inline v8::Handle<v8::Value> Stream_base::s_onwrite(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Stream_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Function>, 0);
+
+		hr = pInst->onwrite(v0);
+
+		METHOD_VOID();
+	}
+
 	inline v8::Handle<v8::Value> Stream_base::s_flush(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(Stream_base);
@@ -164,6 +203,18 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
+	inline v8::Handle<v8::Value> Stream_base::s_onflush(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Stream_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Function>, 0);
+
+		hr = pInst->onflush(v0);
+
+		METHOD_VOID();
+	}
+
 	inline v8::Handle<v8::Value> Stream_base::s_close(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(Stream_base);
@@ -180,6 +231,30 @@ namespace fibjs
 		METHOD_ENTER(0, 0);
 
 		hr = pInst->asyncClose();
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Stream_base::s_onclose(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Stream_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Function>, 0);
+
+		hr = pInst->onclose(v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Stream_base::s_onerror(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Stream_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Function>, 0);
+
+		hr = pInst->onerror(v0);
 
 		METHOD_VOID();
 	}

@@ -31,9 +31,14 @@ public:
 
 public:
 	// File_base
+	static result_t _new(obj_ptr<File_base>& retVal);
+	virtual result_t open(const char* fname, const char* mode, exlib::AsyncEvent* ac) = 0;
+	virtual result_t asyncOpen(const char* fname, const char* mode) = 0;
+	virtual result_t onopen(v8::Handle<v8::Function> func) = 0;
 	virtual result_t get_name(std::string& retVal) = 0;
 	virtual result_t stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncStat() = 0;
+	virtual result_t onstat(v8::Handle<v8::Function> func) = 0;
 	virtual result_t size(double& retVal) = 0;
 	virtual result_t eof(bool& retVal) = 0;
 	virtual result_t seek(double offset, int32_t whence) = 0;
@@ -41,6 +46,7 @@ public:
 	virtual result_t rewind() = 0;
 	virtual result_t truncate(double bytes, exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncTruncate(double bytes) = 0;
+	virtual result_t ontruncate(v8::Handle<v8::Function> func) = 0;
 
 public:
 	static ClassInfo& class_info();
@@ -64,9 +70,14 @@ protected:
 	static v8::Handle<v8::Value> s_get_SEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_SEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_open(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_asyncOpen(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_onopen(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_name(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_stat(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncStat(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_onstat(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_size(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_eof(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_seek(const v8::Arguments& args);
@@ -74,8 +85,11 @@ protected:
 	static v8::Handle<v8::Value> s_rewind(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_truncate(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncTruncate(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_ontruncate(const v8::Arguments& args);
 
 protected:
+	ASYNC_MEMBER2(File_base, open);
+	ASYNC_CALLBACK2(File_base, open);
 	ASYNC_MEMBER1(File_base, stat);
 	ASYNC_VALUEBACK0(File_base, stat, obj_ptr<Stat_base>);
 	ASYNC_MEMBER1(File_base, truncate);
@@ -92,15 +106,20 @@ namespace fibjs
 	{
 		static ClassMethod s_method[] = 
 		{
+			{"open", s_open},
+			{"asyncOpen", s_asyncOpen},
+			{"onopen", s_onopen},
 			{"stat", s_stat},
 			{"asyncStat", s_asyncStat},
+			{"onstat", s_onstat},
 			{"size", s_size},
 			{"eof", s_eof},
 			{"seek", s_seek},
 			{"tell", s_tell},
 			{"rewind", s_rewind},
 			{"truncate", s_truncate},
-			{"asyncTruncate", s_asyncTruncate}
+			{"asyncTruncate", s_asyncTruncate},
+			{"ontruncate", s_ontruncate}
 		};
 
 		static ClassProperty s_property[] = 
@@ -113,8 +132,8 @@ namespace fibjs
 
 		static ClassData s_cd = 
 		{ 
-			"File", NULL, 
-			9, s_method, 0, NULL, 4, s_property, NULL,
+			"File", s__new, 
+			14, s_method, 0, NULL, 4, s_property, NULL,
 			&Stream_base::class_info()
 		};
 
@@ -155,6 +174,55 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
+	inline v8::Handle<v8::Value> File_base::s__new(const v8::Arguments& args)
+	{
+		obj_ptr<File_base> vr;
+
+		CONSTRUCT_ENTER(0, 0);
+
+		hr = _new(vr);
+
+		CONSTRUCT_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> File_base::s_open(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(File_base);
+		METHOD_ENTER(2, 1);
+
+		ARG_String(0);
+		OPT_ARG_String(1, "r");
+
+		hr = pInst->ac_open(s_acPool, v0, v1);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> File_base::s_asyncOpen(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(File_base);
+		METHOD_ENTER(2, 1);
+
+		ARG_String(0);
+		OPT_ARG_String(1, "r");
+
+		hr = pInst->asyncOpen(v0, v1);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> File_base::s_onopen(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(File_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Function>, 0);
+
+		hr = pInst->onopen(v0);
+
+		METHOD_VOID();
+	}
+
 	inline v8::Handle<v8::Value> File_base::s_stat(const v8::Arguments& args)
 	{
 		obj_ptr<Stat_base> vr;
@@ -173,6 +241,18 @@ namespace fibjs
 		METHOD_ENTER(0, 0);
 
 		hr = pInst->asyncStat();
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> File_base::s_onstat(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(File_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Function>, 0);
+
+		hr = pInst->onstat(v0);
 
 		METHOD_VOID();
 	}
@@ -256,6 +336,18 @@ namespace fibjs
 		ARG(double, 0);
 
 		hr = pInst->asyncTruncate(v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> File_base::s_ontruncate(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(File_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Function>, 0);
+
+		hr = pInst->ontruncate(v0);
 
 		METHOD_VOID();
 	}

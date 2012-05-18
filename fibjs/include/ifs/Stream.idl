@@ -8,21 +8,85 @@ class Stream : Trigger
 	 */
 	Buffer read(Integer bytes = -1) async;
 
+	/*! @brief 从流内异步读取指定大小的数据，触发事件 "read"
+	 * @param bytes 指定要读取的数据量，缺省为读取剩余全部数据
+	 */
 	asyncRead(Integer bytes = -1);
+
+	/*! @brief 注册 "read" 事件，等同于 on("read", func);
+	 * @param func 事件处理函数
+	 *
+	 * "read" 事件定义如下：
+	 * @code
+	 * function on_read(data)
+	 * {}
+	 * @endcode
+	 */
+	onread(Function func);
 
 	/*! @brief 将给定的数据写入流
 	 * @param data 给定要写入的数据
 	 */
 	write(Buffer data) async;
 
+	/*! @brief 将给定的数据异步写入流，触发事件 "write"
+	 * @param data 给定要写入的数据
+	 */
 	asyncWrite(Buffer data);
 
-	/*! @brief 将文件缓冲区内容写入文件 */
+	/*! @brief 注册 "write" 事件，等同于 on("write", func);
+	 * @param func 事件处理函数
+	 *
+	 * "write" 事件定义如下：
+	 * @code
+	 * function on_write()
+	 * {}
+	 * @endcode
+	 */
+	onwrite(Function func);
+
+	/*! @brief 将文件缓冲区内容写入物理设备 */
 	flush() async;
+
+	/*! @brief 将文件缓冲区内容异步写入物理设备，触发事件 "flush" */
 	asyncFlush();
 	
-	/*! @brief 关闭当前文件 */
+	/*! @brief 注册 "flush" 事件，等同于 on("flush", func);
+	 * @param func 事件处理函数
+	 *
+	 * "flush" 事件定义如下：
+	 * @code
+	 * function on_flush()
+	 * {}
+	 * @endcode
+	 */
+	onflush(Function func);
+
+	/*! @brief 关闭当前流 */
 	close() async;
 
+	/*! @brief 异步关闭当前流，触发事件 "close" */
 	asyncClose();
+
+	/*! @brief 注册 "close" 事件，等同于 on("close", func);
+	 * @param func 事件处理函数
+	 *
+	 * "close" 事件定义如下：
+	 * @code
+	 * function on_close()
+	 * {}
+	 * @endcode
+	 */
+	onclose(Function func);
+
+	/*! @brief 注册 "error" 事件，等同于 on("error", func);
+	 * @param func 事件处理函数
+	 *
+	 * "error" 事件定义如下：
+	 * @code
+	 * function on_error(err)
+	 * {}
+	 * @endcode
+	 */
+	onerror(Function func);
 };

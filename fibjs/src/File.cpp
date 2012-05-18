@@ -15,6 +15,12 @@
 namespace fibjs
 {
 
+result_t File_base::_new(obj_ptr<File_base>& retVal)
+{
+	retVal = new File();
+	return 0;
+}
+
 result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 		exlib::AsyncEvent* ac)
 {
@@ -68,6 +74,11 @@ result_t File::asyncRead(int32_t bytes)
 	return 0;
 }
 
+result_t File::onread(v8::Handle<v8::Function> func)
+{
+	return on("read", func);
+}
+
 result_t File::Write(const char* p, int sz)
 {
 	if (!m_file)
@@ -100,7 +111,12 @@ result_t File::asyncWrite(obj_ptr<Buffer_base> data)
 	return 0;
 }
 
-result_t File::Open(const char* fname, const char* mode)
+result_t File::onwrite(v8::Handle<v8::Function> func)
+{
+	return on("write", func);
+}
+
+result_t File::open(const char* fname, const char* mode, exlib::AsyncEvent* ac)
 {
 #ifdef _WIN32
 	wchar_t m[] = L"rb\0";
@@ -128,6 +144,20 @@ result_t File::Open(const char* fname, const char* mode)
 	name = fname;
 
 	return 0;
+}
+
+result_t File::asyncOpen(const char* fname, const char* mode)
+{
+	std::string strname(fname);
+	std::string strmode(mode);
+
+	acb_open(s_acPool, strname, strmode);
+	return 0;
+}
+
+result_t File::onopen(v8::Handle<v8::Function> func)
+{
+	return on("open", func);
 }
 
 result_t File::get_name(std::string& retVal)
@@ -158,6 +188,11 @@ result_t File::asyncStat()
 {
 	acb_stat(s_acPool);
 	return 0;
+}
+
+result_t File::onstat(v8::Handle<v8::Function> func)
+{
+	return on("stat", func);
 }
 
 result_t File::size(double& retVal)
@@ -238,6 +273,11 @@ result_t File::asyncFlush()
 	return 0;
 }
 
+result_t File::onflush(v8::Handle<v8::Function> func)
+{
+	return on("flush", func);
+}
+
 result_t File::close(exlib::AsyncEvent* ac)
 {
 	if (m_file)
@@ -255,6 +295,11 @@ result_t File::asyncClose()
 	return 0;
 }
 
+result_t File::onclose(v8::Handle<v8::Function> func)
+{
+	return on("close", func);
+}
+
 result_t File::truncate(double bytes, exlib::AsyncEvent* ac)
 {
 	if (!m_file)
@@ -270,6 +315,16 @@ result_t File::asyncTruncate(double bytes)
 {
 	acb_truncate(s_acPool, bytes);
 	return 0;
+}
+
+result_t File::ontruncate(v8::Handle<v8::Function> func)
+{
+	return on("truncate", func);
+}
+
+result_t File::onerror(v8::Handle<v8::Function> func)
+{
+	return on("error", func);
 }
 
 }
