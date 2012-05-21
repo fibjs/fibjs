@@ -24,8 +24,6 @@ public:
 
 	static void* _proc(void* p)
 	{
-		exlib::Service* pService = exlib::Service::getFiberService();
-
 		v8::Locker locker(isolate);
 		v8::Isolate::Scope isolate_scope(isolate);
 

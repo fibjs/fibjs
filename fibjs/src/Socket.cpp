@@ -447,6 +447,32 @@ result_t Socket::onwrite(v8::Handle<v8::Function> func)
 	return on("write", func);
 }
 
+result_t Socket::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
+{
+	return CALL_E_INVALID_CALL;
+}
+
+result_t Socket::asyncStat()
+{
+	acb_stat(s_acPool);
+	return 0;
+}
+
+result_t Socket::onstat(v8::Handle<v8::Function> func)
+{
+	return on("stat", func);
+}
+
+result_t Socket::size(double& retVal)
+{
+	return CALL_E_INVALID_CALL;
+}
+
+result_t Socket::eof(bool& retVal)
+{
+	return CALL_E_INVALID_CALL;
+}
+
 result_t Socket::flush(exlib::AsyncEvent* ac)
 {
 	if (m_sock == INVALID_SOCKET)

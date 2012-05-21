@@ -18,7 +18,6 @@ namespace fibjs
 {
 
 class Stream_base;
-class Stat_base;
 
 class File_base : public Stream_base
 {
@@ -36,11 +35,6 @@ public:
 	virtual result_t asyncOpen(const char* fname, const char* mode) = 0;
 	virtual result_t onopen(v8::Handle<v8::Function> func) = 0;
 	virtual result_t get_name(std::string& retVal) = 0;
-	virtual result_t stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t asyncStat() = 0;
-	virtual result_t onstat(v8::Handle<v8::Function> func) = 0;
-	virtual result_t size(double& retVal) = 0;
-	virtual result_t eof(bool& retVal) = 0;
 	virtual result_t seek(double offset, int32_t whence) = 0;
 	virtual result_t tell(double& retVal) = 0;
 	virtual result_t rewind() = 0;
@@ -75,11 +69,6 @@ protected:
 	static v8::Handle<v8::Value> s_asyncOpen(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_onopen(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_name(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_stat(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncStat(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onstat(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_size(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_eof(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_seek(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_tell(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_rewind(const v8::Arguments& args);
@@ -90,15 +79,12 @@ protected:
 protected:
 	ASYNC_MEMBER2(File_base, open);
 	ASYNC_CALLBACK2(File_base, open);
-	ASYNC_MEMBER1(File_base, stat);
-	ASYNC_VALUEBACK0(File_base, stat, obj_ptr<Stat_base>);
 	ASYNC_MEMBER1(File_base, truncate);
 	ASYNC_CALLBACK1(File_base, truncate);
 };
 
 }
 
-#include "Stat.h"
 
 namespace fibjs
 {
@@ -109,11 +95,6 @@ namespace fibjs
 			{"open", s_open},
 			{"asyncOpen", s_asyncOpen},
 			{"onopen", s_onopen},
-			{"stat", s_stat},
-			{"asyncStat", s_asyncStat},
-			{"onstat", s_onstat},
-			{"size", s_size},
-			{"eof", s_eof},
 			{"seek", s_seek},
 			{"tell", s_tell},
 			{"rewind", s_rewind},
@@ -133,7 +114,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"File", s__new, 
-			14, s_method, 0, NULL, 4, s_property, NULL,
+			9, s_method, 0, NULL, 4, s_property, NULL,
 			&Stream_base::class_info()
 		};
 
@@ -221,64 +202,6 @@ namespace fibjs
 		hr = pInst->onopen(v0);
 
 		METHOD_VOID();
-	}
-
-	inline v8::Handle<v8::Value> File_base::s_stat(const v8::Arguments& args)
-	{
-		obj_ptr<Stat_base> vr;
-
-		METHOD_INSTANCE(File_base);
-		METHOD_ENTER(0, 0);
-
-		hr = pInst->ac_stat(s_acPool, vr);
-
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> File_base::s_asyncStat(const v8::Arguments& args)
-	{
-		METHOD_INSTANCE(File_base);
-		METHOD_ENTER(0, 0);
-
-		hr = pInst->asyncStat();
-
-		METHOD_VOID();
-	}
-
-	inline v8::Handle<v8::Value> File_base::s_onstat(const v8::Arguments& args)
-	{
-		METHOD_INSTANCE(File_base);
-		METHOD_ENTER(1, 1);
-
-		ARG(v8::Handle<v8::Function>, 0);
-
-		hr = pInst->onstat(v0);
-
-		METHOD_VOID();
-	}
-
-	inline v8::Handle<v8::Value> File_base::s_size(const v8::Arguments& args)
-	{
-		double vr;
-
-		METHOD_INSTANCE(File_base);
-		METHOD_ENTER(0, 0);
-
-		hr = pInst->size(vr);
-
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> File_base::s_eof(const v8::Arguments& args)
-	{
-		bool vr;
-
-		METHOD_INSTANCE(File_base);
-		METHOD_ENTER(0, 0);
-
-		hr = pInst->eof(vr);
-
-		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> File_base::s_seek(const v8::Arguments& args)

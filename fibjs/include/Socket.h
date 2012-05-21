@@ -44,6 +44,11 @@ public:
 	virtual result_t write(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac);
 	virtual result_t asyncWrite(obj_ptr<Buffer_base> data);
 	virtual result_t onwrite(v8::Handle<v8::Function> func);
+	virtual result_t stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
+	virtual result_t asyncStat();
+	virtual result_t onstat(v8::Handle<v8::Function> func);
+	virtual result_t size(double& retVal);
+	virtual result_t eof(bool& retVal);
 	virtual result_t flush(exlib::AsyncEvent* ac);
 	virtual result_t asyncFlush();
 	virtual result_t onflush(v8::Handle<v8::Function> func);
