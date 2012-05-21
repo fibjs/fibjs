@@ -56,6 +56,37 @@ protected:
 		return v;
 	}
 
+	static bool c_v(std::string& s)
+	{
+		s.clear();
+		return true;
+	}
+
+	template<typename T>
+	static bool c_v(T& v)
+	{
+		return true;
+	}
+
+	template<typename T>
+	static bool c_v(obj_ptr<T>& v)
+	{
+		if(v->isJSObject())
+			return false;
+		v.Release();
+		return true;
+	}
+
+	template<typename T>
+	static bool c_v(T*& v)
+	{
+		if(v->isJSObject())
+			return false;
+		v->Unref();
+		v = NULL;
+		return true;
+	}
+
 public:
 	object_base* m_pThis;
 };

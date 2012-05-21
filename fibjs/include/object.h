@@ -132,9 +132,15 @@ public:
 	result_t off(v8::Handle<v8::Object> map);
 	result_t trigger(const char* ev, const v8::Arguments& args);
 	result_t _trigger(const char* ev, v8::Handle<v8::Value>* args, int argCount);
+
 	bool hasTrigger()
 	{
 		return m_nTriggers > 0;
+	}
+
+	bool isJSObject()
+	{
+		return !handle_.IsEmpty();
 	}
 
 private:

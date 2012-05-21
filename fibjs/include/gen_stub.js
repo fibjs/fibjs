@@ -135,9 +135,21 @@ function gen_callback(argn, bRet)
 
 	txt.push('			if (hr != CALL_E_PENDDING)t->post(hr); \\\n' +
 			'		} \\\n' +
+			'		bool clear_value() \\\n' +
+			'		{	bool b = true; \\');
+
+	for(i = 0; i < argn; i ++)
+		txt.push('			b = b && c_v(m_v' + i + '); \\');
+	if(bRet)
+		txt.push('			b = b && c_v(retVal); \\');
+	
+	txt.push('			b = b && c_v(m_pThis); \\\n' +
+			'			return b; \\\n' +
+			'		} \\\n' +
 			'		virtual void post(int v) \\\n' +
-			'		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \\\n' +
-			'			else{m_pThis->Unref();delete this;} \\\n' +
+			'		{	if(m_pThis->hasTrigger() || !clear_value()) \\\n' +
+			'				AsyncCallBack::post(v); \\\n' +
+			'			else delete this; \\\n' +
 			'		} \\\n' +
 			'		virtual void callback() \\');
 	
@@ -146,7 +158,7 @@ function gen_callback(argn, bRet)
 	else
 		txt.push('		{\\\n			m_pThis->_trigger(#m, NULL, 0); \\');
 		
-	txt.push('			m_pThis->Unref(); \\\n' +
+	txt.push('			if(m_pThis)m_pThis->Unref(); \\\n' +
 			'			delete this; \\\n' +
 			'		} \\\n' +
 			'	private: \\');

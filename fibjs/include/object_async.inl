@@ -33,14 +33,20 @@
 			result_t hr = ((cls*)t->m_pThis)->m(t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{\
 			m_pThis->_trigger(#m, NULL, 0); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -60,14 +66,21 @@
 			result_t hr = ((cls*)t->m_pThis)->m(t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(retVal); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
 			m_pThis->_trigger(#m, &v, 1); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -118,14 +131,21 @@ template<typename T0> \
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{\
 			m_pThis->_trigger(#m, NULL, 0); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -148,14 +168,22 @@ template<typename T0> \
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(retVal); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
 			m_pThis->_trigger(#m, &v, 1); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -207,14 +235,22 @@ template<typename T0, typename T1> \
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(m_v1); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{\
 			m_pThis->_trigger(#m, NULL, 0); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -238,14 +274,23 @@ template<typename T0, typename T1> \
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(m_v1); \
+			b = b && c_v(retVal); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
 			m_pThis->_trigger(#m, &v, 1); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -298,14 +343,23 @@ template<typename T0, typename T1, typename T2> \
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(m_v1); \
+			b = b && c_v(m_v2); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{\
 			m_pThis->_trigger(#m, NULL, 0); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -330,14 +384,24 @@ template<typename T0, typename T1, typename T2> \
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(m_v1); \
+			b = b && c_v(m_v2); \
+			b = b && c_v(retVal); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
 			m_pThis->_trigger(#m, &v, 1); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -391,14 +455,24 @@ template<typename T0, typename T1, typename T2, typename T3> \
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(m_v1); \
+			b = b && c_v(m_v2); \
+			b = b && c_v(m_v3); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{\
 			m_pThis->_trigger(#m, NULL, 0); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -424,14 +498,25 @@ template<typename T0, typename T1, typename T2, typename T3> \
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(m_v1); \
+			b = b && c_v(m_v2); \
+			b = b && c_v(m_v3); \
+			b = b && c_v(retVal); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
 			m_pThis->_trigger(#m, &v, 1); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -486,14 +571,25 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(m_v1); \
+			b = b && c_v(m_v2); \
+			b = b && c_v(m_v3); \
+			b = b && c_v(m_v4); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{\
 			m_pThis->_trigger(#m, NULL, 0); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -520,14 +616,26 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(m_v1); \
+			b = b && c_v(m_v2); \
+			b = b && c_v(m_v3); \
+			b = b && c_v(m_v4); \
+			b = b && c_v(retVal); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
 			m_pThis->_trigger(#m, &v, 1); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -583,14 +691,26 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(m_v1); \
+			b = b && c_v(m_v2); \
+			b = b && c_v(m_v3); \
+			b = b && c_v(m_v4); \
+			b = b && c_v(m_v5); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{\
 			m_pThis->_trigger(#m, NULL, 0); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -618,14 +738,27 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(m_v1); \
+			b = b && c_v(m_v2); \
+			b = b && c_v(m_v3); \
+			b = b && c_v(m_v4); \
+			b = b && c_v(m_v5); \
+			b = b && c_v(retVal); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
 			m_pThis->_trigger(#m, &v, 1); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -682,14 +815,27 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(m_v1); \
+			b = b && c_v(m_v2); \
+			b = b && c_v(m_v3); \
+			b = b && c_v(m_v4); \
+			b = b && c_v(m_v5); \
+			b = b && c_v(m_v6); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{\
 			m_pThis->_trigger(#m, NULL, 0); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -718,14 +864,28 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(m_v1); \
+			b = b && c_v(m_v2); \
+			b = b && c_v(m_v3); \
+			b = b && c_v(m_v4); \
+			b = b && c_v(m_v5); \
+			b = b && c_v(m_v6); \
+			b = b && c_v(retVal); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
 			m_pThis->_trigger(#m, &v, 1); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -783,14 +943,28 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), m_v(t->m_v7), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(m_v1); \
+			b = b && c_v(m_v2); \
+			b = b && c_v(m_v3); \
+			b = b && c_v(m_v4); \
+			b = b && c_v(m_v5); \
+			b = b && c_v(m_v6); \
+			b = b && c_v(m_v7); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{\
 			m_pThis->_trigger(#m, NULL, 0); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -820,14 +994,29 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), m_v(t->m_v7), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(m_v1); \
+			b = b && c_v(m_v2); \
+			b = b && c_v(m_v3); \
+			b = b && c_v(m_v4); \
+			b = b && c_v(m_v5); \
+			b = b && c_v(m_v6); \
+			b = b && c_v(m_v7); \
+			b = b && c_v(retVal); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
 			m_pThis->_trigger(#m, &v, 1); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -886,14 +1075,29 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), m_v(t->m_v7), m_v(t->m_v8), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(m_v1); \
+			b = b && c_v(m_v2); \
+			b = b && c_v(m_v3); \
+			b = b && c_v(m_v4); \
+			b = b && c_v(m_v5); \
+			b = b && c_v(m_v6); \
+			b = b && c_v(m_v7); \
+			b = b && c_v(m_v8); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{\
 			m_pThis->_trigger(#m, NULL, 0); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
@@ -924,14 +1128,30 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = ((cls*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), m_v(t->m_v7), m_v(t->m_v8), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
+		bool clear_value() \
+		{	bool b = true; \
+			b = b && c_v(m_v0); \
+			b = b && c_v(m_v1); \
+			b = b && c_v(m_v2); \
+			b = b && c_v(m_v3); \
+			b = b && c_v(m_v4); \
+			b = b && c_v(m_v5); \
+			b = b && c_v(m_v6); \
+			b = b && c_v(m_v7); \
+			b = b && c_v(m_v8); \
+			b = b && c_v(retVal); \
+			b = b && c_v(m_pThis); \
+			return b; \
+		} \
 		virtual void post(int v) \
-		{	if(m_pThis->hasTrigger())AsyncCallBack::post(v); \
-			else{m_pThis->Unref();delete this;} \
+		{	if(m_pThis->hasTrigger() || !clear_value()) \
+				AsyncCallBack::post(v); \
+			else delete this; \
 		} \
 		virtual void callback() \
 		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
 			m_pThis->_trigger(#m, &v, 1); \
-			m_pThis->Unref(); \
+			if(m_pThis)m_pThis->Unref(); \
 			delete this; \
 		} \
 	private: \
