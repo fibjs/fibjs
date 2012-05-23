@@ -70,7 +70,8 @@ public:
 
 	inline void start()
 	{
-		ev_io_init(((ev_io*)this), io_cb, m_s, m_op);
+		ev_io* io = (ev_io*) this;
+		ev_io_init(io, io_cb, m_s, m_op);
 		ev_io_start(s_loop, this);
 	}
 
@@ -176,15 +177,6 @@ public:
 	exlib::AsyncEvent m_aEvent;
 };
 
-inline bool wouldBlock()
-{
-#ifdef _WIN32
-	return WSAGetLastError() == WSAEWOULDBLOCK;
-#else
-	return errno == EWOULDBLOCK;
-#endif
-}
-
 int a_connect(SOCKET s, sockaddr* ai, int sz)
 {
 	int n = ::connect(s, ai, sz);
@@ -203,7 +195,7 @@ int a_connect(SOCKET s, sockaddr* ai, int sz)
 SOCKET a_accept(SOCKET s, sockaddr* ai, socklen_t* sz)
 {
 	SOCKET c = ::accept(s, ai, sz);
-	if (c == INVALID_SOCKET && wouldBlock())
+	if (c == INVALID_SOCKET && (errno == EWOULDBLOCK))
 	{
 		asyncWait ac(s, EV_READ);
 		c = ::accept(s, ai, sz);
@@ -215,7 +207,7 @@ SOCKET a_accept(SOCKET s, sockaddr* ai, socklen_t* sz)
 int a_recv(SOCKET s, char *p, size_t sz, int f)
 {
 	int n = (int) ::recv(s, p, sz, f);
-	if (n == SOCKET_ERROR && wouldBlock())
+	if (n == SOCKET_ERROR && (errno == EWOULDBLOCK))
 	{
 		asyncWait ac(s, EV_READ);
 		n = (int) ::recv(s, p, sz, f);
@@ -227,7 +219,7 @@ int a_recv(SOCKET s, char *p, size_t sz, int f)
 int a_send(SOCKET s, const char *p, size_t sz, int f)
 {
 	int n = (int) ::send(s, p, sz, f);
-	if (n == SOCKET_ERROR && wouldBlock())
+	if (n == SOCKET_ERROR && (errno == EWOULDBLOCK))
 	{
 		asyncWait ac(s, EV_WRITE);
 		n = (int) ::send(s, p, sz, f);
@@ -252,7 +244,10 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 					m_ai.addr4.sin_family == PF_INET ?
 							sizeof(m_ai.addr4) : sizeof(m_ai.addr6));
 			if (n == SOCKET_ERROR)
-				return errno == EINPROGRESS ? CALL_E_PENDDING : SocketError();
+			{
+				int nError = errno;
+				return (nError == EINPROGRESS) ? CALL_E_PENDDING : -nError;
+			}
 
 			return 0;
 		}
@@ -285,22 +280,6 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 	return (new asyncConnect(m_sock, addr_info, ac))->call();
 }
 
-inline void setNonBlock(SOCKET s)
-{
-#ifdef _WIN32
-	u_long mode = 1;
-	ioctlsocket(s, FIONBIO, &mode);
-#else
-	fcntl(s, F_SETFL, fcntl(s, F_GETFL, 0) | O_NONBLOCK);
-
-#ifdef MacOS
-	int set_option = 1;
-	setsockopt(s, SOL_SOCKET, SO_NOSIGPIPE, &set_option, sizeof(set_option));
-#endif
-
-#endif
-}
-
 result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 {
 	class asyncAccept: public asyncProc
@@ -318,9 +297,18 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 			socklen_t sz = sizeof(ai);
 			SOCKET c = ::accept(m_s, (sockaddr*) &ai, &sz);
 			if (c == INVALID_SOCKET)
-				return wouldBlock() ? CALL_E_PENDDING : SocketError();
+			{
+				int nError = errno;
+				return (nError == EWOULDBLOCK) ? CALL_E_PENDDING : -nError;
+			}
 
-			setNonBlock(c);
+			fcntl(c, F_SETFL, fcntl(c, F_GETFL, 0) | O_NONBLOCK);
+
+#ifdef MacOS
+			int set_option = 1;
+			setsockopt(c, SOL_SOCKET, SO_NOSIGPIPE, &set_option, sizeof(set_option));
+#endif
+
 			obj_ptr<Socket> sock = new Socket(c,
 					ai.addr6.sin6_family == PF_INET6 ?
 							Socket::_AF_INET6 : Socket::_AF_INET,
@@ -358,9 +346,12 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 		{
 			int n = (int) ::recv(m_s, &m_buf[0], m_buf.length(), MSG_NOSIGNAL);
 			if (n == SOCKET_ERROR)
-				return wouldBlock() ? CALL_E_PENDDING : SocketError();
+			{
+				int nError = errno;
+				return (nError == EWOULDBLOCK) ? CALL_E_PENDDING : -nError;
+			}
 
-			if(n > 0)
+			if (n > 0)
 			{
 				m_buf.resize(n);
 				m_retVal = new Buffer(m_buf);
@@ -399,7 +390,10 @@ result_t Socket::send(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
 			{
 				int n = (int) ::send(m_s, m_p, m_sz, MSG_NOSIGNAL);
 				if (n == SOCKET_ERROR)
-					return wouldBlock() ? CALL_E_PENDDING : SocketError();
+				{
+					int nError = errno;
+					return (nError == EWOULDBLOCK) ? CALL_E_PENDDING : -nError;
+				}
 
 				m_sz -= n;
 				m_p += n;

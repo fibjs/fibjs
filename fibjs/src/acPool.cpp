@@ -72,8 +72,8 @@ static bool s_logEmpty;
 
 void asyncLog(int priority, std::string msg)
 {
-//	log4cpp::Category::getRoot().log(priority, msg);
-	s_acLog.put(new AsyncLog(priority, msg));
+	log4cpp::Category::getRoot().log(priority, msg);
+//	s_acLog.put(new AsyncLog(priority, msg));
 }
 
 void flushLog()

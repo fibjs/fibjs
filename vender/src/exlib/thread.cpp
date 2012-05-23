@@ -53,7 +53,7 @@ void Thread::detach()
 {
     if(thread_)
         pthread_detach(thread_);
-    thread_ = NULL;
+    thread_ = (pthread_t)NULL;
 }
 
 void Thread::start()

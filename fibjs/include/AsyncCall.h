@@ -102,10 +102,7 @@ protected:
 				m_pThis->_trigger(strEvent, &v, 1);
 			}
 			else
-			{
-				puts("error");
 				m_pThis->_trigger("error", NULL, 0);
-			}
 
 			m_pThis->Unref();
 		}
@@ -121,10 +118,7 @@ protected:
 			if (result() >= 0)
 				m_pThis->_trigger(strEvent, NULL, 0);
 			else
-			{
-				puts("error");
 				m_pThis->_trigger("error", NULL, 0);
-			}
 
 			m_pThis->Unref();
 		}

@@ -578,6 +578,7 @@ inline v8::Handle<v8::Value> ReturnValue(obj_ptr<T>& obj)
 
 	if (obj)
 		obj->ValueOf(retVal);
+	else return v8::Undefined();
 
 	return retVal;
 }
