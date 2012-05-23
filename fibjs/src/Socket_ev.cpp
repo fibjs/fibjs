@@ -5,6 +5,8 @@
  *      Author: lion
  */
 
+#ifndef _WIN32
+
 #include "Socket.h"
 #include "ifs/net.h"
 #include "Buffer.h"
@@ -53,7 +55,6 @@ class asyncProc: public ev_io
 public:
 	asyncProc(SOCKET s, int op, exlib::AsyncEvent* ac) :
 			m_s(s), m_op(op), m_ac(ac), m_next(NULL)
-
 	{
 	}
 
@@ -359,8 +360,11 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 			if (n == SOCKET_ERROR)
 				return wouldBlock() ? CALL_E_PENDDING : SocketError();
 
-			m_buf.resize(n);
-			m_retVal = new Buffer(m_buf);
+			if(n > 0)
+			{
+				m_buf.resize(n);
+				m_retVal = new Buffer(m_buf);
+			}
 
 			return 0;
 		}
@@ -376,12 +380,12 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 	return (new asyncRecv(m_sock, bytes, retVal, ac))->call();
 }
 
-result_t Socket::send(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac)
+result_t Socket::send(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
 {
 	class asyncSend: public asyncProc
 	{
 	public:
-		asyncSend(SOCKET s, obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac) :
+		asyncSend(SOCKET s, obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac) :
 				asyncProc(s, EV_WRITE, ac)
 		{
 			data->toString(m_buf);
@@ -430,3 +434,5 @@ result_t Socket::send(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac)
 }
 
 }
+
+#endif

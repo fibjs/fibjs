@@ -228,7 +228,7 @@ static const char *inet_ntop6(const struct in6_addr *addr, char *dst,
 		a4.s_addr = ((uint32_t*) &addr->s6_addr)[3];
 		len = sprintf(tmp, "::%s%s", (i != 0) ? "ffff:" : "",
 				inet_ntop4(&a4, tmp2, sizeof(tmp2)));
-		if (len >= size)
+		if ((socklen_t)len >= size)
 			return NULL;
 		memcpy(dst, tmp, len + 1);
 		return dst;
@@ -324,31 +324,12 @@ static const char *inet_ntop6(const struct in6_addr *addr, char *dst,
 	/* trailing NULL */
 	len++;
 
-	if (len > size)
+	if ((socklen_t)len > size)
 		return NULL;
 
 	memcpy(dst, tmp, len);
 	return dst;
 }
-
-#ifdef _WIN32
-static class _initWinSock
-{
-public:
-	_initWinSock()
-	{
-		WSADATA wsaData;
-		int iResult;
-
-		iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-		if (iResult != 0)
-		{
-			printf("WSAStartup failed: %d\n", iResult);
-			exit(-1);
-		}
-	}
-}s_initWinSock;
-#endif
 
 result_t Socket_base::_new(int32_t family, int32_t type,
 		obj_ptr<Socket_base>& retVal)
@@ -366,22 +347,6 @@ result_t Socket_base::_new(int32_t family, int32_t type,
 Socket::~Socket()
 {
 	close(NULL);
-}
-
-inline void setNonBlock(SOCKET s)
-{
-#ifdef _WIN32
-	u_long mode = 1;
-	ioctlsocket(s, FIONBIO, &mode);
-#else
-	fcntl(s, F_SETFL, fcntl(s, F_GETFL, 0) | O_NONBLOCK);
-
-#ifdef MacOS
-	int set_option = 1;
-	setsockopt(s, SOL_SOCKET, SO_NOSIGPIPE, &set_option, sizeof(set_option));
-#endif
-
-#endif
 }
 
 result_t Socket::create(int32_t family, int32_t type)
@@ -405,11 +370,28 @@ result_t Socket::create(int32_t family, int32_t type)
 	else
 		return CALL_E_INVALIDARG;
 
+#ifdef _WIN32
+
+	m_sock = WSASocket(family, type, IPPROTO_IP, NULL, 0, WSA_FLAG_OVERLAPPED);
+	if (m_sock == INVALID_SOCKET)
+		return SocketError();
+
+#else
+
 	m_sock = socket(family, type, 0);
 	if (m_sock == INVALID_SOCKET)
 		return SocketError();
 
-	setNonBlock(m_sock);
+	fcntl(m_sock, F_SETFL, fcntl(m_sock, F_GETFL, 0) | O_NONBLOCK);
+
+#endif
+
+#ifdef MacOS
+
+	int set_option = 1;
+	setsockopt(m_sock, SOL_SOCKET, SO_NOSIGPIPE, &set_option, sizeof(set_option));
+
+#endif
 
 	return 0;
 }
@@ -431,12 +413,12 @@ result_t Socket::onread(v8::Handle<v8::Function> func)
 	return on("read", func);
 }
 
-result_t Socket::write(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac)
+result_t Socket::write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
 {
 	return send(data, ac);
 }
 
-result_t Socket::asyncWrite(obj_ptr<Buffer_base> data)
+result_t Socket::asyncWrite(obj_ptr<Buffer_base>& data)
 {
 	acb_write(s_acPool, data);
 	return 0;
@@ -646,7 +628,6 @@ result_t Socket::getAddrInfo(const char* addr, int32_t port,
 			addr_info.addr6.sin6_addr = in6addr_any;
 		else if (inet_pton6(addr, &addr_info.addr6.sin6_addr) < 0)
 			return CALL_E_INVALIDARG;
-
 	}
 
 	return 0;
@@ -680,6 +661,10 @@ result_t Socket::bind(const char* addr, int32_t port, bool allowIPv4)
 					sizeof(addr_info.addr6)) == SOCKET_ERROR)
 		return SocketError();
 
+#ifdef _WIN32
+	m_bBind = TRUE;
+#endif
+
 	return 0;
 }
 
@@ -707,7 +692,7 @@ result_t Socket::recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal)
 	return 0;
 }
 
-result_t Socket::sendto(obj_ptr<Buffer_base> data, const char* host,
+result_t Socket::sendto(obj_ptr<Buffer_base>& data, const char* host,
 		int32_t port)
 {
 	if (m_sock == INVALID_SOCKET)

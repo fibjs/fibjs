@@ -23,7 +23,7 @@ class ObjectArray_base : public object_base
 public:
 	// ObjectArray_base
 	virtual result_t _indexed_getter(uint32_t index, obj_ptr<object_base>& retVal) = 0;
-	virtual result_t _indexed_setter(uint32_t index, obj_ptr<object_base> newVal) = 0;
+	virtual result_t _indexed_setter(uint32_t index, obj_ptr<object_base>& newVal) = 0;
 	virtual result_t get_length(int32_t& retVal) = 0;
 	virtual result_t resize(int32_t sz) = 0;
 	virtual result_t slice(int32_t start, int32_t end, obj_ptr<ObjectArray_base>& retVal) = 0;

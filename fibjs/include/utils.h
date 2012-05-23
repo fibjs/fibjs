@@ -11,6 +11,8 @@
  @author Leo Hoo <lion@9465.net>
  */
 
+#include <errno.h>
+
 #ifdef _WIN32
 
 #include <ws2tcpip.h>
@@ -18,6 +20,16 @@
 
 #ifndef IPV6_V6ONLY
 #define IPV6_V6ONLY 27
+#endif
+
+#include <windows.h>
+
+#ifndef EWOULDBLOCK
+#define EINPROGRESS			WSAEWOULDBLOCK
+#endif
+
+#ifndef ETIMEDOUT
+#define ETIMEDOUT       138
 #endif
 
 #else
@@ -40,12 +52,6 @@ typedef int SOCKET;
 #include <v8/v8.h>
 #include <string>
 #include <math.h>
-
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <errno.h>
-#endif
 
 namespace fibjs
 {

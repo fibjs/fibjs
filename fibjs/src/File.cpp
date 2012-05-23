@@ -63,7 +63,8 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 		strBuf.resize(bytes - sz);
 	}
 
-	retVal = new Buffer(strBuf);
+	if(strBuf.length())
+		retVal = new Buffer(strBuf);
 
 	return 0;
 }
@@ -97,7 +98,7 @@ result_t File::Write(const char* p, int sz)
 	return 0;
 }
 
-result_t File::write(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac)
+result_t File::write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
 {
 	std::string strBuf;
 	data->toString(strBuf);
@@ -105,7 +106,7 @@ result_t File::write(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac)
 	return Write(strBuf.c_str(), (int) strBuf.length());
 }
 
-result_t File::asyncWrite(obj_ptr<Buffer_base> data)
+result_t File::asyncWrite(obj_ptr<Buffer_base>& data)
 {
 	acb_write(s_acPool, data);
 	return 0;

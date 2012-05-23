@@ -174,7 +174,7 @@ inline void baseDecode(const char *pdecodeTable, int dwBits,
 	retVal = new Buffer(strBuf);
 }
 
-result_t encoding_base::base32Encode(obj_ptr<Buffer_base> data,
+result_t encoding_base::base32Encode(obj_ptr<Buffer_base>& data,
 		std::string& retVal)
 {
 	baseEncode("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567+/", 5, data, retVal);
@@ -197,7 +197,7 @@ result_t encoding_base::base32Decode(const char* data,
 	return 0;
 }
 
-result_t encoding_base::base64Encode(obj_ptr<Buffer_base> data,
+result_t encoding_base::base64Encode(obj_ptr<Buffer_base>& data,
 		std::string& retVal)
 {
 	baseEncode(
@@ -222,7 +222,7 @@ result_t encoding_base::base64Decode(const char* data,
 	return 0;
 }
 
-result_t encoding_base::hexEncode(obj_ptr<Buffer_base> data,
+result_t encoding_base::hexEncode(obj_ptr<Buffer_base>& data,
 		std::string& retVal)
 {
 	std::string strData;

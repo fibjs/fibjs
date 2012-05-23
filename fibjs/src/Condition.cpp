@@ -17,7 +17,7 @@ result_t Condition_base::_new(obj_ptr<Condition_base>& retVal)
 	return 0;
 }
 
-result_t Condition_base::_new(obj_ptr<Lock_base> lock,
+result_t Condition_base::_new(obj_ptr<Lock_base>& lock,
 		obj_ptr<Condition_base>& retVal)
 {
 	retVal = new Condition(lock);

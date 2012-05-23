@@ -1,9 +1,6 @@
 #ifndef _fj_ASYNCCALL_H
 #define _fj_ASYNCCALL_H
 
-#include "utils.h"
-#include <exlib/fiber.h>
-#include <exlib/lockfree.h>
 #include <string>
 
 namespace fibjs
@@ -31,7 +28,6 @@ public:
 	void ** args;
 };
 
-class object_base;
 class AsyncCallBack: public AsyncCall
 {
 public:
@@ -71,8 +67,12 @@ protected:
 	template<typename T>
 	static bool c_v(obj_ptr<T>& v)
 	{
-		if(v->isJSObject())
+		if(v == NULL)
+			return true;
+
+		if (v->isJSObject())
 			return false;
+
 		v.Release();
 		return true;
 	}
@@ -80,11 +80,56 @@ protected:
 	template<typename T>
 	static bool c_v(T*& v)
 	{
-		if(v->isJSObject())
+		if(v == NULL)
+			return true;
+
+		if (v->isJSObject())
 			return false;
+
 		v->Unref();
 		v = NULL;
 		return true;
+	}
+
+	template<typename T>
+	void _trigger(const char* strEvent, T& pv)
+	{
+		if (m_pThis)
+		{
+			if (result() >= 0)
+			{
+				v8::Handle<v8::Value> v = ReturnValue(pv);
+				m_pThis->_trigger(strEvent, &v, 1);
+			}
+			else
+			{
+				puts("error");
+				m_pThis->_trigger("error", NULL, 0);
+			}
+
+			m_pThis->Unref();
+		}
+
+		delete this;
+	}
+
+	template<typename T>
+	void _trigger(const char* strEvent, T* pv)
+	{
+		if (m_pThis)
+		{
+			if (result() >= 0)
+				m_pThis->_trigger(strEvent, NULL, 0);
+			else
+			{
+				puts("error");
+				m_pThis->_trigger("error", NULL, 0);
+			}
+
+			m_pThis->Unref();
+		}
+
+		delete this;
 	}
 
 public:

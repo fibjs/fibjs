@@ -17,6 +17,13 @@ union _sockaddr
 {
 	struct sockaddr_in addr4;
 	struct sockaddr_in6 addr6;
+
+	size_t size()
+	{
+		return addr6.sin6_family == PF_INET6 ?
+					sizeof(addr6) :
+					sizeof(addr4);
+	}
 };
 
 class Socket: public Socket_base
@@ -25,12 +32,18 @@ class Socket: public Socket_base
 
 public:
 	Socket() :
-			m_sock(INVALID_SOCKET), m_family(_AF_INET), m_type(_SOCK_STREAM)
+		m_sock(INVALID_SOCKET), m_family(_AF_INET), m_type(_SOCK_STREAM)
+#ifdef _WIN32
+		, m_bBind(FALSE), m_bIOCP(m_bIOCP)
+#endif
 	{
 	}
 
 	Socket(SOCKET s, int32_t family, int32_t type) :
-			m_sock(s), m_family(family), m_type(type)
+		m_sock(s), m_family(family), m_type(type)
+#ifdef _WIN32
+		, m_bBind(FALSE), m_bIOCP(m_bIOCP)
+#endif
 	{
 	}
 
@@ -41,8 +54,8 @@ public:
 	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
 	virtual result_t asyncRead(int32_t bytes);
 	virtual result_t onread(v8::Handle<v8::Function> func);
-	virtual result_t write(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac);
-	virtual result_t asyncWrite(obj_ptr<Buffer_base> data);
+	virtual result_t write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac);
+	virtual result_t asyncWrite(obj_ptr<Buffer_base>& data);
 	virtual result_t onwrite(v8::Handle<v8::Function> func);
 	virtual result_t stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
 	virtual result_t asyncStat();
@@ -77,8 +90,8 @@ public:
 	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 			exlib::AsyncEvent* ac);
 	virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal);
-	virtual result_t send(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac);
-	virtual result_t sendto(obj_ptr<Buffer_base> data, const char* host,
+	virtual result_t send(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac);
+	virtual result_t sendto(obj_ptr<Buffer_base>& data, const char* host,
 			int32_t port);
 
 public:
@@ -91,6 +104,11 @@ private:
 	SOCKET m_sock;
 	int32_t m_family;
 	int32_t m_type;
+
+#ifdef _WIN32
+	BOOL m_bBind;
+	BOOL m_bIOCP;
+#endif
 };
 
 int a_connect(SOCKET s, sockaddr* ai, int sz);

@@ -50,8 +50,8 @@ public:
 	virtual result_t onaccept(v8::Handle<v8::Function> func) = 0;
 	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
-	virtual result_t send(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac) = 0;
-	virtual result_t sendto(obj_ptr<Buffer_base> data, const char* host, int32_t port) = 0;
+	virtual result_t send(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac) = 0;
+	virtual result_t sendto(obj_ptr<Buffer_base>& data, const char* host, int32_t port) = 0;
 
 public:
 	static ClassInfo& class_info();

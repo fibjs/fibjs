@@ -524,10 +524,10 @@ function parserIDL(fname) {
 								+ arg_value(type, value) + ");\n";
 				} else {
 					if (value == "")
-						argVars += "		ARG(" + arg_type(type) + ", " + argCount
+						argVars += "		ARG(" + map_type(type) + ", " + argCount
 								+ ");\n";
 					else
-						argVars += "		OPT_ARG(" + arg_type(type) + ", "
+						argVars += "		OPT_ARG(" + map_type(type) + ", "
 								+ argCount + ", " + arg_value(type, value)
 								+ ");\n";
 				}
@@ -734,7 +734,7 @@ function parserIDL(fname) {
 					if (ftype === "String")
 						fnStr += "		PROPERTY_VAL_String();\n";
 					else
-						fnStr += "		PROPERTY_VAL(" + arg_type(ftype) + ");\n";
+						fnStr += "		PROPERTY_VAL(" + map_type(ftype) + ");\n";
 					fnStr += "		hr = pInst->_indexed_setter(index, v0);\n\n		METHOD_VOID();\n	}\n";
 					ffs.push(fnStr);
 
@@ -796,7 +796,7 @@ function parserIDL(fname) {
 					if (ftype === "String")
 						fnStr += "		PROPERTY_VAL_String();\n";
 					else
-						fnStr += "		PROPERTY_VAL(" + arg_type(ftype) + ");\n";
+						fnStr += "		PROPERTY_VAL(" + map_type(ftype) + ");\n";
 					fnStr += "		hr = pInst->set_" + fname
 							+ "(v0);\n\n		PROPERTY_SET_LEAVE();\n	}\n";
 					ffs.push(fnStr)
@@ -837,7 +837,7 @@ function parserIDL(fname) {
 		if (clsName[n]) {
 			if (n != ns)
 				refCls[n] = true;
-			return "obj_ptr<" + n + "_base>";
+			return "obj_ptr<" + n + "_base>&";
 		}
 
 		return reportErr();

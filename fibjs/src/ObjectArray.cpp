@@ -20,7 +20,7 @@ result_t ObjectArray::_indexed_getter(uint32_t index, obj_ptr<object_base>& retV
 	return 0;
 }
 
-result_t ObjectArray::_indexed_setter(uint32_t index, obj_ptr<object_base> newVal)
+result_t ObjectArray::_indexed_setter(uint32_t index, obj_ptr<object_base>& newVal)
 {
 	if(index >= m_array.size())
 		return CALL_E_BADINDEX;

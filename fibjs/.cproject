@@ -536,6 +536,7 @@
 								<option id="gnu.cpp.link.option.libs.520488613" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="vender"/>
 									<listOptionValue builtIn="false" value="ws2_32"/>
+									<listOptionValue builtIn="false" value="mswsock"/>
 									<listOptionValue builtIn="false" value="winmm"/>
 								</option>
 								<option id="gnu.cpp.link.option.flags.1938378435" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-static" valueType="string"/>
@@ -563,7 +564,9 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="fibjs.cdt.managedbuild.target.gnu.exe.1856370284" name="Executable" projectType="cdt.managedbuild.target.gnu.exe"/>
 	</storageModule>
-	<storageModule moduleId="refreshScope"/>
+	<storageModule moduleId="refreshScope" versionNumber="1">
+		<resource resourceType="PROJECT" workspacePath="/fibjs"/>
+	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>

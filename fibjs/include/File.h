@@ -28,8 +28,8 @@ public:
 	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
 	virtual result_t asyncRead(int32_t bytes);
 	virtual result_t onread(v8::Handle<v8::Function> func);
-	virtual result_t write(obj_ptr<Buffer_base> data, exlib::AsyncEvent* ac);
-	virtual result_t asyncWrite(obj_ptr<Buffer_base> data);
+	virtual result_t write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac);
+	virtual result_t asyncWrite(obj_ptr<Buffer_base>& data);
 	virtual result_t onwrite(v8::Handle<v8::Function> func);
 	virtual result_t stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
 	virtual result_t asyncStat();

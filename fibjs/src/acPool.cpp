@@ -72,8 +72,8 @@ static bool s_logEmpty;
 
 void asyncLog(int priority, std::string msg)
 {
-	log4cpp::Category::getRoot().log(priority, msg);
-//	s_acLog.put(new AsyncLog(priority, msg));
+//	log4cpp::Category::getRoot().log(priority, msg);
+	s_acLog.put(new AsyncLog(priority, msg));
 }
 
 void flushLog()
@@ -154,7 +154,6 @@ public:
 	{
 		s_time = Ticks();
 		start();
-		//timeBeginPeriod
 	}
 
 	static void PASCAL Timer(unsigned int uTimerID, unsigned int uMsg,

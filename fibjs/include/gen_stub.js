@@ -154,14 +154,11 @@ function gen_callback(argn, bRet)
 			'		virtual void callback() \\');
 	
 	if(bRet)
-		txt.push('		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \\\n			m_pThis->_trigger(#m, &v, 1); \\');
+		txt.push('		{ _trigger(#m, retVal); }\\');
 	else
-		txt.push('		{\\\n			m_pThis->_trigger(#m, NULL, 0); \\');
-		
-	txt.push('			if(m_pThis)m_pThis->Unref(); \\\n' +
-			'			delete this; \\\n' +
-			'		} \\\n' +
-			'	private: \\');
+		txt.push('		{ _trigger(#m, (int32_t*)0); }\\');
+
+	txt.push('	private: \\');
 	if(bRet)
 		txt.push('		rt retVal; \\');
 	

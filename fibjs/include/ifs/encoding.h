@@ -24,11 +24,11 @@ class encoding_base : public module_base
 {
 public:
 	// encoding_base
-	static result_t base32Encode(obj_ptr<Buffer_base> data, std::string& retVal);
+	static result_t base32Encode(obj_ptr<Buffer_base>& data, std::string& retVal);
 	static result_t base32Decode(const char* data, obj_ptr<Buffer_base>& retVal);
-	static result_t base64Encode(obj_ptr<Buffer_base> data, std::string& retVal);
+	static result_t base64Encode(obj_ptr<Buffer_base>& data, std::string& retVal);
 	static result_t base64Decode(const char* data, obj_ptr<Buffer_base>& retVal);
-	static result_t hexEncode(obj_ptr<Buffer_base> data, std::string& retVal);
+	static result_t hexEncode(obj_ptr<Buffer_base>& data, std::string& retVal);
 	static result_t hexDecode(const char* data, obj_ptr<Buffer_base>& retVal);
 
 public:

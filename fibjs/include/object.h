@@ -13,7 +13,8 @@
 
 #include "utils.h"
 #include "ClassInfo.h"
-#include "acPool.h"
+#include <exlib/fiber.h>
+#include <exlib/lockfree.h>
 
 namespace fibjs
 {
@@ -206,6 +207,8 @@ private:
 };
 
 }
+
+#include "acPool.h"
 
 namespace fibjs
 {

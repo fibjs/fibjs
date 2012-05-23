@@ -6,7 +6,7 @@
  */
 
 
-#include "AsyncCall.h"
+#include "object.h"
 
 namespace fibjs
 {

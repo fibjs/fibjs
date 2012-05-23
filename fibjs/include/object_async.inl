@@ -44,11 +44,7 @@
 			else delete this; \
 		} \
 		virtual void callback() \
-		{\
-			m_pThis->_trigger(#m, NULL, 0); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, (int32_t*)0); }\
 	private: \
 	}; \
 	q.put(new _t(this)); \
@@ -78,11 +74,7 @@
 			else delete this; \
 		} \
 		virtual void callback() \
-		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
-			m_pThis->_trigger(#m, &v, 1); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, retVal); }\
 	private: \
 		rt retVal; \
 	}; \
@@ -143,11 +135,7 @@ template<typename T0> \
 			else delete this; \
 		} \
 		virtual void callback() \
-		{\
-			m_pThis->_trigger(#m, NULL, 0); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, (int32_t*)0); }\
 	private: \
 		T0 m_v0; \
 	}; \
@@ -181,11 +169,7 @@ template<typename T0> \
 			else delete this; \
 		} \
 		virtual void callback() \
-		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
-			m_pThis->_trigger(#m, &v, 1); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
@@ -248,11 +232,7 @@ template<typename T0, typename T1> \
 			else delete this; \
 		} \
 		virtual void callback() \
-		{\
-			m_pThis->_trigger(#m, NULL, 0); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, (int32_t*)0); }\
 	private: \
 		T0 m_v0; \
 		T1 m_v1; \
@@ -288,11 +268,7 @@ template<typename T0, typename T1> \
 			else delete this; \
 		} \
 		virtual void callback() \
-		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
-			m_pThis->_trigger(#m, &v, 1); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
@@ -357,11 +333,7 @@ template<typename T0, typename T1, typename T2> \
 			else delete this; \
 		} \
 		virtual void callback() \
-		{\
-			m_pThis->_trigger(#m, NULL, 0); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, (int32_t*)0); }\
 	private: \
 		T0 m_v0; \
 		T1 m_v1; \
@@ -399,11 +371,7 @@ template<typename T0, typename T1, typename T2> \
 			else delete this; \
 		} \
 		virtual void callback() \
-		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
-			m_pThis->_trigger(#m, &v, 1); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
@@ -470,11 +438,7 @@ template<typename T0, typename T1, typename T2, typename T3> \
 			else delete this; \
 		} \
 		virtual void callback() \
-		{\
-			m_pThis->_trigger(#m, NULL, 0); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, (int32_t*)0); }\
 	private: \
 		T0 m_v0; \
 		T1 m_v1; \
@@ -514,11 +478,7 @@ template<typename T0, typename T1, typename T2, typename T3> \
 			else delete this; \
 		} \
 		virtual void callback() \
-		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
-			m_pThis->_trigger(#m, &v, 1); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
@@ -587,11 +547,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 			else delete this; \
 		} \
 		virtual void callback() \
-		{\
-			m_pThis->_trigger(#m, NULL, 0); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, (int32_t*)0); }\
 	private: \
 		T0 m_v0; \
 		T1 m_v1; \
@@ -633,11 +589,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 			else delete this; \
 		} \
 		virtual void callback() \
-		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
-			m_pThis->_trigger(#m, &v, 1); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
@@ -708,11 +660,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			else delete this; \
 		} \
 		virtual void callback() \
-		{\
-			m_pThis->_trigger(#m, NULL, 0); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, (int32_t*)0); }\
 	private: \
 		T0 m_v0; \
 		T1 m_v1; \
@@ -756,11 +704,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			else delete this; \
 		} \
 		virtual void callback() \
-		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
-			m_pThis->_trigger(#m, &v, 1); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
@@ -833,11 +777,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			else delete this; \
 		} \
 		virtual void callback() \
-		{\
-			m_pThis->_trigger(#m, NULL, 0); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, (int32_t*)0); }\
 	private: \
 		T0 m_v0; \
 		T1 m_v1; \
@@ -883,11 +823,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			else delete this; \
 		} \
 		virtual void callback() \
-		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
-			m_pThis->_trigger(#m, &v, 1); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
@@ -962,11 +898,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			else delete this; \
 		} \
 		virtual void callback() \
-		{\
-			m_pThis->_trigger(#m, NULL, 0); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, (int32_t*)0); }\
 	private: \
 		T0 m_v0; \
 		T1 m_v1; \
@@ -1014,11 +946,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			else delete this; \
 		} \
 		virtual void callback() \
-		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
-			m_pThis->_trigger(#m, &v, 1); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
@@ -1095,11 +1023,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			else delete this; \
 		} \
 		virtual void callback() \
-		{\
-			m_pThis->_trigger(#m, NULL, 0); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, (int32_t*)0); }\
 	private: \
 		T0 m_v0; \
 		T1 m_v1; \
@@ -1149,11 +1073,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			else delete this; \
 		} \
 		virtual void callback() \
-		{	v8::Handle<v8::Value> v = ReturnValue(retVal); \
-			m_pThis->_trigger(#m, &v, 1); \
-			if(m_pThis)m_pThis->Unref(); \
-			delete this; \
-		} \
+		{ _trigger(#m, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
