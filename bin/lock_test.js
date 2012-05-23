@@ -1,3 +1,4 @@
+console.log('lock testing....');
 
 var assert = require('assert');
 var coroutine = require('coroutine');

@@ -2,6 +2,8 @@
  * 
  */
 
+console.log('path testing....');
+
 var assert = require('assert');
 var os = require('os');
 

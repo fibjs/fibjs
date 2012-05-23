@@ -2,6 +2,8 @@
  * 
  */
 
+console.log('define testing....');
+
 var assert = require('assert');
 
 var a = require('define/a');

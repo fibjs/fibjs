@@ -2,6 +2,8 @@
  * 
  */
 
+console.log('buffer testing....');
+
 var assert = require('assert');
 
 var buf = new Buffer(100);

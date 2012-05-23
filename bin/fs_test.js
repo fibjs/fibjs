@@ -2,6 +2,8 @@
  * 
  */
 
+console.log('fs testing....');
+
 var assert = require('assert');
 var os = require('os');
 

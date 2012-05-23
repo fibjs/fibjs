@@ -1,3 +1,5 @@
+console.log('module testing....');
+
 var assert = require('assert');
 
 var a = require('module/a');

@@ -15,6 +15,10 @@ function connect(c) {
 		},
 		close : function() {
 			c.dispose();
+		},
+		error : function() {
+			console.log('--------------');
+			c.asyncClose();
 		}
 	});
 

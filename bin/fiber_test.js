@@ -1,3 +1,5 @@
+console.log('fiber testing....');
+
 var assert = require('assert');
 var os = require('os');
 var coroutine = require('coroutine');

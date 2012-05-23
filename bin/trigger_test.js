@@ -2,6 +2,8 @@
  * 
  */
 
+console.log('trigger testing....');
+
 var assert = require('assert');
 var coroutine = require('coroutine');
 

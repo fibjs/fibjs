@@ -1,3 +1,5 @@
+console.log('encoding testing....');
+
 var assert = require('assert');
 var encoding = require('encoding');
 
