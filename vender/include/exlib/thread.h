@@ -50,7 +50,7 @@ public:
 
 	bool TryLock()
 	{
-		return TryEnterCriticalSection(&cs_);
+		return !!TryEnterCriticalSection(&cs_);
 	}
 
 private:

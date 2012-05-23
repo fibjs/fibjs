@@ -319,6 +319,11 @@ public:
 		return m_v;
 	}
 
+	int result()
+	{
+		return m_v;
+	}
+
 public:
 	AsyncEvent* m_next;
 

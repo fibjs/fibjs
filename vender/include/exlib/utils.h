@@ -31,7 +31,7 @@ inline T* CompareAndSwap(T** ptr, T* old_value, T* new_value)
 
 inline int atom_add(int *dest, int incr)
 {
-	return InterlockedAdd((LONG*)dest, incr);
+	return InterlockedExchangeAdd((LONG*)dest, incr) + incr;
 }
 
 inline int atom_inc(int *dest)
