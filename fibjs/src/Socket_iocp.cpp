@@ -17,7 +17,7 @@
 namespace fibjs
 {
 
-static HANDLE s_hIocp;
+HANDLE s_hIocp;
 
 class asyncProc: public OVERLAPPED
 {
@@ -184,12 +184,6 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 			return hr;
 	}
 
-	if (!m_bIOCP)
-	{
-		CreateIoCompletionPort((HANDLE) m_sock, s_hIocp, 0, 0);
-		m_bIOCP = TRUE;
-	}
-
 	(new asyncConnect(m_sock, addr_info, ac))->proc();
 	return CALL_E_PENDDING;
 }
@@ -252,15 +246,6 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 	result_t hr = s->create(m_family, m_type);
 	if (hr < 0)
 		return hr;
-
-	if (!m_bIOCP)
-	{
-		CreateIoCompletionPort((HANDLE) m_sock, s_hIocp, 0, 0);
-		m_bIOCP = TRUE;
-	}
-
-	CreateIoCompletionPort((HANDLE) s->m_sock, s_hIocp, 0, 0);
-	s->m_bIOCP = TRUE;
 
 	retVal = s;
 

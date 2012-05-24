@@ -34,7 +34,7 @@ public:
 	Socket() :
 		m_sock(INVALID_SOCKET), m_family(_AF_INET), m_type(_SOCK_STREAM)
 #ifdef _WIN32
-		, m_bBind(FALSE), m_bIOCP(FALSE)
+		, m_bBind(FALSE)
 #endif
 	{
 	}
@@ -42,7 +42,7 @@ public:
 	Socket(SOCKET s, int32_t family, int32_t type) :
 		m_sock(s), m_family(family), m_type(type)
 #ifdef _WIN32
-		, m_bBind(FALSE), m_bIOCP(FALSE)
+		, m_bBind(FALSE)
 #endif
 	{
 	}
@@ -107,7 +107,6 @@ private:
 
 #ifdef _WIN32
 	BOOL m_bBind;
-	BOOL m_bIOCP;
 #endif
 };
 

@@ -349,6 +349,10 @@ Socket::~Socket()
 	close(NULL);
 }
 
+#ifdef _WIN32
+extern HANDLE s_hIocp;
+#endif
+
 result_t Socket::create(int32_t family, int32_t type)
 {
 	close(NULL);
@@ -375,6 +379,8 @@ result_t Socket::create(int32_t family, int32_t type)
 	m_sock = WSASocket(family, type, IPPROTO_IP, NULL, 0, WSA_FLAG_OVERLAPPED);
 	if (m_sock == INVALID_SOCKET)
 		return SocketError();
+
+	CreateIoCompletionPort((HANDLE) m_sock, s_hIocp, 0, 0);
 
 #else
 
