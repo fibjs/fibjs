@@ -536,7 +536,6 @@
 								<option id="gnu.cpp.link.option.libs.520488613" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="vender"/>
 									<listOptionValue builtIn="false" value="ws2_32"/>
-									<listOptionValue builtIn="false" value="mswsock"/>
 									<listOptionValue builtIn="false" value="winmm"/>
 								</option>
 								<option id="gnu.cpp.link.option.flags.1938378435" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-static" valueType="string"/>

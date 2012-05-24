@@ -612,21 +612,21 @@ result_t Socket::getAddrInfo(const char* addr, int32_t port,
 	if (m_family == _AF_INET)
 	{
 		addr_info.addr4.sin_family = PF_INET;
-		addr_info.addr4.sin_port = htons(port);
 
-		if (addr == NULL)
-			addr_info.addr4.sin_addr.s_addr = INADDR_ANY;
-		else if (inet_pton4(addr, &addr_info.addr4.sin_addr.s_addr) < 0)
+		if(port)
+			addr_info.addr4.sin_port = htons(port);
+
+		if (addr && inet_pton4(addr, &addr_info.addr4.sin_addr.s_addr) < 0)
 			return CALL_E_INVALIDARG;
 	}
 	else
 	{
 		addr_info.addr6.sin6_family = PF_INET6;
-		addr_info.addr6.sin6_port = htons(port);
 
-		if (addr == NULL)
-			addr_info.addr6.sin6_addr = in6addr_any;
-		else if (inet_pton6(addr, &addr_info.addr6.sin6_addr) < 0)
+		if(port)
+			addr_info.addr6.sin6_port = htons(port);
+
+		if (addr && inet_pton6(addr, &addr_info.addr6.sin6_addr) < 0)
 			return CALL_E_INVALIDARG;
 	}
 
@@ -655,10 +655,7 @@ result_t Socket::bind(const char* addr, int32_t port, bool allowIPv4)
 				sizeof(on));
 	}
 
-	if (::bind(m_sock, (struct sockaddr*) &addr_info,
-			m_family == _AF_INET ?
-					sizeof(addr_info.addr4) :
-					sizeof(addr_info.addr6)) == SOCKET_ERROR)
+	if (::bind(m_sock, (struct sockaddr*) &addr_info, (int)addr_info.size()) == SOCKET_ERROR)
 		return SocketError();
 
 #ifdef _WIN32

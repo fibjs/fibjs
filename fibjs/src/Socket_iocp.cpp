@@ -135,12 +135,13 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 		virtual result_t process()
 		{
 			static LPFN_CONNECTEX ConnectEx;
-			static GUID guidConnectEx = WSAID_CONNECTEX;
-			DWORD dwBytes;
 			int nError;
 
 			if (!ConnectEx)
 			{
+				GUID guidConnectEx = WSAID_CONNECTEX;
+				DWORD dwBytes;
+
 				if (SOCKET_ERROR
 						== WSAIoctl(m_s, SIO_GET_EXTENSION_FUNCTION_POINTER,
 								&guidConnectEx, sizeof(guidConnectEx),
@@ -149,8 +150,9 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 					return SocketError();
 			}
 
-			ConnectEx(m_s, (sockaddr*) &m_ai, (int) m_ai.size(), NULL, 0, NULL,
-					this);
+			if(ConnectEx(m_s, (sockaddr*) &m_ai, (int) m_ai.size(), NULL, 0, NULL,
+					this))
+				return CALL_E_PENDDING;
 
 			nError = WSAGetLastError();
 			return (nError == WSA_IO_PENDING) ? CALL_E_PENDDING : -nError;
@@ -177,8 +179,9 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 
 	if (!m_bBind)
 	{
-		bind(0, TRUE);
-		m_bBind = TRUE;
+		hr = bind(0, TRUE);
+		if (hr < 0)
+			return hr;
 	}
 
 	if (!m_bIOCP)
@@ -204,7 +207,21 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 
 		virtual result_t process()
 		{
+			static LPFN_ACCEPTEX AcceptEx;
 			int nError;
+
+			if (!AcceptEx)
+			{
+				GUID guidAcceptEx = WSAID_ACCEPTEX;
+				DWORD dwBytes;
+
+				if (SOCKET_ERROR
+						== WSAIoctl(m_s, SIO_GET_EXTENSION_FUNCTION_POINTER,
+								&guidAcceptEx, sizeof(guidAcceptEx),
+								&AcceptEx, sizeof(AcceptEx), &dwBytes, NULL,
+								NULL))
+					return SocketError();
+			}
 
 			if (AcceptEx(m_sListen, m_s, &m_Buf, 0, sizeof(_sockaddr) + 16,
 					sizeof(_sockaddr) + 16, NULL, this))
