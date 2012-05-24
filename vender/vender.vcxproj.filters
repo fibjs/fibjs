@@ -1134,6 +1134,9 @@
     <ClCompile Include="src\ev\ev.c">
       <Filter>Source Files\ev</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\elements-kind.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -2017,6 +2020,9 @@
     </ClInclude>
     <ClInclude Include="src\ev\ev_wrap.h">
       <Filter>Source Files\ev</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\elements-kind.h">
+      <Filter>Source Files\v8\src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -237,6 +237,7 @@
     <ClCompile Include="src\v8\src\disassembler.cc" />
     <ClCompile Include="src\v8\src\diy-fp.cc" />
     <ClCompile Include="src\v8\src\dtoa.cc" />
+    <ClCompile Include="src\v8\src\elements-kind.cc" />
     <ClCompile Include="src\v8\src\elements.cc" />
     <ClCompile Include="src\v8\src\execution.cc" />
     <ClCompile Include="src\v8\src\experimental-libraries.cc" />
@@ -510,6 +511,7 @@
     <ClInclude Include="src\v8\src\diy-fp.h" />
     <ClInclude Include="src\v8\src\double.h" />
     <ClInclude Include="src\v8\src\dtoa.h" />
+    <ClInclude Include="src\v8\src\elements-kind.h" />
     <ClInclude Include="src\v8\src\elements.h" />
     <ClInclude Include="src\v8\src\execution.h" />
     <ClInclude Include="src\v8\src\extensions\externalize-string-extension.h" />

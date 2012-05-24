@@ -150,6 +150,7 @@ DEFINE_implication(harmony, harmony_collections)
 DEFINE_implication(harmony_modules, harmony_scoping)
 
 // Flags for experimental implementation features.
+DEFINE_bool(packed_arrays, false, "optimizes arrays that have no holes")
 DEFINE_bool(smi_only_arrays, true, "tracks arrays with only smi values")
 DEFINE_bool(clever_optimizations,
             true,
@@ -197,7 +198,7 @@ DEFINE_bool(polymorphic_inlining, true, "polymorphic inlining")
 DEFINE_bool(use_osr, true, "use on-stack replacement")
 DEFINE_bool(array_bounds_checks_elimination, true,
             "perform array bounds checks elimination")
-DEFINE_bool(array_index_dehoisting, true,
+DEFINE_bool(array_index_dehoisting, false,
             "perform array index dehoisting")
 
 DEFINE_bool(trace_osr, false, "trace on-stack replacement")
@@ -396,6 +397,8 @@ DEFINE_int(random_seed, 0,
 
 // objects.cc
 DEFINE_bool(use_verbose_printer, true, "allows verbose printing")
+DEFINE_bool(fast_accessor_properties, false,
+            "use map transitions for JavaScript accessors")
 
 // parser.cc
 DEFINE_bool(allow_natives_syntax, false, "allow natives syntax")
