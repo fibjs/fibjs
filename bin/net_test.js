@@ -52,13 +52,12 @@ function conn()
 	s1.connect('::1', 8080);
 	console.log(s1.remoteAddress, s1.remotePort, "<-", s1.localAddress, s1.localPort);
 	s1.send(new Buffer("GET / HTTP/1.0"));
-	console.log(s1.recv(1024));
+	console.log(s1.recv());
 	s1.close();
 	s1.dispose();
 }
 
-
-//for(var i = 0; i < 100; i ++)
+//for(var i = 0; i < 10; i ++)
 	conn();
 
 console.log('Backend:', net.backend());
