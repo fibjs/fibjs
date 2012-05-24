@@ -124,8 +124,8 @@ function gen_callback(argn, bRet)
 	s += ' \\';
 	txt.push(s);
 
-	txt.push('		{	pThis->Ref();} \\\n		static void _stub(AsyncCall* ac) \\\n		{	_t* t = (_t*) ac; \\');
-	s = '			result_t hr = ((cls*)t->m_pThis)->m(';
+	txt.push('		{} \\\n		static void _stub(AsyncCall* ac) \\\n		{	_t* t = (_t*) ac; \\');
+	s = '			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(';
 	for(i = 0; i < argn; i ++)
 		s += 'm_v(t->m_v' + i + '), ';
 	if(bRet)
@@ -135,7 +135,7 @@ function gen_callback(argn, bRet)
 
 	txt.push('			if (hr != CALL_E_PENDDING)t->post(hr); \\\n' +
 			'		} \\\n' +
-			'		bool clear_value() \\\n' +
+			'		virtual bool clear_value() \\\n' +
 			'		{	bool b = true; \\');
 
 	for(i = 0; i < argn; i ++)
@@ -146,17 +146,12 @@ function gen_callback(argn, bRet)
 	txt.push('			b = b && c_v(m_pThis); \\\n' +
 			'			return b; \\\n' +
 			'		} \\\n' +
-			'		virtual void post(int v) \\\n' +
-			'		{	if(m_pThis->hasTrigger() || !clear_value()) \\\n' +
-			'				AsyncCallBack::post(v); \\\n' +
-			'			else delete this; \\\n' +
-			'		} \\\n' +
 			'		virtual void callback() \\');
 	
 	if(bRet)
 		txt.push('		{ _trigger(#m, retVal); }\\');
 	else
-		txt.push('		{ _trigger(#m, (int32_t*)0); }\\');
+		txt.push('		{ _trigger(#m); }\\');
 
 	txt.push('	private: \\');
 	if(bRet)

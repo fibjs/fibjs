@@ -39,6 +39,19 @@ public:
 	virtual void invoke();
 	virtual void callback() = 0;
 
+	virtual bool clear_value()
+	{
+		return true;
+	}
+
+	virtual void post(int v)
+	{
+		if (m_pThis->hasTrigger() || !clear_value())
+			AsyncCall::post(v);
+		else
+			delete this;
+	}
+
 protected:
 	static const char* m_v(const char*& s);
 	static const char* m_v(std::string& s)
@@ -67,27 +80,13 @@ protected:
 	template<typename T>
 	static bool c_v(obj_ptr<T>& v)
 	{
-		if(v == NULL)
+		if (v == NULL)
 			return true;
 
 		if (v->isJSObject())
 			return false;
 
 		v.Release();
-		return true;
-	}
-
-	template<typename T>
-	static bool c_v(T*& v)
-	{
-		if(v == NULL)
-			return true;
-
-		if (v->isJSObject())
-			return false;
-
-		v->Unref();
-		v = NULL;
 		return true;
 	}
 
@@ -103,15 +102,12 @@ protected:
 			}
 			else
 				m_pThis->_trigger("error", NULL, 0);
-
-			m_pThis->Unref();
 		}
 
 		delete this;
 	}
 
-	template<typename T>
-	void _trigger(const char* strEvent, T* pv)
+	void _trigger(const char* strEvent)
 	{
 		if (m_pThis)
 		{
@@ -119,15 +115,13 @@ protected:
 				m_pThis->_trigger(strEvent, NULL, 0);
 			else
 				m_pThis->_trigger("error", NULL, 0);
-
-			m_pThis->Unref();
 		}
 
 		delete this;
 	}
 
 public:
-	object_base* m_pThis;
+	obj_ptr<object_base> m_pThis;
 };
 
 class AsyncLog: public exlib::AsyncEvent

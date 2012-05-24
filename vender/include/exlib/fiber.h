@@ -306,6 +306,8 @@ class AsyncEvent
 {
 public:
 	AsyncEvent();
+	virtual ~AsyncEvent()
+	{}
 
 	virtual void post(int v);
 	virtual void invoke()

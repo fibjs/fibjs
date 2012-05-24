@@ -25,10 +25,9 @@ function connect(c) {
 		}
 	});
 
-	c.asyncRead();
-//	c.asyncWrite(new Buffer(
-//			"HTTP/1.0 200 ok\r\nConnection: close\r\n\r\nhello."));
-//	c.close();
+	var b = c.asyncRead();
+//	c.asyncWrite(new Buffer("HTTP/1.0 200 ok\r\nConnection: close\r\n\r\nhello."));
+//	c.asyncClose();
 //	c.dispose();
 }
 

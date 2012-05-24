@@ -276,11 +276,21 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 				return CALL_E_PENDDING;
 
 			nError = GetLastError();
+
+			if(nError == ERROR_NETNAME_DELETED)
+				return 0;
+
 			return (nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError;
 		}
 
 		virtual void ready(DWORD dwBytes, DWORD dwError)
 		{
+			if(dwError == ERROR_NETNAME_DELETED)
+			{
+				dwError = 0;
+				dwBytes = 0;
+			}
+
 			if (!dwError && dwBytes)
 			{
 				m_buf.resize(dwBytes);
