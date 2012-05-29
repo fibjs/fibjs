@@ -1,0 +1,25 @@
+
+/*! @brief 网络套接口对象
+ */
+class zmq_Socket : Trigger
+{
+	const Integer PAIR = 0;
+	const Integer PUB = 1;
+	const Integer SUB = 2;
+	const Integer REQ = 3;
+	const Integer REP = 4;
+	const Integer XREQ = 5;
+	const Integer XREP = 6;
+	const Integer PULL = 7;
+	const Integer PUSH = 8;
+	const Integer XPUB = 9;
+	const Integer XSUB = 10;
+
+	zmq_Socket(Integer type);
+	bind(String addr);
+	connect(String addr);
+	Buffer recv();
+	send(Buffer data);
+	close();
+	readonly Integer type;
+};

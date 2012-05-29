@@ -1,0 +1,24 @@
+
+/*! @brief zeroMQ 消息队列模块
+ *
+ * 基础模块。提供 zeroMQ 消息队列支撑。
+ * \code
+ * var zmq = require('zmq');
+ * \endcode
+ */
+class zmq : module
+{
+	const Integer PAIR = 0;
+	const Integer PUB = 1;
+	const Integer SUB = 2;
+	const Integer REQ = 3;
+	const Integer REP = 4;
+	const Integer XREQ = 5;
+	const Integer XREP = 6;
+	const Integer PULL = 7;
+	const Integer PUSH = 8;
+	const Integer XPUB = 9;
+	const Integer XSUB = 10;
+	
+	static zmq_Socket new Socket();
+};

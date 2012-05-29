@@ -14,8 +14,9 @@
 #include "ifs/coroutine.h"
 #include "ifs/encoding.h"
 
-#include "ifs/net.h"
 #include "ifs/fs.h"
+#include "ifs/net.h"
+#include "ifs/zmq.h"
 
 #include <sstream>
 #include <map>
@@ -54,6 +55,7 @@ void initModule()
 	InstallNativeModule("fs", fs_base::class_info());
 	InstallNativeModule("os", os_base::class_info());
 	InstallNativeModule("net", net_base::class_info());
+	InstallNativeModule("zmq", zmq_base::class_info());
 
 	InstallNativeModule("encoding", encoding_base::class_info());
 }
