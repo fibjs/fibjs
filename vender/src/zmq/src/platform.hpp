@@ -1,6 +1,8 @@
 /* src/platform.hpp.  Generated from platform.hpp.in by configure.  */
 /* src/platform.hpp.in.  Generated from configure.in by autoheader.  */
 
+#include <osconfig.h>
+
 #ifndef __ZMQ_PLATFORM_HPP_INCLUDED__
 #define __ZMQ_PLATFORM_HPP_INCLUDED__
 
@@ -17,7 +19,7 @@
 #define HAVE_ARPA_INET_H 1
 
 /* Define to 1 if you have the `clock_gettime' function. */
-#define HAVE_CLOCK_GETTIME 1
+//#define HAVE_CLOCK_GETTIME 1
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #define HAVE_DLFCN_H 1
@@ -179,11 +181,18 @@
 /* Have Cygwin */
 /* #undef ZMQ_HAVE_CYGWIN */
 
+#ifdef Linux
 /* Have eventfd extension. */
 #define ZMQ_HAVE_EVENTFD 1
 
+/* Whether SOCK_CLOEXEC is defined and functioning. */
+#define ZMQ_HAVE_SOCK_CLOEXEC 1
+#endif
+
+#ifdef FreeBSD
 /* Have FreeBSD OS */
-/* #undef ZMQ_HAVE_FREEBSD */
+#define ZMQ_HAVE_FREEBSD 1
+#endif
 
 /* Have HPUX OS */
 /* #undef ZMQ_HAVE_HPUX */
@@ -191,29 +200,34 @@
 /* Have ifaddrs.h header. */
 #define ZMQ_HAVE_IFADDRS 1
 
+#ifdef Linux
 /* Have Linux OS */
 #define ZMQ_HAVE_LINUX 1
+#endif
 
 /* Have MinGW32 */
 /* #undef ZMQ_HAVE_MINGW32 */
 
+#ifdef NetBSD
 /* Have NetBSD OS */
-/* #undef ZMQ_HAVE_NETBSD */
+#define ZMQ_HAVE_NETBSD 1
+#endif
 
+#ifdef OpenBSD
 /* Have OpenBSD OS */
-/* #undef ZMQ_HAVE_OPENBSD */
+#define ZMQ_HAVE_OPENBSD 1
+#endif
 
 /* Have OpenPGM extension */
 /* #undef ZMQ_HAVE_OPENPGM */
 
+#ifdef MacOS
 /* Have DarwinOSX OS */
-/* #undef ZMQ_HAVE_OSX */
+#define ZMQ_HAVE_OSX 1
+#endif
 
 /* Have QNX Neutrino OS */
 /* #undef ZMQ_HAVE_QNXNTO */
-
-/* Whether SOCK_CLOEXEC is defined and functioning. */
-#define ZMQ_HAVE_SOCK_CLOEXEC 1
 
 /* Have Solaris OS */
 /* #undef ZMQ_HAVE_SOLARIS */
