@@ -32,7 +32,7 @@ class Socket: public Socket_base
 
 public:
 	Socket() :
-		m_sock(INVALID_SOCKET), m_family(_AF_INET), m_type(_SOCK_STREAM)
+		m_sock(INVALID_SOCKET), m_family(net_base::_AF_INET), m_type(net_base::_SOCK_STREAM)
 #ifdef _WIN32
 		, m_bBind(FALSE)
 #endif

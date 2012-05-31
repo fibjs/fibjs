@@ -23,21 +23,6 @@ class Buffer_base;
 class zmq_Socket_base : public Trigger_base
 {
 public:
-	enum{
-		_PAIR = 0,
-		_PUB = 1,
-		_SUB = 2,
-		_REQ = 3,
-		_REP = 4,
-		_XREQ = 5,
-		_XREP = 6,
-		_PULL = 7,
-		_PUSH = 8,
-		_XPUB = 9,
-		_XSUB = 10
-	};
-
-public:
 	// zmq_Socket_base
 	static result_t _new(int32_t type, obj_ptr<zmq_Socket_base>& retVal);
 	virtual result_t bind(const char* addr) = 0;
@@ -66,17 +51,6 @@ public:
 	}
 
 protected:
-	static v8::Handle<v8::Value> s_get_PAIR(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_PUB(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_SUB(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_REQ(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_REP(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_XREQ(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_XREP(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_PULL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_PUSH(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_XPUB(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_XSUB(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_bind(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_connect(const v8::Arguments& args);
@@ -105,106 +79,18 @@ namespace fibjs
 
 		static ClassProperty s_property[] = 
 		{
-			{"PAIR", s_get_PAIR},
-			{"PUB", s_get_PUB},
-			{"SUB", s_get_SUB},
-			{"REQ", s_get_REQ},
-			{"REP", s_get_REP},
-			{"XREQ", s_get_XREQ},
-			{"XREP", s_get_XREP},
-			{"PULL", s_get_PULL},
-			{"PUSH", s_get_PUSH},
-			{"XPUB", s_get_XPUB},
-			{"XSUB", s_get_XSUB},
 			{"type", s_get_type}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"zmq_Socket", s__new, 
-			5, s_method, 0, NULL, 12, s_property, NULL,
+			5, s_method, 0, NULL, 1, s_property, NULL,
 			&Trigger_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
-	}
-
-	inline v8::Handle<v8::Value> zmq_Socket_base::s_get_PAIR(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _PAIR;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> zmq_Socket_base::s_get_PUB(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _PUB;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> zmq_Socket_base::s_get_SUB(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _SUB;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> zmq_Socket_base::s_get_REQ(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _REQ;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> zmq_Socket_base::s_get_REP(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _REP;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> zmq_Socket_base::s_get_XREQ(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _XREQ;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> zmq_Socket_base::s_get_XREP(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _XREP;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> zmq_Socket_base::s_get_PULL(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _PULL;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> zmq_Socket_base::s_get_PUSH(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _PUSH;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> zmq_Socket_base::s_get_XPUB(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _XPUB;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> zmq_Socket_base::s_get_XSUB(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _XSUB;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> zmq_Socket_base::s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info)

@@ -360,16 +360,16 @@ result_t Socket::create(int32_t family, int32_t type)
 	m_family = family;
 	m_type = type;
 
-	if (family == _AF_INET)
+	if (family == net_base::_AF_INET)
 		family = AF_INET;
-	else if (family == _AF_INET6)
+	else if (family == net_base::_AF_INET6)
 		family = AF_INET6;
 	else
 		return CALL_E_INVALIDARG;
 
-	if (type == _SOCK_STREAM)
+	if (type == net_base::_SOCK_STREAM)
 		type = SOCK_STREAM;
-	else if (type == _SOCK_DGRAM)
+	else if (type == net_base::_SOCK_DGRAM)
 		type = SOCK_DGRAM;
 	else
 		return CALL_E_INVALIDARG;
@@ -615,7 +615,7 @@ result_t Socket::getAddrInfo(const char* addr, int32_t port,
 {
 	memset(&addr_info, 0, sizeof(addr_info));
 
-	if (m_family == _AF_INET)
+	if (m_family == net_base::_AF_INET)
 	{
 		addr_info.addr4.sin_family = PF_INET;
 
@@ -652,7 +652,7 @@ result_t Socket::bind(const char* addr, int32_t port, bool allowIPv4)
 	int on = 1;
 	setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (const char*) &on, sizeof(on));
 
-	if (m_family == _AF_INET6)
+	if (m_family == net_base::_AF_INET6)
 	{
 		if (allowIPv4)
 			on = 0;

@@ -3,23 +3,11 @@
  */
 class Socket : Stream
 {
-	/*! @brief 地址集常量，指定 ipv4*/
-	const Integer AF_INET = 2;
-
-	/*! @brief 地址集常量，指定 ipv6*/
-	const Integer AF_INET6 = 10;
-
-	/*! @brief 协议族常量，指定 tcp*/
-	const Integer SOCK_STREAM = 1;
-
-	/*! @brief 协议族常量，指定 udp*/
-	const Integer SOCK_DGRAM = 2;
-
 	/*! @brief Socket 构造函数，创建一个新的 Socket 对象
 	 * @param family 指定地址集，缺省为 AF_INET，ipv4
 	 * @param type 指定协议族，缺省为 SOCK_STREAM，tcp
 	 */
-	Socket(Integer family = AF_INET, Integer type = SOCK_STREAM);
+	Socket(Integer family = net.AF_INET, Integer type = net.SOCK_STREAM);
 
 	/*! @brief 查询当前 Socket 对象的地址集 */
 	readonly Integer family;

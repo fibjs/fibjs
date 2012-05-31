@@ -501,6 +501,15 @@ function parserIDL(fname) {
 					value = st[pos++];
 					if (cvs[value])
 						value = "_" + value;
+					else if(r = /^(\w[\w\d_]*)\.(\w[\w\d_]*)$/.exec(value))
+					{
+						if (clsName[r[1]]) {
+							if (r[1] != ns)
+								refCls[r[1]] = true;
+						}else reportErr();
+						
+						value = r[1] + "_base::_" + r[2];
+					}
 				} else
 					value = "";
 
@@ -521,14 +530,14 @@ function parserIDL(fname) {
 						argVars += "		ARG_String(" + argCount + ");\n";
 					else
 						argVars += "		OPT_ARG_String(" + argCount + ", "
-								+ arg_value(type, value) + ");\n";
+								+ value + ");\n";
 				} else {
 					if (value == "")
 						argVars += "		ARG(" + map_type(type) + ", " + argCount
 								+ ");\n";
 					else
 						argVars += "		OPT_ARG(" + map_type(type) + ", "
-								+ argCount + ", " + arg_value(type, value)
+								+ argCount + ", " + value
 								+ ");\n";
 				}
 
@@ -668,7 +677,7 @@ function parserIDL(fname) {
 				ffs.push(fnStr)
 
 				ifStr = "		_" + fname
-						+ " = " + arg_value(ftype, value);
+						+ " = " + value;
 
 				svs.push(ifStr);
 
@@ -824,10 +833,6 @@ function parserIDL(fname) {
 			return reportErr();
 
 		return true;
-	}
-
-	function arg_value(t, v) {
-		return v;
 	}
 
 	function arg_type(n) {

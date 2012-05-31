@@ -18,18 +18,11 @@ namespace fibjs
 {
 
 class Stream_base;
+class net_base;
 class Buffer_base;
 
 class Socket_base : public Stream_base
 {
-public:
-	enum{
-		_AF_INET = 2,
-		_AF_INET6 = 10,
-		_SOCK_STREAM = 1,
-		_SOCK_DGRAM = 2
-	};
-
 public:
 	// Socket_base
 	static result_t _new(int32_t family, int32_t type, obj_ptr<Socket_base>& retVal);
@@ -77,10 +70,6 @@ public:
 	}
 
 protected:
-	static v8::Handle<v8::Value> s_get_AF_INET(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_AF_INET6(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_family(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info);
@@ -114,6 +103,7 @@ protected:
 
 }
 
+#include "net.h"
 #include "Buffer.h"
 
 namespace fibjs
@@ -138,10 +128,6 @@ namespace fibjs
 
 		static ClassProperty s_property[] = 
 		{
-			{"AF_INET", s_get_AF_INET},
-			{"AF_INET6", s_get_AF_INET6},
-			{"SOCK_STREAM", s_get_SOCK_STREAM},
-			{"SOCK_DGRAM", s_get_SOCK_DGRAM},
 			{"family", s_get_family},
 			{"type", s_get_type},
 			{"remoteAddress", s_get_remoteAddress},
@@ -153,40 +139,12 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Socket", s__new, 
-			12, s_method, 0, NULL, 10, s_property, NULL,
+			12, s_method, 0, NULL, 6, s_property, NULL,
 			&Stream_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
-	}
-
-	inline v8::Handle<v8::Value> Socket_base::s_get_AF_INET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _AF_INET;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> Socket_base::s_get_AF_INET6(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _AF_INET6;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> Socket_base::s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _SOCK_STREAM;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> Socket_base::s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _SOCK_DGRAM;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> Socket_base::s_get_family(v8::Local<v8::String> property, const v8::AccessorInfo &info)
@@ -267,8 +225,8 @@ namespace fibjs
 
 		CONSTRUCT_ENTER(2, 0);
 
-		OPT_ARG(int32_t, 0, _AF_INET);
-		OPT_ARG(int32_t, 1, _SOCK_STREAM);
+		OPT_ARG(int32_t, 0, net_base::_AF_INET);
+		OPT_ARG(int32_t, 1, net_base::_SOCK_STREAM);
 
 		hr = _new(v0, v1, vr);
 

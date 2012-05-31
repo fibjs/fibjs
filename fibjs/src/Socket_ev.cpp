@@ -311,8 +311,8 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 
 			obj_ptr<Socket> sock = new Socket(c,
 					ai.addr6.sin6_family == PF_INET6 ?
-							Socket::_AF_INET6 : Socket::_AF_INET,
-					Socket::_SOCK_STREAM);
+							net_base::_AF_INET6 : net_base::_AF_INET,
+							net_base::_SOCK_STREAM);
 
 			m_retVal = sock;
 

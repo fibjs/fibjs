@@ -18,16 +18,10 @@ namespace fibjs
 {
 
 class Stream_base;
+class fs_base;
 
 class File_base : public Stream_base
 {
-public:
-	enum{
-		_SEEK_SET = 0,
-		_SEEK_CUR = 1,
-		_SEEK_END = 2
-	};
-
 public:
 	// File_base
 	static result_t _new(obj_ptr<File_base>& retVal);
@@ -61,9 +55,6 @@ public:
 	}
 
 protected:
-	static v8::Handle<v8::Value> s_get_SEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_SEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_open(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncOpen(const v8::Arguments& args);
@@ -85,6 +76,7 @@ protected:
 
 }
 
+#include "fs.h"
 
 namespace fibjs
 {
@@ -105,42 +97,18 @@ namespace fibjs
 
 		static ClassProperty s_property[] = 
 		{
-			{"SEEK_SET", s_get_SEEK_SET},
-			{"SEEK_CUR", s_get_SEEK_CUR},
-			{"SEEK_END", s_get_SEEK_END},
 			{"name", s_get_name}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"File", s__new, 
-			9, s_method, 0, NULL, 4, s_property, NULL,
+			9, s_method, 0, NULL, 1, s_property, NULL,
 			&Stream_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
-	}
-
-	inline v8::Handle<v8::Value> File_base::s_get_SEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _SEEK_SET;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> File_base::s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _SEEK_CUR;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> File_base::s_get_SEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		int32_t vr = _SEEK_END;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> File_base::s_get_name(v8::Local<v8::String> property, const v8::AccessorInfo &info)
@@ -210,7 +178,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(double, 0);
-		OPT_ARG(int32_t, 1, _SEEK_SET);
+		OPT_ARG(int32_t, 1, fs_base::_SEEK_SET);
 
 		hr = pInst->seek(v0, v1);
 
