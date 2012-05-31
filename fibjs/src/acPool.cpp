@@ -36,6 +36,10 @@ namespace fibjs
 
 AsyncQueue s_acPool;
 
+static int32_t s_threads;
+static int32_t s_idleThreads;
+static int32_t s_idleCount;
+
 static class _acThread: public exlib::Thread
 {
 public:
@@ -45,7 +49,9 @@ public:
 		if (os_base::CPUs(cpus) < 3)
 			cpus = 3;
 
-		for (int i = 0; i < cpus * 2 - 2; i++)
+		s_threads = cpus * 2;
+
+		for (int i = 0; i < s_threads; i++)
 		{
 			start();
 			detach();
@@ -58,7 +64,15 @@ public:
 
 		while (1)
 		{
+			if(exlib::atom_inc(&s_idleThreads) > s_threads * 2)
+			{
+				exlib::atom_dec(&s_idleThreads);
+				break;
+			}
+
 			p = s_acPool.wait();
+			exlib::atom_dec(&s_idleThreads);
+
 			p->func(p);
 		}
 	}
@@ -147,6 +161,7 @@ void clearTimer()
 }
 #endif
 
+
 static class _timerThread: public exlib::Thread
 {
 public:
@@ -186,6 +201,20 @@ public:
 			e->second->post(0);
 			s_tms.erase(e);
 		}
+
+		if(s_idleThreads < s_threads)
+		{
+			if(++ s_idleCount > 50)
+			{
+				s_idleCount = 0;
+
+				for (int i = s_idleThreads; i < s_threads; i++)
+				{
+					s_ac.start();
+					s_ac.detach();
+				}
+			}
+		}else s_idleCount = 0;
 	}
 
 	virtual void Run()
