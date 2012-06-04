@@ -5,6 +5,7 @@
 #include <sstream>
 #include <log4cpp/Category.hh>
 #include "utf8.h"
+#include <zmq/zmq.h>
 
 namespace fibjs
 {
@@ -15,7 +16,7 @@ static std::string fmtString(result_t hr, const char* str)
 	int len = (int) qstrlen(str);
 
 	s.resize(len + 16);
-	s.resize(sprintf(&s[0], "[%d] %s", -hr, str));
+	s.resize(sprintf(&s[0], "[%d] %s", hr, str));
 
 	return s;
 }
@@ -53,11 +54,16 @@ std::string getResultMessage(result_t hr)
 	if (hr > CALL_E_MIN && hr < CALL_E_MAX)
 		return fmtString(hr, s_errors[CALL_E_MAX - hr]);
 
+	hr = -hr;
+
+	if(hr > ZMQ_HAUSNUMERO)
+		return fmtString(hr, zmq_strerror(hr));
+
 #ifdef _WIN32
 	LPSTR pMsgBuf = NULL;
 
 	if (FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-					NULL, -hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR) &pMsgBuf, 0, NULL ) && pMsgBuf)
+					NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR) &pMsgBuf, 0, NULL ) && pMsgBuf)
 	{
 		std::string s = fmtString(hr, pMsgBuf);
 
@@ -67,7 +73,7 @@ std::string getResultMessage(result_t hr)
 
 	return fmtString(hr, "Unknown error.");
 #else
-	return fmtString(hr, strerror(-hr));
+	return fmtString(hr, strerror(hr));
 #endif
 }
 

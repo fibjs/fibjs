@@ -9,14 +9,28 @@
 class zmq : module
 {
 	const Integer PAIR = 0;
+
+	/*! @brief 发布类型，所发送的消息将会分发给所有订阅者。 */
 	const Integer PUB = 1;
+
+	/*! @brief 订阅类型，用于接收 PUB 分发的消息。 */
 	const Integer SUB = 2;
+
+	/*! @brief 请求类型，此类型的接口只允许交替进行 send 和 recv 消息，每一个接受的消息都是最后一次发送请求的响应。 */
 	const Integer REQ = 3;
+
+	/*! @brief 响应类型，此类型的接口只允许交替进行 recv 和 send 消息，每一个发送的消息都会作为最后一次接受的请求的回应。 */
 	const Integer REP = 4;
-	const Integer XREQ = 5;
-	const Integer XREP = 6;
+
+	const Integer DEALER = 5;
+	const Integer ROUTER = 6;
+
+	/*! @brief 获取消息类型，上游推送的消息将被公平的分发到此类接口。 */
 	const Integer PULL = 7;
+
+	/*! @brief 推送类型，推送的消息将均衡发送到下游接口。 */
 	const Integer PUSH = 8;
+
 	const Integer XPUB = 9;
 	const Integer XSUB = 10;
 	

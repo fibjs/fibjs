@@ -3,10 +3,10 @@
  */
 class zmq_Socket : Trigger
 {
-	zmq_Socket(Integer type);
+	zmq_Socket(Integer type = zmq.PAIR);
 	bind(String addr);
 	connect(String addr);
-	Buffer recv();
+	Buffer recv() async;
 	send(Buffer data);
 	close();
 	readonly Integer type;

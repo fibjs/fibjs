@@ -449,7 +449,7 @@ function parserIDL(fname) {
 			pos += 2;
 
 			difos
-					.push("			{\"" + ftype + "\", " + fname
+					.push("			{\"" + fname + "\", " + ftype
 							+ "_base::class_info}");
 		} else if (st[pos] == "(") {
 			if (attr == "const" || attr == "readonly")

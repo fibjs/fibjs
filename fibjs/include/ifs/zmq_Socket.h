@@ -18,6 +18,7 @@ namespace fibjs
 {
 
 class Trigger_base;
+class zmq_base;
 class Buffer_base;
 
 class zmq_Socket_base : public Trigger_base
@@ -27,7 +28,7 @@ public:
 	static result_t _new(int32_t type, obj_ptr<zmq_Socket_base>& retVal);
 	virtual result_t bind(const char* addr) = 0;
 	virtual result_t connect(const char* addr) = 0;
-	virtual result_t recv(obj_ptr<Buffer_base>& retVal) = 0;
+	virtual result_t recv(obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t send(obj_ptr<Buffer_base>& data) = 0;
 	virtual result_t close() = 0;
 	virtual result_t get_type(int32_t& retVal) = 0;
@@ -58,10 +59,15 @@ protected:
 	static v8::Handle<v8::Value> s_send(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_close(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+
+protected:
+	ASYNC_MEMBER1(zmq_Socket_base, recv);
+	ASYNC_VALUEBACK0(zmq_Socket_base, recv, obj_ptr<Buffer_base>);
 };
 
 }
 
+#include "zmq.h"
 #include "Buffer.h"
 
 namespace fibjs
@@ -109,9 +115,9 @@ namespace fibjs
 	{
 		obj_ptr<zmq_Socket_base> vr;
 
-		CONSTRUCT_ENTER(1, 1);
+		CONSTRUCT_ENTER(1, 0);
 
-		ARG(int32_t, 0);
+		OPT_ARG(int32_t, 0, zmq_base::_PAIR);
 
 		hr = _new(v0, vr);
 
@@ -149,7 +155,7 @@ namespace fibjs
 		METHOD_INSTANCE(zmq_Socket_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->recv(vr);
+		hr = pInst->ac_recv(s_acPool, vr);
 
 		METHOD_RETURN();
 	}
