@@ -10,6 +10,7 @@ require("encoding_test");
 require("module_test");
 require("define_test");
 require("net_test");
+require("zmq_test");
 
 require('BUG_simple_api_call');
 console.log("TEST End.");
