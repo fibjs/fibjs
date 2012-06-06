@@ -13,7 +13,7 @@ namespace fibjs
 
 static void *s_ctx;
 
-result_t zmq_Socket_base::_new(int32_t type, obj_ptr<zmq_Socket_base>& retVal)
+result_t zmqSocket_base::_new(int32_t type, obj_ptr<zmqSocket_base>& retVal)
 {
 	if (!s_ctx)
 		s_ctx = zmq_init(1);

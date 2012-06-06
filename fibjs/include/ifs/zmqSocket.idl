@@ -1,9 +1,9 @@
 
 /*! @brief 网络套接口对象
  */
-class zmq_Socket : Trigger
+class zmqSocket : Trigger
 {
-	zmq_Socket(Integer type = zmq.PAIR);
+	zmqSocket(Integer type = zmq.PAIR);
 	bind(String addr);
 	connect(String addr);
 	Buffer recv() async;

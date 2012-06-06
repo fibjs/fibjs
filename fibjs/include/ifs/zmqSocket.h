@@ -4,8 +4,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _zmq_Socket_base_H_
-#define _zmq_Socket_base_H_
+#ifndef _zmqSocket_base_H_
+#define _zmqSocket_base_H_
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -21,11 +21,11 @@ class Trigger_base;
 class zmq_base;
 class Buffer_base;
 
-class zmq_Socket_base : public Trigger_base
+class zmqSocket_base : public Trigger_base
 {
 public:
-	// zmq_Socket_base
-	static result_t _new(int32_t type, obj_ptr<zmq_Socket_base>& retVal);
+	// zmqSocket_base
+	static result_t _new(int32_t type, obj_ptr<zmqSocket_base>& retVal);
 	virtual result_t bind(const char* addr) = 0;
 	virtual result_t connect(const char* addr) = 0;
 	virtual result_t recv(obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
@@ -61,8 +61,8 @@ protected:
 	static v8::Handle<v8::Value> s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 
 protected:
-	ASYNC_MEMBER1(zmq_Socket_base, recv);
-	ASYNC_VALUEBACK0(zmq_Socket_base, recv, obj_ptr<Buffer_base>);
+	ASYNC_MEMBER1(zmqSocket_base, recv);
+	ASYNC_VALUEBACK0(zmqSocket_base, recv, obj_ptr<Buffer_base>);
 };
 
 }
@@ -72,7 +72,7 @@ protected:
 
 namespace fibjs
 {
-	inline ClassInfo& zmq_Socket_base::class_info()
+	inline ClassInfo& zmqSocket_base::class_info()
 	{
 		static ClassMethod s_method[] = 
 		{
@@ -90,7 +90,7 @@ namespace fibjs
 
 		static ClassData s_cd = 
 		{ 
-			"zmq_Socket", s__new, 
+			"zmqSocket", s__new, 
 			5, s_method, 0, NULL, 1, s_property, NULL,
 			&Trigger_base::class_info()
 		};
@@ -99,21 +99,21 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> zmq_Socket_base::s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline v8::Handle<v8::Value> zmqSocket_base::s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		int32_t vr;
 
 		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(zmq_Socket_base);
+		PROPERTY_INSTANCE(zmqSocket_base);
 
 		hr = pInst->get_type(vr);
 
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zmq_Socket_base::s__new(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> zmqSocket_base::s__new(const v8::Arguments& args)
 	{
-		obj_ptr<zmq_Socket_base> vr;
+		obj_ptr<zmqSocket_base> vr;
 
 		CONSTRUCT_ENTER(1, 0);
 
@@ -124,9 +124,9 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zmq_Socket_base::s_bind(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> zmqSocket_base::s_bind(const v8::Arguments& args)
 	{
-		METHOD_INSTANCE(zmq_Socket_base);
+		METHOD_INSTANCE(zmqSocket_base);
 		METHOD_ENTER(1, 1);
 
 		ARG_String(0);
@@ -136,9 +136,9 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> zmq_Socket_base::s_connect(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> zmqSocket_base::s_connect(const v8::Arguments& args)
 	{
-		METHOD_INSTANCE(zmq_Socket_base);
+		METHOD_INSTANCE(zmqSocket_base);
 		METHOD_ENTER(1, 1);
 
 		ARG_String(0);
@@ -148,11 +148,11 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> zmq_Socket_base::s_recv(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> zmqSocket_base::s_recv(const v8::Arguments& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
-		METHOD_INSTANCE(zmq_Socket_base);
+		METHOD_INSTANCE(zmqSocket_base);
 		METHOD_ENTER(0, 0);
 
 		hr = pInst->ac_recv(s_acPool, vr);
@@ -160,9 +160,9 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zmq_Socket_base::s_send(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> zmqSocket_base::s_send(const v8::Arguments& args)
 	{
-		METHOD_INSTANCE(zmq_Socket_base);
+		METHOD_INSTANCE(zmqSocket_base);
 		METHOD_ENTER(1, 1);
 
 		ARG(obj_ptr<Buffer_base>, 0);
@@ -172,9 +172,9 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> zmq_Socket_base::s_close(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> zmqSocket_base::s_close(const v8::Arguments& args)
 	{
-		METHOD_INSTANCE(zmq_Socket_base);
+		METHOD_INSTANCE(zmqSocket_base);
 		METHOD_ENTER(0, 0);
 
 		hr = pInst->close();

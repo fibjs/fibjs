@@ -5,7 +5,7 @@
  *      Author: lion
  */
 
-#include "ifs/zmq_Socket.h"
+#include "ifs/zmqSocket.h"
 #include <zmq/zmq.h>
 
 #ifndef ZMQSOCKET_H_
@@ -14,7 +14,7 @@
 namespace fibjs
 {
 
-class zmqSocket : public zmq_Socket_base
+class zmqSocket : public zmqSocket_base
 {
 	EVENT_SUPPORT();
 

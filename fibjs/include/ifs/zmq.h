@@ -18,7 +18,7 @@ namespace fibjs
 {
 
 class module_base;
-class zmq_Socket_base;
+class zmqSocket_base;
 
 class zmq_base : public module_base
 {
@@ -61,7 +61,7 @@ protected:
 
 }
 
-#include "zmq_Socket.h"
+#include "zmqSocket.h"
 
 namespace fibjs
 {
@@ -69,7 +69,7 @@ namespace fibjs
 	{
 		static ClassObject s_object[] = 
 		{
-			{"Socket", zmq_Socket_base::class_info}
+			{"Socket", zmqSocket_base::class_info}
 		};
 
 		static ClassProperty s_property[] = 

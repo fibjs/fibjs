@@ -34,5 +34,5 @@ class zmq : module
 	const Integer XPUB = 9;
 	const Integer XSUB = 10;
 	
-	static zmq_Socket new Socket();
+	static zmqSocket new Socket();
 };
