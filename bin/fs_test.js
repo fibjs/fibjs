@@ -5,11 +5,8 @@
 console.log('fs testing....');
 
 var assert = require('assert');
-var os = require('os');
 
 var fs = require('fs');
-
-var isWindows = os.type() === 'Windows';
 
 assert.ok(fs.exists('fs_test.js'));
 
@@ -81,3 +78,14 @@ f1.close();
 
 fs.unlink('fs_test.js.bak');
 
+f = fs.open('fs_test.js');
+f1 = fs.open('fs_test.js.bak', 'w');
+
+var s = f.copyTo(f1);
+assert.equal(s, f.size());
+assert.equal(s, f1.size());
+
+f.close();
+f1.close();
+
+fs.unlink('fs_test.js.bak');
