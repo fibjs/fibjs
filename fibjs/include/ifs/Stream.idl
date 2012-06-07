@@ -8,7 +8,7 @@ class Stream : Trigger
 	 */
 	Buffer read(Integer bytes = -1) async;
 
-	/*! @brief 从流内异步读取指定大小的数据，触发事件 "read"
+	/*! @brief 从流内异步读取指定大小的数据，完成后触发事件 "read"
 	 * @param bytes 指定要读取的数据量，缺省为读取剩余全部数据
 	 */
 	asyncRead(Integer bytes = -1);
@@ -16,7 +16,7 @@ class Stream : Trigger
 	/*! @brief 注册 "read" 事件，等同于 on("read", func);
 	 * @param func 事件处理函数
 	 *
-	 * "read" 事件定义如下：
+	 * "read" 事件定义如下，参数为读取的数据：
 	 * @code
 	 * function on_read(data)
 	 * {}
@@ -29,7 +29,7 @@ class Stream : Trigger
 	 */
 	write(Buffer data) async;
 
-	/*! @brief 将给定的数据异步写入流，触发事件 "write"
+	/*! @brief 将给定的数据异步写入流，完成后触发事件 "write"
 	 * @param data 给定要写入的数据
 	 */
 	asyncWrite(Buffer data);
@@ -44,6 +44,30 @@ class Stream : Trigger
 	 * @endcode
 	 */
 	onwrite(Function func);
+
+	/*! @brief 复制流数据到目标流中
+	 * @param stm 目标流对象
+	 * @param bytes 复制的字节数
+	 * @return 返回复制的字节数
+	 */
+	Integer copyTo(Stream stm, Integer bytes = -1) async;
+
+	/*! @brief 异步复制流数据到目标流中，完成后触发事件 "copyto"
+	 * @param stm 目标流对象
+	 * @param bytes 复制的字节数
+	 */
+	asyncCopyTo(Stream stm, Integer bytes = -1);
+
+	/*! @brief 注册 "copyto" 事件，等同于 on("copyto", func);
+	 * @param func 事件处理函数
+	 *
+	 * "copyto" 事件定义如下，参数为复制字节数：
+	 * @code
+	 * function on_copyto(num)
+	 * {}
+	 * @endcode
+	 */
+	oncopyto(Function func);
 
 	/*! @brief 查询当前文件的基础信息
 	 * @return 返回 Stat 对象描述文件信息
@@ -75,7 +99,7 @@ class Stream : Trigger
 	/*! @brief 将文件缓冲区内容写入物理设备 */
 	flush() async;
 
-	/*! @brief 将文件缓冲区内容异步写入物理设备，触发事件 "flush" */
+	/*! @brief 将文件缓冲区内容异步写入物理设备，完成后触发事件 "flush" */
 	asyncFlush();
 	
 	/*! @brief 注册 "flush" 事件，等同于 on("flush", func);
@@ -92,7 +116,7 @@ class Stream : Trigger
 	/*! @brief 关闭当前流 */
 	close() async;
 
-	/*! @brief 异步关闭当前流，触发事件 "close" */
+	/*! @brief 异步关闭当前流，完成后触发事件 "close" */
 	asyncClose();
 
 	/*! @brief 注册 "close" 事件，等同于 on("close", func);

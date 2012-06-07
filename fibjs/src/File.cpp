@@ -11,6 +11,7 @@
 #include "Buffer.h"
 #include "Stat.h"
 #include "utf8.h"
+#include "Stream.h"
 
 namespace fibjs
 {
@@ -115,6 +116,22 @@ result_t File::asyncWrite(obj_ptr<Buffer_base>& data)
 result_t File::onwrite(v8::Handle<v8::Function> func)
 {
 	return on("write", func);
+}
+
+result_t File::copyTo(obj_ptr<Stream_base>& stm, int32_t bytes, int32_t& retVal, exlib::AsyncEvent* ac)
+{
+	return copyStream(this, stm, bytes, retVal, ac);
+}
+
+result_t File::asyncCopyTo(obj_ptr<Stream_base>& stm, int32_t bytes)
+{
+	acb_copyTo(s_acPool, stm, bytes);
+	return 0;
+}
+
+result_t File::oncopyto(v8::Handle<v8::Function> func)
+{
+	return on("copyto", func);
 }
 
 result_t File::open(const char* fname, const char* mode, exlib::AsyncEvent* ac)

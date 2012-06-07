@@ -7,6 +7,7 @@
 
 #include "Socket.h"
 #include "Buffer.h"
+#include "Stream.h"
 #include <string.h>
 #include  <fcntl.h>
 
@@ -433,6 +434,22 @@ result_t Socket::asyncWrite(obj_ptr<Buffer_base>& data)
 result_t Socket::onwrite(v8::Handle<v8::Function> func)
 {
 	return on("write", func);
+}
+
+result_t Socket::copyTo(obj_ptr<Stream_base>& stm, int32_t bytes, int32_t& retVal, exlib::AsyncEvent* ac)
+{
+	return copyStream(this, stm, bytes, retVal, ac);
+}
+
+result_t Socket::asyncCopyTo(obj_ptr<Stream_base>& stm, int32_t bytes)
+{
+	acb_copyTo(s_acPool, stm, bytes);
+	return 0;
+}
+
+result_t Socket::oncopyto(v8::Handle<v8::Function> func)
+{
+	return on("copyto", func);
 }
 
 result_t Socket::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)

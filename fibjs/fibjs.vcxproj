@@ -44,6 +44,7 @@
     <ClCompile Include="src\Socket_ev.cpp" />
     <ClCompile Include="src\Socket_iocp.cpp" />
     <ClCompile Include="src\Stat.cpp" />
+    <ClCompile Include="src\Stream.cpp" />
     <ClCompile Include="src\test.cpp" />
     <ClCompile Include="src\Trigger.cpp" />
     <ClCompile Include="src\utf8.cpp" />
@@ -88,7 +89,7 @@
     <ClInclude Include="include\ifs\Stream.h" />
     <ClInclude Include="include\ifs\Trigger.h" />
     <ClInclude Include="include\ifs\zmq.h" />
-    <ClInclude Include="include\ifs\zmq_Socket.h" />
+    <ClInclude Include="include\ifs\zmqSocket.h" />
     <ClInclude Include="include\Lock.h" />
     <ClInclude Include="include\object.h" />
     <ClInclude Include="include\ObjectArray.h" />
