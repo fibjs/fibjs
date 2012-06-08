@@ -178,6 +178,16 @@ MaybeObject* JSObject::GetPropertyWithCallback(Object* receiver,
   // api style callbacks.
   if (structure->IsAccessorInfo()) {
     AccessorInfo* data = AccessorInfo::cast(structure);
+    if (!data->IsCompatibleReceiver(receiver)) {
+      Handle<Object> name_handle(name);
+      Handle<Object> receiver_handle(receiver);
+      Handle<Object> args[2] = { name_handle, receiver_handle };
+      Handle<Object> error =
+          isolate->factory()->NewTypeError("incompatible_method_receiver",
+                                           HandleVector(args,
+                                                        ARRAY_SIZE(args)));
+      return isolate->Throw(*error);
+    }
     Object* fun_obj = data->getter();
     v8::AccessorGetter call_fun = v8::ToCData<v8::AccessorGetter>(fun_obj);
     HandleScope scope(isolate);
@@ -1514,7 +1524,8 @@ static bool IsIdentifier(UnicodeCache* cache,
 
 MaybeObject* JSObject::AddFastProperty(String* name,
                                        Object* value,
-                                       PropertyAttributes attributes) {
+                                       PropertyAttributes attributes,
+                                       StoreFromKeyed store_mode) {
   ASSERT(!IsJSGlobalProxy());
 
   // Normalize the object if the name is an actual string (not the
@@ -1580,7 +1591,7 @@ MaybeObject* JSObject::AddFastProperty(String* name,
   }
 
   if (map()->unused_property_fields() == 0) {
-    if (properties()->length() > MaxFastProperties()) {
+    if (TooManyFastProperties(properties()->length(), store_mode)) {
       Object* obj;
       { MaybeObject* maybe_obj =
             NormalizeProperties(CLEAR_INOBJECT_PROPERTIES, 0);
@@ -1710,7 +1721,8 @@ MaybeObject* JSObject::AddSlowProperty(String* name,
 MaybeObject* JSObject::AddProperty(String* name,
                                    Object* value,
                                    PropertyAttributes attributes,
-                                   StrictModeFlag strict_mode) {
+                                   StrictModeFlag strict_mode,
+                                   JSReceiver::StoreFromKeyed store_mode) {
   ASSERT(!IsJSGlobalProxy());
   Map* map_of_this = map();
   Heap* heap = GetHeap();
@@ -1733,7 +1745,7 @@ MaybeObject* JSObject::AddProperty(String* name,
                                            JSFunction::cast(value),
                                            attributes);
       } else {
-        return AddFastProperty(name, value, attributes);
+        return AddFastProperty(name, value, attributes, store_mode);
       }
     } else {
       // Normalize the object to prevent very large instance descriptors.
@@ -1762,14 +1774,11 @@ MaybeObject* JSObject::SetPropertyPostInterceptor(
     // found.  Use set property to handle all these cases.
     return SetProperty(&result, name, value, attributes, strict_mode);
   }
-  bool found = false;
+  bool done = false;
   MaybeObject* result_object;
-  result_object = SetPropertyWithCallbackSetterInPrototypes(name,
-                                                            value,
-                                                            attributes,
-                                                            &found,
-                                                            strict_mode);
-  if (found) return result_object;
+  result_object =
+      SetPropertyViaPrototypes(name, value, attributes, strict_mode, &done);
+  if (done) return result_object;
   // Add a new real property.
   return AddProperty(name, value, attributes, strict_mode);
 }
@@ -1833,7 +1842,7 @@ MaybeObject* JSObject::ConvertDescriptorToField(String* name,
                                                 Object* new_value,
                                                 PropertyAttributes attributes) {
   if (map()->unused_property_fields() == 0 &&
-      properties()->length() > MaxFastProperties()) {
+      TooManyFastProperties(properties()->length(), MAY_BE_STORE_FROM_KEYED)) {
     Object* obj;
     { MaybeObject* maybe_obj =
           NormalizeProperties(CLEAR_INOBJECT_PROPERTIES, 0);
@@ -1948,10 +1957,11 @@ Handle<Object> JSReceiver::SetProperty(Handle<JSReceiver> object,
 MaybeObject* JSReceiver::SetProperty(String* name,
                                      Object* value,
                                      PropertyAttributes attributes,
-                                     StrictModeFlag strict_mode) {
+                                     StrictModeFlag strict_mode,
+                                     JSReceiver::StoreFromKeyed store_mode) {
   LookupResult result(GetIsolate());
   LocalLookup(name, &result);
-  return SetProperty(&result, name, value, attributes, strict_mode);
+  return SetProperty(&result, name, value, attributes, strict_mode, store_mode);
 }
 
 
@@ -1984,6 +1994,16 @@ MaybeObject* JSObject::SetPropertyWithCallback(Object* structure,
   if (structure->IsAccessorInfo()) {
     // api style callbacks
     AccessorInfo* data = AccessorInfo::cast(structure);
+    if (!data->IsCompatibleReceiver(this)) {
+      Handle<Object> name_handle(name);
+      Handle<Object> receiver_handle(this);
+      Handle<Object> args[2] = { name_handle, receiver_handle };
+      Handle<Object> error =
+          isolate->factory()->NewTypeError("incompatible_method_receiver",
+                                           HandleVector(args,
+                                                        ARRAY_SIZE(args)));
+      return isolate->Throw(*error);
+    }
     Object* call_obj = data->setter();
     v8::AccessorSetter call_fun = v8::ToCData<v8::AccessorSetter>(call_obj);
     if (call_fun == NULL) return value;
@@ -2049,26 +2069,6 @@ MaybeObject* JSReceiver::SetPropertyWithDefinedSetter(JSReceiver* setter,
 }
 
 
-void JSObject::LookupCallbackSetterInPrototypes(String* name,
-                                                LookupResult* result) {
-  Heap* heap = GetHeap();
-  for (Object* pt = GetPrototype();
-       pt != heap->null_value();
-       pt = pt->GetPrototype()) {
-    if (pt->IsJSProxy()) {
-      return result->HandlerResult(JSProxy::cast(pt));
-    }
-    JSObject::cast(pt)->LocalLookupRealNamedProperty(name, result);
-    if (result->IsProperty()) {
-      if (result->type() == CALLBACKS && !result->IsReadOnly()) return;
-      // Found non-callback or read-only callback, stop looking.
-      break;
-    }
-  }
-  result->NotFound();
-}
-
-
 MaybeObject* JSObject::SetElementWithCallbackSetterInPrototypes(
     uint32_t index,
     Object* value,
@@ -2085,7 +2085,7 @@ MaybeObject* JSObject::SetElementWithCallbackSetterInPrototypes(
         *found = true;  // Force abort
         return maybe;
       }
-      return JSProxy::cast(pt)->SetPropertyWithHandlerIfDefiningSetter(
+      return JSProxy::cast(pt)->SetPropertyViaPrototypesWithHandler(
           this, name, value, NONE, strict_mode, found);
     }
     if (!JSObject::cast(pt)->HasDictionaryElements()) {
@@ -2110,45 +2110,61 @@ MaybeObject* JSObject::SetElementWithCallbackSetterInPrototypes(
   return heap->the_hole_value();
 }
 
-MaybeObject* JSObject::SetPropertyWithCallbackSetterInPrototypes(
+MaybeObject* JSObject::SetPropertyViaPrototypes(
     String* name,
     Object* value,
     PropertyAttributes attributes,
-    bool* found,
-    StrictModeFlag strict_mode) {
+    StrictModeFlag strict_mode,
+    bool* done) {
   Heap* heap = GetHeap();
+  Isolate* isolate = heap->isolate();
+
+  *done = false;
   // We could not find a local property so let's check whether there is an
-  // accessor that wants to handle the property.
-  LookupResult accessor_result(heap->isolate());
-  LookupCallbackSetterInPrototypes(name, &accessor_result);
-  if (accessor_result.IsFound()) {
-    *found = true;
-    if (accessor_result.type() == CALLBACKS) {
-      return SetPropertyWithCallback(accessor_result.GetCallbackObject(),
-                                     name,
-                                     value,
-                                     accessor_result.holder(),
-                                     strict_mode);
-    } else if (accessor_result.type() == HANDLER) {
-      // There is a proxy in the prototype chain. Invoke its
-      // getPropertyDescriptor trap.
-      bool found = false;
-      // SetPropertyWithHandlerIfDefiningSetter can cause GC,
-      // make sure to use the handlified references after calling
-      // the function.
-      Handle<JSObject> self(this);
-      Handle<String> hname(name);
-      Handle<Object> hvalue(value);
-      MaybeObject* result =
-          accessor_result.proxy()->SetPropertyWithHandlerIfDefiningSetter(
-              this, name, value, attributes, strict_mode, &found);
-      if (found) return result;
-      // The proxy does not define the property as an accessor.
-      // Consequently, it has no effect on setting the receiver.
-      return self->AddProperty(*hname, *hvalue, attributes, strict_mode);
+  // accessor that wants to handle the property, or whether the property is
+  // read-only on the prototype chain.
+  LookupResult result(isolate);
+  LookupRealNamedPropertyInPrototypes(name, &result);
+  if (result.IsFound()) {
+    switch (result.type()) {
+      case NORMAL:
+      case FIELD:
+      case CONSTANT_FUNCTION:
+        *done = result.IsReadOnly();
+        break;
+      case INTERCEPTOR: {
+        PropertyAttributes attr =
+            result.holder()->GetPropertyAttributeWithInterceptor(
+                this, name, true);
+        *done = !!(attr & READ_ONLY);
+        break;
+      }
+      case CALLBACKS: {
+        if (!FLAG_es5_readonly && result.IsReadOnly()) break;
+        *done = true;
+        return SetPropertyWithCallback(result.GetCallbackObject(),
+            name, value, result.holder(), strict_mode);
+      }
+      case HANDLER: {
+        return result.proxy()->SetPropertyViaPrototypesWithHandler(
+            this, name, value, attributes, strict_mode, done);
+      }
+      case MAP_TRANSITION:
+      case CONSTANT_TRANSITION:
+      case NULL_DESCRIPTOR:
+      case ELEMENTS_TRANSITION:
+        break;
     }
   }
-  *found = false;
+
+  // If we get here with *done true, we have encountered a read-only property.
+  if (!FLAG_es5_readonly) *done = false;
+  if (*done) {
+    if (strict_mode == kNonStrictMode) return value;
+    Handle<Object> args[] = { Handle<Object>(name), Handle<Object>(this)};
+    return isolate->Throw(*isolate->factory()->NewTypeError(
+      "strict_read_only_property", HandleVector(args, ARRAY_SIZE(args))));
+  }
   return heap->the_hole_value();
 }
 
@@ -2553,9 +2569,13 @@ void JSObject::LookupRealNamedPropertyInPrototypes(String* name,
   Heap* heap = GetHeap();
   for (Object* pt = GetPrototype();
        pt != heap->null_value();
-       pt = JSObject::cast(pt)->GetPrototype()) {
+       pt = pt->GetPrototype()) {
+    if (pt->IsJSProxy()) {
+      return result->HandlerResult(JSProxy::cast(pt));
+    }
     JSObject::cast(pt)->LocalLookupRealNamedProperty(name, result);
-    if (result->IsProperty() && (result->type() != INTERCEPTOR)) return;
+    ASSERT(!(result->IsProperty() && result->type() == INTERCEPTOR));
+    if (result->IsProperty()) return;
   }
   result->NotFound();
 }
@@ -2569,7 +2589,7 @@ MaybeObject* JSObject::SetPropertyWithFailedAccessCheck(
     bool check_prototype,
     StrictModeFlag strict_mode) {
   if (check_prototype && !result->IsProperty()) {
-    LookupCallbackSetterInPrototypes(name, result);
+    LookupRealNamedPropertyInPrototypes(name, result);
   }
 
   if (result->IsProperty()) {
@@ -2622,13 +2642,14 @@ MaybeObject* JSReceiver::SetProperty(LookupResult* result,
                                      String* key,
                                      Object* value,
                                      PropertyAttributes attributes,
-                                     StrictModeFlag strict_mode) {
+                                     StrictModeFlag strict_mode,
+                                     JSReceiver::StoreFromKeyed store_mode) {
   if (result->IsFound() && result->type() == HANDLER) {
     return result->proxy()->SetPropertyWithHandler(
         this, key, value, attributes, strict_mode);
   } else {
     return JSObject::cast(this)->SetPropertyForResult(
-        result, key, value, attributes, strict_mode);
+        result, key, value, attributes, strict_mode, store_mode);
   }
 }
 
@@ -2642,7 +2663,7 @@ bool JSProxy::HasPropertyWithHandler(String* name_raw) {
   Handle<Object> args[] = { name };
   Handle<Object> result = CallTrap(
     "has", isolate->derived_has_trap(), ARRAY_SIZE(args), args);
-  if (isolate->has_pending_exception()) return Failure::Exception();
+  if (isolate->has_pending_exception()) return false;
 
   return result->ToBoolean()->IsTrue();
 }
@@ -2668,79 +2689,92 @@ MUST_USE_RESULT MaybeObject* JSProxy::SetPropertyWithHandler(
 }
 
 
-MUST_USE_RESULT MaybeObject* JSProxy::SetPropertyWithHandlerIfDefiningSetter(
+MUST_USE_RESULT MaybeObject* JSProxy::SetPropertyViaPrototypesWithHandler(
     JSReceiver* receiver_raw,
     String* name_raw,
     Object* value_raw,
     PropertyAttributes attributes,
     StrictModeFlag strict_mode,
-    bool* found) {
-  *found = true;  // except where defined otherwise...
-  Isolate* isolate = GetHeap()->isolate();
-  Handle<JSReceiver> receiver(receiver_raw);
+    bool* done) {
+  Isolate* isolate = GetIsolate();
   Handle<JSProxy> proxy(this);
-  Handle<Object> handler(this->handler());  // Trap might morph proxy.
+  Handle<JSReceiver> receiver(receiver_raw);
   Handle<String> name(name_raw);
   Handle<Object> value(value_raw);
+  Handle<Object> handler(this->handler());  // Trap might morph proxy.
+
+  *done = true;  // except where redefined...
   Handle<Object> args[] = { name };
   Handle<Object> result = proxy->CallTrap(
       "getPropertyDescriptor", Handle<Object>(), ARRAY_SIZE(args), args);
   if (isolate->has_pending_exception()) return Failure::Exception();
 
-  if (!result->IsUndefined()) {
-    // The proxy handler cares about this property.
-    // Check whether it is virtualized as an accessor.
-    // Emulate [[GetProperty]] semantics for proxies.
-    bool has_pending_exception;
-    Handle<Object> argv[] = { result };
-    Handle<Object> desc =
-        Execution::Call(isolate->to_complete_property_descriptor(), result,
-                        ARRAY_SIZE(argv), argv, &has_pending_exception);
-    if (has_pending_exception) return Failure::Exception();
-
-    Handle<String> conf_name =
-        isolate->factory()->LookupAsciiSymbol("configurable_");
-    Handle<Object> configurable(v8::internal::GetProperty(desc, conf_name));
-    ASSERT(!isolate->has_pending_exception());
-    if (configurable->IsFalse()) {
-      Handle<String> trap =
-          isolate->factory()->LookupAsciiSymbol("getPropertyDescriptor");
-      Handle<Object> args[] = { handler, trap, name };
-      Handle<Object> error = isolate->factory()->NewTypeError(
-          "proxy_prop_not_configurable", HandleVector(args, ARRAY_SIZE(args)));
-      return isolate->Throw(*error);
-    }
-    ASSERT(configurable->IsTrue());
-
-    // Check for AccessorDescriptor.
-    Handle<String> set_name = isolate->factory()->LookupAsciiSymbol("set_");
-    Handle<Object> setter(v8::internal::GetProperty(desc, set_name));
-    ASSERT(!isolate->has_pending_exception());
-    if (!setter->IsUndefined()) {
-      // We have a setter -- invoke it.
-      // TODO(rossberg): nicer would be to cast to some JSCallable here...
-      return receiver->SetPropertyWithDefinedSetter(
-          JSReceiver::cast(*setter), *value);
-    } else {
-      Handle<String> get_name = isolate->factory()->LookupAsciiSymbol("get_");
-      Handle<Object> getter(v8::internal::GetProperty(desc, get_name));
-      ASSERT(!isolate->has_pending_exception());
-      if (!getter->IsUndefined()) {
-        // We have a getter but no setter -- the property may not be
-        // written. In strict mode, throw an error.
-        if (strict_mode == kNonStrictMode) return *value;
-        Handle<Object> args[] = { name, proxy };
-        Handle<Object> error = isolate->factory()->NewTypeError(
-            "no_setter_in_callback", HandleVector(args, ARRAY_SIZE(args)));
-        return isolate->Throw(*error);
-      }
-    }
-    // Fall-through.
+  if (result->IsUndefined()) {
+    *done = false;
+    return GetHeap()->the_hole_value();
   }
 
-  // The proxy does not define the property as an accessor.
-  *found = false;
-  return *value;
+  // Emulate [[GetProperty]] semantics for proxies.
+  bool has_pending_exception;
+  Handle<Object> argv[] = { result };
+  Handle<Object> desc =
+      Execution::Call(isolate->to_complete_property_descriptor(), result,
+                      ARRAY_SIZE(argv), argv, &has_pending_exception);
+  if (has_pending_exception) return Failure::Exception();
+
+  // [[GetProperty]] requires to check that all properties are configurable.
+  Handle<String> configurable_name =
+      isolate->factory()->LookupAsciiSymbol("configurable_");
+  Handle<Object> configurable(
+      v8::internal::GetProperty(desc, configurable_name));
+  ASSERT(!isolate->has_pending_exception());
+  ASSERT(configurable->IsTrue() || configurable->IsFalse());
+  if (configurable->IsFalse()) {
+    Handle<String> trap =
+        isolate->factory()->LookupAsciiSymbol("getPropertyDescriptor");
+    Handle<Object> args[] = { handler, trap, name };
+    Handle<Object> error = isolate->factory()->NewTypeError(
+        "proxy_prop_not_configurable", HandleVector(args, ARRAY_SIZE(args)));
+    return isolate->Throw(*error);
+  }
+  ASSERT(configurable->IsTrue());
+
+  // Check for DataDescriptor.
+  Handle<String> hasWritable_name =
+      isolate->factory()->LookupAsciiSymbol("hasWritable_");
+  Handle<Object> hasWritable(v8::internal::GetProperty(desc, hasWritable_name));
+  ASSERT(!isolate->has_pending_exception());
+  ASSERT(hasWritable->IsTrue() || hasWritable->IsFalse());
+  if (hasWritable->IsTrue()) {
+    Handle<String> writable_name =
+        isolate->factory()->LookupAsciiSymbol("writable_");
+    Handle<Object> writable(v8::internal::GetProperty(desc, writable_name));
+    ASSERT(!isolate->has_pending_exception());
+    ASSERT(writable->IsTrue() || writable->IsFalse());
+    *done = writable->IsFalse();
+    if (!*done) return GetHeap()->the_hole_value();
+    if (strict_mode == kNonStrictMode) return *value;
+    Handle<Object> args[] = { name, receiver };
+    Handle<Object> error = isolate->factory()->NewTypeError(
+        "strict_read_only_property", HandleVector(args, ARRAY_SIZE(args)));
+    return isolate->Throw(*error);
+  }
+
+  // We have an AccessorDescriptor.
+  Handle<String> set_name = isolate->factory()->LookupAsciiSymbol("set_");
+  Handle<Object> setter(v8::internal::GetProperty(desc, set_name));
+  ASSERT(!isolate->has_pending_exception());
+  if (!setter->IsUndefined()) {
+    // TODO(rossberg): nicer would be to cast to some JSCallable here...
+    return receiver->SetPropertyWithDefinedSetter(
+        JSReceiver::cast(*setter), *value);
+  }
+
+  if (strict_mode == kNonStrictMode) return *value;
+  Handle<Object> args2[] = { name, proxy };
+  Handle<Object> error = isolate->factory()->NewTypeError(
+      "no_setter_in_callback", HandleVector(args2, ARRAY_SIZE(args2)));
+  return isolate->Throw(*error);
 }
 
 
@@ -2898,7 +2932,8 @@ MaybeObject* JSObject::SetPropertyForResult(LookupResult* result,
                                             String* name,
                                             Object* value,
                                             PropertyAttributes attributes,
-                                            StrictModeFlag strict_mode) {
+                                            StrictModeFlag strict_mode,
+                                            StoreFromKeyed store_mode) {
   Heap* heap = GetHeap();
   // Make sure that the top context does not change when doing callbacks or
   // interceptor calls.
@@ -2929,26 +2964,19 @@ MaybeObject* JSObject::SetPropertyForResult(LookupResult* result,
     if (proto->IsNull()) return value;
     ASSERT(proto->IsJSGlobalObject());
     return JSObject::cast(proto)->SetPropertyForResult(
-        result, name, value, attributes, strict_mode);
+        result, name, value, attributes, strict_mode, store_mode);
   }
 
   if (!result->IsProperty() && !IsJSContextExtensionObject()) {
-    bool found = false;
-    MaybeObject* result_object;
-    result_object = SetPropertyWithCallbackSetterInPrototypes(name,
-                                                              value,
-                                                              attributes,
-                                                              &found,
-                                                              strict_mode);
-    if (found) return result_object;
+    bool done = false;
+    MaybeObject* result_object =
+        SetPropertyViaPrototypes(name, value, attributes, strict_mode, &done);
+    if (done) return result_object;
   }
-
-  // At this point, no GC should have happened, as this would invalidate
-  // 'result', which we cannot handlify!
 
   if (!result->IsFound()) {
     // Neither properties nor transitions found.
-    return AddProperty(name, value, attributes, strict_mode);
+    return AddProperty(name, value, attributes, strict_mode, store_mode);
   }
   if (result->IsReadOnly() && result->IsProperty()) {
     if (strict_mode == kStrictMode) {
@@ -5039,6 +5067,7 @@ MaybeObject* Map::CopyDropTransitions() {
   return new_map;
 }
 
+
 void Map::UpdateCodeCache(Handle<Map> map,
                           Handle<String> name,
                           Handle<Code> code) {
@@ -5116,18 +5145,18 @@ class IntrusiveMapTransitionIterator {
     int index = raw_index / 2;
     int number_of_descriptors = descriptor_array_->number_of_descriptors();
     while (index < number_of_descriptors) {
-      PropertyDetails details(RawGetDetails(index));
+      PropertyDetails details(descriptor_array_->GetDetails(index));
       switch (details.type()) {
         case MAP_TRANSITION:
         case CONSTANT_TRANSITION:
         case ELEMENTS_TRANSITION:
           // We definitely have a map transition.
           *DescriptorArrayHeader() = Smi::FromInt(raw_index + 2);
-          return static_cast<Map*>(RawGetValue(index));
+          return static_cast<Map*>(descriptor_array_->GetValue(index));
         case CALLBACKS: {
           // We might have a map transition in a getter or in a setter.
           AccessorPair* accessors =
-              static_cast<AccessorPair*>(RawGetValue(index));
+              static_cast<AccessorPair*>(descriptor_array_->GetValue(index));
           Object* accessor;
           if ((raw_index & 1) == 0) {
             accessor = accessors->setter();
@@ -5166,24 +5195,6 @@ class IntrusiveMapTransitionIterator {
   Object** DescriptorArrayHeader() {
     return HeapObject::RawField(descriptor_array_, DescriptorArray::kMapOffset);
   }
-
-  FixedArray* RawGetContentArray() {
-      Object* array =
-          descriptor_array_->get(DescriptorArray::kContentArrayIndex);
-      return static_cast<FixedArray*>(array);
-  }
-
-  Object* RawGetValue(int descriptor_number) {
-    return RawGetContentArray()->get(
-        DescriptorArray::ToValueIndex(descriptor_number));
-  }
-
-  PropertyDetails RawGetDetails(int descriptor_number) {
-    Object* details = RawGetContentArray()->get(
-        DescriptorArray::ToDetailsIndex(descriptor_number));
-    return PropertyDetails(Smi::cast(details));
-  }
-
 
   DescriptorArray* descriptor_array_;
 };
@@ -5883,13 +5894,7 @@ MaybeObject* DescriptorArray::Allocate(int number_of_descriptors) {
   // Do not use DescriptorArray::cast on incomplete object.
   FixedArray* result = FixedArray::cast(array);
 
-  // Allocate the content array and set it in the descriptor array.
-  { MaybeObject* maybe_array =
-        heap->AllocateFixedArray(number_of_descriptors << 1);
-    if (!maybe_array->ToObject(&array)) return maybe_array;
-  }
   result->set(kBitField3StorageIndex, Smi::FromInt(0));
-  result->set(kContentArrayIndex, array);
   result->set(kEnumerationIndexIndex,
               Smi::FromInt(PropertyDetails::kInitialIndex));
   return result;
@@ -6064,6 +6069,7 @@ MaybeObject* DescriptorArray::RemoveTransitions() {
     }
   }
   ASSERT(next_descriptor == new_descriptors->number_of_descriptors());
+  new_descriptors->SetNextEnumerationIndex(NextEnumerationIndex());
 
   return new_descriptors;
 }
@@ -6216,9 +6222,9 @@ bool DescriptorArray::IsEqualTo(DescriptorArray* other) {
   if (other->IsEmpty()) return false;
   if (length() != other->length()) return false;
   for (int i = 0; i < length(); ++i) {
-    if (get(i) != other->get(i) && i != kContentArrayIndex) return false;
+    if (get(i) != other->get(i)) return false;
   }
-  return GetContentArray()->IsEqualTo(other->GetContentArray());
+  return true;
 }
 #endif
 
@@ -7420,17 +7426,12 @@ void String::PrintOn(FILE* file) {
 
 // Clear a possible back pointer in case the transition leads to a dead map.
 // Return true in case a back pointer has been cleared and false otherwise.
-// Set *keep_entry to true when a live map transition has been found.
-static bool ClearBackPointer(Heap* heap, Object* target, bool* keep_entry) {
-  if (!target->IsMap()) return false;
+static bool ClearBackPointer(Heap* heap, Object* target) {
+  ASSERT(target->IsMap());
   Map* map = Map::cast(target);
-  if (Marking::MarkBitFrom(map).Get()) {
-    *keep_entry = true;
-    return false;
-  } else {
-    map->SetBackPointer(heap->undefined_value(), SKIP_WRITE_BARRIER);
-    return true;
-  }
+  if (Marking::MarkBitFrom(map).Get()) return false;
+  map->SetBackPointer(heap->undefined_value(), SKIP_WRITE_BARRIER);
+  return true;
 }
 
 
@@ -7440,44 +7441,60 @@ void Map::ClearNonLiveTransitions(Heap* heap) {
   if (d->IsEmpty()) return;
   Smi* NullDescriptorDetails =
     PropertyDetails(NONE, NULL_DESCRIPTOR).AsSmi();
-  FixedArray* contents = FixedArray::cast(
-      d->get(DescriptorArray::kContentArrayIndex));
-  ASSERT(contents->length() >= 2);
-  for (int i = 0; i < contents->length(); i += 2) {
+  for (int i = 0; i < d->number_of_descriptors(); ++i) {
     // If the pair (value, details) is a map transition, check if the target is
     // live. If not, null the descriptor. Also drop the back pointer for that
     // map transition, so that this map is not reached again by following a back
     // pointer from that non-live map.
     bool keep_entry = false;
-    PropertyDetails details(Smi::cast(contents->get(i + 1)));
+    PropertyDetails details(d->GetDetails(i));
     switch (details.type()) {
       case MAP_TRANSITION:
       case CONSTANT_TRANSITION:
-        ClearBackPointer(heap, contents->get(i), &keep_entry);
+        keep_entry = !ClearBackPointer(heap, d->GetValue(i));
         break;
       case ELEMENTS_TRANSITION: {
-        Object* object = contents->get(i);
+        Object* object = d->GetValue(i);
         if (object->IsMap()) {
-          ClearBackPointer(heap, object, &keep_entry);
+          keep_entry = !ClearBackPointer(heap, object);
         } else {
           FixedArray* array = FixedArray::cast(object);
           for (int j = 0; j < array->length(); ++j) {
-            if (ClearBackPointer(heap, array->get(j), &keep_entry)) {
-              array->set_undefined(j);
+            Object* target = array->get(j);
+            if (target->IsMap()) {
+              if (ClearBackPointer(heap, target)) {
+                array->set_undefined(j);
+              } else {
+                keep_entry = true;
+              }
             }
           }
         }
         break;
       }
       case CALLBACKS: {
-        Object* object = contents->get(i);
+        Object* object = d->GetValue(i);
         if (object->IsAccessorPair()) {
           AccessorPair* accessors = AccessorPair::cast(object);
-          if (ClearBackPointer(heap, accessors->getter(), &keep_entry)) {
-            accessors->set_getter(heap->the_hole_value());
+          Object* getter = accessors->getter();
+          if (getter->IsMap()) {
+            if (ClearBackPointer(heap, getter)) {
+              accessors->set_getter(heap->the_hole_value());
+            } else {
+              keep_entry = true;
+            }
+          } else if (!getter->IsTheHole()) {
+            keep_entry = true;
           }
-          if (ClearBackPointer(heap, accessors->setter(), &keep_entry)) {
-            accessors->set_setter(heap->the_hole_value());
+          Object* setter = accessors->setter();
+          if (setter->IsMap()) {
+            if (ClearBackPointer(heap, setter)) {
+              accessors->set_setter(heap->the_hole_value());
+            } else {
+              keep_entry = true;
+            }
+          } else if (!getter->IsTheHole()) {
+            keep_entry = true;
           }
         } else {
           keep_entry = true;
@@ -7497,8 +7514,8 @@ void Map::ClearNonLiveTransitions(Heap* heap) {
     // What we *really* want to do here is removing this entry completely, but
     // for technical reasons we can't do this, so we zero it out instead.
     if (!keep_entry) {
-      contents->set_unchecked(i + 1, NullDescriptorDetails);
-      contents->set_null_unchecked(heap, i);
+      d->SetDetailsUnchecked(i, NullDescriptorDetails);
+      d->SetNullValueUnchecked(i, heap);
     }
   }
 }
@@ -7621,9 +7638,57 @@ bool JSFunction::IsInlineable() {
 }
 
 
+MaybeObject* JSObject::OptimizeAsPrototype() {
+  if (IsGlobalObject()) return this;
+
+  // Make sure prototypes are fast objects and their maps have the bit set
+  // so they remain fast.
+  Map* proto_map = map();
+  if (!proto_map->used_for_prototype()) {
+    if (!HasFastProperties()) {
+      MaybeObject* new_proto = TransformToFastProperties(0);
+      if (new_proto->IsFailure()) return new_proto;
+      ASSERT(new_proto == this);
+      proto_map = map();
+      if (!proto_map->is_shared()) {
+        proto_map->set_used_for_prototype(true);
+      }
+    } else {
+      Heap* heap = GetHeap();
+      // We use the hole value as a singleton key in the prototype transition
+      // map so that we don't multiply the number of maps unnecessarily.
+      Map* new_map =
+          proto_map->GetPrototypeTransition(heap->the_hole_value());
+      if (new_map == NULL) {
+        MaybeObject* maybe_new_map = proto_map->CopyDropTransitions();
+        if (!maybe_new_map->To<Map>(&new_map)) return maybe_new_map;
+        new_map->set_used_for_prototype(true);
+        MaybeObject* ok =
+            proto_map->PutPrototypeTransition(heap->the_hole_value(),
+                                              new_map);
+        if (ok->IsFailure()) return ok;
+      }
+      ASSERT(!proto_map->is_shared() && !new_map->is_shared());
+      set_map(new_map);
+    }
+  }
+  return this;
+}
+
+
 MaybeObject* JSFunction::SetInstancePrototype(Object* value) {
   ASSERT(value->IsJSReceiver());
   Heap* heap = GetHeap();
+
+  // First some logic for the map of the prototype to make sure the
+  // used_for_prototype flag is set.
+  if (value->IsJSObject()) {
+    MaybeObject* ok = JSObject::cast(value)->OptimizeAsPrototype();
+    if (ok->IsFailure()) return ok;
+  }
+
+  // Now some logic for the maps of the objects that are created by using this
+  // function as a constructor.
   if (has_initial_map()) {
     // If the function has allocated the initial map
     // replace it with a copy containing the new prototype.
@@ -8795,7 +8860,7 @@ MaybeObject* JSArray::SetElementsLength(Object* len) {
 }
 
 
-Object* Map::GetPrototypeTransition(Object* prototype) {
+Map* Map::GetPrototypeTransition(Object* prototype) {
   FixedArray* cache = prototype_transitions();
   int number_of_transitions = NumberOfProtoTransitions();
   const int proto_offset =
@@ -8805,8 +8870,7 @@ Object* Map::GetPrototypeTransition(Object* prototype) {
   for (int i = 0; i < number_of_transitions; i++) {
     if (cache->get(proto_offset + i * step) == prototype) {
       Object* map = cache->get(map_offset + i * step);
-      ASSERT(map->IsMap());
-      return map;
+      return Map::cast(map);
     }
   }
   return NULL;
@@ -8914,21 +8978,26 @@ MaybeObject* JSReceiver::SetPrototype(Object* value,
   // Nothing to do if prototype is already set.
   if (map->prototype() == value) return value;
 
-  Object* new_map = map->GetPrototypeTransition(value);
+  if (value->IsJSObject()) {
+    MaybeObject* ok = JSObject::cast(value)->OptimizeAsPrototype();
+    if (ok->IsFailure()) return ok;
+  }
+
+  Map* new_map = map->GetPrototypeTransition(value);
   if (new_map == NULL) {
     { MaybeObject* maybe_new_map = map->CopyDropTransitions();
-      if (!maybe_new_map->ToObject(&new_map)) return maybe_new_map;
+      if (!maybe_new_map->To<Map>(&new_map)) return maybe_new_map;
     }
 
     { MaybeObject* maybe_new_cache =
-          map->PutPrototypeTransition(value, Map::cast(new_map));
+          map->PutPrototypeTransition(value, new_map);
       if (maybe_new_cache->IsFailure()) return maybe_new_cache;
     }
 
-    Map::cast(new_map)->set_prototype(value);
+    new_map->set_prototype(value);
   }
-  ASSERT(Map::cast(new_map)->prototype() == value);
-  real_receiver->set_map(Map::cast(new_map));
+  ASSERT(new_map->prototype() == value);
+  real_receiver->set_map(new_map);
 
   heap->ClearInstanceofCache();
   ASSERT(size == Size());

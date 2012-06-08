@@ -1746,7 +1746,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_RegExpExec) {
   Handle<Object> result = RegExpImpl::Exec(regexp,
                                            subject,
                                            index,
-                                           last_match_info);
+                                           last_match_info,
+                                           isolate->zone());
   if (result.is_null()) return Failure::Exception();
   return *result;
 }
@@ -2174,60 +2175,58 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_SetCode) {
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, target, 0);
   Handle<Object> code = args.at<Object>(1);
 
-  Handle<Context> context(target->context());
+  if (code->IsNull()) return *target;
+  RUNTIME_ASSERT(code->IsJSFunction());
+  Handle<JSFunction> source = Handle<JSFunction>::cast(code);
+  Handle<SharedFunctionInfo> target_shared(target->shared());
+  Handle<SharedFunctionInfo> source_shared(source->shared());
 
-  if (!code->IsNull()) {
-    RUNTIME_ASSERT(code->IsJSFunction());
-    Handle<JSFunction> fun = Handle<JSFunction>::cast(code);
-    Handle<SharedFunctionInfo> shared(fun->shared());
-
-    if (!SharedFunctionInfo::EnsureCompiled(shared, KEEP_EXCEPTION)) {
-      return Failure::Exception();
-    }
-    // Since we don't store the source for this we should never
-    // optimize this.
-    shared->code()->set_optimizable(false);
-    // Set the code, scope info, formal parameter count,
-    // and the length of the target function.
-    target->shared()->set_code(shared->code());
-    target->ReplaceCode(shared->code());
-    target->shared()->set_scope_info(shared->scope_info());
-    target->shared()->set_length(shared->length());
-    target->shared()->set_formal_parameter_count(
-        shared->formal_parameter_count());
-    // Set the source code of the target function to undefined.
-    // SetCode is only used for built-in constructors like String,
-    // Array, and Object, and some web code
-    // doesn't like seeing source code for constructors.
-    target->shared()->set_script(isolate->heap()->undefined_value());
-    target->shared()->code()->set_optimizable(false);
-    // Clear the optimization hints related to the compiled code as these are no
-    // longer valid when the code is overwritten.
-    target->shared()->ClearThisPropertyAssignmentsInfo();
-    context = Handle<Context>(fun->context());
-
-    // Make sure we get a fresh copy of the literal vector to avoid
-    // cross context contamination.
-    int number_of_literals = fun->NumberOfLiterals();
-    Handle<FixedArray> literals =
-        isolate->factory()->NewFixedArray(number_of_literals, TENURED);
-    if (number_of_literals > 0) {
-      // Insert the object, regexp and array functions in the literals
-      // array prefix.  These are the functions that will be used when
-      // creating object, regexp and array literals.
-      literals->set(JSFunction::kLiteralGlobalContextIndex,
-                    context->global_context());
-    }
-    target->set_literals(*literals);
-    target->set_next_function_link(isolate->heap()->undefined_value());
-
-    if (isolate->logger()->is_logging() || CpuProfiler::is_profiling(isolate)) {
-      isolate->logger()->LogExistingFunction(
-          shared, Handle<Code>(shared->code()));
-    }
+  if (!source->is_compiled() &&
+      !JSFunction::CompileLazy(source, KEEP_EXCEPTION)) {
+    return Failure::Exception();
   }
 
+  // Set the code, scope info, formal parameter count, and the length
+  // of the target shared function info.  Set the source code of the
+  // target function to undefined.  SetCode is only used for built-in
+  // constructors like String, Array, and Object, and some web code
+  // doesn't like seeing source code for constructors.
+  target_shared->set_code(source_shared->code());
+  target_shared->set_scope_info(source_shared->scope_info());
+  target_shared->set_length(source_shared->length());
+  target_shared->set_formal_parameter_count(
+      source_shared->formal_parameter_count());
+  target_shared->set_script(isolate->heap()->undefined_value());
+
+  // Since we don't store the source we should never optimize this.
+  target_shared->code()->set_optimizable(false);
+
+  // Clear the optimization hints related to the compiled code as these
+  // are no longer valid when the code is overwritten.
+  target_shared->ClearThisPropertyAssignmentsInfo();
+
+  // Set the code of the target function.
+  target->ReplaceCode(source_shared->code());
+
+  // Make sure we get a fresh copy of the literal vector to avoid cross
+  // context contamination.
+  Handle<Context> context(source->context());
+  int number_of_literals = source->NumberOfLiterals();
+  Handle<FixedArray> literals =
+      isolate->factory()->NewFixedArray(number_of_literals, TENURED);
+  if (number_of_literals > 0) {
+    literals->set(JSFunction::kLiteralGlobalContextIndex,
+                  context->global_context());
+  }
   target->set_context(*context);
+  target->set_literals(*literals);
+  target->set_next_function_link(isolate->heap()->undefined_value());
+
+  if (isolate->logger()->is_logging() || CpuProfiler::is_profiling(isolate)) {
+    isolate->logger()->LogExistingFunction(
+        source_shared, Handle<Code>(source_shared->code()));
+  }
+
   return *target;
 }
 
@@ -2984,7 +2983,15 @@ MUST_USE_RESULT static MaybeObject* StringReplaceAtomRegExpWithString(
   int matches = indices.length();
   if (matches == 0) return *subject;
 
-  int result_len = (replacement_len - pattern_len) * matches + subject_len;
+  // Detect integer overflow.
+  int64_t result_len_64 =
+      (static_cast<int64_t>(replacement_len) -
+       static_cast<int64_t>(pattern_len)) *
+      static_cast<int64_t>(matches) +
+      static_cast<int64_t>(subject_len);
+  if (result_len_64 > INT_MAX) return Failure::OutOfMemoryException();
+  int result_len = static_cast<int>(result_len_64);
+
   int subject_pos = 0;
   int result_pos = 0;
 
@@ -3054,7 +3061,8 @@ MUST_USE_RESULT static MaybeObject* StringReplaceRegExpWithString(
   Handle<Object> match = RegExpImpl::Exec(regexp_handle,
                                           subject_handle,
                                           0,
-                                          last_match_info_handle);
+                                          last_match_info_handle,
+                                          isolate->zone());
   if (match.is_null()) {
     return Failure::Exception();
   }
@@ -3153,7 +3161,8 @@ MUST_USE_RESULT static MaybeObject* StringReplaceRegExpWithString(
     match = RegExpImpl::Exec(regexp_handle,
                              subject_handle,
                              next,
-                             last_match_info_handle);
+                             last_match_info_handle,
+                             isolate->zone());
     if (match.is_null()) {
       return Failure::Exception();
     }
@@ -3206,7 +3215,8 @@ MUST_USE_RESULT static MaybeObject* StringReplaceRegExpWithEmptyString(
   Handle<Object> match = RegExpImpl::Exec(regexp_handle,
                                           subject_handle,
                                           0,
-                                          last_match_info_handle);
+                                          last_match_info_handle,
+                                          isolate->zone());
   if (match.is_null()) return Failure::Exception();
   if (match->IsNull()) return *subject_handle;
 
@@ -3280,7 +3290,8 @@ MUST_USE_RESULT static MaybeObject* StringReplaceRegExpWithEmptyString(
     match = RegExpImpl::Exec(regexp_handle,
                              subject_handle,
                              next,
-                             last_match_info_handle);
+                             last_match_info_handle,
+                             isolate->zone());
     if (match.is_null()) return Failure::Exception();
     if (match->IsNull()) break;
 
@@ -3693,7 +3704,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StringMatch) {
   CONVERT_ARG_HANDLE_CHECKED(JSArray, regexp_info, 2);
   HandleScope handles;
 
-  Handle<Object> match = RegExpImpl::Exec(regexp, subject, 0, regexp_info);
+  Handle<Object> match = RegExpImpl::Exec(regexp, subject, 0, regexp_info,
+                                          isolate->zone());
 
   if (match.is_null()) {
     return Failure::Exception();
@@ -3717,7 +3729,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StringMatch) {
     offsets.Add(start);
     offsets.Add(end);
     if (start == end) if (++end > length) break;
-    match = RegExpImpl::Exec(regexp, subject, end, regexp_info);
+    match = RegExpImpl::Exec(regexp, subject, end, regexp_info,
+                             isolate->zone());
     if (match.is_null()) {
       return Failure::Exception();
     }
@@ -3815,7 +3828,8 @@ static int SearchRegExpNoCaptureMultiple(
   int match_start = -1;
   int match_end = 0;
   int pos = 0;
-  int registers_per_match = RegExpImpl::IrregexpPrepare(regexp, subject);
+  int registers_per_match = RegExpImpl::IrregexpPrepare(regexp, subject,
+                                                        isolate->zone());
   if (registers_per_match < 0) return RegExpImpl::RE_EXCEPTION;
 
   int max_matches;
@@ -3830,7 +3844,8 @@ static int SearchRegExpNoCaptureMultiple(
     int num_matches = RegExpImpl::IrregexpExecRaw(regexp,
                                                   subject,
                                                   pos,
-                                                  register_vector);
+                                                  register_vector,
+                                                  isolate->zone());
     if (num_matches > 0) {
       for (int match_index = 0; match_index < num_matches; match_index++) {
         int32_t* current_match = &register_vector[match_index * 2];
@@ -3900,7 +3915,8 @@ static int SearchRegExpMultiple(
     FixedArrayBuilder* builder) {
 
   ASSERT(subject->IsFlat());
-  int registers_per_match = RegExpImpl::IrregexpPrepare(regexp, subject);
+  int registers_per_match = RegExpImpl::IrregexpPrepare(regexp, subject,
+                                                        isolate->zone());
   if (registers_per_match < 0) return RegExpImpl::RE_EXCEPTION;
 
   int max_matches;
@@ -3913,7 +3929,8 @@ static int SearchRegExpMultiple(
   int num_matches = RegExpImpl::IrregexpExecRaw(regexp,
                                                 subject,
                                                 0,
-                                                register_vector);
+                                                register_vector,
+                                                isolate->zone());
 
   int capture_count = regexp->CaptureCount();
   int subject_length = subject->length();
@@ -3999,7 +4016,8 @@ static int SearchRegExpMultiple(
       num_matches = RegExpImpl::IrregexpExecRaw(regexp,
                                                 subject,
                                                 pos,
-                                                register_vector);
+                                                register_vector,
+                                                isolate->zone());
     } while (num_matches > 0);
 
     if (num_matches != RegExpImpl::RE_EXCEPTION) {
@@ -12491,8 +12509,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DebugDisassembleFunction) {
   ASSERT(args.length() == 1);
   // Get the function and make sure it is compiled.
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, func, 0);
-  Handle<SharedFunctionInfo> shared(func->shared());
-  if (!SharedFunctionInfo::EnsureCompiled(shared, KEEP_EXCEPTION)) {
+  if (!JSFunction::CompileLazy(func, KEEP_EXCEPTION)) {
     return Failure::Exception();
   }
   func->code()->PrintLn();
@@ -12507,11 +12524,10 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DebugDisassembleConstructor) {
   ASSERT(args.length() == 1);
   // Get the function and make sure it is compiled.
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, func, 0);
-  Handle<SharedFunctionInfo> shared(func->shared());
-  if (!SharedFunctionInfo::EnsureCompiled(shared, KEEP_EXCEPTION)) {
+  if (!JSFunction::CompileLazy(func, KEEP_EXCEPTION)) {
     return Failure::Exception();
   }
-  shared->construct_stub()->PrintLn();
+  func->shared()->construct_stub()->PrintLn();
 #endif  // DEBUG
   return isolate->heap()->undefined_value();
 }
@@ -13455,6 +13471,8 @@ ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(ExternalIntElements)
 ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(ExternalUnsignedIntElements)
 ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(ExternalFloatElements)
 ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(ExternalDoubleElements)
+// Properties test sitting with elements tests - not fooling anyone.
+ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(FastProperties)
 
 #undef ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION
 
