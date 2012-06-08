@@ -21,6 +21,8 @@ namespace fibjs
 
 #include "object_async.inl"
 
+#define GC_FIX_SIZE		4096
+
 class object_base
 {
 public:
@@ -90,7 +92,7 @@ public:
 			handle_ = v8::Persistent<v8::Object>::New(o);
 			handle_->SetPointerInInternalField(0, this);
 
-			v8::V8::AdjustAmountOfExternalAllocatedMemory(32);
+			v8::V8::AdjustAmountOfExternalAllocatedMemory(GC_FIX_SIZE);
 		}
 
 		return handle_;
@@ -163,7 +165,7 @@ public:
 
 			m_nTriggers = 0;
 
-			v8::V8::AdjustAmountOfExternalAllocatedMemory(-32);
+			v8::V8::AdjustAmountOfExternalAllocatedMemory(-GC_FIX_SIZE);
 
 			if(refs_ == 0)
 				delete this;
