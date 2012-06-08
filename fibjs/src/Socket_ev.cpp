@@ -348,6 +348,8 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 			if (n == SOCKET_ERROR)
 			{
 				int nError = errno;
+				if(nError == ECONNRESET)
+					return 0;
 				return (nError == EWOULDBLOCK) ? CALL_E_PENDDING : -nError;
 			}
 
