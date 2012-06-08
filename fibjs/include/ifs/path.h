@@ -54,11 +54,11 @@ namespace fibjs
 	{
 		static ClassMethod s_method[] = 
 		{
-			{"normalize", s_normalize},
-			{"basename", s_basename},
-			{"extname", s_extname},
-			{"dirname", s_dirname},
-			{"combine", s_combine}
+			{"normalize", s_normalize, true},
+			{"basename", s_basename, true},
+			{"extname", s_extname, true},
+			{"dirname", s_dirname, true},
+			{"combine", s_combine, true}
 		};
 
 		static ClassData s_cd = 

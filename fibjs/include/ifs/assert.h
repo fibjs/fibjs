@@ -60,14 +60,14 @@ namespace fibjs
 	{
 		static ClassMethod s_method[] = 
 		{
-			{"ok", s_ok},
-			{"equal", s_equal},
-			{"notEqual", s_notEqual},
-			{"strictEqual", s_strictEqual},
-			{"notStrictEqual", s_notStrictEqual},
-			{"throws", s_throws},
-			{"doesNotThrow", s_doesNotThrow},
-			{"throwAssert", s_throwAssert}
+			{"ok", s_ok, true},
+			{"equal", s_equal, true},
+			{"notEqual", s_notEqual, true},
+			{"strictEqual", s_strictEqual, true},
+			{"notStrictEqual", s_notStrictEqual, true},
+			{"throws", s_throws, true},
+			{"doesNotThrow", s_doesNotThrow, true},
+			{"throwAssert", s_throwAssert, true}
 		};
 
 		static ClassData s_cd = 

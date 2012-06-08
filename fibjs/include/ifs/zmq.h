@@ -74,17 +74,17 @@ namespace fibjs
 
 		static ClassProperty s_property[] = 
 		{
-			{"PAIR", s_get_PAIR},
-			{"PUB", s_get_PUB},
-			{"SUB", s_get_SUB},
-			{"REQ", s_get_REQ},
-			{"REP", s_get_REP},
-			{"DEALER", s_get_DEALER},
-			{"ROUTER", s_get_ROUTER},
-			{"PULL", s_get_PULL},
-			{"PUSH", s_get_PUSH},
-			{"XPUB", s_get_XPUB},
-			{"XSUB", s_get_XSUB}
+			{"PAIR", s_get_PAIR, NULL, true},
+			{"PUB", s_get_PUB, NULL, true},
+			{"SUB", s_get_SUB, NULL, true},
+			{"REQ", s_get_REQ, NULL, true},
+			{"REP", s_get_REP, NULL, true},
+			{"DEALER", s_get_DEALER, NULL, true},
+			{"ROUTER", s_get_ROUTER, NULL, true},
+			{"PULL", s_get_PULL, NULL, true},
+			{"PUSH", s_get_PUSH, NULL, true},
+			{"XPUB", s_get_XPUB, NULL, true},
+			{"XSUB", s_get_XSUB, NULL, true}
 		};
 
 		static ClassData s_cd = 

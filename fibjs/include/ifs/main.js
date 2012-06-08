@@ -648,7 +648,7 @@ function parserIDL(fname) {
 			{
 				if (attr == "static") {
 					if (fname !== "_new")
-						difms.push("			{\"" + fname + "\", s_" + fname + "}");
+						difms.push("			{\"" + fname + "\", s_" + fname + ", true}");
 				} else
 					difms.push("			{\"" + fname + "\", s_" + fname + "}");
 			}
@@ -681,7 +681,7 @@ function parserIDL(fname) {
 
 				svs.push(ifStr);
 
-				difps.push("			{\"" + fname + "\", s_get_" + fname + "}");
+				difps.push("			{\"" + fname + "\", s_get_" + fname + ", NULL, true}");
 			} else if (attr == "static") {
 				if (st[pos] != ";")
 					return reportErr();
@@ -707,7 +707,7 @@ function parserIDL(fname) {
 						+ "& retVal);";
 				ifs.push(ifStr);
 
-				difps.push("			{\"" + fname + "\", s_get_" + fname + "}");
+				difps.push("			{\"" + fname + "\", s_get_" + fname + ", NULL, true}");
 
 			} else if (fname === "operator") {
 				if ((st[pos] !== "[") || (st[pos + 1] !== "]")

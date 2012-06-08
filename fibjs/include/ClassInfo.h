@@ -24,12 +24,14 @@ struct ClassProperty
 	const char* name;
 	v8::AccessorGetter getter;
 	v8::AccessorSetter setter;
+	bool bStatic;
 };
 
 struct ClassMethod
 {
 	const char* name;
 	v8::InvocationCallback invoker;
+	bool bStatic;
 };
 
 struct ClassObject
@@ -62,7 +64,7 @@ class ClassInfo
 {
 public:
 	ClassInfo(ClassData& cd) :
-		m_cd(cd)
+			m_cd(cd)
 	{
 		v8::HandleScope handle_scope;
 
@@ -100,8 +102,23 @@ public:
 		if (cd.cis)
 			ot->SetIndexedPropertyHandler(cd.cis->getter, cd.cis->setter);
 
-		m_cache = v8::Persistent<v8::Object>::New(
-				m_class->GetFunction()->NewInstance());
+		m_function = v8::Persistent<v8::Function>::New(m_class->GetFunction());
+		v8::Handle<v8::Object> o = m_function->ToObject();
+
+		for (i = 0; i < cd.mc; i++)
+			if (cd.cms[i].bStatic)
+				o->Set(v8::String::NewSymbol(cd.cms[i].name),
+						v8::FunctionTemplate::New(cd.cms[i].invoker)->GetFunction(),
+						v8::ReadOnly);
+
+		for (i = 0; i < cd.oc; i++)
+			o->Set(v8::String::NewSymbol(cd.cos[i].name),
+					cd.cos[i].invoker().GetFunction(), v8::ReadOnly);
+
+		for (i = 0; i < cd.pc; i++)
+			if (cd.cps[i].bStatic)
+				o->SetAccessor(v8::String::NewSymbol(cd.cps[i].name),
+						cd.cps[i].getter, block_set);
 	}
 
 	void* getInstance(v8::Handle<v8::Value> o)
@@ -114,12 +131,17 @@ public:
 
 	v8::Handle<v8::Object> CreateInstance()
 	{
-		return m_cache->Clone();
+		if (!m_cache.IsEmpty())
+			return m_cache->Clone();
+
+		v8::Handle<v8::Object> o = m_function->NewInstance();
+		m_cache = v8::Persistent<v8::Object>::New(o->Clone());
+		return o;
 	}
 
 	v8::Handle<v8::Function> GetFunction() const
 	{
-		return m_class->GetFunction();
+		return m_function;
 	}
 
 	const char* name()
@@ -132,14 +154,13 @@ public:
 		int i;
 
 		for (i = 0; i < m_cd.mc; i++)
-			o->Set(
-					v8::String::NewSymbol(m_cd.cms[i].name),
+			o->Set(v8::String::NewSymbol(m_cd.cms[i].name),
 					v8::FunctionTemplate::New(m_cd.cms[i].invoker)->GetFunction(),
 					v8::ReadOnly);
 
 		for (i = 0; i < m_cd.oc; i++)
 			o->Set(v8::String::NewSymbol(m_cd.cos[i].name),
-					m_cd.cos[i].invoker().m_class->GetFunction(), v8::ReadOnly);
+					m_cd.cos[i].invoker().GetFunction(), v8::ReadOnly);
 
 		for (i = 0; i < m_cd.pc; i++)
 			if (m_cd.cps[i].setter)
@@ -164,6 +185,7 @@ protected:
 
 private:
 	v8::Persistent<v8::FunctionTemplate> m_class;
+	v8::Persistent<v8::Function> m_function;
 	v8::Persistent<v8::Object> m_cache;
 	ClassData& m_cd;
 };

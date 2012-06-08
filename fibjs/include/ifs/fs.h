@@ -98,18 +98,18 @@ namespace fibjs
 	{
 		static ClassMethod s_method[] = 
 		{
-			{"open", s_open},
-			{"create", s_create},
-			{"tmpFile", s_tmpFile},
-			{"readFile", s_readFile},
-			{"writeFile", s_writeFile},
-			{"exists", s_exists},
-			{"unlink", s_unlink},
-			{"mkdir", s_mkdir},
-			{"rmdir", s_rmdir},
-			{"rename", s_rename},
-			{"stat", s_stat},
-			{"readdir", s_readdir}
+			{"open", s_open, true},
+			{"create", s_create, true},
+			{"tmpFile", s_tmpFile, true},
+			{"readFile", s_readFile, true},
+			{"writeFile", s_writeFile, true},
+			{"exists", s_exists, true},
+			{"unlink", s_unlink, true},
+			{"mkdir", s_mkdir, true},
+			{"rmdir", s_rmdir, true},
+			{"rename", s_rename, true},
+			{"stat", s_stat, true},
+			{"readdir", s_readdir, true}
 		};
 
 		static ClassObject s_object[] = 
@@ -119,9 +119,9 @@ namespace fibjs
 
 		static ClassProperty s_property[] = 
 		{
-			{"SEEK_SET", s_get_SEEK_SET},
-			{"SEEK_CUR", s_get_SEEK_CUR},
-			{"SEEK_END", s_get_SEEK_END}
+			{"SEEK_SET", s_get_SEEK_SET, NULL, true},
+			{"SEEK_CUR", s_get_SEEK_CUR, NULL, true},
+			{"SEEK_END", s_get_SEEK_END, NULL, true}
 		};
 
 		static ClassData s_cd = 

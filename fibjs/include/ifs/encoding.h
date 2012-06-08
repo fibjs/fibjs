@@ -58,12 +58,12 @@ namespace fibjs
 	{
 		static ClassMethod s_method[] = 
 		{
-			{"base32Encode", s_base32Encode},
-			{"base32Decode", s_base32Decode},
-			{"base64Encode", s_base64Encode},
-			{"base64Decode", s_base64Decode},
-			{"hexEncode", s_hexEncode},
-			{"hexDecode", s_hexDecode}
+			{"base32Encode", s_base32Encode, true},
+			{"base32Decode", s_base32Decode, true},
+			{"base64Encode", s_base64Encode, true},
+			{"base64Decode", s_base64Decode, true},
+			{"hexEncode", s_hexEncode, true},
+			{"hexDecode", s_hexDecode, true}
 		};
 
 		static ClassData s_cd = 

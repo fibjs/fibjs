@@ -62,9 +62,9 @@ namespace fibjs
 	{
 		static ClassMethod s_method[] = 
 		{
-			{"start", s_start},
-			{"current", s_current},
-			{"sleep", s_sleep}
+			{"start", s_start, true},
+			{"current", s_current, true},
+			{"sleep", s_sleep, true}
 		};
 
 		static ClassObject s_object[] = 

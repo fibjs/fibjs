@@ -58,13 +58,13 @@ namespace fibjs
 	{
 		static ClassMethod s_method[] = 
 		{
-			{"hostname", s_hostname},
-			{"type", s_type},
-			{"release", s_release},
-			{"arch", s_arch},
-			{"CPUInfo", s_CPUInfo},
-			{"CPUs", s_CPUs},
-			{"networkInfo", s_networkInfo}
+			{"hostname", s_hostname, true},
+			{"type", s_type, true},
+			{"release", s_release, true},
+			{"arch", s_arch, true},
+			{"CPUInfo", s_CPUInfo, true},
+			{"CPUs", s_CPUs, true},
+			{"networkInfo", s_networkInfo, true}
 		};
 
 		static ClassData s_cd = 

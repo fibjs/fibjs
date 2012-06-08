@@ -60,11 +60,11 @@ namespace fibjs
 	{
 		static ClassMethod s_method[] = 
 		{
-			{"print", s_print},
-			{"run", s_run},
-			{"define", s_define},
-			{"require", s_require},
-			{"GC", s_GC}
+			{"print", s_print, true},
+			{"run", s_run, true},
+			{"define", s_define, true},
+			{"require", s_require, true},
+			{"GC", s_GC, true}
 		};
 
 		static ClassObject s_object[] = 
@@ -74,7 +74,7 @@ namespace fibjs
 
 		static ClassProperty s_property[] = 
 		{
-			{"console", s_get_console}
+			{"console", s_get_console, NULL, true}
 		};
 
 		static ClassData s_cd = 

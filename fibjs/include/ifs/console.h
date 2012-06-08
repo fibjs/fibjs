@@ -62,15 +62,15 @@ namespace fibjs
 	{
 		static ClassMethod s_method[] = 
 		{
-			{"log", s_log},
-			{"info", s_info},
-			{"warn", s_warn},
-			{"error", s_error},
-			{"dir", s_dir},
-			{"time", s_time},
-			{"timeEnd", s_timeEnd},
-			{"trace", s_trace},
-			{"assert", s_assert}
+			{"log", s_log, true},
+			{"info", s_info, true},
+			{"warn", s_warn, true},
+			{"error", s_error, true},
+			{"dir", s_dir, true},
+			{"time", s_time, true},
+			{"timeEnd", s_timeEnd, true},
+			{"trace", s_trace, true},
+			{"assert", s_assert, true}
 		};
 
 		static ClassData s_cd = 

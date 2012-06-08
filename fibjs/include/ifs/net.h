@@ -60,7 +60,7 @@ namespace fibjs
 	{
 		static ClassMethod s_method[] = 
 		{
-			{"backend", s_backend}
+			{"backend", s_backend, true}
 		};
 
 		static ClassObject s_object[] = 
@@ -70,10 +70,10 @@ namespace fibjs
 
 		static ClassProperty s_property[] = 
 		{
-			{"AF_INET", s_get_AF_INET},
-			{"AF_INET6", s_get_AF_INET6},
-			{"SOCK_STREAM", s_get_SOCK_STREAM},
-			{"SOCK_DGRAM", s_get_SOCK_DGRAM}
+			{"AF_INET", s_get_AF_INET, NULL, true},
+			{"AF_INET6", s_get_AF_INET6, NULL, true},
+			{"SOCK_STREAM", s_get_SOCK_STREAM, NULL, true},
+			{"SOCK_DGRAM", s_get_SOCK_DGRAM, NULL, true}
 		};
 
 		static ClassData s_cd = 
