@@ -81,9 +81,11 @@ fs.unlink('fs_test.js.bak');
 f = fs.open('fs_test.js');
 f1 = fs.open('fs_test.js.bak', 'w');
 
-var s = f.copyTo(f1);
-assert.equal(s, f.size());
-assert.equal(s, f1.size());
+var s = f.copyTo(f1, 100);
+assert.equal(s, 100);
+assert.equal(f1.size(), 100);
+f.copyTo(f1);
+assert.equal(f1.size(), f.size());
 
 f.close();
 f1.close();
