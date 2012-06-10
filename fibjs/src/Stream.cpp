@@ -33,7 +33,7 @@ result_t copyStream(Stream_base* from, Stream_base* to, int32_t bytes,
 
 			while (hr != CALL_E_PENDDING)
 			{
-				if(hr < 0)
+				if (hr < 0)
 				{
 					m_ac->post(hr);
 					delete this;
@@ -43,12 +43,27 @@ result_t copyStream(Stream_base* from, Stream_base* to, int32_t bytes,
 				switch (m_state)
 				{
 				case 0:
-					m_buf.Release();
-					hr = m_from->read(BUFF_SIZE, m_buf, this);
 					m_state = 1;
+
+					if (m_bytes == 0)
+					{
+						m_ac->post(0);
+						delete this;
+						return;
+					}
+
+					if (m_bytes > BUFF_SIZE || m_bytes < 0)
+						len = BUFF_SIZE;
+					else
+						len = m_bytes;
+
+					m_buf.Release();
+					hr = m_from->read(len, m_buf, this);
 					break;
 				case 1:
-					if(m_buf == NULL)
+					m_state = 0;
+
+					if (m_buf == NULL)
 					{
 						m_ac->post(0);
 						delete this;
@@ -58,8 +73,10 @@ result_t copyStream(Stream_base* from, Stream_base* to, int32_t bytes,
 					m_buf->get_length(len);
 					m_retVal += len;
 
+					if (m_bytes > 0)
+						m_bytes -= len;
+
 					hr = m_to->write(m_buf, this);
-					m_state = 0;
 					break;
 				}
 			}
