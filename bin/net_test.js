@@ -9,13 +9,6 @@ var net = require('net');
 var fs = require('fs');
 var coroutine = require('coroutine');
 
-function unlink(pathname) {
-	try {
-		fs.rmdir(pathname);
-	} catch (e) {
-	}
-}
-
 function tm() {
 	while (1) {
 		coroutine.sleep(1000);
