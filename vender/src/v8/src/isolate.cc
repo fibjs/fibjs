@@ -921,7 +921,7 @@ Failure* Isolate::Throw(Object* exception, MessageLocation* location) {
 }
 
 
-Failure* Isolate::ReThrow(MaybeObject* exception, MessageLocation* location) {
+Failure* Isolate::ReThrow(MaybeObject* exception) {
   bool can_be_caught_externally = false;
   bool catchable_by_javascript = is_catchable_by_javascript(exception);
   ShouldReportException(&can_be_caught_externally, catchable_by_javascript);
@@ -945,9 +945,12 @@ void Isolate::ScheduleThrow(Object* exception) {
   // When scheduling a throw we first throw the exception to get the
   // error reporting if it is uncaught before rescheduling it.
   Throw(exception);
-  thread_local_top()->scheduled_exception_ = pending_exception();
-  thread_local_top()->external_caught_exception_ = false;
-  clear_pending_exception();
+  PropagatePendingExceptionToExternalTryCatch();
+  if (has_pending_exception()) {
+    thread_local_top()->scheduled_exception_ = pending_exception();
+    thread_local_top()->external_caught_exception_ = false;
+    clear_pending_exception();
+  }
 }
 
 
@@ -1778,7 +1781,7 @@ bool Isolate::Init(Deserializer* des) {
   global_handles_ = new GlobalHandles(this);
   bootstrapper_ = new Bootstrapper();
   handle_scope_implementer_ = new HandleScopeImplementer(this);
-  stub_cache_ = new StubCache(this);
+  stub_cache_ = new StubCache(this, zone());
   regexp_stack_ = new RegExpStack();
   regexp_stack_->isolate_ = this;
   date_cache_ = new DateCache();

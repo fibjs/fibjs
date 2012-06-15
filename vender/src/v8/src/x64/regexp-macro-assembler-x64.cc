@@ -117,10 +117,12 @@ namespace internal {
 
 RegExpMacroAssemblerX64::RegExpMacroAssemblerX64(
     Mode mode,
-    int registers_to_save)
-    : masm_(Isolate::Current(), NULL, kRegExpCodeSize),
+    int registers_to_save,
+    Zone* zone)
+    : NativeRegExpMacroAssembler(zone),
+      masm_(Isolate::Current(), NULL, kRegExpCodeSize),
       no_root_array_scope_(&masm_),
-      code_relative_fixup_positions_(4),
+      code_relative_fixup_positions_(4, zone),
       mode_(mode),
       num_registers_(registers_to_save),
       num_saved_registers_(registers_to_save),
@@ -350,6 +352,14 @@ void RegExpMacroAssemblerX64::CheckNotBackReferenceIgnoreCase(
   // If length is zero, either the capture is empty or it is nonparticipating.
   // In either case succeed immediately.
   __ j(equal, &fallthrough);
+
+  // -----------------------
+  // rdx - Start of capture
+  // rbx - length of capture
+  // Check that there are sufficient characters left in the input.
+  __ movl(rax, rdi);
+  __ addl(rax, rbx);
+  BranchOrBacktrack(greater, on_no_match);
 
   if (mode_ == ASCII) {
     Label loop_increment;

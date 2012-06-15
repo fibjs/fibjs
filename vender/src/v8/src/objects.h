@@ -41,6 +41,7 @@
 #include "mips/constants-mips.h"
 #endif
 #include "v8checks.h"
+#include "zone.h"
 
 
 //
@@ -166,6 +167,14 @@ enum NormalizedMapSharingMode {
 enum CreationFlag {
   ALLOW_CREATION,
   OMIT_CREATION
+};
+
+
+// Indicates whether the search function should expect a sorted or an unsorted
+// array as input.
+enum SearchMode {
+  EXPECT_SORTED,
+  EXPECT_UNSORTED
 };
 
 
@@ -1360,6 +1369,13 @@ class JSReceiver: public HeapObject {
     CERTAINLY_NOT_STORE_FROM_KEYED
   };
 
+  // Internal properties (e.g. the hidden properties dictionary) might
+  // be added even though the receiver is non-extensible.
+  enum ExtensibilityCheck {
+    PERFORM_EXTENSIBILITY_CHECK,
+    OMIT_EXTENSIBILITY_CHECK
+  };
+
   // Casting.
   static inline JSReceiver* cast(Object* obj);
 
@@ -1558,7 +1574,8 @@ class JSObject: public JSReceiver {
       String* name,
       Object* value,
       PropertyAttributes attributes,
-      StrictModeFlag strict_mode);
+      StrictModeFlag strict_mode,
+      ExtensibilityCheck extensibility_check);
 
   static Handle<Object> SetLocalPropertyIgnoreAttributes(
       Handle<JSObject> object,
@@ -1950,7 +1967,8 @@ class JSObject: public JSReceiver {
       Object* value,
       PropertyAttributes attributes,
       StrictModeFlag strict_mode,
-      StoreFromKeyed store_mode = MAY_BE_STORE_FROM_KEYED);
+      StoreFromKeyed store_mode = MAY_BE_STORE_FROM_KEYED,
+      ExtensibilityCheck extensibility_check = PERFORM_EXTENSIBILITY_CHECK);
 
   // Convert the object to use the canonical dictionary
   // representation. If the object is expected to have additional properties
@@ -2417,10 +2435,15 @@ class DescriptorArray: public FixedArray {
   // map uses to encode additional bit fields when the descriptor array is not
   // yet used.
   inline bool IsEmpty();
+  inline bool MayContainTransitions();
+
+  DECL_ACCESSORS(elements_transition_map, Map)
 
   // Returns the number of descriptors in the array.
   int number_of_descriptors() {
-    ASSERT(length() > kFirstIndex || IsEmpty());
+    ASSERT(length() > kFirstIndex ||
+           length() == kTransitionsIndex ||
+           IsEmpty());
     int len = length();
     return len <= kFirstIndex ? 0 : (len - kFirstIndex) / kDescriptorSize;
   }
@@ -2456,6 +2479,12 @@ class DescriptorArray: public FixedArray {
     ASSERT(HasEnumCache());
     return HeapObject::RawField(reinterpret_cast<HeapObject*>(this),
                                 kEnumerationIndexOffset);
+  }
+
+  Object** GetTransitionsSlot() {
+    ASSERT(elements_transition_map() != NULL);
+    return HeapObject::RawField(reinterpret_cast<HeapObject*>(this),
+                                kTransitionsOffset);
   }
 
   // TODO(1399): It should be possible to make room for bit_field3 in the map
@@ -2534,9 +2563,16 @@ class DescriptorArray: public FixedArray {
   MUST_USE_RESULT MaybeObject* CopyInsert(Descriptor* descriptor,
                                           TransitionFlag transition_flag);
 
+  // Indicates whether the search function should expect a sorted or an unsorted
+  // descriptor array as input.
+  enum SharedMode {
+    MAY_BE_SHARED,
+    CANNOT_BE_SHARED
+  };
+
   // Return a copy of the array with all transitions and null descriptors
   // removed. Return a Failure object in case of an allocation failure.
-  MUST_USE_RESULT MaybeObject* RemoveTransitions();
+  MUST_USE_RESULT MaybeObject* RemoveTransitions(SharedMode shared_mode);
 
   // Sort the instance descriptors by the hash codes of their keys.
   // Does not check for duplicates.
@@ -2547,11 +2583,11 @@ class DescriptorArray: public FixedArray {
   void Sort(const WhitenessWitness&);
 
   // Search the instance descriptors for given name.
-  inline int Search(String* name);
+  INLINE(int Search(String* name));
 
   // As the above, but uses DescriptorLookupCache and updates it when
   // necessary.
-  inline int SearchWithCache(String* name);
+  INLINE(int SearchWithCache(String* name));
 
   // Tells whether the name is present int the array.
   bool Contains(String* name) { return kNotFound != Search(name); }
@@ -2564,12 +2600,13 @@ class DescriptorArray: public FixedArray {
 
   // Perform a linear search in the instance descriptors represented
   // by this fixed array.  len is the number of descriptor indices that are
-  // valid.  Does not require the descriptors to be sorted.
-  int LinearSearch(String* name, int len);
+  // valid.
+  int LinearSearch(SearchMode mode, String* name, int len);
 
   // Allocates a DescriptorArray, but returns the singleton
   // empty descriptor array object if number_of_descriptors is 0.
-  MUST_USE_RESULT static MaybeObject* Allocate(int number_of_descriptors);
+  MUST_USE_RESULT static MaybeObject* Allocate(int number_of_descriptors,
+                                               SharedMode shared_mode);
 
   // Casting.
   static inline DescriptorArray* cast(Object* obj);
@@ -2578,8 +2615,9 @@ class DescriptorArray: public FixedArray {
   static const int kNotFound = -1;
 
   static const int kBitField3StorageIndex = 0;
-  static const int kEnumerationIndexIndex = 1;
-  static const int kFirstIndex = 2;
+  static const int kTransitionsIndex = 1;
+  static const int kEnumerationIndexIndex = 2;
+  static const int kFirstIndex = 3;
 
   // The length of the "bridge" to the enum cache.
   static const int kEnumCacheBridgeLength = 3;
@@ -2589,8 +2627,8 @@ class DescriptorArray: public FixedArray {
 
   // Layout description.
   static const int kBitField3StorageOffset = FixedArray::kHeaderSize;
-  static const int kEnumerationIndexOffset = kBitField3StorageOffset +
-                                             kPointerSize;
+  static const int kTransitionsOffset = kBitField3StorageOffset + kPointerSize;
+  static const int kEnumerationIndexOffset = kTransitionsOffset + kPointerSize;
   static const int kFirstOffset = kEnumerationIndexOffset + kPointerSize;
 
   // Layout description for the bridge array.
@@ -3443,7 +3481,7 @@ class ScopeInfo : public FixedArray {
   // must be a symbol (canonicalized).
   int FunctionContextSlotIndex(String* name, VariableMode* mode);
 
-  static Handle<ScopeInfo> Create(Scope* scope);
+  static Handle<ScopeInfo> Create(Scope* scope, Zone* zone);
 
   // Serializes empty scope info.
   static ScopeInfo* Empty();
@@ -4696,6 +4734,9 @@ class Map: public HeapObject {
   static bool IsValidElementsTransition(ElementsKind from_kind,
                                         ElementsKind to_kind);
 
+  inline Map* elements_transition_map();
+  inline void set_elements_transition_map(Map* transitioned_map);
+
   // Tells whether the map is attached to SharedFunctionInfo
   // (for inobject slack tracking).
   inline void set_attached_to_shared_function_info(bool value);
@@ -4707,14 +4748,6 @@ class Map: public HeapObject {
   // should be created and modified.
   inline void set_is_shared(bool value);
   inline bool is_shared();
-
-  // Tells whether the map is used for an object that is a prototype for another
-  // object or is the prototype on a function.  Such maps are made faster by
-  // tweaking the heuristics that distinguish between regular object-oriented
-  // objects and the objects that are being used as hash maps.  This flag is
-  // for optimization, not correctness.
-  inline void set_used_for_prototype(bool value);
-  inline bool used_for_prototype();
 
   // Tells whether the instance needs security checks when accessing its
   // properties.
@@ -4799,7 +4832,8 @@ class Map: public HeapObject {
 
   // Returns a copy of the map, with all transitions dropped from the
   // instance descriptors.
-  MUST_USE_RESULT MaybeObject* CopyDropTransitions();
+  MUST_USE_RESULT MaybeObject* CopyDropTransitions(
+      DescriptorArray::SharedMode shared_mode);
 
   // Returns the property index for name (only valid for FAST MODE).
   int PropertyIndexFor(String* name);
@@ -4852,23 +4886,15 @@ class Map: public HeapObject {
   // The "shared" flags of both this map and |other| are ignored.
   bool EquivalentToForNormalization(Map* other, PropertyNormalizationMode mode);
 
-  // Returns the contents of this map's descriptor array for the given string.
-  // May return NULL. |safe_to_add_transition| is set to false and NULL
-  // is returned if adding transitions is not allowed.
-  Object* GetDescriptorContents(String* sentinel_name,
-                                bool* safe_to_add_transitions);
-
   // Returns the map that this map transitions to if its elements_kind
   // is changed to |elements_kind|, or NULL if no such map is cached yet.
   // |safe_to_add_transitions| is set to false if adding transitions is not
   // allowed.
-  Map* LookupElementsTransitionMap(ElementsKind elements_kind,
-                                   bool* safe_to_add_transition);
+  Map* LookupElementsTransitionMap(ElementsKind elements_kind);
 
-  // Adds an entry to this map's descriptor array for a transition to
-  // |transitioned_map| when its elements_kind is changed to |elements_kind|.
-  MUST_USE_RESULT MaybeObject* AddElementsTransition(
-      ElementsKind elements_kind, Map* transitioned_map);
+  // Adds a new transitions for changing the elements kind to |elements_kind|.
+  MUST_USE_RESULT MaybeObject* CreateNextElementsTransition(
+      ElementsKind elements_kind);
 
   // Returns the transitioned map for this map with the most generic
   // elements_kind that's found in |candidates|, or null handle if no match is
@@ -4910,9 +4936,7 @@ class Map: public HeapObject {
   // the original map.  That way we can transition to the same map if the same
   // prototype is set, rather than creating a new map every time.  The
   // transitions are in the form of a map where the keys are prototype objects
-  // and the values are the maps the are transitioned to.  The special key
-  // the_hole denotes the map we should transition to when the
-  // used_for_prototype flag is set.
+  // and the values are the maps the are transitioned to.
   static const int kMaxCachedPrototypeTransitions = 256;
 
   Map* GetPrototypeTransition(Object* prototype);
@@ -5008,14 +5032,12 @@ class Map: public HeapObject {
   // Bit positions for bit field 3
   static const int kIsShared = 0;
   static const int kFunctionWithPrototype = 1;
-  static const int kUsedForPrototype = 2;
 
   typedef FixedBodyDescriptor<kPointerFieldsBeginOffset,
                               kPointerFieldsEndOffset,
                               kSize> BodyDescriptor;
 
  private:
-  String* elements_transition_sentinel_name();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Map);
 };
 
@@ -5196,6 +5218,25 @@ class SharedFunctionInfo: public HeapObject {
   // [code]: Function code.
   DECL_ACCESSORS(code, Code)
 
+  // [optimized_code_map]: Map from global context to optimized code
+  // and a shared literals array or Smi 0 if none.
+  DECL_ACCESSORS(optimized_code_map, Object)
+
+  // Returns index i of the entry with the specified context. At position
+  // i - 1 is the context, position i the code, and i + 1 the literals array.
+  // Returns -1 when no matching entry is found.
+  int SearchOptimizedCodeMap(Context* global_context);
+
+  // Clear optimized code map.
+  void ClearOptimizedCodeMap();
+
+  // Add a new entry to the optimized code map.
+  static void AddToOptimizedCodeMap(Handle<SharedFunctionInfo> shared,
+                                    Handle<Context> global_context,
+                                    Handle<Code> code,
+                                    Handle<FixedArray> literals);
+  static const int kEntryLength = 3;
+
   // [scope_info]: Scope info.
   DECL_ACCESSORS(scope_info, ScopeInfo)
 
@@ -5303,6 +5344,10 @@ class SharedFunctionInfo: public HeapObject {
   // IsInobjectSlackTrackingInProgress is false after this call.
   void CompleteInobjectSlackTracking();
 
+  // Invoked before pointers in SharedFunctionInfo are being marked.
+  // Also clears the optimized code map.
+  inline void BeforeVisitingPointers();
+
   // Clears the initial_map before the GC marking phase to ensure the reference
   // is weak. IsInobjectSlackTrackingInProgress is false after this call.
   void DetachInitialMap();
@@ -5388,8 +5433,8 @@ class SharedFunctionInfo: public HeapObject {
 
   // A counter used to determine when to stress the deoptimizer with a
   // deopt.
-  inline int deopt_counter();
-  inline void set_deopt_counter(int counter);
+  inline int stress_deopt_counter();
+  inline void set_stress_deopt_counter(int counter);
 
   inline int profiler_ticks();
 
@@ -5517,8 +5562,25 @@ class SharedFunctionInfo: public HeapObject {
   bool HasSourceCode();
   Handle<Object> GetSourceCode();
 
+  // Number of times the function was optimized.
   inline int opt_count();
   inline void set_opt_count(int opt_count);
+
+  // Number of times the function was deoptimized.
+  inline void set_deopt_count(int value);
+  inline int deopt_count();
+  inline void increment_deopt_count();
+
+  // Number of time we tried to re-enable optimization after it
+  // was disabled due to high number of deoptimizations.
+  inline void set_opt_reenable_tries(int value);
+  inline int opt_reenable_tries();
+
+  inline void TryReenableOptimization();
+
+  // Stores deopt_count, opt_reenable_tries and ic_age as bit-fields.
+  inline void set_counters(int value);
+  inline int counters();
 
   // Source size of this function.
   int SourceSize();
@@ -5563,7 +5625,8 @@ class SharedFunctionInfo: public HeapObject {
   // Pointer fields.
   static const int kNameOffset = HeapObject::kHeaderSize;
   static const int kCodeOffset = kNameOffset + kPointerSize;
-  static const int kScopeInfoOffset = kCodeOffset + kPointerSize;
+  static const int kOptimizedCodeMapOffset = kCodeOffset + kPointerSize;
+  static const int kScopeInfoOffset = kOptimizedCodeMapOffset + kPointerSize;
   static const int kConstructStubOffset = kScopeInfoOffset + kPointerSize;
   static const int kInstanceClassNameOffset =
       kConstructStubOffset + kPointerSize;
@@ -5576,13 +5639,14 @@ class SharedFunctionInfo: public HeapObject {
       kInferredNameOffset + kPointerSize;
   static const int kThisPropertyAssignmentsOffset =
       kInitialMapOffset + kPointerSize;
-  // ic_age is a Smi field. It could be grouped with another Smi field into a
-  // PSEUDO_SMI_ACCESSORS pair (on x64), if one becomes available.
-  static const int kICAgeOffset = kThisPropertyAssignmentsOffset + kPointerSize;
+  // ast_node_count is a Smi field. It could be grouped with another Smi field
+  // into a PSEUDO_SMI_ACCESSORS pair (on x64), if one becomes available.
+  static const int kAstNodeCountOffset =
+      kThisPropertyAssignmentsOffset + kPointerSize;
 #if V8_HOST_ARCH_32_BIT
   // Smi fields.
   static const int kLengthOffset =
-      kICAgeOffset + kPointerSize;
+      kAstNodeCountOffset + kPointerSize;
   static const int kFormalParameterCountOffset = kLengthOffset + kPointerSize;
   static const int kExpectedNofPropertiesOffset =
       kFormalParameterCountOffset + kPointerSize;
@@ -5600,12 +5664,11 @@ class SharedFunctionInfo: public HeapObject {
       kCompilerHintsOffset + kPointerSize;
   static const int kOptCountOffset =
       kThisPropertyAssignmentsCountOffset + kPointerSize;
-  static const int kAstNodeCountOffset = kOptCountOffset + kPointerSize;
-  static const int kDeoptCounterOffset = kAstNodeCountOffset + kPointerSize;
-
+  static const int kCountersOffset = kOptCountOffset + kPointerSize;
+  static const int kStressDeoptCounterOffset = kCountersOffset + kPointerSize;
 
   // Total size.
-  static const int kSize = kDeoptCounterOffset + kPointerSize;
+  static const int kSize = kStressDeoptCounterOffset + kPointerSize;
 #else
   // The only reason to use smi fields instead of int fields
   // is to allow iteration without maps decoding during
@@ -5617,7 +5680,7 @@ class SharedFunctionInfo: public HeapObject {
   // word is not set and thus this word cannot be treated as pointer
   // to HeapObject during old space traversal.
   static const int kLengthOffset =
-      kICAgeOffset + kPointerSize;
+      kAstNodeCountOffset + kPointerSize;
   static const int kFormalParameterCountOffset =
       kLengthOffset + kIntSize;
 
@@ -5641,11 +5704,11 @@ class SharedFunctionInfo: public HeapObject {
   static const int kOptCountOffset =
       kThisPropertyAssignmentsCountOffset + kIntSize;
 
-  static const int kAstNodeCountOffset = kOptCountOffset + kIntSize;
-  static const int kDeoptCounterOffset = kAstNodeCountOffset + kIntSize;
+  static const int kCountersOffset = kOptCountOffset + kIntSize;
+  static const int kStressDeoptCounterOffset = kCountersOffset + kIntSize;
 
   // Total size.
-  static const int kSize = kDeoptCounterOffset + kIntSize;
+  static const int kSize = kStressDeoptCounterOffset + kIntSize;
 
 #endif
 
@@ -5697,6 +5760,10 @@ class SharedFunctionInfo: public HeapObject {
     kDontInline,
     kCompilerHintsCount  // Pseudo entry
   };
+
+  class DeoptCountBits: public BitField<int, 0, 4> {};
+  class OptReenableTriesBits: public BitField<int, 4, 18> {};
+  class ICAgeBits: public BitField<int, 22, 8> {};
 
  private:
 #if V8_HOST_ARCH_32_BIT

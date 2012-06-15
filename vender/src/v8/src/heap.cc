@@ -118,8 +118,8 @@ Heap::Heap()
       debug_utils_(NULL),
 #endif  // DEBUG
       new_space_high_promotion_mode_active_(false),
-      old_gen_promotion_limit_(kMinimumPromotionLimit),
-      old_gen_allocation_limit_(kMinimumAllocationLimit),
+      old_gen_promotion_limit_(kMinPromotionLimit),
+      old_gen_allocation_limit_(kMinAllocationLimit),
       old_gen_limit_factor_(1),
       size_of_old_gen_at_last_old_space_gc_(0),
       external_allocation_limit_(0),
@@ -829,9 +829,9 @@ bool Heap::PerformGarbageCollection(GarbageCollector collector,
     }
 
     old_gen_promotion_limit_ =
-        OldGenPromotionLimit(size_of_old_gen_at_last_old_space_gc_);
+        OldGenLimit(size_of_old_gen_at_last_old_space_gc_, kMinPromotionLimit);
     old_gen_allocation_limit_ =
-        OldGenAllocationLimit(size_of_old_gen_at_last_old_space_gc_);
+        OldGenLimit(size_of_old_gen_at_last_old_space_gc_, kMinAllocationLimit);
 
     old_gen_exhausted_ = false;
   } else {
@@ -3010,6 +3010,7 @@ MaybeObject* Heap::AllocateSharedFunctionInfo(Object* name) {
   share->set_name(name);
   Code* illegal = isolate_->builtins()->builtin(Builtins::kIllegal);
   share->set_code(illegal);
+  share->ClearOptimizedCodeMap();
   share->set_scope_info(ScopeInfo::Empty());
   Code* construct_stub =
       isolate_->builtins()->builtin(Builtins::kJSConstructStubGeneric);
@@ -3022,8 +3023,8 @@ MaybeObject* Heap::AllocateSharedFunctionInfo(Object* name) {
   share->set_initial_map(undefined_value(), SKIP_WRITE_BARRIER);
   share->set_this_property_assignments(undefined_value(), SKIP_WRITE_BARRIER);
   share->set_ast_node_count(0);
-  share->set_deopt_counter(FLAG_deopt_every_n_times);
-  share->set_ic_age(0);
+  share->set_stress_deopt_counter(FLAG_deopt_every_n_times);
+  share->set_counters(0);
 
   // Set integer fields (smi or int, depending on the architecture).
   share->set_length(0);
@@ -3671,7 +3672,8 @@ MaybeObject* Heap::AllocateFunctionPrototype(JSFunction* function) {
   Map* new_map;
   ASSERT(object_function->has_initial_map());
   { MaybeObject* maybe_map =
-        object_function->initial_map()->CopyDropTransitions();
+        object_function->initial_map()->CopyDropTransitions(
+            DescriptorArray::MAY_BE_SHARED);
     if (!maybe_map->To<Map>(&new_map)) return maybe_map;
   }
   Object* prototype;
@@ -3819,7 +3821,8 @@ MaybeObject* Heap::AllocateInitialMap(JSFunction* fun) {
       fun->shared()->ForbidInlineConstructor();
     } else {
       DescriptorArray* descriptors;
-      { MaybeObject* maybe_descriptors_obj = DescriptorArray::Allocate(count);
+      { MaybeObject* maybe_descriptors_obj =
+            DescriptorArray::Allocate(count, DescriptorArray::MAY_BE_SHARED);
         if (!maybe_descriptors_obj->To<DescriptorArray>(&descriptors)) {
           return maybe_descriptors_obj;
         }
@@ -6633,7 +6636,7 @@ void PathTracer::TracePathFrom(Object** root) {
   ASSERT((search_target_ == kAnyGlobalObject) ||
          search_target_->IsHeapObject());
   found_target_in_trace_ = false;
-  object_stack_.Clear();
+  Reset();
 
   MarkVisitor mark_visitor(this);
   MarkRecursively(root, &mark_visitor);
@@ -6737,11 +6740,7 @@ void PathTracer::ProcessResults() {
     for (int i = 0; i < object_stack_.length(); i++) {
       if (i > 0) PrintF("\n     |\n     |\n     V\n\n");
       Object* obj = object_stack_[i];
-#ifdef OBJECT_PRINT
       obj->Print();
-#else
-      obj->ShortPrint();
-#endif
     }
     PrintF("=====================================\n");
   }

@@ -469,6 +469,20 @@ StackFrame::Type StackFrame::GetCallerState(State* state) const {
 }
 
 
+Address StackFrame::UnpaddedFP() const {
+#if defined(V8_TARGET_ARCH_IA32)
+  if (!is_optimized()) return fp();
+  int32_t alignment_state = Memory::int32_at(
+    fp() + JavaScriptFrameConstants::kDynamicAlignmentStateOffset);
+
+  return (alignment_state == kAlignmentPaddingPushed) ?
+    (fp() + kPointerSize) : fp();
+#else
+  return fp();
+#endif
+}
+
+
 Code* EntryFrame::unchecked_code() const {
   return HEAP->raw_unchecked_js_entry_code();
 }
@@ -818,12 +832,23 @@ void FrameSummary::Print() {
 }
 
 
+JSFunction* OptimizedFrame::LiteralAt(FixedArray* literal_array,
+                                      int literal_id) {
+  if (literal_id == Translation::kSelfLiteralId) {
+    return JSFunction::cast(function());
+  }
+
+  return JSFunction::cast(literal_array->get(literal_id));
+}
+
+
 void OptimizedFrame::Summarize(List<FrameSummary>* frames) {
   ASSERT(frames->length() == 0);
   ASSERT(is_optimized());
 
   int deopt_index = Safepoint::kNoDeoptimizationIndex;
   DeoptimizationInputData* data = GetDeoptimizationData(&deopt_index);
+  FixedArray* literal_array = data->LiteralArray();
 
   // BUG(3243555): Since we don't have a lazy-deopt registered at
   // throw-statements, we can't use the translation at the call-site of
@@ -851,10 +876,8 @@ void OptimizedFrame::Summarize(List<FrameSummary>* frames) {
     if (opcode == Translation::JS_FRAME) {
       i--;
       int ast_id = it.Next();
-      int function_id = it.Next();
+      JSFunction* function = LiteralAt(literal_array, it.Next());
       it.Next();  // Skip height.
-      JSFunction* function =
-          JSFunction::cast(data->LiteralArray()->get(function_id));
 
       // The translation commands are ordered and the receiver is always
       // at the first position. Since we are always at a call when we need
@@ -961,6 +984,7 @@ void OptimizedFrame::GetFunctions(List<JSFunction*>* functions) {
 
   int deopt_index = Safepoint::kNoDeoptimizationIndex;
   DeoptimizationInputData* data = GetDeoptimizationData(&deopt_index);
+  FixedArray* literal_array = data->LiteralArray();
 
   TranslationIterator it(data->TranslationByteArray(),
                          data->TranslationIndex(deopt_index)->value());
@@ -976,10 +1000,8 @@ void OptimizedFrame::GetFunctions(List<JSFunction*>* functions) {
     if (opcode == Translation::JS_FRAME) {
       jsframe_count--;
       it.Next();  // Skip ast id.
-      int function_id = it.Next();
+      JSFunction* function = LiteralAt(literal_array, it.Next());
       it.Next();  // Skip height.
-      JSFunction* function =
-          JSFunction::cast(data->LiteralArray()->get(function_id));
       functions->Add(function);
     } else {
       // Skip over operands to advance to the next opcode.
@@ -1394,11 +1416,11 @@ class field##_Wrapper : public ZoneObject {                      \
 STACK_FRAME_TYPE_LIST(DEFINE_WRAPPER)
 #undef DEFINE_WRAPPER
 
-static StackFrame* AllocateFrameCopy(StackFrame* frame) {
+static StackFrame* AllocateFrameCopy(StackFrame* frame, Zone* zone) {
 #define FRAME_TYPE_CASE(type, field) \
   case StackFrame::type: { \
     field##_Wrapper* wrapper = \
-        new field##_Wrapper(*(reinterpret_cast<field*>(frame))); \
+        new(zone) field##_Wrapper(*(reinterpret_cast<field*>(frame))); \
     return &wrapper->frame_; \
   }
 
@@ -1410,11 +1432,11 @@ static StackFrame* AllocateFrameCopy(StackFrame* frame) {
   return NULL;
 }
 
-Vector<StackFrame*> CreateStackMap() {
-  ZoneList<StackFrame*> list(10);
+Vector<StackFrame*> CreateStackMap(Zone* zone) {
+  ZoneList<StackFrame*> list(10, zone);
   for (StackFrameIterator it; !it.done(); it.Advance()) {
-    StackFrame* frame = AllocateFrameCopy(it.frame());
-    list.Add(frame);
+    StackFrame* frame = AllocateFrameCopy(it.frame(), zone);
+    list.Add(frame, zone);
   }
   return list.ToVector();
 }

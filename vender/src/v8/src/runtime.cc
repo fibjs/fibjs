@@ -1236,7 +1236,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DisableAccessChecks) {
   if (needs_access_checks) {
     // Copy map so it won't interfere constructor's initial map.
     Object* new_map;
-    { MaybeObject* maybe_new_map = old_map->CopyDropTransitions();
+    { MaybeObject* maybe_new_map =
+          old_map->CopyDropTransitions(DescriptorArray::MAY_BE_SHARED);
       if (!maybe_new_map->ToObject(&new_map)) return maybe_new_map;
     }
 
@@ -1254,7 +1255,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_EnableAccessChecks) {
   if (!old_map->is_access_check_needed()) {
     // Copy map so it won't interfere constructor's initial map.
     Object* new_map;
-    { MaybeObject* maybe_new_map = old_map->CopyDropTransitions();
+    { MaybeObject* maybe_new_map =
+          old_map->CopyDropTransitions(DescriptorArray::MAY_BE_SHARED);
       if (!maybe_new_map->ToObject(&new_map)) return maybe_new_map;
     }
 
@@ -1307,12 +1309,18 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DeclareGlobals) {
     if (is_var || is_const) {
       // Lookup the property in the global object, and don't set the
       // value of the variable if the property is already there.
-      // Do the lookup locally only, see ES5 errata.
+      // Do the lookup locally only, see ES5 erratum.
       LookupResult lookup(isolate);
-      if (FLAG_es52_globals)
-        global->LocalLookup(*name, &lookup);
-      else
+      if (FLAG_es52_globals) {
+        Object* obj = *global;
+        do {
+          JSObject::cast(obj)->LocalLookup(*name, &lookup);
+          obj = obj->GetPrototype();
+        } while (!lookup.IsFound() && obj->IsJSObject() &&
+                 JSObject::cast(obj)->map()->is_hidden_prototype());
+      } else {
         global->Lookup(*name, &lookup);
+      }
       if (lookup.IsProperty()) {
         // We found an existing property. Unless it was an interceptor
         // that claims the property is absent, skip this declaration.
@@ -1746,8 +1754,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_RegExpExec) {
   Handle<Object> result = RegExpImpl::Exec(regexp,
                                            subject,
                                            index,
-                                           last_match_info,
-                                           isolate->zone());
+                                           last_match_info);
   if (result.is_null()) return Failure::Exception();
   return *result;
 }
@@ -2526,8 +2533,10 @@ class ReplacementStringBuilder {
 
 class CompiledReplacement {
  public:
-  CompiledReplacement()
-      : parts_(1), replacement_substrings_(0), simple_hint_(false) {}
+  explicit CompiledReplacement(Zone* zone)
+      : parts_(1, zone), replacement_substrings_(0, zone),
+        simple_hint_(false),
+        zone_(zone) {}
 
   void Compile(Handle<String> replacement,
                int capture_count,
@@ -2546,6 +2555,8 @@ class CompiledReplacement {
   bool simple_hint() {
     return simple_hint_;
   }
+
+  Zone* zone() const { return zone_; }
 
  private:
   enum PartType {
@@ -2608,7 +2619,8 @@ class CompiledReplacement {
   static bool ParseReplacementPattern(ZoneList<ReplacementPart>* parts,
                                       Vector<Char> characters,
                                       int capture_count,
-                                      int subject_length) {
+                                      int subject_length,
+                                      Zone* zone) {
     int length = characters.length();
     int last = 0;
     for (int i = 0; i < length; i++) {
@@ -2623,7 +2635,8 @@ class CompiledReplacement {
         case '$':
           if (i > last) {
             // There is a substring before. Include the first "$".
-            parts->Add(ReplacementPart::ReplacementSubString(last, next_index));
+            parts->Add(ReplacementPart::ReplacementSubString(last, next_index),
+                       zone);
             last = next_index + 1;  // Continue after the second "$".
           } else {
             // Let the next substring start with the second "$".
@@ -2633,25 +2646,25 @@ class CompiledReplacement {
           break;
         case '`':
           if (i > last) {
-            parts->Add(ReplacementPart::ReplacementSubString(last, i));
+            parts->Add(ReplacementPart::ReplacementSubString(last, i), zone);
           }
-          parts->Add(ReplacementPart::SubjectPrefix());
+          parts->Add(ReplacementPart::SubjectPrefix(), zone);
           i = next_index;
           last = i + 1;
           break;
         case '\'':
           if (i > last) {
-            parts->Add(ReplacementPart::ReplacementSubString(last, i));
+            parts->Add(ReplacementPart::ReplacementSubString(last, i), zone);
           }
-          parts->Add(ReplacementPart::SubjectSuffix(subject_length));
+          parts->Add(ReplacementPart::SubjectSuffix(subject_length), zone);
           i = next_index;
           last = i + 1;
           break;
         case '&':
           if (i > last) {
-            parts->Add(ReplacementPart::ReplacementSubString(last, i));
+            parts->Add(ReplacementPart::ReplacementSubString(last, i), zone);
           }
-          parts->Add(ReplacementPart::SubjectMatch());
+          parts->Add(ReplacementPart::SubjectMatch(), zone);
           i = next_index;
           last = i + 1;
           break;
@@ -2684,10 +2697,10 @@ class CompiledReplacement {
           }
           if (capture_ref > 0) {
             if (i > last) {
-              parts->Add(ReplacementPart::ReplacementSubString(last, i));
+              parts->Add(ReplacementPart::ReplacementSubString(last, i), zone);
             }
             ASSERT(capture_ref <= capture_count);
-            parts->Add(ReplacementPart::SubjectCapture(capture_ref));
+            parts->Add(ReplacementPart::SubjectCapture(capture_ref), zone);
             last = next_index + 1;
           }
           i = next_index;
@@ -2701,10 +2714,10 @@ class CompiledReplacement {
     }
     if (length > last) {
       if (last == 0) {
-        parts->Add(ReplacementPart::ReplacementString());
+        parts->Add(ReplacementPart::ReplacementString(), zone);
         return true;
       } else {
-        parts->Add(ReplacementPart::ReplacementSubString(last, length));
+        parts->Add(ReplacementPart::ReplacementSubString(last, length), zone);
       }
     }
     return false;
@@ -2713,6 +2726,7 @@ class CompiledReplacement {
   ZoneList<ReplacementPart> parts_;
   ZoneList<Handle<String> > replacement_substrings_;
   bool simple_hint_;
+  Zone* zone_;
 };
 
 
@@ -2727,13 +2741,15 @@ void CompiledReplacement::Compile(Handle<String> replacement,
       simple_hint_ = ParseReplacementPattern(&parts_,
                                              content.ToAsciiVector(),
                                              capture_count,
-                                             subject_length);
+                                             subject_length,
+                                             zone());
     } else {
       ASSERT(content.IsTwoByte());
       simple_hint_ = ParseReplacementPattern(&parts_,
                                              content.ToUC16Vector(),
                                              capture_count,
-                                             subject_length);
+                                             subject_length,
+                                             zone());
     }
   }
   Isolate* isolate = replacement->GetIsolate();
@@ -2745,12 +2761,12 @@ void CompiledReplacement::Compile(Handle<String> replacement,
       int from = -tag;
       int to = parts_[i].data;
       replacement_substrings_.Add(
-          isolate->factory()->NewSubString(replacement, from, to));
+          isolate->factory()->NewSubString(replacement, from, to), zone());
       parts_[i].tag = REPLACEMENT_SUBSTRING;
       parts_[i].data = substring_index;
       substring_index++;
     } else if (tag == REPLACEMENT_STRING) {
-      replacement_substrings_.Add(replacement);
+      replacement_substrings_.Add(replacement, zone());
       parts_[i].data = substring_index;
       substring_index++;
     }
@@ -2799,7 +2815,8 @@ void CompiledReplacement::Apply(ReplacementStringBuilder* builder,
 void FindAsciiStringIndices(Vector<const char> subject,
                             char pattern,
                             ZoneList<int>* indices,
-                            unsigned int limit) {
+                            unsigned int limit,
+                            Zone* zone) {
   ASSERT(limit > 0);
   // Collect indices of pattern in subject using memchr.
   // Stop after finding at most limit values.
@@ -2810,7 +2827,7 @@ void FindAsciiStringIndices(Vector<const char> subject,
     pos = reinterpret_cast<const char*>(
         memchr(pos, pattern, subject_end - pos));
     if (pos == NULL) return;
-    indices->Add(static_cast<int>(pos - subject_start));
+    indices->Add(static_cast<int>(pos - subject_start), zone);
     pos++;
     limit--;
   }
@@ -2822,7 +2839,8 @@ void FindStringIndices(Isolate* isolate,
                        Vector<const SubjectChar> subject,
                        Vector<const PatternChar> pattern,
                        ZoneList<int>* indices,
-                       unsigned int limit) {
+                       unsigned int limit,
+                       Zone* zone) {
   ASSERT(limit > 0);
   // Collect indices of pattern in subject.
   // Stop after finding at most limit values.
@@ -2832,7 +2850,7 @@ void FindStringIndices(Isolate* isolate,
   while (limit > 0) {
     index = search.Search(subject, index);
     if (index < 0) return;
-    indices->Add(index);
+    indices->Add(index, zone);
     index += pattern_length;
     limit--;
   }
@@ -2843,7 +2861,8 @@ void FindStringIndicesDispatch(Isolate* isolate,
                                String* subject,
                                String* pattern,
                                ZoneList<int>* indices,
-                               unsigned int limit) {
+                               unsigned int limit,
+                               Zone* zone) {
   {
     AssertNoAllocation no_gc;
     String::FlatContent subject_content = subject->GetFlatContent();
@@ -2858,20 +2877,23 @@ void FindStringIndicesDispatch(Isolate* isolate,
           FindAsciiStringIndices(subject_vector,
                                  pattern_vector[0],
                                  indices,
-                                 limit);
+                                 limit,
+                                 zone);
         } else {
           FindStringIndices(isolate,
                             subject_vector,
                             pattern_vector,
                             indices,
-                            limit);
+                            limit,
+                            zone);
         }
       } else {
         FindStringIndices(isolate,
                           subject_vector,
                           pattern_content.ToUC16Vector(),
                           indices,
-                          limit);
+                          limit,
+                          zone);
       }
     } else {
       Vector<const uc16> subject_vector = subject_content.ToUC16Vector();
@@ -2880,13 +2902,15 @@ void FindStringIndicesDispatch(Isolate* isolate,
                           subject_vector,
                           pattern_content.ToAsciiVector(),
                           indices,
-                          limit);
+                          limit,
+                          zone);
       } else {
         FindStringIndices(isolate,
                           subject_vector,
                           pattern_content.ToUC16Vector(),
                           indices,
-                          limit);
+                          limit,
+                          zone);
       }
     }
   }
@@ -2965,12 +2989,13 @@ MUST_USE_RESULT static MaybeObject* StringReplaceAtomRegExpWithString(
     Handle<String> subject,
     Handle<JSRegExp> pattern_regexp,
     Handle<String> replacement,
-    Handle<JSArray> last_match_info) {
+    Handle<JSArray> last_match_info,
+    Zone* zone) {
   ASSERT(subject->IsFlat());
   ASSERT(replacement->IsFlat());
 
   ZoneScope zone_space(isolate, DELETE_ON_EXIT);
-  ZoneList<int> indices(8);
+  ZoneList<int> indices(8, isolate->zone());
   ASSERT_EQ(JSRegExp::ATOM, pattern_regexp->TypeTag());
   String* pattern =
       String::cast(pattern_regexp->DataAt(JSRegExp::kAtomPatternIndex));
@@ -2978,7 +3003,8 @@ MUST_USE_RESULT static MaybeObject* StringReplaceAtomRegExpWithString(
   int pattern_len = pattern->length();
   int replacement_len = replacement->length();
 
-  FindStringIndicesDispatch(isolate, *subject, pattern, &indices, 0xffffffff);
+  FindStringIndicesDispatch(isolate, *subject, pattern, &indices, 0xffffffff,
+                            zone);
 
   int matches = indices.length();
   if (matches == 0) return *subject;
@@ -3047,7 +3073,8 @@ MUST_USE_RESULT static MaybeObject* StringReplaceRegExpWithString(
     String* subject,
     JSRegExp* regexp,
     String* replacement,
-    JSArray* last_match_info) {
+    JSArray* last_match_info,
+    Zone* zone) {
   ASSERT(subject->IsFlat());
   ASSERT(replacement->IsFlat());
 
@@ -3061,8 +3088,7 @@ MUST_USE_RESULT static MaybeObject* StringReplaceRegExpWithString(
   Handle<Object> match = RegExpImpl::Exec(regexp_handle,
                                           subject_handle,
                                           0,
-                                          last_match_info_handle,
-                                          isolate->zone());
+                                          last_match_info_handle);
   if (match.is_null()) {
     return Failure::Exception();
   }
@@ -3073,8 +3099,8 @@ MUST_USE_RESULT static MaybeObject* StringReplaceRegExpWithString(
   int capture_count = regexp_handle->CaptureCount();
 
   // CompiledReplacement uses zone allocation.
-  ZoneScope zone(isolate, DELETE_ON_EXIT);
-  CompiledReplacement compiled_replacement;
+  ZoneScope zonescope(isolate, DELETE_ON_EXIT);
+  CompiledReplacement compiled_replacement(isolate->zone());
   compiled_replacement.Compile(replacement_handle,
                                capture_count,
                                length);
@@ -3092,14 +3118,16 @@ MUST_USE_RESULT static MaybeObject* StringReplaceRegExpWithString(
           subject_handle,
           regexp_handle,
           replacement_handle,
-          last_match_info_handle);
+          last_match_info_handle,
+          zone);
     } else {
       return StringReplaceAtomRegExpWithString<SeqTwoByteString>(
           isolate,
           subject_handle,
           regexp_handle,
           replacement_handle,
-          last_match_info_handle);
+          last_match_info_handle,
+          zone);
     }
   }
 
@@ -3161,8 +3189,7 @@ MUST_USE_RESULT static MaybeObject* StringReplaceRegExpWithString(
     match = RegExpImpl::Exec(regexp_handle,
                              subject_handle,
                              next,
-                             last_match_info_handle,
-                             isolate->zone());
+                             last_match_info_handle);
     if (match.is_null()) {
       return Failure::Exception();
     }
@@ -3182,7 +3209,8 @@ MUST_USE_RESULT static MaybeObject* StringReplaceRegExpWithEmptyString(
     Isolate* isolate,
     String* subject,
     JSRegExp* regexp,
-    JSArray* last_match_info) {
+    JSArray* last_match_info,
+    Zone* zone) {
   ASSERT(subject->IsFlat());
 
   HandleScope handles(isolate);
@@ -3201,22 +3229,23 @@ MUST_USE_RESULT static MaybeObject* StringReplaceRegExpWithEmptyString(
           subject_handle,
           regexp_handle,
           empty_string_handle,
-          last_match_info_handle);
+          last_match_info_handle,
+          zone);
     } else {
       return StringReplaceAtomRegExpWithString<SeqTwoByteString>(
           isolate,
           subject_handle,
           regexp_handle,
           empty_string_handle,
-          last_match_info_handle);
+          last_match_info_handle,
+          zone);
     }
   }
 
   Handle<Object> match = RegExpImpl::Exec(regexp_handle,
                                           subject_handle,
                                           0,
-                                          last_match_info_handle,
-                                          isolate->zone());
+                                          last_match_info_handle);
   if (match.is_null()) return Failure::Exception();
   if (match->IsNull()) return *subject_handle;
 
@@ -3290,8 +3319,7 @@ MUST_USE_RESULT static MaybeObject* StringReplaceRegExpWithEmptyString(
     match = RegExpImpl::Exec(regexp_handle,
                              subject_handle,
                              next,
-                             last_match_info_handle,
-                             isolate->zone());
+                             last_match_info_handle);
     if (match.is_null()) return Failure::Exception();
     if (match->IsNull()) break;
 
@@ -3367,13 +3395,14 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StringReplaceRegExpWithString) {
 
   ASSERT(last_match_info->HasFastObjectElements());
 
+  Zone* zone = isolate->zone();
   if (replacement->length() == 0) {
     if (subject->HasOnlyAsciiChars()) {
       return StringReplaceRegExpWithEmptyString<SeqAsciiString>(
-          isolate, subject, regexp, last_match_info);
+          isolate, subject, regexp, last_match_info, zone);
     } else {
       return StringReplaceRegExpWithEmptyString<SeqTwoByteString>(
-          isolate, subject, regexp, last_match_info);
+          isolate, subject, regexp, last_match_info, zone);
     }
   }
 
@@ -3381,7 +3410,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StringReplaceRegExpWithString) {
                                        subject,
                                        regexp,
                                        replacement,
-                                       last_match_info);
+                                       last_match_info,
+                                       zone);
 }
 
 
@@ -3704,8 +3734,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StringMatch) {
   CONVERT_ARG_HANDLE_CHECKED(JSArray, regexp_info, 2);
   HandleScope handles;
 
-  Handle<Object> match = RegExpImpl::Exec(regexp, subject, 0, regexp_info,
-                                          isolate->zone());
+  Handle<Object> match = RegExpImpl::Exec(regexp, subject, 0, regexp_info);
 
   if (match.is_null()) {
     return Failure::Exception();
@@ -3715,8 +3744,9 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StringMatch) {
   }
   int length = subject->length();
 
+  Zone* zone = isolate->zone();
   ZoneScope zone_space(isolate, DELETE_ON_EXIT);
-  ZoneList<int> offsets(8);
+  ZoneList<int> offsets(8, zone);
   int start;
   int end;
   do {
@@ -3726,11 +3756,10 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StringMatch) {
       start = Smi::cast(elements->get(RegExpImpl::kFirstCapture))->value();
       end = Smi::cast(elements->get(RegExpImpl::kFirstCapture + 1))->value();
     }
-    offsets.Add(start);
-    offsets.Add(end);
+    offsets.Add(start, zone);
+    offsets.Add(end, zone);
     if (start == end) if (++end > length) break;
-    match = RegExpImpl::Exec(regexp, subject, end, regexp_info,
-                             isolate->zone());
+    match = RegExpImpl::Exec(regexp, subject, end, regexp_info);
     if (match.is_null()) {
       return Failure::Exception();
     }
@@ -3828,8 +3857,7 @@ static int SearchRegExpNoCaptureMultiple(
   int match_start = -1;
   int match_end = 0;
   int pos = 0;
-  int registers_per_match = RegExpImpl::IrregexpPrepare(regexp, subject,
-                                                        isolate->zone());
+  int registers_per_match = RegExpImpl::IrregexpPrepare(regexp, subject);
   if (registers_per_match < 0) return RegExpImpl::RE_EXCEPTION;
 
   int max_matches;
@@ -3844,8 +3872,7 @@ static int SearchRegExpNoCaptureMultiple(
     int num_matches = RegExpImpl::IrregexpExecRaw(regexp,
                                                   subject,
                                                   pos,
-                                                  register_vector,
-                                                  isolate->zone());
+                                                  register_vector);
     if (num_matches > 0) {
       for (int match_index = 0; match_index < num_matches; match_index++) {
         int32_t* current_match = &register_vector[match_index * 2];
@@ -3915,8 +3942,7 @@ static int SearchRegExpMultiple(
     FixedArrayBuilder* builder) {
 
   ASSERT(subject->IsFlat());
-  int registers_per_match = RegExpImpl::IrregexpPrepare(regexp, subject,
-                                                        isolate->zone());
+  int registers_per_match = RegExpImpl::IrregexpPrepare(regexp, subject);
   if (registers_per_match < 0) return RegExpImpl::RE_EXCEPTION;
 
   int max_matches;
@@ -3929,8 +3955,7 @@ static int SearchRegExpMultiple(
   int num_matches = RegExpImpl::IrregexpExecRaw(regexp,
                                                 subject,
                                                 0,
-                                                register_vector,
-                                                isolate->zone());
+                                                register_vector);
 
   int capture_count = regexp->CaptureCount();
   int subject_length = subject->length();
@@ -4016,8 +4041,7 @@ static int SearchRegExpMultiple(
       num_matches = RegExpImpl::IrregexpExecRaw(regexp,
                                                 subject,
                                                 pos,
-                                                register_vector,
-                                                isolate->zone());
+                                                register_vector);
     } while (num_matches > 0);
 
     if (num_matches != RegExpImpl::RE_EXCEPTION) {
@@ -6433,17 +6457,18 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StringSplit) {
 
   static const int kMaxInitialListCapacity = 16;
 
+  Zone* zone = isolate->zone();
   ZoneScope scope(isolate, DELETE_ON_EXIT);
 
   // Find (up to limit) indices of separator and end-of-string in subject
   int initial_capacity = Min<uint32_t>(kMaxInitialListCapacity, limit);
-  ZoneList<int> indices(initial_capacity);
+  ZoneList<int> indices(initial_capacity, zone);
   if (!pattern->IsFlat()) FlattenString(pattern);
 
-  FindStringIndicesDispatch(isolate, *subject, *pattern, &indices, limit);
+  FindStringIndicesDispatch(isolate, *subject, *pattern, &indices, limit, zone);
 
   if (static_cast<uint32_t>(indices.length()) < limit) {
-    indices.Add(subject_length);
+    indices.Add(subject_length, zone);
   }
 
   // The list indices now contains the end of each part to create.
@@ -8335,6 +8360,9 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_NotifyDeoptimized) {
   } else {
     Deoptimizer::DeoptimizeFunction(*function);
   }
+  // Flush optimized code cache for this function.
+  function->shared()->ClearOptimizedCodeMap();
+
   return isolate->heap()->undefined_value();
 }
 
@@ -9282,13 +9310,14 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_ParseJson) {
   ASSERT_EQ(1, args.length());
   CONVERT_ARG_HANDLE_CHECKED(String, source, 0);
 
+  Zone* zone = isolate->zone();
   source = Handle<String>(source->TryFlattenGetString());
   // Optimized fast case where we only have ASCII characters.
   Handle<Object> result;
   if (source->IsSeqAsciiString()) {
-    result = JsonParser<true>::Parse(source);
+    result = JsonParser<true>::Parse(source, zone);
   } else {
-    result = JsonParser<false>::Parse(source);
+    result = JsonParser<false>::Parse(source, zone);
   }
   if (result.is_null()) {
     // Syntax error or stack overflow in scanner.
@@ -10257,7 +10286,6 @@ static MaybeObject* DebugLookupResultValue(Heap* heap,
     }
     case INTERCEPTOR:
     case MAP_TRANSITION:
-    case ELEMENTS_TRANSITION:
     case CONSTANT_TRANSITION:
     case NULL_DESCRIPTOR:
       return heap->undefined_value();
@@ -12744,7 +12772,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_LiveEditCheckAndDropActivations) {
   CONVERT_ARG_HANDLE_CHECKED(JSArray, shared_array, 0);
   CONVERT_BOOLEAN_ARG_CHECKED(do_drop, 1);
 
-  return *LiveEdit::CheckAndDropActivations(shared_array, do_drop);
+  return *LiveEdit::CheckAndDropActivations(shared_array, do_drop,
+                                            isolate->zone());
 }
 
 // Compares 2 strings line-by-line, then token-wise and returns diff in form

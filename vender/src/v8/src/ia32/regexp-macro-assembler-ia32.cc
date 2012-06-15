@@ -101,8 +101,10 @@ namespace internal {
 
 RegExpMacroAssemblerIA32::RegExpMacroAssemblerIA32(
     Mode mode,
-    int registers_to_save)
-    : masm_(new MacroAssembler(Isolate::Current(), NULL, kRegExpCodeSize)),
+    int registers_to_save,
+    Zone* zone)
+    : NativeRegExpMacroAssembler(zone),
+      masm_(new MacroAssembler(Isolate::Current(), NULL, kRegExpCodeSize)),
       mode_(mode),
       num_registers_(registers_to_save),
       num_saved_registers_(registers_to_save),
@@ -313,6 +315,11 @@ void RegExpMacroAssemblerIA32::CheckNotBackReferenceIgnoreCase(
   // If length is zero, either the capture is empty or it is completely
   // uncaptured. In either case succeed immediately.
   __ j(equal, &fallthrough);
+
+  // Check that there are sufficient characters left in the input.
+  __ mov(eax, edi);
+  __ add(eax, ebx);
+  BranchOrBacktrack(greater, on_no_match);
 
   if (mode_ == ASCII) {
     Label success;

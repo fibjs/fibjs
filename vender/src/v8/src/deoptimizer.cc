@@ -268,20 +268,29 @@ void Deoptimizer::DeoptimizeGlobalObject(JSObject* object) {
 
 void Deoptimizer::VisitAllOptimizedFunctionsForContext(
     Context* context, OptimizedFunctionVisitor* visitor) {
+  Isolate* isolate = context->GetIsolate();
+  ZoneScope zone_scope(isolate, DELETE_ON_EXIT);
   AssertNoAllocation no_allocation;
 
   ASSERT(context->IsGlobalContext());
 
   visitor->EnterContext(context);
-  // Run through the list of optimized functions and deoptimize them.
+
+  // Create a snapshot of the optimized functions list. This is needed because
+  // visitors might remove more than one link from the list at once.
+  ZoneList<JSFunction*> snapshot(1, isolate->zone());
   Object* element = context->OptimizedFunctionsListHead();
   while (!element->IsUndefined()) {
     JSFunction* element_function = JSFunction::cast(element);
-    // Get the next link before deoptimizing as deoptimizing will clear the
-    // next link.
+    snapshot.Add(element_function, isolate->zone());
     element = element_function->next_function_link();
-    visitor->VisitFunction(element_function);
   }
+
+  // Run through the snapshot of optimized functions and visit them.
+  for (int i = 0; i < snapshot.length(); ++i) {
+    visitor->VisitFunction(snapshot.at(i));
+  }
+
   visitor->LeaveContext(context);
 }
 
@@ -354,6 +363,7 @@ Deoptimizer::Deoptimizer(Isolate* isolate,
       bailout_type_(type),
       from_(from),
       fp_to_sp_delta_(fp_to_sp_delta),
+      has_alignment_padding_(0),
       input_(NULL),
       output_count_(0),
       jsframe_count_(0),
@@ -378,6 +388,7 @@ Deoptimizer::Deoptimizer(Isolate* isolate,
            reinterpret_cast<intptr_t>(from),
            fp_to_sp_delta - (2 * kPointerSize));
   }
+  function->shared()->increment_deopt_count();
   // Find the optimized code.
   if (type == EAGER) {
     ASSERT(from == NULL);
@@ -593,12 +604,14 @@ void Deoptimizer::DoComputeOutputFrames() {
     PrintF("[deoptimizing: end 0x%08" V8PRIxPTR " ",
            reinterpret_cast<intptr_t>(function));
     function->PrintName();
-    PrintF(" => node=%u, pc=0x%08" V8PRIxPTR ", state=%s, took %0.3f ms]\n",
+    PrintF(" => node=%u, pc=0x%08" V8PRIxPTR ", state=%s, alignment=%s,"
+           " took %0.3f ms]\n",
            node_id,
            output_[index]->GetPc(),
            FullCodeGenerator::State2String(
                static_cast<FullCodeGenerator::State>(
                    output_[index]->GetState()->value())),
+           has_alignment_padding_ ? "with padding" : "no padding",
            ms);
   }
 }
@@ -769,7 +782,7 @@ void Deoptimizer::DoTranslateCommand(TranslationIterator* iterator,
       if (FLAG_trace_deopt) {
         PrintF("    0x%08" V8PRIxPTR ": ",
                output_[frame_index]->GetTop() + output_offset);
-        PrintF("[top + %d] <- 0x%08" V8PRIxPTR " ; [esp + %d] ",
+        PrintF("[top + %d] <- 0x%08" V8PRIxPTR " ; [sp + %d] ",
                output_offset,
                input_value,
                input_offset);
@@ -789,7 +802,7 @@ void Deoptimizer::DoTranslateCommand(TranslationIterator* iterator,
       if (FLAG_trace_deopt) {
         PrintF("    0x%08" V8PRIxPTR ": ",
                output_[frame_index]->GetTop() + output_offset);
-        PrintF("[top + %d] <- %" V8PRIdPTR " ; [esp + %d] (%s)\n",
+        PrintF("[top + %d] <- %" V8PRIdPTR " ; [sp + %d] (%s)\n",
                output_offset,
                value,
                input_offset,
@@ -815,7 +828,7 @@ void Deoptimizer::DoTranslateCommand(TranslationIterator* iterator,
           input_->GetOffsetFromSlotIndex(input_slot_index);
       double value = input_->GetDoubleFrameSlot(input_offset);
       if (FLAG_trace_deopt) {
-        PrintF("    0x%08" V8PRIxPTR ": [top + %d] <- %e ; [esp + %d]\n",
+        PrintF("    0x%08" V8PRIxPTR ": [top + %d] <- %e ; [sp + %d]\n",
                output_[frame_index]->GetTop() + output_offset,
                output_offset,
                value,

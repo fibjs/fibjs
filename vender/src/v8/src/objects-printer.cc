@@ -273,25 +273,6 @@ void JSObject::PrintProperties(FILE* out) {
           descs->GetCallbacksObject(i)->ShortPrint(out);
           PrintF(out, " (callback)\n");
           break;
-        case ELEMENTS_TRANSITION: {
-          PrintF(out, "(elements transition to ");
-          Object* descriptor_contents = descs->GetValue(i);
-          if (descriptor_contents->IsMap()) {
-            Map* map = Map::cast(descriptor_contents);
-            PrintElementsKind(out, map->elements_kind());
-          } else {
-            FixedArray* map_array = FixedArray::cast(descriptor_contents);
-            for (int i = 0; i < map_array->length(); ++i) {
-              Map* map = Map::cast(map_array->get(i));
-              if (i != 0) {
-                PrintF(out, ", ");
-              }
-              PrintElementsKind(out, map->elements_kind());
-            }
-          }
-          PrintF(out, ")\n");
-          break;
-        }
         case MAP_TRANSITION:
           PrintF(out, "(map transition)\n");
           break;
@@ -438,6 +419,9 @@ void JSObject::JSObjectPrint(FILE* out) {
   PrintF(out,
          "]\n - prototype = %p\n",
          reinterpret_cast<void*>(GetPrototype()));
+  PrintF(out,
+         " - elements transition to = %p\n",
+         reinterpret_cast<void*>(map()->elements_transition_map()));
   PrintF(out, " {\n");
   PrintProperties(out);
   PrintElements(out);
@@ -777,8 +761,10 @@ void SharedFunctionInfo::SharedFunctionInfoPrint(FILE* out) {
   instance_class_name()->Print(out);
   PrintF(out, "\n - code = ");
   code()->ShortPrint(out);
-  PrintF(out, "\n - source code = ");
-  GetSourceCode()->ShortPrint(out);
+  if (HasSourceCode()) {
+    PrintF(out, "\n - source code = ");
+    GetSourceCode()->ShortPrint(out);
+  }
   // Script files are often large, hard to read.
   // PrintF(out, "\n - script =");
   // script()->Print(out);

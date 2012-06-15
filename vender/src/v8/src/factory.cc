@@ -115,7 +115,8 @@ Handle<ObjectHashTable> Factory::NewObjectHashTable(int at_least_space_for) {
 Handle<DescriptorArray> Factory::NewDescriptorArray(int number_of_descriptors) {
   ASSERT(0 <= number_of_descriptors);
   CALL_HEAP_FUNCTION(isolate(),
-                     DescriptorArray::Allocate(number_of_descriptors),
+                     DescriptorArray::Allocate(number_of_descriptors,
+                                               DescriptorArray::MAY_BE_SHARED),
                      DescriptorArray);
 }
 
@@ -496,7 +497,9 @@ Handle<Map> Factory::CopyMap(Handle<Map> src,
 
 
 Handle<Map> Factory::CopyMapDropTransitions(Handle<Map> src) {
-  CALL_HEAP_FUNCTION(isolate(), src->CopyDropTransitions(), Map);
+  CALL_HEAP_FUNCTION(isolate(),
+                     src->CopyDropTransitions(DescriptorArray::MAY_BE_SHARED),
+                     Map);
 }
 
 
@@ -551,18 +554,44 @@ Handle<JSFunction> Factory::NewFunctionFromSharedFunctionInfo(
   }
 
   result->set_context(*context);
+
+  int index = FLAG_cache_optimized_code
+      ? function_info->SearchOptimizedCodeMap(context->global_context())
+      : -1;
   if (!function_info->bound()) {
-    int number_of_literals = function_info->num_literals();
-    Handle<FixedArray> literals = NewFixedArray(number_of_literals, pretenure);
-    if (number_of_literals > 0) {
-      // Store the object, regexp and array functions in the literals
-      // array prefix.  These functions will be used when creating
-      // object, regexp and array literals in this function.
-      literals->set(JSFunction::kLiteralGlobalContextIndex,
-                    context->global_context());
+    if (index > 0) {
+      FixedArray* code_map =
+          FixedArray::cast(function_info->optimized_code_map());
+      FixedArray* cached_literals = FixedArray::cast(code_map->get(index + 1));
+      ASSERT(cached_literals != NULL);
+      ASSERT(function_info->num_literals() == 0 ||
+             (code_map->get(index - 1) ==
+              cached_literals->get(JSFunction::kLiteralGlobalContextIndex)));
+      result->set_literals(cached_literals);
+    } else {
+      int number_of_literals = function_info->num_literals();
+      Handle<FixedArray> literals =
+          NewFixedArray(number_of_literals, pretenure);
+      if (number_of_literals > 0) {
+        // Store the object, regexp and array functions in the literals
+        // array prefix.  These functions will be used when creating
+        // object, regexp and array literals in this function.
+        literals->set(JSFunction::kLiteralGlobalContextIndex,
+                      context->global_context());
+      }
+      result->set_literals(*literals);
     }
-    result->set_literals(*literals);
   }
+
+  if (index > 0) {
+    // Caching of optimized code enabled and optimized code found.
+    Code* code = Code::cast(
+        FixedArray::cast(function_info->optimized_code_map())->get(index));
+    ASSERT(code != NULL);
+    result->ReplaceCode(code);
+    return result;
+  }
+
   if (V8::UseCrankshaft() &&
       FLAG_always_opt &&
       result->is_compiled() &&
@@ -939,7 +968,7 @@ Handle<DescriptorArray> Factory::CopyAppendCallbackDescriptors(
     Handle<String> key =
         SymbolFromString(Handle<String>(String::cast(entry->name())));
     // Check if a descriptor with this name already exists before writing.
-    if (result->LinearSearch(*key, descriptor_count) ==
+    if (result->LinearSearch(EXPECT_UNSORTED, *key, descriptor_count) ==
         DescriptorArray::kNotFound) {
       CallbacksDescriptor desc(*key, *entry, entry->property_attributes());
       result->Set(descriptor_count, &desc, witness);

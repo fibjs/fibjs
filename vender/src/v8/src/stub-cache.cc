@@ -43,7 +43,8 @@ namespace internal {
 // StubCache implementation.
 
 
-StubCache::StubCache(Isolate* isolate) : isolate_(isolate) {
+StubCache::StubCache(Isolate* isolate, Zone* zone)
+    : isolate_(isolate), zone_(zone) {
   ASSERT(isolate == Isolate::Current());
 }
 
@@ -514,6 +515,24 @@ Handle<Code> StubCache::ComputeStoreCallback(Handle<String> name,
 }
 
 
+Handle<Code> StubCache::ComputeStoreViaSetter(Handle<String> name,
+                                              Handle<JSObject> receiver,
+                                              Handle<JSFunction> setter,
+                                              StrictModeFlag strict_mode) {
+  Code::Flags flags = Code::ComputeMonomorphicFlags(
+      Code::STORE_IC, CALLBACKS, strict_mode);
+  Handle<Object> probe(receiver->map()->FindInCodeCache(*name, flags));
+  if (probe->IsCode()) return Handle<Code>::cast(probe);
+
+  StoreStubCompiler compiler(isolate_, strict_mode);
+  Handle<Code> code = compiler.CompileStoreViaSetter(receiver, setter, name);
+  PROFILE(isolate_, CodeCreateEvent(Logger::STORE_IC_TAG, *code, *name));
+  GDBJIT(AddCode(GDBJITInterface::STORE_IC, *name, *code));
+  JSObject::UpdateMapCodeCache(receiver, name, code);
+  return code;
+}
+
+
 Handle<Code> StubCache::ComputeStoreInterceptor(Handle<String> name,
                                                 Handle<JSObject> receiver,
                                                 StrictModeFlag strict_mode) {
@@ -919,7 +938,7 @@ void StubCache::CollectMatchingMaps(SmallMapList* types,
       int offset = PrimaryOffset(name, flags, map);
       if (entry(primary_, offset) == &primary_[i] &&
           !TypeFeedbackOracle::CanRetainOtherContext(map, *global_context)) {
-        types->Add(Handle<Map>(map));
+        types->Add(Handle<Map>(map), zone());
       }
     }
   }
@@ -943,7 +962,7 @@ void StubCache::CollectMatchingMaps(SmallMapList* types,
       int offset = SecondaryOffset(name, flags, primary_offset);
       if (entry(secondary_, offset) == &secondary_[i] &&
           !TypeFeedbackOracle::CanRetainOtherContext(map, *global_context)) {
-        types->Add(Handle<Map>(map));
+        types->Add(Handle<Map>(map), zone());
       }
     }
   }
