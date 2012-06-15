@@ -23,6 +23,7 @@
     <ClCompile Include="src\assert.cpp" />
     <ClCompile Include="src\AsyncCall.cpp" />
     <ClCompile Include="src\Buffer.cpp" />
+    <ClCompile Include="src\BufferedReader.cpp" />
     <ClCompile Include="src\Condition.cpp" />
     <ClCompile Include="src\Console.cpp" />
     <ClCompile Include="src\coroutine.cpp" />
@@ -60,12 +61,14 @@
     <ClInclude Include="include\acPool.h" />
     <ClInclude Include="include\AsyncCall.h" />
     <ClInclude Include="include\Buffer.h" />
+    <ClInclude Include="include\BufferedReader.h" />
     <ClInclude Include="include\ClassInfo.h" />
     <ClInclude Include="include\Condition.h" />
     <ClInclude Include="include\Event.h" />
     <ClInclude Include="include\File.h" />
     <ClInclude Include="include\ifs\assert.h" />
     <ClInclude Include="include\ifs\Buffer.h" />
+    <ClInclude Include="include\ifs\BufferedReader.h" />
     <ClInclude Include="include\ifs\Condition.h" />
     <ClInclude Include="include\ifs\console.h" />
     <ClInclude Include="include\ifs\coroutine.h" />
@@ -96,6 +99,7 @@
     <ClInclude Include="include\Semaphore.h" />
     <ClInclude Include="include\Socket.h" />
     <ClInclude Include="include\Stat.h" />
+    <ClInclude Include="include\Stream.h" />
     <ClInclude Include="include\Trigger.h" />
     <ClInclude Include="include\utf8.h" />
     <ClInclude Include="include\utils.h" />

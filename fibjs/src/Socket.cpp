@@ -7,7 +7,6 @@
 
 #include "Socket.h"
 #include "Buffer.h"
-#include "Stream.h"
 #include <string.h>
 #include  <fcntl.h>
 

@@ -1,0 +1,16 @@
+
+/*! @brief 缓存读取对象
+ *
+ * BufferedReader 对象用于对二进制流对象数据进行缓存，并提供文本读取能力，创建方法：
+ * @code
+ * var reader = new Buffer.Reader(stream);
+ * @endcode
+ */
+class BufferedReader : object
+{
+	BufferedReader(Stream stm);
+	String readText(Integer size) async;
+	String readLine() async;
+	Buffer read(Integer bytes) async;
+	Buffer readUntil(String mk) async;
+};

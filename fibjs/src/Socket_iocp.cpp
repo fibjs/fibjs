@@ -266,7 +266,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 				exlib::AsyncEvent* ac) :
 				asyncProc(s, ac), m_retVal(retVal)
 		{
-			m_buf.resize(bytes > 1 ? bytes : 4096);
+			m_buf.resize(bytes > 1 ? bytes : STREAM_BUFF_SIZE);
 		}
 
 		virtual result_t process()

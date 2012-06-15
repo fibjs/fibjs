@@ -6,6 +6,7 @@
  */
 
 #include "ifs/Socket.h"
+#include "Stream.h"
 
 #ifndef SOCKET_H_
 #define SOCKET_H_
