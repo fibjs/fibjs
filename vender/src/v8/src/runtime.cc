@@ -754,7 +754,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_SetAdd) {
   Handle<ObjectHashSet> table(ObjectHashSet::cast(holder->table()));
   table = ObjectHashSetAdd(table, key);
   holder->set_table(*table);
-  return isolate->heap()->undefined_symbol();
+  return isolate->heap()->undefined_value();
 }
 
 
@@ -776,7 +776,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_SetDelete) {
   Handle<ObjectHashSet> table(ObjectHashSet::cast(holder->table()));
   table = ObjectHashSetRemove(table, key);
   holder->set_table(*table);
-  return isolate->heap()->undefined_symbol();
+  return isolate->heap()->undefined_value();
 }
 
 
@@ -808,7 +808,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_MapSet) {
   Handle<ObjectHashTable> table(ObjectHashTable::cast(holder->table()));
   Handle<ObjectHashTable> new_table = PutIntoObjectHashTable(table, key, value);
   holder->set_table(*new_table);
-  return *value;
+  return isolate->heap()->undefined_value();
 }
 
 
@@ -842,7 +842,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_WeakMapSet) {
   Handle<ObjectHashTable> table(ObjectHashTable::cast(weakmap->table()));
   Handle<ObjectHashTable> new_table = PutIntoObjectHashTable(table, key, value);
   weakmap->set_table(*new_table);
-  return *value;
+  return isolate->heap()->undefined_value();
 }
 
 
@@ -1115,7 +1115,7 @@ static MaybeObject* GetOwnProperty(Isolate* isolate,
   elms->set(ENUMERABLE_INDEX, heap->ToBoolean(!result.IsDontEnum()));
   elms->set(CONFIGURABLE_INDEX, heap->ToBoolean(!result.IsDontDelete()));
 
-  bool is_js_accessor = (result.type() == CALLBACKS) &&
+  bool is_js_accessor = result.IsCallbacks() &&
                         (result.GetCallbackObject()->IsAccessorPair());
 
   if (is_js_accessor) {
@@ -1123,11 +1123,13 @@ static MaybeObject* GetOwnProperty(Isolate* isolate,
     elms->set(IS_ACCESSOR_INDEX, heap->true_value());
 
     AccessorPair* accessors = AccessorPair::cast(result.GetCallbackObject());
-    if (CheckAccess(*obj, *name, &result, v8::ACCESS_GET)) {
-      elms->set(GETTER_INDEX, accessors->GetComponent(ACCESSOR_GETTER));
+    Object* getter = accessors->GetComponent(ACCESSOR_GETTER);
+    if (!getter->IsMap() && CheckAccess(*obj, *name, &result, v8::ACCESS_GET)) {
+      elms->set(GETTER_INDEX, getter);
     }
-    if (CheckAccess(*obj, *name, &result, v8::ACCESS_SET)) {
-      elms->set(SETTER_INDEX, accessors->GetComponent(ACCESSOR_SETTER));
+    Object* setter = accessors->GetComponent(ACCESSOR_SETTER);
+    if (!setter->IsMap() && CheckAccess(*obj, *name, &result, v8::ACCESS_SET)) {
+      elms->set(SETTER_INDEX, setter);
     }
   } else {
     elms->set(IS_ACCESSOR_INDEX, heap->false_value());
@@ -1188,7 +1190,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_RegExpCompile) {
   CONVERT_ARG_HANDLE_CHECKED(JSRegExp, re, 0);
   CONVERT_ARG_HANDLE_CHECKED(String, pattern, 1);
   CONVERT_ARG_HANDLE_CHECKED(String, flags, 2);
-  Handle<Object> result = RegExpImpl::Compile(re, pattern, flags);
+  Handle<Object> result =
+      RegExpImpl::Compile(re, pattern, flags, isolate->runtime_zone());
   if (result.is_null()) return Failure::Exception();
   return *result;
 }
@@ -1315,8 +1318,9 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DeclareGlobals) {
         Object* obj = *global;
         do {
           JSObject::cast(obj)->LocalLookup(*name, &lookup);
+          if (lookup.IsProperty()) break;
           obj = obj->GetPrototype();
-        } while (!lookup.IsFound() && obj->IsJSObject() &&
+        } while (obj->IsJSObject() &&
                  JSObject::cast(obj)->map()->is_hidden_prototype());
       } else {
         global->Lookup(*name, &lookup);
@@ -1324,7 +1328,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DeclareGlobals) {
       if (lookup.IsProperty()) {
         // We found an existing property. Unless it was an interceptor
         // that claims the property is absent, skip this declaration.
-        if (lookup.type() != INTERCEPTOR) continue;
+        if (!lookup.IsInterceptor()) continue;
         PropertyAttributes attributes = global->GetPropertyAttribute(*name);
         if (attributes != ABSENT) continue;
         // Fall-through and introduce the absent property by using
@@ -1362,7 +1366,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DeclareGlobals) {
       // as required for function declarations.
       if (lookup.IsProperty() && lookup.IsDontDelete()) {
         if (lookup.IsReadOnly() || lookup.IsDontEnum() ||
-            lookup.type() == CALLBACKS) {
+            lookup.IsCallbacks()) {
           return ThrowRedeclarationError(
               isolate, is_function ? "function" : "module", name);
         }
@@ -1471,7 +1475,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DeclareContextSlot) {
         !object->IsJSContextExtensionObject()) {
       LookupResult lookup(isolate);
       object->Lookup(*name, &lookup);
-      if (lookup.IsFound() && (lookup.type() == CALLBACKS)) {
+      if (lookup.IsCallbacks()) {
         return ThrowRedeclarationError(isolate, "const", name);
       }
     }
@@ -1524,7 +1528,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_InitializeVarGlobal) {
          JSObject::cast(object)->map()->is_hidden_prototype()) {
     JSObject* raw_holder = JSObject::cast(object);
     raw_holder->LocalLookup(*name, &lookup);
-    if (lookup.IsFound() && lookup.type() == INTERCEPTOR) {
+    if (lookup.IsInterceptor()) {
       HandleScope handle_scope(isolate);
       Handle<JSObject> holder(raw_holder);
       PropertyAttributes intercepted = holder->GetPropertyAttribute(*name);
@@ -1602,14 +1606,13 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_InitializeConstGlobal) {
   // constant. For now, we determine this by checking if the
   // current value is the hole.
   // Strict mode handling not needed (const is disallowed in strict mode).
-  PropertyType type = lookup.type();
-  if (type == FIELD) {
+  if (lookup.IsField()) {
     FixedArray* properties = global->properties();
     int index = lookup.GetFieldIndex();
     if (properties->get(index)->IsTheHole() || !lookup.IsReadOnly()) {
       properties->set(index, *value);
     }
-  } else if (type == NORMAL) {
+  } else if (lookup.IsNormal()) {
     if (global->GetNormalizedProperty(&lookup)->IsTheHole() ||
         !lookup.IsReadOnly()) {
       global->SetNormalizedProperty(&lookup, *value);
@@ -1617,7 +1620,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_InitializeConstGlobal) {
   } else {
     // Ignore re-initialization of constants that have already been
     // assigned a function value.
-    ASSERT(lookup.IsReadOnly() && type == CONSTANT_FUNCTION);
+    ASSERT(lookup.IsReadOnly() && lookup.IsConstantFunction());
   }
 
   // Use the set value as the result of the operation.
@@ -1693,14 +1696,13 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_InitializeConstContextSlot) {
     ASSERT(lookup.IsFound());  // the property was declared
     ASSERT(lookup.IsReadOnly());  // and it was declared as read-only
 
-    PropertyType type = lookup.type();
-    if (type == FIELD) {
+    if (lookup.IsField()) {
       FixedArray* properties = object->properties();
       int index = lookup.GetFieldIndex();
       if (properties->get(index)->IsTheHole()) {
         properties->set(index, *value);
       }
-    } else if (type == NORMAL) {
+    } else if (lookup.IsNormal()) {
       if (object->GetNormalizedProperty(&lookup)->IsTheHole()) {
         object->SetNormalizedProperty(&lookup, *value);
       }
@@ -2188,8 +2190,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_SetCode) {
   Handle<SharedFunctionInfo> target_shared(target->shared());
   Handle<SharedFunctionInfo> source_shared(source->shared());
 
-  if (!source->is_compiled() &&
-      !JSFunction::CompileLazy(source, KEEP_EXCEPTION)) {
+  if (!JSFunction::EnsureCompiled(source, KEEP_EXCEPTION)) {
     return Failure::Exception();
   }
 
@@ -2994,8 +2995,8 @@ MUST_USE_RESULT static MaybeObject* StringReplaceAtomRegExpWithString(
   ASSERT(subject->IsFlat());
   ASSERT(replacement->IsFlat());
 
-  ZoneScope zone_space(isolate, DELETE_ON_EXIT);
-  ZoneList<int> indices(8, isolate->zone());
+  ZoneScope zone_space(isolate->runtime_zone(), DELETE_ON_EXIT);
+  ZoneList<int> indices(8, isolate->runtime_zone());
   ASSERT_EQ(JSRegExp::ATOM, pattern_regexp->TypeTag());
   String* pattern =
       String::cast(pattern_regexp->DataAt(JSRegExp::kAtomPatternIndex));
@@ -3099,8 +3100,8 @@ MUST_USE_RESULT static MaybeObject* StringReplaceRegExpWithString(
   int capture_count = regexp_handle->CaptureCount();
 
   // CompiledReplacement uses zone allocation.
-  ZoneScope zonescope(isolate, DELETE_ON_EXIT);
-  CompiledReplacement compiled_replacement(isolate->zone());
+  ZoneScope zonescope(zone, DELETE_ON_EXIT);
+  CompiledReplacement compiled_replacement(zone);
   compiled_replacement.Compile(replacement_handle,
                                capture_count,
                                length);
@@ -3395,7 +3396,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StringReplaceRegExpWithString) {
 
   ASSERT(last_match_info->HasFastObjectElements());
 
-  Zone* zone = isolate->zone();
+  Zone* zone = isolate->runtime_zone();
   if (replacement->length() == 0) {
     if (subject->HasOnlyAsciiChars()) {
       return StringReplaceRegExpWithEmptyString<SeqAsciiString>(
@@ -3744,8 +3745,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StringMatch) {
   }
   int length = subject->length();
 
-  Zone* zone = isolate->zone();
-  ZoneScope zone_space(isolate, DELETE_ON_EXIT);
+  Zone* zone = isolate->runtime_zone();
+  ZoneScope zone_space(zone, DELETE_ON_EXIT);
   ZoneList<int> offsets(8, zone);
   int start;
   int end;
@@ -3939,7 +3940,8 @@ static int SearchRegExpMultiple(
     Handle<String> subject,
     Handle<JSRegExp> regexp,
     Handle<JSArray> last_match_array,
-    FixedArrayBuilder* builder) {
+    FixedArrayBuilder* builder,
+    Zone* zone) {
 
   ASSERT(subject->IsFlat());
   int registers_per_match = RegExpImpl::IrregexpPrepare(regexp, subject);
@@ -4122,7 +4124,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_RegExpExecMultiple) {
                                   subject,
                                   regexp,
                                   last_match_info,
-                                  &builder);
+                                  &builder,
+                                  isolate->runtime_zone());
   }
   if (result == RegExpImpl::RE_SUCCESS) return *builder.ToJSArray(result_array);
   if (result == RegExpImpl::RE_FAILURE) return isolate->heap()->null_value();
@@ -4368,7 +4371,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_KeyedGetProperty) {
         // appropriate.
         LookupResult result(isolate);
         receiver->LocalLookup(key, &result);
-        if (result.IsFound() && result.type() == FIELD) {
+        if (result.IsField()) {
           int offset = result.GetFieldIndex();
           keyed_lookup_cache->Update(receiver_map, key, offset);
           return receiver->FastPropertyAt(offset);
@@ -4480,7 +4483,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DefineOrRedefineDataProperty) {
   js_object->LocalLookupRealNamedProperty(*name, &result);
 
   // Special case for callback properties.
-  if (result.IsFound() && result.type() == CALLBACKS) {
+  if (result.IsCallbacks()) {
     Object* callback = result.GetCallbackObject();
     // To be compatible with Safari we do not change the value on API objects
     // in Object.defineProperty(). Firefox disagrees here, and actually changes
@@ -4508,7 +4511,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DefineOrRedefineDataProperty) {
   // correctly in the case where a property is a field and is reset with
   // new attributes.
   if (result.IsProperty() &&
-      (attr != result.GetAttributes() || result.type() == CALLBACKS)) {
+      (attr != result.GetAttributes() || result.IsCallbacks())) {
     // New attributes - normalize to avoid writing to instance descriptor
     if (js_object->IsJSGlobalProxy()) {
       // Since the result is a property, the prototype will exist so
@@ -4849,14 +4852,13 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DebugCallbackSupportsStepping) {
 RUNTIME_FUNCTION(MaybeObject*, Runtime_DebugPrepareStepInIfStepping) {
   Debug* debug = isolate->debug();
   if (!debug->IsStepping()) return NULL;
-  CONVERT_ARG_CHECKED(Object, callback, 0);
+  CONVERT_ARG_HANDLE_CHECKED(JSFunction, callback, 0);
   HandleScope scope(isolate);
-  Handle<SharedFunctionInfo> shared_info(JSFunction::cast(callback)->shared());
   // When leaving the callback, step out has been activated, but not performed
   // if we do not leave the builtin.  To be able to step into the callback
   // again, we need to clear the step out at this point.
   debug->ClearStepOut();
-  debug->FloodWithOneShot(shared_info);
+  debug->FloodWithOneShot(callback);
   return NULL;
 }
 
@@ -6457,8 +6459,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StringSplit) {
 
   static const int kMaxInitialListCapacity = 16;
 
-  Zone* zone = isolate->zone();
-  ZoneScope scope(isolate, DELETE_ON_EXIT);
+  Zone* zone = isolate->runtime_zone();
+  ZoneScope scope(zone, DELETE_ON_EXIT);
 
   // Find (up to limit) indices of separator and end-of-string in subject
   int initial_capacity = Min<uint32_t>(kMaxInitialListCapacity, limit);
@@ -8134,12 +8136,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_NewObject) {
   }
 
   // The function should be compiled for the optimization hints to be
-  // available. We cannot use EnsureCompiled because that forces a
-  // compilation through the shared function info which makes it
-  // impossible for us to optimize.
-  if (!function->is_compiled()) {
-    JSFunction::CompileLazy(function, CLEAR_EXCEPTION);
-  }
+  // available.
+  JSFunction::EnsureCompiled(function, CLEAR_EXCEPTION);
 
   Handle<SharedFunctionInfo> shared(function->shared(), isolate);
   if (!function->has_initial_map() &&
@@ -9310,7 +9308,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_ParseJson) {
   ASSERT_EQ(1, args.length());
   CONVERT_ARG_HANDLE_CHECKED(String, source, 0);
 
-  Zone* zone = isolate->zone();
+  Zone* zone = isolate->runtime_zone();
   source = Handle<String>(source->TryFlattenGetString());
   // Optimized fast case where we only have ASCII characters.
   Handle<Object> result;
@@ -10365,9 +10363,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DebugGetPropertyDetails) {
       // LookupResult is not GC safe as it holds raw object pointers.
       // GC can happen later in this code so put the required fields into
       // local variables using handles when required for later use.
-      PropertyType result_type = result.type();
       Handle<Object> result_callback_obj;
-      if (result_type == CALLBACKS) {
+      if (result.IsCallbacks()) {
         result_callback_obj = Handle<Object>(result.GetCallbackObject(),
                                              isolate);
       }
@@ -10385,7 +10382,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DebugGetPropertyDetails) {
 
       // If the callback object is a fixed array then it contains JavaScript
       // getter and/or setter.
-      bool hasJavaScriptAccessors = result_type == CALLBACKS &&
+      bool hasJavaScriptAccessors = result.IsCallbacks() &&
                                     result_callback_obj->IsAccessorPair();
       Handle<FixedArray> details =
           isolate->factory()->NewFixedArray(hasJavaScriptAccessors ? 5 : 2);
@@ -11152,7 +11149,7 @@ class ScopeIterator {
     }
 
     // Get the debug info (create it if it does not exist).
-    if (!isolate->debug()->EnsureDebugInfo(shared_info)) {
+    if (!isolate->debug()->EnsureDebugInfo(shared_info, function_)) {
       // Return if ensuring debug info failed.
       return;
     }
@@ -11177,7 +11174,6 @@ class ScopeIterator {
       if (scope_info->Type() != EVAL_SCOPE) nested_scope_chain_.Add(scope_info);
     } else {
       // Reparse the code and analyze the scopes.
-      ZoneScope zone_scope(isolate, DELETE_ON_EXIT);
       Handle<Script> script(Script::cast(shared_info->script()));
       Scope* scope = NULL;
 
@@ -11185,7 +11181,7 @@ class ScopeIterator {
       Handle<ScopeInfo> scope_info(shared_info->scope_info());
       if (scope_info->Type() != FUNCTION_SCOPE) {
         // Global or eval code.
-        CompilationInfo info(script);
+        CompilationInfoWithZone info(script);
         if (scope_info->Type() == GLOBAL_SCOPE) {
           info.MarkAsGlobal();
         } else {
@@ -11196,25 +11192,14 @@ class ScopeIterator {
         if (ParserApi::Parse(&info, kNoParsingFlags) && Scope::Analyze(&info)) {
           scope = info.function()->scope();
         }
+        RetrieveScopeChain(scope, shared_info);
       } else {
         // Function code
-        CompilationInfo info(shared_info);
+        CompilationInfoWithZone info(shared_info);
         if (ParserApi::Parse(&info, kNoParsingFlags) && Scope::Analyze(&info)) {
           scope = info.function()->scope();
         }
-      }
-
-      // Retrieve the scope chain for the current position.
-      if (scope != NULL) {
-        int source_position = shared_info->code()->SourcePosition(frame_->pc());
-        scope->GetNestedScopeChain(&nested_scope_chain_, source_position);
-      } else {
-        // A failed reparse indicates that the preparser has diverged from the
-        // parser or that the preparse data given to the initial parse has been
-        // faulty. We fail in debug mode but in release mode we only provide the
-        // information we get from the context chain but nothing about
-        // completely stack allocated scopes or stack allocated locals.
-        UNREACHABLE();
+        RetrieveScopeChain(scope, shared_info);
       }
     }
   }
@@ -11413,6 +11398,21 @@ class ScopeIterator {
   Handle<JSFunction> function_;
   Handle<Context> context_;
   List<Handle<ScopeInfo> > nested_scope_chain_;
+
+  void RetrieveScopeChain(Scope* scope,
+                          Handle<SharedFunctionInfo> shared_info) {
+    if (scope != NULL) {
+      int source_position = shared_info->code()->SourcePosition(frame_->pc());
+      scope->GetNestedScopeChain(&nested_scope_chain_, source_position);
+    } else {
+      // A failed reparse indicates that the preparser has diverged from the
+      // parser or that the preparse data given to the initial parse has been
+      // faulty. We fail in debug mode but in release mode we only provide the
+      // information we get from the context chain but nothing about
+      // completely stack allocated scopes or stack allocated locals.
+      UNREACHABLE();
+    }
+  }
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ScopeIterator);
 };
@@ -11675,30 +11675,14 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_GetBreakLocations) {
 }
 
 
-// Set a break point in a function
-// args[0]: function
-// args[1]: number: break source position (within the function source)
-// args[2]: number: break point object
-RUNTIME_FUNCTION(MaybeObject*, Runtime_SetFunctionBreakPoint) {
-  HandleScope scope(isolate);
-  ASSERT(args.length() == 3);
-  CONVERT_ARG_HANDLE_CHECKED(JSFunction, fun, 0);
-  Handle<SharedFunctionInfo> shared(fun->shared());
-  CONVERT_NUMBER_CHECKED(int32_t, source_position, Int32, args[1]);
-  RUNTIME_ASSERT(source_position >= 0);
-  Handle<Object> break_point_object_arg = args.at<Object>(2);
-
-  // Set break point.
-  isolate->debug()->SetBreakPoint(shared, break_point_object_arg,
-                                  &source_position);
-
-  return Smi::FromInt(source_position);
-}
-
-
 Object* Runtime::FindSharedFunctionInfoInScript(Isolate* isolate,
                                                 Handle<Script> script,
                                                 int position) {
+  // The below fix-point iteration depends on all functions that cannot be
+  // compiled lazily without a context to not be compiled at all. Compilation
+  // will be triggered at points where we do not need a context.
+  isolate->debug()->PrepareForBreakPoints();
+
   // Iterate the heap looking for SharedFunctionInfo generated from the
   // script. The inner most SharedFunctionInfo containing the source position
   // for the requested break point is found.
@@ -11710,6 +11694,7 @@ Object* Runtime::FindSharedFunctionInfoInScript(Isolate* isolate,
   bool done = false;
   // The current candidate for the source position:
   int target_start_position = RelocInfo::kNoPosition;
+  Handle<JSFunction> target_function;
   Handle<SharedFunctionInfo> target;
   while (!done) {
     { // Extra scope for iterator and no-allocation.
@@ -11718,64 +11703,104 @@ Object* Runtime::FindSharedFunctionInfoInScript(Isolate* isolate,
       HeapIterator iterator;
       for (HeapObject* obj = iterator.next();
            obj != NULL; obj = iterator.next()) {
-        if (obj->IsSharedFunctionInfo()) {
-          Handle<SharedFunctionInfo> shared(SharedFunctionInfo::cast(obj));
-          if (shared->script() == *script) {
-            // If the SharedFunctionInfo found has the requested script data and
-            // contains the source position it is a candidate.
-            int start_position = shared->function_token_position();
-            if (start_position == RelocInfo::kNoPosition) {
-              start_position = shared->start_position();
-            }
-            if (start_position <= position &&
-                position <= shared->end_position()) {
-              // If there is no candidate or this function is within the current
-              // candidate this is the new candidate.
-              if (target.is_null()) {
-                target_start_position = start_position;
-                target = shared;
-              } else {
-                if (target_start_position == start_position &&
-                    shared->end_position() == target->end_position()) {
-                    // If a top-level function contain only one function
-                    // declartion the source for the top-level and the
-                    // function is the same. In that case prefer the non
-                    // top-level function.
-                  if (!shared->is_toplevel()) {
-                    target_start_position = start_position;
-                    target = shared;
-                  }
-                } else if (target_start_position <= start_position &&
-                           shared->end_position() <= target->end_position()) {
-                  // This containment check includes equality as a function
-                  // inside a top-level function can share either start or end
-                  // position with the top-level function.
+        bool found_next_candidate = false;
+        Handle<JSFunction> function;
+        Handle<SharedFunctionInfo> shared;
+        if (obj->IsJSFunction()) {
+          function = Handle<JSFunction>(JSFunction::cast(obj));
+          shared = Handle<SharedFunctionInfo>(function->shared());
+          ASSERT(shared->allows_lazy_compilation() || shared->is_compiled());
+          found_next_candidate = true;
+        } else if (obj->IsSharedFunctionInfo()) {
+          shared = Handle<SharedFunctionInfo>(SharedFunctionInfo::cast(obj));
+          // Skip functions that we cannot compile lazily without a context,
+          // which is not available here, because there is no closure.
+          found_next_candidate = shared->is_compiled() ||
+              shared->allows_lazy_compilation_without_context();
+        }
+        if (!found_next_candidate) continue;
+        if (shared->script() == *script) {
+          // If the SharedFunctionInfo found has the requested script data and
+          // contains the source position it is a candidate.
+          int start_position = shared->function_token_position();
+          if (start_position == RelocInfo::kNoPosition) {
+            start_position = shared->start_position();
+          }
+          if (start_position <= position &&
+              position <= shared->end_position()) {
+            // If there is no candidate or this function is within the current
+            // candidate this is the new candidate.
+            if (target.is_null()) {
+              target_start_position = start_position;
+              target_function = function;
+              target = shared;
+            } else {
+              if (target_start_position == start_position &&
+                  shared->end_position() == target->end_position()) {
+                // If a top-level function contains only one function
+                // declaration the source for the top-level and the function
+                // is the same. In that case prefer the non top-level function.
+                if (!shared->is_toplevel()) {
                   target_start_position = start_position;
+                  target_function = function;
                   target = shared;
                 }
+              } else if (target_start_position <= start_position &&
+                         shared->end_position() <= target->end_position()) {
+                // This containment check includes equality as a function
+                // inside a top-level function can share either start or end
+                // position with the top-level function.
+                target_start_position = start_position;
+                target_function = function;
+                target = shared;
               }
             }
           }
         }
       }  // End for loop.
-    }  // End No allocation scope.
+    }  // End no-allocation scope.
 
     if (target.is_null()) {
       return isolate->heap()->undefined_value();
     }
 
-    // If the candidate found is compiled we are done. NOTE: when lazy
-    // compilation of inner functions is introduced some additional checking
-    // needs to be done here to compile inner functions.
+    // If the candidate found is compiled we are done.
     done = target->is_compiled();
     if (!done) {
-      // If the candidate is not compiled compile it to reveal any inner
-      // functions which might contain the requested source position.
-      SharedFunctionInfo::CompileLazy(target, KEEP_EXCEPTION);
+      // If the candidate is not compiled, compile it to reveal any inner
+      // functions which might contain the requested source position. This
+      // will compile all inner functions that cannot be compiled without a
+      // context, because Compiler::BuildFunctionInfo checks whether the
+      // debugger is active.
+      if (target_function.is_null()) {
+        SharedFunctionInfo::CompileLazy(target, KEEP_EXCEPTION);
+      } else {
+        JSFunction::CompileLazy(target_function, KEEP_EXCEPTION);
+      }
     }
   }  // End while loop.
 
   return *target;
+}
+
+
+// Set a break point in a function.
+// args[0]: function
+// args[1]: number: break source position (within the function source)
+// args[2]: number: break point object
+RUNTIME_FUNCTION(MaybeObject*, Runtime_SetFunctionBreakPoint) {
+  HandleScope scope(isolate);
+  ASSERT(args.length() == 3);
+  CONVERT_ARG_HANDLE_CHECKED(JSFunction, function, 0);
+  CONVERT_NUMBER_CHECKED(int32_t, source_position, Int32, args[1]);
+  RUNTIME_ASSERT(source_position >= 0);
+  Handle<Object> break_point_object_arg = args.at<Object>(2);
+
+  // Set break point.
+  isolate->debug()->SetBreakPoint(function, break_point_object_arg,
+                                  &source_position);
+
+  return Smi::FromInt(source_position);
 }
 
 
@@ -11797,23 +11822,13 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_SetScriptBreakPoint) {
   RUNTIME_ASSERT(wrapper->value()->IsScript());
   Handle<Script> script(Script::cast(wrapper->value()));
 
-  Object* result = Runtime::FindSharedFunctionInfoInScript(
-      isolate, script, source_position);
-  if (!result->IsUndefined()) {
-    Handle<SharedFunctionInfo> shared(SharedFunctionInfo::cast(result));
-    // Find position within function. The script position might be before the
-    // source position of the first function.
-    int position;
-    if (shared->start_position() > source_position) {
-      position = 0;
-    } else {
-      position = source_position - shared->start_position();
-    }
-    isolate->debug()->SetBreakPoint(shared, break_point_object_arg, &position);
-    position += shared->start_position();
-    return Smi::FromInt(position);
+  // Set break point.
+  if (!isolate->debug()->SetBreakPointForScript(script, break_point_object_arg,
+                                                &source_position)) {
+    return  isolate->heap()->undefined_value();
   }
-  return  isolate->heap()->undefined_value();
+
+  return Smi::FromInt(source_position);
 }
 
 
@@ -12103,7 +12118,11 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DebugEvaluate) {
   Handle<Context> context =
       isolate->factory()->NewFunctionContext(Context::MIN_CONTEXT_SLOTS,
                                              go_between);
-  context->set_extension(*local_scope);
+
+  // Use the materialized local scope in a with context.
+  context =
+      isolate->factory()->NewWithContext(go_between, context, local_scope);
+
   // Copy any with contexts present and chain them in front of this context.
   Handle<Context> frame_context(Context::cast(frame->context()));
   Handle<Context> function_context;
@@ -12537,7 +12556,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DebugDisassembleFunction) {
   ASSERT(args.length() == 1);
   // Get the function and make sure it is compiled.
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, func, 0);
-  if (!JSFunction::CompileLazy(func, KEEP_EXCEPTION)) {
+  if (!JSFunction::EnsureCompiled(func, KEEP_EXCEPTION)) {
     return Failure::Exception();
   }
   func->code()->PrintLn();
@@ -12552,7 +12571,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DebugDisassembleConstructor) {
   ASSERT(args.length() == 1);
   // Get the function and make sure it is compiled.
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, func, 0);
-  if (!JSFunction::CompileLazy(func, KEEP_EXCEPTION)) {
+  if (!JSFunction::EnsureCompiled(func, KEEP_EXCEPTION)) {
     return Failure::Exception();
   }
   func->shared()->construct_stub()->PrintLn();
@@ -12773,7 +12792,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_LiveEditCheckAndDropActivations) {
   CONVERT_BOOLEAN_ARG_CHECKED(do_drop, 1);
 
   return *LiveEdit::CheckAndDropActivations(shared_array, do_drop,
-                                            isolate->zone());
+                                            isolate->runtime_zone());
 }
 
 // Compares 2 strings line-by-line, then token-wise and returns diff in form
@@ -12786,6 +12805,45 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_LiveEditCompareStrings) {
   CONVERT_ARG_HANDLE_CHECKED(String, s2, 1);
 
   return *LiveEdit::CompareStrings(s1, s2);
+}
+
+
+// Restarts a call frame and completely drops all frames above.
+// Returns true if successful. Otherwise returns undefined or an error message.
+RUNTIME_FUNCTION(MaybeObject*, Runtime_LiveEditRestartFrame) {
+  HandleScope scope(isolate);
+  ASSERT(args.length() == 2);
+
+  // Check arguments.
+  Object* check;
+  { MaybeObject* maybe_check = Runtime_CheckExecutionState(
+      RUNTIME_ARGUMENTS(isolate, args));
+    if (!maybe_check->ToObject(&check)) return maybe_check;
+  }
+  CONVERT_NUMBER_CHECKED(int, index, Int32, args[1]);
+  Heap* heap = isolate->heap();
+
+  // Find the relevant frame with the requested index.
+  StackFrame::Id id = isolate->debug()->break_frame_id();
+  if (id == StackFrame::NO_ID) {
+    // If there are no JavaScript stack frames return undefined.
+    return heap->undefined_value();
+  }
+
+  int count = 0;
+  JavaScriptFrameIterator it(isolate, id);
+  for (; !it.done(); it.Advance()) {
+    if (index < count + it.frame()->GetInlineCount()) break;
+    count += it.frame()->GetInlineCount();
+  }
+  if (it.done()) return heap->undefined_value();
+
+  const char* error_message =
+      LiveEdit::RestartFrame(it.frame(), isolate->runtime_zone());
+  if (error_message) {
+    return *(isolate->factory()->LookupAsciiSymbol(error_message));
+  }
+  return heap->true_value();
 }
 
 

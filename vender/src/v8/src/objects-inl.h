@@ -1874,15 +1874,14 @@ Object** FixedArray::data_start() {
 
 
 bool DescriptorArray::IsEmpty() {
-  ASSERT(this->IsSmi() ||
-         this->MayContainTransitions() ||
+  ASSERT(length() >= kFirstIndex ||
          this == HEAP->empty_descriptor_array());
-  return this->IsSmi() || length() < kFirstIndex;
+  return length() < kFirstIndex;
 }
 
 
 bool DescriptorArray::MayContainTransitions() {
-  return length() >= kTransitionsIndex;
+  return !IsEmpty();
 }
 
 
@@ -1955,6 +1954,11 @@ void DescriptorArray::set_elements_transition_map(
   CONDITIONAL_WRITE_BARRIER(
       heap, this, kTransitionsOffset, transition_map, mode);
   ASSERT(DescriptorArray::cast(this));
+}
+
+
+void DescriptorArray::ClearElementsTransition() {
+  WRITE_FIELD(this, kTransitionsOffset, Smi::FromInt(0));
 }
 
 
@@ -3682,6 +3686,10 @@ BOOL_ACCESSORS(SharedFunctionInfo,
                compiler_hints,
                allows_lazy_compilation,
                kAllowLazyCompilation)
+BOOL_ACCESSORS(SharedFunctionInfo,
+               compiler_hints,
+               allows_lazy_compilation_without_context,
+               kAllowLazyCompilationWithoutContext)
 BOOL_ACCESSORS(SharedFunctionInfo,
                compiler_hints,
                uses_arguments,

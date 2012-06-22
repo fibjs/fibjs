@@ -896,8 +896,18 @@ void Debug::PutValuesOnStackAndDie(int start,
                                    Address c_entry_fp,
                                    Address last_fp,
                                    Address larger_fp,
+                                   Address last_in_fp,
+                                   Address last_out_fp,
                                    int count,
                                    int end) {
+  OS::PrintError("start:       %d\n", start);
+  OS::PrintError("c_entry_fp:  %p\n", static_cast<void*>(c_entry_fp));
+  OS::PrintError("last_fp:     %p\n", static_cast<void*>(last_fp));
+  OS::PrintError("larger_fp:   %p\n", static_cast<void*>(larger_fp));
+  OS::PrintError("last_in_fp:  %p\n", static_cast<void*>(last_in_fp));
+  OS::PrintError("last_out_fp: %p\n", static_cast<void*>(last_out_fp));
+  OS::PrintError("count:       %d\n", count);
+  OS::PrintError("end:         %d\n", end);
   OS::Abort();
 }
 
@@ -1010,6 +1020,8 @@ Object* Debug::Break(Arguments args) {
                                frame->fp(),
                                thread_local_.last_fp_,
                                NULL,
+                               thread_local_.step_into_fp_,
+                               thread_local_.step_out_fp_,
                                count,
                                0xFEEEEEEE);
       } else if (it.frame()->fp() != thread_local_.last_fp_) {
@@ -1018,6 +1030,8 @@ Object* Debug::Break(Arguments args) {
                                frame->fp(),
                                thread_local_.last_fp_,
                                it.frame()->fp(),
+                               thread_local_.step_into_fp_,
+                               thread_local_.step_out_fp_,
                                count,
                                0xFEEEEEEE);
       }
@@ -1170,14 +1184,16 @@ Handle<DebugInfo> Debug::GetDebugInfo(Handle<SharedFunctionInfo> shared) {
 }
 
 
-void Debug::SetBreakPoint(Handle<SharedFunctionInfo> shared,
+void Debug::SetBreakPoint(Handle<JSFunction> function,
                           Handle<Object> break_point_object,
                           int* source_position) {
   HandleScope scope(isolate_);
 
   PrepareForBreakPoints();
 
-  if (!EnsureDebugInfo(shared)) {
+  // Make sure the function is compiled and has set up the debug info.
+  Handle<SharedFunctionInfo> shared(function->shared());
+  if (!EnsureDebugInfo(shared, function)) {
     // Return if retrieving debug info failed.
     return;
   }
@@ -1195,6 +1211,51 @@ void Debug::SetBreakPoint(Handle<SharedFunctionInfo> shared,
 
   // At least one active break point now.
   ASSERT(debug_info->GetBreakPointCount() > 0);
+}
+
+
+bool Debug::SetBreakPointForScript(Handle<Script> script,
+                                   Handle<Object> break_point_object,
+                                   int* source_position) {
+  HandleScope scope(isolate_);
+
+  // No need to call PrepareForBreakPoints because it will be called
+  // implicitly by Runtime::FindSharedFunctionInfoInScript.
+  Object* result = Runtime::FindSharedFunctionInfoInScript(isolate_,
+                                                           script,
+                                                           *source_position);
+  if (result->IsUndefined()) return false;
+
+  // Make sure the function has set up the debug info.
+  Handle<SharedFunctionInfo> shared(SharedFunctionInfo::cast(result));
+  if (!EnsureDebugInfo(shared, Handle<JSFunction>::null())) {
+    // Return if retrieving debug info failed.
+    return false;
+  }
+
+  // Find position within function. The script position might be before the
+  // source position of the first function.
+  int position;
+  if (shared->start_position() > *source_position) {
+    position = 0;
+  } else {
+    position = *source_position - shared->start_position();
+  }
+
+  Handle<DebugInfo> debug_info = GetDebugInfo(shared);
+  // Source positions starts with zero.
+  ASSERT(position >= 0);
+
+  // Find the break point and change it.
+  BreakLocationIterator it(debug_info, SOURCE_BREAK_LOCATIONS);
+  it.FindBreakLocationFromPosition(position);
+  it.SetBreakPoint(break_point_object);
+
+  *source_position = it.position() + shared->start_position();
+
+  // At least one active break point now.
+  ASSERT(debug_info->GetBreakPointCount() > 0);
+  return true;
 }
 
 
@@ -1249,10 +1310,12 @@ void Debug::ClearAllBreakPoints() {
 }
 
 
-void Debug::FloodWithOneShot(Handle<SharedFunctionInfo> shared) {
+void Debug::FloodWithOneShot(Handle<JSFunction> function) {
   PrepareForBreakPoints();
-  // Make sure the function has set up the debug info.
-  if (!EnsureDebugInfo(shared)) {
+
+  // Make sure the function is compiled and has set up the debug info.
+  Handle<SharedFunctionInfo> shared(function->shared());
+  if (!EnsureDebugInfo(shared, function)) {
     // Return if we failed to retrieve the debug info.
     return;
   }
@@ -1272,8 +1335,8 @@ void Debug::FloodBoundFunctionWithOneShot(Handle<JSFunction> function) {
 
   if (!bindee.is_null() && bindee->IsJSFunction() &&
       !JSFunction::cast(*bindee)->IsBuiltin()) {
-    Handle<SharedFunctionInfo> shared_info(JSFunction::cast(*bindee)->shared());
-    Debug::FloodWithOneShot(shared_info);
+    Handle<JSFunction> bindee_function(JSFunction::cast(*bindee));
+    Debug::FloodWithOneShot(bindee_function);
   }
 }
 
@@ -1288,11 +1351,9 @@ void Debug::FloodHandlerWithOneShot() {
   for (JavaScriptFrameIterator it(isolate_, id); !it.done(); it.Advance()) {
     JavaScriptFrame* frame = it.frame();
     if (frame->HasHandler()) {
-      Handle<SharedFunctionInfo> shared =
-          Handle<SharedFunctionInfo>(
-              JSFunction::cast(frame->function())->shared());
       // Flood the function with the catch block with break points
-      FloodWithOneShot(shared);
+      JSFunction* function = JSFunction::cast(frame->function());
+      FloodWithOneShot(Handle<JSFunction>(function));
       return;
     }
   }
@@ -1359,14 +1420,14 @@ void Debug::PrepareStep(StepAction step_action, int step_count) {
     frames_it.Advance();
     // Fill the function to return to with one-shot break points.
     JSFunction* function = JSFunction::cast(frames_it.frame()->function());
-    FloodWithOneShot(Handle<SharedFunctionInfo>(function->shared()));
+    FloodWithOneShot(Handle<JSFunction>(function));
     return;
   }
 
   // Get the debug info (create it if it does not exist).
-  Handle<SharedFunctionInfo> shared =
-      Handle<SharedFunctionInfo>(JSFunction::cast(frame->function())->shared());
-  if (!EnsureDebugInfo(shared)) {
+  Handle<JSFunction> function(JSFunction::cast(frame->function()));
+  Handle<SharedFunctionInfo> shared(function->shared());
+  if (!EnsureDebugInfo(shared, function)) {
     // Return if ensuring debug info failed.
     return;
   }
@@ -1436,7 +1497,7 @@ void Debug::PrepareStep(StepAction step_action, int step_count) {
     if (!frames_it.done()) {
       // Fill the function to return to with one-shot break points.
       JSFunction* function = JSFunction::cast(frames_it.frame()->function());
-      FloodWithOneShot(Handle<SharedFunctionInfo>(function->shared()));
+      FloodWithOneShot(Handle<JSFunction>(function));
       // Set target frame pointer.
       ActivateStepOut(frames_it.frame());
     }
@@ -1446,7 +1507,7 @@ void Debug::PrepareStep(StepAction step_action, int step_count) {
     // Step next or step min.
 
     // Fill the current function with one-shot break points.
-    FloodWithOneShot(shared);
+    FloodWithOneShot(function);
 
     // Remember source position and frame to handle step next.
     thread_local_.last_statement_position_ =
@@ -1458,9 +1519,7 @@ void Debug::PrepareStep(StepAction step_action, int step_count) {
     if (is_at_restarted_function) {
       Handle<JSFunction> restarted_function(
           JSFunction::cast(*thread_local_.restarter_frame_function_pointer_));
-      Handle<SharedFunctionInfo> restarted_shared(
-          restarted_function->shared());
-      FloodWithOneShot(restarted_shared);
+      FloodWithOneShot(restarted_function);
     } else if (!call_function_stub.is_null()) {
       // If it's CallFunction stub ensure target function is compiled and flood
       // it with one shot breakpoints.
@@ -1502,7 +1561,7 @@ void Debug::PrepareStep(StepAction step_action, int step_count) {
         } else if (!js_function->IsBuiltin()) {
           // Don't step into builtins.
           // It will also compile target function if it's not compiled yet.
-          FloodWithOneShot(Handle<SharedFunctionInfo>(js_function->shared()));
+          FloodWithOneShot(js_function);
         }
       }
     }
@@ -1511,7 +1570,7 @@ void Debug::PrepareStep(StepAction step_action, int step_count) {
     // a call target as the function called might be a native function for
     // which step in will not stop. It also prepares for stepping in
     // getters/setters.
-    FloodWithOneShot(shared);
+    FloodWithOneShot(function);
 
     if (is_load_or_store) {
       // Remember source position and frame to handle step in getter/setter. If
@@ -1711,12 +1770,11 @@ void Debug::HandleStepIn(Handle<JSFunction> function,
         // function.
         if (!holder.is_null() && holder->IsJSFunction() &&
             !JSFunction::cast(*holder)->IsBuiltin()) {
-          Handle<SharedFunctionInfo> shared_info(
-              JSFunction::cast(*holder)->shared());
-          Debug::FloodWithOneShot(shared_info);
+          Handle<JSFunction> js_function = Handle<JSFunction>::cast(holder);
+          Debug::FloodWithOneShot(js_function);
         }
       } else {
-        Debug::FloodWithOneShot(Handle<SharedFunctionInfo>(function->shared()));
+        Debug::FloodWithOneShot(function);
       }
     }
   }
@@ -1796,7 +1854,7 @@ static bool CompileFullCodeForDebugging(Handle<JSFunction> function,
                                         Handle<Code> current_code) {
   ASSERT(!current_code->has_debug_break_slots());
 
-  CompilationInfo info(function);
+  CompilationInfoWithZone info(function);
   info.MarkCompilingForDebugging(current_code);
   ASSERT(!info.shared_info()->is_compiled());
   ASSERT(!info.isolate()->has_pending_exception());
@@ -1876,7 +1934,7 @@ static void RedirectActivationsToRecompiledCodeOnThread(
     for (RelocIterator it(*frame_code, constpool_mask); !it.done(); it.next()) {
       RelocInfo* info = it.rinfo();
       if (info->pc() >= frame->pc()) break;
-      frame_const_pool_size += info->data();
+      frame_const_pool_size += static_cast<int>(info->data());
     }
     intptr_t frame_offset =
       frame->pc() - frame_code->instruction_start() - frame_const_pool_size;
@@ -1902,7 +1960,7 @@ static void RedirectActivationsToRecompiledCodeOnThread(
       } else {
         ASSERT(RelocInfo::IsConstPool(info->rmode()));
         // The size of the constant pool is encoded in the data.
-        new_code_const_pool_size += info->data();
+        new_code_const_pool_size += static_cast<int>(info->data());
       }
     }
 
@@ -1972,6 +2030,9 @@ void Debug::PrepareForBreakPoints() {
 
     Handle<Code> lazy_compile =
         Handle<Code>(isolate_->builtins()->builtin(Builtins::kLazyCompile));
+
+    // There will be at least one break point when we are done.
+    has_break_points_ = true;
 
     // Keep the list of activated functions in a handlified list as it
     // is used both in GC and non-GC code.
@@ -2050,7 +2111,6 @@ void Debug::PrepareForBreakPoints() {
         // Try to compile the full code with debug break slots. If it
         // fails just keep the current code.
         Handle<Code> current_code(function->shared()->code());
-        ZoneScope zone_scope(isolate_, DELETE_ON_EXIT);
         shared->set_code(*lazy_compile);
         bool prev_force_debugger_active =
             isolate_->debugger()->force_debugger_active();
@@ -2080,15 +2140,20 @@ void Debug::PrepareForBreakPoints() {
 
 
 // Ensures the debug information is present for shared.
-bool Debug::EnsureDebugInfo(Handle<SharedFunctionInfo> shared) {
+bool Debug::EnsureDebugInfo(Handle<SharedFunctionInfo> shared,
+                            Handle<JSFunction> function) {
   // Return if we already have the debug info for shared.
   if (HasDebugInfo(shared)) {
     ASSERT(shared->is_compiled());
     return true;
   }
 
-  // Ensure shared in compiled. Return false if this failed.
-  if (!SharedFunctionInfo::EnsureCompiled(shared, CLEAR_EXCEPTION)) {
+  // There will be at least one break point when we are done.
+  has_break_points_ = true;
+
+  // Ensure function is compiled. Return false if this failed.
+  if (!function.is_null() &&
+      !JSFunction::EnsureCompiled(function, CLEAR_EXCEPTION)) {
     return false;
   }
 
@@ -2099,9 +2164,6 @@ bool Debug::EnsureDebugInfo(Handle<SharedFunctionInfo> shared) {
   DebugInfoListNode* node = new DebugInfoListNode(*debug_info);
   node->set_next(debug_info_list_);
   debug_info_list_ = node;
-
-  // Now there is at least one break point.
-  has_break_points_ = true;
 
   return true;
 }
@@ -2144,9 +2206,9 @@ void Debug::SetAfterBreakTarget(JavaScriptFrame* frame) {
   PrepareForBreakPoints();
 
   // Get the executing function in which the debug break occurred.
-  Handle<SharedFunctionInfo> shared =
-      Handle<SharedFunctionInfo>(JSFunction::cast(frame->function())->shared());
-  if (!EnsureDebugInfo(shared)) {
+  Handle<JSFunction> function(JSFunction::cast(frame->function()));
+  Handle<SharedFunctionInfo> shared(function->shared());
+  if (!EnsureDebugInfo(shared, function)) {
     // Return if we failed to retrieve the debug info.
     return;
   }
@@ -2236,9 +2298,9 @@ bool Debug::IsBreakAtReturn(JavaScriptFrame* frame) {
   PrepareForBreakPoints();
 
   // Get the executing function in which the debug break occurred.
-  Handle<SharedFunctionInfo> shared =
-      Handle<SharedFunctionInfo>(JSFunction::cast(frame->function())->shared());
-  if (!EnsureDebugInfo(shared)) {
+  Handle<JSFunction> function(JSFunction::cast(frame->function()));
+  Handle<SharedFunctionInfo> shared(function->shared());
+  if (!EnsureDebugInfo(shared, function)) {
     // Return if we failed to retrieve the debug info.
     return false;
   }

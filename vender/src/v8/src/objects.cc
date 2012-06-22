@@ -415,7 +415,10 @@ PropertyAttributes JSObject::GetPropertyAttributeWithFailedAccessCheck(
         break;
       }
 
-      default:
+      case HANDLER:
+      case MAP_TRANSITION:
+      case CONSTANT_TRANSITION:
+      case NONEXISTENT:
         UNREACHABLE();
     }
   }
@@ -763,7 +766,6 @@ MaybeObject* Object::GetHash(CreationFlag flag) {
 
 bool Object::SameValue(Object* other) {
   if (other == this) return true;
-  if (!IsHeapObject() || !other->IsHeapObject()) return false;
 
   // The object is either a number, a string, an odd-ball,
   // a real JS object, or a Harmony proxy.
@@ -2243,7 +2245,12 @@ Handle<Map> Map::FindTransitionedMap(MapHandleList* candidates) {
 static Map* FindClosestElementsTransition(Map* map, ElementsKind to_kind) {
   Map* current_map = map;
   int index = GetSequenceIndexFromFastElementsKind(map->elements_kind());
-  int to_index = GetSequenceIndexFromFastElementsKind(to_kind);
+  int to_index = IsFastElementsKind(to_kind)
+      ? GetSequenceIndexFromFastElementsKind(to_kind)
+      : GetSequenceIndexFromFastElementsKind(TERMINAL_FAST_ELEMENTS_KIND);
+
+  ASSERT(index <= to_index);
+
   for (; index < to_index; ++index) {
     Map* next_map = current_map->elements_transition_map();
     if (next_map == NULL) {
@@ -2251,27 +2258,36 @@ static Map* FindClosestElementsTransition(Map* map, ElementsKind to_kind) {
     }
     current_map = next_map;
   }
-  ASSERT(current_map->elements_kind() == to_kind);
+  if (!IsFastElementsKind(to_kind)) {
+    Map* next_map = current_map->elements_transition_map();
+    if (next_map != NULL && next_map->elements_kind() == to_kind) {
+      return next_map;
+    }
+    ASSERT(current_map->elements_kind() == TERMINAL_FAST_ELEMENTS_KIND);
+  } else {
+    ASSERT(current_map->elements_kind() == to_kind);
+  }
   return current_map;
 }
 
 
 Map* Map::LookupElementsTransitionMap(ElementsKind to_kind) {
-  if (this->instance_descriptors()->MayContainTransitions() &&
-      IsMoreGeneralElementsKindTransition(this->elements_kind(), to_kind)) {
-    Map* to_map = FindClosestElementsTransition(this, to_kind);
-    if (to_map->elements_kind() == to_kind) {
-      return to_map;
-    }
-  }
+  Map* to_map = FindClosestElementsTransition(this, to_kind);
+  if (to_map->elements_kind() == to_kind) return to_map;
   return NULL;
 }
 
 
 MaybeObject* Map::CreateNextElementsTransition(ElementsKind next_kind) {
-    ASSERT(elements_transition_map() == NULL);
-    ASSERT(GetSequenceIndexFromFastElementsKind(elements_kind()) ==
-           (GetSequenceIndexFromFastElementsKind(next_kind) - 1));
+    ASSERT(elements_transition_map() == NULL ||
+        ((elements_transition_map()->elements_kind() == DICTIONARY_ELEMENTS ||
+          IsExternalArrayElementsKind(
+              elements_transition_map()->elements_kind())) &&
+         (next_kind == DICTIONARY_ELEMENTS ||
+          IsExternalArrayElementsKind(next_kind))));
+    ASSERT(!IsFastElementsKind(next_kind) ||
+           IsMoreGeneralElementsKindTransition(elements_kind(), next_kind));
+    ASSERT(next_kind != elements_kind());
 
     Map* next_map;
     MaybeObject* maybe_next_map =
@@ -2287,16 +2303,28 @@ MaybeObject* Map::CreateNextElementsTransition(ElementsKind next_kind) {
 
 static MaybeObject* AddMissingElementsTransitions(Map* map,
                                                   ElementsKind to_kind) {
-  int index = GetSequenceIndexFromFastElementsKind(map->elements_kind()) + 1;
-  int to_index = GetSequenceIndexFromFastElementsKind(to_kind);
+  ASSERT(IsFastElementsKind(map->elements_kind()));
+  int index = GetSequenceIndexFromFastElementsKind(map->elements_kind());
+  int to_index = IsFastElementsKind(to_kind)
+      ? GetSequenceIndexFromFastElementsKind(to_kind)
+      : GetSequenceIndexFromFastElementsKind(TERMINAL_FAST_ELEMENTS_KIND);
+
   ASSERT(index <= to_index);
 
   Map* current_map = map;
 
-  for (; index <= to_index; ++index) {
-      ElementsKind next_kind = GetFastElementsKindFromSequenceIndex(index);
+  for (; index < to_index; ++index) {
+      ElementsKind next_kind = GetFastElementsKindFromSequenceIndex(index + 1);
       MaybeObject* maybe_next_map =
           current_map->CreateNextElementsTransition(next_kind);
+      if (!maybe_next_map->To(&current_map)) return maybe_next_map;
+  }
+
+  // In case we are exiting the fast elements kind system, just add the map in
+  // the end.
+  if (!IsFastElementsKind(to_kind)) {
+      MaybeObject* maybe_next_map =
+          current_map->CreateNextElementsTransition(to_kind);
       if (!maybe_next_map->To(&current_map)) return maybe_next_map;
   }
 
@@ -2345,10 +2373,14 @@ MaybeObject* JSObject::GetElementsTransitionMapSlow(ElementsKind to_kind) {
       // non-matching element transition.
       (global_context->object_function()->map() != map()) &&
       !start_map->IsUndefined() && !start_map->is_shared() &&
-      // Only store fast element maps in ascending generality.
-      IsTransitionableFastElementsKind(from_kind) &&
-      IsFastElementsKind(to_kind) &&
-      IsMoreGeneralElementsKindTransition(from_kind, to_kind);
+      IsFastElementsKind(from_kind);
+
+  // Only store fast element maps in ascending generality.
+  if (IsFastElementsKind(to_kind)) {
+    allow_store_transition &=
+        IsTransitionableFastElementsKind(from_kind) &&
+        IsMoreGeneralElementsKindTransition(from_kind, to_kind);
+  }
 
   if (!allow_store_transition) {
     // Create a new free-floating map only if we are not allowed to store it.
@@ -2388,10 +2420,11 @@ void JSObject::LocalLookupRealNamedProperty(String* name,
       // We return all of these result types because
       // LocalLookupRealNamedProperty is used when setting properties
       // where map transitions and null descriptors are handled.
-      ASSERT(result->holder() == this && result->type() != NORMAL);
+      ASSERT(result->holder() == this && result->IsFastPropertyType());
       // Disallow caching for uninitialized constants. These can only
       // occur as fields.
-      if (result->IsReadOnly() && result->type() == FIELD &&
+      if (result->IsField() &&
+          result->IsReadOnly() &&
           FastPropertyAt(result->GetFieldIndex())->IsTheHole()) {
         result->DisallowCaching();
       }
@@ -2508,7 +2541,7 @@ MaybeObject* JSReceiver::SetProperty(LookupResult* result,
                                      PropertyAttributes attributes,
                                      StrictModeFlag strict_mode,
                                      JSReceiver::StoreFromKeyed store_mode) {
-  if (result->IsFound() && result->type() == HANDLER) {
+  if (result->IsHandler()) {
     return result->proxy()->SetPropertyWithHandler(
         this, key, value, attributes, strict_mode);
   } else {
@@ -3879,7 +3912,7 @@ MaybeObject* JSObject::DeleteProperty(String* name, DeleteMode mode) {
       return isolate->heap()->false_value();
     }
     // Check for interceptor.
-    if (result.type() == INTERCEPTOR) {
+    if (result.IsInterceptor()) {
       // Skip interceptor if forcing a deletion.
       if (mode == FORCE_DELETION) {
         return DeletePropertyPostInterceptor(name, mode);
@@ -4238,7 +4271,7 @@ void JSObject::LookupCallback(String* name, LookupResult* result) {
        current != heap->null_value() && current->IsJSObject();
        current = JSObject::cast(current)->GetPrototype()) {
     JSObject::cast(current)->LocalLookupRealNamedProperty(name, result);
-    if (result->IsFound() && result->type() == CALLBACKS) return;
+    if (result->IsCallbacks()) return;
   }
   result->NotFound();
 }
@@ -4341,7 +4374,7 @@ MaybeObject* JSObject::DefineElementAccessor(uint32_t index,
 MaybeObject* JSObject::CreateAccessorPairFor(String* name) {
   LookupResult result(GetHeap()->isolate());
   LocalLookupRealNamedProperty(name, &result);
-  if (result.IsProperty() && result.type() == CALLBACKS) {
+  if (result.IsProperty() && result.IsCallbacks()) {
     // Note that the result can actually have IsDontDelete() == true when we
     // e.g. have to fall back to the slow case while adding a setter after
     // successfully reusing a map transition for a getter. Nevertheless, this is
@@ -4811,7 +4844,7 @@ Object* JSObject::LookupAccessor(String* name, AccessorComponent component) {
       JSObject::cast(obj)->LocalLookup(name, &result);
       if (result.IsProperty()) {
         if (result.IsReadOnly()) return heap->undefined_value();
-        if (result.type() == CALLBACKS) {
+        if (result.IsCallbacks()) {
           Object* obj = result.GetCallbackObject();
           if (obj->IsAccessorPair()) {
             return AccessorPair::cast(obj)->GetComponent(component);
@@ -5063,7 +5096,7 @@ class IntrusiveMapTransitionIterator {
     if (index == descriptor_array_->number_of_descriptors()) {
       Map* elements_transition = descriptor_array_->elements_transition_map();
       if (elements_transition != NULL) {
-        *DescriptorArrayHeader() = Smi::FromInt(index + 1);
+        *DescriptorArrayHeader() = Smi::FromInt(raw_index + 2);
         return elements_transition;
       }
     }
@@ -5765,24 +5798,18 @@ MaybeObject* DescriptorArray::Allocate(int number_of_descriptors,
   Heap* heap = Isolate::Current()->heap();
   // Do not use DescriptorArray::cast on incomplete object.
   FixedArray* result;
-  if (number_of_descriptors == 0) {
-    if (shared_mode == MAY_BE_SHARED) {
-      return heap->empty_descriptor_array();
-    }
-    { MaybeObject* maybe_array =
-          heap->AllocateFixedArray(kTransitionsIndex + 1);
-      if (!maybe_array->To(&result)) return maybe_array;
-    }
-  } else {
-    // Allocate the array of keys.
-    { MaybeObject* maybe_array =
-          heap->AllocateFixedArray(ToKeyIndex(number_of_descriptors));
-      if (!maybe_array->To(&result)) return maybe_array;
-    }
-    result->set(kEnumerationIndexIndex,
-                Smi::FromInt(PropertyDetails::kInitialIndex));
+  if (number_of_descriptors == 0 && shared_mode == MAY_BE_SHARED) {
+    return heap->empty_descriptor_array();
   }
+  // Allocate the array of keys.
+  { MaybeObject* maybe_array =
+        heap->AllocateFixedArray(ToKeyIndex(number_of_descriptors));
+    if (!maybe_array->To(&result)) return maybe_array;
+  }
+
   result->set(kBitField3StorageIndex, Smi::FromInt(0));
+  result->set(kEnumerationIndexIndex,
+              Smi::FromInt(PropertyDetails::kInitialIndex));
   result->set(kTransitionsIndex, Smi::FromInt(0));
   return result;
 }
@@ -7329,6 +7356,11 @@ void Map::ClearNonLiveTransitions(Heap* heap) {
   DescriptorArray* d = DescriptorArray::cast(
       *RawField(this, Map::kInstanceDescriptorsOrBitField3Offset));
   if (d->IsEmpty()) return;
+  Map* elements_transition = d->elements_transition_map();
+  if (elements_transition != NULL &&
+      ClearBackPointer(heap, elements_transition)) {
+    d->ClearElementsTransition();
+  }
   Smi* NullDescriptorDetails =
     PropertyDetails(NONE, NULL_DESCRIPTOR).AsSmi();
   for (int i = 0; i < d->number_of_descriptors(); ++i) {
@@ -7364,7 +7396,7 @@ void Map::ClearNonLiveTransitions(Heap* heap) {
             } else {
               keep_entry = true;
             }
-          } else if (!getter->IsTheHole()) {
+          } else if (!setter->IsTheHole()) {
             keep_entry = true;
           }
         } else {
@@ -7444,12 +7476,6 @@ void JSFunction::MarkForLazyRecompilation() {
 }
 
 
-bool SharedFunctionInfo::EnsureCompiled(Handle<SharedFunctionInfo> shared,
-                                        ClearExceptionFlag flag) {
-  return shared->is_compiled() || CompileLazy(shared, flag);
-}
-
-
 static bool CompileLazyHelper(CompilationInfo* info,
                               ClearExceptionFlag flag) {
   // Compile the source information to a code object.
@@ -7466,7 +7492,8 @@ static bool CompileLazyHelper(CompilationInfo* info,
 
 bool SharedFunctionInfo::CompileLazy(Handle<SharedFunctionInfo> shared,
                                      ClearExceptionFlag flag) {
-  CompilationInfo info(shared);
+  ASSERT(shared->allows_lazy_compilation_without_context());
+  CompilationInfoWithZone info(shared);
   return CompileLazyHelper(&info, flag);
 }
 
@@ -7526,7 +7553,8 @@ bool JSFunction::CompileLazy(Handle<JSFunction> function,
     function->ReplaceCode(function->shared()->code());
     function->shared()->set_code_age(0);
   } else {
-    CompilationInfo info(function);
+    ASSERT(function->shared()->allows_lazy_compilation());
+    CompilationInfoWithZone info(function);
     result = CompileLazyHelper(&info, flag);
     ASSERT(!result || function->is_compiled());
   }
@@ -7537,9 +7565,15 @@ bool JSFunction::CompileLazy(Handle<JSFunction> function,
 bool JSFunction::CompileOptimized(Handle<JSFunction> function,
                                   int osr_ast_id,
                                   ClearExceptionFlag flag) {
-  CompilationInfo info(function);
+  CompilationInfoWithZone info(function);
   info.SetOptimizing(osr_ast_id);
   return CompileLazyHelper(&info, flag);
+}
+
+
+bool JSFunction::EnsureCompiled(Handle<JSFunction> function,
+                                ClearExceptionFlag flag) {
+  return function->is_compiled() || CompileLazy(function, flag);
 }
 
 
@@ -7562,12 +7596,10 @@ MaybeObject* JSObject::OptimizeAsPrototype() {
 
   // Make sure prototypes are fast objects and their maps have the bit set
   // so they remain fast.
-  Map* proto_map = map();
   if (!HasFastProperties()) {
     MaybeObject* new_proto = TransformToFastProperties(0);
     if (new_proto->IsFailure()) return new_proto;
     ASSERT(new_proto == this);
-    proto_map = map();
   }
   return this;
 }
@@ -7760,9 +7792,7 @@ bool SharedFunctionInfo::CanGenerateInlineConstructor(Object* prototype) {
       LookupResult result(heap->isolate());
       String* name = GetThisPropertyAssignmentName(i);
       js_object->LocalLookupRealNamedProperty(name, &result);
-      if (result.IsFound() && result.type() == CALLBACKS) {
-        return false;
-      }
+      if (result.IsCallbacks()) return false;
     }
   }
 
@@ -10357,7 +10387,7 @@ bool JSObject::HasRealNamedProperty(String* key) {
 
   LookupResult result(isolate);
   LocalLookupRealNamedProperty(key, &result);
-  return result.IsProperty() && (result.type() != INTERCEPTOR);
+  return result.IsProperty() && !result.IsInterceptor();
 }
 
 
@@ -10437,7 +10467,7 @@ bool JSObject::HasRealNamedCallbackProperty(String* key) {
 
   LookupResult result(isolate);
   LocalLookupRealNamedProperty(key, &result);
-  return result.IsFound() && (result.type() == CALLBACKS);
+  return result.IsCallbacks();
 }
 
 
