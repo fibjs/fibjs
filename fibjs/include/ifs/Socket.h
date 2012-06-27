@@ -41,6 +41,9 @@ public:
 	virtual result_t accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncAccept() = 0;
 	virtual result_t onaccept(v8::Handle<v8::Function> func) = 0;
+	virtual result_t close(exlib::AsyncEvent* ac) = 0;
+	virtual result_t asyncClose() = 0;
+	virtual result_t onclose(v8::Handle<v8::Function> func) = 0;
 	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t send(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac) = 0;
@@ -85,6 +88,9 @@ protected:
 	static v8::Handle<v8::Value> s_accept(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncAccept(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_onaccept(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_close(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_asyncClose(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_onclose(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_recv(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_recvFrom(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_send(const v8::Arguments& args);
@@ -95,6 +101,8 @@ protected:
 	ASYNC_CALLBACK2(Socket_base, connect);
 	ASYNC_MEMBER1(Socket_base, accept);
 	ASYNC_VALUEBACK0(Socket_base, accept, obj_ptr<Socket_base>);
+	ASYNC_MEMBER0(Socket_base, close);
+	ASYNC_CALLBACK0(Socket_base, close);
 	ASYNC_MEMBER2(Socket_base, recv);
 	ASYNC_VALUEBACK1(Socket_base, recv, obj_ptr<Buffer_base>);
 	ASYNC_MEMBER1(Socket_base, send);
@@ -120,6 +128,9 @@ namespace fibjs
 			{"accept", s_accept},
 			{"asyncAccept", s_asyncAccept},
 			{"onaccept", s_onaccept},
+			{"close", s_close},
+			{"asyncClose", s_asyncClose},
+			{"onclose", s_onclose},
 			{"recv", s_recv},
 			{"recvFrom", s_recvFrom},
 			{"send", s_send},
@@ -139,7 +150,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Socket", s__new, 
-			12, s_method, 0, NULL, 6, s_property, NULL,
+			15, s_method, 0, NULL, 6, s_property, NULL,
 			&Stream_base::class_info()
 		};
 
@@ -334,6 +345,38 @@ namespace fibjs
 		ARG(v8::Handle<v8::Function>, 0);
 
 		hr = pInst->onaccept(v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Socket_base::s_close(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Socket_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->ac_close(s_acPool);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Socket_base::s_asyncClose(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Socket_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->asyncClose();
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Socket_base::s_onclose(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Socket_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Function>, 0);
+
+		hr = pInst->onclose(v0);
 
 		METHOD_VOID();
 	}

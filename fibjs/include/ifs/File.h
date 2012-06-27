@@ -35,6 +35,14 @@ public:
 	virtual result_t truncate(double bytes, exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncTruncate(double bytes) = 0;
 	virtual result_t ontruncate(v8::Handle<v8::Function> func) = 0;
+	virtual result_t size(double& retVal) = 0;
+	virtual result_t eof(bool& retVal) = 0;
+	virtual result_t flush(exlib::AsyncEvent* ac) = 0;
+	virtual result_t asyncFlush() = 0;
+	virtual result_t onflush(v8::Handle<v8::Function> func) = 0;
+	virtual result_t close(exlib::AsyncEvent* ac) = 0;
+	virtual result_t asyncClose() = 0;
+	virtual result_t onclose(v8::Handle<v8::Function> func) = 0;
 
 public:
 	static ClassInfo& class_info();
@@ -66,12 +74,24 @@ protected:
 	static v8::Handle<v8::Value> s_truncate(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncTruncate(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_ontruncate(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_size(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_eof(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_flush(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_asyncFlush(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_onflush(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_close(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_asyncClose(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_onclose(const v8::Arguments& args);
 
 protected:
 	ASYNC_MEMBER2(File_base, open);
 	ASYNC_CALLBACK2(File_base, open);
 	ASYNC_MEMBER1(File_base, truncate);
 	ASYNC_CALLBACK1(File_base, truncate);
+	ASYNC_MEMBER0(File_base, flush);
+	ASYNC_CALLBACK0(File_base, flush);
+	ASYNC_MEMBER0(File_base, close);
+	ASYNC_CALLBACK0(File_base, close);
 };
 
 }
@@ -92,7 +112,15 @@ namespace fibjs
 			{"rewind", s_rewind},
 			{"truncate", s_truncate},
 			{"asyncTruncate", s_asyncTruncate},
-			{"ontruncate", s_ontruncate}
+			{"ontruncate", s_ontruncate},
+			{"size", s_size},
+			{"eof", s_eof},
+			{"flush", s_flush},
+			{"asyncFlush", s_asyncFlush},
+			{"onflush", s_onflush},
+			{"close", s_close},
+			{"asyncClose", s_asyncClose},
+			{"onclose", s_onclose}
 		};
 
 		static ClassProperty s_property[] = 
@@ -103,7 +131,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"File", s__new, 
-			9, s_method, 0, NULL, 1, s_property, NULL,
+			17, s_method, 0, NULL, 1, s_property, NULL,
 			&Stream_base::class_info()
 		};
 
@@ -239,6 +267,94 @@ namespace fibjs
 		ARG(v8::Handle<v8::Function>, 0);
 
 		hr = pInst->ontruncate(v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> File_base::s_size(const v8::Arguments& args)
+	{
+		double vr;
+
+		METHOD_INSTANCE(File_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->size(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> File_base::s_eof(const v8::Arguments& args)
+	{
+		bool vr;
+
+		METHOD_INSTANCE(File_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->eof(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> File_base::s_flush(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(File_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->ac_flush(s_acPool);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> File_base::s_asyncFlush(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(File_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->asyncFlush();
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> File_base::s_onflush(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(File_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Function>, 0);
+
+		hr = pInst->onflush(v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> File_base::s_close(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(File_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->ac_close(s_acPool);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> File_base::s_asyncClose(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(File_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->asyncClose();
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> File_base::s_onclose(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(File_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Function>, 0);
+
+		hr = pInst->onclose(v0);
 
 		METHOD_VOID();
 	}

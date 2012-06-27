@@ -467,35 +467,6 @@ result_t Socket::onstat(v8::Handle<v8::Function> func)
 	return on("stat", func);
 }
 
-result_t Socket::size(double& retVal)
-{
-	return CALL_E_INVALID_CALL;
-}
-
-result_t Socket::eof(bool& retVal)
-{
-	return CALL_E_INVALID_CALL;
-}
-
-result_t Socket::flush(exlib::AsyncEvent* ac)
-{
-	if (m_sock == INVALID_SOCKET)
-		return CALL_E_INVALID_CALL;
-
-	return 0;
-}
-
-result_t Socket::asyncFlush()
-{
-	acb_flush(s_acPool);
-	return 0;
-}
-
-result_t Socket::onflush(v8::Handle<v8::Function> func)
-{
-	return on("flush", func);
-}
-
 result_t Socket::close(exlib::AsyncEvent* ac)
 {
 	if (m_sock != INVALID_SOCKET)

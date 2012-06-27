@@ -64,14 +64,6 @@ public:
 	virtual result_t stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
 	virtual result_t asyncStat();
 	virtual result_t onstat(v8::Handle<v8::Function> func);
-	virtual result_t size(double& retVal);
-	virtual result_t eof(bool& retVal);
-	virtual result_t flush(exlib::AsyncEvent* ac);
-	virtual result_t asyncFlush();
-	virtual result_t onflush(v8::Handle<v8::Function> func);
-	virtual result_t close(exlib::AsyncEvent* ac);
-	virtual result_t asyncClose();
-	virtual result_t onclose(v8::Handle<v8::Function> func);
 	virtual result_t onerror(v8::Handle<v8::Function> func);
 
 public:
@@ -91,6 +83,9 @@ public:
 	virtual result_t accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac);
 	virtual result_t asyncAccept();
 	virtual result_t onaccept(v8::Handle<v8::Function> func);
+	virtual result_t close(exlib::AsyncEvent* ac);
+	virtual result_t asyncClose();
+	virtual result_t onclose(v8::Handle<v8::Function> func);
 	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 			exlib::AsyncEvent* ac);
 	virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal);

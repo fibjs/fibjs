@@ -37,14 +37,6 @@ public:
 	virtual result_t stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
 	virtual result_t asyncStat();
 	virtual result_t onstat(v8::Handle<v8::Function> func);
-	virtual result_t size(double& retVal);
-	virtual result_t eof(bool& retVal);
-	virtual result_t flush(exlib::AsyncEvent* ac);
-	virtual result_t asyncFlush();
-	virtual result_t onflush(v8::Handle<v8::Function> func);
-	virtual result_t close(exlib::AsyncEvent* ac);
-	virtual result_t asyncClose();
-	virtual result_t onclose(v8::Handle<v8::Function> func);
 	virtual result_t onerror(v8::Handle<v8::Function> func);
 
 public:
@@ -56,6 +48,14 @@ public:
 	virtual result_t truncate(double bytes, exlib::AsyncEvent* ac);
 	virtual result_t asyncTruncate(double bytes);
 	virtual result_t ontruncate(v8::Handle<v8::Function> func);
+	virtual result_t size(double& retVal);
+	virtual result_t eof(bool& retVal);
+	virtual result_t flush(exlib::AsyncEvent* ac);
+	virtual result_t asyncFlush();
+	virtual result_t onflush(v8::Handle<v8::Function> func);
+	virtual result_t close(exlib::AsyncEvent* ac);
+	virtual result_t asyncClose();
+	virtual result_t onclose(v8::Handle<v8::Function> func);
 
 public:
     result_t Write(const char* p, int sz);

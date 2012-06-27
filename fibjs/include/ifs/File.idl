@@ -84,4 +84,44 @@ class File: Stream
 	 * @endcode
 	 */
 	ontruncate(Function func);
+
+	/*! @brief 查询文件尺寸 */
+	Number size();
+
+	/*! @brief 查询文件是否到结尾 */
+	Boolean eof();
+
+	/*! @brief 将文件缓冲区内容写入物理设备 */
+	flush() async;
+
+	/*! @brief 将文件缓冲区内容异步写入物理设备，完成后触发事件 "flush" */
+	asyncFlush();
+
+	/*! @brief 注册 "flush" 事件，等同于 on("flush", func);
+	 * @param func 事件处理函数
+	 *
+	 * "flush" 事件定义如下：
+	 * @code
+	 * function on_flush()
+	 * {}
+	 * @endcode
+	 */
+	onflush(Function func);
+
+	/*! @brief 关闭当前文件 */
+	close() async;
+
+	/*! @brief 异步关闭当前文件，完成后触发事件 "close" */
+	asyncClose();
+
+	/*! @brief 注册 "close" 事件，等同于 on("close", func);
+	 * @param func 事件处理函数
+	 *
+	 * "close" 事件定义如下：
+	 * @code
+	 * function on_close()
+	 * {}
+	 * @endcode
+	 */
+	onclose(Function func);
 };
