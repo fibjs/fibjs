@@ -18,6 +18,8 @@ namespace fibjs
 {
 
 class module_base;
+class Stat_base;
+class ObjectArray_base;
 
 class os_base : public module_base
 {
@@ -30,6 +32,13 @@ public:
 	static result_t CPUInfo(v8::Handle<v8::Array>& retVal);
 	static result_t CPUs(int32_t& retVal);
 	static result_t networkInfo(v8::Handle<v8::Array>& retVal);
+	static result_t exists(const char* path, bool& retVal, exlib::AsyncEvent* ac);
+	static result_t unlink(const char* path, exlib::AsyncEvent* ac);
+	static result_t mkdir(const char* path, exlib::AsyncEvent* ac);
+	static result_t rmdir(const char* path, exlib::AsyncEvent* ac);
+	static result_t rename(const char* from, const char* to, exlib::AsyncEvent* ac);
+	static result_t stat(const char* path, obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t readdir(const char* path, obj_ptr<ObjectArray_base>& retVal, exlib::AsyncEvent* ac);
 
 public:
 	static ClassInfo& class_info();
@@ -47,10 +56,28 @@ protected:
 	static v8::Handle<v8::Value> s_CPUInfo(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_CPUs(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_networkInfo(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_exists(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_unlink(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_mkdir(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_rmdir(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_rename(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_stat(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_readdir(const v8::Arguments& args);
+
+protected:
+	ASYNC_STATIC2(os_base, exists);
+	ASYNC_STATIC1(os_base, unlink);
+	ASYNC_STATIC1(os_base, mkdir);
+	ASYNC_STATIC1(os_base, rmdir);
+	ASYNC_STATIC2(os_base, rename);
+	ASYNC_STATIC2(os_base, stat);
+	ASYNC_STATIC2(os_base, readdir);
 };
 
 }
 
+#include "Stat.h"
+#include "ObjectArray.h"
 
 namespace fibjs
 {
@@ -64,13 +91,20 @@ namespace fibjs
 			{"arch", s_arch, true},
 			{"CPUInfo", s_CPUInfo, true},
 			{"CPUs", s_CPUs, true},
-			{"networkInfo", s_networkInfo, true}
+			{"networkInfo", s_networkInfo, true},
+			{"exists", s_exists, true},
+			{"unlink", s_unlink, true},
+			{"mkdir", s_mkdir, true},
+			{"rmdir", s_rmdir, true},
+			{"rename", s_rename, true},
+			{"stat", s_stat, true},
+			{"readdir", s_readdir, true}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"os", NULL, 
-			7, s_method, 0, NULL, 0, NULL, NULL,
+			14, s_method, 0, NULL, 0, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -152,6 +186,90 @@ namespace fibjs
 		METHOD_ENTER(0, 0);
 
 		hr = networkInfo(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_exists(const v8::Arguments& args)
+	{
+		bool vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = ac_exists(s_acPool, v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_unlink(const v8::Arguments& args)
+	{
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = ac_unlink(s_acPool, v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_mkdir(const v8::Arguments& args)
+	{
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = ac_mkdir(s_acPool, v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_rmdir(const v8::Arguments& args)
+	{
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = ac_rmdir(s_acPool, v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_rename(const v8::Arguments& args)
+	{
+		METHOD_ENTER(2, 2);
+
+		ARG_String(0);
+		ARG_String(1);
+
+		hr = ac_rename(s_acPool, v0, v1);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_stat(const v8::Arguments& args)
+	{
+		obj_ptr<Stat_base> vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = ac_stat(s_acPool, v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_readdir(const v8::Arguments& args)
+	{
+		obj_ptr<ObjectArray_base> vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = ac_readdir(s_acPool, v0, vr);
 
 		METHOD_RETURN();
 	}

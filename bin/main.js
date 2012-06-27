@@ -4,7 +4,7 @@ require("path_test");
 require("fiber_test");
 require("trigger_test");
 require("lock_test");
-require("fs_test");
+require("io_test");
 require("buffered_test");
 require("os_test");
 require("encoding_test");

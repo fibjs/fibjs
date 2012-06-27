@@ -18,7 +18,7 @@ namespace fibjs
 {
 
 class Stream_base;
-class fs_base;
+class io_base;
 
 class File_base : public Stream_base
 {
@@ -76,7 +76,7 @@ protected:
 
 }
 
-#include "fs.h"
+#include "io.h"
 
 namespace fibjs
 {
@@ -178,7 +178,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(double, 0);
-		OPT_ARG(int32_t, 1, fs_base::_SEEK_SET);
+		OPT_ARG(int32_t, 1, io_base::_SEEK_SET);
 
 		hr = pInst->seek(v0, v1);
 

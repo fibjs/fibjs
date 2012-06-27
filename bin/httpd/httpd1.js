@@ -3,14 +3,13 @@
  */
 
 var net = require('net');
+var b = new Buffer("HTTP/1.0 200 ok\r\nConnection: keep-alive\r\nContent-Length: 6\r\n\r\nhello.");
 
 function connect(c)
 {
-	var b = c.read();
-	if(b)
-		c.write(new Buffer("HTTP/1.0 200 ok\r\nConnection: close\r\n\r\nhello."));
+	while(c.read())
+		c.write(b);
 	c.close();
-	c.dispose();
 }
 
 var s = new net.Socket();

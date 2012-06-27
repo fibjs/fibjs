@@ -36,9 +36,6 @@
     <ClCompile Include="src\File.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\fs.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
     <ClCompile Include="src\Buffer.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
@@ -120,6 +117,9 @@
     <ClCompile Include="src\BufferedReader.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\io.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -129,9 +129,6 @@
       <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\file.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\fs.h">
       <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\File.h">
@@ -259,6 +256,9 @@
     </ClInclude>
     <ClInclude Include="include\Stream.h">
       <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\io.h">
+      <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

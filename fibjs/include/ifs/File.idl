@@ -56,7 +56,7 @@ class File: Stream
 	 *  @param offset 指定新的位置
 	 *  @param whence 指定位置基准，允许的值为：SEEK_SET, SEEK_CUR, SEEK_END
 	 */
-	seek(Number offset, Integer whence = fs.SEEK_SET);
+	seek(Number offset, Integer whence = io.SEEK_SET);
 
 	/*! @brief 查询文件当前位置 */
 	Number tell();

@@ -2,12 +2,13 @@ String.prototype.trim = function() {
 	return this.replace(/(^\s*)|(\s*$)/g, "");
 }
 
-var fs = require('fs');
+var io = require('io');
+var os = require('os');
 var path = require('path');
 
 var clsName = {};
 
-var dir = fs.readdir('.');
+var dir = os.readdir('.');
 
 for ( var idx = 0; idx < dir.length; idx++)
 	if (path.extname(dir[idx].name) === '.idl')
@@ -20,7 +21,7 @@ for ( var idx = 0; idx < dir.length; idx++)
 function preparserIDL(fname) {
 	var f, line = 0, isRem;
 
-	f = fs.readFile(fname).replace(/\r/g, "").split("\n");
+	f = io.readFile(fname).replace(/\r/g, "").split("\n");
 	f.reverse();
 
 	while (f.length) {
@@ -142,7 +143,7 @@ function parserIDL(fname) {
 		"Value" : "v8::Handle<v8::Value>"
 	};
 
-	f = fs.readFile(fname).replace(/\r/g, "").split("\n");
+	f = io.readFile(fname).replace(/\r/g, "").split("\n");
 	f.reverse();
 
 	line = 0;
@@ -388,7 +389,7 @@ function parserIDL(fname) {
 
 		txt.push("#endif\n\n");
 
-		fs.writeFile(ns + ".h", txt.join("\n"));
+		io.writeFile(ns + ".h", txt.join("\n"));
 	}
 
 	function _member(st) {

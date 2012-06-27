@@ -7,17 +7,16 @@ var net = require('net');
 function connect(c) {
 	c.on({
 		read : function(d) {
+//			var b = new Buffer("HTTP/1.0 200 ok\r\nConnection: keep-alive\r\nContent-Length: 6\r\n\r\nhello.");
 //			console.log('on read');
-			c.asyncWrite(new Buffer(
-					"HTTP/1.0 200 ok\r\nConnection: close\r\n\r\nhello."));
+			if(d)
+				c.asyncWrite(new Buffer("HTTP/1.0 200 ok\r\nConnection: keep-alive\r\nContent-Length: 6\r\n\r\nhello."));
+			else
+				c.asyncClose();
 		},
 		write : function() {
 //			console.log('on write');
-			c.asyncClose();
-		},
-		close : function() {
-//			console.log('on close');
-			c.dispose();
+			c.asyncRead();
 		},
 		error : function() {
 //			console.log('on error');
@@ -25,7 +24,7 @@ function connect(c) {
 		}
 	});
 
-	var b = c.asyncRead();
+	c.asyncRead();
 //	c.asyncWrite(new Buffer("HTTP/1.0 200 ok\r\nConnection: close\r\n\r\nhello."));
 //	c.asyncClose();
 //	c.dispose();

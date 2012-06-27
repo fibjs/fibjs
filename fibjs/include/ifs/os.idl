@@ -1,5 +1,5 @@
 
-/*! @brief 操作系统信息查询模块
+/*! @brief 操作系统与文件系统处理模块
  *
  * 使用方法：
  * @code
@@ -28,4 +28,44 @@ class os : module
 
 	/*! @brief 查询当前运行环境网络信息*/
 	static Array networkInfo();
+
+	/*! @brief 查询指定的文件或目录是否存在
+	 * @param path 指定要查询的路径
+	 */
+	static Boolean exists(String path) async;
+
+	/*! @brief 删除指定的文件
+	 * @param path 指定要删除的路径
+	 */
+	static unlink(String path) async;
+
+	/*! @brief 创建一个目录
+	 * @param path 指定要创建的目录名
+	 */
+	static mkdir(String path) async;
+
+	/*! @brief 删除一个目录
+	 * @param path 指定要删除的目录名
+	 */
+	static rmdir(String path) async;
+
+	/*! @brief 重新命名一个文件
+	 * @param from 指定更名的文件
+	 * @param to 指定要修改的新文件名
+	 */
+	static rename(String from, String to) async;
+
+	/*! @brief 查询指定文件的基础信息
+	 * @param path 指定查询的文件
+	 * @return 返回文件的基础信息
+	 */
+	static Stat stat(String path) async;
+
+	/*! @brief 读取指定目录的文件信息
+	 *
+	 *
+	 * @param path 指定查询的目录
+	 * @return 返回目录的文件信息数组
+	 */
+	static ObjectArray readdir(String path) async;
 };

@@ -6,7 +6,8 @@ console.log('net testing....');
 
 var assert = require('assert');
 var net = require('net');
-var fs = require('fs');
+var io = require('io');
+var os = require('os');
 var coroutine = require('coroutine');
 
 function tm() {
@@ -60,8 +61,8 @@ var str = "012345678901234567890123456789012345678901234567890123456789012345678
 function accept1(s) {
 	var c = s.accept();
 
-	fs.writeFile('net_temp_000001', str);
-	var f = fs.open('net_temp_000001');
+	io.writeFile('net_temp_000001', str);
+	var f = io.open('net_temp_000001');
 	f.copyTo(c);
 	f.close();
 	c.close();
@@ -74,14 +75,14 @@ accept1.start(s1);
 
 var c1 = new net.Socket();
 c1.connect('127.0.0.1', 8081);
-var f1 = fs.open('net_temp_000002', 'w');
+var f1 = io.open('net_temp_000002', 'w');
 c1.copyTo(f1);
 c1.close();
 f1.close();
 
-assert.equal(str, fs.readFile('net_temp_000002'));
+assert.equal(str, io.readFile('net_temp_000002'));
 
-fs.unlink('net_temp_000001');
-fs.unlink('net_temp_000002');
+os.unlink('net_temp_000001');
+os.unlink('net_temp_000002');
 
 console.log('Backend:', net.backend());
