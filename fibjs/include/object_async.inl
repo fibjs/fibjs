@@ -22,11 +22,11 @@
 	return ac.wait();}
 
 #define ASYNC_CALLBACK0(cls, m) \
-	void acb_##m(AsyncQueue& q) { \
+	void acb_##m(AsyncQueue& q, const char* ev = #m) { \
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis) : \
-			AsyncCallBack(pThis, NULL, _stub) \
+		_t(cls* pThis, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -39,18 +39,19 @@
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m); }\
+		{ _trigger(m_ev); }\
 	private: \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this)); \
+	q.put(new _t(this, ev)); \
 	}
 
 #define ASYNC_VALUEBACK0(cls, m, rt) \
-	void acb_##m(AsyncQueue& q) { \
+	void acb_##m(AsyncQueue& q, const char* ev = #m) { \
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis) : \
-			AsyncCallBack(pThis, NULL, _stub) \
+		_t(cls* pThis, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -64,11 +65,12 @@
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m, retVal); }\
+		{ _trigger(m_ev, retVal); }\
 	private: \
 		rt retVal; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this)); \
+	q.put(new _t(this, ev)); \
 	}
 
 #define ASYNC_STATIC1(cls, m) \
@@ -102,11 +104,11 @@ template<typename T0> \
 #define ASYNC_CALLBACK1(cls, m) \
 	template<typename T0> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0) {\
+		T0& v0, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0) \
+		_t(cls* pThis, T0& v0, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -120,21 +122,22 @@ template<typename T0> \
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m); }\
+		{ _trigger(m_ev); }\
 	private: \
 		T0 m_v0; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0)); \
+	q.put(new _t(this, v0, ev)); \
 	}
 
 #define ASYNC_VALUEBACK1(cls, m, rt) \
 	template<typename T0> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0) {\
+		T0& v0, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0) \
+		_t(cls* pThis, T0& v0, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -149,12 +152,13 @@ template<typename T0> \
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m, retVal); }\
+		{ _trigger(m_ev, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0)); \
+	q.put(new _t(this, v0, ev)); \
 	}
 
 #define ASYNC_STATIC2(cls, m) \
@@ -188,11 +192,11 @@ template<typename T0, typename T1> \
 #define ASYNC_CALLBACK2(cls, m) \
 	template<typename T0, typename T1> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0, T1& v1) {\
+		T0& v0, T1& v1, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1) \
+		_t(cls* pThis, T0& v0, T1& v1, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -207,22 +211,23 @@ template<typename T0, typename T1> \
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m); }\
+		{ _trigger(m_ev); }\
 	private: \
 		T0 m_v0; \
 		T1 m_v1; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0, v1)); \
+	q.put(new _t(this, v0, v1, ev)); \
 	}
 
 #define ASYNC_VALUEBACK2(cls, m, rt) \
 	template<typename T0, typename T1> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0, T1& v1) {\
+		T0& v0, T1& v1, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1) \
+		_t(cls* pThis, T0& v0, T1& v1, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -238,13 +243,14 @@ template<typename T0, typename T1> \
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m, retVal); }\
+		{ _trigger(m_ev, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
 		T1 m_v1; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0, v1)); \
+	q.put(new _t(this, v0, v1, ev)); \
 	}
 
 #define ASYNC_STATIC3(cls, m) \
@@ -278,11 +284,11 @@ template<typename T0, typename T1, typename T2> \
 #define ASYNC_CALLBACK3(cls, m) \
 	template<typename T0, typename T1, typename T2> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0, T1& v1, T2& v2) {\
+		T0& v0, T1& v1, T2& v2, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2) \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -298,23 +304,24 @@ template<typename T0, typename T1, typename T2> \
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m); }\
+		{ _trigger(m_ev); }\
 	private: \
 		T0 m_v0; \
 		T1 m_v1; \
 		T2 m_v2; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0, v1, v2)); \
+	q.put(new _t(this, v0, v1, v2, ev)); \
 	}
 
 #define ASYNC_VALUEBACK3(cls, m, rt) \
 	template<typename T0, typename T1, typename T2> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0, T1& v1, T2& v2) {\
+		T0& v0, T1& v1, T2& v2, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2) \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -331,14 +338,15 @@ template<typename T0, typename T1, typename T2> \
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m, retVal); }\
+		{ _trigger(m_ev, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
 		T1 m_v1; \
 		T2 m_v2; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0, v1, v2)); \
+	q.put(new _t(this, v0, v1, v2, ev)); \
 	}
 
 #define ASYNC_STATIC4(cls, m) \
@@ -372,11 +380,11 @@ template<typename T0, typename T1, typename T2, typename T3> \
 #define ASYNC_CALLBACK4(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0, T1& v1, T2& v2, T3& v3) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3) \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -393,24 +401,25 @@ template<typename T0, typename T1, typename T2, typename T3> \
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m); }\
+		{ _trigger(m_ev); }\
 	private: \
 		T0 m_v0; \
 		T1 m_v1; \
 		T2 m_v2; \
 		T3 m_v3; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0, v1, v2, v3)); \
+	q.put(new _t(this, v0, v1, v2, v3, ev)); \
 	}
 
 #define ASYNC_VALUEBACK4(cls, m, rt) \
 	template<typename T0, typename T1, typename T2, typename T3> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0, T1& v1, T2& v2, T3& v3) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3) \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -428,15 +437,16 @@ template<typename T0, typename T1, typename T2, typename T3> \
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m, retVal); }\
+		{ _trigger(m_ev, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
 		T1 m_v1; \
 		T2 m_v2; \
 		T3 m_v3; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0, v1, v2, v3)); \
+	q.put(new _t(this, v0, v1, v2, v3, ev)); \
 	}
 
 #define ASYNC_STATIC5(cls, m) \
@@ -470,11 +480,11 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 #define ASYNC_CALLBACK5(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4) \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -492,25 +502,26 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m); }\
+		{ _trigger(m_ev); }\
 	private: \
 		T0 m_v0; \
 		T1 m_v1; \
 		T2 m_v2; \
 		T3 m_v3; \
 		T4 m_v4; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0, v1, v2, v3, v4)); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, ev)); \
 	}
 
 #define ASYNC_VALUEBACK5(cls, m, rt) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4) \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -529,7 +540,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m, retVal); }\
+		{ _trigger(m_ev, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
@@ -537,8 +548,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 		T2 m_v2; \
 		T3 m_v3; \
 		T4 m_v4; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0, v1, v2, v3, v4)); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, ev)); \
 	}
 
 #define ASYNC_STATIC6(cls, m) \
@@ -572,11 +584,11 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 #define ASYNC_CALLBACK6(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5) \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -595,7 +607,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m); }\
+		{ _trigger(m_ev); }\
 	private: \
 		T0 m_v0; \
 		T1 m_v1; \
@@ -603,18 +615,19 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T3 m_v3; \
 		T4 m_v4; \
 		T5 m_v5; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0, v1, v2, v3, v4, v5)); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, v5, ev)); \
 	}
 
 #define ASYNC_VALUEBACK6(cls, m, rt) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5) \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -634,7 +647,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m, retVal); }\
+		{ _trigger(m_ev, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
@@ -643,8 +656,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T3 m_v3; \
 		T4 m_v4; \
 		T5 m_v5; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0, v1, v2, v3, v4, v5)); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, v5, ev)); \
 	}
 
 #define ASYNC_STATIC7(cls, m) \
@@ -678,11 +692,11 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 #define ASYNC_CALLBACK7(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6) \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -702,7 +716,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m); }\
+		{ _trigger(m_ev); }\
 	private: \
 		T0 m_v0; \
 		T1 m_v1; \
@@ -711,18 +725,19 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T4 m_v4; \
 		T5 m_v5; \
 		T6 m_v6; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6)); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6, ev)); \
 	}
 
 #define ASYNC_VALUEBACK7(cls, m, rt) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6) \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -743,7 +758,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m, retVal); }\
+		{ _trigger(m_ev, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
@@ -753,8 +768,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T4 m_v4; \
 		T5 m_v5; \
 		T6 m_v6; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6)); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6, ev)); \
 	}
 
 #define ASYNC_STATIC8(cls, m) \
@@ -788,11 +804,11 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 #define ASYNC_CALLBACK8(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7) \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -813,7 +829,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m); }\
+		{ _trigger(m_ev); }\
 	private: \
 		T0 m_v0; \
 		T1 m_v1; \
@@ -823,18 +839,19 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T5 m_v5; \
 		T6 m_v6; \
 		T7 m_v7; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6, v7)); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6, v7, ev)); \
 	}
 
 #define ASYNC_VALUEBACK8(cls, m, rt) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7) \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -856,7 +873,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m, retVal); }\
+		{ _trigger(m_ev, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
@@ -867,8 +884,9 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T5 m_v5; \
 		T6 m_v6; \
 		T7 m_v7; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6, v7)); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6, v7, ev)); \
 	}
 
 #define ASYNC_STATIC9(cls, m) \
@@ -902,11 +920,11 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 #define ASYNC_CALLBACK9(cls, m) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7), m_v8(v8) \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7), m_v8(v8), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -928,7 +946,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m); }\
+		{ _trigger(m_ev); }\
 	private: \
 		T0 m_v0; \
 		T1 m_v1; \
@@ -939,18 +957,19 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T6 m_v6; \
 		T7 m_v7; \
 		T8 m_v8; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6, v7, v8)); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6, v7, v8, ev)); \
 	}
 
 #define ASYNC_VALUEBACK9(cls, m, rt) \
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8> \
 	void acb_##m(AsyncQueue& q, \
-		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8) {\
+		T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, const char* ev = #m) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8) : \
-			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7), m_v8(v8) \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, const char* ev) : \
+			AsyncCallBack(pThis, NULL, _stub), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7), m_v8(v8), m_ev(ev) \
 		{} \
 		static void _stub(AsyncCall* ac) \
 		{	_t* t = (_t*) ac; \
@@ -973,7 +992,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			return b; \
 		} \
 		virtual void callback() \
-		{ _trigger(#m, retVal); }\
+		{ _trigger(m_ev, retVal); }\
 	private: \
 		rt retVal; \
 		T0 m_v0; \
@@ -985,6 +1004,7 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		T6 m_v6; \
 		T7 m_v7; \
 		T8 m_v8; \
+		const char* m_ev; \
 	}; \
-	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6, v7, v8)); \
+	q.put(new _t(this, v0, v1, v2, v3, v4, v5, v6, v7, v8, ev)); \
 	}

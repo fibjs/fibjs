@@ -106,22 +106,22 @@ function gen_callback(argn, bRet)
 		for(i = 0; i < argn; i ++)
 			a.push('T' + i + '& v' + i);
 		s += a.join(', ');
-		s += ') {\\';
+		s += ', const char* ev = #m) {\\';
 		txt.push(s);
 	}else
-		txt.push('	void acb_##m(AsyncQueue& q) { \\');
+		txt.push('	void acb_##m(AsyncQueue& q, const char* ev = #m) { \\');
 
 	txt.push('	class _t: public AsyncCallBack { \\\n	public: \\');
 	s = '		_t(cls* pThis';
 	for(i = 0; i < argn; i ++)
 		s += ', T' + i + '& v' + i;
-	s += ') : \\';
+	s += ', const char* ev) : \\';
 	txt.push(s);
 
 	s = '			AsyncCallBack(pThis, NULL, _stub)';
 	for(i = 0; i < argn; i ++)
 		s += ', m_v' + i + '(v' + i + ')';
-	s += ' \\';
+	s += ', m_ev(ev) \\';
 	txt.push(s);
 
 	txt.push('		{} \\\n		static void _stub(AsyncCall* ac) \\\n		{	_t* t = (_t*) ac; \\');
@@ -149,9 +149,9 @@ function gen_callback(argn, bRet)
 			'		virtual void callback() \\');
 	
 	if(bRet)
-		txt.push('		{ _trigger(#m, retVal); }\\');
+		txt.push('		{ _trigger(m_ev, retVal); }\\');
 	else
-		txt.push('		{ _trigger(#m); }\\');
+		txt.push('		{ _trigger(m_ev); }\\');
 
 	txt.push('	private: \\');
 	if(bRet)
@@ -160,12 +160,12 @@ function gen_callback(argn, bRet)
 	for(i = 0; i < argn; i ++)
 		txt.push('		T' + i +' m_v' + i + '; \\');
 	
-	txt.push('	}; \\');
+	txt.push('		const char* m_ev; \\\n	}; \\');
 
 	s = '	q.put(new _t(this';
 	for(i = 0; i < argn; i ++)
 		s += ', v' + i;
-	s += ')); \\';
+	s += ', ev)); \\';
 	txt.push(s);
 	
 	txt.push('	}\n');
