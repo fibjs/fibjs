@@ -28,6 +28,9 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
+	if (!ac)
+		return CALL_E_NOSYNC;
+
 	std::string strBuf;
 	result_t hr;
 
@@ -64,7 +67,7 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 		strBuf.resize(bytes - sz);
 	}
 
-	if(strBuf.length())
+	if (strBuf.length())
 		retVal = new Buffer(strBuf);
 
 	return 0;
@@ -101,6 +104,12 @@ result_t File::Write(const char* p, int sz)
 
 result_t File::write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
 {
+	if (!m_file)
+		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
+
 	std::string strBuf;
 	data->toString(strBuf);
 
@@ -118,8 +127,15 @@ result_t File::onwrite(v8::Handle<v8::Function> func)
 	return on("write", func);
 }
 
-result_t File::copyTo(obj_ptr<Stream_base>& stm, int32_t bytes, int32_t& retVal, exlib::AsyncEvent* ac)
+result_t File::copyTo(obj_ptr<Stream_base>& stm, int32_t bytes, int32_t& retVal,
+		exlib::AsyncEvent* ac)
 {
+	if (!m_file)
+		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
+
 	return copyStream(this, stm, bytes, retVal, ac);
 }
 
@@ -136,6 +152,9 @@ result_t File::oncopyto(v8::Handle<v8::Function> func)
 
 result_t File::open(const char* fname, const char* mode, exlib::AsyncEvent* ac)
 {
+	if (!ac)
+		return CALL_E_NOSYNC;
+
 #ifdef _WIN32
 	wchar_t m[] = L"rb\0";
 #else
@@ -191,6 +210,9 @@ result_t File::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
 
 	struct stat64 st;
 	fstat64(fileno(m_file), &st);
@@ -277,6 +299,9 @@ result_t File::flush(exlib::AsyncEvent* ac)
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
+	if (!ac)
+		return CALL_E_NOSYNC;
+
 	fflush(m_file);
 
 	if (ferror(m_file))
@@ -300,6 +325,9 @@ result_t File::close(exlib::AsyncEvent* ac)
 {
 	if (m_file)
 	{
+		if (!ac)
+			return CALL_E_NOSYNC;
+
 		fclose(m_file);
 		m_file = NULL;
 	}
@@ -322,6 +350,9 @@ result_t File::truncate(double bytes, exlib::AsyncEvent* ac)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
 
 	if (ftruncate64(fileno(m_file), (int64_t) bytes) < 0)
 		return LastError();

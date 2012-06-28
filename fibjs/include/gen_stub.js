@@ -60,6 +60,19 @@ function gen_stub(argn, bInst)
 
 	txt.push('			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \\');
 
+	s = '	result_t hr = m(';
+	if(argn > 0)
+	{
+		a = [];
+		for(i = 0; i < argn; i ++)
+			a.push('v' + i);
+		a.push('NULL');
+		s += a.join(', ');
+	}else s += 'NULL';
+	
+	txt.push(s + '); \\\n' +
+			'	if(hr != CALL_E_NOSYNC)return hr; \\');
+	
 	if(argn > 0 || bInst)
 	{
 		s = '	void* args[] = {';

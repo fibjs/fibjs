@@ -31,7 +31,7 @@ zmqSocket::zmqSocket(int32_t type)
 
 zmqSocket::~zmqSocket()
 {
-	// TODO Auto-generated destructor stub
+	close();
 }
 
 inline result_t zmq_LastError()
@@ -75,6 +75,9 @@ result_t zmqSocket::recv(obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac)
 {
 	if (!m_sock)
 		return CALL_E_INVALID_CALL;
+
+	if(!ac)
+		return CALL_E_NOSYNC;
 
 	zmq_msg_t msg;
 	int rc = zmq_msg_init(&msg);

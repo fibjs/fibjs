@@ -5,6 +5,8 @@
 			result_t hr = cls::m( \
 				ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	AsyncCall ac(NULL, _t::_stub); \
 	q.put(&ac); \
 	return ac.wait();}
@@ -16,6 +18,8 @@
 			result_t hr = ((cls*)ac->args[0])->m( \
 				ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {this}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -82,6 +86,8 @@ template<typename T0> \
 			result_t hr = cls::m( \
 				*(T0*) ac->args[0], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -96,6 +102,8 @@ template<typename T0> \
 			result_t hr = ((cls*)ac->args[1])->m( \
 				*(T0*) ac->args[0], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, this}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -170,6 +178,8 @@ template<typename T0, typename T1> \
 			result_t hr = cls::m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, v1, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -184,6 +194,8 @@ template<typename T0, typename T1> \
 			result_t hr = ((cls*)ac->args[2])->m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, v1, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, this}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -262,6 +274,8 @@ template<typename T0, typename T1, typename T2> \
 			result_t hr = cls::m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, v1, v2, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -276,6 +290,8 @@ template<typename T0, typename T1, typename T2> \
 			result_t hr = ((cls*)ac->args[3])->m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, v1, v2, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, this}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -358,6 +374,8 @@ template<typename T0, typename T1, typename T2, typename T3> \
 			result_t hr = cls::m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, v1, v2, v3, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -372,6 +390,8 @@ template<typename T0, typename T1, typename T2, typename T3> \
 			result_t hr = ((cls*)ac->args[4])->m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, v1, v2, v3, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -458,6 +478,8 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 			result_t hr = cls::m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, v1, v2, v3, v4, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -472,6 +494,8 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 			result_t hr = ((cls*)ac->args[5])->m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, v1, v2, v3, v4, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -562,6 +586,8 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = cls::m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, v1, v2, v3, v4, v5, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -576,6 +602,8 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = ((cls*)ac->args[6])->m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, v1, v2, v3, v4, v5, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -670,6 +698,8 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = cls::m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -684,6 +714,8 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = ((cls*)ac->args[7])->m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -782,6 +814,8 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = cls::m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], *(T7*) ac->args[7], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -796,6 +830,8 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = ((cls*)ac->args[8])->m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], *(T7*) ac->args[7], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -898,6 +934,8 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = cls::m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], *(T7*) ac->args[7], *(T8*) ac->args[8], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \
@@ -912,6 +950,8 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = ((cls*)ac->args[9])->m( \
 				*(T0*) ac->args[0], *(T1*) ac->args[1], *(T2*) ac->args[2], *(T3*) ac->args[3], *(T4*) ac->args[4], *(T5*) ac->args[5], *(T6*) ac->args[6], *(T7*) ac->args[7], *(T8*) ac->args[8], ac); \
 			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \
+	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, NULL); \
+	if(hr != CALL_E_NOSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
 	AsyncCall ac(args, _t::_stub); \
 	q.put(&ac); \

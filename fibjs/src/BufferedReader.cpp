@@ -180,6 +180,9 @@ result_t BufferedReader::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 		obj_ptr<Buffer_base>& m_retVal;
 	};
 
+	if (!ac)
+		return CALL_E_NOSYNC;
+
 	(new asyncRead(this, m_stm, bytes, retVal, ac))->start();
 	return CALL_E_PENDDING;
 }

@@ -346,7 +346,8 @@ result_t Socket_base::_new(int32_t family, int32_t type,
 
 Socket::~Socket()
 {
-	close(NULL);
+	exlib::AsyncEvent ac;
+	close(&ac);
 }
 
 #ifdef _WIN32
@@ -437,6 +438,12 @@ result_t Socket::onwrite(v8::Handle<v8::Function> func)
 
 result_t Socket::copyTo(obj_ptr<Stream_base>& stm, int32_t bytes, int32_t& retVal, exlib::AsyncEvent* ac)
 {
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
+
 	return copyStream(this, stm, bytes, retVal, ac);
 }
 
@@ -471,6 +478,9 @@ result_t Socket::close(exlib::AsyncEvent* ac)
 {
 	if (m_sock != INVALID_SOCKET)
 		::closesocket(m_sock);
+
+	if (!ac)
+		return CALL_E_NOSYNC;
 
 	m_sock = INVALID_SOCKET;
 

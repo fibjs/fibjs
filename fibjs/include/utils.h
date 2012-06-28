@@ -207,8 +207,10 @@ typedef int result_t;
 #define CALL_E_BADINDEX         (CALL_E_MAX - 10)
 // Memory overflow error.
 #define CALL_E_OVERFLOW         (CALL_E_MAX - 11)
-// Operation now in progress
+// Operation now in progress.
 #define CALL_E_PENDDING			(CALL_E_MAX - 12)
+// Operation now support synchronous call.
+#define CALL_E_NOSYNC			(CALL_E_MAX - 13)
 
 #define CALL_E_MIN              -100100
 
