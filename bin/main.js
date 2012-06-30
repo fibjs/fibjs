@@ -5,6 +5,7 @@ require("fiber_test");
 require("trigger_test");
 require("lock_test");
 require("io_test");
+require("ms_test");
 require("buffered_test");
 require("os_test");
 require("encoding_test");
