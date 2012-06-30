@@ -520,8 +520,10 @@ bool Call::ComputeTarget(Handle<Map> type, Handle<String> name) {
           return false;
         case MAP_TRANSITION:
         case CONSTANT_TRANSITION:
-        case NULL_DESCRIPTOR:
           // Perhaps something interesting is up in the prototype chain...
+          break;
+        case NONEXISTENT:
+          UNREACHABLE();
           break;
       }
     }
@@ -1045,6 +1047,7 @@ REGULAR_NODE(SwitchStatement)
 REGULAR_NODE(Conditional)
 REGULAR_NODE(Literal)
 REGULAR_NODE(ObjectLiteral)
+REGULAR_NODE(RegExpLiteral)
 REGULAR_NODE(Assignment)
 REGULAR_NODE(Throw)
 REGULAR_NODE(Property)
@@ -1074,9 +1077,8 @@ DONT_OPTIMIZE_NODE(TryFinallyStatement)
 DONT_OPTIMIZE_NODE(DebuggerStatement)
 DONT_OPTIMIZE_NODE(SharedFunctionInfoLiteral)
 
-DONT_INLINE_NODE(FunctionLiteral)
-DONT_INLINE_NODE(RegExpLiteral)  // TODO(1322): Allow materialized literals.
 DONT_INLINE_NODE(ArrayLiteral)  // TODO(1322): Allow materialized literals.
+DONT_INLINE_NODE(FunctionLiteral)
 
 DONT_SELFOPTIMIZE_NODE(DoWhileStatement)
 DONT_SELFOPTIMIZE_NODE(WhileStatement)

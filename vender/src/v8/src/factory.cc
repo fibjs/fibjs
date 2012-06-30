@@ -555,40 +555,23 @@ Handle<JSFunction> Factory::NewFunctionFromSharedFunctionInfo(
 
   result->set_context(*context);
 
-  int index = FLAG_cache_optimized_code
-      ? function_info->SearchOptimizedCodeMap(context->global_context())
-      : -1;
-  if (!function_info->bound()) {
-    if (index > 0) {
-      FixedArray* code_map =
-          FixedArray::cast(function_info->optimized_code_map());
-      FixedArray* cached_literals = FixedArray::cast(code_map->get(index + 1));
-      ASSERT(cached_literals != NULL);
-      ASSERT(function_info->num_literals() == 0 ||
-             (code_map->get(index - 1) ==
-              cached_literals->get(JSFunction::kLiteralGlobalContextIndex)));
-      result->set_literals(cached_literals);
-    } else {
-      int number_of_literals = function_info->num_literals();
-      Handle<FixedArray> literals =
-          NewFixedArray(number_of_literals, pretenure);
-      if (number_of_literals > 0) {
-        // Store the object, regexp and array functions in the literals
-        // array prefix.  These functions will be used when creating
-        // object, regexp and array literals in this function.
-        literals->set(JSFunction::kLiteralGlobalContextIndex,
-                      context->global_context());
-      }
-      result->set_literals(*literals);
+  int index = function_info->SearchOptimizedCodeMap(context->global_context());
+  if (!function_info->bound() && index < 0) {
+    int number_of_literals = function_info->num_literals();
+    Handle<FixedArray> literals = NewFixedArray(number_of_literals, pretenure);
+    if (number_of_literals > 0) {
+      // Store the global context in the literals array prefix. This
+      // context will be used when creating object, regexp and array
+      // literals in this function.
+      literals->set(JSFunction::kLiteralGlobalContextIndex,
+                    context->global_context());
     }
+    result->set_literals(*literals);
   }
 
   if (index > 0) {
     // Caching of optimized code enabled and optimized code found.
-    Code* code = Code::cast(
-        FixedArray::cast(function_info->optimized_code_map())->get(index));
-    ASSERT(code != NULL);
-    result->ReplaceCode(code);
+    function_info->InstallFromOptimizedCodeMap(*result, index);
     return result;
   }
 
@@ -939,24 +922,17 @@ Handle<DescriptorArray> Factory::CopyAppendCallbackDescriptors(
     Handle<Object> descriptors) {
   v8::NeanderArray callbacks(descriptors);
   int nof_callbacks = callbacks.length();
+  int descriptor_count = array->number_of_descriptors();
   Handle<DescriptorArray> result =
-      NewDescriptorArray(array->number_of_descriptors() + nof_callbacks);
-
-  // Number of descriptors added to the result so far.
-  int descriptor_count = 0;
+      NewDescriptorArray(descriptor_count + nof_callbacks);
 
   // Ensure that marking will not progress and change color of objects.
   DescriptorArray::WhitenessWitness witness(*result);
 
   // Copy the descriptors from the array.
-  for (int i = 0; i < array->number_of_descriptors(); i++) {
-    if (!array->IsNullDescriptor(i)) {
-      DescriptorArray::CopyFrom(result, descriptor_count++, array, i, witness);
-    }
+  for (int i = 0; i < descriptor_count; i++) {
+    DescriptorArray::CopyFrom(result, i, array, i, witness);
   }
-
-  // Number of duplicates detected.
-  int duplicates = 0;
 
   // Fill in new callback descriptors.  Process the callbacks from
   // back to front so that the last callback with a given name takes
@@ -973,18 +949,14 @@ Handle<DescriptorArray> Factory::CopyAppendCallbackDescriptors(
       CallbacksDescriptor desc(*key, *entry, entry->property_attributes());
       result->Set(descriptor_count, &desc, witness);
       descriptor_count++;
-    } else {
-      duplicates++;
     }
   }
 
   // If duplicates were detected, allocate a result of the right size
   // and transfer the elements.
-  if (duplicates > 0) {
-    int number_of_descriptors = result->number_of_descriptors() - duplicates;
-    Handle<DescriptorArray> new_result =
-        NewDescriptorArray(number_of_descriptors);
-    for (int i = 0; i < number_of_descriptors; i++) {
+  if (descriptor_count < result->length()) {
+    Handle<DescriptorArray> new_result = NewDescriptorArray(descriptor_count);
+    for (int i = 0; i < descriptor_count; i++) {
       DescriptorArray::CopyFrom(new_result, i, result, i, witness);
     }
     result = new_result;

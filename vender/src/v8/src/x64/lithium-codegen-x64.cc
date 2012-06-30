@@ -2321,10 +2321,15 @@ void LCodeGen::EmitLoadFieldOrConstantFunction(Register result,
 
 // Check for cases where EmitLoadFieldOrConstantFunction needs to walk the
 // prototype chain, which causes unbounded code generation.
-static bool CompactEmit(
-    SmallMapList* list, Handle<String> name, int i, Isolate* isolate) {
-  LookupResult lookup(isolate);
+static bool CompactEmit(SmallMapList* list,
+                        Handle<String> name,
+                        int i,
+                        Isolate* isolate) {
   Handle<Map> map = list->at(i);
+  // If the map has ElementsKind transitions, we will generate map checks
+  // for each kind in __ CompareMap(..., ALLOW_ELEMENTS_TRANSITION_MAPS).
+  if (map->elements_transition_map() != NULL) return false;
+  LookupResult lookup(isolate);
   map->LookupInDescriptors(NULL, *name, &lookup);
   return lookup.IsField() || lookup.IsConstantFunction();
 }
@@ -3026,7 +3031,6 @@ void LCodeGen::DoMathFloor(LUnaryMathOperation* instr) {
   XMMRegister xmm_scratch = xmm0;
   Register output_reg = ToRegister(instr->result());
   XMMRegister input_reg = ToDoubleRegister(instr->InputAt(0));
-  Label done;
 
   if (CpuFeatures::IsSupported(SSE4_1)) {
     CpuFeatures::Scope scope(SSE4_1);
@@ -3041,10 +3045,13 @@ void LCodeGen::DoMathFloor(LUnaryMathOperation* instr) {
     __ cmpl(output_reg, Immediate(0x80000000));
     DeoptimizeIf(equal, instr->environment());
   } else {
+    Label negative_sign, done;
     // Deoptimize on negative inputs.
     __ xorps(xmm_scratch, xmm_scratch);  // Zero the register.
     __ ucomisd(input_reg, xmm_scratch);
-    DeoptimizeIf(below, instr->environment());
+    DeoptimizeIf(parity_even, instr->environment());
+    __ j(below, &negative_sign, Label::kNear);
+
     if (instr->hydrogen()->CheckFlag(HValue::kBailoutOnMinusZero)) {
       // Check for negative zero.
       Label positive_sign;
@@ -3059,12 +3066,23 @@ void LCodeGen::DoMathFloor(LUnaryMathOperation* instr) {
 
     // Use truncating instruction (OK because input is positive).
     __ cvttsd2si(output_reg, input_reg);
-
     // Overflow is signalled with minint.
     __ cmpl(output_reg, Immediate(0x80000000));
     DeoptimizeIf(equal, instr->environment());
+    __ jmp(&done, Label::kNear);
+
+    // Non-zero negative reaches here.
+    __ bind(&negative_sign);
+    // Truncate, then compare and compensate.
+    __ cvttsd2si(output_reg, input_reg);
+    __ cvtlsi2sd(xmm_scratch, output_reg);
+    __ ucomisd(input_reg, xmm_scratch);
+    __ j(equal, &done, Label::kNear);
+    __ subl(output_reg, Immediate(1));
+    DeoptimizeIf(overflow, instr->environment());
+
+    __ bind(&done);
   }
-  __ bind(&done);
 }
 
 
@@ -4383,7 +4401,7 @@ void LCodeGen::DoDeferredAllocateObject(LAllocateObject* instr) {
 
 
 void LCodeGen::DoArrayLiteral(LArrayLiteral* instr) {
-  Heap* heap = isolate()->heap();
+  Handle<FixedArray> literals(instr->environment()->closure()->literals());
   ElementsKind boilerplate_elements_kind =
       instr->hydrogen()->boilerplate_elements_kind();
 
@@ -4404,12 +4422,11 @@ void LCodeGen::DoArrayLiteral(LArrayLiteral* instr) {
   }
 
   // Set up the parameters to the stub/runtime call.
-  __ movq(rax, Operand(rbp, JavaScriptFrameConstants::kFunctionOffset));
-  __ push(FieldOperand(rax, JSFunction::kLiteralsOffset));
+  __ PushHeapObject(literals);
   __ Push(Smi::FromInt(instr->hydrogen()->literal_index()));
   // Boilerplate already exists, constant elements are never accessed.
   // Pass an empty fixed array.
-  __ Push(Handle<FixedArray>(heap->empty_fixed_array()));
+  __ Push(isolate()->factory()->empty_fixed_array());
 
   // Pick the right runtime function or stub to call.
   int length = instr->hydrogen()->length();
@@ -4612,14 +4629,12 @@ void LCodeGen::DoToFastProperties(LToFastProperties* instr) {
 void LCodeGen::DoRegExpLiteral(LRegExpLiteral* instr) {
   Label materialized;
   // Registers will be used as follows:
-  // rdi = JS function.
   // rcx = literals array.
   // rbx = regexp literal.
   // rax = regexp literal clone.
-  __ movq(rdi, Operand(rbp, JavaScriptFrameConstants::kFunctionOffset));
-  __ movq(rcx, FieldOperand(rdi, JSFunction::kLiteralsOffset));
-  int literal_offset = FixedArray::kHeaderSize +
-      instr->hydrogen()->literal_index() * kPointerSize;
+  int literal_offset =
+      FixedArray::OffsetOfElementAt(instr->hydrogen()->literal_index());
+  __ LoadHeapObject(rcx, instr->hydrogen()->literals());
   __ movq(rbx, FieldOperand(rcx, literal_offset));
   __ CompareRoot(rbx, Heap::kUndefinedValueRootIndex);
   __ j(not_equal, &materialized, Label::kNear);

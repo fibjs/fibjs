@@ -2464,10 +2464,15 @@ void LCodeGen::EmitPushTaggedOperand(LOperand* operand) {
 
 // Check for cases where EmitLoadFieldOrConstantFunction needs to walk the
 // prototype chain, which causes unbounded code generation.
-static bool CompactEmit(
-    SmallMapList* list, Handle<String> name, int i, Isolate* isolate) {
-  LookupResult lookup(isolate);
+static bool CompactEmit(SmallMapList* list,
+                        Handle<String> name,
+                        int i,
+                        Isolate* isolate) {
   Handle<Map> map = list->at(i);
+  // If the map has ElementsKind transitions, we will generate map checks
+  // for each kind in __ CompareMap(..., ALLOW_ELEMENTS_TRANSITION_MAPS).
+  if (map->elements_transition_map() != NULL) return false;
+  LookupResult lookup(isolate);
   map->LookupInDescriptors(NULL, *name, &lookup);
   return lookup.IsField() || lookup.IsConstantFunction();
 }
@@ -3164,8 +3169,7 @@ void LCodeGen::DoMathFloor(LUnaryMathOperation* instr) {
     __ cmp(output_reg, 0x80000000u);
     DeoptimizeIf(equal, instr->environment());
   } else {
-    Label negative_sign;
-    Label done;
+    Label negative_sign, done;
     // Deoptimize on unordered.
     __ xorps(xmm_scratch, xmm_scratch);  // Zero the register.
     __ ucomisd(input_reg, xmm_scratch);
@@ -3191,9 +3195,9 @@ void LCodeGen::DoMathFloor(LUnaryMathOperation* instr) {
     DeoptimizeIf(equal, instr->environment());
     __ jmp(&done, Label::kNear);
 
-    // Non-zero negative reaches here
+    // Non-zero negative reaches here.
     __ bind(&negative_sign);
-    // Truncate, then compare and compensate
+    // Truncate, then compare and compensate.
     __ cvttsd2si(output_reg, Operand(input_reg));
     __ cvtsi2sd(xmm_scratch, output_reg);
     __ ucomisd(input_reg, xmm_scratch);
@@ -4681,7 +4685,7 @@ void LCodeGen::DoDeferredAllocateObject(LAllocateObject* instr) {
 
 void LCodeGen::DoArrayLiteral(LArrayLiteral* instr) {
   ASSERT(ToRegister(instr->context()).is(esi));
-  Heap* heap = isolate()->heap();
+  Handle<FixedArray> literals(instr->environment()->closure()->literals());
   ElementsKind boilerplate_elements_kind =
       instr->hydrogen()->boilerplate_elements_kind();
 
@@ -4702,12 +4706,11 @@ void LCodeGen::DoArrayLiteral(LArrayLiteral* instr) {
   }
 
   // Set up the parameters to the stub/runtime call.
-  __ mov(eax, Operand(ebp, JavaScriptFrameConstants::kFunctionOffset));
-  __ push(FieldOperand(eax, JSFunction::kLiteralsOffset));
+  __ PushHeapObject(literals);
   __ push(Immediate(Smi::FromInt(instr->hydrogen()->literal_index())));
   // Boilerplate already exists, constant elements are never accessed.
   // Pass an empty fixed array.
-  __ push(Immediate(Handle<FixedArray>(heap->empty_fixed_array())));
+  __ push(Immediate(isolate()->factory()->empty_fixed_array()));
 
   // Pick the right runtime function or stub to call.
   int length = instr->hydrogen()->length();
@@ -4926,15 +4929,13 @@ void LCodeGen::DoRegExpLiteral(LRegExpLiteral* instr) {
   ASSERT(ToRegister(instr->context()).is(esi));
   Label materialized;
   // Registers will be used as follows:
-  // edi = JS function.
   // ecx = literals array.
   // ebx = regexp literal.
   // eax = regexp literal clone.
   // esi = context.
-  __ mov(edi, Operand(ebp, JavaScriptFrameConstants::kFunctionOffset));
-  __ mov(ecx, FieldOperand(edi, JSFunction::kLiteralsOffset));
-  int literal_offset = FixedArray::kHeaderSize +
-      instr->hydrogen()->literal_index() * kPointerSize;
+  int literal_offset =
+      FixedArray::OffsetOfElementAt(instr->hydrogen()->literal_index());
+  __ LoadHeapObject(ecx, instr->hydrogen()->literals());
   __ mov(ebx, FieldOperand(ecx, literal_offset));
   __ cmp(ebx, factory()->undefined_value());
   __ j(not_equal, &materialized, Label::kNear);

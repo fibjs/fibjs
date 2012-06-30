@@ -279,12 +279,10 @@ void JSObject::PrintProperties(FILE* out) {
         case CONSTANT_TRANSITION:
           PrintF(out, "(constant transition)\n");
           break;
-        case NULL_DESCRIPTOR:
-          PrintF(out, "(null descriptor)\n");
-          break;
         case NORMAL:  // only in slow mode
         case HANDLER:  // only in lookup results, not in descriptors
         case INTERCEPTOR:  // only in lookup results, not in descriptors
+        case NONEXISTENT:
           UNREACHABLE();
           break;
       }
@@ -741,6 +739,8 @@ void JSFunction::JSFunctionPrint(FILE* out) {
   shared()->name()->Print(out);
   PrintF(out, "\n - context = ");
   unchecked_context()->ShortPrint(out);
+  PrintF(out, "\n - literals = ");
+  literals()->ShortPrint(out);
   PrintF(out, "\n - code = ");
   code()->ShortPrint(out);
   PrintF(out, "\n");
