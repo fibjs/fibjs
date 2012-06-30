@@ -50,7 +50,7 @@ result_t copyStream(Stream_base* from, Stream_base* to, int32_t bytes,
 						return;
 					}
 
-					if (m_bytes > STREAM_BUFF_SIZE || m_bytes < 0)
+					if (m_bytes > STREAM_BUFF_SIZE)
 						len = STREAM_BUFF_SIZE;
 					else
 						len = m_bytes;

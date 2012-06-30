@@ -46,8 +46,8 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 		else
 			return LastError();
 
-		if (sz > 2147483647ll)
-			return CALL_E_OVERFLOW;
+		if (sz > STREAM_BUFF_SIZE)
+			sz = STREAM_BUFF_SIZE;
 
 		bytes = (int32_t) sz;
 	}

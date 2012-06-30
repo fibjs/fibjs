@@ -58,13 +58,16 @@ result_t io_base::readFile(const char* fname, std::string& retVal, exlib::AsyncE
 
 	obj_ptr<File> f = new File();
 	obj_ptr<Buffer_base> buf;
+	double sz;
 	result_t hr;
 
 	hr = f->open(fname, "r", ac);
 	if (hr < 0)
 		return hr;
 
-	hr = f->read(-1, buf, ac);
+	hr = f->size(sz);
+
+	hr = f->read(sz, buf, ac);
 	f->close(ac);
 
 	if(hr < 0 || !buf)
