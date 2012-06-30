@@ -63,7 +63,7 @@ function accept1(s) {
 
 	io.writeFile('net_temp_000001', str);
 	var f = io.open('net_temp_000001');
-	f.copyTo(c);
+	assert.equal(f.copyTo(c), str.length);
 	f.close();
 	c.close();
 }
@@ -76,7 +76,7 @@ accept1.start(s1);
 var c1 = new net.Socket();
 c1.connect('127.0.0.1', 8081);
 var f1 = io.open('net_temp_000002', 'w');
-c1.copyTo(f1);
+assert.equal(c1.copyTo(f1), str.length);
 c1.close();
 f1.close();
 
