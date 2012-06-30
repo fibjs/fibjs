@@ -573,7 +573,7 @@ result_t os_base::readdir(const char* path, obj_ptr<ObjectArray_base>& retVal, e
 	do
 	{
 		obj_ptr<Stat> pStat = new Stat();
-		pStat->fillStat(fd);
+		pStat->fill(fd);
 		oa->push(pStat);
 	}while(FindNextFileW(hFind, &fd));
 

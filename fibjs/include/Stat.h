@@ -56,14 +56,6 @@ namespace fibjs
 class Stat: public Stat_base
 {
 public:
-	result_t getStat(const char* path);
-	void fillStat(const char* path, struct stat64& st);
-
-#ifdef _WIN32
-	void fillStat(WIN32_FIND_DATAW& fd);
-#endif
-
-public:
 	// Stat_base
 	virtual result_t get_name(std::string& retVal);
 	virtual result_t get_size(double& retVal);
@@ -77,6 +69,18 @@ public:
 	virtual result_t isDirectory(bool& retVal);
 	virtual result_t isFile(bool& retVal);
 	virtual result_t isSymbolicLink(bool& retVal);
+	virtual result_t isMemory(bool& retVal);
+	virtual result_t isSocket(bool& retVal);
+
+public:
+	result_t getStat(const char* path);
+	void fill(const char* path, struct stat64& st);
+
+#ifdef _WIN32
+	void fill(WIN32_FIND_DATAW& fd);
+#endif
+
+	void init();
 
 public:
 	std::string name;
@@ -84,6 +88,7 @@ public:
 	int64_t mtime, atime, ctime;
 	bool m_isWritable, m_isReadable, m_isExecutable, m_isHidden;
 	bool m_isDirectory, m_isFile, m_isSymbolicLink;
+	bool m_isMemory, m_isSocket;
 };
 
 }

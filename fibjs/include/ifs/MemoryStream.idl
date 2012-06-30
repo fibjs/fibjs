@@ -1,0 +1,29 @@
+
+/*! @brief 内存流对象
+ *
+ * MemoryStream 对象用于对二进制流对象数据进行缓存，并提供文本读取能力，创建方法：
+ * @code
+ * var ms = new io.MemoryStream();
+ * @endcode
+ */
+class MemoryStream : Stream
+{
+	MemoryStream();
+
+	/*! @brief 移动文件当前操作位置
+	 *  @param offset 指定新的位置
+	 *  @param whence 指定位置基准，允许的值为：SEEK_SET, SEEK_CUR, SEEK_END
+	 */
+	seek(Number offset, Integer whence = io.SEEK_SET);
+
+	/*! @brief 查询文件当前位置 */
+	Number tell();
+
+	/*! @brief 移动当前位置到文件开头 */
+	rewind();
+
+	/*! @brief 查询文件尺寸 */
+	Number size();
+
+	clear();
+};

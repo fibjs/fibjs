@@ -32,15 +32,19 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 		return CALL_E_NOSYNC;
 
 	std::string strBuf;
-	result_t hr;
 
 	if (bytes < 0)
 	{
-		double sz;
+		int64_t sz;
 
-		hr = this->size(sz);
-		if (hr < 0)
-			return hr;
+		int64_t p = ftello64(m_file);
+		if (0 == fseeko64(m_file, 0, SEEK_END))
+		{
+			sz = ftello64(m_file) - p;
+			fseeko64(m_file, p, SEEK_SET);
+		}
+		else
+			return LastError();
 
 		if (sz > 2147483647ll)
 			return CALL_E_OVERFLOW;
@@ -75,6 +79,9 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
 result_t File::asyncRead(int32_t bytes)
 {
+	if (!m_file)
+		return CALL_E_INVALID_CALL;
+
 	acb_read(s_acPool, bytes);
 	return 0;
 }
@@ -118,6 +125,9 @@ result_t File::write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
 
 result_t File::asyncWrite(obj_ptr<Buffer_base>& data)
 {
+	if (!m_file)
+		return CALL_E_INVALID_CALL;
+
 	acb_write(s_acPool, data);
 	return 0;
 }
@@ -141,6 +151,9 @@ result_t File::copyTo(obj_ptr<Stream_base>& stm, int32_t bytes, int32_t& retVal,
 
 result_t File::asyncCopyTo(obj_ptr<Stream_base>& stm, int32_t bytes)
 {
+	if (!m_file)
+		return CALL_E_INVALID_CALL;
+
 	acb_copyTo(s_acPool, stm, bytes);
 	return 0;
 }
@@ -218,7 +231,7 @@ result_t File::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
 	fstat64(fileno(m_file), &st);
 
 	obj_ptr<Stat> pStat = new Stat();
-	pStat->fillStat(name.c_str(), st);
+	pStat->fill(name.c_str(), st);
 	retVal = pStat;
 
 	return 0;
@@ -226,6 +239,9 @@ result_t File::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
 
 result_t File::asyncStat()
 {
+	if (!m_file)
+		return CALL_E_INVALID_CALL;
+
 	acb_stat(s_acPool);
 	return 0;
 }
@@ -312,6 +328,9 @@ result_t File::flush(exlib::AsyncEvent* ac)
 
 result_t File::asyncFlush()
 {
+	if (!m_file)
+		return CALL_E_INVALID_CALL;
+
 	acb_flush(s_acPool);
 	return 0;
 }
@@ -337,6 +356,9 @@ result_t File::close(exlib::AsyncEvent* ac)
 
 result_t File::asyncClose()
 {
+	if (!m_file)
+		return CALL_E_INVALID_CALL;
+
 	acb_close(s_acPool);
 	return 0;
 }
@@ -362,6 +384,9 @@ result_t File::truncate(double bytes, exlib::AsyncEvent* ac)
 
 result_t File::asyncTruncate(double bytes)
 {
+	if (!m_file)
+		return CALL_E_INVALID_CALL;
+
 	acb_truncate(s_acPool, bytes);
 	return 0;
 }

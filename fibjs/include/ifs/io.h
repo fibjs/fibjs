@@ -19,6 +19,7 @@ namespace fibjs
 
 class module_base;
 class File_base;
+class MemoryStream_base;
 
 class io_base : public module_base
 {
@@ -66,6 +67,7 @@ protected:
 }
 
 #include "File.h"
+#include "MemoryStream.h"
 
 namespace fibjs
 {
@@ -82,7 +84,8 @@ namespace fibjs
 
 		static ClassObject s_object[] = 
 		{
-			{"File", File_base::class_info}
+			{"File", File_base::class_info},
+			{"MemoryStream", MemoryStream_base::class_info}
 		};
 
 		static ClassProperty s_property[] = 
@@ -95,7 +98,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"io", NULL, 
-			5, s_method, 1, s_object, 3, s_property, NULL,
+			5, s_method, 2, s_object, 3, s_property, NULL,
 			&module_base::class_info()
 		};
 

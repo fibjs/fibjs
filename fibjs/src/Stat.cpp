@@ -19,7 +19,7 @@ inline int64_t FileTimeToJSTime(FILETIME &ft)
 	return (*(int64_t*)&ft - 116444736000000000) / 10000;
 }
 
-void Stat::fillStat(WIN32_FIND_DATAW& fd)
+void Stat::fill(WIN32_FIND_DATAW& fd)
 {
 	name = utf16to8String(fd.cFileName);
 
@@ -36,6 +36,9 @@ void Stat::fillStat(WIN32_FIND_DATAW& fd)
 	m_isExecutable = true;
 
 	m_isSymbolicLink = false;
+
+	m_isMemory = false;
+	m_isSocket = false;
 }
 
 #endif
@@ -46,12 +49,12 @@ result_t Stat::getStat(const char* path)
 	if (::stat64(path, &st))
 		return LastError();
 
-	fillStat(path, st);
+	fill(path, st);
 
 	return 0;
 }
 
-void Stat::fillStat(const char* path, struct stat64& st)
+void Stat::fill(const char* path, struct stat64& st)
 {
 	path_base::basename(path, "", name);
 
@@ -68,6 +71,31 @@ void Stat::fillStat(const char* path, struct stat64& st)
 	m_isFile = (S_IFREG & st.st_mode) != 0;
 
 	m_isSymbolicLink = S_ISLNK(st.st_mode);
+
+	m_isMemory = false;
+	m_isSocket = false;
+}
+
+void Stat::init()
+{
+	name.resize(0);
+	size = 0;
+
+	mtime = 0;
+	atime = 0;
+	ctime = 0;
+
+	m_isReadable = false;
+	m_isWritable = false;
+	m_isExecutable = false;
+
+	m_isDirectory = false;
+	m_isFile = false;
+
+	m_isSymbolicLink = false;
+
+	m_isMemory = false;
+	m_isSocket = false;
 }
 
 result_t Stat::get_name(std::string& retVal)
@@ -139,6 +167,18 @@ result_t Stat::isFile(bool& retVal)
 result_t Stat::isSymbolicLink(bool& retVal)
 {
 	retVal = m_isSymbolicLink;
+	return 0;
+}
+
+result_t Stat::isMemory(bool& retVal)
+{
+	retVal = m_isMemory;
+	return 0;
+}
+
+result_t Stat::isSocket(bool& retVal)
+{
+	retVal = m_isSocket;
 	return 0;
 }
 

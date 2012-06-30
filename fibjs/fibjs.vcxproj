@@ -36,6 +36,7 @@
     <ClCompile Include="src\global.cpp" />
     <ClCompile Include="src\io.cpp" />
     <ClCompile Include="src\Lock.cpp" />
+    <ClCompile Include="src\MemoryStream.cpp" />
     <ClCompile Include="src\module.cpp" />
     <ClCompile Include="src\ObjectArray.cpp" />
     <ClCompile Include="src\os.cpp" />
@@ -80,6 +81,7 @@
     <ClInclude Include="include\ifs\global.h" />
     <ClInclude Include="include\ifs\io.h" />
     <ClInclude Include="include\ifs\Lock.h" />
+    <ClInclude Include="include\ifs\MemoryStream.h" />
     <ClInclude Include="include\ifs\module.h" />
     <ClInclude Include="include\ifs\net.h" />
     <ClInclude Include="include\ifs\object.h" />
@@ -94,6 +96,7 @@
     <ClInclude Include="include\ifs\zmq.h" />
     <ClInclude Include="include\ifs\zmqSocket.h" />
     <ClInclude Include="include\Lock.h" />
+    <ClInclude Include="include\MemoryStream.h" />
     <ClInclude Include="include\object.h" />
     <ClInclude Include="include\ObjectArray.h" />
     <ClInclude Include="include\Semaphore.h" />

@@ -52,4 +52,14 @@ class Stat : object
 	 * @return 为 true 则是符号链接
 	 */
 	Boolean isSymbolicLink();
+
+	/*! @brief 查询文件是否是内存文件
+	 * @return 为 true 则是内存文件
+	 */
+	Boolean isMemory();
+
+	/*! @brief 查询文件是否是 Socket
+	 * @return 为 true 则是 Socket
+	 */
+	Boolean isSocket();
 };

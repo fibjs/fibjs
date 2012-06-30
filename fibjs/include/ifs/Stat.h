@@ -32,6 +32,8 @@ public:
 	virtual result_t isDirectory(bool& retVal) = 0;
 	virtual result_t isFile(bool& retVal) = 0;
 	virtual result_t isSymbolicLink(bool& retVal) = 0;
+	virtual result_t isMemory(bool& retVal) = 0;
+	virtual result_t isSocket(bool& retVal) = 0;
 
 public:
 	static ClassInfo& class_info();
@@ -68,6 +70,8 @@ protected:
 	static v8::Handle<v8::Value> s_isDirectory(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_isFile(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_isSymbolicLink(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_isMemory(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_isSocket(const v8::Arguments& args);
 };
 
 }
@@ -84,7 +88,9 @@ namespace fibjs
 			{"isHidden", s_isHidden},
 			{"isDirectory", s_isDirectory},
 			{"isFile", s_isFile},
-			{"isSymbolicLink", s_isSymbolicLink}
+			{"isSymbolicLink", s_isSymbolicLink},
+			{"isMemory", s_isMemory},
+			{"isSocket", s_isSocket}
 		};
 
 		static ClassProperty s_property[] = 
@@ -99,7 +105,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Stat", NULL, 
-			7, s_method, 0, NULL, 5, s_property, NULL,
+			9, s_method, 0, NULL, 5, s_property, NULL,
 			&object_base::class_info()
 		};
 
@@ -247,6 +253,30 @@ namespace fibjs
 		METHOD_ENTER(0, 0);
 
 		hr = pInst->isSymbolicLink(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Stat_base::s_isMemory(const v8::Arguments& args)
+	{
+		bool vr;
+
+		METHOD_INSTANCE(Stat_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->isMemory(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Stat_base::s_isSocket(const v8::Arguments& args)
+	{
+		bool vr;
+
+		METHOD_INSTANCE(Stat_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->isSocket(vr);
 
 		METHOD_RETURN();
 	}

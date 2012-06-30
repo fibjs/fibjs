@@ -7,6 +7,7 @@
 
 #include "Socket.h"
 #include "Buffer.h"
+#include "Stat.h"
 #include <string.h>
 #include  <fcntl.h>
 
@@ -411,6 +412,9 @@ result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
 result_t Socket::asyncRead(int32_t bytes)
 {
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
 	acb_read(s_acPool, bytes);
 	return 0;
 }
@@ -427,6 +431,9 @@ result_t Socket::write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
 
 result_t Socket::asyncWrite(obj_ptr<Buffer_base>& data)
 {
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
 	acb_write(s_acPool, data);
 	return 0;
 }
@@ -449,6 +456,9 @@ result_t Socket::copyTo(obj_ptr<Stream_base>& stm, int32_t bytes, int32_t& retVa
 
 result_t Socket::asyncCopyTo(obj_ptr<Stream_base>& stm, int32_t bytes)
 {
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
 	acb_copyTo(s_acPool, stm, bytes);
 	return 0;
 }
@@ -460,11 +470,22 @@ result_t Socket::oncopyto(v8::Handle<v8::Function> func)
 
 result_t Socket::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
 {
-	return CALL_E_INVALID_CALL;
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
+	obj_ptr<Stat> st = new Stat();
+
+	st->init();
+	st->m_isSocket = true;
+
+	return 0;
 }
 
 result_t Socket::asyncStat()
 {
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
 	acb_stat(s_acPool);
 	return 0;
 }
@@ -489,6 +510,9 @@ result_t Socket::close(exlib::AsyncEvent* ac)
 
 result_t Socket::asyncClose()
 {
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
 	acb_close(s_acPool);
 	return 0;
 }

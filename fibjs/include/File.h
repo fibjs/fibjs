@@ -23,9 +23,6 @@ public:
 
 public:
 	// Stream_base
-	virtual result_t open(const char* fname, const char* mode, exlib::AsyncEvent* ac);
-	virtual result_t asyncOpen(const char* fname, const char* mode);
-	virtual result_t onopen(v8::Handle<v8::Function> func);
 	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
 	virtual result_t asyncRead(int32_t bytes);
 	virtual result_t onread(v8::Handle<v8::Function> func);
@@ -42,6 +39,9 @@ public:
 
 public:
 	// File_base
+	virtual result_t open(const char* fname, const char* mode, exlib::AsyncEvent* ac);
+	virtual result_t asyncOpen(const char* fname, const char* mode);
+	virtual result_t onopen(v8::Handle<v8::Function> func);
 	virtual result_t get_name(std::string& retVal);
 	virtual result_t seek(double offset, int32_t whence);
 	virtual result_t tell(double& retVal);
