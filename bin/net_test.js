@@ -10,6 +10,13 @@ var io = require('io');
 var os = require('os');
 var coroutine = require('coroutine');
 
+function del(f)
+{
+	try{
+		os.unlink(f);
+	}catch(e){}
+}
+
 function tm() {
 	while (1) {
 		coroutine.sleep(1000);
@@ -59,13 +66,17 @@ conn();
 var str = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
 
 function accept1(s) {
-	var c = s.accept();
+	while(true){
+		var c = s.accept();
 
-	io.writeFile('net_temp_000001', str);
-	var f = io.open('net_temp_000001');
-	assert.equal(f.copyTo(c), str.length);
-	f.close();
-	c.close();
+		c.write(new Buffer(str));
+/*		
+		io.writeFile('net_temp_000001', str);
+		var f = io.open('net_temp_000001');
+		assert.equal(f.copyTo(c), str.length);
+		f.close();
+*/		c.close();
+	}
 }
 
 var s1 = new net.Socket(net.AF_INET6, net.SOCK_STREAM);
@@ -73,16 +84,28 @@ s1.bind(8081);
 s1.listen();
 accept1.start(s1);
 
-var c1 = new net.Socket();
-c1.connect('127.0.0.1', 8081);
-var f1 = io.open('net_temp_000002', 'w');
-assert.equal(c1.copyTo(f1), str.length);
-c1.close();
-f1.close();
+function t_conn()
+{
+	var c1 = new net.Socket();
+	c1.connect('127.0.0.1', 8081);
 
-assert.equal(str, io.readFile('net_temp_000002'));
+	var f1 = io.open('net_temp_000002', 'w');
+	assert.equal(c1.copyTo(f1), str.length);
+	c1.close();
+	f1.close();
+	
+	assert.equal(str, io.readFile('net_temp_000002'));
+}
 
-os.unlink('net_temp_000001');
-os.unlink('net_temp_000002');
+for(var i = 0; i < 10000; i ++)
+	t_conn();
+
+for(var i = 0; i < 18; i ++)
+	str = str + str;
+
+t_conn();
+
+del('net_temp_000001');
+del('net_temp_000002');
 
 console.log('Backend:', net.backend());

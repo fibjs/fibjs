@@ -19,12 +19,23 @@ union _sockaddr
 	struct sockaddr_in addr4;
 	struct sockaddr_in6 addr6;
 
-	size_t size()
+	int size()
+	{
+		return addr6.sin6_family == PF_INET6 ? (int)sizeof(addr6) : (int)sizeof(addr4);
+	}
+
+	int type()
 	{
 		return addr6.sin6_family == PF_INET6 ?
-					sizeof(addr6) :
-					sizeof(addr4);
+				net_base::_AF_INET6 : net_base::_AF_INET;
 	}
+
+	int port()
+	{
+		return addr6.sin6_family == PF_INET6 ? addr6.sin6_port : addr4.sin_port;
+	}
+
+	std::string inet_ntop();
 };
 
 class Socket: public Socket_base
@@ -33,17 +44,18 @@ class Socket: public Socket_base
 
 public:
 	Socket() :
-		m_sock(INVALID_SOCKET), m_family(net_base::_AF_INET), m_type(net_base::_SOCK_STREAM)
+			m_sock(INVALID_SOCKET), m_family(net_base::_AF_INET), m_type(
+					net_base::_SOCK_STREAM)
 #ifdef _WIN32
-		, m_bBind(FALSE)
+	, m_bBind(FALSE)
 #endif
 	{
 	}
 
 	Socket(SOCKET s, int32_t family, int32_t type) :
-		m_sock(s), m_family(family), m_type(type)
+			m_sock(s), m_family(family), m_type(type)
 #ifdef _WIN32
-		, m_bBind(FALSE)
+	, m_bBind(FALSE)
 #endif
 	{
 	}
@@ -52,13 +64,15 @@ public:
 
 public:
 	// Stream_base
-	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
+	virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
+			exlib::AsyncEvent* ac);
 	virtual result_t asyncRead(int32_t bytes);
 	virtual result_t onread(v8::Handle<v8::Function> func);
 	virtual result_t write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac);
 	virtual result_t asyncWrite(obj_ptr<Buffer_base>& data);
 	virtual result_t onwrite(v8::Handle<v8::Function> func);
-	virtual result_t copyTo(obj_ptr<Stream_base>& stm, int32_t bytes, int32_t& retVal, exlib::AsyncEvent* ac);
+	virtual result_t copyTo(obj_ptr<Stream_base>& stm, int32_t bytes,
+			int32_t& retVal, exlib::AsyncEvent* ac);
 	virtual result_t asyncCopyTo(obj_ptr<Stream_base>& stm, int32_t bytes);
 	virtual result_t oncopyto(v8::Handle<v8::Function> func);
 	virtual result_t stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
@@ -74,13 +88,15 @@ public:
 	virtual result_t get_remotePort(int32_t& retVal);
 	virtual result_t get_localAddress(std::string& retVal);
 	virtual result_t get_localPort(int32_t& retVal);
-	virtual result_t connect(const char* addr, int32_t port, exlib::AsyncEvent* ac);
+	virtual result_t connect(const char* addr, int32_t port,
+			exlib::AsyncEvent* ac);
 	virtual result_t asyncConnect(const char* addr, int32_t port);
 	virtual result_t onconnect(v8::Handle<v8::Function> func);
 	virtual result_t bind(const char* addr, int32_t port, bool allowIPv4);
 	virtual result_t bind(int32_t port, bool allowIPv4);
 	virtual result_t listen(int32_t backlog);
-	virtual result_t accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac);
+	virtual result_t accept(obj_ptr<Socket_base>& retVal,
+			exlib::AsyncEvent* ac);
 	virtual result_t asyncAccept();
 	virtual result_t onaccept(v8::Handle<v8::Function> func);
 	virtual result_t close(exlib::AsyncEvent* ac);

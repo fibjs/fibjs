@@ -32,6 +32,10 @@
 #define ETIMEDOUT       138
 #endif
 
+#define SHUT_RD		SD_READ
+#define SHUT_WR		SD_SEND
+#define SHUT_RDWR	SD_BOTH
+
 #else
 
 #include <sys/socket.h>

@@ -67,7 +67,7 @@ result_t io_base::readFile(const char* fname, std::string& retVal, exlib::AsyncE
 
 	hr = f->size(sz);
 
-	hr = f->read(sz, buf, ac);
+	hr = f->read((int32_t)sz, buf, ac);
 	f->close(ac);
 
 	if(hr < 0 || !buf)

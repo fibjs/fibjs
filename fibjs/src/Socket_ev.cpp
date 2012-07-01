@@ -240,9 +240,7 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 
 		virtual result_t process()
 		{
-			int n = ::connect(m_s, (struct sockaddr*) &m_ai,
-					m_ai.addr4.sin_family == PF_INET ?
-							sizeof(m_ai.addr4) : sizeof(m_ai.addr6));
+			int n = ::connect(m_s, (struct sockaddr*) &m_ai, m_ai.size());
 			if (n == SOCKET_ERROR)
 			{
 				int nError = errno;
@@ -312,10 +310,8 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 			setsockopt(c, SOL_SOCKET, SO_NOSIGPIPE, &set_option, sizeof(set_option));
 #endif
 
-			obj_ptr<Socket> sock = new Socket(c,
-					ai.addr6.sin6_family == PF_INET6 ?
-							net_base::_AF_INET6 : net_base::_AF_INET,
-							net_base::_SOCK_STREAM);
+			obj_ptr<Socket> sock = new Socket(c, ai.type(),
+					net_base::_SOCK_STREAM);
 
 			m_retVal = sock;
 
@@ -354,7 +350,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 			if (n == SOCKET_ERROR)
 			{
 				int nError = errno;
-				if(nError == ECONNRESET)
+				if (nError == ECONNRESET)
 					return 0;
 				return (nError == EWOULDBLOCK) ? CALL_E_PENDDING : -nError;
 			}
@@ -417,7 +413,7 @@ result_t Socket::send(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
 		{
 			result_t hr = process();
 
-			if (hr == 0 && m_sz > 0)
+			if (hr == CALL_E_PENDDING)
 				post();
 			else
 			{

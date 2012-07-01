@@ -229,7 +229,7 @@ static const char *inet_ntop6(const struct in6_addr *addr, char *dst,
 		a4.s_addr = ((uint32_t*) &addr->s6_addr)[3];
 		len = sprintf(tmp, "::%s%s", (i != 0) ? "ffff:" : "",
 				inet_ntop4(&a4, tmp2, sizeof(tmp2)));
-		if ((socklen_t)len >= size)
+		if ((socklen_t) len >= size)
 			return NULL;
 		memcpy(dst, tmp, len + 1);
 		return dst;
@@ -325,11 +325,23 @@ static const char *inet_ntop6(const struct in6_addr *addr, char *dst,
 	/* trailing NULL */
 	len++;
 
-	if ((socklen_t)len > size)
+	if ((socklen_t) len > size)
 		return NULL;
 
 	memcpy(dst, tmp, len);
 	return dst;
+}
+
+std::string _sockaddr::inet_ntop()
+{
+	char tmp[MAX_IPv6_STR_LEN];
+
+	if (addr6.sin6_family == PF_INET6)
+		inet_ntop6(&addr6.sin6_addr, tmp, MAX_IPv6_STR_LEN);
+	else
+		inet_ntop4(&addr4.sin_addr, tmp, MAX_IPv6_STR_LEN);
+
+	return tmp;
 }
 
 result_t Socket_base::_new(int32_t family, int32_t type,
@@ -357,7 +369,8 @@ extern HANDLE s_hIocp;
 
 result_t Socket::create(int32_t family, int32_t type)
 {
-	close(NULL);
+	exlib::AsyncEvent ac;
+	close(&ac);
 
 	m_family = family;
 	m_type = type;
@@ -443,7 +456,8 @@ result_t Socket::onwrite(v8::Handle<v8::Function> func)
 	return on("write", func);
 }
 
-result_t Socket::copyTo(obj_ptr<Stream_base>& stm, int32_t bytes, int32_t& retVal, exlib::AsyncEvent* ac)
+result_t Socket::copyTo(obj_ptr<Stream_base>& stm, int32_t bytes,
+		int32_t& retVal, exlib::AsyncEvent* ac)
 {
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
@@ -497,11 +511,17 @@ result_t Socket::onstat(v8::Handle<v8::Function> func)
 
 result_t Socket::close(exlib::AsyncEvent* ac)
 {
-	if (m_sock != INVALID_SOCKET)
-		::closesocket(m_sock);
+	if (m_sock == INVALID_SOCKET)
+		return 0;
 
 	if (!ac)
 		return CALL_E_NOSYNC;
+
+	if (m_sock != INVALID_SOCKET)
+	{
+		::shutdown(m_sock, SHUT_RDWR);
+		::closesocket(m_sock);
+	}
 
 	m_sock = INVALID_SOCKET;
 
@@ -558,14 +578,7 @@ result_t Socket::get_remoteAddress(std::string& retVal)
 	if (::getpeername(m_sock, (sockaddr*) &addr_info, &sz) == SOCKET_ERROR)
 		return SocketError();
 
-	char tmp[MAX_IPv6_STR_LEN];
-
-	if (addr_info.addr6.sin6_family == PF_INET6)
-		inet_ntop6(&addr_info.addr6.sin6_addr, tmp, MAX_IPv6_STR_LEN);
-	else
-		inet_ntop4(&addr_info.addr4.sin_addr, tmp, MAX_IPv6_STR_LEN);
-
-	retVal = tmp;
+	retVal = addr_info.inet_ntop();
 
 	return 0;
 }
@@ -581,10 +594,7 @@ result_t Socket::get_remotePort(int32_t& retVal)
 	if (::getpeername(m_sock, (sockaddr*) &addr_info, &sz) == SOCKET_ERROR)
 		return SocketError();
 
-	if (addr_info.addr6.sin6_family == PF_INET6)
-		retVal = ntohs(addr_info.addr6.sin6_port);
-	else
-		retVal = ntohs(addr_info.addr4.sin_port);
+	retVal = ntohs(addr_info.port());
 
 	return 0;
 }
@@ -600,14 +610,7 @@ result_t Socket::get_localAddress(std::string& retVal)
 	if (::getsockname(m_sock, (sockaddr*) &addr_info, &sz) == SOCKET_ERROR)
 		return SocketError();
 
-	char tmp[MAX_IPv6_STR_LEN];
-
-	if (addr_info.addr6.sin6_family == PF_INET6)
-		inet_ntop6(&addr_info.addr6.sin6_addr, tmp, MAX_IPv6_STR_LEN);
-	else
-		inet_ntop4(&addr_info.addr4.sin_addr, tmp, MAX_IPv6_STR_LEN);
-
-	retVal = tmp;
+	retVal = addr_info.inet_ntop();
 
 	return 0;
 }
@@ -623,10 +626,7 @@ result_t Socket::get_localPort(int32_t& retVal)
 	if (::getsockname(m_sock, (sockaddr*) &addr_info, &sz) == SOCKET_ERROR)
 		return SocketError();
 
-	if (addr_info.addr6.sin6_family == PF_INET6)
-		retVal = ntohs(addr_info.addr6.sin6_port);
-	else
-		retVal = ntohs(addr_info.addr4.sin_port);
+	retVal = ntohs(addr_info.port());
 
 	return 0;
 }
@@ -640,7 +640,7 @@ result_t Socket::getAddrInfo(const char* addr, int32_t port,
 	{
 		addr_info.addr4.sin_family = PF_INET;
 
-		if(port)
+		if (port)
 			addr_info.addr4.sin_port = htons(port);
 
 		if (addr && inet_pton4(addr, &addr_info.addr4.sin_addr.s_addr) < 0)
@@ -650,7 +650,7 @@ result_t Socket::getAddrInfo(const char* addr, int32_t port,
 	{
 		addr_info.addr6.sin6_family = PF_INET6;
 
-		if(port)
+		if (port)
 			addr_info.addr6.sin6_port = htons(port);
 
 		if (addr && inet_pton6(addr, &addr_info.addr6.sin6_addr) < 0)
@@ -682,7 +682,8 @@ result_t Socket::bind(const char* addr, int32_t port, bool allowIPv4)
 				sizeof(on));
 	}
 
-	if (::bind(m_sock, (struct sockaddr*) &addr_info, (int)addr_info.size()) == SOCKET_ERROR)
+	if (::bind(m_sock, (struct sockaddr*) &addr_info,
+			addr_info.size()) == SOCKET_ERROR)
 		return SocketError();
 
 #ifdef _WIN32

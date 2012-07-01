@@ -155,7 +155,7 @@ result_t MemoryStream::seek(double offset, int32_t whence)
 	if (offset < 0)
 		offset = 0;
 	else if (offset > sz)
-		offset = sz;
+		offset = (double)sz;
 
 	m_buffer.seekg((int64_t) offset);
 	m_buffer.seekp((int64_t) offset);
