@@ -7,6 +7,7 @@ var io = require('io');
 
 var ms = new io.MemoryStream();
 assert.equal(ms.stat().size, ms.size());
+assert.equal(ms.stat().mtime.toString(), new Date().toString());
 
 ms.write(new Buffer('abcdefghijklmnopqrstuvwxyz'));
 assert.equal(ms.stat().size, ms.size());

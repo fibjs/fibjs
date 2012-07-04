@@ -37,3 +37,4 @@ assert.equal(st.isExecutable(), true);
 assert.equal(st.isReadable(), true);
 assert.equal(st.isWritable(), true);
 
+assert.equal(os.time().toString(), new Date().toString());

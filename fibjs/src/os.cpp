@@ -33,6 +33,18 @@
 #include "ObjectArray.h"
 
 
+namespace v8
+{
+namespace internal
+{
+class OS
+{
+public:
+	static double TimeCurrentMillis();
+};
+}
+}
+
 namespace fibjs
 {
 
@@ -413,6 +425,12 @@ result_t os_base::networkInfo(v8::Handle<v8::Array>& retVal)
 #endif
 
     return 0;
+}
+
+result_t os_base::time(int64_t& retVal)
+{
+	retVal = (int64_t)v8::internal::OS::TimeCurrentMillis();
+	return 0;
 }
 
 result_t os_base::stat(const char* path, obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)

@@ -32,6 +32,7 @@ public:
 	static result_t CPUInfo(v8::Handle<v8::Array>& retVal);
 	static result_t CPUs(int32_t& retVal);
 	static result_t networkInfo(v8::Handle<v8::Array>& retVal);
+	static result_t time(int64_t& retVal);
 	static result_t exists(const char* path, bool& retVal, exlib::AsyncEvent* ac);
 	static result_t unlink(const char* path, exlib::AsyncEvent* ac);
 	static result_t mkdir(const char* path, exlib::AsyncEvent* ac);
@@ -56,6 +57,7 @@ protected:
 	static v8::Handle<v8::Value> s_CPUInfo(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_CPUs(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_networkInfo(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_time(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_exists(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_unlink(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_mkdir(const v8::Arguments& args);
@@ -92,6 +94,7 @@ namespace fibjs
 			{"CPUInfo", s_CPUInfo, true},
 			{"CPUs", s_CPUs, true},
 			{"networkInfo", s_networkInfo, true},
+			{"time", s_time, true},
 			{"exists", s_exists, true},
 			{"unlink", s_unlink, true},
 			{"mkdir", s_mkdir, true},
@@ -104,7 +107,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"os", NULL, 
-			14, s_method, 0, NULL, 0, NULL, NULL,
+			15, s_method, 0, NULL, 0, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -186,6 +189,17 @@ namespace fibjs
 		METHOD_ENTER(0, 0);
 
 		hr = networkInfo(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_time(const v8::Arguments& args)
+	{
+		int64_t vr;
+
+		METHOD_ENTER(0, 0);
+
+		hr = time(vr);
 
 		METHOD_RETURN();
 	}

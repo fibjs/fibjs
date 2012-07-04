@@ -75,6 +75,8 @@ result_t MemoryStream::write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
 	m_buffer.write(strBuf.c_str(), (int) strBuf.length());
 	m_buffer.seekg(m_buffer.tellp());
 
+	os_base::time(m_time);
+
 	return 0;
 }
 
@@ -115,6 +117,7 @@ result_t MemoryStream::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
 
 	st->init();
 	st->m_isMemory = true;
+	st->mtime = st->ctime = m_time;
 	size(st->size);
 
 	retVal = st;
@@ -187,10 +190,19 @@ result_t MemoryStream::size(double& retVal)
 	return 0;
 }
 
+result_t MemoryStream::setTime(int64_t d)
+{
+	m_time = d;
+	return 0;
+}
+
 result_t MemoryStream::clear()
 {
 	rewind();
 	m_buffer.str("");
+
+	os_base::time(m_time);
+
 	return 0;
 }
 

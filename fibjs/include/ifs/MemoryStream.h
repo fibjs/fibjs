@@ -29,6 +29,7 @@ public:
 	virtual result_t tell(double& retVal) = 0;
 	virtual result_t rewind() = 0;
 	virtual result_t size(double& retVal) = 0;
+	virtual result_t setTime(int64_t d) = 0;
 	virtual result_t clear() = 0;
 
 public:
@@ -45,6 +46,7 @@ protected:
 	static v8::Handle<v8::Value> s_tell(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_rewind(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_size(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_setTime(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_clear(const v8::Arguments& args);
 };
 
@@ -62,13 +64,14 @@ namespace fibjs
 			{"tell", s_tell},
 			{"rewind", s_rewind},
 			{"size", s_size},
+			{"setTime", s_setTime},
 			{"clear", s_clear}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"MemoryStream", s__new, 
-			5, s_method, 0, NULL, 0, NULL, NULL,
+			6, s_method, 0, NULL, 0, NULL, NULL,
 			&Stream_base::class_info()
 		};
 
@@ -133,6 +136,18 @@ namespace fibjs
 		hr = pInst->size(vr);
 
 		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> MemoryStream_base::s_setTime(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(MemoryStream_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(int64_t, 0);
+
+		hr = pInst->setTime(v0);
+
+		METHOD_VOID();
 	}
 
 	inline v8::Handle<v8::Value> MemoryStream_base::s_clear(const v8::Arguments& args)

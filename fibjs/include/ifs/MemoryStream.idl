@@ -1,13 +1,14 @@
 
 /*! @brief 内存流对象
  *
- * MemoryStream 对象用于对二进制流对象数据进行缓存，并提供文本读取能力，创建方法：
+ * MemoryStream 对象创建一个基于内存的流对象，创建方法：
  * @code
  * var ms = new io.MemoryStream();
  * @endcode
  */
 class MemoryStream : Stream
 {
+	/*! @brief MemoryStream 构造函数 */
 	MemoryStream();
 
 	/*! @brief 移动文件当前操作位置
@@ -22,8 +23,14 @@ class MemoryStream : Stream
 	/*! @brief 移动当前位置到文件开头 */
 	rewind();
 
-	/*! @brief 查询文件尺寸 */
+	/*! @brief 查询内存文件尺寸 */
 	Number size();
 
+	/*! @brief 强制设定内存流对象的最后更新时间
+	 * @param d 指定要设定的时间
+	 */
+	setTime(Date d);
+
+	/*! @brief 清空内存文件数据，复位指针 */
 	clear();
 };

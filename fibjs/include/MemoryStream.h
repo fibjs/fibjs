@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "ifs/os.h"
 #include "ifs/MemoryStream.h"
 #include <sstream>
 
@@ -17,6 +18,12 @@ namespace fibjs
 class MemoryStream: public MemoryStream_base
 {
 	EVENT_SUPPORT();
+
+public:
+	MemoryStream()
+	{
+		os_base::time(m_time);
+	}
 
 public:
 	// Stream_base
@@ -40,10 +47,12 @@ public:
 	virtual result_t tell(double& retVal);
 	virtual result_t rewind();
 	virtual result_t size(double& retVal);
+	virtual result_t setTime(int64_t d);
 	virtual result_t clear();
 
 private:
 	std::stringstream m_buffer;
+	int64_t m_time;
 };
 
 } /* namespace fibjs */
