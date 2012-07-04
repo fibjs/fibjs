@@ -15,10 +15,11 @@ class io : module
 	/*! @brief 创建一个文件对象，参见 File */
 	static File new File();
 
+	/*! @brief 创建一个内存流对象，参见 MemoryStream */
 	static MemoryStream new MemoryStream();
 
-	/*! @brief 创建一个缓存流对象，参见 BufferedStream */
-//	static BufferedStream new BufferedStream();
+	/*! @brief 创建一个缓存流读取对象，参见 BufferedStream */
+	static BufferedStream new BufferedStream();
 
 	/*! @brief 打开文件，用于读取，写入，或者同时读写
 	 * @param fname 指定文件名

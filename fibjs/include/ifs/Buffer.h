@@ -16,8 +16,6 @@
 namespace fibjs
 {
 
-class BufferedReader_base;
-
 class Buffer_base : public object_base
 {
 public:
@@ -63,8 +61,6 @@ protected:
 
 }
 
-#include "BufferedReader.h"
-
 namespace fibjs
 {
 	inline ClassInfo& Buffer_base::class_info()
@@ -75,11 +71,6 @@ namespace fibjs
 			{"write", s_write},
 			{"slice", s_slice},
 			{"toString", s_toString}
-		};
-
-		static ClassObject s_object[] = 
-		{
-			{"Reader", BufferedReader_base::class_info}
 		};
 
 		static ClassProperty s_property[] = 
@@ -95,7 +86,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Buffer", s__new, 
-			4, s_method, 1, s_object, 1, s_property, &s_indexed,
+			4, s_method, 0, NULL, 1, s_property, &s_indexed,
 			&object_base::class_info()
 		};
 

@@ -39,7 +39,5 @@ class Buffer : object
 
 	/*! @brief 以字符串形式返回缓存内的数据，字符串将以 utf-8 编码读出 */
 	String toString();
-
-	static BufferedReader new Reader();
 };
 
