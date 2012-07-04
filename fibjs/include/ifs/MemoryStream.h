@@ -30,6 +30,7 @@ public:
 	virtual result_t rewind() = 0;
 	virtual result_t size(double& retVal) = 0;
 	virtual result_t setTime(int64_t d) = 0;
+	virtual result_t clone(obj_ptr<MemoryStream_base>& retVal) = 0;
 	virtual result_t clear() = 0;
 
 public:
@@ -47,6 +48,7 @@ protected:
 	static v8::Handle<v8::Value> s_rewind(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_size(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_setTime(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_clone(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_clear(const v8::Arguments& args);
 };
 
@@ -65,13 +67,14 @@ namespace fibjs
 			{"rewind", s_rewind},
 			{"size", s_size},
 			{"setTime", s_setTime},
+			{"clone", s_clone},
 			{"clear", s_clear}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"MemoryStream", s__new, 
-			6, s_method, 0, NULL, 0, NULL, NULL,
+			7, s_method, 0, NULL, 0, NULL, NULL,
 			&Stream_base::class_info()
 		};
 
@@ -148,6 +151,18 @@ namespace fibjs
 		hr = pInst->setTime(v0);
 
 		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> MemoryStream_base::s_clone(const v8::Arguments& args)
+	{
+		obj_ptr<MemoryStream_base> vr;
+
+		METHOD_INSTANCE(MemoryStream_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->clone(vr);
+
+		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> MemoryStream_base::s_clear(const v8::Arguments& args)

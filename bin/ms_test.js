@@ -36,6 +36,28 @@ assert.equal('uvwxyz', ms.read(ms.size()).toString());
 ms.seek(-10, io.SEEK_END);
 assert.equal('qrstuvwxyz', ms.read(ms.size()).toString());
 
+var cms = ms.clone();
+assert.equal(cms.stat().mtime.toString(), ms.stat().mtime.toString());
+
+assert.equal('abcdefghijklmnopqrstuvwxyz', cms.read().toString());
+
+cms.seek(10);
+assert.equal(cms.tell(), 10);
+assert.equal('klmnopqrstuvwxyz', cms.read().toString());
+
+cms.seek(10);
+assert.equal(cms.tell(), 10);
+assert.equal('klmnopqrstuvwxyz', cms.read(cms.size()).toString());
+
+cms.seek(10);
+cms.seek(10, io.SEEK_CUR);
+assert.equal(cms.tell(), 20);
+assert.equal('uvwxyz', cms.read(cms.size()).toString());
+
+cms.seek(-10, io.SEEK_END);
+assert.equal(cms.tell(), 16);
+assert.equal('qrstuvwxyz', cms.read(cms.size()).toString());
+
 ms.seek(10);
 ms.write(new Buffer('abcdefghijklmnopqrstuvwxyz'));
 assert.equal(36, ms.size());

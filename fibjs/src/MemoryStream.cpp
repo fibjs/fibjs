@@ -158,7 +158,7 @@ result_t MemoryStream::seek(double offset, int32_t whence)
 	if (offset < 0)
 		offset = 0;
 	else if (offset > sz)
-		offset = (double)sz;
+		offset = (double) sz;
 
 	m_buffer.seekg((int64_t) offset);
 	m_buffer.seekp((int64_t) offset);
@@ -193,6 +193,12 @@ result_t MemoryStream::size(double& retVal)
 result_t MemoryStream::setTime(int64_t d)
 {
 	m_time = d;
+	return 0;
+}
+
+result_t MemoryStream::clone(obj_ptr<MemoryStream_base>& retVal)
+{
+	retVal = new CloneStream(m_buffer.str(), m_time);
 	return 0;
 }
 
