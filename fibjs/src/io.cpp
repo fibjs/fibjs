@@ -58,7 +58,7 @@ result_t io_base::readFile(const char* fname, std::string& retVal, exlib::AsyncE
 
 	obj_ptr<File> f = new File();
 	obj_ptr<Buffer_base> buf;
-	double sz;
+	int64_t sz;
 	result_t hr;
 
 	hr = f->open(fname, "r", ac);

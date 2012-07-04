@@ -31,8 +31,8 @@ public:
 	virtual result_t write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncWrite(obj_ptr<Buffer_base>& data) = 0;
 	virtual result_t onwrite(v8::Handle<v8::Function> func) = 0;
-	virtual result_t copyTo(obj_ptr<Stream_base>& stm, int32_t bytes, int32_t& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t asyncCopyTo(obj_ptr<Stream_base>& stm, int32_t bytes) = 0;
+	virtual result_t copyTo(obj_ptr<Stream_base>& stm, int64_t bytes, int64_t& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t asyncCopyTo(obj_ptr<Stream_base>& stm, int64_t bytes) = 0;
 	virtual result_t oncopyto(v8::Handle<v8::Function> func) = 0;
 	virtual result_t stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncStat() = 0;
@@ -68,7 +68,7 @@ protected:
 	ASYNC_MEMBER1(Stream_base, write);
 	ASYNC_CALLBACK1(Stream_base, write);
 	ASYNC_MEMBER3(Stream_base, copyTo);
-	ASYNC_VALUEBACK2(Stream_base, copyTo, int32_t);
+	ASYNC_VALUEBACK2(Stream_base, copyTo, int64_t);
 	ASYNC_MEMBER1(Stream_base, stat);
 	ASYNC_VALUEBACK0(Stream_base, stat, obj_ptr<Stat_base>);
 };
@@ -187,13 +187,13 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Stream_base::s_copyTo(const v8::Arguments& args)
 	{
-		int32_t vr;
+		int64_t vr;
 
 		METHOD_INSTANCE(Stream_base);
 		METHOD_ENTER(2, 1);
 
 		ARG(obj_ptr<Stream_base>, 0);
-		OPT_ARG(int32_t, 1, -1);
+		OPT_ARG(int64_t, 1, -1);
 
 		hr = pInst->ac_copyTo(s_acPool, v0, v1, vr);
 
@@ -206,7 +206,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(obj_ptr<Stream_base>, 0);
-		OPT_ARG(int32_t, 1, -1);
+		OPT_ARG(int64_t, 1, -1);
 
 		hr = pInst->asyncCopyTo(v0, v1);
 

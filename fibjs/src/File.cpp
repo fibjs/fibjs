@@ -137,7 +137,7 @@ result_t File::onwrite(v8::Handle<v8::Function> func)
 	return on("write", func);
 }
 
-result_t File::copyTo(obj_ptr<Stream_base>& stm, int32_t bytes, int32_t& retVal,
+result_t File::copyTo(obj_ptr<Stream_base>& stm, int64_t bytes, int64_t& retVal,
 		exlib::AsyncEvent* ac)
 {
 	if (!m_file)
@@ -149,7 +149,7 @@ result_t File::copyTo(obj_ptr<Stream_base>& stm, int32_t bytes, int32_t& retVal,
 	return copyStream(this, stm, bytes, retVal, ac);
 }
 
-result_t File::asyncCopyTo(obj_ptr<Stream_base>& stm, int32_t bytes)
+result_t File::asyncCopyTo(obj_ptr<Stream_base>& stm, int64_t bytes)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
@@ -251,7 +251,7 @@ result_t File::onstat(v8::Handle<v8::Function> func)
 	return on("stat", func);
 }
 
-result_t File::size(double& retVal)
+result_t File::size(int64_t& retVal)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
@@ -259,7 +259,7 @@ result_t File::size(double& retVal)
 	int64_t p = ftello64(m_file);
 	if (0 == fseeko64(m_file, 0, SEEK_END))
 	{
-		retVal = (double) ftello64(m_file);
+		retVal = ftello64(m_file);
 		fseeko64(m_file, p, SEEK_SET);
 	}
 	else
@@ -281,23 +281,23 @@ result_t File::eof(bool& retVal)
 	return 0;
 }
 
-result_t File::seek(double offset, int32_t whence)
+result_t File::seek(int64_t offset, int32_t whence)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
-	if (fseeko64(m_file, (int64_t) offset, whence) < 0)
+	if (fseeko64(m_file, offset, whence) < 0)
 		return LastError();
 
 	return 0;
 }
 
-result_t File::tell(double& retVal)
+result_t File::tell(int64_t& retVal)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
-	retVal = (double) ftello64(m_file);
+	retVal = ftello64(m_file);
 
 	if (ferror(m_file))
 		return LastError();
@@ -368,7 +368,7 @@ result_t File::onclose(v8::Handle<v8::Function> func)
 	return on("close", func);
 }
 
-result_t File::truncate(double bytes, exlib::AsyncEvent* ac)
+result_t File::truncate(int64_t bytes, exlib::AsyncEvent* ac)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
@@ -376,13 +376,13 @@ result_t File::truncate(double bytes, exlib::AsyncEvent* ac)
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	if (ftruncate64(fileno(m_file), (int64_t) bytes) < 0)
+	if (ftruncate64(fileno(m_file), bytes) < 0)
 		return LastError();
 
 	return 0;
 }
 
-result_t File::asyncTruncate(double bytes)
+result_t File::asyncTruncate(int64_t bytes)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;

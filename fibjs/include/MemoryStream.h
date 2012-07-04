@@ -38,8 +38,8 @@ public:
 		virtual result_t write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac);
 		virtual result_t asyncWrite(obj_ptr<Buffer_base>& data);
 		virtual result_t onwrite(v8::Handle<v8::Function> func);
-		virtual result_t copyTo(obj_ptr<Stream_base>& stm, int32_t bytes, int32_t& retVal, exlib::AsyncEvent* ac);
-		virtual result_t asyncCopyTo(obj_ptr<Stream_base>& stm, int32_t bytes);
+		virtual result_t copyTo(obj_ptr<Stream_base>& stm, int64_t bytes, int64_t& retVal, exlib::AsyncEvent* ac);
+		virtual result_t asyncCopyTo(obj_ptr<Stream_base>& stm, int64_t bytes);
 		virtual result_t oncopyto(v8::Handle<v8::Function> func);
 		virtual result_t stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
 		virtual result_t asyncStat();
@@ -48,10 +48,10 @@ public:
 
 	public:
 		// MemoryStream_base
-		virtual result_t seek(double offset, int32_t whence);
-		virtual result_t tell(double& retVal);
+		virtual result_t seek(int64_t offset, int32_t whence);
+		virtual result_t tell(int64_t& retVal);
 		virtual result_t rewind();
-		virtual result_t size(double& retVal);
+		virtual result_t size(int64_t& retVal);
 		virtual result_t setTime(date_t d);
 		virtual result_t clone(obj_ptr<MemoryStream_base>& retVal);
 		virtual result_t clear();
@@ -76,8 +76,8 @@ public:
 	virtual result_t write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac);
 	virtual result_t asyncWrite(obj_ptr<Buffer_base>& data);
 	virtual result_t onwrite(v8::Handle<v8::Function> func);
-	virtual result_t copyTo(obj_ptr<Stream_base>& stm, int32_t bytes, int32_t& retVal, exlib::AsyncEvent* ac);
-	virtual result_t asyncCopyTo(obj_ptr<Stream_base>& stm, int32_t bytes);
+	virtual result_t copyTo(obj_ptr<Stream_base>& stm, int64_t bytes, int64_t& retVal, exlib::AsyncEvent* ac);
+	virtual result_t asyncCopyTo(obj_ptr<Stream_base>& stm, int64_t bytes);
 	virtual result_t oncopyto(v8::Handle<v8::Function> func);
 	virtual result_t stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
 	virtual result_t asyncStat();
@@ -86,10 +86,10 @@ public:
 
 public:
 	// MemoryStream_base
-	virtual result_t seek(double offset, int32_t whence);
-	virtual result_t tell(double& retVal);
+	virtual result_t seek(int64_t offset, int32_t whence);
+	virtual result_t tell(int64_t& retVal);
 	virtual result_t rewind();
-	virtual result_t size(double& retVal);
+	virtual result_t size(int64_t& retVal);
 	virtual result_t setTime(date_t d);
 	virtual result_t clone(obj_ptr<MemoryStream_base>& retVal);
 	virtual result_t clear();

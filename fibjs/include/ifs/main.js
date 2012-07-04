@@ -123,6 +123,7 @@ function preparserIDL(fname) {
 function parserIDL(fname) {
 	var st, f, line, cvs, ifs, afs, svs, ffs, iffs, tjfs, difms, difos, difps, dsvs, refCls, ids, ns, baseClass, isRem = false, hasNew = false, hasIndexed = false, typeMap = {
 		"Integer" : "int32_t",
+		"Long" : "int64_t",
 		"Number" : "double",
 		"Boolean" : "bool",
 		"String" : "std::string",
@@ -133,6 +134,7 @@ function parserIDL(fname) {
 		"Value" : "v8::Handle<v8::Value>"
 	}, aTypeMap = {
 		"Integer" : "int32_t",
+		"Long" : "int64_t",
 		"Number" : "double",
 		"Boolean" : "bool",
 		"String" : "const char*",

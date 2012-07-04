@@ -72,7 +72,7 @@ result_t MemoryStream::CloneStream::onwrite(v8::Handle<v8::Function> func)
 }
 
 result_t MemoryStream::CloneStream::copyTo(obj_ptr<Stream_base>& stm,
-		int32_t bytes, int32_t& retVal, exlib::AsyncEvent* ac)
+		int64_t bytes, int64_t& retVal, exlib::AsyncEvent* ac)
 {
 	if (!ac)
 		return CALL_E_NOSYNC;
@@ -81,7 +81,7 @@ result_t MemoryStream::CloneStream::copyTo(obj_ptr<Stream_base>& stm,
 }
 
 result_t MemoryStream::CloneStream::asyncCopyTo(obj_ptr<Stream_base>& stm,
-		int32_t bytes)
+		int64_t bytes)
 {
 	acb_copyTo(s_acPool, stm, bytes);
 	return 0;
@@ -123,7 +123,7 @@ result_t MemoryStream::CloneStream::onerror(v8::Handle<v8::Function> func)
 	return on("error", func);
 }
 
-result_t MemoryStream::CloneStream::seek(double offset, int32_t whence)
+result_t MemoryStream::CloneStream::seek(int64_t offset, int32_t whence)
 {
 	if (whence == io_base::_SEEK_SET)
 		m_pos = (int) offset;
@@ -142,9 +142,9 @@ result_t MemoryStream::CloneStream::seek(double offset, int32_t whence)
 	return 0;
 }
 
-result_t MemoryStream::CloneStream::tell(double& retVal)
+result_t MemoryStream::CloneStream::tell(int64_t& retVal)
 {
-	retVal = (double) m_pos;
+	retVal = m_pos;
 	return 0;
 }
 
@@ -154,9 +154,9 @@ result_t MemoryStream::CloneStream::rewind()
 	return 0;
 }
 
-result_t MemoryStream::CloneStream::size(double& retVal)
+result_t MemoryStream::CloneStream::size(int64_t& retVal)
 {
-	retVal = (double) m_buffer.length();
+	retVal = m_buffer.length();
 	return 0;
 }
 

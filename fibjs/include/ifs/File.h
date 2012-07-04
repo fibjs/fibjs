@@ -29,13 +29,13 @@ public:
 	virtual result_t asyncOpen(const char* fname, const char* mode) = 0;
 	virtual result_t onopen(v8::Handle<v8::Function> func) = 0;
 	virtual result_t get_name(std::string& retVal) = 0;
-	virtual result_t seek(double offset, int32_t whence) = 0;
-	virtual result_t tell(double& retVal) = 0;
+	virtual result_t seek(int64_t offset, int32_t whence) = 0;
+	virtual result_t tell(int64_t& retVal) = 0;
 	virtual result_t rewind() = 0;
-	virtual result_t truncate(double bytes, exlib::AsyncEvent* ac) = 0;
-	virtual result_t asyncTruncate(double bytes) = 0;
+	virtual result_t truncate(int64_t bytes, exlib::AsyncEvent* ac) = 0;
+	virtual result_t asyncTruncate(int64_t bytes) = 0;
 	virtual result_t ontruncate(v8::Handle<v8::Function> func) = 0;
-	virtual result_t size(double& retVal) = 0;
+	virtual result_t size(int64_t& retVal) = 0;
 	virtual result_t eof(bool& retVal) = 0;
 	virtual result_t flush(exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncFlush() = 0;
@@ -205,7 +205,7 @@ namespace fibjs
 		METHOD_INSTANCE(File_base);
 		METHOD_ENTER(2, 1);
 
-		ARG(double, 0);
+		ARG(int64_t, 0);
 		OPT_ARG(int32_t, 1, io_base::_SEEK_SET);
 
 		hr = pInst->seek(v0, v1);
@@ -215,7 +215,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> File_base::s_tell(const v8::Arguments& args)
 	{
-		double vr;
+		int64_t vr;
 
 		METHOD_INSTANCE(File_base);
 		METHOD_ENTER(0, 0);
@@ -240,7 +240,7 @@ namespace fibjs
 		METHOD_INSTANCE(File_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(double, 0);
+		ARG(int64_t, 0);
 
 		hr = pInst->ac_truncate(s_acPool, v0);
 
@@ -252,7 +252,7 @@ namespace fibjs
 		METHOD_INSTANCE(File_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(double, 0);
+		ARG(int64_t, 0);
 
 		hr = pInst->asyncTruncate(v0);
 
@@ -273,7 +273,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> File_base::s_size(const v8::Arguments& args)
 	{
-		double vr;
+		int64_t vr;
 
 		METHOD_INSTANCE(File_base);
 		METHOD_ENTER(0, 0);

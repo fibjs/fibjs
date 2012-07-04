@@ -21,7 +21,7 @@ class Stat_base : public object_base
 public:
 	// Stat_base
 	virtual result_t get_name(std::string& retVal) = 0;
-	virtual result_t get_size(double& retVal) = 0;
+	virtual result_t get_size(int64_t& retVal) = 0;
 	virtual result_t get_mtime(date_t& retVal) = 0;
 	virtual result_t get_atime(date_t& retVal) = 0;
 	virtual result_t get_ctime(date_t& retVal) = 0;
@@ -49,7 +49,7 @@ public:
 		if(hr < 0)return hr;
 
 		CLONE_String(name);
-		CLONE(size, double);
+		CLONE(size, int64_t);
 		CLONE(mtime, date_t);
 		CLONE(atime, date_t);
 		CLONE(ctime, date_t);
@@ -127,7 +127,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Stat_base::s_get_size(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		double vr;
+		int64_t vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Stat_base);

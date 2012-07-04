@@ -25,10 +25,10 @@ class MemoryStream_base : public Stream_base
 public:
 	// MemoryStream_base
 	static result_t _new(obj_ptr<MemoryStream_base>& retVal);
-	virtual result_t seek(double offset, int32_t whence) = 0;
-	virtual result_t tell(double& retVal) = 0;
+	virtual result_t seek(int64_t offset, int32_t whence) = 0;
+	virtual result_t tell(int64_t& retVal) = 0;
 	virtual result_t rewind() = 0;
-	virtual result_t size(double& retVal) = 0;
+	virtual result_t size(int64_t& retVal) = 0;
 	virtual result_t setTime(date_t d) = 0;
 	virtual result_t clone(obj_ptr<MemoryStream_base>& retVal) = 0;
 	virtual result_t clear() = 0;
@@ -99,7 +99,7 @@ namespace fibjs
 		METHOD_INSTANCE(MemoryStream_base);
 		METHOD_ENTER(2, 1);
 
-		ARG(double, 0);
+		ARG(int64_t, 0);
 		OPT_ARG(int32_t, 1, io_base::_SEEK_SET);
 
 		hr = pInst->seek(v0, v1);
@@ -109,7 +109,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> MemoryStream_base::s_tell(const v8::Arguments& args)
 	{
-		double vr;
+		int64_t vr;
 
 		METHOD_INSTANCE(MemoryStream_base);
 		METHOD_ENTER(0, 0);
@@ -131,7 +131,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> MemoryStream_base::s_size(const v8::Arguments& args)
 	{
-		double vr;
+		int64_t vr;
 
 		METHOD_INSTANCE(MemoryStream_base);
 		METHOD_ENTER(0, 0);

@@ -91,8 +91,8 @@ result_t MemoryStream::onwrite(v8::Handle<v8::Function> func)
 	return on("write", func);
 }
 
-result_t MemoryStream::copyTo(obj_ptr<Stream_base>& stm, int32_t bytes,
-		int32_t& retVal, exlib::AsyncEvent* ac)
+result_t MemoryStream::copyTo(obj_ptr<Stream_base>& stm, int64_t bytes,
+		int64_t& retVal, exlib::AsyncEvent* ac)
 {
 	if (!ac)
 		return CALL_E_NOSYNC;
@@ -100,7 +100,7 @@ result_t MemoryStream::copyTo(obj_ptr<Stream_base>& stm, int32_t bytes,
 	return copyStream(this, stm, bytes, retVal, ac);
 }
 
-result_t MemoryStream::asyncCopyTo(obj_ptr<Stream_base>& stm, int32_t bytes)
+result_t MemoryStream::asyncCopyTo(obj_ptr<Stream_base>& stm, int64_t bytes)
 {
 	acb_copyTo(s_acPool, stm, bytes);
 	return 0;
@@ -141,7 +141,7 @@ result_t MemoryStream::onerror(v8::Handle<v8::Function> func)
 	return on("error", func);
 }
 
-result_t MemoryStream::seek(double offset, int32_t whence)
+result_t MemoryStream::seek(int64_t offset, int32_t whence)
 {
 	if (whence < io_base::_SEEK_SET || whence > io_base::_SEEK_END)
 		return CALL_E_INVALIDARG;
@@ -158,7 +158,7 @@ result_t MemoryStream::seek(double offset, int32_t whence)
 	if (offset < 0)
 		offset = 0;
 	else if (offset > sz)
-		offset = (double) sz;
+		offset = sz;
 
 	m_buffer.seekg((int64_t) offset);
 	m_buffer.seekp((int64_t) offset);
@@ -166,9 +166,9 @@ result_t MemoryStream::seek(double offset, int32_t whence)
 	return 0;
 }
 
-result_t MemoryStream::tell(double& retVal)
+result_t MemoryStream::tell(int64_t& retVal)
 {
-	retVal = (double) m_buffer.tellg();
+	retVal = m_buffer.tellg();
 	return 0;
 }
 
@@ -179,12 +179,12 @@ result_t MemoryStream::rewind()
 	return 0;
 }
 
-result_t MemoryStream::size(double& retVal)
+result_t MemoryStream::size(int64_t& retVal)
 {
 	int64_t p = m_buffer.tellg();
 
 	m_buffer.seekg(0, std::ios::end);
-	retVal = (double) m_buffer.tellg();
+	retVal = m_buffer.tellg();
 	m_buffer.seekg(p, std::ios::beg);
 
 	return 0;

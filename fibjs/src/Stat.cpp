@@ -23,7 +23,7 @@ void Stat::fill(WIN32_FIND_DATAW& fd)
 {
 	name = utf16to8String(fd.cFileName);
 
-	size = (double)((int64_t)fd.nFileSizeHigh << 32 | fd.nFileSizeLow);
+	size = ((int64_t)fd.nFileSizeHigh << 32 | fd.nFileSizeLow);
 	mtime = FileTimeToJSTime(fd.ftLastWriteTime);
 	atime = FileTimeToJSTime(fd.ftLastAccessTime);
 	ctime = FileTimeToJSTime(fd.ftCreationTime);
@@ -58,10 +58,10 @@ void Stat::fill(const char* path, struct stat64& st)
 {
 	path_base::basename(path, "", name);
 
-	size = (double)st.st_size;
-	mtime = st.st_mtime * 1000ll;
-	atime = st.st_atime * 1000ll;
-	ctime = st.st_ctime * 1000ll;
+	size = st.st_size;
+	mtime = (double)st.st_mtime * 1000ll;
+	atime = (double)st.st_atime * 1000ll;
+	ctime = (double)st.st_ctime * 1000ll;
 
 	m_isReadable = (st.st_mode | S_IRUSR) != 0;
 	m_isWritable = (st.st_mode | S_IWUSR) != 0;
@@ -104,7 +104,7 @@ result_t Stat::get_name(std::string& retVal)
 	return 0;
 }
 
-result_t Stat::get_size(double& retVal)
+result_t Stat::get_size(int64_t& retVal)
 {
 	retVal = size;
 	return 0;

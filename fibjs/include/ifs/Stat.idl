@@ -7,7 +7,7 @@ class Stat : object
 	readonly String name;
 
 	/*! @brief 文件尺寸 */
-	readonly Number size;
+	readonly Long size;
 
 	/*! @brief 文件最后修改时间 */
 	readonly Date mtime;

@@ -10,14 +10,14 @@
 namespace fibjs
 {
 
-result_t copyStream(Stream_base* from, Stream_base* to, int32_t bytes,
-		int32_t& retVal, exlib::AsyncEvent* ac)
+result_t copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
+		int64_t& retVal, exlib::AsyncEvent* ac)
 {
 	class asyncCopy: public exlib::AsyncEvent
 	{
 	public:
-		asyncCopy(Stream_base* from, Stream_base* to, int32_t bytes,
-				int32_t& retVal, exlib::AsyncEvent* ac) :
+		asyncCopy(Stream_base* from, Stream_base* to, int64_t bytes,
+				int64_t& retVal, exlib::AsyncEvent* ac) :
 				m_from(from), m_to(to), m_bytes(bytes), m_retVal(retVal), m_ac(
 						ac), m_state(0)
 		{
@@ -27,7 +27,8 @@ result_t copyStream(Stream_base* from, Stream_base* to, int32_t bytes,
 		virtual void post(int v)
 		{
 			result_t hr = v;
-			int32_t len;
+			int64_t len;
+			int blen;
 
 			while (hr != CALL_E_PENDDING)
 			{
@@ -56,7 +57,7 @@ result_t copyStream(Stream_base* from, Stream_base* to, int32_t bytes,
 						len = m_bytes;
 
 					m_buf.Release();
-					hr = m_from->read(len, m_buf, this);
+					hr = m_from->read((int32_t)len, m_buf, this);
 					break;
 				case 1:
 					m_state = 0;
@@ -68,11 +69,11 @@ result_t copyStream(Stream_base* from, Stream_base* to, int32_t bytes,
 						return;
 					}
 
-					m_buf->get_length(len);
-					m_retVal += len;
+					m_buf->get_length(blen);
+					m_retVal += blen;
 
 					if (m_bytes > 0)
-						m_bytes -= len;
+						m_bytes -= blen;
 
 					hr = m_to->write(m_buf, this);
 					break;
@@ -83,8 +84,8 @@ result_t copyStream(Stream_base* from, Stream_base* to, int32_t bytes,
 	public:
 		Stream_base* m_from;
 		Stream_base* m_to;
-		int32_t m_bytes;
-		int32_t& m_retVal;
+		int64_t m_bytes;
+		int64_t& m_retVal;
 		exlib::AsyncEvent* m_ac;
 		int m_state;
 		obj_ptr<Buffer_base> m_buf;

@@ -56,10 +56,10 @@ class File: Stream
 	 *  @param offset 指定新的位置
 	 *  @param whence 指定位置基准，允许的值为：SEEK_SET, SEEK_CUR, SEEK_END
 	 */
-	seek(Number offset, Integer whence = io.SEEK_SET);
+	seek(Long offset, Integer whence = io.SEEK_SET);
 
 	/*! @brief 查询文件当前位置 */
-	Number tell();
+	Long tell();
 
 	/*! @brief 移动当前位置到文件开头 */
 	rewind();
@@ -67,12 +67,12 @@ class File: Stream
 	/*! @brief 修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
 	 *  @param bytes 新的文件尺寸
 	 */
-	truncate(Number bytes) async;
+	truncate(Long bytes) async;
 
 	/*! @brief 异步修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
 	 *  @param bytes 新的文件尺寸
 	 */
-	asyncTruncate(Number bytes);
+	asyncTruncate(Long bytes);
 
 	/*! @brief 注册 "truncate" 事件，等同于 on("truncate", func);
 	 * @param func 事件处理函数
@@ -86,7 +86,7 @@ class File: Stream
 	ontruncate(Function func);
 
 	/*! @brief 查询文件尺寸 */
-	Number size();
+	Long size();
 
 	/*! @brief 查询文件是否到结尾 */
 	Boolean eof();

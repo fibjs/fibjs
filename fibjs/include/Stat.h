@@ -58,7 +58,7 @@ class Stat: public Stat_base
 public:
 	// Stat_base
 	virtual result_t get_name(std::string& retVal);
-	virtual result_t get_size(double& retVal);
+	virtual result_t get_size(int64_t& retVal);
 	virtual result_t get_mtime(date_t& retVal);
 	virtual result_t get_atime(date_t& retVal);
 	virtual result_t get_ctime(date_t& retVal);
@@ -84,7 +84,7 @@ public:
 
 public:
 	std::string name;
-	double size;
+	int64_t size;
 	double mtime, atime, ctime;
 	bool m_isWritable, m_isReadable, m_isExecutable, m_isHidden;
 	bool m_isDirectory, m_isFile, m_isSymbolicLink;

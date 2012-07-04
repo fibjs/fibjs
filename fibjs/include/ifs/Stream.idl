@@ -50,13 +50,13 @@ class Stream : Trigger
 	 * @param bytes 复制的字节数
 	 * @return 返回复制的字节数
 	 */
-	Integer copyTo(Stream stm, Integer bytes = -1) async;
+	Long copyTo(Stream stm, Long bytes = -1) async;
 
 	/*! @brief 异步复制流数据到目标流中，完成后触发事件 "copyto"
 	 * @param stm 目标流对象
 	 * @param bytes 复制的字节数
 	 */
-	asyncCopyTo(Stream stm, Integer bytes = -1);
+	asyncCopyTo(Stream stm, Long bytes = -1);
 
 	/*! @brief 注册 "copyto" 事件，等同于 on("copyto", func);
 	 * @param func 事件处理函数
