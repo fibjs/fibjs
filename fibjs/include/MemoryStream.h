@@ -25,7 +25,7 @@ public:
 		EVENT_SUPPORT();
 
 	public:
-		CloneStream(std::string buffer, int64_t tm) :
+		CloneStream(std::string buffer, date_t tm) :
 			m_buffer(buffer), m_time(tm), m_pos(0)
 		{
 		}
@@ -52,13 +52,13 @@ public:
 		virtual result_t tell(double& retVal);
 		virtual result_t rewind();
 		virtual result_t size(double& retVal);
-		virtual result_t setTime(int64_t d);
+		virtual result_t setTime(date_t d);
 		virtual result_t clone(obj_ptr<MemoryStream_base>& retVal);
 		virtual result_t clear();
 
 	private:
 		std::string m_buffer;
-		int64_t m_time;
+		date_t m_time;
 		int m_pos;
 	};
 
@@ -90,13 +90,13 @@ public:
 	virtual result_t tell(double& retVal);
 	virtual result_t rewind();
 	virtual result_t size(double& retVal);
-	virtual result_t setTime(int64_t d);
+	virtual result_t setTime(date_t d);
 	virtual result_t clone(obj_ptr<MemoryStream_base>& retVal);
 	virtual result_t clear();
 
 private:
 	std::stringstream m_buffer;
-	int64_t m_time;
+	date_t m_time;
 };
 
 } /* namespace fibjs */

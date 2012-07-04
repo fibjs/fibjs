@@ -117,7 +117,7 @@ result_t MemoryStream::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
 
 	st->init();
 	st->m_isMemory = true;
-	st->mtime = st->ctime = m_time;
+	st->mtime = st->ctime = m_time.d;
 	size(st->size);
 
 	retVal = st;
@@ -190,7 +190,7 @@ result_t MemoryStream::size(double& retVal)
 	return 0;
 }
 
-result_t MemoryStream::setTime(int64_t d)
+result_t MemoryStream::setTime(date_t d)
 {
 	m_time = d;
 	return 0;

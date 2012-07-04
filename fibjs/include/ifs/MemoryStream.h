@@ -29,7 +29,7 @@ public:
 	virtual result_t tell(double& retVal) = 0;
 	virtual result_t rewind() = 0;
 	virtual result_t size(double& retVal) = 0;
-	virtual result_t setTime(int64_t d) = 0;
+	virtual result_t setTime(date_t d) = 0;
 	virtual result_t clone(obj_ptr<MemoryStream_base>& retVal) = 0;
 	virtual result_t clear() = 0;
 
@@ -146,7 +146,7 @@ namespace fibjs
 		METHOD_INSTANCE(MemoryStream_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(int64_t, 0);
+		ARG(date_t, 0);
 
 		hr = pInst->setTime(v0);
 

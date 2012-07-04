@@ -427,9 +427,9 @@ result_t os_base::networkInfo(v8::Handle<v8::Array>& retVal)
     return 0;
 }
 
-result_t os_base::time(int64_t& retVal)
+result_t os_base::time(date_t& retVal)
 {
-	retVal = (int64_t)v8::internal::OS::TimeCurrentMillis();
+	retVal.d = v8::internal::OS::TimeCurrentMillis();
 	return 0;
 }
 

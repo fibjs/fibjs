@@ -22,9 +22,9 @@ public:
 	// Stat_base
 	virtual result_t get_name(std::string& retVal) = 0;
 	virtual result_t get_size(double& retVal) = 0;
-	virtual result_t get_mtime(int64_t& retVal) = 0;
-	virtual result_t get_atime(int64_t& retVal) = 0;
-	virtual result_t get_ctime(int64_t& retVal) = 0;
+	virtual result_t get_mtime(date_t& retVal) = 0;
+	virtual result_t get_atime(date_t& retVal) = 0;
+	virtual result_t get_ctime(date_t& retVal) = 0;
 	virtual result_t isWritable(bool& retVal) = 0;
 	virtual result_t isReadable(bool& retVal) = 0;
 	virtual result_t isExecutable(bool& retVal) = 0;
@@ -50,9 +50,9 @@ public:
 
 		CLONE_String(name);
 		CLONE(size, double);
-		CLONE(mtime, int64_t);
-		CLONE(atime, int64_t);
-		CLONE(ctime, int64_t);
+		CLONE(mtime, date_t);
+		CLONE(atime, date_t);
+		CLONE(ctime, date_t);
 
 		return 0;
 	}
@@ -139,7 +139,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Stat_base::s_get_mtime(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		int64_t vr;
+		date_t vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Stat_base);
@@ -151,7 +151,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Stat_base::s_get_atime(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		int64_t vr;
+		date_t vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Stat_base);
@@ -163,7 +163,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> Stat_base::s_get_ctime(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		int64_t vr;
+		date_t vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Stat_base);

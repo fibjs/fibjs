@@ -99,7 +99,7 @@ result_t MemoryStream::CloneStream::stat(obj_ptr<Stat_base>& retVal,
 
 	st->init();
 	st->m_isMemory = true;
-	st->mtime = st->ctime = m_time;
+	st->mtime = st->ctime = m_time.d;
 	size(st->size);
 
 	retVal = st;
@@ -160,7 +160,7 @@ result_t MemoryStream::CloneStream::size(double& retVal)
 	return 0;
 }
 
-result_t MemoryStream::CloneStream::setTime(int64_t d)
+result_t MemoryStream::CloneStream::setTime(date_t d)
 {
 	return CALL_E_INVALID_CALL;
 }

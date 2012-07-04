@@ -32,7 +32,7 @@ public:
 	static result_t CPUInfo(v8::Handle<v8::Array>& retVal);
 	static result_t CPUs(int32_t& retVal);
 	static result_t networkInfo(v8::Handle<v8::Array>& retVal);
-	static result_t time(int64_t& retVal);
+	static result_t time(date_t& retVal);
 	static result_t exists(const char* path, bool& retVal, exlib::AsyncEvent* ac);
 	static result_t unlink(const char* path, exlib::AsyncEvent* ac);
 	static result_t mkdir(const char* path, exlib::AsyncEvent* ac);
@@ -195,7 +195,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> os_base::s_time(const v8::Arguments& args)
 	{
-		int64_t vr;
+		date_t vr;
 
 		METHOD_ENTER(0, 0);
 

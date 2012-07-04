@@ -14,9 +14,9 @@ namespace fibjs
 
 #ifdef _WIN32
 
-inline int64_t FileTimeToJSTime(FILETIME &ft)
+inline double FileTimeToJSTime(FILETIME &ft)
 {
-	return (*(int64_t*)&ft - 116444736000000000) / 10000;
+	return (double)(*(int64_t*)&ft - 116444736000000000) / 10000;
 }
 
 void Stat::fill(WIN32_FIND_DATAW& fd)
@@ -110,21 +110,21 @@ result_t Stat::get_size(double& retVal)
 	return 0;
 }
 
-result_t Stat::get_mtime(int64_t& retVal)
+result_t Stat::get_mtime(date_t& retVal)
 {
-	retVal = mtime;
+	retVal.d = mtime;
 	return 0;
 }
 
-result_t Stat::get_atime(int64_t& retVal)
+result_t Stat::get_atime(date_t& retVal)
 {
-	retVal = atime;
+	retVal.d = atime;
 	return 0;
 }
 
-result_t Stat::get_ctime(int64_t& retVal)
+result_t Stat::get_ctime(date_t& retVal)
 {
-	retVal = ctime;
+	retVal.d = ctime;
 	return 0;
 }
 

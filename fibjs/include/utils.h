@@ -345,18 +345,18 @@ class obj_ptr
 {
 public:
 	obj_ptr() :
-		p(NULL)
+			p(NULL)
 	{
 	}
 
 	obj_ptr(T* lp) :
-		p(NULL)
+			p(NULL)
 	{
 		operator=(lp);
 	}
 
 	obj_ptr(const obj_ptr<T>& lp) :
-		p(NULL)
+			p(NULL)
 	{
 		operator=(lp);
 	}
@@ -438,6 +438,12 @@ public:
 	T* p;
 };
 
+class date_t
+{
+public:
+	double d;
+};
+
 inline result_t SafeGetValue(v8::Handle<v8::Value> v, double& n)
 {
 	if (v.IsEmpty())
@@ -486,6 +492,11 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, bool& n)
 {
 	n = v->BooleanValue();
 	return 0;
+}
+
+inline result_t SafeGetValue(v8::Handle<v8::Value> v, date_t& d)
+{
+	return SafeGetValue(v, d.d);
 }
 
 template<class T>
@@ -557,6 +568,11 @@ inline v8::Handle<v8::Value> ReturnValue(std::string& str)
 	return v8::String::New(str.c_str(), (int) str.length());
 }
 
+inline v8::Handle<v8::Value> ReturnValue(date_t& v)
+{
+	return v8::Date::New(v.d);
+}
+
 inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Object>& obj)
 {
 	return obj;
@@ -584,7 +600,8 @@ inline v8::Handle<v8::Value> ReturnValue(obj_ptr<T>& obj)
 
 	if (obj)
 		obj->ValueOf(retVal);
-	else return v8::Undefined();
+	else
+		return v8::Undefined();
 
 	return retVal;
 }
@@ -609,7 +626,7 @@ inline result_t LastError()
 #ifdef _WIN32
 	return - (int)GetLastError();
 #else
-	return - errno;
+	return -errno;
 #endif
 }
 
@@ -618,7 +635,7 @@ inline result_t SocketError()
 #ifdef _WIN32
 	return - WSAGetLastError();
 #else
-	return - errno;
+	return -errno;
 #endif
 }
 

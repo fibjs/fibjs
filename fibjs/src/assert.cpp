@@ -40,9 +40,14 @@ result_t assert_base::ok(bool value, const char* msg)
     return 0;
 }
 
+bool valueEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
+{
+	return actual->Equals(expected);
+}
+
 result_t assert_base::equal(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg)
 {
-	if(!actual->Equals(expected))
+	if(!valueEqual(actual, expected))
 	{
 		std::string str;
 
@@ -62,7 +67,7 @@ result_t assert_base::equal(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> 
 
 result_t assert_base::notEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg)
 {
-	if(actual->Equals(expected))
+	if(valueEqual(actual, expected))
 	{
 		std::string str;
 
