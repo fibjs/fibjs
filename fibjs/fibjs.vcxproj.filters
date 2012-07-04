@@ -114,13 +114,16 @@
     <ClCompile Include="src\Stream.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\BufferedReader.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
     <ClCompile Include="src\io.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
     <ClCompile Include="src\MemoryStream.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MemoryCloneStream.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BufferedStream.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -251,12 +254,6 @@
     <ClInclude Include="include\ifs\zmqSocket.h">
       <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\BufferedReader.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\BufferedReader.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
     <ClInclude Include="include\Stream.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
@@ -268,6 +265,12 @@
     </ClInclude>
     <ClInclude Include="include\ifs\MemoryStream.h">
       <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\BufferedStream.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\BufferedStream.h">
+      <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

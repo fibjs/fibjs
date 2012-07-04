@@ -23,7 +23,7 @@
     <ClCompile Include="src\assert.cpp" />
     <ClCompile Include="src\AsyncCall.cpp" />
     <ClCompile Include="src\Buffer.cpp" />
-    <ClCompile Include="src\BufferedReader.cpp" />
+    <ClCompile Include="src\BufferedStream.cpp" />
     <ClCompile Include="src\Condition.cpp" />
     <ClCompile Include="src\Console.cpp" />
     <ClCompile Include="src\coroutine.cpp" />
@@ -36,6 +36,7 @@
     <ClCompile Include="src\global.cpp" />
     <ClCompile Include="src\io.cpp" />
     <ClCompile Include="src\Lock.cpp" />
+    <ClCompile Include="src\MemoryCloneStream.cpp" />
     <ClCompile Include="src\MemoryStream.cpp" />
     <ClCompile Include="src\module.cpp" />
     <ClCompile Include="src\ObjectArray.cpp" />
@@ -62,14 +63,14 @@
     <ClInclude Include="include\acPool.h" />
     <ClInclude Include="include\AsyncCall.h" />
     <ClInclude Include="include\Buffer.h" />
-    <ClInclude Include="include\BufferedReader.h" />
+    <ClInclude Include="include\BufferedStream.h" />
     <ClInclude Include="include\ClassInfo.h" />
     <ClInclude Include="include\Condition.h" />
     <ClInclude Include="include\Event.h" />
     <ClInclude Include="include\File.h" />
     <ClInclude Include="include\ifs\assert.h" />
     <ClInclude Include="include\ifs\Buffer.h" />
-    <ClInclude Include="include\ifs\BufferedReader.h" />
+    <ClInclude Include="include\ifs\BufferedStream.h" />
     <ClInclude Include="include\ifs\Condition.h" />
     <ClInclude Include="include\ifs\console.h" />
     <ClInclude Include="include\ifs\coroutine.h" />
