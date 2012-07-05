@@ -1,6 +1,8 @@
 /* config.h.  Generated from config.h.in by configure.  */
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+#include <osconfig.h>
+
 /* Predefined possible va_copy() implementation (id: ASP) */
 #define __VA_COPY_USE_ASP(d, s) do { *(d) = *(s); } while (0)
 
@@ -52,9 +54,6 @@
 /* Define to 1 if you have the `dmalloc' library (-ldmalloc). */
 /* #undef HAVE_LIBDMALLOC */
 
-/* Define to 1 if you have the `nsl' library (-lnsl). */
-#define HAVE_LIBNSL 1
-
 /* Define to 1 if you have the `socket' library (-lsocket). */
 /* #undef HAVE_LIBSOCKET */
 
@@ -78,9 +77,6 @@
 
 /* Define to 1 if you have the <net/if_arp.h> header file. */
 #define HAVE_NET_IF_ARP_H 1
-
-/* Define to 1 if you have the <net/if_dl.h> header file. */
-/* #undef HAVE_NET_IF_DL_H */
 
 /* Define to 1 if you have the <net/if.h> header file. */
 #define HAVE_NET_IF_H 1
@@ -115,8 +111,29 @@
 /* Define to 1 if you have the <sys/socket.h> header file. */
 #define HAVE_SYS_SOCKET_H 1
 
+#ifdef MacOS
+
+/* Define to 1 if you have the `nsl' library (-lnsl). */
+//#define HAVE_LIBNSL 1
+
+/* Define to 1 if you have the <net/if_dl.h> header file. */
+#define HAVE_NET_IF_DL_H 1
+
 /* Define to 1 if you have the <sys/sockio.h> header file. */
-/* #undef HAVE_SYS_SOCKIO_H */
+#define HAVE_SYS_SOCKIO_H 1
+
+#else
+
+/* Define to 1 if you have the `nsl' library (-lnsl). */
+#define HAVE_LIBNSL 1
+
+/* Define to 1 if you have the <net/if_dl.h> header file. */
+//#define HAVE_NET_IF_DL_H 1
+
+/* Define to 1 if you have the <sys/sockio.h> header file. */
+//#define HAVE_SYS_SOCKIO_H 1
+
+#endif
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #define HAVE_SYS_STAT_H 1
@@ -215,4 +232,3 @@
 
 /* Define to id of used va_copy() implementation */
 #define __VA_COPY_USE __VA_COPY_USE_C99
-
