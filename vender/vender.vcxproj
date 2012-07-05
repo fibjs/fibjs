@@ -207,6 +207,15 @@
     <ClCompile Include="src\tiff\tif_warning.c" />
     <ClCompile Include="src\tiff\tif_write.c" />
     <ClCompile Include="src\tiff\tif_zip.c" />
+    <ClCompile Include="src\uuid\uuid.c" />
+    <ClCompile Include="src\uuid\uuid_mac.c" />
+    <ClCompile Include="src\uuid\uuid_md5.c" />
+    <ClCompile Include="src\uuid\uuid_prng.c" />
+    <ClCompile Include="src\uuid\uuid_sha1.c" />
+    <ClCompile Include="src\uuid\uuid_str.c" />
+    <ClCompile Include="src\uuid\uuid_time.c" />
+    <ClCompile Include="src\uuid\uuid_ui128.c" />
+    <ClCompile Include="src\uuid\uuid_ui64.c" />
     <ClCompile Include="src\v8\src\accessors.cc" />
     <ClCompile Include="src\v8\src\allocation.cc" />
     <ClCompile Include="src\v8\src\api.cc" />
@@ -429,6 +438,7 @@
     <ClCompile Include="src\zmq\src\zmq_xsub.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\uuid.h" />
     <ClInclude Include="include\zmq\zmq.h" />
     <ClInclude Include="include\zmq\zmq_utils.h" />
     <ClInclude Include="src\ev\config.h" />
@@ -514,6 +524,21 @@
     <ClInclude Include="src\tiff\tif_fax3.h" />
     <ClInclude Include="src\tiff\tif_predict.h" />
     <ClInclude Include="src\tiff\uvcode.h" />
+    <ClInclude Include="src\uuid\config.h" />
+    <ClInclude Include="src\uuid\config_msvc.h" />
+    <ClInclude Include="src\uuid\uuid.h" />
+    <ClInclude Include="src\uuid\uuid_ac.h" />
+    <ClInclude Include="src\uuid\uuid_bm.h" />
+    <ClInclude Include="src\uuid\uuid_mac.h" />
+    <ClInclude Include="src\uuid\uuid_md5.h" />
+    <ClInclude Include="src\uuid\uuid_msvc.h" />
+    <ClInclude Include="src\uuid\uuid_prng.h" />
+    <ClInclude Include="src\uuid\uuid_sha1.h" />
+    <ClInclude Include="src\uuid\uuid_str.h" />
+    <ClInclude Include="src\uuid\uuid_time.h" />
+    <ClInclude Include="src\uuid\uuid_ui128.h" />
+    <ClInclude Include="src\uuid\uuid_ui64.h" />
+    <ClInclude Include="src\uuid\uuid_vers.h" />
     <ClInclude Include="src\v8\include\v8-debug.h" />
     <ClInclude Include="src\v8\include\v8-preparser.h" />
     <ClInclude Include="src\v8\include\v8-profiler.h" />

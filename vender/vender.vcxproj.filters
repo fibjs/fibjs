@@ -88,6 +88,9 @@
     <Filter Include="Source Files\zmq\src">
       <UniqueIdentifier>{c7d5348b-000c-4946-ba8c-186c40c44d71}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\uuid">
+      <UniqueIdentifier>{28dba002-23ba-47d0-a72e-3e2ca538be13}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zlib\adler32.c">
@@ -1314,6 +1317,33 @@
     <ClCompile Include="src\zmq\src\zmq_xsub.cpp">
       <Filter>Source Files\zmq\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\uuid\uuid.c">
+      <Filter>Source Files\uuid</Filter>
+    </ClCompile>
+    <ClCompile Include="src\uuid\uuid_mac.c">
+      <Filter>Source Files\uuid</Filter>
+    </ClCompile>
+    <ClCompile Include="src\uuid\uuid_md5.c">
+      <Filter>Source Files\uuid</Filter>
+    </ClCompile>
+    <ClCompile Include="src\uuid\uuid_prng.c">
+      <Filter>Source Files\uuid</Filter>
+    </ClCompile>
+    <ClCompile Include="src\uuid\uuid_sha1.c">
+      <Filter>Source Files\uuid</Filter>
+    </ClCompile>
+    <ClCompile Include="src\uuid\uuid_str.c">
+      <Filter>Source Files\uuid</Filter>
+    </ClCompile>
+    <ClCompile Include="src\uuid\uuid_time.c">
+      <Filter>Source Files\uuid</Filter>
+    </ClCompile>
+    <ClCompile Include="src\uuid\uuid_ui64.c">
+      <Filter>Source Files\uuid</Filter>
+    </ClCompile>
+    <ClCompile Include="src\uuid\uuid_ui128.c">
+      <Filter>Source Files\uuid</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -2425,6 +2455,54 @@
     </ClInclude>
     <ClInclude Include="src\zmq\src\yqueue.hpp">
       <Filter>Source Files\zmq\src</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uuid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\uuid\config.h">
+      <Filter>Source Files\uuid</Filter>
+    </ClInclude>
+    <ClInclude Include="src\uuid\uuid.h">
+      <Filter>Source Files\uuid</Filter>
+    </ClInclude>
+    <ClInclude Include="src\uuid\uuid_ac.h">
+      <Filter>Source Files\uuid</Filter>
+    </ClInclude>
+    <ClInclude Include="src\uuid\uuid_bm.h">
+      <Filter>Source Files\uuid</Filter>
+    </ClInclude>
+    <ClInclude Include="src\uuid\uuid_mac.h">
+      <Filter>Source Files\uuid</Filter>
+    </ClInclude>
+    <ClInclude Include="src\uuid\uuid_md5.h">
+      <Filter>Source Files\uuid</Filter>
+    </ClInclude>
+    <ClInclude Include="src\uuid\uuid_prng.h">
+      <Filter>Source Files\uuid</Filter>
+    </ClInclude>
+    <ClInclude Include="src\uuid\uuid_sha1.h">
+      <Filter>Source Files\uuid</Filter>
+    </ClInclude>
+    <ClInclude Include="src\uuid\uuid_str.h">
+      <Filter>Source Files\uuid</Filter>
+    </ClInclude>
+    <ClInclude Include="src\uuid\uuid_time.h">
+      <Filter>Source Files\uuid</Filter>
+    </ClInclude>
+    <ClInclude Include="src\uuid\uuid_ui64.h">
+      <Filter>Source Files\uuid</Filter>
+    </ClInclude>
+    <ClInclude Include="src\uuid\uuid_ui128.h">
+      <Filter>Source Files\uuid</Filter>
+    </ClInclude>
+    <ClInclude Include="src\uuid\uuid_vers.h">
+      <Filter>Source Files\uuid</Filter>
+    </ClInclude>
+    <ClInclude Include="src\uuid\config_msvc.h">
+      <Filter>Source Files\uuid</Filter>
+    </ClInclude>
+    <ClInclude Include="src\uuid\uuid_msvc.h">
+      <Filter>Source Files\uuid</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
