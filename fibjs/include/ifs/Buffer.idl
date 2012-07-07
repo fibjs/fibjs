@@ -36,8 +36,5 @@ class Buffer : object
 	 * @return 返回新的缓存对象
 	 */
 	Buffer slice(Integer start = 0, Integer end = -1);
-
-	/*! @brief 以字符串形式返回缓存内的数据，字符串将以 utf-8 编码读出 */
-	String toString();
 };
 

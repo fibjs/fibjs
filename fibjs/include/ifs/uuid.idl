@@ -1,0 +1,58 @@
+
+/*! @brief uuid 唯一 id 模块
+ *
+ * 基础模块。提供唯一 id 的创建于操作
+ * \code
+ * var uuid = require('uuid');
+ * \endcode
+ */
+class uuid : module
+{
+	/*! @brief md5 与 sha1 创建 uuid 时指定 name 命名为域名 */
+	const Integer DNS = 0;
+
+	/*! @brief md5 与 sha1 创建 uuid 时指定 name 命名为 url 地址 */
+	const Integer URL = 1;
+
+	/*! @brief md5 与 sha1 创建 uuid 时指定 name 命名为 ISO OID */
+	const Integer OID = 2;
+
+	/*! @brief md5 与 sha1 创建 uuid 时指定 name 命名为 X.500 DN */
+	const Integer X509 = 3;
+
+	/*! @brief 根据给定的二进制数据组建 uuid
+	 * @param data 指定描述 uuid 的二进制数据
+	 * @return 返回一个 uuidValue 类型的对象
+	 */
+	static uuidValue uuid(Buffer data);
+
+	/*! @brief 根据给定的字符串描述组建 uuid
+	 * @param s 指定描述 uuid 的字符串
+	 * @return 返回一个 uuidValue 类型的对象
+	 */
+	static uuidValue uuid(String s);
+
+	/*! @brief 使用时间和主机名创建 uuid
+	 * @return 返回一个 uuidValue 类型的对象
+	 */
+	static uuidValue node();
+
+	/*! @brief 使用特定命名的 md5 创建 uuid
+	 * @param ns 指定命名空间，可以为 uuid.DNS, uuid.URL, uuid.OID, uuid.X509
+	 * @param name 指定名称
+	 * @return 返回一个 uuidValue 类型的对象
+	 */
+	static uuidValue md5(Integer ns, String name);
+
+	/*! @brief 使用随机数创建 uuid
+	 * @return 返回一个 uuidValue 类型的对象
+	 */
+	static uuidValue random();
+
+	/*! @brief 使用特定命名的 sha1 创建 uuid
+	 * @param ns 指定命名空间，可以为 uuid.DNS, uuid.URL, uuid.OID, uuid.X509
+	 * @param name 指定名称
+	 * @return 返回一个 uuidValue 类型的对象
+	 */
+	static uuidValue sha1(Integer ns, String name);
+};
