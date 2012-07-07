@@ -30,6 +30,10 @@
 #ifndef __UUID_H__
 #define __UUID_H__
 
+#ifdef uuid_t
+#undef uuid_t
+#endif
+
 /* workaround conflicts with system headers */
 #define uuid_t       __vendor_uuid_t
 #define uuid_create  __vendor_uuid_create
