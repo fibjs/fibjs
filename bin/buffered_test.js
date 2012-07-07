@@ -19,7 +19,7 @@ f.close();
 
 function t_read(sz) {
 	f = io.open("test0000");
-	var r = new Buffer.Reader(f);
+	var r = new io.BufferedStream(f);
 	var p = 0;
 	var d;
 

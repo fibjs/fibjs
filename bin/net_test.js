@@ -20,7 +20,7 @@ function del(f)
 function tm() {
 	while (1) {
 		coroutine.sleep(1000);
-		console.log("****************", new Date());
+		console.log("****************", os.time());
 	}
 }
 
@@ -65,17 +65,20 @@ conn();
 
 var str = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
 
+for(var i = 0; i < 8; i ++)
+	str = str + str;
+
 function accept1(s) {
 	while(true){
 		var c = s.accept();
 
-		c.write(new Buffer(str));
-/*		
+//		c.write(new Buffer(str));
+		
 		io.writeFile('net_temp_000001', str);
 		var f = io.open('net_temp_000001');
 		assert.equal(f.copyTo(c), str.length);
 		f.close();
-*/		c.close();
+		c.close();
 	}
 }
 
@@ -97,10 +100,10 @@ function t_conn()
 	assert.equal(str, io.readFile('net_temp_000002'));
 }
 
-for(var i = 0; i < 10000; i ++)
+for(var i = 0; i < 100; i ++)
 	t_conn();
 
-for(var i = 0; i < 18; i ++)
+for(var i = 0; i < 10; i ++)
 	str = str + str;
 
 t_conn();

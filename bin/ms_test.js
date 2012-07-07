@@ -37,7 +37,7 @@ ms.seek(-10, io.SEEK_END);
 assert.equal('qrstuvwxyz', ms.read(ms.size()).toString());
 
 var cms = ms.clone();
-assert.equal(cms.stat().mtime.toString(), ms.stat().mtime.toString());
+assert.equal(cms.stat().mtime, ms.stat().mtime);
 
 assert.equal('abcdefghijklmnopqrstuvwxyz', cms.read().toString());
 
