@@ -52,6 +52,7 @@
     <ClCompile Include="src\Trigger.cpp" />
     <ClCompile Include="src\utf8.cpp" />
     <ClCompile Include="src\util.cpp" />
+    <ClCompile Include="src\uuidVar.cpp" />
     <ClCompile Include="src\zmqSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -94,6 +95,8 @@
     <ClInclude Include="include\ifs\Stat.h" />
     <ClInclude Include="include\ifs\Stream.h" />
     <ClInclude Include="include\ifs\Trigger.h" />
+    <ClInclude Include="include\ifs\uuid.h" />
+    <ClInclude Include="include\ifs\uuidValue.h" />
     <ClInclude Include="include\ifs\zmq.h" />
     <ClInclude Include="include\ifs\zmqSocket.h" />
     <ClInclude Include="include\Lock.h" />
@@ -107,6 +110,7 @@
     <ClInclude Include="include\Trigger.h" />
     <ClInclude Include="include\utf8.h" />
     <ClInclude Include="include\utils.h" />
+    <ClInclude Include="include\uuidVar.h" />
     <ClInclude Include="include\zmqSocket.h" />
   </ItemGroup>
   <ItemGroup>
