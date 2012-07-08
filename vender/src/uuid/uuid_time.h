@@ -70,9 +70,11 @@
 
 DECLARATION_BEGIN
 
+#ifndef __MINGW32__
 #ifndef HAVE_STRUCT_TIMEVAL
 #ifndef ALREADY_HAVE_STRUCT_TIMEVAL
 struct timeval { long tv_sec; long tv_usec; };
+#endif
 #endif
 #endif
 

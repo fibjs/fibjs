@@ -28,7 +28,7 @@
 */
 
 /* own headers (part 1/2) */
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include "uuid_msvc.h"
 #else
 #include "uuid.h"

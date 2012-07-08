@@ -41,7 +41,7 @@
 #include <sys/time.h>
 #endif
 #include <fcntl.h>
-#if defined(WIN32)
+#if defined(_WIN32) && !defined(WINVER)
 #define WINVER 0x0500
 #include <windows.h>
 #include <wincrypt.h>
@@ -107,7 +107,7 @@ prng_rc_t prng_create(prng_t **prng)
 
     /* seed the C library PRNG once */
     (void)time_gettimeofday(&tv);
-#ifdef _MSC_VER
+#ifdef _WIN32
     pid = _getpid();
 #else
     pid = getpid();
@@ -137,7 +137,7 @@ prng_rc_t prng_data(prng_t *prng, void *data_ptr, size_t data_len)
     size_t md5_len;
     int retries;
     int i;
-#if defined(WIN32)
+#if defined(_MSC_VER)
     HCRYPTPROV hProv;
 #endif
 
@@ -164,7 +164,7 @@ prng_rc_t prng_data(prng_t *prng, void *data_ptr, size_t data_len)
             p += (unsigned int)i;
         }
     }
-#if defined(WIN32)
+#if defined(_MSC_VER)
     else {
         if (CryptAcquireContext(&hProv, NULL, NULL, PROV_RSA_FULL, 0))
             CryptGenRandom(hProv, n, p);
