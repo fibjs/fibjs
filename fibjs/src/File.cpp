@@ -82,7 +82,7 @@ result_t File::asyncRead(int32_t bytes)
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
-	acb_read(s_acPool, bytes);
+	acb_read(bytes);
 	return 0;
 }
 
@@ -128,7 +128,7 @@ result_t File::asyncWrite(obj_ptr<Buffer_base>& data)
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
-	acb_write(s_acPool, data);
+	acb_write(data);
 	return 0;
 }
 
@@ -154,7 +154,7 @@ result_t File::asyncCopyTo(obj_ptr<Stream_base>& stm, int64_t bytes)
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
-	acb_copyTo(s_acPool, stm, bytes);
+	acb_copyTo(stm, bytes);
 	return 0;
 }
 
@@ -201,7 +201,7 @@ result_t File::asyncOpen(const char* fname, const char* mode)
 	std::string strname(fname);
 	std::string strmode(mode);
 
-	acb_open(s_acPool, strname, strmode);
+	acb_open(strname, strmode);
 	return 0;
 }
 
@@ -242,7 +242,7 @@ result_t File::asyncStat()
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
-	acb_stat(s_acPool);
+	acb_stat();
 	return 0;
 }
 
@@ -331,7 +331,7 @@ result_t File::asyncFlush()
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
-	acb_flush(s_acPool);
+	acb_flush();
 	return 0;
 }
 
@@ -359,7 +359,7 @@ result_t File::asyncClose()
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
-	acb_close(s_acPool);
+	acb_close();
 	return 0;
 }
 
@@ -387,7 +387,7 @@ result_t File::asyncTruncate(int64_t bytes)
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
-	acb_truncate(s_acPool, bytes);
+	acb_truncate(bytes);
 	return 0;
 }
 

@@ -58,7 +58,7 @@ result_t MemoryStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
 result_t MemoryStream::asyncRead(int32_t bytes)
 {
-	acb_read(s_acPool, bytes);
+	acb_read(bytes);
 	return 0;
 }
 
@@ -82,7 +82,7 @@ result_t MemoryStream::write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
 
 result_t MemoryStream::asyncWrite(obj_ptr<Buffer_base>& data)
 {
-	acb_write(s_acPool, data);
+	acb_write(data);
 	return 0;
 }
 
@@ -102,7 +102,7 @@ result_t MemoryStream::copyTo(obj_ptr<Stream_base>& stm, int64_t bytes,
 
 result_t MemoryStream::asyncCopyTo(obj_ptr<Stream_base>& stm, int64_t bytes)
 {
-	acb_copyTo(s_acPool, stm, bytes);
+	acb_copyTo(stm, bytes);
 	return 0;
 }
 
@@ -127,7 +127,7 @@ result_t MemoryStream::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
 
 result_t MemoryStream::asyncStat()
 {
-	acb_stat(s_acPool);
+	acb_stat();
 	return 0;
 }
 

@@ -170,7 +170,7 @@ namespace fibjs
 		ARG_String(0);
 		OPT_ARG_String(1, "r");
 
-		hr = pInst->ac_open(s_acPool, v0, v1);
+		hr = pInst->ac_open(v0, v1);
 
 		METHOD_VOID();
 	}
@@ -242,7 +242,7 @@ namespace fibjs
 
 		ARG(int64_t, 0);
 
-		hr = pInst->ac_truncate(s_acPool, v0);
+		hr = pInst->ac_truncate(v0);
 
 		METHOD_VOID();
 	}
@@ -300,7 +300,7 @@ namespace fibjs
 		METHOD_INSTANCE(File_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->ac_flush(s_acPool);
+		hr = pInst->ac_flush();
 
 		METHOD_VOID();
 	}
@@ -332,7 +332,7 @@ namespace fibjs
 		METHOD_INSTANCE(File_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->ac_close(s_acPool);
+		hr = pInst->ac_close();
 
 		METHOD_VOID();
 	}

@@ -139,7 +139,7 @@ namespace fibjs
 		ARG_String(0);
 		OPT_ARG_String(1, "r");
 
-		hr = ac_open(s_acPool, v0, v1, vr);
+		hr = ac_open(v0, v1, vr);
 
 		METHOD_RETURN();
 	}
@@ -153,7 +153,7 @@ namespace fibjs
 		ARG_String(0);
 		OPT_ARG(bool, 1, true);
 
-		hr = ac_create(s_acPool, v0, v1, vr);
+		hr = ac_create(v0, v1, vr);
 
 		METHOD_RETURN();
 	}
@@ -164,7 +164,7 @@ namespace fibjs
 
 		METHOD_ENTER(0, 0);
 
-		hr = ac_tmpFile(s_acPool, vr);
+		hr = ac_tmpFile(vr);
 
 		METHOD_RETURN();
 	}
@@ -177,7 +177,7 @@ namespace fibjs
 
 		ARG_String(0);
 
-		hr = ac_readFile(s_acPool, v0, vr);
+		hr = ac_readFile(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -189,7 +189,7 @@ namespace fibjs
 		ARG_String(0);
 		ARG_String(1);
 
-		hr = ac_writeFile(s_acPool, v0, v1);
+		hr = ac_writeFile(v0, v1);
 
 		METHOD_VOID();
 	}

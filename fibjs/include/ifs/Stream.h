@@ -120,7 +120,7 @@ namespace fibjs
 
 		OPT_ARG(int32_t, 0, -1);
 
-		hr = pInst->ac_read(s_acPool, v0, vr);
+		hr = pInst->ac_read(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -156,7 +156,7 @@ namespace fibjs
 
 		ARG(obj_ptr<Buffer_base>, 0);
 
-		hr = pInst->ac_write(s_acPool, v0);
+		hr = pInst->ac_write(v0);
 
 		METHOD_VOID();
 	}
@@ -195,7 +195,7 @@ namespace fibjs
 		ARG(obj_ptr<Stream_base>, 0);
 		OPT_ARG(int64_t, 1, -1);
 
-		hr = pInst->ac_copyTo(s_acPool, v0, v1, vr);
+		hr = pInst->ac_copyTo(v0, v1, vr);
 
 		METHOD_RETURN();
 	}
@@ -232,7 +232,7 @@ namespace fibjs
 		METHOD_INSTANCE(Stream_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->ac_stat(s_acPool, vr);
+		hr = pInst->ac_stat(vr);
 
 		METHOD_RETURN();
 	}

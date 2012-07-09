@@ -252,7 +252,7 @@ namespace fibjs
 		ARG_String(0);
 		ARG(int32_t, 1);
 
-		hr = pInst->ac_connect(s_acPool, v0, v1);
+		hr = pInst->ac_connect(v0, v1);
 
 		METHOD_VOID();
 	}
@@ -322,7 +322,7 @@ namespace fibjs
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->ac_accept(s_acPool, vr);
+		hr = pInst->ac_accept(vr);
 
 		METHOD_RETURN();
 	}
@@ -354,7 +354,7 @@ namespace fibjs
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->ac_close(s_acPool);
+		hr = pInst->ac_close();
 
 		METHOD_VOID();
 	}
@@ -390,7 +390,7 @@ namespace fibjs
 
 		OPT_ARG(int32_t, 0, -1);
 
-		hr = pInst->ac_recv(s_acPool, v0, vr);
+		hr = pInst->ac_recv(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -416,7 +416,7 @@ namespace fibjs
 
 		ARG(obj_ptr<Buffer_base>, 0);
 
-		hr = pInst->ac_send(s_acPool, v0);
+		hr = pInst->ac_send(v0);
 
 		METHOD_VOID();
 	}

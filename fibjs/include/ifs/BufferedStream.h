@@ -142,7 +142,7 @@ namespace fibjs
 
 		ARG(int32_t, 0);
 
-		hr = pInst->ac_readText(s_acPool, v0, vr);
+		hr = pInst->ac_readText(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -154,7 +154,7 @@ namespace fibjs
 		METHOD_INSTANCE(BufferedStream_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->ac_readLine(s_acPool, vr);
+		hr = pInst->ac_readLine(vr);
 
 		METHOD_RETURN();
 	}
@@ -168,7 +168,7 @@ namespace fibjs
 
 		ARG(int32_t, 0);
 
-		hr = pInst->ac_readUntil(s_acPool, v0, vr);
+		hr = pInst->ac_readUntil(v0, vr);
 
 		METHOD_RETURN();
 	}

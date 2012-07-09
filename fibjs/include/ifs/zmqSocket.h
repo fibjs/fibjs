@@ -155,7 +155,7 @@ namespace fibjs
 		METHOD_INSTANCE(zmqSocket_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->ac_recv(s_acPool, vr);
+		hr = pInst->ac_recv(vr);
 
 		METHOD_RETURN();
 	}

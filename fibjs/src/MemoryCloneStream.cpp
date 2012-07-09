@@ -46,7 +46,7 @@ result_t MemoryStream::CloneStream::read(int32_t bytes,
 
 result_t MemoryStream::CloneStream::asyncRead(int32_t bytes)
 {
-	acb_read(s_acPool, bytes);
+	acb_read(bytes);
 	return 0;
 }
 
@@ -83,7 +83,7 @@ result_t MemoryStream::CloneStream::copyTo(obj_ptr<Stream_base>& stm,
 result_t MemoryStream::CloneStream::asyncCopyTo(obj_ptr<Stream_base>& stm,
 		int64_t bytes)
 {
-	acb_copyTo(s_acPool, stm, bytes);
+	acb_copyTo(stm, bytes);
 	return 0;
 }
 
@@ -109,7 +109,7 @@ result_t MemoryStream::CloneStream::stat(obj_ptr<Stat_base>& retVal,
 
 result_t MemoryStream::CloneStream::asyncStat()
 {
-	acb_stat(s_acPool);
+	acb_stat();
 	return 0;
 }
 

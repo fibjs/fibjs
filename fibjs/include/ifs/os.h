@@ -212,7 +212,7 @@ namespace fibjs
 
 		ARG_String(0);
 
-		hr = ac_exists(s_acPool, v0, vr);
+		hr = ac_exists(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -223,7 +223,7 @@ namespace fibjs
 
 		ARG_String(0);
 
-		hr = ac_unlink(s_acPool, v0);
+		hr = ac_unlink(v0);
 
 		METHOD_VOID();
 	}
@@ -234,7 +234,7 @@ namespace fibjs
 
 		ARG_String(0);
 
-		hr = ac_mkdir(s_acPool, v0);
+		hr = ac_mkdir(v0);
 
 		METHOD_VOID();
 	}
@@ -245,7 +245,7 @@ namespace fibjs
 
 		ARG_String(0);
 
-		hr = ac_rmdir(s_acPool, v0);
+		hr = ac_rmdir(v0);
 
 		METHOD_VOID();
 	}
@@ -257,7 +257,7 @@ namespace fibjs
 		ARG_String(0);
 		ARG_String(1);
 
-		hr = ac_rename(s_acPool, v0, v1);
+		hr = ac_rename(v0, v1);
 
 		METHOD_VOID();
 	}
@@ -270,7 +270,7 @@ namespace fibjs
 
 		ARG_String(0);
 
-		hr = ac_stat(s_acPool, v0, vr);
+		hr = ac_stat(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -283,7 +283,7 @@ namespace fibjs
 
 		ARG_String(0);
 
-		hr = ac_readdir(s_acPool, v0, vr);
+		hr = ac_readdir(v0, vr);
 
 		METHOD_RETURN();
 	}

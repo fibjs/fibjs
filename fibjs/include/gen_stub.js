@@ -33,7 +33,7 @@ function gen_stub(argn, bInst)
 		s += '> \\';
 		txt.push(s);
 
-		txt.push((bInst ? '	' : '	static ')+'result_t ac_##m(AsyncQueue& q, \\');
+		txt.push((bInst ? '	' : '	static ')+'result_t ac_##m( \\');
 		
 		s = '		';
 		a = [];
@@ -43,7 +43,7 @@ function gen_stub(argn, bInst)
 		s += ') {\\';
 		txt.push(s);
 	}else
-		txt.push((bInst ? '	' : '	static ')+'result_t ac_##m(AsyncQueue& q) { \\');
+		txt.push((bInst ? '	' : '	static ')+'result_t ac_##m() { \\');
 
 	txt.push('	class _t { public: \\');
 	txt.push('		static void _stub(AsyncCall* ac) { \\');
@@ -91,7 +91,7 @@ function gen_stub(argn, bInst)
 	}else
 		txt.push('	AsyncCall ac(NULL, _t::_stub); \\');
 
-	txt.push('	q.put(&ac); \\\n	return ac.wait();}\n');
+	txt.push('	s_acPool.put(&ac); \\\n	return ac.wait();}\n');
 
 }
 
@@ -112,7 +112,7 @@ function gen_callback(argn, bRet)
 		s += '> \\';
 		txt.push(s);
 
-		txt.push('	void acb_##m(AsyncQueue& q, \\');
+		txt.push('	void acb_##m( \\');
 		
 		s = '		';
 		a = [];
@@ -122,7 +122,7 @@ function gen_callback(argn, bRet)
 		s += ', const char* ev = #m) {\\';
 		txt.push(s);
 	}else
-		txt.push('	void acb_##m(AsyncQueue& q, const char* ev = #m) { \\');
+		txt.push('	void acb_##m(const char* ev = #m) { \\');
 
 	txt.push('	class _t: public AsyncCallBack { \\\n	public: \\');
 	s = '		_t(cls* pThis';
@@ -175,7 +175,7 @@ function gen_callback(argn, bRet)
 	
 	txt.push('		const char* m_ev; \\\n	}; \\');
 
-	s = '	q.put(new _t(this';
+	s = '	s_acPool.put(new _t(this';
 	for(i = 0; i < argn; i ++)
 		s += ', v' + i;
 	s += ', ev)); \\';

@@ -595,13 +595,13 @@ function parserIDL(fname) {
 				
 				if (attr == "static") {
 					ifStr += "exlib::AsyncEvent* ac);";
-					fnStr += "		hr = ac_" + fname + "(s_acPool";
+					fnStr += "		hr = ac_" + fname + "(";
 					afs.push('	ASYNC_STATIC'
 							+ (ftype == "" ? argCount : argCount + 1) + '('
 							+ ns + '_base, ' + fname + ');');
 				} else {
 					ifStr += "exlib::AsyncEvent* ac) = 0;";
-					fnStr += "		hr = pInst->ac_" + fname + "(s_acPool";
+					fnStr += "		hr = pInst->ac_" + fname + "(";
 					afs.push('	ASYNC_MEMBER'
 							+ (ftype == "" ? argCount : argCount + 1) + '('
 							+ ns + '_base, ' + fname + ');');
@@ -612,8 +612,8 @@ function parserIDL(fname) {
 						afs.push('	ASYNC_VALUEBACK' + argCount + '(' + ns + '_base, ' + fname + ', ' + map_type(ftype) +');');
 				}
 
-				if (argArray || (ftype != "") || (argCount > 0))
-					fnStr += ", ";
+//				if (argArray || (ftype != "") || (argCount > 0))
+//					fnStr += ", ";
 			} else {
 				if (attr == "static") {
 					ifStr += ");";

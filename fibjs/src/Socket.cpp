@@ -428,7 +428,7 @@ result_t Socket::asyncRead(int32_t bytes)
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
 
-	acb_read(s_acPool, bytes);
+	acb_read(bytes);
 	return 0;
 }
 
@@ -447,7 +447,7 @@ result_t Socket::asyncWrite(obj_ptr<Buffer_base>& data)
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
 
-	acb_write(s_acPool, data);
+	acb_write(data);
 	return 0;
 }
 
@@ -473,7 +473,7 @@ result_t Socket::asyncCopyTo(obj_ptr<Stream_base>& stm, int64_t bytes)
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
 
-	acb_copyTo(s_acPool, stm, bytes);
+	acb_copyTo(stm, bytes);
 	return 0;
 }
 
@@ -500,7 +500,7 @@ result_t Socket::asyncStat()
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
 
-	acb_stat(s_acPool);
+	acb_stat();
 	return 0;
 }
 
@@ -533,7 +533,7 @@ result_t Socket::asyncClose()
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
 
-	acb_close(s_acPool);
+	acb_close();
 	return 0;
 }
 
@@ -730,7 +730,7 @@ result_t Socket::asyncConnect(const char* addr, int32_t port)
 {
 	std::string strAddr(addr);
 
-	acb_connect(s_acPool, strAddr, port);
+	acb_connect(strAddr, port);
 	return 0;
 }
 
@@ -741,7 +741,7 @@ result_t Socket::onconnect(v8::Handle<v8::Function> func)
 
 result_t Socket::asyncAccept()
 {
-	acb_accept(s_acPool);
+	acb_accept();
 	return 0;
 }
 
