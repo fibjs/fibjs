@@ -30,19 +30,19 @@
 #ifndef __UUID_H__
 #define __UUID_H__
 
-#ifdef uuid_t
-#undef uuid_t
+#ifdef uuid_st
+#undef uuid_st
 #endif
 
 /* workaround conflicts with system headers */
-#define uuid_t       __vendor_uuid_t
+#define uuid_st       __vendor_uuid_st
 #define uuid_create  __vendor_uuid_create
 #define uuid_compare __vendor_uuid_compare
 #include <sys/types.h>
 #ifndef _WIN32
 #include <unistd.h>
 #endif
-#undef  uuid_t
+#undef  uuid_st
 #undef  uuid_create
 #undef  uuid_compare
 
@@ -97,24 +97,25 @@ typedef enum {
 
 /* UUID abstract data type */
 struct uuid_st;
-typedef struct uuid_st uuid_t;
+//typedef struct uuid_st uuid_st;
+
 
 /* UUID object handling */
-extern uuid_rc_t     uuid_create   (      uuid_t **_uuid);
-extern uuid_rc_t     uuid_destroy  (      uuid_t  *_uuid);
-extern uuid_rc_t     uuid_clone    (const uuid_t  *_uuid, uuid_t **_clone);
+extern uuid_rc_t     uuid_create   (      uuid_st **_uuid);
+extern uuid_rc_t     uuid_destroy  (      uuid_st  *_uuid);
+extern uuid_rc_t     uuid_clone    (const uuid_st  *_uuid, uuid_st **_clone);
 
 /* UUID generation */
-extern uuid_rc_t     uuid_load     (      uuid_t  *_uuid, const char *_name);
-extern uuid_rc_t     uuid_make     (      uuid_t  *_uuid, unsigned int _mode, ...);
+extern uuid_rc_t     uuid_load     (      uuid_st  *_uuid, const char *_name);
+extern uuid_rc_t     uuid_make     (      uuid_st  *_uuid, unsigned int _mode, ...);
 
 /* UUID comparison */
-extern uuid_rc_t     uuid_isnil    (const uuid_t  *_uuid,                       int *_result);
-extern uuid_rc_t     uuid_compare  (const uuid_t  *_uuid, const uuid_t *_uuid2, int *_result);
+extern uuid_rc_t     uuid_isnil    (const uuid_st  *_uuid,                       int *_result);
+extern uuid_rc_t     uuid_compare  (const uuid_st  *_uuid, const uuid_st *_uuid2, int *_result);
 
 /* UUID import/export */
-extern uuid_rc_t     uuid_import   (      uuid_t  *_uuid, uuid_fmt_t _fmt, const void  *_data_ptr, size_t  _data_len);
-extern uuid_rc_t     uuid_export   (const uuid_t  *_uuid, uuid_fmt_t _fmt,       void  *_data_ptr, size_t *_data_len);
+extern uuid_rc_t     uuid_import   (      uuid_st  *_uuid, uuid_fmt_t _fmt, const void  *_data_ptr, size_t  _data_len);
+extern uuid_rc_t     uuid_export   (const uuid_st  *_uuid, uuid_fmt_t _fmt,       void  *_data_ptr, size_t *_data_len);
 
 /* library utilities */
 extern char         *uuid_error    (uuid_rc_t _rc);
