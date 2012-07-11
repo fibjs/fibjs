@@ -32,6 +32,9 @@ public:
 
 public:
 	// net_base
+	static result_t resolve(const char* name, int32_t family, std::string& retVal, exlib::AsyncEvent* ac);
+	static result_t ip(const char* name, std::string& retVal, exlib::AsyncEvent* ac);
+	static result_t ipv6(const char* name, std::string& retVal, exlib::AsyncEvent* ac);
 	static result_t backend(std::string& retVal);
 
 public:
@@ -47,7 +50,15 @@ protected:
 	static v8::Handle<v8::Value> s_get_AF_INET6(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_resolve(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_ip(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_ipv6(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_backend(const v8::Arguments& args);
+
+protected:
+	ASYNC_STATIC3(net_base, resolve);
+	ASYNC_STATIC2(net_base, ip);
+	ASYNC_STATIC2(net_base, ipv6);
 };
 
 }
@@ -60,6 +71,9 @@ namespace fibjs
 	{
 		static ClassMethod s_method[] = 
 		{
+			{"resolve", s_resolve, true},
+			{"ip", s_ip, true},
+			{"ipv6", s_ipv6, true},
 			{"backend", s_backend, true}
 		};
 
@@ -79,7 +93,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"net", NULL, 
-			1, s_method, 1, s_object, 4, s_property, NULL,
+			4, s_method, 1, s_object, 4, s_property, NULL,
 			&module_base::class_info()
 		};
 
@@ -112,6 +126,46 @@ namespace fibjs
 	{
 		int32_t vr = _SOCK_DGRAM;
 		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> net_base::s_resolve(const v8::Arguments& args)
+	{
+		std::string vr;
+
+		METHOD_ENTER(2, 1);
+
+		ARG_String(0);
+		OPT_ARG(int32_t, 1, _AF_INET);
+
+		hr = ac_resolve(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> net_base::s_ip(const v8::Arguments& args)
+	{
+		std::string vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = ac_ip(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> net_base::s_ipv6(const v8::Arguments& args)
+	{
+		std::string vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = ac_ipv6(v0, vr);
+
 		METHOD_RETURN();
 	}
 

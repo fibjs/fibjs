@@ -33,7 +33,7 @@ public:
 	result_t detail(std::string& retVal);
 
 public:
-	uuid_t *m_uid;
+	uuid_st *m_uid;
 };
 
 } /* namespace fibjs */

@@ -34,6 +34,7 @@
     <ClCompile Include="src\File.cpp" />
     <ClCompile Include="src\Function.cpp" />
     <ClCompile Include="src\global.cpp" />
+    <ClCompile Include="src\inetAddr.cpp" />
     <ClCompile Include="src\io.cpp" />
     <ClCompile Include="src\Lock.cpp" />
     <ClCompile Include="src\MemoryCloneStream.cpp" />
@@ -42,6 +43,7 @@
     <ClCompile Include="src\ObjectArray.cpp" />
     <ClCompile Include="src\os.cpp" />
     <ClCompile Include="src\path.cpp" />
+    <ClCompile Include="src\resolve.cpp" />
     <ClCompile Include="src\Semaphore.cpp" />
     <ClCompile Include="src\Socket.cpp" />
     <ClCompile Include="src\Socket_ev.cpp" />
@@ -99,6 +101,7 @@
     <ClInclude Include="include\ifs\uuidValue.h" />
     <ClInclude Include="include\ifs\zmq.h" />
     <ClInclude Include="include\ifs\zmqSocket.h" />
+    <ClInclude Include="include\inetAddr.h" />
     <ClInclude Include="include\Lock.h" />
     <ClInclude Include="include\MemoryStream.h" />
     <ClInclude Include="include\object.h" />

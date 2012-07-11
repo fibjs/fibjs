@@ -183,7 +183,7 @@ int a_connect(SOCKET s, sockaddr* ai, int sz)
 	if (n == SOCKET_ERROR && (errno == EINPROGRESS))
 	{
 		asyncWait ac(s, EV_WRITE);
-		_sockaddr addr_info;
+		inetAddr addr_info;
 		socklen_t sz1 = sizeof(addr_info);
 
 		return ::getpeername(s, (sockaddr*) &addr_info, &sz1);
@@ -233,7 +233,7 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 	class asyncConnect: public asyncProc
 	{
 	public:
-		asyncConnect(SOCKET s, _sockaddr& ai, exlib::AsyncEvent* ac) :
+		asyncConnect(SOCKET s, inetAddr& ai, exlib::AsyncEvent* ac) :
 				asyncProc(s, EV_WRITE, ac), m_ai(ai)
 		{
 		}
@@ -252,7 +252,7 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 
 		virtual void proc()
 		{
-			_sockaddr addr_info;
+			inetAddr addr_info;
 			socklen_t sz1 = sizeof(addr_info);
 
 			if (::getpeername(m_s, (sockaddr*) &addr_info, &sz1) == SOCKET_ERROR)
@@ -264,7 +264,7 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 		}
 
 	public:
-		_sockaddr m_ai;
+		inetAddr m_ai;
 	};
 
 	if (m_sock == INVALID_SOCKET)
@@ -273,7 +273,7 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	_sockaddr addr_info;
+	inetAddr addr_info;
 	result_t hr = getAddrInfo(addr, port, addr_info);
 	if (hr < 0)
 		return hr;
@@ -294,7 +294,7 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 
 		virtual result_t process()
 		{
-			_sockaddr ai;
+			inetAddr ai;
 			socklen_t sz = sizeof(ai);
 			SOCKET c = ::accept(m_s, (sockaddr*) &ai, &sz);
 			if (c == INVALID_SOCKET)
@@ -310,7 +310,7 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 			setsockopt(c, SOL_SOCKET, SO_NOSIGPIPE, &set_option, sizeof(set_option));
 #endif
 
-			obj_ptr<Socket> sock = new Socket(c, ai.type(),
+			obj_ptr<Socket> sock = new Socket(c, ai.family(),
 					net_base::_SOCK_STREAM);
 
 			m_retVal = sock;

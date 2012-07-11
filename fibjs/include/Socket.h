@@ -7,36 +7,13 @@
 
 #include "ifs/Socket.h"
 #include "Stream.h"
+#include "inetAddr.h"
 
 #ifndef SOCKET_H_
 #define SOCKET_H_
 
 namespace fibjs
 {
-
-union _sockaddr
-{
-	struct sockaddr_in addr4;
-	struct sockaddr_in6 addr6;
-
-	int size()
-	{
-		return addr6.sin6_family == PF_INET6 ? (int)sizeof(addr6) : (int)sizeof(addr4);
-	}
-
-	int type()
-	{
-		return addr6.sin6_family == PF_INET6 ?
-				net_base::_AF_INET6 : net_base::_AF_INET;
-	}
-
-	int port()
-	{
-		return addr6.sin6_family == PF_INET6 ? addr6.sin6_port : addr4.sin_port;
-	}
-
-	std::string inet_ntop();
-};
 
 class Socket: public Socket_base
 {
@@ -113,7 +90,7 @@ public:
 	result_t create(int32_t family, int32_t type);
 
 private:
-	result_t getAddrInfo(const char* addr, int32_t port, _sockaddr& addr_info);
+	result_t getAddrInfo(const char* addr, int32_t port, inetAddr& addr_info);
 
 private:
 	SOCKET m_sock;

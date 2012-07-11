@@ -127,7 +127,7 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 	class asyncConnect: public asyncProc
 	{
 	public:
-		asyncConnect(SOCKET s, _sockaddr& ai, exlib::AsyncEvent* ac) :
+		asyncConnect(SOCKET s, inetAddr& ai, exlib::AsyncEvent* ac) :
 				asyncProc(s, ac), m_ai(ai)
 		{
 		}
@@ -166,7 +166,7 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 		}
 
 	public:
-		_sockaddr m_ai;
+		inetAddr m_ai;
 	};
 
 	if (m_sock == INVALID_SOCKET)
@@ -175,7 +175,7 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	_sockaddr addr_info;
+	inetAddr addr_info;
 	result_t hr = getAddrInfo(addr, port, addr_info);
 	if (hr < 0)
 		return hr;
@@ -220,8 +220,8 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 					return SocketError();
 			}
 
-			if (AcceptEx(m_sListen, m_s, &m_Buf, 0, sizeof(_sockaddr) + 16,
-					sizeof(_sockaddr) + 16, NULL, this))
+			if (AcceptEx(m_sListen, m_s, &m_Buf, 0, sizeof(inetAddr) + 16,
+					sizeof(inetAddr) + 16, NULL, this))
 				return CALL_E_PENDDING;
 
 			nError = GetLastError();
@@ -239,7 +239,7 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 	public:
 		SOCKET m_sListen;
 		obj_ptr<Socket_base>& m_retVal;
-		char m_Buf[(sizeof(_sockaddr) + 16) * 2];
+		char m_Buf[(sizeof(inetAddr) + 16) * 2];
 	};
 
 	if (m_sock == INVALID_SOCKET)

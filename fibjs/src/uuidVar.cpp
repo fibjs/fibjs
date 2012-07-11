@@ -38,7 +38,7 @@ result_t uuid_base::uuid(const char* s, obj_ptr<uuidValue_base>& retVal)
 	return 0;
 }
 
-static uuid_t* s_ns[4];
+static uuid_st* s_ns[4];
 static const char* s_ns_str[4] =
 { "ns:DNS", "ns:URL", "ns:OID", "ns:X500" };
 
