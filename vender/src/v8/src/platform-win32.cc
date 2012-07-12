@@ -631,6 +631,11 @@ int OS::GetLastError() {
 }
 
 
+int OS::GetCurrentProcessId() {
+  return static_cast<int>(::GetCurrentProcessId());
+}
+
+
 // ----------------------------------------------------------------------------
 // Win32 console output.
 //

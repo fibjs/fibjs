@@ -48,7 +48,7 @@ class HGraph;
 class HLoopInformation;
 class HTracer;
 class LAllocator;
-class LChunk;
+class LChunkBase;
 class LiveRange;
 
 
@@ -281,8 +281,6 @@ class HGraph: public ZoneObject {
 
   void CollectPhis();
 
-  Handle<Code> Compile();
-
   void set_undefined_constant(HConstant* constant) {
     undefined_constant_.set(constant);
   }
@@ -312,6 +310,8 @@ class HGraph: public ZoneObject {
     if (id >= 0 && id < values_.length()) return values_[id];
     return NULL;
   }
+
+  bool Optimize(SmartArrayPointer<char>* bailout_reason);
 
 #ifdef DEBUG
   void Verify(bool do_full_verify) const;
@@ -347,7 +347,9 @@ class HGraph: public ZoneObject {
 
  private:
   HConstant* GetConstant(SetOncePointer<HConstant>* pointer,
-                         Object* value);
+                         Handle<Object> value);
+  HConstant* GetConstantInt32(SetOncePointer<HConstant>* pointer,
+                              int32_t integer_value);
 
   void MarkAsDeoptimizingRecursively(HBasicBlock* block);
   void InsertTypeConversions(HInstruction* instr);
@@ -1138,16 +1140,19 @@ class HGraphBuilder: public AstVisitor {
                                    bool is_store,
                                    bool* has_side_effects);
 
+  HInstruction* BuildCallGetter(HValue* obj,
+                                Property* expr,
+                                Handle<Map> map,
+                                Handle<Object> callback,
+                                Handle<JSObject> holder);
   HInstruction* BuildLoadNamed(HValue* object,
                                Property* prop,
                                Handle<Map> map,
                                Handle<String> name);
   HInstruction* BuildStoreNamed(HValue* object,
                                 HValue* value,
-                                Expression* expr);
-  HInstruction* BuildStoreNamed(HValue* object,
-                                HValue* value,
-                                ObjectLiteral::Property* prop);
+                                Handle<Map> type,
+                                Expression* key);
   HInstruction* BuildStoreNamedField(HValue* object,
                                      Handle<String> name,
                                      HValue* value,
@@ -1165,7 +1170,7 @@ class HGraphBuilder: public AstVisitor {
 
   HInstruction* BuildThisFunction();
 
-  void AddCheckConstantFunction(Call* expr,
+  void AddCheckConstantFunction(Handle<JSObject> holder,
                                 HValue* receiver,
                                 Handle<Map> receiver_map,
                                 bool smi_and_map_check);
@@ -1331,7 +1336,7 @@ class HPhase BASE_EMBEDDED {
   HPhase(const char* name, HGraph* graph) {
     Begin(name, graph, NULL, NULL);
   }
-  HPhase(const char* name, LChunk* chunk) {
+  HPhase(const char* name, LChunkBase* chunk) {
     Begin(name, NULL, chunk, NULL);
   }
   HPhase(const char* name, LAllocator* allocator) {
@@ -1345,14 +1350,14 @@ class HPhase BASE_EMBEDDED {
  private:
   void Begin(const char* name,
              HGraph* graph,
-             LChunk* chunk,
+             LChunkBase* chunk,
              LAllocator* allocator);
   void End() const;
 
   int64_t start_;
   const char* name_;
   HGraph* graph_;
-  LChunk* chunk_;
+  LChunkBase* chunk_;
   LAllocator* allocator_;
   unsigned start_allocation_size_;
 };
@@ -1362,7 +1367,7 @@ class HTracer: public Malloced {
  public:
   void TraceCompilation(FunctionLiteral* function);
   void TraceHydrogen(const char* name, HGraph* graph);
-  void TraceLithium(const char* name, LChunk* chunk);
+  void TraceLithium(const char* name, LChunkBase* chunk);
   void TraceLiveRanges(const char* name, LAllocator* allocator);
 
   static HTracer* Instance() {
@@ -1403,7 +1408,7 @@ class HTracer: public Malloced {
   }
 
   void TraceLiveRange(LiveRange* range, const char* type, Zone* zone);
-  void Trace(const char* name, HGraph* graph, LChunk* chunk);
+  void Trace(const char* name, HGraph* graph, LChunkBase* chunk);
   void FlushToFile();
 
   void PrintEmptyProperty(const char* name) {

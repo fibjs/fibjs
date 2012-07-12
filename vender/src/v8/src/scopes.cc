@@ -29,6 +29,7 @@
 
 #include "scopes.h"
 
+#include "accessors.h"
 #include "bootstrapper.h"
 #include "compiler.h"
 #include "messages.h"
@@ -226,6 +227,12 @@ Scope* Scope::DeserializeScopeChain(Context* context, Scope* global_scope,
       for (Scope* s = innermost_scope; s != NULL; s = s->outer_scope()) {
         s->scope_inside_with_ = true;
       }
+    } else if (context->IsModuleContext()) {
+      ScopeInfo* scope_info = ScopeInfo::cast(context->module()->scope_info());
+      current_scope = new(zone) Scope(current_scope,
+                                      MODULE_SCOPE,
+                                      Handle<ScopeInfo>(scope_info),
+                                      zone);
     } else if (context->IsFunctionContext()) {
       ScopeInfo* scope_info = context->closure()->shared()->scope_info();
       current_scope = new(zone) Scope(current_scope,
@@ -634,6 +641,12 @@ bool Scope::AllocateVariables(CompilationInfo* info,
   // 3) Allocate variables.
   AllocateVariablesRecursively();
 
+  // 4) Allocate and link module instance objects.
+  if (FLAG_harmony_modules && (is_global_scope() || is_module_scope())) {
+    AllocateModules(info);
+    LinkModules(info);
+  }
+
   return true;
 }
 
@@ -662,28 +675,36 @@ bool Scope::HasTrivialOuterContext() const {
 }
 
 
+bool Scope::HasLazyCompilableOuterContext() const {
+  Scope* outer = outer_scope_;
+  if (outer == NULL) return true;
+  // There are several reasons that prevent lazy compilation:
+  // - This scope is inside a with scope and all declaration scopes between
+  //   them have empty contexts. Such declaration scopes become invisible
+  //   during scope info deserialization.
+  // - This scope is inside a strict eval scope with variables that are
+  //   potentially context allocated in an artificial function scope that
+  //   is not deserialized correctly.
+  outer = outer->DeclarationScope();
+  bool found_non_trivial_declarations = false;
+  for (const Scope* scope = outer; scope != NULL; scope = scope->outer_scope_) {
+    if (scope->is_eval_scope()) return false;
+    if (scope->is_with_scope() && !found_non_trivial_declarations) return false;
+    if (scope->is_declaration_scope() && scope->num_heap_slots() > 0) {
+      found_non_trivial_declarations = true;
+    }
+  }
+  return true;
+}
+
+
 bool Scope::AllowsLazyCompilation() const {
-  return !force_eager_compilation_ &&
-         !TrivialDeclarationScopesBeforeWithScope();
+  return !force_eager_compilation_ && HasLazyCompilableOuterContext();
 }
 
 
 bool Scope::AllowsLazyCompilationWithoutContext() const {
   return !force_eager_compilation_ && HasTrivialOuterContext();
-}
-
-
-bool Scope::TrivialDeclarationScopesBeforeWithScope() const {
-  Scope* outer = outer_scope_;
-  if (outer == NULL) return false;
-  outer = outer->DeclarationScope();
-  while (outer != NULL) {
-    if (outer->is_with_scope()) return true;
-    if (outer->is_declaration_scope() && outer->num_heap_slots() > 0)
-      return false;
-    outer = outer->outer_scope_;
-  }
-  return false;
 }
 
 
@@ -1111,7 +1132,8 @@ bool Scope::MustAllocate(Variable* var) {
        inner_scope_calls_eval_ ||
        scope_contains_with_ ||
        is_catch_scope() ||
-       is_block_scope())) {
+       is_block_scope() ||
+       is_module_scope())) {
     var->set_is_used(true);
   }
   // Global variables do not need to be allocated.
@@ -1298,5 +1320,78 @@ int Scope::ContextLocalCount() const {
   return num_heap_slots() - Context::MIN_CONTEXT_SLOTS -
       (function_ != NULL && function_->proxy()->var()->IsContextSlot() ? 1 : 0);
 }
+
+
+void Scope::AllocateModules(CompilationInfo* info) {
+  ASSERT(is_global_scope() || is_module_scope());
+
+  if (is_module_scope()) {
+    ASSERT(interface_->IsFrozen());
+    ASSERT(scope_info_.is_null());
+
+    // TODO(rossberg): This has to be the initial compilation of this code.
+    // We currently do not allow recompiling any module definitions.
+    Handle<ScopeInfo> scope_info = GetScopeInfo();
+    Factory* factory = info->isolate()->factory();
+    Handle<Context> context = factory->NewModuleContext(scope_info);
+    Handle<JSModule> instance = factory->NewJSModule(context, scope_info);
+    context->set_module(*instance);
+
+    bool ok;
+    interface_->MakeSingleton(instance, &ok);
+    ASSERT(ok);
+  }
+
+  // Allocate nested modules.
+  for (int i = 0; i < inner_scopes_.length(); i++) {
+    Scope* inner_scope = inner_scopes_.at(i);
+    if (inner_scope->is_module_scope()) {
+      inner_scope->AllocateModules(info);
+    }
+  }
+}
+
+
+void Scope::LinkModules(CompilationInfo* info) {
+  ASSERT(is_global_scope() || is_module_scope());
+
+  if (is_module_scope()) {
+    Handle<JSModule> instance = interface_->Instance();
+
+    // Populate the module instance object.
+    const PropertyAttributes ro_attr =
+        static_cast<PropertyAttributes>(READ_ONLY | DONT_DELETE | DONT_ENUM);
+    const PropertyAttributes rw_attr =
+        static_cast<PropertyAttributes>(DONT_DELETE | DONT_ENUM);
+    for (Interface::Iterator it = interface_->iterator();
+         !it.done(); it.Advance()) {
+      if (it.interface()->IsModule()) {
+        Handle<Object> value = it.interface()->Instance();
+        ASSERT(!value.is_null());
+        JSReceiver::SetProperty(
+            instance, it.name(), value, ro_attr, kStrictMode);
+      } else {
+        Variable* var = LocalLookup(it.name());
+        ASSERT(var != NULL && var->IsContextSlot());
+        PropertyAttributes attr = var->is_const_mode() ? ro_attr : rw_attr;
+        Handle<AccessorInfo> info =
+            Accessors::MakeModuleExport(it.name(), var->index(), attr);
+        Handle<Object> result = SetAccessor(instance, info);
+        ASSERT(!(result.is_null() || result->IsUndefined()));
+        USE(result);
+      }
+    }
+    USE(JSObject::PreventExtensions(instance));
+  }
+
+  // Link nested modules.
+  for (int i = 0; i < inner_scopes_.length(); i++) {
+    Scope* inner_scope = inner_scopes_.at(i);
+    if (inner_scope->is_module_scope()) {
+      inner_scope->LinkModules(info);
+    }
+  }
+}
+
 
 } }  // namespace v8::internal

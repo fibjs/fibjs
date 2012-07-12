@@ -568,9 +568,9 @@ void HGraph::Verify(bool do_full_verify) const {
 
 
 HConstant* HGraph::GetConstant(SetOncePointer<HConstant>* pointer,
-                               Object* value) {
+                               Handle<Object> value) {
   if (!pointer->is_set()) {
-    HConstant* constant = new(zone()) HConstant(Handle<Object>(value),
+    HConstant* constant = new(zone()) HConstant(value,
                                                 Representation::Tagged());
     constant->InsertAfter(GetConstantUndefined());
     pointer->set(constant);
@@ -579,28 +579,40 @@ HConstant* HGraph::GetConstant(SetOncePointer<HConstant>* pointer,
 }
 
 
+HConstant* HGraph::GetConstantInt32(SetOncePointer<HConstant>* pointer,
+                                    int32_t value) {
+  if (!pointer->is_set()) {
+    HConstant* constant =
+        new(zone()) HConstant(value, Representation::Integer32());
+    constant->InsertAfter(GetConstantUndefined());
+    pointer->set(constant);
+  }
+  return pointer->get();
+}
+
+
 HConstant* HGraph::GetConstant1() {
-  return GetConstant(&constant_1_, Smi::FromInt(1));
+  return GetConstantInt32(&constant_1_, 1);
 }
 
 
 HConstant* HGraph::GetConstantMinus1() {
-  return GetConstant(&constant_minus1_, Smi::FromInt(-1));
+  return GetConstantInt32(&constant_minus1_, -1);
 }
 
 
 HConstant* HGraph::GetConstantTrue() {
-  return GetConstant(&constant_true_, isolate()->heap()->true_value());
+  return GetConstant(&constant_true_, isolate()->factory()->true_value());
 }
 
 
 HConstant* HGraph::GetConstantFalse() {
-  return GetConstant(&constant_false_, isolate()->heap()->false_value());
+  return GetConstant(&constant_false_, isolate()->factory()->false_value());
 }
 
 
 HConstant* HGraph::GetConstantHole() {
-  return GetConstant(&constant_hole_, isolate()->heap()->the_hole_value());
+  return GetConstant(&constant_hole_, isolate()->factory()->the_hole_value());
 }
 
 
@@ -688,47 +700,6 @@ HGraph::HGraph(CompilationInfo* info)
   start_environment_->set_ast_id(AstNode::kFunctionEntryId);
   entry_block_ = CreateBasicBlock();
   entry_block_->SetInitialEnvironment(start_environment_);
-}
-
-
-Handle<Code> HGraph::Compile() {
-  int values = GetMaximumValueID();
-  if (values > LUnallocated::kMaxVirtualRegisters) {
-    if (FLAG_trace_bailout) {
-      PrintF("Not enough virtual registers for (values).\n");
-    }
-    return Handle<Code>::null();
-  }
-  LAllocator allocator(values, this);
-  LChunkBuilder builder(info(), this, &allocator);
-  LChunk* chunk = builder.Build();
-  if (chunk == NULL) return Handle<Code>::null();
-
-  if (!allocator.Allocate(chunk)) {
-    if (FLAG_trace_bailout) {
-      PrintF("Not enough virtual registers (regalloc).\n");
-    }
-    return Handle<Code>::null();
-  }
-
-  MacroAssembler assembler(isolate(), NULL, 0);
-  LCodeGen generator(chunk, &assembler, info());
-
-  chunk->MarkEmptyBlocks();
-
-  if (generator.GenerateCode()) {
-    if (FLAG_trace_codegen) {
-      PrintF("Crankshaft Compiler - ");
-    }
-    CodeGenerator::MakeCodePrologue(info());
-    Code::Flags flags = Code::ComputeFlags(Code::OPTIMIZED_FUNCTION);
-    Handle<Code> code =
-        CodeGenerator::MakeCodeEpilogue(&assembler, flags, info());
-    generator.FinishCode(code);
-    CodeGenerator::PrintCode(code, info());
-    return code;
-  }
-  return Handle<Code>::null();
 }
 
 
@@ -3053,6 +3024,7 @@ HGraph* HGraphBuilder::CreateGraph() {
 
   {
     HPhase phase("H_Block building");
+    CompilationHandleScope handle_scope(info());
     current_block_ = graph()->entry_block();
 
     Scope* scope = info()->scope();
@@ -3109,48 +3081,55 @@ HGraph* HGraphBuilder::CreateGraph() {
     }
   }
 
-  graph()->OrderBlocks();
-  graph()->AssignDominators();
+  return graph();
+}
+
+bool HGraph::Optimize(SmartArrayPointer<char>* bailout_reason) {
+  *bailout_reason = SmartArrayPointer<char>();
+  OrderBlocks();
+  AssignDominators();
 
 #ifdef DEBUG
   // Do a full verify after building the graph and computing dominators.
-  graph()->Verify(true);
+  Verify(true);
 #endif
 
-  graph()->PropagateDeoptimizingMark();
-  if (!graph()->CheckConstPhiUses()) {
-    Bailout("Unsupported phi use of const variable");
-    return NULL;
+  PropagateDeoptimizingMark();
+  if (!CheckConstPhiUses()) {
+    *bailout_reason = SmartArrayPointer<char>(StrDup(
+        "Unsupported phi use of const variable"));
+    return false;
   }
-  graph()->EliminateRedundantPhis();
-  if (!graph()->CheckArgumentsPhiUses()) {
-    Bailout("Unsupported phi use of arguments");
-    return NULL;
+  EliminateRedundantPhis();
+  if (!CheckArgumentsPhiUses()) {
+    *bailout_reason = SmartArrayPointer<char>(StrDup(
+        "Unsupported phi use of arguments"));
+    return false;
   }
-  if (FLAG_eliminate_dead_phis) graph()->EliminateUnreachablePhis();
-  graph()->CollectPhis();
+  if (FLAG_eliminate_dead_phis) EliminateUnreachablePhis();
+  CollectPhis();
 
-  if (graph()->has_osr_loop_entry()) {
-    const ZoneList<HPhi*>* phis = graph()->osr_loop_entry()->phis();
+  if (has_osr_loop_entry()) {
+    const ZoneList<HPhi*>* phis = osr_loop_entry()->phis();
     for (int j = 0; j < phis->length(); j++) {
       HPhi* phi = phis->at(j);
-      graph()->osr_values()->at(phi->merged_index())->set_incoming_value(phi);
+      osr_values()->at(phi->merged_index())->set_incoming_value(phi);
     }
   }
 
-  HInferRepresentation rep(graph());
+  HInferRepresentation rep(this);
   rep.Analyze();
 
-  graph()->MarkDeoptimizeOnUndefined();
-  graph()->InsertRepresentationChanges();
+  MarkDeoptimizeOnUndefined();
+  InsertRepresentationChanges();
 
-  graph()->InitializeInferredTypes();
-  graph()->Canonicalize();
+  InitializeInferredTypes();
+  Canonicalize();
 
   // Perform common subexpression elimination and loop-invariant code motion.
   if (FLAG_use_gvn) {
-    HPhase phase("H_Global value numbering", graph());
-    HGlobalValueNumberer gvn(graph(), info());
+    HPhase phase("H_Global value numbering", this);
+    HGlobalValueNumberer gvn(this, info());
     bool removed_side_effects = gvn.Analyze();
     // Trigger a second analysis pass to further eliminate duplicate values that
     // could only be discovered by removing side-effect-generating instructions
@@ -3162,19 +3141,19 @@ HGraph* HGraphBuilder::CreateGraph() {
   }
 
   if (FLAG_use_range) {
-    HRangeAnalysis rangeAnalysis(graph());
+    HRangeAnalysis rangeAnalysis(this);
     rangeAnalysis.Analyze();
   }
-  graph()->ComputeMinusZeroChecks();
+  ComputeMinusZeroChecks();
 
   // Eliminate redundant stack checks on backwards branches.
-  HStackCheckEliminator sce(graph());
+  HStackCheckEliminator sce(this);
   sce.Process();
 
-  graph()->EliminateRedundantBoundsChecks();
-  graph()->DehoistSimpleArrayIndexComputations();
+  EliminateRedundantBoundsChecks();
+  DehoistSimpleArrayIndexComputations();
 
-  return graph();
+  return true;
 }
 
 
@@ -3265,7 +3244,8 @@ class BoundsCheckBbData: public ZoneObject {
   int32_t LowerOffset() const { return lower_offset_; }
   int32_t UpperOffset() const { return upper_offset_; }
   HBasicBlock* BasicBlock() const { return basic_block_; }
-  HBoundsCheck* Check() const { return check_; }
+  HBoundsCheck* LowerCheck() const { return lower_check_; }
+  HBoundsCheck* UpperCheck() const { return upper_check_; }
   BoundsCheckBbData* NextInBasicBlock() const { return next_in_bb_; }
   BoundsCheckBbData* FatherInDominatorTree() const { return father_in_dt_; }
 
@@ -3273,76 +3253,85 @@ class BoundsCheckBbData: public ZoneObject {
     return offset >= LowerOffset() && offset <= UpperOffset();
   }
 
-  // This method removes new_check and modifies the current check so that it
-  // also "covers" what new_check covered.
-  // The obvious precondition is that new_check follows Check() in the
-  // same basic block, and that new_offset is not covered (otherwise we
-  // could simply remove new_check).
-  // As a consequence LowerOffset() or UpperOffset() change (the covered
+  bool HasSingleCheck() { return lower_check_ == upper_check_; }
+
+  // The goal of this method is to modify either upper_offset_ or
+  // lower_offset_ so that also new_offset is covered (the covered
   // range grows).
   //
-  // In the general case the check covering the current range should be like
-  // these two checks:
-  // 0 <= Key()->IndexBase() + LowerOffset()
-  // Key()->IndexBase() + UpperOffset() < Key()->Length()
+  // The precondition is that new_check follows UpperCheck() and
+  // LowerCheck() in the same basic block, and that new_offset is not
+  // covered (otherwise we could simply remove new_check).
   //
-  // We can transform the second check like this:
-  // Key()->IndexBase() + LowerOffset() <
-  //     Key()->Length() + (LowerOffset() - UpperOffset())
-  // so we can handle both checks with a single unsigned comparison.
-  //
-  // The bulk of this method changes Check()->index() and Check()->length()
-  // replacing them with new HAdd instructions to perform the transformation
-  // described above.
+  // If HasSingleCheck() is true then new_check is added as "second check"
+  // (either upper or lower; note that HasSingleCheck() becomes false).
+  // Otherwise one of the current checks is modified so that it also covers
+  // new_offset, and new_check is removed.
   void CoverCheck(HBoundsCheck* new_check,
                   int32_t new_offset) {
     ASSERT(new_check->index()->representation().IsInteger32());
+    bool keep_new_check = false;
 
     if (new_offset > upper_offset_) {
       upper_offset_ = new_offset;
+      if (HasSingleCheck()) {
+        keep_new_check = true;
+        upper_check_ = new_check;
+      } else {
+        BuildOffsetAdd(upper_check_,
+                       &added_upper_index_,
+                       &added_upper_offset_,
+                       Key()->IndexBase(),
+                       new_check->index()->representation(),
+                       new_offset);
+        upper_check_->SetOperandAt(0, added_upper_index_);
+      }
     } else if (new_offset < lower_offset_) {
       lower_offset_ = new_offset;
+      if (HasSingleCheck()) {
+        keep_new_check = true;
+        lower_check_ = new_check;
+      } else {
+        BuildOffsetAdd(lower_check_,
+                       &added_lower_index_,
+                       &added_lower_offset_,
+                       Key()->IndexBase(),
+                       new_check->index()->representation(),
+                       new_offset);
+        lower_check_->SetOperandAt(0, added_lower_index_);
+      }
     } else {
       ASSERT(false);
     }
 
-    BuildOffsetAdd(&added_index_,
-                   &added_index_offset_,
-                   Key()->IndexBase(),
-                   new_check->index()->representation(),
-                   lower_offset_);
-    Check()->SetOperandAt(0, added_index_);
-    BuildOffsetAdd(&added_length_,
-                   &added_length_offset_,
-                   Key()->Length(),
-                   new_check->length()->representation(),
-                   lower_offset_ - upper_offset_);
-    Check()->SetOperandAt(1, added_length_);
-
-    new_check->DeleteAndReplaceWith(NULL);
+    if (!keep_new_check) {
+      new_check->DeleteAndReplaceWith(NULL);
+    }
   }
 
   void RemoveZeroOperations() {
-    RemoveZeroAdd(&added_index_, &added_index_offset_);
-    RemoveZeroAdd(&added_length_, &added_length_offset_);
+    RemoveZeroAdd(&added_lower_index_, &added_lower_offset_);
+    RemoveZeroAdd(&added_upper_index_, &added_upper_offset_);
   }
 
   BoundsCheckBbData(BoundsCheckKey* key,
                     int32_t lower_offset,
                     int32_t upper_offset,
                     HBasicBlock* bb,
-                    HBoundsCheck* check,
+                    HBoundsCheck* lower_check,
+                    HBoundsCheck* upper_check,
                     BoundsCheckBbData* next_in_bb,
                     BoundsCheckBbData* father_in_dt)
   : key_(key),
     lower_offset_(lower_offset),
     upper_offset_(upper_offset),
     basic_block_(bb),
-    check_(check),
-    added_index_offset_(NULL),
-    added_index_(NULL),
-    added_length_offset_(NULL),
-    added_length_(NULL),
+    lower_check_(lower_check),
+    upper_check_(upper_check),
+    added_lower_index_(NULL),
+    added_lower_offset_(NULL),
+    added_upper_index_(NULL),
+    added_upper_offset_(NULL),
     next_in_bb_(next_in_bb),
     father_in_dt_(father_in_dt) { }
 
@@ -3351,29 +3340,30 @@ class BoundsCheckBbData: public ZoneObject {
   int32_t lower_offset_;
   int32_t upper_offset_;
   HBasicBlock* basic_block_;
-  HBoundsCheck* check_;
-  HConstant* added_index_offset_;
-  HAdd* added_index_;
-  HConstant* added_length_offset_;
-  HAdd* added_length_;
+  HBoundsCheck* lower_check_;
+  HBoundsCheck* upper_check_;
+  HAdd* added_lower_index_;
+  HConstant* added_lower_offset_;
+  HAdd* added_upper_index_;
+  HConstant* added_upper_offset_;
   BoundsCheckBbData* next_in_bb_;
   BoundsCheckBbData* father_in_dt_;
 
-  void BuildOffsetAdd(HAdd** add,
+  void BuildOffsetAdd(HBoundsCheck* check,
+                      HAdd** add,
                       HConstant** constant,
                       HValue* original_value,
                       Representation representation,
                       int32_t new_offset) {
     HConstant* new_constant = new(BasicBlock()->zone())
-        HConstant(Handle<Object>(Smi::FromInt(new_offset)),
-                  Representation::Integer32());
+       HConstant(new_offset, Representation::Integer32());
     if (*add == NULL) {
-      new_constant->InsertBefore(Check());
+      new_constant->InsertBefore(check);
       *add = new(BasicBlock()->zone()) HAdd(NULL,
                                             original_value,
                                             new_constant);
       (*add)->AssumeRepresentation(representation);
-      (*add)->InsertBefore(Check());
+      (*add)->InsertBefore(check);
     } else {
       new_constant->InsertBefore(*add);
       (*constant)->DeleteAndReplaceWith(new_constant);
@@ -3446,6 +3436,7 @@ void HGraph::EliminateRedundantBoundsChecks(HBasicBlock* bb,
                                                    offset,
                                                    bb,
                                                    check,
+                                                   check,
                                                    bb_data_list,
                                                    NULL);
       *data_p = bb_data_list;
@@ -3464,7 +3455,8 @@ void HGraph::EliminateRedundantBoundsChecks(HBasicBlock* bb,
                                                    new_lower_offset,
                                                    new_upper_offset,
                                                    bb,
-                                                   check,
+                                                   data->LowerCheck(),
+                                                   data->UpperCheck(),
                                                    bb_data_list,
                                                    data);
       table->Insert(key, bb_data_list, zone());
@@ -4777,7 +4769,10 @@ void HGraphBuilder::VisitObjectLiteral(ObjectLiteral* expr) {
             CHECK_ALIVE(VisitForValue(value));
             HValue* value = Pop();
             HInstruction* store;
-            CHECK_ALIVE(store = BuildStoreNamed(literal, value, property));
+            CHECK_ALIVE(store = BuildStoreNamed(literal,
+                                                value,
+                                                property->GetReceiverType(),
+                                                property->key()));
             AddInstruction(store);
             if (store->HasObservableSideEffects()) AddSimulate(key->id());
           } else {
@@ -4917,17 +4912,18 @@ static bool ComputeLoadStoreField(Handle<Map> type,
                                   Handle<String> name,
                                   LookupResult* lookup,
                                   bool is_store) {
-  type->LookupInDescriptors(NULL, *name, lookup);
+  type->LookupTransitionOrDescriptor(NULL, *name, lookup);
   if (lookup->IsField()) return true;
-  return is_store && lookup->IsMapTransition() &&
-      (type->unused_property_fields() > 0);
+  return is_store &&
+         lookup->IsTransitionToField(*type) &&
+         (type->unused_property_fields() > 0);
 }
 
 
 static int ComputeLoadStoreFieldIndex(Handle<Map> type,
                                       Handle<String> name,
                                       LookupResult* lookup) {
-  ASSERT(lookup->IsField() || lookup->type() == MAP_TRANSITION);
+  ASSERT(lookup->IsField() || lookup->IsTransitionToField(*type));
   if (lookup->IsField()) {
     return lookup->GetLocalFieldIndexFromMap(*type);
   } else {
@@ -4988,7 +4984,7 @@ HInstruction* HGraphBuilder::BuildStoreNamedField(HValue* object,
   }
   HStoreNamedField* instr =
       new(zone()) HStoreNamedField(object, name, value, is_in_object, offset);
-  if (lookup->type() == MAP_TRANSITION) {
+  if (lookup->IsTransitionToField(*type)) {
     Handle<Map> transition(lookup->GetTransitionMapFromMap(*type));
     instr->set_transition(transition);
     // TODO(fschneider): Record the new map type of the object in the IR to
@@ -5014,40 +5010,17 @@ HInstruction* HGraphBuilder::BuildStoreNamedGeneric(HValue* object,
 
 HInstruction* HGraphBuilder::BuildStoreNamed(HValue* object,
                                              HValue* value,
-                                             ObjectLiteral::Property* prop) {
-  Literal* key = prop->key()->AsLiteral();
-  Handle<String> name = Handle<String>::cast(key->handle());
+                                             Handle<Map> type,
+                                             Expression* key) {
+  Handle<String> name = Handle<String>::cast(key->AsLiteral()->handle());
   ASSERT(!name.is_null());
 
   LookupResult lookup(isolate());
-  Handle<Map> type = prop->GetReceiverType();
-  bool is_monomorphic = prop->IsMonomorphic() &&
+  bool is_monomorphic = !type.is_null() &&
       ComputeLoadStoreField(type, name, &lookup, true);
 
   return is_monomorphic
       ? BuildStoreNamedField(object, name, value, type, &lookup,
-                             true)  // Needs smi and map check.
-      : BuildStoreNamedGeneric(object, name, value);
-}
-
-
-HInstruction* HGraphBuilder::BuildStoreNamed(HValue* object,
-                                             HValue* value,
-                                             Expression* expr) {
-  Property* prop = (expr->AsProperty() != NULL)
-      ? expr->AsProperty()
-      : expr->AsAssignment()->target()->AsProperty();
-  Literal* key = prop->key()->AsLiteral();
-  Handle<String> name = Handle<String>::cast(key->handle());
-  ASSERT(!name.is_null());
-
-  LookupResult lookup(isolate());
-  SmallMapList* types = expr->GetReceiverTypes();
-  bool is_monomorphic = expr->IsMonomorphic() &&
-      ComputeLoadStoreField(types->first(), name, &lookup, true);
-
-  return is_monomorphic
-      ? BuildStoreNamedField(object, name, value, types->first(), &lookup,
                              true)  // Needs smi and map check.
       : BuildStoreNamedGeneric(object, name, value);
 }
@@ -5204,7 +5177,10 @@ void HGraphBuilder::HandlePropertyAssignment(Assignment* expr) {
 
     SmallMapList* types = expr->GetReceiverTypes();
     if (expr->IsMonomorphic()) {
-      CHECK_ALIVE(instr = BuildStoreNamed(object, value, expr));
+      CHECK_ALIVE(instr = BuildStoreNamed(object,
+                                          value,
+                                          types->first(),
+                                          prop->key()));
 
     } else if (types != NULL && types->length() > 1) {
       HandlePolymorphicStoreNamedField(expr, object, value, types, name);
@@ -5364,10 +5340,11 @@ void HGraphBuilder::HandleCompoundAssignment(Assignment* expr) {
       CHECK_ALIVE(VisitForValue(prop->obj()));
       HValue* obj = Top();
 
-      HInstruction* load = NULL;
+      Handle<Map> map;
+      HInstruction* load;
       if (prop->IsMonomorphic()) {
         Handle<String> name = prop->key()->AsLiteral()->AsPropertyName();
-        Handle<Map> map = prop->GetReceiverTypes()->first();
+        map = prop->GetReceiverTypes()->first();
         load = BuildLoadNamed(obj, prop, map, name);
       } else {
         load = BuildLoadNamedGeneric(obj, prop);
@@ -5384,7 +5361,7 @@ void HGraphBuilder::HandleCompoundAssignment(Assignment* expr) {
       if (instr->HasObservableSideEffects()) AddSimulate(operation->id());
 
       HInstruction* store;
-      CHECK_ALIVE(store = BuildStoreNamed(obj, instr, prop));
+      CHECK_ALIVE(store = BuildStoreNamed(obj, instr, map, prop->key()));
       AddInstruction(store);
       // Drop the simulated receiver and value.  Return the value.
       Drop(2);
@@ -5621,12 +5598,40 @@ HInstruction* HGraphBuilder::BuildLoadNamedGeneric(HValue* obj,
 }
 
 
+static void LookupInPrototypes(Handle<Map> map,
+                               Handle<String> name,
+                               LookupResult* lookup) {
+  while (map->prototype()->IsJSObject()) {
+    Handle<JSObject> holder(JSObject::cast(map->prototype()));
+    if (!holder->HasFastProperties()) break;
+    map = Handle<Map>(holder->map());
+    map->LookupDescriptor(*holder, *name, lookup);
+    if (lookup->IsFound()) return;
+  }
+  lookup->NotFound();
+}
+
+
+HInstruction* HGraphBuilder::BuildCallGetter(HValue* obj,
+                                             Property* expr,
+                                             Handle<Map> map,
+                                             Handle<Object> callback,
+                                             Handle<JSObject> holder) {
+  if (!callback->IsAccessorPair()) return BuildLoadNamedGeneric(obj, expr);
+  Handle<Object> getter(Handle<AccessorPair>::cast(callback)->getter());
+  Handle<JSFunction> function(Handle<JSFunction>::cast(getter));
+  AddCheckConstantFunction(holder, obj, map, true);
+  AddInstruction(new(zone()) HPushArgument(obj));
+  return new(zone()) HCallConstantFunction(function, 1);
+}
+
+
 HInstruction* HGraphBuilder::BuildLoadNamed(HValue* obj,
                                             Property* expr,
                                             Handle<Map> map,
                                             Handle<String> name) {
   LookupResult lookup(isolate());
-  map->LookupInDescriptors(NULL, *name, &lookup);
+  map->LookupDescriptor(NULL, *name, &lookup);
   if (lookup.IsField()) {
     return BuildLoadNamedField(obj,
                                expr,
@@ -5638,7 +5643,17 @@ HInstruction* HGraphBuilder::BuildLoadNamed(HValue* obj,
     AddInstruction(HCheckMaps::NewWithTransitions(obj, map, zone()));
     Handle<JSFunction> function(lookup.GetConstantFunctionFromMap(*map));
     return new(zone()) HConstant(function, Representation::Tagged());
+  } else if (lookup.IsPropertyCallbacks()) {
+    Handle<Object> callback(lookup.GetValueFromMap(*map));
+    Handle<JSObject> holder;
+    return BuildCallGetter(obj, expr, map, callback, holder);
   } else {
+    LookupInPrototypes(map, name, &lookup);
+    if (lookup.IsPropertyCallbacks()) {
+      Handle<Object> callback(lookup.GetValue());
+      Handle<JSObject> holder(lookup.holder());
+      return BuildCallGetter(obj, expr, map, callback, holder);
+    }
     return BuildLoadNamedGeneric(obj, expr);
   }
 }
@@ -6283,7 +6298,7 @@ void HGraphBuilder::VisitProperty(Property* expr) {
 }
 
 
-void HGraphBuilder::AddCheckConstantFunction(Call* expr,
+void HGraphBuilder::AddCheckConstantFunction(Handle<JSObject> holder,
                                              HValue* receiver,
                                              Handle<Map> receiver_map,
                                              bool smi_and_map_check) {
@@ -6295,10 +6310,9 @@ void HGraphBuilder::AddCheckConstantFunction(Call* expr,
     AddInstruction(HCheckMaps::NewWithTransitions(receiver, receiver_map,
                                                   zone()));
   }
-  if (!expr->holder().is_null()) {
+  if (!holder.is_null()) {
     AddInstruction(new(zone()) HCheckPrototypeMaps(
-        Handle<JSObject>(JSObject::cast(receiver_map->prototype())),
-        expr->holder()));
+        Handle<JSObject>(JSObject::cast(receiver_map->prototype())), holder));
   }
 }
 
@@ -6381,7 +6395,7 @@ void HGraphBuilder::HandlePolymorphicCallNamed(Call* expr,
 
     set_current_block(if_true);
     expr->ComputeTarget(map, name);
-    AddCheckConstantFunction(expr, receiver, map, false);
+    AddCheckConstantFunction(expr->holder(), receiver, map, false);
     if (FLAG_trace_inlining && FLAG_polymorphic_inlining) {
       Handle<JSFunction> caller = info()->closure();
       SmartArrayPointer<char> caller_name =
@@ -6888,7 +6902,7 @@ bool HGraphBuilder::TryInlineBuiltinMethodCall(Call* expr,
     case kMathCos:
     case kMathTan:
       if (argument_count == 2 && check_type == RECEIVER_MAP_CHECK) {
-        AddCheckConstantFunction(expr, receiver, receiver_map, true);
+        AddCheckConstantFunction(expr->holder(), receiver, receiver_map, true);
         HValue* argument = Pop();
         HValue* context = environment()->LookupContext();
         Drop(1);  // Receiver.
@@ -6901,7 +6915,7 @@ bool HGraphBuilder::TryInlineBuiltinMethodCall(Call* expr,
       break;
     case kMathPow:
       if (argument_count == 3 && check_type == RECEIVER_MAP_CHECK) {
-        AddCheckConstantFunction(expr, receiver, receiver_map, true);
+        AddCheckConstantFunction(expr->holder(), receiver, receiver_map, true);
         HValue* right = Pop();
         HValue* left = Pop();
         Pop();  // Pop receiver.
@@ -6943,7 +6957,7 @@ bool HGraphBuilder::TryInlineBuiltinMethodCall(Call* expr,
       break;
     case kMathRandom:
       if (argument_count == 1 && check_type == RECEIVER_MAP_CHECK) {
-        AddCheckConstantFunction(expr, receiver, receiver_map, true);
+        AddCheckConstantFunction(expr->holder(), receiver, receiver_map, true);
         Drop(1);  // Receiver.
         HValue* context = environment()->LookupContext();
         HGlobalObject* global_object = new(zone()) HGlobalObject(context);
@@ -6956,7 +6970,7 @@ bool HGraphBuilder::TryInlineBuiltinMethodCall(Call* expr,
     case kMathMax:
     case kMathMin:
       if (argument_count == 3 && check_type == RECEIVER_MAP_CHECK) {
-        AddCheckConstantFunction(expr, receiver, receiver_map, true);
+        AddCheckConstantFunction(expr->holder(), receiver, receiver_map, true);
         HValue* right = Pop();
         HValue* left = Pop();
         Pop();  // Pop receiver.
@@ -7072,7 +7086,7 @@ bool HGraphBuilder::TryCallApply(Call* expr) {
   VisitForValue(prop->obj());
   if (HasStackOverflow() || current_block() == NULL) return true;
   HValue* function = Top();
-  AddCheckConstantFunction(expr, function, function_map, true);
+  AddCheckConstantFunction(expr->holder(), function, function_map, true);
   Drop(1);
 
   VisitForValue(args->at(0));
@@ -7191,7 +7205,7 @@ void HGraphBuilder::VisitCall(Call* expr) {
         call = PreProcessCall(
             new(zone()) HCallNamed(context, name, argument_count));
       } else {
-        AddCheckConstantFunction(expr, receiver, receiver_map, true);
+        AddCheckConstantFunction(expr->holder(), receiver, receiver_map, true);
 
         if (TryInlineCall(expr)) return;
         call = PreProcessCall(
@@ -7734,10 +7748,11 @@ void HGraphBuilder::VisitCountOperation(CountOperation* expr) {
       CHECK_ALIVE(VisitForValue(prop->obj()));
       HValue* obj = Top();
 
-      HInstruction* load = NULL;
+      Handle<Map> map;
+      HInstruction* load;
       if (prop->IsMonomorphic()) {
         Handle<String> name = prop->key()->AsLiteral()->AsPropertyName();
-        Handle<Map> map = prop->GetReceiverTypes()->first();
+        map = prop->GetReceiverTypes()->first();
         load = BuildLoadNamed(obj, prop, map, name);
       } else {
         load = BuildLoadNamedGeneric(obj, prop);
@@ -7749,7 +7764,7 @@ void HGraphBuilder::VisitCountOperation(CountOperation* expr) {
       input = Pop();
 
       HInstruction* store;
-      CHECK_ALIVE(store = BuildStoreNamed(obj, after, prop));
+      CHECK_ALIVE(store = BuildStoreNamed(obj, after, map, prop->key()));
       AddInstruction(store);
 
       // Overwrite the receiver in the bailout environment with the result
@@ -7871,8 +7886,8 @@ HInstruction* HGraphBuilder::BuildBinaryOperation(BinaryOperation* expr,
   // for a smi operation. If one of the operands is a constant string
   // do not generate code assuming it is a smi operation.
   if (info.IsSmi() &&
-      ((left->IsConstant() && HConstant::cast(left)->HasStringValue()) ||
-       (right->IsConstant() && HConstant::cast(right)->HasStringValue()))) {
+      ((left->IsConstant() && HConstant::cast(left)->handle()->IsString()) ||
+       (right->IsConstant() && HConstant::cast(right)->handle()->IsString()))) {
     return instr;
   }
   Representation rep = ToRepresentation(info);
@@ -8090,7 +8105,7 @@ static bool MatchLiteralCompareTypeof(HValue* left,
   if (left->IsTypeof() &&
       Token::IsEqualityOp(op) &&
       right->IsConstant() &&
-      HConstant::cast(right)->HasStringValue()) {
+      HConstant::cast(right)->handle()->IsString()) {
     *typeof_expr = HTypeof::cast(left);
     *check = Handle<String>::cast(HConstant::cast(right)->handle());
     return true;
@@ -9214,7 +9229,7 @@ void HTracer::TraceCompilation(FunctionLiteral* function) {
 }
 
 
-void HTracer::TraceLithium(const char* name, LChunk* chunk) {
+void HTracer::TraceLithium(const char* name, LChunkBase* chunk) {
   Trace(name, chunk->graph(), chunk);
 }
 
@@ -9224,7 +9239,7 @@ void HTracer::TraceHydrogen(const char* name, HGraph* graph) {
 }
 
 
-void HTracer::Trace(const char* name, HGraph* graph, LChunk* chunk) {
+void HTracer::Trace(const char* name, HGraph* graph, LChunkBase* chunk) {
   Tag tag(this, "cfg");
   PrintStringProperty("name", name);
   const ZoneList<HBasicBlock*>* blocks = graph->blocks();
@@ -9486,7 +9501,7 @@ const char* const HPhase::kTotal = "Total";
 
 void HPhase::Begin(const char* name,
                    HGraph* graph,
-                   LChunk* chunk,
+                   LChunkBase* chunk,
                    LAllocator* allocator) {
   name_ = name;
   graph_ = graph;

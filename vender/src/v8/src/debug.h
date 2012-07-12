@@ -232,13 +232,6 @@ class Debug {
   void PreemptionWhileInDebugger();
   void Iterate(ObjectVisitor* v);
 
-  NO_INLINE(void PutValuesOnStackAndDie(int start,
-                                        Address c_entry_fp,
-                                        Address last_fp,
-                                        Address larger_fp,
-                                        int count,
-                                        char* stack,
-                                        int end));
   Object* Break(Arguments args);
   void SetBreakPoint(Handle<JSFunction> function,
                      Handle<Object> break_point_object,

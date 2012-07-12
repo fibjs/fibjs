@@ -1170,7 +1170,7 @@ static MaybeObject* GetOwnProperty(Isolate* isolate,
   elms->set(ENUMERABLE_INDEX, heap->ToBoolean(!result.IsDontEnum()));
   elms->set(CONFIGURABLE_INDEX, heap->ToBoolean(!result.IsDontDelete()));
 
-  bool is_js_accessor = result.IsCallbacks() &&
+  bool is_js_accessor = result.IsPropertyCallbacks() &&
                         (result.GetCallbackObject()->IsAccessorPair());
 
   if (is_js_accessor) {
@@ -1421,7 +1421,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DeclareGlobals) {
       // as required for function declarations.
       if (lookup.IsProperty() && lookup.IsDontDelete()) {
         if (lookup.IsReadOnly() || lookup.IsDontEnum() ||
-            lookup.IsCallbacks()) {
+            lookup.IsPropertyCallbacks()) {
           return ThrowRedeclarationError(
               isolate, is_function ? "function" : "module", name);
         }
@@ -2180,24 +2180,17 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_FunctionSetReadOnlyPrototype) {
         static_cast<PropertyAttributes>(details.attributes() | READ_ONLY),
         details.index());
     // Construct a new field descriptors array containing the new descriptor.
-    Object* descriptors_unchecked;
-    { MaybeObject* maybe_descriptors_unchecked =
-        instance_desc->CopyInsert(&new_desc, REMOVE_TRANSITIONS);
-      if (!maybe_descriptors_unchecked->ToObject(&descriptors_unchecked)) {
-        return maybe_descriptors_unchecked;
-      }
+    DescriptorArray* new_descriptors;
+    { MaybeObject* maybe_descriptors =
+          instance_desc->CopyReplace(&new_desc, index);
+      if (!maybe_descriptors->To(&new_descriptors)) return maybe_descriptors;
     }
-    DescriptorArray* new_descriptors =
-        DescriptorArray::cast(descriptors_unchecked);
     // Create a new map featuring the new field descriptors array.
-    Object* map_unchecked;
-    { MaybeObject* maybe_map_unchecked = function->map()->CopyDropDescriptors();
-      if (!maybe_map_unchecked->ToObject(&map_unchecked)) {
-        return maybe_map_unchecked;
-      }
+    Map* new_map;
+    { MaybeObject* maybe_map =
+          function->map()->CopyReplaceDescriptors(new_descriptors);
+      if (!maybe_map->To(&new_map)) return maybe_map;
     }
-    Map* new_map = Map::cast(map_unchecked);
-    new_map->set_instance_descriptors(new_descriptors);
     function->set_map(new_map);
   } else {  // Dictionary properties.
     // Directly manipulate the property details.
@@ -4566,7 +4559,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DefineOrRedefineDataProperty) {
   // correctly in the case where a property is a field and is reset with
   // new attributes.
   if (result.IsProperty() &&
-      (attr != result.GetAttributes() || result.IsCallbacks())) {
+      (attr != result.GetAttributes() || result.IsPropertyCallbacks())) {
     // New attributes - normalize to avoid writing to instance descriptor
     if (js_object->IsJSGlobalProxy()) {
       // Since the result is a property, the prototype will exist so
@@ -4892,21 +4885,28 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StoreArrayLiteralElement) {
 // Check whether debugger and is about to step into the callback that is passed
 // to a built-in function such as Array.forEach.
 RUNTIME_FUNCTION(MaybeObject*, Runtime_DebugCallbackSupportsStepping) {
-  if (!isolate->IsDebuggerActive()) return isolate->heap()->false_value();
+#ifdef ENABLE_DEBUGGER_SUPPORT
+  if (!isolate->IsDebuggerActive() || !isolate->debug()->StepInActive()) {
+    return isolate->heap()->false_value();
+  }
   CONVERT_ARG_CHECKED(Object, callback, 0);
   // We do not step into the callback if it's a builtin or not even a function.
   if (!callback->IsJSFunction() || JSFunction::cast(callback)->IsBuiltin()) {
     return isolate->heap()->false_value();
   }
   return isolate->heap()->true_value();
+#else
+  return isolate->heap()->false_value();
+#endif  // ENABLE_DEBUGGER_SUPPORT
 }
 
 
 // Set one shot breakpoints for the callback function that is passed to a
 // built-in function such as Array.forEach to enable stepping into the callback.
 RUNTIME_FUNCTION(MaybeObject*, Runtime_DebugPrepareStepInIfStepping) {
+#ifdef ENABLE_DEBUGGER_SUPPORT
   Debug* debug = isolate->debug();
-  if (!debug->IsStepping()) return NULL;
+  if (!debug->IsStepping()) return isolate->heap()->undefined_value();
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, callback, 0);
   HandleScope scope(isolate);
   // When leaving the callback, step out has been activated, but not performed
@@ -4914,7 +4914,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DebugPrepareStepInIfStepping) {
   // again, we need to clear the step out at this point.
   debug->ClearStepOut();
   debug->FloodWithOneShot(callback);
-  return NULL;
+#endif  // ENABLE_DEBUGGER_SUPPORT
+  return isolate->heap()->undefined_value();
 }
 
 
@@ -8843,19 +8844,25 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_PushBlockContext) {
 }
 
 
+RUNTIME_FUNCTION(MaybeObject*, Runtime_IsJSModule) {
+  ASSERT(args.length() == 1);
+  Object* obj = args[0];
+  return isolate->heap()->ToBoolean(obj->IsJSModule());
+}
+
+
 RUNTIME_FUNCTION(MaybeObject*, Runtime_PushModuleContext) {
   NoHandleAllocation ha;
-  ASSERT(args.length() == 2);
-  CONVERT_ARG_CHECKED(ScopeInfo, scope_info, 0);
-  CONVERT_ARG_HANDLE_CHECKED(JSModule, instance, 1);
+  ASSERT(args.length() == 1);
+  CONVERT_ARG_HANDLE_CHECKED(JSModule, instance, 0);
 
-  Context* context;
-  MaybeObject* maybe_context =
-      isolate->heap()->AllocateModuleContext(isolate->context(),
-                                             scope_info);
-  if (!maybe_context->To(&context)) return maybe_context;
-  // Also initialize the context slot of the instance object.
-  instance->set_context(context);
+  Context* context = Context::cast(instance->context());
+  Context* previous = isolate->context();
+  ASSERT(context->IsModuleContext());
+  // Initialize the context links.
+  context->set_previous(previous);
+  context->set_closure(previous->closure());
+  context->set_global(previous->global());
   isolate->set_context(context);
 
   return context;
@@ -10243,11 +10250,12 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_GetArrayKeys) {
 
 RUNTIME_FUNCTION(MaybeObject*, Runtime_LookupAccessor) {
   ASSERT(args.length() == 3);
-  CONVERT_ARG_CHECKED(JSObject, obj, 0);
+  CONVERT_ARG_CHECKED(JSReceiver, receiver, 0);
   CONVERT_ARG_CHECKED(String, name, 1);
   CONVERT_SMI_ARG_CHECKED(flag, 2);
   AccessorComponent component = flag == 0 ? ACCESSOR_GETTER : ACCESSOR_SETTER;
-  return obj->LookupAccessor(name, component);
+  if (!receiver->IsJSObject()) return isolate->heap()->undefined_value();
+  return JSObject::cast(receiver)->LookupAccessor(name, component);
 }
 
 
@@ -10338,8 +10346,7 @@ static MaybeObject* DebugLookupResultValue(Heap* heap,
       }
     }
     case INTERCEPTOR:
-    case MAP_TRANSITION:
-    case CONSTANT_TRANSITION:
+    case TRANSITION:
       return heap->undefined_value();
     case HANDLER:
     case NONEXISTENT:
@@ -10419,7 +10426,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DebugGetPropertyDetails) {
       // GC can happen later in this code so put the required fields into
       // local variables using handles when required for later use.
       Handle<Object> result_callback_obj;
-      if (result.IsCallbacks()) {
+      if (result.IsPropertyCallbacks()) {
         result_callback_obj = Handle<Object>(result.GetCallbackObject(),
                                              isolate);
       }
@@ -10437,7 +10444,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DebugGetPropertyDetails) {
 
       // If the callback object is a fixed array then it contains JavaScript
       // getter and/or setter.
-      bool hasJavaScriptAccessors = result.IsCallbacks() &&
+      bool hasJavaScriptAccessors = result.IsPropertyCallbacks() &&
                                     result_callback_obj->IsAccessorPair();
       Handle<FixedArray> details =
           isolate->factory()->NewFixedArray(hasJavaScriptAccessors ? 5 : 2);

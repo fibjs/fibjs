@@ -243,10 +243,12 @@ Handle<Object> Context::Lookup(Handle<String> name,
 void Context::AddOptimizedFunction(JSFunction* function) {
   ASSERT(IsGlobalContext());
 #ifdef DEBUG
-  Object* element = get(OPTIMIZED_FUNCTIONS_LIST);
-  while (!element->IsUndefined()) {
-    CHECK(element != function);
-    element = JSFunction::cast(element)->next_function_link();
+  if (FLAG_enable_slow_asserts) {
+    Object* element = get(OPTIMIZED_FUNCTIONS_LIST);
+    while (!element->IsUndefined()) {
+      CHECK(element != function);
+      element = JSFunction::cast(element)->next_function_link();
+    }
   }
 
   CHECK(function->next_function_link()->IsUndefined());
@@ -304,10 +306,15 @@ void Context::ClearOptimizedFunctions() {
 
 
 #ifdef DEBUG
-bool Context::IsBootstrappingOrContext(Object* object) {
+bool Context::IsBootstrappingOrValidParentContext(
+    Object* object, Context* child) {
   // During bootstrapping we allow all objects to pass as
   // contexts. This is necessary to fix circular dependencies.
-  return Isolate::Current()->bootstrapper()->IsActive() || object->IsContext();
+  if (Isolate::Current()->bootstrapper()->IsActive()) return true;
+  if (!object->IsContext()) return false;
+  Context* context = Context::cast(object);
+  return context->IsGlobalContext() || context->IsModuleContext() ||
+         !child->IsModuleContext();
 }
 
 

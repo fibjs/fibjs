@@ -1304,9 +1304,10 @@ static bool StoreICableLookup(LookupResult* lookup) {
   if (!lookup->IsCacheable()) return false;
 
   // If the property is read-only, we leave the IC in its current state.
-  if (lookup->IsReadOnly()) return false;
-
-  return true;
+  if (lookup->IsTransition()) {
+    return !lookup->GetTransitionDetails().IsReadOnly();
+  }
+  return !lookup->IsReadOnly();
 }
 
 
@@ -1315,7 +1316,15 @@ static bool LookupForWrite(Handle<JSObject> receiver,
                            LookupResult* lookup) {
   receiver->LocalLookup(*name, lookup);
   if (!StoreICableLookup(lookup)) {
-    return false;
+    // 2nd chance: There can be accessors somewhere in the prototype chain, but
+    // for compatibility reasons we have to hide this behind a flag. Note that
+    // we explicitly exclude native accessors for now, because the stubs are not
+    // yet prepared for this scenario.
+    if (!FLAG_es5_readonly) return false;
+    receiver->Lookup(*name, lookup);
+    if (!lookup->IsCallbacks()) return false;
+    Handle<Object> callback(lookup->GetCallbackObject());
+    return callback->IsAccessorPair() && StoreICableLookup(lookup);
   }
 
   if (lookup->IsInterceptor() &&
@@ -1458,14 +1467,6 @@ void StoreIC::UpdateCaches(LookupResult* lookup,
                                                         Handle<Map>::null(),
                                                         strict_mode);
       break;
-    case MAP_TRANSITION: {
-      if (lookup->GetAttributes() != NONE) return;
-      Handle<Map> transition(lookup->GetTransitionMap());
-      int index = transition->PropertyIndexFor(*name);
-      code = isolate()->stub_cache()->ComputeStoreField(
-          name, receiver, index, transition, strict_mode);
-      break;
-    }
     case NORMAL:
       if (receiver->IsGlobalObject()) {
         // The stub generated for the global object picks the value directly
@@ -1494,7 +1495,8 @@ void StoreIC::UpdateCaches(LookupResult* lookup,
         if (holder->IsGlobalObject()) return;
         if (!receiver->HasFastProperties()) return;
         code = isolate()->stub_cache()->ComputeStoreViaSetter(
-            name, receiver, Handle<JSFunction>::cast(setter), strict_mode);
+            name, receiver, holder, Handle<JSFunction>::cast(setter),
+            strict_mode);
       } else {
         ASSERT(callback->IsForeign());
         // No IC support for old-style native accessors.
@@ -1508,8 +1510,25 @@ void StoreIC::UpdateCaches(LookupResult* lookup,
           name, receiver, strict_mode);
       break;
     case CONSTANT_FUNCTION:
-    case CONSTANT_TRANSITION:
       return;
+    case TRANSITION: {
+      Object* value = lookup->GetTransitionValue();
+      // Callbacks.
+      if (value->IsAccessorPair()) return;
+
+      Handle<Map> transition(Map::cast(value));
+      DescriptorArray* target_descriptors = transition->instance_descriptors();
+      int descriptor = target_descriptors->LastAdded();
+      PropertyDetails details = target_descriptors->GetDetails(descriptor);
+
+      if (details.type() != FIELD || details.attributes() != NONE) return;
+
+      int field_index = target_descriptors->GetFieldIndex(descriptor);
+      code = isolate()->stub_cache()->ComputeStoreField(
+          name, receiver, field_index, transition, strict_mode);
+
+      break;
+    }
     case NONEXISTENT:
     case HANDLER:
       UNREACHABLE();
@@ -1958,20 +1977,33 @@ void KeyedStoreIC::UpdateCaches(LookupResult* lookup,
           name, receiver, lookup->GetFieldIndex(),
           Handle<Map>::null(), strict_mode);
       break;
-    case MAP_TRANSITION:
-      if (lookup->GetAttributes() == NONE) {
-        Handle<Map> transition(lookup->GetTransitionMap());
-        int index = transition->PropertyIndexFor(*name);
+    case TRANSITION: {
+      Object* value = lookup->GetTransitionValue();
+      // Callbacks transition.
+      if (value->IsAccessorPair()) {
+        code = (strict_mode == kStrictMode)
+            ? generic_stub_strict()
+            : generic_stub();
+        break;
+      }
+
+      Handle<Map> transition(Map::cast(value));
+      DescriptorArray* target_descriptors = transition->instance_descriptors();
+      int descriptor = target_descriptors->LastAdded();
+      PropertyDetails details = target_descriptors->GetDetails(descriptor);
+
+      if (details.type() == FIELD && details.attributes() == NONE) {
+        int field_index = target_descriptors->GetFieldIndex(descriptor);
         code = isolate()->stub_cache()->ComputeKeyedStoreField(
-            name, receiver, index, transition, strict_mode);
+            name, receiver, field_index, transition, strict_mode);
         break;
       }
       // fall through.
+    }
     case NORMAL:
     case CONSTANT_FUNCTION:
     case CALLBACKS:
     case INTERCEPTOR:
-    case CONSTANT_TRANSITION:
       // Always rewrite to the generic case so that we do not
       // repeatedly try to rewrite.
       code = (strict_mode == kStrictMode)
@@ -2555,7 +2587,8 @@ CompareIC::State CompareIC::ComputeState(Code* target) {
 
 Token::Value CompareIC::ComputeOperation(Code* target) {
   ASSERT(target->major_key() == CodeStub::CompareIC);
-  return static_cast<Token::Value>(target->compare_operation());
+  return static_cast<Token::Value>(
+      target->compare_operation() + Token::EQ);
 }
 
 
@@ -2565,7 +2598,7 @@ const char* CompareIC::GetStateName(State state) {
     case SMIS: return "SMIS";
     case HEAP_NUMBERS: return "HEAP_NUMBERS";
     case OBJECTS: return "OBJECTS";
-    case KNOWN_OBJECTS: return "OBJECTS";
+    case KNOWN_OBJECTS: return "KNOWN_OBJECTS";
     case SYMBOLS: return "SYMBOLS";
     case STRINGS: return "STRINGS";
     case GENERIC: return "GENERIC";

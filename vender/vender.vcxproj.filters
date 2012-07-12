@@ -1344,6 +1344,9 @@
     <ClCompile Include="src\uuid\uuid_ui128.c">
       <Filter>Source Files\uuid</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\transitions.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -2503,6 +2506,12 @@
     </ClInclude>
     <ClInclude Include="src\uuid\uuid_msvc.h">
       <Filter>Source Files\uuid</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\transitions.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\transitions-inl.h">
+      <Filter>Source Files\v8\src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -61,7 +61,8 @@ CompilationInfo::CompilationInfo(Handle<Script> script, Zone* zone)
       extension_(NULL),
       pre_parse_data_(NULL),
       osr_ast_id_(AstNode::kNoNumber),
-      zone_(zone) {
+      zone_(zone),
+      deferred_handles_(NULL) {
   Initialize(BASE);
 }
 
@@ -79,7 +80,8 @@ CompilationInfo::CompilationInfo(Handle<SharedFunctionInfo> shared_info,
       extension_(NULL),
       pre_parse_data_(NULL),
       osr_ast_id_(AstNode::kNoNumber),
-      zone_(zone) {
+      zone_(zone),
+      deferred_handles_(NULL) {
   Initialize(BASE);
 }
 
@@ -97,8 +99,14 @@ CompilationInfo::CompilationInfo(Handle<JSFunction> closure, Zone* zone)
       extension_(NULL),
       pre_parse_data_(NULL),
       osr_ast_id_(AstNode::kNoNumber),
-      zone_(zone) {
+      zone_(zone),
+      deferred_handles_(NULL) {
   Initialize(BASE);
+}
+
+
+CompilationInfo::~CompilationInfo() {
+  delete deferred_handles_;
 }
 
 
@@ -184,17 +192,9 @@ static void FinishOptimization(Handle<JSFunction> function, int64_t start) {
 
 
 static bool MakeCrankshaftCode(CompilationInfo* info) {
-  // Test if we can optimize this function when asked to. We can only
-  // do this after the scopes are computed.
-  if (!V8::UseCrankshaft()) {
-    info->DisableOptimization();
-  }
-
-  // In case we are not optimizing simply return the code from
-  // the full code generator.
-  if (!info->IsOptimizing()) {
-    return FullCodeGenerator::MakeCode(info);
-  }
+  ASSERT(V8::UseCrankshaft());
+  ASSERT(info->IsOptimizing());
+  ASSERT(!info->IsCompilingForDebugging());
 
   // We should never arrive here if there is not code object on the
   // shared function object.
@@ -308,11 +308,19 @@ static bool MakeCrankshaftCode(CompilationInfo* info) {
   }
 
   if (graph != NULL) {
-    Handle<Code> optimized_code = graph->Compile();
-    if (!optimized_code.is_null()) {
-      info->SetCode(optimized_code);
-      FinishOptimization(info->closure(), start);
-      return true;
+    SmartArrayPointer<char> bailout_reason;
+    if (!graph->Optimize(&bailout_reason)) {
+      if (!bailout_reason.is_empty()) builder.Bailout(*bailout_reason);
+    } else {
+      LChunkBase* chunk = LChunkBase::NewChunk(graph);
+      if (chunk != NULL) {
+        Handle<Code> optimized_code = chunk->Codegen();
+        if (!optimized_code.is_null()) {
+          info->SetCode(optimized_code);
+          FinishOptimization(info->closure(), start);
+          return true;
+        }
+      }
     }
   }
 
@@ -330,9 +338,19 @@ static bool MakeCrankshaftCode(CompilationInfo* info) {
 
 
 static bool GenerateCode(CompilationInfo* info) {
-  return info->IsCompilingForDebugging() || !V8::UseCrankshaft() ?
-      FullCodeGenerator::MakeCode(info) :
-      MakeCrankshaftCode(info);
+  bool is_optimizing = V8::UseCrankshaft() &&
+                       !info->IsCompilingForDebugging() &&
+                       info->IsOptimizing();
+  if (is_optimizing) {
+    return MakeCrankshaftCode(info);
+  } else {
+    if (info->IsOptimizing()) {
+      // Have the CompilationInfo decide if the compilation should be
+      // BASE or NONOPT.
+      info->DisableOptimization();
+    }
+    return FullCodeGenerator::MakeCode(info);
+  }
 }
 
 
@@ -533,7 +551,7 @@ Handle<SharedFunctionInfo> Compiler::Compile(Handle<String> source,
       info.SetLanguageMode(FLAG_harmony_scoping ? EXTENDED_MODE : STRICT_MODE);
     }
     result = MakeFunctionInfo(&info);
-    if (extension == NULL && !result.is_null()) {
+    if (extension == NULL && !result.is_null() && !result->dont_cache()) {
       compilation_cache->PutScript(source, result);
     }
   } else {
@@ -592,8 +610,10 @@ Handle<SharedFunctionInfo> Compiler::CompileEval(Handle<String> source,
       // extended mode.
       ASSERT(language_mode != EXTENDED_MODE ||
              result->is_extended_mode());
-      compilation_cache->PutEval(
-          source, context, is_global, result, scope_position);
+      if (!result->dont_cache()) {
+        compilation_cache->PutEval(
+            source, context, is_global, result, scope_position);
+      }
     }
   } else {
     if (result->ic_age() != HEAP->global_ic_age()) {
@@ -707,6 +727,7 @@ bool Compiler::CompileLazy(CompilationInfo* info) {
         shared->set_code_age(0);
         shared->set_dont_optimize(lit->flags()->Contains(kDontOptimize));
         shared->set_dont_inline(lit->flags()->Contains(kDontInline));
+        shared->set_dont_cache(lit->flags()->Contains(kDontCache));
         shared->set_ast_node_count(lit->ast_node_count());
 
         if (V8::UseCrankshaft()&&
@@ -762,8 +783,7 @@ Handle<SharedFunctionInfo> Compiler::BuildFunctionInfo(FunctionLiteral* literal,
   if (FLAG_lazy && allow_lazy) {
     Handle<Code> code = info.isolate()->builtins()->LazyCompile();
     info.SetCode(code);
-  } else if ((V8::UseCrankshaft() && MakeCrankshaftCode(&info)) ||
-             (!V8::UseCrankshaft() && FullCodeGenerator::MakeCode(&info))) {
+  } else if (GenerateCode(&info)) {
     ASSERT(!info.code().is_null());
     scope_info = ScopeInfo::Create(info.scope(), info.zone());
   } else {
@@ -821,6 +841,7 @@ void Compiler::SetFunctionInfo(Handle<SharedFunctionInfo> function_info,
   function_info->set_is_function(lit->is_function());
   function_info->set_dont_optimize(lit->flags()->Contains(kDontOptimize));
   function_info->set_dont_inline(lit->flags()->Contains(kDontInline));
+  function_info->set_dont_cache(lit->flags()->Contains(kDontCache));
 }
 
 
