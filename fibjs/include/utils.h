@@ -491,12 +491,21 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, int32_t& n)
 
 inline result_t SafeGetValue(v8::Handle<v8::Value> v, bool& n)
 {
+	if (v.IsEmpty())
+		return CALL_E_INVALIDARG;
+
 	n = v->BooleanValue();
 	return 0;
 }
 
 inline result_t SafeGetValue(v8::Handle<v8::Value> v, date_t& d)
 {
+	if (v.IsEmpty())
+		return CALL_E_INVALIDARG;
+
+	if (!v->IsDate())
+		return CALL_E_INVALIDARG;
+
 	return SafeGetValue(v, d.d);
 }
 
@@ -513,6 +522,9 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, obj_ptr<T>& vr)
 inline result_t SafeGetValue(v8::Handle<v8::Value> v,
 		v8::Handle<v8::Object>& vr)
 {
+	if (v.IsEmpty())
+		return CALL_E_INVALIDARG;
+
 	if (!v->IsObject())
 		return CALL_E_INVALIDARG;
 
@@ -522,6 +534,9 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v,
 
 inline result_t SafeGetValue(v8::Handle<v8::Value> v, v8::Handle<v8::Array>& vr)
 {
+	if (v.IsEmpty())
+		return CALL_E_INVALIDARG;
+
 	if (!v->IsArray())
 		return CALL_E_INVALIDARG;
 

@@ -22,36 +22,49 @@ result_t assert_base::throwAssert(bool bThrow)
 
 result_t assert_base::ok(bool value, const char* msg)
 {
-    if(!value)
-    {
-        std::stringstream strBuffer;
+	if (!value)
+	{
+		std::stringstream strBuffer;
 
-        strBuffer << "assert: " << msg;
+		strBuffer << "assert: " << msg;
 
-        if(s_bThrow)
-        	ThrowError(strBuffer.str().c_str());
-        else
-        {
+		if (s_bThrow)
+			ThrowError(strBuffer.str().c_str());
+		else
+		{
 			strBuffer << traceInfo();
 			asyncLog(log4cpp::Priority::WARN, strBuffer.str());
-        }
-    }
+		}
+	}
 
-    return 0;
+	return 0;
 }
 
-bool valueEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
+bool valueEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
 {
+	if (actual->IsDate() && expected->IsDate())
+		return actual->NumberValue() == expected->NumberValue();
+
 	return actual->Equals(expected);
 }
 
-result_t assert_base::equal(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg)
+bool valueStrictEquals(v8::Handle<v8::Value> actual,
+		v8::Handle<v8::Value> expected)
 {
-	if(!valueEqual(actual, expected))
+	if (actual->IsDate() && expected->IsDate())
+		return actual->NumberValue() == expected->NumberValue();
+
+	return actual->StrictEquals(expected);
+}
+
+result_t assert_base::equal(v8::Handle<v8::Value> actual,
+		v8::Handle<v8::Value> expected, const char* msg)
+{
+	if (!valueEquals(actual, expected))
 	{
 		std::string str;
 
-		if(!*msg)
+		if (!*msg)
 		{
 			str = JSON_stringify(expected);
 			str += " == ";
@@ -65,13 +78,14 @@ result_t assert_base::equal(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> 
 	return 0;
 }
 
-result_t assert_base::notEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg)
+result_t assert_base::notEqual(v8::Handle<v8::Value> actual,
+		v8::Handle<v8::Value> expected, const char* msg)
 {
-	if(valueEqual(actual, expected))
+	if (valueEquals(actual, expected))
 	{
 		std::string str;
 
-		if(!*msg)
+		if (!*msg)
 		{
 			str = JSON_stringify(expected);
 			str += " != ";
@@ -85,13 +99,14 @@ result_t assert_base::notEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Valu
 	return 0;
 }
 
-result_t assert_base::strictEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg)
+result_t assert_base::strictEqual(v8::Handle<v8::Value> actual,
+		v8::Handle<v8::Value> expected, const char* msg)
 {
-	if(!actual->StrictEquals(expected))
+	if (!valueStrictEquals(actual, expected))
 	{
 		std::string str;
 
-		if(!*msg)
+		if (!*msg)
 		{
 			str = JSON_stringify(expected);
 			str += " === ";
@@ -105,13 +120,14 @@ result_t assert_base::strictEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::V
 	return 0;
 }
 
-result_t assert_base::notStrictEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg)
+result_t assert_base::notStrictEqual(v8::Handle<v8::Value> actual,
+		v8::Handle<v8::Value> expected, const char* msg)
 {
-	if(actual->StrictEquals(expected))
+	if (valueStrictEquals(actual, expected))
 	{
 		std::string str;
 
-		if(!*msg)
+		if (!*msg)
 		{
 			str = JSON_stringify(expected);
 			str += " !== ";
@@ -139,7 +155,8 @@ result_t assert_base::throws(v8::Handle<v8::Function> block, const char* msg)
 	return 0;
 }
 
-result_t assert_base::doesNotThrow(v8::Handle<v8::Function> block, const char* msg)
+result_t assert_base::doesNotThrow(v8::Handle<v8::Function> block,
+		const char* msg)
 {
 	v8::TryCatch try_catch;
 	block->Call(block, 0, NULL);
