@@ -62,19 +62,51 @@ namespace fibjs
 {
 
 template<typename T>
-inline int qchricmp(T ch1, T ch2)
+bool qisascii(T ch)
 {
-	if (ch1 >= 'A' && ch1 <= 'Z')
-		ch1 += 'a' - 'A';
-
-	if (ch2 >= 'A' && ch2 <= 'Z')
-		ch2 += 'a' - 'A';
-
-	return ch1 - ch2;
+	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
 }
 
 template<typename T>
-inline int qstricmp(const T* s1, const T* s2, int sz = -1)
+bool qisnumber(T ch)
+{
+	return ch >= '0' && ch <= '9';
+}
+
+template<typename T>
+bool qishex(T ch)
+{
+	return qisnumber(ch) || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'Z');
+}
+
+template<typename T>
+bool qisupper(T ch)
+{
+	return ch >= 'A' && ch <= 'Z';
+}
+
+template<typename T>
+bool qilower(T ch)
+{
+	return ch >= 'a' && ch <= 'z';
+}
+
+template<typename T>
+T qtolower(T c)
+{
+	if (qisupper(c))
+		return c + 'a' - 'A';
+	return c;
+}
+
+template<typename T>
+int qchricmp(T ch1, T ch2)
+{
+	return qtolower(ch1) - qtolower(ch2);
+}
+
+template<typename T>
+int qstricmp(const T* s1, const T* s2, int sz = -1)
 {
 	int n = 0;
 
@@ -86,7 +118,7 @@ inline int qstricmp(const T* s1, const T* s2, int sz = -1)
 }
 
 template<typename T>
-inline int qstrcmp(const T* s1, const T* s2, int sz = -1)
+int qstrcmp(const T* s1, const T* s2, int sz = -1)
 {
 	int n = 0;
 
@@ -166,22 +198,10 @@ const T * qstrstr(const T *in, const T *str)
 template<typename T>
 void qstrlwr(T *s)
 {
-	int c;
+	T c;
 
 	while (c = *s)
-	{
-		if (c >= 'A' && c <= 'Z')
-			*s = c + 'a' - 'A';
-		s++;
-	}
-}
-
-template<typename T>
-T qtolower(T c)
-{
-	if (c >= 'A' && c <= 'Z')
-		return c + 'a' - 'A';
-	return c;
+		*s++ = qtolower(c);
 }
 
 typedef int result_t;

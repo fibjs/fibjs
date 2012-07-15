@@ -1,0 +1,100 @@
+/*! @brief Url 处理对象
+ *
+ * 基础模块。提供 url 的格式化，解析与拼装
+ * \code
+ * var url = new net.Url('http://www.xici.net/');
+ * \endcode
+ */
+class Url: object
+{
+	Url(String url = "");
+	Url(Object args);
+
+	parse(String url);
+
+	format(Object args);
+
+	Url resolve(String to);
+
+	normalize();
+
+	/*
+	 *
+	 * http//user:pass@example.com:8000/foo/bar?baz=quux#frag
+	 */
+	readonly String href;
+
+	/*
+	 *
+	 * http
+	 */
+	readonly String protocol;
+
+	readonly Integer slashes;
+
+	/*
+	 *
+	 * user:pass
+	 */
+	readonly String auth;
+
+	/*
+	 *
+	 * user
+	 */
+	readonly String username;
+
+	/*
+	 *
+	 * pass
+	 */
+	readonly String password;
+
+	/*
+	 *
+	 * example.com:8000ß
+	 */
+	readonly String host;
+
+	/*
+	 *
+	 * example.com
+	 */
+	readonly String hostname;
+
+	/*
+	 *
+	 * 8000
+	 */
+	readonly String port;
+
+	/*
+	 *
+	 * /foo/bar?baz=quux
+	 */
+	readonly String path;
+
+	/*
+	 *
+	 * /foo/bar
+	 */
+	readonly String pathname;
+
+	/*
+	 *
+	 * baz=quux
+	 */
+	readonly String search;
+
+	/*
+	 *
+	 * baz=quux
+	 */
+	readonly String query;
+
+	/*
+	 *
+	 * frag
+	 */
+	readonly String hash;
+};

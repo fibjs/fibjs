@@ -19,6 +19,7 @@ namespace fibjs
 
 class module_base;
 class Socket_base;
+class Url_base;
 
 class net_base : public module_base
 {
@@ -64,6 +65,7 @@ protected:
 }
 
 #include "Socket.h"
+#include "Url.h"
 
 namespace fibjs
 {
@@ -79,7 +81,8 @@ namespace fibjs
 
 		static ClassObject s_object[] = 
 		{
-			{"Socket", Socket_base::class_info}
+			{"Socket", Socket_base::class_info},
+			{"Url", Url_base::class_info}
 		};
 
 		static ClassProperty s_property[] = 
@@ -93,7 +96,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"net", NULL, 
-			4, s_method, 1, s_object, 4, s_property, NULL,
+			4, s_method, 2, s_object, 4, s_property, NULL,
 			&module_base::class_info()
 		};
 

@@ -258,7 +258,7 @@ result_t path_base::normalize(const char* path, std::string& retVal)
 
 result_t path_base::combine(const v8::Arguments& args, std::string& retVal)
 {
-	std::stringstream strBuffer;
+	std::string strBuffer;
 	int argc = args.Length();
 	int i;
 	bool bRoot;
@@ -302,22 +302,22 @@ result_t path_base::combine(const v8::Arguments& args, std::string& retVal)
 				bRoot = false;
 
 			if (bRoot)
-				strBuffer.str("");
+				strBuffer.resize(0);
 
-			strBuffer << p;
+			strBuffer.append(p);
 
 			if (i < argc - 1 && !isPathSlash(p[s.length() - 1]))
-				strBuffer << PATH_SLASH;
+				strBuffer.append(1, PATH_SLASH);
 		}
 		else
 		{
-			strBuffer << '.';
+			strBuffer.append(1, '.');
 			if (i < argc - 1)
-				strBuffer << PATH_SLASH;
+				strBuffer.append(1, PATH_SLASH);
 		}
 	}
 
-	return normalize(strBuffer.str().c_str(), retVal);
+	return normalize(strBuffer.c_str(), retVal);
 }
 
 }
