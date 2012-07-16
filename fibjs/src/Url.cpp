@@ -6,9 +6,52 @@
  */
 
 #include "Url.h"
+#include "ifs/encoding.h"
 
 namespace fibjs
 {
+static const char *pathTable =
+		" !  $%& ()*+,-./0123456789:; =  @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
+static const char *queryTable =
+		" !  $%& ()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
+static const char *hashTable =
+		" ! #$%& ()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
+
+#define HEX_ESCAPE '%'
+static const char *hex = "0123456789ABCDEF";
+
+inline result_t urlencode(const char* url, std::string& retVal, const char* tab)
+{
+	int len;
+	const char* src;
+	unsigned char ch;
+	char* bstr;
+	std::string str;
+
+	for (len = 0, src = url; (ch = (unsigned char) *src) != 0; src++, len++)
+		if (ch < 0x20 || ch >= 0x80 || tab[ch - 0x20] == ' ')
+			len += 2;
+
+	str.resize(len);
+	bstr = &str[0];
+
+	for (src = url; (ch = (unsigned char) *src) != 0; src++)
+	{
+		if (ch >= 0x20 && ch < 0x80 && tab[ch - 0x20] != ' ')
+			*bstr++ = ch;
+		else
+		{
+			*bstr++ = HEX_ESCAPE;
+
+			*bstr++ = hex[(ch >> 4) & 15];
+			*bstr++ = hex[ch & 15];
+		}
+	}
+
+	retVal = str;
+
+	return 0;
+}
 
 result_t Url_base::_new(const char* url, obj_ptr<Url_base>& retVal)
 {
@@ -93,8 +136,12 @@ void Url::parseAuth(const char*& url)
 	if (ch == '@')
 	{
 		m_username.assign(url, p1 - url);
+		encoding_base::decodeURI(m_username.c_str(), m_username);
 		if (p2)
+		{
 			m_password.assign(p1 + 1, p2 - p1 - 1);
+			encoding_base::decodeURI(m_password.c_str(), m_password);
+		}
 
 		url = p2 ? p2 + 1 : p1 + 1;
 	}
@@ -163,6 +210,8 @@ void Url::parsePath(const char*& url)
 		m_pathname.append(url, p - url);
 	}
 
+	if (m_protocol.compare("javascript:"))
+		urlencode(m_pathname.c_str(), m_pathname, pathTable);
 	url = p;
 }
 
@@ -178,6 +227,7 @@ void Url::parseQuery(const char*& url)
 		p++;
 
 	m_query.assign(url, p - url);
+	urlencode(m_query.c_str(), m_query, queryTable);
 	url = p;
 }
 
@@ -186,7 +236,7 @@ void Url::parseHash(const char*& url)
 	if (*url != '#')
 		return;
 
-	m_hash.assign(url);
+	urlencode(url, m_hash, hashTable);
 }
 
 result_t Url::parse(const char* url)
@@ -331,11 +381,15 @@ result_t Url::get_slashes(int32_t& retVal)
 
 result_t Url::get_auth(std::string& retVal)
 {
-	retVal.append(m_username);
+	std::string str;
+
+	encoding_base::encodeURIComponent(m_username.c_str(), str);
+	retVal.append(str);
 	if (m_password.length() > 0)
 	{
 		retVal.append(1, ':');
-		retVal.append(m_password);
+		encoding_base::encodeURIComponent(m_password.c_str(), str);
+		retVal.append(str);
 	}
 
 	return 0;

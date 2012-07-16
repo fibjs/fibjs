@@ -111,9 +111,9 @@ inline void baseEncode(const char *pEncodingTable, int dwBits,
 	data->toString(strData);
 
 	if (dwBits == 6)
-		dwSize = ((int)strData.length() + 2) / 3 * 4;
+		dwSize = ((int) strData.length() + 2) / 3 * 4;
 	else if (dwBits == 5)
-		dwSize = ((int)strData.length() + 4) / 5 * 8;
+		dwSize = ((int) strData.length() + 4) / 5 * 8;
 
 	retVal.resize(dwSize);
 
@@ -142,7 +142,7 @@ inline void baseEncode(const char *pEncodingTable, int dwBits,
 inline void baseDecode(const char *pdecodeTable, int dwBits,
 		const char* baseString, obj_ptr<Buffer_base>& retVal)
 {
-	int nWritten = 0, len = (int)qstrlen(baseString);
+	int nWritten = 0, len = (int) qstrlen(baseString);
 	std::string strBuf;
 
 	strBuf.resize(len * dwBits / 8);
@@ -231,7 +231,7 @@ result_t encoding_base::hexEncode(obj_ptr<Buffer_base>& data,
 
 	data->toString(strData);
 
-	i = (int)strData.length() * 2;
+	i = (int) strData.length() * 2;
 	retVal.resize(i);
 
 	len1 = 0;
@@ -251,7 +251,7 @@ result_t encoding_base::hexEncode(obj_ptr<Buffer_base>& data,
 result_t encoding_base::hexDecode(const char* data,
 		obj_ptr<Buffer_base>& retVal)
 {
-	int pos, len = (int)qstrlen(data);
+	int pos, len = (int) qstrlen(data);
 	std::string strBuf;
 	uint32_t ch1, ch2;
 
@@ -285,6 +285,91 @@ result_t encoding_base::hexDecode(const char* data,
 	}
 
 	retVal = new Buffer(strBuf);
+
+	return 0;
+}
+
+#define HEX_ESCAPE '%'
+static const char *URITable =
+		" ! #$ &'()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz   ~ ";
+static const char *URIComponentTable =
+		" !     '()*  -. 0123456789       ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz   ~ ";
+
+static const char *hex = "0123456789ABCDEF";
+#define HEXDATA(ch)		((ch) >= '0' && (ch) <= '9' ? (ch) - '0' : \
+						(ch) >= 'a' && (ch) <= 'f' ? (ch) - 'a' + 10 : \
+						(ch) >= 'A' && (ch) <= 'F' ? (ch) - 'A' + 10 : 0)
+
+inline result_t urlencode(const char* url, std::string& retVal, const char* tab)
+{
+	int len;
+	const char* src;
+	unsigned char ch;
+	char* bstr;
+	std::string str;
+
+	for (len = 0, src = url; (ch = (unsigned char) *src) != 0; src++, len++)
+		if (ch < 0x20 || ch >= 0x80 || tab[ch - 0x20] == ' ')
+			len += 2;
+
+	str.resize(len);
+	bstr = &str[0];
+
+	for (src = url; (ch = (unsigned char) *src) != 0; src++)
+	{
+		if (ch >= 0x20 && ch < 0x80 && tab[ch - 0x20] != ' ')
+			*bstr++ = ch;
+		else
+		{
+			*bstr++ = HEX_ESCAPE;
+
+			*bstr++ = hex[(ch >> 4) & 15];
+			*bstr++ = hex[ch & 15];
+		}
+	}
+
+	retVal = str;
+
+	return 0;
+}
+
+result_t encoding_base::encodeURI(const char* url, std::string& retVal)
+{
+	return urlencode(url, retVal, URITable);
+}
+
+result_t encoding_base::encodeURIComponent(const char* url, std::string& retVal)
+{
+	return urlencode(url, retVal, URIComponentTable);
+}
+
+result_t encoding_base::decodeURI(const char* url, std::string& retVal)
+{
+	int len;
+	const char* src;
+	unsigned char ch;
+	char* bstr;
+	std::string str;
+
+	for (len = 0, src = url; (ch = (unsigned char) *src) != 0; src++, len++)
+		if (ch == '%' && qishex(src[1]) & qishex(src[2]))
+			src += 2;
+
+	str.resize(len);
+	bstr = &str[0];
+
+	for (src = url; (ch = (unsigned char) *src) != 0; src++)
+	{
+		if (ch == '%' && qishex(src[1]) & qishex(src[2]))
+		{
+			*bstr++ = (HEXDATA(src[1]) << 4) + HEXDATA(src[2]);
+			src += 2;
+		}
+		else
+			*bstr++ = ch;
+	}
+
+	retVal = str;
 
 	return 0;
 }
