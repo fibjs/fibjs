@@ -55,7 +55,7 @@ var parseTests = {
 		'protocol' : 'http:',
 		'slashes' : true,
 		'username' : 'USER',
-		'password'  : 'PW',
+		'password' : 'PW',
 		'host' : 'www.example.com',
 		'hostname' : 'www.example.com',
 		'pathname' : '/',
@@ -205,7 +205,7 @@ var parseTests = {
 		'slashes' : true,
 		'host' : 'mt0.google.com',
 		'username' : 'user',
-		'password':'pass',
+		'password' : 'pass',
 		'hostname' : 'mt0.google.com',
 		'search' : '???&hl=en&src=api&x=2&y=2&z=3&s=',
 		'query' : '??&hl=en&src=api&x=2&y=2&z=3&s=',
@@ -286,7 +286,7 @@ var parseTests = {
 		'slashes' : true,
 		'host' : 'example.com:8000',
 		'username' : 'user',
-		'password': 'pass',
+		'password' : 'pass',
 		'port' : '8000',
 		'hostname' : 'example.com',
 		'hash' : '#frag',
@@ -558,6 +558,153 @@ var parseTests = {
 		'hash' : '#abc',
 		'pathname' : '/a/b',
 		'path' : '/a/b?a=b'
+	},
+	
+	'http://example.com?' : {
+		'href' : 'http://example.com/',
+		'protocol' : 'http:',
+		'slashes' : true,
+		'host' : 'example.com',
+		'hostname' : 'example.com',
+		'search' : '?',
+		'query' : {},
+		'pathname' : '/'
+	},
+	'http://example.com?foo=bar#frag' : {
+		'href' : 'http://example.com/?foo=bar#frag',
+		'protocol' : 'http:',
+		'host' : 'example.com',
+		'hostname' : 'example.com',
+		'hash' : '#frag',
+		'search' : '?foo=bar',
+		'query' : 'foo=bar',
+		'pathname' : '/'
+	},
+	'http://example.com?foo=@bar#frag' : {
+		'href' : 'http://example.com/?foo=@bar#frag',
+		'protocol' : 'http:',
+		'host' : 'example.com',
+		'hostname' : 'example.com',
+		'hash' : '#frag',
+		'search' : '?foo=@bar',
+		'query' : 'foo=@bar',
+		'pathname' : '/'
+	},
+	'http://example.com?foo=/bar/#frag' : {
+		'href' : 'http://example.com/?foo=/bar/#frag',
+		'protocol' : 'http:',
+		'host' : 'example.com',
+		'hostname' : 'example.com',
+		'hash' : '#frag',
+		'search' : '?foo=/bar/',
+		'query' : 'foo=/bar/',
+		'pathname' : '/'
+	},
+	'http://example.com?foo=?bar/#frag' : {
+		'href' : 'http://example.com/?foo=?bar/#frag',
+		'protocol' : 'http:',
+		'host' : 'example.com',
+		'hostname' : 'example.com',
+		'hash' : '#frag',
+		'search' : '?foo=?bar/',
+		'query' : 'foo=?bar/',
+		'pathname' : '/'
+	},
+	'http://example.com#frag=?bar/#frag' : {
+		'href' : 'http://example.com/#frag=?bar/#frag',
+		'protocol' : 'http:',
+		'host' : 'example.com',
+		'hostname' : 'example.com',
+		'hash' : '#frag=?bar/#frag',
+		'pathname' : '/'
+	},
+	'http://google.com" onload="alert(42)/' : {
+		'href' : 'http://google.com/%22%20onload=%22alert(42)/',
+		'protocol' : 'http:',
+		'hostname' : 'google.com',
+		'pathname' : '/%22%20onload=%22alert(42)/'
+	},
+	'http://a.com/a/b/c?s#h' : {
+		'href' : 'http://a.com/a/b/c?s#h',
+		'protocol' : 'http',
+		'hostname' : 'a.com',
+		'pathname' : 'a/b/c',
+		'hash' : 'h',
+		'query' : 's'
+	},
+	'xmpp:isaacschlueter@jabber.org' : {
+		'href' : 'xmpp:isaacschlueter@jabber.org',
+		'protocol' : 'xmpp:',
+		'hostname' : 'jabber.org',
+		'username' : 'isaacschlueter',
+		'hostname' : 'jabber.org'
+	},
+	'http://atpass:foo%40bar@127.0.0.1/' : {
+		'href' : 'http://atpass:foo%40bar@127.0.0.1/',
+		'username' : 'atpass',
+		password: 'foo@bar',
+		'hostname' : '127.0.0.1',
+		'protocol' : 'http:',
+		'pathname' : '/'
+	},
+	'http://atslash%2F%40:%2F%40@foo/' : {
+		'href' : 'http://atslash%2F%40:%2F%40@foo/',
+		'username' : 'atslash/@',
+		password: '/@',
+		'hostname' : 'foo',
+		'protocol' : 'http:',
+		'pathname' : '/'
+	},
+	'svn+ssh://foo/bar' : {
+		'href' : 'svn+ssh://foo/bar',
+		'hostname' : 'foo',
+		'protocol' : 'svn+ssh:',
+		'pathname' : '/bar',
+		'slashes' : true
+	},
+	'dash-test://foo/bar' : {
+		'href' : 'dash-test://foo/bar',
+		'hostname' : 'foo',
+		'protocol' : 'dash-test:',
+		'pathname' : '/bar',
+		'slashes' : true
+	},
+	'dash-test:foo/bar' : {
+		'href' : 'dash-test:foo/bar',
+		'hostname' : 'foo',
+		'protocol' : 'dash-test:',
+		'pathname' : '/bar'
+	},
+	'dot.test://foo/bar' : {
+		'href' : 'dot.test://foo/bar',
+		'hostname' : 'foo',
+		'protocol' : 'dot.test:',
+		'pathname' : '/bar',
+		'slashes' : true
+	},
+	'dot.test:foo/bar' : {
+		'href' : 'dot.test:foo/bar',
+		'hostname' : 'foo',
+		'protocol' : 'dot.test:',
+		'pathname' : '/bar'
+	},
+	// ipv6 support
+	'coap:u:p@[::1]:61616/.well-known/r?n=Temperature' : {
+		'href' : 'coap:u:p@[::1]:61616/.well-known/r?n=Temperature',
+		'protocol' : 'coap:',
+		'username' : 'u',
+		password: 'p',
+		'hostname' : '::1',
+		'port' : '61616',
+		'pathname' : '/.well-known/r',
+		'query' : 'n=Temperature'
+	},
+	'coap:[fedc:ba98:7654:3210:fedc:ba98:7654:3210]:61616/s/stopButton' : {
+		'href' : 'coap:[fedc:ba98:7654:3210:fedc:ba98:7654:3210]:61616/s/stopButton',
+		'protocol' : 'coap',
+		'hostname' : 'fedc:ba98:7654:3210:fedc:ba98:7654:3210',
+		port : '61616',
+		'pathname' : '/s/stopButton'
 	}
 };
 
@@ -570,15 +717,6 @@ for ( var u in parseTests) {
 
 for ( var u in parseTests) {
 	url.parse(u);
-	assert.equal(url.protocol, parseTests[u].protocol || '');
-	assert.equal(url.slashes, parseTests[u].slashes || false);
-	assert.equal(url.username, parseTests[u].username || '');
-	assert.equal(url.password, parseTests[u].password || '');
-	assert.equal(url.hostname, parseTests[u].hostname || '');
-	assert.equal(url.port, parseTests[u].port || '');
-	assert.equal(url.pathname, parseTests[u].pathname || '');
-	assert.equal(url.query, parseTests[u].query || '');
-	assert.equal(url.hash, parseTests[u].hash || '');
-
-	assert.equal(url.href, parseTests[u].href || '');
+	assert.equal(url.href, parseTests[u].href);
 }
+

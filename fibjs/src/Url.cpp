@@ -289,9 +289,17 @@ result_t Url::format(v8::Handle<v8::Object> args)
 	m_password = getValue(args, "password");
 	m_hostname = getValue(args, "hostname");
 	m_port = getValue(args, "port");
+
 	m_pathname = getValue(args, "pathname");
+	if (m_pathname.length() > 0 && m_pathname[0] != '/'
+			&& m_hostname.length() > 0)
+		m_pathname.insert(0, 1, '/');
+
 	m_query = getValue(args, "query");
+
 	m_hash = getValue(args, "hash");
+	if (m_hash.length() > 0 && m_hash[0] != '#')
+		m_hash.insert(0, 1, '#');
 
 	if (m_slashes && m_protocol.compare("file:") && m_hostname.length() == 0)
 		m_slashes = false;
@@ -354,6 +362,9 @@ void Url::put_protocol(std::string str)
 	m_defslashes = false;
 	if (m_protocol.length() > 0)
 	{
+		if (m_protocol[m_protocol.length() - 1] != ':')
+			m_protocol.append(1, ':');
+
 		for (i = 0; i < (int) (sizeof(s_slashed) / sizeof(const char*)); i++)
 			if (!m_protocol.compare(s_slashed[i]))
 			{
