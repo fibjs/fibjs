@@ -155,11 +155,12 @@ for ( var i = 0; i < 256; i++) {
 	assert.equal(hexb2[i], hexb[i]);
 }
 
+var u = '中文测试';
 
+for(var i = 32; i < 128; i ++)
+	u += String.fromCharCode(i);
 
-
-
-
-
-
-
+assert.equal(encodeURI(u), encoding.encodeURI(u));
+assert.equal(encodeURIComponent(u), encoding.encodeURIComponent(u));
+assert.equal(encoding.decodeURI(encodeURI(u)), u);
+assert.equal(encoding.decodeURI(encodeURIComponent(u)), u);
