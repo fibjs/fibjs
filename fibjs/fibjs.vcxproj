@@ -52,6 +52,7 @@
     <ClCompile Include="src\Stream.cpp" />
     <ClCompile Include="src\test.cpp" />
     <ClCompile Include="src\Trigger.cpp" />
+    <ClCompile Include="src\Url.cpp" />
     <ClCompile Include="src\utf8.cpp" />
     <ClCompile Include="src\util.cpp" />
     <ClCompile Include="src\uuidVar.cpp" />
@@ -97,6 +98,7 @@
     <ClInclude Include="include\ifs\Stat.h" />
     <ClInclude Include="include\ifs\Stream.h" />
     <ClInclude Include="include\ifs\Trigger.h" />
+    <ClInclude Include="include\ifs\Url.h" />
     <ClInclude Include="include\ifs\uuid.h" />
     <ClInclude Include="include\ifs\uuidValue.h" />
     <ClInclude Include="include\ifs\zmq.h" />
@@ -111,6 +113,7 @@
     <ClInclude Include="include\Stat.h" />
     <ClInclude Include="include\Stream.h" />
     <ClInclude Include="include\Trigger.h" />
+    <ClInclude Include="include\Url.h" />
     <ClInclude Include="include\utf8.h" />
     <ClInclude Include="include\utils.h" />
     <ClInclude Include="include\uuidVar.h" />

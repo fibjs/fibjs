@@ -135,6 +135,9 @@
     <ClCompile Include="src\inetAddr.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Url.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -292,6 +295,12 @@
     </ClInclude>
     <ClInclude Include="include\inetAddr.h">
       <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Url.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\Url.h">
+      <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
