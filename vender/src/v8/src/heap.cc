@@ -179,6 +179,8 @@ Heap::Heap()
   // Put a dummy entry in the remembered pages so we can find the list the
   // minidump even if there are no real unmapped pages.
   RememberUnmappedPage(NULL, false);
+
+  ClearObjectStats(true);
 }
 
 
@@ -445,54 +447,38 @@ void Heap::GarbageCollectionEpilogue() {
   isolate_->counters()->number_of_symbols()->Set(
       symbol_table()->NumberOfElements());
 
-  isolate_->counters()->new_space_bytes_available()->Set(
-      static_cast<int>(new_space()->Available()));
-  isolate_->counters()->new_space_bytes_committed()->Set(
-      static_cast<int>(new_space()->CommittedMemory()));
-  isolate_->counters()->new_space_bytes_used()->Set(
-      static_cast<int>(new_space()->SizeOfObjects()));
+  if (CommittedMemory() > 0) {
+    isolate_->counters()->external_fragmentation_total()->AddSample(
+        static_cast<int>(100 - (SizeOfObjects() * 100.0) / CommittedMemory()));
+  }
 
-  isolate_->counters()->old_pointer_space_bytes_available()->Set(
-      static_cast<int>(old_pointer_space()->Available()));
-  isolate_->counters()->old_pointer_space_bytes_committed()->Set(
-      static_cast<int>(old_pointer_space()->CommittedMemory()));
-  isolate_->counters()->old_pointer_space_bytes_used()->Set(
-      static_cast<int>(old_pointer_space()->SizeOfObjects()));
+#define UPDATE_COUNTERS_FOR_SPACE(space)                                       \
+  isolate_->counters()->space##_bytes_available()->Set(                        \
+      static_cast<int>(space()->Available()));                                 \
+  isolate_->counters()->space##_bytes_committed()->Set(                        \
+      static_cast<int>(space()->CommittedMemory()));                           \
+  isolate_->counters()->space##_bytes_used()->Set(                             \
+      static_cast<int>(space()->SizeOfObjects()));
+#define UPDATE_FRAGMENTATION_FOR_SPACE(space)                                  \
+  if (space()->CommittedMemory() > 0) {                                        \
+    isolate_->counters()->external_fragmentation_##space()->AddSample(         \
+        static_cast<int>(100 -                                                 \
+            (space()->SizeOfObjects() * 100.0) / space()->CommittedMemory())); \
+  }
+#define UPDATE_COUNTERS_AND_FRAGMENTATION_FOR_SPACE(space)                     \
+  UPDATE_COUNTERS_FOR_SPACE(space)                                             \
+  UPDATE_FRAGMENTATION_FOR_SPACE(space)
 
-  isolate_->counters()->old_data_space_bytes_available()->Set(
-      static_cast<int>(old_data_space()->Available()));
-  isolate_->counters()->old_data_space_bytes_committed()->Set(
-      static_cast<int>(old_data_space()->CommittedMemory()));
-  isolate_->counters()->old_data_space_bytes_used()->Set(
-      static_cast<int>(old_data_space()->SizeOfObjects()));
-
-  isolate_->counters()->code_space_bytes_available()->Set(
-      static_cast<int>(code_space()->Available()));
-  isolate_->counters()->code_space_bytes_committed()->Set(
-      static_cast<int>(code_space()->CommittedMemory()));
-  isolate_->counters()->code_space_bytes_used()->Set(
-      static_cast<int>(code_space()->SizeOfObjects()));
-
-  isolate_->counters()->map_space_bytes_available()->Set(
-      static_cast<int>(map_space()->Available()));
-  isolate_->counters()->map_space_bytes_committed()->Set(
-      static_cast<int>(map_space()->CommittedMemory()));
-  isolate_->counters()->map_space_bytes_used()->Set(
-      static_cast<int>(map_space()->SizeOfObjects()));
-
-  isolate_->counters()->cell_space_bytes_available()->Set(
-      static_cast<int>(cell_space()->Available()));
-  isolate_->counters()->cell_space_bytes_committed()->Set(
-      static_cast<int>(cell_space()->CommittedMemory()));
-  isolate_->counters()->cell_space_bytes_used()->Set(
-      static_cast<int>(cell_space()->SizeOfObjects()));
-
-  isolate_->counters()->lo_space_bytes_available()->Set(
-      static_cast<int>(lo_space()->Available()));
-  isolate_->counters()->lo_space_bytes_committed()->Set(
-      static_cast<int>(lo_space()->CommittedMemory()));
-  isolate_->counters()->lo_space_bytes_used()->Set(
-      static_cast<int>(lo_space()->SizeOfObjects()));
+  UPDATE_COUNTERS_FOR_SPACE(new_space)
+  UPDATE_COUNTERS_AND_FRAGMENTATION_FOR_SPACE(old_pointer_space)
+  UPDATE_COUNTERS_AND_FRAGMENTATION_FOR_SPACE(old_data_space)
+  UPDATE_COUNTERS_AND_FRAGMENTATION_FOR_SPACE(code_space)
+  UPDATE_COUNTERS_AND_FRAGMENTATION_FOR_SPACE(map_space)
+  UPDATE_COUNTERS_AND_FRAGMENTATION_FOR_SPACE(cell_space)
+  UPDATE_COUNTERS_AND_FRAGMENTATION_FOR_SPACE(lo_space)
+#undef UPDATE_COUNTERS_FOR_SPACE
+#undef UPDATE_FRAGMENTATION_FOR_SPACE
+#undef UPDATE_COUNTERS_AND_FRAGMENTATION_FOR_SPACE
 
 #if defined(DEBUG)
   ReportStatisticsAfterGC();
@@ -5355,37 +5341,9 @@ void Heap::Verify() {
   cell_space_->Verify(&no_dirty_regions_visitor);
 
   lo_space_->Verify();
-
-  VerifyNoAccessorPairSharing();
 }
 
 
-void Heap::VerifyNoAccessorPairSharing() {
-  // Verification is done in 2 phases: First we mark all AccessorPairs, checking
-  // that we mark only unmarked pairs, then we clear all marks, restoring the
-  // initial state. We use the Smi tag of the AccessorPair's getter as the
-  // marking bit, because we can never see a Smi as the getter.
-  for (int phase = 0; phase < 2; phase++) {
-    HeapObjectIterator iter(map_space());
-    for (HeapObject* obj = iter.Next(); obj != NULL; obj = iter.Next()) {
-      if (obj->IsMap()) {
-        DescriptorArray* descs = Map::cast(obj)->instance_descriptors();
-        for (int i = 0; i < descs->number_of_descriptors(); i++) {
-          if (descs->GetType(i) == CALLBACKS &&
-              descs->GetValue(i)->IsAccessorPair()) {
-            AccessorPair* accessors = AccessorPair::cast(descs->GetValue(i));
-            uintptr_t before = reinterpret_cast<intptr_t>(accessors->getter());
-            uintptr_t after = (phase == 0) ?
-                ((before & ~kSmiTagMask) | kSmiTag) :
-                ((before & ~kHeapObjectTag) | kHeapObjectTag);
-            CHECK(before != after);
-            accessors->set_getter(reinterpret_cast<Object*>(after));
-          }
-        }
-      }
-    }
-  }
-}
 #endif  // DEBUG
 
 
@@ -7223,6 +7181,39 @@ void Heap::RememberUnmappedPage(Address page, bool compacted) {
       reinterpret_cast<Address>(p);
   remembered_unmapped_pages_index_++;
   remembered_unmapped_pages_index_ %= kRememberedUnmappedPages;
+}
+
+
+void Heap::ClearObjectStats(bool clear_last_time_stats) {
+  memset(object_counts_, 0, sizeof(object_counts_));
+  memset(object_sizes_, 0, sizeof(object_sizes_));
+  if (clear_last_time_stats) {
+    memset(object_counts_last_time_, 0, sizeof(object_counts_last_time_));
+    memset(object_sizes_last_time_, 0, sizeof(object_sizes_last_time_));
+  }
+}
+
+
+static LazyMutex checkpoint_object_stats_mutex = LAZY_MUTEX_INITIALIZER;
+
+
+void Heap::CheckpointObjectStats() {
+  ScopedLock lock(checkpoint_object_stats_mutex.Pointer());
+  Counters* counters = isolate()->counters();
+#define ADJUST_LAST_TIME_OBJECT_COUNT(name)                                    \
+  counters->count_of_##name()->Increment(                                      \
+      static_cast<int>(object_counts_[name]));                                 \
+  counters->count_of_##name()->Decrement(                                      \
+      static_cast<int>(object_counts_last_time_[name]));                       \
+  counters->size_of_##name()->Increment(                                       \
+      static_cast<int>(object_sizes_[name]));                                  \
+  counters->size_of_##name()->Decrement(                                       \
+      static_cast<int>(object_sizes_last_time_[name]));
+  INSTANCE_TYPE_LIST(ADJUST_LAST_TIME_OBJECT_COUNT)
+#undef ADJUST_LAST_TIME_OBJECT_COUNT
+  memcpy(object_counts_last_time_, object_counts_, sizeof(object_counts_));
+  memcpy(object_sizes_last_time_, object_sizes_, sizeof(object_sizes_));
+  ClearObjectStats();
 }
 
 } }  // namespace v8::internal

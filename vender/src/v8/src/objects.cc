@@ -406,13 +406,11 @@ PropertyAttributes JSObject::GetPropertyAttributeWithFailedAccessCheck(
         } else {
           result->holder()->LocalLookupRealNamedProperty(name, &r);
         }
-        if (r.IsProperty()) {
-          return GetPropertyAttributeWithFailedAccessCheck(receiver,
-                                                           &r,
-                                                           name,
-                                                           continue_search);
-        }
-        break;
+        if (!r.IsFound()) break;
+        return GetPropertyAttributeWithFailedAccessCheck(receiver,
+                                                         &r,
+                                                         name,
+                                                         continue_search);
       }
 
       case HANDLER:
@@ -1747,9 +1745,10 @@ MaybeObject* JSObject::SetPropertyPostInterceptor(
   // Check local property, ignore interceptor.
   LookupResult result(GetIsolate());
   LocalLookupRealNamedProperty(name, &result);
+  if (!result.IsFound()) map()->LookupTransition(this, name, &result);
   if (result.IsFound()) {
-    // An existing property, a map transition or a null descriptor was
-    // found.  Use set property to handle all these cases.
+    // An existing property or a map transition was found. Use set property to
+    // handle all these cases.
     return SetProperty(&result, name, value, attributes, strict_mode);
   }
   bool done = false;
@@ -1779,12 +1778,12 @@ MaybeObject* JSObject::ReplaceSlowProperty(String* name,
 }
 
 
-MaybeObject* JSObject::ConvertDescriptorToFieldAndMapTransition(
+MaybeObject* JSObject::ConvertTransitionToMapTransition(
+    int transition_index,
     String* name,
     Object* new_value,
     PropertyAttributes attributes) {
   Map* old_map = map();
-  FixedArray* old_properties = properties();
   Object* result;
 
   MaybeObject* maybe_result =
@@ -1797,23 +1796,10 @@ MaybeObject* JSObject::ConvertDescriptorToFieldAndMapTransition(
   // with the map of "new Object()" cannot have transitions in the first place.
   ASSERT(map() != GetIsolate()->empty_object_map());
 
-  TransitionArray* new_transitions;
-  MaybeObject* maybe_new_transitions = old_map->AddTransition(name, map());
-  if (!maybe_new_transitions->To(&new_transitions)) {
-    // Undo changes and return failure.
-    set_map(old_map);
-    set_properties(old_properties);
-    return maybe_new_transitions;
-  }
-
-  MaybeObject* transition_added = old_map->set_transitions(new_transitions);
-  if (transition_added->IsFailure()) {
-    // Undo changes and return failure.
-    set_map(old_map);
-    set_properties(old_properties);
-    return transition_added;
-  }
-
+  // TODO(verwaest): From here on we lose existing map transitions, causing
+  // invalid back pointers. This will change once we can store multiple
+  // transitions with the same key.
+  old_map->SetTransition(transition_index, map());
   map()->SetBackPointer(old_map);
   return result;
 }
@@ -1927,6 +1913,9 @@ MaybeObject* JSReceiver::SetProperty(String* name,
                                      JSReceiver::StoreFromKeyed store_mode) {
   LookupResult result(GetIsolate());
   LocalLookup(name, &result);
+  if (!result.IsFound()) {
+    map()->LookupTransition(JSObject::cast(this), name, &result);
+  }
   return SetProperty(&result, name, value, attributes, strict_mode, store_mode);
 }
 
@@ -2161,20 +2150,6 @@ void Map::LookupTransition(JSObject* holder,
 }
 
 
-void Map::LookupTransitionOrDescriptor(JSObject* holder,
-                                       String* name,
-                                       LookupResult* result) {
-  // AccessorPairs containing both a Descriptor and a Transition are shared
-  // between the DescriptorArray and the Transition array. This is why looking
-  // up the AccessorPair solely in the DescriptorArray works.
-  // TODO(verwaest) This should be implemented differently so the
-  // DescriptorArray is free of transitions; and so we can freely share it.
-  this->LookupDescriptor(holder, name, result);
-  if (result->IsFound()) return;
-  this->LookupTransition(holder, name, result);
-}
-
-
 static bool ContainsMap(MapHandleList* maps, Handle<Map> map) {
   ASSERT(!map.is_null());
   for (int i = 0; i < maps->length(); ++i) {
@@ -2367,7 +2342,7 @@ void JSObject::LocalLookupRealNamedProperty(String* name,
   }
 
   if (HasFastProperties()) {
-    map()->LookupTransitionOrDescriptor(this, name, result);
+    map()->LookupDescriptor(this, name, result);
     // A property or a map transition was found. We return all of these result
     // types because LocalLookupRealNamedProperty is used when setting
     // properties where map transitions are handled.
@@ -2407,7 +2382,7 @@ void JSObject::LocalLookupRealNamedProperty(String* name,
 
 void JSObject::LookupRealNamedProperty(String* name, LookupResult* result) {
   LocalLookupRealNamedProperty(name, result);
-  if (result->IsProperty()) return;
+  if (result->IsFound()) return;
 
   LookupRealNamedPropertyInPrototypes(name, result);
 }
@@ -2423,8 +2398,8 @@ void JSObject::LookupRealNamedPropertyInPrototypes(String* name,
       return result->HandlerResult(JSProxy::cast(pt));
     }
     JSObject::cast(pt)->LocalLookupRealNamedProperty(name, result);
-    ASSERT(!(result->IsProperty() && result->type() == INTERCEPTOR));
-    if (result->IsProperty()) return;
+    ASSERT(!(result->IsFound() && result->type() == INTERCEPTOR));
+    if (result->IsFound()) return;
   }
   result->NotFound();
 }
@@ -2872,18 +2847,11 @@ MaybeObject* JSObject::SetPropertyForResult(LookupResult* result,
                                               attributes,
                                               strict_mode);
     case TRANSITION: {
-      Object* transition = result->GetTransitionValue();
+      Map* transition_map = result->GetTransitionTarget();
 
-      if (transition->IsAccessorPair()) {
-        ASSERT(!AccessorPair::cast(transition)->ContainsAccessor());
-        return ConvertDescriptorToField(*name, *value, attributes);
-      }
-
-      Map* transition_map = Map::cast(transition);
       DescriptorArray* descriptors = transition_map->instance_descriptors();
       int descriptor = descriptors->LastAdded();
       PropertyDetails details = descriptors->GetDetails(descriptor);
-      ASSERT(details.type() == FIELD || details.type() == CONSTANT_FUNCTION);
 
       if (details.type() == FIELD) {
         if (attributes == details.attributes()) {
@@ -2894,9 +2862,12 @@ MaybeObject* JSObject::SetPropertyForResult(LookupResult* result,
                                                field_index);
         }
         return self->ConvertDescriptorToField(*name, *value, attributes);
+      } else if (details.type() == CALLBACKS) {
+        return ConvertDescriptorToField(*name, *value, attributes);
       }
 
-      // Is transition to CONSTANT_FUNCTION.
+      ASSERT(details.type() == CONSTANT_FUNCTION);
+
       Object* constant_function = descriptors->GetValue(descriptor);
       // If the same constant function is being added we can simply
       // transition to the target map.
@@ -2906,9 +2877,8 @@ MaybeObject* JSObject::SetPropertyForResult(LookupResult* result,
       }
       // Otherwise, replace with a map transition to a new map with a FIELD,
       // even if the value is a constant function.
-      return self->ConvertDescriptorToFieldAndMapTransition(*name,
-                                                            *value,
-                                                            attributes);
+      return ConvertTransitionToMapTransition(
+          result->GetTransitionIndex(), *name, *value, attributes);
     }
     case HANDLER:
     case NONEXISTENT:
@@ -2951,6 +2921,7 @@ MaybeObject* JSObject::SetLocalPropertyIgnoreAttributes(
   Isolate* isolate = GetIsolate();
   LookupResult result(isolate);
   LocalLookup(name, &result);
+  if (!result.IsFound()) map()->LookupTransition(this, name, &result);
   // Check access rights if needed.
   if (IsAccessCheckNeeded()) {
     if (!isolate->MayNamedAccess(this, name, v8::ACCESS_SET)) {
@@ -2997,18 +2968,11 @@ MaybeObject* JSObject::SetLocalPropertyIgnoreAttributes(
       // Override callback in clone
       return ConvertDescriptorToField(name, value, attributes);
     case TRANSITION: {
-      Object* transition = result.GetTransitionValue();
+      Map* transition_map = result.GetTransitionTarget();
 
-      if (transition->IsAccessorPair()) {
-        ASSERT(!AccessorPair::cast(transition)->ContainsAccessor());
-        return ConvertDescriptorToField(name, value, attributes);
-      }
-
-      Map* transition_map = Map::cast(transition);
       DescriptorArray* descriptors = transition_map->instance_descriptors();
       int descriptor = descriptors->LastAdded();
       PropertyDetails details = descriptors->GetDetails(descriptor);
-      ASSERT(details.type() == FIELD || details.type() == CONSTANT_FUNCTION);
 
       if (details.type() == FIELD) {
         if (attributes == details.attributes()) {
@@ -3019,11 +2983,16 @@ MaybeObject* JSObject::SetLocalPropertyIgnoreAttributes(
                                          field_index);
         }
         return ConvertDescriptorToField(name, value, attributes);
+      } else if (details.type() == CALLBACKS) {
+        return ConvertDescriptorToField(name, value, attributes);
       }
 
-      // Was transition to CONSTANT_FUNCTION. Replace with a map transition to a
-      // new map with a FIELD, even if the value is a function.
-      return ConvertDescriptorToFieldAndMapTransition(name, value, attributes);
+      ASSERT(details.type() == CONSTANT_FUNCTION);
+
+      // Replace transition to CONSTANT FUNCTION with a map transition to a new
+      // map with a FIELD, even if the value is a function.
+      return ConvertTransitionToMapTransition(
+          result.GetTransitionIndex(), name, value, attributes);
     }
     case HANDLER:
     case NONEXISTENT:
@@ -3041,7 +3010,7 @@ PropertyAttributes JSObject::GetPropertyAttributePostInterceptor(
   // Check local property, ignore interceptor.
   LookupResult result(GetIsolate());
   LocalLookupRealNamedProperty(name, &result);
-  if (result.IsProperty()) return result.GetAttributes();
+  if (result.IsFound()) return result.GetAttributes();
 
   if (continue_search) {
     // Continue searching via the prototype chain.
@@ -3134,7 +3103,7 @@ PropertyAttributes JSReceiver::GetPropertyAttribute(JSReceiver* receiver,
           receiver, result, name, continue_search);
     }
   }
-  if (result->IsProperty()) {
+  if (result->IsFound()) {
     switch (result->type()) {
       case NORMAL:  // fall through
       case FIELD:
@@ -3307,11 +3276,6 @@ MaybeObject* JSObject::NormalizeProperties(PropertyNormalizationMode mode,
       }
       case CALLBACKS: {
         Object* value = descs->GetCallbacksObject(i);
-        if (value->IsAccessorPair()) {
-          MaybeObject* maybe_copy =
-              AccessorPair::cast(value)->CopyWithoutTransitions();
-          if (!maybe_copy->To(&value)) return maybe_copy;
-        }
         MaybeObject* maybe_dictionary =
             dictionary->Add(descs->GetKey(i), value, details);
         if (!maybe_dictionary->To(&dictionary)) return maybe_dictionary;
@@ -3725,7 +3689,7 @@ MaybeObject* JSObject::DeletePropertyPostInterceptor(String* name,
   // Check local property, ignore interceptor.
   LookupResult result(GetIsolate());
   LocalLookupRealNamedProperty(name, &result);
-  if (!result.IsProperty()) return GetHeap()->true_value();
+  if (!result.IsFound()) return GetHeap()->true_value();
 
   // Normalize object if needed.
   Object* obj;
@@ -3874,7 +3838,7 @@ MaybeObject* JSObject::DeleteProperty(String* name, DeleteMode mode) {
   } else {
     LookupResult result(isolate);
     LocalLookup(name, &result);
-    if (!result.IsProperty()) return isolate->heap()->true_value();
+    if (!result.IsFound()) return isolate->heap()->true_value();
     // Ignore attributes if forcing a deletion.
     if (result.IsDontDelete() && mode != FORCE_DELETION) {
       if (mode == STRICT_DELETION) {
@@ -4231,20 +4195,20 @@ void JSReceiver::Lookup(String* name, LookupResult* result) {
        current != heap->null_value();
        current = JSObject::cast(current)->GetPrototype()) {
     JSReceiver::cast(current)->LocalLookup(name, result);
-    if (result->IsProperty()) return;
+    if (result->IsFound()) return;
   }
   result->NotFound();
 }
 
 
 // Search object and its prototype chain for callback properties.
-void JSObject::LookupCallback(String* name, LookupResult* result) {
+void JSObject::LookupCallbackProperty(String* name, LookupResult* result) {
   Heap* heap = GetHeap();
   for (Object* current = this;
        current != heap->null_value() && current->IsJSObject();
        current = JSObject::cast(current)->GetPrototype()) {
     JSObject::cast(current)->LocalLookupRealNamedProperty(name, result);
-    if (result->IsCallbacks()) return;
+    if (result->IsPropertyCallbacks()) return;
   }
   result->NotFound();
 }
@@ -4356,7 +4320,7 @@ MaybeObject* JSObject::CreateAccessorPairFor(String* name) {
     // DefinePropertyAccessor below.
     Object* obj = result.GetCallbackObject();
     if (obj->IsAccessorPair()) {
-      return AccessorPair::cast(obj)->CopyWithoutTransitions();
+      return AccessorPair::cast(obj)->Copy();
     }
   }
   return GetHeap()->AllocateAccessorPair();
@@ -4390,9 +4354,9 @@ MaybeObject* JSObject::DefinePropertyAccessor(String* name,
   }
 
   AccessorPair* accessors;
-  { MaybeObject* maybe_accessors = CreateAccessorPairFor(name);
-    if (!maybe_accessors->To(&accessors)) return maybe_accessors;
-  }
+  MaybeObject* maybe_accessors = CreateAccessorPairFor(name);
+  if (!maybe_accessors->To(&accessors)) return maybe_accessors;
+
   accessors->SetComponents(getter, setter);
   return SetPropertyCallback(name, accessors, attributes);
 }
@@ -4409,8 +4373,8 @@ bool JSObject::CanSetCallback(String* name) {
   // to be overwritten because allowing overwriting could potentially
   // cause security problems.
   LookupResult callback_result(GetIsolate());
-  LookupCallback(name, &callback_result);
-  if (callback_result.IsProperty()) {
+  LookupCallbackProperty(name, &callback_result);
+  if (callback_result.IsFound()) {
     Object* obj = callback_result.GetCallbackObject();
     if (obj->IsAccessorInfo() &&
         AccessorInfo::cast(obj)->prohibits_overwriting()) {
@@ -4464,17 +4428,16 @@ MaybeObject* JSObject::SetPropertyCallback(String* name,
                                            Object* structure,
                                            PropertyAttributes attributes) {
   // Normalize object to make this operation simple.
-  { MaybeObject* maybe_ok = NormalizeProperties(CLEAR_INOBJECT_PROPERTIES, 0);
-    if (maybe_ok->IsFailure()) return maybe_ok;
-  }
+  MaybeObject* maybe_ok = NormalizeProperties(CLEAR_INOBJECT_PROPERTIES, 0);
+  if (maybe_ok->IsFailure()) return maybe_ok;
 
   // For the global object allocate a new map to invalidate the global inline
   // caches which have a global property cell reference directly in the code.
   if (IsGlobalObject()) {
     Map* new_map;
-    { MaybeObject* maybe_new_map = map()->CopyDropDescriptors();
-      if (!maybe_new_map->To(&new_map)) return maybe_new_map;
-    }
+    MaybeObject* maybe_new_map = map()->CopyDropDescriptors();
+    if (!maybe_new_map->To(&new_map)) return maybe_new_map;
+
     set_map(new_map);
     // When running crankshaft, changing the map is not enough. We
     // need to deoptimize all functions that rely on this global
@@ -4484,9 +4447,8 @@ MaybeObject* JSObject::SetPropertyCallback(String* name,
 
   // Update the dictionary with the new CALLBACKS property.
   PropertyDetails details = PropertyDetails(attributes, CALLBACKS);
-  { MaybeObject* maybe_ok = SetNormalizedProperty(name, structure, details);
-    if (maybe_ok->IsFailure()) return maybe_ok;
-  }
+  maybe_ok = SetNormalizedProperty(name, structure, details);
+  if (maybe_ok->IsFailure()) return maybe_ok;
 
   return GetHeap()->undefined_value();
 }
@@ -4538,73 +4500,32 @@ MaybeObject* JSObject::DefineAccessor(String* name,
 }
 
 
-static MaybeObject* CreateFreshAccessor(JSObject* obj,
-                                        String* name,
-                                        AccessorComponent component,
-                                        Object* accessor,
-                                        PropertyAttributes attributes) {
-  // step 1: create a new getter/setter pair with only the accessor in it
-  Heap* heap = obj->GetHeap();
-  AccessorPair* accessors2;
-  { MaybeObject* maybe_accessors2 = heap->AllocateAccessorPair();
-    if (!maybe_accessors2->To(&accessors2)) return maybe_accessors2;
-  }
-  accessors2->set(component, accessor);
-
-  // step 2: create a copy of the descriptors, incl. the new getter/setter pair
-  Map* map1 = obj->map();
-  CallbacksDescriptor callbacks_descr2(name, accessors2, attributes, 0);
-  DescriptorArray* descriptors2;
-  { MaybeObject* maybe_descriptors2 =
-        map1->instance_descriptors()->CopyAdd(&callbacks_descr2);
-    if (!maybe_descriptors2->To(&descriptors2)) return maybe_descriptors2;
-  }
-
-  // step 3: create a new map with the new descriptors
-  Map* map2;
-  { MaybeObject* maybe_map2 = map1->CopyReplaceDescriptors(descriptors2);
-    if (!maybe_map2->To(&map2)) return maybe_map2;
-  }
-
-  // step 4: create a new getter/setter pair with a transition to the new map
-  AccessorPair* accessors1;
-  { MaybeObject* maybe_accessors1 = heap->AllocateAccessorPair();
-    if (!maybe_accessors1->To(&accessors1)) return maybe_accessors1;
-  }
-  accessors1->set(component, map2);
-
-  // step 5: create a copy of the descriptors, incl. the new getter/setter pair
-  // with the transition
-  TransitionArray* new_transitions;
-  { MaybeObject* maybe_new_transitions = map1->AddTransition(name, accessors1);
-    if (!maybe_new_transitions->To(&new_transitions)) {
-      return maybe_new_transitions;
-    }
-  }
-
-  // step 6: everything went well so far, so we make our changes visible
-  { MaybeObject* transition_added = map1->set_transitions(new_transitions);
-    if (transition_added->IsFailure()) return transition_added;
-  }
-
-  map2->SetBackPointer(map1);
-  obj->set_map(map2);
-  return obj;
-}
-
-
-static bool TransitionToSameAccessor(Object* map,
-                                     String* name,
-                                     AccessorComponent component,
-                                     Object* accessor,
-                                     PropertyAttributes attributes ) {
-  Map* transitioned_map = Map::cast(map);
+static MaybeObject* TryAccessorTransition(JSObject* self,
+                                          Map* transitioned_map,
+                                          String* name,
+                                          AccessorComponent component,
+                                          Object* accessor,
+                                          PropertyAttributes attributes) {
   DescriptorArray* descs = transitioned_map->instance_descriptors();
   int number = descs->LastAdded();
+  PropertyDetails details = descs->GetDetails(number);
+
+  // If the transition target was not callbacks, fall back to the slow case.
+  if (details.type() != CALLBACKS) return self->GetHeap()->null_value();
+
   Object* target_accessor =
       AccessorPair::cast(descs->GetCallbacksObject(number))->get(component);
-  PropertyAttributes target_attributes = descs->GetDetails(number).attributes();
-  return target_accessor == accessor && target_attributes == attributes;
+  PropertyAttributes target_attributes = details.attributes();
+
+  // Reuse transition if adding same accessor with same attributes.
+  if (target_accessor == accessor && target_attributes == attributes) {
+    self->set_map(transitioned_map);
+    return self;
+  }
+
+  // If either not the same accessor, or not the same attributes, fall back to
+  // the slow case.
+  return self->GetHeap()->null_value();
 }
 
 
@@ -4613,43 +4534,31 @@ static MaybeObject* NewCallbackTransition(JSObject* obj,
                                           AccessorComponent component,
                                           Object* accessor,
                                           PropertyAttributes attributes,
-                                          AccessorPair* accessors2) {
-  // step 1: copy the old getter/setter pair and set the new accessor
-  AccessorPair* accessors3;
-  { MaybeObject* maybe_accessors3 = accessors2->CopyWithoutTransitions();
-    if (!maybe_accessors3->To(&accessors3)) return maybe_accessors3;
-  }
-  accessors3->set(component, accessor);
+                                          AccessorPair* new_accessors) {
+  // step 1: create a copy of the descriptors, incl. the new getter/setter pair
+  Map* old_map = obj->map();
+  CallbacksDescriptor new_accessors_desc(name, new_accessors, attributes);
+  DescriptorArray* descriptors;
+  MaybeObject* maybe_descriptors =
+      old_map->instance_descriptors()->CopyInsert(&new_accessors_desc);
+  if (!maybe_descriptors->To(&descriptors)) return maybe_descriptors;
 
-  // step 2: create a copy of the descriptors, incl. the new getter/setter pair
-  Map* map2 = obj->map();
-  CallbacksDescriptor callbacks_descr3(name, accessors3, attributes, 0);
-  DescriptorArray* descriptors3;
-  { MaybeObject* maybe_descriptors3 =
-        map2->instance_descriptors()->CopyInsert(&callbacks_descr3);
-    if (!maybe_descriptors3->To(&descriptors3)) return maybe_descriptors3;
-  }
+  // step 2: create a new map with the new descriptors
+  Map* new_map;
+  MaybeObject* maybe_new_map = old_map->CopyReplaceDescriptors(descriptors);
+  if (!maybe_new_map->To(&new_map)) return maybe_new_map;
 
-  // step 3: create a new map with the new descriptors
-  Map* map3;
-  { MaybeObject* maybe_map3 = map2->CopyReplaceDescriptors(descriptors3);
-    if (!maybe_map3->To(&map3)) return maybe_map3;
-  }
+  // step 3: add a new transition to the new map
+  TransitionArray* transitions;
+  MaybeObject* maybe_transitions = old_map->AddTransition(name, new_map);
+  if (!maybe_transitions->To(&transitions)) return maybe_transitions;
 
-  // step 4: add a new transition to the new map
-  TransitionArray* new_transitions;
-  { MaybeObject* maybe_transitions = map2->AddTransition(name, accessors2);
-    if (!maybe_transitions->To(&new_transitions)) return maybe_transitions;
-  }
+  // step 4: everything went well so far, so we make our changes visible
+  MaybeObject* transition_added = old_map->set_transitions(transitions);
+  if (transition_added->IsFailure()) return transition_added;
 
-  // step 5: everything went well so far, so we make our changes visible
-  { MaybeObject* transition_added = map2->set_transitions(new_transitions);
-    if (transition_added->IsFailure()) return transition_added;
-  }
-
-  map3->SetBackPointer(map2);
-  obj->set_map(map3);
-  accessors2->set(component, map3);
+  new_map->SetBackPointer(old_map);
+  obj->set_map(new_map);
   return obj;
 }
 
@@ -4662,40 +4571,54 @@ MaybeObject* JSObject::DefineFastAccessor(String* name,
   LookupResult result(GetIsolate());
   LocalLookup(name, &result);
 
-  // If we have a new property, create a fresh accessor plus a transition to it.
-  if (!result.IsFound()) {
-    return CreateFreshAccessor(this, name, component, accessor, attributes);
+  if (result.IsFound()
+      && !result.IsPropertyCallbacks()
+      && !result.IsTransition()) return GetHeap()->null_value();
+
+  // Return success if the same accessor with the same attributes already exist.
+  AccessorPair* source_accessors = NULL;
+  if (result.IsPropertyCallbacks()) {
+    Object* callback_value = result.GetCallbackObject();
+    if (callback_value->IsAccessorPair()) {
+      source_accessors = AccessorPair::cast(callback_value);
+      Object* entry = source_accessors->get(component);
+      if (entry == accessor && result.GetAttributes() == attributes) {
+        return this;
+      }
+    }
   }
 
-  // If the property is not a JavaScript accessor, fall back to the slow case.
-  if (!result.IsCallbacks()) return GetHeap()->null_value();
+  // If not, lookup a transition.
+  map()->LookupTransition(this, name, &result);
 
-  Object* callback_value = result.GetCallbackObject();
-  if (!callback_value->IsAccessorPair()) return GetHeap()->null_value();
-  AccessorPair* accessors = AccessorPair::cast(callback_value);
-
-  // Follow a callback transition, if there is a fitting one.
-  Object* entry = accessors->get(component);
-  if (entry->IsMap() &&
-      TransitionToSameAccessor(entry, name, component, accessor, attributes)) {
-    set_map(Map::cast(entry));
-    return this;
+  // If there is a transition, try to follow it.
+  if (result.IsFound()) {
+    Map* target = result.GetTransitionTarget();
+    return TryAccessorTransition(
+        this, target, name, component, accessor, attributes);
   }
 
-  if (entry == accessor && result.GetAttributes() == attributes) return this;
+  // If there is no transition yet, add a transition to the a new accessor pair
+  // containing the accessor.
+  AccessorPair* accessors;
+  MaybeObject* maybe_accessors;
 
-  // Only the other accessor has been set so far, create a new transition.
-  if (entry->IsTheHole()) {
-    return NewCallbackTransition(this,
-                                 name,
-                                 component,
-                                 accessor,
-                                 attributes,
-                                 accessors);
+  // Allocate a new pair if there were no source accessors. Otherwise, copy the
+  // pair and modify the accessor.
+  if (source_accessors != NULL) {
+    maybe_accessors = source_accessors->Copy();
+  } else {
+    maybe_accessors = GetHeap()->AllocateAccessorPair();
   }
+  if (!maybe_accessors->To(&accessors)) return maybe_accessors;
+  accessors->set(component, accessor);
 
-  // Nothing from the above worked, so we have to fall back to the slow case.
-  return GetHeap()->null_value();
+  return NewCallbackTransition(this,
+                               name,
+                               component,
+                               accessor,
+                               attributes,
+                               accessors);
 }
 
 
@@ -4759,23 +4682,22 @@ MaybeObject* JSObject::DefineAccessor(AccessorInfo* info) {
         break;
     }
 
-    { MaybeObject* maybe_ok =
-          SetElementCallback(index, info, info->property_attributes());
-      if (maybe_ok->IsFailure()) return maybe_ok;
-    }
+    MaybeObject* maybe_ok =
+        SetElementCallback(index, info, info->property_attributes());
+    if (maybe_ok->IsFailure()) return maybe_ok;
   } else {
     // Lookup the name.
     LookupResult result(isolate);
     LocalLookup(name, &result);
     // ES5 forbids turning a property into an accessor if it's not
     // configurable (that is IsDontDelete in ES3 and v8), see 8.6.1 (Table 5).
-    if (result.IsProperty() && (result.IsReadOnly() || result.IsDontDelete())) {
+    if (result.IsFound() && (result.IsReadOnly() || result.IsDontDelete())) {
       return isolate->heap()->undefined_value();
     }
-    { MaybeObject* maybe_ok =
-          SetPropertyCallback(name, info, info->property_attributes());
-      if (maybe_ok->IsFailure()) return maybe_ok;
-    }
+
+    MaybeObject* maybe_ok =
+        SetPropertyCallback(name, info, info->property_attributes());
+    if (maybe_ok->IsFailure()) return maybe_ok;
   }
 
   return this;
@@ -4821,7 +4743,7 @@ Object* JSObject::LookupAccessor(String* name, AccessorComponent component) {
          obj = JSReceiver::cast(obj)->GetPrototype()) {
       LookupResult result(heap->isolate());
       JSReceiver::cast(obj)->LocalLookup(name, &result);
-      if (result.IsProperty()) {
+      if (result.IsFound()) {
         if (result.IsReadOnly()) return heap->undefined_value();
         if (result.IsPropertyCallbacks()) {
           Object* obj = result.GetCallbackObject();
@@ -5025,44 +4947,17 @@ class IntrusiveMapTransitionIterator {
 
   Map* Next() {
     ASSERT(IsIterating());
-    // Attention, tricky index manipulation ahead: Two consecutive indices are
-    // assigned to each descriptor. Most descriptors directly advance to the
-    // next descriptor by adding 2 to the index. The exceptions are the
-    // CALLBACKS entries: An even index means we look at its getter, and an odd
-    // index means we look at its setter.
-    int raw_index = Smi::cast(*TransitionArrayHeader())->value();
-    int index = raw_index / 2;
+    int index = Smi::cast(*TransitionArrayHeader())->value();
     int number_of_transitions = transition_array_->number_of_transitions();
     while (index < number_of_transitions) {
-      Object* value = transition_array_->GetValue(index);
-
-      if (value->IsMap()) {
-        *TransitionArrayHeader() = Smi::FromInt(raw_index + 2);
-        return static_cast<Map*>(value);
-      }
-
-      ASSERT(value->IsAccessorPair());
-
-      // We might have a map transition in a getter or in a setter.
-      AccessorPair* accessors = static_cast<AccessorPair*>(value);
-      Object* accessor;
-      if ((raw_index & 1) == 0) {
-        accessor = accessors->setter();
-      } else {
-        ++index;
-        accessor = accessors->getter();
-      }
-      ++raw_index;
-      if (accessor->IsMap()) {
-        *TransitionArrayHeader() = Smi::FromInt(raw_index);
-        return static_cast<Map*>(accessor);
-      }
+      *TransitionArrayHeader() = Smi::FromInt(index + 1);
+      return transition_array_->GetTarget(index);
     }
 
-    if (index == transition_array_->number_of_transitions() &&
+    if (index == number_of_transitions &&
         transition_array_->HasElementsTransition()) {
       Map* elements_transition = transition_array_->elements_transition();
-      *TransitionArrayHeader() = Smi::FromInt(raw_index + 2);
+      *TransitionArrayHeader() = Smi::FromInt(index + 1);
       return elements_transition;
     }
     *TransitionArrayHeader() = transition_array_->GetHeap()->fixed_array_map();
@@ -5764,7 +5659,7 @@ MaybeObject* DescriptorArray::Allocate(int number_of_descriptors,
     if (!maybe_array->To(&result)) return maybe_array;
   }
 
-  result->set(kLastAddedIndex, Smi::FromInt(-1));
+  result->set(kLastAddedIndex, Smi::FromInt(kNoneAdded));
   result->set(kTransitionsIndex, Smi::FromInt(0));
   return result;
 }
@@ -5799,30 +5694,14 @@ static bool InsertionPointFound(String* key1, String* key2) {
 }
 
 
-void DescriptorArray::CopyFrom(Handle<DescriptorArray> dst,
-                               int dst_index,
-                               Handle<DescriptorArray> src,
+void DescriptorArray::CopyFrom(int dst_index,
+                               DescriptorArray* src,
                                int src_index,
                                const WhitenessWitness& witness) {
-  CALL_HEAP_FUNCTION_VOID(dst->GetIsolate(),
-                          dst->CopyFrom(dst_index, *src, src_index, witness));
-}
-
-
-MaybeObject* DescriptorArray::CopyFrom(int dst_index,
-                                       DescriptorArray* src,
-                                       int src_index,
-                                       const WhitenessWitness& witness) {
   Object* value = src->GetValue(src_index);
   PropertyDetails details = src->GetDetails(src_index);
-  if (details.type() == CALLBACKS && value->IsAccessorPair()) {
-    MaybeObject* maybe_copy =
-        AccessorPair::cast(value)->CopyWithoutTransitions();
-    if (!maybe_copy->To(&value)) return maybe_copy;
-  }
   Descriptor desc(src->GetKey(src_index), value, details);
   Set(dst_index, &desc, witness);
-  return this;
 }
 
 MaybeObject* DescriptorArray::CopyReplace(Descriptor* descriptor,
@@ -5846,9 +5725,7 @@ MaybeObject* DescriptorArray::CopyReplace(Descriptor* descriptor,
   // Copy the descriptors, replacing a descriptor.
   for (int index = 0; index < size; ++index) {
     if (index == insertion_index) continue;
-    MaybeObject* copy_result =
-        new_descriptors->CopyFrom(index, this, index, witness);
-    if (copy_result->IsFailure()) return copy_result;
+    new_descriptors->CopyFrom(index, this, index, witness);
   }
 
   descriptor->SetEnumerationIndex(GetDetails(insertion_index).index());
@@ -5863,9 +5740,8 @@ MaybeObject* DescriptorArray::CopyReplace(Descriptor* descriptor,
 
 MaybeObject* DescriptorArray::CopyInsert(Descriptor* descriptor) {
   // Ensure the key is a symbol.
-  { MaybeObject* maybe_result = descriptor->KeyToSymbol();
-    if (maybe_result->IsFailure()) return maybe_result;
-  }
+  MaybeObject* maybe_result = descriptor->KeyToSymbol();
+  if (maybe_result->IsFailure()) return maybe_result;
 
   // We replace the key if it is already present.
   int index = SearchWithCache(descriptor->GetKey());
@@ -5876,9 +5752,8 @@ MaybeObject* DescriptorArray::CopyInsert(Descriptor* descriptor) {
 
 MaybeObject* DescriptorArray::CopyAdd(Descriptor* descriptor) {
   // Ensure the key is a symbol.
-  { MaybeObject* maybe_result = descriptor->KeyToSymbol();
-    if (maybe_result->IsFailure()) return maybe_result;
-  }
+  MaybeObject* maybe_result = descriptor->KeyToSymbol();
+  if (maybe_result->IsFailure()) return maybe_result;
 
   String* key = descriptor->GetKey();
   ASSERT(Search(key) == kNotFound);
@@ -5886,9 +5761,8 @@ MaybeObject* DescriptorArray::CopyAdd(Descriptor* descriptor) {
   int new_size = number_of_descriptors() + 1;
 
   DescriptorArray* new_descriptors;
-  { MaybeObject* maybe_result = Allocate(new_size, MAY_BE_SHARED);
-    if (!maybe_result->To(&new_descriptors)) return maybe_result;
-  }
+  MaybeObject* maybe_descriptors = Allocate(new_size, MAY_BE_SHARED);
+  if (!maybe_descriptors->To(&new_descriptors)) return maybe_descriptors;
 
   FixedArray::WhitenessWitness witness(new_descriptors);
 
@@ -5899,15 +5773,14 @@ MaybeObject* DescriptorArray::CopyAdd(Descriptor* descriptor) {
     if (insertion_index < 0 && InsertionPointFound(GetKey(from), key)) {
       insertion_index = to++;
     }
-    MaybeObject* copy_result =
-        new_descriptors->CopyFrom(to++, this, from, witness);
-    if (copy_result->IsFailure()) return copy_result;
+    new_descriptors->CopyFrom(to++, this, from, witness);
   }
   if (insertion_index < 0) insertion_index = to++;
 
   ASSERT(to == new_descriptors->number_of_descriptors());
 
-  descriptor->SetEnumerationIndex(NextEnumerationIndex());
+  ASSERT(new_size == NextEnumerationIndex());
+  descriptor->SetEnumerationIndex(new_size);
   new_descriptors->Set(insertion_index, descriptor, witness);
   new_descriptors->SetLastAdded(insertion_index);
 
@@ -5921,18 +5794,14 @@ MaybeObject* DescriptorArray::Copy(SharedMode shared_mode) {
   // Allocate the new descriptor array.
   int number_of_descriptors = this->number_of_descriptors();
   DescriptorArray* new_descriptors;
-  { MaybeObject* maybe_result = Allocate(number_of_descriptors,
-                                         shared_mode);
-    if (!maybe_result->To(&new_descriptors)) return maybe_result;
-  }
+  MaybeObject* maybe_result = Allocate(number_of_descriptors, shared_mode);
+  if (!maybe_result->To(&new_descriptors)) return maybe_result;
 
   // Copy the content.
   if (number_of_descriptors > 0) {
     FixedArray::WhitenessWitness witness(new_descriptors);
     for (int i = 0; i < number_of_descriptors; i++) {
-      MaybeObject* copy_result =
-          new_descriptors->CopyFrom(i, this, i, witness);
-      if (copy_result->IsFailure()) return copy_result;
+      new_descriptors->CopyFrom(i, this, i, witness);
     }
     new_descriptors->SetLastAdded(LastAdded());
   }
@@ -5949,6 +5818,9 @@ void DescriptorArray::SortUnchecked(const WhitenessWitness& witness) {
   int len = number_of_descriptors();
   // Nothing to sort.
   if (len == 0) return;
+
+  ASSERT(LastAdded() == kNoneAdded ||
+         GetDetails(LastAdded()).index() == number_of_descriptors());
 
   // Bottom-up max-heap construction.
   // Index of the last node with children
@@ -5997,18 +5869,29 @@ void DescriptorArray::SortUnchecked(const WhitenessWitness& witness) {
     }
   }
 
-  int last_enum_index = -1;
-  int last_added = -1;
-  for (int i = 0; i < len; ++i) {
-    int current_enum = GetDetails(i).index();
-    if (current_enum > last_enum_index) {
-      last_added = i;
-      last_enum_index = current_enum;
+#ifdef DEBUG
+  // Ensure that all enumeration indexes between 1 and length occur uniquely in
+  // the descriptor array.
+  for (int i = 1; i <= len; ++i) {
+    int j;
+    for (j = 0; j < len; ++j) {
+      if (GetDetails(j).index() == i) break;
+    }
+    ASSERT(j != len);
+    for (j++; j < len; ++j) {
+      ASSERT(GetDetails(j).index() != i);
     }
   }
-  SetLastAdded(last_added);
+#endif
 
-  ASSERT(LastAdded() != -1);
+  for (int i = 0; i < len; ++i) {
+    if (GetDetails(i).index() == len) {
+      SetLastAdded(i);
+      return;
+    }
+  }
+
+  UNREACHABLE();
 }
 
 
@@ -6018,14 +5901,14 @@ void DescriptorArray::Sort(const WhitenessWitness& witness) {
 }
 
 
-MaybeObject* AccessorPair::CopyWithoutTransitions() {
+MaybeObject* AccessorPair::Copy() {
   Heap* heap = GetHeap();
   AccessorPair* copy;
-  { MaybeObject* maybe_copy = heap->AllocateAccessorPair();
-    if (!maybe_copy->To(&copy)) return maybe_copy;
-  }
-  copy->set_getter(getter()->IsMap() ? heap->the_hole_value() : getter());
-  copy->set_setter(setter()->IsMap() ? heap->the_hole_value() : setter());
+  MaybeObject* maybe_copy = heap->AllocateAccessorPair();
+  if (!maybe_copy->To(&copy)) return maybe_copy;
+
+  copy->set_getter(getter());
+  copy->set_setter(setter());
   return copy;
 }
 
@@ -7311,40 +7194,6 @@ static bool ClearBackPointer(Heap* heap, Object* target) {
 }
 
 
-static bool ClearAccessorComponent(Heap* heap,
-                                   AccessorPair* accessors,
-                                   AccessorComponent component) {
-  Object* component_value = accessors->get(component);
-  if (!component_value->IsMap()) return true;
-  if (ClearBackPointer(heap, component_value)) {
-    accessors->set(component, heap->the_hole_value());
-    return true;
-  }
-  return false;
-}
-
-
-static bool ClearNonLiveTransition(Heap* heap,
-                                   TransitionArray* t,
-                                   int transition_index) {
-  // If the value is a map, check if the target is live. If not, clear the
-  // transition. Also drop the back pointer for that map transition, so that
-  // this map is not reached again by following a back pointer from that
-  // non-live map.
-  Object* value = t->GetValue(transition_index);
-  if (value->IsMap()) {
-    return ClearBackPointer(heap, t->GetValue(transition_index));
-  }
-
-  ASSERT(value->IsAccessorPair());
-
-  AccessorPair* accessors = AccessorPair::cast(value);
-  bool getter = ClearAccessorComponent(heap, accessors, ACCESSOR_GETTER);
-  bool setter = ClearAccessorComponent(heap, accessors, ACCESSOR_SETTER);
-  return getter && setter;
-}
-
-
 // TODO(mstarzinger): This method should be moved into MarkCompactCollector,
 // because it cannot be called from outside the GC and we already have methods
 // depending on the transitions layout in the GC anyways.
@@ -7360,17 +7209,17 @@ void Map::ClearNonLiveTransitions(Heap* heap) {
 
   // Compact all live descriptors to the left.
   for (int i = 0; i < t->number_of_transitions(); ++i) {
-    if (!ClearNonLiveTransition(heap, t, i)) {
+    if (!ClearBackPointer(heap, t->GetTarget(i))) {
       if (i != transition_index) {
         String* key = t->GetKey(i);
-        Object* value = t->GetValue(i);
+        Map* target = t->GetTarget(i);
         t->SetKey(transition_index, key);
-        t->SetValue(transition_index, value);
+        t->SetTarget(transition_index, target);
         MarkCompactCollector* collector = heap->mark_compact_collector();
         Object** key_slot = t->GetKeySlot(transition_index);
         collector->RecordSlot(key_slot, key_slot, key);
-        Object** value_slot = t->GetValueSlot(transition_index);
-        collector->RecordSlot(value_slot, value_slot, value);
+        Object** target_slot = t->GetTargetSlot(transition_index);
+        collector->RecordSlot(target_slot, target_slot, target);
       }
       transition_index++;
     }
@@ -7780,7 +7629,7 @@ bool SharedFunctionInfo::CanGenerateInlineConstructor(Object* prototype) {
       LookupResult result(heap->isolate());
       String* name = GetThisPropertyAssignmentName(i);
       receiver->LocalLookup(name, &result);
-      if (result.IsProperty()) {
+      if (result.IsFound()) {
         switch (result.type()) {
           case NORMAL:
           case FIELD:
@@ -10313,7 +10162,7 @@ MaybeObject* JSObject::GetPropertyPostInterceptor(
   // Check local property in holder, ignore interceptor.
   LookupResult result(GetIsolate());
   LocalLookupRealNamedProperty(name, &result);
-  if (result.IsProperty()) {
+  if (result.IsFound()) {
     return GetProperty(receiver, &result, name, attributes);
   }
   // Continue searching via the prototype chain.
@@ -10331,7 +10180,7 @@ MaybeObject* JSObject::GetLocalPropertyPostInterceptor(
   // Check local property in holder, ignore interceptor.
   LookupResult result(GetIsolate());
   LocalLookupRealNamedProperty(name, &result);
-  if (result.IsProperty()) {
+  if (result.IsFound()) {
     return GetProperty(receiver, &result, name, attributes);
   }
   return GetHeap()->undefined_value();
@@ -10390,7 +10239,7 @@ bool JSObject::HasRealNamedProperty(String* key) {
 
   LookupResult result(isolate);
   LocalLookupRealNamedProperty(key, &result);
-  return result.IsProperty() && !result.IsInterceptor();
+  return result.IsFound() && !result.IsInterceptor();
 }
 
 
@@ -10470,7 +10319,7 @@ bool JSObject::HasRealNamedCallbackProperty(String* key) {
 
   LookupResult result(isolate);
   LocalLookupRealNamedProperty(key, &result);
-  return result.IsCallbacks();
+  return result.IsPropertyCallbacks();
 }
 
 
@@ -12681,10 +12530,9 @@ MaybeObject* StringDictionary::TransformPropertiesToFastFor(
 
   // Allocate the fixed array for the fields.
   Object* fields;
-  { MaybeObject* maybe_fields =
-        heap->AllocateFixedArray(number_of_allocated_fields);
-    if (!maybe_fields->ToObject(&fields)) return maybe_fields;
-  }
+  MaybeObject* maybe_fields =
+      heap->AllocateFixedArray(number_of_allocated_fields);
+  if (!maybe_fields->ToObject(&fields)) return maybe_fields;
 
   // Fill in the instance descriptor and the fields.
   int next_descriptor = 0;
@@ -12694,15 +12542,15 @@ MaybeObject* StringDictionary::TransformPropertiesToFastFor(
     if (IsKey(k)) {
       Object* value = ValueAt(i);
       // Ensure the key is a symbol before writing into the instance descriptor.
-      Object* key;
-      { MaybeObject* maybe_key = heap->LookupSymbol(String::cast(k));
-        if (!maybe_key->ToObject(&key)) return maybe_key;
-      }
+      String* key;
+      MaybeObject* maybe_key = heap->LookupSymbol(String::cast(k));
+      if (!maybe_key->To(&key)) return maybe_key;
+
       PropertyDetails details = DetailsAt(i);
       PropertyType type = details.type();
 
       if (value->IsJSFunction() && !heap->InNewSpace(value)) {
-        ConstantFunctionDescriptor d(String::cast(key),
+        ConstantFunctionDescriptor d(key,
                                      JSFunction::cast(value),
                                      details.attributes(),
                                      details.index());
@@ -12716,18 +12564,13 @@ MaybeObject* StringDictionary::TransformPropertiesToFastFor(
           int offset = current_offset - inobject_props;
           FixedArray::cast(fields)->set(offset, value);
         }
-        FieldDescriptor d(String::cast(key),
+        FieldDescriptor d(key,
                           current_offset++,
                           details.attributes(),
                           details.index());
         descriptors->Set(next_descriptor, &d, witness);
       } else if (type == CALLBACKS) {
-        if (value->IsAccessorPair()) {
-          MaybeObject* maybe_copy =
-              AccessorPair::cast(value)->CopyWithoutTransitions();
-          if (!maybe_copy->To(&value)) return maybe_copy;
-        }
-        CallbacksDescriptor d(String::cast(key),
+        CallbacksDescriptor d(key,
                               value,
                               details.attributes(),
                               details.index());
@@ -12743,10 +12586,8 @@ MaybeObject* StringDictionary::TransformPropertiesToFastFor(
   descriptors->Sort(witness);
   // Allocate new map.
   Map* new_map;
-  { MaybeObject* maybe_new_map =
-        obj->map()->CopyReplaceDescriptors(descriptors);
-    if (!maybe_new_map->To(&new_map)) return maybe_new_map;
-  }
+  MaybeObject* maybe_new_map = obj->map()->CopyReplaceDescriptors(descriptors);
+  if (!maybe_new_map->To(&new_map)) return maybe_new_map;
 
   new_map->set_unused_property_fields(unused_property_fields);
 

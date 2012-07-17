@@ -944,6 +944,17 @@ class StaticMarkingVisitor : public StaticVisitorBase {
     table_.GetVisitor(map)(map, obj);
   }
 
+  template<int id>
+  class ObjectStatsTracker {
+   public:
+    static inline void Visit(Map* map, HeapObject* obj) {
+      Heap* heap = map->GetHeap();
+      int object_size = obj->Size();
+      heap->RecordObjectStats(map->instance_type(), object_size);
+      non_count_table_.GetVisitorById(static_cast<VisitorId>(id))(map, obj);
+    }
+  };
+
   static void Initialize() {
     table_.Register(kVisitShortcutCandidate,
                     &FixedBodyVisitor<StaticMarkingVisitor,
@@ -1012,6 +1023,15 @@ class StaticMarkingVisitor : public StaticVisitorBase {
     table_.RegisterSpecializations<StructObjectVisitor,
                                    kVisitStruct,
                                    kVisitStructGeneric>();
+
+    if (FLAG_track_gc_object_stats) {
+      // Copy the visitor table to make call-through possible.
+      non_count_table_.CopyFrom(&table_);
+#define VISITOR_ID_COUNT_FUNCTION(id)\
+      table_.Register(kVisit##id, ObjectStatsTracker<kVisit##id>::Visit);
+      VISITOR_ID_LIST(VISITOR_ID_COUNT_FUNCTION)
+#undef VISITOR_ID_COUNT_FUNCTION
+    }
   }
 
   INLINE(static void VisitPointer(Heap* heap, Object** p)) {
@@ -1557,11 +1577,14 @@ class StaticMarkingVisitor : public StaticVisitorBase {
   typedef void (*Callback)(Map* map, HeapObject* object);
 
   static VisitorDispatchTable<Callback> table_;
+  static VisitorDispatchTable<Callback> non_count_table_;
 };
 
 
 VisitorDispatchTable<StaticMarkingVisitor::Callback>
   StaticMarkingVisitor::table_;
+VisitorDispatchTable<StaticMarkingVisitor::Callback>
+  StaticMarkingVisitor::non_count_table_;
 
 
 class MarkingVisitor : public ObjectVisitor {
@@ -1911,16 +1934,8 @@ void Marker<T>::MarkDescriptorArray(DescriptorArray* descriptors) {
       case CONSTANT_FUNCTION:
       case HANDLER:
       case INTERCEPTOR:
-        base_marker()->MarkObjectAndPush(value);
-        break;
       case CALLBACKS:
-        if (!value->IsAccessorPair()) {
-          base_marker()->MarkObjectAndPush(value);
-        } else if (base_marker()->MarkObjectWithoutPush(value)) {
-          AccessorPair* accessors = AccessorPair::cast(value);
-          MarkAccessorPairSlot(accessors, AccessorPair::kGetterOffset);
-          MarkAccessorPairSlot(accessors, AccessorPair::kSetterOffset);
-        }
+        base_marker()->MarkObjectAndPush(value);
         break;
       case TRANSITION:
       case NONEXISTENT:
@@ -1959,21 +1974,6 @@ void Marker<T>::MarkTransitionArray(TransitionArray* transitions) {
     if (key->IsHeapObject()) {
       base_marker()->MarkObjectAndPush(HeapObject::cast(key));
       mark_compact_collector()->RecordSlot(transitions_start, key_slot, key);
-    }
-
-    Object** value_slot = transitions->GetValueSlot(i);
-    if (!(*value_slot)->IsHeapObject()) continue;
-    HeapObject* value = HeapObject::cast(*value_slot);
-
-    if (value->IsAccessorPair()) {
-      mark_compact_collector()->RecordSlot(transitions_start,
-                                           value_slot,
-                                           value);
-
-      base_marker()->MarkObjectWithoutPush(value);
-      AccessorPair* accessors = AccessorPair::cast(value);
-      MarkAccessorPairSlot(accessors, AccessorPair::kGetterOffset);
-      MarkAccessorPairSlot(accessors, AccessorPair::kSetterOffset);
     }
   }
 }
@@ -2436,6 +2436,10 @@ void MarkCompactCollector::AfterMarking() {
   if (!FLAG_watch_ic_patching) {
     // Clean up dead objects from the runtime profiler.
     heap()->isolate()->runtime_profiler()->RemoveDeadSamples();
+  }
+
+  if (FLAG_track_gc_object_stats) {
+    heap()->CheckpointObjectStats();
   }
 }
 

@@ -1237,10 +1237,6 @@ class Heap {
   // Verify the heap is in its normal state before or after a GC.
   void Verify();
 
-  // Verify that AccessorPairs are not shared, i.e. make sure that they have
-  // exactly one pointer to them.
-  void VerifyNoAccessorPairSharing();
-
   void OldPointerSpaceCheckStoreBuffer();
   void MapSpaceCheckStoreBuffer();
   void LargeObjectSpaceCheckStoreBuffer();
@@ -1599,6 +1595,14 @@ class Heap {
   void AgeInlineCaches() {
     global_ic_age_ = (global_ic_age_ + 1) & SharedFunctionInfo::ICAgeBits::kMax;
   }
+
+  void RecordObjectStats(InstanceType type, size_t size) {
+    ASSERT(type <= LAST_TYPE);
+    object_counts_[type]++;
+    object_sizes_[type] += size;
+  }
+
+  void CheckpointObjectStats();
 
  private:
   Heap();
@@ -1993,10 +1997,17 @@ class Heap {
 
   void AdvanceIdleIncrementalMarking(intptr_t step_size);
 
+  void ClearObjectStats(bool clear_last_time_stats = false);
 
   static const int kInitialSymbolTableSize = 2048;
   static const int kInitialEvalCacheSize = 64;
   static const int kInitialNumberStringCacheSize = 256;
+
+  // Object counts and used memory by InstanceType
+  size_t object_counts_[LAST_TYPE + 1];
+  size_t object_counts_last_time_[LAST_TYPE + 1];
+  size_t object_sizes_[LAST_TYPE + 1];
+  size_t object_sizes_last_time_[LAST_TYPE + 1];
 
   // Maximum GC pause.
   int max_gc_pause_;
