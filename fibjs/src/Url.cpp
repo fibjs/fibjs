@@ -202,11 +202,11 @@ void Url::parsePath(const char*& url)
 	while ((ch = *p) && ch != '?' && ch != '#')
 		p++;
 
-	if (*url == '/' || m_hostname.length() == 0 || !m_defslashes)
+	if (isUrlSlash(*url) || m_hostname.length() == 0 || !m_defslashes)
 		m_pathname.assign(url, p - url);
 	else
 	{
-		m_pathname.assign(1, '/');
+		m_pathname.assign(1, URL_SLASH);
 		m_pathname.append(url, p - url);
 	}
 
@@ -247,7 +247,7 @@ result_t Url::parse(const char* url)
 	parseProtocol(url);
 
 	bHost = !m_slashes;
-	if (m_slashes = (*url == '/' && url[1] == '/'))
+	if (m_slashes = (isUrlSlash(*url) && isUrlSlash(url[1])))
 		url += 2;
 
 	if (!m_protocol.compare("javascript:"))
@@ -291,9 +291,9 @@ result_t Url::format(v8::Handle<v8::Object> args)
 	m_port = getValue(args, "port");
 
 	m_pathname = getValue(args, "pathname");
-	if (m_pathname.length() > 0 && m_pathname[0] != '/'
+	if (m_pathname.length() > 0 && !isUrlSlash(m_pathname[0])
 			&& m_hostname.length() > 0)
-		m_pathname.insert(0, 1, '/');
+		m_pathname.insert(0, 1, URL_SLASH);
 
 	m_query = getValue(args, "query");
 
@@ -314,13 +314,137 @@ result_t Url::format(v8::Handle<v8::Object> args)
 	return 0;
 }
 
-result_t Url::resolve(const char* to, obj_ptr<Url_base>& retVal)
+result_t Url::resolve(const char* url, obj_ptr<Url_base>& retVal)
 {
+	obj_ptr<Url> u = new Url();
+
+	result_t hr = u->parse(url);
+	if (hr < 0)
+		return hr;
+
+	if (u->m_hostname.length() > 0 || u->m_slashes
+			|| (u->m_protocol.length() > 0 && u->m_protocol.compare(m_protocol)))
+	{
+		if (u->m_protocol.length())
+			m_protocol = u->m_protocol;
+		m_slashes = u->m_slashes;
+		m_defslashes = u->m_defslashes;
+		m_username = u->m_username;
+		m_password = u->m_password;
+		m_hostname = u->m_hostname;
+		m_port = u->m_port;
+		m_pathname = u->m_pathname;
+		m_query = u->m_query;
+		m_hash = u->m_hash;
+		m_ipv6 = u->m_ipv6;
+
+		normalize();
+	}
+	else if (u->m_pathname.length())
+	{
+		if (isUrlSlash(u->m_pathname[0]))
+			m_pathname = u->m_pathname;
+		else
+		{
+			if (!isUrlSlash(m_pathname[m_pathname.length() - 1]))
+				m_pathname.append("/../", 4);
+			m_pathname.append(u->m_pathname);
+		}
+
+		normalize();
+
+		m_query = u->m_query;
+		m_hash = u->m_hash;
+	}
+	else if (u->m_query.length())
+	{
+		m_query = u->m_query;
+		m_hash = u->m_hash;
+	}
+	else if (u->m_hash.length())
+		m_hash = u->m_hash;
+
 	return 0;
 }
 
 result_t Url::normalize()
 {
+	if (m_pathname.length() == 0)
+		return 0;
+
+	std::string str;
+	const char *p1 = m_pathname.c_str();
+	char *pstr;
+	int pos = 0;
+	int root = 0;
+	bool bRoot = false;
+
+	str.resize(m_pathname.length());
+	pstr = &str[0];
+
+	if (isUrlSlash(p1[0]))
+	{
+		pstr[pos++] = URL_SLASH;
+		p1++;
+		bRoot = true;
+	}
+
+	root = pos;
+
+	while (*p1)
+	{
+		if (isUrlSlash(p1[0]))
+		{
+			p1++;
+		}
+		else if (p1[0] == '.' && (!p1[1] || isUrlSlash(p1[1])))
+		{
+			p1 += p1[1] ? 2 : 1;
+		}
+		else if ((p1[0] == '.') && (p1[1] == '.')
+				&& (!p1[2] || isUrlSlash(p1[2])))
+		{
+			if (pos > root)
+			{
+				if ((pstr[pos - 2] == '.') && (pstr[pos - 3] == '.')
+						&& ((root == pos - 3) || (pstr[pos - 4] == URL_SLASH)))
+				{
+					pstr[pos++] = '.';
+					pstr[pos++] = '.';
+					pstr[pos++] = URL_SLASH;
+				}
+				else
+				{
+					pos--;
+					while (pos > root && !isUrlSlash(pstr[pos - 1]))
+						pos--;
+				}
+			}
+			else if (!bRoot)
+			{
+				pstr[pos++] = '.';
+				pstr[pos++] = '.';
+				pstr[pos++] = URL_SLASH;
+			}
+
+			p1 += p1[2] ? 3 : 2;
+		}
+		else
+		{
+			while (*p1 && !isUrlSlash(*p1))
+				pstr[pos++] = *p1++;
+			if (*p1)
+			{
+				p1++;
+				pstr[pos++] = URL_SLASH;
+			}
+		}
+	}
+
+	str.resize(pos);
+
+	m_pathname = str;
+
 	return 0;
 }
 

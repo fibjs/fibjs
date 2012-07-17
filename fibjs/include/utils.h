@@ -200,7 +200,7 @@ void qstrlwr(T *s)
 {
 	T c;
 
-	while (c = *s)
+	while ((c = *s) != 0)
 		*s++ = qtolower(c);
 }
 
@@ -702,6 +702,13 @@ inline bool isPathSlash(char ch)
 }
 
 #endif
+
+#define URL_SLASH	'/'
+
+inline bool isUrlSlash(char ch)
+{
+	return ch == '/';
+}
 
 }
 

@@ -144,7 +144,7 @@ result_t path_base::normalize(const char* path, std::string& retVal)
 	int root = 0;
 	bool bRoot = false;
 
-	str.resize(4096);
+	str.resize(qstrlen(p1));
 	pstr = &str[0];
 
 #ifdef _WIN32

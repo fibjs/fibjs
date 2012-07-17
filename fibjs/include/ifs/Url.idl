@@ -7,14 +7,14 @@
  */
 class Url: object
 {
-	Url(String url = "");
 	Url(Object args);
+	Url(String url = "");
 
 	parse(String url);
 
 	format(Object args);
 
-	Url resolve(String to);
+	Url resolve(String url);
 
 	normalize();
 

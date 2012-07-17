@@ -559,7 +559,7 @@ var parseTests = {
 		'pathname' : '/a/b',
 		'path' : '/a/b?a=b'
 	},
-	
+
 	'http://example.com?' : {
 		'href' : 'http://example.com/',
 		'protocol' : 'http:',
@@ -642,7 +642,7 @@ var parseTests = {
 	'http://atpass:foo%40bar@127.0.0.1/' : {
 		'href' : 'http://atpass:foo%40bar@127.0.0.1/',
 		'username' : 'atpass',
-		password: 'foo@bar',
+		password : 'foo@bar',
 		'hostname' : '127.0.0.1',
 		'protocol' : 'http:',
 		'pathname' : '/'
@@ -650,7 +650,7 @@ var parseTests = {
 	'http://atslash%2F%40:%2F%40@foo/' : {
 		'href' : 'http://atslash%2F%40:%2F%40@foo/',
 		'username' : 'atslash/@',
-		password: '/@',
+		password : '/@',
 		'hostname' : 'foo',
 		'protocol' : 'http:',
 		'pathname' : '/'
@@ -693,7 +693,7 @@ var parseTests = {
 		'href' : 'coap:u:p@[::1]:61616/.well-known/r?n=Temperature',
 		'protocol' : 'coap:',
 		'username' : 'u',
-		password: 'p',
+		password : 'p',
 		'hostname' : '::1',
 		'port' : '61616',
 		'pathname' : '/.well-known/r',
@@ -720,3 +720,43 @@ for ( var u in parseTests) {
 	assert.equal(url.href, parseTests[u].href);
 }
 
+/*
+ * [from, path, expected]
+ */
+var relativeTests = [
+		[ '/foo/bar/baz', 'quux', '/foo/bar/quux' ],
+		[ '/foo/bar/baz', 'quux/asdf', '/foo/bar/quux/asdf' ],
+		[ '/foo/bar/baz', 'quux/baz', '/foo/bar/quux/baz' ],
+		[ '/foo/bar/baz', '../quux/baz', '/foo/quux/baz' ],
+		[ '/foo/bar/baz', '/bar', '/bar' ],
+		[ '/foo/bar/baz/', 'quux', '/foo/bar/baz/quux' ],
+		[ '/foo/bar/baz/', 'quux/baz', '/foo/bar/baz/quux/baz' ],
+		[ '/foo/bar/baz', '../../../../../../../../quux/baz', '/quux/baz' ],
+		[ '/foo/bar/baz', '../../../../../../../quux/baz', '/quux/baz' ],
+		[ 'foo/bar', '../../../baz', '../../baz' ],
+		[ 'foo/bar/', '../../../baz', '../baz' ],
+		[ 'http://example.com/b//c//d;p?q#blarg', 'https:#hash2',
+				'https:#hash2' ],
+		[ 'http://example.com/b//c//d;p?q#blarg', 'https:/p/a/t/h?s#hash2',
+				'https:/p/a/t/h?s#hash2' ],
+		[ 'http://example.com/b//c//d;p?q#blarg',
+				'https://u:p@h.com/p/a/t/h?s#hash2',
+				'https://u:p@h.com/p/a/t/h?s#hash2' ],
+		[ 'http://example.com/b//c//d;p?q#blarg', 'https:/a/b/c/d',
+				'https:/a/b/c/d' ],
+		[ 'http://example.com/b//c//d;p?q#blarg', 'http:#hash2',
+				'http://example.com/b//c//d;p?q#hash2' ],
+		[ 'http://example.com/b//c//d;p?q#blarg', 'http:/p/a/t/h?s#hash2',
+				'http://example.com/p/a/t/h?s#hash2' ],
+		[ 'http://example.com/b//c//d;p?q#blarg',
+				'http://u:p@h.com/p/a/t/h?s#hash2',
+				'http://u:p@h.com/p/a/t/h?s#hash2' ],
+		[ 'http://example.com/b//c//d;p?q#blarg', 'http:/a/b/c/d',
+				'http://example.com/a/b/c/d' ],
+		[ '/foo/bar/baz', '/../etc/passwd', '/etc/passwd' ] ];
+
+relativeTests.forEach(function(relativeTest) {
+	url.parse(relativeTest[0]);
+	url.resolve(relativeTest[1]);
+	assert.equal(relativeTest[2], url.href);
+});
