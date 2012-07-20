@@ -302,6 +302,12 @@ static const char *hex = "0123456789ABCDEF";
 
 inline result_t urlencode(const char* url, std::string& retVal, const char* tab)
 {
+	if(*url == 0)
+	{
+		retVal.resize(0);
+		return 0;
+	}
+
 	int len;
 	const char* src;
 	unsigned char ch;
@@ -345,6 +351,12 @@ result_t encoding_base::encodeURIComponent(const char* url, std::string& retVal)
 
 result_t encoding_base::decodeURI(const char* url, std::string& retVal)
 {
+	if(*url == 0)
+	{
+		retVal.resize(0);
+		return 0;
+	}
+
 	int len;
 	const char* src;
 	unsigned char ch;

@@ -22,6 +22,12 @@ static const char *hex = "0123456789ABCDEF";
 
 inline result_t urlencode(const char* url, std::string& retVal, const char* tab)
 {
+	if(*url == 0)
+	{
+		retVal.resize(0);
+		return 0;
+	}
+
 	int len;
 	const char* src;
 	unsigned char ch;
@@ -187,7 +193,8 @@ void Url::parseHost(const char*& url)
 	else
 		m_hostname.assign(url, p1 - url);
 
-	qstrlwr(&m_hostname[0]);
+	if(m_hostname.length() > 0)
+		qstrlwr(&m_hostname[0]);
 	if (p2)
 		m_port.assign(p1 + 1, p2 - p1 - 1);
 
@@ -482,10 +489,11 @@ void Url::put_protocol(std::string str)
 	int i;
 
 	m_protocol = str;
-	qstrlwr(&m_protocol[0]);
 	m_defslashes = false;
 	if (m_protocol.length() > 0)
 	{
+		qstrlwr(&m_protocol[0]);
+
 		if (m_protocol[m_protocol.length() - 1] != ':')
 			m_protocol.append(1, ':');
 
