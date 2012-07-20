@@ -33,7 +33,11 @@ protected:
 	void _append(const log4cpp::LoggingEvent& event)
 	{
 		if (event.priority < log4cpp::Priority::NOTICE)
+#ifndef _WIN32
+			std::cerr << "\033[1m" << event.message << "\033[22m" << std::endl;
+#else
 			std::cerr << event.message << std::endl;
+#endif
 		else
 			std::cout << event.message << std::endl;
 	}
