@@ -80,7 +80,8 @@ result_t Socket::create(int32_t family, int32_t type)
 #ifdef MacOS
 
 	int set_option = 1;
-	setsockopt(m_sock, SOL_SOCKET, SO_NOSIGPIPE, &set_option, sizeof(set_option));
+	setsockopt(m_sock, SOL_SOCKET, SO_NOSIGPIPE, &set_option,
+			sizeof(set_option));
 
 #endif
 
@@ -301,26 +302,17 @@ result_t Socket::get_localPort(int32_t& retVal)
 	return 0;
 }
 
-result_t Socket::getAddrInfo(const char* addr, int32_t port,
-		inetAddr& addr_info)
-{
-	addr_info.init(m_family);
-	addr_info.setPort(port);
-	if (addr && addr_info.addr(addr) < 0)
-		return CALL_E_INVALIDARG;
-
-	return 0;
-}
-
 result_t Socket::bind(const char* addr, int32_t port, bool allowIPv4)
 {
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
 
 	inetAddr addr_info;
-	result_t hr = getAddrInfo(addr, port, addr_info);
-	if (hr < 0)
-		return hr;
+
+	addr_info.init(m_family);
+	addr_info.setPort(port);
+	if (addr_info.addr(addr) < 0)
+		return CALL_E_INVALIDARG;
 
 	int on = 1;
 	setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (const char*) &on, sizeof(on));

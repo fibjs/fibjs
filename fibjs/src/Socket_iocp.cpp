@@ -175,10 +175,21 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 	if (!ac)
 		return CALL_E_NOSYNC;
 
+	result_t hr;
 	inetAddr addr_info;
-	result_t hr = getAddrInfo(addr, port, addr_info);
-	if (hr < 0)
-		return hr;
+
+	addr_info.init(m_family);
+	addr_info.setPort(port);
+	if (addr_info.addr(addr) < 0)
+	{
+		std::string strAddr;
+		result_t hr = net_base::resolve(addr, m_family, strAddr, ac);
+		if (hr < 0)
+			return hr;
+
+		if (addr_info.addr(strAddr.c_str()) < 0)
+			return CALL_E_INVALIDARG;
+	}
 
 	if (!m_bBind)
 	{

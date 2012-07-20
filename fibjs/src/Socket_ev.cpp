@@ -274,9 +274,19 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 		return CALL_E_NOSYNC;
 
 	inetAddr addr_info;
-	result_t hr = getAddrInfo(addr, port, addr_info);
-	if (hr < 0)
-		return hr;
+
+	addr_info.init(m_family);
+	addr_info.setPort(port);
+	if (addr_info.addr(addr) < 0)
+	{
+		std::string strAddr;
+		result_t hr = net_base::resolve(addr, m_family, strAddr, ac);
+		if (hr < 0)
+			return hr;
+
+		if (addr_info.addr(strAddr.c_str()) < 0)
+			return CALL_E_INVALIDARG;
+	}
 
 	return (new asyncConnect(m_sock, addr_info, ac))->call();
 }
@@ -307,7 +317,8 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 
 #ifdef MacOS
 			int set_option = 1;
-			setsockopt(c, SOL_SOCKET, SO_NOSIGPIPE, &set_option, sizeof(set_option));
+			setsockopt(c, SOL_SOCKET, SO_NOSIGPIPE, &set_option,
+					sizeof(set_option));
 #endif
 
 			obj_ptr<Socket> sock = new Socket(c, ai.family(),

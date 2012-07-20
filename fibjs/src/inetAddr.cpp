@@ -330,6 +330,9 @@ static const char *inet_ntop6(const struct in6_addr *addr, char *dst,
 
 int inetAddr::addr(const char* s)
 {
+	if (!s || !*s)
+		return 0;
+
 	return addr6.sin6_family == PF_INET6 ?
 			inet_pton6(s, &addr6.sin6_addr) :
 			inet_pton4(s, &addr4.sin_addr.s_addr);

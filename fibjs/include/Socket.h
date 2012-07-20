@@ -90,9 +90,6 @@ public:
 	result_t create(int32_t family, int32_t type);
 
 private:
-	result_t getAddrInfo(const char* addr, int32_t port, inetAddr& addr_info);
-
-private:
 	SOCKET m_sock;
 	int32_t m_family;
 	int32_t m_type;

@@ -28,7 +28,7 @@ class Socket : Stream
 	readonly Integer localPort;
 
 	/*! @brief 建立一个 tcp 连接
-	 * @param addr 指定对方地址
+	 * @param host 指定对方地址或主机名
 	 * @param port 指定对方端口
 	 */
 	connect(String addr, Integer port) async;
