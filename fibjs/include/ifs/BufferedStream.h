@@ -49,7 +49,7 @@ public:
 		return 0;
 	}
 
-protected:
+public:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_readText(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_readLine(const v8::Arguments& args);
@@ -57,7 +57,7 @@ protected:
 	static v8::Handle<v8::Value> s_get_EOL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_EOL(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 
-protected:
+public:
 	ASYNC_MEMBER2(BufferedStream_base, readText);
 	ASYNC_VALUEBACK1(BufferedStream_base, readText, std::string);
 	ASYNC_MEMBER1(BufferedStream_base, readLine);

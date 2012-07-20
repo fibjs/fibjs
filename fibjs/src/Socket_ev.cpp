@@ -177,57 +177,6 @@ public:
 	exlib::AsyncEvent m_aEvent;
 };
 
-int a_connect(SOCKET s, sockaddr* ai, int sz)
-{
-	int n = ::connect(s, ai, sz);
-	if (n == SOCKET_ERROR && (errno == EINPROGRESS))
-	{
-		asyncWait ac(s, EV_WRITE);
-		inetAddr addr_info;
-		socklen_t sz1 = sizeof(addr_info);
-
-		return ::getpeername(s, (sockaddr*) &addr_info, &sz1);
-	}
-
-	return 0;
-}
-
-SOCKET a_accept(SOCKET s, sockaddr* ai, socklen_t* sz)
-{
-	SOCKET c = ::accept(s, ai, sz);
-	if (c == INVALID_SOCKET && (errno == EWOULDBLOCK))
-	{
-		asyncWait ac(s, EV_READ);
-		c = ::accept(s, ai, sz);
-	}
-
-	return c;
-}
-
-int a_recv(SOCKET s, char *p, size_t sz, int f)
-{
-	int n = (int) ::recv(s, p, sz, f);
-	if (n == SOCKET_ERROR && (errno == EWOULDBLOCK))
-	{
-		asyncWait ac(s, EV_READ);
-		n = (int) ::recv(s, p, sz, f);
-	}
-
-	return n;
-}
-
-int a_send(SOCKET s, const char *p, size_t sz, int f)
-{
-	int n = (int) ::send(s, p, sz, f);
-	if (n == SOCKET_ERROR && (errno == EWOULDBLOCK))
-	{
-		asyncWait ac(s, EV_WRITE);
-		n = (int) ::send(s, p, sz, f);
-	}
-
-	return n;
-}
-
 result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 {
 	class asyncConnect: public asyncProc

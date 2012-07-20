@@ -47,7 +47,7 @@ public:
 		return class_info();
 	}
 
-protected:
+public:
 	static v8::Handle<v8::Value> s_get_SEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_SEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info);
@@ -57,7 +57,7 @@ protected:
 	static v8::Handle<v8::Value> s_readFile(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_writeFile(const v8::Arguments& args);
 
-protected:
+public:
 	ASYNC_STATIC3(io_base, open);
 	ASYNC_STATIC3(io_base, create);
 	ASYNC_STATIC1(io_base, tmpFile);

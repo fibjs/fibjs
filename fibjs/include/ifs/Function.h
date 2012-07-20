@@ -34,7 +34,7 @@ public:
 		return class_info();
 	}
 
-protected:
+public:
 	static v8::Handle<v8::Value> s_start(const v8::Arguments& args);
 };
 

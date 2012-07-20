@@ -49,7 +49,7 @@ public:
 		return class_info();
 	}
 
-protected:
+public:
 	static v8::Handle<v8::Value> s_hostname(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_type(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_release(const v8::Arguments& args);
@@ -66,7 +66,7 @@ protected:
 	static v8::Handle<v8::Value> s_stat(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_readdir(const v8::Arguments& args);
 
-protected:
+public:
 	ASYNC_STATIC2(os_base, exists);
 	ASYNC_STATIC1(os_base, unlink);
 	ASYNC_STATIC1(os_base, mkdir);

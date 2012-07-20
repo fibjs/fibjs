@@ -295,11 +295,11 @@ function parserIDL(fname) {
 			txt.push("\n		return 0;\n	}\n");
 		}
 
-		txt.push("protected:");
+		txt.push("public:");
 		txt.push(iffs.join("\n"));
 
 		if (afs.length) {
-			txt.push("\nprotected:");
+			txt.push("\npublic:");
 			txt.push(afs.join("\n"));
 		}
 

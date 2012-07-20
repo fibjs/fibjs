@@ -72,7 +72,7 @@ public:
 		return 0;
 	}
 
-protected:
+public:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_family(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info);
@@ -96,7 +96,7 @@ protected:
 	static v8::Handle<v8::Value> s_send(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_sendto(const v8::Arguments& args);
 
-protected:
+public:
 	ASYNC_MEMBER2(Socket_base, connect);
 	ASYNC_CALLBACK2(Socket_base, connect);
 	ASYNC_MEMBER1(Socket_base, accept);

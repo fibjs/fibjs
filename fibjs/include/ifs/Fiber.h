@@ -48,7 +48,7 @@ public:
 		return 0;
 	}
 
-protected:
+public:
 	static v8::Handle<v8::Value> s_join(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_func(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_caller(v8::Local<v8::String> property, const v8::AccessorInfo &info);

@@ -33,7 +33,7 @@ public:
 		return class_info();
 	}
 
-protected:
+public:
 	static v8::Handle<v8::Value> s_data(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_detail(const v8::Arguments& args);
 };

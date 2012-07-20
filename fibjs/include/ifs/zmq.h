@@ -45,7 +45,7 @@ public:
 		return class_info();
 	}
 
-protected:
+public:
 	static v8::Handle<v8::Value> s_get_PAIR(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_PUB(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_SUB(v8::Local<v8::String> property, const v8::AccessorInfo &info);

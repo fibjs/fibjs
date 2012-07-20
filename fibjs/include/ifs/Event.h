@@ -38,7 +38,7 @@ public:
 		return class_info();
 	}
 
-protected:
+public:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_isSet(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_set(const v8::Arguments& args);

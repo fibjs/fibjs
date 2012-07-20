@@ -46,7 +46,7 @@ public:
 		return class_info();
 	}
 
-protected:
+public:
 	static v8::Handle<v8::Value> s_get_AF_INET(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_AF_INET6(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::AccessorInfo &info);
@@ -56,7 +56,7 @@ protected:
 	static v8::Handle<v8::Value> s_ipv6(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_backend(const v8::Arguments& args);
 
-protected:
+public:
 	ASYNC_STATIC3(net_base, resolve);
 	ASYNC_STATIC2(net_base, ip);
 	ASYNC_STATIC2(net_base, ipv6);

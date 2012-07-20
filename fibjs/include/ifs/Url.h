@@ -72,7 +72,7 @@ public:
 		return 0;
 	}
 
-protected:
+public:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_parse(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_format(const v8::Arguments& args);

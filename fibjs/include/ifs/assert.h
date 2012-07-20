@@ -40,7 +40,7 @@ public:
 		return class_info();
 	}
 
-protected:
+public:
 	static v8::Handle<v8::Value> s_ok(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_equal(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_notEqual(const v8::Arguments& args);

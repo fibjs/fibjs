@@ -47,7 +47,7 @@ public:
 		return class_info();
 	}
 
-protected:
+public:
 	static v8::Handle<v8::Value> s_read(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncRead(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_onread(const v8::Arguments& args);
@@ -62,7 +62,7 @@ protected:
 	static v8::Handle<v8::Value> s_onstat(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_onerror(const v8::Arguments& args);
 
-protected:
+public:
 	ASYNC_MEMBER2(Stream_base, read);
 	ASYNC_VALUEBACK1(Stream_base, read, obj_ptr<Buffer_base>);
 	ASYNC_MEMBER1(Stream_base, write);

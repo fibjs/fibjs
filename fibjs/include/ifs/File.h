@@ -62,7 +62,7 @@ public:
 		return 0;
 	}
 
-protected:
+public:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_open(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncOpen(const v8::Arguments& args);
@@ -83,7 +83,7 @@ protected:
 	static v8::Handle<v8::Value> s_asyncClose(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_onclose(const v8::Arguments& args);
 
-protected:
+public:
 	ASYNC_MEMBER2(File_base, open);
 	ASYNC_CALLBACK2(File_base, open);
 	ASYNC_MEMBER1(File_base, truncate);

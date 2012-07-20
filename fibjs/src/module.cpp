@@ -18,6 +18,8 @@
 #include "ifs/net.h"
 #include "ifs/zmq.h"
 
+#include "ifs/db.h"
+
 #include "ifs/uuid.h"
 
 #include <sstream>
@@ -49,6 +51,9 @@ inline void InstallNativeModule(const char* fname, ClassInfo& ci)
 
 void initModule()
 {
+	InstallNativeModule("encoding", encoding_base::class_info());
+	InstallNativeModule("uuid", uuid_base::class_info());
+
 	InstallNativeModule("assert", assert_base::class_info());
 	InstallNativeModule("path", path_base::class_info());
 
@@ -59,9 +64,7 @@ void initModule()
 	InstallNativeModule("net", net_base::class_info());
 	InstallNativeModule("zmq", zmq_base::class_info());
 
-	InstallNativeModule("uuid", uuid_base::class_info());
-
-	InstallNativeModule("encoding", encoding_base::class_info());
+	InstallNativeModule("db", db_base::class_info());
 }
 
 inline const char* ToCString(const v8::String::Utf8Value& value)

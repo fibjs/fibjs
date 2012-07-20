@@ -51,7 +51,7 @@ public:
 		return 0;
 	}
 
-protected:
+public:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_bind(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_connect(const v8::Arguments& args);
@@ -60,7 +60,7 @@ protected:
 	static v8::Handle<v8::Value> s_close(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 
-protected:
+public:
 	ASYNC_MEMBER1(zmqSocket_base, recv);
 	ASYNC_VALUEBACK0(zmqSocket_base, recv, obj_ptr<Buffer_base>);
 };

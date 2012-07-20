@@ -37,7 +37,7 @@ public:
 		return class_info();
 	}
 
-protected:
+public:
 	static v8::Handle<v8::Value> s_normalize(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_basename(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_extname(const v8::Arguments& args);

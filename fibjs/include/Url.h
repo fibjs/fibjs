@@ -52,7 +52,7 @@ private:
 	void parseQuery(const char*& url);
 	void parseHash(const char*& url);
 
-private:
+public:
 	std::string m_protocol;
 	bool m_slashes;
 	bool m_defslashes;
