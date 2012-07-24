@@ -14,7 +14,8 @@
 #include <sys/sysctl.h>
 #endif
 
-namespace exlib {
+namespace exlib
+{
 
 #define FB_STK_ALIGN 256
 
@@ -30,10 +31,42 @@ extern "C" int nix_switch(context* from, context* to);
 
 static pthread_key_t keyService;
 static pthread_once_t once = PTHREAD_ONCE_INIT;
+static intptr_t kMacTlsBaseOffset = -1;
 
-static intptr_t kMacTlsBaseOffset;
+intptr_t MacTlsBaseOffset()
+{
+	if (kMacTlsBaseOffset == -1)
+	{
+		const size_t kBufferSize = 128;
+		char buffer[kBufferSize];
+		size_t buffer_size = kBufferSize;
+		int ctl_name[] =
+		{ CTL_KERN, KERN_OSRELEASE };
+		sysctl(ctl_name, 2, buffer, &buffer_size, NULL, 0);
+		buffer[kBufferSize - 1] = '\0';
+		char* period_pos = strchr(buffer, '.');
+		*period_pos = '\0';
+		int kernel_version_major = static_cast<int>(strtol(buffer, NULL, 10));
 
-inline intptr_t FastThreadLocal(intptr_t index) {
+		if (kernel_version_major < 11)
+		{
+#if defined(I386)
+			kMacTlsBaseOffset = 0x48;
+#else
+			kMacTlsBaseOffset = 0x60;
+#endif
+		}
+		else
+		{
+			kMacTlsBaseOffset = 0;
+		}
+	}
+
+	return kMacTlsBaseOffset;
+}
+
+inline intptr_t FastThreadLocal(intptr_t index)
+{
 	intptr_t result;
 #if defined(I386)
 	asm("movl %%gs:(%1,%2,4), %0;"
@@ -47,37 +80,21 @@ inline intptr_t FastThreadLocal(intptr_t index) {
 	return result;
 }
 
-static void once_run(void) {
-	const size_t kBufferSize = 128;
-	char buffer[kBufferSize];
-	size_t buffer_size = kBufferSize;
-	int ctl_name[] = { CTL_KERN, KERN_OSRELEASE };
-	sysctl(ctl_name, 2, buffer, &buffer_size, NULL, 0);
-	buffer[kBufferSize - 1] = '\0';
-	char* period_pos = strchr(buffer, '.');
-	*period_pos = '\0';
-	int kernel_version_major = static_cast<int>(strtol(buffer, NULL, 10));
-	if (kernel_version_major < 11) {
-
-#if defined(I386)
-		kMacTlsBaseOffset = 0x48;
-#else
-		kMacTlsBaseOffset = 0x60;
-#endif
-	} else {
-		kMacTlsBaseOffset = 0;
-	}
-
+static void once_run(void)
+{
+	MacTlsBaseOffset();
 	pthread_key_create(&keyService, NULL);
 }
 
-Service* Service::getFiberService() {
+Service* Service::getFiberService(bool bAutoInit)
+{
 	pthread_once(&once, once_run);
 
 	Service* pService = (Service*) FastThreadLocal(keyService);
 //	Service* pService = (Service*) pthread_getspecific(keyService);
 
-	if (pService == NULL) {
+	if (pService == NULL && bAutoInit)
+	{
 		pService = new Service();
 		pthread_setspecific(keyService, pService);
 	}
@@ -93,11 +110,11 @@ __declspec(thread) Service* th_Service = NULL;
 __thread Service* th_Service = NULL;
 #endif
 
-Service* Service::getFiberService()
+Service* Service::getFiberService(bool bAutoInit)
 {
 	Service* pService = th_Service;
 
-	if(pService == NULL)
+	if(pService == NULL && bAutoInit)
 	{
 		pService = new Service();
 		th_Service = pService;
@@ -108,7 +125,8 @@ Service* Service::getFiberService()
 
 #endif
 
-Service::Service() {
+Service::Service()
+{
 	m_recycle = NULL;
 	m_running = &m_main;
 	m_Idle = NULL;
@@ -116,7 +134,8 @@ Service::Service() {
 	memset(&m_tls, 0, sizeof(m_tls));
 }
 
-static void fiber_proc(void* (*func)(void *), void *data) {
+static void fiber_proc(void* (*func)(void *), void *data)
+{
 	func(data);
 
 	Service* pService = Service::getFiberService();
@@ -130,7 +149,8 @@ static void fiber_proc(void* (*func)(void *), void *data) {
 	pService->switchtonext();
 }
 
-Fiber* Service::CreateFiber(void* (*func)(void *), void *data, int stacksize) {
+Fiber* Service::CreateFiber(void* (*func)(void *), void *data, int stacksize)
+{
 	Service* pService = Service::getFiberService();
 	Fiber* fb;
 	void** stack;
@@ -172,17 +192,21 @@ Fiber* Service::CreateFiber(void* (*func)(void *), void *data, int stacksize) {
 	return fb;
 }
 
-void Service::switchtonext() {
-	while (1) {
+void Service::switchtonext()
+{
+	while (1)
+	{
 		// First switch if we have work to do.
-		if (!m_resume.empty()) {
+		if (!m_resume.empty())
+		{
 			Fiber* old = m_running;
 
 			m_running = m_resume.get();
 
 			fb_switch(&old->m_cntxt, &m_running->m_cntxt);
 
-			if (m_recycle) {
+			if (m_recycle)
+			{
 				m_recycle->Unref();
 				m_recycle = NULL;
 			}
@@ -190,7 +214,8 @@ void Service::switchtonext() {
 		}
 
 		// Then weakup async event.
-		while (1) {
+		while (1)
+		{
 			AsyncEvent* p = m_aEvents.get();
 			if (p == NULL)
 				break;
@@ -209,7 +234,8 @@ void Service::switchtonext() {
 			continue;
 
 		// if we still have time, weakup yield fiber.
-		while (1) {
+		while (1)
+		{
 			AsyncEvent* p = m_yieldList.get();
 			if (p == NULL)
 				break;
@@ -225,7 +251,8 @@ void Service::switchtonext() {
 	}
 }
 
-void Service::yield() {
+void Service::yield()
+{
 	Service* pService = Service::getFiberService();
 	AsyncEvent ae;
 

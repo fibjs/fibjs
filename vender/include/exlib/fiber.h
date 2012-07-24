@@ -354,7 +354,7 @@ public:
 public:
 	void switchtonext();
 	void yield();
-	static Service* getFiberService();
+	static Service* getFiberService(bool bAutoInit = true);
 
 	IDLE_PROC onIdle(IDLE_PROC proc)
 	{
