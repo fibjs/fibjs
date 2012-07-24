@@ -91,6 +91,12 @@
     <Filter Include="Source Files\uuid">
       <UniqueIdentifier>{28dba002-23ba-47d0-a72e-3e2ca538be13}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\umysql">
+      <UniqueIdentifier>{737f194c-2477-4342-a8fb-28e8381d385d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\umysql">
+      <UniqueIdentifier>{c9e64467-094d-4b83-9a97-83952a7df8be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zlib\adler32.c">
@@ -1347,6 +1353,21 @@
     <ClCompile Include="src\v8\src\transitions.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\umysql\capi.cpp">
+      <Filter>Source Files\umysql</Filter>
+    </ClCompile>
+    <ClCompile Include="src\umysql\Connection.cpp">
+      <Filter>Source Files\umysql</Filter>
+    </ClCompile>
+    <ClCompile Include="src\umysql\PacketReader.cpp">
+      <Filter>Source Files\umysql</Filter>
+    </ClCompile>
+    <ClCompile Include="src\umysql\PacketWriter.cpp">
+      <Filter>Source Files\umysql</Filter>
+    </ClCompile>
+    <ClCompile Include="src\umysql\SHA1.cpp">
+      <Filter>Source Files\umysql</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -2512,6 +2533,30 @@
     </ClInclude>
     <ClInclude Include="src\v8\src\transitions-inl.h">
       <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\umysql\Connection.h">
+      <Filter>Source Files\umysql</Filter>
+    </ClInclude>
+    <ClInclude Include="src\umysql\mysqldefs.h">
+      <Filter>Source Files\umysql</Filter>
+    </ClInclude>
+    <ClInclude Include="src\umysql\PacketReader.h">
+      <Filter>Source Files\umysql</Filter>
+    </ClInclude>
+    <ClInclude Include="src\umysql\PacketWriter.h">
+      <Filter>Source Files\umysql</Filter>
+    </ClInclude>
+    <ClInclude Include="src\umysql\SHA1.h">
+      <Filter>Source Files\umysql</Filter>
+    </ClInclude>
+    <ClInclude Include="src\umysql\umysql.h">
+      <Filter>Source Files\umysql</Filter>
+    </ClInclude>
+    <ClInclude Include="include\umysql\mysqldefs.h">
+      <Filter>Header Files\umysql</Filter>
+    </ClInclude>
+    <ClInclude Include="include\umysql\umysql.h">
+      <Filter>Header Files\umysql</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

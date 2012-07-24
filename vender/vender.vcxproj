@@ -207,6 +207,11 @@
     <ClCompile Include="src\tiff\tif_warning.c" />
     <ClCompile Include="src\tiff\tif_write.c" />
     <ClCompile Include="src\tiff\tif_zip.c" />
+    <ClCompile Include="src\umysql\capi.cpp" />
+    <ClCompile Include="src\umysql\Connection.cpp" />
+    <ClCompile Include="src\umysql\PacketReader.cpp" />
+    <ClCompile Include="src\umysql\PacketWriter.cpp" />
+    <ClCompile Include="src\umysql\SHA1.cpp" />
     <ClCompile Include="src\uuid\uuid.c" />
     <ClCompile Include="src\uuid\uuid_mac.c" />
     <ClCompile Include="src\uuid\uuid_md5.c" />
@@ -439,6 +444,8 @@
     <ClCompile Include="src\zmq\src\zmq_xsub.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\umysql\mysqldefs.h" />
+    <ClInclude Include="include\umysql\umysql.h" />
     <ClInclude Include="include\uuid.h" />
     <ClInclude Include="include\zmq\zmq.h" />
     <ClInclude Include="include\zmq\zmq_utils.h" />
@@ -525,6 +532,12 @@
     <ClInclude Include="src\tiff\tif_fax3.h" />
     <ClInclude Include="src\tiff\tif_predict.h" />
     <ClInclude Include="src\tiff\uvcode.h" />
+    <ClInclude Include="src\umysql\Connection.h" />
+    <ClInclude Include="src\umysql\mysqldefs.h" />
+    <ClInclude Include="src\umysql\PacketReader.h" />
+    <ClInclude Include="src\umysql\PacketWriter.h" />
+    <ClInclude Include="src\umysql\SHA1.h" />
+    <ClInclude Include="src\umysql\umysql.h" />
     <ClInclude Include="src\uuid\config.h" />
     <ClInclude Include="src\uuid\config_msvc.h" />
     <ClInclude Include="src\uuid\uuid.h" />
