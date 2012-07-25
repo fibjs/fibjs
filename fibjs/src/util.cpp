@@ -10,15 +10,21 @@
 namespace fibjs
 {
 
-static std::string fmtString(result_t hr, const char* str)
+static std::string fmtString(result_t hr, const char* str, int len = -1)
 {
 	std::string s;
-	int len = (int) qstrlen(str);
+	if (len < 0)
+		len = (int) qstrlen(str);
 
 	s.resize(len + 16);
 	s.resize(sprintf(&s[0], "[%d] %s", hr, str));
 
 	return s;
+}
+
+static std::string fmtString(result_t hr, std::string& str)
+{
+	return fmtString(hr, str.c_str(), (int)str.length());
 }
 
 std::string getResultMessage(result_t hr)
@@ -51,15 +57,24 @@ std::string getResultMessage(result_t hr)
 			// CALL_E_PENDDING
 			"Operation now in progress.",
 			// CALL_E_NOSYNC
-			"Operation now support synchronous call."
-	};
+			"Operation now support synchronous call.",
+			// CALL_E_EXCEPTION
+			"Exception occurred." };
+
+	if (hr == CALL_E_EXCEPTION)
+	{
+		std::string s = Runtime::error();
+
+		if (s.length() > 0)
+			return fmtString(hr, s);
+	}
 
 	if (hr > CALL_E_MIN && hr < CALL_E_MAX)
 		return fmtString(hr, s_errors[CALL_E_MAX - hr]);
 
 	hr = -hr;
 
-	if(hr > ZMQ_HAUSNUMERO)
+	if (hr > ZMQ_HAUSNUMERO)
 		return fmtString(hr, zmq_strerror(hr));
 
 #ifdef _WIN32

@@ -39,7 +39,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"module", NULL, 
-			0, NULL, 0, NULL, 0, NULL, NULL,
+			0, NULL, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 

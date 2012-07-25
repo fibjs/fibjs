@@ -67,12 +67,12 @@ namespace fibjs
 {
 	inline ClassInfo& zmq_base::class_info()
 	{
-		static ClassObject s_object[] = 
+		static ClassData::ClassObject s_object[] = 
 		{
 			{"Socket", zmqSocket_base::class_info}
 		};
 
-		static ClassProperty s_property[] = 
+		static ClassData::ClassProperty s_property[] = 
 		{
 			{"PAIR", s_get_PAIR, NULL, true},
 			{"PUB", s_get_PUB, NULL, true},
@@ -90,7 +90,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"zmq", NULL, 
-			0, NULL, 1, s_object, 11, s_property, NULL,
+			0, NULL, 1, s_object, 11, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 

@@ -61,18 +61,18 @@ namespace fibjs
 {
 	inline ClassInfo& ObjectArray_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"resize", s_resize},
 			{"slice", s_slice}
 		};
 
-		static ClassProperty s_property[] = 
+		static ClassData::ClassProperty s_property[] = 
 		{
 			{"length", s_get_length}
 		};
 
-		static ClassIndexed s_indexed = 
+		static ClassData::ClassIndexed s_indexed = 
 		{
 			i_IndexedGetter, i_IndexedSetter
 		};
@@ -80,7 +80,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"ObjectArray", NULL, 
-			2, s_method, 0, NULL, 1, s_property, &s_indexed,
+			2, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
 			&object_base::class_info()
 		};
 

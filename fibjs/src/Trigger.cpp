@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "Fiber.h"
 #include "Trigger.h"
 #include "ifs/coroutine.h"
 
@@ -175,21 +176,16 @@ result_t object_base::off(v8::Handle<v8::Object> map)
 	return _map(this, map, &object_base::off);
 }
 
-result_t startJSFiber(v8::Handle<v8::Function> func, const v8::Arguments& args,
-		int nArgStart, obj_ptr<Fiber_base>& retVal);
-result_t startJSFiber(v8::Handle<v8::Function> func,
-		v8::Handle<v8::Value>* args, int argCount, obj_ptr<Fiber_base>& retVal);
-
 inline result_t _fire(v8::Handle<v8::Function> func, const v8::Arguments& args, int argCount)
 {
 	obj_ptr<Fiber_base> retVal;
-	return startJSFiber(func, args, 1, retVal);
+	return Fiber::startJSFiber(func, args, 1, retVal);
 }
 
 inline result_t _fire(v8::Handle<v8::Function> func, v8::Handle<v8::Value>* args, int argCount)
 {
 	obj_ptr<Fiber_base> retVal;
-	return startJSFiber(func, args, argCount, retVal);
+	return Fiber::startJSFiber(func, args, argCount, retVal);
 }
 
 template<typename T>

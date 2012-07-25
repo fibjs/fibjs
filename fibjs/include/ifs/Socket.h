@@ -118,7 +118,7 @@ namespace fibjs
 {
 	inline ClassInfo& Socket_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"connect", s_connect},
 			{"asyncConnect", s_asyncConnect},
@@ -137,7 +137,7 @@ namespace fibjs
 			{"sendto", s_sendto}
 		};
 
-		static ClassProperty s_property[] = 
+		static ClassData::ClassProperty s_property[] = 
 		{
 			{"family", s_get_family},
 			{"type", s_get_type},
@@ -150,7 +150,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Socket", s__new, 
-			15, s_method, 0, NULL, 6, s_property, NULL,
+			15, s_method, 0, NULL, 6, s_property, NULL, NULL,
 			&Stream_base::class_info()
 		};
 

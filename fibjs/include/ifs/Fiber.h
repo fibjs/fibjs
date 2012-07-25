@@ -63,14 +63,14 @@ namespace fibjs
 {
 	inline ClassInfo& Fiber_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"join", s_join},
 			{"onerror", s_onerror},
 			{"onexit", s_onexit}
 		};
 
-		static ClassProperty s_property[] = 
+		static ClassData::ClassProperty s_property[] = 
 		{
 			{"func", s_get_func},
 			{"caller", s_get_caller}
@@ -79,7 +79,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Fiber", NULL, 
-			3, s_method, 0, NULL, 2, s_property, NULL,
+			3, s_method, 0, NULL, 2, s_property, NULL, NULL,
 			&Trigger_base::class_info()
 		};
 

@@ -82,7 +82,7 @@ namespace fibjs
 {
 	inline ClassInfo& Stream_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"read", s_read},
 			{"asyncRead", s_asyncRead},
@@ -102,7 +102,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Stream", NULL, 
-			13, s_method, 0, NULL, 0, NULL, NULL,
+			13, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&Trigger_base::class_info()
 		};
 

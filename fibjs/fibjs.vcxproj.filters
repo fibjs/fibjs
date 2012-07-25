@@ -138,6 +138,21 @@
     <ClCompile Include="src\Url.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\mysql.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\db.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DBResult.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Runtime.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Fiber.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -300,6 +315,33 @@
       <Filter>Header Files\include</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Url.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\db.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\DbConnection.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mysql.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DBResult.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Runtime.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Fiber.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\DBResult.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\DBRow.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\MySQL.h">
       <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
   </ItemGroup>

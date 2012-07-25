@@ -51,7 +51,7 @@ namespace fibjs
 {
 	inline ClassInfo& Trigger_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"on", s_on},
 			{"once", s_once},
@@ -62,7 +62,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Trigger", s__new, 
-			4, s_method, 0, NULL, 0, NULL, NULL,
+			4, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 

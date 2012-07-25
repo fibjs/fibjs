@@ -100,7 +100,7 @@ namespace fibjs
 {
 	inline ClassInfo& Url_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"parse", s_parse},
 			{"format", s_format},
@@ -108,7 +108,7 @@ namespace fibjs
 			{"normalize", s_normalize}
 		};
 
-		static ClassProperty s_property[] = 
+		static ClassData::ClassProperty s_property[] = 
 		{
 			{"href", s_get_href},
 			{"protocol", s_get_protocol},
@@ -129,7 +129,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Url", s__new, 
-			4, s_method, 0, NULL, 14, s_property, NULL,
+			4, s_method, 0, NULL, 14, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 

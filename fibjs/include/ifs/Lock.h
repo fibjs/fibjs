@@ -44,7 +44,7 @@ namespace fibjs
 {
 	inline ClassInfo& Lock_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"acquire", s_acquire},
 			{"release", s_release}
@@ -53,7 +53,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Lock", s__new, 
-			2, s_method, 0, NULL, 0, NULL, NULL,
+			2, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 

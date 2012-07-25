@@ -16,6 +16,8 @@
 namespace fibjs
 {
 
+class DBResult_base;
+
 class DbConnection_base : public object_base
 {
 public:
@@ -25,7 +27,7 @@ public:
 	virtual result_t beginTrans() = 0;
 	virtual result_t commitTrans() = 0;
 	virtual result_t rollBack() = 0;
-	virtual result_t execute(const char* sql) = 0;
+	virtual result_t execute(const char* sql, obj_ptr<DBResult_base>& retVal) = 0;
 
 public:
 	static ClassInfo& class_info();
@@ -46,11 +48,13 @@ public:
 
 }
 
+#include "DBResult.h"
+
 namespace fibjs
 {
 	inline ClassInfo& DbConnection_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"close", s_close},
 			{"use", s_use},
@@ -63,7 +67,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"DbConnection", NULL, 
-			6, s_method, 0, NULL, 0, NULL, NULL,
+			6, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -126,14 +130,16 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> DbConnection_base::s_execute(const v8::Arguments& args)
 	{
+		obj_ptr<DBResult_base> vr;
+
 		METHOD_INSTANCE(DbConnection_base);
 		METHOD_ENTER(1, 1);
 
 		ARG_String(0);
 
-		hr = pInst->execute(v0);
+		hr = pInst->execute(v0, vr);
 
-		METHOD_VOID();
+		METHOD_RETURN();
 	}
 
 }

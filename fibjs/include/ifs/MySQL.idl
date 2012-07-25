@@ -1,0 +1,6 @@
+
+class MySQL : DbConnection
+{
+	readonly Integer rxBufferSize;
+	readonly Integer txBufferSize;
+};

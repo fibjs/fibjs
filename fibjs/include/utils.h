@@ -236,6 +236,8 @@ typedef int result_t;
 #define CALL_E_PENDDING			(CALL_E_MAX - 12)
 // Operation now support synchronous call.
 #define CALL_E_NOSYNC			(CALL_E_MAX - 13)
+// Exception occurred.
+#define CALL_E_EXCEPTION		(CALL_E_MAX - 14)
 
 #define CALL_E_MIN              -100100
 

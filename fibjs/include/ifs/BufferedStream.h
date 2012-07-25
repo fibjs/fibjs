@@ -74,14 +74,14 @@ namespace fibjs
 {
 	inline ClassInfo& BufferedStream_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"readText", s_readText},
 			{"readLine", s_readLine},
 			{"readUntil", s_readUntil}
 		};
 
-		static ClassProperty s_property[] = 
+		static ClassData::ClassProperty s_property[] = 
 		{
 			{"EOL", s_get_EOL, s_set_EOL}
 		};
@@ -89,7 +89,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"BufferedStream", s__new, 
-			3, s_method, 0, NULL, 1, s_property, NULL,
+			3, s_method, 0, NULL, 1, s_property, NULL, NULL,
 			&Stream_base::class_info()
 		};
 

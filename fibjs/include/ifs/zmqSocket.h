@@ -74,7 +74,7 @@ namespace fibjs
 {
 	inline ClassInfo& zmqSocket_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"bind", s_bind},
 			{"connect", s_connect},
@@ -83,7 +83,7 @@ namespace fibjs
 			{"close", s_close}
 		};
 
-		static ClassProperty s_property[] = 
+		static ClassData::ClassProperty s_property[] = 
 		{
 			{"type", s_get_type}
 		};
@@ -91,7 +91,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"zmqSocket", s__new, 
-			5, s_method, 0, NULL, 1, s_property, NULL,
+			5, s_method, 0, NULL, 1, s_property, NULL, NULL,
 			&Trigger_base::class_info()
 		};
 

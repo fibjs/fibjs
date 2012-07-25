@@ -102,7 +102,7 @@ namespace fibjs
 {
 	inline ClassInfo& File_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"open", s_open},
 			{"asyncOpen", s_asyncOpen},
@@ -123,7 +123,7 @@ namespace fibjs
 			{"onclose", s_onclose}
 		};
 
-		static ClassProperty s_property[] = 
+		static ClassData::ClassProperty s_property[] = 
 		{
 			{"name", s_get_name}
 		};
@@ -131,7 +131,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"File", s__new, 
-			17, s_method, 0, NULL, 1, s_property, NULL,
+			17, s_method, 0, NULL, 1, s_property, NULL, NULL,
 			&Stream_base::class_info()
 		};
 

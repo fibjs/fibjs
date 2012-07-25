@@ -1,0 +1,8 @@
+
+
+class DBResult : ObjectArray
+{
+	readonly Long insertId;
+	readonly Long affected;
+	readonly Array fields;
+};

@@ -52,7 +52,7 @@ namespace fibjs
 {
 	inline ClassInfo& path_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"normalize", s_normalize, true},
 			{"basename", s_basename, true},
@@ -64,7 +64,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"path", NULL, 
-			5, s_method, 0, NULL, 0, NULL, NULL,
+			5, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 

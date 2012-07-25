@@ -71,7 +71,7 @@ namespace fibjs
 {
 	inline ClassInfo& net_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"resolve", s_resolve, true},
 			{"ip", s_ip, true},
@@ -79,13 +79,13 @@ namespace fibjs
 			{"backend", s_backend, true}
 		};
 
-		static ClassObject s_object[] = 
+		static ClassData::ClassObject s_object[] = 
 		{
 			{"Socket", Socket_base::class_info},
 			{"Url", Url_base::class_info}
 		};
 
-		static ClassProperty s_property[] = 
+		static ClassData::ClassProperty s_property[] = 
 		{
 			{"AF_INET", s_get_AF_INET, NULL, true},
 			{"AF_INET6", s_get_AF_INET6, NULL, true},
@@ -96,7 +96,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"net", NULL, 
-			4, s_method, 2, s_object, 4, s_property, NULL,
+			4, s_method, 2, s_object, 4, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 

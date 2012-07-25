@@ -46,7 +46,7 @@ namespace fibjs
 {
 	inline ClassInfo& uuidValue_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"data", s_data},
 			{"detail", s_detail}
@@ -55,7 +55,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"uuidValue", NULL, 
-			2, s_method, 0, NULL, 0, NULL, NULL,
+			2, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 

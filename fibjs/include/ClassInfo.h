@@ -19,35 +19,41 @@ namespace fibjs
 
 class ClassInfo;
 
-struct ClassProperty
-{
-	const char* name;
-	v8::AccessorGetter getter;
-	v8::AccessorSetter setter;
-	bool bStatic;
-};
-
-struct ClassMethod
-{
-	const char* name;
-	v8::InvocationCallback invoker;
-	bool bStatic;
-};
-
-struct ClassObject
-{
-	const char* name;
-	ClassInfo& (*invoker)();
-};
-
-struct ClassIndexed
-{
-	v8::IndexedPropertyGetter getter;
-	v8::IndexedPropertySetter setter;
-};
-
 struct ClassData
 {
+	struct ClassProperty
+	{
+		const char* name;
+		v8::AccessorGetter getter;
+		v8::AccessorSetter setter;
+		bool bStatic;
+	};
+
+	struct ClassMethod
+	{
+		const char* name;
+		v8::InvocationCallback invoker;
+		bool bStatic;
+	};
+
+	struct ClassObject
+	{
+		const char* name;
+		ClassInfo& (*invoker)();
+	};
+
+	struct ClassIndexed
+	{
+		v8::IndexedPropertyGetter getter;
+		v8::IndexedPropertySetter setter;
+	};
+
+	struct ClassNamed
+	{
+		v8::NamedPropertyGetter getter;
+		v8::NamedPropertySetter setter;
+	};
+
 	const char* name;
 	v8::InvocationCallback cor;
 	int mc;
@@ -57,6 +63,7 @@ struct ClassData
 	int pc;
 	const ClassProperty* cps;
 	const ClassIndexed* cis;
+	const ClassNamed* cns;
 	ClassInfo *base;
 };
 

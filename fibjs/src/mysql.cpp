@@ -67,7 +67,7 @@ int API_recvSocket(void *sock, char *buffer, int cbBuffer)
 		memcpy(buffer, strBuf.c_str(), strBuf.length());
 	}
 
-	return (int)strBuf.length();
+	return (int) strBuf.length();
 }
 
 int API_sendSocket(void *sock, const char *buffer, int cbBuffer)
@@ -81,7 +81,7 @@ int API_sendSocket(void *sock, const char *buffer, int cbBuffer)
 	if (((Socket*) sock)->ac_write(buf) < 0)
 		return -1;
 
-	return (int)strBuf.length();
+	return (int) strBuf.length();
 }
 
 void *API_createResult(int columns)
@@ -93,7 +93,9 @@ void *API_createResult(int columns)
 void API_resultSetField(void *result, int ifield, UMTypeInfo *ti, void *name,
 		size_t cbName)
 {
-	puts("resultSetField");
+	std::string s;
+	s.assign((char*)name, cbName);
+	printf("API_resultSetField: %s\n", s.c_str());
 
 }
 
@@ -139,7 +141,7 @@ UMConnectionCAPI capi =
 
 result_t db_base::openMySQL(const char* host, int32_t port,
 		const char* username, const char* password, const char* dbName,
-		obj_ptr<DbConnection_base>& retVal)
+		obj_ptr<MySQL_base>& retVal)
 {
 	obj_ptr<mysql> conn = new mysql();
 
@@ -155,17 +157,19 @@ result_t db_base::openMySQL(const char* host, int32_t port,
 result_t mysql::connect(const char *host, int port, const char *username,
 		const char *password, const char *dbName)
 {
+	if (m_conn)
+		return CALL_E_INVALID_CALL;
+
 	m_conn = UMConnection_Create(&capi);
 	if (!UMConnection_Connect(m_conn, host, port, username, password, dbName,
 			NULL, MCS_utf8_bin))
 	{
-		const char* errorMessage;
-		int errCode;
-		int errType;
+		result_t hr = error();
 
-		UMConnection_GetLastError(m_conn, &errorMessage, &errCode, &errType);
-		printf("ERROR: [%d:%d] %s\n", errCode, errType, errorMessage);
-		return CALL_E_INVALID_CALL;
+		UMConnection_Destroy(m_conn);
+		m_conn = NULL;
+
+		return hr;
 	}
 
 	return 0;
@@ -203,7 +207,22 @@ result_t mysql::rollBack()
 	return 0;
 }
 
-result_t mysql::execute(const char* sql)
+result_t mysql::execute(const char* sql, obj_ptr<DBResult_base>& retVal)
+{
+	if (!m_conn)
+		return CALL_E_INVALID_CALL;
+
+	UMConnection_Query(m_conn, sql, qstrlen(sql));
+	puts("execute ok.");
+	return 0;
+}
+
+result_t mysql::get_rxBufferSize(int32_t& retVal)
+{
+	return 0;
+}
+
+result_t mysql::get_txBufferSize(int32_t& retVal)
 {
 	return 0;
 }

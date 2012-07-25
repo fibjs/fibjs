@@ -9,7 +9,7 @@
 class db : module
 {
 	static DbConnection open(String connString);
-	static DbConnection openMySQL(String connString);
-	static DbConnection openMySQL(String host, Integer port, String username, String password, String dbName = "");
+	static MySQL openMySQL(String connString);
+	static MySQL openMySQL(String host, Integer port, String username, String password, String dbName = "");
 	static DbConnection openSQLite(String connString);
 };

@@ -8,13 +8,13 @@
 #ifndef MYSQL_H_
 #define MYSQL_H_
 
-#include "ifs/DbConnection.h"
+#include "ifs/MySQL.h"
 #include <umysql/umysql.h>
 
 namespace fibjs
 {
 
-class mysql: public DbConnection_base
+class mysql: public MySQL_base
 {
 public:
 	mysql() :
@@ -34,11 +34,29 @@ public:
 	virtual result_t beginTrans();
 	virtual result_t commitTrans();
 	virtual result_t rollBack();
-	virtual result_t execute(const char* sql);
+	virtual result_t execute(const char* sql, obj_ptr<DBResult_base>& retVal);
+
+public:
+	// MySQL_base
+	virtual result_t get_rxBufferSize(int32_t& retVal);
+	virtual result_t get_txBufferSize(int32_t& retVal);
 
 public:
 	result_t connect(const char *host, int port, const char *username,
 			const char *password, const char *dbName);
+
+private:
+	inline result_t error()
+	{
+		const char* errorMessage = NULL;
+		int errCode;
+		int errType;
+
+		if (UMConnection_GetLastError(m_conn, &errorMessage, &errCode,
+				&errType))
+			return Runtime::setError(errorMessage);
+		return SocketError();
+	}
 
 private:
 	UMConnection m_conn;

@@ -58,7 +58,7 @@ namespace fibjs
 {
 	inline ClassInfo& global_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"print", s_print, true},
 			{"run", s_run, true},
@@ -67,12 +67,12 @@ namespace fibjs
 			{"GC", s_GC, true}
 		};
 
-		static ClassObject s_object[] = 
+		static ClassData::ClassObject s_object[] = 
 		{
 			{"Buffer", Buffer_base::class_info}
 		};
 
-		static ClassProperty s_property[] = 
+		static ClassData::ClassProperty s_property[] = 
 		{
 			{"console", s_get_console, NULL, true}
 		};
@@ -80,7 +80,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"global", NULL, 
-			5, s_method, 1, s_object, 1, s_property, NULL,
+			5, s_method, 1, s_object, 1, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 

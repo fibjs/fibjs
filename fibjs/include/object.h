@@ -13,6 +13,7 @@
 
 #include "utils.h"
 #include "ClassInfo.h"
+#include "Runtime.h"
 #include <exlib/fiber.h>
 #include <exlib/lockfree.h>
 
@@ -216,7 +217,7 @@ namespace fibjs
 {
 	inline ClassInfo& object_base::class_info()
 	{
-		static ClassMethod s_method[] =
+		static ClassData::ClassMethod s_method[] =
 		{
 			{"dispose", s_dispose},
 			{"toString", s_toString},
@@ -227,7 +228,7 @@ namespace fibjs
 		static ClassData s_cd =
 		{
 			"object", NULL,
-			4, s_method, 0, NULL, 0, NULL, NULL
+			4, s_method, 0, NULL, 0, NULL, NULL, NULL
 		};
 
 		static ClassInfo s_ci(s_cd);

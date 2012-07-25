@@ -1,0 +1,9 @@
+
+
+class DBRow : object
+{
+	/*! @brief 对象数组可使用下标直接访问对象数据*/
+	readonly Value operator[];
+	/*! @brief 对象数组可使用下标直接访问对象数据*/
+	readonly Value operator{};
+};

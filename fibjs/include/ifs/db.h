@@ -19,14 +19,15 @@ namespace fibjs
 
 class module_base;
 class DbConnection_base;
+class MySQL_base;
 
 class db_base : public module_base
 {
 public:
 	// db_base
 	static result_t open(const char* connString, obj_ptr<DbConnection_base>& retVal);
-	static result_t openMySQL(const char* connString, obj_ptr<DbConnection_base>& retVal);
-	static result_t openMySQL(const char* host, int32_t port, const char* username, const char* password, const char* dbName, obj_ptr<DbConnection_base>& retVal);
+	static result_t openMySQL(const char* connString, obj_ptr<MySQL_base>& retVal);
+	static result_t openMySQL(const char* host, int32_t port, const char* username, const char* password, const char* dbName, obj_ptr<MySQL_base>& retVal);
 	static result_t openSQLite(const char* connString, obj_ptr<DbConnection_base>& retVal);
 
 public:
@@ -46,12 +47,13 @@ public:
 }
 
 #include "DbConnection.h"
+#include "MySQL.h"
 
 namespace fibjs
 {
 	inline ClassInfo& db_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"open", s_open, true},
 			{"openMySQL", s_openMySQL, true},
@@ -61,7 +63,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"db", NULL, 
-			3, s_method, 0, NULL, 0, NULL, NULL,
+			3, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -85,7 +87,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> db_base::s_openMySQL(const v8::Arguments& args)
 	{
-		obj_ptr<DbConnection_base> vr;
+		obj_ptr<MySQL_base> vr;
 
 		METHOD_ENTER(1, 1);
 

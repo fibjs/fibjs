@@ -54,7 +54,7 @@ namespace fibjs
 {
 	inline ClassInfo& Event_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"isSet", s_isSet},
 			{"set", s_set},
@@ -66,7 +66,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Event", s__new, 
-			5, s_method, 0, NULL, 0, NULL, NULL,
+			5, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&Lock_base::class_info()
 		};
 

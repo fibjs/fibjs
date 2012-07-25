@@ -50,7 +50,7 @@ namespace fibjs
 {
 	inline ClassInfo& Semaphore_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"wait", s_wait},
 			{"post", s_post},
@@ -60,7 +60,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Semaphore", s__new, 
-			3, s_method, 0, NULL, 0, NULL, NULL,
+			3, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&Lock_base::class_info()
 		};
 

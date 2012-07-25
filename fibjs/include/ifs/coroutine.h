@@ -60,14 +60,14 @@ namespace fibjs
 {
 	inline ClassInfo& coroutine_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"start", s_start, true},
 			{"current", s_current, true},
 			{"sleep", s_sleep, true}
 		};
 
-		static ClassObject s_object[] = 
+		static ClassData::ClassObject s_object[] = 
 		{
 			{"Lock", Lock_base::class_info},
 			{"Semaphore", Semaphore_base::class_info},
@@ -79,7 +79,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"coroutine", NULL, 
-			3, s_method, 5, s_object, 0, NULL, NULL,
+			3, s_method, 5, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 

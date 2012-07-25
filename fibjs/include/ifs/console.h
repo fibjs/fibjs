@@ -60,7 +60,7 @@ namespace fibjs
 {
 	inline ClassInfo& console_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"log", s_log, true},
 			{"info", s_info, true},
@@ -76,7 +76,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"console", NULL, 
-			9, s_method, 0, NULL, 0, NULL, NULL,
+			9, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 

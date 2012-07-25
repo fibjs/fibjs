@@ -27,9 +27,12 @@
     <ClCompile Include="src\Condition.cpp" />
     <ClCompile Include="src\Console.cpp" />
     <ClCompile Include="src\coroutine.cpp" />
+    <ClCompile Include="src\db.cpp" />
+    <ClCompile Include="src\DBResult.cpp" />
     <ClCompile Include="src\define.cpp" />
     <ClCompile Include="src\encoding.cpp" />
     <ClCompile Include="src\Event.cpp" />
+    <ClCompile Include="src\Fiber.cpp" />
     <ClCompile Include="src\fibjs.cpp" />
     <ClCompile Include="src\File.cpp" />
     <ClCompile Include="src\Function.cpp" />
@@ -40,10 +43,12 @@
     <ClCompile Include="src\MemoryCloneStream.cpp" />
     <ClCompile Include="src\MemoryStream.cpp" />
     <ClCompile Include="src\module.cpp" />
+    <ClCompile Include="src\mysql.cpp" />
     <ClCompile Include="src\ObjectArray.cpp" />
     <ClCompile Include="src\os.cpp" />
     <ClCompile Include="src\path.cpp" />
     <ClCompile Include="src\resolve.cpp" />
+    <ClCompile Include="src\Runtime.cpp" />
     <ClCompile Include="src\Semaphore.cpp" />
     <ClCompile Include="src\Socket.cpp" />
     <ClCompile Include="src\Socket_ev.cpp" />
@@ -70,7 +75,9 @@
     <ClInclude Include="include\BufferedStream.h" />
     <ClInclude Include="include\ClassInfo.h" />
     <ClInclude Include="include\Condition.h" />
+    <ClInclude Include="include\DBResult.h" />
     <ClInclude Include="include\Event.h" />
+    <ClInclude Include="include\Fiber.h" />
     <ClInclude Include="include\File.h" />
     <ClInclude Include="include\ifs\assert.h" />
     <ClInclude Include="include\ifs\Buffer.h" />
@@ -78,6 +85,10 @@
     <ClInclude Include="include\ifs\Condition.h" />
     <ClInclude Include="include\ifs\console.h" />
     <ClInclude Include="include\ifs\coroutine.h" />
+    <ClInclude Include="include\ifs\db.h" />
+    <ClInclude Include="include\ifs\DbConnection.h" />
+    <ClInclude Include="include\ifs\DBResult.h" />
+    <ClInclude Include="include\ifs\DBRow.h" />
     <ClInclude Include="include\ifs\encoding.h" />
     <ClInclude Include="include\ifs\Event.h" />
     <ClInclude Include="include\ifs\Fiber.h" />
@@ -88,6 +99,7 @@
     <ClInclude Include="include\ifs\Lock.h" />
     <ClInclude Include="include\ifs\MemoryStream.h" />
     <ClInclude Include="include\ifs\module.h" />
+    <ClInclude Include="include\ifs\MySQL.h" />
     <ClInclude Include="include\ifs\net.h" />
     <ClInclude Include="include\ifs\object.h" />
     <ClInclude Include="include\ifs\ObjectArray.h" />
@@ -106,8 +118,10 @@
     <ClInclude Include="include\inetAddr.h" />
     <ClInclude Include="include\Lock.h" />
     <ClInclude Include="include\MemoryStream.h" />
+    <ClInclude Include="include\mysql.h" />
     <ClInclude Include="include\object.h" />
     <ClInclude Include="include\ObjectArray.h" />
+    <ClInclude Include="include\Runtime.h" />
     <ClInclude Include="include\Semaphore.h" />
     <ClInclude Include="include\Socket.h" />
     <ClInclude Include="include\Stat.h" />

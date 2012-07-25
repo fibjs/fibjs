@@ -60,7 +60,7 @@ namespace fibjs
 {
 	inline ClassInfo& MemoryStream_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"seek", s_seek},
 			{"tell", s_tell},
@@ -74,7 +74,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"MemoryStream", s__new, 
-			7, s_method, 0, NULL, 0, NULL, NULL,
+			7, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&Stream_base::class_info()
 		};
 

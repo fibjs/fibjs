@@ -69,7 +69,7 @@ namespace fibjs
 {
 	inline ClassInfo& uuid_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"uuid", s_uuid, true},
 			{"node", s_node, true},
@@ -78,7 +78,7 @@ namespace fibjs
 			{"sha1", s_sha1, true}
 		};
 
-		static ClassProperty s_property[] = 
+		static ClassData::ClassProperty s_property[] = 
 		{
 			{"DNS", s_get_DNS, NULL, true},
 			{"URL", s_get_URL, NULL, true},
@@ -89,7 +89,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"uuid", NULL, 
-			5, s_method, 0, NULL, 4, s_property, NULL,
+			5, s_method, 0, NULL, 4, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 

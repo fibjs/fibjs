@@ -80,7 +80,7 @@ namespace fibjs
 {
 	inline ClassInfo& Stat_base::class_info()
 	{
-		static ClassMethod s_method[] = 
+		static ClassData::ClassMethod s_method[] = 
 		{
 			{"isWritable", s_isWritable},
 			{"isReadable", s_isReadable},
@@ -93,7 +93,7 @@ namespace fibjs
 			{"isSocket", s_isSocket}
 		};
 
-		static ClassProperty s_property[] = 
+		static ClassData::ClassProperty s_property[] = 
 		{
 			{"name", s_get_name},
 			{"size", s_get_size},
@@ -105,7 +105,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Stat", NULL, 
-			9, s_method, 0, NULL, 5, s_property, NULL,
+			9, s_method, 0, NULL, 5, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
