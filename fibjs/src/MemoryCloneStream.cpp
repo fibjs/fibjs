@@ -99,7 +99,7 @@ result_t MemoryStream::CloneStream::stat(obj_ptr<Stat_base>& retVal,
 
 	st->init();
 	st->m_isMemory = true;
-	st->mtime = st->ctime = m_time.d;
+	st->mtime = st->ctime = m_time;
 	size(st->size);
 
 	retVal = st;

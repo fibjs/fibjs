@@ -18,7 +18,7 @@ namespace fibjs
 
 extern int g_tlsCurrent;
 
-class Fiber: public fibjs::Fiber_base
+class Fiber: public Fiber_base
 {
 	EVENT_SUPPORT();
 	FIBER_FREE();

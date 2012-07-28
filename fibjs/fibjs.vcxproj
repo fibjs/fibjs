@@ -29,6 +29,7 @@
     <ClCompile Include="src\coroutine.cpp" />
     <ClCompile Include="src\db.cpp" />
     <ClCompile Include="src\DBResult.cpp" />
+    <ClCompile Include="src\DBRow.cpp" />
     <ClCompile Include="src\define.cpp" />
     <ClCompile Include="src\encoding.cpp" />
     <ClCompile Include="src\Event.cpp" />
@@ -75,7 +76,10 @@
     <ClInclude Include="include\BufferedStream.h" />
     <ClInclude Include="include\ClassInfo.h" />
     <ClInclude Include="include\Condition.h" />
+    <ClInclude Include="include\date.h" />
+    <ClInclude Include="include\DBField.h" />
     <ClInclude Include="include\DBResult.h" />
+    <ClInclude Include="include\DBRow.h" />
     <ClInclude Include="include\Event.h" />
     <ClInclude Include="include\Fiber.h" />
     <ClInclude Include="include\File.h" />
@@ -121,6 +125,8 @@
     <ClInclude Include="include\mysql.h" />
     <ClInclude Include="include\object.h" />
     <ClInclude Include="include\ObjectArray.h" />
+    <ClInclude Include="include\obj_ptr.h" />
+    <ClInclude Include="include\qstring.h" />
     <ClInclude Include="include\Runtime.h" />
     <ClInclude Include="include\Semaphore.h" />
     <ClInclude Include="include\Socket.h" />
@@ -131,6 +137,7 @@
     <ClInclude Include="include\utf8.h" />
     <ClInclude Include="include\utils.h" />
     <ClInclude Include="include\uuidVar.h" />
+    <ClInclude Include="include\Variant.h" />
     <ClInclude Include="include\zmqSocket.h" />
   </ItemGroup>
   <ItemGroup>

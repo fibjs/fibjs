@@ -112,19 +112,19 @@ result_t Stat::get_size(int64_t& retVal)
 
 result_t Stat::get_mtime(date_t& retVal)
 {
-	retVal.d = mtime;
+	retVal = mtime;
 	return 0;
 }
 
 result_t Stat::get_atime(date_t& retVal)
 {
-	retVal.d = atime;
+	retVal = atime;
 	return 0;
 }
 
 result_t Stat::get_ctime(date_t& retVal)
 {
-	retVal.d = ctime;
+	retVal = ctime;
 	return 0;
 }
 

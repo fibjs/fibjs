@@ -117,7 +117,7 @@ result_t MemoryStream::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
 
 	st->init();
 	st->m_isMemory = true;
-	st->mtime = st->ctime = m_time.d;
+	st->mtime = st->ctime = m_time;
 	size(st->size);
 
 	retVal = st;

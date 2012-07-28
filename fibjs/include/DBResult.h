@@ -7,6 +7,7 @@
 
 #include "ifs/DbResult.h"
 #include "ObjectArray.h"
+#include "DBRow.h"
 
 #ifndef DBRESULT_H_
 #define DBRESULT_H_
@@ -14,8 +15,19 @@
 namespace fibjs
 {
 
-class DBResult: public fibjs::DBResult_base
+class DBResult: public DBResult_base
 {
+public:
+	DBResult(int32_t sz)
+	{
+		m_size = sz;
+		m_fields = new DBField(sz);
+	}
+
+public:
+	// object_base
+	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal);
+
 public:
 	// ObjectArray_base
 	virtual result_t _indexed_getter(uint32_t index, obj_ptr<object_base>& retVal);
@@ -31,15 +43,32 @@ public:
 	virtual result_t get_fields(v8::Handle<v8::Array>& retVal);
 
 public:
-	void push(object_base* newVal)
+	void setField(int32_t i, int32_t type, std::string& s)
 	{
-		m_array.push(newVal);
+		m_fields->setField(i, type, s);
 	}
 
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal);
+	void beginRow()
+	{
+		m_nowRow = new DBRow(m_fields, m_size);
+	}
+
+	void endRow()
+	{
+		m_array.push(m_nowRow);
+		m_nowRow.Release();
+	}
+
+	void rowValue(int32_t i, Variant& v)
+	{
+		m_nowRow->setValue(i, v);
+	}
 
 private:
 	ObjectArray::array m_array;
+	int32_t m_size;
+	obj_ptr<DBField> m_fields;
+	obj_ptr<DBRow> m_nowRow;
 };
 
 } /* namespace fibjs */

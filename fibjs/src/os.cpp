@@ -32,19 +32,6 @@
 #include "Stat.h"
 #include "ObjectArray.h"
 
-
-namespace v8
-{
-namespace internal
-{
-class OS
-{
-public:
-	static double TimeCurrentMillis();
-};
-}
-}
-
 namespace fibjs
 {
 
@@ -429,7 +416,7 @@ result_t os_base::networkInfo(v8::Handle<v8::Array>& retVal)
 
 result_t os_base::time(date_t& retVal)
 {
-	retVal.d = v8::internal::OS::TimeCurrentMillis();
+	retVal.now();
 	return 0;
 }
 

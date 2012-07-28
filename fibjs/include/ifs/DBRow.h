@@ -75,11 +75,6 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	static v8::Handle<v8::Value> i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::AccessorInfo& info)
-	{
-		return ThrowException(v8::String::NewSymbol("Indexed Property is read-only."));
-	}
-
 	inline v8::Handle<v8::Value> DBRow_base::i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info)
 	{
 		v8::Handle<v8::Value> vr;
@@ -87,14 +82,9 @@ namespace fibjs
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(DBRow_base);
 
-		hr = pInst->_named_getter(*property, vr);
+		hr = pInst->_named_getter(*v8::String::Utf8Value(property), vr);
 
 		METHOD_RETURN();
-	}
-
-	static v8::Handle<v8::Value> i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info)
-	{
-		return ThrowException(v8::String::NewSymbol("Named Property is read-only."));
 	}
 
 }

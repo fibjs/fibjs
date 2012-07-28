@@ -85,7 +85,7 @@ public:
 public:
 	std::string name;
 	int64_t size;
-	double mtime, atime, ctime;
+	date_t mtime, atime, ctime;
 	bool m_isWritable, m_isReadable, m_isExecutable, m_isHidden;
 	bool m_isDirectory, m_isFile, m_isSymbolicLink;
 	bool m_isMemory, m_isSocket;

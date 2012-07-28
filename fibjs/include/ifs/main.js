@@ -771,10 +771,6 @@ function parserIDL(fname) {
 						ifStr = "	virtual result_t _indexed_setter(uint32_t index, "
 								+ arg_type(ftype) + " newVal) = 0;";
 						ifs.push(ifStr);
-					} else {
-						fnStr = "	static v8::Handle<v8::Value> i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::AccessorInfo& info)\n	{\n";
-						fnStr += "		return ThrowException(v8::String::NewSymbol(\"Indexed Property is read-only.\"));\n	}\n";
-						ffs.push(fnStr);
 					}
 				} else if ((st[pos] === "{") && (st[pos + 1] === "}")
 						&& (st[pos + 2] === ";")) {
@@ -790,7 +786,7 @@ function parserIDL(fname) {
 					fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE(" + ns
 							+ "_base);\n\n";
 
-					fnStr += "		hr = pInst->_named_getter(*property, vr);\n\n		METHOD_RETURN();\n	}\n";
+					fnStr += "		hr = pInst->_named_getter(*v8::String::Utf8Value(property), vr);\n\n		METHOD_RETURN();\n	}\n";
 					ffs.push(fnStr)
 
 					ifStr = "	virtual result_t _named_getter(const char* property, "
@@ -809,16 +805,12 @@ function parserIDL(fname) {
 						else
 							fnStr += "		PROPERTY_VAL(" + map_type(ftype)
 									+ ");\n";
-						fnStr += "		hr = pInst->_named_setter(*property, v0);\n\n		METHOD_VOID();\n	}\n";
+						fnStr += "		hr = pInst->_named_setter(*v8::String::Utf8Value(property), v0);\n\n		METHOD_VOID();\n	}\n";
 						ffs.push(fnStr);
 
 						ifStr = "	virtual result_t _named_setter(const char* property, "
 								+ arg_type(ftype) + " newVal) = 0;";
 						ifs.push(ifStr);
-					} else {
-						fnStr = "	static v8::Handle<v8::Value> i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info)\n	{\n";
-						fnStr += "		return ThrowException(v8::String::NewSymbol(\"Named Property is read-only.\"));\n	}\n";
-						ffs.push(fnStr);
 					}
 				} else
 					return reportErr();

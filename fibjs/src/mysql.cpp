@@ -9,6 +9,7 @@
 #include "Socket.h"
 #include "Buffer.h"
 #include "ifs/db.h"
+#include "DBResult.h"
 
 namespace fibjs
 {
@@ -72,10 +73,9 @@ int API_recvSocket(void *sock, char *buffer, int cbBuffer)
 
 int API_sendSocket(void *sock, const char *buffer, int cbBuffer)
 {
-	std::string strBuf;
+	std::string strBuf(buffer, cbBuffer);
 	obj_ptr<Buffer_base> buf;
 
-	strBuf.assign(buffer, cbBuffer);
 	buf = new Buffer(strBuf);
 
 	if (((Socket*) sock)->ac_write(buf) < 0)
@@ -86,42 +86,43 @@ int API_sendSocket(void *sock, const char *buffer, int cbBuffer)
 
 void *API_createResult(int columns)
 {
-	puts("API_createResult");
-	return NULL;
+	DBResult* res = new DBResult(columns);
+	res->Ref();
+	return res;
 }
 
 void API_resultSetField(void *result, int ifield, UMTypeInfo *ti, void *name,
 		size_t cbName)
 {
-	std::string s;
-	s.assign((char*)name, cbName);
-	printf("API_resultSetField: %s\n", s.c_str());
-
+	std::string s((char*) name, cbName);
+	((DBResult*) result)->setField(ifield, ti->type, s);
 }
 
 void API_resultRowBegin(void *result)
 {
-	puts("API_resultRowBegin");
-
+	((DBResult*) result)->beginRow();
 }
 
 int API_resultRowValue(void *result, int icolumn, UMTypeInfo *ti, void *value,
 		size_t cbValue)
 {
-	puts("API_resultRowValue");
-	return 0;
+	std::string s((const char*)value, cbValue);
+	Variant v;
+	v = s;
+
+	((DBResult*) result)->rowValue(icolumn, v);
+	return true;
 }
 
 void API_resultRowEnd(void *result)
 {
-	puts("API_resultRowEnd");
-
+	((DBResult*) result)->endRow();
 }
 
 void API_destroyResult(void *result)
 {
-	puts("API_destroyResult");
-
+	DBResult* res = (DBResult*) result;
+	res->Unref();
 }
 
 void *API_resultOK(UINT64 affected, UINT64 insertId, int serverStatus,
@@ -212,8 +213,13 @@ result_t mysql::execute(const char* sql, obj_ptr<DBResult_base>& retVal)
 	if (!m_conn)
 		return CALL_E_INVALID_CALL;
 
-	UMConnection_Query(m_conn, sql, qstrlen(sql));
-	puts("execute ok.");
+	DBResult* res = (DBResult*) UMConnection_Query(m_conn, sql, qstrlen(sql));
+	if (!res)
+		return error();
+
+	retVal = res;
+	res->Unref();
+
 	return 0;
 }
 

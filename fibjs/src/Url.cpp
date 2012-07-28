@@ -112,10 +112,9 @@ void Url::parseProtocol(const char*& url)
 
 	if (ch == ':')
 	{
-		std::string str;
-
 		p++;
-		str.assign(url, p - url);
+
+		std::string str(url, p - url);
 		put_protocol(str);
 		url = p;
 	}

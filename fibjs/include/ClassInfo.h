@@ -104,10 +104,23 @@ public:
 						cd.cps[i].getter, block_set);
 
 		v8::Local<v8::ObjectTemplate> ot = m_class->InstanceTemplate();
-
 		ot->SetInternalFieldCount(1);
-		if (cd.cis)
-			ot->SetIndexedPropertyHandler(cd.cis->getter, cd.cis->setter);
+
+		ClassData* pcd;
+
+		pcd = &cd;
+		while (pcd && !pcd->cis)
+			pcd = pcd->base ? &pcd->base->m_cd : NULL;
+
+		if (pcd)
+			ot->SetIndexedPropertyHandler(pcd->cis->getter, pcd->cis->setter);
+
+		pcd = &cd;
+		while (pcd && !pcd->cns)
+			pcd = pcd->base ? &pcd->base->m_cd : NULL;
+
+		if (pcd)
+			ot->SetNamedPropertyHandler(pcd->cns->getter, pcd->cns->setter);
 
 		m_function = v8::Persistent<v8::Function>::New(m_class->GetFunction());
 		v8::Handle<v8::Object> o = m_function->ToObject();

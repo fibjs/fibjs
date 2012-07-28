@@ -24,44 +24,33 @@ namespace fibjs
 
 #define GC_FIX_SIZE		4096
 
-class object_base
+class object_base: public obj_base
 {
 public:
 	object_base()
 	{
-		refs_ = 0;
 		m_nTriggers = 0;
 	}
 
-	virtual ~object_base()
-	{
-	}
-
 public:
-	void Ref()
+	virtual void firstRef()
 	{
-		if(exlib::atom_inc(&refs_) == 1)
-		{
-			if(!handle_.IsEmpty())
-				handle_.ClearWeak();
-		}
+		if (!handle_.IsEmpty())
+			handle_.ClearWeak();
 	}
 
-	void Unref()
+	virtual void finalRelease()
 	{
-		if(exlib::atom_dec(&refs_) == 0)
-		{
-			if(!handle_.IsEmpty())
-				handle_.MakeWeak(this, WeakCallback);
-			else
-				delete this;
-		}
+		if (!handle_.IsEmpty())
+			handle_.MakeWeak(this, WeakCallback);
+		else
+			obj_base::finalRelease();
 	}
 
 public:
 	virtual void enter()
 	{
-		if(!m_lock.trylock())
+		if (!m_lock.trylock())
 		{
 			v8::Unlocker unlocker(isolate);
 			m_lock.lock();
@@ -76,13 +65,12 @@ public:
 	exlib::Locker m_lock;
 
 private:
-	int refs_;
 	v8::Persistent<v8::Object> handle_;
 
 private:
 	static void WeakCallback(v8::Persistent<v8::Value> value, void* data)
 	{
-		(static_cast<object_base*> (data))->dispose();
+		(static_cast<object_base*>(data))->dispose();
 	}
 
 public:
@@ -112,7 +100,7 @@ public:
 	{
 	public:
 		scope(object_base* pInst) :
-			m_pInst(pInst)
+				m_pInst(pInst)
 		{
 			m_pInst->enter();
 		}
@@ -135,7 +123,8 @@ public:
 	result_t off(const char* ev, v8::Handle<v8::Function> func);
 	result_t off(v8::Handle<v8::Object> map);
 	result_t trigger(const char* ev, const v8::Arguments& args);
-	result_t _trigger(const char* ev, v8::Handle<v8::Value>* args, int argCount);
+	result_t _trigger(const char* ev, v8::Handle<v8::Value>* args,
+			int argCount);
 
 	bool hasTrigger()
 	{
@@ -148,7 +137,8 @@ public:
 	}
 
 private:
-	v8::Handle<v8::Array> GetHiddenArray(const char* k, bool create = false, bool autoDelete = false);
+	v8::Handle<v8::Array> GetHiddenArray(const char* k, bool create = false,
+			bool autoDelete = false);
 
 private:
 	int m_nTriggers;
@@ -168,8 +158,7 @@ public:
 
 			v8::V8::AdjustAmountOfExternalAllocatedMemory(-GC_FIX_SIZE);
 
-			if(refs_ == 0)
-				delete this;
+			obj_base::dispose();
 		}
 
 		return 0;
@@ -191,6 +180,21 @@ public:
 	{
 		retVal = wrap();
 		return 0;
+	}
+
+public:
+	static v8::Handle<v8::Value> i_IndexedSetter(uint32_t index,
+			v8::Local<v8::Value> value, const v8::AccessorInfo& info)
+	{
+		return ThrowException(
+				v8::String::NewSymbol("Indexed Property is read-only."));
+	}
+
+	static v8::Handle<v8::Value> i_NamedSetter(v8::Local<v8::String> property,
+			v8::Local<v8::Value> value, const v8::AccessorInfo& info)
+	{
+		return ThrowException(
+				v8::String::NewSymbol("Named Property is read-only."));
 	}
 
 	//------------------------------------------------------------------
@@ -215,74 +219,69 @@ private:
 
 namespace fibjs
 {
-	inline ClassInfo& object_base::class_info()
+inline ClassInfo& object_base::class_info()
+{
+	static ClassData::ClassMethod s_method[] =
 	{
-		static ClassData::ClassMethod s_method[] =
-		{
-			{"dispose", s_dispose},
-			{"toString", s_toString},
-			{"toJSON", s_toJSON},
-			{"ValueOf", s_ValueOf}
-		};
+	{ "dispose", s_dispose },
+	{ "toString", s_toString },
+	{ "toJSON", s_toJSON },
+	{ "ValueOf", s_ValueOf } };
 
-		static ClassData s_cd =
-		{
-			"object", NULL,
-			4, s_method, 0, NULL, 0, NULL, NULL, NULL
-		};
+	static ClassData s_cd =
+	{ "object", NULL, 4, s_method, 0, NULL, 0, NULL, NULL, NULL };
 
-		static ClassInfo s_ci(s_cd);
-		return s_ci;
-	}
+	static ClassInfo s_ci(s_cd);
+	return s_ci;
+}
 
-
-	inline v8::Handle<v8::Value> object_base::s_dispose(const v8::Arguments& args)
-	{
-		METHOD_INSTANCE(object_base);
-		METHOD_ENTER(0, 0);
+inline v8::Handle<v8::Value> object_base::s_dispose(const v8::Arguments& args)
+{
+	METHOD_INSTANCE(object_base);
+	METHOD_ENTER(0, 0);
 
 		hr = pInst->dispose();
 
-		METHOD_VOID();
-	}
+	METHOD_VOID();
+}
 
-	inline v8::Handle<v8::Value> object_base::s_toString(const v8::Arguments& args)
-	{
-		std::string vr;
+inline v8::Handle<v8::Value> object_base::s_toString(const v8::Arguments& args)
+{
+	std::string vr;
 
-		METHOD_INSTANCE(object_base);
-		METHOD_ENTER(0, 0);
+	METHOD_INSTANCE(object_base);
+	METHOD_ENTER(0, 0);
 
 		hr = pInst->toString(vr);
 
-		METHOD_RETURN();
-	}
+	METHOD_RETURN();
+}
 
-	inline v8::Handle<v8::Value> object_base::s_toJSON(const v8::Arguments& args)
-	{
-		v8::Handle<v8::Object> vr;
+inline v8::Handle<v8::Value> object_base::s_toJSON(const v8::Arguments& args)
+{
+	v8::Handle<v8::Object> vr;
 
-		METHOD_INSTANCE(object_base);
-		METHOD_ENTER(1, 0);
+	METHOD_INSTANCE(object_base);
+	METHOD_ENTER(1, 0);
 
 		OPT_ARG_String(0, "");
 
 		hr = pInst->toJSON(v0, vr);
 
-		METHOD_RETURN();
-	}
+	METHOD_RETURN();
+}
 
-	inline v8::Handle<v8::Value> object_base::s_ValueOf(const v8::Arguments& args)
-	{
-		v8::Handle<v8::Object> vr;
+inline v8::Handle<v8::Value> object_base::s_ValueOf(const v8::Arguments& args)
+{
+	v8::Handle<v8::Object> vr;
 
-		METHOD_INSTANCE(object_base);
-		METHOD_ENTER(0, 0);
+	METHOD_INSTANCE(object_base);
+	METHOD_ENTER(0, 0);
 
 		hr = pInst->ValueOf(vr);
 
-		METHOD_RETURN();
-	}
+	METHOD_RETURN();
+}
 
 }
 

@@ -153,6 +153,9 @@
     <ClCompile Include="src\Fiber.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\DBRow.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -343,6 +346,24 @@
     </ClInclude>
     <ClInclude Include="include\ifs\MySQL.h">
       <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\date.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DBField.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DBRow.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\obj_ptr.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\qstring.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Variant.h">
+      <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
