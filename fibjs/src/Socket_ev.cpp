@@ -205,7 +205,7 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 			socklen_t sz1 = sizeof(addr_info);
 
 			if (::getpeername(m_s, (sockaddr*) &addr_info, &sz1) == SOCKET_ERROR)
-				m_ac->post(-ETIMEDOUT);
+				m_ac->post(-ECONNREFUSED);
 			else
 				m_ac->post(0);
 

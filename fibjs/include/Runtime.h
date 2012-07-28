@@ -19,24 +19,44 @@ public:
 	static Runtime& now();
 	static void reg(Runtime* rt);
 
+	static result_t setError(result_t hr)
+	{
+		Runtime& rt = Runtime::now();
+
+		rt.m_code = hr;
+		return rt.m_code;
+	}
+
 	static result_t setError(std::string& err)
 	{
-		Runtime::now().m_error = err;
-		return CALL_E_EXCEPTION;
+		Runtime& rt = Runtime::now();
+
+		rt.m_code = CALL_E_EXCEPTION;
+		rt.m_error = err;
+		return rt.m_code;
 	}
 
 	static result_t setError(const char* err = NULL)
 	{
-		Runtime::now().m_error.assign(err ? err : "");
-		return CALL_E_EXCEPTION;
+		Runtime& rt = Runtime::now();
+
+		rt.m_code = CALL_E_EXCEPTION;
+		rt.m_error.assign(err ? err : "");
+		return rt.m_code;
 	}
 
-	static const std::string& error()
+	static const std::string& errMessage()
 	{
 		return Runtime::now().m_error;
 	}
 
+	static result_t errNumber()
+	{
+		return Runtime::now().m_code;
+	}
+
 private:
+	result_t m_code;
 	std::string m_error;
 };
 

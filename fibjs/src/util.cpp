@@ -63,7 +63,7 @@ std::string getResultMessage(result_t hr)
 
 	if (hr == CALL_E_EXCEPTION)
 	{
-		std::string s = Runtime::error();
+		std::string s = Runtime::errMessage();
 
 		if (s.length() > 0)
 			return fmtString(-hr, s);

@@ -55,7 +55,7 @@ private:
 		if (UMConnection_GetLastError(m_conn, &errorMessage, &errCode,
 				&errType))
 			return Runtime::setError(errorMessage);
-		return SocketError();
+		return Runtime::errNumber();
 	}
 
 private:

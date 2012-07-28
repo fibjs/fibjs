@@ -23,6 +23,7 @@ void *API_getSocket()
 	if (hr < 0)
 	{
 		s->Unref();
+		Runtime::setError(hr);
 		return NULL;
 	}
 
@@ -41,7 +42,14 @@ void API_closeSocket(void *sock)
 
 int API_connectSocket(void *sock, const char *host, int port)
 {
-	return ((Socket*) sock)->ac_connect(host, port) >= 0;
+	result_t hr = ((Socket*) sock)->ac_connect(host, port);
+	if(hr < 0)
+	{
+		Runtime::setError(hr);
+		return 0;
+	}
+
+	return 1;
 }
 
 int API_setTimeout(void *sock, int timeoutSec)
@@ -57,8 +65,12 @@ int API_recvSocket(void *sock, char *buffer, int cbBuffer)
 {
 	obj_ptr<Buffer_base> retVal;
 
-	if (((Socket*) sock)->ac_read(cbBuffer, retVal) < 0)
+	result_t hr = ((Socket*) sock)->ac_read(cbBuffer, retVal);
+	if(hr < 0)
+	{
+		Runtime::setError(hr);
 		return -1;
+	}
 
 	std::string strBuf;
 
@@ -78,8 +90,12 @@ int API_sendSocket(void *sock, const char *buffer, int cbBuffer)
 
 	buf = new Buffer(strBuf);
 
-	if (((Socket*) sock)->ac_write(buf) < 0)
+	result_t hr = ((Socket*) sock)->ac_write(buf);
+	if(hr < 0)
+	{
+		Runtime::setError(hr);
 		return -1;
+	}
 
 	return (int) strBuf.length();
 }
