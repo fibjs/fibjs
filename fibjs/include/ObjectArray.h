@@ -5,8 +5,8 @@
  *      Author: lion
  */
 
-#include <vector>
 #include "ifs/ObjectArray.h"
+#include "QuickArray.h"
 
 #ifndef OBJECTARRAY_H_
 #define OBJECTARRAY_H_
@@ -42,11 +42,11 @@ public:
 	public:
 		void push(object_base* newVal)
 		{
-			m_array.push_back(newVal);
+			m_array.append(newVal);
 		}
 
 	private:
-		std::vector< obj_ptr<object_base> > m_array;
+		QuickArray< obj_ptr<object_base> > m_array;
 	};
 
 public:

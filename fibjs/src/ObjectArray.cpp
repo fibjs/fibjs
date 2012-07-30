@@ -73,7 +73,7 @@ result_t ObjectArray::array::get_length(int32_t& retVal)
 
 result_t ObjectArray::array::resize(int32_t sz)
 {
-	m_array.reserve(sz);
+	m_array.resize(sz);
 	return 0;
 }
 
