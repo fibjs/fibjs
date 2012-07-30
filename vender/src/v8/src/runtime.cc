@@ -54,7 +54,7 @@
 #include "runtime-profiler.h"
 #include "runtime.h"
 #include "scopeinfo.h"
-#include "smart-array-pointer.h"
+#include "smart-pointers.h"
 #include "string-search.h"
 #include "stub-cache.h"
 #include "v8threads.h"
@@ -1293,14 +1293,12 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DisableAccessChecks) {
   bool needs_access_checks = old_map->is_access_check_needed();
   if (needs_access_checks) {
     // Copy map so it won't interfere constructor's initial map.
-    Object* new_map;
-    { MaybeObject* maybe_new_map =
-          old_map->CopyDropTransitions(DescriptorArray::MAY_BE_SHARED);
-      if (!maybe_new_map->ToObject(&new_map)) return maybe_new_map;
-    }
+    Map* new_map;
+    MaybeObject* maybe_new_map = old_map->Copy(DescriptorArray::MAY_BE_SHARED);
+    if (!maybe_new_map->To(&new_map)) return maybe_new_map;
 
-    Map::cast(new_map)->set_is_access_check_needed(false);
-    object->set_map(Map::cast(new_map));
+    new_map->set_is_access_check_needed(false);
+    object->set_map(new_map);
   }
   return isolate->heap()->ToBoolean(needs_access_checks);
 }
@@ -1312,14 +1310,12 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_EnableAccessChecks) {
   Map* old_map = object->map();
   if (!old_map->is_access_check_needed()) {
     // Copy map so it won't interfere constructor's initial map.
-    Object* new_map;
-    { MaybeObject* maybe_new_map =
-          old_map->CopyDropTransitions(DescriptorArray::MAY_BE_SHARED);
-      if (!maybe_new_map->ToObject(&new_map)) return maybe_new_map;
-    }
+    Map* new_map;
+    MaybeObject* maybe_new_map = old_map->Copy(DescriptorArray::MAY_BE_SHARED);
+    if (!maybe_new_map->To(&new_map)) return maybe_new_map;
 
-    Map::cast(new_map)->set_is_access_check_needed(true);
-    object->set_map(Map::cast(new_map));
+    new_map->set_is_access_check_needed(true);
+    object->set_map(new_map);
   }
   return isolate->heap()->undefined_value();
 }
@@ -2164,33 +2160,28 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_FunctionSetReadOnlyPrototype) {
   RUNTIME_ASSERT(args.length() == 1);
   CONVERT_ARG_CHECKED(JSFunction, function, 0);
 
-  MaybeObject* maybe_name =
-      isolate->heap()->AllocateStringFromAscii(CStrVector("prototype"));
-  String* name;
-  if (!maybe_name->To(&name)) return maybe_name;
+  String* name = isolate->heap()->prototype_symbol();
 
   if (function->HasFastProperties()) {
     // Construct a new field descriptor with updated attributes.
     DescriptorArray* instance_desc = function->map()->instance_descriptors();
+
     int index = instance_desc->Search(name);
     ASSERT(index != DescriptorArray::kNotFound);
     PropertyDetails details = instance_desc->GetDetails(index);
+
     CallbacksDescriptor new_desc(name,
         instance_desc->GetValue(index),
         static_cast<PropertyAttributes>(details.attributes() | READ_ONLY),
         details.index());
-    // Construct a new field descriptors array containing the new descriptor.
-    DescriptorArray* new_descriptors;
-    { MaybeObject* maybe_descriptors =
-          instance_desc->CopyReplace(&new_desc, index);
-      if (!maybe_descriptors->To(&new_descriptors)) return maybe_descriptors;
-    }
+
     // Create a new map featuring the new field descriptors array.
     Map* new_map;
-    { MaybeObject* maybe_map =
-          function->map()->CopyReplaceDescriptors(new_descriptors);
-      if (!maybe_map->To(&new_map)) return maybe_map;
-    }
+    MaybeObject* maybe_map =
+        function->map()->CopyReplaceDescriptor(
+            &new_desc, index, OMIT_TRANSITION);
+    if (!maybe_map->To(&new_map)) return maybe_map;
+
     function->set_map(new_map);
   } else {  // Dictionary properties.
     // Directly manipulate the property details.
@@ -7829,8 +7820,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_NewArgumentsFast) {
           isolate->heap()->non_strict_arguments_elements_map());
 
       Handle<Map> old_map(result->map());
-      Handle<Map> new_map =
-          isolate->factory()->CopyMapDropTransitions(old_map);
+      Handle<Map> new_map = isolate->factory()->CopyMap(old_map);
       new_map->set_elements_kind(NON_STRICT_ARGUMENTS_ELEMENTS);
 
       result->set_map(*new_map);
@@ -8299,6 +8289,14 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_LazyRecompile) {
 }
 
 
+RUNTIME_FUNCTION(MaybeObject*, Runtime_ParallelRecompile) {
+  HandleScope handle_scope(isolate);
+  ASSERT(FLAG_parallel_recompilation);
+  Compiler::RecompileParallel(args.at<JSFunction>(0));
+  return *isolate->factory()->undefined_value();
+}
+
+
 class ActivationsFinder : public ThreadVisitor {
  public:
   explicit ActivationsFinder(JSFunction* function)
@@ -8493,6 +8491,11 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_GetOptimizationStatus) {
     return Smi::FromInt(4);  // 4 == "never".
   }
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, function, 0);
+  if (FLAG_parallel_recompilation) {
+    if (function->IsMarkedForLazyRecompilation()) {
+      return Smi::FromInt(5);
+    }
+  }
   if (FLAG_always_opt) {
     // We may have always opt, but that is more best-effort than a real
     // promise, so we still say "no" if it is not optimized.

@@ -135,6 +135,8 @@ void LCodeGen::Comment(const char* format, ...) {
 bool LCodeGen::GeneratePrologue() {
   ASSERT(is_generating());
 
+  ProfileEntryHookStub::MaybeCallEntryHook(masm_);
+
 #ifdef DEBUG
   if (strlen(FLAG_stop_at) > 0 &&
       info_->function()->name()->IsEqualTo(CStrVector(FLAG_stop_at))) {
@@ -2648,6 +2650,7 @@ void LCodeGen::DoLoadKeyedFastElement(LLoadKeyedFastElement* instr) {
   __ mov(result,
          BuildFastArrayOperand(instr->elements(),
                                instr->key(),
+                               instr->hydrogen()->key()->representation(),
                                FAST_ELEMENTS,
                                FixedArray::kHeaderSize - kHeapObjectTag,
                                instr->additional_index()));
@@ -2674,6 +2677,7 @@ void LCodeGen::DoLoadKeyedFastDoubleElement(
         sizeof(kHoleNanLower32);
     Operand hole_check_operand = BuildFastArrayOperand(
         instr->elements(), instr->key(),
+        instr->hydrogen()->key()->representation(),
         FAST_DOUBLE_ELEMENTS,
         offset,
         instr->additional_index());
@@ -2684,6 +2688,7 @@ void LCodeGen::DoLoadKeyedFastDoubleElement(
   Operand double_load_operand = BuildFastArrayOperand(
       instr->elements(),
       instr->key(),
+      instr->hydrogen()->key()->representation(),
       FAST_DOUBLE_ELEMENTS,
       FixedDoubleArray::kHeaderSize - kHeapObjectTag,
       instr->additional_index());
@@ -2694,11 +2699,15 @@ void LCodeGen::DoLoadKeyedFastDoubleElement(
 Operand LCodeGen::BuildFastArrayOperand(
     LOperand* elements_pointer,
     LOperand* key,
+    Representation key_representation,
     ElementsKind elements_kind,
     uint32_t offset,
     uint32_t additional_index) {
   Register elements_pointer_reg = ToRegister(elements_pointer);
   int shift_size = ElementsKindToShiftSize(elements_kind);
+  if (key_representation.IsTagged() && (shift_size >= 1)) {
+    shift_size -= kSmiTagSize;
+  }
   if (key->IsConstantOperand()) {
     int constant_value = ToInteger32(LConstantOperand::cast(key));
     if (constant_value & 0xF0000000) {
@@ -2720,11 +2729,19 @@ Operand LCodeGen::BuildFastArrayOperand(
 void LCodeGen::DoLoadKeyedSpecializedArrayElement(
     LLoadKeyedSpecializedArrayElement* instr) {
   ElementsKind elements_kind = instr->elements_kind();
-  Operand operand(BuildFastArrayOperand(instr->external_pointer(),
-                                        instr->key(),
-                                        elements_kind,
-                                        0,
-                                        instr->additional_index()));
+  LOperand* key = instr->key();
+  if (!key->IsConstantOperand() &&
+      ExternalArrayOpRequiresTemp(instr->hydrogen()->key()->representation(),
+                                  elements_kind)) {
+    __ SmiUntag(ToRegister(key));
+  }
+  Operand operand(BuildFastArrayOperand(
+      instr->external_pointer(),
+      key,
+      instr->hydrogen()->key()->representation(),
+      elements_kind,
+      0,
+      instr->additional_index()));
   if (elements_kind == EXTERNAL_FLOAT_ELEMENTS) {
     XMMRegister result(ToDoubleRegister(instr->result()));
     __ movss(result, operand);
@@ -2996,17 +3013,8 @@ void LCodeGen::CallKnownFunction(Handle<JSFunction> function,
       __ LoadHeapObject(edi, function);
     }
 
-    // Change context if needed.
-    bool change_context =
-        (info()->closure()->context() != function->context()) ||
-        scope()->contains_with() ||
-        (scope()->num_heap_slots() > 0);
-
-    if (change_context) {
-      __ mov(esi, FieldOperand(edi, JSFunction::kContextOffset));
-    } else {
-      __ mov(esi, Operand(ebp, StandardFrameConstants::kContextOffset));
-    }
+    // Change context.
+    __ mov(esi, FieldOperand(edi, JSFunction::kContextOffset));
 
     // Set eax to arguments count if adaption is not needed. Assumes that eax
     // is available to write to at this point.
@@ -3677,11 +3685,19 @@ void LCodeGen::DoBoundsCheck(LBoundsCheck* instr) {
 void LCodeGen::DoStoreKeyedSpecializedArrayElement(
     LStoreKeyedSpecializedArrayElement* instr) {
   ElementsKind elements_kind = instr->elements_kind();
-  Operand operand(BuildFastArrayOperand(instr->external_pointer(),
-                                        instr->key(),
-                                        elements_kind,
-                                        0,
-                                        instr->additional_index()));
+  LOperand* key = instr->key();
+  if (!key->IsConstantOperand() &&
+      ExternalArrayOpRequiresTemp(instr->hydrogen()->key()->representation(),
+                                  elements_kind)) {
+    __ SmiUntag(ToRegister(key));
+  }
+  Operand operand(BuildFastArrayOperand(
+      instr->external_pointer(),
+      key,
+      instr->hydrogen()->key()->representation(),
+      elements_kind,
+      0,
+      instr->additional_index()));
   if (elements_kind == EXTERNAL_FLOAT_ELEMENTS) {
     __ cvtsd2ss(xmm0, ToDoubleRegister(instr->value()));
     __ movss(operand, xmm0);
@@ -3728,6 +3744,7 @@ void LCodeGen::DoStoreKeyedFastElement(LStoreKeyedFastElement* instr) {
   Operand operand = BuildFastArrayOperand(
       instr->object(),
       instr->key(),
+      instr->hydrogen()->key()->representation(),
       FAST_ELEMENTS,
       FixedArray::kHeaderSize - kHeapObjectTag,
       instr->additional_index());
@@ -3769,6 +3786,7 @@ void LCodeGen::DoStoreKeyedFastDoubleElement(
   Operand double_store_operand = BuildFastArrayOperand(
       instr->elements(),
       instr->key(),
+      instr->hydrogen()->key()->representation(),
       FAST_DOUBLE_ELEMENTS,
       FixedDoubleArray::kHeaderSize - kHeapObjectTag,
       instr->additional_index());
@@ -5293,7 +5311,7 @@ void LCodeGen::DoForInCacheArray(LForInCacheArray* instr) {
   Register result = ToRegister(instr->result());
   __ LoadInstanceDescriptors(map, result);
   __ mov(result,
-         FieldOperand(result, DescriptorArray::kLastAddedOffset));
+         FieldOperand(result, DescriptorArray::kEnumCacheOffset));
   __ mov(result,
          FieldOperand(result, FixedArray::SizeFor(instr->idx())));
   __ test(result, result);

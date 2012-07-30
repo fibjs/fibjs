@@ -359,11 +359,12 @@ struct AccessorDescriptor {
 // VMState object leaves a state by popping the current state from the
 // stack.
 
-#define STATE_TAG_LIST(V) \
-  V(JS)                   \
-  V(GC)                   \
-  V(COMPILER)             \
-  V(OTHER)                \
+#define STATE_TAG_LIST(V)                       \
+  V(JS)                                         \
+  V(GC)                                         \
+  V(COMPILER)                                   \
+  V(PARALLEL_COMPILER_PROLOGUE)                 \
+  V(OTHER)                                      \
   V(EXTERNAL)
 
 enum StateTag {
@@ -435,6 +436,7 @@ enum CpuFeature { SSE4_1 = 32 + 19,  // x86
                   CPUID = 10,  // x86
                   VFP3 = 1,    // ARM
                   ARMv7 = 2,   // ARM
+                  VFP2 = 3,    // ARM
                   SAHF = 0,    // x86
                   FPU = 1};    // MIPS
 

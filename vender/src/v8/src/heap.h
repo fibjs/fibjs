@@ -1154,7 +1154,7 @@ class Heap {
   Object* global_contexts_list() { return global_contexts_list_; }
 
   // Number of mark-sweeps.
-  int ms_count() { return ms_count_; }
+  unsigned int ms_count() { return ms_count_; }
 
   // Iterates over all roots in the heap.
   void IterateRoots(ObjectVisitor* v, VisitMode mode);
@@ -1596,13 +1596,55 @@ class Heap {
     global_ic_age_ = (global_ic_age_ + 1) & SharedFunctionInfo::ICAgeBits::kMax;
   }
 
-  void RecordObjectStats(InstanceType type, size_t size) {
+  // ObjectStats are kept in two arrays, counts and sizes. Related stats are
+  // stored in a contiguous linear buffer. Stats groups are stored one after
+  // another.
+  enum {
+    FIRST_CODE_KIND_SUB_TYPE = LAST_TYPE + 1,
+    FIRST_FIXED_ARRAY_SUB_TYPE =
+        FIRST_CODE_KIND_SUB_TYPE + Code::LAST_CODE_KIND + 1,
+    OBJECT_STATS_COUNT =
+        FIRST_FIXED_ARRAY_SUB_TYPE + LAST_FIXED_ARRAY_SUB_TYPE + 1
+  };
+
+  void RecordObjectStats(InstanceType type, int sub_type, size_t size) {
     ASSERT(type <= LAST_TYPE);
-    object_counts_[type]++;
-    object_sizes_[type] += size;
+    if (sub_type < 0) {
+      object_counts_[type]++;
+      object_sizes_[type] += size;
+    } else {
+      if (type == CODE_TYPE) {
+        ASSERT(sub_type <= Code::LAST_CODE_KIND);
+        object_counts_[FIRST_CODE_KIND_SUB_TYPE + sub_type]++;
+        object_sizes_[FIRST_CODE_KIND_SUB_TYPE + sub_type] += size;
+      } else if (type == FIXED_ARRAY_TYPE) {
+        ASSERT(sub_type <= LAST_FIXED_ARRAY_SUB_TYPE);
+        object_counts_[FIRST_FIXED_ARRAY_SUB_TYPE + sub_type]++;
+        object_sizes_[FIRST_FIXED_ARRAY_SUB_TYPE + sub_type] += size;
+      }
+    }
   }
 
   void CheckpointObjectStats();
+
+  // We don't use a ScopedLock here since we want to lock the heap
+  // only when FLAG_parallel_recompilation is true.
+  class RelocationLock {
+   public:
+    explicit RelocationLock(Heap* heap) : heap_(heap) {
+      if (FLAG_parallel_recompilation) {
+        heap_->relocation_mutex_->Lock();
+      }
+    }
+    ~RelocationLock() {
+      if (FLAG_parallel_recompilation) {
+        heap_->relocation_mutex_->Unlock();
+      }
+    }
+
+   private:
+    Heap* heap_;
+  };
 
  private:
   Heap();
@@ -1656,7 +1698,7 @@ class Heap {
   // Returns the amount of external memory registered since last global gc.
   intptr_t PromotedExternalMemorySize();
 
-  int ms_count_;  // how many mark-sweep collections happened
+  unsigned int ms_count_;  // how many mark-sweep collections happened
   unsigned int gc_count_;  // how many gc happened
 
   // For post mortem debugging.
@@ -2004,10 +2046,10 @@ class Heap {
   static const int kInitialNumberStringCacheSize = 256;
 
   // Object counts and used memory by InstanceType
-  size_t object_counts_[LAST_TYPE + 1];
-  size_t object_counts_last_time_[LAST_TYPE + 1];
-  size_t object_sizes_[LAST_TYPE + 1];
-  size_t object_sizes_last_time_[LAST_TYPE + 1];
+  size_t object_counts_[OBJECT_STATS_COUNT];
+  size_t object_counts_last_time_[OBJECT_STATS_COUNT];
+  size_t object_sizes_[OBJECT_STATS_COUNT];
+  size_t object_sizes_last_time_[OBJECT_STATS_COUNT];
 
   // Maximum GC pause.
   int max_gc_pause_;
@@ -2056,6 +2098,8 @@ class Heap {
 
   MemoryChunk* chunks_queued_for_free_;
 
+  Mutex* relocation_mutex_;
+
   friend class Factory;
   friend class GCTracer;
   friend class DisallowAllocationFailure;
@@ -2064,7 +2108,7 @@ class Heap {
   friend class Page;
   friend class Isolate;
   friend class MarkCompactCollector;
-  friend class StaticMarkingVisitor;
+  friend class MarkCompactMarkingVisitor;
   friend class MapCompact;
 
   DISALLOW_COPY_AND_ASSIGN(Heap);
@@ -2379,6 +2423,7 @@ class AssertNoAllocation {
 #ifdef DEBUG
  private:
   bool old_state_;
+  bool active_;
 #endif
 };
 
@@ -2391,6 +2436,7 @@ class DisableAssertNoAllocation {
 #ifdef DEBUG
  private:
   bool old_state_;
+  bool active_;
 #endif
 };
 

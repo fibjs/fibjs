@@ -1952,12 +1952,12 @@ int BinarySearch(T* array, String* name, int low, int high) {
 // Perform a linear search in this fixed array. len is the number of entry
 // indices that are valid.
 template<typename T>
-int LinearSearch(T* array, SearchMode mode, String* name, int len) {
+int LinearSearch(T* array, String* name, int len) {
   uint32_t hash = name->Hash();
   for (int number = 0; number < len; number++) {
     String* entry = array->GetKey(number);
     uint32_t current_hash = entry->Hash();
-    if (mode == EXPECT_SORTED && current_hash > hash) break;
+    if (current_hash > hash) break;
     if (current_hash == hash && name->Equals(entry)) return number;
   }
   return T::kNotFound;
@@ -1975,7 +1975,7 @@ int Search(T* array, String* name) {
   // Fast case: do linear search for small arrays.
   const int kMaxElementsForLinearSearch = 8;
   if (StringShape(name).IsSymbol() && nof < kMaxElementsForLinearSearch) {
-    return LinearSearch(array, EXPECT_SORTED, name, nof);
+    return LinearSearch(array, name, nof);
   }
 
   // Slow case: perform binary search.
@@ -2110,13 +2110,26 @@ void DescriptorArray::Set(int descriptor_number,
 }
 
 
-void DescriptorArray::Append(Descriptor* desc,
-                             const WhitenessWitness& witness) {
-  int descriptor_number = NumberOfSetDescriptors();
+int DescriptorArray::Append(Descriptor* desc,
+                            const WhitenessWitness& witness,
+                            int number_of_set_descriptors) {
+  int descriptor_number = number_of_set_descriptors;
   int enumeration_index = descriptor_number + 1;
   desc->SetEnumerationIndex(enumeration_index);
+
+  uint32_t hash = desc->GetKey()->Hash();
+
+  for (; descriptor_number > 0; --descriptor_number) {
+    String* key = GetKey(descriptor_number - 1);
+    if (key->Hash() <= hash) break;
+    Object* value = GetValue(descriptor_number - 1);
+    PropertyDetails details = GetDetails(descriptor_number - 1);
+    Descriptor moved_descriptor(key, value, details);
+    Set(descriptor_number, &moved_descriptor, witness);
+  }
+
   Set(descriptor_number, desc, witness);
-  SetLastAdded(descriptor_number);
+  return descriptor_number;
 }
 
 
@@ -2434,9 +2447,10 @@ String* SlicedString::parent() {
 }
 
 
-void SlicedString::set_parent(String* parent) {
+void SlicedString::set_parent(String* parent, WriteBarrierMode mode) {
   ASSERT(parent->IsSeqString() || parent->IsExternalString());
   WRITE_FIELD(this, kParentOffset, parent);
+  CONDITIONAL_WRITE_BARRIER(GetHeap(), this, kParentOffset, parent, mode);
 }
 
 
@@ -2940,16 +2954,12 @@ bool Map::has_non_instance_prototype() {
 
 
 void Map::set_function_with_prototype(bool value) {
-  if (value) {
-    set_bit_field3(bit_field3() | (1 << kFunctionWithPrototype));
-  } else {
-    set_bit_field3(bit_field3() & ~(1 << kFunctionWithPrototype));
-  }
+  set_bit_field3(FunctionWithPrototype::update(bit_field3(), value));
 }
 
 
 bool Map::function_with_prototype() {
-  return ((1 << kFunctionWithPrototype) & bit_field3()) != 0;
+  return FunctionWithPrototype::decode(bit_field3());
 }
 
 
@@ -2994,15 +3004,11 @@ bool Map::attached_to_shared_function_info() {
 
 
 void Map::set_is_shared(bool value) {
-  if (value) {
-    set_bit_field3(bit_field3() | (1 << kIsShared));
-  } else {
-    set_bit_field3(bit_field3() & ~(1 << kIsShared));
-  }
+  set_bit_field3(IsShared::update(bit_field3(), value));
 }
 
 bool Map::is_shared() {
-  return ((1 << kIsShared) & bit_field3()) != 0;
+  return IsShared::decode(bit_field3());
 }
 
 
@@ -3488,6 +3494,40 @@ void Map::set_instance_descriptors(DescriptorArray* value,
 }
 
 
+void Map::InitializeDescriptors(DescriptorArray* descriptors) {
+  int len = descriptors->number_of_descriptors();
+  ASSERT(len <= DescriptorArray::kMaxNumberOfDescriptors);
+  SLOW_ASSERT(descriptors->IsSortedNoDuplicates());
+
+#ifdef DEBUG
+  bool used_indices[DescriptorArray::kMaxNumberOfDescriptors];
+  for (int i = 0; i < len; ++i) used_indices[i] = false;
+
+  // Ensure that all enumeration indexes between 1 and length occur uniquely in
+  // the descriptor array.
+  for (int i = 0; i < len; ++i) {
+    int enum_index = descriptors->GetDetails(i).index() -
+                     PropertyDetails::kInitialIndex;
+    ASSERT(0 <= enum_index && enum_index < len);
+    ASSERT(!used_indices[enum_index]);
+    used_indices[enum_index] = true;
+  }
+#endif
+
+  set_instance_descriptors(descriptors);
+
+  for (int i = 0; i < len; ++i) {
+    if (descriptors->GetDetails(i).index() == len) {
+      SetLastAdded(i);
+      break;
+    }
+  }
+
+  ASSERT((len == 0 && LastAdded() == kNoneAdded) ||
+         len == descriptors->GetDetails(LastAdded()).index());
+}
+
+
 SMI_ACCESSORS(Map, bit_field3, kBitField3Offset)
 
 
@@ -3506,6 +3546,14 @@ void Map::ClearDescriptorArray(Heap* heap, WriteBarrierMode mode) {
       heap, this, kInstanceDescriptorsOrBackPointerOffset, back_pointer, mode);
 }
 
+
+void Map::AppendDescriptor(Descriptor* desc,
+                           const DescriptorArray::WhitenessWitness& witness) {
+  DescriptorArray* descriptors = instance_descriptors();
+  int set_descriptors = NumberOfSetDescriptors();
+  int new_last_added = descriptors->Append(desc, witness, set_descriptors);
+  SetLastAdded(new_last_added);
+}
 
 
 Object* Map::GetBackPointer() {
@@ -3531,6 +3579,14 @@ bool Map::HasTransitionArray() {
 
 Map* Map::elements_transition_map() {
   return transitions()->elements_transition();
+}
+
+
+bool Map::CanHaveMoreTransitions() {
+  if (!HasTransitionArray()) return true;
+  return FixedArray::SizeFor(transitions()->length() +
+                             TransitionArray::kTransitionSize)
+      <= Page::kMaxNonCodeHeapObjectSize;
 }
 
 
@@ -3653,12 +3709,12 @@ void Map::SetBackPointer(Object* value, WriteBarrierMode mode) {
   ASSERT((value->IsUndefined() && GetBackPointer()->IsMap()) ||
          (value->IsMap() && GetBackPointer()->IsUndefined()));
   Object* object = READ_FIELD(this, kInstanceDescriptorsOrBackPointerOffset);
-  if (object->IsMap()) {
+  if (object->IsDescriptorArray()) {
+    DescriptorArray::cast(object)->set_back_pointer_storage(value);
+  } else {
     WRITE_FIELD(this, kInstanceDescriptorsOrBackPointerOffset, value);
     CONDITIONAL_WRITE_BARRIER(
         GetHeap(), this, kInstanceDescriptorsOrBackPointerOffset, value, mode);
-  } else {
-    DescriptorArray::cast(object)->set_back_pointer_storage(value);
   }
 }
 
@@ -4202,6 +4258,18 @@ bool JSFunction::IsMarkedForLazyRecompilation() {
 }
 
 
+bool JSFunction::IsMarkedForParallelRecompilation() {
+  return code() ==
+      GetIsolate()->builtins()->builtin(Builtins::kParallelRecompile);
+}
+
+
+bool JSFunction::IsInRecompileQueue() {
+  return code() == GetIsolate()->builtins()->builtin(
+      Builtins::kInRecompileQueue);
+}
+
+
 Code* JSFunction::code() {
   return Code::cast(unchecked_code());
 }
@@ -4301,7 +4369,7 @@ MaybeObject* JSFunction::set_initial_map_and_cache_transitions(
       Map* new_map;
       ElementsKind next_kind = GetFastElementsKindFromSequenceIndex(i);
       MaybeObject* maybe_new_map =
-          current_map->CreateNextElementsTransition(next_kind);
+          current_map->CopyAsElementsKind(next_kind, INSERT_TRANSITION);
       if (!maybe_new_map->To(&new_map)) return maybe_new_map;
       maps->set(next_kind, new_map);
       current_map = new_map;

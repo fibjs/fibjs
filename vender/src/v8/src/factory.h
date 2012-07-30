@@ -227,8 +227,7 @@ class Factory {
   // Copy the map adding more inobject properties if possible without
   // overflowing the instance size.
   Handle<Map> CopyMap(Handle<Map> map, int extra_inobject_props);
-
-  Handle<Map> CopyMapDropTransitions(Handle<Map> map);
+  Handle<Map> CopyMap(Handle<Map> map);
 
   Handle<Map> GetElementsTransitionMap(Handle<JSObject> object,
                                        ElementsKind elements_kind);
@@ -386,12 +385,6 @@ class Factory {
   Handle<JSFunction> NewFunctionWithoutPrototype(Handle<String> name,
                                                  Handle<Code> code);
 
-  Handle<DescriptorArray> CopyAppendForeignDescriptor(
-      Handle<DescriptorArray> array,
-      Handle<String> key,
-      Handle<Object> value,
-      PropertyAttributes attributes);
-
   Handle<String> NumberToString(Handle<Object> number);
   Handle<String> Uint32ToString(uint32_t value);
 
@@ -502,10 +495,6 @@ class Factory {
   Handle<JSFunction> NewFunctionWithoutPrototypeHelper(
       Handle<String> name,
       LanguageMode language_mode);
-
-  Handle<DescriptorArray> CopyAppendCallbackDescriptors(
-      Handle<DescriptorArray> array,
-      Handle<Object> descriptors);
 
   // Create a new map cache.
   Handle<MapCache> NewMapCache(int at_least_space_for);

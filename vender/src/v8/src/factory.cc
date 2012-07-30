@@ -496,10 +496,8 @@ Handle<Map> Factory::CopyMap(Handle<Map> src,
 }
 
 
-Handle<Map> Factory::CopyMapDropTransitions(Handle<Map> src) {
-  CALL_HEAP_FUNCTION(isolate(),
-                     src->CopyDropTransitions(DescriptorArray::MAY_BE_SHARED),
-                     Map);
+Handle<Map> Factory::CopyMap(Handle<Map> src) {
+  CALL_HEAP_FUNCTION(isolate(), src->Copy(DescriptorArray::MAY_BE_SHARED), Map);
 }
 
 
@@ -888,93 +886,9 @@ Handle<Code> Factory::CopyCode(Handle<Code> code, Vector<byte> reloc_info) {
 }
 
 
-MUST_USE_RESULT static inline MaybeObject* DoCopyAdd(
-    DescriptorArray* array,
-    String* key,
-    Object* value,
-    PropertyAttributes attributes) {
-  CallbacksDescriptor desc(key, value, attributes);
-  MaybeObject* obj = array->CopyAdd(&desc);
-  return obj;
-}
-
-
-// Allocate the new array.
-Handle<DescriptorArray> Factory::CopyAppendForeignDescriptor(
-    Handle<DescriptorArray> array,
-    Handle<String> key,
-    Handle<Object> value,
-    PropertyAttributes attributes) {
-  CALL_HEAP_FUNCTION(isolate(),
-                     DoCopyAdd(*array, *key, *value, attributes),
-                     DescriptorArray);
-}
-
-
 Handle<String> Factory::SymbolFromString(Handle<String> value) {
   CALL_HEAP_FUNCTION(isolate(),
                      isolate()->heap()->LookupSymbol(*value), String);
-}
-
-
-Handle<DescriptorArray> Factory::CopyAppendCallbackDescriptors(
-    Handle<DescriptorArray> array,
-    Handle<Object> descriptors) {
-  v8::NeanderArray callbacks(descriptors);
-  int nof_callbacks = callbacks.length();
-  int descriptor_count = array->number_of_descriptors();
-  Handle<DescriptorArray> result =
-      NewDescriptorArray(descriptor_count + nof_callbacks);
-
-  // Ensure that marking will not progress and change color of objects.
-  DescriptorArray::WhitenessWitness witness(*result);
-
-  // Copy the descriptors from the array.
-  if (0 < descriptor_count) {
-    result->SetLastAdded(array->LastAdded());
-    for (int i = 0; i < descriptor_count; i++) {
-      result->CopyFrom(i, *array, i, witness);
-    }
-  }
-
-  // Fill in new callback descriptors.  Process the callbacks from
-  // back to front so that the last callback with a given name takes
-  // precedence over previously added callbacks with that name.
-  for (int i = nof_callbacks - 1; i >= 0; i--) {
-    Handle<AccessorInfo> entry =
-        Handle<AccessorInfo>(AccessorInfo::cast(callbacks.get(i)));
-    // Ensure the key is a symbol before writing into the instance descriptor.
-    Handle<String> key =
-        SymbolFromString(Handle<String>(String::cast(entry->name())));
-    // Check if a descriptor with this name already exists before writing.
-    if (LinearSearch(*result,
-                     EXPECT_UNSORTED,
-                     *key,
-                     result->NumberOfSetDescriptors()) ==
-        DescriptorArray::kNotFound) {
-      CallbacksDescriptor desc(*key, *entry, entry->property_attributes());
-      result->Append(&desc, witness);
-    }
-  }
-
-  int new_number_of_descriptors = result->NumberOfSetDescriptors();
-  // Return the old descriptor array if there were no new elements.
-  if (new_number_of_descriptors == descriptor_count) return array;
-
-  // If duplicates were detected, allocate a result of the right size
-  // and transfer the elements.
-  if (new_number_of_descriptors < result->length()) {
-    Handle<DescriptorArray> new_result =
-        NewDescriptorArray(new_number_of_descriptors);
-    for (int i = 0; i < new_number_of_descriptors; i++) {
-      new_result->CopyFrom(i, *result, i, witness);
-    }
-    result = new_result;
-  }
-
-  // Sort the result before returning.
-  result->Sort(witness);
-  return result;
 }
 
 
@@ -1362,19 +1276,14 @@ Handle<JSFunction> Factory::CreateApiFunction(
   result->shared()->DontAdaptArguments();
 
   // Recursively copy parent templates' accessors, 'data' may be modified.
-  Handle<DescriptorArray> array =
-      Handle<DescriptorArray>(map->instance_descriptors());
   while (true) {
     Handle<Object> props = Handle<Object>(obj->property_accessors());
     if (!props->IsUndefined()) {
-      array = CopyAppendCallbackDescriptors(array, props);
+      Map::CopyAppendCallbackDescriptors(map, props);
     }
     Handle<Object> parent = Handle<Object>(obj->parent_template());
     if (parent->IsUndefined()) break;
     obj = Handle<FunctionTemplateInfo>::cast(parent);
-  }
-  if (!array->IsEmpty()) {
-    map->set_instance_descriptors(*array);
   }
 
   ASSERT(result->shared()->IsApiFunction());

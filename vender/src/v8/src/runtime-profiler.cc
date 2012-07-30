@@ -34,6 +34,7 @@
 #include "compilation-cache.h"
 #include "deoptimizer.h"
 #include "execution.h"
+#include "full-codegen.h"
 #include "global-handles.h"
 #include "isolate-inl.h"
 #include "mark-compact.h"
@@ -81,7 +82,8 @@ STATIC_ASSERT(kTicksWhenNotEnoughTypeInfo < 256);
 
 // Maximum size in bytes of generated code for a function to be optimized
 // the very first time it is seen on the stack.
-static const int kMaxSizeEarlyOpt = 500;
+static const int kMaxSizeEarlyOpt =
+    5 * FullCodeGenerator::kBackEdgeDistanceUnit;
 
 
 Atomic32 RuntimeProfiler::state_ = 0;
@@ -151,15 +153,20 @@ void RuntimeProfiler::Optimize(JSFunction* function, const char* reason) {
     PrintF("]\n");
   }
 
-  // The next call to the function will trigger optimization.
-  function->MarkForLazyRecompilation();
+  if (FLAG_parallel_recompilation) {
+    function->MarkForParallelRecompilation();
+  } else {
+    // The next call to the function will trigger optimization.
+    function->MarkForLazyRecompilation();
+  }
 }
 
 
 void RuntimeProfiler::AttemptOnStackReplacement(JSFunction* function) {
   // See AlwaysFullCompiler (in compiler.cc) comment on why we need
   // Debug::has_break_points().
-  ASSERT(function->IsMarkedForLazyRecompilation());
+  ASSERT(function->IsMarkedForLazyRecompilation() ||
+         function->IsMarkedForParallelRecompilation());
   if (!FLAG_use_osr ||
       isolate_->DebuggerHasBreakPoints() ||
       function->IsBuiltin()) {
@@ -278,7 +285,8 @@ void RuntimeProfiler::OptimizeNow() {
 
     if (shared_code->kind() != Code::FUNCTION) continue;
 
-    if (function->IsMarkedForLazyRecompilation()) {
+    if (function->IsMarkedForLazyRecompilation() ||
+        function->IsMarkedForParallelRecompilation()) {
       int nesting = shared_code->allow_osr_at_loop_nesting_level();
       if (nesting == 0) AttemptOnStackReplacement(function);
       int new_nesting = Min(nesting + 1, Code::kMaxLoopNestingMarker);
@@ -311,8 +319,6 @@ void RuntimeProfiler::OptimizeNow() {
     }
     if (!function->IsOptimizable()) continue;
 
-
-
     if (FLAG_watch_ic_patching) {
       int ticks = shared_code->profiler_ticks();
 
@@ -335,7 +341,7 @@ void RuntimeProfiler::OptimizeNow() {
           }
         }
       } else if (!any_ic_changed_ &&
-          shared_code->instruction_size() < kMaxSizeEarlyOpt) {
+                 shared_code->instruction_size() < kMaxSizeEarlyOpt) {
         // If no IC was patched since the last tick and this function is very
         // small, optimistically optimize it now.
         Optimize(function, "small function");

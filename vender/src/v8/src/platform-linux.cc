@@ -136,6 +136,9 @@ bool OS::ArmCpuHasFeature(CpuFeature feature) {
   // facility is universally available on the ARM architectures,
   // so it's up to individual OSes to provide such.
   switch (feature) {
+    case VFP2:
+      search_string = "vfp";
+      break;
     case VFP3:
       search_string = "vfpv3";
       break;
@@ -907,6 +910,7 @@ Semaphore* OS::CreateSemaphore(int count) {
   return new LinuxSemaphore(count);
 }
 #endif
+
 
 #if !defined(__GLIBC__) && (defined(__arm__) || defined(__thumb__))
 // Android runs a fairly new Linux kernel, so signal info is there,

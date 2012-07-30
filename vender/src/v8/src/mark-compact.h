@@ -396,7 +396,6 @@ template<class BaseMarker> class Marker {
   void MarkMapContents(Map* map);
   void MarkDescriptorArray(DescriptorArray* descriptors);
   void MarkTransitionArray(TransitionArray* transitions);
-  void MarkAccessorPairSlot(AccessorPair* accessors, int offset);
 
  private:
   BaseMarker* base_marker() {
@@ -637,7 +636,7 @@ class MarkCompactCollector {
 
   friend class RootMarkingVisitor;
   friend class MarkingVisitor;
-  friend class StaticMarkingVisitor;
+  friend class MarkCompactMarkingVisitor;
   friend class CodeMarkingVisitor;
   friend class SharedFunctionInfoMarkingVisitor;
   friend class Marker<IncrementalMarking>;

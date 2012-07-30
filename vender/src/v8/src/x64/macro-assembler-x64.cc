@@ -746,13 +746,13 @@ void MacroAssembler::CallApiFunctionAndReturn(Address function_address,
   LeaveApiExitFrame();
   ret(stack_space * kPointerSize);
 
-  bind(&promote_scheduled_exception);
-  TailCallRuntime(Runtime::kPromoteScheduledException, 0, 1);
-
   bind(&empty_result);
   // It was zero; the result is undefined.
-  Move(rax, factory->undefined_value());
+  LoadRoot(rax, Heap::kUndefinedValueRootIndex);
   jmp(&prologue);
+
+  bind(&promote_scheduled_exception);
+  TailCallRuntime(Runtime::kPromoteScheduledException, 0, 1);
 
   // HandleScope limit has changed. Delete allocated extensions.
   bind(&delete_allocated_handles);
@@ -4473,7 +4473,7 @@ void MacroAssembler::CheckEnumCache(Register null_value, Label* call_runtime) {
   // Check that there is an enum cache in the non-empty instance
   // descriptors (rdx).  This is the case if the next enumeration
   // index field does not contain a smi.
-  movq(rdx, FieldOperand(rdx, DescriptorArray::kLastAddedOffset));
+  movq(rdx, FieldOperand(rdx, DescriptorArray::kEnumCacheOffset));
   JumpIfSmi(rdx, call_runtime);
 
   // For all objects but the receiver, check that the cache is empty.

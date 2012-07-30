@@ -1368,6 +1368,12 @@
     <ClCompile Include="src\umysql\SHA1.cpp">
       <Filter>Source Files\umysql</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\extensions\statistics-extension.cc">
+      <Filter>Source Files\v8\src\extensions</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\optimizing-compiler-thread.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -2557,6 +2563,15 @@
     </ClInclude>
     <ClInclude Include="include\umysql\umysql.h">
       <Filter>Header Files\umysql</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\extensions\statistics-extension.h">
+      <Filter>Source Files\v8\src\extensions</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\optimizing-compiler-thread.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\smart-pointers.h">
+      <Filter>Source Files\v8\src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
