@@ -171,6 +171,7 @@
     <ClCompile Include="src\png\pngwrite.c" />
     <ClCompile Include="src\png\pngwtran.c" />
     <ClCompile Include="src\png\pngwutil.c" />
+    <ClCompile Include="src\sqlite\sqlite3.c" />
     <ClCompile Include="src\tiff\tif_aux.c" />
     <ClCompile Include="src\tiff\tif_close.c" />
     <ClCompile Include="src\tiff\tif_codec.c" />
@@ -446,6 +447,7 @@
     <ClCompile Include="src\zmq\src\zmq_xsub.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\sqlite3.h" />
     <ClInclude Include="include\umysql\mysqldefs.h" />
     <ClInclude Include="include\umysql\umysql.h" />
     <ClInclude Include="include\uuid.h" />
@@ -526,6 +528,7 @@
     <ClInclude Include="src\png\pnginfo.h" />
     <ClInclude Include="src\png\pngpriv.h" />
     <ClInclude Include="src\png\pngstruct.h" />
+    <ClInclude Include="src\sqlite\sqlite3.h" />
     <ClInclude Include="src\tiff\t4.h" />
     <ClInclude Include="src\tiff\tiff.h" />
     <ClInclude Include="src\tiff\tiffio.h" />

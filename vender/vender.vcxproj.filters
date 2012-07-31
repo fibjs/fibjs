@@ -97,6 +97,9 @@
     <Filter Include="Header Files\umysql">
       <UniqueIdentifier>{c9e64467-094d-4b83-9a97-83952a7df8be}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\sqlite">
+      <UniqueIdentifier>{e48fd9a0-ee2d-4735-8504-55bbb018d6da}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zlib\adler32.c">
@@ -1374,6 +1377,9 @@
     <ClCompile Include="src\v8\src\optimizing-compiler-thread.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\sqlite\sqlite3.c">
+      <Filter>Source Files\sqlite</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -2572,6 +2578,12 @@
     </ClInclude>
     <ClInclude Include="src\v8\src\smart-pointers.h">
       <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\sqlite\sqlite3.h">
+      <Filter>Source Files\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="include\sqlite3.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
