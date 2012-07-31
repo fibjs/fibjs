@@ -60,4 +60,11 @@ result_t db_base::openSQLite(const char* connString,
 	return 0;
 }
 
+result_t db_base::format(const char* sql, const v8::Arguments& args,
+		std::string& retVal)
+{
+	retVal = sql;
+	return 0;
+}
+
 }

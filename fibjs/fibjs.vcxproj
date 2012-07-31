@@ -27,6 +27,7 @@
     <ClCompile Include="src\Condition.cpp" />
     <ClCompile Include="src\Console.cpp" />
     <ClCompile Include="src\coroutine.cpp" />
+    <ClCompile Include="src\date.cpp" />
     <ClCompile Include="src\db.cpp" />
     <ClCompile Include="src\DBResult.cpp" />
     <ClCompile Include="src\DBRow.cpp" />
@@ -62,6 +63,7 @@
     <ClCompile Include="src\utf8.cpp" />
     <ClCompile Include="src\util.cpp" />
     <ClCompile Include="src\uuidVar.cpp" />
+    <ClCompile Include="src\Variant.cpp" />
     <ClCompile Include="src\zmqSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -127,6 +129,7 @@
     <ClInclude Include="include\ObjectArray.h" />
     <ClInclude Include="include\obj_ptr.h" />
     <ClInclude Include="include\qstring.h" />
+    <ClInclude Include="include\QuickArray.h" />
     <ClInclude Include="include\Runtime.h" />
     <ClInclude Include="include\Semaphore.h" />
     <ClInclude Include="include\Socket.h" />

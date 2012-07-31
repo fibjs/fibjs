@@ -7,5 +7,5 @@ class DbConnection : object
 	beginTrans();
 	commitTrans();
 	rollBack();
-	DBResult execute(String sql);
+	DBResult execute(String sql, ...);
 };

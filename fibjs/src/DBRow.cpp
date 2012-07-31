@@ -39,7 +39,7 @@ result_t DBRow::toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	for (i = 0; i < (int32_t) m_cols.size(); i++)
 	{
 		std::string& s = m_fields->name(i);
-		retVal->Set(v8::String::New(s.c_str(), s.length()), m_cols[i]);
+		retVal->Set(v8::String::New(s.c_str(), (int)s.length()), m_cols[i]);
 	}
 
 	return 0;

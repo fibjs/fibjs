@@ -64,6 +64,8 @@ public:
 		return v8::Date::New(d);
 	}
 
+	void parse(const char* str, int len = -1);
+
 private:
 	double d;
 };

@@ -43,7 +43,7 @@ void API_closeSocket(void *sock)
 int API_connectSocket(void *sock, const char *host, int port)
 {
 	result_t hr = ((Socket*) sock)->ac_connect(host, port);
-	if(hr < 0)
+	if (hr < 0)
 	{
 		Runtime::setError(hr);
 		return 0;
@@ -66,7 +66,7 @@ int API_recvSocket(void *sock, char *buffer, int cbBuffer)
 	obj_ptr<Buffer_base> retVal;
 
 	result_t hr = ((Socket*) sock)->ac_read(cbBuffer, retVal);
-	if(hr < 0)
+	if (hr < 0)
 	{
 		Runtime::setError(hr);
 		return -1;
@@ -91,7 +91,7 @@ int API_sendSocket(void *sock, const char *buffer, int cbBuffer)
 	buf = new Buffer(strBuf);
 
 	result_t hr = ((Socket*) sock)->ac_write(buf);
-	if(hr < 0)
+	if (hr < 0)
 	{
 		Runtime::setError(hr);
 		return -1;
@@ -122,9 +122,35 @@ void API_resultRowBegin(void *result)
 int API_resultRowValue(void *result, int icolumn, UMTypeInfo *ti, void *value,
 		size_t cbValue)
 {
-	std::string s((const char*)value, cbValue);
 	Variant v;
-	v = s;
+
+	if (value)
+		switch (ti->type)
+		{
+		case MFTYPE_NULL:
+			break;
+
+		case MFTYPE_TINY:
+		case MFTYPE_SHORT:
+		case MFTYPE_LONG:
+		case MFTYPE_INT24:
+		case MFTYPE_LONGLONG:
+		case MFTYPE_FLOAT:
+		case MFTYPE_DOUBLE:
+			v.parseNumber((const char*) value, (int) cbValue);
+			break;
+
+		case MFTYPE_DATE:
+		case MFTYPE_DATETIME:
+			v.parseDate((const char*) value, (int) cbValue);
+			break;
+
+		default:
+		{
+			std::string s((const char*) value, cbValue);
+			v = s;
+		}
+		}
 
 	((DBResult*) result)->rowValue(icolumn, v);
 	return true;
@@ -144,8 +170,9 @@ void API_destroyResult(void *result)
 void *API_resultOK(UINT64 affected, UINT64 insertId, int serverStatus,
 		const char *message, size_t len)
 {
-	puts("API_resultOK");
-	return NULL;
+	DBResult* res = new DBResult(affected, insertId);
+	res->Ref();
+	return res;
 }
 
 UMConnectionCAPI capi =
@@ -189,6 +216,9 @@ result_t mysql::connect(const char *host, int port, const char *username,
 		return hr;
 	}
 
+	m_rxBufferSize = UMConnection_GetRxBufferSize(m_conn);
+	m_txBufferSize = UMConnection_GetTxBufferSize(m_conn);
+
 	return 0;
 }
 
@@ -206,22 +236,28 @@ result_t mysql::close()
 
 result_t mysql::use(const char* dbName)
 {
-	return 0;
+	obj_ptr<DBResult_base> retVal;
+	std::string s("USE ", 4);
+	s.append(dbName);
+	return execute(s.c_str(), retVal);
 }
 
 result_t mysql::beginTrans()
 {
-	return 0;
+	obj_ptr<DBResult_base> retVal;
+	return execute("START TRANSACTION", retVal);
 }
 
 result_t mysql::commitTrans()
 {
-	return 0;
+	obj_ptr<DBResult_base> retVal;
+	return execute("COMMIT", retVal);
 }
 
 result_t mysql::rollBack()
 {
-	return 0;
+	obj_ptr<DBResult_base> retVal;
+	return execute("ROLLBACK", retVal);
 }
 
 result_t mysql::execute(const char* sql, obj_ptr<DBResult_base>& retVal)
@@ -239,13 +275,26 @@ result_t mysql::execute(const char* sql, obj_ptr<DBResult_base>& retVal)
 	return 0;
 }
 
+result_t mysql::execute(const char* sql, const v8::Arguments& args,
+		obj_ptr<DBResult_base>& retVal)
+{
+	std::string str;
+	result_t hr = db_base::format(sql, args, str);
+	if (hr < 0)
+		return hr;
+
+	return execute(str.c_str(), retVal);
+}
+
 result_t mysql::get_rxBufferSize(int32_t& retVal)
 {
+	retVal = m_rxBufferSize;
 	return 0;
 }
 
 result_t mysql::get_txBufferSize(int32_t& retVal)
 {
+	retVal = m_txBufferSize;
 	return 0;
 }
 

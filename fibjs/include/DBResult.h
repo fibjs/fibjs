@@ -18,9 +18,14 @@ namespace fibjs
 class DBResult: public DBResult_base
 {
 public:
-	DBResult(int32_t sz)
+	DBResult(int64_t affected, int64_t insertId) :
+			m_size(0), m_affected(affected), m_insertId(insertId)
 	{
-		m_size = sz;
+	}
+
+	DBResult(int32_t sz) :
+			m_size(sz), m_affected(0), m_insertId(0)
+	{
 		m_fields = new DBField(sz);
 	}
 
@@ -67,6 +72,8 @@ public:
 private:
 	ObjectArray::array m_array;
 	int32_t m_size;
+	int64_t m_affected;
+	int64_t m_insertId;
 	obj_ptr<DBField> m_fields;
 	obj_ptr<DBRow> m_nowRow;
 };

@@ -117,7 +117,7 @@ public:
 				else
 				{
 					m_type = VT_Number;
-					m_Val.doubleVal = n;
+					m_Val.dblVal = n;
 				}
 			}
 			else
@@ -153,7 +153,7 @@ public:
 
 	operator double() const
 	{
-		return m_Val.doubleVal;
+		return m_Val.dblVal;
 	}
 
 	operator const date_t&() const
@@ -179,7 +179,7 @@ public:
 		case VT_Long:
 			return v8::Number::New((double) m_Val.longVal);
 		case VT_Number:
-			return v8::Number::New(m_Val.doubleVal);
+			return v8::Number::New(m_Val.dblVal);
 		case VT_Date:
 			return *(date_t*) m_Val.dateVal;
 		case VT_String:
@@ -192,6 +192,13 @@ public:
 		return v8::Undefined();
 	}
 
+	void parseNumber(const char* str, int len = -1);
+	void parseDate(const char* str, int len = -1)
+	{
+		m_type = VT_Date;
+		((date_t*) m_Val.dateVal)->parse(str, len);
+	}
+
 private:
 	Type m_type;
 	union
@@ -199,7 +206,7 @@ private:
 		bool boolVal;
 		int32_t intVal;
 		int64_t longVal;
-		double doubleVal;
+		double dblVal;
 		char dateVal[sizeof(date_t)];
 		char strVal[sizeof(std::string)];
 	} m_Val;

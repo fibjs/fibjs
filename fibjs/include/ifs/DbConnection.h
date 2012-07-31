@@ -27,7 +27,7 @@ public:
 	virtual result_t beginTrans() = 0;
 	virtual result_t commitTrans() = 0;
 	virtual result_t rollBack() = 0;
-	virtual result_t execute(const char* sql, obj_ptr<DBResult_base>& retVal) = 0;
+	virtual result_t execute(const char* sql, const v8::Arguments& args, obj_ptr<DBResult_base>& retVal) = 0;
 
 public:
 	static ClassInfo& class_info();
@@ -133,11 +133,11 @@ namespace fibjs
 		obj_ptr<DBResult_base> vr;
 
 		METHOD_INSTANCE(DbConnection_base);
-		METHOD_ENTER(1, 1);
+		METHOD_ENTER(-1, 1);
 
 		ARG_String(0);
 
-		hr = pInst->execute(v0, vr);
+		hr = pInst->execute(v0, args, vr);
 
 		METHOD_RETURN();
 	}

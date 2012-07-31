@@ -18,7 +18,7 @@ class mysql: public MySQL_base
 {
 public:
 	mysql() :
-			m_conn(NULL)
+			m_conn(NULL), m_rxBufferSize(0), m_txBufferSize(0)
 	{
 	}
 
@@ -34,7 +34,7 @@ public:
 	virtual result_t beginTrans();
 	virtual result_t commitTrans();
 	virtual result_t rollBack();
-	virtual result_t execute(const char* sql, obj_ptr<DBResult_base>& retVal);
+	virtual result_t execute(const char* sql, const v8::Arguments& args, obj_ptr<DBResult_base>& retVal);
 
 public:
 	// MySQL_base
@@ -44,6 +44,7 @@ public:
 public:
 	result_t connect(const char *host, int port, const char *username,
 			const char *password, const char *dbName);
+	result_t execute(const char* sql, obj_ptr<DBResult_base>& retVal);
 
 private:
 	inline result_t error()
@@ -60,6 +61,8 @@ private:
 
 private:
 	UMConnection m_conn;
+	int m_rxBufferSize;
+	int m_txBufferSize;
 };
 
 } /* namespace fibjs */

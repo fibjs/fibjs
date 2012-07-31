@@ -12,4 +12,5 @@ class db : module
 	static MySQL openMySQL(String connString);
 	static MySQL openMySQL(String host, Integer port, String username, String password, String dbName = "");
 	static DbConnection openSQLite(String connString);
+	static String format(String sql, ...);
 };

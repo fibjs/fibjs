@@ -29,6 +29,7 @@ public:
 	static result_t openMySQL(const char* connString, obj_ptr<MySQL_base>& retVal);
 	static result_t openMySQL(const char* host, int32_t port, const char* username, const char* password, const char* dbName, obj_ptr<MySQL_base>& retVal);
 	static result_t openSQLite(const char* connString, obj_ptr<DbConnection_base>& retVal);
+	static result_t format(const char* sql, const v8::Arguments& args, std::string& retVal);
 
 public:
 	static ClassInfo& class_info();
@@ -42,6 +43,7 @@ public:
 	static v8::Handle<v8::Value> s_open(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_openMySQL(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_openSQLite(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_format(const v8::Arguments& args);
 };
 
 }
@@ -57,13 +59,14 @@ namespace fibjs
 		{
 			{"open", s_open, true},
 			{"openMySQL", s_openMySQL, true},
-			{"openSQLite", s_openSQLite, true}
+			{"openSQLite", s_openSQLite, true},
+			{"format", s_format, true}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"db", NULL, 
-			3, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			4, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -117,6 +120,19 @@ namespace fibjs
 		ARG_String(0);
 
 		hr = openSQLite(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> db_base::s_format(const v8::Arguments& args)
+	{
+		std::string vr;
+
+		METHOD_ENTER(-1, 1);
+
+		ARG_String(0);
+
+		hr = format(v0, args, vr);
 
 		METHOD_RETURN();
 	}
