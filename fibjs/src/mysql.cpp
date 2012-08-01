@@ -242,19 +242,19 @@ result_t mysql::use(const char* dbName)
 	return execute(s.c_str(), retVal);
 }
 
-result_t mysql::beginTrans()
+result_t mysql::begin()
 {
 	obj_ptr<DBResult_base> retVal;
-	return execute("START TRANSACTION", retVal);
+	return execute("BEGIN", retVal);
 }
 
-result_t mysql::commitTrans()
+result_t mysql::commit()
 {
 	obj_ptr<DBResult_base> retVal;
 	return execute("COMMIT", retVal);
 }
 
-result_t mysql::rollBack()
+result_t mysql::rollback()
 {
 	obj_ptr<DBResult_base> retVal;
 	return execute("ROLLBACK", retVal);

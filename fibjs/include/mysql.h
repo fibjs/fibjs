@@ -30,14 +30,14 @@ public:
 public:
 	// DbConnection_base
 	virtual result_t close();
-	virtual result_t use(const char* dbName);
-	virtual result_t beginTrans();
-	virtual result_t commitTrans();
-	virtual result_t rollBack();
+	virtual result_t begin();
+	virtual result_t commit();
+	virtual result_t rollback();
 	virtual result_t execute(const char* sql, const v8::Arguments& args, obj_ptr<DBResult_base>& retVal);
 
 public:
 	// MySQL_base
+	virtual result_t use(const char* dbName);
 	virtual result_t get_rxBufferSize(int32_t& retVal);
 	virtual result_t get_txBufferSize(int32_t& retVal);
 

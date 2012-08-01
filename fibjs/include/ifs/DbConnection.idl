@@ -3,9 +3,8 @@
 class DbConnection : object
 {
 	close();
-	use(String dbName);
-	beginTrans();
-	commitTrans();
-	rollBack();
+	begin();
+	commit();
+	rollback();
 	DBResult execute(String sql, ...);
 };

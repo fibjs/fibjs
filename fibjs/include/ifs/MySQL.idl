@@ -1,6 +1,7 @@
 
 class MySQL : DbConnection
 {
+	use(String dbName);
 	readonly Integer rxBufferSize;
 	readonly Integer txBufferSize;
 };

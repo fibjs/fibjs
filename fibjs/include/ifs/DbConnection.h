@@ -23,10 +23,9 @@ class DbConnection_base : public object_base
 public:
 	// DbConnection_base
 	virtual result_t close() = 0;
-	virtual result_t use(const char* dbName) = 0;
-	virtual result_t beginTrans() = 0;
-	virtual result_t commitTrans() = 0;
-	virtual result_t rollBack() = 0;
+	virtual result_t begin() = 0;
+	virtual result_t commit() = 0;
+	virtual result_t rollback() = 0;
 	virtual result_t execute(const char* sql, const v8::Arguments& args, obj_ptr<DBResult_base>& retVal) = 0;
 
 public:
@@ -39,10 +38,9 @@ public:
 
 public:
 	static v8::Handle<v8::Value> s_close(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_use(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_beginTrans(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_commitTrans(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_rollBack(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_begin(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_commit(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_rollback(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_execute(const v8::Arguments& args);
 };
 
@@ -57,17 +55,16 @@ namespace fibjs
 		static ClassData::ClassMethod s_method[] = 
 		{
 			{"close", s_close},
-			{"use", s_use},
-			{"beginTrans", s_beginTrans},
-			{"commitTrans", s_commitTrans},
-			{"rollBack", s_rollBack},
+			{"begin", s_begin},
+			{"commit", s_commit},
+			{"rollback", s_rollback},
 			{"execute", s_execute}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"DbConnection", NULL, 
-			6, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			5, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -86,44 +83,32 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> DbConnection_base::s_use(const v8::Arguments& args)
-	{
-		METHOD_INSTANCE(DbConnection_base);
-		METHOD_ENTER(1, 1);
-
-		ARG_String(0);
-
-		hr = pInst->use(v0);
-
-		METHOD_VOID();
-	}
-
-	inline v8::Handle<v8::Value> DbConnection_base::s_beginTrans(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> DbConnection_base::s_begin(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(DbConnection_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->beginTrans();
+		hr = pInst->begin();
 
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> DbConnection_base::s_commitTrans(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> DbConnection_base::s_commit(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(DbConnection_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->commitTrans();
+		hr = pInst->commit();
 
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> DbConnection_base::s_rollBack(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> DbConnection_base::s_rollback(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(DbConnection_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->rollBack();
+		hr = pInst->rollback();
 
 		METHOD_VOID();
 	}
