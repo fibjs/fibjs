@@ -1,4 +1,5 @@
 
+/*! @brief sqlite 数据库连接对象 */
 class SQLite : DbConnection
 {
 	/*! @brief 当前数据库文件名 */

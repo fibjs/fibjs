@@ -1,5 +1,5 @@
 
-
+/*! @brief 数据库记录对象 */
 class DBRow : object
 {
 	/*! @brief 对象数组可使用下标直接访问对象数据*/

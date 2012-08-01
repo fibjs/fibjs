@@ -1,4 +1,5 @@
 
+/*! @brief mysql 数据库连接对象 */
 class MySQL : DbConnection
 {
 	/*! @brief 选择当前数据库连接的缺省数据库
