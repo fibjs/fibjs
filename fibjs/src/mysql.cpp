@@ -111,7 +111,7 @@ void API_resultSetField(void *result, int ifield, UMTypeInfo *ti, void *name,
 		size_t cbName)
 {
 	std::string s((char*) name, cbName);
-	((DBResult*) result)->setField(ifield, ti->type, s);
+	((DBResult*) result)->setField(ifield, s);
 }
 
 void API_resultRowBegin(void *result)

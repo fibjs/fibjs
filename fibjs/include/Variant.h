@@ -66,6 +66,54 @@ public:
 		return *this;
 	}
 
+	Variant& operator=(int32_t v)
+	{
+		clear();
+
+		m_type = VT_Integer;
+		m_Val.intVal = v;
+
+		return *this;
+	}
+
+	Variant& operator=(int64_t v)
+	{
+		clear();
+
+		if (v >= -2147483648ll && v <= 2147483647ll)
+		{
+			m_type = VT_Integer;
+			m_Val.intVal = (int32_t) v;
+		}
+		else
+		{
+			m_type = VT_Long;
+			m_Val.longVal = v;
+		}
+
+		return *this;
+	}
+
+	Variant& operator=(double v)
+	{
+		clear();
+
+		m_type = VT_Number;
+		m_Val.dblVal = v;
+
+		return *this;
+	}
+
+	Variant& operator=(date_t& v)
+	{
+		clear();
+
+		m_type = VT_Date;
+		*(date_t*) m_Val.dateVal = v;
+
+		return *this;
+	}
+
 	Variant& operator=(const std::string& v)
 	{
 		if (m_type != VT_String)
@@ -78,6 +126,13 @@ public:
 			*(std::string*) m_Val.strVal = v;
 
 		return *this;
+	}
+
+	Variant& operator=(const char* v)
+	{
+		std::string s(v);
+
+		return operator=(s);
 	}
 
 	Variant& operator=(v8::Handle<v8::Value> v)

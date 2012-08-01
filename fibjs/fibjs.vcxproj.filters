@@ -162,6 +162,9 @@
     <ClCompile Include="src\Variant.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\SQLite.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -372,6 +375,12 @@
       <Filter>Header Files\include</Filter>
     </ClInclude>
     <ClInclude Include="include\QuickArray.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\SQLite.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SQLite.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>

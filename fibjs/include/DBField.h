@@ -19,14 +19,12 @@ public:
 	DBField(int32_t sz)
 	{
 		m_fields.resize(sz);
-		m_types.resize(sz);
 	}
 
 public:
-	void setField(int32_t i, int32_t type, std::string& s)
+	void setField(int32_t i, std::string& s)
 	{
 		m_fields[i] = s;
-		m_types[i] = type;
 	}
 
 	uint32_t index(const char* name)
@@ -47,7 +45,6 @@ public:
 
 private:
 	std::vector<std::string> m_fields;
-	std::vector<int32_t> m_types;
 };
 
 }

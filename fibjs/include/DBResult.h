@@ -48,9 +48,9 @@ public:
 	virtual result_t get_fields(v8::Handle<v8::Array>& retVal);
 
 public:
-	void setField(int32_t i, int32_t type, std::string& s)
+	void setField(int32_t i, std::string& s)
 	{
-		m_fields->setField(i, type, s);
+		m_fields->setField(i, s);
 	}
 
 	void beginRow()

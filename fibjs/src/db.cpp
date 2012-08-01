@@ -7,6 +7,7 @@
 
 #include "ifs/db.h"
 #include "Url.h"
+#include "SQLite.h"
 
 namespace fibjs
 {
@@ -56,6 +57,17 @@ result_t db_base::openMySQL(const char* connString, obj_ptr<MySQL_base>& retVal)
 result_t db_base::openSQLite(const char* connString,
 		obj_ptr<DbConnection_base>& retVal)
 {
+	result_t hr;
+
+	if (!qstrcmp(connString, "sqlite:", 7))
+		connString += 7;
+
+	obj_ptr<SQLite> db = new SQLite();
+	hr = db->open(connString);
+	if (hr < 0)
+		return 0;
+
+	retVal = db;
 
 	return 0;
 }

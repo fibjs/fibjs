@@ -1,0 +1,7 @@
+
+class SQLite : DbConnection
+{
+	readonly String fileName;
+	Integer timeout;
+	backup(String fileName);
+};

@@ -55,6 +55,7 @@
     <ClCompile Include="src\Socket.cpp" />
     <ClCompile Include="src\Socket_ev.cpp" />
     <ClCompile Include="src\Socket_iocp.cpp" />
+    <ClCompile Include="src\SQLite.cpp" />
     <ClCompile Include="src\Stat.cpp" />
     <ClCompile Include="src\Stream.cpp" />
     <ClCompile Include="src\test.cpp" />
@@ -113,6 +114,7 @@
     <ClInclude Include="include\ifs\path.h" />
     <ClInclude Include="include\ifs\Semaphore.h" />
     <ClInclude Include="include\ifs\Socket.h" />
+    <ClInclude Include="include\ifs\SQLite.h" />
     <ClInclude Include="include\ifs\Stat.h" />
     <ClInclude Include="include\ifs\Stream.h" />
     <ClInclude Include="include\ifs\Trigger.h" />
@@ -133,6 +135,7 @@
     <ClInclude Include="include\Runtime.h" />
     <ClInclude Include="include\Semaphore.h" />
     <ClInclude Include="include\Socket.h" />
+    <ClInclude Include="include\SQLite.h" />
     <ClInclude Include="include\Stat.h" />
     <ClInclude Include="include\Stream.h" />
     <ClInclude Include="include\Trigger.h" />
