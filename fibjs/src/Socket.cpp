@@ -370,11 +370,11 @@ result_t Socket::sendto(obj_ptr<Buffer_base>& data, const char* host,
 	return 0;
 }
 
-result_t Socket::asyncConnect(const char* addr, int32_t port)
+result_t Socket::asyncConnect(const char* host, int32_t port)
 {
-	std::string strAddr(addr);
+	std::string strHost(host);
 
-	acb_connect(strAddr, port);
+	acb_connect(strHost, port);
 	return 0;
 }
 

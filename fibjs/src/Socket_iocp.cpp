@@ -122,7 +122,7 @@ result_t net_base::backend(std::string& retVal)
 	return 0;
 }
 
-result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
+result_t Socket::connect(const char* host, int32_t port, exlib::AsyncEvent* ac)
 {
 	class asyncConnect: public asyncProc
 	{
@@ -180,10 +180,10 @@ result_t Socket::connect(const char* addr, int32_t port, exlib::AsyncEvent* ac)
 
 	addr_info.init(m_family);
 	addr_info.setPort(port);
-	if (addr_info.addr(addr) < 0)
+	if (addr_info.addr(host) < 0)
 	{
 		std::string strAddr;
-		result_t hr = net_base::resolve(addr, m_family, strAddr, ac);
+		result_t hr = net_base::resolve(host, m_family, strAddr, ac);
 		if (hr < 0)
 			return hr;
 

@@ -65,9 +65,9 @@ public:
 	virtual result_t get_remotePort(int32_t& retVal);
 	virtual result_t get_localAddress(std::string& retVal);
 	virtual result_t get_localPort(int32_t& retVal);
-	virtual result_t connect(const char* addr, int32_t port,
+	virtual result_t connect(const char* host, int32_t port,
 			exlib::AsyncEvent* ac);
-	virtual result_t asyncConnect(const char* addr, int32_t port);
+	virtual result_t asyncConnect(const char* host, int32_t port);
 	virtual result_t onconnect(v8::Handle<v8::Function> func);
 	virtual result_t bind(const char* addr, int32_t port, bool allowIPv4);
 	virtual result_t bind(int32_t port, bool allowIPv4);

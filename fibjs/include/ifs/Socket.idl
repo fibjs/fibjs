@@ -31,13 +31,13 @@ class Socket : Stream
 	 * @param host 指定对方地址或主机名
 	 * @param port 指定对方端口
 	 */
-	connect(String addr, Integer port) async;
+	connect(String host, Integer port) async;
 
 	/*! @brief 异步建立一个 tcp 连接
-	 * @param addr 指定对方地址
+	 * @param host 指定对方地址或主机名
 	 * @param port 指定对方端口
 	 */
-	asyncConnect(String addr, Integer port);
+	asyncConnect(String host, Integer port);
 
 	/*! @brief 注册 "connect" 事件，等同于 on("connect", func);
 	 * @param func 事件处理函数
