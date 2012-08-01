@@ -100,6 +100,42 @@
     <Filter Include="Source Files\sqlite">
       <UniqueIdentifier>{e48fd9a0-ee2d-4735-8504-55bbb018d6da}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\matrixssl">
+      <UniqueIdentifier>{f7089524-9a47-4bb6-8bc0-359ddea1ff25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\matrixssl\matrixssl">
+      <UniqueIdentifier>{beecfb1c-5c50-4ac1-92b3-1acc98896f4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\matrixssl\core">
+      <UniqueIdentifier>{a8f646e8-d272-40ee-b4ef-f1845117c669}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\matrixssl\crypto">
+      <UniqueIdentifier>{f82c7b4c-a094-4f2c-aff4-42bd37c40ef2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\matrixssl\core\POSIX">
+      <UniqueIdentifier>{b0bef9c3-98d6-4fdf-8d78-ba63ea2a9ee1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\matrixssl\core\WIN32">
+      <UniqueIdentifier>{d6ad46f0-f780-48b2-bbe0-31ea2f7c2cbf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\matrixssl\crypto\digest">
+      <UniqueIdentifier>{75605b7e-aea5-4d3a-b1c7-3eedd6a841de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\matrixssl\crypto\keyformat">
+      <UniqueIdentifier>{31026669-1654-462e-8d8c-38e5138147f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\matrixssl\crypto\math">
+      <UniqueIdentifier>{6ec660fa-9b2e-43d2-84cc-1908e9f9564b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\matrixssl\crypto\prng">
+      <UniqueIdentifier>{25583191-894a-43e7-8d87-1be44516c522}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\matrixssl\crypto\pubkey">
+      <UniqueIdentifier>{e6c3b98a-7cab-48e3-9372-56afe30cf7e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\matrixssl\crypto\symmetric">
+      <UniqueIdentifier>{c2ab8b1f-ee6a-41aa-b9dc-1c63aa244f6f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zlib\adler32.c">
@@ -1368,9 +1404,6 @@
     <ClCompile Include="src\umysql\PacketWriter.cpp">
       <Filter>Source Files\umysql</Filter>
     </ClCompile>
-    <ClCompile Include="src\umysql\SHA1.cpp">
-      <Filter>Source Files\umysql</Filter>
-    </ClCompile>
     <ClCompile Include="src\v8\src\extensions\statistics-extension.cc">
       <Filter>Source Files\v8\src\extensions</Filter>
     </ClCompile>
@@ -1379,6 +1412,90 @@
     </ClCompile>
     <ClCompile Include="src\sqlite\sqlite3.c">
       <Filter>Source Files\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\matrixssl\cipherSuite.c">
+      <Filter>Source Files\matrixssl\matrixssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\matrixssl\matrixssl.c">
+      <Filter>Source Files\matrixssl\matrixssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\matrixssl\matrixsslApi.c">
+      <Filter>Source Files\matrixssl\matrixssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\matrixssl\nativeCrypto.c">
+      <Filter>Source Files\matrixssl\matrixssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\matrixssl\sslDecode.c">
+      <Filter>Source Files\matrixssl\matrixssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\matrixssl\sslEncode.c">
+      <Filter>Source Files\matrixssl\matrixssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\matrixssl\sslv3.c">
+      <Filter>Source Files\matrixssl\matrixssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\matrixssl\tls.c">
+      <Filter>Source Files\matrixssl\matrixssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\core\corelib.c">
+      <Filter>Source Files\matrixssl\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\core\POSIX\osdep.c">
+      <Filter>Source Files\matrixssl\core\POSIX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\digest\hmac.c">
+      <Filter>Source Files\matrixssl\crypto\digest</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\digest\md5.c">
+      <Filter>Source Files\matrixssl\crypto\digest</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\digest\sha1.c">
+      <Filter>Source Files\matrixssl\crypto\digest</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\keyformat\asn1.c">
+      <Filter>Source Files\matrixssl\crypto\keyformat</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\keyformat\base64.c">
+      <Filter>Source Files\matrixssl\crypto\keyformat</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\keyformat\x509.c">
+      <Filter>Source Files\matrixssl\crypto\keyformat</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\math\pstm.c">
+      <Filter>Source Files\matrixssl\crypto\math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\symmetric\aes.c">
+      <Filter>Source Files\matrixssl\crypto\symmetric</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\symmetric\arc4.c">
+      <Filter>Source Files\matrixssl\crypto\symmetric</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\symmetric\des3.c">
+      <Filter>Source Files\matrixssl\crypto\symmetric</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\symmetric\rc2.c">
+      <Filter>Source Files\matrixssl\crypto\symmetric</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\pubkey\pkcs.c">
+      <Filter>Source Files\matrixssl\crypto\pubkey</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\pubkey\pubkey.c">
+      <Filter>Source Files\matrixssl\crypto\pubkey</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\pubkey\rsa.c">
+      <Filter>Source Files\matrixssl\crypto\pubkey</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\prng\prng.c">
+      <Filter>Source Files\matrixssl\crypto\prng</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\prng\yarrow.c">
+      <Filter>Source Files\matrixssl\crypto\prng</Filter>
+    </ClCompile>
+    <ClCompile Include="src\umysql\mysql_sha1.cpp">
+      <Filter>Source Files\umysql</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\core\WIN32\osdep_w.c">
+      <Filter>Source Files\matrixssl\core\WIN32</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2584,6 +2701,63 @@
     </ClInclude>
     <ClInclude Include="include\sqlite3.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\matrixssl\matrixsslApi.h">
+      <Filter>Source Files\matrixssl\matrixssl</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\matrixssl\matrixsslConfig.h">
+      <Filter>Source Files\matrixssl\matrixssl</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\matrixssl\matrixssllib.h">
+      <Filter>Source Files\matrixssl\matrixssl</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\matrixssl\version.h">
+      <Filter>Source Files\matrixssl\matrixssl</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\core\coreApi.h">
+      <Filter>Source Files\matrixssl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\core\coreConfig.h">
+      <Filter>Source Files\matrixssl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\core\list.h">
+      <Filter>Source Files\matrixssl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\core\osdep.h">
+      <Filter>Source Files\matrixssl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\core\psmalloc.h">
+      <Filter>Source Files\matrixssl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\crypto\cryptoApi.h">
+      <Filter>Source Files\matrixssl\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\crypto\cryptoConfig.h">
+      <Filter>Source Files\matrixssl\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\crypto\cryptolib.h">
+      <Filter>Source Files\matrixssl\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\crypto\digest\digest.h">
+      <Filter>Source Files\matrixssl\crypto\digest</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\crypto\keyformat\asn1.h">
+      <Filter>Source Files\matrixssl\crypto\keyformat</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\crypto\keyformat\x509.h">
+      <Filter>Source Files\matrixssl\crypto\keyformat</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\crypto\math\pstm.h">
+      <Filter>Source Files\matrixssl\crypto\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\crypto\symmetric\symmetric.h">
+      <Filter>Source Files\matrixssl\crypto\symmetric</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\crypto\pubkey\pubkey.h">
+      <Filter>Source Files\matrixssl\crypto\pubkey</Filter>
+    </ClInclude>
+    <ClInclude Include="src\matrixssl\crypto\prng\prng.h">
+      <Filter>Source Files\matrixssl\crypto\prng</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
