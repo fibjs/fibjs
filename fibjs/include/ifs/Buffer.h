@@ -28,6 +28,8 @@ public:
 	virtual result_t resize(int32_t sz) = 0;
 	virtual result_t write(const char* str) = 0;
 	virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
+	virtual result_t hex(std::string& retVal) = 0;
+	virtual result_t base64(std::string& retVal) = 0;
 
 public:
 	static ClassInfo& class_info();
@@ -55,6 +57,8 @@ public:
 	static v8::Handle<v8::Value> s_resize(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_write(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_slice(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_hex(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_base64(const v8::Arguments& args);
 };
 
 }
@@ -67,7 +71,9 @@ namespace fibjs
 		{
 			{"resize", s_resize},
 			{"write", s_write},
-			{"slice", s_slice}
+			{"slice", s_slice},
+			{"hex", s_hex},
+			{"base64", s_base64}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -83,7 +89,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Buffer", s__new, 
-			3, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
+			5, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
 			&object_base::class_info()
 		};
 
@@ -180,6 +186,30 @@ namespace fibjs
 		OPT_ARG(int32_t, 1, -1);
 
 		hr = pInst->slice(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Buffer_base::s_hex(const v8::Arguments& args)
+	{
+		std::string vr;
+
+		METHOD_INSTANCE(Buffer_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->hex(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Buffer_base::s_base64(const v8::Arguments& args)
+	{
+		std::string vr;
+
+		METHOD_INSTANCE(Buffer_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->base64(vr);
 
 		METHOD_RETURN();
 	}

@@ -1,7 +1,24 @@
 #include "Buffer.h"
+#include "ifs/encoding.h"
 
 namespace fibjs
 {
+
+result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base>& retVal)
+{
+    retVal = new Buffer();
+    retVal->resize(size);
+
+    return 0;
+}
+
+result_t Buffer_base::_new(const char* str, obj_ptr<Buffer_base>& retVal)
+{
+	retVal = new Buffer();
+    retVal->write(str);
+
+    return 0;
+}
 
 result_t Buffer::_indexed_getter(uint32_t index, int32_t& retVal)
 {
@@ -68,20 +85,16 @@ result_t Buffer::toString(std::string& retVal)
     return 0;
 }
 
-result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base>& retVal)
+result_t Buffer::hex(std::string& retVal)
 {
-    retVal = new Buffer();
-    retVal->resize(size);
-
-    return 0;
+	obj_ptr<Buffer_base> data = this;
+	return encoding_base::hexEncode(data, retVal);
 }
 
-result_t Buffer_base::_new(const char* str, obj_ptr<Buffer_base>& retVal)
+result_t Buffer::base64(std::string& retVal)
 {
-	retVal = new Buffer();
-    retVal->write(str);
-
-    return 0;
+	obj_ptr<Buffer_base> data = this;
+	return encoding_base::base64Encode(data, retVal);
 }
 
 }

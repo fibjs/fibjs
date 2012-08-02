@@ -36,5 +36,15 @@ class Buffer : object
 	 * @return 返回新的缓存对象
 	 */
 	Buffer slice(Integer start = 0, Integer end = -1);
+
+	/*! @brief 使用 16 进制编码缓存对象内容
+	 * @return 返回编码字符串
+	 */
+	String hex();
+
+	/*! @brief 使用 base64 编码缓存对象内容
+	 * @return 返回编码字符串
+	 */
+	String base64();
 };
 
