@@ -19,6 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\cripto\hash_md2.c" />
+    <ClCompile Include="src\cripto\hash_md4.c" />
+    <ClCompile Include="src\cripto\hash_md5.c" />
+    <ClCompile Include="src\cripto\hash_ripemd.c" />
+    <ClCompile Include="src\cripto\hash_sha1.c" />
+    <ClCompile Include="src\cripto\hash_sha2.c" />
+    <ClCompile Include="src\cripto\hash_sha4.c" />
     <ClCompile Include="src\ev\ev.c" />
     <ClCompile Include="src\exlib\fiber\fbAsyncEvent.cpp" />
     <ClCompile Include="src\exlib\fiber\fbCondVar.cpp" />
@@ -474,12 +481,26 @@
     <ClCompile Include="src\zmq\src\zmq_xsub.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\crypto\md2.h" />
+    <ClInclude Include="include\crypto\md4.h" />
+    <ClInclude Include="include\crypto\md5.h" />
+    <ClInclude Include="include\crypto\ripemd.h" />
+    <ClInclude Include="include\crypto\sha1.h" />
+    <ClInclude Include="include\crypto\sha2.h" />
+    <ClInclude Include="include\crypto\sha4.h" />
     <ClInclude Include="include\sqlite3.h" />
     <ClInclude Include="include\umysql\mysqldefs.h" />
     <ClInclude Include="include\umysql\umysql.h" />
     <ClInclude Include="include\uuid.h" />
     <ClInclude Include="include\zmq\zmq.h" />
     <ClInclude Include="include\zmq\zmq_utils.h" />
+    <ClInclude Include="src\cripto\md2.h" />
+    <ClInclude Include="src\cripto\md4.h" />
+    <ClInclude Include="src\cripto\md5.h" />
+    <ClInclude Include="src\cripto\ripemd.h" />
+    <ClInclude Include="src\cripto\sha1.h" />
+    <ClInclude Include="src\cripto\sha2.h" />
+    <ClInclude Include="src\cripto\sha4.h" />
     <ClInclude Include="src\ev\config.h" />
     <ClInclude Include="src\ev\ev_vars.h" />
     <ClInclude Include="src\ev\ev_wrap.h" />

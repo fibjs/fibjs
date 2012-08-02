@@ -136,6 +136,12 @@
     <Filter Include="Source Files\matrixssl\crypto\symmetric">
       <UniqueIdentifier>{c2ab8b1f-ee6a-41aa-b9dc-1c63aa244f6f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\crypto">
+      <UniqueIdentifier>{c6321167-345c-452d-a970-eddc93abd721}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\crypto">
+      <UniqueIdentifier>{6b654748-689b-413f-b1c7-4a9a77578cae}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zlib\adler32.c">
@@ -1497,6 +1503,27 @@
     <ClCompile Include="src\matrixssl\core\WIN32\osdep_w.c">
       <Filter>Source Files\matrixssl\core\WIN32</Filter>
     </ClCompile>
+    <ClCompile Include="src\cripto\hash_md2.c">
+      <Filter>Source Files\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cripto\hash_md4.c">
+      <Filter>Source Files\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cripto\hash_md5.c">
+      <Filter>Source Files\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cripto\hash_ripemd.c">
+      <Filter>Source Files\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cripto\hash_sha1.c">
+      <Filter>Source Files\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cripto\hash_sha2.c">
+      <Filter>Source Files\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cripto\hash_sha4.c">
+      <Filter>Source Files\crypto</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -2758,6 +2785,48 @@
     </ClInclude>
     <ClInclude Include="src\matrixssl\crypto\prng\prng.h">
       <Filter>Source Files\matrixssl\crypto\prng</Filter>
+    </ClInclude>
+    <ClInclude Include="include\crypto\md2.h">
+      <Filter>Header Files\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="include\crypto\md4.h">
+      <Filter>Header Files\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="include\crypto\md5.h">
+      <Filter>Header Files\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="include\crypto\ripemd.h">
+      <Filter>Header Files\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="include\crypto\sha1.h">
+      <Filter>Header Files\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="include\crypto\sha2.h">
+      <Filter>Header Files\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="include\crypto\sha4.h">
+      <Filter>Header Files\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cripto\md2.h">
+      <Filter>Source Files\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cripto\md4.h">
+      <Filter>Source Files\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cripto\md5.h">
+      <Filter>Source Files\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cripto\ripemd.h">
+      <Filter>Source Files\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cripto\sha1.h">
+      <Filter>Source Files\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cripto\sha2.h">
+      <Filter>Source Files\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cripto\sha4.h">
+      <Filter>Source Files\crypto</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
