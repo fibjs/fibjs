@@ -32,6 +32,7 @@
     <ClCompile Include="src\DBResult.cpp" />
     <ClCompile Include="src\DBRow.cpp" />
     <ClCompile Include="src\define.cpp" />
+    <ClCompile Include="src\Digest.cpp" />
     <ClCompile Include="src\encoding.cpp" />
     <ClCompile Include="src\Event.cpp" />
     <ClCompile Include="src\Fiber.cpp" />
@@ -39,6 +40,7 @@
     <ClCompile Include="src\File.cpp" />
     <ClCompile Include="src\Function.cpp" />
     <ClCompile Include="src\global.cpp" />
+    <ClCompile Include="src\hash.cpp" />
     <ClCompile Include="src\inetAddr.cpp" />
     <ClCompile Include="src\io.cpp" />
     <ClCompile Include="src\Lock.cpp" />
@@ -96,12 +98,14 @@
     <ClInclude Include="include\ifs\DbConnection.h" />
     <ClInclude Include="include\ifs\DBResult.h" />
     <ClInclude Include="include\ifs\DBRow.h" />
+    <ClInclude Include="include\ifs\Digest.h" />
     <ClInclude Include="include\ifs\encoding.h" />
     <ClInclude Include="include\ifs\Event.h" />
     <ClInclude Include="include\ifs\Fiber.h" />
     <ClInclude Include="include\ifs\File.h" />
     <ClInclude Include="include\ifs\Function.h" />
     <ClInclude Include="include\ifs\global.h" />
+    <ClInclude Include="include\ifs\hash.h" />
     <ClInclude Include="include\ifs\io.h" />
     <ClInclude Include="include\ifs\Lock.h" />
     <ClInclude Include="include\ifs\MemoryStream.h" />

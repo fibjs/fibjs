@@ -19,6 +19,7 @@
 #include "ifs/zmq.h"
 
 #include "ifs/db.h"
+#include "ifs/hash.h"
 
 #include "ifs/uuid.h"
 
@@ -65,6 +66,7 @@ void initModule()
 	InstallNativeModule("zmq", zmq_base::class_info());
 
 	InstallNativeModule("db", db_base::class_info());
+	InstallNativeModule("hash", hash_base::class_info());
 }
 
 inline const char* ToCString(const v8::String::Utf8Value& value)
