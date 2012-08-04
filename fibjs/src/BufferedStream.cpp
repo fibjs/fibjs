@@ -15,9 +15,10 @@ namespace fibjs
 class asyncBuffer: public exlib::AsyncEvent
 {
 public:
-	asyncBuffer(BufferedStream* pThis, Stream_base* stm, exlib::AsyncEvent* ac) :
-			m_pThis(pThis), m_stm(stm), m_ac(ac)
+	asyncBuffer(BufferedStream* pThis, exlib::AsyncEvent* ac) :
+			m_bFirst(true), m_pThis(pThis), m_ac(ac)
 	{
+		m_pThis->m_strbuf.clear();
 	}
 
 	virtual bool process(bool end)
@@ -25,15 +26,23 @@ public:
 		return true;
 	}
 
-	void do_post(int v, bool bFirst)
+	virtual void post(int v)
 	{
 		result_t hr = v;
-		int sz;
-		bool streamEnd = false;
 
 		while (hr != CALL_E_PENDDING)
 		{
-			if (!bFirst)
+			bool streamEnd = false;
+			bool done = false;
+
+			if (m_bFirst)
+			{
+				m_bFirst = false;
+
+				if (m_pThis->m_pos < (int) m_pThis->m_buf.length())
+					done = process(false);
+			}
+			else
 			{
 				if (hr < 0)
 				{
@@ -44,64 +53,36 @@ public:
 
 				if (m_buf)
 				{
-					std::string strBuf;
-
-					m_buf->toString(strBuf);
+					m_buf->toString(m_pThis->m_buf);
 					m_buf.Release();
-
-					sz = (int) strBuf.length();
-					m_pThis->m_size += sz;
-					m_pThis->m_bufs.push_back(strBuf);
 				}
 				else
 					streamEnd = true;
+
+				done = process(streamEnd);
 			}
-			bFirst = false;
 
-			if (process(streamEnd))
+			if (m_pThis->m_pos > 0
+					&& m_pThis->m_pos == (int) m_pThis->m_buf.length())
 			{
-				size_t i;
+				m_pThis->m_buf.resize(0);
+				m_pThis->m_pos = 0;
+			}
 
-				for (i = 0; i < m_pThis->m_bufs.size(); i++)
-				{
-					sz = (int) m_pThis->m_bufs[i].length();
-					if (sz > m_pThis->m_pos)
-						break;
-
-					m_pThis->m_pos -= sz;
-				}
-
-				if (i == m_pThis->m_bufs.size())
-				{
-					m_pThis->m_pos = m_pThis->m_size = 0;
-					m_pThis->m_bufs.clear();
-				}
-				else if (i > 0)
-					m_pThis->m_bufs.erase(m_pThis->m_bufs.begin(),
-							m_pThis->m_bufs.begin() + i);
-
+			if (done)
+			{
 				m_ac->post(0);
 				delete this;
 				return;
 			}
 
-			hr = m_stm->read(-1, m_buf, this);
+			hr = m_pThis->m_stm->read(-1, m_buf, this);
 		}
 	}
 
-	virtual void post(int v)
-	{
-		do_post(v, false);
-	}
-
-	void start()
-	{
-		do_post(0, true);
-	}
-
 public:
+	bool m_bFirst;
 	BufferedStream* m_pThis;
-	Stream_base* m_stm;
 	exlib::AsyncEvent* m_ac;
 	obj_ptr<Buffer_base> m_buf;
 };
@@ -119,55 +100,41 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 	class asyncRead: public asyncBuffer
 	{
 	public:
-		asyncRead(BufferedStream* pThis, Stream_base* stm, int32_t bytes,
+		asyncRead(BufferedStream* pThis, int32_t bytes,
 				obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) :
-				asyncBuffer(pThis, stm, ac), m_bytes(bytes), m_retVal(retVal)
+				asyncBuffer(pThis, ac), m_bytes(bytes), m_retVal(retVal)
 		{
 		}
 
 		virtual bool process(bool streamEnd)
 		{
-			if (streamEnd)
-				m_bytes = m_pThis->m_size;
-			else if (m_bytes < 0)
+			int n = m_bytes - (int) m_pThis->m_strbuf.size();
+			int n1 = (int) m_pThis->m_buf.length() - m_pThis->m_pos;
+
+			if (n > n1)
+				n = n1;
+
+			if (n > 0)
 			{
-				if (m_pThis->m_size > 0)
-					m_bytes = m_pThis->m_size;
-				return false;
-			}
-			else if (m_bytes > m_pThis->m_size)
-				return false;
-
-			if (m_bytes)
-			{
-				int i, p, p1, l;
-				std::string strBuf;
-
-				strBuf.resize(m_bytes);
-
-				p = m_pThis->m_pos;
-				p1 = 0;
-
-				for (i = 0; p1 < m_bytes && i < (int) m_pThis->m_bufs.size();
-						i++)
+				if (m_pThis->m_pos == 0 && n == m_pThis->m_buf.length())
+					m_pThis->m_strbuf.append(m_pThis->m_buf);
+				else
 				{
-					std::string& d = m_pThis->m_bufs[i];
-					l = (int) d.length() - p;
-					if (l > m_bytes - p1)
-						l = m_bytes - p1;
-
-					memcpy(&strBuf[p1], &d[p], l);
-					p = 0;
-					p1 += l;
+					std::string s1(m_pThis->m_buf.substr(m_pThis->m_pos, n));
+					m_pThis->m_strbuf.append(s1);
 				}
-
-				m_pThis->m_pos += m_bytes;
-				m_pThis->m_size -= m_bytes;
-
-				m_retVal = new Buffer(strBuf);
+				m_pThis->m_pos += n;
 			}
 
-			return true;
+			if (streamEnd || m_bytes == (int) m_pThis->m_strbuf.size())
+			{
+				std::string s = m_pThis->m_strbuf.str();
+
+				m_retVal = new Buffer(s);
+				return true;
+			}
+
+			return false;
 		}
 
 	public:
@@ -178,7 +145,7 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	(new asyncRead(this, m_stm, bytes, retVal, ac))->start();
+	(new asyncRead(this, bytes, retVal, ac))->post(0);
 	return CALL_E_PENDDING;
 }
 

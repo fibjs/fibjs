@@ -6,7 +6,7 @@
  */
 
 #include "ifs/BufferedStream.h"
-#include "vector"
+#include "StringBuffer.h"
 
 #ifndef BUFFEREDSTREAM_H_
 #define BUFFEREDSTREAM_H_
@@ -18,7 +18,7 @@ class BufferedStream: public fibjs::BufferedStream_base
 {
 public:
 	BufferedStream(Stream_base* stm) :
-			m_stm(stm), m_pos(0), m_size(0)
+			m_stm(stm), m_pos(0)
 	{
 	}
 
@@ -54,8 +54,9 @@ public:
 
 public:
 	obj_ptr<Stream_base> m_stm;
-	std::vector<std::string> m_bufs;
-	int m_pos, m_size;
+	std::string m_buf;
+	int m_pos;
+	StringBuffer m_strbuf;
 };
 
 } /* namespace fibjs */
