@@ -26,22 +26,27 @@ public:
 	std::string str()
 	{
 		int i, p = 0;
-
-		if (m_array.size() == 1)
-			return m_array[0];
-
 		std::string s;
-		if (m_size == 0)
-			return s;
 
-		s.resize(m_size);
-		for (i = 0; i < (int) m_array.size(); i++)
+		if (m_size > 0)
 		{
-			std::string& s1 = m_array[i];
-			size_t len = s1.length();
+			if (m_array.size() == 1)
+				s = m_array[0];
+			else
+			{
+				s.resize(m_size);
+				for (i = 0; i < (int) m_array.size(); i++)
+				{
+					std::string& s1 = m_array[i];
+					size_t len = s1.length();
 
-			memcpy(&s[p], s1.c_str(), len);
-			p += (int)len;
+					memcpy(&s[p], s1.c_str(), len);
+					p += (int) len;
+				}
+			}
+
+			m_size = 0;
+			m_array.resize(0);
 		}
 
 		return s;
@@ -59,12 +64,6 @@ public:
 			m_size += s.length();
 			m_array.append(s);
 		}
-	}
-
-	void clear()
-	{
-		m_size = 0;
-		m_array.resize(0);
 	}
 
 private:

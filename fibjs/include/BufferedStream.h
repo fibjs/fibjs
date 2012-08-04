@@ -20,6 +20,11 @@ public:
 	BufferedStream(Stream_base* stm) :
 			m_stm(stm), m_pos(0)
 	{
+#ifdef _WIN32
+		m_eol.assign("\r\n", 2);
+#else
+		m_eol.assign("\n", 1);
+#endif
 	}
 
 	virtual ~BufferedStream()
@@ -48,7 +53,8 @@ public:
 	// BufferedStream_base
 	virtual result_t readText(int32_t size, std::string& retVal, exlib::AsyncEvent* ac);
 	virtual result_t readLine(std::string& retVal, exlib::AsyncEvent* ac);
-	virtual result_t readUntil(int32_t mk, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
+	virtual result_t readTextUntil(const char* mk, std::string& retVal, exlib::AsyncEvent* ac);
+	virtual result_t readUntil(const char* mk, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
 	virtual result_t get_EOL(std::string& retVal);
 	virtual result_t set_EOL(const char* newVal);
 
@@ -56,6 +62,7 @@ public:
 	obj_ptr<Stream_base> m_stm;
 	std::string m_buf;
 	int m_pos;
+	std::string m_eol;
 	StringBuffer m_strbuf;
 };
 
