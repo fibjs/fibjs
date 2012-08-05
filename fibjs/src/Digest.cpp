@@ -163,7 +163,7 @@ result_t Digest::update(obj_ptr<Buffer_base>& data)
 	data->toString(str);
 
 	s_HashAlgos[m_iAlgo].Update(&m_ctx, (const unsigned char*) str.c_str(),
-			str.length());
+			(int)str.length());
 
 	return 0;
 }
@@ -174,7 +174,7 @@ result_t Digest::update(const char* text)
 		return CALL_E_INVALID_CALL;
 
 	s_HashAlgos[m_iAlgo].Update(&m_ctx, (const unsigned char*) text,
-			qstrlen(text));
+			(int)qstrlen(text));
 
 	return 0;
 }

@@ -258,7 +258,7 @@ result_t BufferedStream::readUntil(const char* mk, std::string& retVal,
 				std::string& retVal, bool streamEnd)
 		{
 			int pos = pThis->m_pos;
-			int mklen = qstrlen(mk);
+			int mklen = (int)qstrlen(mk);
 
 			if (mklen == 0)
 				mklen = 1;
