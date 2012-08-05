@@ -1267,12 +1267,12 @@ void Heap::Scavenge() {
 
   // Copy objects reachable from cells by scavenging cell values directly.
   HeapObjectIterator cell_iterator(cell_space_);
-  for (HeapObject* cell = cell_iterator.Next();
-       cell != NULL; cell = cell_iterator.Next()) {
-    if (cell->IsJSGlobalPropertyCell()) {
-      Address value_address =
-          reinterpret_cast<Address>(cell) +
-          (JSGlobalPropertyCell::kValueOffset - kHeapObjectTag);
+  for (HeapObject* heap_object = cell_iterator.Next();
+       heap_object != NULL;
+       heap_object = cell_iterator.Next()) {
+    if (heap_object->IsJSGlobalPropertyCell()) {
+      JSGlobalPropertyCell* cell = JSGlobalPropertyCell::cast(heap_object);
+      Address value_address = cell->ValueAddress();
       scavenge_visitor.VisitPointer(reinterpret_cast<Object**>(value_address));
     }
   }
@@ -6770,6 +6770,15 @@ void PathTracer::ProcessResults() {
 
 
 #ifdef DEBUG
+// Triggers a depth-first traversal of reachable objects from one
+// given root object and finds a path to a specific heap object and
+// prints it.
+void Heap::TracePathToObjectFrom(Object* target, Object* root) {
+  PathTracer tracer(target, PathTracer::FIND_ALL, VISIT_ALL);
+  tracer.VisitPointer(&root);
+}
+
+
 // Triggers a depth-first traversal of reachable objects from roots
 // and finds a path to a specific heap object and prints it.
 void Heap::TracePathToObject(Object* target) {
