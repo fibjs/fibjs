@@ -29,7 +29,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.337844997" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.337844997" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.330415210" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1193055837" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -39,7 +39,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.1328386947" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.1328386947" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.2082076671" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1799034399" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
@@ -49,6 +49,7 @@
 								</option>
 								<option id="gnu.cpp.link.option.libs.738960404" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="vender"/>
+									<listOptionValue builtIn="false" value="dl"/>
 									<listOptionValue builtIn="false" value="pthread"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1652856953" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
@@ -97,7 +98,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.421798739" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.421798739" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.165389501" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.898756282" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
@@ -107,7 +108,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.399951002" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.399951002" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.20317112" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.607130722" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
@@ -117,6 +118,7 @@
 								</option>
 								<option id="gnu.cpp.link.option.libs.675574114" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="vender"/>
+									<listOptionValue builtIn="false" value="dl"/>
 									<listOptionValue builtIn="false" value="pthread"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.882621426" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
@@ -165,7 +167,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.541380481" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-m32 -c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.541380481" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-m32 -c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1135180935" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1290504725" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -175,7 +177,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.349268623" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.349268623" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.102645476" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.412741612" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
@@ -185,6 +187,7 @@
 								</option>
 								<option id="gnu.cpp.link.option.libs.431969469" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="vender"/>
+									<listOptionValue builtIn="false" value="dl"/>
 									<listOptionValue builtIn="false" value="pthread"/>
 								</option>
 								<option id="gnu.cpp.link.option.flags.363610130" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-m32" valueType="string"/>
@@ -235,7 +238,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.1045466208" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-m32 -c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.1045466208" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-m32 -c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1173415019" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.1285734990" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
@@ -245,7 +248,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/fibjs/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.1026768401" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.1026768401" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.439652468" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.550140708" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
@@ -255,6 +258,7 @@
 								</option>
 								<option id="gnu.cpp.link.option.libs.1447464017" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="vender"/>
+									<listOptionValue builtIn="false" value="dl"/>
 									<listOptionValue builtIn="false" value="pthread"/>
 								</option>
 								<option id="gnu.cpp.link.option.flags.253184245" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-m32" valueType="string"/>
@@ -1148,4 +1152,5 @@
 			</profile>
 		</scannerConfigBuildInfo>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>

@@ -33,7 +33,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.1751266537" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.1253521260" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.1253521260" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.467579095" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.lib.debug.728035707" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.debug">
@@ -42,7 +42,7 @@
 								<option id="gnu.c.compiler.option.include.paths.1990821639" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.628352429" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.628352429" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1299235319" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.95938637" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
@@ -119,7 +119,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.381214664" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.2005307346" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.2005307346" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.383100507" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.c.compiler.lib.release.379040034" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.release">
@@ -128,7 +128,7 @@
 								<option id="gnu.c.compiler.option.include.paths.935519708" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.2064604890" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.2064604890" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1224864097" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.465628868" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
@@ -208,7 +208,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.294629706" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.472913496" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-m32 -c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.472913496" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-m32 -c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1670533207" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.lib.debug.1164932493" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.debug">
@@ -217,7 +217,7 @@
 								<option id="gnu.c.compiler.option.include.paths.954720191" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.1855157353" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.1855157353" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.888556864" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1282146075" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
@@ -297,7 +297,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.1893207637" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.1985164911" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-m32 -c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections -fno-rtti" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.1985164911" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-m32 -c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-rtti" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1823581347" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.c.compiler.lib.release.353854224" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.release">
@@ -306,7 +306,7 @@
 								<option id="gnu.c.compiler.option.include.paths.1389488616" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.354923917" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -ffunction-sections" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.354923917" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-m32 -c -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.261077579" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1075048391" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>

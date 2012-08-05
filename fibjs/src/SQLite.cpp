@@ -102,7 +102,7 @@ result_t SQLite::execute(const char* sql, obj_ptr<DBResult_base>& retVal)
 						switch (sqlite3_column_type(stmt, i))
 						{
 						case SQLITE_INTEGER:
-							v = sqlite3_column_int64(stmt, i);
+							v = (int64_t)sqlite3_column_int64(stmt, i);
 							break;
 						case SQLITE_FLOAT:
 							v = sqlite3_column_double(stmt, i);
