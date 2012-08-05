@@ -18,17 +18,13 @@ class BufferedStream: public fibjs::BufferedStream_base
 {
 public:
 	BufferedStream(Stream_base* stm) :
-			m_stm(stm), m_pos(0)
+			m_stm(stm), m_pos(0), m_mkpos(0)
 	{
 #ifdef _WIN32
 		m_eol.assign("\r\n", 2);
 #else
 		m_eol.assign("\n", 1);
 #endif
-	}
-
-	virtual ~BufferedStream()
-	{
 	}
 
 	EVENT_SUPPORT();
@@ -53,15 +49,29 @@ public:
 	// BufferedStream_base
 	virtual result_t readText(int32_t size, std::string& retVal, exlib::AsyncEvent* ac);
 	virtual result_t readLine(std::string& retVal, exlib::AsyncEvent* ac);
-	virtual result_t readTextUntil(const char* mk, std::string& retVal, exlib::AsyncEvent* ac);
-	virtual result_t readUntil(const char* mk, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
+	virtual result_t readUntil(const char* mk, std::string& retVal, exlib::AsyncEvent* ac);
 	virtual result_t get_EOL(std::string& retVal);
 	virtual result_t set_EOL(const char* newVal);
+
+public:
+	void append(int n)
+	{
+		if (m_pos == 0 && n == (int) m_buf.length())
+			m_strbuf.append(m_buf);
+		else
+		{
+			std::string s1(m_buf.substr(m_pos, n));
+			m_strbuf.append(s1);
+		}
+		m_pos += n;
+	}
+
 
 public:
 	obj_ptr<Stream_base> m_stm;
 	std::string m_buf;
 	int m_pos;
+	int m_mkpos;
 	std::string m_eol;
 	StringBuffer m_strbuf;
 };

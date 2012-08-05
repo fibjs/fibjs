@@ -18,7 +18,6 @@ namespace fibjs
 {
 
 class Stream_base;
-class Buffer_base;
 
 class BufferedStream_base : public Stream_base
 {
@@ -27,8 +26,7 @@ public:
 	static result_t _new(obj_ptr<Stream_base>& stm, obj_ptr<BufferedStream_base>& retVal);
 	virtual result_t readText(int32_t size, std::string& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t readLine(std::string& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t readTextUntil(const char* mk, std::string& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t readUntil(const char* mk, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t readUntil(const char* mk, std::string& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t get_EOL(std::string& retVal) = 0;
 	virtual result_t set_EOL(const char* newVal) = 0;
 
@@ -54,7 +52,6 @@ public:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_readText(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_readLine(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_readTextUntil(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_readUntil(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_EOL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_EOL(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
@@ -64,15 +61,12 @@ public:
 	ASYNC_VALUEBACK1(BufferedStream_base, readText, std::string);
 	ASYNC_MEMBER1(BufferedStream_base, readLine);
 	ASYNC_VALUEBACK0(BufferedStream_base, readLine, std::string);
-	ASYNC_MEMBER2(BufferedStream_base, readTextUntil);
-	ASYNC_VALUEBACK1(BufferedStream_base, readTextUntil, std::string);
 	ASYNC_MEMBER2(BufferedStream_base, readUntil);
-	ASYNC_VALUEBACK1(BufferedStream_base, readUntil, obj_ptr<Buffer_base>);
+	ASYNC_VALUEBACK1(BufferedStream_base, readUntil, std::string);
 };
 
 }
 
-#include "Buffer.h"
 
 namespace fibjs
 {
@@ -82,7 +76,6 @@ namespace fibjs
 		{
 			{"readText", s_readText},
 			{"readLine", s_readLine},
-			{"readTextUntil", s_readTextUntil},
 			{"readUntil", s_readUntil}
 		};
 
@@ -94,7 +87,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"BufferedStream", s__new, 
-			4, s_method, 0, NULL, 1, s_property, NULL, NULL,
+			3, s_method, 0, NULL, 1, s_property, NULL, NULL,
 			&Stream_base::class_info()
 		};
 
@@ -164,23 +157,9 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> BufferedStream_base::s_readTextUntil(const v8::Arguments& args)
-	{
-		std::string vr;
-
-		METHOD_INSTANCE(BufferedStream_base);
-		METHOD_ENTER(1, 1);
-
-		ARG_String(0);
-
-		hr = pInst->ac_readTextUntil(v0, vr);
-
-		METHOD_RETURN();
-	}
-
 	inline v8::Handle<v8::Value> BufferedStream_base::s_readUntil(const v8::Arguments& args)
 	{
-		obj_ptr<Buffer_base> vr;
+		std::string vr;
 
 		METHOD_INSTANCE(BufferedStream_base);
 		METHOD_ENTER(1, 1);

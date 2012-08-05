@@ -68,6 +68,8 @@ namespace fibjs
 
 typedef int result_t;
 
+#define CALL_RETURN_NULL		100000
+
 #define CALL_E_MAX              -100000
 // Invalid number of parameters.
 #define CALL_E_BADPARAMCOUNT    (CALL_E_MAX - 1)
@@ -138,6 +140,7 @@ typedef int result_t;
 
 #define METHOD_RETURN() \
     }while(0); \
+    if(hr == CALL_RETURN_NULL)return v8::Undefined(); \
     if(hr >= 0)return ReturnValue(vr); \
     return ThrowResult(hr);
 
