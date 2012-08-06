@@ -27,6 +27,8 @@ public:
 	virtual result_t readText(int32_t size, std::string& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t readLine(std::string& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t readUntil(const char* mk, std::string& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t writeText(const char* txt, exlib::AsyncEvent* ac) = 0;
+	virtual result_t writeLine(const char* txt, exlib::AsyncEvent* ac) = 0;
 	virtual result_t get_EOL(std::string& retVal) = 0;
 	virtual result_t set_EOL(const char* newVal) = 0;
 
@@ -53,6 +55,8 @@ public:
 	static v8::Handle<v8::Value> s_readText(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_readLine(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_readUntil(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_writeText(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_writeLine(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_EOL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_EOL(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 
@@ -63,6 +67,10 @@ public:
 	ASYNC_VALUEBACK0(BufferedStream_base, readLine, std::string);
 	ASYNC_MEMBER2(BufferedStream_base, readUntil);
 	ASYNC_VALUEBACK1(BufferedStream_base, readUntil, std::string);
+	ASYNC_MEMBER1(BufferedStream_base, writeText);
+	ASYNC_CALLBACK1(BufferedStream_base, writeText);
+	ASYNC_MEMBER1(BufferedStream_base, writeLine);
+	ASYNC_CALLBACK1(BufferedStream_base, writeLine);
 };
 
 }
@@ -76,7 +84,9 @@ namespace fibjs
 		{
 			{"readText", s_readText},
 			{"readLine", s_readLine},
-			{"readUntil", s_readUntil}
+			{"readUntil", s_readUntil},
+			{"writeText", s_writeText},
+			{"writeLine", s_writeLine}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -87,7 +97,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"BufferedStream", s__new, 
-			3, s_method, 0, NULL, 1, s_property, NULL, NULL,
+			5, s_method, 0, NULL, 1, s_property, NULL, NULL,
 			&Stream_base::class_info()
 		};
 
@@ -169,6 +179,30 @@ namespace fibjs
 		hr = pInst->ac_readUntil(v0, vr);
 
 		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> BufferedStream_base::s_writeText(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(BufferedStream_base);
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = pInst->ac_writeText(v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> BufferedStream_base::s_writeLine(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(BufferedStream_base);
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = pInst->ac_writeLine(v0);
+
+		METHOD_VOID();
 	}
 
 }

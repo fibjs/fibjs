@@ -258,7 +258,7 @@ result_t BufferedStream::readUntil(const char* mk, std::string& retVal,
 				std::string& retVal, bool streamEnd)
 		{
 			int pos = pThis->m_pos;
-			int mklen = (int)qstrlen(mk);
+			int mklen = (int) qstrlen(mk);
 
 			if (mklen == 0)
 				mklen = 1;
@@ -339,6 +339,21 @@ result_t BufferedStream::readUntil(const char* mk, std::string& retVal,
 
 	(new asyncRead(this, mk, retVal, ac))->post(0);
 	return CALL_E_PENDDING;
+}
+
+result_t BufferedStream::writeText(const char* txt, exlib::AsyncEvent* ac)
+{
+	std::string strBuf = txt;
+	obj_ptr<Buffer_base> data = new Buffer(strBuf);
+	return write(data, ac);
+}
+
+result_t BufferedStream::writeLine(const char* txt, exlib::AsyncEvent* ac)
+{
+	std::string strBuf = txt;
+	strBuf.append(m_eol);
+	obj_ptr<Buffer_base> data = new Buffer(strBuf);
+	return write(data, ac);
 }
 
 result_t BufferedStream::get_EOL(std::string& retVal)
