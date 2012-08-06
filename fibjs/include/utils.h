@@ -17,6 +17,7 @@
 
 #include <ws2tcpip.h>
 #include <winsock2.h>
+#include <mstcpip.h> 
 
 #ifndef IPV6_V6ONLY
 #define IPV6_V6ONLY 27
@@ -40,6 +41,7 @@
 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 
@@ -47,6 +49,14 @@ typedef int SOCKET;
 #define SOCKET_ERROR -1
 #define INVALID_SOCKET -1
 #define closesocket close
+
+#ifndef TCP_KEEPIDLE
+#define TCP_KEEPIDLE TCP_KEEPALIVE
+#endif
+
+#ifndef SOL_TCP
+#define SOL_TCP IPPROTO_TCP
+#endif
 
 #endif
 

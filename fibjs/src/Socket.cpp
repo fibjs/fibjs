@@ -9,7 +9,7 @@
 #include "Buffer.h"
 #include "Stat.h"
 #include <string.h>
-#include  <fcntl.h>
+#include <fcntl.h>
 
 namespace fibjs
 {
@@ -63,7 +63,7 @@ result_t Socket::create(int32_t family, int32_t type)
 
 	m_sock = WSASocket(family, type, IPPROTO_IP, NULL, 0, WSA_FLAG_OVERLAPPED);
 	if (m_sock == INVALID_SOCKET)
-		return SocketError();
+	return SocketError();
 
 	CreateIoCompletionPort((HANDLE) m_sock, s_hIocp, 0, 0);
 

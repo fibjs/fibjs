@@ -11,10 +11,29 @@
 #include "ifs/net.h"
 #include "Buffer.h"
 #include "ev.h"
-#include  <fcntl.h>
+#include <fcntl.h>
 
 namespace fibjs
 {
+
+void setKeepAlive(SOCKET s)
+{
+	int keepAlive = 1;
+	int keepIdle = KEEPALIVE_TIMEOUT;
+
+	setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, (void *) &keepAlive,
+			sizeof(keepAlive));
+	setsockopt(s, SOL_TCP, TCP_KEEPIDLE, (void *) &keepIdle, sizeof(keepIdle));
+
+#ifdef TCP_KEEPINTVL
+	int keepInterval = KEEPALIVE_TIMEOUT;
+	int keepCount = 3;
+
+	setsockopt(s, SOL_TCP, TCP_KEEPINTVL, (void *) &keepInterval,
+			sizeof(keepInterval));
+	setsockopt(s, SOL_TCP, TCP_KEEPCNT, (void *) &keepCount, sizeof(keepCount));
+#endif
+}
 
 static struct ev_loop *s_loop;
 
@@ -207,7 +226,10 @@ result_t Socket::connect(const char* host, int32_t port, exlib::AsyncEvent* ac)
 			if (::getpeername(m_s, (sockaddr*) &addr_info, &sz1) == SOCKET_ERROR)
 				m_ac->post(-ECONNREFUSED);
 			else
+			{
+				setKeepAlive(m_s);
 				m_ac->post(0);
+			}
 
 			delete this;
 		}
@@ -269,6 +291,7 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 			setsockopt(c, SOL_SOCKET, SO_NOSIGPIPE, &set_option,
 					sizeof(set_option));
 #endif
+			setKeepAlive(c);
 
 			obj_ptr<Socket> sock = new Socket(c, ai.family(),
 					net_base::_SOCK_STREAM);

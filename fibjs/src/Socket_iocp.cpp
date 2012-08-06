@@ -17,6 +17,21 @@
 namespace fibjs
 {
 
+void setKeepAlive(SOCKET s)
+{
+	int keepAlive = 1;
+
+	tcp_keepalive Settings =
+	{ 1, KEEPALIVE_TIMEOUT * 1000, KEEPALIVE_TIMEOUT * 1000 };
+	DWORD dwBytes = 0L;
+
+	setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, (const char *) &keepAlive,
+			sizeof(keepAlive));
+	if (WSAIoctl(s, SIO_KEEPALIVE_VALS, &Settings, sizeof(Settings), NULL, 0,
+			&dwBytes, NULL, NULL))
+		puts("WSAIoctl");
+}
+
 HANDLE s_hIocp;
 
 class asyncProc: public OVERLAPPED
@@ -98,7 +113,7 @@ public:
 			pOverlap = NULL;
 
 			bRet = GetQueuedCompletionStatus(s_hIocp, &dwBytes, &v, &pOverlap,
-					1000);
+					10000);
 			if (!bRet)
 				dwError = ::GetLastError();
 			else
@@ -150,8 +165,8 @@ result_t Socket::connect(const char* host, int32_t port, exlib::AsyncEvent* ac)
 					return SocketError();
 			}
 
-			if(ConnectEx(m_s, (sockaddr*) &m_ai, (int) m_ai.size(), NULL, 0, NULL,
-					this))
+			if (ConnectEx(m_s, (sockaddr*) &m_ai, (int) m_ai.size(), NULL, 0,
+					NULL, this))
 				return CALL_E_PENDDING;
 
 			nError = WSAGetLastError();
@@ -160,8 +175,11 @@ result_t Socket::connect(const char* host, int32_t port, exlib::AsyncEvent* ac)
 
 		virtual void ready(DWORD dwBytes, DWORD dwError)
 		{
-			if(!dwError)
+			if (!dwError)
+			{
 				setsockopt(m_s, SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0);
+				setKeepAlive(m_s);
+			}
 			asyncProc::ready(dwBytes, dwError);
 		}
 
@@ -225,9 +243,8 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 
 				if (SOCKET_ERROR
 						== WSAIoctl(m_s, SIO_GET_EXTENSION_FUNCTION_POINTER,
-								&guidAcceptEx, sizeof(guidAcceptEx),
-								&AcceptEx, sizeof(AcceptEx), &dwBytes, NULL,
-								NULL))
+								&guidAcceptEx, sizeof(guidAcceptEx), &AcceptEx,
+								sizeof(AcceptEx), &dwBytes, NULL, NULL))
 					return SocketError();
 			}
 
@@ -241,9 +258,12 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 
 		virtual void ready(DWORD dwBytes, DWORD dwError)
 		{
-			if(!dwError)
+			if (!dwError)
+			{
 				setsockopt(m_s, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
-					(char *) &m_sListen, sizeof(m_sListen));
+						(char *) &m_sListen, sizeof(m_sListen));
+				setKeepAlive(m_s);
+			}
 			asyncProc::ready(dwBytes, 0);
 		}
 
@@ -296,7 +316,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
 			nError = GetLastError();
 
-			if(nError == ERROR_NETNAME_DELETED)
+			if (nError == ERROR_NETNAME_DELETED)
 				return 0;
 
 			return (nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError;
@@ -304,7 +324,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
 		virtual void ready(DWORD dwBytes, DWORD dwError)
 		{
-			if(dwError == ERROR_NETNAME_DELETED)
+			if (dwError == ERROR_NETNAME_DELETED)
 			{
 				dwError = 0;
 				dwBytes = 0;

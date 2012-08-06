@@ -15,6 +15,8 @@
 namespace fibjs
 {
 
+#define KEEPALIVE_TIMEOUT	(2 * 60)
+
 class Socket: public Socket_base
 {
 	EVENT_SUPPORT();
