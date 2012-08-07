@@ -27,31 +27,32 @@ public:
 	}
 
 public:
-	void Ref()
+	virtual void Ref()
 	{
-		if (exlib::atom_inc(&refs_) == 1)
-			firstRef();
+		internalRef();
 	}
 
-	void Unref()
+	virtual void Unref()
 	{
-		if (exlib::atom_dec(&refs_) == 0)
-			finalRelease();
-	}
-
-	virtual void firstRef()
-	{
-	}
-
-	virtual void finalRelease()
-	{
-		delete this;
+		if (internalUnref() == 0)
+			delete this;
 	}
 
 	void dispose()
 	{
 		if (refs_ == 0)
 			delete this;
+	}
+
+protected:
+	int internalRef()
+	{
+		return exlib::atom_inc(&refs_);
+	}
+
+	int internalUnref()
+	{
+		return exlib::atom_dec(&refs_);
 	}
 
 private:

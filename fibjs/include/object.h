@@ -33,18 +33,32 @@ public:
 	}
 
 public:
-	virtual void firstRef()
+	virtual void Ref()
 	{
-		if (!handle_.IsEmpty())
-			handle_.ClearWeak();
+		if (internalRef() == 1)
+		{
+			if (!handle_.IsEmpty())
+				handle_.ClearWeak();
+		}
 	}
 
-	virtual void finalRelease()
+	virtual void Unref()
 	{
-		if (!handle_.IsEmpty())
-			handle_.MakeWeak(this, WeakCallback);
-		else
-			obj_base::finalRelease();
+		if (internalUnref() == 0)
+		{
+			if (!handle_.IsEmpty())
+			{
+				if (exlib::Service::getFiberService(false))
+					handle_.MakeWeak(this, WeakCallback);
+				else
+				{
+					internalRef();
+					m_ar.post();
+				}
+			}
+			else
+				delete this;
+		}
 	}
 
 public:
@@ -64,7 +78,34 @@ public:
 
 	exlib::Locker m_lock;
 
+public:
+	class asyncRelease
+	{
+	public:
+		asyncRelease() :
+				m_next(NULL)
+		{
+		}
+
+		void release()
+		{
+			object_base* pThis = NULL;
+
+			pThis = (object_base*) ((char*) this
+					- ((char*) &pThis->m_ar - (char*) 0));
+
+			pThis->Unref();
+		}
+
+		void post();
+
+	public:
+		asyncRelease* m_next;
+	};
+
 private:
+
+	asyncRelease m_ar;
 	v8::Persistent<v8::Object> handle_;
 
 private:

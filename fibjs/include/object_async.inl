@@ -37,11 +37,6 @@
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_pThis); \
-			return b; \
-		} \
 		virtual void callback() \
 		{ _trigger(m_ev); }\
 	private: \
@@ -61,12 +56,6 @@
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
-		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(retVal); \
-			b = b && c_v(m_pThis); \
-			return b; \
 		} \
 		virtual void callback() \
 		{ _trigger(m_ev, retVal); }\
@@ -123,12 +112,6 @@ template<typename T0> \
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(m_pThis); \
-			return b; \
-		} \
 		virtual void callback() \
 		{ _trigger(m_ev); }\
 	private: \
@@ -151,13 +134,6 @@ template<typename T0> \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
-		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(retVal); \
-			b = b && c_v(m_pThis); \
-			return b; \
 		} \
 		virtual void callback() \
 		{ _trigger(m_ev, retVal); }\
@@ -215,13 +191,6 @@ template<typename T0, typename T1> \
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(m_v1); \
-			b = b && c_v(m_pThis); \
-			return b; \
-		} \
 		virtual void callback() \
 		{ _trigger(m_ev); }\
 	private: \
@@ -245,14 +214,6 @@ template<typename T0, typename T1> \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
-		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(m_v1); \
-			b = b && c_v(retVal); \
-			b = b && c_v(m_pThis); \
-			return b; \
 		} \
 		virtual void callback() \
 		{ _trigger(m_ev, retVal); }\
@@ -311,14 +272,6 @@ template<typename T0, typename T1, typename T2> \
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(m_v1); \
-			b = b && c_v(m_v2); \
-			b = b && c_v(m_pThis); \
-			return b; \
-		} \
 		virtual void callback() \
 		{ _trigger(m_ev); }\
 	private: \
@@ -343,15 +296,6 @@ template<typename T0, typename T1, typename T2> \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
-		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(m_v1); \
-			b = b && c_v(m_v2); \
-			b = b && c_v(retVal); \
-			b = b && c_v(m_pThis); \
-			return b; \
 		} \
 		virtual void callback() \
 		{ _trigger(m_ev, retVal); }\
@@ -411,15 +355,6 @@ template<typename T0, typename T1, typename T2, typename T3> \
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(m_v1); \
-			b = b && c_v(m_v2); \
-			b = b && c_v(m_v3); \
-			b = b && c_v(m_pThis); \
-			return b; \
-		} \
 		virtual void callback() \
 		{ _trigger(m_ev); }\
 	private: \
@@ -445,16 +380,6 @@ template<typename T0, typename T1, typename T2, typename T3> \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
-		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(m_v1); \
-			b = b && c_v(m_v2); \
-			b = b && c_v(m_v3); \
-			b = b && c_v(retVal); \
-			b = b && c_v(m_pThis); \
-			return b; \
 		} \
 		virtual void callback() \
 		{ _trigger(m_ev, retVal); }\
@@ -515,16 +440,6 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(m_v1); \
-			b = b && c_v(m_v2); \
-			b = b && c_v(m_v3); \
-			b = b && c_v(m_v4); \
-			b = b && c_v(m_pThis); \
-			return b; \
-		} \
 		virtual void callback() \
 		{ _trigger(m_ev); }\
 	private: \
@@ -551,17 +466,6 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4> \
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
-		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(m_v1); \
-			b = b && c_v(m_v2); \
-			b = b && c_v(m_v3); \
-			b = b && c_v(m_v4); \
-			b = b && c_v(retVal); \
-			b = b && c_v(m_pThis); \
-			return b; \
 		} \
 		virtual void callback() \
 		{ _trigger(m_ev, retVal); }\
@@ -623,17 +527,6 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(m_v1); \
-			b = b && c_v(m_v2); \
-			b = b && c_v(m_v3); \
-			b = b && c_v(m_v4); \
-			b = b && c_v(m_v5); \
-			b = b && c_v(m_pThis); \
-			return b; \
-		} \
 		virtual void callback() \
 		{ _trigger(m_ev); }\
 	private: \
@@ -661,18 +554,6 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
-		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(m_v1); \
-			b = b && c_v(m_v2); \
-			b = b && c_v(m_v3); \
-			b = b && c_v(m_v4); \
-			b = b && c_v(m_v5); \
-			b = b && c_v(retVal); \
-			b = b && c_v(m_pThis); \
-			return b; \
 		} \
 		virtual void callback() \
 		{ _trigger(m_ev, retVal); }\
@@ -735,18 +616,6 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(m_v1); \
-			b = b && c_v(m_v2); \
-			b = b && c_v(m_v3); \
-			b = b && c_v(m_v4); \
-			b = b && c_v(m_v5); \
-			b = b && c_v(m_v6); \
-			b = b && c_v(m_pThis); \
-			return b; \
-		} \
 		virtual void callback() \
 		{ _trigger(m_ev); }\
 	private: \
@@ -775,19 +644,6 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
-		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(m_v1); \
-			b = b && c_v(m_v2); \
-			b = b && c_v(m_v3); \
-			b = b && c_v(m_v4); \
-			b = b && c_v(m_v5); \
-			b = b && c_v(m_v6); \
-			b = b && c_v(retVal); \
-			b = b && c_v(m_pThis); \
-			return b; \
 		} \
 		virtual void callback() \
 		{ _trigger(m_ev, retVal); }\
@@ -851,19 +707,6 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), m_v(t->m_v7), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(m_v1); \
-			b = b && c_v(m_v2); \
-			b = b && c_v(m_v3); \
-			b = b && c_v(m_v4); \
-			b = b && c_v(m_v5); \
-			b = b && c_v(m_v6); \
-			b = b && c_v(m_v7); \
-			b = b && c_v(m_pThis); \
-			return b; \
-		} \
 		virtual void callback() \
 		{ _trigger(m_ev); }\
 	private: \
@@ -893,20 +736,6 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), m_v(t->m_v7), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
-		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(m_v1); \
-			b = b && c_v(m_v2); \
-			b = b && c_v(m_v3); \
-			b = b && c_v(m_v4); \
-			b = b && c_v(m_v5); \
-			b = b && c_v(m_v6); \
-			b = b && c_v(m_v7); \
-			b = b && c_v(retVal); \
-			b = b && c_v(m_pThis); \
-			return b; \
 		} \
 		virtual void callback() \
 		{ _trigger(m_ev, retVal); }\
@@ -971,20 +800,6 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), m_v(t->m_v7), m_v(t->m_v8), t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
 		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(m_v1); \
-			b = b && c_v(m_v2); \
-			b = b && c_v(m_v3); \
-			b = b && c_v(m_v4); \
-			b = b && c_v(m_v5); \
-			b = b && c_v(m_v6); \
-			b = b && c_v(m_v7); \
-			b = b && c_v(m_v8); \
-			b = b && c_v(m_pThis); \
-			return b; \
-		} \
 		virtual void callback() \
 		{ _trigger(m_ev); }\
 	private: \
@@ -1015,21 +830,6 @@ template<typename T0, typename T1, typename T2, typename T3, typename T4, typena
 		{	_t* t = (_t*) ac; \
 			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(m_v(t->m_v0), m_v(t->m_v1), m_v(t->m_v2), m_v(t->m_v3), m_v(t->m_v4), m_v(t->m_v5), m_v(t->m_v6), m_v(t->m_v7), m_v(t->m_v8), t->retVal, t); \
 			if (hr != CALL_E_PENDDING)t->post(hr); \
-		} \
-		virtual bool clear_value() \
-		{	bool b = true; \
-			b = b && c_v(m_v0); \
-			b = b && c_v(m_v1); \
-			b = b && c_v(m_v2); \
-			b = b && c_v(m_v3); \
-			b = b && c_v(m_v4); \
-			b = b && c_v(m_v5); \
-			b = b && c_v(m_v6); \
-			b = b && c_v(m_v7); \
-			b = b && c_v(m_v8); \
-			b = b && c_v(retVal); \
-			b = b && c_v(m_pThis); \
-			return b; \
 		} \
 		virtual void callback() \
 		{ _trigger(m_ev, retVal); }\

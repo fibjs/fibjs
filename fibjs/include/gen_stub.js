@@ -148,17 +148,6 @@ function gen_callback(argn, bRet)
 
 	txt.push('			if (hr != CALL_E_PENDDING)t->post(hr); \\\n' +
 			'		} \\\n' +
-			'		virtual bool clear_value() \\\n' +
-			'		{	bool b = true; \\');
-
-	for(i = 0; i < argn; i ++)
-		txt.push('			b = b && c_v(m_v' + i + '); \\');
-	if(bRet)
-		txt.push('			b = b && c_v(retVal); \\');
-	
-	txt.push('			b = b && c_v(m_pThis); \\\n' +
-			'			return b; \\\n' +
-			'		} \\\n' +
 			'		virtual void callback() \\');
 	
 	if(bRet)

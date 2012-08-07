@@ -39,14 +39,9 @@ public:
 	virtual void invoke();
 	virtual void callback() = 0;
 
-	virtual bool clear_value()
-	{
-		return true;
-	}
-
 	virtual void post(int v)
 	{
-		if (m_pThis->hasTrigger() || !clear_value())
+		if (m_pThis->hasTrigger())
 			AsyncCall::post(v);
 		else
 			delete this;
@@ -63,31 +58,6 @@ protected:
 	static T& m_v(T& v)
 	{
 		return v;
-	}
-
-	static bool c_v(std::string& s)
-	{
-		s.clear();
-		return true;
-	}
-
-	template<typename T>
-	static bool c_v(T& v)
-	{
-		return true;
-	}
-
-	template<typename T>
-	static bool c_v(obj_ptr<T>& v)
-	{
-		if (v == NULL)
-			return true;
-
-		if (v->isJSObject())
-			return false;
-
-		v.Release();
-		return true;
 	}
 
 	template<typename T>
