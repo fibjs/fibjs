@@ -12,11 +12,12 @@
 namespace fibjs
 {
 
-class asyncBuffer: public exlib::AsyncEvent
+class asyncBuffer: public asyncEvent
 {
 public:
 	asyncBuffer(BufferedStream* pThis, exlib::AsyncEvent* ac) :
-			m_bFirst(true), m_pThis(pThis), m_ac(ac)
+			m_bFirst(true), m_pThis(pThis), m_ac(
+					ac)
 	{
 	}
 

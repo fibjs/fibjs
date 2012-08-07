@@ -184,7 +184,7 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 
 	std::string buf;
 
-	exlib::AsyncEvent ac;
+	asyncEvent ac;
 	result_t hr = io_base::readFile(fname.c_str(), buf, &ac);
 	if (hr < 0)
 		return hr;

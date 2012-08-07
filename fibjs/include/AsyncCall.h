@@ -9,18 +9,18 @@ namespace fibjs
 class AsyncCall;
 typedef exlib::lockfree<AsyncCall> AsyncQueue;
 
-class AsyncCall: public exlib::AsyncEvent
+class AsyncCall: public asyncEvent
 {
 public:
 	AsyncCall(void ** a, void (*f)(AsyncCall*) = NULL) :
-			func(f), args(a)
+		func(f), args(a)
 	{
 	}
 
 	int wait()
 	{
 		v8::Unlocker unlocker(isolate);
-		return exlib::AsyncEvent::wait();
+		return asyncEvent::wait();
 	}
 
 public:
@@ -94,11 +94,11 @@ public:
 	obj_ptr<object_base> m_pThis;
 };
 
-class AsyncLog: public exlib::AsyncEvent
+class AsyncLog: public asyncEvent
 {
 public:
 	AsyncLog(int priority, std::string msg) :
-			m_priority(priority), m_msg(msg)
+		m_priority(priority), m_msg(msg)
 	{
 	}
 

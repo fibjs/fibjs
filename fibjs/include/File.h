@@ -17,7 +17,7 @@ public:
 
     ~File()
     {
-    	exlib::AsyncEvent ac;
+    	asyncEvent ac;
         close(&ac);
     }
 

@@ -97,7 +97,7 @@ void Runtime::reg(Runtime* rt)
 
 Runtime& Runtime::now()
 {
-	exlib::Service* pService = exlib::Service::getFiberService(false);
+	exlib::Service* pService = exlib::Service::getFiberService();
 
 	if (pService)
 	{

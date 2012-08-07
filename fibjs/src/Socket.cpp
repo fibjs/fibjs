@@ -29,7 +29,7 @@ result_t Socket_base::_new(int32_t family, int32_t type,
 
 Socket::~Socket()
 {
-	exlib::AsyncEvent ac;
+	asyncEvent ac;
 	close(&ac);
 }
 
@@ -39,7 +39,7 @@ extern HANDLE s_hIocp;
 
 result_t Socket::create(int32_t family, int32_t type)
 {
-	exlib::AsyncEvent ac;
+	asyncEvent ac;
 	close(&ac);
 
 	m_family = family;

@@ -21,7 +21,7 @@ result_t coroutine_base::start(v8::Handle<v8::Function> func,
 
 result_t coroutine_base::current(obj_ptr<Fiber_base>& retVal)
 {
-	exlib::Service* pService = exlib::Service::getFiberService(false);
+	exlib::Service* pService = exlib::Service::getFiberService();
 
 	if (pService)
 	{

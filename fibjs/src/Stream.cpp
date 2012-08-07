@@ -13,7 +13,7 @@ namespace fibjs
 result_t copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
 		int64_t& retVal, exlib::AsyncEvent* ac)
 {
-	class asyncCopy: public exlib::AsyncEvent
+	class asyncCopy: public asyncEvent
 	{
 	public:
 		asyncCopy(Stream_base* from, Stream_base* to, int64_t bytes,

@@ -34,6 +34,7 @@ namespace fibjs
 {
 v8::Isolate* isolate;
 v8::Persistent<v8::Context> s_context;
+exlib::Service* g_pService;
 
 class MyAppender: public log4cpp::LayoutAppender
 {
@@ -88,6 +89,9 @@ void _main(const char* fname)
 		root.addAppender(new MyAppender());
 		root.warn(e.what());
 	}
+
+	exlib::Service::init();
+	g_pService = exlib::Service::getFiberService();
 
 	v8::V8::Initialize();
 

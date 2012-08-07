@@ -14,8 +14,6 @@
 #include "utils.h"
 #include "ClassInfo.h"
 #include "Runtime.h"
-#include <exlib/fiber.h>
-#include <exlib/lockfree.h>
 
 namespace fibjs
 {
@@ -23,6 +21,15 @@ namespace fibjs
 #include "object_async.inl"
 
 #define GC_FIX_SIZE		4096
+
+class asyncEvent: public exlib::AsyncEvent
+{
+public:
+	asyncEvent() :
+			exlib::AsyncEvent(g_pService)
+	{
+	}
+};
 
 class object_base: public obj_base
 {
@@ -79,7 +86,7 @@ public:
 	exlib::Locker m_lock;
 
 public:
-	class asyncRelease: public exlib::AsyncEvent
+	class asyncRelease: public asyncEvent
 	{
 	public:
 		void release()

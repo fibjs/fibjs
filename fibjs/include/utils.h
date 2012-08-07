@@ -73,6 +73,9 @@ typedef int SOCKET;
 #include "obj_ptr.h"
 #include "Variant.h"
 
+#include <exlib/fiber.h>
+#include <exlib/lockfree.h>
+
 namespace fibjs
 {
 
@@ -450,6 +453,7 @@ inline result_t SocketError()
 }
 
 extern v8::Isolate* isolate;
+extern exlib::Service* g_pService;
 
 std::string traceInfo();
 std::string getResultMessage(result_t hr);

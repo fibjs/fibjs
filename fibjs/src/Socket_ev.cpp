@@ -193,7 +193,7 @@ public:
 	}
 
 public:
-	exlib::AsyncEvent m_aEvent;
+	asyncEvent m_aEvent;
 };
 
 result_t Socket::connect(const char* host, int32_t port, exlib::AsyncEvent* ac)
