@@ -14,32 +14,40 @@ namespace exlib
 void Locker::lock()
 {
 	Service* pService = Service::getFiberService();
-	Fiber* current = pService->m_running;
 
-	if (m_locked && current != m_locker)
+	if(pService)
 	{
-		m_blocks.put(current);
-		pService->switchtonext();
-	}
-	else if (++m_count == 1)
-	{
-		m_locked = true;
-		m_locker = current;
+		Fiber* current = pService->m_running;
+
+		if (m_locked && current != m_locker)
+		{
+			m_blocks.put(current);
+			pService->switchtonext();
+		}
+		else if (++m_count == 1)
+		{
+			m_locked = true;
+			m_locker = current;
+		}
 	}
 }
 
 bool Locker::trylock()
 {
 	Service* pService = Service::getFiberService();
-	Fiber* current = pService->m_running;
 
-	if (m_locked && current != m_locker)
-		return false;
-
-	if (++m_count == 1)
+	if(pService)
 	{
-		m_locked = true;
-		m_locker = current;
+		Fiber* current = pService->m_running;
+
+		if (m_locked && current != m_locker)
+			return false;
+
+		if (++m_count == 1)
+		{
+			m_locked = true;
+			m_locker = current;
+		}
 	}
 
 	return true;
@@ -48,22 +56,26 @@ bool Locker::trylock()
 void Locker::unlock()
 {
 	Service* pService = Service::getFiberService();
-	Fiber* current = pService->m_running;
 
-	if (current == m_locker)
+	if(pService)
 	{
-		if (--m_count == 0)
+		Fiber* current = pService->m_running;
+
+		if (current == m_locker)
 		{
-			if (m_blocks.empty())
+			if (--m_count == 0)
 			{
-				m_locked = false;
-				m_locker = NULL;
-			}
-			else
-			{
-				m_count++;
-				m_locker = m_blocks.get();
-				pService->m_resume.put(m_locker);
+				if (m_blocks.empty())
+				{
+					m_locked = false;
+					m_locker = NULL;
+				}
+				else
+				{
+					m_count++;
+					m_locker = m_blocks.get();
+					pService->m_resume.put(m_locker);
+				}
 			}
 		}
 	}
@@ -71,7 +83,13 @@ void Locker::unlock()
 
 bool Locker::owned()
 {
-	return Service::getFiberService()->m_running == m_locker;
+
+	Service* pService = Service::getFiberService();
+
+	if(pService)
+		return pService->m_running == m_locker;
+
+	return false;
 }
 
 }

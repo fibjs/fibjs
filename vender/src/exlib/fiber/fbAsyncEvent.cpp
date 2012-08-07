@@ -11,10 +11,10 @@
 namespace exlib
 {
 
-AsyncEvent::AsyncEvent()
+AsyncEvent::AsyncEvent(Service* pService)
 {
     m_next = NULL;
-    m_service = Service::getFiberService();
+    m_service = pService;
 }
 
 void AsyncEvent::post(int v)

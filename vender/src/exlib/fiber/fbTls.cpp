@@ -14,32 +14,46 @@ namespace exlib
 
 int Service::tlsAlloc()
 {
-    Service* pService = Service::getFiberService();
-    int i;
+	Service* pService = Service::getFiberService();
+	int i;
 
-    for(i = 0; i < TLS_SIZE; i ++)
-        if(pService->m_tls[i] == 0)
-        {
-            pService->m_tls[i] = 1;
-            return i;
-        }
+	if (pService)
+	{
+		for (i = 0; i < TLS_SIZE; i++)
+			if (pService->m_tls[i] == 0)
+			{
+				pService->m_tls[i] = 1;
+				return i;
+			}
+	}
 
-    return -1;
+	return -1;
 }
 
 void* Service::tlsGet(int idx)
 {
-    return Service::getFiberService()->m_running->m_tls[idx];
+	Service* pService = Service::getFiberService();
+
+	if (pService)
+		return pService->m_running->m_tls[idx];
+
+	return NULL;
 }
 
 void Service::tlsPut(int idx, void* v)
 {
-    Service::getFiberService()->m_running->m_tls[idx] = v;
+	Service* pService = Service::getFiberService();
+
+	if (pService)
+		pService->m_running->m_tls[idx] = v;
 }
 
 void Service::tlsFree(int idx)
 {
-	getFiberService()->m_tls[idx] = 0;
+	Service* pService = Service::getFiberService();
+
+	if (pService)
+		pService->m_tls[idx] = 0;
 }
 
 }

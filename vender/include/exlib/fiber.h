@@ -305,7 +305,7 @@ class Service;
 class AsyncEvent
 {
 public:
-	AsyncEvent();
+	AsyncEvent(Service* pService);
 	virtual ~AsyncEvent()
 	{}
 
@@ -354,7 +354,9 @@ public:
 public:
 	void switchtonext();
 	void yield();
-	static Service* getFiberService(bool bAutoInit = true);
+	static Service* getFiberService();
+	static void init();
+	static bool hasService();
 
 	IDLE_PROC onIdle(IDLE_PROC proc)
 	{

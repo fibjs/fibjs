@@ -13,35 +13,45 @@ namespace exlib
 
 void Semaphore::wait()
 {
-    if(m_count == 0)
-    {
-        Service* pService = Service::getFiberService();
+	if (m_count == 0)
+	{
+		Service* pService = Service::getFiberService();
 
-        m_blocks.put(pService->m_running);
-        pService->switchtonext();
-    }else
-        m_count --;
+		if (pService)
+		{
+			m_blocks.put(pService->m_running);
+			pService->switchtonext();
+		}
+	}
+	else
+		m_count--;
 }
 
 void Semaphore::post()
 {
-    if(!m_blocks.empty())
-    {
-        Service* pService = Service::getFiberService();
-        Fiber* cntxt;
+	if (!m_blocks.empty())
+	{
+		Service* pService = Service::getFiberService();
 
-        cntxt = m_blocks.get();
-        pService->m_resume.put(cntxt);
-    }else m_count ++;
+		if (pService)
+		{
+			Fiber* cntxt;
+
+			cntxt = m_blocks.get();
+			pService->m_resume.put(cntxt);
+		}
+	}
+	else
+		m_count++;
 }
 
 bool Semaphore::trywait()
 {
-    if(m_count == 0)
-        return false;
+	if (m_count == 0)
+		return false;
 
-    m_count --;
-    return true;
+	m_count--;
+	return true;
 }
 
 }

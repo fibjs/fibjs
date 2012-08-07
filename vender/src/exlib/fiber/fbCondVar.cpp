@@ -13,13 +13,17 @@ namespace exlib
 
 void CondVar::wait(Locker& l)
 {
-	l.unlock();
-
 	Service* pService = Service::getFiberService();
-	m_blocks.put(pService->m_running);
-	pService->switchtonext();
 
-	l.lock();
+	if (pService)
+	{
+		l.unlock();
+
+		m_blocks.put(pService->m_running);
+		pService->switchtonext();
+
+		l.lock();
+	}
 }
 
 void CondVar::notify_one()
@@ -27,10 +31,14 @@ void CondVar::notify_one()
 	if (!m_blocks.empty())
 	{
 		Service* pService = Service::getFiberService();
-		Fiber* cntxt;
 
-		cntxt = m_blocks.get();
-		pService->m_resume.put(cntxt);
+		if (pService)
+		{
+			Fiber* cntxt;
+
+			cntxt = m_blocks.get();
+			pService->m_resume.put(cntxt);
+		}
 	}
 }
 
@@ -39,12 +47,16 @@ void CondVar::notify_all()
 	if (!m_blocks.empty())
 	{
 		Service* pService = Service::getFiberService();
-		Fiber* cntxt;
 
-		while (!m_blocks.empty())
+		if (pService)
 		{
-			cntxt = m_blocks.get();
-			pService->m_resume.put(cntxt);
+			Fiber* cntxt;
+
+			while (!m_blocks.empty())
+			{
+				cntxt = m_blocks.get();
+				pService->m_resume.put(cntxt);
+			}
 		}
 	}
 }

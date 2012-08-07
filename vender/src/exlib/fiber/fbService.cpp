@@ -27,6 +27,8 @@ extern "C" int nix_switch(context* from, context* to);
 #define fb_switch nix_switch
 #endif
 
+static bool s_bRootThread = true;
+
 #ifdef MacOS
 
 static pthread_key_t keyService;
@@ -86,20 +88,38 @@ static void once_run(void)
 	pthread_key_create(&keyService, NULL);
 }
 
-Service* Service::getFiberService(bool bAutoInit)
+Service* Service::getFiberService()
 {
 	pthread_once(&once, once_run);
 
 	Service* pService = (Service*) FastThreadLocal(keyService);
 //	Service* pService = (Service*) pthread_getspecific(keyService);
 
-	if (pService == NULL && bAutoInit)
+	if (pService == NULL && s_bRootThread)
 	{
+		s_bRootThread = false;
 		pService = new Service();
 		pthread_setspecific(keyService, pService);
 	}
 
 	return pService;
+}
+
+void Service::init()
+{
+	Service* pService = (Service*) FastThreadLocal(keyService);
+//	Service* pService = (Service*) pthread_getspecific(keyService);
+
+	if (pService == NULL)
+	{
+		pService = new Service();
+		pthread_setspecific(keyService, pService);
+	}
+}
+
+bool Service::hasService()
+{
+	return !!FastThreadLocal(keyService);
 }
 
 #else
@@ -110,17 +130,34 @@ __declspec(thread) Service* th_Service = NULL;
 __thread Service* th_Service = NULL;
 #endif
 
-Service* Service::getFiberService(bool bAutoInit)
+Service* Service::getFiberService()
 {
 	Service* pService = th_Service;
 
-	if(pService == NULL && bAutoInit)
+	if(pService == NULL && s_bRootThread)
 	{
+		s_bRootThread = false;
 		pService = new Service();
 		th_Service = pService;
 	}
 
 	return pService;
+}
+
+void Service::init()
+{
+	Service* pService = th_Service;
+
+	if(pService == NULL)
+	{
+		pService = new Service();
+		th_Service = pService;
+	}
+}
+
+bool Service::hasService()
+{
+	return !!th_Service;
 }
 
 #endif
@@ -140,56 +177,65 @@ static void fiber_proc(void* (*func)(void *), void *data)
 
 	Service* pService = Service::getFiberService();
 
-	Fiber* now = pService->m_running;
+	if (pService)
+	{
+		Fiber* now = pService->m_running;
 
-	if (now->m_join)
-		pService->m_resume.put(now->m_join);
+		if (now->m_join)
+			pService->m_resume.put(now->m_join);
 
-	pService->m_recycle = now;
-	pService->switchtonext();
+		pService->m_recycle = now;
+		pService->switchtonext();
+	}
 }
 
 Fiber* Service::CreateFiber(void* (*func)(void *), void *data, int stacksize)
 {
 	Service* pService = Service::getFiberService();
-	Fiber* fb;
-	void** stack;
 
-	stacksize = (stacksize + sizeof(Fiber) + FB_STK_ALIGN - 1)
-			& ~(FB_STK_ALIGN - 1);
-	fb = (Fiber*) malloc(stacksize);
-	if (fb == NULL)
-		return NULL;
-	stack = (void**) fb + stacksize / sizeof(void*) - 5;
+	if (pService)
+	{
+		Fiber* fb;
+		void** stack;
 
-	memset(fb, 0, sizeof(Fiber));
+		stacksize = (stacksize + sizeof(Fiber) + FB_STK_ALIGN - 1)
+				& ~(FB_STK_ALIGN - 1);
+		fb = (Fiber*) malloc(stacksize);
+		if (fb == NULL)
+			return NULL;
+		stack = (void**) fb + stacksize / sizeof(void*) - 5;
+
+		memset(fb, 0, sizeof(Fiber));
 
 #if defined(x64)
-	fb->m_cntxt.Rip = (unsigned long long) fiber_proc;
-	fb->m_cntxt.Rsp = (unsigned long long) stack;
+		fb->m_cntxt.Rip = (unsigned long long) fiber_proc;
+		fb->m_cntxt.Rsp = (unsigned long long) stack;
 
 #ifdef _WIN32
-	fb->m_cntxt.Rcx = (unsigned long long) func;
-	fb->m_cntxt.Rdx = (unsigned long long) data;
+		fb->m_cntxt.Rcx = (unsigned long long) func;
+		fb->m_cntxt.Rdx = (unsigned long long) data;
 #else
-	fb->m_cntxt.Rdi = (unsigned long long) func;
-	fb->m_cntxt.Rsi = (unsigned long long) data;
+		fb->m_cntxt.Rdi = (unsigned long long) func;
+		fb->m_cntxt.Rsi = (unsigned long long) data;
 #endif
 
 #else
-	fb->m_cntxt.Eip = (unsigned long) fiber_proc;
-	fb->m_cntxt.Esp = (unsigned long) stack;
+		fb->m_cntxt.Eip = (unsigned long) fiber_proc;
+		fb->m_cntxt.Esp = (unsigned long) stack;
 
-	stack[1] = (void*)func;
-	stack[2] = data;
+		stack[1] = (void*)func;
+		stack[2] = data;
 #endif
 
-	pService->m_resume.put(fb);
+		pService->m_resume.put(fb);
 
-	fb->Ref();
-	fb->Ref();
+		fb->Ref();
+		fb->Ref();
 
-	return fb;
+		return fb;
+	}
+
+	return NULL;
 }
 
 void Service::switchtonext()
@@ -254,10 +300,14 @@ void Service::switchtonext()
 void Service::yield()
 {
 	Service* pService = Service::getFiberService();
-	AsyncEvent ae;
 
-	pService->m_yieldList.put(&ae);
-	ae.wait();
+	if (pService)
+	{
+		AsyncEvent ae(pService);
+
+		pService->m_yieldList.put(&ae);
+		ae.wait();
+	}
 }
 
 }

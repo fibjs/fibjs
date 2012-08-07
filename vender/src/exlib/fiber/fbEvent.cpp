@@ -16,23 +16,25 @@ void Event::wait()
 	{
 		Service* pService = Service::getFiberService();
 
-		m_blocks.put(pService->m_running);
-		pService->switchtonext();
+		if (pService)
+		{
+			m_blocks.put(pService->m_running);
+			pService->switchtonext();
+		}
 	}
 }
 
 void Event::pulse()
 {
-	Service* pService = NULL;
+	Service* pService = Service::getFiberService();
 	Fiber* cntxt;
 
-	while (!m_blocks.empty())
-	{
-		cntxt = m_blocks.get();
-		if (pService == NULL)
-			pService = Service::getFiberService();
-		pService->m_resume.put(cntxt);
-	}
+	if (pService)
+		while (!m_blocks.empty())
+		{
+			cntxt = m_blocks.get();
+			pService->m_resume.put(cntxt);
+		}
 }
 
 void Event::set()
