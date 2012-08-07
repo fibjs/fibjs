@@ -48,12 +48,12 @@ public:
 		{
 			if (!handle_.IsEmpty())
 			{
-				if (exlib::Service::getFiberService(false))
+				if (v8::Isolate::GetCurrent())
 					handle_.MakeWeak(this, WeakCallback);
 				else
 				{
 					internalRef();
-					m_ar.post();
+					m_ar.post(0);
 				}
 			}
 			else
@@ -79,14 +79,9 @@ public:
 	exlib::Locker m_lock;
 
 public:
-	class asyncRelease
+	class asyncRelease: public exlib::AsyncEvent
 	{
 	public:
-		asyncRelease() :
-				m_next(NULL)
-		{
-		}
-
 		void release()
 		{
 			object_base* pThis = NULL;
@@ -97,10 +92,7 @@ public:
 			pThis->Unref();
 		}
 
-		void post();
-
-	public:
-		asyncRelease* m_next;
+		virtual void invoke();
 	};
 
 private:

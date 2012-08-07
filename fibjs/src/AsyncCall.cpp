@@ -5,15 +5,14 @@
  *      Author: lion
  */
 
-
 #include "object.h"
 
 namespace fibjs
 {
 
-static exlib::Queue<exlib::AsyncEvent> g_cbs;
 extern v8::Persistent<v8::Context> s_context;
-static exlib::Queue<object_base::asyncRelease> g_oar;
+static exlib::Queue<exlib::AsyncEvent> g_cbs;
+static exlib::Queue<exlib::AsyncEvent> g_oar;
 
 static class _callback_init
 {
@@ -37,10 +36,10 @@ public:
 			v8::HandleScope handle_scope;
 			object_base::asyncRelease* oar;
 
-			if ((oar = g_oar.tryget()) == NULL)
+			if ((oar = (object_base::asyncRelease*) g_oar.tryget()) == NULL)
 			{
 				v8::Unlocker unlocker(isolate);
-				oar = g_oar.get();
+				oar = (object_base::asyncRelease*) g_oar.get();
 			}
 
 			if (oar == NULL)
@@ -65,10 +64,10 @@ public:
 			v8::HandleScope handle_scope;
 			AsyncCallBack* ac;
 
-			if ((ac = (AsyncCallBack*)g_cbs.tryget()) == NULL)
+			if ((ac = (AsyncCallBack*) g_cbs.tryget()) == NULL)
 			{
 				v8::Unlocker unlocker(isolate);
-				ac = (AsyncCallBack*)g_cbs.get();
+				ac = (AsyncCallBack*) g_cbs.get();
 			}
 
 			if (ac == NULL)
@@ -86,7 +85,7 @@ void AsyncCallBack::invoke()
 	g_cbs.put(this);
 }
 
-void object_base::asyncRelease::post()
+void object_base::asyncRelease::invoke()
 {
 	g_oar.put(this);
 }
