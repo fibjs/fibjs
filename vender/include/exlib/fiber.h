@@ -315,6 +315,10 @@ public:
 		weak.set();
 	}
 
+	virtual void callback()
+	{
+	}
+
 	int wait()
 	{
 		weak.wait();
