@@ -89,7 +89,7 @@ public:
 	class asyncRelease: public asyncEvent
 	{
 	public:
-		void release()
+		virtual void callback()
 		{
 			object_base* pThis = NULL;
 

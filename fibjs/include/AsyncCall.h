@@ -37,7 +37,6 @@ public:
 	}
 
 	virtual void invoke();
-	virtual void callback() = 0;
 
 	virtual void post(int v)
 	{
