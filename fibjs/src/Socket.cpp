@@ -133,9 +133,6 @@ result_t Socket::copyTo(obj_ptr<Stream_base>& stm, int64_t bytes,
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
 
-	if (!ac)
-		return CALL_E_NOSYNC;
-
 	return copyStream(this, stm, bytes, retVal, ac);
 }
 

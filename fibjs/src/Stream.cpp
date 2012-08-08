@@ -57,7 +57,7 @@ result_t copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
 						len = m_bytes;
 
 					m_buf.Release();
-					hr = m_from->read((int32_t)len, m_buf, this);
+					hr = m_from->read((int32_t) len, m_buf, this);
 					break;
 				case 1:
 					m_state = 0;
@@ -90,6 +90,9 @@ result_t copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
 		int m_state;
 		obj_ptr<Buffer_base> m_buf;
 	};
+
+	if (!ac)
+		return CALL_E_NOSYNC;
 
 	(new asyncCopy(from, to, bytes, retVal, ac))->post(0);
 	return CALL_E_PENDDING;

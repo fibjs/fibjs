@@ -143,9 +143,6 @@ result_t File::copyTo(obj_ptr<Stream_base>& stm, int64_t bytes, int64_t& retVal,
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
 
-	if (!ac)
-		return CALL_E_NOSYNC;
-
 	return copyStream(this, stm, bytes, retVal, ac);
 }
 

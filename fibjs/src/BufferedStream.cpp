@@ -194,9 +194,6 @@ result_t BufferedStream::onwrite(v8::Handle<v8::Function> func)
 result_t BufferedStream::copyTo(obj_ptr<Stream_base>& stm, int64_t bytes,
 		int64_t& retVal, exlib::AsyncEvent* ac)
 {
-	if (!ac)
-		return CALL_E_NOSYNC;
-
 	return copyStream(this, stm, bytes, retVal, ac);
 }
 
