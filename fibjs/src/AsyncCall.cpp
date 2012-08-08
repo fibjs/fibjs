@@ -55,7 +55,7 @@ void AsyncCallBack::invoke()
 	g_cbs.put(this);
 }
 
-void object_base::asyncRelease::invoke()
+void asyncCallBack::invoke()
 {
 	g_cbs.put(this);
 }

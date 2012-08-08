@@ -1,7 +1,7 @@
 
 /*! @brief 并发控制模块
  * 
- * 饮用方法：var coroutine = require('coroutine');
+ * 引用方法：var coroutine = require('coroutine');
  */
 class coroutine : module
 {

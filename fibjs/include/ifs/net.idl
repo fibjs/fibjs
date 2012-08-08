@@ -42,6 +42,9 @@ class net : module
 	/*! @brief 创建一个 Socket 对象，参见 Socket */
 	static Socket new Socket();
 
+	/*! @brief 创建一个 TCPServer 对象，参见 TCPServer */
+	static TCPServer new TCPServer();
+
 	/*! @brief 创建一个 Url 对象，参见 Url */
 	static Url new Url();
 

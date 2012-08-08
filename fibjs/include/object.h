@@ -31,6 +31,12 @@ public:
 	}
 };
 
+class asyncCallBack: public asyncEvent
+{
+public:
+	virtual void invoke();
+};
+
 class object_base: public obj_base
 {
 public:
@@ -86,7 +92,7 @@ public:
 	exlib::Locker m_lock;
 
 public:
-	class asyncRelease: public asyncEvent
+	class asyncRelease: public asyncCallBack
 	{
 	public:
 		virtual void callback()
@@ -98,8 +104,6 @@ public:
 
 			pThis->Unref();
 		}
-
-		virtual void invoke();
 	};
 
 private:

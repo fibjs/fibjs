@@ -60,6 +60,7 @@
     <ClCompile Include="src\SQLite.cpp" />
     <ClCompile Include="src\Stat.cpp" />
     <ClCompile Include="src\Stream.cpp" />
+    <ClCompile Include="src\TCPServer.cpp" />
     <ClCompile Include="src\test.cpp" />
     <ClCompile Include="src\Trigger.cpp" />
     <ClCompile Include="src\Url.cpp" />
@@ -121,6 +122,7 @@
     <ClInclude Include="include\ifs\SQLite.h" />
     <ClInclude Include="include\ifs\Stat.h" />
     <ClInclude Include="include\ifs\Stream.h" />
+    <ClInclude Include="include\ifs\TCPServer.h" />
     <ClInclude Include="include\ifs\Trigger.h" />
     <ClInclude Include="include\ifs\Url.h" />
     <ClInclude Include="include\ifs\uuid.h" />
@@ -142,6 +144,7 @@
     <ClInclude Include="include\SQLite.h" />
     <ClInclude Include="include\Stat.h" />
     <ClInclude Include="include\Stream.h" />
+    <ClInclude Include="include\TCPServer.h" />
     <ClInclude Include="include\Trigger.h" />
     <ClInclude Include="include\Url.h" />
     <ClInclude Include="include\utf8.h" />
