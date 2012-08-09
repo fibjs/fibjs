@@ -1,0 +1,15 @@
+
+class HttpCollection : object
+{
+	clear();
+	Boolean has(String name);
+	String first(String name);
+	Array all(String name);
+	add(String name, String value);
+	add(Object map);
+	set(String name, String value);
+	set(Object map);
+	remove(String name);
+
+	String operator[String];
+};

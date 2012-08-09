@@ -453,9 +453,9 @@ function parserIDL(fname) {
 		}
 
 		if (fname == "operator") {
-			if (ids.hasOwnProperty(st[pos]))
+			if (ids.hasOwnProperty(st[pos] + st[pos + 1]))
 				return reportErr();
-			ids[st[pos]] = [];
+			ids[st[pos] + st[pos + 1]] = [];
 		} else if (st[pos] != "(") {
 			if (ids.hasOwnProperty(fname))
 				return reportErr();
@@ -772,9 +772,9 @@ function parserIDL(fname) {
 								+ arg_type(ftype) + " newVal) = 0;";
 						ifs.push(ifStr);
 					}
-				} else if ((st[pos] === "{") && (st[pos + 1] === "}")
-						&& (st[pos + 2] === ";")) {
-					pos += 2;
+				} else if ((st[pos] === "[") && (st[pos + 1] === "String")
+						&& (st[pos + 2] === "]") && (st[pos + 3] === ";")) {
+					pos += 3;
 					hasNamed = true;
 
 					iffs
@@ -798,7 +798,7 @@ function parserIDL(fname) {
 								.push("	static v8::Handle<v8::Value> i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info);");
 						fnStr = "	inline v8::Handle<v8::Value> "
 								+ ns
-								+ "_base::i_NamdSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info)\n	{\n		PROPERTY_ENTER();\n";
+								+ "_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info)\n	{\n		PROPERTY_ENTER();\n";
 						fnStr += "		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 						if (ftype === "String")
 							fnStr += "		PROPERTY_VAL_String();\n";

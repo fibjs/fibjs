@@ -23,6 +23,8 @@
 
 #include "ifs/uuid.h"
 
+#include "ifs/http.h"
+
 #include <sstream>
 #include <map>
 
@@ -64,6 +66,8 @@ void initModule()
 	InstallNativeModule("os", os_base::class_info());
 	InstallNativeModule("net", net_base::class_info());
 	InstallNativeModule("zmq", zmq_base::class_info());
+
+	InstallNativeModule("http", http_base::class_info());
 
 	InstallNativeModule("db", db_base::class_info());
 	InstallNativeModule("hash", hash_base::class_info());

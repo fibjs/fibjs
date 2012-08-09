@@ -12,15 +12,13 @@
  */
 
 #include "../object.h"
-#include "Trigger.h"
 
 namespace fibjs
 {
 
-class Trigger_base;
 class Socket_base;
 
-class TCPServer_base : public Trigger_base
+class TCPServer_base : public object_base
 {
 public:
 	// TCPServer_base
@@ -40,7 +38,7 @@ public:
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{
-		result_t hr = Trigger_base::toJSON(key, retVal);
+		result_t hr = object_base::toJSON(key, retVal);
 		if(hr < 0)return hr;
 
 		CLONE_CLASS(socket, Socket_base);
@@ -82,7 +80,7 @@ namespace fibjs
 		{ 
 			"TCPServer", s__new, 
 			2, s_method, 0, NULL, 1, s_property, NULL, NULL,
-			&Trigger_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

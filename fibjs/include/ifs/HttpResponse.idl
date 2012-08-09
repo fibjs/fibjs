@@ -1,0 +1,5 @@
+
+class HttpResponse : HttpMessage
+{
+	Integer status;
+};

@@ -1,0 +1,6 @@
+
+class http : module
+{
+	static HttpRequest new Request();
+//	static HttpResponse new Response();
+};

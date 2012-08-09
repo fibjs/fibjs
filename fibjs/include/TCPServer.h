@@ -17,8 +17,6 @@ namespace fibjs
 
 class TCPServer: public TCPServer_base
 {
-	EVENT_SUPPORT();
-
 public:
 	// TCPServer_base
 	virtual result_t run(exlib::AsyncEvent* ac);

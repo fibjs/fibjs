@@ -153,7 +153,7 @@ typedef int result_t;
 
 #define METHOD_RETURN() \
     }while(0); \
-    if(hr == CALL_RETURN_NULL)return v8::Undefined(); \
+    if(hr == CALL_RETURN_NULL)return v8::Handle<v8::Value>(); \
     if(hr >= 0)return ReturnValue(vr); \
     return ThrowResult(hr);
 
