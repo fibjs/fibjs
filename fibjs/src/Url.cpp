@@ -22,7 +22,7 @@ static const char *hex = "0123456789ABCDEF";
 
 inline result_t urlencode(const char* url, std::string& retVal, const char* tab)
 {
-	if(*url == 0)
+	if (*url == 0)
 	{
 		retVal.resize(0);
 		return 0;
@@ -83,6 +83,21 @@ result_t Url_base::_new(v8::Handle<v8::Object> args, obj_ptr<Url_base>& retVal)
 	retVal = u;
 
 	return 0;
+}
+
+Url::Url(const Url& u)
+{
+	m_protocol = u.m_protocol;
+	m_slashes = u.m_slashes;
+	m_defslashes = u.m_defslashes;
+	m_username = u.m_username;
+	m_password = u.m_password;
+	m_hostname = u.m_hostname;
+	m_port = u.m_port;
+	m_pathname = u.m_pathname;
+	m_query = u.m_query;
+	m_hash = u.m_hash;
+	m_ipv6 = u.m_ipv6;
 }
 
 void Url::clear()
@@ -192,7 +207,7 @@ void Url::parseHost(const char*& url)
 	else
 		m_hostname.assign(url, p1 - url);
 
-	if(m_hostname.length() > 0)
+	if (m_hostname.length() > 0)
 		qstrlwr(&m_hostname[0]);
 	if (p2)
 		m_port.assign(p1 + 1, p2 - p1 - 1);
@@ -328,47 +343,51 @@ result_t Url::resolve(const char* url, obj_ptr<Url_base>& retVal)
 	if (hr < 0)
 		return hr;
 
+	obj_ptr<Url> base = new Url(*this);
+
 	if (u->m_hostname.length() > 0 || u->m_slashes
 			|| (u->m_protocol.length() > 0 && u->m_protocol.compare(m_protocol)))
 	{
 		if (u->m_protocol.length())
-			m_protocol = u->m_protocol;
-		m_slashes = u->m_slashes;
-		m_defslashes = u->m_defslashes;
-		m_username = u->m_username;
-		m_password = u->m_password;
-		m_hostname = u->m_hostname;
-		m_port = u->m_port;
-		m_pathname = u->m_pathname;
-		m_query = u->m_query;
-		m_hash = u->m_hash;
-		m_ipv6 = u->m_ipv6;
+			base->m_protocol = u->m_protocol;
+		base->m_slashes = u->m_slashes;
+		base->m_defslashes = u->m_defslashes;
+		base->m_username = u->m_username;
+		base->m_password = u->m_password;
+		base->m_hostname = u->m_hostname;
+		base->m_port = u->m_port;
+		base->m_pathname = u->m_pathname;
+		base->m_query = u->m_query;
+		base->m_hash = u->m_hash;
+		base->m_ipv6 = u->m_ipv6;
 
-		normalize();
+		base->normalize();
 	}
 	else if (u->m_pathname.length())
 	{
 		if (isUrlSlash(u->m_pathname[0]))
-			m_pathname = u->m_pathname;
+			base->m_pathname = u->m_pathname;
 		else
 		{
 			if (!isUrlSlash(m_pathname[m_pathname.length() - 1]))
-				m_pathname.append("/../", 4);
-			m_pathname.append(u->m_pathname);
+				base->m_pathname.append("/../", 4);
+			base->m_pathname.append(u->m_pathname);
 		}
 
-		normalize();
+		base->normalize();
 
-		m_query = u->m_query;
-		m_hash = u->m_hash;
+		base->m_query = u->m_query;
+		base->m_hash = u->m_hash;
 	}
 	else if (u->m_query.length())
 	{
-		m_query = u->m_query;
-		m_hash = u->m_hash;
+		base->m_query = u->m_query;
+		base->m_hash = u->m_hash;
 	}
 	else if (u->m_hash.length())
-		m_hash = u->m_hash;
+		base->m_hash = u->m_hash;
+
+	retVal = base;
 
 	return 0;
 }
