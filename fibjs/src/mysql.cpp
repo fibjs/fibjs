@@ -74,7 +74,7 @@ int API_recvSocket(void *sock, char *buffer, int cbBuffer)
 
 	std::string strBuf;
 
-	if (retVal != NULL)
+	if (hr != CALL_RETURN_NULL)
 	{
 		retVal->toString(strBuf);
 		memcpy(buffer, strBuf.c_str(), strBuf.length());

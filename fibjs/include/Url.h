@@ -16,6 +16,13 @@ namespace fibjs
 class Url: public Url_base
 {
 public:
+	Url()
+	{
+	}
+
+	Url(const Url& u);
+
+public:
 	// object_base
 	result_t toString(std::string& retVal);
 

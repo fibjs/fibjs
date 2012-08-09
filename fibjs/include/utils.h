@@ -410,11 +410,7 @@ template<class T>
 inline v8::Handle<v8::Value> ReturnValue(obj_ptr<T>& obj)
 {
 	v8::Handle<v8::Object> retVal;
-
-	if (obj)
-		obj->ValueOf(retVal);
-	else
-		return v8::Undefined();
+	obj->ValueOf(retVal);
 
 	return retVal;
 }

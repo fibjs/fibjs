@@ -10,7 +10,7 @@
 #include "Socket.h"
 #include "ifs/net.h"
 #include "Buffer.h"
-#include  <fcntl.h>
+#include <fcntl.h>
 #include <mswsock.h>
 #include <mstcpip.h>
 
@@ -68,9 +68,9 @@ public:
 		return 0;
 	}
 
-	virtual void ready(DWORD dwBytes, DWORD dwError)
+	virtual void ready(DWORD dwBytes, int dwError)
 	{
-		m_ac->post(-(int) dwError);
+		m_ac->post(-dwError);
 		delete this;
 	}
 
@@ -173,7 +173,7 @@ result_t Socket::connect(const char* host, int32_t port, exlib::AsyncEvent* ac)
 			return (nError == WSA_IO_PENDING) ? CALL_E_PENDDING : -nError;
 		}
 
-		virtual void ready(DWORD dwBytes, DWORD dwError)
+		virtual void ready(DWORD dwBytes, int dwError)
 		{
 			if (!dwError)
 			{
@@ -256,7 +256,7 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 			return (nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError;
 		}
 
-		virtual void ready(DWORD dwBytes, DWORD dwError)
+		virtual void ready(DWORD dwBytes, int dwError)
 		{
 			if (!dwError)
 			{
@@ -322,7 +322,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 			return (nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError;
 		}
 
-		virtual void ready(DWORD dwBytes, DWORD dwError)
+		virtual void ready(DWORD dwBytes, int dwError)
 		{
 			if (dwError == ERROR_NETNAME_DELETED)
 			{
@@ -330,10 +330,15 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 				dwBytes = 0;
 			}
 
-			if (!dwError && dwBytes)
+			if (!dwError)
 			{
-				m_buf.resize(dwBytes);
-				m_retVal = new Buffer(m_buf);
+				if (dwBytes)
+				{
+					m_buf.resize(dwBytes);
+					m_retVal = new Buffer(m_buf);
+				}
+				else
+					dwError = -CALL_RETURN_NULL;
 			}
 
 			asyncProc::ready(dwBytes, dwError);
@@ -377,7 +382,7 @@ result_t Socket::send(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
 			return (nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError;
 		}
 
-		virtual void ready(DWORD dwBytes, DWORD dwError)
+		virtual void ready(DWORD dwBytes, int dwError)
 		{
 			if (!dwError)
 			{

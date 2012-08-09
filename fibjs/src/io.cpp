@@ -18,7 +18,7 @@ namespace fibjs
 result_t io_base::open(const char* fname, const char* mode,
 		obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac)
 {
-	if(!ac)
+	if (!ac)
 		return CALL_E_NOSYNC;
 
 	obj_ptr<File> pFile = new File();
@@ -36,7 +36,7 @@ result_t io_base::open(const char* fname, const char* mode,
 result_t io_base::create(const char* fname, bool Overwrite,
 		obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac)
 {
-	if(!ac)
+	if (!ac)
 		return CALL_E_NOSYNC;
 
 	return 0;
@@ -44,16 +44,17 @@ result_t io_base::create(const char* fname, bool Overwrite,
 
 result_t io_base::tmpFile(obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac)
 {
-	if(!ac)
+	if (!ac)
 		return CALL_E_NOSYNC;
 
 	retVal = new File();
 	return 0;
 }
 
-result_t io_base::readFile(const char* fname, std::string& retVal, exlib::AsyncEvent* ac)
+result_t io_base::readFile(const char* fname, std::string& retVal,
+		exlib::AsyncEvent* ac)
 {
-	if(!ac)
+	if (!ac)
 		return CALL_E_NOSYNC;
 
 	obj_ptr<File> f = new File();
@@ -67,18 +68,19 @@ result_t io_base::readFile(const char* fname, std::string& retVal, exlib::AsyncE
 
 	hr = f->size(sz);
 
-	hr = f->read((int32_t)sz, buf, ac);
+	hr = f->read((int32_t) sz, buf, ac);
 	f->close(ac);
 
-	if(hr < 0 || !buf)
+	if (hr < 0 || hr == CALL_RETURN_NULL)
 		return hr;
 
 	return buf->toString(retVal);
 }
 
-result_t io_base::writeFile(const char* fname, const char* txt, exlib::AsyncEvent* ac)
+result_t io_base::writeFile(const char* fname, const char* txt,
+		exlib::AsyncEvent* ac)
 {
-	if(!ac)
+	if (!ac)
 		return CALL_E_NOSYNC;
 
 	obj_ptr<File> f = new File();
@@ -88,7 +90,7 @@ result_t io_base::writeFile(const char* fname, const char* txt, exlib::AsyncEven
 	if (hr < 0)
 		return hr;
 
-	hr = f->Write(txt, (int)qstrlen(txt));
+	hr = f->Write(txt, (int) qstrlen(txt));
 	f->close(ac);
 
 	return hr;

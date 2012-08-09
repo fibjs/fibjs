@@ -62,7 +62,7 @@ result_t copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
 				case 1:
 					m_state = 0;
 
-					if (m_buf == NULL)
+					if (hr == CALL_RETURN_NULL)
 					{
 						m_ac->post(0);
 						delete this;

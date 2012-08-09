@@ -50,8 +50,10 @@ result_t MemoryStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 		m_buffer.seekp(m_buffer.tellg());
 	}
 
-	if (strBuf.length())
-		retVal = new Buffer(strBuf);
+	if (strBuf.length() == 0)
+		return CALL_RETURN_NULL;
+
+	retVal = new Buffer(strBuf);
 
 	return 0;
 }

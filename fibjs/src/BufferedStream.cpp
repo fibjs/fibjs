@@ -16,8 +16,7 @@ class asyncBuffer: public asyncEvent
 {
 public:
 	asyncBuffer(BufferedStream* pThis, exlib::AsyncEvent* ac) :
-			m_bFirst(true), m_pThis(pThis), m_ac(
-					ac)
+			m_bFirst(true), m_pThis(pThis), m_ac(ac)
 	{
 	}
 
@@ -43,7 +42,7 @@ public:
 					return;
 				}
 
-				if (m_buf)
+				if (hr != CALL_RETURN_NULL)
 				{
 					m_buf->toString(m_pThis->m_buf);
 					m_buf.Release();
@@ -111,8 +110,10 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 			{
 				std::string s = pThis->m_strbuf.str();
 
-				if (s.length())
-					retVal = new Buffer(s);
+				if (s.length() == 0)
+					return CALL_RETURN_NULL;
+
+				retVal = new Buffer(s);
 
 				return 0;
 			}

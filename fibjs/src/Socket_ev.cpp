@@ -338,11 +338,11 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 				return (nError == EWOULDBLOCK) ? CALL_E_PENDDING : -nError;
 			}
 
-			if (n > 0)
-			{
-				m_buf.resize(n);
-				m_retVal = new Buffer(m_buf);
-			}
+			if (n == 0)
+				return CALL_RETURN_NULL;
+
+			m_buf.resize(n);
+			m_retVal = new Buffer(m_buf);
 
 			return 0;
 		}
