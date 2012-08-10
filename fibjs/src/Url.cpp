@@ -23,10 +23,7 @@ static const char *hex = "0123456789ABCDEF";
 inline result_t urlencode(const char* url, std::string& retVal, const char* tab)
 {
 	if (*url == 0)
-	{
-		retVal.resize(0);
 		return 0;
-	}
 
 	int len;
 	const char* src;
@@ -102,16 +99,16 @@ Url::Url(const Url& u)
 
 void Url::clear()
 {
-	m_protocol.resize(0);
+	m_protocol.clear();
 	m_slashes = true;
 	m_defslashes = true;
-	m_username.resize(0);
-	m_password.resize(0);
-	m_hostname.resize(0);
-	m_port.resize(0);
-	m_pathname.resize(0);
-	m_query.resize(0);
-	m_hash.resize(0);
+	m_username.clear();
+	m_password.clear();
+	m_hostname.clear();
+	m_port.clear();
+	m_pathname.clear();
+	m_query.clear();
+	m_hash.clear();
 	m_ipv6 = false;
 }
 

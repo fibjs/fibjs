@@ -302,7 +302,7 @@ result_t path_base::combine(const v8::Arguments& args, std::string& retVal)
 				bRoot = false;
 
 			if (bRoot)
-				strBuffer.resize(0);
+				strBuffer.clear();
 
 			strBuffer.append(p);
 

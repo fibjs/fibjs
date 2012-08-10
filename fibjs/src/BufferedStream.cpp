@@ -61,7 +61,7 @@ public:
 				return;
 			}
 
-			m_pThis->m_buf.resize(0);
+			m_pThis->m_buf.clear();
 			m_pThis->m_pos = 0;
 
 			hr = m_pThis->m_stm->read(-1, m_buf, this);

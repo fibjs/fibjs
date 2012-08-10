@@ -237,7 +237,7 @@ void doDefine(v8::Handle<v8::Object>& mod)
 				{
 					// not found deps array
 					depns.erase(modIds[i]);
-					modIds[i].resize(0);
+					modIds[i].clear();
 					bNext = false;
 
 					continue;
@@ -329,7 +329,7 @@ void doDefine(v8::Handle<v8::Object>& mod)
 
 					// remove id name, we don't like to call it again
 					depns.erase(modIds[i]);
-					modIds[i].resize(0);
+					modIds[i].clear();
 					bNext = false;
 				}
 			}

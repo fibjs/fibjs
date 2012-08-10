@@ -173,7 +173,7 @@ result_t MemoryStream::CloneStream::clone(obj_ptr<MemoryStream_base>& retVal)
 result_t MemoryStream::CloneStream::clear()
 {
 	rewind();
-	m_buffer.resize(0);
+	m_buffer.clear();
 
 	os_base::time(m_time);
 
