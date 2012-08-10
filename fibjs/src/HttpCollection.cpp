@@ -95,8 +95,37 @@ result_t HttpCollection::add(v8::Handle<v8::Object> map)
 
 result_t HttpCollection::set(const char* name, const char* value)
 {
-	remove(name);
-	add(name, value);
+	int32_t i;
+	bool bFound = false;
+
+	for (i = 0; i < m_count; i++)
+		if (!qstrcmp(m_array[i * 2].c_str(), name))
+		{
+			m_array[i * 2 + 1] = value;
+			bFound = true;
+			break;
+		}
+
+	if (bFound)
+	{
+		int32_t p = ++i;
+
+		for (; i < m_count; i++)
+			if (qstrcmp(m_array[i * 2].c_str(), name))
+			{
+				if (i != p)
+				{
+					m_array[p * 2] = m_array[i * 2];
+					m_array[p * 2 + 1] = m_array[i * 2 + 1];
+				}
+
+				p++;
+			}
+
+		m_count = p;
+	}
+	else
+		add(name, value);
 
 	return 0;
 }

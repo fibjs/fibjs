@@ -19,6 +19,7 @@ namespace fibjs
 
 class Trigger_base;
 class HttpCollection_base;
+class SeekableStream_base;
 class Stream_base;
 class BufferedStream_base;
 
@@ -26,22 +27,21 @@ class HttpMessage_base : public Trigger_base
 {
 public:
 	// HttpMessage_base
-	virtual result_t get_protocol(int32_t& retVal) = 0;
-	virtual result_t set_protocol(int32_t newVal) = 0;
+	virtual result_t get_protocol(std::string& retVal) = 0;
+	virtual result_t set_protocol(const char* newVal) = 0;
 	virtual result_t get_headers(obj_ptr<HttpCollection_base>& retVal) = 0;
-	virtual result_t get_body(obj_ptr<Stream_base>& retVal) = 0;
-	virtual result_t set_body(obj_ptr<Stream_base>& newVal) = 0;
+	virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal) = 0;
+	virtual result_t set_body(obj_ptr<SeekableStream_base>& newVal) = 0;
 	virtual result_t get_contentType(std::string& retVal) = 0;
 	virtual result_t set_contentType(const char* newVal) = 0;
-	virtual result_t get_contentLength(int32_t& retVal) = 0;
-	virtual result_t set_contentLength(int32_t newVal) = 0;
+	virtual result_t get_contentLength(int64_t& retVal) = 0;
 	virtual result_t get_keepAlive(bool& retVal) = 0;
 	virtual result_t set_keepAlive(bool newVal) = 0;
 	virtual result_t clear() = 0;
-	virtual result_t send(obj_ptr<Stream_base>& stm) = 0;
+	virtual result_t send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncSend(obj_ptr<Stream_base>& stm) = 0;
 	virtual result_t onsend(v8::Handle<v8::Function> func) = 0;
-	virtual result_t read(obj_ptr<BufferedStream_base>& stm) = 0;
+	virtual result_t read(obj_ptr<BufferedStream_base>& stm, exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncRead(obj_ptr<BufferedStream_base>& stm) = 0;
 	virtual result_t onread(v8::Handle<v8::Function> func) = 0;
 
@@ -58,11 +58,11 @@ public:
 		result_t hr = Trigger_base::toJSON(key, retVal);
 		if(hr < 0)return hr;
 
-		CLONE(protocol, int32_t);
+		CLONE_String(protocol);
 		CLONE_CLASS(headers, HttpCollection_base);
-		CLONE_CLASS(body, Stream_base);
+		CLONE_CLASS(body, SeekableStream_base);
 		CLONE_String(contentType);
-		CLONE(contentLength, int32_t);
+		CLONE(contentLength, int64_t);
 		CLONE(keepAlive, bool);
 
 		return 0;
@@ -77,7 +77,6 @@ public:
 	static v8::Handle<v8::Value> s_get_contentType(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_contentType(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_contentLength(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_contentLength(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_keepAlive(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_keepAlive(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_clear(const v8::Arguments& args);
@@ -87,11 +86,18 @@ public:
 	static v8::Handle<v8::Value> s_read(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncRead(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_onread(const v8::Arguments& args);
+
+public:
+	ASYNC_MEMBER1(HttpMessage_base, send);
+	ASYNC_CALLBACK1(HttpMessage_base, send);
+	ASYNC_MEMBER1(HttpMessage_base, read);
+	ASYNC_CALLBACK1(HttpMessage_base, read);
 };
 
 }
 
 #include "HttpCollection.h"
+#include "SeekableStream.h"
 #include "Stream.h"
 #include "BufferedStream.h"
 
@@ -116,7 +122,7 @@ namespace fibjs
 			{"headers", s_get_headers},
 			{"body", s_get_body, s_set_body},
 			{"contentType", s_get_contentType, s_set_contentType},
-			{"contentLength", s_get_contentLength, s_set_contentLength},
+			{"contentLength", s_get_contentLength},
 			{"keepAlive", s_get_keepAlive, s_set_keepAlive}
 		};
 
@@ -133,7 +139,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> HttpMessage_base::s_get_protocol(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		int32_t vr;
+		std::string vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpMessage_base);
@@ -148,7 +154,7 @@ namespace fibjs
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpMessage_base);
 
-		PROPERTY_VAL(int32_t);
+		PROPERTY_VAL_String();
 		hr = pInst->set_protocol(v0);
 
 		PROPERTY_SET_LEAVE();
@@ -168,7 +174,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> HttpMessage_base::s_get_body(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		obj_ptr<Stream_base> vr;
+		obj_ptr<SeekableStream_base> vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpMessage_base);
@@ -183,7 +189,7 @@ namespace fibjs
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpMessage_base);
 
-		PROPERTY_VAL(obj_ptr<Stream_base>);
+		PROPERTY_VAL(obj_ptr<SeekableStream_base>);
 		hr = pInst->set_body(v0);
 
 		PROPERTY_SET_LEAVE();
@@ -214,7 +220,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> HttpMessage_base::s_get_contentLength(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		int32_t vr;
+		int64_t vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpMessage_base);
@@ -222,17 +228,6 @@ namespace fibjs
 		hr = pInst->get_contentLength(vr);
 
 		METHOD_RETURN();
-	}
-
-	inline void HttpMessage_base::s_set_contentLength(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
-	{
-		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(HttpMessage_base);
-
-		PROPERTY_VAL(int32_t);
-		hr = pInst->set_contentLength(v0);
-
-		PROPERTY_SET_LEAVE();
 	}
 
 	inline v8::Handle<v8::Value> HttpMessage_base::s_get_keepAlive(v8::Local<v8::String> property, const v8::AccessorInfo &info)
@@ -275,7 +270,7 @@ namespace fibjs
 
 		ARG(obj_ptr<Stream_base>, 0);
 
-		hr = pInst->send(v0);
+		hr = pInst->ac_send(v0);
 
 		METHOD_VOID();
 	}
@@ -311,7 +306,7 @@ namespace fibjs
 
 		ARG(obj_ptr<BufferedStream_base>, 0);
 
-		hr = pInst->read(v0);
+		hr = pInst->ac_read(v0);
 
 		METHOD_VOID();
 	}

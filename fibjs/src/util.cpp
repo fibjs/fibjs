@@ -50,6 +50,8 @@ std::string getResultMessage(result_t hr)
 			"Object is not an instance of declaring class.",
 			// CALL_E_INVALID_CALL
 			"Invalid procedure call.",
+			// CALL_E_INVALID_DATA
+			"Invalid input data.",
 			// CALL_E_BADINDEX
 			"Index was out of range.",
 			// CALL_E_OVERFLOW

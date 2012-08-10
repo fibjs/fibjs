@@ -80,6 +80,13 @@ public:
 		operator=(lp);
 	}
 
+	template<class Q>
+	obj_ptr(const obj_ptr<Q>& lp) :
+			p(NULL)
+	{
+		operator=(lp);
+	}
+
 	~obj_ptr()
 	{
 		Release();
@@ -93,7 +100,22 @@ public:
 		return Attach(lp);
 	}
 
+	template<class Q>
+	T* operator=(Q* lp)
+	{
+		if (lp != NULL)
+			lp->Ref();
+
+		return Attach(lp);
+	}
+
 	T* operator=(const obj_ptr<T>& lp)
+	{
+		return operator=(lp.p);
+	}
+
+	template<class Q>
+	T* operator=(const obj_ptr<Q>& lp)
 	{
 		return operator=(lp.p);
 	}

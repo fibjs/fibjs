@@ -42,6 +42,7 @@
     <ClCompile Include="src\global.cpp" />
     <ClCompile Include="src\hash.cpp" />
     <ClCompile Include="src\HttpCollection.cpp" />
+    <ClCompile Include="src\HttpMessage.cpp" />
     <ClCompile Include="src\HttpRequest.cpp" />
     <ClCompile Include="src\inetAddr.cpp" />
     <ClCompile Include="src\io.cpp" />
@@ -93,6 +94,7 @@
     <ClInclude Include="include\Fiber.h" />
     <ClInclude Include="include\File.h" />
     <ClInclude Include="include\HttpCollection.h" />
+    <ClInclude Include="include\HttpMessage.h" />
     <ClInclude Include="include\HttpRequest.h" />
     <ClInclude Include="include\ifs\assert.h" />
     <ClInclude Include="include\ifs\Buffer.h" />
@@ -147,6 +149,7 @@
     <ClInclude Include="include\object.h" />
     <ClInclude Include="include\ObjectArray.h" />
     <ClInclude Include="include\obj_ptr.h" />
+    <ClInclude Include="include\parse.h" />
     <ClInclude Include="include\qstring.h" />
     <ClInclude Include="include\QuickArray.h" />
     <ClInclude Include="include\Runtime.h" />

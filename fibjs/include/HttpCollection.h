@@ -36,6 +36,14 @@ public:
 	virtual result_t _named_getter(const char* property, std::string& retVal);
 	virtual result_t _named_setter(const char* property, const char* newVal);
 
+public:
+	void add(const char* name, int szName, const char* value, int szValue)
+	{
+		m_array[m_count * 2].assign(name, szName);
+		m_array[m_count * 2 + 1].assign(value, szValue);
+		m_count++;
+	}
+
 private:
 	QuickArray<std::string> m_array;
 	int32_t m_count;

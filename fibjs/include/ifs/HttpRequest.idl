@@ -5,7 +5,6 @@ class HttpRequest : HttpMessage
 
 	String method;
 	String address;
-	String queryString;
 	readonly HttpCollection cookies;
 	readonly HttpCollection form;
 	readonly HttpCollection query;

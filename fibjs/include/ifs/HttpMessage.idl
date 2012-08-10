@@ -1,17 +1,17 @@
 class HttpMessage: Trigger
 {
-	Integer protocol;
+	String protocol;
 	readonly HttpCollection headers;
-	Stream body;
+	SeekableStream body;
 	String contentType;
-	Integer contentLength;
+	readonly Long contentLength;
 	Boolean keepAlive;
 
 	clear();
-	send(Stream stm);
+	send(Stream stm) async;
 	asyncSend(Stream stm);
 	onsend(Function func);
-	read(BufferedStream stm);
+	read(BufferedStream stm) async;
 	asyncRead(BufferedStream stm);
 	onread(Function func);
 };

@@ -105,16 +105,18 @@ typedef int result_t;
 #define CALL_E_NOTINSTANCE      (CALL_E_MAX - 8)
 // Invalid procedure call.
 #define CALL_E_INVALID_CALL		 (CALL_E_MAX - 9)
+// Invalid input data
+#define CALL_E_INVALID_DATA		 (CALL_E_MAX - 10)
 // Index was out of range.
-#define CALL_E_BADINDEX         (CALL_E_MAX - 10)
+#define CALL_E_BADINDEX         (CALL_E_MAX - 11)
 // Memory overflow error.
-#define CALL_E_OVERFLOW         (CALL_E_MAX - 11)
+#define CALL_E_OVERFLOW         (CALL_E_MAX - 12)
 // Operation now in progress.
-#define CALL_E_PENDDING			(CALL_E_MAX - 12)
+#define CALL_E_PENDDING			(CALL_E_MAX - 13)
 // Operation now support synchronous call.
-#define CALL_E_NOSYNC			(CALL_E_MAX - 13)
+#define CALL_E_NOSYNC			(CALL_E_MAX - 14)
 // Exception occurred.
-#define CALL_E_EXCEPTION		(CALL_E_MAX - 14)
+#define CALL_E_EXCEPTION		(CALL_E_MAX - 15)
 
 #define CALL_E_MIN              -100100
 
