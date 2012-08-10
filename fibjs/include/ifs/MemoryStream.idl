@@ -6,25 +6,10 @@
  * var ms = new io.MemoryStream();
  * @endcode
  */
-class MemoryStream : Stream
+class MemoryStream : SeekableStream
 {
 	/*! @brief MemoryStream 构造函数 */
 	MemoryStream();
-
-	/*! @brief 移动文件当前操作位置
-	 *  @param offset 指定新的位置
-	 *  @param whence 指定位置基准，允许的值为：SEEK_SET, SEEK_CUR, SEEK_END
-	 */
-	seek(Long offset, Integer whence = io.SEEK_SET);
-
-	/*! @brief 查询文件当前位置 */
-	Long tell();
-
-	/*! @brief 移动当前位置到文件开头 */
-	rewind();
-
-	/*! @brief 查询内存流尺寸 */
-	Long size();
 
 	/*! @brief 强制设定内存流对象的最后更新时间
 	 * @param d 指定要设定的时间

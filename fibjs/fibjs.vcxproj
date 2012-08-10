@@ -88,6 +88,7 @@
     <ClInclude Include="include\DBField.h" />
     <ClInclude Include="include\DBResult.h" />
     <ClInclude Include="include\DBRow.h" />
+    <ClInclude Include="include\Digest.h" />
     <ClInclude Include="include\Event.h" />
     <ClInclude Include="include\Fiber.h" />
     <ClInclude Include="include\File.h" />
@@ -126,6 +127,7 @@
     <ClInclude Include="include\ifs\ObjectArray.h" />
     <ClInclude Include="include\ifs\os.h" />
     <ClInclude Include="include\ifs\path.h" />
+    <ClInclude Include="include\ifs\SeekableStream.h" />
     <ClInclude Include="include\ifs\Semaphore.h" />
     <ClInclude Include="include\ifs\Socket.h" />
     <ClInclude Include="include\ifs\SQLite.h" />
@@ -153,6 +155,7 @@
     <ClInclude Include="include\SQLite.h" />
     <ClInclude Include="include\Stat.h" />
     <ClInclude Include="include\Stream.h" />
+    <ClInclude Include="include\StringBuffer.h" />
     <ClInclude Include="include\TCPServer.h" />
     <ClInclude Include="include\Trigger.h" />
     <ClInclude Include="include\Url.h" />

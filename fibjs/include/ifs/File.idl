@@ -5,7 +5,7 @@
  * var f = fs.open('test.txt');
  * @endcode
  */
-class File: Stream
+class File: SeekableStream
 {
 //	const Integer SEEK_SET = 0;
 //	const Integer SEEK_CUR = 1;
@@ -51,19 +51,7 @@ class File: Stream
 
 	/*! @brief 查询当前文件名 */
 	readonly String name;
-	
-	/*! @brief 移动文件当前操作位置
-	 *  @param offset 指定新的位置
-	 *  @param whence 指定位置基准，允许的值为：SEEK_SET, SEEK_CUR, SEEK_END
-	 */
-	seek(Long offset, Integer whence = io.SEEK_SET);
 
-	/*! @brief 查询文件当前位置 */
-	Long tell();
-
-	/*! @brief 移动当前位置到文件开头 */
-	rewind();
-	
 	/*! @brief 修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
 	 *  @param bytes 新的文件尺寸
 	 */
@@ -84,9 +72,6 @@ class File: Stream
 	 * @endcode
 	 */
 	ontruncate(Function func);
-
-	/*! @brief 查询文件尺寸 */
-	Long size();
 
 	/*! @brief 查询文件是否到结尾 */
 	Boolean eof();

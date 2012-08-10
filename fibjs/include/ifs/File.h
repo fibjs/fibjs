@@ -12,15 +12,14 @@
  */
 
 #include "../object.h"
-#include "Stream.h"
+#include "SeekableStream.h"
 
 namespace fibjs
 {
 
-class Stream_base;
-class io_base;
+class SeekableStream_base;
 
-class File_base : public Stream_base
+class File_base : public SeekableStream_base
 {
 public:
 	// File_base
@@ -29,13 +28,9 @@ public:
 	virtual result_t asyncOpen(const char* fname, const char* mode) = 0;
 	virtual result_t onopen(v8::Handle<v8::Function> func) = 0;
 	virtual result_t get_name(std::string& retVal) = 0;
-	virtual result_t seek(int64_t offset, int32_t whence) = 0;
-	virtual result_t tell(int64_t& retVal) = 0;
-	virtual result_t rewind() = 0;
 	virtual result_t truncate(int64_t bytes, exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncTruncate(int64_t bytes) = 0;
 	virtual result_t ontruncate(v8::Handle<v8::Function> func) = 0;
-	virtual result_t size(int64_t& retVal) = 0;
 	virtual result_t eof(bool& retVal) = 0;
 	virtual result_t flush(exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncFlush() = 0;
@@ -54,7 +49,7 @@ public:
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{
-		result_t hr = Stream_base::toJSON(key, retVal);
+		result_t hr = SeekableStream_base::toJSON(key, retVal);
 		if(hr < 0)return hr;
 
 		CLONE_String(name);
@@ -68,13 +63,9 @@ public:
 	static v8::Handle<v8::Value> s_asyncOpen(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_onopen(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_name(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_seek(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_tell(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_rewind(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_truncate(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncTruncate(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_ontruncate(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_size(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_eof(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_flush(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncFlush(const v8::Arguments& args);
@@ -96,7 +87,6 @@ public:
 
 }
 
-#include "io.h"
 
 namespace fibjs
 {
@@ -107,13 +97,9 @@ namespace fibjs
 			{"open", s_open},
 			{"asyncOpen", s_asyncOpen},
 			{"onopen", s_onopen},
-			{"seek", s_seek},
-			{"tell", s_tell},
-			{"rewind", s_rewind},
 			{"truncate", s_truncate},
 			{"asyncTruncate", s_asyncTruncate},
 			{"ontruncate", s_ontruncate},
-			{"size", s_size},
 			{"eof", s_eof},
 			{"flush", s_flush},
 			{"asyncFlush", s_asyncFlush},
@@ -131,8 +117,8 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"File", s__new, 
-			17, s_method, 0, NULL, 1, s_property, NULL, NULL,
-			&Stream_base::class_info()
+			13, s_method, 0, NULL, 1, s_property, NULL, NULL,
+			&SeekableStream_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
@@ -200,41 +186,6 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> File_base::s_seek(const v8::Arguments& args)
-	{
-		METHOD_INSTANCE(File_base);
-		METHOD_ENTER(2, 1);
-
-		ARG(int64_t, 0);
-		OPT_ARG(int32_t, 1, io_base::_SEEK_SET);
-
-		hr = pInst->seek(v0, v1);
-
-		METHOD_VOID();
-	}
-
-	inline v8::Handle<v8::Value> File_base::s_tell(const v8::Arguments& args)
-	{
-		int64_t vr;
-
-		METHOD_INSTANCE(File_base);
-		METHOD_ENTER(0, 0);
-
-		hr = pInst->tell(vr);
-
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> File_base::s_rewind(const v8::Arguments& args)
-	{
-		METHOD_INSTANCE(File_base);
-		METHOD_ENTER(0, 0);
-
-		hr = pInst->rewind();
-
-		METHOD_VOID();
-	}
-
 	inline v8::Handle<v8::Value> File_base::s_truncate(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(File_base);
@@ -269,18 +220,6 @@ namespace fibjs
 		hr = pInst->ontruncate(v0);
 
 		METHOD_VOID();
-	}
-
-	inline v8::Handle<v8::Value> File_base::s_size(const v8::Arguments& args)
-	{
-		int64_t vr;
-
-		METHOD_INSTANCE(File_base);
-		METHOD_ENTER(0, 0);
-
-		hr = pInst->size(vr);
-
-		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> File_base::s_eof(const v8::Arguments& args)

@@ -38,18 +38,21 @@ public:
 	virtual result_t onerror(v8::Handle<v8::Function> func);
 
 public:
+	// SeekableStream_base
+	virtual result_t seek(int64_t offset, int32_t whence);
+	virtual result_t tell(int64_t& retVal);
+	virtual result_t rewind();
+	virtual result_t size(int64_t& retVal);
+
+public:
 	// File_base
 	virtual result_t open(const char* fname, const char* mode, exlib::AsyncEvent* ac);
 	virtual result_t asyncOpen(const char* fname, const char* mode);
 	virtual result_t onopen(v8::Handle<v8::Function> func);
 	virtual result_t get_name(std::string& retVal);
-	virtual result_t seek(int64_t offset, int32_t whence);
-	virtual result_t tell(int64_t& retVal);
-	virtual result_t rewind();
 	virtual result_t truncate(int64_t bytes, exlib::AsyncEvent* ac);
 	virtual result_t asyncTruncate(int64_t bytes);
 	virtual result_t ontruncate(v8::Handle<v8::Function> func);
-	virtual result_t size(int64_t& retVal);
 	virtual result_t eof(bool& retVal);
 	virtual result_t flush(exlib::AsyncEvent* ac);
 	virtual result_t asyncFlush();

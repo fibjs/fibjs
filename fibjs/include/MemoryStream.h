@@ -6,6 +6,7 @@
  */
 
 #include "ifs/os.h"
+#include "ifs/io.h"
 #include "ifs/MemoryStream.h"
 #include <sstream>
 
@@ -47,11 +48,14 @@ public:
 		virtual result_t onerror(v8::Handle<v8::Function> func);
 
 	public:
-		// MemoryStream_base
+		// SeekableStream_base
 		virtual result_t seek(int64_t offset, int32_t whence);
 		virtual result_t tell(int64_t& retVal);
 		virtual result_t rewind();
 		virtual result_t size(int64_t& retVal);
+
+	public:
+		// MemoryStream_base
 		virtual result_t setTime(date_t d);
 		virtual result_t clone(obj_ptr<MemoryStream_base>& retVal);
 		virtual result_t clear();
@@ -85,11 +89,14 @@ public:
 	virtual result_t onerror(v8::Handle<v8::Function> func);
 
 public:
-	// MemoryStream_base
+	// SeekableStream_base
 	virtual result_t seek(int64_t offset, int32_t whence);
 	virtual result_t tell(int64_t& retVal);
 	virtual result_t rewind();
 	virtual result_t size(int64_t& retVal);
+
+public:
+	// MemoryStream_base
 	virtual result_t setTime(date_t d);
 	virtual result_t clone(obj_ptr<MemoryStream_base>& retVal);
 	virtual result_t clear();
