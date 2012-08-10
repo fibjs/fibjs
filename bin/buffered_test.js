@@ -46,7 +46,7 @@ function accept1(s) {
 	}
 }
 
-var s1 = new net.Socket(net.AF_INET6, net.SOCK_STREAM);
+var s1 = new net.Socket();
 s1.bind(8082);
 s1.listen();
 accept1.start(s1);

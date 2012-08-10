@@ -17,19 +17,19 @@ assert.equal(26, ms.tell());
 ms.seek(-10, io.SEEK_END);
 assert.equal(16, ms.tell());
 
-ms.seek(ms.size() + 10);
+ms.seek(ms.size() + 10, io.SEEK_SET);
 
 ms.rewind();
 assert.equal(0, ms.tell());
 assert.equal('abcdefghijklmnopqrstuvwxyz', ms.read().toString());
 
-ms.seek(10);
+ms.seek(10, io.SEEK_SET);
 assert.equal('klmnopqrstuvwxyz', ms.read().toString());
 
-ms.seek(10);
+ms.seek(10, io.SEEK_SET);
 assert.equal('klmnopqrstuvwxyz', ms.read(ms.size()).toString());
 
-ms.seek(10);
+ms.seek(10, io.SEEK_SET);
 ms.seek(10, io.SEEK_CUR);
 assert.equal('uvwxyz', ms.read(ms.size()).toString());
 
@@ -41,15 +41,15 @@ assert.equal(cms.stat().mtime, ms.stat().mtime);
 
 assert.equal('abcdefghijklmnopqrstuvwxyz', cms.read().toString());
 
-cms.seek(10);
+cms.seek(10, io.SEEK_SET);
 assert.equal(cms.tell(), 10);
 assert.equal('klmnopqrstuvwxyz', cms.read().toString());
 
-cms.seek(10);
+cms.seek(10, io.SEEK_SET);
 assert.equal(cms.tell(), 10);
 assert.equal('klmnopqrstuvwxyz', cms.read(cms.size()).toString());
 
-cms.seek(10);
+cms.seek(10, io.SEEK_SET);
 cms.seek(10, io.SEEK_CUR);
 assert.equal(cms.tell(), 20);
 assert.equal('uvwxyz', cms.read(cms.size()).toString());
@@ -58,7 +58,7 @@ cms.seek(-10, io.SEEK_END);
 assert.equal(cms.tell(), 16);
 assert.equal('qrstuvwxyz', cms.read(cms.size()).toString());
 
-ms.seek(10);
+ms.seek(10, io.SEEK_SET);
 ms.write(new Buffer('abcdefghijklmnopqrstuvwxyz'));
 assert.equal(36, ms.size());
 assert.equal(36, ms.tell());

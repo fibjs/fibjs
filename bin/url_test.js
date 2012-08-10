@@ -757,6 +757,6 @@ var relativeTests = [
 
 relativeTests.forEach(function(relativeTest) {
 	url.parse(relativeTest[0]);
-	url.resolve(relativeTest[1]);
-	assert.equal(relativeTest[2], url.href);
+	url1 = url.resolve(relativeTest[1]);
+	assert.equal(relativeTest[2], url1.href);
 });

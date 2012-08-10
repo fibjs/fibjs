@@ -48,9 +48,9 @@ f1.close();
 os.unlink('io_test.js.bak');
 
 f = io.open('io_test.js');
-f.seek(f.size() + 10);
+f.seek(f.size() + 10, io.SEEK_SET);
 assert.equal(f.tell(), f.size() + 10);
-f.seek(10);
+f.seek(10, io.SEEK_SET);
 b = f.read(f.size());
 assert.equal(f.size() - 10, b.length);
 f.close();
