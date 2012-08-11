@@ -100,12 +100,12 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 	public:
 		asyncRead(HttpRequest* pThis, BufferedStream_base* stm,
 				exlib::AsyncEvent* ac) :
-				m_pThis(pThis), m_stm(stm), m_ac(ac), m_state(0), m_contentLength(
-						0)
+				m_bAsync(false), m_pThis(pThis), m_stm(stm), m_ac(ac), m_state(
+						0), m_contentLength(0)
 		{
 		}
 
-		virtual void post(int v)
+		virtual int post(int v)
 		{
 			result_t hr = v;
 
@@ -113,9 +113,10 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 			{
 				if (hr < 0)
 				{
-					m_ac->post(hr);
+					if(m_bAsync)
+						m_ac->post(hr);
 					delete this;
-					return;
+					return hr;
 				}
 
 				switch (m_state)
@@ -193,23 +194,25 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 					// request header....
 					if (m_strLine.length() > 0)
 					{
-						int p1, p2;
+						int p2;
 						char ch;
 						_parser p(m_strLine);
 
-						p1 = p.pos;
 						while (!p.end() && (ch = p.get()) && ch != ' '
 								&& ch != ':')
 							p.skip();
 						p2 = p.pos;
-						if (p1 == p2 || !p.want(':'))
+						if (0 == p2 || !p.want(':'))
 						{
 							hr = CALL_E_INVALID_DATA;
 							break;
 						}
 						p.skipSpace();
 
-						m_pThis->m_message.addHeader(p.string + p1, p2 - p1,
+						if (p2 == 14 && qstricmp(p.string, "content-length"))
+							m_contentLength = atoi(p.string + p.pos);
+
+						m_pThis->m_message.addHeader(p.string, p2,
 								p.string + p.pos, p.sz - p.pos);
 
 						hr = m_stm->readLine(m_strLine, this);
@@ -228,7 +231,7 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 						if (hr < 0)
 							break;
 
-						obj_ptr<Stream_base> body(m_body);
+						obj_ptr<Stream_base> body(body);
 						hr = m_stm->copyTo(body, m_contentLength, m_copySize,
 								this);
 					}
@@ -245,18 +248,25 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 						hr = CALL_E_INVALID_DATA;
 						break;
 					}
+					else
+						m_body->rewind();
 
 					break;
 				case 5:
 					// done....
-					m_ac->post(0);
+					if(m_bAsync)
+						m_ac->post(0);
 					delete this;
-					return;
+					return 0;
 				}
 			}
+
+			m_bAsync = true;
+			return hr;
 		}
 
 	public:
+		bool m_bAsync;
 		HttpRequest* m_pThis;
 		BufferedStream_base* m_stm;
 		exlib::AsyncEvent* m_ac;
@@ -270,8 +280,7 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	(new asyncRead(this, stm, ac))->post(0);
-	return CALL_E_PENDDING;
+	return (new asyncRead(this, stm, ac))->post(0);
 }
 
 result_t HttpRequest::asyncRead(obj_ptr<BufferedStream_base>& stm)

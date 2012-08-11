@@ -18,13 +18,13 @@ result_t copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
 	public:
 		asyncCopy(Stream_base* from, Stream_base* to, int64_t bytes,
 				int64_t& retVal, exlib::AsyncEvent* ac) :
-				m_from(from), m_to(to), m_bytes(bytes), m_retVal(retVal), m_ac(
-						ac), m_state(0)
+				m_bAsync(false), m_from(from), m_to(to), m_bytes(bytes), m_retVal(
+						retVal), m_ac(ac), m_state(0)
 		{
 			m_retVal = 0;
 		}
 
-		virtual void post(int v)
+		virtual int post(int v)
 		{
 			result_t hr = v;
 			int64_t len;
@@ -36,7 +36,7 @@ result_t copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
 				{
 					m_ac->post(hr);
 					delete this;
-					return;
+					return hr;
 				}
 
 				switch (m_state)
@@ -46,9 +46,10 @@ result_t copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
 
 					if (m_bytes == 0)
 					{
-						m_ac->post(0);
+						if (m_bAsync)
+							m_ac->post(0);
 						delete this;
-						return;
+						return hr;
 					}
 
 					if (m_bytes > STREAM_BUFF_SIZE)
@@ -64,9 +65,10 @@ result_t copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
 
 					if (hr == CALL_RETURN_NULL)
 					{
-						m_ac->post(0);
+						if (m_bAsync)
+							m_ac->post(0);
 						delete this;
-						return;
+						return 0;
 					}
 
 					m_buf->get_length(blen);
@@ -79,9 +81,13 @@ result_t copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
 					break;
 				}
 			}
+
+			m_bAsync = true;
+			return hr;
 		}
 
 	public:
+		bool m_bAsync;
 		Stream_base* m_from;
 		Stream_base* m_to;
 		int64_t m_bytes;
@@ -94,8 +100,7 @@ result_t copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	(new asyncCopy(from, to, bytes, retVal, ac))->post(0);
-	return CALL_E_PENDDING;
+	return (new asyncCopy(from, to, bytes, retVal, ac))->post(0);
 }
 
 }

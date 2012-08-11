@@ -38,12 +38,13 @@ public:
 
 	virtual void invoke();
 
-	virtual void post(int v)
+	virtual int post(int v)
 	{
 		if (m_pThis->hasTrigger())
-			AsyncCall::post(v);
-		else
-			delete this;
+			return AsyncCall::post(v);
+
+		delete this;
+		return 0;
 	}
 
 protected:

@@ -67,7 +67,10 @@ result_t HttpMessage::set_contentType(const char* newVal)
 result_t HttpMessage::get_contentLength(int64_t& retVal)
 {
 	if (m_body == NULL)
-		return CALL_E_INVALID_CALL;
+	{
+		retVal = 0;
+		return 0;
+	}
 	return m_body->size(retVal);
 }
 

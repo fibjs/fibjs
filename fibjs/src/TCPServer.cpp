@@ -63,27 +63,29 @@ result_t TCPServer::create(const char* addr, int32_t port,
 
 result_t TCPServer::run(exlib::AsyncEvent* ac)
 {
-	class _t: public AsyncCallBack
+	class asyncAccept: public AsyncCallBack
 	{
 	public:
-		_t(Socket_base* pThis) :
+		asyncAccept(Socket_base* pThis) :
 				AsyncCallBack(pThis, NULL, _stub)
 		{
 		}
 
 		static void _stub(AsyncCall* ac)
 		{
-			_t* t = (_t*) ac;
+			asyncAccept* t = (asyncAccept*) ac;
 			result_t hr = ((Socket_base*) (object_base*) t->m_pThis)->accept(
 					t->retVal, t);
 			if (hr != CALL_E_PENDDING)
 				t->post(hr);
 		}
 
-		virtual void post(int v)
+		virtual int post(int v)
 		{
-			s_acPool.put(new _t((Socket_base*) (object_base*) m_pThis));
+			s_acPool.put(new asyncAccept((Socket_base*) (object_base*) m_pThis));
 			AsyncCallBack::post(v);
+
+			return 0;
 		}
 
 		virtual void callback()
@@ -98,7 +100,7 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	s_acPool.put(new _t(m_socket));
+	s_acPool.put(new asyncAccept(m_socket));
 
 	return CALL_E_PENDDING;
 }

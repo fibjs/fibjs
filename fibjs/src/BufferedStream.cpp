@@ -16,7 +16,7 @@ class asyncBuffer: public asyncEvent
 {
 public:
 	asyncBuffer(BufferedStream* pThis, exlib::AsyncEvent* ac) :
-			m_bFirst(true), m_pThis(pThis), m_ac(ac)
+			m_bAsync(false), m_bFirst(true), m_pThis(pThis), m_ac(ac)
 	{
 	}
 
@@ -25,7 +25,7 @@ public:
 		return CALL_RETURN_NULL;
 	}
 
-	virtual void post(int v)
+	virtual int post(int v)
 	{
 		result_t hr = v;
 
@@ -37,9 +37,10 @@ public:
 			{
 				if (hr < 0)
 				{
-					m_ac->post(hr);
+					if (m_bAsync)
+						m_ac->post(hr);
 					delete this;
-					return;
+					return hr;
 				}
 
 				if (hr != CALL_RETURN_NULL)
@@ -56,9 +57,10 @@ public:
 			hr = process(streamEnd);
 			if (hr >= 0)
 			{
-				m_ac->post(hr);
+				if (m_bAsync)
+					m_ac->post(hr);
 				delete this;
-				return;
+				return hr;
 			}
 
 			m_pThis->m_buf.clear();
@@ -66,9 +68,14 @@ public:
 
 			hr = m_pThis->m_stm->read(-1, m_buf, this);
 		}
+
+		m_bAsync = true;
+
+		return hr;
 	}
 
 public:
+	bool m_bAsync;
 	bool m_bFirst;
 	BufferedStream* m_pThis;
 	exlib::AsyncEvent* m_ac;
@@ -160,8 +167,7 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 		return CALL_E_NOSYNC;
 	}
 
-	(new asyncRead(this, bytes, retVal, ac))->post(0);
-	return CALL_E_PENDDING;
+	return (new asyncRead(this, bytes, retVal, ac))->post(0);
 }
 
 result_t BufferedStream::asyncRead(int32_t bytes)
@@ -336,8 +342,7 @@ result_t BufferedStream::readUntil(const char* mk, std::string& retVal,
 		return CALL_E_NOSYNC;
 	}
 
-	(new asyncRead(this, mk, retVal, ac))->post(0);
-	return CALL_E_PENDDING;
+	return (new asyncRead(this, mk, retVal, ac))->post(0);
 }
 
 result_t BufferedStream::writeText(const char* txt, exlib::AsyncEvent* ac)
