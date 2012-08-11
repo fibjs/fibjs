@@ -231,7 +231,7 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 						if (hr < 0)
 							break;
 
-						obj_ptr<Stream_base> body(body);
+						obj_ptr<Stream_base> body(m_body);
 						hr = m_stm->copyTo(body, m_contentLength, m_copySize,
 								this);
 					}
