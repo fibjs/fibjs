@@ -17,10 +17,12 @@ AsyncEvent::AsyncEvent(Service* pService)
     m_service = pService;
 }
 
-void AsyncEvent::post(int v)
+int AsyncEvent::post(int v)
 {
 	m_v = v;
     m_service->m_aEvents.put(this);
+
+    return 0;
 }
 
 }

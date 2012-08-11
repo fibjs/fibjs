@@ -309,7 +309,7 @@ public:
 	virtual ~AsyncEvent()
 	{}
 
-	virtual void post(int v);
+	virtual int post(int v);
 	virtual void invoke()
 	{
 		weak.set();
