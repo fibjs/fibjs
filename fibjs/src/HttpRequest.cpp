@@ -113,7 +113,7 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 			{
 				if (hr < 0)
 				{
-					if(m_bAsync)
+					if (m_bAsync)
 						m_ac->post(hr);
 					delete this;
 					return hr;
@@ -209,7 +209,8 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 						}
 						p.skipSpace();
 
-						if (p2 == 14 && qstricmp(p.string, "content-length"))
+						if (p2 == 14
+								&& !qstricmp(p.string, "content-length", 14))
 							m_contentLength = atoi(p.string + p.pos);
 
 						m_pThis->m_message.addHeader(p.string, p2,
@@ -254,7 +255,7 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 					break;
 				case 5:
 					// done....
-					if(m_bAsync)
+					if (m_bAsync)
 						m_ac->post(0);
 					delete this;
 					return 0;
