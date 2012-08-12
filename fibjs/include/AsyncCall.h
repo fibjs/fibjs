@@ -13,7 +13,7 @@ class AsyncCall: public asyncEvent
 {
 public:
 	AsyncCall(void ** a, void (*f)(AsyncCall*) = NULL) :
-		func(f), args(a)
+			func(f), args(a)
 	{
 	}
 
@@ -94,11 +94,59 @@ public:
 	obj_ptr<object_base> m_pThis;
 };
 
+class asyncState: public asyncEvent
+{
+public:
+	asyncState(exlib::AsyncEvent* ac) :
+			m_ac(ac), m_bAsyncState(false), m_state(NULL)
+	{
+	}
+
+public:
+	void set(int (*fn)(asyncState*, int))
+	{
+		m_state = fn;
+	}
+
+	int done()
+	{
+		m_state = NULL;
+		return 0;
+	}
+
+	virtual int post(int v)
+	{
+		result_t hr = v;
+
+		while (hr != CALL_E_PENDDING)
+		{
+			if (hr < 0 || !m_state)
+			{
+				if (m_bAsyncState)
+					m_ac->post(hr);
+				delete this;
+				return hr;
+			}
+
+			hr = m_state(this, hr);
+		}
+
+		m_bAsyncState = true;
+
+		return hr;
+	}
+
+private:
+	exlib::AsyncEvent* m_ac;
+	bool m_bAsyncState;
+	int (*m_state)(asyncState*, int);
+};
+
 class AsyncLog: public asyncEvent
 {
 public:
 	AsyncLog(int priority, std::string msg) :
-		m_priority(priority), m_msg(msg)
+			m_priority(priority), m_msg(msg)
 	{
 	}
 

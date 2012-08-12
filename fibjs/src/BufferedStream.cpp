@@ -12,12 +12,13 @@
 namespace fibjs
 {
 
-class asyncBuffer: public asyncEvent
+class asyncBuffer: public asyncState
 {
 public:
 	asyncBuffer(BufferedStream* pThis, exlib::AsyncEvent* ac) :
-			m_bAsync(false), m_bFirst(true), m_pThis(pThis), m_ac(ac)
+			asyncState(ac), m_streamEnd(false), m_pThis(pThis)
 	{
+		set(process);
 	}
 
 	virtual result_t process(bool end)
@@ -25,60 +26,54 @@ public:
 		return CALL_RETURN_NULL;
 	}
 
-	virtual int post(int v)
+	static int process(asyncState* pState, int n)
 	{
-		result_t hr = v;
+		asyncBuffer* pThis = (asyncBuffer*) pState;
 
-		while (hr != CALL_E_PENDDING)
+		pThis->set(read);
+
+		result_t hr = pThis->process(pThis->m_streamEnd);
+		if (hr >= 0)
 		{
-			bool streamEnd = false;
-
-			if (!m_bFirst)
-			{
-				if (hr < 0)
-				{
-					if (m_bAsync)
-						m_ac->post(hr);
-					delete this;
-					return hr;
-				}
-
-				if (hr != CALL_RETURN_NULL)
-				{
-					m_buf->toString(m_pThis->m_buf);
-					m_buf.Release();
-				}
-				else
-					streamEnd = true;
-			}
-			else
-				m_bFirst = false;
-
-			hr = process(streamEnd);
-			if (hr >= 0)
-			{
-				if (m_bAsync)
-					m_ac->post(hr);
-				delete this;
-				return hr;
-			}
-
-			m_pThis->m_buf.clear();
-			m_pThis->m_pos = 0;
-
-			hr = m_pThis->m_stm->read(-1, m_buf, this);
+			pThis->done();
+			return hr;
 		}
 
-		m_bAsync = true;
+		return 0;
+	}
 
-		return hr;
+	static int read(asyncState* pState, int n)
+	{
+		asyncBuffer* pThis = (asyncBuffer*) pState;
+
+		pThis->set(ready);
+
+		pThis->m_pThis->m_buf.clear();
+		pThis->m_pThis->m_pos = 0;
+
+		return pThis->m_pThis->m_stm->read(-1, pThis->m_buf, pThis);
+	}
+
+	static int ready(asyncState* pState, int n)
+	{
+		asyncBuffer* pThis = (asyncBuffer*) pState;
+
+		pThis->set(process);
+
+		if (n != CALL_RETURN_NULL)
+		{
+			pThis->m_buf->toString(pThis->m_pThis->m_buf);
+			pThis->m_buf.Release();
+		}
+		else
+			pThis->m_streamEnd = true;
+
+		return 0;
 	}
 
 public:
-	bool m_bAsync;
-	bool m_bFirst;
+	bool m_streamEnd;
 	BufferedStream* m_pThis;
-	exlib::AsyncEvent* m_ac;
 	obj_ptr<Buffer_base> m_buf;
 };
 

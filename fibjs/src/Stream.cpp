@@ -13,87 +13,61 @@ namespace fibjs
 result_t copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
 		int64_t& retVal, exlib::AsyncEvent* ac)
 {
-	class asyncCopy: public asyncEvent
+	class asyncCopy: public asyncState
 	{
 	public:
 		asyncCopy(Stream_base* from, Stream_base* to, int64_t bytes,
 				int64_t& retVal, exlib::AsyncEvent* ac) :
-				m_bAsync(false), m_from(from), m_to(to), m_bytes(bytes), m_retVal(
-						retVal), m_ac(ac), m_state(0)
+				asyncState(ac), m_from(from), m_to(to), m_bytes(bytes), m_retVal(
+						retVal)
 		{
 			m_retVal = 0;
+			set(read);
 		}
 
-		virtual int post(int v)
+		static int read(asyncState* pState, int n)
 		{
-			result_t hr = v;
+			asyncCopy* pThis = (asyncCopy*) pState;
 			int64_t len;
+
+			pThis->set(write);
+
+			if (pThis->m_bytes == 0)
+				return pThis->done();
+
+			if (pThis->m_bytes > STREAM_BUFF_SIZE)
+				len = STREAM_BUFF_SIZE;
+			else
+				len = pThis->m_bytes;
+
+			pThis->m_buf.Release();
+			return pThis->m_from->read((int32_t) len, pThis->m_buf, pThis);
+		}
+
+		static int write(asyncState* pState, int n)
+		{
+			asyncCopy* pThis = (asyncCopy*) pState;
 			int blen;
 
-			while (hr != CALL_E_PENDDING)
-			{
-				if (hr < 0)
-				{
-					m_ac->post(hr);
-					delete this;
-					return hr;
-				}
+			pThis->set(read);
 
-				switch (m_state)
-				{
-				case 0:
-					m_state = 1;
+			if (n == CALL_RETURN_NULL)
+				return pThis->done();
 
-					if (m_bytes == 0)
-					{
-						if (m_bAsync)
-							m_ac->post(0);
-						delete this;
-						return hr;
-					}
+			pThis->m_buf->get_length(blen);
+			pThis->m_retVal += blen;
 
-					if (m_bytes > STREAM_BUFF_SIZE)
-						len = STREAM_BUFF_SIZE;
-					else
-						len = m_bytes;
+			if (pThis->m_bytes > 0)
+				pThis->m_bytes -= blen;
 
-					m_buf.Release();
-					hr = m_from->read((int32_t) len, m_buf, this);
-					break;
-				case 1:
-					m_state = 0;
-
-					if (hr == CALL_RETURN_NULL)
-					{
-						if (m_bAsync)
-							m_ac->post(0);
-						delete this;
-						return 0;
-					}
-
-					m_buf->get_length(blen);
-					m_retVal += blen;
-
-					if (m_bytes > 0)
-						m_bytes -= blen;
-
-					hr = m_to->write(m_buf, this);
-					break;
-				}
-			}
-
-			m_bAsync = true;
-			return hr;
+			return pThis->m_to->write(pThis->m_buf, pThis);
 		}
 
 	public:
-		bool m_bAsync;
 		Stream_base* m_from;
 		Stream_base* m_to;
 		int64_t m_bytes;
 		int64_t& m_retVal;
-		exlib::AsyncEvent* m_ac;
-		int m_state;
 		obj_ptr<Buffer_base> m_buf;
 	};
 
