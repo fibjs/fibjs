@@ -45,10 +45,58 @@ public:
 		while (pos < sz)
 		{
 			char ch = get();
-			if (ch == ' ' || ch == '\r' || ch == '\n' || ch == '\t')
+			if (qisspace(ch))
 				skip();
 			else
 				break;
+		}
+	}
+
+	void skipWord()
+	{
+		while (pos < sz)
+		{
+			char ch = get();
+			if (ch == 0 || qisspace(ch))
+				break;
+			else
+				skip();
+		}
+	}
+
+	void skipWord(char ch1)
+	{
+		while (pos < sz)
+		{
+			char ch = get();
+			if (ch == 0 || qisspace(ch) || ch == ch1)
+				break;
+			else
+				skip();
+		}
+	}
+
+	void skipWord(char ch1, char ch2)
+	{
+		while (pos < sz)
+		{
+			char ch = get();
+			if (ch == 0 || qisspace(ch) || ch == ch1 || ch == ch2)
+				break;
+			else
+				skip();
+		}
+	}
+
+	void skipWord(char ch1, char ch2, char ch3)
+	{
+		while (pos < sz)
+		{
+			char ch = get();
+			if (ch == 0 || qisspace(ch) || ch == ch1 || ch == ch2 || ch == ch3)
+				break;
+			else
+				skip();
 		}
 	}
 

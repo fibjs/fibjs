@@ -72,6 +72,7 @@ result_t HttpRequest::clear()
 	m_message.clear();
 	m_method.clear();
 	m_address.clear();
+	m_strCookies.clear();
 
 	return 0;
 }
@@ -100,8 +101,7 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 	public:
 		asyncRead(HttpRequest* pThis, BufferedStream_base* stm,
 				exlib::AsyncEvent* ac) :
-				asyncState(ac), m_pThis(pThis), m_stm(stm), m_contentLength(
-						0)
+				asyncState(ac), m_pThis(pThis), m_stm(stm), m_contentLength(0)
 		{
 			set(begin);
 		}
@@ -124,12 +124,10 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 			pThis->set(header);
 
 			int p1, p2;
-			char ch;
 			_parser p(pThis->m_strLine);
 
 			p1 = p.pos;
-			while (!p.end() && (ch = p.get()) && ch != ' ')
-				p.skip();
+			p.skipWord();
 			p2 = p.pos;
 			if (p1 == p2)
 				return CALL_E_INVALID_DATA;
@@ -139,21 +137,19 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 			p.skipSpace();
 
 			p1 = p.pos;
-			while (!p.end() && (ch = p.get()) && ch != ' ' && ch != '?')
-				p.skip();
+			p.skipWord('?');
 			p2 = p.pos;
 			if (p1 == p2)
 				return CALL_E_INVALID_DATA;
 
 			pThis->m_pThis->m_address.assign(p.string + p1, p2 - p1);
 
-			if (ch == '?')
+			if (p.get() == '?')
 			{
 				p.skip();
 
 				p1 = p.pos;
-				while (!p.end() && (ch = p.get()) && ch != ' ')
-					p.skip();
+				p.skipWord();
 				p2 = p.pos;
 				pThis->m_pThis->m_strquery.assign(p.string + p1, p2 - p1);
 			}
@@ -177,11 +173,9 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 			if (pThis->m_strLine.length() > 0)
 			{
 				int p2;
-				char ch;
 				_parser p(pThis->m_strLine);
 
-				while (!p.end() && (ch = p.get()) && ch != ' ' && ch != ':')
-					p.skip();
+				p.skipWord(':');
 				p2 = p.pos;
 				if (0 == p2 || !p.want(':'))
 					return CALL_E_INVALID_DATA;
@@ -190,6 +184,8 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 
 				if (p2 == 14 && !qstricmp(p.string, "content-length", 14))
 					pThis->m_contentLength = atoi(p.string + p.pos);
+				else if (p2 == 6 && !qstricmp(p.string, "cookie", 6))
+					pThis->m_pThis->m_strCookies.assign(p.string + p.pos, p.sz - p.pos);
 
 				pThis->m_pThis->m_message.addHeader(p.string, p2,
 						p.string + p.pos, p.sz - p.pos);

@@ -8,9 +8,14 @@
 #ifndef QSTRING_H_
 #define QSTRING_H_
 
-
 namespace fibjs
 {
+
+template<typename T>
+bool qisspace(T ch)
+{
+	return ch == ' ' || ch == '\r' || ch == '\n' || ch == '\t';
+}
 
 template<typename T>
 bool qisascii(T ch)

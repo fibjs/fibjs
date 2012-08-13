@@ -44,6 +44,9 @@ public:
 		m_count++;
 	}
 
+	size_t size();
+	size_t getData(char* buf, size_t sz);
+
 private:
 	QuickArray<std::string> m_array;
 	int32_t m_count;

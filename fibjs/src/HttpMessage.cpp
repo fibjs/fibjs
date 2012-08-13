@@ -10,6 +10,108 @@
 namespace fibjs
 {
 
+void HttpMessage::addHeader(const char* name, int szName, const char* value,
+		int szValue)
+{
+	if (szName == 12 && !qstricmp(name, "content-type", szName))
+		m_contentType.assign(value, szValue);
+	else if (szName == 10 && !qstricmp(name, "connection", szName))
+		m_keepAlive = !qstricmp(value, "keep-alive", 10);
+
+	m_headers->add(name, szName, value, szValue);
+}
+
+size_t HttpMessage::size()
+{
+	size_t sz = 2 + m_headers->size();
+	int64_t l;
+
+	// connection 10
+	sz = 10 + 4 + (m_keepAlive ? 4 : 5);
+
+	// content-type 12
+	if (m_contentType.length() > 0)
+		sz += 12 + 4 + m_contentType.length();
+
+	// content-length 14
+	get_contentLength(l);
+	if (l > 0)
+	{
+		sz += 14 + 4;
+		while (l > 0)
+		{
+			l /= 10;
+			sz++;
+		}
+	}
+
+	return sz;
+}
+
+inline void cp(char* buf, size_t sz, size_t& pos, const char* str, size_t szStr)
+{
+	buf += pos;
+
+	pos += szStr;
+	if (pos > sz)
+	{
+		szStr -= pos - sz;
+		pos = sz;
+	}
+
+	memcpy(buf, str, szStr);
+}
+
+size_t HttpMessage::getData(char* buf, size_t sz)
+{
+	size_t pos = m_headers->getData(buf, sz);
+	int64_t l;
+
+	// connection 10
+	cp(buf, sz, pos, "connection: ", 12);
+	if (m_keepAlive)
+		cp(buf, sz, pos, "true\r\n", 6);
+	else
+		cp(buf, sz, pos, "false\r\n", 7);
+
+	// content-type 12
+	if (m_contentType.length() > 0)
+	{
+		cp(buf, sz, pos, "content-type: ", 14);
+		cp(buf, sz, pos, m_contentType.c_str(), m_contentType.length());
+		cp(buf, sz, pos, "\r\n", 2);
+	}
+
+	// content-length 14
+	get_contentLength(l);
+	if (l > 0)
+	{
+		char s[32];
+		char* p;
+		int n;
+
+		cp(buf, sz, pos, "content-length: ", 16);
+		p = s + 31;
+		*p-- = 0;
+		*p-- = '\n';
+		*p-- = '\r';
+		n = 2;
+
+		while (l > 0)
+		{
+			*p-- = l % 10 + '0';
+			n++;
+			l /= 10;
+		}
+
+		cp(buf, sz, pos, p, n);
+	}
+
+	cp(buf, sz, pos, "\r\n", 2);
+
+	return pos;
+}
+
 result_t HttpMessage::get_protocol(std::string& retVal)
 {
 	retVal = m_protocol;
@@ -21,6 +123,8 @@ result_t HttpMessage::set_protocol(const char* newVal)
 	if (qstrcmp(newVal, "HTTP/", 5) || !qisnumber(newVal[5]) || newVal[6] != '.'
 			|| !qisnumber(newVal[7]) || newVal[8])
 		return CALL_E_INVALIDARG;
+
+	m_keepAlive = ((newVal[5] - '0') * 10 + newVal[7] - '0') > 10;
 
 	m_protocol = newVal;
 	return 0;
@@ -88,7 +192,7 @@ result_t HttpMessage::set_keepAlive(bool newVal)
 
 result_t HttpMessage::clear()
 {
-	m_protocol.clear();
+	m_protocol.assign("HTTP/1.1", 8);
 	m_contentType.clear();
 	m_keepAlive = false;
 

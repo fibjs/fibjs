@@ -10,6 +10,50 @@
 namespace fibjs
 {
 
+size_t HttpCollection::size()
+{
+	size_t sz = 0;
+	int32_t i;
+
+	for (i = 0; i < m_count; i++)
+		sz += m_array[i * 2].length() + m_array[i * 2 + 1].length() + 4;
+
+	return sz;
+}
+
+inline void cp(char* buf, size_t sz, size_t& pos, const char* str, size_t szStr)
+{
+	buf += pos;
+
+	pos += szStr;
+	if (pos > sz)
+	{
+		szStr -= pos - sz;
+		pos = sz;
+	}
+
+	memcpy(buf, str, szStr);
+}
+
+size_t HttpCollection::getData(char* buf, size_t sz)
+{
+	size_t pos = 0;
+	int32_t i;
+
+	for (i = 0; i < m_count; i++)
+	{
+		std::string& n = m_array[i * 2];
+		std::string& v = m_array[i * 2 + 1];
+
+		cp(buf, sz, pos, n.c_str(), n.length());
+		cp(buf, sz, pos, ": ", 2);
+		cp(buf, sz, pos, v.c_str(), v.length());
+		cp(buf, sz, pos, "\r\n", 2);
+	}
+
+	return pos;
+}
+
 result_t HttpCollection::clear()
 {
 	m_count = 0;

@@ -19,6 +19,7 @@ namespace fibjs
 
 class module_base;
 class HttpRequest_base;
+class HttpResponse_base;
 
 class http_base : public module_base
 {
@@ -37,6 +38,7 @@ public:
 }
 
 #include "HttpRequest.h"
+#include "HttpResponse.h"
 
 namespace fibjs
 {
@@ -44,13 +46,14 @@ namespace fibjs
 	{
 		static ClassData::ClassObject s_object[] = 
 		{
-			{"Request", HttpRequest_base::class_info}
+			{"Request", HttpRequest_base::class_info},
+			{"Response", HttpResponse_base::class_info}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"http", NULL, 
-			0, NULL, 1, s_object, 0, NULL, NULL, NULL,
+			0, NULL, 2, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 

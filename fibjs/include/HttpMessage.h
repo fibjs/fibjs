@@ -37,10 +37,9 @@ public:
 	result_t clear();
 
 public:
-	void addHeader(const char* name, int szName, const char* value, int szValue)
-	{
-		m_headers->add(name, szName, value, szValue);
-	}
+	void addHeader(const char* name, int szName, const char* value, int szValue);
+	size_t size();
+	size_t getData(char* buf, size_t sz);
 
 public:
 	std::string m_protocol;

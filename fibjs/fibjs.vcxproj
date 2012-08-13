@@ -44,6 +44,7 @@
     <ClCompile Include="src\HttpCollection.cpp" />
     <ClCompile Include="src\HttpMessage.cpp" />
     <ClCompile Include="src\HttpRequest.cpp" />
+    <ClCompile Include="src\HttpResponse.cpp" />
     <ClCompile Include="src\inetAddr.cpp" />
     <ClCompile Include="src\io.cpp" />
     <ClCompile Include="src\Lock.cpp" />
@@ -96,6 +97,7 @@
     <ClInclude Include="include\HttpCollection.h" />
     <ClInclude Include="include\HttpMessage.h" />
     <ClInclude Include="include\HttpRequest.h" />
+    <ClInclude Include="include\HttpResponse.h" />
     <ClInclude Include="include\ifs\assert.h" />
     <ClInclude Include="include\ifs\Buffer.h" />
     <ClInclude Include="include\ifs\BufferedStream.h" />

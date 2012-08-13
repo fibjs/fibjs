@@ -1,23 +1,24 @@
 /*
- * HttpRequest.h
+ * HttpResponse.h
  *
- *  Created on: Aug 9, 2012
+ *  Created on: Aug 13, 2012
  *      Author: lion
  */
 
-#include "ifs/HttpRequest.h"
+#include "ifs/HttpResponse.h"
 #include "HttpMessage.h"
 
-#ifndef HTTPREQUEST_H_
-#define HTTPREQUEST_H_
+#ifndef HTTPRESPONSE_H_
+#define HTTPRESPONSE_H_
 
 namespace fibjs
 {
 
-class HttpRequest : public HttpRequest_base
+class HttpResponse: public HttpResponse_base
 {
+
 public:
-	HttpRequest()
+	HttpResponse()
 	{
 		clear();
 	}
@@ -45,22 +46,14 @@ public:
 	virtual result_t onread(v8::Handle<v8::Function> func);
 
 public:
-	// HttpRequest_base
-	virtual result_t get_method(std::string& retVal);
-	virtual result_t set_method(const char* newVal);
-	virtual result_t get_address(std::string& retVal);
-	virtual result_t set_address(const char* newVal);
-	virtual result_t get_cookies(obj_ptr<HttpCollection_base>& retVal);
-	virtual result_t get_form(obj_ptr<HttpCollection_base>& retVal);
-	virtual result_t get_query(obj_ptr<HttpCollection_base>& retVal);
+	// HttpResponse_base
+	virtual result_t get_status(int32_t& retVal);
+	virtual result_t set_status(int32_t newVal);
 
 public:
 	HttpMessage m_message;
-	std::string m_method;
-	std::string m_address;
-	std::string m_strquery;
-	std::string m_strCookies;
+	int32_t m_status;
 };
 
 } /* namespace fibjs */
-#endif /* HTTPREQUEST_H_ */
+#endif /* HTTPRESPONSE_H_ */
