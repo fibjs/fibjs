@@ -118,7 +118,7 @@ public:
 		int i;
 
 		for (i = 0; i < RESPONSE_CODES; i++)
-			status_lines_size[i] = (unsigned char) qstrlen(status_lines);
+			status_lines_size[i] = (unsigned char) qstrlen(status_lines[i]);
 	}
 } s_init_status_line;
 
@@ -136,7 +136,8 @@ result_t HttpResponse::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 		static int begin(asyncState* pState, int n)
 		{
 			asyncSend* pThis = (asyncSend*) pState;
-			int pos = shortcut[n - 1] + pThis->m_pThis->m_status % 100;
+			int pos = shortcut[pThis->m_pThis->m_status / 100 - 1]
+					+ pThis->m_pThis->m_status % 100;
 			size_t sz = status_lines_size[pos] + 11;
 			size_t sz1;
 			std::string m_strBuf;
@@ -156,9 +157,43 @@ result_t HttpResponse::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 			pThis->m_pThis->m_message.getData(pBuf, sz1);
 			pThis->m_buffer = new Buffer(m_strBuf);
 
-//			pThis->set(command);
+			pThis->set(header);
 
 			return pThis->m_stm->write(pThis->m_buffer, pThis);
+		}
+
+		static int header(asyncState* pState, int n)
+		{
+			asyncSend* pThis = (asyncSend*) pState;
+
+			pThis->m_contentLength = 0;
+			pThis->m_pThis->m_message.get_contentLength(pThis->m_contentLength);
+			if (pThis->m_contentLength == 0)
+				return pThis->done();
+
+			obj_ptr<SeekableStream_base> _body;
+
+			result_t hr = pThis->m_pThis->get_body(_body);
+			if (hr < 0)
+				return hr;
+
+			_body->rewind();
+
+			obj_ptr<Stream_base> stm(pThis->m_stm);
+
+			pThis->set(body);
+			return _body->copyTo(stm, pThis->m_contentLength, pThis->m_copySize,
+					pThis);
+		}
+
+		static int body(asyncState* pState, int n)
+		{
+			asyncSend* pThis = (asyncSend*) pState;
+
+			if (pThis->m_contentLength != pThis->m_copySize)
+				return CALL_E_INVALID_DATA;
+
+			return pThis->done();
 		}
 
 	public:

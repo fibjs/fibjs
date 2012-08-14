@@ -27,7 +27,7 @@ size_t HttpMessage::size()
 	int64_t l;
 
 	// connection 10
-	sz = 10 + 4 + (m_keepAlive ? 4 : 5);
+	sz += 10 + 4 + (m_keepAlive ? 10 : 5);
 
 	// content-type 12
 	if (m_contentType.length() > 0)
@@ -68,16 +68,16 @@ size_t HttpMessage::getData(char* buf, size_t sz)
 	int64_t l;
 
 	// connection 10
-	cp(buf, sz, pos, "connection: ", 12);
+	cp(buf, sz, pos, "Connection: ", 12);
 	if (m_keepAlive)
-		cp(buf, sz, pos, "true\r\n", 6);
+		cp(buf, sz, pos, "keep-alive\r\n", 12);
 	else
-		cp(buf, sz, pos, "false\r\n", 7);
+		cp(buf, sz, pos, "close\r\n", 7);
 
 	// content-type 12
 	if (m_contentType.length() > 0)
 	{
-		cp(buf, sz, pos, "content-type: ", 14);
+		cp(buf, sz, pos, "Content-Type: ", 14);
 		cp(buf, sz, pos, m_contentType.c_str(), m_contentType.length());
 		cp(buf, sz, pos, "\r\n", 2);
 	}
@@ -90,16 +90,16 @@ size_t HttpMessage::getData(char* buf, size_t sz)
 		char* p;
 		int n;
 
-		cp(buf, sz, pos, "content-length: ", 16);
-		p = s + 31;
-		*p-- = 0;
-		*p-- = '\n';
-		*p-- = '\r';
+		cp(buf, sz, pos, "Content-Length: ", 16);
+		p = s + 32;
+		*--p = 0;
+		*--p = '\n';
+		*--p = '\r';
 		n = 2;
 
 		while (l > 0)
 		{
-			*p-- = l % 10 + '0';
+			*--p = l % 10 + '0';
 			n++;
 			l /= 10;
 		}
@@ -194,7 +194,7 @@ result_t HttpMessage::clear()
 {
 	m_protocol.assign("HTTP/1.1", 8);
 	m_contentType.clear();
-	m_keepAlive = false;
+	m_keepAlive = true;
 
 	m_headers->clear();
 
