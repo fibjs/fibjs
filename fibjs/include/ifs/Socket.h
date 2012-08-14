@@ -308,7 +308,7 @@ namespace fibjs
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(1, 0);
 
-		OPT_ARG(int32_t, 0, 20);
+		OPT_ARG(int32_t, 0, 120);
 
 		hr = pInst->listen(v0);
 

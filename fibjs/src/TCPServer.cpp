@@ -50,7 +50,7 @@ result_t TCPServer::create(const char* addr, int32_t port,
 	if (hr < 0)
 		return hr;
 
-	hr = m_socket->listen(20);
+	hr = m_socket->listen(120);
 	if (hr < 0)
 		return hr;
 
