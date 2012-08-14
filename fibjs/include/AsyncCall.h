@@ -65,9 +65,15 @@ protected:
 	{
 		if (m_pThis)
 		{
-			if (result() >= 0)
+			int hr = result();
+
+			if (hr >= 0)
 			{
-				v8::Handle<v8::Value> v = ReturnValue(pv);
+				v8::Handle<v8::Value> v;
+
+				if (hr != CALL_RETURN_NULL)
+					v = ReturnValue(pv);
+
 				m_pThis->_trigger(strEvent, &v, 1);
 			}
 			else
