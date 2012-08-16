@@ -488,10 +488,48 @@
     <ClInclude Include="include\crypto\sha1.h" />
     <ClInclude Include="include\crypto\sha2.h" />
     <ClInclude Include="include\crypto\sha4.h" />
+    <ClInclude Include="include\ev++.h" />
+    <ClInclude Include="include\ev.h" />
+    <ClInclude Include="include\exlib\fiber.h" />
+    <ClInclude Include="include\exlib\lockfree.h" />
+    <ClInclude Include="include\exlib\thread.h" />
+    <ClInclude Include="include\exlib\utils.h" />
+    <ClInclude Include="include\gd.h" />
+    <ClInclude Include="include\gdcache.h" />
+    <ClInclude Include="include\gdfonts.h" />
+    <ClInclude Include="include\gdfx.h" />
+    <ClInclude Include="include\gd_io.h" />
+    <ClInclude Include="include\jconfig.h" />
+    <ClInclude Include="include\jerror.h" />
+    <ClInclude Include="include\jmorecfg.h" />
+    <ClInclude Include="include\jpegint.h" />
+    <ClInclude Include="include\jpeglib.h" />
+    <ClInclude Include="include\lfds.h" />
+    <ClInclude Include="include\log4cpp\config-MinGW32.h" />
+    <ClInclude Include="include\log4cpp\config-openvms.h" />
+    <ClInclude Include="include\log4cpp\config-win32.h" />
+    <ClInclude Include="include\log4cpp\config.h" />
+    <ClInclude Include="include\log4cpp\convenience.h" />
+    <ClInclude Include="include\osconfig.h" />
+    <ClInclude Include="include\png.h" />
+    <ClInclude Include="include\pngconf.h" />
+    <ClInclude Include="include\pnglibconf.h" />
     <ClInclude Include="include\sqlite3.h" />
+    <ClInclude Include="include\tiff.h" />
+    <ClInclude Include="include\tiffio.h" />
+    <ClInclude Include="include\tiffvers.h" />
+    <ClInclude Include="include\tif_config.h" />
     <ClInclude Include="include\umysql\mysqldefs.h" />
     <ClInclude Include="include\umysql\umysql.h" />
     <ClInclude Include="include\uuid.h" />
+    <ClInclude Include="include\v8\v8-debug.h" />
+    <ClInclude Include="include\v8\v8-preparser.h" />
+    <ClInclude Include="include\v8\v8-profiler.h" />
+    <ClInclude Include="include\v8\v8-testing.h" />
+    <ClInclude Include="include\v8\v8.h" />
+    <ClInclude Include="include\v8\v8stdint.h" />
+    <ClInclude Include="include\zconf.h" />
+    <ClInclude Include="include\zlib.h" />
     <ClInclude Include="include\zmq\zmq.h" />
     <ClInclude Include="include\zmq\zmq_utils.h" />
     <ClInclude Include="src\cripto\md2.h" />
@@ -524,44 +562,6 @@
     <ClInclude Include="src\gd\gd_tga.h" />
     <ClInclude Include="src\gd\jisx0208.h" />
     <ClInclude Include="src\gd\wbmp.h" />
-    <ClInclude Include="src\include\ev++.h" />
-    <ClInclude Include="src\include\ev.h" />
-    <ClInclude Include="src\include\exlib\fiber.h" />
-    <ClInclude Include="src\include\exlib\lockfree.h" />
-    <ClInclude Include="src\include\exlib\thread.h" />
-    <ClInclude Include="src\include\exlib\utils.h" />
-    <ClInclude Include="src\include\fiber.h" />
-    <ClInclude Include="src\include\gd.h" />
-    <ClInclude Include="src\include\gdcache.h" />
-    <ClInclude Include="src\include\gdfonts.h" />
-    <ClInclude Include="src\include\gdfx.h" />
-    <ClInclude Include="src\include\gd_io.h" />
-    <ClInclude Include="src\include\jconfig.h" />
-    <ClInclude Include="src\include\jerror.h" />
-    <ClInclude Include="src\include\jmorecfg.h" />
-    <ClInclude Include="src\include\jpegint.h" />
-    <ClInclude Include="src\include\jpeglib.h" />
-    <ClInclude Include="src\include\log4cpp\config-MinGW32.h" />
-    <ClInclude Include="src\include\log4cpp\config-openvms.h" />
-    <ClInclude Include="src\include\log4cpp\config-win32.h" />
-    <ClInclude Include="src\include\log4cpp\config.h" />
-    <ClInclude Include="src\include\log4cpp\convenience.h" />
-    <ClInclude Include="src\include\osconfig.h" />
-    <ClInclude Include="src\include\png.h" />
-    <ClInclude Include="src\include\pngconf.h" />
-    <ClInclude Include="src\include\pnglibconf.h" />
-    <ClInclude Include="src\include\tiff.h" />
-    <ClInclude Include="src\include\tiffio.h" />
-    <ClInclude Include="src\include\tiffvers.h" />
-    <ClInclude Include="src\include\tif_config.h" />
-    <ClInclude Include="src\include\v8\v8-debug.h" />
-    <ClInclude Include="src\include\v8\v8-preparser.h" />
-    <ClInclude Include="src\include\v8\v8-profiler.h" />
-    <ClInclude Include="src\include\v8\v8-testing.h" />
-    <ClInclude Include="src\include\v8\v8.h" />
-    <ClInclude Include="src\include\v8\v8stdint.h" />
-    <ClInclude Include="src\include\zconf.h" />
-    <ClInclude Include="src\include\zlib.h" />
     <ClInclude Include="src\jpeg\jconfig.h" />
     <ClInclude Include="src\jpeg\jdct.h" />
     <ClInclude Include="src\jpeg\jerror.h" />
@@ -993,23 +993,27 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">

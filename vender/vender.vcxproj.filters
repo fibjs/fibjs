@@ -1556,108 +1556,6 @@
     <ClInclude Include="src\zlib\zutil.h">
       <Filter>Source Files\zlib</Filter>
     </ClInclude>
-    <ClInclude Include="src\include\ev.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\ev++.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\fiber.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\gd.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\gd_io.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\gdcache.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\gdfonts.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\gdfx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\jconfig.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\jerror.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\jmorecfg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\jpegint.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\jpeglib.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\osconfig.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\png.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\pngconf.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\pnglibconf.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\tif_config.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\tiff.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\tiffio.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\tiffvers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\zconf.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\zlib.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\v8\v8.h">
-      <Filter>Header Files\v8</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\v8\v8-debug.h">
-      <Filter>Header Files\v8</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\v8\v8-preparser.h">
-      <Filter>Header Files\v8</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\v8\v8-profiler.h">
-      <Filter>Header Files\v8</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\v8\v8stdint.h">
-      <Filter>Header Files\v8</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\v8\v8-testing.h">
-      <Filter>Header Files\v8</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\log4cpp\config.h">
-      <Filter>Header Files\log4cpp</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\log4cpp\config-MinGW32.h">
-      <Filter>Header Files\log4cpp</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\log4cpp\config-openvms.h">
-      <Filter>Header Files\log4cpp</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\log4cpp\config-win32.h">
-      <Filter>Header Files\log4cpp</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\log4cpp\convenience.h">
-      <Filter>Header Files\log4cpp</Filter>
-    </ClInclude>
     <ClInclude Include="src\gd\bmp.h">
       <Filter>Source Files\gd</Filter>
     </ClInclude>
@@ -2387,18 +2285,6 @@
     <ClInclude Include="src\v8\src\platform-posix.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\include\exlib\fiber.h">
-      <Filter>Header Files\exlib</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\exlib\lockfree.h">
-      <Filter>Header Files\exlib</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\exlib\thread.h">
-      <Filter>Header Files\exlib</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\exlib\utils.h">
-      <Filter>Header Files\exlib</Filter>
-    </ClInclude>
     <ClInclude Include="src\ev\config.h">
       <Filter>Source Files\ev</Filter>
     </ClInclude>
@@ -2636,9 +2522,6 @@
     <ClInclude Include="src\zmq\src\yqueue.hpp">
       <Filter>Source Files\zmq\src</Filter>
     </ClInclude>
-    <ClInclude Include="include\uuid.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\uuid\config.h">
       <Filter>Source Files\uuid</Filter>
     </ClInclude>
@@ -2725,9 +2608,6 @@
     </ClInclude>
     <ClInclude Include="src\sqlite\sqlite3.h">
       <Filter>Source Files\sqlite</Filter>
-    </ClInclude>
-    <ClInclude Include="include\sqlite3.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\matrixssl\matrixssl\matrixsslApi.h">
       <Filter>Source Files\matrixssl\matrixssl</Filter>
@@ -2828,8 +2708,179 @@
     <ClInclude Include="src\cripto\sha4.h">
       <Filter>Source Files\crypto</Filter>
     </ClInclude>
+    <ClInclude Include="include\ev.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ev++.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gd_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gdcache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gdfonts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gdfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\jconfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\jerror.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\jmorecfg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\jpegint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\jpeglib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\lfds.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\osconfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\png.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\pngconf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\pnglibconf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\sqlite3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\tif_config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\tiff.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\tiffio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\tiffvers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uuid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zconf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\exlib\fiber.h">
+      <Filter>Header Files\exlib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\exlib\lockfree.h">
+      <Filter>Header Files\exlib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\exlib\thread.h">
+      <Filter>Header Files\exlib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\exlib\utils.h">
+      <Filter>Header Files\exlib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\log4cpp\config.h">
+      <Filter>Header Files\log4cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="include\log4cpp\config-MinGW32.h">
+      <Filter>Header Files\log4cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="include\log4cpp\config-openvms.h">
+      <Filter>Header Files\log4cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="include\log4cpp\config-win32.h">
+      <Filter>Header Files\log4cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="include\log4cpp\convenience.h">
+      <Filter>Header Files\log4cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="include\v8\v8.h">
+      <Filter>Header Files\v8</Filter>
+    </ClInclude>
+    <ClInclude Include="include\v8\v8-debug.h">
+      <Filter>Header Files\v8</Filter>
+    </ClInclude>
+    <ClInclude Include="include\v8\v8-preparser.h">
+      <Filter>Header Files\v8</Filter>
+    </ClInclude>
+    <ClInclude Include="include\v8\v8-profiler.h">
+      <Filter>Header Files\v8</Filter>
+    </ClInclude>
+    <ClInclude Include="include\v8\v8stdint.h">
+      <Filter>Header Files\v8</Filter>
+    </ClInclude>
+    <ClInclude Include="include\v8\v8-testing.h">
+      <Filter>Header Files\v8</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="include\log4cpp\threading\BoostThreads.hh">
+      <Filter>Header Files\log4cpp\threading</Filter>
+    </None>
+    <None Include="include\log4cpp\threading\DummyThreads.hh">
+      <Filter>Header Files\log4cpp\threading</Filter>
+    </None>
+    <None Include="include\log4cpp\threading\MSThreads.hh">
+      <Filter>Header Files\log4cpp\threading</Filter>
+    </None>
+    <None Include="include\log4cpp\threading\OmniThreads.hh">
+      <Filter>Header Files\log4cpp\threading</Filter>
+    </None>
+    <None Include="include\log4cpp\threading\PThreads.hh">
+      <Filter>Header Files\log4cpp\threading</Filter>
+    </None>
+    <None Include="include\log4cpp\threading\Threading.hh">
+      <Filter>Header Files\log4cpp\threading</Filter>
+    </None>
+    <None Include="log4cpp\Localtime.hh">
+      <Filter>Source Files\log4cpp</Filter>
+    </None>
+    <None Include="log4cpp\PortabilityImpl.hh">
+      <Filter>Source Files\log4cpp</Filter>
+    </None>
+    <None Include="log4cpp\Properties.hh">
+      <Filter>Source Files\log4cpp</Filter>
+    </None>
+    <None Include="log4cpp\PropertyConfiguratorImpl.hh">
+      <Filter>Source Files\log4cpp</Filter>
+    </None>
+    <None Include="log4cpp\StringUtil.hh">
+      <Filter>Source Files\log4cpp</Filter>
+    </None>
+    <None Include="src\ev\ev_epoll.inl">
+      <Filter>Source Files\ev</Filter>
+    </None>
+    <None Include="src\ev\ev_kqueue.inl">
+      <Filter>Source Files\ev</Filter>
+    </None>
+    <None Include="src\ev\ev_poll.inl">
+      <Filter>Source Files\ev</Filter>
+    </None>
+    <None Include="src\ev\ev_port.inl">
+      <Filter>Source Files\ev</Filter>
+    </None>
+    <None Include="src\ev\ev_select.inl">
+      <Filter>Source Files\ev</Filter>
+    </None>
+    <None Include="src\ev\ev_win32.inl">
+      <Filter>Source Files\ev</Filter>
+    </None>
     <None Include="include\log4cpp\AbortAppender.hh">
       <Filter>Header Files\log4cpp</Filter>
     </None>
@@ -2952,57 +3003,6 @@
     </None>
     <None Include="include\log4cpp\Win32DebugAppender.hh">
       <Filter>Header Files\log4cpp</Filter>
-    </None>
-    <None Include="include\log4cpp\threading\BoostThreads.hh">
-      <Filter>Header Files\log4cpp\threading</Filter>
-    </None>
-    <None Include="include\log4cpp\threading\DummyThreads.hh">
-      <Filter>Header Files\log4cpp\threading</Filter>
-    </None>
-    <None Include="include\log4cpp\threading\MSThreads.hh">
-      <Filter>Header Files\log4cpp\threading</Filter>
-    </None>
-    <None Include="include\log4cpp\threading\OmniThreads.hh">
-      <Filter>Header Files\log4cpp\threading</Filter>
-    </None>
-    <None Include="include\log4cpp\threading\PThreads.hh">
-      <Filter>Header Files\log4cpp\threading</Filter>
-    </None>
-    <None Include="include\log4cpp\threading\Threading.hh">
-      <Filter>Header Files\log4cpp\threading</Filter>
-    </None>
-    <None Include="log4cpp\Localtime.hh">
-      <Filter>Source Files\log4cpp</Filter>
-    </None>
-    <None Include="log4cpp\PortabilityImpl.hh">
-      <Filter>Source Files\log4cpp</Filter>
-    </None>
-    <None Include="log4cpp\Properties.hh">
-      <Filter>Source Files\log4cpp</Filter>
-    </None>
-    <None Include="log4cpp\PropertyConfiguratorImpl.hh">
-      <Filter>Source Files\log4cpp</Filter>
-    </None>
-    <None Include="log4cpp\StringUtil.hh">
-      <Filter>Source Files\log4cpp</Filter>
-    </None>
-    <None Include="src\ev\ev_epoll.inl">
-      <Filter>Source Files\ev</Filter>
-    </None>
-    <None Include="src\ev\ev_kqueue.inl">
-      <Filter>Source Files\ev</Filter>
-    </None>
-    <None Include="src\ev\ev_poll.inl">
-      <Filter>Source Files\ev</Filter>
-    </None>
-    <None Include="src\ev\ev_port.inl">
-      <Filter>Source Files\ev</Filter>
-    </None>
-    <None Include="src\ev\ev_select.inl">
-      <Filter>Source Files\ev</Filter>
-    </None>
-    <None Include="src\ev\ev_win32.inl">
-      <Filter>Source Files\ev</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
