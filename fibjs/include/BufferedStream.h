@@ -58,16 +58,18 @@ public:
 public:
 	void append(int n)
 	{
-		if (m_pos == 0 && n == (int) m_buf.length())
-			m_strbuf.append(m_buf);
-		else
+		if(n > 0)
 		{
-			std::string s1(m_buf.substr(m_pos, n));
-			m_strbuf.append(s1);
+			if (m_pos == 0 && n == (int) m_buf.length())
+				m_strbuf.append(m_buf);
+			else
+			{
+				std::string s1(m_buf.substr(m_pos, n));
+				m_strbuf.append(s1);
+			}
+			m_pos += n;
 		}
-		m_pos += n;
 	}
-
 
 public:
 	obj_ptr<Stream_base> m_stm;

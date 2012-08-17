@@ -30,8 +30,6 @@ public:
 	{
 		asyncBuffer* pThis = (asyncBuffer*) pState;
 
-		pThis->set(read);
-
 		result_t hr = pThis->process(pThis->m_streamEnd);
 		if (hr >= 0)
 		{
@@ -39,18 +37,7 @@ public:
 			return hr;
 		}
 
-		return 0;
-	}
-
-	static int read(asyncState* pState, int n)
-	{
-		asyncBuffer* pThis = (asyncBuffer*) pState;
-
 		pThis->set(ready);
-
-		pThis->m_pThis->m_buf.clear();
-		pThis->m_pThis->m_pos = 0;
-
 		return pThis->m_pThis->m_stm->read(-1, pThis->m_buf, pThis);
 	}
 
@@ -58,7 +45,8 @@ public:
 	{
 		asyncBuffer* pThis = (asyncBuffer*) pState;
 
-		pThis->set(process);
+		pThis->m_pThis->m_buf.clear();
+		pThis->m_pThis->m_pos = 0;
 
 		if (n != CALL_RETURN_NULL)
 		{
@@ -68,7 +56,7 @@ public:
 		else
 			pThis->m_streamEnd = true;
 
-		return 0;
+		return process(pState, n);
 	}
 
 public:
@@ -306,11 +294,14 @@ result_t BufferedStream::readUntil(const char* mk, std::string& retVal,
 			{
 				retVal = pThis->m_strbuf.str();
 
-				if (pThis->m_mkpos >= mklen)
+				if (pThis->m_mkpos)
+				{
 					retVal.resize(retVal.length() - pThis->m_mkpos);
+					pThis->m_mkpos = 0;
+					return 0;
+				}
 
 				pThis->m_mkpos = 0;
-
 				return streamEnd && (retVal.length() == 0) ?
 						CALL_RETURN_NULL : 0;
 			}

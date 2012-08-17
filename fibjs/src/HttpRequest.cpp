@@ -193,20 +193,16 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 				return pThis->m_stm->readLine(pThis->m_strLine, pThis);
 			}
 
-			if (pThis->m_contentLength > 0)
-			{
-				pThis->set(body);
+			if (pThis->m_contentLength == 0)
+				return pThis->done();
 
-				result_t hr = pThis->m_pThis->get_body(pThis->m_body);
-				if (hr < 0)
-					return hr;
+			pThis->set(body);
 
-				obj_ptr<Stream_base> body(pThis->m_body);
-				return pThis->m_stm->copyTo(body, pThis->m_contentLength,
-						pThis->m_copySize, pThis);
-			}
+			pThis->m_pThis->get_body(pThis->m_body);
 
-			return pThis->done();
+			obj_ptr<Stream_base> body(pThis->m_body);
+			return pThis->m_stm->copyTo(body, pThis->m_contentLength,
+					pThis->m_copySize, pThis);
 		}
 
 		static int body(asyncState* pState, int n)
