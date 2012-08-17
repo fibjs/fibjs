@@ -57,10 +57,7 @@ public:
 	{
 		result_t hr = process();
 		if (hr != CALL_E_PENDDING)
-		{
-			m_ac->post(hr);
-			delete this;
-		}
+			asyncProc::ready(0, hr);
 	}
 
 	virtual result_t process()
@@ -68,9 +65,9 @@ public:
 		return 0;
 	}
 
-	virtual void ready(DWORD dwBytes, int dwError)
+	virtual void ready(DWORD dwBytes, int nError)
 	{
-		m_ac->post(-dwError);
+		m_ac->post(nError);
 		delete this;
 	}
 
@@ -124,7 +121,7 @@ public:
 				if ((HANDLE) v == s_hIocp)
 					((asyncProc*) pOverlap)->proc();
 				else
-					((asyncProc*) pOverlap)->ready(dwBytes, dwError);
+					((asyncProc*) pOverlap)->ready(dwBytes, -(int)dwError);
 			}
 		}
 	}
@@ -173,14 +170,14 @@ result_t Socket::connect(const char* host, int32_t port, exlib::AsyncEvent* ac)
 			return (nError == WSA_IO_PENDING) ? CALL_E_PENDDING : -nError;
 		}
 
-		virtual void ready(DWORD dwBytes, int dwError)
+		virtual void ready(DWORD dwBytes, int nError)
 		{
-			if (!dwError)
+			if (!nError)
 			{
 				setsockopt(m_s, SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0);
 				setKeepAlive(m_s);
 			}
-			asyncProc::ready(dwBytes, dwError);
+			asyncProc::ready(dwBytes, nError);
 		}
 
 	public:
@@ -256,9 +253,9 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 			return (nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError;
 		}
 
-		virtual void ready(DWORD dwBytes, int dwError)
+		virtual void ready(DWORD dwBytes, int nError)
 		{
-			if (!dwError)
+			if (!nError)
 			{
 				setsockopt(m_s, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
 						(char *) &m_sListen, sizeof(m_sListen));
@@ -317,20 +314,20 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 			nError = GetLastError();
 
 			if (nError == ERROR_NETNAME_DELETED)
-				return 0;
+				return CALL_RETURN_NULL;
 
 			return (nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError;
 		}
 
-		virtual void ready(DWORD dwBytes, int dwError)
+		virtual void ready(DWORD dwBytes, int nError)
 		{
-			if (dwError == ERROR_NETNAME_DELETED)
+			if (nError == -ERROR_NETNAME_DELETED)
 			{
-				dwError = 0;
+				nError = 0;
 				dwBytes = 0;
 			}
 
-			if (!dwError)
+			if (!nError)
 			{
 				if (dwBytes)
 				{
@@ -338,10 +335,10 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 					m_retVal = new Buffer(m_buf);
 				}
 				else
-					dwError = -CALL_RETURN_NULL;
+					nError = CALL_RETURN_NULL;
 			}
 
-			asyncProc::ready(dwBytes, dwError);
+			asyncProc::ready(dwBytes, nError);
 		}
 
 	public:
@@ -382,9 +379,9 @@ result_t Socket::send(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
 			return (nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError;
 		}
 
-		virtual void ready(DWORD dwBytes, int dwError)
+		virtual void ready(DWORD dwBytes, int nError)
 		{
-			if (!dwError)
+			if (!nError)
 			{
 				m_p += dwBytes;
 				m_sz -= dwBytes;
@@ -396,7 +393,7 @@ result_t Socket::send(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
 				}
 			}
 
-			asyncProc::ready(dwBytes, dwError);
+			asyncProc::ready(dwBytes, nError);
 		}
 
 	public:
