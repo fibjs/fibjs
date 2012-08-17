@@ -1,11 +1,22 @@
 
+/*! @brief http 请求消息对象 */
 class HttpRequest : HttpMessage
 {
+	/*! @brief HttpRequest 构造函数，创建一个新的 HttpRequest 对象 */
 	HttpRequest();
 
+	/*! @brief 查询和设置请求方法 */
 	String method;
+
+	/*! @brief 查询和设置请求地址 */
 	String address;
+
+	/*! @brief 获取包含消息 cookies 的容器*/
 	readonly HttpCollection cookies;
+
+	/*! @brief 获取包含消息 form 的容器*/
 	readonly HttpCollection form;
+
+	/*! @brief 获取包含消息 query 的容器*/
 	readonly HttpCollection query;
 };
