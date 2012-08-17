@@ -7,8 +7,11 @@ var b = new Buffer("HTTP/1.0 200 ok\r\nConnection: keep-alive\r\nContent-Length:
 
 function connect(c)
 {
-	while(c.read())
-		c.write(b);
+	try{
+		while(c.read())
+			c.write(b);
+	}catch(e){}
+	
 	c.close();
 }
 
