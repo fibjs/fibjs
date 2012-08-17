@@ -73,6 +73,8 @@ protected:
 
 				if (hr != CALL_RETURN_NULL)
 					v = ReturnValue(pv);
+				else
+					v = v8::Undefined();
 
 				m_pThis->_trigger(strEvent, &v, 1);
 			}
