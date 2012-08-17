@@ -123,21 +123,23 @@ public:
 	virtual int post(int v)
 	{
 		result_t hr = v;
+		bool bAsyncState = m_bAsyncState;
 
-		while (hr != CALL_E_PENDDING)
+		if (!bAsyncState)
+			m_bAsyncState = true;
+
+		do
 		{
 			if (hr < 0 || !m_state)
 			{
-				if (m_bAsyncState)
+				if (bAsyncState)
 					m_ac->post(hr);
 				delete this;
 				return hr;
 			}
 
 			hr = m_state(this, hr);
-		}
-
-		m_bAsyncState = true;
+		} while (hr != CALL_E_PENDDING);
 
 		return hr;
 	}
