@@ -43,7 +43,11 @@ public:
 			LayoutAppender("console")
 	{
 #ifdef _WIN32
+		CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+
 		m_hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+		GetConsoleScreenBufferInfo(m_hConsole, &csbiInfo);
+		m_wAttributes = csbiInfo.wAttributes;
 #endif
 	}
 
@@ -61,7 +65,7 @@ protected:
 #else
 			SetConsoleTextAttribute(m_hConsole, FOREGROUND_RED);
 			std::cerr << event.message << std::endl;
-			SetConsoleTextAttribute(m_hConsole, FOREGROUND_INTENSITY);
+			SetConsoleTextAttribute(m_hConsole, m_wAttributes);
 #endif
 		}
 		else
@@ -71,6 +75,7 @@ protected:
 #ifdef _WIN32
 private:
 	HANDLE m_hConsole;
+	WORD m_wAttributes;
 #endif
 };
 
