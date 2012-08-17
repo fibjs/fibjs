@@ -141,14 +141,12 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 			return m_stm->read(bytes, retVal, ac);
 	}
 
-	if (!ac)
-	{
-		result_t hr = asyncRead::process(this, bytes, retVal, false);
-		if (hr >= 0)
-			return hr;
+	result_t hr = asyncRead::process(this, bytes, retVal, false);
+	if (hr >= 0)
+		return hr;
 
+	if (!ac)
 		return CALL_E_NOSYNC;
-	}
 
 	return (new asyncRead(this, bytes, retVal, ac))->post(0);
 }
@@ -319,14 +317,12 @@ result_t BufferedStream::readUntil(const char* mk, std::string& retVal,
 		std::string& m_retVal;
 	};
 
-	if (!ac)
-	{
-		result_t hr = asyncRead::process(this, mk, retVal, false);
-		if (hr >= 0)
-			return hr;
+	result_t hr = asyncRead::process(this, mk, retVal, false);
+	if (hr >= 0)
+		return hr;
 
+	if (!ac)
 		return CALL_E_NOSYNC;
-	}
 
 	return (new asyncRead(this, mk, retVal, ac))->post(0);
 }
