@@ -115,8 +115,10 @@ typedef int result_t;
 #define CALL_E_PENDDING			(CALL_E_MAX - 13)
 // Operation now support synchronous call.
 #define CALL_E_NOSYNC			(CALL_E_MAX - 14)
+// Internal error.
+#define CALL_E_INTERNAL			(CALL_E_MAX - 15)
 // Exception occurred.
-#define CALL_E_EXCEPTION		(CALL_E_MAX - 15)
+#define CALL_E_EXCEPTION		(CALL_E_MAX - 16)
 
 #define CALL_E_MIN              -100100
 

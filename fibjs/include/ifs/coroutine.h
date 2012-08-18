@@ -30,6 +30,8 @@ class coroutine_base : public module_base
 public:
 	// coroutine_base
 	static result_t start(v8::Handle<v8::Function> func, const v8::Arguments& args, obj_ptr<Fiber_base>& retVal);
+	static result_t parallel(v8::Handle<v8::Array> func, v8::Handle<v8::Array>& retVal);
+	static result_t parallel(const v8::Arguments& args, v8::Handle<v8::Array>& retVal);
 	static result_t current(obj_ptr<Fiber_base>& retVal);
 	static result_t sleep(int32_t ms);
 
@@ -43,6 +45,7 @@ public:
 
 public:
 	static v8::Handle<v8::Value> s_start(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_parallel(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_current(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_sleep(const v8::Arguments& args);
 };
@@ -63,6 +66,7 @@ namespace fibjs
 		static ClassData::ClassMethod s_method[] = 
 		{
 			{"start", s_start, true},
+			{"parallel", s_parallel, true},
 			{"current", s_current, true},
 			{"sleep", s_sleep, true}
 		};
@@ -79,7 +83,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"coroutine", NULL, 
-			3, s_method, 5, s_object, 0, NULL, NULL, NULL,
+			4, s_method, 5, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -97,6 +101,23 @@ namespace fibjs
 		ARG(v8::Handle<v8::Function>, 0);
 
 		hr = start(v0, args, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> coroutine_base::s_parallel(const v8::Arguments& args)
+	{
+		v8::Handle<v8::Array> vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Array>, 0);
+
+		hr = parallel(v0, vr);
+
+		METHOD_OVER(-1, 0);
+
+		hr = parallel(args, vr);
 
 		METHOD_RETURN();
 	}

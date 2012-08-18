@@ -24,7 +24,7 @@ static std::string fmtString(result_t hr, const char* str, int len = -1)
 
 static std::string fmtString(result_t hr, std::string& str)
 {
-	return fmtString(hr, str.c_str(), (int)str.length());
+	return fmtString(hr, str.c_str(), (int) str.length());
 }
 
 std::string getResultMessage(result_t hr)
@@ -60,6 +60,8 @@ std::string getResultMessage(result_t hr)
 			"Operation now in progress.",
 			// CALL_E_NOSYNC
 			"Operation now support synchronous call.",
+			// CALL_E_INTERNAL
+			"Internal error.",
 			// CALL_E_EXCEPTION
 			"Exception occurred." };
 

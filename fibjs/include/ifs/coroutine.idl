@@ -27,6 +27,18 @@ class coroutine : module
 	 */
 	static Fiber start(Function func, ...);
 
+	/*!	@brief 并行执行一组函数，并等待返回
+	 * @param func 并行执行的函数数组
+	 * @return 返回函数执行结果的数组
+	 */
+	static Array parallel(Array func);
+
+	/*!	@brief 并行执行一组函数，并等待返回
+	 * @param ... 一组并行执行的函数
+	 * @return 返回函数执行结果的数组
+	 */
+	static Array parallel(...);
+
 	/*! @brief 返回当前纤程
 	 * @return 当前纤程对象
 	 */

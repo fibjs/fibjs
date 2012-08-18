@@ -20,12 +20,13 @@ extern int g_tlsCurrent;
 
 class Fiber: public Fiber_base
 {
-	EVENT_SUPPORT();
-	FIBER_FREE();
+EVENT_SUPPORT()
+	;FIBER_FREE()
+	;
 
 public:
 	Fiber() :
-	m_next(NULL)
+			m_next(NULL), m_error(false)
 	{
 	}
 
@@ -37,6 +38,7 @@ public:
 			argv[i].Dispose();
 
 		m_func.Dispose();
+		m_result.Dispose();
 	}
 
 	result_t get_func(v8::Handle<v8::Function>& retVal)
@@ -92,14 +94,16 @@ public:
 		return 0;
 	}
 
-	static result_t startJSFiber(v8::Handle<v8::Function> func, const v8::Arguments& args,
-			int nArgStart, obj_ptr<Fiber_base>& retVal)
+	static result_t startJSFiber(v8::Handle<v8::Function> func,
+			const v8::Arguments& args, int nArgStart,
+			obj_ptr<Fiber_base>& retVal)
 	{
 		return startJSFiber(func, args, nArgStart, args.Length(), retVal);
 	}
 
 	static result_t startJSFiber(v8::Handle<v8::Function> func,
-			v8::Handle<v8::Value>* args, int argCount, obj_ptr<Fiber_base>& retVal)
+			v8::Handle<v8::Value>* args, int argCount,
+			obj_ptr<Fiber_base>& retVal)
 	{
 		return startJSFiber(func, args, 0, argCount, retVal);
 	}
@@ -112,12 +116,28 @@ public:
 		return m_rt;
 	}
 
+	result_t get_result(v8::Handle<v8::Value>& retVal)
+	{
+		if (m_result.IsEmpty())
+			return CALL_RETURN_NULL;
+
+		retVal = m_result;
+		return 0;
+	}
+
+	bool isError()
+	{
+		return m_error;
+	}
+
 public:
 	Fiber* m_next;
 
 private:
 	v8::Persistent<v8::Function> m_func;
 	std::vector<v8::Persistent<v8::Value> > argv;
+	v8::Persistent<v8::Value> m_result;
+	bool m_error;
 	exlib::Event m_quit;
 	obj_ptr<Fiber_base> m_caller;
 	Runtime m_rt;
