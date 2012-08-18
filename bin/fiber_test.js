@@ -85,6 +85,37 @@ coroutine.sleep();
 assert.equal(n, 1000);
 assert.equal(n1, 2000);
 
+var funs = [ function() {
+	coroutine.sleep(100);
+	return 1;
+}, function() {
+	coroutine.sleep(100);
+	return 2;
+}, function() {
+	coroutine.sleep(100);
+	return 3;
+}, function() {
+	coroutine.sleep(100);
+}, function() {
+	coroutine.sleep(100);
+} ];
+
+var rs = coroutine.parallel(funs[0], funs[1], funs[2], funs[3], funs[4]);
+assert.equal(rs[0], 1);
+assert.equal(rs[1], 2);
+assert.equal(rs[2], 3);
+
+rs = coroutine.parallel(funs);
+assert.equal(rs[0], 1);
+assert.equal(rs[1], 2);
+assert.equal(rs[2], 3);
+
+assert.throws(function() {
+	coroutine.parallel(funs[0], funs[1], funs[2], funs[3], funs[4], function() {
+		console.log(notExistsValue);
+	});
+});
+
 var nCount = 20000;
 
 var bDone = false;
