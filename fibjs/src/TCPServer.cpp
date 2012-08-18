@@ -23,7 +23,7 @@ result_t TCPServer_base::_new(int32_t port, v8::Handle<v8::Function> listener,
 	return 0;
 }
 
-result_t TCPServer_base::_new(int32_t port, const char* addr,
+result_t TCPServer_base::_new(const char* addr, int32_t port,
 		v8::Handle<v8::Function> listener, obj_ptr<TCPServer_base>& retVal)
 {
 	obj_ptr<TCPServer> svr = new TCPServer();
@@ -82,7 +82,8 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 
 		virtual int post(int v)
 		{
-			s_acPool.put(new asyncAccept((Socket_base*) (object_base*) m_pThis));
+			s_acPool.put(
+					new asyncAccept((Socket_base*) (object_base*) m_pThis));
 			AsyncCallBack::post(v);
 
 			return 0;

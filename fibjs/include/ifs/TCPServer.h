@@ -23,7 +23,7 @@ class TCPServer_base : public object_base
 public:
 	// TCPServer_base
 	static result_t _new(int32_t port, v8::Handle<v8::Function> listener, obj_ptr<TCPServer_base>& retVal);
-	static result_t _new(int32_t port, const char* addr, v8::Handle<v8::Function> listener, obj_ptr<TCPServer_base>& retVal);
+	static result_t _new(const char* addr, int32_t port, v8::Handle<v8::Function> listener, obj_ptr<TCPServer_base>& retVal);
 	virtual result_t run(exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncRun() = 0;
 	virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
@@ -112,8 +112,8 @@ namespace fibjs
 
 		METHOD_OVER(3, 3);
 
-		ARG(int32_t, 0);
-		ARG_String(1);
+		ARG_String(0);
+		ARG(int32_t, 1);
 		ARG(v8::Handle<v8::Function>, 2);
 
 		hr = _new(v0, v1, v2, vr);

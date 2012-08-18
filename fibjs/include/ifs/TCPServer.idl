@@ -25,11 +25,11 @@ class TCPServer : object
 	TCPServer(Integer port, Function listener);
 
 	/*! @brief TCPServer 构造函数
-	 *  @param port 指定 tcp 服务器侦听端口
 	 *  @param addr 指定 tcp 服务器侦听地址，为 "" 则在本机所有地址侦听
+	 *  @param port 指定 tcp 服务器侦听端口
 	 *  @param listener 指定 tcp 接收到的连接的处理函数
 	 */
-	TCPServer(Integer port, String addr, Function listener);
+	TCPServer(String addr, Integer port, Function listener);
 
 	/*! @brief 运行 tcp 服务器并开始接收和分发连接，此函数不会返回 */
 	run() async;
