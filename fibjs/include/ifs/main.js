@@ -403,7 +403,18 @@ function parserIDL(fname) {
 
 		txt.push("#endif\n\n");
 
-		io.writeFile(ns + ".h", txt.join("\n"));
+		var sTxt = txt.join("\n");
+		var sOld = "";
+
+		try {
+			sOld = io.readFile(ns + ".h");
+		} catch (e) {
+		}
+
+		if (sOld != sTxt){
+			io.writeFile(ns + ".h", txt.join("\n"));
+			console.log("Building:", ns + ".h");
+		}
 	}
 
 	function _member(st) {
