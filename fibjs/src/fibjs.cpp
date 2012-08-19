@@ -123,8 +123,86 @@ void _main(const char* fname)
 
 }
 
+#ifdef _WIN32
+#include <DbgHelp.h>
+
+typedef BOOL (WINAPI *MINIDUMPWRITEDUMP)(HANDLE hProcess, DWORD dwPid, HANDLE hFile, MINIDUMP_TYPE DumpType,
+		CONST PMINIDUMP_EXCEPTION_INFORMATION ExceptionParam, CONST PMINIDUMP_USER_STREAM_INFORMATION UserStreamParam,
+		CONST PMINIDUMP_CALLBACK_INFORMATION CallbackParam);
+
+static MINIDUMPWRITEDUMP s_pDump;
+
+HANDLE CreateUniqueDumpFile()
+{
+	char fname[MAX_PATH];
+	int l, i;
+	HANDLE hFile;
+
+	puts("core dump....");
+	l = GetCurrentDirectory(MAX_PATH, fname);
+	memcpy(fname + l, "\\core.", 14);
+	l += 10;
+
+	for (i = 0; i < 104; i++)
+	{
+		_itoa_s(i, fname + l, 10, 10);
+		memcpy(fname + l + (i > 999 ? 4 : (i > 99 ? 3 : (i > 9 ? 2 : 1))),
+				L".dmp", 10);
+
+		hFile = CreateFile(fname, GENERIC_READ | GENERIC_WRITE, 0, NULL,
+				CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+		if (hFile != INVALID_HANDLE_VALUE)
+			return hFile;
+
+		if (GetLastError() != ERROR_FILE_EXISTS)
+			return INVALID_HANDLE_VALUE;
+	};
+
+	return INVALID_HANDLE_VALUE;
+}
+
+static void CreateMiniDump(LPEXCEPTION_POINTERS lpExceptionInfo)
+{
+	HANDLE hFile = CreateUniqueDumpFile();
+
+	if (hFile != NULL && hFile != INVALID_HANDLE_VALUE)
+	{
+		MINIDUMP_EXCEPTION_INFORMATION mdei;
+
+		mdei.ThreadId = GetCurrentThreadId();
+		mdei.ExceptionPointers = lpExceptionInfo;
+		mdei.ClientPointers = FALSE;
+
+		MINIDUMP_TYPE mdt = MiniDumpNormal;
+		BOOL retv = s_pDump(GetCurrentProcess(), GetCurrentProcessId(), hFile,
+				mdt, (lpExceptionInfo != 0) ? &mdei : 0, 0, 0);
+
+		CloseHandle(hFile);
+	}
+}
+
+static LONG WINAPI GPTUnhandledExceptionFilter(PEXCEPTION_POINTERS pExceptionInfo)
+{
+	CreateMiniDump(pExceptionInfo);
+	exit(pExceptionInfo->ExceptionRecord->ExceptionCode);
+	return EXCEPTION_EXECUTE_HANDLER;
+}
+
+#endif
+
 int main(int argc, char* argv[])
 {
+#ifdef _WIN32
+	HMODULE hDll;
+	if (hDll = ::LoadLibrary("DBGHELP.DLL"))
+	{
+		s_pDump = (MINIDUMPWRITEDUMP) ::GetProcAddress(hDll,
+				"MiniDumpWriteDump");
+		if (s_pDump)
+			SetUnhandledExceptionFilter (GPTUnhandledExceptionFilter);
+	}
+#endif
+
 	if (argc == 2)
 		fibjs::_main(argv[1]);
 	else
