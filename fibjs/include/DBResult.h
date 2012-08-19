@@ -21,6 +21,7 @@ public:
 	DBResult(int64_t affected, int64_t insertId) :
 			m_size(0), m_affected(affected), m_insertId(insertId)
 	{
+		extMemory(1024);
 	}
 
 	DBResult(int32_t sz) :
@@ -67,6 +68,7 @@ public:
 	void rowValue(int32_t i, Variant& v)
 	{
 		m_nowRow->setValue(i, v);
+		extMemory(v.size());
 	}
 
 private:

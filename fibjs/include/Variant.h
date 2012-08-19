@@ -196,6 +196,14 @@ public:
 		return m_type;
 	}
 
+	size_t size() const
+	{
+		if (m_type != VT_String)
+			return sizeof(Variant);
+
+		return sizeof(Variant) + ((std::string*) m_Val.strVal)->length();
+	}
+
 	operator bool() const
 	{
 		return m_Val.boolVal;

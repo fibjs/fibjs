@@ -20,8 +20,6 @@ namespace fibjs
 
 #include "object_async.inl"
 
-#define GC_FIX_SIZE		4096
-
 class asyncEvent: public exlib::AsyncEvent
 {
 public:
@@ -40,9 +38,9 @@ public:
 class object_base: public obj_base
 {
 public:
-	object_base()
+	object_base() :
+			m_nTriggers(0), m_nExtMemory(sizeof(object_base) * 2)
 	{
-		m_nTriggers = 0;
 	}
 
 public:
@@ -125,7 +123,7 @@ public:
 			handle_ = v8::Persistent<v8::Object>::New(o);
 			handle_->SetPointerInInternalField(0, this);
 
-			v8::V8::AdjustAmountOfExternalAllocatedMemory(GC_FIX_SIZE);
+			v8::V8::AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
 		}
 
 		return handle_;
@@ -180,12 +178,27 @@ public:
 		return !handle_.IsEmpty();
 	}
 
+	void extMemory(int ext)
+	{
+		if (handle_.IsEmpty())
+			m_nExtMemory += ext;
+		else
+		{
+			if (v8::Isolate::GetCurrent())
+			{
+				v8::V8::AdjustAmountOfExternalAllocatedMemory(ext);
+				m_nExtMemory += ext;
+			}
+		}
+	}
+
 private:
 	v8::Handle<v8::Array> GetHiddenArray(const char* k, bool create = false,
 			bool autoDelete = false);
 
 private:
 	int m_nTriggers;
+	int m_nExtMemory;
 
 public:
 	// object_base
@@ -200,7 +213,7 @@ public:
 
 			m_nTriggers = 0;
 
-			v8::V8::AdjustAmountOfExternalAllocatedMemory(-GC_FIX_SIZE);
+			v8::V8::AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
 
 			obj_base::dispose();
 		}

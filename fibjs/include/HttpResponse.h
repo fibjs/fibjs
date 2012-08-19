@@ -21,6 +21,7 @@ public:
 	HttpResponse()
 	{
 		clear();
+		extMemory(4096);
 	}
 
 	EVENT_SUPPORT();

@@ -148,9 +148,6 @@ result_t HttpMessage::get_body(obj_ptr<SeekableStream_base>& retVal)
 
 result_t HttpMessage::set_body(obj_ptr<SeekableStream_base>& newVal)
 {
-	if (m_body != NULL)
-		return CALL_E_INVALID_CALL;
-
 	m_body = newVal;
 
 	return 0;

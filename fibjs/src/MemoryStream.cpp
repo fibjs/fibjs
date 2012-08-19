@@ -72,10 +72,17 @@ result_t MemoryStream::onread(v8::Handle<v8::Function> func)
 result_t MemoryStream::write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
 {
 	std::string strBuf;
+	int64_t sz1, sz2;
+
 	data->toString(strBuf);
 
+	size(sz1);
 	m_buffer.write(strBuf.c_str(), (int) strBuf.length());
 	m_buffer.seekg(m_buffer.tellp());
+	size(sz2);
+
+	if (sz2 > sz1)
+		extMemory((int)(sz2 - sz1));
 
 	os_base::time(m_time);
 

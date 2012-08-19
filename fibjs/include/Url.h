@@ -18,6 +18,7 @@ class Url: public Url_base
 public:
 	Url()
 	{
+		extMemory(1024);
 	}
 
 	Url(const Url& u);

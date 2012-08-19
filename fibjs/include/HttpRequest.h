@@ -20,6 +20,7 @@ public:
 	HttpRequest()
 	{
 		clear();
+		extMemory(4096);
 	}
 
 	EVENT_SUPPORT();
