@@ -22,6 +22,7 @@
 #include "ifs/hash.h"
 
 #include "ifs/uuid.h"
+#include "ifs/re.h"
 
 #include "ifs/http.h"
 
@@ -56,6 +57,8 @@ void initModule()
 {
 	InstallNativeModule("encoding", encoding_base::class_info());
 	InstallNativeModule("uuid", uuid_base::class_info());
+
+	InstallNativeModule("re", re_base::class_info());
 
 	InstallNativeModule("assert", assert_base::class_info());
 	InstallNativeModule("path", path_base::class_info());

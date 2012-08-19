@@ -163,7 +163,7 @@ typedef int result_t;
 
 #define METHOD_VOID() \
     }while(0); \
-    if(hr >= 0)return v8::Undefined(); \
+    if(hr >= 0)return v8::Null(); \
     return ThrowResult(hr);
 
 #define CONSTRUCT_RETURN() \

@@ -74,7 +74,7 @@ protected:
 				if (hr != CALL_RETURN_NULL)
 					v = ReturnValue(pv);
 				else
-					v = v8::Undefined();
+					v = v8::Null();
 
 				m_pThis->_trigger(strEvent, &v, 1);
 			}

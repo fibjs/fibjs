@@ -15,6 +15,11 @@
 namespace fibjs
 {
 
+inline bool IsEmpty(v8::Handle<v8::Value>& v)
+{
+	return v.IsEmpty() || v->IsUndefined() || v->IsNull();
+}
+
 class Variant
 {
 public:
@@ -139,7 +144,7 @@ public:
 	{
 		clear();
 
-		if (!v.IsEmpty() && !v->IsUndefined())
+		if (!IsEmpty(v))
 		{
 			if (v->IsDate())
 			{
@@ -244,7 +249,7 @@ public:
 		}
 		}
 
-		return v8::Undefined();
+		return v8::Null();
 	}
 
 	void parseNumber(const char* str, int len = -1);

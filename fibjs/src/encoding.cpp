@@ -7,97 +7,10 @@
 
 #include "ifs/encoding.h"
 #include "Buffer.h"
+#include "utf8.h"
 
 namespace fibjs
 {
-
-inline int utf8_charWidth(unsigned char ch)
-{
-	static const char utf8_length[128] =
-	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0x80-0x8f */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0x90-0x9f */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0xa0-0xaf */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0xb0-0xbf */
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 0xc0-0xcf */
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 0xd0-0xdf */
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, /* 0xe0-0xef */
-	3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 0, 0 /* 0xf0-0xff */
-	};
-
-	return utf8_length[ch - 0x80];
-}
-
-inline uint32_t utf8_getChar(const char*& src)
-{
-	static const unsigned char utf8_mask[6] =
-	{ 0x7f, 0x1f, 0x0f, 0x07, 0x03, 0x01 };
-
-	static const unsigned int utf8_minval[6] =
-	{ 0x0, 0x80, 0x800, 0x10000, 0x200000, 0x4000000 };
-
-	if (!*src)
-		return 0;
-
-	unsigned char ch = (unsigned char) *src++;
-	if (ch < 0x80)
-		return ch;
-
-	int len = utf8_charWidth(ch);
-	uint32_t res;
-
-	res = ch & utf8_mask[len];
-
-	switch (len)
-	{
-	case 5:
-		if (!*src)
-			return 0;
-		if ((ch = (unsigned char) *src ^ 0x80) >= 0x40)
-			return '?';
-
-		res = (res << 6) | ch;
-		src++;
-	case 4:
-		if (!*src)
-			return 0;
-		if ((ch = (unsigned char) *src ^ 0x80) >= 0x40)
-			return '?';
-
-		res = (res << 6) | ch;
-		src++;
-	case 3:
-		if (!*src)
-			return 0;
-		if ((ch = (unsigned char) *src ^ 0x80) >= 0x40)
-			return '?';
-
-		res = (res << 6) | ch;
-		src++;
-	case 2:
-		if (!*src)
-			return 0;
-		if ((ch = (unsigned char) *src ^ 0x80) >= 0x40)
-			return '?';
-
-		res = (res << 6) | ch;
-		src++;
-	case 1:
-		if (!*src)
-			return 0;
-		if ((ch = (unsigned char) *src ^ 0x80) >= 0x40)
-			return '?';
-
-		res = (res << 6) | ch;
-		src++;
-
-		if (res < utf8_minval[len])
-			return '?';
-		if (res >= 0x10000)
-			return '?';
-	}
-
-	return res;
-}
 
 inline void baseEncode(const char *pEncodingTable, int dwBits,
 		obj_ptr<Buffer_base>& data, std::string& retVal)
@@ -151,7 +64,7 @@ inline void baseDecode(const char *pdecodeTable, int dwBits,
 	int nBits = 0;
 	uint32_t ch;
 
-	while ((ch = utf8_getChar(baseString)) != 0)
+	while ((ch = utf8_getchar(baseString)) != 0)
 	{
 		int nCh = (ch > 0x20 && ch < 0x80) ? pdecodeTable[ch - 0x20] : -1;
 
@@ -258,7 +171,7 @@ result_t encoding_base::hexDecode(const char* data,
 	strBuf.resize(len / 2);
 
 	pos = 0;
-	while ((ch1 = utf8_getChar(data)) != 0)
+	while ((ch1 = utf8_getchar(data)) != 0)
 	{
 		if ((ch1 >= 'a' && ch1 <= 'f') || (ch1 >= 'A' && ch1 <= 'F'))
 			ch1 = (ch1 & 0xf) + 9;
@@ -267,7 +180,7 @@ result_t encoding_base::hexDecode(const char* data,
 		else
 			continue;
 
-		ch2 = utf8_getChar(data);
+		ch2 = utf8_getchar(data);
 		if (ch2 == 0)
 			break;
 

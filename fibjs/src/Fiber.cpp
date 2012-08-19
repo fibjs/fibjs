@@ -135,9 +135,9 @@ void* Fiber::fiber_proc(void* p)
 
 			fb->_trigger("error", &err, 1);
 			ReportException(&try_catch, true);
-			retVal = v8::Undefined();
+			retVal = v8::Null();
 		}
-		else if (!retVal.IsEmpty() && !retVal->IsUndefined())
+		else if (!IsEmpty(retVal))
 			fb->m_result = v8::Persistent<v8::Value>::New(retVal);
 
 		fb->_trigger("exit", &retVal, 1);

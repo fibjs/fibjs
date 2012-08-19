@@ -39,7 +39,7 @@ inline result_t _parallel(std::vector<v8::Handle<v8::Function> >& funs,
 	{
 		bError = true;
 		ReportException(&try_catch, true);
-		r = v8::Undefined();
+		r = v8::Null();
 	}
 
 	retVal = v8::Array::New((int) funs.size());

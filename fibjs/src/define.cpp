@@ -176,7 +176,7 @@ v8::Handle<v8::Value> _define(const v8::Arguments& args)
 	// append to define array
 	defs->Set(defs->Length(), modDef);
 
-	return v8::Undefined();
+	return v8::Null();
 }
 
 void doDefine(v8::Handle<v8::Object>& mod)
@@ -320,7 +320,7 @@ void doDefine(v8::Handle<v8::Object>& mod)
 					}
 
 					// use the result as exports if the factory return something
-					if (!v->IsUndefined())
+					if (!IsEmpty(v))
 						mods[i]->Set(strExports, v);
 					else
 						v = mods[i]->Get(strExports);
