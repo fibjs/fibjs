@@ -65,7 +65,7 @@ result_t db_base::openSQLite(const char* connString,
 	obj_ptr<SQLite> db = new SQLite();
 	hr = db->open(connString);
 	if (hr < 0)
-		return 0;
+		return hr;
 
 	retVal = db;
 
