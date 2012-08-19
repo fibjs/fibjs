@@ -142,6 +142,12 @@
     <Filter Include="Source Files\crypto">
       <UniqueIdentifier>{6b654748-689b-413f-b1c7-4a9a77578cae}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\pcre">
+      <UniqueIdentifier>{b48592f3-bc93-46d3-b5ff-3ff90ca659f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\pcre\sljit">
+      <UniqueIdentifier>{042ca055-79d3-4b34-a2fc-6ca81a860f75}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zlib\adler32.c">
@@ -1524,6 +1530,72 @@
     <ClCompile Include="src\cripto\hash_sha4.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
+    <ClCompile Include="src\pcre\pcre_chartables.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_compile.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_config.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_dfa_exec.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_exec.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_fullinfo.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_get.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_globals.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_info.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_jit_compile.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_maketables.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_newline.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_ord2utf8.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_refcount.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_study.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_tables.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_try_flipped.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_ucd.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_valid_utf8.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_version.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_xclass.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\sljit\sljitLir.c">
+      <Filter>Source Files\pcre\sljit</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -2827,6 +2899,66 @@
     </ClInclude>
     <ClInclude Include="include\v8\v8-testing.h">
       <Filter>Header Files\v8</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\config.h">
+      <Filter>Source Files\pcre</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\pcre.h">
+      <Filter>Source Files\pcre</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\pcre_internal.h">
+      <Filter>Source Files\pcre</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\ucp.h">
+      <Filter>Source Files\pcre</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\sljit\sljitConfig.h">
+      <Filter>Source Files\pcre\sljit</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\sljit\sljitConfigInternal.h">
+      <Filter>Source Files\pcre\sljit</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\sljit\sljitExecAllocator.h">
+      <Filter>Source Files\pcre\sljit</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\sljit\sljitLir.h">
+      <Filter>Source Files\pcre\sljit</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\sljit\sljitNativeARM_Thumb2.h">
+      <Filter>Source Files\pcre\sljit</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\sljit\sljitNativeARM_v5.h">
+      <Filter>Source Files\pcre\sljit</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\sljit\sljitNativeMIPS_32.h">
+      <Filter>Source Files\pcre\sljit</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\sljit\sljitNativeMIPS_common.h">
+      <Filter>Source Files\pcre\sljit</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\sljit\sljitNativePPC_32.h">
+      <Filter>Source Files\pcre\sljit</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\sljit\sljitNativePPC_64.h">
+      <Filter>Source Files\pcre\sljit</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\sljit\sljitNativePPC_common.h">
+      <Filter>Source Files\pcre\sljit</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\sljit\sljitNativeX86_32.h">
+      <Filter>Source Files\pcre\sljit</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\sljit\sljitNativeX86_64.h">
+      <Filter>Source Files\pcre\sljit</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\sljit\sljitNativeX86_common.h">
+      <Filter>Source Files\pcre\sljit</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\sljit\sljitUtils.h">
+      <Filter>Source Files\pcre\sljit</Filter>
+    </ClInclude>
+    <ClInclude Include="include\pcre.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
