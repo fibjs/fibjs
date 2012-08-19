@@ -63,7 +63,7 @@ r.EOL = '\r\n';
 
 var n = 0;
 
-while ((s = r.readLine()) !== undefined){
+while ((s = r.readLine()) !== null){
 	assert.equal('0123456789', s);
 	n ++;
 }
