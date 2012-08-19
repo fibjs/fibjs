@@ -55,6 +55,7 @@
     <ClCompile Include="src\ObjectArray.cpp" />
     <ClCompile Include="src\os.cpp" />
     <ClCompile Include="src\path.cpp" />
+    <ClCompile Include="src\Regex.cpp" />
     <ClCompile Include="src\resolve.cpp" />
     <ClCompile Include="src\Runtime.cpp" />
     <ClCompile Include="src\Semaphore.cpp" />
@@ -131,6 +132,8 @@
     <ClInclude Include="include\ifs\ObjectArray.h" />
     <ClInclude Include="include\ifs\os.h" />
     <ClInclude Include="include\ifs\path.h" />
+    <ClInclude Include="include\ifs\re.h" />
+    <ClInclude Include="include\ifs\Regex.h" />
     <ClInclude Include="include\ifs\SeekableStream.h" />
     <ClInclude Include="include\ifs\Semaphore.h" />
     <ClInclude Include="include\ifs\Socket.h" />
@@ -154,6 +157,7 @@
     <ClInclude Include="include\parse.h" />
     <ClInclude Include="include\qstring.h" />
     <ClInclude Include="include\QuickArray.h" />
+    <ClInclude Include="include\Regex.h" />
     <ClInclude Include="include\Runtime.h" />
     <ClInclude Include="include\Semaphore.h" />
     <ClInclude Include="include\Socket.h" />

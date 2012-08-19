@@ -324,7 +324,7 @@ result_t Url::format(v8::Handle<v8::Object> args)
 
 	v8::Handle<v8::Value> v = args->Get(v8::String::NewSymbol("slashes"));
 
-	if (!v.IsEmpty() && !v->IsUndefined())
+	if (!IsEmpty(v))
 		m_slashes = v->BooleanValue();
 
 	m_ipv6 = m_hostname.find(':', 0) != std::string::npos;

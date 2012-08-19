@@ -1,28 +1,100 @@
 #include "utf8.h"
 
 static const char utf8_length[128] =
-{
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0x80-0x8f */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0x90-0x9f */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0xa0-0xaf */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0xb0-0xbf */
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 0xc0-0xcf */
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 0xd0-0xdf */
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, /* 0xe0-0xef */
-	3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 0, 0 /* 0xf0-0xff */
+{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0x80-0x8f */
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0x90-0x9f */
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0xa0-0xaf */
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0xb0-0xbf */
+1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 0xc0-0xcf */
+1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 0xd0-0xdf */
+2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, /* 0xe0-0xef */
+3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 0, 0 /* 0xf0-0xff */
 };
 
 /* first byte mask depending on UTF-8 sequence length */
 static const unsigned char utf8_mask[6] =
-{
-	0x7f, 0x1f, 0x0f, 0x07, 0x03, 0x01
-};
+{ 0x7f, 0x1f, 0x0f, 0x07, 0x03, 0x01 };
 
 /* minimum Unicode value depending on UTF-8 sequence length */
 static const unsigned int utf8_minval[6] =
+{ 0x0, 0x80, 0x800, 0x10000, 0x200000, 0x4000000 };
+
+inline int utf8_charWidth(unsigned char ch)
 {
-	0x0, 0x80, 0x800, 0x10000, 0x200000, 0x4000000
-};
+	return utf8_length[ch - 0x80];
+}
+
+wchar_t utf8_getchar(const char*& src)
+{
+	static const unsigned char utf8_mask[6] =
+	{ 0x7f, 0x1f, 0x0f, 0x07, 0x03, 0x01 };
+
+	static const unsigned int utf8_minval[6] =
+	{ 0x0, 0x80, 0x800, 0x10000, 0x200000, 0x4000000 };
+
+	if (!*src)
+		return 0;
+
+	unsigned char ch = (unsigned char) *src++;
+	if (ch < 0x80)
+		return ch;
+
+	int len = utf8_charWidth(ch);
+	uint32_t res;
+
+	res = ch & utf8_mask[len];
+
+	switch (len)
+	{
+	case 5:
+		if (!*src)
+			return 0;
+		if ((ch = (unsigned char) *src ^ 0x80) >= 0x40)
+			return '?';
+
+		res = (res << 6) | ch;
+		src++;
+	case 4:
+		if (!*src)
+			return 0;
+		if ((ch = (unsigned char) *src ^ 0x80) >= 0x40)
+			return '?';
+
+		res = (res << 6) | ch;
+		src++;
+	case 3:
+		if (!*src)
+			return 0;
+		if ((ch = (unsigned char) *src ^ 0x80) >= 0x40)
+			return '?';
+
+		res = (res << 6) | ch;
+		src++;
+	case 2:
+		if (!*src)
+			return 0;
+		if ((ch = (unsigned char) *src ^ 0x80) >= 0x40)
+			return '?';
+
+		res = (res << 6) | ch;
+		src++;
+	case 1:
+		if (!*src)
+			return 0;
+		if ((ch = (unsigned char) *src ^ 0x80) >= 0x40)
+			return '?';
+
+		res = (res << 6) | ch;
+		src++;
+
+		if (res < utf8_minval[len])
+			return '?';
+		if (res >= 0x10000)
+			return '?';
+	}
+
+	return res;
+}
 
 /* query necessary dst length for src string */
 inline static int get_length_mbs_utf8(const unsigned char *src, int srclen)
@@ -36,7 +108,7 @@ inline static int get_length_mbs_utf8(const unsigned char *src, int srclen)
 		if (ch < 0xc0)
 			continue;
 
-		switch (utf8_length[ch-0x80])
+		switch (utf8_length[ch - 0x80])
 		{
 		case 5:
 			if (src >= srcend)
@@ -82,7 +154,7 @@ int utf8_mbstowcs(const char *src, int srclen, wchar_t *dst, int dstlen)
 	const char *srcend = src + srclen;
 
 	if (!dstlen)
-		return get_length_mbs_utf8((const unsigned char *)src, srclen);
+		return get_length_mbs_utf8((const unsigned char *) src, srclen);
 
 	for (count = dstlen; count && (src < srcend); count--, dst++)
 	{
@@ -92,7 +164,7 @@ int utf8_mbstowcs(const char *src, int srclen, wchar_t *dst, int dstlen)
 			*dst = ch;
 			continue;
 		}
-		len = utf8_length[ch-0x80];
+		len = utf8_length[ch - 0x80];
 		res = ch & utf8_mask[len];
 
 		switch (len)
@@ -145,13 +217,11 @@ int utf8_mbstowcs(const char *src, int srclen, wchar_t *dst, int dstlen)
 			*dst = res;
 			continue;
 		}
-bad:
-		*dst = (wchar_t)'?';
+		bad: *dst = (wchar_t) '?';
 	}
 	if (src < srcend)
 		return -1; /* overflow */
-done:
-	return dstlen - count;
+	done: return dstlen - count;
 }
 
 /* query necessary dst length for src string */
@@ -187,7 +257,7 @@ int utf8_wcstombs(const wchar_t *src, int srclen, char *dst, int dstlen)
 		{
 			if (!len--)
 				return -1; /* overflow */
-			*dst++ = (char)ch;
+			*dst++ = (char) ch;
 			continue;
 		}
 

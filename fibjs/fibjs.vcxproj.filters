@@ -186,6 +186,9 @@
     <ClCompile Include="src\HttpResponse.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Regex.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -454,6 +457,15 @@
     </ClInclude>
     <ClInclude Include="include\HttpResponse.h">
       <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Regex.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\re.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\Regex.h">
+      <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -12,28 +12,26 @@
  */
 
 #include <string>
+#include "qstring.h"
 
 int utf8_mbstowcs(const char *src, int srclen, wchar_t *dst, int dstlen);
 int utf8_wcstombs(const wchar_t *src, int srclen, char *dst, int dstlen);
+wchar_t utf8_getchar(const char*& src);
 
-
-template<typename T>
-size_t _utf8_qstrlen(const T *pStr)
+inline int utf8_strlen(const char *src, int srclen)
 {
-	const T *pEnd;
+	if (srclen == -1)
+		srclen = (int) qstrlen(src);
 
-	for (pEnd = pStr; *pEnd != 0; pEnd++)
-		continue;
-
-	return pEnd - pStr;
+	return utf8_mbstowcs(src, srclen, NULL, 0);
 }
 
 inline std::wstring utf8to16String(const char *src, int srclen = -1)
 {
 	std::wstring str;
 
-	if(srclen == -1)
-		srclen = (int)_utf8_qstrlen(src);
+	if (srclen == -1)
+		srclen = (int) qstrlen(src);
 
 	int n = utf8_mbstowcs(src, srclen, NULL, 0);
 	str.resize(n);
@@ -49,8 +47,8 @@ inline std::string utf16to8String(const wchar_t *src, int srclen = -1)
 {
 	std::string str;
 
-	if(srclen == -1)
-		srclen = (int)_utf8_qstrlen(src);
+	if (srclen == -1)
+		srclen = (int) qstrlen(src);
 
 	int n = utf8_wcstombs(src, srclen, NULL, 0);
 	str.resize(n);

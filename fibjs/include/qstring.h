@@ -8,9 +8,6 @@
 #ifndef QSTRING_H_
 #define QSTRING_H_
 
-namespace fibjs
-{
-
 template<typename T>
 bool qisspace(T ch)
 {
@@ -158,8 +155,6 @@ void qstrlwr(T *s)
 
 	while ((c = *s) != 0)
 		*s++ = qtolower(c);
-}
-
 }
 
 #endif /* QSTRING_H_ */
