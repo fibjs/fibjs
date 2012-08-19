@@ -40,7 +40,7 @@ wchar_t utf8_getchar(const char*& src)
 		return ch;
 
 	int len = utf8_charWidth(ch);
-	uint32_t res;
+	int res;
 
 	res = ch & utf8_mask[len];
 
@@ -87,7 +87,7 @@ wchar_t utf8_getchar(const char*& src)
 		res = (res << 6) | ch;
 		src++;
 
-		if (res < utf8_minval[len])
+		if (res < (int)utf8_minval[len])
 			return '?';
 		if (res >= 0x10000)
 			return '?';
