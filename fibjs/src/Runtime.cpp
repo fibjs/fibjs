@@ -101,11 +101,11 @@ Runtime& Runtime::now()
 
 	if (pService)
 	{
-		Fiber* fb = (Fiber*) pService->tlsGet(g_tlsCurrent);
+		JSFiber* fb = (JSFiber*) pService->tlsGet(g_tlsCurrent);
 
 		if (!fb)
 		{
-			fb = new Fiber();
+			fb = new JSFiber();
 			pService->tlsPut(g_tlsCurrent, fb);
 			fb->Ref();
 		}

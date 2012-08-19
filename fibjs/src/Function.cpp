@@ -9,7 +9,7 @@ result_t Function_base::start(const v8::Arguments& args, obj_ptr<Fiber_base>& re
     if (!args.This()->IsFunction())
         return CALL_E_NOTINSTANCE;
 
-    return Fiber::startJSFiber(v8::Handle<v8::Function>::Cast(args.This()), args, 0, retVal);
+    return JSFiber::New(v8::Handle<v8::Function>::Cast(args.This()), args, 0, retVal);
 }
 
 }

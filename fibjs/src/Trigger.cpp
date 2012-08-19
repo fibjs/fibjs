@@ -179,13 +179,13 @@ result_t object_base::off(v8::Handle<v8::Object> map)
 inline result_t _fire(v8::Handle<v8::Function> func, const v8::Arguments& args, int argCount)
 {
 	obj_ptr<Fiber_base> retVal;
-	return Fiber::startJSFiber(func, args, 1, retVal);
+	return JSFiber::New(func, args, 1, retVal);
 }
 
 inline result_t _fire(v8::Handle<v8::Function> func, v8::Handle<v8::Value>* args, int argCount)
 {
 	obj_ptr<Fiber_base> retVal;
-	return Fiber::startJSFiber(func, args, argCount, retVal);
+	return JSFiber::New(func, args, argCount, retVal);
 }
 
 template<typename T>

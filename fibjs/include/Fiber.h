@@ -18,33 +18,25 @@ namespace fibjs
 
 extern int g_tlsCurrent;
 
-class Fiber: public Fiber_base
+class FiberBase: public Fiber_base
 {
 EVENT_SUPPORT()
 	;FIBER_FREE()
 	;
 
 public:
-	Fiber() :
-			m_next(NULL), m_error(false)
+	FiberBase() :
+			m_next(NULL)
 	{
 	}
 
-	~Fiber()
+	~FiberBase()
 	{
-		size_t i;
-
-		for (i = 0; i < argv.size(); i++)
-			argv[i].Dispose();
-
-		m_func.Dispose();
-		m_result.Dispose();
 	}
 
 	result_t get_func(v8::Handle<v8::Function>& retVal)
 	{
-		retVal = m_func;
-		return 0;
+		return CALL_E_INVALID_CALL;
 	}
 
 	result_t join()
@@ -57,8 +49,7 @@ public:
 
 	result_t get_caller(obj_ptr<Fiber_base>& retVal)
 	{
-		retVal = m_caller;
-		return 0;
+		return CALL_E_INVALID_CALL;
 	}
 
 	result_t onerror(v8::Handle<v8::Function> trigger)
@@ -71,49 +62,107 @@ public:
 		return on("exit", trigger);
 	}
 
+public:
+	static void* fiber_proc(void* p);
+	void start();
+	virtual void proc()
+	{
+	}
+
+	void exit()
+	{
+		m_quit.set();
+		dispose();
+		Unref();
+	}
+
+	Runtime& runtime()
+	{
+		return m_rt;
+	}
+
+public:
+	FiberBase* m_next;
+
+private:
+	exlib::Event m_quit;
+	Runtime m_rt;
+};
+
+class JSFiber: public FiberBase
+{
+EVENT_SUPPORT()
+	;FIBER_FREE()
+	;
+
+public:
+	JSFiber() :
+			m_error(false)
+	{
+	}
+
+	~JSFiber()
+	{
+		size_t i;
+
+		for (i = 0; i < m_argv.size(); i++)
+			m_argv[i].Dispose();
+
+		m_func.Dispose();
+		m_result.Dispose();
+	}
+
+	result_t get_func(v8::Handle<v8::Function>& retVal)
+	{
+		retVal = m_func;
+		return 0;
+	}
+
+	result_t get_caller(obj_ptr<Fiber_base>& retVal)
+	{
+		retVal = m_caller;
+		return 0;
+	}
+
+	virtual void proc();
+
 	template<typename T>
-	static result_t startJSFiber(v8::Handle<v8::Function> func, T& args,
-			int nArgStart, int nArgCount, obj_ptr<Fiber_base>& retVal)
+	void New(v8::Handle<v8::Function> func, T& args, int nArgStart,
+			int nArgCount)
 	{
 		v8::HandleScope handle_scope;
-
-		Fiber* fb = new Fiber();
 		int i;
 
-		coroutine_base::current(fb->m_caller);
+		coroutine_base::current(m_caller);
 
-		fb->argv.resize(nArgCount - nArgStart);
+		m_argv.resize(nArgCount - nArgStart);
 		for (i = nArgStart; i < nArgCount; i++)
-			fb->argv[i - nArgStart] = v8::Persistent<v8::Value>::New(args[i]);
-		fb->m_func = v8::Persistent<v8::Function>::New(func);
+			m_argv[i - nArgStart] = v8::Persistent<v8::Value>::New(args[i]);
+		m_func = v8::Persistent<v8::Function>::New(func);
 
-		fb->start();
+		start();
+	}
 
+	template<typename T>
+	static result_t New(v8::Handle<v8::Function> func,
+			const v8::Arguments& args, int nArgStart, obj_ptr<T>& retVal)
+	{
+		obj_ptr<JSFiber> fb = new JSFiber();
+		fb->New(func, args, nArgStart, args.Length());
 		retVal = fb;
 
 		return 0;
 	}
 
-	static result_t startJSFiber(v8::Handle<v8::Function> func,
-			const v8::Arguments& args, int nArgStart,
-			obj_ptr<Fiber_base>& retVal)
+	template<typename T>
+	static result_t New(v8::Handle<v8::Function> func,
+			v8::Handle<v8::Value>* args, int argCount, obj_ptr<T>& retVal)
 	{
-		return startJSFiber(func, args, nArgStart, args.Length(), retVal);
-	}
+		obj_ptr<JSFiber> fb = new JSFiber();
+		fb->New(func, args, 0, argCount);
+		retVal = fb;
 
-	static result_t startJSFiber(v8::Handle<v8::Function> func,
-			v8::Handle<v8::Value>* args, int argCount,
-			obj_ptr<Fiber_base>& retVal)
-	{
-		return startJSFiber(func, args, 0, argCount, retVal);
-	}
-
-	static void* fiber_proc(void* p);
-	void start();
-
-	Runtime& runtime()
-	{
-		return m_rt;
+		return 0;
 	}
 
 	result_t get_result(v8::Handle<v8::Value>& retVal)
@@ -130,17 +179,12 @@ public:
 		return m_error;
 	}
 
-public:
-	Fiber* m_next;
-
 private:
 	v8::Persistent<v8::Function> m_func;
-	std::vector<v8::Persistent<v8::Value> > argv;
+	std::vector<v8::Persistent<v8::Value> > m_argv;
 	v8::Persistent<v8::Value> m_result;
 	bool m_error;
-	exlib::Event m_quit;
 	obj_ptr<Fiber_base> m_caller;
-	Runtime m_rt;
 };
 
 } /* namespace fibjs */

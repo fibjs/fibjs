@@ -16,21 +16,22 @@ namespace fibjs
 result_t coroutine_base::start(v8::Handle<v8::Function> func,
 		const v8::Arguments& args, obj_ptr<Fiber_base>& retVal)
 {
-	return Fiber::startJSFiber(func, args, 1, retVal);
+	return JSFiber::New(func, args, 1, retVal);
 }
 
 inline result_t _parallel(std::vector<v8::Handle<v8::Function> >& funs,
 		v8::Handle<v8::Array>& retVal)
 {
-	std::vector<obj_ptr<Fiber_base> > fibers;
+	std::vector<obj_ptr<JSFiber> > fibers;
 	int i;
 
 	fibers.resize(funs.size());
 	for (i = 1; i < (int) funs.size(); i++)
-		Fiber::startJSFiber(funs[i], NULL, 0, fibers[i]);
+		JSFiber::New(funs[i], NULL, 0, fibers[i]);
 
-	coroutine_base::current(fibers[0]);
-	v8::Handle<v8::Object> o = fibers[0]->wrap();
+	obj_ptr<Fiber_base> cur;
+	coroutine_base::current(cur);
+	v8::Handle<v8::Object> o = cur->wrap();
 
 	bool bError = false;
 	v8::TryCatch try_catch;
@@ -47,7 +48,7 @@ inline result_t _parallel(std::vector<v8::Handle<v8::Function> >& funs,
 
 	for (i = 1; i < (int) funs.size(); i++)
 	{
-		Fiber* fb = (Fiber*) (Fiber_base*) fibers[i];
+		JSFiber* fb = fibers[i];
 		fb->join();
 
 		if (fb->isError())
@@ -122,7 +123,7 @@ result_t coroutine_base::current(obj_ptr<Fiber_base>& retVal)
 
 		if (!fb)
 		{
-			fb = new Fiber();
+			fb = new JSFiber();
 			pService->tlsPut(g_tlsCurrent, fb);
 			fb->Ref();
 		}
