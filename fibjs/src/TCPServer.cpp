@@ -67,29 +67,27 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 	{
 	public:
 		asyncAccept(Socket_base* pThis) :
-				AsyncCallBack(pThis, NULL, _stub)
+				AsyncCallBack(pThis, NULL)
 		{
 		}
 
-		static void _stub(AsyncCall* ac)
+		virtual void invoke()
 		{
-			asyncAccept* t = (asyncAccept*) ac;
-			result_t hr = ((Socket_base*) (object_base*) t->m_pThis)->accept(
-					t->retVal, t);
+			result_t hr = ((Socket_base*) (object_base*) m_pThis)->accept(
+					retVal, this);
 			if (hr != CALL_E_PENDDING)
-				t->post(hr);
+				post(hr);
 		}
 
 		virtual int post(int v)
 		{
 			s_acPool.put(
 					new asyncAccept((Socket_base*) (object_base*) m_pThis));
-			AsyncCallBack::post(v);
 
-			return 0;
+			return AsyncCallBack::post(v);
 		}
 
-		virtual void callback()
+		virtual void js_callback()
 		{
 			_trigger("accept", retVal);
 		}

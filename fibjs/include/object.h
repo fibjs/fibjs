@@ -27,12 +27,17 @@ public:
 			exlib::AsyncEvent(g_pService)
 	{
 	}
+
+public:
+	virtual void js_callback()
+	{
+	}
 };
 
 class asyncCallBack: public asyncEvent
 {
 public:
-	virtual void invoke();
+	virtual void callback();
 };
 
 class object_base: public obj_base
@@ -93,7 +98,7 @@ public:
 	class asyncRelease: public asyncCallBack
 	{
 	public:
-		virtual void callback()
+		virtual void js_callback()
 		{
 			object_base* pThis = NULL;
 

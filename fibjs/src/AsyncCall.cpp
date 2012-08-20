@@ -43,19 +43,19 @@ public:
 			if (ac == NULL)
 				break;
 
-			ac->callback();
+			ac->js_callback();
 		}
 
 		return NULL;
 	}
 } s_callback_init;
 
-void AsyncCallBack::invoke()
+void AsyncCallBack::callback()
 {
 	g_cbs.put(this);
 }
 
-void asyncCallBack::invoke()
+void asyncCallBack::callback()
 {
 	g_cbs.put(this);
 }

@@ -12,8 +12,8 @@ typedef exlib::lockfree<AsyncCall> AsyncQueue;
 class AsyncCall: public asyncEvent
 {
 public:
-	AsyncCall(void ** a, void (*f)(AsyncCall*) = NULL) :
-			func(f), args(a)
+	AsyncCall(void ** a) :
+			args(a)
 	{
 	}
 
@@ -23,20 +23,23 @@ public:
 		return asyncEvent::wait();
 	}
 
+	virtual void invoke()
+	{
+	}
+
 public:
-	void (*func)(AsyncCall*);
 	void ** args;
 };
 
 class AsyncCallBack: public AsyncCall
 {
 public:
-	AsyncCallBack(object_base* pThis, void ** a, void (*f)(AsyncCall*) = NULL) :
-			AsyncCall(a, f), m_pThis(pThis)
+	AsyncCallBack(object_base* pThis, void ** a) :
+			AsyncCall(a), m_pThis(pThis)
 	{
 	}
 
-	virtual void invoke();
+	virtual void callback();
 
 	virtual int post(int v)
 	{

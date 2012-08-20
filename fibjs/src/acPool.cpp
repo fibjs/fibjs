@@ -73,7 +73,7 @@ public:
 			p = s_acPool.wait();
 			exlib::atom_dec(&s_idleThreads);
 
-			p->func(p);
+			p->invoke();
 		}
 	}
 } s_ac;

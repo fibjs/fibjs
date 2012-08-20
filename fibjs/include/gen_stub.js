@@ -45,20 +45,21 @@ function gen_stub(argn, bInst)
 	}else
 		txt.push((bInst ? '	' : '	static ')+'result_t ac_##m() { \\');
 
-	txt.push('	class _t { public: \\');
-	txt.push('		static void _stub(AsyncCall* ac) { \\');
-	txt.push('			result_t hr = ' + (bInst ? '((cls*)ac->args['+(argn)+'])->' : 'cls::') + 'm( \\');
+	txt.push('	class _t : public AsyncCall { public: \\');
+	txt.push('		_t(void ** a) : AsyncCall(a) {} \\');
+	txt.push('		virtual void invoke() { \\');
+	txt.push('			result_t hr = ' + (bInst ? '((cls*)args['+(argn)+'])->' : 'cls::') + 'm( \\');
 
 	s = '				';
 	a = [];
 	for(i = 0; i < argn; i ++)
-		a.push('*(T'+i+'*) ac->args['+i+']');
-	a.push('ac');
+		a.push('*(T'+i+'*) args['+i+']');
+	a.push('this');
 	s += a.join(', ');
 	s += '); \\'
 	txt.push(s);
 
-	txt.push('			if(hr != CALL_E_PENDDING)ac->post(hr); } }; \\');
+	txt.push('			if(hr != CALL_E_PENDDING)post(hr); } }; \\');
 
 	s = '	result_t hr = m(';
 	if(argn > 0)
@@ -87,9 +88,9 @@ function gen_stub(argn, bInst)
 		s += bInst ? 'this}; \\' : '}; \\';
 		txt.push(s);
 
-		txt.push('	AsyncCall ac(args, _t::_stub); \\');
+		txt.push('	_t ac(args); \\');
 	}else
-		txt.push('	AsyncCall ac(NULL, _t::_stub); \\');
+		txt.push('	_t ac(NULL); \\');
 
 	txt.push('	s_acPool.put(&ac); \\\n	return ac.wait();}\n');
 
@@ -131,24 +132,24 @@ function gen_callback(argn, bRet)
 	s += ', const char* ev) : \\';
 	txt.push(s);
 
-	s = '			AsyncCallBack(pThis, NULL, _stub)';
+	s = '			AsyncCallBack(pThis, NULL)';
 	for(i = 0; i < argn; i ++)
 		s += ', m_v' + i + '(v' + i + ')';
 	s += ', m_ev(ev) \\';
 	txt.push(s);
 
-	txt.push('		{} \\\n		static void _stub(AsyncCall* ac) \\\n		{	_t* t = (_t*) ac; \\');
-	s = '			result_t hr = ((cls*)(object_base*)t->m_pThis)->m(';
+	txt.push('		{} \\\n		virtual void invoke() \\\n		{ \\');
+	s = '			result_t hr = ((cls*)(object_base*)m_pThis)->m(';
 	for(i = 0; i < argn; i ++)
-		s += 'm_v(t->m_v' + i + '), ';
+		s += 'm_v(m_v' + i + '), ';
 	if(bRet)
-		s += 't->retVal, ';
-	s += 't); \\';
+		s += 'retVal, ';
+	s += 'this); \\';
 	txt.push(s);
 
-	txt.push('			if (hr != CALL_E_PENDDING)t->post(hr); \\\n' +
+	txt.push('			if (hr != CALL_E_PENDDING)post(hr); \\\n' +
 			'		} \\\n' +
-			'		virtual void callback() \\');
+			'		virtual void js_callback() \\');
 	
 	if(bRet)
 		txt.push('		{ _trigger(m_ev, retVal); }\\');
