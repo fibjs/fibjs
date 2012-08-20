@@ -130,7 +130,7 @@ public:
 
 		if (pNow)
 		{
-			m_first = pNow->m_next;
+			m_first = (T*)pNow->m_next;
 			if (m_first == NULL)
 				m_last = NULL;
 
