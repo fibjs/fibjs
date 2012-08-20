@@ -310,13 +310,9 @@ public:
 	{}
 
 	virtual int post(int v);
-	virtual void invoke()
-	{
-		weak.set();
-	}
-
 	virtual void callback()
 	{
+		weak.set();
 	}
 
 	int wait()

@@ -266,7 +266,7 @@ void Service::switchtonext()
 			if (p == NULL)
 				break;
 
-			p->invoke();
+			p->callback();
 		}
 
 		if (!m_resume.empty())
@@ -286,14 +286,14 @@ void Service::switchtonext()
 			if (p == NULL)
 				break;
 
-			p->invoke();
+			p->callback();
 		}
 
 		if (!m_resume.empty())
 			continue;
 
 		// still no work, we wait, and wait, and wait.....
-		m_aEvents.wait()->invoke();
+		m_aEvents.wait()->callback();
 	}
 }
 
