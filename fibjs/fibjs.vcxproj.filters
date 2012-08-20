@@ -102,9 +102,6 @@
     <ClCompile Include="src\Condition.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\AsyncCall.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
     <ClCompile Include="src\Socket_iocp.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>

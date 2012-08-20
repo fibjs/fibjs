@@ -18,15 +18,14 @@ namespace fibjs
 
 extern int g_tlsCurrent;
 
-class FiberBase: public Fiber_base
+class FiberBase: public Fiber_base, asyncEvent
 {
 EVENT_SUPPORT()
 	;FIBER_FREE()
 	;
 
 public:
-	FiberBase() :
-			m_next(NULL)
+	FiberBase()
 	{
 	}
 
@@ -49,7 +48,11 @@ public:
 
 	result_t get_caller(obj_ptr<Fiber_base>& retVal)
 	{
-		return CALL_E_INVALID_CALL;
+		if (m_caller == NULL)
+			return CALL_RETURN_NULL;
+
+		retVal = m_caller;
+		return 0;
 	}
 
 	result_t onerror(v8::Handle<v8::Function> trigger)
@@ -65,9 +68,6 @@ public:
 public:
 	static void* fiber_proc(void* p);
 	void start();
-	virtual void proc()
-	{
-	}
 
 	void exit()
 	{
@@ -81,12 +81,10 @@ public:
 		return m_rt;
 	}
 
-public:
-	FiberBase* m_next;
-
 private:
 	exlib::Event m_quit;
 	Runtime m_rt;
+	obj_ptr<Fiber_base> m_caller;
 };
 
 class JSFiber: public FiberBase
@@ -118,13 +116,7 @@ public:
 		return 0;
 	}
 
-	result_t get_caller(obj_ptr<Fiber_base>& retVal)
-	{
-		retVal = m_caller;
-		return 0;
-	}
-
-	virtual void proc();
+	virtual void js_callback();
 
 	template<typename T>
 	void New(v8::Handle<v8::Function> func, T& args, int nArgStart,
@@ -132,8 +124,6 @@ public:
 	{
 		v8::HandleScope handle_scope;
 		int i;
-
-		coroutine_base::current(m_caller);
 
 		m_argv.resize(nArgCount - nArgStart);
 		for (i = nArgStart; i < nArgCount; i++)
@@ -184,7 +174,6 @@ private:
 	std::vector<v8::Persistent<v8::Value> > m_argv;
 	v8::Persistent<v8::Value> m_result;
 	bool m_error;
-	obj_ptr<Fiber_base> m_caller;
 };
 
 } /* namespace fibjs */

@@ -100,18 +100,7 @@ Runtime& Runtime::now()
 	exlib::Service* pService = exlib::Service::getFiberService();
 
 	if (pService)
-	{
-		JSFiber* fb = (JSFiber*) pService->tlsGet(g_tlsCurrent);
-
-		if (!fb)
-		{
-			fb = new JSFiber();
-			pService->tlsPut(g_tlsCurrent, fb);
-			fb->Ref();
-		}
-
-		return fb->runtime();
-	}
+		return ((JSFiber*) pService->tlsGet(g_tlsCurrent))->runtime();
 
 #ifdef MacOS
 	return *(Runtime*) FastThreadLocal(keyRuntime);

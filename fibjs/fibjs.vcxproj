@@ -21,7 +21,6 @@
   <ItemGroup>
     <ClCompile Include="src\acPool.cpp" />
     <ClCompile Include="src\assert.cpp" />
-    <ClCompile Include="src\AsyncCall.cpp" />
     <ClCompile Include="src\Buffer.cpp" />
     <ClCompile Include="src\BufferedStream.cpp" />
     <ClCompile Include="src\Condition.cpp" />

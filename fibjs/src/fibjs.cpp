@@ -10,7 +10,7 @@
 
 #include "ifs/global.h"
 #include <exlib/lockfree.h>
-#include "AsyncCall.h"
+#include "Fiber.h"
 
 #define RESET "\033[0m"
 #define BLACK "\033[30m" /* Black */
@@ -110,6 +110,10 @@ void _main(const char* fname)
 	v8::Context::Scope context_scope(s_context);
 
 	initModule();
+
+	Fiber_base* fb = new JSFiber();
+	g_pService->tlsPut(g_tlsCurrent, fb);
+	fb->Ref();
 
 	v8::TryCatch try_catch;
 	fibjs::global_base::run(fname);

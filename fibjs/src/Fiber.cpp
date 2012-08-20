@@ -14,7 +14,7 @@ namespace fibjs
 #define FIBER_PER_CPU	3000
 extern v8::Persistent<v8::Context> s_context;
 
-static exlib::Queue<FiberBase> g_jobs;
+static exlib::Queue<asyncEvent> g_jobs;
 static exlib::IDLE_PROC s_oldIdle;
 static int32_t s_cpus;
 static int32_t s_fibers;
@@ -90,8 +90,6 @@ public:
 
 void* FiberBase::fiber_proc(void* p)
 {
-	exlib::Service* pService = exlib::Service::getFiberService();
-
 	v8::Locker locker(isolate);
 	v8::Isolate::Scope isolate_scope(isolate);
 
@@ -100,19 +98,21 @@ void* FiberBase::fiber_proc(void* p)
 
 	while (1)
 	{
-		FiberBase* fb;
+		asyncEvent* ae;
 
-		if ((fb = g_jobs.tryget()) == NULL)
+		if ((ae = g_jobs.tryget()) == NULL)
 		{
 			v8::Unlocker unlocker(isolate);
-			fb = g_jobs.get();
+			ae = g_jobs.get();
 		}
 
-		if (fb == NULL)
+		if (ae == NULL)
 			break;
 
-		pService->tlsPut(g_tlsCurrent, fb);
-		fb->proc();
+		{
+			v8::HandleScope handle_scope;
+			ae->js_callback();
+		}
 	}
 
 	return NULL;
@@ -120,15 +120,19 @@ void* FiberBase::fiber_proc(void* p)
 
 void FiberBase::start()
 {
+	m_caller = (Fiber_base*) g_pService->tlsGet(
+			g_tlsCurrent);
+
 	g_jobs.put(this);
 	Ref();
 }
 
-void JSFiber::proc()
+void JSFiber::js_callback()
 {
+	g_pService->tlsPut(g_tlsCurrent, this);
+
 	size_t i;
 
-	v8::HandleScope handle_scope;
 	std::vector<v8::Handle<v8::Value> > argv;
 
 	argv.resize(m_argv.size());
@@ -154,10 +158,21 @@ void JSFiber::proc()
 
 	_trigger("exit", &retVal, 1);
 
+	g_pService->tlsPut(g_tlsCurrent, NULL);
 	exit();
 
 	s_null.Ref();
 	o->SetPointerInInternalField(0, &s_null);
+}
+
+void AsyncCallBack::callback()
+{
+	g_jobs.put(this);
+}
+
+void asyncCallBack::callback()
+{
+	g_jobs.put(this);
 }
 
 } /* namespace fibjs */

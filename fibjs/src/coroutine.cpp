@@ -115,21 +115,12 @@ result_t coroutine_base::parallel(const v8::Arguments& args,
 
 result_t coroutine_base::current(obj_ptr<Fiber_base>& retVal)
 {
-	exlib::Service* pService = exlib::Service::getFiberService();
+	Fiber_base* fb = (Fiber_base*) g_pService->tlsGet(g_tlsCurrent);
 
-	if (pService)
-	{
-		Fiber_base* fb = (Fiber_base*) pService->tlsGet(g_tlsCurrent);
+	if (!fb)
+		return CALL_RETURN_NULL;
 
-		if (!fb)
-		{
-			fb = new JSFiber();
-			pService->tlsPut(g_tlsCurrent, fb);
-			fb->Ref();
-		}
-
-		retVal = fb;
-	}
+	retVal = fb;
 
 	return 0;
 }
