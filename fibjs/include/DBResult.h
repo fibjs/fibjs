@@ -68,7 +68,7 @@ public:
 	void rowValue(int32_t i, Variant& v)
 	{
 		m_nowRow->setValue(i, v);
-		extMemory(v.size());
+		extMemory((int)v.size());
 	}
 
 private:

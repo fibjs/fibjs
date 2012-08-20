@@ -52,7 +52,7 @@ result_t Buffer::resize(int32_t sz)
 	if (sz < 0)
 		return CALL_E_INVALIDARG;
 
-	extMemory(sz - m_data.length());
+	extMemory(sz - (int)m_data.length());
 	m_data.resize(sz);
 
 	return 0;
@@ -62,7 +62,7 @@ result_t Buffer::write(const char* str)
 {
 	size_t sz = qstrlen(str);
 
-	extMemory(sz);
+	extMemory((int)sz);
 	m_data.append(str, sz);
 	return 0;
 }
