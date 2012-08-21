@@ -1,0 +1,52 @@
+
+/*! @brief 基础消息对象  */
+class Message: Trigger
+{
+	/*! @brief 消息的基本内容 */
+	String value;
+
+	/*! @brief 清除消息的内容 */
+	clear();
+
+	/*! @brief 发送格式化消息到给定的流对象
+	 * @param stm 指定接收格式化消息的流对象
+	 */
+	send(Stream stm) async;
+
+	/*! @brief 异步发送格式化消息到给定的流对象
+	 * @param stm 指定接收格式化消息的流对象
+	 */
+	asyncSend(Stream stm);
+
+	/*! @brief 注册 "send" 事件，等同于 on("send", func);
+	 * @param func 事件处理函数
+	 *
+	 * "send" 事件定义如下：
+	 * @code
+	 * function on_send()
+	 * {}
+	 * @endcode
+	 */
+	onsend(Function func);
+
+	/*! @brief 从给定的缓存流对象中读取格式化消息，并解析填充对象
+	 * @param stm 指定读取格式化消息的流对象
+	 */
+	read(BufferedStream stm) async;
+
+	/*! @brief 异步从给定的缓存流对象中读取格式化消息，并解析填充对象
+	 * @param stm 指定读取格式化消息的流对象
+	 */
+	asyncRead(BufferedStream stm);
+
+	/*! @brief 注册 "read" 事件，等同于 on("read", func);
+	 * @param func 事件处理函数
+	 *
+	 * "read" 事件定义如下：
+	 * @code
+	 * function on_read()
+	 * {}
+	 * @endcode
+	 */
+	onread(Function func);
+};

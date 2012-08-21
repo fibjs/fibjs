@@ -27,6 +27,18 @@ public:
 	EVENT_SUPPORT();
 
 public:
+	// Message_base
+	virtual result_t get_value(std::string& retVal);
+	virtual result_t set_value(const char* newVal);
+	virtual result_t clear();
+	virtual result_t send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac);
+	virtual result_t asyncSend(obj_ptr<Stream_base>& stm);
+	virtual result_t onsend(v8::Handle<v8::Function> func);
+	virtual result_t read(obj_ptr<BufferedStream_base>& stm, exlib::AsyncEvent* ac);
+	virtual result_t asyncRead(obj_ptr<BufferedStream_base>& stm);
+	virtual result_t onread(v8::Handle<v8::Function> func);
+
+public:
 	// HttpMessage_base
 	virtual result_t get_protocol(std::string& retVal);
 	virtual result_t set_protocol(const char* newVal);
@@ -38,13 +50,6 @@ public:
 	virtual result_t get_contentLength(int64_t& retVal);
 	virtual result_t get_keepAlive(bool& retVal);
 	virtual result_t set_keepAlive(bool newVal);
-	virtual result_t clear();
-	virtual result_t send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac);
-	virtual result_t asyncSend(obj_ptr<Stream_base>& stm);
-	virtual result_t onsend(v8::Handle<v8::Function> func);
-	virtual result_t read(obj_ptr<BufferedStream_base>& stm, exlib::AsyncEvent* ac);
-	virtual result_t asyncRead(obj_ptr<BufferedStream_base>& stm);
-	virtual result_t onread(v8::Handle<v8::Function> func);
 
 public:
 	// HttpResponse_base

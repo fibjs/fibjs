@@ -67,6 +67,18 @@ result_t HttpRequest::set_keepAlive(bool newVal)
 	return m_message.set_keepAlive(newVal);
 }
 
+result_t HttpRequest::get_value(std::string& retVal)
+{
+	retVal = m_address;
+	return 0;
+}
+
+result_t HttpRequest::set_value(const char* newVal)
+{
+	m_address = newVal;
+	return 0;
+}
+
 result_t HttpRequest::clear()
 {
 	m_message.clear();
@@ -185,7 +197,8 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 				if (p2 == 14 && !qstricmp(p.string, "content-length", 14))
 					pThis->m_contentLength = atoi(p.string + p.pos);
 				else if (p2 == 6 && !qstricmp(p.string, "cookie", 6))
-					pThis->m_pThis->m_strCookies.assign(p.string + p.pos, p.sz - p.pos);
+					pThis->m_pThis->m_strCookies.assign(p.string + p.pos,
+							p.sz - p.pos);
 
 				pThis->m_pThis->m_message.addHeader(p.string, p2,
 						p.string + p.pos, p.sz - p.pos);

@@ -67,6 +67,16 @@ result_t HttpResponse::set_keepAlive(bool newVal)
 	return m_message.set_keepAlive(newVal);
 }
 
+result_t HttpResponse::get_value(std::string& retVal)
+{
+	return 0;
+}
+
+result_t HttpResponse::set_value(const char* newVal)
+{
+	return 0;
+}
+
 result_t HttpResponse::clear()
 {
 	m_message.clear();
