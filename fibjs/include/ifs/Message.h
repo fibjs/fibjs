@@ -35,13 +35,7 @@ public:
 	virtual result_t asyncRead(obj_ptr<BufferedStream_base>& stm) = 0;
 	virtual result_t onread(v8::Handle<v8::Function> func) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(Message_base);
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{

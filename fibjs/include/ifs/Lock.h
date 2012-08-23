@@ -24,13 +24,7 @@ public:
 	virtual result_t acquire(bool blocking, bool& retVal) = 0;
 	virtual result_t release() = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(Lock_base);
 
 public:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);

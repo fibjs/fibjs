@@ -41,13 +41,7 @@ public:
 	static result_t stat(const char* path, obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t readdir(const char* path, obj_ptr<ObjectArray_base>& retVal, exlib::AsyncEvent* ac);
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(os_base);
 
 public:
 	static v8::Handle<v8::Value> s_hostname(const v8::Arguments& args);

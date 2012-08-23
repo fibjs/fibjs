@@ -40,13 +40,7 @@ public:
 	static result_t random(obj_ptr<uuidValue_base>& retVal);
 	static result_t sha1(int32_t ns, const char* name, obj_ptr<uuidValue_base>& retVal);
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(uuid_base);
 
 public:
 	static v8::Handle<v8::Value> s_get_DNS(v8::Local<v8::String> property, const v8::AccessorInfo &info);

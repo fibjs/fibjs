@@ -39,13 +39,7 @@ public:
 	static result_t ipv6(const char* name, std::string& retVal, exlib::AsyncEvent* ac);
 	static result_t backend(std::string& retVal);
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(net_base);
 
 public:
 	static v8::Handle<v8::Value> s_get_AF_INET(v8::Local<v8::String> property, const v8::AccessorInfo &info);

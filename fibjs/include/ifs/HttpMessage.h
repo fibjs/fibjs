@@ -36,13 +36,7 @@ public:
 	virtual result_t get_keepAlive(bool& retVal) = 0;
 	virtual result_t set_keepAlive(bool newVal) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(HttpMessage_base);
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{

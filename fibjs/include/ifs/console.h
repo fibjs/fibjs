@@ -33,13 +33,7 @@ public:
 	static result_t trace(const char* label);
 	static result_t assert(bool value, const char* msg);
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(console_base);
 
 public:
 	static v8::Handle<v8::Value> s_log(const v8::Arguments& args);

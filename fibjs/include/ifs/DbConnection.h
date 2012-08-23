@@ -28,13 +28,7 @@ public:
 	virtual result_t rollback() = 0;
 	virtual result_t execute(const char* sql, const v8::Arguments& args, obj_ptr<DBResult_base>& retVal) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(DbConnection_base);
 
 public:
 	static v8::Handle<v8::Value> s_close(const v8::Arguments& args);

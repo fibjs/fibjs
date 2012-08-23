@@ -18,13 +18,7 @@ namespace fibjs
 
 class module_base : public object_base
 {
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(module_base);
 
 public:
 

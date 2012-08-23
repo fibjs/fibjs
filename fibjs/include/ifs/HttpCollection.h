@@ -32,13 +32,7 @@ public:
 	virtual result_t _named_getter(const char* property, std::string& retVal) = 0;
 	virtual result_t _named_setter(const char* property, const char* newVal) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(HttpCollection_base);
 
 public:
 	static v8::Handle<v8::Value> s_clear(const v8::Arguments& args);

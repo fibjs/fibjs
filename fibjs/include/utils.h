@@ -142,12 +142,12 @@ typedef int result_t;
     METHOD_ENTER(c, o)
 
 #define METHOD_INSTANCE(cls) \
-    obj_ptr<cls> pInst = (cls*)cls::class_info().getInstance(args.This()); \
+    obj_ptr<cls> pInst = cls::getInstance(args.This()); \
     if(pInst == NULL)return ThrowResult(CALL_E_NOTINSTANCE); \
     scope l(pInst);
 
 #define PROPERTY_INSTANCE(cls) \
-    obj_ptr<cls> pInst = (cls*)cls::class_info().getInstance(info.This()); \
+    obj_ptr<cls> pInst = cls::getInstance(info.This()); \
     if(pInst == NULL){hr = CALL_E_NOTINSTANCE;break;} \
     scope l(pInst);
 
@@ -216,6 +216,16 @@ typedef int result_t;
 #define CLONE(n, t) \
 	{t v; hr = get_##n(v); if(hr < 0)return hr; \
 	retVal->Set(v8::String::NewSymbol(#n), ReturnValue(v));}
+
+#define DECLARE_CLASSINFO(c) \
+		public: \
+			static ClassInfo& class_info(); \
+			virtual ClassInfo& Classinfo() \
+			{	return class_info();} \
+			static c* getInstance(void *o) \
+			{	return (c*)class_info().getInstance(o); } \
+			static c* getInstance(v8::Handle<v8::Value> o) \
+			{	return (c*)class_info().getInstance(o); }
 
 #define EVENT_SUPPORT() \
 		public: \
@@ -313,7 +323,7 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, date_t& d)
 template<class T>
 inline result_t SafeGetValue(v8::Handle<v8::Value> v, obj_ptr<T>& vr)
 {
-	vr = (T*) T::class_info().getInstance(v);
+	vr = T::getInstance(v);
 	if (vr == NULL)
 		return CALL_E_INVALIDARG;
 

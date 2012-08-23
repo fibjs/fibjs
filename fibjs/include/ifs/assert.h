@@ -32,13 +32,7 @@ public:
 	static result_t doesNotThrow(v8::Handle<v8::Function> block, const char* msg);
 	static result_t throwAssert(bool bThrow);
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(assert_base);
 
 public:
 	static v8::Handle<v8::Value> s_ok(const v8::Arguments& args);

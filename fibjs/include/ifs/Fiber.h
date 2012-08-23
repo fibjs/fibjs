@@ -29,13 +29,7 @@ public:
 	virtual result_t onerror(v8::Handle<v8::Function> trigger) = 0;
 	virtual result_t onexit(v8::Handle<v8::Function> trigger) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(Fiber_base);
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{

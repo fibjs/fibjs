@@ -31,13 +31,7 @@ public:
 	virtual result_t hex(std::string& retVal) = 0;
 	virtual result_t base64(std::string& retVal) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(Buffer_base);
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{

@@ -33,13 +33,7 @@ public:
 	virtual result_t close() = 0;
 	virtual result_t get_type(int32_t& retVal) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(zmqSocket_base);
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{

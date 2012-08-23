@@ -39,13 +39,7 @@ public:
 	static result_t readFile(const char* fname, std::string& retVal, exlib::AsyncEvent* ac);
 	static result_t writeFile(const char* fname, const char* txt, exlib::AsyncEvent* ac);
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(io_base);
 
 public:
 	static v8::Handle<v8::Value> s_get_SEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info);

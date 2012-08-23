@@ -39,13 +39,7 @@ public:
 	virtual result_t onstat(v8::Handle<v8::Function> func) = 0;
 	virtual result_t onerror(v8::Handle<v8::Function> func) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(Stream_base);
 
 public:
 	static v8::Handle<v8::Value> s_read(const v8::Arguments& args);

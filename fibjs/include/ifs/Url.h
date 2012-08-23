@@ -41,13 +41,7 @@ public:
 	virtual result_t get_query(std::string& retVal) = 0;
 	virtual result_t get_hash(std::string& retVal) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(Url_base);
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{

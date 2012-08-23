@@ -26,13 +26,7 @@ public:
 	// Function_base
 	static result_t start(const v8::Arguments& args, obj_ptr<Fiber_base>& retVal);
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(Function_base);
 
 public:
 	static v8::Handle<v8::Value> s_start(const v8::Arguments& args);

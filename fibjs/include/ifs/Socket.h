@@ -49,13 +49,7 @@ public:
 	virtual result_t send(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac) = 0;
 	virtual result_t sendto(obj_ptr<Buffer_base>& data, const char* host, int32_t port) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(Socket_base);
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{

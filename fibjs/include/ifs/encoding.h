@@ -34,13 +34,7 @@ public:
 	static result_t encodeURIComponent(const char* url, std::string& retVal);
 	static result_t decodeURI(const char* url, std::string& retVal);
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(encoding_base);
 
 public:
 	static v8::Handle<v8::Value> s_base32Encode(const v8::Arguments& args);

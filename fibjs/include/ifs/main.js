@@ -282,10 +282,7 @@ function parserIDL(fname) {
 			txt.push(ifs.join("\n") + "\n");
 		}
 
-		txt.push("public:\n	static ClassInfo& class_info();\n")
-
-		txt
-				.push("	virtual ClassInfo& Classinfo()\n	{\n		return class_info();\n	}\n");
+		txt.push("	DECLARE_CLASSINFO(" + ns + "_base);\n")
 
 		if (tjfs.length) {
 			txt
@@ -411,7 +408,7 @@ function parserIDL(fname) {
 		} catch (e) {
 		}
 
-		if (sOld != sTxt){
+		if (sOld != sTxt) {
 			io.writeFile(ns + ".h", txt.join("\n"));
 			console.log("Building:", ns + ".h");
 		}

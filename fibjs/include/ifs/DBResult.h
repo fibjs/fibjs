@@ -27,13 +27,7 @@ public:
 	virtual result_t get_affected(int64_t& retVal) = 0;
 	virtual result_t get_fields(v8::Handle<v8::Array>& retVal) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(DBResult_base);
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{

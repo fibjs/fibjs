@@ -31,13 +31,7 @@ public:
 	static result_t openSQLite(const char* connString, obj_ptr<DbConnection_base>& retVal);
 	static result_t format(const char* sql, const v8::Arguments& args, std::string& retVal);
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(db_base);
 
 public:
 	static v8::Handle<v8::Value> s_open(const v8::Arguments& args);

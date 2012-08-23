@@ -28,13 +28,7 @@ public:
 	virtual result_t post() = 0;
 	virtual result_t trywait(bool& retVal) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(Semaphore_base);
 
 public:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);

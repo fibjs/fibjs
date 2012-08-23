@@ -30,13 +30,7 @@ public:
 	virtual result_t clear() = 0;
 	virtual result_t wait() = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(Event_base);
 
 public:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);

@@ -35,13 +35,7 @@ public:
 	virtual result_t isMemory(bool& retVal) = 0;
 	virtual result_t isSocket(bool& retVal) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(Stat_base);
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{

@@ -94,13 +94,7 @@ public:
 	static result_t hmac_ripemd320(obj_ptr<Buffer_base>& key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac_ripemd320(const char* key, obj_ptr<Digest_base>& retVal);
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(hash_base);
 
 public:
 	static v8::Handle<v8::Value> s_get_MD2(v8::Local<v8::String> property, const v8::AccessorInfo &info);

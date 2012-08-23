@@ -29,13 +29,7 @@ public:
 	static result_t dirname(const char* path, std::string& retVal);
 	static result_t combine(const v8::Arguments& args, std::string& retVal);
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(path_base);
 
 public:
 	static v8::Handle<v8::Value> s_normalize(const v8::Arguments& args);

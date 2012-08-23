@@ -28,13 +28,7 @@ public:
 	virtual result_t digest(const char* text, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t get_size(int32_t& retVal) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(Digest_base);
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{

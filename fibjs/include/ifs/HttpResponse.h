@@ -27,13 +27,7 @@ public:
 	virtual result_t get_status(int32_t& retVal) = 0;
 	virtual result_t set_status(int32_t newVal) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(HttpResponse_base);
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{

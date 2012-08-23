@@ -25,13 +25,7 @@ public:
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal) = 0;
 	virtual result_t ValueOf(v8::Handle<v8::Object>& retVal) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(object_base);
 
 public:
 	static v8::Handle<v8::Value> s_dispose(const v8::Arguments& args);

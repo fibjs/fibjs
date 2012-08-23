@@ -28,13 +28,7 @@ public:
 	virtual result_t get_ignoreCase(bool& retVal) = 0;
 	virtual result_t get_multiline(bool& retVal) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(Regex_base);
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{

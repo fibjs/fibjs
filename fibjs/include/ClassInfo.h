@@ -141,12 +141,13 @@ public:
 						cd.cps[i].getter, block_set);
 	}
 
+	void* getInstance(void* o);
 	void* getInstance(v8::Handle<v8::Value> o)
 	{
-		if (o.IsEmpty() || !o->IsObject() || !m_class->HasInstance(o))
+		if (o.IsEmpty() || !o->IsObject())
 			return NULL;
 
-		return o->ToObject()->GetPointerFromInternalField(0);
+		return getInstance(o->ToObject()->GetPointerFromInternalField(0));
 	}
 
 	v8::Handle<v8::Object> CreateInstance()

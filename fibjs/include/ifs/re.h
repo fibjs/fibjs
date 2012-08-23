@@ -26,13 +26,7 @@ public:
 	// re_base
 	static result_t compile(const char* pattern, const char* opt, obj_ptr<Regex_base>& retVal);
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(re_base);
 
 public:
 	static v8::Handle<v8::Value> s_compile(const v8::Arguments& args);

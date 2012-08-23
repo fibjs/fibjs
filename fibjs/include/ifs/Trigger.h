@@ -29,13 +29,7 @@ public:
 	virtual result_t off(v8::Handle<v8::Object> map) = 0;
 	virtual result_t trigger(const char* ev, const v8::Arguments& args) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(Trigger_base);
 
 public:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);

@@ -23,13 +23,7 @@ class HttpResponse_base;
 
 class http_base : public module_base
 {
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(http_base);
 
 public:
 

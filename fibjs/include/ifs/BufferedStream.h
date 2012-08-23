@@ -32,13 +32,7 @@ public:
 	virtual result_t get_EOL(std::string& retVal) = 0;
 	virtual result_t set_EOL(const char* newVal) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(BufferedStream_base);
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{

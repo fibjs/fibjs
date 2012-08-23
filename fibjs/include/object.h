@@ -260,13 +260,7 @@ public:
 	}
 
 	//------------------------------------------------------------------
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(object_base);
 
 private:
 	static v8::Handle<v8::Value> s_dispose(const v8::Arguments& args);
@@ -281,6 +275,26 @@ private:
 
 namespace fibjs
 {
+
+inline void* ClassInfo::getInstance(void* o)
+{
+	object_base* obj = (object_base*) o;
+
+	if (!obj)
+		return NULL;
+
+	ClassInfo* cls = &obj->Classinfo();
+	ClassInfo* tcls = this;
+
+	while (cls && cls != tcls)
+		cls = cls->m_cd.base;
+
+	if (!cls)
+		return NULL;
+
+	return obj;
+}
+
 inline ClassInfo& object_base::class_info()
 {
 	static ClassData::ClassMethod s_method[] =

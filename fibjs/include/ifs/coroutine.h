@@ -35,13 +35,7 @@ public:
 	static result_t current(obj_ptr<Fiber_base>& retVal);
 	static result_t sleep(int32_t ms);
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(coroutine_base);
 
 public:
 	static v8::Handle<v8::Value> s_start(const v8::Arguments& args);

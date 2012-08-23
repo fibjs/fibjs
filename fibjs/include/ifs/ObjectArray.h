@@ -28,13 +28,7 @@ public:
 	virtual result_t resize(int32_t sz) = 0;
 	virtual result_t slice(int32_t start, int32_t end, obj_ptr<ObjectArray_base>& retVal) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(ObjectArray_base);
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{

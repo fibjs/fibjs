@@ -25,13 +25,7 @@ public:
 	virtual result_t data(obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t detail(std::string& retVal) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(uuidValue_base);
 
 public:
 	static v8::Handle<v8::Value> s_data(const v8::Arguments& args);

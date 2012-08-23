@@ -32,13 +32,7 @@ public:
 	static result_t require(const char* id, v8::Handle<v8::Value>& retVal);
 	static result_t GC();
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(global_base);
 
 public:
 	static v8::Handle<v8::Value> s_get_console(v8::Local<v8::String> property, const v8::AccessorInfo &info);

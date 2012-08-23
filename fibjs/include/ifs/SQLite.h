@@ -28,13 +28,7 @@ public:
 	virtual result_t set_timeout(int32_t newVal) = 0;
 	virtual result_t backup(const char* fileName) = 0;
 
-public:
-	static ClassInfo& class_info();
-
-	virtual ClassInfo& Classinfo()
-	{
-		return class_info();
-	}
+	DECLARE_CLASSINFO(SQLite_base);
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{
