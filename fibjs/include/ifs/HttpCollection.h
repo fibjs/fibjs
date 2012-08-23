@@ -87,6 +87,7 @@ namespace fibjs
 		PROPERTY_INSTANCE(HttpCollection_base);
 
 		hr = pInst->_named_getter(*v8::String::Utf8Value(property), vr);
+		if(hr == CALL_RETURN_NULL)return v8::Handle<v8::Value>();
 
 		METHOD_RETURN();
 	}

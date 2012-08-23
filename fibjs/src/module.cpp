@@ -23,6 +23,7 @@
 
 #include "ifs/uuid.h"
 #include "ifs/re.h"
+#include "ifs/collection.h"
 
 #include "ifs/http.h"
 
@@ -59,6 +60,7 @@ void initModule()
 	InstallNativeModule("uuid", uuid_base::class_info());
 
 	InstallNativeModule("re", re_base::class_info());
+	InstallNativeModule("collection", collection_base::class_info());
 
 	InstallNativeModule("assert", assert_base::class_info());
 	InstallNativeModule("path", path_base::class_info());
@@ -101,8 +103,8 @@ inline void throwSyntaxError(v8::TryCatch& try_catch)
 		strError << ToCString(filename);
 		int lineNumber = message->GetLineNumber();
 		if (lineNumber > 0)
-			strError << ':' << lineNumber << ':' << (message->GetStartColumn()
-					+ 1);
+			strError << ':' << lineNumber << ':'
+					<< (message->GetStartColumn() + 1);
 		v8::ThrowException(
 				v8::Exception::SyntaxError(
 						v8::String::New(strError.str().c_str())));
@@ -113,8 +115,8 @@ inline std::string resolvePath(const char* id)
 {
 	std::string fname;
 
-	if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(
-			id[2]))))
+	if (id[0] == '.'
+			&& (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
 	{
 		v8::Handle<v8::Value> path =
 				v8::Context::GetCurrent()->Global()->GetHiddenValue(

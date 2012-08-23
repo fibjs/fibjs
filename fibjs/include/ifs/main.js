@@ -794,7 +794,8 @@ function parserIDL(fname) {
 					fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE(" + ns
 							+ "_base);\n\n";
 
-					fnStr += "		hr = pInst->_named_getter(*v8::String::Utf8Value(property), vr);\n\n		METHOD_RETURN();\n	}\n";
+					fnStr += "		hr = pInst->_named_getter(*v8::String::Utf8Value(property), vr);\n		if(hr == CALL_RETURN_NULL)return v8::Handle<v8::Value>();\n\n		METHOD_RETURN();\n	}\n";
+
 					ffs.push(fnStr)
 
 					ifStr = "	virtual result_t _named_getter(const char* property, "
