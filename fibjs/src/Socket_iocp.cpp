@@ -77,7 +77,7 @@ public:
 	asyncProc* m_next;
 };
 
-static class _acSocket: public exlib::Thread
+static class _acSocket: public exlib::OSThread
 {
 public:
 	_acSocket()

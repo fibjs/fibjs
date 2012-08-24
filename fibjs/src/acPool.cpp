@@ -40,7 +40,7 @@ static int32_t s_threads;
 static int32_t s_idleThreads;
 static int32_t s_idleCount;
 
-static class _acThread: public exlib::Thread
+static class _acThread: public exlib::OSThread
 {
 public:
 	_acThread()
@@ -93,10 +93,10 @@ void asyncLog(int priority, std::string msg)
 void flushLog()
 {
 	while (!s_acLog.empty() || !s_logEmpty)
-		exlib::Thread::Sleep(1);
+		exlib::OSThread::Sleep(1);
 }
 
-static class _loggerThread: public exlib::Thread
+static class _loggerThread: public exlib::OSThread
 {
 public:
 	_loggerThread()
@@ -162,7 +162,7 @@ void clearTimer()
 #endif
 
 
-static class _timerThread: public exlib::Thread
+static class _timerThread: public exlib::OSThread
 {
 public:
 	_timerThread()

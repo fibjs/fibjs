@@ -130,7 +130,7 @@ private:
 	}
 };
 
-static class _acSocket: public exlib::Thread
+static class _acSocket: public exlib::OSThread
 {
 public:
 	_acSocket()
@@ -168,7 +168,7 @@ private:
 	static void tm_cb(struct ev_loop *loop, struct ev_timer *watcher,
 			int revents)
 	{
-		ev_timer_init(watcher, tm_cb, 1, 0);
+		ev_timer_init(watcher, tm_cb, 10, 0);
 		ev_timer_start(s_loop, watcher);
 
 		doAsync();
