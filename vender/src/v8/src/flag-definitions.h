@@ -200,7 +200,7 @@ DEFINE_bool(polymorphic_inlining, true, "polymorphic inlining")
 DEFINE_bool(use_osr, true, "use on-stack replacement")
 DEFINE_bool(array_bounds_checks_elimination, true,
             "perform array bounds checks elimination")
-DEFINE_bool(array_index_dehoisting, true,
+DEFINE_bool(array_index_dehoisting, false,
             "perform array index dehoisting")
 
 DEFINE_bool(trace_osr, false, "trace on-stack replacement")
@@ -213,11 +213,14 @@ DEFINE_bool(cache_optimized_code, true,
             "cache optimized code for closures")
 DEFINE_bool(inline_construct, true, "inline constructor calls")
 DEFINE_bool(inline_arguments, true, "inline functions with arguments object")
-DEFINE_bool(inline_accessors, false, "inline JavaScript accessors")
+DEFINE_bool(inline_accessors, true, "inline JavaScript accessors")
 DEFINE_int(loop_weight, 1, "loop weight for representation inference")
 
 DEFINE_bool(optimize_for_in, true,
             "optimize functions containing for-in loops")
+DEFINE_bool(opt_safe_uint32_operations, true,
+            "allow uint32 values on optimize frames if they are used only in"
+            "safe operations")
 
 DEFINE_bool(parallel_recompilation, false,
             "optimizing hot functions asynchronously on a separate thread")
@@ -240,7 +243,8 @@ DEFINE_bool(interrupt_at_exit, false,
             "insert an interrupt check at function exit")
 DEFINE_bool(weighted_back_edges, false,
             "weight back edges by jump distance for interrupt triggering")
-DEFINE_int(interrupt_budget, 5900,
+           // 0x1700 fits in the immediate field of an ARM instruction.
+DEFINE_int(interrupt_budget, 0x1700,
            "execution budget before interrupt is triggered")
 DEFINE_int(type_info_threshold, 15,
            "percentage of ICs that must have type info to allow optimization")
@@ -323,6 +327,8 @@ DEFINE_bool(always_full_compiler, false,
             "try to use the dedicated run-once backend for all code")
 DEFINE_bool(trace_bailout, false,
             "print reasons for falling back to using the classic V8 backend")
+DEFINE_int(max_opt_count, 10,
+           "maximum number of optimization attempts before giving up.")
 
 // compilation-cache.cc
 DEFINE_bool(compilation_cache, true, "enable compilation cache")
@@ -362,12 +368,17 @@ DEFINE_bool(trace_gc, false,
 DEFINE_bool(trace_gc_nvp, false,
             "print one detailed trace line in name=value format "
             "after each garbage collection")
+DEFINE_bool(trace_gc_ignore_scavenger, false,
+            "do not print trace line after scavenger collection")
 DEFINE_bool(print_cumulative_gc_stat, false,
             "print cumulative GC statistics in name=value format on exit")
 DEFINE_bool(trace_gc_verbose, false,
             "print more details following each garbage collection")
 DEFINE_bool(trace_fragmentation, false,
             "report fragmentation for old pointer and data pages")
+DEFINE_bool(trace_external_memory, false,
+            "print amount of external allocated memory after each time "
+            "it is adjusted.")
 DEFINE_bool(collect_maps, true,
             "garbage collect maps from which no objects can be reached")
 DEFINE_bool(flush_code, true,
@@ -382,9 +393,6 @@ DEFINE_bool(track_gc_object_stats, false,
 // v8.cc
 DEFINE_bool(use_idle_notification, true,
             "Use idle notification to reduce memory footprint.")
-
-DEFINE_bool(send_idle_notification, false,
-            "Send idle notifcation between stress runs.")
 // ic.cc
 DEFINE_bool(use_ic, true, "use inline caching")
 
@@ -553,8 +561,8 @@ DEFINE_bool(gc_verbose, false, "print stuff during garbage collection")
 DEFINE_bool(heap_stats, false, "report heap statistics before and after GC")
 DEFINE_bool(code_stats, false, "report code statistics after GC")
 DEFINE_bool(verify_heap, false, "verify heap pointers before and after GC")
-DEFINE_bool(verify_global_context_separation, false,
-            "verify that code holds on to at most one global context after GC")
+DEFINE_bool(verify_native_context_separation, false,
+            "verify that code holds on to at most one native context after GC")
 DEFINE_bool(print_handles, false, "report handles after GC")
 DEFINE_bool(print_global_handles, false, "report global handles after GC")
 

@@ -69,13 +69,13 @@ MUST_USE_RESULT static MaybeObject* CreateJSValue(JSFunction* constructor,
 }
 
 
-MaybeObject* Object::ToObject(Context* global_context) {
+MaybeObject* Object::ToObject(Context* native_context) {
   if (IsNumber()) {
-    return CreateJSValue(global_context->number_function(), this);
+    return CreateJSValue(native_context->number_function(), this);
   } else if (IsBoolean()) {
-    return CreateJSValue(global_context->boolean_function(), this);
+    return CreateJSValue(native_context->boolean_function(), this);
   } else if (IsString()) {
-    return CreateJSValue(global_context->string_function(), this);
+    return CreateJSValue(native_context->string_function(), this);
   }
   ASSERT(IsJSObject());
   return this;
@@ -87,16 +87,16 @@ MaybeObject* Object::ToObject() {
     return this;
   } else if (IsNumber()) {
     Isolate* isolate = Isolate::Current();
-    Context* global_context = isolate->context()->global_context();
-    return CreateJSValue(global_context->number_function(), this);
+    Context* native_context = isolate->context()->native_context();
+    return CreateJSValue(native_context->number_function(), this);
   } else if (IsBoolean()) {
     Isolate* isolate = HeapObject::cast(this)->GetIsolate();
-    Context* global_context = isolate->context()->global_context();
-    return CreateJSValue(global_context->boolean_function(), this);
+    Context* native_context = isolate->context()->native_context();
+    return CreateJSValue(native_context->boolean_function(), this);
   } else if (IsString()) {
     Isolate* isolate = HeapObject::cast(this)->GetIsolate();
-    Context* global_context = isolate->context()->global_context();
-    return CreateJSValue(global_context->string_function(), this);
+    Context* native_context = isolate->context()->native_context();
+    return CreateJSValue(native_context->string_function(), this);
   }
 
   // Throw a type error.
@@ -134,13 +134,13 @@ void Object::Lookup(String* name, LookupResult* result) {
   if (IsJSReceiver()) {
     holder = this;
   } else {
-    Context* global_context = Isolate::Current()->context()->global_context();
+    Context* native_context = Isolate::Current()->context()->native_context();
     if (IsNumber()) {
-      holder = global_context->number_function()->instance_prototype();
+      holder = native_context->number_function()->instance_prototype();
     } else if (IsString()) {
-      holder = global_context->string_function()->instance_prototype();
+      holder = native_context->string_function()->instance_prototype();
     } else if (IsBoolean()) {
-      holder = global_context->boolean_function()->instance_prototype();
+      holder = native_context->boolean_function()->instance_prototype();
     }
   }
   ASSERT(holder != NULL);  // Cannot handle null or undefined.
@@ -190,6 +190,7 @@ MaybeObject* JSObject::GetPropertyWithCallback(Object* receiver,
     }
     Object* fun_obj = data->getter();
     v8::AccessorGetter call_fun = v8::ToCData<v8::AccessorGetter>(fun_obj);
+    if (call_fun == NULL) return isolate->heap()->undefined_value();
     HandleScope scope(isolate);
     JSObject* self = JSObject::cast(receiver);
     Handle<String> key(name);
@@ -516,6 +517,7 @@ MaybeObject* JSObject::DeleteNormalizedProperty(String* name, DeleteMode mode) {
         MaybeObject* maybe_new_map = map()->CopyDropDescriptors();
         if (!maybe_new_map->To(&new_map)) return maybe_new_map;
 
+        ASSERT(new_map->is_dictionary_map());
         set_map(new_map);
       }
       JSGlobalPropertyCell* cell =
@@ -661,13 +663,13 @@ MaybeObject* Object::GetElementWithReceiver(Object* receiver, uint32_t index) {
        holder = holder->GetPrototype()) {
     if (!holder->IsJSObject()) {
       Isolate* isolate = heap->isolate();
-      Context* global_context = isolate->context()->global_context();
+      Context* native_context = isolate->context()->native_context();
       if (holder->IsNumber()) {
-        holder = global_context->number_function()->instance_prototype();
+        holder = native_context->number_function()->instance_prototype();
       } else if (holder->IsString()) {
-        holder = global_context->string_function()->instance_prototype();
+        holder = native_context->string_function()->instance_prototype();
       } else if (holder->IsBoolean()) {
-        holder = global_context->boolean_function()->instance_prototype();
+        holder = native_context->boolean_function()->instance_prototype();
       } else if (holder->IsJSProxy()) {
         return JSProxy::cast(holder)->GetElementWithHandler(receiver, index);
       } else {
@@ -709,7 +711,7 @@ MaybeObject* Object::GetElementWithReceiver(Object* receiver, uint32_t index) {
 Object* Object::GetPrototype() {
   if (IsSmi()) {
     Heap* heap = Isolate::Current()->heap();
-    Context* context = heap->isolate()->context()->global_context();
+    Context* context = heap->isolate()->context()->native_context();
     return context->number_function()->instance_prototype();
   }
 
@@ -721,7 +723,7 @@ Object* Object::GetPrototype() {
     return heap_object->map()->prototype();
   }
   Heap* heap = heap_object->GetHeap();
-  Context* context = heap->isolate()->context()->global_context();
+  Context* context = heap->isolate()->context()->native_context();
 
   if (heap_object->IsHeapNumber()) {
     return context->number_function()->instance_prototype();
@@ -2191,7 +2193,7 @@ void Map::CopyAppendCallbackDescriptors(Handle<Map> map,
   // After this point the GC is not allowed to run anymore until the map is in a
   // consistent state again, i.e., all the descriptors are appended and the
   // descriptor array is trimmed to the right size.
-  map->set_instance_descriptors(*result);
+  Map::SetDescriptors(map, result);
 
   // Fill in new callback descriptors.  Process the callbacks from
   // back to front so that the last callback with a given name takes
@@ -2210,7 +2212,7 @@ void Map::CopyAppendCallbackDescriptors(Handle<Map> map,
   int new_number_of_descriptors = map->NumberOfSetDescriptors();
   // Reinstall the original descriptor array if no new elements were added.
   if (new_number_of_descriptors == descriptor_count) {
-    map->set_instance_descriptors(*array);
+    Map::SetDescriptors(map, array);
     return;
   }
 
@@ -3218,6 +3220,7 @@ MaybeObject* NormalizedMapCache::Get(JSObject* obj,
         fast->CopyNormalized(mode, SHARED_NORMALIZED_MAP);
     if (!maybe_result->ToObject(&result)) return maybe_result;
   }
+  ASSERT(Map::cast(result)->is_dictionary_map());
   set(index, result);
   isolate->counters()->normalized_maps()->Increment();
 
@@ -3340,9 +3343,10 @@ MaybeObject* JSObject::NormalizeProperties(PropertyNormalizationMode mode,
 
   Map* new_map;
   MaybeObject* maybe_map =
-      current_heap->isolate()->context()->global_context()->
+      current_heap->isolate()->context()->native_context()->
       normalized_map_cache()->Get(this, mode);
   if (!maybe_map->To(&new_map)) return maybe_map;
+  ASSERT(new_map->is_dictionary_map());
 
   // We have now successfully allocated all the necessary objects.
   // Changes can now be made with the guarantee that all of them take effect.
@@ -4054,15 +4058,15 @@ bool JSObject::ReferencesObject(Object* obj) {
   if (IsJSFunction()) {
     // Get the constructor function for arguments array.
     JSObject* arguments_boilerplate =
-        heap->isolate()->context()->global_context()->
+        heap->isolate()->context()->native_context()->
             arguments_boilerplate();
     JSFunction* arguments_function =
         JSFunction::cast(arguments_boilerplate->map()->constructor());
 
-    // Get the context and don't check if it is the global context.
+    // Get the context and don't check if it is the native context.
     JSFunction* f = JSFunction::cast(this);
     Context* context = f->context();
-    if (context->IsGlobalContext()) {
+    if (context->IsNativeContext()) {
       return false;
     }
 
@@ -4138,7 +4142,7 @@ MaybeObject* JSObject::PreventExtensions() {
   // Do a map transition, other objects with this map may still
   // be extensible.
   Map* new_map;
-  MaybeObject* maybe = map()->Copy(DescriptorArray::MAY_BE_SHARED);
+  MaybeObject* maybe = map()->Copy();
   if (!maybe->To(&new_map)) return maybe;
 
   new_map->set_is_extensible(false);
@@ -4172,6 +4176,13 @@ bool JSReceiver::IsSimpleEnum() {
     }
   }
   return true;
+}
+
+
+void Map::SetDescriptors(Handle<Map> map,
+                         Handle<DescriptorArray> descriptors) {
+  Isolate* isolate = map->GetIsolate();
+  CALL_HEAP_FUNCTION_VOID(isolate, map->SetDescriptors(*descriptors));
 }
 
 
@@ -4512,6 +4523,7 @@ MaybeObject* JSObject::SetPropertyCallback(String* name,
     Map* new_map;
     MaybeObject* maybe_new_map = map()->CopyDropDescriptors();
     if (!maybe_new_map->To(&new_map)) return maybe_new_map;
+    ASSERT(new_map->is_dictionary_map());
 
     set_map(new_map);
     // When running crankshaft, changing the map is not enough. We
@@ -4873,6 +4885,7 @@ MaybeObject* Map::CopyNormalized(PropertyNormalizationMode mode,
 
   result->set_code_cache(code_cache());
   result->set_is_shared(sharing == SHARED_NORMALIZED_MAP);
+  result->set_dictionary_map(true);
 
 #ifdef DEBUG
   if (FLAG_verify_heap && result->is_shared()) {
@@ -4913,7 +4926,8 @@ MaybeObject* Map::CopyReplaceDescriptors(DescriptorArray* descriptors,
   } else {
     ASSERT(descriptors->GetDetails(last_added).index() ==
            descriptors->number_of_descriptors());
-    result->set_instance_descriptors(descriptors);
+    MaybeObject* maybe_failure = result->SetDescriptors(descriptors);
+    if (maybe_failure->IsFailure()) return maybe_failure;
     result->SetLastAdded(last_added);
   }
 
@@ -4922,9 +4936,7 @@ MaybeObject* Map::CopyReplaceDescriptors(DescriptorArray* descriptors,
     MaybeObject* maybe_transitions = AddTransition(name, result);
     if (!maybe_transitions->To(&transitions)) return maybe_transitions;
 
-    MaybeObject* maybe_set = set_transitions(transitions);
-    if (maybe_set->IsFailure()) return maybe_set;
-
+    set_transitions(transitions);
     result->SetBackPointer(this);
   }
 
@@ -4935,7 +4947,7 @@ MaybeObject* Map::CopyReplaceDescriptors(DescriptorArray* descriptors,
 MaybeObject* Map::CopyAsElementsKind(ElementsKind kind, TransitionFlag flag) {
   // Create a new free-floating map only if we are not allowed to store it.
   Map* new_map = NULL;
-  MaybeObject* maybe_new_map = Copy(DescriptorArray::MAY_BE_SHARED);
+  MaybeObject* maybe_new_map = Copy();
   if (!maybe_new_map->To(&new_map)) return maybe_new_map;
   new_map->set_elements_kind(kind);
 
@@ -4967,25 +4979,17 @@ MaybeObject* Map::CopyWithPreallocatedFieldDescriptors() {
   // array describing these properties.
   ASSERT(constructor()->IsJSFunction());
   JSFunction* ctor = JSFunction::cast(constructor());
-  Map* initial_map = ctor->initial_map();
-  DescriptorArray* initial_descriptors = initial_map->instance_descriptors();
-  DescriptorArray* descriptors;
-  MaybeObject* maybe_descriptors =
-      initial_descriptors->Copy(DescriptorArray::MAY_BE_SHARED);
-  if (!maybe_descriptors->To(&descriptors)) return maybe_descriptors;
+  Map* map = ctor->initial_map();
+  DescriptorArray* descriptors = map->instance_descriptors();
 
-  int last_added = initial_map->LastAdded();
+  int last_added = map->LastAdded();
 
   return CopyReplaceDescriptors(descriptors, NULL, last_added, OMIT_TRANSITION);
 }
 
 
-MaybeObject* Map::Copy(DescriptorArray::SharedMode shared_mode) {
-  DescriptorArray* source_descriptors = instance_descriptors();
-  DescriptorArray* descriptors;
-  MaybeObject* maybe_descriptors = source_descriptors->Copy(shared_mode);
-  if (!maybe_descriptors->To(&descriptors)) return maybe_descriptors;
-
+MaybeObject* Map::Copy() {
+  DescriptorArray* descriptors = instance_descriptors();
   int last_added = LastAdded();
 
   return CopyReplaceDescriptors(descriptors, NULL, last_added, OMIT_TRANSITION);
@@ -5012,8 +5016,7 @@ MaybeObject* Map::CopyAddDescriptor(Descriptor* descriptor,
   int new_size = old_size + 1;
 
   DescriptorArray* new_descriptors;
-  MaybeObject* maybe_descriptors =
-      DescriptorArray::Allocate(new_size, DescriptorArray::MAY_BE_SHARED);
+  MaybeObject* maybe_descriptors = DescriptorArray::Allocate(new_size);
   if (!maybe_descriptors->To(&new_descriptors)) return maybe_descriptors;
 
   FixedArray::WhitenessWitness witness(new_descriptors);
@@ -5074,8 +5077,7 @@ MaybeObject* Map::CopyReplaceDescriptor(Descriptor* descriptor,
   ASSERT(key == descriptors->GetKey(insertion_index));
 
   DescriptorArray* new_descriptors;
-  MaybeObject* maybe_descriptors =
-      DescriptorArray::Allocate(size, DescriptorArray::MAY_BE_SHARED);
+  MaybeObject* maybe_descriptors = DescriptorArray::Allocate(size);
   if (!maybe_descriptors->To(&new_descriptors)) return maybe_descriptors;
 
   FixedArray::WhitenessWitness witness(new_descriptors);
@@ -5296,24 +5298,26 @@ class TraversableMap : public Map {
   // If we have an unvisited child map, return that one and advance. If we have
   // none, return NULL and reset any destroyed FixedArray maps.
   TraversableMap* ChildIteratorNext() {
-    if (HasTransitionArray()) {
-      TransitionArray* transition_array = unchecked_transition_array();
+    TransitionArray* transition_array = unchecked_transition_array();
+    if (!transition_array->map()->IsSmi() &&
+        !transition_array->IsTransitionArray()) {
+      return NULL;
+    }
 
-      if (transition_array->HasPrototypeTransitions()) {
-        HeapObject* proto_transitions =
-            transition_array->UncheckedPrototypeTransitions();
-        IntrusivePrototypeTransitionIterator proto_iterator(proto_transitions);
-        if (proto_iterator.IsIterating()) {
-          Map* next = proto_iterator.Next();
-          if (next != NULL) return static_cast<TraversableMap*>(next);
-        }
-      }
-
-      IntrusiveMapTransitionIterator transition_iterator(transition_array);
-      if (transition_iterator.IsIterating()) {
-        Map* next = transition_iterator.Next();
+    if (transition_array->HasPrototypeTransitions()) {
+      HeapObject* proto_transitions =
+          transition_array->UncheckedPrototypeTransitions();
+      IntrusivePrototypeTransitionIterator proto_iterator(proto_transitions);
+      if (proto_iterator.IsIterating()) {
+        Map* next = proto_iterator.Next();
         if (next != NULL) return static_cast<TraversableMap*>(next);
       }
+    }
+
+    IntrusiveMapTransitionIterator transition_iterator(transition_array);
+    if (transition_iterator.IsIterating()) {
+      Map* next = transition_iterator.Next();
+      if (next != NULL) return static_cast<TraversableMap*>(next);
     }
 
     return NULL;
@@ -5865,21 +5869,17 @@ bool FixedArray::IsEqualTo(FixedArray* other) {
 #endif
 
 
-MaybeObject* DescriptorArray::Allocate(int number_of_descriptors,
-                                       SharedMode shared_mode) {
+MaybeObject* DescriptorArray::Allocate(int number_of_descriptors) {
   Heap* heap = Isolate::Current()->heap();
   // Do not use DescriptorArray::cast on incomplete object.
   FixedArray* result;
-  if (number_of_descriptors == 0 && shared_mode == MAY_BE_SHARED) {
-    return heap->empty_descriptor_array();
-  }
+  if (number_of_descriptors == 0) return heap->empty_descriptor_array();
   // Allocate the array of keys.
   MaybeObject* maybe_array =
       heap->AllocateFixedArray(LengthFor(number_of_descriptors));
   if (!maybe_array->To(&result)) return maybe_array;
 
   result->set(kEnumCacheIndex, Smi::FromInt(0));
-  result->set(kTransitionsIndex, Smi::FromInt(0));
   return result;
 }
 
@@ -5913,25 +5913,6 @@ void DescriptorArray::CopyFrom(int dst_index,
   PropertyDetails details = src->GetDetails(src_index);
   Descriptor desc(src->GetKey(src_index), value, details);
   Set(dst_index, &desc, witness);
-}
-
-
-MaybeObject* DescriptorArray::Copy(SharedMode shared_mode) {
-  // Allocate the new descriptor array.
-  int number_of_descriptors = this->number_of_descriptors();
-  DescriptorArray* new_descriptors;
-  MaybeObject* maybe_result = Allocate(number_of_descriptors, shared_mode);
-  if (!maybe_result->To(&new_descriptors)) return maybe_result;
-
-  // Copy the content.
-  if (number_of_descriptors > 0) {
-    FixedArray::WhitenessWitness witness(new_descriptors);
-    for (int i = 0; i < number_of_descriptors; i++) {
-      new_descriptors->CopyFrom(i, this, i, witness);
-    }
-  }
-
-  return new_descriptors;
 }
 
 
@@ -7287,7 +7268,8 @@ void Map::ClearNonLiveTransitions(Heap* heap) {
   // the transition array from the map.
   if (transition_index == 0 &&
       !t->HasElementsTransition() &&
-      !t->HasPrototypeTransitions()) {
+      !t->HasPrototypeTransitions() &&
+      t->descriptors()->IsEmpty()) {
     return ClearTransitions(heap);
   }
 
@@ -7330,7 +7312,8 @@ bool Map::EquivalentToForNormalization(Map* other,
     bit_field2() == other->bit_field2() &&
     static_cast<uint32_t>(bit_field3()) ==
         LastAddedBits::update(
-            IsShared::update(other->bit_field3(), true),
+            IsShared::update(DictionaryMap::update(other->bit_field3(), true),
+                             true),
             kNoneAdded);
 }
 
@@ -7394,11 +7377,11 @@ void SharedFunctionInfo::ClearOptimizedCodeMap() {
 
 void SharedFunctionInfo::AddToOptimizedCodeMap(
     Handle<SharedFunctionInfo> shared,
-    Handle<Context> global_context,
+    Handle<Context> native_context,
     Handle<Code> code,
     Handle<FixedArray> literals) {
   ASSERT(code->kind() == Code::OPTIMIZED_FUNCTION);
-  ASSERT(global_context->IsGlobalContext());
+  ASSERT(native_context->IsNativeContext());
   STATIC_ASSERT(kEntryLength == 3);
   Object* value = shared->optimized_code_map();
   Handle<FixedArray> new_code_map;
@@ -7407,24 +7390,24 @@ void SharedFunctionInfo::AddToOptimizedCodeMap(
     ASSERT_EQ(0, Smi::cast(value)->value());
     // Crate 3 entries per context {context, code, literals}.
     new_code_map = FACTORY->NewFixedArray(kEntryLength);
-    new_code_map->set(0, *global_context);
+    new_code_map->set(0, *native_context);
     new_code_map->set(1, *code);
     new_code_map->set(2, *literals);
   } else {
     // Copy old map and append one new entry.
     Handle<FixedArray> old_code_map(FixedArray::cast(value));
-    ASSERT_EQ(-1, shared->SearchOptimizedCodeMap(*global_context));
+    ASSERT_EQ(-1, shared->SearchOptimizedCodeMap(*native_context));
     int old_length = old_code_map->length();
     int new_length = old_length + kEntryLength;
     new_code_map = FACTORY->NewFixedArray(new_length);
     old_code_map->CopyTo(0, *new_code_map, 0, old_length);
-    new_code_map->set(old_length, *global_context);
+    new_code_map->set(old_length, *native_context);
     new_code_map->set(old_length + 1, *code);
     new_code_map->set(old_length + 2, *literals);
   }
 #ifdef DEBUG
   for (int i = 0; i < new_code_map->length(); i += kEntryLength) {
-    ASSERT(new_code_map->get(i)->IsGlobalContext());
+    ASSERT(new_code_map->get(i)->IsNativeContext());
     ASSERT(new_code_map->get(i + 1)->IsCode());
     ASSERT(Code::cast(new_code_map->get(i + 1))->kind() ==
            Code::OPTIMIZED_FUNCTION);
@@ -7447,7 +7430,7 @@ void SharedFunctionInfo::InstallFromOptimizedCodeMap(JSFunction* function,
   }
   Code* code = Code::cast(code_map->get(index));
   ASSERT(code != NULL);
-  ASSERT(function->context()->global_context() == code_map->get(index - 1));
+  ASSERT(function->context()->native_context() == code_map->get(index - 1));
   function->ReplaceCode(code);
 }
 
@@ -7469,7 +7452,7 @@ bool JSFunction::CompileLazy(Handle<JSFunction> function,
 
 
 bool JSFunction::CompileOptimized(Handle<JSFunction> function,
-                                  int osr_ast_id,
+                                  BailoutId osr_ast_id,
                                   ClearExceptionFlag flag) {
   CompilationInfoWithZone info(function);
   info.SetOptimizing(osr_ast_id);
@@ -7528,8 +7511,7 @@ MaybeObject* JSFunction::SetInstancePrototype(Object* value) {
     // If the function has allocated the initial map
     // replace it with a copy containing the new prototype.
     Map* new_map;
-    MaybeObject* maybe_new_map =
-        initial_map()->Copy(DescriptorArray::MAY_BE_SHARED);
+    MaybeObject* maybe_new_map = initial_map()->Copy();
     if (!maybe_new_map->To(&new_map)) return maybe_new_map;
     new_map->set_prototype(value);
     MaybeObject* maybe_object = set_initial_map_and_cache_transitions(new_map);
@@ -7558,7 +7540,7 @@ MaybeObject* JSFunction::SetPrototype(Object* value) {
     // Remove map transitions because they point to maps with a
     // different prototype.
     Map* new_map;
-    MaybeObject* maybe_new_map = map()->Copy(DescriptorArray::MAY_BE_SHARED);
+    MaybeObject* maybe_new_map = map()->Copy();
     if (!maybe_new_map->To(&new_map)) return maybe_new_map;
 
     Heap* heap = new_map->GetHeap();
@@ -7566,7 +7548,7 @@ MaybeObject* JSFunction::SetPrototype(Object* value) {
     new_map->set_constructor(value);
     new_map->set_non_instance_prototype(true);
     construct_prototype =
-        heap->isolate()->context()->global_context()->
+        heap->isolate()->context()->native_context()->
             initial_object_prototype();
   } else {
     map()->set_non_instance_prototype(false);
@@ -7577,10 +7559,10 @@ MaybeObject* JSFunction::SetPrototype(Object* value) {
 
 
 Object* JSFunction::RemovePrototype() {
-  Context* global_context = context()->global_context();
+  Context* native_context = context()->native_context();
   Map* no_prototype_map = shared()->is_classic_mode()
-      ? global_context->function_without_prototype_map()
-      : global_context->strict_mode_function_without_prototype_map();
+      ? native_context->function_without_prototype_map()
+      : native_context->strict_mode_function_without_prototype_map();
 
   if (map() == no_prototype_map) {
     // Be idempotent.
@@ -7588,8 +7570,8 @@ Object* JSFunction::RemovePrototype() {
   }
 
   ASSERT(map() == (shared()->is_classic_mode()
-                   ? global_context->function_map()
-                   : global_context->strict_mode_function_map()));
+                   ? native_context->function_map()
+                   : native_context->strict_mode_function_map()));
 
   set_map(no_prototype_map);
   set_prototype_or_initial_map(no_prototype_map->GetHeap()->the_hole_value());
@@ -7609,8 +7591,8 @@ void JSFunction::PrintName(FILE* out) {
 }
 
 
-Context* JSFunction::GlobalContextFromLiterals(FixedArray* literals) {
-  return Context::cast(literals->get(JSFunction::kLiteralGlobalContextIndex));
+Context* JSFunction::NativeContextFromLiterals(FixedArray* literals) {
+  return Context::cast(literals->get(JSFunction::kLiteralNativeContextIndex));
 }
 
 
@@ -7870,8 +7852,8 @@ void SharedFunctionInfo::DisableOptimization() {
 }
 
 
-bool SharedFunctionInfo::VerifyBailoutId(int id) {
-  ASSERT(id != AstNode::kNoNumber);
+bool SharedFunctionInfo::VerifyBailoutId(BailoutId id) {
+  ASSERT(!id.IsNone());
   Code* unoptimized = code();
   DeoptimizationOutputData* data =
       DeoptimizationOutputData::cast(unoptimized->deoptimization_data());
@@ -7954,7 +7936,7 @@ void SharedFunctionInfo::ResetForNewContext(int new_ic_age) {
   if (code()->kind() == Code::FUNCTION) {
     code()->set_profiler_ticks(0);
     if (optimization_disabled() &&
-        opt_count() >= Compiler::kDefaultMaxOptCount) {
+        opt_count() >= FLAG_max_opt_count) {
       // Re-enable optimizations if they were disabled due to opt_count limit.
       set_optimization_disabled(false);
       code()->set_optimizable(true);
@@ -8008,15 +7990,15 @@ void SharedFunctionInfo::CompleteInobjectSlackTracking() {
 }
 
 
-int SharedFunctionInfo::SearchOptimizedCodeMap(Context* global_context) {
-  ASSERT(global_context->IsGlobalContext());
+int SharedFunctionInfo::SearchOptimizedCodeMap(Context* native_context) {
+  ASSERT(native_context->IsNativeContext());
   if (!FLAG_cache_optimized_code) return -1;
   Object* value = optimized_code_map();
   if (!value->IsSmi()) {
     FixedArray* optimized_code_map = FixedArray::cast(value);
     int length = optimized_code_map->length();
     for (int i = 0; i < length; i += 3) {
-      if (optimized_code_map->get(i) == global_context) {
+      if (optimized_code_map->get(i) == native_context) {
         return i + 1;
       }
     }
@@ -8249,7 +8231,6 @@ void Code::ClearTypeFeedbackCells(Heap* heap) {
     TypeFeedbackCells* type_feedback_cells =
         TypeFeedbackInfo::cast(raw_info)->type_feedback_cells();
     for (int i = 0; i < type_feedback_cells->CellCount(); i++) {
-      ASSERT(type_feedback_cells->AstId(i)->IsSmi());
       JSGlobalPropertyCell* cell = type_feedback_cells->Cell(i);
       cell->set_value(TypeFeedbackCells::RawUninitializedSentinel(heap));
     }
@@ -8276,7 +8257,7 @@ void DeoptimizationInputData::DeoptimizationInputDataPrint(FILE* out) {
   for (int i = 0; i < deopt_count; i++) {
     PrintF(out, "%6d  %6d  %6d %6d",
            i,
-           AstId(i)->value(),
+           AstId(i).ToInt(),
            ArgumentsStackHeight(i)->value(),
            Pc(i)->value());
 
@@ -8334,6 +8315,16 @@ void DeoptimizationInputData::DeoptimizationInputDataPrint(FILE* out) {
           break;
         }
 
+        case Translation::SETTER_STUB_FRAME: {
+          int function_id = iterator.Next();
+          JSFunction* function =
+              JSFunction::cast(LiteralArray()->get(function_id));
+          PrintF(out, "{function=");
+          function->PrintName(out);
+          PrintF(out, "}");
+          break;
+        }
+
         case Translation::DUPLICATE:
           break;
 
@@ -8346,6 +8337,14 @@ void DeoptimizationInputData::DeoptimizationInputDataPrint(FILE* out) {
         case Translation::INT32_REGISTER: {
           int reg_code = iterator.Next();
           PrintF(out, "{input=%s}", converter.NameOfCPURegister(reg_code));
+          break;
+        }
+
+        case Translation::UINT32_REGISTER: {
+          int reg_code = iterator.Next();
+          PrintF(out,
+                 "{input=%s (unsigned)}",
+                 converter.NameOfCPURegister(reg_code));
           break;
         }
 
@@ -8365,6 +8364,12 @@ void DeoptimizationInputData::DeoptimizationInputDataPrint(FILE* out) {
         case Translation::INT32_STACK_SLOT: {
           int input_slot_index = iterator.Next();
           PrintF(out, "{input=%d}", input_slot_index);
+          break;
+        }
+
+        case Translation::UINT32_STACK_SLOT: {
+          int input_slot_index = iterator.Next();
+          PrintF(out, "{input=%d (unsigned)}", input_slot_index);
           break;
         }
 
@@ -8398,7 +8403,7 @@ void DeoptimizationOutputData::DeoptimizationOutputDataPrint(FILE* out) {
   for (int i = 0; i < this->DeoptPoints(); i++) {
     int pc_and_state = this->PcAndState(i)->value();
     PrintF("%6d  %8d  %s\n",
-           this->AstId(i)->value(),
+           this->AstId(i).ToInt(),
            FullCodeGenerator::PcField::decode(pc_and_state),
            FullCodeGenerator::State2String(
                FullCodeGenerator::StateField::decode(pc_and_state)));
@@ -8854,7 +8859,7 @@ MaybeObject* JSReceiver::SetPrototype(Object* value,
 
   Map* new_map = map->GetPrototypeTransition(value);
   if (new_map == NULL) {
-    MaybeObject* maybe_new_map = map->Copy(DescriptorArray::MAY_BE_SHARED);
+    MaybeObject* maybe_new_map = map->Copy();
     if (!maybe_new_map->To(&new_map)) return maybe_new_map;
 
     MaybeObject* maybe_new_cache =
@@ -9139,6 +9144,7 @@ MaybeObject* JSObject::GetElementWithCallback(Object* receiver,
     Handle<AccessorInfo> data(AccessorInfo::cast(structure));
     Object* fun_obj = data->getter();
     v8::AccessorGetter call_fun = v8::ToCData<v8::AccessorGetter>(fun_obj);
+    if (call_fun == NULL) return isolate->heap()->undefined_value();
     HandleScope scope(isolate);
     Handle<JSObject> self(JSObject::cast(receiver));
     Handle<JSObject> holder_handle(JSObject::cast(holder));
@@ -11636,7 +11642,7 @@ Object* ExternalPixelArray::SetValue(uint32_t index, Object* value) {
         clamped_value = 255;
       } else {
         // Other doubles are rounded to the nearest integer.
-        clamped_value = static_cast<uint8_t>(double_value + 0.5);
+        clamped_value = static_cast<uint8_t>(lrint(double_value));
       }
     } else {
       // Clamp undefined to zero (default). All other types have been
@@ -12573,6 +12579,7 @@ MaybeObject* StringDictionary::TransformPropertiesToFastFor(
   Map* new_map;
   MaybeObject* maybe_new_map = obj->map()->CopyDropDescriptors();
   if (!maybe_new_map->To(&new_map)) return maybe_new_map;
+  new_map->set_dictionary_map(false);
 
   if (instance_descriptor_length == 0) {
     ASSERT_LE(unused_property_fields, inobject_props);
@@ -12588,8 +12595,7 @@ MaybeObject* StringDictionary::TransformPropertiesToFastFor(
   // Allocate the instance descriptor.
   DescriptorArray* descriptors;
   MaybeObject* maybe_descriptors =
-      DescriptorArray::Allocate(instance_descriptor_length,
-                                DescriptorArray::MAY_BE_SHARED);
+      DescriptorArray::Allocate(instance_descriptor_length);
   if (!maybe_descriptors->To(&descriptors)) {
     return maybe_descriptors;
   }
@@ -12661,8 +12667,9 @@ MaybeObject* StringDictionary::TransformPropertiesToFastFor(
 
   descriptors->Sort(witness);
 
+  MaybeObject* maybe_failure = new_map->InitializeDescriptors(descriptors);
+  if (maybe_failure->IsFailure()) return maybe_failure;
   new_map->set_unused_property_fields(unused_property_fields);
-  new_map->InitializeDescriptors(descriptors);
 
   // Transform the object.
   obj->set_map(new_map);

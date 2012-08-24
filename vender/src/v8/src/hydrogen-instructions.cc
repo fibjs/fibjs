@@ -156,6 +156,20 @@ void Range::Union(Range* other) {
 }
 
 
+void Range::CombinedMax(Range* other) {
+  upper_ = Max(upper_, other->upper_);
+  lower_ = Max(lower_, other->lower_);
+  set_can_be_minus_zero(CanBeMinusZero() || other->CanBeMinusZero());
+}
+
+
+void Range::CombinedMin(Range* other) {
+  upper_ = Min(upper_, other->upper_);
+  lower_ = Min(lower_, other->lower_);
+  set_can_be_minus_zero(CanBeMinusZero() || other->CanBeMinusZero());
+}
+
+
 void Range::Sar(int32_t value) {
   int32_t bits = value & 0x1F;
   lower_ = lower_ >> bits;
@@ -861,12 +875,14 @@ HValue* HBitwise::Canonicalize() {
   int32_t nop_constant = (op() == Token::BIT_AND) ? -1 : 0;
   if (left()->IsConstant() &&
       HConstant::cast(left())->HasInteger32Value() &&
-      HConstant::cast(left())->Integer32Value() == nop_constant) {
+      HConstant::cast(left())->Integer32Value() == nop_constant &&
+      !right()->CheckFlag(kUint32)) {
     return right();
   }
   if (right()->IsConstant() &&
       HConstant::cast(right())->HasInteger32Value() &&
-      HConstant::cast(right())->Integer32Value() == nop_constant) {
+      HConstant::cast(right())->Integer32Value() == nop_constant &&
+      !left()->CheckFlag(kUint32)) {
     return left();
   }
   return this;
@@ -878,7 +894,9 @@ HValue* HBitNot::Canonicalize() {
   if (value()->IsBitNot()) {
     HValue* result = HBitNot::cast(value())->value();
     ASSERT(result->representation().IsInteger32());
-    return result;
+    if (!result->CheckFlag(kUint32)) {
+      return result;
+    }
   }
   return this;
 }
@@ -1106,6 +1124,7 @@ Range* HChange::InferRange(Zone* zone) {
   Range* input_range = value()->range();
   if (from().IsInteger32() &&
       to().IsTagged() &&
+      !value()->CheckFlag(HInstruction::kUint32) &&
       input_range != NULL && input_range->IsInSmiRange()) {
     set_type(HType::Smi());
   }
@@ -1238,6 +1257,24 @@ Range* HMod::InferRange(Zone* zone) {
 }
 
 
+Range* HMathMinMax::InferRange(Zone* zone) {
+  if (representation().IsInteger32()) {
+    Range* a = left()->range();
+    Range* b = right()->range();
+    Range* res = a->Copy(zone);
+    if (operation_ == kMathMax) {
+      res->CombinedMax(b);
+    } else {
+      ASSERT(operation_ == kMathMin);
+      res->CombinedMin(b);
+    }
+    return res;
+  } else {
+    return HValue::InferRange(zone);
+  }
+}
+
+
 void HPhi::PrintTo(StringStream* stream) {
   stream->Add("[");
   for (int i = 0; i < OperandCount(); ++i) {
@@ -1352,7 +1389,7 @@ void HPhi::ResetInteger32Uses() {
 
 
 void HSimulate::PrintDataTo(StringStream* stream) {
-  stream->Add("id=%d", ast_id());
+  stream->Add("id=%d", ast_id().ToInt());
   if (pop_count_ > 0) stream->Add(" pop %d", pop_count_);
   if (values_.length() > 0) {
     if (pop_count_ > 0) stream->Add(" /");
@@ -1381,7 +1418,7 @@ void HDeoptimize::PrintDataTo(StringStream* stream) {
 
 void HEnterInlined::PrintDataTo(StringStream* stream) {
   SmartArrayPointer<char> name = function()->debug_name()->ToCString();
-  stream->Add("%s, id=%d", *name, function()->id());
+  stream->Add("%s, id=%d", *name, function()->id().ToInt());
 }
 
 
@@ -1682,6 +1719,7 @@ static bool PrototypeChainCanNeverResolve(
     if (current->IsJSGlobalProxy() ||
         current->IsGlobalObject() ||
         !current->IsJSObject() ||
+        JSObject::cast(current)->map()->has_named_interceptor() ||
         JSObject::cast(current)->IsAccessCheckNeeded() ||
         !JSObject::cast(current)->HasFastProperties()) {
       return false;
@@ -1743,6 +1781,11 @@ HLoadNamedFieldPolymorphic::HLoadNamedFieldPolymorphic(HValue* context,
           break;
       }
     } else if (lookup.IsCacheable() &&
+               // For dicts the lookup on the map will fail, but the object may
+               // contain the property so we cannot generate a negative lookup
+               // (which would just be a map check and return undefined).
+               !map->is_dictionary_map() &&
+               !map->has_named_interceptor() &&
                PrototypeChainCanNeverResolve(map, name)) {
       negative_lookups.Add(types->at(i), zone);
     }

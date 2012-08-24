@@ -60,7 +60,7 @@ CompilationInfo::CompilationInfo(Handle<Script> script, Zone* zone)
       script_(script),
       extension_(NULL),
       pre_parse_data_(NULL),
-      osr_ast_id_(AstNode::kNoNumber),
+      osr_ast_id_(BailoutId::None()),
       zone_(zone),
       deferred_handles_(NULL) {
   Initialize(BASE);
@@ -79,7 +79,7 @@ CompilationInfo::CompilationInfo(Handle<SharedFunctionInfo> shared_info,
       script_(Handle<Script>(Script::cast(shared_info->script()))),
       extension_(NULL),
       pre_parse_data_(NULL),
-      osr_ast_id_(AstNode::kNoNumber),
+      osr_ast_id_(BailoutId::None()),
       zone_(zone),
       deferred_handles_(NULL) {
   Initialize(BASE);
@@ -98,7 +98,7 @@ CompilationInfo::CompilationInfo(Handle<JSFunction> closure, Zone* zone)
       script_(Handle<Script>(Script::cast(shared_info_->script()))),
       extension_(NULL),
       pre_parse_data_(NULL),
-      osr_ast_id_(AstNode::kNoNumber),
+      osr_ast_id_(BailoutId::None()),
       zone_(zone),
       deferred_handles_(NULL) {
   Initialize(BASE);
@@ -240,7 +240,7 @@ OptimizingCompiler::Status OptimizingCompiler::CreateGraph() {
   // Limit the number of times we re-compile a functions with
   // the optimizing compiler.
   const int kMaxOptCount =
-      FLAG_deopt_every_n_times == 0 ? Compiler::kDefaultMaxOptCount : 1000;
+      FLAG_deopt_every_n_times == 0 ? FLAG_max_opt_count : 1000;
   if (info()->shared_info()->opt_count() > kMaxOptCount) {
     return AbortOptimization();
   }
@@ -256,7 +256,7 @@ OptimizingCompiler::Status OptimizingCompiler::CreateGraph() {
   const int locals_limit = LUnallocated::kMaxFixedIndex;
   Scope* scope = info()->scope();
   if ((scope->num_parameters() + 1) > parameter_limit ||
-      (info()->osr_ast_id() != AstNode::kNoNumber &&
+      (!info()->osr_ast_id().IsNone() &&
        scope->num_parameters() + 1 + scope->num_stack_slots() > locals_limit)) {
     return AbortOptimization();
   }
@@ -311,10 +311,10 @@ OptimizingCompiler::Status OptimizingCompiler::CreateGraph() {
     PrintF("Compiling method %s using hydrogen\n", *name->ToCString());
     HTracer::Instance()->TraceCompilation(info()->function());
   }
-  Handle<Context> global_context(
-      info()->closure()->context()->global_context());
+  Handle<Context> native_context(
+      info()->closure()->context()->native_context());
   oracle_ = new(info()->zone()) TypeFeedbackOracle(
-      code, global_context, info()->isolate(), info()->zone());
+      code, native_context, info()->isolate(), info()->zone());
   graph_builder_ = new(info()->zone()) HGraphBuilder(info(), oracle_);
   HPhase phase(HPhase::kTotal);
   graph_ = graph_builder_->CreateGraph();
@@ -419,9 +419,9 @@ static Handle<SharedFunctionInfo> MakeFunctionInfo(CompilationInfo* info) {
   ZoneScope zone_scope(info->zone(), DELETE_ON_EXIT);
   PostponeInterruptsScope postpone(isolate);
 
-  ASSERT(!isolate->global_context().is_null());
+  ASSERT(!isolate->native_context().is_null());
   Handle<Script> script = info->script();
-  script->set_context_data((*isolate->global_context())->data());
+  script->set_context_data((*isolate->native_context())->data());
 
 #ifdef ENABLE_DEBUGGER_SUPPORT
   if (info->is_eval()) {
@@ -708,7 +708,7 @@ static bool InstallFullCode(CompilationInfo* info) {
     if (FLAG_always_opt &&
         !Isolate::Current()->DebuggerHasBreakPoints()) {
       CompilationInfoWithZone optimized(function);
-      optimized.SetOptimizing(AstNode::kNoNumber);
+      optimized.SetOptimizing(BailoutId::None());
       return Compiler::CompileLazy(&optimized);
     }
   }
@@ -736,9 +736,9 @@ static void InsertCodeIntoOptimizedCodeMap(CompilationInfo* info) {
   if (FLAG_cache_optimized_code && code->kind() == Code::OPTIMIZED_FUNCTION) {
     Handle<SharedFunctionInfo> shared(function->shared());
     Handle<FixedArray> literals(function->literals());
-    Handle<Context> global_context(function->context()->global_context());
+    Handle<Context> native_context(function->context()->native_context());
     SharedFunctionInfo::AddToOptimizedCodeMap(
-        shared, global_context, code, literals);
+        shared, native_context, code, literals);
   }
 }
 
@@ -748,8 +748,8 @@ static bool InstallCodeFromOptimizedCodeMap(CompilationInfo* info) {
     Handle<SharedFunctionInfo> shared = info->shared_info();
     Handle<JSFunction> function = info->closure();
     ASSERT(!function.is_null());
-    Handle<Context> global_context(function->context()->global_context());
-    int index = shared->SearchOptimizedCodeMap(*global_context);
+    Handle<Context> native_context(function->context()->native_context());
+    int index = shared->SearchOptimizedCodeMap(*native_context);
     if (index > 0) {
       if (FLAG_trace_opt) {
         PrintF("[found optimized code for: ");
@@ -837,7 +837,7 @@ void Compiler::RecompileParallel(Handle<JSFunction> closure) {
   Handle<SharedFunctionInfo> shared = info->shared_info();
   int compiled_size = shared->end_position() - shared->start_position();
   isolate->counters()->total_compile_size()->Increment(compiled_size);
-  info->SetOptimizing(AstNode::kNoNumber);
+  info->SetOptimizing(BailoutId::None());
 
   {
     CompilationHandleScope handle_scope(*info);
@@ -893,7 +893,7 @@ void Compiler::InstallOptimizedCode(OptimizingCompiler* optimizing_compiler) {
     ASSERT(info->shared_info()->scope_info() != ScopeInfo::Empty());
     info->closure()->ReplaceCode(*code);
     if (info->shared_info()->SearchOptimizedCodeMap(
-            info->closure()->context()->global_context()) == -1) {
+            info->closure()->context()->native_context()) == -1) {
       InsertCodeIntoOptimizedCodeMap(*info);
     }
   } else {
@@ -929,7 +929,7 @@ Handle<SharedFunctionInfo> Compiler::BuildFunctionInfo(FunctionLiteral* literal,
   Handle<ScopeInfo> scope_info(ScopeInfo::Empty());
 
   // Generate code
-  if (FLAG_lazy && allow_lazy) {
+  if (FLAG_lazy && allow_lazy && !literal->is_parenthesized()) {
     Handle<Code> code = info.isolate()->builtins()->LazyCompile();
     info.SetCode(code);
   } else if (GenerateCode(&info)) {

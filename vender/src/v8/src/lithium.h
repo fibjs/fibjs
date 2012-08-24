@@ -455,7 +455,7 @@ class LEnvironment: public ZoneObject {
  public:
   LEnvironment(Handle<JSFunction> closure,
                FrameType frame_type,
-               int ast_id,
+               BailoutId ast_id,
                int parameter_count,
                int argument_count,
                int value_count,
@@ -471,6 +471,7 @@ class LEnvironment: public ZoneObject {
         pc_offset_(-1),
         values_(value_count, zone),
         is_tagged_(value_count, zone),
+        is_uint32_(value_count, zone),
         spilled_registers_(NULL),
         spilled_double_registers_(NULL),
         outer_(outer),
@@ -481,7 +482,7 @@ class LEnvironment: public ZoneObject {
   int arguments_stack_height() const { return arguments_stack_height_; }
   int deoptimization_index() const { return deoptimization_index_; }
   int translation_index() const { return translation_index_; }
-  int ast_id() const { return ast_id_; }
+  BailoutId ast_id() const { return ast_id_; }
   int parameter_count() const { return parameter_count_; }
   int pc_offset() const { return pc_offset_; }
   LOperand** spilled_registers() const { return spilled_registers_; }
@@ -491,15 +492,26 @@ class LEnvironment: public ZoneObject {
   const ZoneList<LOperand*>* values() const { return &values_; }
   LEnvironment* outer() const { return outer_; }
 
-  void AddValue(LOperand* operand, Representation representation) {
+  void AddValue(LOperand* operand,
+                Representation representation,
+                bool is_uint32) {
     values_.Add(operand, zone());
     if (representation.IsTagged()) {
+      ASSERT(!is_uint32);
       is_tagged_.Add(values_.length() - 1);
+    }
+
+    if (is_uint32) {
+      is_uint32_.Add(values_.length() - 1);
     }
   }
 
   bool HasTaggedValueAt(int index) const {
     return is_tagged_.Contains(index);
+  }
+
+  bool HasUint32ValueAt(int index) const {
+    return is_uint32_.Contains(index);
   }
 
   void Register(int deoptimization_index,
@@ -530,11 +542,12 @@ class LEnvironment: public ZoneObject {
   int arguments_stack_height_;
   int deoptimization_index_;
   int translation_index_;
-  int ast_id_;
+  BailoutId ast_id_;
   int parameter_count_;
   int pc_offset_;
   ZoneList<LOperand*> values_;
   BitVector is_tagged_;
+  BitVector is_uint32_;
 
   // Allocation index indexed arrays of spill slot operands for registers
   // that are also in spill slots at an OSR entry.  NULL for environments

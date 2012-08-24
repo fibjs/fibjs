@@ -317,6 +317,7 @@ class MacroAssembler: public Assembler {
   void PopSafepointRegisters() { Popad(); }
   // Store the value in register src in the safepoint register stack
   // slot for register dst.
+  void StoreToSafepointRegisterSlot(Register dst, const Immediate& imm);
   void StoreToSafepointRegisterSlot(Register dst, Register src);
   void LoadFromSafepointRegisterSlot(Register dst, Register src);
 
@@ -822,7 +823,7 @@ class MacroAssembler: public Assembler {
   void Call(ExternalReference ext);
   void Call(Handle<Code> code_object,
             RelocInfo::Mode rmode,
-            unsigned ast_id = kNoASTId);
+            TypeFeedbackId ast_id = TypeFeedbackId::None());
 
   // The size of the code generated for different call instructions.
   int CallSize(Address destination, RelocInfo::Mode rmode) {
@@ -943,6 +944,8 @@ class MacroAssembler: public Assembler {
                           XMMRegister temp_xmm_reg,
                           Register result_reg,
                           Register temp_reg);
+
+  void LoadUint32(XMMRegister dst, Register src, XMMRegister scratch);
 
   void LoadInstanceDescriptors(Register map, Register descriptors);
 
@@ -1133,8 +1136,8 @@ class MacroAssembler: public Assembler {
   void LoadContext(Register dst, int context_chain_length);
 
   // Conditionally load the cached Array transitioned map of type
-  // transitioned_kind from the global context if the map in register
-  // map_in_out is the cached Array map in the global context of
+  // transitioned_kind from the native context if the map in register
+  // map_in_out is the cached Array map in the native context of
   // expected_kind.
   void LoadTransitionedArrayMapConditional(
       ElementsKind expected_kind,
@@ -1160,7 +1163,7 @@ class MacroAssembler: public Assembler {
   // Runtime calls
 
   // Call a code stub.
-  void CallStub(CodeStub* stub, unsigned ast_id = kNoASTId);
+  void CallStub(CodeStub* stub, TypeFeedbackId ast_id = TypeFeedbackId::None());
 
   // Tail call a code stub (jump).
   void TailCallStub(CodeStub* stub);
@@ -1449,7 +1452,7 @@ inline Operand ContextOperand(Register context, int index) {
 
 
 inline Operand GlobalObjectOperand() {
-  return ContextOperand(rsi, Context::GLOBAL_INDEX);
+  return ContextOperand(rsi, Context::GLOBAL_OBJECT_INDEX);
 }
 
 

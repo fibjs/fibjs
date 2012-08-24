@@ -97,6 +97,7 @@ Heap::Heap()
       linear_allocation_scope_depth_(0),
       contexts_disposed_(0),
       global_ic_age_(0),
+      flush_monomorphic_ics_(false),
       scan_on_scavenge_pages_(0),
       new_space_(this),
       old_pointer_space_(NULL),
@@ -139,6 +140,7 @@ Heap::Heap()
       previous_survival_rate_trend_(Heap::STABLE),
       survival_rate_trend_(Heap::STABLE),
       max_gc_pause_(0),
+      total_gc_time_ms_(0),
       max_alive_after_gc_(0),
       min_in_mutator_(kMaxInt),
       alive_after_last_gc_(0),
@@ -174,7 +176,7 @@ Heap::Heap()
   }
 
   memset(roots_, 0, sizeof(roots_[0]) * kRootListLength);
-  global_contexts_list_ = NULL;
+  native_contexts_list_ = NULL;
   mark_compact_collector_.heap_ = this;
   external_string_table_.heap_ = this;
   // Put a dummy entry in the remembered pages so we can find the list the
@@ -369,6 +371,7 @@ void Heap::PrintShortHeapStatistics() {
            lo_space_->SizeOfObjects() / KB,
            lo_space_->Available() / KB,
            lo_space_->CommittedMemory() / KB);
+  PrintPID("Total time spent in GC  : %d ms\n", total_gc_time_ms_);
 }
 
 
@@ -451,6 +454,22 @@ void Heap::GarbageCollectionEpilogue() {
   if (CommittedMemory() > 0) {
     isolate_->counters()->external_fragmentation_total()->AddSample(
         static_cast<int>(100 - (SizeOfObjects() * 100.0) / CommittedMemory()));
+
+    isolate_->counters()->heap_fraction_map_space()->AddSample(
+        static_cast<int>(
+            (map_space()->CommittedMemory() * 100.0) / CommittedMemory()));
+    isolate_->counters()->heap_fraction_cell_space()->AddSample(
+        static_cast<int>(
+            (cell_space()->CommittedMemory() * 100.0) / CommittedMemory()));
+
+    isolate_->counters()->heap_sample_total_committed()->AddSample(
+        static_cast<int>(CommittedMemory() / KB));
+    isolate_->counters()->heap_sample_total_used()->AddSample(
+        static_cast<int>(SizeOfObjects() / KB));
+    isolate_->counters()->heap_sample_map_space_committed()->AddSample(
+        static_cast<int>(map_space()->CommittedMemory() / KB));
+    isolate_->counters()->heap_sample_cell_space_committed()->AddSample(
+        static_cast<int>(cell_space()->CommittedMemory() / KB));
   }
 
 #define UPDATE_COUNTERS_FOR_SPACE(space)                                       \
@@ -737,7 +756,7 @@ void Heap::EnsureFromSpaceIsCommitted() {
 void Heap::ClearJSFunctionResultCaches() {
   if (isolate_->bootstrapper()->IsActive()) return;
 
-  Object* context = global_contexts_list_;
+  Object* context = native_contexts_list_;
   while (!context->IsUndefined()) {
     // Get the caches for this context. GC can happen when the context
     // is not fully initialized, so the caches can be undefined.
@@ -764,7 +783,7 @@ void Heap::ClearNormalizedMapCaches() {
     return;
   }
 
-  Object* context = global_contexts_list_;
+  Object* context = native_contexts_list_;
   while (!context->IsUndefined()) {
     // GC can happen when the context is not fully initialized,
     // so the cache can be undefined.
@@ -974,7 +993,7 @@ void Heap::MarkCompact(GCTracer* tracer) {
 
   contexts_disposed_ = 0;
 
-  isolate_->set_context_exit_happened(false);
+  flush_monomorphic_ics_ = false;
 }
 
 
@@ -1277,8 +1296,8 @@ void Heap::Scavenge() {
     }
   }
 
-  // Scavenge object reachable from the global contexts list directly.
-  scavenge_visitor.VisitPointer(BitCast<Object**>(&global_contexts_list_));
+  // Scavenge object reachable from the native contexts list directly.
+  scavenge_visitor.VisitPointer(BitCast<Object**>(&native_contexts_list_));
 
   new_space_front = DoScavenge(&scavenge_visitor, new_space_front);
   isolate_->global_handles()->IdentifyNewSpaceWeakIndependentHandles(
@@ -1438,7 +1457,7 @@ void Heap::ProcessWeakReferences(WeakObjectRetainer* retainer) {
   Object* undefined = undefined_value();
   Object* head = undefined;
   Context* tail = NULL;
-  Object* candidate = global_contexts_list_;
+  Object* candidate = native_contexts_list_;
 
   // We don't record weak slots during marking or scavenges.
   // Instead we do it once when we complete mark-compact cycle.
@@ -1511,7 +1530,7 @@ void Heap::ProcessWeakReferences(WeakObjectRetainer* retainer) {
   }
 
   // Update the head of the list of contexts.
-  global_contexts_list_ = head;
+  native_contexts_list_ = head;
 }
 
 
@@ -1637,7 +1656,7 @@ class ScavengingVisitor : public StaticVisitorBase {
     table_.Register(kVisitFixedArray, &EvacuateFixedArray);
     table_.Register(kVisitFixedDoubleArray, &EvacuateFixedDoubleArray);
 
-    table_.Register(kVisitGlobalContext,
+    table_.Register(kVisitNativeContext,
                     &ObjectEvacuationStrategy<POINTER_OBJECT>::
                         template VisitSpecialized<Context::kSize>);
 
@@ -2119,8 +2138,7 @@ MaybeObject* Heap::AllocateTypeFeedbackInfo() {
   { MaybeObject* maybe_info = AllocateStruct(TYPE_FEEDBACK_INFO_TYPE);
     if (!maybe_info->To(&info)) return maybe_info;
   }
-  info->set_ic_total_count(0);
-  info->set_ic_with_type_info_count(0);
+  info->initialize_storage();
   info->set_type_feedback_cells(TypeFeedbackCells::cast(empty_fixed_array()),
                                 SKIP_WRITE_BARRIER);
   return info;
@@ -2423,9 +2441,10 @@ bool Heap::CreateInitialMaps() {
         AllocateMap(FIXED_ARRAY_TYPE, kVariableSizeSentinel);
     if (!maybe_obj->ToObject(&obj)) return false;
   }
-  Map* global_context_map = Map::cast(obj);
-  global_context_map->set_visitor_id(StaticVisitorBase::kVisitGlobalContext);
-  set_global_context_map(global_context_map);
+  Map* native_context_map = Map::cast(obj);
+  native_context_map->set_dictionary_map(true);
+  native_context_map->set_visitor_id(StaticVisitorBase::kVisitNativeContext);
+  set_native_context_map(native_context_map);
 
   { MaybeObject* maybe_obj = AllocateMap(SHARED_FUNCTION_INFO_TYPE,
                                          SharedFunctionInfo::kAlignedSize);
@@ -3704,15 +3723,14 @@ MaybeObject* Heap::AllocateFunctionPrototype(JSFunction* function) {
   // from the function's context, since the function can be from a
   // different context.
   JSFunction* object_function =
-      function->context()->global_context()->object_function();
+      function->context()->native_context()->object_function();
 
   // Each function prototype gets a copy of the object function map.
   // This avoid unwanted sharing of maps between prototypes of different
   // constructors.
   Map* new_map;
   ASSERT(object_function->has_initial_map());
-  MaybeObject* maybe_map =
-      object_function->initial_map()->Copy(DescriptorArray::MAY_BE_SHARED);
+  MaybeObject* maybe_map = object_function->initial_map()->Copy();
   if (!maybe_map->To(&new_map)) return maybe_map;
 
   Object* prototype;
@@ -3755,12 +3773,12 @@ MaybeObject* Heap::AllocateArgumentsObject(Object* callee, int length) {
       !JSFunction::cast(callee)->shared()->is_classic_mode();
   if (strict_mode_callee) {
     boilerplate =
-        isolate()->context()->global_context()->
+        isolate()->context()->native_context()->
             strict_mode_arguments_boilerplate();
     arguments_object_size = kArgumentsObjectSizeStrict;
   } else {
     boilerplate =
-        isolate()->context()->global_context()->arguments_boilerplate();
+        isolate()->context()->native_context()->arguments_boilerplate();
     arguments_object_size = kArgumentsObjectSize;
   }
 
@@ -3856,8 +3874,7 @@ MaybeObject* Heap::AllocateInitialMap(JSFunction* fun) {
       fun->shared()->ForbidInlineConstructor();
     } else {
       DescriptorArray* descriptors;
-      MaybeObject* maybe_descriptors =
-          DescriptorArray::Allocate(count, DescriptorArray::MAY_BE_SHARED);
+      MaybeObject* maybe_descriptors = DescriptorArray::Allocate(count);
       if (!maybe_descriptors->To(&descriptors)) return maybe_descriptors;
 
       DescriptorArray::WhitenessWitness witness(descriptors);
@@ -3876,7 +3893,8 @@ MaybeObject* Heap::AllocateInitialMap(JSFunction* fun) {
       if (HasDuplicates(descriptors)) {
         fun->shared()->ForbidInlineConstructor();
       } else {
-        map->InitializeDescriptors(descriptors);
+        MaybeObject* maybe_failure = map->InitializeDescriptors(descriptors);
+        if (maybe_failure->IsFailure()) return maybe_failure;
         map->set_pre_allocated_property_fields(count);
         map->set_unused_property_fields(in_object_properties - count);
       }
@@ -4108,6 +4126,7 @@ MaybeObject* Heap::AllocateJSFunctionProxy(Object* handler,
 MaybeObject* Heap::AllocateGlobalObject(JSFunction* constructor) {
   ASSERT(constructor->has_initial_map());
   Map* map = constructor->initial_map();
+  ASSERT(map->is_dictionary_map());
 
   // Make sure no field properties are described in the initial map.
   // This guarantees us that normalizing the properties does not
@@ -4158,6 +4177,7 @@ MaybeObject* Heap::AllocateGlobalObject(JSFunction* constructor) {
   Map* new_map;
   MaybeObject* maybe_map = map->CopyDropDescriptors();
   if (!maybe_map->To(&new_map)) return maybe_map;
+  new_map->set_dictionary_map(true);
 
   // Set up the global object as a normalized object.
   global->set_map(new_map);
@@ -4289,7 +4309,7 @@ MaybeObject* Heap::ReinitializeJSReceiver(
     map->set_function_with_prototype(true);
     InitializeFunction(JSFunction::cast(object), shared, the_hole_value());
     JSFunction::cast(object)->set_context(
-        isolate()->context()->global_context());
+        isolate()->context()->native_context());
   }
 
   // Put in filler if the new object is smaller than the old.
@@ -4584,10 +4604,10 @@ MaybeObject* Heap::AllocateRawTwoByteString(int length,
 MaybeObject* Heap::AllocateJSArray(
     ElementsKind elements_kind,
     PretenureFlag pretenure) {
-  Context* global_context = isolate()->context()->global_context();
-  JSFunction* array_function = global_context->array_function();
+  Context* native_context = isolate()->context()->native_context();
+  JSFunction* array_function = native_context->array_function();
   Map* map = array_function->initial_map();
-  Object* maybe_map_array = global_context->js_array_maps();
+  Object* maybe_map_array = native_context->js_array_maps();
   if (!maybe_map_array->IsUndefined()) {
     Object* maybe_transitioned_map =
         FixedArray::cast(maybe_map_array)->get(elements_kind);
@@ -4870,16 +4890,16 @@ MaybeObject* Heap::AllocateHashTable(int length, PretenureFlag pretenure) {
 }
 
 
-MaybeObject* Heap::AllocateGlobalContext() {
+MaybeObject* Heap::AllocateNativeContext() {
   Object* result;
   { MaybeObject* maybe_result =
-        AllocateFixedArray(Context::GLOBAL_CONTEXT_SLOTS);
+        AllocateFixedArray(Context::NATIVE_CONTEXT_SLOTS);
     if (!maybe_result->ToObject(&result)) return maybe_result;
   }
   Context* context = reinterpret_cast<Context*>(result);
-  context->set_map_no_write_barrier(global_context_map());
+  context->set_map_no_write_barrier(native_context_map());
   context->set_js_array_maps(undefined_value());
-  ASSERT(context->IsGlobalContext());
+  ASSERT(context->IsNativeContext());
   ASSERT(result->IsContext());
   return result;
 }
@@ -4910,7 +4930,7 @@ MaybeObject* Heap::AllocateFunctionContext(int length, JSFunction* function) {
   context->set_closure(function);
   context->set_previous(function->context());
   context->set_extension(Smi::FromInt(0));
-  context->set_global(function->context()->global());
+  context->set_global_object(function->context()->global_object());
   return context;
 }
 
@@ -4930,7 +4950,7 @@ MaybeObject* Heap::AllocateCatchContext(JSFunction* function,
   context->set_closure(function);
   context->set_previous(previous);
   context->set_extension(name);
-  context->set_global(previous->global());
+  context->set_global_object(previous->global_object());
   context->set(Context::THROWN_OBJECT_INDEX, thrown_object);
   return context;
 }
@@ -4948,7 +4968,7 @@ MaybeObject* Heap::AllocateWithContext(JSFunction* function,
   context->set_closure(function);
   context->set_previous(previous);
   context->set_extension(extension);
-  context->set_global(previous->global());
+  context->set_global_object(previous->global_object());
   return context;
 }
 
@@ -4966,7 +4986,7 @@ MaybeObject* Heap::AllocateBlockContext(JSFunction* function,
   context->set_closure(function);
   context->set_previous(previous);
   context->set_extension(scope_info);
-  context->set_global(previous->global());
+  context->set_global_object(previous->global_object());
   return context;
 }
 
@@ -5793,7 +5813,7 @@ bool Heap::ConfigureHeap(int max_semispace_size,
   max_semispace_size_ = RoundUpToPowerOf2(max_semispace_size_);
   reserved_semispace_size_ = RoundUpToPowerOf2(reserved_semispace_size_);
   initial_semispace_size_ = Min(initial_semispace_size_, max_semispace_size_);
-  external_allocation_limit_ = 10 * max_semispace_size_;
+  external_allocation_limit_ = 16 * max_semispace_size_;
 
   // The old generation is paged and needs at least one page for each space.
   int paged_space_count = LAST_PAGED_SPACE - FIRST_PAGED_SPACE + 1;
@@ -6143,7 +6163,7 @@ bool Heap::SetUp(bool create_heap_objects) {
     // Create initial objects
     if (!CreateInitialObjects()) return false;
 
-    global_contexts_list_ = undefined_value();
+    native_contexts_list_ = undefined_value();
   }
 
   LOG(isolate_, IntPtrTEvent("heap-capacity", Capacity()));
@@ -6185,6 +6205,7 @@ void Heap::TearDown() {
     PrintF("gc_count=%d ", gc_count_);
     PrintF("mark_sweep_count=%d ", ms_count_);
     PrintF("max_gc_pause=%d ", get_max_gc_pause());
+    PrintF("total_gc_time=%d ", total_gc_time_ms_);
     PrintF("min_in_mutator=%d ", get_min_in_mutator());
     PrintF("max_alive_after_gc=%" V8_PTR_PREFIX "d ",
            get_max_alive_after_gc());
@@ -6669,8 +6690,8 @@ void PathTracer::TracePathFrom(Object** root) {
 }
 
 
-static bool SafeIsGlobalContext(HeapObject* obj) {
-  return obj->map() == obj->GetHeap()->raw_unchecked_global_context_map();
+static bool SafeIsNativeContext(HeapObject* obj) {
+  return obj->map() == obj->GetHeap()->raw_unchecked_native_context_map();
 }
 
 
@@ -6692,7 +6713,7 @@ void PathTracer::MarkRecursively(Object** p, MarkVisitor* mark_visitor) {
     return;
   }
 
-  bool is_global_context = SafeIsGlobalContext(obj);
+  bool is_native_context = SafeIsNativeContext(obj);
 
   // not visited yet
   Map* map_p = reinterpret_cast<Map*>(HeapObject::cast(map));
@@ -6702,7 +6723,7 @@ void PathTracer::MarkRecursively(Object** p, MarkVisitor* mark_visitor) {
   obj->set_map_no_write_barrier(reinterpret_cast<Map*>(map_addr + kMarkTag));
 
   // Scan the object body.
-  if (is_global_context && (visit_mode_ == VISIT_ONLY_STRONG)) {
+  if (is_native_context && (visit_mode_ == VISIT_ONLY_STRONG)) {
     // This is specialized to scan Context's properly.
     Object** start = reinterpret_cast<Object**>(obj->address() +
                                                 Context::kHeaderSize);
@@ -6866,6 +6887,7 @@ GCTracer::~GCTracer() {
 
   // Update cumulative GC statistics if required.
   if (FLAG_print_cumulative_gc_stat) {
+    heap_->total_gc_time_ms_ += time;
     heap_->max_gc_pause_ = Max(heap_->max_gc_pause_, time);
     heap_->max_alive_after_gc_ = Max(heap_->max_alive_after_gc_,
                                      heap_->alive_after_last_gc_);
@@ -6873,7 +6895,11 @@ GCTracer::~GCTracer() {
       heap_->min_in_mutator_ = Min(heap_->min_in_mutator_,
                                    static_cast<int>(spent_in_mutator_));
     }
+  } else if (FLAG_trace_gc_verbose) {
+    heap_->total_gc_time_ms_ += time;
   }
+
+  if (collector_ == SCAVENGER && FLAG_trace_gc_ignore_scavenger) return;
 
   PrintPID("%8.0f ms: ", heap_->isolate()->time_millis_since_init());
 
@@ -6917,9 +6943,7 @@ GCTracer::~GCTracer() {
     PrintF(".\n");
   } else {
     PrintF("pause=%d ", time);
-    PrintF("mutator=%d ",
-           static_cast<int>(spent_in_mutator_));
-
+    PrintF("mutator=%d ", static_cast<int>(spent_in_mutator_));
     PrintF("gc=");
     switch (collector_) {
       case SCAVENGER:

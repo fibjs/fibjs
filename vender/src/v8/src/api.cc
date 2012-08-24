@@ -768,8 +768,8 @@ void Context::SetData(v8::Handle<String> data) {
   i::Isolate* isolate = env->GetIsolate();
   if (IsDeadCheck(isolate, "v8::Context::SetData()")) return;
   i::Handle<i::Object> raw_data = Utils::OpenHandle(*data);
-  ASSERT(env->IsGlobalContext());
-  if (env->IsGlobalContext()) {
+  ASSERT(env->IsNativeContext());
+  if (env->IsNativeContext()) {
     env->set_data(*raw_data);
   }
 }
@@ -782,8 +782,8 @@ v8::Local<v8::Value> Context::GetData() {
     return v8::Local<Value>();
   }
   i::Object* raw_result = NULL;
-  ASSERT(env->IsGlobalContext());
-  if (env->IsGlobalContext()) {
+  ASSERT(env->IsNativeContext());
+  if (env->IsNativeContext()) {
     raw_result = env->data();
   } else {
     return Local<Value>();
@@ -1067,7 +1067,6 @@ static i::Handle<i::AccessorInfo> MakeAccessorInfo(
       v8::PropertyAttribute attributes,
       v8::Handle<AccessorSignature> signature) {
   i::Handle<i::AccessorInfo> obj = FACTORY->NewAccessorInfo();
-  ASSERT(getter != NULL);
   SET_FIELD_WRAPPED(obj, set_getter, getter);
   SET_FIELD_WRAPPED(obj, set_setter, setter);
   if (data.IsEmpty()) data = v8::Undefined();
@@ -1575,7 +1574,7 @@ Local<Script> Script::Compile(v8::Handle<String> source,
   i::Handle<i::JSFunction> result =
       isolate->factory()->NewFunctionFromSharedFunctionInfo(
           function,
-          isolate->global_context());
+          isolate->native_context());
   return Local<Script>(ToApi<Script>(result));
 }
 
@@ -1602,7 +1601,7 @@ Local<Value> Script::Run() {
       i::Handle<i::SharedFunctionInfo>
           function_info(i::SharedFunctionInfo::cast(*obj), isolate);
       fun = isolate->factory()->NewFunctionFromSharedFunctionInfo(
-          function_info, isolate->global_context());
+          function_info, isolate->native_context());
     } else {
       fun = i::Handle<i::JSFunction>(i::JSFunction::cast(*obj), isolate);
     }
@@ -3270,7 +3269,7 @@ static i::Context* GetCreationContext(i::JSObject* object) {
   } else {
     function = i::JSFunction::cast(constructor);
   }
-  return function->context()->global_context();
+  return function->context()->native_context();
 }
 
 
@@ -3299,6 +3298,7 @@ bool v8::Object::SetHiddenValue(v8::Handle<v8::String> key,
                                 v8::Handle<v8::Value> value) {
   i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
   ON_BAILOUT(isolate, "v8::Object::SetHiddenValue()", return false);
+  if (value.IsEmpty()) return DeleteHiddenValue(key);
   ENTER_V8(isolate);
   i::HandleScope scope(isolate);
   i::Handle<i::JSObject> self = Utils::OpenHandle(this);
@@ -4438,7 +4438,7 @@ void v8::Context::UseDefaultSecurityToken() {
   }
   ENTER_V8(isolate);
   i::Handle<i::Context> env = Utils::OpenHandle(this);
-  env->set_security_token(env->global());
+  env->set_security_token(env->global_object());
 }
 
 
@@ -4483,7 +4483,7 @@ v8::Local<v8::Context> Context::GetCurrent() {
   if (IsDeadCheck(isolate, "v8::Context::GetCurrent()")) {
     return Local<Context>();
   }
-  i::Handle<i::Object> current = isolate->global_context();
+  i::Handle<i::Object> current = isolate->native_context();
   if (current.is_null()) return Local<Context>();
   i::Handle<i::Context> context = i::Handle<i::Context>::cast(current);
   return Utils::ToLocal(context);
@@ -4496,7 +4496,7 @@ v8::Local<v8::Context> Context::GetCalling() {
     return Local<Context>();
   }
   i::Handle<i::Object> calling =
-      isolate->GetCallingGlobalContext();
+      isolate->GetCallingNativeContext();
   if (calling.is_null()) return Local<Context>();
   i::Handle<i::Context> context = i::Handle<i::Context>::cast(calling);
   return Utils::ToLocal(context);
@@ -4789,6 +4789,7 @@ Local<String> v8::String::NewExternal(
   EnsureInitializedForIsolate(isolate, "v8::String::NewExternal()");
   LOG_API(isolate, "String::NewExternal");
   ENTER_V8(isolate);
+  CHECK(resource && resource->data());
   i::Handle<i::String> result = NewExternalStringHandle(isolate, resource);
   isolate->heap()->external_string_table()->AddString(*result);
   return Utils::ToLocal(result);
@@ -4809,6 +4810,7 @@ bool v8::String::MakeExternal(v8::String::ExternalStringResource* resource) {
   if (isolate->heap()->IsInGCPostProcessing()) {
     return false;
   }
+  CHECK(resource && resource->data());
   bool result = obj->MakeExternal(resource);
   if (result && !obj->IsSymbol()) {
     isolate->heap()->external_string_table()->AddString(*obj);
@@ -4823,6 +4825,7 @@ Local<String> v8::String::NewExternal(
   EnsureInitializedForIsolate(isolate, "v8::String::NewExternal()");
   LOG_API(isolate, "String::NewExternal");
   ENTER_V8(isolate);
+  CHECK(resource && resource->data());
   i::Handle<i::String> result = NewExternalAsciiStringHandle(isolate, resource);
   isolate->heap()->external_string_table()->AddString(*result);
   return Utils::ToLocal(result);
@@ -4844,6 +4847,7 @@ bool v8::String::MakeExternal(
   if (isolate->heap()->IsInGCPostProcessing()) {
     return false;
   }
+  CHECK(resource && resource->data());
   bool result = obj->MakeExternal(resource);
   if (result && !obj->IsSymbol()) {
     isolate->heap()->external_string_table()->AddString(*obj);
@@ -5274,8 +5278,9 @@ void V8::AddImplicitReferences(Persistent<Object> parent,
 
 
 intptr_t V8::AdjustAmountOfExternalAllocatedMemory(intptr_t change_in_bytes) {
-  i::Isolate* isolate = i::Isolate::Current();
-  if (IsDeadCheck(isolate, "v8::V8::AdjustAmountOfExternalAllocatedMemory()")) {
+  i::Isolate* isolate = i::Isolate::UncheckedCurrent();
+  if (isolate == NULL || !isolate->IsInitialized() ||
+      IsDeadCheck(isolate, "v8::V8::AdjustAmountOfExternalAllocatedMemory()")) {
     return 0;
   }
   return isolate->heap()->AdjustAmountOfExternalAllocatedMemory(
@@ -5792,7 +5797,7 @@ Local<Value> Debug::GetMirror(v8::Handle<v8::Value> obj) {
   v8::HandleScope scope;
   i::Debug* isolate_debug = isolate->debug();
   isolate_debug->Load();
-  i::Handle<i::JSObject> debug(isolate_debug->debug_context()->global());
+  i::Handle<i::JSObject> debug(isolate_debug->debug_context()->global_object());
   i::Handle<i::String> name =
       isolate->factory()->LookupAsciiSymbol("MakeMirror");
   i::Handle<i::Object> fun_obj = i::GetProperty(debug, name);

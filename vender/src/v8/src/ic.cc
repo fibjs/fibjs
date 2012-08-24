@@ -320,12 +320,16 @@ void IC::PostPatching(Address address, Code* target, Code* old_target) {
     int delta = ComputeTypeInfoCountDelta(old_target->ic_state(),
                                           target->ic_state());
     // Not all Code objects have TypeFeedbackInfo.
-    if (delta != 0 && host->type_feedback_info()->IsTypeFeedbackInfo()) {
+    if (host->type_feedback_info()->IsTypeFeedbackInfo() && delta != 0) {
       TypeFeedbackInfo* info =
           TypeFeedbackInfo::cast(host->type_feedback_info());
-      info->set_ic_with_type_info_count(
-          info->ic_with_type_info_count() + delta);
+      info->change_ic_with_type_info_count(delta);
     }
+  }
+  if (host->type_feedback_info()->IsTypeFeedbackInfo()) {
+    TypeFeedbackInfo* info =
+        TypeFeedbackInfo::cast(host->type_feedback_info());
+    info->change_own_type_change_checksum();
   }
   if (FLAG_watch_ic_patching) {
     host->set_profiler_ticks(0);
@@ -989,7 +993,6 @@ void LoadIC::UpdateCaches(LookupResult* lookup,
         if (callback->IsAccessorInfo()) {
           Handle<AccessorInfo> info = Handle<AccessorInfo>::cast(callback);
           if (v8::ToCData<Address>(info->getter()) == 0) return;
-          if (!holder->HasFastProperties()) return;
           if (!info->IsCompatibleReceiver(*receiver)) return;
           code = isolate()->stub_cache()->ComputeLoadCallback(
               name, receiver, holder, info);
@@ -1266,7 +1269,6 @@ void KeyedLoadIC::UpdateCaches(LookupResult* lookup,
         Handle<AccessorInfo> callback =
             Handle<AccessorInfo>::cast(callback_object);
         if (v8::ToCData<Address>(callback->getter()) == 0) return;
-        if (!holder->HasFastProperties()) return;
         if (!callback->IsCompatibleReceiver(*receiver)) return;
         code = isolate()->stub_cache()->ComputeKeyedLoadCallback(
             name, receiver, holder, callback);

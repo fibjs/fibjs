@@ -84,6 +84,7 @@
 //           - Context
 //           - JSFunctionResultCache
 //           - ScopeInfo
+//           - TransitionArray
 //         - FixedDoubleArray
 //         - ExternalArray
 //           - ExternalPixelArray
@@ -807,7 +808,7 @@ class MaybeObject BASE_EMBEDDED {
   V(FixedArray)                                \
   V(FixedDoubleArray)                          \
   V(Context)                                   \
-  V(GlobalContext)                             \
+  V(NativeContext)                             \
   V(ModuleContext)                             \
   V(ScopeInfo)                                 \
   V(JSFunction)                                \
@@ -904,8 +905,8 @@ class Object : public MaybeObject {
   Object* ToBoolean();                                 // ECMA-262 9.2.
 
   // Convert to a JSObject if needed.
-  // global_context is used when creating wrapper object.
-  MUST_USE_RESULT MaybeObject* ToObject(Context* global_context);
+  // native_context is used when creating wrapper object.
+  MUST_USE_RESULT MaybeObject* ToObject(Context* native_context);
 
   // Converts this to a Smi if possible.
   // Failure is returned otherwise.
@@ -1254,9 +1255,6 @@ class HeapObject: public Object {
 };
 
 
-#define SLOT_ADDR(obj, offset) \
-  reinterpret_cast<Object**>((obj)->address() + offset)
-
 // This class describes a body of an object of a fixed size
 // in which all pointer fields are located in the [start_offset, end_offset)
 // interval.
@@ -1271,8 +1269,8 @@ class FixedBodyDescriptor {
 
   template<typename StaticVisitor>
   static inline void IterateBody(HeapObject* obj) {
-    StaticVisitor::VisitPointers(SLOT_ADDR(obj, start_offset),
-                                 SLOT_ADDR(obj, end_offset));
+    StaticVisitor::VisitPointers(HeapObject::RawField(obj, start_offset),
+                                 HeapObject::RawField(obj, end_offset));
   }
 };
 
@@ -1291,12 +1289,10 @@ class FlexibleBodyDescriptor {
 
   template<typename StaticVisitor>
   static inline void IterateBody(HeapObject* obj, int object_size) {
-    StaticVisitor::VisitPointers(SLOT_ADDR(obj, start_offset),
-                                 SLOT_ADDR(obj, object_size));
+    StaticVisitor::VisitPointers(HeapObject::RawField(obj, start_offset),
+                                 HeapObject::RawField(obj, object_size));
   }
 };
-
-#undef SLOT_ADDR
 
 
 // The HeapNumber class describes heap allocated numbers that cannot be
@@ -2464,32 +2460,21 @@ class FixedDoubleArray: public FixedArrayBase {
 
 // DescriptorArrays are fixed arrays used to hold instance descriptors.
 // The format of the these objects is:
-// TODO(1399): It should be possible to make room for bit_field3 in the map
-//             without overloading the instance descriptors field in the map
-//             (and storing it in the DescriptorArray when the map has one).
-//   [0]: storage for bit_field3 for Map owning this object (Smi)
-//   [1]: point to a fixed array with (value, detail) pairs.
-//   [2]: next enumeration index (Smi), or pointer to small fixed array:
-//          [0]: next enumeration index (Smi)
-//          [1]: pointer to fixed array with enum cache
-//   [3]: first key
+//   [0]: Either Smi(0) if uninitialized, or a pointer to small fixed array:
+//          [0]: pointer to fixed array with enum cache
+//          [1]: either Smi(0) or pointer to fixed array with indices
+//   [1]: first key
 //   [length() - kDescriptorSize]: last key
-//
 class DescriptorArray: public FixedArray {
  public:
   // Returns true for both shared empty_descriptor_array and for smis, which the
   // map uses to encode additional bit fields when the descriptor array is not
   // yet used.
   inline bool IsEmpty();
-  inline bool MayContainTransitions();
-  inline bool HasTransitionArray();
-
-  DECL_ACCESSORS(transitions, TransitionArray)
-  inline void ClearTransitions();
 
   // Returns the number of descriptors in the array.
   int number_of_descriptors() {
-    ASSERT(MayContainTransitions() || IsEmpty());
+    ASSERT(length() >= kFirstIndex || IsEmpty());
     int len = length();
     return len <= kFirstIndex ? 0 : (len - kFirstIndex) / kDescriptorSize;
   }
@@ -2512,13 +2497,6 @@ class DescriptorArray: public FixedArray {
     return HeapObject::RawField(reinterpret_cast<HeapObject*>(this),
                                 kEnumCacheOffset);
   }
-
-  Object** GetTransitionsSlot() {
-    return HeapObject::RawField(reinterpret_cast<HeapObject*>(this),
-                                kTransitionsOffset);
-  }
-
-  DECL_ACCESSORS(back_pointer_storage, Object)
 
   // Initialize or change the enum cache,
   // using the supplied storage for the small "bridge".
@@ -2557,17 +2535,6 @@ class DescriptorArray: public FixedArray {
                 int src_index,
                 const WhitenessWitness&);
 
-  // Indicates whether the search function should expect a sorted or an unsorted
-  // descriptor array as input.
-  enum SharedMode {
-    MAY_BE_SHARED,
-    CANNOT_BE_SHARED
-  };
-
-  // Return a copy of the array with all transitions and null descriptors
-  // removed. Return a Failure object in case of an allocation failure.
-  MUST_USE_RESULT MaybeObject* Copy(SharedMode shared_mode);
-
   // Sort the instance descriptors by the hash codes of their keys.
   void Sort(const WhitenessWitness&);
 
@@ -2583,8 +2550,7 @@ class DescriptorArray: public FixedArray {
 
   // Allocates a DescriptorArray, but returns the singleton
   // empty descriptor array object if number_of_descriptors is 0.
-  MUST_USE_RESULT static MaybeObject* Allocate(int number_of_descriptors,
-                                               SharedMode shared_mode);
+  MUST_USE_RESULT static MaybeObject* Allocate(int number_of_descriptors);
 
   // Casting.
   static inline DescriptorArray* cast(Object* obj);
@@ -2592,10 +2558,8 @@ class DescriptorArray: public FixedArray {
   // Constant for denoting key was not found.
   static const int kNotFound = -1;
 
-  static const int kBackPointerStorageIndex = 0;
-  static const int kEnumCacheIndex = 1;
-  static const int kTransitionsIndex = 2;
-  static const int kFirstIndex = 3;
+  static const int kEnumCacheIndex = 0;
+  static const int kFirstIndex = 1;
 
   // The length of the "bridge" to the enum cache.
   static const int kEnumCacheBridgeLength = 2;
@@ -2603,11 +2567,8 @@ class DescriptorArray: public FixedArray {
   static const int kEnumCacheBridgeIndicesCacheIndex = 1;
 
   // Layout description.
-  static const int kBackPointerStorageOffset = FixedArray::kHeaderSize;
-  static const int kEnumCacheOffset = kBackPointerStorageOffset +
-                                      kPointerSize;
-  static const int kTransitionsOffset = kEnumCacheOffset + kPointerSize;
-  static const int kFirstOffset = kTransitionsOffset + kPointerSize;
+  static const int kEnumCacheOffset = FixedArray::kHeaderSize;
+  static const int kFirstOffset = kEnumCacheOffset + kPointerSize;
 
   // Layout description for the bridge array.
   static const int kEnumCacheBridgeCacheOffset = FixedArray::kHeaderSize;
@@ -4020,7 +3981,7 @@ class DeoptimizationInputData: public FixedArray {
   static const int kFirstDeoptEntryIndex = 5;
 
   // Offsets of deopt entry elements relative to the start of the entry.
-  static const int kAstIdOffset = 0;
+  static const int kAstIdRawOffset = 0;
   static const int kTranslationIndexOffset = 1;
   static const int kArgumentsStackHeightOffset = 2;
   static const int kPcOffset = 3;
@@ -4052,12 +4013,20 @@ class DeoptimizationInputData: public FixedArray {
     set(IndexForEntry(i) + k##name##Offset, value);              \
   }
 
-  DEFINE_ENTRY_ACCESSORS(AstId, Smi)
+  DEFINE_ENTRY_ACCESSORS(AstIdRaw, Smi)
   DEFINE_ENTRY_ACCESSORS(TranslationIndex, Smi)
   DEFINE_ENTRY_ACCESSORS(ArgumentsStackHeight, Smi)
   DEFINE_ENTRY_ACCESSORS(Pc, Smi)
 
 #undef DEFINE_ENTRY_ACCESSORS
+
+  BailoutId AstId(int i) {
+    return BailoutId(AstIdRaw(i)->value());
+  }
+
+  void SetAstId(int i, BailoutId value) {
+    SetAstIdRaw(i, Smi::FromInt(value.ToInt()));
+  }
 
   int DeoptCount() {
     return (length() - kFirstDeoptEntryIndex) / kDeoptEntrySize;
@@ -4093,8 +4062,15 @@ class DeoptimizationInputData: public FixedArray {
 class DeoptimizationOutputData: public FixedArray {
  public:
   int DeoptPoints() { return length() / 2; }
-  Smi* AstId(int index) { return Smi::cast(get(index * 2)); }
-  void SetAstId(int index, Smi* id) { set(index * 2, id); }
+
+  BailoutId AstId(int index) {
+    return BailoutId(Smi::cast(get(index * 2))->value());
+  }
+
+  void SetAstId(int index, BailoutId id) {
+    set(index * 2, Smi::FromInt(id.ToInt()));
+  }
+
   Smi* PcAndState(int index) { return Smi::cast(get(1 + index * 2)); }
   void SetPcAndState(int index, Smi* offset) { set(1 + index * 2, offset); }
 
@@ -4129,8 +4105,8 @@ class TypeFeedbackCells: public FixedArray {
   static int LengthOfFixedArray(int cell_count) { return cell_count * 2; }
 
   // Accessors for AST ids associated with cache values.
-  inline Smi* AstId(int index);
-  inline void SetAstId(int index, Smi* id);
+  inline TypeFeedbackId AstId(int index);
+  inline void SetAstId(int index, TypeFeedbackId id);
 
   // Accessors for global property cells holding the cache values.
   inline JSGlobalPropertyCell* Cell(int index);
@@ -4684,7 +4660,8 @@ class Map: public HeapObject {
 
   class IsShared:              public BitField<bool, 0, 1> {};
   class FunctionWithPrototype: public BitField<bool, 1, 1> {};
-  class LastAddedBits:         public BitField<int, 2, 11> {};
+  class DictionaryMap:         public BitField<bool, 2, 1> {};
+  class LastAddedBits:         public BitField<int, 3, 11> {};
 
   // Tells whether the object in the prototype property will be used
   // for instances created from this function.  If the prototype
@@ -4810,11 +4787,9 @@ class Map: public HeapObject {
   inline Map* elements_transition_map();
   MUST_USE_RESULT inline MaybeObject* set_elements_transition_map(
       Map* transitioned_map);
-  inline TransitionArray* transitions();
   inline void SetTransition(int index, Map* target);
   MUST_USE_RESULT inline MaybeObject* AddTransition(String* key, Map* target);
-  MUST_USE_RESULT inline MaybeObject* set_transitions(
-      TransitionArray* transitions);
+  DECL_ACCESSORS(transitions, TransitionArray)
   inline void ClearTransitions(Heap* heap,
                                WriteBarrierMode mode = UPDATE_WRITE_BARRIER);
 
@@ -4830,6 +4805,13 @@ class Map: public HeapObject {
   inline void set_is_shared(bool value);
   inline bool is_shared();
 
+  // Tells whether the map is used for JSObjects in dictionary mode (ie
+  // normalized objects, ie objects for which HasFastProperties returns false).
+  // A map can never be used for both dictionary mode and fast mode JSObjects.
+  // False by default and for HeapObjects that are not JSObjects.
+  inline void set_dictionary_map(bool value);
+  inline bool is_dictionary_map();
+
   // Tells whether the instance needs security checks when accessing its
   // properties.
   inline void set_is_access_check_needed(bool access_check_needed);
@@ -4844,12 +4826,14 @@ class Map: public HeapObject {
   inline JSFunction* unchecked_constructor();
 
   // [instance descriptors]: describes the object.
-  DECL_ACCESSORS(instance_descriptors, DescriptorArray)
-  inline void InitializeDescriptors(DescriptorArray* descriptors);
-
-  // Should only be called to clear a descriptor array that was only used to
-  // store transitions and does not contain any live transitions anymore.
-  inline void ClearDescriptorArray(Heap* heap, WriteBarrierMode mode);
+  inline DescriptorArray* instance_descriptors();
+  MUST_USE_RESULT inline MaybeObject* SetDescriptors(
+      DescriptorArray* descriptors,
+      WriteBarrierMode mode = UPDATE_WRITE_BARRIER);
+  static void SetDescriptors(Handle<Map> map,
+                             Handle<DescriptorArray> descriptors);
+  MUST_USE_RESULT inline MaybeObject* InitializeDescriptors(
+      DescriptorArray* descriptors);
 
   // [stub cache]: contains stubs compiled for this map.
   DECL_ACCESSORS(code_cache, Object)
@@ -4955,7 +4939,7 @@ class Map: public HeapObject {
 
   // Returns a copy of the map, with all transitions dropped from the
   // instance descriptors.
-  MUST_USE_RESULT MaybeObject* Copy(DescriptorArray::SharedMode shared_mode);
+  MUST_USE_RESULT MaybeObject* Copy();
 
   // Returns the property index for name (only valid for FAST MODE).
   int PropertyIndexFor(String* name);
@@ -5077,14 +5061,14 @@ class Map: public HeapObject {
   static const int kInstanceAttributesOffset = kInstanceSizesOffset + kIntSize;
   static const int kPrototypeOffset = kInstanceAttributesOffset + kIntSize;
   static const int kConstructorOffset = kPrototypeOffset + kPointerSize;
-  // Storage for instance descriptors is overloaded to also contain additional
-  // map flags when unused (bit_field3). When the map has instance descriptors,
-  // the flags are transferred to the instance descriptor array and accessed
-  // through an extra indirection.
-  static const int kInstanceDescriptorsOrBackPointerOffset =
+  // Storage for the transition array is overloaded to directly contain a back
+  // pointer if unused. When the map has transitions, the back pointer is
+  // transferred to the transition array and accessed through an extra
+  // indirection.
+  static const int kTransitionsOrBackPointerOffset =
       kConstructorOffset + kPointerSize;
   static const int kCodeCacheOffset =
-      kInstanceDescriptorsOrBackPointerOffset + kPointerSize;
+      kTransitionsOrBackPointerOffset + kPointerSize;
   static const int kBitField3Offset = kCodeCacheOffset + kPointerSize;
   static const int kPadStart = kBitField3Offset + kPointerSize;
   static const int kSize = MAP_POINTER_ALIGN(kPadStart);
@@ -5150,6 +5134,7 @@ class Map: public HeapObject {
   // Bit positions for bit field 3
   static const int kIsShared = 0;
   static const int kFunctionWithPrototype = 1;
+  static const int kDictionaryMap = 2;
 
   typedef FixedBodyDescriptor<kPointerFieldsBeginOffset,
                               kPointerFieldsEndOffset,
@@ -5336,14 +5321,14 @@ class SharedFunctionInfo: public HeapObject {
   // [code]: Function code.
   DECL_ACCESSORS(code, Code)
 
-  // [optimized_code_map]: Map from global context to optimized code
+  // [optimized_code_map]: Map from native context to optimized code
   // and a shared literals array or Smi 0 if none.
   DECL_ACCESSORS(optimized_code_map, Object)
 
   // Returns index i of the entry with the specified context. At position
   // i - 1 is the context, position i the code, and i + 1 the literals array.
   // Returns -1 when no matching entry is found.
-  int SearchOptimizedCodeMap(Context* global_context);
+  int SearchOptimizedCodeMap(Context* native_context);
 
   // Installs optimized code from the code map on the given closure. The
   // index has to be consistent with a search result as defined above.
@@ -5354,7 +5339,7 @@ class SharedFunctionInfo: public HeapObject {
 
   // Add a new entry to the optimized code map.
   static void AddToOptimizedCodeMap(Handle<SharedFunctionInfo> shared,
-                                    Handle<Context> global_context,
+                                    Handle<Context> native_context,
                                     Handle<Code> code,
                                     Handle<FixedArray> literals);
   static const int kEntryLength = 3;
@@ -5669,7 +5654,7 @@ class SharedFunctionInfo: public HeapObject {
   // Lookup the bailout ID and ASSERT that it exists in the non-optimized
   // code, returns whether it asserted (i.e., always true if assertions are
   // disabled).
-  bool VerifyBailoutId(int id);
+  bool VerifyBailoutId(BailoutId id);
 
   // Check whether a inlined constructor can be generated with the given
   // prototype.
@@ -6032,7 +6017,7 @@ class JSFunction: public JSObject {
   static bool CompileLazy(Handle<JSFunction> function,
                           ClearExceptionFlag flag);
   static bool CompileOptimized(Handle<JSFunction> function,
-                               int osr_ast_id,
+                               BailoutId osr_ast_id,
                                ClearExceptionFlag flag);
 
   // Tells whether or not the function is already marked for lazy
@@ -6137,8 +6122,8 @@ class JSFunction: public JSObject {
   // Returns the number of allocated literals.
   inline int NumberOfLiterals();
 
-  // Retrieve the global context from a function's literal array.
-  static Context* GlobalContextFromLiterals(FixedArray* literals);
+  // Retrieve the native context from a function's literal array.
+  static Context* NativeContextFromLiterals(FixedArray* literals);
 
   // Layout descriptors. The last property (from kNonWeakFieldsEndOffset to
   // kSize) is weak and has special handling during garbage collection.
@@ -6155,7 +6140,7 @@ class JSFunction: public JSObject {
 
   // Layout of the literals array.
   static const int kLiteralsPrefixSize = 1;
-  static const int kLiteralGlobalContextIndex = 0;
+  static const int kLiteralNativeContextIndex = 0;
 
   // Layout of the bound-function binding array.
   static const int kBoundFunctionIndex = 0;
@@ -6177,9 +6162,9 @@ class JSFunction: public JSObject {
 
 class JSGlobalProxy : public JSObject {
  public:
-  // [context]: the owner global context of this global proxy object.
+  // [native_context]: the owner native context of this global proxy object.
   // It is null value if this object is not used by any context.
-  DECL_ACCESSORS(context, Object)
+  DECL_ACCESSORS(native_context, Object)
 
   // Casting.
   static inline JSGlobalProxy* cast(Object* obj);
@@ -6196,8 +6181,8 @@ class JSGlobalProxy : public JSObject {
 #endif
 
   // Layout description.
-  static const int kContextOffset = JSObject::kHeaderSize;
-  static const int kSize = kContextOffset + kPointerSize;
+  static const int kNativeContextOffset = JSObject::kHeaderSize;
+  static const int kSize = kNativeContextOffset + kPointerSize;
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(JSGlobalProxy);
@@ -6214,8 +6199,8 @@ class GlobalObject: public JSObject {
   // [builtins]: the object holding the runtime routines written in JS.
   DECL_ACCESSORS(builtins, JSBuiltinsObject)
 
-  // [global context]: the global context corresponding to this global object.
-  DECL_ACCESSORS(global_context, Context)
+  // [native context]: the natives corresponding to this global object.
+  DECL_ACCESSORS(native_context, Context)
 
   // [global receiver]: the global receiver object of the context
   DECL_ACCESSORS(global_receiver, JSObject)
@@ -6245,8 +6230,8 @@ class GlobalObject: public JSObject {
 
   // Layout description.
   static const int kBuiltinsOffset = JSObject::kHeaderSize;
-  static const int kGlobalContextOffset = kBuiltinsOffset + kPointerSize;
-  static const int kGlobalReceiverOffset = kGlobalContextOffset + kPointerSize;
+  static const int kNativeContextOffset = kBuiltinsOffset + kPointerSize;
+  static const int kGlobalReceiverOffset = kNativeContextOffset + kPointerSize;
   static const int kHeaderSize = kGlobalReceiverOffset + kPointerSize;
 
  private:
@@ -6871,7 +6856,15 @@ class TypeFeedbackInfo: public Struct {
   inline void set_ic_total_count(int count);
 
   inline int ic_with_type_info_count();
-  inline void set_ic_with_type_info_count(int count);
+  inline void change_ic_with_type_info_count(int count);
+
+  inline void initialize_storage();
+
+  inline void change_own_type_change_checksum();
+  inline int own_type_change_checksum();
+
+  inline void set_inlined_type_change_checksum(int checksum);
+  inline bool matches_inlined_type_change_checksum(int checksum);
 
   DECL_ACCESSORS(type_feedback_cells, TypeFeedbackCells)
 
@@ -6887,14 +6880,25 @@ class TypeFeedbackInfo: public Struct {
   void TypeFeedbackInfoVerify();
 #endif
 
-  static const int kIcTotalCountOffset = HeapObject::kHeaderSize;
-  static const int kIcWithTypeinfoCountOffset =
-      kIcTotalCountOffset + kPointerSize;
-  static const int kTypeFeedbackCellsOffset =
-      kIcWithTypeinfoCountOffset + kPointerSize;
+  static const int kStorage1Offset = HeapObject::kHeaderSize;
+  static const int kStorage2Offset = kStorage1Offset + kPointerSize;
+  static const int kTypeFeedbackCellsOffset = kStorage2Offset + kPointerSize;
   static const int kSize = kTypeFeedbackCellsOffset + kPointerSize;
 
  private:
+  static const int kTypeChangeChecksumBits = 7;
+
+  class ICTotalCountField: public BitField<int, 0,
+      kSmiValueSize - kTypeChangeChecksumBits> {};  // NOLINT
+  class OwnTypeChangeChecksum: public BitField<int,
+      kSmiValueSize - kTypeChangeChecksumBits,
+      kTypeChangeChecksumBits> {};  // NOLINT
+  class ICsWithTypeInfoCountField: public BitField<int, 0,
+      kSmiValueSize - kTypeChangeChecksumBits> {};  // NOLINT
+  class InlinedTypeChangeChecksum: public BitField<int,
+      kSmiValueSize - kTypeChangeChecksumBits,
+      kTypeChangeChecksumBits> {};  // NOLINT
+
   DISALLOW_IMPLICIT_CONSTRUCTORS(TypeFeedbackInfo);
 };
 

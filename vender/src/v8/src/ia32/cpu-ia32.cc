@@ -27,7 +27,7 @@
 
 // CPU specific code for ia32 independent of OS goes here.
 
-#if defined(__GNUC__) && !defined(__MINGW64__)
+#ifdef __GNUC__
 #include "third_party/valgrind/valgrind.h"
 #endif
 

@@ -56,7 +56,7 @@ void StaticNewSpaceVisitor<StaticVisitor>::Initialize() {
 
   table_.Register(kVisitFixedDoubleArray, &VisitFixedDoubleArray);
 
-  table_.Register(kVisitGlobalContext,
+  table_.Register(kVisitNativeContext,
                   &FixedBodyVisitor<StaticVisitor,
                   Context::ScavengeBodyDescriptor,
                   int>::Visit);
@@ -117,7 +117,7 @@ void StaticMarkingVisitor<StaticVisitor>::Initialize() {
 
   table_.Register(kVisitFixedDoubleArray, &DataObjectVisitor::Visit);
 
-  table_.Register(kVisitGlobalContext, &VisitGlobalContext);
+  table_.Register(kVisitNativeContext, &VisitNativeContext);
 
   table_.Register(kVisitByteArray, &DataObjectVisitor::Visit);
 
@@ -209,7 +209,26 @@ void StaticMarkingVisitor<StaticVisitor>::VisitDebugTarget(
 
 
 template<typename StaticVisitor>
-void StaticMarkingVisitor<StaticVisitor>::VisitGlobalContext(
+void StaticMarkingVisitor<StaticVisitor>::VisitCodeTarget(
+    Heap* heap, RelocInfo* rinfo) {
+  ASSERT(RelocInfo::IsCodeTarget(rinfo->rmode()));
+  Code* target = Code::GetCodeFromTargetAddress(rinfo->target_address());
+  // Monomorphic ICs are preserved when possible, but need to be flushed
+  // when they might be keeping a Context alive, or when the heap is about
+  // to be serialized.
+  if (FLAG_cleanup_code_caches_at_gc && target->is_inline_cache_stub()
+      && (target->ic_state() == MEGAMORPHIC || heap->flush_monomorphic_ics() ||
+          Serializer::enabled() || target->ic_age() != heap->global_ic_age())) {
+    IC::Clear(rinfo->pc());
+    target = Code::GetCodeFromTargetAddress(rinfo->target_address());
+  }
+  heap->mark_compact_collector()->RecordRelocSlot(rinfo, target);
+  StaticVisitor::MarkObject(heap, target);
+}
+
+
+template<typename StaticVisitor>
+void StaticMarkingVisitor<StaticVisitor>::VisitNativeContext(
     Map* map, HeapObject* object) {
   FixedBodyVisitor<StaticVisitor,
                    Context::MarkCompactBodyDescriptor,
@@ -217,7 +236,7 @@ void StaticMarkingVisitor<StaticVisitor>::VisitGlobalContext(
 
   MarkCompactCollector* collector = map->GetHeap()->mark_compact_collector();
   for (int idx = Context::FIRST_WEAK_SLOT;
-       idx < Context::GLOBAL_CONTEXT_SLOTS;
+       idx < Context::NATIVE_CONTEXT_SLOTS;
        ++idx) {
     Object** slot =
         HeapObject::RawField(object, FixedArray::OffsetOfElementAt(idx));

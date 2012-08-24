@@ -574,7 +574,7 @@ bool Object::IsContext() {
     return (map == heap->function_context_map() ||
             map == heap->catch_context_map() ||
             map == heap->with_context_map() ||
-            map == heap->global_context_map() ||
+            map == heap->native_context_map() ||
             map == heap->block_context_map() ||
             map == heap->module_context_map());
   }
@@ -582,10 +582,10 @@ bool Object::IsContext() {
 }
 
 
-bool Object::IsGlobalContext() {
+bool Object::IsNativeContext() {
   return Object::IsHeapObject() &&
       HeapObject::cast(this)->map() ==
-      HeapObject::cast(this)->GetHeap()->global_context_map();
+      HeapObject::cast(this)->GetHeap()->native_context_map();
 }
 
 
@@ -1339,8 +1339,8 @@ MaybeObject* JSObject::GetElementsTransitionMap(Isolate* isolate,
   ElementsKind from_kind = current_map->elements_kind();
   if (from_kind == to_kind) return current_map;
 
-  Context* global_context = isolate->context()->global_context();
-  Object* maybe_array_maps = global_context->js_array_maps();
+  Context* native_context = isolate->context()->native_context();
+  Object* maybe_array_maps = native_context->js_array_maps();
   if (maybe_array_maps->IsFixedArray()) {
     FixedArray* array_maps = FixedArray::cast(maybe_array_maps);
     if (array_maps->get(from_kind) == current_map) {
@@ -1608,6 +1608,7 @@ void JSObject::InitializeBody(Map* map,
 
 
 bool JSObject::HasFastProperties() {
+  ASSERT(properties()->IsDictionary() == map()->is_dictionary_map());
   return !properties()->IsDictionary();
 }
 
@@ -1886,30 +1887,6 @@ bool DescriptorArray::IsEmpty() {
 }
 
 
-bool DescriptorArray::MayContainTransitions() {
-  return !IsEmpty();
-}
-
-
-bool DescriptorArray::HasTransitionArray() {
-  return MayContainTransitions() && !get(kTransitionsIndex)->IsSmi();
-}
-
-
-Object* DescriptorArray::back_pointer_storage() {
-  return READ_FIELD(this, kBackPointerStorageOffset);
-}
-
-
-void DescriptorArray::set_back_pointer_storage(Object* value,
-                                               WriteBarrierMode mode) {
-  ASSERT(length() > kBackPointerStorageIndex);
-  Heap* heap = GetHeap();
-  WRITE_FIELD(this, kBackPointerStorageOffset, value);
-  CONDITIONAL_WRITE_BARRIER(heap, this, kBackPointerStorageOffset, value, mode);
-}
-
-
 void DescriptorArray::NoIncrementalWriteBarrierSwap(FixedArray* array,
                                                     int first,
                                                     int second) {
@@ -1996,27 +1973,6 @@ int DescriptorArray::SearchWithCache(String* name) {
     cache->Update(this, name, number);
   }
   return number;
-}
-
-
-TransitionArray* DescriptorArray::transitions() {
-  ASSERT(MayContainTransitions());
-  Object* array = get(kTransitionsIndex);
-  return TransitionArray::cast(array);
-}
-
-
-void DescriptorArray::ClearTransitions() {
-  WRITE_FIELD(this, kTransitionsOffset, Smi::FromInt(0));
-}
-
-
-void DescriptorArray::set_transitions(TransitionArray* transitions_array,
-                                      WriteBarrierMode mode) {
-  Heap* heap = GetHeap();
-  WRITE_FIELD(this, kTransitionsOffset, transitions_array);
-  CONDITIONAL_WRITE_BARRIER(
-      heap, this, kTransitionsOffset, transitions_array, mode);
 }
 
 
@@ -3007,8 +2963,19 @@ void Map::set_is_shared(bool value) {
   set_bit_field3(IsShared::update(bit_field3(), value));
 }
 
+
 bool Map::is_shared() {
   return IsShared::decode(bit_field3());
+}
+
+
+void Map::set_dictionary_map(bool value) {
+  set_bit_field3(DictionaryMap::update(bit_field3(), value));
+}
+
+
+bool Map::is_dictionary_map() {
+  return DictionaryMap::decode(bit_field3());
 }
 
 
@@ -3458,43 +3425,36 @@ void Map::set_prototype(Object* value, WriteBarrierMode mode) {
 
 
 DescriptorArray* Map::instance_descriptors() {
-  Object* object = READ_FIELD(this, kInstanceDescriptorsOrBackPointerOffset);
-  if (!object->IsDescriptorArray()) {
-    ASSERT(object->IsMap() || object->IsUndefined());
-    return GetHeap()->empty_descriptor_array();
-  } else {
-    return DescriptorArray::cast(object);
-  }
+  if (!HasTransitionArray()) return GetHeap()->empty_descriptor_array();
+  return transitions()->descriptors();
 }
 
 
-void Map::set_instance_descriptors(DescriptorArray* value,
-                                   WriteBarrierMode mode) {
-  Heap* heap = GetHeap();
+// If the descriptor is using the empty transition array, install a new empty
+// transition array that will have place for an element transition.
+static MaybeObject* EnsureHasTransitionArray(Map* map) {
+  if (map->HasTransitionArray()) return map;
 
-  if (value == heap->empty_descriptor_array()) {
-    ClearDescriptorArray(heap, mode);
-    return;
-  }
+  TransitionArray* transitions;
+  MaybeObject* maybe_transitions = TransitionArray::Allocate(0);
+  if (!maybe_transitions->To(&transitions)) return maybe_transitions;
+  map->set_transitions(transitions);
+  return transitions;
+}
 
-  Object* object = READ_FIELD(this, kInstanceDescriptorsOrBackPointerOffset);
 
-  if (object->IsDescriptorArray()) {
-    value->set_back_pointer_storage(
-        DescriptorArray::cast(object)->back_pointer_storage());
-  } else {
-    ASSERT(object->IsMap() || object->IsUndefined());
-    value->set_back_pointer_storage(object);
-  }
-
+MaybeObject* Map::SetDescriptors(DescriptorArray* value,
+                                 WriteBarrierMode mode) {
   ASSERT(!is_shared());
-  WRITE_FIELD(this, kInstanceDescriptorsOrBackPointerOffset, value);
-  CONDITIONAL_WRITE_BARRIER(
-      heap, this, kInstanceDescriptorsOrBackPointerOffset, value, mode);
+  MaybeObject* maybe_failure = EnsureHasTransitionArray(this);
+  if (maybe_failure->IsFailure()) return maybe_failure;
+
+  transitions()->set_descriptors(value, mode);
+  return this;
 }
 
 
-void Map::InitializeDescriptors(DescriptorArray* descriptors) {
+MaybeObject* Map::InitializeDescriptors(DescriptorArray* descriptors) {
   int len = descriptors->number_of_descriptors();
   ASSERT(len <= DescriptorArray::kMaxNumberOfDescriptors);
   SLOW_ASSERT(descriptors->IsSortedNoDuplicates());
@@ -3514,36 +3474,37 @@ void Map::InitializeDescriptors(DescriptorArray* descriptors) {
   }
 #endif
 
-  set_instance_descriptors(descriptors);
+  MaybeObject* maybe_failure = SetDescriptors(descriptors);
+  if (maybe_failure->IsFailure()) return maybe_failure;
 
   for (int i = 0; i < len; ++i) {
     if (descriptors->GetDetails(i).index() == len) {
       SetLastAdded(i);
-      break;
+      return this;
     }
   }
 
-  ASSERT((len == 0 && LastAdded() == kNoneAdded) ||
-         len == descriptors->GetDetails(LastAdded()).index());
+  ASSERT(len == 0 && LastAdded() == kNoneAdded);
+  return this;
 }
 
 
 SMI_ACCESSORS(Map, bit_field3, kBitField3Offset)
 
 
-void Map::ClearDescriptorArray(Heap* heap, WriteBarrierMode mode) {
+void Map::ClearTransitions(Heap* heap, WriteBarrierMode mode) {
   Object* back_pointer = GetBackPointer();
 #ifdef DEBUG
-  Object* object = READ_FIELD(this, kInstanceDescriptorsOrBackPointerOffset);
-  if (object->IsDescriptorArray()) {
+  Object* object = READ_FIELD(this, kTransitionsOrBackPointerOffset);
+  if (object->IsTransitionArray()) {
     ZapTransitions();
   } else {
     ASSERT(object->IsMap() || object->IsUndefined());
   }
 #endif
-  WRITE_FIELD(this, kInstanceDescriptorsOrBackPointerOffset, back_pointer);
+  WRITE_FIELD(this, kTransitionsOrBackPointerOffset, back_pointer);
   CONDITIONAL_WRITE_BARRIER(
-      heap, this, kInstanceDescriptorsOrBackPointerOffset, back_pointer, mode);
+      heap, this, kTransitionsOrBackPointerOffset, back_pointer, mode);
 }
 
 
@@ -3557,9 +3518,9 @@ void Map::AppendDescriptor(Descriptor* desc,
 
 
 Object* Map::GetBackPointer() {
-  Object* object = READ_FIELD(this, kInstanceDescriptorsOrBackPointerOffset);
+  Object* object = READ_FIELD(this, kTransitionsOrBackPointerOffset);
   if (object->IsDescriptorArray()) {
-    return DescriptorArray::cast(object)->back_pointer_storage();
+    return TransitionArray::cast(object)->back_pointer_storage();
   } else {
     ASSERT(object->IsMap() || object->IsUndefined());
     return object;
@@ -3573,7 +3534,8 @@ bool Map::HasElementsTransition() {
 
 
 bool Map::HasTransitionArray() {
-  return instance_descriptors()->HasTransitionArray();
+  Object* object = READ_FIELD(this, kTransitionsOrBackPointerOffset);
+  return object->IsTransitionArray();
 }
 
 
@@ -3598,35 +3560,6 @@ MaybeObject* Map::AddTransition(String* key, Map* target) {
 
 void Map::SetTransition(int transition_index, Map* target) {
   transitions()->SetTarget(transition_index, target);
-}
-
-
-// If the map is using the empty descriptor array, install a new empty
-// descriptor array that will contain an elements transition.
-static MaybeObject* AllowTransitions(Map* map) {
-  if (map->instance_descriptors()->MayContainTransitions()) return map;
-  DescriptorArray* descriptors;
-  MaybeObject* maybe_descriptors =
-      DescriptorArray::Allocate(0, DescriptorArray::CANNOT_BE_SHARED);
-  if (!maybe_descriptors->To(&descriptors)) return maybe_descriptors;
-  map->set_instance_descriptors(descriptors);
-  return descriptors;
-}
-
-
-// If the descriptor is using the empty transition array, install a new empty
-// transition array that will have place for an element transition.
-static MaybeObject* EnsureHasTransitionArray(Map* map) {
-  if (map->HasTransitionArray()) return map;
-
-  AllowTransitions(map);
-
-  TransitionArray* transitions;
-  MaybeObject* maybe_transitions = TransitionArray::Allocate(0);
-  if (!maybe_transitions->To(&transitions)) return maybe_transitions;
-  MaybeObject* added_transitions = map->set_transitions(transitions);
-  if (added_transitions->IsFailure()) return added_transitions;
-  return transitions;
 }
 
 
@@ -3667,40 +3600,32 @@ bool Map::HasPrototypeTransitions() {
 
 
 TransitionArray* Map::transitions() {
-  return instance_descriptors()->transitions();
+  ASSERT(HasTransitionArray());
+  Object* object = READ_FIELD(this, kTransitionsOrBackPointerOffset);
+  return TransitionArray::cast(object);
 }
 
 
-void Map::ClearTransitions(Heap* heap, WriteBarrierMode mode) {
-#ifdef DEBUG
-  ZapTransitions();
-#endif
-  DescriptorArray* descriptors = instance_descriptors();
-  if (descriptors->number_of_descriptors() == 0) {
-    ClearDescriptorArray(heap, mode);
-  } else {
-    descriptors->ClearTransitions();
-  }
-}
-
-
-MaybeObject* Map::set_transitions(TransitionArray* transitions_array) {
-  MaybeObject* allow_transitions = AllowTransitions(this);
-  if (allow_transitions->IsFailure()) return allow_transitions;
+void Map::set_transitions(TransitionArray* transition_array,
+                          WriteBarrierMode mode) {
+  transition_array->set_descriptors(instance_descriptors());
+  transition_array->set_back_pointer_storage(GetBackPointer());
 #ifdef DEBUG
   if (HasTransitionArray()) {
-    ASSERT(transitions() != transitions_array);
+    ASSERT(transitions() != transition_array);
     ZapTransitions();
   }
 #endif
-  instance_descriptors()->set_transitions(transitions_array);
-  return this;
+
+  WRITE_FIELD(this, kTransitionsOrBackPointerOffset, transition_array);
+  CONDITIONAL_WRITE_BARRIER(
+      GetHeap(), this, kTransitionsOrBackPointerOffset, transition_array, mode);
 }
 
 
 void Map::init_back_pointer(Object* undefined) {
   ASSERT(undefined->IsUndefined());
-  WRITE_FIELD(this, kInstanceDescriptorsOrBackPointerOffset, undefined);
+  WRITE_FIELD(this, kTransitionsOrBackPointerOffset, undefined);
 }
 
 
@@ -3708,13 +3633,13 @@ void Map::SetBackPointer(Object* value, WriteBarrierMode mode) {
   ASSERT(instance_type() >= FIRST_JS_RECEIVER_TYPE);
   ASSERT((value->IsUndefined() && GetBackPointer()->IsMap()) ||
          (value->IsMap() && GetBackPointer()->IsUndefined()));
-  Object* object = READ_FIELD(this, kInstanceDescriptorsOrBackPointerOffset);
-  if (object->IsDescriptorArray()) {
-    DescriptorArray::cast(object)->set_back_pointer_storage(value);
+  Object* object = READ_FIELD(this, kTransitionsOrBackPointerOffset);
+  if (object->IsTransitionArray()) {
+    TransitionArray::cast(object)->set_back_pointer_storage(value);
   } else {
-    WRITE_FIELD(this, kInstanceDescriptorsOrBackPointerOffset, value);
+    WRITE_FIELD(this, kTransitionsOrBackPointerOffset, value);
     CONDITIONAL_WRITE_BARRIER(
-        GetHeap(), this, kInstanceDescriptorsOrBackPointerOffset, value, mode);
+        GetHeap(), this, kTransitionsOrBackPointerOffset, value, mode);
   }
 }
 
@@ -3722,10 +3647,8 @@ void Map::SetBackPointer(Object* value, WriteBarrierMode mode) {
 // Can either be Smi (no transitions), normal transition array, or a transition
 // array with the header overwritten as a Smi (thus iterating).
 TransitionArray* Map::unchecked_transition_array() {
-  ASSERT(HasTransitionArray());
-  Object* object = *HeapObject::RawField(instance_descriptors(),
-                                         DescriptorArray::kTransitionsOffset);
-  ASSERT(!object->IsSmi());
+  Object* object = *HeapObject::RawField(this,
+                                         Map::kTransitionsOrBackPointerOffset);
   TransitionArray* transition_array = static_cast<TransitionArray*>(object);
   return transition_array;
 }
@@ -3746,10 +3669,10 @@ ACCESSORS(JSFunction, literals_or_bindings, FixedArray, kLiteralsOffset)
 ACCESSORS(JSFunction, next_function_link, Object, kNextFunctionLinkOffset)
 
 ACCESSORS(GlobalObject, builtins, JSBuiltinsObject, kBuiltinsOffset)
-ACCESSORS(GlobalObject, global_context, Context, kGlobalContextOffset)
+ACCESSORS(GlobalObject, native_context, Context, kNativeContextOffset)
 ACCESSORS(GlobalObject, global_receiver, JSObject, kGlobalReceiverOffset)
 
-ACCESSORS(JSGlobalProxy, context, Object, kContextOffset)
+ACCESSORS(JSGlobalProxy, native_context, Object, kNativeContextOffset)
 
 ACCESSORS(AccessorInfo, getter, Object, kGetterOffset)
 ACCESSORS(AccessorInfo, setter, Object, kSetterOffset)
@@ -4233,7 +4156,7 @@ void SharedFunctionInfo::TryReenableOptimization() {
 
 
 bool JSFunction::IsBuiltin() {
-  return context()->global()->IsJSBuiltinsObject();
+  return context()->global_object()->IsJSBuiltinsObject();
 }
 
 
@@ -4301,10 +4224,10 @@ void JSFunction::ReplaceCode(Code* code) {
   // Add/remove the function from the list of optimized functions for this
   // context based on the state change.
   if (!was_optimized && is_optimized) {
-    context()->global_context()->AddOptimizedFunction(this);
+    context()->native_context()->AddOptimizedFunction(this);
   }
   if (was_optimized && !is_optimized) {
-    context()->global_context()->RemoveOptimizedFunction(this);
+    context()->native_context()->RemoveOptimizedFunction(this);
   }
 }
 
@@ -4347,12 +4270,12 @@ void JSFunction::set_initial_map(Map* value) {
 
 MaybeObject* JSFunction::set_initial_map_and_cache_transitions(
     Map* initial_map) {
-  Context* global_context = context()->global_context();
+  Context* native_context = context()->native_context();
   Object* array_function =
-      global_context->get(Context::ARRAY_FUNCTION_INDEX);
+      native_context->get(Context::ARRAY_FUNCTION_INDEX);
   if (array_function->IsJSFunction() &&
       this == JSFunction::cast(array_function)) {
-    // Replace all of the cached initial array maps in the global context with
+    // Replace all of the cached initial array maps in the native context with
     // the appropriate transitioned elements kind maps.
     Heap* heap = GetHeap();
     MaybeObject* maybe_maps =
@@ -4374,7 +4297,7 @@ MaybeObject* JSFunction::set_initial_map_and_cache_transitions(
       maps->set(next_kind, new_map);
       current_map = new_map;
     }
-    global_context->set_js_array_maps(maps);
+    native_context->set_js_array_maps(maps);
   }
   set_initial_map(initial_map);
   return this;
@@ -5240,13 +5163,13 @@ MaybeObject* FixedDoubleArray::Copy() {
 }
 
 
-void TypeFeedbackCells::SetAstId(int index, Smi* id) {
-  set(1 + index * 2, id);
+void TypeFeedbackCells::SetAstId(int index, TypeFeedbackId id) {
+  set(1 + index * 2, Smi::FromInt(id.ToInt()));
 }
 
 
-Smi* TypeFeedbackCells::AstId(int index) {
-  return Smi::cast(get(1 + index * 2));
+TypeFeedbackId TypeFeedbackCells::AstId(int index) {
+  return TypeFeedbackId(Smi::cast(get(1 + index * 2))->value());
 }
 
 
@@ -5275,9 +5198,77 @@ Object* TypeFeedbackCells::RawUninitializedSentinel(Heap* heap) {
 }
 
 
-SMI_ACCESSORS(TypeFeedbackInfo, ic_total_count, kIcTotalCountOffset)
-SMI_ACCESSORS(TypeFeedbackInfo, ic_with_type_info_count,
-              kIcWithTypeinfoCountOffset)
+int TypeFeedbackInfo::ic_total_count() {
+  int current = Smi::cast(READ_FIELD(this, kStorage1Offset))->value();
+  return ICTotalCountField::decode(current);
+}
+
+
+void TypeFeedbackInfo::set_ic_total_count(int count) {
+  int value = Smi::cast(READ_FIELD(this, kStorage1Offset))->value();
+  value = ICTotalCountField::update(value,
+                                    ICTotalCountField::decode(count));
+  WRITE_FIELD(this, kStorage1Offset, Smi::FromInt(value));
+}
+
+
+int TypeFeedbackInfo::ic_with_type_info_count() {
+  int current = Smi::cast(READ_FIELD(this, kStorage2Offset))->value();
+  return ICsWithTypeInfoCountField::decode(current);
+}
+
+
+void TypeFeedbackInfo::change_ic_with_type_info_count(int delta) {
+  int value = Smi::cast(READ_FIELD(this, kStorage2Offset))->value();
+  int current_count = ICsWithTypeInfoCountField::decode(value);
+  value =
+      ICsWithTypeInfoCountField::update(value, current_count + delta);
+  WRITE_FIELD(this, kStorage2Offset, Smi::FromInt(value));
+}
+
+
+void TypeFeedbackInfo::initialize_storage() {
+  WRITE_FIELD(this, kStorage1Offset, Smi::FromInt(0));
+  WRITE_FIELD(this, kStorage2Offset, Smi::FromInt(0));
+}
+
+
+void TypeFeedbackInfo::change_own_type_change_checksum() {
+  int value = Smi::cast(READ_FIELD(this, kStorage1Offset))->value();
+  int checksum = OwnTypeChangeChecksum::decode(value);
+  checksum = (checksum + 1) % (1 << kTypeChangeChecksumBits);
+  value = OwnTypeChangeChecksum::update(value, checksum);
+  // Ensure packed bit field is in Smi range.
+  if (value > Smi::kMaxValue) value |= Smi::kMinValue;
+  if (value < Smi::kMinValue) value &= ~Smi::kMinValue;
+  WRITE_FIELD(this, kStorage1Offset, Smi::FromInt(value));
+}
+
+
+void TypeFeedbackInfo::set_inlined_type_change_checksum(int checksum) {
+  int value = Smi::cast(READ_FIELD(this, kStorage2Offset))->value();
+  int mask = (1 << kTypeChangeChecksumBits) - 1;
+  value = InlinedTypeChangeChecksum::update(value, checksum & mask);
+  // Ensure packed bit field is in Smi range.
+  if (value > Smi::kMaxValue) value |= Smi::kMinValue;
+  if (value < Smi::kMinValue) value &= ~Smi::kMinValue;
+  WRITE_FIELD(this, kStorage2Offset, Smi::FromInt(value));
+}
+
+
+int TypeFeedbackInfo::own_type_change_checksum() {
+  int value = Smi::cast(READ_FIELD(this, kStorage1Offset))->value();
+  return OwnTypeChangeChecksum::decode(value);
+}
+
+
+bool TypeFeedbackInfo::matches_inlined_type_change_checksum(int checksum) {
+  int value = Smi::cast(READ_FIELD(this, kStorage2Offset))->value();
+  int mask = (1 << kTypeChangeChecksumBits) - 1;
+  return InlinedTypeChangeChecksum::decode(value) == (checksum & mask);
+}
+
+
 ACCESSORS(TypeFeedbackInfo, type_feedback_cells, TypeFeedbackCells,
           kTypeFeedbackCellsOffset)
 
@@ -5347,14 +5338,13 @@ void ExternalTwoByteString::ExternalTwoByteStringIterateBody() {
       reinterpret_cast<Resource**>(FIELD_ADDR(this, kResourceOffset)));
 }
 
-#define SLOT_ADDR(obj, offset) \
-  reinterpret_cast<Object**>((obj)->address() + offset)
 
 template<int start_offset, int end_offset, int size>
 void FixedBodyDescriptor<start_offset, end_offset, size>::IterateBody(
     HeapObject* obj,
     ObjectVisitor* v) {
-    v->VisitPointers(SLOT_ADDR(obj, start_offset), SLOT_ADDR(obj, end_offset));
+    v->VisitPointers(HeapObject::RawField(obj, start_offset),
+                     HeapObject::RawField(obj, end_offset));
 }
 
 
@@ -5362,10 +5352,10 @@ template<int start_offset>
 void FlexibleBodyDescriptor<start_offset>::IterateBody(HeapObject* obj,
                                                        int object_size,
                                                        ObjectVisitor* v) {
-  v->VisitPointers(SLOT_ADDR(obj, start_offset), SLOT_ADDR(obj, object_size));
+  v->VisitPointers(HeapObject::RawField(obj, start_offset),
+                   HeapObject::RawField(obj, object_size));
 }
 
-#undef SLOT_ADDR
 
 #undef TYPE_CHECKER
 #undef CAST_ACCESSOR

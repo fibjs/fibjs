@@ -73,7 +73,7 @@ class CompilationInfo {
   v8::Extension* extension() const { return extension_; }
   ScriptDataImpl* pre_parse_data() const { return pre_parse_data_; }
   Handle<Context> calling_context() const { return calling_context_; }
-  int osr_ast_id() const { return osr_ast_id_; }
+  BailoutId osr_ast_id() const { return osr_ast_id_; }
 
   void MarkAsEval() {
     ASSERT(!is_lazy());
@@ -124,10 +124,6 @@ class CompilationInfo {
     ASSERT(is_eval());
     calling_context_ = context;
   }
-  void SetOsrAstId(int osr_ast_id) {
-    ASSERT(IsOptimizing());
-    osr_ast_id_ = osr_ast_id;
-  }
   void MarkCompilingForDebugging(Handle<Code> current_code) {
     ASSERT(mode_ != OPTIMIZE);
     ASSERT(current_code->kind() == Code::FUNCTION);
@@ -143,17 +139,18 @@ class CompilationInfo {
   }
 
   bool has_global_object() const {
-    return !closure().is_null() && (closure()->context()->global() != NULL);
+    return !closure().is_null() &&
+        (closure()->context()->global_object() != NULL);
   }
 
   GlobalObject* global_object() const {
-    return has_global_object() ? closure()->context()->global() : NULL;
+    return has_global_object() ? closure()->context()->global_object() : NULL;
   }
 
   // Accessors for the different compilation modes.
   bool IsOptimizing() const { return mode_ == OPTIMIZE; }
   bool IsOptimizable() const { return mode_ == BASE; }
-  void SetOptimizing(int osr_ast_id) {
+  void SetOptimizing(BailoutId osr_ast_id) {
     SetMode(OPTIMIZE);
     osr_ast_id_ = osr_ast_id;
   }
@@ -267,7 +264,7 @@ class CompilationInfo {
 
   // Compilation mode flag and whether deoptimization is allowed.
   Mode mode_;
-  int osr_ast_id_;
+  BailoutId osr_ast_id_;
 
   // The zone from which the compilation pipeline working on this
   // CompilationInfo allocates.
@@ -414,10 +411,6 @@ class OptimizingCompiler: public ZoneObject {
 
 class Compiler : public AllStatic {
  public:
-  // Default maximum number of function optimization attempts before we
-  // give up.
-  static const int kDefaultMaxOptCount = 10;
-
   static const int kMaxInliningLevels = 3;
 
   // Call count before primitive functions trigger their own optimization.

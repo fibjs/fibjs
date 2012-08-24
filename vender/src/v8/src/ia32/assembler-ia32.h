@@ -888,8 +888,8 @@ class Assembler : public AssemblerBase {
   void call(const Operand& adr);
   int CallSize(Handle<Code> code, RelocInfo::Mode mode);
   void call(Handle<Code> code,
-            RelocInfo::Mode rmode = RelocInfo::CODE_TARGET,
-            unsigned ast_id = kNoASTId);
+            RelocInfo::Mode rmode,
+            TypeFeedbackId id = TypeFeedbackId::None());
 
   // Jumps
   // unconditional jump to L
@@ -983,6 +983,7 @@ class Assembler : public AssemblerBase {
   // SSE2 instructions
   void cvttss2si(Register dst, const Operand& src);
   void cvttsd2si(Register dst, const Operand& src);
+  void cvtsd2si(Register dst, XMMRegister src);
 
   void cvtsi2sd(XMMRegister dst, Register src) { cvtsi2sd(dst, Operand(src)); }
   void cvtsi2sd(XMMRegister dst, const Operand& src);
@@ -998,6 +999,7 @@ class Assembler : public AssemblerBase {
   void sqrtsd(XMMRegister dst, XMMRegister src);
 
   void andpd(XMMRegister dst, XMMRegister src);
+  void orpd(XMMRegister dst, XMMRegister src);
 
   void ucomisd(XMMRegister dst, XMMRegister src);
   void ucomisd(XMMRegister dst, const Operand& src);
@@ -1142,7 +1144,7 @@ class Assembler : public AssemblerBase {
   inline void emit(Handle<Object> handle);
   inline void emit(uint32_t x,
                    RelocInfo::Mode rmode,
-                   unsigned ast_id = kNoASTId);
+                   TypeFeedbackId id = TypeFeedbackId::None());
   inline void emit(const Immediate& x);
   inline void emit_w(const Immediate& x);
 
