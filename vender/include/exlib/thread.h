@@ -23,15 +23,15 @@ namespace exlib
 
 #ifdef _WIN32
 
-class Mutex
+class OSMutex
 {
 public:
-	Mutex()
+	OSMutex()
 	{
 		InitializeCriticalSection(&cs_);
 	}
 
-	~Mutex()
+	~OSMutex()
 	{
 		DeleteCriticalSection(&cs_);
 	}
@@ -59,10 +59,10 @@ private:
 
 #else
 
-class Mutex
+class OSMutex
 {
 public:
-	Mutex()
+	OSMutex()
 	{
 		pthread_mutexattr_t attrs;
 		pthread_mutexattr_init(&attrs);
@@ -70,7 +70,7 @@ public:
 		pthread_mutex_init(&mutex_, &attrs);
 	}
 
-	~Mutex()
+	~OSMutex()
 	{
 		pthread_mutex_destroy(&mutex_);
 	}
@@ -98,11 +98,11 @@ private:
 
 #endif
 
-class Thread
+class OSThread
 {
 public:
-	Thread();
-	virtual ~Thread();
+	OSThread();
+	virtual ~OSThread();
 
 	void start();
 	void detach();

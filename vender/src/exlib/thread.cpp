@@ -13,55 +13,55 @@ namespace exlib
 
 static void* ThreadEntry(void* arg)
 {
-    Thread* thread = reinterpret_cast<Thread*>(arg);
+	OSThread* thread = reinterpret_cast<OSThread*>(arg);
     thread->Run();
     return NULL;
 }
 
-Thread::Thread() : thread_(0)
+OSThread::OSThread() : thread_(0)
 {
 }
 
-Thread::~Thread()
+OSThread::~OSThread()
 {
     detach();
 }
 
 #ifdef Windows
 
-void Thread::detach()
+void OSThread::detach()
 {
     if(thread_)
         CloseHandle(thread_);
     thread_ = NULL;
 }
 
-void Thread::start()
+void OSThread::start()
 {
     DWORD threadid;
     thread_ = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadEntry, this, 0, &threadid);
 }
 
-void Thread::join()
+void OSThread::join()
 {
     WaitForSingleObject(thread_, INFINITE);
 }
 
 #else
 
-void Thread::detach()
+void OSThread::detach()
 {
     if(thread_)
         pthread_detach(thread_);
     thread_ = (pthread_t)NULL;
 }
 
-void Thread::start()
+void OSThread::start()
 {
     pthread_create(&thread_, NULL, ThreadEntry, this);
 }
 
-void Thread::join()
+void OSThread::join()
 {
     pthread_join(thread_, NULL);
 }

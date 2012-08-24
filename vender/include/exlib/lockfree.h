@@ -115,9 +115,9 @@ public:
                 return p;
 
             if(nCount > 55000)
-                Thread::Sleep(1);
+            	OSThread::Sleep(1);
             else if(nCount > 30000)
-                Thread::Sleep(0);
+            	OSThread::Sleep(0);
         }
 
         return NULL;
