@@ -95,18 +95,18 @@ public:
 
 		while (1)
 		{
-			if (nCount < 6000)
+			if (nCount < 20000)
 				nCount++;
 
 			T* p = get();
 			if (p != NULL)
 				return p;
 
-			if (nCount > 4100)
+			if (nCount > 11000)
 				Sleep(100);
-			else if (nCount > 4000)
-				Sleep(10);
-			else if (nCount > 3000)
+			else if (nCount > 10000)
+				Sleep(1);
+			else if (nCount > 1000)
 				Sleep(0);
 		}
 
