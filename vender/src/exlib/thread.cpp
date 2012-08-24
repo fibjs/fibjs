@@ -27,7 +27,7 @@ OSThread::~OSThread()
     detach();
 }
 
-#ifdef Windows
+#ifdef _WIN32
 
 void OSThread::detach()
 {

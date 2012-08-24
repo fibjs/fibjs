@@ -7,7 +7,9 @@
  */
 
 #include "utils.h"
-#include "thread.h"
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 #ifndef _ex_lockfree_h__
 #define _ex_lockfree_h__
@@ -115,13 +117,23 @@ public:
                 return p;
 
             if(nCount > 55000)
-            	OSThread::Sleep(1);
+            	Sleep(1);
             else if(nCount > 30000)
-            	OSThread::Sleep(0);
+            	Sleep(0);
         }
 
         return NULL;
     }
+
+private:
+	static void Sleep(int ms)
+	{
+#ifdef _WIN32
+		::Sleep(ms);
+#else
+		::usleep(1000 * ms);
+#endif
+	}
 
 private:
     volatile T* m_first;

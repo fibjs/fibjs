@@ -6,12 +6,11 @@
  *  lion@9465.net
  */
 
-#include "../osconfig.h"
-
-#ifdef Windows
+#ifdef _WIN32
 #include <windows.h>
 #else
 #include <pthread.h>
+#include <semaphore.h>
 #include <unistd.h>
 #endif
 
@@ -36,16 +35,14 @@ public:
 		DeleteCriticalSection(&cs_);
 	}
 
-	int Lock()
+	void Lock()
 	{
 		EnterCriticalSection(&cs_);
-		return 0;
 	}
 
-	int Unlock()
+	void Unlock()
 	{
 		LeaveCriticalSection(&cs_);
-		return 0;
 	}
 
 	bool TryLock()
@@ -55,6 +52,38 @@ public:
 
 private:
 	CRITICAL_SECTION cs_;
+};
+
+class OSSemaphore
+{
+public:
+	OSSemaphore(int start_val = 0)
+	{
+		m_handle = ::CreateSemaphore(NULL, start_val, 1, NULL);
+	}
+
+	~OSSemaphore()
+	{
+		CloseHandle(m_handle);
+	}
+
+	void Post()
+	{
+		ReleaseSemaphore(m_handle, 1, NULL);
+	}
+
+	void Wait()
+	{
+		WaitForSingleObject(m_handle, INFINITE);
+	}
+
+	bool TryWait()
+	{
+		return WaitForSingleObject(m_handle, 0) == WAIT_OBJECT_0;
+	}
+
+private:
+	HANDLE m_handle;
 };
 
 #else
@@ -75,16 +104,14 @@ public:
 		pthread_mutex_destroy(&mutex_);
 	}
 
-	int Lock()
+	void Lock()
 	{
-		int result = pthread_mutex_lock(&mutex_);
-		return result;
+		pthread_mutex_lock(&mutex_);
 	}
 
-	int Unlock()
+	void Unlock()
 	{
-		int result = pthread_mutex_unlock(&mutex_);
-		return result;
+		pthread_mutex_unlock(&mutex_);
 	}
 
 	bool TryLock()
@@ -94,6 +121,38 @@ public:
 
 private:
 	pthread_mutex_t mutex_;
+};
+
+class OSSemaphore
+{
+public:
+	OSSemaphore(int start_val = 0)
+	{
+		sem_init(&m_sem, 0, start_val);
+	}
+
+	~OSSemaphore()
+	{
+		sem_destroy(&m_sem);
+	}
+
+	void Post()
+	{
+		sem_post(&m_sem);
+	}
+
+	void Wait()
+	{
+		sem_wait(&m_sem);
+	}
+
+	bool TryWait()
+	{
+		return sem_trywait(&m_sem) == 0;
+	}
+
+private:
+	sem_t m_sem;
 };
 
 #endif
@@ -111,7 +170,7 @@ public:
 
 	static void Sleep(int ms)
 	{
-#ifdef Windows
+#ifdef _WIN32
 		::Sleep(ms);
 #else
 		::usleep(1000 * ms);
@@ -119,7 +178,7 @@ public:
 	}
 
 private:
-#ifdef Windows
+#ifdef _WIN32
 	HANDLE thread_;
 #else
 	pthread_t thread_;
