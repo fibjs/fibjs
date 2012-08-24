@@ -131,7 +131,8 @@ function parserIDL(fname) {
 		"Object" : "v8::Handle<v8::Object>",
 		"Array" : "v8::Handle<v8::Array>",
 		"Function" : "v8::Handle<v8::Function>",
-		"Value" : "v8::Handle<v8::Value>"
+		"Value" : "v8::Handle<v8::Value>",
+		"Variant" : "Variant"
 	}, aTypeMap = {
 		"Integer" : "int32_t",
 		"Long" : "int64_t",
@@ -142,7 +143,8 @@ function parserIDL(fname) {
 		"Object" : "v8::Handle<v8::Object>",
 		"Array" : "v8::Handle<v8::Array>",
 		"Function" : "v8::Handle<v8::Function>",
-		"Value" : "v8::Handle<v8::Value>"
+		"Value" : "v8::Handle<v8::Value>",
+		"Variant" : "Variant"
 	};
 
 	f = io.readFile(fname).replace(/\r/g, "").split("\n");

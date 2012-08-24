@@ -46,6 +46,12 @@ public:
 		operator=(v);
 	}
 
+	Variant(const v8::Handle<v8::Value>& v) :
+			m_type(VT_Null)
+	{
+		operator=(v);
+	}
+
 	~Variant()
 	{
 		clear();

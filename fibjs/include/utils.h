@@ -320,6 +320,12 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, date_t& d)
 	return 0;
 }
 
+inline result_t SafeGetValue(v8::Handle<v8::Value> v, Variant& d)
+{
+	d = v;
+	return 0;
+}
+
 template<class T>
 inline result_t SafeGetValue(v8::Handle<v8::Value> v, obj_ptr<T>& vr)
 {
@@ -396,6 +402,11 @@ inline v8::Handle<v8::Value> ReturnValue(std::string& str)
 }
 
 inline v8::Handle<v8::Value> ReturnValue(date_t& v)
+{
+	return v;
+}
+
+inline v8::Handle<v8::Value> ReturnValue(Variant& v)
 {
 	return v;
 }
