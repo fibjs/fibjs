@@ -57,10 +57,7 @@ private:
 class OSSemaphore
 {
 public:
-	OSSemaphore(int start_val = 0)
-	{
-		m_handle = ::CreateSemaphore(NULL, start_val, 1, NULL);
-	}
+	OSSemaphore(int start_val = 0);
 
 	~OSSemaphore()
 	{

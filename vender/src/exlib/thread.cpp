@@ -29,6 +29,11 @@ OSThread::~OSThread()
 
 #ifdef _WIN32
 
+OSSemaphore::OSSemaphore(int start_val)
+{
+	m_handle = ::CreateSemaphore(NULL, start_val, 1, NULL);
+}
+
 void OSThread::detach()
 {
     if(thread_)
