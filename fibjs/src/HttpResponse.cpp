@@ -132,6 +132,8 @@ public:
 	}
 } s_init_status_line;
 
+#define TINY_SIZE	32768
+
 result_t HttpResponse::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 {
 	class asyncSend: public asyncState
@@ -140,10 +142,31 @@ result_t HttpResponse::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 		asyncSend(HttpResponse* pThis, Stream_base* stm, exlib::AsyncEvent* ac) :
 				asyncState(ac), m_pThis(pThis), m_stm(stm)
 		{
-			set(begin);
+			m_contentLength = 0;
+			m_pThis->m_message.get_contentLength(m_contentLength);
+
+			if (m_contentLength > 0 && m_contentLength < TINY_SIZE)
+				set(tinybody);
+			else
+				set(header);
 		}
 
-		static int begin(asyncState* pState, int n)
+		static int tinybody(asyncState* pState, int n)
+		{
+			asyncSend* pThis = (asyncSend*) pState;
+			obj_ptr<SeekableStream_base> _body;
+
+			result_t hr = pThis->m_pThis->get_body(_body);
+			if (hr < 0)
+				return hr;
+
+			pThis->set(header);
+
+			_body->rewind();
+			return _body->read((int32_t)pThis->m_contentLength, pThis->m_buffer, pThis);
+		}
+
+		static int header(asyncState* pState, int n)
 		{
 			asyncSend* pThis = (asyncSend*) pState;
 			int pos = shortcut[pThis->m_pThis->m_status / 100 - 1]
@@ -153,9 +176,18 @@ result_t HttpResponse::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 			std::string m_strBuf;
 			char *pBuf;
 
+			if (pThis->m_buffer != NULL)
+			{
+				pThis->m_buffer->toString(pThis->m_body);
+				pThis->m_buffer.Release();
+
+				if (pThis->m_contentLength != (int) pThis->m_body.length())
+					return CALL_E_INVALID_DATA;
+			}
+
 			sz1 = pThis->m_pThis->m_message.size();
 			pThis->m_pThis->get_protocol(m_strBuf);
-			m_strBuf.resize(sz + sz1);
+			m_strBuf.resize(sz + sz1 + pThis->m_body.length());
 
 			pBuf = &m_strBuf[8];
 			*pBuf++ = ' ';
@@ -164,20 +196,25 @@ result_t HttpResponse::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 			*pBuf++ = '\r';
 			*pBuf++ = '\n';
 
-			pThis->m_pThis->m_message.getData(pBuf, sz1);
+			pBuf += pThis->m_pThis->m_message.getData(pBuf, sz1);
+
+			if (pThis->m_body.length() > 0)
+				memcpy(pBuf, pThis->m_body.c_str(), pThis->m_body.length());
+
 			pThis->m_buffer = new Buffer(m_strBuf);
 
-			pThis->set(header);
+			if (pThis->m_contentLength == 0 || pThis->m_body.length() > 0)
+				pThis->done();
+			else
+				pThis->set(body);
 
 			return pThis->m_stm->write(pThis->m_buffer, pThis);
 		}
 
-		static int header(asyncState* pState, int n)
+		static int body(asyncState* pState, int n)
 		{
 			asyncSend* pThis = (asyncSend*) pState;
 
-			pThis->m_contentLength = 0;
-			pThis->m_pThis->m_message.get_contentLength(pThis->m_contentLength);
 			if (pThis->m_contentLength == 0)
 				return pThis->done();
 
@@ -191,12 +228,12 @@ result_t HttpResponse::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 
 			obj_ptr<Stream_base> stm(pThis->m_stm);
 
-			pThis->set(body);
+			pThis->set(body_ok);
 			return _body->copyTo(stm, pThis->m_contentLength, pThis->m_copySize,
 					pThis);
 		}
 
-		static int body(asyncState* pState, int n)
+		static int body_ok(asyncState* pState, int n)
 		{
 			asyncSend* pThis = (asyncSend*) pState;
 
@@ -212,6 +249,7 @@ result_t HttpResponse::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 		obj_ptr<Buffer_base> m_buffer;
 		int64_t m_contentLength;
 		int64_t m_copySize;
+		std::string m_body;
 	};
 
 	if (!ac)
