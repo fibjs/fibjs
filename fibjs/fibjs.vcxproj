@@ -47,6 +47,7 @@
     <ClCompile Include="src\inetAddr.cpp" />
     <ClCompile Include="src\io.cpp" />
     <ClCompile Include="src\Lock.cpp" />
+    <ClCompile Include="src\Map.cpp" />
     <ClCompile Include="src\MemoryCloneStream.cpp" />
     <ClCompile Include="src\MemoryStream.cpp" />
     <ClCompile Include="src\module.cpp" />
@@ -101,6 +102,7 @@
     <ClInclude Include="include\ifs\assert.h" />
     <ClInclude Include="include\ifs\Buffer.h" />
     <ClInclude Include="include\ifs\BufferedStream.h" />
+    <ClInclude Include="include\ifs\collection.h" />
     <ClInclude Include="include\ifs\Condition.h" />
     <ClInclude Include="include\ifs\console.h" />
     <ClInclude Include="include\ifs\coroutine.h" />
@@ -123,7 +125,9 @@
     <ClInclude Include="include\ifs\HttpResponse.h" />
     <ClInclude Include="include\ifs\io.h" />
     <ClInclude Include="include\ifs\Lock.h" />
+    <ClInclude Include="include\ifs\Map.h" />
     <ClInclude Include="include\ifs\MemoryStream.h" />
+    <ClInclude Include="include\ifs\Message.h" />
     <ClInclude Include="include\ifs\module.h" />
     <ClInclude Include="include\ifs\MySQL.h" />
     <ClInclude Include="include\ifs\net.h" />
@@ -148,6 +152,7 @@
     <ClInclude Include="include\ifs\zmqSocket.h" />
     <ClInclude Include="include\inetAddr.h" />
     <ClInclude Include="include\Lock.h" />
+    <ClInclude Include="include\Map.h" />
     <ClInclude Include="include\MemoryStream.h" />
     <ClInclude Include="include\mysql.h" />
     <ClInclude Include="include\object.h" />
@@ -158,7 +163,7 @@
     <ClInclude Include="include\QuickArray.h" />
     <ClInclude Include="include\Regex.h" />
     <ClInclude Include="include\Runtime.h" />
-    <ClInclude Include="include\Semaphore.h" />
+    <ClInclude Include="include\Semaph.h" />
     <ClInclude Include="include\Socket.h" />
     <ClInclude Include="include\SQLite.h" />
     <ClInclude Include="include\Stat.h" />

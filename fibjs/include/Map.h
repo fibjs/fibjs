@@ -1,0 +1,41 @@
+/*
+ * Map.h
+ *
+ *  Created on: Aug 23, 2012
+ *      Author: lion
+ */
+
+#ifndef MAP_H_
+#define MAP_H_
+
+#include "ifs/Map.h"
+#include "map"
+
+namespace fibjs
+{
+
+class Map: public Map_base
+{
+public:
+	Map();
+	virtual ~Map();
+
+public:
+	// Map_base
+	virtual result_t get_size(int32_t& retVal);
+	virtual result_t clear();
+	virtual result_t has(const char* name, bool& retVal);
+	virtual result_t get(const char* name, Variant& retVal);
+	virtual result_t put(const char* name, Variant value);
+	virtual result_t put(v8::Handle<v8::Object> map);
+	virtual result_t remove(const char* name);
+	virtual result_t isEmpty(bool& retVal);
+	virtual result_t _named_getter(const char* property, Variant& retVal);
+	virtual result_t _named_setter(const char* property, Variant newVal);
+
+private:
+	std::map<std::string, Variant> m_datas;
+};
+
+} /* namespace fibjs */
+#endif /* MAP_H_ */

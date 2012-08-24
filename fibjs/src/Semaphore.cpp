@@ -5,7 +5,7 @@
  *      Author: lion
  */
 
-#include "Semaphore.h"
+#include "Semaph.h"
 
 namespace fibjs
 {
