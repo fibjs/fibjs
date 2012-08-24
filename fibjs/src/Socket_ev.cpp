@@ -12,6 +12,7 @@
 #include "Buffer.h"
 #include "ev.h"
 #include <fcntl.h>
+#include <exlib/thread.h>
 
 namespace fibjs
 {

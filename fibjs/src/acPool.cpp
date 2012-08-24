@@ -1,8 +1,8 @@
 #include "ifs/os.h"
 #include <log4cpp/Category.hh>
+#include <exlib/thread.h>
 
 #ifdef _WIN32
-#include <windows.h>
 
 static LARGE_INTEGER systemFrequency;
 
