@@ -19,7 +19,8 @@ namespace fibjs
 
 class Socket: public Socket_base
 {
-	EVENT_SUPPORT();
+EVENT_SUPPORT()
+	;
 
 public:
 	Socket() :
@@ -83,13 +84,19 @@ public:
 	virtual result_t onclose(v8::Handle<v8::Function> func);
 	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 			exlib::AsyncEvent* ac);
+	virtual result_t asyncRecv(int32_t bytes);
+	virtual result_t onrecv(v8::Handle<v8::Function> func);
 	virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal);
 	virtual result_t send(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac);
+	virtual result_t asyncSend(obj_ptr<Buffer_base>& data);
+	virtual result_t onsend(v8::Handle<v8::Function> func);
 	virtual result_t sendto(obj_ptr<Buffer_base>& data, const char* host,
 			int32_t port);
 
 public:
 	result_t create(int32_t family, int32_t type);
+	result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
+			exlib::AsyncEvent* ac, bool bRead);
 
 private:
 	SOCKET m_sock;

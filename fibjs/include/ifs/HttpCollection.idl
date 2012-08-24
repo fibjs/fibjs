@@ -19,7 +19,7 @@ class HttpCollection : object
 
 	/*! @brief 查询指定键值的全部值
 	 * @param name 指定要查询的键值
-	 * @return 返回键值所对应全部值的数组
+	 * @return 返回键值所对应全部值的数组，若数据不存在，则返回 null
 	 */
 	Array all(String name);
 

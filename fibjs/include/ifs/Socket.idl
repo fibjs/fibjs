@@ -102,11 +102,27 @@ class Socket : Stream
 	 */
 	onclose(Function func);
 
-	/*! @brief 从连接读取指定大小的数据，此方法等效于 read 方法
-	 * @param bytes 指定要读取的数据量，缺省为读取剩余全部数据
+	/*! @brief 从连接读取指定大小的数据，不同于 read 方法，recv 并不保证读完要求的数据，而是在读取到数据后立即返回
+	 * @param bytes 指定要读取的数据量，缺省读取任意尺寸的数据
 	 * @return 返回从连接读取的数据
 	 */
 	Buffer recv(Integer bytes = -1) async;
+
+	/*! @brief 从流内异步读取指定大小的数据，完成后触发事件 "read"
+	 * @param bytes 指定要读取的数据量，缺省读取任意尺寸的数据
+	 */
+	asyncRecv(Integer bytes = -1);
+
+	/*! @brief 注册 "recv" 事件，等同于 on("recv", func);
+	 * @param func 事件处理函数
+	 *
+	 * "recv" 事件定义如下，参数为读取的数据：
+	 * @code
+	 * function on_recv(data)
+	 * {}
+	 * @endcode
+	 */
+	onrecv(Function func);
 
 	Buffer recvFrom(Integer bytes = -1);
 
@@ -114,6 +130,22 @@ class Socket : Stream
 	 * @param data 给定要写入的数据
 	 */
 	send(Buffer data) async;
+
+	/*! @brief 将给定的数据异步写入流，完成后触发事件 "write"
+	 * @param data 给定要写入的数据
+	 */
+	asyncSend(Buffer data);
+
+	/*! @brief 注册 "send" 事件，等同于 on("send", func);
+	 * @param func 事件处理函数
+	 *
+	 * "send" 事件定义如下：
+	 * @code
+	 * function on_send()
+	 * {}
+	 * @endcode
+	 */
+	onsend(Function func);
 
 	sendto(Buffer data, String host, Integer port);
 };

@@ -26,7 +26,7 @@ result_t MemoryStream::CloneStream::read(int32_t bytes,
 
 	if (bytes > 0)
 	{
-		if (m_pos == 0)
+		if (m_pos == 0 && bytes == sz)
 		{
 			strBuf = m_buffer;
 			m_pos = (int) m_buffer.length();

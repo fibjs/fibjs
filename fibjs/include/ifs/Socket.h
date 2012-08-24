@@ -45,8 +45,12 @@ public:
 	virtual result_t asyncClose() = 0;
 	virtual result_t onclose(v8::Handle<v8::Function> func) = 0;
 	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t asyncRecv(int32_t bytes) = 0;
+	virtual result_t onrecv(v8::Handle<v8::Function> func) = 0;
 	virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t send(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac) = 0;
+	virtual result_t asyncSend(obj_ptr<Buffer_base>& data) = 0;
+	virtual result_t onsend(v8::Handle<v8::Function> func) = 0;
 	virtual result_t sendto(obj_ptr<Buffer_base>& data, const char* host, int32_t port) = 0;
 
 	DECLARE_CLASSINFO(Socket_base);
@@ -86,8 +90,12 @@ public:
 	static v8::Handle<v8::Value> s_asyncClose(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_onclose(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_recv(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_asyncRecv(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_onrecv(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_recvFrom(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_send(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_asyncSend(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_onsend(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_sendto(const v8::Arguments& args);
 
 public:
@@ -126,8 +134,12 @@ namespace fibjs
 			{"asyncClose", s_asyncClose},
 			{"onclose", s_onclose},
 			{"recv", s_recv},
+			{"asyncRecv", s_asyncRecv},
+			{"onrecv", s_onrecv},
 			{"recvFrom", s_recvFrom},
 			{"send", s_send},
+			{"asyncSend", s_asyncSend},
+			{"onsend", s_onsend},
 			{"sendto", s_sendto}
 		};
 
@@ -144,7 +156,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Socket", s__new, 
-			15, s_method, 0, NULL, 6, s_property, NULL, NULL,
+			19, s_method, 0, NULL, 6, s_property, NULL, NULL,
 			&Stream_base::class_info()
 		};
 
@@ -389,6 +401,30 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
+	inline v8::Handle<v8::Value> Socket_base::s_asyncRecv(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Socket_base);
+		METHOD_ENTER(1, 0);
+
+		OPT_ARG(int32_t, 0, -1);
+
+		hr = pInst->asyncRecv(v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Socket_base::s_onrecv(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Socket_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Function>, 0);
+
+		hr = pInst->onrecv(v0);
+
+		METHOD_VOID();
+	}
+
 	inline v8::Handle<v8::Value> Socket_base::s_recvFrom(const v8::Arguments& args)
 	{
 		obj_ptr<Buffer_base> vr;
@@ -411,6 +447,30 @@ namespace fibjs
 		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->ac_send(v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Socket_base::s_asyncSend(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Socket_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+
+		hr = pInst->asyncSend(v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Socket_base::s_onsend(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Socket_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Function>, 0);
+
+		hr = pInst->onsend(v0);
 
 		METHOD_VOID();
 	}

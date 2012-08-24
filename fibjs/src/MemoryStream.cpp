@@ -36,7 +36,7 @@ result_t MemoryStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
 	if (bytes > 0)
 	{
-		if (p == 0)
+		if (p == 0 && bytes == (int32_t) sz)
 		{
 			strBuf = m_buffer.str();
 			m_buffer.seekg(sz);
@@ -82,7 +82,7 @@ result_t MemoryStream::write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
 	size(sz2);
 
 	if (sz2 > sz1)
-		extMemory((int)(sz2 - sz1));
+		extMemory((int) (sz2 - sz1));
 
 	os_base::time(m_time);
 

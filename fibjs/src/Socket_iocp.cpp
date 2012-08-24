@@ -122,7 +122,7 @@ public:
 				if ((HANDLE) v == s_hIocp)
 					((asyncProc*) pOverlap)->proc();
 				else
-					((asyncProc*) pOverlap)->ready(dwBytes, -(int)dwError);
+					((asyncProc*) pOverlap)->ready(dwBytes, -(int) dwError);
 			}
 		}
 	}
@@ -292,14 +292,14 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 }
 
 result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-		exlib::AsyncEvent* ac)
+		exlib::AsyncEvent* ac, bool bRead)
 {
 	class asyncRecv: public asyncProc
 	{
 	public:
 		asyncRecv(SOCKET s, int32_t bytes, obj_ptr<Buffer_base>& retVal,
-				exlib::AsyncEvent* ac) :
-				asyncProc(s, ac), m_retVal(retVal)
+				exlib::AsyncEvent* ac, bool bRead) :
+				asyncProc(s, ac), m_retVal(retVal), m_pos(0), m_bRead(bRead)
 		{
 			m_buf.resize(bytes > 1 ? bytes : STREAM_BUFF_SIZE);
 		}
@@ -308,8 +308,8 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 		{
 			int nError;
 
-			if (ReadFile((HANDLE) m_s, &m_buf[0], (DWORD) m_buf.length(), NULL,
-					this))
+			if (ReadFile((HANDLE) m_s, &m_buf[m_pos],
+					(DWORD) m_buf.length() - m_pos, NULL, this))
 				return CALL_E_PENDDING;
 
 			nError = GetLastError();
@@ -328,11 +328,22 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 				dwBytes = 0;
 			}
 
+			if(dwBytes == 0)
+				m_bRead = false;
+
 			if (!nError)
 			{
-				if (dwBytes)
+				m_pos += dwBytes;
+
+				if (m_bRead && m_pos < m_buf.length())
 				{
-					m_buf.resize(dwBytes);
+					proc();
+					return;
+				}
+
+				if (m_pos)
+				{
+					m_buf.resize(m_pos);
 					m_retVal = new Buffer(m_buf);
 				}
 				else
@@ -344,6 +355,8 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
 	public:
 		obj_ptr<Buffer_base>& m_retVal;
+		int m_pos;
+		bool m_bRead;
 		std::string m_buf;
 	};
 
@@ -353,7 +366,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	return (new asyncRecv(m_sock, bytes, retVal, ac))->call();
+	return (new asyncRecv(m_sock, bytes, retVal, ac, bRead))->call();
 }
 
 result_t Socket::send(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)

@@ -91,7 +91,7 @@ result_t Socket::create(int32_t family, int32_t type)
 result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 		exlib::AsyncEvent* ac)
 {
-	return recv(bytes, retVal, ac);
+	return recv(bytes, retVal, ac, bytes > 0);
 }
 
 result_t Socket::asyncRead(int32_t bytes)
@@ -348,6 +348,40 @@ result_t Socket::listen(int32_t backlog)
 		return SocketError();
 
 	return 0;
+}
+
+result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
+		exlib::AsyncEvent* ac)
+{
+	return recv(bytes, retVal, ac, false);
+}
+
+result_t Socket::asyncRecv(int32_t bytes)
+{
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
+	acb_recv(bytes);
+	return 0;
+}
+
+result_t Socket::onrecv(v8::Handle<v8::Function> func)
+{
+	return on("recv", func);
+}
+
+result_t Socket::asyncSend(obj_ptr<Buffer_base>& data)
+{
+	if (m_sock == INVALID_SOCKET)
+		return CALL_E_INVALID_CALL;
+
+	acb_send(data);
+	return 0;
+}
+
+result_t Socket::onsend(v8::Handle<v8::Function> func)
+{
+	return on("send", func);
 }
 
 result_t Socket::recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal)
