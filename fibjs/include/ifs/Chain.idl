@@ -1,0 +1,29 @@
+/*! @brief 消息处理器链处理对象
+ *
+ * 消息处理器链处理对象用于链接一系列消息处理器，按照指定的顺序链式处理
+ */
+class Chain: Handler
+{
+	/*! @brief JSHandler 构造函数 */
+	Chain();
+
+	/*! @brief JSHandler 构造函数
+	 * @param hdlrs 处理器数组
+	 */
+	Chain(Array hdlrs);
+
+	/*! @brief 添加处理器
+	 * @param hdlr 消息处理器
+	 */
+	apppend(Handler hdlr);
+
+	/*! @brief 添加 javascript 处理器函数
+	 * @param hdlr javascript 消息处理函数
+	 */
+	append(Function hdlr);
+
+	/*! @brief 添加处理器数组
+	 * @param hdlrs 处理器数组
+	 */
+	apped(Array hdlrs);
+};

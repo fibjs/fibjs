@@ -1,6 +1,20 @@
-/*! @brief javascript 消息处理器接口 */
+/*! @brief javascript 消息处理器对象 */
 class JSHandler: Handler
 {
-	/*! @brief JSHandler 构造函数 */
+	/*! @brief JSHandler 构造函数
+	 * @param fun 指定 javascript 函数用于消息处理
+	 *
+	 * 消息处理函数的定义如下：
+	 *
+	 * @code
+	 * function invoker(o)
+	 * {}
+	 * @endcode
+	 *
+	 * 返回结果允许为以下三种：
+	 * javascript 函数，指定下一步的消息处理为另一个 javascript 函数
+	 * Handler 对象，指定下一步的消息处理为指定的消息处理器
+	 * 无返回，指示本函数消息处理完成
+	 */
 	JSHandler(Function fun);
 };

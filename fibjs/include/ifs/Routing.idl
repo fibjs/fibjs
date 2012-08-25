@@ -1,0 +1,28 @@
+/*! @brief 消息处理器路由对象 */
+class Routing: Handler
+{
+	/*! @brief JSHandler 构造函数 */
+	Routing();
+
+	/*! @brief JSHandler 构造函数
+	 * @param map 初始化路由参数
+	 */
+	Routing(Object map);
+
+	/*! @brief 设定路由参数
+	 * @param pattern 消息匹配格式
+	 * @param hdlr 消息处理器
+	 */
+	set(String pattern, Handler hdlr);
+
+	/*! @brief 设定路由参数
+	 * @param pattern 消息匹配格式
+	 * @param hdlr javascript 消息处理函数
+	 */
+	set(String pattern, Function hdlr);
+
+	/*! @brief 设定路由参数
+	 * @param map 路由参数
+	 */
+	set(Object map);
+};

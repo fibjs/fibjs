@@ -4,7 +4,7 @@
 class Regex : object
 {
 	/*! @brief 检索字符串中的正则表达式的匹配
-	 * @param str 	要检索的字符串
+	 * @param str 要检索的字符串
 	 * @return 返回一个数组，其中存放匹配的结果。如果未找到匹配，则返回值为 null
 	 */
 	Array exec(String str);
