@@ -186,10 +186,7 @@ result_t Socket::close(exlib::AsyncEvent* ac)
 		return CALL_E_NOSYNC;
 
 	if (m_sock != INVALID_SOCKET)
-	{
-		::shutdown(m_sock, SHUT_RDWR);
 		::closesocket(m_sock);
-	}
 
 	m_sock = INVALID_SOCKET;
 
