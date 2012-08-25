@@ -44,7 +44,8 @@ class object_base: public obj_base
 {
 public:
 	object_base() :
-			m_nTriggers(0), m_nExtMemory(sizeof(object_base) * 2)
+			m_nTriggers(0), m_nExtMemory(sizeof(object_base) * 2), m_nExtMemoryDelay(
+					0)
 	{
 	}
 
@@ -189,10 +190,18 @@ public:
 			m_nExtMemory += ext;
 		else
 		{
-			if (v8::Isolate::GetCurrent())
+			ext += m_nExtMemoryDelay;
+			m_nExtMemoryDelay = 0;
+
+			if (ext != 0)
 			{
-				v8::V8::AdjustAmountOfExternalAllocatedMemory(ext);
-				m_nExtMemory += ext;
+				if (v8::Isolate::GetCurrent())
+				{
+					v8::V8::AdjustAmountOfExternalAllocatedMemory(ext);
+					m_nExtMemory += ext;
+				}
+				else
+					m_nExtMemoryDelay = ext;
 			}
 		}
 	}
@@ -204,6 +213,7 @@ private:
 private:
 	int m_nTriggers;
 	int m_nExtMemory;
+	int m_nExtMemoryDelay;
 
 public:
 	// object_base
@@ -260,7 +270,8 @@ public:
 	}
 
 	//------------------------------------------------------------------
-	DECLARE_CLASSINFO(object_base);
+DECLARE_CLASSINFO(object_base)
+	;
 
 private:
 	static v8::Handle<v8::Value> s_dispose(const v8::Arguments& args);

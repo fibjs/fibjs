@@ -39,6 +39,14 @@ public:
 	{
 	}
 
+	int wait()
+	{
+		int hr = AsyncCall::wait();
+		m_pThis->extMemory(0);
+
+		return hr;
+	}
+
 	virtual void callback();
 
 	virtual int post(int v)

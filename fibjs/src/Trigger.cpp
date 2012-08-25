@@ -214,6 +214,8 @@ result_t fireTrigger(v8::Handle<v8::Array> esa, T args, int argCount)
 
 result_t object_base::_trigger(const char* ev, v8::Handle<v8::Value>* args, int argCount)
 {
+	extMemory(0);
+
 	if (!m_nTriggers)
 		return 0;
 
@@ -237,6 +239,8 @@ result_t object_base::_trigger(const char* ev, v8::Handle<v8::Value>* args, int 
 
 result_t object_base::trigger(const char* ev, const v8::Arguments& args)
 {
+	extMemory(0);
+
 	if (!m_nTriggers)
 		return 0;
 
