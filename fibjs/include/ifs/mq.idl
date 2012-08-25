@@ -1,0 +1,9 @@
+
+/*! @brief 消息队列模块 */
+class mq : module
+{
+	/*! @brief 创建一个 javascript 消息处理器对象，参见 JSHandler */
+	static JSHandler new JSHandler();
+
+	// Routing, Chain...
+};

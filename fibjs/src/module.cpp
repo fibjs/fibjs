@@ -18,6 +18,8 @@
 #include "ifs/net.h"
 #include "ifs/zmq.h"
 
+#include "ifs/mq.h"
+
 #include "ifs/db.h"
 #include "ifs/hash.h"
 
@@ -71,6 +73,8 @@ void initModule()
 	InstallNativeModule("os", os_base::class_info());
 	InstallNativeModule("net", net_base::class_info());
 	InstallNativeModule("zmq", zmq_base::class_info());
+
+	InstallNativeModule("mq", mq_base::class_info());
 
 	InstallNativeModule("http", http_base::class_info());
 

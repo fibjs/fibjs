@@ -1,0 +1,6 @@
+/*! @brief javascript 消息处理器接口 */
+class JSHandler: Handler
+{
+	/*! @brief JSHandler 构造函数 */
+	JSHandler(Function fun);
+};
