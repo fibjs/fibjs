@@ -47,3 +47,22 @@ assert.throws(function() {
 	}), v);
 });
 
+// ------------- chain handler
+
+function chain1(v) {
+	n = n | 1;
+}
+
+function chain2(v) {
+	n = n | 2;
+}
+
+function chain3(v) {
+	n = n | 4;
+}
+
+var chain = new mq.Chain([ chain1, chain2, chain3 ]);
+
+n = 0;
+chain.invoke(v);
+assert.equal(7, n);
