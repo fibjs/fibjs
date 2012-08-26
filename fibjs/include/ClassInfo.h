@@ -123,22 +123,8 @@ public:
 			ot->SetNamedPropertyHandler(pcd->cns->getter, pcd->cns->setter);
 
 		m_function = v8::Persistent<v8::Function>::New(m_class->GetFunction());
-		v8::Handle<v8::Object> o = m_function->ToObject();
-
-		for (i = 0; i < cd.mc; i++)
-			if (cd.cms[i].bStatic)
-				o->Set(v8::String::NewSymbol(cd.cms[i].name),
-						v8::FunctionTemplate::New(cd.cms[i].invoker)->GetFunction(),
-						v8::ReadOnly);
-
-		for (i = 0; i < cd.oc; i++)
-			o->Set(v8::String::NewSymbol(cd.cos[i].name),
-					cd.cos[i].invoker().GetFunction(), v8::ReadOnly);
-
-		for (i = 0; i < cd.pc; i++)
-			if (cd.cps[i].bStatic)
-				o->SetAccessor(v8::String::NewSymbol(cd.cps[i].name),
-						cd.cps[i].getter, block_set);
+		m_cache = v8::Persistent<v8::Object>::New(
+				m_function->NewInstance()->Clone());
 	}
 
 	void* getInstance(void* o);
@@ -152,12 +138,7 @@ public:
 
 	v8::Handle<v8::Object> CreateInstance()
 	{
-		if (!m_cache.IsEmpty())
-			return m_cache->Clone();
-
-		v8::Handle<v8::Object> o = m_function->NewInstance();
-		m_cache = v8::Persistent<v8::Object>::New(o->Clone());
-		return o;
+		return m_cache->Clone();
 	}
 
 	v8::Handle<v8::Function> GetFunction() const

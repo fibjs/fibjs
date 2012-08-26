@@ -140,6 +140,8 @@ typedef int result_t;
     METHOD_OVER(c, o)
 
 #define CONSTRUCT_ENTER(c, o) \
+	static bool s_bInit = false; \
+	if(!s_bInit){s_bInit = true; return args.This();} \
     if (!args.IsConstructCall())return ThrowResult(CALL_E_CONSTRUCTOR); \
     METHOD_ENTER(c, o)
 
