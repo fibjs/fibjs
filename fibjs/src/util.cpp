@@ -62,6 +62,8 @@ std::string getResultMessage(result_t hr)
 			"Operation now support synchronous call.",
 			// CALL_E_INTERNAL
 			"Internal error.",
+			// CALL_E_RETURN_TYPE
+			"Invalid return type.",
 			// CALL_E_EXCEPTION
 			"Exception occurred." };
 

@@ -120,17 +120,14 @@ void* FiberBase::fiber_proc(void* p)
 
 void FiberBase::start()
 {
-	m_caller = (Fiber_base*) g_pService->tlsGet(
-			g_tlsCurrent);
+	m_caller = (Fiber_base*) g_pService->tlsGet(g_tlsCurrent);
 
 	g_jobs.put(this);
 	Ref();
 }
 
-void JSFiber::js_callback()
+void JSFiber::callFunction(v8::Handle<v8::Value>& retVal)
 {
-	g_pService->tlsPut(g_tlsCurrent, this);
-
 	size_t i;
 
 	std::vector<v8::Handle<v8::Value> > argv;
@@ -142,8 +139,7 @@ void JSFiber::js_callback()
 	v8::Handle<v8::Object> o = wrap();
 
 	v8::TryCatch try_catch;
-	v8::Handle<v8::Value> retVal = m_func->Call(o, (int) argv.size(),
-			argv.data());
+	retVal = m_func->Call(o, (int) argv.size(), argv.data());
 	if (try_catch.HasCaught())
 	{
 		v8::Handle<v8::Value> err = try_catch.Exception();
@@ -151,18 +147,51 @@ void JSFiber::js_callback()
 
 		_trigger("error", &err, 1);
 		ReportException(&try_catch, true);
-		retVal = v8::Null();
 	}
-	else if (!IsEmpty(retVal))
+
+	if (!IsEmpty(retVal))
+	{
 		m_result = v8::Persistent<v8::Value>::New(retVal);
+		_trigger("exit", &retVal, 1);
+	}
+	else
+	{
+		v8::Handle<v8::Value> v = v8::Null();
+		_trigger("exit", &v, 1);
+	}
 
-	_trigger("exit", &retVal, 1);
-
-	g_pService->tlsPut(g_tlsCurrent, NULL);
 	exit();
 
 	s_null.Ref();
 	o->SetPointerInInternalField(0, &s_null);
+}
+
+void JSFiber::js_callback()
+{
+	v8::Handle<v8::Value> retVal;
+
+	g_pService->tlsPut(g_tlsCurrent, this);
+	callFunction(retVal);
+	g_pService->tlsPut(g_tlsCurrent, NULL);
+}
+
+void JSFiber::callFunction(v8::Handle<v8::Function> func,
+		v8::Handle<v8::Value>* args, int argCount,
+		v8::Handle<v8::Value>& retVal)
+{
+	obj_ptr<JSFiber> fb = new JSFiber();
+	int i;
+
+	fb->m_argv.resize(argCount);
+	for (i = 0; i < argCount; i++)
+		fb->m_argv[i] = v8::Persistent<v8::Value>::New(args[i]);
+	fb->m_func = v8::Persistent<v8::Function>::New(func);
+
+	fb->Ref();
+
+	g_pService->tlsPut(g_tlsCurrent, fb);
+	fb->callFunction(retVal);
+	g_pService->tlsPut(g_tlsCurrent, NULL);
 }
 
 void AsyncCallBack::callback()

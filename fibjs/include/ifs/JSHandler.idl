@@ -12,9 +12,9 @@ class JSHandler: Handler
 	 * @endcode
 	 *
 	 * 返回结果允许为以下三种：
-	 * javascript 函数，指定下一步的消息处理为另一个 javascript 函数
-	 * Handler 对象，指定下一步的消息处理为指定的消息处理器
-	 * 无返回，指示本函数消息处理完成
+	 * - javascript 函数，指定下一步的消息处理为另一个 javascript 函数
+	 * - Handler 对象，指定下一步的消息处理为指定的消息处理器
+	 * - 无返回，指示本函数消息处理完成
 	 */
 	JSHandler(Function fun);
 };

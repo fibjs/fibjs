@@ -60,11 +60,11 @@ public:
 
 	virtual void Run()
 	{
-		AsyncCall *p;
+		asyncEvent *p;
 
 		while (1)
 		{
-			if(exlib::atom_inc(&s_idleThreads) > s_threads * 2)
+			if (exlib::atom_inc(&s_idleThreads) > s_threads * 2)
 			{
 				exlib::atom_dec(&s_idleThreads);
 				break;
@@ -161,7 +161,6 @@ void clearTimer()
 }
 #endif
 
-
 static class _timerThread: public exlib::OSThread
 {
 public:
@@ -180,7 +179,7 @@ public:
 
 		while (1)
 		{
-			p = s_acSleep.get();
+			p = (AsyncCall*) s_acSleep.get();
 			if (p == NULL)
 				break;
 
@@ -202,9 +201,9 @@ public:
 			s_tms.erase(e);
 		}
 
-		if(s_idleThreads < s_threads)
+		if (s_idleThreads < s_threads)
 		{
-			if(++ s_idleCount > 50)
+			if (++s_idleCount > 50)
 			{
 				s_idleCount = 0;
 
@@ -214,7 +213,9 @@ public:
 					s_ac.detach();
 				}
 			}
-		}else s_idleCount = 0;
+		}
+		else
+			s_idleCount = 0;
 	}
 
 	virtual void Run()
@@ -225,7 +226,7 @@ public:
 		timeGetDevCaps(&tc, sizeof(TIMECAPS));
 
 		if (tc.wPeriodMin < 1)
-			tc.wPeriodMin = 1;
+		tc.wPeriodMin = 1;
 
 		timeBeginPeriod(tc.wPeriodMin);
 		s_nTimer = timeSetEvent(tc.wPeriodMin, tc.wPeriodMin, Timer, 0, TIME_PERIODIC);
@@ -233,11 +234,11 @@ public:
 		MSG msg;
 		while (GetMessage(&msg, 0, 0, 0));
 #else
-		 while(1)
-		 {
-			 Sleep(1);
-			 Timer(0, 0, NULL, NULL, NULL);
-		 }
+		while (1)
+		{
+			Sleep(1);
+			Timer(0, 0, NULL, NULL, NULL);
+		}
 #endif
 	}
 } s_timer;

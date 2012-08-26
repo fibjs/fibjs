@@ -1,0 +1,53 @@
+/*
+ * mq.cpp
+ *
+ *  Created on: Aug 25, 2012
+ *      Author: lion
+ */
+
+#include "object.h"
+#include "ifs/mq.h"
+
+namespace fibjs
+{
+
+result_t mq_base::invoke(obj_ptr<Handler_base>& hdlr, obj_ptr<object_base>& v,
+		exlib::AsyncEvent* ac)
+{
+	class asyncInvoke: public asyncState
+	{
+	public:
+		asyncInvoke(obj_ptr<Handler_base>& hdlr, obj_ptr<object_base>& v,
+				exlib::AsyncEvent* ac) :
+				asyncState(ac), m_next(hdlr), m_v(v)
+		{
+			set(call);
+		}
+
+	public:
+		static int call(asyncState* pState, int n)
+		{
+			asyncInvoke* pThis = (asyncInvoke*) pState;
+
+			if (n == CALL_RETURN_NULL)
+				return pThis->done();
+
+			pThis->m_hdlr = pThis->m_next;
+			pThis->m_next.Release();
+
+			return pThis->m_hdlr->invoke(pThis->m_v, pThis->m_next, pThis);
+		}
+
+	private:
+		obj_ptr<Handler_base> m_hdlr;
+		obj_ptr<Handler_base> m_next;
+		obj_ptr<object_base>& m_v;
+	};
+
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	return (new asyncInvoke(hdlr, v, ac))->post(0);
+}
+
+}

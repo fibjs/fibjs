@@ -6,4 +6,6 @@ class mq : module
 	static JSHandler new JSHandler();
 
 	// Routing, Chain...
+
+	static invoke(Handler hdlr, object v) async;
 };

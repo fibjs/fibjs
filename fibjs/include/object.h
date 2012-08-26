@@ -32,6 +32,10 @@ public:
 	virtual void js_callback()
 	{
 	}
+
+	virtual void invoke()
+	{
+	}
 };
 
 class asyncCallBack: public asyncEvent

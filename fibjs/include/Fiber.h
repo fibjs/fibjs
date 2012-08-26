@@ -155,6 +155,10 @@ public:
 		return 0;
 	}
 
+	static void callFunction(v8::Handle<v8::Function> func,
+			v8::Handle<v8::Value>* args, int argCount,
+			v8::Handle<v8::Value>& retVal);
+
 	result_t get_result(v8::Handle<v8::Value>& retVal)
 	{
 		if (m_result.IsEmpty())
@@ -168,6 +172,9 @@ public:
 	{
 		return m_error;
 	}
+
+private:
+	void callFunction(v8::Handle<v8::Value>& retVal);
 
 private:
 	v8::Persistent<v8::Function> m_func;

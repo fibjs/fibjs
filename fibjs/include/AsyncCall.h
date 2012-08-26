@@ -6,8 +6,7 @@
 namespace fibjs
 {
 
-class AsyncCall;
-typedef exlib::lockfree<AsyncCall> AsyncQueue;
+typedef exlib::lockfree<asyncEvent> AsyncQueue;
 
 class AsyncCall: public asyncEvent
 {
@@ -21,10 +20,6 @@ public:
 	{
 		v8::Unlocker unlocker(isolate);
 		return asyncEvent::wait();
-	}
-
-	virtual void invoke()
-	{
 	}
 
 public:
@@ -113,7 +108,7 @@ public:
 	obj_ptr<object_base> m_pThis;
 };
 
-class asyncState: public asyncEvent
+class asyncState: public asyncCallBack
 {
 public:
 	asyncState(exlib::AsyncEvent* ac) :
@@ -147,14 +142,20 @@ public:
 			{
 				if (bAsyncState)
 					m_ac->post(hr);
-				delete this;
-				return hr;
+
+				return end(hr);
 			}
 
 			hr = m_state(this, hr);
 		} while (hr != CALL_E_PENDDING);
 
 		return hr;
+	}
+
+	virtual int end(int v)
+	{
+		delete this;
+		return v;
 	}
 
 private:

@@ -306,7 +306,7 @@ function parserIDL(fname) {
 		txt.push("};\n\n}\n");
 
 		for (cls in refCls)
-			if (cls !== baseClass)
+			if (cls !== baseClass && cls !== "object")
 				txt.push("#include \"" + cls + ".h\"");
 
 		if (bRef)
