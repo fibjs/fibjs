@@ -89,29 +89,29 @@ result_t HttpRequest::clear()
 	return 0;
 }
 
-result_t HttpRequest::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
+result_t HttpRequest::sendTo(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 {
 	return 0;
 }
 
-result_t HttpRequest::asyncSend(obj_ptr<Stream_base>& stm)
+result_t HttpRequest::asyncSendTo(obj_ptr<Stream_base>& stm)
 {
-	acb_send(stm);
+	acb_sendTo(stm);
 	return 0;
 }
 
-result_t HttpRequest::onsend(v8::Handle<v8::Function> func)
+result_t HttpRequest::onsendto(v8::Handle<v8::Function> func)
 {
-	return on("send", func);
+	return on("sendto", func);
 }
 
-result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
+result_t HttpRequest::readFrom(obj_ptr<BufferedStream_base>& stm,
 		exlib::AsyncEvent* ac)
 {
-	class asyncRead: public asyncState
+	class asyncReadFrom: public asyncState
 	{
 	public:
-		asyncRead(HttpRequest* pThis, BufferedStream_base* stm,
+		asyncReadFrom(HttpRequest* pThis, BufferedStream_base* stm,
 				exlib::AsyncEvent* ac) :
 				asyncState(ac), m_pThis(pThis), m_stm(stm), m_contentLength(0)
 		{
@@ -120,7 +120,7 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 
 		static int begin(asyncState* pState, int n)
 		{
-			asyncRead* pThis = (asyncRead*) pState;
+			asyncReadFrom* pThis = (asyncReadFrom*) pState;
 
 			pThis->set(command);
 
@@ -130,7 +130,7 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 
 		static int command(asyncState* pState, int n)
 		{
-			asyncRead* pThis = (asyncRead*) pState;
+			asyncReadFrom* pThis = (asyncReadFrom*) pState;
 			result_t hr;
 
 			pThis->set(header);
@@ -180,7 +180,7 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 
 		static int header(asyncState* pState, int n)
 		{
-			asyncRead* pThis = (asyncRead*) pState;
+			asyncReadFrom* pThis = (asyncReadFrom*) pState;
 
 			if (pThis->m_strLine.length() > 0)
 			{
@@ -220,7 +220,7 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 
 		static int body(asyncState* pState, int n)
 		{
-			asyncRead* pThis = (asyncRead*) pState;
+			asyncReadFrom* pThis = (asyncReadFrom*) pState;
 
 			if (pThis->m_contentLength != pThis->m_copySize)
 				return CALL_E_INVALID_DATA;
@@ -243,18 +243,18 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	return (new asyncRead(this, stm, ac))->post(0);
+	return (new asyncReadFrom(this, stm, ac))->post(0);
 }
 
-result_t HttpRequest::asyncRead(obj_ptr<BufferedStream_base>& stm)
+result_t HttpRequest::asyncReadFrom(obj_ptr<BufferedStream_base>& stm)
 {
-	acb_read(stm);
+	acb_readFrom(stm);
 	return 0;
 }
 
-result_t HttpRequest::onread(v8::Handle<v8::Function> func)
+result_t HttpRequest::onreadfrom(v8::Handle<v8::Function> func)
 {
-	return on("read", func);
+	return on("readfrom", func);
 }
 
 result_t HttpRequest::get_method(std::string& retVal)

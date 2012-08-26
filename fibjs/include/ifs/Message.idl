@@ -11,42 +11,42 @@ class Message: Trigger
 	/*! @brief 发送格式化消息到给定的流对象
 	 * @param stm 指定接收格式化消息的流对象
 	 */
-	send(Stream stm) async;
+	sendTo(Stream stm) async;
 
-	/*! @brief 异步发送格式化消息到给定的流对象
+	/*! @brief 异步发送格式化消息到给定的流对象，操作完成将触发 sendto 事件
 	 * @param stm 指定接收格式化消息的流对象
 	 */
-	asyncSend(Stream stm);
+	asyncSendTo(Stream stm);
 
-	/*! @brief 注册 "send" 事件，等同于 on("send", func);
+	/*! @brief 注册 "sendto" 事件，等同于 on("sendto", func);
 	 * @param func 事件处理函数
 	 *
-	 * "send" 事件定义如下：
+	 * "sendto" 事件定义如下：
 	 * @code
-	 * function on_send()
+	 * function on_sendto()
 	 * {}
 	 * @endcode
 	 */
-	onsend(Function func);
+	onsendto(Function func);
 
 	/*! @brief 从给定的缓存流对象中读取格式化消息，并解析填充对象
 	 * @param stm 指定读取格式化消息的流对象
 	 */
-	read(BufferedStream stm) async;
+	readFrom(BufferedStream stm) async;
 
-	/*! @brief 异步从给定的缓存流对象中读取格式化消息，并解析填充对象
+	/*! @brief 异步从给定的缓存流对象中读取格式化消息，并解析填充对象，操作完成将触发 readfrom 事件
 	 * @param stm 指定读取格式化消息的流对象
 	 */
-	asyncRead(BufferedStream stm);
+	asyncReadFrom(BufferedStream stm);
 
-	/*! @brief 注册 "read" 事件，等同于 on("read", func);
+	/*! @brief 注册 "readfrom" 事件，等同于 on("readfrom", func);
 	 * @param func 事件处理函数
 	 *
-	 * "read" 事件定义如下：
+	 * "readfrom" 事件定义如下：
 	 * @code
-	 * function on_read()
+	 * function on_readfrom()
 	 * {}
 	 * @endcode
 	 */
-	onread(Function func);
+	onreadfrom(Function func);
 };

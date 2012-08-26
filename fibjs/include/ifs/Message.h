@@ -28,12 +28,12 @@ public:
 	virtual result_t get_value(std::string& retVal) = 0;
 	virtual result_t set_value(const char* newVal) = 0;
 	virtual result_t clear() = 0;
-	virtual result_t send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac) = 0;
-	virtual result_t asyncSend(obj_ptr<Stream_base>& stm) = 0;
-	virtual result_t onsend(v8::Handle<v8::Function> func) = 0;
-	virtual result_t read(obj_ptr<BufferedStream_base>& stm, exlib::AsyncEvent* ac) = 0;
-	virtual result_t asyncRead(obj_ptr<BufferedStream_base>& stm) = 0;
-	virtual result_t onread(v8::Handle<v8::Function> func) = 0;
+	virtual result_t sendTo(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac) = 0;
+	virtual result_t asyncSendTo(obj_ptr<Stream_base>& stm) = 0;
+	virtual result_t onsendto(v8::Handle<v8::Function> func) = 0;
+	virtual result_t readFrom(obj_ptr<BufferedStream_base>& stm, exlib::AsyncEvent* ac) = 0;
+	virtual result_t asyncReadFrom(obj_ptr<BufferedStream_base>& stm) = 0;
+	virtual result_t onreadfrom(v8::Handle<v8::Function> func) = 0;
 
 	DECLARE_CLASSINFO(Message_base);
 
@@ -51,18 +51,18 @@ public:
 	static v8::Handle<v8::Value> s_get_value(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_clear(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_send(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncSend(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onsend(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_read(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncRead(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onread(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_sendTo(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_asyncSendTo(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_onsendto(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_readFrom(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_asyncReadFrom(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_onreadfrom(const v8::Arguments& args);
 
 public:
-	ASYNC_MEMBER1(Message_base, send);
-	ASYNC_CALLBACK1(Message_base, send);
-	ASYNC_MEMBER1(Message_base, read);
-	ASYNC_CALLBACK1(Message_base, read);
+	ASYNC_MEMBER1(Message_base, sendTo);
+	ASYNC_CALLBACK1(Message_base, sendTo);
+	ASYNC_MEMBER1(Message_base, readFrom);
+	ASYNC_CALLBACK1(Message_base, readFrom);
 };
 
 }
@@ -77,12 +77,12 @@ namespace fibjs
 		static ClassData::ClassMethod s_method[] = 
 		{
 			{"clear", s_clear},
-			{"send", s_send},
-			{"asyncSend", s_asyncSend},
-			{"onsend", s_onsend},
-			{"read", s_read},
-			{"asyncRead", s_asyncRead},
-			{"onread", s_onread}
+			{"sendTo", s_sendTo},
+			{"asyncSendTo", s_asyncSendTo},
+			{"onsendto", s_onsendto},
+			{"readFrom", s_readFrom},
+			{"asyncReadFrom", s_asyncReadFrom},
+			{"onreadfrom", s_onreadfrom}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -134,74 +134,74 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_send(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> Message_base::s_sendTo(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(Message_base);
 		METHOD_ENTER(1, 1);
 
 		ARG(obj_ptr<Stream_base>, 0);
 
-		hr = pInst->ac_send(v0);
+		hr = pInst->ac_sendTo(v0);
 
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_asyncSend(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> Message_base::s_asyncSendTo(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(Message_base);
 		METHOD_ENTER(1, 1);
 
 		ARG(obj_ptr<Stream_base>, 0);
 
-		hr = pInst->asyncSend(v0);
+		hr = pInst->asyncSendTo(v0);
 
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_onsend(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> Message_base::s_onsendto(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(Message_base);
 		METHOD_ENTER(1, 1);
 
 		ARG(v8::Handle<v8::Function>, 0);
 
-		hr = pInst->onsend(v0);
+		hr = pInst->onsendto(v0);
 
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_read(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> Message_base::s_readFrom(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(Message_base);
 		METHOD_ENTER(1, 1);
 
 		ARG(obj_ptr<BufferedStream_base>, 0);
 
-		hr = pInst->ac_read(v0);
+		hr = pInst->ac_readFrom(v0);
 
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_asyncRead(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> Message_base::s_asyncReadFrom(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(Message_base);
 		METHOD_ENTER(1, 1);
 
 		ARG(obj_ptr<BufferedStream_base>, 0);
 
-		hr = pInst->asyncRead(v0);
+		hr = pInst->asyncReadFrom(v0);
 
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_onread(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> Message_base::s_onreadfrom(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(Message_base);
 		METHOD_ENTER(1, 1);
 
 		ARG(v8::Handle<v8::Function>, 0);
 
-		hr = pInst->onread(v0);
+		hr = pInst->onreadfrom(v0);
 
 		METHOD_VOID();
 	}

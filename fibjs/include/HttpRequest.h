@@ -30,12 +30,12 @@ public:
 	virtual result_t get_value(std::string& retVal);
 	virtual result_t set_value(const char* newVal);
 	virtual result_t clear();
-	virtual result_t send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac);
-	virtual result_t asyncSend(obj_ptr<Stream_base>& stm);
-	virtual result_t onsend(v8::Handle<v8::Function> func);
-	virtual result_t read(obj_ptr<BufferedStream_base>& stm, exlib::AsyncEvent* ac);
-	virtual result_t asyncRead(obj_ptr<BufferedStream_base>& stm);
-	virtual result_t onread(v8::Handle<v8::Function> func);
+	virtual result_t sendTo(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac);
+	virtual result_t asyncSendTo(obj_ptr<Stream_base>& stm);
+	virtual result_t onsendto(v8::Handle<v8::Function> func);
+	virtual result_t readFrom(obj_ptr<BufferedStream_base>& stm, exlib::AsyncEvent* ac);
+	virtual result_t asyncReadFrom(obj_ptr<BufferedStream_base>& stm);
+	virtual result_t onreadfrom(v8::Handle<v8::Function> func);
 
 public:
 	// HttpMessage_base

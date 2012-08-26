@@ -134,12 +134,12 @@ public:
 
 #define TINY_SIZE	32768
 
-result_t HttpResponse::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
+result_t HttpResponse::sendTo(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 {
-	class asyncSend: public asyncState
+	class asyncSendTo: public asyncState
 	{
 	public:
-		asyncSend(HttpResponse* pThis, Stream_base* stm, exlib::AsyncEvent* ac) :
+		asyncSendTo(HttpResponse* pThis, Stream_base* stm, exlib::AsyncEvent* ac) :
 				asyncState(ac), m_pThis(pThis), m_stm(stm)
 		{
 			m_contentLength = 0;
@@ -153,7 +153,7 @@ result_t HttpResponse::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 
 		static int tinybody(asyncState* pState, int n)
 		{
-			asyncSend* pThis = (asyncSend*) pState;
+			asyncSendTo* pThis = (asyncSendTo*) pState;
 			obj_ptr<SeekableStream_base> _body;
 
 			result_t hr = pThis->m_pThis->get_body(_body);
@@ -169,7 +169,7 @@ result_t HttpResponse::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 
 		static int header(asyncState* pState, int n)
 		{
-			asyncSend* pThis = (asyncSend*) pState;
+			asyncSendTo* pThis = (asyncSendTo*) pState;
 			int pos = shortcut[pThis->m_pThis->m_status / 100 - 1]
 					+ pThis->m_pThis->m_status % 100;
 			size_t sz = status_lines_size[pos] + 11;
@@ -214,7 +214,7 @@ result_t HttpResponse::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 
 		static int body(asyncState* pState, int n)
 		{
-			asyncSend* pThis = (asyncSend*) pState;
+			asyncSendTo* pThis = (asyncSendTo*) pState;
 
 			if (pThis->m_contentLength == 0)
 				return pThis->done();
@@ -234,7 +234,7 @@ result_t HttpResponse::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 
 		static int body_ok(asyncState* pState, int n)
 		{
-			asyncSend* pThis = (asyncSend*) pState;
+			asyncSendTo* pThis = (asyncSendTo*) pState;
 
 			if (pThis->m_contentLength != pThis->m_copySize)
 				return CALL_E_INVALID_DATA;
@@ -254,35 +254,35 @@ result_t HttpResponse::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	return (new asyncSend(this, stm, ac))->post(0);
+	return (new asyncSendTo(this, stm, ac))->post(0);
 }
 
-result_t HttpResponse::asyncSend(obj_ptr<Stream_base>& stm)
+result_t HttpResponse::asyncSendTo(obj_ptr<Stream_base>& stm)
 {
-	acb_send(stm);
+	acb_sendTo(stm);
 	return 0;
 }
 
-result_t HttpResponse::onsend(v8::Handle<v8::Function> func)
+result_t HttpResponse::onsendto(v8::Handle<v8::Function> func)
 {
-	return on("send", func);
+	return on("sendto", func);
 }
 
-result_t HttpResponse::read(obj_ptr<BufferedStream_base>& stm,
+result_t HttpResponse::readFrom(obj_ptr<BufferedStream_base>& stm,
 		exlib::AsyncEvent* ac)
 {
 	return 0;
 }
 
-result_t HttpResponse::asyncRead(obj_ptr<BufferedStream_base>& stm)
+result_t HttpResponse::asyncReadFrom(obj_ptr<BufferedStream_base>& stm)
 {
-	acb_read(stm);
+	acb_readFrom(stm);
 	return 0;
 }
 
-result_t HttpResponse::onread(v8::Handle<v8::Function> func)
+result_t HttpResponse::onreadfrom(v8::Handle<v8::Function> func)
 {
-	return on("read", func);
+	return on("readfrom", func);
 }
 
 result_t HttpResponse::get_status(int32_t& retVal)
