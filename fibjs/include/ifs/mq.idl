@@ -5,7 +5,16 @@ class mq : module
 	/*! @brief 创建一个 javascript 消息处理器对象，参见 JSHandler */
 	static JSHandler new JSHandler();
 
+	/*! @brief 创建一个消息处理器链处理对象，参见 Chain */
+	static Chain new Chain();
+
 	// Routing, Chain...
 
+	/*! @brief 使用给定的处理器处理一个消息或对象
+	 * @param hdlr 指定使用的处理器
+	 * @param v 指定要处理的消息或对象
+	 *
+	 * 不同于处理器的 invoke 方法，此方法将循环调用每个处理器的返回处理器，直到处理器返回 null 为止。
+	 */
 	static invoke(Handler hdlr, object v) async;
 };

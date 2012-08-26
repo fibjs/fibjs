@@ -97,8 +97,8 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 	class asyncAccept: public asyncState
 	{
 	public:
-		asyncAccept(TCPServer* pThis, exlib::AsyncEvent* ac) :
-				asyncState(ac), m_pThis(pThis)
+		asyncAccept(TCPServer* pThis) :
+				asyncState(NULL), m_pThis(pThis)
 		{
 			set(accept);
 		}
@@ -118,7 +118,7 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 
 			pThis->set(close);
 
-			(new asyncAccept(pThis->m_pThis, NULL))->post(0);
+			(new asyncAccept(pThis->m_pThis))->post(0);
 
 			pThis->m_v = pThis->m_retVal;
 			return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_v, pThis);
@@ -141,7 +141,7 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	return (new asyncAccept(this, NULL))->post(0);
+	return (new asyncAccept(this))->post(0);
 }
 
 result_t TCPServer::asyncRun()

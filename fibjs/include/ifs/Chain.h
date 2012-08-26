@@ -25,17 +25,15 @@ public:
 	// Chain_base
 	static result_t _new(obj_ptr<Chain_base>& retVal);
 	static result_t _new(v8::Handle<v8::Array> hdlrs, obj_ptr<Chain_base>& retVal);
-	virtual result_t apppend(obj_ptr<Handler_base>& hdlr) = 0;
+	virtual result_t append(obj_ptr<Handler_base>& hdlr) = 0;
 	virtual result_t append(v8::Handle<v8::Function> hdlr) = 0;
-	virtual result_t apped(v8::Handle<v8::Array> hdlrs) = 0;
+	virtual result_t append(v8::Handle<v8::Array> hdlrs) = 0;
 
 	DECLARE_CLASSINFO(Chain_base);
 
 public:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_apppend(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_append(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_apped(const v8::Arguments& args);
 };
 
 }
@@ -47,15 +45,13 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"apppend", s_apppend},
-			{"append", s_append},
-			{"apped", s_apped}
+			{"append", s_append}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"Chain", s__new, 
-			3, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			1, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&Handler_base::class_info()
 		};
 
@@ -81,38 +77,26 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Chain_base::s_apppend(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> Chain_base::s_append(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(Chain_base);
 		METHOD_ENTER(1, 1);
 
 		ARG(obj_ptr<Handler_base>, 0);
 
-		hr = pInst->apppend(v0);
+		hr = pInst->append(v0);
 
-		METHOD_VOID();
-	}
-
-	inline v8::Handle<v8::Value> Chain_base::s_append(const v8::Arguments& args)
-	{
-		METHOD_INSTANCE(Chain_base);
-		METHOD_ENTER(1, 1);
+		METHOD_OVER(1, 1);
 
 		ARG(v8::Handle<v8::Function>, 0);
 
 		hr = pInst->append(v0);
 
-		METHOD_VOID();
-	}
-
-	inline v8::Handle<v8::Value> Chain_base::s_apped(const v8::Arguments& args)
-	{
-		METHOD_INSTANCE(Chain_base);
-		METHOD_ENTER(1, 1);
+		METHOD_OVER(1, 1);
 
 		ARG(v8::Handle<v8::Array>, 0);
 
-		hr = pInst->apped(v0);
+		hr = pInst->append(v0);
 
 		METHOD_VOID();
 	}

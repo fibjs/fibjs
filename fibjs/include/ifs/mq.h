@@ -19,6 +19,7 @@ namespace fibjs
 
 class module_base;
 class JSHandler_base;
+class Chain_base;
 class Handler_base;
 class object_base;
 
@@ -40,6 +41,7 @@ public:
 }
 
 #include "JSHandler.h"
+#include "Chain.h"
 #include "Handler.h"
 
 namespace fibjs
@@ -53,13 +55,14 @@ namespace fibjs
 
 		static ClassData::ClassObject s_object[] = 
 		{
-			{"JSHandler", JSHandler_base::class_info}
+			{"JSHandler", JSHandler_base::class_info},
+			{"Chain", Chain_base::class_info}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"mq", NULL, 
-			1, s_method, 1, s_object, 0, NULL, NULL, NULL,
+			1, s_method, 2, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
