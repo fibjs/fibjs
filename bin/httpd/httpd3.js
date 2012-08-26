@@ -24,6 +24,4 @@ new net.TCPServer(8080, function(c) {
 		}
 	} catch (e) {
 	}
-
-	c.close();
 }).run();
