@@ -8,6 +8,9 @@ class mq : module
 	/*! @brief 创建一个消息处理器链处理对象，参见 Chain */
 	static Chain new Chain();
 
+	/*! @brief 创建一个消息处理器路由对象，参见 Routing */
+	static Routing new Routing();
+
 	// Routing, Chain...
 
 	/*! @brief 使用给定的处理器处理一个消息或对象

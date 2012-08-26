@@ -1,4 +1,7 @@
-/*! @brief 消息处理器路由对象 */
+/*! @brief 消息处理器路由对象
+ *
+ * 路由对象根据设定的规则匹配消息，将消息传递给符合规则的第一个处理器。后加入的路由规则优先匹配。
+ */
 class Routing: Handler
 {
 	/*! @brief JSHandler 构造函数 */
@@ -9,20 +12,20 @@ class Routing: Handler
 	 */
 	Routing(Object map);
 
-	/*! @brief 设定路由参数
+	/*! @brief 添加一条路由规则
 	 * @param pattern 消息匹配格式
 	 * @param hdlr 消息处理器
 	 */
-	set(String pattern, Handler hdlr);
+	append(String pattern, Handler hdlr);
 
-	/*! @brief 设定路由参数
+	/*! @brief 添加一条 javascript 处理函数路由规则
 	 * @param pattern 消息匹配格式
 	 * @param hdlr javascript 消息处理函数
 	 */
-	set(String pattern, Function hdlr);
+	append(String pattern, Function hdlr);
 
-	/*! @brief 设定路由参数
+	/*! @brief 添加一组路由规则
 	 * @param map 路由参数
 	 */
-	set(Object map);
+	append(Object map);
 };

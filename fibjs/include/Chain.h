@@ -18,7 +18,8 @@ class Chain: public Chain_base
 {
 public:
 	// Handler_base
-	virtual result_t invoke(obj_ptr<object_base>& v, obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac);
+	virtual result_t invoke(obj_ptr<object_base>& v,
+			obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac);
 
 public:
 	// Chain_base
@@ -27,7 +28,7 @@ public:
 	virtual result_t append(v8::Handle<v8::Array> hdlrs);
 
 private:
-	QuickArray< obj_ptr<Handler_base> > m_array;
+	QuickArray<obj_ptr<Handler_base> > m_array;
 };
 
 } /* namespace fibjs */
