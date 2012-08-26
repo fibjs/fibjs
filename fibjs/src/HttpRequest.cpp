@@ -213,9 +213,9 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 
 			pThis->m_pThis->get_body(pThis->m_body);
 
-			obj_ptr<Stream_base> body(pThis->m_body);
-			return pThis->m_stm->copyTo(body, pThis->m_contentLength,
-					pThis->m_copySize, pThis);
+			pThis->m_stmBody = pThis->m_body;
+			return pThis->m_stm->copyTo(pThis->m_stmBody,
+					pThis->m_contentLength, pThis->m_copySize, pThis);
 		}
 
 		static int body(asyncState* pState, int n)
@@ -234,6 +234,7 @@ result_t HttpRequest::read(obj_ptr<BufferedStream_base>& stm,
 		HttpRequest* m_pThis;
 		BufferedStream_base* m_stm;
 		obj_ptr<SeekableStream_base> m_body;
+		obj_ptr<Stream_base> m_stmBody;
 		std::string m_strLine;
 		int64_t m_contentLength;
 		int64_t m_copySize;

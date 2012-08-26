@@ -25,9 +25,11 @@ public:
 
 public:
 	result_t create(const char* addr, int32_t port, v8::Handle<v8::Function> listener);
+	result_t create(const char* addr, int32_t port, obj_ptr<Handler_base>& listener);
 
 private:
 	obj_ptr<Socket_base> m_socket;
+	obj_ptr<Handler_base> m_hdlr;
 };
 
 } /* namespace fibjs */

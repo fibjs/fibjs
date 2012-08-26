@@ -140,7 +140,7 @@ public:
 		{
 			if (hr < 0 || !m_state)
 			{
-				if (bAsyncState)
+				if (bAsyncState && m_ac)
 					m_ac->post(hr);
 
 				return end(hr);

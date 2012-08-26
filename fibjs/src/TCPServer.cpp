@@ -6,15 +6,23 @@
  */
 
 #include "TCPServer.h"
+#include "ifs/mq.h"
+#include "JSHandler.h"
 
 namespace fibjs
 {
 
-result_t TCPServer_base::_new(int32_t port, v8::Handle<v8::Function> listener,
+result_t TCPServer_base::_new(int32_t port, obj_ptr<Handler_base>& listener,
 		obj_ptr<TCPServer_base>& retVal)
 {
+	return _new("", port, listener, retVal);
+}
+
+result_t TCPServer_base::_new(const char* addr, int32_t port,
+		obj_ptr<Handler_base>& listener, obj_ptr<TCPServer_base>& retVal)
+{
 	obj_ptr<TCPServer> svr = new TCPServer();
-	result_t hr = svr->create("", port, listener);
+	result_t hr = svr->create(addr, port, listener);
 	if (hr < 0)
 		return hr;
 
@@ -23,15 +31,38 @@ result_t TCPServer_base::_new(int32_t port, v8::Handle<v8::Function> listener,
 	return 0;
 }
 
+result_t TCPServer_base::_new(int32_t port, v8::Handle<v8::Function> listener,
+		obj_ptr<TCPServer_base>& retVal)
+{
+	return _new("", port, listener, retVal);
+}
+
 result_t TCPServer_base::_new(const char* addr, int32_t port,
 		v8::Handle<v8::Function> listener, obj_ptr<TCPServer_base>& retVal)
 {
-	obj_ptr<TCPServer> svr = new TCPServer();
-	result_t hr = svr->create(addr, port, listener);
+	obj_ptr<Handler_base> hdlr = new JSHandler(listener);
+	return _new("", port, hdlr, retVal);
+}
+
+result_t TCPServer::create(const char* addr, int32_t port,
+		obj_ptr<Handler_base>& listener)
+{
+	result_t hr;
+
+	hr = Socket_base::_new(net_base::_AF_INET, net_base::_SOCK_STREAM,
+			m_socket);
 	if (hr < 0)
 		return hr;
 
-	retVal = svr;
+	hr = m_socket->bind(addr, port, false);
+	if (hr < 0)
+		return hr;
+
+	hr = m_socket->listen(120);
+	if (hr < 0)
+		return hr;
+
+	m_hdlr = listener;
 
 	return 0;
 }
@@ -63,45 +94,54 @@ result_t TCPServer::create(const char* addr, int32_t port,
 
 result_t TCPServer::run(exlib::AsyncEvent* ac)
 {
-	class asyncAccept: public AsyncCallBack
+	class asyncAccept: public asyncState
 	{
 	public:
-		asyncAccept(Socket_base* pThis) :
-				AsyncCallBack(pThis, NULL)
+		asyncAccept(TCPServer* pThis, exlib::AsyncEvent* ac) :
+				asyncState(ac), m_pThis(pThis)
 		{
+			set(accept);
 		}
 
-		virtual void invoke()
+	public:
+		static int accept(asyncState* pState, int n)
 		{
-			result_t hr = ((Socket_base*) (object_base*) m_pThis)->accept(
-					retVal, this);
-			if (hr != CALL_E_PENDDING)
-				post(hr);
+			asyncAccept* pThis = (asyncAccept*) pState;
+
+			pThis->set(invoke);
+			return pThis->m_pThis->m_socket->accept(pThis->m_retVal, pThis);
 		}
 
-		virtual int post(int v)
+		static int invoke(asyncState* pState, int n)
 		{
-			s_acPool.put(
-					new asyncAccept((Socket_base*) (object_base*) m_pThis));
+			asyncAccept* pThis = (asyncAccept*) pState;
 
-			return AsyncCallBack::post(v);
+			pThis->set(close);
+
+			(new asyncAccept(pThis->m_pThis, NULL))->post(0);
+
+			pThis->m_v = pThis->m_retVal;
+			return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_v, pThis);
 		}
 
-		virtual void js_callback()
+		static int close(asyncState* pState, int n)
 		{
-			_trigger("accept", retVal);
+			asyncAccept* pThis = (asyncAccept*) pState;
+
+			pThis->done();
+			return pThis->m_retVal->close(pThis);
 		}
 
 	private:
-		obj_ptr<Socket_base> retVal;
+		TCPServer* m_pThis;
+		obj_ptr<Socket_base> m_retVal;
+		obj_ptr<object_base> m_v;
 	};
 
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	s_acPool.put(new asyncAccept(m_socket));
-
-	return CALL_E_PENDDING;
+	return (new asyncAccept(this, NULL))->post(0);
 }
 
 result_t TCPServer::asyncRun()

@@ -163,7 +163,8 @@ result_t HttpResponse::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 			pThis->set(header);
 
 			_body->rewind();
-			return _body->read((int32_t)pThis->m_contentLength, pThis->m_buffer, pThis);
+			return _body->read((int32_t) pThis->m_contentLength,
+					pThis->m_buffer, pThis);
 		}
 
 		static int header(asyncState* pState, int n)
@@ -226,11 +227,9 @@ result_t HttpResponse::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 
 			_body->rewind();
 
-			obj_ptr<Stream_base> stm(pThis->m_stm);
-
 			pThis->set(body_ok);
-			return _body->copyTo(stm, pThis->m_contentLength, pThis->m_copySize,
-					pThis);
+			return _body->copyTo(pThis->m_stm, pThis->m_contentLength,
+					pThis->m_copySize, pThis);
 		}
 
 		static int body_ok(asyncState* pState, int n)
@@ -245,7 +244,7 @@ result_t HttpResponse::send(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 
 	public:
 		HttpResponse* m_pThis;
-		Stream_base* m_stm;
+		obj_ptr<Stream_base> m_stm;
 		obj_ptr<Buffer_base> m_buffer;
 		int64_t m_contentLength;
 		int64_t m_copySize;
