@@ -47,13 +47,13 @@ function accept1(s) {
 }
 
 var s1 = new net.Socket();
-s1.bind(8082);
+s1.bind(8182);
 s1.listen();
 accept1.start(s1);
 
 for ( var i = 3; i < 100000; i *= 3) {
 	var conn = new net.Socket();
-	conn.connect('127.0.0.1', 8082);
+	conn.connect('127.0.0.1', 8182);
 	t_read(conn, i);
 }
 

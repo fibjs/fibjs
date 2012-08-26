@@ -31,7 +31,7 @@ assert.equal(a[1], '300');
 
 d.remove('a');
 assert.equal(d.has('a'), false);
-assert.strictEqual(d.first('a'), undefined);
+assert.strictEqual(d.first('a'), null);
 
 assert.strictEqual(d['a'], undefined);
 
