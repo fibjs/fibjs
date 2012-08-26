@@ -102,7 +102,7 @@ function readreq(u) {
 	var req = new http.Request();
 
 	assert.throws(function() {
-		req.read(bs);
+		req.readFrom(bs);
 	});
 }
 
@@ -117,7 +117,7 @@ bs
 ms.seek(0, io.SEEK_SET);
 
 var req = new http.Request();
-req.read(bs);
+req.readFrom(bs);
 assert.equal('100', req.headers['head1']);
 assert.equal('200', req.headers['head2']);
 assert.equal(10, req.contentLength);
@@ -142,7 +142,7 @@ for ( var n in keep_reqs) {
 	ms.seek(0, io.SEEK_SET);
 
 	var req = new http.Request();
-	req.read(bs);
+	req.readFrom(bs);
 	assert.equal(keep_reqs[n], req.keepAlive);
 }
 
@@ -151,7 +151,7 @@ var ms = new io.MemoryStream();
 var rep = new http.Response();
 rep.body.write(new Buffer("0123456789"));
 
-rep.send(ms);
+rep.sendTo(ms);
 ms.rewind();
 console.log(encoding.hexEncode(ms.read()));
 

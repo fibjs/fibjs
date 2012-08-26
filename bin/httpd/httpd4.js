@@ -27,7 +27,7 @@ new net.TCPServer(8080, function(c) {
 
 	while (rep.keepAlive) {
 		try {
-			req.read(bs);
+			req.readFrom(bs);
 		} catch (e) {
 			break;
 		}
@@ -39,7 +39,7 @@ new net.TCPServer(8080, function(c) {
 		rep.contentType = "text/html";
 		rep.body = body1;
 
-		rep.send(c);
+		rep.sendTo(c);
 	}
 
 	// console.log("close...");
