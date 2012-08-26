@@ -85,6 +85,7 @@ result_t HttpRequest::clear()
 	m_method.clear();
 	m_address.clear();
 	m_strCookies.clear();
+	m_response->clear();
 
 	return 0;
 }
@@ -206,6 +207,16 @@ result_t HttpRequest::readFrom(obj_ptr<BufferedStream_base>& stm,
 				return pThis->m_stm->readLine(pThis->m_strLine, pThis);
 			}
 
+			std::string strProtocol;
+
+			pThis->m_pThis->get_protocol(strProtocol);
+			pThis->m_pThis->m_response->set_protocol(strProtocol.c_str());
+
+			bool bKeepAlive;
+
+			pThis->m_pThis->get_keepAlive(bKeepAlive);
+			pThis->m_pThis->m_response->set_keepAlive(bKeepAlive);
+
 			if (pThis->m_contentLength == 0)
 				return pThis->done();
 
@@ -278,6 +289,12 @@ result_t HttpRequest::get_address(std::string& retVal)
 result_t HttpRequest::set_address(const char* newVal)
 {
 	m_address = newVal;
+	return 0;
+}
+
+result_t HttpRequest::get_response(obj_ptr<HttpResponse_base>& retVal)
+{
+	retVal = m_response;
 	return 0;
 }
 

@@ -7,6 +7,7 @@
 
 #include "ifs/HttpRequest.h"
 #include "HttpMessage.h"
+#include "HttpResponse.h"
 
 #ifndef HTTPREQUEST_H_
 #define HTTPREQUEST_H_
@@ -19,6 +20,7 @@ class HttpRequest : public HttpRequest_base
 public:
 	HttpRequest()
 	{
+		m_response = new HttpResponse();
 		clear();
 		extMemory(4096);
 	}
@@ -56,6 +58,7 @@ public:
 	virtual result_t set_method(const char* newVal);
 	virtual result_t get_address(std::string& retVal);
 	virtual result_t set_address(const char* newVal);
+	virtual result_t get_response(obj_ptr<HttpResponse_base>& retVal);
 	virtual result_t get_cookies(obj_ptr<HttpCollection_base>& retVal);
 	virtual result_t get_form(obj_ptr<HttpCollection_base>& retVal);
 	virtual result_t get_query(obj_ptr<HttpCollection_base>& retVal);
@@ -66,6 +69,7 @@ public:
 	std::string m_address;
 	std::string m_strquery;
 	std::string m_strCookies;
+	obj_ptr<HttpResponse_base> m_response;
 };
 
 } /* namespace fibjs */

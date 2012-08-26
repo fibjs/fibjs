@@ -1,0 +1,14 @@
+
+/*! @brief Http 协议处理器对象 */
+class HttpHandler: Handler
+{
+	/*! @brief HttpHandler 构造函数
+	 * @param hdlr Http 消息处理器
+	 */
+	HttpHandler(Handler hdlr);
+
+	/*! @brief HttpHandler 构造函数
+	 * @param hdlr Http 消息处理函数
+	 */
+	HttpHandler(Function hdlr);
+};

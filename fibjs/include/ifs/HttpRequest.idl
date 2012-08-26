@@ -11,6 +11,9 @@ class HttpRequest : HttpMessage
 	/*! @brief 查询和设置请求地址 */
 	String address;
 
+	/*! @brief 获取 http 响应消息对象*/
+	readonly HttpResponse response;
+
 	/*! @brief 获取包含消息 cookies 的容器*/
 	readonly HttpCollection cookies;
 
