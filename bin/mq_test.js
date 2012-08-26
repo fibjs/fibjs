@@ -7,6 +7,7 @@ console.log('mq testing....');
 var assert = require('assert');
 
 var mq = require('mq');
+var http = require('http');
 
 var n = 0;
 
@@ -66,3 +67,31 @@ var chain = new mq.Chain([ chain1, chain2, chain3 ]);
 n = 0;
 chain.invoke(v);
 assert.equal(7, n);
+
+var r = new mq.Routing({
+	'a' : chain1,
+	'c' : chain3,
+	'b' : chain2
+});
+
+var m = new http.Request();
+
+n = 0;
+m.value = 'a';
+mq.invoke(r, m);
+assert.equal(1, n);
+
+n = 0;
+m.value = 'b';
+mq.invoke(r, m);
+assert.equal(2, n);
+
+n = 0;
+m.value = 'c';
+mq.invoke(r, m);
+assert.equal(4, n);
+
+n = 0;
+m.value = 'd';
+mq.invoke(r, m);
+assert.equal(0, n);
