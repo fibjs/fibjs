@@ -15,7 +15,7 @@ require("buffered_test");
 require("url_test");
 require("hash_test");
 require("http_test");
-//require("resolve_test");
+require("mq_test");
 require("zmq_test");
 require("uuid_test");
 
