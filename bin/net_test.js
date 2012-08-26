@@ -56,7 +56,7 @@ function conn() {
 	console.log(s1.remoteAddress, s1.remotePort, "<-", s1.localAddress,
 			s1.localPort);
 	s1.send(new Buffer("GET / HTTP/1.0"));
-	console.log(s1.recv());
+	assert.equal("GET / HTTP/1.0", s1.recv());
 	s1.close();
 	s1.dispose();
 }
@@ -110,5 +110,36 @@ t_conn();
 
 del('net_temp_000001');
 del('net_temp_000002');
+
+
+function accept2(s) {
+	while(true){
+		var c = s.accept();
+
+		c.write(new Buffer('a'));
+		coroutine.sleep(100);
+		c.write(new Buffer('a'));
+		coroutine.sleep(100);
+		c.write(new Buffer('b'));
+		coroutine.sleep(100);
+		c.write(new Buffer('c'));
+		coroutine.sleep(100);
+		c.write(new Buffer('d'));
+		coroutine.sleep(100);
+
+		c.close();
+	}
+}
+
+var s2 = new net.Socket(net.AF_INET6, net.SOCK_STREAM);
+s2.bind(8082);
+s2.listen();
+accept2.start(s2);
+
+var c1 = new net.Socket();
+c1.connect('127.0.0.1', 8082);
+assert.equal('a', c1.recv(100));
+assert.equal('abc', c1.read(3));
+assert.equal('d', c1.read(3));
 
 console.log('Backend:', net.backend());
