@@ -23,7 +23,7 @@ new net.TCPServer(8080, function(c) {
 	var body1 = body.clone();
 	
 	var req = new http.Request();
-	var rep = new http.Response();
+	var rep = req.response;
 
 	while (rep.keepAlive) {
 		try {
@@ -32,13 +32,6 @@ new net.TCPServer(8080, function(c) {
 			break;
 		}
 			
-//			rep.clear();
-		rep.protocol = req.protocol;
-		rep.keepAlive = req.keepAlive;
-
-		rep.contentType = "text/html";
-		rep.body = body1;
-
 		rep.sendTo(c);
 	}
 
