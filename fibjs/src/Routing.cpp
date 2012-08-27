@@ -63,7 +63,7 @@ result_t Routing::invoke(obj_ptr<object_base>& v, obj_ptr<Handler_base>& retVal,
 		}
 	}
 
-	return CALL_RETURN_NULL;
+	return CALL_E_INVALID_CALL;
 }
 
 result_t Routing::append(const char* pattern, obj_ptr<Handler_base>& hdlr)

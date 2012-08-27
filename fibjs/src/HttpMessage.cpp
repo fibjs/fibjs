@@ -194,7 +194,7 @@ result_t HttpMessage::set_keepAlive(bool newVal)
 result_t HttpMessage::clear()
 {
 	m_protocol.assign("HTTP/1.1", 8);
-	m_contentType.clear();
+	m_contentType.assign("text/html", 9);
 	m_keepAlive = true;
 
 	m_headers->clear();

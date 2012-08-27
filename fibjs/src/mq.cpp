@@ -32,7 +32,7 @@ result_t mq_base::invoke(obj_ptr<Handler_base>& hdlr, obj_ptr<object_base>& v,
 			asyncInvoke* pThis = (asyncInvoke*) pState;
 
 			if (n == CALL_RETURN_NULL)
-				return pThis->done();
+				return pThis->done(0);
 
 			pThis->m_hdlr = pThis->m_next;
 			pThis->m_next.Release();

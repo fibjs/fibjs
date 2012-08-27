@@ -19,4 +19,10 @@ class http : module
 	 * @return 返回一个可以将流对象数据转变为 http 消息的处理器
 	 */
 	static Handler handler(Function hdlr);
+
+	/*! @brief 创建一个 http 静态文件处理器，用以用静态文件响应 http 消息
+	 * @param root 文件跟路径
+	 * @return 返回一个静态文件处理器用于处理 http 消息
+	 */
+	static Handler fileHandler(String root);
 };

@@ -32,10 +32,7 @@ public:
 
 		result_t hr = pThis->process(pThis->m_streamEnd);
 		if (hr >= 0)
-		{
-			pThis->done();
-			return hr;
-		}
+			return pThis->done(hr);
 
 		pThis->set(ready);
 		return pThis->m_pThis->m_stm->read(-1, pThis->m_buf, pThis);

@@ -50,10 +50,7 @@ result_t Chain::invoke(obj_ptr<object_base>& v, obj_ptr<Handler_base>& retVal,
 			asyncInvoke* pThis = (asyncInvoke*) pState;
 
 			if (pThis->m_pos == (int32_t) pThis->m_pThis->m_array.size())
-			{
-				pThis->done();
-				return CALL_RETURN_NULL;
-			}
+				return pThis->done(CALL_RETURN_NULL);
 
 			pThis->m_pos++;
 			return mq_base::invoke(pThis->m_pThis->m_array[pThis->m_pos - 1],
@@ -65,6 +62,9 @@ result_t Chain::invoke(obj_ptr<object_base>& v, obj_ptr<Handler_base>& retVal,
 		obj_ptr<object_base>& m_v;
 		int32_t m_pos;
 	};
+
+	if(m_array.size() == 0)
+		return CALL_E_INVALID_CALL;
 
 	if (!ac)
 		return CALL_E_NOSYNC;

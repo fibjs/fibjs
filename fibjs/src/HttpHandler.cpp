@@ -10,24 +10,9 @@
 #include "BufferedStream.h"
 #include "JSHandler.h"
 #include "ifs/mq.h"
-#include "ifs/http.h"
 
 namespace fibjs
 {
-
-result_t http_base::handler(obj_ptr<Handler_base>& hdlr,
-		obj_ptr<Handler_base>& retVal)
-{
-	retVal = new HttpHandler(hdlr);
-	return 0;
-}
-
-result_t http_base::handler(v8::Handle<v8::Function> hdlr,
-		obj_ptr<Handler_base>& retVal)
-{
-	obj_ptr<Handler_base> hdlr1 = new JSHandler(hdlr);
-	return handler(hdlr1, retVal);
-}
 
 result_t HttpHandler::invoke(obj_ptr<object_base>& v,
 		obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac)
@@ -56,10 +41,7 @@ result_t HttpHandler::invoke(obj_ptr<object_base>& v,
 
 			pThis->m_rep->get_keepAlive(bKeepAlive);
 			if (!bKeepAlive)
-			{
-				pThis->done();
-				return CALL_RETURN_NULL;
-			}
+				return pThis->done(CALL_RETURN_NULL);
 
 			pThis->set(invoke);
 			return pThis->m_req->readFrom(pThis->m_stmBuffered, pThis);
@@ -79,6 +61,25 @@ result_t HttpHandler::invoke(obj_ptr<object_base>& v,
 
 			pThis->set(read);
 			return pThis->m_rep->sendTo(pThis->m_stm, pThis);
+		}
+
+		virtual int error(int v)
+		{
+			if (is(send))
+			{
+				m_rep->set_status(500);
+				return 0;
+			}
+
+			if (is(invoke))
+			{
+				m_rep->set_keepAlive(false);
+				m_rep->set_status(400);
+				set(send);
+				return 0;
+			}
+
+			return v;
 		}
 
 	private:

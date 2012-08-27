@@ -207,6 +207,12 @@
     <ClCompile Include="src\NullHandler.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\HttpFileHandler.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\http.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -522,6 +528,9 @@
       <Filter>Header Files\include</Filter>
     </ClInclude>
     <ClInclude Include="include\NullHandler.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HttpFileHandler.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>

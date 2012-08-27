@@ -122,10 +122,15 @@ public:
 		m_state = fn;
 	}
 
-	int done()
+	bool is(int (*fn)(asyncState*, int))
+	{
+		return m_state == fn;
+	}
+
+	int done(int v)
 	{
 		m_state = NULL;
-		return 0;
+		return v;
 	}
 
 	virtual int post(int v)
@@ -138,6 +143,9 @@ public:
 
 		do
 		{
+			if (hr < 0)
+				hr = error(hr);
+
 			if (hr < 0 || !m_state)
 			{
 				if (bAsyncState && m_ac)
@@ -150,6 +158,11 @@ public:
 		} while (hr != CALL_E_PENDDING);
 
 		return hr;
+	}
+
+	virtual int error(int v)
+	{
+		return v;
 	}
 
 	virtual int end(int v)

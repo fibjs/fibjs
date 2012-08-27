@@ -28,11 +28,13 @@ public:
 	// http_base
 	static result_t handler(obj_ptr<Handler_base>& hdlr, obj_ptr<Handler_base>& retVal);
 	static result_t handler(v8::Handle<v8::Function> hdlr, obj_ptr<Handler_base>& retVal);
+	static result_t fileHandler(const char* root, obj_ptr<Handler_base>& retVal);
 
 	DECLARE_CLASSINFO(http_base);
 
 public:
 	static v8::Handle<v8::Value> s_handler(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_fileHandler(const v8::Arguments& args);
 };
 
 }
@@ -47,7 +49,8 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"handler", s_handler, true}
+			{"handler", s_handler, true},
+			{"fileHandler", s_fileHandler, true}
 		};
 
 		static ClassData::ClassObject s_object[] = 
@@ -59,7 +62,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"http", NULL, 
-			1, s_method, 2, s_object, 0, NULL, NULL, NULL,
+			2, s_method, 2, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -83,6 +86,19 @@ namespace fibjs
 		ARG(v8::Handle<v8::Function>, 0);
 
 		hr = handler(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> http_base::s_fileHandler(const v8::Arguments& args)
+	{
+		obj_ptr<Handler_base> vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = fileHandler(v0, vr);
 
 		METHOD_RETURN();
 	}

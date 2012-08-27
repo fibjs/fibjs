@@ -218,7 +218,7 @@ result_t HttpRequest::readFrom(obj_ptr<BufferedStream_base>& stm,
 			pThis->m_pThis->m_response->set_keepAlive(bKeepAlive);
 
 			if (pThis->m_contentLength == 0)
-				return pThis->done();
+				return pThis->done(0);
 
 			pThis->set(body);
 
@@ -238,7 +238,7 @@ result_t HttpRequest::readFrom(obj_ptr<BufferedStream_base>& stm,
 
 			pThis->m_body->rewind();
 
-			return pThis->done();
+			return pThis->done(0);
 		}
 
 	public:

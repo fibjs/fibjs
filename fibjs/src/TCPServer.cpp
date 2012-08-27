@@ -128,7 +128,7 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 		{
 			asyncAccept* pThis = (asyncAccept*) pState;
 
-			pThis->done();
+			pThis->done(0);
 			return pThis->m_retVal->close(pThis);
 		}
 

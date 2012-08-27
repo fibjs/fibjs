@@ -41,7 +41,9 @@
     <ClCompile Include="src\Function.cpp" />
     <ClCompile Include="src\global.cpp" />
     <ClCompile Include="src\hash.cpp" />
+    <ClCompile Include="src\http.cpp" />
     <ClCompile Include="src\HttpCollection.cpp" />
+    <ClCompile Include="src\HttpFileHandler.cpp" />
     <ClCompile Include="src\HttpHandler.cpp" />
     <ClCompile Include="src\HttpMessage.cpp" />
     <ClCompile Include="src\HttpRequest.cpp" />
@@ -103,6 +105,7 @@
     <ClInclude Include="include\Fiber.h" />
     <ClInclude Include="include\File.h" />
     <ClInclude Include="include\HttpCollection.h" />
+    <ClInclude Include="include\HttpFileHandler.h" />
     <ClInclude Include="include\HttpHandler.h" />
     <ClInclude Include="include\HttpMessage.h" />
     <ClInclude Include="include\HttpRequest.h" />

@@ -63,9 +63,7 @@ result_t JSHandler::invoke(obj_ptr<object_base>& v,
 			asyncInvoke* pThis = (asyncInvoke*) pState;
 
 			pThis->asyncEvent::post(0);
-			pThis->done();
-
-			return CALL_E_PENDDING;
+			return pThis->done(CALL_E_PENDDING);
 		}
 
 	public:

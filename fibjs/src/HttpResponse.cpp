@@ -205,7 +205,7 @@ result_t HttpResponse::sendTo(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 			pThis->m_buffer = new Buffer(m_strBuf);
 
 			if (pThis->m_contentLength == 0 || pThis->m_body.length() > 0)
-				pThis->done();
+				pThis->done(0);
 			else
 				pThis->set(body);
 
@@ -217,7 +217,7 @@ result_t HttpResponse::sendTo(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 			asyncSendTo* pThis = (asyncSendTo*) pState;
 
 			if (pThis->m_contentLength == 0)
-				return pThis->done();
+				return pThis->done(0);
 
 			obj_ptr<SeekableStream_base> _body;
 
@@ -239,7 +239,7 @@ result_t HttpResponse::sendTo(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 			if (pThis->m_contentLength != pThis->m_copySize)
 				return CALL_E_INVALID_DATA;
 
-			return pThis->done();
+			return pThis->done(0);
 		}
 
 	public:
