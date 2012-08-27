@@ -17,7 +17,7 @@ function fun3(v) {
 
 function fun2(v) {
 	n = n | 2;
-	return new mq.JSHandler(fun3);
+	return mq.jsHandler(fun3);
 }
 
 function fun1(v) {
@@ -26,7 +26,7 @@ function fun1(v) {
 }
 
 var v = new Buffer('abcd');
-var jv = new mq.JSHandler(fun1);
+var jv = mq.jsHandler(fun1);
 
 n = 0;
 jv.invoke(v);
@@ -43,9 +43,9 @@ assert.throws(function() {
 });
 
 assert.throws(function() {
-	mq.invoke(new mq.JSHandler(function(v) {
+	mq.invoke(function(v) {
 		return 100;
-	}), v);
+	}, v);
 });
 
 // ------------- chain handler
