@@ -23,6 +23,7 @@
     <ClCompile Include="src\assert.cpp" />
     <ClCompile Include="src\Buffer.cpp" />
     <ClCompile Include="src\BufferedStream.cpp" />
+    <ClCompile Include="src\Chain.cpp" />
     <ClCompile Include="src\Condition.cpp" />
     <ClCompile Include="src\Console.cpp" />
     <ClCompile Include="src\coroutine.cpp" />
@@ -41,6 +42,7 @@
     <ClCompile Include="src\global.cpp" />
     <ClCompile Include="src\hash.cpp" />
     <ClCompile Include="src\HttpCollection.cpp" />
+    <ClCompile Include="src\HttpHandler.cpp" />
     <ClCompile Include="src\HttpMessage.cpp" />
     <ClCompile Include="src\HttpRequest.cpp" />
     <ClCompile Include="src\HttpResponse.cpp" />
@@ -54,11 +56,13 @@
     <ClCompile Include="src\module.cpp" />
     <ClCompile Include="src\mq.cpp" />
     <ClCompile Include="src\mysql.cpp" />
+    <ClCompile Include="src\NullHandler.cpp" />
     <ClCompile Include="src\ObjectArray.cpp" />
     <ClCompile Include="src\os.cpp" />
     <ClCompile Include="src\path.cpp" />
     <ClCompile Include="src\Regex.cpp" />
     <ClCompile Include="src\resolve.cpp" />
+    <ClCompile Include="src\Routing.cpp" />
     <ClCompile Include="src\Runtime.cpp" />
     <ClCompile Include="src\Semaphore.cpp" />
     <ClCompile Include="src\Socket.cpp" />
@@ -87,6 +91,7 @@
     <ClInclude Include="include\AsyncCall.h" />
     <ClInclude Include="include\Buffer.h" />
     <ClInclude Include="include\BufferedStream.h" />
+    <ClInclude Include="include\Chain.h" />
     <ClInclude Include="include\ClassInfo.h" />
     <ClInclude Include="include\Condition.h" />
     <ClInclude Include="include\date.h" />
@@ -98,6 +103,7 @@
     <ClInclude Include="include\Fiber.h" />
     <ClInclude Include="include\File.h" />
     <ClInclude Include="include\HttpCollection.h" />
+    <ClInclude Include="include\HttpHandler.h" />
     <ClInclude Include="include\HttpMessage.h" />
     <ClInclude Include="include\HttpRequest.h" />
     <ClInclude Include="include\HttpResponse.h" />
@@ -128,7 +134,6 @@
     <ClInclude Include="include\ifs\HttpRequest.h" />
     <ClInclude Include="include\ifs\HttpResponse.h" />
     <ClInclude Include="include\ifs\io.h" />
-    <ClInclude Include="include\ifs\JSHandler.h" />
     <ClInclude Include="include\ifs\Lock.h" />
     <ClInclude Include="include\ifs\Map.h" />
     <ClInclude Include="include\ifs\MemoryStream.h" />
@@ -163,6 +168,7 @@
     <ClInclude Include="include\Map.h" />
     <ClInclude Include="include\MemoryStream.h" />
     <ClInclude Include="include\mysql.h" />
+    <ClInclude Include="include\NullHandler.h" />
     <ClInclude Include="include\object.h" />
     <ClInclude Include="include\ObjectArray.h" />
     <ClInclude Include="include\obj_ptr.h" />
@@ -170,6 +176,7 @@
     <ClInclude Include="include\qstring.h" />
     <ClInclude Include="include\QuickArray.h" />
     <ClInclude Include="include\Regex.h" />
+    <ClInclude Include="include\Routing.h" />
     <ClInclude Include="include\Runtime.h" />
     <ClInclude Include="include\Semaph.h" />
     <ClInclude Include="include\Socket.h" />

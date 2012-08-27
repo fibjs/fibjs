@@ -11,14 +11,6 @@
 namespace fibjs
 {
 
-result_t JSHandler_base::_new(v8::Handle<v8::Function> fun,
-		obj_ptr<JSHandler_base>& retVal)
-{
-	retVal = new JSHandler(fun);
-
-	return 0;
-}
-
 result_t JSHandler::callFunction(obj_ptr<object_base>& v,
 		obj_ptr<Handler_base>& retVal)
 {

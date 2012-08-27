@@ -8,6 +8,15 @@ class http : module
 	/*! @brief 创建一个 http 响应对象，参见 HttpResponse */
 	static HttpResponse new Response();
 
-	/*! @brief 创建一个 http 协议处理器对象，参见 HttpResponse */
-	static HttpHandler new Handler();
+	/*! @brief 创建一个 http 协议处理器对象，将流对象的数据转变为 http 消息对象
+	 * @param hdlr http 消息处理器
+	 * @return 返回一个可以将流对象数据转变为 http 消息的处理器
+	 */
+	static Handler handler(Handler hdlr);
+
+	/*! @brief 创建一个 http 协议处理器对象，将流对象的数据转变为 http 消息对象
+	 * @param hdlr http 消息处理函数
+	 * @return 返回一个可以将流对象数据转变为 http 消息的处理器
+	 */
+	static Handler handler(Function hdlr);
 };

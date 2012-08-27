@@ -10,23 +10,23 @@
 #include "BufferedStream.h"
 #include "JSHandler.h"
 #include "ifs/mq.h"
+#include "ifs/http.h"
 
 namespace fibjs
 {
 
-result_t HttpHandler_base::_new(obj_ptr<Handler_base>& hdlr,
-		obj_ptr<HttpHandler_base>& retVal)
+result_t http_base::handler(obj_ptr<Handler_base>& hdlr,
+		obj_ptr<Handler_base>& retVal)
 {
 	retVal = new HttpHandler(hdlr);
 	return 0;
 }
 
-result_t HttpHandler_base::_new(v8::Handle<v8::Function> hdlr,
-		obj_ptr<HttpHandler_base>& retVal)
+result_t http_base::handler(v8::Handle<v8::Function> hdlr,
+		obj_ptr<Handler_base>& retVal)
 {
 	obj_ptr<Handler_base> hdlr1 = new JSHandler(hdlr);
-	retVal = new HttpHandler(hdlr1);
-	return 0;
+	return handler(hdlr1, retVal);
 }
 
 result_t HttpHandler::invoke(obj_ptr<object_base>& v,
@@ -52,6 +52,14 @@ result_t HttpHandler::invoke(obj_ptr<object_base>& v,
 		static int read(asyncState* pState, int n)
 		{
 			asyncInvoke* pThis = (asyncInvoke*) pState;
+			bool bKeepAlive = false;
+
+			pThis->m_rep->get_keepAlive(bKeepAlive);
+			if (!bKeepAlive)
+			{
+				pThis->done();
+				return CALL_RETURN_NULL;
+			}
 
 			pThis->set(invoke);
 			return pThis->m_req->readFrom(pThis->m_stmBuffered, pThis);

@@ -2,14 +2,22 @@
 /*! @brief 消息队列模块 */
 class mq : module
 {
-	/*! @brief 创建一个 javascript 消息处理器对象，参见 JSHandler */
-	static JSHandler new JSHandler();
-
 	/*! @brief 创建一个消息处理器链处理对象，参见 Chain */
 	static Chain new Chain();
 
 	/*! @brief 创建一个消息处理器路由对象，参见 Routing */
 	static Routing new Routing();
+
+	/*! @brief 创建一个 javascript 消息处理器对象
+	 * @param hdlr 处理函数
+	 * @return 返回封装了处理函数的处理器
+	 */
+	static Handler jsHandler(Function hdlr);
+
+	/*! @brief 创建一个空处理器对象，次处理对象不做任何处理直接返回
+	 * @return 返回空处理函数
+	 */
+	static Handler nullHandler();
 
 	// Routing, Chain...
 

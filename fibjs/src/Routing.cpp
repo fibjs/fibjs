@@ -51,7 +51,7 @@ result_t Routing::invoke(obj_ptr<object_base>& v, obj_ptr<Handler_base>& retVal,
 	{
 		obj_ptr<rule>& r = m_array[i];
 
-		if ((rc = pcre_exec(r->m_re, r->m_extra, value.c_str(), value.length(),
+		if ((rc = pcre_exec(r->m_re, r->m_extra, value.c_str(), (int)value.length(),
 				0, 0, ovector, RE_SIZE)) > 0)
 		{
 			if (rc > 1)

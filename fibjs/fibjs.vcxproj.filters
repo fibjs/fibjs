@@ -195,6 +195,18 @@
     <ClCompile Include="src\JSHandler.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\HttpHandler.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Routing.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Chain.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NullHandler.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -491,9 +503,6 @@
     <ClInclude Include="include\ifs\Handler.h">
       <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\JSHandler.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
     <ClInclude Include="include\ifs\mq.h">
       <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
@@ -501,6 +510,18 @@
       <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\JSHandler.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Chain.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HttpHandler.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Routing.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\NullHandler.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>

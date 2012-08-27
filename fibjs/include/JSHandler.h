@@ -5,7 +5,7 @@
  *      Author: lion
  */
 
-#include "ifs/JSHandler.h"
+#include "ifs/Handler.h"
 
 #ifndef JSHANDLER_H_
 #define JSHANDLER_H_
@@ -13,7 +13,7 @@
 namespace fibjs
 {
 
-class JSHandler: public JSHandler_base
+class JSHandler: public Handler_base
 {
 public:
 	JSHandler(v8::Handle<v8::Function> func)

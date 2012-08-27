@@ -5,7 +5,7 @@
  *      Author: lion
  */
 
-#include "ifs/HttpHandler.h"
+#include "ifs/Handler.h"
 
 #ifndef HTTPHANDLER_H_
 #define HTTPHANDLER_H_
@@ -13,7 +13,7 @@
 namespace fibjs
 {
 
-class HttpHandler: public HttpHandler_base
+class HttpHandler: public Handler_base
 {
 public:
 	HttpHandler(obj_ptr<Handler_base>& hdlr) :

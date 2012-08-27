@@ -6,6 +6,8 @@
  */
 
 #include "object.h"
+#include "JSHandler.h"
+#include "NullHandler.h"
 #include "ifs/mq.h"
 
 namespace fibjs
@@ -48,6 +50,19 @@ result_t mq_base::invoke(obj_ptr<Handler_base>& hdlr, obj_ptr<object_base>& v,
 		return CALL_E_NOSYNC;
 
 	return (new asyncInvoke(hdlr, v, ac))->post(0);
+}
+
+result_t mq_base::jsHandler(v8::Handle<v8::Function> hdlr,
+		obj_ptr<Handler_base>& retVal)
+{
+	retVal = new JSHandler(hdlr);
+	return 0;
+}
+
+result_t mq_base::nullHandler(obj_ptr<Handler_base>& retVal)
+{
+	retVal = new NullHandler();
+	return 0;
 }
 
 }
