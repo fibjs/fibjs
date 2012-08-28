@@ -258,7 +258,7 @@ void date_t::toString(std::string& retVal)
 	int Days, Milliseconds, NumberOf400s, NumberOf100s, NumberOf4s;
 	int64_t d1 = (int64_t) (d + 62135596800000);
 
-	Days = d1 / 86400000;
+	Days = (int)(d1 / 86400000);
 	Milliseconds = d1 % 86400000;
 
 	wDayOfWeek = (short) ((Days + 1) % 7);

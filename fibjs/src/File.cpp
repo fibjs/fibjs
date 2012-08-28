@@ -218,6 +218,10 @@ result_t File::get_name(std::string& retVal)
 	return 0;
 }
 
+#ifndef _WIN32
+#define _fileno fileno
+#endif
+
 result_t File::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
 {
 	if (!m_file)
@@ -227,7 +231,7 @@ result_t File::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
 		return CALL_E_NOSYNC;
 
 	struct stat64 st;
-	fstat64(fileno(m_file), &st);
+	fstat64(_fileno(m_file), &st);
 
 	obj_ptr<Stat> pStat = new Stat();
 	pStat->fill(name.c_str(), st);
@@ -375,7 +379,7 @@ result_t File::truncate(int64_t bytes, exlib::AsyncEvent* ac)
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	if (ftruncate64(fileno(m_file), bytes) < 0)
+	if (ftruncate64(_fileno(m_file), bytes) < 0)
 		return LastError();
 
 	return 0;

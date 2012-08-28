@@ -112,7 +112,7 @@ result_t os_base::CPUs(int32_t& retVal)
 	{
 		char key[128] = "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\";
 		char processor_number[32];
-		itoa(i, processor_number, 10);
+		_itoa(i, processor_number, 10);
 		strncat(key, processor_number, 2);
 
 		HKEY processor_key = NULL;
@@ -169,7 +169,7 @@ result_t os_base::CPUInfo(v8::Handle<v8::Array>& retVal)
 	{
 		char key[128] = "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\";
 		char processor_number[32];
-		itoa(i, processor_number, 10);
+		_itoa(i, processor_number, 10);
 		strncat(key, processor_number, 2);
 
 		HKEY processor_key = NULL;
