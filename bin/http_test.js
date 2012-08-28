@@ -84,6 +84,16 @@ a = d.all('e');
 assert.equal(a.length, 1);
 assert.equal(a[0], '2000');
 
+d.set('f', 214748364700);
+assert.equal(d['f'], '214748364700');
+
+d.set('f', 214.123);
+assert.equal(d['f'], '214.123');
+
+t = new Date('2012-12-12 12:12:12');
+d.set('f', t);
+assert.equal(d['f'], 'Wed, 12 Dec 2012 04:12:12 GMT');
+
 var bad_reqs = [ " GET / HTTP/1.0\r\nkeepalive: close\r\n\r\n",
 		"GET ? HTTP/1.0\r\nkeepalive: close\r\n\r\n",
 		"GET / \r\nkeepalive: close\r\n\r\n",
