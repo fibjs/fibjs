@@ -271,7 +271,7 @@ result_t encoding_base::decodeURI(const char* url, std::string& retVal)
 	std::string str;
 
 	for (len = 0, src = url; (ch = (unsigned char) *src) != 0; src++, len++)
-		if (ch == '%' && qishex(src[1]) & qishex(src[2]))
+		if (ch == '%' && qishex(src[1]) && qishex(src[2]))
 			src += 2;
 
 	str.resize(len);
@@ -279,7 +279,7 @@ result_t encoding_base::decodeURI(const char* url, std::string& retVal)
 
 	for (src = url; (ch = (unsigned char) *src) != 0; src++)
 	{
-		if (ch == '%' && qishex(src[1]) & qishex(src[2]))
+		if (ch == '%' && qishex(src[1]) && qishex(src[2]))
 		{
 			*bstr++ = (HEXDATA(src[1]) << 4) + HEXDATA(src[2]);
 			src += 2;

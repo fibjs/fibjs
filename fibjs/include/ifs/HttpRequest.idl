@@ -15,7 +15,7 @@ class HttpRequest : HttpMessage
 	readonly HttpResponse response;
 
 	/*! @brief 获取包含消息 cookies 的容器*/
-	readonly HttpCollection cookies;
+	readonly HttpCollection cookie;
 
 	/*! @brief 获取包含消息 form 的容器*/
 	readonly HttpCollection form;

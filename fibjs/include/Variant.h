@@ -189,12 +189,12 @@ public:
 		return m_Val.dblVal;
 	}
 
-	operator const date_t&() const
+	operator const date_t() const
 	{
 		return *(date_t*) m_Val.dateVal;
 	}
 
-	operator const std::string&() const
+	std::string string() const
 	{
 		return *(std::string*) m_Val.strVal;
 	}

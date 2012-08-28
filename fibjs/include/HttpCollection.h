@@ -44,6 +44,13 @@ public:
 		m_count++;
 	}
 
+	void add(std::string& name, std::string& value)
+	{
+		m_array[m_count * 2].assign(name);
+		m_array[m_count * 2 + 1].assign(value);
+		m_count++;
+	}
+
 	size_t size();
 	size_t getData(char* buf, size_t sz);
 

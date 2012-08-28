@@ -66,7 +66,7 @@ result_t HttpCollection::has(const char* name, bool& retVal)
 
 	retVal = false;
 	for (i = 0; i < m_count; i++)
-		if (!qstrcmp(m_array[i * 2].c_str(), name))
+		if (!qstricmp(m_array[i * 2].c_str(), name))
 		{
 			retVal = true;
 			break;
@@ -80,7 +80,7 @@ result_t HttpCollection::first(const char* name, Variant& retVal)
 	int32_t i;
 
 	for (i = 0; i < m_count; i++)
-		if (!qstrcmp(m_array[i * 2].c_str(), name))
+		if (!qstricmp(m_array[i * 2].c_str(), name))
 		{
 			retVal = m_array[i * 2 + 1];
 			return 0;
@@ -96,7 +96,7 @@ result_t HttpCollection::all(const char* name, v8::Handle<v8::Array>& retVal)
 	retVal = v8::Array::New();
 
 	for (i = 0; i < m_count; i++)
-		if (!qstrcmp(m_array[i * 2].c_str(), name))
+		if (!qstricmp(m_array[i * 2].c_str(), name))
 		{
 			std::string& v = m_array[i * 2 + 1];
 			retVal->Set(n++, v8::String::New(v.c_str(), (int) v.length()));
@@ -154,7 +154,7 @@ result_t HttpCollection::set(const char* name, Variant value)
 	bool bFound = false;
 
 	for (i = 0; i < m_count; i++)
-		if (!qstrcmp(m_array[i * 2].c_str(), name))
+		if (!qstricmp(m_array[i * 2].c_str(), name))
 		{
 			std::string s;
 
@@ -171,7 +171,7 @@ result_t HttpCollection::set(const char* name, Variant value)
 		int32_t p = ++i;
 
 		for (; i < m_count; i++)
-			if (qstrcmp(m_array[i * 2].c_str(), name))
+			if (qstricmp(m_array[i * 2].c_str(), name))
 			{
 				if (i != p)
 				{
@@ -201,7 +201,7 @@ result_t HttpCollection::remove(const char* name)
 	int32_t p = 0;
 
 	for (i = 0; i < m_count; i++)
-		if (qstrcmp(m_array[i * 2].c_str(), name))
+		if (qstricmp(m_array[i * 2].c_str(), name))
 		{
 			if (i != p)
 			{

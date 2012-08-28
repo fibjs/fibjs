@@ -31,7 +31,7 @@ public:
 	virtual result_t get_address(std::string& retVal) = 0;
 	virtual result_t set_address(const char* newVal) = 0;
 	virtual result_t get_response(obj_ptr<HttpResponse_base>& retVal) = 0;
-	virtual result_t get_cookies(obj_ptr<HttpCollection_base>& retVal) = 0;
+	virtual result_t get_cookie(obj_ptr<HttpCollection_base>& retVal) = 0;
 	virtual result_t get_form(obj_ptr<HttpCollection_base>& retVal) = 0;
 	virtual result_t get_query(obj_ptr<HttpCollection_base>& retVal) = 0;
 
@@ -45,7 +45,7 @@ public:
 		CLONE_String(method);
 		CLONE_String(address);
 		CLONE_CLASS(response, HttpResponse_base);
-		CLONE_CLASS(cookies, HttpCollection_base);
+		CLONE_CLASS(cookie, HttpCollection_base);
 		CLONE_CLASS(form, HttpCollection_base);
 		CLONE_CLASS(query, HttpCollection_base);
 
@@ -59,7 +59,7 @@ public:
 	static v8::Handle<v8::Value> s_get_address(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_address(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_response(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_cookies(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_cookie(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_form(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_query(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 };
@@ -78,7 +78,7 @@ namespace fibjs
 			{"method", s_get_method, s_set_method},
 			{"address", s_get_address, s_set_address},
 			{"response", s_get_response},
-			{"cookies", s_get_cookies},
+			{"cookie", s_get_cookie},
 			{"form", s_get_form},
 			{"query", s_get_query}
 		};
@@ -152,14 +152,14 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> HttpRequest_base::s_get_cookies(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline v8::Handle<v8::Value> HttpRequest_base::s_get_cookie(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		obj_ptr<HttpCollection_base> vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpRequest_base);
 
-		hr = pInst->get_cookies(vr);
+		hr = pInst->get_cookie(vr);
 
 		METHOD_RETURN();
 	}
