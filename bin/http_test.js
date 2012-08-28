@@ -156,6 +156,29 @@ for ( var n in keep_reqs) {
 	assert.equal(keep_reqs[n], req.keepAlive);
 }
 
+function get_cookie(txt) {
+	var ms = new io.MemoryStream();
+	var bs = new io.BufferedStream(ms);
+	bs.EOL = "\r\n";
+
+	bs.writeText(txt);
+	ms.seek(0, io.SEEK_SET);
+
+	var req = new http.Request();
+	req.readFrom(bs);
+	return req.cookie;
+}
+
+var c = get_cookie("GET / HTTP/1.0\r\ncookie: $Version=1; Skin=new;\r\n\r\n");
+assert.equal(c['$Version'], '1');
+assert.equal(c['Skin'], 'new');
+
+var c = get_cookie("GET / HTTP/1.0\r\ncookie: $Version=1; Skin=new%20\r\n\r\n");
+assert.equal(c['Skin'], 'new ');
+
+var c = get_cookie("GET / HTTP/1.0\r\ncookie: $Version=1; Skin=new%20cookie %sdf\r\n\r\n");
+assert.equal(c['Skin'], 'new cookie %sdf');
+
 var ms = new io.MemoryStream();
 
 var rep = new http.Response();
@@ -164,4 +187,3 @@ rep.body.write(new Buffer("0123456789"));
 rep.sendTo(ms);
 ms.rewind();
 console.log(encoding.hexEncode(ms.read()));
-
