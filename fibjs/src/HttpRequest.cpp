@@ -7,6 +7,7 @@
 
 #include "HttpRequest.h"
 #include "parse.h"
+#include "HttpUploadCollection.h"
 
 namespace fibjs
 {
@@ -408,7 +409,14 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
 			std::string strForm;
 			buf->toString(strForm);
 
-			parse(strForm, m_form, '&');
+			if (bUpload)
+			{
+				obj_ptr<HttpUploadCollection> col = new HttpUploadCollection();
+				col->parse(strForm, strType.c_str());
+				m_form = col;
+			}
+			else
+				parse(strForm, m_form, '&');
 		}
 	}
 

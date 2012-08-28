@@ -213,6 +213,12 @@
     <ClCompile Include="src\List.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\HttpUploadCollection.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HttpUploadData.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -528,6 +534,15 @@
       <Filter>Header Files\include</Filter>
     </ClInclude>
     <ClInclude Include="include\List.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\HttpUploadData.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HttpUploadCollection.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HttpUploadData.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>

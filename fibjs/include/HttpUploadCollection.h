@@ -1,23 +1,23 @@
 /*
- * HttpCollection.h
+ * HttpUploadCollection.h
  *
- *  Created on: Aug 9, 2012
+ *  Created on: Aug 28, 2012
  *      Author: lion
  */
 
 #include "ifs/HttpCollection.h"
 #include "QuickArray.h"
 
-#ifndef HTTPCOLLECTION_H_
-#define HTTPCOLLECTION_H_
+#ifndef HTTPUPLOADCOLLECTION_H_
+#define HTTPUPLOADCOLLECTION_H_
 
 namespace fibjs
 {
 
-class HttpCollection: public HttpCollection_base
+class HttpUploadCollection: public HttpCollection_base
 {
 public:
-	HttpCollection() :
+	HttpUploadCollection() :
 			m_count(0)
 	{
 	}
@@ -36,29 +36,13 @@ public:
 	virtual result_t _named_getter(const char* property, Variant& retVal);
 	virtual result_t _named_setter(const char* property, Variant newVal);
 
-public:
-	void add(const char* name, int szName, const char* value, int szValue)
-	{
-		m_names[m_count].assign(name, szName);
-		m_values[m_count].assign(value, szValue);
-		m_count++;
-	}
-
-	void add(std::string& name, std::string& value)
-	{
-		m_names[m_count].assign(name);
-		m_values[m_count].assign(value);
-		m_count++;
-	}
-
-	size_t size();
-	size_t getData(char* buf, size_t sz);
+	void parse(std::string& str, const char* boundary);
 
 private:
 	QuickArray<std::string> m_names;
-	QuickArray<std::string> m_values;
+	QuickArray<Variant > m_values;
 	int32_t m_count;
 };
 
 } /* namespace fibjs */
-#endif /* HTTPCOLLECTION_H_ */
+#endif /* HTTPUPLOADCOLLECTION_H_ */

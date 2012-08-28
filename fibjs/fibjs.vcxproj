@@ -48,6 +48,8 @@
     <ClCompile Include="src\HttpMessage.cpp" />
     <ClCompile Include="src\HttpRequest.cpp" />
     <ClCompile Include="src\HttpResponse.cpp" />
+    <ClCompile Include="src\HttpUploadCollection.cpp" />
+    <ClCompile Include="src\HttpUploadData.cpp" />
     <ClCompile Include="src\inetAddr.cpp" />
     <ClCompile Include="src\io.cpp" />
     <ClCompile Include="src\JSHandler.cpp" />
@@ -110,6 +112,8 @@
     <ClInclude Include="include\HttpMessage.h" />
     <ClInclude Include="include\HttpRequest.h" />
     <ClInclude Include="include\HttpResponse.h" />
+    <ClInclude Include="include\HttpUploadCollection.h" />
+    <ClInclude Include="include\HttpUploadData.h" />
     <ClInclude Include="include\ifs\assert.h" />
     <ClInclude Include="include\ifs\Buffer.h" />
     <ClInclude Include="include\ifs\BufferedStream.h" />
@@ -136,6 +140,7 @@
     <ClInclude Include="include\ifs\HttpMessage.h" />
     <ClInclude Include="include\ifs\HttpRequest.h" />
     <ClInclude Include="include\ifs\HttpResponse.h" />
+    <ClInclude Include="include\ifs\HttpUploadData.h" />
     <ClInclude Include="include\ifs\io.h" />
     <ClInclude Include="include\ifs\Lock.h" />
     <ClInclude Include="include\ifs\Map.h" />
