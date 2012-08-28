@@ -93,5 +93,6 @@ assert.equal(4, n);
 
 n = 0;
 m.value = 'd';
-mq.invoke(r, m);
-assert.equal(0, n);
+assert.throws(function() {
+	mq.invoke(r, m);
+});
