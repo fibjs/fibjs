@@ -179,6 +179,56 @@ assert.equal(c['Skin'], 'new ');
 var c = get_cookie("GET / HTTP/1.0\r\ncookie: $Version=1; Skin=new%20cookie %sdf\r\n\r\n");
 assert.equal(c['Skin'], 'new cookie %sdf');
 
+function get_query(txt) {
+	var ms = new io.MemoryStream();
+	var bs = new io.BufferedStream(ms);
+	bs.EOL = "\r\n";
+
+	bs.writeText(txt);
+	ms.seek(0, io.SEEK_SET);
+
+	var req = new http.Request();
+	req.readFrom(bs);
+	return req.query;
+}
+
+var c = get_query("GET /test?a=100&b=200 HTTP/1.0\r\n\r\n");
+assert.equal(c['a'], '100');
+assert.equal(c['b'], '200');
+
+var c = get_query("GET /test?a&b HTTP/1.0\r\n\r\n");
+assert.equal(c['a'], '');
+assert.equal(c['b'], '');
+
+var c = get_query("GET /test?a&&&&&&&&&&&&&&&&&&&&&&&&&b HTTP/1.0\r\n\r\n");
+assert.equal(c['a'], '');
+assert.equal(c['b'], '');
+
+function get_form(txt) {
+	var ms = new io.MemoryStream();
+	var bs = new io.BufferedStream(ms);
+	bs.EOL = "\r\n";
+
+	bs.writeText(txt);
+	ms.seek(0, io.SEEK_SET);
+
+	var req = new http.Request();
+	req.readFrom(bs);
+	return req.form;
+}
+
+var c = get_form("GET /test HTTP/1.0\r\nContent-type:application/x-www-form-urlencoded\r\nContent-length:11\r\n\r\na=100&b=200");
+assert.equal(c['a'], '100');
+assert.equal(c['b'], '200');
+
+var c = get_form("GET /test HTTP/1.0\r\nContent-type:application/x-www-form-urlencoded\r\nContent-length:3\r\n\r\na&b");
+assert.equal(c['a'], '');
+assert.equal(c['b'], '');
+
+var c = get_form("GET /test HTTP/1.0\r\nContent-type:application/x-www-form-urlencoded\r\nContent-length:27\r\n\r\na&&&&&&&&&&&&&&&&&&&&&&&&&b");
+assert.equal(c['a'], '');
+assert.equal(c['b'], '');
+
 var ms = new io.MemoryStream();
 
 var rep = new http.Response();
