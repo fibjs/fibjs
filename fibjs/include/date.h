@@ -5,6 +5,8 @@
  *      Author: lion
  */
 
+#include <string>
+
 #ifndef DATE_H_
 #define DATE_H_
 
@@ -65,6 +67,7 @@ public:
 	}
 
 	void parse(const char* str, int len = -1);
+	void toString(std::string& retVal);
 
 private:
 	double d;

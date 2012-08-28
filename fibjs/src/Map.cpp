@@ -55,9 +55,12 @@ inline result_t _map(Map* o, v8::Handle<v8::Object> m,
 	for (i = 0; i < len; i++)
 	{
 		v8::Handle<v8::Value> k = ks->Get(i);
-		v8::Handle<v8::Value> v = m->Get(k);
+		Variant v;
 
-		(o->*fn)(*v8::String::Utf8Value(k), Variant(v));
+		if (!v.assign(m->Get(k)))
+			return CALL_E_BADVARTYPE;
+
+		(o->*fn)(*v8::String::Utf8Value(k), v);
 	}
 
 	return 0;

@@ -228,5 +228,93 @@ void date_t::parse(const char* str, int len)
 			+ ((wHour * 60 + wMinute) * 60 + wSecond) * 1000 - 62135596800000.0;
 }
 
+void inline putStr(char *& ptrBuf, const char *ptr, int n)
+{
+	memcpy(ptrBuf, ptr, n);
+	ptrBuf += n;
+}
+
+void inline putInt(char *& ptrBuf, int v, int n)
+{
+	int n1 = n;
+	while (n--)
+	{
+		ptrBuf[n] = (v % 10) + '0';
+		v /= 10;
+	}
+	ptrBuf += n1;
+}
+
+void date_t::toString(std::string& retVal)
+{
+	static char szMonth[][4] =
+	{ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct",
+			"Nov", "Dec" };
+	static char szDays[][4] =
+	{ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	short wYear = 0, wMonth = 1, wHour = 0, wMinute = 0, wSecond = 0,
+			wDayOfWeek = 0;
+
+	int Days, Milliseconds, NumberOf400s, NumberOf100s, NumberOf4s;
+	int64_t d1 = (int64_t) (d + 62135596800000);
+
+	Days = d1 / 86400000;
+	Milliseconds = d1 % 86400000;
+
+	wDayOfWeek = (short) ((Days + 1) % 7);
+
+	NumberOf400s = Days / 146097;
+	Days -= NumberOf400s * 146097;
+
+	NumberOf100s = (Days * 100 + 75) / 3652425;
+	Days -= NumberOf100s * 36524;
+
+	NumberOf4s = Days / 1461;
+	Days -= NumberOf4s * 1461;
+
+	wYear = (NumberOf400s * 400) + (NumberOf100s * 100) + (NumberOf4s * 4)
+			+ (Days * 100 + 75) / 36525 + 1;
+
+	Days = Days - (Days * 100 + 75) / 36525 * 365;
+
+	if (IsLeapYear(wYear))
+	{
+		wMonth = LeapYearDayToMonth[Days];
+		Days = Days - LeapYearDaysPrecedingMonth[wMonth];
+	}
+	else
+	{
+		wMonth = NormalYearDayToMonth[Days];
+		Days = Days - NormalYearDaysPrecedingMonth[wMonth];
+	}
+
+	wSecond = Milliseconds / 1000;
+	Milliseconds = Milliseconds % 1000;
+
+	wMinute = wSecond / 60;
+	wSecond = wSecond % 60;
+
+	wHour = wMinute / 60;
+	wMinute = wMinute % 60;
+
+	retVal.resize(29);
+	char* ptrBuf = &retVal[0];
+
+	putStr(ptrBuf, szDays[wDayOfWeek], 3);
+	putStr(ptrBuf, ", ", 2);
+	putInt(ptrBuf, Days + 1, 2);
+	*ptrBuf++ = ' ';
+	putStr(ptrBuf, szMonth[wMonth], 3);
+	*ptrBuf++ = ' ';
+	putInt(ptrBuf, wYear, 4);
+	*ptrBuf++ = ' ';
+	putInt(ptrBuf, wHour, 2);
+	*ptrBuf++ = ':';
+	putInt(ptrBuf, wMinute, 2);
+	*ptrBuf++ = ':';
+	putInt(ptrBuf, wSecond, 2);
+	putStr(ptrBuf, " GMT", 4);
+}
+
 }
 

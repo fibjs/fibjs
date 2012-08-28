@@ -7,6 +7,8 @@
 
 #include <math.h>
 #include "object.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 namespace fibjs
 {
@@ -29,6 +31,7 @@ bool Variant::assign(v8::Handle<v8::Value> v)
 		}
 		else if (v->IsNumber())
 		{
+
 			double n = v->NumberValue();
 			int64_t num = (int64_t) n;
 
@@ -208,6 +211,58 @@ void Variant::parseNumber(const char* str, int len)
 		m_type = VT_Long;
 		m_Val.longVal = digit;
 	}
+}
+
+#define STRING_BUF_SIZE	1024
+
+bool Variant::toString(std::string& retVal)
+{
+	switch (m_type)
+	{
+	case VT_Null:
+		retVal = "null";
+		return false;
+	case VT_Boolean:
+		retVal = m_Val.boolVal ? "true" : "false";
+		return true;
+	case VT_Integer:
+	{
+		char str[STRING_BUF_SIZE];
+
+		sprintf(str, "%d", m_Val.intVal);
+		retVal = str;
+
+		return true;
+	}
+	case VT_Long:
+	{
+		char str[STRING_BUF_SIZE];
+
+		sprintf(str, "%lld", m_Val.longVal);
+		retVal = str;
+
+		return true;
+	}
+	case VT_Number:
+	{
+		char str[STRING_BUF_SIZE];
+
+		sprintf(str, "%.16g", m_Val.dblVal);
+		retVal = str;
+
+		return true;
+	}
+	case VT_Date:
+		((date_t*) m_Val.dateVal)->toString(retVal);
+		return true;
+	case VT_Object:
+		return false;
+	case VT_String:
+		retVal = *(std::string*) m_Val.strVal;
+		return true;
+	}
+
+	return false;
 }
 
 }

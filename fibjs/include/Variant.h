@@ -50,12 +50,6 @@ public:
 		operator=(v);
 	}
 
-	Variant(const v8::Handle<v8::Value>& v) :
-			m_type(VT_Null)
-	{
-		operator=(v);
-	}
-
 	~Variant()
 	{
 		clear();
@@ -80,6 +74,7 @@ public:
 			return operator=(v.m_Val.objVal);
 
 		clear();
+		m_type = v.m_type;
 		m_Val.longVal = v.m_Val.longVal;
 
 		return *this;
@@ -217,6 +212,8 @@ public:
 		m_type = VT_Date;
 		((date_t*) m_Val.dateVal)->parse(str, len);
 	}
+
+	bool toString(std::string& retVal);
 
 private:
 	Variant& operator=(obj_base* v)

@@ -75,7 +75,7 @@ result_t HttpCollection::has(const char* name, bool& retVal)
 	return 0;
 }
 
-result_t HttpCollection::first(const char* name, std::string& retVal)
+result_t HttpCollection::first(const char* name, Variant& retVal)
 {
 	int32_t i;
 
@@ -106,27 +106,38 @@ result_t HttpCollection::all(const char* name, v8::Handle<v8::Array>& retVal)
 }
 
 inline result_t _map(HttpCollection* o, v8::Handle<v8::Object> m,
-		result_t (HttpCollection::*fn)(const char* name, const char* value))
+		result_t (HttpCollection::*fn)(const char* name, Variant value))
 {
 	v8::Handle<v8::Array> ks = m->GetPropertyNames();
 	int len = ks->Length();
 	int i;
+	result_t hr;
 
 	for (i = 0; i < len; i++)
 	{
 		v8::Handle<v8::Value> k = ks->Get(i);
-		v8::Handle<v8::Value> v = m->Get(k);
+		Variant v;
 
-		(o->*fn)(*v8::String::Utf8Value(k), *v8::String::Utf8Value(v));
+		if (!v.assign(m->Get(k)))
+			return CALL_E_BADVARTYPE;
+
+		hr = (o->*fn)(*v8::String::Utf8Value(k), v);
+		if (hr < 0)
+			return hr;
 	}
 
 	return 0;
 }
 
-result_t HttpCollection::add(const char* name, const char* value)
+result_t HttpCollection::add(const char* name, Variant value)
 {
+	std::string s;
+
+	if (!value.toString(s))
+		return CALL_E_BADVARTYPE;
+
 	m_array[m_count * 2] = name;
-	m_array[m_count * 2 + 1] = value;
+	m_array[m_count * 2 + 1] = s;
 	m_count++;
 
 	return 0;
@@ -137,7 +148,7 @@ result_t HttpCollection::add(v8::Handle<v8::Object> map)
 	return _map(this, map, &HttpCollection::add);
 }
 
-result_t HttpCollection::set(const char* name, const char* value)
+result_t HttpCollection::set(const char* name, Variant value)
 {
 	int32_t i;
 	bool bFound = false;
@@ -145,7 +156,12 @@ result_t HttpCollection::set(const char* name, const char* value)
 	for (i = 0; i < m_count; i++)
 		if (!qstrcmp(m_array[i * 2].c_str(), name))
 		{
-			m_array[i * 2 + 1] = value;
+			std::string s;
+
+			if (!value.toString(s))
+				return CALL_E_BADVARTYPE;
+
+			m_array[i * 2 + 1] = s;
 			bFound = true;
 			break;
 		}
@@ -169,7 +185,7 @@ result_t HttpCollection::set(const char* name, const char* value)
 		m_count = p;
 	}
 	else
-		add(name, value);
+		return add(name, value);
 
 	return 0;
 }
@@ -201,13 +217,12 @@ result_t HttpCollection::remove(const char* name)
 	return 0;
 }
 
-result_t HttpCollection::_named_getter(const char* property,
-		std::string& retVal)
+result_t HttpCollection::_named_getter(const char* property, Variant& retVal)
 {
 	return first(property, retVal);
 }
 
-result_t HttpCollection::_named_setter(const char* property, const char* newVal)
+result_t HttpCollection::_named_setter(const char* property, Variant newVal)
 {
 	return set(property, newVal);
 }

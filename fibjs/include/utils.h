@@ -326,7 +326,9 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, date_t& d)
 
 inline result_t SafeGetValue(v8::Handle<v8::Value> v, Variant& d)
 {
-	d.assign(v);
+	if (!d.assign(v))
+		return CALL_E_INVALIDARG;
+
 	return 0;
 }
 

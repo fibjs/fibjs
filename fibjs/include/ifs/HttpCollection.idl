@@ -15,7 +15,7 @@ class HttpCollection : object
 	 * @param name 指定要查询的键值
 	 * @return 返回键值所对应的值，若不存在，则返回 undefined
 	 */
-	String first(String name);
+	Variant first(String name);
 
 	/*! @brief 查询指定键值的全部值
 	 * @param name 指定要查询的键值
@@ -24,26 +24,26 @@ class HttpCollection : object
 	Array all(String name);
 
 	/*! @brief 添加一个键值数据，添加数据并不修改已存在的键值的数据
-	 * @param name 指定要添加的键值
-	 * @param value 指定要添加的数据
-	 */
-	add(String name, String value);
-
-	/*! @brief 添加一个键值数据，添加数据并不修改已存在的键值的数据
 	 * @param map 指定要添加的键值数据字典
 	 */
 	add(Object map);
 
-	/*! @brief 设定一个键值数据，设定数据将修改键值所对应的第一个数值，并清除其余键值数据
-	 * @param name 指定要设定的键值
-	 * @param value 指定要设定的数据
+	/*! @brief 添加一个键值数据，添加数据并不修改已存在的键值的数据
+	 * @param name 指定要添加的键值
+	 * @param value 指定要添加的数据
 	 */
-	set(String name, String value);
+	add(String name, Variant value);
 
 	/*! @brief 设定一个键值数据，设定数据将修改键值所对应的第一个数值，并清除其余键值数据
 	 * @param map 指定要设定的键值数据字典
 	 */
 	set(Object map);
+
+	/*! @brief 设定一个键值数据，设定数据将修改键值所对应的第一个数值，并清除其余键值数据
+	 * @param name 指定要设定的键值
+	 * @param value 指定要设定的数据
+	 */
+	set(String name, Variant value);
 
 	/*! @brief 删除指定键值的全部值
 	 * @param name 指定要删除的键值
@@ -51,5 +51,5 @@ class HttpCollection : object
 	remove(String name);
 
 	/*! @brief 允许使用键值下标直接访问数值 */
-	String operator[String];
+	Variant operator[String];
 };
