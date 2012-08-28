@@ -17,7 +17,7 @@
 namespace fibjs
 {
 
-void setKeepAlive(SOCKET s)
+void setOption(SOCKET s)
 {
 	int keepAlive = 1;
 	int keepIdle = KEEPALIVE_TIMEOUT;
@@ -34,6 +34,10 @@ void setKeepAlive(SOCKET s)
 			sizeof(keepInterval));
 	setsockopt(s, SOL_TCP, TCP_KEEPCNT, (void *) &keepCount, sizeof(keepCount));
 #endif
+
+	int noDelay = 1;
+
+	setsockopt(s, IPPROTO_TCP, TCP_NODELAY, (void *) &noDelay, sizeof(noDelay));
 }
 
 static struct ev_loop *s_loop;
@@ -228,7 +232,7 @@ result_t Socket::connect(const char* host, int32_t port, exlib::AsyncEvent* ac)
 				m_ac->post(-ECONNREFUSED);
 			else
 			{
-				setKeepAlive(m_s);
+				setOption(m_s);
 				m_ac->post(0);
 			}
 
@@ -292,7 +296,7 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 			setsockopt(c, SOL_SOCKET, SO_NOSIGPIPE, &set_option,
 					sizeof(set_option));
 #endif
-			setKeepAlive(c);
+			setOption(c);
 
 			obj_ptr<Socket> sock = new Socket(c, ai.family(),
 					net_base::_SOCK_STREAM);
@@ -345,13 +349,13 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 								CALL_E_PENDDING : -nError;
 				}
 
-				if(n == 0)
+				if (n == 0)
 					m_bRead = false;
 
 				m_pos += n;
 				if (m_pos == 0)
 					return CALL_RETURN_NULL;
-			} while (m_bRead && m_pos < (int)m_buf.length());
+			} while (m_bRead && m_pos < (int) m_buf.length());
 
 			m_buf.resize(m_pos);
 			m_retVal = new Buffer(m_buf);

@@ -18,7 +18,7 @@
 namespace fibjs
 {
 
-void setKeepAlive(SOCKET s)
+void setOption(SOCKET s)
 {
 	int keepAlive = 1;
 
@@ -31,6 +31,11 @@ void setKeepAlive(SOCKET s)
 	if (WSAIoctl(s, SIO_KEEPALIVE_VALS, &Settings, sizeof(Settings), NULL, 0,
 			&dwBytes, NULL, NULL))
 		puts("WSAIoctl");
+
+	int noDelay = 1;
+
+	setsockopt(s, IPPROTO_TCP, TCP_NODELAY, (const char *) &noDelay,
+			sizeof(noDelay));
 }
 
 HANDLE s_hIocp;
@@ -176,7 +181,7 @@ result_t Socket::connect(const char* host, int32_t port, exlib::AsyncEvent* ac)
 			if (!nError)
 			{
 				setsockopt(m_s, SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0);
-				setKeepAlive(m_s);
+				setOption(m_s);
 			}
 			asyncProc::ready(dwBytes, nError);
 		}
@@ -260,7 +265,7 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 			{
 				setsockopt(m_s, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
 						(char *) &m_sListen, sizeof(m_sListen));
-				setKeepAlive(m_s);
+				setOption(m_s);
 			}
 			asyncProc::ready(dwBytes, 0);
 		}
