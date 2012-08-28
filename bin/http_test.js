@@ -229,6 +229,15 @@ var c = get_form("GET /test HTTP/1.0\r\nContent-type:application/x-www-form-urle
 assert.equal(c['a'], '');
 assert.equal(c['b'], '');
 
+var c = get_form('GET /test HTTP/1.0\r\nContent-type:multipart/form-data;boundary=7d33a816d302b6\r\nContent-length:150\r\n\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="a"\r\n\r\n100\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="b"\r\n\r\n200\r\n--7d33a816d302b6\r\n');
+assert.equal(c['a'], '100');
+assert.equal(c['b'], '200');
+
+var c = get_form('GET /test HTTP/1.0\r\nContent-type:multipart/form-data;boundary=7d33a816d302b6\r\nContent-length:166\r\n\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="a"\r\n\r\n100\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="b";filename="test"\r\n\r\n200\r\n--7d33a816d302b6\r\n');
+assert.equal(c['a'], '100');
+assert.equal(c['b'].fileName, 'test');
+assert.equal(c['b'].body.read().toString(), '200');
+
 var ms = new io.MemoryStream();
 
 var rep = new http.Response();
