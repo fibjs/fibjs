@@ -122,6 +122,8 @@ public:
 		retVal = str;
 	}
 
+	void parse(std::string& str, obj_ptr<HttpCollection_base>& col, char split);
+
 private:
 	HttpMessage m_message;
 	std::string m_method;

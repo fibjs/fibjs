@@ -17,8 +17,8 @@ void HttpMessage::addHeader(const char* name, int szName, const char* value,
 		m_contentType.assign(value, szValue);
 	else if (szName == 10 && !qstricmp(name, "connection", szName))
 		m_keepAlive = !qstricmp(value, "keep-alive", 10);
-
-	m_headers->add(name, szName, value, szValue);
+	else
+		m_headers->add(name, szName, value, szValue);
 }
 
 size_t HttpMessage::size()

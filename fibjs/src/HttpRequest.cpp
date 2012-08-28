@@ -298,70 +298,76 @@ result_t HttpRequest::get_response(obj_ptr<HttpResponse_base>& retVal)
 	return 0;
 }
 
+void HttpRequest::parse(std::string& str, obj_ptr<HttpCollection_base>& col,
+		char split)
+{
+	obj_ptr<HttpCollection> c = new HttpCollection();
+
+	const char* pstr = str.c_str();
+	int nSize = (int) str.length();
+	const char* pstrTemp;
+	std::string strKey, strValue;
+
+	while (nSize)
+	{
+		while (nSize && *pstr == ' ')
+		{
+			pstr++;
+			nSize--;
+		}
+
+		pstrTemp = pstr;
+		while (nSize && *pstr != '=' && *pstr != split)
+		{
+			pstr++;
+			nSize--;
+		}
+
+		if (pstr > pstrTemp)
+			decodeURI(pstrTemp, (int) (pstr - pstrTemp), strKey);
+		else
+			strKey.clear();
+
+		if (nSize && *pstr == '=')
+		{
+			nSize--;
+			pstr++;
+		}
+
+		pstrTemp = pstr;
+		while (nSize && *pstr != split)
+		{
+			pstr++;
+			nSize--;
+		}
+
+		if (!strKey.empty())
+			if (pstr > pstrTemp)
+				decodeURI(pstrTemp, (int) (pstr - pstrTemp), strValue);
+			else
+				strValue.clear();
+
+		if (nSize)
+		{
+			nSize--;
+			pstr++;
+		}
+
+		if (!strKey.empty())
+			c->add(strKey, strValue);
+	}
+
+	col = c;
+}
+
 result_t HttpRequest::get_cookie(obj_ptr<HttpCollection_base>& retVal)
 {
 	if (m_cookie == NULL)
 	{
-		std::string strCookies;
-		obj_ptr<HttpCollection> cookie = new HttpCollection();
+		std::string strCookie;
 
-		header("cookie", strCookies);
-
-		const char* pstr = strCookies.c_str();
-		int nSize = (int) strCookies.length();
-		const char* pstrTemp;
-		std::string strKey, strValue;
-
-		while (nSize)
-		{
-			while (nSize && *pstr == ' ')
-			{
-				pstr++;
-				nSize--;
-			}
-
-			pstrTemp = pstr;
-			while (nSize && *pstr != '=')
-			{
-				pstr++;
-				nSize--;
-			}
-
-			if (pstr > pstrTemp)
-				decodeURI(pstrTemp, (int) (pstr - pstrTemp), strKey);
-			else
-				strKey.clear();
-
-			if (nSize)
-			{
-				nSize--;
-				pstr++;
-			}
-
-			pstrTemp = pstr;
-			while (nSize && *pstr != ';')
-			{
-				pstr++;
-				nSize--;
-			}
-
-			if (!strKey.empty())
-				if (pstr > pstrTemp)
-					decodeURI(pstrTemp, (int) (pstr - pstrTemp), strValue);
-				else
-					strValue.clear();
-
-			if (nSize)
-			{
-				nSize--;
-				pstr++;
-			}
-
-			if (!strKey.empty())
-				cookie->add(strKey, strValue);
-		}
-
-		m_cookie = cookie;
+		header("cookie", strCookie);
+		parse(strCookie, m_cookie, ';');
 	}
 
 	retVal = m_cookie;
@@ -370,11 +376,53 @@ result_t HttpRequest::get_cookie(obj_ptr<HttpCollection_base>& retVal)
 
 result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
 {
+	if (m_form == NULL)
+	{
+		int64_t len = 0;
+
+		get_contentLength(len);
+		if (len == 0)
+			m_form = new HttpCollection();
+		else
+		{
+			std::string strType;
+			bool bUpload = false;
+
+			get_contentType(strType);
+
+			if (!qstricmp(strType.c_str(), "multipart/form-data;", 20))
+				bUpload = true;
+			else if (qstricmp(strType.c_str(),
+					"application/x-www-form-urlencoded"))
+				return CALL_E_INVALID_DATA;
+
+			obj_ptr<Buffer_base> buf;
+			obj_ptr<SeekableStream_base> _body;
+
+			get_body(_body);
+			_body->rewind();
+			result_t hr = _body->read((int32_t) len, buf, NULL);
+			if (hr < 0)
+				return hr;
+
+			std::string strForm;
+			buf->toString(strForm);
+
+			parse(strForm, m_form, '&');
+		}
+	}
+
+	retVal = m_form;
+
 	return 0;
 }
 
 result_t HttpRequest::get_query(obj_ptr<HttpCollection_base>& retVal)
 {
+	if (m_query == NULL)
+		parse(m_strquery, m_query, '&');
+
+	retVal = m_query;
 	return 0;
 }
 
