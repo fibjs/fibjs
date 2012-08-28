@@ -5,11 +5,109 @@
  *      Author: lion
  */
 
-#include "Variant.h"
 #include <math.h>
+#include "object.h"
 
 namespace fibjs
 {
+
+bool Variant::assign(v8::Handle<v8::Value> v)
+{
+	clear();
+
+	if (!IsEmpty(v))
+	{
+		if (v->IsDate())
+		{
+			m_type = VT_Date;
+			*(date_t*) m_Val.dateVal = v;
+		}
+		else if (v->IsBoolean())
+		{
+			m_type = VT_Boolean;
+			m_Val.boolVal = v->BooleanValue();
+		}
+		else if (v->IsNumber())
+		{
+			double n = v->NumberValue();
+			int64_t num = (int64_t) n;
+
+			if (n == (double) num)
+			{
+				if (num >= -2147483648ll && num <= 2147483647ll)
+				{
+					m_type = VT_Integer;
+					m_Val.intVal = (int32_t) num;
+				}
+				else
+				{
+					m_type = VT_Long;
+					m_Val.longVal = num;
+				}
+			}
+			else
+			{
+				m_type = VT_Number;
+				m_Val.dblVal = n;
+			}
+		}
+		else
+		{
+			if (v->IsObject())
+			{
+				object_base* obj = object_base::getInstance(v);
+
+				if (obj)
+					operator=(obj);
+				else
+					return false;
+			}
+			else
+			{
+				v8::String::Utf8Value s(v);
+				std::string str(*s, s.length());
+				operator=(str);
+			}
+		}
+	}
+
+	return true;
+}
+
+Variant::operator v8::Handle<v8::Value>() const
+{
+	switch (m_type)
+	{
+	case VT_Null:
+		return v8::Null();
+	case VT_Boolean:
+		return m_Val.boolVal ? v8::True() : v8::False();
+	case VT_Integer:
+		return v8::Int32::New(m_Val.intVal);
+	case VT_Long:
+		return v8::Number::New((double) m_Val.longVal);
+	case VT_Number:
+		return v8::Number::New(m_Val.dblVal);
+	case VT_Date:
+		return *(date_t*) m_Val.dateVal;
+	case VT_Object:
+	{
+		object_base* obj = (object_base*) m_Val.objVal;
+
+		if (obj == NULL)
+			break;
+
+		return obj->wrap();
+	}
+	case VT_String:
+	{
+		std::string& str = *(std::string*) m_Val.strVal;
+		return v8::String::New(str.c_str(), (int) str.length());
+	}
+	}
+
+	return v8::Null();
+}
 
 inline void next(int &len, int& pos)
 {

@@ -326,7 +326,7 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, date_t& d)
 
 inline result_t SafeGetValue(v8::Handle<v8::Value> v, Variant& d)
 {
-	d = v;
+	d.assign(v);
 	return 0;
 }
 

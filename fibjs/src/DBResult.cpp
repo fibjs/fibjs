@@ -10,7 +10,7 @@
 namespace fibjs
 {
 
-result_t DBResult::_indexed_getter(uint32_t index, obj_ptr<object_base>& retVal)
+result_t DBResult::_indexed_getter(uint32_t index, Variant& retVal)
 {
 	if (!m_size)
 		return CALL_E_INVALID_CALL;
@@ -18,7 +18,7 @@ result_t DBResult::_indexed_getter(uint32_t index, obj_ptr<object_base>& retVal)
 	return m_array._indexed_getter(index, retVal);
 }
 
-result_t DBResult::_indexed_setter(uint32_t index, obj_ptr<object_base>& newVal)
+result_t DBResult::_indexed_setter(uint32_t index, Variant newVal)
 {
 	if (!m_size)
 		return CALL_E_INVALID_CALL;
@@ -43,7 +43,7 @@ result_t DBResult::resize(int32_t sz)
 }
 
 result_t DBResult::slice(int32_t start, int32_t end,
-		obj_ptr<ObjectArray_base>& retVal)
+		obj_ptr<List_base>& retVal)
 {
 	if (!m_size)
 		return CALL_E_INVALID_CALL;

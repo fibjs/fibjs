@@ -1,6 +1,6 @@
 
 /*! @brief 数据库结果集合对象 */
-class DBResult : ObjectArray
+class DBResult : List
 {
 	/*! @brief 查询当前操作插入数据库的 rowid */
 	readonly Long insertId;

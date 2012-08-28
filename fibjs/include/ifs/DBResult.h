@@ -12,14 +12,14 @@
  */
 
 #include "../object.h"
-#include "ObjectArray.h"
+#include "List.h"
 
 namespace fibjs
 {
 
-class ObjectArray_base;
+class List_base;
 
-class DBResult_base : public ObjectArray_base
+class DBResult_base : public List_base
 {
 public:
 	// DBResult_base
@@ -31,7 +31,7 @@ public:
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{
-		result_t hr = ObjectArray_base::toJSON(key, retVal);
+		result_t hr = List_base::toJSON(key, retVal);
 		if(hr < 0)return hr;
 
 		CLONE(insertId, int64_t);
@@ -65,7 +65,7 @@ namespace fibjs
 		{ 
 			"DBResult", NULL, 
 			0, NULL, 0, NULL, 3, s_property, NULL, NULL,
-			&ObjectArray_base::class_info()
+			&List_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

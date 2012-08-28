@@ -6,7 +6,7 @@
  */
 
 #include "ifs/DbResult.h"
-#include "ObjectArray.h"
+#include "List.h"
 #include "DBRow.h"
 
 #ifndef DBRESULT_H_
@@ -36,11 +36,11 @@ public:
 
 public:
 	// ObjectArray_base
-	virtual result_t _indexed_getter(uint32_t index, obj_ptr<object_base>& retVal);
-	virtual result_t _indexed_setter(uint32_t index, obj_ptr<object_base>& newVal);
+	virtual result_t _indexed_getter(uint32_t index, Variant& retVal);
+	virtual result_t _indexed_setter(uint32_t index, Variant newVal);
 	virtual result_t get_length(int32_t& retVal);
 	virtual result_t resize(int32_t sz);
-	virtual result_t slice(int32_t start, int32_t end, obj_ptr<ObjectArray_base>& retVal);
+	virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal);
 
 public:
 	// DBResult_base
@@ -72,7 +72,7 @@ public:
 	}
 
 private:
-	ObjectArray::array m_array;
+	List::array m_array;
 	int32_t m_size;
 	int64_t m_affected;
 	int64_t m_insertId;

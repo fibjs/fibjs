@@ -130,10 +130,10 @@ public:
 	void* getInstance(void* o);
 	void* getInstance(v8::Handle<v8::Value> o)
 	{
-		if (o.IsEmpty() || !o->IsObject())
+		if (o.IsEmpty() || !o->IsObject() || !m_class->HasInstance(o))
 			return NULL;
 
-		return getInstance(o->ToObject()->GetPointerFromInternalField(0));
+		return o->ToObject()->GetPointerFromInternalField(0);
 	}
 
 	v8::Handle<v8::Object> CreateInstance()

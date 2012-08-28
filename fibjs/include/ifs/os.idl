@@ -70,5 +70,5 @@ class os : module
 	 * @param path 指定查询的目录
 	 * @return 返回目录的文件信息数组
 	 */
-	static ObjectArray readdir(String path) async;
+	static List readdir(String path) async;
 };

@@ -19,7 +19,7 @@ namespace fibjs
 
 class module_base;
 class Stat_base;
-class ObjectArray_base;
+class List_base;
 
 class os_base : public module_base
 {
@@ -39,7 +39,7 @@ public:
 	static result_t rmdir(const char* path, exlib::AsyncEvent* ac);
 	static result_t rename(const char* from, const char* to, exlib::AsyncEvent* ac);
 	static result_t stat(const char* path, obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t readdir(const char* path, obj_ptr<ObjectArray_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t readdir(const char* path, obj_ptr<List_base>& retVal, exlib::AsyncEvent* ac);
 
 	DECLARE_CLASSINFO(os_base);
 
@@ -73,7 +73,7 @@ public:
 }
 
 #include "Stat.h"
-#include "ObjectArray.h"
+#include "List.h"
 
 namespace fibjs
 {
@@ -271,7 +271,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> os_base::s_readdir(const v8::Arguments& args)
 	{
-		obj_ptr<ObjectArray_base> vr;
+		obj_ptr<List_base> vr;
 
 		METHOD_ENTER(1, 1);
 

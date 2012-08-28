@@ -66,9 +66,6 @@
     <ClCompile Include="src\coroutine.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\ObjectArray.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
     <ClCompile Include="src\Stat.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
@@ -213,6 +210,9 @@
     <ClCompile Include="src\http.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\List.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -272,9 +272,6 @@
     <ClInclude Include="include\Event.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
-    <ClInclude Include="include\ObjectArray.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
     <ClInclude Include="include\Stat.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
@@ -288,9 +285,6 @@
       <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\module.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\ObjectArray.h">
       <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Stat.h">
@@ -531,6 +525,9 @@
       <Filter>Header Files\include</Filter>
     </ClInclude>
     <ClInclude Include="include\HttpFileHandler.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\List.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>

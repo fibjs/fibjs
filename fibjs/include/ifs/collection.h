@@ -19,6 +19,7 @@ namespace fibjs
 
 class module_base;
 class Map_base;
+class List_base;
 
 class collection_base : public module_base
 {
@@ -31,6 +32,7 @@ public:
 }
 
 #include "Map.h"
+#include "List.h"
 
 namespace fibjs
 {
@@ -38,13 +40,14 @@ namespace fibjs
 	{
 		static ClassData::ClassObject s_object[] = 
 		{
-			{"Map", Map_base::class_info}
+			{"Map", Map_base::class_info},
+			{"List", List_base::class_info}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"collection", NULL, 
-			0, NULL, 1, s_object, 0, NULL, NULL, NULL,
+			0, NULL, 2, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 

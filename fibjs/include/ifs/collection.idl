@@ -4,4 +4,7 @@ class collection : module
 {
 	/*! @brief 创建一个 Map 容器，参见 Map */
 	static Map new Map();
+
+	/*! @brief 创建一个 List 容器，参见 List */
+	static List new List();
 };

@@ -8,6 +8,7 @@
 #include <v8/v8.h>
 #include <string>
 #include "date.h"
+#include "obj_ptr.h"
 
 #ifndef VARIANT_H_
 #define VARIANT_H_
@@ -20,6 +21,8 @@ inline bool IsEmpty(v8::Handle<v8::Value>& v)
 	return v.IsEmpty() || v->IsUndefined() || v->IsNull();
 }
 
+class object_base;
+
 class Variant
 {
 public:
@@ -31,7 +34,8 @@ public:
 		VT_Long = 3,
 		VT_Number = 4,
 		VT_Date = 5,
-		VT_String = 6
+		VT_String = 6,
+		VT_Object = 7
 	};
 
 public:
@@ -61,6 +65,8 @@ public:
 	{
 		if (m_type == VT_String)
 			((std::string*) m_Val.strVal)->~basic_string();
+		else if (m_type == VT_Object && m_Val.objVal)
+			m_Val.objVal->Unref();
 
 		m_type = VT_Null;
 	}
@@ -70,8 +76,10 @@ public:
 		if (v.m_type == VT_String)
 			return operator=(*(std::string*) v.m_Val.strVal);
 
+		if (v.m_type == VT_Object)
+			return operator=(v.m_Val.objVal);
+
 		clear();
-		m_type = v.m_type;
 		m_Val.longVal = v.m_Val.longVal;
 
 		return *this;
@@ -146,56 +154,12 @@ public:
 		return operator=(s);
 	}
 
-	Variant& operator=(v8::Handle<v8::Value> v)
+	Variant& operator=(object_base* v)
 	{
-		clear();
-
-		if (!IsEmpty(v))
-		{
-			if (v->IsDate())
-			{
-				m_type = VT_Date;
-				*(date_t*) m_Val.dateVal = v;
-			}
-			else if (v->IsBoolean())
-			{
-				m_type = VT_Boolean;
-				m_Val.boolVal = v->BooleanValue();
-			}
-			else if (v->IsNumber())
-			{
-				double n = v->NumberValue();
-				int64_t num = (int64_t) n;
-
-				if (n == (double) num)
-				{
-					if (num >= -2147483648ll && num <= 2147483647ll)
-					{
-						m_type = VT_Integer;
-						m_Val.intVal = (int32_t) num;
-					}
-					else
-					{
-						m_type = VT_Long;
-						m_Val.longVal = num;
-					}
-				}
-				else
-				{
-					m_type = VT_Number;
-					m_Val.dblVal = n;
-				}
-			}
-			else
-			{
-				v8::String::Utf8Value s(v);
-				std::string str(*s, s.length());
-				operator=(str);
-			}
-		}
-
-		return *this;
+		return operator=((obj_base*) v);
 	}
+
+	bool assign(v8::Handle<v8::Value> v);
 
 	Type type() const
 	{
@@ -240,37 +204,31 @@ public:
 		return *(std::string*) m_Val.strVal;
 	}
 
-	operator v8::Handle<v8::Value>() const
+	operator const object_base*() const
 	{
-		switch (m_type)
-		{
-		case VT_Null:
-			return v8::Null();
-		case VT_Boolean:
-			return m_Val.boolVal ? v8::True() : v8::False();
-		case VT_Integer:
-			return v8::Int32::New(m_Val.intVal);
-		case VT_Long:
-			return v8::Number::New((double) m_Val.longVal);
-		case VT_Number:
-			return v8::Number::New(m_Val.dblVal);
-		case VT_Date:
-			return *(date_t*) m_Val.dateVal;
-		case VT_String:
-		{
-			std::string& str = *(std::string*) m_Val.strVal;
-			return v8::String::New(str.c_str(), (int) str.length());
-		}
-		}
-
-		return v8::Null();
+		return (object_base*) m_Val.objVal;
 	}
+
+	operator v8::Handle<v8::Value>() const;
 
 	void parseNumber(const char* str, int len = -1);
 	void parseDate(const char* str, int len = -1)
 	{
 		m_type = VT_Date;
 		((date_t*) m_Val.dateVal)->parse(str, len);
+	}
+
+private:
+	Variant& operator=(obj_base* v)
+	{
+		clear();
+
+		m_type = VT_Object;
+		m_Val.objVal = v;
+		if (m_Val.objVal)
+			m_Val.objVal->Ref();
+
+		return *this;
 	}
 
 private:
@@ -283,6 +241,7 @@ private:
 		double dblVal;
 		char dateVal[sizeof(date_t)];
 		char strVal[sizeof(std::string)];
+		obj_base* objVal;
 	} m_Val;
 };
 
