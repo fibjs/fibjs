@@ -277,8 +277,6 @@ void date_t::parse(const char* str, int len)
 			{
 				next(len, pos);
 				wYear = (short) getInt(str, len, pos);
-				if (wYear < 100)
-					wYear += wYear >= 50 ? 1900 : 2000;
 
 				if (pick(str, len, pos) == ' ')
 				{
@@ -296,6 +294,9 @@ void date_t::parse(const char* str, int len)
 			wYear = 2001;
 			bTime = true;
 		}
+
+		if (wYear < 100)
+			wYear += wYear >= 50 ? 1900 : 2000;
 
 		if (bTime)
 		{
