@@ -156,6 +156,11 @@ for ( var i = 0; i < 256; i++) {
 }
 
 var u = '中文测试';
+var u1 = escape(u);
+assert.equal(encoding.decodeURI(u1), u);
+
+u1 = u1.replace(/%/g,'\\');
+assert.equal(encoding.decodeURI(u1), u);
 
 for(var i = 32; i < 128; i ++)
 	u += String.fromCharCode(i);
