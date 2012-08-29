@@ -287,11 +287,13 @@ void date_t::parse(const char* str, int len)
 					bTime = true;
 				}
 			}
+			else
+				wYear = 2001;
 		}
 		else if (ch == ':')
 		{
 			wHour = wYear;
-			wYear = 1;
+			wYear = 2001;
 			bTime = true;
 		}
 
