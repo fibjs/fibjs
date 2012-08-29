@@ -21,15 +21,15 @@ bool qisascii(T ch)
 }
 
 template<typename T>
-bool qisnumber(T ch)
+bool qisdigit(T ch)
 {
 	return ch >= '0' && ch <= '9';
 }
 
 template<typename T>
-bool qishex(T ch)
+bool qisxdigit(T ch)
 {
-	return qisnumber(ch) || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'Z');
+	return qisdigit(ch) || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'Z');
 }
 
 template<typename T>
@@ -47,7 +47,7 @@ bool qisupper(T ch)
 }
 
 template<typename T>
-bool qilower(T ch)
+bool qislower(T ch)
 {
 	return ch >= 'a' && ch <= 'z';
 }

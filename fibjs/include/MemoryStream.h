@@ -70,7 +70,7 @@ public:
 public:
 	MemoryStream()
 	{
-		os_base::time(m_time);
+		m_time.now();
 	}
 
 public:

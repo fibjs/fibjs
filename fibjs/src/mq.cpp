@@ -19,8 +19,7 @@ result_t mq_base::invoke(Handler_base* hdlr, object_base* v,
 	class asyncInvoke: public asyncState
 	{
 	public:
-		asyncInvoke(Handler_base* hdlr, object_base* v,
-				exlib::AsyncEvent* ac) :
+		asyncInvoke(Handler_base* hdlr, object_base* v, exlib::AsyncEvent* ac) :
 				asyncState(ac), m_next(hdlr), m_v(v)
 		{
 			set(call);
@@ -56,6 +55,19 @@ result_t mq_base::jsHandler(v8::Handle<v8::Function> hdlr,
 		obj_ptr<Handler_base>& retVal)
 {
 	retVal = new JSHandler(hdlr);
+	return 0;
+}
+
+result_t mq_base::moduleHandler(const char* id, const char* func,
+		obj_ptr<Handler_base>& retVal)
+{
+	return 0;
+}
+
+result_t mq_base::objectHandler(v8::Handle<v8::Object> obj,
+		obj_ptr<Handler_base>& retVal)
+{
+	retVal = new JSHandler(obj);
 	return 0;
 }
 

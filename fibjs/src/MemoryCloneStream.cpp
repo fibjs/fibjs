@@ -175,7 +175,7 @@ result_t MemoryStream::CloneStream::clear()
 	rewind();
 	m_buffer.clear();
 
-	os_base::time(m_time);
+	m_time.now();
 
 	return 0;
 }

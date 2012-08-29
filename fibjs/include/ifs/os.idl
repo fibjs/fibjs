@@ -29,8 +29,13 @@ class os : module
 	/*! @brief 查询当前运行环境网络信息*/
 	static Array networkInfo();
 
-	/*! @brief 查询运行环境当前时间*/
-	static Date time();
+	/*! @brief 解析时间字符串或查询运行环境当前时间
+	 * @param tmString 时间字符串，缺省则查询当前时间
+	 */
+	static Date time(String tmString = "");
+
+	/*! @brief 查询运行环境当前时区*/
+	static Integer timezone();
 
 	/*! @brief 查询指定的文件或目录是否存在
 	 * @param path 指定要查询的路径

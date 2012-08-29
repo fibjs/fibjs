@@ -124,8 +124,8 @@ result_t HttpMessage::get_protocol(std::string& retVal)
 
 result_t HttpMessage::set_protocol(const char* newVal)
 {
-	if (qstrcmp(newVal, "HTTP/", 5) || !qisnumber(newVal[5]) || newVal[6] != '.'
-			|| !qisnumber(newVal[7]) || newVal[8])
+	if (qstrcmp(newVal, "HTTP/", 5) || !qisdigit(newVal[5]) || newVal[6] != '.'
+			|| !qisdigit(newVal[7]) || newVal[8])
 		return CALL_E_INVALIDARG;
 
 	m_keepAlive = ((newVal[5] - '0') * 10 + newVal[7] - '0') > 10;

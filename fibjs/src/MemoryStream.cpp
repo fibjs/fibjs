@@ -84,7 +84,7 @@ result_t MemoryStream::write(Buffer_base* data, exlib::AsyncEvent* ac)
 	if (sz2 > sz1)
 		extMemory((int) (sz2 - sz1));
 
-	os_base::time(m_time);
+	m_time.now();
 
 	return 0;
 }
@@ -213,7 +213,7 @@ result_t MemoryStream::clear()
 	rewind();
 	m_buffer.str("");
 
-	os_base::time(m_time);
+	m_time.now();
 
 	return 0;
 }

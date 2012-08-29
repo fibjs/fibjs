@@ -79,14 +79,14 @@ public:
 		for (len = 0, src = url, l = sz; l > 0; src++, len++, l--)
 		{
 			ch = (unsigned char) *src;
-			if (ch == '%' && l > 2 && qishex(src[1]) && qishex(src[2]))
+			if (ch == '%' && l > 2 && qisxdigit(src[1]) && qisxdigit(src[2]))
 			{
 				src += 2;
 				l -= 2;
 			}
 			else if ((ch == '%' || ch == '\\') && l > 5
-					&& (src[1] == 'u' || src[1] == 'U') && qishex(src[2])
-					&& qishex(src[3]) && qishex(src[4]) && qishex(src[5]))
+					&& (src[1] == 'u' || src[1] == 'U') && qisxdigit(src[2])
+					&& qisxdigit(src[3]) && qisxdigit(src[4]) && qisxdigit(src[5]))
 			{
 				wchar_t wch = (qhex(src[2]) << 12) + (qhex(src[3]) << 8)
 						+ (qhex(src[4]) << 4) + qhex(src[5]);
@@ -105,15 +105,15 @@ public:
 		{
 			ch = (unsigned char) *src;
 
-			if (ch == '%' && l > 2 && qishex(src[1]) && qishex(src[2]))
+			if (ch == '%' && l > 2 && qisxdigit(src[1]) && qisxdigit(src[2]))
 			{
 				*bstr++ = (qhex(src[1]) << 4) + qhex(src[2]);
 				src += 2;
 				l -= 2;
 			}
 			else if ((ch == '%' || ch == '\\') && l > 5
-					&& (src[1] == 'u' || src[1] == 'U') && qishex(src[2])
-					&& qishex(src[3]) && qishex(src[4]) && qishex(src[5]))
+					&& (src[1] == 'u' || src[1] == 'U') && qisxdigit(src[2])
+					&& qisxdigit(src[3]) && qisxdigit(src[4]) && qisxdigit(src[5]))
 			{
 				wchar_t wch = (qhex(src[2]) << 12) + (qhex(src[3]) << 8)
 						+ (qhex(src[4]) << 4) + qhex(src[5]);

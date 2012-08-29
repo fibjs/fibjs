@@ -14,11 +14,14 @@ namespace v8
 {
 namespace internal
 {
+
 class OS
 {
 public:
 	static double TimeCurrentMillis();
+	static double LocalTimeOffset();
 };
+
 }
 }
 
@@ -68,6 +71,11 @@ public:
 
 	void parse(const char* str, int len = -1);
 	void toString(std::string& retVal);
+
+	static int LocalOffset()
+	{
+		return (int)v8::internal::OS::LocalTimeOffset();
+	}
 
 private:
 	double d;

@@ -32,7 +32,8 @@ public:
 	static result_t CPUInfo(v8::Handle<v8::Array>& retVal);
 	static result_t CPUs(int32_t& retVal);
 	static result_t networkInfo(v8::Handle<v8::Array>& retVal);
-	static result_t time(date_t& retVal);
+	static result_t time(const char* tmString, date_t& retVal);
+	static result_t timezone(int32_t& retVal);
 	static result_t exists(const char* path, bool& retVal, exlib::AsyncEvent* ac);
 	static result_t unlink(const char* path, exlib::AsyncEvent* ac);
 	static result_t mkdir(const char* path, exlib::AsyncEvent* ac);
@@ -52,6 +53,7 @@ public:
 	static v8::Handle<v8::Value> s_CPUs(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_networkInfo(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_time(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_timezone(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_exists(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_unlink(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_mkdir(const v8::Arguments& args);
@@ -89,6 +91,7 @@ namespace fibjs
 			{"CPUs", s_CPUs, true},
 			{"networkInfo", s_networkInfo, true},
 			{"time", s_time, true},
+			{"timezone", s_timezone, true},
 			{"exists", s_exists, true},
 			{"unlink", s_unlink, true},
 			{"mkdir", s_mkdir, true},
@@ -101,7 +104,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"os", NULL, 
-			15, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			16, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -191,9 +194,22 @@ namespace fibjs
 	{
 		date_t vr;
 
+		METHOD_ENTER(1, 0);
+
+		OPT_ARG_String(0, "");
+
+		hr = time(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_timezone(const v8::Arguments& args)
+	{
+		int32_t vr;
+
 		METHOD_ENTER(0, 0);
 
-		hr = time(vr);
+		hr = timezone(vr);
 
 		METHOD_RETURN();
 	}

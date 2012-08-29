@@ -420,9 +420,19 @@ result_t os_base::networkInfo(v8::Handle<v8::Array>& retVal)
 	return 0;
 }
 
-result_t os_base::time(date_t& retVal)
+result_t os_base::time(const char* tmString, date_t& retVal)
 {
-	retVal.now();
+	if (!tmString || !*tmString)
+		retVal.now();
+	else
+		retVal.parse(tmString);
+
+	return 0;
+}
+
+result_t os_base::timezone(int32_t& retVal)
+{
+	retVal = date_t::LocalOffset();
 	return 0;
 }
 

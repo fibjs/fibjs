@@ -7,6 +7,7 @@
 
 #include <v8/v8.h>
 #include "date.h"
+#include "qstring.h"
 #include <math.h>
 
 namespace fibjs
@@ -19,12 +20,12 @@ inline void next(int &len, int& pos)
 		len--;
 }
 
-inline int64_t getInt(const char* s, int &len, int& pos)
+inline int64_t getInt(const char* str, int &len, int& pos)
 {
 	char ch;
 	int64_t n = 0;
 
-	while (len && (ch = s[pos]) && ch >= '0' && ch <= '9')
+	while (len && (ch = str[pos]) && ch >= '0' && ch <= '9')
 	{
 		n = n * 10 + ch - '0';
 		next(len, pos);
@@ -33,9 +34,9 @@ inline int64_t getInt(const char* s, int &len, int& pos)
 	return n;
 }
 
-inline char pick(const char* s, int &len, int& pos)
+inline char pick(const char* str, int &len, int& pos)
 {
-	return len == 0 ? 0 : s[pos];
+	return len == 0 ? 0 : str[pos];
 }
 
 const unsigned char LeapYearDayToMonth[366] =
@@ -165,54 +166,222 @@ const unsigned short NormalYearDaysPrecedingMonth[13] =
 		((YEARS) * 365) + NumberOfLeapYears(YEARS)	\
 		)
 
+int inline checkmask(const char* data, int len, const char *mask)
+{
+	int i, j;
+	char d;
+
+	for (i = j = 0; i < len; i++)
+	{
+		d = data[j++];
+		switch (mask[i])
+		{
+		case '\0':
+			return (d == '\0');
+
+		case '*':
+			return 1;
+
+		case '@':
+			if (!qisupper(d))
+				return 0;
+			break;
+		case '$':
+			if (!qislower(d))
+				return 0;
+			break;
+		case '!':
+			if (!qisdigit(d))
+				j--;
+			break;
+		case '#':
+			if (!qisdigit(d))
+				return 0;
+			break;
+		case '&':
+			if (!qisxdigit(d))
+				return 0;
+			break;
+		case '~':
+			if ((d != ' ') && !qisdigit(d))
+				return 0;
+			break;
+		default:
+			if (mask[i] != d)
+				return 0;
+			break;
+		}
+	}
+
+	return 0;
+}
+
 void date_t::parse(const char* str, int len)
 {
-	short wYear = 0, wMonth = 0, wDay = 0, wHour = 0, wMinute = 0, wSecond = 0;
+	int wYear = 0, wMonth = 0, wDay = 0, wHour = 0, wMinute = 0, wSecond = 0;
 	int pos = 0;
 	bool bTime = false;
 	char ch;
+	int mint, mon;
+	const char *monstr, *timstr = NULL;
+	static const int months[12] =
+	{ ('J' << 16) | ('a' << 8) | 'n', ('F' << 16) | ('e' << 8) | 'b',
+			('M' << 16) | ('a' << 8) | 'r', ('A' << 16) | ('p' << 8) | 'r', ('M'
+					<< 16) | ('a' << 8) | 'y', ('J' << 16) | ('u' << 8) | 'n',
+			('J' << 16) | ('u' << 8) | 'l', ('A' << 16) | ('u' << 8) | 'g', ('S'
+					<< 16) | ('e' << 8) | 'p', ('O' << 16) | ('c' << 8) | 't',
+			('N' << 16) | ('o' << 8) | 'v', ('D' << 16) | ('e' << 8) | 'c' };
 
-	wYear = (short) getInt(str, len, pos);
-	ch = pick(str, len, pos);
-	if (ch == '-')
+	if (len < 0)
+		len = qstrlen(str);
+
+	if (!str || !*str)
+		return;
+
+	while (len > 0 && *str && qisspace(*str))
 	{
-		next(len, pos);
+		len--;
+		++str;
+	}
 
-		wMonth = (short) getInt(str, len, pos) - 1;
-
-		if (pick(str, len, pos) != '-')
-			return;
-		next(len, pos);
-
-		wDay = (short) getInt(str, len, pos) - 1;
-
-		if (pick(str, len, pos) == ' ')
+	if (qisdigit(*str))
+	{
+		wYear = (short) getInt(str, len, pos);
+		ch = pick(str, len, pos);
+		if (ch == '-')
 		{
 			next(len, pos);
-			wHour = (short) getInt(str, len, pos);
+			wMonth = (short) getInt(str, len, pos) - 1;
+
+			if (pick(str, len, pos) == '-')
+			{
+				next(len, pos);
+				wDay = (short) getInt(str, len, pos) - 1;
+
+				if (pick(str, len, pos) == ' ')
+				{
+					next(len, pos);
+					wHour = (short) getInt(str, len, pos);
+					bTime = true;
+				}
+			}
+		}
+		else if (ch == '/')
+		{
+			wMonth = wYear - 1;
+
+			next(len, pos);
+			wDay = (short) getInt(str, len, pos) - 1;
+
+			if (pick(str, len, pos) == '/')
+			{
+				next(len, pos);
+				wYear = (short) getInt(str, len, pos);
+				if (wYear < 100)
+					wYear += wYear >= 50 ? 1900 : 2000;
+
+				if (pick(str, len, pos) == ' ')
+				{
+					next(len, pos);
+					wHour = (short) getInt(str, len, pos);
+					bTime = true;
+				}
+			}
+		}
+		else if (ch == ':')
+		{
+			wHour = wYear;
+			wYear = 1;
 			bTime = true;
 		}
+
+		if (bTime)
+		{
+			if (pick(str, len, pos) == ':')
+			{
+				next(len, pos);
+				wMinute = (short) getInt(str, len, pos);
+
+				if (pick(str, len, pos) == ':')
+				{
+					next(len, pos);
+					wSecond = (short) getInt(str, len, pos);
+				}
+			}
+		}
 	}
-	else if (ch == ':')
+	else
 	{
-		wHour = wYear;
-		wYear = 1899;
-		bTime = true;
-	}
+		while (len > 0 && *str && !qisspace(*str))
+		{
+			len--;
+			++str;
+		}
 
-	if (bTime)
-	{
-		if (pick(str, len, pos) != ':')
+		if (*str == '\0')
 			return;
-		next(len, pos);
 
-		wMinute = (short) getInt(str, len, pos);
+		while (len > 0 && *str && qisspace(*str))
+		{
+			len--;
+			++str;
+		}
 
-		if (pick(str, len, pos) != ':')
+		if (checkmask(str, len, "@$$ ## #### ##:##:## *")) /* Javascript format */
+		{
+			wYear = (((str[7] & 0xf) * 10 + (str[8] & 0xf)) * 100
+					+ ((str[9] & 0xf) * 10) + (str[10] & 0xf));
+
+			wDay = (((str[4] & 0xf) * 10) + (str[5] & 0xf)) - 1;
+
+			monstr = str;
+			timstr = str + 12;
+		}
+		else if (checkmask(str, len, "## @$$ #### ##:##:## *")) /* RFC 1123 format */
+		{
+			wYear = (((str[7] & 0xf) * 10 + (str[8] & 0xf)) * 100
+					+ ((str[9] & 0xf) * 10) + (str[10] & 0xf));
+
+			wDay = (((str[0] & 0xf) * 10) + (str[1] & 0xf)) - 1;
+
+			monstr = str + 3;
+			timstr = str + 12;
+		}
+		else if (checkmask(str, len, "##-@$$-## ##:##:## *")) /* RFC 850 format  */
+		{
+			wYear = (((str[7] & 0xf) * 10) + (str[8] & 0xf));
+			if (wYear < 70)
+				wYear += 100;
+			wYear += 1900;
+
+			wDay = (((str[0] & 0xf) * 10) + (str[1] & 0xf)) - 1;
+
+			monstr = str + 3;
+			timstr = str + 10;
+		}
+		else if (checkmask(str, len, "@$$ ~# ##:##:## ####*")) /* asctime format  */
+		{
+			wYear = (((str[16] & 0xf) * 10 + (str[17] & 0xf)) * 100
+					+ ((str[18] & 0xf) * 10) + (str[19] & 0xf));
+
+			wDay = ((str[4] & 0xF) * 10 + (str[5] & 0xf)) - 1;
+
+			monstr = str;
+			timstr = str + 7;
+		}
+		else
 			return;
-		next(len, pos);
 
-		wSecond = (short) getInt(str, len, pos);
+		wHour = (((timstr[0] & 0xf) * 10) + (timstr[1] & 0xf));
+		wMinute = (((timstr[3] & 0xf) * 10) + (timstr[4] & 0xf));
+		wSecond = (((timstr[6] & 0xf) * 10) + (timstr[7] & 0xf));
+
+		mint = (monstr[0] << 16) | (monstr[1] << 8) | monstr[2];
+		for (mon = 0; mon < 12; mon++)
+			if (mint == months[mon])
+				break;
+
+		wMonth = mon;
 	}
 
 	unsigned int ElapsedDays = ElapsedYearsToDays(wYear - 1);
@@ -225,7 +394,7 @@ void date_t::parse(const char* str, int len)
 	ElapsedDays += wDay;
 
 	d = ElapsedDays * 86400000.0
-			+ ((wHour * 60 + wMinute) * 60 + wSecond) * 1000 - 62135596800000.0;
+			+ ((wHour * 60 + wMinute) * 60 + wSecond) * 1000 - 62135625600000.0;
 }
 
 void inline putStr(char *& ptrBuf, const char *ptr, int n)
@@ -252,13 +421,14 @@ void date_t::toString(std::string& retVal)
 			"Nov", "Dec" };
 	static char szDays[][4] =
 	{ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
-	short wYear = 0, wMonth = 1, wHour = 0, wMinute = 0, wSecond = 0,
-			wDayOfWeek = 0;
+
+	int wYear = 0, wMonth = 1, wHour = 0, wMinute = 0, wSecond = 0, wDayOfWeek =
+			0;
 
 	int Days, Milliseconds, NumberOf400s, NumberOf100s, NumberOf4s;
-	int64_t d1 = (int64_t) (d + 62135596800000);
+	int64_t d1 = (int64_t) (d + 62135625600000);
 
-	Days = (int)(d1 / 86400000);
+	Days = (int) (d1 / 86400000);
 	Milliseconds = d1 % 86400000;
 
 	wDayOfWeek = (short) ((Days + 1) % 7);

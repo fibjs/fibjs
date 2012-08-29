@@ -79,7 +79,7 @@ void Url::parseProtocol(const char*& url)
 	char ch;
 
 	while ((ch = *p)
-			&& (qisascii(ch) || qisnumber(ch) || ch == '.' || ch == '+'
+			&& (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '+'
 					|| ch == '-'))
 		p++;
 
@@ -134,7 +134,7 @@ void Url::parseHost(const char*& url)
 	if (*p1 == '[')
 	{
 		p1++;
-		while ((ch = *p1) && (qishex(ch) || ch == ':' || ch == '.'))
+		while ((ch = *p1) && (qisxdigit(ch) || ch == ':' || ch == '.'))
 			p1++;
 		if (ch == ']')
 			ch = *++p1;
@@ -144,7 +144,7 @@ void Url::parseHost(const char*& url)
 	else
 	{
 		while ((ch = *p1)
-				&& (qisascii(ch) || qisnumber(ch) || ch == '.' || ch == '_'
+				&& (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '_'
 						|| ch == '-'))
 			p1++;
 	}
@@ -153,7 +153,7 @@ void Url::parseHost(const char*& url)
 	{
 		p2 = p1 + 1;
 
-		while ((ch = *p2) && qisnumber(ch))
+		while ((ch = *p2) && qisdigit(ch))
 			p2++;
 	}
 
