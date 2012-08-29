@@ -105,7 +105,7 @@ result_t zmqSocket::recv(obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac)
 	return 0;
 }
 
-result_t zmqSocket::send(obj_ptr<Buffer_base>& data)
+result_t zmqSocket::send(Buffer_base* data)
 {
 	if (!m_sock)
 		return CALL_E_INVALID_CALL;

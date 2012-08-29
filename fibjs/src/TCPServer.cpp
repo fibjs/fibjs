@@ -12,14 +12,14 @@
 namespace fibjs
 {
 
-result_t TCPServer_base::_new(int32_t port, obj_ptr<Handler_base>& listener,
+result_t TCPServer_base::_new(int32_t port, Handler_base* listener,
 		obj_ptr<TCPServer_base>& retVal)
 {
 	return _new("", port, listener, retVal);
 }
 
 result_t TCPServer_base::_new(const char* addr, int32_t port,
-		obj_ptr<Handler_base>& listener, obj_ptr<TCPServer_base>& retVal)
+		Handler_base* listener, obj_ptr<TCPServer_base>& retVal)
 {
 	obj_ptr<TCPServer> svr = new TCPServer();
 	result_t hr = svr->create(addr, port, listener);
@@ -45,7 +45,7 @@ result_t TCPServer_base::_new(const char* addr, int32_t port,
 }
 
 result_t TCPServer::create(const char* addr, int32_t port,
-		obj_ptr<Handler_base>& listener)
+		Handler_base* listener)
 {
 	result_t hr;
 

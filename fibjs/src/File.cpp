@@ -111,7 +111,7 @@ result_t File::Write(const char* p, int sz)
 	return 0;
 }
 
-result_t File::write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
+result_t File::write(Buffer_base* data, exlib::AsyncEvent* ac)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
@@ -125,7 +125,7 @@ result_t File::write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
 	return Write(strBuf.c_str(), (int) strBuf.length());
 }
 
-result_t File::asyncWrite(obj_ptr<Buffer_base>& data)
+result_t File::asyncWrite(Buffer_base* data)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;
@@ -139,7 +139,7 @@ result_t File::onwrite(v8::Handle<v8::Function> func)
 	return on("write", func);
 }
 
-result_t File::copyTo(obj_ptr<Stream_base>& stm, int64_t bytes, int64_t& retVal,
+result_t File::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal,
 		exlib::AsyncEvent* ac)
 {
 	if (!m_file)
@@ -148,7 +148,7 @@ result_t File::copyTo(obj_ptr<Stream_base>& stm, int64_t bytes, int64_t& retVal,
 	return copyStream(this, stm, bytes, retVal, ac);
 }
 
-result_t File::asyncCopyTo(obj_ptr<Stream_base>& stm, int64_t bytes)
+result_t File::asyncCopyTo(Stream_base* stm, int64_t bytes)
 {
 	if (!m_file)
 		return CALL_E_INVALID_CALL;

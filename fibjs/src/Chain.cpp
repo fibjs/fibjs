@@ -31,13 +31,13 @@ result_t Chain_base::_new(v8::Handle<v8::Array> hdlrs,
 	return 0;
 }
 
-result_t Chain::invoke(obj_ptr<object_base>& v, obj_ptr<Handler_base>& retVal,
+result_t Chain::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		exlib::AsyncEvent* ac)
 {
 	class asyncInvoke: public asyncState
 	{
 	public:
-		asyncInvoke(Chain* pThis, obj_ptr<object_base>& v,
+		asyncInvoke(Chain* pThis, object_base* v,
 				exlib::AsyncEvent* ac) :
 				asyncState(ac), m_pThis(pThis), m_v(v), m_pos(0)
 		{
@@ -58,8 +58,8 @@ result_t Chain::invoke(obj_ptr<object_base>& v, obj_ptr<Handler_base>& retVal,
 		}
 
 	private:
-		Chain* m_pThis;
-		obj_ptr<object_base>& m_v;
+		obj_ptr<Chain> m_pThis;
+		obj_ptr<object_base> m_v;
 		int32_t m_pos;
 	};
 
@@ -72,7 +72,7 @@ result_t Chain::invoke(obj_ptr<object_base>& v, obj_ptr<Handler_base>& retVal,
 	return (new asyncInvoke(this, v, ac))->post(0);
 }
 
-result_t Chain::append(obj_ptr<Handler_base>& hdlr)
+result_t Chain::append(Handler_base* hdlr)
 {
 	m_array.append(hdlr);
 	return 0;

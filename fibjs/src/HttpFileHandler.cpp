@@ -99,13 +99,13 @@ static int mt_cmp(const void *p, const void *q)
 	return qstricmp(*(const char**) p, *(const char**) q);
 }
 
-result_t HttpFileHandler::invoke(obj_ptr<object_base>& v,
-		obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac)
+result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
+		exlib::AsyncEvent* ac)
 {
 	class asyncInvoke: public asyncState
 	{
 	public:
-		asyncInvoke(HttpFileHandler* pThis, obj_ptr<HttpRequest_base>& req,
+		asyncInvoke(HttpFileHandler* pThis, HttpRequest_base* req,
 				exlib::AsyncEvent* ac) :
 				asyncState(ac), m_pThis(pThis), m_req(req)
 		{
@@ -162,7 +162,7 @@ result_t HttpFileHandler::invoke(obj_ptr<object_base>& v,
 		}
 
 	private:
-		HttpFileHandler* m_pThis;
+		obj_ptr<HttpFileHandler> m_pThis;
 		obj_ptr<HttpRequest_base> m_req;
 		obj_ptr<HttpResponse_base> m_rep;
 		obj_ptr<File_base> m_file;

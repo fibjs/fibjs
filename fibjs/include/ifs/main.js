@@ -911,7 +911,7 @@ function parserIDL(fname) {
 		if (clsName[n]) {
 			if (n != ns)
 				refCls[n] = true;
-			return "obj_ptr<" + n + "_base>&";
+			return n + "_base*";
 		}
 
 		return reportErr();

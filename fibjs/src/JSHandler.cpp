@@ -11,7 +11,7 @@
 namespace fibjs
 {
 
-result_t JSHandler::callFunction(obj_ptr<object_base>& v,
+result_t JSHandler::callFunction(object_base* v,
 		obj_ptr<Handler_base>& retVal)
 {
 	v8::Handle<v8::Object> o;
@@ -44,13 +44,13 @@ result_t JSHandler::callFunction(obj_ptr<object_base>& v,
 	return 0;
 }
 
-result_t JSHandler::invoke(obj_ptr<object_base>& v,
+result_t JSHandler::invoke(object_base* v,
 		obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac)
 {
 	class asyncInvoke: public asyncState
 	{
 	public:
-		asyncInvoke(JSHandler* pThis, obj_ptr<object_base>& v,
+		asyncInvoke(JSHandler* pThis, object_base* v,
 				obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac) :
 				asyncState(ac), m_pThis(pThis), m_v(v), m_retVal(retVal)
 		{
@@ -79,8 +79,8 @@ result_t JSHandler::invoke(obj_ptr<object_base>& v,
 		}
 
 	private:
-		JSHandler* m_pThis;
-		obj_ptr<object_base>& m_v;
+		obj_ptr<JSHandler> m_pThis;
+		obj_ptr<object_base> m_v;
 		obj_ptr<Handler_base>& m_retVal;
 		result_t m_hr;
 	};

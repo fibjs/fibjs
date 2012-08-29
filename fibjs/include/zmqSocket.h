@@ -27,7 +27,7 @@ public:
 	result_t bind(const char* addr);
 	result_t connect(const char* addr);
 	result_t recv(obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
-	result_t send(obj_ptr<Buffer_base>& data);
+	result_t send(Buffer_base* data);
 	result_t close();
 	result_t get_type(int32_t& retVal);
 

@@ -64,8 +64,8 @@ result_t copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
 		}
 
 	public:
-		Stream_base* m_from;
-		Stream_base* m_to;
+		obj_ptr<Stream_base> m_from;
+		obj_ptr<Stream_base> m_to;
 		int64_t m_bytes;
 		int64_t& m_retVal;
 		obj_ptr<Buffer_base> m_buf;

@@ -28,7 +28,7 @@ public:
 	result_t set_protocol(const char* newVal);
 	result_t get_headers(obj_ptr<HttpCollection_base>& retVal);
 	result_t get_body(obj_ptr<SeekableStream_base>& retVal);
-	result_t set_body(obj_ptr<SeekableStream_base>& newVal);
+	result_t set_body(SeekableStream_base* newVal);
 	result_t get_contentType(std::string& retVal);
 	result_t set_contentType(const char* newVal);
 	result_t get_contentLength(int64_t& retVal);

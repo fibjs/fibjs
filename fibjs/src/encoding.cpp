@@ -13,7 +13,7 @@ namespace fibjs
 {
 
 inline void baseEncode(const char *pEncodingTable, int dwBits,
-		obj_ptr<Buffer_base>& data, std::string& retVal)
+		Buffer_base* data, std::string& retVal)
 {
 	std::string strData;
 	int i, len = 0, bits = 0;
@@ -87,7 +87,7 @@ inline void baseDecode(const char *pdecodeTable, int dwBits,
 	retVal = new Buffer(strBuf);
 }
 
-result_t encoding_base::base32Encode(obj_ptr<Buffer_base>& data,
+result_t encoding_base::base32Encode(Buffer_base* data,
 		std::string& retVal)
 {
 	baseEncode("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567+/", 5, data, retVal);
@@ -110,7 +110,7 @@ result_t encoding_base::base32Decode(const char* data,
 	return 0;
 }
 
-result_t encoding_base::base64Encode(obj_ptr<Buffer_base>& data,
+result_t encoding_base::base64Encode(Buffer_base* data,
 		std::string& retVal)
 {
 	baseEncode(
@@ -135,7 +135,7 @@ result_t encoding_base::base64Decode(const char* data,
 	return 0;
 }
 
-result_t encoding_base::hexEncode(obj_ptr<Buffer_base>& data,
+result_t encoding_base::hexEncode(Buffer_base* data,
 		std::string& retVal)
 {
 	std::string strData;

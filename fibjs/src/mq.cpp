@@ -13,13 +13,13 @@
 namespace fibjs
 {
 
-result_t mq_base::invoke(obj_ptr<Handler_base>& hdlr, obj_ptr<object_base>& v,
+result_t mq_base::invoke(Handler_base* hdlr, object_base* v,
 		exlib::AsyncEvent* ac)
 {
 	class asyncInvoke: public asyncState
 	{
 	public:
-		asyncInvoke(obj_ptr<Handler_base>& hdlr, obj_ptr<object_base>& v,
+		asyncInvoke(Handler_base* hdlr, object_base* v,
 				exlib::AsyncEvent* ac) :
 				asyncState(ac), m_next(hdlr), m_v(v)
 		{
@@ -43,7 +43,7 @@ result_t mq_base::invoke(obj_ptr<Handler_base>& hdlr, obj_ptr<object_base>& v,
 	private:
 		obj_ptr<Handler_base> m_hdlr;
 		obj_ptr<Handler_base> m_next;
-		obj_ptr<object_base>& m_v;
+		obj_ptr<object_base> m_v;
 	};
 
 	if (!ac)

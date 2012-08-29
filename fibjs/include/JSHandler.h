@@ -23,10 +23,10 @@ public:
 
 public:
 	// Handler_base
-	virtual result_t invoke(obj_ptr<object_base>& v, obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac);
+	virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac);
 
 public:
-	result_t callFunction(obj_ptr<object_base>& v, obj_ptr<Handler_base>& retVal);
+	result_t callFunction(object_base* v, obj_ptr<Handler_base>& retVal);
 
 private:
 	v8::Persistent<v8::Function> m_func;

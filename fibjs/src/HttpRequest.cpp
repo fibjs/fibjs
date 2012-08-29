@@ -38,7 +38,7 @@ result_t HttpRequest::get_body(obj_ptr<SeekableStream_base>& retVal)
 	return m_message.get_body(retVal);
 }
 
-result_t HttpRequest::set_body(obj_ptr<SeekableStream_base>& newVal)
+result_t HttpRequest::set_body(SeekableStream_base* newVal)
 {
 	return m_message.set_body(newVal);
 }
@@ -94,12 +94,12 @@ result_t HttpRequest::clear()
 	return 0;
 }
 
-result_t HttpRequest::sendTo(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
+result_t HttpRequest::sendTo(Stream_base* stm, exlib::AsyncEvent* ac)
 {
 	return 0;
 }
 
-result_t HttpRequest::asyncSendTo(obj_ptr<Stream_base>& stm)
+result_t HttpRequest::asyncSendTo(Stream_base* stm)
 {
 	acb_sendTo(stm);
 	return 0;
@@ -110,8 +110,7 @@ result_t HttpRequest::onsendto(v8::Handle<v8::Function> func)
 	return on("sendto", func);
 }
 
-result_t HttpRequest::readFrom(obj_ptr<BufferedStream_base>& stm,
-		exlib::AsyncEvent* ac)
+result_t HttpRequest::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 {
 	class asyncReadFrom: public asyncState
 	{
@@ -225,9 +224,8 @@ result_t HttpRequest::readFrom(obj_ptr<BufferedStream_base>& stm,
 
 			pThis->m_pThis->get_body(pThis->m_body);
 
-			pThis->m_stmBody = pThis->m_body;
-			return pThis->m_stm->copyTo(pThis->m_stmBody,
-					pThis->m_contentLength, pThis->m_copySize, pThis);
+			return pThis->m_stm->copyTo(pThis->m_body, pThis->m_contentLength,
+					pThis->m_copySize, pThis);
 		}
 
 		static int body(asyncState* pState, int n)
@@ -243,10 +241,9 @@ result_t HttpRequest::readFrom(obj_ptr<BufferedStream_base>& stm,
 		}
 
 	public:
-		HttpRequest* m_pThis;
-		BufferedStream_base* m_stm;
+		obj_ptr<HttpRequest> m_pThis;
+		obj_ptr<BufferedStream_base> m_stm;
 		obj_ptr<SeekableStream_base> m_body;
-		obj_ptr<Stream_base> m_stmBody;
 		std::string m_strLine;
 		int64_t m_contentLength;
 		int64_t m_copySize;
@@ -258,7 +255,7 @@ result_t HttpRequest::readFrom(obj_ptr<BufferedStream_base>& stm,
 	return (new asyncReadFrom(this, stm, ac))->post(0);
 }
 
-result_t HttpRequest::asyncReadFrom(obj_ptr<BufferedStream_base>& stm)
+result_t HttpRequest::asyncReadFrom(BufferedStream_base* stm)
 {
 	acb_readFrom(stm);
 	return 0;
@@ -299,8 +296,8 @@ result_t HttpRequest::get_response(obj_ptr<HttpResponse_base>& retVal)
 	return 0;
 }
 
-void HttpRequest::parse(std::string& str, obj_ptr<HttpCollection_base>& col,
-		char split)
+void HttpRequest::parse(std::string& str, char split,
+		obj_ptr<HttpCollection_base>& retVal)
 {
 	obj_ptr<HttpCollection> c = new HttpCollection();
 
@@ -358,7 +355,7 @@ void HttpRequest::parse(std::string& str, obj_ptr<HttpCollection_base>& col,
 			c->add(strKey, strValue);
 	}
 
-	col = c;
+	retVal = c;
 }
 
 result_t HttpRequest::get_cookie(obj_ptr<HttpCollection_base>& retVal)
@@ -368,7 +365,7 @@ result_t HttpRequest::get_cookie(obj_ptr<HttpCollection_base>& retVal)
 		std::string strCookie;
 
 		header("cookie", strCookie);
-		parse(strCookie, m_cookie, ';');
+		parse(strCookie, ';', m_cookie);
 	}
 
 	retVal = m_cookie;
@@ -416,7 +413,7 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
 				m_form = col;
 			}
 			else
-				parse(strForm, m_form, '&');
+				parse(strForm, '&', m_form);
 		}
 	}
 
@@ -428,7 +425,7 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
 result_t HttpRequest::get_query(obj_ptr<HttpCollection_base>& retVal)
 {
 	if (m_query == NULL)
-		parse(m_strquery, m_query, '&');
+		parse(m_strquery, '&', m_query);
 
 	retVal = m_query;
 	return 0;

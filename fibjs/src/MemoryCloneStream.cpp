@@ -57,13 +57,13 @@ result_t MemoryStream::CloneStream::onread(v8::Handle<v8::Function> func)
 	return on("read", func);
 }
 
-result_t MemoryStream::CloneStream::write(obj_ptr<Buffer_base>& data,
+result_t MemoryStream::CloneStream::write(Buffer_base* data,
 		exlib::AsyncEvent* ac)
 {
 	return CALL_E_INVALID_CALL;
 }
 
-result_t MemoryStream::CloneStream::asyncWrite(obj_ptr<Buffer_base>& data)
+result_t MemoryStream::CloneStream::asyncWrite(Buffer_base* data)
 {
 	return CALL_E_INVALID_CALL;
 }
@@ -73,13 +73,13 @@ result_t MemoryStream::CloneStream::onwrite(v8::Handle<v8::Function> func)
 	return CALL_E_INVALID_CALL;
 }
 
-result_t MemoryStream::CloneStream::copyTo(obj_ptr<Stream_base>& stm,
+result_t MemoryStream::CloneStream::copyTo(Stream_base* stm,
 		int64_t bytes, int64_t& retVal, exlib::AsyncEvent* ac)
 {
 	return copyStream(this, stm, bytes, retVal, ac);
 }
 
-result_t MemoryStream::CloneStream::asyncCopyTo(obj_ptr<Stream_base>& stm,
+result_t MemoryStream::CloneStream::asyncCopyTo(Stream_base* stm,
 		int64_t bytes)
 {
 	acb_copyTo(stm, bytes);

@@ -33,7 +33,7 @@ public:
 
 public:
 	// uuid_base
-	static result_t uuid(obj_ptr<Buffer_base>& data, obj_ptr<uuidValue_base>& retVal);
+	static result_t uuid(Buffer_base* data, obj_ptr<uuidValue_base>& retVal);
 	static result_t uuid(const char* s, obj_ptr<uuidValue_base>& retVal);
 	static result_t node(obj_ptr<uuidValue_base>& retVal);
 	static result_t md5(int32_t ns, const char* name, obj_ptr<uuidValue_base>& retVal);

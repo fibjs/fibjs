@@ -108,12 +108,12 @@ result_t Socket::onread(v8::Handle<v8::Function> func)
 	return on("read", func);
 }
 
-result_t Socket::write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
+result_t Socket::write(Buffer_base* data, exlib::AsyncEvent* ac)
 {
 	return send(data, ac);
 }
 
-result_t Socket::asyncWrite(obj_ptr<Buffer_base>& data)
+result_t Socket::asyncWrite(Buffer_base* data)
 {
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
@@ -127,7 +127,7 @@ result_t Socket::onwrite(v8::Handle<v8::Function> func)
 	return on("write", func);
 }
 
-result_t Socket::copyTo(obj_ptr<Stream_base>& stm, int64_t bytes,
+result_t Socket::copyTo(Stream_base* stm, int64_t bytes,
 		int64_t& retVal, exlib::AsyncEvent* ac)
 {
 	if (m_sock == INVALID_SOCKET)
@@ -136,7 +136,7 @@ result_t Socket::copyTo(obj_ptr<Stream_base>& stm, int64_t bytes,
 	return copyStream(this, stm, bytes, retVal, ac);
 }
 
-result_t Socket::asyncCopyTo(obj_ptr<Stream_base>& stm, int64_t bytes)
+result_t Socket::asyncCopyTo(Stream_base* stm, int64_t bytes)
 {
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
@@ -367,7 +367,7 @@ result_t Socket::onrecv(v8::Handle<v8::Function> func)
 	return on("recv", func);
 }
 
-result_t Socket::asyncSend(obj_ptr<Buffer_base>& data)
+result_t Socket::asyncSend(Buffer_base* data)
 {
 	if (m_sock == INVALID_SOCKET)
 		return CALL_E_INVALID_CALL;
@@ -389,7 +389,7 @@ result_t Socket::recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal)
 	return 0;
 }
 
-result_t Socket::sendto(obj_ptr<Buffer_base>& data, const char* host,
+result_t Socket::sendto(Buffer_base* data, const char* host,
 		int32_t port)
 {
 	if (m_sock == INVALID_SOCKET)

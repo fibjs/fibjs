@@ -58,11 +58,11 @@ public:
 
 public:
 	bool m_streamEnd;
-	BufferedStream* m_pThis;
+	obj_ptr<BufferedStream> m_pThis;
 	obj_ptr<Buffer_base> m_buf;
 };
 
-result_t BufferedStream_base::_new(obj_ptr<Stream_base>& stm,
+result_t BufferedStream_base::_new(Stream_base* stm,
 		obj_ptr<BufferedStream_base>& retVal)
 {
 	retVal = new BufferedStream(stm);
@@ -159,13 +159,12 @@ result_t BufferedStream::onread(v8::Handle<v8::Function> func)
 	return on("read", func);
 }
 
-result_t BufferedStream::write(obj_ptr<Buffer_base>& data,
-		exlib::AsyncEvent* ac)
+result_t BufferedStream::write(Buffer_base* data, exlib::AsyncEvent* ac)
 {
 	return m_stm->write(data, ac);
 }
 
-result_t BufferedStream::asyncWrite(obj_ptr<Buffer_base>& data)
+result_t BufferedStream::asyncWrite(Buffer_base* data)
 {
 	acb_write(data);
 	return 0;
@@ -176,13 +175,13 @@ result_t BufferedStream::onwrite(v8::Handle<v8::Function> func)
 	return on("write", func);
 }
 
-result_t BufferedStream::copyTo(obj_ptr<Stream_base>& stm, int64_t bytes,
+result_t BufferedStream::copyTo(Stream_base* stm, int64_t bytes,
 		int64_t& retVal, exlib::AsyncEvent* ac)
 {
 	return copyStream(this, stm, bytes, retVal, ac);
 }
 
-result_t BufferedStream::asyncCopyTo(obj_ptr<Stream_base>& stm, int64_t bytes)
+result_t BufferedStream::asyncCopyTo(Stream_base* stm, int64_t bytes)
 {
 	acb_copyTo(stm, bytes);
 	return 0;

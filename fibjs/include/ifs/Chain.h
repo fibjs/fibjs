@@ -25,7 +25,7 @@ public:
 	// Chain_base
 	static result_t _new(obj_ptr<Chain_base>& retVal);
 	static result_t _new(v8::Handle<v8::Array> hdlrs, obj_ptr<Chain_base>& retVal);
-	virtual result_t append(obj_ptr<Handler_base>& hdlr) = 0;
+	virtual result_t append(Handler_base* hdlr) = 0;
 	virtual result_t append(v8::Handle<v8::Function> hdlr) = 0;
 	virtual result_t append(v8::Handle<v8::Array> hdlrs) = 0;
 

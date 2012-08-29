@@ -23,9 +23,9 @@ class TCPServer_base : public object_base
 {
 public:
 	// TCPServer_base
-	static result_t _new(int32_t port, obj_ptr<Handler_base>& listener, obj_ptr<TCPServer_base>& retVal);
+	static result_t _new(int32_t port, Handler_base* listener, obj_ptr<TCPServer_base>& retVal);
 	static result_t _new(int32_t port, v8::Handle<v8::Function> listener, obj_ptr<TCPServer_base>& retVal);
-	static result_t _new(const char* addr, int32_t port, obj_ptr<Handler_base>& listener, obj_ptr<TCPServer_base>& retVal);
+	static result_t _new(const char* addr, int32_t port, Handler_base* listener, obj_ptr<TCPServer_base>& retVal);
 	static result_t _new(const char* addr, int32_t port, v8::Handle<v8::Function> listener, obj_ptr<TCPServer_base>& retVal);
 	virtual result_t run(exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncRun() = 0;

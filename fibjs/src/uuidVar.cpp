@@ -12,7 +12,7 @@
 namespace fibjs
 {
 
-result_t uuid_base::uuid(obj_ptr<Buffer_base>& data, obj_ptr<uuidValue_base>& retVal)
+result_t uuid_base::uuid(Buffer_base* data, obj_ptr<uuidValue_base>& retVal)
 {
 	std::string s;
 

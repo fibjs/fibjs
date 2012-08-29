@@ -28,11 +28,11 @@ public:
 	virtual result_t get_value(std::string& retVal) = 0;
 	virtual result_t set_value(const char* newVal) = 0;
 	virtual result_t clear() = 0;
-	virtual result_t sendTo(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac) = 0;
-	virtual result_t asyncSendTo(obj_ptr<Stream_base>& stm) = 0;
+	virtual result_t sendTo(Stream_base* stm, exlib::AsyncEvent* ac) = 0;
+	virtual result_t asyncSendTo(Stream_base* stm) = 0;
 	virtual result_t onsendto(v8::Handle<v8::Function> func) = 0;
-	virtual result_t readFrom(obj_ptr<BufferedStream_base>& stm, exlib::AsyncEvent* ac) = 0;
-	virtual result_t asyncReadFrom(obj_ptr<BufferedStream_base>& stm) = 0;
+	virtual result_t readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac) = 0;
+	virtual result_t asyncReadFrom(BufferedStream_base* stm) = 0;
 	virtual result_t onreadfrom(v8::Handle<v8::Function> func) = 0;
 
 	DECLARE_CLASSINFO(Message_base);

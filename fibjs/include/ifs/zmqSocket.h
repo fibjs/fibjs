@@ -29,7 +29,7 @@ public:
 	virtual result_t bind(const char* addr) = 0;
 	virtual result_t connect(const char* addr) = 0;
 	virtual result_t recv(obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t send(obj_ptr<Buffer_base>& data) = 0;
+	virtual result_t send(Buffer_base* data) = 0;
 	virtual result_t close() = 0;
 	virtual result_t get_type(int32_t& retVal) = 0;
 

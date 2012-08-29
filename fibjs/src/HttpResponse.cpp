@@ -37,7 +37,7 @@ result_t HttpResponse::get_body(obj_ptr<SeekableStream_base>& retVal)
 	return m_message.get_body(retVal);
 }
 
-result_t HttpResponse::set_body(obj_ptr<SeekableStream_base>& newVal)
+result_t HttpResponse::set_body(SeekableStream_base* newVal)
 {
 	return m_message.set_body(newVal);
 }
@@ -134,7 +134,7 @@ public:
 
 #define TINY_SIZE	32768
 
-result_t HttpResponse::sendTo(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
+result_t HttpResponse::sendTo(Stream_base* stm, exlib::AsyncEvent* ac)
 {
 	class asyncSendTo: public asyncState
 	{
@@ -243,7 +243,7 @@ result_t HttpResponse::sendTo(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 		}
 
 	public:
-		HttpResponse* m_pThis;
+		obj_ptr<HttpResponse> m_pThis;
 		obj_ptr<Stream_base> m_stm;
 		obj_ptr<Buffer_base> m_buffer;
 		int64_t m_contentLength;
@@ -257,7 +257,7 @@ result_t HttpResponse::sendTo(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac)
 	return (new asyncSendTo(this, stm, ac))->post(0);
 }
 
-result_t HttpResponse::asyncSendTo(obj_ptr<Stream_base>& stm)
+result_t HttpResponse::asyncSendTo(Stream_base* stm)
 {
 	acb_sendTo(stm);
 	return 0;
@@ -268,13 +268,13 @@ result_t HttpResponse::onsendto(v8::Handle<v8::Function> func)
 	return on("sendto", func);
 }
 
-result_t HttpResponse::readFrom(obj_ptr<BufferedStream_base>& stm,
+result_t HttpResponse::readFrom(BufferedStream_base* stm,
 		exlib::AsyncEvent* ac)
 {
 	return 0;
 }
 
-result_t HttpResponse::asyncReadFrom(obj_ptr<BufferedStream_base>& stm)
+result_t HttpResponse::asyncReadFrom(BufferedStream_base* stm)
 {
 	acb_readFrom(stm);
 	return 0;

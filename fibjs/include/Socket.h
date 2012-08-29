@@ -48,12 +48,12 @@ public:
 			exlib::AsyncEvent* ac);
 	virtual result_t asyncRead(int32_t bytes);
 	virtual result_t onread(v8::Handle<v8::Function> func);
-	virtual result_t write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac);
-	virtual result_t asyncWrite(obj_ptr<Buffer_base>& data);
+	virtual result_t write(Buffer_base* data, exlib::AsyncEvent* ac);
+	virtual result_t asyncWrite(Buffer_base* data);
 	virtual result_t onwrite(v8::Handle<v8::Function> func);
-	virtual result_t copyTo(obj_ptr<Stream_base>& stm, int64_t bytes,
+	virtual result_t copyTo(Stream_base* stm, int64_t bytes,
 			int64_t& retVal, exlib::AsyncEvent* ac);
-	virtual result_t asyncCopyTo(obj_ptr<Stream_base>& stm, int64_t bytes);
+	virtual result_t asyncCopyTo(Stream_base* stm, int64_t bytes);
 	virtual result_t oncopyto(v8::Handle<v8::Function> func);
 	virtual result_t stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
 	virtual result_t asyncStat();
@@ -87,10 +87,10 @@ public:
 	virtual result_t asyncRecv(int32_t bytes);
 	virtual result_t onrecv(v8::Handle<v8::Function> func);
 	virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal);
-	virtual result_t send(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac);
-	virtual result_t asyncSend(obj_ptr<Buffer_base>& data);
+	virtual result_t send(Buffer_base* data, exlib::AsyncEvent* ac);
+	virtual result_t asyncSend(Buffer_base* data);
 	virtual result_t onsend(v8::Handle<v8::Function> func);
-	virtual result_t sendto(obj_ptr<Buffer_base>& data, const char* host,
+	virtual result_t sendto(Buffer_base* data, const char* host,
 			int32_t port);
 
 public:

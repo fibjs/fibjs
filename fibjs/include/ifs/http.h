@@ -26,7 +26,7 @@ class http_base : public module_base
 {
 public:
 	// http_base
-	static result_t handler(obj_ptr<Handler_base>& hdlr, obj_ptr<Handler_base>& retVal);
+	static result_t handler(Handler_base* hdlr, obj_ptr<Handler_base>& retVal);
 	static result_t handler(v8::Handle<v8::Function> hdlr, obj_ptr<Handler_base>& retVal);
 	static result_t fileHandler(const char* root, obj_ptr<Handler_base>& retVal);
 

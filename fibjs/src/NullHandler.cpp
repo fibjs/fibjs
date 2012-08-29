@@ -10,8 +10,8 @@
 namespace fibjs
 {
 
-result_t NullHandler::invoke(obj_ptr<object_base>& v,
-		obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac)
+result_t NullHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
+		exlib::AsyncEvent* ac)
 {
 	return CALL_RETURN_NULL;
 }

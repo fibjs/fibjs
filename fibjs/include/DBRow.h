@@ -17,7 +17,7 @@ namespace fibjs
 class DBRow: public DBRow_base
 {
 public:
-	DBRow(obj_ptr<DBField>& fields, int32_t sz)
+	DBRow(DBField* fields, int32_t sz)
 	{
 		m_fields = fields;
 		m_cols.resize(sz);

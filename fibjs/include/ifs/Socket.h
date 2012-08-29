@@ -48,10 +48,10 @@ public:
 	virtual result_t asyncRecv(int32_t bytes) = 0;
 	virtual result_t onrecv(v8::Handle<v8::Function> func) = 0;
 	virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
-	virtual result_t send(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac) = 0;
-	virtual result_t asyncSend(obj_ptr<Buffer_base>& data) = 0;
+	virtual result_t send(Buffer_base* data, exlib::AsyncEvent* ac) = 0;
+	virtual result_t asyncSend(Buffer_base* data) = 0;
 	virtual result_t onsend(v8::Handle<v8::Function> func) = 0;
-	virtual result_t sendto(obj_ptr<Buffer_base>& data, const char* host, int32_t port) = 0;
+	virtual result_t sendto(Buffer_base* data, const char* host, int32_t port) = 0;
 
 	DECLARE_CLASSINFO(Socket_base);
 

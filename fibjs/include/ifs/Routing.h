@@ -25,7 +25,7 @@ public:
 	// Routing_base
 	static result_t _new(obj_ptr<Routing_base>& retVal);
 	static result_t _new(v8::Handle<v8::Object> map, obj_ptr<Routing_base>& retVal);
-	virtual result_t append(const char* pattern, obj_ptr<Handler_base>& hdlr) = 0;
+	virtual result_t append(const char* pattern, Handler_base* hdlr) = 0;
 	virtual result_t append(const char* pattern, v8::Handle<v8::Function> hdlr) = 0;
 	virtual result_t append(v8::Handle<v8::Object> map) = 0;
 

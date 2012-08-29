@@ -32,7 +32,7 @@ result_t Routing_base::_new(v8::Handle<v8::Object> map,
 }
 
 #define RE_SIZE	32
-result_t Routing::invoke(obj_ptr<object_base>& v, obj_ptr<Handler_base>& retVal,
+result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		exlib::AsyncEvent* ac)
 {
 	int i;
@@ -66,7 +66,7 @@ result_t Routing::invoke(obj_ptr<object_base>& v, obj_ptr<Handler_base>& retVal,
 	return CALL_E_INVALID_CALL;
 }
 
-result_t Routing::append(const char* pattern, obj_ptr<Handler_base>& hdlr)
+result_t Routing::append(const char* pattern, Handler_base* hdlr)
 {
 	int opt = PCRE_JAVASCRIPT_COMPAT | PCRE_EXTRA | PCRE_NEWLINE_ANYCRLF
 			| PCRE_UCP | PCRE_CASELESS;

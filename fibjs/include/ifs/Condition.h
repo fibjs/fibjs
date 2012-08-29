@@ -24,7 +24,7 @@ class Condition_base : public Lock_base
 public:
 	// Condition_base
 	static result_t _new(obj_ptr<Condition_base>& retVal);
-	static result_t _new(obj_ptr<Lock_base>& lock, obj_ptr<Condition_base>& retVal);
+	static result_t _new(Lock_base* lock, obj_ptr<Condition_base>& retVal);
 	virtual result_t wait() = 0;
 	virtual result_t notify() = 0;
 	virtual result_t notifyAll() = 0;

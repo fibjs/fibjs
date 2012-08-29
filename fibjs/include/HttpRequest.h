@@ -38,12 +38,12 @@ public:
 	virtual result_t get_value(std::string& retVal);
 	virtual result_t set_value(const char* newVal);
 	virtual result_t clear();
-	virtual result_t sendTo(obj_ptr<Stream_base>& stm, exlib::AsyncEvent* ac);
-	virtual result_t asyncSendTo(obj_ptr<Stream_base>& stm);
+	virtual result_t sendTo(Stream_base* stm, exlib::AsyncEvent* ac);
+	virtual result_t asyncSendTo(Stream_base* stm);
 	virtual result_t onsendto(v8::Handle<v8::Function> func);
-	virtual result_t readFrom(obj_ptr<BufferedStream_base>& stm,
+	virtual result_t readFrom(BufferedStream_base* stm,
 			exlib::AsyncEvent* ac);
-	virtual result_t asyncReadFrom(obj_ptr<BufferedStream_base>& stm);
+	virtual result_t asyncReadFrom(BufferedStream_base* stm);
 	virtual result_t onreadfrom(v8::Handle<v8::Function> func);
 
 public:
@@ -52,7 +52,7 @@ public:
 	virtual result_t set_protocol(const char* newVal);
 	virtual result_t get_headers(obj_ptr<HttpCollection_base>& retVal);
 	virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal);
-	virtual result_t set_body(obj_ptr<SeekableStream_base>& newVal);
+	virtual result_t set_body(SeekableStream_base* newVal);
 	virtual result_t get_contentType(std::string& retVal);
 	virtual result_t set_contentType(const char* newVal);
 	virtual result_t get_contentLength(int64_t& retVal);
@@ -122,7 +122,7 @@ public:
 		retVal = str;
 	}
 
-	void parse(std::string& str, obj_ptr<HttpCollection_base>& col, char split);
+	void parse(std::string& str, char split, obj_ptr<HttpCollection_base>& retVal);
 
 private:
 	HttpMessage m_message;

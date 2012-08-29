@@ -14,13 +14,13 @@
 namespace fibjs
 {
 
-result_t HttpHandler::invoke(obj_ptr<object_base>& v,
+result_t HttpHandler::invoke(object_base* v,
 		obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac)
 {
 	class asyncInvoke: public asyncState
 	{
 	public:
-		asyncInvoke(HttpHandler* pThis, obj_ptr<Stream_base>& stm,
+		asyncInvoke(HttpHandler* pThis, Stream_base* stm,
 				exlib::AsyncEvent* ac) :
 				asyncState(ac), m_pThis(pThis), m_stm(stm)
 		{
@@ -29,7 +29,6 @@ result_t HttpHandler::invoke(obj_ptr<object_base>& v,
 
 			m_req = new HttpRequest();
 			m_req->get_response(m_rep);
-			m_v = m_req;
 
 			set(read);
 		}
@@ -52,7 +51,7 @@ result_t HttpHandler::invoke(obj_ptr<object_base>& v,
 			asyncInvoke* pThis = (asyncInvoke*) pState;
 
 			pThis->set(send);
-			return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_v, pThis);
+			return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_req, pThis);
 		}
 
 		static int send(asyncState* pState, int n)
@@ -83,12 +82,11 @@ result_t HttpHandler::invoke(obj_ptr<object_base>& v,
 		}
 
 	private:
-		HttpHandler* m_pThis;
+		obj_ptr<HttpHandler> m_pThis;
 		obj_ptr<Stream_base> m_stm;
 		obj_ptr<BufferedStream_base> m_stmBuffered;
 		obj_ptr<HttpRequest_base> m_req;
 		obj_ptr<HttpResponse_base> m_rep;
-		obj_ptr<object_base> m_v;
 	};
 
 	if (!ac)

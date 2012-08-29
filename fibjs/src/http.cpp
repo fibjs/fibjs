@@ -13,7 +13,7 @@
 namespace fibjs
 {
 
-result_t http_base::handler(obj_ptr<Handler_base>& hdlr,
+result_t http_base::handler(Handler_base* hdlr,
 		obj_ptr<Handler_base>& retVal)
 {
 	retVal = new HttpHandler(hdlr);

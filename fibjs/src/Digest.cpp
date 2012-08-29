@@ -154,7 +154,7 @@ Digest::Digest(int32_t algo, const char* key, int sz)
 	HA.Update(&m_ctx, m_ipad, HA.PadSize);
 }
 
-result_t Digest::update(obj_ptr<Buffer_base>& data)
+result_t Digest::update(Buffer_base* data)
 {
 	if (m_iAlgo < 0)
 		return CALL_E_INVALID_CALL;
@@ -208,7 +208,7 @@ result_t Digest::digest(obj_ptr<Buffer_base>& retVal)
 	return 0;
 }
 
-result_t Digest::digest(obj_ptr<Buffer_base>& data,
+result_t Digest::digest(Buffer_base* data,
 		obj_ptr<Buffer_base>& retVal)
 {
 	if (m_iAlgo < 0)

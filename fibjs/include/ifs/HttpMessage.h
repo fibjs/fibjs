@@ -29,7 +29,7 @@ public:
 	virtual result_t set_protocol(const char* newVal) = 0;
 	virtual result_t get_headers(obj_ptr<HttpCollection_base>& retVal) = 0;
 	virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal) = 0;
-	virtual result_t set_body(obj_ptr<SeekableStream_base>& newVal) = 0;
+	virtual result_t set_body(SeekableStream_base* newVal) = 0;
 	virtual result_t get_contentType(std::string& retVal) = 0;
 	virtual result_t set_contentType(const char* newVal) = 0;
 	virtual result_t get_contentLength(int64_t& retVal) = 0;

@@ -17,7 +17,7 @@ namespace fibjs
 class Condition: public Condition_base
 {
 public:
-	Condition(obj_ptr<Lock_base> lock) :
+	Condition(Lock_base* lock) :
 		m_lockCond(lock)
 	{
 	}

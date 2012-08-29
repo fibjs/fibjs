@@ -69,7 +69,7 @@ result_t MemoryStream::onread(v8::Handle<v8::Function> func)
 	return on("read", func);
 }
 
-result_t MemoryStream::write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
+result_t MemoryStream::write(Buffer_base* data, exlib::AsyncEvent* ac)
 {
 	std::string strBuf;
 	int64_t sz1, sz2;
@@ -89,7 +89,7 @@ result_t MemoryStream::write(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
 	return 0;
 }
 
-result_t MemoryStream::asyncWrite(obj_ptr<Buffer_base>& data)
+result_t MemoryStream::asyncWrite(Buffer_base* data)
 {
 	acb_write(data);
 	return 0;
@@ -100,13 +100,13 @@ result_t MemoryStream::onwrite(v8::Handle<v8::Function> func)
 	return on("write", func);
 }
 
-result_t MemoryStream::copyTo(obj_ptr<Stream_base>& stm, int64_t bytes,
+result_t MemoryStream::copyTo(Stream_base* stm, int64_t bytes,
 		int64_t& retVal, exlib::AsyncEvent* ac)
 {
 	return copyStream(this, stm, bytes, retVal, ac);
 }
 
-result_t MemoryStream::asyncCopyTo(obj_ptr<Stream_base>& stm, int64_t bytes)
+result_t MemoryStream::asyncCopyTo(Stream_base* stm, int64_t bytes)
 {
 	acb_copyTo(stm, bytes);
 	return 0;

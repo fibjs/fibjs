@@ -23,7 +23,7 @@ class BufferedStream_base : public Stream_base
 {
 public:
 	// BufferedStream_base
-	static result_t _new(obj_ptr<Stream_base>& stm, obj_ptr<BufferedStream_base>& retVal);
+	static result_t _new(Stream_base* stm, obj_ptr<BufferedStream_base>& retVal);
 	virtual result_t readText(int32_t size, std::string& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t readLine(std::string& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t readUntil(const char* mk, std::string& retVal, exlib::AsyncEvent* ac) = 0;

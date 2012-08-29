@@ -29,7 +29,7 @@ public:
 	// mq_base
 	static result_t jsHandler(v8::Handle<v8::Function> hdlr, obj_ptr<Handler_base>& retVal);
 	static result_t nullHandler(obj_ptr<Handler_base>& retVal);
-	static result_t invoke(obj_ptr<Handler_base>& hdlr, obj_ptr<object_base>& v, exlib::AsyncEvent* ac);
+	static result_t invoke(Handler_base* hdlr, object_base* v, exlib::AsyncEvent* ac);
 
 	DECLARE_CLASSINFO(mq_base);
 

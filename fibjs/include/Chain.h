@@ -18,12 +18,12 @@ class Chain: public Chain_base
 {
 public:
 	// Handler_base
-	virtual result_t invoke(obj_ptr<object_base>& v,
-			obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac);
+	virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
+			exlib::AsyncEvent* ac);
 
 public:
 	// Chain_base
-	virtual result_t append(obj_ptr<Handler_base>& hdlr);
+	virtual result_t append(Handler_base* hdlr);
 	virtual result_t append(v8::Handle<v8::Function> hdlr);
 	virtual result_t append(v8::Handle<v8::Array> hdlrs);
 

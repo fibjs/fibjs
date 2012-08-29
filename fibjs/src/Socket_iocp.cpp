@@ -374,12 +374,12 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 	return (new asyncRecv(m_sock, bytes, retVal, ac, bRead))->call();
 }
 
-result_t Socket::send(obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac)
+result_t Socket::send(Buffer_base* data, exlib::AsyncEvent* ac)
 {
 	class asyncSend: public asyncProc
 	{
 	public:
-		asyncSend(SOCKET s, obj_ptr<Buffer_base>& data, exlib::AsyncEvent* ac) :
+		asyncSend(SOCKET s, Buffer_base* data, exlib::AsyncEvent* ac) :
 				asyncProc(s, ac)
 		{
 			data->toString(m_buf);

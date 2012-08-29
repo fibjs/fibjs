@@ -22,7 +22,7 @@ class Handler_base : public object_base
 {
 public:
 	// Handler_base
-	virtual result_t invoke(obj_ptr<object_base>& v, obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac) = 0;
 
 	DECLARE_CLASSINFO(Handler_base);
 

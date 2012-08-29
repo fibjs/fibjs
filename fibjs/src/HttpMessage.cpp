@@ -150,7 +150,7 @@ result_t HttpMessage::get_body(obj_ptr<SeekableStream_base>& retVal)
 	return 0;
 }
 
-result_t HttpMessage::set_body(obj_ptr<SeekableStream_base>& newVal)
+result_t HttpMessage::set_body(SeekableStream_base* newVal)
 {
 	m_body = newVal;
 

@@ -40,12 +40,12 @@ public:
 
 public:
 	// Handler_base
-	virtual result_t invoke(obj_ptr<object_base>& v,
+	virtual result_t invoke(object_base* v,
 			obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac);
 
 public:
 	// Routing_base
-	virtual result_t append(const char* pattern, obj_ptr<Handler_base>& hdlr);
+	virtual result_t append(const char* pattern, Handler_base* hdlr);
 	virtual result_t append(const char* pattern, v8::Handle<v8::Function> hdlr);
 	virtual result_t append(v8::Handle<v8::Object> map);
 
