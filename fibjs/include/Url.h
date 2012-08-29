@@ -61,6 +61,94 @@ private:
 	void parseHash(const char*& url);
 
 public:
+	inline static void decodeURI(const char* url, int sz, std::string& retVal)
+	{
+		if (sz < 0)
+			sz = (int)qstrlen(url);
+
+		if (sz == 0)
+			return;
+
+		int len, l;
+		const char* src;
+		unsigned char ch;
+		char* bstr;
+		std::string str;
+
+		for (len = 0, src = url, l = sz; l > 0; src++, len++, l--)
+		{
+			ch = (unsigned char) *src;
+			if (ch == '%' && l > 2 && qishex(src[1]) && qishex(src[2]))
+			{
+				src += 2;
+				l -= 2;
+			}
+		}
+
+		str.resize(len);
+		bstr = &str[0];
+
+		for (len = 0, src = url, l = sz; l > 0; src++, len++, l--)
+		{
+			ch = (unsigned char) *src;
+
+			if (ch == '%' && l > 2 && qishex(src[1]) && qishex(src[2]))
+			{
+				*bstr++ = (qhex(src[1]) << 4) + qhex(src[2]);
+				src += 2;
+				l -= 2;
+			}
+			else
+				*bstr++ = ch;
+		}
+
+		retVal = str;
+	}
+
+	inline static void encodeURI(const char* url, int sz, std::string& retVal,
+			const char* tab)
+	{
+		static const char *hex = "0123456789ABCDEF";
+
+		if (sz < 0)
+			sz = (int)qstrlen(url);
+
+		if (sz == 0)
+			return;
+
+		int len, l;
+		const char* src;
+		unsigned char ch;
+		char* bstr;
+		std::string str;
+
+		for (len = 0, src = url, l = sz; l > 0; len++, l--)
+		{
+			ch = (unsigned char) *src++;
+			if (ch < 0x20 || ch >= 0x80 || tab[ch - 0x20] == ' ')
+				len += 2;
+		}
+
+		str.resize(len);
+		bstr = &str[0];
+
+		for (src = url, l = sz; l > 0; l--)
+		{
+			ch = (unsigned char) *src++;
+			if (ch >= 0x20 && ch < 0x80 && tab[ch - 0x20] != ' ')
+				*bstr++ = ch;
+			else
+			{
+				*bstr++ = '%';
+
+				*bstr++ = hex[(ch >> 4) & 15];
+				*bstr++ = hex[ch & 15];
+			}
+		}
+
+		retVal = str;
+	}
+public:
 	std::string m_protocol;
 	bool m_slashes;
 	bool m_defslashes;

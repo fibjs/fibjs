@@ -8,6 +8,7 @@
 #include "HttpRequest.h"
 #include "parse.h"
 #include "HttpUploadCollection.h"
+#include "Url.h"
 
 namespace fibjs
 {
@@ -322,7 +323,7 @@ void HttpRequest::parse(std::string& str, char split,
 		}
 
 		if (pstr > pstrTemp)
-			decodeURI(pstrTemp, (int) (pstr - pstrTemp), strKey);
+			Url::decodeURI(pstrTemp, (int) (pstr - pstrTemp), strKey);
 		else
 			strKey.clear();
 
@@ -341,7 +342,7 @@ void HttpRequest::parse(std::string& str, char split,
 
 		if (!strKey.empty())
 			if (pstr > pstrTemp)
-				decodeURI(pstrTemp, (int) (pstr - pstrTemp), strValue);
+				Url::decodeURI(pstrTemp, (int) (pstr - pstrTemp), strValue);
 			else
 				strValue.clear();
 

@@ -33,6 +33,14 @@ bool qishex(T ch)
 }
 
 template<typename T>
+int qhex(T ch)
+{
+	return (ch >= '0' && ch <= '9' ? ch - '0' :
+			ch >= 'a' && ch <= 'f' ? ch - 'a' + 10 :
+			ch >= 'A' && ch <= 'F' ? ch - 'A' + 10 : 0);
+}
+
+template<typename T>
 bool qisupper(T ch)
 {
 	return ch >= 'A' && ch <= 'Z';

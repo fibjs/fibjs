@@ -16,10 +16,6 @@
 namespace fibjs
 {
 
-#define HEXDATA(ch)		((ch) >= '0' && (ch) <= '9' ? (ch) - '0' : \
-						(ch) >= 'a' && (ch) <= 'f' ? (ch) - 'a' + 10 : \
-						(ch) >= 'A' && (ch) <= 'F' ? (ch) - 'A' + 10 : 0)
-
 class HttpRequest: public HttpRequest_base
 {
 public:
@@ -41,8 +37,7 @@ public:
 	virtual result_t sendTo(Stream_base* stm, exlib::AsyncEvent* ac);
 	virtual result_t asyncSendTo(Stream_base* stm);
 	virtual result_t onsendto(v8::Handle<v8::Function> func);
-	virtual result_t readFrom(BufferedStream_base* stm,
-			exlib::AsyncEvent* ac);
+	virtual result_t readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac);
 	virtual result_t asyncReadFrom(BufferedStream_base* stm);
 	virtual result_t onreadfrom(v8::Handle<v8::Function> func);
 
@@ -81,48 +76,8 @@ public:
 		retVal = varCookie.string();
 	}
 
-	inline void decodeURI(const char* url, int sz, std::string& retVal)
-	{
-		if (sz == 0)
-			return;
-
-		int len, l;
-		const char* src;
-		unsigned char ch;
-		char* bstr;
-		std::string str;
-
-		for (len = 0, src = url, l = sz; l > 0; src++, len++, l--)
-		{
-			ch = (unsigned char) *src;
-			if (ch == '%' && qishex(src[1]) && qishex(src[2]))
-			{
-				src += 2;
-				l -= 2;
-			}
-		}
-
-		str.resize(len);
-		bstr = &str[0];
-
-		for (len = 0, src = url, l = sz; l > 0; src++, len++, l--)
-		{
-			ch = (unsigned char) *src;
-
-			if (ch == '%' && qishex(src[1]) && qishex(src[2]))
-			{
-				*bstr++ = (HEXDATA(src[1]) << 4) + HEXDATA(src[2]);
-				src += 2;
-				l -= 2;
-			}
-			else
-				*bstr++ = ch;
-		}
-
-		retVal = str;
-	}
-
-	void parse(std::string& str, char split, obj_ptr<HttpCollection_base>& retVal);
+	void parse(std::string& str, char split,
+			obj_ptr<HttpCollection_base>& retVal);
 
 private:
 	HttpMessage m_message;

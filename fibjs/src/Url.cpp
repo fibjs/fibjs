@@ -17,45 +17,6 @@ static const char *queryTable =
 static const char *hashTable =
 		" ! #$%& ()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
 
-#define HEX_ESCAPE '%'
-static const char *hex = "0123456789ABCDEF";
-
-inline result_t urlencode(const char* url, std::string& retVal, const char* tab)
-{
-	if (*url == 0)
-		return 0;
-
-	int len;
-	const char* src;
-	unsigned char ch;
-	char* bstr;
-	std::string str;
-
-	for (len = 0, src = url; (ch = (unsigned char) *src) != 0; src++, len++)
-		if (ch < 0x20 || ch >= 0x80 || tab[ch - 0x20] == ' ')
-			len += 2;
-
-	str.resize(len);
-	bstr = &str[0];
-
-	for (src = url; (ch = (unsigned char) *src) != 0; src++)
-	{
-		if (ch >= 0x20 && ch < 0x80 && tab[ch - 0x20] != ' ')
-			*bstr++ = ch;
-		else
-		{
-			*bstr++ = HEX_ESCAPE;
-
-			*bstr++ = hex[(ch >> 4) & 15];
-			*bstr++ = hex[ch & 15];
-		}
-	}
-
-	retVal = str;
-
-	return 0;
-}
-
 result_t Url_base::_new(const char* url, obj_ptr<Url_base>& retVal)
 {
 	obj_ptr<Url> u = new Url();
@@ -229,7 +190,8 @@ void Url::parsePath(const char*& url)
 	}
 
 	if (m_protocol.compare("javascript:"))
-		urlencode(m_pathname.c_str(), m_pathname, pathTable);
+		Url::encodeURI(m_pathname.c_str(), (int) m_pathname.length(),
+				m_pathname, pathTable);
 	url = p;
 }
 
@@ -245,7 +207,8 @@ void Url::parseQuery(const char*& url)
 		p++;
 
 	m_query.assign(url, p - url);
-	urlencode(m_query.c_str(), m_query, queryTable);
+	Url::encodeURI(m_query.c_str(), (int) m_query.length(), m_query,
+			queryTable);
 	url = p;
 }
 
@@ -254,7 +217,7 @@ void Url::parseHash(const char*& url)
 	if (*url != '#')
 		return;
 
-	urlencode(url, m_hash, hashTable);
+	Url::encodeURI(url, -1, m_hash, hashTable);
 }
 
 result_t Url::parse(const char* url)
