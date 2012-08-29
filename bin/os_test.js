@@ -14,6 +14,14 @@ function unlink(pathname) {
 	}
 }
 
+var tms = [ '98-4-14', '1998-4', '1998-4-14', '1998-4-14 12:00', '1998-4-14 12:12:12',
+		'4/14/1998', '4/14', '4/14/48', '4/14/49', '4/14/50', '4/14/51', 'Tue Apr 14 1998 09:46:05 GMT+0800 (CST)',
+		'Tue 14 Apr 1998 09:46:05 GMT+0800' ];
+
+tms.forEach(function(s) {
+	assert.equal(os.time(s), new Date(s));
+});
+
 var pathname = 'test_dir';
 var pathname1 = 'test1_dir';
 unlink(pathname);
