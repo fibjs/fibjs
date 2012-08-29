@@ -26,6 +26,14 @@ inline int utf8_strlen(const char *src, int srclen)
 	return utf8_mbstowcs(src, srclen, NULL, 0);
 }
 
+inline int utf8_strlen(const wchar_t *src, int srclen)
+{
+	if (srclen == -1)
+		srclen = (int) qstrlen(src);
+
+	return utf8_wcstombs(src, srclen, NULL, 0);
+}
+
 inline std::wstring utf8to16String(const char *src, int srclen = -1)
 {
 	std::wstring str;

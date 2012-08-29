@@ -6,6 +6,7 @@
  */
 
 #include "ifs/Url.h"
+#include "utf8.h"
 
 #ifndef URL_H_
 #define URL_H_
@@ -64,7 +65,7 @@ public:
 	inline static void decodeURI(const char* url, int sz, std::string& retVal)
 	{
 		if (sz < 0)
-			sz = (int)qstrlen(url);
+			sz = (int) qstrlen(url);
 
 		if (sz == 0)
 			return;
@@ -83,6 +84,18 @@ public:
 				src += 2;
 				l -= 2;
 			}
+			else if ((ch == '%' || ch == '\\') && l > 5
+					&& (src[1] == 'u' || src[1] == 'U') && qishex(src[2])
+					&& qishex(src[3]) && qishex(src[4]) && qishex(src[5]))
+			{
+				wchar_t wch = (qhex(src[2]) << 12) + (qhex(src[3]) << 8)
+						+ (qhex(src[4]) << 4) + qhex(src[5]);
+
+				len += utf8_strlen(&wch, 1) - 1;
+
+				src += 5;
+				l -= 5;
+			}
 		}
 
 		str.resize(len);
@@ -98,6 +111,18 @@ public:
 				src += 2;
 				l -= 2;
 			}
+			else if ((ch == '%' || ch == '\\') && l > 5
+					&& (src[1] == 'u' || src[1] == 'U') && qishex(src[2])
+					&& qishex(src[3]) && qishex(src[4]) && qishex(src[5]))
+			{
+				wchar_t wch = (qhex(src[2]) << 12) + (qhex(src[3]) << 8)
+						+ (qhex(src[4]) << 4) + qhex(src[5]);
+
+				bstr += utf8_wcstombs(&wch, 1, bstr, 5);
+
+				src += 5;
+				l -= 5;
+			}
 			else
 				*bstr++ = ch;
 		}
@@ -111,7 +136,7 @@ public:
 		static const char *hex = "0123456789ABCDEF";
 
 		if (sz < 0)
-			sz = (int)qstrlen(url);
+			sz = (int) qstrlen(url);
 
 		if (sz == 0)
 			return;
