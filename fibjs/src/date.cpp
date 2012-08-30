@@ -9,6 +9,7 @@
 #include "date.h"
 #include "qstring.h"
 #include <math.h>
+#include <string.h>
 
 namespace fibjs
 {
