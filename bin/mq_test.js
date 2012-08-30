@@ -9,6 +9,9 @@ var assert = require('assert');
 var mq = require('mq');
 var http = require('http');
 
+// ------------- function handler
+
+var m = new http.Request();
 var n = 0;
 
 function fun3(v) {
@@ -48,33 +51,78 @@ assert.throws(function() {
 	}, v);
 });
 
-// ------------- chain handler
+// ------------- object handler
 
-function chain1(v) {
+function hdlr1(v) {
 	n = n | 1;
 }
 
-function chain2(v) {
+function hdlr2(v) {
 	n = n | 2;
 }
 
-function chain3(v) {
+function hdlr3(v) {
 	n = n | 4;
 }
 
-var chain = new mq.Chain([ chain1, chain2, chain3 ]);
+var o = mq.jsHandler({
+	a : hdlr1,
+	b : hdlr2,
+	c : hdlr3,
+	d : {
+		d1 : hdlr1,
+		d2 : {
+			d3 : hdlr2,
+			d4 : hdlr3,
+			d5 : 1123
+		}
+	}
+});
+
+var ot = {
+	'a' : 1,
+	'b' : 2,
+	'c' : 4,
+	'a.a' : 1,
+	'a/a' : 1,
+	'd.d1' : 1,
+	'd\\d1' : 1,
+	'd.d2.d3' : 2,
+	'd.d2.d4' : 4
+};
+
+for (t in ot) {
+	n = 0;
+	m.value = t;
+	o.invoke(m);
+	assert.equal(ot[t], n);
+}
+
+assert.throws(function() {
+	m.value = 'asd';
+	o.invoke(m);
+});
+
+assert.throws(function() {
+	m.value = 'd.d2.d5';
+	o.invoke(m);
+});
+
+// ------------- chain handler
+
+var chain = mq.chain([ hdlr1, hdlr2, mq.jsHandler(hdlr3) ]);
 
 n = 0;
 chain.invoke(v);
 assert.equal(7, n);
 
-var r = new mq.Routing({
-	'a' : chain1,
-	'c' : chain3,
-	'b' : chain2
-});
+// ------------- routing handler
 
-var m = new http.Request();
+var r = mq.routing({
+	'a' : hdlr1,
+	'c' : hdlr3,
+	'b' : mq.jsHandler(hdlr2)
+});
 
 n = 0;
 m.value = 'a';
