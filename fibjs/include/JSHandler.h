@@ -35,11 +35,32 @@ public:
 		return 0;
 	}
 
+	static result_t New(const char* id, const char* method,
+			obj_ptr<Handler_base>& retVal)
+	{
+		if (!*id)
+			return CALL_E_INVALIDARG;
+
+		obj_ptr<JSHandler> r = new JSHandler();
+
+		r->m_id = id;
+		r->m_method = method;
+
+		if (isPathSlash(r->m_id[r->m_id.length() - 1]) && *method)
+			return CALL_E_INVALIDARG;
+
+		retVal = r;
+
+		return 0;
+	}
+
 public:
 	result_t js_invoke(object_base* v, obj_ptr<Handler_base>& retVal);
 
 private:
 	v8::Persistent<v8::Value> m_handler;
+	std::string m_id;
+	std::string m_method;
 };
 
 } /* namespace fibjs */

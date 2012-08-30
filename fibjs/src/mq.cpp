@@ -85,10 +85,10 @@ result_t mq_base::jsHandler(v8::Handle<v8::Value> hdlr,
 	return JSHandler::New(hdlr, retVal);
 }
 
-result_t mq_base::moduleHandler(const char* id, const char* func,
+result_t mq_base::moduleHandler(const char* id, const char* method,
 		obj_ptr<Handler_base>& retVal)
 {
-	return 0;
+	return JSHandler::New(id, method, retVal);
 }
 
 result_t mq_base::nullHandler(obj_ptr<Handler_base>& retVal)

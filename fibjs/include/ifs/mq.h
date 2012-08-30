@@ -30,7 +30,7 @@ public:
 	static result_t chain(v8::Handle<v8::Array> hdlrs, obj_ptr<Chain_base>& retVal);
 	static result_t routing(v8::Handle<v8::Object> map, obj_ptr<Routing_base>& retVal);
 	static result_t jsHandler(v8::Handle<v8::Value> hdlr, obj_ptr<Handler_base>& retVal);
-	static result_t moduleHandler(const char* id, const char* func, obj_ptr<Handler_base>& retVal);
+	static result_t moduleHandler(const char* id, const char* method, obj_ptr<Handler_base>& retVal);
 	static result_t nullHandler(obj_ptr<Handler_base>& retVal);
 	static result_t invoke(Handler_base* hdlr, object_base* v, exlib::AsyncEvent* ac);
 

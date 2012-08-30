@@ -46,7 +46,7 @@ class mq : module
 
 	/*! @brief 创建一个模块消息处理器对象
 	 * @param id 模块名称，或者模块目录名，为目录是自动映射模块和函数
-	 * @param func 模块内的函数名，省略则自动映射函数
+	 * @param method 模块内的函数名，省略则自动映射函数
 	 * @return 返回封装了处理函数的处理器
 	 *
 	 * 模块处理器用于封装处理器对 javascript 模块的加载和访问。下面的示例封装指定模块的指定函数为一个消息处理器：
@@ -64,7 +64,7 @@ class mq : module
 	 * hdlr = mq.moduleHandler('app/');
 	 * @endcode
 	 */
-	static Handler moduleHandler(String id, String func = "");
+	static Handler moduleHandler(String id, String method = "");
 
 	/*! @brief 创建一个空处理器对象，次处理对象不做任何处理直接返回
 	 * @return 返回空处理函数
