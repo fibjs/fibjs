@@ -233,7 +233,7 @@ void date_t::parse(const char* str, int len)
 			('N' << 16) | ('o' << 8) | 'v', ('D' << 16) | ('e' << 8) | 'c' };
 
 	if (len < 0)
-		len = qstrlen(str);
+		len = (int)qstrlen(str);
 
 	if (!str || !*str)
 		return;
@@ -441,7 +441,7 @@ void date_t::toString(std::string& retVal)
 
 	NumberOf100s = (Days * 100 + 75) / 3652425;
 	Days -= NumberOf100s * 36524;
-
+	
 	NumberOf4s = Days / 1461;
 	Days -= NumberOf4s * 1461;
 

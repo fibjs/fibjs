@@ -16,20 +16,30 @@ namespace fibjs
 class JSHandler: public Handler_base
 {
 public:
-	JSHandler(v8::Handle<v8::Function> func)
+	// Handler_base
+	virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
+			exlib::AsyncEvent* ac);
+
+	result_t setHandler(v8::Handle<v8::Value> hdlr);
+
+	static result_t New(v8::Handle<v8::Value> hdlr,
+			obj_ptr<Handler_base>& retVal)
 	{
-		m_func = v8::Persistent<v8::Function>::New(func);
+		obj_ptr<JSHandler> r = new JSHandler();
+		result_t hr = r->setHandler(hdlr);
+		if (hr < 0)
+			return hr;
+
+		retVal = r;
+
+		return 0;
 	}
 
 public:
-	// Handler_base
-	virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac);
-
-public:
-	result_t callFunction(object_base* v, obj_ptr<Handler_base>& retVal);
+	result_t js_invoke(object_base* v, obj_ptr<Handler_base>& retVal);
 
 private:
-	v8::Persistent<v8::Function> m_func;
+	v8::Persistent<v8::Value> m_handler;
 };
 
 } /* namespace fibjs */

@@ -23,16 +23,13 @@ class Chain_base : public Handler_base
 {
 public:
 	// Chain_base
-	static result_t _new(obj_ptr<Chain_base>& retVal);
-	static result_t _new(v8::Handle<v8::Array> hdlrs, obj_ptr<Chain_base>& retVal);
-	virtual result_t append(Handler_base* hdlr) = 0;
-	virtual result_t append(v8::Handle<v8::Function> hdlr) = 0;
 	virtual result_t append(v8::Handle<v8::Array> hdlrs) = 0;
+	virtual result_t append(Handler_base* hdlr) = 0;
+	virtual result_t append(v8::Handle<v8::Value> hdlr) = 0;
 
 	DECLARE_CLASSINFO(Chain_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_append(const v8::Arguments& args);
 };
 
@@ -50,7 +47,7 @@ namespace fibjs
 
 		static ClassData s_cd = 
 		{ 
-			"Chain", s__new, 
+			"Chain", NULL, 
 			1, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&Handler_base::class_info()
 		};
@@ -60,27 +57,16 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> Chain_base::s__new(const v8::Arguments& args)
-	{
-		obj_ptr<Chain_base> vr;
-
-		CONSTRUCT_ENTER(0, 0);
-
-		hr = _new(vr);
-
-		METHOD_OVER(1, 1);
-
-		ARG(v8::Handle<v8::Array>, 0);
-
-		hr = _new(v0, vr);
-
-		CONSTRUCT_RETURN();
-	}
-
 	inline v8::Handle<v8::Value> Chain_base::s_append(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(Chain_base);
 		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Array>, 0);
+
+		hr = pInst->append(v0);
+
+		METHOD_OVER(1, 1);
 
 		ARG(obj_ptr<Handler_base>, 0);
 
@@ -88,13 +74,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 1);
 
-		ARG(v8::Handle<v8::Function>, 0);
-
-		hr = pInst->append(v0);
-
-		METHOD_OVER(1, 1);
-
-		ARG(v8::Handle<v8::Array>, 0);
+		ARG(v8::Handle<v8::Value>, 0);
 
 		hr = pInst->append(v0);
 

@@ -8,6 +8,8 @@
 #include "object.h"
 #include "JSHandler.h"
 #include "NullHandler.h"
+#include "Chain.h"
+#include "Routing.h"
 #include "ifs/mq.h"
 
 namespace fibjs
@@ -51,23 +53,41 @@ result_t mq_base::invoke(Handler_base* hdlr, object_base* v,
 	return (new asyncInvoke(hdlr, v, ac))->post(0);
 }
 
-result_t mq_base::jsHandler(v8::Handle<v8::Function> hdlr,
+result_t mq_base::chain(v8::Handle<v8::Array> hdlrs,
+		obj_ptr<Chain_base>& retVal)
+{
+	obj_ptr<Chain_base> chain = new Chain();
+	result_t hr = chain->append(hdlrs);
+	if (hr < 0)
+		return hr;
+
+	retVal = chain;
+
+	return 0;
+}
+
+result_t mq_base::routing(v8::Handle<v8::Object> map,
+		obj_ptr<Routing_base>& retVal)
+{
+	obj_ptr<Routing_base> r = new Routing();
+
+	result_t hr = r->append(map);
+	if (hr < 0)
+		return hr;
+
+	retVal = r;
+	return 0;
+}
+
+result_t mq_base::jsHandler(v8::Handle<v8::Value> hdlr,
 		obj_ptr<Handler_base>& retVal)
 {
-	retVal = new JSHandler(hdlr);
-	return 0;
+	return JSHandler::New(hdlr, retVal);
 }
 
 result_t mq_base::moduleHandler(const char* id, const char* func,
 		obj_ptr<Handler_base>& retVal)
 {
-	return 0;
-}
-
-result_t mq_base::objectHandler(v8::Handle<v8::Object> obj,
-		obj_ptr<Handler_base>& retVal)
-{
-	retVal = new JSHandler(obj);
 	return 0;
 }
 

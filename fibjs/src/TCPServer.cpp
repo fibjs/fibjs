@@ -40,8 +40,11 @@ result_t TCPServer_base::_new(int32_t port, v8::Handle<v8::Function> listener,
 result_t TCPServer_base::_new(const char* addr, int32_t port,
 		v8::Handle<v8::Function> listener, obj_ptr<TCPServer_base>& retVal)
 {
-	obj_ptr<Handler_base> hdlr = new JSHandler(listener);
-	return _new("", port, hdlr, retVal);
+	obj_ptr<Handler_base> hdlr1;
+	result_t hr = JSHandler::New(listener, hdlr1);
+	if (hr < 0)
+		return hr;
+	return _new("", port, hdlr1, retVal);
 }
 
 result_t TCPServer::create(const char* addr, int32_t port,

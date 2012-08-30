@@ -23,7 +23,10 @@ result_t http_base::handler(Handler_base* hdlr,
 result_t http_base::handler(v8::Handle<v8::Function> hdlr,
 		obj_ptr<Handler_base>& retVal)
 {
-	obj_ptr<Handler_base> hdlr1 = new JSHandler(hdlr);
+	obj_ptr<Handler_base> hdlr1;
+	result_t hr = JSHandler::New(hdlr, hdlr1);
+	if (hr < 0)
+		return hr;
 	return handler(hdlr1, retVal);
 }
 

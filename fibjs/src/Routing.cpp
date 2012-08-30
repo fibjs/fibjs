@@ -12,25 +12,6 @@
 namespace fibjs
 {
 
-result_t Routing_base::_new(obj_ptr<Routing_base>& retVal)
-{
-	retVal = new Routing();
-	return 0;
-}
-
-result_t Routing_base::_new(v8::Handle<v8::Object> map,
-		obj_ptr<Routing_base>& retVal)
-{
-	obj_ptr<Routing_base> r = new Routing();
-
-	result_t hr = r->append(map);
-	if (hr < 0)
-		return hr;
-
-	retVal = r;
-	return 0;
-}
-
 #define RE_SIZE	32
 result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		exlib::AsyncEvent* ac)
@@ -51,8 +32,8 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 	{
 		obj_ptr<rule>& r = m_array[i];
 
-		if ((rc = pcre_exec(r->m_re, r->m_extra, value.c_str(), (int)value.length(),
-				0, 0, ovector, RE_SIZE)) > 0)
+		if ((rc = pcre_exec(r->m_re, r->m_extra, value.c_str(),
+				(int) value.length(), 0, 0, ovector, RE_SIZE)) > 0)
 		{
 			if (rc > 1)
 				msg->set_value(
@@ -97,9 +78,12 @@ result_t Routing::append(const char* pattern, Handler_base* hdlr)
 	return 0;
 }
 
-result_t Routing::append(const char* pattern, v8::Handle<v8::Function> hdlr)
+result_t Routing::append(const char* pattern, v8::Handle<v8::Value> hdlr)
 {
-	obj_ptr<Handler_base> hdlr1 = new JSHandler(hdlr);
+	obj_ptr<Handler_base> hdlr1;
+	result_t hr = JSHandler::New(hdlr, hdlr1);
+	if (hr < 0)
+		return hr;
 	return append(pattern, hdlr1);
 }
 
@@ -108,26 +92,27 @@ result_t Routing::append(v8::Handle<v8::Object> map)
 	v8::Handle<v8::Array> ks = map->GetPropertyNames();
 	int len = ks->Length();
 	int i;
+	result_t hr;
 
 	for (i = 0; i < len; i++)
 	{
 		v8::Handle<v8::Value> k = ks->Get(i);
 		v8::Handle<v8::Value> v = map->Get(k);
 
-		if (v->IsFunction())
-			append(*v8::String::Utf8Value(k),
-					v8::Handle<v8::Function>::Cast(v));
-		else if (v->IsObject())
+		if (v->IsObject())
 		{
 			obj_ptr<Handler_base> hdlr = Handler_base::getInstance(v);
 
-			if (hdlr == NULL)
-				return CALL_E_BADVARTYPE;
-
-			append(*v8::String::Utf8Value(k), hdlr);
+			if (hdlr)
+			{
+				append(*v8::String::Utf8Value(k), hdlr);
+				continue;
+			}
 		}
-		else
-			return CALL_E_BADVARTYPE;
+
+		hr = append(*v8::String::Utf8Value(k), v);
+		if (hr < 0)
+			return hr;
 	}
 
 	return 0;

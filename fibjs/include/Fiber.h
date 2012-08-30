@@ -94,6 +94,35 @@ EVENT_SUPPORT()
 	;
 
 public:
+	class scope
+	{
+	public:
+		scope(JSFiber* fb = NULL) :
+				m_pFiber(fb)
+		{
+			if (fb == NULL)
+				m_pFiber = new JSFiber();
+
+			m_pNext = g_pService->tlsGet(g_tlsCurrent);
+			g_pService->tlsPut(g_tlsCurrent, m_pFiber);
+		}
+
+		~scope()
+		{
+			g_pService->tlsPut(g_tlsCurrent, m_pNext);
+		}
+
+		JSFiber* operator->()
+		{
+			return m_pFiber;
+		}
+
+	private:
+		obj_ptr<JSFiber> m_pFiber;
+		void* m_pNext;
+	};
+
+public:
 	JSFiber() :
 			m_error(false)
 	{
@@ -101,13 +130,7 @@ public:
 
 	~JSFiber()
 	{
-		size_t i;
-
-		for (i = 0; i < m_argv.size(); i++)
-			m_argv[i].Dispose();
-
-		m_func.Dispose();
-		m_result.Dispose();
+		clear();
 	}
 
 	result_t get_func(v8::Handle<v8::Function>& retVal)
@@ -171,6 +194,17 @@ public:
 	bool isError()
 	{
 		return m_error;
+	}
+
+	void clear()
+	{
+		size_t i;
+
+		for (i = 0; i < m_argv.size(); i++)
+			m_argv[i].Dispose();
+
+		m_func.Dispose();
+		m_result.Dispose();
 	}
 
 private:

@@ -7,45 +7,84 @@
 
 #include "JSHandler.h"
 #include "Fiber.h"
+#include "ifs/Message.h"
 
 namespace fibjs
 {
 
-result_t JSHandler::callFunction(object_base* v,
-		obj_ptr<Handler_base>& retVal)
+result_t JSHandler::setHandler(v8::Handle<v8::Value> hdlr)
 {
+	if (!hdlr->IsFunction() && !hdlr->IsObject())
+		return CALL_E_BADVARTYPE;
+
+	m_handler = v8::Persistent<v8::Value>::New(hdlr);
+	return 0;
+}
+
+result_t JSHandler::js_invoke(object_base* v, obj_ptr<Handler_base>& retVal)
+{
+	JSFiber::scope s;
 	v8::Handle<v8::Object> o;
-	v8::Handle<v8::Value> a, r;
-	v8::Handle<v8::Function> func;
+	v8::Handle<v8::Value> a;
+	v8::Handle<v8::Value> hdlr = m_handler;
 
 	v->ValueOf(o);
 	a = o;
-	func = m_func;
 
 	while (true)
 	{
-		JSFiber::callFunction(func, &a, 1, r);
+		if (hdlr->IsFunction())
+			JSFiber::callFunction(v8::Handle<v8::Function>::Cast(hdlr), &a, 1,
+					hdlr);
+		else if (hdlr->IsObject())
+		{
+			if (retVal = Handler_base::getInstance(hdlr))
+				return 0;
 
-		if (r.IsEmpty())
+			obj_ptr<Message_base> msg = Message_base::getInstance(v);
+
+			if (msg == NULL)
+				return CALL_E_BADVARTYPE;
+
+			std::string str;
+			const char* p;
+
+			msg->get_value(str);
+			if (str.empty())
+				return CALL_E_BADVARTYPE;
+
+			o = v8::Handle<v8::Object>::Cast(hdlr);
+
+			p = str.c_str();
+			while (*p && *p != '.' && *p != '/' && *p != '\\')
+				p++;
+
+			if (p == str.c_str())
+				return CALL_E_INVALID_CALL;
+
+			hdlr = o->Get(v8::String::New(str.c_str(), (int)(p - str.c_str())));
+			if (IsEmpty(hdlr))
+				return CALL_E_INVALID_CALL;
+
+			if (*p)
+				p++;
+			msg->set_value(p);
+		}
+		else
+			return CALL_E_INVALID_CALL;
+
+		if (hdlr.IsEmpty())
 			return CALL_E_INTERNAL;
 
-		if (IsEmpty(r))
+		if (IsEmpty(hdlr))
 			return CALL_RETURN_NULL;
-
-		if (!r->IsFunction())
-		{
-			retVal = Handler_base::getInstance(r);
-			return retVal != NULL ? 0 : CALL_E_RETURN_TYPE;
-		}
-
-		func = v8::Handle<v8::Function>::Cast(r);
 	}
 
 	return 0;
 }
 
-result_t JSHandler::invoke(object_base* v,
-		obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac)
+result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
+		exlib::AsyncEvent* ac)
 {
 	class asyncInvoke: public asyncState
 	{
@@ -69,7 +108,7 @@ result_t JSHandler::invoke(object_base* v,
 	public:
 		virtual void js_callback()
 		{
-			m_hr = m_pThis->callFunction(m_v, m_retVal);
+			m_hr = m_pThis->js_invoke(m_v, m_retVal);
 			s_acPool.put(this);
 		}
 

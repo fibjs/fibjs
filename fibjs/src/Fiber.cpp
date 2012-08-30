@@ -170,28 +170,29 @@ void JSFiber::js_callback()
 {
 	v8::Handle<v8::Value> retVal;
 
-	g_pService->tlsPut(g_tlsCurrent, this);
+	scope s(this);
 	callFunction(retVal);
-	g_pService->tlsPut(g_tlsCurrent, NULL);
 }
 
 void JSFiber::callFunction(v8::Handle<v8::Function> func,
 		v8::Handle<v8::Value>* args, int argCount,
 		v8::Handle<v8::Value>& retVal)
 {
-	obj_ptr<JSFiber> fb = new JSFiber();
-	int i;
+	JSFiber* fb = (JSFiber*) g_pService->tlsGet(g_tlsCurrent);
 
-	fb->m_argv.resize(argCount);
-	for (i = 0; i < argCount; i++)
-		fb->m_argv[i] = v8::Persistent<v8::Value>::New(args[i]);
-	fb->m_func = v8::Persistent<v8::Function>::New(func);
+	if (fb)
+	{
+		int i;
 
-	fb->Ref();
+		fb->clear();
+		fb->m_argv.resize(argCount);
+		for (i = 0; i < argCount; i++)
+			fb->m_argv[i] = v8::Persistent<v8::Value>::New(args[i]);
+		fb->m_func = v8::Persistent<v8::Function>::New(func);
 
-	g_pService->tlsPut(g_tlsCurrent, fb);
-	fb->callFunction(retVal);
-	g_pService->tlsPut(g_tlsCurrent, NULL);
+		fb->Ref();
+		fb->callFunction(retVal);
+	}
 }
 
 void AsyncCallBack::callback()
