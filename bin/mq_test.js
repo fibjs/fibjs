@@ -81,8 +81,8 @@ var o = mq.jsHandler({
 
 var ot = {
 	'a' : 1,
-	'b' : 2,
-	'c' : 4,
+	'/b' : 2,
+	'.c' : 4,
 	'a.a' : 1,
 	'a/a' : 1,
 	'd.d1' : 1,
@@ -106,6 +106,45 @@ assert.throws(function() {
 assert.throws(function() {
 	m.value = 'd.d2.d5';
 	o.invoke(m);
+});
+
+// ------------- module handler
+
+var mod = mq.moduleHandler("mq_test/t1", "foo");
+
+m.value = 'a';
+mod.invoke(m);
+assert.equal(m.value, 'a100');
+
+mod = mq.moduleHandler("mq_test/t1");
+
+m.value = '/foo/b';
+mod.invoke(m);
+assert.equal(m.value, 'b100');
+
+assert.throws(function() {
+	m.value = '/foo1/b';
+	mod.invoke(m);
+});
+
+mod = mq.moduleHandler("mq_test/");
+
+m.value = 't1.foo.a';
+mod.invoke(m);
+assert.equal(m.value, 'a100');
+
+m.value = '/t1/foo/123456789';
+mod.invoke(m);
+assert.equal(m.value, '123456789100');
+
+assert.throws(function() {
+	m.value = '/t1/foo1/b';
+	mod.invoke(m);
+});
+
+assert.throws(function() {
+	m.value = '/t2/foo/b';
+	mod.invoke(m);
 });
 
 // ------------- chain handler
