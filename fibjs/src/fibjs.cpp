@@ -192,11 +192,8 @@ static LONG WINAPI GPTUnhandledExceptionFilter(PEXCEPTION_POINTERS pExceptionInf
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
-#endif
-
-int main(int argc, char* argv[])
+void enableDump()
 {
-#ifdef _WIN32
 	HMODULE hDll;
 	if (hDll = ::LoadLibrary("DBGHELP.DLL"))
 	{
@@ -205,7 +202,26 @@ int main(int argc, char* argv[])
 		if (s_pDump)
 			SetUnhandledExceptionFilter (GPTUnhandledExceptionFilter);
 	}
+}
+
+#else
+
+#include <pwd.h>
+#include <sys/resource.h>
+
+void enableDump()
+{
+	struct rlimit corelimit =
+	{ RLIM_INFINITY, RLIM_INFINITY };
+
+	setrlimit(RLIMIT_CORE, &corelimit);
+}
+
 #endif
+
+int main(int argc, char* argv[])
+{
+	enableDump();
 
 	if (argc == 2)
 		fibjs::_main(argv[1]);
