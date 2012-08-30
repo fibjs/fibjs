@@ -112,7 +112,7 @@ result_t JSHandler::js_invoke(object_base* v, obj_ptr<Handler_base>& retVal)
 				return hr;
 
 			hdlr = v8::Handle<v8::Object>::Cast(hdlr)->Get(
-					v8::String::New(method.c_str(), method.length()));
+					v8::String::New(method.c_str(), (int)method.length()));
 			if (IsEmpty(hdlr))
 				return CALL_E_INVALID_CALL;
 		}
