@@ -223,5 +223,59 @@ result_t encoding_base::decodeURI(const char* url, std::string& retVal)
 	return 0;
 }
 
+static v8::Persistent<v8::Object> s_json;
+static v8::Persistent<v8::Function> s_stringify;
+static v8::Persistent<v8::Function> s_parse;
+
+inline void initJSON()
+{
+	if (s_json.IsEmpty())
+	{
+		v8::Handle<v8::Context> context = v8::Context::GetCurrent();
+		v8::Handle<v8::Object> global = context->Global();
+
+		s_json = v8::Persistent<v8::Object>::New(
+				global->Get(v8::String::New("JSON"))->ToObject());
+	}
+}
+
+result_t encoding_base::jsonEncode(v8::Handle<v8::Value> data,
+		std::string& retVal)
+{
+	initJSON();
+
+	if (s_stringify.IsEmpty())
+		s_stringify = v8::Persistent<v8::Function>::New(
+				v8::Handle<v8::Function>::Cast(
+						s_json->Get(v8::String::New("stringify"))));
+
+	v8::Handle<v8::Value> str = s_stringify->Call(s_json, 1, &data);
+	if (str.IsEmpty())
+		return CALL_E_JAVASCRIPT;
+
+	v8::String::Utf8Value v(str);
+	retVal.assign(*v, v.length());
+
+	return 0;
+}
+
+result_t encoding_base::jsonDecode(const char* data,
+		v8::Handle<v8::Value>& retVal)
+{
+	initJSON();
+
+	if (s_parse.IsEmpty())
+		s_parse = v8::Persistent<v8::Function>::New(
+				v8::Handle<v8::Function>::Cast(
+						s_json->Get(v8::String::New("parse"))));
+
+	v8::Handle<v8::Value> v = v8::String::New(data);
+	retVal = s_parse->Call(s_json, 1, &v);
+	if (retVal.IsEmpty())
+		return CALL_E_JAVASCRIPT;
+
+	return 0;
+}
+
 }
 

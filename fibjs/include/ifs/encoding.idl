@@ -15,7 +15,7 @@ class encoding : module
 
 	/*! @brief 以 base32 方式解码字符串为二进制数据
 	 * @param data 要解码的字符串
-	 * @return 返回解码的字符串
+	 * @return 返回解码的二进制数据
 	 */
 	static Buffer base32Decode(String data);
 
@@ -27,7 +27,7 @@ class encoding : module
 
 	/*! @brief 以 base64 方式解码字符串为二进制数据
 	 * @param data 要解码的字符串
-	 * @return 返回解码的字符串
+	 * @return 返回解码的二进制数据
 	 */
 	static Buffer base64Decode(String data);
 
@@ -39,7 +39,7 @@ class encoding : module
 
 	/*! @brief 以 hex 方式解码字符串为二进制数据
 	 * @param data 要解码的字符串
-	 * @return 返回解码的字符串
+	 * @return 返回解码的二进制数据
 	 */
 	static Buffer hexDecode(String data);
 
@@ -60,5 +60,19 @@ class encoding : module
 	 * @return 返回解码的字符串
 	 */
 	static String decodeURI(String url);
+
+	/*! @brief 以 json 格式编码变量
+	 * @param data 要编码的变量
+	 * @return 返回编码的字符串
+	 */
+	static String jsonEncode(Value data);
+
+	/*! @brief 以 json 方式解码字符串为一个变量
+	 * @param data 要解码的字符串
+	 * @return 返回解码的变量
+	 */
+	static Value jsonDecode(String data);
+
+
 };
 

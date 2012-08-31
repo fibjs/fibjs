@@ -123,6 +123,8 @@ typedef int result_t;
 #define CALL_E_RETURN_TYPE		(CALL_E_MAX - 17)
 // Exception occurred.
 #define CALL_E_EXCEPTION		(CALL_E_MAX - 18)
+// Javascript error.
+#define CALL_E_JAVASCRIPT		(CALL_E_MAX - 19)
 
 #define CALL_E_MIN              -100100
 
@@ -165,16 +167,19 @@ typedef int result_t;
     }while(0); \
     if(hr == CALL_RETURN_NULL)return v8::Null(); \
     if(hr >= 0)return ReturnValue(vr); \
+    if(hr == CALL_E_JAVASCRIPT)return v8::Handle<v8::Value>(); \
     return ThrowResult(hr);
 
 #define METHOD_VOID() \
     }while(0); \
     if(hr >= 0)return v8::Undefined(); \
+    if(hr == CALL_E_JAVASCRIPT)return v8::Handle<v8::Value>(); \
     return ThrowResult(hr);
 
 #define CONSTRUCT_RETURN() \
     }while(0); \
     if(hr >= 0)return vr->wrap(args.This()); \
+    if(hr == CALL_E_JAVASCRIPT)return v8::Handle<v8::Value>(); \
     return ThrowResult(hr);
 
 #define ARG_String(n) \
@@ -488,7 +493,6 @@ std::string traceInfo();
 std::string getResultMessage(result_t hr);
 v8::Handle<v8::Value> ThrowResult(result_t hr);
 void ReportException(v8::TryCatch* try_catch, bool rt);
-std::string JSON_stringify(v8::Handle<v8::Value> v);
 
 #ifdef _WIN32
 

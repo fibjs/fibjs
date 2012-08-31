@@ -178,29 +178,4 @@ std::string traceInfo()
 	return strBuffer.str();
 }
 
-std::string JSON_stringify(v8::Handle<v8::Value> v)
-{
-	std::string str;
-
-	v8::Handle<v8::Context> context = v8::Context::GetCurrent();
-	v8::Handle<v8::Object> global = context->Global();
-
-	v8::Handle<v8::Object> JSON =
-			global->Get(v8::String::New("JSON"))->ToObject();
-	v8::Handle<v8::Function> JSON_stringify = v8::Handle<v8::Function>::Cast(
-			JSON->Get(v8::String::New("stringify")));
-
-	v8::Handle<v8::Value> myargs[] =
-	{ v };
-
-	v8::Handle<v8::Value> sJSON = JSON_stringify->Call(JSON, 1, myargs);
-
-	if (sJSON.IsEmpty())
-		return str;
-
-	str = *v8::String::Utf8Value(sJSON);
-
-	return str;
-}
-
 }

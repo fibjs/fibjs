@@ -6,6 +6,7 @@
  */
 
 #include "ifs/assert.h"
+#include "ifs/encoding.h"
 #include <log4cpp/Category.hh>
 #include <sstream>
 
@@ -57,6 +58,23 @@ bool valueStrictEquals(v8::Handle<v8::Value> actual,
 	return actual->StrictEquals(expected);
 }
 
+inline std::string buildString(v8::Handle<v8::Value> actual,
+		v8::Handle<v8::Value> expected, const char* op)
+{
+	std::string str;
+	std::string s;
+
+	encoding_base::jsonEncode(expected, s);
+	str = s;
+	str += ' ';
+	str += op;
+	str += ' ';
+	encoding_base::jsonEncode(actual, s);
+	str += s;
+
+	return str;
+}
+
 result_t assert_base::equal(v8::Handle<v8::Value> actual,
 		v8::Handle<v8::Value> expected, const char* msg)
 {
@@ -66,10 +84,7 @@ result_t assert_base::equal(v8::Handle<v8::Value> actual,
 
 		if (!*msg)
 		{
-			str = JSON_stringify(expected);
-			str += " == ";
-			str += JSON_stringify(actual);
-
+			str = buildString(expected, actual, "==");
 			msg = str.c_str();
 		}
 
@@ -87,10 +102,7 @@ result_t assert_base::notEqual(v8::Handle<v8::Value> actual,
 
 		if (!*msg)
 		{
-			str = JSON_stringify(expected);
-			str += " != ";
-			str += JSON_stringify(actual);
-
+			str = buildString(expected, actual, "!=");
 			msg = str.c_str();
 		}
 
@@ -108,10 +120,7 @@ result_t assert_base::strictEqual(v8::Handle<v8::Value> actual,
 
 		if (!*msg)
 		{
-			str = JSON_stringify(expected);
-			str += " === ";
-			str += JSON_stringify(actual);
-
+			str = buildString(expected, actual, "===");
 			msg = str.c_str();
 		}
 
@@ -129,10 +138,7 @@ result_t assert_base::notStrictEqual(v8::Handle<v8::Value> actual,
 
 		if (!*msg)
 		{
-			str = JSON_stringify(expected);
-			str += " !== ";
-			str += JSON_stringify(actual);
-
+			str = buildString(expected, actual, "!==");
 			msg = str.c_str();
 		}
 
