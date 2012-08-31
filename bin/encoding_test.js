@@ -159,13 +159,22 @@ var u = '中文测试';
 var u1 = escape(u);
 assert.equal(encoding.decodeURI(u1), u);
 
-u1 = u1.replace(/%/g,'\\');
+u1 = u1.replace(/%/g, '\\');
 assert.equal(encoding.decodeURI(u1), u);
 
-for(var i = 32; i < 128; i ++)
+for ( var i = 32; i < 128; i++)
 	u += String.fromCharCode(i);
 
 assert.equal(encodeURI(u), encoding.encodeURI(u));
 assert.equal(encodeURIComponent(u), encoding.encodeURIComponent(u));
 assert.equal(encoding.decodeURI(encodeURI(u)), u);
 assert.equal(encoding.decodeURI(encodeURIComponent(u)), u);
+
+assert.equal(encoding.jsonEncode({
+	a : 100,
+	b : 200
+}), '{"a":100,"b":200}');
+
+console.dir(encoding.jsonDecode('{"a":100,"b":200}'));
+
+
