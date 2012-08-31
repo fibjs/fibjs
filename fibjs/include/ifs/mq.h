@@ -33,6 +33,7 @@ public:
 	static result_t moduleHandler(const char* id, const char* method, obj_ptr<Handler_base>& retVal);
 	static result_t nullHandler(obj_ptr<Handler_base>& retVal);
 	static result_t invoke(Handler_base* hdlr, object_base* v, exlib::AsyncEvent* ac);
+	static result_t js_invoke(Handler_base* hdlr, object_base* v, obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac);
 
 	DECLARE_CLASSINFO(mq_base);
 
@@ -43,9 +44,11 @@ public:
 	static v8::Handle<v8::Value> s_moduleHandler(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_nullHandler(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_invoke(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_js_invoke(const v8::Arguments& args);
 
 public:
 	ASYNC_STATIC2(mq_base, invoke);
+	ASYNC_STATIC3(mq_base, js_invoke);
 };
 
 }
@@ -65,13 +68,14 @@ namespace fibjs
 			{"jsHandler", s_jsHandler, true},
 			{"moduleHandler", s_moduleHandler, true},
 			{"nullHandler", s_nullHandler, true},
-			{"invoke", s_invoke, true}
+			{"invoke", s_invoke, true},
+			{"js_invoke", s_js_invoke, true}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"mq", NULL, 
-			6, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			7, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -154,6 +158,20 @@ namespace fibjs
 		hr = ac_invoke(v0, v1);
 
 		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> mq_base::s_js_invoke(const v8::Arguments& args)
+	{
+		obj_ptr<Handler_base> vr;
+
+		METHOD_ENTER(2, 2);
+
+		ARG(obj_ptr<Handler_base>, 0);
+		ARG(obj_ptr<object_base>, 1);
+
+		hr = ac_js_invoke(v0, v1, vr);
+
+		METHOD_RETURN();
 	}
 
 }

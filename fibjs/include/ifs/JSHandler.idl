@@ -1,9 +1,0 @@
-/*! @brief javascript 消息处理器接口 */
-class JSHandler: Handler
-{
-	/*!	@brief 处理一个消息或对象
-	 * @param v 指定处理的消息或对象
-	 * @return 返回下一步的处理器
-	 */
-	Value js_invoke(object v);
-};

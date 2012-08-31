@@ -59,7 +59,9 @@ std::string getResultMessage(result_t hr)
 			// CALL_E_PENDDING
 			"Operation now in progress.",
 			// CALL_E_NOSYNC
-			"Operation now support synchronous call.",
+			"Operation not support synchronous call.",
+			// CALL_E_NOASYNC
+			"Operation not support asynchronous call.",
 			// CALL_E_INTERNAL
 			"Internal error.",
 			// CALL_E_RETURN_TYPE

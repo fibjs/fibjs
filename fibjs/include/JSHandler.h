@@ -17,9 +17,9 @@ class JSHandler: public Handler_base
 {
 public:
 	// Handler_base
-	virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
-			exlib::AsyncEvent* ac);
+	virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac);
 
+public:
 	result_t setHandler(v8::Handle<v8::Value> hdlr);
 
 	static result_t New(v8::Handle<v8::Value> hdlr,

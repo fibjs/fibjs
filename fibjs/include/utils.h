@@ -113,14 +113,16 @@ typedef int result_t;
 #define CALL_E_OVERFLOW         (CALL_E_MAX - 12)
 // Operation now in progress.
 #define CALL_E_PENDDING			(CALL_E_MAX - 13)
-// Operation now support synchronous call.
+// Operation not support synchronous call.
 #define CALL_E_NOSYNC			(CALL_E_MAX - 14)
+// Operation not support asynchronous call.
+#define CALL_E_NOASYNC			(CALL_E_MAX - 15)
 // Internal error.
-#define CALL_E_INTERNAL			(CALL_E_MAX - 15)
+#define CALL_E_INTERNAL			(CALL_E_MAX - 16)
 // Invalid return type.
-#define CALL_E_RETURN_TYPE		(CALL_E_MAX - 16)
+#define CALL_E_RETURN_TYPE		(CALL_E_MAX - 17)
 // Exception occurred.
-#define CALL_E_EXCEPTION		(CALL_E_MAX - 17)
+#define CALL_E_EXCEPTION		(CALL_E_MAX - 18)
 
 #define CALL_E_MIN              -100100
 

@@ -9,6 +9,7 @@
 #include "Fiber.h"
 #include "ifs/Message.h"
 #include "ifs/global.h"
+#include "ifs/mq.h"
 
 namespace fibjs
 {
@@ -55,7 +56,6 @@ inline result_t msgMethod(object_base* v, std::string& method)
 
 result_t JSHandler::js_invoke(object_base* v, obj_ptr<Handler_base>& retVal)
 {
-	JSFiber::scope s;
 	v8::Handle<v8::Object> o;
 	v8::Handle<v8::Value> a;
 	v8::Handle<v8::Value> hdlr = m_handler;
@@ -112,7 +112,7 @@ result_t JSHandler::js_invoke(object_base* v, obj_ptr<Handler_base>& retVal)
 				return hr;
 
 			hdlr = v8::Handle<v8::Object>::Cast(hdlr)->Get(
-					v8::String::New(method.c_str(), (int)method.length()));
+					v8::String::New(method.c_str(), (int) method.length()));
 			if (IsEmpty(hdlr))
 				return CALL_E_INVALID_CALL;
 		}
@@ -132,48 +132,10 @@ result_t JSHandler::js_invoke(object_base* v, obj_ptr<Handler_base>& retVal)
 result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		exlib::AsyncEvent* ac)
 {
-	class asyncInvoke: public asyncState
-	{
-	public:
-		asyncInvoke(JSHandler* pThis, object_base* v,
-				obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac) :
-				asyncState(ac), m_pThis(pThis), m_v(v), m_retVal(retVal)
-		{
-			set(call);
-		}
-
-	public:
-		static int call(asyncState* pState, int n)
-		{
-			asyncInvoke* pThis = (asyncInvoke*) pState;
-
-			pThis->asyncEvent::post(0);
-			return pThis->done(CALL_E_PENDDING);
-		}
-
-	public:
-		virtual void js_callback()
-		{
-			m_hr = m_pThis->js_invoke(m_v, m_retVal);
-			s_acPool.put(this);
-		}
-
-		virtual void invoke()
-		{
-			post(m_hr);
-		}
-
-	private:
-		obj_ptr<JSHandler> m_pThis;
-		obj_ptr<object_base> m_v;
-		obj_ptr<Handler_base>& m_retVal;
-		result_t m_hr;
-	};
-
 	if (!ac)
-		return CALL_E_NOSYNC;
+		return js_invoke(v, retVal);
 
-	return (new asyncInvoke(this, v, retVal, ac))->post(0);
+	return CALL_E_NOASYNC;
 }
 
 } /* namespace fibjs */

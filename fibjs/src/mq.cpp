@@ -10,6 +10,7 @@
 #include "NullHandler.h"
 #include "Chain.h"
 #include "Routing.h"
+#include "Fiber.h"
 #include "ifs/mq.h"
 
 namespace fibjs
@@ -31,6 +32,7 @@ result_t mq_base::invoke(Handler_base* hdlr, object_base* v,
 		static int call(asyncState* pState, int n)
 		{
 			asyncInvoke* pThis = (asyncInvoke*) pState;
+			result_t hr;
 
 			if (n == CALL_RETURN_NULL)
 				return pThis->done(0);
@@ -38,7 +40,11 @@ result_t mq_base::invoke(Handler_base* hdlr, object_base* v,
 			pThis->m_hdlr = pThis->m_next;
 			pThis->m_next.Release();
 
-			return pThis->m_hdlr->invoke(pThis->m_v, pThis->m_next, pThis);
+			hr = pThis->m_hdlr->invoke(pThis->m_v, pThis->m_next, pThis);
+			if (hr == CALL_E_NOASYNC)
+				return js_invoke(pThis->m_hdlr, pThis->m_v, pThis->m_next, pThis);
+
+			return hr;
 		}
 
 	private:
@@ -51,6 +57,76 @@ result_t mq_base::invoke(Handler_base* hdlr, object_base* v,
 		return CALL_E_NOSYNC;
 
 	return (new asyncInvoke(hdlr, v, ac))->post(0);
+}
+
+result_t mq_base::js_invoke(Handler_base* hdlr, object_base* v,
+		obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac)
+{
+	class asyncInvoke: public asyncState
+	{
+	public:
+		asyncInvoke(Handler_base* pThis, object_base* v,
+				obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac) :
+				asyncState(ac), m_pThis(pThis), m_v(v), m_retVal(retVal)
+		{
+			set(call);
+		}
+
+	public:
+		static int call(asyncState* pState, int n)
+		{
+			asyncInvoke* pThis = (asyncInvoke*) pState;
+
+			pThis->asyncEvent::post(0);
+			return pThis->done(CALL_E_PENDDING);
+		}
+
+	public:
+		virtual void js_callback()
+		{
+			JSFiber::scope s;
+
+			m_hr = js_invoke(m_pThis, m_v, m_retVal, NULL);
+			s_acPool.put(this);
+		}
+
+		virtual void invoke()
+		{
+			post(m_hr);
+		}
+
+	private:
+		obj_ptr<Handler_base> m_pThis;
+		obj_ptr<object_base> m_v;
+		obj_ptr<Handler_base>& m_retVal;
+		result_t m_hr;
+	};
+
+	if (!ac)
+	{
+		result_t hr;
+		obj_ptr<Handler_base> hdlr1 = hdlr;
+		obj_ptr<Handler_base> hdlr2;
+
+		while (true)
+		{
+			hr = hdlr1->invoke(v, hdlr2, NULL);
+			if (hr == CALL_E_NOSYNC)
+			{
+				retVal = hdlr1;
+				return 0;
+			}
+
+			if (hr < 0 || hr == CALL_RETURN_NULL)
+				return hr;
+
+			hdlr1 = hdlr2;
+		}
+
+		return 0;
+	}
+
+	return (new asyncInvoke(hdlr, v, retVal, ac))->post(0);
 }
 
 result_t mq_base::chain(v8::Handle<v8::Array> hdlrs,
