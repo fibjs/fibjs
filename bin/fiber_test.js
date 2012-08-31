@@ -116,6 +116,12 @@ assert.throws(function() {
 	});
 });
 
+assert.throws(function() {
+	coroutine.parallel(function() {
+		console.log(notExistsValue);
+	}, funs[0], funs[1], funs[2], funs[3], funs[4]);
+});
+
 var nCount = 20000;
 
 var bDone = false;
