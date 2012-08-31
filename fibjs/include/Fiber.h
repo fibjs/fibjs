@@ -69,19 +69,12 @@ public:
 	static void* fiber_proc(void* p);
 	void start();
 
-	void exit()
-	{
-		m_quit.set();
-		dispose();
-		Unref();
-	}
-
 	Runtime& runtime()
 	{
 		return m_rt;
 	}
 
-private:
+public:
 	exlib::Event m_quit;
 	Runtime m_rt;
 	obj_ptr<Fiber_base> m_caller;

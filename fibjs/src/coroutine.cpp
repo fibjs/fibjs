@@ -29,22 +29,15 @@ inline result_t _parallel(std::vector<v8::Handle<v8::Function> >& funs,
 	for (i = 1; i < (int) funs.size(); i++)
 		JSFiber::New(funs[i], NULL, 0, fibers[i]);
 
-	obj_ptr<Fiber_base> cur;
-	coroutine_base::current(cur);
-	v8::Handle<v8::Object> o = cur->wrap();
+	v8::Handle<v8::Value> r;
+	JSFiber::callFunction(funs[0], NULL, 0, r);
+	bool bError = r.IsEmpty();
 
-	bool bError = false;
-	v8::TryCatch try_catch;
-	v8::Handle<v8::Value> r = funs[0]->Call(o, 0, NULL);
-	if (try_catch.HasCaught())
+	if(!bError)
 	{
-		bError = true;
-		ReportException(&try_catch, true);
-		r = v8::Null();
+		retVal = v8::Array::New((int) funs.size());
+		retVal->Set(0, r);
 	}
-
-	retVal = v8::Array::New((int) funs.size());
-	retVal->Set(0, r);
 
 	for (i = 1; i < (int) funs.size(); i++)
 	{

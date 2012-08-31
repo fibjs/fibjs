@@ -136,10 +136,8 @@ void JSFiber::callFunction(v8::Handle<v8::Value>& retVal)
 	for (i = 0; i < m_argv.size(); i++)
 		argv[i] = m_argv[i];
 
-	v8::Handle<v8::Object> o = wrap();
-
 	v8::TryCatch try_catch;
-	retVal = m_func->Call(o, (int) argv.size(), argv.data());
+	retVal = m_func->Call(wrap(), (int) argv.size(), argv.data());
 	if (try_catch.HasCaught())
 	{
 		v8::Handle<v8::Value> err = try_catch.Exception();
@@ -159,11 +157,6 @@ void JSFiber::callFunction(v8::Handle<v8::Value>& retVal)
 		v8::Handle<v8::Value> v = v8::Null();
 		_trigger("exit", &v, 1);
 	}
-
-	exit();
-
-	s_null.Ref();
-	o->SetPointerInInternalField(0, &s_null);
 }
 
 void JSFiber::js_callback()
@@ -171,7 +164,18 @@ void JSFiber::js_callback()
 	v8::Handle<v8::Value> retVal;
 
 	scope s(this);
+
+	Unref();
+
 	callFunction(retVal);
+
+	v8::Handle<v8::Object> o = wrap();
+
+	m_quit.set();
+	dispose();
+
+	s_null.Ref();
+	o->SetPointerInInternalField(0, &s_null);
 }
 
 void JSFiber::callFunction(v8::Handle<v8::Function> func,
@@ -190,7 +194,6 @@ void JSFiber::callFunction(v8::Handle<v8::Function> func,
 			fb->m_argv[i] = v8::Persistent<v8::Value>::New(args[i]);
 		fb->m_func = v8::Persistent<v8::Function>::New(func);
 
-		fb->Ref();
 		fb->callFunction(retVal);
 	}
 }
