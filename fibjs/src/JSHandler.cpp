@@ -10,6 +10,7 @@
 #include "ifs/Message.h"
 #include "ifs/global.h"
 #include "ifs/mq.h"
+#include "ifs/console.h"
 
 namespace fibjs
 {
@@ -54,86 +55,82 @@ inline result_t msgMethod(object_base* v, std::string& method)
 	return 0;
 }
 
-result_t JSHandler::js_invoke(object_base* v, obj_ptr<Handler_base>& retVal)
-{
-	v8::Handle<v8::Object> o;
-	v8::Handle<v8::Value> a;
-	v8::Handle<v8::Value> hdlr = m_handler;
-	result_t hr;
-
-	v->ValueOf(o);
-	a = o;
-
-	if (hdlr.IsEmpty())
-	{
-		std::string id = m_id;
-
-		if (isPathSlash(id[id.length() - 1]))
-		{
-			std::string method;
-			hr = msgMethod(v, method);
-			if (hr < 0)
-				return hr;
-
-			id.append(method);
-		}
-
-		hr = global_base::require(id.c_str(), hdlr);
-		if (hr < 0)
-			return hr;
-
-		if (!m_method.empty())
-		{
-			if (!hdlr->IsObject())
-				return CALL_E_INVALID_CALL;
-
-			o = v8::Handle<v8::Object>::Cast(hdlr);
-
-			hdlr = o->Get(
-					v8::String::New(m_method.c_str(), (int) m_method.length()));
-			if (IsEmpty(hdlr))
-				return CALL_E_INVALID_CALL;
-		}
-	}
-
-	while (true)
-	{
-		if (hdlr->IsFunction())
-			JSFiber::callFunction(v8::Handle<v8::Function>::Cast(hdlr), &a, 1,
-					hdlr);
-		else if (hdlr->IsObject())
-		{
-			if (retVal = Handler_base::getInstance(hdlr))
-				return 0;
-
-			std::string method;
-			hr = msgMethod(v, method);
-			if (hr < 0)
-				return hr;
-
-			hdlr = v8::Handle<v8::Object>::Cast(hdlr)->Get(
-					v8::String::New(method.c_str(), (int) method.length()));
-			if (IsEmpty(hdlr))
-				return CALL_E_INVALID_CALL;
-		}
-		else
-			return CALL_E_INVALID_CALL;
-
-		if (hdlr.IsEmpty())
-			return CALL_E_INTERNAL;
-
-		if (IsEmpty(hdlr))
-			return CALL_RETURN_NULL;
-	}
-
-	return 0;
-}
-
 result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		exlib::AsyncEvent* ac)
 {
 	if (!ac)
-		return js_invoke(v, retVal);
+	{
+		v8::Handle<v8::Object> o;
+		v8::Handle<v8::Value> a;
+		v8::Handle<v8::Value> hdlr = m_handler;
+		result_t hr;
+
+		v->ValueOf(o);
+		a = o;
+
+		if (hdlr.IsEmpty())
+		{
+			std::string id = m_id;
+
+			if (isPathSlash(id[id.length() - 1]))
+			{
+				std::string method;
+				hr = msgMethod(v, method);
+				if (hr < 0)
+					return hr;
+
+				id.append(method);
+			}
+
+			hr = global_base::require(id.c_str(), hdlr);
+			if (hr < 0)
+				return hr;
+
+			if (!m_method.empty())
+			{
+				if (!hdlr->IsObject())
+					return CALL_E_INVALID_CALL;
+
+				hdlr = v8::Handle<v8::Object>::Cast(hdlr)->Get(
+						v8::String::New(m_method.c_str(),
+								(int) m_method.length()));
+				if (IsEmpty(hdlr))
+					return CALL_E_INVALID_CALL;
+			}
+		}
+
+		while (true)
+		{
+			if (hdlr->IsFunction())
+				JSFiber::callFunction(v8::Handle<v8::Function>::Cast(hdlr), &a,
+						1, hdlr);
+			else if (hdlr->IsObject())
+			{
+				if (retVal = Handler_base::getInstance(hdlr))
+					return 0;
+
+				std::string method;
+				hr = msgMethod(v, method);
+				if (hr < 0)
+					return hr;
+
+				hdlr = v8::Handle<v8::Object>::Cast(hdlr)->Get(
+						v8::String::New(method.c_str(), (int) method.length()));
+				if (IsEmpty(hdlr))
+					return CALL_E_INVALID_CALL;
+			}
+			else
+				return CALL_E_INVALID_CALL;
+
+			if (hdlr.IsEmpty())
+				return CALL_E_INTERNAL;
+
+			if (IsEmpty(hdlr))
+				return CALL_RETURN_NULL;
+		}
+
+		return 0;
+	}
 
 	return CALL_E_NOASYNC;
 }

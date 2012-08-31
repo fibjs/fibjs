@@ -54,9 +54,6 @@ public:
 		return 0;
 	}
 
-public:
-	result_t js_invoke(object_base* v, obj_ptr<Handler_base>& retVal);
-
 private:
 	v8::Persistent<v8::Value> m_handler;
 	std::string m_id;
