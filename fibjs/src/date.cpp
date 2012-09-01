@@ -260,8 +260,12 @@ void date_t::parse(const char* str, int len)
 				next(len, pos);
 				wDay = (short) getInt(str, len, pos) - 1;
 
-				if (pick(str, len, pos) == ' ')
+				ch = pick(str, len, pos);
+				if (ch == ' ' || ch == 'T' || ch == 't')
 				{
+					if (ch != ' ')
+						tz = date_t::LocalOffset();
+
 					next(len, pos);
 					wHour = (short) getInt(str, len, pos);
 					bTime = true;
@@ -311,6 +315,11 @@ void date_t::parse(const char* str, int len)
 				{
 					next(len, pos);
 					wSecond = (short) getInt(str, len, pos);
+
+					if (pick(str, len, pos) == '.')
+					{
+						puts("ZZZZZZZZZZZZZZZZZ");
+					}
 				}
 			}
 		}
@@ -511,14 +520,12 @@ void date_t::toString(std::string& retVal)
 	putStr(ptrBuf, " GMT", 4);
 	if (tz > 0)
 	{
-		*ptrBuf++ = '+';
-		*ptrBuf++ = '0';
+		putStr(ptrBuf, "+0", 2);
 		putInt(ptrBuf, tz * 100, 3);
 	}
 	else if (tz < 0)
 	{
-		*ptrBuf++ = '-';
-		*ptrBuf++ = '0';
+		putStr(ptrBuf, "-0", 2);
 		putInt(ptrBuf, -tz * 100, 3);
 	}
 }
