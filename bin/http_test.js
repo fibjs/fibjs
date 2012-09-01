@@ -93,6 +93,8 @@ assert.equal(d['f'], '214.123');
 t = new Date('2012-12-12 12:12:12');
 d.set('f', t);
 
+console.log(d['f'], t);
+
 var bad_reqs = [ " GET / HTTP/1.0\r\nkeepalive: close\r\n\r\n",
 		"GET ? HTTP/1.0\r\nkeepalive: close\r\n\r\n",
 		"GET / \r\nkeepalive: close\r\n\r\n",
