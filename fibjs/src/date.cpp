@@ -275,10 +275,10 @@ void date_t::parse(const char* str, int len)
 		}
 		else if (ch == '/')
 		{
-			wMonth = wYear - 1;
+			wMonth = wYear;
 
 			next(len, pos);
-			wDay = (short) getInt(str, len, pos) - 1;
+			wDay = (short) getInt(str, len, pos);
 
 			if (pick(str, len, pos) == '/')
 			{
@@ -294,6 +294,18 @@ void date_t::parse(const char* str, int len)
 			}
 			else
 				wYear = 2001;
+
+			// m/d/y -> y/m/d
+			if (wMonth > 12 && wDay <= 12)
+			{
+				int n = wYear;
+				wYear = wMonth;
+				wMonth = wDay;
+				wDay = n;
+			}
+
+			wMonth--;
+			wDay--;
 		}
 		else if (ch == ':')
 		{
