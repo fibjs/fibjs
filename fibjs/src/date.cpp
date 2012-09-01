@@ -214,7 +214,7 @@ int inline checkmask(const char* data, int len, const char *mask)
 		}
 	}
 
-	return 0;
+	return mask[i] == '*';
 }
 
 void date_t::parse(const char* str, int len)
@@ -224,7 +224,8 @@ void date_t::parse(const char* str, int len)
 	bool bTime = false;
 	char ch;
 	int mint, mon;
-	const char *monstr, *timstr = NULL;
+	int tz = 0;
+	const char *monstr, *timstr = NULL, *tzstr = NULL;
 	static const int months[12] =
 	{ ('J' << 16) | ('a' << 8) | 'n', ('F' << 16) | ('e' << 8) | 'b',
 			('M' << 16) | ('a' << 8) | 'r', ('A' << 16) | ('p' << 8) | 'r', ('M'
@@ -234,7 +235,7 @@ void date_t::parse(const char* str, int len)
 			('N' << 16) | ('o' << 8) | 'v', ('D' << 16) | ('e' << 8) | 'c' };
 
 	if (len < 0)
-		len = (int)qstrlen(str);
+		len = (int) qstrlen(str);
 
 	if (!str || !*str)
 		return;
@@ -331,7 +332,7 @@ void date_t::parse(const char* str, int len)
 			++str;
 		}
 
-		if (checkmask(str, len, "@$$ ## #### ##:##:## *")) /* Javascript format */
+		if (checkmask(str, len, "@$$ ## #### ##:##:##*")) /* Javascript format */
 		{
 			wYear = (((str[7] & 0xf) * 10 + (str[8] & 0xf)) * 100
 					+ ((str[9] & 0xf) * 10) + (str[10] & 0xf));
@@ -340,8 +341,9 @@ void date_t::parse(const char* str, int len)
 
 			monstr = str;
 			timstr = str + 12;
+			tzstr = str + 20;
 		}
-		else if (checkmask(str, len, "## @$$ #### ##:##:## *")) /* RFC 1123 format */
+		else if (checkmask(str, len, "## @$$ #### ##:##:##*")) /* RFC 1123 format */
 		{
 			wYear = (((str[7] & 0xf) * 10 + (str[8] & 0xf)) * 100
 					+ ((str[9] & 0xf) * 10) + (str[10] & 0xf));
@@ -350,8 +352,9 @@ void date_t::parse(const char* str, int len)
 
 			monstr = str + 3;
 			timstr = str + 12;
+			tzstr = str + 20;
 		}
-		else if (checkmask(str, len, "##-@$$-## ##:##:## *")) /* RFC 850 format  */
+		else if (checkmask(str, len, "##-@$$-## ##:##:##*")) /* RFC 850 format  */
 		{
 			wYear = (((str[7] & 0xf) * 10) + (str[8] & 0xf));
 			if (wYear < 70)
@@ -362,6 +365,7 @@ void date_t::parse(const char* str, int len)
 
 			monstr = str + 3;
 			timstr = str + 10;
+			tzstr = str + 18;
 		}
 		else if (checkmask(str, len, "@$$ ~# ##:##:## ####*")) /* asctime format  */
 		{
@@ -372,6 +376,7 @@ void date_t::parse(const char* str, int len)
 
 			monstr = str;
 			timstr = str + 7;
+			tzstr = str + 20;
 		}
 		else
 			return;
@@ -386,6 +391,19 @@ void date_t::parse(const char* str, int len)
 				break;
 
 		wMonth = mon;
+
+		if (tzstr && !qstricmp(tzstr, " gmt", 4))
+		{
+			tz = date_t::LocalOffset();
+
+			if (qisdigit(tzstr[5]))
+			{
+				if (tzstr[4] == '+')
+					tz -= atoi(tzstr + 5) / 100;
+				else if (tzstr[4] == '-')
+					tz += atoi(tzstr + 5) / 100;
+			}
+		}
 	}
 
 	unsigned int ElapsedDays = ElapsedYearsToDays(wYear - 1);
@@ -398,7 +416,8 @@ void date_t::parse(const char* str, int len)
 	ElapsedDays += wDay;
 
 	d = ElapsedDays * 86400000.0
-			+ ((wHour * 60 + wMinute) * 60 + wSecond) * 1000 - 62135625600000.0;
+			+ ((wHour * 60 + wMinute) * 60 + wSecond) * 1000 - 62135625600000.0
+			+ tz * 3600000;
 }
 
 void inline putStr(char *& ptrBuf, const char *ptr, int n)
@@ -442,7 +461,7 @@ void date_t::toString(std::string& retVal)
 
 	NumberOf100s = (Days * 100 + 75) / 3652425;
 	Days -= NumberOf100s * 36524;
-	
+
 	NumberOf4s = Days / 1461;
 	Days -= NumberOf4s * 1461;
 
@@ -471,7 +490,9 @@ void date_t::toString(std::string& retVal)
 	wHour = wMinute / 60;
 	wMinute = wMinute % 60;
 
-	retVal.resize(29);
+	int tz = date_t::LocalOffset();
+
+	retVal.resize(29 + (tz ? 5 : 0));
 	char* ptrBuf = &retVal[0];
 
 	putStr(ptrBuf, szDays[wDayOfWeek], 3);
@@ -488,6 +509,18 @@ void date_t::toString(std::string& retVal)
 	*ptrBuf++ = ':';
 	putInt(ptrBuf, wSecond, 2);
 	putStr(ptrBuf, " GMT", 4);
+	if (tz > 0)
+	{
+		*ptrBuf++ = '+';
+		*ptrBuf++ = '0';
+		putInt(ptrBuf, tz * 100, 3);
+	}
+	else if (tz < 0)
+	{
+		*ptrBuf++ = '-';
+		*ptrBuf++ = '0';
+		putInt(ptrBuf, -tz * 100, 3);
+	}
 }
 
 }

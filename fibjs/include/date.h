@@ -41,6 +41,11 @@ public:
 	{
 	}
 
+	void clear()
+	{
+		d = 0;
+	}
+
 	void now()
 	{
 		d = v8::internal::OS::TimeCurrentMillis();
@@ -74,7 +79,7 @@ public:
 
 	static int LocalOffset()
 	{
-		return (int)v8::internal::OS::LocalTimeOffset();
+		return (int) v8::internal::OS::LocalTimeOffset() / 3600000;
 	}
 
 private:
