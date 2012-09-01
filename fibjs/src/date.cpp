@@ -333,12 +333,12 @@ void date_t::parse(const char* str, int len)
 							p /= 10;
 						}
 					}
-
-					if (!qstricmp(str + pos, " pm", 3))
-						wHour += 12;
 				}
 			}
 		}
+
+		if (!qstricmp(str + pos, " pm", 3))
+			wHour += 12;
 	}
 	else
 	{
