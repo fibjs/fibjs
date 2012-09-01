@@ -161,7 +161,58 @@ result_t HttpResponse::onsendto(v8::Handle<v8::Function> func)
 
 result_t HttpResponse::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 {
-	return 0;
+	class asyncReadFrom: public asyncState
+	{
+	public:
+		asyncReadFrom(HttpResponse* pThis, BufferedStream_base* stm,
+				exlib::AsyncEvent* ac) :
+				asyncState(ac), m_pThis(pThis), m_stm(stm)
+		{
+			m_pThis->clear();
+			set(begin);
+		}
+
+		static int begin(asyncState* pState, int n)
+		{
+			asyncReadFrom* pThis = (asyncReadFrom*) pState;
+
+			pThis->set(command);
+			return pThis->m_stm->readLine(pThis->m_strLine, pThis);
+		}
+
+		static int command(asyncState* pState, int n)
+		{
+			asyncReadFrom* pThis = (asyncReadFrom*) pState;
+			result_t hr;
+
+			if (pThis->m_strLine.length() < 12 || pThis->m_strLine[8] != ' '
+					|| !qisdigit(pThis->m_strLine[9])
+					|| !qisdigit(pThis->m_strLine[10])
+					|| !qisdigit(pThis->m_strLine[11])
+					|| qisdigit(pThis->m_strLine[12]))
+				return CALL_E_INVALID_DATA;
+
+			pThis->m_pThis->set_status(atoi(pThis->m_strLine.c_str() + 8));
+			pThis->m_strLine.resize(8);
+
+			hr = pThis->m_pThis->set_protocol(pThis->m_strLine.c_str());
+			if (hr < 0)
+				return hr;
+
+			pThis->done(0);
+			return pThis->m_pThis->m_message.readFrom(pThis->m_stm, pThis);
+		}
+
+	public:
+		obj_ptr<HttpResponse> m_pThis;
+		obj_ptr<BufferedStream_base> m_stm;
+		std::string m_strLine;
+	};
+
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	return (new asyncReadFrom(this, stm, ac))->post(0);
 }
 
 result_t HttpResponse::asyncReadFrom(BufferedStream_base* stm)
