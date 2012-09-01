@@ -84,8 +84,10 @@ result_t HttpRequest::set_value(const char* newVal)
 result_t HttpRequest::clear()
 {
 	m_message.clear();
-	m_method.clear();
-	m_address.clear();
+	m_method.assign("GET", 3);
+	m_address.assign("/", 1);
+	m_queryString.clear();
+
 	m_response->clear();
 
 	m_cookie.Release();
@@ -97,7 +99,25 @@ result_t HttpRequest::clear()
 
 result_t HttpRequest::sendTo(Stream_base* stm, exlib::AsyncEvent* ac)
 {
-	return 0;
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	std::string strCommand = m_method;
+	std::string strProtocol;
+
+	strCommand += ' ';
+	strCommand.append(m_address);
+	if (!m_queryString.empty())
+	{
+		strCommand += '?';
+		strCommand.append(m_queryString);
+	}
+
+	get_protocol(strProtocol);
+	strCommand += ' ';
+	strCommand.append(strProtocol);
+
+	return m_message.sendTo(stm, strCommand, ac);
 }
 
 result_t HttpRequest::asyncSendTo(Stream_base* stm)
@@ -165,7 +185,7 @@ result_t HttpRequest::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 				p1 = p.pos;
 				p.skipWord();
 				p2 = p.pos;
-				pThis->m_pThis->m_strquery.assign(p.string + p1, p2 - p1);
+				pThis->m_pThis->m_queryString.assign(p.string + p1, p2 - p1);
 			}
 
 			p.skipSpace();
@@ -242,6 +262,18 @@ result_t HttpRequest::get_address(std::string& retVal)
 result_t HttpRequest::set_address(const char* newVal)
 {
 	m_address = newVal;
+	return 0;
+}
+
+result_t HttpRequest::get_queryString(std::string& retVal)
+{
+	retVal = m_queryString;
+	return 0;
+}
+
+result_t HttpRequest::set_queryString(const char* newVal)
+{
+	m_queryString = newVal;
 	return 0;
 }
 
@@ -380,7 +412,7 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
 result_t HttpRequest::get_query(obj_ptr<HttpCollection_base>& retVal)
 {
 	if (m_query == NULL)
-		parse(m_strquery, '&', m_query);
+		parse(m_queryString, '&', m_query);
 
 	retVal = m_query;
 	return 0;

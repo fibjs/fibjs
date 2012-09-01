@@ -60,6 +60,8 @@ public:
 	virtual result_t set_method(const char* newVal);
 	virtual result_t get_address(std::string& retVal);
 	virtual result_t set_address(const char* newVal);
+	virtual result_t get_queryString(std::string& retVal);
+	virtual result_t set_queryString(const char* newVal);
 	virtual result_t get_response(obj_ptr<HttpResponse_base>& retVal);
 	virtual result_t get_cookie(obj_ptr<HttpCollection_base>& retVal);
 	virtual result_t get_form(obj_ptr<HttpCollection_base>& retVal);
@@ -83,7 +85,7 @@ private:
 	HttpMessage m_message;
 	std::string m_method;
 	std::string m_address;
-	std::string m_strquery;
+	std::string m_queryString;
 	obj_ptr<HttpResponse_base> m_response;
 	obj_ptr<HttpCollection_base> m_cookie;
 	obj_ptr<HttpCollection_base> m_query;

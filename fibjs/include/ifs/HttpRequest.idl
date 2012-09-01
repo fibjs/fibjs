@@ -11,6 +11,9 @@ class HttpRequest : HttpMessage
 	/*! @brief 查询和设置请求地址 */
 	String address;
 
+	/*! @brief 查询和设置请求查询字符串 */
+	String queryString;
+
 	/*! @brief 获取 http 响应消息对象*/
 	readonly HttpResponse response;
 
