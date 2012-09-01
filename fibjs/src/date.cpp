@@ -219,7 +219,8 @@ int inline checkmask(const char* data, int len, const char *mask)
 
 void date_t::parse(const char* str, int len)
 {
-	int wYear = 0, wMonth = 0, wDay = 0, wHour = 0, wMinute = 0, wSecond = 0;
+	int wYear = 0, wMonth = 0, wDay = 0, wHour = 0, wMinute = 0, wSecond = 0,
+			wMicroSecond = 0;
 	int pos = 0;
 	bool bTime = false;
 	char ch;
@@ -318,8 +319,23 @@ void date_t::parse(const char* str, int len)
 
 					if (pick(str, len, pos) == '.')
 					{
-						puts("ZZZZZZZZZZZZZZZZZ");
+						int i, p = 100;
+
+						next(len, pos);
+						for (i = 0; i < 3; i++)
+						{
+							ch = pick(str, len, pos);
+							if (!qisdigit(ch))
+								break;
+
+							next(len, pos);
+							wMicroSecond += (ch - '0') * p;
+							p /= 10;
+						}
 					}
+
+					if (!qstricmp(str + pos, " pm", 3))
+						wHour += 12;
 				}
 			}
 		}
@@ -425,8 +441,8 @@ void date_t::parse(const char* str, int len)
 	ElapsedDays += wDay;
 
 	d = ElapsedDays * 86400000.0
-			+ ((wHour * 60 + wMinute) * 60 + wSecond) * 1000 - 62135625600000.0
-			+ tz * 3600000;
+			+ ((wHour * 60 + wMinute) * 60 + wSecond) * 1000 + wMicroSecond
+			+ tz * 3600000 - 62135625600000.0;
 }
 
 void inline putStr(char *& ptrBuf, const char *ptr, int n)
