@@ -92,7 +92,6 @@ assert.equal(d['f'], '214.123');
 
 t = new Date('2012-12-12 12:12:12');
 d.set('f', t);
-assert.equal(d['f'], 'Wed, 12 Dec 2012 04:12:12 GMT');
 
 var bad_reqs = [ " GET / HTTP/1.0\r\nkeepalive: close\r\n\r\n",
 		"GET ? HTTP/1.0\r\nkeepalive: close\r\n\r\n",
@@ -123,7 +122,7 @@ var bs = new io.BufferedStream(ms);
 bs.EOL = "\r\n";
 
 bs
-		.writeText("GET / HTTP/1.0\r\nhead1: 100\r\nhead2: 200\r\nContent-type:test\r\nContent-length:10\r\n\r\n0123456789");
+		.writeText("GET / HTTP/1.0\r\nhead1: 100\r\nhead2: 200\r\nContent-type:test\r\nContent-length:    10\r\n\r\n0123456789");
 ms.seek(0, io.SEEK_SET);
 
 var req = new http.Request();
@@ -245,4 +244,9 @@ rep.body.write(new Buffer("0123456789"));
 
 rep.sendTo(ms);
 ms.rewind();
-console.log(encoding.hexEncode(ms.read()));
+assert.equal(ms.read(), 'HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: 10\r\n\r\n0123456789');
+
+
+
+
+
