@@ -88,32 +88,32 @@ result_t HttpResponse::clear()
 static const char * const status_lines[] =
 {
 #define LEVEL_100  0
-		"100 Continue", "101 Switching Protocols", "102 Processing",
+		" 100 Continue", " 101 Switching Protocols", " 102 Processing",
 #define LEVEL_200  3
-		"200 OK", "201 Created", "202 Accepted",
-		"203 Non-Authoritative Information", "204 No Content",
-		"205 Reset Content", "206 Partial Content", "207 Multi-Status",
+		" 200 OK", " 201 Created", " 202 Accepted",
+		" 203 Non-Authoritative Information", " 204 No Content",
+		" 205 Reset Content", " 206 Partial Content", " 207 Multi-Status",
 #define LEVEL_300 11
-		"300 Multiple Choices", "301 Moved Permanently", "302 Object moved",
-		"303 See Other", "304 Not Modified", "305 Use Proxy", "306 unused",
-		"307 Temporary Redirect",
+		" 300 Multiple Choices", " 301 Moved Permanently", " 302 Object moved",
+		" 303 See Other", " 304 Not Modified", " 305 Use Proxy", " 306 unused",
+		" 307 Temporary Redirect",
 #define LEVEL_400 19
-		"400 Bad Request", "401 Authorization Required", "402 Payment Required",
-		"403 Forbidden", "404 File Not Found", "405 Method Not Allowed",
-		"406 Not Acceptable", "407 Proxy Authentication Required",
-		"408 Request Time-out", "409 Conflict", "410 Gone",
-		"411 Length Required", "412 Precondition Failed",
-		"413 Request Entity Too Large", "414 Request-URI Too Large",
-		"415 Unsupported Media Type", "416 Requested Range Not Satisfiable",
-		"417 Expectation Failed", "418 Host Not Found", "419 unused",
-		"420 unused", "421 unused", "422 Unprocessable Entity", "423 Locked",
-		"424 Failed Dependency",
+		" 400 Bad Request", " 401 Authorization Required",
+		" 402 Payment Required", " 403 Forbidden", " 404 File Not Found",
+		" 405 Method Not Allowed", " 406 Not Acceptable",
+		" 407 Proxy Authentication Required", " 408 Request Time-out",
+		" 409 Conflict", " 410 Gone", " 411 Length Required",
+		" 412 Precondition Failed", " 413 Request Entity Too Large",
+		" 414 Request-URI Too Large", " 415 Unsupported Media Type",
+		" 416 Requested Range Not Satisfiable", " 417 Expectation Failed",
+		" 418 Host Not Found", " 419 unused", " 420 unused", " 421 unused",
+		" 422 Unprocessable Entity", " 423 Locked", " 424 Failed Dependency",
 #define LEVEL_500 44
-		"500 Internal Server Error", "501 Method Not Implemented",
-		"502 Bad Gateway", "503 Service Temporarily Unavailable",
-		"504 Gateway Time-out", "505 HTTP Version Not Supported",
-		"506 Variant Also Negotiates", "507 Insufficient Storage", "508 unused",
-		"509 unused", "510 Not Extended"
+		" 500 Internal Server Error", " 501 Method Not Implemented",
+		" 502 Bad Gateway", " 503 Service Temporarily Unavailable",
+		" 504 Gateway Time-out", " 505 HTTP Version Not Supported",
+		" 506 Variant Also Negotiates", " 507 Insufficient Storage",
+		" 508 unused", " 509 unused", " 510 Not Extended"
 #define RESPONSE_CODES 55
 		};
 static int shortcut[6] =
@@ -136,125 +136,16 @@ public:
 
 result_t HttpResponse::sendTo(Stream_base* stm, exlib::AsyncEvent* ac)
 {
-	class asyncSendTo: public asyncState
-	{
-	public:
-		asyncSendTo(HttpResponse* pThis, Stream_base* stm, exlib::AsyncEvent* ac) :
-				asyncState(ac), m_pThis(pThis), m_stm(stm)
-		{
-			m_contentLength = 0;
-			m_pThis->m_message.get_contentLength(m_contentLength);
-
-			if (m_contentLength > 0 && m_contentLength < TINY_SIZE)
-				set(tinybody);
-			else
-				set(header);
-		}
-
-		static int tinybody(asyncState* pState, int n)
-		{
-			asyncSendTo* pThis = (asyncSendTo*) pState;
-			obj_ptr<SeekableStream_base> _body;
-
-			result_t hr = pThis->m_pThis->get_body(_body);
-			if (hr < 0)
-				return hr;
-
-			pThis->set(header);
-
-			_body->rewind();
-			return _body->read((int32_t) pThis->m_contentLength,
-					pThis->m_buffer, pThis);
-		}
-
-		static int header(asyncState* pState, int n)
-		{
-			asyncSendTo* pThis = (asyncSendTo*) pState;
-			int pos = shortcut[pThis->m_pThis->m_status / 100 - 1]
-					+ pThis->m_pThis->m_status % 100;
-			size_t sz = status_lines_size[pos] + 11;
-			size_t sz1;
-			std::string m_strBuf;
-			char *pBuf;
-
-			if (pThis->m_buffer != NULL)
-			{
-				pThis->m_buffer->toString(pThis->m_body);
-				pThis->m_buffer.Release();
-
-				if (pThis->m_contentLength != (int) pThis->m_body.length())
-					return CALL_E_INVALID_DATA;
-			}
-
-			sz1 = pThis->m_pThis->m_message.size();
-			pThis->m_pThis->get_protocol(m_strBuf);
-			m_strBuf.resize(sz + sz1 + pThis->m_body.length());
-
-			pBuf = &m_strBuf[8];
-			*pBuf++ = ' ';
-			memcpy(pBuf, status_lines[pos], status_lines_size[pos]);
-			pBuf += status_lines_size[pos];
-			*pBuf++ = '\r';
-			*pBuf++ = '\n';
-
-			pBuf += pThis->m_pThis->m_message.getData(pBuf, sz1);
-
-			if (pThis->m_body.length() > 0)
-				memcpy(pBuf, pThis->m_body.c_str(), pThis->m_body.length());
-
-			pThis->m_buffer = new Buffer(m_strBuf);
-
-			if (pThis->m_contentLength == 0 || pThis->m_body.length() > 0)
-				pThis->done(0);
-			else
-				pThis->set(body);
-
-			return pThis->m_stm->write(pThis->m_buffer, pThis);
-		}
-
-		static int body(asyncState* pState, int n)
-		{
-			asyncSendTo* pThis = (asyncSendTo*) pState;
-
-			if (pThis->m_contentLength == 0)
-				return pThis->done(0);
-
-			obj_ptr<SeekableStream_base> _body;
-
-			result_t hr = pThis->m_pThis->get_body(_body);
-			if (hr < 0)
-				return hr;
-
-			_body->rewind();
-
-			pThis->set(body_ok);
-			return _body->copyTo(pThis->m_stm, pThis->m_contentLength,
-					pThis->m_copySize, pThis);
-		}
-
-		static int body_ok(asyncState* pState, int n)
-		{
-			asyncSendTo* pThis = (asyncSendTo*) pState;
-
-			if (pThis->m_contentLength != pThis->m_copySize)
-				return CALL_E_INVALID_DATA;
-
-			return pThis->done(0);
-		}
-
-	public:
-		obj_ptr<HttpResponse> m_pThis;
-		obj_ptr<Stream_base> m_stm;
-		obj_ptr<Buffer_base> m_buffer;
-		int64_t m_contentLength;
-		int64_t m_copySize;
-		std::string m_body;
-	};
-
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	return (new asyncSendTo(this, stm, ac))->post(0);
+	int pos = shortcut[m_status / 100 - 1] + m_status % 100;
+	std::string strCommand;
+
+	get_protocol(strCommand);
+	strCommand.append(status_lines[pos], status_lines_size[pos]);
+
+	return m_message.sendTo(stm, strCommand, ac);
 }
 
 result_t HttpResponse::asyncSendTo(Stream_base* stm)
@@ -268,8 +159,7 @@ result_t HttpResponse::onsendto(v8::Handle<v8::Function> func)
 	return on("sendto", func);
 }
 
-result_t HttpResponse::readFrom(BufferedStream_base* stm,
-		exlib::AsyncEvent* ac)
+result_t HttpResponse::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 {
 	return 0;
 }

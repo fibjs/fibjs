@@ -6,9 +6,200 @@
  */
 
 #include "HttpMessage.h"
+#include "parse.h"
+#include "Buffer.h"
 
 namespace fibjs
 {
+
+#define TINY_SIZE	32768
+
+result_t HttpMessage::sendTo(Stream_base* stm, std::string& strCommand, exlib::AsyncEvent* ac)
+{
+	class asyncSendTo: public asyncState
+	{
+	public:
+		asyncSendTo(HttpMessage* pThis, Stream_base* stm,
+				std::string& strCommand, exlib::AsyncEvent* ac) :
+				asyncState(ac), m_pThis(pThis), m_stm(stm), m_strCommand(
+						strCommand)
+		{
+			m_contentLength = 0;
+			m_pThis->get_contentLength(m_contentLength);
+
+			if (m_contentLength > 0 && m_contentLength < TINY_SIZE)
+				set(tinybody);
+			else
+				set(header);
+		}
+
+		static int tinybody(asyncState* pState, int n)
+		{
+			asyncSendTo* pThis = (asyncSendTo*) pState;
+
+			pThis->m_pThis->m_body->rewind();
+
+			pThis->set(header);
+			return pThis->m_pThis->m_body->read(
+					(int32_t) pThis->m_contentLength, pThis->m_buffer, pThis);
+		}
+
+		static int header(asyncState* pState, int n)
+		{
+			asyncSendTo* pThis = (asyncSendTo*) pState;
+			size_t sz = pThis->m_strCommand.length();
+			size_t sz1;
+			std::string m_strBuf;
+			char *pBuf;
+
+			if (pThis->m_buffer != NULL)
+			{
+				pThis->m_buffer->toString(pThis->m_body);
+				pThis->m_buffer.Release();
+
+				if (pThis->m_contentLength != (int) pThis->m_body.length())
+					return CALL_E_INVALID_DATA;
+			}
+
+			sz1 = pThis->m_pThis->size();
+			m_strBuf = pThis->m_strCommand;
+			m_strBuf.resize(sz + sz1 + 2 + pThis->m_body.length());
+
+			pBuf = &m_strBuf[sz];
+			*pBuf++ = '\r';
+			*pBuf++ = '\n';
+
+			pBuf += pThis->m_pThis->getData(pBuf, sz1);
+
+			if (pThis->m_body.length() > 0)
+				memcpy(pBuf, pThis->m_body.c_str(), pThis->m_body.length());
+
+			pThis->m_buffer = new Buffer(m_strBuf);
+
+			if (pThis->m_contentLength == 0 || pThis->m_body.length() > 0)
+				pThis->done(0);
+			else
+				pThis->set(body);
+
+			return pThis->m_stm->write(pThis->m_buffer, pThis);
+		}
+
+		static int body(asyncState* pState, int n)
+		{
+			asyncSendTo* pThis = (asyncSendTo*) pState;
+
+			if (pThis->m_contentLength == 0)
+				return pThis->done(0);
+
+			pThis->m_pThis->m_body->rewind();
+
+			pThis->set(body_ok);
+			return pThis->m_pThis->m_body->copyTo(pThis->m_stm,
+					pThis->m_contentLength, pThis->m_copySize, pThis);
+		}
+
+		static int body_ok(asyncState* pState, int n)
+		{
+			asyncSendTo* pThis = (asyncSendTo*) pState;
+
+			if (pThis->m_contentLength != pThis->m_copySize)
+				return CALL_E_INVALID_DATA;
+
+			return pThis->done(0);
+		}
+
+	public:
+		HttpMessage* m_pThis;
+		obj_ptr<Stream_base> m_stm;
+		obj_ptr<Buffer_base> m_buffer;
+		int64_t m_contentLength;
+		int64_t m_copySize;
+		std::string m_body;
+		std::string m_strCommand;
+		const char* m_strStatus;
+		int m_nStatus;
+	};
+
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	return (new asyncSendTo(this, stm, strCommand, ac))->post(0);
+}
+
+result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
+{
+	class asyncReadFrom: public asyncState
+	{
+	public:
+		asyncReadFrom(HttpMessage* pThis, BufferedStream_base* stm,
+				exlib::AsyncEvent* ac) :
+				asyncState(ac), m_pThis(pThis), m_stm(stm), m_contentLength(0)
+		{
+			set(begin);
+		}
+
+		static int begin(asyncState* pState, int n)
+		{
+			asyncReadFrom* pThis = (asyncReadFrom*) pState;
+
+			pThis->set(header);
+			return pThis->m_stm->readLine(pThis->m_strLine, pThis);
+		}
+
+		static int header(asyncState* pState, int n)
+		{
+			asyncReadFrom* pThis = (asyncReadFrom*) pState;
+
+			if (pThis->m_strLine.length() > 0)
+			{
+				if (!qstricmp(pThis->m_strLine.c_str(), "content-length:", 15))
+					pThis->m_contentLength = atoi(
+							pThis->m_strLine.c_str() + 15);
+
+				result_t hr = pThis->m_pThis->addHeader(pThis->m_strLine);
+				if (hr < 0)
+					return hr;
+
+				return pThis->m_stm->readLine(pThis->m_strLine, pThis);
+			}
+
+			if (pThis->m_contentLength == 0)
+				return pThis->done(0);
+
+			pThis->set(body);
+
+			pThis->m_pThis->get_body(pThis->m_body);
+
+			return pThis->m_stm->copyTo(pThis->m_body, pThis->m_contentLength,
+					pThis->m_copySize, pThis);
+		}
+
+		static int body(asyncState* pState, int n)
+		{
+			asyncReadFrom* pThis = (asyncReadFrom*) pState;
+
+			if (pThis->m_contentLength != pThis->m_copySize)
+				return CALL_E_INVALID_DATA;
+
+			pThis->m_body->rewind();
+
+			return pThis->done(0);
+		}
+
+	public:
+		HttpMessage* m_pThis;
+		obj_ptr<BufferedStream_base> m_stm;
+		obj_ptr<SeekableStream_base> m_body;
+		std::string m_strLine;
+		int64_t m_contentLength;
+		int64_t m_copySize;
+	};
+
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	return (new asyncReadFrom(this, stm, ac))->post(0);
+}
 
 void HttpMessage::addHeader(const char* name, int szName, const char* value,
 		int szValue)
@@ -19,6 +210,22 @@ void HttpMessage::addHeader(const char* name, int szName, const char* value,
 		m_keepAlive = !qstricmp(value, "keep-alive", 10);
 	else
 		m_headers->add(name, szName, value, szValue);
+}
+
+result_t HttpMessage::addHeader(std::string& strLine)
+{
+	int p2;
+	_parser p(strLine);
+
+	p.skipWord(':');
+	p2 = p.pos;
+	if (0 == p2 || !p.want(':'))
+		return CALL_E_INVALID_DATA;
+
+	p.skipSpace();
+	addHeader(p.string, p2, p.string + p.pos, p.sz - p.pos);
+
+	return 0;
 }
 
 size_t HttpMessage::size()

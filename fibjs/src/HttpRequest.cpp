@@ -118,8 +118,9 @@ result_t HttpRequest::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 	public:
 		asyncReadFrom(HttpRequest* pThis, BufferedStream_base* stm,
 				exlib::AsyncEvent* ac) :
-				asyncState(ac), m_pThis(pThis), m_stm(stm), m_contentLength(0)
+				asyncState(ac), m_pThis(pThis), m_stm(stm)
 		{
+			m_pThis->clear();
 			set(begin);
 		}
 
@@ -128,8 +129,6 @@ result_t HttpRequest::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 			asyncReadFrom* pThis = (asyncReadFrom*) pState;
 
 			pThis->set(command);
-
-			pThis->m_pThis->clear();
 			return pThis->m_stm->readLine(pThis->m_strLine, pThis);
 		}
 
@@ -137,8 +136,6 @@ result_t HttpRequest::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 		{
 			asyncReadFrom* pThis = (asyncReadFrom*) pState;
 			result_t hr;
-
-			pThis->set(header);
 
 			int p1, p2;
 			_parser p(pThis->m_strLine);
@@ -180,33 +177,13 @@ result_t HttpRequest::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 			if (hr < 0)
 				return hr;
 
-			return pThis->m_stm->readLine(pThis->m_strLine, pThis);
+			pThis->set(ok);
+			return pThis->m_pThis->m_message.readFrom(pThis->m_stm, pThis);
 		}
 
-		static int header(asyncState* pState, int n)
+		static int ok(asyncState* pState, int n)
 		{
 			asyncReadFrom* pThis = (asyncReadFrom*) pState;
-
-			if (pThis->m_strLine.length() > 0)
-			{
-				int p2;
-				_parser p(pThis->m_strLine);
-
-				p.skipWord(':');
-				p2 = p.pos;
-				if (0 == p2 || !p.want(':'))
-					return CALL_E_INVALID_DATA;
-
-				p.skipSpace();
-
-				if (p2 == 14 && !qstricmp(p.string, "content-length", 14))
-					pThis->m_contentLength = atoi(p.string + p.pos);
-
-				pThis->m_pThis->m_message.addHeader(p.string, p2,
-						p.string + p.pos, p.sz - p.pos);
-
-				return pThis->m_stm->readLine(pThis->m_strLine, pThis);
-			}
 
 			std::string strProtocol;
 
@@ -218,36 +195,13 @@ result_t HttpRequest::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 			pThis->m_pThis->get_keepAlive(bKeepAlive);
 			pThis->m_pThis->m_response->set_keepAlive(bKeepAlive);
 
-			if (pThis->m_contentLength == 0)
-				return pThis->done(0);
-
-			pThis->set(body);
-
-			pThis->m_pThis->get_body(pThis->m_body);
-
-			return pThis->m_stm->copyTo(pThis->m_body, pThis->m_contentLength,
-					pThis->m_copySize, pThis);
-		}
-
-		static int body(asyncState* pState, int n)
-		{
-			asyncReadFrom* pThis = (asyncReadFrom*) pState;
-
-			if (pThis->m_contentLength != pThis->m_copySize)
-				return CALL_E_INVALID_DATA;
-
-			pThis->m_body->rewind();
-
 			return pThis->done(0);
 		}
 
 	public:
 		obj_ptr<HttpRequest> m_pThis;
 		obj_ptr<BufferedStream_base> m_stm;
-		obj_ptr<SeekableStream_base> m_body;
 		std::string m_strLine;
-		int64_t m_contentLength;
-		int64_t m_copySize;
 	};
 
 	if (!ac)

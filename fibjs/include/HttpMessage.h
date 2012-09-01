@@ -37,7 +37,14 @@ public:
 	result_t clear();
 
 public:
-	void addHeader(const char* name, int szName, const char* value, int szValue);
+	result_t sendTo(Stream_base* stm, std::string& strCommand,
+			exlib::AsyncEvent* ac);
+	result_t readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac);
+
+public:
+	void addHeader(const char* name, int szName, const char* value,
+			int szValue);
+	result_t addHeader(std::string& strLine);
 	size_t size();
 	size_t getData(char* buf, size_t sz);
 
