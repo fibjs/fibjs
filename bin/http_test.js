@@ -244,7 +244,10 @@ rep.body.write(new Buffer("0123456789"));
 
 rep.sendTo(ms);
 ms.rewind();
-assert.equal(ms.read(), 'HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: 10\r\n\r\n0123456789');
+assert
+		.equal(
+				ms.read(),
+				'HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: 10\r\n\r\n0123456789');
 
 function get_response(txt) {
 	var ms = new io.MemoryStream();
@@ -276,5 +279,52 @@ assert.throws(function() {
 });
 
 assert.throws(function() {
+	get_response("HTTP/1.0 1\r\n\r\n");
+});
+
+assert.throws(function() {
+	get_response("HTTP/1.0 1111\r\n\r\n");
+});
+
+assert.throws(function() {
 	get_response("HTTP/1.0 asd\r\n\r\n");
 });
+
+var rep = new http.Request();
+rep.body.write(new Buffer("0123456789"));
+
+var ms = new io.MemoryStream();
+
+rep.sendTo(ms);
+ms.rewind();
+assert
+		.equal(
+				ms.read(),
+				'GET / HTTP/1.1\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: 10\r\n\r\n0123456789');
+
+var rep = new http.Request();
+rep.body.write(new Buffer("0123456789"));
+rep.address = "/docs/";
+
+var ms = new io.MemoryStream();
+
+rep.sendTo(ms);
+ms.rewind();
+assert
+		.equal(
+				ms.read(),
+				'GET /docs/ HTTP/1.1\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: 10\r\n\r\n0123456789');
+
+var rep = new http.Request();
+rep.body.write(new Buffer("0123456789"));
+rep.address = "/docs";
+rep.queryString = "page=100&style=wap";
+
+var ms = new io.MemoryStream();
+
+rep.sendTo(ms);
+ms.rewind();
+assert
+		.equal(
+				ms.read(),
+				'GET /docs?page=100&style=wap HTTP/1.1\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: 10\r\n\r\n0123456789');
