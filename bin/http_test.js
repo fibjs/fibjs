@@ -246,7 +246,35 @@ rep.sendTo(ms);
 ms.rewind();
 assert.equal(ms.read(), 'HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: 10\r\n\r\n0123456789');
 
+function get_response(txt) {
+	var ms = new io.MemoryStream();
+	var bs = new io.BufferedStream(ms);
+	bs.EOL = "\r\n";
 
+	bs.writeText(txt);
+	ms.seek(0, io.SEEK_SET);
 
+	var req = new http.Response();
+	req.readFrom(bs);
+	return req;
+}
 
+var r = get_response("HTTP/1.0 200\r\n\r\n");
+assert.equal(r.status, 200);
+assert.equal(r.protocol, 'HTTP/1.0');
 
+assert.throws(function() {
+	get_response("HTTP/1.0\r\n\r\n");
+});
+
+assert.throws(function() {
+	get_response("HTTP/1.0 \r\n\r\n");
+});
+
+assert.throws(function() {
+	get_response("HTTP/1.0,200\r\n\r\n");
+});
+
+assert.throws(function() {
+	get_response("HTTP/1.0 asd\r\n\r\n");
+});
