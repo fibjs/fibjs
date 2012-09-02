@@ -13,7 +13,7 @@
 namespace fibjs
 {
 
-bool Variant::assign(v8::Handle<v8::Value> v)
+Variant& Variant::operator=(v8::Handle<v8::Value> v)
 {
 	clear();
 
@@ -63,7 +63,16 @@ bool Variant::assign(v8::Handle<v8::Value> v)
 				if (obj)
 					operator=(obj);
 				else
-					return false;
+				{
+					clear();
+					m_type = VT_JSObject;
+					new (((v8::Persistent<v8::Object>*) m_Val.jsobjVal)) v8::Persistent<
+							v8::Object>();
+
+					*(v8::Persistent<v8::Object>*) m_Val.jsobjVal =
+							v8::Persistent<v8::Object>::New(
+									v8::Handle<v8::Object>::Cast(v));
+				}
 			}
 			else
 			{
@@ -74,7 +83,7 @@ bool Variant::assign(v8::Handle<v8::Value> v)
 		}
 	}
 
-	return true;
+	return *this;
 }
 
 Variant::operator v8::Handle<v8::Value>() const
@@ -102,6 +111,8 @@ Variant::operator v8::Handle<v8::Value>() const
 
 		return obj->wrap();
 	}
+	case VT_JSObject:
+		return *(v8::Persistent<v8::Object>*) m_Val.jsobjVal;
 	case VT_String:
 	{
 		std::string& str = *(std::string*) m_Val.strVal;
@@ -260,6 +271,8 @@ bool Variant::toString(std::string& retVal)
 	case VT_String:
 		retVal = *(std::string*) m_Val.strVal;
 		return true;
+	case VT_JSObject:
+		return false;
 	}
 
 	return false;

@@ -35,7 +35,8 @@ public:
 		VT_Number = 4,
 		VT_Date = 5,
 		VT_String = 6,
-		VT_Object = 7
+		VT_Object = 7,
+		VT_JSObject = 8
 	};
 
 public:
@@ -62,6 +63,12 @@ public:
 		operator=(v);
 	}
 
+	Variant(v8::Handle<v8::Value> v) :
+			m_type(VT_Null)
+	{
+		operator=(v);
+	}
+
 	~Variant()
 	{
 		clear();
@@ -73,6 +80,8 @@ public:
 			((std::string*) m_Val.strVal)->~basic_string();
 		else if (m_type == VT_Object && m_Val.objVal)
 			m_Val.objVal->Unref();
+		else if (m_type == VT_JSObject)
+			((v8::Persistent<v8::Object>*) m_Val.jsobjVal)->~Persistent();
 
 		m_type = VT_Null;
 	}
@@ -84,6 +93,9 @@ public:
 
 		if (v.m_type == VT_Object)
 			return operator=(v.m_Val.objVal);
+
+		if (v.m_type == VT_JSObject)
+			return operator=(*(v8::Persistent<v8::Object>*) v.m_Val.jsobjVal);
 
 		clear();
 		m_type = v.m_type;
@@ -166,7 +178,7 @@ public:
 		return operator=((obj_base*) v);
 	}
 
-	bool assign(v8::Handle<v8::Value> v);
+	Variant& operator=(v8::Handle<v8::Value> v);
 
 	Type type() const
 	{
@@ -248,9 +260,10 @@ private:
 		int32_t intVal;
 		int64_t longVal;
 		double dblVal;
+		obj_base* objVal;
 		char dateVal[sizeof(date_t)];
 		char strVal[sizeof(std::string)];
-		obj_base* objVal;
+		char jsobjVal[sizeof(v8::Persistent<v8::Object>)];
 	} m_Val;
 };
 

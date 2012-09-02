@@ -8,6 +8,9 @@ class Message: Trigger
 	/*! @brief 消息的基本参数 */
 	List params;
 
+	/*! @brief 消息的返回结果 */
+	Variant result;
+
 	/*! @brief 清除消息的内容 */
 	clear();
 

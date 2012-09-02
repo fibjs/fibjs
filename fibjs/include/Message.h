@@ -20,6 +20,8 @@ public:
 	result_t set_value(const char* newVal);
 	result_t get_params(obj_ptr<List_base>& retVal);
 	result_t set_params(List_base* newVal);
+	result_t get_result(Variant& retVal);
+	result_t set_result(Variant newVal);
 
 public:
 	void clear()
@@ -37,6 +39,7 @@ public:
 private:
 	std::string m_value;
 	obj_ptr<List_base> m_params;
+	Variant m_result;
 };
 
 } /* namespace fibjs */

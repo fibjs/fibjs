@@ -24,13 +24,8 @@ result_t JSHandler::setHandler(v8::Handle<v8::Value> hdlr)
 	return 0;
 }
 
-inline result_t msgMethod(object_base* v, std::string& method)
+inline result_t msgMethod(Message_base* msg, std::string& method)
 {
-	obj_ptr<Message_base> msg = Message_base::getInstance(v);
-
-	if (msg == NULL)
-		return CALL_E_BADVARTYPE;
-
 	std::string str;
 	const char *p, *p1;
 
@@ -61,12 +56,13 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 	if (!ac)
 	{
 		v8::Handle<v8::Object> o;
-		v8::Handle<v8::Value> a;
+		v->ValueOf(o);
+
+		v8::Handle<v8::Value> a = o;
+		obj_ptr<Message_base> msg = Message_base::getInstance(a);
 		v8::Handle<v8::Value> hdlr = m_handler;
 		result_t hr;
-
-		v->ValueOf(o);
-		a = o;
+		bool bResult = false;
 
 		if (hdlr.IsEmpty())
 		{
@@ -74,8 +70,11 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
 			if (isPathSlash(id[id.length() - 1]))
 			{
+				if (msg == NULL)
+					return CALL_E_BADVARTYPE;
+
 				std::string method;
-				hr = msgMethod(v, method);
+				hr = msgMethod(msg, method);
 				if (hr < 0)
 					return hr;
 
@@ -102,22 +101,71 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		while (true)
 		{
 			if (hdlr->IsFunction())
-				JSFiber::callFunction(v8::Handle<v8::Function>::Cast(hdlr), &a,
-						1, hdlr);
+			{
+				obj_ptr<List_base> params;
+				int32_t len = 0, i;
+
+				if (msg != NULL)
+				{
+					msg->get_params(params);
+					params->get_length(len);
+				}
+
+				if (len > 0)
+				{
+					std::vector<v8::Handle<v8::Value> > argv;
+
+					argv.resize(len + 1);
+					argv[0] = a;
+
+					for (i = 0; i < len; i++)
+					{
+						Variant p;
+						params->_indexed_getter(i, p);
+						argv[i + 1] = p;
+					}
+
+					JSFiber::callFunction(v8::Handle<v8::Function>::Cast(hdlr),
+							argv.data(), len + 1, hdlr);
+				}
+				else
+					JSFiber::callFunction(v8::Handle<v8::Function>::Cast(hdlr),
+							&a, 1, hdlr);
+
+				bResult = true;
+			}
 			else if (hdlr->IsObject())
 			{
 				if (retVal = Handler_base::getInstance(hdlr))
 					return 0;
 
+				if (msg == NULL)
+					return CALL_E_BADVARTYPE;
+
 				std::string method;
-				hr = msgMethod(v, method);
+				hr = msgMethod(msg, method);
 				if (hr < 0)
-					return hr;
+				{
+					if (bResult && msg)
+					{
+						msg->set_result(hdlr);
+						return CALL_RETURN_NULL;
+					}
+					else
+						return hr;
+				}
 
 				hdlr = v8::Handle<v8::Object>::Cast(hdlr)->Get(
 						v8::String::New(method.c_str(), (int) method.length()));
 				if (IsEmpty(hdlr))
 					return CALL_E_INVALID_CALL;
+
+				bResult = false;
+			}
+			else if (bResult && msg)
+			{
+				msg->set_result(hdlr);
+				return CALL_RETURN_NULL;
 			}
 			else
 				return CALL_E_INVALID_CALL;

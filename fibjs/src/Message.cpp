@@ -38,4 +38,16 @@ result_t Message::set_params(List_base* newVal)
 	return 0;
 }
 
+result_t Message::get_result(Variant& retVal)
+{
+	retVal = m_result;
+	return 0;
+}
+
+result_t Message::set_result(Variant newVal)
+{
+	m_result = newVal;
+	return 0;
+}
+
 } /* namespace fibjs */

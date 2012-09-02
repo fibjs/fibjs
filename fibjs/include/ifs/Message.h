@@ -30,6 +30,8 @@ public:
 	virtual result_t set_value(const char* newVal) = 0;
 	virtual result_t get_params(obj_ptr<List_base>& retVal) = 0;
 	virtual result_t set_params(List_base* newVal) = 0;
+	virtual result_t get_result(Variant& retVal) = 0;
+	virtual result_t set_result(Variant newVal) = 0;
 	virtual result_t clear() = 0;
 	virtual result_t sendTo(Stream_base* stm, exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncSendTo(Stream_base* stm) = 0;
@@ -47,6 +49,7 @@ public:
 
 		CLONE_String(value);
 		CLONE_CLASS(params, List_base);
+		CLONE(result, Variant);
 
 		return 0;
 	}
@@ -56,6 +59,8 @@ public:
 	static void s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_params(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_params(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_result(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s_set_result(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_clear(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_sendTo(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncSendTo(const v8::Arguments& args);
@@ -95,13 +100,14 @@ namespace fibjs
 		static ClassData::ClassProperty s_property[] = 
 		{
 			{"value", s_get_value, s_set_value},
-			{"params", s_get_params, s_set_params}
+			{"params", s_get_params, s_set_params},
+			{"result", s_get_result, s_set_result}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"Message", NULL, 
-			7, s_method, 0, NULL, 2, s_property, NULL, NULL,
+			7, s_method, 0, NULL, 3, s_property, NULL, NULL,
 			&Trigger_base::class_info()
 		};
 
@@ -151,6 +157,29 @@ namespace fibjs
 
 		PROPERTY_VAL(obj_ptr<List_base>);
 		hr = pInst->set_params(v0);
+
+		PROPERTY_SET_LEAVE();
+	}
+
+	inline v8::Handle<v8::Value> Message_base::s_get_result(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		Variant vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Message_base);
+
+		hr = pInst->get_result(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Message_base::s_set_result(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	{
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Message_base);
+
+		PROPERTY_VAL(Variant);
+		hr = pInst->set_result(v0);
 
 		PROPERTY_SET_LEAVE();
 	}
