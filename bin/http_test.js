@@ -132,7 +132,7 @@ req.readFrom(bs);
 assert.equal('100', req.headers['head1']);
 assert.equal('200', req.headers['head2']);
 assert.equal(10, req.contentLength);
-assert.equal('test', req.contentType);
+assert.equal('test', req.headers['content-type']);
 assert.equal('0123456789', req.body.read());
 
 var keep_reqs = {
@@ -249,7 +249,7 @@ ms.rewind();
 assert
 		.equal(
 				ms.read(),
-				'HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: 10\r\n\r\n0123456789');
+				'HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
 
 function get_response(txt) {
 	var ms = new io.MemoryStream();
@@ -302,11 +302,12 @@ ms.rewind();
 assert
 		.equal(
 				ms.read(),
-				'GET / HTTP/1.1\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: 10\r\n\r\n0123456789');
+				'GET / HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
 
 var rep = new http.Request();
 rep.body.write(new Buffer("0123456789"));
 rep.address = "/docs/";
+rep.value = "/docs/";
 
 var ms = new io.MemoryStream();
 
@@ -315,11 +316,12 @@ ms.rewind();
 assert
 		.equal(
 				ms.read(),
-				'GET /docs/ HTTP/1.1\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: 10\r\n\r\n0123456789');
+				'GET /docs/ HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
 
 var rep = new http.Request();
 rep.body.write(new Buffer("0123456789"));
 rep.address = "/docs";
+rep.value = "/docs";
 rep.queryString = "page=100&style=wap";
 
 var ms = new io.MemoryStream();
@@ -329,4 +331,4 @@ ms.rewind();
 assert
 		.equal(
 				ms.read(),
-				'GET /docs?page=100&style=wap HTTP/1.1\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: 10\r\n\r\n0123456789');
+				'GET /docs?page=100&style=wap HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
