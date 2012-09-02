@@ -8,6 +8,7 @@
 #include "Routing.h"
 #include "JSHandler.h"
 #include "ifs/Message.h"
+#include "List.h"
 
 namespace fibjs
 {
@@ -38,6 +39,18 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			if (rc > 1)
 				msg->set_value(
 						value.substr(ovector[2], ovector[3] - ovector[2]).c_str());
+
+			if (rc > 2)
+			{
+				obj_ptr<List> list = new List();
+
+				for (i = 2; i < rc; i++)
+					list->append(
+							value.substr(ovector[i * 2],
+									ovector[i * 2 + 1] - ovector[i * 2]));
+
+				msg->set_params(list);
+			}
 
 			retVal = r->m_hdlr;
 			return 0;

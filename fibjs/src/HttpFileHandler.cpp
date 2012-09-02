@@ -166,7 +166,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 					v) != CALL_RETURN_NULL)
 			{
 				str = v.string();
-				d1.parse(str.c_str(), str.length());
+				d1.parse(str.c_str(), (int)str.length());
 
 				if (abs(d.diff(d1)) < 1000)
 				{

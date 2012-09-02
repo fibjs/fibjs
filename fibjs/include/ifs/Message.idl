@@ -5,6 +5,9 @@ class Message: Trigger
 	/*! @brief 消息的基本内容 */
 	String value;
 
+	/*! @brief 消息的基本参数 */
+	List params;
+
 	/*! @brief 清除消息的内容 */
 	clear();
 

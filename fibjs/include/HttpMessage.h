@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "Message.h"
 #include "HttpCollection.h"
 #include "MemoryStream.h"
 
@@ -14,7 +15,7 @@
 namespace fibjs
 {
 
-class HttpMessage
+class HttpMessage: public Message
 {
 public:
 	HttpMessage(bool bResponse = false) :

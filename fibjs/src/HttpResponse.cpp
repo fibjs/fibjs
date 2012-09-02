@@ -100,12 +100,22 @@ result_t HttpResponse::removeHeader(const char* name)
 
 result_t HttpResponse::get_value(std::string& retVal)
 {
-	return 0;
+	return m_message.get_value(retVal);
 }
 
 result_t HttpResponse::set_value(const char* newVal)
 {
-	return 0;
+	return m_message.set_value(newVal);
+}
+
+result_t HttpResponse::get_params(obj_ptr<List_base>& retVal)
+{
+	return m_message.get_params(retVal);
+}
+
+result_t HttpResponse::set_params(List_base* newVal)
+{
+	return m_message.set_params(newVal);
 }
 
 result_t HttpResponse::clear()

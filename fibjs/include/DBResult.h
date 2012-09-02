@@ -61,7 +61,7 @@ public:
 
 	void endRow()
 	{
-		m_array.push(m_nowRow);
+		m_array.append(m_nowRow);
 		m_nowRow.Release();
 	}
 

@@ -101,14 +101,22 @@ result_t HttpRequest::removeHeader(const char* name)
 
 result_t HttpRequest::get_value(std::string& retVal)
 {
-	retVal = m_address;
-	return 0;
+	return m_message.get_value(retVal);
 }
 
 result_t HttpRequest::set_value(const char* newVal)
 {
-	m_address = newVal;
-	return 0;
+	return m_message.set_value(newVal);
+}
+
+result_t HttpRequest::get_params(obj_ptr<List_base>& retVal)
+{
+	return m_message.get_params(retVal);
+}
+
+result_t HttpRequest::set_params(List_base* newVal)
+{
+	return m_message.set_params(newVal);
 }
 
 result_t HttpRequest::clear()
@@ -207,6 +215,7 @@ result_t HttpRequest::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 				return CALL_E_INVALID_DATA;
 
 			pThis->m_pThis->m_address.assign(p.string + p1, p2 - p1);
+			pThis->m_pThis->m_message.set_value(pThis->m_pThis->m_address);
 
 			if (p.get() == '?')
 			{

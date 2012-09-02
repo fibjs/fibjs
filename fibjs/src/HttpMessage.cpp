@@ -340,14 +340,12 @@ result_t HttpMessage::get_body(obj_ptr<SeekableStream_base>& retVal)
 		m_body = new MemoryStream();
 
 	retVal = m_body;
-
 	return 0;
 }
 
 result_t HttpMessage::set_body(SeekableStream_base* newVal)
 {
 	m_body = newVal;
-
 	return 0;
 }
 
@@ -415,6 +413,8 @@ result_t HttpMessage::removeHeader(const char* name)
 
 result_t HttpMessage::clear()
 {
+	Message::clear();
+
 	m_protocol.assign("HTTP/1.1", 8);
 	m_keepAlive = true;
 

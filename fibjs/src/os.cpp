@@ -522,7 +522,7 @@ result_t os_base::readdir(const char* path, obj_ptr<List_base>& retVal,
 
 		hr = stat(fpath.c_str(), fstat, NULL);
 		if (hr >= 0)
-			oa->push(fstat);
+			oa->append(fstat);
 	}
 	::closedir(dp);
 
@@ -598,7 +598,7 @@ namespace fibjs
 		{
 			obj_ptr<Stat> pStat = new Stat();
 			pStat->fill(fd);
-			oa->push(pStat);
+			oa->append(pStat);
 		}while(FindNextFileW(hFind, &fd));
 
 		FindClose(hFind);

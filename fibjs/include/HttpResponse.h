@@ -32,6 +32,8 @@ public:
 	// Message_base
 	virtual result_t get_value(std::string& retVal);
 	virtual result_t set_value(const char* newVal);
+	virtual result_t get_params(obj_ptr<List_base>& retVal);
+	virtual result_t set_params(List_base* newVal);
 	virtual result_t clear();
 	virtual result_t sendTo(Stream_base* stm, exlib::AsyncEvent* ac);
 	virtual result_t asyncSendTo(Stream_base* stm);

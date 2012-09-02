@@ -14,7 +14,7 @@
 namespace fibjs
 {
 
-class List : public List_base
+class List: public List_base
 {
 public:
 	// object_base
@@ -26,7 +26,8 @@ public:
 	virtual result_t _indexed_setter(uint32_t index, Variant newVal);
 	virtual result_t get_length(int32_t& retVal);
 	virtual result_t resize(int32_t sz);
-	virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal);
+	virtual result_t slice(int32_t start, int32_t end,
+			obj_ptr<List_base>& retVal);
 
 public:
 	class array
@@ -40,21 +41,31 @@ public:
 		result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal);
 
 	public:
-		void push(object_base* newVal)
+		void append(object_base* newVal)
 		{
 			Variant v;
 			v = newVal;
 			m_array.append(v);
 		}
 
+		void append(const Variant& newVal)
+		{
+			m_array.append(newVal);
+		}
+
 	private:
-		QuickArray<Variant > m_array;
+		QuickArray<Variant> m_array;
 	};
 
 public:
-	void push(object_base* newVal)
+	void append(object_base* newVal)
 	{
-		m_array.push(newVal);
+		m_array.append(newVal);
+	}
+
+	void append(const Variant& newVal)
+	{
+		m_array.append(newVal);
 	}
 
 private:

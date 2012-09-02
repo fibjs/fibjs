@@ -58,6 +58,7 @@
     <ClCompile Include="src\Map.cpp" />
     <ClCompile Include="src\MemoryCloneStream.cpp" />
     <ClCompile Include="src\MemoryStream.cpp" />
+    <ClCompile Include="src\Message.cpp" />
     <ClCompile Include="src\module.cpp" />
     <ClCompile Include="src\mq.cpp" />
     <ClCompile Include="src\mysql.cpp" />
@@ -175,6 +176,7 @@
     <ClInclude Include="include\Lock.h" />
     <ClInclude Include="include\Map.h" />
     <ClInclude Include="include\MemoryStream.h" />
+    <ClInclude Include="include\Message.h" />
     <ClInclude Include="include\mysql.h" />
     <ClInclude Include="include\NullHandler.h" />
     <ClInclude Include="include\object.h" />
