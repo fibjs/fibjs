@@ -50,6 +50,18 @@ public:
 		operator=(v);
 	}
 
+	Variant(const std::string& v) :
+			m_type(VT_Null)
+	{
+		operator=(v);
+	}
+
+	Variant(const char* v) :
+			m_type(VT_Null)
+	{
+		operator=(v);
+	}
+
 	~Variant()
 	{
 		clear();

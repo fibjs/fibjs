@@ -138,7 +138,6 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
 			if (ext.length() > 0)
 			{
-				Variant v;
 				const char* pKey = ext.c_str() + 1;
 				const char** pMimeType = (const char**) bsearch(&pKey,
 						&s_mimeTypes, sizeof(s_mimeTypes) / sizeof(s_defType),
@@ -147,8 +146,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				if (!pMimeType)
 					pMimeType = s_defType;
 
-				v = pMimeType[1];
-				pThis->m_rep->addHeader("Content-Type", v);
+				pThis->m_rep->addHeader("Content-Type", pMimeType[1]);
 			}
 
 			pThis->set(stat);
@@ -178,9 +176,8 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			}
 
 			d.toString(str);
-			v = str;
 
-			pThis->m_rep->addHeader("Last-Modified", v);
+			pThis->m_rep->addHeader("Last-Modified", str);
 			pThis->m_rep->set_body(pThis->m_file);
 
 			return pThis->done(CALL_RETURN_NULL);

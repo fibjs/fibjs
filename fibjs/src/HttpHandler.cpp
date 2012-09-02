@@ -75,12 +75,8 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				pThis->m_rep->hasHeader("Last-Modified", t);
 				if (!t)
 				{
-					Variant v;
-
-					v = "private";
-					pThis->m_rep->addHeader("Cache-Control", v);
-					v = "-1";
-					pThis->m_rep->addHeader("Expires", v);
+					pThis->m_rep->addHeader("Cache-Control", "private");
+					pThis->m_rep->addHeader("Expires", "-1");
 				}
 			}
 
