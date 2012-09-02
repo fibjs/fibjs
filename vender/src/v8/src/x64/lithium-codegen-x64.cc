@@ -92,17 +92,8 @@ void LCodeGen::FinishCode(Handle<Code> code) {
 }
 
 
-void LCodeGen::Abort(const char* format, ...) {
-  if (FLAG_trace_bailout) {
-    SmartArrayPointer<char> name(
-        info()->shared_info()->DebugName()->ToCString());
-    PrintF("Aborting LCodeGen in @\"%s\": ", *name);
-    va_list arguments;
-    va_start(arguments, format);
-    OS::VPrint(format, arguments);
-    va_end(arguments);
-    PrintF("\n");
-  }
+void LChunkBuilder::Abort(const char* reason) {
+  info()->set_bailout_reason(reason);
   status_ = ABORTED;
 }
 
@@ -1291,6 +1282,13 @@ void LCodeGen::DoFixedArrayBaseLength(LFixedArrayBaseLength* instr) {
   Register result = ToRegister(instr->result());
   Register array = ToRegister(instr->InputAt(0));
   __ movq(result, FieldOperand(array, FixedArrayBase::kLengthOffset));
+}
+
+
+void LCodeGen::DoMapEnumLength(LMapEnumLength* instr) {
+  Register result = ToRegister(instr->result());
+  Register map = ToRegister(instr->InputAt(0));
+  __ EnumLength(result, map);
 }
 
 
@@ -5226,11 +5224,19 @@ void LCodeGen::DoForInPrepareMap(LForInPrepareMap* instr) {
 void LCodeGen::DoForInCacheArray(LForInCacheArray* instr) {
   Register map = ToRegister(instr->map());
   Register result = ToRegister(instr->result());
+  Label load_cache, done;
+  __ EnumLength(result, map);
+  __ Cmp(result, Smi::FromInt(0));
+  __ j(not_equal, &load_cache);
+  __ LoadRoot(result, Heap::kEmptyFixedArrayRootIndex);
+  __ jmp(&done);
+  __ bind(&load_cache);
   __ LoadInstanceDescriptors(map, result);
   __ movq(result,
           FieldOperand(result, DescriptorArray::kEnumCacheOffset));
   __ movq(result,
           FieldOperand(result, FixedArray::SizeFor(instr->idx())));
+  __ bind(&done);
   Condition cc = masm()->CheckSmi(result);
   DeoptimizeIf(cc, instr->environment());
 }

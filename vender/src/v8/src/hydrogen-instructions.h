@@ -139,6 +139,7 @@ class LChunkBuilder;
   V(LoadNamedField)                            \
   V(LoadNamedFieldPolymorphic)                 \
   V(LoadNamedGeneric)                          \
+  V(MapEnumLength)                             \
   V(MathFloorOfDiv)                            \
   V(MathMinMax)                                \
   V(Mod)                                       \
@@ -1923,6 +1924,26 @@ class HFixedArrayBaseLength: public HUnaryOperation {
 };
 
 
+class HMapEnumLength: public HUnaryOperation {
+ public:
+  explicit HMapEnumLength(HValue* value) : HUnaryOperation(value) {
+    set_type(HType::Smi());
+    set_representation(Representation::Tagged());
+    SetFlag(kUseGVN);
+    SetGVNFlag(kDependsOnMaps);
+  }
+
+  virtual Representation RequiredInputRepresentation(int index) {
+    return Representation::Tagged();
+  }
+
+  DECLARE_CONCRETE_INSTRUCTION(MapEnumLength)
+
+ protected:
+  virtual bool DataEquals(HValue* other) { return true; }
+};
+
+
 class HElementsKind: public HUnaryOperation {
  public:
   explicit HElementsKind(HValue* value) : HUnaryOperation(value) {
@@ -2047,13 +2068,17 @@ class HUnaryMathOperation: public HTemplateInstruction<2> {
 };
 
 
-class HLoadElements: public HUnaryOperation {
+class HLoadElements: public HTemplateInstruction<2> {
  public:
-  explicit HLoadElements(HValue* value) : HUnaryOperation(value) {
+  HLoadElements(HValue* value, HValue* typecheck) {
+    SetOperandAt(0, value);
+    SetOperandAt(1, typecheck);
     set_representation(Representation::Tagged());
     SetFlag(kUseGVN);
     SetGVNFlag(kDependsOnElementsPointer);
   }
+
+  HValue* value() { return OperandAt(0); }
 
   virtual Representation RequiredInputRepresentation(int index) {
     return Representation::Tagged();

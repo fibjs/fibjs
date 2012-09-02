@@ -3199,11 +3199,7 @@ void TestContext::BuildBranch(HValue* value) {
 
 
 void HGraphBuilder::Bailout(const char* reason) {
-  if (FLAG_trace_bailout) {
-    SmartArrayPointer<char> name(
-        info()->shared_info()->DebugName()->ToCString());
-    PrintF("Bailout in HGraphBuilder: @\"%s\": %s\n", *name, reason);
-  }
+  info()->set_bailout_reason(reason);
   SetStackOverflow();
 }
 
@@ -4586,15 +4582,14 @@ void HGraphBuilder::VisitForInStatement(ForInStatement* stmt) {
           map,
           DescriptorArray::kEnumCacheBridgeCacheIndex));
 
-  HInstruction* array_length = AddInstruction(
-      new(zone()) HFixedArrayBaseLength(array));
+  HInstruction* enum_length = AddInstruction(new(zone()) HMapEnumLength(map));
 
   HInstruction* start_index = AddInstruction(new(zone()) HConstant(
       Handle<Object>(Smi::FromInt(0)), Representation::Integer32()));
 
   Push(map);
   Push(array);
-  Push(array_length);
+  Push(enum_length);
   Push(start_index);
 
   HInstruction* index_cache = AddInstruction(
@@ -4820,8 +4815,9 @@ void HGraphBuilder::VisitVariableProxy(VariableProxy* expr) {
   Variable* variable = expr->var();
   switch (variable->location()) {
     case Variable::UNALLOCATED: {
-      if (variable->mode() == LET || variable->mode() == CONST_HARMONY) {
-        return Bailout("reference to global harmony declared variable");
+      if (IsLexicalVariableMode(variable->mode())) {
+        // TODO(rossberg): should this be an ASSERT?
+        return Bailout("reference to global lexical variable");
       }
       // Handle known global constants like 'undefined' specially to avoid a
       // load from a global cell for them.
@@ -4866,9 +4862,8 @@ void HGraphBuilder::VisitVariableProxy(VariableProxy* expr) {
     case Variable::LOCAL: {
       HValue* value = environment()->Lookup(variable);
       if (value == graph()->GetConstantHole()) {
-        ASSERT(variable->mode() == CONST ||
-               variable->mode() == CONST_HARMONY ||
-               variable->mode() == LET);
+        ASSERT(IsDeclaredVariableMode(variable->mode()) &&
+               variable->mode() != VAR);
         return Bailout("reference to uninitialized variable");
       }
       return ast_context()->ReturnValue(value);
@@ -5223,7 +5218,9 @@ void HGraphBuilder::VisitArrayLiteral(ArrayLiteral* expr) {
     HValue* value = Pop();
     if (!Smi::IsValid(i)) return Bailout("Non-smi key in array literal");
 
-    elements = new(zone()) HLoadElements(literal);
+    // Pass in literal as dummy depedency, since  the receiver always has
+    // elements.
+    elements = new(zone()) HLoadElements(literal, literal);
     AddInstruction(elements);
 
     HValue* key = AddInstruction(
@@ -6191,7 +6188,8 @@ HInstruction* HGraphBuilder::BuildUncheckedMonomorphicElementAccess(
   }
   bool fast_smi_only_elements = map->has_fast_smi_elements();
   bool fast_elements = map->has_fast_object_elements();
-  HInstruction* elements = AddInstruction(new(zone()) HLoadElements(object));
+  HInstruction* elements =
+      AddInstruction(new(zone()) HLoadElements(object, mapcheck));
   if (is_store && (fast_elements || fast_smi_only_elements)) {
     HCheckMaps* check_cow_map = new(zone()) HCheckMaps(
         elements, isolate()->factory()->fixed_array_map(), zone());
@@ -6371,13 +6369,15 @@ HValue* HGraphBuilder::HandlePolymorphicElementAccess(HValue* object,
     return is_store ? NULL : instr;
   }
 
-  AddInstruction(HCheckInstanceType::NewIsSpecObject(object, zone()));
+  HInstruction* checkspec =
+      AddInstruction(HCheckInstanceType::NewIsSpecObject(object, zone()));
   HBasicBlock* join = graph()->CreateBasicBlock();
 
   HInstruction* elements_kind_instr =
       AddInstruction(new(zone()) HElementsKind(object));
   HCompareConstantEqAndBranch* elements_kind_branch = NULL;
-  HInstruction* elements = AddInstruction(new(zone()) HLoadElements(object));
+  HInstruction* elements =
+      AddInstruction(new(zone()) HLoadElements(object, checkspec));
   HLoadExternalArrayPointer* external_elements = NULL;
   HInstruction* checked_key = NULL;
 
@@ -6996,7 +6996,7 @@ bool HGraphBuilder::TryInline(CallKind call_kind,
     if (target_info.isolate()->has_pending_exception()) {
       // Parse or scope error, never optimize this function.
       SetStackOverflow();
-      target_shared->DisableOptimization();
+      target_shared->DisableOptimization("parse/scope error");
     }
     TraceInline(target, caller, "parse failure");
     return false;
@@ -7151,7 +7151,7 @@ bool HGraphBuilder::TryInline(CallKind call_kind,
     // Bail out if the inline function did, as we cannot residualize a call
     // instead.
     TraceInline(target, caller, "inline graph construction failed");
-    target_shared->DisableOptimization();
+    target_shared->DisableOptimization("inlining bailed out");
     inline_bailout_ = true;
     delete target_state;
     return true;
@@ -8120,8 +8120,7 @@ void HGraphBuilder::VisitCountOperation(CountOperation* expr) {
         }
 
         HValue* context = BuildContextChainWalk(var);
-        HStoreContextSlot::Mode mode =
-            (var->mode() == LET || var->mode() == CONST_HARMONY)
+        HStoreContextSlot::Mode mode = IsLexicalVariableMode(var->mode())
             ? HStoreContextSlot::kCheckDeoptimize : HStoreContextSlot::kNoCheck;
         HStoreContextSlot* instr =
             new(zone()) HStoreContextSlot(context, var->index(), mode, after);

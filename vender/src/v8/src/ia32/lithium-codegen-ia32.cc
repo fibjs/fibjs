@@ -99,17 +99,8 @@ void LCodeGen::FinishCode(Handle<Code> code) {
 }
 
 
-void LCodeGen::Abort(const char* format, ...) {
-  if (FLAG_trace_bailout) {
-    SmartArrayPointer<char> name(
-        info()->shared_info()->DebugName()->ToCString());
-    PrintF("Aborting LCodeGen in @\"%s\": ", *name);
-    va_list arguments;
-    va_start(arguments, format);
-    OS::VPrint(format, arguments);
-    va_end(arguments);
-    PrintF("\n");
-  }
+void LCodeGen::Abort(const char* reason) {
+  info()->set_bailout_reason(reason);
   status_ = ABORTED;
 }
 
@@ -1400,6 +1391,13 @@ void LCodeGen::DoFixedArrayBaseLength(
   Register result = ToRegister(instr->result());
   Register array = ToRegister(instr->InputAt(0));
   __ mov(result, FieldOperand(array, FixedArrayBase::kLengthOffset));
+}
+
+
+void LCodeGen::DoMapEnumLength(LMapEnumLength* instr) {
+  Register result = ToRegister(instr->result());
+  Register map = ToRegister(instr->InputAt(0));
+  __ EnumLength(result, map);
 }
 
 
@@ -4107,7 +4105,9 @@ void LCodeGen::DoNumberTagI(LNumberTagI* instr) {
     DeferredNumberTagI(LCodeGen* codegen, LNumberTagI* instr)
         : LDeferredCode(codegen), instr_(instr) { }
     virtual void Generate() {
-      codegen()->DoDeferredNumberTagI(instr_, SIGNED_INT32);
+      codegen()->DoDeferredNumberTagI(instr_,
+                                      instr_->InputAt(0),
+                                      SIGNED_INT32);
     }
     virtual LInstruction* instr() { return instr_; }
    private:
@@ -4131,7 +4131,9 @@ void LCodeGen::DoNumberTagU(LNumberTagU* instr) {
     DeferredNumberTagU(LCodeGen* codegen, LNumberTagU* instr)
         : LDeferredCode(codegen), instr_(instr) { }
     virtual void Generate() {
-      codegen()->DoDeferredNumberTagI(instr_, UNSIGNED_INT32);
+      codegen()->DoDeferredNumberTagI(instr_,
+                                      instr_->InputAt(0),
+                                      UNSIGNED_INT32);
     }
     virtual LInstruction* instr() { return instr_; }
    private:
@@ -4151,9 +4153,10 @@ void LCodeGen::DoNumberTagU(LNumberTagU* instr) {
 
 
 void LCodeGen::DoDeferredNumberTagI(LInstruction* instr,
+                                    LOperand* value,
                                     IntegerSignedness signedness) {
   Label slow;
-  Register reg = ToRegister(instr->InputAt(0));
+  Register reg = ToRegister(value);
   Register tmp = reg.is(eax) ? ecx : eax;
 
   // Preserve the value of all registers.
@@ -4981,8 +4984,8 @@ void LCodeGen::EmitDeepCopy(Handle<JSObject> object,
           Handle<FixedDoubleArray>::cast(elements);
       for (int i = 0; i < elements_length; i++) {
         int64_t value = double_array->get_representation(i);
-        int32_t value_low = value & 0xFFFFFFFF;
-        int32_t value_high = value >> 32;
+        int32_t value_low = static_cast<int32_t>(value & 0xFFFFFFFF);
+        int32_t value_high = static_cast<int32_t>(value >> 32);
         int total_offset =
             elements_offset + FixedDoubleArray::OffsetOfElementAt(i);
         __ mov(FieldOperand(result, total_offset), Immediate(value_low));
@@ -5458,11 +5461,20 @@ void LCodeGen::DoForInPrepareMap(LForInPrepareMap* instr) {
 void LCodeGen::DoForInCacheArray(LForInCacheArray* instr) {
   Register map = ToRegister(instr->map());
   Register result = ToRegister(instr->result());
+  Label load_cache, done;
+  __ EnumLength(result, map);
+  __ cmp(result, Immediate(Smi::FromInt(0)));
+  __ j(not_equal, &load_cache);
+  __ mov(result, isolate()->factory()->empty_fixed_array());
+  __ jmp(&done);
+
+  __ bind(&load_cache);
   __ LoadInstanceDescriptors(map, result);
   __ mov(result,
          FieldOperand(result, DescriptorArray::kEnumCacheOffset));
   __ mov(result,
          FieldOperand(result, FixedArray::SizeFor(instr->idx())));
+  __ bind(&done);
   __ test(result, result);
   DeoptimizeIf(equal, instr->environment());
 }

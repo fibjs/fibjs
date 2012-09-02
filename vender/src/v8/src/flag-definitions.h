@@ -132,7 +132,7 @@ public:
 
 // Flags for language modes and experimental language features.
 DEFINE_bool(use_strict, false, "enforce strict mode")
-DEFINE_bool(es5_readonly, false,
+DEFINE_bool(es5_readonly, true,
             "activate correct semantics for inheriting readonliness")
 DEFINE_bool(es52_globals, true,
             "activate new semantics for global var declarations")
@@ -198,7 +198,7 @@ DEFINE_bool(trap_on_deopt, false, "put a break point before deoptimizing")
 DEFINE_bool(deoptimize_uncommon_cases, true, "deoptimize uncommon cases")
 DEFINE_bool(polymorphic_inlining, true, "polymorphic inlining")
 DEFINE_bool(use_osr, true, "use on-stack replacement")
-DEFINE_bool(array_bounds_checks_elimination, true,
+DEFINE_bool(array_bounds_checks_elimination, false,
             "perform array bounds checks elimination")
 DEFINE_bool(array_index_dehoisting, false,
             "perform array index dehoisting")
@@ -325,8 +325,6 @@ DEFINE_int(min_preparse_length, 1024,
            "minimum length for automatic enable preparsing")
 DEFINE_bool(always_full_compiler, false,
             "try to use the dedicated run-once backend for all code")
-DEFINE_bool(trace_bailout, false,
-            "print reasons for falling back to using the classic V8 backend")
 DEFINE_int(max_opt_count, 10,
            "maximum number of optimization attempts before giving up.")
 

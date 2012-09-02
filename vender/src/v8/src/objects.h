@@ -809,7 +809,6 @@ class MaybeObject BASE_EMBEDDED {
   V(FixedDoubleArray)                          \
   V(Context)                                   \
   V(NativeContext)                             \
-  V(ModuleContext)                             \
   V(ScopeInfo)                                 \
   V(JSFunction)                                \
   V(Code)                                      \
@@ -2516,17 +2515,22 @@ class DescriptorArray: public FixedArray {
   inline Object* GetCallbacksObject(int descriptor_number);
   inline AccessorDescriptor* GetCallbacks(int descriptor_number);
 
+  inline String* GetSortedKey(int descriptor_number);
+  inline int GetSortedKeyIndex(int descriptor_number);
+  inline void SetSortedKey(int pointer, int descriptor_number);
+
   // Accessor for complete descriptor.
   inline void Get(int descriptor_number, Descriptor* desc);
   inline void Set(int descriptor_number,
                   Descriptor* desc,
                   const WhitenessWitness&);
+
   // Append automatically sets the enumeration index. This should only be used
   // to add descriptors in bulk at the end, followed by sorting the descriptor
   // array.
-  inline int Append(Descriptor* desc,
-                    const WhitenessWitness&,
-                    int number_of_set_descriptors);
+  inline void Append(Descriptor* desc,
+                     const WhitenessWitness&,
+                     int number_of_set_descriptors);
 
   // Transfer a complete descriptor from the src descriptor array to this
   // descriptor array.
@@ -2536,7 +2540,8 @@ class DescriptorArray: public FixedArray {
                 const WhitenessWitness&);
 
   // Sort the instance descriptors by the hash codes of their keys.
-  void Sort(const WhitenessWitness&);
+  void Sort();
+  inline void SwapSortedKeys(int first, int second);
 
   // Search the instance descriptors for given name.
   INLINE(int Search(String* name));
@@ -4658,10 +4663,11 @@ class Map: public HeapObject {
   inline int bit_field3();
   inline void set_bit_field3(int value);
 
-  class IsShared:              public BitField<bool, 0, 1> {};
-  class FunctionWithPrototype: public BitField<bool, 1, 1> {};
-  class DictionaryMap:         public BitField<bool, 2, 1> {};
-  class LastAddedBits:         public BitField<int, 3, 11> {};
+  class EnumLengthBits:             public BitField<int,   0, 11> {};
+  class NumberOfOwnDescriptorsBits: public BitField<int,  11, 11> {};
+  class IsShared:                   public BitField<bool, 22,  1> {};
+  class FunctionWithPrototype:      public BitField<bool, 23,  1> {};
+  class DictionaryMap:              public BitField<bool, 24,  1> {};
 
   // Tells whether the object in the prototype property will be used
   // for instances created from this function.  If the prototype
@@ -4886,31 +4892,39 @@ class Map: public HeapObject {
   // Lookup in the map's instance descriptors and fill out the result
   // with the given holder if the name is found. The holder may be
   // NULL when this function is used from the compiler.
-  void LookupDescriptor(JSObject* holder,
-                        String* name,
-                        LookupResult* result);
+  inline void LookupDescriptor(JSObject* holder,
+                               String* name,
+                               LookupResult* result);
 
-  void LookupTransition(JSObject* holder,
-                        String* name,
-                        LookupResult* result);
+  inline void LookupTransition(JSObject* holder,
+                               String* name,
+                               LookupResult* result);
 
   // The size of transition arrays are limited so they do not end up in large
   // object space. Otherwise ClearNonLiveTransitions would leak memory while
   // applying in-place right trimming.
   inline bool CanHaveMoreTransitions();
 
-  void SetLastAdded(int index) {
-    set_bit_field3(LastAddedBits::update(bit_field3(), index));
-  }
-
   int LastAdded() {
-    return LastAddedBits::decode(bit_field3());
+    int number_of_own_descriptors = NumberOfOwnDescriptors();
+    ASSERT(number_of_own_descriptors > 0);
+    return number_of_own_descriptors - 1;
   }
 
-  int NumberOfSetDescriptors() {
-    ASSERT(!instance_descriptors()->IsEmpty());
-    if (LastAdded() == kNoneAdded) return 0;
-    return instance_descriptors()->GetDetails(LastAdded()).index();
+  int NumberOfOwnDescriptors() {
+    return NumberOfOwnDescriptorsBits::decode(bit_field3());
+  }
+
+  void SetNumberOfOwnDescriptors(int number) {
+    set_bit_field3(NumberOfOwnDescriptorsBits::update(bit_field3(), number));
+  }
+
+  int EnumLength() {
+    return EnumLengthBits::decode(bit_field3());
+  }
+
+  void SetEnumLength(int index) {
+    set_bit_field3(EnumLengthBits::update(bit_field3(), index));
   }
 
   MUST_USE_RESULT MaybeObject* RawCopy(int instance_size);
@@ -4919,7 +4933,6 @@ class Map: public HeapObject {
   MUST_USE_RESULT MaybeObject* CopyReplaceDescriptors(
       DescriptorArray* descriptors,
       String* name,
-      int last_added,
       TransitionFlag flag);
   MUST_USE_RESULT MaybeObject* CopyAddDescriptor(Descriptor* descriptor,
                                                  TransitionFlag flag);
@@ -5053,8 +5066,8 @@ class Map: public HeapObject {
 
   static const int kMaxPreAllocatedPropertyFields = 255;
 
-  // Constant for denoting that the LastAdded field was not yet set.
-  static const int kNoneAdded = LastAddedBits::kMax;
+  // Constant for denoting that the Enum Cache field was not yet used.
+  static const int kInvalidEnumCache = EnumLengthBits::kMax;
 
   // Layout description.
   static const int kInstanceSizesOffset = HeapObject::kHeaderSize;
@@ -5130,11 +5143,6 @@ class Map: public HeapObject {
   static const int8_t kMaximumBitField2FastHoleySmiElementValue =
       static_cast<int8_t>((FAST_HOLEY_SMI_ELEMENTS + 1) <<
                           Map::kElementsKindShift) - 1;
-
-  // Bit positions for bit field 3
-  static const int kIsShared = 0;
-  static const int kFunctionWithPrototype = 1;
-  static const int kDictionaryMap = 2;
 
   typedef FixedBodyDescriptor<kPointerFieldsBeginOffset,
                               kPointerFieldsEndOffset,
@@ -5649,7 +5657,7 @@ class SharedFunctionInfo: public HeapObject {
 
   // Disable (further) attempted optimization of all functions sharing this
   // shared function info.
-  void DisableOptimization();
+  void DisableOptimization(const char* reason);
 
   // Lookup the bailout ID and ASSERT that it exists in the non-optimized
   // code, returns whether it asserted (i.e., always true if assertions are
@@ -6202,6 +6210,9 @@ class GlobalObject: public JSObject {
   // [native context]: the natives corresponding to this global object.
   DECL_ACCESSORS(native_context, Context)
 
+  // [global context]: the most recent (i.e. innermost) global context.
+  DECL_ACCESSORS(global_context, Context)
+
   // [global receiver]: the global receiver object of the context
   DECL_ACCESSORS(global_receiver, JSObject)
 
@@ -6231,7 +6242,8 @@ class GlobalObject: public JSObject {
   // Layout description.
   static const int kBuiltinsOffset = JSObject::kHeaderSize;
   static const int kNativeContextOffset = kBuiltinsOffset + kPointerSize;
-  static const int kGlobalReceiverOffset = kNativeContextOffset + kPointerSize;
+  static const int kGlobalContextOffset = kNativeContextOffset + kPointerSize;
+  static const int kGlobalReceiverOffset = kGlobalContextOffset + kPointerSize;
   static const int kHeaderSize = kGlobalReceiverOffset + kPointerSize;
 
  private:
@@ -6676,13 +6688,15 @@ class CompilationCacheTable: public HashTable<CompilationCacheShape,
                                               HashTableKey*> {
  public:
   // Find cached value for a string key, otherwise return null.
-  Object* Lookup(String* src);
+  Object* Lookup(String* src, Context* context);
   Object* LookupEval(String* src,
                      Context* context,
                      LanguageMode language_mode,
                      int scope_position);
   Object* LookupRegExp(String* source, JSRegExp::Flags flags);
-  MUST_USE_RESULT MaybeObject* Put(String* src, Object* value);
+  MUST_USE_RESULT MaybeObject* Put(String* src,
+                                   Context* context,
+                                   Object* value);
   MUST_USE_RESULT MaybeObject* PutEval(String* src,
                                        Context* context,
                                        SharedFunctionInfo* value,

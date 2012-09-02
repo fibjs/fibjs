@@ -97,7 +97,6 @@ Heap::Heap()
       linear_allocation_scope_depth_(0),
       contexts_disposed_(0),
       global_ic_age_(0),
-      flush_monomorphic_ics_(false),
       scan_on_scavenge_pages_(0),
       new_space_(this),
       old_pointer_space_(NULL),
@@ -993,7 +992,7 @@ void Heap::MarkCompact(GCTracer* tracer) {
 
   contexts_disposed_ = 0;
 
-  flush_monomorphic_ics_ = false;
+  isolate_->set_context_exit_happened(false);
 }
 
 
@@ -1003,7 +1002,8 @@ void Heap::MarkCompactPrologue() {
   isolate_->keyed_lookup_cache()->Clear();
   isolate_->context_slot_cache()->Clear();
   isolate_->descriptor_lookup_cache()->Clear();
-  StringSplitCache::Clear(string_split_cache());
+  RegExpResultsCache::Clear(string_split_cache());
+  RegExpResultsCache::Clear(regexp_multiple_cache());
 
   isolate_->compilation_cache()->MarkCompactPrologue();
 
@@ -1742,7 +1742,7 @@ class ScavengingVisitor : public StaticVisitorBase {
       RecordCopiedObject(heap, target);
       HEAP_PROFILE(heap, ObjectMoveEvent(source->address(), target->address()));
       Isolate* isolate = heap->isolate();
-      if (isolate->logger()->is_logging() ||
+      if (isolate->logger()->is_logging_code_events() ||
           CpuProfiler::is_profiling(isolate)) {
         if (target->IsSharedFunctionInfo()) {
           PROFILE(isolate, SharedFunctionInfoMoveEvent(
@@ -2050,9 +2050,8 @@ void Heap::ScavengeObjectSlow(HeapObject** p, HeapObject* object) {
 MaybeObject* Heap::AllocatePartialMap(InstanceType instance_type,
                                       int instance_size) {
   Object* result;
-  { MaybeObject* maybe_result = AllocateRawMap();
-    if (!maybe_result->ToObject(&result)) return maybe_result;
-  }
+  MaybeObject* maybe_result = AllocateRawMap();
+  if (!maybe_result->ToObject(&result)) return maybe_result;
 
   // Map::cast cannot be used due to uninitialized map field.
   reinterpret_cast<Map*>(result)->set_map(raw_unchecked_meta_map());
@@ -2065,8 +2064,7 @@ MaybeObject* Heap::AllocatePartialMap(InstanceType instance_type,
   reinterpret_cast<Map*>(result)->set_unused_property_fields(0);
   reinterpret_cast<Map*>(result)->set_bit_field(0);
   reinterpret_cast<Map*>(result)->set_bit_field2(0);
-  reinterpret_cast<Map*>(result)->set_bit_field3(
-      Map::LastAddedBits::encode(Map::kNoneAdded));
+  reinterpret_cast<Map*>(result)->set_bit_field3(0);
   return result;
 }
 
@@ -2093,7 +2091,8 @@ MaybeObject* Heap::AllocateMap(InstanceType instance_type,
   map->set_unused_property_fields(0);
   map->set_bit_field(0);
   map->set_bit_field2(1 << Map::kIsExtensible);
-  map->set_bit_field3(Map::LastAddedBits::encode(Map::kNoneAdded));
+  int bit_field3 = Map::EnumLengthBits::encode(Map::kInvalidEnumCache);
+  map->set_bit_field3(bit_field3);
   map->set_elements_kind(elements_kind);
 
   // If the map object is aligned fill the padding area with Smi 0 objects.
@@ -2441,6 +2440,12 @@ bool Heap::CreateInitialMaps() {
         AllocateMap(FIXED_ARRAY_TYPE, kVariableSizeSentinel);
     if (!maybe_obj->ToObject(&obj)) return false;
   }
+  set_global_context_map(Map::cast(obj));
+
+  { MaybeObject* maybe_obj =
+        AllocateMap(FIXED_ARRAY_TYPE, kVariableSizeSentinel);
+    if (!maybe_obj->ToObject(&obj)) return false;
+  }
   Map* native_context_map = Map::cast(obj);
   native_context_map->set_dictionary_map(true);
   native_context_map->set_visitor_id(StaticVisitorBase::kVisitNativeContext);
@@ -2757,11 +2762,17 @@ bool Heap::CreateInitialObjects() {
   set_single_character_string_cache(FixedArray::cast(obj));
 
   // Allocate cache for string split.
-  { MaybeObject* maybe_obj =
-        AllocateFixedArray(StringSplitCache::kStringSplitCacheSize, TENURED);
+  { MaybeObject* maybe_obj = AllocateFixedArray(
+      RegExpResultsCache::kRegExpResultsCacheSize, TENURED);
     if (!maybe_obj->ToObject(&obj)) return false;
   }
   set_string_split_cache(FixedArray::cast(obj));
+
+  { MaybeObject* maybe_obj = AllocateFixedArray(
+      RegExpResultsCache::kRegExpResultsCacheSize, TENURED);
+    if (!maybe_obj->ToObject(&obj)) return false;
+  }
+  set_regexp_multiple_cache(FixedArray::cast(obj));
 
   // Allocate cache for external strings pointing to native source code.
   { MaybeObject* maybe_obj = AllocateFixedArray(Natives::GetBuiltinsCount());
@@ -2788,70 +2799,98 @@ bool Heap::CreateInitialObjects() {
 }
 
 
-Object* StringSplitCache::Lookup(
-    FixedArray* cache, String* string, String* pattern) {
-  if (!string->IsSymbol() || !pattern->IsSymbol()) return Smi::FromInt(0);
-  uint32_t hash = string->Hash();
-  uint32_t index = ((hash & (kStringSplitCacheSize - 1)) &
+Object* RegExpResultsCache::Lookup(Heap* heap,
+                                   String* key_string,
+                                   Object* key_pattern,
+                                   ResultsCacheType type) {
+  FixedArray* cache;
+  if (!key_string->IsSymbol()) return Smi::FromInt(0);
+  if (type == STRING_SPLIT_SUBSTRINGS) {
+    ASSERT(key_pattern->IsString());
+    if (!key_pattern->IsSymbol()) return Smi::FromInt(0);
+    cache = heap->string_split_cache();
+  } else {
+    ASSERT(type == REGEXP_MULTIPLE_INDICES);
+    ASSERT(key_pattern->IsFixedArray());
+    cache = heap->regexp_multiple_cache();
+  }
+
+  uint32_t hash = key_string->Hash();
+  uint32_t index = ((hash & (kRegExpResultsCacheSize - 1)) &
       ~(kArrayEntriesPerCacheEntry - 1));
-  if (cache->get(index + kStringOffset) == string &&
-      cache->get(index + kPatternOffset) == pattern) {
+  if (cache->get(index + kStringOffset) == key_string &&
+      cache->get(index + kPatternOffset) == key_pattern) {
     return cache->get(index + kArrayOffset);
   }
-  index = ((index + kArrayEntriesPerCacheEntry) & (kStringSplitCacheSize - 1));
-  if (cache->get(index + kStringOffset) == string &&
-      cache->get(index + kPatternOffset) == pattern) {
+  index =
+      ((index + kArrayEntriesPerCacheEntry) & (kRegExpResultsCacheSize - 1));
+  if (cache->get(index + kStringOffset) == key_string &&
+      cache->get(index + kPatternOffset) == key_pattern) {
     return cache->get(index + kArrayOffset);
   }
   return Smi::FromInt(0);
 }
 
 
-void StringSplitCache::Enter(Heap* heap,
-                             FixedArray* cache,
-                             String* string,
-                             String* pattern,
-                             FixedArray* array) {
-  if (!string->IsSymbol() || !pattern->IsSymbol()) return;
-  uint32_t hash = string->Hash();
-  uint32_t index = ((hash & (kStringSplitCacheSize - 1)) &
+void RegExpResultsCache::Enter(Heap* heap,
+                               String* key_string,
+                               Object* key_pattern,
+                               FixedArray* value_array,
+                               ResultsCacheType type) {
+  FixedArray* cache;
+  if (!key_string->IsSymbol()) return;
+  if (type == STRING_SPLIT_SUBSTRINGS) {
+    ASSERT(key_pattern->IsString());
+    if (!key_pattern->IsSymbol()) return;
+    cache = heap->string_split_cache();
+  } else {
+    ASSERT(type == REGEXP_MULTIPLE_INDICES);
+    ASSERT(key_pattern->IsFixedArray());
+    cache = heap->regexp_multiple_cache();
+  }
+
+  uint32_t hash = key_string->Hash();
+  uint32_t index = ((hash & (kRegExpResultsCacheSize - 1)) &
       ~(kArrayEntriesPerCacheEntry - 1));
   if (cache->get(index + kStringOffset) == Smi::FromInt(0)) {
-    cache->set(index + kStringOffset, string);
-    cache->set(index + kPatternOffset, pattern);
-    cache->set(index + kArrayOffset, array);
+    cache->set(index + kStringOffset, key_string);
+    cache->set(index + kPatternOffset, key_pattern);
+    cache->set(index + kArrayOffset, value_array);
   } else {
     uint32_t index2 =
-        ((index + kArrayEntriesPerCacheEntry) & (kStringSplitCacheSize - 1));
+        ((index + kArrayEntriesPerCacheEntry) & (kRegExpResultsCacheSize - 1));
     if (cache->get(index2 + kStringOffset) == Smi::FromInt(0)) {
-      cache->set(index2 + kStringOffset, string);
-      cache->set(index2 + kPatternOffset, pattern);
-      cache->set(index2 + kArrayOffset, array);
+      cache->set(index2 + kStringOffset, key_string);
+      cache->set(index2 + kPatternOffset, key_pattern);
+      cache->set(index2 + kArrayOffset, value_array);
     } else {
       cache->set(index2 + kStringOffset, Smi::FromInt(0));
       cache->set(index2 + kPatternOffset, Smi::FromInt(0));
       cache->set(index2 + kArrayOffset, Smi::FromInt(0));
-      cache->set(index + kStringOffset, string);
-      cache->set(index + kPatternOffset, pattern);
-      cache->set(index + kArrayOffset, array);
+      cache->set(index + kStringOffset, key_string);
+      cache->set(index + kPatternOffset, key_pattern);
+      cache->set(index + kArrayOffset, value_array);
     }
   }
-  if (array->length() < 100) {  // Limit how many new symbols we want to make.
-    for (int i = 0; i < array->length(); i++) {
-      String* str = String::cast(array->get(i));
+  // If the array is a reasonably short list of substrings, convert it into a
+  // list of symbols.
+  if (type == STRING_SPLIT_SUBSTRINGS && value_array->length() < 100) {
+    for (int i = 0; i < value_array->length(); i++) {
+      String* str = String::cast(value_array->get(i));
       Object* symbol;
       MaybeObject* maybe_symbol = heap->LookupSymbol(str);
       if (maybe_symbol->ToObject(&symbol)) {
-        array->set(i, symbol);
+        value_array->set(i, symbol);
       }
     }
   }
-  array->set_map_no_write_barrier(heap->fixed_cow_array_map());
+  // Convert backing store to a copy-on-write array.
+  value_array->set_map_no_write_barrier(heap->fixed_cow_array_map());
 }
 
 
-void StringSplitCache::Clear(FixedArray* cache) {
-  for (int i = 0; i < kStringSplitCacheSize; i++) {
+void RegExpResultsCache::Clear(FixedArray* cache) {
+  for (int i = 0; i < kRegExpResultsCacheSize; i++) {
     cache->set(i, Smi::FromInt(0));
   }
 }
@@ -3884,7 +3923,7 @@ MaybeObject* Heap::AllocateInitialMap(JSFunction* fun) {
         FieldDescriptor field(name, i, NONE, i + 1);
         descriptors->Set(i, &field, witness);
       }
-      descriptors->Sort(witness);
+      descriptors->Sort();
 
       // The descriptors may contain duplicates because the compiler does not
       // guarantee the uniqueness of property names (it would have required
@@ -4156,8 +4195,9 @@ MaybeObject* Heap::AllocateGlobalObject(JSFunction* constructor) {
   for (int i = 0; i < descs->number_of_descriptors(); i++) {
     PropertyDetails details = descs->GetDetails(i);
     ASSERT(details.type() == CALLBACKS);  // Only accessors are expected.
-    PropertyDetails d =
-        PropertyDetails(details.attributes(), CALLBACKS, details.index());
+    PropertyDetails d = PropertyDetails(details.attributes(),
+                                        CALLBACKS,
+                                        details.descriptor_index());
     Object* value = descs->GetCallbacksObject(i);
     MaybeObject* maybe_value = AllocateJSGlobalPropertyCell(value);
     if (!maybe_value->ToObject(&value)) return maybe_value;
@@ -4902,6 +4942,25 @@ MaybeObject* Heap::AllocateNativeContext() {
   ASSERT(context->IsNativeContext());
   ASSERT(result->IsContext());
   return result;
+}
+
+
+MaybeObject* Heap::AllocateGlobalContext(JSFunction* function,
+                                         ScopeInfo* scope_info) {
+  Object* result;
+  { MaybeObject* maybe_result =
+        AllocateFixedArray(scope_info->ContextLength(), TENURED);
+    if (!maybe_result->ToObject(&result)) return maybe_result;
+  }
+  Context* context = reinterpret_cast<Context*>(result);
+  context->set_map_no_write_barrier(global_context_map());
+  context->set_closure(function);
+  context->set_previous(function->context());
+  context->set_extension(scope_info);
+  context->set_global_object(function->context()->global_object());
+  ASSERT(context->IsGlobalContext());
+  ASSERT(result->IsContext());
+  return context;
 }
 
 

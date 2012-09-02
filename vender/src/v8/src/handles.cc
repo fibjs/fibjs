@@ -701,69 +701,74 @@ Handle<JSArray> GetKeysFor(Handle<JSReceiver> object, bool* threw) {
 
 Handle<FixedArray> GetEnumPropertyKeys(Handle<JSObject> object,
                                        bool cache_result) {
-  int index = 0;
   Isolate* isolate = object->GetIsolate();
   if (object->HasFastProperties()) {
     if (object->map()->instance_descriptors()->HasEnumCache()) {
-      isolate->counters()->enum_cache_hits()->Increment();
+      int own_property_count = object->map()->EnumLength();
+
+      // Mark that we have an enum cache if we are allowed to cache it.
+      if (cache_result && own_property_count == Map::kInvalidEnumCache) {
+        int num_enum = object->map()->NumberOfDescribedProperties(DONT_ENUM);
+        object->map()->SetEnumLength(num_enum);
+      }
+
       DescriptorArray* desc = object->map()->instance_descriptors();
-      return Handle<FixedArray>(FixedArray::cast(desc->GetEnumCache()),
-                                isolate);
+      Handle<FixedArray> keys(FixedArray::cast(desc->GetEnumCache()), isolate);
+
+      isolate->counters()->enum_cache_hits()->Increment();
+      return keys;
     }
-    isolate->counters()->enum_cache_misses()->Increment();
+
     Handle<Map> map(object->map());
-    int num_enum = object->NumberOfLocalProperties(DONT_ENUM);
+
+    if (map->instance_descriptors()->IsEmpty()) {
+      isolate->counters()->enum_cache_hits()->Increment();
+      if (cache_result) map->SetEnumLength(0);
+      return isolate->factory()->empty_fixed_array();
+    }
+
+    isolate->counters()->enum_cache_misses()->Increment();
+
+    int num_enum = map->NumberOfDescribedProperties(DONT_ENUM);
 
     Handle<FixedArray> storage = isolate->factory()->NewFixedArray(num_enum);
-    Handle<FixedArray> sort_array = isolate->factory()->NewFixedArray(num_enum);
-
-    Handle<FixedArray> indices;
-    Handle<FixedArray> sort_array2;
-
-    if (cache_result) {
-      indices = isolate->factory()->NewFixedArray(num_enum);
-      sort_array2 = isolate->factory()->NewFixedArray(num_enum);
-    }
+    Handle<FixedArray> indices = isolate->factory()->NewFixedArray(num_enum);
 
     Handle<DescriptorArray> descs =
         Handle<DescriptorArray>(object->map()->instance_descriptors(), isolate);
 
+    int index = 0;
     for (int i = 0; i < descs->number_of_descriptors(); i++) {
-      if (!descs->GetDetails(i).IsDontEnum()) {
+      PropertyDetails details = descs->GetDetails(i);
+      if (!details.IsDontEnum()) {
         storage->set(index, descs->GetKey(i));
-        PropertyDetails details = descs->GetDetails(i);
-        sort_array->set(index, Smi::FromInt(details.index()));
         if (!indices.is_null()) {
           if (details.type() != FIELD) {
             indices = Handle<FixedArray>();
-            sort_array2 = Handle<FixedArray>();
           } else {
             int field_index = Descriptor::IndexFromValue(descs->GetValue(i));
             if (field_index >= map->inobject_properties()) {
               field_index = -(field_index - map->inobject_properties() + 1);
             }
             indices->set(index, Smi::FromInt(field_index));
-            sort_array2->set(index, Smi::FromInt(details.index()));
           }
         }
         index++;
       }
     }
-    storage->SortPairs(*sort_array, sort_array->length());
-    if (!indices.is_null()) {
-      indices->SortPairs(*sort_array2, sort_array2->length());
-    }
+    ASSERT(index == storage->length());
+
+    Handle<FixedArray> bridge_storage =
+        isolate->factory()->NewFixedArray(
+            DescriptorArray::kEnumCacheBridgeLength);
+    DescriptorArray* desc = object->map()->instance_descriptors();
+    desc->SetEnumCache(*bridge_storage,
+                       *storage,
+                       indices.is_null() ? Object::cast(Smi::FromInt(0))
+                                         : Object::cast(*indices));
     if (cache_result) {
-      Handle<FixedArray> bridge_storage =
-          isolate->factory()->NewFixedArray(
-              DescriptorArray::kEnumCacheBridgeLength);
-      DescriptorArray* desc = object->map()->instance_descriptors();
-      desc->SetEnumCache(*bridge_storage,
-                         *storage,
-                         indices.is_null() ? Object::cast(Smi::FromInt(0))
-                                           : Object::cast(*indices));
+      object->map()->SetEnumLength(index);
     }
-    ASSERT(storage->length() == index);
     return storage;
   } else {
     int num_enum = object->NumberOfLocalProperties(DONT_ENUM);

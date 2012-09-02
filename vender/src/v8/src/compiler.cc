@@ -98,6 +98,7 @@ CompilationInfo::CompilationInfo(Handle<JSFunction> closure, Zone* zone)
       script_(Handle<Script>(Script::cast(shared_info_->script()))),
       extension_(NULL),
       pre_parse_data_(NULL),
+      context_(closure->context()),
       osr_ast_id_(BailoutId::None()),
       zone_(zone),
       deferred_handles_(NULL) {
@@ -242,6 +243,7 @@ OptimizingCompiler::Status OptimizingCompiler::CreateGraph() {
   const int kMaxOptCount =
       FLAG_deopt_every_n_times == 0 ? FLAG_max_opt_count : 1000;
   if (info()->shared_info()->opt_count() > kMaxOptCount) {
+    info()->set_bailout_reason("optimized too many times");
     return AbortOptimization();
   }
 
@@ -253,11 +255,16 @@ OptimizingCompiler::Status OptimizingCompiler::CreateGraph() {
   // The encoding is as a signed value, with parameters and receiver using
   // the negative indices and locals the non-negative ones.
   const int parameter_limit = -LUnallocated::kMinFixedIndex;
-  const int locals_limit = LUnallocated::kMaxFixedIndex;
   Scope* scope = info()->scope();
-  if ((scope->num_parameters() + 1) > parameter_limit ||
-      (!info()->osr_ast_id().IsNone() &&
-       scope->num_parameters() + 1 + scope->num_stack_slots() > locals_limit)) {
+  if ((scope->num_parameters() + 1) > parameter_limit) {
+    info()->set_bailout_reason("too many parameters");
+    return AbortOptimization();
+  }
+
+  const int locals_limit = LUnallocated::kMaxFixedIndex;
+  if (!info()->osr_ast_id().IsNone() &&
+      scope->num_parameters() + 1 + scope->num_stack_slots() > locals_limit) {
+    info()->set_bailout_reason("too many parameters/locals");
     return AbortOptimization();
   }
 
@@ -286,6 +293,7 @@ OptimizingCompiler::Status OptimizingCompiler::CreateGraph() {
     // optimized code.
     unoptimized.SetFunction(info()->function());
     unoptimized.SetScope(info()->scope());
+    unoptimized.SetContext(info()->context());
     if (should_recompile) unoptimized.EnableDeoptimizationSupport();
     bool succeeded = FullCodeGenerator::MakeCode(&unoptimized);
     if (should_recompile) {
@@ -367,7 +375,10 @@ OptimizingCompiler::Status OptimizingCompiler::GenerateAndInstallCode() {
   ASSERT(chunk_ != NULL);
   ASSERT(graph_ != NULL);
   Handle<Code> optimized_code = chunk_->Codegen();
-  if (optimized_code.is_null()) return AbortOptimization();
+  if (optimized_code.is_null()) {
+    info()->set_bailout_reason("code generation failed");
+    return AbortOptimization();
+  }
   info()->SetCode(optimized_code);
   RecordOptimizationStats();
   return SetLastStatus(SUCCEEDED);
@@ -532,6 +543,7 @@ Handle<SharedFunctionInfo> Compiler::Compile(Handle<String> source,
                                              Handle<Object> script_name,
                                              int line_offset,
                                              int column_offset,
+                                             Handle<Context> context,
                                              v8::Extension* extension,
                                              ScriptDataImpl* pre_data,
                                              Handle<Object> script_data,
@@ -552,7 +564,8 @@ Handle<SharedFunctionInfo> Compiler::Compile(Handle<String> source,
     result = compilation_cache->LookupScript(source,
                                              script_name,
                                              line_offset,
-                                             column_offset);
+                                             column_offset,
+                                             context);
   }
 
   if (result.is_null()) {
@@ -584,12 +597,13 @@ Handle<SharedFunctionInfo> Compiler::Compile(Handle<String> source,
     info.MarkAsGlobal();
     info.SetExtension(extension);
     info.SetPreParseData(pre_data);
+    info.SetContext(context);
     if (FLAG_use_strict) {
       info.SetLanguageMode(FLAG_harmony_scoping ? EXTENDED_MODE : STRICT_MODE);
     }
     result = MakeFunctionInfo(&info);
     if (extension == NULL && !result.is_null() && !result->dont_cache()) {
-      compilation_cache->PutScript(source, result);
+      compilation_cache->PutScript(source, context, result);
     }
   } else {
     if (result->ic_age() != HEAP->global_ic_age()) {
@@ -632,12 +646,12 @@ Handle<SharedFunctionInfo> Compiler::CompileEval(Handle<String> source,
     info.MarkAsEval();
     if (is_global) info.MarkAsGlobal();
     info.SetLanguageMode(language_mode);
-    info.SetCallingContext(context);
+    info.SetContext(context);
     result = MakeFunctionInfo(&info);
     if (!result.is_null()) {
       // Explicitly disable optimization for eval code. We're not yet prepared
       // to handle eval-code in the optimizing compiler.
-      result->DisableOptimization();
+      result->DisableOptimization("eval");
 
       // If caller is strict mode, the result must be in strict mode or
       // extended mode as well, but not the other way around. Consider:
@@ -880,6 +894,8 @@ void Compiler::InstallOptimizedCode(OptimizingCompiler* optimizing_compiler) {
   // the unoptimized code.
   OptimizingCompiler::Status status = optimizing_compiler->last_status();
   if (status != OptimizingCompiler::SUCCEEDED) {
+    optimizing_compiler->info()->set_bailout_reason(
+        "failed/bailed out last time");
     status = optimizing_compiler->AbortOptimization();
   } else {
     status = optimizing_compiler->GenerateAndInstallCode();
@@ -1003,7 +1019,7 @@ void Compiler::RecordFunctionCompilation(Logger::LogEventsAndTags tag,
   // Log the code generation. If source information is available include
   // script name and line number. Check explicitly whether logging is
   // enabled as finding the line number is not free.
-  if (info->isolate()->logger()->is_logging() ||
+  if (info->isolate()->logger()->is_logging_code_events() ||
       CpuProfiler::is_profiling(info->isolate())) {
     Handle<Script> script = info->script();
     Handle<Code> code = info->code();
