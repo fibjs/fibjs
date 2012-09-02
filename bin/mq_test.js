@@ -157,17 +157,29 @@ assert.equal(7, n);
 
 // ------------- routing handler
 
-function params(v) {
+function params(v, p1, p2) {
 	assert.equal(v.params.length, 2);
 	assert.equal(v.params[0], "123");
 	assert.equal(v.params[1], "456");
+	assert.equal(p1, "123");
+	assert.equal(p2, "456");
+	return p1 + ',' + p2;
+}
+
+function params1(v, p1, p2) {
+	v.value = '';
+	return {
+		p1 : p1,
+		p2 : p2
+	};
 }
 
 var r = mq.routing({
 	'^a$' : hdlr1,
 	'^c$' : hdlr3,
 	'^b$' : mq.jsHandler(hdlr2),
-	'^params/(([0-9]*)\.([0-9]*)\.html)$' : params
+	'^params/(([0-9]*)\.([0-9]*)\.html)$' : params,
+	'^params1/(([0-9]*)\.([0-9]*)\.html)$' : params1
 });
 
 n = 0;
@@ -187,6 +199,12 @@ assert.equal(4, n);
 
 m.value = 'params/123.456.html';
 mq.invoke(r, m);
+assert.equal('123,456', m.result);
+
+m.value = 'params1/123.456.html';
+mq.invoke(r, m);
+assert.equal('123', m.result['p1']);
+assert.equal('456', m.result['p2']);
 
 n = 0;
 m.value = 'd';
