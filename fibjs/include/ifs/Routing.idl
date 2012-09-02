@@ -1,6 +1,19 @@
 /*! @brief 消息处理器路由对象
  *
- * 路由对象根据设定的规则匹配消息，将消息传递给符合规则的第一个处理器。后加入的路由规则优先匹配。
+ * 路由对象根据设定的规则匹配消息，将消息传递给符合规则的第一个处理器。后加入的路由规则优先匹配。创建方法：
+ * @code
+ * var routing = mq.routing({
+ *   "^/func1(/.*)$": func1,
+ *   "^/func2(/.*)$": func2
+ * });
+ * @endcode
+ * 正则表达式匹配的项目修改消息的 value 属性，子项目存入消息的 params 属性。例如：
+ * @code
+ * var routing = mq.routing({
+ *   "^/func1(/([0-9]+)/([0-9]+)\.html)$": func1,
+ * });
+ * @endcode
+ * 匹配消息 "/func1/123/456.html" 后，value == "/123/456.html"，params == ["123", "456"];
  */
 class Routing: Handler
 {
