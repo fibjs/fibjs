@@ -14,14 +14,13 @@
 namespace fibjs
 {
 
-result_t HttpHandler::invoke(object_base* v,
-		obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac)
+result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
+		exlib::AsyncEvent* ac)
 {
 	class asyncInvoke: public asyncState
 	{
 	public:
-		asyncInvoke(HttpHandler* pThis, Stream_base* stm,
-				exlib::AsyncEvent* ac) :
+		asyncInvoke(HttpHandler* pThis, Stream_base* stm, exlib::AsyncEvent* ac) :
 				asyncState(ac), m_pThis(pThis), m_stm(stm)
 		{
 			m_stmBuffered = new BufferedStream(stm);
@@ -50,6 +49,16 @@ result_t HttpHandler::invoke(object_base* v,
 		{
 			asyncInvoke* pThis = (asyncInvoke*) pState;
 
+			std::string strProtocol;
+
+			pThis->m_req->get_protocol(strProtocol);
+			pThis->m_rep->set_protocol(strProtocol.c_str());
+
+			bool bKeepAlive;
+
+			pThis->m_req->get_keepAlive(bKeepAlive);
+			pThis->m_rep->set_keepAlive(bKeepAlive);
+
 			pThis->set(send);
 			return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_req, pThis);
 		}
@@ -57,6 +66,23 @@ result_t HttpHandler::invoke(object_base* v,
 		static int send(asyncState* pState, int n)
 		{
 			asyncInvoke* pThis = (asyncInvoke*) pState;
+			int32_t s;
+			bool t = false;
+
+			pThis->m_rep->get_status(s);
+			if (s == 200)
+			{
+				pThis->m_rep->hasHeader("Last-Modified", t);
+				if (!t)
+				{
+					Variant v;
+
+					v = "private";
+					pThis->m_rep->addHeader("Cache-Control", v);
+					v = "-1";
+					pThis->m_rep->addHeader("Expires", v);
+				}
+			}
 
 			pThis->set(read);
 			return pThis->m_rep->sendTo(pThis->m_stm, pThis);

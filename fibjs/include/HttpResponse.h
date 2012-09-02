@@ -18,13 +18,15 @@ class HttpResponse: public HttpResponse_base
 {
 
 public:
-	HttpResponse()
+	HttpResponse() :
+			m_message(true)
 	{
 		clear();
 		extMemory(4096);
 	}
 
-	EVENT_SUPPORT();
+EVENT_SUPPORT()
+	;
 
 public:
 	// Message_base
@@ -45,11 +47,17 @@ public:
 	virtual result_t get_headers(obj_ptr<HttpCollection_base>& retVal);
 	virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal);
 	virtual result_t set_body(SeekableStream_base* newVal);
-	virtual result_t get_contentType(std::string& retVal);
-	virtual result_t set_contentType(const char* newVal);
 	virtual result_t get_contentLength(int64_t& retVal);
 	virtual result_t get_keepAlive(bool& retVal);
 	virtual result_t set_keepAlive(bool newVal);
+	virtual result_t hasHeader(const char* name, bool& retVal);
+	virtual result_t firstHeader(const char* name, Variant& retVal);
+	virtual result_t allHeader(const char* name, v8::Handle<v8::Array>& retVal);
+	virtual result_t addHeader(v8::Handle<v8::Object> map);
+	virtual result_t addHeader(const char* name, Variant value);
+	virtual result_t setHeader(v8::Handle<v8::Object> map);
+	virtual result_t setHeader(const char* name, Variant value);
+	virtual result_t removeHeader(const char* name);
 
 public:
 	// HttpResponse_base

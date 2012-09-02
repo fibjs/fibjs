@@ -42,16 +42,6 @@ result_t HttpResponse::set_body(SeekableStream_base* newVal)
 	return m_message.set_body(newVal);
 }
 
-result_t HttpResponse::get_contentType(std::string& retVal)
-{
-	return m_message.get_contentType(retVal);
-}
-
-result_t HttpResponse::set_contentType(const char* newVal)
-{
-	return m_message.set_contentType(newVal);
-}
-
 result_t HttpResponse::get_contentLength(int64_t& retVal)
 {
 	return m_message.get_contentLength(retVal);
@@ -65,6 +55,47 @@ result_t HttpResponse::get_keepAlive(bool& retVal)
 result_t HttpResponse::set_keepAlive(bool newVal)
 {
 	return m_message.set_keepAlive(newVal);
+}
+
+result_t HttpResponse::hasHeader(const char* name, bool& retVal)
+{
+	return m_message.hasHeader(name, retVal);
+}
+
+result_t HttpResponse::firstHeader(const char* name, Variant& retVal)
+{
+	return m_message.firstHeader(name, retVal);
+}
+
+result_t HttpResponse::allHeader(const char* name,
+		v8::Handle<v8::Array>& retVal)
+{
+	return m_message.allHeader(name, retVal);
+}
+
+result_t HttpResponse::addHeader(v8::Handle<v8::Object> map)
+{
+	return m_message.addHeader(map);
+}
+
+result_t HttpResponse::addHeader(const char* name, Variant value)
+{
+	return m_message.addHeader(name, value);
+}
+
+result_t HttpResponse::setHeader(v8::Handle<v8::Object> map)
+{
+	return m_message.setHeader(map);
+}
+
+result_t HttpResponse::setHeader(const char* name, Variant value)
+{
+	return m_message.setHeader(name, value);
+}
+
+result_t HttpResponse::removeHeader(const char* name)
+{
+	return m_message.removeHeader(name);
 }
 
 result_t HttpResponse::get_value(std::string& retVal)

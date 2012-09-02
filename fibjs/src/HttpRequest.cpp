@@ -44,16 +44,6 @@ result_t HttpRequest::set_body(SeekableStream_base* newVal)
 	return m_message.set_body(newVal);
 }
 
-result_t HttpRequest::get_contentType(std::string& retVal)
-{
-	return m_message.get_contentType(retVal);
-}
-
-result_t HttpRequest::set_contentType(const char* newVal)
-{
-	return m_message.set_contentType(newVal);
-}
-
 result_t HttpRequest::get_contentLength(int64_t& retVal)
 {
 	return m_message.get_contentLength(retVal);
@@ -67,6 +57,46 @@ result_t HttpRequest::get_keepAlive(bool& retVal)
 result_t HttpRequest::set_keepAlive(bool newVal)
 {
 	return m_message.set_keepAlive(newVal);
+}
+
+result_t HttpRequest::hasHeader(const char* name, bool& retVal)
+{
+	return m_message.hasHeader(name, retVal);
+}
+
+result_t HttpRequest::firstHeader(const char* name, Variant& retVal)
+{
+	return m_message.firstHeader(name, retVal);
+}
+
+result_t HttpRequest::allHeader(const char* name, v8::Handle<v8::Array>& retVal)
+{
+	return m_message.allHeader(name, retVal);
+}
+
+result_t HttpRequest::addHeader(v8::Handle<v8::Object> map)
+{
+	return m_message.addHeader(map);
+}
+
+result_t HttpRequest::addHeader(const char* name, Variant value)
+{
+	return m_message.addHeader(name, value);
+}
+
+result_t HttpRequest::setHeader(v8::Handle<v8::Object> map)
+{
+	return m_message.setHeader(map);
+}
+
+result_t HttpRequest::setHeader(const char* name, Variant value)
+{
+	return m_message.setHeader(name, value);
+}
+
+result_t HttpRequest::removeHeader(const char* name)
+{
+	return m_message.removeHeader(name);
 }
 
 result_t HttpRequest::get_value(std::string& retVal)
@@ -197,25 +227,8 @@ result_t HttpRequest::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 			if (hr < 0)
 				return hr;
 
-			pThis->set(ok);
+			pThis->done(0);
 			return pThis->m_pThis->m_message.readFrom(pThis->m_stm, pThis);
-		}
-
-		static int ok(asyncState* pState, int n)
-		{
-			asyncReadFrom* pThis = (asyncReadFrom*) pState;
-
-			std::string strProtocol;
-
-			pThis->m_pThis->get_protocol(strProtocol);
-			pThis->m_pThis->m_response->set_protocol(strProtocol.c_str());
-
-			bool bKeepAlive;
-
-			pThis->m_pThis->get_keepAlive(bKeepAlive);
-			pThis->m_pThis->m_response->set_keepAlive(bKeepAlive);
-
-			return pThis->done(0);
 		}
 
 	public:
@@ -372,8 +385,10 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
 		{
 			std::string strType;
 			bool bUpload = false;
+			Variant v;
 
-			get_contentType(strType);
+			firstHeader("Content-Type", v);
+			strType = v.string();
 
 			if (!qstricmp(strType.c_str(), "multipart/form-data;", 20))
 				bUpload = true;

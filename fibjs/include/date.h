@@ -74,6 +74,16 @@ public:
 		return v8::Date::New(d);
 	}
 
+	bool empty() const
+	{
+		return d == 0;
+	}
+
+	double diff(date_t d1)
+	{
+		return d - d1.d;
+	}
+
 	void parse(const char* str, int len = -1);
 	void toString(std::string& retVal);
 

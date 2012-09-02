@@ -110,10 +110,10 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				asyncState(ac), m_pThis(pThis), m_req(req)
 		{
 			req->get_response(m_rep);
-			set(open);
+			set(start);
 		}
 
-		static int open(asyncState* pState, int n)
+		static int start(asyncState* pState, int n)
 		{
 			asyncInvoke* pThis = (asyncInvoke*) pState;
 			std::string value;
@@ -124,23 +124,21 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			path_base::normalize((pThis->m_pThis->m_root + value).c_str(),
 					pThis->m_path);
 
-			pThis->set(opened);
+			pThis->set(open);
 			return io_base::open(pThis->m_path.c_str(), "r", pThis->m_file,
 					pThis);
 		}
 
-		static int opened(asyncState* pState, int n)
+		static int open(asyncState* pState, int n)
 		{
 			asyncInvoke* pThis = (asyncInvoke*) pState;
 			std::string ext;
 
-			obj_ptr<SeekableStream_base> file = pThis->m_file;
-
-			pThis->m_rep->set_body(file);
 			path_base::extname(pThis->m_path.c_str(), ext);
 
 			if (ext.length() > 0)
 			{
+				Variant v;
 				const char* pKey = ext.c_str() + 1;
 				const char** pMimeType = (const char**) bsearch(&pKey,
 						&s_mimeTypes, sizeof(s_mimeTypes) / sizeof(s_defType),
@@ -149,8 +147,41 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				if (!pMimeType)
 					pMimeType = s_defType;
 
-				pThis->m_rep->set_contentType(pMimeType[1]);
+				v = pMimeType[1];
+				pThis->m_rep->addHeader("Content-Type", v);
 			}
+
+			pThis->set(stat);
+			return pThis->m_file->stat(pThis->m_stat, pThis);
+		}
+
+		static int stat(asyncState* pState, int n)
+		{
+			asyncInvoke* pThis = (asyncInvoke*) pState;
+			date_t d, d1;
+			std::string str;
+			Variant v;
+
+			pThis->m_stat->get_mtime(d);
+
+			if (pThis->m_req->firstHeader("If-Modified-Since",
+					v) != CALL_RETURN_NULL)
+			{
+				str = v.string();
+				d1.parse(str.c_str(), str.length());
+
+				if (abs(d.diff(d1)) < 1000)
+				{
+					pThis->m_rep->set_status(304);
+					return pThis->done(CALL_RETURN_NULL);
+				}
+			}
+
+			d.toString(str);
+			v = str;
+
+			pThis->m_rep->addHeader("Last-Modified", v);
+			pThis->m_rep->set_body(pThis->m_file);
 
 			return pThis->done(CALL_RETURN_NULL);
 		}
@@ -166,6 +197,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		obj_ptr<HttpRequest_base> m_req;
 		obj_ptr<HttpResponse_base> m_rep;
 		obj_ptr<File_base> m_file;
+		obj_ptr<Stat_base> m_stat;
 		std::string m_path;
 	};
 

@@ -14,7 +14,8 @@ namespace fibjs
 
 #define TINY_SIZE	32768
 
-result_t HttpMessage::sendTo(Stream_base* stm, std::string& strCommand, exlib::AsyncEvent* ac)
+result_t HttpMessage::sendTo(Stream_base* stm, std::string& strCommand,
+		exlib::AsyncEvent* ac)
 {
 	class asyncSendTo: public asyncState
 	{
@@ -204,9 +205,7 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 void HttpMessage::addHeader(const char* name, int szName, const char* value,
 		int szValue)
 {
-	if (szName == 12 && !qstricmp(name, "content-type", szName))
-		m_contentType.assign(value, szValue);
-	else if (szName == 10 && !qstricmp(name, "connection", szName))
+	if (szName == 10 && !qstricmp(name, "connection", szName))
 		m_keepAlive = !qstricmp(value, "keep-alive", 10);
 	else
 		m_headers->add(name, szName, value, szValue);
@@ -235,10 +234,6 @@ size_t HttpMessage::size()
 
 	// connection 10
 	sz += 10 + 4 + (m_keepAlive ? 10 : 5);
-
-	// content-type 12
-	if (m_contentType.length() > 0)
-		sz += 12 + 4 + m_contentType.length();
 
 	// content-length 14
 	get_contentLength(l);
@@ -282,14 +277,6 @@ size_t HttpMessage::getData(char* buf, size_t sz)
 		cp(buf, sz, pos, "keep-alive\r\n", 12);
 	else
 		cp(buf, sz, pos, "close\r\n", 7);
-
-	// content-type 12
-	if (m_contentType.length() > 0)
-	{
-		cp(buf, sz, pos, "Content-Type: ", 14);
-		cp(buf, sz, pos, m_contentType.c_str(), m_contentType.length());
-		cp(buf, sz, pos, "\r\n", 2);
-	}
 
 	// content-length 14
 	get_contentLength(l);
@@ -364,18 +351,6 @@ result_t HttpMessage::set_body(SeekableStream_base* newVal)
 	return 0;
 }
 
-result_t HttpMessage::get_contentType(std::string& retVal)
-{
-	retVal = m_contentType;
-	return 0;
-}
-
-result_t HttpMessage::set_contentType(const char* newVal)
-{
-	m_contentType = newVal;
-	return 0;
-}
-
 result_t HttpMessage::get_contentLength(int64_t& retVal)
 {
 	if (m_body == NULL)
@@ -398,11 +373,53 @@ result_t HttpMessage::set_keepAlive(bool newVal)
 	return 0;
 }
 
+result_t HttpMessage::hasHeader(const char* name, bool& retVal)
+{
+	return m_headers->has(name, retVal);
+}
+
+result_t HttpMessage::firstHeader(const char* name, Variant& retVal)
+{
+	return m_headers->first(name, retVal);
+}
+
+result_t HttpMessage::allHeader(const char* name, v8::Handle<v8::Array>& retVal)
+{
+	return m_headers->all(name, retVal);
+}
+
+result_t HttpMessage::addHeader(v8::Handle<v8::Object> map)
+{
+	return m_headers->add(map);
+}
+
+result_t HttpMessage::addHeader(const char* name, Variant value)
+{
+	return m_headers->add(name, value);
+}
+
+result_t HttpMessage::setHeader(v8::Handle<v8::Object> map)
+{
+	return m_headers->set(map);
+}
+
+result_t HttpMessage::setHeader(const char* name, Variant value)
+{
+	return m_headers->set(name, value);
+}
+
+result_t HttpMessage::removeHeader(const char* name)
+{
+	return m_headers->remove(name);
+}
+
 result_t HttpMessage::clear()
 {
 	m_protocol.assign("HTTP/1.1", 8);
-	m_contentType.assign("text/html", 9);
 	m_keepAlive = true;
+
+	m_origin.clear();
+	m_encoding.clear();
 
 	m_headers->clear();
 

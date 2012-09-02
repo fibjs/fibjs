@@ -17,7 +17,8 @@ namespace fibjs
 class HttpMessage
 {
 public:
-	HttpMessage()
+	HttpMessage(bool bResponse = false) :
+			m_bResponse(bResponse)
 	{
 		m_headers = new HttpCollection();
 		clear();
@@ -29,11 +30,18 @@ public:
 	result_t get_headers(obj_ptr<HttpCollection_base>& retVal);
 	result_t get_body(obj_ptr<SeekableStream_base>& retVal);
 	result_t set_body(SeekableStream_base* newVal);
-	result_t get_contentType(std::string& retVal);
-	result_t set_contentType(const char* newVal);
 	result_t get_contentLength(int64_t& retVal);
 	result_t get_keepAlive(bool& retVal);
 	result_t set_keepAlive(bool newVal);
+	result_t hasHeader(const char* name, bool& retVal);
+	result_t firstHeader(const char* name, Variant& retVal);
+	result_t allHeader(const char* name, v8::Handle<v8::Array>& retVal);
+	result_t addHeader(v8::Handle<v8::Object> map);
+	result_t addHeader(const char* name, Variant value);
+	result_t setHeader(v8::Handle<v8::Object> map);
+	result_t setHeader(const char* name, Variant value);
+	result_t removeHeader(const char* name);
+
 	result_t clear();
 
 public:
@@ -49,9 +57,11 @@ public:
 	size_t getData(char* buf, size_t sz);
 
 public:
+	bool m_bResponse;
 	std::string m_protocol;
-	std::string m_contentType;
 	bool m_keepAlive;
+	std::string m_origin;
+	std::string m_encoding;
 	obj_ptr<HttpCollection> m_headers;
 	obj_ptr<SeekableStream_base> m_body;
 };

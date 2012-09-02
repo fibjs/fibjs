@@ -30,11 +30,17 @@ public:
 	virtual result_t get_headers(obj_ptr<HttpCollection_base>& retVal) = 0;
 	virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal) = 0;
 	virtual result_t set_body(SeekableStream_base* newVal) = 0;
-	virtual result_t get_contentType(std::string& retVal) = 0;
-	virtual result_t set_contentType(const char* newVal) = 0;
 	virtual result_t get_contentLength(int64_t& retVal) = 0;
 	virtual result_t get_keepAlive(bool& retVal) = 0;
 	virtual result_t set_keepAlive(bool newVal) = 0;
+	virtual result_t hasHeader(const char* name, bool& retVal) = 0;
+	virtual result_t firstHeader(const char* name, Variant& retVal) = 0;
+	virtual result_t allHeader(const char* name, v8::Handle<v8::Array>& retVal) = 0;
+	virtual result_t addHeader(v8::Handle<v8::Object> map) = 0;
+	virtual result_t addHeader(const char* name, Variant value) = 0;
+	virtual result_t setHeader(v8::Handle<v8::Object> map) = 0;
+	virtual result_t setHeader(const char* name, Variant value) = 0;
+	virtual result_t removeHeader(const char* name) = 0;
 
 	DECLARE_CLASSINFO(HttpMessage_base);
 
@@ -46,7 +52,6 @@ public:
 		CLONE_String(protocol);
 		CLONE_CLASS(headers, HttpCollection_base);
 		CLONE_CLASS(body, SeekableStream_base);
-		CLONE_String(contentType);
 		CLONE(contentLength, int64_t);
 		CLONE(keepAlive, bool);
 
@@ -59,11 +64,15 @@ public:
 	static v8::Handle<v8::Value> s_get_headers(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_body(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_body(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_contentType(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_contentType(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_contentLength(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_keepAlive(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_keepAlive(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_hasHeader(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_firstHeader(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_allHeader(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_addHeader(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_setHeader(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_removeHeader(const v8::Arguments& args);
 };
 
 }
@@ -75,12 +84,21 @@ namespace fibjs
 {
 	inline ClassInfo& HttpMessage_base::class_info()
 	{
+		static ClassData::ClassMethod s_method[] = 
+		{
+			{"hasHeader", s_hasHeader},
+			{"firstHeader", s_firstHeader},
+			{"allHeader", s_allHeader},
+			{"addHeader", s_addHeader},
+			{"setHeader", s_setHeader},
+			{"removeHeader", s_removeHeader}
+		};
+
 		static ClassData::ClassProperty s_property[] = 
 		{
 			{"protocol", s_get_protocol, s_set_protocol},
 			{"headers", s_get_headers},
 			{"body", s_get_body, s_set_body},
-			{"contentType", s_get_contentType, s_set_contentType},
 			{"contentLength", s_get_contentLength},
 			{"keepAlive", s_get_keepAlive, s_set_keepAlive}
 		};
@@ -88,7 +106,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"HttpMessage", NULL, 
-			0, NULL, 0, NULL, 6, s_property, NULL, NULL,
+			6, s_method, 0, NULL, 5, s_property, NULL, NULL,
 			&Message_base::class_info()
 		};
 
@@ -154,29 +172,6 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> HttpMessage_base::s_get_contentType(v8::Local<v8::String> property, const v8::AccessorInfo &info)
-	{
-		std::string vr;
-
-		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(HttpMessage_base);
-
-		hr = pInst->get_contentType(vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void HttpMessage_base::s_set_contentType(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
-	{
-		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(HttpMessage_base);
-
-		PROPERTY_VAL_String();
-		hr = pInst->set_contentType(v0);
-
-		PROPERTY_SET_LEAVE();
-	}
-
 	inline v8::Handle<v8::Value> HttpMessage_base::s_get_contentLength(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		int64_t vr;
@@ -210,6 +205,98 @@ namespace fibjs
 		hr = pInst->set_keepAlive(v0);
 
 		PROPERTY_SET_LEAVE();
+	}
+
+	inline v8::Handle<v8::Value> HttpMessage_base::s_hasHeader(const v8::Arguments& args)
+	{
+		bool vr;
+
+		METHOD_INSTANCE(HttpMessage_base);
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = pInst->hasHeader(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> HttpMessage_base::s_firstHeader(const v8::Arguments& args)
+	{
+		Variant vr;
+
+		METHOD_INSTANCE(HttpMessage_base);
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = pInst->firstHeader(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> HttpMessage_base::s_allHeader(const v8::Arguments& args)
+	{
+		v8::Handle<v8::Array> vr;
+
+		METHOD_INSTANCE(HttpMessage_base);
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = pInst->allHeader(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> HttpMessage_base::s_addHeader(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(HttpMessage_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Object>, 0);
+
+		hr = pInst->addHeader(v0);
+
+		METHOD_OVER(2, 2);
+
+		ARG_String(0);
+		ARG(Variant, 1);
+
+		hr = pInst->addHeader(v0, v1);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> HttpMessage_base::s_setHeader(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(HttpMessage_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Object>, 0);
+
+		hr = pInst->setHeader(v0);
+
+		METHOD_OVER(2, 2);
+
+		ARG_String(0);
+		ARG(Variant, 1);
+
+		hr = pInst->setHeader(v0, v1);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> HttpMessage_base::s_removeHeader(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(HttpMessage_base);
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = pInst->removeHeader(v0);
+
+		METHOD_VOID();
 	}
 
 }
