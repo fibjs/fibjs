@@ -81,7 +81,12 @@ public:
 		else if (m_type == VT_Object && m_Val.objVal)
 			m_Val.objVal->Unref();
 		else if (m_type == VT_JSObject)
-			((v8::Persistent<v8::Object>*) m_Val.jsobjVal)->~Persistent();
+		{
+			v8::Persistent<v8::Object>& jsobj =
+					*(v8::Persistent<v8::Object>*) m_Val.jsobjVal;
+			jsobj.Dispose();
+			jsobj.~Persistent();
+		}
 
 		m_type = VT_Null;
 	}
