@@ -171,9 +171,15 @@ public:
 		return 0;
 	}
 
-	static void callFunction(v8::Handle<v8::Function> func,
+	static void call(v8::Handle<v8::Function> func,
 			v8::Handle<v8::Value>* args, int argCount,
-			v8::Handle<v8::Value>& retVal);
+			v8::Handle<v8::Value>& retVal)
+	{
+		JSFiber* fb = (JSFiber*) g_pService->tlsGet(g_tlsCurrent);
+
+		if (fb)
+			fb->callFunction1(func, args, argCount, retVal);
+	}
 
 	result_t get_result(v8::Handle<v8::Value>& retVal)
 	{
@@ -195,6 +201,7 @@ public:
 
 		for (i = 0; i < m_argv.size(); i++)
 			m_argv[i].Dispose();
+		m_argv.resize(0);
 
 		m_func.Dispose();
 		m_result.Dispose();
@@ -202,6 +209,9 @@ public:
 
 private:
 	void callFunction(v8::Handle<v8::Value>& retVal);
+	void callFunction1(v8::Handle<v8::Function> func,
+			v8::Handle<v8::Value>* args, int argCount,
+			v8::Handle<v8::Value>& retVal);
 
 private:
 	v8::Persistent<v8::Function> m_func;

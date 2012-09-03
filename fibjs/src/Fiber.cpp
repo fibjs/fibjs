@@ -126,6 +126,22 @@ void FiberBase::start()
 	Ref();
 }
 
+void JSFiber::callFunction1(v8::Handle<v8::Function> func,
+		v8::Handle<v8::Value>* args, int argCount,
+		v8::Handle<v8::Value>& retVal)
+{
+	v8::TryCatch try_catch;
+	retVal = func->Call(wrap(), argCount, args);
+	if (try_catch.HasCaught())
+	{
+		v8::Handle<v8::Value> err = try_catch.Exception();
+		m_error = true;
+
+		_trigger("error", &err, 1);
+		ReportException(&try_catch, true);
+	}
+}
+
 void JSFiber::callFunction(v8::Handle<v8::Value>& retVal)
 {
 	size_t i;
@@ -136,16 +152,7 @@ void JSFiber::callFunction(v8::Handle<v8::Value>& retVal)
 	for (i = 0; i < m_argv.size(); i++)
 		argv[i] = m_argv[i];
 
-	v8::TryCatch try_catch;
-	retVal = m_func->Call(wrap(), (int) argv.size(), argv.data());
-	if (try_catch.HasCaught())
-	{
-		v8::Handle<v8::Value> err = try_catch.Exception();
-		m_error = true;
-
-		_trigger("error", &err, 1);
-		ReportException(&try_catch, true);
-	}
+	callFunction1(m_func, argv.data(), (int) argv.size(), retVal);
 
 	if (!IsEmpty(retVal))
 	{
@@ -176,26 +183,6 @@ void JSFiber::js_callback()
 
 	s_null.Ref();
 	o->SetPointerInInternalField(0, &s_null);
-}
-
-void JSFiber::callFunction(v8::Handle<v8::Function> func,
-		v8::Handle<v8::Value>* args, int argCount,
-		v8::Handle<v8::Value>& retVal)
-{
-	JSFiber* fb = (JSFiber*) g_pService->tlsGet(g_tlsCurrent);
-
-	if (fb)
-	{
-		int i;
-
-		fb->clear();
-		fb->m_argv.resize(argCount);
-		for (i = 0; i < argCount; i++)
-			fb->m_argv[i] = v8::Persistent<v8::Value>::New(args[i]);
-		fb->m_func = v8::Persistent<v8::Function>::New(func);
-
-		fb->callFunction(retVal);
-	}
 }
 
 void AsyncCallBack::callback()

@@ -30,7 +30,7 @@ inline result_t _parallel(std::vector<v8::Handle<v8::Function> >& funs,
 		JSFiber::New(funs[i], NULL, 0, fibers[i]);
 
 	v8::Handle<v8::Value> r;
-	JSFiber::callFunction(funs[0], NULL, 0, r);
+	JSFiber::call(funs[0], NULL, 0, r);
 	bool bError = r.IsEmpty();
 
 	if(!bError)

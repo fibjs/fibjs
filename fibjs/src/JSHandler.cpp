@@ -125,11 +125,11 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 						argv[i + 1] = p;
 					}
 
-					JSFiber::callFunction(v8::Handle<v8::Function>::Cast(hdlr),
+					JSFiber::call(v8::Handle<v8::Function>::Cast(hdlr),
 							argv.data(), len + 1, hdlr);
 				}
 				else
-					JSFiber::callFunction(v8::Handle<v8::Function>::Cast(hdlr),
+					JSFiber::call(v8::Handle<v8::Function>::Cast(hdlr),
 							&a, 1, hdlr);
 
 				bResult = true;

@@ -16,6 +16,12 @@ namespace fibjs
 class JSHandler: public Handler_base
 {
 public:
+	~JSHandler()
+	{
+		m_handler.Dispose();
+	}
+
+public:
 	// Handler_base
 	virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac);
 
