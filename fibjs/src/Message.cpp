@@ -7,6 +7,7 @@
 
 #include "Message.h"
 #include "List.h"
+#include "MemoryStream.h"
 
 namespace fibjs
 {
@@ -48,6 +49,31 @@ result_t Message::set_result(Variant newVal)
 {
 	m_result = newVal;
 	return 0;
+}
+
+result_t Message::get_body(obj_ptr<SeekableStream_base>& retVal)
+{
+	if (m_body == NULL)
+		m_body = new MemoryStream();
+
+	retVal = m_body;
+	return 0;
+}
+
+result_t Message::set_body(SeekableStream_base* newVal)
+{
+	m_body = newVal;
+	return 0;
+}
+
+result_t Message::get_length(int64_t& retVal)
+{
+	if (m_body == NULL)
+	{
+		retVal = 0;
+		return 0;
+	}
+	return m_body->size(retVal);
 }
 
 } /* namespace fibjs */

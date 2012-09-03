@@ -29,6 +29,8 @@
 
 #include "ifs/http.h"
 
+#include "ifs/rpc.h"
+
 #include <sstream>
 #include <map>
 
@@ -77,6 +79,7 @@ void initModule()
 	InstallNativeModule("mq", mq_base::class_info());
 
 	InstallNativeModule("http", http_base::class_info());
+	InstallNativeModule("rpc", rpc_base::class_info());
 
 	InstallNativeModule("db", db_base::class_info());
 	InstallNativeModule("hash", hash_base::class_info());

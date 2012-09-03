@@ -53,134 +53,131 @@ inline result_t msgMethod(Message_base* msg, std::string& method)
 result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		exlib::AsyncEvent* ac)
 {
-	if (!ac)
+	if (ac)
+		return CALL_E_NOASYNC;
+
+	v8::Handle<v8::Object> o;
+	v->ValueOf(o);
+
+	obj_ptr<Message_base> msg = Message_base::getInstance(v);
+	v8::Handle<v8::Value> a = o;
+	v8::Handle<v8::Value> hdlr = m_handler;
+	result_t hr;
+	bool bResult = false;
+
+	if (hdlr.IsEmpty())
 	{
-		v8::Handle<v8::Object> o;
-		v->ValueOf(o);
+		std::string id = m_id;
 
-		v8::Handle<v8::Value> a = o;
-		obj_ptr<Message_base> msg = Message_base::getInstance(a);
-		v8::Handle<v8::Value> hdlr = m_handler;
-		result_t hr;
-		bool bResult = false;
-
-		if (hdlr.IsEmpty())
+		if (isPathSlash(id[id.length() - 1]))
 		{
-			std::string id = m_id;
+			if (msg == NULL)
+				return CALL_E_BADVARTYPE;
 
-			if (isPathSlash(id[id.length() - 1]))
-			{
-				if (msg == NULL)
-					return CALL_E_BADVARTYPE;
-
-				std::string method;
-				hr = msgMethod(msg, method);
-				if (hr < 0)
-					return hr;
-
-				id.append(method);
-			}
-
-			hr = global_base::require(id.c_str(), hdlr);
+			std::string method;
+			hr = msgMethod(msg, method);
 			if (hr < 0)
 				return hr;
 
-			if (!m_method.empty())
-			{
-				if (!hdlr->IsObject())
-					return CALL_E_INVALID_CALL;
-
-				hdlr = v8::Handle<v8::Object>::Cast(hdlr)->Get(
-						v8::String::New(m_method.c_str(),
-								(int) m_method.length()));
-				if (IsEmpty(hdlr))
-					return CALL_E_INVALID_CALL;
-			}
+			id.append(method);
 		}
 
-		while (true)
+		hr = global_base::require(id.c_str(), hdlr);
+		if (hr < 0)
+			return hr;
+
+		if (!m_method.empty())
 		{
-			if (hdlr->IsFunction())
-			{
-				obj_ptr<List_base> params;
-				int32_t len = 0, i;
-
-				if (msg != NULL)
-				{
-					msg->get_params(params);
-					params->get_length(len);
-				}
-
-				if (len > 0)
-				{
-					std::vector<v8::Handle<v8::Value> > argv;
-
-					argv.resize(len + 1);
-					argv[0] = a;
-
-					for (i = 0; i < len; i++)
-					{
-						Variant p;
-						params->_indexed_getter(i, p);
-						argv[i + 1] = p;
-					}
-
-					JSFiber::call(v8::Handle<v8::Function>::Cast(hdlr),
-							argv.data(), len + 1, hdlr);
-				}
-				else
-					JSFiber::call(v8::Handle<v8::Function>::Cast(hdlr),
-							&a, 1, hdlr);
-
-				bResult = true;
-			}
-			else if (hdlr->IsObject())
-			{
-				if (retVal = Handler_base::getInstance(hdlr))
-					return 0;
-
-				if (msg == NULL)
-					return CALL_E_BADVARTYPE;
-
-				std::string method;
-				hr = msgMethod(msg, method);
-				if (hr < 0)
-				{
-					if (bResult && msg)
-					{
-						msg->set_result(hdlr);
-						return CALL_RETURN_NULL;
-					}
-					else
-						return hr;
-				}
-
-				hdlr = v8::Handle<v8::Object>::Cast(hdlr)->Get(
-						v8::String::New(method.c_str(), (int) method.length()));
-				if (IsEmpty(hdlr))
-					return CALL_E_INVALID_CALL;
-
-				bResult = false;
-			}
-			else if (bResult && msg)
-			{
-				msg->set_result(hdlr);
-				return CALL_RETURN_NULL;
-			}
-			else
+			if (!hdlr->IsObject())
 				return CALL_E_INVALID_CALL;
 
-			if (hdlr.IsEmpty())
-				return CALL_E_INTERNAL;
-
+			hdlr = v8::Handle<v8::Object>::Cast(hdlr)->Get(
+					v8::String::New(m_method.c_str(), (int) m_method.length()));
 			if (IsEmpty(hdlr))
-				return CALL_RETURN_NULL;
+				return CALL_E_INVALID_CALL;
 		}
-
-		return 0;
 	}
 
-	return CALL_E_NOASYNC;
+	while (true)
+	{
+		if (hdlr->IsFunction())
+		{
+			obj_ptr<List_base> params;
+			int32_t len = 0, i;
+
+			if (msg != NULL)
+			{
+				msg->get_params(params);
+				params->get_length(len);
+			}
+
+			if (len > 0)
+			{
+				std::vector<v8::Handle<v8::Value> > argv;
+
+				argv.resize(len + 1);
+				argv[0] = a;
+
+				for (i = 0; i < len; i++)
+				{
+					Variant p;
+					params->_indexed_getter(i, p);
+					argv[i + 1] = p;
+				}
+
+				JSFiber::call(v8::Handle<v8::Function>::Cast(hdlr), argv.data(),
+						len + 1, hdlr);
+			}
+			else
+				JSFiber::call(v8::Handle<v8::Function>::Cast(hdlr), &a, 1,
+						hdlr);
+
+			bResult = true;
+		}
+		else if (hdlr->IsObject())
+		{
+			if (retVal = Handler_base::getInstance(hdlr))
+				return 0;
+
+			if (msg == NULL)
+				return CALL_E_BADVARTYPE;
+
+			std::string method;
+			hr = msgMethod(msg, method);
+			if (hr < 0)
+			{
+				if (bResult && msg)
+				{
+					msg->set_result(hdlr);
+					return CALL_RETURN_NULL;
+				}
+				else
+					return hr;
+			}
+
+			hdlr = v8::Handle<v8::Object>::Cast(hdlr)->Get(
+					v8::String::New(method.c_str(), (int) method.length()));
+			if (IsEmpty(hdlr))
+				return CALL_E_INVALID_CALL;
+
+			bResult = false;
+		}
+		else if (bResult && msg)
+		{
+			msg->set_result(hdlr);
+			return CALL_RETURN_NULL;
+		}
+		else
+			return CALL_E_INVALID_CALL;
+
+		if (hdlr.IsEmpty())
+			return CALL_E_INTERNAL;
+
+		if (IsEmpty(hdlr))
+			return CALL_RETURN_NULL;
+	}
+
+	return 0;
 }
 
 } /* namespace fibjs */

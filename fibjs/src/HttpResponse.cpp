@@ -42,9 +42,9 @@ result_t HttpResponse::set_body(SeekableStream_base* newVal)
 	return m_message.set_body(newVal);
 }
 
-result_t HttpResponse::get_contentLength(int64_t& retVal)
+result_t HttpResponse::get_length(int64_t& retVal)
 {
-	return m_message.get_contentLength(retVal);
+	return m_message.get_length(retVal);
 }
 
 result_t HttpResponse::get_keepAlive(bool& retVal)

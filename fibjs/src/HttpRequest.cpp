@@ -44,9 +44,9 @@ result_t HttpRequest::set_body(SeekableStream_base* newVal)
 	return m_message.set_body(newVal);
 }
 
-result_t HttpRequest::get_contentLength(int64_t& retVal)
+result_t HttpRequest::get_length(int64_t& retVal)
 {
-	return m_message.get_contentLength(retVal);
+	return m_message.get_length(retVal);
 }
 
 result_t HttpRequest::get_keepAlive(bool& retVal)
@@ -397,7 +397,7 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
 	{
 		int64_t len = 0;
 
-		get_contentLength(len);
+		get_length(len);
 		if (len == 0)
 			m_form = new HttpCollection();
 		else

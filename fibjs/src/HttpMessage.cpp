@@ -26,7 +26,7 @@ result_t HttpMessage::sendTo(Stream_base* stm, std::string& strCommand,
 						strCommand)
 		{
 			m_contentLength = 0;
-			m_pThis->get_contentLength(m_contentLength);
+			m_pThis->get_length(m_contentLength);
 
 			if (m_contentLength > 0 && m_contentLength < TINY_SIZE)
 				set(tinybody);
@@ -38,10 +38,10 @@ result_t HttpMessage::sendTo(Stream_base* stm, std::string& strCommand,
 		{
 			asyncSendTo* pThis = (asyncSendTo*) pState;
 
-			pThis->m_pThis->m_body->rewind();
+			pThis->m_pThis->body()->rewind();
 
 			pThis->set(header);
-			return pThis->m_pThis->m_body->read(
+			return pThis->m_pThis->body()->read(
 					(int32_t) pThis->m_contentLength, pThis->m_buffer, pThis);
 		}
 
@@ -92,10 +92,10 @@ result_t HttpMessage::sendTo(Stream_base* stm, std::string& strCommand,
 			if (pThis->m_contentLength == 0)
 				return pThis->done(0);
 
-			pThis->m_pThis->m_body->rewind();
+			pThis->m_pThis->body()->rewind();
 
 			pThis->set(body_ok);
-			return pThis->m_pThis->m_body->copyTo(pThis->m_stm,
+			return pThis->m_pThis->body()->copyTo(pThis->m_stm,
 					pThis->m_contentLength, pThis->m_copySize, pThis);
 		}
 
@@ -236,7 +236,7 @@ size_t HttpMessage::size()
 	sz += 10 + 4 + (m_keepAlive ? 10 : 5);
 
 	// content-length 14
-	get_contentLength(l);
+	get_length(l);
 	if (l > 0)
 	{
 		sz += 14 + 4;
@@ -279,7 +279,7 @@ size_t HttpMessage::getData(char* buf, size_t sz)
 		cp(buf, sz, pos, "close\r\n", 7);
 
 	// content-length 14
-	get_contentLength(l);
+	get_length(l);
 	if (l > 0)
 	{
 		char s[32];
@@ -332,31 +332,6 @@ result_t HttpMessage::get_headers(obj_ptr<HttpCollection_base>& retVal)
 {
 	retVal = m_headers;
 	return 0;
-}
-
-result_t HttpMessage::get_body(obj_ptr<SeekableStream_base>& retVal)
-{
-	if (m_body == NULL)
-		m_body = new MemoryStream();
-
-	retVal = m_body;
-	return 0;
-}
-
-result_t HttpMessage::set_body(SeekableStream_base* newVal)
-{
-	m_body = newVal;
-	return 0;
-}
-
-result_t HttpMessage::get_contentLength(int64_t& retVal)
-{
-	if (m_body == NULL)
-	{
-		retVal = 0;
-		return 0;
-	}
-	return m_body->size(retVal);
 }
 
 result_t HttpMessage::get_keepAlive(bool& retVal)
@@ -422,8 +397,6 @@ result_t HttpMessage::clear()
 	m_encoding.clear();
 
 	m_headers->clear();
-
-	m_body.Release();
 
 	return 0;
 }

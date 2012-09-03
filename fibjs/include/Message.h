@@ -6,6 +6,7 @@
  */
 
 #include "ifs/List.h"
+#include "ifs/SeekableStream.h"
 
 #ifndef MESSAGE_H_
 #define MESSAGE_H_
@@ -22,12 +23,17 @@ public:
 	result_t set_params(List_base* newVal);
 	result_t get_result(Variant& retVal);
 	result_t set_result(Variant newVal);
+	result_t get_body(obj_ptr<SeekableStream_base>& retVal);
+	result_t set_body(SeekableStream_base* newVal);
+	result_t get_length(int64_t& retVal);
 
 public:
 	void clear()
 	{
 		m_value.clear();
 		m_params.Release();
+		m_result.clear();
+		m_body.Release();
 	}
 
 	result_t set_value(std::string& newVal)
@@ -36,10 +42,16 @@ public:
 		return 0;
 	}
 
+	obj_ptr<SeekableStream_base>& body()
+	{
+		return m_body;
+	}
+
 private:
 	std::string m_value;
 	obj_ptr<List_base> m_params;
 	Variant m_result;
+	obj_ptr<SeekableStream_base> m_body;
 };
 
 } /* namespace fibjs */

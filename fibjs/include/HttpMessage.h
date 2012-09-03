@@ -7,7 +7,7 @@
 
 #include "Message.h"
 #include "HttpCollection.h"
-#include "MemoryStream.h"
+#include "ifs/BufferedStream.h"
 
 #ifndef HTTPMESSAGE_H_
 #define HTTPMESSAGE_H_
@@ -29,9 +29,6 @@ public:
 	result_t get_protocol(std::string& retVal);
 	result_t set_protocol(const char* newVal);
 	result_t get_headers(obj_ptr<HttpCollection_base>& retVal);
-	result_t get_body(obj_ptr<SeekableStream_base>& retVal);
-	result_t set_body(SeekableStream_base* newVal);
-	result_t get_contentLength(int64_t& retVal);
 	result_t get_keepAlive(bool& retVal);
 	result_t set_keepAlive(bool newVal);
 	result_t hasHeader(const char* name, bool& retVal);
@@ -64,7 +61,6 @@ public:
 	std::string m_origin;
 	std::string m_encoding;
 	obj_ptr<HttpCollection> m_headers;
-	obj_ptr<SeekableStream_base> m_body;
 };
 
 } /* namespace fibjs */

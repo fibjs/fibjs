@@ -37,6 +37,9 @@ public:
 	virtual result_t set_params(List_base* newVal);
 	virtual result_t get_result(Variant& retVal);
 	virtual result_t set_result(Variant newVal);
+	virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal);
+	virtual result_t set_body(SeekableStream_base* newVal);
+	virtual result_t get_length(int64_t& retVal);
 	virtual result_t clear();
 	virtual result_t sendTo(Stream_base* stm, exlib::AsyncEvent* ac);
 	virtual result_t asyncSendTo(Stream_base* stm);
@@ -50,9 +53,6 @@ public:
 	virtual result_t get_protocol(std::string& retVal);
 	virtual result_t set_protocol(const char* newVal);
 	virtual result_t get_headers(obj_ptr<HttpCollection_base>& retVal);
-	virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal);
-	virtual result_t set_body(SeekableStream_base* newVal);
-	virtual result_t get_contentLength(int64_t& retVal);
 	virtual result_t get_keepAlive(bool& retVal);
 	virtual result_t set_keepAlive(bool newVal);
 	virtual result_t hasHeader(const char* name, bool& retVal);

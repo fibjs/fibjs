@@ -222,6 +222,12 @@
     <ClCompile Include="src\Message.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\JsonRpcHandler.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rpc.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -549,6 +555,12 @@
       <Filter>Header Files\include</Filter>
     </ClInclude>
     <ClInclude Include="include\Message.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\rpc.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\JsonRpcHandler.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>

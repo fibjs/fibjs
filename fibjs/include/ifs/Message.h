@@ -19,6 +19,7 @@ namespace fibjs
 
 class Trigger_base;
 class List_base;
+class SeekableStream_base;
 class Stream_base;
 class BufferedStream_base;
 
@@ -32,6 +33,9 @@ public:
 	virtual result_t set_params(List_base* newVal) = 0;
 	virtual result_t get_result(Variant& retVal) = 0;
 	virtual result_t set_result(Variant newVal) = 0;
+	virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal) = 0;
+	virtual result_t set_body(SeekableStream_base* newVal) = 0;
+	virtual result_t get_length(int64_t& retVal) = 0;
 	virtual result_t clear() = 0;
 	virtual result_t sendTo(Stream_base* stm, exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncSendTo(Stream_base* stm) = 0;
@@ -50,6 +54,8 @@ public:
 		CLONE_String(value);
 		CLONE_CLASS(params, List_base);
 		CLONE(result, Variant);
+		CLONE_CLASS(body, SeekableStream_base);
+		CLONE(length, int64_t);
 
 		return 0;
 	}
@@ -61,6 +67,9 @@ public:
 	static void s_set_params(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_result(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_result(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_body(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s_set_body(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_length(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_clear(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_sendTo(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncSendTo(const v8::Arguments& args);
@@ -79,6 +88,7 @@ public:
 }
 
 #include "List.h"
+#include "SeekableStream.h"
 #include "Stream.h"
 #include "BufferedStream.h"
 
@@ -101,13 +111,15 @@ namespace fibjs
 		{
 			{"value", s_get_value, s_set_value},
 			{"params", s_get_params, s_set_params},
-			{"result", s_get_result, s_set_result}
+			{"result", s_get_result, s_set_result},
+			{"body", s_get_body, s_set_body},
+			{"length", s_get_length}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"Message", NULL, 
-			7, s_method, 0, NULL, 3, s_property, NULL, NULL,
+			7, s_method, 0, NULL, 5, s_property, NULL, NULL,
 			&Trigger_base::class_info()
 		};
 
@@ -182,6 +194,41 @@ namespace fibjs
 		hr = pInst->set_result(v0);
 
 		PROPERTY_SET_LEAVE();
+	}
+
+	inline v8::Handle<v8::Value> Message_base::s_get_body(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		obj_ptr<SeekableStream_base> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Message_base);
+
+		hr = pInst->get_body(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Message_base::s_set_body(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	{
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Message_base);
+
+		PROPERTY_VAL(obj_ptr<SeekableStream_base>);
+		hr = pInst->set_body(v0);
+
+		PROPERTY_SET_LEAVE();
+	}
+
+	inline v8::Handle<v8::Value> Message_base::s_get_length(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int64_t vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Message_base);
+
+		hr = pInst->get_length(vr);
+
+		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> Message_base::s_clear(const v8::Arguments& args)

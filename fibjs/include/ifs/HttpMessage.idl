@@ -8,12 +8,6 @@ class HttpMessage: Message
 	/*! @brief 包含消息中 http 消息头的容器，只读属性 */
 	readonly HttpCollection headers;
 
-	/*! @brief 包含消息数据部分的流对象 */
-	SeekableStream body;
-
-	/*! @brief 消息数据部分的长度 */
-	readonly Long contentLength;
-
 	/*! @brief 查询和设定是否保持连接 */
 	Boolean keepAlive;
 
