@@ -10,9 +10,13 @@
 #include "BufferedStream.h"
 #include "JSHandler.h"
 #include "ifs/mq.h"
+#include "Buffer.h"
+#include "MemoryStream.h"
 
 namespace fibjs
 {
+
+static std::string s_crossdomain;
 
 result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		exlib::AsyncEvent* ac)
@@ -60,6 +64,61 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			pThis->m_rep->set_keepAlive(bKeepAlive);
 
 			pThis->set(send);
+
+			if (pThis->m_pThis->m_crossDomain)
+			{
+				std::string url;
+
+				pThis->m_req->get_address(url);
+
+				if (!qstrcmp(url.c_str(), "/crossdomain.xml"))
+				{
+					if (s_crossdomain.empty())
+						s_crossdomain.assign(
+								"<cross-domain-policy><allow-access-from domain=\"*\" to-ports=\"*\" /></cross-domain-policy>",
+								88);
+
+					obj_ptr<MemoryStream> body = new MemoryStream();
+					obj_ptr<Buffer> buf = new Buffer(s_crossdomain);
+
+					pThis->m_rep->set_body(body);
+					body->write(buf, NULL);
+
+					pThis->m_rep->setHeader("Content-Type", "text/xml");
+
+					return 0;
+				}
+				else
+				{
+					Variant origin;
+					std::string method;
+
+					if (pThis->m_req->firstHeader("origin",
+							origin) != CALL_RETURN_NULL)
+					{
+						pThis->m_rep->setHeader(
+								"Access-Control-Allow-Credentials", "true");
+						pThis->m_rep->setHeader("Access-Control-Allow-Origin",
+								origin);
+
+						pThis->m_req->get_method(method);
+
+						if (!qstricmp(method.c_str(), "options"))
+						{
+							pThis->m_rep->setHeader(
+									"Access-Control-Allow-Methods", "*");
+							pThis->m_rep->setHeader(
+									"Access-Control-Allow-Headers",
+									"CONTENT-TYPE");
+							pThis->m_rep->setHeader("Access-Control-Max-Age",
+									"1728000");
+
+							return 0;
+						}
+					}
+				}
+			}
+
 			return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_req, pThis);
 		}
 
@@ -120,6 +179,18 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		return CALL_E_BADVARTYPE;
 
 	return (new asyncInvoke(this, stm, ac))->post(0);
+}
+
+result_t HttpHandler::get_crossDomain(bool& retVal)
+{
+	retVal = m_crossDomain;
+	return 0;
+}
+
+result_t HttpHandler::set_crossDomain(bool newVal)
+{
+	m_crossDomain = newVal;
+	return 0;
 }
 
 }

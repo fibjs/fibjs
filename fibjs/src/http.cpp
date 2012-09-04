@@ -14,14 +14,14 @@ namespace fibjs
 {
 
 result_t http_base::handler(Handler_base* hdlr,
-		obj_ptr<Handler_base>& retVal)
+		obj_ptr<HttpHandler_base>& retVal)
 {
 	retVal = new HttpHandler(hdlr);
 	return 0;
 }
 
 result_t http_base::handler(v8::Handle<v8::Function> hdlr,
-		obj_ptr<Handler_base>& retVal)
+		obj_ptr<HttpHandler_base>& retVal)
 {
 	obj_ptr<Handler_base> hdlr1;
 	result_t hr = JSHandler::New(hdlr, hdlr1);

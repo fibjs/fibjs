@@ -21,13 +21,14 @@ class module_base;
 class HttpRequest_base;
 class HttpResponse_base;
 class Handler_base;
+class HttpHandler_base;
 
 class http_base : public module_base
 {
 public:
 	// http_base
-	static result_t handler(Handler_base* hdlr, obj_ptr<Handler_base>& retVal);
-	static result_t handler(v8::Handle<v8::Function> hdlr, obj_ptr<Handler_base>& retVal);
+	static result_t handler(Handler_base* hdlr, obj_ptr<HttpHandler_base>& retVal);
+	static result_t handler(v8::Handle<v8::Function> hdlr, obj_ptr<HttpHandler_base>& retVal);
 	static result_t fileHandler(const char* root, obj_ptr<Handler_base>& retVal);
 
 	DECLARE_CLASSINFO(http_base);
@@ -42,6 +43,7 @@ public:
 #include "HttpRequest.h"
 #include "HttpResponse.h"
 #include "Handler.h"
+#include "HttpHandler.h"
 
 namespace fibjs
 {
@@ -73,7 +75,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> http_base::s_handler(const v8::Arguments& args)
 	{
-		obj_ptr<Handler_base> vr;
+		obj_ptr<HttpHandler_base> vr;
 
 		METHOD_ENTER(1, 1);
 

@@ -1,0 +1,10 @@
+
+/*! @brief http 协议转换处理器
+ *
+ * 用以将数据流转换为 http 协议消息
+ */
+class HttpHandler: Handler
+{
+	/*! @brief 查询和设置是否允许跨域请求 */
+	Boolean crossDomain;
+};
