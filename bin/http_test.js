@@ -131,7 +131,7 @@ var req = new http.Request();
 req.readFrom(bs);
 assert.equal('100', req.headers['head1']);
 assert.equal('200', req.headers['head2']);
-assert.equal(10, req.contentLength);
+assert.equal(10, req.length);
 assert.equal('test', req.headers['content-type']);
 assert.equal('0123456789', req.body.read());
 

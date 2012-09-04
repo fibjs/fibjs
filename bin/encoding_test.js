@@ -175,6 +175,9 @@ assert.equal(encoding.jsonEncode({
 	b : 200
 }), '{"a":100,"b":200}');
 
-console.dir(encoding.jsonDecode('{"a":100,"b":200}'));
+assert.equal(encoding.jsonEncode(encoding.jsonDecode('{"a":100,"b":200}')),
+		'{"a":100,"b":200}');
 
+assert.equal(encoding.jsstr("[\r\n\t\\\'\"]"), "[\\r\\n\\t\\\\\\'\\\"]");
+assert.equal(encoding.jsstr("[abcd汉字]"), "[abcd汉字]");
 
