@@ -140,11 +140,13 @@
     <ClInclude Include="include\ifs\hash.h" />
     <ClInclude Include="include\ifs\http.h" />
     <ClInclude Include="include\ifs\HttpCollection.h" />
+    <ClInclude Include="include\ifs\HttpHandler.h" />
     <ClInclude Include="include\ifs\HttpMessage.h" />
     <ClInclude Include="include\ifs\HttpRequest.h" />
     <ClInclude Include="include\ifs\HttpResponse.h" />
     <ClInclude Include="include\ifs\HttpUploadData.h" />
     <ClInclude Include="include\ifs\io.h" />
+    <ClInclude Include="include\ifs\List.h" />
     <ClInclude Include="include\ifs\Lock.h" />
     <ClInclude Include="include\ifs\Map.h" />
     <ClInclude Include="include\ifs\MemoryStream.h" />

@@ -43,6 +43,12 @@ class encoding : module
 	 */
 	static Buffer hexDecode(String data);
 
+	/*! @brief 将字符串编码为 javascript 转义字符串，用以在 javascript 代码中包含文本
+	 * @param str 要编码的字符串
+	 * @return 返回编码的字符串
+	 */
+	static String jsstr(String str);
+
 	/*! @brief url 字符串安全编码
 	 * @param url 要编码的 url
 	 * @return 返回编码的字符串

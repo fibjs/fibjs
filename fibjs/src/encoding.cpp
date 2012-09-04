@@ -200,6 +200,60 @@ result_t encoding_base::hexDecode(const char* data,
 	return 0;
 }
 
+result_t encoding_base::jsstr(const char* str, std::string& retVal)
+{
+	const char* p;
+	char *p1;
+	int len;
+	char ch;
+	std::string s;
+
+	if (!*str)
+		return 0;
+
+	for (len = 0, p = str; (ch = *p) != 0; p++, len++)
+		if (ch == '\\' || ch == '\r' || ch == '\n' || ch == '\t' || ch == '\''
+				|| ch == '\"')
+			len++;
+
+	s.resize(len);
+
+	for (p1 = &s[0], p = str; (ch = *p) != 0; p++)
+		switch (ch)
+		{
+		case '\\':
+			*p1++ = '\\';
+			*p1++ = '\\';
+			break;
+		case '\r':
+			*p1++ = '\\';
+			*p1++ = 'r';
+			break;
+		case '\n':
+			*p1++ = '\\';
+			*p1++ = 'n';
+			break;
+		case '\t':
+			*p1++ = '\\';
+			*p1++ = 't';
+			break;
+		case '\'':
+			*p1++ = '\\';
+			*p1++ = '\'';
+			break;
+		case '\"':
+			*p1++ = '\\';
+			*p1++ = '\"';
+			break;
+		default:
+			*p1++ = ch;
+			break;
+		}
+
+	retVal = s;
+	return 0;
+}
+
 static const char *URITable =
 		" ! #$ &'()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz   ~ ";
 static const char *URIComponentTable =

@@ -49,6 +49,11 @@ inline std::wstring utf8to16String(const char *src, int srclen = -1)
 	return str;
 }
 
+inline std::wstring utf8to16String(std::string src)
+{
+	return utf8to16String(src.c_str(), (int)src.length());
+}
+
 #define UTF8_W(s) utf8to16String(s).c_str()
 
 inline std::string utf16to8String(const wchar_t *src, int srclen = -1)
@@ -64,6 +69,11 @@ inline std::string utf16to8String(const wchar_t *src, int srclen = -1)
 	utf8_wcstombs(src, srclen, &str[0], n);
 
 	return str;
+}
+
+inline std::string utf16to8String(std::wstring src)
+{
+	return utf16to8String(src.c_str(), (int)src.length());
 }
 
 #define UTF8_A(s) utf16to8String(s).c_str()

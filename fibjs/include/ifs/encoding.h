@@ -30,6 +30,7 @@ public:
 	static result_t base64Decode(const char* data, obj_ptr<Buffer_base>& retVal);
 	static result_t hexEncode(Buffer_base* data, std::string& retVal);
 	static result_t hexDecode(const char* data, obj_ptr<Buffer_base>& retVal);
+	static result_t jsstr(const char* str, std::string& retVal);
 	static result_t encodeURI(const char* url, std::string& retVal);
 	static result_t encodeURIComponent(const char* url, std::string& retVal);
 	static result_t decodeURI(const char* url, std::string& retVal);
@@ -45,6 +46,7 @@ public:
 	static v8::Handle<v8::Value> s_base64Decode(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_hexEncode(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_hexDecode(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_jsstr(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_encodeURI(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_encodeURIComponent(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_decodeURI(const v8::Arguments& args);
@@ -68,6 +70,7 @@ namespace fibjs
 			{"base64Decode", s_base64Decode, true},
 			{"hexEncode", s_hexEncode, true},
 			{"hexDecode", s_hexDecode, true},
+			{"jsstr", s_jsstr, true},
 			{"encodeURI", s_encodeURI, true},
 			{"encodeURIComponent", s_encodeURIComponent, true},
 			{"decodeURI", s_decodeURI, true},
@@ -78,7 +81,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"encoding", NULL, 
-			11, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			12, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -161,6 +164,19 @@ namespace fibjs
 		ARG_String(0);
 
 		hr = hexDecode(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> encoding_base::s_jsstr(const v8::Arguments& args)
+	{
+		std::string vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = jsstr(v0, vr);
 
 		METHOD_RETURN();
 	}

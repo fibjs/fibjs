@@ -31,28 +31,51 @@ result_t JsonRpcHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 	v8::Handle<v8::Value> jsval;
 	v8::Handle<v8::Object> o;
 	Variant result;
-	std::string strBuf;
+	std::string str;
 	int64_t len;
 	int32_t sz, i;
 	result_t hr;
+	bool bFormReq = false;
 
-	msg->get_body(body);
+	if (htreq != NULL)
+	{
+		if (htreq->firstHeader("Content-Type", result) == CALL_RETURN_NULL)
+			return CALL_E_INVALID_CALL;
 
-	body->size(len);
-	sz = (int32_t) len;
+		str = result.string();
+		if (!qstricmp(str.c_str(), "application/x-www-form-urlencoded"))
+		{
+			obj_ptr<HttpCollection_base> form;
+			htreq->get_form(form);
+			if (form->first("jsonrpc", result) == CALL_RETURN_NULL)
+				return CALL_E_INVALID_CALL;
+			str = result.string();
+			bFormReq = true;
+		}
+		else if (qstricmp(str.c_str(), "application/json"))
+			return CALL_E_INVALID_CALL;
+	}
 
-	body->rewind();
-	hr = body->ac_read(sz, buf);
-	if (hr < 0)
-		return hr;
-	if (hr == CALL_RETURN_NULL)
-		return CALL_E_INVALID_CALL;
-	body.Release();
+	if (!bFormReq)
+	{
+		msg->get_body(body);
 
-	buf->toString(strBuf);
-	buf.Release();
+		body->size(len);
+		sz = (int32_t) len;
 
-	hr = encoding_base::jsonDecode(strBuf.c_str(), jsval);
+		body->rewind();
+		hr = body->ac_read(sz, buf);
+		if (hr < 0)
+			return hr;
+		if (hr == CALL_RETURN_NULL)
+			return CALL_E_INVALID_CALL;
+		body.Release();
+
+		buf->toString(str);
+		buf.Release();
+	}
+
+	hr = encoding_base::jsonDecode(str.c_str(), jsval);
 	if (hr < 0)
 		return hr;
 
@@ -65,7 +88,10 @@ result_t JsonRpcHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 	if (IsEmpty(jsval))
 		return CALL_E_INVALID_CALL;
 
-	msg->set_value(*v8::String::Utf8Value(jsval));
+	msg->get_value(str);
+	str += '/';
+	str.append(*v8::String::Utf8Value(jsval));
+	msg->set_value(str.c_str());
 
 	jsval = o->Get(v8::String::NewSymbol("params", 6));
 	if (!jsval.IsEmpty() && jsval->IsArray())
@@ -87,26 +113,48 @@ result_t JsonRpcHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 	if (hr >= 0 && hr != CALL_RETURN_NULL)
 		hr = mq_base::ac_invoke(m_hdlr, v);
 
-	msg->get_result(result);
-
 	v8::Handle<v8::String> strId = v8::String::NewSymbol("id", 2);
 	jsval = o->Get(strId);
 
 	o = v8::Object::New();
 	o->Set(strId, jsval);
-	o->Set(v8::String::NewSymbol("result", 6), result);
 
-	hr = encoding_base::jsonEncode(o, strBuf);
+	if (hr < 0)
+	{
+
+	}
+	else
+	{
+		msg->get_result(result);
+		o->Set(v8::String::NewSymbol("result", 6), result);
+	}
+
+	hr = encoding_base::jsonEncode(o, str);
 	if (hr < 0)
 		return hr;
 
-	buf = new Buffer(strBuf);
 	body = new MemoryStream();
+
+	if (bFormReq)
+	{
+		std::string strTemp;
+
+		strTemp.assign(
+				"<html><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><script>window.name=\"",
+				94);
+
+		encoding_base::jsstr(str.c_str(), str);
+		strTemp.append(str);
+
+		strTemp.append("\";</script></html>", 18);
+
+		str = strTemp;
+	}
+
+	buf = new Buffer(str);
 	hr = body->ac_write(buf);
 	if (hr < 0)
 		return hr;
-
-	msg->set_body(body);
 
 	if (htreq)
 	{
@@ -114,7 +162,11 @@ result_t JsonRpcHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
 		htreq->get_response(htrep);
 		htrep->set_body(body);
+		htrep->setHeader("Content-Type",
+				bFormReq ? "text/html" : "application/json");
 	}
+	else
+		msg->set_body(body);
 
 	return CALL_RETURN_NULL;
 }

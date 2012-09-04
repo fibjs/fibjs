@@ -406,7 +406,9 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
 			bool bUpload = false;
 			Variant v;
 
-			firstHeader("Content-Type", v);
+			if (firstHeader("Content-Type", v) == CALL_RETURN_NULL)
+				return CALL_E_INVALID_DATA;
+
 			strType = v.string();
 
 			if (!qstricmp(strType.c_str(), "multipart/form-data;", 20))

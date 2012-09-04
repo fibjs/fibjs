@@ -563,6 +563,12 @@
     <ClInclude Include="include\JsonRpcHandler.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\HttpHandler.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\List.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl">
