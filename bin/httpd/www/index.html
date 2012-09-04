@@ -1,0 +1,82 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Sample of web_socket.js</title>
+	<script type="text/javascript" src="/xjs/base.js"></script>
+	<script type="text/javascript" src="/xjs/event.js"></script>
+	<script type="text/javascript" src="/xjs/define.js"></script>
+	<script type="text/javascript" src="/xjs/json.js"></script>
+	<script type="text/javascript" src="/xjs/transport.js"></script>
+ 	<script type="text/javascript" src="/xjs/rpc.js"></script>
+
+<style>
+	.bg {background: #ff0000;}
+	.c {background: #00ff00;color: #fff;}
+</style>	
+
+  <script type="text/javascript">
+  $ = jModo;
+
+    function test_rpc() {
+		$.enableWebSocket = false;
+		$.enableXMLHttpRequest = false;
+		$.enableFlashHttp = false;
+		$.enableIFRAME = true;
+    	
+    	$.rpc('http://192.168.200.93:8080/xhr/test/test', "fun", "答案", 123, 444, function(m) {
+    		if(m.error)
+    			output("iframe error: " + m.error.message);
+    		else
+		        output("iframe result: " + m.result);
+
+			$.enableIFRAME = false;
+			$.enableXMLHttpRequest = true;
+			$.rpc('http://192.168.200.93:8080/xhr/test/test', "fun", "答案", 123, 444, function(m) {
+				if(m.error)
+					output("XMLHttpRequest error: " + m.error.message);
+				else
+					output("XMLHttpRequest result: " + m.result);
+
+				$.enableFlashHttp = true;
+				$.enableXMLHttpRequest = false;
+				$.rpc('http://192.168.200.93:8080/xhr/test', "test.fun", "答案", 123, 444, function(m) {
+					$.enableWebSocket = true;
+					$.enableXMLHttpRequest = true;
+					$.enableFlashHttp = true;
+					$.enableIFRAME = true;
+
+					if(m.error)
+						output("FlashHttp error: " + m.error.message);
+					else
+						output("FlashHttp result: " + m.result);
+				});
+		  });
+      });
+    }
+
+	var n = 0;
+	function getFile()
+	{
+		for(i = 0; i < 100; i ++)
+			$.Query("http://localhost:8080/test.txt", function(m){
+				output(n.toString() + ": " + m);
+				n += 1;
+			});
+	}
+
+    function output(str) {
+      var log = $("log");
+      var escaped = str.toString().replace(/&/, "&amp;").replace(/</, "&lt;").
+        replace(/>/, "&gt;").replace(/"/, "&quot;"); // "
+      log.innerHTML = escaped + "<br>" + log.innerHTML;
+    }
+document.write('<p class="accent">You\'re using ' + $.browser.agent + ' ' + $.browser.ver + ' on ' + $.browser.os + '!</p>');
+document.write(JSON.stringify($.browser));
+document.write(navigator.userAgent);
+  </script>
+</head><body>
+<br>
+    <button onclick="test_rpc();">test</button> <button onclick="getFile();return false;">test1</button>
+  <div id="log"></div>
+</body></html>
