@@ -11,6 +11,7 @@
 #include "ifs/global.h"
 #include <exlib/lockfree.h>
 #include "Fiber.h"
+#include "utf8.h"
 
 #define RESET "\033[0m"
 #define BLACK "\033[30m" /* Black */
@@ -46,7 +47,8 @@ public:
 		CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
 
 		m_hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-		GetConsoleScreenBufferInfo(m_hConsole, &csbiInfo);
+		m_hError = GetStdHandle(STD_ERROR_HANDLE);
+		GetConsoleScreenBufferInfo(m_hError, &csbiInfo);
 		m_wAttributes = csbiInfo.wAttributes;
 #endif
 	}
@@ -63,18 +65,31 @@ protected:
 #ifndef _WIN32
 			std::cerr << RED << event.message << RESET << std::endl;
 #else
-			SetConsoleTextAttribute(m_hConsole, FOREGROUND_RED);
-			std::cerr << event.message << std::endl;
-			SetConsoleTextAttribute(m_hConsole, m_wAttributes);
+			SetConsoleTextAttribute(m_hError, FOREGROUND_RED);
+			DWORD dwWrite;
+			std::wstring s = UTF8_W(event.message);
+			s.append(L"\r\n", 2);
+			WriteConsoleW(m_hConsole, s.c_str(), (DWORD)s.length(), &dwWrite, NULL);
+			SetConsoleTextAttribute(m_hError, m_wAttributes);
 #endif
 		}
 		else
+		{
+#ifndef _WIN32
 			std::cout << event.message << std::endl;
+#else
+			DWORD dwWrite;
+			std::wstring s = UTF8_W(event.message);
+			s.append(L"\r\n", 2);
+			WriteConsoleW(m_hConsole, s.c_str(), (DWORD)s.length(), &dwWrite, NULL);
+#endif
+		}
 	}
 
 #ifdef _WIN32
 private:
 	HANDLE m_hConsole;
+	HANDLE m_hError;
 	WORD m_wAttributes;
 #endif
 };
