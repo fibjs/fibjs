@@ -414,7 +414,7 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
 			if (!qstricmp(strType.c_str(), "multipart/form-data;", 20))
 				bUpload = true;
 			else if (qstricmp(strType.c_str(),
-					"application/x-www-form-urlencoded"))
+					"application/x-www-form-urlencoded", 33))
 				return CALL_E_INVALID_DATA;
 
 			obj_ptr<Buffer_base> buf;

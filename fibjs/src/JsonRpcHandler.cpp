@@ -43,7 +43,7 @@ result_t JsonRpcHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			return CALL_E_INVALID_CALL;
 
 		str = result.string();
-		if (!qstricmp(str.c_str(), "application/x-www-form-urlencoded"))
+		if (!qstricmp(str.c_str(), "application/x-www-form-urlencoded", 33))
 		{
 			obj_ptr<HttpCollection_base> form;
 			htreq->get_form(form);
@@ -52,7 +52,7 @@ result_t JsonRpcHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			str = result.string();
 			bFormReq = true;
 		}
-		else if (qstricmp(str.c_str(), "application/json"))
+		else if (qstricmp(str.c_str(), "application/json", 16))
 			return CALL_E_INVALID_CALL;
 	}
 
