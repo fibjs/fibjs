@@ -121,17 +121,34 @@ result_t JsonRpcHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
 	if (hr < 0)
 	{
+		result_t hr1 = encoding_base::jsonEncode(o, str);
+		if (hr1 < 0)
+			return hr1;
 
+		if (str.length() <= 2)
+			str.assign("{", 1);
+		else
+		{
+			str.resize(str.length() - 1);
+			str += ',';
+		}
+
+		if (hr == CALL_E_INVALID_CALL)
+			str.append(
+					"\"error\": {\"code\": -32601, \"message\": \"Method not found.\"}}");
+		else
+			str.append(
+					"\"error\": {\"code\": -32603, \"message\": \"Internal error.\"}}");
 	}
 	else
 	{
 		msg->get_result(result);
 		o->Set(v8::String::NewSymbol("result", 6), result);
-	}
 
-	hr = encoding_base::jsonEncode(o, str);
-	if (hr < 0)
-		return hr;
+		hr = encoding_base::jsonEncode(o, str);
+		if (hr < 0)
+			return hr;
+	}
 
 	body = new MemoryStream();
 

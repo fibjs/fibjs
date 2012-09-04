@@ -132,6 +132,12 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				JSFiber::call(v8::Handle<v8::Function>::Cast(hdlr), &a, 1,
 						hdlr);
 
+			if (hdlr.IsEmpty())
+				return CALL_E_INTERNAL;
+
+			if (IsEmpty(hdlr))
+				return CALL_RETURN_NULL;
+
 			bResult = true;
 		}
 		else if (hdlr->IsObject())
@@ -168,13 +174,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			return CALL_RETURN_NULL;
 		}
 		else
-			return CALL_E_INVALID_CALL;
-
-		if (hdlr.IsEmpty())
 			return CALL_E_INTERNAL;
-
-		if (IsEmpty(hdlr))
-			return CALL_RETURN_NULL;
 	}
 
 	return 0;
