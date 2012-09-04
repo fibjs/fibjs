@@ -37,25 +37,49 @@
 namespace fibjs
 {
 
-static std::map<std::string, v8::Persistent<v8::Value> > s_mapModules;
-
-void InstallModule(std::string fname, v8::Handle<v8::Value> o)
+class mod: public obj_base
 {
-	std::map<std::string, v8::Persistent<v8::Value> >::iterator it =
-			s_mapModules.find(fname);
+public:
+	~mod()
+	{
+		m_mod.Dispose();
+	}
+
+public:
+	v8::Persistent<v8::Value> m_mod;
+	date_t m_mtime;
+	date_t m_check;
+};
+
+static std::map<std::string, obj_ptr<mod> > s_mapModules;
+static date_t s_now;
+
+void InstallModule(std::string fname, v8::Handle<v8::Value> o, date_t d)
+{
+	std::map<std::string, obj_ptr<mod> >::iterator it = s_mapModules.find(
+			fname);
+	obj_ptr<mod> m;
 
 	if (it == s_mapModules.end())
-		s_mapModules[fname] = v8::Persistent<v8::Value>::New(o);
-	else if (!o->StrictEquals(it->second))
 	{
-		it->second.Dispose();
-		it->second = v8::Persistent<v8::Value>::New(o);
+		m = new mod();
+		s_mapModules[fname] = m;
 	}
+	else
+	{
+		m = it->second;
+		m->m_mod.Dispose();
+	}
+
+	m->m_mod = v8::Persistent<v8::Value>::New(o);
+	m->m_mtime = d;
+	m->m_check = s_now;
 }
 
 inline void InstallNativeModule(const char* fname, ClassInfo& ci)
 {
-	InstallModule(fname, ci.CreateInstance());
+	static date_t s_noneDate;
+	InstallModule(fname, ci.CreateInstance(), s_noneDate);
 }
 
 void initModule()
@@ -178,6 +202,7 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 		bool bMod)
 {
 	std::string fname = resolvePath(id);
+	std::map<std::string, obj_ptr<mod> >::iterator it;
 
 	// remove .js ext name if exists
 	if (fname.length() > 3 && !qstrcmp(&fname[fname.length() - 3], ".js"))
@@ -185,12 +210,15 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 
 	if (bMod)
 	{
-		std::map<std::string, v8::Persistent<v8::Value> >::iterator it =
-				s_mapModules.find(fname);
+		s_now.now();
 
-		if (it != s_mapModules.end())
+		it = s_mapModules.find(fname);
+
+		if (it != s_mapModules.end()
+				&& (it->second->m_mtime.empty()
+						|| s_now.diff(it->second->m_check) < 1000))
 		{
-			retVal = it->second;
+			retVal = it->second->m_mod;
 			return 1;
 		}
 	}
@@ -198,10 +226,32 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 	// append .js ext name
 	fname += ".js";
 
-	std::string buf;
+	result_t hr;
+	const char* pname = fname.c_str();
+	obj_ptr<Stat_base> st;
+	date_t mtime;
 
-	asyncEvent ac;
-	result_t hr = io_base::readFile(fname.c_str(), buf, &ac);
+	if (bMod)
+	{
+		hr = os_base::ac_stat(pname, st);
+		if (hr < 0)
+			return hr;
+
+		st->get_mtime(mtime);
+
+		if (it != s_mapModules.end())
+		{
+			if (mtime.diff(it->second->m_mtime) == 0)
+			{
+				it->second->m_check = s_now;
+				retVal = it->second->m_mod;
+				return 1;
+			}
+		}
+	}
+
+	std::string buf;
+	hr = io_base::ac_readFile(pname, buf);
 	if (hr < 0)
 		return hr;
 
@@ -267,7 +317,7 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 		mod->Set(strId, strFname, v8::ReadOnly);
 
 		// add to modules
-		InstallModule(fname, exports);
+		InstallModule(fname, exports, mtime);
 
 		// attach to global
 		glob->Set(strModule, mod, v8::ReadOnly);
@@ -295,7 +345,7 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 
 			// use module.exports as result value
 			v8::Handle<v8::Value> v = mod->Get(strExports);
-			InstallModule(fname, v);
+			InstallModule(fname, v, mtime);
 
 			retVal = handle_scope.Close(v);
 		}

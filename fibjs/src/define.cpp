@@ -15,7 +15,8 @@
 namespace fibjs
 {
 
-void InstallModule(std::string fname, v8::Handle<v8::Value> o);
+void InstallModule(std::string fname, v8::Handle<v8::Value> o, date_t d);
+static date_t s_noneDate;
 
 inline std::string resolvePath(std::string base, const char* id)
 {
@@ -143,7 +144,7 @@ v8::Handle<v8::Value> _define(const v8::Arguments& args)
 		modDef->Set(strId, strFname, v8::ReadOnly);
 
 		// add to modules
-		InstallModule(id, exports);
+		InstallModule(id, exports, s_noneDate);
 	}
 
 	v8::Handle<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
@@ -325,7 +326,7 @@ void doDefine(v8::Handle<v8::Object>& mod)
 					else
 						v = mods[i]->Get(strExports);
 
-					InstallModule(modIds[i], v);
+					InstallModule(modIds[i], v, s_noneDate);
 
 					// remove id name, we don't like to call it again
 					depns.erase(modIds[i]);

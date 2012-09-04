@@ -460,12 +460,18 @@ namespace fibjs
 
 result_t os_base::exists(const char* path, bool& retVal, exlib::AsyncEvent* ac)
 {
+	if (!ac)
+		return CALL_E_NOSYNC;
+
 	retVal = access(path, F_OK) == 0;
 	return 0;
 }
 
 result_t os_base::unlink(const char* path, exlib::AsyncEvent* ac)
 {
+	if (!ac)
+		return CALL_E_NOSYNC;
+
 	if (::unlink(path))
 		return LastError();
 
@@ -474,6 +480,9 @@ result_t os_base::unlink(const char* path, exlib::AsyncEvent* ac)
 
 result_t os_base::mkdir(const char* path, exlib::AsyncEvent* ac)
 {
+	if (!ac)
+		return CALL_E_NOSYNC;
+
 	if (::mkdir(path, 715))
 		return LastError();
 
@@ -482,6 +491,9 @@ result_t os_base::mkdir(const char* path, exlib::AsyncEvent* ac)
 
 result_t os_base::rmdir(const char* path, exlib::AsyncEvent* ac)
 {
+	if (!ac)
+		return CALL_E_NOSYNC;
+
 	if (::rmdir(path))
 		return LastError();
 
@@ -491,6 +503,9 @@ result_t os_base::rmdir(const char* path, exlib::AsyncEvent* ac)
 result_t os_base::rename(const char* from, const char* to,
 		exlib::AsyncEvent* ac)
 {
+	if (!ac)
+		return CALL_E_NOSYNC;
+
 	if (::rename(from, to))
 		return LastError();
 
@@ -500,6 +515,9 @@ result_t os_base::rename(const char* from, const char* to,
 result_t os_base::readdir(const char* path, obj_ptr<List_base>& retVal,
 		exlib::AsyncEvent* ac)
 {
+	if (!ac)
+		return CALL_E_NOSYNC;
+
 	DIR * dp;
 	struct dirent * ep;
 	std::string fpath;
@@ -540,73 +558,91 @@ result_t os_base::readdir(const char* path, obj_ptr<List_base>& retVal,
 namespace fibjs
 {
 
-	result_t os_base::exists(const char* path, bool& retVal, exlib::AsyncEvent* ac)
-	{
-		retVal = _waccess(UTF8_W(path), 0) == 0;
-		return 0;
-	}
+result_t os_base::exists(const char* path, bool& retVal, exlib::AsyncEvent* ac)
+{
+	if (!ac)
+		return CALL_E_NOSYNC;
 
-	result_t os_base::unlink(const char* path, exlib::AsyncEvent* ac)
-	{
-		if(::_wunlink(UTF8_W(path)))
+	retVal = _waccess(UTF8_W(path), 0) == 0;
+	return 0;
+}
+
+result_t os_base::unlink(const char* path, exlib::AsyncEvent* ac)
+{
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	if(::_wunlink(UTF8_W(path)))
 		return LastError();
 
-		return 0;
-	}
+	return 0;
+}
 
-	result_t os_base::mkdir(const char* path, exlib::AsyncEvent* ac)
-	{
-		if (::_wmkdir(UTF8_W(path)))
+result_t os_base::mkdir(const char* path, exlib::AsyncEvent* ac)
+{
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	if (::_wmkdir(UTF8_W(path)))
 		return LastError();
 
-		return 0;
-	}
+	return 0;
+}
 
-	result_t os_base::rmdir(const char* path, exlib::AsyncEvent* ac)
-	{
-		if (::_wrmdir(UTF8_W(path)))
+result_t os_base::rmdir(const char* path, exlib::AsyncEvent* ac)
+{
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	if (::_wrmdir(UTF8_W(path)))
 		return LastError();
 
-		return 0;
-	}
+	return 0;
+}
 
-	result_t os_base::rename(const char* from, const char* to, exlib::AsyncEvent* ac)
-	{
-		if (::_wrename(UTF8_W(from), UTF8_W(to)))
+result_t os_base::rename(const char* from, const char* to, exlib::AsyncEvent* ac)
+{
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	if (::_wrename(UTF8_W(from), UTF8_W(to)))
 		return LastError();
 
-		return 0;
-	}
+	return 0;
+}
 
-	result_t os_base::readdir(const char* path, obj_ptr<List_base>& retVal, exlib::AsyncEvent* ac)
-	{
-		WIN32_FIND_DATAW fd;
-		HANDLE hFind;
-		std::wstring fpath;
-		obj_ptr<List> oa;
+result_t os_base::readdir(const char* path, obj_ptr<List_base>& retVal, exlib::AsyncEvent* ac)
+{
+	if (!ac)
+		return CALL_E_NOSYNC;
 
-		fpath = utf8to16String(path);
-		fpath.append(L"/*", 2);
+	WIN32_FIND_DATAW fd;
+	HANDLE hFind;
+	std::wstring fpath;
+	obj_ptr<List> oa;
 
-		hFind = FindFirstFileW(fpath.c_str(), &fd);
-		if (hFind == INVALID_HANDLE_VALUE)
+	fpath = utf8to16String(path);
+	fpath.append(L"/*", 2);
+
+	hFind = FindFirstFileW(fpath.c_str(), &fd);
+	if (hFind == INVALID_HANDLE_VALUE)
 		return LastError();
 
-		oa = new List();
+	oa = new List();
 
-		do
-		{
-			obj_ptr<Stat> pStat = new Stat();
-			pStat->fill(fd);
-			oa->append(pStat);
-		}while(FindNextFileW(hFind, &fd));
+	do
+	{
+		obj_ptr<Stat> pStat = new Stat();
+		pStat->fill(fd);
+		oa->append(pStat);
+	}while(FindNextFileW(hFind, &fd));
 
-		FindClose(hFind);
+	FindClose(hFind);
 
-		retVal = oa;
+	retVal = oa;
 
-		return 0;
-	}
+	return 0;
+}
 
 }
 
