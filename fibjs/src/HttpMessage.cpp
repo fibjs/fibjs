@@ -144,7 +144,7 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 			asyncReadFrom* pThis = (asyncReadFrom*) pState;
 
 			pThis->set(header);
-			return pThis->m_stm->readLine(pThis->m_strLine, pThis);
+			return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine, pThis);
 		}
 
 		static int header(asyncState* pState, int n)
@@ -161,7 +161,7 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 				if (hr < 0)
 					return hr;
 
-				return pThis->m_stm->readLine(pThis->m_strLine, pThis);
+				return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine, pThis);
 			}
 
 			if (pThis->m_contentLength == 0)

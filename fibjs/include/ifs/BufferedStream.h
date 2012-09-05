@@ -25,8 +25,8 @@ public:
 	// BufferedStream_base
 	static result_t _new(Stream_base* stm, obj_ptr<BufferedStream_base>& retVal);
 	virtual result_t readText(int32_t size, std::string& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t readLine(std::string& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t readUntil(const char* mk, std::string& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t readLine(int32_t maxlen, std::string& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t readUntil(const char* mk, int32_t maxlen, std::string& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t writeText(const char* txt, exlib::AsyncEvent* ac) = 0;
 	virtual result_t writeLine(const char* txt, exlib::AsyncEvent* ac) = 0;
 	virtual result_t get_EOL(std::string& retVal) = 0;
@@ -57,10 +57,10 @@ public:
 public:
 	ASYNC_MEMBER2(BufferedStream_base, readText);
 	ASYNC_VALUEBACK1(BufferedStream_base, readText, std::string);
-	ASYNC_MEMBER1(BufferedStream_base, readLine);
-	ASYNC_VALUEBACK0(BufferedStream_base, readLine, std::string);
-	ASYNC_MEMBER2(BufferedStream_base, readUntil);
-	ASYNC_VALUEBACK1(BufferedStream_base, readUntil, std::string);
+	ASYNC_MEMBER2(BufferedStream_base, readLine);
+	ASYNC_VALUEBACK1(BufferedStream_base, readLine, std::string);
+	ASYNC_MEMBER3(BufferedStream_base, readUntil);
+	ASYNC_VALUEBACK2(BufferedStream_base, readUntil, std::string);
 	ASYNC_MEMBER1(BufferedStream_base, writeText);
 	ASYNC_CALLBACK1(BufferedStream_base, writeText);
 	ASYNC_MEMBER1(BufferedStream_base, writeLine);
@@ -154,9 +154,11 @@ namespace fibjs
 		std::string vr;
 
 		METHOD_INSTANCE(BufferedStream_base);
-		METHOD_ENTER(0, 0);
+		METHOD_ENTER(1, 0);
 
-		hr = pInst->ac_readLine(vr);
+		OPT_ARG(int32_t, 0, -1);
+
+		hr = pInst->ac_readLine(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -166,11 +168,12 @@ namespace fibjs
 		std::string vr;
 
 		METHOD_INSTANCE(BufferedStream_base);
-		METHOD_ENTER(1, 1);
+		METHOD_ENTER(2, 1);
 
 		ARG_String(0);
+		OPT_ARG(int32_t, 1, -1);
 
-		hr = pInst->ac_readUntil(v0, vr);
+		hr = pInst->ac_readUntil(v0, v1, vr);
 
 		METHOD_RETURN();
 	}

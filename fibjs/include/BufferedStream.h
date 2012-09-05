@@ -49,8 +49,8 @@ public:
 public:
 	// BufferedStream_base
 	virtual result_t readText(int32_t size, std::string& retVal, exlib::AsyncEvent* ac);
-	virtual result_t readLine(std::string& retVal, exlib::AsyncEvent* ac);
-	virtual result_t readUntil(const char* mk, std::string& retVal, exlib::AsyncEvent* ac);
+	virtual result_t readLine(int32_t maxlen, std::string& retVal, exlib::AsyncEvent* ac);
+	virtual result_t readUntil(const char* mk, int32_t maxlen, std::string& retVal, exlib::AsyncEvent* ac);
 	virtual result_t writeText(const char* txt, exlib::AsyncEvent* ac);
 	virtual result_t writeLine(const char* txt, exlib::AsyncEvent* ac);
 	virtual result_t get_EOL(std::string& retVal);

@@ -31,7 +31,7 @@ public:
 		asyncBuffer* pThis = (asyncBuffer*) pState;
 
 		result_t hr = pThis->process(pThis->m_streamEnd);
-		if (hr >= 0)
+		if (hr != CALL_E_PENDDING)
 			return pThis->done(hr);
 
 		pThis->set(ready);
@@ -139,7 +139,7 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 	}
 
 	result_t hr = asyncRead::process(this, bytes, retVal, false);
-	if (hr >= 0)
+	if (hr != CALL_E_PENDDING)
 		return hr;
 
 	if (!ac)
@@ -219,25 +219,27 @@ result_t BufferedStream::readText(int32_t size, std::string& retVal,
 	return 0;
 }
 
-result_t BufferedStream::readLine(std::string& retVal, exlib::AsyncEvent* ac)
+result_t BufferedStream::readLine(int32_t maxlen, std::string& retVal,
+		exlib::AsyncEvent* ac)
 {
-	return readUntil(m_eol.c_str(), retVal, ac);
+	return readUntil(m_eol.c_str(), maxlen, retVal, ac);
 }
 
-result_t BufferedStream::readUntil(const char* mk, std::string& retVal,
-		exlib::AsyncEvent* ac)
+result_t BufferedStream::readUntil(const char* mk, int32_t maxlen,
+		std::string& retVal, exlib::AsyncEvent* ac)
 {
 	class asyncRead: public asyncBuffer
 	{
 	public:
-		asyncRead(BufferedStream* pThis, const char* mk, std::string& retVal,
-				exlib::AsyncEvent* ac) :
-				asyncBuffer(pThis, ac), m_mk(mk), m_retVal(retVal)
+		asyncRead(BufferedStream* pThis, const char* mk, int32_t maxlen,
+				std::string& retVal, exlib::AsyncEvent* ac) :
+				asyncBuffer(pThis, ac), m_mk(mk), m_maxlen(maxlen), m_retVal(
+						retVal)
 		{
 		}
 
 		static result_t process(BufferedStream* pThis, const char* mk,
-				std::string& retVal, bool streamEnd)
+				int32_t maxlen, std::string& retVal, bool streamEnd)
 		{
 			int pos = pThis->m_pos;
 			int mklen = (int) qstrlen(mk);
@@ -282,6 +284,11 @@ result_t BufferedStream::readUntil(const char* mk, std::string& retVal,
 				}
 			}
 
+			if (maxlen > 0
+					&& pThis->m_strbuf.size() + (pos - pThis->m_pos)
+							> maxlen + mklen)
+				return CALL_E_INVALID_DATA;
+
 			pThis->append(pos - pThis->m_pos);
 
 			if (streamEnd || (pThis->m_mkpos >= mklen))
@@ -305,22 +312,23 @@ result_t BufferedStream::readUntil(const char* mk, std::string& retVal,
 
 		virtual result_t process(bool streamEnd)
 		{
-			return process(m_pThis, m_mk, m_retVal, streamEnd);
+			return process(m_pThis, m_mk, m_maxlen, m_retVal, streamEnd);
 		}
 
 	public:
 		const char* m_mk;
+		int32_t m_maxlen;
 		std::string& m_retVal;
 	};
 
-	result_t hr = asyncRead::process(this, mk, retVal, false);
-	if (hr >= 0)
+	result_t hr = asyncRead::process(this, mk, maxlen, retVal, false);
+	if (hr != CALL_E_PENDDING)
 		return hr;
 
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	return (new asyncRead(this, mk, retVal, ac))->post(0);
+	return (new asyncRead(this, mk, maxlen, retVal, ac))->post(0);
 }
 
 result_t BufferedStream::writeText(const char* txt, exlib::AsyncEvent* ac)

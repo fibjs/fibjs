@@ -15,6 +15,8 @@
 namespace fibjs
 {
 
+#define HTTP_MAX_LINE	4096
+
 class HttpMessage: public Message
 {
 public:

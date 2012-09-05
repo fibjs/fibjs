@@ -197,7 +197,7 @@ result_t HttpRequest::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 			asyncReadFrom* pThis = (asyncReadFrom*) pState;
 
 			pThis->set(command);
-			return pThis->m_stm->readLine(pThis->m_strLine, pThis);
+			return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine, pThis);
 		}
 
 		static int command(asyncState* pState, int n)
