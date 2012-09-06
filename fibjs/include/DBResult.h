@@ -5,7 +5,7 @@
  *      Author: lion
  */
 
-#include "ifs/DbResult.h"
+#include "ifs/DBResult.h"
 #include "List.h"
 #include "DBRow.h"
 

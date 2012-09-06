@@ -359,10 +359,12 @@ void HttpRequest::parse(std::string& str, char split,
 		}
 
 		if (!strKey.empty())
+		{
 			if (pstr > pstrTemp)
 				Url::decodeURI(pstrTemp, (int) (pstr - pstrTemp), strValue);
 			else
 				strValue.clear();
+		}
 
 		if (nSize)
 		{

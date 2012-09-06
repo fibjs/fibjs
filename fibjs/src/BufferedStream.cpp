@@ -285,8 +285,8 @@ result_t BufferedStream::readUntil(const char* mk, int32_t maxlen,
 			}
 
 			if (maxlen > 0
-					&& pThis->m_strbuf.size() + (pos - pThis->m_pos)
-							> maxlen + mklen)
+					&& ((int)pThis->m_strbuf.size() + (pos - pThis->m_pos)
+							> maxlen + mklen))
 				return CALL_E_INVALID_DATA;
 
 			pThis->append(pos - pThis->m_pos);

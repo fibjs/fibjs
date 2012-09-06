@@ -228,7 +228,8 @@ result_t Url::parse(const char* url)
 	parseProtocol(url);
 
 	bHost = !m_slashes;
-	if (m_slashes = (isUrlSlash(*url) && isUrlSlash(url[1])))
+	m_slashes = (isUrlSlash(*url) && isUrlSlash(url[1]));
+	if (m_slashes)
 		url += 2;
 
 	if (!m_protocol.compare("javascript:"))

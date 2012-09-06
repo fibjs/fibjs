@@ -157,7 +157,8 @@ void Variant::parseNumber(const char* str, int len)
 	int pos = 0;
 	char ch;
 
-	if (bNeg = (pick(str, len, pos) == '-'))
+	bNeg = (pick(str, len, pos) == '-');
+	if (bNeg)
 		next(len, pos);
 
 	digit = getInt(str, len, pos);
