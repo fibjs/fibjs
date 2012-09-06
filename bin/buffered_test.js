@@ -63,11 +63,21 @@ r.EOL = '\r\n';
 
 var n = 0;
 
-while ((s = r.readLine()) !== null){
+while ((s = r.readLine()) !== null) {
 	assert.equal('0123456789', s);
-	n ++;
+	n++;
 }
 assert.equal(1024, n);
-	
+f.close();
+
+f = io.open("test0000");
+var r = new io.BufferedStream(f);
+r.EOL = '\r\n';
+
+assert.equal(r.readLine(10), '0123456789');
+assert.throws(function() {
+	r.readLine(9);
+});
+
 f.close();
 os.unlink("test0000");
