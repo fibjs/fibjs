@@ -10,6 +10,7 @@
 #include "qstring.h"
 #include <math.h>
 #include <string.h>
+#include <stdlib.h>
 
 namespace fibjs
 {
