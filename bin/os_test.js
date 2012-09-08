@@ -53,10 +53,12 @@ assert.equal(st.isWritable(), true);
 
 assert.equal(os.time(), new Date());
 
-//var bs = os.exec('x64_Release\\fibjs exec_test');
-var bs = os.exec('Release/fibjs exec_test');
-bs.EOL = '\n'
+var cmd = os.shell + ' exec_test';
+
+var bs = os.exec(cmd);
 var s;
 
 while((s = bs.readLine()) != null)
 	console.log('>>>', s);
+
+assert.equal(os.system(cmd), 100);

@@ -9,7 +9,7 @@ var os = require('os');
 
 var path = require('path');
 
-var isWindows = os.type() === 'Windows';
+var isWindows = os.type === 'Windows';
 
 // isWindows = true;
 
