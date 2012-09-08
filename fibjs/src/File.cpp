@@ -7,7 +7,9 @@
 
 #include "object.h"
 
+#ifndef _WIN32
 #include <sys/ioctl.h>
+#endif
 
 #include "File.h"
 #include "Buffer.h"
