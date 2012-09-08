@@ -20,6 +20,7 @@ namespace fibjs
 class module_base;
 class Stat_base;
 class List_base;
+class BufferedStream_base;
 
 class os_base : public module_base
 {
@@ -41,6 +42,7 @@ public:
 	static result_t rename(const char* from, const char* to, exlib::AsyncEvent* ac);
 	static result_t stat(const char* path, obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t readdir(const char* path, obj_ptr<List_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t exec(const char* cmd, obj_ptr<BufferedStream_base>& retVal, exlib::AsyncEvent* ac);
 
 	DECLARE_CLASSINFO(os_base);
 
@@ -61,6 +63,7 @@ public:
 	static v8::Handle<v8::Value> s_rename(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_stat(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_readdir(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_exec(const v8::Arguments& args);
 
 public:
 	ASYNC_STATIC2(os_base, exists);
@@ -70,12 +73,14 @@ public:
 	ASYNC_STATIC2(os_base, rename);
 	ASYNC_STATIC2(os_base, stat);
 	ASYNC_STATIC2(os_base, readdir);
+	ASYNC_STATIC2(os_base, exec);
 };
 
 }
 
 #include "Stat.h"
 #include "List.h"
+#include "BufferedStream.h"
 
 namespace fibjs
 {
@@ -98,13 +103,14 @@ namespace fibjs
 			{"rmdir", s_rmdir, true},
 			{"rename", s_rename, true},
 			{"stat", s_stat, true},
-			{"readdir", s_readdir, true}
+			{"readdir", s_readdir, true},
+			{"exec", s_exec, true}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"os", NULL, 
-			16, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			17, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -294,6 +300,19 @@ namespace fibjs
 		ARG_String(0);
 
 		hr = ac_readdir(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_exec(const v8::Arguments& args)
+	{
+		obj_ptr<BufferedStream_base> vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = ac_exec(v0, vr);
 
 		METHOD_RETURN();
 	}

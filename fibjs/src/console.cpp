@@ -41,8 +41,39 @@ inline int64_t Ticks()
 
 #endif
 
+#include "File.h"
+#include "BufferedStream.h"
+
 namespace fibjs
 {
+
+static obj_ptr<BufferedStream_base> s_in, s_out;
+
+result_t console_base::get_in(obj_ptr<BufferedStream_base>& retVal)
+{
+	if (s_in == NULL)
+	{
+		s_in = new BufferedStream(new File(stdin, true));
+		s_in->set_EOL("\n");
+	}
+
+	retVal = s_in;
+
+	return 0;
+}
+
+result_t console_base::get_out(obj_ptr<BufferedStream_base>& retVal)
+{
+	if (s_out == NULL)
+	{
+		s_out = new BufferedStream(new File(stdout, true));
+		s_out->set_EOL("\n");
+	}
+
+	retVal = s_out;
+
+	return 0;
+}
 
 std::string Format(const char* fmt, const v8::Arguments& args, int idx = 1)
 {

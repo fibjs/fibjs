@@ -11,7 +11,8 @@ class File : public File_base
 	EVENT_SUPPORT();
 
 public:
-    File() : m_data(0), m_file(NULL)
+	File(FILE* file = NULL, bool pipe = false) :
+			m_file(file), m_pipe(pipe)
     {
     }
 
@@ -64,10 +65,10 @@ public:
 public:
     result_t Write(const char* p, int sz);
 
-private:
+protected:
     std::string name;
-    double m_data;
     FILE* m_file;
+	bool m_pipe;
 };
 
 }

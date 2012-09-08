@@ -7,6 +7,8 @@
 
 #include "object.h"
 
+#include <sys/ioctl.h>
+
 #include "File.h"
 #include "Buffer.h"
 #include "Stat.h"
@@ -35,21 +37,44 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
 	if (bytes < 0)
 	{
-		int64_t sz;
-
-		int64_t p = ftello64(m_file);
-		if (0 == fseeko64(m_file, 0, SEEK_END))
+		if (m_pipe)
 		{
-			sz = ftello64(m_file) - p;
-			fseeko64(m_file, p, SEEK_SET);
+#ifndef _WIN32
+			int sz;
+
+			if (!ioctl(fileno(m_file), FIONREAD, &sz))
+			{
+				if (sz == 0)
+					bytes = 1;
+				else if (sz > STREAM_BUFF_SIZE)
+					bytes = STREAM_BUFF_SIZE;
+				else
+					bytes = sz;
+			}
+			else
+				bytes = 1;
+#else
+			bytes = 1;
+#endif
 		}
 		else
-			return LastError();
+		{
+			int64_t sz;
 
-		if (sz > STREAM_BUFF_SIZE)
-			sz = STREAM_BUFF_SIZE;
+			int64_t p = ftello64(m_file);
+			if (0 == fseeko64(m_file, 0, SEEK_END))
+			{
+				sz = ftello64(m_file) - p;
+				fseeko64(m_file, p, SEEK_SET);
+			}
+			else
+				return LastError();
 
-		bytes = (int32_t) sz;
+			if (sz > STREAM_BUFF_SIZE)
+				sz = STREAM_BUFF_SIZE;
+
+			bytes = (int32_t) sz;
+		}
 	}
 
 	if (bytes > 0)
@@ -107,6 +132,9 @@ result_t File::Write(const char* p, int sz)
 		sz -= n;
 		p += n;
 	}
+
+	if(m_pipe)
+		fflush(m_file);
 
 	return 0;
 }

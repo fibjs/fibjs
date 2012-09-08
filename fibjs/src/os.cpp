@@ -5,10 +5,10 @@
  *      Author: lion
  */
 
+#include <osconfig.h>
+
 #include "ifs/os.h"
 #include "string.h"
-
-#include <osconfig.h>
 
 #ifndef _WIN32
 # include <unistd.h>  // gethostname, sysconf
@@ -19,6 +19,12 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
+#include <dirent.h>
+#else
+#include <stdio.h>
+
+#define popen _popen
+#define pclose _pclose
 #endif
 
 #ifdef MacOS
@@ -31,6 +37,8 @@
 #include "utf8.h"
 #include "Stat.h"
 #include "List.h"
+#include "File.h"
+#include "BufferedStream.h"
 
 namespace fibjs
 {
@@ -450,13 +458,7 @@ result_t os_base::stat(const char* path, obj_ptr<Stat_base>& retVal,
 	return 0;
 }
 
-}
-
 #ifndef _WIN32
-#include <dirent.h>
-
-namespace fibjs
-{
 
 result_t os_base::exists(const char* path, bool& retVal, exlib::AsyncEvent* ac)
 {
@@ -549,14 +551,7 @@ result_t os_base::readdir(const char* path, obj_ptr<List_base>& retVal,
 	return 0;
 }
 
-}
-
 #else
-
-#include <direct.h>
-
-namespace fibjs
-{
 
 result_t os_base::exists(const char* path, bool& retVal, exlib::AsyncEvent* ac)
 {
@@ -644,6 +639,23 @@ result_t os_base::readdir(const char* path, obj_ptr<List_base>& retVal, exlib::A
 	return 0;
 }
 
+#endif
+
+result_t os_base::exec(const char* cmd, obj_ptr<BufferedStream_base>& retVal,
+		exlib::AsyncEvent* ac)
+{
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	FILE* pPipe = popen(cmd, "r");
+	if (pPipe == NULL)
+		return LastError();
+
+	retVal = new BufferedStream(new File(pPipe, true));
+	retVal->set_EOL("\n");
+
+	return 0;
 }
 
-#endif
+}
+

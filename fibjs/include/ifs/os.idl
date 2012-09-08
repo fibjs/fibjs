@@ -70,10 +70,14 @@ class os : module
 	static Stat stat(String path) async;
 
 	/*! @brief 读取指定目录的文件信息
-	 *
-	 *
 	 * @param path 指定查询的目录
 	 * @return 返回目录的文件信息数组
 	 */
 	static List readdir(String path) async;
+	
+	/*! @brief 运行指定的命令行，并返回运行结果
+	 * @param cmd 指定运行的命令行
+	 * @return 返回包含运行结果的文件对象
+	 */
+	static BufferedStream exec(String cmd) async;
 };

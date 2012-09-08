@@ -46,7 +46,6 @@ public:
 #ifdef _WIN32
 		CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
 
-		m_hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 		m_hError = GetStdHandle(STD_ERROR_HANDLE);
 		GetConsoleScreenBufferInfo(m_hError, &csbiInfo);
 		m_wAttributes = csbiInfo.wAttributes;
@@ -65,11 +64,12 @@ protected:
 #ifndef _WIN32
 			std::cerr << RED << event.message << RESET << std::endl;
 #else
-			SetConsoleTextAttribute(m_hError, FOREGROUND_RED);
-			DWORD dwWrite;
 			std::wstring s = UTF8_W(event.message);
 			s.append(L"\r\n", 2);
-			WriteConsoleW(m_hConsole, s.c_str(), (DWORD)s.length(), &dwWrite, NULL);
+
+			SetConsoleTextAttribute(m_hError, FOREGROUND_RED);
+			fputws(s.c_str(), stderr);
+			fflush(stderr);
 			SetConsoleTextAttribute(m_hError, m_wAttributes);
 #endif
 		}
@@ -78,17 +78,16 @@ protected:
 #ifndef _WIN32
 			std::cout << event.message << std::endl;
 #else
-			DWORD dwWrite;
 			std::wstring s = UTF8_W(event.message);
 			s.append(L"\r\n", 2);
-			WriteConsoleW(m_hConsole, s.c_str(), (DWORD)s.length(), &dwWrite, NULL);
+			fputws(s.c_str(), stdout);
+			fflush(stdout);
 #endif
 		}
 	}
 
 #ifdef _WIN32
 private:
-	HANDLE m_hConsole;
 	HANDLE m_hError;
 	WORD m_wAttributes;
 #endif
