@@ -20,12 +20,6 @@
 namespace fibjs
 {
 
-result_t File_base::_new(obj_ptr<File_base>& retVal)
-{
-	retVal = new File();
-	return 0;
-}
-
 result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 		exlib::AsyncEvent* ac)
 {
@@ -223,20 +217,6 @@ result_t File::open(const char* fname, const char* mode, exlib::AsyncEvent* ac)
 	name = fname;
 
 	return 0;
-}
-
-result_t File::asyncOpen(const char* fname, const char* mode)
-{
-	std::string strname(fname);
-	std::string strmode(mode);
-
-	acb_open(strname, strmode);
-	return 0;
-}
-
-result_t File::onopen(v8::Handle<v8::Function> func)
-{
-	return on("open", func);
 }
 
 result_t File::get_name(std::string& retVal)

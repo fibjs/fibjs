@@ -47,9 +47,6 @@ public:
 
 public:
 	// File_base
-	virtual result_t open(const char* fname, const char* mode, exlib::AsyncEvent* ac);
-	virtual result_t asyncOpen(const char* fname, const char* mode);
-	virtual result_t onopen(v8::Handle<v8::Function> func);
 	virtual result_t get_name(std::string& retVal);
 	virtual result_t truncate(int64_t bytes, exlib::AsyncEvent* ac);
 	virtual result_t asyncTruncate(int64_t bytes);
@@ -63,6 +60,7 @@ public:
 	virtual result_t onclose(v8::Handle<v8::Function> func);
 
 public:
+	result_t open(const char* fname, const char* mode, exlib::AsyncEvent* ac);
     result_t Write(const char* p, int sz);
 
 protected:

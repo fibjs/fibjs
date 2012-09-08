@@ -12,9 +12,6 @@ class io : module
 	const Integer SEEK_CUR = 1;
 	const Integer SEEK_END = 2;
 
-	/*! @brief 创建一个文件对象，参见 File */
-	static File new File();
-
 	/*! @brief 创建一个内存流对象，参见 MemoryStream */
 	static MemoryStream new MemoryStream();
 

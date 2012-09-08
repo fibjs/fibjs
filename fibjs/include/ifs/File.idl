@@ -7,48 +7,6 @@
  */
 class File: SeekableStream
 {
-//	const Integer SEEK_SET = 0;
-//	const Integer SEEK_CUR = 1;
-//	const Integer SEEK_END = 2;
-
-	/*! @brief 文件对象构造函数  */
-	File();
-
-	/*! @brief 打开文件，用于读取，写入，或者同时读写
-	 * @param fname 指定文件名
-	 * @param mode 指定文件打开方式，缺省为 "r"，只读方式。支持的方式如下：
-	 * - 'r' 只读方式，文件不存在则抛出错误。
-	 * - 'r+' 读写方式，文件不存在则抛出错误。
-	 * - 'w' 只写方式，文件不存在则自动创建，存在则将被清空。
-	 * - 'w+' 读写方式，文件不存在则自动创建。
-	 * - 'a' 只写添加方式，文件不存在则自动创建。
-	 * - 'a+' 读写添加方式，文件不存在则自动创建。
-	 */
-	open(String fname, String mode = "r") async;
-
-	/*! @brief 异步打开文件，用于读取，写入，或者同时读写
-	 * @param fname 指定文件名
-	 * @param mode 指定文件打开方式，缺省为 "r"，只读方式。支持的方式如下：
-	 * - 'r' 只读方式，文件不存在则抛出错误。
-	 * - 'r+' 读写方式，文件不存在则抛出错误。
-	 * - 'w' 只写方式，文件不存在则自动创建，存在则将被清空。
-	 * - 'w+' 读写方式，文件不存在则自动创建。
-	 * - 'a' 只写添加方式，文件不存在则自动创建。
-	 * - 'a+' 读写添加方式，文件不存在则自动创建。
-	 */
-	asyncOpen(String fname, String mode = "r");
-
-	/*! @brief 注册 "open" 事件，等同于 on("open", func);
-	 * @param func 事件处理函数
-	 *
-	 * "open" 事件定义如下：
-	 * @code
-	 * function on_open()
-	 * {}
-	 * @endcode
-	 */
-	onopen(Function func);
-
 	/*! @brief 查询当前文件名 */
 	readonly String name;
 
