@@ -2,6 +2,7 @@ console.log('os testing....');
 
 var assert = require('assert');
 var os = require('os');
+var io = require('io');
 
 console.log(os.CPUs());
 
@@ -51,3 +52,11 @@ assert.equal(st.isReadable(), true);
 assert.equal(st.isWritable(), true);
 
 assert.equal(os.time(), new Date());
+
+//var bs = os.exec('x64_Release\\fibjs exec_test');
+var bs = os.exec('Release/fibjs exec_test');
+bs.EOL = '\n'
+var s;
+
+while((s = bs.readLine()) != null)
+	console.log('>>>', s);
