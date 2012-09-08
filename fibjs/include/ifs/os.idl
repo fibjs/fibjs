@@ -8,34 +8,37 @@
  */
 class os : module
 {
-	/*! @brief 查询当前运行环境主机名*/
-	static String hostname();
+	/*! @brief 查询当前运行执行文件完整路径 */
+	static String shell;
+	
+	/*! @brief 查询当前运行环境主机名 */
+	static String hostname;
 
-	/*! @brief 查询当前运行环境操作系统名称*/
-	static String type();
+	/*! @brief 查询当前运行环境操作系统名称 */
+	static String type;
 
-	/*! @brief 查询当前运行环境操作系统版本*/
-	static String release();
+	/*! @brief 查询当前运行环境操作系统版本 */
+	static String version;
 
-	/*! @brief 查询当前运行环境*/
-	static String arch();
+	/*! @brief 查询当前运行环境 */
+	static String arch;
 
-	/*! @brief 查询当前运行环境 cpu 个数和参数*/
+	/*! @brief 查询运行环境当前时区 */
+	static Integer timezone;
+
+	/*! @brief 查询当前运行环境 cpu 个数和参数 */
 	static Array CPUInfo();
 
-	/*! @brief 查询当前运行环境 cpu 个数*/
+	/*! @brief 查询当前运行环境 cpu 个数 */
 	static Integer CPUs();
 
-	/*! @brief 查询当前运行环境网络信息*/
+	/*! @brief 查询当前运行环境网络信息 */
 	static Array networkInfo();
 
 	/*! @brief 解析时间字符串或查询运行环境当前时间
 	 * @param tmString 时间字符串，缺省则查询当前时间
 	 */
 	static Date time(String tmString = "");
-
-	/*! @brief 查询运行环境当前时区*/
-	static Integer timezone();
 
 	/*! @brief 查询指定的文件或目录是否存在
 	 * @param path 指定要查询的路径
@@ -75,7 +78,18 @@ class os : module
 	 */
 	static List readdir(String path) async;
 	
+	/*! @brief 退出当前进程，并返回结果
+	 * @param code 返回进程结果
+	 */
+	static exit(Integer code);
+	
 	/*! @brief 运行指定的命令行，并返回运行结果
+	 * @param cmd 指定运行的命令行
+	 * @return 返回包含进程运行结果
+	 */
+	static Integer system(String cmd) async;
+
+	/*! @brief 运行指定的命令行，并访问命令的输出结果
 	 * @param cmd 指定运行的命令行
 	 * @return 返回包含运行结果的文件对象
 	 */

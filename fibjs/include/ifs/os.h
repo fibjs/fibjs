@@ -26,15 +26,16 @@ class os_base : public module_base
 {
 public:
 	// os_base
-	static result_t hostname(std::string& retVal);
-	static result_t type(std::string& retVal);
-	static result_t release(std::string& retVal);
-	static result_t arch(std::string& retVal);
+	static result_t get_shell(std::string& retVal);
+	static result_t get_hostname(std::string& retVal);
+	static result_t get_type(std::string& retVal);
+	static result_t get_version(std::string& retVal);
+	static result_t get_arch(std::string& retVal);
+	static result_t get_timezone(int32_t& retVal);
 	static result_t CPUInfo(v8::Handle<v8::Array>& retVal);
 	static result_t CPUs(int32_t& retVal);
 	static result_t networkInfo(v8::Handle<v8::Array>& retVal);
 	static result_t time(const char* tmString, date_t& retVal);
-	static result_t timezone(int32_t& retVal);
 	static result_t exists(const char* path, bool& retVal, exlib::AsyncEvent* ac);
 	static result_t unlink(const char* path, exlib::AsyncEvent* ac);
 	static result_t mkdir(const char* path, exlib::AsyncEvent* ac);
@@ -42,20 +43,23 @@ public:
 	static result_t rename(const char* from, const char* to, exlib::AsyncEvent* ac);
 	static result_t stat(const char* path, obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t readdir(const char* path, obj_ptr<List_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t exit(int32_t code);
+	static result_t system(const char* cmd, int32_t& retVal, exlib::AsyncEvent* ac);
 	static result_t exec(const char* cmd, obj_ptr<BufferedStream_base>& retVal, exlib::AsyncEvent* ac);
 
 	DECLARE_CLASSINFO(os_base);
 
 public:
-	static v8::Handle<v8::Value> s_hostname(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_type(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_release(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_arch(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_get_shell(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_hostname(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_version(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_arch(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_timezone(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_CPUInfo(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_CPUs(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_networkInfo(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_time(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_timezone(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_exists(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_unlink(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_mkdir(const v8::Arguments& args);
@@ -63,6 +67,8 @@ public:
 	static v8::Handle<v8::Value> s_rename(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_stat(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_readdir(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_exit(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_system(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_exec(const v8::Arguments& args);
 
 public:
@@ -73,6 +79,7 @@ public:
 	ASYNC_STATIC2(os_base, rename);
 	ASYNC_STATIC2(os_base, stat);
 	ASYNC_STATIC2(os_base, readdir);
+	ASYNC_STATIC2(os_base, system);
 	ASYNC_STATIC2(os_base, exec);
 };
 
@@ -88,15 +95,10 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"hostname", s_hostname, true},
-			{"type", s_type, true},
-			{"release", s_release, true},
-			{"arch", s_arch, true},
 			{"CPUInfo", s_CPUInfo, true},
 			{"CPUs", s_CPUs, true},
 			{"networkInfo", s_networkInfo, true},
 			{"time", s_time, true},
-			{"timezone", s_timezone, true},
 			{"exists", s_exists, true},
 			{"unlink", s_unlink, true},
 			{"mkdir", s_mkdir, true},
@@ -104,13 +106,25 @@ namespace fibjs
 			{"rename", s_rename, true},
 			{"stat", s_stat, true},
 			{"readdir", s_readdir, true},
+			{"exit", s_exit, true},
+			{"system", s_system, true},
 			{"exec", s_exec, true}
+		};
+
+		static ClassData::ClassProperty s_property[] = 
+		{
+			{"shell", s_get_shell, NULL, true},
+			{"hostname", s_get_hostname, NULL, true},
+			{"type", s_get_type, NULL, true},
+			{"version", s_get_version, NULL, true},
+			{"arch", s_get_arch, NULL, true},
+			{"timezone", s_get_timezone, NULL, true}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"os", NULL, 
-			17, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			14, s_method, 0, NULL, 6, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -118,47 +132,68 @@ namespace fibjs
 		return s_ci;
 	}
 
-
-	inline v8::Handle<v8::Value> os_base::s_hostname(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> os_base::s_get_shell(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		std::string vr;
 
-		METHOD_ENTER(0, 0);
+		PROPERTY_ENTER();
 
-		hr = hostname(vr);
+		hr = get_shell(vr);
 
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_type(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> os_base::s_get_hostname(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		std::string vr;
 
-		METHOD_ENTER(0, 0);
+		PROPERTY_ENTER();
 
-		hr = type(vr);
+		hr = get_hostname(vr);
 
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_release(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> os_base::s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		std::string vr;
 
-		METHOD_ENTER(0, 0);
+		PROPERTY_ENTER();
 
-		hr = release(vr);
+		hr = get_type(vr);
 
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_arch(const v8::Arguments& args)
+	inline v8::Handle<v8::Value> os_base::s_get_version(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		std::string vr;
 
-		METHOD_ENTER(0, 0);
+		PROPERTY_ENTER();
 
-		hr = arch(vr);
+		hr = get_version(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_get_arch(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		std::string vr;
+
+		PROPERTY_ENTER();
+
+		hr = get_arch(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_get_timezone(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr;
+
+		PROPERTY_ENTER();
+
+		hr = get_timezone(vr);
 
 		METHOD_RETURN();
 	}
@@ -205,17 +240,6 @@ namespace fibjs
 		OPT_ARG_String(0, "");
 
 		hr = time(v0, vr);
-
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> os_base::s_timezone(const v8::Arguments& args)
-	{
-		int32_t vr;
-
-		METHOD_ENTER(0, 0);
-
-		hr = timezone(vr);
 
 		METHOD_RETURN();
 	}
@@ -300,6 +324,30 @@ namespace fibjs
 		ARG_String(0);
 
 		hr = ac_readdir(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_exit(const v8::Arguments& args)
+	{
+		METHOD_ENTER(1, 1);
+
+		ARG(int32_t, 0);
+
+		hr = exit(v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_system(const v8::Arguments& args)
+	{
+		int32_t vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = ac_system(v0, vr);
 
 		METHOD_RETURN();
 	}

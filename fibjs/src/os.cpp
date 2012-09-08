@@ -43,19 +43,37 @@
 namespace fibjs
 {
 
-result_t os_base::hostname(std::string& retVal)
+result_t os_base::get_shell(std::string& retVal)
+{
+#ifdef _WIN32
+	WCHAR szFileName[MAX_PATH]; 
+ 
+	GetModuleFileNameW(NULL, szFileName, MAX_PATH);
+	retVal = utf16to8String(szFileName);
+#else
+	size_t linksize = 256;
+	char exeName[256] =	{ 0 };
+
+	if (readlink("/proc/self/exe", exeName, linksize) == -1)
+		return LastError();
+
+	retVal = exeName;
+#endif
+	return 0;
+}
+
+result_t os_base::get_hostname(std::string& retVal)
 {
 	char s[255];
-	int r = gethostname(s, 255);
 
-	if (r < 0)
+	if (gethostname(s, 255) < 0)
 		return LastError();
 
 	retVal = s;
 	return 0;
 }
 
-result_t os_base::type(std::string& retVal)
+result_t os_base::get_type(std::string& retVal)
 {
 
 #ifdef _WIN32
@@ -70,7 +88,7 @@ result_t os_base::type(std::string& retVal)
 	return 0;
 }
 
-result_t os_base::release(std::string& retVal)
+result_t os_base::get_version(std::string& retVal)
 {
 #ifdef _WIN32
 	OSVERSIONINFO info =
@@ -93,7 +111,7 @@ result_t os_base::release(std::string& retVal)
 	return 0;
 }
 
-result_t os_base::arch(std::string& retVal)
+result_t os_base::get_arch(std::string& retVal)
 {
 #ifdef x64
 	retVal = "x86_64";
@@ -438,7 +456,7 @@ result_t os_base::time(const char* tmString, date_t& retVal)
 	return 0;
 }
 
-result_t os_base::timezone(int32_t& retVal)
+result_t os_base::get_timezone(int32_t& retVal)
 {
 	retVal = date_t::LocalOffset();
 	return 0;
@@ -640,6 +658,27 @@ result_t os_base::readdir(const char* path, obj_ptr<List_base>& retVal, exlib::A
 }
 
 #endif
+
+result_t os_base::exit(int32_t code)
+{
+	::exit(code);
+	return 0;
+}
+
+result_t os_base::system(const char* cmd, int32_t& retVal,
+		exlib::AsyncEvent* ac)
+{
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+#ifdef _WIN32
+	retVal = ::system(cmd);
+#else
+	retVal = ::system(cmd) >> 8;
+#endif
+
+	return 0;
+}
 
 result_t os_base::exec(const char* cmd, obj_ptr<BufferedStream_base>& retVal,
 		exlib::AsyncEvent* ac)
