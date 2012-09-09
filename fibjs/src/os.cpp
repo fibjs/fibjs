@@ -32,6 +32,7 @@
 #include <mach/mach.h>
 #include <mach/mach_host.h>
 #include <sys/sysctl.h>
+#include <mach-o/dyld.h>
 #endif
 
 #include "utf8.h"
@@ -50,12 +51,19 @@ result_t os_base::get_shell(std::string& retVal)
  
 	GetModuleFileNameW(NULL, szFileName, MAX_PATH);
 	retVal = utf16to8String(szFileName);
-#else
+#elif defined(Linux)
 	size_t linksize = 256;
 	char exeName[256] =	{ 0 };
 
 	if (readlink("/proc/self/exe", exeName, linksize) == -1)
 		return LastError();
+
+	retVal = exeName;
+#elif defined(MacOS)
+	char exeName[1024] = "";
+	uint32_t size = sizeof(exeName);
+
+	_NSGetExecutablePath(exeName, &size);
 
 	retVal = exeName;
 #endif
