@@ -19,6 +19,7 @@ require("mq_test");
 require("rpc_test");
 require("zmq_test");
 require("uuid_test");
+require("gd_test");
 
 require('BUG_simple_api_call');
 console.log("TEST End.");
