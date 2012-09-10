@@ -23,6 +23,8 @@
 #include "ifs/db.h"
 #include "ifs/hash.h"
 
+#include "ifs/gd.h"
+
 #include "ifs/uuid.h"
 #include "ifs/re.h"
 #include "ifs/collection.h"
@@ -107,6 +109,8 @@ void initModule()
 
 	InstallNativeModule("db", db_base::class_info());
 	InstallNativeModule("hash", hash_base::class_info());
+
+	InstallNativeModule("gd", gd_base::class_info());
 }
 
 inline const char* ToCString(const v8::String::Utf8Value& value)

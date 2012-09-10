@@ -1,0 +1,14 @@
+
+/*! @brief 图像处理对象，用以对图像进行转换，绘制，存储等操作
+ *
+ * Image 对象属于 gd 模块，创建：
+ * @code
+ * var img = new gd.Image(640, 480);
+ * var img1 = new gd.Image(data);
+ * @endcode
+ */
+class Image : object
+{
+	Buffer getData(Integer format = gd.PNG, Integer quality = 85) async;
+	save(Stream stm, Integer format = gd.PNG, Integer quality = 85) async;
+};

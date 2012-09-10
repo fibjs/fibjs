@@ -16,7 +16,7 @@ public:
 	{
 	}
 
-	Buffer(std::string& strData) :
+	Buffer(std::string strData) :
 			m_data(strData)
 	{
 	}

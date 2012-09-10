@@ -1,0 +1,25 @@
+
+/*! @brief 图像文件处理模块
+ *
+ * 基础模块。可用于创建和操作图像文件，引用方式：
+ * \code
+ * var gd = require('gd');
+ * \endcode
+ */
+class gd : module
+{
+	const Integer JPEG = 1;
+	const Integer GIF = 2;
+	const Integer PNG = 3;
+	const Integer TIFF = 4;
+	const Integer BMP = 5;
+	const Integer GD = 6;
+	const Integer GD2 = 7;
+
+	const Integer TRUECOLOR = 0;
+	const Integer PALETTE = 1;
+
+	static Image create(Integer width, Integer height, Integer color = gd.TRUECOLOR) async;
+	static Image load(Buffer data) async;
+	static Image loadFrom(SeekableStream stm) async;
+};
