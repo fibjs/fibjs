@@ -141,6 +141,9 @@ void Object::Lookup(String* name, LookupResult* result) {
       holder = native_context->string_function()->instance_prototype();
     } else if (IsBoolean()) {
       holder = native_context->boolean_function()->instance_prototype();
+    } else {
+      Isolate::Current()->PushStackTraceAndDie(
+          0xDEAD0000, this, JSReceiver::cast(this)->map(), 0xDEAD0001);
     }
   }
   ASSERT(holder != NULL);  // Cannot handle null or undefined.
@@ -207,7 +210,9 @@ MaybeObject* JSObject::GetPropertyWithCallback(Object* receiver,
     if (result.IsEmpty()) {
       return isolate->heap()->undefined_value();
     }
-    return *v8::Utils::OpenHandle(*result);
+    Object* return_value = *v8::Utils::OpenHandle(*result);
+    return_value->VerifyApiCallResultType();
+    return return_value;
   }
 
   // __defineGetter__ callback
@@ -3789,7 +3794,9 @@ MaybeObject* JSObject::DeletePropertyWithInterceptor(String* name) {
     RETURN_IF_SCHEDULED_EXCEPTION(isolate);
     if (!result.IsEmpty()) {
       ASSERT(result->IsBoolean());
-      return *v8::Utils::OpenHandle(*result);
+      Handle<Object> result_internal = v8::Utils::OpenHandle(*result);
+      result_internal->VerifyApiCallResultType();
+      return *result_internal;
     }
   }
   MaybeObject* raw_result =
@@ -3824,7 +3831,9 @@ MaybeObject* JSObject::DeleteElementWithInterceptor(uint32_t index) {
   RETURN_IF_SCHEDULED_EXCEPTION(isolate);
   if (!result.IsEmpty()) {
     ASSERT(result->IsBoolean());
-    return *v8::Utils::OpenHandle(*result);
+    Handle<Object> result_internal = v8::Utils::OpenHandle(*result);
+    result_internal->VerifyApiCallResultType();
+    return *result_internal;
   }
   MaybeObject* raw_result = this_handle->GetElementsAccessor()->Delete(
       *this_handle,
@@ -7517,16 +7526,13 @@ MaybeObject* JSFunction::SetPrototype(Object* value) {
 }
 
 
-Object* JSFunction::RemovePrototype() {
+void JSFunction::RemovePrototype() {
   Context* native_context = context()->native_context();
   Map* no_prototype_map = shared()->is_classic_mode()
       ? native_context->function_without_prototype_map()
       : native_context->strict_mode_function_without_prototype_map();
 
-  if (map() == no_prototype_map) {
-    // Be idempotent.
-    return this;
-  }
+  if (map() == no_prototype_map) return;
 
   ASSERT(map() == (shared()->is_classic_mode()
                    ? native_context->function_map()
@@ -7534,13 +7540,11 @@ Object* JSFunction::RemovePrototype() {
 
   set_map(no_prototype_map);
   set_prototype_or_initial_map(no_prototype_map->GetHeap()->the_hole_value());
-  return this;
 }
 
 
-Object* JSFunction::SetInstanceClassName(String* name) {
+void JSFunction::SetInstanceClassName(String* name) {
   shared()->set_instance_class_name(name);
-  return this;
 }
 
 
@@ -8275,6 +8279,7 @@ void DeoptimizationInputData::DeoptimizationInputDataPrint(FILE* out) {
           break;
         }
 
+        case Translation::GETTER_STUB_FRAME:
         case Translation::SETTER_STUB_FRAME: {
           int function_id = iterator.Next();
           JSFunction* function =
@@ -9121,7 +9126,9 @@ MaybeObject* JSObject::GetElementWithCallback(Object* receiver,
     }
     RETURN_IF_SCHEDULED_EXCEPTION(isolate);
     if (result.IsEmpty()) return isolate->heap()->undefined_value();
-    return *v8::Utils::OpenHandle(*result);
+    Handle<Object> result_internal = v8::Utils::OpenHandle(*result);
+    result_internal->VerifyApiCallResultType();
+    return *result_internal;
   }
 
   // __defineGetter__ callback
@@ -9940,7 +9947,11 @@ MaybeObject* JSObject::GetElementWithInterceptor(Object* receiver,
       result = getter(index, info);
     }
     RETURN_IF_SCHEDULED_EXCEPTION(isolate);
-    if (!result.IsEmpty()) return *v8::Utils::OpenHandle(*result);
+    if (!result.IsEmpty()) {
+      Handle<Object> result_internal = v8::Utils::OpenHandle(*result);
+      result_internal->VerifyApiCallResultType();
+      return *result_internal;
+    }
   }
 
   Heap* heap = holder_handle->GetHeap();
@@ -10242,7 +10253,9 @@ MaybeObject* JSObject::GetPropertyWithInterceptor(
     RETURN_IF_SCHEDULED_EXCEPTION(isolate);
     if (!result.IsEmpty()) {
       *attributes = NONE;
-      return *v8::Utils::OpenHandle(*result);
+      Handle<Object> result_internal = v8::Utils::OpenHandle(*result);
+      result_internal->VerifyApiCallResultType();
+      return *result_internal;
     }
   }
 
@@ -12150,6 +12163,12 @@ MaybeObject* Dictionary<Shape, Key>::Allocate(int at_least_space_for) {
 }
 
 
+void StringDictionary::DoGenerateNewEnumerationIndices(
+    Handle<StringDictionary> dictionary) {
+  CALL_HEAP_FUNCTION_VOID(dictionary->GetIsolate(),
+                          dictionary->GenerateNewEnumerationIndices());
+}
+
 template<typename Shape, typename Key>
 MaybeObject* Dictionary<Shape, Key>::GenerateNewEnumerationIndices() {
   Heap* heap = Dictionary<Shape, Key>::GetHeap();
@@ -12468,23 +12487,45 @@ void Dictionary<Shape, Key>::CopyKeysTo(
 }
 
 
-void StringDictionary::CopyEnumKeysTo(FixedArray* storage,
-                                      FixedArray* sort_array) {
-  ASSERT(storage->length() >= NumberOfEnumElements());
+FixedArray* StringDictionary::CopyEnumKeysTo(FixedArray* storage) {
+  int length = storage->length();
+  ASSERT(length >= NumberOfEnumElements());
+  Heap* heap = GetHeap();
+  Object* undefined_value = heap->undefined_value();
   int capacity = Capacity();
-  int index = 0;
+  int properties = 0;
+
+  // Fill in the enumeration array by assigning enumerable keys at their
+  // enumeration index. This will leave holes in the array if there are keys
+  // that are deleted or not enumerable.
   for (int i = 0; i < capacity; i++) {
      Object* k = KeyAt(i);
      if (IsKey(k)) {
        PropertyDetails details = DetailsAt(i);
        if (details.IsDeleted() || details.IsDontEnum()) continue;
-       storage->set(index, k);
-       sort_array->set(index, Smi::FromInt(details.dictionary_index()));
-       index++;
+       properties++;
+       storage->set(details.dictionary_index() - 1, k);
+       if (properties == length) break;
      }
   }
-  storage->SortPairs(sort_array, sort_array->length());
-  ASSERT(storage->length() >= index);
+
+  // There are holes in the enumeration array if less properties were assigned
+  // than the length of the array. If so, crunch all the existing properties
+  // together by shifting them to the left (maintaining the enumeration order),
+  // and trimming of the right side of the array.
+  if (properties < length) {
+    if (properties == 0) return heap->empty_fixed_array();
+    properties = 0;
+    for (int i = 0; i < length; ++i) {
+      Object* value = storage->get(i);
+      if (value != undefined_value) {
+        storage->set(properties, value);
+        ++properties;
+      }
+    }
+    RightTrimFixedArray<FROM_MUTATOR>(heap, storage, length - properties);
+  }
+  return storage;
 }
 
 

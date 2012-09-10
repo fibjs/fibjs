@@ -325,6 +325,7 @@ namespace internal {
   F(Throw, 1, 1) \
   F(ReThrow, 1, 1) \
   F(ThrowReferenceError, 1, 1) \
+  F(ThrowNotDateError, 0, 1) \
   F(StackGuard, 0, 1) \
   F(Interrupt, 0, 1) \
   F(PromoteScheduledException, 0, 1) \
@@ -647,13 +648,6 @@ class Runtime : public AllStatic {
   // Get the intrinsic function with the given FunctionId.
   static const Function* FunctionForId(FunctionId id);
 
-  static Handle<String> StringReplaceOneCharWithString(Isolate* isolate,
-                                                       Handle<String> subject,
-                                                       Handle<String> search,
-                                                       Handle<String> replace,
-                                                       bool* found,
-                                                       int recursion_limit);
-
   // General-purpose helper functions for runtime system.
   static int StringMatch(Isolate* isolate,
                          Handle<String> sub,
@@ -695,11 +689,6 @@ class Runtime : public AllStatic {
       Isolate* isolate,
       Handle<Object> object,
       Handle<Object> key);
-
-  // This function is used in FunctionNameUsing* tests.
-  static Object* FindSharedFunctionInfoInScript(Isolate* isolate,
-                                                Handle<Script> script,
-                                                int position);
 
   // Helper functions used stubs.
   static void PerformGC(Object* result);
