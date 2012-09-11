@@ -26,6 +26,7 @@ class gd_base : public module_base
 {
 public:
 	enum{
+		_NONE = 0,
 		_JPEG = 1,
 		_GIF = 2,
 		_PNG = 3,
@@ -34,7 +35,11 @@ public:
 		_GD = 6,
 		_GD2 = 7,
 		_TRUECOLOR = 0,
-		_PALETTE = 1
+		_PALETTE = 1,
+		_ARC = 0,
+		_CHORD = 1,
+		_NOFILL = 2,
+		_EDGED = 4
 	};
 
 public:
@@ -46,6 +51,7 @@ public:
 	DECLARE_CLASSINFO(gd_base);
 
 public:
+	static v8::Handle<v8::Value> s_get_NONE(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_JPEG(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_GIF(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_PNG(v8::Local<v8::String> property, const v8::AccessorInfo &info);
@@ -55,6 +61,10 @@ public:
 	static v8::Handle<v8::Value> s_get_GD2(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_TRUECOLOR(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_PALETTE(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_ARC(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_CHORD(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_NOFILL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_EDGED(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_create(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_load(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_loadFrom(const v8::Arguments& args);
@@ -84,6 +94,7 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
+			{"NONE", s_get_NONE, NULL, true},
 			{"JPEG", s_get_JPEG, NULL, true},
 			{"GIF", s_get_GIF, NULL, true},
 			{"PNG", s_get_PNG, NULL, true},
@@ -92,18 +103,29 @@ namespace fibjs
 			{"GD", s_get_GD, NULL, true},
 			{"GD2", s_get_GD2, NULL, true},
 			{"TRUECOLOR", s_get_TRUECOLOR, NULL, true},
-			{"PALETTE", s_get_PALETTE, NULL, true}
+			{"PALETTE", s_get_PALETTE, NULL, true},
+			{"ARC", s_get_ARC, NULL, true},
+			{"CHORD", s_get_CHORD, NULL, true},
+			{"NOFILL", s_get_NOFILL, NULL, true},
+			{"EDGED", s_get_EDGED, NULL, true}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"gd", NULL, 
-			3, s_method, 0, NULL, 9, s_property, NULL, NULL,
+			3, s_method, 0, NULL, 14, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
+	}
+
+	inline v8::Handle<v8::Value> gd_base::s_get_NONE(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _NONE;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> gd_base::s_get_JPEG(v8::Local<v8::String> property, const v8::AccessorInfo &info)
@@ -165,6 +187,34 @@ namespace fibjs
 	inline v8::Handle<v8::Value> gd_base::s_get_PALETTE(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		int32_t vr = _PALETTE;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> gd_base::s_get_ARC(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _ARC;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> gd_base::s_get_CHORD(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _CHORD;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> gd_base::s_get_NOFILL(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _NOFILL;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> gd_base::s_get_EDGED(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _EDGED;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}

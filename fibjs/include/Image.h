@@ -19,7 +19,7 @@ class Image: public Image_base
 {
 public:
 	Image() :
-			m_image(NULL)
+			m_image(NULL), m_type(gd_base::_NONE)
 	{
 	}
 
@@ -31,8 +31,37 @@ public:
 
 public:
 	// Image_base
+	virtual result_t get_width(int32_t& retVal);
+	virtual result_t get_height(int32_t& retVal);
+	virtual result_t get_format(int32_t& retVal);
+	virtual result_t get_type(int32_t& retVal);
+	virtual result_t get_colorsTotal(int32_t& retVal);
 	virtual result_t getData(int32_t format, int32_t quality, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
 	virtual result_t save(Stream_base* stm, int32_t format, int32_t quality, exlib::AsyncEvent* ac);
+	virtual result_t colorAllocate(int32_t red, int32_t green, int32_t blue, int32_t& retVal);
+	virtual result_t colorAllocateAlpha(int32_t red, int32_t green, int32_t blue, int32_t alpha, int32_t& retVal);
+	virtual result_t colorDeallocate(int32_t colorIndex);
+	virtual result_t colorClosest(int32_t red, int32_t green, int32_t blue, int32_t& retVal);
+	virtual result_t colorClosestHWB(int32_t red, int32_t green, int32_t blue, int32_t& retVal);
+	virtual result_t colorClosestAlpha(int32_t red, int32_t green, int32_t blue, int32_t alpha, int32_t& retVal);
+	virtual result_t colorExact(int32_t red, int32_t green, int32_t blue, int32_t& retVal);
+	virtual result_t colorExactAlpha(int32_t red, int32_t green, int32_t blue, int32_t alpha, int32_t& retVal);
+	virtual result_t colorResolve(int32_t red, int32_t green, int32_t blue, int32_t& retVal);
+	virtual result_t colorResolveAlpha(int32_t red, int32_t green, int32_t blue, int32_t alpha, int32_t& retVal);
+	virtual result_t getPixel(int32_t x, int32_t y, int32_t& retVal);
+	virtual result_t setPixel(int32_t x, int32_t y, int32_t color);
+	virtual result_t transparent(int32_t color);
+	virtual result_t setThickness(int32_t thickness);
+	virtual result_t line(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t color);
+	virtual result_t rectangle(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t color);
+	virtual result_t filledRectangle(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t color);
+	virtual result_t polygon(v8::Handle<v8::Array> points, int32_t color);
+	virtual result_t openPolygon(v8::Handle<v8::Array> points, int32_t color);
+	virtual result_t filledPolygon(v8::Handle<v8::Array> points, int32_t color);
+	virtual result_t ellipse(int32_t x, int32_t y, int32_t width, int32_t height, int32_t color);
+	virtual result_t filledEllipse(int32_t x, int32_t y, int32_t width, int32_t height, int32_t color);
+	virtual result_t arc(int32_t x, int32_t y, int32_t width, int32_t height, int32_t start, int32_t end, int32_t color);
+	virtual result_t filledArc(int32_t x, int32_t y, int32_t width, int32_t height, int32_t start, int32_t end, int32_t color, int32_t style);
 
 public:
 	result_t create(int32_t width, int32_t height, int32_t color);
@@ -40,6 +69,7 @@ public:
 
 private:
 	gdImagePtr m_image;
+	int32_t m_type;
 };
 
 } /* namespace fibjs */
