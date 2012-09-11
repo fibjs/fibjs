@@ -427,12 +427,30 @@ result_t Image::colorResolveAlpha(int32_t red, int32_t green, int32_t blue,
 	return 0;
 }
 
+result_t Image::clip(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	gdImageSetClip(m_image, x1, y1, x2, x2);
+	return 0;
+}
+
 result_t Image::getPixel(int32_t x, int32_t y, int32_t& retVal)
 {
 	if (!m_image)
 		return CALL_E_INVALID_CALL;
 
 	retVal = gdImageGetPixel(m_image, x, y);
+	return 0;
+}
+
+result_t Image::getTrueColorPixel(int32_t x, int32_t y, int32_t& retVal)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	retVal = gdImageGetTrueColorPixel(m_image, x, y);
 	return 0;
 }
 
@@ -606,6 +624,185 @@ result_t Image::filledArc(int32_t x, int32_t y, int32_t width, int32_t height,
 		return CALL_E_INVALIDARG;
 
 	gdImageFilledArc(m_image, x, y, width, height, start, end, color, style);
+	return 0;
+}
+
+result_t Image::fill(int32_t x, int32_t y, int32_t color)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	gdImageFill(m_image, x, y, color);
+	return 0;
+}
+
+result_t Image::fillToBorder(int32_t x, int32_t y, int32_t borderColor,
+		int32_t color)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	gdImageFillToBorder(m_image, x, y, borderColor, color);
+	return 0;
+}
+
+result_t Image::New(int32_t width, int32_t height, obj_ptr<Image>& retVal)
+{
+	obj_ptr<Image> img = new Image();
+
+	if (gdImageTrueColor(m_image))
+		img->m_image = gdImageCreateTrueColor(width, height);
+	else
+		img->m_image = gdImageCreate(width, height);
+
+	gdImagePaletteCopy(img->m_image, m_image);
+	gdImageColorTransparent(img->m_image, gdImageGetTransparent(m_image));
+
+	retVal = img;
+	return 0;
+}
+
+result_t Image::clone(obj_ptr<Image_base>& retVal)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	int32_t w = gdImageSX(m_image);
+	int32_t h = gdImageSY(m_image);
+
+	obj_ptr<Image> dst;
+	New(w, h, dst);
+
+	gdImageCopy(dst->m_image, m_image, 0, 0, 0, 0, w, h);
+
+	retVal = dst;
+	return 0;
+}
+
+result_t Image::resample(int32_t width, int32_t height,
+		obj_ptr<Image_base>& retVal)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	obj_ptr<Image> dst;
+	New(width, height, dst);
+
+	gdImageCopyResampled(dst->m_image, m_image, 0, 0, 0, 0, width, height,
+			gdImageSX(m_image), gdImageSY(m_image));
+
+	retVal = dst;
+	return 0;
+}
+
+result_t Image::copy(Image_base* source, int32_t dstX, int32_t dstY,
+		int32_t srcX, int32_t srcY, int32_t width, int32_t height)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	Image* src = (Image*) source;
+	if (!src->m_image)
+		return CALL_E_INVALID_CALL;
+
+	gdImageCopy(m_image, src->m_image, dstX, dstY, srcX, srcY, width, height);
+	return 0;
+}
+
+result_t Image::copyMerge(Image_base* source, int32_t dstX, int32_t dstY,
+		int32_t srcX, int32_t srcY, int32_t width, int32_t height,
+		int32_t percent)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	Image* src = (Image*) source;
+	if (!src->m_image)
+		return CALL_E_INVALID_CALL;
+
+	gdImageCopyMerge(m_image, src->m_image, dstX, dstY, srcX, srcY, width,
+			height, percent);
+	return 0;
+}
+
+result_t Image::copyMergeGray(Image_base* source, int32_t dstX, int32_t dstY,
+		int32_t srcX, int32_t srcY, int32_t width, int32_t height,
+		int32_t percent)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	Image* src = (Image*) source;
+	if (!src->m_image)
+		return CALL_E_INVALID_CALL;
+
+	gdImageCopyMergeGray(m_image, src->m_image, dstX, dstY, srcX, srcY, width,
+			height, percent);
+	return 0;
+}
+
+result_t Image::copyResized(Image_base* source, int32_t dstX, int32_t dstY,
+		int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW,
+		int32_t srcH)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	Image* src = (Image*) source;
+	if (!src->m_image)
+		return CALL_E_INVALID_CALL;
+
+	gdImageCopyResized(m_image, src->m_image, dstX, dstY, srcX, srcY, dstW,
+			dstH, srcW, srcH);
+	return 0;
+}
+
+result_t Image::copyResampled(Image_base* source, int32_t dstX, int32_t dstY,
+		int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW,
+		int32_t srcH)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	Image* src = (Image*) source;
+	if (!src->m_image)
+		return CALL_E_INVALID_CALL;
+
+	gdImageCopyResampled(m_image, src->m_image, dstX, dstY, srcX, srcY, dstW,
+			dstH, srcW, srcH);
+	return 0;
+}
+
+result_t Image::copyRotated(Image_base* source, int32_t dstX, int32_t dstY,
+		int32_t srcX, int32_t srcY, int32_t width, int32_t height,
+		int32_t angle)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	Image* src = (Image*) source;
+	if (!src->m_image)
+		return CALL_E_INVALID_CALL;
+
+	gdImageCopyRotated(m_image, src->m_image, dstX, dstY, srcX, srcY, width,
+			height, angle);
+	return 0;
+}
+
+result_t Image::flip(int32_t dir)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	if (dir == gd_base::_HORIZONTAL)
+		gdImageFlipHorizontal(m_image);
+	else if (dir == gd_base::_VERTICAL)
+		gdImageFlipVertical(m_image);
+	else if (dir == gd_base::_BOTH)
+		gdImageFlipBoth(m_image);
+	else
+		return CALL_E_INVALIDARG;
+
 	return 0;
 }
 

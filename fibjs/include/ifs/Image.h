@@ -41,7 +41,9 @@ public:
 	virtual result_t colorExactAlpha(int32_t red, int32_t green, int32_t blue, int32_t alpha, int32_t& retVal) = 0;
 	virtual result_t colorResolve(int32_t red, int32_t green, int32_t blue, int32_t& retVal) = 0;
 	virtual result_t colorResolveAlpha(int32_t red, int32_t green, int32_t blue, int32_t alpha, int32_t& retVal) = 0;
+	virtual result_t clip(int32_t x1, int32_t y1, int32_t x2, int32_t y2) = 0;
 	virtual result_t getPixel(int32_t x, int32_t y, int32_t& retVal) = 0;
+	virtual result_t getTrueColorPixel(int32_t x, int32_t y, int32_t& retVal) = 0;
 	virtual result_t setPixel(int32_t x, int32_t y, int32_t color) = 0;
 	virtual result_t transparent(int32_t color) = 0;
 	virtual result_t setThickness(int32_t thickness) = 0;
@@ -55,6 +57,17 @@ public:
 	virtual result_t filledEllipse(int32_t x, int32_t y, int32_t width, int32_t height, int32_t color) = 0;
 	virtual result_t arc(int32_t x, int32_t y, int32_t width, int32_t height, int32_t start, int32_t end, int32_t color) = 0;
 	virtual result_t filledArc(int32_t x, int32_t y, int32_t width, int32_t height, int32_t start, int32_t end, int32_t color, int32_t style) = 0;
+	virtual result_t fill(int32_t x, int32_t y, int32_t color) = 0;
+	virtual result_t fillToBorder(int32_t x, int32_t y, int32_t borderColor, int32_t color) = 0;
+	virtual result_t clone(obj_ptr<Image_base>& retVal) = 0;
+	virtual result_t resample(int32_t width, int32_t height, obj_ptr<Image_base>& retVal) = 0;
+	virtual result_t copy(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height) = 0;
+	virtual result_t copyMerge(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent) = 0;
+	virtual result_t copyMergeGray(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent) = 0;
+	virtual result_t copyResized(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH) = 0;
+	virtual result_t copyResampled(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH) = 0;
+	virtual result_t copyRotated(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t angle) = 0;
+	virtual result_t flip(int32_t dir) = 0;
 
 	DECLARE_CLASSINFO(Image_base);
 
@@ -90,7 +103,9 @@ public:
 	static v8::Handle<v8::Value> s_colorExactAlpha(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_colorResolve(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_colorResolveAlpha(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_clip(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_getPixel(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_getTrueColorPixel(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_setPixel(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_transparent(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_setThickness(const v8::Arguments& args);
@@ -104,6 +119,17 @@ public:
 	static v8::Handle<v8::Value> s_filledEllipse(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_arc(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_filledArc(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_fill(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_fillToBorder(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_clone(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_resample(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_copy(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_copyMerge(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_copyMergeGray(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_copyResized(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_copyResampled(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_copyRotated(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_flip(const v8::Arguments& args);
 
 public:
 	ASYNC_MEMBER3(Image_base, getData);
@@ -136,7 +162,9 @@ namespace fibjs
 			{"colorExactAlpha", s_colorExactAlpha},
 			{"colorResolve", s_colorResolve},
 			{"colorResolveAlpha", s_colorResolveAlpha},
+			{"clip", s_clip},
 			{"getPixel", s_getPixel},
+			{"getTrueColorPixel", s_getTrueColorPixel},
 			{"setPixel", s_setPixel},
 			{"transparent", s_transparent},
 			{"setThickness", s_setThickness},
@@ -149,7 +177,18 @@ namespace fibjs
 			{"ellipse", s_ellipse},
 			{"filledEllipse", s_filledEllipse},
 			{"arc", s_arc},
-			{"filledArc", s_filledArc}
+			{"filledArc", s_filledArc},
+			{"fill", s_fill},
+			{"fillToBorder", s_fillToBorder},
+			{"clone", s_clone},
+			{"resample", s_resample},
+			{"copy", s_copy},
+			{"copyMerge", s_copyMerge},
+			{"copyMergeGray", s_copyMergeGray},
+			{"copyResized", s_copyResized},
+			{"copyResampled", s_copyResampled},
+			{"copyRotated", s_copyRotated},
+			{"flip", s_flip}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -164,7 +203,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Image", NULL, 
-			26, s_method, 0, NULL, 5, s_property, NULL, NULL,
+			39, s_method, 0, NULL, 5, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -421,6 +460,21 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
+	inline v8::Handle<v8::Value> Image_base::s_clip(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(4, 4);
+
+		ARG(int32_t, 0);
+		ARG(int32_t, 1);
+		ARG(int32_t, 2);
+		ARG(int32_t, 3);
+
+		hr = pInst->clip(v0, v1, v2, v3);
+
+		METHOD_VOID();
+	}
+
 	inline v8::Handle<v8::Value> Image_base::s_getPixel(const v8::Arguments& args)
 	{
 		int32_t vr;
@@ -432,6 +486,21 @@ namespace fibjs
 		ARG(int32_t, 1);
 
 		hr = pInst->getPixel(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Image_base::s_getTrueColorPixel(const v8::Arguments& args)
+	{
+		int32_t vr;
+
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(2, 2);
+
+		ARG(int32_t, 0);
+		ARG(int32_t, 1);
+
+		hr = pInst->getTrueColorPixel(v0, v1, vr);
 
 		METHOD_RETURN();
 	}
@@ -626,6 +695,189 @@ namespace fibjs
 		OPT_ARG(int32_t, 7, gd_base::_ARC);
 
 		hr = pInst->filledArc(v0, v1, v2, v3, v4, v5, v6, v7);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Image_base::s_fill(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(3, 3);
+
+		ARG(int32_t, 0);
+		ARG(int32_t, 1);
+		ARG(int32_t, 2);
+
+		hr = pInst->fill(v0, v1, v2);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Image_base::s_fillToBorder(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(4, 4);
+
+		ARG(int32_t, 0);
+		ARG(int32_t, 1);
+		ARG(int32_t, 2);
+		ARG(int32_t, 3);
+
+		hr = pInst->fillToBorder(v0, v1, v2, v3);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Image_base::s_clone(const v8::Arguments& args)
+	{
+		obj_ptr<Image_base> vr;
+
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->clone(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Image_base::s_resample(const v8::Arguments& args)
+	{
+		obj_ptr<Image_base> vr;
+
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(2, 2);
+
+		ARG(int32_t, 0);
+		ARG(int32_t, 1);
+
+		hr = pInst->resample(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Image_base::s_copy(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(7, 7);
+
+		ARG(obj_ptr<Image_base>, 0);
+		ARG(int32_t, 1);
+		ARG(int32_t, 2);
+		ARG(int32_t, 3);
+		ARG(int32_t, 4);
+		ARG(int32_t, 5);
+		ARG(int32_t, 6);
+
+		hr = pInst->copy(v0, v1, v2, v3, v4, v5, v6);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Image_base::s_copyMerge(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(8, 8);
+
+		ARG(obj_ptr<Image_base>, 0);
+		ARG(int32_t, 1);
+		ARG(int32_t, 2);
+		ARG(int32_t, 3);
+		ARG(int32_t, 4);
+		ARG(int32_t, 5);
+		ARG(int32_t, 6);
+		ARG(int32_t, 7);
+
+		hr = pInst->copyMerge(v0, v1, v2, v3, v4, v5, v6, v7);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Image_base::s_copyMergeGray(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(8, 8);
+
+		ARG(obj_ptr<Image_base>, 0);
+		ARG(int32_t, 1);
+		ARG(int32_t, 2);
+		ARG(int32_t, 3);
+		ARG(int32_t, 4);
+		ARG(int32_t, 5);
+		ARG(int32_t, 6);
+		ARG(int32_t, 7);
+
+		hr = pInst->copyMergeGray(v0, v1, v2, v3, v4, v5, v6, v7);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Image_base::s_copyResized(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(9, 9);
+
+		ARG(obj_ptr<Image_base>, 0);
+		ARG(int32_t, 1);
+		ARG(int32_t, 2);
+		ARG(int32_t, 3);
+		ARG(int32_t, 4);
+		ARG(int32_t, 5);
+		ARG(int32_t, 6);
+		ARG(int32_t, 7);
+		ARG(int32_t, 8);
+
+		hr = pInst->copyResized(v0, v1, v2, v3, v4, v5, v6, v7, v8);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Image_base::s_copyResampled(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(9, 9);
+
+		ARG(obj_ptr<Image_base>, 0);
+		ARG(int32_t, 1);
+		ARG(int32_t, 2);
+		ARG(int32_t, 3);
+		ARG(int32_t, 4);
+		ARG(int32_t, 5);
+		ARG(int32_t, 6);
+		ARG(int32_t, 7);
+		ARG(int32_t, 8);
+
+		hr = pInst->copyResampled(v0, v1, v2, v3, v4, v5, v6, v7, v8);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Image_base::s_copyRotated(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(8, 8);
+
+		ARG(obj_ptr<Image_base>, 0);
+		ARG(int32_t, 1);
+		ARG(int32_t, 2);
+		ARG(int32_t, 3);
+		ARG(int32_t, 4);
+		ARG(int32_t, 5);
+		ARG(int32_t, 6);
+		ARG(int32_t, 7);
+
+		hr = pInst->copyRotated(v0, v1, v2, v3, v4, v5, v6, v7);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Image_base::s_flip(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(1, 0);
+
+		OPT_ARG(int32_t, 0, gd_base::_HORIZONTAL);
+
+		hr = pInst->flip(v0);
 
 		METHOD_VOID();
 	}

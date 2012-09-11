@@ -119,12 +119,27 @@ class Image : object
 	 */
 	Integer colorResolveAlpha(Integer red, Integer green, Integer blue, Integer alpha);
 
+	/*! @brief 设定绘图的剪切窗口，设定后，所有的绘制将被剪切在窗口内部
+	 * @param x1 剪切窗口的左上 x 坐标
+	 * @param y1 剪切窗口的左上 y 坐标
+	 * @param x2 剪切窗口的右下 x 坐标
+	 * @param y2 剪切窗口的右下 y 坐标
+	 */
+	clip(Integer x1, Integer y1, Integer x2, Integer y2);
+
 	/*! @brief 查询指定位置点的颜色
 	 * @param x 指定查询的 x 坐标
 	 * @param y 指定查询的 y 坐标
 	 * @return 返回指定点的颜色号
 	 */
 	Integer getPixel(Integer x, Integer y);
+
+	/*! @brief 查询指定位置点的真彩色颜色
+	 * @param x 指定查询的 x 坐标
+	 * @param y 指定查询的 y 坐标
+	 * @return 返回指定点的颜色号
+	 */
+	Integer getTrueColorPixel(Integer x, Integer y);
 
 	/*! @brief 在指定位置画一个点
 	 * @param x 指定画点的 x 坐标
@@ -225,7 +240,112 @@ class Image : object
 	 * @param start 扇形开始的角度，范围为 0-360
 	 * @param end 扇形结束的角度，范围为 0-360
 	 * @param color 指定矩形的颜色号
+	 * @param style 指定扇形的样式，允许的值有 gd.ARC, gd.CHORD, gd.NOFILL, gd.EDGED 及其组合
 	 */
 	filledArc(Integer x, Integer y, Integer width, Integer height, Integer start, Integer end, Integer color, Integer style = gd.ARC);
+
+	/*! @brief 从指定的点开始填充封闭区域
+	 * @param x 开始填充的 x 坐标
+	 * @param y 开始填充的 y 坐标
+	 * @param color 指定填充的颜色号
+	 */
+	fill(Integer x, Integer y, Integer color);
+
+	/*! @brief 从指定的点开始在指定颜色的边框内填充封闭区域
+	 * @param x 开始填充的 x 坐标
+	 * @param y 开始填充的 y 坐标
+	 * @param borderColor 指定边框的颜色号
+	 * @param color 指定填充的颜色号
+	 */
+	fillToBorder(Integer x, Integer y, Integer borderColor, Integer color);
+
+	/*! @brief 复制当前图像为一个新图像
+	 * @return 返回复制的新图像对象
+	 */
+	Image clone();
+
+	/*! @brief 根据图像拉伸生成一个新尺寸的图像
+	 * @param width 指定拉伸的宽度
+	 * @param height 指定拉伸的高度
+	 */
+	Image resample(Integer width, Integer height);
+
+	/*! @brief 从一个图像中复制一个区域到指定的位置
+	 * @param source 源图像对象
+	 * @param dstX 指定复制目标的 x 坐标
+	 * @param dstY 指定复制目标的 y 坐标
+	 * @param srcX 指定复制源左上角的 x 坐标
+	 * @param srcY 指定复制源左上角的 y 坐标
+	 * @param width 指定复制的宽度
+	 * @param height 指定复制的高度
+	 */
+	copy(Image source, Integer dstX, Integer dstY, Integer srcX, Integer srcY, Integer width, Integer height);
+
+	/*! @brief 从一个图像中复制一个区域覆盖到指定的位置
+	 * @param source 源图像对象
+	 * @param dstX 指定复制目标的 x 坐标
+	 * @param dstY 指定复制目标的 y 坐标
+	 * @param srcX 指定复制源左上角的 x 坐标
+	 * @param srcY 指定复制源左上角的 y 坐标
+	 * @param width 指定复制的宽度
+	 * @param height 指定复制的高度
+	 * @param percent 指定覆盖的透明度
+	 */
+	copyMerge(Image source, Integer dstX, Integer dstY, Integer srcX, Integer srcY, Integer width, Integer height, Integer percent);
+
+	/*! @brief 从一个图像中复制一个区域的灰度覆盖到指定的位置
+	 * @param source 源图像对象
+	 * @param dstX 指定复制目标的 x 坐标
+	 * @param dstY 指定复制目标的 y 坐标
+	 * @param srcX 指定复制源左上角的 x 坐标
+	 * @param srcY 指定复制源左上角的 y 坐标
+	 * @param width 指定复制的宽度
+	 * @param height 指定复制的高度
+	 * @param percent 指定覆盖的透明度
+	 */
+	copyMergeGray(Image source, Integer dstX, Integer dstY, Integer srcX, Integer srcY, Integer width, Integer height, Integer percent);
+
+	/*! @brief 将一个图像中的一个区域拉伸后复制到指定的位置
+	 * @param source 源图像对象
+	 * @param dstX 指定复制目标的 x 坐标
+	 * @param dstY 指定复制目标的 y 坐标
+	 * @param srcX 指定复制源左上角的 x 坐标
+	 * @param srcY 指定复制源左上角的 y 坐标
+	 * @param dstW 指定复制的拉伸宽度
+	 * @param dstH 指定复制的拉伸高度
+	 * @param srcW 指定复制的源宽度
+	 * @param srcH 指定复制的源高度
+	 */
+	copyResized(Image source, Integer dstX, Integer dstY, Integer srcX, Integer srcY, Integer dstW, Integer dstH, Integer srcW, Integer srcH);
+
+	/*! @brief 将一个图像中的一个区域拉伸后复制到指定的位置，不同与 copyResized，此方法拉伸时会对图像进行抖动
+	 * @param source 源图像对象
+	 * @param dstX 指定复制目标的 x 坐标
+	 * @param dstY 指定复制目标的 y 坐标
+	 * @param srcX 指定复制源左上角的 x 坐标
+	 * @param srcY 指定复制源左上角的 y 坐标
+	 * @param dstW 指定复制的拉伸宽度
+	 * @param dstH 指定复制的拉伸高度
+	 * @param srcW 指定复制的源宽度
+	 * @param srcH 指定复制的源高度
+	 */
+	copyResampled(Image source, Integer dstX, Integer dstY, Integer srcX, Integer srcY, Integer dstW, Integer dstH, Integer srcW, Integer srcH);
+
+	/*! @brief 将一个图像中的一个区域旋转后复制到指定的位置
+	 * @param source 源图像对象
+	 * @param dstX 指定复制目标的 x 坐标
+	 * @param dstY 指定复制目标的 y 坐标
+	 * @param srcX 指定复制源左上角的 x 坐标
+	 * @param srcY 指定复制源左上角的 y 坐标
+	 * @param width 指定复制的宽度
+	 * @param height 指定复制的高度
+	 * @param angle 指定旋转的角度
+	 */
+	copyRotated(Image source, Integer dstX, Integer dstY, Integer srcX, Integer srcY, Integer width, Integer height, Integer angle);
+
+	/*! @brief 镜像当前图像
+	 * @param dir 镜像方向，允许值为 gd.BOTH,gd.HORIZONTAL, gd.VERTICAL, 缺省为 gd.HORIZONTAL
+	 */
+	flip(Integer dir = gd.HORIZONTAL);
 
 };

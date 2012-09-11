@@ -48,7 +48,9 @@ public:
 	virtual result_t colorExactAlpha(int32_t red, int32_t green, int32_t blue, int32_t alpha, int32_t& retVal);
 	virtual result_t colorResolve(int32_t red, int32_t green, int32_t blue, int32_t& retVal);
 	virtual result_t colorResolveAlpha(int32_t red, int32_t green, int32_t blue, int32_t alpha, int32_t& retVal);
+	virtual result_t clip(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 	virtual result_t getPixel(int32_t x, int32_t y, int32_t& retVal);
+	virtual result_t getTrueColorPixel(int32_t x, int32_t y, int32_t& retVal);
 	virtual result_t setPixel(int32_t x, int32_t y, int32_t color);
 	virtual result_t transparent(int32_t color);
 	virtual result_t setThickness(int32_t thickness);
@@ -62,10 +64,24 @@ public:
 	virtual result_t filledEllipse(int32_t x, int32_t y, int32_t width, int32_t height, int32_t color);
 	virtual result_t arc(int32_t x, int32_t y, int32_t width, int32_t height, int32_t start, int32_t end, int32_t color);
 	virtual result_t filledArc(int32_t x, int32_t y, int32_t width, int32_t height, int32_t start, int32_t end, int32_t color, int32_t style);
+	virtual result_t fill(int32_t x, int32_t y, int32_t color);
+	virtual result_t fillToBorder(int32_t x, int32_t y, int32_t borderColor, int32_t color);
+	virtual result_t clone(obj_ptr<Image_base>& retVal);
+	virtual result_t resample(int32_t width, int32_t height, obj_ptr<Image_base>& retVal);
+	virtual result_t copy(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height);
+	virtual result_t copyMerge(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent);
+	virtual result_t copyMergeGray(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent);
+	virtual result_t copyResized(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH);
+	virtual result_t copyResampled(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH);
+	virtual result_t copyRotated(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t angle);
+	virtual result_t flip(int32_t dir);
 
 public:
 	result_t create(int32_t width, int32_t height, int32_t color);
 	result_t load(Buffer_base* data);
+
+private:
+	result_t New(int32_t width, int32_t height, obj_ptr<Image>& retVal);
 
 private:
 	gdImagePtr m_image;

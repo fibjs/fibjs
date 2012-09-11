@@ -39,7 +39,10 @@ public:
 		_ARC = 0,
 		_CHORD = 1,
 		_NOFILL = 2,
-		_EDGED = 4
+		_EDGED = 4,
+		_HORIZONTAL = 1,
+		_VERTICAL = 2,
+		_BOTH = 3
 	};
 
 public:
@@ -65,6 +68,9 @@ public:
 	static v8::Handle<v8::Value> s_get_CHORD(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_NOFILL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_EDGED(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_HORIZONTAL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_VERTICAL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_BOTH(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_create(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_load(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_loadFrom(const v8::Arguments& args);
@@ -107,13 +113,16 @@ namespace fibjs
 			{"ARC", s_get_ARC, NULL, true},
 			{"CHORD", s_get_CHORD, NULL, true},
 			{"NOFILL", s_get_NOFILL, NULL, true},
-			{"EDGED", s_get_EDGED, NULL, true}
+			{"EDGED", s_get_EDGED, NULL, true},
+			{"HORIZONTAL", s_get_HORIZONTAL, NULL, true},
+			{"VERTICAL", s_get_VERTICAL, NULL, true},
+			{"BOTH", s_get_BOTH, NULL, true}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"gd", NULL, 
-			3, s_method, 0, NULL, 14, s_property, NULL, NULL,
+			3, s_method, 0, NULL, 17, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -215,6 +224,27 @@ namespace fibjs
 	inline v8::Handle<v8::Value> gd_base::s_get_EDGED(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		int32_t vr = _EDGED;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> gd_base::s_get_HORIZONTAL(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _HORIZONTAL;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> gd_base::s_get_VERTICAL(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _VERTICAL;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> gd_base::s_get_BOTH(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _BOTH;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
