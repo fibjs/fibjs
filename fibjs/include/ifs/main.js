@@ -18,6 +18,8 @@ for ( var idx = 0; idx < dir.length; idx++)
 	if (path.extname(dir[idx].name) === '.idl')
 		parserIDL(dir[idx].name);
 
+os.system('doxygen');
+
 function preparserIDL(fname) {
 	var f, line = 0, isRem;
 
