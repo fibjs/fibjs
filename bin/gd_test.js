@@ -26,21 +26,25 @@ function gd_test(fmt) {
 var img = gd.create(440, 240);
 
 var w = img.colorAllocate(255, 255, 255);
+var blk = img.colorAllocate(0, 0, 0);
+var r = img.colorAllocate(255, 0, 0);
+var g = img.colorAllocate(0, 255, 0);
+var b = img.colorAllocate(0, 0, 255);
+
 img.setPixel(10, 10, w);
 assert.equal(img.getPixel(10, 10), w);
 
-var b = img.colorAllocate(0, 0, 255);
 img.line(10, 20, 30, 40, b);
 assert.equal(img.getPixel(11, 21), b);
 
-img.rectangle(40, 40, 50, 50, img.colorAllocate(255, 0, 0));
+img.rectangle(40, 40, 50, 50, r);
 img.filledRectangle(60, 40, 70, 50, img.colorAllocate(255, 255, 0));
 
 img.filledRectangle(20, 20, 70, 50, img.colorAllocateAlpha(255, 255, 255, 64));
 
-img.transparent(img.colorAllocate(0, 0, 0));
+img.transparent(blk);
 img.setThickness(3);
-img.rectangle(60, 60, 70, 70, img.colorAllocate(255, 0, 0));
+img.rectangle(60, 60, 70, 70, r);
 
 img.setThickness(1);
 img.openPolygon([[1, 1], [1, 10], [10, 15], [10, 20]], b);
@@ -57,6 +61,12 @@ img.filledArc(80, 140, 80, 60, 45, 90, b, gd.NOFILL);
 img.filledArc(110, 140, 80, 60, 45, 90, b, gd.EDGED);
 img.filledArc(140, 140, 80, 60, 45, 90, b, gd.EDGED | gd.NOFILL);
 
+img.rectangle(70, 10, 120, 60, r);
+img.fill(80, 40, b);
+
+img.rectangle(5, 30, 50, 80, r);
+img.fillToBorder(10, 40, r, b);
+
 gd_test(gd.PNG);
 gd_test(gd.JPEG);
 gd_test(gd.GIF);
@@ -66,4 +76,7 @@ gd_test(gd.GD);
 gd_test(gd.GD2);
 
 img.save(io.open('test.png', 'w'), gd.PNG);
+img1 = img.resample(220, 120);
+img1.flip();
+img1.save(io.open('test1.png', 'w'), gd.PNG);
 
