@@ -1,5 +1,5 @@
 
-/*! @brief  基本容器对象 */
+/*! @brief 基本容器对象 */
 class Map : object
 {
 	/*! @brief Map 构造函数 */
