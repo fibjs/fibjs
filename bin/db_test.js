@@ -31,3 +31,12 @@ assert.equal(db.format("test?, ?, ?, ?", 123, 'ds\r\na', new Date('1998-4-14 12:
 t_db(db.open('sqlite:test.db'));
 t_db(db.open('mysql://root@localhost/test'));
 
+
+conn = db.open('sqlite:test.db');
+conn.execute("create table ids(name, id)");
+conn.execute("insert into ids(name, id) values('name', 0)")
+conn.execute("select * from ids where id = 0");
+conn.execute("drop table ids");
+
+
+
