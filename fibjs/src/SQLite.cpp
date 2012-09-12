@@ -116,7 +116,7 @@ result_t SQLite::execute(const char* sql, obj_ptr<DBResult_base>& retVal)
 						default:
 							const char* type = sqlite3_column_decltype(stmt, i);
 
-							if (!qstricmp(type, "blob"))
+							if (type && !qstricmp(type, "blob"))
 							{
 								const char* data =
 										(const char *) sqlite3_column_blob(stmt,
@@ -125,9 +125,10 @@ result_t SQLite::execute(const char* sql, obj_ptr<DBResult_base>& retVal)
 
 								v = new Buffer(std::string(data, size));
 							}
-							else if (!qstricmp(type, "datetime")
-									|| !qstricmp(type, "date")
-									|| !qstricmp(type, "time"))
+							else if (type
+									&& (!qstricmp(type, "datetime")
+											|| !qstricmp(type, "date")
+											|| !qstricmp(type, "time")))
 							{
 								const char* data =
 										(const char *) sqlite3_column_text(stmt,
