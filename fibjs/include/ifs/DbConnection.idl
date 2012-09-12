@@ -16,7 +16,7 @@ class DbConnection : object
 
 	/*! @brief 执行一个 sql 命令，并返回执行结果
 	 *
-	 * @param sql 格式化字符串，可选参数用 \%s 指定。例如：'SELECT * FROM TEST WHERE [id]=\%s'
+	 * @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT * FROM TEST WHERE [id]=?'
 	 * @param ... 可选参数列表
 	 * @return 返回 sql 命令执行结果
 	 */

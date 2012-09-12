@@ -41,6 +41,12 @@ public:
 	{
 	}
 
+	date_t(v8::Handle<v8::Value> v) :
+			d(0)
+	{
+		operator=(v);
+	}
+
 	void clear()
 	{
 		d = 0;
@@ -86,6 +92,7 @@ public:
 
 	void parse(const char* str, int len = -1);
 	void toString(std::string& retVal);
+	void sqlString(std::string& retVal);
 
 	static int LocalOffset()
 	{

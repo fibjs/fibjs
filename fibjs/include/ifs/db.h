@@ -20,6 +20,7 @@ namespace fibjs
 class module_base;
 class DbConnection_base;
 class MySQL_base;
+class Buffer_base;
 
 class db_base : public module_base
 {
@@ -30,6 +31,8 @@ public:
 	static result_t openMySQL(const char* host, int32_t port, const char* username, const char* password, const char* dbName, obj_ptr<MySQL_base>& retVal);
 	static result_t openSQLite(const char* connString, obj_ptr<DbConnection_base>& retVal);
 	static result_t format(const char* sql, const v8::Arguments& args, std::string& retVal);
+	static result_t escape(const char* str, std::string& retVal);
+	static result_t escape(Buffer_base* data, std::string& retVal);
 
 	DECLARE_CLASSINFO(db_base);
 
@@ -38,12 +41,14 @@ public:
 	static v8::Handle<v8::Value> s_openMySQL(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_openSQLite(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_format(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_escape(const v8::Arguments& args);
 };
 
 }
 
 #include "DbConnection.h"
 #include "MySQL.h"
+#include "Buffer.h"
 
 namespace fibjs
 {
@@ -54,13 +59,14 @@ namespace fibjs
 			{"open", s_open, true},
 			{"openMySQL", s_openMySQL, true},
 			{"openSQLite", s_openSQLite, true},
-			{"format", s_format, true}
+			{"format", s_format, true},
+			{"escape", s_escape, true}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"db", NULL, 
-			4, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			5, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -127,6 +133,25 @@ namespace fibjs
 		ARG_String(0);
 
 		hr = format(v0, args, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> db_base::s_escape(const v8::Arguments& args)
+	{
+		std::string vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = escape(v0, vr);
+
+		METHOD_OVER(1, 1);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+
+		hr = escape(v0, vr);
 
 		METHOD_RETURN();
 	}
