@@ -65,7 +65,7 @@ int API_recvSocket(void *sock, char *buffer, int cbBuffer)
 {
 	obj_ptr<Buffer_base> retVal;
 
-	result_t hr = ((Socket*) sock)->ac_read(cbBuffer, retVal);
+	result_t hr = ((Socket*) sock)->ac_recv(cbBuffer, retVal);
 	if (hr < 0)
 	{
 		Runtime::setError(hr);
@@ -90,7 +90,7 @@ int API_sendSocket(void *sock, const char *buffer, int cbBuffer)
 
 	buf = new Buffer(strBuf);
 
-	result_t hr = ((Socket*) sock)->ac_write(buf);
+	result_t hr = ((Socket*) sock)->ac_send(buf);
 	if (hr < 0)
 	{
 		Runtime::setError(hr);
@@ -141,15 +141,21 @@ int API_resultRowValue(void *result, int icolumn, UMTypeInfo *ti, void *value,
 			break;
 
 		case MFTYPE_DATE:
+		case MFTYPE_TIME:
 		case MFTYPE_DATETIME:
 			v.parseDate((const char*) value, (int) cbValue);
 			break;
 
+		case MFTYPE_TINY_BLOB:
+		case MFTYPE_MEDIUM_BLOB:
+		case MFTYPE_LONG_BLOB:
+		case MFTYPE_BLOB:
+			v = new Buffer(std::string((const char*) value, cbValue));
+			break;
+
 		default:
-		{
-			std::string s((const char*) value, cbValue);
-			v = s;
-		}
+			v = std::string((const char*) value, cbValue);
+			break;
 		}
 
 	((DBResult*) result)->rowValue(icolumn, v);

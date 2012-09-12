@@ -8,6 +8,7 @@
 #include "SQLite.h"
 #include "ifs/db.h"
 #include "DBResult.h"
+#include "Buffer.h"
 
 namespace fibjs
 {
@@ -63,7 +64,7 @@ result_t SQLite::execute(const char* sql, obj_ptr<DBResult_base>& retVal)
 
 	sqlite3_stmt *stmt = 0;
 	const char *pStr1;
-	int sLen = (int)qstrlen(sql);
+	int sLen = (int) qstrlen(sql);
 
 	if (sqlite3_prepare_v2(m_db, sql, sLen, &stmt, &pStr1))
 	{
@@ -101,17 +102,51 @@ result_t SQLite::execute(const char* sql, obj_ptr<DBResult_base>& retVal)
 
 						switch (sqlite3_column_type(stmt, i))
 						{
-						case SQLITE_INTEGER:
-							v = (int64_t)sqlite3_column_int64(stmt, i);
+						case SQLITE_NULL:
 							break;
+
+						case SQLITE_INTEGER:
+							v = (int64_t) sqlite3_column_int64(stmt, i);
+							break;
+
 						case SQLITE_FLOAT:
 							v = sqlite3_column_double(stmt, i);
 							break;
-						case SQLITE_NULL:
-							break;
+
 						default:
-							v = (const char *) sqlite3_column_text(stmt, i);
+							const char* type = sqlite3_column_decltype(stmt, i);
+
+							if (!qstricmp(type, "blob"))
+							{
+								const char* data =
+										(const char *) sqlite3_column_blob(stmt,
+												i);
+								int size = sqlite3_column_bytes(stmt, i);
+
+								v = new Buffer(std::string(data, size));
+							}
+							else if (!qstricmp(type, "datetime")
+									|| !qstricmp(type, "date")
+									|| !qstricmp(type, "time"))
+							{
+								const char* data =
+										(const char *) sqlite3_column_text(stmt,
+												i);
+								int size = sqlite3_column_bytes(stmt, i);
+
+								v.parseDate(data, size);
+							}
+							else
+							{
+								const char* data =
+										(const char *) sqlite3_column_text(stmt,
+												i);
+								int size = sqlite3_column_bytes(stmt, i);
+
+								v = std::string(data, size);
+							}
 							break;
+
 						}
 
 						res->rowValue(i, v);
