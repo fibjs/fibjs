@@ -198,39 +198,11 @@ public:
 		return sizeof(Variant) + ((std::string*) m_Val.strVal)->length();
 	}
 
-	operator bool() const
-	{
-		return m_Val.boolVal;
-	}
-
-	operator int32_t() const
-	{
-		return m_Val.intVal;
-	}
-
-	operator int64_t() const
-	{
-		return m_Val.longVal;
-	}
-
-	operator double() const
-	{
-		return m_Val.dblVal;
-	}
-
-	operator const date_t() const
-	{
-		return *(date_t*) m_Val.dateVal;
-	}
-
 	std::string string() const
 	{
+		if (m_type != VT_String)
+			return "";
 		return *(std::string*) m_Val.strVal;
-	}
-
-	operator const object_base*() const
-	{
-		return (object_base*) m_Val.objVal;
 	}
 
 	operator v8::Handle<v8::Value>() const;

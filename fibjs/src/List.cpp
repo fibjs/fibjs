@@ -90,8 +90,7 @@ result_t List::array::toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	int i;
 
 	for (i = 0; i < (int) m_array.size(); i++)
-		if (m_array[i])
-			a->Set(i, m_array[i]);
+		a->Set(i, m_array[i]);
 
 	retVal = a;
 
