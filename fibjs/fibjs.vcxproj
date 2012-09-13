@@ -87,6 +87,7 @@
     <ClCompile Include="src\util.cpp" />
     <ClCompile Include="src\uuidVar.cpp" />
     <ClCompile Include="src\Variant.cpp" />
+    <ClCompile Include="src\zlib.cpp" />
     <ClCompile Include="src\zmqSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -176,6 +177,7 @@
     <ClInclude Include="include\ifs\Url.h" />
     <ClInclude Include="include\ifs\uuid.h" />
     <ClInclude Include="include\ifs\uuidValue.h" />
+    <ClInclude Include="include\ifs\zlib.h" />
     <ClInclude Include="include\ifs\zmq.h" />
     <ClInclude Include="include\ifs\zmqSocket.h" />
     <ClInclude Include="include\Image.h" />

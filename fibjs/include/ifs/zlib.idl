@@ -1,0 +1,20 @@
+
+/*! @brief zlib 压缩解压模块
+ *
+ * 使用方法：
+ * @code
+ * var zlib = require('zlib');
+ * @endcode
+ */
+class zlib : module
+{
+	const Integer NO_COMPRESSION = 0;
+	const Integer Z_BEST_SPEED = 1;
+	const Integer Z_BEST_COMPRESSION = 9;
+	const Integer Z_DEFAULT_COMPRESSION = -1;
+
+	static Buffer deflate(Buffer data, Integer level = Z_DEFAULT_COMPRESSION) async;
+	static Buffer inflate(Buffer data) async;
+	static Buffer gunzip(Buffer data) async;
+	static Buffer gzip(Buffer data) async;
+};

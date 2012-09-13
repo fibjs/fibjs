@@ -231,6 +231,9 @@
     <ClCompile Include="src\Image.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\zlib.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -580,6 +583,9 @@
     </ClInclude>
     <ClInclude Include="include\Image.h">
       <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\zlib.h">
+      <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

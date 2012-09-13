@@ -22,6 +22,7 @@
 
 #include "ifs/db.h"
 #include "ifs/hash.h"
+#include "ifs/zlib.h"
 
 #include "ifs/gd.h"
 
@@ -109,6 +110,7 @@ void initModule()
 
 	InstallNativeModule("db", db_base::class_info());
 	InstallNativeModule("hash", hash_base::class_info());
+	InstallNativeModule("zlib", zlib_base::class_info());
 
 	InstallNativeModule("gd", gd_base::class_info());
 }
