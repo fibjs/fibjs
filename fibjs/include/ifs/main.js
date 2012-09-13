@@ -419,7 +419,7 @@ function parserIDL(fname) {
 	}
 
 	function _member(st) {
-		var attr, ftype, fname, name, value, args, argArray = false, pos = 0, s, argCount = 0, argOpt = 0, ifStr = "", fnStr = "", argVars = "";
+		var attr, ftype, fname, name, value, args, argArray = false, pos = 0, s, argStra = "", argCount = 0, argOpt = 0, ifStr = "", fnStr = "", argVars = "";
 
 		args = [];
 
@@ -555,6 +555,8 @@ function parserIDL(fname) {
 				if (argCount)
 					ifStr += ", ";
 				ifStr += arg_type(type) + " " + name;
+				
+				argStra += ", " + arg_type(type);
 
 				if (type === "String") {
 					if (value == "")
@@ -612,6 +614,8 @@ function parserIDL(fname) {
 					ifStr += ", ";
 
 				ifStr += map_type(ftype) + "& retVal";
+
+				argStra += ", " + map_type(ftype);
 			}
 
 			if (st[pos] == "async") {
@@ -623,15 +627,15 @@ function parserIDL(fname) {
 				if (attr == "static") {
 					ifStr += "exlib::AsyncEvent* ac);";
 					fnStr += "		hr = ac_" + fname + "(";
-					afs.push('	ASYNC_STATIC'
+					afs.push('	ASYNC_STATIC' + (ftype != "" ? "VALUE" : "")
 							+ (ftype == "" ? argCount : argCount + 1) + '('
-							+ ns + '_base, ' + fname + ');');
+							+ ns + '_base, ' + fname + argStra + ');');
 				} else {
 					ifStr += "exlib::AsyncEvent* ac) = 0;";
 					fnStr += "		hr = pInst->ac_" + fname + "(";
-					afs.push('	ASYNC_MEMBER'
+					afs.push('	ASYNC_MEMBER' + (ftype != "" ? "VALUE" : "")
 							+ (ftype == "" ? argCount : argCount + 1) + '('
-							+ ns + '_base, ' + fname + ');');
+							+ ns + '_base, ' + fname + argStra + ');');
 
 					if (ftype == "")
 						afs.push('	ASYNC_CALLBACK' + argCount + '(' + ns

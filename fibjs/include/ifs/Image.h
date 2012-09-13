@@ -134,29 +134,29 @@ public:
 	static v8::Handle<v8::Value> s_copyRotated(const v8::Arguments& args);
 
 public:
-	ASYNC_MEMBER3(Image_base, getData);
+	ASYNC_MEMBERVALUE3(Image_base, getData, int32_t, int32_t, obj_ptr<Buffer_base>);
 	ASYNC_VALUEBACK2(Image_base, getData, obj_ptr<Buffer_base>);
-	ASYNC_MEMBER3(Image_base, save);
+	ASYNC_MEMBER3(Image_base, save, Stream_base*, int32_t, int32_t);
 	ASYNC_CALLBACK3(Image_base, save);
-	ASYNC_MEMBER1(Image_base, clone);
+	ASYNC_MEMBERVALUE1(Image_base, clone, obj_ptr<Image_base>);
 	ASYNC_VALUEBACK0(Image_base, clone, obj_ptr<Image_base>);
-	ASYNC_MEMBER3(Image_base, resample);
+	ASYNC_MEMBERVALUE3(Image_base, resample, int32_t, int32_t, obj_ptr<Image_base>);
 	ASYNC_VALUEBACK2(Image_base, resample, obj_ptr<Image_base>);
-	ASYNC_MEMBER1(Image_base, flip);
+	ASYNC_MEMBER1(Image_base, flip, int32_t);
 	ASYNC_CALLBACK1(Image_base, flip);
-	ASYNC_MEMBER1(Image_base, convert);
+	ASYNC_MEMBER1(Image_base, convert, int32_t);
 	ASYNC_CALLBACK1(Image_base, convert);
-	ASYNC_MEMBER7(Image_base, copy);
+	ASYNC_MEMBER7(Image_base, copy, Image_base*, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
 	ASYNC_CALLBACK7(Image_base, copy);
-	ASYNC_MEMBER8(Image_base, copyMerge);
+	ASYNC_MEMBER8(Image_base, copyMerge, Image_base*, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
 	ASYNC_CALLBACK8(Image_base, copyMerge);
-	ASYNC_MEMBER8(Image_base, copyMergeGray);
+	ASYNC_MEMBER8(Image_base, copyMergeGray, Image_base*, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
 	ASYNC_CALLBACK8(Image_base, copyMergeGray);
-	ASYNC_MEMBER9(Image_base, copyResized);
+	ASYNC_MEMBER9(Image_base, copyResized, Image_base*, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
 	ASYNC_CALLBACK9(Image_base, copyResized);
-	ASYNC_MEMBER9(Image_base, copyResampled);
+	ASYNC_MEMBER9(Image_base, copyResampled, Image_base*, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
 	ASYNC_CALLBACK9(Image_base, copyResampled);
-	ASYNC_MEMBER8(Image_base, copyRotated);
+	ASYNC_MEMBER8(Image_base, copyRotated, Image_base*, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
 	ASYNC_CALLBACK8(Image_base, copyRotated);
 };
 

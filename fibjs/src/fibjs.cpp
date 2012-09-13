@@ -237,6 +237,13 @@ int main(int argc, char* argv[])
 {
 	enableDump();
 
+	char app[] = "fibjs";
+	char prof[] = "--prof";
+	char* argprof[] = {app, prof};
+	int v = 2;
+
+//	v8::V8::SetFlagsFromCommandLine(&v, argprof, true);
+
 	if (argc == 2)
 		fibjs::_main(argv[1]);
 	else

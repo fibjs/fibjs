@@ -72,15 +72,15 @@ public:
 	static v8::Handle<v8::Value> s_exec(const v8::Arguments& args);
 
 public:
-	ASYNC_STATIC2(os_base, exists);
-	ASYNC_STATIC1(os_base, unlink);
-	ASYNC_STATIC1(os_base, mkdir);
-	ASYNC_STATIC1(os_base, rmdir);
-	ASYNC_STATIC2(os_base, rename);
-	ASYNC_STATIC2(os_base, stat);
-	ASYNC_STATIC2(os_base, readdir);
-	ASYNC_STATIC2(os_base, system);
-	ASYNC_STATIC2(os_base, exec);
+	ASYNC_STATICVALUE2(os_base, exists, const char*, bool);
+	ASYNC_STATIC1(os_base, unlink, const char*);
+	ASYNC_STATIC1(os_base, mkdir, const char*);
+	ASYNC_STATIC1(os_base, rmdir, const char*);
+	ASYNC_STATIC2(os_base, rename, const char*, const char*);
+	ASYNC_STATICVALUE2(os_base, stat, const char*, obj_ptr<Stat_base>);
+	ASYNC_STATICVALUE2(os_base, readdir, const char*, obj_ptr<List_base>);
+	ASYNC_STATICVALUE2(os_base, system, const char*, int32_t);
+	ASYNC_STATICVALUE2(os_base, exec, const char*, obj_ptr<BufferedStream_base>);
 };
 
 }

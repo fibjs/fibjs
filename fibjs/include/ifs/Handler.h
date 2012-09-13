@@ -30,7 +30,7 @@ public:
 	static v8::Handle<v8::Value> s_invoke(const v8::Arguments& args);
 
 public:
-	ASYNC_MEMBER2(Handler_base, invoke);
+	ASYNC_MEMBERVALUE2(Handler_base, invoke, object_base*, obj_ptr<Handler_base>);
 	ASYNC_VALUEBACK1(Handler_base, invoke, obj_ptr<Handler_base>);
 };
 

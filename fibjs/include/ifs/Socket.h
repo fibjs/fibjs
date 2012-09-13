@@ -99,15 +99,15 @@ public:
 	static v8::Handle<v8::Value> s_sendto(const v8::Arguments& args);
 
 public:
-	ASYNC_MEMBER2(Socket_base, connect);
+	ASYNC_MEMBER2(Socket_base, connect, const char*, int32_t);
 	ASYNC_CALLBACK2(Socket_base, connect);
-	ASYNC_MEMBER1(Socket_base, accept);
+	ASYNC_MEMBERVALUE1(Socket_base, accept, obj_ptr<Socket_base>);
 	ASYNC_VALUEBACK0(Socket_base, accept, obj_ptr<Socket_base>);
 	ASYNC_MEMBER0(Socket_base, close);
 	ASYNC_CALLBACK0(Socket_base, close);
-	ASYNC_MEMBER2(Socket_base, recv);
+	ASYNC_MEMBERVALUE2(Socket_base, recv, int32_t, obj_ptr<Buffer_base>);
 	ASYNC_VALUEBACK1(Socket_base, recv, obj_ptr<Buffer_base>);
-	ASYNC_MEMBER1(Socket_base, send);
+	ASYNC_MEMBER1(Socket_base, send, Buffer_base*);
 	ASYNC_CALLBACK1(Socket_base, send);
 };
 

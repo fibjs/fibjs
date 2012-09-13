@@ -55,7 +55,7 @@ public:
 	static v8::Handle<v8::Value> s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 
 public:
-	ASYNC_MEMBER1(zmqSocket_base, recv);
+	ASYNC_MEMBERVALUE1(zmqSocket_base, recv, obj_ptr<Buffer_base>);
 	ASYNC_VALUEBACK0(zmqSocket_base, recv, obj_ptr<Buffer_base>);
 };
 

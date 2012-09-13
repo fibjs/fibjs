@@ -79,9 +79,9 @@ public:
 	static v8::Handle<v8::Value> s_onreadfrom(const v8::Arguments& args);
 
 public:
-	ASYNC_MEMBER1(Message_base, sendTo);
+	ASYNC_MEMBER1(Message_base, sendTo, Stream_base*);
 	ASYNC_CALLBACK1(Message_base, sendTo);
-	ASYNC_MEMBER1(Message_base, readFrom);
+	ASYNC_MEMBER1(Message_base, readFrom, BufferedStream_base*);
 	ASYNC_CALLBACK1(Message_base, readFrom);
 };
 

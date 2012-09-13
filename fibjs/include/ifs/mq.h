@@ -47,8 +47,8 @@ public:
 	static v8::Handle<v8::Value> s_js_invoke(const v8::Arguments& args);
 
 public:
-	ASYNC_STATIC2(mq_base, invoke);
-	ASYNC_STATIC3(mq_base, js_invoke);
+	ASYNC_STATIC2(mq_base, invoke, Handler_base*, object_base*);
+	ASYNC_STATICVALUE3(mq_base, js_invoke, Handler_base*, object_base*, obj_ptr<Handler_base>);
 };
 
 }

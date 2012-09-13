@@ -52,9 +52,9 @@ public:
 	static v8::Handle<v8::Value> s_backend(const v8::Arguments& args);
 
 public:
-	ASYNC_STATIC3(net_base, resolve);
-	ASYNC_STATIC2(net_base, ip);
-	ASYNC_STATIC2(net_base, ipv6);
+	ASYNC_STATICVALUE3(net_base, resolve, const char*, int32_t, std::string);
+	ASYNC_STATICVALUE2(net_base, ip, const char*, std::string);
+	ASYNC_STATICVALUE2(net_base, ipv6, const char*, std::string);
 };
 
 }

@@ -76,9 +76,9 @@ public:
 	static v8::Handle<v8::Value> s_loadFrom(const v8::Arguments& args);
 
 public:
-	ASYNC_STATIC4(gd_base, create);
-	ASYNC_STATIC2(gd_base, load);
-	ASYNC_STATIC2(gd_base, loadFrom);
+	ASYNC_STATICVALUE4(gd_base, create, int32_t, int32_t, int32_t, obj_ptr<Image_base>);
+	ASYNC_STATICVALUE2(gd_base, load, Buffer_base*, obj_ptr<Image_base>);
+	ASYNC_STATICVALUE2(gd_base, loadFrom, SeekableStream_base*, obj_ptr<Image_base>);
 };
 
 }

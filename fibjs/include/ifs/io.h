@@ -52,11 +52,11 @@ public:
 	static v8::Handle<v8::Value> s_writeFile(const v8::Arguments& args);
 
 public:
-	ASYNC_STATIC3(io_base, open);
-	ASYNC_STATIC3(io_base, create);
-	ASYNC_STATIC1(io_base, tmpFile);
-	ASYNC_STATIC2(io_base, readFile);
-	ASYNC_STATIC2(io_base, writeFile);
+	ASYNC_STATICVALUE3(io_base, open, const char*, const char*, obj_ptr<File_base>);
+	ASYNC_STATICVALUE3(io_base, create, const char*, bool, obj_ptr<File_base>);
+	ASYNC_STATICVALUE1(io_base, tmpFile, obj_ptr<File_base>);
+	ASYNC_STATICVALUE2(io_base, readFile, const char*, std::string);
+	ASYNC_STATIC2(io_base, writeFile, const char*, const char*);
 };
 
 }

@@ -55,15 +55,15 @@ public:
 	static void s_set_EOL(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 
 public:
-	ASYNC_MEMBER2(BufferedStream_base, readText);
+	ASYNC_MEMBERVALUE2(BufferedStream_base, readText, int32_t, std::string);
 	ASYNC_VALUEBACK1(BufferedStream_base, readText, std::string);
-	ASYNC_MEMBER2(BufferedStream_base, readLine);
+	ASYNC_MEMBERVALUE2(BufferedStream_base, readLine, int32_t, std::string);
 	ASYNC_VALUEBACK1(BufferedStream_base, readLine, std::string);
-	ASYNC_MEMBER3(BufferedStream_base, readUntil);
+	ASYNC_MEMBERVALUE3(BufferedStream_base, readUntil, const char*, int32_t, std::string);
 	ASYNC_VALUEBACK2(BufferedStream_base, readUntil, std::string);
-	ASYNC_MEMBER1(BufferedStream_base, writeText);
+	ASYNC_MEMBER1(BufferedStream_base, writeText, const char*);
 	ASYNC_CALLBACK1(BufferedStream_base, writeText);
-	ASYNC_MEMBER1(BufferedStream_base, writeLine);
+	ASYNC_MEMBER1(BufferedStream_base, writeLine, const char*);
 	ASYNC_CALLBACK1(BufferedStream_base, writeLine);
 };
 

@@ -61,7 +61,7 @@ public:
 	static v8::Handle<v8::Value> s_onclose(const v8::Arguments& args);
 
 public:
-	ASYNC_MEMBER1(File_base, truncate);
+	ASYNC_MEMBER1(File_base, truncate, int64_t);
 	ASYNC_CALLBACK1(File_base, truncate);
 	ASYNC_MEMBER0(File_base, flush);
 	ASYNC_CALLBACK0(File_base, flush);
