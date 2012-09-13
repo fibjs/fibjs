@@ -876,6 +876,7 @@
     <ClInclude Include="src\v8\src\zone.h" />
     <ClInclude Include="src\zlib\crc32.h" />
     <ClInclude Include="src\zlib\deflate.h" />
+    <ClInclude Include="src\zlib\gzguts.h" />
     <ClInclude Include="src\zlib\inffast.h" />
     <ClInclude Include="src\zlib\inffixed.h" />
     <ClInclude Include="src\zlib\inflate.h" />

@@ -2960,6 +2960,9 @@
     <ClInclude Include="include\pcre.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\zlib\gzguts.h">
+      <Filter>Source Files\zlib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\log4cpp\threading\BoostThreads.hh">
