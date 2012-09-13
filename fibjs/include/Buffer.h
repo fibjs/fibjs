@@ -19,7 +19,7 @@ public:
 	Buffer(std::string strData) :
 			m_data(strData)
 	{
-		extMemory(strData.length());
+		extMemory((int)strData.length());
 	}
 
 public:
