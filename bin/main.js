@@ -20,6 +20,7 @@ require("rpc_test");
 require("zmq_test");
 require("uuid_test");
 require("gd_test");
+require("zlib_test");
 require("db_test");
 
 require('BUG_simple_api_call');
