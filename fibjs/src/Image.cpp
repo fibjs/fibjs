@@ -12,6 +12,18 @@
 namespace fibjs
 {
 
+void Image::setExtMemory()
+{
+	if (m_image)
+	{
+		int psize =
+				gdImageTrueColor(m_image) ? sizeof(int) : sizeof(unsigned char);
+		int sx = gdImageSX(m_image);
+		int sy = gdImageSY(m_image);
+		extMemory(sizeof(gdImage) + sizeof(void*) * sy + psize * sx * sy);
+	}
+}
+
 result_t gd_base::create(int32_t width, int32_t height, int32_t color,
 		obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac)
 {
@@ -111,6 +123,8 @@ result_t Image::create(int32_t width, int32_t height, int32_t color)
 	if (m_image == NULL)
 		return CALL_E_INVALIDARG;
 
+	setExtMemory();
+
 	return 0;
 }
 
@@ -178,6 +192,7 @@ result_t Image::load(Buffer_base* data)
 	if (m_image == NULL)
 		return CALL_E_INVALIDARG;
 
+	setExtMemory();
 	m_type = format;
 
 	return 0;
@@ -657,6 +672,8 @@ result_t Image::New(int32_t width, int32_t height, obj_ptr<Image>& retVal)
 
 	gdImagePaletteCopy(img->m_image, m_image);
 	gdImageColorTransparent(img->m_image, gdImageGetTransparent(m_image));
+
+	img->setExtMemory();
 
 	retVal = img;
 	return 0;
