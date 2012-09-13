@@ -12,7 +12,7 @@
 namespace fibjs
 {
 
-void Image::setExtMemory()
+void Image::setExtMemory(int add)
 {
 	if (m_image)
 	{
@@ -20,7 +20,8 @@ void Image::setExtMemory()
 				gdImageTrueColor(m_image) ? sizeof(int) : sizeof(unsigned char);
 		int sx = gdImageSX(m_image);
 		int sy = gdImageSY(m_image);
-		extMemory(sizeof(gdImage) + sizeof(void*) * sy + psize * sx * sy);
+		extMemory(
+				(sizeof(gdImage) + sizeof(void*) * sy + psize * sx * sy) * add);
 	}
 }
 
@@ -119,6 +120,8 @@ result_t Image::create(int32_t width, int32_t height, int32_t color)
 		m_image = gdImageCreate(width, height);
 	else if (color == gd_base::_TRUECOLOR)
 		m_image = gdImageCreateTrueColor(width, height);
+	else
+		return CALL_E_INVALIDARG;
 
 	if (m_image == NULL)
 		return CALL_E_INVALIDARG;
@@ -679,10 +682,13 @@ result_t Image::New(int32_t width, int32_t height, obj_ptr<Image>& retVal)
 	return 0;
 }
 
-result_t Image::clone(obj_ptr<Image_base>& retVal)
+result_t Image::clone(obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac)
 {
 	if (!m_image)
 		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
 
 	int32_t w = gdImageSX(m_image);
 	int32_t h = gdImageSY(m_image);
@@ -697,10 +703,13 @@ result_t Image::clone(obj_ptr<Image_base>& retVal)
 }
 
 result_t Image::resample(int32_t width, int32_t height,
-		obj_ptr<Image_base>& retVal)
+		obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac)
 {
 	if (!m_image)
 		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
 
 	obj_ptr<Image> dst;
 	New(width, height, dst);
@@ -712,11 +721,80 @@ result_t Image::resample(int32_t width, int32_t height,
 	return 0;
 }
 
-result_t Image::copy(Image_base* source, int32_t dstX, int32_t dstY,
-		int32_t srcX, int32_t srcY, int32_t width, int32_t height)
+result_t Image::flip(int32_t dir, exlib::AsyncEvent* ac)
 {
 	if (!m_image)
 		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	if (dir == gd_base::_HORIZONTAL)
+		gdImageFlipHorizontal(m_image);
+	else if (dir == gd_base::_VERTICAL)
+		gdImageFlipVertical(m_image);
+	else if (dir == gd_base::_BOTH)
+		gdImageFlipBoth(m_image);
+	else
+		return CALL_E_INVALIDARG;
+
+	return 0;
+}
+
+result_t Image::convert(int32_t color, exlib::AsyncEvent* ac)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	if (color != gd_base::_TRUECOLOR && color != gd_base::_PALETTE)
+		return CALL_E_INVALIDARG;
+
+	if (color == gd_base::_TRUECOLOR && !gdImageTrueColor(m_image))
+	{
+		int sx = gdImageSX(m_image);
+		int sy = gdImageSY(m_image);
+		gdImagePtr newImage = gdImageCreateTrueColor(sx, sy);
+		int trans = gdImageGetTransparent(m_image);
+
+		if (trans != -1)
+		{
+			trans = gdImageColorAllocate(newImage, m_image->red[trans],
+					m_image->green[trans], m_image->blue[trans]);
+			gdImageFilledRectangle(newImage, 0, 0, sx, sy, trans);
+			gdImageColorTransparent(newImage, trans);
+		}
+
+		gdImageCopy(newImage, m_image, 0, 0, 0, 0, sx, sy);
+
+		setExtMemory(-1);
+		gdImageDestroy(m_image);
+		m_image = newImage;
+		setExtMemory();
+	}
+	else if (color == gd_base::_PALETTE && gdImageTrueColor(m_image))
+	{
+		setExtMemory(-1);
+		gdImageTrueColorToPalette(m_image, 1, 256);
+		setExtMemory();
+	}
+	else
+		return CALL_E_INVALID_CALL;
+
+	return 0;
+}
+
+result_t Image::copy(Image_base* source, int32_t dstX, int32_t dstY,
+		int32_t srcX, int32_t srcY, int32_t width, int32_t height,
+		exlib::AsyncEvent* ac)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
 
 	Image* src = (Image*) source;
 	if (!src->m_image)
@@ -728,10 +806,13 @@ result_t Image::copy(Image_base* source, int32_t dstX, int32_t dstY,
 
 result_t Image::copyMerge(Image_base* source, int32_t dstX, int32_t dstY,
 		int32_t srcX, int32_t srcY, int32_t width, int32_t height,
-		int32_t percent)
+		int32_t percent, exlib::AsyncEvent* ac)
 {
 	if (!m_image)
 		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
 
 	Image* src = (Image*) source;
 	if (!src->m_image)
@@ -744,10 +825,13 @@ result_t Image::copyMerge(Image_base* source, int32_t dstX, int32_t dstY,
 
 result_t Image::copyMergeGray(Image_base* source, int32_t dstX, int32_t dstY,
 		int32_t srcX, int32_t srcY, int32_t width, int32_t height,
-		int32_t percent)
+		int32_t percent, exlib::AsyncEvent* ac)
 {
 	if (!m_image)
 		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
 
 	Image* src = (Image*) source;
 	if (!src->m_image)
@@ -760,10 +844,13 @@ result_t Image::copyMergeGray(Image_base* source, int32_t dstX, int32_t dstY,
 
 result_t Image::copyResized(Image_base* source, int32_t dstX, int32_t dstY,
 		int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW,
-		int32_t srcH)
+		int32_t srcH, exlib::AsyncEvent* ac)
 {
 	if (!m_image)
 		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
 
 	Image* src = (Image*) source;
 	if (!src->m_image)
@@ -776,10 +863,13 @@ result_t Image::copyResized(Image_base* source, int32_t dstX, int32_t dstY,
 
 result_t Image::copyResampled(Image_base* source, int32_t dstX, int32_t dstY,
 		int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW,
-		int32_t srcH)
+		int32_t srcH, exlib::AsyncEvent* ac)
 {
 	if (!m_image)
 		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
 
 	Image* src = (Image*) source;
 	if (!src->m_image)
@@ -792,10 +882,13 @@ result_t Image::copyResampled(Image_base* source, int32_t dstX, int32_t dstY,
 
 result_t Image::copyRotated(Image_base* source, int32_t dstX, int32_t dstY,
 		int32_t srcX, int32_t srcY, int32_t width, int32_t height,
-		int32_t angle)
+		int32_t angle, exlib::AsyncEvent* ac)
 {
 	if (!m_image)
 		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
 
 	Image* src = (Image*) source;
 	if (!src->m_image)
@@ -803,23 +896,6 @@ result_t Image::copyRotated(Image_base* source, int32_t dstX, int32_t dstY,
 
 	gdImageCopyRotated(m_image, src->m_image, dstX, dstY, srcX, srcY, width,
 			height, angle);
-	return 0;
-}
-
-result_t Image::flip(int32_t dir)
-{
-	if (!m_image)
-		return CALL_E_INVALID_CALL;
-
-	if (dir == gd_base::_HORIZONTAL)
-		gdImageFlipHorizontal(m_image);
-	else if (dir == gd_base::_VERTICAL)
-		gdImageFlipVertical(m_image);
-	else if (dir == gd_base::_BOTH)
-		gdImageFlipBoth(m_image);
-	else
-		return CALL_E_INVALIDARG;
-
 	return 0;
 }
 

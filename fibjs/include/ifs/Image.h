@@ -59,15 +59,16 @@ public:
 	virtual result_t filledArc(int32_t x, int32_t y, int32_t width, int32_t height, int32_t start, int32_t end, int32_t color, int32_t style) = 0;
 	virtual result_t fill(int32_t x, int32_t y, int32_t color) = 0;
 	virtual result_t fillToBorder(int32_t x, int32_t y, int32_t borderColor, int32_t color) = 0;
-	virtual result_t clone(obj_ptr<Image_base>& retVal) = 0;
-	virtual result_t resample(int32_t width, int32_t height, obj_ptr<Image_base>& retVal) = 0;
-	virtual result_t copy(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height) = 0;
-	virtual result_t copyMerge(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent) = 0;
-	virtual result_t copyMergeGray(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent) = 0;
-	virtual result_t copyResized(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH) = 0;
-	virtual result_t copyResampled(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH) = 0;
-	virtual result_t copyRotated(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t angle) = 0;
-	virtual result_t flip(int32_t dir) = 0;
+	virtual result_t clone(obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t resample(int32_t width, int32_t height, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t flip(int32_t dir, exlib::AsyncEvent* ac) = 0;
+	virtual result_t convert(int32_t color, exlib::AsyncEvent* ac) = 0;
+	virtual result_t copy(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, exlib::AsyncEvent* ac) = 0;
+	virtual result_t copyMerge(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent, exlib::AsyncEvent* ac) = 0;
+	virtual result_t copyMergeGray(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent, exlib::AsyncEvent* ac) = 0;
+	virtual result_t copyResized(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, exlib::AsyncEvent* ac) = 0;
+	virtual result_t copyResampled(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, exlib::AsyncEvent* ac) = 0;
+	virtual result_t copyRotated(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t angle, exlib::AsyncEvent* ac) = 0;
 
 	DECLARE_CLASSINFO(Image_base);
 
@@ -123,19 +124,40 @@ public:
 	static v8::Handle<v8::Value> s_fillToBorder(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_clone(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_resample(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_flip(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_convert(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_copy(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_copyMerge(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_copyMergeGray(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_copyResized(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_copyResampled(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_copyRotated(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_flip(const v8::Arguments& args);
 
 public:
 	ASYNC_MEMBER3(Image_base, getData);
 	ASYNC_VALUEBACK2(Image_base, getData, obj_ptr<Buffer_base>);
 	ASYNC_MEMBER3(Image_base, save);
 	ASYNC_CALLBACK3(Image_base, save);
+	ASYNC_MEMBER1(Image_base, clone);
+	ASYNC_VALUEBACK0(Image_base, clone, obj_ptr<Image_base>);
+	ASYNC_MEMBER3(Image_base, resample);
+	ASYNC_VALUEBACK2(Image_base, resample, obj_ptr<Image_base>);
+	ASYNC_MEMBER1(Image_base, flip);
+	ASYNC_CALLBACK1(Image_base, flip);
+	ASYNC_MEMBER1(Image_base, convert);
+	ASYNC_CALLBACK1(Image_base, convert);
+	ASYNC_MEMBER7(Image_base, copy);
+	ASYNC_CALLBACK7(Image_base, copy);
+	ASYNC_MEMBER8(Image_base, copyMerge);
+	ASYNC_CALLBACK8(Image_base, copyMerge);
+	ASYNC_MEMBER8(Image_base, copyMergeGray);
+	ASYNC_CALLBACK8(Image_base, copyMergeGray);
+	ASYNC_MEMBER9(Image_base, copyResized);
+	ASYNC_CALLBACK9(Image_base, copyResized);
+	ASYNC_MEMBER9(Image_base, copyResampled);
+	ASYNC_CALLBACK9(Image_base, copyResampled);
+	ASYNC_MEMBER8(Image_base, copyRotated);
+	ASYNC_CALLBACK8(Image_base, copyRotated);
 };
 
 }
@@ -182,13 +204,14 @@ namespace fibjs
 			{"fillToBorder", s_fillToBorder},
 			{"clone", s_clone},
 			{"resample", s_resample},
+			{"flip", s_flip},
+			{"convert", s_convert},
 			{"copy", s_copy},
 			{"copyMerge", s_copyMerge},
 			{"copyMergeGray", s_copyMergeGray},
 			{"copyResized", s_copyResized},
 			{"copyResampled", s_copyResampled},
-			{"copyRotated", s_copyRotated},
-			{"flip", s_flip}
+			{"copyRotated", s_copyRotated}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -203,7 +226,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Image", NULL, 
-			39, s_method, 0, NULL, 5, s_property, NULL, NULL,
+			40, s_method, 0, NULL, 5, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -735,7 +758,7 @@ namespace fibjs
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->clone(vr);
+		hr = pInst->ac_clone(vr);
 
 		METHOD_RETURN();
 	}
@@ -750,9 +773,33 @@ namespace fibjs
 		ARG(int32_t, 0);
 		ARG(int32_t, 1);
 
-		hr = pInst->resample(v0, v1, vr);
+		hr = pInst->ac_resample(v0, v1, vr);
 
 		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Image_base::s_flip(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(1, 0);
+
+		OPT_ARG(int32_t, 0, gd_base::_HORIZONTAL);
+
+		hr = pInst->ac_flip(v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Image_base::s_convert(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(1, 0);
+
+		OPT_ARG(int32_t, 0, gd_base::_TRUECOLOR);
+
+		hr = pInst->ac_convert(v0);
+
+		METHOD_VOID();
 	}
 
 	inline v8::Handle<v8::Value> Image_base::s_copy(const v8::Arguments& args)
@@ -768,7 +815,7 @@ namespace fibjs
 		ARG(int32_t, 5);
 		ARG(int32_t, 6);
 
-		hr = pInst->copy(v0, v1, v2, v3, v4, v5, v6);
+		hr = pInst->ac_copy(v0, v1, v2, v3, v4, v5, v6);
 
 		METHOD_VOID();
 	}
@@ -787,7 +834,7 @@ namespace fibjs
 		ARG(int32_t, 6);
 		ARG(int32_t, 7);
 
-		hr = pInst->copyMerge(v0, v1, v2, v3, v4, v5, v6, v7);
+		hr = pInst->ac_copyMerge(v0, v1, v2, v3, v4, v5, v6, v7);
 
 		METHOD_VOID();
 	}
@@ -806,7 +853,7 @@ namespace fibjs
 		ARG(int32_t, 6);
 		ARG(int32_t, 7);
 
-		hr = pInst->copyMergeGray(v0, v1, v2, v3, v4, v5, v6, v7);
+		hr = pInst->ac_copyMergeGray(v0, v1, v2, v3, v4, v5, v6, v7);
 
 		METHOD_VOID();
 	}
@@ -826,7 +873,7 @@ namespace fibjs
 		ARG(int32_t, 7);
 		ARG(int32_t, 8);
 
-		hr = pInst->copyResized(v0, v1, v2, v3, v4, v5, v6, v7, v8);
+		hr = pInst->ac_copyResized(v0, v1, v2, v3, v4, v5, v6, v7, v8);
 
 		METHOD_VOID();
 	}
@@ -846,7 +893,7 @@ namespace fibjs
 		ARG(int32_t, 7);
 		ARG(int32_t, 8);
 
-		hr = pInst->copyResampled(v0, v1, v2, v3, v4, v5, v6, v7, v8);
+		hr = pInst->ac_copyResampled(v0, v1, v2, v3, v4, v5, v6, v7, v8);
 
 		METHOD_VOID();
 	}
@@ -865,19 +912,7 @@ namespace fibjs
 		ARG(int32_t, 6);
 		ARG(int32_t, 7);
 
-		hr = pInst->copyRotated(v0, v1, v2, v3, v4, v5, v6, v7);
-
-		METHOD_VOID();
-	}
-
-	inline v8::Handle<v8::Value> Image_base::s_flip(const v8::Arguments& args)
-	{
-		METHOD_INSTANCE(Image_base);
-		METHOD_ENTER(1, 0);
-
-		OPT_ARG(int32_t, 0, gd_base::_HORIZONTAL);
-
-		hr = pInst->flip(v0);
+		hr = pInst->ac_copyRotated(v0, v1, v2, v3, v4, v5, v6, v7);
 
 		METHOD_VOID();
 	}

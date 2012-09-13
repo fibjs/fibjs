@@ -66,15 +66,16 @@ public:
 	virtual result_t filledArc(int32_t x, int32_t y, int32_t width, int32_t height, int32_t start, int32_t end, int32_t color, int32_t style);
 	virtual result_t fill(int32_t x, int32_t y, int32_t color);
 	virtual result_t fillToBorder(int32_t x, int32_t y, int32_t borderColor, int32_t color);
-	virtual result_t clone(obj_ptr<Image_base>& retVal);
-	virtual result_t resample(int32_t width, int32_t height, obj_ptr<Image_base>& retVal);
-	virtual result_t copy(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height);
-	virtual result_t copyMerge(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent);
-	virtual result_t copyMergeGray(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent);
-	virtual result_t copyResized(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH);
-	virtual result_t copyResampled(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH);
-	virtual result_t copyRotated(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t angle);
-	virtual result_t flip(int32_t dir);
+	virtual result_t clone(obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
+	virtual result_t resample(int32_t width, int32_t height, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
+	virtual result_t flip(int32_t dir, exlib::AsyncEvent* ac);
+	virtual result_t convert(int32_t color, exlib::AsyncEvent* ac);
+	virtual result_t copy(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, exlib::AsyncEvent* ac);
+	virtual result_t copyMerge(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent, exlib::AsyncEvent* ac);
+	virtual result_t copyMergeGray(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent, exlib::AsyncEvent* ac);
+	virtual result_t copyResized(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, exlib::AsyncEvent* ac);
+	virtual result_t copyResampled(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, exlib::AsyncEvent* ac);
+	virtual result_t copyRotated(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t angle, exlib::AsyncEvent* ac);
 
 public:
 	result_t create(int32_t width, int32_t height, int32_t color);
@@ -82,7 +83,7 @@ public:
 
 private:
 	result_t New(int32_t width, int32_t height, obj_ptr<Image>& retVal);
-	void setExtMemory();
+	void setExtMemory(int add = 1);
 
 private:
 	gdImagePtr m_image;
