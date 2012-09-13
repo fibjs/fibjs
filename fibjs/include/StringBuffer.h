@@ -57,7 +57,7 @@ public:
 		return m_size;
 	}
 
-	void append(std::string& s)
+	void append(std::string s)
 	{
 		if (s.length() > 0)
 		{
