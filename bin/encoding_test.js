@@ -128,7 +128,8 @@ assert.equal(dot[2], 0x2e);
 assert.equal(dot[3], 0x00);
 assert.equal(encoding.base64Encode(dot), '//4uAA==');
 
-var hexb = new Buffer(256);
+var hexb = new Buffer();
+hexb.resize(256);
 for ( var i = 0; i < 256; i++) {
 	hexb[i] = i;
 }

@@ -5,7 +5,8 @@ var zlib = require('zlib');
 var io = require('io');
 
 var M = 102400;
-var b = new Buffer(M);
+var b = new Buffer();
+b.resize(M);
 
 for(i = 0; i < M; i ++)
 	b[i] = Math.random() * 70 + 33;
