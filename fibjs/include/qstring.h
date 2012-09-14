@@ -91,7 +91,7 @@ int qstrcmp(const T* s1, const T* s2, int sz = -1)
 }
 
 template<typename T>
-const T *qstrichr(const T *s, int c)
+const T *qstrichr(const T *s, T c)
 {
 	do
 	{
@@ -102,7 +102,7 @@ const T *qstrichr(const T *s, int c)
 }
 
 template<typename T>
-const T *qstrchr(const T *s, int c)
+const T *qstrchr(const T *s, T c)
 {
 	do
 	{

@@ -12,6 +12,7 @@
 #include "ifs/mq.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
+#include "ifs/zlib.h"
 
 namespace fibjs
 {
@@ -136,6 +137,75 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				}
 			}
 
+			int64_t len;
+
+			pThis->m_rep->get_length(len);
+
+			if (len > 128 && len < 1024 * 1024)
+			{
+				Variant hdr;
+
+				if (pThis->m_req->firstHeader("Accept-Encoding",
+						hdr) != CALL_RETURN_NULL)
+				{
+					std::string str = hdr.string();
+					int type = 0;
+
+					if (qstristr(str.c_str(), "gzip"))
+						type = 1;
+					else if (qstristr(str.c_str(), "deflate"))
+						type = 2;
+
+					if (type != 0)
+					{
+						if (pThis->m_rep->firstHeader("Content-Type",
+								hdr) != CALL_RETURN_NULL)
+						{
+							str = hdr.string();
+
+							if (qstricmp(str.c_str(), "text/", 5)
+									&& qstricmp(str.c_str(),
+											"application/x-javascript")
+									&& qstricmp(str.c_str(),
+											"application/json"))
+								type = 0;
+						}
+						else
+							type = 0;
+					}
+
+					if (type != 0)
+					{
+						pThis->m_rep->addHeader("Content-Encoding",
+								type == 1 ? "gzip" : "deflate");
+
+						pThis->m_rep->get_body(pThis->m_body);
+						pThis->m_body->rewind();
+
+						pThis->m_zip = new MemoryStream();
+
+						pThis->set(zip);
+
+						if (type == 1)
+							return zlib_base::gzipTo(pThis->m_body,
+									pThis->m_zip, pThis);
+						else
+							return zlib_base::deflateTo(pThis->m_body,
+									pThis->m_zip, -1, pThis);
+					}
+				}
+			}
+
+			pThis->set(read);
+			return pThis->m_rep->sendTo(pThis->m_stm, pThis);
+		}
+
+		static int zip(asyncState* pState, int n)
+		{
+			asyncInvoke* pThis = (asyncInvoke*) pState;
+
+			pThis->m_rep->set_body(pThis->m_zip);
+
 			pThis->set(read);
 			return pThis->m_rep->sendTo(pThis->m_stm, pThis);
 		}
@@ -165,6 +235,8 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		obj_ptr<BufferedStream_base> m_stmBuffered;
 		obj_ptr<HttpRequest_base> m_req;
 		obj_ptr<HttpResponse_base> m_rep;
+		obj_ptr<MemoryStream> m_zip;
+		obj_ptr<SeekableStream_base> m_body;
 	};
 
 	if (!ac)
