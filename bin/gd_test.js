@@ -11,7 +11,7 @@ function gd_test(fmt) {
 	f.close();
 
 	f = io.open('test.pic', 'r');
-	var img1 = gd.loadFrom(f);
+	var img1 = gd.load(f);
 	f.close();
 
 	os.unlink('test.pic');
