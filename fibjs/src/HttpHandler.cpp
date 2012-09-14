@@ -53,10 +53,10 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		{
 			asyncInvoke* pThis = (asyncInvoke*) pState;
 
-			std::string strProtocol;
+			std::string str;
 
-			pThis->m_req->get_protocol(strProtocol);
-			pThis->m_rep->set_protocol(strProtocol.c_str());
+			pThis->m_req->get_protocol(str);
+			pThis->m_rep->set_protocol(str.c_str());
 
 			bool bKeepAlive;
 
@@ -67,11 +67,9 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
 			if (pThis->m_pThis->m_crossDomain)
 			{
-				std::string url;
+				pThis->m_req->get_address(str);
 
-				pThis->m_req->get_address(url);
-
-				if (!qstrcmp(url.c_str(), "/crossdomain.xml"))
+				if (!qstrcmp(str.c_str(), "/crossdomain.xml"))
 				{
 					if (s_crossdomain.empty())
 						s_crossdomain.assign(
@@ -91,7 +89,6 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				else
 				{
 					Variant origin;
-					std::string method;
 
 					if (pThis->m_req->firstHeader("origin",
 							origin) != CALL_RETURN_NULL)
@@ -101,9 +98,9 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 						pThis->m_rep->setHeader("Access-Control-Allow-Origin",
 								origin);
 
-						pThis->m_req->get_method(method);
+						pThis->m_req->get_method(str);
 
-						if (!qstricmp(method.c_str(), "options"))
+						if (!qstricmp(str.c_str(), "options"))
 						{
 							pThis->m_rep->setHeader(
 									"Access-Control-Allow-Methods", "*");

@@ -20,7 +20,6 @@ class Buffer_base : public object_base
 {
 public:
 	// Buffer_base
-	static result_t _new(int32_t size, obj_ptr<Buffer_base>& retVal);
 	static result_t _new(const char* str, obj_ptr<Buffer_base>& retVal);
 	virtual result_t _indexed_getter(uint32_t index, int32_t& retVal) = 0;
 	virtual result_t _indexed_setter(uint32_t index, int32_t newVal) = 0;
@@ -130,13 +129,7 @@ namespace fibjs
 	{
 		obj_ptr<Buffer_base> vr;
 
-		CONSTRUCT_ENTER(1, 1);
-
-		ARG(int32_t, 0);
-
-		hr = _new(v0, vr);
-
-		METHOD_OVER(1, 0);
+		CONSTRUCT_ENTER(1, 0);
 
 		OPT_ARG_String(0, "");
 

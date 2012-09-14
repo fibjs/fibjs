@@ -4,14 +4,6 @@
 namespace fibjs
 {
 
-result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base>& retVal)
-{
-	retVal = new Buffer();
-	retVal->resize(size);
-
-	return 0;
-}
-
 result_t Buffer_base::_new(const char* str, obj_ptr<Buffer_base>& retVal)
 {
 	retVal = new Buffer();
