@@ -6,6 +6,7 @@
  */
 
 #include "ifs/db.h"
+#include "ifs/Buffer.h"
 #include "Url.h"
 #include "SQLite.h"
 
@@ -72,7 +73,7 @@ result_t db_base::openSQLite(const char* connString,
 	return 0;
 }
 
-inline void _escape(const char* str, int sz, std::string& retVal)
+inline void _escape(const char* str, int sz, bool mysql, std::string& retVal)
 {
 	int len, l;
 	const char* src;
@@ -83,11 +84,14 @@ inline void _escape(const char* str, int sz, std::string& retVal)
 	{
 		ch = (unsigned char) *src++;
 
-		if (ch == 0 || ch == 0x1a)
-			len += 3;
-		else if (ch == '\r' || ch == '\n' || ch == '\\' || ch == '\''
-				|| ch == '\"')
+		if (ch == '\'')
 			len++;
+		else if (mysql)
+		{
+			if (ch == 0 || ch == 0x1a || ch == '\r' || ch == '\n' || ch == '\\'
+					|| ch == '\"')
+				len++;
+		}
 	}
 
 	retVal.resize(len);
@@ -98,54 +102,55 @@ inline void _escape(const char* str, int sz, std::string& retVal)
 	{
 		ch = (unsigned char) *src++;
 
-		switch (ch)
+		if (ch == '\'')
 		{
-		case 0:
-			*bstr++ = '\\';
-			*bstr++ = 'x';
-			*bstr++ = '0';
-			*bstr++ = '0';
-			break;
-		case 0x1a:
-			*bstr++ = '\\';
-			*bstr++ = 'x';
-			*bstr++ = '1';
-			*bstr++ = 'a';
-			break;
-
-		case '\r':
-			*bstr++ = '\\';
-			*bstr++ = 'r';
-			break;
-
-		case '\n':
-			*bstr++ = '\\';
-			*bstr++ = 'n';
-			break;
-
-		case '\\':
-			*bstr++ = '\\';
-			*bstr++ = '\\';
-			break;
-
-		case '\'':
-			*bstr++ = '\\';
 			*bstr++ = '\'';
-			break;
-
-		case '\"':
-			*bstr++ = '\\';
-			*bstr++ = '\"';
-			break;
-
-		default:
-			*bstr++ = ch;
-			break;
+			*bstr++ = '\'';
 		}
+		else if (mysql)
+		{
+			switch (ch)
+			{
+			case 0:
+				*bstr++ = '\\';
+				*bstr++ = '0';
+				break;
+			case 0x1a:
+				*bstr++ = '\\';
+				*bstr++ = 0x1a;
+				break;
+
+			case '\r':
+				*bstr++ = '\\';
+				*bstr++ = 'r';
+				break;
+
+			case '\n':
+				*bstr++ = '\\';
+				*bstr++ = 'n';
+				break;
+
+			case '\\':
+				*bstr++ = '\\';
+				*bstr++ = '\\';
+				break;
+
+			case '\"':
+				*bstr++ = '\\';
+				*bstr++ = '\"';
+				break;
+
+			default:
+				*bstr++ = ch;
+				break;
+			}
+		}
+		else
+			*bstr++ = ch;
 	}
 }
 
-result_t db_base::format(const char* sql, const v8::Arguments& args,
+result_t _format(const char* sql, const v8::Arguments& args, bool mysql,
 		std::string& retVal)
 {
 	std::string str;
@@ -164,26 +169,37 @@ result_t db_base::format(const char* sql, const v8::Arguments& args,
 		{
 			p1++;
 
-			str += '\'';
 			if (cnt < args.Length())
 			{
 				v8::Handle<v8::Value> v = args[cnt];
+				obj_ptr<Buffer_base> bin = Buffer_base::getInstance(v);
 				std::string s;
 
-				if (v->IsDate())
+				if (bin)
 				{
-					date_t d = v;
-					d.sqlString(s);
+					str.append("x\'", 2);
+					bin->hex(s);
 				}
 				else
 				{
-					v8::String::Utf8Value s1(v);
-					_escape(*s1, s1.length(), s);
+					str += '\'';
+					if (v->IsDate())
+					{
+						date_t d = v;
+						d.sqlString(s);
+					}
+					else
+					{
+						v8::String::Utf8Value s1(v);
+						_escape(*s1, s1.length(), mysql, s);
+					}
 				}
 
 				str.append(s);
+				str += '\'';
 			}
-			str += '\'';
+			else
+				str.append("\'\'", 2);
 
 			cnt++;
 		}
@@ -195,18 +211,21 @@ result_t db_base::format(const char* sql, const v8::Arguments& args,
 	return 0;
 }
 
-result_t db_base::escape(const char* str, std::string& retVal)
+result_t db_base::format(const char* sql, const v8::Arguments& args,
+		std::string& retVal)
 {
-	_escape(str, (int)qstrlen(str), retVal);
-	return 0;
+	return _format(sql, args, false, retVal);
 }
 
-result_t db_base::escape(Buffer_base* data, std::string& retVal)
+result_t db_base::formatMySQL(const char* sql, const v8::Arguments& args,
+		std::string& retVal)
 {
-	std::string str;
-	data->toString(str);
-	_escape(str.c_str(), (int)str.length(), retVal);
+	return _format(sql, args, true, retVal);
+}
 
+result_t db_base::escape(const char* str, bool mysql, std::string& retVal)
+{
+	_escape(str, (int) qstrlen(str), mysql, retVal);
 	return 0;
 }
 

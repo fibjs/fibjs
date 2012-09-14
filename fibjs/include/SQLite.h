@@ -44,7 +44,7 @@ public:
 	virtual result_t backup(const char* fileName);
 
 public:
-	result_t execute(const char* sql, obj_ptr<DBResult_base>& retVal);
+	result_t execute(const char* sql, int sLen, obj_ptr<DBResult_base>& retVal);
 	result_t open(const char* file);
 
 private:

@@ -245,33 +245,34 @@ result_t mysql::use(const char* dbName)
 	obj_ptr<DBResult_base> retVal;
 	std::string s("USE ", 4);
 	s.append(dbName);
-	return execute(s.c_str(), retVal);
+	return execute(s.c_str(), (int)s.length(), retVal);
 }
 
 result_t mysql::begin()
 {
 	obj_ptr<DBResult_base> retVal;
-	return execute("BEGIN", retVal);
+	return execute("BEGIN", 5, retVal);
 }
 
 result_t mysql::commit()
 {
 	obj_ptr<DBResult_base> retVal;
-	return execute("COMMIT", retVal);
+	return execute("COMMIT", 6, retVal);
 }
 
 result_t mysql::rollback()
 {
 	obj_ptr<DBResult_base> retVal;
-	return execute("ROLLBACK", retVal);
+	return execute("ROLLBACK", 8, retVal);
 }
 
-result_t mysql::execute(const char* sql, obj_ptr<DBResult_base>& retVal)
+result_t mysql::execute(const char* sql, int sLen,
+		obj_ptr<DBResult_base>& retVal)
 {
 	if (!m_conn)
 		return CALL_E_INVALID_CALL;
 
-	DBResult* res = (DBResult*) UMConnection_Query(m_conn, sql, qstrlen(sql));
+	DBResult* res = (DBResult*) UMConnection_Query(m_conn, sql, sLen);
 	if (!res)
 		return error();
 
@@ -285,11 +286,11 @@ result_t mysql::execute(const char* sql, const v8::Arguments& args,
 		obj_ptr<DBResult_base>& retVal)
 {
 	std::string str;
-	result_t hr = db_base::format(sql, args, str);
+	result_t hr = db_base::formatMySQL(sql, args, str);
 	if (hr < 0)
 		return hr;
 
-	return execute(str.c_str(), retVal);
+	return execute(str.c_str(), (int)str.length(), retVal);
 }
 
 result_t mysql::get_rxBufferSize(int32_t& retVal)

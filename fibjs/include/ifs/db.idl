@@ -44,15 +44,17 @@ class db : module
 	 */
 	static String format(String sql, ...);
 
+	/*! @brief 格式化一个 mysql 命令，并返回格式化结果
+	 *
+	 * @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT * FROM TEST WHERE [id]=?'
+	 * @param ... 可选参数列表
+	 * @return 返回格式化之后的 sql 命令
+	 */
+	static String formatMySQL(String sql, ...);
+
 	/*! @brief 将字符串编码为 SQL 安全编码字符串
 	 * @param str 要编码的字符串
 	 * @return 返回编码后的字符串
 	 */
-	static String escape(String str);
-
-	/*! @brief 将二进制数据编码为 SQL 安全编码字符串
-	 * @param str 要编码的字符串
-	 * @return 返回编码后的字符串
-	 */
-	static String escape(Buffer data);
+	static String escape(String str, Boolean mysql = false);
 };
