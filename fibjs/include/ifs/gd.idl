@@ -78,5 +78,5 @@ class gd : module
 	 * @param stm 给定图像数据所在的流对象
 	 * @return 返回解码成功的图像对象
 	 */
-	static Image loadFrom(SeekableStream stm) async;
+	static Image load(SeekableStream stm) async;
 };

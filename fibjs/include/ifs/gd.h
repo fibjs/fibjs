@@ -49,7 +49,7 @@ public:
 	// gd_base
 	static result_t create(int32_t width, int32_t height, int32_t color, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t load(Buffer_base* data, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t loadFrom(SeekableStream_base* stm, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t load(SeekableStream_base* stm, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
 
 	DECLARE_CLASSINFO(gd_base);
 
@@ -73,12 +73,11 @@ public:
 	static v8::Handle<v8::Value> s_get_BOTH(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_create(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_load(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_loadFrom(const v8::Arguments& args);
 
 public:
 	ASYNC_STATICVALUE4(gd_base, create, int32_t, int32_t, int32_t, obj_ptr<Image_base>);
 	ASYNC_STATICVALUE2(gd_base, load, Buffer_base*, obj_ptr<Image_base>);
-	ASYNC_STATICVALUE2(gd_base, loadFrom, SeekableStream_base*, obj_ptr<Image_base>);
+	ASYNC_STATICVALUE2(gd_base, load, SeekableStream_base*, obj_ptr<Image_base>);
 };
 
 }
@@ -94,8 +93,7 @@ namespace fibjs
 		static ClassData::ClassMethod s_method[] = 
 		{
 			{"create", s_create, true},
-			{"load", s_load, true},
-			{"loadFrom", s_loadFrom, true}
+			{"load", s_load, true}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -122,7 +120,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"gd", NULL, 
-			3, s_method, 0, NULL, 17, s_property, NULL, NULL,
+			2, s_method, 0, NULL, 17, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -274,18 +272,11 @@ namespace fibjs
 
 		hr = ac_load(v0, vr);
 
-		METHOD_RETURN();
-	}
-
-	inline v8::Handle<v8::Value> gd_base::s_loadFrom(const v8::Arguments& args)
-	{
-		obj_ptr<Image_base> vr;
-
-		METHOD_ENTER(1, 1);
+		METHOD_OVER(1, 1);
 
 		ARG(obj_ptr<SeekableStream_base>, 0);
 
-		hr = ac_loadFrom(v0, vr);
+		hr = ac_load(v0, vr);
 
 		METHOD_RETURN();
 	}

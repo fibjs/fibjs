@@ -55,7 +55,7 @@ result_t gd_base::load(Buffer_base* data, obj_ptr<Image_base>& retVal,
 	return 0;
 }
 
-result_t gd_base::loadFrom(SeekableStream_base* stm,
+result_t gd_base::load(SeekableStream_base* stm,
 		obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac)
 {
 	class asyncLoad: public asyncState
