@@ -268,8 +268,15 @@ typedef int result_t;
 
 inline result_t SafeGetValue(v8::Handle<v8::Value> v, double& n)
 {
-	if (v.IsEmpty() || !v->IsNumber())
+	if (v.IsEmpty())
 		return CALL_E_INVALIDARG;
+
+	if (!v->IsNumber())
+	{
+		v = v->ToNumber();
+		if (v.IsEmpty())
+			return CALL_E_INVALIDARG;
+	}
 
 	n = v->NumberValue();
 	if (isnan(n))
