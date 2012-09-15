@@ -36,6 +36,7 @@ result_t JsonRpcHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 	int32_t sz, i;
 	result_t hr;
 	bool bFormReq = false;
+	obj_ptr<List_base> params;
 
 	if (htreq != NULL)
 	{
@@ -97,7 +98,6 @@ result_t JsonRpcHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 	if (!jsval.IsEmpty() && jsval->IsArray())
 	{
 		v8::Handle<v8::Array> jsparams = v8::Handle<v8::Array>::Cast(jsval);
-		obj_ptr<List_base> params;
 
 		sz = jsparams->Length();
 		msg->get_params(params);
@@ -112,6 +112,9 @@ result_t JsonRpcHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 	hr = mq_base::js_invoke(m_hdlr, v, hdlr1, NULL);
 	if (hr >= 0 && hr != CALL_RETURN_NULL)
 		hr = mq_base::ac_invoke(m_hdlr, v);
+
+	if (params)
+		params->resize(0);
 
 	v8::Handle<v8::String> strId = v8::String::NewSymbol("id", 2);
 	jsval = o->Get(strId);
