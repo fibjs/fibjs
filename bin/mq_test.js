@@ -211,3 +211,12 @@ m.value = 'd';
 assert.throws(function() {
 	mq.invoke(r, m);
 });
+
+var req = new http.Request();
+req.params.resize(1);
+req.params[0] = [];
+
+mq.jsHandler(function t(request, d) {
+	d.toString();
+	return "ok";
+}).invoke(req);
