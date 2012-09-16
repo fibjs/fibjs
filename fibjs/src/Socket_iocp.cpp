@@ -340,7 +340,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 			{
 				m_pos += dwBytes;
 
-				if (m_bRead && m_pos < m_buf.length())
+				if (m_bRead && m_pos < (int)m_buf.length())
 				{
 					proc();
 					return;
