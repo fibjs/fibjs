@@ -220,3 +220,23 @@ mq.jsHandler(function t(request, d) {
 	d.toString();
 	return "ok";
 }).invoke(req);
+
+//------------ Routing value test------------
+
+var r = mq.routing({
+	"^/api/a$" :function(v){
+	},
+	"^/api/a(/.*)$" :function(v){
+	}
+});
+
+var m = new http.Request();
+m.value = '/api/a';
+mq.invoke(r, m);
+assert.equal('', m.value);
+
+m.value = '/api/a/test';
+mq.invoke(r, m);
+assert.equal('/test', m.value);
+
+
