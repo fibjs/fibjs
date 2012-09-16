@@ -28,6 +28,22 @@ m.response.body.rewind();
 assert.equal(m.response.body.read().toString(),
 		'{"id":1234,"result":"100,200"}');
 
+m.value = 'test';
+jr = rpc.json({
+	test : {
+		aaaa : function(m, p1, p2) {
+			m.value = '';
+			return p1 + ',' + p2;
+		}
+	}
+});
+
+jr.invoke(m);
+
+m.response.body.rewind();
+assert.equal(m.response.body.read().toString(),
+		'{"id":1234,"result":"100,200"}');
+
 jr = rpc.json(mq.routing({
 	'^(/.*)$' : http.fileHandler('httpd/www/'),
 	'^/xhr(/.*)$' : {
