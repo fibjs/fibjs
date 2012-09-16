@@ -114,6 +114,71 @@ result_t File::onread(v8::Handle<v8::Function> func)
 	return on("read", func);
 }
 
+result_t File::readAll(obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac)
+{
+	if (!m_file)
+		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	std::string strBuf;
+
+	int32_t bytes;
+	int64_t sz;
+	int64_t p = ftello64(m_file);
+
+	if (0 == fseeko64(m_file, 0, SEEK_END))
+	{
+		sz = ftello64(m_file) - p;
+		fseeko64(m_file, p, SEEK_SET);
+	}
+	else
+		return LastError();
+
+	bytes = (int32_t) sz;
+
+	if (bytes > 0)
+	{
+		strBuf.resize(bytes);
+		int sz = bytes;
+		char* p = &strBuf[0];
+
+		while (sz && !feof(m_file))
+		{
+			int n = (int) fread(p, 1, sz > 65536 ? 65536 : sz, m_file);
+			if (n == 0 && ferror(m_file))
+				return LastError();
+
+			sz -= n;
+			p += n;
+		}
+
+		strBuf.resize(bytes - sz);
+	}
+
+	if (strBuf.length() == 0)
+		return CALL_RETURN_NULL;
+
+	retVal = new Buffer(strBuf);
+
+	return 0;
+}
+
+result_t File::asyncReadAll()
+{
+	if (!m_file)
+		return CALL_E_INVALID_CALL;
+
+	acb_readAll();
+	return 0;
+}
+
+result_t File::onreadall(v8::Handle<v8::Function> func)
+{
+	return on("readall", func);
+}
+
 result_t File::Write(const char* p, int sz)
 {
 	if (!m_file)
@@ -129,7 +194,7 @@ result_t File::Write(const char* p, int sz)
 		p += n;
 	}
 
-	if(m_pipe)
+	if (m_pipe)
 		fflush(m_file);
 
 	return 0;

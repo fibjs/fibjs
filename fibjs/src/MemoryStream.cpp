@@ -69,6 +69,23 @@ result_t MemoryStream::onread(v8::Handle<v8::Function> func)
 	return on("read", func);
 }
 
+result_t MemoryStream::readAll(obj_ptr<Buffer_base>& retVal,
+		exlib::AsyncEvent* ac)
+{
+	return read(-1, retVal, ac);
+}
+
+result_t MemoryStream::asyncReadAll()
+{
+	acb_readAll();
+	return 0;
+}
+
+result_t MemoryStream::onreadall(v8::Handle<v8::Function> func)
+{
+	return on("readall", func);
+}
+
 result_t MemoryStream::write(Buffer_base* data, exlib::AsyncEvent* ac)
 {
 	std::string strBuf;
@@ -100,8 +117,8 @@ result_t MemoryStream::onwrite(v8::Handle<v8::Function> func)
 	return on("write", func);
 }
 
-result_t MemoryStream::copyTo(Stream_base* stm, int64_t bytes,
-		int64_t& retVal, exlib::AsyncEvent* ac)
+result_t MemoryStream::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal,
+		exlib::AsyncEvent* ac)
 {
 	return copyStream(this, stm, bytes, retVal, ac);
 }

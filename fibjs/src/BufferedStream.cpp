@@ -192,22 +192,6 @@ result_t BufferedStream::oncopyto(v8::Handle<v8::Function> func)
 	return on("copyto", func);
 }
 
-result_t BufferedStream::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
-{
-	return m_stm->stat(retVal, ac);
-}
-
-result_t BufferedStream::asyncStat()
-{
-	acb_stat();
-	return 0;
-}
-
-result_t BufferedStream::onstat(v8::Handle<v8::Function> func)
-{
-	return on("stat", func);
-}
-
 result_t BufferedStream::onerror(v8::Handle<v8::Function> func)
 {
 	return on("error", func);

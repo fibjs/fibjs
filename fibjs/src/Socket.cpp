@@ -150,33 +150,6 @@ result_t Socket::oncopyto(v8::Handle<v8::Function> func)
 	return on("copyto", func);
 }
 
-result_t Socket::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
-{
-	if (m_sock == INVALID_SOCKET)
-		return CALL_E_INVALID_CALL;
-
-	obj_ptr<Stat> st = new Stat();
-
-	st->init();
-	st->m_isSocket = true;
-
-	return 0;
-}
-
-result_t Socket::asyncStat()
-{
-	if (m_sock == INVALID_SOCKET)
-		return CALL_E_INVALID_CALL;
-
-	acb_stat();
-	return 0;
-}
-
-result_t Socket::onstat(v8::Handle<v8::Function> func)
-{
-	return on("stat", func);
-}
-
 result_t Socket::close(exlib::AsyncEvent* ac)
 {
 	if (m_sock == INVALID_SOCKET)

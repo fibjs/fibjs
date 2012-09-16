@@ -41,9 +41,6 @@ public:
 	virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, exlib::AsyncEvent* ac);
 	virtual result_t asyncCopyTo(Stream_base* stm, int64_t bytes);
 	virtual result_t oncopyto(v8::Handle<v8::Function> func);
-	virtual result_t stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
-	virtual result_t asyncStat();
-	virtual result_t onstat(v8::Handle<v8::Function> func);
 	virtual result_t onerror(v8::Handle<v8::Function> func);
 
 public:
