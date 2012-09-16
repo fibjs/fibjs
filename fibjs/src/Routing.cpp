@@ -39,6 +39,8 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			if (rc > 1)
 				msg->set_value(
 						value.substr(ovector[2], ovector[3] - ovector[2]).c_str());
+			else
+				msg->set_value("");
 
 			if (rc > 2)
 			{
