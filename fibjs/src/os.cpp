@@ -667,8 +667,18 @@ result_t os_base::readdir(const char* path, obj_ptr<List_base>& retVal, exlib::A
 
 #endif
 
+void clearModule();
+void clearModule();
+void flushLog();
+void clearTimer();
+
 result_t os_base::exit(int32_t code)
 {
+	clearTimer();
+	flushLog();
+
+	clearModule();
+
 	::exit(code);
 	return 0;
 }

@@ -9,6 +9,7 @@
 #endif
 
 #include "ifs/global.h"
+#include "ifs/os.h"
 #include <exlib/lockfree.h>
 #include "Fiber.h"
 #include "utf8.h"
@@ -94,8 +95,6 @@ private:
 };
 
 void initModule();
-void flushLog();
-void clearTimer();
 
 void _main(const char* fname)
 {
@@ -134,8 +133,8 @@ void _main(const char* fname)
 	if (try_catch.HasCaught())
 		ReportException(&try_catch, true);
 
-	clearTimer();
-	flushLog();
+	os_base::exit(0);
+
 	s_context.Dispose();
 }
 
@@ -235,7 +234,7 @@ void enableDump()
 
 int main(int argc, char* argv[])
 {
-	enableDump();
+//	enableDump();
 
 	char app[] = "fibjs";
 	char prof[] = "--prof";
