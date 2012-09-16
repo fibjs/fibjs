@@ -23,7 +23,8 @@ public:
 
 public:
 	// Handler_base
-	virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac);
+	virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
+			exlib::AsyncEvent* ac);
 
 public:
 	result_t setHandler(v8::Handle<v8::Value> hdlr);
@@ -59,6 +60,10 @@ public:
 
 		return 0;
 	}
+
+public:
+	static result_t js_invoke(Handler_base* hdlr, object_base* v,
+			obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac);
 
 private:
 	v8::Persistent<v8::Value> m_handler;

@@ -78,13 +78,4 @@ class mq : module
 	 * 不同于处理器的 invoke 方法，此方法将循环调用每个处理器的返回处理器，直到处理器返回 null 为止。
 	 */
 	static invoke(Handler hdlr, object v) async;
-
-	/*! @brief 使用给定的 javascript 处理器处理一个消息或对象
-	 * @param hdlr 指定使用的处理器
-	 * @param v 指定要处理的消息或对象
-	 * @return 返回非 javascript 处理器，或者返回空
-	 *
-	 * js_invoke 用于执行 javascript 处理器。此方法将循环调用每个处理器对象，直到处理器返回非 javascript 处理器为止。
-	 */
-	static Handler js_invoke(Handler hdlr, object v) async;
 };

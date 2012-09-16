@@ -11,6 +11,7 @@
 #include "ifs/HttpRequest.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
+#include "JSHandler.h"
 
 namespace fibjs
 {
@@ -109,7 +110,7 @@ result_t JsonRpcHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
 	obj_ptr<Handler_base> hdlr1;
 
-	hr = mq_base::js_invoke(m_hdlr, v, hdlr1, NULL);
+	hr = JSHandler::js_invoke(m_hdlr, v, hdlr1, NULL);
 	if (hr >= 0 && hr != CALL_RETURN_NULL)
 		hr = mq_base::ac_invoke(m_hdlr, v);
 
