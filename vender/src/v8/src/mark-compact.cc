@@ -343,7 +343,9 @@ bool MarkCompactCollector::StartCompaction(CompactionMode mode) {
     CollectEvacuationCandidates(heap()->old_pointer_space());
     CollectEvacuationCandidates(heap()->old_data_space());
 
-    if (FLAG_compact_code_space && mode == NON_INCREMENTAL_COMPACTION) {
+    if (FLAG_compact_code_space &&
+        (mode == NON_INCREMENTAL_COMPACTION ||
+         FLAG_incremental_code_compaction)) {
       CollectEvacuationCandidates(heap()->code_space());
     } else if (FLAG_trace_fragmentation) {
       TraceFragmentation(heap()->code_space());
@@ -1443,7 +1445,7 @@ class MarkCompactMarkingVisitor
     } else {
       // Don't visit code object.
 
-      // Visit shared function info to avoid double checking of it's
+      // Visit shared function info to avoid double checking of its
       // flushability.
       SharedFunctionInfo* shared_info = object->unchecked_shared();
       MarkBit shared_info_mark = Marking::MarkBitFrom(shared_info);
@@ -1546,7 +1548,8 @@ class MarkCompactMarkingVisitor::ObjectStatsTracker<
     Map* map_obj = Map::cast(obj);
     ASSERT(map->instance_type() == MAP_TYPE);
     DescriptorArray* array = map_obj->instance_descriptors();
-    if (array != heap->empty_descriptor_array()) {
+    if (map_obj->owns_descriptors() &&
+        array != heap->empty_descriptor_array()) {
       int fixed_array_size = array->Size();
       heap->RecordObjectStats(FIXED_ARRAY_TYPE,
                               DESCRIPTOR_ARRAY_SUB_TYPE,
@@ -1704,7 +1707,7 @@ class SharedFunctionInfoMarkingVisitor : public ObjectVisitor {
 
 void MarkCompactCollector::MarkInlinedFunctionsCode(Code* code) {
   // For optimized functions we should retain both non-optimized version
-  // of it's code and non-optimized version of all inlined functions.
+  // of its code and non-optimized version of all inlined functions.
   // This is required to support bailing out from inlined code.
   DeoptimizationInputData* data =
       DeoptimizationInputData::cast(code->deoptimization_data());
@@ -1940,10 +1943,10 @@ void Marker<T>::MarkTransitionArray(TransitionArray* transitions) {
   if (!base_marker()->MarkObjectWithoutPush(transitions)) return;
   Object** transitions_start = transitions->data_start();
 
-  DescriptorArray* descriptors = transitions->descriptors();
-  base_marker()->MarkObjectAndPush(descriptors);
-  mark_compact_collector()->RecordSlot(
-      transitions_start, transitions->GetDescriptorsSlot(), descriptors);
+  // We don't have to record the descriptors_pointer slot since the cell space
+  // is not compacted.
+  JSGlobalPropertyCell* descriptors_cell = transitions->descriptors_pointer();
+  base_marker()->MarkObjectAndPush(descriptors_cell);
 
   if (transitions->HasPrototypeTransitions()) {
     // Mark prototype transitions array but don't push it into marking stack.
@@ -2300,7 +2303,7 @@ void MarkCompactCollector::MarkLiveObjects() {
     // non-incremental marker can deal with them as if overflow
     // occured during normal marking.
     // But incremental marker uses a separate marking deque
-    // so we have to explicitly copy it's overflow state.
+    // so we have to explicitly copy its overflow state.
     incremental_marking->Finalize();
     incremental_marking_overflowed =
         incremental_marking->marking_deque()->overflowed();
