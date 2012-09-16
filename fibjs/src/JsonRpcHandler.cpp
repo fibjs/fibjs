@@ -149,6 +149,10 @@ result_t JsonRpcHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		o->Set(v8::String::NewSymbol("result", 6), result);
 
 		hr = encoding_base::jsonEncode(o, str);
+
+		result.clear();
+		msg->set_result(result);
+
 		if (hr < 0)
 			return hr;
 	}
