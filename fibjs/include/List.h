@@ -54,7 +54,7 @@ public:
 		}
 
 	private:
-		QuickArray<Variant> m_array;
+		QuickArray<VariantEx> m_array;
 	};
 
 public:

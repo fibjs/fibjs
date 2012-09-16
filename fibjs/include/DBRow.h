@@ -40,7 +40,7 @@ public:
 	}
 
 private:
-	std::vector<Variant> m_cols;
+	std::vector<VariantEx> m_cols;
 	obj_ptr<DBField> m_fields;
 };
 

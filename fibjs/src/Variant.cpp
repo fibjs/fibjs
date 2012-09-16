@@ -21,12 +21,12 @@ Variant& Variant::operator=(v8::Handle<v8::Value> v)
 	{
 		if (v->IsDate())
 		{
-			m_type = VT_Date;
+			set_type(VT_Date);
 			*(date_t*) m_Val.dateVal = v;
 		}
 		else if (v->IsBoolean())
 		{
-			m_type = VT_Boolean;
+			set_type(VT_Boolean);
 			m_Val.boolVal = v->BooleanValue();
 		}
 		else if (v->IsNumber())
@@ -39,18 +39,18 @@ Variant& Variant::operator=(v8::Handle<v8::Value> v)
 			{
 				if (num >= -2147483648ll && num <= 2147483647ll)
 				{
-					m_type = VT_Integer;
+					set_type(VT_Integer);
 					m_Val.intVal = (int32_t) num;
 				}
 				else
 				{
-					m_type = VT_Long;
+					set_type(VT_Long);
 					m_Val.longVal = num;
 				}
 			}
 			else
 			{
-				m_type = VT_Number;
+				set_type(VT_Number);
 				m_Val.dblVal = n;
 			}
 		}
@@ -65,13 +65,24 @@ Variant& Variant::operator=(v8::Handle<v8::Value> v)
 				else
 				{
 					clear();
-					m_type = VT_JSObject;
-					new (((v8::Persistent<v8::Object>*) m_Val.jsobjVal)) v8::Persistent<
-							v8::Object>();
+					set_type(VT_JSObject);
+					if (isPersistent())
+					{
+						new (((v8::Persistent<v8::Object>*) m_Val.jsobjVal)) v8::Persistent<
+								v8::Object>();
 
-					*(v8::Persistent<v8::Object>*) m_Val.jsobjVal =
-							v8::Persistent<v8::Object>::New(
-									v8::Handle<v8::Object>::Cast(v));
+						*(v8::Persistent<v8::Object>*) m_Val.jsobjVal =
+								v8::Persistent<v8::Object>::New(
+										v8::Handle<v8::Object>::Cast(v));
+					}
+					else
+					{
+						new (((v8::Handle<v8::Object>*) m_Val.jsobjVal)) v8::Handle<
+								v8::Object>();
+
+						*(v8::Handle<v8::Object>*) m_Val.jsobjVal = v8::Handle<
+								v8::Object>::Cast(v);
+					}
 				}
 			}
 			else
@@ -88,9 +99,11 @@ Variant& Variant::operator=(v8::Handle<v8::Value> v)
 
 Variant::operator v8::Handle<v8::Value>() const
 {
-	switch (m_type)
+	switch (type())
 	{
 	case VT_Null:
+	case VT_Type:
+	case VT_Persistent:
 		return v8::Null();
 	case VT_Boolean:
 		return m_Val.boolVal ? v8::True() : v8::False();
@@ -112,7 +125,16 @@ Variant::operator v8::Handle<v8::Value>() const
 		return obj->wrap();
 	}
 	case VT_JSObject:
-		return *(v8::Persistent<v8::Object>*) m_Val.jsobjVal;
+	{
+		v8::Handle<v8::Value> v;
+
+		if (isPersistent())
+			v = *(v8::Persistent<v8::Object>*) m_Val.jsobjVal;
+		else
+			v = *(v8::Handle<v8::Object>*) m_Val.jsobjVal;
+
+		return v;
+	}
 	case VT_String:
 	{
 		std::string& str = *(std::string*) m_Val.strVal;
@@ -204,7 +226,7 @@ void Variant::parseNumber(const char* str, int len)
 		if (exp != 0)
 			v *= pow((double) 10, (int) exp);
 
-		m_type = VT_Number;
+		set_type(VT_Number);
 		m_Val.dblVal = v;
 
 		return;
@@ -215,12 +237,12 @@ void Variant::parseNumber(const char* str, int len)
 
 	if (digit >= -2147483648ll && digit <= 2147483647ll)
 	{
-		m_type = VT_Integer;
+		set_type(VT_Integer);
 		m_Val.intVal = (int32_t) digit;
 	}
 	else
 	{
-		m_type = VT_Long;
+		set_type(VT_Long);
 		m_Val.longVal = digit;
 	}
 }
@@ -229,9 +251,11 @@ void Variant::parseNumber(const char* str, int len)
 
 bool Variant::toString(std::string& retVal)
 {
-	switch (m_type)
+	switch (type())
 	{
 	case VT_Null:
+	case VT_Type:
+	case VT_Persistent:
 		retVal = "null";
 		return false;
 	case VT_Boolean:

@@ -63,7 +63,7 @@ inline result_t _map(Map* o, v8::Handle<v8::Object> m,
 
 result_t Map::get(const char* name, Variant& retVal)
 {
-	std::map<std::string, Variant>::iterator it = m_datas.find(name);
+	std::map<std::string, VariantEx>::iterator it = m_datas.find(name);
 
 	if (it == m_datas.end())
 		return CALL_RETURN_NULL;

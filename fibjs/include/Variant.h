@@ -36,7 +36,9 @@ public:
 		VT_Date = 5,
 		VT_String = 6,
 		VT_Object = 7,
-		VT_JSObject = 8
+		VT_JSObject = 8,
+		VT_Type = 255,
+		VT_Persistent = 256
 	};
 
 public:
@@ -76,34 +78,49 @@ public:
 
 	void clear()
 	{
-		if (m_type == VT_String)
+		if (type() == VT_String)
 			((std::string*) m_Val.strVal)->~basic_string();
-		else if (m_type == VT_Object && m_Val.objVal)
+		else if (type() == VT_Object && m_Val.objVal)
 			m_Val.objVal->Unref();
-		else if (m_type == VT_JSObject)
+		else if (type() == VT_JSObject)
 		{
-			v8::Persistent<v8::Object>& jsobj =
-					*(v8::Persistent<v8::Object>*) m_Val.jsobjVal;
-			jsobj.Dispose();
-			jsobj.~Persistent();
+			if (isPersistent())
+			{
+				v8::Persistent<v8::Object>& jsobj =
+						*(v8::Persistent<v8::Object>*) m_Val.jsobjVal;
+				jsobj.Dispose();
+				jsobj.~Persistent();
+			}
+			else
+			{
+				v8::Handle<v8::Object>& jsobj =
+						*(v8::Handle<v8::Object>*) m_Val.jsobjVal;
+				jsobj.~Handle();
+			}
 		}
 
-		m_type = VT_Null;
+		set_type(VT_Null);
 	}
 
 	Variant& operator=(const Variant& v)
 	{
-		if (v.m_type == VT_String)
+		if (v.type() == VT_String)
 			return operator=(*(std::string*) v.m_Val.strVal);
 
-		if (v.m_type == VT_Object)
+		if (v.type() == VT_Object)
 			return operator=(v.m_Val.objVal);
 
-		if (v.m_type == VT_JSObject)
-			return operator=(*(v8::Persistent<v8::Object>*) v.m_Val.jsobjVal);
+		if (v.type() == VT_JSObject)
+		{
+			if (v.isPersistent())
+				return operator=(
+						*(v8::Persistent<v8::Object>*) v.m_Val.jsobjVal);
+			else
+				return operator=(*(v8::Handle<v8::Object>*) v.m_Val.jsobjVal);
+		}
 
 		clear();
-		m_type = v.m_type;
+		set_type(v.type());
 		m_Val.longVal = v.m_Val.longVal;
 
 		return *this;
@@ -113,7 +130,7 @@ public:
 	{
 		clear();
 
-		m_type = VT_Integer;
+		set_type(VT_Integer);
 		m_Val.intVal = v;
 
 		return *this;
@@ -125,12 +142,12 @@ public:
 
 		if (v >= -2147483648ll && v <= 2147483647ll)
 		{
-			m_type = VT_Integer;
+			set_type(VT_Integer);
 			m_Val.intVal = (int32_t) v;
 		}
 		else
 		{
-			m_type = VT_Long;
+			set_type(VT_Long);
 			m_Val.longVal = v;
 		}
 
@@ -141,7 +158,7 @@ public:
 	{
 		clear();
 
-		m_type = VT_Number;
+		set_type(VT_Number);
 		m_Val.dblVal = v;
 
 		return *this;
@@ -151,7 +168,7 @@ public:
 	{
 		clear();
 
-		m_type = VT_Date;
+		set_type(VT_Date);
 		*(date_t*) m_Val.dateVal = v;
 
 		return *this;
@@ -159,10 +176,10 @@ public:
 
 	Variant& operator=(const std::string& v)
 	{
-		if (m_type != VT_String)
+		if (type() != VT_String)
 		{
 			clear();
-			m_type = VT_String;
+			set_type(VT_String);
 			new (((std::string*) m_Val.strVal)) std::string(v);
 		}
 		else
@@ -187,12 +204,27 @@ public:
 
 	Type type() const
 	{
-		return m_type;
+		return (Type) (m_type & VT_Type);
+	}
+
+	void set_type(Type t)
+	{
+		m_type = (Type) (t | (m_type & VT_Persistent));
+	}
+
+	void toPersistent()
+	{
+		m_type = (Type) (m_type | VT_Persistent);
+	}
+
+	bool isPersistent() const
+	{
+		return (m_type & VT_Persistent) == VT_Persistent;
 	}
 
 	size_t size() const
 	{
-		if (m_type != VT_String)
+		if (type() != VT_String)
 			return sizeof(Variant);
 
 		return sizeof(Variant) + ((std::string*) m_Val.strVal)->length();
@@ -200,7 +232,7 @@ public:
 
 	std::string string() const
 	{
-		if (m_type != VT_String)
+		if (type() != VT_String)
 			return "";
 		return *(std::string*) m_Val.strVal;
 	}
@@ -210,7 +242,7 @@ public:
 	void parseNumber(const char* str, int len = -1);
 	void parseDate(const char* str, int len = -1)
 	{
-		m_type = VT_Date;
+		set_type(VT_Date);
 		((date_t*) m_Val.dateVal)->parse(str, len);
 	}
 
@@ -221,7 +253,7 @@ private:
 	{
 		clear();
 
-		m_type = VT_Object;
+		set_type(VT_Object);
 		m_Val.objVal = v;
 		if (m_Val.objVal)
 			m_Val.objVal->Ref();
@@ -242,6 +274,51 @@ private:
 		char strVal[sizeof(std::string)];
 		char jsobjVal[sizeof(v8::Persistent<v8::Object>)];
 	} m_Val;
+};
+
+class VariantEx: public Variant
+{
+
+public:
+	VariantEx()
+	{
+		toPersistent();
+	}
+
+	VariantEx(const Variant& v)
+	{
+		toPersistent();
+		operator=(v);
+	}
+
+	VariantEx(v8::Handle<v8::Value> v)
+	{
+		toPersistent();
+		operator=(v);
+	}
+
+	VariantEx(const std::string& v)
+	{
+		toPersistent();
+		operator=(v);
+	}
+
+	VariantEx(const char* v)
+	{
+		toPersistent();
+		operator=(v);
+	}
+
+	template<typename T>
+	Variant& operator=(T v)
+	{
+		return Variant::operator=(v);
+	}
+
+	operator v8::Handle<v8::Value>() const
+	{
+		return Variant::operator v8::Handle<v8::Value>();
+	}
 };
 
 } /* namespace fibjs */

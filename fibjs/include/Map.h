@@ -34,7 +34,7 @@ public:
 	virtual result_t _named_setter(const char* property, Variant newVal);
 
 private:
-	std::map<std::string, Variant> m_datas;
+	std::map<std::string, VariantEx> m_datas;
 };
 
 } /* namespace fibjs */

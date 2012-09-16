@@ -40,7 +40,7 @@ public:
 
 private:
 	QuickArray<std::string> m_names;
-	QuickArray<Variant > m_values;
+	QuickArray<VariantEx> m_values;
 	int32_t m_count;
 };
 

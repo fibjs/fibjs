@@ -114,16 +114,15 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			if (len > 0)
 			{
 				std::vector<v8::Handle<v8::Value> > argv;
-				std::vector<Variant> args;
 
 				argv.resize(len + 1);
-				args.resize(len);
 				argv[0] = a;
 
 				for (i = 0; i < len; i++)
 				{
-					params->_indexed_getter(i, args[i]);
-					argv[i + 1] = args[i];
+					Variant v;
+					params->_indexed_getter(i, v);
+					argv[i + 1] = v;
 				}
 
 				JSFiber::call(v8::Handle<v8::Function>::Cast(hdlr), argv.data(),
