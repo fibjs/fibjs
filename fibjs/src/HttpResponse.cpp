@@ -228,7 +228,8 @@ result_t HttpResponse::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 			asyncReadFrom* pThis = (asyncReadFrom*) pState;
 
 			pThis->set(command);
-			return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine, pThis);
+			return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine,
+					pThis);
 		}
 
 		static int command(asyncState* pState, int n)
@@ -240,7 +241,8 @@ result_t HttpResponse::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 					|| !qisdigit(pThis->m_strLine[9])
 					|| !qisdigit(pThis->m_strLine[10])
 					|| !qisdigit(pThis->m_strLine[11])
-					|| qisdigit(pThis->m_strLine[12]))
+					|| (pThis->m_strLine.length() > 12
+							&& qisdigit(pThis->m_strLine[12])))
 				return CALL_E_INVALID_DATA;
 
 			pThis->m_pThis->set_status(atoi(pThis->m_strLine.c_str() + 8));
