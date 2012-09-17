@@ -13,6 +13,7 @@
 #include <exlib/lockfree.h>
 #include "Fiber.h"
 #include "utf8.h"
+#include <exlib/thread.h>
 
 #define RESET "\033[0m"
 #define BLACK "\033[30m" /* Black */
@@ -234,14 +235,10 @@ void enableDump()
 
 int main(int argc, char* argv[])
 {
-//	enableDump();
+	enableDump();
 
-	char app[] = "fibjs";
-	char prof[] = "--prof";
-	char* argprof[] = {app, prof};
-	int v = 2;
-
-//	v8::V8::SetFlagsFromCommandLine(&v, argprof, true);
+	exlib::OSThread::Sleep(1);
+	v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 
 	if (argc == 2)
 		fibjs::_main(argv[1]);
