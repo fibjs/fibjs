@@ -114,9 +114,6 @@ result_t JsonRpcHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 	if (hr >= 0 && hr != CALL_RETURN_NULL)
 		hr = mq_base::ac_invoke(m_hdlr, v);
 
-	if (params)
-		params->resize(0);
-
 	v8::Handle<v8::String> strId = v8::String::NewSymbol("id", 2);
 	jsval = o->Get(strId);
 
@@ -150,9 +147,6 @@ result_t JsonRpcHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		o->Set(v8::String::NewSymbol("result", 6), result);
 
 		hr = encoding_base::jsonEncode(o, str);
-
-		result.clear();
-		msg->set_result(result);
 
 		if (hr < 0)
 			return hr;

@@ -244,6 +244,18 @@ result_t JSHandler::js_invoke(Handler_base* hdlr, object_base* v,
 			hdlr1 = hdlr2;
 		}
 
+		obj_ptr<Message_base> msg = Message_base::getInstance(v);
+		if (msg)
+		{
+			Variant result;
+			obj_ptr<List_base> params;
+
+			msg->get_params(params);
+			params->resize(0);
+
+			msg->set_result(result);
+		}
+
 		return 0;
 	}
 
