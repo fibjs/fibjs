@@ -94,7 +94,7 @@ double ceiling(double x) {
 }
 
 
-static Mutex* limit_mutex = NULL;
+Mutex* limit_mutex = NULL;
 
 
 void OS::PostSetUp() {
@@ -192,12 +192,12 @@ void OS::Free(void* address, const size_t size) {
   ASSERT(result == 0);
 }
 
-
+#if 0
 void OS::Sleep(int milliseconds) {
   useconds_t ms = static_cast<useconds_t>(milliseconds);
   usleep(1000 * ms);
 }
-
+#endif
 
 void OS::Abort() {
   // Redirect to std abort to signal abnormal program termination.
@@ -651,7 +651,7 @@ bool SolarisSemaphore::Wait(int timeout) {
 Semaphore* OS::CreateSemaphore(int count) {
   return new SolarisSemaphore(count);
 }
-#endif
+
 
 static pthread_t GetThreadID() {
   return pthread_self();
@@ -903,7 +903,7 @@ void Sampler::Stop() {
   SignalSender::RemoveActiveSampler(this);
   SetActive(false);
 }
-
+#endif
 } }  // namespace v8::internal
 
 #endif

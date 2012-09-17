@@ -141,7 +141,7 @@ double ceiling(double x) {
 }
 
 
-static Mutex* limit_mutex = NULL;
+Mutex* limit_mutex = NULL;
 
 #if defined(V8_TARGET_ARCH_IA32)
 static OS::MemCopyFunction memcopy_function = NULL;
@@ -957,11 +957,11 @@ void OS::Guard(void* address, const size_t size) {
   VirtualProtect(address, size, PAGE_READONLY | PAGE_GUARD, &oldprotect);
 }
 
-
+#if 0
 void OS::Sleep(int milliseconds) {
   ::Sleep(milliseconds);
 }
-
+#endif
 
 void OS::Abort() {
   if (IsDebuggerPresent() || FLAG_break_on_abort) {
@@ -1932,7 +1932,7 @@ Socket* OS::CreateSocket() {
   return new Win32Socket();
 }
 
-
+#if 0
 // ----------------------------------------------------------------------------
 // Win32 profiler support.
 
@@ -2131,7 +2131,7 @@ void Sampler::Stop() {
   SamplerThread::RemoveActiveSampler(this);
   SetActive(false);
 }
-
+#endif
 
 } }  // namespace v8::internal
 

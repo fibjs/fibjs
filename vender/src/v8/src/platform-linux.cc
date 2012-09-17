@@ -87,7 +87,7 @@ double ceiling(double x) {
 }
 
 
-static Mutex* limit_mutex = NULL;
+Mutex* limit_mutex = NULL;
 
 
 void OS::PostSetUp() {
@@ -367,12 +367,12 @@ void OS::Free(void* address, const size_t size) {
   ASSERT(result == 0);
 }
 
-
+#if 0
 void OS::Sleep(int milliseconds) {
   unsigned int ms = static_cast<unsigned int>(milliseconds);
   usleep(1000 * ms);
 }
-
+#endif
 
 void OS::Abort() {
   // Redirect to std abort to signal abnormal program termination.
@@ -913,7 +913,6 @@ bool LinuxSemaphore::Wait(int timeout) {
 Semaphore* OS::CreateSemaphore(int count) {
   return new LinuxSemaphore(count);
 }
-#endif
 
 
 #if defined(__ANDROID__) && !defined(__BIONIC_HAVE_UCONTEXT_T)
@@ -1296,7 +1295,7 @@ void Sampler::Stop() {
   SignalSender::RemoveActiveSampler(this);
   SetActive(false);
 }
-
+#endif
 
 } }  // namespace v8::internal
 

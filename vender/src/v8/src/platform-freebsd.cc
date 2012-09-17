@@ -81,7 +81,7 @@ double ceiling(double x) {
 }
 
 
-static Mutex* limit_mutex = NULL;
+Mutex* limit_mutex = NULL;
 
 
 void OS::PostSetUp() {
@@ -178,12 +178,12 @@ void OS::Free(void* buf, const size_t length) {
   ASSERT(result == 0);
 }
 
-
+#if 0
 void OS::Sleep(int milliseconds) {
   unsigned int ms = static_cast<unsigned int>(milliseconds);
   usleep(1000 * ms);
 }
-
+#endif
 
 void OS::Abort() {
   // Redirect to std abort to signal abnormal program termination.
@@ -654,7 +654,7 @@ static pthread_t GetThreadID() {
   return thread_id;
 }
 
-
+#if 0
 class Sampler::PlatformData : public Malloced {
  public:
   PlatformData() : vm_tid_(GetThreadID()) {}
@@ -900,7 +900,7 @@ void Sampler::Stop() {
   SignalSender::RemoveActiveSampler(this);
   SetActive(false);
 }
-
+#endif
 
 } }  // namespace v8::internal
 

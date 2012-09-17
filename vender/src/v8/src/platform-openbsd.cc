@@ -74,7 +74,7 @@ double ceiling(double x) {
 }
 
 
-static Mutex* limit_mutex = NULL;
+Mutex* limit_mutex = NULL;
 
 
 static void* GetRandomMmapAddr() {
@@ -201,12 +201,12 @@ void OS::Free(void* address, const size_t size) {
   ASSERT(result == 0);
 }
 
-
+#if 0
 void OS::Sleep(int milliseconds) {
   unsigned int ms = static_cast<unsigned int>(milliseconds);
   usleep(1000 * ms);
 }
-
+#endif
 
 void OS::Abort() {
   // Redirect to std abort to signal abnormal program termination.
@@ -718,7 +718,7 @@ Semaphore* OS::CreateSemaphore(int count) {
 static pthread_t GetThreadID() {
   return pthread_self();
 }
-
+#if 0
 static void ProfilerSignalHandler(int signal, siginfo_t* info, void* context) {
   USE(info);
   if (signal != SIGPROF) return;
@@ -980,7 +980,7 @@ void Sampler::Stop() {
   SignalSender::RemoveActiveSampler(this);
   SetActive(false);
 }
-
+#endif
 
 } }  // namespace v8::internal
 

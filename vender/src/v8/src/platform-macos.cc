@@ -95,7 +95,7 @@ double ceiling(double x) {
 }
 
 
-static Mutex* limit_mutex = NULL;
+Mutex* limit_mutex = NULL;
 
 
 void OS::PostSetUp() {
@@ -169,11 +169,11 @@ void OS::Free(void* address, const size_t size) {
   ASSERT(result == 0);
 }
 
-
+#if 0
 void OS::Sleep(int milliseconds) {
   usleep(1000 * milliseconds);
 }
-
+#endif
 
 void OS::Abort() {
   // Redirect to std abort to signal abnormal program termination
@@ -728,7 +728,6 @@ bool MacOSSemaphore::Wait(int timeout) {
 Semaphore* OS::CreateSemaphore(int count) {
   return new MacOSSemaphore(count);
 }
-#endif
 
 
 class Sampler::PlatformData : public Malloced {
@@ -928,6 +927,7 @@ void Sampler::Stop() {
   SetActive(false);
 }
 
+#endif
 
 } }  // namespace v8::internal
 

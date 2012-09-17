@@ -92,6 +92,7 @@ public:
 
 	void join();
 
+	static void sleep(int ms);
 	static void yield();
 	static Fiber* Current();
 
