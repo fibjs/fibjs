@@ -8,6 +8,7 @@
 #include "HttpFileHandler.h"
 #include "HttpRequest.h"
 #include "ifs/io.h"
+#include "ifs/os.h"
 #include "ifs/path.h"
 
 namespace fibjs
@@ -124,6 +125,40 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			path_base::normalize((pThis->m_pThis->m_root + value).c_str(),
 					pThis->m_path);
 
+			Variant v;
+
+			if (pThis->m_req->firstHeader("If-Modified-Since",
+					v) != CALL_RETURN_NULL)
+			{
+				std::string str = v.string();
+				pThis->m_time.parse(str.c_str(), (int) str.length());
+
+				pThis->set(check);
+				return os_base::stat(pThis->m_path.c_str(), pThis->m_stat,
+						pThis);
+			}
+
+			pThis->set(open);
+			return io_base::open(pThis->m_path.c_str(), "r", pThis->m_file,
+					pThis);
+		}
+
+		static int check(asyncState* pState, int n)
+		{
+			asyncInvoke* pThis = (asyncInvoke*) pState;
+
+			date_t d;
+			int diff;
+
+			pThis->m_stat->get_mtime(d);
+			diff = d.diff(pThis->m_time);
+
+			if (abs(diff) < 1000)
+			{
+				pThis->m_rep->set_status(304);
+				return pThis->done(CALL_RETURN_NULL);
+			}
+
 			pThis->set(open);
 			return io_base::open(pThis->m_path.c_str(), "r", pThis->m_file,
 					pThis);
@@ -156,24 +191,10 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		static int stat(asyncState* pState, int n)
 		{
 			asyncInvoke* pThis = (asyncInvoke*) pState;
-			date_t d, d1;
+			date_t d;
 			std::string str;
-			Variant v;
 
 			pThis->m_stat->get_mtime(d);
-
-			if (pThis->m_req->firstHeader("If-Modified-Since",
-					v) != CALL_RETURN_NULL)
-			{
-				str = v.string();
-				d1.parse(str.c_str(), (int) str.length());
-
-				if (abs(d.diff(d1)) < 1000)
-				{
-					pThis->m_rep->set_status(304);
-					return pThis->done(CALL_RETURN_NULL);
-				}
-			}
 
 			d.toString(str);
 
@@ -196,6 +217,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		obj_ptr<File_base> m_file;
 		obj_ptr<Stat_base> m_stat;
 		std::string m_path;
+		date_t m_time;
 	};
 
 	if (!ac)

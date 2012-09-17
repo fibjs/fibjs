@@ -93,6 +93,13 @@ public:
 	void parse(const char* str, int len = -1);
 	void toString(std::string& retVal);
 	void sqlString(std::string& retVal);
+	std::string str()
+	{
+		std::string s;
+
+		toString(s);
+		return s;
+	}
 
 	static int LocalOffset()
 	{
