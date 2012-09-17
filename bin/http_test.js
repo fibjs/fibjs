@@ -6,6 +6,7 @@ console.log('http testing....');
 
 var assert = require('assert');
 var io = require('io');
+var os = require('os');
 var http = require('http');
 var encoding = require('encoding');
 
@@ -93,7 +94,7 @@ assert.equal(d['f'], '214.123');
 t = new Date('2012-12-12 12:12:12');
 d.set('f', t);
 
-console.log(d['f'], t);
+assert.equal(new Date(d['f']), t);
 
 var bad_reqs = [ " GET / HTTP/1.0\r\nkeepalive: close\r\n\r\n",
 		"GET ? HTTP/1.0\r\nkeepalive: close\r\n\r\n",
@@ -332,3 +333,38 @@ assert
 		.equal(
 				ms.read(),
 				'GET /docs?page=100&style=wap HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
+
+var hfHandler = new http.fileHandler('./');
+
+function hfh_test(url, headers) {
+	var req = new http.Request();
+	req.value = url;
+	for ( var h in headers)
+		req.addHeader(h, headers[h]);
+	hfHandler.invoke(req);
+	return req.response;
+}
+
+var url = 'test.html';
+
+var rep = hfh_test(url);
+assert.equal(404, rep.status);
+
+io.writeFile('test.html', 'test html file');
+
+var rep = hfh_test(url);
+assert.equal(200, rep.status);
+assert.equal(14, rep.length);
+
+var rep = hfh_test(url, {
+	'If-Modified-Since' : rep.firstHeader('Last-Modified')
+});
+assert.equal(304, rep.status);
+
+var rep = hfh_test(url, {
+	'If-Modified-Since' : new Date('1998-04-14 12:12:12')
+});
+assert.equal(200, rep.status);
+assert.equal(14, rep.length);
+
+os.unlink('test.html');
