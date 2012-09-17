@@ -120,19 +120,8 @@ result_t coroutine_base::current(obj_ptr<Fiber_base>& retVal)
 
 result_t coroutine_base::sleep(int32_t ms)
 {
-	if (ms > 0)
-	{
-		void* args[] =
-		{ &ms };
-		AsyncCall ac(args);
-		s_acSleep.put(&ac);
-		ac.wait();
-	}
-	else
-	{
-		v8::Unlocker unlocker(isolate);
-		exlib::Fiber::yield();
-	}
+	v8::Unlocker unlocker(isolate);
+	exlib::Fiber::sleep(ms);
 
 	return 0;
 }
