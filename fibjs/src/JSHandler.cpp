@@ -208,6 +208,19 @@ result_t JSHandler::js_invoke(Handler_base* hdlr, object_base* v,
 			JSFiber::scope s;
 
 			m_hr = js_invoke(m_pThis, m_v, m_retVal, NULL);
+
+			obj_ptr<Message_base> msg = Message_base::getInstance(m_v);
+			if (msg)
+			{
+				Variant result;
+				obj_ptr<List_base> params;
+
+				msg->get_params(params);
+				params->resize(0);
+
+				msg->set_result(result);
+			}
+
 			s_acPool.put(this);
 		}
 
@@ -242,18 +255,6 @@ result_t JSHandler::js_invoke(Handler_base* hdlr, object_base* v,
 				return hr;
 
 			hdlr1 = hdlr2;
-		}
-
-		obj_ptr<Message_base> msg = Message_base::getInstance(v);
-		if (msg)
-		{
-			Variant result;
-			obj_ptr<List_base> params;
-
-			msg->get_params(params);
-			params->resize(0);
-
-			msg->set_result(result);
 		}
 
 		return 0;
