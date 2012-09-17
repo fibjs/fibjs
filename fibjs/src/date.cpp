@@ -487,7 +487,7 @@ void date_t::toString(std::string& retVal)
 			0;
 
 	int Days, Milliseconds, NumberOf400s, NumberOf100s, NumberOf4s;
-	int64_t d1 = (int64_t) (d + 62135625600000);
+	int64_t d1 = (int64_t) (d + 62135625600000ll);
 
 	Days = (int) (d1 / 86400000);
 	Milliseconds = d1 % 86400000;
@@ -564,7 +564,7 @@ void date_t::sqlString(std::string& retVal)
 	int wYear = 0, wMonth = 1, wHour = 0, wMinute = 0, wSecond = 0;
 
 	int Days, Milliseconds, NumberOf400s, NumberOf100s, NumberOf4s;
-	int64_t d1 = (int64_t) (d + 62135625600000);
+	int64_t d1 = (int64_t) (d + 62135625600000ll);
 
 	Days = (int) (d1 / 86400000);
 	Milliseconds = d1 % 86400000;
