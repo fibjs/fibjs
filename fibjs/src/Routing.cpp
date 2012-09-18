@@ -13,11 +13,11 @@
 namespace fibjs
 {
 
-#define RE_SIZE	32
+#define RE_SIZE	64
 result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		exlib::AsyncEvent* ac)
 {
-	int i;
+	int i, j;
 	int rc = 0;
 	obj_ptr<Message_base> msg = Message_base::getInstance(v);
 	int ovector[RE_SIZE];
@@ -36,22 +36,53 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		if ((rc = pcre_exec(r->m_re, r->m_extra, value.c_str(),
 				(int) value.length(), 0, 0, ovector, RE_SIZE)) > 0)
 		{
-			if (rc > 1)
-				msg->set_value(
-						value.substr(ovector[2], ovector[3] - ovector[2]).c_str());
-			else
+			if (rc == 1)
 				msg->set_value("");
-
-			if (rc > 2)
+			else
 			{
-				obj_ptr<List> list = new List();
+				int levelCount[RE_SIZE] =
+				{ 0 };
+				int level[RE_SIZE] =
+				{ 0 };
+				int p = 1;
 
-				for (i = 2; i < rc; i++)
-					list->append(
-							value.substr(ovector[i * 2],
-									ovector[i * 2 + 1] - ovector[i * 2]));
+				levelCount[0] = 1;
 
-				msg->set_params(list);
+				for (i = 1; i < rc; i++)
+				{
+					for (j = i - 1; j >= 0; j--)
+						if (ovector[i * 2] < ovector[j * 2 + 1])
+						{
+							level[i] = level[j] + 1;
+							break;
+						}
+					levelCount[level[i]]++;
+				}
+
+				if (levelCount[1] == 1)
+				{
+					msg->set_value(
+							value.substr(ovector[2], ovector[3] - ovector[2]).c_str());
+
+					if (levelCount[2] > 0)
+						p = 2;
+				}
+				else
+					msg->set_value("");
+
+				if (levelCount[p])
+				{
+					obj_ptr<List> list = new List();
+
+					for (i = 0; i < rc; i++)
+						if (level[i] == p)
+							list->append(
+									value.substr(ovector[i * 2],
+											ovector[i * 2 + 1]
+													- ovector[i * 2]));
+
+					msg->set_params(list);
+				}
 			}
 
 			retVal = r->m_hdlr;
