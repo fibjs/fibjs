@@ -32,9 +32,13 @@ public:
 	static result_t get_version(std::string& retVal);
 	static result_t get_arch(std::string& retVal);
 	static result_t get_timezone(int32_t& retVal);
+	static result_t uptime(double& retVal);
+	static result_t loadavg(v8::Handle<v8::Array>& retVal);
+	static result_t totalmem(int64_t& retVal);
+	static result_t freemem(int64_t& retVal);
 	static result_t CPUInfo(v8::Handle<v8::Array>& retVal);
 	static result_t CPUs(int32_t& retVal);
-	static result_t networkInfo(v8::Handle<v8::Array>& retVal);
+	static result_t networkInfo(v8::Handle<v8::Object>& retVal);
 	static result_t time(const char* tmString, date_t& retVal);
 	static result_t exists(const char* path, bool& retVal, exlib::AsyncEvent* ac);
 	static result_t unlink(const char* path, exlib::AsyncEvent* ac);
@@ -56,6 +60,10 @@ public:
 	static v8::Handle<v8::Value> s_get_version(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_arch(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_timezone(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_uptime(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_loadavg(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_totalmem(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_freemem(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_CPUInfo(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_CPUs(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_networkInfo(const v8::Arguments& args);
@@ -95,6 +103,10 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
+			{"uptime", s_uptime, true},
+			{"loadavg", s_loadavg, true},
+			{"totalmem", s_totalmem, true},
+			{"freemem", s_freemem, true},
 			{"CPUInfo", s_CPUInfo, true},
 			{"CPUs", s_CPUs, true},
 			{"networkInfo", s_networkInfo, true},
@@ -124,7 +136,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"os", NULL, 
-			14, s_method, 0, NULL, 6, s_property, NULL, NULL,
+			18, s_method, 0, NULL, 6, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -198,6 +210,50 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
+	inline v8::Handle<v8::Value> os_base::s_uptime(const v8::Arguments& args)
+	{
+		double vr;
+
+		METHOD_ENTER(0, 0);
+
+		hr = uptime(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_loadavg(const v8::Arguments& args)
+	{
+		v8::Handle<v8::Array> vr;
+
+		METHOD_ENTER(0, 0);
+
+		hr = loadavg(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_totalmem(const v8::Arguments& args)
+	{
+		int64_t vr;
+
+		METHOD_ENTER(0, 0);
+
+		hr = totalmem(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> os_base::s_freemem(const v8::Arguments& args)
+	{
+		int64_t vr;
+
+		METHOD_ENTER(0, 0);
+
+		hr = freemem(vr);
+
+		METHOD_RETURN();
+	}
+
 	inline v8::Handle<v8::Value> os_base::s_CPUInfo(const v8::Arguments& args)
 	{
 		v8::Handle<v8::Array> vr;
@@ -222,7 +278,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> os_base::s_networkInfo(const v8::Arguments& args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Handle<v8::Object> vr;
 
 		METHOD_ENTER(0, 0);
 

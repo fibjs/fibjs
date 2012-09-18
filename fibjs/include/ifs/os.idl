@@ -26,6 +26,18 @@ class os : module
 	/*! @brief 查询运行环境当前时区 */
 	static Integer timezone;
 
+	/*! @brief 查询运行环境运行时间，以秒为单位 */
+	static Number uptime();
+
+	/*! @brief 查询运行环境 1分钟，5分钟，15分钟平均负载 */
+	static Array loadavg();
+
+	/*! @brief 查询运行环境总内存，以字节为单位 */
+	static Long totalmem();
+
+	/*! @brief 查询运行环境可用内存，以字节为单位 */
+	static Long freemem();
+
 	/*! @brief 查询当前运行环境 cpu 个数和参数 */
 	static Array CPUInfo();
 
@@ -33,7 +45,7 @@ class os : module
 	static Integer CPUs();
 
 	/*! @brief 查询当前运行环境网络信息 */
-	static Array networkInfo();
+	static Object networkInfo();
 
 	/*! @brief 解析时间字符串或查询运行环境当前时间
 	 * @param tmString 时间字符串，缺省则查询当前时间
