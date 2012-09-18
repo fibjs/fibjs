@@ -53,6 +53,9 @@ static PROCNTQSI pNtQuerySystemInformation;
 #include <mach/mach_host.h>
 #include <sys/sysctl.h>
 #include <mach-o/dyld.h>
+#else
+#include <sys/sysinfo.h>
+#include <dlfcn.h>
 #endif
 
 #include "utf8.h"
@@ -253,6 +256,40 @@ result_t os_base::uptime(double& retVal)
 
 	internalError: free(malloced_buffer);
 	return LastError();
+#elif defined(Linux)
+	  static volatile int no_clock_boottime;
+	  struct timespec now;
+	  int r;
+	  int (*fngettime)(clockid_t, struct timespec *);
+
+	  void *handle = dlopen ("librt.so", RTLD_LAZY);
+	  if (!handle)
+		  return LastError();
+
+	  fngettime = (int (*)(clockid_t, struct timespec *))dlsym(handle, "clock_gettime");
+	  if(!fngettime)
+	  {
+		  dlclose(handle);
+		  return LastError();
+	  }
+
+	  if (no_clock_boottime) {
+	    retry: r = fngettime(CLOCK_MONOTONIC, &now);
+	  }
+	  else if ((r = fngettime(CLOCK_BOOTTIME, &now)) && errno == EINVAL) {
+	    no_clock_boottime = 1;
+	    goto retry;
+	  }
+
+	  dlclose(handle);
+
+	  if (r)
+		  return LastError();
+
+	  retVal = now.tv_sec;
+	  retVal += (double)now.tv_nsec / 1000000000.0;
+
+	  return 0;
 #elif defined(MacOS)
 	time_t now;
 	struct timeval info;
@@ -274,8 +311,15 @@ result_t os_base::loadavg(v8::Handle<v8::Array>& retVal)
 {
 	double avg[3] = {0, 0, 0};
 
-#ifdef _WIN32
+#ifdef Linux
+	  struct sysinfo info;
 
+	  if (sysinfo(&info) < 0)
+		  return LastError();
+
+	  avg[0] = (double) info.loads[0] / 65536.0;
+	  avg[1] = (double) info.loads[1] / 65536.0;
+	  avg[2] = (double) info.loads[2] / 65536.0;
 #elif defined(MacOS)
 	struct loadavg info;
 	size_t size = sizeof(info);
@@ -309,6 +353,9 @@ result_t os_base::totalmem(int64_t& retVal)
 
 	retVal = memory_status.ullTotalPhys;
 	return 0;
+#elif defined(Linux)
+	retVal = sysconf(_SC_PAGESIZE) * sysconf(_SC_PHYS_PAGES);
+	return 0;
 #elif defined(MacOS)
 	uint64_t info;
 	int which[] =
@@ -334,6 +381,9 @@ result_t os_base::freemem(int64_t& retVal)
 		return LastError();
 
 	retVal = memory_status.ullAvailPhys;
+	return 0;
+#elif defined(Linux)
+	retVal = sysconf(_SC_PAGESIZE) * sysconf(_SC_AVPHYS_PAGES);
 	return 0;
 #elif defined(MacOS)
 	vm_statistics_data_t info;
