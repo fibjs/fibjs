@@ -31,9 +31,6 @@ public:
 	virtual result_t flush(exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncFlush() = 0;
 	virtual result_t onflush(v8::Handle<v8::Function> func) = 0;
-	virtual result_t close(exlib::AsyncEvent* ac) = 0;
-	virtual result_t asyncClose() = 0;
-	virtual result_t onclose(v8::Handle<v8::Function> func) = 0;
 
 	DECLARE_CLASSINFO(File_base);
 
@@ -56,17 +53,12 @@ public:
 	static v8::Handle<v8::Value> s_flush(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncFlush(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_onflush(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_close(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncClose(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onclose(const v8::Arguments& args);
 
 public:
 	ASYNC_MEMBER1(File_base, truncate, int64_t);
 	ASYNC_CALLBACK1(File_base, truncate);
 	ASYNC_MEMBER0(File_base, flush);
 	ASYNC_CALLBACK0(File_base, flush);
-	ASYNC_MEMBER0(File_base, close);
-	ASYNC_CALLBACK0(File_base, close);
 };
 
 }
@@ -84,10 +76,7 @@ namespace fibjs
 			{"eof", s_eof},
 			{"flush", s_flush},
 			{"asyncFlush", s_asyncFlush},
-			{"onflush", s_onflush},
-			{"close", s_close},
-			{"asyncClose", s_asyncClose},
-			{"onclose", s_onclose}
+			{"onflush", s_onflush}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -98,7 +87,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"File", NULL, 
-			10, s_method, 0, NULL, 1, s_property, NULL, NULL,
+			7, s_method, 0, NULL, 1, s_property, NULL, NULL,
 			&SeekableStream_base::class_info()
 		};
 
@@ -194,38 +183,6 @@ namespace fibjs
 		ARG(v8::Handle<v8::Function>, 0);
 
 		hr = pInst->onflush(v0);
-
-		METHOD_VOID();
-	}
-
-	inline v8::Handle<v8::Value> File_base::s_close(const v8::Arguments& args)
-	{
-		METHOD_INSTANCE(File_base);
-		METHOD_ENTER(0, 0);
-
-		hr = pInst->ac_close();
-
-		METHOD_VOID();
-	}
-
-	inline v8::Handle<v8::Value> File_base::s_asyncClose(const v8::Arguments& args)
-	{
-		METHOD_INSTANCE(File_base);
-		METHOD_ENTER(0, 0);
-
-		hr = pInst->asyncClose();
-
-		METHOD_VOID();
-	}
-
-	inline v8::Handle<v8::Value> File_base::s_onclose(const v8::Arguments& args)
-	{
-		METHOD_INSTANCE(File_base);
-		METHOD_ENTER(1, 1);
-
-		ARG(v8::Handle<v8::Function>, 0);
-
-		hr = pInst->onclose(v0);
 
 		METHOD_VOID();
 	}

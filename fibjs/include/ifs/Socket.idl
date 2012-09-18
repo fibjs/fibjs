@@ -85,23 +85,6 @@ class Socket : Stream
 	 */
 	onaccept(Function func);
 
-	/*! @brief 关闭当前流 */
-	close() async;
-
-	/*! @brief 异步关闭当前流，完成后触发事件 "close" */
-	asyncClose();
-
-	/*! @brief 注册 "close" 事件，等同于 on("close", func);
-	 * @param func 事件处理函数
-	 *
-	 * "close" 事件定义如下：
-	 * @code
-	 * function on_close()
-	 * {}
-	 * @endcode
-	 */
-	onclose(Function func);
-
 	/*! @brief 从连接读取指定大小的数据，不同于 read 方法，recv 并不保证读完要求的数据，而是在读取到数据后立即返回
 	 * @param bytes 指定要读取的数据量，缺省读取任意尺寸的数据
 	 * @return 返回从连接读取的数据

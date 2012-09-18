@@ -175,6 +175,21 @@ result_t BufferedStream::onwrite(v8::Handle<v8::Function> func)
 	return on("write", func);
 }
 
+result_t BufferedStream::close(exlib::AsyncEvent* ac)
+{
+	return 0;
+}
+
+result_t BufferedStream::asyncClose()
+{
+	return 0;
+}
+
+result_t BufferedStream::onclose(v8::Handle<v8::Function> func)
+{
+	return on("close", func);
+}
+
 result_t BufferedStream::copyTo(Stream_base* stm, int64_t bytes,
 		int64_t& retVal, exlib::AsyncEvent* ac)
 {
@@ -269,7 +284,7 @@ result_t BufferedStream::readUntil(const char* mk, int32_t maxlen,
 			}
 
 			if (maxlen > 0
-					&& ((int)pThis->m_strbuf.size() + (pos - pThis->m_pos)
+					&& ((int) pThis->m_strbuf.size() + (pos - pThis->m_pos)
 							> maxlen + mklen))
 				return CALL_E_INVALID_DATA;
 

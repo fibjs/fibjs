@@ -117,6 +117,21 @@ result_t MemoryStream::onwrite(v8::Handle<v8::Function> func)
 	return on("write", func);
 }
 
+result_t MemoryStream::close(exlib::AsyncEvent* ac)
+{
+	return 0;
+}
+
+result_t MemoryStream::asyncClose()
+{
+	return 0;
+}
+
+result_t MemoryStream::onclose(v8::Handle<v8::Function> func)
+{
+	return on("close", func);
+}
+
 result_t MemoryStream::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal,
 		exlib::AsyncEvent* ac)
 {

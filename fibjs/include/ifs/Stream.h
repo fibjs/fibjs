@@ -30,6 +30,9 @@ public:
 	virtual result_t write(Buffer_base* data, exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncWrite(Buffer_base* data) = 0;
 	virtual result_t onwrite(v8::Handle<v8::Function> func) = 0;
+	virtual result_t close(exlib::AsyncEvent* ac) = 0;
+	virtual result_t asyncClose() = 0;
+	virtual result_t onclose(v8::Handle<v8::Function> func) = 0;
 	virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncCopyTo(Stream_base* stm, int64_t bytes) = 0;
 	virtual result_t oncopyto(v8::Handle<v8::Function> func) = 0;
@@ -44,6 +47,9 @@ public:
 	static v8::Handle<v8::Value> s_write(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncWrite(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_onwrite(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_close(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_asyncClose(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_onclose(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_copyTo(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncCopyTo(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_oncopyto(const v8::Arguments& args);
@@ -54,6 +60,8 @@ public:
 	ASYNC_VALUEBACK1(Stream_base, read, obj_ptr<Buffer_base>);
 	ASYNC_MEMBER1(Stream_base, write, Buffer_base*);
 	ASYNC_CALLBACK1(Stream_base, write);
+	ASYNC_MEMBER0(Stream_base, close);
+	ASYNC_CALLBACK0(Stream_base, close);
 	ASYNC_MEMBERVALUE3(Stream_base, copyTo, Stream_base*, int64_t, int64_t);
 	ASYNC_VALUEBACK2(Stream_base, copyTo, int64_t);
 };
@@ -74,6 +82,9 @@ namespace fibjs
 			{"write", s_write},
 			{"asyncWrite", s_asyncWrite},
 			{"onwrite", s_onwrite},
+			{"close", s_close},
+			{"asyncClose", s_asyncClose},
+			{"onclose", s_onclose},
 			{"copyTo", s_copyTo},
 			{"asyncCopyTo", s_asyncCopyTo},
 			{"oncopyto", s_oncopyto},
@@ -83,7 +94,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Stream", NULL, 
-			10, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			13, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&Trigger_base::class_info()
 		};
 
@@ -162,6 +173,38 @@ namespace fibjs
 		ARG(v8::Handle<v8::Function>, 0);
 
 		hr = pInst->onwrite(v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Stream_base::s_close(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Stream_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->ac_close();
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Stream_base::s_asyncClose(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Stream_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->asyncClose();
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Stream_base::s_onclose(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Stream_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Function>, 0);
+
+		hr = pInst->onclose(v0);
 
 		METHOD_VOID();
 	}

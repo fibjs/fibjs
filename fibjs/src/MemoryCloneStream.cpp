@@ -90,6 +90,21 @@ result_t MemoryStream::CloneStream::onwrite(v8::Handle<v8::Function> func)
 	return CALL_E_INVALID_CALL;
 }
 
+result_t MemoryStream::CloneStream::close(exlib::AsyncEvent* ac)
+{
+	return 0;
+}
+
+result_t MemoryStream::CloneStream::asyncClose()
+{
+	return 0;
+}
+
+result_t MemoryStream::CloneStream::onclose(v8::Handle<v8::Function> func)
+{
+	return on("close", func);
+}
+
 result_t MemoryStream::CloneStream::copyTo(Stream_base* stm, int64_t bytes,
 		int64_t& retVal, exlib::AsyncEvent* ac)
 {
