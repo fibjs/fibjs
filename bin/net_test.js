@@ -15,7 +15,7 @@ var net_config = {
 	address : '::1'
 };
 
-if (os.type == 'Windows' && os.release < "6.0")
+if (os.type == 'Windows' && os.version < "6.0")
 	net_config = {
 		family : net.AF_INET,
 		address : '127.0.0.1'
