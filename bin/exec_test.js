@@ -6,7 +6,7 @@ var os = require('os');
 for(i = 0; i < 2; i ++)
 {
 	console.log(new Date());
-	console.out.writeLine('console.out.writeLine()');
+	console.out.writeLine('console.out.writeLine....');
 	coroutine.sleep(100);
 }
 
