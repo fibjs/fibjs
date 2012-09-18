@@ -16,16 +16,14 @@
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 				<configuration artifactExtension="a" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.lib.debug.1081920998" name="Debug" parent="cdt.managedbuild.config.gnu.lib.debug">
 					<folderInfo id="cdt.managedbuild.config.gnu.lib.debug.1081920998." name="/" resourcePath="">
-						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.debug.1685980584" name="Linux GCC" nonInternalBuilderId="cdt.managedbuild.target.gnu.builder.lib.debug" superClass="cdt.managedbuild.toolchain.gnu.lib.debug">
+						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.debug.1685980584" name="Linux GCC" nonInternalBuilderId="cdt.managedbuild.target.gnu.builder.base" superClass="cdt.managedbuild.toolchain.gnu.lib.debug">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.debug.1352748536" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.debug"/>
-							<builder buildPath="${workspace_loc:/vender/Debug}" enableAutoBuild="false" id="cdt.managedbuild.target.gnu.builder.base.1808950949" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="16" stopOnErr="true" superClass="cdt.managedbuild.target.gnu.builder.base"/>
+							<builder autoBuildTarget="all" buildPath="${workspace_loc:/vender/Debug}" cleanBuildTarget="clean" id="org.eclipse.cdt.build.core.internal.builder.921016155" incrementalBuildTarget="all" managedBuildOn="true" name="CDT Internal Builder" parallelBuildOn="true" parallelizationNumber="16" superClass="org.eclipse.cdt.build.core.internal.builder"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.lib.debug.555097464" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.lib.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug.92412598" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug">
 								<option id="gnu.cpp.compiler.lib.debug.option.optimization.level.1105776569" name="Optimization Level" superClass="gnu.cpp.compiler.lib.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
@@ -81,7 +79,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/exlib/fiber/fb_switch.asm|exlib/fiber/fb_switch.asm" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="obj|src/exlib/fiber/fb_switch.asm|exlib/fiber/fb_switch.asm" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -102,8 +100,6 @@
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -111,7 +107,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.lib.release.1852890699." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.release.1027085020" name="Linux GCC" nonInternalBuilderId="cdt.managedbuild.target.gnu.builder.base" resourceTypeBasedDiscovery="true" superClass="cdt.managedbuild.toolchain.gnu.lib.release">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.release.414673932" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.release"/>
-							<builder buildPath="${workspace_loc:/vender/obj/Release}" enableAutoBuild="false" id="cdt.managedbuild.target.gnu.builder.base.902411184" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="16" stopOnErr="true" superClass="cdt.managedbuild.target.gnu.builder.base"/>
+							<builder autoBuildTarget="all" buildPath="${workspace_loc:/vender/Release}" cleanBuildTarget="clean" id="org.eclipse.cdt.build.core.internal.builder.1342903785" incrementalBuildTarget="all" managedBuildOn="true" name="CDT Internal Builder" parallelBuildOn="true" parallelizationNumber="16" superClass="org.eclipse.cdt.build.core.internal.builder"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.lib.release.1165058666" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.lib.release"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.release.1889069622" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.release">
 								<option id="gnu.cpp.compiler.lib.release.option.optimization.level.586024766" name="Optimization Level" superClass="gnu.cpp.compiler.lib.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
@@ -167,7 +163,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/exlib/fiber/fb_switch.asm|exlib/fiber/fb_switch.asm" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="obj|src/exlib/fiber/fb_switch.asm|exlib/fiber/fb_switch.asm" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -189,16 +185,14 @@
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 				<configuration artifactExtension="a" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.lib.debug.1081920998.1617246534" name="Debug32" parent="cdt.managedbuild.config.gnu.lib.debug">
 					<folderInfo id="cdt.managedbuild.config.gnu.lib.debug.1081920998.1617246534." name="/" resourcePath="">
-						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.debug.1544839337" name="Linux GCC" nonInternalBuilderId="cdt.managedbuild.target.gnu.builder.lib.debug" superClass="cdt.managedbuild.toolchain.gnu.lib.debug">
+						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.debug.1544839337" name="Linux GCC" nonInternalBuilderId="cdt.managedbuild.target.gnu.builder.base" superClass="cdt.managedbuild.toolchain.gnu.lib.debug">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.debug.68935059" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.debug"/>
-							<builder buildPath="${workspace_loc:/vender/Debug}" enableAutoBuild="false" id="cdt.managedbuild.target.gnu.builder.base.1739545185" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="16" stopOnErr="true" superClass="cdt.managedbuild.target.gnu.builder.base"/>
+							<builder autoBuildTarget="all" buildPath="${workspace_loc:/vender/Debug32}" cleanBuildTarget="clean" id="org.eclipse.cdt.build.core.internal.builder.2114476784" incrementalBuildTarget="all" managedBuildOn="true" name="CDT Internal Builder" parallelBuildOn="true" parallelizationNumber="16" superClass="org.eclipse.cdt.build.core.internal.builder"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.lib.debug.693999505" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.lib.debug">
 								<option id="gnu.both.lib.option.flags.1497996148" name="Archiver flags" superClass="gnu.both.lib.option.flags" value="-r" valueType="string"/>
 							</tool>
@@ -256,7 +250,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/exlib/fiber/fb_switch.asm|exlib/fiber/fb_switch.asm" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="obj|src/exlib/fiber/fb_switch.asm|exlib/fiber/fb_switch.asm" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -278,8 +272,6 @@
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -287,7 +279,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.lib.release.1852890699.57212759." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.release.41804322" name="Linux GCC" nonInternalBuilderId="cdt.managedbuild.target.gnu.builder.base" resourceTypeBasedDiscovery="true" superClass="cdt.managedbuild.toolchain.gnu.lib.release">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.release.597745725" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.release"/>
-							<builder buildPath="${workspace_loc:/vender/obj/Release}" enableAutoBuild="false" id="cdt.managedbuild.target.gnu.builder.base.1833890793" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="16" stopOnErr="true" superClass="cdt.managedbuild.target.gnu.builder.base"/>
+							<builder autoBuildTarget="all" buildPath="${workspace_loc:/vender/Release32}" cleanBuildTarget="clean" id="org.eclipse.cdt.build.core.internal.builder.1316665553" incrementalBuildTarget="all" managedBuildOn="true" name="CDT Internal Builder" parallelBuildOn="true" parallelizationNumber="16" superClass="org.eclipse.cdt.build.core.internal.builder"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.lib.release.2013033334" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.lib.release">
 								<option id="gnu.both.lib.option.flags.1708742356" name="Archiver flags" superClass="gnu.both.lib.option.flags" value="-r" valueType="string"/>
 							</tool>
@@ -345,7 +337,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/exlib/fiber/fb_switch.asm|exlib/fiber/fb_switch.asm" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="obj|src/exlib/fiber/fb_switch.asm|exlib/fiber/fb_switch.asm" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
