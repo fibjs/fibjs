@@ -51,7 +51,7 @@ assert.equal(db.formatMySQL("test?, ?, ?, ?", 123, 'ds\r\na', new Date(
 		"test'123', 'ds\\r\\na', '1998-04-14 12:12:12', ''");
 
 t_db(db.open('sqlite:test.db'));
-t_db(db.open('mysql://root@localhost/test'));
+//t_db(db.open('mysql://root@localhost/test'));
 
 conn = db.open('sqlite:test.db');
 conn.execute("create table ids(name, id)");
