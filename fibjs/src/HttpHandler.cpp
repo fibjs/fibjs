@@ -34,6 +34,9 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			m_req = new HttpRequest();
 			m_req->get_response(m_rep);
 
+			m_req->set_maxHeadersCount(pThis->m_maxHeadersCount);
+			m_req->set_maxUploadSize(pThis->m_maxUploadSize);
+
 			set(read);
 		}
 
@@ -276,6 +279,36 @@ result_t HttpHandler::get_crossDomain(bool& retVal)
 result_t HttpHandler::set_crossDomain(bool newVal)
 {
 	m_crossDomain = newVal;
+	return 0;
+}
+
+result_t HttpHandler::get_maxHeadersCount(int32_t& retVal)
+{
+	retVal = m_maxHeadersCount;
+	return 0;
+}
+
+result_t HttpHandler::set_maxHeadersCount(int32_t newVal)
+{
+	if (newVal < 0)
+		return CALL_E_OUTRANGE;
+
+	m_maxHeadersCount = newVal;
+	return 0;
+}
+
+result_t HttpHandler::get_maxUploadSize(int32_t& retVal)
+{
+	retVal = m_maxUploadSize;
+	return 0;
+}
+
+result_t HttpHandler::set_maxUploadSize(int32_t newVal)
+{
+	if (newVal < 0)
+		return CALL_E_OUTRANGE;
+
+	m_maxUploadSize = newVal;
 	return 0;
 }
 

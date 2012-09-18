@@ -55,6 +55,10 @@ public:
 	virtual result_t get_headers(obj_ptr<HttpCollection_base>& retVal);
 	virtual result_t get_keepAlive(bool& retVal);
 	virtual result_t set_keepAlive(bool newVal);
+	virtual result_t get_maxHeadersCount(int32_t& retVal);
+	virtual result_t set_maxHeadersCount(int32_t newVal);
+	virtual result_t get_maxUploadSize(int32_t& retVal);
+	virtual result_t set_maxUploadSize(int32_t newVal);
 	virtual result_t hasHeader(const char* name, bool& retVal);
 	virtual result_t firstHeader(const char* name, Variant& retVal);
 	virtual result_t allHeader(const char* name, v8::Handle<v8::Array>& retVal);

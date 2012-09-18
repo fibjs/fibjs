@@ -57,6 +57,26 @@ result_t HttpResponse::set_keepAlive(bool newVal)
 	return m_message.set_keepAlive(newVal);
 }
 
+result_t HttpResponse::get_maxHeadersCount(int32_t& retVal)
+{
+	return m_message.get_maxHeadersCount(retVal);
+}
+
+result_t HttpResponse::set_maxHeadersCount(int32_t newVal)
+{
+	return m_message.set_maxHeadersCount(newVal);
+}
+
+result_t HttpResponse::get_maxUploadSize(int32_t& retVal)
+{
+	return m_message.get_maxUploadSize(retVal);
+}
+
+result_t HttpResponse::set_maxUploadSize(int32_t newVal)
+{
+	return m_message.get_maxUploadSize(newVal);
+}
+
 result_t HttpResponse::hasHeader(const char* name, bool& retVal)
 {
 	return m_message.hasHeader(name, retVal);

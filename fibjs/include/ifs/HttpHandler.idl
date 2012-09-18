@@ -5,6 +5,12 @@
  */
 class HttpHandler: Handler
 {
-	/*! @brief 查询和设置是否允许跨域请求 */
+	/*! @brief 查询和设置是否允许跨域请求，缺省为 false */
 	Boolean crossDomain;
+
+	/*! @brief 查询和设置最大请求头个数，缺省为 128 */
+	Integer maxHeadersCount;
+
+	/*! @brief 查询和设置最大上传尺寸，以 MB 为单位，缺省为 64 */
+	Integer maxUploadSize;
 };

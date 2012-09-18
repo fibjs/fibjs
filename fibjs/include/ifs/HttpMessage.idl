@@ -11,6 +11,12 @@ class HttpMessage: Message
 	/*! @brief 查询和设定是否保持连接 */
 	Boolean keepAlive;
 
+	/*! @brief 查询和设置最大请求头个数，缺省为 128 */
+	Integer maxHeadersCount;
+
+	/*! @brief 查询和设置最大上传尺寸，以 MB 为单位，缺省为 64 */
+	Integer maxUploadSize;
+
 	/*! @brief 检查是否存在指定键值的消息头
 	 * @param name 指定要检查的键值
 	 * @return 返回键值是否存在

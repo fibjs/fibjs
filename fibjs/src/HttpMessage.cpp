@@ -134,7 +134,8 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 	public:
 		asyncReadFrom(HttpMessage* pThis, BufferedStream_base* stm,
 				exlib::AsyncEvent* ac) :
-				asyncState(ac), m_pThis(pThis), m_stm(stm), m_contentLength(0)
+				asyncState(ac), m_pThis(pThis), m_stm(stm), m_contentLength(0), m_headCount(
+						0)
 		{
 			set(begin);
 		}
@@ -144,7 +145,8 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 			asyncReadFrom* pThis = (asyncReadFrom*) pState;
 
 			pThis->set(header);
-			return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine, pThis);
+			return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine,
+					pThis);
 		}
 
 		static int header(asyncState* pState, int n)
@@ -154,14 +156,28 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 			if (pThis->m_strLine.length() > 0)
 			{
 				if (!qstricmp(pThis->m_strLine.c_str(), "content-length:", 15))
+				{
 					pThis->m_contentLength = atoi(
 							pThis->m_strLine.c_str() + 15);
 
-				result_t hr = pThis->m_pThis->addHeader(pThis->m_strLine);
-				if (hr < 0)
-					return hr;
+					if ((pThis->m_contentLength < 0)
+							|| (pThis->m_contentLength
+									> pThis->m_pThis->m_maxUploadSize * 1048576))
+						return CALL_E_INVALID_DATA;
+				}
+				else
+				{
+					result_t hr = pThis->m_pThis->addHeader(pThis->m_strLine);
+					if (hr < 0)
+						return hr;
 
-				return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine, pThis);
+					pThis->m_headCount++;
+					if (pThis->m_headCount > pThis->m_pThis->m_maxHeadersCount)
+						return CALL_E_INVALID_DATA;
+				}
+
+				return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine,
+						pThis);
 			}
 
 			if (pThis->m_contentLength == 0)
@@ -193,6 +209,7 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 		obj_ptr<SeekableStream_base> m_body;
 		std::string m_strLine;
 		int64_t m_contentLength;
+		int32_t m_headCount;
 		int64_t m_copySize;
 	};
 
@@ -343,6 +360,36 @@ result_t HttpMessage::get_keepAlive(bool& retVal)
 result_t HttpMessage::set_keepAlive(bool newVal)
 {
 	m_keepAlive = newVal;
+	return 0;
+}
+
+result_t HttpMessage::get_maxHeadersCount(int32_t& retVal)
+{
+	retVal = m_maxHeadersCount;
+	return 0;
+}
+
+result_t HttpMessage::set_maxHeadersCount(int32_t newVal)
+{
+	if (newVal < 0)
+		return CALL_E_OUTRANGE;
+
+	m_maxHeadersCount = newVal;
+	return 0;
+}
+
+result_t HttpMessage::get_maxUploadSize(int32_t& retVal)
+{
+	retVal = m_maxUploadSize;
+	return 0;
+}
+
+result_t HttpMessage::set_maxUploadSize(int32_t newVal)
+{
+	if (newVal < 0)
+		return CALL_E_OUTRANGE;
+
+	m_maxUploadSize = newVal;
 	return 0;
 }
 

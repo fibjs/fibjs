@@ -21,7 +21,7 @@ class HttpMessage: public Message
 {
 public:
 	HttpMessage(bool bResponse = false) :
-			m_bResponse(bResponse)
+			m_bResponse(bResponse), m_maxHeadersCount(128), m_maxUploadSize(64)
 	{
 		m_headers = new HttpCollection();
 		clear();
@@ -33,6 +33,10 @@ public:
 	result_t get_headers(obj_ptr<HttpCollection_base>& retVal);
 	result_t get_keepAlive(bool& retVal);
 	result_t set_keepAlive(bool newVal);
+	result_t get_maxHeadersCount(int32_t& retVal);
+	result_t set_maxHeadersCount(int32_t newVal);
+	result_t get_maxUploadSize(int32_t& retVal);
+	result_t set_maxUploadSize(int32_t newVal);
 	result_t hasHeader(const char* name, bool& retVal);
 	result_t firstHeader(const char* name, Variant& retVal);
 	result_t allHeader(const char* name, v8::Handle<v8::Array>& retVal);
@@ -60,6 +64,8 @@ public:
 	bool m_bResponse;
 	std::string m_protocol;
 	bool m_keepAlive;
+	int32_t m_maxHeadersCount;
+	int32_t m_maxUploadSize;
 	std::string m_origin;
 	std::string m_encoding;
 	obj_ptr<HttpCollection> m_headers;
