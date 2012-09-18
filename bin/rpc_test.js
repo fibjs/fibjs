@@ -46,16 +46,15 @@ m.response.body.rewind();
 assert.equal(m.response.body.read().toString(),
 		'{"id":1234,"result":"100,200"}');
 
-jr = rpc.json(mq.routing({
-	'^(/.*)$' : http.fileHandler('httpd/www/'),
-	'^/xhr(/.*)$' : {
+jr = rpc.json({
+	'xhr' : {
 		test : {
 			fun : function(v, a, b) {
 				return a + b;
 			}
 		}
 	}
-}));
+});
 
 m = new http.Request();
 
@@ -90,7 +89,6 @@ assert
 		.equal(
 				m.response.body.read().toString(),
 				'<html><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><script>window.name=\"{\\\"id\\\":1234,\\\"result\\\":300}\";</script></html>');
-
 
 var hdlr = http.handler(rpc.json({
 	update : function(v) {

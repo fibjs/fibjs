@@ -158,27 +158,58 @@ assert.equal(7, n);
 // ------------- routing handler
 
 function params(v, p1, p2) {
+	assert.equal(v.value, '123.a456.html');
 	assert.equal(v.params.length, 2);
 	assert.equal(v.params[0], "123");
-	assert.equal(v.params[1], "456");
+	assert.equal(v.params[1], "a456");
 	assert.equal(p1, "123");
-	assert.equal(p2, "456");
-	n = p1 + ',' + p2;
+	assert.equal(p2, "a456");
+	n = 'param: ' + p1 + ',' + p2;
 }
 
-function params1(v, p1, p2) {
-	v.value = '';
-	return {
-		p1 : p1,
-		p2 : p2
-	};
+function params0(v) {
+	assert.equal(v.value, '');
+	assert.equal(v.params.length, 0);
+	n = 'param0';
+}
+
+function params1(v, p1) {
+	assert.equal(v.value, '789');
+	assert.equal(v.params.length, 1);
+	assert.equal(v.params[0], "789");
+	assert.equal(p1, "789");
+	n = 'param1: ' + p1;
+}
+
+function params2(v, p1, p2) {
+	assert.equal(v.value, '');
+	assert.equal(v.params.length, 2);
+	assert.equal(v.params[0], "123");
+	assert.equal(v.params[1], "b456");
+	assert.equal(p1, "123");
+	assert.equal(p2, "b456");
+	n = 'param2: ' + p1 + ',' + p2;
+}
+
+function params3(v, p1, p2) {
+	assert.equal(v.value, '123.b456c789.html');
+	assert.equal(v.params.length, 2);
+	assert.equal(v.params[0], "123");
+	assert.equal(v.params[1], "b456c789");
+	assert.equal(p1, "123");
+	assert.equal(p2, "b456c789");
+	n = 'param3: ' + p1 + ',' + p2;
 }
 
 var r = mq.routing({
 	'^a$' : hdlr1,
 	'^c$' : hdlr3,
 	'^b$' : mq.jsHandler(hdlr2),
-	'^params/(([0-9]*)\.([0-9]*)\.html)$' : params
+	'^params/(([0-9]+)\.(([a-z])?[0-9]+)\.html)$' : params,
+	'^params0/[0-9]+\.html$' : params0,
+	'^params1/([0-9]+)\.html$' : params1,
+	'^params2/([0-9]+)\.(([a-z])?[0-9]+)\.html$' : params2,
+	'^params3/(([0-9]+)\.(([a-z])?[0-9]+([a-z]([0-9]+)))\.html)$' : params3
 });
 
 n = 0;
@@ -196,9 +227,25 @@ m.value = 'c';
 mq.invoke(r, m);
 assert.equal(4, n);
 
-m.value = 'params/123.456.html';
+m.value = 'params/123.a456.html';
 mq.invoke(r, m);
-assert.equal("123,456", n);
+assert.equal("param: 123,a456", n);
+
+m.value = 'params0/999.html';
+mq.invoke(r, m);
+assert.equal("param0", n);
+
+m.value = 'params1/789.html';
+mq.invoke(r, m);
+assert.equal("param1: 789", n);
+
+m.value = 'params2/123.b456.html';
+mq.invoke(r, m);
+assert.equal("param2: 123,b456", n);
+
+m.value = 'params3/123.b456c789.html';
+mq.invoke(r, m);
+assert.equal("param3: 123,b456c789", n);
 
 n = 0;
 m.value = 'd';
