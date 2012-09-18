@@ -156,11 +156,87 @@ result_t console_base::error(const char* fmt, const v8::Arguments& args)
 	return 0;
 }
 
+inline void newline(std::stringstream& strBuffer, int padding)
+{
+	static char s_spc[] =
+			"                                                                ";
+	int n, n1;
+
+	strBuffer << std::endl;
+	if (padding > 0)
+	{
+		n = padding;
+		while (n)
+		{
+			n1 = n > 64 ? 64 : n;
+			strBuffer.write(s_spc, n1);
+			n -= n1;
+		}
+	}
+}
+
 result_t console_base::dir(v8::Handle<v8::Object> obj)
 {
+	std::stringstream strBuffer;
 	std::string s;
 	encoding_base::jsonEncode(obj, s);
-	asyncLog(log4cpp::Priority::INFO, s);
+	const char *p;
+	int padding = 0;
+	char ch;
+	bool bStrMode = false;
+	bool bNewLine = false;
+	const int tab_size = 2;
+
+	p = s.c_str();
+	while ((ch = *p++) != 0)
+	{
+		if (bStrMode)
+		{
+			if (ch == '\\' && *p == '\"')
+			{
+				strBuffer << ch;
+				ch = *p++;
+			}
+			else if (ch == '\"')
+				bStrMode = false;
+		}
+		else
+		{
+			switch (ch)
+			{
+			case '[':
+			case '{':
+				bNewLine = true;
+				padding += tab_size;
+				break;
+			case '}':
+			case ']':
+				padding -= tab_size;
+				newline(strBuffer, padding);
+				break;
+			case ',':
+				bNewLine = true;
+				break;
+			case ':':
+				strBuffer << ch;
+				ch = ' ';
+				break;
+			case '\"':
+				bStrMode = true;
+				break;
+			}
+		}
+
+		strBuffer << ch;
+
+		if (bNewLine)
+		{
+			newline(strBuffer, padding);
+			bNewLine = false;
+		}
+	}
+
+	asyncLog(log4cpp::Priority::INFO, strBuffer.str());
 	return 0;
 }
 
