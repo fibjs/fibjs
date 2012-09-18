@@ -349,6 +349,7 @@ var url = 'test.html';
 
 var rep = hfh_test(url);
 assert.equal(404, rep.status);
+rep.clear();
 
 io.writeFile('test.html', 'test html file');
 
@@ -356,15 +357,18 @@ var rep = hfh_test(url);
 assert.equal(200, rep.status);
 assert.equal(14, rep.length);
 
-var rep = hfh_test(url, {
+var rep1 = hfh_test(url, {
 	'If-Modified-Since' : rep.firstHeader('Last-Modified')
 });
-assert.equal(304, rep.status);
+assert.equal(304, rep1.status);
+rep1.clear();
+rep.clear();
 
 var rep = hfh_test(url, {
 	'If-Modified-Since' : new Date('1998-04-14 12:12:12')
 });
 assert.equal(200, rep.status);
 assert.equal(14, rep.length);
+rep.clear();
 
 os.unlink('test.html');
