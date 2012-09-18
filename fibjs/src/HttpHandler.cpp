@@ -46,6 +46,9 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			if (!bKeepAlive)
 				return pThis->done(CALL_RETURN_NULL);
 
+			pThis->m_zip.Release();
+			pThis->m_body.Release();
+
 			pThis->set(invoke);
 			return pThis->m_req->readFrom(pThis->m_stmBuffered, pThis);
 		}
@@ -196,7 +199,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				}
 			}
 
-			pThis->set(read);
+			pThis->set(close);
 			return pThis->m_rep->sendTo(pThis->m_stm, pThis);
 		}
 
@@ -206,8 +209,22 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
 			pThis->m_rep->set_body(pThis->m_zip);
 
-			pThis->set(read);
+			pThis->set(close);
 			return pThis->m_rep->sendTo(pThis->m_stm, pThis);
+		}
+
+		static int close(asyncState* pState, int n)
+		{
+			asyncInvoke* pThis = (asyncInvoke*) pState;
+
+			if (!pThis->m_body)
+				pThis->m_rep->get_body(pThis->m_body);
+
+			pThis->set(read);
+			if (!pThis->m_body)
+				return 0;
+
+			return pThis->m_body->close(pThis);
 		}
 
 		virtual int error(int v)

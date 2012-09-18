@@ -148,7 +148,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			asyncInvoke* pThis = (asyncInvoke*) pState;
 
 			date_t d;
-			int diff;
+			double diff;
 
 			pThis->m_stat->get_mtime(d);
 			diff = d.diff(pThis->m_time);
