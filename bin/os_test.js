@@ -5,6 +5,9 @@ var os = require('os');
 var io = require('io');
 
 console.log(os.CPUs());
+console.log(os.uptime(), os.loadavg(), os.totalmem(), os.freemem());
+console.dir(os.CPUInfo());
+console.dir(os.networkInfo());
 
 assert.ok(os.exists('os_test.js'));
 
@@ -58,7 +61,7 @@ var cmd = os.shell + ' exec_test';
 var bs = os.exec(cmd);
 var s;
 
-while((s = bs.readLine()) != null)
+while ((s = bs.readLine()) != null)
 	console.log('>>>', s);
 
 assert.equal(os.system(cmd), 100);
