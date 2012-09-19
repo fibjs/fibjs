@@ -24,8 +24,9 @@ class console_base : public module_base
 {
 public:
 	// console_base
-	static result_t get_in(obj_ptr<BufferedStream_base>& retVal);
-	static result_t get_out(obj_ptr<BufferedStream_base>& retVal);
+	static result_t get_stderr(obj_ptr<BufferedStream_base>& retVal);
+	static result_t get_stdin(obj_ptr<BufferedStream_base>& retVal);
+	static result_t get_stdout(obj_ptr<BufferedStream_base>& retVal);
 	static result_t log(const char* fmt, const v8::Arguments& args);
 	static result_t info(const char* fmt, const v8::Arguments& args);
 	static result_t warn(const char* fmt, const v8::Arguments& args);
@@ -39,8 +40,9 @@ public:
 	DECLARE_CLASSINFO(console_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_in(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_out(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_stderr(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_stdin(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_stdout(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_log(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_info(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_warn(const v8::Arguments& args);
@@ -75,14 +77,15 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"in", s_get_in, NULL, true},
-			{"out", s_get_out, NULL, true}
+			{"stderr", s_get_stderr, NULL, true},
+			{"stdin", s_get_stdin, NULL, true},
+			{"stdout", s_get_stdout, NULL, true}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"console", NULL, 
-			9, s_method, 0, NULL, 2, s_property, NULL, NULL,
+			9, s_method, 0, NULL, 3, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -90,24 +93,35 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_get_in(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline v8::Handle<v8::Value> console_base::s_get_stderr(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		obj_ptr<BufferedStream_base> vr;
 
 		PROPERTY_ENTER();
 
-		hr = get_in(vr);
+		hr = get_stderr(vr);
 
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_get_out(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline v8::Handle<v8::Value> console_base::s_get_stdin(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		obj_ptr<BufferedStream_base> vr;
 
 		PROPERTY_ENTER();
 
-		hr = get_out(vr);
+		hr = get_stdin(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> console_base::s_get_stdout(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		obj_ptr<BufferedStream_base> vr;
+
+		PROPERTY_ENTER();
+
+		hr = get_stdout(vr);
 
 		METHOD_RETURN();
 	}

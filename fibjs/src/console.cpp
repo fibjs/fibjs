@@ -47,9 +47,21 @@ inline int64_t Ticks()
 namespace fibjs
 {
 
-static obj_ptr<BufferedStream_base> s_in, s_out;
+static obj_ptr<BufferedStream_base> s_err, s_in, s_out;
 
-result_t console_base::get_in(obj_ptr<BufferedStream_base>& retVal)
+result_t console_base::get_stderr(obj_ptr<BufferedStream_base>& retVal)
+{
+	if (s_err == NULL)
+	{
+		s_err = new BufferedStream(new File(stderr, true));
+		s_err->set_EOL("\n");
+	}
+
+	retVal = s_err;
+	return 0;
+}
+
+result_t console_base::get_stdin(obj_ptr<BufferedStream_base>& retVal)
 {
 	if (s_in == NULL)
 	{
@@ -58,11 +70,10 @@ result_t console_base::get_in(obj_ptr<BufferedStream_base>& retVal)
 	}
 
 	retVal = s_in;
-
 	return 0;
 }
 
-result_t console_base::get_out(obj_ptr<BufferedStream_base>& retVal)
+result_t console_base::get_stdout(obj_ptr<BufferedStream_base>& retVal)
 {
 	if (s_out == NULL)
 	{
@@ -71,7 +82,6 @@ result_t console_base::get_out(obj_ptr<BufferedStream_base>& retVal)
 	}
 
 	retVal = s_out;
-
 	return 0;
 }
 

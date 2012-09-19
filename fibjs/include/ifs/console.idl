@@ -14,12 +14,15 @@
  */
 class console : module
 {
+	/*! @brief 查询当前进程的错误输出流对象 */
+	static BufferedStream stderr;
+
 	/*! @brief 查询当前进程的标准输入流对象 */
-	static BufferedStream in;
+	static BufferedStream stdin;
 
 	/*! @brief 查询当前进程的标准输出流对象 */
-	static BufferedStream out;
-	
+	static BufferedStream stdout;
+
 	/*! @brief 记录普通日志信息，与 info 等同
 	 *
 	 * 记录一般等级的日志信息。通常用于输出非错误性提示信息。
