@@ -9,6 +9,7 @@ var io = require('io');
 var os = require('os');
 var http = require('http');
 var encoding = require('encoding');
+var zlib = require('zlib');
 
 var d = new http.Request().headers;
 
@@ -339,8 +340,8 @@ var hfHandler = new http.fileHandler('./');
 function hfh_test(url, headers) {
 	var req = new http.Request();
 	req.value = url;
-	for ( var h in headers)
-		req.addHeader(h, headers[h]);
+	if(headers)
+		req.addHeader(headers);
 	hfHandler.invoke(req);
 	return req.response;
 }
@@ -369,6 +370,29 @@ var rep = hfh_test(url, {
 });
 assert.equal(200, rep.status);
 assert.equal(14, rep.length);
+rep.clear();
+
+var sgz = 'gz test file';
+var gz = io.open('test.html.gz', 'w');
+gz.write(zlib.gzip(new Buffer(sgz)));
+gz.close();
+
+var rep = hfh_test(url, {
+	'Accept-Encoding' : 'deflate,gzip'
+});
+assert.equal(200, rep.status);
+assert.equal('gzip', rep.firstHeader('Content-Encoding'));
+rep.body.rewind();
+assert.equal(sgz, zlib.gunzip(rep.body.readAll()).toString());
+rep.clear();
+
+os.unlink('test.html.gz');
+
+var rep = hfh_test(url, {
+	'Accept-Encoding' : 'deflate,gzip'
+});
+assert.equal(200, rep.status);
+assert.equal(null, rep.firstHeader('Content-Encoding'));
 rep.clear();
 
 os.unlink('test.html');
