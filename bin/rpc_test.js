@@ -110,6 +110,6 @@ for (i = 0; i < 50; i++) {
 	req.body.write(new Buffer('{"method":"update","params":[{}]}'));
 	req.sendTo(s);
 	req.response.readFrom(bs);
-	console.out.writeText('.')
+	console.stdout.writeText('.')
 }
 console.log('');
