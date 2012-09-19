@@ -9,12 +9,13 @@ var rpc = require('rpc');
 
 var hdlr = http.handler(mq.routing({
 	'^(/.*)$' : http.fileHandler('httpd/www/'),
+	'^/docs(/.*)$' : http.fileHandler('../fibjs/docs/'),
 	'^/xhr(/.*)$' : rpc.json({
 		test : {
 			test : {
-				fun : function(v, n, a, b) {
-					console.log(n, a, b);
-					return n + a + b;
+				fun : function(request, d) {
+					console.log(d);
+					return "ok"
 				}
 			}
 		}

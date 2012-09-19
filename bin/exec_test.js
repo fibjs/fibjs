@@ -1,7 +1,7 @@
 console.log('exec testing....');
 
 var coroutine = require('coroutine');
-var os = require('os');
+var process = require('process');
 
 for(i = 0; i < 2; i ++)
 {
@@ -10,5 +10,5 @@ for(i = 0; i < 2; i ++)
 	coroutine.sleep(100);
 }
 
-os.exit(100);
+process.exit(100);
 console.log('not output');

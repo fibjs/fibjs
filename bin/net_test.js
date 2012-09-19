@@ -6,7 +6,7 @@ console.log('net testing....');
 
 var assert = require('assert');
 var net = require('net');
-var io = require('io');
+var fs = require('fs');
 var os = require('os');
 var coroutine = require('coroutine');
 
@@ -23,7 +23,7 @@ if (os.type == 'Windows' && os.version < "6.0")
 
 function del(f) {
 	try {
-		os.unlink(f);
+		fs.unlink(f);
 	} catch (e) {
 	}
 }
@@ -85,8 +85,8 @@ function accept1(s) {
 
 		// c.write(new Buffer(str));
 
-		io.writeFile('net_temp_000001', str);
-		var f = io.open('net_temp_000001');
+		fs.writeFile('net_temp_000001', str);
+		var f = fs.open('net_temp_000001');
 		assert.equal(f.copyTo(c), str.length);
 		f.close();
 		c.close();
@@ -102,12 +102,12 @@ function t_conn() {
 	var c1 = new net.Socket();
 	c1.connect('127.0.0.1', 8081);
 
-	var f1 = io.open('net_temp_000002', 'w');
+	var f1 = fs.open('net_temp_000002', 'w');
 	assert.equal(c1.copyTo(f1), str.length);
 	c1.close();
 	f1.close();
 
-	assert.equal(str, io.readFile('net_temp_000002'));
+	assert.equal(str, fs.readFile('net_temp_000002'));
 }
 
 for ( var i = 0; i < 100; i++)

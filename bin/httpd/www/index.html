@@ -20,63 +20,36 @@
 
     function test_rpc() {
 		$.enableWebSocket = false;
-		$.enableXMLHttpRequest = false;
+		$.enableXMLHttpRequest = true;
 		$.enableFlashHttp = false;
-		$.enableIFRAME = true;
+		$.enableIFRAME = false;
     	
-    	$.rpc('http://192.168.200.93:8080/xhr/test/test', "fun", "答案", 123, 444, function(m) {
-    		if(m.error)
-    			output("iframe error: " + m.error.message);
-    		else
-		        output("iframe result: " + m.result);
+    	var d = [{
+    		"icon":"8fef80c7ac8a6b433ca64a91e3a6e5e6",
+    		"icon_crop_size":175,
+    		"icon_crop_left":53,
+    		"icon_crop_top":81,
+    		"id":1}];
 
-			$.enableIFRAME = false;
-			$.enableXMLHttpRequest = true;
-			$.rpc('http://192.168.200.93:8080/xhr/test/test', "fun", "答案", 123, 444, function(m) {
-				if(m.error)
-					output("XMLHttpRequest error: " + m.error.message);
-				else
-					output("XMLHttpRequest result: " + m.result);
-
-				$.enableFlashHttp = true;
-				$.enableXMLHttpRequest = false;
-				$.rpc('http://192.168.200.93:8080/xhr/test', "test.fun", "答案", 123, 444, function(m) {
-					$.enableWebSocket = true;
-					$.enableXMLHttpRequest = true;
-					$.enableFlashHttp = true;
-					$.enableIFRAME = true;
-
-					if(m.error)
-						output("FlashHttp error: " + m.error.message);
-					else
-						output("FlashHttp result: " + m.result);
-				});
-		  });
-      });
+    	$.rpc('/xhr/test/test', "fun", d, function(m) {
+			alert(m.result);
+    	});
     }
 
-	var n = 0;
-	function getFile()
-	{
-		for(i = 0; i < 100; i ++)
-			$.Query("http://localhost:8080/test.txt", function(m){
-				output(n.toString() + ": " + m);
-				n += 1;
-			});
-	}
-
-    function output(str) {
-      var log = $("log");
-      var escaped = str.toString().replace(/&/, "&amp;").replace(/</, "&lt;").
-        replace(/>/, "&gt;").replace(/"/, "&quot;"); // "
-      log.innerHTML = escaped + "<br>" + log.innerHTML;
-    }
-document.write('<p class="accent">You\'re using ' + $.browser.agent + ' ' + $.browser.ver + ' on ' + $.browser.os + '!</p>');
+	
 document.write(JSON.stringify($.browser));
 document.write(navigator.userAgent);
   </script>
 </head><body>
 <br>
-    <button onclick="test_rpc();">test</button> <button onclick="getFile();return false;">test1</button>
+    <button onclick="test_rpc();">test</button>
   <div id="log"></div>
 </body></html>
+
+
+
+
+
+
+
+

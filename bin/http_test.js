@@ -6,7 +6,7 @@ console.log('http testing....');
 
 var assert = require('assert');
 var io = require('io');
-var os = require('os');
+var fs = require('fs');
 var http = require('http');
 var encoding = require('encoding');
 var zlib = require('zlib');
@@ -110,7 +110,7 @@ function readreq(u) {
 	bs.EOL = "\r\n";
 
 	bs.writeText(u);
-	ms.seek(0, io.SEEK_SET);
+	ms.seek(0, fs.SEEK_SET);
 
 	var req = new http.Request();
 
@@ -127,7 +127,7 @@ bs.EOL = "\r\n";
 
 bs
 		.writeText("GET / HTTP/1.0\r\nhead1: 100\r\nhead2: 200\r\nContent-type:test\r\nContent-length:    10\r\n\r\n0123456789");
-ms.seek(0, io.SEEK_SET);
+ms.seek(0, fs.SEEK_SET);
 
 var req = new http.Request();
 req.readFrom(bs);
@@ -152,7 +152,7 @@ for ( var n in keep_reqs) {
 	bs.EOL = "\r\n";
 
 	bs.writeText(n);
-	ms.seek(0, io.SEEK_SET);
+	ms.seek(0, fs.SEEK_SET);
 
 	var req = new http.Request();
 	req.readFrom(bs);
@@ -165,7 +165,7 @@ function get_cookie(txt) {
 	bs.EOL = "\r\n";
 
 	bs.writeText(txt);
-	ms.seek(0, io.SEEK_SET);
+	ms.seek(0, fs.SEEK_SET);
 
 	var req = new http.Request();
 	req.readFrom(bs);
@@ -188,7 +188,7 @@ function get_query(txt) {
 	bs.EOL = "\r\n";
 
 	bs.writeText(txt);
-	ms.seek(0, io.SEEK_SET);
+	ms.seek(0, fs.SEEK_SET);
 
 	var req = new http.Request();
 	req.readFrom(bs);
@@ -213,7 +213,7 @@ function get_form(txt) {
 	bs.EOL = "\r\n";
 
 	bs.writeText(txt);
-	ms.seek(0, io.SEEK_SET);
+	ms.seek(0, fs.SEEK_SET);
 
 	var req = new http.Request();
 	req.readFrom(bs);
@@ -259,7 +259,7 @@ function get_response(txt) {
 	bs.EOL = "\r\n";
 
 	bs.writeText(txt);
-	ms.seek(0, io.SEEK_SET);
+	ms.seek(0, fs.SEEK_SET);
 
 	var req = new http.Response();
 	req.readFrom(bs);
@@ -352,7 +352,7 @@ var rep = hfh_test(url);
 assert.equal(404, rep.status);
 rep.clear();
 
-io.writeFile('test.html', 'test html file');
+fs.writeFile('test.html', 'test html file');
 
 var rep = hfh_test(url);
 assert.equal(200, rep.status);
@@ -373,7 +373,7 @@ assert.equal(14, rep.length);
 rep.clear();
 
 var sgz = 'gz test file';
-var gz = io.open('test.html.gz', 'w');
+var gz = fs.open('test.html.gz', 'w');
 gz.write(zlib.gzip(new Buffer(sgz)));
 gz.close();
 
@@ -384,9 +384,10 @@ assert.equal(200, rep.status);
 assert.equal('gzip', rep.firstHeader('Content-Encoding'));
 rep.body.rewind();
 assert.equal(sgz, zlib.gunzip(rep.body.readAll()).toString());
+rep.body.close();
 rep.clear();
 
-os.unlink('test.html.gz');
+fs.unlink('test.html.gz');
 
 var rep = hfh_test(url, {
 	'Accept-Encoding' : 'deflate,gzip'
@@ -395,4 +396,4 @@ assert.equal(200, rep.status);
 assert.equal(null, rep.firstHeader('Content-Encoding'));
 rep.clear();
 
-os.unlink('test.html');
+fs.unlink('test.html');

@@ -5,8 +5,8 @@
 console.log('buffered testing....');
 
 var assert = require('assert');
+var fs = require('fs');
 var io = require('io');
-var os = require('os');
 var net = require('net');
 
 var s = '0123456789\r\n';
@@ -14,7 +14,7 @@ var s = '0123456789\r\n';
 for ( var i = 0; i < 10; i++)
 	s = s + s;
 
-var f = io.open("test0000", 'w');
+var f = fs.open("test0000", 'w');
 f.write(new Buffer(s));
 f.close();
 
@@ -34,12 +34,12 @@ function t_read(f, sz) {
 }
 
 for ( var i = 3; i < 100000; i *= 3)
-	t_read(io.open("test0000"), i);
+	t_read(fs.open("test0000"), i);
 
 function accept1(s) {
 	while (true) {
 		var c = s.accept();
-		var f = io.open('test0000');
+		var f = fs.open('test0000');
 		f.copyTo(c);
 		f.close();
 		c.close();
@@ -57,7 +57,7 @@ for ( var i = 3; i < 100000; i *= 3) {
 	t_read(conn, i);
 }
 
-f = io.open("test0000");
+f = fs.open("test0000");
 var r = new io.BufferedStream(f);
 r.EOL = '\r\n';
 
@@ -70,7 +70,7 @@ while ((s = r.readLine()) !== null) {
 assert.equal(1024, n);
 f.close();
 
-f = io.open("test0000");
+f = fs.open("test0000");
 var r = new io.BufferedStream(f);
 r.EOL = '\r\n';
 
@@ -80,4 +80,4 @@ assert.throws(function() {
 });
 
 f.close();
-os.unlink("test0000");
+fs.unlink("test0000");

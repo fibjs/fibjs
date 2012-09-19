@@ -2,19 +2,18 @@ console.log('gd testing....');
 
 var assert = require('assert');
 var gd = require('gd');
-var io = require('io');
-var os = require('os');
+var fs = require('fs');
 
 function gd_test(fmt) {
-	var f = io.open('test.pic', 'w');
+	var f = fs.open('test.pic', 'w');
 	img.save(f, fmt);
 	f.close();
 
-	f = io.open('test.pic', 'r');
+	f = fs.open('test.pic', 'r');
 	var img1 = gd.load(f);
 	f.close();
 
-	os.unlink('test.pic');
+	fs.unlink('test.pic');
 
 	img1 = gd.load(img.getData(fmt));
 
@@ -75,8 +74,8 @@ gd_test(gd.BMP);
 gd_test(gd.GD);
 gd_test(gd.GD2);
 
-img.save(io.open('test.png', 'w'), gd.PNG);
+img.save(fs.open('test.png', 'w'), gd.PNG);
 img1 = img.resample(220, 120);
 img1.flip();
-img1.save(io.open('test1.png', 'w'), gd.PNG);
+img1.save(fs.open('test1.png', 'w'), gd.PNG);
 
