@@ -181,16 +181,16 @@ result_t MemoryStream::onerror(v8::Handle<v8::Function> func)
 
 result_t MemoryStream::seek(int64_t offset, int32_t whence)
 {
-	if (whence < io_base::_SEEK_SET || whence > io_base::_SEEK_END)
+	if (whence < fs_base::_SEEK_SET || whence > fs_base::_SEEK_END)
 		return CALL_E_INVALIDARG;
 
 	int64_t p = m_buffer.tellg();
 	m_buffer.seekg(0, std::ios::end);
 	int64_t sz = m_buffer.tellg();
 
-	if (whence == io_base::_SEEK_CUR)
+	if (whence == fs_base::_SEEK_CUR)
 		offset += p;
-	else if (whence == io_base::_SEEK_END)
+	else if (whence == fs_base::_SEEK_END)
 		offset += sz;
 
 	if (offset < 0)

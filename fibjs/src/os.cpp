@@ -20,6 +20,17 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <dirent.h>
+
+#ifdef MacOS
+#include <mach/task.h>
+#include <mach/mach.h>
+#include <mach/mach_host.h>
+#include <sys/sysctl.h>
+#else
+#include <sys/sysinfo.h>
+#include <dlfcn.h>
+#endif
+
 #else
 #include <stdio.h>
 #include <iphlpapi.h>
@@ -42,58 +53,12 @@ static PROCNTQSI pNtQuerySystemInformation;
 #define SystemTimeInformation 3
 #define SystemProcessorPerformanceInformation 8
 
-#define popen _popen
-#define pclose _pclose
-
 #endif
 
-#ifdef MacOS
-#include <mach/task.h>
-#include <mach/mach.h>
-#include <mach/mach_host.h>
-#include <sys/sysctl.h>
-#include <mach-o/dyld.h>
-#else
-#include <sys/sysinfo.h>
-#include <dlfcn.h>
-#endif
-
-#include "utf8.h"
-#include "Stat.h"
-#include "List.h"
-#include "File.h"
-#include "BufferedStream.h"
 #include "inetAddr.h"
 
 namespace fibjs
 {
-
-result_t os_base::get_shell(std::string& retVal)
-{
-#ifdef _WIN32
-	WCHAR szFileName[MAX_PATH];
-
-	GetModuleFileNameW(NULL, szFileName, MAX_PATH);
-	retVal = utf16to8String(szFileName);
-#elif defined(Linux)
-	size_t linksize = 256;
-	char exeName[256] =
-	{	0};
-
-	if (readlink("/proc/self/exe", exeName, linksize) == -1)
-		return LastError();
-
-	retVal = exeName;
-#elif defined(MacOS)
-	char exeName[1024] = "";
-	uint32_t size = sizeof(exeName);
-
-	_NSGetExecutablePath(exeName, &size);
-
-	retVal = exeName;
-#endif
-	return 0;
-}
 
 result_t os_base::get_hostname(std::string& retVal)
 {
@@ -825,246 +790,6 @@ result_t os_base::time(const char* tmString, date_t& retVal)
 result_t os_base::get_timezone(int32_t& retVal)
 {
 	retVal = date_t::LocalOffset();
-	return 0;
-}
-
-result_t os_base::stat(const char* path, obj_ptr<Stat_base>& retVal,
-		exlib::AsyncEvent* ac)
-{
-	obj_ptr<Stat> pStat = new Stat();
-
-	result_t hr = pStat->getStat(path);
-	if (hr < 0)
-		return hr;
-
-	retVal = pStat;
-
-	return 0;
-}
-
-#ifndef _WIN32
-
-result_t os_base::exists(const char* path, bool& retVal, exlib::AsyncEvent* ac)
-{
-	if (!ac)
-		return CALL_E_NOSYNC;
-
-	retVal = access(path, F_OK) == 0;
-	return 0;
-}
-
-result_t os_base::unlink(const char* path, exlib::AsyncEvent* ac)
-{
-	if (!ac)
-		return CALL_E_NOSYNC;
-
-	if (::unlink(path))
-		return LastError();
-
-	return 0;
-}
-
-result_t os_base::mkdir(const char* path, exlib::AsyncEvent* ac)
-{
-	if (!ac)
-		return CALL_E_NOSYNC;
-
-	if (::mkdir(path, 715))
-		return LastError();
-
-	return 0;
-}
-
-result_t os_base::rmdir(const char* path, exlib::AsyncEvent* ac)
-{
-	if (!ac)
-		return CALL_E_NOSYNC;
-
-	if (::rmdir(path))
-		return LastError();
-
-	return 0;
-}
-
-result_t os_base::rename(const char* from, const char* to,
-		exlib::AsyncEvent* ac)
-{
-	if (!ac)
-		return CALL_E_NOSYNC;
-
-	if (::rename(from, to))
-		return LastError();
-
-	return 0;
-}
-
-result_t os_base::readdir(const char* path, obj_ptr<List_base>& retVal,
-		exlib::AsyncEvent* ac)
-{
-	if (!ac)
-		return CALL_E_NOSYNC;
-
-	DIR * dp;
-	struct dirent * ep;
-	std::string fpath;
-	result_t hr;
-	obj_ptr<List> oa;
-
-	dp = ::opendir(path);
-	if (dp == NULL)
-		return LastError();
-
-	oa = new List();
-
-	while ((ep = ::readdir(dp)))
-	{
-		obj_ptr<Stat_base> fstat;
-
-		fpath = path;
-		fpath += '/';
-		fpath += ep->d_name;
-
-		hr = stat(fpath.c_str(), fstat, NULL);
-		if (hr >= 0)
-			oa->append(fstat);
-	}
-	::closedir(dp);
-
-	retVal = oa;
-
-	return 0;
-}
-
-#else
-
-result_t os_base::exists(const char* path, bool& retVal, exlib::AsyncEvent* ac)
-{
-	if (!ac)
-	return CALL_E_NOSYNC;
-
-	retVal = _waccess(UTF8_W(path), 0) == 0;
-	return 0;
-}
-
-result_t os_base::unlink(const char* path, exlib::AsyncEvent* ac)
-{
-	if (!ac)
-	return CALL_E_NOSYNC;
-
-	if(::_wunlink(UTF8_W(path)))
-	return LastError();
-
-	return 0;
-}
-
-result_t os_base::mkdir(const char* path, exlib::AsyncEvent* ac)
-{
-	if (!ac)
-	return CALL_E_NOSYNC;
-
-	if (::_wmkdir(UTF8_W(path)))
-	return LastError();
-
-	return 0;
-}
-
-result_t os_base::rmdir(const char* path, exlib::AsyncEvent* ac)
-{
-	if (!ac)
-	return CALL_E_NOSYNC;
-
-	if (::_wrmdir(UTF8_W(path)))
-	return LastError();
-
-	return 0;
-}
-
-result_t os_base::rename(const char* from, const char* to, exlib::AsyncEvent* ac)
-{
-	if (!ac)
-	return CALL_E_NOSYNC;
-
-	if (::_wrename(UTF8_W(from), UTF8_W(to)))
-	return LastError();
-
-	return 0;
-}
-
-result_t os_base::readdir(const char* path, obj_ptr<List_base>& retVal, exlib::AsyncEvent* ac)
-{
-	if (!ac)
-	return CALL_E_NOSYNC;
-
-	WIN32_FIND_DATAW fd;
-	HANDLE hFind;
-	std::wstring fpath;
-	obj_ptr<List> oa;
-
-	fpath = utf8to16String(path);
-	fpath.append(L"/*", 2);
-
-	hFind = FindFirstFileW(fpath.c_str(), &fd);
-	if (hFind == INVALID_HANDLE_VALUE)
-	return LastError();
-
-	oa = new List();
-
-	do
-	{
-		obj_ptr<Stat> pStat = new Stat();
-		pStat->fill(fd);
-		oa->append(pStat);
-	}while(FindNextFileW(hFind, &fd));
-
-	FindClose(hFind);
-
-	retVal = oa;
-
-	return 0;
-}
-
-#endif
-
-void clearModule();
-void flushLog();
-
-result_t os_base::exit(int32_t code)
-{
-	flushLog();
-	clearModule();
-
-	::exit(code);
-	return 0;
-}
-
-result_t os_base::system(const char* cmd, int32_t& retVal,
-		exlib::AsyncEvent* ac)
-{
-	if (!ac)
-		return CALL_E_NOSYNC;
-
-#ifdef _WIN32
-	retVal = ::system(cmd);
-#else
-	retVal = ::system(cmd) >> 8;
-#endif
-
-	return 0;
-}
-
-result_t os_base::exec(const char* cmd, obj_ptr<BufferedStream_base>& retVal,
-		exlib::AsyncEvent* ac)
-{
-	if (!ac)
-		return CALL_E_NOSYNC;
-
-	FILE* pPipe = popen(cmd, "r");
-	if (pPipe == NULL)
-		return LastError();
-
-	retVal = new BufferedStream(new File(pPipe, true));
-	retVal->set_EOL("\n");
-
 	return 0;
 }
 

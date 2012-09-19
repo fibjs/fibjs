@@ -9,7 +9,7 @@
 #endif
 
 #include "ifs/global.h"
-#include "ifs/os.h"
+#include "ifs/process.h"
 #include <exlib/lockfree.h>
 #include "Fiber.h"
 #include "utf8.h"
@@ -96,6 +96,7 @@ private:
 };
 
 void initModule();
+void init_argv(int argc, char** argv);
 
 void _main(const char* fname)
 {
@@ -134,7 +135,7 @@ void _main(const char* fname)
 	if (try_catch.HasCaught())
 		ReportException(&try_catch, true);
 
-	os_base::exit(0);
+	process_base::exit(0);
 
 	s_context.Dispose();
 }
@@ -239,6 +240,8 @@ int main(int argc, char* argv[])
 
 	exlib::OSThread::Sleep(1);
 	v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
+
+	fibjs::init_argv(argc, argv);
 
 	if (argc == 2)
 		fibjs::_main(argv[1]);

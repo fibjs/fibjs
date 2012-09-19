@@ -155,11 +155,11 @@ result_t MemoryStream::CloneStream::onerror(v8::Handle<v8::Function> func)
 
 result_t MemoryStream::CloneStream::seek(int64_t offset, int32_t whence)
 {
-	if (whence == io_base::_SEEK_SET)
+	if (whence == fs_base::_SEEK_SET)
 		m_pos = (int) offset;
-	else if (whence == io_base::_SEEK_CUR)
+	else if (whence == fs_base::_SEEK_CUR)
 		m_pos += (int) offset;
-	else if (whence == io_base::_SEEK_END)
+	else if (whence == fs_base::_SEEK_END)
 		m_pos = (int) offset + (int) m_buffer.length();
 	else
 		return CALL_E_INVALIDARG;

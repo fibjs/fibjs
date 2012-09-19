@@ -6,7 +6,7 @@
  */
 
 #include "ifs/os.h"
-#include "ifs/io.h"
+#include "ifs/fs.h"
 #include "ifs/MemoryStream.h"
 #include <sstream>
 

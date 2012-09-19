@@ -8,9 +8,6 @@
  */
 class os : module
 {
-	/*! @brief 查询当前运行执行文件完整路径 */
-	static String shell;
-	
 	/*! @brief 查询当前运行环境主机名 */
 	static String hostname;
 
@@ -51,59 +48,4 @@ class os : module
 	 * @param tmString 时间字符串，缺省则查询当前时间
 	 */
 	static Date time(String tmString = "");
-
-	/*! @brief 查询指定的文件或目录是否存在
-	 * @param path 指定要查询的路径
-	 */
-	static Boolean exists(String path) async;
-
-	/*! @brief 删除指定的文件
-	 * @param path 指定要删除的路径
-	 */
-	static unlink(String path) async;
-
-	/*! @brief 创建一个目录
-	 * @param path 指定要创建的目录名
-	 */
-	static mkdir(String path) async;
-
-	/*! @brief 删除一个目录
-	 * @param path 指定要删除的目录名
-	 */
-	static rmdir(String path) async;
-
-	/*! @brief 重新命名一个文件
-	 * @param from 指定更名的文件
-	 * @param to 指定要修改的新文件名
-	 */
-	static rename(String from, String to) async;
-
-	/*! @brief 查询指定文件的基础信息
-	 * @param path 指定查询的文件
-	 * @return 返回文件的基础信息
-	 */
-	static Stat stat(String path) async;
-
-	/*! @brief 读取指定目录的文件信息
-	 * @param path 指定查询的目录
-	 * @return 返回目录的文件信息数组
-	 */
-	static List readdir(String path) async;
-	
-	/*! @brief 退出当前进程，并返回结果
-	 * @param code 返回进程结果
-	 */
-	static exit(Integer code);
-	
-	/*! @brief 运行指定的命令行，并返回运行结果
-	 * @param cmd 指定运行的命令行
-	 * @return 返回包含进程运行结果
-	 */
-	static Integer system(String cmd) async;
-
-	/*! @brief 运行指定的命令行，并访问命令的输出结果
-	 * @param cmd 指定运行的命令行
-	 * @return 返回包含运行结果的文件对象
-	 */
-	static BufferedStream exec(String cmd) async;
 };

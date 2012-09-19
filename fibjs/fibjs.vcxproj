@@ -38,6 +38,7 @@
     <ClCompile Include="src\Fiber.cpp" />
     <ClCompile Include="src\fibjs.cpp" />
     <ClCompile Include="src\File.cpp" />
+    <ClCompile Include="src\fs.cpp" />
     <ClCompile Include="src\Function.cpp" />
     <ClCompile Include="src\global.cpp" />
     <ClCompile Include="src\hash.cpp" />
@@ -67,6 +68,7 @@
     <ClCompile Include="src\NullHandler.cpp" />
     <ClCompile Include="src\os.cpp" />
     <ClCompile Include="src\path.cpp" />
+    <ClCompile Include="src\process.cpp" />
     <ClCompile Include="src\Regex.cpp" />
     <ClCompile Include="src\resolve.cpp" />
     <ClCompile Include="src\Routing.cpp" />
@@ -136,6 +138,7 @@
     <ClInclude Include="include\ifs\Event.h" />
     <ClInclude Include="include\ifs\Fiber.h" />
     <ClInclude Include="include\ifs\File.h" />
+    <ClInclude Include="include\ifs\fs.h" />
     <ClInclude Include="include\ifs\Function.h" />
     <ClInclude Include="include\ifs\gd.h" />
     <ClInclude Include="include\ifs\global.h" />
@@ -162,6 +165,7 @@
     <ClInclude Include="include\ifs\object.h" />
     <ClInclude Include="include\ifs\os.h" />
     <ClInclude Include="include\ifs\path.h" />
+    <ClInclude Include="include\ifs\process.h" />
     <ClInclude Include="include\ifs\re.h" />
     <ClInclude Include="include\ifs\Regex.h" />
     <ClInclude Include="include\ifs\Routing.h" />
@@ -294,7 +298,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>winmm.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -310,7 +314,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>winmm.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -331,7 +335,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>winmm.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -354,7 +358,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>winmm.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

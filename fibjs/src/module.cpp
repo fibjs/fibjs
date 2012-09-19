@@ -14,7 +14,10 @@
 #include "ifs/coroutine.h"
 #include "ifs/encoding.h"
 
+#include "ifs/process.h"
+
 #include "ifs/io.h"
+#include "ifs/fs.h"
 #include "ifs/net.h"
 #include "ifs/zmq.h"
 
@@ -97,8 +100,10 @@ void initModule()
 	InstallNativeModule("path", path_base::class_info());
 
 	InstallNativeModule("coroutine", coroutine_base::class_info());
+	InstallNativeModule("process", process_base::class_info());
 
 	InstallNativeModule("io", io_base::class_info());
+	InstallNativeModule("fs", fs_base::class_info());
 	InstallNativeModule("os", os_base::class_info());
 	InstallNativeModule("net", net_base::class_info());
 	InstallNativeModule("zmq", zmq_base::class_info());
@@ -244,7 +249,7 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 
 	if (bMod)
 	{
-		hr = os_base::ac_stat(pname, st);
+		hr = fs_base::ac_stat(pname, st);
 		if (hr < 0)
 			return hr;
 
@@ -262,7 +267,7 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 	}
 
 	std::string buf;
-	hr = io_base::ac_readFile(pname, buf);
+	hr = fs_base::ac_readFile(pname, buf);
 	if (hr < 0)
 		return hr;
 

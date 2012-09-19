@@ -7,7 +7,7 @@
 
 #include "HttpFileHandler.h"
 #include "HttpRequest.h"
-#include "ifs/io.h"
+#include "ifs/fs.h"
 #include "ifs/os.h"
 #include "ifs/path.h"
 
@@ -148,12 +148,12 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				pThis->m_time.parse(str.c_str(), (int) str.length());
 
 				pThis->set(check);
-				return os_base::stat(pThis->m_path.c_str(), pThis->m_stat,
+				return fs_base::stat(pThis->m_path.c_str(), pThis->m_stat,
 						pThis);
 			}
 
 			pThis->set(open);
-			return io_base::open(pThis->m_path.c_str(), "r", pThis->m_file,
+			return fs_base::open(pThis->m_path.c_str(), "r", pThis->m_file,
 					pThis);
 		}
 
@@ -174,7 +174,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			}
 
 			pThis->set(open);
-			return io_base::open(pThis->m_path.c_str(), "r", pThis->m_file,
+			return fs_base::open(pThis->m_path.c_str(), "r", pThis->m_file,
 					pThis);
 		}
 
