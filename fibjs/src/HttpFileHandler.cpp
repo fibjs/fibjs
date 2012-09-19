@@ -108,9 +108,20 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 	public:
 		asyncInvoke(HttpFileHandler* pThis, HttpRequest_base* req,
 				exlib::AsyncEvent* ac) :
-				asyncState(ac), m_pThis(pThis), m_req(req)
+				asyncState(ac), m_pThis(pThis), m_req(req), m_gzip(false)
 		{
 			req->get_response(m_rep);
+
+			Variant hdr;
+
+			if (m_req->firstHeader("Accept-Encoding", hdr) != CALL_RETURN_NULL)
+			{
+				std::string str = hdr.string();
+
+				if (qstristr(str.c_str(), "gzip"))
+					m_gzip = true;
+			}
+
 			set(start);
 		}
 
@@ -124,6 +135,9 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				value.append("index.html", 10);
 			path_base::normalize((pThis->m_pThis->m_root + value).c_str(),
 					pThis->m_path);
+
+			if (pThis->m_gzip)
+				pThis->m_path.append(".gz", 3);
 
 			Variant v;
 
@@ -201,11 +215,22 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			pThis->m_rep->addHeader("Last-Modified", str);
 			pThis->m_rep->set_body(pThis->m_file);
 
+			if (pThis->m_gzip)
+				pThis->m_rep->addHeader("Content-Encoding", "gzip");
+
 			return pThis->done(CALL_RETURN_NULL);
 		}
 
 		virtual int error(int v)
 		{
+			if (m_gzip)
+			{
+				m_gzip = false;
+
+				set(start);
+				return 0;
+			}
+
 			m_rep->set_status(404);
 			return done(CALL_RETURN_NULL);
 		}
@@ -218,6 +243,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		obj_ptr<Stat_base> m_stat;
 		std::string m_path;
 		date_t m_time;
+		bool m_gzip;
 	};
 
 	if (!ac)
