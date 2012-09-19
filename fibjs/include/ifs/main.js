@@ -2,13 +2,14 @@ String.prototype.trim = function() {
 	return this.replace(/(^\s*)|(\s*$)/g, "");
 }
 
-var io = require('io');
+var fs = require('fs');
 var os = require('os');
+var process = require('process');
 var path = require('path');
 
 var clsName = {};
 
-var dir = os.readdir('.');
+var dir = fs.readdir('.');
 
 for ( var idx = 0; idx < dir.length; idx++)
 	if (path.extname(dir[idx].name) === '.idl')
@@ -18,12 +19,12 @@ for ( var idx = 0; idx < dir.length; idx++)
 	if (path.extname(dir[idx].name) === '.idl')
 		parserIDL(dir[idx].name);
 
-os.system('doxygen');
+process.system('doxygen');
 
 function preparserIDL(fname) {
 	var f, line = 0, isRem;
 
-	f = io.readFile(fname).replace(/\r/g, "").split("\n");
+	f = fs.readFile(fname).replace(/\r/g, "").split("\n");
 	f.reverse();
 
 	while (f.length) {
@@ -149,7 +150,7 @@ function parserIDL(fname) {
 		"Variant" : "Variant"
 	};
 
-	f = io.readFile(fname).replace(/\r/g, "").split("\n");
+	f = fs.readFile(fname).replace(/\r/g, "").split("\n");
 	f.reverse();
 
 	line = 0;
@@ -408,12 +409,12 @@ function parserIDL(fname) {
 		var sOld = "";
 
 		try {
-			sOld = io.readFile(ns + ".h");
+			sOld = fs.readFile(ns + ".h");
 		} catch (e) {
 		}
 
 		if (sOld != sTxt) {
-			io.writeFile(ns + ".h", txt.join("\n"));
+			fs.writeFile(ns + ".h", txt.join("\n"));
 			console.log("Building:", ns + ".h");
 		}
 	}

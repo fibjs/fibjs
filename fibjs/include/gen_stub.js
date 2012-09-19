@@ -4,7 +4,7 @@
 
 var txt = [];
 
-var io = require('io');
+var fs = require('fs');
 
 for ( var i = 0; i < 10; i++) {
 	gen_stub(i, false, false);
@@ -19,7 +19,7 @@ for ( var i = 0; i < 10; i++) {
 }
 
 // print(txt.join('\n'));
-io.writeFile('object_async.inl', txt.join('\n'));
+fs.writeFile('object_async.inl', txt.join('\n'));
 
 function gen_stub(argn, bInst, bRet) {
 	var s, i, a, fa, an = bInst ? 1 : 0;
