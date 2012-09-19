@@ -24,6 +24,9 @@ class Image : object
 	/*! @brief 查询图像颜色表内的颜色总数 */
 	readonly Integer colorsTotal;
 
+	/*! @brief查询和设定指定的颜色为透明色	 */
+	Integer transparent;
+
 	/*! @brief 按照指定的格式返回图像数据
 	 * @param format 指定返回数据的格式，允许值为 gd.PNG, gd.JPEG, gd.GIF, gd.BMP, gd.GD, gd.GD2, 缺省为 gd.PNG
 	 * @param quality 当格式为 gd.JPEG 时用于指定压缩质量，缺省为 85，其他格式忽略此参数
@@ -148,11 +151,6 @@ class Image : object
 	 */
 	setPixel(Integer x, Integer y, Integer color);
 
-	/*! @brief设定指定的颜色为透明色
-	 * @param color 指定要设为透明的颜色号
-	 */
-	transparent(Integer color);
-
 	/*! @brief 设定画线的宽度，line, rectangle, arc 等方法画线时缺省宽度为一个像素，可使用此方法改变线的宽度
 	 * @param thickness 画线的宽度
 	 */
@@ -259,6 +257,12 @@ class Image : object
 	 */
 	fillToBorder(Integer x, Integer y, Integer borderColor, Integer color);
 
+	/*! @brief 替换图像中指定的颜色为新颜色
+	 * @param src 指定要替换的颜色
+	 * @param dst 指定新颜色
+	 */
+	colorReplace(Integer src, Integer dst) async;
+
 	/*! @brief 复制当前图像为一个新图像
 	 * @return 返回复制的新图像对象
 	 */
@@ -269,6 +273,15 @@ class Image : object
 	 * @param height 指定拉伸的高度
 	 */
 	Image resample(Integer width, Integer height) async;
+
+	/*! @brief 剪切图像的一部分为一个新的图像
+	 * @param x 剪切窗口的左上 x 坐标
+	 * @param y 剪切窗口的左上 y 坐标
+	 * @param width 剪切窗口的宽度
+	 * @param height 剪切窗口的高度
+	 * @return 返回剪切出的图像
+	 */
+	Image crop(Integer x, Integer y, Integer width, Integer height) async;
 
 	/*! @brief 镜像当前图像
 	 * @param dir 镜像方向，允许值为 gd.BOTH,gd.HORIZONTAL, gd.VERTICAL, 缺省为 gd.HORIZONTAL

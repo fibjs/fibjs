@@ -55,8 +55,8 @@ result_t gd_base::load(Buffer_base* data, obj_ptr<Image_base>& retVal,
 	return 0;
 }
 
-result_t gd_base::load(SeekableStream_base* stm,
-		obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac)
+result_t gd_base::load(SeekableStream_base* stm, obj_ptr<Image_base>& retVal,
+		exlib::AsyncEvent* ac)
 {
 	class asyncLoad: public asyncState
 	{
@@ -201,6 +201,14 @@ result_t Image::load(Buffer_base* data)
 	return 0;
 }
 
+int my_replacer(gdImagePtr im, int src)
+{
+	if (src == gdImageGetTransparent(im))
+		return gdTrueColor(255, 255, 255);
+
+	return gdAlphaBlend(gdTrueColor(255, 255, 255), src);
+}
+
 result_t Image::getData(int32_t format, int32_t quality,
 		obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac)
 {
@@ -212,6 +220,20 @@ result_t Image::getData(int32_t format, int32_t quality,
 
 	int size = 0;
 	void *data = NULL;
+
+	if (gdImageTrueColor(m_image))
+	{
+		if (format == gd_base::_JPEG || format == gd_base::_TIFF
+				|| format == gd_base::_GIF || format == gd_base::_BMP)
+			gdImageColorReplaceCallback(m_image, my_replacer);
+	}
+	else if (gdImageGetTransparent(m_image) != -1)
+	{
+		if (gd_base::_JPEG || format == gd_base::_TIFF
+				|| format == gd_base::_GIF || format == gd_base::_BMP)
+			gdImageColorReplace(m_image, gdImageGetTransparent(m_image),
+					gdTrueColor(255, 255, 255));
+	}
 
 	switch (format)
 	{
@@ -481,12 +503,21 @@ result_t Image::setPixel(int32_t x, int32_t y, int32_t color)
 	return 0;
 }
 
-result_t Image::transparent(int32_t color)
+result_t Image::get_transparent(int32_t& retVal)
 {
 	if (!m_image)
 		return CALL_E_INVALID_CALL;
 
-	gdImageColorTransparent(m_image, color);
+	retVal = gdImageGetTransparent(m_image);
+	return 0;
+}
+
+result_t Image::set_transparent(int32_t newVal)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	gdImageColorTransparent(m_image, newVal);
 	return 0;
 }
 
@@ -682,6 +713,40 @@ result_t Image::New(int32_t width, int32_t height, obj_ptr<Image>& retVal)
 	return 0;
 }
 
+result_t Image::colorReplace(int32_t src, int32_t dst, exlib::AsyncEvent* ac)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	gdImageColorReplace(m_image, src, dst);
+	return 0;
+}
+
+result_t Image::crop(int32_t x, int32_t y, int32_t width, int32_t height,
+		obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	gdRect r =
+	{ x, y, width, height };
+
+	obj_ptr<Image> img = new Image();
+
+	img->m_image = gdImageCrop(m_image, &r);
+	img->setExtMemory();
+
+	retVal = img;
+
+	return 0;
+}
+
 result_t Image::clone(obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac)
 {
 	if (!m_image)
@@ -693,13 +758,7 @@ result_t Image::clone(obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac)
 	int32_t w = gdImageSX(m_image);
 	int32_t h = gdImageSY(m_image);
 
-	obj_ptr<Image> dst;
-	New(w, h, dst);
-
-	gdImageCopy(dst->m_image, m_image, 0, 0, 0, 0, w, h);
-
-	retVal = dst;
-	return 0;
+	return crop(0, 0, w, h, retVal, ac);
 }
 
 result_t Image::resample(int32_t width, int32_t height,

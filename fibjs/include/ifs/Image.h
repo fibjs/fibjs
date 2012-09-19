@@ -29,6 +29,8 @@ public:
 	virtual result_t get_format(int32_t& retVal) = 0;
 	virtual result_t get_type(int32_t& retVal) = 0;
 	virtual result_t get_colorsTotal(int32_t& retVal) = 0;
+	virtual result_t get_transparent(int32_t& retVal) = 0;
+	virtual result_t set_transparent(int32_t newVal) = 0;
 	virtual result_t getData(int32_t format, int32_t quality, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t save(Stream_base* stm, int32_t format, int32_t quality, exlib::AsyncEvent* ac) = 0;
 	virtual result_t colorAllocate(int32_t red, int32_t green, int32_t blue, int32_t& retVal) = 0;
@@ -45,7 +47,6 @@ public:
 	virtual result_t getPixel(int32_t x, int32_t y, int32_t& retVal) = 0;
 	virtual result_t getTrueColorPixel(int32_t x, int32_t y, int32_t& retVal) = 0;
 	virtual result_t setPixel(int32_t x, int32_t y, int32_t color) = 0;
-	virtual result_t transparent(int32_t color) = 0;
 	virtual result_t setThickness(int32_t thickness) = 0;
 	virtual result_t line(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t color) = 0;
 	virtual result_t rectangle(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t color) = 0;
@@ -59,8 +60,10 @@ public:
 	virtual result_t filledArc(int32_t x, int32_t y, int32_t width, int32_t height, int32_t start, int32_t end, int32_t color, int32_t style) = 0;
 	virtual result_t fill(int32_t x, int32_t y, int32_t color) = 0;
 	virtual result_t fillToBorder(int32_t x, int32_t y, int32_t borderColor, int32_t color) = 0;
+	virtual result_t colorReplace(int32_t src, int32_t dst, exlib::AsyncEvent* ac) = 0;
 	virtual result_t clone(obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t resample(int32_t width, int32_t height, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t crop(int32_t x, int32_t y, int32_t width, int32_t height, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t flip(int32_t dir, exlib::AsyncEvent* ac) = 0;
 	virtual result_t convert(int32_t color, exlib::AsyncEvent* ac) = 0;
 	virtual result_t copy(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, exlib::AsyncEvent* ac) = 0;
@@ -82,6 +85,7 @@ public:
 		CLONE(format, int32_t);
 		CLONE(type, int32_t);
 		CLONE(colorsTotal, int32_t);
+		CLONE(transparent, int32_t);
 
 		return 0;
 	}
@@ -92,6 +96,8 @@ public:
 	static v8::Handle<v8::Value> s_get_format(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_colorsTotal(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_transparent(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s_set_transparent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_getData(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_save(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_colorAllocate(const v8::Arguments& args);
@@ -108,7 +114,6 @@ public:
 	static v8::Handle<v8::Value> s_getPixel(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_getTrueColorPixel(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_setPixel(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_transparent(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_setThickness(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_line(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_rectangle(const v8::Arguments& args);
@@ -122,8 +127,10 @@ public:
 	static v8::Handle<v8::Value> s_filledArc(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_fill(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_fillToBorder(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_colorReplace(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_clone(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_resample(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_crop(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_flip(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_convert(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_copy(const v8::Arguments& args);
@@ -138,10 +145,14 @@ public:
 	ASYNC_VALUEBACK2(Image_base, getData, obj_ptr<Buffer_base>);
 	ASYNC_MEMBER3(Image_base, save, Stream_base*, int32_t, int32_t);
 	ASYNC_CALLBACK3(Image_base, save);
+	ASYNC_MEMBER2(Image_base, colorReplace, int32_t, int32_t);
+	ASYNC_CALLBACK2(Image_base, colorReplace);
 	ASYNC_MEMBERVALUE1(Image_base, clone, obj_ptr<Image_base>);
 	ASYNC_VALUEBACK0(Image_base, clone, obj_ptr<Image_base>);
 	ASYNC_MEMBERVALUE3(Image_base, resample, int32_t, int32_t, obj_ptr<Image_base>);
 	ASYNC_VALUEBACK2(Image_base, resample, obj_ptr<Image_base>);
+	ASYNC_MEMBERVALUE5(Image_base, crop, int32_t, int32_t, int32_t, int32_t, obj_ptr<Image_base>);
+	ASYNC_VALUEBACK4(Image_base, crop, obj_ptr<Image_base>);
 	ASYNC_MEMBER1(Image_base, flip, int32_t);
 	ASYNC_CALLBACK1(Image_base, flip);
 	ASYNC_MEMBER1(Image_base, convert, int32_t);
@@ -188,7 +199,6 @@ namespace fibjs
 			{"getPixel", s_getPixel},
 			{"getTrueColorPixel", s_getTrueColorPixel},
 			{"setPixel", s_setPixel},
-			{"transparent", s_transparent},
 			{"setThickness", s_setThickness},
 			{"line", s_line},
 			{"rectangle", s_rectangle},
@@ -202,8 +212,10 @@ namespace fibjs
 			{"filledArc", s_filledArc},
 			{"fill", s_fill},
 			{"fillToBorder", s_fillToBorder},
+			{"colorReplace", s_colorReplace},
 			{"clone", s_clone},
 			{"resample", s_resample},
+			{"crop", s_crop},
 			{"flip", s_flip},
 			{"convert", s_convert},
 			{"copy", s_copy},
@@ -220,13 +232,14 @@ namespace fibjs
 			{"height", s_get_height},
 			{"format", s_get_format},
 			{"type", s_get_type},
-			{"colorsTotal", s_get_colorsTotal}
+			{"colorsTotal", s_get_colorsTotal},
+			{"transparent", s_get_transparent, s_set_transparent}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"Image", NULL, 
-			40, s_method, 0, NULL, 5, s_property, NULL, NULL,
+			41, s_method, 0, NULL, 6, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -292,6 +305,29 @@ namespace fibjs
 		hr = pInst->get_colorsTotal(vr);
 
 		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Image_base::s_get_transparent(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Image_base);
+
+		hr = pInst->get_transparent(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Image_base::s_set_transparent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	{
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Image_base);
+
+		PROPERTY_VAL(int32_t);
+		hr = pInst->set_transparent(v0);
+
+		PROPERTY_SET_LEAVE();
 	}
 
 	inline v8::Handle<v8::Value> Image_base::s_getData(const v8::Arguments& args)
@@ -542,18 +578,6 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_transparent(const v8::Arguments& args)
-	{
-		METHOD_INSTANCE(Image_base);
-		METHOD_ENTER(1, 1);
-
-		ARG(int32_t, 0);
-
-		hr = pInst->transparent(v0);
-
-		METHOD_VOID();
-	}
-
 	inline v8::Handle<v8::Value> Image_base::s_setThickness(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(Image_base);
@@ -751,6 +775,19 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
+	inline v8::Handle<v8::Value> Image_base::s_colorReplace(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(2, 2);
+
+		ARG(int32_t, 0);
+		ARG(int32_t, 1);
+
+		hr = pInst->ac_colorReplace(v0, v1);
+
+		METHOD_VOID();
+	}
+
 	inline v8::Handle<v8::Value> Image_base::s_clone(const v8::Arguments& args)
 	{
 		obj_ptr<Image_base> vr;
@@ -774,6 +811,23 @@ namespace fibjs
 		ARG(int32_t, 1);
 
 		hr = pInst->ac_resample(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Image_base::s_crop(const v8::Arguments& args)
+	{
+		obj_ptr<Image_base> vr;
+
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(4, 4);
+
+		ARG(int32_t, 0);
+		ARG(int32_t, 1);
+		ARG(int32_t, 2);
+		ARG(int32_t, 3);
+
+		hr = pInst->ac_crop(v0, v1, v2, v3, vr);
 
 		METHOD_RETURN();
 	}

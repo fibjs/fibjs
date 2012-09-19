@@ -36,6 +36,8 @@ public:
 	virtual result_t get_format(int32_t& retVal);
 	virtual result_t get_type(int32_t& retVal);
 	virtual result_t get_colorsTotal(int32_t& retVal);
+	virtual result_t get_transparent(int32_t& retVal);
+	virtual result_t set_transparent(int32_t newVal);
 	virtual result_t getData(int32_t format, int32_t quality, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
 	virtual result_t save(Stream_base* stm, int32_t format, int32_t quality, exlib::AsyncEvent* ac);
 	virtual result_t colorAllocate(int32_t red, int32_t green, int32_t blue, int32_t& retVal);
@@ -52,7 +54,6 @@ public:
 	virtual result_t getPixel(int32_t x, int32_t y, int32_t& retVal);
 	virtual result_t getTrueColorPixel(int32_t x, int32_t y, int32_t& retVal);
 	virtual result_t setPixel(int32_t x, int32_t y, int32_t color);
-	virtual result_t transparent(int32_t color);
 	virtual result_t setThickness(int32_t thickness);
 	virtual result_t line(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t color);
 	virtual result_t rectangle(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t color);
@@ -66,8 +67,10 @@ public:
 	virtual result_t filledArc(int32_t x, int32_t y, int32_t width, int32_t height, int32_t start, int32_t end, int32_t color, int32_t style);
 	virtual result_t fill(int32_t x, int32_t y, int32_t color);
 	virtual result_t fillToBorder(int32_t x, int32_t y, int32_t borderColor, int32_t color);
+	virtual result_t colorReplace(int32_t src, int32_t dst, exlib::AsyncEvent* ac);
 	virtual result_t clone(obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
 	virtual result_t resample(int32_t width, int32_t height, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
+	virtual result_t crop(int32_t x, int32_t y, int32_t width, int32_t height, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
 	virtual result_t flip(int32_t dir, exlib::AsyncEvent* ac);
 	virtual result_t convert(int32_t color, exlib::AsyncEvent* ac);
 	virtual result_t copy(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, exlib::AsyncEvent* ac);
