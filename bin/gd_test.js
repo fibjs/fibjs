@@ -41,7 +41,9 @@ img.filledRectangle(60, 40, 70, 50, img.colorAllocate(255, 255, 0));
 
 img.filledRectangle(20, 20, 70, 50, img.colorAllocateAlpha(255, 255, 255, 64));
 
-img.transparent(blk);
+img.transparent = blk;
+assert.equal(img.transparent, blk);
+
 img.setThickness(3);
 img.rectangle(60, 60, 70, 70, r);
 
