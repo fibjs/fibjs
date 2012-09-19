@@ -182,6 +182,13 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
 					if (type != 0)
 					{
+						if (pThis->m_rep->firstHeader("Content-Encoding",
+								hdr) != CALL_RETURN_NULL)
+							type = 0;
+					}
+
+					if (type != 0)
+					{
 						pThis->m_rep->addHeader("Content-Encoding",
 								type == 1 ? "gzip" : "deflate");
 
