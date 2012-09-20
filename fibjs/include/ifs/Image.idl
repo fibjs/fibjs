@@ -24,8 +24,11 @@ class Image : object
 	/*! @brief 查询图像颜色表内的颜色总数 */
 	readonly Integer colorsTotal;
 
-	/*! @brief查询和设定指定的颜色为透明色	 */
+	/*! @brief查询和设定指定的颜色为透明色 */
 	Integer transparent;
+
+	/*! @brief查询和设定绘图时是否计算 alpha 层，缺省为 true */
+	Boolean alphaBlending;
 
 	/*! @brief 按照指定的格式返回图像数据
 	 * @param format 指定返回数据的格式，允许值为 gd.PNG, gd.JPEG, gd.GIF, gd.BMP, gd.GD, gd.GD2, 缺省为 gd.PNG

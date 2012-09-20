@@ -221,19 +221,18 @@ result_t Image::getData(int32_t format, int32_t quality,
 	int size = 0;
 	void *data = NULL;
 
-	if (gdImageTrueColor(m_image))
+	if (gd_base::_JPEG || format == gd_base::_TIFF || format == gd_base::_GIF
+			|| format == gd_base::_BMP)
 	{
-		if (format == gd_base::_JPEG || format == gd_base::_TIFF
-				|| format == gd_base::_GIF || format == gd_base::_BMP)
+		if (gdImageTrueColor(m_image))
 			gdImageColorReplaceCallback(m_image, my_replacer);
-	}
-	else if (gdImageGetTransparent(m_image) != -1)
-	{
-		if (gd_base::_JPEG || format == gd_base::_TIFF
-				|| format == gd_base::_GIF || format == gd_base::_BMP)
+
+		if (gdImageGetTransparent(m_image) != -1)
 			gdImageColorReplace(m_image, gdImageGetTransparent(m_image),
 					gdTrueColor(255, 255, 255));
 	}
+	else if (gdImageTrueColor(m_image))
+		gdImageSaveAlpha(m_image, 1);
 
 	switch (format)
 	{
@@ -521,6 +520,24 @@ result_t Image::set_transparent(int32_t newVal)
 	return 0;
 }
 
+result_t Image::get_alphaBlending(bool& retVal)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	retVal = m_image->alphaBlendingFlag != 0;
+	return 0;
+}
+
+result_t Image::set_alphaBlending(bool newVal)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	gdImageAlphaBlending(m_image, newVal);
+	return 0;
+}
+
 result_t Image::setThickness(int32_t thickness)
 {
 	if (!m_image)
@@ -770,11 +787,22 @@ result_t Image::resample(int32_t width, int32_t height,
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	obj_ptr<Image> dst;
-	New(width, height, dst);
+	obj_ptr<Image> dst = new Image();
 
+	if (gdImageTrueColor(m_image))
+		dst->m_image = gdImageCreateTrueColor(width, height);
+	else
+		dst->m_image = gdImageCreate(width, height);
+
+	gdImagePaletteCopy(dst->m_image, m_image);
+	gdImageColorTransparent(dst->m_image, gdImageGetTransparent(m_image));
+
+	dst->setExtMemory();
+
+	gdImageAlphaBlending(dst->m_image, 0);
 	gdImageCopyResampled(dst->m_image, m_image, 0, 0, 0, 0, width, height,
 			gdImageSX(m_image), gdImageSY(m_image));
+	gdImageAlphaBlending(dst->m_image, 1);
 
 	retVal = dst;
 	return 0;
