@@ -171,10 +171,10 @@ HANDLE CreateUniqueDumpFile()
 		hFile = CreateFile(fname, GENERIC_READ | GENERIC_WRITE, 0, NULL,
 				CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (hFile != INVALID_HANDLE_VALUE)
-			return hFile;
+		return hFile;
 
 		if (GetLastError() != ERROR_FILE_EXISTS)
-			return INVALID_HANDLE_VALUE;
+		return INVALID_HANDLE_VALUE;
 	};
 
 	return INVALID_HANDLE_VALUE;
@@ -215,7 +215,7 @@ void enableDump()
 		s_pDump = (MINIDUMPWRITEDUMP) ::GetProcAddress(hDll,
 				"MiniDumpWriteDump");
 		if (s_pDump)
-			SetUnhandledExceptionFilter (GPTUnhandledExceptionFilter);
+		SetUnhandledExceptionFilter (GPTUnhandledExceptionFilter);
 	}
 }
 
@@ -243,7 +243,7 @@ int main(int argc, char* argv[])
 
 	fibjs::init_argv(argc, argv);
 
-	if (argc >= 2)
+	if (argc >= 2 && argv[1][0] != '-')
 		fibjs::_main(argv[1]);
 	else
 		fibjs::_main("main.js");
