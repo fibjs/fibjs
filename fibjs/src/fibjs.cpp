@@ -243,7 +243,7 @@ int main(int argc, char* argv[])
 
 	fibjs::init_argv(argc, argv);
 
-	if (argc == 2)
+	if (argc >= 2)
 		fibjs::_main(argv[1]);
 	else
 		fibjs::_main("main.js");
