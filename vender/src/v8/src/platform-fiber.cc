@@ -244,6 +244,7 @@ public:
 		while ((state = SamplerRegistry::GetState())
 				!= SamplerRegistry::HAS_NO_SAMPLERS)
 		{
+			OS::Sleep(500);
 			bool cpu_profiling_enabled = (state
 					== SamplerRegistry::HAS_CPU_PROFILING_SAMPLERS);
 			bool runtime_profiler_enabled = RuntimeProfiler::IsEnabled();
