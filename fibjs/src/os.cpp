@@ -29,6 +29,10 @@
 #else
 #include <sys/sysinfo.h>
 #include <dlfcn.h>
+
+#ifndef CLOCK_BOOTTIME
+#define CLOCK_BOOTTIME 7
+#endif
 #endif
 
 #else

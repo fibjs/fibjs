@@ -1,0 +1,3 @@
+
+32bit on ubuntu
+apt-get install g++-multilib
