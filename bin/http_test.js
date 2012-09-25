@@ -370,6 +370,7 @@ var rep = hfh_test(url, {
 });
 assert.equal(200, rep.status);
 assert.equal(14, rep.length);
+assert.equal('text/html', rep.firstHeader('Content-Type'));
 rep.clear();
 
 var sgz = 'gz test file';
@@ -382,6 +383,7 @@ var rep = hfh_test(url, {
 });
 assert.equal(200, rep.status);
 assert.equal('gzip', rep.firstHeader('Content-Encoding'));
+assert.equal('text/html', rep.firstHeader('Content-Type'));
 rep.body.rewind();
 assert.equal(sgz, zlib.gunzip(rep.body.readAll()).toString());
 rep.body.close();
