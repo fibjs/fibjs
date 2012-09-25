@@ -122,20 +122,21 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 					m_gzip = true;
 			}
 
+			std::string value;
+
+			m_req->get_value(value);
+			if (value.length() > 0 && isPathSlash(value[value.length() - 1]))
+				value.append("index.html", 10);
+			path_base::normalize((m_pThis->m_root + value).c_str(), m_url);
+
 			set(start);
 		}
 
 		static int start(asyncState* pState, int n)
 		{
 			asyncInvoke* pThis = (asyncInvoke*) pState;
-			std::string value;
 
-			pThis->m_req->get_value(value);
-			if (value.length() > 0 && isPathSlash(value[value.length() - 1]))
-				value.append("index.html", 10);
-			path_base::normalize((pThis->m_pThis->m_root + value).c_str(),
-					pThis->m_path);
-
+			pThis->m_path = pThis->m_url;
 			if (pThis->m_gzip)
 				pThis->m_path.append(".gz", 3);
 
@@ -183,7 +184,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			asyncInvoke* pThis = (asyncInvoke*) pState;
 			std::string ext;
 
-			path_base::extname(pThis->m_path.c_str(), ext);
+			path_base::extname(pThis->m_url.c_str(), ext);
 
 			if (ext.length() > 0)
 			{
@@ -241,6 +242,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		obj_ptr<HttpResponse_base> m_rep;
 		obj_ptr<File_base> m_file;
 		obj_ptr<Stat_base> m_stat;
+		std::string m_url;
 		std::string m_path;
 		date_t m_time;
 		bool m_gzip;
