@@ -221,8 +221,8 @@ result_t Image::getData(int32_t format, int32_t quality,
 	int size = 0;
 	void *data = NULL;
 
-	if (gd_base::_JPEG || format == gd_base::_TIFF || format == gd_base::_GIF
-			|| format == gd_base::_BMP)
+	if (format == gd_base::_JPEG || format == gd_base::_TIFF
+			|| format == gd_base::_GIF || format == gd_base::_BMP)
 	{
 		if (gdImageTrueColor(m_image))
 			gdImageColorReplaceCallback(m_image, my_replacer);
