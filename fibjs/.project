@@ -3,6 +3,7 @@
 	<name>fibjs</name>
 	<comment></comment>
 	<projects>
+		<project>vender</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

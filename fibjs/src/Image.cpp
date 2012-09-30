@@ -31,7 +31,7 @@ result_t gd_base::create(int32_t width, int32_t height, int32_t color,
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	obj_ptr<Image> img = new Image();
+	obj_ptr < Image > img = new Image();
 	result_t hr = img->create(width, height, color);
 	if (hr < 0)
 		return hr;
@@ -46,7 +46,7 @@ result_t gd_base::load(Buffer_base* data, obj_ptr<Image_base>& retVal,
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	obj_ptr<Image> img = new Image();
+	obj_ptr < Image > img = new Image();
 	result_t hr = img->load(data);
 	if (hr < 0)
 		return hr;
@@ -93,7 +93,7 @@ result_t gd_base::load(SeekableStream_base* stm, obj_ptr<Image_base>& retVal,
 			if (n == CALL_RETURN_NULL)
 				return CALL_E_INVALID_DATA;
 
-			obj_ptr<Image> img = new Image();
+			obj_ptr < Image > img = new Image();
 			result_t hr = img->load(pThis->m_buffer);
 			if (hr < 0)
 				return hr;
@@ -277,7 +277,7 @@ result_t Image::save(Stream_base* stm, int32_t format, int32_t quality,
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	obj_ptr<Buffer_base> buf;
+	obj_ptr < Buffer_base > buf;
 	result_t hr = getData(format, quality, buf, ac);
 	if (hr < 0)
 		return hr;
@@ -607,7 +607,7 @@ result_t Image::polygon(v8::Handle<v8::Array> points, int32_t color)
 	if (!m_image)
 		return CALL_E_INVALID_CALL;
 
-	std::vector<gdPoint> pts;
+	std::vector < gdPoint > pts;
 
 	result_t hr = getPoints(points, pts);
 	if (hr < 0)
@@ -622,7 +622,7 @@ result_t Image::openPolygon(v8::Handle<v8::Array> points, int32_t color)
 	if (!m_image)
 		return CALL_E_INVALID_CALL;
 
-	std::vector<gdPoint> pts;
+	std::vector < gdPoint > pts;
 
 	result_t hr = getPoints(points, pts);
 	if (hr < 0)
@@ -637,7 +637,7 @@ result_t Image::filledPolygon(v8::Handle<v8::Array> points, int32_t color)
 	if (!m_image)
 		return CALL_E_INVALID_CALL;
 
-	std::vector<gdPoint> pts;
+	std::vector < gdPoint > pts;
 
 	result_t hr = getPoints(points, pts);
 	if (hr < 0)
@@ -751,15 +751,16 @@ result_t Image::crop(int32_t x, int32_t y, int32_t width, int32_t height,
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	gdRect r =
-	{ x, y, width, height };
+	obj_ptr<Image> dst;
+	result_t hr = New(width, height, dst);
+	if (hr < 0)
+		return hr;
 
-	obj_ptr<Image> img = new Image();
+	gdImageAlphaBlending(dst->m_image, 0);
+	gdImageCopy(dst->m_image, m_image, 0, 0, x, y, width, height);
+	gdImageAlphaBlending(dst->m_image, 1);
 
-	img->m_image = gdImageCrop(m_image, &r);
-	img->setExtMemory();
-
-	retVal = img;
+	retVal = dst;
 
 	return 0;
 }
@@ -787,17 +788,10 @@ result_t Image::resample(int32_t width, int32_t height,
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	obj_ptr<Image> dst = new Image();
-
-	if (gdImageTrueColor(m_image))
-		dst->m_image = gdImageCreateTrueColor(width, height);
-	else
-		dst->m_image = gdImageCreate(width, height);
-
-	gdImagePaletteCopy(dst->m_image, m_image);
-	gdImageColorTransparent(dst->m_image, gdImageGetTransparent(m_image));
-
-	dst->setExtMemory();
+	obj_ptr<Image> dst;
+	result_t hr = New(width, height, dst);
+	if (hr < 0)
+		return hr;
 
 	gdImageAlphaBlending(dst->m_image, 0);
 	gdImageCopyResampled(dst->m_image, m_image, 0, 0, 0, 0, width, height,
