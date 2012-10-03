@@ -29,14 +29,6 @@
 // Top include for all V8 .cc files.
 //
 
-
-// mingw-w64
-#if defined(_WIN32) && !defined(WIN32)
-#define WIN32
-#endif
-
-#define ENABLE_DEBUGGER_SUPPORT
-
 #ifndef V8_V8_H_
 #define V8_V8_H_
 

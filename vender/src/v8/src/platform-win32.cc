@@ -957,11 +957,13 @@ void OS::Guard(void* address, const size_t size) {
   VirtualProtect(address, size, PAGE_READONLY | PAGE_GUARD, &oldprotect);
 }
 
+
 #if 0
 void OS::Sleep(int milliseconds) {
   ::Sleep(milliseconds);
 }
 #endif
+
 
 void OS::Abort() {
   if (IsDebuggerPresent() || FLAG_break_on_abort) {
@@ -2043,9 +2045,8 @@ class SamplerThread : public Thread {
     CONTEXT context;
     memset(&context, 0, sizeof(context));
 
-    TickSample sample_obj;
-    TickSample* sample = CpuProfiler::TickSampleEvent(sampler->isolate());
-    if (sample == NULL) sample = &sample_obj;
+    TickSample* sample = CpuProfiler::StartTickSampleEvent(sampler->isolate());
+    if (sample == NULL) return;
 
     static const DWORD kSuspendFailed = static_cast<DWORD>(-1);
     if (SuspendThread(profiled_thread) == kSuspendFailed) return;
@@ -2065,6 +2066,7 @@ class SamplerThread : public Thread {
       sampler->SampleStack(sample);
       sampler->Tick(sample);
     }
+    CpuProfiler::FinishTickSampleEvent(sampler->isolate());
     ResumeThread(profiled_thread);
   }
 
@@ -2119,6 +2121,11 @@ Sampler::~Sampler() {
 }
 
 
+void Sampler::DoSample() {
+  // TODO(rogulenko): implement
+}
+
+
 void Sampler::Start() {
   ASSERT(!IsActive());
   SetActive(true);
@@ -2132,6 +2139,7 @@ void Sampler::Stop() {
   SetActive(false);
 }
 #endif
+
 
 } }  // namespace v8::internal
 

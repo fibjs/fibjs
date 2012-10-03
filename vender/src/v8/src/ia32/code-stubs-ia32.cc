@@ -1793,9 +1793,10 @@ void BinaryOpStub::GenerateInt32Stub(MacroAssembler* masm) {
           if (result_type_ <= BinaryOpIC::INT32) {
             __ cvttsd2si(ecx, Operand(xmm0));
             __ cvtsi2sd(xmm2, ecx);
-            __ ucomisd(xmm0, xmm2);
-            __ j(not_zero, &not_int32);
-            __ j(carry, &not_int32);
+            __ pcmpeqd(xmm2, xmm0);
+            __ movmskpd(ecx, xmm2);
+            __ test(ecx, Immediate(1));
+            __ j(zero, &not_int32);
           }
           GenerateHeapResultAllocation(masm, &call_runtime);
           __ movdbl(FieldOperand(eax, HeapNumber::kValueOffset), xmm0);
@@ -3213,21 +3214,28 @@ void MathPowStub::Generate(MacroAssembler* masm) {
   __ movsd(double_scratch2, double_result);  // Load double_exponent with 1.
 
   // Get absolute value of exponent.
-  Label no_neg, while_true, no_multiply;
+  Label no_neg, while_true, while_false;
   __ test(scratch, scratch);
   __ j(positive, &no_neg, Label::kNear);
   __ neg(scratch);
   __ bind(&no_neg);
 
+  __ j(zero, &while_false, Label::kNear);
+  __ shr(scratch, 1);
+  // Above condition means CF==0 && ZF==0.  This means that the
+  // bit that has been shifted out is 0 and the result is not 0.
+  __ j(above, &while_true, Label::kNear);
+  __ movsd(double_result, double_scratch);
+  __ j(zero, &while_false, Label::kNear);
+
   __ bind(&while_true);
   __ shr(scratch, 1);
-  __ j(not_carry, &no_multiply, Label::kNear);
-  __ mulsd(double_result, double_scratch);
-  __ bind(&no_multiply);
-
   __ mulsd(double_scratch, double_scratch);
+  __ j(above, &while_true, Label::kNear);
+  __ mulsd(double_result, double_scratch);
   __ j(not_zero, &while_true);
 
+  __ bind(&while_false);
   // scratch has the original value of the exponent - if the exponent is
   // negative, return 1/result.
   __ test(exponent, exponent);
@@ -7198,6 +7206,11 @@ void RecordWriteStub::GenerateFixedRegStubsAheadOfTime() {
 }
 
 
+bool CodeStub::CanUseFPRegisters() {
+  return CpuFeatures::IsSupported(SSE2);
+}
+
+
 // Takes the input in 3 registers: address_ value_ and object_.  A pointer to
 // the value has just been written into the object, now this stub makes sure
 // we keep the GC informed.  The word in the object where the value has been
@@ -7317,6 +7330,17 @@ void RecordWriteStub::CheckNeedsToInformIncrementalMarker(
     OnNoNeedToInformIncrementalMarker on_no_need,
     Mode mode) {
   Label object_is_black, need_incremental, need_incremental_pop_object;
+
+  __ mov(regs_.scratch0(), Immediate(~Page::kPageAlignmentMask));
+  __ and_(regs_.scratch0(), regs_.object());
+  __ mov(regs_.scratch1(),
+         Operand(regs_.scratch0(),
+                 MemoryChunk::kWriteBarrierCounterOffset));
+  __ sub(regs_.scratch1(), Immediate(1));
+  __ mov(Operand(regs_.scratch0(),
+                 MemoryChunk::kWriteBarrierCounterOffset),
+         regs_.scratch1());
+  __ j(negative, &need_incremental);
 
   // Let's look at the color of the object:  If it is not black we don't have
   // to inform the incremental marker.

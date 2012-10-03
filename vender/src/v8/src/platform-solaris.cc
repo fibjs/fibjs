@@ -192,12 +192,14 @@ void OS::Free(void* address, const size_t size) {
   ASSERT(result == 0);
 }
 
+
 #if 0
 void OS::Sleep(int milliseconds) {
   useconds_t ms = static_cast<useconds_t>(milliseconds);
   usleep(1000 * ms);
 }
 #endif
+
 
 void OS::Abort() {
   // Redirect to std abort to signal abnormal program termination.
@@ -673,9 +675,8 @@ static void ProfilerSignalHandler(int signal, siginfo_t* info, void* context) {
   Sampler* sampler = isolate->logger()->sampler();
   if (sampler == NULL || !sampler->IsActive()) return;
 
-  TickSample sample_obj;
-  TickSample* sample = CpuProfiler::TickSampleEvent(isolate);
-  if (sample == NULL) sample = &sample_obj;
+  TickSample* sample = CpuProfiler::StartTickSampleEvent(isolate);
+  if (sample == NULL) return;
 
   // Extracting the sample from the context is extremely machine dependent.
   ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(context);
@@ -688,6 +689,7 @@ static void ProfilerSignalHandler(int signal, siginfo_t* info, void* context) {
 
   sampler->SampleStack(sample);
   sampler->Tick(sample);
+  CpuProfiler::FinishTickSampleEvent(isolate);
 }
 
 class Sampler::PlatformData : public Malloced {
@@ -891,6 +893,11 @@ Sampler::~Sampler() {
 }
 
 
+void Sampler::DoSample() {
+  // TODO(rogulenko): implement
+}
+
+
 void Sampler::Start() {
   ASSERT(!IsActive());
   SetActive(true);
@@ -904,6 +911,7 @@ void Sampler::Stop() {
   SetActive(false);
 }
 #endif
+
 } }  // namespace v8::internal
 
 #endif

@@ -5032,15 +5032,6 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_ToFastProperties) {
 }
 
 
-RUNTIME_FUNCTION(MaybeObject*, Runtime_ToSlowProperties) {
-  ASSERT(args.length() == 1);
-  Object* obj = args[0];
-  return (obj->IsJSObject() && !obj->IsJSGlobalProxy())
-      ? JSObject::cast(obj)->NormalizeProperties(CLEAR_INOBJECT_PROPERTIES, 0)
-      : obj;
-}
-
-
 RUNTIME_FUNCTION(MaybeObject*, Runtime_ToBool) {
   NoHandleAllocation ha;
   ASSERT(args.length() == 1);
@@ -9061,8 +9052,10 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_CompileString) {
   // strings. Throw an exception if it doesn't.
   if (context->allow_code_gen_from_strings()->IsFalse() &&
       !CodeGenerationFromStringsAllowed(isolate, context)) {
-    return isolate->Throw(*isolate->factory()->NewError(
-        "code_gen_from_strings", HandleVector<Object>(NULL, 0)));
+    Handle<Object> error_message =
+        context->ErrorMessageForCodeGenerationFromStrings();
+    return isolate->Throw(*isolate->factory()->NewEvalError(
+        "code_gen_from_strings", HandleVector<Object>(&error_message, 1)));
   }
 
   // Compile source string in the native context.
@@ -9089,8 +9082,10 @@ static ObjectPair CompileGlobalEval(Isolate* isolate,
   // strings. Throw an exception if it doesn't.
   if (native_context->allow_code_gen_from_strings()->IsFalse() &&
       !CodeGenerationFromStringsAllowed(isolate, native_context)) {
-    isolate->Throw(*isolate->factory()->NewError(
-        "code_gen_from_strings", HandleVector<Object>(NULL, 0)));
+    Handle<Object> error_message =
+        context->ErrorMessageForCodeGenerationFromStrings();
+    isolate->Throw(*isolate->factory()->NewEvalError(
+        "code_gen_from_strings", HandleVector<Object>(&error_message, 1)));
     return MakePair(Failure::Exception(), NULL);
   }
 

@@ -185,6 +185,7 @@ void OS::Sleep(int milliseconds) {
 }
 #endif
 
+
 void OS::Abort() {
   // Redirect to std abort to signal abnormal program termination.
   abort();
@@ -647,14 +648,14 @@ bool FreeBSDSemaphore::Wait(int timeout) {
 Semaphore* OS::CreateSemaphore(int count) {
   return new FreeBSDSemaphore(count);
 }
-#endif
+
 
 static pthread_t GetThreadID() {
   pthread_t thread_id = pthread_self();
   return thread_id;
 }
 
-#if 0
+
 class Sampler::PlatformData : public Malloced {
  public:
   PlatformData() : vm_tid_(GetThreadID()) {}
@@ -682,9 +683,8 @@ static void ProfilerSignalHandler(int signal, siginfo_t* info, void* context) {
   Sampler* sampler = isolate->logger()->sampler();
   if (sampler == NULL || !sampler->IsActive()) return;
 
-  TickSample sample_obj;
-  TickSample* sample = CpuProfiler::TickSampleEvent(isolate);
-  if (sample == NULL) sample = &sample_obj;
+  TickSample* sample = CpuProfiler::StartTickSampleEvent(isolate);
+  if (sample == NULL) return;
 
   // Extracting the sample from the context is extremely machine dependent.
   ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(context);
@@ -705,6 +705,7 @@ static void ProfilerSignalHandler(int signal, siginfo_t* info, void* context) {
 #endif
   sampler->SampleStack(sample);
   sampler->Tick(sample);
+  CpuProfiler::FinishTickSampleEvent(isolate);
 }
 
 
@@ -888,6 +889,11 @@ Sampler::~Sampler() {
 }
 
 
+void Sampler::DoSample() {
+  // TODO(rogulenko): implement
+}
+
+
 void Sampler::Start() {
   ASSERT(!IsActive());
   SetActive(true);
@@ -901,6 +907,7 @@ void Sampler::Stop() {
   SetActive(false);
 }
 #endif
+
 
 } }  // namespace v8::internal
 

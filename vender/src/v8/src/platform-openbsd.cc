@@ -208,6 +208,7 @@ void OS::Sleep(int milliseconds) {
 }
 #endif
 
+
 void OS::Abort() {
   // Redirect to std abort to signal abnormal program termination.
   abort();
@@ -713,12 +714,12 @@ bool OpenBSDSemaphore::Wait(int timeout) {
 Semaphore* OS::CreateSemaphore(int count) {
   return new OpenBSDSemaphore(count);
 }
-#endif
+
 
 static pthread_t GetThreadID() {
   return pthread_self();
 }
-#if 0
+
 static void ProfilerSignalHandler(int signal, siginfo_t* info, void* context) {
   USE(info);
   if (signal != SIGPROF) return;
@@ -735,9 +736,8 @@ static void ProfilerSignalHandler(int signal, siginfo_t* info, void* context) {
   Sampler* sampler = isolate->logger()->sampler();
   if (sampler == NULL || !sampler->IsActive()) return;
 
-  TickSample sample_obj;
-  TickSample* sample = CpuProfiler::TickSampleEvent(isolate);
-  if (sample == NULL) sample = &sample_obj;
+  TickSample* sample = CpuProfiler::StartTickSampleEvent(isolate);
+  if (sample == NULL) return;
 
   // Extracting the sample from the context is extremely machine dependent.
   sample->state = isolate->current_vm_state();
@@ -766,6 +766,7 @@ static void ProfilerSignalHandler(int signal, siginfo_t* info, void* context) {
 #endif  // __NetBSD__
   sampler->SampleStack(sample);
   sampler->Tick(sample);
+  CpuProfiler::FinishTickSampleEvent(isolate);
 }
 
 
@@ -968,6 +969,11 @@ Sampler::~Sampler() {
 }
 
 
+void Sampler::DoSample() {
+  // TODO(rogulenko): implement
+}
+
+
 void Sampler::Start() {
   ASSERT(!IsActive());
   SetActive(true);
@@ -981,6 +987,7 @@ void Sampler::Stop() {
   SetActive(false);
 }
 #endif
+
 
 } }  // namespace v8::internal
 
