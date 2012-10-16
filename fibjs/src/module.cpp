@@ -212,7 +212,7 @@ inline v8::Handle<v8::Script> compileScript(const char* fname, std::string& buf)
 }
 
 v8::Handle<v8::Value> _define(const v8::Arguments& args);
-void doDefine(v8::Handle<v8::Object>& mod);
+result_t doDefine(v8::Handle<v8::Object>& mod);
 
 inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 		bool bMod)
@@ -261,7 +261,7 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 			{
 				it->second->m_check = s_now;
 				retVal = it->second->m_mod;
-				return 1;
+				return 0;
 			}
 		}
 	}
@@ -280,7 +280,7 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 	if (script.IsEmpty())
 	{
 		context.Dispose();
-		return 0;
+		return CALL_E_JAVASCRIPT;
 	}
 
 	v8::Handle<v8::Object> glob = context->Global();
@@ -343,46 +343,54 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 		// remove define function
 		glob->ForceDelete(strDefine);
 
-	if (!script->Run().IsEmpty())
-	{
-		if (bMod)
-		{
-			// remove commonjs function
-			glob->ForceDelete(strDefine);
-			glob->ForceDelete(strModule);
-			glob->ForceDelete(strExports);
-
-			// process defined modules
-			doDefine(mod);
-
-			// attach again
-			glob->Set(strModule, mod, v8::ReadOnly);
-			glob->Set(strExports, exports, v8::ReadOnly);
-
-			// use module.exports as result value
-			v8::Handle<v8::Value> v = mod->Get(strExports);
-			InstallModule(fname, v, mtime);
-
-			retVal = handle_scope.Close(v);
-		}
-	}
-	else
+	if (script->Run().IsEmpty())
 	{
 		if (bMod)
 		{
 			// delete from modules
 			s_mapModules.erase(fname);
 		}
+
+		context.Dispose();
+		return CALL_E_JAVASCRIPT;
+	}
+
+	if (bMod)
+	{
+		// remove commonjs function
+		glob->ForceDelete(strDefine);
+		glob->ForceDelete(strModule);
+		glob->ForceDelete(strExports);
+
+		// process defined modules
+		hr = doDefine(mod);
+		if (hr < 0)
+		{
+			// delete from modules
+			s_mapModules.erase(fname);
+			context.Dispose();
+
+			return hr;
+		}
+
+		// attach again
+		glob->Set(strModule, mod, v8::ReadOnly);
+		glob->Set(strExports, exports, v8::ReadOnly);
+
+		// use module.exports as result value
+		v8::Handle<v8::Value> v = mod->Get(strExports);
+		InstallModule(fname, v, mtime);
+
+		retVal = handle_scope.Close(v);
 	}
 
 	context.Dispose();
-
-	return 1;
+	return 0;
 }
 
 result_t global_base::run(const char* fname)
 {
-	v8::Handle<v8::Value> retTemp;
+	v8::Handle < v8::Value > retTemp;
 	return runScript(fname, retTemp, false);
 }
 

@@ -22,8 +22,8 @@ inline std::string resolvePath(std::string base, const char* id)
 {
 	std::string fname;
 
-	if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(
-			id[2]))))
+	if (id[0] == '.'
+			&& (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
 	{
 		if (base.length())
 			base += '/';
@@ -140,15 +140,15 @@ v8::Handle<v8::Value> _define(const v8::Arguments& args)
 		modDef->Set(strRequire, glob->Get(strRequire), v8::ReadOnly);
 
 		v8::Handle<v8::String> strFname = v8::String::New(id.c_str(),
-				(int)id.length());
+				(int) id.length());
 		modDef->Set(strId, strFname, v8::ReadOnly);
 
 		// add to modules
 		InstallModule(id, exports, s_noneDate);
 	}
 
-	v8::Handle<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
-			1, v8::StackTrace::kOverview);
+	v8::Handle<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(1,
+			v8::StackTrace::kOverview);
 	std::stringstream strBuffer;
 
 	v8::Local<v8::StackFrame> f = stackTrace->GetFrame(0);
@@ -172,7 +172,7 @@ v8::Handle<v8::Value> _define(const v8::Arguments& args)
 	modDef->SetHiddenValue(v8::String::NewSymbol("deps"), deps);
 	modDef->SetHiddenValue(v8::String::NewSymbol("factory"), args[argc - 1]);
 	modDef->SetHiddenValue(v8::String::NewSymbol("stack"),
-			v8::String::New(strStack.c_str(), (int)strStack.length()));
+			v8::String::New(strStack.c_str(), (int) strStack.length()));
 
 	// append to define array
 	defs->Set(defs->Length(), modDef);
@@ -180,7 +180,7 @@ v8::Handle<v8::Value> _define(const v8::Arguments& args)
 	return v8::Null();
 }
 
-void doDefine(v8::Handle<v8::Object>& mod)
+result_t doDefine(v8::Handle<v8::Object>& mod)
 {
 	v8::Handle<v8::Array> defs;
 	{
@@ -194,7 +194,7 @@ void doDefine(v8::Handle<v8::Object>& mod)
 		if (!v.IsEmpty() && v->IsArray())
 			defs = v8::Handle<v8::Array>::Cast(v);
 		else
-			return;
+			return 0;
 	}
 
 	int an = defs->Length(), i, j;
@@ -250,8 +250,9 @@ void doDefine(v8::Handle<v8::Object>& mod)
 
 				// check if the module depend a module defined in same script
 				for (j = 0; j < n; j++)
-					if (doStep == 2 && depns.find(
-							*v8::String::Utf8Value(a->Get(j))) != depns.end())
+					if (doStep == 2
+							&& depns.find(*v8::String::Utf8Value(a->Get(j)))
+									!= depns.end())
 						break;
 
 				if (j == n)
@@ -272,30 +273,9 @@ void doDefine(v8::Handle<v8::Object>& mod)
 						else
 						{
 							// load module use require
-							result_t hr;
-							v8::TryCatch try_catch;
-
-							hr = global_base::require(*id, deps[j]);
-
+							result_t hr = global_base::require(*id, deps[j]);
 							if (hr < 0)
-							{
-								std::string str = getResultMessage(hr);
-
-								str.append(
-										*v8::String::Utf8Value(
-												mods[i]->GetHiddenValue(
-														v8::String::NewSymbol(
-																"stack"))));
-								ThrowError(str.c_str());
-								return;
-							}
-							else if (hr == 0)
-								return;
-							else if (try_catch.HasCaught())
-							{
-								try_catch.ReThrow();
-								return;
-							}
+								return hr;
 						}
 					}
 
@@ -311,13 +291,9 @@ void doDefine(v8::Handle<v8::Object>& mod)
 						v8::Handle<v8::Function> func =
 								v8::Handle<v8::Function>::Cast(v);
 
-						v8::TryCatch try_catch;
 						v = func->Call(func, n, deps.data());
-						if (try_catch.HasCaught())
-						{
-							try_catch.ReThrow();
-							return;
-						}
+						if (v.IsEmpty())
+							return CALL_E_JAVASCRIPT;
 					}
 
 					// use the result as exports if the factory return something
@@ -339,6 +315,8 @@ void doDefine(v8::Handle<v8::Object>& mod)
 		if (bNext)
 			doStep--;
 	}
+
+	return 0;
 }
 
 result_t global_base::define(const char* id, v8::Handle<v8::Array> deps,
