@@ -1058,6 +1058,13 @@ void HCheckInstanceType::GetCheckMaskAndTag(uint8_t* mask, uint8_t* tag) {
 }
 
 
+void HLoadElements::PrintDataTo(StringStream* stream) {
+  value()->PrintNameTo(stream);
+  stream->Add(" ");
+  typecheck()->PrintNameTo(stream);
+}
+
+
 void HCheckMaps::PrintDataTo(StringStream* stream) {
   value()->PrintNameTo(stream);
   stream->Add(" [%p", *map_set()->first());
@@ -1854,7 +1861,7 @@ void HLoadKeyedFastElement::PrintDataTo(StringStream* stream) {
 }
 
 
-bool HLoadKeyedFastElement::RequiresHoleCheck() {
+bool HLoadKeyedFastElement::RequiresHoleCheck() const {
   if (IsFastPackedElementsKind(elements_kind())) {
     return false;
   }
@@ -2090,7 +2097,7 @@ void HLoadGlobalCell::PrintDataTo(StringStream* stream) {
 }
 
 
-bool HLoadGlobalCell::RequiresHoleCheck() {
+bool HLoadGlobalCell::RequiresHoleCheck() const {
   if (details_.IsDontDelete() && !details_.IsReadOnly()) return false;
   for (HUseIterator it(uses()); !it.Done(); it.Advance()) {
     HValue* use = it.value();

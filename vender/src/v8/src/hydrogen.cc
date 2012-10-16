@@ -3358,6 +3358,7 @@ bool HGraph::Optimize(SmartArrayPointer<char>* bailout_reason) {
 
   EliminateRedundantBoundsChecks();
   DehoistSimpleArrayIndexComputations();
+  if (FLAG_dead_code_elimination) DeadCodeElimination();
 
   return true;
 }
@@ -3567,7 +3568,10 @@ class BoundsCheckBbData: public ZoneObject {
        HConstant(new_offset, Representation::Integer32());
     if (*add == NULL) {
       new_constant->InsertBefore(check);
-      *add = new(BasicBlock()->zone()) HAdd(NULL,
+      // Because of the bounds checks elimination algorithm, the index is always
+      // an HAdd or an HSub here, so we can safely cast to an HBinaryOperation.
+      HValue* context = HBinaryOperation::cast(check->index())->context();
+      *add = new(BasicBlock()->zone()) HAdd(context,
                                             original_value,
                                             new_constant);
       (*add)->AssumeRepresentation(representation);
@@ -3779,6 +3783,36 @@ void HGraph::DehoistSimpleArrayIndexComputations() {
         continue;
       }
       DehoistArrayIndex(array_instruction);
+    }
+  }
+}
+
+
+void HGraph::DeadCodeElimination() {
+  HPhase phase("H_Dead code elimination", this);
+  ZoneList<HInstruction*> worklist(blocks_.length(), zone());
+  for (int i = 0; i < blocks()->length(); ++i) {
+    for (HInstruction* instr = blocks()->at(i)->first();
+         instr != NULL;
+         instr = instr->next()) {
+      if (instr->IsDead()) worklist.Add(instr, zone());
+    }
+  }
+
+  while (!worklist.is_empty()) {
+    HInstruction* instr = worklist.RemoveLast();
+    if (FLAG_trace_dead_code_elimination) {
+      HeapStringAllocator allocator;
+      StringStream stream(&allocator);
+      instr->PrintNameTo(&stream);
+      stream.Add(" = ");
+      instr->PrintTo(&stream);
+      PrintF("[removing dead instruction %s]\n", *stream.ToCString());
+    }
+    instr->DeleteAndReplaceWith(NULL);
+    for (int i = 0; i < instr->OperandCount(); ++i) {
+      HValue* operand = instr->OperandAt(i);
+      if (operand->IsDead()) worklist.Add(HInstruction::cast(operand), zone());
     }
   }
 }
@@ -8982,8 +9016,10 @@ void HGraphBuilder::GenerateArguments(CallRuntime* call) {
   HInstruction* elements = AddInstruction(
       new(zone()) HArgumentsElements(false));
   HInstruction* length = AddInstruction(new(zone()) HArgumentsLength(elements));
+  HInstruction* checked_index =
+      AddInstruction(new(zone()) HBoundsCheck(index, length));
   HAccessArgumentsAt* result =
-      new(zone()) HAccessArgumentsAt(elements, length, index);
+      new(zone()) HAccessArgumentsAt(elements, length, checked_index);
   return ast_context()->ReturnInstruction(result, call->id());
 }
 

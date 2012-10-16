@@ -2009,14 +2009,11 @@ void V8HeapExplorer::ExtractMapReferences(int entry, Map* map) {
                        Map::kConstructorOffset);
   if (map->HasTransitionArray()) {
     TransitionArray* transitions = map->transitions();
-    JSGlobalPropertyCell* pointer = transitions->descriptors_pointer();
     DescriptorArray* descriptors = transitions->descriptors();
     TagObject(descriptors, "(map descriptors)");
-    SetInternalReference(pointer, entry,
+    SetInternalReference(transitions, entry,
                          "descriptors", descriptors,
-                         JSGlobalPropertyCell::kValueOffset);
-    IndexedReferencesExtractor pointer_refs(this, pointer, entry);
-    pointer->Iterate(&pointer_refs);
+                         TransitionArray::kDescriptorsOffset);
 
     Object* back_pointer = transitions->back_pointer_storage();
     TagObject(transitions->back_pointer_storage(), "(back pointer)");
@@ -3097,26 +3094,26 @@ bool HeapSnapshotGenerator::GenerateSnapshot() {
       Heap::kMakeHeapIterableMask,
       "HeapSnapshotGenerator::GenerateSnapshot");
 
-#ifdef DEBUG
+#ifdef VERIFY_HEAP
   Heap* debug_heap = Isolate::Current()->heap();
-  ASSERT(!debug_heap->old_data_space()->was_swept_conservatively());
-  ASSERT(!debug_heap->old_pointer_space()->was_swept_conservatively());
-  ASSERT(!debug_heap->code_space()->was_swept_conservatively());
-  ASSERT(!debug_heap->cell_space()->was_swept_conservatively());
-  ASSERT(!debug_heap->map_space()->was_swept_conservatively());
+  CHECK(!debug_heap->old_data_space()->was_swept_conservatively());
+  CHECK(!debug_heap->old_pointer_space()->was_swept_conservatively());
+  CHECK(!debug_heap->code_space()->was_swept_conservatively());
+  CHECK(!debug_heap->cell_space()->was_swept_conservatively());
+  CHECK(!debug_heap->map_space()->was_swept_conservatively());
 #endif
 
   // The following code uses heap iterators, so we want the heap to be
   // stable. It should follow TagGlobalObjects as that can allocate.
   AssertNoAllocation no_alloc;
 
-#ifdef DEBUG
+#ifdef VERIFY_HEAP
   debug_heap->Verify();
 #endif
 
   SetProgressTotal(1);  // 1 pass.
 
-#ifdef DEBUG
+#ifdef VERIFY_HEAP
   debug_heap->Verify();
 #endif
 

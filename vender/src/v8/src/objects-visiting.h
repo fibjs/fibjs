@@ -213,7 +213,7 @@ class BodyVisitorBase : public AllStatic {
                                                      start_offset);
     Object** end_slot = reinterpret_cast<Object**>(object->address() +
                                                    end_offset);
-    StaticVisitor::VisitPointers(heap, start_slot, start_slot, end_slot);
+    StaticVisitor::VisitPointers(heap, start_slot, end_slot);
   }
 };
 
@@ -283,26 +283,21 @@ class StaticNewSpaceVisitor : public StaticVisitorBase {
     return table_.GetVisitor(map)(map, obj);
   }
 
-  static inline void VisitPointers(
-      Heap* heap, Object** anchor, Object** start, Object** end) {
+  static inline void VisitPointers(Heap* heap, Object** start, Object** end) {
     for (Object** p = start; p < end; p++) StaticVisitor::VisitPointer(heap, p);
   }
 
  private:
   static inline int VisitJSFunction(Map* map, HeapObject* object) {
     Heap* heap = map->GetHeap();
-    Object** start_slot =
-        HeapObject::RawField(object, JSFunction::kPropertiesOffset);
     VisitPointers(heap,
-                  start_slot,
-                  start_slot,
+                  HeapObject::RawField(object, JSFunction::kPropertiesOffset),
                   HeapObject::RawField(object, JSFunction::kCodeEntryOffset));
 
     // Don't visit code entry. We are using this visitor only during scavenges.
 
     VisitPointers(
         heap,
-        start_slot,
         HeapObject::RawField(object,
                              JSFunction::kCodeEntryOffset + kPointerSize),
         HeapObject::RawField(object,
@@ -402,15 +397,33 @@ class StaticMarkingVisitor : public StaticVisitorBase {
   // TODO(mstarzinger): This should be made protected once refactoring is done.
   static inline void VisitNativeContext(Map* map, HeapObject* object);
 
+  // TODO(mstarzinger): This should be made protected once refactoring is done.
+  // Mark non-optimize code for functions inlined into the given optimized
+  // code. This will prevent it from being flushed.
+  static void MarkInlinedFunctionsCode(Heap* heap, Code* code);
+
  protected:
   static inline void VisitMap(Map* map, HeapObject* object);
   static inline void VisitCode(Map* map, HeapObject* object);
+  static inline void VisitSharedFunctionInfo(Map* map, HeapObject* object);
+  static inline void VisitJSFunction(Map* map, HeapObject* object);
   static inline void VisitJSRegExp(Map* map, HeapObject* object);
 
   // Mark pointers in a Map and its TransitionArray together, possibly
   // treating transitions or back pointers weak.
   static void MarkMapContents(Heap* heap, Map* map);
   static void MarkTransitionArray(Heap* heap, TransitionArray* transitions);
+
+  // Code flushing support.
+  static inline bool IsFlushable(Heap* heap, JSFunction* function);
+  static inline bool IsFlushable(Heap* heap, SharedFunctionInfo* shared_info);
+
+  // Helpers used by code flushing support that visit pointer fields and treat
+  // references to code objects either strongly or weakly.
+  static void VisitSharedFunctionInfoStrongCode(Heap* heap, HeapObject* object);
+  static void VisitSharedFunctionInfoWeakCode(Heap* heap, HeapObject* object);
+  static void VisitJSFunctionStrongCode(Heap* heap, HeapObject* object);
+  static void VisitJSFunctionWeakCode(Heap* heap, HeapObject* object);
 
   class DataObjectVisitor {
    public:

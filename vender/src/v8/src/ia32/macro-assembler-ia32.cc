@@ -274,9 +274,7 @@ void MacroAssembler::RecordWriteForMap(
   ASSERT(!object.is(value));
   ASSERT(!object.is(address));
   ASSERT(!value.is(address));
-  if (emit_debug_code()) {
-    AbortIfSmi(object);
-  }
+  AssertNotSmi(object);
 
   if (!FLAG_incremental_marking) {
     return;
@@ -323,9 +321,7 @@ void MacroAssembler::RecordWrite(Register object,
   ASSERT(!object.is(value));
   ASSERT(!object.is(address));
   ASSERT(!value.is(address));
-  if (emit_debug_code()) {
-    AbortIfSmi(object);
-  }
+  AssertNotSmi(object);
 
   if (remembered_set_action == OMIT_REMEMBERED_SET &&
       !FLAG_incremental_marking) {
@@ -668,36 +664,44 @@ void MacroAssembler::FCmp() {
 }
 
 
-void MacroAssembler::AbortIfNotNumber(Register object) {
-  Label ok;
-  JumpIfSmi(object, &ok);
-  cmp(FieldOperand(object, HeapObject::kMapOffset),
-      isolate()->factory()->heap_number_map());
-  Assert(equal, "Operand not a number");
-  bind(&ok);
+void MacroAssembler::AssertNumber(Register object) {
+  if (emit_debug_code()) {
+    Label ok;
+    JumpIfSmi(object, &ok);
+    cmp(FieldOperand(object, HeapObject::kMapOffset),
+        isolate()->factory()->heap_number_map());
+    Check(equal, "Operand not a number");
+    bind(&ok);
+  }
 }
 
 
-void MacroAssembler::AbortIfNotSmi(Register object) {
-  test(object, Immediate(kSmiTagMask));
-  Assert(equal, "Operand is not a smi");
+void MacroAssembler::AssertSmi(Register object) {
+  if (emit_debug_code()) {
+    test(object, Immediate(kSmiTagMask));
+    Check(equal, "Operand is not a smi");
+  }
 }
 
 
-void MacroAssembler::AbortIfNotString(Register object) {
-  test(object, Immediate(kSmiTagMask));
-  Assert(not_equal, "Operand is not a string");
-  push(object);
-  mov(object, FieldOperand(object, HeapObject::kMapOffset));
-  CmpInstanceType(object, FIRST_NONSTRING_TYPE);
-  pop(object);
-  Assert(below, "Operand is not a string");
+void MacroAssembler::AssertString(Register object) {
+  if (emit_debug_code()) {
+    test(object, Immediate(kSmiTagMask));
+    Check(not_equal, "Operand is a smi and not a string");
+    push(object);
+    mov(object, FieldOperand(object, HeapObject::kMapOffset));
+    CmpInstanceType(object, FIRST_NONSTRING_TYPE);
+    pop(object);
+    Check(below, "Operand is not a string");
+  }
 }
 
 
-void MacroAssembler::AbortIfSmi(Register object) {
-  test(object, Immediate(kSmiTagMask));
-  Assert(not_equal, "Operand is a smi");
+void MacroAssembler::AssertNotSmi(Register object) {
+  if (emit_debug_code()) {
+    test(object, Immediate(kSmiTagMask));
+    Check(not_equal, "Operand is a smi");
+  }
 }
 
 
@@ -2581,8 +2585,7 @@ void MacroAssembler::LoadInstanceDescriptors(Register map,
            isolate()->factory()->fixed_array_map(),
            &fail,
            DONT_DO_SMI_CHECK);
-  mov(temp, FieldOperand(temp, TransitionArray::kDescriptorsPointerOffset));
-  mov(descriptors, FieldOperand(temp, JSGlobalPropertyCell::kValueOffset));
+  mov(descriptors, FieldOperand(temp, TransitionArray::kDescriptorsOffset));
   jmp(&ok);
 
   bind(&fail);
@@ -2593,8 +2596,7 @@ void MacroAssembler::LoadInstanceDescriptors(Register map,
 
   bind(&load_from_back_pointer);
   mov(temp, FieldOperand(temp, Map::kTransitionsOrBackPointerOffset));
-  mov(temp, FieldOperand(temp, TransitionArray::kDescriptorsPointerOffset));
-  mov(descriptors, FieldOperand(temp, JSGlobalPropertyCell::kValueOffset));
+  mov(descriptors, FieldOperand(temp, TransitionArray::kDescriptorsOffset));
 
   bind(&ok);
 }

@@ -202,6 +202,8 @@ DEFINE_bool(array_bounds_checks_elimination, true,
             "perform array bounds checks elimination")
 DEFINE_bool(array_index_dehoisting, true,
             "perform array index dehoisting")
+DEFINE_bool(dead_code_elimination, true, "use dead code elimination")
+DEFINE_bool(trace_dead_code_elimination, false, "trace dead code elimination")
 
 DEFINE_bool(trace_osr, false, "trace on-stack replacement")
 DEFINE_int(stress_runs, 0, "number of stress runs")
@@ -286,6 +288,8 @@ DEFINE_bool(enable_armv7, true,
             "enable use of ARMv7 instructions if available (ARM only)")
 DEFINE_bool(enable_sudiv, true,
             "enable use of SDIV and UDIV instructions if available (ARM only)")
+DEFINE_bool(enable_unaligned_accesses, true,
+            "enable unaligned accesses for ARMv7 (ARM only)")
 DEFINE_bool(enable_fpu, true,
             "enable use of MIPS FPU instructions if available (MIPS only)")
 
@@ -393,6 +397,9 @@ DEFINE_bool(trace_incremental_marking, false,
             "trace progress of the incremental marking")
 DEFINE_bool(track_gc_object_stats, false,
             "track object counts and memory usage")
+#ifdef VERIFY_HEAP
+DEFINE_bool(verify_heap, false, "verify heap pointers before and after GC")
+#endif
 
 // v8.cc
 DEFINE_bool(use_idle_notification, true,
@@ -566,7 +573,6 @@ DEFINE_bool(gc_greedy, false, "perform GC prior to some allocations")
 DEFINE_bool(gc_verbose, false, "print stuff during garbage collection")
 DEFINE_bool(heap_stats, false, "report heap statistics before and after GC")
 DEFINE_bool(code_stats, false, "report code statistics after GC")
-DEFINE_bool(verify_heap, false, "verify heap pointers before and after GC")
 DEFINE_bool(verify_native_context_separation, false,
             "verify that code holds on to at most one native context after GC")
 DEFINE_bool(print_handles, false, "report handles after GC")

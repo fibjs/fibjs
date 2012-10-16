@@ -400,15 +400,6 @@ class MemoryChunk {
     WAS_SWEPT_PRECISELY,
     WAS_SWEPT_CONSERVATIVELY,
 
-    // Used for large objects only.  Indicates that the object has been
-    // partially scanned by the incremental mark-sweep GC.  Objects that have
-    // been partially scanned are marked black so that the write barrier
-    // triggers for them, and they are counted as live bytes.  If the mutator
-    // writes to them they may be turned grey and subtracted from the live byte
-    // list.  They move back to the marking deque either by an iteration over
-    // the large object space or in the write barrier.
-    IS_PARTIALLY_SCANNED,
-
     // Last flag, keep at bottom.
     NUM_MEMORY_CHUNK_FLAGS
   };
@@ -429,25 +420,6 @@ class MemoryChunk {
       (1 << IN_FROM_SPACE) |
       (1 << IN_TO_SPACE);
 
-  static const int kIsPartiallyScannedMask = 1 << IS_PARTIALLY_SCANNED;
-
-  void SetPartiallyScannedProgress(int progress) {
-    SetFlag(IS_PARTIALLY_SCANNED);
-    partially_scanned_progress_ = progress;
-  }
-
-  bool IsPartiallyScanned() {
-    return IsFlagSet(IS_PARTIALLY_SCANNED);
-  }
-
-  void SetCompletelyScanned() {
-    ClearFlag(IS_PARTIALLY_SCANNED);
-  }
-
-  int PartiallyScannedProgress() {
-    ASSERT(IsPartiallyScanned());
-    return partially_scanned_progress_;
-  }
 
   void SetFlag(int flag) {
     flags_ |= static_cast<uintptr_t>(1) << flag;
@@ -534,14 +506,8 @@ class MemoryChunk {
 
   static const size_t kWriteBarrierCounterOffset =
       kSlotsBufferOffset + kPointerSize + kPointerSize;
-  static const size_t kPartiallyScannedProgress =
-      kWriteBarrierCounterOffset + kPointerSize;
 
-  // Actually the partially_scanned_progress_ member is only an int, but on
-  // 64 bit the size of MemoryChunk gets rounded up to a 64 bit size so we
-  // have to have the header start kPointerSize after the
-  // partially_scanned_progress_ member.
-  static const size_t kHeaderSize = kPartiallyScannedProgress + kPointerSize;
+  static const size_t kHeaderSize = kWriteBarrierCounterOffset + kPointerSize;
 
   static const int kBodyOffset =
     CODE_POINTER_ALIGN(MAP_POINTER_ALIGN(kHeaderSize + Bitmap::kSize));
@@ -678,7 +644,6 @@ class MemoryChunk {
   SlotsBuffer* slots_buffer_;
   SkipList* skip_list_;
   intptr_t write_barrier_counter_;
-  int partially_scanned_progress_;
 
   static MemoryChunk* Initialize(Heap* heap,
                                  Address base,
@@ -1609,19 +1574,21 @@ class PagedSpace : public Space {
   // The dummy page that anchors the linked list of pages.
   Page* anchor() { return &anchor_; }
 
-#ifdef DEBUG
-  // Print meta info and objects in this space.
-  virtual void Print();
-
+#ifdef VERIFY_HEAP
   // Verify integrity of this space.
   virtual void Verify(ObjectVisitor* visitor);
-
-  // Reports statistics for the space
-  void ReportStatistics();
 
   // Overridden by subclasses to verify space-specific object
   // properties (e.g., only maps or free-list nodes are in map space).
   virtual void VerifyObject(HeapObject* obj) {}
+#endif
+
+#ifdef DEBUG
+  // Print meta info and objects in this space.
+  virtual void Print();
+
+  // Reports statistics for the space
+  void ReportStatistics();
 
   // Report code object related statistics
   void CollectCodeStatistics();
@@ -1969,9 +1936,12 @@ class SemiSpace : public Space {
   NewSpacePage* first_page() { return anchor_.next_page(); }
   NewSpacePage* current_page() { return current_page_; }
 
+#ifdef VERIFY_HEAP
+  virtual void Verify();
+#endif
+
 #ifdef DEBUG
   virtual void Print();
-  virtual void Verify();
   // Validate a range of of addresses in a SemiSpace.
   // The "from" address must be on a page prior to the "to" address,
   // in the linked page order, or it must be earlier on the same page.
@@ -2296,9 +2266,12 @@ class NewSpace : public Space {
   template <typename StringType>
   inline void ShrinkStringAtAllocationBoundary(String* string, int len);
 
-#ifdef DEBUG
+#ifdef VERIFY_HEAP
   // Verify the active semispace.
   virtual void Verify();
+#endif
+
+#ifdef DEBUG
   // Print the active semispace.
   virtual void Print() { to_space_.Print(); }
 #endif
@@ -2468,9 +2441,7 @@ class MapSpace : public FixedSpace {
   }
 
  protected:
-#ifdef DEBUG
   virtual void VerifyObject(HeapObject* obj);
-#endif
 
  private:
   static const int kMapsPerPage = Page::kNonCodeObjectAreaSize / Map::kSize;
@@ -2506,9 +2477,7 @@ class CellSpace : public FixedSpace {
   }
 
  protected:
-#ifdef DEBUG
   virtual void VerifyObject(HeapObject* obj);
-#endif
 
  public:
   TRACK_MEMORY("CellSpace")
@@ -2587,8 +2556,11 @@ class LargeObjectSpace : public Space {
 
   LargePage* first_page() { return first_page_; }
 
-#ifdef DEBUG
+#ifdef VERIFY_HEAP
   virtual void Verify();
+#endif
+
+#ifdef DEBUG
   virtual void Print();
   void ReportStatistics();
   void CollectCodeStatistics();

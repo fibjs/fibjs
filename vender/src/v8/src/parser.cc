@@ -642,7 +642,7 @@ FunctionLiteral* Parser::DoParseProgram(CompilationInfo* info,
     ZoneList<Statement*>* body = new(zone()) ZoneList<Statement*>(16, zone());
     bool ok = true;
     int beg_loc = scanner().location().beg_pos;
-    ParseSourceElements(body, Token::EOS, info->is_eval(), &ok);
+    ParseSourceElements(body, Token::EOS, info->is_eval(), true, &ok);
     if (ok && !top_scope_->is_classic_mode()) {
       CheckOctalLiteral(beg_loc, scanner().location().end_pos, &ok);
     }
@@ -1007,6 +1007,7 @@ class ThisNamedPropertyAssignmentFinder {
 void* Parser::ParseSourceElements(ZoneList<Statement*>* processor,
                                   int end_token,
                                   bool is_eval,
+                                  bool is_global,
                                   bool* ok) {
   // SourceElements ::
   //   (ModuleElement)* <end_token>
@@ -1028,7 +1029,12 @@ void* Parser::ParseSourceElements(ZoneList<Statement*>* processor,
     }
 
     Scanner::Location token_loc = scanner().peek_location();
-    Statement* stat = ParseModuleElement(NULL, CHECK_OK);
+    Statement* stat;
+    if (is_global && !is_eval) {
+      stat = ParseModuleElement(NULL, CHECK_OK);
+    } else {
+      stat = ParseBlockElement(NULL, CHECK_OK);
+    }
     if (stat == NULL || stat->IsEmpty()) {
       directive_prologue = false;   // End of directive prologue.
       continue;
@@ -2790,8 +2796,6 @@ Statement* Parser::ParseForStatement(ZoneStringList* labels, bool* ok) {
       if (peek() == Token::IN && !name.is_null()) {
         Interface* interface =
             is_const ? Interface::NewConst() : Interface::NewValue();
-        VariableProxy* each =
-            top_scope_->NewUnresolved(factory(), name, interface);
         ForInStatement* loop = factory()->NewForInStatement(labels);
         Target target(&this->target_stack_, loop);
 
@@ -2799,6 +2803,8 @@ Statement* Parser::ParseForStatement(ZoneStringList* labels, bool* ok) {
         Expression* enumerable = ParseExpression(true, CHECK_OK);
         Expect(Token::RPAREN, CHECK_OK);
 
+        VariableProxy* each =
+            top_scope_->NewUnresolved(factory(), name, interface);
         Statement* body = ParseStatement(NULL, CHECK_OK);
         loop->Initialize(each, enumerable, body);
         Block* result = factory()->NewBlock(NULL, 2, false);
@@ -2836,18 +2842,24 @@ Statement* Parser::ParseForStatement(ZoneStringList* labels, bool* ok) {
 
         // TODO(keuchel): Move the temporary variable to the block scope, after
         // implementing stack allocated block scoped variables.
-        Variable* temp = top_scope_->DeclarationScope()->NewTemporary(name);
+        Factory* heap_factory = isolate()->factory();
+        Handle<String> tempstr =
+            heap_factory->NewConsString(heap_factory->dot_for_symbol(), name);
+        Handle<String> tempname = heap_factory->LookupSymbol(tempstr);
+        Variable* temp = top_scope_->DeclarationScope()->NewTemporary(tempname);
         VariableProxy* temp_proxy = factory()->NewVariableProxy(temp);
-        Interface* interface = Interface::NewValue();
-        VariableProxy* each =
-            top_scope_->NewUnresolved(factory(), name, interface);
         ForInStatement* loop = factory()->NewForInStatement(labels);
         Target target(&this->target_stack_, loop);
 
+        // The expression does not see the loop variable.
         Expect(Token::IN, CHECK_OK);
+        top_scope_ = saved_scope;
         Expression* enumerable = ParseExpression(true, CHECK_OK);
+        top_scope_ = for_scope;
         Expect(Token::RPAREN, CHECK_OK);
 
+        VariableProxy* each =
+            top_scope_->NewUnresolved(factory(), name, Interface::NewValue());
         Statement* body = ParseStatement(NULL, CHECK_OK);
         Block* body_block = factory()->NewBlock(NULL, 3, false);
         Assignment* assignment = factory()->NewAssignment(
@@ -4531,7 +4543,7 @@ FunctionLiteral* Parser::ParseFunctionLiteral(Handle<String> function_name,
                                      RelocInfo::kNoPosition)),
                                      zone());
       }
-      ParseSourceElements(body, Token::RBRACE, false, CHECK_OK);
+      ParseSourceElements(body, Token::RBRACE, false, false, CHECK_OK);
 
       materialized_literal_count = function_state.materialized_literal_count();
       expected_property_count = function_state.expected_property_count();

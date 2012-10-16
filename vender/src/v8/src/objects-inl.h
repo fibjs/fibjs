@@ -674,7 +674,7 @@ bool Object::IsJSFunctionResultCache() {
       % JSFunctionResultCache::kEntrySize != 0) {
     return false;
   }
-#ifdef DEBUG
+#ifdef VERIFY_HEAP
   if (FLAG_verify_heap) {
     reinterpret_cast<JSFunctionResultCache*>(this)->
         JSFunctionResultCacheVerify();
@@ -689,7 +689,7 @@ bool Object::IsNormalizedMapCache() {
   if (FixedArray::cast(this)->length() != NormalizedMapCache::kEntries) {
     return false;
   }
-#ifdef DEBUG
+#ifdef VERIFY_HEAP
   if (FLAG_verify_heap) {
     reinterpret_cast<NormalizedMapCache*>(this)->NormalizedMapCacheVerify();
   }
@@ -1110,13 +1110,13 @@ HeapObject* MapWord::ToForwardingAddress() {
 }
 
 
-#ifdef DEBUG
+#ifdef VERIFY_HEAP
 void HeapObject::VerifyObjectField(int offset) {
   VerifyPointer(READ_FIELD(this, offset));
 }
 
 void HeapObject::VerifySmiField(int offset) {
-  ASSERT(READ_FIELD(this, offset)->IsSmi());
+  CHECK(READ_FIELD(this, offset)->IsSmi());
 }
 #endif
 
@@ -1915,8 +1915,8 @@ void DescriptorArray::SetNumberOfDescriptors(int number_of_descriptors) {
 // Perform a binary search in a fixed array. Low and high are entry indices. If
 // there are three entries in this array it should be called with low=0 and
 // high=2.
-template<typename T>
-int BinarySearch(T* array, String* name, int low, int high) {
+template<SearchMode search_mode, typename T>
+int BinarySearch(T* array, String* name, int low, int high, int valid_entries) {
   uint32_t hash = name->Hash();
   int limit = high;
 
@@ -1938,11 +1938,17 @@ int BinarySearch(T* array, String* name, int low, int high) {
     int sort_index = array->GetSortedKeyIndex(low);
     String* entry = array->GetKey(sort_index);
     if (entry->Hash() != hash) break;
-    if (entry->Equals(name)) return sort_index;
+    if (entry->Equals(name)) {
+      if (search_mode == ALL_ENTRIES || sort_index < valid_entries) {
+        return sort_index;
+      }
+      return T::kNotFound;
+    }
   }
 
   return T::kNotFound;
 }
+
 
 // Perform a linear search in this fixed array. len is the number of entry
 // indices that are valid.
@@ -1982,13 +1988,15 @@ int Search(T* array, String* name, int valid_entries) {
 
   // Fast case: do linear search for small arrays.
   const int kMaxElementsForLinearSearch = 8;
-  if (search_mode == VALID_ENTRIES ||
-      (search_mode == ALL_ENTRIES && nof < kMaxElementsForLinearSearch)) {
+  if ((search_mode == ALL_ENTRIES &&
+       nof <= kMaxElementsForLinearSearch) ||
+      (search_mode == VALID_ENTRIES &&
+       valid_entries <= (kMaxElementsForLinearSearch * 3))) {
     return LinearSearch<search_mode>(array, name, nof, valid_entries);
   }
 
   // Slow case: perform binary search.
-  return BinarySearch(array, name, 0, nof - 1);
+  return BinarySearch<search_mode>(array, name, 0, nof - 1, valid_entries);
 }
 
 
@@ -2154,12 +2162,6 @@ void DescriptorArray::Set(int descriptor_number, Descriptor* desc) {
   set(ToKeyIndex(descriptor_number), desc->GetKey());
   set(ToValueIndex(descriptor_number), desc->GetValue());
   set(ToDetailsIndex(descriptor_number), desc->GetDetails().AsSmi());
-}
-
-
-void DescriptorArray::EraseDescriptor(Heap* heap, int descriptor_number) {
-  set_null_unchecked(heap, ToKeyIndex(descriptor_number));
-  set_null_unchecked(heap, ToValueIndex(descriptor_number));
 }
 
 
@@ -3546,12 +3548,6 @@ void Map::set_prototype(Object* value, WriteBarrierMode mode) {
 }
 
 
-JSGlobalPropertyCell* Map::descriptors_pointer() {
-  ASSERT(HasTransitionArray());
-  return transitions()->descriptors_pointer();
-}
-
-
 DescriptorArray* Map::instance_descriptors() {
   if (HasTransitionArray()) return transitions()->descriptors();
   Object* back_pointer = GetBackPointer();
@@ -3568,22 +3564,20 @@ enum TransitionsKind { DESCRIPTORS_HOLDER, FULL_TRANSITION_ARRAY };
 static MaybeObject* EnsureHasTransitionArray(Map* map, TransitionsKind kind) {
   TransitionArray* transitions;
   MaybeObject* maybe_transitions;
-  if (map->HasTransitionArray()) {
-    if (kind != FULL_TRANSITION_ARRAY ||
-        map->transitions()->IsFullTransitionArray()) {
-      return map;
-    }
-    maybe_transitions = map->transitions()->ExtendToFullTransitionArray();
-    if (!maybe_transitions->To(&transitions)) return maybe_transitions;
-  } else {
-    JSGlobalPropertyCell* pointer = map->RetrieveDescriptorsPointer();
+  if (!map->HasTransitionArray()) {
     if (kind == FULL_TRANSITION_ARRAY) {
-      maybe_transitions = TransitionArray::Allocate(0, pointer);
+      maybe_transitions = TransitionArray::Allocate(0);
     } else {
-      maybe_transitions = TransitionArray::AllocateDescriptorsHolder(pointer);
+      maybe_transitions = TransitionArray::AllocateDescriptorsHolder();
     }
     if (!maybe_transitions->To(&transitions)) return maybe_transitions;
     transitions->set_back_pointer_storage(map->GetBackPointer());
+  } else if (kind == FULL_TRANSITION_ARRAY &&
+             !map->transitions()->IsFullTransitionArray()) {
+    maybe_transitions = map->transitions()->ExtendToFullTransitionArray();
+    if (!maybe_transitions->To(&transitions)) return maybe_transitions;
+  } else {
+    return map;
   }
   map->set_transitions(transitions);
   return transitions;
@@ -3634,14 +3628,11 @@ SMI_ACCESSORS(Map, bit_field3, kBitField3Offset)
 
 void Map::ClearTransitions(Heap* heap, WriteBarrierMode mode) {
   Object* back_pointer = GetBackPointer();
-#ifdef DEBUG
-  Object* object = READ_FIELD(this, kTransitionsOrBackPointerOffset);
-  if (object->IsTransitionArray()) {
+
+  if (Heap::ShouldZapGarbage() && HasTransitionArray()) {
     ZapTransitions();
-  } else {
-    ASSERT(object->IsMap() || object->IsUndefined());
   }
-#endif
+
   WRITE_FIELD(this, kTransitionsOrBackPointerOffset, back_pointer);
   CONDITIONAL_WRITE_BARRIER(
       heap, this, kTransitionsOrBackPointerOffset, back_pointer, mode);
@@ -3693,23 +3684,12 @@ bool Map::CanHaveMoreTransitions() {
 }
 
 
-JSGlobalPropertyCell* Map::RetrieveDescriptorsPointer() {
-  if (!owns_descriptors()) return NULL;
-  Object* back_pointer = GetBackPointer();
-  if (back_pointer->IsUndefined()) return NULL;
-  Map* map = Map::cast(back_pointer);
-  ASSERT(map->HasTransitionArray());
-  return map->transitions()->descriptors_pointer();
-}
-
-
 MaybeObject* Map::AddTransition(String* key,
                                 Map* target,
                                 SimpleTransitionFlag flag) {
   if (HasTransitionArray()) return transitions()->CopyInsert(key, target);
-  JSGlobalPropertyCell* descriptors_pointer = RetrieveDescriptorsPointer();
   return TransitionArray::NewWith(
-      flag, key, target, descriptors_pointer, GetBackPointer());
+      flag, key, target, instance_descriptors(), GetBackPointer());
 }
 
 
@@ -3724,9 +3704,11 @@ Map* Map::GetTransition(int transition_index) {
 
 
 MaybeObject* Map::set_elements_transition_map(Map* transitioned_map) {
+  DescriptorArray* descriptors = instance_descriptors();
   MaybeObject* allow_elements =
       EnsureHasTransitionArray(this, FULL_TRANSITION_ARRAY);
   if (allow_elements->IsFailure()) return allow_elements;
+  transitions()->set_descriptors(descriptors);
   transitions()->set_elements_transition(transitioned_map);
   return this;
 }
@@ -3742,6 +3724,7 @@ FixedArray* Map::GetPrototypeTransitions() {
 
 
 MaybeObject* Map::SetPrototypeTransitions(FixedArray* proto_transitions) {
+  DescriptorArray* descriptors = instance_descriptors();
   MaybeObject* allow_prototype =
       EnsureHasTransitionArray(this, FULL_TRANSITION_ARRAY);
   if (allow_prototype->IsFailure()) return allow_prototype;
@@ -3751,6 +3734,7 @@ MaybeObject* Map::SetPrototypeTransitions(FixedArray* proto_transitions) {
     ZapPrototypeTransitions();
   }
 #endif
+  transitions()->set_descriptors(descriptors);
   transitions()->SetPrototypeTransitions(proto_transitions);
   return this;
 }
@@ -3770,12 +3754,11 @@ TransitionArray* Map::transitions() {
 
 void Map::set_transitions(TransitionArray* transition_array,
                           WriteBarrierMode mode) {
-#ifdef DEBUG
-  if (HasTransitionArray()) {
-    ASSERT(transitions() != transition_array);
+  // In release mode, only run this code if verify_heap is on.
+  if (Heap::ShouldZapGarbage() && HasTransitionArray()) {
+    CHECK(transitions() != transition_array);
     ZapTransitions();
   }
-#endif
 
   WRITE_FIELD(this, kTransitionsOrBackPointerOffset, transition_array);
   CONDITIONAL_WRITE_BARRIER(

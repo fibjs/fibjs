@@ -2179,7 +2179,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_FunctionSetReadOnlyPrototype) {
     Map* new_map;
     MaybeObject* maybe_map =
         function->map()->CopyReplaceDescriptor(
-            &new_desc, index, OMIT_TRANSITION);
+            instance_desc, &new_desc, index, OMIT_TRANSITION);
     if (!maybe_map->To(&new_map)) return maybe_map;
 
     function->set_map(new_map);
@@ -2254,6 +2254,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_SetCode) {
 
   // Set the code of the target function.
   target->ReplaceCode(source_shared->code());
+  ASSERT(target->next_function_link()->IsUndefined());
 
   // Make sure we get a fresh copy of the literal vector to avoid cross
   // context contamination.
@@ -2267,7 +2268,6 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_SetCode) {
   }
   target->set_context(*context);
   target->set_literals(*literals);
-  target->set_next_function_link(isolate->heap()->undefined_value());
 
   if (isolate->logger()->is_logging_code_events() ||
       CpuProfiler::is_profiling(isolate)) {
@@ -9083,7 +9083,7 @@ static ObjectPair CompileGlobalEval(Isolate* isolate,
   if (native_context->allow_code_gen_from_strings()->IsFalse() &&
       !CodeGenerationFromStringsAllowed(isolate, native_context)) {
     Handle<Object> error_message =
-        context->ErrorMessageForCodeGenerationFromStrings();
+        native_context->ErrorMessageForCodeGenerationFromStrings();
     isolate->Throw(*isolate->factory()->NewEvalError(
         "code_gen_from_strings", HandleVector<Object>(&error_message, 1)));
     return MakePair(Failure::Exception(), NULL);
@@ -11793,6 +11793,15 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DebugEvaluate) {
                                                 scope_info,
                                                 function_context);
 
+  // Check if eval is blocked in the context and temporarily allow it
+  // for debugger.
+  Handle<Context> native_context = Handle<Context>(context->native_context());
+  bool eval_disabled =
+      native_context->allow_code_gen_from_strings()->IsFalse();
+  if (eval_disabled) {
+    native_context->set_allow_code_gen_from_strings(
+        isolate->heap()->true_value());
+  }
   // Invoke the evaluation function and return the result.
   Handle<Object> argv[] = { arguments, source };
   Handle<Object> result =
@@ -11801,6 +11810,10 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DebugEvaluate) {
                       ARRAY_SIZE(argv),
                       argv,
                       &has_pending_exception);
+  if (eval_disabled) {
+    native_context->set_allow_code_gen_from_strings(
+        isolate->heap()->false_value());
+  }
   if (has_pending_exception) return Failure::Exception();
 
   // Skip the global proxy as it has no properties and always delegates to the
@@ -13020,7 +13033,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_GetFromCache) {
     if (pending_exception) return Failure::Exception();
   }
 
-#ifdef DEBUG
+#ifdef VERIFY_HEAP
   if (FLAG_verify_heap) {
     cache_handle->JSFunctionResultCacheVerify();
   }
@@ -13051,7 +13064,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_GetFromCache) {
   cache_handle->set(index + 1, *value);
   cache_handle->set_finger_index(index);
 
-#ifdef DEBUG
+#ifdef VERIFY_HEAP
   if (FLAG_verify_heap) {
     cache_handle->JSFunctionResultCacheVerify();
   }
