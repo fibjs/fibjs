@@ -147,6 +147,11 @@ assert.throws(function() {
 	mod.invoke(m);
 });
 
+assert.throws(function() {
+	m.value = '/t3/foo/b';
+	mod.invoke(m);
+});
+
 // ------------- chain handler
 
 var chain = mq.chain([ hdlr1, hdlr2, mq.jsHandler(hdlr3) ]);
