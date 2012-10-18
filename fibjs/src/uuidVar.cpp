@@ -110,7 +110,7 @@ result_t uuidVar::data(obj_ptr<Buffer_base>& retVal)
 		{
 			std::string s;
 
-			s.append((const char*) gen, len - 1);
+			s.append((const char*) gen, len);
 			free(gen);
 
 			retVal = new Buffer(s);
