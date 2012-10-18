@@ -2,6 +2,7 @@
 require("buffer_test.js");
 require("path_test");
 require("fiber_test");
+require("fibmod_test");
 require("trigger_test");
 require("lock_test");
 require("fs_test");
