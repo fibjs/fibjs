@@ -243,6 +243,12 @@ int main(int argc, char* argv[])
 	exlib::OSThread::Sleep(1);
 	v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 
+	int argc1 = 2;
+	char* argv1[2] =
+	{ "", "--stack_size=126" };
+
+	v8::V8::SetFlagsFromCommandLine(&argc1, argv1, false);
+
 	fibjs::init_argv(argc, argv);
 
 	if (argc >= 2 && argv[1][0] != '-')
