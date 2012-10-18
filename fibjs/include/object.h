@@ -67,10 +67,13 @@ public:
 	{
 		if (internalUnref() == 0)
 		{
-			if (!handle_.IsEmpty())
+			if (isJSObject())
 			{
 				if (v8::Isolate::GetCurrent())
-					handle_.MakeWeak(this, WeakCallback);
+				{
+					if (!handle_.IsEmpty())
+						handle_.MakeWeak(this, WeakCallback);
+				}
 				else
 				{
 					internalRef();
@@ -80,6 +83,11 @@ public:
 			else
 				delete this;
 		}
+	}
+
+	virtual bool isJSObject()
+	{
+		return !handle_.IsEmpty();
 	}
 
 public:
@@ -181,11 +189,6 @@ public:
 	bool hasTrigger()
 	{
 		return m_nTriggers > 0;
-	}
-
-	bool isJSObject()
-	{
-		return !handle_.IsEmpty();
 	}
 
 	void extMemory(int ext)
@@ -331,7 +334,7 @@ inline v8::Handle<v8::Value> object_base::s_dispose(const v8::Arguments& args)
 	METHOD_INSTANCE(object_base);
 	METHOD_ENTER(0, 0);
 
-		hr = pInst->dispose();
+	hr = pInst->dispose();
 
 	METHOD_VOID();
 }
@@ -343,7 +346,7 @@ inline v8::Handle<v8::Value> object_base::s_toString(const v8::Arguments& args)
 	METHOD_INSTANCE(object_base);
 	METHOD_ENTER(0, 0);
 
-		hr = pInst->toString(vr);
+	hr = pInst->toString(vr);
 
 	METHOD_RETURN();
 }
@@ -355,9 +358,9 @@ inline v8::Handle<v8::Value> object_base::s_toJSON(const v8::Arguments& args)
 	METHOD_INSTANCE(object_base);
 	METHOD_ENTER(1, 0);
 
-		OPT_ARG_String(0, "");
+	OPT_ARG_String(0, "");
 
-		hr = pInst->toJSON(v0, vr);
+	hr = pInst->toJSON(v0, vr);
 
 	METHOD_RETURN();
 }
@@ -369,7 +372,7 @@ inline v8::Handle<v8::Value> object_base::s_ValueOf(const v8::Arguments& args)
 	METHOD_INSTANCE(object_base);
 	METHOD_ENTER(0, 0);
 
-		hr = pInst->ValueOf(vr);
+	hr = pInst->ValueOf(vr);
 
 	METHOD_RETURN();
 }

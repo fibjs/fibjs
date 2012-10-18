@@ -16,6 +16,19 @@ namespace fibjs
 
 class Message
 {
+	class values: public object_base
+	{
+	public:
+		virtual bool isJSObject()
+		{
+			return true;
+		}
+
+	public:
+		obj_ptr<List_base> m_params;
+		Variant m_result;
+	};
+
 public:
 	result_t get_value(std::string& retVal);
 	result_t set_value(const char* newVal);
@@ -31,8 +44,7 @@ public:
 	void clear()
 	{
 		m_value.clear();
-		m_params.Release();
-		m_result.clear();
+		m_values.Release();
 		m_body.Release();
 	}
 
@@ -49,8 +61,7 @@ public:
 
 private:
 	std::string m_value;
-	obj_ptr<List_base> m_params;
-	Variant m_result;
+	obj_ptr<values> m_values;
 	obj_ptr<SeekableStream_base> m_body;
 };
 

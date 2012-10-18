@@ -26,28 +26,40 @@ result_t Message::set_value(const char* newVal)
 
 result_t Message::get_params(obj_ptr<List_base>& retVal)
 {
-	if (m_params == NULL)
-		m_params = new List();
+	if(m_values == NULL)
+		m_values = new values();
 
-	retVal = m_params;
+	if (m_values->m_params == NULL)
+		m_values->m_params = new List();
+
+	retVal = m_values->m_params;
 	return 0;
 }
 
 result_t Message::set_params(List_base* newVal)
 {
-	m_params = newVal;
+	if(m_values == NULL)
+		m_values = new values();
+
+	m_values->m_params = newVal;
 	return 0;
 }
 
 result_t Message::get_result(Variant& retVal)
 {
-	retVal = m_result;
+	if(m_values == NULL)
+		m_values = new values();
+
+	retVal = m_values->m_result;
 	return 0;
 }
 
 result_t Message::set_result(Variant newVal)
 {
-	m_result = newVal;
+	if(m_values == NULL)
+		m_values = new values();
+
+	m_values->m_result = newVal;
 	return 0;
 }
 

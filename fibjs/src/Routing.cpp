@@ -19,7 +19,7 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 {
 	int i, j;
 	int rc = 0;
-	obj_ptr<Message_base> msg = Message_base::getInstance(v);
+	obj_ptr < Message_base > msg = Message_base::getInstance(v);
 	int ovector[RE_SIZE];
 
 	if (msg == NULL)
@@ -37,7 +37,11 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				(int) value.length(), 0, 0, ovector, RE_SIZE)) > 0)
 		{
 			if (rc == 1)
+			{
 				msg->set_value("");
+				obj_ptr < List > list = new List();
+				msg->set_params(list);
+			}
 			else
 			{
 				int levelCount[RE_SIZE] =
@@ -70,19 +74,17 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				else
 					msg->set_value("");
 
+				obj_ptr < List > list = new List();
 				if (levelCount[p])
 				{
-					obj_ptr<List> list = new List();
-
 					for (i = 0; i < rc; i++)
 						if (level[i] == p)
 							list->append(
 									value.substr(ovector[i * 2],
 											ovector[i * 2 + 1]
 													- ovector[i * 2]));
-
-					msg->set_params(list);
 				}
+				msg->set_params(list);
 			}
 
 			retVal = r->m_hdlr;
@@ -135,15 +137,15 @@ result_t Routing::append(const char* pattern, v8::Handle<v8::Value> hdlr)
 
 result_t Routing::append(v8::Handle<v8::Object> map)
 {
-	v8::Handle<v8::Array> ks = map->GetPropertyNames();
+	v8::Handle < v8::Array > ks = map->GetPropertyNames();
 	int len = ks->Length();
 	int i;
 	result_t hr;
 
 	for (i = 0; i < len; i++)
 	{
-		v8::Handle<v8::Value> k = ks->Get(i);
-		v8::Handle<v8::Value> v = map->Get(k);
+		v8::Handle < v8::Value > k = ks->Get(i);
+		v8::Handle < v8::Value > v = map->Get(k);
 
 		if (v->IsObject())
 		{
