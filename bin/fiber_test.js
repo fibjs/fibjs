@@ -122,6 +122,13 @@ assert.throws(function() {
 	}, funs[0], funs[1], funs[2], funs[3], funs[4]);
 });
 
+function stack_size(){
+	stack_size();
+}
+
+stack_size.start();
+coroutine.sleep();
+
 var nCount = 20000;
 
 var bDone = false;
