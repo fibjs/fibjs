@@ -297,7 +297,7 @@ public:
 	{
 		exlib::Fiber* pFiber = exlib::Fiber::Current();
 		TickSample sample_obj;
-		TickSample* sample = CpuProfiler::StartTickSampleEvent(sampler->isolate());
+		TickSample* sample = CpuProfiler::TickSampleEvent(sampler->isolate());
 		if (sample == NULL)
 			sample = &sample_obj;
 
@@ -313,7 +313,6 @@ public:
 		sample->fp = reinterpret_cast<Address>(pFiber->m_cntxt.Ebp);
 #endif
 
-		CpuProfiler::FinishTickSampleEvent(sampler->isolate());
 		sampler->Tick(sample);
 	}
 
@@ -365,10 +364,6 @@ Sampler::~Sampler()
 {
 	ASSERT(!IsActive());
 	delete data_;
-}
-
-void Sampler::DoSample() {
-  // TODO(rogulenko): implement
 }
 
 void Sampler::Start()
