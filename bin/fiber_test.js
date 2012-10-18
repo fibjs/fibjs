@@ -122,8 +122,14 @@ assert.throws(function() {
 	}, funs[0], funs[1], funs[2], funs[3], funs[4]);
 });
 
-function stack_size(){
-	stack_size();
+function stack_size() {
+	function t() {
+		t();
+	}
+
+	assert.throws(function() {
+		t();
+	});
 }
 
 stack_size.start();
