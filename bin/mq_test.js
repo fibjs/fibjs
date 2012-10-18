@@ -160,6 +160,23 @@ n = 0;
 chain.invoke(v);
 assert.equal(7, n);
 
+function chain_params(v, p1, p2) {
+	assert.equal(v.value, '');
+	assert.equal(v.params.length, 2);
+	assert.equal(v.params[0], "123");
+	assert.equal(v.params[1], "b1234");
+	assert.equal(p1, "123");
+	assert.equal(p2, "b1234");
+}
+
+var chain1 = mq.chain([ chain_params, chain_params, mq.jsHandler(chain_params) ]);
+
+m.value = '';
+m.params.resize(2);
+m.params[0] = '123';
+m.params[1] = 'b1234';
+mq.invoke(chain1, m);
+
 // ------------- routing handler
 
 function params(v, p1, p2) {
