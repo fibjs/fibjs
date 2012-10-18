@@ -159,7 +159,7 @@ private:
 	int m_count;
 };
 
-#define FIBER_STACK_SIZE    (65536 * 2 - sizeof(Fiber))
+#define FIBER_STACK_SIZE    (65536 * 2)
 
 class Locker
 {

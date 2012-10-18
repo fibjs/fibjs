@@ -198,8 +198,7 @@ Fiber* Service::CreateFiber(void* (*func)(void *), void *data, int stacksize)
 		Fiber* fb;
 		void** stack;
 
-		stacksize = (stacksize + sizeof(Fiber) + FB_STK_ALIGN - 1)
-				& ~(FB_STK_ALIGN - 1);
+		stacksize = (stacksize + FB_STK_ALIGN - 1) & ~(FB_STK_ALIGN - 1);
 		fb = (Fiber*) malloc(stacksize);
 		if (fb == NULL)
 			return NULL;
