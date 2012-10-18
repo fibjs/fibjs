@@ -41,10 +41,13 @@ inline std::wstring utf8to16String(const char *src, int srclen = -1)
 	if (srclen == -1)
 		srclen = (int) qstrlen(src);
 
-	int n = utf8_mbstowcs(src, srclen, NULL, 0);
-	str.resize(n);
+	if(srclen)
+	{
+		int n = utf8_mbstowcs(src, srclen, NULL, 0);
+		str.resize(n);
 
-	utf8_mbstowcs(src, srclen, &str[0], n);
+		utf8_mbstowcs(src, srclen, &str[0], n);
+	}
 
 	return str;
 }
@@ -63,10 +66,13 @@ inline std::string utf16to8String(const wchar_t *src, int srclen = -1)
 	if (srclen == -1)
 		srclen = (int) qstrlen(src);
 
-	int n = utf8_wcstombs(src, srclen, NULL, 0);
-	str.resize(n);
+	if(srclen)
+	{
+		int n = utf8_wcstombs(src, srclen, NULL, 0);
+		str.resize(n);
 
-	utf8_wcstombs(src, srclen, &str[0], n);
+		utf8_wcstombs(src, srclen, &str[0], n);
+	}
 
 	return str;
 }
