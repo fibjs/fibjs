@@ -110,7 +110,7 @@ result_t uuidVar::data(obj_ptr<Buffer_base>& retVal)
 		{
 			std::string s;
 
-			s.append((const char*) gen, len);
+			s.append((const char*) gen, len - 1);
 			free(gen);
 
 			retVal = new Buffer(s);
@@ -130,7 +130,7 @@ result_t uuidVar::toString(std::string& retVal)
 		uuid_export(m_uid, UUID_FMT_STR, &gen, &len);
 		if (gen)
 		{
-			retVal.append((const char*) gen, len);
+			retVal.append((const char*) gen, len - 1);
 			free(gen);
 		}
 	}
@@ -148,7 +148,7 @@ result_t uuidVar::detail(std::string& retVal)
 		uuid_export(m_uid, UUID_FMT_TXT, &gen, &len);
 		if (gen)
 		{
-			retVal.append((const char*) gen, len);
+			retVal.append((const char*) gen, len - 1);
 			free(gen);
 		}
 	}
