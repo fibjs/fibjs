@@ -245,7 +245,7 @@ int main(int argc, char* argv[])
 
 	int argc1 = 2;
 	char* argv1[2] =
-	{ "", "--stack_size=126" };
+	{ (char*) "", (char*) "--stack_size=120" };
 
 	v8::V8::SetFlagsFromCommandLine(&argc1, argv1, false);
 
