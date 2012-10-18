@@ -130,7 +130,7 @@ inline const char* ToCString(const v8::String::Utf8Value& value)
 	return *value ? *value : "<string conversion failed>";
 }
 
-inline void throwSyntaxError(v8::TryCatch& try_catch)
+inline result_t throwSyntaxError(v8::TryCatch& try_catch)
 {
 	v8::String::Utf8Value exception(try_catch.Exception());
 
@@ -147,15 +147,17 @@ inline void throwSyntaxError(v8::TryCatch& try_catch)
 			strError << ToCString(exception) << "\n    at ";
 		else
 			strError << (ToCString(exception) + 13) << "\n    at ";
+
 		strError << ToCString(filename);
 		int lineNumber = message->GetLineNumber();
 		if (lineNumber > 0)
 			strError << ':' << lineNumber << ':'
 					<< (message->GetStartColumn() + 1);
-		v8::ThrowException(
-				v8::Exception::SyntaxError(
-						v8::String::New(strError.str().c_str())));
+
+		return Runtime::setError(strError.str());
 	}
+
+	return CALL_E_JAVASCRIPT;
 }
 
 inline std::string resolvePath(const char* id)
@@ -188,27 +190,18 @@ inline std::string resolvePath(const char* id)
 	return fname;
 }
 
-inline v8::Handle<v8::Script> compileScript(const char* fname, std::string& buf)
+inline result_t compileScript(const char* fname, std::string& buf,
+		v8::Handle<v8::Script>& script)
 {
-	static bool s_top = true;
-	v8::Handle<v8::Script> script;
-
 	v8::TryCatch try_catch;
 
 	script = v8::Script::Compile(
 			v8::String::New(buf.c_str(), (int) buf.length()),
 			v8::String::New(fname));
 	if (script.IsEmpty())
-	{
-		if (s_top)
-			ReportException(&try_catch, false);
-		else
-			throwSyntaxError(try_catch);
-	}
-	else
-		s_top = false;
+		return throwSyntaxError(try_catch);
 
-	return script;
+	return 0;
 }
 
 v8::Handle<v8::Value> _define(const v8::Arguments& args);
@@ -276,11 +269,12 @@ inline result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 	v8::Persistent<v8::Context> context = v8::Context::New();
 	v8::Context::Scope context_scope(context);
 
-	v8::Handle<v8::Script> script = compileScript(fname.c_str(), buf);
-	if (script.IsEmpty())
+	v8::Handle<v8::Script> script;
+	hr = compileScript(fname.c_str(), buf, script);
+	if (hr < 0)
 	{
 		context.Dispose();
-		return CALL_E_JAVASCRIPT;
+		return hr;
 	}
 
 	v8::Handle<v8::Object> glob = context->Global();

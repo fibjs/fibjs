@@ -115,6 +115,8 @@ void _main(const char* fname)
 
 	v8::V8::Initialize();
 
+	result_t hr;
+
 	fibjs::isolate = v8::Isolate::GetCurrent();
 	v8::Locker locker(fibjs::isolate);
 	v8::Isolate::Scope isolate_scope(fibjs::isolate);
@@ -130,10 +132,10 @@ void _main(const char* fname)
 	g_pService->tlsPut(g_tlsCurrent, fb);
 	fb->Ref();
 
-	v8::TryCatch try_catch;
-	fibjs::global_base::run(fname);
-	if (try_catch.HasCaught())
-		ReportException(&try_catch, true);
+	{
+		JSFiber::scope s;
+		s.m_hr = hr = fibjs::global_base::run(fname);
+	}
 
 	process_base::exit(0);
 

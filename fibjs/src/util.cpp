@@ -117,35 +117,38 @@ inline const char* ToCString(const v8::String::Utf8Value& value)
 	return *value ? *value : "<string conversion failed>";
 }
 
-void ReportException(v8::TryCatch* try_catch, bool rt)
+void ReportException(v8::TryCatch& try_catch, result_t hr)
 {
-	v8::String::Utf8Value exception(try_catch->Exception());
-
-	v8::Handle<v8::Message> message = try_catch->Message();
-	if (message.IsEmpty())
-		asyncLog(log4cpp::Priority::ERROR, ToCString(exception));
-	else
+	if (try_catch.HasCaught())
 	{
-		if (rt)
+		v8::String::Utf8Value exception(try_catch.Exception());
+
+		v8::Handle<v8::Message> message = try_catch.Message();
+		if (message.IsEmpty())
+			asyncLog(log4cpp::Priority::ERROR, ToCString(exception));
+		else
 		{
-			v8::String::Utf8Value stack_trace(try_catch->StackTrace());
+			v8::String::Utf8Value stack_trace(try_catch.StackTrace());
 			if (stack_trace.length() > 0)
 			{
 				asyncLog(log4cpp::Priority::ERROR, ToCString(stack_trace));
 				return;
 			}
+
+			std::stringstream strError;
+
+			v8::String::Utf8Value filename(message->GetScriptResourceName());
+			strError << ToCString(exception) << "\n    at ";
+			strError << ToCString(filename);
+			int lineNumber = message->GetLineNumber();
+			strError << ':' << lineNumber << ':'
+					<< (message->GetStartColumn() + 1);
+
+			asyncLog(log4cpp::Priority::ERROR, strError.str());
 		}
-
-		std::stringstream strError;
-
-		v8::String::Utf8Value filename(message->GetScriptResourceName());
-		strError << ToCString(exception) << "\n    at ";
-		strError << ToCString(filename);
-		int lineNumber = message->GetLineNumber();
-		strError << ':' << lineNumber << ':' << (message->GetStartColumn() + 1);
-
-		asyncLog(log4cpp::Priority::ERROR, strError.str());
 	}
+	else if (hr < 0)
+		asyncLog(log4cpp::Priority::ERROR, getResultMessage(hr));
 }
 
 std::string traceInfo()

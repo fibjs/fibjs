@@ -27,7 +27,7 @@ public:
 		return rt.m_code;
 	}
 
-	static result_t setError(std::string& err)
+	static result_t setError(std::string err)
 	{
 		Runtime& rt = Runtime::now();
 

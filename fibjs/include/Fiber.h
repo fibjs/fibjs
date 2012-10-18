@@ -91,7 +91,7 @@ public:
 	{
 	public:
 		scope(JSFiber* fb = NULL) :
-				m_pFiber(fb)
+			m_hr(0), m_pFiber(fb)
 		{
 			if (fb == NULL)
 				m_pFiber = new JSFiber();
@@ -102,6 +102,7 @@ public:
 
 		~scope()
 		{
+			ReportException(try_catch, m_hr);
 			g_pService->tlsPut(g_tlsCurrent, m_pNext);
 		}
 
@@ -110,9 +111,13 @@ public:
 			return m_pFiber;
 		}
 
+	public:
+		result_t m_hr;
+
 	private:
 		obj_ptr<JSFiber> m_pFiber;
 		void* m_pNext;
+		v8::TryCatch try_catch;
 	};
 
 public:

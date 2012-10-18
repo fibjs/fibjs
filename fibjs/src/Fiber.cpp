@@ -138,7 +138,7 @@ void JSFiber::callFunction1(v8::Handle<v8::Function> func,
 		m_error = true;
 
 		_trigger("error", &err, 1);
-		ReportException(&try_catch, true);
+		ReportException(try_catch, 0);
 	}
 }
 

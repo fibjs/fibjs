@@ -20,7 +20,7 @@ result_t JSHandler::setHandler(v8::Handle<v8::Value> hdlr)
 	if (!hdlr->IsFunction() && !hdlr->IsObject())
 		return CALL_E_BADVARTYPE;
 
-	m_handler = v8::Persistent<v8::Value>::New(hdlr);
+	m_handler = v8::Persistent < v8::Value > ::New(hdlr);
 	return 0;
 }
 
@@ -56,12 +56,12 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 	if (ac)
 		return CALL_E_NOASYNC;
 
-	v8::Handle<v8::Object> o;
+	v8::Handle < v8::Object > o;
 	v->ValueOf(o);
 
-	obj_ptr<Message_base> msg = Message_base::getInstance(v);
-	v8::Handle<v8::Value> a = o;
-	v8::Handle<v8::Value> hdlr = m_handler;
+	obj_ptr < Message_base > msg = Message_base::getInstance(v);
+	v8::Handle < v8::Value > a = o;
+	v8::Handle < v8::Value > hdlr = m_handler;
 	result_t hr;
 	bool bResult = false;
 
@@ -91,9 +91,11 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			if (!hdlr->IsObject())
 				return CALL_E_INVALID_CALL;
 
-			hdlr = v8::Handle<v8::Object>::Cast(hdlr)->Get(
-					v8::String::New(m_method.c_str(), (int) m_method.length()));
-			if (IsEmpty(hdlr))
+			hdlr = v8::Handle < v8::Object
+					> ::Cast(hdlr)->Get(
+							v8::String::New(m_method.c_str(),
+									(int) m_method.length()));
+			if (IsEmpty (hdlr))
 				return CALL_E_INVALID_CALL;
 		}
 	}
@@ -102,7 +104,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 	{
 		if (hdlr->IsFunction())
 		{
-			obj_ptr<List_base> params;
+			obj_ptr < List_base > params;
 			int32_t len = 0, i;
 
 			if (msg != NULL)
@@ -113,7 +115,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
 			if (len > 0)
 			{
-				std::vector<v8::Handle<v8::Value> > argv;
+				std::vector < v8::Handle<v8::Value> > argv;
 
 				argv.resize(len + 1);
 				argv[0] = a;
@@ -125,17 +127,17 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 					argv[i + 1] = v;
 				}
 
-				JSFiber::call(v8::Handle<v8::Function>::Cast(hdlr), argv.data(),
-						len + 1, hdlr);
+				JSFiber::call(v8::Handle < v8::Function > ::Cast(hdlr),
+						argv.data(), len + 1, hdlr);
 			}
 			else
-				JSFiber::call(v8::Handle<v8::Function>::Cast(hdlr), &a, 1,
+				JSFiber::call(v8::Handle < v8::Function > ::Cast(hdlr), &a, 1,
 						hdlr);
 
 			if (hdlr.IsEmpty())
 				return CALL_E_INTERNAL;
 
-			if (IsEmpty(hdlr))
+			if (IsEmpty (hdlr))
 				return CALL_RETURN_NULL;
 
 			bResult = true;
@@ -161,9 +163,11 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 					return hr;
 			}
 
-			hdlr = v8::Handle<v8::Object>::Cast(hdlr)->Get(
-					v8::String::New(method.c_str(), (int) method.length()));
-			if (IsEmpty(hdlr))
+			hdlr = v8::Handle < v8::Object
+					> ::Cast(hdlr)->Get(
+							v8::String::New(method.c_str(),
+									(int) method.length()));
+			if (IsEmpty (hdlr))
 				return CALL_E_INVALID_CALL;
 
 			bResult = false;
@@ -205,15 +209,16 @@ result_t JSHandler::js_invoke(Handler_base* hdlr, object_base* v,
 	public:
 		virtual void js_callback()
 		{
-			JSFiber::scope s;
+			{
+				JSFiber::scope s;
+				s.m_hr = m_hr = js_invoke(m_pThis, m_v, m_retVal, NULL);
+			}
 
-			m_hr = js_invoke(m_pThis, m_v, m_retVal, NULL);
-
-			obj_ptr<Message_base> msg = Message_base::getInstance(m_v);
+			obj_ptr < Message_base > msg = Message_base::getInstance(m_v);
 			if (msg)
 			{
 				Variant result;
-				obj_ptr<List_base> params;
+				obj_ptr < List_base > params;
 
 				msg->get_params(params);
 				params->resize(0);

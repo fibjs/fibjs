@@ -497,7 +497,7 @@ extern exlib::Service* g_pService;
 std::string traceInfo();
 std::string getResultMessage(result_t hr);
 v8::Handle<v8::Value> ThrowResult(result_t hr);
-void ReportException(v8::TryCatch* try_catch, bool rt);
+void ReportException(v8::TryCatch& try_catch, result_t hr);
 
 #ifdef _WIN32
 
