@@ -26,7 +26,7 @@ class Message
 
 	public:
 		obj_ptr<List_base> m_params;
-		Variant m_result;
+		VariantEx m_result;
 	};
 
 public:
