@@ -187,6 +187,16 @@ var handler = mq.chain([ function(v) {
 var req = new http.Request();
 mq.invoke(handler, req);
 
+var handler = mq.chain([ function(v) {
+	v.params[0] = {};
+}, function(v) {
+	assert.equal("object", typeof(v.params[0]));
+} ]);
+
+var req = new http.Request();
+req.params.append("aaasssssssssssssss");
+mq.invoke(handler, req);
+
 // ------------- routing handler
 
 function params(v, p1, p2) {
