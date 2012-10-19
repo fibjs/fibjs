@@ -14,6 +14,9 @@ class List : object
 	/*! @brief 修改缓存对象尺寸 */
 	resize(Integer sz);
 
+	/*! @brief 在数组结尾添加一个元素 */
+	append(Variant v);
+
 	/*! @brief 返回一个新对象数组，包含指定范围的数据，若范围超出缓存，则只返回有效部分数据
 	 * @param start 指定范围的起始，缺省从头开始
 	 * @param end 指定范围的结束，缺省到缓存结尾

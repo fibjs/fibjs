@@ -42,6 +42,15 @@ result_t DBResult::resize(int32_t sz)
 	return m_array.resize(sz);
 }
 
+result_t DBResult::append(Variant v)
+{
+	if (!m_size)
+		return CALL_E_INVALID_CALL;
+
+	m_array.append(v);
+	return 0;
+}
+
 result_t DBResult::slice(int32_t start, int32_t end,
 		obj_ptr<List_base>& retVal)
 {

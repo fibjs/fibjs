@@ -168,7 +168,8 @@ public:
 		return operator[](m_size);
 	}
 
-	void append(const T* rhs, size_t n)
+	template<typename V>
+	void append(const V* rhs, size_t n)
 	{
 		if (n > 0)
 		{
@@ -195,7 +196,8 @@ public:
 		}
 	}
 
-	void append(const T& t)
+	template<typename V>
+	void append(const V& t)
 	{
 		append(&t, 1);
 	}

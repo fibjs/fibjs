@@ -26,6 +26,7 @@ public:
 	virtual result_t _indexed_setter(uint32_t index, Variant newVal);
 	virtual result_t get_length(int32_t& retVal);
 	virtual result_t resize(int32_t sz);
+	virtual result_t append(Variant v);
 	virtual result_t slice(int32_t start, int32_t end,
 			obj_ptr<List_base>& retVal);
 
@@ -37,6 +38,7 @@ public:
 		result_t _indexed_setter(uint32_t index, Variant newVal);
 		result_t get_length(int32_t& retVal);
 		result_t resize(int32_t sz);
+		result_t append(Variant v);
 		result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal);
 		result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal);
 
@@ -45,12 +47,7 @@ public:
 		{
 			Variant v;
 			v = newVal;
-			m_array.append(v);
-		}
-
-		void append(const Variant& newVal)
-		{
-			m_array.append(newVal);
+			append(v);
 		}
 
 	private:
@@ -59,11 +56,6 @@ public:
 
 public:
 	void append(object_base* newVal)
-	{
-		m_array.append(newVal);
-	}
-
-	void append(const Variant& newVal)
 	{
 		m_array.append(newVal);
 	}

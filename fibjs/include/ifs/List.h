@@ -25,6 +25,7 @@ public:
 	virtual result_t _indexed_setter(uint32_t index, Variant newVal) = 0;
 	virtual result_t get_length(int32_t& retVal) = 0;
 	virtual result_t resize(int32_t sz) = 0;
+	virtual result_t append(Variant v) = 0;
 	virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal) = 0;
 
 	DECLARE_CLASSINFO(List_base);
@@ -45,6 +46,7 @@ public:
 	static v8::Handle<v8::Value> i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::AccessorInfo& info);
 	static v8::Handle<v8::Value> s_get_length(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_resize(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_append(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_slice(const v8::Arguments& args);
 };
 
@@ -57,6 +59,7 @@ namespace fibjs
 		static ClassData::ClassMethod s_method[] = 
 		{
 			{"resize", s_resize},
+			{"append", s_append},
 			{"slice", s_slice}
 		};
 
@@ -73,7 +76,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"List", s__new, 
-			2, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
+			3, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
 			&object_base::class_info()
 		};
 
@@ -135,6 +138,18 @@ namespace fibjs
 		ARG(int32_t, 0);
 
 		hr = pInst->resize(v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> List_base::s_append(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(List_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(Variant, 0);
+
+		hr = pInst->append(v0);
 
 		METHOD_VOID();
 	}

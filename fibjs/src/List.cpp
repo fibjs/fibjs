@@ -36,6 +36,12 @@ result_t List::resize(int32_t sz)
 	return m_array.resize(sz);
 }
 
+result_t List::append(Variant v)
+{
+	m_array.append(v);
+	return 0;
+}
+
 result_t List::slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal)
 {
 	return m_array.slice(start, end, retVal);
@@ -78,6 +84,12 @@ result_t List::array::resize(int32_t sz)
 	return 0;
 }
 
+result_t List::array::append(Variant v)
+{
+	m_array.append(v);
+	return 0;
+}
+
 result_t List::array::slice(int32_t start, int32_t end,
 		obj_ptr<List_base>& retVal)
 {
@@ -86,7 +98,7 @@ result_t List::array::slice(int32_t start, int32_t end,
 
 result_t List::array::toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 {
-	v8::Handle<v8::Array> a = v8::Array::New((int) m_array.size());
+	v8::Handle < v8::Array > a = v8::Array::New((int) m_array.size());
 	int i;
 
 	for (i = 0; i < (int) m_array.size(); i++)
