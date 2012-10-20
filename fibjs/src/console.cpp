@@ -190,7 +190,24 @@ result_t console_base::dir(v8::Handle<v8::Object> obj)
 			switch (ch)
 			{
 			case '[':
+				if (*p == ']')
+				{
+					strBuffer << ch;
+					ch = *p ++;
+					break;
+				}
+
+				bNewLine = true;
+				padding += tab_size;
+				break;
 			case '{':
+				if (*p == '}')
+				{
+					strBuffer << ch;
+					ch = *p ++;
+					break;
+				}
+
 				bNewLine = true;
 				padding += tab_size;
 				break;
