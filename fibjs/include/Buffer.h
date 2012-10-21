@@ -36,6 +36,12 @@ public:
 	virtual result_t hex(std::string& retVal);
 	virtual result_t base64(std::string& retVal);
 
+	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
+	{
+		retVal = v8::Object::New();
+		return 0;
+	}
+
 private:
 	std::string m_data;
 };
