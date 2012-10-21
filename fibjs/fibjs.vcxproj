@@ -34,6 +34,7 @@
     <ClCompile Include="src\define.cpp" />
     <ClCompile Include="src\Digest.cpp" />
     <ClCompile Include="src\encoding.cpp" />
+    <ClCompile Include="src\encoding_bson.cpp" />
     <ClCompile Include="src\Event.cpp" />
     <ClCompile Include="src\Fiber.cpp" />
     <ClCompile Include="src\fibjs.cpp" />

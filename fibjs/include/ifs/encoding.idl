@@ -79,6 +79,16 @@ class encoding : module
 	 */
 	static Value jsonDecode(String data);
 
+	/*! @brief 以 bson 格式编码变量
+	 * @param data 要编码的变量
+	 * @return 返回编码的二进制数据
+	 */
+	static Buffer bsonEncode(Object data);
 
+	/*! @brief 以 bson 方式解码字符串为一个变量
+	 * @param data 要解码的二进制数据
+	 * @return 返回解码的变量
+	 */
+	static Object bsonDecode(Buffer data);
 };
 

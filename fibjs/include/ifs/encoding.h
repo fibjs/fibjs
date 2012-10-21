@@ -36,6 +36,8 @@ public:
 	static result_t decodeURI(const char* url, std::string& retVal);
 	static result_t jsonEncode(v8::Handle<v8::Value> data, std::string& retVal);
 	static result_t jsonDecode(const char* data, v8::Handle<v8::Value>& retVal);
+	static result_t bsonEncode(v8::Handle<v8::Object> data, obj_ptr<Buffer_base>& retVal);
+	static result_t bsonDecode(Buffer_base* data, v8::Handle<v8::Object>& retVal);
 
 	DECLARE_CLASSINFO(encoding_base);
 
@@ -52,6 +54,8 @@ public:
 	static v8::Handle<v8::Value> s_decodeURI(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_jsonEncode(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_jsonDecode(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_bsonEncode(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_bsonDecode(const v8::Arguments& args);
 };
 
 }
@@ -75,13 +79,15 @@ namespace fibjs
 			{"encodeURIComponent", s_encodeURIComponent, true},
 			{"decodeURI", s_decodeURI, true},
 			{"jsonEncode", s_jsonEncode, true},
-			{"jsonDecode", s_jsonDecode, true}
+			{"jsonDecode", s_jsonDecode, true},
+			{"bsonEncode", s_bsonEncode, true},
+			{"bsonDecode", s_bsonDecode, true}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"encoding", NULL, 
-			12, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			14, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -242,6 +248,32 @@ namespace fibjs
 		ARG_String(0);
 
 		hr = jsonDecode(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> encoding_base::s_bsonEncode(const v8::Arguments& args)
+	{
+		obj_ptr<Buffer_base> vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Object>, 0);
+
+		hr = bsonEncode(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> encoding_base::s_bsonDecode(const v8::Arguments& args)
+	{
+		v8::Handle<v8::Object> vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+
+		hr = bsonDecode(v0, vr);
 
 		METHOD_RETURN();
 	}
