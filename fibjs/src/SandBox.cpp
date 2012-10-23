@@ -32,8 +32,12 @@ result_t vm_base::create(v8::Handle<v8::Object> mods,
 
 result_t vm_base::current(obj_ptr<SandBox_base>& retVal)
 {
-	v8::Handle < v8::Object > glob = v8::Context::GetCalling()->Global();
-	v8::Handle < v8::Value > sbox = glob->GetHiddenValue(
+	v8::Handle < v8::Context > ctx = v8::Context::GetCalling();
+
+	if (ctx.IsEmpty())
+		return CALL_E_INVALID_CALL;
+
+	v8::Handle < v8::Value > sbox = ctx->Global()->GetHiddenValue(
 			v8::String::NewSymbol("SandBox"));
 
 	if (sbox.IsEmpty())

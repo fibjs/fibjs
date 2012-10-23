@@ -62,21 +62,25 @@ inline std::string resolvePath(const char* id)
 	if (id[0] == '.'
 			&& (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
 	{
-		v8::Handle<v8::Object> glob = v8::Context::GetCalling()->Global();
-		v8::Handle<v8::Value> path = glob->GetHiddenValue(
-				v8::String::NewSymbol("id"));
+		v8::Handle<v8::Context> ctx = v8::Context::GetCalling();
 
-		if (!path.IsEmpty())
+		if (!ctx.IsEmpty())
 		{
-			std::string strPath;
+			v8::Handle<v8::Value> path = ctx->Global()->GetHiddenValue(
+					v8::String::NewSymbol("id"));
 
-			path_base::dirname(*v8::String::Utf8Value(path), strPath);
-			if (strPath.length())
-				strPath += '/';
-			strPath += id;
-			path_base::normalize(strPath.c_str(), fname);
+			if (!path.IsEmpty())
+			{
+				std::string strPath;
 
-			return fname;
+				path_base::dirname(*v8::String::Utf8Value(path), strPath);
+				if (strPath.length())
+					strPath += '/';
+				strPath += id;
+				path_base::normalize(strPath.c_str(), fname);
+
+				return fname;
+			}
 		}
 	}
 
