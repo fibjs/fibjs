@@ -239,11 +239,13 @@ void enableDump()
 
 int main(int argc, char* argv[])
 {
+	static const char s_opts[] = "--stack_size=120 --harmony";
 	enableDump();
 
 	exlib::OSThread::Sleep(1);
+
+	v8::V8::SetFlagsFromString(s_opts, sizeof(s_opts) - 1);
 	v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
-	v8::V8::SetFlagsFromString("--stack_size=120", 16);
 
 	fibjs::init_argv(argc, argv);
 
