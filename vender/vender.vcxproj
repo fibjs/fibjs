@@ -190,6 +190,9 @@
     <ClCompile Include="src\matrixssl\matrixssl\sslEncode.c" />
     <ClCompile Include="src\matrixssl\matrixssl\sslv3.c" />
     <ClCompile Include="src\matrixssl\matrixssl\tls.c" />
+    <ClCompile Include="src\mongo\bson.c" />
+    <ClCompile Include="src\mongo\encoding.c" />
+    <ClCompile Include="src\mongo\numbers.c" />
     <ClCompile Include="src\pcre\pcre_chartables.c" />
     <ClCompile Include="src\pcre\pcre_compile.c" />
     <ClCompile Include="src\pcre\pcre_config.c" />
@@ -503,6 +506,7 @@
     <ClCompile Include="src\zmq\src\zmq_xsub.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\bson.h" />
     <ClInclude Include="include\crypto\md2.h" />
     <ClInclude Include="include\crypto\md4.h" />
     <ClInclude Include="include\crypto\md5.h" />
@@ -612,6 +616,8 @@
     <ClInclude Include="src\matrixssl\matrixssl\matrixsslConfig.h" />
     <ClInclude Include="src\matrixssl\matrixssl\matrixssllib.h" />
     <ClInclude Include="src\matrixssl\matrixssl\version.h" />
+    <ClInclude Include="src\mongo\bson.h" />
+    <ClInclude Include="src\mongo\encoding.h" />
     <ClInclude Include="src\pcre\config.h" />
     <ClInclude Include="src\pcre\pcre.h" />
     <ClInclude Include="src\pcre\pcre_internal.h" />
@@ -1053,6 +1059,7 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">

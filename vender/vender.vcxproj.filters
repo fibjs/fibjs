@@ -148,6 +148,9 @@
     <Filter Include="Source Files\pcre\sljit">
       <UniqueIdentifier>{042ca055-79d3-4b34-a2fc-6ca81a860f75}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\mongo">
+      <UniqueIdentifier>{93f5c176-6d95-4756-8fc0-73d97c81e3cc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zlib\adler32.c">
@@ -1596,6 +1599,15 @@
     <ClCompile Include="src\pcre\sljit\sljitLir.c">
       <Filter>Source Files\pcre\sljit</Filter>
     </ClCompile>
+    <ClCompile Include="src\mongo\bson.c">
+      <Filter>Source Files\mongo</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mongo\encoding.c">
+      <Filter>Source Files\mongo</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mongo\numbers.c">
+      <Filter>Source Files\mongo</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -2962,6 +2974,15 @@
     </ClInclude>
     <ClInclude Include="src\zlib\gzguts.h">
       <Filter>Source Files\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\bson.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mongo\bson.h">
+      <Filter>Source Files\mongo</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mongo\encoding.h">
+      <Filter>Source Files\mongo</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
