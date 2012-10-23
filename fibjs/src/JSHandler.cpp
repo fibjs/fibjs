@@ -150,18 +150,16 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			if (msg == NULL)
 				return CALL_E_BADVARTYPE;
 
+			if (bResult)
+			{
+				msg->set_result(hdlr);
+				return CALL_RETURN_NULL;
+			}
+
 			std::string method;
 			hr = msgMethod(msg, method);
 			if (hr < 0)
-			{
-				if (bResult && msg)
-				{
-					msg->set_result(hdlr);
-					return CALL_RETURN_NULL;
-				}
-				else
-					return hr;
-			}
+				return hr;
 
 			hdlr = v8::Handle < v8::Object
 					> ::Cast(hdlr)->Get(
