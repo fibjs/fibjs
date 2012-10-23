@@ -12,7 +12,7 @@
 #include "ifs/path.h"
 
 #include "ifs/Stat.h"
-#include "ifs/Global.h"
+#include "ifs/global.h"
 #include "ifs/Function.h"
 
 #include <sstream>
