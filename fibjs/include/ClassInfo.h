@@ -123,8 +123,7 @@ public:
 			ot->SetNamedPropertyHandler(pcd->cns->getter, pcd->cns->setter);
 
 		m_function = v8::Persistent<v8::Function>::New(m_class->GetFunction());
-		m_cache = v8::Persistent<v8::Object>::New(
-				m_function->NewInstance()->Clone());
+		m_cache = v8::Persistent<v8::Object>::New(m_function->NewInstance());
 	}
 
 	void* getInstance(void* o);
@@ -139,11 +138,6 @@ public:
 	v8::Handle<v8::Object> CreateInstance()
 	{
 		return m_cache->Clone();
-	}
-
-	v8::Handle<v8::Function> GetFunction() const
-	{
-		return m_function;
 	}
 
 	const char* name()
@@ -162,7 +156,7 @@ public:
 
 		for (i = 0; i < m_cd.oc; i++)
 			o->Set(v8::String::NewSymbol(m_cd.cos[i].name),
-					m_cd.cos[i].invoker().GetFunction(), v8::ReadOnly);
+					m_cd.cos[i].invoker().m_function, v8::ReadOnly);
 
 		for (i = 0; i < m_cd.pc; i++)
 			if (m_cd.cps[i].setter)

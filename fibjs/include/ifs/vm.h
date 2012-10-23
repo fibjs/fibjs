@@ -1,0 +1,95 @@
+/***************************************************************************
+ *   Copyright (C) 2012 by Leo Hoo                                         *
+ *   lion@9465.net                                                         *
+ *                                                                         *
+ ***************************************************************************/
+
+#ifndef _vm_base_H_
+#define _vm_base_H_
+
+/**
+ @author Leo Hoo <lion@9465.net>
+ */
+
+#include "../object.h"
+#include "module.h"
+
+namespace fibjs
+{
+
+class module_base;
+class SandBox_base;
+
+class vm_base : public module_base
+{
+public:
+	// vm_base
+	static result_t create(obj_ptr<SandBox_base>& retVal);
+	static result_t create(v8::Handle<v8::Object> mods, obj_ptr<SandBox_base>& retVal);
+	static result_t current(obj_ptr<SandBox_base>& retVal);
+
+	DECLARE_CLASSINFO(vm_base);
+
+public:
+	static v8::Handle<v8::Value> s_create(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_current(const v8::Arguments& args);
+};
+
+}
+
+#include "SandBox.h"
+
+namespace fibjs
+{
+	inline ClassInfo& vm_base::class_info()
+	{
+		static ClassData::ClassMethod s_method[] = 
+		{
+			{"create", s_create, true},
+			{"current", s_current, true}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"vm", NULL, 
+			2, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			&module_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
+
+	inline v8::Handle<v8::Value> vm_base::s_create(const v8::Arguments& args)
+	{
+		obj_ptr<SandBox_base> vr;
+
+		METHOD_ENTER(0, 0);
+
+		hr = create(vr);
+
+		METHOD_OVER(1, 1);
+
+		ARG(v8::Handle<v8::Object>, 0);
+
+		hr = create(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> vm_base::s_current(const v8::Arguments& args)
+	{
+		obj_ptr<SandBox_base> vr;
+
+		METHOD_ENTER(0, 0);
+
+		hr = current(vr);
+
+		METHOD_RETURN();
+	}
+
+}
+
+#endif
+

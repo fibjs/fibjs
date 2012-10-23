@@ -115,13 +115,11 @@ result_t process_base::get_execPath(std::string& retVal)
 	return 0;
 }
 
-void clearModule();
 void flushLog();
 
 result_t process_base::exit(int32_t code)
 {
 	flushLog();
-	clearModule();
 
 	::exit(code);
 	return 0;

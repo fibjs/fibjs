@@ -7,6 +7,7 @@
 
 #include "ifs/global.h"
 #include "ifs/path.h"
+#include "ifs/vm.h"
 #include <vector>
 #include <set>
 #include <map>
@@ -15,8 +16,17 @@
 namespace fibjs
 {
 
-void InstallModule(std::string fname, v8::Handle<v8::Value> o, date_t d);
-static date_t s_noneDate;
+inline void InstallModule(std::string fname, v8::Handle<v8::Value> o)
+{
+	static date_t s_noneDate;
+
+	obj_ptr<SandBox_base> sbox;
+	result_t hr = vm_base::current(sbox);
+	if (hr < 0 || hr == CALL_RETURN_NULL)
+		return;
+
+	sbox->add(fname.c_str(), o);
+}
 
 inline std::string resolvePath(std::string base, const char* id)
 {
@@ -48,7 +58,7 @@ v8::Handle<v8::Value> _define(const v8::Arguments& args)
 
 	v8::HandleScope handle_scope;
 
-	v8::Handle<v8::Object> glob = v8::Context::GetCurrent()->Global();
+	v8::Handle<v8::Object> glob = v8::Context::GetCalling()->Global();
 
 	// cache string
 	v8::Handle<v8::String> strRequire = v8::String::NewSymbol("require");
@@ -144,7 +154,7 @@ v8::Handle<v8::Value> _define(const v8::Arguments& args)
 		modDef->Set(strId, strFname, v8::ReadOnly);
 
 		// add to modules
-		InstallModule(id, exports, s_noneDate);
+		InstallModule(id, exports);
 	}
 
 	v8::Handle<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(1,
@@ -302,7 +312,7 @@ result_t doDefine(v8::Handle<v8::Object>& mod)
 					else
 						v = mods[i]->Get(strExports);
 
-					InstallModule(modIds[i], v, s_noneDate);
+					InstallModule(modIds[i], v);
 
 					// remove id name, we don't like to call it again
 					depns.erase(modIds[i]);

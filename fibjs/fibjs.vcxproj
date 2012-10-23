@@ -75,6 +75,9 @@
     <ClCompile Include="src\Routing.cpp" />
     <ClCompile Include="src\rpc.cpp" />
     <ClCompile Include="src\Runtime.cpp" />
+    <ClCompile Include="src\SandBox.cpp" />
+    <ClCompile Include="src\SandBox_root.cpp" />
+    <ClCompile Include="src\SandBox_run.cpp" />
     <ClCompile Include="src\Semaphore.cpp" />
     <ClCompile Include="src\Socket.cpp" />
     <ClCompile Include="src\Socket_ev.cpp" />
@@ -171,6 +174,7 @@
     <ClInclude Include="include\ifs\Regex.h" />
     <ClInclude Include="include\ifs\Routing.h" />
     <ClInclude Include="include\ifs\rpc.h" />
+    <ClInclude Include="include\ifs\SandBox.h" />
     <ClInclude Include="include\ifs\SeekableStream.h" />
     <ClInclude Include="include\ifs\Semaphore.h" />
     <ClInclude Include="include\ifs\Socket.h" />
@@ -182,6 +186,7 @@
     <ClInclude Include="include\ifs\Url.h" />
     <ClInclude Include="include\ifs\uuid.h" />
     <ClInclude Include="include\ifs\uuidValue.h" />
+    <ClInclude Include="include\ifs\vm.h" />
     <ClInclude Include="include\ifs\zlib.h" />
     <ClInclude Include="include\ifs\zmq.h" />
     <ClInclude Include="include\ifs\zmqSocket.h" />
@@ -204,6 +209,7 @@
     <ClInclude Include="include\Regex.h" />
     <ClInclude Include="include\Routing.h" />
     <ClInclude Include="include\Runtime.h" />
+    <ClInclude Include="include\SandBox.h" />
     <ClInclude Include="include\Semaph.h" />
     <ClInclude Include="include\Socket.h" />
     <ClInclude Include="include\SQLite.h" />
@@ -249,6 +255,7 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">

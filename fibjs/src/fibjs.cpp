@@ -10,6 +10,7 @@
 
 #include "ifs/global.h"
 #include "ifs/process.h"
+#include "SandBox.h"
 #include <exlib/lockfree.h>
 #include "Fiber.h"
 #include "utf8.h"
@@ -95,7 +96,6 @@ private:
 #endif
 };
 
-void initModule();
 void init_argv(int argc, char** argv);
 
 void _main(const char* fname)
@@ -126,15 +126,16 @@ void _main(const char* fname)
 	s_context = v8::Context::New();
 	v8::Context::Scope context_scope(s_context);
 
-	initModule();
-
 	Fiber_base* fb = new JSFiber();
 	g_pService->tlsPut(g_tlsCurrent, fb);
 	fb->Ref();
 
 	{
 		JSFiber::scope s;
-		s.m_hr = hr = fibjs::global_base::run(fname);
+		obj_ptr<SandBox> sbox = new SandBox();
+
+		sbox->initRoot();
+		s.m_hr = hr = sbox->run(fname);
 	}
 
 	process_base::exit(0);
@@ -242,12 +243,7 @@ int main(int argc, char* argv[])
 
 	exlib::OSThread::Sleep(1);
 	v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
-
-	int argc1 = 2;
-	char* argv1[2] =
-	{ (char*) "", (char*) "--stack_size=120" };
-
-	v8::V8::SetFlagsFromCommandLine(&argc1, argv1, false);
+	v8::V8::SetFlagsFromString("--stack_size=120", 16);
 
 	fibjs::init_argv(argc, argv);
 

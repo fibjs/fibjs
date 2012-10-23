@@ -82,7 +82,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			id.append(method);
 		}
 
-		hr = global_base::require(id.c_str(), hdlr);
+		hr = m_sbox->require(id.c_str(), hdlr);
 		if (hr < 0)
 			return hr;
 

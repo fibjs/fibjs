@@ -6,6 +6,7 @@
  */
 
 #include "ifs/Handler.h"
+#include "ifs/vm.h"
 
 #ifndef JSHANDLER_H_
 #define JSHANDLER_H_
@@ -50,6 +51,10 @@ public:
 
 		obj_ptr<JSHandler> r = new JSHandler();
 
+		result_t hr = vm_base::current(r->m_sbox);
+		if (hr < 0)
+			return hr;
+
 		r->m_id = id;
 		r->m_method = method;
 
@@ -69,6 +74,7 @@ private:
 	v8::Persistent<v8::Value> m_handler;
 	std::string m_id;
 	std::string m_method;
+	obj_ptr<SandBox_base> m_sbox;
 };
 
 } /* namespace fibjs */
