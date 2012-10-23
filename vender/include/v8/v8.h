@@ -1389,6 +1389,8 @@ class Integer : public Number {
  public:
   V8EXPORT static Local<Integer> New(int32_t value);
   V8EXPORT static Local<Integer> NewFromUnsigned(uint32_t value);
+  V8EXPORT static Local<Integer> New(int32_t value, Isolate*);
+  V8EXPORT static Local<Integer> NewFromUnsigned(uint32_t value, Isolate*);
   V8EXPORT int64_t Value() const;
   static inline Integer* Cast(v8::Value* obj);
  private:
@@ -2658,7 +2660,7 @@ bool V8EXPORT SetResourceConstraints(ResourceConstraints* constraints);
 typedef void (*FatalErrorCallback)(const char* location, const char* message);
 
 
-typedef void (*MessageCallback)(Handle<Message> message, Handle<Value> data);
+typedef void (*MessageCallback)(Handle<Message> message, Handle<Value> error);
 
 
 /**
@@ -2771,6 +2773,7 @@ class V8EXPORT HeapStatistics {
   HeapStatistics();
   size_t total_heap_size() { return total_heap_size_; }
   size_t total_heap_size_executable() { return total_heap_size_executable_; }
+  size_t total_physical_size() { return total_physical_size_; }
   size_t used_heap_size() { return used_heap_size_; }
   size_t heap_size_limit() { return heap_size_limit_; }
 
@@ -2779,11 +2782,15 @@ class V8EXPORT HeapStatistics {
   void set_total_heap_size_executable(size_t size) {
     total_heap_size_executable_ = size;
   }
+  void set_total_physical_size(size_t size) {
+    total_physical_size_ = size;
+  }
   void set_used_heap_size(size_t size) { used_heap_size_ = size; }
   void set_heap_size_limit(size_t size) { heap_size_limit_ = size; }
 
   size_t total_heap_size_;
   size_t total_heap_size_executable_;
+  size_t total_physical_size_;
   size_t used_heap_size_;
   size_t heap_size_limit_;
 
@@ -3101,8 +3108,7 @@ class V8EXPORT V8 {
    * The same message listener can be added more than once and in that
    * case it will be called more than once for each message.
    */
-  static bool AddMessageListener(MessageCallback that,
-                                 Handle<Value> data = Handle<Value>());
+  static bool AddMessageListener(MessageCallback that);
 
   /**
    * Remove all message listeners from the specified callback function.

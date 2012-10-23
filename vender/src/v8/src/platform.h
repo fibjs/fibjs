@@ -308,6 +308,9 @@ class OS {
   // Returns the double constant NAN
   static double nan_value();
 
+  // Support runtime detection of Cpu implementer
+  static CpuImplementer GetCpuImplementer();
+
   // Support runtime detection of VFP3 on ARM CPUs.
   static bool ArmCpuHasFeature(CpuFeature feature);
 
@@ -428,6 +431,11 @@ class VirtualMemory {
   // Must be called with a base pointer that has been returned by ReserveRegion
   // and the same size it was reserved with.
   static bool ReleaseRegion(void* base, size_t size);
+
+  // Returns true if OS performs lazy commits, i.e. the memory allocation call
+  // defers actual physical memory allocation till the first memory access.
+  // Otherwise returns false.
+  static bool HasLazyCommits();
 
  private:
   void* address_;  // Start address of the virtual memory.

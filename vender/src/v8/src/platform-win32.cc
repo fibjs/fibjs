@@ -1556,6 +1556,12 @@ bool VirtualMemory::ReleaseRegion(void* base, size_t size) {
   return VirtualFree(base, 0, MEM_RELEASE) != 0;
 }
 
+
+bool VirtualMemory::HasLazyCommits() {
+  // TODO(alph): implement for the platform.
+  return false;
+}
+
 #if 0
 // ----------------------------------------------------------------------------
 // Win32 thread support.

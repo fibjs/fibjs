@@ -1626,6 +1626,8 @@ class JSObject: public JSReceiver {
   static inline bool TryTransitionToField(Handle<JSObject> object,
                                           Handle<String> key);
 
+  inline int LastAddedFieldIndex();
+
   // Extend the receiver with a single fast property appeared first in the
   // passed map. This also extends the property backing store if necessary.
   static void AddFastPropertyUsingMap(Handle<JSObject> object, Handle<Map> map);
@@ -7378,7 +7380,7 @@ class String: public HeapObject {
       kIsNotArrayIndexMask | kHashNotComputedMask;
 
   // Value of hash field containing computed hash equal to zero.
-  static const int kZeroHash = kIsNotArrayIndexMask;
+  static const int kEmptyStringHash = kIsNotArrayIndexMask;
 
   // Maximal string length.
   static const int kMaxLength = (1 << (32 - 2)) - 1;
@@ -7413,32 +7415,47 @@ class String: public HeapObject {
                           int from,
                           int to);
 
-  static inline bool IsAscii(const char* chars, int length) {
+  // The return value may point to the first aligned word containing the
+  // first non-ascii character, rather than directly to the non-ascii character.
+  // If the return value is >= the passed length, the entire string was ASCII.
+  static inline int NonAsciiStart(const char* chars, int length) {
+    const char* start = chars;
     const char* limit = chars + length;
 #ifdef V8_HOST_CAN_READ_UNALIGNED
     ASSERT(kMaxAsciiCharCode == 0x7F);
     const uintptr_t non_ascii_mask = kUintptrAllBitsSet / 0xFF * 0x80;
     while (chars + sizeof(uintptr_t) <= limit) {
       if (*reinterpret_cast<const uintptr_t*>(chars) & non_ascii_mask) {
-        return false;
+        return static_cast<int>(chars - start);
       }
       chars += sizeof(uintptr_t);
     }
 #endif
     while (chars < limit) {
-      if (static_cast<uint8_t>(*chars) > kMaxAsciiCharCodeU) return false;
+      if (static_cast<uint8_t>(*chars) > kMaxAsciiCharCodeU) {
+        return static_cast<int>(chars - start);
+      }
       ++chars;
     }
-    return true;
+    return static_cast<int>(chars - start);
+  }
+
+  static inline bool IsAscii(const char* chars, int length) {
+    return NonAsciiStart(chars, length) >= length;
+  }
+
+  static inline int NonAsciiStart(const uc16* chars, int length) {
+    const uc16* limit = chars + length;
+    const uc16* start = chars;
+    while (chars < limit) {
+      if (*chars > kMaxAsciiCharCodeU) return static_cast<int>(chars - start);
+      ++chars;
+    }
+    return static_cast<int>(chars - start);
   }
 
   static inline bool IsAscii(const uc16* chars, int length) {
-    const uc16* limit = chars + length;
-    while (chars < limit) {
-      if (*chars > kMaxAsciiCharCodeU) return false;
-      ++chars;
-    }
-    return true;
+    return NonAsciiStart(chars, length) >= length;
   }
 
  protected:

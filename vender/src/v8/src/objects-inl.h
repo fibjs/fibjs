@@ -1444,6 +1444,13 @@ bool JSObject::TryTransitionToField(Handle<JSObject> object,
 }
 
 
+int JSObject::LastAddedFieldIndex() {
+  Map* map = this->map();
+  int last_added = map->LastAdded();
+  return map->instance_descriptors()->GetFieldIndex(last_added);
+}
+
+
 ACCESSORS(Oddball, to_string, String, kToStringOffset)
 ACCESSORS(Oddball, to_number, Object, kToNumberOffset)
 
@@ -4948,7 +4955,7 @@ uint32_t StringHasher::GetHashCore(uint32_t running_hash) {
   running_hash ^= (running_hash >> 11);
   running_hash += (running_hash << 15);
   if ((running_hash & String::kHashBitMask) == 0) {
-    return 27;
+    return kZeroHash;
   }
   return running_hash;
 }

@@ -774,6 +774,7 @@
     <ClInclude Include="src\v8\src\isolate-inl.h" />
     <ClInclude Include="src\v8\src\isolate.h" />
     <ClInclude Include="src\v8\src\json-parser.h" />
+    <ClInclude Include="src\v8\src\json-stringifier.h" />
     <ClInclude Include="src\v8\src\jsregexp.h" />
     <ClInclude Include="src\v8\src\lazy-instance.h" />
     <ClInclude Include="src\v8\src\list-inl.h" />

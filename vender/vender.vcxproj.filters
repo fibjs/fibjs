@@ -2984,6 +2984,9 @@
     <ClInclude Include="src\mongo\encoding.h">
       <Filter>Source Files\mongo</Filter>
     </ClInclude>
+    <ClInclude Include="src\v8\src\json-stringifier.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\log4cpp\threading\BoostThreads.hh">

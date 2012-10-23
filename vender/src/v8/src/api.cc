@@ -4314,6 +4314,7 @@ bool v8::V8::Dispose() {
 
 HeapStatistics::HeapStatistics(): total_heap_size_(0),
                                   total_heap_size_executable_(0),
+                                  total_physical_size_(0),
                                   used_heap_size_(0),
                                   heap_size_limit_(0) { }
 
@@ -4323,6 +4324,7 @@ void v8::V8::GetHeapStatistics(HeapStatistics* heap_statistics) {
     // Isolate is unitialized thus heap is not configured yet.
     heap_statistics->set_total_heap_size(0);
     heap_statistics->set_total_heap_size_executable(0);
+    heap_statistics->set_total_physical_size(0);
     heap_statistics->set_used_heap_size(0);
     heap_statistics->set_heap_size_limit(0);
     return;
@@ -4332,6 +4334,7 @@ void v8::V8::GetHeapStatistics(HeapStatistics* heap_statistics) {
   heap_statistics->set_total_heap_size(heap->CommittedMemory());
   heap_statistics->set_total_heap_size_executable(
       heap->CommittedMemoryExecutable());
+  heap_statistics->set_total_physical_size(heap->CommittedPhysicalMemory());
   heap_statistics->set_used_heap_size(heap->SizeOfObjects());
   heap_statistics->set_heap_size_limit(heap->MaxReserved());
 }
@@ -5228,24 +5231,39 @@ Local<Number> v8::Number::New(double value) {
 Local<Integer> v8::Integer::New(int32_t value) {
   i::Isolate* isolate = i::Isolate::UncheckedCurrent();
   EnsureInitializedForIsolate(isolate, "v8::Integer::New()");
-  if (i::Smi::IsValid(value)) {
-    return Utils::IntegerToLocal(i::Handle<i::Object>(i::Smi::FromInt(value),
-                                                      isolate));
-  }
-  ENTER_V8(isolate);
-  i::Handle<i::Object> result = isolate->factory()->NewNumber(value);
-  return Utils::IntegerToLocal(result);
+  return v8::Integer::New(value, reinterpret_cast<Isolate*>(isolate));
 }
 
 
 Local<Integer> Integer::NewFromUnsigned(uint32_t value) {
+  i::Isolate* isolate = i::Isolate::Current();
+  EnsureInitializedForIsolate(isolate, "v8::Integer::NewFromUnsigned()");
+  return Integer::NewFromUnsigned(value, reinterpret_cast<Isolate*>(isolate));
+}
+
+
+Local<Integer> v8::Integer::New(int32_t value, Isolate* isolate) {
+  i::Isolate* internal_isolate = reinterpret_cast<i::Isolate*>(isolate);
+  ASSERT(internal_isolate->IsInitialized());
+  if (i::Smi::IsValid(value)) {
+    return Utils::IntegerToLocal(i::Handle<i::Object>(i::Smi::FromInt(value),
+                                                      internal_isolate));
+  }
+  ENTER_V8(internal_isolate);
+  i::Handle<i::Object> result = internal_isolate->factory()->NewNumber(value);
+  return Utils::IntegerToLocal(result);
+}
+
+
+Local<Integer> v8::Integer::NewFromUnsigned(uint32_t value, Isolate* isolate) {
+  i::Isolate* internal_isolate = reinterpret_cast<i::Isolate*>(isolate);
+  ASSERT(internal_isolate->IsInitialized());
   bool fits_into_int32_t = (value & (1 << 31)) == 0;
   if (fits_into_int32_t) {
-    return Integer::New(static_cast<int32_t>(value));
+    return Integer::New(static_cast<int32_t>(value), isolate);
   }
-  i::Isolate* isolate = i::Isolate::Current();
-  ENTER_V8(isolate);
-  i::Handle<i::Object> result = isolate->factory()->NewNumber(value);
+  ENTER_V8(internal_isolate);
+  i::Handle<i::Object> result = internal_isolate->factory()->NewNumber(value);
   return Utils::IntegerToLocal(result);
 }
 
@@ -5255,19 +5273,14 @@ void V8::IgnoreOutOfMemoryException() {
 }
 
 
-bool V8::AddMessageListener(MessageCallback that, Handle<Value> data) {
+bool V8::AddMessageListener(MessageCallback that) {
   i::Isolate* isolate = i::Isolate::Current();
   EnsureInitializedForIsolate(isolate, "v8::V8::AddMessageListener()");
   ON_BAILOUT(isolate, "v8::V8::AddMessageListener()", return false);
   ENTER_V8(isolate);
   i::HandleScope scope(isolate);
   NeanderArray listeners(isolate->factory()->message_listeners());
-  NeanderObject obj(2);
-  obj.set(0, *isolate->factory()->NewForeign(FUNCTION_ADDR(that)));
-  obj.set(1, data.IsEmpty() ?
-             isolate->heap()->undefined_value() :
-             *Utils::OpenHandle(*data));
-  listeners.add(obj.value());
+  listeners.add(isolate->factory()->NewForeign(FUNCTION_ADDR(that)));
   return true;
 }
 
@@ -5282,8 +5295,7 @@ void V8::RemoveMessageListeners(MessageCallback that) {
   for (int i = 0; i < listeners.length(); i++) {
     if (listeners.get(i)->IsUndefined()) continue;  // skip deleted ones
 
-    NeanderObject listener(i::JSObject::cast(listeners.get(i)));
-    i::Handle<i::Foreign> callback_obj(i::Foreign::cast(listener.get(0)));
+    i::Handle<i::Foreign> callback_obj(i::Foreign::cast(listeners.get(i)));
     if (callback_obj->foreign_address() == FUNCTION_ADDR(that)) {
       listeners.set(i, isolate->heap()->undefined_value());
     }

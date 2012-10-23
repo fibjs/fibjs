@@ -212,6 +212,20 @@ intptr_t Heap::CommittedMemory() {
       lo_space_->Size();
 }
 
+
+size_t Heap::CommittedPhysicalMemory() {
+  if (!HasBeenSetUp()) return 0;
+
+  return new_space_.CommittedPhysicalMemory() +
+      old_pointer_space_->CommittedPhysicalMemory() +
+      old_data_space_->CommittedPhysicalMemory() +
+      code_space_->CommittedPhysicalMemory() +
+      map_space_->CommittedPhysicalMemory() +
+      cell_space_->CommittedPhysicalMemory() +
+      lo_space_->CommittedPhysicalMemory();
+}
+
+
 intptr_t Heap::CommittedMemoryExecutable() {
   if (!HasBeenSetUp()) return 0;
 
@@ -2713,7 +2727,7 @@ bool Heap::CreateInitialObjects() {
   // hash code in place. The hash code for the hidden_symbol is zero to ensure
   // that it will always be at the first entry in property descriptors.
   { MaybeObject* maybe_obj =
-        AllocateSymbol(CStrVector(""), 0, String::kZeroHash);
+        AllocateSymbol(CStrVector(""), 0, String::kEmptyStringHash);
     if (!maybe_obj->ToObject(&obj)) return false;
   }
   hidden_symbol_ = String::cast(obj);
@@ -4428,13 +4442,14 @@ MaybeObject* Heap::AllocateStringFromAscii(Vector<const char> string,
 
 
 MaybeObject* Heap::AllocateStringFromUtf8Slow(Vector<const char> string,
+                                              int non_ascii_start,
                                               PretenureFlag pretenure) {
-  // Count the number of characters in the UTF-8 string and check if
-  // it is an ASCII string.
+  // Continue counting the number of characters in the UTF-8 string, starting
+  // from the first non-ascii character or word.
+  int chars = non_ascii_start;
   Access<UnicodeCache::Utf8Decoder>
       decoder(isolate_->unicode_cache()->utf8_decoder());
-  decoder->Reset(string.start(), string.length());
-  int chars = 0;
+  decoder->Reset(string.start() + non_ascii_start, string.length() - chars);
   while (decoder->has_more()) {
     uint32_t r = decoder->GetNext();
     if (r <= unibrow::Utf16::kMaxNonSurrogateCharCode) {

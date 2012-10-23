@@ -487,6 +487,9 @@ class Heap {
   // Returns the amount of executable memory currently committed for the heap.
   intptr_t CommittedMemoryExecutable();
 
+  // Returns the amount of phyical memory currently committed for the heap.
+  size_t CommittedPhysicalMemory();
+
   // Returns the available bytes in space w/o growing.
   // Heap doesn't guarantee that it can allocate an object that requires
   // all available bytes. Check MaxHeapObjectSize() instead.
@@ -705,6 +708,7 @@ class Heap {
       PretenureFlag pretenure = NOT_TENURED);
   MUST_USE_RESULT MaybeObject* AllocateStringFromUtf8Slow(
       Vector<const char> str,
+      int non_ascii_start,
       PretenureFlag pretenure = NOT_TENURED);
   MUST_USE_RESULT MaybeObject* AllocateStringFromTwoByte(
       Vector<const uc16> str,

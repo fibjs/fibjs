@@ -178,6 +178,24 @@ bool OS::ArmCpuHasFeature(CpuFeature feature) {
 }
 
 
+CpuImplementer OS::GetCpuImplementer() {
+  static bool use_cached_value = false;
+  static CpuImplementer cached_value = UNKNOWN_IMPLEMENTER;
+  if (use_cached_value) {
+    return cached_value;
+  }
+  if (CPUInfoContainsString("CPU implementer\t: 0x41")) {
+    cached_value = ARM_IMPLEMENTER;
+  } else if (CPUInfoContainsString("CPU implementer\t: 0x51")) {
+    cached_value = QUALCOMM_IMPLEMENTER;
+  } else {
+    cached_value = UNKNOWN_IMPLEMENTER;
+  }
+  use_cached_value = true;
+  return cached_value;
+}
+
+
 bool OS::ArmUsingHardFloat() {
   // GCC versions 4.6 and above define __ARM_PCS or __ARM_PCS_VFP to specify
   // the Floating Point ABI used (PCS stands for Procedure Call Standard).
@@ -706,6 +724,11 @@ bool VirtualMemory::UncommitRegion(void* base, size_t size) {
 
 bool VirtualMemory::ReleaseRegion(void* base, size_t size) {
   return munmap(base, size) == 0;
+}
+
+
+bool VirtualMemory::HasLazyCommits() {
+  return true;
 }
 
 #if 0

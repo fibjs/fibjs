@@ -475,6 +475,11 @@ bool VirtualMemory::ReleaseRegion(void* address, size_t size) {
   return munmap(address, size) == 0;
 }
 
+
+bool VirtualMemory::HasLazyCommits() {
+  return false;
+}
+
 #if 0
 class Thread::PlatformData : public Malloced {
  public:
