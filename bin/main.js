@@ -1,29 +1,34 @@
+var os = require('os');
 
-require("buffer_test.js");
-require("path_test");
-require("fiber_test");
-require("fibmod_test");
-require("trigger_test");
-require("lock_test");
-require("fs_test");
-require("ms_test");
-require("os_test");
-require("process_test");
-require("encoding_test");
-require("module_test");
-require("define_test");
-require("net_test");
-require("buffered_test");
-require("url_test");
-require("hash_test");
-require("http_test");
-require("mq_test");
-require("rpc_test");
-require("zmq_test");
-require("uuid_test");
-require("gd_test");
-require("zlib_test");
-require("db_test");
+run("buffer_test.js");
+run("path_test");
+run("fiber_test");
+run("fibmod_test");
+run("trigger_test");
+run("lock_test");
+run("fs_test");
+run("ms_test");
+run("os_test");
+run("process_test");
+run("encoding_test");
+run("module_test");
+run("define_test");
+run("net_test");
+run("buffered_test");
+run("url_test");
+run("hash_test");
+run("http_test");
+run("mq_test");
+run("rpc_test");
 
-require('BUG_simple_api_call');
+if (os.type != 'Windows' || os.version >= "6.0")
+	run("zmq_test");
+
+run("uuid_test");
+run("gd_test");
+run("zlib_test");
+run("db_test");
+run("vm_test");
+
+run('BUG_simple_api_call');
 console.log("TEST End.");
