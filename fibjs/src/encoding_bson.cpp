@@ -7,7 +7,7 @@
 
 #include "ifs/encoding.h"
 #include "Buffer.h"
-#include <bson.h>
+#include <mongo/bson.h>
 
 namespace fibjs
 {
