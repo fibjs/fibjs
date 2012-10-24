@@ -6,7 +6,7 @@
  */
 
 #include "mysql.h"
-#include "Socket.h"
+#include "Socket_api.h"
 #include "Buffer.h"
 #include "ifs/db.h"
 #include "DBResult.h"
@@ -16,40 +16,22 @@ namespace fibjs
 
 void *API_getSocket()
 {
-	Socket* s = new Socket();
-	s->Ref();
-
-	result_t hr = s->create(net_base::_AF_INET, net_base::_SOCK_STREAM);
-	if (hr < 0)
-	{
-		s->Unref();
-		Runtime::setError(hr);
-		return NULL;
-	}
-
-	return s;
+	return fibjs::socket::create();
 }
 
 void API_deleteSocket(void *sock)
 {
-	((Socket*) sock)->Unref();
+	fibjs::socket::destroy(sock);
 }
 
 void API_closeSocket(void *sock)
 {
-	((Socket*) sock)->ac_close();
+	fibjs::socket::close(sock);
 }
 
 int API_connectSocket(void *sock, const char *host, int port)
 {
-	result_t hr = ((Socket*) sock)->ac_connect(host, port);
-	if (hr < 0)
-	{
-		Runtime::setError(hr);
-		return 0;
-	}
-
-	return 1;
+	return fibjs::socket::connect(sock, host, port);
 }
 
 int API_setTimeout(void *sock, int timeoutSec)
@@ -63,41 +45,12 @@ void API_clearException(void)
 
 int API_recvSocket(void *sock, char *buffer, int cbBuffer)
 {
-	obj_ptr<Buffer_base> retVal;
-
-	result_t hr = ((Socket*) sock)->ac_recv(cbBuffer, retVal);
-	if (hr < 0)
-	{
-		Runtime::setError(hr);
-		return -1;
-	}
-
-	std::string strBuf;
-
-	if (hr != CALL_RETURN_NULL)
-	{
-		retVal->toString(strBuf);
-		memcpy(buffer, strBuf.c_str(), strBuf.length());
-	}
-
-	return (int) strBuf.length();
+	return fibjs::socket::recv(sock, buffer, cbBuffer);
 }
 
 int API_sendSocket(void *sock, const char *buffer, int cbBuffer)
 {
-	std::string strBuf(buffer, cbBuffer);
-	obj_ptr<Buffer_base> buf;
-
-	buf = new Buffer(strBuf);
-
-	result_t hr = ((Socket*) sock)->ac_send(buf);
-	if (hr < 0)
-	{
-		Runtime::setError(hr);
-		return -1;
-	}
-
-	return (int) strBuf.length();
+	return fibjs::socket::send(sock, buffer, cbBuffer);
 }
 
 void *API_createResult(int columns)
