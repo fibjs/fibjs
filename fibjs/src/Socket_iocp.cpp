@@ -53,12 +53,6 @@ public:
 	{
 	}
 
-	result_t call()
-	{
-		PostQueuedCompletionStatus(s_hIocp, 0, (ULONG_PTR) s_hIocp, this);
-		return CALL_E_PENDDING;
-	}
-
 	void proc()
 	{
 		result_t hr = process();
@@ -100,7 +94,11 @@ public:
 
 		s_hIocp = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 0);
 
-		start();
+		for (int i = 0; i < 4; i++)
+		{
+			start();
+			detach();
+		}
 	}
 
 	virtual void Run()
@@ -116,19 +114,14 @@ public:
 			pOverlap = NULL;
 
 			bRet = GetQueuedCompletionStatus(s_hIocp, &dwBytes, &v, &pOverlap,
-					10000);
+					INFINITE);
 			if (!bRet)
 				dwError = ::GetLastError();
 			else
 				dwError = 0;
 
 			if (bRet || (dwError != WAIT_TIMEOUT))
-			{
-				if ((HANDLE) v == s_hIocp)
-					((asyncProc*) pOverlap)->proc();
-				else
-					((asyncProc*) pOverlap)->ready(dwBytes, -(int) dwError);
-			}
+				((asyncProc*) pOverlap)->ready(dwBytes, -(int) dwError);
 		}
 	}
 
@@ -181,7 +174,7 @@ result_t Socket::connect(const char* host, int32_t port, exlib::AsyncEvent* ac)
 			if (!nError)
 			{
 				setsockopt(m_s, SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0);
-				setOption(m_s);
+				setOption (m_s);
 			}
 			asyncProc::ready(dwBytes, nError);
 		}
@@ -265,7 +258,7 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 			{
 				setsockopt(m_s, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
 						(char *) &m_sListen, sizeof(m_sListen));
-				setOption(m_s);
+				setOption (m_s);
 			}
 			asyncProc::ready(dwBytes, 0);
 		}
@@ -333,14 +326,14 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 				dwBytes = 0;
 			}
 
-			if(dwBytes == 0)
+			if (dwBytes == 0)
 				m_bRead = false;
 
 			if (!nError)
 			{
 				m_pos += dwBytes;
 
-				if (m_bRead && m_pos < (int)m_buf.length())
+				if (m_bRead && m_pos < (int) m_buf.length())
 				{
 					proc();
 					return;
@@ -371,7 +364,8 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	return (new asyncRecv(m_sock, bytes, retVal, ac, bRead))->call();
+	(new asyncRecv(m_sock, bytes, retVal, ac, bRead))->proc();
+	return CALL_E_PENDDING;
 }
 
 result_t Socket::send(Buffer_base* data, exlib::AsyncEvent* ac)
@@ -427,7 +421,8 @@ result_t Socket::send(Buffer_base* data, exlib::AsyncEvent* ac)
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	return (new asyncSend(m_sock, data, ac))->call();
+	(new asyncSend(m_sock, data, ac))->proc();
+	return CALL_E_PENDDING;
 }
 
 }
