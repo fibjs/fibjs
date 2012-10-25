@@ -52,7 +52,21 @@ int connect(void *sock, const char *host, int port)
 	return 1;
 }
 
-int recv(void *sock, char *buffer, int cbBuffer)
+void* connect(const char *host, int port)
+{
+	void* socket;
+
+	socket = fibjs::socket::create();
+	if (fibjs::socket::connect(socket, host, port))
+	{
+		fibjs::socket::close(socket);
+		return NULL;
+	}
+
+	return socket;
+}
+
+int recv(void *sock, void *buffer, int cbBuffer)
 {
 	obj_ptr<Buffer_base> retVal;
 
@@ -74,9 +88,33 @@ int recv(void *sock, char *buffer, int cbBuffer)
 	return (int) strBuf.length();
 }
 
-int send(void *sock, const char *buffer, int cbBuffer)
+int read(void *sock, void *buffer, int cbBuffer)
 {
-	std::string strBuf(buffer, cbBuffer);
+	obj_ptr<Buffer_base> retVal;
+
+	result_t hr = ((Socket*) sock)->ac_read(cbBuffer, retVal);
+	if (hr < 0)
+	{
+		Runtime::setError(hr);
+		return -1;
+	}
+
+	std::string strBuf;
+
+	if (hr != CALL_RETURN_NULL)
+	{
+		retVal->toString(strBuf);
+		if ((int) strBuf.length() < cbBuffer)
+			return -1;
+		memcpy(buffer, strBuf.c_str(), strBuf.length());
+	}
+
+	return (int) strBuf.length();
+}
+
+int send(void *sock, const void *buffer, int cbBuffer)
+{
+	std::string strBuf((const char*) buffer, cbBuffer);
 	obj_ptr<Buffer_base> buf;
 
 	buf = new Buffer(strBuf);

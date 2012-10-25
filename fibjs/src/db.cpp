@@ -9,6 +9,7 @@
 #include "ifs/Buffer.h"
 #include "Url.h"
 #include "SQLite.h"
+#include "MongoDB.h"
 
 namespace fibjs
 {
@@ -80,6 +81,13 @@ result_t db_base::openSQLite(const char* connString,
 
 	retVal = db;
 
+	return 0;
+}
+
+result_t db_base::openMongoDB(const char* connString,
+		obj_ptr<MongoDB_base>& retVal)
+{
+	retVal = new MongoDB();
 	return 0;
 }
 

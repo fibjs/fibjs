@@ -18,8 +18,10 @@ void *create();
 void destroy(void *sock);
 void close(void *sock);
 int connect(void *sock, const char *host, int port);
-int recv(void *sock, char *buffer, int cbBuffer);
-int send(void *sock, const char *buffer, int cbBuffer);
+void* connect(const char *host, int port);
+int recv(void *sock, void *buffer, int cbBuffer);
+int read(void *sock, void *buffer, int cbBuffer);
+int send(void *sock, const void *buffer, int cbBuffer);
 
 }
 

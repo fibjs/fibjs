@@ -1,0 +1,6 @@
+
+/*! @brief mongodb 数据库数据集对象 */
+class MongoCollection : object
+{
+};
+

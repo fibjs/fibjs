@@ -36,6 +36,12 @@ class db : module
 	 */
 	static SQLite openSQLite(String connString);
 
+	/*! @brief 打开一个 mongodb 数据库
+	 * @param connString 数据库描述
+	 * @return 返回数据库连接对象
+	 */
+	static MongoDB openMongoDB(String connString);
+
 	/*! @brief 格式化一个 sql 命令，并返回格式化结果
 	 *
 	 * @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT * FROM TEST WHERE [id]=?'

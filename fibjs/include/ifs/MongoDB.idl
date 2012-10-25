@@ -1,0 +1,7 @@
+
+/*! @brief mongodb 数据库连接对象 */
+class MongoDB : object
+{
+
+	MongoCollection getCollection(String name);
+};
