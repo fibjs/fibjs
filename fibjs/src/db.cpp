@@ -18,7 +18,7 @@ result_t db_base::open(const char* connString,
 {
 	if (!qstrcmp(connString, "mysql:", 6))
 	{
-		obj_ptr<MySQL_base> db;
+		obj_ptr < MySQL_base > db;
 		result_t hr;
 
 		hr = openMySQL(connString, db);
@@ -30,7 +30,17 @@ result_t db_base::open(const char* connString,
 	}
 
 	if (!qstrcmp(connString, "sqlite:", 7))
-		return openSQLite(connString, retVal);
+	{
+		obj_ptr < SQLite_base > db;
+		result_t hr;
+
+		hr = openSQLite(connString, db);
+		if (hr < 0)
+			return hr;
+
+		retVal = db;
+		return 0;
+	}
 
 	return CALL_E_INVALIDARG;
 }
@@ -40,7 +50,7 @@ result_t db_base::openMySQL(const char* connString, obj_ptr<MySQL_base>& retVal)
 	if (qstrcmp(connString, "mysql:", 6))
 		return CALL_E_INVALIDARG;
 
-	obj_ptr<Url> u = new Url();
+	obj_ptr < Url > u = new Url();
 
 	result_t hr = u->parse(connString);
 	if (hr < 0)
@@ -56,14 +66,14 @@ result_t db_base::openMySQL(const char* connString, obj_ptr<MySQL_base>& retVal)
 }
 
 result_t db_base::openSQLite(const char* connString,
-		obj_ptr<DbConnection_base>& retVal)
+		obj_ptr<SQLite_base>& retVal)
 {
 	result_t hr;
 
 	if (!qstrcmp(connString, "sqlite:", 7))
 		connString += 7;
 
-	obj_ptr<SQLite> db = new SQLite();
+	obj_ptr < SQLite > db = new SQLite();
 	hr = db->open(connString);
 	if (hr < 0)
 		return hr;

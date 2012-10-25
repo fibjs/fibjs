@@ -34,7 +34,7 @@ class db : module
 	 * @param connString 数据库描述，如：sqlite:test.db 或者 test.db
 	 * @return 返回数据库连接对象
 	 */
-	static DbConnection openSQLite(String connString);
+	static SQLite openSQLite(String connString);
 
 	/*! @brief 格式化一个 sql 命令，并返回格式化结果
 	 *

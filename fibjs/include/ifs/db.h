@@ -20,6 +20,7 @@ namespace fibjs
 class module_base;
 class DbConnection_base;
 class MySQL_base;
+class SQLite_base;
 
 class db_base : public module_base
 {
@@ -28,7 +29,7 @@ public:
 	static result_t open(const char* connString, obj_ptr<DbConnection_base>& retVal);
 	static result_t openMySQL(const char* connString, obj_ptr<MySQL_base>& retVal);
 	static result_t openMySQL(const char* host, int32_t port, const char* username, const char* password, const char* dbName, obj_ptr<MySQL_base>& retVal);
-	static result_t openSQLite(const char* connString, obj_ptr<DbConnection_base>& retVal);
+	static result_t openSQLite(const char* connString, obj_ptr<SQLite_base>& retVal);
 	static result_t format(const char* sql, const v8::Arguments& args, std::string& retVal);
 	static result_t formatMySQL(const char* sql, const v8::Arguments& args, std::string& retVal);
 	static result_t escape(const char* str, bool mysql, std::string& retVal);
@@ -48,6 +49,7 @@ public:
 
 #include "DbConnection.h"
 #include "MySQL.h"
+#include "SQLite.h"
 
 namespace fibjs
 {
@@ -113,7 +115,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> db_base::s_openSQLite(const v8::Arguments& args)
 	{
-		obj_ptr<DbConnection_base> vr;
+		obj_ptr<SQLite_base> vr;
 
 		METHOD_ENTER(1, 1);
 
