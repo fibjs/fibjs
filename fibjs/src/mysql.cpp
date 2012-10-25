@@ -10,6 +10,7 @@
 #include "Buffer.h"
 #include "ifs/db.h"
 #include "DBResult.h"
+#include "Url.h"
 
 namespace fibjs
 {
@@ -142,13 +143,26 @@ UMConnectionCAPI capi =
 
 // ----------------------------------------------------------------------------------
 
-result_t db_base::openMySQL(const char* host, int32_t port,
-		const char* username, const char* password, const char* dbName,
-		obj_ptr<MySQL_base>& retVal)
+result_t db_base::openMySQL(const char* connString, obj_ptr<MySQL_base>& retVal)
 {
-	obj_ptr<mysql> conn = new mysql();
+	if (qstrcmp(connString, "mysql:", 6))
+		return CALL_E_INVALIDARG;
 
-	result_t hr = conn->connect(host, port, username, password, dbName);
+	obj_ptr < Url > u = new Url();
+
+	result_t hr = u->parse(connString);
+	if (hr < 0)
+		return hr;
+
+	int nPort = 3306;
+	if (u->m_port.length() > 0)
+		nPort = atoi(u->m_port.c_str());
+
+	obj_ptr < mysql > conn = new mysql();
+
+	hr = conn->connect(u->m_hostname.c_str(), nPort, u->m_username.c_str(),
+			u->m_password.c_str(),
+			u->m_pathname.length() > 0 ? u->m_pathname.c_str() + 1 : "");
 	if (hr < 0)
 		return hr;
 

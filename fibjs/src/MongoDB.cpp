@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "ifs/db.h"
 #include "MongoDB.h"
 #include "MongoCollection.h"
 #include "Socket_api.h"
@@ -44,6 +45,13 @@ int mongo_env_close_socket(void* socket)
 
 namespace fibjs
 {
+
+result_t db_base::openMongoDB(const char* connString,
+		obj_ptr<MongoDB_base>& retVal)
+{
+	retVal = new MongoDB();
+	return 0;
+}
 
 result_t MongoDB::getCollection(const char* name,
 		obj_ptr<MongoCollection_base>& retVal)

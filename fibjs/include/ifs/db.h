@@ -29,7 +29,6 @@ public:
 	// db_base
 	static result_t open(const char* connString, obj_ptr<DbConnection_base>& retVal);
 	static result_t openMySQL(const char* connString, obj_ptr<MySQL_base>& retVal);
-	static result_t openMySQL(const char* host, int32_t port, const char* username, const char* password, const char* dbName, obj_ptr<MySQL_base>& retVal);
 	static result_t openSQLite(const char* connString, obj_ptr<SQLite_base>& retVal);
 	static result_t openMongoDB(const char* connString, obj_ptr<MongoDB_base>& retVal);
 	static result_t format(const char* sql, const v8::Arguments& args, std::string& retVal);
@@ -104,16 +103,6 @@ namespace fibjs
 		ARG_String(0);
 
 		hr = openMySQL(v0, vr);
-
-		METHOD_OVER(5, 4);
-
-		ARG_String(0);
-		ARG(int32_t, 1);
-		ARG_String(2);
-		ARG_String(3);
-		OPT_ARG_String(4, "");
-
-		hr = openMySQL(v0, v1, v2, v3, v4, vr);
 
 		METHOD_RETURN();
 	}

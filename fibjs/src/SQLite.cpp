@@ -13,6 +13,24 @@
 namespace fibjs
 {
 
+result_t db_base::openSQLite(const char* connString,
+		obj_ptr<SQLite_base>& retVal)
+{
+	result_t hr;
+
+	if (!qstrcmp(connString, "sqlite:", 7))
+		connString += 7;
+
+	obj_ptr < SQLite > db = new SQLite();
+	hr = db->open(connString);
+	if (hr < 0)
+		return hr;
+
+	retVal = db;
+
+	return 0;
+}
+
 result_t SQLite::open(const char* file)
 {
 	if (sqlite3_open(file, &m_db))
@@ -41,19 +59,19 @@ result_t SQLite::close()
 
 result_t SQLite::begin()
 {
-	obj_ptr<DBResult_base> retVal;
+	obj_ptr < DBResult_base > retVal;
 	return execute("BEGIN", 5, retVal);
 }
 
 result_t SQLite::commit()
 {
-	obj_ptr<DBResult_base> retVal;
+	obj_ptr < DBResult_base > retVal;
 	return execute("COMMIT", 6, retVal);
 }
 
 result_t SQLite::rollback()
 {
-	obj_ptr<DBResult_base> retVal;
+	obj_ptr < DBResult_base > retVal;
 	return execute("ROLLBACK", 8, retVal);
 }
 
@@ -77,7 +95,7 @@ result_t SQLite::execute(const char* sql, int sLen,
 	if (stmt)
 	{
 		int columns = sqlite3_column_count(stmt);
-		obj_ptr<DBResult> res;
+		obj_ptr < DBResult > res;
 
 		if (columns > 0)
 		{
@@ -192,7 +210,7 @@ result_t SQLite::execute(const char* sql, const v8::Arguments& args,
 	if (hr < 0)
 		return hr;
 
-	return execute(str.c_str(), (int)str.length(), retVal);
+	return execute(str.c_str(), (int) str.length(), retVal);
 }
 
 result_t SQLite::get_fileName(std::string& retVal)

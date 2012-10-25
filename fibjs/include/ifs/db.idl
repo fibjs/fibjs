@@ -20,16 +20,6 @@ class db : module
 	 */
 	static MySQL openMySQL(String connString);
 
-	/*! @brief 打开一个 mysql 数据库
-	 * @param host 数据库主机名或 ip 地址
-	 * @param port 数据库服务所在的端口
-	 * @param username 连接数据库的用户名
-	 * @param password 连接数据库的用户密码
-	 * @param dbName 连接后缺省库名
-	 * @return 返回数据库连接对象
-	 */
-	static MySQL openMySQL(String host, Integer port, String username, String password, String dbName = "");
-
 	/*! @brief 打开一个 sqlite 数据库
 	 * @param connString 数据库描述，如：sqlite:test.db 或者 test.db
 	 * @return 返回数据库连接对象
