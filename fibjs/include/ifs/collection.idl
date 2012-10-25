@@ -1,5 +1,5 @@
 
-/*! @brief 控制台访问对象 */
+/*! @brief 基础容器模块 */
 class collection : module
 {
 	/*! @brief 创建一个 Map 容器，参见 Map */
