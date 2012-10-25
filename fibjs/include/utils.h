@@ -388,8 +388,12 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, v8::Handle<v8::Value>& vr)
 inline result_t SafeGetValue(v8::Handle<v8::Value> v,
 		v8::Handle<v8::Function>& vr)
 {
+	if (v.IsEmpty())
+		return CALL_E_INVALIDARG;
+
 	if (!v->IsFunction())
 		return CALL_E_INVALIDARG;
+
 	vr = v8::Handle<v8::Function>::Cast(v);
 	return 0;
 }

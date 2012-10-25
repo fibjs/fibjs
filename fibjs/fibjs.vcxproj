@@ -80,6 +80,7 @@
     <ClCompile Include="src\SandBox_run.cpp" />
     <ClCompile Include="src\Semaphore.cpp" />
     <ClCompile Include="src\Socket.cpp" />
+    <ClCompile Include="src\Socket_api.cpp" />
     <ClCompile Include="src\Socket_ev.cpp" />
     <ClCompile Include="src\Socket_iocp.cpp" />
     <ClCompile Include="src\SQLite.cpp" />
@@ -212,6 +213,7 @@
     <ClInclude Include="include\SandBox.h" />
     <ClInclude Include="include\Semaph.h" />
     <ClInclude Include="include\Socket.h" />
+    <ClInclude Include="include\Socket_api.h" />
     <ClInclude Include="include\SQLite.h" />
     <ClInclude Include="include\Stat.h" />
     <ClInclude Include="include\Stream.h" />

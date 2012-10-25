@@ -252,6 +252,9 @@
     <ClCompile Include="src\SandBox.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Socket_api.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -618,6 +621,9 @@
       <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\SandBox.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Socket_api.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>
