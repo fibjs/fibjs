@@ -192,6 +192,9 @@
     <ClCompile Include="src\matrixssl\matrixssl\tls.c" />
     <ClCompile Include="src\mongo\bson.c" />
     <ClCompile Include="src\mongo\encoding.c" />
+    <ClCompile Include="src\mongo\gridfs.c" />
+    <ClCompile Include="src\mongo\mongo.c" />
+    <ClCompile Include="src\mongo\mongomd5.c" />
     <ClCompile Include="src\mongo\numbers.c" />
     <ClCompile Include="src\pcre\pcre_chartables.c" />
     <ClCompile Include="src\pcre\pcre_compile.c" />
@@ -506,7 +509,6 @@
     <ClCompile Include="src\zmq\src\zmq_xsub.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\bson.h" />
     <ClInclude Include="include\crypto\md2.h" />
     <ClInclude Include="include\crypto\md4.h" />
     <ClInclude Include="include\crypto\md5.h" />
@@ -536,6 +538,10 @@
     <ClInclude Include="include\log4cpp\config-win32.h" />
     <ClInclude Include="include\log4cpp\config.h" />
     <ClInclude Include="include\log4cpp\convenience.h" />
+    <ClInclude Include="include\mongo\bson.h" />
+    <ClInclude Include="include\mongo\env.h" />
+    <ClInclude Include="include\mongo\gridfs.h" />
+    <ClInclude Include="include\mongo\mongo.h" />
     <ClInclude Include="include\osconfig.h" />
     <ClInclude Include="include\pcre.h" />
     <ClInclude Include="include\png.h" />
@@ -618,6 +624,10 @@
     <ClInclude Include="src\matrixssl\matrixssl\version.h" />
     <ClInclude Include="src\mongo\bson.h" />
     <ClInclude Include="src\mongo\encoding.h" />
+    <ClInclude Include="src\mongo\env.h" />
+    <ClInclude Include="src\mongo\gridfs.h" />
+    <ClInclude Include="src\mongo\md5.h" />
+    <ClInclude Include="src\mongo\mongo.h" />
     <ClInclude Include="src\pcre\config.h" />
     <ClInclude Include="src\pcre\pcre.h" />
     <ClInclude Include="src\pcre\pcre_internal.h" />

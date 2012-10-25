@@ -151,6 +151,9 @@
     <Filter Include="Source Files\mongo">
       <UniqueIdentifier>{93f5c176-6d95-4756-8fc0-73d97c81e3cc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\mongo">
+      <UniqueIdentifier>{65156a09-5477-4971-870b-d0469d822e84}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zlib\adler32.c">
@@ -1608,6 +1611,15 @@
     <ClCompile Include="src\mongo\numbers.c">
       <Filter>Source Files\mongo</Filter>
     </ClCompile>
+    <ClCompile Include="src\mongo\gridfs.c">
+      <Filter>Source Files\mongo</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mongo\mongo.c">
+      <Filter>Source Files\mongo</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mongo\mongomd5.c">
+      <Filter>Source Files\mongo</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -2975,9 +2987,6 @@
     <ClInclude Include="src\zlib\gzguts.h">
       <Filter>Source Files\zlib</Filter>
     </ClInclude>
-    <ClInclude Include="include\bson.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\mongo\bson.h">
       <Filter>Source Files\mongo</Filter>
     </ClInclude>
@@ -2986,6 +2995,30 @@
     </ClInclude>
     <ClInclude Include="src\v8\src\json-stringifier.h">
       <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mongo\bson.h">
+      <Filter>Header Files\mongo</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mongo\env.h">
+      <Filter>Header Files\mongo</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mongo\gridfs.h">
+      <Filter>Header Files\mongo</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mongo\mongo.h">
+      <Filter>Header Files\mongo</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mongo\env.h">
+      <Filter>Source Files\mongo</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mongo\gridfs.h">
+      <Filter>Source Files\mongo</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mongo\md5.h">
+      <Filter>Source Files\mongo</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mongo\mongo.h">
+      <Filter>Source Files\mongo</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
