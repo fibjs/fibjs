@@ -130,6 +130,17 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 			retVal = it->second->m_mod;
 			return 1;
 		}
+
+		if (it == m_mods.end() && !m_require.IsEmpty())
+		{
+			v8::Handle < v8::Value > arg = v8::String::New(fname.c_str());
+			retVal = m_require->Call(wrap(), 1, &arg);
+			if (retVal.IsEmpty())
+				return CALL_E_JAVASCRIPT;
+
+			if (!IsEmpty(retVal))
+				return 0;
+		}
 	}
 
 	// append .js ext name

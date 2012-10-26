@@ -5,13 +5,15 @@ class SandBox: object
 	/*! @brief 向沙箱中添加一个基础模块
 	 * @param id 指定要添加的模块名称
 	 * @param mod 指定要添加的模块对象
+	 * @param clone 指定添加的对象是否为沙箱复制备份，缺省为复制
 	 */
-	add(String id, Value mod);
+	add(String id, Value mod, Boolean clone = true);
 
 	/*! @brief 向沙箱中添加一组基础模块
-	 * @param mods 指定要添加的模块对象字典
+	 * @param mods 指定要添加的模块对象字典，添加的 javascript 模块将会生成一份复制，以避免沙箱修改对象产生互相干扰
+	 * @param clone 指定添加的对象是否为沙箱复制备份，缺省为复制
 	 */
-	add(Object mods);
+	add(Object mods, Boolean clone = true);
 
 	/*! @brief 从沙箱中删除指定的基础模块
 	 * @param id 指定要删除的模块名称

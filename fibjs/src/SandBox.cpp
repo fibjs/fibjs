@@ -11,17 +11,25 @@
 namespace fibjs
 {
 
-result_t vm_base::create(obj_ptr<SandBox_base>& retVal)
-{
-	retVal = new SandBox();
-	return 0;
-}
-
 result_t vm_base::create(v8::Handle<v8::Object> mods,
 		obj_ptr<SandBox_base>& retVal)
 {
 	obj_ptr < SandBox_base > sbox = new SandBox();
-	result_t hr = sbox->add(mods);
+	result_t hr = sbox->add(mods, true);
+	if (hr < 0)
+		return hr;
+
+	retVal = sbox;
+
+	return 0;
+}
+
+result_t vm_base::create(v8::Handle<v8::Object> mods,
+		v8::Handle<v8::Function> require, obj_ptr<SandBox_base>& retVal)
+{
+	obj_ptr < SandBox > sbox = new SandBox();
+	sbox->initRequire(require);
+	result_t hr = sbox->add(mods, true);
 	if (hr < 0)
 		return hr;
 
@@ -69,18 +77,25 @@ void SandBox::InstallModule(std::string fname, v8::Handle<v8::Value> o,
 	m->m_check = now;
 }
 
-result_t SandBox::add(const char* id, v8::Handle<v8::Value> mod)
+void SandBox::InstallModule(std::string fname, v8::Handle<v8::Value> o)
 {
 	static date_t s_noneDate;
 	date_t now;
 
 	now.now();
+	InstallModule(fname, o, s_noneDate, now);
+}
 
-	InstallModule(id, mod, s_noneDate, now);
+result_t SandBox::add(const char* id, v8::Handle<v8::Value> mod, bool clone)
+{
+	if (clone && mod->IsObject())
+		mod = mod->ToObject()->Clone();
+	InstallModule(id, mod);
+
 	return 0;
 }
 
-result_t SandBox::add(v8::Handle<v8::Object> mods)
+result_t SandBox::add(v8::Handle<v8::Object> mods, bool clone)
 {
 	v8::Handle < v8::Array > ks = mods->GetPropertyNames();
 	int len = ks->Length();
@@ -89,7 +104,7 @@ result_t SandBox::add(v8::Handle<v8::Object> mods)
 	for (i = 0; i < len; i++)
 	{
 		v8::Handle < v8::Value > k = ks->Get(i);
-		add(*v8::String::Utf8Value(k), mods->Get(k));
+		add(*v8::String::Utf8Value(k), mods->Get(k), clone);
 	}
 
 	return 0;

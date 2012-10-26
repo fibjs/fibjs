@@ -25,7 +25,7 @@ inline void InstallModule(std::string fname, v8::Handle<v8::Value> o)
 	if (hr < 0 || hr == CALL_RETURN_NULL)
 		return;
 
-	sbox->add(fname.c_str(), o);
+	sbox->add(fname.c_str(), o, false);
 }
 
 inline std::string resolvePath(std::string base, const char* id)
