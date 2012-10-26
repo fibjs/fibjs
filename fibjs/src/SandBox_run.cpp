@@ -139,7 +139,13 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 				return CALL_E_JAVASCRIPT;
 
 			if (!IsEmpty(retVal))
+			{
+				if (retVal->IsObject())
+					retVal = retVal->ToObject()->Clone();
+				InstallModule(fname, retVal);
+
 				return 0;
+			}
 		}
 	}
 
