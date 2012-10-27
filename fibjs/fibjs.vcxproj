@@ -64,6 +64,8 @@
     <ClCompile Include="src\MemoryStream.cpp" />
     <ClCompile Include="src\Message.cpp" />
     <ClCompile Include="src\module.cpp" />
+    <ClCompile Include="src\MongoCollection.cpp" />
+    <ClCompile Include="src\MongoDB.cpp" />
     <ClCompile Include="src\mq.cpp" />
     <ClCompile Include="src\mysql.cpp" />
     <ClCompile Include="src\NullHandler.cpp" />
@@ -164,6 +166,8 @@
     <ClInclude Include="include\ifs\MemoryStream.h" />
     <ClInclude Include="include\ifs\Message.h" />
     <ClInclude Include="include\ifs\module.h" />
+    <ClInclude Include="include\ifs\MongoCollection.h" />
+    <ClInclude Include="include\ifs\MongoDB.h" />
     <ClInclude Include="include\ifs\mq.h" />
     <ClInclude Include="include\ifs\MySQL.h" />
     <ClInclude Include="include\ifs\net.h" />
@@ -200,6 +204,8 @@
     <ClInclude Include="include\Map.h" />
     <ClInclude Include="include\MemoryStream.h" />
     <ClInclude Include="include\Message.h" />
+    <ClInclude Include="include\MongoCollection.h" />
+    <ClInclude Include="include\MongoDB.h" />
     <ClInclude Include="include\mysql.h" />
     <ClInclude Include="include\NullHandler.h" />
     <ClInclude Include="include\object.h" />

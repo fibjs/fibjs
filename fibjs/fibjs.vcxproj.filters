@@ -255,6 +255,12 @@
     <ClCompile Include="src\Socket_api.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\MongoCollection.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MongoDB.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -624,6 +630,18 @@
       <Filter>Header Files\include</Filter>
     </ClInclude>
     <ClInclude Include="include\Socket_api.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\MongoCollection.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\MongoDB.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MongoCollection.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MongoDB.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>
