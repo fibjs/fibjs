@@ -1327,6 +1327,12 @@ void Heap::Scavenge() {
     }
   }
 
+  // Copy objects reachable from the code flushing candidates list.
+  MarkCompactCollector* collector = mark_compact_collector();
+  if (collector->is_code_flushing_enabled()) {
+    collector->code_flusher()->IteratePointersToFromSpace(&scavenge_visitor);
+  }
+
   // Scavenge object reachable from the native contexts list directly.
   scavenge_visitor.VisitPointer(BitCast<Object**>(&native_contexts_list_));
 
@@ -5542,6 +5548,7 @@ bool Heap::LookupSymbolIfExists(String* string, String** symbol) {
   return symbol_table()->LookupSymbolIfExists(string, symbol);
 }
 
+
 void Heap::ZapFromSpace() {
   NewSpacePageIterator it(new_space_.FromSpaceStart(),
                           new_space_.FromSpaceEnd());
@@ -7206,7 +7213,7 @@ void TranscendentalCache::Clear() {
 void ExternalStringTable::CleanUp() {
   int last = 0;
   for (int i = 0; i < new_space_strings_.length(); ++i) {
-    if (new_space_strings_[i] == heap_->raw_unchecked_the_hole_value()) {
+    if (new_space_strings_[i] == heap_->the_hole_value()) {
       continue;
     }
     if (heap_->InNewSpace(new_space_strings_[i])) {
@@ -7218,7 +7225,7 @@ void ExternalStringTable::CleanUp() {
   new_space_strings_.Rewind(last);
   last = 0;
   for (int i = 0; i < old_space_strings_.length(); ++i) {
-    if (old_space_strings_[i] == heap_->raw_unchecked_the_hole_value()) {
+    if (old_space_strings_[i] == heap_->the_hole_value()) {
       continue;
     }
     ASSERT(!heap_->InNewSpace(old_space_strings_[i]));
