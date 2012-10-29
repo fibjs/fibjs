@@ -11,6 +11,7 @@
  @author Leo Hoo <lion@9465.net>
  */
 
+#include <osconfig.h>
 #include <errno.h>
 
 #ifdef _WIN32
@@ -29,10 +30,6 @@
 #define EINPROGRESS			WSAEWOULDBLOCK
 #endif
 
-#ifndef ETIMEDOUT
-#define ETIMEDOUT       138
-#endif
-
 #define SHUT_RD		SD_READ
 #define SHUT_WR		SD_SEND
 #define SHUT_RDWR	SD_BOTH
@@ -40,18 +37,26 @@
 #else
 
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 
 typedef int SOCKET;
 #define SOCKET_ERROR -1
 #define INVALID_SOCKET -1
 #define closesocket close
 
+#ifdef FreeBSD
+#include <net/if.h>
+#include <netinet/tcp.h>
+
+#define ETIME	ETIMEDOUT
+#else
+#include <netinet/tcp.h>
+
 #ifndef TCP_KEEPIDLE
 #define TCP_KEEPIDLE TCP_KEEPALIVE
+#endif
 #endif
 
 #ifndef SOL_TCP

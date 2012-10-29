@@ -5,8 +5,6 @@
  *      Author: lion
  */
 
-#include <osconfig.h>
-
 #ifndef STAT_H_
 #define STAT_H_
 
@@ -48,6 +46,14 @@ inline int ftruncate64(int fd, __int64 where)
 #define S_IXUSR S_IEXEC
 #endif
 
+#endif
+
+#ifdef FreeBSD
+#define ftello64 ftello
+#define fseeko64 fseeko
+#define stat64 stat
+#define fstat64 fstat
+#define ftruncate64 ftruncate
 #endif
 
 namespace fibjs
