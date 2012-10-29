@@ -20,11 +20,13 @@ namespace fibjs
 void setOption(SOCKET s)
 {
 	int keepAlive = 1;
-	int keepIdle = KEEPALIVE_TIMEOUT;
-
 	setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, (void *) &keepAlive,
 			sizeof(keepAlive));
+
+#ifdef TCP_KEEPIDLE
+	int keepIdle = KEEPALIVE_TIMEOUT;
 	setsockopt(s, SOL_TCP, TCP_KEEPIDLE, (void *) &keepIdle, sizeof(keepIdle));
+#endif
 
 #ifdef TCP_KEEPINTVL
 	int keepInterval = KEEPALIVE_TIMEOUT;

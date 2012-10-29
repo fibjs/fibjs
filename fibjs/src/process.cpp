@@ -16,7 +16,6 @@
 #include <mach-o/dyld.h>
 #else
 #include <sys/param.h>
-#include <sys/sysinfo.h>
 #include <dlfcn.h>
 #endif
 #else

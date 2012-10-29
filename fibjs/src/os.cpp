@@ -5,8 +5,6 @@
  *      Author: lion
  */
 
-#include <osconfig.h>
-
 #include "ifs/os.h"
 #include "string.h"
 
@@ -26,7 +24,9 @@
 #include <mach/mach.h>
 #include <mach/mach_host.h>
 #include <sys/sysctl.h>
-#else
+#endif
+
+#ifndef FreeBSD
 #include <sys/sysinfo.h>
 #include <dlfcn.h>
 
