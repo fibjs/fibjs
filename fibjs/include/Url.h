@@ -179,6 +179,7 @@ public:
 	bool m_defslashes;
 	std::string m_username;
 	std::string m_password;
+	std::string m_host;
 	std::string m_hostname;
 	std::string m_port;
 	std::string m_pathname;

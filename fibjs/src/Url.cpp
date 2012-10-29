@@ -19,7 +19,7 @@ static const char *hashTable =
 
 result_t Url_base::_new(const char* url, obj_ptr<Url_base>& retVal)
 {
-	obj_ptr<Url> u = new Url();
+	obj_ptr < Url > u = new Url();
 
 	result_t hr = u->parse(url);
 	if (hr < 0)
@@ -32,7 +32,7 @@ result_t Url_base::_new(const char* url, obj_ptr<Url_base>& retVal)
 
 result_t Url_base::_new(v8::Handle<v8::Object> args, obj_ptr<Url_base>& retVal)
 {
-	obj_ptr<Url> u = new Url();
+	obj_ptr < Url > u = new Url();
 
 	result_t hr = u->format(args);
 	if (hr < 0)
@@ -50,6 +50,7 @@ Url::Url(const Url& u)
 	m_defslashes = u.m_defslashes;
 	m_username = u.m_username;
 	m_password = u.m_password;
+	m_host = u.m_host;
 	m_hostname = u.m_hostname;
 	m_port = u.m_port;
 	m_pathname = u.m_pathname;
@@ -65,6 +66,7 @@ void Url::clear()
 	m_defslashes = true;
 	m_username.clear();
 	m_password.clear();
+	m_host.clear();
 	m_hostname.clear();
 	m_port.clear();
 	m_pathname.clear();
@@ -127,50 +129,71 @@ void Url::parseAuth(const char*& url)
 
 void Url::parseHost(const char*& url)
 {
-	const char* p1 = url;
-	const char* p2 = NULL;
-	char ch;
+	const char* p0 = url;
 
-	if (*p1 == '[')
+	while (true)
 	{
-		p1++;
-		while ((ch = *p1) && (qisxdigit(ch) || ch == ':' || ch == '.'))
+		const char* p1 = url;
+		const char* p2 = NULL;
+		char ch;
+
+		if (*p1 == '[')
+		{
 			p1++;
-		if (ch == ']')
-			ch = *++p1;
+			while ((ch = *p1) && (qisxdigit(ch) || ch == ':' || ch == '.'))
+				p1++;
+			if (ch == ']')
+				ch = *++p1;
+			else
+				url++;
+		}
 		else
-			url++;
+		{
+			while ((ch = *p1)
+					&& (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '_'
+							|| ch == '-'))
+				p1++;
+		}
+
+		if (ch == ':')
+		{
+			p2 = p1 + 1;
+
+			while ((ch = *p2) && qisdigit(ch))
+				p2++;
+		}
+
+		if (*url == '[')
+		{
+			m_hostname.assign(url + 1, p1 - url - 2);
+			m_ipv6 = true;
+		}
+		else
+			m_hostname.assign(url, p1 - url);
+
+		if (m_hostname.length() > 0)
+			qstrlwr(&m_hostname[0]);
+		if (p2)
+			m_port.assign(p1 + 1, p2 - p1 - 1);
+		else
+			m_port.clear();
+
+		url = p2 ? p2 : p1;
+
+		if (*url != ',')
+			break;
+
+		url++;
 	}
-	else
+
+	if (url > p0)
 	{
-		while ((ch = *p1)
-				&& (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '_'
-						|| ch == '-'))
-			p1++;
+		if (*(url - 1) == ':')
+			m_host.assign(p0, url - p0 - 1);
+		else
+			m_host.assign(p0, url - p0);
+		qstrlwr(&m_host[0]);
 	}
-
-	if (ch == ':')
-	{
-		p2 = p1 + 1;
-
-		while ((ch = *p2) && qisdigit(ch))
-			p2++;
-	}
-
-	if (*url == '[')
-	{
-		m_hostname.assign(url + 1, p1 - url - 2);
-		m_ipv6 = true;
-	}
-	else
-		m_hostname.assign(url, p1 - url);
-
-	if (m_hostname.length() > 0)
-		qstrlwr(&m_hostname[0]);
-	if (p2)
-		m_port.assign(p1 + 1, p2 - p1 - 1);
-
-	url = p2 ? p2 : p1;
 }
 
 void Url::parsePath(const char*& url)
@@ -269,6 +292,8 @@ result_t Url::format(v8::Handle<v8::Object> args)
 	put_protocol(getValue(args, "protocol"));
 	m_username = getValue(args, "username");
 	m_password = getValue(args, "password");
+
+	m_host = getValue(args, "host");
 	m_hostname = getValue(args, "hostname");
 	m_port = getValue(args, "port");
 
@@ -286,12 +311,29 @@ result_t Url::format(v8::Handle<v8::Object> args)
 	if (m_slashes && m_protocol.compare("file:") && m_hostname.length() == 0)
 		m_slashes = false;
 
-	v8::Handle<v8::Value> v = args->Get(v8::String::NewSymbol("slashes"));
+	v8::Handle < v8::Value > v = args->Get(v8::String::NewSymbol("slashes"));
 
 	if (!IsEmpty(v))
 		m_slashes = v->BooleanValue();
 
 	m_ipv6 = m_hostname.find(':', 0) != std::string::npos;
+
+	if (!m_hostname.empty() && m_host.empty())
+	{
+		if (m_ipv6)
+			m_host.append(1, '[');
+
+		m_host.append(m_hostname);
+
+		if (m_ipv6)
+			m_host.append(1, ']');
+
+		if (m_port.length() > 0)
+		{
+			m_host.append(1, ':');
+			m_host.append(m_port);
+		}
+	}
 
 	return 0;
 }
@@ -315,6 +357,7 @@ result_t Url::resolve(const char* url, obj_ptr<Url_base>& retVal)
 		base->m_defslashes = u->m_defslashes;
 		base->m_username = u->m_username;
 		base->m_password = u->m_password;
+		base->m_host = u->m_host;
 		base->m_hostname = u->m_hostname;
 		base->m_port = u->m_port;
 		base->m_pathname = u->m_pathname;
@@ -531,23 +574,7 @@ result_t Url::get_password(std::string& retVal)
 
 result_t Url::get_host(std::string& retVal)
 {
-	if (m_hostname.length())
-	{
-		if (m_ipv6)
-			retVal.append(1, '[');
-
-		retVal.append(m_hostname);
-
-		if (m_ipv6)
-			retVal.append(1, ']');
-
-		if (m_port.length() > 0)
-		{
-			retVal.append(1, ':');
-			retVal.append(m_port);
-		}
-	}
-
+	retVal.append(m_host);
 	return 0;
 }
 
