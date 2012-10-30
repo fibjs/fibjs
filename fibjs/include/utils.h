@@ -221,18 +221,6 @@ typedef int result_t;
         if(hr < 0)break; \
     }else v##n = (d);
 
-#define CLONE_CLASS(n, cls) \
-		{obj_ptr<cls> v; hr = get_##n(v); if(hr < 0)return hr; \
-		retVal->Set(v8::String::NewSymbol(#n), ReturnValue(v));}
-
-#define CLONE_String(n) \
-		{std::string v; hr = get_##n(v); if(hr < 0)return hr; \
-		retVal->Set(v8::String::NewSymbol(#n), ReturnValue(v));}
-
-#define CLONE(n, t) \
-	{t v; hr = get_##n(v); if(hr < 0)return hr; \
-	retVal->Set(v8::String::NewSymbol(#n), ReturnValue(v));}
-
 #define DECLARE_CLASSINFO(c) \
 		public: \
 			static ClassInfo& class_info(); \

@@ -30,16 +30,6 @@ public:
 
 	DECLARE_CLASSINFO(Digest_base);
 
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
-	{
-		result_t hr = object_base::toJSON(key, retVal);
-		if(hr < 0)return hr;
-
-		CLONE(size, int32_t);
-
-		return 0;
-	}
-
 public:
 	static v8::Handle<v8::Value> s_update(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_digest(const v8::Arguments& args);

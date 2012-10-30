@@ -46,20 +46,6 @@ public:
 
 	DECLARE_CLASSINFO(Message_base);
 
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
-	{
-		result_t hr = Trigger_base::toJSON(key, retVal);
-		if(hr < 0)return hr;
-
-		CLONE_String(value);
-		CLONE_CLASS(params, List_base);
-		CLONE(result, Variant);
-		CLONE_CLASS(body, SeekableStream_base);
-		CLONE(length, int64_t);
-
-		return 0;
-	}
-
 public:
 	static v8::Handle<v8::Value> s_get_value(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);

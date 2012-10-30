@@ -44,20 +44,6 @@ public:
 
 	DECLARE_CLASSINFO(HttpMessage_base);
 
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
-	{
-		result_t hr = Message_base::toJSON(key, retVal);
-		if(hr < 0)return hr;
-
-		CLONE_String(protocol);
-		CLONE_CLASS(headers, HttpCollection_base);
-		CLONE(keepAlive, bool);
-		CLONE(maxHeadersCount, int32_t);
-		CLONE(maxUploadSize, int32_t);
-
-		return 0;
-	}
-
 public:
 	static v8::Handle<v8::Value> s_get_protocol(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_protocol(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);

@@ -43,29 +43,6 @@ public:
 
 	DECLARE_CLASSINFO(Url_base);
 
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
-	{
-		result_t hr = object_base::toJSON(key, retVal);
-		if(hr < 0)return hr;
-
-		CLONE_String(href);
-		CLONE_String(protocol);
-		CLONE(slashes, int32_t);
-		CLONE_String(auth);
-		CLONE_String(username);
-		CLONE_String(password);
-		CLONE_String(host);
-		CLONE_String(hostname);
-		CLONE_String(port);
-		CLONE_String(path);
-		CLONE_String(pathname);
-		CLONE_String(search);
-		CLONE_String(query);
-		CLONE_String(hash);
-
-		return 0;
-	}
-
 public:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_parse(const v8::Arguments& args);

@@ -29,18 +29,6 @@ public:
 
 	DECLARE_CLASSINFO(DBResult_base);
 
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
-	{
-		result_t hr = List_base::toJSON(key, retVal);
-		if(hr < 0)return hr;
-
-		CLONE(insertId, int64_t);
-		CLONE(affected, int64_t);
-		CLONE(fields, v8::Handle<v8::Array>);
-
-		return 0;
-	}
-
 public:
 	static v8::Handle<v8::Value> s_get_insertId(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_affected(v8::Local<v8::String> property, const v8::AccessorInfo &info);

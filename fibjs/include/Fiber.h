@@ -33,11 +33,6 @@ public:
 	{
 	}
 
-	result_t get_func(v8::Handle<v8::Function>& retVal)
-	{
-		return CALL_E_INVALID_CALL;
-	}
-
 	result_t join()
 	{
 		v8::Unlocker unlocker(isolate);
@@ -129,12 +124,6 @@ public:
 	~JSFiber()
 	{
 		clear();
-	}
-
-	result_t get_func(v8::Handle<v8::Function>& retVal)
-	{
-		retVal = m_func;
-		return 0;
 	}
 
 	virtual void js_callback();

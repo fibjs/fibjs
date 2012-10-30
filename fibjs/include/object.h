@@ -251,7 +251,22 @@ public:
 
 	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
 	{
+		v8::Handle<v8::Object> o = wrap();
 		retVal = v8::Object::New();
+
+		v8::Handle<v8::Array> ks = o->GetPropertyNames();
+		int len = ks->Length();
+		int i;
+
+		for (i = 0; i < len; i++)
+		{
+			v8::Handle<v8::Value> k = ks->Get(i);
+			v8::Handle<v8::Value> v = o->Get(k);
+
+			if (!v.IsEmpty() && !v->IsFunction())
+				retVal->Set(k, v);
+		}
+
 		return 0;
 	}
 

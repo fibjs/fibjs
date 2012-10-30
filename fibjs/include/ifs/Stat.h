@@ -37,20 +37,6 @@ public:
 
 	DECLARE_CLASSINFO(Stat_base);
 
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
-	{
-		result_t hr = object_base::toJSON(key, retVal);
-		if(hr < 0)return hr;
-
-		CLONE_String(name);
-		CLONE(size, int64_t);
-		CLONE(mtime, date_t);
-		CLONE(atime, date_t);
-		CLONE(ctime, date_t);
-
-		return 0;
-	}
-
 public:
 	static v8::Handle<v8::Value> s_get_name(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_size(v8::Local<v8::String> property, const v8::AccessorInfo &info);

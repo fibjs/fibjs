@@ -32,18 +32,6 @@ public:
 
 	DECLARE_CLASSINFO(HttpHandler_base);
 
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
-	{
-		result_t hr = Handler_base::toJSON(key, retVal);
-		if(hr < 0)return hr;
-
-		CLONE(crossDomain, bool);
-		CLONE(maxHeadersCount, int32_t);
-		CLONE(maxUploadSize, int32_t);
-
-		return 0;
-	}
-
 public:
 	static v8::Handle<v8::Value> s_get_crossDomain(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_crossDomain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);

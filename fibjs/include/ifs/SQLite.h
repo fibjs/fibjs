@@ -30,17 +30,6 @@ public:
 
 	DECLARE_CLASSINFO(SQLite_base);
 
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
-	{
-		result_t hr = DbConnection_base::toJSON(key, retVal);
-		if(hr < 0)return hr;
-
-		CLONE_String(fileName);
-		CLONE(timeout, int32_t);
-
-		return 0;
-	}
-
 public:
 	static v8::Handle<v8::Value> s_get_fileName(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_timeout(v8::Local<v8::String> property, const v8::AccessorInfo &info);

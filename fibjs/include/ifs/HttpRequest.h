@@ -39,22 +39,6 @@ public:
 
 	DECLARE_CLASSINFO(HttpRequest_base);
 
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
-	{
-		result_t hr = HttpMessage_base::toJSON(key, retVal);
-		if(hr < 0)return hr;
-
-		CLONE_String(method);
-		CLONE_String(address);
-		CLONE_String(queryString);
-		CLONE_CLASS(response, HttpResponse_base);
-		CLONE_CLASS(cookie, HttpCollection_base);
-		CLONE_CLASS(form, HttpCollection_base);
-		CLONE_CLASS(query, HttpCollection_base);
-
-		return 0;
-	}
-
 public:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_method(v8::Local<v8::String> property, const v8::AccessorInfo &info);

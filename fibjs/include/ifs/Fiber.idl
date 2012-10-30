@@ -19,9 +19,6 @@ class Fiber : Trigger
 	/*! @brief 等待纤程结束 */
 	join();
 
-	/*! @brief 查询纤程执行函数 */
-	readonly Function func;
-
 	/*! @brief 查询纤程的调用纤程 */
 	readonly Fiber caller;
 

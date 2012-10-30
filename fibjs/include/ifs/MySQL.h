@@ -29,17 +29,6 @@ public:
 
 	DECLARE_CLASSINFO(MySQL_base);
 
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
-	{
-		result_t hr = DbConnection_base::toJSON(key, retVal);
-		if(hr < 0)return hr;
-
-		CLONE(rxBufferSize, int32_t);
-		CLONE(txBufferSize, int32_t);
-
-		return 0;
-	}
-
 public:
 	static v8::Handle<v8::Value> s_use(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_rxBufferSize(v8::Local<v8::String> property, const v8::AccessorInfo &info);

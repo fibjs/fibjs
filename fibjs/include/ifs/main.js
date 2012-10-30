@@ -289,7 +289,7 @@ function parserIDL(fname) {
 
 		txt.push("	DECLARE_CLASSINFO(" + ns + "_base);\n")
 
-		if (tjfs.length) {
+/*		if (tjfs.length) {
 			txt
 					.push("	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)\n	{\n		result_t hr = "
 							+ baseClass
@@ -297,7 +297,7 @@ function parserIDL(fname) {
 			txt.push(tjfs.join("\n"));
 			txt.push("\n		return 0;\n	}\n");
 		}
-
+*/
 		txt.push("public:");
 		txt.push(iffs.join("\n"));
 

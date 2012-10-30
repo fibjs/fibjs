@@ -28,18 +28,6 @@ public:
 
 	DECLARE_CLASSINFO(HttpUploadData_base);
 
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
-	{
-		result_t hr = object_base::toJSON(key, retVal);
-		if(hr < 0)return hr;
-
-		CLONE_String(fileName);
-		CLONE_String(contentType);
-		CLONE_CLASS(body, SeekableStream_base);
-
-		return 0;
-	}
-
 public:
 	static v8::Handle<v8::Value> s_get_fileName(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_contentType(v8::Local<v8::String> property, const v8::AccessorInfo &info);

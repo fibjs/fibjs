@@ -61,11 +61,6 @@ public:
 		Ref();
 	}
 
-	result_t get_func(v8::Handle<v8::Function>& retVal)
-	{
-		return CALL_E_INVALID_CALL;
-	}
-
 	result_t join()
 	{
 		return 0;

@@ -30,19 +30,6 @@ public:
 
 	DECLARE_CLASSINFO(Regex_base);
 
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
-	{
-		result_t hr = object_base::toJSON(key, retVal);
-		if(hr < 0)return hr;
-
-		CLONE(lastIndex, int32_t);
-		CLONE(global, bool);
-		CLONE(ignoreCase, bool);
-		CLONE(multiline, bool);
-
-		return 0;
-	}
-
 public:
 	static v8::Handle<v8::Value> s_exec(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_test(const v8::Arguments& args);

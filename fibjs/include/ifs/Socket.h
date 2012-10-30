@@ -52,21 +52,6 @@ public:
 
 	DECLARE_CLASSINFO(Socket_base);
 
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
-	{
-		result_t hr = Stream_base::toJSON(key, retVal);
-		if(hr < 0)return hr;
-
-		CLONE(family, int32_t);
-		CLONE(type, int32_t);
-		CLONE_String(remoteAddress);
-		CLONE(remotePort, int32_t);
-		CLONE_String(localAddress);
-		CLONE(localPort, int32_t);
-
-		return 0;
-	}
-
 public:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_family(v8::Local<v8::String> property, const v8::AccessorInfo &info);

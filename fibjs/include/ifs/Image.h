@@ -77,22 +77,6 @@ public:
 
 	DECLARE_CLASSINFO(Image_base);
 
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
-	{
-		result_t hr = object_base::toJSON(key, retVal);
-		if(hr < 0)return hr;
-
-		CLONE(width, int32_t);
-		CLONE(height, int32_t);
-		CLONE(format, int32_t);
-		CLONE(type, int32_t);
-		CLONE(colorsTotal, int32_t);
-		CLONE(transparent, int32_t);
-		CLONE(alphaBlending, bool);
-
-		return 0;
-	}
-
 public:
 	static v8::Handle<v8::Value> s_get_width(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_height(v8::Local<v8::String> property, const v8::AccessorInfo &info);
