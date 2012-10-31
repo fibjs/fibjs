@@ -5,9 +5,9 @@
  *      Author: lion
  */
 
+#include "encoding_bson.h"
 #include "ifs/encoding.h"
 #include "Buffer.h"
-#include <mongo/bson.h>
 
 namespace fibjs
 {
@@ -141,13 +141,18 @@ void encodeObject(bson *bb, const char *name,
 		bson_append_finish_object(bb);
 }
 
+void encodeObject(bson *bb, const v8::Handle<v8::Value> element)
+{
+	encodeObject(bb, NULL, element, true);
+}
+
 result_t encoding_base::bsonEncode(v8::Handle<v8::Object> data,
 		obj_ptr<Buffer_base>& retVal)
 {
 	bson bb;
 
 	bson_init(&bb);
-	encodeObject(&bb, NULL, data, true);
+	encodeObject(&bb, data);
 	bson_finish(&bb);
 
 	std::string strBuffer(bson_data(&bb), bson_size(&bb));
