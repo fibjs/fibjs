@@ -249,10 +249,10 @@ public:
 		return 0;
 	}
 
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)
+	virtual result_t toJSON(const char* key, v8::Handle<v8::Value>& retVal)
 	{
 		v8::Handle<v8::Object> o = wrap();
-		retVal = v8::Object::New();
+		v8::Handle<v8::Object> o1 = v8::Object::New();
 
 		v8::Handle<v8::Array> ks = o->GetPropertyNames();
 		int len = ks->Length();
@@ -264,8 +264,10 @@ public:
 			v8::Handle<v8::Value> v = o->Get(k);
 
 			if (!v.IsEmpty() && !v->IsFunction())
-				retVal->Set(k, v);
+				o1->Set(k, v);
 		}
+
+		retVal = o1;
 
 		return 0;
 	}
@@ -292,8 +294,7 @@ public:
 	}
 
 	//------------------------------------------------------------------
-DECLARE_CLASSINFO(object_base)
-	;
+	DECLARE_CLASSINFO(object_base);
 
 private:
 	static v8::Handle<v8::Value> s_dispose(const v8::Arguments& args);
@@ -368,7 +369,7 @@ inline v8::Handle<v8::Value> object_base::s_toString(const v8::Arguments& args)
 
 inline v8::Handle<v8::Value> object_base::s_toJSON(const v8::Arguments& args)
 {
-	v8::Handle<v8::Object> vr;
+	v8::Handle<v8::Value> vr;
 
 	METHOD_INSTANCE(object_base);
 	METHOD_ENTER(1, 0);

@@ -22,7 +22,7 @@ public:
 	// object_base
 	virtual result_t dispose() = 0;
 	virtual result_t toString(std::string& retVal) = 0;
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal) = 0;
+	virtual result_t toJSON(const char* key, v8::Handle<v8::Value>& retVal) = 0;
 	virtual result_t ValueOf(v8::Handle<v8::Object>& retVal) = 0;
 
 	DECLARE_CLASSINFO(object_base);
@@ -83,7 +83,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> object_base::s_toJSON(const v8::Arguments& args)
 	{
-		v8::Handle<v8::Object> vr;
+		v8::Handle<v8::Value> vr;
 
 		METHOD_INSTANCE(object_base);
 		METHOD_ENTER(1, 0);
