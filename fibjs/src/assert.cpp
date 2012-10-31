@@ -41,10 +41,26 @@ result_t assert_base::ok(bool value, const char* msg)
 	return 0;
 }
 
+bool regexpEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
+{
+	v8::Handle<v8::RegExp> re1 = v8::Handle<v8::RegExp>::Cast(actual);
+	v8::Handle<v8::String> src1 = re1->GetSource();
+	v8::RegExp::Flags flgs1 = re1->GetFlags();
+
+	v8::Handle<v8::RegExp> re2 = v8::Handle<v8::RegExp>::Cast(expected);
+	v8::Handle<v8::String> src2 = re2->GetSource();
+	v8::RegExp::Flags flgs2 = re2->GetFlags();
+
+	return src1->StrictEquals(src2) && flgs1 == flgs2;
+}
+
 bool valueEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
 {
 	if (actual->IsDate() && expected->IsDate())
 		return actual->NumberValue() == expected->NumberValue();
+
+	if (actual->IsRegExp() && expected->IsRegExp())
+		return regexpEquals(actual, expected);
 
 	return actual->Equals(expected);
 }
@@ -54,6 +70,9 @@ bool valueStrictEquals(v8::Handle<v8::Value> actual,
 {
 	if (actual->IsDate() && expected->IsDate())
 		return actual->NumberValue() == expected->NumberValue();
+
+	if (actual->IsRegExp() && expected->IsRegExp())
+		return regexpEquals(actual, expected);
 
 	return actual->StrictEquals(expected);
 }
