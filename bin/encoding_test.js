@@ -182,3 +182,20 @@ assert.equal(encoding.jsonEncode(encoding.jsonDecode('{"a":100,"b":200}')),
 assert.equal(encoding.jsstr("[\r\n\t\\\'\"]"), "[\\r\\n\\t\\\\\\'\\\"]");
 assert.equal(encoding.jsstr("[abcd汉字]"), "[abcd汉字]");
 
+for ( var i = 0; i < 8; i++) {
+	var attr = '';
+
+	if (i & 1)
+		attr += 'i';
+	if (i & 2)
+		attr += 'g';
+	if (i & 4)
+		attr += 'm';
+
+	var re = new RegExp('pattern: ' + i, attr);
+	var o = encoding.bsonDecode(encoding.bsonEncode({
+		re : re
+	}));
+
+	assert.equal(re, o.re);
+}
