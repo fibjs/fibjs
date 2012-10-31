@@ -127,58 +127,61 @@ void Url::parseAuth(const char*& url)
 	}
 }
 
+void Url::parseHost(const char*& url, std::string& hostname, std::string& port)
+{
+	const char* p1 = url;
+	const char* p2 = NULL;
+	char ch;
+
+	if (*p1 == '[')
+	{
+		p1++;
+		while ((ch = *p1) && (qisxdigit(ch) || ch == ':' || ch == '.'))
+			p1++;
+		if (ch == ']')
+			ch = *++p1;
+		else
+			url++;
+	}
+	else
+	{
+		while ((ch = *p1)
+				&& (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '_'
+						|| ch == '-'))
+			p1++;
+	}
+
+	if (ch == ':')
+	{
+		p2 = p1 + 1;
+
+		while ((ch = *p2) && qisdigit(ch))
+			p2++;
+	}
+
+	if (*url == '[')
+		hostname.assign(url + 1, p1 - url - 2);
+	else
+		hostname.assign(url, p1 - url);
+
+	if (hostname.length() > 0)
+		qstrlwr(&hostname[0]);
+	if (p2)
+		port.assign(p1 + 1, p2 - p1 - 1);
+	else
+		port.clear();
+
+	url = p2 ? p2 : p1;
+}
+
 void Url::parseHost(const char*& url)
 {
 	const char* p0 = url;
 
 	while (true)
 	{
-		const char* p1 = url;
-		const char* p2 = NULL;
-		char ch;
-
-		if (*p1 == '[')
-		{
-			p1++;
-			while ((ch = *p1) && (qisxdigit(ch) || ch == ':' || ch == '.'))
-				p1++;
-			if (ch == ']')
-				ch = *++p1;
-			else
-				url++;
-		}
-		else
-		{
-			while ((ch = *p1)
-					&& (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '_'
-							|| ch == '-'))
-				p1++;
-		}
-
-		if (ch == ':')
-		{
-			p2 = p1 + 1;
-
-			while ((ch = *p2) && qisdigit(ch))
-				p2++;
-		}
-
-		if (*url == '[')
-		{
-			m_hostname.assign(url + 1, p1 - url - 2);
-			m_ipv6 = true;
-		}
-		else
-			m_hostname.assign(url, p1 - url);
-
-		if (m_hostname.length() > 0)
-			qstrlwr(&m_hostname[0]);
-		if (p2)
-			m_port.assign(p1 + 1, p2 - p1 - 1);
-		else
-			m_port.clear();
-
-		url = p2 ? p2 : p1;
+		parseHost(url, m_hostname, m_port);
+		m_ipv6 = m_hostname.find(':', 0) != std::string::npos;
 
 		if (*url != ',')
 			break;

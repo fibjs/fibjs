@@ -49,6 +49,9 @@ public:
 	virtual result_t get_query(std::string& retVal);
 	virtual result_t get_hash(std::string& retVal);
 
+public:
+	static void parseHost(const char*& url, std::string& hostname, std::string& port);
+
 private:
 	void clear();
 
@@ -173,6 +176,7 @@ public:
 
 		retVal = str;
 	}
+
 public:
 	std::string m_protocol;
 	bool m_slashes;
