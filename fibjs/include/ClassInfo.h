@@ -140,6 +140,25 @@ public:
 		return m_cache->Clone();
 	}
 
+	bool has(const char* name)
+	{
+		int i;
+
+		for (i = 0; i < m_cd.mc; i++)
+			if(!qstrcmp(name, m_cd.cms[i].name))
+				return true;
+
+		for (i = 0; i < m_cd.oc; i++)
+			if(!qstrcmp(name, m_cd.cos[i].name))
+				return true;
+
+		for (i = 0; i < m_cd.pc; i++)
+			if(!qstrcmp(name, m_cd.cps[i].name))
+				return true;
+
+		return false;
+	}
+
 	const char* name()
 	{
 		return m_cd.name;
