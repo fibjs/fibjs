@@ -24,16 +24,15 @@ public:
 
 public:
 	// MongoCollection_base
-	virtual result_t find(obj_ptr<MongoCursor_base>& retVal);
-	virtual result_t find(v8::Handle<v8::Object> query, obj_ptr<MongoCursor_base>& retVal);
 	virtual result_t find(v8::Handle<v8::Object> query, v8::Handle<v8::Object> projection, obj_ptr<MongoCursor_base>& retVal);
-	virtual result_t findOne(v8::Handle<v8::Object> query, v8::Handle<v8::Object>& retVal);
+	virtual result_t findOne(v8::Handle<v8::Object> query, v8::Handle<v8::Object> projection, v8::Handle<v8::Object>& retVal);
 	virtual result_t findAndModify(v8::Handle<v8::Object> query);
 	virtual result_t insert(v8::Handle<v8::Array> documents);
 	virtual result_t insert(v8::Handle<v8::Object> document);
 	virtual result_t save(v8::Handle<v8::Object> document);
 	virtual result_t update(v8::Handle<v8::Object> query, v8::Handle<v8::Object> document, bool upsert, bool multi);
 	virtual result_t update(v8::Handle<v8::Object> query, v8::Handle<v8::Object> document, v8::Handle<v8::Object> options);
+	virtual result_t oid(const char* hexStr, obj_ptr<MongoID_base>& retVal);
 
 private:
 	obj_ptr<MongoDB> m_db;
