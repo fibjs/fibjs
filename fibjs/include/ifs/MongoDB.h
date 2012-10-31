@@ -23,11 +23,13 @@ class MongoDB_base : public object_base
 public:
 	// MongoDB_base
 	virtual result_t getCollection(const char* name, obj_ptr<MongoCollection_base>& retVal) = 0;
+	virtual result_t _named_getter(const char* property, obj_ptr<MongoCollection_base>& retVal) = 0;
 
 	DECLARE_CLASSINFO(MongoDB_base);
 
 public:
 	static v8::Handle<v8::Value> s_getCollection(const v8::Arguments& args);
+	static v8::Handle<v8::Value> i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info);
 };
 
 }
@@ -43,10 +45,15 @@ namespace fibjs
 			{"getCollection", s_getCollection}
 		};
 
+		static ClassData::ClassNamed s_named = 
+		{
+			i_NamedGetter, i_NamedSetter
+		};
+
 		static ClassData s_cd = 
 		{ 
 			"MongoDB", NULL, 
-			1, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			1, s_method, 0, NULL, 0, NULL, NULL, &s_named,
 			&object_base::class_info()
 		};
 
@@ -54,6 +61,21 @@ namespace fibjs
 		return s_ci;
 	}
 
+	inline v8::Handle<v8::Value> MongoDB_base::i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info)
+	{
+		obj_ptr<MongoCollection_base> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(MongoDB_base);
+
+		v8::String::Utf8Value k(property);
+		if(class_info().has(*k))return v8::Handle<v8::Value>();
+
+		hr = pInst->_named_getter(*k, vr);
+		if(hr == CALL_RETURN_NULL)return v8::Handle<v8::Value>();
+
+		METHOD_RETURN();
+	}
 
 	inline v8::Handle<v8::Value> MongoDB_base::s_getCollection(const v8::Arguments& args)
 	{

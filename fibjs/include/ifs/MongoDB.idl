@@ -4,4 +4,6 @@ class MongoDB : object
 {
 
 	MongoCollection getCollection(String name);
+
+	readonly MongoCollection operator[String];
 };

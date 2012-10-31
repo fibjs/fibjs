@@ -32,16 +32,24 @@ void *create()
 
 void destroy(void *sock)
 {
-	((Socket*) sock)->Unref();
+	if(sock)
+		((Socket*) sock)->Unref();
 }
 
 void close(void *sock)
 {
-	((Socket*) sock)->ac_close();
+	if(sock)
+		((Socket*) sock)->ac_close();
 }
 
 int connect(void *sock, const char *host, int port)
 {
+	if(!sock)
+	{
+		Runtime::setError(CALL_E_INVALID_CALL);
+		return 0;
+	}
+
 	result_t hr = ((Socket*) sock)->ac_connect(host, port);
 	if (hr < 0)
 	{
@@ -56,10 +64,10 @@ void* connect(const char *host, int port)
 {
 	void* socket;
 
-	socket = fibjs::socket::create();
-	if (fibjs::socket::connect(socket, host, port))
+	socket = create();
+	if (!connect(socket, host, port))
 	{
-		fibjs::socket::close(socket);
+		close(socket);
 		return NULL;
 	}
 
@@ -68,6 +76,12 @@ void* connect(const char *host, int port)
 
 int recv(void *sock, void *buffer, int cbBuffer)
 {
+	if(!sock)
+	{
+		Runtime::setError(CALL_E_INVALID_CALL);
+		return -1;
+	}
+
 	obj_ptr<Buffer_base> retVal;
 
 	result_t hr = ((Socket*) sock)->ac_recv(cbBuffer, retVal);
@@ -90,6 +104,12 @@ int recv(void *sock, void *buffer, int cbBuffer)
 
 int read(void *sock, void *buffer, int cbBuffer)
 {
+	if(!sock)
+	{
+		Runtime::setError(CALL_E_INVALID_CALL);
+		return -1;
+	}
+
 	obj_ptr<Buffer_base> retVal;
 
 	result_t hr = ((Socket*) sock)->ac_read(cbBuffer, retVal);
@@ -114,6 +134,12 @@ int read(void *sock, void *buffer, int cbBuffer)
 
 int send(void *sock, const void *buffer, int cbBuffer)
 {
+	if(!sock)
+	{
+		Runtime::setError(CALL_E_INVALID_CALL);
+		return -1;
+	}
+
 	std::string strBuf((const char*) buffer, cbBuffer);
 	obj_ptr<Buffer_base> buf;
 

@@ -18,7 +18,7 @@ namespace fibjs
 {
 
 class module_base;
-class DbConnection_base;
+class object_base;
 class MySQL_base;
 class SQLite_base;
 class MongoDB_base;
@@ -27,7 +27,7 @@ class db_base : public module_base
 {
 public:
 	// db_base
-	static result_t open(const char* connString, obj_ptr<DbConnection_base>& retVal);
+	static result_t open(const char* connString, obj_ptr<object_base>& retVal);
 	static result_t openMySQL(const char* connString, obj_ptr<MySQL_base>& retVal);
 	static result_t openSQLite(const char* connString, obj_ptr<SQLite_base>& retVal);
 	static result_t openMongoDB(const char* connString, obj_ptr<MongoDB_base>& retVal);
@@ -49,7 +49,6 @@ public:
 
 }
 
-#include "DbConnection.h"
 #include "MySQL.h"
 #include "SQLite.h"
 #include "MongoDB.h"
@@ -83,7 +82,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> db_base::s_open(const v8::Arguments& args)
 	{
-		obj_ptr<DbConnection_base> vr;
+		obj_ptr<object_base> vr;
 
 		METHOD_ENTER(1, 1);
 

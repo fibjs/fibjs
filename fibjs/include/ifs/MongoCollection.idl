@@ -1,6 +1,19 @@
-
 /*! @brief mongodb 数据库数据集对象 */
-class MongoCollection : object
+class MongoCollection: object
 {
-};
+	MongoCursor find();
+	MongoCursor find(Object query);
+	MongoCursor find(Object query, Object projection);
 
+	Object findOne(Object query);
+
+	findAndModify(Object query);
+
+	insert(Array documents);
+	insert(Object document);
+
+	save(Object document);
+
+	update(Object query, Object document, Boolean upsert = false, Boolean multi = false);
+	update(Object query, Object document, Object options);
+};

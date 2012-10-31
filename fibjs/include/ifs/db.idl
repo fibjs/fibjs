@@ -12,7 +12,7 @@ class db : module
 	 * @param connString 数据库描述，如：mysql://user:pass\@host/db
 	 * @return 返回数据库连接对象
 	 */
-	static DbConnection open(String connString);
+	static object open(String connString);
 
 	/*! @brief 打开一个 mysql 数据库
 	 * @param connString 数据库描述，如：mysql://user:pass\@host/db

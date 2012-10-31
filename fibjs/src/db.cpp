@@ -12,7 +12,7 @@ namespace fibjs
 {
 
 result_t db_base::open(const char* connString,
-		obj_ptr<DbConnection_base>& retVal)
+		obj_ptr<object_base>& retVal)
 {
 	if (!qstrcmp(connString, "mysql:", 6))
 	{
@@ -33,6 +33,19 @@ result_t db_base::open(const char* connString,
 		result_t hr;
 
 		hr = openSQLite(connString, db);
+		if (hr < 0)
+			return hr;
+
+		retVal = db;
+		return 0;
+	}
+
+	if (!qstrcmp(connString, "mongodb:", 8))
+	{
+		obj_ptr < MongoDB_base > db;
+		result_t hr;
+
+		hr = openMongoDB(connString, db);
 		if (hr < 0)
 			return hr;
 
