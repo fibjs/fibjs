@@ -135,6 +135,8 @@ function stack_size() {
 stack_size.start();
 coroutine.sleep();
 
+coroutine.current().toJSON();
+
 var nCount = 20000;
 
 var bDone = false;
