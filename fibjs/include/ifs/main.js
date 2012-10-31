@@ -289,15 +289,12 @@ function parserIDL(fname) {
 
 		txt.push("	DECLARE_CLASSINFO(" + ns + "_base);\n")
 
-/*		if (tjfs.length) {
-			txt
-					.push("	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal)\n	{\n		result_t hr = "
-							+ baseClass
-							+ "_base::toJSON(key, retVal);\n		if(hr < 0)return hr;\n");
-			txt.push(tjfs.join("\n"));
-			txt.push("\n		return 0;\n	}\n");
-		}
-*/
+		/*
+		 * if (tjfs.length) { txt .push(" virtual result_t toJSON(const char*
+		 * key, v8::Handle<v8::Object>& retVal)\n {\n result_t hr = " +
+		 * baseClass + "_base::toJSON(key, retVal);\n if(hr < 0)return hr;\n");
+		 * txt.push(tjfs.join("\n")); txt.push("\n return 0;\n }\n"); }
+		 */
 		txt.push("public:");
 		txt.push(iffs.join("\n"));
 
@@ -533,7 +530,19 @@ function parserIDL(fname) {
 					value = st[pos++];
 					if (cvs[value])
 						value = "_" + value;
-					else if (r = /^(\w[\w\d_]*)\.(\w[\w\d_]*)$/.exec(value)) {
+					else if (value === '{') {
+						if (st[pos] == '}' && type === "Object") {
+							value = 'v8::Object::New()';
+							pos++;
+						} else
+							reportErr();
+					} else if (value === '[') {
+						if (st[pos] == ']' && type === "Array") {
+							value = 'v8::Array::New()';
+							pos++;
+						} else
+							reportErr();
+					} else if (r = /^(\w[\w\d_]*)\.(\w[\w\d_]*)$/.exec(value)) {
 						if (clsName[r[1]]) {
 							if (r[1] != ns)
 								refCls[r[1]] = true;
@@ -556,7 +565,7 @@ function parserIDL(fname) {
 				if (argCount)
 					ifStr += ", ";
 				ifStr += arg_type(type) + " " + name;
-				
+
 				argStra += ", " + arg_type(type);
 
 				if (type === "String") {
