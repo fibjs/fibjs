@@ -43,7 +43,7 @@ public:
 		std::string str;
 
 		toString(str);
-		retVal = v8::String::New(str.c_str(), str.length());
+		retVal = v8::String::New(str.c_str(), (int)str.length());
 
 		return 0;
 	}

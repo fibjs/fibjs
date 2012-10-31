@@ -117,6 +117,7 @@
     <ClInclude Include="include\DBResult.h" />
     <ClInclude Include="include\DBRow.h" />
     <ClInclude Include="include\Digest.h" />
+    <ClInclude Include="include\encoding_bson.h" />
     <ClInclude Include="include\Event.h" />
     <ClInclude Include="include\Fiber.h" />
     <ClInclude Include="include\File.h" />
@@ -168,6 +169,7 @@
     <ClInclude Include="include\ifs\module.h" />
     <ClInclude Include="include\ifs\MongoCollection.h" />
     <ClInclude Include="include\ifs\MongoDB.h" />
+    <ClInclude Include="include\ifs\MongoID.h" />
     <ClInclude Include="include\ifs\mq.h" />
     <ClInclude Include="include\ifs\MySQL.h" />
     <ClInclude Include="include\ifs\net.h" />
@@ -206,6 +208,7 @@
     <ClInclude Include="include\Message.h" />
     <ClInclude Include="include\MongoCollection.h" />
     <ClInclude Include="include\MongoDB.h" />
+    <ClInclude Include="include\MongoID.h" />
     <ClInclude Include="include\mysql.h" />
     <ClInclude Include="include\NullHandler.h" />
     <ClInclude Include="include\object.h" />
