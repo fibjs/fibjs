@@ -76,7 +76,10 @@ namespace fibjs
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(DBRow_base);
 
-		hr = pInst->_named_getter(*v8::String::Utf8Value(property), vr);
+		v8::String::Utf8Value k(property);
+		if(class_info().has(*k))return v8::Handle<v8::Value>();
+
+		hr = pInst->_named_getter(*k, vr);
 		if(hr == CALL_RETURN_NULL)return v8::Handle<v8::Value>();
 
 		METHOD_RETURN();

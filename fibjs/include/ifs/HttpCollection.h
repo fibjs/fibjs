@@ -86,7 +86,10 @@ namespace fibjs
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpCollection_base);
 
-		hr = pInst->_named_getter(*v8::String::Utf8Value(property), vr);
+		v8::String::Utf8Value k(property);
+		if(class_info().has(*k))return v8::Handle<v8::Value>();
+
+		hr = pInst->_named_getter(*k, vr);
 		if(hr == CALL_RETURN_NULL)return v8::Handle<v8::Value>();
 
 		METHOD_RETURN();
@@ -98,7 +101,10 @@ namespace fibjs
 		PROPERTY_INSTANCE(HttpCollection_base);
 
 		PROPERTY_VAL(Variant);
-		hr = pInst->_named_setter(*v8::String::Utf8Value(property), v0);
+		v8::String::Utf8Value k(property);
+		if(class_info().has(*k))return v8::Handle<v8::Value>();
+
+		hr = pInst->_named_setter(*k, v0);
 
 		METHOD_VOID();
 	}
