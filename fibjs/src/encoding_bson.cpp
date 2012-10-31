@@ -8,6 +8,7 @@
 #include "encoding_bson.h"
 #include "ifs/encoding.h"
 #include "Buffer.h"
+#include "MongoID.h"
 
 namespace fibjs
 {
@@ -18,13 +19,12 @@ ToCString(const v8::String::Utf8Value& value)
 	return *value ? *value : "<string conversion failed>";
 }
 
-void encodeArray(bson *bb, const char *name,
-		const v8::Handle<v8::Value> element);
-void encodeObject(bson *bb, const char *name,
-		const v8::Handle<v8::Value> element, bool doJson);
+void encodeArray(bson *bb, const char *name, v8::Handle<v8::Value> element);
+void encodeObject(bson *bb, const char *name, v8::Handle<v8::Value> element,
+		bool doJson);
 
-void encodeValue(bson *bb, const char *name,
-		const v8::Handle<v8::Value> element, bool doJson)
+void encodeValue(bson *bb, const char *name, v8::Handle<v8::Value> element,
+		bool doJson)
 {
 	if (element.IsEmpty() || element->IsUndefined() || element->IsFunction())
 		;
@@ -52,20 +52,54 @@ void encodeValue(bson *bb, const char *name,
 	}
 	else if (element->IsArray())
 		encodeArray(bb, name, element);
+	else if (element->IsRegExp())
+	{
+		v8::Handle<v8::RegExp> re = v8::Handle<v8::RegExp>::Cast(element);
+		v8::Handle<v8::String> src = re->GetSource();
+		v8::RegExp::Flags flgs = re->GetFlags();
+		char flgStr[4];
+		char* p = flgStr;
+
+		if (flgs & v8::RegExp::kIgnoreCase)
+			*p++ = 'i';
+		if (flgs & v8::RegExp::kGlobal)
+			*p++ = 'g';
+		if (flgs & v8::RegExp::kMultiline)
+			*p++ = 'm';
+
+		*p = 0;
+
+		bson_append_regex(bb, name, *v8::String::Utf8Value(src), flgStr);
+	}
 	else if (element->IsObject())
 	{
-		obj_ptr<Buffer_base> buf = Buffer_base::getInstance(element);
-
-		if (buf)
 		{
-			std::string strBuf;
+			obj_ptr<Buffer_base> buf = Buffer_base::getInstance(element);
 
-			buf->toString(strBuf);
-			bson_append_binary(bb, name, BSON_BIN_BINARY, strBuf.c_str(),
-					(int) strBuf.length());
+			if (buf)
+			{
+				std::string strBuf;
+
+				buf->toString(strBuf);
+				bson_append_binary(bb, name, BSON_BIN_BINARY, strBuf.c_str(),
+						(int) strBuf.length());
+
+				return;
+			}
 		}
-		else
-			encodeObject(bb, name, element, doJson);
+
+		{
+			obj_ptr<MongoID> oid = (MongoID*) MongoID_base::getInstance(
+					element);
+
+			if (oid)
+			{
+				bson_append_oid(bb, name, &oid->m_id);
+				return;
+			}
+		}
+
+		encodeObject(bb, name, element, doJson);
 	}
 	else
 	{
@@ -74,8 +108,7 @@ void encodeValue(bson *bb, const char *name,
 	}
 }
 
-void encodeArray(bson *bb, const char *name,
-		const v8::Handle<v8::Value> element)
+void encodeArray(bson *bb, const char *name, v8::Handle<v8::Value> element)
 {
 	v8::Handle<v8::Array> a = v8::Handle<v8::Array>::Cast(element);
 
@@ -93,8 +126,8 @@ void encodeArray(bson *bb, const char *name,
 	bson_append_finish_array(bb);
 }
 
-void encodeObject(bson *bb, const char *name,
-		const v8::Handle<v8::Value> element, bool doJson)
+void encodeObject(bson *bb, const char *name, v8::Handle<v8::Value> element,
+		bool doJson)
 {
 	v8::Handle<v8::Object> object = element->ToObject();
 
@@ -141,7 +174,7 @@ void encodeObject(bson *bb, const char *name,
 		bson_append_finish_object(bb);
 }
 
-void encodeObject(bson *bb, const v8::Handle<v8::Value> element)
+void encodeObject(bson *bb, v8::Handle<v8::Value> element)
 {
 	encodeObject(bb, NULL, element, true);
 }
@@ -207,6 +240,31 @@ void decodeValue(v8::Handle<v8::Object> obj, bson_iterator *it)
 		obj->Set(v8::String::New(key), buf->wrap());
 		break;
 	}
+	case BSON_OID:
+	{
+		obj_ptr<MongoID> oid = new MongoID(bson_iterator_oid(it));
+		obj->Set(v8::String::New(key), oid->wrap());
+		break;
+	}
+	case BSON_REGEX:
+	{
+		v8::RegExp::Flags flgs = v8::RegExp::kNone;
+		const char* opts = bson_iterator_regex_opts(it);
+		char ch;
+
+		while ((ch = *opts++) != 0)
+			if (ch == 'm')
+				flgs = (v8::RegExp::Flags) (flgs | v8::RegExp::kMultiline);
+			else if (ch == 'g')
+				flgs = (v8::RegExp::Flags) (flgs | v8::RegExp::kGlobal);
+			else if (ch == 'i')
+				flgs = (v8::RegExp::Flags) (flgs | v8::RegExp::kIgnoreCase);
+
+		obj->Set(v8::String::New(key),
+				v8::RegExp::New(v8::String::New(bson_iterator_regex(it)),
+						flgs));
+		break;
+	}
 	case BSON_OBJECT:
 	case BSON_ARRAY:
 	{
@@ -217,6 +275,7 @@ void decodeValue(v8::Handle<v8::Object> obj, bson_iterator *it)
 		break;
 	}
 	default:
+		printf("unknown type: %d\n", type);
 		break;
 	}
 }
@@ -236,17 +295,30 @@ v8::Handle<v8::Object> decodeObject(bson_iterator *it, bool bArray)
 	return obj;
 }
 
+v8::Handle<v8::Object> decodeObject(const bson* bb)
+{
+	bson_iterator it;
+	bson_iterator_from_buffer(&it, bson_data(bb));
+
+	return decodeObject(&it, false);
+}
+
+v8::Handle<v8::Object> decodeObject(const char* buffer)
+{
+	bson_iterator it;
+	bson_iterator_from_buffer(&it, buffer);
+
+	return decodeObject(&it, false);
+}
+
 result_t encoding_base::bsonDecode(Buffer_base* data,
 		v8::Handle<v8::Object>& retVal)
 {
 	std::string strBuf;
 
 	data->toString(strBuf);
+	retVal = decodeObject(strBuf.c_str());
 
-	bson_iterator it;
-	bson_iterator_from_buffer(&it, strBuf.c_str());
-
-	retVal = decodeObject(&it, false);
 	return 0;
 }
 
