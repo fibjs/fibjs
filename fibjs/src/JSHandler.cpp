@@ -56,8 +56,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 	if (ac)
 		return CALL_E_NOASYNC;
 
-	v8::Handle < v8::Object > o;
-	v->ValueOf(o);
+	v8::Handle < v8::Object > o = v->wrap();
 
 	obj_ptr < Message_base > msg = Message_base::getInstance(v);
 	v8::Handle < v8::Value > a = o;

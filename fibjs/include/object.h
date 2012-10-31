@@ -272,7 +272,7 @@ public:
 		return 0;
 	}
 
-	virtual result_t ValueOf(v8::Handle<v8::Object>& retVal)
+	virtual result_t ValueOf(v8::Handle<v8::Value>& retVal)
 	{
 		retVal = wrap();
 		return 0;
@@ -383,7 +383,7 @@ inline v8::Handle<v8::Value> object_base::s_toJSON(const v8::Arguments& args)
 
 inline v8::Handle<v8::Value> object_base::s_ValueOf(const v8::Arguments& args)
 {
-	v8::Handle<v8::Object> vr;
+	v8::Handle<v8::Value> vr;
 
 	METHOD_INSTANCE(object_base);
 	METHOD_ENTER(0, 0);

@@ -449,7 +449,7 @@ inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Function>& func)
 template<class T>
 inline v8::Handle<v8::Value> ReturnValue(obj_ptr<T>& obj)
 {
-	v8::Handle<v8::Object> retVal;
+	v8::Handle<v8::Value> retVal;
 	obj->ValueOf(retVal);
 
 	return retVal;
