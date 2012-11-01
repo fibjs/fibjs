@@ -39,8 +39,8 @@ public:
 
 public:
 	// SandBox_base
-	virtual result_t add(const char* id, v8::Handle<v8::Value> mod, bool clone);
-	virtual result_t add(v8::Handle<v8::Object> mods, bool clone);
+	virtual result_t add(const char* id, v8::Handle<v8::Value> mod);
+	virtual result_t add(v8::Handle<v8::Object> mods);
 	virtual result_t remove(const char* id);
 	virtual result_t run(const char* fname);
 	virtual result_t require(const char* id, v8::Handle<v8::Value>& retVal);
@@ -52,17 +52,15 @@ public:
 		m_require = v8::Persistent < v8::Function > ::New(func);
 	}
 
-private:
-	void InstallModule(std::string fname, v8::Handle<v8::Value> o, date_t d,
-			date_t now);
-	void InstallModule(std::string fname, v8::Handle<v8::Value> o);
+	void InstallModule(std::string fname, v8::Handle<v8::Value> o,
+			date_t check = 0, date_t mtime = 0);
+
 	result_t runScript(const char* id, v8::Handle<v8::Value>& retVal,
 			bool bMod);
 
-	inline void InstallNativeModule(const char* fname, ClassInfo& ci,
-			date_t now)
+	inline void InstallNativeModule(const char* fname, ClassInfo& ci)
 	{
-		add(fname, ci.CreateInstance(), false);
+		InstallModule(fname, ci.CreateInstance());
 	}
 
 private:

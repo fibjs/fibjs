@@ -15,7 +15,7 @@ result_t vm_base::create(v8::Handle<v8::Object> mods,
 		obj_ptr<SandBox_base>& retVal)
 {
 	obj_ptr < SandBox_base > sbox = new SandBox();
-	result_t hr = sbox->add(mods, true);
+	result_t hr = sbox->add(mods);
 	if (hr < 0)
 		return hr;
 
@@ -29,7 +29,7 @@ result_t vm_base::create(v8::Handle<v8::Object> mods,
 {
 	obj_ptr < SandBox > sbox = new SandBox();
 	sbox->initRequire(require);
-	result_t hr = sbox->add(mods, true);
+	result_t hr = sbox->add(mods);
 	if (hr < 0)
 		return hr;
 
@@ -56,7 +56,7 @@ result_t vm_base::current(obj_ptr<SandBox_base>& retVal)
 }
 
 void SandBox::InstallModule(std::string fname, v8::Handle<v8::Value> o,
-		date_t d, date_t now)
+		date_t check, date_t mtime)
 {
 	std::map<std::string, obj_ptr<mod> >::iterator it = m_mods.find(fname);
 	obj_ptr<mod> m;
@@ -73,29 +73,20 @@ void SandBox::InstallModule(std::string fname, v8::Handle<v8::Value> o,
 	}
 
 	m->m_mod = v8::Persistent < v8::Value > ::New(o);
-	m->m_mtime = d;
-	m->m_check = now;
+	m->m_mtime = mtime;
+	m->m_check = check;
 }
 
-void SandBox::InstallModule(std::string fname, v8::Handle<v8::Value> o)
+result_t SandBox::add(const char* id, v8::Handle<v8::Value> mod)
 {
-	static date_t s_noneDate;
-	date_t now;
-
-	now.now();
-	InstallModule(fname, o, s_noneDate, now);
-}
-
-result_t SandBox::add(const char* id, v8::Handle<v8::Value> mod, bool clone)
-{
-	if (clone && mod->IsObject())
+	if (mod->IsObject())
 		mod = mod->ToObject()->Clone();
 	InstallModule(id, mod);
 
 	return 0;
 }
 
-result_t SandBox::add(v8::Handle<v8::Object> mods, bool clone)
+result_t SandBox::add(v8::Handle<v8::Object> mods)
 {
 	v8::Handle < v8::Array > ks = mods->GetPropertyNames();
 	int len = ks->Length();
@@ -104,7 +95,7 @@ result_t SandBox::add(v8::Handle<v8::Object> mods, bool clone)
 	for (i = 0; i < len; i++)
 	{
 		v8::Handle < v8::Value > k = ks->Get(i);
-		add(*v8::String::Utf8Value(k), mods->Get(k), clone);
+		add(*v8::String::Utf8Value(k), mods->Get(k));
 	}
 
 	return 0;

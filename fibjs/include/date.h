@@ -31,8 +31,8 @@ namespace fibjs
 class date_t
 {
 public:
-	date_t() :
-			d(0)
+	date_t(double v = 0) :
+			d(v)
 	{
 	}
 

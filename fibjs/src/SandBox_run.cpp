@@ -124,14 +124,14 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 		it = m_mods.find(fname);
 
 		if (it != m_mods.end()
-				&& (it->second->m_mtime.empty()
+				&& (it->second->m_check.empty()
 						|| now.diff(it->second->m_check) < 1000))
 		{
 			retVal = it->second->m_mod;
 			return 1;
 		}
 
-		if (it == m_mods.end() && !m_require.IsEmpty())
+		if (!m_require.IsEmpty())
 		{
 			v8::Handle < v8::Value > arg = v8::String::New(fname.c_str());
 			retVal = m_require->Call(wrap(), 1, &arg);
@@ -142,7 +142,7 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 			{
 				if (retVal->IsObject())
 					retVal = retVal->ToObject()->Clone();
-				InstallModule(fname, retVal);
+				InstallModule(fname, retVal, now);
 
 				return 0;
 			}
@@ -246,7 +246,7 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 		mod->Set(strId, strFname, v8::ReadOnly);
 
 		// add to modules
-		InstallModule(fname, exports, mtime, now);
+		InstallModule(fname, exports, now, mtime);
 
 		// attach to global
 		glob->Set(strModule, mod, v8::ReadOnly);
@@ -292,7 +292,7 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 
 		// use module.exports as result value
 		v8::Handle < v8::Value > v = mod->Get(strExports);
-		InstallModule(fname, v, mtime, now);
+		InstallModule(fname, v, now, mtime);
 
 		retVal = handle_scope.Close(v);
 	}

@@ -8,6 +8,7 @@
 #include "ifs/global.h"
 #include "ifs/path.h"
 #include "ifs/vm.h"
+#include "SandBox.h"
 #include <vector>
 #include <set>
 #include <map>
@@ -24,8 +25,9 @@ inline void InstallModule(std::string fname, v8::Handle<v8::Value> o)
 	result_t hr = vm_base::current(sbox);
 	if (hr < 0 || hr == CALL_RETURN_NULL)
 		return;
+	obj_ptr<SandBox> sbox1 = (SandBox*)(SandBox_base*)sbox;
 
-	sbox->add(fname.c_str(), o, false);
+	sbox1->InstallModule(fname, o);
 }
 
 inline std::string resolvePath(std::string base, const char* id)

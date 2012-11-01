@@ -42,38 +42,35 @@ namespace fibjs
 
 void SandBox::initRoot()
 {
-	date_t now;
-	now.now();
+	InstallNativeModule("encoding", encoding_base::class_info());
+	InstallNativeModule("uuid", uuid_base::class_info());
 
-	InstallNativeModule("encoding", encoding_base::class_info(), now);
-	InstallNativeModule("uuid", uuid_base::class_info(), now);
+	InstallNativeModule("re", re_base::class_info());
+	InstallNativeModule("collection", collection_base::class_info());
 
-	InstallNativeModule("re", re_base::class_info(), now);
-	InstallNativeModule("collection", collection_base::class_info(), now);
+	InstallNativeModule("assert", assert_base::class_info());
+	InstallNativeModule("path", path_base::class_info());
 
-	InstallNativeModule("assert", assert_base::class_info(), now);
-	InstallNativeModule("path", path_base::class_info(), now);
+	InstallNativeModule("coroutine", coroutine_base::class_info());
+	InstallNativeModule("process", process_base::class_info());
 
-	InstallNativeModule("coroutine", coroutine_base::class_info(), now);
-	InstallNativeModule("process", process_base::class_info(), now);
+	InstallNativeModule("vm", vm_base::class_info());
+	InstallNativeModule("io", io_base::class_info());
+	InstallNativeModule("fs", fs_base::class_info());
+	InstallNativeModule("os", os_base::class_info());
+	InstallNativeModule("net", net_base::class_info());
+	InstallNativeModule("zmq", zmq_base::class_info());
 
-	InstallNativeModule("vm", vm_base::class_info(), now);
-	InstallNativeModule("io", io_base::class_info(), now);
-	InstallNativeModule("fs", fs_base::class_info(), now);
-	InstallNativeModule("os", os_base::class_info(), now);
-	InstallNativeModule("net", net_base::class_info(), now);
-	InstallNativeModule("zmq", zmq_base::class_info(), now);
+	InstallNativeModule("mq", mq_base::class_info());
 
-	InstallNativeModule("mq", mq_base::class_info(), now);
+	InstallNativeModule("http", http_base::class_info());
+	InstallNativeModule("rpc", rpc_base::class_info());
 
-	InstallNativeModule("http", http_base::class_info(), now);
-	InstallNativeModule("rpc", rpc_base::class_info(), now);
+	InstallNativeModule("db", db_base::class_info());
+	InstallNativeModule("hash", hash_base::class_info());
+	InstallNativeModule("zlib", zlib_base::class_info());
 
-	InstallNativeModule("db", db_base::class_info(), now);
-	InstallNativeModule("hash", hash_base::class_info(), now);
-	InstallNativeModule("zlib", zlib_base::class_info(), now);
-
-	InstallNativeModule("gd", gd_base::class_info(), now);
+	InstallNativeModule("gd", gd_base::class_info());
 }
 
 }

@@ -20,8 +20,8 @@ class SandBox_base : public object_base
 {
 public:
 	// SandBox_base
-	virtual result_t add(const char* id, v8::Handle<v8::Value> mod, bool clone) = 0;
-	virtual result_t add(v8::Handle<v8::Object> mods, bool clone) = 0;
+	virtual result_t add(const char* id, v8::Handle<v8::Value> mod) = 0;
+	virtual result_t add(v8::Handle<v8::Object> mods) = 0;
 	virtual result_t remove(const char* id) = 0;
 	virtual result_t run(const char* fname) = 0;
 	virtual result_t require(const char* id, v8::Handle<v8::Value>& retVal) = 0;
@@ -64,20 +64,18 @@ namespace fibjs
 	inline v8::Handle<v8::Value> SandBox_base::s_add(const v8::Arguments& args)
 	{
 		METHOD_INSTANCE(SandBox_base);
-		METHOD_ENTER(3, 2);
+		METHOD_ENTER(2, 2);
 
 		ARG_String(0);
 		ARG(v8::Handle<v8::Value>, 1);
-		OPT_ARG(bool, 2, true);
-
-		hr = pInst->add(v0, v1, v2);
-
-		METHOD_OVER(2, 1);
-
-		ARG(v8::Handle<v8::Object>, 0);
-		OPT_ARG(bool, 1, true);
 
 		hr = pInst->add(v0, v1);
+
+		METHOD_OVER(1, 1);
+
+		ARG(v8::Handle<v8::Object>, 0);
+
+		hr = pInst->add(v0);
 
 		METHOD_VOID();
 	}
