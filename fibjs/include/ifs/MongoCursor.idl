@@ -1,4 +1,20 @@
 /*! @brief mongodb 数据库数据游标对象 */
 class MongoCursor: object
 {
+	MongoCursor batchSize(Integer size);
+	MongoCursor hint(Object opts);
+	MongoCursor limit(Integer size);
+	MongoCursor readPref(String mode, Array tagSet);
+	MongoCursor showDiskLoc();
+
+	Integer count(Boolean override);
+	Object explain();
+	forEach(Function func);
+	Array map(Function func);
+	Boolean hasNext();
+	Object next();
+	Integer size();
+	MongoCursor skip(Integer num);
+	MongoCursor snapshot();
+	MongoCursor sort(Object opts);
 };

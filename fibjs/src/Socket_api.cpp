@@ -32,19 +32,19 @@ void *create()
 
 void destroy(void *sock)
 {
-	if(sock)
+	if (sock)
 		((Socket*) sock)->Unref();
 }
 
 void close(void *sock)
 {
-	if(sock)
+	if (sock)
 		((Socket*) sock)->ac_close();
 }
 
 int connect(void *sock, const char *host, int port)
 {
-	if(!sock)
+	if (!sock)
 	{
 		Runtime::setError(CALL_E_INVALID_CALL);
 		return 0;
@@ -76,7 +76,7 @@ void* connect(const char *host, int port)
 
 int recv(void *sock, void *buffer, int cbBuffer)
 {
-	if(!sock)
+	if (!sock)
 	{
 		Runtime::setError(CALL_E_INVALID_CALL);
 		return -1;
@@ -104,11 +104,14 @@ int recv(void *sock, void *buffer, int cbBuffer)
 
 int read(void *sock, void *buffer, int cbBuffer)
 {
-	if(!sock)
+	if (!sock)
 	{
 		Runtime::setError(CALL_E_INVALID_CALL);
 		return -1;
 	}
+
+	if (cbBuffer <= 0)
+		return 0;
 
 	obj_ptr<Buffer_base> retVal;
 
@@ -134,11 +137,14 @@ int read(void *sock, void *buffer, int cbBuffer)
 
 int send(void *sock, const void *buffer, int cbBuffer)
 {
-	if(!sock)
+	if (!sock)
 	{
 		Runtime::setError(CALL_E_INVALID_CALL);
 		return -1;
 	}
+
+	if (cbBuffer <= 0)
+		return 0;
 
 	std::string strBuf((const char*) buffer, cbBuffer);
 	obj_ptr<Buffer_base> buf;

@@ -19,20 +19,38 @@ int mongo_env_set_socket_op_timeout(mongo *conn, int millis)
 
 int mongo_env_read_socket(mongo *conn, void *buf, int len)
 {
-	return fibjs::socket::read(conn->sock, buf, len) > 0 ?
-			MONGO_OK : MONGO_ERROR;
+	if (fibjs::socket::read(conn->sock, buf, len) < 0)
+	{
+		__mongo_set_error(conn, MONGO_IO_ERROR, NULL,
+				fibjs::Runtime::errNumber());
+		return MONGO_ERROR;
+	}
+
+	return MONGO_OK;
 }
 
 int mongo_env_write_socket(mongo *conn, const void *buf, int len)
 {
-	return fibjs::socket::send(conn->sock, buf, len) > 0 ?
-			MONGO_OK : MONGO_ERROR;
+	if (fibjs::socket::send(conn->sock, buf, len) < 0)
+	{
+		__mongo_set_error(conn, MONGO_IO_ERROR, NULL,
+				fibjs::Runtime::errNumber());
+		return MONGO_ERROR;
+	}
+
+	return MONGO_OK;
 }
 
 int mongo_env_socket_connect(mongo *conn, const char *host, int port)
 {
-	conn->sock = fibjs::socket::connect(host, port);
-	return conn->sock ? MONGO_OK : MONGO_ERROR;
+	if (!(conn->sock = fibjs::socket::connect(host, port)))
+	{
+		__mongo_set_error(conn, MONGO_IO_ERROR, NULL,
+				fibjs::Runtime::errNumber());
+		return MONGO_ERROR;
+	}
+
+	return MONGO_OK;
 }
 
 int mongo_env_sock_init(void)
@@ -68,10 +86,19 @@ result_t MongoDB::error()
 			"BSON object exceeds max BSON size.",
 			"Supplied write concern object is invalid." };
 
-	if (m_conn.err > 0 && m_conn.err <= MONGO_WRITE_CONCERN_INVALID)
-		return Runtime::setError(s_msgs[m_conn.err]);
-	else
-		return Runtime::errNumber();
+	result_t hr = 0;
+
+	if (m_conn.err == MONGO_IO_ERROR)
+		hr = m_conn.errcode;
+	else if (m_conn.err > 0 && m_conn.err <= MONGO_WRITE_CONCERN_INVALID)
+	{
+		hr = Runtime::setError(s_msgs[m_conn.err]);
+		mongo_clear_errors(&m_conn);
+		return hr;
+	}
+
+	mongo_clear_errors(&m_conn);
+	return hr;
 }
 
 result_t db_base::openMongoDB(const char* connString,
@@ -145,7 +172,7 @@ result_t MongoDB::open(const char* connString)
 		return hr;
 	}
 
-	if(!u->m_pathname.empty())
+	if (!u->m_pathname.empty())
 		m_ns = u->m_pathname.substr(1);
 
 	return 0;
@@ -156,7 +183,7 @@ result_t MongoDB::getCollection(const char* name,
 {
 	std::string ns;
 
-	if(!m_ns.empty())
+	if (!m_ns.empty())
 	{
 		ns = m_ns;
 		ns += '.';

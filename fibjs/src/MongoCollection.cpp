@@ -6,6 +6,7 @@
  */
 
 #include "MongoCollection.h"
+#include "MongoCursor.h"
 #include "MongoID.h"
 #include "encoding_bson.h"
 #include <vector>
@@ -16,36 +17,19 @@ namespace fibjs
 result_t MongoCollection::find(v8::Handle<v8::Object> query,
 		v8::Handle<v8::Object> projection, obj_ptr<MongoCursor_base>& retVal)
 {
+	retVal = new MongoCursor(m_db, m_ns.c_str(), query, projection);
 	return 0;
 }
 
 result_t MongoCollection::findOne(v8::Handle<v8::Object> query,
 		v8::Handle<v8::Object> projection, v8::Handle<v8::Object>& retVal)
 {
-	bson bbq, bbp, bbo;
+	obj_ptr < MongoCursor > cur = new MongoCursor(m_db, m_ns.c_str(), query,
+			projection);
+	obj_ptr < MongoCursor_base > cur1;
 
-	bson_init(&bbq);
-	encodeObject(&bbq, query);
-	bson_finish(&bbq);
-
-	bson_init(&bbp);
-	encodeObject(&bbp, projection);
-	bson_finish(&bbp);
-
-	bson_init(&bbo);
-
-	int result = mongo_find_one(&m_db->m_conn, m_ns.c_str(), &bbq, &bbp, &bbo);
-	bson_destroy(&bbq);
-	bson_destroy(&bbp);
-
-	if (result != MONGO_OK)
-		return m_db->error();
-
-	retVal = decodeObject(&bbo);
-
-	bson_destroy(&bbo);
-
-	return 0;
+	cur->limit(1, cur1);
+	return cur->next(retVal);
 }
 
 result_t MongoCollection::findAndModify(v8::Handle<v8::Object> query)
