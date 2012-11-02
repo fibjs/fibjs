@@ -51,8 +51,7 @@ result_t DBResult::append(Variant v)
 	return 0;
 }
 
-result_t DBResult::slice(int32_t start, int32_t end,
-		obj_ptr<List_base>& retVal)
+result_t DBResult::slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal)
 {
 	if (!m_size)
 		return CALL_E_INVALID_CALL;
@@ -60,14 +59,19 @@ result_t DBResult::slice(int32_t start, int32_t end,
 	return m_array.slice(start, end, retVal);
 }
 
-result_t DBResult::toJSON(const char* key, v8::Handle<v8::Object>& retVal)
+result_t DBResult::toJSON(const char* key, v8::Handle<v8::Value>& retVal)
 {
 	if (m_size)
 		return m_array.toJSON(key, retVal);
 
-	retVal = v8::Object::New();
-	retVal->Set(v8::String::NewSymbol("affected", 8), v8::Number::New((double) m_affected));
-	retVal->Set(v8::String::NewSymbol("insertId", 8), v8::Number::New((double) m_insertId));
+	v8::Handle < v8::Object > o = v8::Object::New();
+
+	o->Set(v8::String::NewSymbol("affected", 8),
+			v8::Number::New((double) m_affected));
+	o->Set(v8::String::NewSymbol("insertId", 8),
+			v8::Number::New((double) m_insertId));
+
+	retVal = o;
 
 	return 0;
 }

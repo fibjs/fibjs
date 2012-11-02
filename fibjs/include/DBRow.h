@@ -25,7 +25,7 @@ public:
 
 public:
 	// object_base
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal);
+	virtual result_t toJSON(const char* key, v8::Handle<v8::Value>& retVal);
 
 public:
 	// DBRow_base

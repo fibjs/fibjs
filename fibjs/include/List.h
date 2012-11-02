@@ -18,7 +18,7 @@ class List: public List_base
 {
 public:
 	// object_base
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal);
+	virtual result_t toJSON(const char* key, v8::Handle<v8::Value>& retVal);
 
 public:
 	// ObjectArray_base
@@ -40,7 +40,7 @@ public:
 		result_t resize(int32_t sz);
 		result_t append(Variant v);
 		result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal);
-		result_t toJSON(const char* key, v8::Handle<v8::Object>& retVal);
+		result_t toJSON(const char* key, v8::Handle<v8::Value>& retVal);
 
 	public:
 		void append(object_base* newVal)

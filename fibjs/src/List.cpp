@@ -47,7 +47,7 @@ result_t List::slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal)
 	return m_array.slice(start, end, retVal);
 }
 
-result_t List::toJSON(const char* key, v8::Handle<v8::Object>& retVal)
+result_t List::toJSON(const char* key, v8::Handle<v8::Value>& retVal)
 {
 	return m_array.toJSON(key, retVal);
 }
@@ -96,7 +96,7 @@ result_t List::array::slice(int32_t start, int32_t end,
 	return 0;
 }
 
-result_t List::array::toJSON(const char* key, v8::Handle<v8::Object>& retVal)
+result_t List::array::toJSON(const char* key, v8::Handle<v8::Value>& retVal)
 {
 	v8::Handle < v8::Array > a = v8::Array::New((int) m_array.size());
 	int i;
