@@ -54,27 +54,77 @@ bool regexpEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
 	return src1->StrictEquals(src2) && flgs1 == flgs2;
 }
 
-bool valueEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
+bool valueEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected,
+		bool bStrict);
+
+bool objectEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected,
+		bool bStrict)
 {
-	if (actual->IsDate() && expected->IsDate())
-		return actual->NumberValue() == expected->NumberValue();
+	if (actual->IsArray() ^ expected->IsArray())
+		return false;
 
-	if (actual->IsRegExp() && expected->IsRegExp())
-		return regexpEquals(actual, expected);
+	if (actual->IsArray() && expected->IsArray())
+	{
+		v8::Handle<v8::Array> act = v8::Handle<v8::Array>::Cast(actual);
+		v8::Handle<v8::Array> exp = v8::Handle<v8::Array>::Cast(expected);
+		int len = (int) act->Length();
+		int i;
 
-	return actual->Equals(expected);
+		if (len != (int) exp->Length())
+			return false;
+
+		for (i = 0; i < len; i++)
+			if (!valueEquals(act->Get(i), exp->Get(i), bStrict))
+				return false;
+	}
+
+	v8::Handle<v8::Object> act = v8::Handle<v8::Object>::Cast(actual);
+	v8::Handle<v8::Object> exp = v8::Handle<v8::Object>::Cast(expected);
+
+	if (!act->GetPrototype()->StrictEquals(exp->GetPrototype()))
+		return false;
+
+	v8::Handle<v8::Array> keys = act->GetPropertyNames();
+	int len = (int) keys->Length();
+	int i;
+
+	if (len != (int) exp->GetPropertyNames()->Length())
+		return false;
+
+	for (i = 0; i < len; i++)
+	{
+		v8::Handle<v8::Value> ks = keys->Get(i);
+
+		if (!ks->IsNumber())
+		{
+			v8::Handle<v8::String> k = v8::Handle<v8::String>::Cast(ks);
+
+			if (!exp->Has(k) || !valueEquals(act->Get(k), exp->Get(k), bStrict))
+				return false;
+		}
+	}
+
+	return true;
 }
 
-bool valueStrictEquals(v8::Handle<v8::Value> actual,
-		v8::Handle<v8::Value> expected)
+bool valueEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected,
+		bool bStrict)
 {
-	if (actual->IsDate() && expected->IsDate())
-		return actual->NumberValue() == expected->NumberValue();
+	if (!IsEmpty(actual) && !IsEmpty(expected) && !actual->IsFunction()
+			&& !expected->IsFunction())
+	{
+		if (actual->IsDate() && expected->IsDate())
+			return actual->NumberValue() == expected->NumberValue();
+		else if (actual->IsRegExp() && expected->IsRegExp())
+			return regexpEquals(actual, expected);
+		else if (actual->IsObject() && expected->IsObject())
+			return objectEquals(actual, expected, bStrict);
+	}
 
-	if (actual->IsRegExp() && expected->IsRegExp())
-		return regexpEquals(actual, expected);
+	if (bStrict)
+		return actual->StrictEquals(expected);
 
-	return actual->StrictEquals(expected);
+	return actual->Equals(expected);
 }
 
 inline std::string buildString(v8::Handle<v8::Value> actual,
@@ -94,76 +144,46 @@ inline std::string buildString(v8::Handle<v8::Value> actual,
 	return str;
 }
 
-result_t assert_base::equal(v8::Handle<v8::Value> actual,
-		v8::Handle<v8::Value> expected, const char* msg)
+result_t equals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected,
+		const char* msg, const char* opt, bool bStrict, bool neg)
 {
-	if (!valueEquals(actual, expected))
+	if (valueEquals(actual, expected, bStrict) ^ neg)
 	{
 		std::string str;
 
 		if (!*msg)
 		{
-			str = buildString(expected, actual, "==");
+			str = buildString(expected, actual, opt);
 			msg = str.c_str();
 		}
 
-		ok(false, msg);
+		assert_base::ok(false, msg);
 	}
 	return 0;
+}
+
+result_t assert_base::equal(v8::Handle<v8::Value> actual,
+		v8::Handle<v8::Value> expected, const char* msg)
+{
+	return equals(actual, expected, msg, "==", false, true);
 }
 
 result_t assert_base::notEqual(v8::Handle<v8::Value> actual,
 		v8::Handle<v8::Value> expected, const char* msg)
 {
-	if (valueEquals(actual, expected))
-	{
-		std::string str;
-
-		if (!*msg)
-		{
-			str = buildString(expected, actual, "!=");
-			msg = str.c_str();
-		}
-
-		ok(false, msg);
-	}
-	return 0;
+	return equals(actual, expected, msg, "!=", false, false);
 }
 
 result_t assert_base::strictEqual(v8::Handle<v8::Value> actual,
 		v8::Handle<v8::Value> expected, const char* msg)
 {
-	if (!valueStrictEquals(actual, expected))
-	{
-		std::string str;
-
-		if (!*msg)
-		{
-			str = buildString(expected, actual, "===");
-			msg = str.c_str();
-		}
-
-		ok(false, msg);
-	}
-	return 0;
+	return equals(actual, expected, msg, "===", true, true);
 }
 
 result_t assert_base::notStrictEqual(v8::Handle<v8::Value> actual,
 		v8::Handle<v8::Value> expected, const char* msg)
 {
-	if (valueStrictEquals(actual, expected))
-	{
-		std::string str;
-
-		if (!*msg)
-		{
-			str = buildString(expected, actual, "!==");
-			msg = str.c_str();
-		}
-
-		ok(false, msg);
-	}
-	return 0;
+	return equals(actual, expected, msg, "!==", true, false);
 }
 
 result_t assert_base::throws(v8::Handle<v8::Function> block, const char* msg)
