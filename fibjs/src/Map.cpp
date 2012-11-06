@@ -55,7 +55,9 @@ inline result_t _map(Map* o, v8::Handle<v8::Object> m,
 	for (i = 0; i < len; i++)
 	{
 		v8::Handle<v8::Value> k = ks->Get(i);
-		(o->*fn)(*v8::String::Utf8Value(k), m->Get(k));
+
+		if (!k->IsNumber())
+			(o->*fn)(*v8::String::Utf8Value(k), m->Get(k));
 	}
 
 	return 0;

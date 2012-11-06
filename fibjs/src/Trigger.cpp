@@ -21,10 +21,10 @@ result_t Trigger_base::_new(obj_ptr<Trigger_base>& retVal)
 v8::Handle<v8::Array> object_base::GetHiddenArray(const char* k, bool create,
 		bool autoDelete)
 {
-	v8::Local<v8::String> s = v8::String::NewSymbol(k);
-	v8::Handle<v8::Object> o = wrap();
-	v8::Handle<v8::Value> es = o->GetHiddenValue(s);
-	v8::Handle<v8::Array> esa;
+	v8::Local < v8::String > s = v8::String::NewSymbol(k);
+	v8::Handle < v8::Object > o = wrap();
+	v8::Handle < v8::Value > es = o->GetHiddenValue(s);
+	v8::Handle < v8::Array > esa;
 
 	if (es.IsEmpty())
 	{
@@ -35,7 +35,7 @@ v8::Handle<v8::Array> object_base::GetHiddenArray(const char* k, bool create,
 		}
 	}
 	else
-		esa = v8::Handle<v8::Array>::Cast(es);
+		esa = v8::Handle < v8::Array > ::Cast(es);
 
 	if (autoDelete)
 		o->DeleteHiddenValue(s);
@@ -43,8 +43,7 @@ v8::Handle<v8::Array> object_base::GetHiddenArray(const char* k, bool create,
 	return esa;
 }
 
-inline int putFunction(v8::Handle<v8::Array> esa,
-		v8::Handle<v8::Function> func)
+inline int putFunction(v8::Handle<v8::Array> esa, v8::Handle<v8::Function> func)
 {
 	int len = esa->Length();
 	int i, p = -1;
@@ -95,7 +94,7 @@ inline int removeFunction(v8::Handle<v8::Array> esa,
 }
 
 inline result_t _map(object_base* o, v8::Handle<v8::Object> m,
-		result_t(object_base::*fn)(const char*, v8::Handle<v8::Function>))
+		result_t (object_base::*fn)(const char*, v8::Handle<v8::Function>))
 {
 	v8::Handle<v8::Array> ks = m->GetPropertyNames();
 	int len = ks->Length();
@@ -104,13 +103,17 @@ inline result_t _map(object_base* o, v8::Handle<v8::Object> m,
 	for (i = 0; i < len; i++)
 	{
 		v8::Handle<v8::Value> k = ks->Get(i);
-		v8::Handle<v8::Value> v = m->Get(k);
 
-		if (v->IsFunction())
-			(o->*fn)(*v8::String::Utf8Value(k),
-					v8::Handle<v8::Function>::Cast(v));
-		else
-			return CALL_E_BADVARTYPE;
+		if (!k->IsNumber())
+		{
+			v8::Handle<v8::Value> v = m->Get(k);
+
+			if (v->IsFunction())
+				(o->*fn)(*v8::String::Utf8Value(k),
+						v8::Handle<v8::Function>::Cast(v));
+			else
+				return CALL_E_BADVARTYPE;
+		}
 	}
 
 	return 0;
@@ -154,7 +157,7 @@ result_t object_base::once(v8::Handle<v8::Object> map)
 
 result_t object_base::off(const char* ev, v8::Handle<v8::Function> func)
 {
-	if(!m_nTriggers)
+	if (!m_nTriggers)
 		return 0;
 
 	std::string strKey = "_e_";
@@ -170,19 +173,21 @@ result_t object_base::off(const char* ev, v8::Handle<v8::Function> func)
 
 result_t object_base::off(v8::Handle<v8::Object> map)
 {
-	if(!m_nTriggers)
+	if (!m_nTriggers)
 		return 0;
 
 	return _map(this, map, &object_base::off);
 }
 
-inline result_t _fire(v8::Handle<v8::Function> func, const v8::Arguments& args, int argCount)
+inline result_t _fire(v8::Handle<v8::Function> func, const v8::Arguments& args,
+		int argCount)
 {
 	obj_ptr<Fiber_base> retVal;
 	return JSFiber::New(func, args, 1, retVal);
 }
 
-inline result_t _fire(v8::Handle<v8::Function> func, v8::Handle<v8::Value>* args, int argCount)
+inline result_t _fire(v8::Handle<v8::Function> func,
+		v8::Handle<v8::Value>* args, int argCount)
 {
 	obj_ptr<Fiber_base> retVal;
 	return JSFiber::New(func, args, argCount, retVal);
@@ -212,7 +217,8 @@ result_t fireTrigger(v8::Handle<v8::Array> esa, T args, int argCount)
 	return 0;
 }
 
-result_t object_base::_trigger(const char* ev, v8::Handle<v8::Value>* args, int argCount)
+result_t object_base::_trigger(const char* ev, v8::Handle<v8::Value>* args,
+		int argCount)
 {
 	extMemory(0);
 
@@ -230,7 +236,8 @@ result_t object_base::_trigger(const char* ev, v8::Handle<v8::Value>* args, int 
 	strKey = "_e1_";
 	strKey.append(ev);
 
-	hr = fireTrigger(GetHiddenArray(strKey.c_str(), false, true), args, argCount);
+	hr = fireTrigger(GetHiddenArray(strKey.c_str(), false, true), args,
+			argCount);
 	if (hr < 0)
 		return hr;
 

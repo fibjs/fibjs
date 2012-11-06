@@ -95,7 +95,9 @@ result_t SandBox::add(v8::Handle<v8::Object> mods)
 	for (i = 0; i < len; i++)
 	{
 		v8::Handle < v8::Value > k = ks->Get(i);
-		add(*v8::String::Utf8Value(k), mods->Get(k));
+
+		if (!k->IsNumber())
+			add(*v8::String::Utf8Value(k), mods->Get(k));
 	}
 
 	return 0;
