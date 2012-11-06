@@ -57,26 +57,30 @@ bool regexpEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
 bool valueEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected,
 		bool bStrict);
 
+bool arrayEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected,
+		bool bStrict)
+{
+	v8::Handle<v8::Array> act = v8::Handle<v8::Array>::Cast(actual);
+	v8::Handle<v8::Array> exp = v8::Handle<v8::Array>::Cast(expected);
+	int len = (int) act->Length();
+	int i;
+
+	if (len != (int) exp->Length())
+		return false;
+
+	for (i = 0; i < len; i++)
+		if (!valueEquals(act->Get(i), exp->Get(i), bStrict))
+			return false;
+
+	return true;
+}
+
 bool objectEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected,
 		bool bStrict)
 {
-	if (actual->IsArray() ^ expected->IsArray())
+	if (actual->IsArray() && expected->IsArray()
+			&& !arrayEqual(actual, expected, bStrict))
 		return false;
-
-	if (actual->IsArray() && expected->IsArray())
-	{
-		v8::Handle<v8::Array> act = v8::Handle<v8::Array>::Cast(actual);
-		v8::Handle<v8::Array> exp = v8::Handle<v8::Array>::Cast(expected);
-		int len = (int) act->Length();
-		int i;
-
-		if (len != (int) exp->Length())
-			return false;
-
-		for (i = 0; i < len; i++)
-			if (!valueEquals(act->Get(i), exp->Get(i), bStrict))
-				return false;
-	}
 
 	v8::Handle<v8::Object> act = v8::Handle<v8::Object>::Cast(actual);
 	v8::Handle<v8::Object> exp = v8::Handle<v8::Object>::Cast(expected);
@@ -88,7 +92,7 @@ bool objectEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected,
 	int len = (int) keys->Length();
 	int i;
 
-	if (len != (int) exp->GetPropertyNames()->Length())
+	if (!arrayEqual(keys, exp->GetPropertyNames(), true))
 		return false;
 
 	for (i = 0; i < len; i++)
@@ -99,7 +103,7 @@ bool objectEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected,
 		{
 			v8::Handle<v8::String> k = v8::Handle<v8::String>::Cast(ks);
 
-			if (!exp->Has(k) || !valueEquals(act->Get(k), exp->Get(k), bStrict))
+			if (!valueEquals(act->Get(k), exp->Get(k), bStrict))
 				return false;
 		}
 	}
