@@ -15,6 +15,9 @@
 #include "ClassInfo.h"
 #include "Runtime.h"
 
+#undef min
+#undef max
+
 namespace fibjs
 {
 
@@ -254,19 +257,7 @@ public:
 		v8::Handle<v8::Object> o = wrap();
 		v8::Handle<v8::Object> o1 = v8::Object::New();
 
-		v8::Handle<v8::Array> ks = o->GetPropertyNames();
-		int len = ks->Length();
-		int i;
-
-		for (i = 0; i < len; i++)
-		{
-			v8::Handle<v8::Value> k = ks->Get(i);
-			v8::Handle<v8::Value> v = o->Get(k);
-
-			if (!v.IsEmpty() && !v->IsFunction())
-				o1->Set(k, v);
-		}
-
+		extend(o, o1);
 		retVal = o1;
 
 		return 0;

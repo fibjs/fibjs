@@ -21,6 +21,23 @@ inline bool IsEmpty(v8::Handle<v8::Value>& v)
 	return v.IsEmpty() || v->IsUndefined() || v->IsNull();
 }
 
+inline void extend(const v8::Handle<v8::Object> src,
+		v8::Handle<v8::Object>& dest, bool bDataOnly = true)
+{
+	v8::Handle<v8::Array> ks = src->GetPropertyNames();
+	int len = ks->Length();
+	int i;
+
+	for (i = 0; i < len; i++)
+	{
+		v8::Handle<v8::Value> k = ks->Get(i);
+		v8::Handle<v8::Value> v = src->Get(k);
+
+		if (!bDataOnly || (!v.IsEmpty() && !v->IsFunction()))
+			dest->Set(k, v);
+	}
+}
+
 class object_base;
 
 class Variant
