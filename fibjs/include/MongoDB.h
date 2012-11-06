@@ -30,11 +30,14 @@ public:
 public:
 	// MongoDB_base
 	virtual result_t getCollection(const char* name, obj_ptr<MongoCollection_base>& retVal);
+	virtual result_t runCommand(v8::Handle<v8::Object> cmd, v8::Handle<v8::Object>& retVal);
+	virtual result_t runCommand(const char* cmd, v8::Handle<v8::Value> arg, v8::Handle<v8::Object>& retVal);
 	virtual result_t _named_getter(const char* property, obj_ptr<MongoCollection_base>& retVal);
 
 public:
 	result_t open(const char* connString);
 	result_t error();
+	result_t run_command(bson *command, v8::Handle<v8::Object>& retVal);
 
 public:
 	mongo m_conn;

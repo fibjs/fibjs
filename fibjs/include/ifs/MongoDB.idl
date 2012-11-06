@@ -5,5 +5,8 @@ class MongoDB : object
 
 	MongoCollection getCollection(String name);
 
+	Object runCommand(Object cmd);
+	Object runCommand(String cmd, Value arg);
+
 	readonly MongoCollection operator[String];
 };

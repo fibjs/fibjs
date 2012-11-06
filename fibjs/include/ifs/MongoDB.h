@@ -23,12 +23,15 @@ class MongoDB_base : public object_base
 public:
 	// MongoDB_base
 	virtual result_t getCollection(const char* name, obj_ptr<MongoCollection_base>& retVal) = 0;
+	virtual result_t runCommand(v8::Handle<v8::Object> cmd, v8::Handle<v8::Object>& retVal) = 0;
+	virtual result_t runCommand(const char* cmd, v8::Handle<v8::Value> arg, v8::Handle<v8::Object>& retVal) = 0;
 	virtual result_t _named_getter(const char* property, obj_ptr<MongoCollection_base>& retVal) = 0;
 
 	DECLARE_CLASSINFO(MongoDB_base);
 
 public:
 	static v8::Handle<v8::Value> s_getCollection(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_runCommand(const v8::Arguments& args);
 	static v8::Handle<v8::Value> i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info);
 };
 
@@ -42,7 +45,8 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"getCollection", s_getCollection}
+			{"getCollection", s_getCollection},
+			{"runCommand", s_runCommand}
 		};
 
 		static ClassData::ClassNamed s_named = 
@@ -53,7 +57,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"MongoDB", NULL, 
-			1, s_method, 0, NULL, 0, NULL, NULL, &s_named,
+			2, s_method, 0, NULL, 0, NULL, NULL, &s_named,
 			&object_base::class_info()
 		};
 
@@ -87,6 +91,27 @@ namespace fibjs
 		ARG_String(0);
 
 		hr = pInst->getCollection(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> MongoDB_base::s_runCommand(const v8::Arguments& args)
+	{
+		v8::Handle<v8::Object> vr;
+
+		METHOD_INSTANCE(MongoDB_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Object>, 0);
+
+		hr = pInst->runCommand(v0, vr);
+
+		METHOD_OVER(2, 2);
+
+		ARG_String(0);
+		ARG(v8::Handle<v8::Value>, 1);
+
+		hr = pInst->runCommand(v0, v1, vr);
 
 		METHOD_RETURN();
 	}

@@ -4,10 +4,10 @@ class MongoCursor: object
 	MongoCursor batchSize(Integer size);
 	MongoCursor hint(Object opts);
 	MongoCursor limit(Integer size);
-	MongoCursor readPref(String mode, Array tagSet);
+	MongoCursor readPref(String mode, Array tagSet = []);
 	MongoCursor showDiskLoc();
 
-	Integer count(Boolean override);
+	Integer count(Boolean applySkipLimit = false);
 	Object explain();
 	forEach(Function func);
 	Array map(Function func);
@@ -17,4 +17,10 @@ class MongoCursor: object
 	MongoCursor skip(Integer num);
 	MongoCursor snapshot();
 	MongoCursor sort(Object opts);
+	MongoCursor min(Object opts);
+	MongoCursor max(Object opts);
+
+	MongoCursor _addSpecial(String name, Value opts);
+
+	Array toArray();
 };

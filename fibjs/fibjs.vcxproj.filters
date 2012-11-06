@@ -261,6 +261,9 @@
     <ClCompile Include="src\MongoDB.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\MongoCursor.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -651,6 +654,12 @@
       <Filter>Header Files\include</Filter>
     </ClInclude>
     <ClInclude Include="include\MongoID.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\MongoCursor.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MongoCursor.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>

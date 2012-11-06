@@ -11,6 +11,7 @@
 #include "Socket_api.h"
 #include <mongo/env.h>
 #include "Url.h"
+#include "encoding_bson.h"
 
 int mongo_env_set_socket_op_timeout(mongo *conn, int millis)
 {
@@ -91,11 +92,9 @@ result_t MongoDB::error()
 	if (m_conn.err == MONGO_IO_ERROR)
 		hr = m_conn.errcode;
 	else if (m_conn.err > 0 && m_conn.err <= MONGO_WRITE_CONCERN_INVALID)
-	{
 		hr = Runtime::setError(s_msgs[m_conn.err]);
-		mongo_clear_errors(&m_conn);
-		return hr;
-	}
+	else if (m_conn.lasterrcode != 0)
+		hr = Runtime::setError(m_conn.lasterrstr);
 
 	mongo_clear_errors(&m_conn);
 	return hr;
@@ -181,19 +180,101 @@ result_t MongoDB::open(const char* connString)
 result_t MongoDB::getCollection(const char* name,
 		obj_ptr<MongoCollection_base>& retVal)
 {
-	std::string ns;
+	std::string nsStr;
+	const char* ns = name;
 
 	if (!m_ns.empty())
 	{
-		ns = m_ns;
-		ns += '.';
-		ns.append(name);
-		name = ns.c_str();
+		nsStr = m_ns;
+		nsStr += '.';
+		nsStr.append(name);
+		ns = nsStr.c_str();
 	}
 
-	retVal = new MongoCollection(this, name);
+	retVal = new MongoCollection(this, ns, name);
 
 	return 0;
+}
+
+result_t MongoDB::run_command(bson *command,
+		v8::Handle<v8::Object>& retVal)
+{
+	mongo *conn = &m_conn;
+	const char *db = m_ns.c_str();
+	int ret = MONGO_OK;
+	bson response =
+	{ NULL, 0 };
+	bson fields;
+	int sl = (int)strlen(db);
+	char *ns = (char*) bson_malloc(sl + 5 + 1); /* ".$cmd" + nul */
+	int res, success = 0;
+
+	strcpy(ns, db);
+	strcpy(ns + sl, ".$cmd");
+
+	res = mongo_find_one(conn, ns, command, bson_empty(&fields), &response);
+	bson_free(ns);
+
+	if (res != MONGO_OK)
+		ret = MONGO_ERROR;
+	else
+	{
+		bson_iterator it;
+		if (bson_find(&it, &response, "ok"))
+			success = bson_iterator_bool(&it);
+
+		if (!success)
+		{
+			if (bson_find(&it, &response, "errmsg"))
+			{
+				int result_len = bson_iterator_string_len(&it);
+				const char *result_string = bson_iterator_string(&it);
+				int len =
+						result_len < MONGO_ERR_LEN ? result_len : MONGO_ERR_LEN;
+				memcpy(conn->lasterrstr, result_string, len);
+				m_conn.lasterrcode = -1;
+			}
+			else
+				conn->err = MONGO_COMMAND_FAILED;
+
+			bson_destroy(&response);
+			ret = MONGO_ERROR;
+		}
+		else
+		{
+			retVal = decodeObject(&response);
+			bson_destroy(&response);
+
+			return 0;
+		}
+	}
+
+	bson_destroy(command);
+	return error();
+}
+
+result_t MongoDB::runCommand(v8::Handle<v8::Object> cmd,
+		v8::Handle<v8::Object>& retVal)
+{
+	bson bbq;
+
+	bson_init(&bbq);
+	encodeObject(&bbq, cmd);
+	bson_finish(&bbq);
+
+	return run_command(&bbq, retVal);
+}
+
+result_t MongoDB::runCommand(const char* cmd, v8::Handle<v8::Value> arg,
+		v8::Handle<v8::Object>& retVal)
+{
+	bson bbq;
+
+	bson_init(&bbq);
+	encodeValue(&bbq, cmd, arg);
+	bson_finish(&bbq);
+
+	return run_command(&bbq, retVal);
 }
 
 result_t MongoDB::_named_getter(const char* property,

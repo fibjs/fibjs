@@ -25,7 +25,7 @@ public:
 	virtual result_t limit(int32_t size, obj_ptr<MongoCursor_base>& retVal) = 0;
 	virtual result_t readPref(const char* mode, v8::Handle<v8::Array> tagSet, obj_ptr<MongoCursor_base>& retVal) = 0;
 	virtual result_t showDiskLoc(obj_ptr<MongoCursor_base>& retVal) = 0;
-	virtual result_t count(bool override, int32_t& retVal) = 0;
+	virtual result_t count(bool applySkipLimit, int32_t& retVal) = 0;
 	virtual result_t explain(v8::Handle<v8::Object>& retVal) = 0;
 	virtual result_t forEach(v8::Handle<v8::Function> func) = 0;
 	virtual result_t map(v8::Handle<v8::Function> func, v8::Handle<v8::Array>& retVal) = 0;
@@ -35,6 +35,10 @@ public:
 	virtual result_t skip(int32_t num, obj_ptr<MongoCursor_base>& retVal) = 0;
 	virtual result_t snapshot(obj_ptr<MongoCursor_base>& retVal) = 0;
 	virtual result_t sort(v8::Handle<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal) = 0;
+	virtual result_t min(v8::Handle<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal) = 0;
+	virtual result_t max(v8::Handle<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal) = 0;
+	virtual result_t _addSpecial(const char* name, v8::Handle<v8::Value> opts, obj_ptr<MongoCursor_base>& retVal) = 0;
+	virtual result_t toArray(v8::Handle<v8::Array>& retVal) = 0;
 
 	DECLARE_CLASSINFO(MongoCursor_base);
 
@@ -54,6 +58,10 @@ public:
 	static v8::Handle<v8::Value> s_skip(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_snapshot(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_sort(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_min(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_max(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s__addSpecial(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_toArray(const v8::Arguments& args);
 };
 
 }
@@ -78,13 +86,17 @@ namespace fibjs
 			{"size", s_size},
 			{"skip", s_skip},
 			{"snapshot", s_snapshot},
-			{"sort", s_sort}
+			{"sort", s_sort},
+			{"min", s_min},
+			{"max", s_max},
+			{"_addSpecial", s__addSpecial},
+			{"toArray", s_toArray}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"MongoCursor", NULL, 
-			15, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			19, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -140,10 +152,10 @@ namespace fibjs
 		obj_ptr<MongoCursor_base> vr;
 
 		METHOD_INSTANCE(MongoCursor_base);
-		METHOD_ENTER(2, 2);
+		METHOD_ENTER(2, 1);
 
 		ARG_String(0);
-		ARG(v8::Handle<v8::Array>, 1);
+		OPT_ARG(v8::Handle<v8::Array>, 1, v8::Array::New());
 
 		hr = pInst->readPref(v0, v1, vr);
 
@@ -167,9 +179,9 @@ namespace fibjs
 		int32_t vr;
 
 		METHOD_INSTANCE(MongoCursor_base);
-		METHOD_ENTER(1, 1);
+		METHOD_ENTER(1, 0);
 
-		ARG(bool, 0);
+		OPT_ARG(bool, 0, false);
 
 		hr = pInst->count(v0, vr);
 
@@ -286,6 +298,61 @@ namespace fibjs
 		ARG(v8::Handle<v8::Object>, 0);
 
 		hr = pInst->sort(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> MongoCursor_base::s_min(const v8::Arguments& args)
+	{
+		obj_ptr<MongoCursor_base> vr;
+
+		METHOD_INSTANCE(MongoCursor_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Object>, 0);
+
+		hr = pInst->min(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> MongoCursor_base::s_max(const v8::Arguments& args)
+	{
+		obj_ptr<MongoCursor_base> vr;
+
+		METHOD_INSTANCE(MongoCursor_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Object>, 0);
+
+		hr = pInst->max(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> MongoCursor_base::s__addSpecial(const v8::Arguments& args)
+	{
+		obj_ptr<MongoCursor_base> vr;
+
+		METHOD_INSTANCE(MongoCursor_base);
+		METHOD_ENTER(2, 2);
+
+		ARG_String(0);
+		ARG(v8::Handle<v8::Value>, 1);
+
+		hr = pInst->_addSpecial(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> MongoCursor_base::s_toArray(const v8::Arguments& args)
+	{
+		v8::Handle<v8::Array> vr;
+
+		METHOD_INSTANCE(MongoCursor_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->toArray(vr);
 
 		METHOD_RETURN();
 	}
