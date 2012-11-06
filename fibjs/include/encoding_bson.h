@@ -15,6 +15,7 @@ namespace fibjs
 {
 
 void encodeObject(bson *bb, v8::Handle<v8::Value> element);
+void encodeValue(bson *bb, const char *name, v8::Handle<v8::Value> element);
 v8::Handle<v8::Object> decodeObject(const bson* bb);
 v8::Handle<v8::Object> decodeObject(const char* buffer);
 

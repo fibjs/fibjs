@@ -108,6 +108,11 @@ void encodeValue(bson *bb, const char *name, v8::Handle<v8::Value> element,
 	}
 }
 
+void encodeValue(bson *bb, const char *name, v8::Handle<v8::Value> element)
+{
+	encodeValue(bb, name, element, true);
+}
+
 void encodeArray(bson *bb, const char *name, v8::Handle<v8::Value> element)
 {
 	v8::Handle<v8::Array> a = v8::Handle<v8::Array>::Cast(element);
@@ -120,7 +125,7 @@ void encodeArray(bson *bb, const char *name, v8::Handle<v8::Value> element)
 		char numStr[32];
 
 		sprintf(numStr, "%d", i);
-		encodeValue(bb, numStr, val, true);
+		encodeValue(bb, numStr, val);
 	}
 
 	bson_append_finish_array(bb);
@@ -162,12 +167,16 @@ void encodeObject(bson *bb, const char *name, v8::Handle<v8::Value> element,
 	for (int i = 0; i < (int) properties->Length(); i++)
 	{
 		v8::Handle<v8::Value> prop_name = properties->Get(v8::Integer::New(i));
-		v8::Handle<v8::Value> prop_val = object->Get(prop_name->ToString());
 
-		v8::String::Utf8Value n(prop_name);
-		const char *pname = ToCString(n);
+		if (!prop_name->IsNumber())
+		{
+			v8::Handle<v8::Value> prop_val = object->Get(prop_name->ToString());
 
-		encodeValue(bb, pname, prop_val, true);
+			v8::String::Utf8Value n(prop_name);
+			const char *pname = ToCString(n);
+
+			encodeValue(bb, pname, prop_val);
+		}
 	}
 
 	if (name)
