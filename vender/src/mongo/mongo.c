@@ -1466,14 +1466,14 @@ MONGO_EXPORT double mongo_count( mongo *conn, const char *db, const char *ns, co
         return MONGO_ERROR;
     }
 }
-
+/*
 MONGO_EXPORT int mongo_run_command( mongo *conn, const char *db, const bson *command,
                        bson *out ) {
     int ret = MONGO_OK;
     bson response = {NULL, 0};
     bson fields;
     int sl = strlen( db );
-    char *ns = bson_malloc( sl + 5 + 1 ); /* ".$cmd" + nul */
+    char *ns = bson_malloc( sl + 5 + 1 );
     int res, success = 0;
 
     strcpy( ns, db );
@@ -1502,7 +1502,7 @@ MONGO_EXPORT int mongo_run_command( mongo *conn, const char *db, const bson *com
     }
     return ret;
 }
-
+*/
 MONGO_EXPORT int mongo_simple_int_command( mongo *conn, const char *db,
                               const char *cmdstr, int arg, bson *realout ) {
 
