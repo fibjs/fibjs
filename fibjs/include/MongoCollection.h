@@ -32,6 +32,7 @@ public:
 	virtual result_t save(v8::Handle<v8::Object> document);
 	virtual result_t update(v8::Handle<v8::Object> query, v8::Handle<v8::Object> document, bool upsert, bool multi);
 	virtual result_t update(v8::Handle<v8::Object> query, v8::Handle<v8::Object> document, v8::Handle<v8::Object> options);
+	virtual result_t remove(v8::Handle<v8::Object> query);
 	virtual result_t runCommand(v8::Handle<v8::Object> cmd, v8::Handle<v8::Object>& retVal);
 	virtual result_t runCommand(const char* cmd, v8::Handle<v8::Object> arg, v8::Handle<v8::Object>& retVal);
 	virtual result_t drop();

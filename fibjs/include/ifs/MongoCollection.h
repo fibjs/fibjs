@@ -31,6 +31,7 @@ public:
 	virtual result_t save(v8::Handle<v8::Object> document) = 0;
 	virtual result_t update(v8::Handle<v8::Object> query, v8::Handle<v8::Object> document, bool upsert, bool multi) = 0;
 	virtual result_t update(v8::Handle<v8::Object> query, v8::Handle<v8::Object> document, v8::Handle<v8::Object> options) = 0;
+	virtual result_t remove(v8::Handle<v8::Object> query) = 0;
 	virtual result_t runCommand(v8::Handle<v8::Object> cmd, v8::Handle<v8::Object>& retVal) = 0;
 	virtual result_t runCommand(const char* cmd, v8::Handle<v8::Object> arg, v8::Handle<v8::Object>& retVal) = 0;
 	virtual result_t drop() = 0;
@@ -50,6 +51,7 @@ public:
 	static v8::Handle<v8::Value> s_insert(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_save(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_update(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_remove(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_runCommand(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_drop(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_ensureIndex(const v8::Arguments& args);
@@ -77,6 +79,7 @@ namespace fibjs
 			{"insert", s_insert},
 			{"save", s_save},
 			{"update", s_update},
+			{"remove", s_remove},
 			{"runCommand", s_runCommand},
 			{"drop", s_drop},
 			{"ensureIndex", s_ensureIndex},
@@ -90,7 +93,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"MongoCollection", NULL, 
-			14, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			15, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -192,6 +195,18 @@ namespace fibjs
 		ARG(v8::Handle<v8::Object>, 2);
 
 		hr = pInst->update(v0, v1, v2);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> MongoCollection_base::s_remove(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(MongoCollection_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Object>, 0);
+
+		hr = pInst->remove(v0);
 
 		METHOD_VOID();
 	}

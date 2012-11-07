@@ -141,6 +141,24 @@ result_t MongoCollection::update(v8::Handle<v8::Object> query,
 			options->Get(v8::String::NewSymbol("multi", 5))->BooleanValue());
 }
 
+result_t MongoCollection::remove(v8::Handle<v8::Object> query)
+{
+	bson bbq;
+
+	bson_init(&bbq);
+	encodeObject(&bbq, query);
+	bson_finish(&bbq);
+
+	int result = mongo_remove(&m_db->m_conn, m_ns.c_str(), &bbq, NULL);
+
+	bson_destroy(&bbq);
+
+	if (result != MONGO_OK)
+		return m_db->error();
+
+	return 0;
+}
+
 result_t MongoCollection::runCommand(v8::Handle<v8::Object> cmd,
 		v8::Handle<v8::Object>& retVal)
 {
@@ -180,13 +198,58 @@ result_t MongoCollection::drop()
 {
 	v8::Handle < v8::Object > r;
 	return m_db->runCommand("drop",
-			v8::String::New(m_name.c_str(), (int)m_name.length()), r);
+			v8::String::New(m_name.c_str(), (int) m_name.length()), r);
 }
 
 result_t MongoCollection::ensureIndex(v8::Handle<v8::Object> keys,
 		v8::Handle<v8::Object> options)
 {
-	return 0;
+	std::string name;
+
+	v8::Handle < v8::Array > ks = keys->GetPropertyNames();
+	int len = (int) ks->Length();
+	int i;
+
+	for (i = 0; i < len; i++)
+	{
+		v8::Handle < v8::Value > k = ks->Get(i);
+		v8::Handle < v8::Value > v = keys->Get(k);
+
+		if (!v->IsNumber())
+			return CALL_E_INVALIDARG;
+
+		v8::String::Utf8Value sk(k);
+		v8::String::Utf8Value sv(v);
+
+		if (name.length())
+			name += '_';
+
+		name.append(*sk, sk.length());
+		name += '_';
+		name.append(*sv, sv.length());
+	}
+
+	v8::Handle < v8::Object > idx = v8::Object::New();
+
+	idx->Set(v8::String::New("ns"),
+			v8::String::New(m_ns.c_str(), (int)m_ns.length()));
+	idx->Set(v8::String::New("key"), keys);
+
+	idx->Set(v8::String::New("name"),
+			v8::String::New(name.c_str(), (int)name.length()));
+
+	extend(idx, options);
+
+	result_t hr;
+	obj_ptr<MongoCollection_base> coll;
+
+	hr = m_db->getCollection("system.indexes", coll);
+	if (hr < 0)
+		return hr;
+
+	console_base::dir (idx);
+
+	return coll->insert(idx);
 }
 
 result_t MongoCollection::reIndex(v8::Handle<v8::Object>& retVal)
@@ -216,7 +279,8 @@ result_t MongoCollection::getIndexes(v8::Handle<v8::Array>& retVal)
 
 	v8::Handle < v8::Object > f = v8::Object::New();
 	v8::Handle < v8::Object > q = v8::Object::New();
-	q->Set(v8::String::New("ns"), v8::String::New(m_ns.c_str(), (int)m_ns.length()));
+	q->Set(v8::String::New("ns"),
+			v8::String::New(m_ns.c_str(), (int) m_ns.length()));
 
 	obj_ptr < MongoCursor_base > cur;
 
