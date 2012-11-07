@@ -302,6 +302,7 @@ namespace internal {
   F(SetAdd, 2, 1) \
   F(SetHas, 2, 1) \
   F(SetDelete, 2, 1) \
+  F(SetGetSize, 1, 1) \
   \
   /* Harmony maps */ \
   F(MapInitialize, 1, 1) \
@@ -309,6 +310,7 @@ namespace internal {
   F(MapHas, 2, 1) \
   F(MapDelete, 2, 1) \
   F(MapSet, 3, 1) \
+  F(MapGetSize, 1, 1) \
   \
   /* Harmony weakmaps */ \
   F(WeakMapInitialize, 1, 1) \
@@ -316,6 +318,15 @@ namespace internal {
   F(WeakMapHas, 2, 1) \
   F(WeakMapDelete, 2, 1) \
   F(WeakMapSet, 3, 1) \
+  \
+  /* Harmony observe */ \
+  F(IsObserved, 1, 1) \
+  F(SetIsObserved, 2, 1) \
+  F(GetObservationState, 0, 1) \
+  F(CreateObjectHashTable, 0, 1) \
+  F(ObjectHashTableGet, 2, 1) \
+  F(ObjectHashTableSet, 3, 1) \
+  F(ObjectHashTableHas, 2, 1) \
   \
   /* Statements */ \
   F(NewClosure, 3, 1) \

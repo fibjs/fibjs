@@ -420,13 +420,9 @@ void Heap::GarbageCollectionPrologue() {
   gc_count_++;
   unflattened_strings_length_ = 0;
 
-  bool should_enable_code_flushing = FLAG_flush_code;
-#ifdef ENABLE_DEBUGGER_SUPPORT
-  if (isolate_->debug()->IsLoaded() || isolate_->debug()->has_break_points()) {
-    should_enable_code_flushing = false;
+  if (FLAG_flush_code && FLAG_flush_code_incrementally) {
+    mark_compact_collector()->EnableCodeFlushing(true);
   }
-#endif
-  mark_compact_collector()->EnableCodeFlushing(should_enable_code_flushing);
 
 #ifdef VERIFY_HEAP
   if (FLAG_verify_heap) {
@@ -1337,6 +1333,12 @@ void Heap::Scavenge() {
   scavenge_visitor.VisitPointer(BitCast<Object**>(&native_contexts_list_));
 
   new_space_front = DoScavenge(&scavenge_visitor, new_space_front);
+
+  while (IterateObjectGroups(&scavenge_visitor)) {
+    new_space_front = DoScavenge(&scavenge_visitor, new_space_front);
+  }
+  isolate()->global_handles()->RemoveObjectGroups();
+
   isolate_->global_handles()->IdentifyNewSpaceWeakIndependentHandles(
       &IsUnscavengedHeapObject);
   isolate_->global_handles()->IterateNewSpaceWeakIndependentRoots(
@@ -1374,6 +1376,51 @@ void Heap::Scavenge() {
   gc_state_ = NOT_IN_GC;
 
   scavenges_since_last_idle_round_++;
+}
+
+
+// TODO(mstarzinger): Unify this method with
+// MarkCompactCollector::MarkObjectGroups().
+bool Heap::IterateObjectGroups(ObjectVisitor* scavenge_visitor) {
+  List<ObjectGroup*>* object_groups =
+    isolate()->global_handles()->object_groups();
+
+  int last = 0;
+  bool changed = false;
+  for (int i = 0; i < object_groups->length(); i++) {
+    ObjectGroup* entry = object_groups->at(i);
+    ASSERT(entry != NULL);
+
+    Object*** objects = entry->objects_;
+    bool group_marked = false;
+    for (size_t j = 0; j < entry->length_; j++) {
+      Object* object = *objects[j];
+      if (object->IsHeapObject()) {
+        if (!IsUnscavengedHeapObject(this, &object)) {
+          group_marked = true;
+          break;
+        }
+      }
+    }
+
+    if (!group_marked) {
+      (*object_groups)[last++] = entry;
+      continue;
+    }
+
+    for (size_t j = 0; j < entry->length_; ++j) {
+      Object* object = *objects[j];
+      if (object->IsHeapObject()) {
+        scavenge_visitor->VisitPointer(&object);
+        changed = true;
+      }
+    }
+
+    entry->Dispose();
+    object_groups->at(i) = NULL;
+  }
+  object_groups->Rewind(last);
+  return changed;
 }
 
 
@@ -1576,13 +1623,21 @@ void Heap::ProcessWeakReferences(WeakObjectRetainer* retainer) {
 void Heap::VisitExternalResources(v8::ExternalResourceVisitor* visitor) {
   AssertNoAllocation no_allocation;
 
-  class VisitorAdapter : public ObjectVisitor {
+  // Both the external string table and the symbol table may contain
+  // external strings, but neither lists them exhaustively, nor is the
+  // intersection set empty.  Therefore we iterate over the external string
+  // table first, ignoring symbols, and then over the symbol table.
+
+  class ExternalStringTableVisitorAdapter : public ObjectVisitor {
    public:
-    explicit VisitorAdapter(v8::ExternalResourceVisitor* visitor)
-        : visitor_(visitor) {}
+    explicit ExternalStringTableVisitorAdapter(
+        v8::ExternalResourceVisitor* visitor) : visitor_(visitor) {}
     virtual void VisitPointers(Object** start, Object** end) {
       for (Object** p = start; p < end; p++) {
-        if ((*p)->IsExternalString()) {
+        // Visit non-symbol external strings,
+        // since symbols are listed in the symbol table.
+        if (!(*p)->IsSymbol()) {
+          ASSERT((*p)->IsExternalString());
           visitor_->VisitExternalString(Utils::ToLocal(
               Handle<String>(String::cast(*p))));
         }
@@ -1590,8 +1645,28 @@ void Heap::VisitExternalResources(v8::ExternalResourceVisitor* visitor) {
     }
    private:
     v8::ExternalResourceVisitor* visitor_;
-  } visitor_adapter(visitor);
-  external_string_table_.Iterate(&visitor_adapter);
+  } external_string_table_visitor(visitor);
+
+  external_string_table_.Iterate(&external_string_table_visitor);
+
+  class SymbolTableVisitorAdapter : public ObjectVisitor {
+   public:
+    explicit SymbolTableVisitorAdapter(
+        v8::ExternalResourceVisitor* visitor) : visitor_(visitor) {}
+    virtual void VisitPointers(Object** start, Object** end) {
+      for (Object** p = start; p < end; p++) {
+        if ((*p)->IsExternalString()) {
+          ASSERT((*p)->IsSymbol());
+          visitor_->VisitExternalString(Utils::ToLocal(
+              Handle<String>(String::cast(*p))));
+        }
+      }
+    }
+   private:
+    v8::ExternalResourceVisitor* visitor_;
+  } symbol_table_visitor(visitor);
+
+  symbol_table()->IterateElements(&symbol_table_visitor);
 }
 
 
@@ -2503,6 +2578,14 @@ bool Heap::CreateInitialMaps() {
   }
   set_message_object_map(Map::cast(obj));
 
+  Map* external_map;
+  { MaybeObject* maybe_obj =
+        AllocateMap(JS_OBJECT_TYPE, JSObject::kHeaderSize + kPointerSize);
+    if (!maybe_obj->To(&external_map)) return false;
+  }
+  external_map->set_is_extensible(false);
+  set_external_map(external_map);
+
   ASSERT(!InNewSpace(empty_fixed_array()));
   return true;
 }
@@ -2819,6 +2902,15 @@ bool Heap::CreateInitialObjects() {
     if (!maybe_obj->ToObject(&obj)) return false;
   }
   set_natives_source_cache(FixedArray::cast(obj));
+
+  // Allocate object to hold object observation state.
+  { MaybeObject* maybe_obj = AllocateMap(JS_OBJECT_TYPE, JSObject::kHeaderSize);
+    if (!maybe_obj->ToObject(&obj)) return false;
+  }
+  { MaybeObject* maybe_obj = AllocateJSObjectFromMap(Map::cast(obj));
+    if (!maybe_obj->ToObject(&obj)) return false;
+  }
+  set_observation_state(JSObject::cast(obj));
 
   // Handling of script id generation is in FACTORY->NewScript.
   set_last_script_id(undefined_value());
@@ -5102,6 +5194,20 @@ MaybeObject* Heap::AllocateScopeInfo(int length) {
   if (!maybe_scope_info->To(&scope_info)) return maybe_scope_info;
   scope_info->set_map_no_write_barrier(scope_info_map());
   return scope_info;
+}
+
+
+MaybeObject* Heap::AllocateExternal(void* value) {
+  Foreign* foreign;
+  { MaybeObject* maybe_result = AllocateForeign(static_cast<Address>(value));
+    if (!maybe_result->To(&foreign)) return maybe_result;
+  }
+  JSObject* external;
+  { MaybeObject* maybe_result = AllocateJSObjectFromMap(external_map());
+    if (!maybe_result->To(&external)) return maybe_result;
+  }
+  external->SetInternalField(0, foreign);
+  return external;
 }
 
 

@@ -134,6 +134,14 @@ bool Object::IsFixedArrayBase() {
 }
 
 
+// External objects are not extensible, so the map check is enough.
+bool Object::IsExternal() {
+  return Object::IsHeapObject() &&
+      HeapObject::cast(this)->map() ==
+      HeapObject::cast(this)->GetHeap()->external_map();
+}
+
+
 bool Object::IsInstanceOf(FunctionTemplateInfo* expected) {
   // There is a constraint on the object; check.
   if (!this->IsJSObject()) return false;
@@ -714,6 +722,11 @@ bool Object::IsPolymorphicCodeCacheHashTable() {
 
 
 bool Object::IsMapCache() {
+  return IsHashTable();
+}
+
+
+bool Object::IsObjectHashTable() {
   return IsHashTable();
 }
 
@@ -3148,6 +3161,16 @@ void Map::set_owns_descriptors(bool is_shared) {
 
 bool Map::owns_descriptors() {
   return OwnsDescriptors::decode(bit_field3());
+}
+
+
+void Map::set_is_observed(bool is_observed) {
+  set_bit_field3(IsObserved::update(bit_field3(), is_observed));
+}
+
+
+bool Map::is_observed() {
+  return IsObserved::decode(bit_field3());
 }
 
 

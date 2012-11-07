@@ -769,6 +769,13 @@ class MaybeObject BASE_EMBEDDED {
     return true;
   }
 
+  template<typename T>
+  inline bool ToHandle(Handle<T>* obj) {
+    if (IsFailure()) return false;
+    *obj = handle(T::cast(reinterpret_cast<Object*>(this)));
+    return true;
+  }
+
 #ifdef OBJECT_PRINT
   // Prints this object with details.
   inline void Print() {
@@ -866,6 +873,7 @@ class MaybeObject BASE_EMBEDDED {
   V(UndetectableObject)                        \
   V(AccessCheckNeeded)                         \
   V(JSGlobalPropertyCell)                      \
+  V(ObjectHashTable)                           \
 
 
 class JSReceiver;
@@ -887,6 +895,7 @@ class Object : public MaybeObject {
 #undef IS_TYPE_FUNCTION_DECL
 
   inline bool IsFixedArrayBase();
+  inline bool IsExternal();
 
   // Returns true if this object is an instance of the specified
   // function template.
@@ -1686,6 +1695,7 @@ class JSObject: public JSReceiver {
                              Handle<Object> getter,
                              Handle<Object> setter,
                              PropertyAttributes attributes);
+  // Can cause GC.
   MUST_USE_RESULT MaybeObject* DefineAccessor(String* name,
                                               Object* getter,
                                               Object* setter,
@@ -1761,6 +1771,7 @@ class JSObject: public JSReceiver {
 
   static Handle<Object> DeleteProperty(Handle<JSObject> obj,
                                        Handle<String> name);
+  // Can cause GC.
   MUST_USE_RESULT MaybeObject* DeleteProperty(String* name, DeleteMode mode);
 
   static Handle<Object> DeleteElement(Handle<JSObject> obj, uint32_t index);
@@ -2008,7 +2019,7 @@ class JSObject: public JSReceiver {
                                                Object* value,
                                                PropertyAttributes attributes);
 
-  // Add a property to an object.
+  // Add a property to an object. May cause GC.
   MUST_USE_RESULT MaybeObject* AddProperty(
       String* name,
       Object* value,
@@ -2276,6 +2287,11 @@ class JSObject: public JSReceiver {
   MUST_USE_RESULT MaybeObject* SetHiddenPropertiesHashTable(
       Object* value);
 
+  // Enqueue change record for Object.observe. May cause GC.
+  void EnqueueChangeRecord(const char* type,
+                           Handle<String> name,
+                           Handle<Object> old_value);
+
   DISALLOW_IMPLICIT_CONSTRUCTORS(JSObject);
 };
 
@@ -2410,6 +2426,8 @@ class FixedArray: public FixedArrayBase {
                                                   Object* value);
 
  private:
+  STATIC_CHECK(kHeaderSize == Internals::kFixedArrayHeaderSize);
+
   DISALLOW_IMPLICIT_CONSTRUCTORS(FixedArray);
 };
 
@@ -4701,6 +4719,7 @@ class Map: public HeapObject {
   class FunctionWithPrototype:      public BitField<bool, 23,  1> {};
   class DictionaryMap:              public BitField<bool, 24,  1> {};
   class OwnsDescriptors:            public BitField<bool, 25,  1> {};
+  class IsObserved:                 public BitField<bool, 26,  1> {};
 
   // Tells whether the object in the prototype property will be used
   // for instances created from this function.  If the prototype
@@ -4968,6 +4987,8 @@ class Map: public HeapObject {
 
   inline bool owns_descriptors();
   inline void set_owns_descriptors(bool is_shared);
+  inline bool is_observed();
+  inline void set_is_observed(bool is_observed);
 
   MUST_USE_RESULT MaybeObject* RawCopy(int instance_size);
   MUST_USE_RESULT MaybeObject* CopyWithPreallocatedFieldDescriptors();
