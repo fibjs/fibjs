@@ -264,6 +264,9 @@
     <ClCompile Include="src\MongoCursor.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\GridFS.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -660,6 +663,12 @@
       <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\MongoCursor.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\GridFS.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GridFS.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>

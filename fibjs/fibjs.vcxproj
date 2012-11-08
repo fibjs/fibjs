@@ -42,6 +42,7 @@
     <ClCompile Include="src\fs.cpp" />
     <ClCompile Include="src\Function.cpp" />
     <ClCompile Include="src\global.cpp" />
+    <ClCompile Include="src\GridFS.cpp" />
     <ClCompile Include="src\hash.cpp" />
     <ClCompile Include="src\http.cpp" />
     <ClCompile Include="src\HttpCollection.cpp" />
@@ -122,6 +123,7 @@
     <ClInclude Include="include\Event.h" />
     <ClInclude Include="include\Fiber.h" />
     <ClInclude Include="include\File.h" />
+    <ClInclude Include="include\GridFS.h" />
     <ClInclude Include="include\HttpCollection.h" />
     <ClInclude Include="include\HttpFileHandler.h" />
     <ClInclude Include="include\HttpHandler.h" />
@@ -151,6 +153,7 @@
     <ClInclude Include="include\ifs\Function.h" />
     <ClInclude Include="include\ifs\gd.h" />
     <ClInclude Include="include\ifs\global.h" />
+    <ClInclude Include="include\ifs\GridFS.h" />
     <ClInclude Include="include\ifs\Handler.h" />
     <ClInclude Include="include\ifs\hash.h" />
     <ClInclude Include="include\ifs\http.h" />

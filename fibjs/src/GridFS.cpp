@@ -33,7 +33,7 @@ result_t GridFS::retrieve(const char* name, obj_ptr<MemoryStream_base>& retVal)
 
 	if (len > 0)
 	{
-		strBuf.resize(len);
+		strBuf.resize((size_t)len);
 		if (gridfile_read(&f, len, &strBuf[0]) != len)
 		{
 			gridfile_destroy(&f);
