@@ -1,12 +1,41 @@
 
-/*! @brief mongodb 数据库连接对象 */
+/*! @brief mongodb 数据库连接对象
+ *
+ * 使用 db.open 或 db.openMongoDB 创建，创建方式：
+ * @code
+ * var mdb = db.openMongoDB("mongodb://host/db");
+ * @endcode
+ */
 class MongoDB : object
 {
-
+	/*! @brief 获取指定集合访问对象
+	 *  @param name 指定集合的名称
+	 *  @return 返回指定的集合对象
+	 */
 	MongoCollection getCollection(String name);
 
+	/*! @brief 指定一个 MongoDB 数据库命令
+	 *  @param cmd 指定命令和参数的字典对象
+	 *  @return 返回命令执行结果
+	 */
 	Object runCommand(Object cmd);
+
+	/*! @brief 指定一个简单的 MongoDB 数据库命令
+	 *  @param cmd 指定命令名
+	 *  @param arg 指定命令参数
+	 *  @return 返回命令执行结果
+	 */
 	Object runCommand(String cmd, Value arg);
 
+	/*! @brief 快速获取指定集合访问对象
+	 *
+	 * 用于使用属性快速获取集合对象，例如：
+	 * @code
+	 * var test = mdb.test;
+	 * @endcode
+	 */
 	readonly MongoCollection operator[String];
+
+	/*! @brief 获取 GridFS 访问对象 */
+	readonly GridFS fs;
 };

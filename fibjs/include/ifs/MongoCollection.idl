@@ -1,4 +1,11 @@
-/*! @brief mongodb 数据库数据集对象 */
+/*! @brief mongodb 数据库数据集对象
+ *
+ * 使用 MongoDB.getCollection 创建：
+ * @code
+ * var col = mdb.test;
+ * var col1 = mdb.getCollection('test');
+ * @endcode
+ */
 class MongoCollection: object
 {
 	MongoCursor find(Object query = {}, Object projection = {});
@@ -26,6 +33,9 @@ class MongoCollection: object
 	Object dropIndex(String name);
 	Object dropIndexes();
 	Array getIndexes();
+
+	MongoCollection getCollection(String name);
+	readonly MongoCollection operator[String];
 
 	MongoID oid(String hexStr = "");
 };

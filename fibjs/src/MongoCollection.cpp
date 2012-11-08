@@ -10,7 +10,6 @@
 #include "MongoID.h"
 #include "encoding_bson.h"
 #include <vector>
-#include "ifs/console.h"
 
 namespace fibjs
 {
@@ -232,11 +231,11 @@ result_t MongoCollection::ensureIndex(v8::Handle<v8::Object> keys,
 	v8::Handle < v8::Object > idx = v8::Object::New();
 
 	idx->Set(v8::String::New("ns"),
-			v8::String::New(m_ns.c_str(), (int)m_ns.length()));
+			v8::String::New(m_ns.c_str(), (int) m_ns.length()));
 	idx->Set(v8::String::New("key"), keys);
 
 	idx->Set(v8::String::New("name"),
-			v8::String::New(name.c_str(), (int)name.length()));
+			v8::String::New(name.c_str(), (int) name.length()));
 
 	extend(idx, options);
 
@@ -246,8 +245,6 @@ result_t MongoCollection::ensureIndex(v8::Handle<v8::Object> keys,
 	hr = m_db->getCollection("system.indexes", coll);
 	if (hr < 0)
 		return hr;
-
-	console_base::dir (idx);
 
 	return coll->insert(idx);
 }
@@ -289,6 +286,29 @@ result_t MongoCollection::getIndexes(v8::Handle<v8::Array>& retVal)
 		return hr;
 
 	return cur->toArray(retVal);
+}
+
+result_t MongoCollection::getCollection(const char* name,
+		obj_ptr<MongoCollection_base>& retVal)
+{
+	std::string nsStr(m_ns);
+	std::string nameStr(m_name);
+
+	nsStr += '.';
+	nsStr.append(name);
+
+	nameStr += '.';
+	nameStr.append(name);
+
+	retVal = new MongoCollection(m_db, nsStr.c_str(), nameStr.c_str());
+
+	return 0;
+}
+
+result_t MongoCollection::_named_getter(const char* property,
+		obj_ptr<MongoCollection_base>& retVal)
+{
+	return getCollection(property, retVal);
 }
 
 result_t MongoCollection::oid(const char* hexStr, obj_ptr<MongoID_base>& retVal)

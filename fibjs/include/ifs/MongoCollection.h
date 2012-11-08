@@ -40,6 +40,8 @@ public:
 	virtual result_t dropIndex(const char* name, v8::Handle<v8::Object>& retVal) = 0;
 	virtual result_t dropIndexes(v8::Handle<v8::Object>& retVal) = 0;
 	virtual result_t getIndexes(v8::Handle<v8::Array>& retVal) = 0;
+	virtual result_t getCollection(const char* name, obj_ptr<MongoCollection_base>& retVal) = 0;
+	virtual result_t _named_getter(const char* property, obj_ptr<MongoCollection_base>& retVal) = 0;
 	virtual result_t oid(const char* hexStr, obj_ptr<MongoID_base>& retVal) = 0;
 
 	DECLARE_CLASSINFO(MongoCollection_base);
@@ -59,6 +61,8 @@ public:
 	static v8::Handle<v8::Value> s_dropIndex(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_dropIndexes(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_getIndexes(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_getCollection(const v8::Arguments& args);
+	static v8::Handle<v8::Value> i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info);
 	static v8::Handle<v8::Value> s_oid(const v8::Arguments& args);
 };
 
@@ -87,13 +91,19 @@ namespace fibjs
 			{"dropIndex", s_dropIndex},
 			{"dropIndexes", s_dropIndexes},
 			{"getIndexes", s_getIndexes},
+			{"getCollection", s_getCollection},
 			{"oid", s_oid}
+		};
+
+		static ClassData::ClassNamed s_named = 
+		{
+			i_NamedGetter, i_NamedSetter
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"MongoCollection", NULL, 
-			15, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			16, s_method, 0, NULL, 0, NULL, NULL, &s_named,
 			&object_base::class_info()
 		};
 
@@ -101,6 +111,21 @@ namespace fibjs
 		return s_ci;
 	}
 
+	inline v8::Handle<v8::Value> MongoCollection_base::i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info)
+	{
+		obj_ptr<MongoCollection_base> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(MongoCollection_base);
+
+		v8::String::Utf8Value k(property);
+		if(class_info().has(*k))return v8::Handle<v8::Value>();
+
+		hr = pInst->_named_getter(*k, vr);
+		if(hr == CALL_RETURN_NULL)return v8::Handle<v8::Value>();
+
+		METHOD_RETURN();
+	}
 
 	inline v8::Handle<v8::Value> MongoCollection_base::s_find(const v8::Arguments& args)
 	{
@@ -301,6 +326,20 @@ namespace fibjs
 		METHOD_ENTER(0, 0);
 
 		hr = pInst->getIndexes(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> MongoCollection_base::s_getCollection(const v8::Arguments& args)
+	{
+		obj_ptr<MongoCollection_base> vr;
+
+		METHOD_INSTANCE(MongoCollection_base);
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = pInst->getCollection(v0, vr);
 
 		METHOD_RETURN();
 	}

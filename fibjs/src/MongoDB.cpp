@@ -8,6 +8,7 @@
 #include "ifs/db.h"
 #include "MongoDB.h"
 #include "MongoCollection.h"
+#include "GridFS.h"
 #include "Socket_api.h"
 #include <mongo/env.h>
 #include "Url.h"
@@ -72,8 +73,8 @@ int mongo_run_command(mongo *conn, const char *db, const bson *command,
 	bson response =
 	{ NULL, 0 };
 	bson fields;
-	int sl = (int)strlen(db);
-	char *ns = (char*)bson_malloc(sl + 5 + 1); /* ".$cmd" + nul */
+	int sl = (int) strlen(db);
+	char *ns = (char*) bson_malloc(sl + 5 + 1); /* ".$cmd" + nul */
 	int res, success = 0;
 
 	strcpy(ns, db);
@@ -294,6 +295,12 @@ result_t MongoDB::_named_getter(const char* property,
 		obj_ptr<MongoCollection_base>& retVal)
 {
 	return getCollection(property, retVal);
+}
+
+result_t MongoDB::get_fs(obj_ptr<GridFS_base>& retVal)
+{
+	retVal = new GridFS(this);
+	return 0;
 }
 
 } /* namespace fibjs */

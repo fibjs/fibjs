@@ -17,6 +17,7 @@ namespace fibjs
 {
 
 class MongoCollection_base;
+class GridFS_base;
 
 class MongoDB_base : public object_base
 {
@@ -26,6 +27,7 @@ public:
 	virtual result_t runCommand(v8::Handle<v8::Object> cmd, v8::Handle<v8::Object>& retVal) = 0;
 	virtual result_t runCommand(const char* cmd, v8::Handle<v8::Value> arg, v8::Handle<v8::Object>& retVal) = 0;
 	virtual result_t _named_getter(const char* property, obj_ptr<MongoCollection_base>& retVal) = 0;
+	virtual result_t get_fs(obj_ptr<GridFS_base>& retVal) = 0;
 
 	DECLARE_CLASSINFO(MongoDB_base);
 
@@ -33,11 +35,13 @@ public:
 	static v8::Handle<v8::Value> s_getCollection(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_runCommand(const v8::Arguments& args);
 	static v8::Handle<v8::Value> i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info);
+	static v8::Handle<v8::Value> s_get_fs(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 };
 
 }
 
 #include "MongoCollection.h"
+#include "GridFS.h"
 
 namespace fibjs
 {
@@ -49,6 +53,11 @@ namespace fibjs
 			{"runCommand", s_runCommand}
 		};
 
+		static ClassData::ClassProperty s_property[] = 
+		{
+			{"fs", s_get_fs}
+		};
+
 		static ClassData::ClassNamed s_named = 
 		{
 			i_NamedGetter, i_NamedSetter
@@ -57,7 +66,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"MongoDB", NULL, 
-			2, s_method, 0, NULL, 0, NULL, NULL, &s_named,
+			2, s_method, 0, NULL, 1, s_property, NULL, &s_named,
 			&object_base::class_info()
 		};
 
@@ -77,6 +86,18 @@ namespace fibjs
 
 		hr = pInst->_named_getter(*k, vr);
 		if(hr == CALL_RETURN_NULL)return v8::Handle<v8::Value>();
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> MongoDB_base::s_get_fs(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		obj_ptr<GridFS_base> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(MongoDB_base);
+
+		hr = pInst->get_fs(vr);
 
 		METHOD_RETURN();
 	}

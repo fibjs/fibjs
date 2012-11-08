@@ -7,6 +7,10 @@
 
 #include "ifs/MongoDB.h"
 #include <mongo/mongo.h>
+extern "C"
+{
+#include <mongo/gridfs.h>
+}
 
 #ifndef MONGODB_H_
 #define MONGODB_H_
@@ -33,6 +37,7 @@ public:
 	virtual result_t runCommand(v8::Handle<v8::Object> cmd, v8::Handle<v8::Object>& retVal);
 	virtual result_t runCommand(const char* cmd, v8::Handle<v8::Value> arg, v8::Handle<v8::Object>& retVal);
 	virtual result_t _named_getter(const char* property, obj_ptr<MongoCollection_base>& retVal);
+	virtual result_t get_fs(obj_ptr<GridFS_base>& retVal);
 
 public:
 	result_t open(const char* connString);
