@@ -11,8 +11,7 @@
 namespace fibjs
 {
 
-result_t db_base::open(const char* connString,
-		obj_ptr<object_base>& retVal)
+result_t db_base::open(const char* connString, obj_ptr<object_base>& retVal)
 {
 	if (!qstrcmp(connString, "mysql:", 6))
 	{
@@ -133,6 +132,25 @@ inline void _escape(const char* str, int sz, bool mysql, std::string& retVal)
 	}
 }
 
+void _appendValue(std::string& str, v8::Handle<v8::Value>& v, bool mysql)
+{
+	std::string s;
+
+	str += '\'';
+	if (v->IsDate())
+	{
+		date_t d = v;
+		d.sqlString(s);
+	}
+	else
+	{
+		v8::String::Utf8Value s1(v);
+		_escape(*s1, s1.length(), mysql, s);
+	}
+	str.append(s);
+	str += '\'';
+}
+
 result_t _format(const char* sql, const v8::Arguments& args, bool mysql,
 		std::string& retVal)
 {
@@ -156,30 +174,37 @@ result_t _format(const char* sql, const v8::Arguments& args, bool mysql,
 			{
 				v8::Handle<v8::Value> v = args[cnt];
 				obj_ptr<Buffer_base> bin = Buffer_base::getInstance(v);
-				std::string s;
 
 				if (bin)
 				{
+					std::string s;
+
 					str.append("x\'", 2);
 					bin->hex(s);
+					str.append(s);
+					str += '\'';
+				}
+				else if (v->IsArray())
+				{
+					v8::Handle<v8::Array> a = v8::Handle<v8::Array>::Cast(v);
+					int len = a->Length();
+					int i;
+
+					str += '(';
+
+					for (i = 0; i < len; i++)
+					{
+						v8::Handle<v8::Value> v1 = a->Get(i);
+
+						if (i > 0)
+							str += ',';
+						_appendValue(str, v1, mysql);
+					}
+
+					str += ')';
 				}
 				else
-				{
-					str += '\'';
-					if (v->IsDate())
-					{
-						date_t d = v;
-						d.sqlString(s);
-					}
-					else
-					{
-						v8::String::Utf8Value s1(v);
-						_escape(*s1, s1.length(), mysql, s);
-					}
-				}
-
-				str.append(s);
-				str += '\'';
+					_appendValue(str, v, mysql);
 			}
 			else
 				str.append("\'\'", 2);
