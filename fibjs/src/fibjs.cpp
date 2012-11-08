@@ -4,6 +4,8 @@
 #include <log4cpp/PropertyConfigurator.hh>
 #include <log4cpp/LayoutAppender.hh>
 
+#include <locale.h>
+
 #ifdef assert
 #undef assert
 #endif
@@ -248,6 +250,8 @@ int main(int argc, char* argv[])
 	v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 
 	fibjs::init_argv(argc, argv);
+
+	::setlocale(LC_ALL,"");
 
 	if (argc >= 2 && argv[1][0] != '-')
 		fibjs::_main(argv[1]);

@@ -86,14 +86,12 @@ std::string getResultMessage(result_t hr)
 		return fmtString(hr, zmq_strerror(hr));
 
 #ifdef _WIN32
-	LPSTR pMsgBuf = NULL;
+	WCHAR MsgBuf[1024];
 
-	if (FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-					NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR) &pMsgBuf, 0, NULL ) && pMsgBuf)
+	if (FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+					NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), MsgBuf, 1024, NULL ))
 	{
-		std::string s = fmtString(hr, pMsgBuf);
-
-		LocalFree(pMsgBuf);
+		std::string s = fmtString(hr, UTF8_A(MsgBuf));
 		return s;
 	}
 
