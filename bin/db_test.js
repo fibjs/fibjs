@@ -31,12 +31,12 @@ function t_db(conn) {
 	b.resize(1);
 
 	for ( var i = 0; i < 256; i++) {
-			b[0] = i;
-			conn.execute("delete from test;");
-			conn.execute("insert into test values(1,'aa', ?, ?);", b, new Date());
-			rs = conn.execute("select * from test;");
-			assert.equal(rs[0].t3.length, 1);
-			assert.equal(rs[0].t3[0], i);
+		b[0] = i;
+		conn.execute("delete from test;");
+		conn.execute("insert into test values(1,'aa', ?, ?);", b, new Date());
+		rs = conn.execute("select * from test;");
+		assert.equal(rs[0].t3.length, 1);
+		assert.equal(rs[0].t3[0], i);
 	}
 
 	conn.execute('drop table test;');
@@ -50,8 +50,10 @@ assert.equal(db.formatMySQL("test?, ?, ?, ?", 123, 'ds\r\na', new Date(
 		'1998-4-14 12:12:12')),
 		"test'123', 'ds\\r\\na', '1998-04-14 12:12:12', ''");
 
+assert.equal(db.formatMySQL("test?", [ 1, 2, 3, 4 ]), "test('1','2','3','4')");
+
 t_db(db.open('sqlite:test.db'));
-//t_db(db.open('mysql://root@localhost/test'));
+t_db(db.open('mysql://root@localhost/test'));
 
 conn = db.open('sqlite:test.db');
 conn.execute("create table ids(name, id)");
