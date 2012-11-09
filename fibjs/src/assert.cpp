@@ -78,14 +78,19 @@ bool arrayEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected,
 bool objectEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected,
 		bool bStrict)
 {
-	if (actual->IsArray() && expected->IsArray()
-			&& !arrayEqual(actual, expected, bStrict))
-		return false;
+	if (actual->IsArray() && expected->IsArray())
+	{
+		if (!arrayEqual(actual, expected, bStrict))
+			return false;
+
+		if (!bStrict)
+			return true;
+	}
 
 	v8::Handle<v8::Object> act = v8::Handle<v8::Object>::Cast(actual);
 	v8::Handle<v8::Object> exp = v8::Handle<v8::Object>::Cast(expected);
 
-	if (!act->GetPrototype()->StrictEquals(exp->GetPrototype()))
+	if (bStrict && !act->GetPrototype()->Equals(exp->GetPrototype()))
 		return false;
 
 	v8::Handle<v8::Array> keys = act->GetPropertyNames();
