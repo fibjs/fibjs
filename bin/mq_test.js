@@ -194,7 +194,7 @@ var handler = mq.chain([ function(v) {
 } ]);
 
 var req = new http.Request();
-req.params.append("aaasssssssssssssss");
+req.params.push("aaasssssssssssssss");
 mq.invoke(handler, req);
 
 // ------------- routing handler
