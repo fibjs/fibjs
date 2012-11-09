@@ -24,7 +24,10 @@ public:
 
 	MongoID(const char* str)
 	{
-		bson_oid_from_string(&m_id, str);
+		if (*str)
+			bson_oid_from_string(&m_id, str);
+		else
+			bson_oid_gen(&m_id);
 	}
 
 public:
@@ -43,7 +46,7 @@ public:
 		std::string str;
 
 		toString(str);
-		retVal = v8::String::New(str.c_str(), (int)str.length());
+		retVal = v8::String::New(str.c_str(), (int) str.length());
 
 		return 0;
 	}

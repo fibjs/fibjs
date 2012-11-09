@@ -38,4 +38,10 @@ class MongoDB : object
 
 	/*! @brief 获取 GridFS 访问对象 */
 	readonly GridFS fs;
+
+	/*! @brief 生成一个 mongodb _objectid 对象
+	 *  @param hexStr 初始化 16 进制字符串，缺省生成新的 id
+	 *  @return 新 _objectid 对象
+	 */
+	MongoID oid(String hexStr = "");
 };

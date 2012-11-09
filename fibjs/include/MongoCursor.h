@@ -27,28 +27,22 @@ public:
 
 public:
 	// MongoCursor_base
-	virtual result_t batchSize(int32_t size, obj_ptr<MongoCursor_base>& retVal);
-	virtual result_t hint(v8::Handle<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal);
+	virtual result_t skip(int32_t num, obj_ptr<MongoCursor_base>& retVal);
 	virtual result_t limit(int32_t size, obj_ptr<MongoCursor_base>& retVal);
-	virtual result_t readPref(const char* mode, v8::Handle<v8::Array> tagSet, obj_ptr<MongoCursor_base>& retVal);
-	virtual result_t showDiskLoc(obj_ptr<MongoCursor_base>& retVal);
-	virtual result_t count(bool applySkipLimit, int32_t& retVal);
-	virtual result_t explain(v8::Handle<v8::Object>& retVal);
-	virtual result_t forEach(v8::Handle<v8::Function> func);
-	virtual result_t map(v8::Handle<v8::Function> func, v8::Handle<v8::Array>& retVal);
+	virtual result_t sort(v8::Handle<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal);
 	virtual result_t hasNext(bool& retVal);
 	virtual result_t next(v8::Handle<v8::Object>& retVal);
+	virtual result_t count(bool applySkipLimit, int32_t& retVal);
 	virtual result_t size(int32_t& retVal);
-	virtual result_t skip(int32_t num, obj_ptr<MongoCursor_base>& retVal);
-	virtual result_t snapshot(obj_ptr<MongoCursor_base>& retVal);
-	virtual result_t sort(v8::Handle<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal);
-	virtual result_t min(v8::Handle<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal);
-	virtual result_t max(v8::Handle<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal);
-	virtual result_t _addSpecial(const char* name, v8::Handle<v8::Value> opts, obj_ptr<MongoCursor_base>& retVal);
+	virtual result_t forEach(v8::Handle<v8::Function> func);
+	virtual result_t map(v8::Handle<v8::Function> func, v8::Handle<v8::Array>& retVal);
 	virtual result_t toArray(v8::Handle<v8::Array>& retVal);
+	virtual result_t hint(v8::Handle<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal);
 
 private:
 	void ensureSpecial();
+	result_t _addSpecial(const char* name, v8::Handle<v8::Value> opts,
+			obj_ptr<MongoCursor_base>& retVal);
 
 private:
 	obj_ptr<MongoDB> m_db;

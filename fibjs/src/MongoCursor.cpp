@@ -60,12 +60,6 @@ void MongoCursor::ensureSpecial()
 	}
 }
 
-result_t MongoCursor::batchSize(int32_t size, obj_ptr<MongoCursor_base>& retVal)
-{
-	retVal = this;
-	return 0;
-}
-
 result_t MongoCursor::hint(v8::Handle<v8::Object> opts,
 		obj_ptr<MongoCursor_base>& retVal)
 {
@@ -80,24 +74,6 @@ result_t MongoCursor::limit(int32_t size, obj_ptr<MongoCursor_base>& retVal)
 	mongo_cursor_set_limit(&m_cursor, size);
 	retVal = this;
 	return 0;
-}
-
-result_t MongoCursor::readPref(const char* mode, v8::Handle<v8::Array> tagSet,
-		obj_ptr<MongoCursor_base>& retVal)
-{
-	v8::Handle < v8::Object > o = v8::Object::New();
-
-	o->Set(v8::String::New("mode"), v8::String::New(mode));
-
-	if (tagSet->Length() > 0)
-		o->Set(v8::String::New("tags"), tagSet);
-
-	return _addSpecial("$readPreference", o, retVal);
-}
-
-result_t MongoCursor::showDiskLoc(obj_ptr<MongoCursor_base>& retVal)
-{
-	return _addSpecial("$showDiskLoc", v8::True(), retVal);
 }
 
 result_t MongoCursor::count(bool applySkipLimit, int32_t& retVal)
@@ -131,11 +107,6 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t& retVal)
 	retVal = res->Get(v8::String::New("n"))->Int32Value();
 
 	return 0;
-}
-
-result_t MongoCursor::explain(v8::Handle<v8::Object>& retVal)
-{
-	return CALL_RETURN_NULL;
 }
 
 result_t MongoCursor::forEach(v8::Handle<v8::Function> func)
@@ -235,27 +206,10 @@ result_t MongoCursor::skip(int32_t num, obj_ptr<MongoCursor_base>& retVal)
 	return 0;
 }
 
-result_t MongoCursor::snapshot(obj_ptr<MongoCursor_base>& retVal)
-{
-	return _addSpecial("$snapshot", v8::True(), retVal);
-}
-
 result_t MongoCursor::sort(v8::Handle<v8::Object> opts,
 		obj_ptr<MongoCursor_base>& retVal)
 {
 	return _addSpecial("orderby", opts, retVal);
-}
-
-result_t MongoCursor::min(v8::Handle<v8::Object> opts,
-		obj_ptr<MongoCursor_base>& retVal)
-{
-	return _addSpecial("$min", opts, retVal);
-}
-
-result_t MongoCursor::max(v8::Handle<v8::Object> opts,
-		obj_ptr<MongoCursor_base>& retVal)
-{
-	return _addSpecial("$max", opts, retVal);
 }
 
 result_t MongoCursor::_addSpecial(const char* name, v8::Handle<v8::Value> opts,

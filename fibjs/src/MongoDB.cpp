@@ -13,6 +13,7 @@
 #include <mongo/env.h>
 #include "Url.h"
 #include "encoding_bson.h"
+#include "MongoID.h"
 
 int mongo_env_set_socket_op_timeout(mongo *conn, int millis)
 {
@@ -300,6 +301,12 @@ result_t MongoDB::_named_getter(const char* property,
 result_t MongoDB::get_fs(obj_ptr<GridFS_base>& retVal)
 {
 	retVal = new GridFS(this);
+	return 0;
+}
+
+result_t MongoDB::oid(const char* hexStr, obj_ptr<MongoID_base>& retVal)
+{
+	retVal = new MongoID(hexStr);
 	return 0;
 }
 

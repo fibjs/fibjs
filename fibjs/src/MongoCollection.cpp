@@ -7,7 +7,6 @@
 
 #include "MongoCollection.h"
 #include "MongoCursor.h"
-#include "MongoID.h"
 #include "encoding_bson.h"
 #include <vector>
 
@@ -265,7 +264,7 @@ result_t MongoCollection::dropIndexes(v8::Handle<v8::Object>& retVal)
 	return runCommand("deleteIndexes", "index", "*", retVal);
 }
 
-result_t MongoCollection::getIndexes(v8::Handle<v8::Array>& retVal)
+result_t MongoCollection::getIndexes(obj_ptr<MongoCursor_base>& retVal)
 {
 	result_t hr;
 	obj_ptr<MongoCollection_base> coll;
@@ -279,13 +278,7 @@ result_t MongoCollection::getIndexes(v8::Handle<v8::Array>& retVal)
 	q->Set(v8::String::New("ns"),
 			v8::String::New(m_ns.c_str(), (int) m_ns.length()));
 
-	obj_ptr < MongoCursor_base > cur;
-
-	hr = coll->find(q, f, cur);
-	if (hr < 0)
-		return hr;
-
-	return cur->toArray(retVal);
+	return coll->find(q, f, retVal);
 }
 
 result_t MongoCollection::getCollection(const char* name,
@@ -309,12 +302,6 @@ result_t MongoCollection::_named_getter(const char* property,
 		obj_ptr<MongoCollection_base>& retVal)
 {
 	return getCollection(property, retVal);
-}
-
-result_t MongoCollection::oid(const char* hexStr, obj_ptr<MongoID_base>& retVal)
-{
-	retVal = new MongoID(hexStr);
-	return 0;
 }
 
 } /* namespace fibjs */
