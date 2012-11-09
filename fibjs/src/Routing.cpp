@@ -79,7 +79,7 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				{
 					for (i = 0; i < rc; i++)
 						if (level[i] == p)
-							list->append(
+							list->push(
 									value.substr(ovector[i * 2],
 											ovector[i * 2 + 1]
 													- ovector[i * 2]));

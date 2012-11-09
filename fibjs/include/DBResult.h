@@ -40,8 +40,16 @@ public:
 	virtual result_t _indexed_setter(uint32_t index, Variant newVal);
 	virtual result_t get_length(int32_t& retVal);
 	virtual result_t resize(int32_t sz);
-	virtual result_t append(Variant v);
+	virtual result_t push(Variant v);
+	virtual result_t push(Variant v, const v8::Arguments& args);
+	virtual result_t pop(Variant& retVal);
 	virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal);
+	virtual result_t concat(const v8::Arguments& args, obj_ptr<List_base>& retVal);
+	virtual result_t every(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp, bool& retVal);
+	virtual result_t filter(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp, obj_ptr<List_base>& retVal);
+	virtual result_t forEach(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp);
+	virtual result_t map(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp, obj_ptr<List_base>& retVal);
+	virtual result_t toArray(v8::Handle<v8::Array>& retVal);
 
 public:
 	// DBResult_base
