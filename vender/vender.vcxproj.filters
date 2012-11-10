@@ -154,6 +154,9 @@
     <Filter Include="Header Files\mongo">
       <UniqueIdentifier>{65156a09-5477-4971-870b-d0469d822e84}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\v8\src\arm">
+      <UniqueIdentifier>{a7e93c19-b8d3-47b9-92e2-b5376ff16669}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zlib\adler32.c">
@@ -1620,6 +1623,63 @@
     <ClCompile Include="src\mongo\mongomd5.c">
       <Filter>Source Files\mongo</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\arm\assembler-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\builtins-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\codegen-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\code-stubs-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\constants-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\cpu-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\debug-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\deoptimizer-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\disasm-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\frames-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\full-codegen-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\ic-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\lithium-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\lithium-codegen-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\lithium-gap-resolver-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\macro-assembler-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\regexp-macro-assembler-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\simulator-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\arm\stub-cache-arm.cc">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -3019,6 +3079,42 @@
     </ClInclude>
     <ClInclude Include="src\mongo\mongo.h">
       <Filter>Source Files\mongo</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\arm\assembler-arm.h">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\arm\assembler-arm-inl.h">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\arm\codegen-arm.h">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\arm\code-stubs-arm.h">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\arm\constants-arm.h">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\arm\frames-arm.h">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\arm\lithium-arm.h">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\arm\lithium-codegen-arm.h">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\arm\lithium-gap-resolver-arm.h">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\arm\macro-assembler-arm.h">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\arm\regexp-macro-assembler-arm.h">
+      <Filter>Source Files\v8\src\arm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\arm\simulator-arm.h">
+      <Filter>Source Files\v8\src\arm</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
