@@ -51,12 +51,12 @@ result_t DBResult::push(Variant v)
 	return 0;
 }
 
-result_t DBResult::push(Variant v, const v8::Arguments& args)
+result_t DBResult::push(const v8::Arguments& args)
 {
 	if (!m_size)
 		return CALL_E_INVALID_CALL;
 
-	m_array.push(v, args);
+	m_array.push(args);
 	return 0;
 }
 

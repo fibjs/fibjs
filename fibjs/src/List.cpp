@@ -42,9 +42,9 @@ result_t List::push(Variant v)
 	return 0;
 }
 
-result_t List::push(Variant v, const v8::Arguments& args)
+result_t List::push(const v8::Arguments& args)
 {
-	m_array.push(v, args);
+	m_array.push(args);
 	return 0;
 }
 
@@ -135,7 +135,7 @@ result_t List::array::push(Variant v)
 	return 0;
 }
 
-result_t List::array::push(Variant v, const v8::Arguments& args)
+result_t List::array::push(const v8::Arguments& args)
 {
 	int len = args.Length();
 	int i;

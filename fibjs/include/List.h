@@ -27,7 +27,7 @@ public:
 	virtual result_t get_length(int32_t& retVal);
 	virtual result_t resize(int32_t sz);
 	virtual result_t push(Variant v);
-	virtual result_t push(Variant v, const v8::Arguments& args);
+	virtual result_t push(const v8::Arguments& args);
 	virtual result_t pop(Variant& retVal);
 	virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal);
 	virtual result_t concat(const v8::Arguments& args, obj_ptr<List_base>& retVal);
@@ -46,7 +46,7 @@ public:
 		result_t get_length(int32_t& retVal);
 		result_t resize(int32_t sz);
 		result_t push(Variant v);
-		result_t push(Variant v, const v8::Arguments& args);
+		result_t push(const v8::Arguments& args);
 		result_t pop(Variant& retVal);
 		result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal);
 		result_t concat(const v8::Arguments& args, obj_ptr<List_base>& retVal);

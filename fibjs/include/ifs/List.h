@@ -26,7 +26,7 @@ public:
 	virtual result_t get_length(int32_t& retVal) = 0;
 	virtual result_t resize(int32_t sz) = 0;
 	virtual result_t push(Variant v) = 0;
-	virtual result_t push(Variant v, const v8::Arguments& args) = 0;
+	virtual result_t push(const v8::Arguments& args) = 0;
 	virtual result_t pop(Variant& retVal) = 0;
 	virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal) = 0;
 	virtual result_t concat(const v8::Arguments& args, obj_ptr<List_base>& retVal) = 0;
@@ -163,11 +163,9 @@ namespace fibjs
 
 		hr = pInst->push(v0);
 
-		METHOD_OVER(-1, 1);
+		METHOD_OVER(-1, 0);
 
-		ARG(Variant, 0);
-
-		hr = pInst->push(v0, args);
+		hr = pInst->push(args);
 
 		METHOD_VOID();
 	}

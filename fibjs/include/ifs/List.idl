@@ -20,10 +20,9 @@ class List : object
 	push(Variant v);
 
 	/*! @brief 在数组结尾添加一个元素
-	 *  @param v 指定添加的元素
-	 *  @param ... 指定添加的更多元素
+	 *  @param ... 指定添加的多个元素
 	 */
-	push(Variant v, ...);
+	push(...);
 
 	/*! @brief 返回数组结尾的一个元素
 	 *  @return 结尾的元素
