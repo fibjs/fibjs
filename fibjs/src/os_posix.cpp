@@ -10,35 +10,9 @@
 #ifndef _WIN32
 
 #include "ifs/os.h"
-#include "string.h"
-
-# include <unistd.h>  // gethostname, sysconf
 # include <sys/utsname.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
 #include <ifaddrs.h>
-#include <errno.h>
-#include <sys/ioctl.h>
 #include <net/if.h>
-#include <dirent.h>
-
-#ifdef MacOS
-#include <mach/task.h>
-#include <mach/mach.h>
-#include <mach/mach_host.h>
-#include <sys/sysctl.h>
-#endif
-
-#ifndef FreeBSD
-#include <sys/sysinfo.h>
-#include <dlfcn.h>
-
-#ifndef CLOCK_BOOTTIME
-#define CLOCK_BOOTTIME 7
-#endif
-#endif
-
-#include "inetAddr.h"
 
 namespace fibjs
 {

@@ -6,14 +6,11 @@
  */
 
 #include "ifs/os.h"
-#include "string.h"
 
 #ifndef _WIN32
 # include <unistd.h>  // gethostname, sysconf
 # include <sys/utsname.h>
 #endif
-
-#include "inetAddr.h"
 
 namespace fibjs
 {

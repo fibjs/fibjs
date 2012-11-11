@@ -10,26 +10,13 @@
 #ifdef Linux
 
 #include "ifs/os.h"
-#include "string.h"
-
-# include <unistd.h>  // gethostname, sysconf
-# include <sys/utsname.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
-#include <ifaddrs.h>
-#include <errno.h>
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include <dirent.h>
-
-#include <sys/sysinfo.h>
 #include <dlfcn.h>
+#include <sys/sysinfo.h>
+#include <sys/param.h>
 
 #ifndef CLOCK_BOOTTIME
 #define CLOCK_BOOTTIME 7
 #endif
-
-#include "inetAddr.h"
 
 namespace fibjs
 {
@@ -220,6 +207,188 @@ result_t os_base::CPUInfo(v8::Handle<v8::Array>& retVal)
 		}
 		fclose(fpStat);
 	}
+
+	return 0;
+}
+
+result_t os_base::get_execPath(std::string& retVal)
+{
+	size_t linksize = 256;
+	char exeName[256] =
+	{	0};
+
+	if (readlink("/proc/self/exe", exeName, linksize) == -1)
+		return LastError();
+
+	retVal = exeName;
+	return 0;
+}
+
+result_t os_base::memoryUsage(v8::Handle<v8::Object>& retVal)
+{
+	size_t rss = 0;
+
+	FILE* f;
+	int itmp;
+	char ctmp;
+	unsigned int utmp;
+	size_t page_size = getpagesize();
+	char *cbuf;
+	int foundExeEnd;
+	static char buf[MAXPATHLEN + 1];
+
+	f = fopen("/proc/self/stat", "r");
+	if (!f)
+		return LastError();
+
+	/* PID */
+	if (fscanf(f, "%d ", &itmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* Exec file */
+	cbuf = buf;
+	foundExeEnd = 0;
+	if (fscanf(f, "%c", cbuf++) == 0)
+		goto error;
+
+	while (1)
+	{
+		if (fscanf(f, "%c", cbuf) == 0)
+			goto error;
+		if (*cbuf == ')')
+		{
+			foundExeEnd = 1;
+		}
+		else if (foundExeEnd && *cbuf == ' ')
+		{
+			*cbuf = 0;
+			break;
+		}
+
+		cbuf++;
+	}
+	/* State */
+	if (fscanf(f, "%c ", &ctmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* Parent process */
+	if (fscanf(f, "%d ", &itmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* Process group */
+	if (fscanf(f, "%d ", &itmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* Session id */
+	if (fscanf(f, "%d ", &itmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* TTY */
+	if (fscanf(f, "%d ", &itmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* TTY owner process group */
+	if (fscanf(f, "%d ", &itmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* Flags */
+	if (fscanf(f, "%u ", &utmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* Minor faults (no memory page) */
+	if (fscanf(f, "%u ", &utmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* Minor faults, children */
+	if (fscanf(f, "%u ", &utmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* Major faults (memory page faults) */
+	if (fscanf(f, "%u ", &utmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* Major faults, children */
+	if (fscanf(f, "%u ", &utmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* utime */
+	if (fscanf(f, "%d ", &itmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* stime */
+	if (fscanf(f, "%d ", &itmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* utime, children */
+	if (fscanf(f, "%d ", &itmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* stime, children */
+	if (fscanf(f, "%d ", &itmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* jiffies remaining in current time slice */
+	if (fscanf(f, "%d ", &itmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* 'nice' value */
+	if (fscanf(f, "%d ", &itmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* jiffies until next timeout */
+	if (fscanf(f, "%u ", &utmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* jiffies until next SIGALRM */
+	if (fscanf(f, "%u ", &utmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* start time (jiffies since system boot) */
+	if (fscanf(f, "%d ", &itmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+
+	/* Virtual memory size */
+	if (fscanf(f, "%u ", &utmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+
+	/* Resident set size */
+	if (fscanf(f, "%u ", &utmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	rss = (size_t) utmp * page_size;
+
+	/* rlim */
+	if (fscanf(f, "%u ", &utmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* Start of text */
+	if (fscanf(f, "%u ", &utmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* End of text */
+	if (fscanf(f, "%u ", &utmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+	/* Start of stack */
+	if (fscanf(f, "%u ", &utmp) == 0)
+		goto error;
+	/* coverity[secure_coding] */
+
+	error: fclose(f);
+
+	v8::Handle<v8::Object> info = v8::Object::New();
+
+	v8::HeapStatistics v8_heap_stats;
+	v8::V8::GetHeapStatistics(&v8_heap_stats);
+	info->Set(v8::String::New("rss"), v8::Integer::New((int32_t)rss));
+	info->Set(v8::String::New("heapTotal"),
+			v8::Integer::New((int32_t)v8_heap_stats.total_heap_size()));
+	info->Set(v8::String::New("heapUsed"),
+			v8::Integer::New((int32_t)v8_heap_stats.used_heap_size()));
+
+	retVal = info;
 
 	return 0;
 }

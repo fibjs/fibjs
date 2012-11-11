@@ -10,27 +10,9 @@
 #ifdef MacOS
 
 #include "ifs/os.h"
-#include "string.h"
-
-# include <unistd.h>  // gethostname, sysconf
-# include <sys/utsname.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
-#include <ifaddrs.h>
-#include <errno.h>
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include <dirent.h>
-
-#include <mach/task.h>
 #include <mach/mach.h>
-#include <mach/mach_host.h>
+#include <mach-o/dyld.h>
 #include <sys/sysctl.h>
-
-#include <sys/sysinfo.h>
-#include <dlfcn.h>
-
-#include "inetAddr.h"
 
 namespace fibjs
 {
@@ -181,6 +163,45 @@ result_t os_base::CPUInfo(v8::Handle<v8::Array>& retVal)
 		retVal->Set(i, cpuinfo);
 	}
 	vm_deallocate(mach_task_self(), (vm_address_t) info, count);
+
+	return 0;
+}
+
+result_t os_base::get_execPath(std::string& retVal)
+{
+	char exeName[1024] = "";
+	uint32_t size = sizeof(exeName);
+
+	_NSGetExecutablePath(exeName, &size);
+
+	retVal = exeName;
+	return 0;
+}
+
+result_t os_base::memoryUsage(v8::Handle<v8::Object>& retVal)
+{
+	size_t rss = 0;
+
+	struct task_basic_info t_info;
+	mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+
+	if (task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t) &t_info,
+			&t_info_count) != KERN_SUCCESS)
+		return LastError();
+
+	rss = t_info.resident_size;
+
+	v8::Handle<v8::Object> info = v8::Object::New();
+
+	v8::HeapStatistics v8_heap_stats;
+	v8::V8::GetHeapStatistics(&v8_heap_stats);
+	info->Set(v8::String::New("rss"), v8::Integer::New((int32_t)rss));
+	info->Set(v8::String::New("heapTotal"),
+			v8::Integer::New((int32_t)v8_heap_stats.total_heap_size()));
+	info->Set(v8::String::New("heapUsed"),
+			v8::Integer::New((int32_t)v8_heap_stats.used_heap_size()));
+
+	retVal = info;
 
 	return 0;
 }

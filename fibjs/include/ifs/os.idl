@@ -48,4 +48,25 @@ class os : module
 	 * @param tmString 时间字符串，缺省则查询当前时间
 	 */
 	static Date time(String tmString = "");
+
+	/*! @brief 查询当前运行执行文件完整路径 */
+	static String execPath;
+
+	/*! @brief 查询当前进程内存使用报告
+	 * @return 返回包含内存报告
+	 *
+	 * 内存报告生成类似以下结果：
+	 * @code
+	 * {
+	 *   "rss": 8622080,
+	 *   "heapTotal": 4083456,
+	 *   "heapUsed": 1621800
+	 * }
+	 * @endcode
+	 * 其中：
+	 * - rss 返回进程当前占用物理内存大小
+	 * - heapTotal 返回 v8 引擎堆内存大小
+	 * - heapUsed 返回 v8 引擎正在使用堆内存大小
+	 */
+	static Object memoryUsage();
 };

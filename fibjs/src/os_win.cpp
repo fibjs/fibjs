@@ -11,10 +11,10 @@
 #ifdef _WIN32
 
 #include "ifs/os.h"
-#include "string.h"
-
-#include <stdio.h>
 #include <iphlpapi.h>
+#include <psapi.h>
+#include "utf8.h"
+#include "inetAddr.h"
 
 typedef struct
 _SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION {
@@ -33,8 +33,6 @@ static PROCNTQSI pNtQuerySystemInformation;
 #define SystemPerformanceInformation 2
 #define SystemTimeInformation 3
 #define SystemProcessorPerformanceInformation 8
-
-#include "inetAddr.h"
 
 namespace fibjs
 {
@@ -378,6 +376,44 @@ result_t os_base::networkInfo(v8::Handle<v8::Object>& retVal)
 	}
 
 	free(adapter_addresses);
+
+	return 0;
+}
+
+result_t os_base::get_execPath(std::string& retVal)
+{
+	WCHAR szFileName[MAX_PATH];
+
+	GetModuleFileNameW(NULL, szFileName, MAX_PATH);
+	retVal = utf16to8String(szFileName);
+	return 0;
+}
+
+result_t os_base::memoryUsage(v8::Handle<v8::Object>& retVal)
+{
+	size_t rss = 0;
+
+	HANDLE current_process;
+	PROCESS_MEMORY_COUNTERS pmc;
+
+	current_process = GetCurrentProcess();
+
+	if (!GetProcessMemoryInfo(current_process, &pmc, sizeof(pmc)))
+		return LastError();
+
+	rss = pmc.WorkingSetSize;
+
+	v8::Handle<v8::Object> info = v8::Object::New();
+
+	v8::HeapStatistics v8_heap_stats;
+	v8::V8::GetHeapStatistics(&v8_heap_stats);
+	info->Set(v8::String::New("rss"), v8::Integer::New((int32_t)rss));
+	info->Set(v8::String::New("heapTotal"),
+			v8::Integer::New((int32_t)v8_heap_stats.total_heap_size()));
+	info->Set(v8::String::New("heapUsed"),
+			v8::Integer::New((int32_t)v8_heap_stats.used_heap_size()));
+
+	retVal = info;
 
 	return 0;
 }
