@@ -33,6 +33,13 @@ class coroutine : module
 	 */
 	static Array parallel(Array func);
 
+	/*!	@brief 并行执行一个函数处理一组数据，并等待返回
+	 * @param data 并行执行的数据数组
+	 * @param func 并行执行的函数
+	 * @return 返回函数执行结果的数组
+	 */
+	static Array parallel(Array data, Function func);
+
 	/*!	@brief 并行执行一组函数，并等待返回
 	 * @param ... 一组并行执行的函数
 	 * @return 返回函数执行结果的数组

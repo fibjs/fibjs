@@ -31,6 +31,7 @@ public:
 	// coroutine_base
 	static result_t start(v8::Handle<v8::Function> func, const v8::Arguments& args, obj_ptr<Fiber_base>& retVal);
 	static result_t parallel(v8::Handle<v8::Array> func, v8::Handle<v8::Array>& retVal);
+	static result_t parallel(v8::Handle<v8::Array> data, v8::Handle<v8::Function> func, v8::Handle<v8::Array>& retVal);
 	static result_t parallel(const v8::Arguments& args, v8::Handle<v8::Array>& retVal);
 	static result_t current(obj_ptr<Fiber_base>& retVal);
 	static result_t sleep(int32_t ms);
@@ -108,6 +109,13 @@ namespace fibjs
 		ARG(v8::Handle<v8::Array>, 0);
 
 		hr = parallel(v0, vr);
+
+		METHOD_OVER(2, 2);
+
+		ARG(v8::Handle<v8::Array>, 0);
+		ARG(v8::Handle<v8::Function>, 1);
+
+		hr = parallel(v0, v1, vr);
 
 		METHOD_OVER(-1, 0);
 
