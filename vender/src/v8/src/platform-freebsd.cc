@@ -47,7 +47,7 @@
 #include <sys/fcntl.h>  // open
 #include <unistd.h>     // getpagesize
 // If you don't have execinfo.h then you need devel/libexecinfo from ports.
-#include <execinfo.h>   // backtrace, backtrace_symbols
+#include </usr/local/include/execinfo.h>   // backtrace, backtrace_symbols
 #include <strings.h>    // index
 #include <errno.h>
 #include <stdarg.h>
