@@ -4,8 +4,13 @@ var assert = require('assert');
 var os = require('os');
 var io = require('io');
 
-console.log(os.CPUs());
-console.log(os.uptime(), os.loadavg(), os.totalmem(), os.freemem());
+console.dir({
+	CPUs : os.CPUs(),
+	uptime : os.uptime(),
+	loadavg : os.loadavg(),
+	totalmem : os.totalmem(),
+	freemem : os.freemem()
+});
 console.dir(os.CPUInfo());
 console.dir(os.networkInfo());
 
