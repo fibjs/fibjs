@@ -72,6 +72,11 @@
     <ClCompile Include="src\mysql.cpp" />
     <ClCompile Include="src\NullHandler.cpp" />
     <ClCompile Include="src\os.cpp" />
+    <ClCompile Include="src\os_freebsd.cpp" />
+    <ClCompile Include="src\os_linux.cpp" />
+    <ClCompile Include="src\os_osx.cpp" />
+    <ClCompile Include="src\os_posix.cpp" />
+    <ClCompile Include="src\os_win.cpp" />
     <ClCompile Include="src\path.cpp" />
     <ClCompile Include="src\process.cpp" />
     <ClCompile Include="src\Regex.cpp" />
