@@ -28,3 +28,15 @@ tms.forEach(function(s) {
 });
 
 assert.equal(os.time(), new Date());
+
+var tmse = [ '2000-1-32', '2001-2-29', '2000-13-1', '2000-12-32', '13/13/13' ];
+
+tmse.forEach(function(t) {
+	assert.ok(isNaN(os.time(t).getTime()), t);
+});
+
+var tmso = [ '2000-1-31', '2001-2-28', '2000-12-1', '2000-12-31', '12/13/13' ];
+
+tmso.forEach(function(t) {
+	assert.ok(!isNaN(os.time(t).getTime()), t);
+});
