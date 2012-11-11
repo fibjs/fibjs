@@ -122,6 +122,10 @@ assert.throws(function() {
 	}, funs[0], funs[1], funs[2], funs[3], funs[4]);
 });
 
+assert.equal(coroutine.parallel([ 1, 2, 3, 4, 5 ], function(v) {
+	return v + 1;
+}), [ 2, 3, 4, 5, 6 ]);
+
 function stack_size() {
 	function t() {
 		t();
