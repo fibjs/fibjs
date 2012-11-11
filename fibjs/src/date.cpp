@@ -297,7 +297,7 @@ void date_t::parse(const char* str, int len)
 				wYear = 2001;
 
 			// m/d/y -> y/m/d
-			if (wMonth > 12 && wDay <= 12)
+			if (wYear <= 31 && wMonth > 12 && wDay <= 12)
 			{
 				int n = wYear;
 				wYear = wMonth;
@@ -442,6 +442,14 @@ void date_t::parse(const char* str, int len)
 					tz += atoi(tzstr + 5) / 100;
 			}
 		}
+	}
+
+	if (wMonth > 11 || wDay > MaxDaysInMonth(wYear, wMonth) - 1)
+	{
+		static uint64_t nan = 0x7fffffffffffffffLL;
+
+		d = *(double*) &nan;
+		return;
 	}
 
 	unsigned int ElapsedDays = ElapsedYearsToDays(wYear - 1);
