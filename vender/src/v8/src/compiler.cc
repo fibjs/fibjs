@@ -432,9 +432,7 @@ static Handle<SharedFunctionInfo> MakeFunctionInfo(CompilationInfo* info) {
 
   ASSERT(!isolate->native_context().is_null());
   Handle<Script> script = info->script();
-  // TODO(svenpanne) Obscure place for this, perhaps move to OnBeforeCompile?
-  FixedArray* array = isolate->native_context()->embedder_data();
-  script->set_context_data(array->get(0));
+  script->set_context_data((*isolate->native_context())->data());
 
 #ifdef ENABLE_DEBUGGER_SUPPORT
   if (info->is_eval()) {
@@ -611,6 +609,7 @@ Handle<SharedFunctionInfo> Compiler::Compile(Handle<String> source,
     if (result->ic_age() != HEAP->global_ic_age()) {
       result->ResetForNewContext(HEAP->global_ic_age());
     }
+    result->code()->MakeYoung();
   }
 
   if (result.is_null()) isolate->ReportPendingMessages();
@@ -672,6 +671,7 @@ Handle<SharedFunctionInfo> Compiler::CompileEval(Handle<String> source,
     if (result->ic_age() != HEAP->global_ic_age()) {
       result->ResetForNewContext(HEAP->global_ic_age());
     }
+    result->code()->MakeYoung();
   }
 
   return result;

@@ -65,7 +65,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/src/v8/src}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.preprocessor.def.860562743" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+								<option id="gnu.cpp.compiler.option.preprocessor.def.860562743" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="ENABLE_DEBUGGER_SUPPORT"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1729541016" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -154,8 +154,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/src/v8/src}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.preprocessor.def.1821650988" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="ENABLE_DEBUGGER_SUPPORT"/>
+								<option id="gnu.cpp.compiler.option.preprocessor.def.1821650988" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="ENABLE_DEBUGGER_SUPPORT=1"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.606202026" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -246,7 +246,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/src/v8/src}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.preprocessor.def.1623620112" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+								<option id="gnu.cpp.compiler.option.preprocessor.def.1623620112" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="ENABLE_DEBUGGER_SUPPORT"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1610672993" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -338,7 +338,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/vender/src/v8/src}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.preprocessor.def.1804882438" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+								<option id="gnu.cpp.compiler.option.preprocessor.def.1804882438" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="ENABLE_DEBUGGER_SUPPORT"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.991013083" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>

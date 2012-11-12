@@ -3116,6 +3116,9 @@
     <ClInclude Include="src\v8\src\arm\simulator-arm.h">
       <Filter>Source Files\v8\src\arm</Filter>
     </ClInclude>
+    <ClInclude Include="src\v8\src\atomicops_internals_arm_gcc.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\log4cpp\threading\BoostThreads.hh">

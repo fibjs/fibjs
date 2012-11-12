@@ -134,14 +134,6 @@ bool Object::IsFixedArrayBase() {
 }
 
 
-// External objects are not extensible, so the map check is enough.
-bool Object::IsExternal() {
-  return Object::IsHeapObject() &&
-      HeapObject::cast(this)->map() ==
-      HeapObject::cast(this)->GetHeap()->external_map();
-}
-
-
 bool Object::IsInstanceOf(FunctionTemplateInfo* expected) {
   // There is a constraint on the object; check.
   if (!this->IsJSObject()) return false;
@@ -297,7 +289,7 @@ bool StringShape::IsSymbol() {
 
 bool String::IsAsciiRepresentation() {
   uint32_t type = map()->instance_type();
-  return (type & kStringEncodingMask) == kAsciiStringTag;
+  return (type & kStringEncodingMask) == kOneByteStringTag;
 }
 
 
@@ -313,7 +305,7 @@ bool String::IsAsciiRepresentationUnderneath() {
   STATIC_ASSERT((kIsIndirectStringMask & kStringEncodingMask) == 0);
   ASSERT(IsFlat());
   switch (type & (kIsIndirectStringMask | kStringEncodingMask)) {
-    case kAsciiStringTag:
+    case kOneByteStringTag:
       return true;
     case kTwoByteStringTag:
       return false;
@@ -329,7 +321,7 @@ bool String::IsTwoByteRepresentationUnderneath() {
   STATIC_ASSERT((kIsIndirectStringMask & kStringEncodingMask) == 0);
   ASSERT(IsFlat());
   switch (type & (kIsIndirectStringMask | kStringEncodingMask)) {
-    case kAsciiStringTag:
+    case kOneByteStringTag:
       return false;
     case kTwoByteStringTag:
       return true;
@@ -341,7 +333,7 @@ bool String::IsTwoByteRepresentationUnderneath() {
 
 bool String::HasOnlyAsciiChars() {
   uint32_t type = map()->instance_type();
-  return (type & kStringEncodingMask) == kAsciiStringTag ||
+  return (type & kStringEncodingMask) == kOneByteStringTag ||
          (type & kAsciiDataHintMask) == kAsciiDataHintTag;
 }
 
@@ -395,7 +387,7 @@ STATIC_CHECK(static_cast<uint32_t>(kStringEncodingMask) ==
 
 
 bool StringShape::IsSequentialAscii() {
-  return full_representation_tag() == (kSeqStringTag | kAsciiStringTag);
+  return full_representation_tag() == (kSeqStringTag | kOneByteStringTag);
 }
 
 
@@ -405,14 +397,14 @@ bool StringShape::IsSequentialTwoByte() {
 
 
 bool StringShape::IsExternalAscii() {
-  return full_representation_tag() == (kExternalStringTag | kAsciiStringTag);
+  return full_representation_tag() == (kExternalStringTag | kOneByteStringTag);
 }
 
 
-STATIC_CHECK((kExternalStringTag | kAsciiStringTag) ==
+STATIC_CHECK((kExternalStringTag | kOneByteStringTag) ==
              Internals::kExternalAsciiRepresentationTag);
 
-STATIC_CHECK(v8::String::ASCII_ENCODING == kAsciiStringTag);
+STATIC_CHECK(v8::String::ASCII_ENCODING == kOneByteStringTag);
 
 
 bool StringShape::IsExternalTwoByte() {
@@ -2458,18 +2450,18 @@ String* String::TryFlattenGetString(PretenureFlag pretenure) {
 uint16_t String::Get(int index) {
   ASSERT(index >= 0 && index < length());
   switch (StringShape(this).full_representation_tag()) {
-    case kSeqStringTag | kAsciiStringTag:
+    case kSeqStringTag | kOneByteStringTag:
       return SeqAsciiString::cast(this)->SeqAsciiStringGet(index);
     case kSeqStringTag | kTwoByteStringTag:
       return SeqTwoByteString::cast(this)->SeqTwoByteStringGet(index);
-    case kConsStringTag | kAsciiStringTag:
+    case kConsStringTag | kOneByteStringTag:
     case kConsStringTag | kTwoByteStringTag:
       return ConsString::cast(this)->ConsStringGet(index);
-    case kExternalStringTag | kAsciiStringTag:
+    case kExternalStringTag | kOneByteStringTag:
       return ExternalAsciiString::cast(this)->ExternalAsciiStringGet(index);
     case kExternalStringTag | kTwoByteStringTag:
       return ExternalTwoByteString::cast(this)->ExternalTwoByteStringGet(index);
-    case kSlicedStringTag | kAsciiStringTag:
+    case kSlicedStringTag | kOneByteStringTag:
     case kSlicedStringTag | kTwoByteStringTag:
       return SlicedString::cast(this)->SlicedStringGet(index);
     default:
@@ -4436,42 +4428,6 @@ void JSFunction::set_initial_map(Map* value) {
 }
 
 
-MaybeObject* JSFunction::set_initial_map_and_cache_transitions(
-    Map* initial_map) {
-  Context* native_context = context()->native_context();
-  Object* array_function =
-      native_context->get(Context::ARRAY_FUNCTION_INDEX);
-  if (array_function->IsJSFunction() &&
-      this == JSFunction::cast(array_function)) {
-    // Replace all of the cached initial array maps in the native context with
-    // the appropriate transitioned elements kind maps.
-    Heap* heap = GetHeap();
-    MaybeObject* maybe_maps =
-        heap->AllocateFixedArrayWithHoles(kElementsKindCount);
-    FixedArray* maps;
-    if (!maybe_maps->To(&maps)) return maybe_maps;
-
-    Map* current_map = initial_map;
-    ElementsKind kind = current_map->elements_kind();
-    ASSERT(kind == GetInitialFastElementsKind());
-    maps->set(kind, current_map);
-    for (int i = GetSequenceIndexFromFastElementsKind(kind) + 1;
-         i < kFastElementsKindCount; ++i) {
-      Map* new_map;
-      ElementsKind next_kind = GetFastElementsKindFromSequenceIndex(i);
-      MaybeObject* maybe_new_map =
-          current_map->CopyAsElementsKind(next_kind, INSERT_TRANSITION);
-      if (!maybe_new_map->To(&new_map)) return maybe_new_map;
-      maps->set(next_kind, new_map);
-      current_map = new_map;
-    }
-    native_context->set_js_array_maps(maps);
-  }
-  set_initial_map(initial_map);
-  return this;
-}
-
-
 bool JSFunction::has_initial_map() {
   return prototype_or_initial_map()->IsMap();
 }
@@ -5088,6 +5044,12 @@ PropertyAttributes JSReceiver::GetPropertyAttribute(String* key) {
   return GetPropertyAttributeWithReceiver(this, key);
 }
 
+
+PropertyAttributes JSReceiver::GetElementAttribute(uint32_t index) {
+  return GetElementAttributeWithReceiver(this, index, true);
+}
+
+
 // TODO(504): this may be useful in other places too where JSGlobalProxy
 // is used.
 Object* JSObject::BypassGlobalProxy() {
@@ -5112,7 +5074,34 @@ bool JSReceiver::HasElement(uint32_t index) {
   if (IsJSProxy()) {
     return JSProxy::cast(this)->HasElementWithHandler(index);
   }
-  return JSObject::cast(this)->HasElementWithReceiver(this, index);
+  return JSObject::cast(this)->GetElementAttribute(index) != ABSENT;
+}
+
+
+bool JSReceiver::HasLocalElement(uint32_t index) {
+  if (IsJSProxy()) {
+    return JSProxy::cast(this)->HasElementWithHandler(index);
+  }
+  return JSObject::cast(this)->GetLocalElementAttribute(index) != ABSENT;
+}
+
+
+PropertyAttributes JSReceiver::GetElementAttributeWithReceiver(
+    JSReceiver* receiver, uint32_t index, bool continue_search) {
+  if (IsJSProxy()) {
+    return JSProxy::cast(this)->GetElementAttributeWithHandler(receiver, index);
+  }
+  return JSObject::cast(this)->GetElementAttributeWithReceiver(
+      receiver, index, continue_search);
+}
+
+
+PropertyAttributes JSReceiver::GetLocalElementAttribute(uint32_t index) {
+  if (IsJSProxy()) {
+    return JSProxy::cast(this)->GetElementAttributeWithHandler(this, index);
+  }
+  return JSObject::cast(this)->GetElementAttributeWithReceiver(
+      this, index, false);
 }
 
 

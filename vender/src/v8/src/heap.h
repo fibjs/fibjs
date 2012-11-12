@@ -155,7 +155,6 @@ namespace internal {
   V(Smi, construct_stub_deopt_pc_offset, ConstructStubDeoptPCOffset)           \
   V(Smi, getter_stub_deopt_pc_offset, GetterStubDeoptPCOffset)                 \
   V(Smi, setter_stub_deopt_pc_offset, SetterStubDeoptPCOffset)                 \
-  V(Map, external_map, ExternalMap)                                            \
   V(JSObject, observation_state, ObservationState)
 
 #define ROOT_LIST(V)                                  \
@@ -665,9 +664,6 @@ class Heap {
 
   // Allocates a serialized scope info.
   MUST_USE_RESULT MaybeObject* AllocateScopeInfo(int length);
-
-  // Allocates an External object for v8's external API.
-  MUST_USE_RESULT MaybeObject* AllocateExternal(void* value);
 
   // Allocates an empty PolymorphicCodeCache.
   MUST_USE_RESULT MaybeObject* AllocatePolymorphicCodeCache();
@@ -1455,6 +1451,10 @@ class Heap {
   STATIC_CHECK(kTrueValueRootIndex == Internals::kTrueValueRootIndex);
   STATIC_CHECK(kFalseValueRootIndex == Internals::kFalseValueRootIndex);
   STATIC_CHECK(kempty_symbolRootIndex == Internals::kEmptySymbolRootIndex);
+
+  // Generated code can embed direct references to non-writable roots if
+  // they are in new space.
+  static bool RootCanBeWrittenAfterInitialization(RootListIndex root_index);
 
   MUST_USE_RESULT MaybeObject* NumberToString(
       Object* number, bool check_number_string_cache = true);

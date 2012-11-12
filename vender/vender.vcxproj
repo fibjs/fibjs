@@ -729,6 +729,7 @@
     <ClInclude Include="src\v8\src\assembler.h" />
     <ClInclude Include="src\v8\src\ast.h" />
     <ClInclude Include="src\v8\src\atomicops.h" />
+    <ClInclude Include="src\v8\src\atomicops_internals_arm_gcc.h" />
     <ClInclude Include="src\v8\src\atomicops_internals_x86_gcc.h" />
     <ClInclude Include="src\v8\src\atomicops_internals_x86_macosx.h" />
     <ClInclude Include="src\v8\src\atomicops_internals_x86_msvc.h" />

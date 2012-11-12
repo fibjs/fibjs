@@ -152,7 +152,7 @@ enum BindingFlags {
   V(CONTEXT_EXTENSION_FUNCTION_INDEX, JSFunction, context_extension_function) \
   V(OUT_OF_MEMORY_INDEX, Object, out_of_memory) \
   V(MAP_CACHE_INDEX, Object, map_cache) \
-  V(EMBEDDER_DATA_INDEX, FixedArray, embedder_data) \
+  V(CONTEXT_DATA_INDEX, Object, data) \
   V(ALLOW_CODE_GEN_FROM_STRINGS_INDEX, Object, allow_code_gen_from_strings) \
   V(ERROR_MESSAGE_FOR_CODE_GEN_FROM_STRINGS_INDEX, Object, \
     error_message_for_code_gen_from_strings) \
@@ -163,6 +163,7 @@ enum BindingFlags {
   V(DERIVED_SET_TRAP_INDEX, JSFunction, derived_set_trap) \
   V(PROXY_ENUMERATE_INDEX, JSFunction, proxy_enumerate) \
   V(OBSERVERS_NOTIFY_CHANGE_INDEX, JSFunction, observers_notify_change) \
+  V(OBSERVERS_DELIVER_CHANGES_INDEX, JSFunction, observers_deliver_changes) \
   V(RANDOM_SEED_INDEX, ByteArray, random_seed)
 
 // JSFunctions are pairs (context, function code), sometimes also called
@@ -282,7 +283,7 @@ class Context: public FixedArray {
     OPAQUE_REFERENCE_FUNCTION_INDEX,
     CONTEXT_EXTENSION_FUNCTION_INDEX,
     OUT_OF_MEMORY_INDEX,
-    EMBEDDER_DATA_INDEX,
+    CONTEXT_DATA_INDEX,
     ALLOW_CODE_GEN_FROM_STRINGS_INDEX,
     ERROR_MESSAGE_FOR_CODE_GEN_FROM_STRINGS_INDEX,
     TO_COMPLETE_PROPERTY_DESCRIPTOR_INDEX,
@@ -291,6 +292,7 @@ class Context: public FixedArray {
     DERIVED_SET_TRAP_INDEX,
     PROXY_ENUMERATE_INDEX,
     OBSERVERS_NOTIFY_CHANGE_INDEX,
+    OBSERVERS_DELIVER_CHANGES_INDEX,
     RANDOM_SEED_INDEX,
 
     // Properties from here are treated as weak references by the full GC.
@@ -448,9 +450,6 @@ class Context: public FixedArray {
   static bool IsBootstrappingOrValidParentContext(Object* object, Context* kid);
   static bool IsBootstrappingOrGlobalObject(Object* object);
 #endif
-
-  STATIC_CHECK(kHeaderSize == Internals::kContextHeaderSize);
-  STATIC_CHECK(EMBEDDER_DATA_INDEX == Internals::kContextEmbedderDataIndex);
 };
 
 } }  // namespace v8::internal

@@ -322,6 +322,7 @@ namespace internal {
   /* Harmony observe */ \
   F(IsObserved, 1, 1) \
   F(SetIsObserved, 2, 1) \
+  F(SetObserverDeliveryPending, 0, 1) \
   F(GetObservationState, 0, 1) \
   F(CreateObjectHashTable, 0, 1) \
   F(ObjectHashTableGet, 2, 1) \
@@ -375,9 +376,6 @@ namespace internal {
   F(GetFromCache, 2, 1) \
   \
   /* Message objects */ \
-  F(NewMessageObject, 2, 1) \
-  F(MessageGetType, 1, 1) \
-  F(MessageGetArguments, 1, 1) \
   F(MessageGetStartPosition, 1, 1) \
   F(MessageGetScript, 1, 1) \
   \

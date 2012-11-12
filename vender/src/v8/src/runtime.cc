@@ -1091,7 +1091,7 @@ static MaybeObject* GetOwnProperty(Isolate* isolate,
   // This could be an element.
   uint32_t index;
   if (name->AsArrayIndex(&index)) {
-    switch (obj->HasLocalElement(index)) {
+    switch (obj->GetLocalElementType(index)) {
       case JSObject::UNDEFINED_ELEMENT:
         return heap->undefined_value();
 
@@ -4699,7 +4699,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_IsPropertyEnumerable) {
 
   uint32_t index;
   if (key->AsArrayIndex(&index)) {
-    JSObject::LocalElementType type = object->HasLocalElement(index);
+    JSObject::LocalElementType type = object->GetLocalElementType(index);
     switch (type) {
       case JSObject::UNDEFINED_ELEMENT:
       case JSObject::STRING_CHARACTER_ELEMENT:
@@ -13101,33 +13101,6 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_GetFromCache) {
 }
 
 
-RUNTIME_FUNCTION(MaybeObject*, Runtime_NewMessageObject) {
-  HandleScope scope(isolate);
-  CONVERT_ARG_HANDLE_CHECKED(String, type, 0);
-  CONVERT_ARG_HANDLE_CHECKED(JSArray, arguments, 1);
-  return *isolate->factory()->NewJSMessageObject(
-      type,
-      arguments,
-      0,
-      0,
-      isolate->factory()->undefined_value(),
-      isolate->factory()->undefined_value(),
-      isolate->factory()->undefined_value());
-}
-
-
-RUNTIME_FUNCTION(MaybeObject*, Runtime_MessageGetType) {
-  CONVERT_ARG_CHECKED(JSMessageObject, message, 0);
-  return message->type();
-}
-
-
-RUNTIME_FUNCTION(MaybeObject*, Runtime_MessageGetArguments) {
-  CONVERT_ARG_CHECKED(JSMessageObject, message, 0);
-  return message->arguments();
-}
-
-
 RUNTIME_FUNCTION(MaybeObject*, Runtime_MessageGetStartPosition) {
   CONVERT_ARG_CHECKED(JSMessageObject, message, 0);
   return Smi::FromInt(message->start_position());
@@ -13263,6 +13236,13 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_SetIsObserved) {
 }
 
 
+RUNTIME_FUNCTION(MaybeObject*, Runtime_SetObserverDeliveryPending) {
+  ASSERT(args.length() == 0);
+  isolate->set_observer_delivery_pending(true);
+  return isolate->heap()->undefined_value();
+}
+
+
 RUNTIME_FUNCTION(MaybeObject*, Runtime_GetObservationState) {
   ASSERT(args.length() == 0);
   return isolate->heap()->observation_state();
@@ -13291,8 +13271,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_ObjectHashTableSet) {
   CONVERT_ARG_HANDLE_CHECKED(ObjectHashTable, table, 0);
   Handle<Object> key = args.at<Object>(1);
   Handle<Object> value = args.at<Object>(2);
-  PutIntoObjectHashTable(table, key, value);
-  return isolate->heap()->undefined_value();
+  return *PutIntoObjectHashTable(table, key, value);
 }
 
 
