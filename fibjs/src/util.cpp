@@ -126,9 +126,12 @@ void ReportException(v8::TryCatch& try_catch, result_t hr)
 			asyncLog(log4cpp::Priority::ERROR, ToCString(exception));
 		else
 		{
-			v8::String::Utf8Value stack_trace(try_catch.StackTrace());
-			if (stack_trace.length() > 0 && qstrcmp("undefined", *stack_trace))
+			v8::Handle<v8::Value> trace_value = try_catch.StackTrace();
+
+			if (!IsEmpty(trace_value))
 			{
+				v8::String::Utf8Value stack_trace(trace_value);
+
 				asyncLog(log4cpp::Priority::ERROR, ToCString(stack_trace));
 				return;
 			}
