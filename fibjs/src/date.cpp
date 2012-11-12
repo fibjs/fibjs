@@ -297,7 +297,7 @@ void date_t::parse(const char* str, int len)
 				wYear = 2001;
 
 			// m/d/y -> y/m/d
-			if (wYear <= 31 && wMonth > 12 && wDay <= 12)
+			if (wMonth > 12 && wDay <= 12 && wYear <= MaxDaysInMonth(wMonth, wDay))
 			{
 				int n = wYear;
 				wYear = wMonth;
