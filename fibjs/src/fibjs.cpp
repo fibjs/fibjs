@@ -117,8 +117,6 @@ void _main(const char* fname)
 
 	v8::V8::Initialize();
 
-	result_t hr;
-
 	fibjs::isolate = v8::Isolate::GetCurrent();
 	v8::Locker locker(fibjs::isolate);
 	v8::Isolate::Scope isolate_scope(fibjs::isolate);
@@ -137,7 +135,9 @@ void _main(const char* fname)
 		obj_ptr<SandBox> sbox = new SandBox();
 
 		sbox->initRoot();
-		s.m_hr = hr = sbox->run(fname);
+		result_t hr = sbox->run(fname);
+		if (hr != -2 || qstrcmp(fname, "main.js"))
+			s.m_hr = hr;
 	}
 
 	process_base::exit(0);
