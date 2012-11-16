@@ -27,6 +27,23 @@ function t_db(conn) {
 	assert.strictEqual(r['t3'].toString(), 'DDDDDDDDDD');
 	assert.strictEqual(r['t4'], new Date('1998-04-14 12:12:12'));
 
+	var call_back = false;
+	var rs = conn.execute('select * from test;', function(r) {
+		assert.equal(typeof r['t1'], 'number');
+		assert.equal(typeof r['t2'], 'string');
+		assert.equal(typeof r['t3'], 'object');
+		assert.equal(typeof r['t4'], 'object');
+
+		assert.strictEqual(r['t1'], 1123);
+		assert.strictEqual(r['t2'], 'aaaaa');
+		assert.strictEqual(r['t3'].toString(), 'DDDDDDDDDD');
+		assert.strictEqual(r['t4'], new Date('1998-04-14 12:12:12'));
+		call_back = true;
+	});
+
+	assert.equal(rs.length, 0);
+	assert.equal(call_back, true);
+
 	var b = new Buffer();
 	b.resize(1);
 
