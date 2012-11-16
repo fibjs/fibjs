@@ -72,9 +72,9 @@ EXPORT_ATTR void UMConnection_Destroy(UMConnection conn)
   delete (Connection *)conn;
 }
 
-EXPORT_ATTR void * UMConnection_Query(UMConnection conn, const char *_query, size_t _cbQuery)
+EXPORT_ATTR void * UMConnection_Query(UMConnection conn, const char *_query, size_t _cbQuery, void* opt)
 {
-  return ((Connection *)conn)->query(_query, _cbQuery);
+  return ((Connection *)conn)->query(_query, _cbQuery, opt);
 }
 
 EXPORT_ATTR int UMConnection_Connect (UMConnection conn, const char *_host, int _port, const char *_username, const char *_password, const char *_database, int *_autoCommit, int _charset)

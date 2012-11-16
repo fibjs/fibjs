@@ -94,13 +94,13 @@ typedef struct __UMConnectionCAPI
   int (*recvSocket)(void *sock, char *buffer, int cbBuffer);
   int (*sendSocket)(void *sock, const char *buffer, int cbBuffer);
 
-  void *(*createResult)(int columns);
-  void (*resultSetField)(void *result, int ifield, UMTypeInfo *ti, void *name, size_t cbName);
-  void (*resultRowBegin)(void *result);
-  int (*resultRowValue)(void *result, int icolumn, UMTypeInfo *ti, void *value, size_t cbValue);
-  void (*resultRowEnd)(void *result);
-  void (*destroyResult)(void *result);
-  void *(*resultOK)(UINT64 affected, UINT64 insertId, int serverStatus, const char *message, size_t len);
+  void *(*createResult)(int columns, void* opt);
+  void (*resultSetField)(void *result, int ifield, UMTypeInfo *ti, void *name, size_t cbName, void* opt);
+  void (*resultRowBegin)(void *result, void* opt);
+  int (*resultRowValue)(void *result, int icolumn, UMTypeInfo *ti, void *value, size_t cbValue, void* opt);
+  int (*resultRowEnd)(void *result, void* opt);
+  void (*destroyResult)(void *result, void* opt);
+  void *(*resultOK)(UINT64 affected, UINT64 insertId, int serverStatus, const char *message, size_t len, void* opt);
 
 
 } UMConnectionCAPI;
@@ -118,7 +118,7 @@ typedef void * UMConnection;
 
 UMConnection UMConnection_Create(UMConnectionCAPI *_capi);
 void UMConnection_Destroy(UMConnection _conn);
-void *UMConnection_Query(UMConnection conn, const char *_query, size_t _cbQuery);
+void *UMConnection_Query(UMConnection conn, const char *_query, size_t _cbQuery, void* opt = NULL);
 int  UMConnection_Connect (UMConnection conn, const char *_host, int _port, const char *_username, const char *_password, const char *_database, int *_autoCommit, int _charset);
 int UMConnection_GetLastError (UMConnection conn, const char **_ppOutMessage, int *_outErrno, int *_type);
 int UMConnection_GetTxBufferSize (UMConnection conn);

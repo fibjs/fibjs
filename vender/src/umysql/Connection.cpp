@@ -560,7 +560,7 @@ bool Connection::connect(const char *_host, int _port, const char *_username, co
   return true;
 }
 
-void *Connection::handleOKPacket()
+void *Connection::handleOKPacket(void* opt)
 {
   UINT64 affectedRows = m_reader.readLengthCodedInteger();
   UINT64 insertId = m_reader.readLengthCodedInteger();
@@ -569,7 +569,7 @@ void *Connection::handleOKPacket()
   size_t len = m_reader.getBytesLeft();
   UINT8 *message = m_reader.readBytes(m_reader.getBytesLeft());
 
-  return m_capi.resultOK(affectedRows, insertId, serverStatus, (char *) message, len);
+  return m_capi.resultOK(affectedRows, insertId, serverStatus, (char *) message, len, opt);
 }
 
 void Connection::handleErrorPacket()
@@ -586,7 +586,7 @@ void Connection::handleErrorPacket()
   setError (errorMessage.c_str (), (int) errnum, UME_MYSQL);
 }
 
-void *Connection::handleResultPacket(int _fieldCount)
+void *Connection::handleResultPacket(int _fieldCount, void* opt)
 {
   m_reader.rewind(1);
   UINT64 fieldCount = m_reader.readLengthCodedInteger();
@@ -594,7 +594,7 @@ void *Connection::handleResultPacket(int _fieldCount)
 
   int iField = 0;
 
-  void *resultSet = m_capi.createResult(_fieldCount);
+  void *resultSet = m_capi.createResult(_fieldCount, opt);
 
   // Read Field packets
 
@@ -606,7 +606,7 @@ void *Connection::handleResultPacket(int _fieldCount)
 
     if (!this->recvPacket())
     {
-      m_capi.destroyResult(resultSet);
+      m_capi.destroyResult(resultSet, opt);
       return NULL;
     }
 
@@ -650,7 +650,7 @@ void *Connection::handleResultPacket(int _fieldCount)
     typeInfo[iTypeInfo].charset = charset;
     iTypeInfo ++;
 
-    m_capi.resultSetField(resultSet, iField, &typeInfo[iTypeInfo - 1], name, cb_name);
+    m_capi.resultSetField(resultSet, iField, &typeInfo[iTypeInfo - 1], name, cb_name, opt);
     iField ++;
     m_reader.skip();
 
@@ -665,7 +665,7 @@ void *Connection::handleResultPacket(int _fieldCount)
 
     if (!this->recvPacket())
     {
-      m_capi.destroyResult(resultSet);
+      m_capi.destroyResult(resultSet, opt);
       return NULL;
     }
 
@@ -682,19 +682,23 @@ void *Connection::handleResultPacket(int _fieldCount)
     size_t cb_column;
 
 
-    m_capi.resultRowBegin(resultSet);
+    m_capi.resultRowBegin(resultSet, opt);
 
     for (int index = 0; index < _fieldCount; index ++)
     {
       UINT8 *columnValue = m_reader.readLengthCodedBinary(&cb_column);
-      if (!m_capi.resultRowValue (resultSet, index, &typeInfo[index], columnValue, cb_column))
+      if (!m_capi.resultRowValue (resultSet, index, &typeInfo[index], columnValue, cb_column, opt))
       {
-        m_capi.destroyResult(resultSet);
+        m_capi.destroyResult(resultSet, opt);
         return NULL;
       }
     }
 
-    m_capi.resultRowEnd(resultSet);
+    if(!m_capi.resultRowEnd(resultSet, opt))
+    {
+        m_capi.destroyResult(resultSet, opt);
+        return NULL;
+    }
     cRows ++;
     m_reader.skip();
 
@@ -705,7 +709,7 @@ void *Connection::handleResultPacket(int _fieldCount)
 }
 
 
-void *Connection::query(const char *_query, size_t _cbQuery)
+void *Connection::query(const char *_query, size_t _cbQuery, void* opt)
 {
   m_dbgMethodProgress ++;
 
@@ -764,7 +768,7 @@ void *Connection::query(const char *_query, size_t _cbQuery)
   case 0x00:
     PRINTMARK();
     m_dbgMethodProgress --;
-    return handleOKPacket();
+    return handleOKPacket(opt);
 
   case 0xff:
     PRINTMARK();
@@ -782,7 +786,7 @@ void *Connection::query(const char *_query, size_t _cbQuery)
   default:
     PRINTMARK();
     m_dbgMethodProgress --;
-    return handleResultPacket((int)result);
+    return handleResultPacket((int)result, opt);
   }
 
   PRINTMARK();
