@@ -173,6 +173,10 @@ result_t _format(const char* sql, const v8::Arguments& args, bool mysql,
 			if (cnt < args.Length())
 			{
 				v8::Handle<v8::Value> v = args[cnt];
+
+				if (v->IsFunction())
+					return CALL_E_TYPEMISMATCH;
+
 				obj_ptr<Buffer_base> bin = Buffer_base::getInstance(v);
 
 				if (bin)

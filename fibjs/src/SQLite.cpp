@@ -171,6 +171,24 @@ result_t SQLite::execute(const char* sql, int sLen,
 						res->rowValue(i, v);
 					}
 					res->endRow();
+
+					if (!m_func.IsEmpty())
+					{
+						Variant val;
+
+						res->_indexed_getter(0, val);
+						res->resize(0);
+
+						v8::Handle < v8::Value > v;
+						v = val;
+						v8::Handle < v8::Value > r = m_func->Call(wrap(), 1,
+								&v);
+						if (r.IsEmpty())
+						{
+							sqlite3_finalize(stmt);
+							return CALL_E_JAVASCRIPT;
+						}
+					}
 				}
 				else if (r == SQLITE_DONE)
 					break;
@@ -210,7 +228,14 @@ result_t SQLite::execute(const char* sql, const v8::Arguments& args,
 	if (hr < 0)
 		return hr;
 
-	return execute(str.c_str(), (int) str.length(), retVal);
+	v8::Handle < v8::Value > v = args[args.Length() - 1];
+	if (v->IsFunction())
+		m_func = v8::Handle < v8::Function > ::Cast(v);
+
+	hr = execute(str.c_str(), (int) str.length(), retVal);
+	m_func.Clear();
+
+	return hr;
 }
 
 result_t SQLite::get_fileName(std::string& retVal)

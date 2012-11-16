@@ -51,6 +51,7 @@ private:
 	std::string m_file;
 	sqlite3 *m_db;
 	int m_nCmdTimeout;
+	v8::Handle<v8::Function> m_func;
 };
 
 } /* namespace fibjs */

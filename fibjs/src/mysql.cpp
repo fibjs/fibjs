@@ -54,7 +54,7 @@ int API_sendSocket(void *sock, const char *buffer, int cbBuffer)
 	return fibjs::socket::send(sock, buffer, cbBuffer);
 }
 
-void *API_createResult(int columns)
+void *API_createResult(int columns, void* opt)
 {
 	DBResult* res = new DBResult(columns);
 	res->Ref();
@@ -62,19 +62,19 @@ void *API_createResult(int columns)
 }
 
 void API_resultSetField(void *result, int ifield, UMTypeInfo *ti, void *name,
-		size_t cbName)
+		size_t cbName, void* opt)
 {
 	std::string s((char*) name, cbName);
 	((DBResult*) result)->setField(ifield, s);
 }
 
-void API_resultRowBegin(void *result)
+void API_resultRowBegin(void *result, void* opt)
 {
 	((DBResult*) result)->beginRow();
 }
 
 int API_resultRowValue(void *result, int icolumn, UMTypeInfo *ti, void *value,
-		size_t cbValue)
+		size_t cbValue, void* opt)
 {
 	Variant v;
 
@@ -116,19 +116,41 @@ int API_resultRowValue(void *result, int icolumn, UMTypeInfo *ti, void *value,
 	return true;
 }
 
-void API_resultRowEnd(void *result)
-{
-	((DBResult*) result)->endRow();
-}
-
-void API_destroyResult(void *result)
+int API_resultRowEnd(void *result, void* opt)
 {
 	DBResult* res = (DBResult*) result;
-	res->Unref();
+	mysql* db = (mysql*)opt;
+
+	res->endRow();
+
+	if (!db->m_func.IsEmpty())
+	{
+		Variant val;
+
+		res->_indexed_getter(0, val);
+		res->resize(0);
+
+		v8::Handle < v8::Value > v;
+		v = val;
+		v8::Handle < v8::Value > r = db->m_func->Call(db->wrap(), 1,
+				&v);
+		if (r.IsEmpty())
+		{
+			Runtime::setError(CALL_E_JAVASCRIPT);
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+void API_destroyResult(void *result, void* opt)
+{
+	((DBResult*) result)->Unref();
 }
 
 void *API_resultOK(UINT64 affected, UINT64 insertId, int serverStatus,
-		const char *message, size_t len)
+		const char *message, size_t len, void* opt)
 {
 	DBResult* res = new DBResult(affected, insertId);
 	res->Ref();
@@ -209,27 +231,27 @@ result_t mysql::close()
 
 result_t mysql::use(const char* dbName)
 {
-	obj_ptr<DBResult_base> retVal;
+	obj_ptr < DBResult_base > retVal;
 	std::string s("USE ", 4);
 	s.append(dbName);
-	return execute(s.c_str(), (int)s.length(), retVal);
+	return execute(s.c_str(), (int) s.length(), retVal);
 }
 
 result_t mysql::begin()
 {
-	obj_ptr<DBResult_base> retVal;
+	obj_ptr < DBResult_base > retVal;
 	return execute("BEGIN", 5, retVal);
 }
 
 result_t mysql::commit()
 {
-	obj_ptr<DBResult_base> retVal;
+	obj_ptr < DBResult_base > retVal;
 	return execute("COMMIT", 6, retVal);
 }
 
 result_t mysql::rollback()
 {
-	obj_ptr<DBResult_base> retVal;
+	obj_ptr < DBResult_base > retVal;
 	return execute("ROLLBACK", 8, retVal);
 }
 
@@ -239,7 +261,7 @@ result_t mysql::execute(const char* sql, int sLen,
 	if (!m_conn)
 		return CALL_E_INVALID_CALL;
 
-	DBResult* res = (DBResult*) UMConnection_Query(m_conn, sql, sLen);
+	DBResult* res = (DBResult*) UMConnection_Query(m_conn, sql, sLen, this);
 	if (!res)
 		return error();
 
@@ -257,7 +279,14 @@ result_t mysql::execute(const char* sql, const v8::Arguments& args,
 	if (hr < 0)
 		return hr;
 
-	return execute(str.c_str(), (int)str.length(), retVal);
+	v8::Handle < v8::Value > v = args[args.Length() - 1];
+	if (v->IsFunction())
+		m_func = v8::Handle < v8::Function > ::Cast(v);
+
+	hr = execute(str.c_str(), (int) str.length(), retVal);
+	m_func.Clear();
+
+	return hr;
 }
 
 result_t mysql::get_rxBufferSize(int32_t& retVal)

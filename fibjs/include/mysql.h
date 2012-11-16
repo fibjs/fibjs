@@ -59,6 +59,9 @@ private:
 		return Runtime::errNumber();
 	}
 
+public:
+	v8::Handle<v8::Function> m_func;
+
 private:
 	UMConnection m_conn;
 	int m_rxBufferSize;
