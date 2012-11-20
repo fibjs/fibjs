@@ -133,8 +133,11 @@ result_t SQLite::execute(const char* sql, int sLen,
 
 						default:
 							const char* type = sqlite3_column_decltype(stmt, i);
-
-							if (type && !qstricmp(type, "blob"))
+							if (type
+									&& (!qstricmp(type, "blob")
+											|| !qstricmp(type, "tinyblob")
+											|| !qstricmp(type, "mediumblob")
+											|| !qstricmp(type, "longblob")))
 							{
 								const char* data =
 										(const char *) sqlite3_column_blob(stmt,
