@@ -65,9 +65,9 @@ assert.equal('123456\\r\\n\'\'\\\"\\\x1acccds', db.escape(
 		'123456\r\n\'\"\x1acccds', true));
 assert.equal(db.formatMySQL("test?, ?, ?, ?", 123, 'ds\r\na', new Date(
 		'1998-4-14 12:12:12')),
-		"test'123', 'ds\\r\\na', '1998-04-14 12:12:12', ''");
+		"test123, 'ds\\r\\na', '1998-04-14 12:12:12', ''");
 
-assert.equal(db.formatMySQL("test?", [ 1, 2, 3, 4 ]), "test('1','2','3','4')");
+assert.equal(db.formatMySQL("test?", [ 1, 2, 3, 4 ]), "test(1,2,3,4)");
 
 t_db(db.open('sqlite:test.db'));
 //t_db(db.open('mysql://root@localhost/test'));
