@@ -134,21 +134,32 @@ inline void _escape(const char* str, int sz, bool mysql, std::string& retVal)
 
 void _appendValue(std::string& str, v8::Handle<v8::Value>& v, bool mysql)
 {
-	std::string s;
+	bool bNumber = v->IsNumber();
 
-	str += '\'';
-	if (v->IsDate())
+	if (bNumber)
 	{
-		date_t d = v;
-		d.sqlString(s);
+		v8::String::Utf8Value s1(v);
+		str.append(*s1, s1.length());
 	}
 	else
 	{
-		v8::String::Utf8Value s1(v);
-		_escape(*s1, s1.length(), mysql, s);
+		std::string s;
+		str += '\'';
+
+		if (v->IsDate())
+		{
+			date_t d = v;
+			d.sqlString(s);
+		}
+		else
+		{
+			v8::String::Utf8Value s1(v);
+			_escape(*s1, s1.length(), mysql, s);
+		}
+		str.append(s);
+
+		str += '\'';
 	}
-	str.append(s);
-	str += '\'';
 }
 
 result_t _format(const char* sql, const v8::Arguments& args, bool mysql,
