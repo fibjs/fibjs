@@ -137,6 +137,10 @@ assert.equal(10, req.length);
 assert.equal('test', req.headers['content-type']);
 assert.equal('0123456789', req.body.read());
 
+assert.equal(req.stream.size(), 94);
+req.clear();
+assert.equal(req.stream, null);
+
 var keep_reqs = {
 	"GET / HTTP/1.0\r\n\r\n" : false,
 	"GET / HTTP/1.0\r\nconnection: close\r\n\r\n" : false,
