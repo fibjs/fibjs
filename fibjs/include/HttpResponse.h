@@ -46,6 +46,7 @@ public:
 	virtual result_t readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac);
 	virtual result_t asyncReadFrom(BufferedStream_base* stm);
 	virtual result_t onreadfrom(v8::Handle<v8::Function> func);
+	virtual result_t get_stream(obj_ptr<Stream_base>& retVal);
 
 public:
 	// HttpMessage_base

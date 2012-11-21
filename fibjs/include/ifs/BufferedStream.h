@@ -29,6 +29,7 @@ public:
 	virtual result_t readUntil(const char* mk, int32_t maxlen, std::string& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t writeText(const char* txt, exlib::AsyncEvent* ac) = 0;
 	virtual result_t writeLine(const char* txt, exlib::AsyncEvent* ac) = 0;
+	virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
 	virtual result_t get_EOL(std::string& retVal) = 0;
 	virtual result_t set_EOL(const char* newVal) = 0;
 
@@ -41,6 +42,7 @@ public:
 	static v8::Handle<v8::Value> s_readUntil(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_writeText(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_writeLine(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_get_stream(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_EOL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_EOL(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 
@@ -75,18 +77,31 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
+			{"stream", s_get_stream},
 			{"EOL", s_get_EOL, s_set_EOL}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"BufferedStream", s__new, 
-			5, s_method, 0, NULL, 1, s_property, NULL, NULL,
+			5, s_method, 0, NULL, 2, s_property, NULL, NULL,
 			&Stream_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
+	}
+
+	inline v8::Handle<v8::Value> BufferedStream_base::s_get_stream(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		obj_ptr<Stream_base> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(BufferedStream_base);
+
+		hr = pInst->get_stream(vr);
+
+		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> BufferedStream_base::s_get_EOL(v8::Local<v8::String> property, const v8::AccessorInfo &info)

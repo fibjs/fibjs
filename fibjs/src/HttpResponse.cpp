@@ -299,6 +299,11 @@ result_t HttpResponse::onreadfrom(v8::Handle<v8::Function> func)
 	return on("readfrom", func);
 }
 
+result_t HttpResponse::get_stream(obj_ptr<Stream_base>& retVal)
+{
+	return m_message.get_stream(retVal);
+}
+
 result_t HttpResponse::get_status(int32_t& retVal)
 {
 	retVal = m_status;

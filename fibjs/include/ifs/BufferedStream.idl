@@ -42,6 +42,9 @@ class BufferedStream : Stream
 	 */
 	writeLine(String txt) async;
 
+	/*! @brief 查询创建缓存对象时的流对象 */
+	readonly Stream stream;
+
 	/*! @brief 查询和设置行结尾标识，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"	 */
 	String EOL;
 };

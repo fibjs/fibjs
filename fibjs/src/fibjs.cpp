@@ -109,7 +109,7 @@ void _main(const char* fname)
 	{
 		log4cpp::Category& root = log4cpp::Category::getRoot();
 		root.addAppender(new MyAppender());
-		root.warn(e.what());
+//		root.warn(e.what());
 	}
 
 	exlib::Service::init();

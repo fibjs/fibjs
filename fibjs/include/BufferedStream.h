@@ -53,6 +53,7 @@ public:
 	virtual result_t readUntil(const char* mk, int32_t maxlen, std::string& retVal, exlib::AsyncEvent* ac);
 	virtual result_t writeText(const char* txt, exlib::AsyncEvent* ac);
 	virtual result_t writeLine(const char* txt, exlib::AsyncEvent* ac);
+	virtual result_t get_stream(obj_ptr<Stream_base>& retVal);
 	virtual result_t get_EOL(std::string& retVal);
 	virtual result_t set_EOL(const char* newVal);
 

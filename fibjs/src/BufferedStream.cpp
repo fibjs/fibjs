@@ -345,6 +345,15 @@ result_t BufferedStream::writeLine(const char* txt, exlib::AsyncEvent* ac)
 	return write(data, ac);
 }
 
+result_t BufferedStream::get_stream(obj_ptr<Stream_base>& retVal)
+{
+	if(!m_stm)
+		return CALL_RETURN_NULL;
+
+	retVal = m_stm;
+	return 0;
+}
+
 result_t BufferedStream::get_EOL(std::string& retVal)
 {
 	retVal = m_eol;

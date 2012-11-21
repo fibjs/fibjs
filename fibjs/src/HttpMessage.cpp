@@ -216,6 +216,8 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 	if (!ac)
 		return CALL_E_NOSYNC;
 
+	stm->get_stream(m_stm);
+
 	return (new asyncReadFrom(this, stm, ac))->post(0);
 }
 
@@ -433,6 +435,15 @@ result_t HttpMessage::removeHeader(const char* name)
 	return m_headers->remove(name);
 }
 
+result_t HttpMessage::get_stream(obj_ptr<Stream_base>& retVal)
+{
+	if(!m_stm)
+		return CALL_RETURN_NULL;
+
+	retVal = m_stm;
+	return 0;
+}
+
 result_t HttpMessage::clear()
 {
 	Message::clear();
@@ -444,6 +455,8 @@ result_t HttpMessage::clear()
 	m_encoding.clear();
 
 	m_headers->clear();
+
+	m_stm.Release();
 
 	return 0;
 }

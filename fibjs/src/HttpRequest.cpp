@@ -299,6 +299,11 @@ result_t HttpRequest::get_method(std::string& retVal)
 	return 0;
 }
 
+result_t HttpRequest::get_stream(obj_ptr<Stream_base>& retVal)
+{
+	return m_message.get_stream(retVal);
+}
+
 result_t HttpRequest::set_method(const char* newVal)
 {
 	m_method = newVal;

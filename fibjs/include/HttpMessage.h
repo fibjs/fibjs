@@ -45,6 +45,7 @@ public:
 	result_t setHeader(v8::Handle<v8::Object> map);
 	result_t setHeader(const char* name, Variant value);
 	result_t removeHeader(const char* name);
+	result_t get_stream(obj_ptr<Stream_base>& retVal);
 
 	result_t clear();
 
@@ -61,6 +62,7 @@ public:
 	size_t getData(char* buf, size_t sz);
 
 public:
+	obj_ptr<Stream_base> m_stm;
 	bool m_bResponse;
 	std::string m_protocol;
 	bool m_keepAlive;
