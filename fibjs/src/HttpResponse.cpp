@@ -325,4 +325,13 @@ result_t HttpResponse::set_status(int32_t newVal)
 	return 0;
 }
 
+result_t HttpResponse::redirect(const char* url)
+{
+	clear();
+
+	m_status = 302;
+	setHeader("Location", url);
+	return 0;
+}
+
 } /* namespace fibjs */

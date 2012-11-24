@@ -26,6 +26,7 @@ public:
 	static result_t _new(obj_ptr<HttpResponse_base>& retVal);
 	virtual result_t get_status(int32_t& retVal) = 0;
 	virtual result_t set_status(int32_t newVal) = 0;
+	virtual result_t redirect(const char* url) = 0;
 
 	DECLARE_CLASSINFO(HttpResponse_base);
 
@@ -33,6 +34,7 @@ public:
 	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_status(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_status(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_redirect(const v8::Arguments& args);
 };
 
 }
@@ -42,6 +44,11 @@ namespace fibjs
 {
 	inline ClassInfo& HttpResponse_base::class_info()
 	{
+		static ClassData::ClassMethod s_method[] = 
+		{
+			{"redirect", s_redirect}
+		};
+
 		static ClassData::ClassProperty s_property[] = 
 		{
 			{"status", s_get_status, s_set_status}
@@ -50,7 +57,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"HttpResponse", s__new, 
-			0, NULL, 0, NULL, 1, s_property, NULL, NULL,
+			1, s_method, 0, NULL, 1, s_property, NULL, NULL,
 			&HttpMessage_base::class_info()
 		};
 
@@ -90,6 +97,18 @@ namespace fibjs
 		hr = _new(vr);
 
 		CONSTRUCT_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> HttpResponse_base::s_redirect(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(HttpResponse_base);
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = pInst->redirect(v0);
+
+		METHOD_VOID();
 	}
 
 }

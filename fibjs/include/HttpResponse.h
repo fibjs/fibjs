@@ -72,6 +72,7 @@ public:
 	// HttpResponse_base
 	virtual result_t get_status(int32_t& retVal);
 	virtual result_t set_status(int32_t newVal);
+	virtual result_t redirect(const char* url);
 
 public:
 	HttpMessage m_message;
