@@ -76,6 +76,7 @@ class Profiler;
 class Semaphore;
 class SlidingStateWindow;
 class Ticker;
+class Isolate;
 
 #undef LOG
 #define LOG(isolate, Call)                          \
@@ -274,6 +275,31 @@ class Logger {
   void SharedLibraryEvent(const wchar_t* library_path,
                           uintptr_t start,
                           uintptr_t end);
+  void TimerEvent(const char* name, int64_t start, int64_t end);
+
+  class TimerEventScope {
+   public:
+    TimerEventScope(Isolate* isolate, const char* name)
+        : isolate_(isolate), name_(name), start_(0) {
+      if (FLAG_log_timer_events) start_ = OS::Ticks();
+    }
+
+    ~TimerEventScope() {
+      if (FLAG_log_timer_events) LogTimerEvent();
+    }
+
+    void LogTimerEvent();
+
+    static const char* v8_recompile_synchronous;
+    static const char* v8_recompile_parallel;
+    static const char* v8_compile_full_code;
+    static const char* v8_execute;
+
+   private:
+    Isolate* isolate_;
+    const char* name_;
+    int64_t start_;
+  };
 
   // ==== Events logged by --log-regexp ====
   // Regexp compilation and execution events.
@@ -448,6 +474,8 @@ class Logger {
   Address prev_to_;
   //  Logger::FunctionCreateEvent(...)
   Address prev_code_;
+
+  int64_t epoch_;
 
   friend class CpuProfiler;
 };

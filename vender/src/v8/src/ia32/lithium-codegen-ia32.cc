@@ -302,7 +302,30 @@ bool LCodeGen::GenerateBody() {
     }
 
     if (emit_instructions) {
-      Comment(";;; @%d: %s.", current_instruction_, instr->Mnemonic());
+      if (FLAG_code_comments) {
+        HValue* hydrogen = instr->hydrogen_value();
+        if (hydrogen != NULL) {
+          if (hydrogen->IsChange()) {
+            HValue* changed_value = HChange::cast(hydrogen)->value();
+            int use_id = 0;
+            const char* use_mnemo = "dead";
+            if (hydrogen->UseCount() >= 1) {
+              HValue* use_value = hydrogen->uses().value();
+              use_id = use_value->id();
+              use_mnemo = use_value->Mnemonic();
+            }
+            Comment(";;; @%d: %s. <of #%d %s for #%d %s>",
+                    current_instruction_, instr->Mnemonic(),
+                    changed_value->id(), changed_value->Mnemonic(),
+                    use_id, use_mnemo);
+          } else {
+            Comment(";;; @%d: %s. <#%d>", current_instruction_,
+                    instr->Mnemonic(), hydrogen->id());
+          }
+        } else {
+          Comment(";;; @%d: %s.", current_instruction_, instr->Mnemonic());
+        }
+      }
       instr->CompileToNative(this);
     }
   }
@@ -2775,12 +2798,15 @@ void LCodeGen::DoAccessArgumentsAt(LAccessArgumentsAt* instr) {
 
 void LCodeGen::DoLoadKeyedExternalArray(LLoadKeyed* instr) {
   ElementsKind elements_kind = instr->elements_kind();
-  if (ExternalArrayOpRequiresTemp<HLoadKeyed>(instr->hydrogen())) {
-    __ SmiUntag(ToRegister(instr->key()));
+  LOperand* key = instr->key();
+  if (!key->IsConstantOperand() &&
+      ExternalArrayOpRequiresTemp(instr->hydrogen()->key()->representation(),
+                                  elements_kind)) {
+    __ SmiUntag(ToRegister(key));
   }
   Operand operand(BuildFastArrayOperand(
       instr->elements(),
-      instr->key(),
+      key,
       instr->hydrogen()->key()->representation(),
       elements_kind,
       0,
@@ -3583,6 +3609,16 @@ void LCodeGen::DoMathLog(LUnaryMathOperation* instr) {
 }
 
 
+void LCodeGen::DoMathExp(LMathExp* instr) {
+  XMMRegister input = ToDoubleRegister(instr->value());
+  XMMRegister result = ToDoubleRegister(instr->result());
+  Register temp1 = ToRegister(instr->temp1());
+  Register temp2 = ToRegister(instr->temp2());
+
+  MathExpGenerator::EmitMathExp(masm(), input, result, xmm0, temp1, temp2);
+}
+
+
 void LCodeGen::DoMathTan(LUnaryMathOperation* instr) {
   ASSERT(ToDoubleRegister(instr->result()).is(xmm1));
   TranscendentalCacheStub stub(TranscendentalCache::TAN,
@@ -3850,12 +3886,15 @@ void LCodeGen::DoBoundsCheck(LBoundsCheck* instr) {
 
 void LCodeGen::DoStoreKeyedExternalArray(LStoreKeyed* instr) {
   ElementsKind elements_kind = instr->elements_kind();
-  if (ExternalArrayOpRequiresTemp<HStoreKeyed>(instr->hydrogen())) {
-    __ SmiUntag(ToRegister(instr->key()));
+  LOperand* key = instr->key();
+  if (!key->IsConstantOperand() &&
+      ExternalArrayOpRequiresTemp(instr->hydrogen()->key()->representation(),
+                                  elements_kind)) {
+    __ SmiUntag(ToRegister(key));
   }
   Operand operand(BuildFastArrayOperand(
       instr->elements(),
-      instr->key(),
+      key,
       instr->hydrogen()->key()->representation(),
       elements_kind,
       0,
@@ -4405,6 +4444,7 @@ void LCodeGen::DoDeferredTaggedToI(LTaggedToI* instr) {
     // Check for undefined. Undefined is converted to zero for truncating
     // conversions.
     __ cmp(input_reg, factory()->undefined_value());
+    __ RecordComment("Deferred TaggedToI: cannot truncate");
     DeoptimizeIf(not_equal, instr->environment());
     __ mov(input_reg, 0);
     __ jmp(&done, Label::kNear);
@@ -4425,6 +4465,7 @@ void LCodeGen::DoDeferredTaggedToI(LTaggedToI* instr) {
       __ j(less, &convert, Label::kNear);
       // Pop FPU stack before deoptimizing.
       __ fstp(0);
+      __ RecordComment("Deferred TaggedToI: exponent too big");
       DeoptimizeIf(no_condition, instr->environment());
 
       // Reserve space for 64 bit answer.
@@ -4450,6 +4491,7 @@ void LCodeGen::DoDeferredTaggedToI(LTaggedToI* instr) {
     }
   } else {
     // Deoptimize if we don't have a heap number.
+    __ RecordComment("Deferred TaggedToI: not a heap number");
     DeoptimizeIf(not_equal, instr->environment());
 
     XMMRegister xmm_temp = ToDoubleRegister(instr->temp());
@@ -4457,13 +4499,16 @@ void LCodeGen::DoDeferredTaggedToI(LTaggedToI* instr) {
     __ cvttsd2si(input_reg, Operand(xmm0));
     __ cvtsi2sd(xmm_temp, Operand(input_reg));
     __ ucomisd(xmm0, xmm_temp);
+    __ RecordComment("Deferred TaggedToI: lost precision");
     DeoptimizeIf(not_equal, instr->environment());
+    __ RecordComment("Deferred TaggedToI: NaN");
     DeoptimizeIf(parity_even, instr->environment());  // NaN.
     if (instr->hydrogen()->CheckFlag(HValue::kBailoutOnMinusZero)) {
       __ test(input_reg, Operand(input_reg));
       __ j(not_zero, &done);
       __ movmskpd(input_reg, xmm0);
       __ and_(input_reg, 1);
+      __ RecordComment("Deferred TaggedToI: minus zero");
       DeoptimizeIf(not_zero, instr->environment());
     }
   }

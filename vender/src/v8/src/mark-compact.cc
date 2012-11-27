@@ -488,6 +488,7 @@ void MarkCompactCollector::ClearMarkbits() {
     MarkBit mark_bit = Marking::MarkBitFrom(obj);
     mark_bit.Clear();
     mark_bit.Next().Clear();
+    Page::FromAddress(obj->address())->ResetProgressBar();
     Page::FromAddress(obj->address())->ResetLiveBytes();
   }
 }
@@ -3524,7 +3525,6 @@ void MarkCompactCollector::SweepSpace(PagedSpace* space, SweeperType sweeper) {
 
   intptr_t freed_bytes = 0;
   int pages_swept = 0;
-  intptr_t newspace_size = space->heap()->new_space()->Size();
   bool lazy_sweeping_active = false;
   bool unused_page_present = false;
 
@@ -3587,15 +3587,8 @@ void MarkCompactCollector::SweepSpace(PagedSpace* space, SweeperType sweeper) {
         }
         freed_bytes += SweepConservatively(space, p);
         pages_swept++;
-        if (freed_bytes > 2 * newspace_size) {
-          space->SetPagesToSweep(p->next_page());
-          lazy_sweeping_active = true;
-        } else {
-          if (FLAG_gc_verbose) {
-            PrintF("Only %" V8PRIdPTR " bytes freed.  Still sweeping.\n",
-                   freed_bytes);
-          }
-        }
+        space->SetPagesToSweep(p->next_page());
+        lazy_sweeping_active = true;
         break;
       }
       case PRECISE: {

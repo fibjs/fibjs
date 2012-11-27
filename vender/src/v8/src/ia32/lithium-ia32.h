@@ -125,6 +125,7 @@ class LCodeGen;
   V(LoadNamedFieldPolymorphic)                  \
   V(LoadNamedGeneric)                           \
   V(MapEnumLength)                              \
+  V(MathExp)                                    \
   V(MathFloorOfDiv)                             \
   V(MathMinMax)                                 \
   V(MathPowHalf)                                \
@@ -614,7 +615,7 @@ class LCmpIDAndBranch: public LControlInstruction<2, 0> {
 
   Token::Value op() const { return hydrogen()->token(); }
   bool is_double() const {
-    return hydrogen()->GetInputRepresentation().IsDouble();
+    return hydrogen()->representation().IsDouble();
   }
 
   virtual void PrintDataTo(StringStream* stream);
@@ -636,6 +637,27 @@ class LUnaryMathOperation: public LTemplateInstruction<1, 2, 0> {
 
   virtual void PrintDataTo(StringStream* stream);
   BuiltinFunctionId op() const { return hydrogen()->op(); }
+};
+
+
+class LMathExp: public LTemplateInstruction<1, 1, 2> {
+ public:
+  LMathExp(LOperand* value,
+           LOperand* temp1,
+           LOperand* temp2) {
+    inputs_[0] = value;
+    temps_[0] = temp1;
+    temps_[1] = temp2;
+    ExternalReference::InitializeMathExpData();
+  }
+
+  LOperand* value() { return inputs_[0]; }
+  LOperand* temp1() { return temps_[0]; }
+  LOperand* temp2() { return temps_[1]; }
+
+  DECLARE_CONCRETE_INSTRUCTION(MathExp, "math-exp")
+
+  virtual void PrintDataTo(StringStream* stream);
 };
 
 
@@ -1404,20 +1426,18 @@ class LLoadKeyed: public LTemplateInstruction<1, 2, 0> {
   DECLARE_CONCRETE_INSTRUCTION(LoadKeyed, "load-keyed")
   DECLARE_HYDROGEN_ACCESSOR(LoadKeyed)
 
+  virtual void PrintDataTo(StringStream* stream);
   uint32_t additional_index() const { return hydrogen()->index_offset(); }
 };
 
 
-template <class T>
-inline static bool ExternalArrayOpRequiresTemp(T* value) {
-  CHECK(value->IsLoadKeyed() || value->IsStoreKeyed());
-  Representation key_representation = value->key()->representation();
-  ElementsKind elements_kind = value->elements_kind();
-
+inline static bool ExternalArrayOpRequiresTemp(
+    Representation key_representation,
+    ElementsKind elements_kind) {
   // Operations that require the key to be divided by two to be converted into
   // an index cannot fold the scale operation into a load and need an extra
   // temp register to do the work.
-  return !value->IsConstant() && key_representation.IsTagged() &&
+  return key_representation.IsTagged() &&
       (elements_kind == EXTERNAL_BYTE_ELEMENTS ||
        elements_kind == EXTERNAL_UNSIGNED_BYTE_ELEMENTS ||
        elements_kind == EXTERNAL_PIXEL_ELEMENTS);

@@ -131,10 +131,12 @@ class LCodeGen;
   V(LoadNamedFieldPolymorphic)                  \
   V(LoadNamedGeneric)                           \
   V(MapEnumLength)                              \
+  V(MathExp)                                    \
   V(MathFloorOfDiv)                             \
   V(MathMinMax)                                 \
   V(ModI)                                       \
   V(MulI)                                       \
+  V(MultiplyAddD)                               \
   V(NumberTagD)                                 \
   V(NumberTagI)                                 \
   V(NumberTagU)                                 \
@@ -165,6 +167,7 @@ class LCodeGen;
   V(StringCompareAndBranch)                     \
   V(StringLength)                               \
   V(SubI)                                       \
+  V(RSubI)                                      \
   V(TaggedToI)                                  \
   V(ThisFunction)                               \
   V(Throw)                                      \
@@ -621,6 +624,24 @@ class LMulI: public LTemplateInstruction<1, 2, 1> {
 };
 
 
+// Instruction for computing multiplier * multiplicand + addend.
+class LMultiplyAddD: public LTemplateInstruction<1, 3, 0> {
+ public:
+  LMultiplyAddD(LOperand* addend, LOperand* multiplier,
+                LOperand* multiplicand) {
+    inputs_[0] = addend;
+    inputs_[1] = multiplier;
+    inputs_[2] = multiplicand;
+  }
+
+  LOperand* addend() { return inputs_[0]; }
+  LOperand* multiplier() { return inputs_[1]; }
+  LOperand* multiplicand() { return inputs_[2]; }
+
+  DECLARE_CONCRETE_INSTRUCTION(MultiplyAddD, "multiply-add-d")
+};
+
+
 class LCmpIDAndBranch: public LControlInstruction<2, 0> {
  public:
   LCmpIDAndBranch(LOperand* left, LOperand* right) {
@@ -636,7 +657,7 @@ class LCmpIDAndBranch: public LControlInstruction<2, 0> {
 
   Token::Value op() const { return hydrogen()->token(); }
   bool is_double() const {
-    return hydrogen()->GetInputRepresentation().IsDouble();
+    return hydrogen()->representation().IsDouble();
   }
 
   virtual void PrintDataTo(StringStream* stream);
@@ -658,6 +679,30 @@ class LUnaryMathOperation: public LTemplateInstruction<1, 1, 1> {
 
   virtual void PrintDataTo(StringStream* stream);
   BuiltinFunctionId op() const { return hydrogen()->op(); }
+};
+
+
+class LMathExp: public LTemplateInstruction<1, 1, 3> {
+ public:
+  LMathExp(LOperand* value,
+           LOperand* double_temp,
+           LOperand* temp1,
+           LOperand* temp2) {
+    inputs_[0] = value;
+    temps_[0] = temp1;
+    temps_[1] = temp2;
+    temps_[2] = double_temp;
+    ExternalReference::InitializeMathExpData();
+  }
+
+  LOperand* value() { return inputs_[0]; }
+  LOperand* temp1() { return temps_[0]; }
+  LOperand* temp2() { return temps_[1]; }
+  LOperand* double_temp() { return temps_[2]; }
+
+  DECLARE_CONCRETE_INSTRUCTION(MathExp, "math-exp")
+
+  virtual void PrintDataTo(StringStream* stream);
 };
 
 
@@ -981,6 +1026,21 @@ class LSubI: public LTemplateInstruction<1, 2, 0> {
   LOperand* right() { return inputs_[1]; }
 
   DECLARE_CONCRETE_INSTRUCTION(SubI, "sub-i")
+  DECLARE_HYDROGEN_ACCESSOR(Sub)
+};
+
+
+class LRSubI: public LTemplateInstruction<1, 2, 0> {
+ public:
+  LRSubI(LOperand* left, LOperand* right) {
+    inputs_[0] = left;
+    inputs_[1] = right;
+  }
+
+  LOperand* left() { return inputs_[0]; }
+  LOperand* right() { return inputs_[1]; }
+
+  DECLARE_CONCRETE_INSTRUCTION(RSubI, "rsub-i")
   DECLARE_HYDROGEN_ACCESSOR(Sub)
 };
 
@@ -1372,6 +1432,7 @@ class LLoadKeyed: public LTemplateInstruction<1, 2, 0> {
   DECLARE_CONCRETE_INSTRUCTION(LoadKeyed, "load-keyed")
   DECLARE_HYDROGEN_ACCESSOR(LoadKeyed)
 
+  virtual void PrintDataTo(StringStream* stream);
   uint32_t additional_index() const { return hydrogen()->index_offset(); }
 };
 
@@ -2395,6 +2456,9 @@ class LChunkBuilder BASE_EMBEDDED {
 #define DECLARE_DO(type) LInstruction* Do##type(H##type* node);
   HYDROGEN_CONCRETE_INSTRUCTION_LIST(DECLARE_DO)
 #undef DECLARE_DO
+
+  LInstruction* DoMultiplyAdd(HMul* mul, HValue* addend);
+  LInstruction* DoRSub(HSub* instr);
 
   static bool HasMagicNumberForDivisor(int32_t divisor);
   static HValue* SimplifiedDividendForMathFloorOfDiv(HValue* val);

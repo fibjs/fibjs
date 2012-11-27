@@ -76,9 +76,6 @@ class BasicJsonStringifier BASE_EMBEDDED {
     }
   }
 
-  Handle<Object> GetProperty(Handle<JSObject> object,
-                             Handle<String> key);
-
   Handle<Object> ApplyToJsonFunction(Handle<Object> object,
                                      Handle<Object> key);
 
@@ -219,7 +216,7 @@ BasicJsonStringifier::BasicJsonStringifier(Isolate* isolate)
   accumulator_store_ = Handle<JSValue>::cast(
                            factory_->ToObject(factory_->empty_string()));
   part_length_ = kInitialPartLength;
-  current_part_ = factory_->NewRawAsciiString(kInitialPartLength);
+  current_part_ = factory_->NewRawOneByteString(kInitialPartLength);
   tojson_symbol_ = factory_->LookupAsciiSymbol("toJSON");
   stack_ = factory_->NewJSArray(8);
 }
@@ -246,7 +243,7 @@ MaybeObject* BasicJsonStringifier::Stringify(Handle<Object> object) {
 template <bool is_ascii, typename Char>
 void BasicJsonStringifier::Append_(Char c) {
   if (is_ascii) {
-    SeqAsciiString::cast(*current_part_)->SeqAsciiStringSet(
+    SeqOneByteString::cast(*current_part_)->SeqOneByteStringSet(
         current_index_++, c);
   } else {
     SeqTwoByteString::cast(*current_part_)->SeqTwoByteStringSet(
@@ -259,33 +256,6 @@ void BasicJsonStringifier::Append_(Char c) {
 template <bool is_ascii, typename Char>
 void BasicJsonStringifier::Append_(const Char* chars) {
   for ( ; *chars != '\0'; chars++) Append_<is_ascii, Char>(*chars);
-}
-
-
-Handle<Object> BasicJsonStringifier::GetProperty(Handle<JSObject> object,
-                                                 Handle<String> key) {
-  LookupResult lookup(isolate_);
-  object->LocalLookupRealNamedProperty(*key, &lookup);
-  if (!lookup.IsProperty()) return factory_->undefined_value();
-  switch (lookup.type()) {
-    case NORMAL: {
-      Object* value = lookup.holder()->GetNormalizedProperty(&lookup);
-      ASSERT(!value->IsTheHole());
-      return Handle<Object>(value, isolate_);
-    }
-    case FIELD: {
-      Object* value = lookup.holder()->FastPropertyAt(lookup.GetFieldIndex());
-      ASSERT(!value->IsTheHole());
-      return Handle<Object>(value, isolate_);
-    }
-    case CONSTANT_FUNCTION:
-      return Handle<Object>(lookup.GetConstantFunction(), isolate_);
-    default: {
-      PropertyAttributes attr;
-      return Object::GetProperty(object, object, &lookup, key, &attr);
-    }
-  }
-  return Handle<Object>::null();
 }
 
 
@@ -399,8 +369,8 @@ BasicJsonStringifier::Result BasicJsonStringifier::SerializeGeneric(
     bool deferred_comma,
     bool deferred_key) {
   Handle<JSObject> builtins(isolate_->native_context()->builtins());
-  Handle<JSFunction> builtin = Handle<JSFunction>::cast(
-      v8::internal::GetProperty(builtins, "JSONSerializeAdapter"));
+  Handle<JSFunction> builtin =
+      Handle<JSFunction>::cast(GetProperty(builtins, "JSONSerializeAdapter"));
 
   Handle<Object> argv[] = { key, object };
   bool has_exception = false;
@@ -635,8 +605,8 @@ void BasicJsonStringifier::ShrinkCurrentPart() {
 
   int string_size, allocated_string_size;
   if (is_ascii_) {
-    allocated_string_size = SeqAsciiString::SizeFor(part_length_);
-    string_size = SeqAsciiString::SizeFor(current_index_);
+    allocated_string_size = SeqOneByteString::SizeFor(part_length_);
+    string_size = SeqOneByteString::SizeFor(current_index_);
   } else {
     allocated_string_size = SeqTwoByteString::SizeFor(part_length_);
     string_size = SeqTwoByteString::SizeFor(current_index_);
@@ -662,7 +632,7 @@ void BasicJsonStringifier::Extend() {
     part_length_ *= kPartLengthGrowthFactor;
   }
   if (is_ascii_) {
-    current_part_ = factory_->NewRawAsciiString(part_length_);
+    current_part_ = factory_->NewRawOneByteString(part_length_);
   } else {
     current_part_ = factory_->NewRawTwoByteString(part_length_);
   }
@@ -690,7 +660,6 @@ void BasicJsonStringifier::SerializeStringUnchecked_(const SrcChar* src,
   // The <uc16, char> version of this method must not be called.
   ASSERT(sizeof(*dest) >= sizeof(*src));
 
-  *(dest++) = '"';
   for (int i = 0; i < length; i++) {
     SrcChar c = src[i];
     if (DoNotEscape(c)) {
@@ -701,7 +670,6 @@ void BasicJsonStringifier::SerializeStringUnchecked_(const SrcChar* src,
     }
   }
 
-  *(dest++) = '"';
   current_index_ += static_cast<int>(dest - dest_start);
 }
 
@@ -710,16 +678,17 @@ template <bool is_ascii, typename Char>
 void BasicJsonStringifier::SerializeString_(Vector<const Char> vector,
                                             Handle<String> string) {
   int length = vector.length();
+  Append_<is_ascii, char>('"');
   // We make a rough estimate to find out if the current string can be
   // serialized without allocating a new string part. The worst case length of
-  // an escaped character is 6.  Shifting left by 3 is a more pessimistic
-  // estimate than multiplying by 6, but faster to calculate.
-  static const int kEnclosingQuotesLength = 2;
-  if (current_index_ + (length << 3) + kEnclosingQuotesLength < part_length_) {
+  // an escaped character is 6.  Shifting the remainin string length right by 3
+  // is a more pessimistic estimate, but faster to calculate.
+
+  if (((part_length_ - current_index_) >> 3) > length) {
     if (is_ascii) {
       SerializeStringUnchecked_(
           vector.start(),
-          SeqAsciiString::cast(*current_part_)->GetChars(),
+          SeqOneByteString::cast(*current_part_)->GetChars(),
           length);
     } else {
       SerializeStringUnchecked_(
@@ -728,7 +697,6 @@ void BasicJsonStringifier::SerializeString_(Vector<const Char> vector,
           length);
     }
   } else {
-    Append_<is_ascii, char>('"');
     String* string_location = *string;
     for (int i = 0; i < length; i++) {
       Char c = vector[i];
@@ -744,8 +712,9 @@ void BasicJsonStringifier::SerializeString_(Vector<const Char> vector,
         string_location = *string;
       }
     }
-    Append_<is_ascii, char>('"');
   }
+
+  Append_<is_ascii, char>('"');
 }
 
 

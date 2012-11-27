@@ -125,7 +125,10 @@ class HBasicBlock: public ZoneObject {
   void Goto(HBasicBlock* block, FunctionState* state = NULL);
 
   int PredecessorIndexOf(HBasicBlock* predecessor) const;
-  void AddSimulate(BailoutId ast_id) { AddInstruction(CreateSimulate(ast_id)); }
+  void AddSimulate(BailoutId ast_id,
+                   RemovableSimulate removable = FIXED_SIMULATE) {
+    AddInstruction(CreateSimulate(ast_id, removable));
+  }
   void AssignCommonDominator(HBasicBlock* other);
   void AssignLoopSuccessorDominators();
 
@@ -166,7 +169,7 @@ class HBasicBlock: public ZoneObject {
   void RegisterPredecessor(HBasicBlock* pred);
   void AddDominatedBlock(HBasicBlock* block);
 
-  HSimulate* CreateSimulate(BailoutId ast_id);
+  HSimulate* CreateSimulate(BailoutId ast_id, RemovableSimulate removable);
   HDeoptimize* CreateDeoptimize(HDeoptimize::UseEnvironment has_uses);
 
   int block_id_;
@@ -255,6 +258,7 @@ class HGraph: public ZoneObject {
 
   void InitializeInferredTypes();
   void InsertTypeConversions();
+  void MergeRemovableSimulates();
   void InsertRepresentationChanges();
   void MarkDeoptimizeOnUndefined();
   void ComputeMinusZeroChecks();
@@ -613,6 +617,25 @@ class HEnvironment: public ZoneObject {
 };
 
 
+class HInferRepresentation BASE_EMBEDDED {
+ public:
+  explicit HInferRepresentation(HGraph* graph)
+      : graph_(graph),
+        worklist_(8, graph->zone()),
+        in_worklist_(graph->GetMaximumValueID(), graph->zone()) { }
+
+  void Analyze();
+  void AddToWorklist(HValue* current);
+
+ private:
+  Zone* zone() const { return graph_->zone(); }
+
+  HGraph* graph_;
+  ZoneList<HValue*> worklist_;
+  BitVector in_worklist_;
+};
+
+
 class HGraphBuilder;
 
 enum ArgumentsAllowedFlag {
@@ -880,7 +903,8 @@ class HGraphBuilder: public AstVisitor {
 
   // Adding instructions.
   HInstruction* AddInstruction(HInstruction* instr);
-  void AddSimulate(BailoutId ast_id);
+  void AddSimulate(BailoutId ast_id,
+                   RemovableSimulate removable = FIXED_SIMULATE);
 
   // Bailout environment manipulation.
   void Push(HValue* value) { environment()->Push(value); }
@@ -1025,10 +1049,6 @@ class HGraphBuilder: public AstVisitor {
   // to push them as outgoing parameters.
   template <class Instruction> HInstruction* PreProcessCall(Instruction* call);
 
-  void TraceRepresentation(Token::Value op,
-                           TypeInfo info,
-                           HValue* value,
-                           Representation rep);
   static Representation ToRepresentation(TypeInfo info);
 
   void SetUpScope(Scope* scope);
@@ -1358,12 +1378,22 @@ class HStatistics: public Malloced {
     return instance.get();
   }
 
+  void IncrementSubtotals(int64_t create_graph,
+                          int64_t optimize_graph,
+                          int64_t generate_code) {
+    create_graph_ += create_graph;
+    optimize_graph_ += optimize_graph;
+    generate_code_ += generate_code;
+  }
+
  private:
   HStatistics()
       : timing_(5),
         names_(5),
         sizes_(5),
-        total_(0),
+        create_graph_(0),
+        optimize_graph_(0),
+        generate_code_(0),
         total_size_(0),
         full_code_gen_(0),
         source_size_(0) { }
@@ -1371,7 +1401,9 @@ class HStatistics: public Malloced {
   List<int64_t> timing_;
   List<const char*> names_;
   List<unsigned> sizes_;
-  int64_t total_;
+  int64_t create_graph_;
+  int64_t optimize_graph_;
+  int64_t generate_code_;
   unsigned total_size_;
   int64_t full_code_gen_;
   double source_size_;
@@ -1381,7 +1413,6 @@ class HStatistics: public Malloced {
 class HPhase BASE_EMBEDDED {
  public:
   static const char* const kFullCodeGen;
-  static const char* const kTotal;
 
   explicit HPhase(const char* name) { Begin(name, NULL, NULL, NULL); }
   HPhase(const char* name, HGraph* graph) {

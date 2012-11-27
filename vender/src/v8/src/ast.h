@@ -75,6 +75,7 @@ namespace internal {
 
 #define STATEMENT_NODE_LIST(V)                  \
   V(Block)                                      \
+  V(ModuleStatement)                            \
   V(ExpressionStatement)                        \
   V(EmptyStatement)                             \
   V(IfStatement)                                \
@@ -522,7 +523,7 @@ class ModuleDeclaration: public Declaration {
   ModuleDeclaration(VariableProxy* proxy,
                     Module* module,
                     Scope* scope)
-      : Declaration(proxy, LET, scope),
+      : Declaration(proxy, MODULE, scope),
         module_(module) {
   }
 
@@ -642,6 +643,25 @@ class ModuleUrl: public Module {
 
  private:
   Handle<String> url_;
+};
+
+
+class ModuleStatement: public Statement {
+ public:
+  DECLARE_NODE_TYPE(ModuleStatement)
+
+  VariableProxy* proxy() const { return proxy_; }
+  Block* body() const { return body_; }
+
+ protected:
+  ModuleStatement(VariableProxy* proxy, Block* body)
+      : proxy_(proxy),
+        body_(body) {
+  }
+
+ private:
+  VariableProxy* proxy_;
+  Block* body_;
 };
 
 
@@ -1417,7 +1437,7 @@ class VariableProxy: public Expression {
   void MarkAsTrivial() { is_trivial_ = true; }
   void MarkAsLValue() { is_lvalue_ = true; }
 
-  // Bind this proxy to the variable var.
+  // Bind this proxy to the variable var. Interfaces must match.
   void BindTo(Variable* var);
 
  protected:
@@ -1777,9 +1797,6 @@ class CompareOperation: public Expression {
 
   // Type feedback information.
   TypeFeedbackId CompareOperationFeedbackId() const { return reuse(id()); }
-  void RecordTypeFeedback(TypeFeedbackOracle* oracle);
-  bool IsSmiCompare() { return compare_type_ == SMI_ONLY; }
-  bool IsObjectCompare() { return compare_type_ == OBJECT_ONLY; }
 
   // Match special cases.
   bool IsLiteralCompareTypeof(Expression** expr, Handle<String>* check);
@@ -1796,8 +1813,7 @@ class CompareOperation: public Expression {
         op_(op),
         left_(left),
         right_(right),
-        pos_(pos),
-        compare_type_(NONE) {
+        pos_(pos) {
     ASSERT(Token::IsCompareOp(op));
   }
 
@@ -1806,9 +1822,6 @@ class CompareOperation: public Expression {
   Expression* left_;
   Expression* right_;
   int pos_;
-
-  enum CompareTypeFeedback { NONE, SMI_ONLY, OBJECT_ONLY };
-  CompareTypeFeedback compare_type_;
 };
 
 
@@ -2646,6 +2659,11 @@ class AstNodeFactory BASE_EMBEDDED {
   STATEMENT_WITH_LABELS(ForInStatement)
   STATEMENT_WITH_LABELS(SwitchStatement)
 #undef STATEMENT_WITH_LABELS
+
+  ModuleStatement* NewModuleStatement(VariableProxy* proxy, Block* body) {
+    ModuleStatement* stmt = new(zone_) ModuleStatement(proxy, body);
+    VISIT_AND_RETURN(ModuleStatement, stmt)
+  }
 
   ExpressionStatement* NewExpressionStatement(Expression* expression) {
     ExpressionStatement* stmt = new(zone_) ExpressionStatement(expression);

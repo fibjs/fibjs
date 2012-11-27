@@ -155,7 +155,8 @@ namespace internal {
   V(Smi, construct_stub_deopt_pc_offset, ConstructStubDeoptPCOffset)           \
   V(Smi, getter_stub_deopt_pc_offset, GetterStubDeoptPCOffset)                 \
   V(Smi, setter_stub_deopt_pc_offset, SetterStubDeoptPCOffset)                 \
-  V(JSObject, observation_state, ObservationState)
+  V(JSObject, observation_state, ObservationState)                             \
+  V(Map, external_map, ExternalMap)
 
 #define ROOT_LIST(V)                                  \
   STRONG_ROOT_LIST(V)                                 \
@@ -283,14 +284,6 @@ class StoreBufferRebuilder {
   MemoryChunk* current_page_;
 };
 
-
-
-// The all static Heap captures the interface to the global object heap.
-// All JavaScript contexts by this process share the same object heap.
-
-#ifdef DEBUG
-class HeapDebugUtils;
-#endif
 
 
 // A queue of objects promoted during scavenge. Each object is accompanied
@@ -583,6 +576,7 @@ class Heap {
   MUST_USE_RESULT MaybeObject* AllocateJSArrayWithElements(
       FixedArrayBase* array_base,
       ElementsKind elements_kind,
+      int length,
       PretenureFlag pretenure = NOT_TENURED);
 
   // Allocates and initializes a new global object based on a constructor.
@@ -665,6 +659,9 @@ class Heap {
   // Allocates a serialized scope info.
   MUST_USE_RESULT MaybeObject* AllocateScopeInfo(int length);
 
+  // Allocates an External object for v8's external API.
+  MUST_USE_RESULT MaybeObject* AllocateExternal(void* value);
+
   // Allocates an empty PolymorphicCodeCache.
   MUST_USE_RESULT MaybeObject* AllocatePolymorphicCodeCache();
 
@@ -701,7 +698,7 @@ class Heap {
   // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
   // failed.
   // Please note this does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* AllocateStringFromAscii(
+  MUST_USE_RESULT MaybeObject* AllocateStringFromOneByte(
       Vector<const char> str,
       PretenureFlag pretenure = NOT_TENURED);
   MUST_USE_RESULT inline MaybeObject* AllocateStringFromUtf8(
@@ -745,7 +742,7 @@ class Heap {
   // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
   // failed.
   // Please note this does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* AllocateRawAsciiString(
+  MUST_USE_RESULT MaybeObject* AllocateRawOneByteString(
       int length,
       PretenureFlag pretenure = NOT_TENURED);
   MUST_USE_RESULT MaybeObject* AllocateRawTwoByteString(
@@ -1040,9 +1037,8 @@ class Heap {
     return LookupSymbol(CStrVector(str));
   }
   MUST_USE_RESULT MaybeObject* LookupSymbol(String* str);
-  MUST_USE_RESULT MaybeObject* LookupAsciiSymbol(Handle<SeqAsciiString> string,
-                                                 int from,
-                                                 int length);
+  MUST_USE_RESULT MaybeObject* LookupAsciiSymbol(
+      Handle<SeqOneByteString> string, int from, int length);
 
   bool LookupSymbolIfExists(String* str, String** symbol);
   bool LookupTwoCharsSymbolIfExists(String* str, String** symbol);
@@ -1789,8 +1785,6 @@ class Heap {
   // Do we expect to be able to handle allocation failure at this
   // time?
   bool disallow_allocation_failure_;
-
-  HeapDebugUtils* debug_utils_;
 #endif  // DEBUG
 
   // Indicates that the new space should be kept small due to high promotion

@@ -448,6 +448,7 @@ MemoryChunk* MemoryChunk::Initialize(Heap* heap,
   chunk->slots_buffer_ = NULL;
   chunk->skip_list_ = NULL;
   chunk->write_barrier_counter_ = kWriteBarrierCounterGranularity;
+  chunk->progress_bar_ = 0;
   chunk->high_water_mark_ = static_cast<int>(area_start - base);
   chunk->ResetLiveBytes();
   Bitmap::Clear(chunk);
@@ -2390,10 +2391,13 @@ void PagedSpace::EvictEvacuationCandidatesFromFreeLists() {
 HeapObject* PagedSpace::SlowAllocateRaw(int size_in_bytes) {
   // Allocation in this space has failed.
 
-  // If there are unswept pages advance lazy sweeper then sweep one page before
-  // allocating a new page.
-  if (first_unswept_page_->is_valid()) {
-    AdvanceSweeper(size_in_bytes);
+  // If there are unswept pages advance lazy sweeper a bounded number of times
+  // until we find a size_in_bytes contiguous piece of memory
+  const int kMaxSweepingTries = 5;
+  bool sweeping_complete = false;
+
+  for (int i = 0; i < kMaxSweepingTries && !sweeping_complete; i++) {
+    sweeping_complete = AdvanceSweeper(size_in_bytes);
 
     // Retry the free list allocation.
     HeapObject* object = free_list_.Allocate(size_in_bytes);
@@ -2784,7 +2788,8 @@ void LargeObjectSpace::FreeUnmarkedObjects() {
     MarkBit mark_bit = Marking::MarkBitFrom(object);
     if (mark_bit.Get()) {
       mark_bit.Clear();
-      MemoryChunk::IncrementLiveBytesFromGC(object->address(), -object->Size());
+      Page::FromAddress(object->address())->ResetProgressBar();
+      Page::FromAddress(object->address())->ResetLiveBytes();
       previous = current;
       current = current->next_page();
     } else {

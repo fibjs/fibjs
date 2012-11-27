@@ -91,7 +91,7 @@ MaybeObject* Heap::AllocateStringFromUtf8(Vector<const char> str,
   if (non_ascii_start >= length) {
     // If the string is ASCII, we do not need to convert the characters
     // since UTF8 is backwards compatible with ASCII.
-    return AllocateStringFromAscii(str, pretenure);
+    return AllocateStringFromOneByte(str, pretenure);
   }
   // Non-ASCII and we need to decode.
   return AllocateStringFromUtf8Slow(str, non_ascii_start, pretenure);
@@ -109,12 +109,12 @@ MaybeObject* Heap::AllocateSymbol(Vector<const char> str,
 
 MaybeObject* Heap::AllocateAsciiSymbol(Vector<const char> str,
                                        uint32_t hash_field) {
-  if (str.length() > SeqAsciiString::kMaxLength) {
+  if (str.length() > SeqOneByteString::kMaxLength) {
     return Failure::OutOfMemoryException();
   }
   // Compute map and object size.
   Map* map = ascii_symbol_map();
-  int size = SeqAsciiString::SizeFor(str.length());
+  int size = SeqOneByteString::SizeFor(str.length());
 
   // Allocate string.
   Object* result;
@@ -134,7 +134,7 @@ MaybeObject* Heap::AllocateAsciiSymbol(Vector<const char> str,
   ASSERT_EQ(size, answer->Size());
 
   // Fill in the characters.
-  memcpy(answer->address() + SeqAsciiString::kHeaderSize,
+  memcpy(answer->address() + SeqOneByteString::kHeaderSize,
          str.start(), str.length());
 
   return answer;

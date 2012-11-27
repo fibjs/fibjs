@@ -203,9 +203,17 @@ UNARY_MATH_FUNCTION(sin, CreateTranscendentalFunction(TranscendentalCache::SIN))
 UNARY_MATH_FUNCTION(cos, CreateTranscendentalFunction(TranscendentalCache::COS))
 UNARY_MATH_FUNCTION(tan, CreateTranscendentalFunction(TranscendentalCache::TAN))
 UNARY_MATH_FUNCTION(log, CreateTranscendentalFunction(TranscendentalCache::LOG))
+UNARY_MATH_FUNCTION(exp, CreateExpFunction())
 UNARY_MATH_FUNCTION(sqrt, CreateSqrtFunction())
 
 #undef MATH_FUNCTION
+
+
+void lazily_initialize_fast_exp() {
+  if (fast_exp_function == NULL) {
+    init_fast_exp_function();
+  }
+}
 
 
 void MathSetup() {
@@ -216,6 +224,7 @@ void MathSetup() {
   init_fast_cos_function();
   init_fast_tan_function();
   init_fast_log_function();
+  // fast_exp is initialized lazily.
   init_fast_sqrt_function();
 }
 
@@ -2052,7 +2061,7 @@ class SamplerThread : public Thread {
     memset(&context, 0, sizeof(context));
 
     TickSample sample_obj;
-    TickSample* sample = CpuProfiler::TickSampleEvent(sampler->isolate());
+    TickSample* sample = CpuProfiler::StartTickSampleEvent(sampler->isolate());
     if (sample == NULL) sample = &sample_obj;
 
     static const DWORD kSuspendFailed = static_cast<DWORD>(-1);
@@ -2073,6 +2082,7 @@ class SamplerThread : public Thread {
       sampler->SampleStack(sample);
       sampler->Tick(sample);
     }
+    CpuProfiler::FinishTickSampleEvent(sampler->isolate());
     ResumeThread(profiled_thread);
   }
 
@@ -2127,6 +2137,11 @@ Sampler::~Sampler() {
 }
 
 
+void Sampler::DoSample() {
+  // TODO(rogulenko): implement
+}
+
+
 void Sampler::Start() {
   ASSERT(!IsActive());
   SetActive(true);
@@ -2139,8 +2154,16 @@ void Sampler::Stop() {
   SamplerThread::RemoveActiveSampler(this);
   SetActive(false);
 }
-#endif
 
+
+void Sampler::StartSampling() {
+}
+
+
+void Sampler::StopSampling() {
+}
+
+#endif
 
 } }  // namespace v8::internal
 

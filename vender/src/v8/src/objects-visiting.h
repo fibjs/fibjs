@@ -47,7 +47,7 @@ namespace internal {
 class StaticVisitorBase : public AllStatic {
  public:
 #define VISITOR_ID_LIST(V)    \
-  V(SeqAsciiString)           \
+  V(SeqOneByteString)           \
   V(SeqTwoByteString)         \
   V(ShortcutCandidate)        \
   V(ByteArray)                \
@@ -318,9 +318,9 @@ class StaticNewSpaceVisitor : public StaticVisitorBase {
     return JSObjectVisitor::Visit(map, object);
   }
 
-  static inline int VisitSeqAsciiString(Map* map, HeapObject* object) {
-    return SeqAsciiString::cast(object)->
-        SeqAsciiStringSize(map->instance_type());
+  static inline int VisitSeqOneByteString(Map* map, HeapObject* object) {
+    return SeqOneByteString::cast(object)->
+        SeqOneByteStringSize(map->instance_type());
   }
 
   static inline int VisitSeqTwoByteString(Map* map, HeapObject* object) {
@@ -396,9 +396,6 @@ class StaticMarkingVisitor : public StaticVisitorBase {
   static inline void VisitRuntimeEntry(RelocInfo* rinfo) { }
 
   // TODO(mstarzinger): This should be made protected once refactoring is done.
-  static inline void VisitNativeContext(Map* map, HeapObject* object);
-
-  // TODO(mstarzinger): This should be made protected once refactoring is done.
   // Mark non-optimize code for functions inlined into the given optimized
   // code. This will prevent it from being flushed.
   static void MarkInlinedFunctionsCode(Heap* heap, Code* code);
@@ -409,6 +406,7 @@ class StaticMarkingVisitor : public StaticVisitorBase {
   static inline void VisitSharedFunctionInfo(Map* map, HeapObject* object);
   static inline void VisitJSFunction(Map* map, HeapObject* object);
   static inline void VisitJSRegExp(Map* map, HeapObject* object);
+  static inline void VisitNativeContext(Map* map, HeapObject* object);
 
   // Mark pointers in a Map and its TransitionArray together, possibly
   // treating transitions or back pointers weak.
@@ -435,6 +433,10 @@ class StaticMarkingVisitor : public StaticVisitorBase {
     static inline void Visit(Map* map, HeapObject* object) {
     }
   };
+
+  typedef FlexibleBodyVisitor<StaticVisitor,
+                              FixedArray::BodyDescriptor,
+                              void> FixedArrayVisitor;
 
   typedef FlexibleBodyVisitor<StaticVisitor,
                               JSObject::BodyDescriptor,
