@@ -201,7 +201,7 @@ result_t mysql::connect(const char *host, int port, const char *username,
 
 	m_conn = UMConnection_Create(&capi);
 	if (!UMConnection_Connect(m_conn, host, port, username, password, dbName,
-			NULL, MCS_utf8_bin))
+			NULL, MCS_utf8mb4_bin))
 	{
 		result_t hr = error();
 
