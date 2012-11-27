@@ -142,7 +142,7 @@ public:
 		if (handle_.IsEmpty())
 		{
 			handle_ = v8::Persistent<v8::Object>::New(o);
-			handle_->SetPointerInInternalField(0, this);
+			handle_->SetAlignedPointerInInternalField(0, this);
 
 			v8::V8::AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
 		}
@@ -232,7 +232,7 @@ public:
 		if (!handle_.IsEmpty())
 		{
 			handle_.ClearWeak();
-			handle_->SetPointerInInternalField(0, 0);
+			handle_->SetAlignedPointerInInternalField(0, 0);
 			handle_.Dispose();
 			handle_.Clear();
 

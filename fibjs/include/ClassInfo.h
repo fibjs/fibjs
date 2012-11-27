@@ -132,7 +132,7 @@ public:
 		if (o.IsEmpty() || !o->IsObject() || !m_class->HasInstance(o))
 			return NULL;
 
-		return o->ToObject()->GetPointerFromInternalField(0);
+		return o->ToObject()->GetAlignedPointerFromInternalField(0);
 	}
 
 	v8::Handle<v8::Object> CreateInstance()

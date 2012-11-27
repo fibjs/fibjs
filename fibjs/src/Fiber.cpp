@@ -177,7 +177,7 @@ void JSFiber::js_callback()
 	dispose();
 
 	s_null.Ref();
-	o->SetPointerInInternalField(0, &s_null);
+	o->SetAlignedPointerInInternalField(0, &s_null);
 }
 
 void AsyncCallBack::callback()
