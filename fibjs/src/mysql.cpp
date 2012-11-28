@@ -211,9 +211,6 @@ result_t mysql::connect(const char *host, int port, const char *username,
 		return hr;
 	}
 
-	m_rxBufferSize = UMConnection_GetRxBufferSize(m_conn);
-	m_txBufferSize = UMConnection_GetTxBufferSize(m_conn);
-
 	return 0;
 }
 
@@ -291,13 +288,37 @@ result_t mysql::execute(const char* sql, const v8::Arguments& args,
 
 result_t mysql::get_rxBufferSize(int32_t& retVal)
 {
-	retVal = m_rxBufferSize;
+	if (!m_conn)
+		return CALL_E_INVALID_CALL;
+
+	retVal = UMConnection_GetRxBufferSize(m_conn);
+	return 0;
+}
+
+result_t mysql::set_rxBufferSize(int32_t newVal)
+{
+	if (!m_conn)
+		return CALL_E_INVALID_CALL;
+
+	UMConnection_SetRxBufferSize(m_conn, newVal);
 	return 0;
 }
 
 result_t mysql::get_txBufferSize(int32_t& retVal)
 {
-	retVal = m_txBufferSize;
+	if (!m_conn)
+		return CALL_E_INVALID_CALL;
+
+	retVal = UMConnection_GetTxBufferSize(m_conn);
+	return 0;
+}
+
+result_t mysql::set_txBufferSize(int32_t newVal)
+{
+	if (!m_conn)
+		return CALL_E_INVALID_CALL;
+
+	UMConnection_SetTxBufferSize(m_conn, newVal);
 	return 0;
 }
 

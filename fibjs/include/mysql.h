@@ -18,7 +18,7 @@ class mysql: public MySQL_base
 {
 public:
 	mysql() :
-			m_conn(NULL), m_rxBufferSize(0), m_txBufferSize(0)
+			m_conn(NULL)
 	{
 	}
 
@@ -39,7 +39,9 @@ public:
 	// MySQL_base
 	virtual result_t use(const char* dbName);
 	virtual result_t get_rxBufferSize(int32_t& retVal);
+	virtual result_t set_rxBufferSize(int32_t newVal);
 	virtual result_t get_txBufferSize(int32_t& retVal);
+	virtual result_t set_txBufferSize(int32_t newVal);
 
 public:
 	result_t connect(const char *host, int port, const char *username,
@@ -64,8 +66,6 @@ public:
 
 private:
 	UMConnection m_conn;
-	int m_rxBufferSize;
-	int m_txBufferSize;
 };
 
 } /* namespace fibjs */

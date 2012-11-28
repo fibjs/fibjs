@@ -8,8 +8,8 @@ class MySQL : DbConnection
 	use(String dbName);
 
 	/*! @brief 数据库连接接收缓存尺寸 */
-	readonly Integer rxBufferSize;
+	Integer rxBufferSize;
 
 	/*! @brief 数据库连接发送缓存尺寸 */
-	readonly Integer txBufferSize;
+	Integer txBufferSize;
 };
