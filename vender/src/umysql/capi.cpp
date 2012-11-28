@@ -102,6 +102,16 @@ EXPORT_ATTR int UMConnection_GetRxBufferSize (UMConnection conn)
   return ((Connection *)conn)->getRxBufferSize();
 }
 
+EXPORT_ATTR int UMConnection_SetTxBufferSize (UMConnection conn, int num)
+{
+  return ((Connection *)conn)->setTxBufferSize(num);
+}
+
+EXPORT_ATTR int UMConnection_SetRxBufferSize (UMConnection conn, int num)
+{
+  return ((Connection *)conn)->setRxBufferSize(num);
+}
+
 EXPORT_ATTR int UMConnection_IsConnected (UMConnection conn)
 {
   return ((Connection *)conn)->isConnected() ? 1 : 0;

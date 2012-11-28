@@ -88,6 +88,7 @@ public:
   void finalize(int packetNumber);
 
   size_t getSize(void);
+  size_t setSize(size_t num);
 
 
 private:

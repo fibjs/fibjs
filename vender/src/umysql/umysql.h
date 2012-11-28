@@ -123,6 +123,8 @@ int  UMConnection_Connect (UMConnection conn, const char *_host, int _port, cons
 int UMConnection_GetLastError (UMConnection conn, const char **_ppOutMessage, int *_outErrno, int *_type);
 int UMConnection_GetTxBufferSize (UMConnection conn);
 int UMConnection_GetRxBufferSize (UMConnection conn);
+int UMConnection_SetTxBufferSize (UMConnection conn, int num);
+int UMConnection_SetRxBufferSize (UMConnection conn, int num);
 int UMConnection_IsConnected (UMConnection conn);
 int UMConnection_Close (UMConnection conn);
 int UMConnection_SetTimeout(UMConnection conn, int timeout);

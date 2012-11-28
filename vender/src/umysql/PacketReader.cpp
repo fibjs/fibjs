@@ -278,6 +278,28 @@ size_t PacketReader::getSize()
   return m_buffEnd - m_buffStart;
 }
 
+size_t PacketReader::setSize(size_t _cbSize)
+{
+  if(_cbSize < m_writeCursor - m_buffStart)
+	return 0;
+
+  size_t old_cbSize = m_buffEnd - m_buffStart;
+
+  char* buffStart = new char[_cbSize];
+  char* buffEnd = buffStart + _cbSize;
+
+  memcpy(buffStart, m_buffStart, m_writeCursor - m_buffStart);
+  m_readCursor = m_readCursor - m_buffStart + buffStart;
+  m_writeCursor = m_writeCursor - m_buffStart + buffStart;
+  m_packetEnd = m_packetEnd - m_buffStart + buffStart;
+
+  delete m_buffStart;
+  m_buffStart = buffStart;
+  m_buffEnd = buffEnd;
+
+  return old_cbSize;
+}
+
 
 UINT64 PacketReader::readLengthCodedInteger()
 {

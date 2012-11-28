@@ -805,6 +805,16 @@ int Connection::getTxBufferSize()
   return (int) m_writer.getSize();
 }
 
+int Connection::setRxBufferSize(int num)
+{
+  return (int) m_reader.setSize(num);
+}
+
+int Connection::setTxBufferSize(int num)
+{
+  return (int) m_writer.setSize(num);
+}
+
 bool Connection::setTimeout(int timeout)
 {
   m_timeout = timeout;

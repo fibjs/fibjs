@@ -80,7 +80,10 @@ public:
   char *getWritePtr();
   char *getStartPtr();
   char *getEndPtr();
+
   size_t getSize();
+  size_t setSize(size_t num);
+
   bool havePacket();
 
   UINT8 readByte();

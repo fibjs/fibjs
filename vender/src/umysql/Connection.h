@@ -121,6 +121,9 @@ public:
 
   int getRxBufferSize();
   int getTxBufferSize();
+  int setRxBufferSize(int num);
+  int setTxBufferSize(int num);
+
   bool isConnected(void);
   bool close(void);
   bool setTimeout(int timeout);
