@@ -74,6 +74,7 @@ result_t Socket::create(int32_t family, int32_t type)
 		return SocketError();
 
 	fcntl(m_sock, F_SETFL, fcntl(m_sock, F_GETFL, 0) | O_NONBLOCK);
+	fcntl(m_sock, F_SETFD, FD_CLOEXEC);
 
 #endif
 

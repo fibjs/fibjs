@@ -11,6 +11,8 @@
 #include <sys/ioctl.h>
 #endif
 
+#include <fcntl.h>
+
 #include "File.h"
 #include "Buffer.h"
 #include "Stat.h"
@@ -251,6 +253,10 @@ result_t File::oncopyto(v8::Handle<v8::Function> func)
 	return on("copyto", func);
 }
 
+#ifndef _WIN32
+#define _fileno fileno
+#endif
+
 result_t File::open(const char* fname, const char* mode, exlib::AsyncEvent* ac)
 {
 	if (!ac)
@@ -279,6 +285,10 @@ result_t File::open(const char* fname, const char* mode, exlib::AsyncEvent* ac)
 	if (m_file == NULL)
 		return LastError();
 
+#ifndef _WIN32
+	fcntl(_fileno(m_file), F_SETFD, FD_CLOEXEC);
+#endif
+
 	name = fname;
 
 	return 0;
@@ -292,10 +302,6 @@ result_t File::get_name(std::string& retVal)
 	retVal = name;
 	return 0;
 }
-
-#ifndef _WIN32
-#define _fileno fileno
-#endif
 
 result_t File::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
 {

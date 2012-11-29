@@ -292,6 +292,7 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
 			}
 
 			fcntl(c, F_SETFL, fcntl(c, F_GETFL, 0) | O_NONBLOCK);
+			fcntl(c, F_SETFD, FD_CLOEXEC);
 
 #ifdef MacOS
 			int set_option = 1;
