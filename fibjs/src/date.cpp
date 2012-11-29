@@ -297,8 +297,8 @@ void date_t::parse(const char* str, int len)
 				wYear = 2001;
 
 			// m/d/y -> y/m/d
-			if (wMonth > 12 && wDay <= 12 && wYear <= MaxDaysInMonth(wMonth, wDay))
-			{
+			if (wMonth
+					> 12&& wDay <= 12 && wYear <= MaxDaysInMonth(wMonth, wDay)){
 				int n = wYear;
 				wYear = wMonth;
 				wMonth = wDay;
@@ -483,7 +483,7 @@ void inline putInt(char *& ptrBuf, int v, int n)
 	ptrBuf += n1;
 }
 
-void date_t::toString(std::string& retVal)
+void date_t::toGMTString(std::string& retVal, bool bTimeZone)
 {
 	static char szMonth[][4] =
 	{ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct",
@@ -537,6 +537,12 @@ void date_t::toString(std::string& retVal)
 	wMinute = wMinute % 60;
 
 	int tz = date_t::LocalOffset();
+
+	if (!bTimeZone && tz)
+	{
+		wHour -= tz;
+		tz = 0;
+	}
 
 	retVal.resize(29 + (tz ? 5 : 0));
 	char* ptrBuf = &retVal[0];

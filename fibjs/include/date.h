@@ -91,16 +91,12 @@ public:
 	}
 
 	void parse(const char* str, int len = -1);
-	void toString(std::string& retVal);
-	void sqlString(std::string& retVal);
-	std::string str()
+	void toGMTString(std::string& retVal, bool bTimeZone = false);
+	void toString(std::string& retVal)
 	{
-		std::string s;
-
-		toString(s);
-		return s;
+		toGMTString(retVal, true);
 	}
-
+	void sqlString(std::string& retVal);
 	static int LocalOffset()
 	{
 		return (int) v8::internal::OS::LocalTimeOffset() / 3600000;

@@ -215,7 +215,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
 			pThis->m_stat->get_mtime(d);
 
-			d.toString(str);
+			d.toGMTString(str);
 
 			pThis->m_rep->addHeader("Last-Modified", str);
 			pThis->m_rep->set_body(pThis->m_file);
