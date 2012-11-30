@@ -497,6 +497,14 @@ void date_t::toGMTString(std::string& retVal, bool bTimeZone)
 	int Days, Milliseconds, NumberOf400s, NumberOf100s, NumberOf4s;
 	int64_t d1 = (int64_t) (d + 62135625600000ll);
 
+	int tz = date_t::LocalOffset();
+
+	if (!bTimeZone && tz)
+	{
+		wHour -= tz * 3600000;
+		tz = 0;
+	}
+
 	Days = (int) (d1 / 86400000);
 	Milliseconds = d1 % 86400000;
 
@@ -535,14 +543,6 @@ void date_t::toGMTString(std::string& retVal, bool bTimeZone)
 
 	wHour = wMinute / 60;
 	wMinute = wMinute % 60;
-
-	int tz = date_t::LocalOffset();
-
-	if (!bTimeZone && tz)
-	{
-		wHour -= tz;
-		tz = 0;
-	}
 
 	retVal.resize(29 + (tz ? 5 : 0));
 	char* ptrBuf = &retVal[0];
