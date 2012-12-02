@@ -9,6 +9,8 @@ function t_db(conn) {
 	} catch (e) {
 	}
 
+	conn.execute("");
+	
 	conn
 			.execute('create table test(t1 int, t2 varchar(128), t3 blob, t4 datetime);');
 	conn.execute("insert into test values(?,?,?,?);", 1123, 'aaaaa',
@@ -17,6 +19,12 @@ function t_db(conn) {
 	var rs = conn.execute('select * from test;');
 	var r = rs[0];
 
+	if(conn.txBufferSize){
+		console.log(conn.rxBufferSize, conn.txBufferSize);
+		conn.txBufferSize = 16777220;
+		console.log(conn.rxBufferSize, conn.txBufferSize);
+	}
+	
 	assert.equal(typeof r['t1'], 'number');
 	assert.equal(typeof r['t2'], 'string');
 	assert.equal(typeof r['t3'], 'object');

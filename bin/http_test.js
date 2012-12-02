@@ -362,6 +362,8 @@ var rep = hfh_test(url);
 assert.equal(200, rep.status);
 assert.equal(14, rep.length);
 
+assert.equal(new Date(rep.firstHeader('Last-Modified')), fs.stat('test.html').mtime);
+
 var rep1 = hfh_test(url, {
 	'If-Modified-Since' : rep.firstHeader('Last-Modified')
 });
