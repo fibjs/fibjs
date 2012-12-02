@@ -501,7 +501,7 @@ void date_t::toGMTString(std::string& retVal, bool bTimeZone)
 
 	if (!bTimeZone && tz)
 	{
-		wHour -= tz * 3600000;
+		d1 -= tz * 3600000;
 		tz = 0;
 	}
 
