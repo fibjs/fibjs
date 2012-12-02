@@ -92,133 +92,129 @@ result_t SQLite::execute(const char* sql, int sLen,
 		return hr;
 	}
 
-	if (stmt)
+	if (!stmt)
+		return CALL_RETURN_NULL;
+
+	int columns = sqlite3_column_count(stmt);
+	obj_ptr < DBResult > res;
+
+	if (columns > 0)
 	{
-		int columns = sqlite3_column_count(stmt);
-		obj_ptr < DBResult > res;
+		int i;
+		res = new DBResult(columns);
 
-		if (columns > 0)
+		for (i = 0; i < columns; i++)
 		{
-			int i;
-			res = new DBResult(columns);
-
-			for (i = 0; i < columns; i++)
-			{
-				std::string s = sqlite3_column_name(stmt, i);
-				res->setField(i, s);
-			}
-
-			while (true)
-			{
-				int r = sqlite3_step(stmt);
-				if (r == SQLITE_ROW)
-				{
-					res->beginRow();
-					for (i = 0; i < columns; i++)
-					{
-						Variant v;
-
-						switch (sqlite3_column_type(stmt, i))
-						{
-						case SQLITE_NULL:
-							break;
-
-						case SQLITE_INTEGER:
-							v = (int64_t) sqlite3_column_int64(stmt, i);
-							break;
-
-						case SQLITE_FLOAT:
-							v = sqlite3_column_double(stmt, i);
-							break;
-
-						default:
-							const char* type = sqlite3_column_decltype(stmt, i);
-							if (type
-									&& (!qstricmp(type, "blob")
-											|| !qstricmp(type, "tinyblob")
-											|| !qstricmp(type, "mediumblob")
-											|| !qstricmp(type, "longblob")))
-							{
-								const char* data =
-										(const char *) sqlite3_column_blob(stmt,
-												i);
-								int size = sqlite3_column_bytes(stmt, i);
-
-								v = new Buffer(std::string(data, size));
-							}
-							else if (type
-									&& (!qstricmp(type, "datetime")
-											|| !qstricmp(type, "date")
-											|| !qstricmp(type, "time")))
-							{
-								const char* data =
-										(const char *) sqlite3_column_text(stmt,
-												i);
-								int size = sqlite3_column_bytes(stmt, i);
-
-								v.parseDate(data, size);
-							}
-							else
-							{
-								const char* data =
-										(const char *) sqlite3_column_text(stmt,
-												i);
-								int size = sqlite3_column_bytes(stmt, i);
-
-								v = std::string(data, size);
-							}
-							break;
-
-						}
-
-						res->rowValue(i, v);
-					}
-					res->endRow();
-
-					if (!m_func.IsEmpty())
-					{
-						Variant val;
-
-						res->_indexed_getter(0, val);
-						res->resize(0);
-
-						v8::Handle < v8::Value > v;
-						v = val;
-						v8::Handle < v8::Value > r = m_func->Call(wrap(), 1,
-								&v);
-						if (r.IsEmpty())
-						{
-							sqlite3_finalize(stmt);
-							return CALL_E_JAVASCRIPT;
-						}
-					}
-				}
-				else if (r == SQLITE_DONE)
-					break;
-				else
-				{
-					sqlite3_finalize(stmt);
-					return Runtime::setError(sqlite3_errmsg(m_db));
-				}
-			}
+			std::string s = sqlite3_column_name(stmt, i);
+			res->setField(i, s);
 		}
-		else
+
+		while (true)
 		{
 			int r = sqlite3_step(stmt);
-			if (r == SQLITE_DONE)
-				res = new DBResult(sqlite3_changes(m_db),
-						sqlite3_last_insert_rowid(m_db));
+			if (r == SQLITE_ROW)
+			{
+				res->beginRow();
+				for (i = 0; i < columns; i++)
+				{
+					Variant v;
+
+					switch (sqlite3_column_type(stmt, i))
+					{
+					case SQLITE_NULL:
+						break;
+
+					case SQLITE_INTEGER:
+						v = (int64_t) sqlite3_column_int64(stmt, i);
+						break;
+
+					case SQLITE_FLOAT:
+						v = sqlite3_column_double(stmt, i);
+						break;
+
+					default:
+						const char* type = sqlite3_column_decltype(stmt, i);
+						if (type
+								&& (!qstricmp(type, "blob")
+										|| !qstricmp(type, "tinyblob")
+										|| !qstricmp(type, "mediumblob")
+										|| !qstricmp(type, "longblob")))
+						{
+							const char* data =
+									(const char *) sqlite3_column_blob(stmt, i);
+							int size = sqlite3_column_bytes(stmt, i);
+
+							v = new Buffer(std::string(data, size));
+						}
+						else if (type
+								&& (!qstricmp(type, "datetime")
+										|| !qstricmp(type, "date")
+										|| !qstricmp(type, "time")))
+						{
+							const char* data =
+									(const char *) sqlite3_column_text(stmt, i);
+							int size = sqlite3_column_bytes(stmt, i);
+
+							v.parseDate(data, size);
+						}
+						else
+						{
+							const char* data =
+									(const char *) sqlite3_column_text(stmt, i);
+							int size = sqlite3_column_bytes(stmt, i);
+
+							v = std::string(data, size);
+						}
+						break;
+
+					}
+
+					res->rowValue(i, v);
+				}
+				res->endRow();
+
+				if (!m_func.IsEmpty())
+				{
+					Variant val;
+
+					res->_indexed_getter(0, val);
+					res->resize(0);
+
+					v8::Handle < v8::Value > v;
+					v = val;
+					v8::Handle < v8::Value > r = m_func->Call(wrap(), 1, &v);
+					if (r.IsEmpty())
+					{
+						sqlite3_finalize(stmt);
+						return CALL_E_JAVASCRIPT;
+					}
+				}
+			}
+			else if (r == SQLITE_DONE)
+				break;
 			else
 			{
 				sqlite3_finalize(stmt);
 				return Runtime::setError(sqlite3_errmsg(m_db));
 			}
 		}
-
-		sqlite3_finalize(stmt);
-
-		retVal = res;
 	}
+	else
+	{
+		int r = sqlite3_step(stmt);
+		if (r == SQLITE_DONE)
+			res = new DBResult(sqlite3_changes(m_db),
+					sqlite3_last_insert_rowid(m_db));
+		else
+		{
+			sqlite3_finalize(stmt);
+			return Runtime::setError(sqlite3_errmsg(m_db));
+		}
+	}
+
+	sqlite3_finalize(stmt);
+
+	retVal = res;
 
 	return 0;
 }
