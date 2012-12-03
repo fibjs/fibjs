@@ -8,6 +8,7 @@ var assert = require('assert');
 
 var mq = require('mq');
 var http = require('http');
+var coroutine = require("coroutine");
 
 // ------------- function handler
 
@@ -154,7 +155,9 @@ assert.throws(function() {
 
 // ------------- chain handler
 
-var chain = mq.chain([ hdlr1, hdlr2, mq.jsHandler(hdlr3) ]);
+var chain = mq.chain([
+		hdlr1, hdlr2, mq.jsHandler(hdlr3)
+]);
 
 n = 0;
 chain.invoke(v);
@@ -169,8 +172,9 @@ function chain_params(v, p1, p2) {
 	assert.equal(p2, "b1234");
 }
 
-var chain1 = mq
-		.chain([ chain_params, chain_params, mq.jsHandler(chain_params) ]);
+var chain1 = mq.chain([
+		chain_params, chain_params, mq.jsHandler(chain_params)
+]);
 
 m.value = '';
 m.params.resize(2);
@@ -178,20 +182,24 @@ m.params[0] = '123';
 m.params[1] = 'b1234';
 mq.invoke(chain1, m);
 
-var handler = mq.chain([ function(v) {
-	return {};
-}, function(v) {
-	return "aaa" + v.result;
-} ]);
+var handler = mq.chain([
+		function(v) {
+			return {};
+		}, function(v) {
+			return "aaa" + v.result;
+		}
+]);
 
 var req = new http.Request();
 mq.invoke(handler, req);
 
-var handler = mq.chain([ function(v) {
-	v.params[0] = {};
-}, function(v) {
-	assert.equal("object", typeof(v.params[0]));
-} ]);
+var handler = mq.chain([
+		function(v) {
+			v.params[0] = {};
+		}, function(v) {
+			assert.equal("object", typeof (v.params[0]));
+		}
+]);
 
 var req = new http.Request();
 req.params.push("aaasssssssssssssss");
@@ -321,3 +329,21 @@ assert.equal('', m.value);
 m.value = '/api/a/test';
 mq.invoke(r, m);
 assert.equal('/test', m.value);
+
+// ---------------- await test ------------------
+
+var n = 100;
+
+mq.invoke(mq.jsHandler(function(r) {
+	var aw = mq.await();
+
+	function delayend() {
+		assert.equal(n, 100);
+		n = 200;
+		aw.end();
+	}
+	delayend.start();
+
+	return aw;
+}), m);
+assert.equal(n, 200);
