@@ -18,6 +18,9 @@ public:
 
 	int wait()
 	{
+		if(isset())
+			return result();
+
 		v8::Unlocker unlocker(isolate);
 		return asyncEvent::wait();
 	}

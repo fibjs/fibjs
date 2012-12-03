@@ -21,6 +21,7 @@ class module_base;
 class Chain_base;
 class Routing_base;
 class Handler_base;
+class AsyncWait_base;
 class object_base;
 
 class mq_base : public module_base
@@ -31,6 +32,7 @@ public:
 	static result_t routing(v8::Handle<v8::Object> map, obj_ptr<Routing_base>& retVal);
 	static result_t jsHandler(v8::Handle<v8::Value> hdlr, obj_ptr<Handler_base>& retVal);
 	static result_t moduleHandler(const char* id, const char* method, obj_ptr<Handler_base>& retVal);
+	static result_t await(obj_ptr<AsyncWait_base>& retVal);
 	static result_t nullHandler(obj_ptr<Handler_base>& retVal);
 	static result_t invoke(Handler_base* hdlr, object_base* v, exlib::AsyncEvent* ac);
 
@@ -41,6 +43,7 @@ public:
 	static v8::Handle<v8::Value> s_routing(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_jsHandler(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_moduleHandler(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_await(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_nullHandler(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_invoke(const v8::Arguments& args);
 
@@ -53,6 +56,7 @@ public:
 #include "Chain.h"
 #include "Routing.h"
 #include "Handler.h"
+#include "AsyncWait.h"
 
 namespace fibjs
 {
@@ -64,6 +68,7 @@ namespace fibjs
 			{"routing", s_routing, true},
 			{"jsHandler", s_jsHandler, true},
 			{"moduleHandler", s_moduleHandler, true},
+			{"await", s_await, true},
 			{"nullHandler", s_nullHandler, true},
 			{"invoke", s_invoke, true}
 		};
@@ -71,7 +76,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"mq", NULL, 
-			6, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			7, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -129,6 +134,17 @@ namespace fibjs
 		OPT_ARG_String(1, "");
 
 		hr = moduleHandler(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> mq_base::s_await(const v8::Arguments& args)
+	{
+		obj_ptr<AsyncWait_base> vr;
+
+		METHOD_ENTER(0, 0);
+
+		hr = await(vr);
 
 		METHOD_RETURN();
 	}

@@ -8,6 +8,7 @@
 #include "object.h"
 #include "JSHandler.h"
 #include "NullHandler.h"
+#include "AsyncWaitHandler.h"
 #include "Chain.h"
 #include "Routing.h"
 #include "Fiber.h"
@@ -96,6 +97,12 @@ result_t mq_base::moduleHandler(const char* id, const char* method,
 		obj_ptr<Handler_base>& retVal)
 {
 	return JSHandler::New(id, method, retVal);
+}
+
+result_t mq_base::await(obj_ptr<AsyncWait_base>& retVal)
+{
+	retVal = new AsyncWaitHandler();
+	return 0;
 }
 
 result_t mq_base::nullHandler(obj_ptr<Handler_base>& retVal)
