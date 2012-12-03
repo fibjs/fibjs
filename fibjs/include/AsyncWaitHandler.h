@@ -31,6 +31,7 @@ public:
 		virtual void invoke()
 		{
 			m_ac->post(CALL_RETURN_NULL);
+			delete this;
 		}
 
 	private:
