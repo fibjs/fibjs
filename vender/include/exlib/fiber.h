@@ -322,6 +322,11 @@ public:
 		return m_v;
 	}
 
+	bool isset()
+	{
+		return weak.isset();
+	}
+
 	int result()
 	{
 		return m_v;
