@@ -223,7 +223,7 @@ result_t SQLite::execute(const char* sql, const v8::Arguments& args,
 		obj_ptr<DBResult_base>& retVal)
 {
 	std::string str;
-	result_t hr = db_base::format(sql, args, str);
+	result_t hr = format(sql, args, str);
 	if (hr < 0)
 		return hr;
 
@@ -235,6 +235,12 @@ result_t SQLite::execute(const char* sql, const v8::Arguments& args,
 	m_func.Clear();
 
 	return hr;
+}
+
+result_t SQLite::format(const char* sql, const v8::Arguments& args,
+		std::string& retVal)
+{
+	return db_base::format(sql, args, retVal);
 }
 
 result_t SQLite::get_fileName(std::string& retVal)

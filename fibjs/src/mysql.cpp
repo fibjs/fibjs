@@ -119,7 +119,7 @@ int API_resultRowValue(void *result, int icolumn, UMTypeInfo *ti, void *value,
 int API_resultRowEnd(void *result, void* opt)
 {
 	DBResult* res = (DBResult*) result;
-	mysql* db = (mysql*)opt;
+	mysql* db = (mysql*) opt;
 
 	res->endRow();
 
@@ -130,10 +130,9 @@ int API_resultRowEnd(void *result, void* opt)
 		res->_indexed_getter(0, val);
 		res->resize(0);
 
-		v8::Handle < v8::Value > v;
+		v8::Handle<v8::Value> v;
 		v = val;
-		v8::Handle < v8::Value > r = db->m_func->Call(db->wrap(), 1,
-				&v);
+		v8::Handle<v8::Value> r = db->m_func->Call(db->wrap(), 1, &v);
 		if (r.IsEmpty())
 		{
 			Runtime::setError(CALL_E_JAVASCRIPT);
@@ -272,7 +271,7 @@ result_t mysql::execute(const char* sql, const v8::Arguments& args,
 		obj_ptr<DBResult_base>& retVal)
 {
 	std::string str;
-	result_t hr = db_base::formatMySQL(sql, args, str);
+	result_t hr = format(sql, args, str);
 	if (hr < 0)
 		return hr;
 
@@ -284,6 +283,12 @@ result_t mysql::execute(const char* sql, const v8::Arguments& args,
 	m_func.Clear();
 
 	return hr;
+}
+
+result_t mysql::format(const char* sql, const v8::Arguments& args,
+		std::string& retVal)
+{
+	return db_base::formatMySQL(sql, args, retVal);
 }
 
 result_t mysql::get_rxBufferSize(int32_t& retVal)

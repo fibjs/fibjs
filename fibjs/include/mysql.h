@@ -34,6 +34,7 @@ public:
 	virtual result_t commit();
 	virtual result_t rollback();
 	virtual result_t execute(const char* sql, const v8::Arguments& args, obj_ptr<DBResult_base>& retVal);
+	virtual result_t format(const char* sql, const v8::Arguments& args, std::string& retVal);
 
 public:
 	// MySQL_base
