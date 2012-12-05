@@ -67,4 +67,8 @@
 # endif
 
 
+# if defined(__ARMEL__)
+#  define arm
+# endif
+
 #endif /* OSCONFIG_H_ */
