@@ -523,6 +523,39 @@ inline bool isUrlSlash(char ch)
 	return ch == '/';
 }
 
+class _step_checker
+{
+public:
+	static _step_checker& g()
+	{
+		static _step_checker sc;
+		return sc;
+	}
+
+	void chk(int n, const char* file, int line)
+	{
+		int n1 = exlib::atom_inc(&m_step);
+		if (n1 != n)
+			printf("[%s:%d]: %d, %d\n", file, line, n, n1);
+	}
+
+	void rst()
+	{
+		m_step = 0;
+	}
+
+private:
+	_step_checker() :
+			m_step(0)
+	{
+	}
+
+	int m_step;
+};
+
+#define STEP_CHECK(n) _step_checker::g().chk((n), __FILE__, __LINE__)
+#define STEP_RESET() _step_checker::g().rst()
+
 }
 
 #endif

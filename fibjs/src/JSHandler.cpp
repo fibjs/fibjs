@@ -199,8 +199,9 @@ result_t JSHandler::js_invoke(Handler_base* hdlr, object_base* v,
 		{
 			asyncInvoke* pThis = (asyncInvoke*) pState;
 
+			int v = pThis->done(CALL_E_PENDDING);
 			pThis->asyncEvent::post(0);
-			return pThis->done(CALL_E_PENDDING);
+			return v;
 		}
 
 	public:
