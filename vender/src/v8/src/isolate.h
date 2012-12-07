@@ -53,6 +53,7 @@ namespace internal {
 class Bootstrapper;
 class CodeGenerator;
 class CodeRange;
+struct CodeStubInterfaceDescriptor;
 class CompilationCache;
 class ContextSlotCache;
 class ContextSwitcher;
@@ -743,6 +744,8 @@ class Isolate {
   Failure* ReThrow(MaybeObject* exception);
   void ScheduleThrow(Object* exception);
   void ReportPendingMessages();
+  // Return pending location if any or unfilled structure.
+  MessageLocation GetMessageLocation();
   Failure* ThrowIllegalOperation();
 
   // Promote a scheduled exception to pending. Asserts has_scheduled_exception.
@@ -768,7 +771,6 @@ class Isolate {
   void Iterate(ObjectVisitor* v);
   void Iterate(ObjectVisitor* v, ThreadLocalTop* t);
   char* Iterate(ObjectVisitor* v, char* t);
-  void IterateThread(ThreadVisitor* v);
   void IterateThread(ThreadVisitor* v, char* t);
 
 
@@ -921,10 +923,6 @@ class Isolate {
 
   bool fp_stubs_generated() { return fp_stubs_generated_; }
 
-  StaticResource<SafeStringInputBuffer>* compiler_safe_string_input_buffer() {
-    return &compiler_safe_string_input_buffer_;
-  }
-
   Builtins* builtins() { return &builtins_; }
 
   void NotifyExtensionInstalled() {
@@ -1061,6 +1059,9 @@ class Isolate {
     }
     date_cache_ = date_cache;
   }
+
+  CodeStubInterfaceDescriptor*
+      code_stub_interface_descriptor(int index);
 
   void IterateDeferredHandles(ObjectVisitor* visitor);
   void LinkDeferredHandles(DeferredHandles* deferred_handles);
@@ -1231,7 +1232,6 @@ class Isolate {
   ThreadManager* thread_manager_;
   RuntimeState runtime_state_;
   bool fp_stubs_generated_;
-  StaticResource<SafeStringInputBuffer> compiler_safe_string_input_buffer_;
   Builtins builtins_;
   bool has_installed_extensions_;
   StringTracker* string_tracker_;
@@ -1245,6 +1245,7 @@ class Isolate {
   RegExpStack* regexp_stack_;
   DateCache* date_cache_;
   unibrow::Mapping<unibrow::Ecma262Canonicalize> interp_canonicalize_mapping_;
+  CodeStubInterfaceDescriptor* code_stub_interface_descriptors_;
 
   // The garbage collector should be a little more aggressive when it knows
   // that a context was recently exited.

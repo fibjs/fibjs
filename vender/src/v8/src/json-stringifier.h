@@ -136,8 +136,7 @@ class BasicJsonStringifier BASE_EMBEDDED {
                                         int length));
 
   template <bool is_ascii, typename Char>
-  INLINE(void SerializeString_(Vector<const Char> vector,
-                               Handle<String> string));
+  INLINE(void SerializeString_(Handle<String> string));
 
   template <typename Char>
   INLINE(bool DoNotEscape(Char c));
@@ -598,31 +597,8 @@ BasicJsonStringifier::Result BasicJsonStringifier::SerializeJSObject(
 
 void BasicJsonStringifier::ShrinkCurrentPart() {
   ASSERT(current_index_ < part_length_);
-  if (current_index_ == 0) {
-    current_part_ = factory_->empty_string();
-    return;
-  }
-
-  int string_size, allocated_string_size;
-  if (is_ascii_) {
-    allocated_string_size = SeqOneByteString::SizeFor(part_length_);
-    string_size = SeqOneByteString::SizeFor(current_index_);
-  } else {
-    allocated_string_size = SeqTwoByteString::SizeFor(part_length_);
-    string_size = SeqTwoByteString::SizeFor(current_index_);
-  }
-
-  int delta = allocated_string_size - string_size;
-  current_part_->set_length(current_index_);
-
-  // String sizes are pointer size aligned, so that we can use filler objects
-  // that are a multiple of pointer size.
-  Address end_of_string = current_part_->address() + string_size;
-  isolate_->heap()->CreateFillerObjectAt(end_of_string, delta);
-  if (Marking::IsBlack(Marking::MarkBitFrom(*current_part_))) {
-    MemoryChunk::IncrementLiveBytesFromMutator(
-        current_part_->address(), -delta);
-  }
+  current_part_ = Handle<String>(
+      SeqString::cast(*current_part_)->Truncate(current_index_), isolate_);
 }
 
 
@@ -675,9 +651,8 @@ void BasicJsonStringifier::SerializeStringUnchecked_(const SrcChar* src,
 
 
 template <bool is_ascii, typename Char>
-void BasicJsonStringifier::SerializeString_(Vector<const Char> vector,
-                                            Handle<String> string) {
-  int length = vector.length();
+void BasicJsonStringifier::SerializeString_(Handle<String> string) {
+  int length = string->length();
   Append_<is_ascii, char>('"');
   // We make a rough estimate to find out if the current string can be
   // serialized without allocating a new string part. The worst case length of
@@ -685,6 +660,8 @@ void BasicJsonStringifier::SerializeString_(Vector<const Char> vector,
   // is a more pessimistic estimate, but faster to calculate.
 
   if (((part_length_ - current_index_) >> 3) > length) {
+    AssertNoAllocation no_allocation;
+    Vector<const Char> vector = GetCharVector<Char>(string);
     if (is_ascii) {
       SerializeStringUnchecked_(
           vector.start(),
@@ -698,6 +675,7 @@ void BasicJsonStringifier::SerializeString_(Vector<const Char> vector,
     }
   } else {
     String* string_location = *string;
+    Vector<const Char> vector = GetCharVector<Char>(string);
     for (int i = 0; i < length; i++) {
       Char c = vector[i];
       if (DoNotEscape(c)) {
@@ -751,16 +729,16 @@ void BasicJsonStringifier::SerializeString(Handle<String> object) {
   String::FlatContent flat = object->GetFlatContent();
   if (is_ascii_) {
     if (flat.IsAscii()) {
-      SerializeString_<true, char>(flat.ToAsciiVector(), object);
+      SerializeString_<true, char>(object);
     } else {
       ChangeEncoding();
       SerializeString(object);
     }
   } else {
     if (flat.IsAscii()) {
-      SerializeString_<false, char>(flat.ToAsciiVector(), object);
+      SerializeString_<false, char>(object);
     } else {
-      SerializeString_<false, uc16>(flat.ToUC16Vector(), object);
+      SerializeString_<false, uc16>(object);
     }
   }
 }

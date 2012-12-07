@@ -34,9 +34,6 @@
 namespace v8 {
 namespace internal {
 
-static const int kSizeOfFullCodegenStrictModePrologue = 16;
-static const int kSizeOfOptimizedStrictModePrologue = 16;
-
 // Forward declarations
 class CompilationInfo;
 
@@ -47,6 +44,10 @@ enum TypeofState { INSIDE_TYPEOF, NOT_INSIDE_TYPEOF };
 
 class CodeGenerator: public AstVisitor {
  public:
+  CodeGenerator() {
+    InitializeAstVisitor();
+  }
+
   static bool MakeCode(CompilationInfo* info);
 
   // Printing of AST, etc. as requested by flags.
@@ -70,6 +71,8 @@ class CodeGenerator: public AstVisitor {
   static bool RecordPositions(MacroAssembler* masm,
                               int pos,
                               bool right_here = false);
+
+  DEFINE_AST_VISITOR_SUBCLASS_MEMBERS();
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CodeGenerator);
@@ -95,10 +98,10 @@ class StringCharLoadGenerator : public AllStatic {
 class MathExpGenerator : public AllStatic {
  public:
   static void EmitMathExp(MacroAssembler* masm,
-                          DoubleRegister input,
-                          DoubleRegister result,
-                          DoubleRegister double_scratch1,
-                          DoubleRegister double_scratch2,
+                          DwVfpRegister input,
+                          DwVfpRegister result,
+                          DwVfpRegister double_scratch1,
+                          DwVfpRegister double_scratch2,
                           Register temp1,
                           Register temp2,
                           Register temp3);

@@ -297,7 +297,7 @@ public:
 	{
 		exlib::Fiber* pFiber = exlib::Fiber::Current();
 		TickSample sample_obj;
-		TickSample* sample = CpuProfiler::StartTickSampleEvent(sampler->isolate());
+		TickSample* sample = CpuProfiler::TickSampleEvent(sampler->isolate());
 		if (sample == NULL)
 			sample = &sample_obj;
 
@@ -314,8 +314,6 @@ public:
 #endif
 
 		sampler->Tick(sample);
-
-		CpuProfiler::FinishTickSampleEvent(sampler->isolate());
 	}
 
 	const int interval_;
@@ -368,10 +366,6 @@ Sampler::~Sampler()
 	delete data_;
 }
 
-void Sampler::DoSample() {
-  // TODO(rogulenko): implement
-}
-
 void Sampler::Start()
 {
 	ASSERT(!IsActive());
@@ -384,13 +378,6 @@ void Sampler::Stop()
 	ASSERT(IsActive());
 	SamplerThread::RemoveActiveSampler(this);
 	SetActive(false);
-}
-
-void Sampler::StartSampling() {
-}
-
-
-void Sampler::StopSampling() {
 }
 
 void OS::Sleep(int milliseconds)

@@ -615,7 +615,7 @@ bool Heap::CollectGarbage(AllocationSpace space,
   }
 
   if (collector == MARK_COMPACTOR &&
-      !mark_compact_collector()->abort_incremental_marking_ &&
+      !mark_compact_collector()->abort_incremental_marking() &&
       !incremental_marking()->IsStopped() &&
       !incremental_marking()->should_hurry() &&
       FLAG_incremental_marking_steps) {
@@ -651,16 +651,16 @@ bool Heap::CollectGarbage(AllocationSpace space,
           PerformGarbageCollection(collector, &tracer);
     }
 
-    ASSERT(collector == SCAVENGER || incremental_marking()->IsStopped());
-
-    // This can do debug callbacks and restart incremental marking.
     GarbageCollectionEpilogue();
   }
 
-  if (incremental_marking()->IsStopped()) {
-    if (incremental_marking()->WorthActivating() && NextGCIsLikelyToBeFull()) {
-      incremental_marking()->Start();
-    }
+  // Start incremental marking for the next cycle. The heap snapshot
+  // generator needs incremental marking to stay off after it aborted.
+  if (!mark_compact_collector()->abort_incremental_marking() &&
+      incremental_marking()->IsStopped() &&
+      incremental_marking()->WorthActivating() &&
+      NextGCIsLikelyToBeFull()) {
+    incremental_marking()->Start();
   }
 
   return next_gc_likely_to_collect_more;
@@ -956,6 +956,10 @@ bool Heap::PerformGarbageCollection(GarbageCollector collector,
   }
 
   isolate_->counters()->objs_since_last_young()->Set(0);
+
+  // Callbacks that fire after this point might trigger nested GCs and
+  // restart incremental marking, the assertion can't be moved down.
+  ASSERT(collector == SCAVENGER || incremental_marking()->IsStopped());
 
   gc_post_processing_depth_++;
   { DisableAssertNoAllocation allow_allocation;
@@ -1334,7 +1338,8 @@ void Heap::Scavenge() {
 
   new_space_front = DoScavenge(&scavenge_visitor, new_space_front);
 
-  while (IterateObjectGroups(&scavenge_visitor)) {
+  while (isolate()->global_handles()->IterateObjectGroups(
+      &scavenge_visitor, &IsUnscavengedHeapObject)) {
     new_space_front = DoScavenge(&scavenge_visitor, new_space_front);
   }
   isolate()->global_handles()->RemoveObjectGroups();
@@ -1376,51 +1381,6 @@ void Heap::Scavenge() {
   gc_state_ = NOT_IN_GC;
 
   scavenges_since_last_idle_round_++;
-}
-
-
-// TODO(mstarzinger): Unify this method with
-// MarkCompactCollector::MarkObjectGroups().
-bool Heap::IterateObjectGroups(ObjectVisitor* scavenge_visitor) {
-  List<ObjectGroup*>* object_groups =
-    isolate()->global_handles()->object_groups();
-
-  int last = 0;
-  bool changed = false;
-  for (int i = 0; i < object_groups->length(); i++) {
-    ObjectGroup* entry = object_groups->at(i);
-    ASSERT(entry != NULL);
-
-    Object*** objects = entry->objects_;
-    bool group_marked = false;
-    for (size_t j = 0; j < entry->length_; j++) {
-      Object* object = *objects[j];
-      if (object->IsHeapObject()) {
-        if (!IsUnscavengedHeapObject(this, &object)) {
-          group_marked = true;
-          break;
-        }
-      }
-    }
-
-    if (!group_marked) {
-      (*object_groups)[last++] = entry;
-      continue;
-    }
-
-    for (size_t j = 0; j < entry->length_; ++j) {
-      Object* object = *objects[j];
-      if (object->IsHeapObject()) {
-        scavenge_visitor->VisitPointer(&object);
-        changed = true;
-      }
-    }
-
-    entry->Dispose();
-    object_groups->at(i) = NULL;
-  }
-  object_groups->Rewind(last);
-  return changed;
 }
 
 
@@ -3791,6 +3751,7 @@ MaybeObject* Heap::CreateCode(const CodeDesc& desc,
   code->set_handler_table(empty_fixed_array(), SKIP_WRITE_BARRIER);
   code->set_gc_metadata(Smi::FromInt(0));
   code->set_ic_age(global_ic_age_);
+  code->set_prologue_offset(kPrologueOffsetNotSet);
   // Allow self references to created code object by patching the handle to
   // point to the newly allocated Code object.
   if (!self_reference.is_null()) {
@@ -5327,10 +5288,6 @@ bool Heap::IdleNotification(int hint) {
       AdvanceIdleIncrementalMarking(step_size);
       contexts_disposed_ = 0;
     }
-    // Make sure that we have no pending context disposals.
-    // Take into account that we might have decided to delay full collection
-    // because incremental marking is in progress.
-    ASSERT((contexts_disposed_ == 0) || !incremental_marking()->IsStopped());
     // After context disposal there is likely a lot of garbage remaining, reset
     // the idle notification counters in order to trigger more incremental GCs
     // on subsequent idle notifications.

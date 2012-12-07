@@ -720,10 +720,27 @@ void MacroAssembler::CallApiFunctionAndReturn(Address function_address,
   movq(prev_next_address_reg, Operand(base_reg, kNextOffset));
   movq(prev_limit_reg, Operand(base_reg, kLimitOffset));
   addl(Operand(base_reg, kLevelOffset), Immediate(1));
+
+  if (FLAG_log_timer_events) {
+    FrameScope frame(this, StackFrame::MANUAL);
+    PushSafepointRegisters();
+    PrepareCallCFunction(0);
+    CallCFunction(ExternalReference::log_enter_external_function(isolate()), 0);
+    PopSafepointRegisters();
+  }
+
   // Call the api function!
   movq(rax, reinterpret_cast<int64_t>(function_address),
        RelocInfo::RUNTIME_ENTRY);
   call(rax);
+
+  if (FLAG_log_timer_events) {
+    FrameScope frame(this, StackFrame::MANUAL);
+    PushSafepointRegisters();
+    PrepareCallCFunction(0);
+    CallCFunction(ExternalReference::log_leave_external_function(isolate()), 0);
+    PopSafepointRegisters();
+  }
 
 #if defined(_WIN64) && !defined(__MINGW64__)
   // rax keeps a pointer to v8::Handle, unpack it.
@@ -3415,7 +3432,7 @@ void MacroAssembler::EnterExitFrameEpilogue(int arg_stack_space,
         arg_stack_space * kPointerSize;
     subq(rsp, Immediate(space));
     int offset = -2 * kPointerSize;
-    for (int i = 0; i < XMMRegister::kNumAllocatableRegisters; i++) {
+    for (int i = 0; i < XMMRegister::NumAllocatableRegisters(); i++) {
       XMMRegister reg = XMMRegister::FromAllocationIndex(i);
       movsd(Operand(rbp, offset - ((i + 1) * kDoubleSize)), reg);
     }
@@ -3459,7 +3476,7 @@ void MacroAssembler::LeaveExitFrame(bool save_doubles) {
   // r15 : argv
   if (save_doubles) {
     int offset = -2 * kPointerSize;
-    for (int i = 0; i < XMMRegister::kNumAllocatableRegisters; i++) {
+    for (int i = 0; i < XMMRegister::NumAllocatableRegisters(); i++) {
       XMMRegister reg = XMMRegister::FromAllocationIndex(i);
       movsd(reg, Operand(rbp, offset - ((i + 1) * kDoubleSize)));
     }

@@ -350,10 +350,6 @@ DEFINE_bool(compilation_cache, true, "enable compilation cache")
 
 DEFINE_bool(cache_prototype_transitions, true, "cache prototype transitions")
 
-// cpu-profiler.cc
-DEFINE_int(cpu_profiler_sampling_period, 1000,
-           "CPU profiler sampling period in microseconds")
-
 // debug.cc
 DEFINE_bool(trace_debug_json, false, "trace debugging JSON request/response")
 DEFINE_bool(debugger_auto_break, true,
@@ -402,9 +398,9 @@ DEFINE_bool(collect_maps, true,
             "garbage collect maps from which no objects can be reached")
 DEFINE_bool(flush_code, true,
             "flush code that we expect not to use again (during full gc)")
-DEFINE_bool(flush_code_incrementally, false,
+DEFINE_bool(flush_code_incrementally, true,
             "flush code that we expect not to use again (incrementally)")
-DEFINE_bool(age_code, false,
+DEFINE_bool(age_code, true,
             "track un-executed functions to age code and flush only "
             "old code")
 DEFINE_bool(incremental_marking, true, "use incremental marking")
@@ -668,7 +664,10 @@ DEFINE_string(logfile, "v8.log", "Specify the name of the log file.")
 DEFINE_bool(ll_prof, false, "Enable low-level linux profiler.")
 DEFINE_string(gc_fake_mmap, "/tmp/__v8_gc__",
               "Specify the name of the file for fake gc mmap used in ll_prof")
-DEFINE_bool(log_timer_events, false, "Log histogram timer events.")
+DEFINE_bool(log_internal_timer_events, false, "Time internal events.")
+DEFINE_bool(log_timer_events, false,
+            "Time events including external callbacks.")
+DEFINE_implication(log_timer_events, log_internal_timer_events)
 
 //
 // Disassembler only flags

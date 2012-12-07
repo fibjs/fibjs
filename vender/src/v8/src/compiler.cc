@@ -52,62 +52,100 @@ namespace internal {
 
 
 CompilationInfo::CompilationInfo(Handle<Script> script, Zone* zone)
-    : isolate_(script->GetIsolate()),
-      flags_(LanguageModeField::encode(CLASSIC_MODE)),
-      function_(NULL),
-      scope_(NULL),
-      global_scope_(NULL),
+    : flags_(LanguageModeField::encode(CLASSIC_MODE)),
       script_(script),
-      extension_(NULL),
-      pre_parse_data_(NULL),
-      osr_ast_id_(BailoutId::None()),
-      zone_(zone),
-      deferred_handles_(NULL) {
-  Initialize(BASE);
+      osr_ast_id_(BailoutId::None()) {
+  Initialize(script->GetIsolate(), BASE, zone);
 }
 
 
 CompilationInfo::CompilationInfo(Handle<SharedFunctionInfo> shared_info,
                                  Zone* zone)
-    : isolate_(shared_info->GetIsolate()),
-      flags_(LanguageModeField::encode(CLASSIC_MODE) |
-             IsLazy::encode(true)),
-      function_(NULL),
-      scope_(NULL),
-      global_scope_(NULL),
+    : flags_(LanguageModeField::encode(CLASSIC_MODE) | IsLazy::encode(true)),
       shared_info_(shared_info),
       script_(Handle<Script>(Script::cast(shared_info->script()))),
-      extension_(NULL),
-      pre_parse_data_(NULL),
-      osr_ast_id_(BailoutId::None()),
-      zone_(zone),
-      deferred_handles_(NULL) {
-  Initialize(BASE);
+      osr_ast_id_(BailoutId::None()) {
+  Initialize(script_->GetIsolate(), BASE, zone);
 }
 
 
 CompilationInfo::CompilationInfo(Handle<JSFunction> closure, Zone* zone)
-    : isolate_(closure->GetIsolate()),
-      flags_(LanguageModeField::encode(CLASSIC_MODE) |
-             IsLazy::encode(true)),
-      function_(NULL),
-      scope_(NULL),
-      global_scope_(NULL),
+    : flags_(LanguageModeField::encode(CLASSIC_MODE) | IsLazy::encode(true)),
       closure_(closure),
       shared_info_(Handle<SharedFunctionInfo>(closure->shared())),
       script_(Handle<Script>(Script::cast(shared_info_->script()))),
-      extension_(NULL),
-      pre_parse_data_(NULL),
       context_(closure->context()),
-      osr_ast_id_(BailoutId::None()),
-      zone_(zone),
-      deferred_handles_(NULL) {
-  Initialize(BASE);
+      osr_ast_id_(BailoutId::None()) {
+  Initialize(script_->GetIsolate(), BASE, zone);
+}
+
+
+CompilationInfo::CompilationInfo(HydrogenCodeStub* stub,
+                                 Isolate* isolate, Zone* zone)
+    : flags_(LanguageModeField::encode(CLASSIC_MODE) |
+             IsLazy::encode(true)),
+      osr_ast_id_(BailoutId::None()) {
+  Initialize(isolate, STUB, zone);
+  code_stub_ = stub;
+}
+
+
+void CompilationInfo::Initialize(Isolate* isolate, Mode mode, Zone* zone) {
+  isolate_ = isolate;
+  function_ = NULL;
+  scope_ = NULL;
+  global_scope_ = NULL;
+  extension_ = NULL;
+  pre_parse_data_ = NULL;
+  zone_ = zone;
+  deferred_handles_ = NULL;
+  code_stub_ = NULL;
+  prologue_offset_ = kPrologueOffsetNotSet;
+  if (mode == STUB) {
+    mode_ = STUB;
+    return;
+  }
+  mode_ = V8::UseCrankshaft() ? mode : NONOPT;
+  if (script_->type()->value() == Script::TYPE_NATIVE) {
+    MarkAsNative();
+  }
+  if (!shared_info_.is_null()) {
+    ASSERT(language_mode() == CLASSIC_MODE);
+    SetLanguageMode(shared_info_->language_mode());
+  }
+  set_bailout_reason("unknown");
 }
 
 
 CompilationInfo::~CompilationInfo() {
   delete deferred_handles_;
+}
+
+
+int CompilationInfo::num_parameters() const {
+  if (IsStub()) {
+    return 0;
+  } else {
+    return scope()->num_parameters();
+  }
+}
+
+
+int CompilationInfo::num_heap_slots() const {
+  if (IsStub()) {
+    return 0;
+  } else {
+    return scope()->num_heap_slots();
+  }
+}
+
+
+Code::Flags CompilationInfo::flags() const {
+  if (IsStub()) {
+    return Code::ComputeFlags(Code::COMPILED_STUB);
+  } else {
+    return Code::ComputeFlags(Code::OPTIMIZED_FUNCTION);
+  }
 }
 
 
@@ -321,13 +359,13 @@ OptimizingCompiler::Status OptimizingCompiler::CreateGraph() {
   if (FLAG_trace_hydrogen) {
     PrintF("-----------------------------------------------------------\n");
     PrintF("Compiling method %s using hydrogen\n", *name->ToCString());
-    HTracer::Instance()->TraceCompilation(info()->function());
+    HTracer::Instance()->TraceCompilation(info());
   }
   Handle<Context> native_context(
       info()->closure()->context()->native_context());
   oracle_ = new(info()->zone()) TypeFeedbackOracle(
       code, native_context, info()->isolate(), info()->zone());
-  graph_builder_ = new(info()->zone()) HGraphBuilder(info(), oracle_);
+  graph_builder_ = new(info()->zone()) HOptimizedGraphBuilder(info(), oracle_);
 
   Timer t(this, &time_taken_to_create_graph_);
   graph_ = graph_builder_->CreateGraph();
@@ -380,7 +418,7 @@ OptimizingCompiler::Status OptimizingCompiler::GenerateAndInstallCode() {
     Timer timer(this, &time_taken_to_codegen_);
     ASSERT(chunk_ != NULL);
     ASSERT(graph_ != NULL);
-    Handle<Code> optimized_code = chunk_->Codegen();
+    Handle<Code> optimized_code = chunk_->Codegen(Code::OPTIMIZED_FUNCTION);
     if (optimized_code.is_null()) {
       info()->set_bailout_reason("code generation failed");
       return AbortOptimization();
@@ -622,7 +660,6 @@ Handle<SharedFunctionInfo> Compiler::Compile(Handle<String> source,
     if (result->ic_age() != HEAP->global_ic_age()) {
       result->ResetForNewContext(HEAP->global_ic_age());
     }
-    result->code()->MakeYoung();
   }
 
   if (result.is_null()) isolate->ReportPendingMessages();
@@ -684,7 +721,6 @@ Handle<SharedFunctionInfo> Compiler::CompileEval(Handle<String> source,
     if (result->ic_age() != HEAP->global_ic_age()) {
       result->ResetForNewContext(HEAP->global_ic_age());
     }
-    result->code()->MakeYoung();
   }
 
   return result;

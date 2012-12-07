@@ -1801,7 +1801,8 @@ void MacroAssembler::CallRuntimeSaveDoubles(Runtime::FunctionId id) {
   const Runtime::Function* function = Runtime::FunctionForId(id);
   Set(eax, Immediate(function->nargs));
   mov(ebx, Immediate(ExternalReference(function, isolate())));
-  CEntryStub ces(1, kSaveFPRegs);
+  CEntryStub ces(1, CpuFeatures::IsSupported(SSE2) ? kSaveFPRegs
+                                                   : kDontSaveFPRegs);
   CallStub(&ces);
 }
 
@@ -1920,8 +1921,24 @@ void MacroAssembler::CallApiFunctionAndReturn(Address function_address,
   mov(edi, Operand::StaticVariable(limit_address));
   add(Operand::StaticVariable(level_address), Immediate(1));
 
+  if (FLAG_log_timer_events) {
+    FrameScope frame(this, StackFrame::MANUAL);
+    PushSafepointRegisters();
+    PrepareCallCFunction(0, eax);
+    CallCFunction(ExternalReference::log_enter_external_function(isolate()), 0);
+    PopSafepointRegisters();
+  }
+
   // Call the api function.
   call(function_address, RelocInfo::RUNTIME_ENTRY);
+
+  if (FLAG_log_timer_events) {
+    FrameScope frame(this, StackFrame::MANUAL);
+    PushSafepointRegisters();
+    PrepareCallCFunction(0, eax);
+    CallCFunction(ExternalReference::log_leave_external_function(isolate()), 0);
+    PopSafepointRegisters();
+  }
 
   if (!kReturnHandlesDirectly) {
     // PrepareCallApiFunction saved pointer to the output slot into

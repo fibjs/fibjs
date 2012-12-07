@@ -2489,7 +2489,6 @@ class FixedDoubleArray: public FixedArrayBase {
 
   // Casting.
   static inline FixedDoubleArray* cast(Object* obj);
-  static inline FixedDoubleArray* castOrEmptyFixedArray(Object* obj);
 
   // Maximal allowed size, in bytes, of a single FixedDoubleArray.
   // Prevents overflowing size computations, as well as extreme memory
@@ -4234,6 +4233,7 @@ class Code: public HeapObject {
   V(FUNCTION)             \
   V(OPTIMIZED_FUNCTION)   \
   V(STUB)                 \
+  V(COMPILED_STUB)        \
   V(BUILTIN)              \
   V(LOAD_IC)              \
   V(KEYED_LOAD_IC)        \
@@ -4324,6 +4324,11 @@ class Code: public HeapObject {
   // at the moment when this object was created.
   inline void set_ic_age(int count);
   inline int ic_age();
+
+  // [prologue_offset]: Offset of the function prologue, used for aging
+  // FUNCTIONs and OPTIMIZED_FUNCTIONs.
+  inline int prologue_offset();
+  inline void set_prologue_offset(int offset);
 
   // Unchecked accessors to be used during GC.
   inline ByteArray* unchecked_relocation_info();
@@ -4569,7 +4574,6 @@ class Code: public HeapObject {
 
   // Code aging
   static void MakeCodeAgeSequenceYoung(byte* sequence);
-  void MakeYoung();
   void MakeOlder(MarkingParity);
   static bool IsYoungSequence(byte* sequence);
   bool IsOld();
@@ -4593,8 +4597,10 @@ class Code: public HeapObject {
   static const int kKindSpecificFlags1Offset = kFlagsOffset + kIntSize;
   static const int kKindSpecificFlags2Offset =
       kKindSpecificFlags1Offset + kIntSize;
+  // Note: We might be able to squeeze this into the flags above.
+  static const int kPrologueOffset = kKindSpecificFlags2Offset + kIntSize;
 
-  static const int kHeaderPaddingStart = kKindSpecificFlags2Offset + kIntSize;
+  static const int kHeaderPaddingStart = kPrologueOffset + kIntSize;
 
   // Add padding to align the instruction start following right after
   // the Code object header.
@@ -4688,7 +4694,6 @@ class Code: public HeapObject {
   static Code* GetCodeAgeStub(Age age, MarkingParity parity);
 
   // Code aging -- platform-specific
-  byte* FindPlatformCodeAgeSequence();
   static void PatchPlatformCodeAge(byte* sequence, Age age,
                                    MarkingParity parity);
 
@@ -4842,6 +4847,10 @@ class Map: public HeapObject {
 
   inline bool has_fast_double_elements() {
     return IsFastDoubleElementsKind(elements_kind());
+  }
+
+  inline bool has_fast_elements() {
+    return IsFastElementsKind(elements_kind());
   }
 
   inline bool has_non_strict_arguments_elements() {
@@ -6642,6 +6651,7 @@ class JSRegExp: public JSObject {
   inline Object* DataAtUnchecked(int index);
   inline void SetDataAtUnchecked(int index, Object* value, Heap* heap);
   inline Type TypeTagUnchecked();
+  inline void ResetLastIndex();
 
   static int code_index(bool is_ascii) {
     if (is_ascii) {
@@ -7163,6 +7173,8 @@ class StringShape BASE_EMBEDDED {
 // All string values have a length field.
 class String: public HeapObject {
  public:
+  enum Encoding { ONE_BYTE_ENCODING, TWO_BYTE_ENCODING };
+
   // Representation of the flat content of a String.
   // A non-flat string doesn't have flat content.
   // A flat string has content that's encoded as a sequence of either
@@ -7559,6 +7571,11 @@ class SeqString: public String {
   // Layout description.
   static const int kHeaderSize = String::kSize;
 
+  // Truncate the string in-place if possible and return the result.
+  // In case of new_length == 0, the empty string is returned without
+  // truncating the original string.
+  MUST_USE_RESULT String* Truncate(int new_length);
+
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(SeqString);
 };
@@ -7947,17 +7964,6 @@ class StringInputBuffer: public unibrow::InputBuffer<String, String*, 1024> {
   inline StringInputBuffer(): unibrow::InputBuffer<String, String*, 1024>() {}
   explicit inline StringInputBuffer(String* backing):
       unibrow::InputBuffer<String, String*, 1024>(backing) {}
-};
-
-
-class SafeStringInputBuffer
-  : public unibrow::InputBuffer<String, String**, 256> {
- public:
-  virtual void Seek(unsigned pos);
-  inline SafeStringInputBuffer()
-      : unibrow::InputBuffer<String, String**, 256>() {}
-  explicit inline SafeStringInputBuffer(String** backing)
-      : unibrow::InputBuffer<String, String**, 256>(backing) {}
 };
 
 

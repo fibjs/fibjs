@@ -426,11 +426,6 @@ char* Isolate::Iterate(ObjectVisitor* v, char* thread_storage) {
 }
 
 
-void Isolate::IterateThread(ThreadVisitor* v) {
-  v->VisitThread(this, thread_local_top());
-}
-
-
 void Isolate::IterateThread(ThreadVisitor* v, char* t) {
   ThreadLocalTop* thread = reinterpret_cast<ThreadLocalTop*>(t);
   v->VisitThread(this, thread);
@@ -1062,9 +1057,12 @@ void Isolate::ScheduleThrow(Object* exception) {
   // When scheduling a throw we first throw the exception to get the
   // error reporting if it is uncaught before rescheduling it.
   Throw(exception);
-  thread_local_top()->scheduled_exception_ = pending_exception();
-  thread_local_top()->external_caught_exception_ = false;
-  clear_pending_exception();
+  PropagatePendingExceptionToExternalTryCatch();
+  if (has_pending_exception()) {
+    thread_local_top()->scheduled_exception_ = pending_exception();
+    thread_local_top()->external_caught_exception_ = false;
+    clear_pending_exception();
+  }
 }
 
 
@@ -1366,6 +1364,24 @@ void Isolate::ReportPendingMessages() {
 }
 
 
+MessageLocation Isolate::GetMessageLocation() {
+  ASSERT(has_pending_exception());
+
+  if (thread_local_top_.pending_exception_ != Failure::OutOfMemoryException() &&
+      thread_local_top_.pending_exception_ != heap()->termination_exception() &&
+      thread_local_top_.has_pending_message_ &&
+      !thread_local_top_.pending_message_obj_->IsTheHole() &&
+      thread_local_top_.pending_message_script_ != NULL) {
+    Handle<Script> script(thread_local_top_.pending_message_script_);
+    int start_pos = thread_local_top_.pending_message_start_pos_;
+    int end_pos = thread_local_top_.pending_message_end_pos_;
+    return MessageLocation(script, start_pos, end_pos);
+  }
+
+  return MessageLocation();
+}
+
+
 void Isolate::TraceException(bool flag) {
   FLAG_trace_exception = flag;  // TODO(isolates): This is an unfortunate use.
 }
@@ -1619,6 +1635,7 @@ Isolate::Isolate()
       string_tracker_(NULL),
       regexp_stack_(NULL),
       date_cache_(NULL),
+      code_stub_interface_descriptors_(NULL),
       context_exit_happened_(false),
       deferred_handles_head_(NULL),
       optimizing_compiler_thread_(this) {
@@ -1780,6 +1797,9 @@ Isolate::~Isolate() {
 
   delete date_cache_;
   date_cache_ = NULL;
+
+  delete[] code_stub_interface_descriptors_;
+  code_stub_interface_descriptors_ = NULL;
 
   delete regexp_stack_;
   regexp_stack_ = NULL;
@@ -1944,6 +1964,10 @@ bool Isolate::Init(Deserializer* des) {
   regexp_stack_ = new RegExpStack();
   regexp_stack_->isolate_ = this;
   date_cache_ = new DateCache();
+  code_stub_interface_descriptors_ =
+      new CodeStubInterfaceDescriptor[CodeStub::NUMBER_OF_IDS];
+  memset(code_stub_interface_descriptors_, 0,
+         kPointerSize * CodeStub::NUMBER_OF_IDS);
 
   // Enable logging before setting up the heap
   logger_->SetUp();
@@ -2004,6 +2028,8 @@ bool Isolate::Init(Deserializer* des) {
   debug_->SetUp(create_heap_objects);
 #endif
 
+  deoptimizer_data_ = new DeoptimizerData;
+
   // If we are deserializing, read the state into the now-empty heap.
   if (!create_heap_objects) {
     des->Deserialize();
@@ -2022,7 +2048,6 @@ bool Isolate::Init(Deserializer* des) {
   // Quiet the heap NaN if needed on target platform.
   if (!create_heap_objects) Assembler::QuietNaN(heap_.nan_value());
 
-  deoptimizer_data_ = new DeoptimizerData;
   runtime_profiler_ = new RuntimeProfiler(this);
   runtime_profiler_->SetUp();
 
@@ -2044,6 +2069,17 @@ bool Isolate::Init(Deserializer* des) {
 
   state_ = INITIALIZED;
   time_millis_at_init_ = OS::TimeCurrentMillis();
+
+  if (!create_heap_objects) {
+    // Now that the heap is consistent, it's OK to generate the code for the
+    // deopt entry table that might have been referred to by optimized code in
+    // the snapshot.
+    HandleScope scope(this);
+    Deoptimizer::EnsureCodeForDeoptimizationEntry(
+        Deoptimizer::LAZY,
+        kDeoptTableSerializeEntryCount - 1);
+  }
+
   if (FLAG_parallel_recompilation) optimizing_compiler_thread_.Start();
   return true;
 }
@@ -2155,6 +2191,12 @@ void Isolate::UnlinkDeferredHandles(DeferredHandles* deferred) {
   if (deferred->previous_ != NULL) {
     deferred->previous_->next_ = deferred->next_;
   }
+}
+
+
+CodeStubInterfaceDescriptor*
+    Isolate::code_stub_interface_descriptor(int index) {
+  return code_stub_interface_descriptors_ + index;
 }
 
 

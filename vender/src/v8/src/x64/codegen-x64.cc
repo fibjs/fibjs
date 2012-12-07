@@ -606,6 +606,46 @@ void StringCharLoadGenerator::Generate(MacroAssembler* masm,
 }
 
 
+void SeqStringSetCharGenerator::Generate(MacroAssembler* masm,
+                                         String::Encoding encoding,
+                                         Register string,
+                                         Register index,
+                                         Register value) {
+  if (FLAG_debug_code) {
+    __ Check(masm->CheckSmi(index), "Non-smi index");
+    __ Check(masm->CheckSmi(value), "Non-smi value");
+
+    __ SmiCompare(index, FieldOperand(string, String::kLengthOffset));
+    __ Check(less, "Index is too large");
+
+    __ SmiCompare(index, Smi::FromInt(0));
+    __ Check(greater_equal, "Index is negative");
+
+    __ push(value);
+    __ movq(value, FieldOperand(string, HeapObject::kMapOffset));
+    __ movzxbq(value, FieldOperand(value, Map::kInstanceTypeOffset));
+
+    __ andb(value, Immediate(kStringRepresentationMask | kStringEncodingMask));
+    static const uint32_t one_byte_seq_type = kSeqStringTag | kOneByteStringTag;
+    static const uint32_t two_byte_seq_type = kSeqStringTag | kTwoByteStringTag;
+    __ cmpq(value, Immediate(encoding == String::ONE_BYTE_ENCODING
+                                 ? one_byte_seq_type : two_byte_seq_type));
+    __ Check(equal, "Unexpected string type");
+    __ pop(value);
+  }
+
+  __ SmiToInteger32(value, value);
+  __ SmiToInteger32(index, index);
+  if (encoding == String::ONE_BYTE_ENCODING) {
+    __ movb(FieldOperand(string, index, times_1, SeqString::kHeaderSize),
+            value);
+  } else {
+    __ movw(FieldOperand(string, index, times_2, SeqString::kHeaderSize),
+            value);
+  }
+}
+
+
 void MathExpGenerator::EmitMathExp(MacroAssembler* masm,
                                    XMMRegister input,
                                    XMMRegister result,
@@ -678,28 +718,6 @@ static byte* GetNoCodeAgeSequence(uint32_t* length) {
     initialized = true;
   }
   return sequence;
-}
-
-
-byte* Code::FindPlatformCodeAgeSequence() {
-  byte* start = instruction_start();
-  uint32_t young_length;
-  byte* young_sequence = GetNoCodeAgeSequence(&young_length);
-  if (!memcmp(start, young_sequence, young_length) ||
-      *start == kCallOpcode) {
-    return start;
-  } else {
-    byte* start_after_strict = NULL;
-    if (kind() == FUNCTION) {
-      start_after_strict = start + kSizeOfFullCodegenStrictModePrologue;
-    } else {
-      ASSERT(kind() == OPTIMIZED_FUNCTION);
-      start_after_strict = start + kSizeOfOptimizedStrictModePrologue;
-    }
-    ASSERT(!memcmp(start_after_strict, young_sequence, young_length) ||
-           *start_after_strict == kCallOpcode);
-    return start_after_strict;
-  }
 }
 
 

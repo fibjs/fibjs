@@ -1790,9 +1790,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_RegExpInitializeObject) {
         JSRegExp::kIgnoreCaseFieldIndex, ignoreCase, SKIP_WRITE_BARRIER);
     regexp->InObjectPropertyAtPut(
         JSRegExp::kMultilineFieldIndex, multiline, SKIP_WRITE_BARRIER);
-    regexp->InObjectPropertyAtPut(JSRegExp::kLastIndexFieldIndex,
-                                  Smi::FromInt(0),
-                                  SKIP_WRITE_BARRIER);  // It's a Smi.
+    regexp->ResetLastIndex();
     return regexp;
   }
 
@@ -2762,6 +2760,23 @@ void FindAsciiStringIndices(Vector<const char> subject,
 }
 
 
+void FindTwoByteStringIndices(const Vector<const uc16> subject,
+                              uc16 pattern,
+                              ZoneList<int>* indices,
+                              unsigned int limit,
+                              Zone* zone) {
+  ASSERT(limit > 0);
+  const uc16* subject_start = subject.start();
+  const uc16* subject_end = subject_start + subject.length();
+  for (const uc16* pos = subject_start; pos < subject_end && limit > 0; pos++) {
+    if (*pos == pattern) {
+      indices->Add(static_cast<int>(pos - subject_start), zone);
+      limit--;
+    }
+  }
+}
+
+
 template <typename SubjectChar, typename PatternChar>
 void FindStringIndices(Isolate* isolate,
                        Vector<const SubjectChar> subject,
@@ -2826,19 +2841,37 @@ void FindStringIndicesDispatch(Isolate* isolate,
     } else {
       Vector<const uc16> subject_vector = subject_content.ToUC16Vector();
       if (pattern_content.IsAscii()) {
-        FindStringIndices(isolate,
-                          subject_vector,
-                          pattern_content.ToAsciiVector(),
-                          indices,
-                          limit,
-                          zone);
+        Vector<const char> pattern_vector = pattern_content.ToAsciiVector();
+        if (pattern_vector.length() == 1) {
+          FindTwoByteStringIndices(subject_vector,
+                                   pattern_vector[0],
+                                   indices,
+                                   limit,
+                                   zone);
+        } else {
+          FindStringIndices(isolate,
+                            subject_vector,
+                            pattern_vector,
+                            indices,
+                            limit,
+                            zone);
+        }
       } else {
-        FindStringIndices(isolate,
-                          subject_vector,
-                          pattern_content.ToUC16Vector(),
-                          indices,
-                          limit,
-                          zone);
+        Vector<const uc16> pattern_vector = pattern_content.ToUC16Vector();
+        if (pattern_vector.length() == 1) {
+          FindTwoByteStringIndices(subject_vector,
+                                   pattern_vector[0],
+                                   indices,
+                                   limit,
+                                   zone);
+        } else {
+          FindStringIndices(isolate,
+                            subject_vector,
+                            pattern_vector,
+                            indices,
+                            limit,
+                            zone);
+        }
       }
     }
   }
@@ -2869,7 +2902,10 @@ MUST_USE_RESULT static MaybeObject* StringReplaceAtomRegExpWithString(
       isolate, *subject, pattern, &indices, 0xffffffff, zone);
 
   int matches = indices.length();
-  if (matches == 0) return *subject;
+  if (matches == 0) {
+    pattern_regexp->ResetLastIndex();
+    return *subject;
+  }
 
   // Detect integer overflow.
   int64_t result_len_64 =
@@ -2969,6 +3005,7 @@ MUST_USE_RESULT static MaybeObject* StringReplaceRegExpWithString(
   int32_t* current_match = global_cache.FetchNext();
   if (current_match == NULL) {
     if (global_cache.HasException()) return Failure::Exception();
+    regexp->ResetLastIndex();
     return *subject;
   }
 
@@ -3067,6 +3104,7 @@ MUST_USE_RESULT static MaybeObject* StringReplaceRegExpWithEmptyString(
   int32_t* current_match = global_cache.FetchNext();
   if (current_match == NULL) {
     if (global_cache.HasException()) return Failure::Exception();
+    regexp->ResetLastIndex();
     return *subject;
   }
 
@@ -5063,46 +5101,22 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StringToNumber) {
 }
 
 
-RUNTIME_FUNCTION(MaybeObject*, Runtime_StringFromCharCodeArray) {
-  NoHandleAllocation ha;
-  ASSERT(args.length() == 1);
-
-  CONVERT_ARG_CHECKED(JSArray, codes, 0);
-  int length = Smi::cast(codes->length())->value();
-
-  // Check if the string can be ASCII.
-  int i;
-  for (i = 0; i < length; i++) {
-    Object* element;
-    { MaybeObject* maybe_element = codes->GetElement(i);
-      // We probably can't get an exception here, but just in order to enforce
-      // the checking of inputs in the runtime calls we check here.
-      if (!maybe_element->ToObject(&element)) return maybe_element;
-    }
-    CONVERT_NUMBER_CHECKED(int, chr, Int32, element);
-    if ((chr & 0xffff) > String::kMaxAsciiCharCode)
-      break;
+RUNTIME_FUNCTION(MaybeObject*, Runtime_NewString) {
+  CONVERT_SMI_ARG_CHECKED(length, 0);
+  CONVERT_BOOLEAN_ARG_CHECKED(is_one_byte, 1);
+  if (length == 0) return isolate->heap()->empty_string();
+  if (is_one_byte) {
+    return isolate->heap()->AllocateRawOneByteString(length);
+  } else {
+    return isolate->heap()->AllocateRawTwoByteString(length);
   }
+}
 
-  MaybeObject* maybe_object = NULL;
-  if (i == length) {  // The string is ASCII.
-    maybe_object = isolate->heap()->AllocateRawOneByteString(length);
-  } else {  // The string is not ASCII.
-    maybe_object = isolate->heap()->AllocateRawTwoByteString(length);
-  }
 
-  Object* object = NULL;
-  if (!maybe_object->ToObject(&object)) return maybe_object;
-  String* result = String::cast(object);
-  for (int i = 0; i < length; i++) {
-    Object* element;
-    { MaybeObject* maybe_element = codes->GetElement(i);
-      if (!maybe_element->ToObject(&element)) return maybe_element;
-    }
-    CONVERT_NUMBER_CHECKED(int, chr, Int32, element);
-    result->Set(i, chr & 0xffff);
-  }
-  return result;
+RUNTIME_FUNCTION(MaybeObject*, Runtime_TruncateString) {
+  CONVERT_ARG_CHECKED(SeqString, string, 0);
+  CONVERT_SMI_ARG_CHECKED(new_length, 1);
+  return string->Truncate(new_length);
 }
 
 
@@ -7902,6 +7916,17 @@ class ActivationsFinder : public ThreadVisitor {
 };
 
 
+RUNTIME_FUNCTION(MaybeObject*, Runtime_NotifyICMiss) {
+  HandleScope scope(isolate);
+  ASSERT(args.length() == 0);
+  Deoptimizer* deoptimizer = Deoptimizer::Grab(isolate);
+  ASSERT(isolate->heap()->IsAllocationAllowed());
+  ASSERT(deoptimizer->compiled_code_kind() == Code::COMPILED_STUB);
+  delete deoptimizer;
+  return isolate->heap()->undefined_value();
+}
+
+
 RUNTIME_FUNCTION(MaybeObject*, Runtime_NotifyDeoptimized) {
   HandleScope scope(isolate);
   ASSERT(args.length() == 1);
@@ -7910,9 +7935,11 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_NotifyDeoptimized) {
       static_cast<Deoptimizer::BailoutType>(args.smi_at(0));
   Deoptimizer* deoptimizer = Deoptimizer::Grab(isolate);
   ASSERT(isolate->heap()->IsAllocationAllowed());
-  JavaScriptFrameIterator it(isolate);
+
+  ASSERT(deoptimizer->compiled_code_kind() != Code::COMPILED_STUB);
 
   // Make sure to materialize objects before causing any allocation.
+  JavaScriptFrameIterator it(isolate);
   deoptimizer->MaterializeHeapObjects(&it);
   delete deoptimizer;
 
@@ -10867,6 +10894,52 @@ static Handle<JSObject> MaterializeClosure(Isolate* isolate,
 }
 
 
+// This method copies structure of MaterializeClosure method above.
+static bool SetClosureVariableValue(Isolate* isolate,
+                                    Handle<Context> context,
+                                    Handle<String> variable_name,
+                                    Handle<Object> new_value) {
+  ASSERT(context->IsFunctionContext());
+
+  Handle<SharedFunctionInfo> shared(context->closure()->shared());
+  Handle<ScopeInfo> scope_info(shared->scope_info());
+
+  // Context locals to the context extension.
+  for (int i = 0; i < scope_info->ContextLocalCount(); i++) {
+    Handle<String> next_name(scope_info->ContextLocalName(i));
+    if (variable_name->Equals(*next_name)) {
+      VariableMode mode;
+      InitializationFlag init_flag;
+      int context_index =
+          scope_info->ContextSlotIndex(*next_name, &mode, &init_flag);
+      if (context_index < 0) {
+        return false;
+      }
+      context->set(context_index, *new_value);
+      return true;
+    }
+  }
+
+  // Properties from the function context extension. This will
+  // be variables introduced by eval.
+  if (context->has_extension()) {
+    Handle<JSObject> ext(JSObject::cast(context->extension()));
+    if (ext->HasProperty(*variable_name)) {
+      // We don't expect this to do anything except replacing property value.
+      SetProperty(isolate,
+                  ext,
+                  variable_name,
+                  new_value,
+                  NONE,
+                  kNonStrictMode);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
 // Create a plain JSObject which materializes the scope for the specified
 // catch context.
 static Handle<JSObject> MaterializeCatchScope(Isolate* isolate,
@@ -11147,6 +11220,33 @@ class ScopeIterator {
     return Handle<JSObject>();
   }
 
+  bool SetVariableValue(Handle<String> variable_name,
+                        Handle<Object> new_value) {
+    ASSERT(!failed_);
+    switch (Type()) {
+      case ScopeIterator::ScopeTypeGlobal:
+        break;
+      case ScopeIterator::ScopeTypeLocal:
+        // TODO(2399): implement.
+        break;
+      case ScopeIterator::ScopeTypeWith:
+        break;
+      case ScopeIterator::ScopeTypeCatch:
+        // TODO(2399): implement.
+        break;
+      case ScopeIterator::ScopeTypeClosure:
+        return SetClosureVariableValue(isolate_, CurrentContext(),
+            variable_name, new_value);
+      case ScopeIterator::ScopeTypeBlock:
+        // TODO(2399): should we implement it?
+        break;
+      case ScopeIterator::ScopeTypeModule:
+        // TODO(2399): should we implement it?
+        break;
+    }
+    return false;
+  }
+
   Handle<ScopeInfo> CurrentScopeInfo() {
     ASSERT(!failed_);
     if (!nested_scope_chain_.is_empty()) {
@@ -11383,6 +11483,64 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_GetFunctionScopeDetails) {
   }
 
   return MaterializeScopeDetails(isolate, &it);
+}
+
+
+static bool SetScopeVariableValue(ScopeIterator* it, int index,
+                                  Handle<String> variable_name,
+                                  Handle<Object> new_value) {
+  for (int n = 0; !it->Done() && n < index; it->Next()) {
+    n++;
+  }
+  if (it->Done()) {
+    return false;
+  }
+  return it->SetVariableValue(variable_name, new_value);
+}
+
+
+// Change variable value in closure or local scope
+// args[0]: number or JsFunction: break id or function
+// args[1]: number: frame index (when arg[0] is break id)
+// args[2]: number: inlined frame index (when arg[0] is break id)
+// args[3]: number: scope index
+// args[4]: string: variable name
+// args[5]: object: new value
+//
+// Return true if success and false otherwise
+RUNTIME_FUNCTION(MaybeObject*, Runtime_SetScopeVariableValue) {
+  HandleScope scope(isolate);
+  ASSERT(args.length() == 6);
+
+  // Check arguments.
+  CONVERT_NUMBER_CHECKED(int, index, Int32, args[3]);
+  CONVERT_ARG_HANDLE_CHECKED(String, variable_name, 4);
+  Handle<Object> new_value = args.at<Object>(5);
+
+  bool res;
+  if (args[0]->IsNumber()) {
+    Object* check;
+    { MaybeObject* maybe_check = Runtime_CheckExecutionState(
+        RUNTIME_ARGUMENTS(isolate, args));
+      if (!maybe_check->ToObject(&check)) return maybe_check;
+    }
+    CONVERT_SMI_ARG_CHECKED(wrapped_id, 1);
+    CONVERT_NUMBER_CHECKED(int, inlined_jsframe_index, Int32, args[2]);
+
+    // Get the frame where the debugging is performed.
+    StackFrame::Id id = UnwrapFrameId(wrapped_id);
+    JavaScriptFrameIterator frame_it(isolate, id);
+    JavaScriptFrame* frame = frame_it.frame();
+
+    ScopeIterator it(isolate, frame, inlined_jsframe_index);
+    res = SetScopeVariableValue(&it, index, variable_name, new_value);
+  } else {
+    CONVERT_ARG_HANDLE_CHECKED(JSFunction, fun, 0);
+    ScopeIterator it(isolate, fun);
+    res = SetScopeVariableValue(&it, index, variable_name, new_value);
+  }
+
+  return isolate->heap()->ToBoolean(res);
 }
 
 
@@ -13236,6 +13394,12 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_HaveSameMap) {
 RUNTIME_FUNCTION(MaybeObject*, Runtime_IsObserved) {
   ASSERT(args.length() == 1);
   CONVERT_ARG_CHECKED(JSReceiver, obj, 0);
+  if (obj->IsJSGlobalProxy()) {
+    Object* proto = obj->GetPrototype();
+    if (obj->IsNull()) return isolate->heap()->false_value();
+    ASSERT(proto->IsJSGlobalObject());
+    obj = JSReceiver::cast(proto);
+  }
   return isolate->heap()->ToBoolean(obj->map()->is_observed());
 }
 
@@ -13244,6 +13408,12 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_SetIsObserved) {
   ASSERT(args.length() == 2);
   CONVERT_ARG_CHECKED(JSReceiver, obj, 0);
   CONVERT_BOOLEAN_ARG_CHECKED(is_observed, 1);
+  if (obj->IsJSGlobalProxy()) {
+    Object* proto = obj->GetPrototype();
+    if (obj->IsNull()) return isolate->heap()->undefined_value();
+    ASSERT(proto->IsJSGlobalObject());
+    obj = JSReceiver::cast(proto);
+  }
   if (obj->map()->is_observed() != is_observed) {
     MaybeObject* maybe = obj->map()->Copy();
     Map* map;
@@ -13279,6 +13449,10 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_ObjectHashTableGet) {
   ASSERT(args.length() == 2);
   CONVERT_ARG_CHECKED(ObjectHashTable, table, 0);
   Object* key = args[1];
+  if (key->IsJSGlobalProxy()) {
+    key = key->GetPrototype();
+    if (key->IsNull()) return isolate->heap()->undefined_value();
+  }
   Object* lookup = table->Lookup(key);
   return lookup->IsTheHole() ? isolate->heap()->undefined_value() : lookup;
 }
@@ -13289,18 +13463,12 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_ObjectHashTableSet) {
   ASSERT(args.length() == 3);
   CONVERT_ARG_HANDLE_CHECKED(ObjectHashTable, table, 0);
   Handle<Object> key = args.at<Object>(1);
+  if (key->IsJSGlobalProxy()) {
+    key = handle(key->GetPrototype(), isolate);
+    if (key->IsNull()) return *table;
+  }
   Handle<Object> value = args.at<Object>(2);
   return *PutIntoObjectHashTable(table, key, value);
-}
-
-
-RUNTIME_FUNCTION(MaybeObject*, Runtime_ObjectHashTableHas) {
-  NoHandleAllocation ha;
-  ASSERT(args.length() == 2);
-  CONVERT_ARG_CHECKED(ObjectHashTable, table, 0);
-  Object* key = args[1];
-  Object* lookup = table->Lookup(key);
-  return isolate->heap()->ToBoolean(!lookup->IsTheHole());
 }
 
 

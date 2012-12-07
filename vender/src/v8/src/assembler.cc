@@ -1056,6 +1056,20 @@ ExternalReference ExternalReference::compute_output_frames_function(
 }
 
 
+ExternalReference ExternalReference::log_enter_external_function(
+    Isolate* isolate) {
+  return ExternalReference(
+      Redirect(isolate, FUNCTION_ADDR(Logger::EnterExternal)));
+}
+
+
+ExternalReference ExternalReference::log_leave_external_function(
+    Isolate* isolate) {
+  return ExternalReference(
+      Redirect(isolate, FUNCTION_ADDR(Logger::LeaveExternal)));
+}
+
+
 ExternalReference ExternalReference::keyed_lookup_cache_keys(Isolate* isolate) {
   return ExternalReference(isolate->keyed_lookup_cache()->keys_address());
 }
@@ -1358,6 +1372,11 @@ ExternalReference ExternalReference::math_exp_log_table() {
 ExternalReference ExternalReference::page_flags(Page* page) {
   return ExternalReference(reinterpret_cast<Address>(page) +
                            MemoryChunk::kFlagsOffset);
+}
+
+
+ExternalReference ExternalReference::ForDeoptEntry(Address entry) {
+  return ExternalReference(entry);
 }
 
 
