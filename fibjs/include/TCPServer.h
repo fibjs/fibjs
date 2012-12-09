@@ -24,7 +24,6 @@ public:
 	virtual result_t get_socket(obj_ptr<Socket_base>& retVal);
 
 public:
-	result_t create(const char* addr, int32_t port, v8::Handle<v8::Function> listener);
 	result_t create(const char* addr, int32_t port, Handler_base* listener);
 
 private:

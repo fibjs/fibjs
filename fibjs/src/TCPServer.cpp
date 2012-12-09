@@ -70,38 +70,46 @@ result_t TCPServer::create(const char* addr, int32_t port,
 	return 0;
 }
 
-result_t TCPServer::create(const char* addr, int32_t port,
-		v8::Handle<v8::Function> listener)
-{
-	result_t hr;
-
-	hr = Socket_base::_new(net_base::_AF_INET, net_base::_SOCK_STREAM,
-			m_socket);
-	if (hr < 0)
-		return hr;
-
-	hr = m_socket->bind(addr, port, false);
-	if (hr < 0)
-		return hr;
-
-	hr = m_socket->listen(120);
-	if (hr < 0)
-		return hr;
-
-	hr = m_socket->onaccept(listener);
-	if (hr < 0)
-		return hr;
-
-	return 0;
-}
-
 result_t TCPServer::run(exlib::AsyncEvent* ac)
 {
+	class asyncInvoke: public asyncState
+	{
+	public:
+		asyncInvoke(Handler_base* hdlr, Socket_base* pSock) :
+				asyncState(NULL), m_hdlr(hdlr), m_sock(pSock), m_obj(pSock)
+		{
+			set(invoke);
+		}
+
+	public:
+		static int invoke(asyncState* pState, int n)
+		{
+			asyncInvoke* pThis = (asyncInvoke*) pState;
+
+			pThis->set(close);
+
+			return mq_base::invoke(pThis->m_hdlr, pThis->m_obj, pThis);
+		}
+
+		static int close(asyncState* pState, int n)
+		{
+			asyncInvoke* pThis = (asyncInvoke*) pState;
+
+			pThis->done(0);
+			return pThis->m_sock->close(pThis);
+		}
+
+	private:
+		obj_ptr<Handler_base> m_hdlr;
+		obj_ptr<Socket_base> m_sock;
+		obj_ptr<object_base> m_obj;
+	};
+
 	class asyncAccept: public asyncState
 	{
 	public:
-		asyncAccept(TCPServer* pThis) :
-				asyncState(NULL), m_pThis(pThis)
+		asyncAccept(TCPServer* pThis, exlib::AsyncEvent* ac) :
+				asyncState(ac), m_pThis(pThis)
 		{
 			set(accept);
 		}
@@ -119,32 +127,20 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 		{
 			asyncAccept* pThis = (asyncAccept*) pState;
 
-			pThis->set(close);
+			(new asyncInvoke(pThis->m_pThis->m_hdlr, pThis->m_retVal))->apost(0);
 
-			(new asyncAccept(pThis->m_pThis))->post(0);
-
-			pThis->m_v = pThis->m_retVal;
-			return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_v, pThis);
-		}
-
-		static int close(asyncState* pState, int n)
-		{
-			asyncAccept* pThis = (asyncAccept*) pState;
-
-			pThis->done(0);
-			return pThis->m_retVal->close(pThis);
+			return pThis->m_pThis->m_socket->accept(pThis->m_retVal, pThis);
 		}
 
 	private:
 		TCPServer* m_pThis;
 		obj_ptr<Socket_base> m_retVal;
-		obj_ptr<object_base> m_v;
 	};
 
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	return (new asyncAccept(this))->post(0);
+	return (new asyncAccept(this, ac))->post(0);
 }
 
 result_t TCPServer::asyncRun()
