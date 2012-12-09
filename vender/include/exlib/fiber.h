@@ -311,6 +311,11 @@ public:
 	{}
 
 	virtual int post(int v);
+	virtual int apost(int v)
+	{
+		return post(v);
+	}
+
 	virtual void callback()
 	{
 		weak.set();
