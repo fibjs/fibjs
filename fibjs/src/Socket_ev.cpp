@@ -119,7 +119,7 @@ public:
 
 	virtual void proc()
 	{
-		m_ac->post(process());
+		m_ac->apost(process());
 		delete this;
 	}
 
@@ -231,11 +231,11 @@ result_t Socket::connect(const char* host, int32_t port, exlib::AsyncEvent* ac)
 			socklen_t sz1 = sizeof(addr_info);
 
 			if (::getpeername(m_s, (sockaddr*) &addr_info, &sz1) == SOCKET_ERROR)
-				m_ac->post(-ECONNREFUSED);
+				m_ac->apost(-ECONNREFUSED);
 			else
 			{
 				setOption(m_s);
-				m_ac->post(0);
+				m_ac->apost(0);
 			}
 
 			delete this;
@@ -374,7 +374,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 				post();
 			else
 			{
-				m_ac->post(hr);
+				m_ac->apost(hr);
 				delete this;
 			}
 		}
@@ -434,7 +434,7 @@ result_t Socket::send(Buffer_base* data, exlib::AsyncEvent* ac)
 				post();
 			else
 			{
-				m_ac->post(hr);
+				m_ac->apost(hr);
 				delete this;
 			}
 		}

@@ -67,7 +67,7 @@ public:
 
 	virtual void ready(DWORD dwBytes, int nError)
 	{
-		m_ac->post(nError);
+		m_ac->apost(nError);
 		delete this;
 	}
 
@@ -93,12 +93,7 @@ public:
 		}
 
 		s_hIocp = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 0);
-
-		for (int i = 0; i < 4; i++)
-		{
-			start();
-			detach();
-		}
+		start();
 	}
 
 	virtual void Run()
