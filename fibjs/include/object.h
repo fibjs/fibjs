@@ -70,21 +70,23 @@ public:
 	{
 		if (internalUnref() == 0)
 		{
-			if (isJSObject())
+			if (v8::Isolate::GetCurrent())
 			{
-				if (v8::Isolate::GetCurrent())
-				{
-					if (!handle_.IsEmpty())
-						handle_.MakeWeak(this, WeakCallback);
-				}
+				if (!handle_.IsEmpty())
+					handle_.MakeWeak(this, WeakCallback);
 				else
+					delete this;
+			}
+			else
+			{
+				if (isJSObject())
 				{
 					internalRef();
 					m_ar.post(0);
 				}
+				else
+					delete this;
 			}
-			else
-				delete this;
 		}
 	}
 
