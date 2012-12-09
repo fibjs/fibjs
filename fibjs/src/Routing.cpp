@@ -36,12 +36,10 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		if ((rc = pcre_exec(r->m_re, r->m_extra, value.c_str(),
 				(int) value.length(), 0, 0, ovector, RE_SIZE)) > 0)
 		{
+			obj_ptr < List > list = new List();
+
 			if (rc == 1)
-			{
 				msg->set_value("");
-				obj_ptr < List > list = new List();
-				msg->set_params(list);
-			}
 			else
 			{
 				int levelCount[RE_SIZE] =
@@ -74,7 +72,6 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				else
 					msg->set_value("");
 
-				obj_ptr < List > list = new List();
 				if (levelCount[p])
 				{
 					for (i = 0; i < rc; i++)
@@ -84,8 +81,9 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 											ovector[i * 2 + 1]
 													- ovector[i * 2]));
 				}
-				msg->set_params(list);
 			}
+
+			msg->set_params(list);
 
 			retVal = r->m_hdlr;
 			return 0;
