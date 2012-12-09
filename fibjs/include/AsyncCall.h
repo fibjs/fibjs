@@ -7,6 +7,7 @@ namespace fibjs
 {
 
 typedef exlib::lockfree<asyncEvent> AsyncQueue;
+extern AsyncQueue s_acPool;
 
 class AsyncCall: public asyncEvent
 {
@@ -163,6 +164,19 @@ public:
 		return hr;
 	}
 
+	virtual void invoke()
+	{
+		post(m_av);
+	}
+
+	virtual int apost(int v)
+	{
+		m_av = v;
+
+		s_acPool.put(this);
+		return 0;
+	}
+
 	virtual int error(int v)
 	{
 		return v;
@@ -177,6 +191,7 @@ public:
 private:
 	exlib::AsyncEvent* m_ac;
 	bool m_bAsyncState;
+	int m_av;
 	int (*m_state)(asyncState*, int);
 };
 
