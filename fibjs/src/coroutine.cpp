@@ -63,7 +63,10 @@ result_t coroutine_base::parallel(v8::Handle<v8::Array> func,
 	int i;
 
 	if (l == 0)
-		return CALL_RETURN_NULL;
+	{
+		retVal = v8::Array::New();
+		return 0;
+	}
 
 	std::vector < v8::Handle<v8::Function> > funs;
 	funs.resize(l);
@@ -88,7 +91,10 @@ result_t coroutine_base::parallel(const v8::Arguments& args,
 	int i;
 
 	if (l == 0)
-		return CALL_RETURN_NULL;
+	{
+		retVal = v8::Array::New();
+		return 0;
+	}
 
 	std::vector < v8::Handle<v8::Function> > funs;
 	funs.resize(l);
