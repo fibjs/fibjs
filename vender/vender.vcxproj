@@ -316,6 +316,7 @@
     <ClCompile Include="src\v8\src\cached-powers.cc" />
     <ClCompile Include="src\v8\src\checks.cc" />
     <ClCompile Include="src\v8\src\circular-queue.cc" />
+    <ClCompile Include="src\v8\src\code-stubs-hydrogen.cc" />
     <ClCompile Include="src\v8\src\code-stubs.cc" />
     <ClCompile Include="src\v8\src\codegen.cc" />
     <ClCompile Include="src\v8\src\compilation-cache.cc" />
