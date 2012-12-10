@@ -1,7 +1,7 @@
 var db = require('db');
 var assert = require('assert');
 
-var mdb = db.open("mongodb://192.168.200.18/test");
+var mdb = db.open("mongodb://127.0.0.1/test");
 
 function clear() {
 	try {
