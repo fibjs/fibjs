@@ -20,7 +20,7 @@ ToCString(const v8::String::Utf8Value& value)
 }
 
 void encodeArray(bson *bb, const char *name, v8::Handle<v8::Value> element);
-void encodeObject(bson *bb, const char *name, v8::Handle<v8::Value> element,
+bool encodeObject(bson *bb, const char *name, v8::Handle<v8::Value> element,
 		bool doJson);
 
 void encodeValue(bson *bb, const char *name, v8::Handle<v8::Value> element,
@@ -131,7 +131,7 @@ void encodeArray(bson *bb, const char *name, v8::Handle<v8::Value> element)
 	bson_append_finish_array(bb);
 }
 
-void encodeObject(bson *bb, const char *name, v8::Handle<v8::Value> element,
+bool encodeObject(bson *bb, const char *name, v8::Handle<v8::Value> element,
 		bool doJson)
 {
 	v8::Handle<v8::Object> object = element->ToObject();
@@ -143,21 +143,27 @@ void encodeObject(bson *bb, const char *name, v8::Handle<v8::Value> element,
 
 		if (!IsEmpty(jsonFun) && jsonFun->IsFunction())
 		{
-			v8::Handle<v8::Value> p = v8::String::New(name);
+			v8::Handle<v8::Value> p = v8::String::New(name ? name : "");
 			v8::Handle<v8::Value> element1 = v8::Handle<v8::Function>::Cast(
 					jsonFun)->Call(object, 1, &p);
 
 			if (name)
 			{
 				encodeValue(bb, name, element1, false);
-				return;
+				return true;
 			}
-			else if (!element1->IsObject())
-				return;
+
+			if (!element1->IsObject())
+				return false;
 
 			object = element1->ToObject();
 		}
 	}
+
+	if (!name
+			&& (object->IsDate() || object->IsArray() || object->IsRegExp()
+					|| Buffer_base::getInstance(object)))
+		return false;
 
 	if (name)
 		bson_append_start_object(bb, name);
@@ -181,21 +187,37 @@ void encodeObject(bson *bb, const char *name, v8::Handle<v8::Value> element,
 
 	if (name)
 		bson_append_finish_object(bb);
+
+	return true;
 }
 
-void encodeObject(bson *bb, v8::Handle<v8::Value> element)
+bool appendObject(bson *bb, v8::Handle<v8::Value> element)
 {
-	encodeObject(bb, NULL, element, true);
+	return encodeObject(bb, NULL, element, true);
+}
+
+result_t encodeObject(bson *bb, v8::Handle<v8::Value> element)
+{
+	bson_init(bb);
+	if (!encodeObject(bb, NULL, element, true))
+	{
+		bson_destroy(bb);
+		return CALL_E_INVALIDARG;
+	}
+	bson_finish(bb);
+
+	return 0;
 }
 
 result_t encoding_base::bsonEncode(v8::Handle<v8::Object> data,
 		obj_ptr<Buffer_base>& retVal)
 {
 	bson bb;
+	result_t hr;
 
-	bson_init(&bb);
-	encodeObject(&bb, data);
-	bson_finish(&bb);
+	hr = encodeObject(&bb, data);
+	if(hr < 0)
+		return hr;
 
 	std::string strBuffer(bson_data(&bb), bson_size(&bb));
 	retVal = new Buffer(strBuffer);

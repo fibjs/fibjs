@@ -25,12 +25,9 @@ MongoCursor::MongoCursor(MongoDB* db, const std::string& ns,
 
 	m_query = v8::Persistent < v8::Object > ::New(query->Clone());
 
-	bson_init(&m_bbq);
 	mongo_cursor_set_query(&m_cursor, &m_bbq);
 
-	bson_init(&m_bbp);
 	encodeObject(&m_bbp, projection);
-	bson_finish(&m_bbp);
 
 	mongo_cursor_set_fields(&m_cursor, &m_bbp);
 
@@ -42,7 +39,8 @@ MongoCursor::~MongoCursor()
 {
 	m_query.Dispose();
 	mongo_cursor_destroy(&m_cursor);
-	bson_destroy(&m_bbq);
+	if(m_bInit)
+		bson_destroy(&m_bbq);
 	bson_destroy(&m_bbp);
 }
 
@@ -156,9 +154,11 @@ result_t MongoCursor::hasNext(bool& retVal)
 {
 	if (!m_bInit)
 	{
-		bson_init(&m_bbq);
-		encodeObject(&m_bbq, m_query);
-		bson_finish(&m_bbq);
+		result_t hr;
+
+		hr = encodeObject(&m_bbq, m_query);
+		if (hr < 0)
+			return hr;
 
 		m_bInit = true;
 	}

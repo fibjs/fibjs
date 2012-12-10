@@ -44,4 +44,7 @@ class MongoDB : object
 	 *  @return 新 _objectid 对象
 	 */
 	MongoID oid(String hexStr = "");
+
+	/*! @brief 关闭当前数据库连接 */
+	close();
 };

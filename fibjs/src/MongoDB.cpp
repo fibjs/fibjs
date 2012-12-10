@@ -272,10 +272,11 @@ result_t MongoDB::runCommand(v8::Handle<v8::Object> cmd,
 		v8::Handle<v8::Object>& retVal)
 {
 	bson bbq;
+	result_t hr;
 
-	bson_init(&bbq);
-	encodeObject(&bbq, cmd);
-	bson_finish(&bbq);
+	hr = encodeObject(&bbq, cmd);
+	if (hr < 0)
+		return hr;
 
 	return run_command(&bbq, retVal);
 }
@@ -307,6 +308,14 @@ result_t MongoDB::get_fs(obj_ptr<GridFS_base>& retVal)
 result_t MongoDB::oid(const char* hexStr, obj_ptr<MongoID_base>& retVal)
 {
 	retVal = new MongoID(hexStr);
+	return 0;
+}
+
+result_t MongoDB::close()
+{
+	if(mongo_is_connected(&m_conn))
+		mongo_destroy(&m_conn);
+
 	return 0;
 }
 

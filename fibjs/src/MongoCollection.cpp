@@ -43,6 +43,7 @@ result_t MongoCollection::insert(v8::Handle<v8::Array> documents)
 	std::vector<const bson*> pbbs;
 	int n = documents->Length();
 	int i;
+	result_t hr;
 
 	if (n > 0)
 	{
@@ -51,11 +52,16 @@ result_t MongoCollection::insert(v8::Handle<v8::Array> documents)
 
 		for (i = 0; i < n; i++)
 		{
+			hr = encodeObject(&bbs[i], documents->Get(i));
+			if (hr < 0)
+			{
+				n = i;
+				for (i = 0; i < n; i++)
+					bson_destroy (&bbs[i]);
+				return hr;
+			}
+
 			pbbs[i] = &bbs[i];
-			bson_init (&bbs[i]);
-			v8::Handle < v8::Value > v = documents->Get(i);
-			encodeObject(&bbs[i], v);
-			bson_finish(&bbs[i]);
 		}
 
 		int result = mongo_insert_batch(&m_db->m_conn, m_ns.c_str(),
@@ -74,10 +80,11 @@ result_t MongoCollection::insert(v8::Handle<v8::Array> documents)
 result_t MongoCollection::insert(v8::Handle<v8::Object> document)
 {
 	bson bb;
+	result_t hr;
 
-	bson_init(&bb);
-	encodeObject(&bb, document);
-	bson_finish(&bb);
+	hr = encodeObject(&bb, document);
+	if (hr < 0)
+		return hr;
 
 	int result = mongo_insert(&m_db->m_conn, m_ns.c_str(), &bb, NULL);
 	bson_destroy(&bb);
@@ -111,13 +118,18 @@ result_t MongoCollection::update(v8::Handle<v8::Object> query,
 	int flags = (upsert ? MONGO_UPDATE_UPSERT : 0)
 			+ (multi ? MONGO_UPDATE_MULTI : 0);
 
-	bson_init(&bbq);
-	encodeObject(&bbq, query);
-	bson_finish(&bbq);
+	result_t hr;
 
-	bson_init(&bbd);
-	encodeObject(&bbd, document);
-	bson_finish(&bbd);
+	hr = encodeObject(&bbq, query);
+	if (hr < 0)
+		return hr;
+
+	hr = encodeObject(&bbd, document);
+	if (hr < 0)
+	{
+		bson_destroy(&bbq);
+		return hr;
+	}
 
 	int result = mongo_update(&m_db->m_conn, m_ns.c_str(), &bbq, &bbd, flags,
 			NULL);
@@ -142,10 +154,11 @@ result_t MongoCollection::update(v8::Handle<v8::Object> query,
 result_t MongoCollection::remove(v8::Handle<v8::Object> query)
 {
 	bson bbq;
+	result_t hr;
 
-	bson_init(&bbq);
-	encodeObject(&bbq, query);
-	bson_finish(&bbq);
+	hr = encodeObject(&bbq, query);
+	if (hr < 0)
+		return hr;
 
 	int result = mongo_remove(&m_db->m_conn, m_ns.c_str(), &bbq, NULL);
 
@@ -170,7 +183,11 @@ result_t MongoCollection::runCommand(const char* cmd,
 
 	bson_init(&bbq);
 	bson_append_string(&bbq, cmd, m_name.c_str());
-	encodeObject(&bbq, arg);
+	if(!appendObject(&bbq, arg))
+	{
+		bson_destroy(&bbq);
+		return CALL_E_INVALIDARG;
+	}
 	bson_finish(&bbq);
 
 	return m_db->run_command(&bbq, retVal);
