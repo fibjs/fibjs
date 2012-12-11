@@ -10,6 +10,7 @@
 #include "ifs/fs.h"
 #include "ifs/os.h"
 #include "ifs/path.h"
+#include "Url.h"
 
 namespace fibjs
 {
@@ -129,8 +130,12 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			std::string value;
 
 			m_req->get_value(value);
+
+			Url::decodeURI(value.c_str(), (int) value.length(), value);
+
 			if (value.length() > 0 && isPathSlash(value[value.length() - 1]))
 				value.append("index.html", 10);
+
 			path_base::normalize((m_pThis->m_root + value).c_str(), m_url);
 
 			set(start);
@@ -139,6 +144,12 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		static int start(asyncState* pState, int n)
 		{
 			asyncInvoke* pThis = (asyncInvoke*) pState;
+
+			if (qstrchr(pThis->m_url.c_str(), '%'))
+			{
+				pThis->m_rep->set_status(400);
+				return pThis->done(CALL_RETURN_NULL);
+			}
 
 			pThis->m_path = pThis->m_url;
 			if (pThis->m_gzip)
@@ -255,7 +266,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	obj_ptr<HttpRequest_base> req = HttpRequest_base::getInstance(v);
+	obj_ptr < HttpRequest_base > req = HttpRequest_base::getInstance(v);
 
 	if (req == NULL)
 		return CALL_E_BADVARTYPE;
