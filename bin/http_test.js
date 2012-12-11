@@ -97,14 +97,7 @@ d.set('f', t);
 
 assert.equal(new Date(d['f']), t);
 
-var bad_reqs = [ " GET / HTTP/1.0\r\nkeepalive: close\r\n\r\n",
-		"GET ? HTTP/1.0\r\nkeepalive: close\r\n\r\n",
-		"GET / \r\nkeepalive: close\r\n\r\n",
-		"GET / HTTP/a.0\r\nkeepalive: close\r\n\r\n",
-		"GET / HTT/1.0\r\nkeepalive: close\r\n\r\n",
-		"GET / HTTP/1.\r\nkeepalive: close\r\n\r\n" ];
-
-function readreq(u) {
+function get_request(u) {
 	var ms = new io.MemoryStream();
 	var bs = new io.BufferedStream(ms);
 	bs.EOL = "\r\n";
@@ -112,25 +105,32 @@ function readreq(u) {
 	bs.writeText(u);
 	ms.seek(0, fs.SEEK_SET);
 
-	var req = new http.Request();
+	var r = new http.Request();
 
+	r.readFrom(bs);
+
+	return r;
+}
+
+var bad_reqs = [
+		" GET / HTTP/1.0\r\nkeepalive: close\r\n\r\n",
+		"GET ? HTTP/1.0\r\nkeepalive: close\r\n\r\n",
+		"GET / \r\nkeepalive: close\r\n\r\n",
+		"GET / HTTP/a.0\r\nkeepalive: close\r\n\r\n",
+		"GET / HTT/1.0\r\nkeepalive: close\r\n\r\n",
+		"GET / HTTP/1.\r\nkeepalive: close\r\n\r\n"
+];
+
+function readreq(u) {
 	assert.throws(function() {
-		req.readFrom(bs);
+		get_request(u);
 	});
 }
 
 bad_reqs.forEach(readreq);
 
-var ms = new io.MemoryStream();
-var bs = new io.BufferedStream(ms);
-bs.EOL = "\r\n";
+var req = get_request("GET / HTTP/1.0\r\nhead1: 100\r\nhead2: 200\r\nContent-type:test\r\nContent-length:    10\r\n\r\n0123456789");
 
-bs
-		.writeText("GET / HTTP/1.0\r\nhead1: 100\r\nhead2: 200\r\nContent-type:test\r\nContent-length:    10\r\n\r\n0123456789");
-ms.seek(0, fs.SEEK_SET);
-
-var req = new http.Request();
-req.readFrom(bs);
 assert.equal('100', req.headers['head1']);
 assert.equal('200', req.headers['head2']);
 assert.equal(10, req.length);
@@ -151,29 +151,12 @@ var keep_reqs = {
 };
 
 for ( var n in keep_reqs) {
-	var ms = new io.MemoryStream();
-	var bs = new io.BufferedStream(ms);
-	bs.EOL = "\r\n";
-
-	bs.writeText(n);
-	ms.seek(0, fs.SEEK_SET);
-
-	var req = new http.Request();
-	req.readFrom(bs);
+	var req = get_request(n);
 	assert.equal(keep_reqs[n], req.keepAlive);
 }
 
 function get_cookie(txt) {
-	var ms = new io.MemoryStream();
-	var bs = new io.BufferedStream(ms);
-	bs.EOL = "\r\n";
-
-	bs.writeText(txt);
-	ms.seek(0, fs.SEEK_SET);
-
-	var req = new http.Request();
-	req.readFrom(bs);
-	return req.cookie;
+	return get_request(txt).cookie;
 }
 
 var c = get_cookie("GET / HTTP/1.0\r\ncookie: $Version=1; Skin=new;\r\n\r\n");
@@ -187,16 +170,7 @@ var c = get_cookie("GET / HTTP/1.0\r\ncookie: $Version=1; Skin=new%20cookie %sdf
 assert.equal(c['Skin'], 'new cookie %sdf');
 
 function get_query(txt) {
-	var ms = new io.MemoryStream();
-	var bs = new io.BufferedStream(ms);
-	bs.EOL = "\r\n";
-
-	bs.writeText(txt);
-	ms.seek(0, fs.SEEK_SET);
-
-	var req = new http.Request();
-	req.readFrom(bs);
-	return req.query;
+	return get_request(txt).query;
 }
 
 var c = get_query("GET /test?a=100&b=200 HTTP/1.0\r\n\r\n");
@@ -212,16 +186,7 @@ assert.equal(c['a'], '');
 assert.equal(c['b'], '');
 
 function get_form(txt) {
-	var ms = new io.MemoryStream();
-	var bs = new io.BufferedStream(ms);
-	bs.EOL = "\r\n";
-
-	bs.writeText(txt);
-	ms.seek(0, fs.SEEK_SET);
-
-	var req = new http.Request();
-	req.readFrom(bs);
-	return req.form;
+	return get_request(txt).form;
 }
 
 var c = get_form("GET /test HTTP/1.0\r\nContent-type:application/x-www-form-urlencoded\r\nContent-length:11\r\n\r\na=100&b=200");
@@ -344,7 +309,7 @@ var hfHandler = new http.fileHandler('./');
 function hfh_test(url, headers) {
 	var req = new http.Request();
 	req.value = url;
-	if(headers)
+	if (headers)
 		req.addHeader(headers);
 	hfHandler.invoke(req);
 	return req.response;
@@ -362,7 +327,8 @@ var rep = hfh_test(url);
 assert.equal(200, rep.status);
 assert.equal(14, rep.length);
 
-assert.equal(new Date(rep.firstHeader('Last-Modified')), fs.stat('test.html').mtime);
+assert.equal(new Date(rep.firstHeader('Last-Modified')),
+		fs.stat('test.html').mtime);
 
 var rep1 = hfh_test(url, {
 	'If-Modified-Since' : rep.firstHeader('Last-Modified')
