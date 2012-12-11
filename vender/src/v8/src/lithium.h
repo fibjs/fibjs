@@ -156,8 +156,8 @@ class LUnallocated: public LOperand {
   };
 
   static const int kMaxVirtualRegisters = 1 << kVirtualRegisterWidth;
-  static const int kMaxFixedIndex = (1 << kFixedIndexWidth) - 1;
-  static const int kMinFixedIndex = -(1 << kFixedIndexWidth);
+  static const int kMaxFixedIndex = (1 << (kFixedIndexWidth - 1)) - 1;
+  static const int kMinFixedIndex = -(1 << (kFixedIndexWidth - 1));
 
   bool HasAnyPolicy() const {
     return policy() == ANY;
@@ -682,7 +682,7 @@ class LChunk: public ZoneObject {
 
   Zone* zone() const { return info_->zone(); }
 
-  Handle<Code> Codegen(Code::Kind kind);
+  Handle<Code> Codegen();
 
  protected:
   LChunk(CompilationInfo* info, HGraph* graph)

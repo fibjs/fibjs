@@ -178,7 +178,7 @@ class MacroAssembler: public Assembler {
   // Register move. May do nothing if the registers are identical.
   void Move(Register dst, Handle<Object> value);
   void Move(Register dst, Register src, Condition cond = al);
-  void Move(DwVfpRegister dst, DwVfpRegister src);
+  void Move(DoubleRegister dst, DoubleRegister src);
 
   // Load an object from the root table.
   void LoadRoot(Register destination,
@@ -959,6 +959,14 @@ class MacroAssembler: public Assembler {
                       DwVfpRegister double_scratch,
                       Label *not_int32);
 
+  // Try to convert a double to a signed 32-bit integer. If the double value
+  // can be exactly represented as an integer, the code jumps to 'done' and
+  // 'result' contains the integer value. Otherwise, the code falls through.
+  void TryFastDoubleToInt32(Register result,
+                            DwVfpRegister double_input,
+                            DwVfpRegister double_scratch,
+                            Label* done);
+
   // Truncates a double using a specific rounding mode, and writes the value
   // to the result register.
   // Clears the z flag (ne condition) if an overflow occurs.
@@ -989,7 +997,7 @@ class MacroAssembler: public Assembler {
   // Exits with 'result' holding the answer and all other registers clobbered.
   void EmitECMATruncate(Register result,
                         DwVfpRegister double_input,
-                        SwVfpRegister single_scratch,
+                        DwVfpRegister double_scratch,
                         Register scratch,
                         Register scratch2,
                         Register scratch3);
@@ -1058,9 +1066,9 @@ class MacroAssembler: public Assembler {
   // whether soft or hard floating point ABI is used. These functions
   // abstract parameter passing for the three different ways we call
   // C functions from generated code.
-  void SetCallCDoubleArguments(DwVfpRegister dreg);
-  void SetCallCDoubleArguments(DwVfpRegister dreg1, DwVfpRegister dreg2);
-  void SetCallCDoubleArguments(DwVfpRegister dreg, Register reg);
+  void SetCallCDoubleArguments(DoubleRegister dreg);
+  void SetCallCDoubleArguments(DoubleRegister dreg1, DoubleRegister dreg2);
+  void SetCallCDoubleArguments(DoubleRegister dreg, Register reg);
 
   // Calls a C function and cleans up the space for arguments allocated
   // by PrepareCallCFunction. The called function is not allowed to trigger a
@@ -1076,7 +1084,7 @@ class MacroAssembler: public Assembler {
                      int num_reg_arguments,
                      int num_double_arguments);
 
-  void GetCFunctionDoubleResult(const DwVfpRegister dst);
+  void GetCFunctionDoubleResult(const DoubleRegister dst);
 
   // Calls an API function.  Allocates HandleScope, extracts returned value
   // from handle and propagates exceptions.  Restores context.  stack_space
@@ -1289,8 +1297,8 @@ class MacroAssembler: public Assembler {
   void ClampUint8(Register output_reg, Register input_reg);
 
   void ClampDoubleToUint8(Register result_reg,
-                          DwVfpRegister input_reg,
-                          DwVfpRegister temp_double_reg);
+                          DoubleRegister input_reg,
+                          DoubleRegister temp_double_reg);
 
 
   void LoadInstanceDescriptors(Register map, Register descriptors);
@@ -1365,9 +1373,9 @@ class MacroAssembler: public Assembler {
   // This handle will be patched with the code object on installation.
   Handle<Object> code_object_;
 
-  // Needs access to SafepointRegisterStackIndex for compiled frame
+  // Needs access to SafepointRegisterStackIndex for optimized frame
   // traversal.
-  friend class CompiledFrame;
+  friend class OptimizedFrame;
 };
 
 

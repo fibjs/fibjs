@@ -1680,9 +1680,6 @@
     <ClCompile Include="src\v8\src\arm\stub-cache-arm.cc">
       <Filter>Source Files\v8\src\arm</Filter>
     </ClCompile>
-    <ClCompile Include="src\v8\src\code-stubs-hydrogen.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">

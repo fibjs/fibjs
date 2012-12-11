@@ -28,6 +28,7 @@
 #include "v8.h"
 
 #if defined(V8_TARGET_ARCH_ARM)
+
 #include "codegen.h"
 #include "deoptimizer.h"
 #include "full-codegen.h"
@@ -115,7 +116,6 @@ void Deoptimizer::DeoptimizeFunction(JSFunction* function) {
 }
 
 
-static const int32_t kBranchBeforeStackCheck = 0x2a000001;
 static const int32_t kBranchBeforeInterrupt =  0x5a000004;
 
 
@@ -124,24 +124,21 @@ void Deoptimizer::PatchStackCheckCodeAt(Code* unoptimized_code,
                                         Code* check_code,
                                         Code* replacement_code) {
   const int kInstrSize = Assembler::kInstrSize;
-  // The call of the stack guard check has the following form:
-  //  e1 5d 00 0c       cmp sp, <limit>
-  //  2a 00 00 01       bcs ok
+  // The back edge bookkeeping code matches the pattern:
+  //
+  //  <decrement profiling counter>
+  //  2a 00 00 01       bpl ok
   //  e5 9f c? ??       ldr ip, [pc, <stack guard address>]
   //  e1 2f ff 3c       blx ip
   ASSERT(Memory::int32_at(pc_after - kInstrSize) == kBlxIp);
   ASSERT(Assembler::IsLdrPcImmediateOffset(
       Assembler::instr_at(pc_after - 2 * kInstrSize)));
-  if (FLAG_count_based_interrupts) {
-    ASSERT_EQ(kBranchBeforeInterrupt,
-              Memory::int32_at(pc_after - 3 * kInstrSize));
-  } else {
-    ASSERT_EQ(kBranchBeforeStackCheck,
-              Memory::int32_at(pc_after - 3 * kInstrSize));
-  }
+  ASSERT_EQ(kBranchBeforeInterrupt,
+            Memory::int32_at(pc_after - 3 * kInstrSize));
 
   // We patch the code to the following form:
-  //  e1 5d 00 0c       cmp sp, <limit>
+  //
+  //  <decrement profiling counter>
   //  e1 a0 00 00       mov r0, r0 (NOP)
   //  e5 9f c? ??       ldr ip, [pc, <on-stack replacement address>]
   //  e1 2f ff 3c       blx ip
@@ -178,15 +175,9 @@ void Deoptimizer::RevertStackCheckCodeAt(Code* unoptimized_code,
 
   // Replace NOP with conditional jump.
   CodePatcher patcher(pc_after - 3 * kInstrSize, 1);
-  if (FLAG_count_based_interrupts) {
-    patcher.masm()->b(+16, pl);
-    ASSERT_EQ(kBranchBeforeInterrupt,
-              Memory::int32_at(pc_after - 3 * kInstrSize));
-  } else {
-    patcher.masm()->b(+4, cs);
-    ASSERT_EQ(kBranchBeforeStackCheck,
-              Memory::int32_at(pc_after - 3 * kInstrSize));
-  }
+  patcher.masm()->b(+16, pl);
+  ASSERT_EQ(kBranchBeforeInterrupt,
+            Memory::int32_at(pc_after - 3 * kInstrSize));
 
   // Replace the stack check address in the constant pool
   // with the entry address of the replacement code.
@@ -223,7 +214,7 @@ static int LookupBailoutId(DeoptimizationInputData* data, BailoutId ast_id) {
 
 void Deoptimizer::DoComputeOsrOutputFrame() {
   DeoptimizationInputData* data = DeoptimizationInputData::cast(
-      compiled_code_->deoptimization_data());
+      optimized_code_->deoptimization_data());
   unsigned ast_id = data->OsrAstId()->value();
 
   int bailout_id = LookupBailoutId(data, BailoutId(ast_id));
@@ -257,7 +248,7 @@ void Deoptimizer::DoComputeOsrOutputFrame() {
   unsigned input_frame_size = input_->GetFrameSize();
   ASSERT(fixed_size + height_in_bytes == input_frame_size);
 
-  unsigned stack_slot_size = compiled_code_->stack_slots() * kPointerSize;
+  unsigned stack_slot_size = optimized_code_->stack_slots() * kPointerSize;
   unsigned outgoing_height = data->ArgumentsStackHeight(bailout_id)->value();
   unsigned outgoing_size = outgoing_height * kPointerSize;
   unsigned output_frame_size = fixed_size + stack_slot_size + outgoing_size;
@@ -349,7 +340,7 @@ void Deoptimizer::DoComputeOsrOutputFrame() {
 
     unsigned pc_offset = data->OsrPcOffset()->value();
     uint32_t pc = reinterpret_cast<uint32_t>(
-        compiled_code_->entry() + pc_offset);
+        optimized_code_->entry() + pc_offset);
     output_[0]->SetPc(pc);
   }
   Code* continuation = isolate_->builtins()->builtin(Builtins::kNotifyOSR);
@@ -459,70 +450,6 @@ void Deoptimizer::DoComputeArgumentsAdaptorFrame(TranslationIterator* iterator,
       adaptor_trampoline->instruction_start() +
       isolate_->heap()->arguments_adaptor_deopt_pc_offset()->value());
   output_frame->SetPc(pc);
-}
-
-
-void Deoptimizer::DoCompiledStubFrame(TranslationIterator* iterator,
-                                      int frame_index) {
-  //
-  //               FROM                                  TO             <-fp
-  //    |          ....           |          |          ....           |
-  //    +-------------------------+          +-------------------------+
-  //    | JSFunction continuation |          | JSFunction continuation |
-  //    +-------------------------+          +-------------------------+<-sp
-  // |  |   saved frame (fp)      |
-  // |  +=========================+<-fp
-  // |  |   JSFunction context    |
-  // v  +-------------------------+
-  //    |   COMPILED_STUB marker  |          fp = saved frame
-  //    +-------------------------+          f8 = JSFunction context
-  //    |                         |
-  //    | ...                     |
-  //    |                         |
-  //    +-------------------------+<-sp
-  //
-  //
-  int output_frame_size = 1 * kPointerSize;
-  FrameDescription* output_frame =
-      new(output_frame_size) FrameDescription(output_frame_size, 0);
-  Code* notify_miss =
-      isolate_->builtins()->builtin(Builtins::kNotifyICMiss);
-  output_frame->SetState(Smi::FromInt(FullCodeGenerator::NO_REGISTERS));
-  output_frame->SetContinuation(
-      reinterpret_cast<intptr_t>(notify_miss->entry()));
-
-  ASSERT(compiled_code_->kind() == Code::COMPILED_STUB);
-  int major_key = compiled_code_->major_key();
-  CodeStubInterfaceDescriptor* descriptor =
-      isolate_->code_stub_interface_descriptor(major_key);
-  Handle<Code> miss_ic(descriptor->deoptimization_handler_);
-  output_frame->SetPc(reinterpret_cast<intptr_t>(miss_ic->instruction_start()));
-  unsigned input_frame_size = input_->GetFrameSize();
-  intptr_t value = input_->GetFrameSlot(input_frame_size - kPointerSize);
-  output_frame->SetFrameSlot(0, value);
-  value = input_->GetFrameSlot(input_frame_size - 2 * kPointerSize);
-  output_frame->SetRegister(fp.code(), value);
-  output_frame->SetFp(value);
-  value = input_->GetFrameSlot(input_frame_size - 3 * kPointerSize);
-  output_frame->SetRegister(cp.code(), value);
-
-  Translation::Opcode opcode =
-      static_cast<Translation::Opcode>(iterator->Next());
-  ASSERT(opcode == Translation::REGISTER);
-  USE(opcode);
-  int input_reg = iterator->Next();
-  intptr_t input_value = input_->GetRegister(input_reg);
-  output_frame->SetRegister(r1.code(), input_value);
-
-  int32_t next = iterator->Next();
-  opcode = static_cast<Translation::Opcode>(next);
-  ASSERT(opcode == Translation::REGISTER);
-  input_reg = iterator->Next();
-  input_value = input_->GetRegister(input_reg);
-  output_frame->SetRegister(r0.code(), input_value);
-
-  ASSERT(frame_index == 0);
-  output_[frame_index] = output_frame;
 }
 
 
@@ -953,7 +880,7 @@ void Deoptimizer::FillInputFrame(Address tos, JavaScriptFrame* frame) {
   }
   input_->SetRegister(sp.code(), reinterpret_cast<intptr_t>(frame->sp()));
   input_->SetRegister(fp.code(), reinterpret_cast<intptr_t>(frame->fp()));
-  for (int i = 0; i < DoubleRegister::NumAllocatableRegisters(); i++) {
+  for (int i = 0; i < DoubleRegister::kNumAllocatableRegisters; i++) {
     input_->SetDoubleRegister(i, 0.0);
   }
 
@@ -973,6 +900,7 @@ void Deoptimizer::EntryGenerator::Generate() {
 
   Isolate* isolate = masm()->isolate();
 
+  CpuFeatures::Scope scope(VFP3);
   // Save all general purpose registers before messing with them.
   const int kNumberOfRegisters = Register::kNumRegisters;
 
@@ -980,29 +908,23 @@ void Deoptimizer::EntryGenerator::Generate() {
   RegList restored_regs = kJSCallerSaved | kCalleeSaved | ip.bit();
 
   const int kDoubleRegsSize =
-      kDoubleSize * DwVfpRegister::kMaxNumAllocatableRegisters;
+      kDoubleSize * DwVfpRegister::kNumAllocatableRegisters;
 
-  if (CpuFeatures::IsSupported(VFP2)) {
-    CpuFeatures::Scope scope(VFP2);
-    // Save all VFP registers before messing with them.
-    DwVfpRegister first = DwVfpRegister::FromAllocationIndex(0);
-    DwVfpRegister last =
-        DwVfpRegister::FromAllocationIndex(
-            DwVfpRegister::kMaxNumAllocatableRegisters - 1);
-    ASSERT(last.code() > first.code());
-    ASSERT((last.code() - first.code()) ==
-           (DwVfpRegister::kMaxNumAllocatableRegisters - 1));
+  // Save all VFP registers before messing with them.
+  DwVfpRegister first = DwVfpRegister::FromAllocationIndex(0);
+  DwVfpRegister last =
+      DwVfpRegister::FromAllocationIndex(
+          DwVfpRegister::kNumAllocatableRegisters - 1);
+  ASSERT(last.code() > first.code());
+  ASSERT((last.code() - first.code()) ==
+      (DwVfpRegister::kNumAllocatableRegisters - 1));
 #ifdef DEBUG
-    int max = DwVfpRegister::kMaxNumAllocatableRegisters - 1;
-    for (int i = 0; i <= max; i++) {
-      ASSERT((DwVfpRegister::FromAllocationIndex(i).code() <= last.code()) &&
-             (DwVfpRegister::FromAllocationIndex(i).code() >= first.code()));
-    }
-#endif
-    __ vstm(db_w, sp, first, last);
-  } else {
-    __ sub(sp, sp, Operand(kDoubleRegsSize));
+  for (int i = 0; i <= (DwVfpRegister::kNumAllocatableRegisters - 1); i++) {
+    ASSERT((DwVfpRegister::FromAllocationIndex(i).code() <= last.code()) &&
+           (DwVfpRegister::FromAllocationIndex(i).code() >= first.code()));
   }
+#endif
+  __ vstm(db_w, sp, first, last);
 
   // Push all 16 registers (needed to populate FrameDescription::registers_).
   // TODO(1588) Note that using pc with stm is deprecated, so we should perhaps
@@ -1061,17 +983,14 @@ void Deoptimizer::EntryGenerator::Generate() {
     __ str(r2, MemOperand(r1, offset));
   }
 
-  if (CpuFeatures::IsSupported(VFP2)) {
-    CpuFeatures::Scope scope(VFP2);
-    // Copy VFP registers to
-    // double_registers_[DoubleRegister::kMaxNumAllocatableRegisters]
-    int double_regs_offset = FrameDescription::double_registers_offset();
-    for (int i = 0; i < DwVfpRegister::NumAllocatableRegisters(); ++i) {
-      int dst_offset = i * kDoubleSize + double_regs_offset;
-      int src_offset = i * kDoubleSize + kNumberOfRegisters * kPointerSize;
-      __ vldr(d0, sp, src_offset);
-      __ vstr(d0, r1, dst_offset);
-    }
+  // Copy VFP registers to
+  // double_registers_[DoubleRegister::kNumAllocatableRegisters]
+  int double_regs_offset = FrameDescription::double_registers_offset();
+  for (int i = 0; i < DwVfpRegister::kNumAllocatableRegisters; ++i) {
+    int dst_offset = i * kDoubleSize + double_regs_offset;
+    int src_offset = i * kDoubleSize + kNumberOfRegisters * kPointerSize;
+    __ vldr(d0, sp, src_offset);
+    __ vstr(d0, r1, dst_offset);
   }
 
   // Remove the bailout id, eventually return address, and the saved registers
@@ -1092,13 +1011,10 @@ void Deoptimizer::EntryGenerator::Generate() {
   // frame description.
   __ add(r3,  r1, Operand(FrameDescription::frame_content_offset()));
   Label pop_loop;
-  Label pop_loop_header;
-  __ b(&pop_loop_header);
   __ bind(&pop_loop);
   __ pop(r4);
   __ str(r4, MemOperand(r3, 0));
   __ add(r3, r3, Operand(sizeof(uint32_t)));
-  __ bind(&pop_loop_header);
   __ cmp(r2, sp);
   __ b(ne, &pop_loop);
 
@@ -1115,29 +1031,24 @@ void Deoptimizer::EntryGenerator::Generate() {
   __ pop(r0);  // Restore deoptimizer object (class Deoptimizer).
 
   // Replace the current (input) frame with the output frames.
-  Label outer_push_loop, inner_push_loop,
-      outer_loop_header, inner_loop_header;
+  Label outer_push_loop, inner_push_loop;
   // Outer loop state: r0 = current "FrameDescription** output_",
   // r1 = one past the last FrameDescription**.
   __ ldr(r1, MemOperand(r0, Deoptimizer::output_count_offset()));
   __ ldr(r0, MemOperand(r0, Deoptimizer::output_offset()));  // r0 is output_.
   __ add(r1, r0, Operand(r1, LSL, 2));
-  __ jmp(&outer_loop_header);
   __ bind(&outer_push_loop);
   // Inner loop state: r2 = current FrameDescription*, r3 = loop index.
   __ ldr(r2, MemOperand(r0, 0));  // output_[ix]
   __ ldr(r3, MemOperand(r2, FrameDescription::frame_size_offset()));
-  __ jmp(&inner_loop_header);
   __ bind(&inner_push_loop);
   __ sub(r3, r3, Operand(sizeof(uint32_t)));
   __ add(r6, r2, Operand(r3));
   __ ldr(r7, MemOperand(r6, FrameDescription::frame_content_offset()));
   __ push(r7);
-  __ bind(&inner_loop_header);
   __ cmp(r3, Operand(0));
   __ b(ne, &inner_push_loop);  // test for gt?
   __ add(r0, r0, Operand(kPointerSize));
-  __ bind(&outer_loop_header);
   __ cmp(r0, r1);
   __ b(lt, &outer_push_loop);
 

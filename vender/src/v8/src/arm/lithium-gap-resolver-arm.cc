@@ -28,6 +28,7 @@
 #include "v8.h"
 
 #if defined(V8_TARGET_ARCH_ARM)
+
 #include "arm/lithium-gap-resolver-arm.h"
 #include "arm/lithium-codegen-arm.h"
 
@@ -172,10 +173,8 @@ void LGapResolver::BreakCycle(int index) {
   } else if (source->IsStackSlot()) {
     __ ldr(kSavedValueRegister, cgen_->ToMemOperand(source));
   } else if (source->IsDoubleRegister()) {
-    CpuFeatures::Scope scope(VFP2);
     __ vmov(kScratchDoubleReg, cgen_->ToDoubleRegister(source));
   } else if (source->IsDoubleStackSlot()) {
-    CpuFeatures::Scope scope(VFP2);
     __ vldr(kScratchDoubleReg, cgen_->ToMemOperand(source));
   } else {
     UNREACHABLE();
@@ -195,10 +194,8 @@ void LGapResolver::RestoreValue() {
   } else if (saved_destination_->IsStackSlot()) {
     __ str(kSavedValueRegister, cgen_->ToMemOperand(saved_destination_));
   } else if (saved_destination_->IsDoubleRegister()) {
-    CpuFeatures::Scope scope(VFP2);
     __ vmov(cgen_->ToDoubleRegister(saved_destination_), kScratchDoubleReg);
   } else if (saved_destination_->IsDoubleStackSlot()) {
-    CpuFeatures::Scope scope(VFP2);
     __ vstr(kScratchDoubleReg, cgen_->ToMemOperand(saved_destination_));
   } else {
     UNREACHABLE();
@@ -234,8 +231,7 @@ void LGapResolver::EmitMove(int index) {
       MemOperand destination_operand = cgen_->ToMemOperand(destination);
       if (in_cycle_) {
         if (!destination_operand.OffsetIsUint12Encodable()) {
-          CpuFeatures::Scope scope(VFP2);
-            // ip is overwritten while saving the value to the destination.
+          // ip is overwritten while saving the value to the destination.
           // Therefore we can't use ip.  It is OK if the read from the source
           // destroys ip, since that happens before the value is read.
           __ vldr(kScratchDoubleReg.low(), source_operand);
@@ -273,8 +269,7 @@ void LGapResolver::EmitMove(int index) {
     }
 
   } else if (source->IsDoubleRegister()) {
-    CpuFeatures::Scope scope(VFP2);
-    DwVfpRegister source_register = cgen_->ToDoubleRegister(source);
+    DoubleRegister source_register = cgen_->ToDoubleRegister(source);
     if (destination->IsDoubleRegister()) {
       __ vmov(cgen_->ToDoubleRegister(destination), source_register);
     } else {
@@ -283,8 +278,7 @@ void LGapResolver::EmitMove(int index) {
     }
 
   } else if (source->IsDoubleStackSlot()) {
-    CpuFeatures::Scope scope(VFP2);
-      MemOperand source_operand = cgen_->ToMemOperand(source);
+    MemOperand source_operand = cgen_->ToMemOperand(source);
     if (destination->IsDoubleRegister()) {
       __ vldr(cgen_->ToDoubleRegister(destination), source_operand);
     } else {

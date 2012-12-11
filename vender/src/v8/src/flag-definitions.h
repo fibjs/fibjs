@@ -247,8 +247,6 @@ DEFINE_bool(self_optimization, false,
 DEFINE_bool(direct_self_opt, false,
             "call recompile stub directly when self-optimizing")
 DEFINE_bool(retry_self_opt, false, "re-try self-optimization if it failed")
-DEFINE_bool(count_based_interrupts, false,
-            "trigger profiler ticks based on counting instead of timing")
 DEFINE_bool(interrupt_at_exit, false,
             "insert an interrupt check at function exit")
 DEFINE_bool(weighted_back_edges, false,
@@ -264,7 +262,6 @@ DEFINE_implication(experimental_profiler, watch_ic_patching)
 DEFINE_implication(experimental_profiler, self_optimization)
 // Not implying direct_self_opt here because it seems to be a bad idea.
 DEFINE_implication(experimental_profiler, retry_self_opt)
-DEFINE_implication(experimental_profiler, count_based_interrupts)
 DEFINE_implication(experimental_profiler, interrupt_at_exit)
 DEFINE_implication(experimental_profiler, weighted_back_edges)
 
@@ -658,8 +655,6 @@ DEFINE_bool(prof_lazy, false,
 DEFINE_bool(prof_browser_mode, true,
             "Used with --prof, turns on browser-compatible mode for profiling.")
 DEFINE_bool(log_regexp, false, "Log regular expression execution.")
-DEFINE_bool(sliding_state_window, false,
-            "Update sliding state window counters.")
 DEFINE_string(logfile, "v8.log", "Specify the name of the log file.")
 DEFINE_bool(ll_prof, false, "Enable low-level linux profiler.")
 DEFINE_string(gc_fake_mmap, "/tmp/__v8_gc__",
