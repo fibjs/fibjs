@@ -215,7 +215,7 @@ result_t MongoDB::open(const char* connString)
 			nPort = atoi(u->m_port.c_str());
 
 		mongo_init(&m_conn);
-		result = mongo_connect(&m_conn, u->m_hostname.c_str(), nPort);
+		result = mongo_client(&m_conn, u->m_hostname.c_str(), nPort);
 	}
 
 	if (result != MONGO_OK)
