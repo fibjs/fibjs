@@ -26,7 +26,7 @@
 MONGO_EXTERN_C_START
 
 #define MONGO_MAJOR 0
-#define MONGO_MINOR 6
+#define MONGO_MINOR 7
 #define MONGO_PATCH 0
 
 #define MONGO_OK 0
@@ -158,11 +158,11 @@ typedef struct {
     mongo_host_port *hosts;        /**< List of host/ports given by the replica set */
     char *name;                    /**< Name of the replica set. */
     bson_bool_t primary_connected; /**< Primary node connection status. */
-} mongo_replset;
+} mongo_replica_set;
 
 typedef struct mongo {
     mongo_host_port *primary;  /**< Primary connection info. */
-    mongo_replset *replset;    /**< replset object if connected to a replica set. */
+    mongo_replica_set *replica_set;    /**< replica_set object if connected to a replica set. */
     void* sock;                  /**< Socket file descriptor. */
     int flags;                 /**< Flags on this connection object. */
     int conn_timeout_ms;       /**< Connection timeout in milliseconds. */
@@ -223,9 +223,32 @@ MONGO_EXPORT void mongo_init( mongo *conn );
  * @return MONGO_OK or MONGO_ERROR on failure. On failure, a constant of type
  *   mongo_error_t will be set on the conn->err field.
  */
+MONGO_EXPORT int mongo_client( mongo *conn , const char *host, int port );
+
+/**
+ * DEPRECATED - use mongo_client.
+ * Connect to a single MongoDB server.
+ *
+ * @param conn a mongo object.
+ * @param host a numerical network address or a network hostname.
+ * @param port the port to connect to.
+ *
+ * @return MONGO_OK or MONGO_ERROR on failure. On failure, a constant of type
+ *   mongo_error_t will be set on the conn->err field.
+ */
 MONGO_EXPORT int mongo_connect( mongo *conn , const char *host, int port );
 
 /**
+ * Set up this connection object for connecting to a replica set.
+ * To connect, pass the object to mongo_replica_set_connect().
+ *
+ * @param conn a mongo object.
+ * @param name the name of the replica set to connect to.
+ * */
+MONGO_EXPORT void mongo_replica_set_init( mongo *conn, const char *name );
+
+/**
+ * DEPRECATED - use mongo_replica_set_init.
  * Set up this connection object for connecting to a replica set.
  * To connect, pass the object to mongo_replset_connect().
  *
@@ -235,6 +258,18 @@ MONGO_EXPORT int mongo_connect( mongo *conn , const char *host, int port );
 MONGO_EXPORT void mongo_replset_init( mongo *conn, const char *name );
 
 /**
+ * Add a seed node to the replica set connection object.
+ *
+ * You must specify at least one seed node before connecting to a replica set.
+ *
+ * @param conn a mongo object.
+ * @param host a numerical network address or a network hostname.
+ * @param port the port to connect to.
+ */
+MONGO_EXPORT void mongo_replica_set_add_seed( mongo *conn, const char *host, int port );
+
+/**
+ * DEPRECATED - use mongo_replica_set_add_seed.
  * Add a seed node to the replica set connection object.
  *
  * You must specify at least one seed node before connecting to a replica set.
@@ -266,6 +301,20 @@ void mongo_parse_host( const char *host_string, mongo_host_port *host_port );
 MONGO_EXPORT int mongo_validate_ns( mongo *conn, const char *ns );
 
 /**
+ * Connect to a replica set.
+ *
+ * Before passing a connection object to this function, you must already have called
+ * mongo_set_replica_set and mongo_replica_set_add_seed.
+ *
+ * @param conn a mongo object.
+ *
+ * @return MONGO_OK or MONGO_ERROR on failure. On failure, a constant of type
+ *   mongo_conn_return_t will be set on the conn->err field.
+ */
+MONGO_EXPORT int mongo_replica_set_client( mongo *conn );
+
+/**
+ * DEPRECATED - use mongo_replica_set_client.
  * Connect to a replica set.
  *
  * Before passing a connection object to this function, you must already have called

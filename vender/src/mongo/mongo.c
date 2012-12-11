@@ -48,7 +48,7 @@ MONGO_EXPORT int mongo_get_op_timeout(mongo* conn) {
 }
 
 
-const char* _get_host_port(mongo_host_port* hp) {
+static const char* _get_host_port(mongo_host_port* hp) {
     static char _hp[sizeof(hp->host)+12];
     bson_sprintf(_hp, "%s:%d", hp->host, hp->port);
     return _hp;
@@ -70,7 +70,7 @@ MONGO_EXPORT void* mongo_get_socket(mongo* conn) {
 
 
 MONGO_EXPORT int mongo_get_host_count(mongo* conn) {
-    mongo_replset* r = conn->replset;
+    mongo_replica_set* r = conn->replica_set;
     mongo_host_port* hp;
     int count = 0;
     if (!r) return 0;
@@ -81,7 +81,7 @@ MONGO_EXPORT int mongo_get_host_count(mongo* conn) {
 
 
 MONGO_EXPORT const char* mongo_get_host(mongo* conn, int i) {
-    mongo_replset* r = conn->replset;
+    mongo_replica_set* r = conn->replica_set;
     mongo_host_port* hp;
     int count = 0;
     if (!r) return 0;
@@ -268,7 +268,7 @@ static void mongo_set_last_error( mongo *conn, bson_iterator *it, bson *obj ) {
 
 static const int ZERO = 0;
 static const int ONE = 1;
-mongo_message *mongo_message_create( int len , int id , int responseTo , int op ) {
+static mongo_message *mongo_message_create( int len , int id , int responseTo , int op ) {
     mongo_message *mm = ( mongo_message * )bson_malloc( len );
 
     if ( !id )
@@ -284,7 +284,7 @@ mongo_message *mongo_message_create( int len , int id , int responseTo , int op 
 }
 
 /* Always calls bson_free(mm) */
-int mongo_message_send( mongo *conn, mongo_message *mm ) {
+static int mongo_message_send( mongo *conn, mongo_message *mm ) {
     mongo_header head; /* little endian */
     int res;
     bson_little_endian32( &head.len, &mm->head.len );
@@ -308,7 +308,7 @@ int mongo_message_send( mongo *conn, mongo_message *mm ) {
     return MONGO_OK;
 }
 
-int mongo_read_response( mongo *conn, mongo_reply **reply ) {
+static int mongo_read_response( mongo *conn, mongo_reply **reply ) {
     mongo_header head; /* header from network */
     mongo_reply_fields fields; /* header from network */
     mongo_reply *out;  /* native endian */
@@ -347,17 +347,17 @@ int mongo_read_response( mongo *conn, mongo_reply **reply ) {
 }
 
 
-char *mongo_data_append( char *start , const void *data , int len ) {
+static char *mongo_data_append( char *start , const void *data , int len ) {
     memcpy( start , data , len );
     return start + len;
 }
 
-char *mongo_data_append32( char *start , const void *data ) {
+static char *mongo_data_append32( char *start , const void *data ) {
     bson_little_endian32( start , data );
     return start + 4;
 }
 
-char *mongo_data_append64( char *start , const void *data ) {
+static char *mongo_data_append64( char *start , const void *data ) {
     bson_little_endian64( start , data );
     return start + 8;
 }
@@ -397,12 +397,20 @@ MONGO_EXPORT void mongo_init_sockets( void ) {
     mongo_env_sock_init();
 }
 
+/* WC1 is completely static */
+static char WC1_data[] = {23,0,0,0,16,103,101,116,108,97,115,116,101,114,114,111,114,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0};
+static bson WC1_cmd = {
+    WC1_data, WC1_data, 128, 1, {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, 0, 0, ""
+};
+static mongo_write_concern WC1 = { 1, 0, 0, 0, 0, &WC1_cmd }; /* w = 1 */
+
 MONGO_EXPORT void mongo_init( mongo *conn ) {
     memset( conn, 0, sizeof( mongo ) );
     conn->max_bson_size = MONGO_DEFAULT_MAX_BSON_SIZE;
+    mongo_set_write_concern( conn, &WC1 );
 }
 
-MONGO_EXPORT int mongo_connect( mongo *conn , const char *host, int port ) {
+MONGO_EXPORT int mongo_client( mongo *conn , const char *host, int port ) {
     mongo_init( conn );
 
     conn->primary = bson_malloc( sizeof( mongo_host_port ) );
@@ -419,22 +427,35 @@ MONGO_EXPORT int mongo_connect( mongo *conn , const char *host, int port ) {
         return MONGO_OK;
 }
 
-MONGO_EXPORT void mongo_replset_init( mongo *conn, const char *name ) {
+MONGO_EXPORT int mongo_connect( mongo *conn , const char *host, int port ) {
+    int ret;
+    fprintf(stderr, "WARNING: mongo_connect() is deprecated, please use mongo_client()\n");
+    ret = mongo_client( conn, host, port );
+    mongo_set_write_concern( conn, 0 );
+    return ret;
+}
+
+MONGO_EXPORT void mongo_replica_set_init( mongo *conn, const char *name ) {
     mongo_init( conn );
 
-    conn->replset = bson_malloc( sizeof( mongo_replset ) );
-    conn->replset->primary_connected = 0;
-    conn->replset->seeds = NULL;
-    conn->replset->hosts = NULL;
-    conn->replset->name = ( char * )bson_malloc( strlen( name ) + 1 );
-    memcpy( conn->replset->name, name, strlen( name ) + 1  );
+    conn->replica_set = bson_malloc( sizeof( mongo_replica_set ) );
+    conn->replica_set->primary_connected = 0;
+    conn->replica_set->seeds = NULL;
+    conn->replica_set->hosts = NULL;
+    conn->replica_set->name = ( char * )bson_malloc( strlen( name ) + 1 );
+    memcpy( conn->replica_set->name, name, strlen( name ) + 1  );
 
     conn->primary = bson_malloc( sizeof( mongo_host_port ) );
     conn->primary->host[0] = '\0';
     conn->primary->next = NULL;
 }
 
-static void mongo_replset_add_node( mongo_host_port **list, const char *host, int port ) {
+MONGO_EXPORT void mongo_replset_init( mongo *conn, const char *name ) {
+    fprintf(stderr, "WARNING: mongo_replset_init() is deprecated, please use mongo_replica_set_init()\n");
+    mongo_replica_set_init( conn, name );
+}
+
+static void mongo_replica_set_add_node( mongo_host_port **list, const char *host, int port ) {
     mongo_host_port *host_port = bson_malloc( sizeof( mongo_host_port ) );
     host_port->port = port;
     host_port->next = NULL;
@@ -450,7 +471,7 @@ static void mongo_replset_add_node( mongo_host_port **list, const char *host, in
     }
 }
 
-static void mongo_replset_free_list( mongo_host_port **list ) {
+static void mongo_replica_set_free_list( mongo_host_port **list ) {
     mongo_host_port *node = *list;
     mongo_host_port *prev;
 
@@ -463,8 +484,13 @@ static void mongo_replset_free_list( mongo_host_port **list ) {
     *list = NULL;
 }
 
+MONGO_EXPORT void mongo_replica_set_add_seed( mongo *conn, const char *host, int port ) {
+    mongo_replica_set_add_node( &conn->replica_set->seeds, host, port );
+}
+
 MONGO_EXPORT void mongo_replset_add_seed( mongo *conn, const char *host, int port ) {
-    mongo_replset_add_node( &conn->replset->seeds, host, port );
+    fprintf(stderr, "WARNING: mongo_replset_add_seed() is deprecated, please use mongo_replica_set_add_seed()\n");
+    mongo_replica_set_add_node( &conn->replica_set->seeds, host, port );
 }
 
 void mongo_parse_host( const char *host_string, mongo_host_port *host_port ) {
@@ -492,7 +518,7 @@ void mongo_parse_host( const char *host_string, mongo_host_port *host_port ) {
         host_port->port = MONGO_DEFAULT_PORT;
 }
 
-static void mongo_replset_check_seed( mongo *conn ) {
+static void mongo_replica_set_check_seed( mongo *conn ) {
     bson out;
     bson hosts;
     const char *data;
@@ -520,7 +546,7 @@ static void mongo_replset_check_seed( mongo *conn ) {
 
                 if( host_port ) {
                     mongo_parse_host( host_string, host_port );
-                    mongo_replset_add_node( &conn->replset->hosts,
+                    mongo_replica_set_add_node( &conn->replica_set->hosts,
                                             host_port->host, host_port->port );
 
                     bson_free( host_port );
@@ -541,7 +567,7 @@ static void mongo_replset_check_seed( mongo *conn ) {
 /* Find out whether the current connected node is master, and
  * verify that the node's replica set name matched the provided name
  */
-static int mongo_replset_check_host( mongo *conn ) {
+static int mongo_replica_set_check_host( mongo *conn ) {
 
     bson out;
     bson_iterator it;
@@ -561,7 +587,7 @@ static int mongo_replset_check_host( mongo *conn ) {
 
         if( bson_find( &it, &out, "setName" ) ) {
             set_name = bson_iterator_string( &it );
-            if( strcmp( set_name, conn->replset->name ) != 0 ) {
+            if( strcmp( set_name, conn->replica_set->name ) != 0 ) {
                 bson_destroy( &out );
                 conn->err = MONGO_CONN_BAD_SET_NAME;
                 return MONGO_ERROR;
@@ -572,7 +598,7 @@ static int mongo_replset_check_host( mongo *conn ) {
     bson_destroy( &out );
 
     if( ismaster ) {
-        conn->replset->primary_connected = 1;
+        conn->replica_set->primary_connected = 1;
     } else {
         mongo_env_close_socket( conn->sock );
     }
@@ -580,7 +606,7 @@ static int mongo_replset_check_host( mongo *conn ) {
     return MONGO_OK;
 }
 
-MONGO_EXPORT int mongo_replset_connect( mongo *conn ) {
+MONGO_EXPORT int mongo_replica_set_client( mongo *conn ) {
 
     int res = 0;
     mongo_host_port *node;
@@ -591,33 +617,33 @@ MONGO_EXPORT int mongo_replset_connect( mongo *conn ) {
     /* First iterate over the seed nodes to get the canonical list of hosts
      * from the replica set. Break out once we have a host list.
      */
-    node = conn->replset->seeds;
+    node = conn->replica_set->seeds;
     while( node != NULL ) {
         res = mongo_env_socket_connect( conn, ( const char * )&node->host, node->port );
         if( res == MONGO_OK ) {
-            mongo_replset_check_seed( conn );
-            if( conn->replset->hosts )
+            mongo_replica_set_check_seed( conn );
+            if( conn->replica_set->hosts )
                 break;
         }
         node = node->next;
     }
 
     /* Iterate over the host list, checking for the primary node. */
-    if( !conn->replset->hosts ) {
+    if( !conn->replica_set->hosts ) {
         conn->err = MONGO_CONN_NO_PRIMARY;
         return MONGO_ERROR;
     } else {
-        node = conn->replset->hosts;
+        node = conn->replica_set->hosts;
 
         while( node != NULL ) {
             res = mongo_env_socket_connect( conn, ( const char * )&node->host, node->port );
 
             if( res == MONGO_OK ) {
-                if( mongo_replset_check_host( conn ) != MONGO_OK )
+                if( mongo_replica_set_check_host( conn ) != MONGO_OK )
                     return MONGO_ERROR;
 
                 /* Primary found, so return. */
-                else if( conn->replset->primary_connected ) {
+                else if( conn->replica_set->primary_connected ) {
                     strncpy( conn->primary->host, node->host, strlen( node->host ) + 1 );
                     conn->primary->port = node->port;
                     return MONGO_OK;
@@ -640,6 +666,14 @@ MONGO_EXPORT int mongo_replset_connect( mongo *conn ) {
     return MONGO_ERROR;
 }
 
+MONGO_EXPORT int mongo_replset_connect( mongo *conn ) {
+    int ret;
+    fprintf(stderr, "WARNING: mongo_replset_connect() is deprecated, please use mongo_replica_set_client()\n");
+    ret = mongo_replica_set_client( conn );
+    mongo_set_write_concern( conn, 0 );
+    return ret;
+}
+
 MONGO_EXPORT int mongo_set_op_timeout( mongo *conn, int millis ) {
     conn->op_timeout_ms = millis;
     if( conn->sock && conn->connected )
@@ -652,11 +686,11 @@ MONGO_EXPORT int mongo_reconnect( mongo *conn ) {
     int res;
     mongo_disconnect( conn );
 
-    if( conn->replset ) {
-        conn->replset->primary_connected = 0;
-        mongo_replset_free_list( &conn->replset->hosts );
-        conn->replset->hosts = NULL;
-        res = mongo_replset_connect( conn );
+    if( conn->replica_set ) {
+        conn->replica_set->primary_connected = 0;
+        mongo_replica_set_free_list( &conn->replica_set->hosts );
+        conn->replica_set->hosts = NULL;
+        res = mongo_replica_set_client( conn );
         return res;
     } else
         return mongo_env_socket_connect( conn, conn->primary->host, conn->primary->port );
@@ -676,10 +710,10 @@ MONGO_EXPORT void mongo_disconnect( mongo *conn ) {
     if( ! conn->connected )
         return;
 
-    if( conn->replset ) {
-        conn->replset->primary_connected = 0;
-        mongo_replset_free_list( &conn->replset->hosts );
-        conn->replset->hosts = NULL;
+    if( conn->replica_set ) {
+        conn->replica_set->primary_connected = 0;
+        mongo_replica_set_free_list( &conn->replica_set->hosts );
+        conn->replica_set->hosts = NULL;
     }
 
     mongo_env_close_socket( conn->sock );
@@ -691,12 +725,12 @@ MONGO_EXPORT void mongo_disconnect( mongo *conn ) {
 MONGO_EXPORT void mongo_destroy( mongo *conn ) {
     mongo_disconnect( conn );
 
-    if( conn->replset ) {
-        mongo_replset_free_list( &conn->replset->seeds );
-        mongo_replset_free_list( &conn->replset->hosts );
-        bson_free( conn->replset->name );
-        bson_free( conn->replset );
-        conn->replset = NULL;
+    if( conn->replica_set ) {
+        mongo_replica_set_free_list( &conn->replica_set->seeds );
+        mongo_replica_set_free_list( &conn->replica_set->hosts );
+        bson_free( conn->replica_set->name );
+        bson_free( conn->replica_set );
+        conn->replica_set = NULL;
     }
 
     bson_free( conn->primary );
@@ -794,7 +828,9 @@ static int mongo_choose_write_concern( mongo *conn,
     else if( conn->write_concern ) {
         *write_concern = conn->write_concern;
     }
-
+    if ( *write_concern && (*write_concern)->w < 1 ) {
+        *write_concern = 0; /* do not generate getLastError request */
+    }
     if( *write_concern && !((*write_concern)->cmd) ) {
         __mongo_set_error( conn, MONGO_WRITE_CONCERN_INVALID,
             "Must call mongo_write_concern_finish() before using *write_concern.", 0 );
@@ -1037,7 +1073,7 @@ MONGO_EXPORT int mongo_write_concern_finish( mongo_write_concern *write_concern 
         bson_append_string( command, "w", write_concern->mode );
     }
 
-    else if( write_concern->w ) {
+    else if( write_concern->w && write_concern->w > 1 ) {
         bson_append_int( command, "w", write_concern->w );
     }
 
