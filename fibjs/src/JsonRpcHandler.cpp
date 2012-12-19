@@ -112,7 +112,7 @@ result_t JsonRpcHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
 	hr = JSHandler::js_invoke(m_hdlr, v, hdlr1, NULL);
 	if (hr >= 0 && hr != CALL_RETURN_NULL)
-		hr = mq_base::ac_invoke(m_hdlr, v);
+		hr = mq_base::ac_invoke(hdlr1, v);
 
 	v8::Handle<v8::String> strId = v8::String::NewSymbol("id", 2);
 	jsval = o->Get(strId);
