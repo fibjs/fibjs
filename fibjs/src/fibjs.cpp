@@ -241,7 +241,7 @@ void enableDump()
 
 int main(int argc, char* argv[])
 {
-	static const char s_opts[] = "--stack_size=120 --harmony";
+	static const char s_opts[] = "--stack_size=110 --harmony";
 	enableDump();
 
 	exlib::OSThread::Sleep(1);
