@@ -138,7 +138,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				pThis->m_rep->hasHeader("Last-Modified", t);
 				if (!t)
 				{
-					pThis->m_rep->addHeader("Cache-Control", "no-cache");
+					pThis->m_rep->addHeader("Cache-Control", "no-cache, no-store");
 					pThis->m_rep->addHeader("Expires", "-1");
 				}
 			}
