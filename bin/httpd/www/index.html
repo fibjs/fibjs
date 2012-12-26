@@ -6,7 +6,7 @@
 	<script type="text/javascript" src="/xjs/base.js"></script>
 	<script type="text/javascript" src="/xjs/event.js"></script>
 	<script type="text/javascript" src="/xjs/define.js"></script>
-	<script type="text/javascript" src="/xjs/json.js"></script>
+	<script type="text/javascript" src="/xjs/json2.js"></script>
 	<script type="text/javascript" src="/xjs/transport.js"></script>
  	<script type="text/javascript" src="/xjs/rpc.js"></script>
 
@@ -39,10 +39,20 @@
 	
 document.write(JSON.stringify($.browser));
 document.write(navigator.userAgent);
+
+function tm() {
+	$.load('/test', function(v) {
+		$('data').txt(v + ', ' + new Date());
+	});
+}
+
+setInterval(tm, 1000);
+
   </script>
 </head><body>
 <br>
     <button onclick="test_rpc();">test</button>
+  <div id="data"></div>
   <div id="log"></div>
 </body></html>
 

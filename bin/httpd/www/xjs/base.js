@@ -153,7 +153,39 @@
 		String.prototype.trim = function () {
 			return this.replace(/^\s+/, '').replace(/\s+$/, '');
 		};
-	
+		
+	if (!Object.keys) {
+		Object.keys = (function() {
+			var hasOwnProperty = Object.prototype.hasOwnProperty, hasDontEnumBug = !({
+				toString : null
+			}).propertyIsEnumerable('toString'), dontEnums = [
+					'toString', 'toLocaleString', 'valueOf', 'hasOwnProperty',
+					'isPrototypeOf', 'propertyIsEnumerable', 'constructor'
+			], dontEnumsLength = dontEnums.length;
+
+			return function(obj) {
+				if (typeof obj !== 'object' && typeof obj !== 'function'
+						|| obj === null)
+					throw new TypeError('Object.keys called on non-object');
+
+				var result = [];
+
+				for ( var prop in obj) {
+					if (hasOwnProperty.call(obj, prop))
+						result.push(prop);
+				}
+
+				if (hasDontEnumBug) {
+					for ( var i = 0; i < dontEnumsLength; i++) {
+						if (hasOwnProperty.call(obj, dontEnums[i]))
+							result.push(dontEnums[i]);
+					}
+				}
+				return result;
+			}
+		})()
+	};		
+
 	var g = w.jModo = function (id) {
 		var o;
 		
@@ -169,11 +201,19 @@
 		
 		if (o["#fn#"] !== fn["#fn#"])
 			for (var m in fn) {
-				var v1 = o[m],
+				var v1 = undefined,
 				v2 = fn[m];
 				
-				if (v1 !== v2)
-					o[m] = fn[m];
+				try {
+					v1 = o[m];
+				} catch (e) {
+				}
+
+				if (!v1)
+					try {
+						o[m] = fn[m];
+					} catch (e) {
+					}
 			}
 		
 		return o;
@@ -407,11 +447,13 @@
 			if (!console) {
 				console = g.create('div');
 				
-				console.style.cssText = "position:fixed!important;position:absolute;overflow:auto;text-align:left;top:10px;bottom: 10px;left:auto;right:10px;padding:5px;border:1px solid #000;background:#fff;width:300px;z-index:20000;";
+				console.style.cssText = "position:fixed!important;position:absolute;overflow:auto;text-align:left;top:10px;bottom: 10px;left:auto;right:10px;padding:5px;border:1px solid #000;background:#fff;width:300px;z-index:20000;word-wrap: break-word;word-break: break-all;";
 				var tryShow = setInterval(function () {
-						document.body.appendChild(console);
-						console.scrollTop = console.scrollHeight;
-						clearInterval(tryShow);
+						try{
+							document.body.appendChild(console);
+							console.scrollTop = console.scrollHeight;
+							clearInterval(tryShow);
+						}catch(e){}
 					}, 10);
 			}
 			
@@ -445,8 +487,76 @@
 			console.append(n);
 			console.scrollTop = console.scrollHeight;
 		},
+		logUrl : function(){},
+		logEvent : function(){},
 		head : document.head || document.getElementsByTagName('head')[0] || document.documentElement
 	});
+
+	function isUndefinedOrNull(value) {
+		return value === null || value === undefined;
+	}
+
+	function isArguments(object) {
+		return Object.prototype.toString.call(object) == '[object Arguments]';
+	}
+
+	function objEquiv(a, b) {
+		if (isUndefinedOrNull(a) || isUndefinedOrNull(b))
+			return false;
+
+		if (a.prototype !== b.prototype)
+			return false;
+
+		if (isArguments(a)) {
+			if (!isArguments(b))
+				return false;
+
+			a = pSlice.call(a);
+			b = pSlice.call(b);
+			return _deepEqual(a, b);
+		}
+		try {
+			var ka = Object.keys(a), kb = Object.keys(b), key, i;
+		} catch (e) {
+			return false;
+		}
+
+		if (ka.length != kb.length)
+			return false;
+
+		ka.sort();
+		kb.sort();
+
+		for (i = ka.length - 1; i >= 0; i--)
+			if (ka[i] != kb[i])
+				return false;
+
+		for (i = ka.length - 1; i >= 0; i--) {
+			key = ka[i];
+			if (!_deepEqual(a[key], b[key]))
+				return false;
+		}
+		return true;
+	}
+	
+	function _deepEqual(actual, expected) {
+		if (actual === expected)
+			return true;
+		else if (actual instanceof Date && expected instanceof Date)
+			return actual.getTime() === expected.getTime();
+		else if (actual instanceof RegExp && expected instanceof RegExp)
+			return actual.source === expected.source
+					&& actual.global === expected.global
+					&& actual.multiline === expected.multiline
+					&& actual.lastIndex === expected.lastIndex
+					&& actual.ignoreCase === expected.ignoreCase;
+		else if (typeof actual != 'object' && typeof expected != 'object')
+			return actual == expected;
+		else
+			return objEquiv(actual, expected);
+	}
+	
+	g.deepEqual = _deepEqual;
 	
 	(function () {
 		var scripts = document.getElementsByTagName('script');
@@ -463,7 +573,7 @@
 
 (function (g) {
 	var d = document,
-	re = new RegExp("&(?!\\w+;)|[\"'<>\\\\]", "g");
+	re = new RegExp("(\r\n)|[&\"'<>\r\n]", "g");
 	
 	g.extend({
 		create : function (t, n, v) {
@@ -473,7 +583,7 @@
 			return o;
 		},
 		HtmlEncode : function (s) {
-			s = String(s === undefined ? "" : s);
+			s = s || "";
 			return s.replace(re, function (s) {
 				switch (s) {
 				case "&":
@@ -481,13 +591,13 @@
 				case '"':
 					return '&quot;';
 				case "'":
-					return '&#39;';
+					return '&apos;';
 				case "<":
 					return "&lt;";
 				case ">":
 					return "&gt;";
 				default:
-					return s;
+					return "<br>";
 				}
 			});
 		}
@@ -514,13 +624,13 @@
 			else if (g.is_object(n))
 				for (var c in n)
 					this.setAttribute(c, n[c]);
-			else if (typeof n !== "string")
-				return;
-			else
+			else if (typeof n === "string")
 				if(n === "class" && this.nodeType === 1)
 					return this.className;
 				else
 					return this.getAttribute(n);
+			
+			return this;
 		},
 		val : function (v) {
 			if (v !== undefined)
@@ -529,7 +639,8 @@
 				return this.value;
 		},
 		removeAttr : function (n) {
-			return this.removeAttribute(n);
+			this.removeAttribute(n);
+			return this;
 		},
 		opacity : function (a) {
 			switch (g.browser.engine) {
@@ -542,6 +653,7 @@
 			case "presto":
 				this.style["opacity"] = a;
 			}
+			return this;
 		}
 	});
 })(jModo);
@@ -558,10 +670,10 @@
 			versionSearch : "OmniWeb/",
 			identity : "OmniWeb"
 		}, {
-			string : n.vendor,
-			subString : new RegExp("Apple", 'i'),
+			string : n.userAgent,
+			subString : new RegExp("iPad|iPhone|iPod", 'i'),
 			identity : "Safari",
-			versionSearch : "Version"
+			versionSearch : "OS"
 		}, {
 			string : n.userAgent,
 			subString : new RegExp("AppleWebKit", 'i'),
@@ -675,7 +787,7 @@
 			parseFloat(dataString.substring(index + 8)) :
 			parseFloat(dataString.substring(dataString.indexOf("Opera") + 6))
 		};
-	} else if ("globalStorage" in w) {
+	} else if ("globalStorage" in w || "mozIndexedDB" in w) {
 		g.browser = {
 			engine : "gecko",
 			agent : "firefox",
@@ -702,7 +814,9 @@
 	}
 	[g.browser.os];
 	
-	g.browser.phone = !g.browser.desktop && (document.documentElement.clientWidth < 600 || document.documentElement.clientHeight < 600);
+	if(!g.browser.desktop)
+		g.browser.phone = (document.documentElement.clientWidth < 600 || document.documentElement.clientHeight < 600);
+//	g.log(screen.width, screen.height, document.documentElement.clientWidth, document.documentElement.clientHeight);
 	
 	g.browser.ios = !!{
 		iPhone : true,

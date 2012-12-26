@@ -1,4 +1,4 @@
-define("jModo.json", ["jModo"], function (g) {
+define("jModo.json2", ["jModo"], function (g) {
 	"use strict";
 
 	if (!window.JSON)

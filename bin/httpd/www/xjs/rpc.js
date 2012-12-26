@@ -1,4 +1,4 @@
-define("jModo.rpc", ["jModo", "jModo.transport", "jModo.json"], function (g) {
+define("jModo.rpc", ["jModo", "jModo.transport", "jModo.json2"], function (g) {
 	"use strict";
 	
 	var slice = Array.prototype.slice;

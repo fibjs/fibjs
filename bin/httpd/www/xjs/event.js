@@ -55,14 +55,15 @@
 					
 					var bMouse = evType.substring(0, 5) === "mouse",
 					bTouch = evType.substring(0, 5) === "touch",
+					bKey = evType.substring(0, 3) === "key",
 					o = this;
 					
-					function handle_event() {
+					function handle_event(e) {
 						var as = arguments;
 						
 						if (w.event) {
-							var e = w.event,
-							b = document.body;
+							var b = document.body;
+							e = w.event;
 							
 							if (!e.target)
 								e.target = g(e.srcElement);
@@ -124,13 +125,30 @@
 							];
 						}
 						
+						if(bKey) {
+							as = [{
+								keyCode: (e.keyCode == 10 ? 13 : e.keyCode) || e.which,
+								altKey: e.altKey,
+								ctrlKey: e.ctrlKey,
+								shiftKey: e.shiftKey,
+								metaKey: e.metaKey
+							}];
+						}
+
 						var r = _trigger(o, evType, as);
 						
 						if (!r)
 							if (w.event)
 								w.event.returnValue = false;
-							else
+							else if(arguments[0] && arguments[0].preventDefault)
 								arguments[0].preventDefault();
+						
+						if(as[0].cancelBubble) {
+							if (w.event)
+								w.event.cancelBubble = true;
+							else if(arguments[0] && arguments[0].stopPropagation)
+								arguments[0].stopPropagation();
+						}
 						
 						return r;
 					}
@@ -232,7 +250,7 @@
 			
 			function onceProxy() {
 				o.off(evType, onceProxy);
-				fn.apply(this, arguments);
+				return fn.apply(this, arguments);
 			}
 			
 			o.on(evType, onceProxy);

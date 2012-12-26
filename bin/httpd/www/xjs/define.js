@@ -21,6 +21,8 @@
 		var s = g.create('script'),
 		tm;
 		
+		g.log(url);
+		
 		function onload() {
 			if (!s.readyState || s.readyState === 'loaded' || s.readyState === 'complete') {
 				var v = s.mod || a_mod;
@@ -76,8 +78,13 @@
 			return id;
 		
 		var a = id.split('.');
-		if (a[0]in config)
+		if (a[0]in config){
+			var format = a[a.length-1].toLowerCase();
+			if(format === "html" || format === "js" || format === "json")
+				return config[a[0]] + '/' + a.slice(1, a.length - 1).join('/') + "." + format;
+
 			return config[a[0]] + '/' + a.slice(1).join('/') + ".js";
+		}
 		
 		return id;
 	}

@@ -255,12 +255,13 @@ define("jModo.transport", ["jModo"], function (g) {
 			xdr.onreadystatechange = onXhrReady;
 			
 			try {
-				if (p != null)
+				if (p != null){
 					xdr.open("POST", u);
-				else
+					if ("setRequestHeader" in xdr)
+						xdr.setRequestHeader("Content-Type", "application/json");
+				}else
 					xdr.open("GET", u);
-				if ("setRequestHeader" in xdr)
-					xdr.setRequestHeader("Content-Type", "application/json");
+									
 				if ("withCredentials" in xdr)
 					xdr.withCredentials = true;
 				xdr.send(p);
