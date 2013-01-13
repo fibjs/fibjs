@@ -52,6 +52,8 @@ struct ClassData
 	{
 		v8::NamedPropertyGetter getter;
 		v8::NamedPropertySetter setter;
+		v8::NamedPropertyDeleter remover;
+		v8::NamedPropertyEnumerator enumerator;
 	};
 
 	const char* name;
@@ -120,7 +122,8 @@ public:
 			pcd = pcd->base ? &pcd->base->m_cd : NULL;
 
 		if (pcd)
-			ot->SetNamedPropertyHandler(pcd->cns->getter, pcd->cns->setter);
+			ot->SetNamedPropertyHandler(pcd->cns->getter, pcd->cns->setter,
+					NULL, pcd->cns->remover, pcd->cns->enumerator);
 
 		m_function = v8::Persistent<v8::Function>::New(m_class->GetFunction());
 		m_cache = v8::Persistent<v8::Object>::New(m_function->NewInstance());

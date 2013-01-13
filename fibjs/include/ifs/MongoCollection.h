@@ -41,6 +41,7 @@ public:
 	virtual result_t getIndexes(obj_ptr<MongoCursor_base>& retVal) = 0;
 	virtual result_t getCollection(const char* name, obj_ptr<MongoCollection_base>& retVal) = 0;
 	virtual result_t _named_getter(const char* property, obj_ptr<MongoCollection_base>& retVal) = 0;
+	virtual result_t _named_enumerator(v8::Handle<v8::Array>& retVal) = 0;
 
 	DECLARE_CLASSINFO(MongoCollection_base);
 
@@ -61,6 +62,7 @@ public:
 	static v8::Handle<v8::Value> s_getIndexes(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_getCollection(const v8::Arguments& args);
 	static v8::Handle<v8::Value> i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info);
+	static v8::Handle<v8::Array> i_NamedEnumerator(const v8::AccessorInfo& info);
 };
 
 }
@@ -92,7 +94,7 @@ namespace fibjs
 
 		static ClassData::ClassNamed s_named = 
 		{
-			i_NamedGetter, i_NamedSetter
+			i_NamedGetter, i_NamedSetter, i_NamedDeleter, i_NamedEnumerator
 		};
 
 		static ClassData s_cd = 
@@ -120,6 +122,18 @@ namespace fibjs
 		if(hr == CALL_RETURN_NULL)return v8::Handle<v8::Value>();
 
 		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Array> MongoCollection_base::i_NamedEnumerator(const v8::AccessorInfo& info)
+	{
+		v8::Handle<v8::Array> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(MongoCollection_base);
+
+		hr = pInst->_named_enumerator(vr);
+
+		METHOD_RETURN1();
 	}
 
 	inline v8::Handle<v8::Value> MongoCollection_base::s_find(const v8::Arguments& args)

@@ -175,6 +175,9 @@ typedef int result_t;
     if(hr == CALL_E_JAVASCRIPT)return v8::Handle<v8::Value>(); \
     return ThrowResult(hr);
 
+#define METHOD_RETURN1() \
+    }while(0); return vr;
+
 #define METHOD_VOID() \
     }while(0); \
     if(hr >= 0)return v8::Undefined(); \

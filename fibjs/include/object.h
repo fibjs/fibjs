@@ -286,6 +286,12 @@ public:
 				v8::String::NewSymbol("Named Property is read-only."));
 	}
 
+	static v8::Handle<v8::Boolean> i_NamedDeleter(
+			v8::Local<v8::String> property, const v8::AccessorInfo& info)
+	{
+		return v8::False();
+	}
+
 	//------------------------------------------------------------------
 	DECLARE_CLASSINFO(object_base);
 

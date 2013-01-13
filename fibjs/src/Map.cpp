@@ -102,9 +102,30 @@ result_t Map::_named_getter(const char* property, Variant& retVal)
 	return get(property, retVal);
 }
 
+result_t Map::_named_enumerator(v8::Handle<v8::Array>& retVal)
+{
+	int32_t i = 0;
+
+	retVal = v8::Array::New();
+	std::map<std::string, VariantEx>::iterator iter;
+
+	for (iter = m_datas.begin(); iter != m_datas.end(); iter++)
+		retVal->Set(i++,
+				v8::String::New(iter->first.c_str(),
+						(int) iter->first.length()));
+
+	return 0;
+}
+
 result_t Map::_named_setter(const char* property, Variant newVal)
 {
 	return put(property, newVal);
+}
+
+result_t Map::_named_deleter(const char* property,
+		v8::Handle<v8::Boolean>& retVal)
+{
+	return m_datas.erase(property) > 0;
 }
 
 } /* namespace fibjs */

@@ -369,10 +369,30 @@ result_t HttpUploadCollection::_named_getter(const char* property,
 	return first(property, retVal);
 }
 
+result_t HttpUploadCollection::_named_enumerator(v8::Handle<v8::Array>& retVal)
+{
+	int32_t i;
+
+	retVal = v8::Array::New();
+	for (i = 0; i < m_count; i++)
+		retVal->Set(i,
+				v8::String::New(m_names[i].c_str(), (int) m_names[i].length()));
+
+	return 0;
+}
+
 result_t HttpUploadCollection::_named_setter(const char* property,
 		Variant newVal)
 {
 	return set(property, newVal);
+}
+
+result_t HttpUploadCollection::_named_deleter(const char* property,
+		v8::Handle<v8::Boolean>& retVal)
+{
+	int32_t n = m_count;
+	remove(property);
+	return n > m_count;
 }
 
 } /* namespace fibjs */

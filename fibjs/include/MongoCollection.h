@@ -43,6 +43,7 @@ public:
 	virtual result_t getIndexes(obj_ptr<MongoCursor_base>& retVal);
 	virtual result_t getCollection(const char* name, obj_ptr<MongoCollection_base>& retVal);
 	virtual result_t _named_getter(const char* property, obj_ptr<MongoCollection_base>& retVal);
+	virtual result_t _named_enumerator(v8::Handle<v8::Array>& retVal);
 
 private:
 	result_t runCommand(const char* cmd, const char* cmd1, const char* arg,

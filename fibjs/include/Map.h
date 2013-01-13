@@ -31,7 +31,9 @@ public:
 	virtual result_t remove(const char* name);
 	virtual result_t isEmpty(bool& retVal);
 	virtual result_t _named_getter(const char* property, Variant& retVal);
+	virtual result_t _named_enumerator(v8::Handle<v8::Array>& retVal);
 	virtual result_t _named_setter(const char* property, Variant newVal);
+	virtual result_t _named_deleter(const char* property, v8::Handle<v8::Boolean>& retVal);
 
 private:
 	std::map<std::string, VariantEx> m_datas;

@@ -22,12 +22,14 @@ public:
 	// DBRow_base
 	virtual result_t _indexed_getter(uint32_t index, v8::Handle<v8::Value>& retVal) = 0;
 	virtual result_t _named_getter(const char* property, v8::Handle<v8::Value>& retVal) = 0;
+	virtual result_t _named_enumerator(v8::Handle<v8::Array>& retVal) = 0;
 
 	DECLARE_CLASSINFO(DBRow_base);
 
 public:
 	static v8::Handle<v8::Value> i_IndexedGetter(uint32_t index, const v8::AccessorInfo& info);
 	static v8::Handle<v8::Value> i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info);
+	static v8::Handle<v8::Array> i_NamedEnumerator(const v8::AccessorInfo& info);
 };
 
 }
@@ -43,7 +45,7 @@ namespace fibjs
 
 		static ClassData::ClassNamed s_named = 
 		{
-			i_NamedGetter, i_NamedSetter
+			i_NamedGetter, i_NamedSetter, i_NamedDeleter, i_NamedEnumerator
 		};
 
 		static ClassData s_cd = 
@@ -83,6 +85,18 @@ namespace fibjs
 		if(hr == CALL_RETURN_NULL)return v8::Handle<v8::Value>();
 
 		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Array> DBRow_base::i_NamedEnumerator(const v8::AccessorInfo& info)
+	{
+		v8::Handle<v8::Array> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(DBRow_base);
+
+		hr = pInst->_named_enumerator(vr);
+
+		METHOD_RETURN1();
 	}
 
 }

@@ -30,7 +30,9 @@ public:
 	virtual result_t remove(const char* name) = 0;
 	virtual result_t isEmpty(bool& retVal) = 0;
 	virtual result_t _named_getter(const char* property, Variant& retVal) = 0;
+	virtual result_t _named_enumerator(v8::Handle<v8::Array>& retVal) = 0;
 	virtual result_t _named_setter(const char* property, Variant newVal) = 0;
+	virtual result_t _named_deleter(const char* property, v8::Handle<v8::Boolean>& retVal) = 0;
 
 	DECLARE_CLASSINFO(Map_base);
 
@@ -44,7 +46,9 @@ public:
 	static v8::Handle<v8::Value> s_remove(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_isEmpty(const v8::Arguments& args);
 	static v8::Handle<v8::Value> i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info);
+	static v8::Handle<v8::Array> i_NamedEnumerator(const v8::AccessorInfo& info);
 	static v8::Handle<v8::Value> i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info);
+	static v8::Handle<v8::Boolean> i_NamedDeleter(v8::Local<v8::String> property, const v8::AccessorInfo& info);
 };
 
 }
@@ -70,7 +74,7 @@ namespace fibjs
 
 		static ClassData::ClassNamed s_named = 
 		{
-			i_NamedGetter, i_NamedSetter
+			i_NamedGetter, i_NamedSetter, i_NamedDeleter, i_NamedEnumerator
 		};
 
 		static ClassData s_cd = 
@@ -112,6 +116,18 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
+	inline v8::Handle<v8::Array> Map_base::i_NamedEnumerator(const v8::AccessorInfo& info)
+	{
+		v8::Handle<v8::Array> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Map_base);
+
+		hr = pInst->_named_enumerator(vr);
+
+		METHOD_RETURN1();
+	}
+
 	inline v8::Handle<v8::Value> Map_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info)
 	{
 		PROPERTY_ENTER();
@@ -124,6 +140,20 @@ namespace fibjs
 		hr = pInst->_named_setter(*k, v0);
 
 		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Boolean> Map_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::AccessorInfo& info)
+	{
+		v8::Handle<v8::Boolean> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Map_base);
+
+		v8::String::Utf8Value k(property);
+		if(class_info().has(*k))return v8::False();
+
+		hr = pInst->_named_deleter(*k, vr);
+		METHOD_RETURN1();
 	}
 
 	inline v8::Handle<v8::Value> Map_base::s__new(const v8::Arguments& args)

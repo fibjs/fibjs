@@ -321,4 +321,9 @@ result_t MongoCollection::_named_getter(const char* property,
 	return getCollection(property, retVal);
 }
 
+result_t MongoCollection::_named_enumerator(v8::Handle<v8::Array>& retVal)
+{
+	return 0;
+}
+
 } /* namespace fibjs */

@@ -31,6 +31,17 @@ result_t DBRow::_named_getter(const char* property,
 	return 0;
 }
 
+result_t DBRow::_named_enumerator(v8::Handle<v8::Array>& retVal)
+{
+	int32_t i;
+
+	retVal = v8::Array::New();
+	for (i = 0; i < m_cols.size(); i++)
+		retVal->Set(i, m_cols[i]);
+
+	return 0;
+}
+
 result_t DBRow::toJSON(const char* key, v8::Handle<v8::Value>& retVal)
 {
 	v8::Handle<v8::Object> o = v8::Object::New();

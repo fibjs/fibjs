@@ -299,6 +299,11 @@ result_t MongoDB::_named_getter(const char* property,
 	return getCollection(property, retVal);
 }
 
+result_t MongoDB::_named_enumerator(v8::Handle<v8::Array>& retVal)
+{
+	return 0;
+}
+
 result_t MongoDB::get_fs(obj_ptr<GridFS_base>& retVal)
 {
 	retVal = new GridFS(this);

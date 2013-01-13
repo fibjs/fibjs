@@ -342,7 +342,7 @@ function parserIDL(fname) {
 
 		if (hasNamed) {
 			txt.push("		static ClassData::ClassNamed s_named = \n		{");
-			txt.push("			i_NamedGetter, i_NamedSetter");
+			txt.push("			i_NamedGetter, i_NamedSetter, i_NamedDeleter, i_NamedEnumerator");
 			txt.push("		};\n");
 		}
 
@@ -821,6 +821,22 @@ function parserIDL(fname) {
 							+ map_type(ftype) + "& retVal) = 0;";
 					ifs.push(ifStr);
 
+					iffs
+							.push("	static v8::Handle<v8::Array> i_NamedEnumerator(const v8::AccessorInfo& info);");
+					fnStr = "	inline v8::Handle<v8::Array> "
+							+ ns
+							+ "_base::i_NamedEnumerator(const v8::AccessorInfo& info)\n	{\n";
+					fnStr += "		v8::Handle<v8::Array> vr;\n\n";
+					fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE(" + ns
+							+ "_base);\n\n";
+
+					fnStr += "		hr = pInst->_named_enumerator(vr);\n\n		METHOD_RETURN1();\n	}\n";
+
+					ffs.push(fnStr)
+
+					ifStr = "	virtual result_t _named_enumerator(v8::Handle<v8::Array>& retVal) = 0;";
+					ifs.push(ifStr);
+
 					if (attr != "readonly") {
 						iffs
 								.push("	static v8::Handle<v8::Value> i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info);");
@@ -839,6 +855,23 @@ function parserIDL(fname) {
 
 						ifStr = "	virtual result_t _named_setter(const char* property, "
 								+ arg_type(ftype) + " newVal) = 0;";
+						ifs.push(ifStr);
+
+						iffs
+								.push("	static v8::Handle<v8::Boolean> i_NamedDeleter(v8::Local<v8::String> property, const v8::AccessorInfo& info);");
+						fnStr = "	inline v8::Handle<v8::Boolean> "
+								+ ns
+								+ "_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::AccessorInfo& info)\n	{\n";
+						fnStr += "		v8::Handle<v8::Boolean> vr;\n\n";
+						fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE("
+								+ ns + "_base);\n\n";
+
+						fnStr += "		v8::String::Utf8Value k(property);\n		if(class_info().has(*k))return v8::False();\n\n"
+						fnStr += "		hr = pInst->_named_deleter(*k, vr);\n		METHOD_RETURN1();\n	}\n";
+
+						ffs.push(fnStr)
+
+						ifStr = "	virtual result_t _named_deleter(const char* property, v8::Handle<v8::Boolean>& retVal) = 0;";
 						ifs.push(ifStr);
 					}
 				} else
