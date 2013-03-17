@@ -19,11 +19,13 @@ public:
 	// HttpUploadData_base
 	virtual result_t get_fileName(std::string& retVal);
 	virtual result_t get_contentType(std::string& retVal);
+	virtual result_t get_contentTransferEncoding(std::string& retVal);
 	virtual result_t get_body(obj_ptr<SeekableStream_base>& retVal);
 
 public:
 	std::string m_name;
 	std::string m_type;
+	std::string m_encoding;
 	obj_ptr<SeekableStream_base> m_body;
 };
 

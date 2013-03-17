@@ -22,6 +22,12 @@ result_t HttpUploadData::get_contentType(std::string& retVal)
 	return 0;
 }
 
+result_t HttpUploadData::get_contentTransferEncoding(std::string& retVal)
+{
+	retVal = m_encoding;
+	return 0;
+}
+
 result_t HttpUploadData::get_body(obj_ptr<SeekableStream_base>& retVal)
 {
 	retVal = m_body;

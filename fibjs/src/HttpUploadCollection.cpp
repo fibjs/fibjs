@@ -19,6 +19,7 @@ void HttpUploadCollection::parse(std::string& str, const char* boundary)
 	std::string strName;
 	std::string strFileName;
 	std::string strContentType;
+	std::string strContentTransferEncoding;
 	const char *p, *p1, *p2, *szQueryString;
 	const char *pstrSplit;
 	int uiSplitSize;
@@ -49,6 +50,7 @@ void HttpUploadCollection::parse(std::string& str, const char* boundary)
 	{
 		strFileName.clear();
 		strContentType.clear();
+		strContentTransferEncoding.clear();
 
 		while (nSize > 0)
 		{
@@ -150,6 +152,13 @@ void HttpUploadCollection::parse(std::string& str, const char* boundary)
 						p1++;
 					strContentType.assign(p1, (int) (p - p1));
 				}
+				else if (p1 + 26 < p && !qstricmp(p1, "Content-Transfer-Encoding:", 26))
+				{
+					p1 += 26;
+					while (p1 < p && *p1 == ' ')
+						p1++;
+					strContentTransferEncoding.assign(p1, (int) (p - p1));
+				}
 			}
 			else
 			{
@@ -203,6 +212,7 @@ void HttpUploadCollection::parse(std::string& str, const char* boundary)
 
 				objTemp->m_name = strFileName;
 				objTemp->m_type = strContentType;
+				objTemp->m_encoding = strContentTransferEncoding;
 				objTemp->m_body = new MemoryStream::CloneStream(strTemp, tm);
 
 				varTemp = objTemp;
