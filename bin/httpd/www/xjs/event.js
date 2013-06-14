@@ -338,7 +338,7 @@
 						h = as[1];
 					}
 				}
-			case 2:
+			case 3:
 				if (typeof as[0] === "string" && typeof as[1] === "string" && typeof as[2] === "function") {
 					k = as[0];
 					m = as[1];
