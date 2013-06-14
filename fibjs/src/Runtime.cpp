@@ -10,6 +10,7 @@
 
 #ifdef MacOS
 #include <sys/sysctl.h>
+#include <pthread.h>
 #endif
 
 namespace fibjs

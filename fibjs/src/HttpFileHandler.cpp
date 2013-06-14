@@ -183,7 +183,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 			pThis->m_stat->get_mtime(d);
 			diff = d.diff(pThis->m_time);
 
-			if (abs(diff) < 1000)
+			if (diff > -1000 && diff < 1000)
 			{
 				pThis->m_rep->set_status(304);
 				return pThis->done(CALL_RETURN_NULL);
