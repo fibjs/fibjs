@@ -23,7 +23,7 @@ MongoCursor::MongoCursor(MongoDB* db, const std::string& ns,
 
 	mongo_cursor_init(&m_cursor, &db->m_conn, ns.c_str());
 
-	m_query = v8::Persistent < v8::Object > ::New(query->Clone());
+	m_query = v8::Persistent < v8::Object > ::New(v8::Isolate::GetCurrent(), query->Clone());
 
 	mongo_cursor_set_query(&m_cursor, &m_bbq);
 
@@ -37,7 +37,7 @@ MongoCursor::MongoCursor(MongoDB* db, const std::string& ns,
 
 MongoCursor::~MongoCursor()
 {
-	m_query.Dispose();
+	m_query.Dispose(v8::Isolate::GetCurrent());
 	mongo_cursor_destroy(&m_cursor);
 	if(m_bInit)
 		bson_destroy(&m_bbq);
@@ -51,9 +51,9 @@ void MongoCursor::ensureSpecial()
 		v8::Handle < v8::Object > o = v8::Object::New();
 
 		o->Set(v8::String::New("query"), m_query);
-		m_query.Dispose();
+		m_query.Dispose(v8::Isolate::GetCurrent());
 
-		m_query = v8::Persistent < v8::Object > ::New(o);
+		m_query = v8::Persistent < v8::Object > ::New(v8::Isolate::GetCurrent(), o);
 		m_bSpecial = true;
 	}
 }

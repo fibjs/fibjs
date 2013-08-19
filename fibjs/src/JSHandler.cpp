@@ -20,7 +20,7 @@ result_t JSHandler::setHandler(v8::Handle<v8::Value> hdlr)
 	if (!hdlr->IsFunction() && !hdlr->IsObject())
 		return CALL_E_BADVARTYPE;
 
-	m_handler = v8::Persistent < v8::Value > ::New(hdlr);
+	m_handler = v8::Persistent < v8::Value > ::New(v8::Isolate::GetCurrent(), hdlr);
 	return 0;
 }
 
@@ -143,7 +143,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		}
 		else if (hdlr->IsObject())
 		{
-			if (retVal = Handler_base::getInstance(hdlr))
+			if ((retVal = Handler_base::getInstance(hdlr)) != NULL)
 				return 0;
 
 			if (msg == NULL)

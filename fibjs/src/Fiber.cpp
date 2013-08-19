@@ -151,7 +151,7 @@ void JSFiber::callFunction(v8::Handle<v8::Value>& retVal)
 
 	if (!IsEmpty(retVal))
 	{
-		m_result = v8::Persistent<v8::Value>::New(retVal);
+		m_result = v8::Persistent<v8::Value>::New(v8::Isolate::GetCurrent(), retVal);
 		_trigger("exit", &retVal, 1);
 	}
 	else

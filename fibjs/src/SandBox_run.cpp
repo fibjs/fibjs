@@ -190,7 +190,7 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 	hr = compileScript(fname.c_str(), buf, script);
 	if (hr < 0)
 	{
-		context.Dispose();
+		context.Dispose(v8::Isolate::GetCurrent());
 		return hr;
 	}
 
@@ -264,7 +264,7 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 			m_mods.erase(fname);
 		}
 
-		context.Dispose();
+		context.Dispose(v8::Isolate::GetCurrent());
 		return CALL_E_JAVASCRIPT;
 	}
 
@@ -281,7 +281,7 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 		{
 			// delete from modules
 			m_mods.erase(fname);
-			context.Dispose();
+			context.Dispose(v8::Isolate::GetCurrent());
 
 			return hr;
 		}
@@ -297,7 +297,7 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 		retVal = handle_scope.Close(v);
 	}
 
-	context.Dispose();
+	context.Dispose(v8::Isolate::GetCurrent());
 	return 0;
 }
 

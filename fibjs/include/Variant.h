@@ -105,7 +105,7 @@ public:
 			{
 				v8::Persistent<v8::Object>& jsobj =
 						*(v8::Persistent<v8::Object>*) m_Val.jsobjVal;
-				jsobj.Dispose();
+				jsobj.Dispose(v8::Isolate::GetCurrent());
 				jsobj.~Persistent();
 			}
 			else

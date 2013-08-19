@@ -137,8 +137,8 @@ public:
 
 		m_argv.resize(nArgCount - nArgStart);
 		for (i = nArgStart; i < nArgCount; i++)
-			m_argv[i - nArgStart] = v8::Persistent<v8::Value>::New(args[i]);
-		m_func = v8::Persistent<v8::Function>::New(func);
+			m_argv[i - nArgStart] = v8::Persistent<v8::Value>::New(v8::Isolate::GetCurrent(), args[i]);
+		m_func = v8::Persistent<v8::Function>::New(v8::Isolate::GetCurrent(), func);
 
 		start();
 	}
@@ -194,11 +194,11 @@ public:
 		size_t i;
 
 		for (i = 0; i < m_argv.size(); i++)
-			m_argv[i].Dispose();
+			m_argv[i].Dispose(v8::Isolate::GetCurrent());
 		m_argv.resize(0);
 
-		m_func.Dispose();
-		m_result.Dispose();
+		m_func.Dispose(v8::Isolate::GetCurrent());
+		m_result.Dispose(v8::Isolate::GetCurrent());
 	}
 
 private:
