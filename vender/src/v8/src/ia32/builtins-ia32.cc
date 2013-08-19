@@ -257,6 +257,7 @@ static void Generate_JSConstructStubHelper(MacroAssembler* masm,
       __ AllocateInNewSpace(FixedArray::kHeaderSize,
                             times_pointer_size,
                             edx,
+                            REGISTER_VALUE_IS_INT32,
                             edi,
                             ecx,
                             no_reg,
@@ -572,6 +573,25 @@ void Builtins::Generate_Make##C##CodeYoungAgainOddMarking(   \
 }
 CODE_AGE_LIST(DEFINE_CODE_AGE_BUILTIN_GENERATOR)
 #undef DEFINE_CODE_AGE_BUILTIN_GENERATOR
+
+
+void Builtins::Generate_NotifyICMiss(MacroAssembler* masm) {
+  // Enter an internal frame.
+  {
+    FrameScope scope(masm, StackFrame::INTERNAL);
+
+    // Preserve registers across notification, this is important for compiled
+    // stubs that tail call the runtime on deopts passing their parameters in
+    // registers.
+    __ pushad();
+    __ CallRuntime(Runtime::kNotifyICMiss, 0);
+    __ popad();
+    // Tear down internal frame.
+  }
+
+  __ pop(MemOperand(esp, 0));  // Ignore state offset
+  __ ret(0);  // Return to IC Miss stub, continuation still on stack.
+}
 
 
 static void Generate_NotifyDeoptimizedHelper(MacroAssembler* masm,
@@ -1083,8 +1103,9 @@ static void AllocateJSArray(MacroAssembler* masm,
   // requested elements.
   STATIC_ASSERT(kSmiTagSize == 1 && kSmiTag == 0);
   __ AllocateInNewSpace(JSArray::kSize + FixedArray::kHeaderSize,
-                        times_half_pointer_size,  // array_size is a smi.
+                        times_pointer_size,
                         array_size,
+                        REGISTER_VALUE_IS_SMI,
                         result,
                         elements_array_end,
                         scratch,

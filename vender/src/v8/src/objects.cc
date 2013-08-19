@@ -1048,7 +1048,8 @@ void String::StringShortPrint(StringStream* accumulator) {
     return;
   }
 
-  StringInputBuffer buf(this);
+  ConsStringIteratorOp op;
+  StringCharacterStream stream(this, &op);
 
   bool truncated = false;
   if (len > kMaxShortPrintLength) {
@@ -1057,17 +1058,17 @@ void String::StringShortPrint(StringStream* accumulator) {
   }
   bool ascii = true;
   for (int i = 0; i < len; i++) {
-    int c = buf.GetNext();
+    uint16_t c = stream.GetNext();
 
     if (c < 32 || c >= 127) {
       ascii = false;
     }
   }
-  buf.Reset(this);
+  stream.Reset(this);
   if (ascii) {
     accumulator->Add("<String[%u]: ", length());
     for (int i = 0; i < len; i++) {
-      accumulator->Put(buf.GetNext());
+      accumulator->Put(static_cast<char>(stream.GetNext()));
     }
     accumulator->Put('>');
   } else {
@@ -1075,7 +1076,7 @@ void String::StringShortPrint(StringStream* accumulator) {
     // characters and that backslashes are therefore escaped.
     accumulator->Add("<String[%u]\\: ", length());
     for (int i = 0; i < len; i++) {
-      int c = buf.GetNext();
+      uint16_t c = stream.GetNext();
       if (c == '\n') {
         accumulator->Add("\\n");
       } else if (c == '\r') {
@@ -1085,7 +1086,7 @@ void String::StringShortPrint(StringStream* accumulator) {
       } else if (c < 32 || c > 126) {
         accumulator->Add("\\x%02x", c);
       } else {
-        accumulator->Put(c);
+        accumulator->Put(static_cast<char>(c));
       }
     }
     if (truncated) {
@@ -1537,15 +1538,16 @@ MaybeObject* JSObject::AddFastPropertyUsingMap(Map* new_map,
 }
 
 
-static bool IsIdentifier(UnicodeCache* cache,
-                         unibrow::CharacterStream* buffer) {
+static bool IsIdentifier(UnicodeCache* cache, String* string) {
   // Checks whether the buffer contains an identifier (no escape).
-  if (!buffer->has_more()) return false;
-  if (!cache->IsIdentifierStart(buffer->GetNext())) {
+  if (string->length() == 0) return false;
+  ConsStringIteratorOp op;
+  StringCharacterStream stream(string, &op);
+  if (!cache->IsIdentifierStart(stream.GetNext())) {
     return false;
   }
-  while (buffer->has_more()) {
-    if (!cache->IsIdentifierPart(buffer->GetNext())) {
+  while (stream.HasMore()) {
+    if (!cache->IsIdentifierPart(stream.GetNext())) {
       return false;
     }
   }
@@ -1566,8 +1568,7 @@ MaybeObject* JSObject::AddFastProperty(String* name,
   // hidden symbols) and is not a real identifier.
   // Normalize the object if it will have too many fast properties.
   Isolate* isolate = GetHeap()->isolate();
-  StringInputBuffer buffer(name);
-  if ((!IsIdentifier(isolate->unicode_cache(), &buffer)
+  if ((!IsIdentifier(isolate->unicode_cache(), name)
        && name != isolate->heap()->hidden_symbol()) ||
       (map()->unused_property_fields() == 0 &&
        TooManyFastProperties(properties()->length(), store_mode))) {
@@ -1753,7 +1754,7 @@ void JSObject::EnqueueChangeRecord(Handle<JSObject> object,
                                    Handle<Object> old_value) {
   Isolate* isolate = object->GetIsolate();
   HandleScope scope;
-  Handle<String> type = isolate->factory()->LookupAsciiSymbol(type_str);
+  Handle<String> type = isolate->factory()->LookupUtf8Symbol(type_str);
   if (object->IsJSGlobalObject()) {
     object = handle(JSGlobalObject::cast(*object)->global_receiver(), isolate);
   }
@@ -2656,15 +2657,16 @@ MUST_USE_RESULT MaybeObject* JSProxy::SetPropertyViaPrototypesWithHandler(
   if (has_pending_exception) return Failure::Exception();
 
   // [[GetProperty]] requires to check that all properties are configurable.
-  Handle<String> configurable_name =
-      isolate->factory()->LookupAsciiSymbol("configurable_");
+  Handle<String> configurable_name = isolate->factory()->LookupOneByteSymbol(
+      STATIC_ASCII_VECTOR("configurable_"));
   Handle<Object> configurable(
       v8::internal::GetProperty(desc, configurable_name));
   ASSERT(!isolate->has_pending_exception());
   ASSERT(configurable->IsTrue() || configurable->IsFalse());
   if (configurable->IsFalse()) {
     Handle<String> trap =
-        isolate->factory()->LookupAsciiSymbol("getPropertyDescriptor");
+        isolate->factory()->LookupOneByteSymbol(
+            STATIC_ASCII_VECTOR("getPropertyDescriptor"));
     Handle<Object> args[] = { handler, trap, name };
     Handle<Object> error = isolate->factory()->NewTypeError(
         "proxy_prop_not_configurable", HandleVector(args, ARRAY_SIZE(args)));
@@ -2674,13 +2676,15 @@ MUST_USE_RESULT MaybeObject* JSProxy::SetPropertyViaPrototypesWithHandler(
 
   // Check for DataDescriptor.
   Handle<String> hasWritable_name =
-      isolate->factory()->LookupAsciiSymbol("hasWritable_");
+      isolate->factory()->LookupOneByteSymbol(
+          STATIC_ASCII_VECTOR("hasWritable_"));
   Handle<Object> hasWritable(v8::internal::GetProperty(desc, hasWritable_name));
   ASSERT(!isolate->has_pending_exception());
   ASSERT(hasWritable->IsTrue() || hasWritable->IsFalse());
   if (hasWritable->IsTrue()) {
     Handle<String> writable_name =
-        isolate->factory()->LookupAsciiSymbol("writable_");
+        isolate->factory()->LookupOneByteSymbol(
+            STATIC_ASCII_VECTOR("writable_"));
     Handle<Object> writable(v8::internal::GetProperty(desc, writable_name));
     ASSERT(!isolate->has_pending_exception());
     ASSERT(writable->IsTrue() || writable->IsFalse());
@@ -2694,7 +2698,8 @@ MUST_USE_RESULT MaybeObject* JSProxy::SetPropertyViaPrototypesWithHandler(
   }
 
   // We have an AccessorDescriptor.
-  Handle<String> set_name = isolate->factory()->LookupAsciiSymbol("set_");
+  Handle<String> set_name = isolate->factory()->LookupOneByteSymbol(
+      STATIC_ASCII_VECTOR("set_"));
   Handle<Object> setter(v8::internal::GetProperty(desc, set_name));
   ASSERT(!isolate->has_pending_exception());
   if (!setter->IsUndefined()) {
@@ -2726,7 +2731,8 @@ MUST_USE_RESULT MaybeObject* JSProxy::DeletePropertyWithHandler(
   Object* bool_result = result->ToBoolean();
   if (mode == STRICT_DELETION && bool_result == GetHeap()->false_value()) {
     Handle<Object> handler(receiver->handler());
-    Handle<String> trap_name = isolate->factory()->LookupAsciiSymbol("delete");
+    Handle<String> trap_name = isolate->factory()->LookupOneByteSymbol(
+        STATIC_ASCII_VECTOR("delete"));
     Handle<Object> args[] = { handler, trap_name };
     Handle<Object> error = isolate->factory()->NewTypeError(
         "handler_failed", HandleVector(args, ARRAY_SIZE(args)));
@@ -2772,19 +2778,22 @@ MUST_USE_RESULT PropertyAttributes JSProxy::GetPropertyAttributeWithHandler(
   if (has_pending_exception) return NONE;
 
   // Convert result to PropertyAttributes.
-  Handle<String> enum_n = isolate->factory()->LookupAsciiSymbol("enumerable");
+  Handle<String> enum_n = isolate->factory()->LookupOneByteSymbol(
+      STATIC_ASCII_VECTOR("enumerable"));
   Handle<Object> enumerable(v8::internal::GetProperty(desc, enum_n));
   if (isolate->has_pending_exception()) return NONE;
-  Handle<String> conf_n = isolate->factory()->LookupAsciiSymbol("configurable");
+  Handle<String> conf_n = isolate->factory()->LookupOneByteSymbol(
+      STATIC_ASCII_VECTOR("configurable"));
   Handle<Object> configurable(v8::internal::GetProperty(desc, conf_n));
   if (isolate->has_pending_exception()) return NONE;
-  Handle<String> writ_n = isolate->factory()->LookupAsciiSymbol("writable");
+  Handle<String> writ_n = isolate->factory()->LookupOneByteSymbol(
+      STATIC_ASCII_VECTOR("writable"));
   Handle<Object> writable(v8::internal::GetProperty(desc, writ_n));
   if (isolate->has_pending_exception()) return NONE;
 
   if (configurable->IsFalse()) {
-    Handle<String> trap =
-        isolate->factory()->LookupAsciiSymbol("getPropertyDescriptor");
+    Handle<String> trap = isolate->factory()->LookupOneByteSymbol(
+        STATIC_ASCII_VECTOR("getPropertyDescriptor"));
     Handle<Object> args[] = { handler, trap, name };
     Handle<Object> error = isolate->factory()->NewTypeError(
         "proxy_prop_not_configurable", HandleVector(args, ARRAY_SIZE(args)));
@@ -2844,7 +2853,7 @@ MUST_USE_RESULT Handle<Object> JSProxy::CallTrap(const char* name,
   Isolate* isolate = GetIsolate();
   Handle<Object> handler(this->handler());
 
-  Handle<String> trap_name = isolate->factory()->LookupAsciiSymbol(name);
+  Handle<String> trap_name = isolate->factory()->LookupUtf8Symbol(name);
   Handle<Object> trap(v8::internal::GetProperty(handler, trap_name));
   if (isolate->has_pending_exception()) return trap;
 
@@ -2912,6 +2921,9 @@ MaybeObject* JSObject::SetPropertyForResult(LookupResult* lookup,
         lookup, name_raw, value_raw, attributes, strict_mode, store_mode);
   }
 
+  ASSERT(!lookup->IsFound() || lookup->holder() == this ||
+         lookup->holder()->map()->is_hidden_prototype());
+
   // From this point on everything needs to be handlified, because
   // SetPropertyViaPrototypes might call back into JavaScript.
   HandleScope scope(isolate);
@@ -2943,8 +2955,9 @@ MaybeObject* JSObject::SetPropertyForResult(LookupResult* lookup,
   }
 
   Handle<Object> old_value(heap->the_hole_value(), isolate);
-  if (FLAG_harmony_observation && map()->is_observed()) {
-    old_value = handle(lookup->GetLazyValue(), isolate);
+  if (FLAG_harmony_observation &&
+      map()->is_observed() && lookup->IsDataProperty()) {
+    old_value = Object::GetProperty(self, name);
   }
 
   // This is a real property that is not read-only, or it is a
@@ -2952,10 +2965,10 @@ MaybeObject* JSObject::SetPropertyForResult(LookupResult* lookup,
   MaybeObject* result = *value;
   switch (lookup->type()) {
     case NORMAL:
-      result = self->SetNormalizedProperty(lookup, *value);
+      result = lookup->holder()->SetNormalizedProperty(lookup, *value);
       break;
     case FIELD:
-      result = self->FastPropertyAtPut(
+      result = lookup->holder()->FastPropertyAtPut(
           lookup->GetFieldIndex().field_index(), *value);
       break;
     case CONSTANT_FUNCTION:
@@ -2963,21 +2976,17 @@ MaybeObject* JSObject::SetPropertyForResult(LookupResult* lookup,
       if (*value == lookup->GetConstantFunction()) return *value;
       // Preserve the attributes of this existing property.
       attributes = lookup->GetAttributes();
-      result = self->ConvertDescriptorToField(*name, *value, attributes);
+      result =
+          lookup->holder()->ConvertDescriptorToField(*name, *value, attributes);
       break;
     case CALLBACKS: {
       Object* callback_object = lookup->GetCallbackObject();
-      return self->SetPropertyWithCallback(callback_object,
-                                           *name,
-                                           *value,
-                                           lookup->holder(),
-                                           strict_mode);
+      return self->SetPropertyWithCallback(
+          callback_object, *name, *value, lookup->holder(), strict_mode);
     }
     case INTERCEPTOR:
-      result = self->SetPropertyWithInterceptor(*name,
-                                                *value,
-                                                attributes,
-                                                strict_mode);
+      result = lookup->holder()->SetPropertyWithInterceptor(
+          *name, *value, attributes, strict_mode);
       break;
     case TRANSITION: {
       Map* transition_map = lookup->GetTransitionTarget();
@@ -2989,15 +2998,15 @@ MaybeObject* JSObject::SetPropertyForResult(LookupResult* lookup,
       if (details.type() == FIELD) {
         if (attributes == details.attributes()) {
           int field_index = descriptors->GetFieldIndex(descriptor);
-          result = self->AddFastPropertyUsingMap(transition_map,
-                                                 *name,
-                                                 *value,
-                                                 field_index);
+          result = lookup->holder()->AddFastPropertyUsingMap(
+              transition_map, *name, *value, field_index);
         } else {
-          result = self->ConvertDescriptorToField(*name, *value, attributes);
+          result = lookup->holder()->ConvertDescriptorToField(
+              *name, *value, attributes);
         }
       } else if (details.type() == CALLBACKS) {
-        result = self->ConvertDescriptorToField(*name, *value, attributes);
+        result = lookup->holder()->ConvertDescriptorToField(
+            *name, *value, attributes);
       } else {
         ASSERT(details.type() == CONSTANT_FUNCTION);
 
@@ -3005,12 +3014,12 @@ MaybeObject* JSObject::SetPropertyForResult(LookupResult* lookup,
         if (constant_function == *value) {
           // If the same constant function is being added we can simply
           // transition to the target map.
-          self->set_map(transition_map);
+          lookup->holder()->set_map(transition_map);
           result = constant_function;
         } else {
           // Otherwise, replace with a map transition to a new map with a FIELD,
           // even if the value is a constant function.
-          result = self->ConvertTransitionToMapTransition(
+          result = lookup->holder()->ConvertTransitionToMapTransition(
               lookup->GetTransitionIndex(), *name, *value, attributes);
         }
       }
@@ -3030,8 +3039,8 @@ MaybeObject* JSObject::SetPropertyForResult(LookupResult* lookup,
     } else {
       LookupResult new_lookup(isolate);
       self->LocalLookup(*name, &new_lookup, true);
-      ASSERT(!new_lookup.GetLazyValue()->IsTheHole());
-      if (!new_lookup.GetLazyValue()->SameValue(*old_value)) {
+      if (new_lookup.IsDataProperty() &&
+          !Object::GetProperty(self, name)->SameValue(*old_value)) {
         EnqueueChangeRecord(self, "updated", name, old_value);
       }
     }
@@ -3110,15 +3119,7 @@ MaybeObject* JSObject::SetLocalPropertyIgnoreAttributes(
   PropertyAttributes old_attributes = ABSENT;
   bool is_observed = FLAG_harmony_observation && self->map()->is_observed();
   if (is_observed) {
-    // Function prototypes are stored specially
-    if (self->IsJSFunction() &&
-        JSFunction::cast(*self)->should_have_prototype() &&
-        name->Equals(isolate->heap()->prototype_symbol())) {
-      MaybeObject* maybe = Accessors::FunctionGetPrototype(*self, NULL);
-      if (!maybe->ToHandle(&old_value, isolate)) return maybe;
-    } else {
-      old_value = handle(lookup.GetLazyValue(), isolate);
-    }
+    if (lookup.IsDataProperty()) old_value = Object::GetProperty(self, name);
     old_attributes = lookup.GetAttributes();
   }
 
@@ -3188,11 +3189,11 @@ MaybeObject* JSObject::SetLocalPropertyIgnoreAttributes(
     } else {
       LookupResult new_lookup(isolate);
       self->LocalLookup(*name, &new_lookup, true);
-      ASSERT(!new_lookup.GetLazyValue()->IsTheHole());
       if (old_value->IsTheHole() ||
           new_lookup.GetAttributes() != old_attributes) {
         EnqueueChangeRecord(self, "reconfigured", name, old_value);
-      } else if (!new_lookup.GetLazyValue()->SameValue(*old_value)) {
+      } else if (new_lookup.IsDataProperty() &&
+          !Object::GetProperty(self, name)->SameValue(*old_value)) {
         EnqueueChangeRecord(self, "updated", name, old_value);
       }
     }
@@ -4255,8 +4256,8 @@ MaybeObject* JSObject::DeleteProperty(String* name, DeleteMode mode) {
 
   Handle<Object> old_value(isolate->heap()->the_hole_value());
   bool is_observed = FLAG_harmony_observation && self->map()->is_observed();
-  if (is_observed) {
-    old_value = handle(lookup.GetLazyValue(), isolate);
+  if (is_observed && lookup.IsDataProperty()) {
+    old_value = Object::GetProperty(self, hname);
   }
   MaybeObject* result;
 
@@ -4947,7 +4948,9 @@ MaybeObject* JSObject::DefineAccessor(String* name_raw,
       LookupResult lookup(isolate);
       LocalLookup(*name, &lookup, true);
       preexists = lookup.IsProperty();
-      if (preexists) old_value = handle(lookup.GetLazyValue(), isolate);
+      if (preexists && lookup.IsDataProperty()) {
+        old_value = Object::GetProperty(self, name);
+      }
     }
   }
 
@@ -6592,14 +6595,14 @@ SmartArrayPointer<char> String::ToCString(AllowNullsFlag allow_nulls,
   if (length < 0) length = kMaxInt - offset;
 
   // Compute the size of the UTF-8 string. Start at the specified offset.
-  Access<StringInputBuffer> buffer(
-      heap->isolate()->objects_string_input_buffer());
-  buffer->Reset(offset, this);
+  Access<ConsStringIteratorOp> op(
+      heap->isolate()->objects_string_iterator());
+  StringCharacterStream stream(this, op.value(), offset);
   int character_position = offset;
   int utf8_bytes = 0;
   int last = unibrow::Utf16::kNoPreviousCharacter;
-  while (buffer->has_more() && character_position++ < offset + length) {
-    uint16_t character = buffer->GetNext();
+  while (stream.HasMore() && character_position++ < offset + length) {
+    uint16_t character = stream.GetNext();
     utf8_bytes += unibrow::Utf8::Length(character, last);
     last = character;
   }
@@ -6611,13 +6614,12 @@ SmartArrayPointer<char> String::ToCString(AllowNullsFlag allow_nulls,
   char* result = NewArray<char>(utf8_bytes + 1);
 
   // Convert the UTF-16 string to a UTF-8 buffer. Start at the specified offset.
-  buffer->Rewind();
-  buffer->Seek(offset);
+  stream.Reset(this, offset);
   character_position = offset;
   int utf8_byte_position = 0;
   last = unibrow::Utf16::kNoPreviousCharacter;
-  while (buffer->has_more() && character_position++ < offset + length) {
-    uint16_t character = buffer->GetNext();
+  while (stream.HasMore() && character_position++ < offset + length) {
+    uint16_t character = stream.GetNext();
     if (allow_nulls == DISALLOW_NULLS && character == 0) {
       character = ' ';
     }
@@ -6669,15 +6671,15 @@ SmartArrayPointer<uc16> String::ToWideCString(RobustnessFlag robust_flag) {
   }
   Heap* heap = GetHeap();
 
-  Access<StringInputBuffer> buffer(
-      heap->isolate()->objects_string_input_buffer());
-  buffer->Reset(this);
+  Access<ConsStringIteratorOp> op(
+      heap->isolate()->objects_string_iterator());
+  StringCharacterStream stream(this, op.value());
 
   uc16* result = NewArray<uc16>(length() + 1);
 
   int i = 0;
-  while (buffer->has_more()) {
-    uint16_t character = buffer->GetNext();
+  while (stream.HasMore()) {
+    uint16_t character = stream.GetNext();
     result[i++] = character;
   }
   result[i] = 0;
@@ -7026,71 +7028,79 @@ void StringInputBuffer::Seek(unsigned pos) {
 }
 
 
-String* ConsStringIteratorOp::Operate(ConsString* consString,
-    unsigned* outerOffset, int32_t* typeOut, unsigned* lengthOut) {
-  ASSERT(*lengthOut == (unsigned)consString->length());
-  // Push the root string.
-  PushLeft(consString);
-  root_ = consString;
-  root_type_ = *typeOut;
-  root_length_ = *lengthOut;
-  unsigned targetOffset = *outerOffset;
+String* ConsStringIteratorOp::Operate(String* string,
+                                      unsigned* offset_out,
+                                      int32_t* type_out,
+                                      unsigned* length_out) {
+  ASSERT(string->IsConsString());
+  ConsString* cons_string = ConsString::cast(string);
+  // Set up search data.
+  root_ = cons_string;
+  consumed_ = *offset_out;
+  // Now search.
+  return Search(offset_out, type_out, length_out);
+}
+
+
+String* ConsStringIteratorOp::Search(unsigned* offset_out,
+                                     int32_t* type_out,
+                                     unsigned* length_out) {
+  ConsString* cons_string = root_;
+  // Reset the stack, pushing the root string.
+  depth_ = 1;
+  maximum_depth_ = 1;
+  frames_[0] = cons_string;
+  const unsigned consumed = consumed_;
   unsigned offset = 0;
   while (true) {
     // Loop until the string is found which contains the target offset.
-    String* string = consString->first();
+    String* string = cons_string->first();
     unsigned length = string->length();
     int32_t type;
-    if (targetOffset < offset + length) {
+    if (consumed < offset + length) {
       // Target offset is in the left branch.
-      // Mark the descent.
-      ClearRightDescent();
       // Keep going if we're still in a ConString.
       type = string->map()->instance_type();
       if ((type & kStringRepresentationMask) == kConsStringTag) {
-        consString = ConsString::cast(string);
-        PushLeft(consString);
+        cons_string = ConsString::cast(string);
+        PushLeft(cons_string);
         continue;
       }
+      // Tell the stack we're done decending.
+      AdjustMaximumDepth();
     } else {
       // Descend right.
       // Update progress through the string.
       offset += length;
       // Keep going if we're still in a ConString.
-      string = consString->second();
+      string = cons_string->second();
       type = string->map()->instance_type();
       if ((type & kStringRepresentationMask) == kConsStringTag) {
-        consString = ConsString::cast(string);
-        PushRight(consString, type);
+        cons_string = ConsString::cast(string);
+        PushRight(cons_string);
+        // TODO(dcarney) Add back root optimization.
         continue;
       }
-      // Mark the descent.
-      SetRightDescent();
       // Need this to be updated for the current string.
       length = string->length();
       // Account for the possibility of an empty right leaf.
-      while (length == 0) {
-        bool blewStack;
-        // Need to adjust maximum depth for NextLeaf to work.
-        AdjustMaximumDepth();
-        string = NextLeaf(&blewStack, &type);
-        if (string == NULL) {
-          // Luckily, this case is impossible.
-          ASSERT(!blewStack);
-          return NULL;
-        }
-        length = string->length();
+      // This happens only if we have asked for an offset outside the string.
+      if (length == 0) {
+        // Reset depth so future operations will return null immediately.
+        Reset();
+        return NULL;
       }
+      // Tell the stack we're done decending.
+      AdjustMaximumDepth();
+      // Pop stack so next iteration is in correct place.
+      Pop();
     }
-    // Tell the stack we're done decending.
-    AdjustMaximumDepth();
     ASSERT(length != 0);
     // Adjust return values and exit.
-    unsigned innerOffset = targetOffset - offset;
-    consumed_ += length - innerOffset;
-    *outerOffset = innerOffset;
-    *typeOut = type;
-    *lengthOut = length;
+    consumed_ = offset + length;
+    *offset_out = consumed - offset;
+    *type_out = type;
+    *length_out = length;
     return string;
   }
   UNREACHABLE();
@@ -7098,52 +7108,54 @@ String* ConsStringIteratorOp::Operate(ConsString* consString,
 }
 
 
-String* ConsStringIteratorOp::NextLeaf(bool* blewStack, int32_t* typeOut) {
+String* ConsStringIteratorOp::NextLeaf(bool* blew_stack,
+                                       int32_t* type_out,
+                                       unsigned* length_out) {
   while (true) {
     // Tree traversal complete.
     if (depth_ == 0) {
-      *blewStack = false;
+      *blew_stack = false;
       return NULL;
     }
     // We've lost track of higher nodes.
     if (maximum_depth_ - depth_ == kStackSize) {
-      *blewStack = true;
+      *blew_stack = true;
       return NULL;
     }
-    // Check if we're done with this level.
-    bool haveAlreadyReadRight = trace_ & MaskForDepth(depth_ - 1);
-    if (haveAlreadyReadRight) {
-      Pop();
-      continue;
-    }
     // Go right.
-    ConsString* consString = frames_[OffsetForDepth(depth_ - 1)];
-    String* string = consString->second();
+    ConsString* cons_string = frames_[OffsetForDepth(depth_ - 1)];
+    String* string = cons_string->second();
     int32_t type = string->map()->instance_type();
     if ((type & kStringRepresentationMask) != kConsStringTag) {
-      // Don't need to mark the descent here.
       // Pop stack so next iteration is in correct place.
       Pop();
-      *typeOut = type;
+      unsigned length = (unsigned) string->length();
+      // Could be a flattened ConsString.
+      if (length == 0) continue;
+      *length_out = length;
+      *type_out = type;
+      consumed_ += length;
       return string;
     }
-    // No need to mark the descent.
-    consString = ConsString::cast(string);
-    PushRight(consString, type);
+    cons_string = ConsString::cast(string);
+    // TODO(dcarney) Add back root optimization.
+    PushRight(cons_string);
     // Need to traverse all the way left.
     while (true) {
       // Continue left.
-      // Update marker.
-      ClearRightDescent();
-      string = consString->first();
+      string = cons_string->first();
       type = string->map()->instance_type();
       if ((type & kStringRepresentationMask) != kConsStringTag) {
         AdjustMaximumDepth();
-        *typeOut = type;
+        unsigned length = (unsigned) string->length();
+        ASSERT(length != 0);
+        *length_out = length;
+        *type_out = type;
+        consumed_ += length;
         return string;
       }
-      consString = ConsString::cast(string);
-      PushLeft(consString);
+      cons_string = ConsString::cast(string);
+      PushLeft(cons_string);
     }
   }
   UNREACHABLE();
@@ -7445,46 +7457,28 @@ void String::WriteToFlat(String* src,
 }
 
 
-template <typename IteratorA, typename IteratorB>
-static inline bool CompareStringContents(IteratorA* ia, IteratorB* ib) {
-  // General slow case check.  We know that the ia and ib iterators
-  // have the same length.
-  while (ia->has_more()) {
-    uint32_t ca = ia->GetNext();
-    uint32_t cb = ib->GetNext();
-    ASSERT(ca <= unibrow::Utf16::kMaxNonSurrogateCharCode);
-    ASSERT(cb <= unibrow::Utf16::kMaxNonSurrogateCharCode);
-    if (ca != cb)
-      return false;
-  }
-  return true;
-}
-
-
 // Compares the contents of two strings by reading and comparing
 // int-sized blocks of characters.
 template <typename Char>
-static inline bool CompareRawStringContents(Vector<Char> a, Vector<Char> b) {
-  int length = a.length();
-  ASSERT_EQ(length, b.length());
-  const Char* pa = a.start();
-  const Char* pb = b.start();
+static inline bool CompareRawStringContents(const Char* const a,
+                                            const Char* const b,
+                                            int length) {
   int i = 0;
 #ifndef V8_HOST_CAN_READ_UNALIGNED
   // If this architecture isn't comfortable reading unaligned ints
   // then we have to check that the strings are aligned before
   // comparing them blockwise.
   const int kAlignmentMask = sizeof(uint32_t) - 1;  // NOLINT
-  uint32_t pa_addr = reinterpret_cast<uint32_t>(pa);
-  uint32_t pb_addr = reinterpret_cast<uint32_t>(pb);
+  uint32_t pa_addr = reinterpret_cast<uint32_t>(a);
+  uint32_t pb_addr = reinterpret_cast<uint32_t>(b);
   if (((pa_addr & kAlignmentMask) | (pb_addr & kAlignmentMask)) == 0) {
 #endif
     const int kStepSize = sizeof(int) / sizeof(Char);  // NOLINT
     int endpoint = length - kStepSize;
     // Compare blocks until we reach near the end of the string.
     for (; i <= endpoint; i += kStepSize) {
-      uint32_t wa = *reinterpret_cast<const uint32_t*>(pa + i);
-      uint32_t wb = *reinterpret_cast<const uint32_t*>(pb + i);
+      uint32_t wa = *reinterpret_cast<const uint32_t*>(a + i);
+      uint32_t wb = *reinterpret_cast<const uint32_t*>(b + i);
       if (wa != wb) {
         return false;
       }
@@ -7502,25 +7496,145 @@ static inline bool CompareRawStringContents(Vector<Char> a, Vector<Char> b) {
 }
 
 
-template <typename IteratorA>
-static inline bool CompareStringContentsPartial(Isolate* isolate,
-                                                IteratorA* ia,
-                                                String* b) {
-  String::FlatContent content = b->GetFlatContent();
-  if (content.IsFlat()) {
-    if (content.IsAscii()) {
-      VectorIterator<char> ib(content.ToAsciiVector());
-      return CompareStringContents(ia, &ib);
-    } else {
-      VectorIterator<uc16> ib(content.ToUC16Vector());
-      return CompareStringContents(ia, &ib);
+template<typename Chars1, typename Chars2>
+class RawStringComparator : public AllStatic {
+ public:
+  static inline bool compare(const Chars1* a, const Chars2* b, int len) {
+    ASSERT(sizeof(Chars1) != sizeof(Chars2));
+    for (int i = 0; i < len; i++) {
+      if (a[i] != b[i]) {
+        return false;
+      }
     }
-  } else {
-    isolate->objects_string_compare_buffer_b()->Reset(0, b);
-    return CompareStringContents(ia,
-                                 isolate->objects_string_compare_buffer_b());
+    return true;
   }
-}
+};
+
+
+template<>
+class RawStringComparator<uint16_t, uint16_t> {
+ public:
+  static inline bool compare(const uint16_t* a, const uint16_t* b, int len) {
+    return CompareRawStringContents(a, b, len);
+  }
+};
+
+
+template<>
+class RawStringComparator<uint8_t, uint8_t> {
+ public:
+  static inline bool compare(const uint8_t* a, const uint8_t* b, int len) {
+    return CompareRawStringContents(a, b, len);
+  }
+};
+
+
+class StringComparator {
+  class State {
+   public:
+    explicit inline State(ConsStringIteratorOp* op)
+      : op_(op), is_one_byte_(true), length_(0), buffer8_(NULL) {}
+
+    inline void Init(String* string, unsigned len) {
+      op_->Reset();
+      int32_t type = string->map()->instance_type();
+      String::Visit(string, 0, *this, *op_, type, len);
+    }
+
+    inline void VisitOneByteString(const uint8_t* chars, unsigned length) {
+      is_one_byte_ = true;
+      buffer8_ = chars;
+      length_ = length;
+    }
+
+    inline void VisitTwoByteString(const uint16_t* chars, unsigned length) {
+      is_one_byte_ = false;
+      buffer16_ = chars;
+      length_ = length;
+    }
+
+    void Advance(unsigned consumed) {
+      ASSERT(consumed <= length_);
+      // Still in buffer.
+      if (length_ != consumed) {
+        if (is_one_byte_) {
+          buffer8_ += consumed;
+        } else {
+          buffer16_ += consumed;
+        }
+        length_ -= consumed;
+        return;
+      }
+      // Advance state.
+      ASSERT(op_->HasMore());
+      int32_t type = 0;
+      unsigned length = 0;
+      String* next = op_->ContinueOperation(&type, &length);
+      ASSERT(next != NULL);
+      ConsStringNullOp null_op;
+      String::Visit(next, 0, *this, null_op, type, length);
+    }
+
+    ConsStringIteratorOp* const op_;
+    bool is_one_byte_;
+    unsigned length_;
+    union {
+      const uint8_t* buffer8_;
+      const uint16_t* buffer16_;
+    };
+    DISALLOW_IMPLICIT_CONSTRUCTORS(State);
+  };
+
+ public:
+  inline StringComparator(ConsStringIteratorOp* op_1,
+                          ConsStringIteratorOp* op_2)
+    : state_1_(op_1),
+      state_2_(op_2) {
+  }
+
+  template<typename Chars1, typename Chars2>
+  static inline bool Equals(State* state_1, State* state_2, unsigned to_check) {
+    const Chars1* a = reinterpret_cast<const Chars1*>(state_1->buffer8_);
+    const Chars2* b = reinterpret_cast<const Chars2*>(state_2->buffer8_);
+    return RawStringComparator<Chars1, Chars2>::compare(a, b, to_check);
+  }
+
+  bool Equals(unsigned length, String* string_1, String* string_2) {
+    ASSERT(length != 0);
+    state_1_.Init(string_1, length);
+    state_2_.Init(string_2, length);
+    while (true) {
+      unsigned to_check = Min(state_1_.length_, state_2_.length_);
+      ASSERT(to_check > 0 && to_check <= length);
+      bool is_equal;
+      if (state_1_.is_one_byte_) {
+        if (state_2_.is_one_byte_) {
+          is_equal = Equals<uint8_t, uint8_t>(&state_1_, &state_2_, to_check);
+        } else {
+          is_equal = Equals<uint8_t, uint16_t>(&state_1_, &state_2_, to_check);
+        }
+      } else {
+        if (state_2_.is_one_byte_) {
+          is_equal = Equals<uint16_t, uint8_t>(&state_1_, &state_2_, to_check);
+        } else {
+          is_equal = Equals<uint16_t, uint16_t>(&state_1_, &state_2_, to_check);
+        }
+      }
+      // Looping done.
+      if (!is_equal) return false;
+      length -= to_check;
+      // Exit condition. Strings are equal.
+      if (length == 0) return true;
+      state_1_.Advance(to_check);
+      state_2_.Advance(to_check);
+    }
+  }
+
+ private:
+  State state_1_;
+  State state_2_;
+  DISALLOW_IMPLICIT_CONSTRUCTORS(StringComparator);
+};
 
 
 bool String::SlowEquals(String* other) {
@@ -7556,58 +7670,19 @@ bool String::SlowEquals(String* other) {
   String* lhs = this->TryFlattenGetString();
   String* rhs = other->TryFlattenGetString();
 
+  // TODO(dcarney): Compare all types of flat strings with a Visitor.
   if (StringShape(lhs).IsSequentialAscii() &&
       StringShape(rhs).IsSequentialAscii()) {
     const char* str1 = SeqOneByteString::cast(lhs)->GetChars();
     const char* str2 = SeqOneByteString::cast(rhs)->GetChars();
-    return CompareRawStringContents(Vector<const char>(str1, len),
-                                    Vector<const char>(str2, len));
+    return CompareRawStringContents(str1, str2, len);
   }
 
   Isolate* isolate = GetIsolate();
-  String::FlatContent lhs_content = lhs->GetFlatContent();
-  String::FlatContent rhs_content = rhs->GetFlatContent();
-  if (lhs_content.IsFlat()) {
-    if (lhs_content.IsAscii()) {
-      Vector<const char> vec1 = lhs_content.ToAsciiVector();
-      if (rhs_content.IsFlat()) {
-        if (rhs_content.IsAscii()) {
-          Vector<const char> vec2 = rhs_content.ToAsciiVector();
-          return CompareRawStringContents(vec1, vec2);
-        } else {
-          VectorIterator<char> buf1(vec1);
-          VectorIterator<uc16> ib(rhs_content.ToUC16Vector());
-          return CompareStringContents(&buf1, &ib);
-        }
-      } else {
-        VectorIterator<char> buf1(vec1);
-        isolate->objects_string_compare_buffer_b()->Reset(0, rhs);
-        return CompareStringContents(&buf1,
-            isolate->objects_string_compare_buffer_b());
-      }
-    } else {
-      Vector<const uc16> vec1 = lhs_content.ToUC16Vector();
-      if (rhs_content.IsFlat()) {
-        if (rhs_content.IsAscii()) {
-          VectorIterator<uc16> buf1(vec1);
-          VectorIterator<char> ib(rhs_content.ToAsciiVector());
-          return CompareStringContents(&buf1, &ib);
-        } else {
-          Vector<const uc16> vec2(rhs_content.ToUC16Vector());
-          return CompareRawStringContents(vec1, vec2);
-        }
-      } else {
-        VectorIterator<uc16> buf1(vec1);
-        isolate->objects_string_compare_buffer_b()->Reset(0, rhs);
-        return CompareStringContents(&buf1,
-            isolate->objects_string_compare_buffer_b());
-      }
-    }
-  } else {
-    isolate->objects_string_compare_buffer_a()->Reset(0, lhs);
-    return CompareStringContentsPartial(isolate,
-        isolate->objects_string_compare_buffer_a(), rhs);
-  }
+  StringComparator comparator(isolate->objects_string_compare_iterator_a(),
+                              isolate->objects_string_compare_iterator_b());
+
+  return comparator.Equals(static_cast<unsigned>(len), lhs, rhs);
 }
 
 
@@ -7629,14 +7704,20 @@ bool String::MarkAsUndetectable() {
 
 
 bool String::IsEqualTo(Vector<const char> str) {
-  Isolate* isolate = GetIsolate();
   int slen = length();
-  Access<UnicodeCache::Utf8Decoder>
-      decoder(isolate->unicode_cache()->utf8_decoder());
-  decoder->Reset(str.start(), str.length());
+  // Can't check exact length equality, but we can check bounds.
+  int str_len = str.length();
+  if (str_len < slen ||
+      str_len > slen*static_cast<int>(unibrow::Utf8::kMaxEncodedSize)) {
+    return false;
+  }
   int i;
-  for (i = 0; i < slen && decoder->has_more(); i++) {
-    uint32_t r = decoder->GetNext();
+  unsigned remaining_in_str = static_cast<unsigned>(str_len);
+  const uint8_t* utf8_data = reinterpret_cast<const uint8_t*>(str.start());
+  for (i = 0; i < slen && remaining_in_str > 0; i++) {
+    unsigned cursor = 0;
+    uint32_t r = unibrow::Utf8::ValueOf(utf8_data, remaining_in_str, &cursor);
+    ASSERT(cursor > 0 && cursor <= remaining_in_str);
     if (r > unibrow::Utf16::kMaxNonSurrogateCharCode) {
       if (i > slen - 1) return false;
       if (Get(i++) != unibrow::Utf16::LeadSurrogate(r)) return false;
@@ -7644,8 +7725,10 @@ bool String::IsEqualTo(Vector<const char> str) {
     } else {
       if (Get(i) != r) return false;
     }
+    utf8_data += cursor;
+    remaining_in_str -= cursor;
   }
-  return i == slen && !decoder->has_more();
+  return i == slen && remaining_in_str == 0;
 }
 
 
@@ -7678,28 +7761,62 @@ bool String::IsTwoByteEqualTo(Vector<const uc16> str) {
 }
 
 
+class IteratingStringHasher: public StringHasher {
+ public:
+  static inline uint32_t Hash(String* string, uint32_t seed) {
+    const unsigned len = static_cast<unsigned>(string->length());
+    IteratingStringHasher hasher(len, seed);
+    if (hasher.has_trivial_hash()) {
+      return hasher.GetHashField();
+    }
+    int32_t type = string->map()->instance_type();
+    ConsStringNullOp null_op;
+    String::Visit(string, 0, hasher, null_op, type, len);
+    // Flat strings terminate immediately.
+    if (hasher.consumed_ == len) {
+      ASSERT(!string->IsConsString());
+      return hasher.GetHashField();
+    }
+    ASSERT(string->IsConsString());
+    // This is a ConsString, iterate across it.
+    ConsStringIteratorOp op;
+    unsigned offset = 0;
+    unsigned leaf_length = len;
+    string = op.Operate(string, &offset, &type, &leaf_length);
+    while (true) {
+      ASSERT(hasher.consumed_ < len);
+      String::Visit(string, 0, hasher, null_op, type, leaf_length);
+      if (hasher.consumed_ == len) break;
+      string = op.ContinueOperation(&type, &leaf_length);
+      // This should be taken care of by the length check.
+      ASSERT(string != NULL);
+    }
+    return hasher.GetHashField();
+  }
+  inline void VisitOneByteString(const uint8_t* chars, unsigned length) {
+    AddCharacters(chars, static_cast<int>(length));
+    consumed_ += length;
+  }
+  inline void VisitTwoByteString(const uint16_t* chars, unsigned length) {
+    AddCharacters(chars, static_cast<int>(length));
+    consumed_ += length;
+  }
+
+ private:
+  inline IteratingStringHasher(int len, uint32_t seed)
+    : StringHasher(len, seed),
+      consumed_(0) {}
+  unsigned consumed_;
+  DISALLOW_COPY_AND_ASSIGN(IteratingStringHasher);
+};
+
+
 uint32_t String::ComputeAndSetHash() {
   // Should only be called if hash code has not yet been computed.
   ASSERT(!HasHashCode());
 
-  const int len = length();
-
-  // Compute the hash code.
-  uint32_t field = 0;
-  if (StringShape(this).IsSequentialAscii()) {
-    field = HashSequentialString(SeqOneByteString::cast(this)->GetChars(),
-                                 len,
-                                 GetHeap()->HashSeed());
-  } else if (StringShape(this).IsSequentialTwoByte()) {
-    field = HashSequentialString(SeqTwoByteString::cast(this)->GetChars(),
-                                 len,
-                                 GetHeap()->HashSeed());
-  } else {
-    StringInputBuffer buffer(this);
-    field = ComputeHashField(&buffer, len, GetHeap()->HashSeed());
-  }
-
   // Store the hash code in the object.
+  uint32_t field = IteratingStringHasher::Hash(this, GetHeap()->HashSeed());
   set_hash_field(field);
 
   // Check the hash code is there.
@@ -7710,11 +7827,12 @@ uint32_t String::ComputeAndSetHash() {
 }
 
 
-bool String::ComputeArrayIndex(unibrow::CharacterStream* buffer,
-                               uint32_t* index,
-                               int length) {
+bool String::ComputeArrayIndex(uint32_t* index) {
+  int length = this->length();
   if (length == 0 || length > kMaxArrayIndexSize) return false;
-  uc32 ch = buffer->GetNext();
+  ConsStringIteratorOp op;
+  StringCharacterStream stream(this, &op);
+  uint16_t ch = stream.GetNext();
 
   // If the string begins with a '0' character, it must only consist
   // of it to be a legal array index.
@@ -7727,8 +7845,8 @@ bool String::ComputeArrayIndex(unibrow::CharacterStream* buffer,
   int d = ch - '0';
   if (d < 0 || d > 9) return false;
   uint32_t result = d;
-  while (buffer->has_more()) {
-    d = buffer->GetNext() - '0';
+  while (stream.HasMore()) {
+    d = stream.GetNext() - '0';
     if (d < 0 || d > 9) return false;
     // Check that the new result is below the 32 bit limit.
     if (result > 429496729U - ((d > 5) ? 1 : 0)) return false;
@@ -7749,8 +7867,7 @@ bool String::SlowAsArrayIndex(uint32_t* index) {
     *index = (kArrayIndexHashMask & field) >> kHashShift;
     return true;
   } else {
-    StringInputBuffer buffer(this);
-    return ComputeArrayIndex(&buffer, index, length());
+    return ComputeArrayIndex(index);
   }
 }
 
@@ -7803,57 +7920,64 @@ uint32_t StringHasher::MakeArrayIndexHash(uint32_t value, int length) {
 }
 
 
-void StringHasher::AddSurrogatePair(uc32 c) {
-  uint16_t lead = unibrow::Utf16::LeadSurrogate(c);
-  AddCharacter(lead);
-  uint16_t trail = unibrow::Utf16::TrailSurrogate(c);
-  AddCharacter(trail);
-}
-
-
-void StringHasher::AddSurrogatePairNoIndex(uc32 c) {
-  uint16_t lead = unibrow::Utf16::LeadSurrogate(c);
-  AddCharacterNoIndex(lead);
-  uint16_t trail = unibrow::Utf16::TrailSurrogate(c);
-  AddCharacterNoIndex(trail);
-}
-
-
 uint32_t StringHasher::GetHashField() {
   if (length_ <= String::kMaxHashCalcLength) {
-    if (is_array_index()) {
-      return MakeArrayIndexHash(array_index(), length_);
+    if (is_array_index_) {
+      return MakeArrayIndexHash(array_index_, length_);
     }
-    return (GetHash() << String::kHashShift) | String::kIsNotArrayIndexMask;
+    return (GetHashCore(raw_running_hash_) << String::kHashShift) |
+           String::kIsNotArrayIndexMask;
   } else {
     return (length_ << String::kHashShift) | String::kIsNotArrayIndexMask;
   }
 }
 
 
-uint32_t String::ComputeHashField(unibrow::CharacterStream* buffer,
-                                  int length,
-                                  uint32_t seed) {
-  StringHasher hasher(length, seed);
-
-  // Very long strings have a trivial hash that doesn't inspect the
-  // string contents.
-  if (hasher.has_trivial_hash()) {
-    return hasher.GetHashField();
+uint32_t StringHasher::ComputeUtf8Hash(Vector<const char> chars,
+                                       uint32_t seed,
+                                       int* utf16_length_out) {
+  int vector_length = chars.length();
+  // Handle some edge cases
+  if (vector_length <= 1) {
+    ASSERT(vector_length == 0 ||
+           static_cast<uint8_t>(chars.start()[0]) <=
+               unibrow::Utf8::kMaxOneByteChar);
+    *utf16_length_out = vector_length;
+    return HashSequentialString(chars.start(), vector_length, seed);
   }
-
-  // Do the iterative array index computation as long as there is a
-  // chance this is an array index.
-  while (buffer->has_more() && hasher.is_array_index()) {
-    hasher.AddCharacter(buffer->GetNext());
+  // Start with a fake length which won't affect computation.
+  // It will be updated later.
+  StringHasher hasher(String::kMaxArrayIndexSize, seed);
+  unsigned remaining = static_cast<unsigned>(vector_length);
+  const uint8_t* stream = reinterpret_cast<const uint8_t*>(chars.start());
+  int utf16_length = 0;
+  bool is_index = true;
+  ASSERT(hasher.is_array_index_);
+  while (remaining > 0) {
+    unsigned consumed = 0;
+    uint32_t c = unibrow::Utf8::ValueOf(stream, remaining, &consumed);
+    ASSERT(consumed > 0 && consumed <= remaining);
+    stream += consumed;
+    remaining -= consumed;
+    bool is_two_characters = c > unibrow::Utf16::kMaxNonSurrogateCharCode;
+    utf16_length += is_two_characters ? 2 : 1;
+    // No need to keep hashing. But we do need to calculate utf16_length.
+    if (utf16_length > String::kMaxHashCalcLength) continue;
+    if (is_two_characters) {
+      uint16_t c1 = unibrow::Utf16::LeadSurrogate(c);
+      uint16_t c2 = unibrow::Utf16::TrailSurrogate(c);
+      hasher.AddCharacter(c1);
+      hasher.AddCharacter(c2);
+      if (is_index) is_index = hasher.UpdateIndex(c1);
+      if (is_index) is_index = hasher.UpdateIndex(c2);
+    } else {
+      hasher.AddCharacter(c);
+      if (is_index) is_index = hasher.UpdateIndex(c);
+    }
   }
-
-  // Process the remaining characters without updating the array
-  // index.
-  while (buffer->has_more()) {
-    hasher.AddCharacterNoIndex(buffer->GetNext());
-  }
-
+  *utf16_length_out = static_cast<int>(utf16_length);
+  // Must set length here so that hash computation is correct.
+  hasher.length_ = utf16_length;
   return hasher.GetHashField();
 }
 
@@ -8070,11 +8194,6 @@ bool SharedFunctionInfo::CompileLazy(Handle<SharedFunctionInfo> shared,
   ASSERT(shared->allows_lazy_compilation_without_context());
   CompilationInfoWithZone info(shared);
   return CompileLazyHelper(&info, flag);
-}
-
-
-void SharedFunctionInfo::ClearOptimizedCodeMap() {
-  set_optimized_code_map(Smi::FromInt(0));
 }
 
 
@@ -8343,7 +8462,7 @@ MaybeObject* Oddball::Initialize(const char* to_string,
                                  byte kind) {
   String* symbol;
   { MaybeObject* maybe_symbol =
-        Isolate::Current()->heap()->LookupAsciiSymbol(to_string);
+        Isolate::Current()->heap()->LookupUtf8Symbol(CStrVector(to_string));
     if (!maybe_symbol->To(&symbol)) return maybe_symbol;
   }
   set_to_string(symbol);
@@ -9082,6 +9201,49 @@ Code* Code::GetCodeAgeStub(Age age, MarkingParity parity) {
 }
 
 
+void Code::PrintDeoptLocation(int bailout_id) {
+  const char* last_comment = NULL;
+  int mask = RelocInfo::ModeMask(RelocInfo::COMMENT)
+      | RelocInfo::ModeMask(RelocInfo::RUNTIME_ENTRY);
+  for (RelocIterator it(this, mask); !it.done(); it.next()) {
+    RelocInfo* info = it.rinfo();
+    if (info->rmode() == RelocInfo::COMMENT) {
+      last_comment = reinterpret_cast<const char*>(info->data());
+    } else if (last_comment != NULL &&
+               bailout_id == Deoptimizer::GetDeoptimizationId(
+                   info->target_address(), Deoptimizer::EAGER)) {
+      CHECK(info->rmode() == RelocInfo::RUNTIME_ENTRY);
+      PrintF("            %s\n", last_comment);
+      return;
+    }
+  }
+}
+
+
+// Identify kind of code.
+const char* Code::Kind2String(Kind kind) {
+  switch (kind) {
+    case FUNCTION: return "FUNCTION";
+    case OPTIMIZED_FUNCTION: return "OPTIMIZED_FUNCTION";
+    case COMPILED_STUB: return "COMPILED_STUB";
+    case STUB: return "STUB";
+    case BUILTIN: return "BUILTIN";
+    case LOAD_IC: return "LOAD_IC";
+    case KEYED_LOAD_IC: return "KEYED_LOAD_IC";
+    case STORE_IC: return "STORE_IC";
+    case KEYED_STORE_IC: return "KEYED_STORE_IC";
+    case CALL_IC: return "CALL_IC";
+    case KEYED_CALL_IC: return "KEYED_CALL_IC";
+    case UNARY_OP_IC: return "UNARY_OP_IC";
+    case BINARY_OP_IC: return "BINARY_OP_IC";
+    case COMPARE_IC: return "COMPARE_IC";
+    case TO_BOOLEAN_IC: return "TO_BOOLEAN_IC";
+  }
+  UNREACHABLE();
+  return NULL;
+}
+
+
 #ifdef ENABLE_DISASSEMBLER
 
 void DeoptimizationInputData::DeoptimizationInputDataPrint(FILE* out) {
@@ -9138,6 +9300,12 @@ void DeoptimizationInputData::DeoptimizationInputDataPrint(FILE* out) {
             PrintF(out, "<self>");
           }
           PrintF(out, ", height=%u}", height);
+          break;
+        }
+
+        case Translation::COMPILED_STUB_FRAME: {
+          Code::Kind stub_kind = static_cast<Code::Kind>(iterator.Next());
+          PrintF(out, "{kind=%d}", stub_kind);
           break;
         }
 
@@ -9224,8 +9392,12 @@ void DeoptimizationInputData::DeoptimizationInputDataPrint(FILE* out) {
           break;
         }
 
-        case Translation::ARGUMENTS_OBJECT:
+        case Translation::ARGUMENTS_OBJECT: {
+          int args_index = iterator.Next();
+          int args_length = iterator.Next();
+          PrintF(out, "{index=%d, length=%d}", args_index, args_length);
           break;
+        }
       }
       PrintF(out, "\n");
     }
@@ -9247,29 +9419,6 @@ void DeoptimizationOutputData::DeoptimizationOutputDataPrint(FILE* out) {
            FullCodeGenerator::State2String(
                FullCodeGenerator::StateField::decode(pc_and_state)));
   }
-}
-
-
-// Identify kind of code.
-const char* Code::Kind2String(Kind kind) {
-  switch (kind) {
-    case FUNCTION: return "FUNCTION";
-    case OPTIMIZED_FUNCTION: return "OPTIMIZED_FUNCTION";
-    case STUB: return "STUB";
-    case BUILTIN: return "BUILTIN";
-    case LOAD_IC: return "LOAD_IC";
-    case KEYED_LOAD_IC: return "KEYED_LOAD_IC";
-    case STORE_IC: return "STORE_IC";
-    case KEYED_STORE_IC: return "KEYED_STORE_IC";
-    case CALL_IC: return "CALL_IC";
-    case KEYED_CALL_IC: return "KEYED_CALL_IC";
-    case UNARY_OP_IC: return "UNARY_OP_IC";
-    case BINARY_OP_IC: return "BINARY_OP_IC";
-    case COMPARE_IC: return "COMPARE_IC";
-    case TO_BOOLEAN_IC: return "TO_BOOLEAN_IC";
-  }
-  UNREACHABLE();
-  return NULL;
 }
 
 
@@ -9374,7 +9523,7 @@ void Code::Disassemble(const char* name, FILE* out) {
   }
   PrintF("\n");
 
-  if (kind() == OPTIMIZED_FUNCTION) {
+  if (kind() == OPTIMIZED_FUNCTION || kind() == COMPILED_STUB) {
     SafepointTable table(this);
     PrintF(out, "Safepoints (size = %u)\n", table.size());
     for (unsigned i = 0; i < table.length(); i++) {
@@ -9432,6 +9581,7 @@ MaybeObject* JSObject::SetFastElementsCapacityAndLength(
   Heap* heap = GetHeap();
   // We should never end in here with a pixel or external array.
   ASSERT(!HasExternalArrayElements());
+  ASSERT(!map()->is_observed());
 
   // Allocate a new fast elements backing store.
   FixedArray* new_elements;
@@ -9459,9 +9609,9 @@ MaybeObject* JSObject::SetFastElementsCapacityAndLength(
     }
   }
   FixedArrayBase* old_elements = elements();
-  ElementsAccessor* accessor = ElementsAccessor::ForKind(elements_kind);
+  ElementsAccessor* accessor = ElementsAccessor::ForKind(new_elements_kind);
   MaybeObject* maybe_obj =
-      accessor->CopyElements(this, new_elements, new_elements_kind);
+      accessor->CopyElements(this, new_elements, elements_kind);
   if (maybe_obj->IsFailure()) return maybe_obj;
 
   if (elements_kind != NON_STRICT_ARGUMENTS_ELEMENTS) {
@@ -9496,6 +9646,7 @@ MaybeObject* JSObject::SetFastDoubleElementsCapacityAndLength(
   Heap* heap = GetHeap();
   // We should never end in here with a pixel or external array.
   ASSERT(!HasExternalArrayElements());
+  ASSERT(!map()->is_observed());
 
   FixedArrayBase* elems;
   { MaybeObject* maybe_obj =
@@ -9518,9 +9669,9 @@ MaybeObject* JSObject::SetFastDoubleElementsCapacityAndLength(
   }
 
   FixedArrayBase* old_elements = elements();
-  ElementsAccessor* accessor = ElementsAccessor::ForKind(elements_kind);
+  ElementsAccessor* accessor = ElementsAccessor::ForKind(FAST_DOUBLE_ELEMENTS);
   { MaybeObject* maybe_obj =
-        accessor->CopyElements(this, elems, FAST_DOUBLE_ELEMENTS);
+        accessor->CopyElements(this, elems, elements_kind);
     if (maybe_obj->IsFailure()) return maybe_obj;
   }
   if (elements_kind != NON_STRICT_ARGUMENTS_ELEMENTS) {
@@ -10639,6 +10790,7 @@ Handle<Object> JSObject::TransitionElementsKind(Handle<JSObject> object,
 
 
 MaybeObject* JSObject::TransitionElementsKind(ElementsKind to_kind) {
+  ASSERT(!map()->is_observed());
   ElementsKind from_kind = map()->elements_kind();
 
   if (IsFastHoleyElementsKind(from_kind)) {
@@ -10895,6 +11047,9 @@ bool JSObject::ShouldConvertToFastElements() {
   // An object requiring access checks is never allowed to have fast
   // elements.  If it had fast elements we would skip security checks.
   if (IsAccessCheckNeeded()) return false;
+  // Observed objects may not go to fast mode because they rely on map checks,
+  // and for fast element accesses we sometimes check element kinds only.
+  if (FLAG_harmony_observation && map()->is_observed()) return false;
 
   FixedArray* elements = FixedArray::cast(this->elements());
   SeededNumberDictionary* dictionary = NULL;
@@ -11656,10 +11811,7 @@ class Utf8SymbolKey : public HashTableKey {
 
   uint32_t Hash() {
     if (hash_field_ != 0) return hash_field_ >> String::kHashShift;
-    unibrow::Utf8InputBuffer<> buffer(string_.start(),
-                                      static_cast<unsigned>(string_.length()));
-    chars_ = buffer.Utf16Length();
-    hash_field_ = String::ComputeHashField(&buffer, chars_, seed_);
+    hash_field_ = StringHasher::ComputeUtf8Hash(string_, seed_, &chars_);
     uint32_t result = hash_field_ >> String::kHashShift;
     ASSERT(result != 0);  // Ensure that the hash value of 0 is never computed.
     return result;
@@ -11689,29 +11841,9 @@ class SequentialSymbolKey : public HashTableKey {
       : string_(string), hash_field_(0), seed_(seed) { }
 
   uint32_t Hash() {
-    StringHasher hasher(string_.length(), seed_);
-
-    // Very long strings have a trivial hash that doesn't inspect the
-    // string contents.
-    if (hasher.has_trivial_hash()) {
-      hash_field_ = hasher.GetHashField();
-    } else {
-      int i = 0;
-      // Do the iterative array index computation as long as there is a
-      // chance this is an array index.
-      while (i < string_.length() && hasher.is_array_index()) {
-        hasher.AddCharacter(static_cast<uc32>(string_[i]));
-        i++;
-      }
-
-      // Process the remaining characters without updating the array
-      // index.
-      while (i < string_.length()) {
-        hasher.AddCharacterNoIndex(static_cast<uc32>(string_[i]));
-        i++;
-      }
-      hash_field_ = hasher.GetHashField();
-    }
+    hash_field_ = StringHasher::HashSequentialString<Char>(string_.start(),
+                                                           string_.length(),
+                                                           seed_);
 
     uint32_t result = hash_field_ >> String::kHashShift;
     ASSERT(result != 0);  // Ensure that the hash value of 0 is never computed.
@@ -11756,32 +11888,9 @@ class SubStringAsciiSymbolKey : public HashTableKey {
   uint32_t Hash() {
     ASSERT(length_ >= 0);
     ASSERT(from_ + length_ <= string_->length());
-    StringHasher hasher(length_, string_->GetHeap()->HashSeed());
-
-    // Very long strings have a trivial hash that doesn't inspect the
-    // string contents.
-    if (hasher.has_trivial_hash()) {
-      hash_field_ = hasher.GetHashField();
-    } else {
-      int i = 0;
-      // Do the iterative array index computation as long as there is a
-      // chance this is an array index.
-      while (i < length_ && hasher.is_array_index()) {
-        hasher.AddCharacter(static_cast<uc32>(
-            string_->SeqOneByteStringGet(i + from_)));
-        i++;
-      }
-
-      // Process the remaining characters without updating the array
-      // index.
-      while (i < length_) {
-        hasher.AddCharacterNoIndex(static_cast<uc32>(
-            string_->SeqOneByteStringGet(i + from_)));
-        i++;
-      }
-      hash_field_ = hasher.GetHashField();
-    }
-
+    char* chars = string_->GetChars() + from_;
+    hash_field_ = StringHasher::HashSequentialString(
+        chars, length_, string_->GetHeap()->HashSeed());
     uint32_t result = hash_field_ >> String::kHashShift;
     ASSERT(result != 0);  // Ensure that the hash value of 0 is never computed.
     return result;
@@ -11856,8 +11965,7 @@ class SymbolKey : public HashTableKey {
       return string_;
     }
     // Otherwise allocate a new symbol.
-    StringInputBuffer buffer(string_);
-    return heap->AllocateInternalSymbol(&buffer,
+    return heap->AllocateInternalSymbol(string_,
                                         string_->length(),
                                         string_->hash_field());
   }
@@ -12627,7 +12735,7 @@ MaybeObject* SymbolTable::LookupString(String* string, Object** s) {
 // algorithm.
 class TwoCharHashTableKey : public HashTableKey {
  public:
-  TwoCharHashTableKey(uint32_t c1, uint32_t c2, uint32_t seed)
+  TwoCharHashTableKey(uint16_t c1, uint16_t c2, uint32_t seed)
     : c1_(c1), c2_(c2) {
     // Char 1.
     uint32_t hash = seed;
@@ -12643,17 +12751,17 @@ class TwoCharHashTableKey : public HashTableKey {
     hash ^= hash >> 11;
     hash += hash << 15;
     if ((hash & String::kHashBitMask) == 0) hash = StringHasher::kZeroHash;
+    hash_ = hash;
 #ifdef DEBUG
-    StringHasher hasher(2, seed);
-    hasher.AddCharacter(c1);
-    hasher.AddCharacter(c2);
     // If this assert fails then we failed to reproduce the two-character
     // version of the string hashing algorithm above.  One reason could be
     // that we were passed two digits as characters, since the hash
     // algorithm is different in that case.
-    ASSERT_EQ(static_cast<int>(hasher.GetHash()), static_cast<int>(hash));
+    uint16_t chars[2] = {c1, c2};
+    uint32_t check_hash = StringHasher::HashSequentialString(chars, 2, seed);
+    hash = (hash << String::kHashShift) | String::kIsNotArrayIndexMask;
+    ASSERT_EQ(static_cast<int32_t>(hash), static_cast<int32_t>(check_hash));
 #endif
-    hash_ = hash;
   }
 
   bool IsMatch(Object* o) {
@@ -12678,8 +12786,8 @@ class TwoCharHashTableKey : public HashTableKey {
   }
 
  private:
-  uint32_t c1_;
-  uint32_t c2_;
+  uint16_t c1_;
+  uint16_t c2_;
   uint32_t hash_;
 };
 
@@ -12698,8 +12806,8 @@ bool SymbolTable::LookupSymbolIfExists(String* string, String** symbol) {
 }
 
 
-bool SymbolTable::LookupTwoCharsSymbolIfExists(uint32_t c1,
-                                               uint32_t c2,
+bool SymbolTable::LookupTwoCharsSymbolIfExists(uint16_t c1,
+                                               uint16_t c2,
                                                String** symbol) {
   TwoCharHashTableKey key(c1, c2, GetHeap()->HashSeed());
   int entry = FindEntry(&key);
@@ -12714,21 +12822,21 @@ bool SymbolTable::LookupTwoCharsSymbolIfExists(uint32_t c1,
 }
 
 
-MaybeObject* SymbolTable::LookupSymbol(Vector<const char> str,
-                                       Object** s) {
+MaybeObject* SymbolTable::LookupUtf8Symbol(Vector<const char> str,
+                                           Object** s) {
   Utf8SymbolKey key(str, GetHeap()->HashSeed());
   return LookupKey(&key, s);
 }
 
 
-MaybeObject* SymbolTable::LookupAsciiSymbol(Vector<const char> str,
-                                            Object** s) {
+MaybeObject* SymbolTable::LookupOneByteSymbol(Vector<const char> str,
+                                              Object** s) {
   AsciiSymbolKey key(str, GetHeap()->HashSeed());
   return LookupKey(&key, s);
 }
 
 
-MaybeObject* SymbolTable::LookupSubStringAsciiSymbol(
+MaybeObject* SymbolTable::LookupSubStringOneByteSymbol(
     Handle<SeqOneByteString> str,
     int from,
     int length,

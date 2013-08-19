@@ -731,7 +731,7 @@ void MacroAssembler::CallApiFunctionAndReturn(Address function_address,
 
   // Call the api function!
   movq(rax, reinterpret_cast<int64_t>(function_address),
-       RelocInfo::RUNTIME_ENTRY);
+       RelocInfo::EXTERNAL_REFERENCE);
   call(rax);
 
   if (FLAG_log_timer_events) {
@@ -3432,7 +3432,7 @@ void MacroAssembler::EnterExitFrameEpilogue(int arg_stack_space,
         arg_stack_space * kPointerSize;
     subq(rsp, Immediate(space));
     int offset = -2 * kPointerSize;
-    for (int i = 0; i < XMMRegister::kNumAllocatableRegisters; i++) {
+    for (int i = 0; i < XMMRegister::NumAllocatableRegisters(); i++) {
       XMMRegister reg = XMMRegister::FromAllocationIndex(i);
       movsd(Operand(rbp, offset - ((i + 1) * kDoubleSize)), reg);
     }
@@ -3476,7 +3476,7 @@ void MacroAssembler::LeaveExitFrame(bool save_doubles) {
   // r15 : argv
   if (save_doubles) {
     int offset = -2 * kPointerSize;
-    for (int i = 0; i < XMMRegister::kNumAllocatableRegisters; i++) {
+    for (int i = 0; i < XMMRegister::NumAllocatableRegisters(); i++) {
       XMMRegister reg = XMMRegister::FromAllocationIndex(i);
       movsd(reg, Operand(rbp, offset - ((i + 1) * kDoubleSize)));
     }
@@ -3758,6 +3758,7 @@ void MacroAssembler::AllocateInNewSpace(int object_size,
                                         Register scratch,
                                         Label* gc_required,
                                         AllocationFlags flags) {
+  ASSERT((flags & (RESULT_CONTAINS_TOP | SIZE_IN_WORDS)) == 0);
   if (!FLAG_inline_new) {
     if (emit_debug_code()) {
       // Trash the registers to simulate an allocation failure.
@@ -3777,6 +3778,13 @@ void MacroAssembler::AllocateInNewSpace(int object_size,
   // Load address of new object into result.
   LoadAllocationTopHelper(result, scratch, flags);
 
+  // Align the next allocation. Storing the filler map without checking top is
+  // always safe because the limit of the heap is always aligned.
+  if (((flags & DOUBLE_ALIGNMENT) != 0) && FLAG_debug_code) {
+    testq(result, Immediate(kDoubleAlignmentMask));
+    Check(zero, "Allocation is not double aligned");
+  }
+
   // Calculate new top and bail out if new space is exhausted.
   ExternalReference new_space_allocation_limit =
       ExternalReference::new_space_allocation_limit_address(isolate());
@@ -3795,15 +3803,17 @@ void MacroAssembler::AllocateInNewSpace(int object_size,
   // Update allocation top.
   UpdateAllocationTopHelper(top_reg, scratch);
 
+  bool tag_result = (flags & TAG_OBJECT) != 0;
   if (top_reg.is(result)) {
-    if ((flags & TAG_OBJECT) != 0) {
+    if (tag_result) {
       subq(result, Immediate(object_size - kHeapObjectTag));
     } else {
       subq(result, Immediate(object_size));
     }
-  } else if ((flags & TAG_OBJECT) != 0) {
+  } else if (tag_result) {
     // Tag the result if requested.
-    addq(result, Immediate(kHeapObjectTag));
+    ASSERT(kHeapObjectTag == 1);
+    incq(result);
   }
 }
 
@@ -3816,6 +3826,7 @@ void MacroAssembler::AllocateInNewSpace(int header_size,
                                         Register scratch,
                                         Label* gc_required,
                                         AllocationFlags flags) {
+  ASSERT((flags & SIZE_IN_WORDS) == 0);
   if (!FLAG_inline_new) {
     if (emit_debug_code()) {
       // Trash the registers to simulate an allocation failure.
@@ -3833,6 +3844,13 @@ void MacroAssembler::AllocateInNewSpace(int header_size,
 
   // Load address of new object into result.
   LoadAllocationTopHelper(result, scratch, flags);
+
+  // Align the next allocation. Storing the filler map without checking top is
+  // always safe because the limit of the heap is always aligned.
+  if (((flags & DOUBLE_ALIGNMENT) != 0) && FLAG_debug_code) {
+    testq(result, Immediate(kDoubleAlignmentMask));
+    Check(zero, "Allocation is not double aligned");
+  }
 
   // Calculate new top and bail out if new space is exhausted.
   ExternalReference new_space_allocation_limit =
@@ -3852,7 +3870,8 @@ void MacroAssembler::AllocateInNewSpace(int header_size,
 
   // Tag the result if requested.
   if ((flags & TAG_OBJECT) != 0) {
-    addq(result, Immediate(kHeapObjectTag));
+    ASSERT(kHeapObjectTag == 1);
+    incq(result);
   }
 }
 
@@ -3863,6 +3882,8 @@ void MacroAssembler::AllocateInNewSpace(Register object_size,
                                         Register scratch,
                                         Label* gc_required,
                                         AllocationFlags flags) {
+  ASSERT((flags & (DOUBLE_ALIGNMENT | RESULT_CONTAINS_TOP |
+                   SIZE_IN_WORDS)) == 0);
   if (!FLAG_inline_new) {
     if (emit_debug_code()) {
       // Trash the registers to simulate an allocation failure.

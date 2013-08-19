@@ -201,7 +201,8 @@ void RelocInfo::PatchCode(byte* instructions, int instruction_count) {
 // -----------------------------------------------------------------------------
 // Register constants.
 
-const int Register::kRegisterCodeByAllocationIndex[kNumAllocatableRegisters] = {
+const int
+    Register::kRegisterCodeByAllocationIndex[kMaxNumAllocatableRegisters] = {
   // rax, rbx, rdx, rcx, rdi, r8, r9, r11, r14, r15
   0, 3, 2, 1, 7, 8, 9, 11, 14, 15
 };
@@ -2944,6 +2945,15 @@ void Assembler::roundsd(XMMRegister dst, XMMRegister src,
 void Assembler::movmskpd(Register dst, XMMRegister src) {
   EnsureSpace ensure_space(this);
   emit(0x66);
+  emit_optional_rex_32(dst, src);
+  emit(0x0f);
+  emit(0x50);
+  emit_sse_operand(dst, src);
+}
+
+
+void Assembler::movmskps(Register dst, XMMRegister src) {
+  EnsureSpace ensure_space(this);
   emit_optional_rex_32(dst, src);
   emit(0x0f);
   emit(0x50);

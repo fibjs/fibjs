@@ -36,6 +36,18 @@
 namespace v8 {
 namespace internal {
 
+
+void KeyedLoadFastElementStub::InitializeInterfaceDescriptor(
+    Isolate* isolate,
+    CodeStubInterfaceDescriptor* descriptor) {
+  static Register registers[] = { rdx, rax };
+  descriptor->register_param_count_ = 2;
+  descriptor->register_params_ = registers;
+  descriptor->deoptimization_handler_ =
+      isolate->builtins()->KeyedLoadIC_Miss();
+}
+
+
 #define __ ACCESS_MASM(masm)
 
 void ToNumberStub::Generate(MacroAssembler* masm) {
@@ -321,7 +333,11 @@ static void GenerateFastCloneShallowArrayCommon(
 
   // Allocate both the JS array and the elements array in one big
   // allocation. This avoids multiple limit checks.
-  __ AllocateInNewSpace(size, rax, rbx, rdx, fail, TAG_OBJECT);
+  AllocationFlags flags = TAG_OBJECT;
+  if (mode == FastCloneShallowArrayStub::CLONE_DOUBLE_ELEMENTS) {
+    flags = static_cast<AllocationFlags>(DOUBLE_ALIGNMENT | flags);
+  }
+  __ AllocateInNewSpace(size, rax, rbx, rdx, fail, flags);
 
   // Copy the JS array part.
   for (int i = 0; i < JSArray::kSize; i += kPointerSize) {
@@ -3918,8 +3934,7 @@ void CEntryStub::GenerateCore(MacroAssembler* masm,
     __ movq(rdi, rax);
 #endif
     __ movq(kScratchRegister,
-            FUNCTION_ADDR(Runtime::PerformGC),
-            RelocInfo::RUNTIME_ENTRY);
+            ExternalReference::perform_gc_function(masm->isolate()));
     __ call(kScratchRegister);
   }
 

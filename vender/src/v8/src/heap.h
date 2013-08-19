@@ -728,12 +728,16 @@ class Heap {
         Vector<const uc16> str,
         uint32_t hash_field);
 
-  MUST_USE_RESULT MaybeObject* AllocateInternalSymbol(
-      unibrow::CharacterStream* buffer, int chars, uint32_t hash_field);
+  template<typename T>
+  static inline bool IsOneByte(T t, int chars);
 
-  MUST_USE_RESULT MaybeObject* AllocateExternalSymbol(
-      Vector<const char> str,
-      int chars);
+  template<typename T>
+  MUST_USE_RESULT inline MaybeObject* AllocateInternalSymbol(
+      T t, int chars, uint32_t hash_field);
+
+  template<bool is_one_byte, typename T>
+  MUST_USE_RESULT MaybeObject* AllocateInternalSymbol(
+      T t, int chars, uint32_t hash_field);
 
   // Allocates and partially initializes a String.  There are two String
   // encodings: ASCII and two byte.  These functions allocate a string of the
@@ -1030,14 +1034,14 @@ class Heap {
   // Returns Failure::RetryAfterGC(requested_bytes, space) if allocation
   // failed.
   // Please note this function does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* LookupSymbol(Vector<const char> str);
-  MUST_USE_RESULT MaybeObject* LookupAsciiSymbol(Vector<const char> str);
-  MUST_USE_RESULT MaybeObject* LookupTwoByteSymbol(Vector<const uc16> str);
-  MUST_USE_RESULT MaybeObject* LookupAsciiSymbol(const char* str) {
-    return LookupSymbol(CStrVector(str));
+  MUST_USE_RESULT MaybeObject* LookupUtf8Symbol(Vector<const char> str);
+  MUST_USE_RESULT MaybeObject* LookupUtf8Symbol(const char* str) {
+    return LookupUtf8Symbol(CStrVector(str));
   }
+  MUST_USE_RESULT MaybeObject* LookupOneByteSymbol(Vector<const char> str);
+  MUST_USE_RESULT MaybeObject* LookupTwoByteSymbol(Vector<const uc16> str);
   MUST_USE_RESULT MaybeObject* LookupSymbol(String* str);
-  MUST_USE_RESULT MaybeObject* LookupAsciiSymbol(
+  MUST_USE_RESULT MaybeObject* LookupOneByteSymbol(
       Handle<SeqOneByteString> string, int from, int length);
 
   bool LookupSymbolIfExists(String* str, String** symbol);

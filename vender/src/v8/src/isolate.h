@@ -53,6 +53,7 @@ namespace internal {
 class Bootstrapper;
 class CodeGenerator;
 class CodeRange;
+struct CodeStubInterfaceDescriptor;
 class CompilationCache;
 class ContextSlotCache;
 class ContextSwitcher;
@@ -74,7 +75,7 @@ class PreallocatedMemoryThread;
 class RegExpStack;
 class SaveContext;
 class UnicodeCache;
-class StringInputBuffer;
+class ConsStringIteratorOp;
 class StringTracker;
 class StubCache;
 class ThreadManager;
@@ -880,7 +881,7 @@ class Isolate {
     return inner_pointer_to_code_cache_;
   }
 
-  StringInputBuffer* write_input_buffer() { return write_input_buffer_; }
+  ConsStringIteratorOp* write_iterator() { return write_iterator_; }
 
   GlobalHandles* global_handles() { return global_handles_; }
 
@@ -902,16 +903,16 @@ class Isolate {
     return &jsregexp_canonrange_;
   }
 
-  StringInputBuffer* objects_string_compare_buffer_a() {
-    return &objects_string_compare_buffer_a_;
+  ConsStringIteratorOp* objects_string_compare_iterator_a() {
+    return &objects_string_compare_iterator_a_;
   }
 
-  StringInputBuffer* objects_string_compare_buffer_b() {
-    return &objects_string_compare_buffer_b_;
+  ConsStringIteratorOp* objects_string_compare_iterator_b() {
+    return &objects_string_compare_iterator_b_;
   }
 
-  StaticResource<StringInputBuffer>* objects_string_input_buffer() {
-    return &objects_string_input_buffer_;
+  StaticResource<ConsStringIteratorOp>* objects_string_iterator() {
+    return &objects_string_iterator_;
   }
 
   RuntimeState* runtime_state() { return &runtime_state_; }
@@ -1015,7 +1016,6 @@ class Isolate {
         RuntimeProfiler::IsolateEnteredJS(this);
       } else if (current_state == JS && state != JS) {
         // JS -> non-JS transition.
-        ASSERT(RuntimeProfiler::IsSomeIsolateInJS());
         RuntimeProfiler::IsolateExitedJS(this);
       } else {
         // Other types of state transitions are not interesting to the
@@ -1058,6 +1058,9 @@ class Isolate {
     }
     date_cache_ = date_cache;
   }
+
+  CodeStubInterfaceDescriptor*
+      code_stub_interface_descriptor(int index);
 
   void IterateDeferredHandles(ObjectVisitor* visitor);
   void LinkDeferredHandles(DeferredHandles* deferred_handles);
@@ -1222,7 +1225,7 @@ class Isolate {
   PreallocatedStorage free_list_;
   bool preallocated_storage_preallocated_;
   InnerPointerToCodeCache* inner_pointer_to_code_cache_;
-  StringInputBuffer* write_input_buffer_;
+  ConsStringIteratorOp* write_iterator_;
   GlobalHandles* global_handles_;
   ContextSwitcher* context_switcher_;
   ThreadManager* thread_manager_;
@@ -1233,14 +1236,15 @@ class Isolate {
   StringTracker* string_tracker_;
   unibrow::Mapping<unibrow::Ecma262UnCanonicalize> jsregexp_uncanonicalize_;
   unibrow::Mapping<unibrow::CanonicalizationRange> jsregexp_canonrange_;
-  StringInputBuffer objects_string_compare_buffer_a_;
-  StringInputBuffer objects_string_compare_buffer_b_;
-  StaticResource<StringInputBuffer> objects_string_input_buffer_;
+  ConsStringIteratorOp objects_string_compare_iterator_a_;
+  ConsStringIteratorOp objects_string_compare_iterator_b_;
+  StaticResource<ConsStringIteratorOp> objects_string_iterator_;
   unibrow::Mapping<unibrow::Ecma262Canonicalize>
       regexp_macro_assembler_canonicalize_;
   RegExpStack* regexp_stack_;
   DateCache* date_cache_;
   unibrow::Mapping<unibrow::Ecma262Canonicalize> interp_canonicalize_mapping_;
+  CodeStubInterfaceDescriptor* code_stub_interface_descriptors_;
 
   // The garbage collector should be a little more aggressive when it knows
   // that a context was recently exited.

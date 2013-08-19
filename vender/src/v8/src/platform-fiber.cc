@@ -253,7 +253,7 @@ public:
 			}
 			else
 			{
-				if (rate_limiter_.SuspendIfNecessary())
+				if (RuntimeProfiler::WaitForSomeIsolateToEnterJS())
 					continue;
 			}
 			OS::Sleep(interval_);
@@ -295,7 +295,6 @@ public:
 	}
 
 	const int interval_;
-	RuntimeProfilerRateLimiter rate_limiter_;
 
 	// Protects the process wide state below.
 	static Mutex* mutex_;

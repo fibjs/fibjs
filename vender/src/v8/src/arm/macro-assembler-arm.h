@@ -54,20 +54,6 @@ inline Operand SmiUntagOperand(Register object) {
 const Register cp = { 8 };  // JavaScript context pointer
 const Register kRootRegister = { 10 };  // Roots array pointer.
 
-// Flags used for the AllocateInNewSpace functions.
-enum AllocationFlags {
-  // No special flags.
-  NO_ALLOCATION_FLAGS = 0,
-  // Return the pointer to the allocated already tagged as a heap object.
-  TAG_OBJECT = 1 << 0,
-  // The content of the result register already contains the allocation top in
-  // new space.
-  RESULT_CONTAINS_TOP = 1 << 1,
-  // Specify that the requested size of the space to allocate is specified in
-  // words instead of bytes.
-  SIZE_IN_WORDS = 1 << 2
-};
-
 // Flags used for AllocateHeapNumber
 enum TaggingMode {
   // Tag the result.
@@ -178,7 +164,7 @@ class MacroAssembler: public Assembler {
   // Register move. May do nothing if the registers are identical.
   void Move(Register dst, Handle<Object> value);
   void Move(Register dst, Register src, Condition cond = al);
-  void Move(DoubleRegister dst, DoubleRegister src);
+  void Move(DwVfpRegister dst, DwVfpRegister src);
 
   // Load an object from the root table.
   void LoadRoot(Register destination,
@@ -1015,7 +1001,9 @@ class MacroAssembler: public Assembler {
   // Runtime calls
 
   // Call a code stub.
-  void CallStub(CodeStub* stub, Condition cond = al);
+  void CallStub(CodeStub* stub,
+                TypeFeedbackId ast_id = TypeFeedbackId::None(),
+                Condition cond = al);
 
   // Call a code stub.
   void TailCallStub(CodeStub* stub, Condition cond = al);
@@ -1066,9 +1054,9 @@ class MacroAssembler: public Assembler {
   // whether soft or hard floating point ABI is used. These functions
   // abstract parameter passing for the three different ways we call
   // C functions from generated code.
-  void SetCallCDoubleArguments(DoubleRegister dreg);
-  void SetCallCDoubleArguments(DoubleRegister dreg1, DoubleRegister dreg2);
-  void SetCallCDoubleArguments(DoubleRegister dreg, Register reg);
+  void SetCallCDoubleArguments(DwVfpRegister dreg);
+  void SetCallCDoubleArguments(DwVfpRegister dreg1, DwVfpRegister dreg2);
+  void SetCallCDoubleArguments(DwVfpRegister dreg, Register reg);
 
   // Calls a C function and cleans up the space for arguments allocated
   // by PrepareCallCFunction. The called function is not allowed to trigger a
@@ -1084,7 +1072,7 @@ class MacroAssembler: public Assembler {
                      int num_reg_arguments,
                      int num_double_arguments);
 
-  void GetCFunctionDoubleResult(const DoubleRegister dst);
+  void GetCFunctionDoubleResult(const DwVfpRegister dst);
 
   // Calls an API function.  Allocates HandleScope, extracts returned value
   // from handle and propagates exceptions.  Restores context.  stack_space
@@ -1297,8 +1285,8 @@ class MacroAssembler: public Assembler {
   void ClampUint8(Register output_reg, Register input_reg);
 
   void ClampDoubleToUint8(Register result_reg,
-                          DoubleRegister input_reg,
-                          DoubleRegister temp_double_reg);
+                          DwVfpRegister input_reg,
+                          DwVfpRegister temp_double_reg);
 
 
   void LoadInstanceDescriptors(Register map, Register descriptors);
@@ -1373,9 +1361,9 @@ class MacroAssembler: public Assembler {
   // This handle will be patched with the code object on installation.
   Handle<Object> code_object_;
 
-  // Needs access to SafepointRegisterStackIndex for optimized frame
+  // Needs access to SafepointRegisterStackIndex for compiled frame
   // traversal.
-  friend class OptimizedFrame;
+  friend class StandardFrame;
 };
 
 

@@ -187,6 +187,11 @@ void OS::DebugBreak() {
 }
 
 
+void OS::DumpBacktrace() {
+  // Currently unsupported.
+}
+
+
 class PosixMemoryMappedFile : public OS::MemoryMappedFile {
  public:
   PosixMemoryMappedFile(FILE* file, void* memory, int size)
@@ -797,7 +802,7 @@ class SamplerThread : public Thread {
       if (state == SamplerRegistry::HAS_CPU_PROFILING_SAMPLERS) {
         SamplerRegistry::IterateActiveSamplers(&DoCpuProfile, this);
       } else {
-        if (rate_limiter_.SuspendIfNecessary()) continue;
+        if (RuntimeProfiler::WaitForSomeIsolateToEnterJS()) continue;
       }
       OS::Sleep(interval_);
     }
@@ -856,7 +861,6 @@ class SamplerThread : public Thread {
   }
 
   const int interval_;
-  RuntimeProfilerRateLimiter rate_limiter_;
 
   // Protects the process wide state below.
   static Mutex* mutex_;

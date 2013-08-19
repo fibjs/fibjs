@@ -42,6 +42,11 @@
 #include <sys/types.h>
 #include <stdlib.h>
 
+#if defined(__GLIBC__)
+#include <execinfo.h>
+#include <cxxabi.h>
+#endif
+
 // Ubuntu Dapper requires memory pages to be marked as
 // executable. Otherwise, OS raises an exception when executing code
 // in that page.
@@ -416,6 +421,37 @@ void OS::DebugBreak() {
   asm("break");
 #else
   asm("int $3");
+#endif
+}
+
+
+void OS::DumpBacktrace() {
+#if defined(__GLIBC__)
+  void* trace[100];
+  int size = backtrace(trace, ARRAY_SIZE(trace));
+  char** symbols = backtrace_symbols(trace, size);
+  fprintf(stderr, "\n==== C stack trace ===============================\n\n");
+  if (size == 0) {
+    fprintf(stderr, "(empty)\n");
+  } else if (symbols == NULL) {
+    fprintf(stderr, "(no symbols)\n");
+  } else {
+    for (int i = 1; i < size; ++i) {
+      fprintf(stderr, "%2d: ", i);
+      char mangled[201];
+      if (sscanf(symbols[i], "%*[^(]%*[(]%200[^)+]", mangled) == 1) {  // NOLINT
+        int status;
+        size_t length;
+        char* demangled = abi::__cxa_demangle(mangled, NULL, &length, &status);
+        fprintf(stderr, "%s\n", demangled ? demangled : mangled);
+        free(demangled);
+      } else {
+        fprintf(stderr, "??\n");
+      }
+    }
+  }
+  fflush(stderr);
+  free(symbols);
 #endif
 }
 
@@ -1158,7 +1194,7 @@ class SignalSender : public Thread {
         SamplerRegistry::IterateActiveSamplers(&DoCpuProfile, this);
       } else {
         if (signal_handler_installed_) RestoreSignalHandler();
-        if (rate_limiter_.SuspendIfNecessary()) continue;
+        if (RuntimeProfiler::WaitForSomeIsolateToEnterJS()) continue;
       }
       Sleep();  // TODO(svenpanne) Figure out if OS:Sleep(interval_) is enough.
     }
@@ -1203,7 +1239,6 @@ class SignalSender : public Thread {
 
   const int vm_tgid_;
   const int interval_;
-  RuntimeProfilerRateLimiter rate_limiter_;
 
   // Protects the process wide state below.
   static Mutex* mutex_;

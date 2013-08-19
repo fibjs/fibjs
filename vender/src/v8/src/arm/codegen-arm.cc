@@ -73,10 +73,10 @@ UnaryMathFunction CreateExpFunction() {
 
   {
     CpuFeatures::Scope use_vfp(VFP2);
-    DoubleRegister input = d0;
-    DoubleRegister result = d1;
-    DoubleRegister double_scratch1 = d2;
-    DoubleRegister double_scratch2 = d3;
+    DwVfpRegister input = d0;
+    DwVfpRegister result = d1;
+    DwVfpRegister double_scratch1 = d2;
+    DwVfpRegister double_scratch2 = d3;
     Register temp1 = r4;
     Register temp2 = r5;
     Register temp3 = r6;
@@ -193,26 +193,9 @@ void ElementsTransitionGenerator::GenerateSmiToDouble(
   // Allocate new FixedDoubleArray.
   // Use lr as a temporary register.
   __ mov(lr, Operand(r5, LSL, 2));
-  __ add(lr, lr, Operand(FixedDoubleArray::kHeaderSize + kPointerSize));
-  __ AllocateInNewSpace(lr, r6, r7, r9, &gc_required, NO_ALLOCATION_FLAGS);
+  __ add(lr, lr, Operand(FixedDoubleArray::kHeaderSize));
+  __ AllocateInNewSpace(lr, r6, r7, r9, &gc_required, DOUBLE_ALIGNMENT);
   // r6: destination FixedDoubleArray, not tagged as heap object.
-
-  // Align the array conveniently for doubles.
-  // Store a filler value in the unused memory.
-  Label aligned, aligned_done;
-  __ tst(r6, Operand(kDoubleAlignmentMask));
-  __ mov(ip, Operand(masm->isolate()->factory()->one_pointer_filler_map()));
-  __ b(eq, &aligned);
-  // Store at the beginning of the allocated memory and update the base pointer.
-  __ str(ip, MemOperand(r6, kPointerSize, PostIndex));
-  __ b(&aligned_done);
-
-  __ bind(&aligned);
-  // Store the filler at the end of the allocated memory.
-  __ sub(lr, lr, Operand(kPointerSize));
-  __ str(ip, MemOperand(r6, lr));
-
-  __ bind(&aligned_done);
 
   // Set destination FixedDoubleArray's length and map.
   __ LoadRoot(r9, Heap::kFixedDoubleArrayMapRootIndex);
@@ -571,10 +554,10 @@ static MemOperand ExpConstant(int index, Register base) {
 
 
 void MathExpGenerator::EmitMathExp(MacroAssembler* masm,
-                                   DoubleRegister input,
-                                   DoubleRegister result,
-                                   DoubleRegister double_scratch1,
-                                   DoubleRegister double_scratch2,
+                                   DwVfpRegister input,
+                                   DwVfpRegister result,
+                                   DwVfpRegister double_scratch1,
+                                   DwVfpRegister double_scratch2,
                                    Register temp1,
                                    Register temp2,
                                    Register temp3) {

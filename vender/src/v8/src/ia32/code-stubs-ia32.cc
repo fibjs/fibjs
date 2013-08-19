@@ -40,6 +40,18 @@
 namespace v8 {
 namespace internal {
 
+
+void KeyedLoadFastElementStub::InitializeInterfaceDescriptor(
+    Isolate* isolate,
+    CodeStubInterfaceDescriptor* descriptor) {
+  static Register registers[] = { edx, ecx };
+  descriptor->register_param_count_ = 2;
+  descriptor->register_params_ = registers;
+  descriptor->deoptimization_handler_ =
+      isolate->builtins()->KeyedLoadIC_Miss();
+}
+
+
 #define __ ACCESS_MASM(masm)
 
 void ToNumberStub::Generate(MacroAssembler* masm) {
@@ -328,7 +340,11 @@ static void GenerateFastCloneShallowArrayCommon(
 
   // Allocate both the JS array and the elements array in one big
   // allocation. This avoids multiple limit checks.
-  __ AllocateInNewSpace(size, eax, ebx, edx, fail, TAG_OBJECT);
+  AllocationFlags flags = TAG_OBJECT;
+  if (mode == FastCloneShallowArrayStub::CLONE_DOUBLE_ELEMENTS) {
+    flags = static_cast<AllocationFlags>(DOUBLE_ALIGNMENT | flags);
+  }
+  __ AllocateInNewSpace(size, eax, ebx, edx, fail, flags);
 
   // Copy the JS array part.
   for (int i = 0; i < JSArray::kSize; i += kPointerSize) {
@@ -1745,12 +1761,8 @@ void BinaryOpStub::GenerateInt32Stub(MacroAssembler* masm) {
           }
           // Check result type if it is currently Int32.
           if (result_type_ <= BinaryOpIC::INT32) {
-            __ cvttsd2si(ecx, Operand(xmm0));
-            __ cvtsi2sd(xmm2, ecx);
-            __ pcmpeqd(xmm2, xmm0);
-            __ movmskpd(ecx, xmm2);
-            __ test(ecx, Immediate(1));
-            __ j(zero, &not_int32);
+            FloatingPointHelper::CheckSSE2OperandIsInt32(
+                masm, &not_int32, xmm0, ecx, xmm2);
           }
           BinaryOpStub_GenerateHeapResultAllocation(masm, &call_runtime, mode_);
           __ movdbl(FieldOperand(eax, HeapNumber::kValueOffset), xmm0);
@@ -2426,6 +2438,7 @@ void TranscendentalCacheStub::Generate(MacroAssembler* masm) {
 
     __ bind(&loaded);
   } else {  // UNTAGGED.
+    CpuFeatures::Scope scope(SSE2);
     if (CpuFeatures::IsSupported(SSE4_1)) {
       CpuFeatures::Scope sse4_scope(SSE4_1);
       __ pextrd(edx, xmm1, 0x1);  // copy xmm1[63..32] to edx.
@@ -2498,6 +2511,7 @@ void TranscendentalCacheStub::Generate(MacroAssembler* masm) {
     __ fstp(0);
     __ ret(kPointerSize);
   } else {  // UNTAGGED.
+    CpuFeatures::Scope scope(SSE2);
     __ movdbl(xmm1, FieldOperand(eax, HeapNumber::kValueOffset));
     __ Ret();
   }
@@ -2510,6 +2524,7 @@ void TranscendentalCacheStub::Generate(MacroAssembler* masm) {
   if (tagged) {
     __ AllocateHeapNumber(eax, edi, no_reg, &runtime_call_clear_stack);
   } else {  // UNTAGGED.
+    CpuFeatures::Scope scope(SSE2);
     __ AllocateHeapNumber(eax, edi, no_reg, &skip_cache);
     __ sub(esp, Immediate(kDoubleSize));
     __ movdbl(Operand(esp, 0), xmm1);
@@ -2524,6 +2539,7 @@ void TranscendentalCacheStub::Generate(MacroAssembler* masm) {
   if (tagged) {
     __ ret(kPointerSize);
   } else {  // UNTAGGED.
+    CpuFeatures::Scope scope(SSE2);
     __ movdbl(xmm1, FieldOperand(eax, HeapNumber::kValueOffset));
     __ Ret();
 
@@ -2556,6 +2572,7 @@ void TranscendentalCacheStub::Generate(MacroAssembler* masm) {
         ExternalReference(RuntimeFunction(), masm->isolate());
     __ TailCallExternalReference(runtime, 1, 1);
   } else {  // UNTAGGED.
+    CpuFeatures::Scope scope(SSE2);
     __ bind(&runtime_call_clear_stack);
     __ bind(&runtime_call);
     __ AllocateHeapNumber(eax, edi, no_reg, &skip_cache);
@@ -2858,9 +2875,11 @@ void FloatingPointHelper::CheckSSE2OperandIsInt32(MacroAssembler* masm,
   __ cvttsd2si(scratch, Operand(operand));
   __ cvtsi2sd(xmm_scratch, scratch);
   __ pcmpeqd(xmm_scratch, operand);
-  __ movmskpd(scratch, xmm_scratch);
-  __ test(scratch, Immediate(1));
-  __ j(zero, non_int32);
+  __ movmskps(scratch, xmm_scratch);
+  // Two least significant bits should be both set.
+  __ not_(scratch);
+  __ test(scratch, Immediate(3));
+  __ j(not_zero, non_int32);
 }
 
 
@@ -4065,8 +4084,9 @@ void RegExpConstructResultStub::Generate(MacroAssembler* masm) {
   // JSArray:   [Map][empty properties][Elements][Length-smi][index][input]
   // Elements:  [Map][Length][..elements..]
   __ AllocateInNewSpace(JSRegExpResult::kSize + FixedArray::kHeaderSize,
-                        times_half_pointer_size,
-                        ebx,  // In: Number of elements (times 2, being a smi)
+                        times_pointer_size,
+                        ebx,  // In: Number of elements as a smi
+                        REGISTER_VALUE_IS_SMI,
                         eax,  // Out: Start of allocation (tagged).
                         ecx,  // Out: End of allocation.
                         edx,  // Scratch register
@@ -4808,10 +4828,17 @@ void CodeStub::GenerateStubsAheadOfTime() {
 
 
 void CodeStub::GenerateFPStubs() {
-  CEntryStub save_doubles(1, kSaveFPRegs);
-  Handle<Code> code = save_doubles.GetCode();
-  code->set_is_pregenerated(true);
-  code->GetIsolate()->set_fp_stubs_generated(true);
+  if (CpuFeatures::IsSupported(SSE2)) {
+    CEntryStub save_doubles(1, kSaveFPRegs);
+    // Stubs might already be in the snapshot, detect that and don't regenerate,
+    // which would lead to code stub initialization state being messed up.
+    Code* save_doubles_code;
+    if (!save_doubles.FindCodeInCache(&save_doubles_code, ISOLATE)) {
+      save_doubles_code = *(save_doubles.GetCode());
+    }
+    save_doubles_code->set_is_pregenerated(true);
+    save_doubles_code->GetIsolate()->set_fp_stubs_generated(true);
+  }
 }
 
 

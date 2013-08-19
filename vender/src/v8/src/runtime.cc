@@ -1843,7 +1843,7 @@ static Handle<JSFunction> InstallBuiltin(Isolate* isolate,
                                          Handle<JSObject> holder,
                                          const char* name,
                                          Builtins::Name builtin_name) {
-  Handle<String> key = isolate->factory()->LookupAsciiSymbol(name);
+  Handle<String> key = isolate->factory()->LookupUtf8Symbol(name);
   Handle<Code> code(isolate->builtins()->builtin(builtin_name));
   Handle<JSFunction> optimized =
       isolate->factory()->NewFunction(key,
@@ -3489,17 +3489,17 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StringLocaleCompare) {
   str1->TryFlatten();
   str2->TryFlatten();
 
-  StringInputBuffer& buf1 =
-      *isolate->runtime_state()->string_locale_compare_buf1();
-  StringInputBuffer& buf2 =
-      *isolate->runtime_state()->string_locale_compare_buf2();
-
-  buf1.Reset(str1);
-  buf2.Reset(str2);
+  ConsStringIteratorOp* op1 =
+      isolate->runtime_state()->string_locale_compare_it1();
+  ConsStringIteratorOp* op2 =
+      isolate->runtime_state()->string_locale_compare_it2();
+  // TODO(dcarney) Can do array compares here more efficiently.
+  StringCharacterStream stream1(str1, op1);
+  StringCharacterStream stream2(str2, op2);
 
   for (int i = 0; i < end; i++) {
-    uint16_t char1 = buf1.GetNext();
-    uint16_t char2 = buf2.GetNext();
+    uint16_t char1 = stream1.GetNext();
+    uint16_t char2 = stream2.GetNext();
     if (char1 != char2) return Smi::FromInt(char1 - char2);
   }
 
@@ -4376,6 +4376,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_TransitionElementsSmiToDouble) {
   Handle<Object> object = args.at<Object>(0);
   if (object->IsJSObject()) {
     Handle<JSObject> js_object(Handle<JSObject>::cast(object));
+    ASSERT(!js_object->map()->is_observed());
     ElementsKind new_kind = js_object->HasFastHoleyElements()
         ? FAST_HOLEY_DOUBLE_ELEMENTS
         : FAST_DOUBLE_ELEMENTS;
@@ -4392,6 +4393,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_TransitionElementsDoubleToObject) {
   Handle<Object> object = args.at<Object>(0);
   if (object->IsJSObject()) {
     Handle<JSObject> js_object(Handle<JSObject>::cast(object));
+    ASSERT(!js_object->map()->is_observed());
     ElementsKind new_kind = js_object->HasFastHoleyElements()
         ? FAST_HOLEY_ELEMENTS
         : FAST_ELEMENTS;
@@ -5141,11 +5143,11 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_URIEscape) {
   int escaped_length = 0;
   int length = source->length();
   {
-    Access<StringInputBuffer> buffer(
-        isolate->runtime_state()->string_input_buffer());
-    buffer->Reset(source);
-    while (buffer->has_more()) {
-      uint16_t character = buffer->GetNext();
+    Access<ConsStringIteratorOp> op(
+        isolate->runtime_state()->string_iterator());
+    StringCharacterStream stream(source, op.value());
+    while (stream.HasMore()) {
+      uint16_t character = stream.GetNext();
       if (character >= 256) {
         escaped_length += 6;
       } else if (IsNotEscaped(character)) {
@@ -5173,11 +5175,11 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_URIEscape) {
   String* destination = String::cast(o);
   int dest_position = 0;
 
-  Access<StringInputBuffer> buffer(
-      isolate->runtime_state()->string_input_buffer());
-  buffer->Rewind();
-  while (buffer->has_more()) {
-    uint16_t chr = buffer->GetNext();
+  Access<ConsStringIteratorOp> op(
+      isolate->runtime_state()->string_iterator());
+  StringCharacterStream stream(source, op.value());
+  while (stream.HasMore()) {
+    uint16_t chr = stream.GetNext();
     if (chr >= 256) {
       destination->Set(dest_position, '%');
       destination->Set(dest_position+1, 'u');
@@ -5715,15 +5717,15 @@ MUST_USE_RESULT static MaybeObject* ConvertCaseHelper(
 
   // Convert all characters to upper case, assuming that they will fit
   // in the buffer
-  Access<StringInputBuffer> buffer(
-      isolate->runtime_state()->string_input_buffer());
-  buffer->Reset(s);
+  Access<ConsStringIteratorOp> op(
+      isolate->runtime_state()->string_iterator());
+  StringCharacterStream stream(s, op.value());
   unibrow::uchar chars[Converter::kMaxWidth];
   // We can assume that the string is not empty
-  uc32 current = buffer->GetNext();
+  uc32 current = stream.GetNext();
   for (int i = 0; i < length;) {
-    bool has_next = buffer->has_more();
-    uc32 next = has_next ? buffer->GetNext() : 0;
+    bool has_next = stream.HasMore();
+    uc32 next = has_next ? stream.GetNext() : 0;
     int char_length = mapping->get(current, next, chars);
     if (char_length == 0) {
       // The case conversion of this character is the character itself.
@@ -5753,8 +5755,8 @@ MUST_USE_RESULT static MaybeObject* ConvertCaseHelper(
         if (next_length == 0) next_length = 1;
       }
       int current_length = i + char_length + next_length;
-      while (buffer->has_more()) {
-        current = buffer->GetNext();
+      while (stream.HasMore()) {
+        current = stream.GetNext();
         // NOTE: we use 0 as the next character here because, while
         // the next character may affect what a character converts to,
         // it does not in any case affect the length of what it convert
@@ -6958,23 +6960,21 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_SmiLexicographicCompare) {
 }
 
 
-static Object* StringInputBufferCompare(RuntimeState* state,
+static Object* StringCharacterStreamCompare(RuntimeState* state,
                                         String* x,
                                         String* y) {
-  StringInputBuffer& bufx = *state->string_input_buffer_compare_bufx();
-  StringInputBuffer& bufy = *state->string_input_buffer_compare_bufy();
-  bufx.Reset(x);
-  bufy.Reset(y);
-  while (bufx.has_more() && bufy.has_more()) {
-    int d = bufx.GetNext() - bufy.GetNext();
+  StringCharacterStream stream_x(x, state->string_iterator_compare_x());
+  StringCharacterStream stream_y(y, state->string_iterator_compare_y());
+  while (stream_x.HasMore() && stream_y.HasMore()) {
+    int d = stream_x.GetNext() - stream_y.GetNext();
     if (d < 0) return Smi::FromInt(LESS);
     else if (d > 0) return Smi::FromInt(GREATER);
   }
 
   // x is (non-trivial) prefix of y:
-  if (bufy.has_more()) return Smi::FromInt(LESS);
+  if (stream_y.HasMore()) return Smi::FromInt(LESS);
   // y is prefix of x:
-  return Smi::FromInt(bufx.has_more() ? GREATER : EQUAL);
+  return Smi::FromInt(stream_x.HasMore() ? GREATER : EQUAL);
 }
 
 
@@ -7018,7 +7018,7 @@ static Object* FlatStringCompare(String* x, String* y) {
     result = (r < 0) ? Smi::FromInt(LESS) : Smi::FromInt(GREATER);
   }
   ASSERT(result ==
-      StringInputBufferCompare(Isolate::Current()->runtime_state(), x, y));
+      StringCharacterStreamCompare(Isolate::Current()->runtime_state(), x, y));
   return result;
 }
 
@@ -7054,7 +7054,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_StringCompare) {
   }
 
   return (x->IsFlat() && y->IsFlat()) ? FlatStringCompare(x, y)
-      : StringInputBufferCompare(isolate->runtime_state(), x, y);
+      : StringCharacterStreamCompare(isolate->runtime_state(), x, y);
 }
 
 
@@ -7842,8 +7842,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_ForceParallelRecompile) {
   HandleScope handle_scope(isolate);
   ASSERT(FLAG_parallel_recompilation && FLAG_manual_parallel_recompilation);
   if (!isolate->optimizing_compiler_thread()->IsQueueAvailable()) {
-    return isolate->Throw(
-        *isolate->factory()->LookupAsciiSymbol("Recompile queue is full."));
+    return isolate->Throw(*isolate->factory()->LookupOneByteSymbol(
+        STATIC_ASCII_VECTOR("Recompile queue is full.")));
   }
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, fun, 0);
   fun->ReplaceCode(isolate->builtins()->builtin(Builtins::kParallelRecompile));
@@ -7889,6 +7889,17 @@ class ActivationsFinder : public ThreadVisitor {
 };
 
 
+RUNTIME_FUNCTION(MaybeObject*, Runtime_NotifyICMiss) {
+  HandleScope scope(isolate);
+  ASSERT(args.length() == 0);
+  Deoptimizer* deoptimizer = Deoptimizer::Grab(isolate);
+  ASSERT(isolate->heap()->IsAllocationAllowed());
+  ASSERT(deoptimizer->compiled_code_kind() == Code::COMPILED_STUB);
+  delete deoptimizer;
+  return isolate->heap()->undefined_value();
+}
+
+
 RUNTIME_FUNCTION(MaybeObject*, Runtime_NotifyDeoptimized) {
   HandleScope scope(isolate);
   ASSERT(args.length() == 1);
@@ -7897,9 +7908,11 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_NotifyDeoptimized) {
       static_cast<Deoptimizer::BailoutType>(args.smi_at(0));
   Deoptimizer* deoptimizer = Deoptimizer::Grab(isolate);
   ASSERT(isolate->heap()->IsAllocationAllowed());
-  JavaScriptFrameIterator it(isolate);
+
+  ASSERT(deoptimizer->compiled_code_kind() != Code::COMPILED_STUB);
 
   // Make sure to materialize objects before causing any allocation.
+  JavaScriptFrameIterator it(isolate);
   deoptimizer->MaterializeHeapObjects(&it);
   delete deoptimizer;
 
@@ -9870,9 +9883,10 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_GlobalPrint) {
   ASSERT(args.length() == 1);
 
   CONVERT_ARG_CHECKED(String, string, 0);
-  StringInputBuffer buffer(string);
-  while (buffer.has_more()) {
-    uint16_t character = buffer.GetNext();
+  ConsStringIteratorOp op;
+  StringCharacterStream stream(string, &op);
+  while (stream.HasMore()) {
+    uint16_t character = stream.GetNext();
     PrintF("%c", character);
   }
   return string;
@@ -10798,6 +10812,95 @@ static Handle<JSObject> MaterializeLocalScope(
 }
 
 
+// Set the context local variable value.
+static bool SetContextLocalValue(Isolate* isolate,
+                                 Handle<ScopeInfo> scope_info,
+                                 Handle<Context> context,
+                                 Handle<String> variable_name,
+                                 Handle<Object> new_value) {
+  for (int i = 0; i < scope_info->ContextLocalCount(); i++) {
+    Handle<String> next_name(scope_info->ContextLocalName(i));
+    if (variable_name->Equals(*next_name)) {
+      VariableMode mode;
+      InitializationFlag init_flag;
+      int context_index =
+          scope_info->ContextSlotIndex(*next_name, &mode, &init_flag);
+      context->set(context_index, *new_value);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
+static bool SetLocalVariableValue(Isolate* isolate,
+                                  JavaScriptFrame* frame,
+                                  int inlined_jsframe_index,
+                                  Handle<String> variable_name,
+                                  Handle<Object> new_value) {
+  if (inlined_jsframe_index != 0 || frame->is_optimized()) {
+    // Optimized frames are not supported.
+    return false;
+  }
+
+  Handle<JSFunction> function(JSFunction::cast(frame->function()));
+  Handle<SharedFunctionInfo> shared(function->shared());
+  Handle<ScopeInfo> scope_info(shared->scope_info());
+
+  bool default_result = false;
+
+  // Parameters.
+  for (int i = 0; i < scope_info->ParameterCount(); ++i) {
+    if (scope_info->ParameterName(i)->Equals(*variable_name)) {
+      frame->SetParameterValue(i, *new_value);
+      // Argument might be shadowed in heap context, don't stop here.
+      default_result = true;
+    }
+  }
+
+  // Stack locals.
+  for (int i = 0; i < scope_info->StackLocalCount(); ++i) {
+    if (scope_info->StackLocalName(i)->Equals(*variable_name)) {
+      frame->SetExpression(i, *new_value);
+      return true;
+    }
+  }
+
+  if (scope_info->HasContext()) {
+    // Context locals.
+    Handle<Context> frame_context(Context::cast(frame->context()));
+    Handle<Context> function_context(frame_context->declaration_context());
+    if (SetContextLocalValue(
+        isolate, scope_info, function_context, variable_name, new_value)) {
+      return true;
+    }
+
+    // Function context extension. These are variables introduced by eval.
+    if (function_context->closure() == *function) {
+      if (function_context->has_extension() &&
+          !function_context->IsNativeContext()) {
+        Handle<JSObject> ext(JSObject::cast(function_context->extension()));
+
+        if (ext->HasProperty(*variable_name)) {
+          // We don't expect this to do anything except replacing
+          // property value.
+          SetProperty(isolate,
+                      ext,
+                      variable_name,
+                      new_value,
+                      NONE,
+                      kNonStrictMode);
+          return true;
+        }
+      }
+    }
+  }
+
+  return default_result;
+}
+
+
 // Create a plain JSObject which materializes the closure content for the
 // context.
 static Handle<JSObject> MaterializeClosure(Isolate* isolate,
@@ -10858,19 +10961,9 @@ static bool SetClosureVariableValue(Isolate* isolate,
   Handle<ScopeInfo> scope_info(shared->scope_info());
 
   // Context locals to the context extension.
-  for (int i = 0; i < scope_info->ContextLocalCount(); i++) {
-    Handle<String> next_name(scope_info->ContextLocalName(i));
-    if (variable_name->Equals(*next_name)) {
-      VariableMode mode;
-      InitializationFlag init_flag;
-      int context_index =
-          scope_info->ContextSlotIndex(*next_name, &mode, &init_flag);
-      if (context_index < 0) {
-        return false;
-      }
-      context->set(context_index, *new_value);
-      return true;
-    }
+  if (SetContextLocalValue(
+          isolate, scope_info, context, variable_name, new_value)) {
+    return true;
   }
 
   // Properties from the function context extension. This will
@@ -10912,6 +11005,20 @@ static Handle<JSObject> MaterializeCatchScope(Isolate* isolate,
                   kNonStrictMode),
       Handle<JSObject>());
   return catch_scope;
+}
+
+
+static bool SetCatchVariableValue(Isolate* isolate,
+                                  Handle<Context> context,
+                                  Handle<String> variable_name,
+                                  Handle<Object> new_value) {
+  ASSERT(context->IsCatchContext());
+  Handle<String> name(String::cast(context->extension()));
+  if (!name->Equals(*variable_name)) {
+    return false;
+  }
+  context->set(Context::THROWN_OBJECT_INDEX, *new_value);
+  return true;
 }
 
 
@@ -11180,13 +11287,13 @@ class ScopeIterator {
       case ScopeIterator::ScopeTypeGlobal:
         break;
       case ScopeIterator::ScopeTypeLocal:
-        // TODO(2399): implement.
-        break;
+        return SetLocalVariableValue(isolate_, frame_, inlined_jsframe_index_,
+            variable_name, new_value);
       case ScopeIterator::ScopeTypeWith:
         break;
       case ScopeIterator::ScopeTypeCatch:
-        // TODO(2399): implement.
-        break;
+        return SetCatchVariableValue(isolate_, CurrentContext(),
+            variable_name, new_value);
       case ScopeIterator::ScopeTypeClosure:
         return SetClosureVariableValue(isolate_, CurrentContext(),
             variable_name, new_value);
@@ -12714,7 +12821,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_LiveEditRestartFrame) {
   const char* error_message =
       LiveEdit::RestartFrame(it.frame(), isolate->runtime_zone());
   if (error_message) {
-    return *(isolate->factory()->LookupAsciiSymbol(error_message));
+    return *(isolate->factory()->LookupUtf8Symbol(error_message));
   }
   return heap->true_value();
 }
@@ -13367,7 +13474,16 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_SetIsObserved) {
     ASSERT(proto->IsJSGlobalObject());
     obj = JSReceiver::cast(proto);
   }
+  ASSERT(!(obj->map()->is_observed() && obj->IsJSObject() &&
+           JSObject::cast(obj)->HasFastElements()));
   if (obj->map()->is_observed() != is_observed) {
+    if (is_observed && obj->IsJSObject() &&
+        !JSObject::cast(obj)->HasExternalArrayElements()) {
+      // Go to dictionary mode, so that we don't skip map checks.
+      MaybeObject* maybe = JSObject::cast(obj)->NormalizeElements();
+      if (maybe->IsFailure()) return maybe;
+      ASSERT(!JSObject::cast(obj)->HasFastElements());
+    }
     MaybeObject* maybe = obj->map()->Copy();
     Map* map;
     if (!maybe->To(&map)) return maybe;
@@ -13452,7 +13568,7 @@ MaybeObject* Runtime::InitializeIntrinsicFunctionNames(Heap* heap,
   for (int i = 0; i < kNumFunctions; ++i) {
     Object* name_symbol;
     { MaybeObject* maybe_name_symbol =
-          heap->LookupAsciiSymbol(kIntrinsicFunctions[i].name);
+          heap->LookupUtf8Symbol(kIntrinsicFunctions[i].name);
       if (!maybe_name_symbol->ToObject(&name_symbol)) return maybe_name_symbol;
     }
     StringDictionary* string_dictionary = StringDictionary::cast(dictionary);
