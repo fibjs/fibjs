@@ -183,7 +183,7 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 
 	v8::HandleScope handle_scope;
 
-	v8::Persistent < v8::Context > context = v8::Context::New();
+	v8::Persistent < v8::Context > context = v8::Persistent<v8::Context>::New(v8::Isolate::GetCurrent(), v8::Context::New(v8::Isolate::GetCurrent()));
 	v8::Context::Scope context_scope(context);
 
 	v8::Handle < v8::Script > script;

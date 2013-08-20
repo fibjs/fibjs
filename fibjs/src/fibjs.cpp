@@ -123,7 +123,7 @@ void _main(const char* fname)
 
 	v8::HandleScope handle_scope;
 
-	s_context = v8::Context::New();
+	s_context = v8::Persistent<v8::Context>::New(v8::Isolate::GetCurrent(), v8::Context::New(v8::Isolate::GetCurrent()));
 	v8::Context::Scope context_scope(s_context);
 
 	Fiber_base* fb = new JSFiber();
