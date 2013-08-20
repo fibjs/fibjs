@@ -92,12 +92,16 @@ class LOperand: public ZoneObject {
 
 class LUnallocated: public LOperand {
  public:
-  enum Policy {
+  enum BasicPolicy {
+    FIXED_SLOT,
+    EXTENDED_POLICY
+  };
+
+  enum ExtendedPolicy {
     NONE,
     ANY,
     FIXED_REGISTER,
     FIXED_DOUBLE_REGISTER,
-    FIXED_SLOT,
     MUST_HAVE_REGISTER,
     WRITABLE_REGISTER,
     SAME_AS_FIRST_INPUT
@@ -117,76 +121,32 @@ class LUnallocated: public LOperand {
     USED_AT_END
   };
 
-  explicit LUnallocated(Policy policy) : LOperand(UNALLOCATED, 0) {
-    Initialize(policy, 0, USED_AT_END);
+  explicit LUnallocated(ExtendedPolicy policy) : LOperand(UNALLOCATED, 0) {
+    value_ |= BasicPolicyField::encode(EXTENDED_POLICY);
+    value_ |= ExtendedPolicyField::encode(policy);
+    value_ |= LifetimeField::encode(USED_AT_END);
   }
 
-  LUnallocated(Policy policy, int fixed_index) : LOperand(UNALLOCATED, 0) {
-    Initialize(policy, fixed_index, USED_AT_END);
+  LUnallocated(BasicPolicy policy, int index) : LOperand(UNALLOCATED, 0) {
+    ASSERT(policy == FIXED_SLOT);
+    value_ |= BasicPolicyField::encode(policy);
+    value_ |= index << FixedSlotIndexField::kShift;
+    ASSERT(this->fixed_slot_index() == index);
   }
 
-  LUnallocated(Policy policy, Lifetime lifetime) : LOperand(UNALLOCATED, 0) {
-    Initialize(policy, 0, lifetime);
+  LUnallocated(ExtendedPolicy policy, int index) : LOperand(UNALLOCATED, 0) {
+    ASSERT(policy == FIXED_REGISTER || policy == FIXED_DOUBLE_REGISTER);
+    value_ |= BasicPolicyField::encode(EXTENDED_POLICY);
+    value_ |= ExtendedPolicyField::encode(policy);
+    value_ |= LifetimeField::encode(USED_AT_END);
+    value_ |= FixedRegisterField::encode(index);
   }
 
-  // The superclass has a KindField.  Some policies have a signed fixed
-  // index in the upper bits.
-  static const int kPolicyWidth = 3;
-  static const int kLifetimeWidth = 1;
-  static const int kVirtualRegisterWidth = 15;
-
-  static const int kPolicyShift = kKindFieldWidth;
-  static const int kLifetimeShift = kPolicyShift + kPolicyWidth;
-  static const int kVirtualRegisterShift = kLifetimeShift + kLifetimeWidth;
-  static const int kFixedIndexShift =
-      kVirtualRegisterShift + kVirtualRegisterWidth;
-  static const int kFixedIndexWidth = 32 - kFixedIndexShift;
-  STATIC_ASSERT(kFixedIndexWidth > 5);
-
-  class PolicyField : public BitField<Policy, kPolicyShift, kPolicyWidth> { };
-
-  class LifetimeField
-      : public BitField<Lifetime, kLifetimeShift, kLifetimeWidth> {
-  };
-
-  class VirtualRegisterField
-      : public BitField<unsigned,
-                        kVirtualRegisterShift,
-                        kVirtualRegisterWidth> {
-  };
-
-  static const int kMaxVirtualRegisters = 1 << kVirtualRegisterWidth;
-  static const int kMaxFixedIndex = (1 << (kFixedIndexWidth - 1)) - 1;
-  static const int kMinFixedIndex = -(1 << (kFixedIndexWidth - 1));
-
-  bool HasAnyPolicy() const {
-    return policy() == ANY;
-  }
-  bool HasFixedPolicy() const {
-    return policy() == FIXED_REGISTER ||
-        policy() == FIXED_DOUBLE_REGISTER ||
-        policy() == FIXED_SLOT;
-  }
-  bool HasRegisterPolicy() const {
-    return policy() == WRITABLE_REGISTER || policy() == MUST_HAVE_REGISTER;
-  }
-  bool HasSameAsInputPolicy() const {
-    return policy() == SAME_AS_FIRST_INPUT;
-  }
-  Policy policy() const { return PolicyField::decode(value_); }
-  void set_policy(Policy policy) {
-    value_ = PolicyField::update(value_, policy);
-  }
-  int fixed_index() const {
-    return static_cast<int>(value_) >> kFixedIndexShift;
-  }
-
-  int virtual_register() const {
-    return VirtualRegisterField::decode(value_);
-  }
-
-  void set_virtual_register(unsigned id) {
-    value_ = VirtualRegisterField::update(value_, id);
+  LUnallocated(ExtendedPolicy policy, Lifetime lifetime)
+      : LOperand(UNALLOCATED, 0) {
+    value_ |= BasicPolicyField::encode(EXTENDED_POLICY);
+    value_ |= ExtendedPolicyField::encode(policy);
+    value_ |= LifetimeField::encode(lifetime);
   }
 
   LUnallocated* CopyUnconstrained(Zone* zone) {
@@ -200,16 +160,113 @@ class LUnallocated: public LOperand {
     return reinterpret_cast<LUnallocated*>(op);
   }
 
-  bool IsUsedAtStart() {
-    return LifetimeField::decode(value_) == USED_AT_START;
+  // The encoding used for LUnallocated operands depends on the policy that is
+  // stored within the operand. The FIXED_SLOT policy uses a compact encoding
+  // because it accommodates a larger pay-load.
+  //
+  // For FIXED_SLOT policy:
+  //     +------------------------------------------+
+  //     |       slot_index      |  vreg  | 0 | 001 |
+  //     +------------------------------------------+
+  //
+  // For all other (extended) policies:
+  //     +------------------------------------------+
+  //     |  reg_index  | L | PPP |  vreg  | 1 | 001 |    L ... Lifetime
+  //     +------------------------------------------+    P ... Policy
+  //
+  // The slot index is a signed value which requires us to decode it manually
+  // instead of using the BitField utility class.
+
+  // The superclass has a KindField.
+  STATIC_ASSERT(kKindFieldWidth == 3);
+
+  // BitFields for all unallocated operands.
+  class BasicPolicyField     : public BitField<BasicPolicy,     3,  1> {};
+  class VirtualRegisterField : public BitField<unsigned,        4, 18> {};
+
+  // BitFields specific to BasicPolicy::FIXED_SLOT.
+  class FixedSlotIndexField  : public BitField<int,            22, 10> {};
+
+  // BitFields specific to BasicPolicy::EXTENDED_POLICY.
+  class ExtendedPolicyField  : public BitField<ExtendedPolicy, 22,  3> {};
+  class LifetimeField        : public BitField<Lifetime,       25,  1> {};
+  class FixedRegisterField   : public BitField<int,            26,  6> {};
+
+  static const int kMaxVirtualRegisters = VirtualRegisterField::kMax + 1;
+  static const int kFixedSlotIndexWidth = FixedSlotIndexField::kSize;
+  static const int kMaxFixedSlotIndex = (1 << (kFixedSlotIndexWidth - 1)) - 1;
+  static const int kMinFixedSlotIndex = -(1 << (kFixedSlotIndexWidth - 1));
+
+  // Predicates for the operand policy.
+  bool HasAnyPolicy() const {
+    return basic_policy() == EXTENDED_POLICY &&
+        extended_policy() == ANY;
+  }
+  bool HasFixedPolicy() const {
+    return basic_policy() == FIXED_SLOT ||
+        extended_policy() == FIXED_REGISTER ||
+        extended_policy() == FIXED_DOUBLE_REGISTER;
+  }
+  bool HasRegisterPolicy() const {
+    return basic_policy() == EXTENDED_POLICY && (
+        extended_policy() == WRITABLE_REGISTER ||
+        extended_policy() == MUST_HAVE_REGISTER);
+  }
+  bool HasSameAsInputPolicy() const {
+    return basic_policy() == EXTENDED_POLICY &&
+        extended_policy() == SAME_AS_FIRST_INPUT;
+  }
+  bool HasFixedSlotPolicy() const {
+    return basic_policy() == FIXED_SLOT;
+  }
+  bool HasFixedRegisterPolicy() const {
+    return basic_policy() == EXTENDED_POLICY &&
+        extended_policy() == FIXED_REGISTER;
+  }
+  bool HasFixedDoubleRegisterPolicy() const {
+    return basic_policy() == EXTENDED_POLICY &&
+        extended_policy() == FIXED_DOUBLE_REGISTER;
+  }
+  bool HasWritableRegisterPolicy() const {
+    return basic_policy() == EXTENDED_POLICY &&
+        extended_policy() == WRITABLE_REGISTER;
   }
 
- private:
-  void Initialize(Policy policy, int fixed_index, Lifetime lifetime) {
-    value_ |= PolicyField::encode(policy);
-    value_ |= LifetimeField::encode(lifetime);
-    value_ |= fixed_index << kFixedIndexShift;
-    ASSERT(this->fixed_index() == fixed_index);
+  // [basic_policy]: Distinguish between FIXED_SLOT and all other policies.
+  BasicPolicy basic_policy() const {
+    return BasicPolicyField::decode(value_);
+  }
+
+  // [extended_policy]: Only for non-FIXED_SLOT. The finer-grained policy.
+  ExtendedPolicy extended_policy() const {
+    ASSERT(basic_policy() == EXTENDED_POLICY);
+    return ExtendedPolicyField::decode(value_);
+  }
+
+  // [fixed_slot_index]: Only for FIXED_SLOT.
+  int fixed_slot_index() const {
+    ASSERT(HasFixedSlotPolicy());
+    return static_cast<int>(value_) >> FixedSlotIndexField::kShift;
+  }
+
+  // [fixed_register_index]: Only for FIXED_REGISTER or FIXED_DOUBLE_REGISTER.
+  int fixed_register_index() const {
+    ASSERT(HasFixedRegisterPolicy() || HasFixedDoubleRegisterPolicy());
+    return FixedRegisterField::decode(value_);
+  }
+
+  // [virtual_register]: The virtual register ID for this operand.
+  int virtual_register() const {
+    return VirtualRegisterField::decode(value_);
+  }
+  void set_virtual_register(unsigned id) {
+    value_ = VirtualRegisterField::update(value_, id);
+  }
+
+  // [lifetime]: Only for non-FIXED_SLOT.
+  bool IsUsedAtStart() {
+    ASSERT(basic_policy() == EXTENDED_POLICY);
+    return LifetimeField::decode(value_) == USED_AT_START;
   }
 };
 
@@ -663,6 +720,7 @@ class LChunk: public ZoneObject {
   int spill_slot_count() const { return spill_slot_count_; }
   CompilationInfo* info() const { return info_; }
   HGraph* graph() const { return graph_; }
+  Isolate* isolate() const { return graph_->isolate(); }
   const ZoneList<LInstruction*>* instructions() const { return &instructions_; }
   void AddGapMove(int index, LOperand* from, LOperand* to);
   LGap* GetGapAt(int index) const;
@@ -684,22 +742,22 @@ class LChunk: public ZoneObject {
 
   Zone* zone() const { return info_->zone(); }
 
-  Handle<Code> Codegen(Code::Kind kind);
+  Handle<Code> Codegen();
+
+  void set_allocated_double_registers(BitVector* allocated_registers);
+  BitVector* allocated_double_registers() {
+    return allocated_double_registers_;
+  }
 
  protected:
-  LChunk(CompilationInfo* info, HGraph* graph)
-      : spill_slot_count_(0),
-        info_(info),
-        graph_(graph),
-        instructions_(32, graph->zone()),
-        pointer_maps_(8, graph->zone()),
-        inlined_closures_(1, graph->zone()) { }
+  LChunk(CompilationInfo* info, HGraph* graph);
 
   int spill_slot_count_;
 
  private:
   CompilationInfo* info_;
   HGraph* const graph_;
+  BitVector* allocated_double_registers_;
   ZoneList<LInstruction*> instructions_;
   ZoneList<LPointerMap*> pointer_maps_;
   ZoneList<Handle<JSFunction> > inlined_closures_;
@@ -707,6 +765,14 @@ class LChunk: public ZoneObject {
 
 
 int ElementsKindToShiftSize(ElementsKind elements_kind);
+int StackSlotOffset(int index);
+
+enum NumberUntagDMode {
+  NUMBER_CANDIDATE_IS_SMI,
+  NUMBER_CANDIDATE_IS_SMI_OR_HOLE,
+  NUMBER_CANDIDATE_IS_SMI_CONVERT_HOLE,
+  NUMBER_CANDIDATE_IS_ANY_TAGGED
+};
 
 
 } }  // namespace v8::internal

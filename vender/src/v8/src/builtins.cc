@@ -125,23 +125,31 @@ BUILTIN_LIST_C(DEF_ARG_TYPE)
 
 #ifdef DEBUG
 
-#define BUILTIN(name)                                      \
-  MUST_USE_RESULT static MaybeObject* Builtin_Impl_##name( \
-      name##ArgumentsType args, Isolate* isolate);         \
-  MUST_USE_RESULT static MaybeObject* Builtin_##name(      \
-      name##ArgumentsType args, Isolate* isolate) {        \
-    ASSERT(isolate == Isolate::Current());                 \
-    args.Verify();                                         \
-    return Builtin_Impl_##name(args, isolate);             \
-  }                                                        \
-  MUST_USE_RESULT static MaybeObject* Builtin_Impl_##name( \
+#define BUILTIN(name)                                            \
+  MUST_USE_RESULT static MaybeObject* Builtin_Impl_##name(       \
+      name##ArgumentsType args, Isolate* isolate);               \
+  MUST_USE_RESULT static MaybeObject* Builtin_##name(            \
+      int args_length, Object** args_object, Isolate* isolate) { \
+    name##ArgumentsType args(args_length, args_object);          \
+    ASSERT(isolate == Isolate::Current());                       \
+    args.Verify();                                               \
+    return Builtin_Impl_##name(args, isolate);                   \
+  }                                                              \
+  MUST_USE_RESULT static MaybeObject* Builtin_Impl_##name(       \
       name##ArgumentsType args, Isolate* isolate)
 
 #else  // For release mode.
 
-#define BUILTIN(name)                                      \
-  static MaybeObject* Builtin_##name(name##ArgumentsType args, Isolate* isolate)
-
+#define BUILTIN(name)                                            \
+  static MaybeObject* Builtin_impl##name(                        \
+      name##ArgumentsType args, Isolate* isolate);               \
+  static MaybeObject* Builtin_##name(                            \
+      int args_length, Object** args_object, Isolate* isolate) { \
+    name##ArgumentsType args(args_length, args_object);          \
+    return Builtin_impl##name(args, isolate);                    \
+  }                                                              \
+  static MaybeObject* Builtin_impl##name(                        \
+      name##ArgumentsType args, Isolate* isolate)
 #endif
 
 
@@ -150,7 +158,7 @@ static inline bool CalledAsConstructor(Isolate* isolate) {
   // Calculate the result using a full stack frame iterator and check
   // that the state of the stack is as we assume it to be in the
   // code below.
-  StackFrameIterator it;
+  StackFrameIterator it(isolate);
   ASSERT(it.frame()->is_exit());
   it.Advance();
   StackFrame* frame = it.frame();
@@ -186,9 +194,68 @@ BUILTIN(EmptyFunction) {
 }
 
 
+RUNTIME_FUNCTION(MaybeObject*, ArrayConstructor_StubFailure) {
+  // If we get 2 arguments then they are the stub parameters (constructor, type
+  // info).  If we get 3, then the first one is a pointer to the arguments
+  // passed by the caller.
+  Arguments empty_args(0, NULL);
+  bool no_caller_args = args.length() == 2;
+  ASSERT(no_caller_args || args.length() == 3);
+  int parameters_start = no_caller_args ? 0 : 1;
+  Arguments* caller_args = no_caller_args
+      ? &empty_args
+      : reinterpret_cast<Arguments*>(args[0]);
+  Handle<JSFunction> constructor = args.at<JSFunction>(parameters_start);
+  Handle<Object> type_info = args.at<Object>(parameters_start + 1);
+
+  bool holey = false;
+  if (caller_args->length() == 1 && (*caller_args)[0]->IsSmi()) {
+    int value = Smi::cast((*caller_args)[0])->value();
+    holey = (value > 0 && value < JSObject::kInitialMaxFastElementArray);
+  }
+
+  JSArray* array;
+  MaybeObject* maybe_array;
+  if (*type_info != isolate->heap()->undefined_value() &&
+      JSGlobalPropertyCell::cast(*type_info)->value()->IsSmi()) {
+    JSGlobalPropertyCell* cell = JSGlobalPropertyCell::cast(*type_info);
+    Smi* smi = Smi::cast(cell->value());
+    ElementsKind to_kind = static_cast<ElementsKind>(smi->value());
+    if (holey && !IsFastHoleyElementsKind(to_kind)) {
+      to_kind = GetHoleyElementsKind(to_kind);
+      // Update the allocation site info to reflect the advice alteration.
+      cell->set_value(Smi::FromInt(to_kind));
+    }
+
+    maybe_array = isolate->heap()->AllocateJSObjectWithAllocationSite(
+        *constructor, type_info);
+    if (!maybe_array->To(&array)) return maybe_array;
+  } else {
+    ElementsKind kind = constructor->initial_map()->elements_kind();
+    ASSERT(kind == GetInitialFastElementsKind());
+    maybe_array = isolate->heap()->AllocateJSObject(*constructor);
+    if (!maybe_array->To(&array)) return maybe_array;
+    // We might need to transition to holey
+    if (holey) {
+      kind = GetHoleyElementsKind(kind);
+      maybe_array = array->TransitionElementsKind(kind);
+      if (maybe_array->IsFailure()) return maybe_array;
+    }
+  }
+
+  maybe_array = isolate->heap()->AllocateJSArrayStorage(array, 0, 0,
+      DONT_INITIALIZE_ARRAY_ELEMENTS);
+  if (maybe_array->IsFailure()) return maybe_array;
+  maybe_array = ArrayConstructInitializeElements(array, caller_args);
+  if (maybe_array->IsFailure()) return maybe_array;
+  return array;
+}
+
+
 static MaybeObject* ArrayCodeGenericCommon(Arguments* args,
                                            Isolate* isolate,
                                            JSFunction* constructor) {
+  ASSERT(args->length() >= 1);
   Heap* heap = isolate->heap();
   isolate->counters()->array_function_runtime()->Increment();
 
@@ -197,8 +264,29 @@ static MaybeObject* ArrayCodeGenericCommon(Arguments* args,
     array = JSArray::cast((*args)[0]);
     // Initialize elements and length in case later allocations fail so that the
     // array object is initialized in a valid state.
-    array->set_length(Smi::FromInt(0));
-    array->set_elements(heap->empty_fixed_array());
+    MaybeObject* maybe_array = array->Initialize(0);
+    if (maybe_array->IsFailure()) return maybe_array;
+
+    if (FLAG_optimize_constructed_arrays) {
+      AllocationSiteInfo* info = AllocationSiteInfo::FindForJSObject(array);
+      ElementsKind to_kind = array->GetElementsKind();
+      if (info != NULL && info->GetElementsKindPayload(&to_kind)) {
+        if (IsMoreGeneralElementsKindTransition(array->GetElementsKind(),
+                                                to_kind)) {
+          // We have advice that we should change the elements kind
+          if (FLAG_trace_track_allocation_sites) {
+            PrintF("AllocationSiteInfo: pre-transitioning array %p(%s->%s)\n",
+                   reinterpret_cast<void*>(array),
+                   ElementsKindToString(array->GetElementsKind()),
+                   ElementsKindToString(to_kind));
+          }
+
+          maybe_array = array->TransitionElementsKind(to_kind);
+          if (maybe_array->IsFailure()) return maybe_array;
+        }
+      }
+    }
+
     if (!FLAG_smi_only_arrays) {
       Context* native_context = isolate->context()->native_context();
       if (array->GetElementsKind() == GetInitialFastElementsKind() &&
@@ -215,97 +303,10 @@ static MaybeObject* ArrayCodeGenericCommon(Arguments* args,
     if (!maybe_obj->To(&array)) return maybe_obj;
   }
 
-  // Optimize the case where there is one argument and the argument is a
-  // small smi.
-  if (args->length() == 2) {
-    Object* obj = (*args)[1];
-    if (obj->IsSmi()) {
-      int len = Smi::cast(obj)->value();
-      if (len >= 0 && len < JSObject::kInitialMaxFastElementArray) {
-        Object* fixed_array;
-        { MaybeObject* maybe_obj = heap->AllocateFixedArrayWithHoles(len);
-          if (!maybe_obj->ToObject(&fixed_array)) return maybe_obj;
-        }
-        ElementsKind elements_kind = array->GetElementsKind();
-        if (!IsFastHoleyElementsKind(elements_kind)) {
-          elements_kind = GetHoleyElementsKind(elements_kind);
-          MaybeObject* maybe_array =
-              array->TransitionElementsKind(elements_kind);
-          if (maybe_array->IsFailure()) return maybe_array;
-        }
-        // We do not use SetContent to skip the unnecessary elements type check.
-        array->set_elements(FixedArray::cast(fixed_array));
-        array->set_length(Smi::cast(obj));
-        return array;
-      }
-    }
-    // Take the argument as the length.
-    { MaybeObject* maybe_obj = array->Initialize(0);
-      if (!maybe_obj->ToObject(&obj)) return maybe_obj;
-    }
-    return array->SetElementsLength((*args)[1]);
-  }
-
-  // Optimize the case where there are no parameters passed.
-  if (args->length() == 1) {
-    return array->Initialize(JSArray::kPreallocatedArrayElements);
-  }
-
-  // Set length and elements on the array.
-  int number_of_elements = args->length() - 1;
-  MaybeObject* maybe_object =
-      array->EnsureCanContainElements(args, 1, number_of_elements,
-                                      ALLOW_CONVERTED_DOUBLE_ELEMENTS);
-  if (maybe_object->IsFailure()) return maybe_object;
-
-  // Allocate an appropriately typed elements array.
-  MaybeObject* maybe_elms;
-  ElementsKind elements_kind = array->GetElementsKind();
-  if (IsFastDoubleElementsKind(elements_kind)) {
-    maybe_elms = heap->AllocateUninitializedFixedDoubleArray(
-        number_of_elements);
-  } else {
-    maybe_elms = heap->AllocateFixedArrayWithHoles(number_of_elements);
-  }
-  FixedArrayBase* elms;
-  if (!maybe_elms->To(&elms)) return maybe_elms;
-
-  // Fill in the content
-  switch (array->GetElementsKind()) {
-    case FAST_HOLEY_SMI_ELEMENTS:
-    case FAST_SMI_ELEMENTS: {
-      FixedArray* smi_elms = FixedArray::cast(elms);
-      for (int index = 0; index < number_of_elements; index++) {
-        smi_elms->set(index, (*args)[index+1], SKIP_WRITE_BARRIER);
-      }
-      break;
-    }
-    case FAST_HOLEY_ELEMENTS:
-    case FAST_ELEMENTS: {
-      AssertNoAllocation no_gc;
-      WriteBarrierMode mode = elms->GetWriteBarrierMode(no_gc);
-      FixedArray* object_elms = FixedArray::cast(elms);
-      for (int index = 0; index < number_of_elements; index++) {
-        object_elms->set(index, (*args)[index+1], mode);
-      }
-      break;
-    }
-    case FAST_HOLEY_DOUBLE_ELEMENTS:
-    case FAST_DOUBLE_ELEMENTS: {
-      FixedDoubleArray* double_elms = FixedDoubleArray::cast(elms);
-      for (int index = 0; index < number_of_elements; index++) {
-        double_elms->set(index, (*args)[index+1]->Number());
-      }
-      break;
-    }
-    default:
-      UNREACHABLE();
-      break;
-  }
-
-  array->set_elements(elms);
-  array->set_length(Smi::FromInt(number_of_elements));
-  return array;
+  Arguments adjusted_arguments(args->length() - 1, args->arguments() - 1);
+  ASSERT(adjusted_arguments.length() < 1 ||
+         adjusted_arguments[0] == (*args)[1]);
+  return ArrayConstructInitializeElements(array, &adjusted_arguments);
 }
 
 
@@ -331,29 +332,9 @@ static void MoveDoubleElements(FixedDoubleArray* dst,
                                int src_index,
                                int len) {
   if (len == 0) return;
-  memmove(dst->data_start() + dst_index,
-          src->data_start() + src_index,
-          len * kDoubleSize);
-}
-
-
-static void MoveElements(Heap* heap,
-                         AssertNoAllocation* no_gc,
-                         FixedArray* dst,
-                         int dst_index,
-                         FixedArray* src,
-                         int src_index,
-                         int len) {
-  if (len == 0) return;
-  ASSERT(dst->map() != HEAP->fixed_cow_array_map());
-  memmove(dst->data_start() + dst_index,
-          src->data_start() + src_index,
-          len * kPointerSize);
-  WriteBarrierMode mode = dst->GetWriteBarrierMode(*no_gc);
-  if (mode == UPDATE_WRITE_BARRIER) {
-    heap->RecordWrites(dst->address(), dst->OffsetOfElementAt(dst_index), len);
-  }
-  heap->incremental_marking()->RecordWrites(dst);
+  OS::MemMove(dst->data_start() + dst_index,
+              src->data_start() + src_index,
+              len * kDoubleSize);
 }
 
 
@@ -545,12 +526,9 @@ BUILTIN(ArrayPush) {
   }
   if (!maybe_elms_obj->To(&elms_obj)) return maybe_elms_obj;
 
-  if (FLAG_harmony_observation &&
-      JSObject::cast(receiver)->map()->is_observed()) {
-    return CallJsBuiltin(isolate, "ArrayPush", args);
-  }
-
   JSArray* array = JSArray::cast(receiver);
+  ASSERT(!array->map()->is_observed());
+
   ElementsKind kind = array->GetElementsKind();
 
   if (IsFastSmiOrObjectElementsKind(kind)) {
@@ -662,10 +640,7 @@ BUILTIN(ArrayPop) {
   if (!maybe_elms->To(&elms_obj)) return maybe_elms;
 
   JSArray* array = JSArray::cast(receiver);
-
-  if (FLAG_harmony_observation && array->map()->is_observed()) {
-    return CallJsBuiltin(isolate, "ArrayPop", args);
-  }
+  ASSERT(!array->map()->is_observed());
 
   int len = Smi::cast(array->length())->value();
   if (len == 0) return heap->undefined_value();
@@ -700,10 +675,7 @@ BUILTIN(ArrayShift) {
     return CallJsBuiltin(isolate, "ArrayShift", args);
   }
   JSArray* array = JSArray::cast(receiver);
-
-  if (FLAG_harmony_observation && array->map()->is_observed()) {
-    return CallJsBuiltin(isolate, "ArrayShift", args);
-  }
+  ASSERT(!array->map()->is_observed());
 
   int len = Smi::cast(array->length())->value();
   if (len == 0) return heap->undefined_value();
@@ -724,7 +696,7 @@ BUILTIN(ArrayShift) {
     if (elms_obj->IsFixedArray()) {
       FixedArray* elms = FixedArray::cast(elms_obj);
       AssertNoAllocation no_gc;
-      MoveElements(heap, &no_gc, elms, 0, elms, 1, len - 1);
+      heap->MoveElements(elms, 0, 1, len - 1);
       elms->set(len - 1, heap->the_hole_value());
     } else {
       FixedDoubleArray* elms = FixedDoubleArray::cast(elms_obj);
@@ -754,14 +726,11 @@ BUILTIN(ArrayUnshift) {
     return CallJsBuiltin(isolate, "ArrayUnshift", args);
   }
   JSArray* array = JSArray::cast(receiver);
+  ASSERT(!array->map()->is_observed());
   if (!array->HasFastSmiOrObjectElements()) {
     return CallJsBuiltin(isolate, "ArrayUnshift", args);
   }
   FixedArray* elms = FixedArray::cast(elms_obj);
-
-  if (FLAG_harmony_observation && array->map()->is_observed()) {
-    return CallJsBuiltin(isolate, "ArrayUnshift", args);
-  }
 
   int len = Smi::cast(array->length())->value();
   int to_add = args.length() - 1;
@@ -794,7 +763,7 @@ BUILTIN(ArrayUnshift) {
     array->set_elements(elms);
   } else {
     AssertNoAllocation no_gc;
-    MoveElements(heap, &no_gc, elms, to_add, elms, 0, len);
+    heap->MoveElements(elms, to_add, 0, len);
   }
 
   // Add the provided values.
@@ -876,7 +845,7 @@ BUILTIN(ArraySlice) {
       if (start < kMinInt || start > kMaxInt) {
         return CallJsBuiltin(isolate, "ArraySlice", args);
       }
-      relative_start = static_cast<int>(start);
+      relative_start = std::isnan(start) ? 0 : static_cast<int>(start);
     } else if (!arg1->IsUndefined()) {
       return CallJsBuiltin(isolate, "ArraySlice", args);
     }
@@ -889,7 +858,7 @@ BUILTIN(ArraySlice) {
         if (end < kMinInt || end > kMaxInt) {
           return CallJsBuiltin(isolate, "ArraySlice", args);
         }
-        relative_end = static_cast<int>(end);
+        relative_end = std::isnan(end) ? 0 : static_cast<int>(end);
       } else if (!arg2->IsUndefined()) {
         return CallJsBuiltin(isolate, "ArraySlice", args);
       }
@@ -958,10 +927,7 @@ BUILTIN(ArraySplice) {
     return CallJsBuiltin(isolate, "ArraySplice", args);
   }
   JSArray* array = JSArray::cast(receiver);
-
-  if (FLAG_harmony_observation && array->map()->is_observed()) {
-    return CallJsBuiltin(isolate, "ArraySplice", args);
-  }
+  ASSERT(!array->map()->is_observed());
 
   int len = Smi::cast(array->length())->value();
 
@@ -977,7 +943,7 @@ BUILTIN(ArraySplice) {
       if (start < kMinInt || start > kMaxInt) {
         return CallJsBuiltin(isolate, "ArraySplice", args);
       }
-      relative_start = static_cast<int>(start);
+      relative_start = std::isnan(start) ? 0 : static_cast<int>(start);
     } else if (!arg1->IsUndefined()) {
       return CallJsBuiltin(isolate, "ArraySplice", args);
     }
@@ -1060,7 +1026,7 @@ BUILTIN(ArraySplice) {
       } else {
         FixedArray* elms = FixedArray::cast(elms_obj);
         AssertNoAllocation no_gc;
-        MoveElements(heap, &no_gc, elms, delta, elms, 0, actual_start);
+        heap->MoveElements(elms, delta, 0, actual_start);
       }
 
       elms_obj = LeftTrimFixedArray(heap, elms_obj, delta);
@@ -1076,10 +1042,9 @@ BUILTIN(ArraySplice) {
       } else {
         FixedArray* elms = FixedArray::cast(elms_obj);
         AssertNoAllocation no_gc;
-        MoveElements(heap, &no_gc,
-                     elms, actual_start + item_count,
-                     elms, actual_start + actual_delete_count,
-                     (len - actual_delete_count - actual_start));
+        heap->MoveElements(elms, actual_start + item_count,
+                           actual_start + actual_delete_count,
+                           (len - actual_delete_count - actual_start));
         FillWithHoles(heap, elms, new_length, len);
       }
     }
@@ -1119,10 +1084,9 @@ BUILTIN(ArraySplice) {
       elms_changed = true;
     } else {
       AssertNoAllocation no_gc;
-      MoveElements(heap, &no_gc,
-                   elms, actual_start + item_count,
-                   elms, actual_start + actual_delete_count,
-                   (len - actual_delete_count - actual_start));
+      heap->MoveElements(elms, actual_start + item_count,
+                         actual_start + actual_delete_count,
+                         (len - actual_delete_count - actual_start));
     }
   }
 
@@ -1243,7 +1207,7 @@ BUILTIN(ArrayConcat) {
 
 
 BUILTIN(StrictModePoisonPill) {
-  HandleScope scope;
+  HandleScope scope(isolate);
   return isolate->Throw(*isolate->factory()->NewTypeError(
       "strict_poison_pill", HandleVector<Object>(NULL, 0)));
 }
@@ -1259,7 +1223,7 @@ static inline Object* FindHidden(Heap* heap,
                                  Object* object,
                                  FunctionTemplateInfo* type) {
   if (object->IsInstanceOf(type)) return object;
-  Object* proto = object->GetPrototype();
+  Object* proto = object->GetPrototype(heap->isolate());
   if (proto->IsJSObject() &&
       JSObject::cast(proto)->map()->is_hidden_prototype()) {
     return FindHidden(heap, proto, type);
@@ -1366,7 +1330,7 @@ MUST_USE_RESULT static MaybeObject* HandleApiCallHelper(
     v8::Handle<v8::Value> value;
     {
       // Leaving JavaScript.
-      VMState state(isolate, EXTERNAL);
+      VMState<EXTERNAL> state(isolate);
       ExternalCallbackScope call_scope(isolate,
                                        v8::ToCData<Address>(callback_obj));
       value = callback(new_args);
@@ -1443,7 +1407,7 @@ MUST_USE_RESULT static MaybeObject* HandleApiCallAsFunctionOrConstructor(
     v8::Handle<v8::Value> value;
     {
       // Leaving JavaScript.
-      VMState state(isolate, EXTERNAL);
+      VMState<EXTERNAL> state(isolate);
       ExternalCallbackScope call_scope(isolate,
                                        v8::ToCData<Address>(callback_obj));
       value = callback(new_args);
@@ -1472,26 +1436,6 @@ BUILTIN(HandleApiCallAsFunction) {
 // function is used when the call is a construct call.
 BUILTIN(HandleApiCallAsConstructor) {
   return HandleApiCallAsFunctionOrConstructor(isolate, true, args);
-}
-
-
-static void Generate_LoadIC_ArrayLength(MacroAssembler* masm) {
-  LoadIC::GenerateArrayLength(masm);
-}
-
-
-static void Generate_LoadIC_StringLength(MacroAssembler* masm) {
-  LoadIC::GenerateStringLength(masm, false);
-}
-
-
-static void Generate_LoadIC_StringWrapperLength(MacroAssembler* masm) {
-  LoadIC::GenerateStringLength(masm, true);
-}
-
-
-static void Generate_LoadIC_FunctionPrototype(MacroAssembler* masm) {
-  LoadIC::GenerateFunctionPrototype(masm);
 }
 
 
@@ -1536,12 +1480,12 @@ static void Generate_KeyedLoadIC_Slow(MacroAssembler* masm) {
 
 
 static void Generate_KeyedLoadIC_Miss(MacroAssembler* masm) {
-  KeyedLoadIC::GenerateMiss(masm, false);
+  KeyedLoadIC::GenerateMiss(masm, MISS);
 }
 
 
 static void Generate_KeyedLoadIC_MissForceGeneric(MacroAssembler* masm) {
-  KeyedLoadIC::GenerateMiss(masm, true);
+  KeyedLoadIC::GenerateMiss(masm, MISS_FORCE_GENERIC);
 }
 
 
@@ -1566,6 +1510,11 @@ static void Generate_KeyedLoadIC_IndexedInterceptor(MacroAssembler* masm) {
 static void Generate_KeyedLoadIC_NonStrictArguments(MacroAssembler* masm) {
   KeyedLoadIC::GenerateNonStrictArguments(masm);
 }
+
+static void Generate_StoreIC_Slow(MacroAssembler* masm) {
+  StoreIC::GenerateSlow(masm);
+}
+
 
 static void Generate_StoreIC_Initialize(MacroAssembler* masm) {
   StoreIC::GenerateInitialize(masm);
@@ -1602,16 +1551,6 @@ static void Generate_StoreIC_Megamorphic_Strict(MacroAssembler* masm) {
 }
 
 
-static void Generate_StoreIC_ArrayLength(MacroAssembler* masm) {
-  StoreIC::GenerateArrayLength(masm);
-}
-
-
-static void Generate_StoreIC_ArrayLength_Strict(MacroAssembler* masm) {
-  StoreIC::GenerateArrayLength(masm);
-}
-
-
 static void Generate_StoreIC_GlobalProxy(MacroAssembler* masm) {
   StoreIC::GenerateGlobalProxy(masm, kNonStrictMode);
 }
@@ -1638,12 +1577,12 @@ static void Generate_KeyedStoreIC_Generic_Strict(MacroAssembler* masm) {
 
 
 static void Generate_KeyedStoreIC_Miss(MacroAssembler* masm) {
-  KeyedStoreIC::GenerateMiss(masm, false);
+  KeyedStoreIC::GenerateMiss(masm, MISS);
 }
 
 
 static void Generate_KeyedStoreIC_MissForceGeneric(MacroAssembler* masm) {
-  KeyedStoreIC::GenerateMiss(masm, true);
+  KeyedStoreIC::GenerateMiss(masm, MISS_FORCE_GENERIC);
 }
 
 
@@ -1691,6 +1630,11 @@ static void Generate_KeyedLoadIC_DebugBreak(MacroAssembler* masm) {
 
 static void Generate_KeyedStoreIC_DebugBreak(MacroAssembler* masm) {
   Debug::GenerateKeyedStoreICDebugBreak(masm);
+}
+
+
+static void Generate_CompareNilIC_DebugBreak(MacroAssembler* masm) {
+  Debug::GenerateCompareNilICDebugBreak(masm);
 }
 
 

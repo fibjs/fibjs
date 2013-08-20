@@ -37,49 +37,81 @@
 namespace v8 {
 namespace internal {
 
-inline Isolate* GetIsolateForHandle(Object* obj) {
-  return Isolate::Current();
-}
-
-inline Isolate* GetIsolateForHandle(HeapObject* obj) {
-  return obj->GetIsolate();
-}
-
 template<typename T>
 Handle<T>::Handle(T* obj) {
   ASSERT(!obj->IsFailure());
-  location_ = HandleScope::CreateHandle(obj, GetIsolateForHandle(obj));
+  location_ = HandleScope::CreateHandle(obj->GetIsolate(), obj);
 }
 
 
 template<typename T>
 Handle<T>::Handle(T* obj, Isolate* isolate) {
   ASSERT(!obj->IsFailure());
-  location_ = HandleScope::CreateHandle(obj, isolate);
+  location_ = HandleScope::CreateHandle(isolate, obj);
+}
+
+
+template <typename T>
+inline bool Handle<T>::is_identical_to(const Handle<T> other) const {
+  ASSERT(location_ == NULL || !(*location_)->IsFailure());
+  if (location_ == other.location_) return true;
+  if (location_ == NULL || other.location_ == NULL) return false;
+  // Dereferencing deferred handles to check object equality is safe.
+  SLOW_ASSERT(IsDereferenceAllowed(true) && other.IsDereferenceAllowed(true));
+  return *location_ == *other.location_;
 }
 
 
 template <typename T>
 inline T* Handle<T>::operator*() const {
-  ASSERT(location_ != NULL);
-  ASSERT(reinterpret_cast<Address>(*location_) != kHandleZapValue);
+  ASSERT(location_ != NULL && !(*location_)->IsFailure());
+  SLOW_ASSERT(IsDereferenceAllowed(false));
   return *BitCast<T**>(location_);
 }
 
-
-HandleScope::HandleScope() {
-  Isolate* isolate = Isolate::Current();
-  v8::ImplementationUtilities::HandleScopeData* current =
-      isolate->handle_scope_data();
-  isolate_ = isolate;
-  prev_next_ = current->next;
-  prev_limit_ = current->limit;
-  current->level++;
+template <typename T>
+inline T** Handle<T>::location() const {
+  ASSERT(location_ == NULL || !(*location_)->IsFailure());
+  SLOW_ASSERT(location_ == NULL || IsDereferenceAllowed(false));
+  return location_;
 }
+
+#ifdef DEBUG
+template <typename T>
+bool Handle<T>::IsDereferenceAllowed(bool allow_deferred) const {
+  ASSERT(location_ != NULL);
+  Object* object = *BitCast<T**>(location_);
+  if (object->IsSmi()) return true;
+  HeapObject* heap_object = HeapObject::cast(object);
+  Isolate* isolate = heap_object->GetIsolate();
+  Object** handle = reinterpret_cast<Object**>(location_);
+  Object** roots_array_start = isolate->heap()->roots_array_start();
+  if (roots_array_start <= handle &&
+      handle < roots_array_start + Heap::kStrongRootListLength) {
+    return true;
+  }
+  if (isolate->optimizing_compiler_thread()->IsOptimizerThread() &&
+      !Heap::RelocationLock::IsLockedByOptimizerThread(isolate->heap())) {
+    return false;
+  }
+  switch (isolate->HandleDereferenceGuardState()) {
+    case HandleDereferenceGuard::ALLOW:
+      return true;
+    case HandleDereferenceGuard::DISALLOW:
+      return false;
+    case HandleDereferenceGuard::DISALLOW_DEFERRED:
+      // Accessing maps and internalized strings is safe.
+      if (heap_object->IsMap()) return true;
+      if (heap_object->IsInternalizedString()) return true;
+      return allow_deferred || !isolate->IsDeferredHandle(handle);
+  }
+  return false;
+}
+#endif
+
 
 
 HandleScope::HandleScope(Isolate* isolate) {
-  ASSERT(isolate == Isolate::Current());
   v8::ImplementationUtilities::HandleScopeData* current =
       isolate->handle_scope_data();
   isolate_ = isolate;
@@ -94,7 +126,6 @@ HandleScope::~HandleScope() {
 }
 
 void HandleScope::CloseScope() {
-  ASSERT(isolate_ == Isolate::Current());
   v8::ImplementationUtilities::HandleScopeData* current =
       isolate_->handle_scope_data();
   current->next = prev_next_;
@@ -103,7 +134,7 @@ void HandleScope::CloseScope() {
     current->limit = prev_limit_;
     DeleteExtensions(isolate_);
   }
-#ifdef DEBUG
+#ifdef ENABLE_EXTRA_CHECKS
   ZapRange(prev_next_, prev_limit_);
 #endif
 }
@@ -118,7 +149,7 @@ Handle<T> HandleScope::CloseAndEscape(Handle<T> handle_value) {
       isolate_->handle_scope_data();
   // Allocate one handle in the parent scope.
   ASSERT(current->level > 0);
-  Handle<T> result(CreateHandle<T>(value, isolate_));
+  Handle<T> result(CreateHandle<T>(isolate_, value));
   // Reinitialize the current scope (so that it's ready
   // to be used or closed again).
   prev_next_ = current->next;
@@ -129,13 +160,12 @@ Handle<T> HandleScope::CloseAndEscape(Handle<T> handle_value) {
 
 
 template <typename T>
-T** HandleScope::CreateHandle(T* value, Isolate* isolate) {
-  ASSERT(isolate == Isolate::Current());
+T** HandleScope::CreateHandle(Isolate* isolate, T* value) {
   v8::ImplementationUtilities::HandleScopeData* current =
       isolate->handle_scope_data();
 
   internal::Object** cur = current->next;
-  if (cur == current->limit) cur = Extend();
+  if (cur == current->limit) cur = Extend(isolate);
   // Update the current next field, set the value in the created
   // handle, and return the result.
   ASSERT(cur < current->limit);
@@ -148,10 +178,10 @@ T** HandleScope::CreateHandle(T* value, Isolate* isolate) {
 
 
 #ifdef DEBUG
-inline NoHandleAllocation::NoHandleAllocation() {
-  Isolate* isolate = Isolate::Current();
+inline NoHandleAllocation::NoHandleAllocation(Isolate* isolate)
+    : isolate_(isolate) {
   v8::ImplementationUtilities::HandleScopeData* current =
-      isolate->handle_scope_data();
+      isolate_->handle_scope_data();
 
   active_ = !isolate->optimizing_compiler_thread()->IsOptimizerThread();
   if (active_) {
@@ -170,13 +200,25 @@ inline NoHandleAllocation::~NoHandleAllocation() {
     // Restore state in current handle scope to re-enable handle
     // allocations.
     v8::ImplementationUtilities::HandleScopeData* data =
-        Isolate::Current()->handle_scope_data();
+        isolate_->handle_scope_data();
     ASSERT_EQ(0, data->level);
     data->level = level_;
   }
 }
-#endif
 
+
+HandleDereferenceGuard::HandleDereferenceGuard(Isolate* isolate, State state)
+    : isolate_(isolate) {
+  old_state_ = isolate_->HandleDereferenceGuardState();
+  isolate_->SetHandleDereferenceGuardState(state);
+}
+
+
+HandleDereferenceGuard::~HandleDereferenceGuard() {
+  isolate_->SetHandleDereferenceGuardState(old_state_);
+}
+
+#endif
 
 } }  // namespace v8::internal
 

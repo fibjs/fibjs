@@ -55,7 +55,7 @@ namespace internal {
   F(IsPropertyEnumerable, 2, 1) \
   F(GetPropertyNames, 1, 1) \
   F(GetPropertyNamesFast, 1, 1) \
-  F(GetLocalPropertyNames, 1, 1) \
+  F(GetLocalPropertyNames, 2, 1) \
   F(GetLocalElementNames, 1, 1) \
   F(GetInterceptorInfo, 1, 1) \
   F(GetNamedInterceptorPropertyNames, 1, 1) \
@@ -64,9 +64,11 @@ namespace internal {
   F(ToFastProperties, 1, 1) \
   F(FinishArrayPrototypeSetup, 1, 1) \
   F(SpecialArrayFunctions, 1, 1) \
+  F(IsClassicModeFunction, 1, 1) \
   F(GetDefaultReceiver, 1, 1) \
   \
   F(GetPrototype, 1, 1) \
+  F(SetPrototype, 2, 1) \
   F(IsInPrototypeChain, 2, 1) \
   \
   F(GetOwnProperty, 2, 1) \
@@ -86,24 +88,25 @@ namespace internal {
   F(LazyCompile, 1, 1) \
   F(LazyRecompile, 1, 1) \
   F(ParallelRecompile, 1, 1) \
-  F(ForceParallelRecompile, 1, 1) \
   F(InstallRecompiledCode, 1, 1) \
   F(NotifyDeoptimized, 1, 1) \
-  F(NotifyICMiss, 0, 1) \
+  F(NotifyStubFailure, 0, 1) \
   F(NotifyOSR, 0, 1) \
   F(DeoptimizeFunction, 1, 1) \
   F(ClearFunctionTypeFeedback, 1, 1) \
   F(RunningInSimulator, 0, 1) \
   F(OptimizeFunctionOnNextCall, -1, 1) \
+  F(WaitUntilOptimized, 1, 1) \
   F(GetOptimizationStatus, 1, 1) \
   F(GetOptimizationCount, 1, 1) \
   F(CompileForOnStackReplacement, 1, 1) \
-  F(SetNewFunctionAttributes, 1, 1) \
   F(AllocateInNewSpace, 1, 1) \
+  F(AllocateInOldPointerSpace, 1, 1) \
   F(SetNativeFlag, 1, 1) \
   F(StoreArrayLiteralElement, 5, 1) \
   F(DebugCallbackSupportsStepping, 1, 1) \
   F(DebugPrepareStepInIfStepping, 1, 1) \
+  F(FlattenString, 1, 1) \
   \
   /* Array join support */ \
   F(PushIfAbsent, 2, 1) \
@@ -126,6 +129,7 @@ namespace internal {
   F(NumberToString, 1, 1) \
   F(NumberToStringSkipCache, 1, 1) \
   F(NumberToInteger, 1, 1) \
+  F(NumberToPositiveInteger, 1, 1) \
   F(NumberToIntegerMapMinusZero, 1, 1) \
   F(NumberToJSUint32, 1, 1) \
   F(NumberToJSInt32, 1, 1) \
@@ -140,6 +144,7 @@ namespace internal {
   F(NumberMod, 2, 1) \
   F(NumberUnaryMinus, 1, 1) \
   F(NumberAlloc, 0, 1) \
+  F(NumberImul, 2, 1) \
   \
   F(StringAdd, 2, 1) \
   F(StringBuilderConcat, 3, 1) \
@@ -192,8 +197,6 @@ namespace internal {
   F(ParseJson, 1, 1) \
   F(BasicJSONStringify, 1, 1) \
   F(QuoteJSONString, 1, 1) \
-  F(QuoteJSONStringComma, 1, 1) \
-  F(QuoteJSONStringArray, 1, 1) \
   \
   /* Strings */ \
   F(StringCharCodeAt, 2, 1) \
@@ -201,7 +204,7 @@ namespace internal {
   F(StringLastIndexOf, 3, 1) \
   F(StringLocaleCompare, 2, 1) \
   F(SubString, 3, 1) \
-  F(StringReplaceRegExpWithString, 4, 1) \
+  F(StringReplaceGlobalRegExpWithString, 4, 1) \
   F(StringReplaceOneCharWithString, 3, 1) \
   F(StringMatch, 3, 1) \
   F(StringTrim, 3, 1) \
@@ -216,6 +219,7 @@ namespace internal {
   F(NumberToExponential, 2, 1) \
   F(NumberToPrecision, 2, 1)
 
+
 #define RUNTIME_FUNCTION_LIST_ALWAYS_2(F) \
   /* Reflection */ \
   F(FunctionSetInstanceClassName, 2, 1) \
@@ -226,6 +230,7 @@ namespace internal {
   F(FunctionSetName, 2, 1) \
   F(FunctionNameShouldPrintAsAnonymous, 1, 1) \
   F(FunctionMarkNameShouldPrintAsAnonymous, 1, 1) \
+  F(FunctionIsGenerator, 1, 1) \
   F(FunctionBindArguments, 4, 1) \
   F(BoundFunctionGetBindings, 1, 1) \
   F(FunctionRemovePrototype, 1, 1) \
@@ -237,7 +242,9 @@ namespace internal {
   F(FunctionIsBuiltin, 1, 1) \
   F(GetScript, 1, 1) \
   F(CollectStackTrace, 3, 1) \
-  F(GetOverflowedRawStackTrace, 1, 1) \
+  F(MarkOneShotGetter, 1, 1) \
+  F(GetOverflowedStackTrace, 1, 1) \
+  F(SetOverflowedStackTrace, 2, 1) \
   F(GetV8Version, 0, 1) \
   \
   F(ClassOf, 1, 1) \
@@ -261,7 +268,7 @@ namespace internal {
   /* Numbers */ \
   \
   /* Globals */ \
-  F(CompileString, 1, 1) \
+  F(CompileString, 2, 1) \
   F(GlobalPrint, 1, 1) \
   \
   /* Eval */ \
@@ -290,8 +297,18 @@ namespace internal {
   F(CreateArrayLiteral, 3, 1) \
   F(CreateArrayLiteralShallow, 3, 1) \
   \
+  /* Harmony generators */ \
+  F(CreateJSGeneratorObject, 0, 1) \
+  F(SuspendJSGeneratorObject, 1, 1) \
+  F(ResumeJSGeneratorObject, 3, 1) \
+  F(ThrowGeneratorStateError, 1, 1) \
+  \
   /* Harmony modules */ \
   F(IsJSModule, 1, 1) \
+  \
+  /* Harmony symbols */ \
+  F(CreateSymbol, 1, 1) \
+  F(SymbolName, 1, 1) \
   \
   /* Harmony proxies */ \
   F(CreateJSProxy, 2, 1) \
@@ -330,9 +347,20 @@ namespace internal {
   F(SetIsObserved, 2, 1) \
   F(SetObserverDeliveryPending, 0, 1) \
   F(GetObservationState, 0, 1) \
-  F(CreateObjectHashTable, 0, 1) \
-  F(ObjectHashTableGet, 2, 1) \
-  F(ObjectHashTableSet, 3, 1) \
+  F(ObservationWeakMapCreate, 0, 1) \
+  F(UnwrapGlobalProxy, 1, 1) \
+  \
+  /* Harmony typed arrays */ \
+  F(ArrayBufferInitialize, 2, 1)\
+  F(ArrayBufferGetByteLength, 1, 1)\
+  F(ArrayBufferSliceImpl, 3, 1) \
+  \
+  F(TypedArrayInitialize, 5, 1) \
+  F(TypedArrayGetBuffer, 1, 1) \
+  F(TypedArrayGetByteLength, 1, 1) \
+  F(TypedArrayGetByteOffset, 1, 1) \
+  F(TypedArrayGetLength, 1, 1) \
+  F(TypedArraySetFastCases, 3, 1) \
   \
   /* Statements */ \
   F(NewClosure, 3, 1) \
@@ -406,6 +434,7 @@ namespace internal {
   F(HasExternalFloatElements, 1, 1) \
   F(HasExternalDoubleElements, 1, 1) \
   F(HasFastProperties, 1, 1) \
+  F(TransitionElementsKind, 2, 1) \
   F(TransitionElementsSmiToDouble, 1, 1) \
   F(TransitionElementsDoubleToObject, 1, 1) \
   F(HaveSameMap, 2, 1) \
@@ -475,20 +504,6 @@ namespace internal {
   F(SetFlags, 1, 1) \
   F(CollectGarbage, 1, 1) \
   F(GetHeapUsage, 0, 1) \
-  \
-  /* LiveObjectList support*/ \
-  F(HasLOLEnabled, 0, 1) \
-  F(CaptureLOL, 0, 1) \
-  F(DeleteLOL, 1, 1) \
-  F(DumpLOL, 5, 1) \
-  F(GetLOLObj, 1, 1) \
-  F(GetLOLObjId, 1, 1) \
-  F(GetLOLObjRetainers, 6, 1) \
-  F(GetLOLPath, 3, 1) \
-  F(InfoLOL, 2, 1) \
-  F(PrintLOLObj, 1, 1) \
-  F(ResetLOL, 0, 1) \
-  F(SummarizeLOL, 3, 1)
 
 #else
 #define RUNTIME_FUNCTION_LIST_DEBUGGER_SUPPORT(F)
@@ -549,11 +564,13 @@ namespace internal {
   F(IsRegExpEquivalent, 2, 1)                                                \
   F(HasCachedArrayIndex, 1, 1)                                               \
   F(GetCachedArrayIndex, 1, 1)                                               \
-  F(FastAsciiArrayJoin, 2, 1)
+  F(FastAsciiArrayJoin, 2, 1)                                                \
+  F(GeneratorSend, 2, 1)                                                     \
+  F(GeneratorThrow, 2, 1)
 
 
 // ----------------------------------------------------------------------------
-// INLINE_AND_RUNTIME_FUNCTION_LIST defines all inlined functions accessed
+// INLINE_RUNTIME_FUNCTION_LIST defines all inlined functions accessed
 // with a native call of the form %_name from within JS code that also have
 // a corresponding runtime function, that is called for slow cases.
 // Entries have the form F(name, number of arguments, number of return values).
@@ -653,15 +670,16 @@ class Runtime : public AllStatic {
 
   static const int kNotFound = -1;
 
-  // Add symbols for all the intrinsic function names to a StringDictionary.
+  // Add internalized strings for all the intrinsic function names to a
+  // StringDictionary.
   // Returns failure if an allocation fails.  In this case, it must be
   // retried with a new, empty StringDictionary, not with the same one.
   // Alternatively, heap initialization can be completely restarted.
   MUST_USE_RESULT static MaybeObject* InitializeIntrinsicFunctionNames(
       Heap* heap, Object* dictionary);
 
-  // Get the intrinsic function with the given name, which must be a symbol.
-  static const Function* FunctionForSymbol(Handle<String> name);
+  // Get the intrinsic function with the given name, which must be internalized.
+  static const Function* FunctionForName(Handle<String> name);
 
   // Get the intrinsic function with the given FunctionId.
   static const Function* FunctionForId(FunctionId id);
@@ -683,7 +701,20 @@ class Runtime : public AllStatic {
                                                          Handle<Object> object,
                                                          uint32_t index);
 
+  MUST_USE_RESULT static MaybeObject* GetElementOrCharAtOrFail(
+      Isolate* isolate,
+      Handle<Object> object,
+      uint32_t index);
+
   MUST_USE_RESULT static MaybeObject* SetObjectProperty(
+      Isolate* isolate,
+      Handle<Object> object,
+      Handle<Object> key,
+      Handle<Object> value,
+      PropertyAttributes attr,
+      StrictModeFlag strict_mode);
+
+  MUST_USE_RESULT static MaybeObject* SetObjectPropertyOrFail(
       Isolate* isolate,
       Handle<Object> object,
       Handle<Object> key,
@@ -698,7 +729,13 @@ class Runtime : public AllStatic {
       Handle<Object> value,
       PropertyAttributes attr);
 
-  MUST_USE_RESULT static MaybeObject* ForceDeleteObjectProperty(
+  MUST_USE_RESULT static MaybeObject* DeleteObjectProperty(
+      Isolate* isolate,
+      Handle<JSReceiver> object,
+      Handle<Object> key,
+      JSReceiver::DeleteMode mode);
+
+  MUST_USE_RESULT static MaybeObject* HasObjectProperty(
       Isolate* isolate,
       Handle<JSReceiver> object,
       Handle<Object> key);
@@ -707,6 +744,21 @@ class Runtime : public AllStatic {
       Isolate* isolate,
       Handle<Object> object,
       Handle<Object> key);
+
+  MUST_USE_RESULT static MaybeObject* GetObjectPropertyOrFail(
+      Isolate* isolate,
+      Handle<Object> object,
+      Handle<Object> key);
+
+  static bool SetupArrayBuffer(Isolate* isolate,
+                               Handle<JSArrayBuffer> array_buffer,
+                               void* data,
+                               size_t allocated_length);
+
+  static bool SetupArrayBufferAllocatingData(
+      Isolate* isolate,
+      Handle<JSArrayBuffer> array_buffer,
+      size_t allocated_length);
 
   // Helper functions used stubs.
   static void PerformGC(Object* result);

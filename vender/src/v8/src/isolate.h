@@ -68,9 +68,12 @@ class Factory;
 class FunctionInfoListener;
 class HandleScopeImplementer;
 class HeapProfiler;
+class HStatistics;
+class HTracer;
 class InlineRuntimeFunctionsTable;
 class NoAllocationStringAllocator;
 class InnerPointerToCodeCache;
+class MarkingThread;
 class PreallocatedMemoryThread;
 class RegExpStack;
 class SaveContext;
@@ -78,10 +81,11 @@ class UnicodeCache;
 class ConsStringIteratorOp;
 class StringTracker;
 class StubCache;
+class SweeperThread;
 class ThreadManager;
 class ThreadState;
 class ThreadVisitor;  // Defined in v8threads.h
-class VMState;
+template <StateTag Tag> class VMState;
 
 // 'void function pointer', used to roundtrip the
 // ExternalReference::ExternalReferenceRedirector since we can not include
@@ -285,6 +289,21 @@ class ThreadLocalTop BASE_EMBEDDED {
 };
 
 
+class SystemThreadManager {
+ public:
+  enum ParallelSystemComponent {
+    PARALLEL_SWEEPING,
+    CONCURRENT_SWEEPING,
+    PARALLEL_MARKING,
+    PARALLEL_RECOMPILATION
+  };
+
+  static int NumberOfParallelSystemThreads(ParallelSystemComponent type);
+
+  static const int kMaxThreads = 4;
+};
+
+
 #ifdef ENABLE_DEBUGGER_SUPPORT
 
 #define ISOLATE_DEBUGGER_INIT_LIST(V)                                          \
@@ -338,9 +357,6 @@ typedef List<HeapObject*, PreallocatedStorageAllocationPolicy> DebugObjectCache;
   V(FunctionInfoListener*, active_function_info_listener, NULL)                \
   /* State for Relocatable. */                                                 \
   V(Relocatable*, relocatable_top, NULL)                                       \
-  /* State for CodeEntry in profile-generator. */                              \
-  V(CodeGenerator*, current_code_generator, NULL)                              \
-  V(bool, jump_target_compiling_deferred_code, false)                          \
   V(DebugObjectCache*, string_stream_debug_object_cache, NULL)                 \
   V(Object*, string_stream_current_security_token, NULL)                       \
   /* TODO(isolates): Release this on destruction? */                           \
@@ -352,10 +368,9 @@ typedef List<HeapObject*, PreallocatedStorageAllocationPolicy> DebugObjectCache;
   V(unsigned, ast_node_count, 0)                                               \
   /* SafeStackFrameIterator activations count. */                              \
   V(int, safe_stack_iterator_counter, 0)                                       \
-  V(uint64_t, enabled_cpu_features, 0)                                         \
-  V(CpuProfiler*, cpu_profiler, NULL)                                          \
-  V(HeapProfiler*, heap_profiler, NULL)                                        \
   V(bool, observer_delivery_pending, false)                                    \
+  V(HStatistics*, hstatistics, NULL)                                           \
+  V(HTracer*, htracer, NULL)                                                   \
   ISOLATE_DEBUGGER_INIT_LIST(V)
 
 class Isolate {
@@ -468,6 +483,8 @@ class Isolate {
   // for legacy API reasons.
   void TearDown();
 
+  static void GlobalTearDown();
+
   bool IsDefaultIsolate() const { return this == default_isolate_; }
 
   // Ensures that process-wide resources and the default isolate have been
@@ -479,6 +496,10 @@ class Isolate {
   // Find the PerThread for this particular (isolate, thread) combination
   // If one does not yet exist, return null.
   PerIsolateThreadData* FindPerThreadDataForThisThread();
+
+  // Find the PerThread for given (isolate, thread) combination
+  // If one does not yet exist, return null.
+  PerIsolateThreadData* FindPerThreadDataForThread(ThreadId thread_id);
 
 #ifdef ENABLE_DEBUGGER_SUPPORT
   // Get the debugger from the default isolate. Preinitializes the
@@ -529,11 +550,6 @@ class Isolate {
   SaveContext* save_context() {return thread_local_top_.save_context_; }
   void set_save_context(SaveContext* save) {
     thread_local_top_.save_context_ = save;
-  }
-
-  // Access to the map of "new Object()".
-  Map* empty_object_map() {
-    return context()->native_context()->object_function()->map();
   }
 
   // Access to current thread id.
@@ -615,7 +631,7 @@ class Isolate {
   bool IsExternallyCaught();
 
   bool is_catchable_by_javascript(MaybeObject* exception) {
-    return (exception != Failure::OutOfMemoryException()) &&
+    return (!exception->IsOutOfMemory()) &&
         (exception != heap()->termination_exception());
   }
 
@@ -633,7 +649,7 @@ class Isolate {
   }
   inline Address* handler_address() { return &thread_local_top_.handler_; }
 
-  // Bottom JS entry (see StackTracer::Trace in log.cc).
+  // Bottom JS entry (see StackTracer::Trace in sampler.cc).
   static Address js_entry_sp(ThreadLocalTop* thread) {
     return thread->js_entry_sp_;
   }
@@ -674,7 +690,8 @@ class Isolate {
       // Scope currently can only be used for regular exceptions, not
       // failures like OOM or termination exception.
       isolate_(isolate),
-      pending_exception_(isolate_->pending_exception()->ToObjectUnchecked()),
+      pending_exception_(isolate_->pending_exception()->ToObjectUnchecked(),
+                         isolate_),
       catcher_(isolate_->catcher())
     { }
 
@@ -766,6 +783,7 @@ class Isolate {
   // Out of resource exception helpers.
   Failure* StackOverflow();
   Failure* TerminateExecution();
+  void CancelTerminateExecution();
 
   // Administration
   void Iterate(ObjectVisitor* v);
@@ -814,9 +832,9 @@ class Isolate {
   ISOLATE_INIT_ARRAY_LIST(GLOBAL_ARRAY_ACCESSOR)
 #undef GLOBAL_ARRAY_ACCESSOR
 
-#define NATIVE_CONTEXT_FIELD_ACCESSOR(index, type, name)      \
-  Handle<type> name() {                                       \
-    return Handle<type>(context()->native_context()->name()); \
+#define NATIVE_CONTEXT_FIELD_ACCESSOR(index, type, name)            \
+  Handle<type> name() {                                             \
+    return Handle<type>(context()->native_context()->name(), this); \
   }
   NATIVE_CONTEXT_FIELDS(NATIVE_CONTEXT_FIELD_ACCESSOR)
 #undef NATIVE_CONTEXT_FIELD_ACCESSOR
@@ -961,6 +979,9 @@ class Isolate {
   inline bool IsDebuggerActive();
   inline bool DebuggerHasBreakPoints();
 
+  CpuProfiler* cpu_profiler() const { return cpu_profiler_; }
+  HeapProfiler* heap_profiler() const { return heap_profiler_; }
+
 #ifdef DEBUG
   HistogramInfo* heap_histograms() { return heap_histograms_; }
 
@@ -969,6 +990,10 @@ class Isolate {
   }
 
   int* code_kind_statistics() { return code_kind_statistics_; }
+
+  HandleDereferenceGuard::State HandleDereferenceGuardState();
+
+  void SetHandleDereferenceGuardState(HandleDereferenceGuard::State state);
 #endif
 
 #if defined(V8_TARGET_ARCH_ARM) && !defined(__arm__) || \
@@ -1006,24 +1031,7 @@ class Isolate {
     return thread_local_top_.current_vm_state_;
   }
 
-  void SetCurrentVMState(StateTag state) {
-    if (RuntimeProfiler::IsEnabled()) {
-      // Make sure thread local top is initialized.
-      ASSERT(thread_local_top_.isolate_ == this);
-      StateTag current_state = thread_local_top_.current_vm_state_;
-      if (current_state != JS && state == JS) {
-        // Non-JS -> JS transition.
-        RuntimeProfiler::IsolateEnteredJS(this);
-      } else if (current_state == JS && state != JS) {
-        // JS -> non-JS transition.
-        RuntimeProfiler::IsolateExitedJS(this);
-      } else {
-        // Other types of state transitions are not interesting to the
-        // runtime profiler, because they don't affect whether we're
-        // in JS or not.
-        ASSERT((current_state == JS) == (state == JS));
-      }
-    }
+  void set_current_vm_state(StateTag state) {
     thread_local_top_.current_vm_state_ = state;
   }
 
@@ -1066,12 +1074,34 @@ class Isolate {
   void LinkDeferredHandles(DeferredHandles* deferred_handles);
   void UnlinkDeferredHandles(DeferredHandles* deferred_handles);
 
+#ifdef DEBUG
+  bool IsDeferredHandle(Object** location);
+#endif  // DEBUG
+
   OptimizingCompilerThread* optimizing_compiler_thread() {
     return &optimizing_compiler_thread_;
   }
 
+  // PreInits and returns a default isolate. Needed when a new thread tries
+  // to create a Locker for the first time (the lock itself is in the isolate).
+  // TODO(svenpanne) This method is on death row...
+  static v8::Isolate* GetDefaultIsolateForLocking();
+
+  MarkingThread** marking_threads() {
+    return marking_thread_;
+  }
+
+  SweeperThread** sweeper_threads() {
+    return sweeper_thread_;
+  }
+
+  HStatistics* GetHStatistics();
+  HTracer* GetHTracer();
+
  private:
   Isolate();
+
+  int id() const { return static_cast<int>(id_); }
 
   friend struct GlobalState;
   friend struct InitializeGlobalState;
@@ -1140,6 +1170,9 @@ class Isolate {
   static Isolate* default_isolate_;
   static ThreadDataTable* thread_data_table_;
 
+  // A global counter for all generated Isolates, might overflow.
+  static Atomic32 isolate_counter_;
+
   void Deinit();
 
   static void SetIsolateThreadLocals(Isolate* isolate,
@@ -1152,10 +1185,6 @@ class Isolate {
   // Find the PerThread for this particular (isolate, thread) combination.
   // If one does not yet exist, allocate a new one.
   PerIsolateThreadData* FindOrAllocatePerThreadDataForThisThread();
-
-  // PreInits and returns a default isolate. Needed when a new thread tries
-  // to create a Locker for the first time (the lock itself is in the isolate).
-  static Isolate* GetDefaultIsolateForLocking();
 
   // Initializes the current thread to run this Isolate.
   // Not thread-safe. Multiple threads should not Enter/Exit the same isolate
@@ -1188,6 +1217,7 @@ class Isolate {
   // the Error object.
   bool IsErrorObject(Handle<Object> obj);
 
+  Atomic32 id_;
   EntryStackItem* entry_stack_;
   int stack_trace_nesting_level_;
   StringStream* incomplete_message_;
@@ -1265,12 +1295,17 @@ class Isolate {
   HistogramInfo heap_histograms_[LAST_TYPE + 1];
   JSObject::SpillInformation js_spill_information_;
   int code_kind_statistics_[Code::NUMBER_OF_KINDS];
+
+  HandleDereferenceGuard::State compiler_thread_handle_deref_state_;
+  HandleDereferenceGuard::State execution_thread_handle_deref_state_;
 #endif
 
 #ifdef ENABLE_DEBUGGER_SUPPORT
   Debugger* debugger_;
   Debug* debug_;
 #endif
+  CpuProfiler* cpu_profiler_;
+  HeapProfiler* heap_profiler_;
 
 #define GLOBAL_BACKING_STORE(type, name, initialvalue)                         \
   type name##_;
@@ -1295,16 +1330,21 @@ class Isolate {
 
   DeferredHandles* deferred_handles_head_;
   OptimizingCompilerThread optimizing_compiler_thread_;
+  MarkingThread** marking_thread_;
+  SweeperThread** sweeper_thread_;
 
   friend class ExecutionAccess;
   friend class HandleScopeImplementer;
   friend class IsolateInitializer;
+  friend class MarkingThread;
   friend class OptimizingCompilerThread;
+  friend class SweeperThread;
   friend class ThreadManager;
   friend class Simulator;
   friend class StackGuard;
   friend class ThreadId;
   friend class TestMemoryAllocatorScope;
+  friend class TestCodeRangeScope;
   friend class v8::Isolate;
   friend class v8::Locker;
   friend class v8::Unlocker;
@@ -1432,7 +1472,6 @@ class PostponeInterruptsScope BASE_EMBEDDED {
 #define HEAP (v8::internal::Isolate::Current()->heap())
 #define FACTORY (v8::internal::Isolate::Current()->factory())
 #define ISOLATE (v8::internal::Isolate::Current())
-#define LOGGER (v8::internal::Isolate::Current()->logger())
 
 
 // Tells whether the native context is marked with out of memory.

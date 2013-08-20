@@ -189,125 +189,8 @@ private:
 	exlib::Fiber* m_pFiber;
 };
 
-class SamplerThread: public Thread
-{
-public:
-	static const int kSamplerThreadStackSize = 64 * KB;
-
-	explicit SamplerThread(int interval) :
-			Thread(Thread::Options("SamplerThread", kSamplerThreadStackSize)), interval_(
-					interval)
-	{
-	}
-
-	static void SetUp()
-	{
-		if (!mutex_)
-			mutex_ = OS::CreateMutex();
-	}
-	static void TearDown()
-	{
-		delete mutex_;
-	}
-
-	static void AddActiveSampler(Sampler* sampler)
-	{
-		ScopedLock lock(mutex_);
-		SamplerRegistry::AddActiveSampler(sampler);
-		if (instance_ == NULL)
-		{
-			instance_ = new SamplerThread(sampler->interval());
-			instance_->Start();
-		}
-		else
-		{
-			ASSERT(instance_->interval_ == sampler->interval());
-		}
-	}
-
-	static void RemoveActiveSampler(Sampler* sampler)
-	{
-		ScopedLock lock(mutex_);
-		SamplerRegistry::RemoveActiveSampler(sampler);
-		if (SamplerRegistry::GetState() == SamplerRegistry::HAS_NO_SAMPLERS)
-		{
-			RuntimeProfiler::StopRuntimeProfilerThreadBeforeShutdown(instance_);
-			delete instance_;
-			instance_ = NULL;
-		}
-	}
-
-	// Implement Thread::Run().
-	virtual void Run()
-	{
-		SamplerRegistry::State state;
-		while ((state = SamplerRegistry::GetState())
-				!= SamplerRegistry::HAS_NO_SAMPLERS)
-		{
-			OS::Sleep(500);
-			// When CPU profiling is enabled both JavaScript and C++ code is
-			// profiled. We must not suspend.
-			if (state == SamplerRegistry::HAS_CPU_PROFILING_SAMPLERS)
-			{
-				SamplerRegistry::IterateActiveSamplers(&DoCpuProfile, this);
-			}
-			else
-			{
-				if (RuntimeProfiler::WaitForSomeIsolateToEnterJS())
-					continue;
-			}
-			OS::Sleep(interval_);
-		}
-	}
-
-	static void DoCpuProfile(Sampler* sampler, void* raw_sampler_thread)
-	{
-		if (!sampler->isolate()->IsInitialized())
-			return;
-		if (!sampler->IsProfiling())
-			return;
-		SamplerThread* sampler_thread =
-				reinterpret_cast<SamplerThread*>(raw_sampler_thread);
-		sampler_thread->SampleContext(sampler);
-	}
-
-	void SampleContext(Sampler* sampler)
-	{
-		exlib::Fiber* pFiber = exlib::Fiber::Current();
-		TickSample sample_obj;
-		TickSample* sample = CpuProfiler::TickSampleEvent(sampler->isolate());
-		if (sample == NULL)
-			sample = &sample_obj;
-
-		sample->state = sampler->isolate()->current_vm_state();
-
-#if defined(x64)
-		sample->pc = reinterpret_cast<Address>(pFiber->m_cntxt.Rip);
-		sample->sp = reinterpret_cast<Address>(pFiber->m_cntxt.Rsp);
-		sample->fp = reinterpret_cast<Address>(pFiber->m_cntxt.Rbp);
-#else
-		sample->pc = reinterpret_cast<Address>(pFiber->m_cntxt.Eip);
-		sample->sp = reinterpret_cast<Address>(pFiber->m_cntxt.Esp);
-		sample->fp = reinterpret_cast<Address>(pFiber->m_cntxt.Ebp);
-#endif
-
-		sampler->Tick(sample);
-	}
-
-	const int interval_;
-
-	// Protects the process wide state below.
-	static Mutex* mutex_;
-	static SamplerThread* instance_;
-
-private:
-	DISALLOW_COPY_AND_ASSIGN(SamplerThread);
-};
-
 #undef REGISTER_FIELD
 
-Mutex* SamplerThread::mutex_ = NULL;
-SamplerThread* SamplerThread::instance_ = NULL;
 extern Mutex* limit_mutex;
 
 void OS::SetUp()
@@ -321,40 +204,11 @@ void OS::SetUp()
 #endif
 
 	limit_mutex = CreateMutex();
-	SamplerThread::SetUp();
 }
 
 void OS::TearDown()
 {
-	SamplerThread::TearDown();
 	delete limit_mutex;
-}
-
-Sampler::Sampler(Isolate* isolate, int interval) :
-		isolate_(isolate), interval_(interval), profiling_(false), active_(
-				false), samples_taken_(0)
-{
-	data_ = new PlatformData;
-}
-
-Sampler::~Sampler()
-{
-	ASSERT(!IsActive());
-	delete data_;
-}
-
-void Sampler::Start()
-{
-	ASSERT(!IsActive());
-	SetActive(true);
-	SamplerThread::AddActiveSampler(this);
-}
-
-void Sampler::Stop()
-{
-	ASSERT(IsActive());
-	SamplerThread::RemoveActiveSampler(this);
-	SetActive(false);
 }
 
 void OS::Sleep(int milliseconds)

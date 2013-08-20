@@ -444,15 +444,15 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
       UNCLASSIFIED,
       30,
       "TranscendentalCache::caches()");
-  Add(ExternalReference::handle_scope_next_address().address(),
+  Add(ExternalReference::handle_scope_next_address(isolate).address(),
       UNCLASSIFIED,
       31,
       "HandleScope::next");
-  Add(ExternalReference::handle_scope_limit_address().address(),
+  Add(ExternalReference::handle_scope_limit_address(isolate).address(),
       UNCLASSIFIED,
       32,
       "HandleScope::limit");
-  Add(ExternalReference::handle_scope_level_address().address(),
+  Add(ExternalReference::handle_scope_level_address(isolate).address(),
       UNCLASSIFIED,
       33,
       "HandleScope::level");
@@ -472,7 +472,7 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
       UNCLASSIFIED,
       37,
       "LDoubleConstant::one_half");
-  Add(ExternalReference::isolate_address().address(),
+  Add(ExternalReference::isolate_address(isolate).address(),
       UNCLASSIFIED,
       38,
       "isolate");
@@ -528,16 +528,52 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
       UNCLASSIFIED,
       51,
       "Code::MakeCodeYoung");
+  Add(ExternalReference::cpu_features().address(),
+      UNCLASSIFIED,
+      52,
+      "cpu_features");
+  Add(ExternalReference::new_space_allocation_top_address(isolate).address(),
+      UNCLASSIFIED,
+      53,
+      "Heap::NewSpaceAllocationTopAddress");
+  Add(ExternalReference::new_space_allocation_limit_address(isolate).address(),
+      UNCLASSIFIED,
+      54,
+      "Heap::NewSpaceAllocationLimitAddress");
+  Add(ExternalReference(Runtime::kAllocateInNewSpace, isolate).address(),
+      UNCLASSIFIED,
+      55,
+      "Runtime::AllocateInNewSpace");
+  Add(ExternalReference::old_pointer_space_allocation_top_address(
+      isolate).address(),
+      UNCLASSIFIED,
+      56,
+      "Heap::OldPointerSpaceAllocationTopAddress");
+  Add(ExternalReference::old_pointer_space_allocation_limit_address(
+      isolate).address(),
+      UNCLASSIFIED,
+      57,
+      "Heap::OldPointerSpaceAllocationLimitAddress");
+  Add(ExternalReference(Runtime::kAllocateInOldPointerSpace, isolate).address(),
+      UNCLASSIFIED,
+      58,
+      "Runtime::AllocateInOldPointerSpace");
+  Add(ExternalReference::new_space_high_promotion_mode_active_address(isolate).
+      address(),
+      UNCLASSIFIED,
+      59,
+      "Heap::NewSpaceAllocationLimitAddress");
 
   // Add a small set of deopt entry addresses to encoder without generating the
   // deopt table code, which isn't possible at deserialization time.
-  HandleScope scope(Isolate::Current());
+  HandleScope scope(isolate);
   for (int entry = 0; entry < kDeoptTableSerializeEntryCount; ++entry) {
     Address address = Deoptimizer::GetDeoptimizationEntry(
+        isolate,
         entry,
         Deoptimizer::LAZY,
         Deoptimizer::CALCULATE_ENTRY_ADDRESS);
-    Add(address, LAZY_DEOPTIMIZATION, 52 + entry, "lazy_deopt");
+    Add(address, LAZY_DEOPTIMIZATION, 60 + entry, "lazy_deopt");
   }
 }
 
@@ -1339,9 +1375,9 @@ void PartialSerializer::SerializeObject(
   // should go through the root array or through the partial snapshot cache.
   // If this is not the case you may have to add something to the root array.
   ASSERT(!startup_serializer_->address_mapper()->IsMapped(heap_object));
-  // All the symbols that the partial snapshot needs should be either in the
-  // root table or in the partial snapshot cache.
-  ASSERT(!heap_object->IsSymbol());
+  // All the internalized strings that the partial snapshot needs should be
+  // either in the root table or in the partial snapshot cache.
+  ASSERT(!heap_object->IsInternalizedString());
 
   if (address_mapper_.IsMapped(heap_object)) {
     int space = SpaceOfObject(heap_object);

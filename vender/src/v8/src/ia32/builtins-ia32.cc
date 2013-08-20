@@ -87,6 +87,32 @@ void Builtins::Generate_InRecompileQueue(MacroAssembler* masm) {
 }
 
 
+void Builtins::Generate_InstallRecompiledCode(MacroAssembler* masm) {
+  {
+    FrameScope scope(masm, StackFrame::INTERNAL);
+
+    // Push a copy of the function.
+    __ push(edi);
+    // Push call kind information.
+    __ push(ecx);
+
+    __ push(edi);  // Function is also the parameter to the runtime call.
+    __ CallRuntime(Runtime::kInstallRecompiledCode, 1);
+
+    // Restore call kind information.
+    __ pop(ecx);
+    // Restore receiver.
+    __ pop(edi);
+
+    // Tear down internal frame.
+  }
+
+  // Do a tail-call of the compiled function.
+  __ lea(eax, FieldOperand(eax, Code::kHeaderSize));
+  __ jmp(eax);
+}
+
+
 void Builtins::Generate_ParallelRecompile(MacroAssembler* masm) {
   {
     FrameScope scope(masm, StackFrame::INTERNAL);
@@ -190,8 +216,7 @@ static void Generate_JSConstructStubHelper(MacroAssembler* masm,
       // eax: initial map
       __ movzx_b(edi, FieldOperand(eax, Map::kInstanceSizeOffset));
       __ shl(edi, kPointerSizeLog2);
-      __ AllocateInNewSpace(
-          edi, ebx, edi, no_reg, &rt_call, NO_ALLOCATION_FLAGS);
+      __ Allocate(edi, ebx, edi, no_reg, &rt_call, NO_ALLOCATION_FLAGS);
       // Allocated the JSObject, now initialize the fields.
       // eax: initial map
       // ebx: JSObject
@@ -254,15 +279,15 @@ static void Generate_JSConstructStubHelper(MacroAssembler* masm,
       // ebx: JSObject
       // edi: start of next object (will be start of FixedArray)
       // edx: number of elements in properties array
-      __ AllocateInNewSpace(FixedArray::kHeaderSize,
-                            times_pointer_size,
-                            edx,
-                            REGISTER_VALUE_IS_INT32,
-                            edi,
-                            ecx,
-                            no_reg,
-                            &undo_allocation,
-                            RESULT_CONTAINS_TOP);
+      __ Allocate(FixedArray::kHeaderSize,
+                  times_pointer_size,
+                  edx,
+                  REGISTER_VALUE_IS_INT32,
+                  edi,
+                  ecx,
+                  no_reg,
+                  &undo_allocation,
+                  RESULT_CONTAINS_TOP);
 
       // Initialize the FixedArray.
       // ebx: JSObject
@@ -575,7 +600,7 @@ CODE_AGE_LIST(DEFINE_CODE_AGE_BUILTIN_GENERATOR)
 #undef DEFINE_CODE_AGE_BUILTIN_GENERATOR
 
 
-void Builtins::Generate_NotifyICMiss(MacroAssembler* masm) {
+void Builtins::Generate_NotifyStubFailure(MacroAssembler* masm) {
   // Enter an internal frame.
   {
     FrameScope scope(masm, StackFrame::INTERNAL);
@@ -584,7 +609,7 @@ void Builtins::Generate_NotifyICMiss(MacroAssembler* masm) {
     // stubs that tail call the runtime on deopts passing their parameters in
     // registers.
     __ pushad();
-    __ CallRuntime(Runtime::kNotifyICMiss, 0);
+    __ CallRuntime(Runtime::kNotifyStubFailure, 0);
     __ popad();
     // Tear down internal frame.
   }
@@ -639,6 +664,8 @@ void Builtins::Generate_NotifyLazyDeoptimized(MacroAssembler* masm) {
 
 void Builtins::Generate_NotifyOSR(MacroAssembler* masm) {
   // TODO(kasperl): Do we need to save/restore the XMM registers too?
+  // TODO(mvstanton): We should save these regs, do this in a future
+  // checkin.
 
   // For now, we are relying on the fact that Runtime::NotifyOSR
   // doesn't do any garbage collection which allows us to save/restore
@@ -1001,12 +1028,7 @@ static void AllocateEmptyJSArray(MacroAssembler* masm,
   if (initial_capacity > 0) {
     size += FixedArray::SizeFor(initial_capacity);
   }
-  __ AllocateInNewSpace(size,
-                        result,
-                        scratch2,
-                        scratch3,
-                        gc_required,
-                        TAG_OBJECT);
+  __ Allocate(size, result, scratch2, scratch3, gc_required, TAG_OBJECT);
 
   // Allocated the JSArray. Now initialize the fields except for the elements
   // array.
@@ -1102,15 +1124,15 @@ static void AllocateJSArray(MacroAssembler* masm,
   // Allocate the JSArray object together with space for a FixedArray with the
   // requested elements.
   STATIC_ASSERT(kSmiTagSize == 1 && kSmiTag == 0);
-  __ AllocateInNewSpace(JSArray::kSize + FixedArray::kHeaderSize,
-                        times_pointer_size,
-                        array_size,
-                        REGISTER_VALUE_IS_SMI,
-                        result,
-                        elements_array_end,
-                        scratch,
-                        gc_required,
-                        TAG_OBJECT);
+  __ Allocate(JSArray::kSize + FixedArray::kHeaderSize,
+              times_pointer_size,
+              array_size,
+              REGISTER_VALUE_IS_SMI,
+              result,
+              elements_array_end,
+              scratch,
+              gc_required,
+              TAG_OBJECT);
 
   // Allocated the JSArray. Now initialize the fields except for the elements
   // array.
@@ -1185,9 +1207,9 @@ static void AllocateJSArray(MacroAssembler* masm,
 // that for a construct call the constructor function in edi needs to be
 // preserved for entering the generic code. In both cases argc in eax needs to
 // be preserved.
-static void ArrayNativeCode(MacroAssembler* masm,
-                            bool construct_call,
-                            Label* call_generic_code) {
+void ArrayNativeCode(MacroAssembler* masm,
+                     bool construct_call,
+                     Label* call_generic_code) {
   Label argc_one_or_more, argc_two_or_more, prepare_generic_code_call,
       empty_array, not_empty_array, finish, cant_transition_map, not_double;
 
@@ -1472,28 +1494,28 @@ void Builtins::Generate_ArrayCode(MacroAssembler* masm) {
 }
 
 
-void Builtins::Generate_ArrayConstructCode(MacroAssembler* masm) {
+void Builtins::Generate_CommonArrayConstructCode(MacroAssembler* masm) {
   // ----------- S t a t e -------------
   //  -- eax : argc
+  //  -- ebx : type info cell
   //  -- edi : constructor
   //  -- esp[0] : return address
   //  -- esp[4] : last argument
   // -----------------------------------
-  Label generic_constructor;
-
   if (FLAG_debug_code) {
     // The array construct code is only set for the global and natives
     // builtin Array functions which always have maps.
 
     // Initial map for the builtin Array function should be a map.
-    __ mov(ebx, FieldOperand(edi, JSFunction::kPrototypeOrInitialMapOffset));
+    __ mov(ecx, FieldOperand(edi, JSFunction::kPrototypeOrInitialMapOffset));
     // Will both indicate a NULL and a Smi.
-    __ test(ebx, Immediate(kSmiTagMask));
+    __ test(ecx, Immediate(kSmiTagMask));
     __ Assert(not_zero, "Unexpected initial map for Array function");
-    __ CmpObjectType(ebx, MAP_TYPE, ecx);
+    __ CmpObjectType(ecx, MAP_TYPE, ecx);
     __ Assert(equal, "Unexpected initial map for Array function");
   }
 
+  Label generic_constructor;
   // Run the native code for the Array function called as constructor.
   ArrayNativeCode(masm, true, &generic_constructor);
 
@@ -1554,12 +1576,12 @@ void Builtins::Generate_StringConstructCode(MacroAssembler* masm) {
 
   // Allocate a JSValue and put the tagged pointer into eax.
   Label gc_required;
-  __ AllocateInNewSpace(JSValue::kSize,
-                        eax,  // Result.
-                        ecx,  // New allocation top (we ignore it).
-                        no_reg,
-                        &gc_required,
-                        TAG_OBJECT);
+  __ Allocate(JSValue::kSize,
+              eax,  // Result.
+              ecx,  // New allocation top (we ignore it).
+              no_reg,
+              &gc_required,
+              TAG_OBJECT);
 
   // Set the map.
   __ LoadGlobalFunctionInitialMap(edi, ecx);
@@ -1756,31 +1778,7 @@ void Builtins::Generate_ArgumentsAdaptorTrampoline(MacroAssembler* masm) {
 
 
 void Builtins::Generate_OnStackReplacement(MacroAssembler* masm) {
-  CpuFeatures::TryForceFeatureScope scope(SSE2);
-  if (!CpuFeatures::IsSupported(SSE2) && FLAG_debug_code) {
-    __ Abort("Unreachable code: Cannot optimize without SSE2 support.");
-    return;
-  }
-
-  // Get the loop depth of the stack guard check. This is recorded in
-  // a test(eax, depth) instruction right after the call.
-  Label stack_check;
-  __ mov(ebx, Operand(esp, 0));  // return address
-  if (FLAG_debug_code) {
-    __ cmpb(Operand(ebx, 0), Assembler::kTestAlByte);
-    __ Assert(equal, "test eax instruction not found after loop stack check");
-  }
-  __ movzx_b(ebx, Operand(ebx, 1));  // depth
-
-  // Get the loop nesting level at which we allow OSR from the
-  // unoptimized code and check if we want to do OSR yet. If not we
-  // should perform a stack guard check so we can get interrupts while
-  // waiting for on-stack replacement.
   __ mov(eax, Operand(ebp, JavaScriptFrameConstants::kFunctionOffset));
-  __ mov(ecx, FieldOperand(eax, JSFunction::kSharedFunctionInfoOffset));
-  __ mov(ecx, FieldOperand(ecx, SharedFunctionInfo::kCodeOffset));
-  __ cmpb(ebx, FieldOperand(ecx, Code::kAllowOSRAtLoopNestingLevelOffset));
-  __ j(greater, &stack_check);
 
   // Pass the function to optimize as the argument to the on-stack
   // replacement runtime function.
@@ -1795,23 +1793,6 @@ void Builtins::Generate_OnStackReplacement(MacroAssembler* masm) {
   Label skip;
   __ cmp(eax, Immediate(Smi::FromInt(-1)));
   __ j(not_equal, &skip, Label::kNear);
-  __ ret(0);
-
-  // Insert a stack guard check so that if we decide not to perform
-  // on-stack replacement right away, the function calling this stub can
-  // still be interrupted.
-  __ bind(&stack_check);
-  Label ok;
-  ExternalReference stack_limit =
-      ExternalReference::address_of_stack_limit(masm->isolate());
-  __ cmp(esp, Operand::StaticVariable(stack_limit));
-  __ j(above_equal, &ok, Label::kNear);
-  StackCheckStub stub;
-  __ TailCallStub(&stub);
-  if (FLAG_debug_code) {
-    __ Abort("Unreachable code: returned from tail call.");
-  }
-  __ bind(&ok);
   __ ret(0);
 
   __ bind(&skip);

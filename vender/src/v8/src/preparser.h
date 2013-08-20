@@ -104,6 +104,11 @@ class DuplicateFinder {
 };
 
 
+#ifdef WIN32
+#undef Yield
+#endif
+
+
 class PreParser {
  public:
   enum PreParseResult {
@@ -114,10 +119,7 @@ class PreParser {
 
   PreParser(i::Scanner* scanner,
             i::ParserRecorder* log,
-            uintptr_t stack_limit,
-            bool allow_lazy,
-            bool allow_natives_syntax,
-            bool allow_modules)
+            uintptr_t stack_limit)
       : scanner_(scanner),
         log_(log),
         scope_(NULL),
@@ -125,38 +127,55 @@ class PreParser {
         strict_mode_violation_location_(i::Scanner::Location::invalid()),
         strict_mode_violation_type_(NULL),
         stack_overflow_(false),
-        allow_lazy_(allow_lazy),
-        allow_modules_(allow_modules),
-        allow_natives_syntax_(allow_natives_syntax),
-        parenthesized_function_(false),
-        harmony_scoping_(scanner->HarmonyScoping()) { }
+        allow_lazy_(false),
+        allow_natives_syntax_(false),
+        allow_generators_(false),
+        parenthesized_function_(false) { }
 
   ~PreParser() {}
+
+  bool allow_natives_syntax() const { return allow_natives_syntax_; }
+  bool allow_lazy() const { return allow_lazy_; }
+  bool allow_modules() const { return scanner_->HarmonyModules(); }
+  bool allow_harmony_scoping() const { return scanner_->HarmonyScoping(); }
+  bool allow_generators() const { return allow_generators_; }
+
+  void set_allow_natives_syntax(bool allow) { allow_natives_syntax_ = allow; }
+  void set_allow_lazy(bool allow) { allow_lazy_ = allow; }
+  void set_allow_modules(bool allow) { scanner_->SetHarmonyModules(allow); }
+  void set_allow_harmony_scoping(bool allow) {
+    scanner_->SetHarmonyScoping(allow);
+  }
+  void set_allow_generators(bool allow) { allow_generators_ = allow; }
 
   // Pre-parse the program from the character stream; returns true on
   // success (even if parsing failed, the pre-parse data successfully
   // captured the syntax error), and false if a stack-overflow happened
   // during parsing.
-  static PreParseResult PreParseProgram(i::Scanner* scanner,
-                                        i::ParserRecorder* log,
-                                        int flags,
-                                        uintptr_t stack_limit) {
-    bool allow_lazy = (flags & i::kAllowLazy) != 0;
-    bool allow_natives_syntax = (flags & i::kAllowNativesSyntax) != 0;
-    bool allow_modules = (flags & i::kAllowModules) != 0;
-    return PreParser(scanner, log, stack_limit, allow_lazy,
-                     allow_natives_syntax, allow_modules).PreParse();
+  PreParseResult PreParseProgram() {
+    Scope top_scope(&scope_, kTopLevelScope);
+    bool ok = true;
+    int start_position = scanner_->peek_location().beg_pos;
+    ParseSourceElements(i::Token::EOS, &ok);
+    if (stack_overflow_) return kPreParseStackOverflow;
+    if (!ok) {
+      ReportUnexpectedToken(scanner_->current_token());
+    } else if (!scope_->is_classic_mode()) {
+      CheckOctalLiteral(start_position, scanner_->location().end_pos, &ok);
+    }
+    return kPreParseSuccess;
   }
 
   // Parses a single function literal, from the opening parentheses before
   // parameters to the closing brace after the body.
   // Returns a FunctionEntry describing the body of the function in enough
   // detail that it can be lazily compiled.
-  // The scanner is expected to have matched the "function" keyword and
-  // parameters, and have consumed the initial '{'.
+  // The scanner is expected to have matched the "function" or "function*"
+  // keyword and parameters, and have consumed the initial '{'.
   // At return, unless an error occurred, the scanner is positioned before the
   // the final '}'.
   PreParseResult PreParseLazyFunction(i::LanguageMode mode,
+                                      bool is_generator,
                                       i::ParserRecorder* log);
 
  private:
@@ -240,9 +259,13 @@ class PreParser {
     static Identifier FutureStrictReserved()  {
       return Identifier(kFutureStrictReservedIdentifier);
     }
+    static Identifier Yield()  {
+      return Identifier(kYieldIdentifier);
+    }
     bool IsEval() { return type_ == kEvalIdentifier; }
     bool IsArguments() { return type_ == kArgumentsIdentifier; }
     bool IsEvalOrArguments() { return type_ >= kEvalIdentifier; }
+    bool IsYield() { return type_ == kYieldIdentifier; }
     bool IsFutureReserved() { return type_ == kFutureReservedIdentifier; }
     bool IsFutureStrictReserved() {
       return type_ == kFutureStrictReservedIdentifier;
@@ -254,6 +277,7 @@ class PreParser {
       kUnknownIdentifier,
       kFutureReservedIdentifier,
       kFutureStrictReservedIdentifier,
+      kYieldIdentifier,
       kEvalIdentifier,
       kArgumentsIdentifier
     };
@@ -347,7 +371,7 @@ class PreParser {
         // Identifiers and string literals can be parenthesized.
         // They no longer work as labels or directive prologues,
         // but are still recognized in other contexts.
-        return Expression(code_ | kParentesizedExpressionFlag);
+        return Expression(code_ | kParenthesizedExpressionFlag);
       }
       // For other types of expressions, it's not important to remember
       // the parentheses.
@@ -373,7 +397,8 @@ class PreParser {
       kUseStrictString = kStringLiteralFlag | 8,
       kStringLiteralMask = kUseStrictString,
 
-      kParentesizedExpressionFlag = 4,  // Only if identifier or string literal.
+      // Only if identifier or string literal.
+      kParenthesizedExpressionFlag = 4,
 
       // Below here applies if neither identifier nor string literal.
       kThisExpression = 4,
@@ -451,7 +476,8 @@ class PreParser {
           expected_properties_(0),
           with_nesting_count_(0),
           language_mode_(
-              (prev_ != NULL) ? prev_->language_mode() : i::CLASSIC_MODE) {
+              (prev_ != NULL) ? prev_->language_mode() : i::CLASSIC_MODE),
+          is_generator_(false) {
       *variable = this;
     }
     ~Scope() { *variable_ = prev_; }
@@ -461,6 +487,8 @@ class PreParser {
     int expected_properties() { return expected_properties_; }
     int materialized_literal_count() { return materialized_literal_count_; }
     bool IsInsideWith() { return with_nesting_count_ != 0; }
+    bool is_generator() { return is_generator_; }
+    void set_is_generator(bool is_generator) { is_generator_ = is_generator; }
     bool is_classic_mode() {
       return language_mode_ == i::CLASSIC_MODE;
     }
@@ -492,23 +520,8 @@ class PreParser {
     int expected_properties_;
     int with_nesting_count_;
     i::LanguageMode language_mode_;
+    bool is_generator_;
   };
-
-  // Preparse the program. Only called in PreParseProgram after creating
-  // the instance.
-  PreParseResult PreParse() {
-    Scope top_scope(&scope_, kTopLevelScope);
-    bool ok = true;
-    int start_position = scanner_->peek_location().beg_pos;
-    ParseSourceElements(i::Token::EOS, &ok);
-    if (stack_overflow_) return kPreParseStackOverflow;
-    if (!ok) {
-      ReportUnexpectedToken(scanner_->current_token());
-    } else if (!scope_->is_classic_mode()) {
-      CheckOctalLiteral(start_position, scanner_->location().end_pos, &ok);
-    }
-    return kPreParseSuccess;
-  }
 
   // Report syntax error
   void ReportUnexpectedToken(i::Token::Value token);
@@ -557,6 +570,7 @@ class PreParser {
 
   Expression ParseExpression(bool accept_IN, bool* ok);
   Expression ParseAssignmentExpression(bool accept_IN, bool* ok);
+  Expression ParseYieldExpression(bool* ok);
   Expression ParseConditionalExpression(bool accept_IN, bool* ok);
   Expression ParseBinaryExpression(int prec, bool accept_IN, bool* ok);
   Expression ParseUnaryExpression(bool* ok);
@@ -572,7 +586,7 @@ class PreParser {
   Expression ParseV8Intrinsic(bool* ok);
 
   Arguments ParseArguments(bool* ok);
-  Expression ParseFunctionLiteral(bool* ok);
+  Expression ParseFunctionLiteral(bool is_generator, bool* ok);
   void ParseLazyFunctionLiteralBody(bool* ok);
 
   Identifier ParseIdentifier(bool* ok);
@@ -662,10 +676,9 @@ class PreParser {
   const char* strict_mode_violation_type_;
   bool stack_overflow_;
   bool allow_lazy_;
-  bool allow_modules_;
   bool allow_natives_syntax_;
+  bool allow_generators_;
   bool parenthesized_function_;
-  bool harmony_scoping_;
 };
 } }  // v8::preparser
 

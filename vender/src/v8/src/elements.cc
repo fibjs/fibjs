@@ -27,10 +27,11 @@
 
 #include "v8.h"
 
+#include "arguments.h"
 #include "objects.h"
 #include "elements.h"
 #include "utils.h"
-
+#include "v8conversions.h"
 
 // Each concrete ElementsAccessor can handle exactly one ElementsKind,
 // several abstract ElementsAccessor classes are used to allow sharing
@@ -182,7 +183,7 @@ static void CopyObjectToObjectElements(FixedArrayBase* from_base,
   Address from_address = from->address() + FixedArray::kHeaderSize;
   CopyWords(reinterpret_cast<Object**>(to_address) + to_start,
             reinterpret_cast<Object**>(from_address) + from_start,
-            copy_size);
+            static_cast<size_t>(copy_size));
   if (IsFastObjectElementsKind(from_kind) &&
       IsFastObjectElementsKind(to_kind)) {
     Heap* heap = from->GetHeap();
@@ -338,7 +339,7 @@ static void CopyDoubleToDoubleElements(FixedArrayBase* from_base,
   int words_per_double = (kDoubleSize / kPointerSize);
   CopyWords(reinterpret_cast<Object**>(to_address),
             reinterpret_cast<Object**>(from_address),
-            words_per_double * copy_size);
+            static_cast<size_t>(words_per_double * copy_size));
 }
 
 
@@ -483,6 +484,66 @@ static void CopyDictionaryToDoubleElements(FixedArrayBase* from_base,
 }
 
 
+static void TraceTopFrame(Isolate* isolate) {
+  StackFrameIterator it(isolate);
+  if (it.done()) {
+    PrintF("unknown location (no JavaScript frames present)");
+    return;
+  }
+  StackFrame* raw_frame = it.frame();
+  if (raw_frame->is_internal()) {
+    Isolate* isolate = Isolate::Current();
+    Code* apply_builtin = isolate->builtins()->builtin(
+        Builtins::kFunctionApply);
+    if (raw_frame->unchecked_code() == apply_builtin) {
+      PrintF("apply from ");
+      it.Advance();
+      raw_frame = it.frame();
+    }
+  }
+  JavaScriptFrame::PrintTop(isolate, stdout, false, true);
+}
+
+
+void CheckArrayAbuse(JSObject* obj, const char* op, uint32_t key,
+                     bool allow_appending) {
+  Object* raw_length = NULL;
+  const char* elements_type = "array";
+  if (obj->IsJSArray()) {
+    JSArray* array = JSArray::cast(obj);
+    raw_length = array->length();
+  } else {
+    raw_length = Smi::FromInt(obj->elements()->length());
+    elements_type = "object";
+  }
+
+  if (raw_length->IsNumber()) {
+    double n = raw_length->Number();
+    if (FastI2D(FastD2UI(n)) == n) {
+      int32_t int32_length = DoubleToInt32(n);
+      uint32_t compare_length = static_cast<uint32_t>(int32_length);
+      if (allow_appending) compare_length++;
+      if (key >= compare_length) {
+        PrintF("[OOB %s %s (%s length = %d, element accessed = %d) in ",
+               elements_type, op, elements_type,
+               static_cast<int>(int32_length),
+               static_cast<int>(key));
+        TraceTopFrame(obj->GetIsolate());
+        PrintF("]\n");
+      }
+    } else {
+      PrintF("[%s elements length not integer value in ", elements_type);
+      TraceTopFrame(obj->GetIsolate());
+      PrintF("]\n");
+    }
+  } else {
+    PrintF("[%s elements length not a number in ", elements_type);
+    TraceTopFrame(obj->GetIsolate());
+    PrintF("]\n");
+  }
+}
+
+
 // Base class for element handler implementations. Contains the
 // the common logic for objects with different ElementsKinds.
 // Subclasses must specialize method for which the element
@@ -570,6 +631,17 @@ class ElementsAccessorBase : public ElementsAccessor {
     if (backing_store == NULL) {
       backing_store = holder->elements();
     }
+
+    if (!IsExternalArrayElementsKind(ElementsTraits::Kind) &&
+        FLAG_trace_js_array_abuse) {
+      CheckArrayAbuse(holder, "elements read", key);
+    }
+
+    if (IsExternalArrayElementsKind(ElementsTraits::Kind) &&
+        FLAG_trace_external_array_abuse) {
+      CheckArrayAbuse(holder, "external elements read", key);
+    }
+
     return ElementsAccessorSubclass::GetImpl(
         receiver, holder, key, backing_store);
   }
@@ -1505,7 +1577,7 @@ class DictionaryElementsAccessor
         if (mode == JSObject::STRICT_DELETION) {
           // Deleting a non-configurable property in strict mode.
           HandleScope scope(isolate);
-          Handle<Object> holder(obj);
+          Handle<Object> holder(obj, isolate);
           Handle<Object> name = isolate->factory()->NewNumberFromUint(key);
           Handle<Object> args[2] = { name, holder };
           Handle<Object> error =
@@ -1901,5 +1973,101 @@ MUST_USE_RESULT MaybeObject* ElementsAccessorBase<ElementsAccessorSubclass,
   return array;
 }
 
+
+MUST_USE_RESULT MaybeObject* ArrayConstructInitializeElements(
+    JSArray* array, Arguments* args) {
+  Heap* heap = array->GetIsolate()->heap();
+
+  // Optimize the case where there is one argument and the argument is a
+  // small smi.
+  if (args->length() == 1) {
+    Object* obj = (*args)[0];
+    if (obj->IsSmi()) {
+      int len = Smi::cast(obj)->value();
+      if (len > 0 && len < JSObject::kInitialMaxFastElementArray) {
+        ElementsKind elements_kind = array->GetElementsKind();
+        MaybeObject* maybe_array = array->Initialize(len, len);
+        if (maybe_array->IsFailure()) return maybe_array;
+
+        if (!IsFastHoleyElementsKind(elements_kind)) {
+          elements_kind = GetHoleyElementsKind(elements_kind);
+          maybe_array = array->TransitionElementsKind(elements_kind);
+          if (maybe_array->IsFailure()) return maybe_array;
+        }
+
+        return array;
+      } else if (len == 0) {
+        return array->Initialize(JSArray::kPreallocatedArrayElements);
+      }
+    }
+
+    // Take the argument as the length.
+    MaybeObject* maybe_obj = array->Initialize(0);
+    if (!maybe_obj->To(&obj)) return maybe_obj;
+
+    return array->SetElementsLength((*args)[0]);
+  }
+
+  // Optimize the case where there are no parameters passed.
+  if (args->length() == 0) {
+    return array->Initialize(JSArray::kPreallocatedArrayElements);
+  }
+
+  // Set length and elements on the array.
+  int number_of_elements = args->length();
+  MaybeObject* maybe_object =
+      array->EnsureCanContainElements(args, 0, number_of_elements,
+                                      ALLOW_CONVERTED_DOUBLE_ELEMENTS);
+  if (maybe_object->IsFailure()) return maybe_object;
+
+  // Allocate an appropriately typed elements array.
+  MaybeObject* maybe_elms;
+  ElementsKind elements_kind = array->GetElementsKind();
+  if (IsFastDoubleElementsKind(elements_kind)) {
+    maybe_elms = heap->AllocateUninitializedFixedDoubleArray(
+        number_of_elements);
+  } else {
+    maybe_elms = heap->AllocateFixedArrayWithHoles(number_of_elements);
+  }
+  FixedArrayBase* elms;
+  if (!maybe_elms->To(&elms)) return maybe_elms;
+
+  // Fill in the content
+  switch (array->GetElementsKind()) {
+    case FAST_HOLEY_SMI_ELEMENTS:
+    case FAST_SMI_ELEMENTS: {
+      FixedArray* smi_elms = FixedArray::cast(elms);
+      for (int index = 0; index < number_of_elements; index++) {
+        smi_elms->set(index, (*args)[index], SKIP_WRITE_BARRIER);
+      }
+      break;
+    }
+    case FAST_HOLEY_ELEMENTS:
+    case FAST_ELEMENTS: {
+      AssertNoAllocation no_gc;
+      WriteBarrierMode mode = elms->GetWriteBarrierMode(no_gc);
+      FixedArray* object_elms = FixedArray::cast(elms);
+      for (int index = 0; index < number_of_elements; index++) {
+        object_elms->set(index, (*args)[index], mode);
+      }
+      break;
+    }
+    case FAST_HOLEY_DOUBLE_ELEMENTS:
+    case FAST_DOUBLE_ELEMENTS: {
+      FixedDoubleArray* double_elms = FixedDoubleArray::cast(elms);
+      for (int index = 0; index < number_of_elements; index++) {
+        double_elms->set(index, (*args)[index]->Number());
+      }
+      break;
+    }
+    default:
+      UNREACHABLE();
+      break;
+  }
+
+  array->set_elements(elms);
+  array->set_length(Smi::FromInt(number_of_elements));
+  return array;
+}
 
 } }  // namespace v8::internal

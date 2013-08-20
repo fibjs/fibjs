@@ -67,9 +67,21 @@ namespace internal {
 //   http://www.agner.org/optimize/calling_conventions.pdf
 //   or with gcc, run: "echo | gcc -E -dM -"
 #if defined(_M_X64) || defined(__x86_64__)
+#if defined(__native_client__)
+// For Native Client builds of V8, use V8_TARGET_ARCH_ARM, so that V8
+// generates ARM machine code, together with a portable ARM simulator
+// compiled for the host architecture in question.
+//
+// Since Native Client is ILP-32 on all architectures we use
+// V8_HOST_ARCH_IA32 on both 32- and 64-bit x86.
+#define V8_HOST_ARCH_IA32 1
+#define V8_HOST_ARCH_32_BIT 1
+#define V8_HOST_CAN_READ_UNALIGNED 1
+#else
 #define V8_HOST_ARCH_X64 1
 #define V8_HOST_ARCH_64_BIT 1
 #define V8_HOST_CAN_READ_UNALIGNED 1
+#endif  // __native_client__
 #elif defined(_M_IX86) || defined(__i386__)
 #define V8_HOST_ARCH_IA32 1
 #define V8_HOST_ARCH_32_BIT 1
@@ -253,15 +265,13 @@ const int kBinary32ExponentShift = 23;
 // other bits set.
 const uint64_t kQuietNaNMask = static_cast<uint64_t>(0xfff) << 51;
 
-// ASCII/UTF-16 constants
+// Latin1/UTF-16 constants
 // Code-point values in Unicode 4.0 are 21 bits wide.
 // Code units in UTF-16 are 16 bits wide.
 typedef uint16_t uc16;
 typedef int32_t uc32;
-const int kASCIISize    = kCharSize;
+const int kOneByteSize    = kCharSize;
 const int kUC16Size     = sizeof(uc16);      // NOLINT
-const uc32 kMaxAsciiCharCode = 0x7f;
-const uint32_t kMaxAsciiCharCodeU = 0x7fu;
 
 
 // The expression OFFSET_OF(type, field) computes the byte-offset

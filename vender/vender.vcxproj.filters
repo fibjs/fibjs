@@ -1773,6 +1773,18 @@
     <ClCompile Include="src\v8\src\code-stubs-hydrogen.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\heap-snapshot-generator.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\marking-thread.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\sampler.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\sweeper-thread.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -3304,6 +3316,30 @@
     </ClInclude>
     <ClInclude Include="include\libexif\i18n.h">
       <Filter>Header Files\libexif</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\builtins-decls.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\heap-snapshot-generator.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\heap-snapshot-generator-inl.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\jsregexp-inl.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\marking-thread.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\sampler.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\sweeper-thread.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\uri.h">
+      <Filter>Source Files\v8\src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

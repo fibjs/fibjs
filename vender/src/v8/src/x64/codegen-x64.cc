@@ -91,7 +91,7 @@ UnaryMathFunction CreateTranscendentalFunction(TranscendentalCache::Type type) {
 
   CodeDesc desc;
   masm.GetCode(&desc);
-  ASSERT(desc.reloc_size == 0);
+  ASSERT(!RelocInfo::RequiresRelocation(desc));
 
   CPU::FlushICache(buffer, actual_size);
   OS::ProtectCode(buffer, actual_size);
@@ -122,6 +122,7 @@ UnaryMathFunction CreateExpFunction() {
 
   CodeDesc desc;
   masm.GetCode(&desc);
+  ASSERT(!RelocInfo::RequiresRelocation(desc));
 
   CPU::FlushICache(buffer, actual_size);
   OS::ProtectCode(buffer, actual_size);
@@ -145,7 +146,7 @@ UnaryMathFunction CreateSqrtFunction() {
 
   CodeDesc desc;
   masm.GetCode(&desc);
-  ASSERT(desc.reloc_size == 0);
+  ASSERT(!RelocInfo::RequiresRelocation(desc));
 
   CPU::FlushICache(buffer, actual_size);
   OS::ProtectCode(buffer, actual_size);
@@ -212,7 +213,7 @@ ModuloFunction CreateModuloFunction() {
   __ j(zero, &valid_result);
   __ fstp(0);  // Drop result in st(0).
   int64_t kNaNValue = V8_INT64_C(0x7ff8000000000000);
-  __ movq(rcx, kNaNValue, RelocInfo::NONE);
+  __ movq(rcx, kNaNValue, RelocInfo::NONE64);
   __ movq(Operand(rsp, kPointerSize), rcx);
   __ movsd(xmm0, Operand(rsp, kPointerSize));
   __ jmp(&return_result);
@@ -251,7 +252,8 @@ ModuloFunction CreateModuloFunction() {
 #define __ ACCESS_MASM(masm)
 
 void ElementsTransitionGenerator::GenerateMapChangeElementsTransition(
-    MacroAssembler* masm) {
+    MacroAssembler* masm, AllocationSiteMode mode,
+    Label* allocation_site_info_found) {
   // ----------- S t a t e -------------
   //  -- rax    : value
   //  -- rbx    : target map
@@ -259,6 +261,12 @@ void ElementsTransitionGenerator::GenerateMapChangeElementsTransition(
   //  -- rdx    : receiver
   //  -- rsp[0] : return address
   // -----------------------------------
+  if (mode == TRACK_ALLOCATION_SITE) {
+    ASSERT(allocation_site_info_found != NULL);
+    __ TestJSArrayForAllocationSiteInfo(rdx, rdi);
+    __ j(equal, allocation_site_info_found);
+  }
+
   // Set transitioned map.
   __ movq(FieldOperand(rdx, HeapObject::kMapOffset), rbx);
   __ RecordWriteField(rdx,
@@ -272,7 +280,7 @@ void ElementsTransitionGenerator::GenerateMapChangeElementsTransition(
 
 
 void ElementsTransitionGenerator::GenerateSmiToDouble(
-    MacroAssembler* masm, Label* fail) {
+    MacroAssembler* masm, AllocationSiteMode mode, Label* fail) {
   // ----------- S t a t e -------------
   //  -- rax    : value
   //  -- rbx    : target map
@@ -282,6 +290,11 @@ void ElementsTransitionGenerator::GenerateSmiToDouble(
   // -----------------------------------
   // The fail label is not actually used since we do not allocate.
   Label allocated, new_backing_store, only_change_map, done;
+
+  if (mode == TRACK_ALLOCATION_SITE) {
+    __ TestJSArrayForAllocationSiteInfo(rdx, rdi);
+    __ j(equal, fail);
+  }
 
   // Check for empty arrays, which only require a map transition and no changes
   // to the backing store.
@@ -327,14 +340,14 @@ void ElementsTransitionGenerator::GenerateSmiToDouble(
   STATIC_ASSERT(FixedDoubleArray::kHeaderSize == FixedArray::kHeaderSize);
 
   Label loop, entry, convert_hole;
-  __ movq(r15, BitCast<int64_t, uint64_t>(kHoleNanInt64), RelocInfo::NONE);
+  __ movq(r15, BitCast<int64_t, uint64_t>(kHoleNanInt64), RelocInfo::NONE64);
   // r15: the-hole NaN
   __ jmp(&entry);
 
   // Allocate new backing store.
   __ bind(&new_backing_store);
   __ lea(rdi, Operand(r9, times_pointer_size, FixedArray::kHeaderSize));
-  __ AllocateInNewSpace(rdi, r14, r11, r15, fail, TAG_OBJECT);
+  __ Allocate(rdi, r14, r11, r15, fail, TAG_OBJECT);
   // Set backing store's map
   __ LoadRoot(rdi, Heap::kFixedDoubleArrayMapRootIndex);
   __ movq(FieldOperand(r14, HeapObject::kMapOffset), rdi);
@@ -394,7 +407,7 @@ void ElementsTransitionGenerator::GenerateSmiToDouble(
 
 
 void ElementsTransitionGenerator::GenerateDoubleToObject(
-    MacroAssembler* masm, Label* fail) {
+    MacroAssembler* masm, AllocationSiteMode mode, Label* fail) {
   // ----------- S t a t e -------------
   //  -- rax    : value
   //  -- rbx    : target map
@@ -403,6 +416,11 @@ void ElementsTransitionGenerator::GenerateDoubleToObject(
   //  -- rsp[0] : return address
   // -----------------------------------
   Label loop, entry, convert_hole, gc_required, only_change_map;
+
+  if (mode == TRACK_ALLOCATION_SITE) {
+    __ TestJSArrayForAllocationSiteInfo(rdx, rdi);
+    __ j(equal, fail);
+  }
 
   // Check for empty arrays, which only require a map transition and no changes
   // to the backing store.
@@ -417,7 +435,7 @@ void ElementsTransitionGenerator::GenerateDoubleToObject(
   // r8 : source FixedDoubleArray
   // r9 : number of elements
   __ lea(rdi, Operand(r9, times_pointer_size, FixedArray::kHeaderSize));
-  __ AllocateInNewSpace(rdi, r11, r14, r15, &gc_required, TAG_OBJECT);
+  __ Allocate(rdi, r11, r14, r15, &gc_required, TAG_OBJECT);
   // r11: destination FixedArray
   __ LoadRoot(rdi, Heap::kFixedArrayMapRootIndex);
   __ movq(FieldOperand(r11, HeapObject::kMapOffset), rdi);
@@ -425,7 +443,7 @@ void ElementsTransitionGenerator::GenerateDoubleToObject(
   __ movq(FieldOperand(r11, FixedArray::kLengthOffset), r14);
 
   // Prepare for conversion loop.
-  __ movq(rsi, BitCast<int64_t, uint64_t>(kHoleNanInt64), RelocInfo::NONE);
+  __ movq(rsi, BitCast<int64_t, uint64_t>(kHoleNanInt64), RelocInfo::NONE64);
   __ LoadRoot(rdi, Heap::kTheHoleValueRootIndex);
   // rsi: the-hole NaN
   // rdi: pointer to the-hole
@@ -536,7 +554,7 @@ void StringCharLoadGenerator::Generate(MacroAssembler* masm,
   // the string.
   __ bind(&cons_string);
   __ CompareRoot(FieldOperand(string, ConsString::kSecondOffset),
-                 Heap::kEmptyStringRootIndex);
+                 Heap::kempty_stringRootIndex);
   __ j(not_equal, call_runtime);
   __ movq(string, FieldOperand(string, ConsString::kFirstOffset));
 
@@ -751,7 +769,7 @@ void Code::PatchPlatformCodeAge(byte* sequence,
   uint32_t young_length;
   byte* young_sequence = GetNoCodeAgeSequence(&young_length);
   if (age == kNoAge) {
-    memcpy(sequence, young_sequence, young_length);
+    CopyBytes(sequence, young_sequence, young_length);
     CPU::FlushICache(sequence, young_length);
   } else {
     Code* stub = GetCodeAgeStub(age, parity);

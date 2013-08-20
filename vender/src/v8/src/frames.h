@@ -84,6 +84,19 @@ class InnerPointerToCodeCache {
 };
 
 
+class StackHandlerConstants : public AllStatic {
+ public:
+  static const int kNextOffset     = 0 * kPointerSize;
+  static const int kCodeOffset     = 1 * kPointerSize;
+  static const int kStateOffset    = 2 * kPointerSize;
+  static const int kContextOffset  = 3 * kPointerSize;
+  static const int kFPOffset       = 4 * kPointerSize;
+
+  static const int kSize = kFPOffset + kPointerSize;
+  static const int kSlotCount = kSize >> kPointerSizeLog2;
+};
+
+
 class StackHandler BASE_EMBEDDED {
  public:
   enum Kind {
@@ -119,9 +132,15 @@ class StackHandler BASE_EMBEDDED {
   inline bool is_catch() const;
   inline bool is_finally() const;
 
+  // Generator support to preserve stack handlers.
+  void Unwind(Isolate* isolate, FixedArray* array, int offset,
+              int previous_handler_offset) const;
+  int Rewind(Isolate* isolate, FixedArray* array, int offset, Address fp);
+
  private:
   // Accessors.
   inline Kind kind() const;
+  inline unsigned index() const;
 
   inline Object** context_address() const;
   inline Object** code_address() const;
@@ -130,16 +149,33 @@ class StackHandler BASE_EMBEDDED {
 };
 
 
-#define STACK_FRAME_TYPE_LIST(V)              \
-  V(ENTRY,             EntryFrame)            \
-  V(ENTRY_CONSTRUCT,   EntryConstructFrame)   \
-  V(EXIT,              ExitFrame)             \
-  V(JAVA_SCRIPT,       JavaScriptFrame)       \
-  V(OPTIMIZED,         OptimizedFrame)        \
-  V(STUB,              StubFrame)             \
-  V(INTERNAL,          InternalFrame)         \
-  V(CONSTRUCT,         ConstructFrame)        \
-  V(ARGUMENTS_ADAPTOR, ArgumentsAdaptorFrame)
+#define STACK_FRAME_TYPE_LIST(V)                         \
+  V(ENTRY,                   EntryFrame)                 \
+  V(ENTRY_CONSTRUCT,         EntryConstructFrame)        \
+  V(EXIT,                    ExitFrame)                  \
+  V(JAVA_SCRIPT,             JavaScriptFrame)            \
+  V(OPTIMIZED,               OptimizedFrame)             \
+  V(STUB,                    StubFrame)                  \
+  V(STUB_FAILURE_TRAMPOLINE, StubFailureTrampolineFrame) \
+  V(INTERNAL,                InternalFrame)              \
+  V(CONSTRUCT,               ConstructFrame)             \
+  V(ARGUMENTS_ADAPTOR,       ArgumentsAdaptorFrame)
+
+
+class StandardFrameConstants : public AllStatic {
+ public:
+  // Fixed part of the frame consists of return address, caller fp,
+  // context and function.
+  // StandardFrame::IterateExpressions assumes that kContextOffset is the last
+  // object pointer.
+  static const int kFixedFrameSize    =  4 * kPointerSize;
+  static const int kExpressionsOffset = -3 * kPointerSize;
+  static const int kMarkerOffset      = -2 * kPointerSize;
+  static const int kContextOffset     = -1 * kPointerSize;
+  static const int kCallerFPOffset    =  0 * kPointerSize;
+  static const int kCallerPCOffset    = +1 * kPointerSize;
+  static const int kCallerSPOffset    = +2 * kPointerSize;
+};
 
 
 // Abstract base class for all stack frames.
@@ -194,6 +230,9 @@ class StackFrame BASE_EMBEDDED {
   bool is_optimized() const { return type() == OPTIMIZED; }
   bool is_arguments_adaptor() const { return type() == ARGUMENTS_ADAPTOR; }
   bool is_internal() const { return type() == INTERNAL; }
+  bool is_stub_failure_trampoline() const {
+    return type() == STUB_FAILURE_TRAMPOLINE;
+  }
   bool is_construct() const { return type() == CONSTRUCT; }
   virtual bool is_standard() const { return false; }
 
@@ -465,7 +504,7 @@ class FrameSummary BASE_EMBEDDED {
                Code* code,
                int offset,
                bool is_constructor)
-      : receiver_(receiver),
+      : receiver_(receiver, function->GetIsolate()),
         function_(function),
         code_(code),
         offset_(offset),
@@ -504,6 +543,15 @@ class JavaScriptFrame: public StandardFrame {
     return GetNumberOfIncomingArguments();
   }
 
+  // Access the operand stack.
+  inline Address GetOperandSlot(int index) const;
+  inline Object* GetOperand(int index) const;
+  inline int ComputeOperandsCount() const;
+
+  // Generator support to preserve operand stack and stack handlers.
+  void SaveOperandStack(FixedArray* store, int* stack_handler_index) const;
+  void RestoreOperandStack(FixedArray* store, int stack_handler_index);
+
   // Debugger access.
   void SetParameterValue(int index, Object* value) const;
 
@@ -541,7 +589,10 @@ class JavaScriptFrame: public StandardFrame {
     return static_cast<JavaScriptFrame*>(frame);
   }
 
-  static void PrintTop(FILE* file, bool print_args, bool print_line_number);
+  static void PrintTop(Isolate* isolate,
+                       FILE* file,
+                       bool print_args,
+                       bool print_line_number);
 
  protected:
   inline explicit JavaScriptFrame(StackFrameIterator* iterator);
@@ -558,7 +609,6 @@ class JavaScriptFrame: public StandardFrame {
   inline Object* function_slot_object() const;
 
   friend class StackFrameIterator;
-  friend class StackTracer;
 };
 
 
@@ -668,6 +718,39 @@ class InternalFrame: public StandardFrame {
 };
 
 
+class StubFailureTrampolineFrame: public StandardFrame {
+ public:
+  // sizeof(Arguments) - sizeof(Arguments*) is 3 * kPointerSize), but the
+  // presubmit script complains about using sizeof() on a type.
+  static const int kFirstRegisterParameterFrameOffset =
+      StandardFrameConstants::kMarkerOffset - 3 * kPointerSize;
+
+  static const int kCallerStackParameterCountFrameOffset =
+      StandardFrameConstants::kMarkerOffset - 2 * kPointerSize;
+
+  virtual Type type() const { return STUB_FAILURE_TRAMPOLINE; }
+
+  // Get the code associated with this frame.
+  // This method could be called during marking phase of GC.
+  virtual Code* unchecked_code() const;
+
+  virtual void Iterate(ObjectVisitor* v) const;
+
+  // Architecture-specific register description.
+  static Register fp_register();
+  static Register context_register();
+
+ protected:
+  inline explicit StubFailureTrampolineFrame(
+      StackFrameIterator* iterator);
+
+  virtual Address GetCallerStackPointer() const;
+
+ private:
+  friend class StackFrameIterator;
+};
+
+
 // Construct frames are special trampoline frames introduced to handle
 // function invocations through 'new'.
 class ConstructFrame: public InternalFrame {
@@ -689,10 +772,6 @@ class ConstructFrame: public InternalFrame {
 
 class StackFrameIterator BASE_EMBEDDED {
  public:
-  // An iterator that iterates over the current thread's stack,
-  // and uses current isolate.
-  StackFrameIterator();
-
   // An iterator that iterates over the isolate's current thread's stack,
   explicit StackFrameIterator(Isolate* isolate);
 
@@ -752,8 +831,6 @@ class StackFrameIterator BASE_EMBEDDED {
 template<typename Iterator>
 class JavaScriptFrameIteratorTemp BASE_EMBEDDED {
  public:
-  JavaScriptFrameIteratorTemp() { if (!done()) Advance(); }
-
   inline explicit JavaScriptFrameIteratorTemp(Isolate* isolate);
 
   inline JavaScriptFrameIteratorTemp(Isolate* isolate, ThreadLocalTop* top);
@@ -912,6 +989,8 @@ class SafeStackTraceFrameIterator: public SafeJavaScriptFrameIterator {
 
 class StackFrameLocator BASE_EMBEDDED {
  public:
+  explicit StackFrameLocator(Isolate* isolate) : iterator_(isolate) {}
+
   // Find the nth JavaScript frame on the stack. The caller must
   // guarantee that such a frame exists.
   JavaScriptFrame* FindJavaScriptFrame(int n);
@@ -923,7 +1002,7 @@ class StackFrameLocator BASE_EMBEDDED {
 
 // Reads all frames on the current stack and copies them into the current
 // zone memory.
-Vector<StackFrame*> CreateStackMap(Zone* zone);
+Vector<StackFrame*> CreateStackMap(Isolate* isolate, Zone* zone);
 
 } }  // namespace v8::internal
 

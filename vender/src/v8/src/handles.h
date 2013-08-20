@@ -58,29 +58,23 @@ class Handle {
     a = b;  // Fake assignment to enforce type checks.
     USE(a);
 #endif
-    location_ = reinterpret_cast<T**>(handle.location());
+    location_ = reinterpret_cast<T**>(handle.location_);
   }
 
   INLINE(T* operator ->() const) { return operator*(); }
 
   // Check if this handle refers to the exact same object as the other handle.
-  bool is_identical_to(const Handle<T> other) const {
-    return operator*() == *other;
-  }
+  INLINE(bool is_identical_to(const Handle<T> other) const);
 
   // Provides the C++ dereference operator.
   INLINE(T* operator*() const);
 
   // Returns the address to where the raw pointer is stored.
-  T** location() const {
-    ASSERT(location_ == NULL ||
-           reinterpret_cast<Address>(*location_) != kZapValue);
-    return location_;
-  }
+  INLINE(T** location() const);
 
   template <class S> static Handle<T> cast(Handle<S> that) {
-    T::cast(*that);
-    return Handle<T>(reinterpret_cast<T**>(that.location()));
+    T::cast(*reinterpret_cast<T**>(that.location_));
+    return Handle<T>(reinterpret_cast<T**>(that.location_));
   }
 
   static Handle<T> null() { return Handle<T>(); }
@@ -90,8 +84,15 @@ class Handle {
   // implementation in api.h.
   inline Handle<T> EscapeFrom(v8::HandleScope* scope);
 
+#ifdef DEBUG
+  bool IsDereferenceAllowed(bool allow_deferred) const;
+#endif  // DEBUG
+
  private:
   T** location_;
+
+  // Handles of different classes are allowed to access each other's location_.
+  template<class S> friend class Handle;
 };
 
 
@@ -120,24 +121,23 @@ class HandleScopeImplementer;
 // for which the handle scope has been deleted is undefined.
 class HandleScope {
  public:
-  inline HandleScope();
   explicit inline HandleScope(Isolate* isolate);
 
   inline ~HandleScope();
 
   // Counts the number of allocated handles.
-  static int NumberOfHandles();
+  static int NumberOfHandles(Isolate* isolate);
 
   // Creates a new handle with the given value.
   template <typename T>
-  static inline T** CreateHandle(T* value, Isolate* isolate);
+  static inline T** CreateHandle(Isolate* isolate, T* value);
 
   // Deallocates any extensions used by the current scope.
   static void DeleteExtensions(Isolate* isolate);
 
-  static Address current_next_address();
-  static Address current_limit_address();
-  static Address current_level_address();
+  static Address current_next_address(Isolate* isolate);
+  static Address current_limit_address(Isolate* isolate);
+  static Address current_level_address(Isolate* isolate);
 
   // Closes the HandleScope (invalidating all handles
   // created in the scope of the HandleScope) and returns
@@ -162,15 +162,16 @@ class HandleScope {
   Object** prev_limit_;
 
   // Extend the handle scope making room for more handles.
-  static internal::Object** Extend();
+  static internal::Object** Extend(Isolate* isolate);
 
+#ifdef ENABLE_EXTRA_CHECKS
   // Zaps the handles in the half-open interval [start, end).
   static void ZapRange(internal::Object** start, internal::Object** end);
+#endif
 
-  friend class v8::internal::DeferredHandles;
   friend class v8::HandleScope;
+  friend class v8::internal::DeferredHandles;
   friend class v8::internal::HandleScopeImplementer;
-  friend class v8::ImplementationUtilities;
   friend class v8::internal::Isolate;
 };
 
@@ -214,8 +215,6 @@ void FlattenString(Handle<String> str);
 // string.
 Handle<String> FlattenGetString(Handle<String> str);
 
-int Utf8Length(Handle<String> str);
-
 Handle<Object> SetProperty(Isolate* isolate,
                            Handle<Object> object,
                            Handle<Object> key,
@@ -228,25 +227,26 @@ Handle<Object> ForceSetProperty(Handle<JSObject> object,
                                 Handle<Object> value,
                                 PropertyAttributes attributes);
 
-Handle<Object> ForceDeleteProperty(Handle<JSObject> object,
-                                   Handle<Object> key);
+Handle<Object> DeleteProperty(Handle<JSObject> object, Handle<Object> key);
 
-Handle<Object> GetProperty(Handle<JSReceiver> obj,
-                           const char* name);
+Handle<Object> ForceDeleteProperty(Handle<JSObject> object, Handle<Object> key);
 
-Handle<Object> GetProperty(Handle<Object> obj,
+Handle<Object> HasProperty(Handle<JSReceiver> obj, Handle<Object> key);
+
+Handle<Object> GetProperty(Handle<JSReceiver> obj, const char* name);
+
+Handle<Object> GetProperty(Isolate* isolate,
+                           Handle<Object> obj,
                            Handle<Object> key);
-
-Handle<Object> GetPropertyWithInterceptor(Handle<JSObject> receiver,
-                                          Handle<JSObject> holder,
-                                          Handle<String> name,
-                                          PropertyAttributes* attributes);
 
 Handle<Object> SetPrototype(Handle<JSObject> obj, Handle<Object> value);
 
-Handle<Object> LookupSingleCharacterStringFromCode(uint32_t index);
+Handle<Object> LookupSingleCharacterStringFromCode(Isolate* isolate,
+                                                   uint32_t index);
 
 Handle<JSObject> Copy(Handle<JSObject> obj);
+
+Handle<JSObject> DeepCopy(Handle<JSObject> obj);
 
 Handle<Object> SetAccessor(Handle<JSObject> obj, Handle<AccessorInfo> info);
 
@@ -330,16 +330,41 @@ Handle<ObjectHashTable> PutIntoObjectHashTable(Handle<ObjectHashTable> table,
 class NoHandleAllocation BASE_EMBEDDED {
  public:
 #ifndef DEBUG
-  NoHandleAllocation() {}
+  explicit NoHandleAllocation(Isolate* isolate) {}
   ~NoHandleAllocation() {}
 #else
-  inline NoHandleAllocation();
+  explicit inline NoHandleAllocation(Isolate* isolate);
   inline ~NoHandleAllocation();
  private:
+  Isolate* isolate_;
   int level_;
   bool active_;
 #endif
 };
+
+
+class HandleDereferenceGuard BASE_EMBEDDED {
+ public:
+  enum State { ALLOW, DISALLOW, DISALLOW_DEFERRED };
+#ifndef DEBUG
+  HandleDereferenceGuard(Isolate* isolate, State state) { }
+  ~HandleDereferenceGuard() { }
+#else
+  inline HandleDereferenceGuard(Isolate* isolate,  State state);
+  inline ~HandleDereferenceGuard();
+ private:
+  Isolate* isolate_;
+  State old_state_;
+#endif
+};
+
+#ifdef DEBUG
+#define ALLOW_HANDLE_DEREF(isolate, why_this_is_safe)                          \
+  HandleDereferenceGuard allow_deref(isolate,                                  \
+                                     HandleDereferenceGuard::ALLOW);
+#else
+#define ALLOW_HANDLE_DEREF(isolate, why_this_is_safe)
+#endif  // DEBUG
 
 } }  // namespace v8::internal
 

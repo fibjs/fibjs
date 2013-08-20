@@ -36,6 +36,10 @@ namespace v8 {
 namespace internal {
 
 
+void ArrayNativeCode(MacroAssembler* masm,
+                     bool construct_call,
+                     Label* call_generic_code);
+
 // Compute a transcendental math function natively, or call the
 // TranscendentalCache runtime function.
 class TranscendentalCacheStub: public PlatformCodeStub {
@@ -64,12 +68,14 @@ class TranscendentalCacheStub: public PlatformCodeStub {
 class StoreBufferOverflowStub: public PlatformCodeStub {
  public:
   explicit StoreBufferOverflowStub(SaveFPRegsMode save_fp)
-      : save_doubles_(save_fp) { }
+      : save_doubles_(save_fp) {
+    ASSERT(CpuFeatures::IsSafeForSnapshot(SSE2) || save_fp == kDontSaveFPRegs);
+  }
 
   void Generate(MacroAssembler* masm);
 
   virtual bool IsPregenerated() { return true; }
-  static void GenerateFixedRegStubsAheadOfTime();
+  static void GenerateFixedRegStubsAheadOfTime(Isolate* isolate);
   virtual bool SometimesSetsUpAFrame() { return false; }
 
  private:
@@ -131,9 +137,9 @@ class UnaryOpStub: public PlatformCodeStub {
                              Label::Distance non_smi_near = Label::kFar);
   void GenerateSmiCodeUndo(MacroAssembler* masm);
 
-  void GenerateHeapNumberStub(MacroAssembler* masm);
-  void GenerateHeapNumberStubSub(MacroAssembler* masm);
-  void GenerateHeapNumberStubBitNot(MacroAssembler* masm);
+  void GenerateNumberStub(MacroAssembler* masm);
+  void GenerateNumberStubSub(MacroAssembler* masm);
+  void GenerateNumberStubBitNot(MacroAssembler* masm);
   void GenerateHeapNumberCodeSub(MacroAssembler* masm, Label* slow);
   void GenerateHeapNumberCodeBitNot(MacroAssembler* masm, Label* slow);
 
@@ -142,7 +148,7 @@ class UnaryOpStub: public PlatformCodeStub {
   void GenerateGenericStubBitNot(MacroAssembler* masm);
   void GenerateGenericCodeFallback(MacroAssembler* masm);
 
-  virtual int GetCodeKind() { return Code::UNARY_OP_IC; }
+  virtual Code::Kind GetCodeKind() const { return Code::UNARY_OP_IC; }
 
   virtual InlineCacheState GetICState() {
     return UnaryOpIC::ToState(operand_type_);
@@ -177,15 +183,15 @@ class StringHelper : public AllStatic {
                                         Register scratch,  // Neither of above.
                                         bool ascii);
 
-  // Probe the symbol table for a two character string. If the string
+  // Probe the string table for a two character string. If the string
   // requires non-standard hashing a jump to the label not_probed is
   // performed and registers c1 and c2 are preserved. In all other
   // cases they are clobbered. If the string is not found by probing a
   // jump to the label not_found is performed. This jump does not
-  // guarantee that the string is not in the symbol table. If the
+  // guarantee that the string is not in the string table. If the
   // string is found the code falls through with the string in
   // register eax.
-  static void GenerateTwoCharacterSymbolTableProbe(MacroAssembler* masm,
+  static void GenerateTwoCharacterStringTableProbe(MacroAssembler* masm,
                                                    Register c1,
                                                    Register c2,
                                                    Register scratch1,
@@ -320,14 +326,14 @@ class NumberToStringStub: public PlatformCodeStub {
 };
 
 
-class StringDictionaryLookupStub: public PlatformCodeStub {
+class NameDictionaryLookupStub: public PlatformCodeStub {
  public:
   enum LookupMode { POSITIVE_LOOKUP, NEGATIVE_LOOKUP };
 
-  StringDictionaryLookupStub(Register dictionary,
-                             Register result,
-                             Register index,
-                             LookupMode mode)
+  NameDictionaryLookupStub(Register dictionary,
+                           Register result,
+                           Register index,
+                           LookupMode mode)
       : dictionary_(dictionary), result_(result), index_(index), mode_(mode) { }
 
   void Generate(MacroAssembler* masm);
@@ -336,7 +342,7 @@ class StringDictionaryLookupStub: public PlatformCodeStub {
                                      Label* miss,
                                      Label* done,
                                      Register properties,
-                                     Handle<String> name,
+                                     Handle<Name> name,
                                      Register r0);
 
   static void GeneratePositiveLookup(MacroAssembler* masm,
@@ -354,14 +360,14 @@ class StringDictionaryLookupStub: public PlatformCodeStub {
   static const int kTotalProbes = 20;
 
   static const int kCapacityOffset =
-      StringDictionary::kHeaderSize +
-      StringDictionary::kCapacityIndex * kPointerSize;
+      NameDictionary::kHeaderSize +
+      NameDictionary::kCapacityIndex * kPointerSize;
 
   static const int kElementsStartOffset =
-      StringDictionary::kHeaderSize +
-      StringDictionary::kElementsStartIndex * kPointerSize;
+      NameDictionary::kHeaderSize +
+      NameDictionary::kElementsStartIndex * kPointerSize;
 
-  Major MajorKey() { return StringDictionaryLookup; }
+  Major MajorKey() { return NameDictionaryLookup; }
 
   int MinorKey() {
     return DictionaryBits::encode(dictionary_.code()) |
@@ -397,6 +403,7 @@ class RecordWriteStub: public PlatformCodeStub {
         regs_(object,   // An input reg.
               address,  // An input reg.
               value) {  // One scratch reg.
+    ASSERT(CpuFeatures::IsSafeForSnapshot(SSE2) || fp_mode == kDontSaveFPRegs);
   }
 
   enum Mode {
@@ -406,7 +413,7 @@ class RecordWriteStub: public PlatformCodeStub {
   };
 
   virtual bool IsPregenerated();
-  static void GenerateFixedRegStubsAheadOfTime();
+  static void GenerateFixedRegStubsAheadOfTime(Isolate* isolate);
   virtual bool SometimesSetsUpAFrame() { return false; }
 
   static const byte kTwoByteNopInstruction = 0x3c;  // Cmpb al, #imm8.
@@ -540,7 +547,7 @@ class RecordWriteStub: public PlatformCodeStub {
       if (!scratch0_.is(eax) && !scratch1_.is(eax)) masm->push(eax);
       if (!scratch0_.is(edx) && !scratch1_.is(edx)) masm->push(edx);
       if (mode == kSaveFPRegs) {
-        CpuFeatures::Scope scope(SSE2);
+        CpuFeatureScope scope(masm, SSE2);
         masm->sub(esp,
                   Immediate(kDoubleSize * (XMMRegister::kNumRegisters - 1)));
         // Save all XMM registers except XMM0.
@@ -554,7 +561,7 @@ class RecordWriteStub: public PlatformCodeStub {
     inline void RestoreCallerSaveRegisters(MacroAssembler*masm,
                                            SaveFPRegsMode mode) {
       if (mode == kSaveFPRegs) {
-        CpuFeatures::Scope scope(SSE2);
+        CpuFeatureScope scope(masm, SSE2);
         // Restore all XMM registers except XMM0.
         for (int i = XMMRegister::kNumRegisters - 1; i > 0; i--) {
           XMMRegister reg = XMMRegister::from_code(i);

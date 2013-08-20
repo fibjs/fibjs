@@ -311,7 +311,7 @@ int SnapshotByteSource::GetInt() {
 
 
 void SnapshotByteSource::CopyRaw(byte* to, int number_of_bytes) {
-  memcpy(to, data_ + position_, number_of_bytes);
+  OS::MemCopy(to, data_ + position_, number_of_bytes);
   position_ += number_of_bytes;
 }
 
@@ -638,7 +638,7 @@ class StartupSerializer : public Serializer {
   // Serialize the current state of the heap.  The order is:
   // 1) Strong references.
   // 2) Partial snapshot cache.
-  // 3) Weak references (e.g. the symbol table).
+  // 3) Weak references (e.g. the string table).
   virtual void SerializeStrongReferences();
   virtual void SerializeObject(Object* o,
                                HowToCode how_to_code,

@@ -115,6 +115,9 @@ class List {
   void InsertAt(int index, const T& element,
                 AllocationPolicy allocator = AllocationPolicy());
 
+  // Overwrites the element at the specific index.
+  void Set(int index, const T& element);
+
   // Added 'count' elements with the value 'value' and returns a
   // vector that allows access to the elements.  The vector is valid
   // until the next change is made to this list.
@@ -148,6 +151,9 @@ class List {
 
   // Drop the last 'count' elements from the list.
   INLINE(void RewindBy(int count)) { Rewind(length_ - count); }
+
+  // Halve the capacity if fill level is less than a quarter.
+  INLINE(void Trim(AllocationPolicy allocator = AllocationPolicy()));
 
   bool Contains(const T& elm) const;
   int CountOccurrences(const T& elm, int start, int end) const;

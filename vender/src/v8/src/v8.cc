@@ -37,10 +37,10 @@
 #include "heap-profiler.h"
 #include "hydrogen.h"
 #include "lithium-allocator.h"
-#include "log.h"
 #include "objects.h"
 #include "once.h"
 #include "platform.h"
+#include "sampler.h"
 #include "runtime-profiler.h"
 #include "serialize.h"
 #include "store-buffer.h"
@@ -63,8 +63,6 @@ static EntropySource entropy_source;
 
 
 bool V8::Initialize(Deserializer* des) {
-  FlagList::EnforceFlagImplications();
-
   InitializeOncePerProcess();
 
   // The current thread may not yet had entered an isolate to run.
@@ -117,6 +115,7 @@ void V8::TearDown() {
   LOperand::TearDownCaches();
   ExternalReference::TearDownMathExpData();
   RegisteredExtension::UnregisterAll();
+  Isolate::GlobalTearDown();
 
   is_running_ = false;
   has_been_disposed_ = true;
@@ -124,6 +123,7 @@ void V8::TearDown() {
   delete call_completed_callbacks_;
   call_completed_callbacks_ = NULL;
 
+  Sampler::TearDown();
   OS::TearDown();
 }
 
@@ -263,34 +263,23 @@ Object* V8::FillHeapNumberWithRandom(Object* heap_number,
 }
 
 void V8::InitializeOncePerProcessImpl() {
-  OS::SetUp();
-
-  use_crankshaft_ = FLAG_crankshaft;
-
-  if (Serializer::enabled()) {
-    use_crankshaft_ = false;
-  }
-
-  CPU::SetUp();
-  if (!CPU::SupportsCrankshaft()) {
-    use_crankshaft_ = false;
-  }
-
-  OS::PostSetUp();
-
-  RuntimeProfiler::GlobalSetUp();
-
-  ElementsAccessor::InitializeOncePerProcess();
-
+  FlagList::EnforceFlagImplications();
   if (FLAG_stress_compaction) {
     FLAG_force_marking_deque_overflows = true;
     FLAG_gc_global = true;
     FLAG_max_new_space_size = (1 << (kPageSizeBits - 10)) * 2;
   }
-
+  if (FLAG_trace_hydrogen) FLAG_parallel_recompilation = false;
+  OS::SetUp();
+  Sampler::SetUp();
+  CPU::SetUp();
+  use_crankshaft_ = FLAG_crankshaft
+      && !Serializer::enabled()
+      && CPU::SupportsCrankshaft();
+  OS::PostSetUp();
+  ElementsAccessor::InitializeOncePerProcess();
   LOperand::SetUpCaches();
   SetUpJSCallerSavedCodeData();
-  SamplerRegistry::SetUp();
   ExternalReference::SetUp();
 }
 

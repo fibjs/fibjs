@@ -91,6 +91,10 @@ class MacroAssembler: public Assembler {
       Label* condition_met,
       Label::Distance condition_met_distance = Label::kFar);
 
+  void CheckMapDeprecated(Handle<Map> map,
+                          Register scratch,
+                          Label* if_deprecated);
+
   // Check if object is in new space.  Jumps if the object is not in new space.
   // The register scratch can be object itself, but scratch will be clobbered.
   void JumpIfNotInNewSpace(Register object,
@@ -249,6 +253,8 @@ class MacroAssembler: public Assembler {
                            Register map_out,
                            bool can_have_holes);
 
+  void LoadGlobalContext(Register global_context);
+
   // Load the global function with the given index.
   void LoadGlobalFunction(int index, Register function);
 
@@ -269,6 +275,7 @@ class MacroAssembler: public Assembler {
   void PushHeapObject(Handle<HeapObject> object);
 
   void LoadObject(Register result, Handle<Object> object) {
+    ALLOW_HANDLE_DEREF(isolate(), "heap object check");
     if (object->IsHeapObject()) {
       LoadHeapObject(result, Handle<HeapObject>::cast(object));
     } else {
@@ -318,6 +325,7 @@ class MacroAssembler: public Assembler {
                       CallKind call_kind);
 
   void InvokeFunction(Handle<JSFunction> function,
+                      const ParameterCount& expected,
                       const ParameterCount& actual,
                       InvokeFlag flag,
                       const CallWrapper& call_wrapper,
@@ -408,6 +416,7 @@ class MacroAssembler: public Assembler {
   // specified target if equal. Skip the smi check if not required (object is
   // known to be a heap object)
   void DispatchMap(Register obj,
+                   Register unused,
                    Handle<Map> map,
                    Handle<Code> success,
                    SmiCheckType smi_check_type);
@@ -420,6 +429,15 @@ class MacroAssembler: public Assembler {
   Condition IsObjectStringType(Register heap_object,
                                Register map,
                                Register instance_type);
+
+  // Check if the object in register heap_object is a name. Afterwards the
+  // register map contains the object map and the register instance_type
+  // contains the instance_type. The registers map and instance_type can be the
+  // same in which case it contains the instance type afterwards. Either of the
+  // registers map and instance_type can be the same as heap_object.
+  Condition IsObjectNameType(Register heap_object,
+                             Register map,
+                             Register instance_type);
 
   // Check if a heap object's type is in the JSObject range, not including
   // JSFunction.  The object's map will be loaded in the map register.
@@ -511,6 +529,9 @@ class MacroAssembler: public Assembler {
   // Abort execution if argument is not a string, enabled via --debug-code.
   void AssertString(Register object);
 
+  // Abort execution if argument is not a name, enabled via --debug-code.
+  void AssertName(Register object);
+
   // ---------------------------------------------------------------------------
   // Exception handling
 
@@ -533,7 +554,8 @@ class MacroAssembler: public Assembler {
   // on access to global objects across environments. The holder register
   // is left untouched, but the scratch register is clobbered.
   void CheckAccessGlobalProxy(Register holder_reg,
-                              Register scratch,
+                              Register scratch1,
+                              Register scratch2,
                               Label* miss);
 
   void GetNumberHash(Register r0, Register scratch);
@@ -550,39 +572,39 @@ class MacroAssembler: public Assembler {
   // ---------------------------------------------------------------------------
   // Allocation support
 
-  // Allocate an object in new space. If the new space is exhausted control
-  // continues at the gc_required label. The allocated object is returned in
-  // result and end of the new object is returned in result_end. The register
-  // scratch can be passed as no_reg in which case an additional object
-  // reference will be added to the reloc info. The returned pointers in result
-  // and result_end have not yet been tagged as heap objects. If
-  // result_contains_top_on_entry is true the content of result is known to be
-  // the allocation top on entry (could be result_end from a previous call to
-  // AllocateInNewSpace). If result_contains_top_on_entry is true scratch
+  // Allocate an object in new space or old pointer space. If the given space
+  // is exhausted control continues at the gc_required label. The allocated
+  // object is returned in result and end of the new object is returned in
+  // result_end. The register scratch can be passed as no_reg in which case
+  // an additional object reference will be added to the reloc info. The
+  // returned pointers in result and result_end have not yet been tagged as
+  // heap objects. If result_contains_top_on_entry is true the content of
+  // result is known to be the allocation top on entry (could be result_end
+  // from a previous call). If result_contains_top_on_entry is true scratch
   // should be no_reg as it is never used.
-  void AllocateInNewSpace(int object_size,
-                          Register result,
-                          Register result_end,
-                          Register scratch,
-                          Label* gc_required,
-                          AllocationFlags flags);
+  void Allocate(int object_size,
+                Register result,
+                Register result_end,
+                Register scratch,
+                Label* gc_required,
+                AllocationFlags flags);
 
-  void AllocateInNewSpace(int header_size,
-                          ScaleFactor element_size,
-                          Register element_count,
-                          RegisterValueType element_count_type,
-                          Register result,
-                          Register result_end,
-                          Register scratch,
-                          Label* gc_required,
-                          AllocationFlags flags);
+  void Allocate(int header_size,
+                ScaleFactor element_size,
+                Register element_count,
+                RegisterValueType element_count_type,
+                Register result,
+                Register result_end,
+                Register scratch,
+                Label* gc_required,
+                AllocationFlags flags);
 
-  void AllocateInNewSpace(Register object_size,
-                          Register result,
-                          Register result_end,
-                          Register scratch,
-                          Label* gc_required,
-                          AllocationFlags flags);
+  void Allocate(Register object_size,
+                Register result,
+                Register result_end,
+                Register scratch,
+                Label* gc_required,
+                AllocationFlags flags);
 
   // Undo allocation in new space. The object passed and objects allocated after
   // it will no longer be allocated. Make sure that no pointers are left to the
@@ -784,13 +806,15 @@ class MacroAssembler: public Assembler {
 
   // Push a handle value.
   void Push(Handle<Object> handle) { push(Immediate(handle)); }
-  void Push(Smi* smi) { Push(Handle<Smi>(smi)); }
+  void Push(Smi* smi) { Push(Handle<Smi>(smi, isolate())); }
 
   Handle<Object> CodeObject() {
     ASSERT(!code_object_.is_null());
     return code_object_;
   }
 
+  // Insert code to verify that the x87 stack has the specified depth (0-7)
+  void VerifyX87StackDepth(uint32_t depth);
 
   // ---------------------------------------------------------------------------
   // StatsCounter support
@@ -859,6 +883,15 @@ class MacroAssembler: public Assembler {
   // in eax.  Assumes that any other register can be used as a scratch.
   void CheckEnumCache(Label* call_runtime);
 
+  // AllocationSiteInfo support. Arrays may have an associated
+  // AllocationSiteInfo object that can be checked for in order to pretransition
+  // to another type.
+  // On entry, receiver_reg should point to the array object.
+  // scratch_reg gets clobbered.
+  // If allocation info is present, conditional code is set to equal
+  void TestJSArrayForAllocationSiteInfo(Register receiver_reg,
+                                        Register scratch_reg);
+
  private:
   bool generating_stub_;
   bool allow_stub_calls_;
@@ -887,7 +920,10 @@ class MacroAssembler: public Assembler {
   void LoadAllocationTopHelper(Register result,
                                Register scratch,
                                AllocationFlags flags);
-  void UpdateAllocationTopHelper(Register result_end, Register scratch);
+
+  void UpdateAllocationTopHelper(Register result_end,
+                                 Register scratch,
+                                 AllocationFlags flags);
 
   // Helper for PopHandleScope.  Allowed to perform a GC and returns
   // NULL if gc_allowed.  Does not perform a GC if !gc_allowed, and

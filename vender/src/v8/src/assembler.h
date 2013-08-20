@@ -50,7 +50,7 @@ class ApiFunction;
 
 namespace internal {
 
-struct StatsCounter;
+class StatsCounter;
 // -----------------------------------------------------------------------------
 // Platform independent assembler base class.
 
@@ -67,6 +67,14 @@ class AssemblerBase: public Malloced {
 
   bool predictable_code_size() const { return predictable_code_size_; }
   void set_predictable_code_size(bool value) { predictable_code_size_ = value; }
+
+  uint64_t enabled_cpu_features() const { return enabled_cpu_features_; }
+  void set_enabled_cpu_features(uint64_t features) {
+    enabled_cpu_features_ = features;
+  }
+  bool IsEnabled(CpuFeature f) {
+    return (enabled_cpu_features_ & (static_cast<uint64_t>(1) << f)) != 0;
+  }
 
   // Overwrite a host NaN with a quiet target NaN.  Used by mksnapshot for
   // cross-snapshotting.
@@ -89,6 +97,7 @@ class AssemblerBase: public Malloced {
  private:
   Isolate* isolate_;
   int jit_cookie_;
+  uint64_t enabled_cpu_features_;
   bool emit_debug_code_;
   bool predictable_code_size_;
 };
@@ -106,6 +115,22 @@ class PredictableCodeSizeScope {
   int expected_size_;
   int start_offset_;
   bool old_value_;
+};
+
+
+// Enable a specified feature within a scope.
+class CpuFeatureScope BASE_EMBEDDED {
+ public:
+#ifdef DEBUG
+  CpuFeatureScope(AssemblerBase* assembler, CpuFeature f);
+  ~CpuFeatureScope();
+
+ private:
+  AssemblerBase* assembler_;
+  uint64_t old_enabled_;
+#else
+  CpuFeatureScope(AssemblerBase* assembler, CpuFeature f) {}
+#endif
 };
 
 
@@ -248,7 +273,7 @@ class RelocInfo BASE_EMBEDDED {
     // add more as needed
     // Pseudo-types
     NUMBER_OF_MODES,  // There are at most 15 modes with noncompact encoding.
-    NONE,  // never recorded 32-bit value
+    NONE32,  // never recorded 32-bit value
     NONE64,  // never recorded 64-bit value
     CODE_AGE_SEQUENCE,  // Not stored in RelocInfo array, used explictly by
                         // code aging.
@@ -291,6 +316,9 @@ class RelocInfo BASE_EMBEDDED {
   static inline bool IsEmbeddedObject(Mode mode) {
     return mode == EMBEDDED_OBJECT;
   }
+  static inline bool IsRuntimeEntry(Mode mode) {
+    return mode == RUNTIME_ENTRY;
+  }
   // Is the relocation mode affected by GC?
   static inline bool IsGCRelocMode(Mode mode) {
     return mode <= LAST_GCED_ENUM;
@@ -320,7 +348,7 @@ class RelocInfo BASE_EMBEDDED {
     return mode == DEBUG_BREAK_SLOT;
   }
   static inline bool IsNone(Mode mode) {
-    return mode == NONE || mode == NONE64;
+    return mode == NONE32 || mode == NONE64;
   }
   static inline bool IsCodeAgeSequence(Mode mode) {
     return mode == CODE_AGE_SEQUENCE;
@@ -345,7 +373,7 @@ class RelocInfo BASE_EMBEDDED {
 
   // Read/modify the code target in the branch/call instruction
   // this relocation applies to;
-  // can only be called if IsCodeTarget(rmode_) || rmode_ == RUNTIME_ENTRY
+  // can only be called if IsCodeTarget(rmode_) || IsRuntimeEntry(rmode_)
   INLINE(Address target_address());
   INLINE(void set_target_address(Address target,
                                  WriteBarrierMode mode = UPDATE_WRITE_BARRIER));
@@ -354,6 +382,10 @@ class RelocInfo BASE_EMBEDDED {
   INLINE(Object** target_object_address());
   INLINE(void set_target_object(Object* target,
                                 WriteBarrierMode mode = UPDATE_WRITE_BARRIER));
+  INLINE(Address target_runtime_entry(Assembler* origin));
+  INLINE(void set_target_runtime_entry(Address target,
+                                       WriteBarrierMode mode =
+                                           UPDATE_WRITE_BARRIER));
   INLINE(JSGlobalPropertyCell* target_cell());
   INLINE(Handle<JSGlobalPropertyCell> target_cell_handle());
   INLINE(void set_target_cell(JSGlobalPropertyCell* cell,
@@ -409,10 +441,16 @@ class RelocInfo BASE_EMBEDDED {
   // debugger.
   INLINE(bool IsPatchedDebugBreakSlotSequence());
 
+#ifdef DEBUG
+  // Check whether the given code contains relocation information that
+  // either is position-relative or movable by the garbage collector.
+  static bool RequiresRelocation(const CodeDesc& desc);
+#endif
+
 #ifdef ENABLE_DISASSEMBLER
   // Printing
   static const char* RelocModeName(Mode rmode);
-  void Print(FILE* out);
+  void Print(Isolate* isolate, FILE* out);
 #endif  // ENABLE_DISASSEMBLER
 #ifdef VERIFY_HEAP
   void Verify();
@@ -643,7 +681,7 @@ class ExternalReference BASE_EMBEDDED {
   explicit ExternalReference(const SCTableReference& table_ref);
 
   // Isolate::Current() as an external reference.
-  static ExternalReference isolate_address();
+  static ExternalReference isolate_address(Isolate* isolate);
 
   // One-of-a-kind references. These references are not part of a general
   // pattern. This means that they have to be added to the
@@ -711,6 +749,16 @@ class ExternalReference BASE_EMBEDDED {
   // Used for fast allocation in generated code.
   static ExternalReference new_space_allocation_top_address(Isolate* isolate);
   static ExternalReference new_space_allocation_limit_address(Isolate* isolate);
+  static ExternalReference old_pointer_space_allocation_top_address(
+      Isolate* isolate);
+  static ExternalReference old_pointer_space_allocation_limit_address(
+      Isolate* isolate);
+  static ExternalReference old_data_space_allocation_top_address(
+      Isolate* isolate);
+  static ExternalReference old_data_space_allocation_limit_address(
+      Isolate* isolate);
+  static ExternalReference new_space_high_promotion_mode_active_address(
+      Isolate* isolate);
 
   static ExternalReference double_fp_operation(Token::Value operation,
                                                Isolate* isolate);
@@ -718,9 +766,9 @@ class ExternalReference BASE_EMBEDDED {
   static ExternalReference power_double_double_function(Isolate* isolate);
   static ExternalReference power_double_int_function(Isolate* isolate);
 
-  static ExternalReference handle_scope_next_address();
-  static ExternalReference handle_scope_limit_address();
-  static ExternalReference handle_scope_level_address();
+  static ExternalReference handle_scope_next_address(Isolate* isolate);
+  static ExternalReference handle_scope_limit_address(Isolate* isolate);
+  static ExternalReference handle_scope_level_address(Isolate* isolate);
 
   static ExternalReference scheduled_exception_address(Isolate* isolate);
   static ExternalReference address_of_pending_message_obj(Isolate* isolate);
@@ -730,6 +778,7 @@ class ExternalReference BASE_EMBEDDED {
   // Static variables containing common double constants.
   static ExternalReference address_of_min_int();
   static ExternalReference address_of_one_half();
+  static ExternalReference address_of_minus_one_half();
   static ExternalReference address_of_minus_zero();
   static ExternalReference address_of_zero();
   static ExternalReference address_of_uint8_max_value();
@@ -748,6 +797,8 @@ class ExternalReference BASE_EMBEDDED {
   static ExternalReference page_flags(Page* page);
 
   static ExternalReference ForDeoptEntry(Address entry);
+
+  static ExternalReference cpu_features();
 
   Address address() const {return reinterpret_cast<Address>(address_);}
 
@@ -842,6 +893,7 @@ class PositionsRecorder BASE_EMBEDDED {
 #ifdef ENABLE_GDB_JIT_INTERFACE
     gdbjit_lineinfo_ = NULL;
 #endif
+    jit_handler_data_ = NULL;
   }
 
 #ifdef ENABLE_GDB_JIT_INTERFACE
@@ -861,7 +913,15 @@ class PositionsRecorder BASE_EMBEDDED {
     return lineinfo;
   }
 #endif
+  void AttachJITHandlerData(void* user_data) {
+    jit_handler_data_ = user_data;
+  }
 
+  void* DetachJITHandlerData() {
+    void* old_data = jit_handler_data_;
+    jit_handler_data_ = NULL;
+    return old_data;
+  }
   // Set current position to pos.
   void RecordPosition(int pos);
 
@@ -884,6 +944,9 @@ class PositionsRecorder BASE_EMBEDDED {
   GDBJITLineInfo* gdbjit_lineinfo_;
 #endif
 
+  // Currently jit_handler_data_ is used to store JITHandler-specific data
+  // over the lifetime of a PositionsRecorder
+  void* jit_handler_data_;
   friend class PreservePositionScope;
 
   DISALLOW_COPY_AND_ASSIGN(PositionsRecorder);
@@ -948,6 +1011,7 @@ inline int NumberOfBitsSet(uint32_t x) {
 bool EvalComparison(Token::Value op, double op1, double op2);
 
 // Computes pow(x, y) with the special cases in the spec for Math.pow.
+double power_helper(double x, double y);
 double power_double_int(double x, int y);
 double power_double_double(double x, double y);
 

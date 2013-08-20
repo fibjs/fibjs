@@ -142,6 +142,7 @@ inline Register Register::FromAllocationIndex(int index)  {
 
 
 struct IntelDoubleRegister {
+  static const int kMaxNumRegisters = 8;
   static const int kMaxNumAllocatableRegisters = 7;
   static int NumAllocatableRegisters();
   static int NumRegisters();
@@ -337,12 +338,12 @@ class Immediate BASE_EMBEDDED {
     return Immediate(label);
   }
 
-  bool is_zero() const { return x_ == 0 && rmode_ == RelocInfo::NONE; }
+  bool is_zero() const { return x_ == 0 && RelocInfo::IsNone(rmode_); }
   bool is_int8() const {
-    return -128 <= x_ && x_ < 128 && rmode_ == RelocInfo::NONE;
+    return -128 <= x_ && x_ < 128 && RelocInfo::IsNone(rmode_);
   }
   bool is_int16() const {
-    return -32768 <= x_ && x_ < 32768 && rmode_ == RelocInfo::NONE;
+    return -32768 <= x_ && x_ < 32768 && RelocInfo::IsNone(rmode_);
   }
 
  private:
@@ -382,20 +383,20 @@ class Operand BASE_EMBEDDED {
 
   // [base + disp/r]
   explicit Operand(Register base, int32_t disp,
-                   RelocInfo::Mode rmode = RelocInfo::NONE);
+                   RelocInfo::Mode rmode = RelocInfo::NONE32);
 
   // [base + index*scale + disp/r]
   explicit Operand(Register base,
                    Register index,
                    ScaleFactor scale,
                    int32_t disp,
-                   RelocInfo::Mode rmode = RelocInfo::NONE);
+                   RelocInfo::Mode rmode = RelocInfo::NONE32);
 
   // [index*scale + disp/r]
   explicit Operand(Register index,
                    ScaleFactor scale,
                    int32_t disp,
-                   RelocInfo::Mode rmode = RelocInfo::NONE);
+                   RelocInfo::Mode rmode = RelocInfo::NONE32);
 
   static Operand StaticVariable(const ExternalReference& ext) {
     return Operand(reinterpret_cast<int32_t>(ext.address()),
@@ -410,6 +411,7 @@ class Operand BASE_EMBEDDED {
   }
 
   static Operand Cell(Handle<JSGlobalPropertyCell> cell) {
+    ALLOW_HANDLE_DEREF(Isolate::Current(), "embedding raw address");
     return Operand(reinterpret_cast<int32_t>(cell.location()),
                    RelocInfo::GLOBAL_PROPERTY_CELL);
   }
@@ -504,10 +506,10 @@ class Displacement BASE_EMBEDDED {
 
 
 // CpuFeatures keeps track of which features are supported by the target CPU.
-// Supported features must be enabled by a Scope before use.
+// Supported features must be enabled by a CpuFeatureScope before use.
 // Example:
-//   if (CpuFeatures::IsSupported(SSE2)) {
-//     CpuFeatures::Scope fscope(SSE2);
+//   if (assembler->IsSupported(SSE2)) {
+//     CpuFeatureScope fscope(assembler, SSE2);
 //     // Generate SSE2 floating point code.
 //   } else {
 //     // Generate standard x87 floating point code.
@@ -529,88 +531,25 @@ class CpuFeatures : public AllStatic {
     return (supported_ & (static_cast<uint64_t>(1) << f)) != 0;
   }
 
-#ifdef DEBUG
-  // Check whether a feature is currently enabled.
-  static bool IsEnabled(CpuFeature f) {
+  static bool IsFoundByRuntimeProbingOnly(CpuFeature f) {
     ASSERT(initialized_);
-    Isolate* isolate = Isolate::UncheckedCurrent();
-    if (isolate == NULL) {
-      // When no isolate is available, work as if we're running in
-      // release mode.
-      return IsSupported(f);
-    }
-    uint64_t enabled = isolate->enabled_cpu_features();
-    return (enabled & (static_cast<uint64_t>(1) << f)) != 0;
+    return (found_by_runtime_probing_only_ &
+            (static_cast<uint64_t>(1) << f)) != 0;
   }
-#endif
 
-  // Enable a specified feature within a scope.
-  class Scope BASE_EMBEDDED {
-#ifdef DEBUG
-
-   public:
-    explicit Scope(CpuFeature f) {
-      uint64_t mask = static_cast<uint64_t>(1) << f;
-      ASSERT(CpuFeatures::IsSupported(f));
-      ASSERT(!Serializer::enabled() ||
-             (CpuFeatures::found_by_runtime_probing_ & mask) == 0);
-      isolate_ = Isolate::UncheckedCurrent();
-      old_enabled_ = 0;
-      if (isolate_ != NULL) {
-        old_enabled_ = isolate_->enabled_cpu_features();
-        isolate_->set_enabled_cpu_features(old_enabled_ | mask);
-      }
-    }
-    ~Scope() {
-      ASSERT_EQ(Isolate::UncheckedCurrent(), isolate_);
-      if (isolate_ != NULL) {
-        isolate_->set_enabled_cpu_features(old_enabled_);
-      }
-    }
-
-   private:
-    Isolate* isolate_;
-    uint64_t old_enabled_;
-#else
-
-   public:
-    explicit Scope(CpuFeature f) {}
-#endif
-  };
-
-  class TryForceFeatureScope BASE_EMBEDDED {
-   public:
-    explicit TryForceFeatureScope(CpuFeature f)
-        : old_supported_(CpuFeatures::supported_) {
-      if (CanForce()) {
-        CpuFeatures::supported_ |= (static_cast<uint64_t>(1) << f);
-      }
-    }
-
-    ~TryForceFeatureScope() {
-      if (CanForce()) {
-        CpuFeatures::supported_ = old_supported_;
-      }
-    }
-
-   private:
-    static bool CanForce() {
-      // It's only safe to temporarily force support of CPU features
-      // when there's only a single isolate, which is guaranteed when
-      // the serializer is enabled.
-      return Serializer::enabled();
-    }
-
-    const uint64_t old_supported_;
-  };
+  static bool IsSafeForSnapshot(CpuFeature f) {
+    return (IsSupported(f) &&
+            (!Serializer::enabled() || !IsFoundByRuntimeProbingOnly(f)));
+  }
 
  private:
 #ifdef DEBUG
   static bool initialized_;
 #endif
   static uint64_t supported_;
-  static uint64_t found_by_runtime_probing_;
+  static uint64_t found_by_runtime_probing_only_;
 
+  friend class ExternalReference;
   DISALLOW_COPY_AND_ASSIGN(CpuFeatures);
 };
 
@@ -1088,6 +1027,13 @@ class Assembler : public AssemblerBase {
   void movdqa(const Operand& dst, XMMRegister src);
   void movdqu(XMMRegister dst, const Operand& src);
   void movdqu(const Operand& dst, XMMRegister src);
+  void movdq(bool aligned, XMMRegister dst, const Operand& src) {
+    if (aligned) {
+      movdqa(dst, src);
+    } else {
+      movdqu(dst, src);
+    }
+  }
 
   // Use either movsd or movlpd.
   void movdbl(XMMRegister dst, const Operand& src);
@@ -1202,6 +1148,9 @@ class Assembler : public AssemblerBase {
   inline void emit(uint32_t x);
   inline void emit(Handle<Object> handle);
   inline void emit(uint32_t x,
+                   RelocInfo::Mode rmode,
+                   TypeFeedbackId id = TypeFeedbackId::None());
+  inline void emit(Handle<Code> code,
                    RelocInfo::Mode rmode,
                    TypeFeedbackId id = TypeFeedbackId::None());
   inline void emit(const Immediate& x);

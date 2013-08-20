@@ -48,36 +48,38 @@ namespace internal {
 
 
 int Register::NumAllocatableRegisters() {
-  if (CpuFeatures::IsSupported(VFP2)) {
-    return kMaxNumAllocatableRegisters;
-  } else {
-    return kMaxNumAllocatableRegisters - kGPRsPerNonVFP2Double;
-  }
+  return kMaxNumAllocatableRegisters;
 }
 
 
 int DwVfpRegister::NumRegisters() {
-  if (CpuFeatures::IsSupported(VFP2)) {
-    return DwVfpRegister::kNumRegisters;
-  } else {
-    return 1;
-  }
+  return CpuFeatures::IsSupported(VFP32DREGS) ? 32 : 16;
 }
 
 
 int DwVfpRegister::NumAllocatableRegisters() {
-  if (CpuFeatures::IsSupported(VFP2)) {
-    return DwVfpRegister::kMaxNumAllocatableRegisters;
-  } else {
-    return 1;
-  }
+  return NumRegisters() - kNumReservedRegisters;
 }
 
 
 int DwVfpRegister::ToAllocationIndex(DwVfpRegister reg) {
   ASSERT(!reg.is(kDoubleRegZero));
   ASSERT(!reg.is(kScratchDoubleReg));
+  if (reg.code() > kDoubleRegZero.code()) {
+    return reg.code() - kNumReservedRegisters;
+  }
   return reg.code();
+}
+
+
+DwVfpRegister DwVfpRegister::FromAllocationIndex(int index) {
+  ASSERT(index >= 0 && index < NumAllocatableRegisters());
+  ASSERT(kScratchDoubleReg.code() - kDoubleRegZero.code() ==
+         kNumReservedRegisters - 1);
+  if (index >= kDoubleRegZero.code()) {
+    return from_code(index + kNumReservedRegisters);
+  }
+  return from_code(index);
 }
 
 
@@ -93,13 +95,13 @@ void RelocInfo::apply(intptr_t delta) {
 
 
 Address RelocInfo::target_address() {
-  ASSERT(IsCodeTarget(rmode_) || rmode_ == RUNTIME_ENTRY);
+  ASSERT(IsCodeTarget(rmode_) || IsRuntimeEntry(rmode_));
   return Assembler::target_address_at(pc_);
 }
 
 
 Address RelocInfo::target_address_address() {
-  ASSERT(IsCodeTarget(rmode_) || rmode_ == RUNTIME_ENTRY
+  ASSERT(IsCodeTarget(rmode_) || IsRuntimeEntry(rmode_)
                               || rmode_ == EMBEDDED_OBJECT
                               || rmode_ == EXTERNAL_REFERENCE);
   return reinterpret_cast<Address>(Assembler::target_pointer_address_at(pc_));
@@ -112,7 +114,7 @@ int RelocInfo::target_address_size() {
 
 
 void RelocInfo::set_target_address(Address target, WriteBarrierMode mode) {
-  ASSERT(IsCodeTarget(rmode_) || rmode_ == RUNTIME_ENTRY);
+  ASSERT(IsCodeTarget(rmode_) || IsRuntimeEntry(rmode_));
   Assembler::set_target_address_at(pc_, target);
   if (mode == UPDATE_WRITE_BARRIER && host() != NULL && IsCodeTarget(rmode_)) {
     Object* target_code = Code::GetCodeFromTargetAddress(target);
@@ -161,6 +163,19 @@ Address* RelocInfo::target_reference_address() {
   ASSERT(rmode_ == EXTERNAL_REFERENCE);
   reconstructed_adr_ptr_ = Assembler::target_address_at(pc_);
   return &reconstructed_adr_ptr_;
+}
+
+
+Address RelocInfo::target_runtime_entry(Assembler* origin) {
+  ASSERT(IsRuntimeEntry(rmode_));
+  return target_address();
+}
+
+
+void RelocInfo::set_target_runtime_entry(Address target,
+                                         WriteBarrierMode mode) {
+  ASSERT(IsRuntimeEntry(rmode_));
+  if (target_address() != target) set_target_address(target, mode);
 }
 
 
@@ -251,19 +266,11 @@ Object** RelocInfo::call_object_address() {
 bool RelocInfo::IsPatchedReturnSequence() {
   Instr current_instr = Assembler::instr_at(pc_);
   Instr next_instr = Assembler::instr_at(pc_ + Assembler::kInstrSize);
-#ifdef USE_BLX
   // A patched return sequence is:
   //  ldr ip, [pc, #0]
   //  blx ip
   return ((current_instr & kLdrPCMask) == kLdrPCPattern)
           && ((next_instr & kBlxRegMask) == kBlxRegPattern);
-#else
-  // A patched return sequence is:
-  //  mov lr, pc
-  //  ldr pc, [pc, #-4]
-  return (current_instr == kMovLrPc)
-          && ((next_instr & kLdrPCMask) == kLdrPCPattern);
-#endif
 }
 
 
@@ -294,7 +301,7 @@ void RelocInfo::Visit(ObjectVisitor* visitor) {
              Isolate::Current()->debug()->has_break_points()) {
     visitor->VisitDebugTarget(this);
 #endif
-  } else if (mode == RelocInfo::RUNTIME_ENTRY) {
+  } else if (RelocInfo::IsRuntimeEntry(mode)) {
     visitor->VisitRuntimeEntry(this);
   }
 }
@@ -321,7 +328,7 @@ void RelocInfo::Visit(Heap* heap) {
               IsPatchedDebugBreakSlotSequence()))) {
     StaticVisitor::VisitDebugTarget(heap, this);
 #endif
-  } else if (mode == RelocInfo::RUNTIME_ENTRY) {
+  } else if (RelocInfo::IsRuntimeEntry(mode)) {
     StaticVisitor::VisitRuntimeEntry(this);
   }
 }
@@ -344,7 +351,7 @@ Operand::Operand(const ExternalReference& f)  {
 Operand::Operand(Smi* value) {
   rm_ = no_reg;
   imm32_ =  reinterpret_cast<intptr_t>(value);
-  rmode_ = RelocInfo::NONE;
+  rmode_ = RelocInfo::NONE32;
 }
 
 
@@ -393,14 +400,11 @@ Address Assembler::target_pointer_address_at(Address pc) {
     instr = Memory::int32_at(target_pc);
   }
 
-#ifdef USE_BLX
-  // If we have a blx instruction, the instruction before it is
-  // what needs to be patched.
+  // With a blx instruction, the instruction before is what needs to be patched.
   if ((instr & kBlxRegMask) == kBlxRegPattern) {
     target_pc -= kInstrSize;
     instr = Memory::int32_at(target_pc);
   }
-#endif
 
   ASSERT(IsLdrPcImmediateOffset(instr));
   int offset = instr & 0xfff;  // offset_12 is unsigned
@@ -427,7 +431,6 @@ Address Assembler::target_pointer_at(Address pc) {
 Address Assembler::target_address_from_return_address(Address pc) {
   // Returns the address of the call target from the return address that will
   // be returned to after a call.
-#ifdef USE_BLX
   // Call sequence on V7 or later is :
   //  movw  ip, #... @ call address low 16
   //  movt  ip, #... @ call address high 16
@@ -446,18 +449,10 @@ Address Assembler::target_address_from_return_address(Address pc) {
   ASSERT(IsMovW(Memory::int32_at(candidate)) &&
          IsMovT(Memory::int32_at(candidate + kInstrSize)));
   return candidate;
-#else
-  // Call sequence is:
-  //  mov  lr, pc
-  //  ldr  pc, [pc, #...] @ call address
-  //                      @ return address
-  return pc - kInstrSize;
-#endif
 }
 
 
 Address Assembler::return_address_from_call_start(Address pc) {
-#ifdef USE_BLX
   if (IsLdrPcImmediateOffset(Memory::int32_at(pc))) {
     return pc + kInstrSize * 2;
   } else {
@@ -465,9 +460,6 @@ Address Assembler::return_address_from_call_start(Address pc) {
     ASSERT(IsMovT(Memory::int32_at(pc + kInstrSize)));
     return pc + kInstrSize * 3;
   }
-#else
-  return pc + kInstrSize;
-#endif
 }
 
 

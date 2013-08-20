@@ -47,6 +47,49 @@
 namespace v8 {
 namespace internal {
 
+// CpuFeatures keeps track of which features are supported by the target CPU.
+// Supported features must be enabled by a CpuFeatureScope before use.
+class CpuFeatures : public AllStatic {
+ public:
+  // Detect features of the target CPU. Set safe defaults if the serializer
+  // is enabled (snapshots must be portable).
+  static void Probe();
+
+  // Display target use when compiling.
+  static void PrintTarget();
+
+  // Display features.
+  static void PrintFeatures();
+
+  // Check whether a feature is supported by the target CPU.
+  static bool IsSupported(CpuFeature f) {
+    ASSERT(initialized_);
+    return (supported_ & (1u << f)) != 0;
+  }
+
+  static bool IsFoundByRuntimeProbingOnly(CpuFeature f) {
+    ASSERT(initialized_);
+    return (found_by_runtime_probing_only_ &
+            (static_cast<uint64_t>(1) << f)) != 0;
+  }
+
+  static bool IsSafeForSnapshot(CpuFeature f) {
+    return (IsSupported(f) &&
+            (!Serializer::enabled() || !IsFoundByRuntimeProbingOnly(f)));
+  }
+
+ private:
+#ifdef DEBUG
+  static bool initialized_;
+#endif
+  static unsigned supported_;
+  static unsigned found_by_runtime_probing_only_;
+
+  friend class ExternalReference;
+  DISALLOW_COPY_AND_ASSIGN(CpuFeatures);
+};
+
+
 // CPU Registers.
 //
 // 1) We would prefer to use an enum, but enum values are assignment-
@@ -73,7 +116,6 @@ struct Register {
   static const int kNumRegisters = 16;
   static const int kMaxNumAllocatableRegisters = 8;
   static const int kSizeInBytes = 4;
-  static const int kGPRsPerNonVFP2Double = 2;
 
   inline static int NumAllocatableRegisters();
 
@@ -170,6 +212,7 @@ const Register pc  = { kRegister_pc_Code };
 
 // Single word VFP register.
 struct SwVfpRegister {
+  static const int kSizeInBytes = 4;
   bool is_valid() const { return 0 <= code_ && code_ < 32; }
   bool is(SwVfpRegister reg) const { return code_ == reg.code_; }
   int code() const {
@@ -192,34 +235,37 @@ struct SwVfpRegister {
 
 // Double word VFP register.
 struct DwVfpRegister {
-  static const int kNumRegisters = 16;
+  static const int kMaxNumRegisters = 32;
   // A few double registers are reserved: one as a scratch register and one to
   // hold 0.0, that does not fit in the immediate field of vmov instructions.
   //  d14: 0.0
   //  d15: scratch register.
   static const int kNumReservedRegisters = 2;
-  static const int kMaxNumAllocatableRegisters = kNumRegisters -
+  static const int kMaxNumAllocatableRegisters = kMaxNumRegisters -
       kNumReservedRegisters;
+  static const int kSizeInBytes = 8;
 
+  // Note: the number of registers can be different at snapshot and run-time.
+  // Any code included in the snapshot must be able to run both with 16 or 32
+  // registers.
   inline static int NumRegisters();
   inline static int NumAllocatableRegisters();
+
   inline static int ToAllocationIndex(DwVfpRegister reg);
   static const char* AllocationIndexToString(int index);
-
-  static DwVfpRegister FromAllocationIndex(int index) {
-    ASSERT(index >= 0 && index < kMaxNumAllocatableRegisters);
-    return from_code(index);
-  }
+  inline static DwVfpRegister FromAllocationIndex(int index);
 
   static DwVfpRegister from_code(int code) {
     DwVfpRegister r = { code };
     return r;
   }
 
-  // Supporting d0 to d15, can be later extended to d31.
-  bool is_valid() const { return 0 <= code_ && code_ < 16; }
+  bool is_valid() const {
+    return 0 <= code_ && code_ < kMaxNumRegisters;
+  }
   bool is(DwVfpRegister reg) const { return code_ == reg.code_; }
   SwVfpRegister low() const {
+    ASSERT(code_ < 16);
     SwVfpRegister reg;
     reg.code_ = code_ * 2;
 
@@ -227,6 +273,7 @@ struct DwVfpRegister {
     return reg;
   }
   SwVfpRegister high() const {
+    ASSERT(code_ < 16);
     SwVfpRegister reg;
     reg.code_ = (code_ * 2) + 1;
 
@@ -306,9 +353,22 @@ const DwVfpRegister d12 = { 12 };
 const DwVfpRegister d13 = { 13 };
 const DwVfpRegister d14 = { 14 };
 const DwVfpRegister d15 = { 15 };
-
-const Register sfpd_lo  = { kRegister_r6_Code };
-const Register sfpd_hi  = { kRegister_r7_Code };
+const DwVfpRegister d16 = { 16 };
+const DwVfpRegister d17 = { 17 };
+const DwVfpRegister d18 = { 18 };
+const DwVfpRegister d19 = { 19 };
+const DwVfpRegister d20 = { 20 };
+const DwVfpRegister d21 = { 21 };
+const DwVfpRegister d22 = { 22 };
+const DwVfpRegister d23 = { 23 };
+const DwVfpRegister d24 = { 24 };
+const DwVfpRegister d25 = { 25 };
+const DwVfpRegister d26 = { 26 };
+const DwVfpRegister d27 = { 27 };
+const DwVfpRegister d28 = { 28 };
+const DwVfpRegister d29 = { 29 };
+const DwVfpRegister d30 = { 30 };
+const DwVfpRegister d31 = { 31 };
 
 // Aliases for double registers.  Defined using #define instead of
 // "static const DwVfpRegister&" because Clang complains otherwise when a
@@ -386,7 +446,7 @@ class Operand BASE_EMBEDDED {
  public:
   // immediate
   INLINE(explicit Operand(int32_t immediate,
-         RelocInfo::Mode rmode = RelocInfo::NONE));
+         RelocInfo::Mode rmode = RelocInfo::NONE32));
   INLINE(static Operand Zero()) {
     return Operand(static_cast<int32_t>(0));
   }
@@ -485,114 +545,6 @@ class MemOperand BASE_EMBEDDED {
   friend class Assembler;
 };
 
-// CpuFeatures keeps track of which features are supported by the target CPU.
-// Supported features must be enabled by a Scope before use.
-class CpuFeatures : public AllStatic {
- public:
-  // Detect features of the target CPU. Set safe defaults if the serializer
-  // is enabled (snapshots must be portable).
-  static void Probe();
-
-  // Check whether a feature is supported by the target CPU.
-  static bool IsSupported(CpuFeature f) {
-    ASSERT(initialized_);
-    if (f == VFP3 && !FLAG_enable_vfp3) return false;
-    if (f == VFP2 && !FLAG_enable_vfp2) return false;
-    if (f == SUDIV && !FLAG_enable_sudiv) return false;
-    if (f == UNALIGNED_ACCESSES && !FLAG_enable_unaligned_accesses) {
-      return false;
-    }
-    return (supported_ & (1u << f)) != 0;
-  }
-
-#ifdef DEBUG
-  // Check whether a feature is currently enabled.
-  static bool IsEnabled(CpuFeature f) {
-    ASSERT(initialized_);
-    Isolate* isolate = Isolate::UncheckedCurrent();
-    if (isolate == NULL) {
-      // When no isolate is available, work as if we're running in
-      // release mode.
-      return IsSupported(f);
-    }
-    unsigned enabled = static_cast<unsigned>(isolate->enabled_cpu_features());
-    return (enabled & (1u << f)) != 0;
-  }
-#endif
-
-  // Enable a specified feature within a scope.
-  class Scope BASE_EMBEDDED {
-#ifdef DEBUG
-
-   public:
-    explicit Scope(CpuFeature f) {
-      unsigned mask = 1u << f;
-      // VFP2 and ARMv7 are implied by VFP3.
-      if (f == VFP3) mask |= 1u << VFP2 | 1u << ARMv7;
-      ASSERT(CpuFeatures::IsSupported(f));
-      ASSERT(!Serializer::enabled() ||
-             (CpuFeatures::found_by_runtime_probing_ & mask) == 0);
-      isolate_ = Isolate::UncheckedCurrent();
-      old_enabled_ = 0;
-      if (isolate_ != NULL) {
-        old_enabled_ = static_cast<unsigned>(isolate_->enabled_cpu_features());
-        isolate_->set_enabled_cpu_features(old_enabled_ | mask);
-      }
-    }
-    ~Scope() {
-      ASSERT_EQ(Isolate::UncheckedCurrent(), isolate_);
-      if (isolate_ != NULL) {
-        isolate_->set_enabled_cpu_features(old_enabled_);
-      }
-    }
-
-   private:
-    Isolate* isolate_;
-    unsigned old_enabled_;
-#else
-
-   public:
-    explicit Scope(CpuFeature f) {}
-#endif
-  };
-
-  class TryForceFeatureScope BASE_EMBEDDED {
-   public:
-    explicit TryForceFeatureScope(CpuFeature f)
-        : old_supported_(CpuFeatures::supported_) {
-      if (CanForce()) {
-        CpuFeatures::supported_ |= (1u << f);
-      }
-    }
-
-    ~TryForceFeatureScope() {
-      if (CanForce()) {
-        CpuFeatures::supported_ = old_supported_;
-      }
-    }
-
-   private:
-    static bool CanForce() {
-      // It's only safe to temporarily force support of CPU features
-      // when there's only a single isolate, which is guaranteed when
-      // the serializer is enabled.
-      return Serializer::enabled();
-    }
-
-    const unsigned old_supported_;
-  };
-
- private:
-#ifdef DEBUG
-  static bool initialized_;
-#endif
-  static unsigned supported_;
-  static unsigned found_by_runtime_probing_;
-
-  DISALLOW_COPY_AND_ASSIGN(CpuFeatures);
-};
-
-
 extern const Instr kMovLrPc;
 extern const Instr kLdrPCMask;
 extern const Instr kLdrPCPattern;
@@ -616,7 +568,11 @@ extern const Instr kCmpCmnFlip;
 extern const Instr kAddSubFlip;
 extern const Instr kAndBicFlip;
 
-
+struct VmovIndex {
+  unsigned char index;
+};
+const VmovIndex VmovIndexLo = { 0 };
+const VmovIndex VmovIndexHi = { 1 };
 
 class Assembler : public AssemblerBase {
  public:
@@ -707,37 +663,19 @@ class Assembler : public AssemblerBase {
 
   // Distance between start of patched return sequence and the emitted address
   // to jump to.
-#ifdef USE_BLX
   // Patched return sequence is:
   //  ldr  ip, [pc, #0]   @ emited address and start
   //  blx  ip
   static const int kPatchReturnSequenceAddressOffset =  0 * kInstrSize;
-#else
-  // Patched return sequence is:
-  //  mov  lr, pc         @ start of sequence
-  //  ldr  pc, [pc, #-4]  @ emited address
-  static const int kPatchReturnSequenceAddressOffset =  kInstrSize;
-#endif
 
   // Distance between start of patched debug break slot and the emitted address
   // to jump to.
-#ifdef USE_BLX
   // Patched debug break slot code is:
   //  ldr  ip, [pc, #0]   @ emited address and start
   //  blx  ip
   static const int kPatchDebugBreakSlotAddressOffset =  0 * kInstrSize;
-#else
-  // Patched debug break slot code is:
-  //  mov  lr, pc         @ start of sequence
-  //  ldr  pc, [pc, #-4]  @ emited address
-  static const int kPatchDebugBreakSlotAddressOffset =  kInstrSize;
-#endif
 
-#ifdef USE_BLX
   static const int kPatchDebugBreakSlotReturnOffset = 2 * kInstrSize;
-#else
-  static const int kPatchDebugBreakSlotReturnOffset = kInstrSize;
-#endif
 
   // Difference between address of current opcode and value read from pc
   // register.
@@ -981,10 +919,7 @@ class Assembler : public AssemblerBase {
             LFlag l = Short);  // v5 and above
 
   // Support for VFP.
-  // All these APIs support S0 to S31 and D0 to D15.
-  // Currently these APIs do not support extended D registers, i.e, D16 to D31.
-  // However, some simple modifications can allow
-  // these APIs to support D16 to D31.
+  // All these APIs support S0 to S31 and D0 to D31.
 
   void vldr(const DwVfpRegister dst,
             const Register base,
@@ -1044,13 +979,16 @@ class Assembler : public AssemblerBase {
 
   void vmov(const DwVfpRegister dst,
             double imm,
-            const Register scratch = no_reg,
-            const Condition cond = al);
+            const Register scratch = no_reg);
   void vmov(const SwVfpRegister dst,
             const SwVfpRegister src,
             const Condition cond = al);
   void vmov(const DwVfpRegister dst,
             const DwVfpRegister src,
+            const Condition cond = al);
+  void vmov(const DwVfpRegister dst,
+            const VmovIndex index,
+            const Register src,
             const Condition cond = al);
   void vmov(const DwVfpRegister dst,
             const Register src1,
@@ -1117,6 +1055,10 @@ class Assembler : public AssemblerBase {
             const DwVfpRegister src1,
             const DwVfpRegister src2,
             const Condition cond = al);
+  void vmls(const DwVfpRegister dst,
+            const DwVfpRegister src1,
+            const DwVfpRegister src2,
+            const Condition cond = al);
   void vdiv(const DwVfpRegister dst,
             const DwVfpRegister src1,
             const DwVfpRegister src2,
@@ -1170,16 +1112,8 @@ class Assembler : public AssemblerBase {
 
   static bool use_immediate_embedded_pointer_loads(
       const Assembler* assembler) {
-#ifdef USE_BLX
     return CpuFeatures::IsSupported(MOVW_MOVT_IMMEDIATE_LOADS) &&
         (assembler == NULL || !assembler->predictable_code_size());
-#else
-    // If not using BLX, all loads from the constant pool cannot be immediate,
-    // because the ldr pc, [pc + #xxxx] used for calls must be a single
-    // instruction and cannot be easily distinguished out of context from
-    // other loads that could use movw/movt.
-    return false;
-#endif
   }
 
   // Check the code size generated from label to here.

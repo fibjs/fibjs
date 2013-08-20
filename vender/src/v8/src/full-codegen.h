@@ -35,6 +35,7 @@
 #include "code-stubs.h"
 #include "codegen.h"
 #include "compiler.h"
+#include "data-flow.h"
 
 namespace v8 {
 namespace internal {
@@ -91,7 +92,7 @@ class FullCodeGenerator: public AstVisitor {
         bailout_entries_(info->HasDeoptimizationSupport()
                          ? info->function()->ast_node_count() : 0,
                          info->zone()),
-        stack_checks_(2, info->zone()),  // There's always at least one.
+        back_edges_(2, info->zone()),
         type_feedback_cells_(info->HasDeoptimizationSupport()
                              ? info->function()->ast_node_count() : 0,
                              info->zone()),
@@ -134,6 +135,7 @@ class FullCodeGenerator: public AstVisitor {
 #error Unsupported target architecture.
 #endif
 
+  static const int kBackEdgeEntrySize = 2 * kIntSize + kOneByteSize;
 
  private:
   class Breakable;
@@ -408,6 +410,11 @@ class FullCodeGenerator: public AstVisitor {
   // this has to be a separate pass _before_ populating or executing any module.
   void AllocateModules(ZoneList<Declaration*>* declarations);
 
+  // Generator code to return a fresh iterator result object.  The "value"
+  // property is set to a value popped from the stack, and "done" is set
+  // according to the argument.
+  void EmitReturnIteratorResult(bool done);
+
   // Try to perform a comparison as a fast inlined literal compare if
   // the operands allow it.  Returns true if the compare operations
   // has been matched and all code generated; false otherwise.
@@ -458,9 +465,9 @@ class FullCodeGenerator: public AstVisitor {
                                Label* back_edge_target);
   // Record the OSR AST id corresponding to a back edge in the code.
   void RecordBackEdge(BailoutId osr_ast_id);
-  // Emit a table of stack check ids and pcs into the code stream.  Return
-  // the offset of the start of the table.
-  unsigned EmitStackCheckTable();
+  // Emit a table of back edge ids, pcs and loop depths into the code stream.
+  // Return the offset of the start of the table.
+  unsigned EmitBackEdgeTable();
 
   void EmitProfilingCounterDecrement(int delta);
   void EmitProfilingCounterReset();
@@ -483,6 +490,11 @@ class FullCodeGenerator: public AstVisitor {
   INLINE_FUNCTION_LIST(EMIT_INLINE_RUNTIME_CALL)
   INLINE_RUNTIME_FUNCTION_LIST(EMIT_INLINE_RUNTIME_CALL)
 #undef EMIT_INLINE_RUNTIME_CALL
+
+  // Platform-specific code for resuming generators.
+  void EmitGeneratorResume(Expression *generator,
+                           Expression *value,
+                           JSGeneratorObject::ResumeMode resume_mode);
 
   // Platform-specific code for loading variables.
   void EmitLoadGlobalCheckExtensions(Variable* var,
@@ -621,6 +633,12 @@ class FullCodeGenerator: public AstVisitor {
   struct BailoutEntry {
     BailoutId id;
     unsigned pc_and_state;
+  };
+
+  struct BackEdgeEntry {
+    BailoutId id;
+    unsigned pc;
+    uint8_t loop_depth;
   };
 
   struct TypeFeedbackCellEntry {
@@ -816,9 +834,8 @@ class FullCodeGenerator: public AstVisitor {
   int module_index_;
   const ExpressionContext* context_;
   ZoneList<BailoutEntry> bailout_entries_;
-  // TODO(svenpanne) Rename this to something like back_edges_ and rename
-  // related functions accordingly.
-  ZoneList<BailoutEntry> stack_checks_;
+  GrowableBitVector prepared_bailout_ids_;
+  ZoneList<BackEdgeEntry> back_edges_;
   ZoneList<TypeFeedbackCellEntry> type_feedback_cells_;
   int ic_total_count_;
   Handle<FixedArray> handler_table_;

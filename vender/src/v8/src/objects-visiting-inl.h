@@ -49,6 +49,11 @@ void StaticNewSpaceVisitor<StaticVisitor>::Initialize() {
                   SlicedString::BodyDescriptor,
                   int>::Visit);
 
+  table_.Register(kVisitSymbol,
+                  &FixedBodyVisitor<StaticVisitor,
+                  Symbol::BodyDescriptor,
+                  int>::Visit);
+
   table_.Register(kVisitFixedArray,
                   &FlexibleBodyVisitor<StaticVisitor,
                   FixedArray::BodyDescriptor,
@@ -108,6 +113,11 @@ void StaticMarkingVisitor<StaticVisitor>::Initialize() {
   table_.Register(kVisitSlicedString,
                   &FixedBodyVisitor<StaticVisitor,
                   SlicedString::BodyDescriptor,
+                  void>::Visit);
+
+  table_.Register(kVisitSymbol,
+                  &FixedBodyVisitor<StaticVisitor,
+                  Symbol::BodyDescriptor,
                   void>::Visit);
 
   table_.Register(kVisitFixedArray, &FixedArrayVisitor::Visit);
@@ -175,8 +185,12 @@ void StaticMarkingVisitor<StaticVisitor>::VisitEmbeddedPointer(
   ASSERT(rinfo->rmode() == RelocInfo::EMBEDDED_OBJECT);
   ASSERT(!rinfo->target_object()->IsConsString());
   HeapObject* object = HeapObject::cast(rinfo->target_object());
-  heap->mark_compact_collector()->RecordRelocSlot(rinfo, object);
-  StaticVisitor::MarkObject(heap, object);
+  if (!FLAG_weak_embedded_maps_in_optimized_code || !FLAG_collect_maps ||
+      rinfo->host()->kind() != Code::OPTIMIZED_FUNCTION ||
+      !object->IsMap() || !Map::cast(object)->CanTransition()) {
+    heap->mark_compact_collector()->RecordRelocSlot(rinfo, object);
+    StaticVisitor::MarkObject(heap, object);
+  }
 }
 
 
@@ -211,7 +225,8 @@ void StaticMarkingVisitor<StaticVisitor>::VisitCodeTarget(
   // when they might be keeping a Context alive, or when the heap is about
   // to be serialized.
   if (FLAG_cleanup_code_caches_at_gc && target->is_inline_cache_stub()
-      && (target->ic_state() == MEGAMORPHIC || heap->flush_monomorphic_ics() ||
+      && (target->ic_state() == MEGAMORPHIC || target->ic_state() == GENERIC ||
+          target->ic_state() == POLYMORPHIC || heap->flush_monomorphic_ics() ||
           Serializer::enabled() || target->ic_age() != heap->global_ic_age())) {
     IC::Clear(rinfo->pc());
     target = Code::GetCodeFromTargetAddress(rinfo->target_address());
@@ -261,12 +276,9 @@ void StaticMarkingVisitor<StaticVisitor>::VisitMap(
     map_object->ClearCodeCache(heap);
   }
 
-  // When map collection is enabled we have to mark through map's
-  // transitions and back pointers in a special way to make these links
-  // weak.  Only maps for subclasses of JSReceiver can have transitions.
-  STATIC_ASSERT(LAST_TYPE == LAST_JS_RECEIVER_TYPE);
-  if (FLAG_collect_maps &&
-      map_object->instance_type() >= FIRST_JS_RECEIVER_TYPE) {
+  // When map collection is enabled we have to mark through map's transitions
+  // and back pointers in a special way to make these links weak.
+  if (FLAG_collect_maps && map_object->CanTransition()) {
     MarkMapContents(heap, map_object);
   } else {
     StaticVisitor::VisitPointers(heap,
@@ -393,6 +405,34 @@ void StaticMarkingVisitor<StaticVisitor>::MarkMapContents(
     // Already marked by marking map->GetBackPointer() above.
     ASSERT(transitions->IsMap() || transitions->IsUndefined());
   }
+
+  // Since descriptor arrays are potentially shared, ensure that only the
+  // descriptors that belong to this map are marked. The first time a
+  // non-empty descriptor array is marked, its header is also visited. The slot
+  // holding the descriptor array will be implicitly recorded when the pointer
+  // fields of this map are visited.
+  DescriptorArray* descriptors = map->instance_descriptors();
+  if (StaticVisitor::MarkObjectWithoutPush(heap, descriptors) &&
+      descriptors->length() > 0) {
+    StaticVisitor::VisitPointers(heap,
+        descriptors->GetFirstElementAddress(),
+        descriptors->GetDescriptorEndSlot(0));
+  }
+  int start = 0;
+  int end = map->NumberOfOwnDescriptors();
+  if (start < end) {
+    StaticVisitor::VisitPointers(heap,
+        descriptors->GetDescriptorStartSlot(start),
+        descriptors->GetDescriptorEndSlot(end));
+  }
+
+  // Mark prototype dependent codes array but do not push it onto marking
+  // stack, this will make references from it weak. We will clean dead
+  // codes when we iterate over maps in ClearNonLiveTransitions.
+  Object** slot = HeapObject::RawField(map, Map::kDependentCodeOffset);
+  HeapObject* obj = HeapObject::cast(*slot);
+  heap->mark_compact_collector()->RecordSlot(slot, slot, obj);
+  StaticVisitor::MarkObjectWithoutPush(heap, obj);
 
   // Mark the pointer fields of the Map. Since the transitions array has
   // been marked already, it is fine that one of these fields contains a
@@ -531,6 +571,12 @@ bool StaticMarkingVisitor<StaticVisitor>::IsFlushable(
     return false;
   }
 
+  // If this is a native function we do not flush the code because %SetCode
+  // breaks the one-to-one relation between SharedFunctionInfo and Code.
+  if (shared_info->native()) {
+    return false;
+  }
+
   if (FLAG_age_code) {
     return shared_info->code()->IsOld();
   } else {
@@ -638,7 +684,7 @@ void Code::CodeIterateBody(ObjectVisitor* v) {
                   RelocInfo::ModeMask(RelocInfo::RUNTIME_ENTRY);
 
   // There are two places where we iterate code bodies: here and the
-  // templated CodeIterateBody (below).  They should be kept in sync.
+  // templated CodeIterateBody (below). They should be kept in sync.
   IteratePointer(v, kRelocationInfoOffset);
   IteratePointer(v, kHandlerTableOffset);
   IteratePointer(v, kDeoptimizationDataOffset);
@@ -661,8 +707,8 @@ void Code::CodeIterateBody(Heap* heap) {
                   RelocInfo::ModeMask(RelocInfo::DEBUG_BREAK_SLOT) |
                   RelocInfo::ModeMask(RelocInfo::RUNTIME_ENTRY);
 
-  // There are two places where we iterate code bodies: here and the
-  // non-templated CodeIterateBody (above).  They should be kept in sync.
+  // There are two places where we iterate code bodies: here and the non-
+  // templated CodeIterateBody (above). They should be kept in sync.
   StaticVisitor::VisitPointer(
       heap,
       reinterpret_cast<Object**>(this->address() + kRelocationInfoOffset));

@@ -254,7 +254,7 @@ void StringStream::Add(const char* format, FmtElm arg0, FmtElm arg1,
 
 SmartArrayPointer<const char> StringStream::ToCString() const {
   char* str = NewArray<char>(length_ + 1);
-  memcpy(str, buffer_, length_);
+  OS::MemCopy(str, buffer_, length_);
   str[length_] = '\0';
   return SmartArrayPointer<const char>(str);
 }
@@ -350,9 +350,8 @@ void StringStream::PrintUsingMap(JSObject* js_object) {
   }
   int real_size = map->NumberOfOwnDescriptors();
   DescriptorArray* descs = map->instance_descriptors();
-  for (int i = 0; i < descs->number_of_descriptors(); i++) {
+  for (int i = 0; i < real_size; i++) {
     PropertyDetails details = descs->GetDetails(i);
-    if (details.descriptor_index() > real_size) continue;
     if (details.type() == FIELD) {
       Object* key = descs->GetKey(i);
       if (key->IsString() || key->IsNumber()) {
@@ -368,7 +367,7 @@ void StringStream::PrintUsingMap(JSObject* js_object) {
           key->ShortPrint();
         }
         Add(": ");
-        Object* value = js_object->FastPropertyAt(descs->GetFieldIndex(i));
+        Object* value = js_object->RawFastPropertyAt(descs->GetFieldIndex(i));
         Add("%o\n", value);
       }
     }
@@ -493,7 +492,7 @@ void StringStream::PrintFunction(Object* f, Object* receiver, Code** code) {
       // Common case: on-stack function present and resolved.
       PrintPrototype(fun, receiver);
       *code = fun->code();
-    } else if (f->IsSymbol()) {
+    } else if (f->IsInternalizedString()) {
       // Unresolved and megamorphic calls: Instead of the function
       // we have the function name on the stack.
       PrintName(f);
@@ -533,11 +532,13 @@ void StringStream::PrintFunction(Object* f, Object* receiver, Code** code) {
 void StringStream::PrintPrototype(JSFunction* fun, Object* receiver) {
   Object* name = fun->shared()->name();
   bool print_name = false;
-  Heap* heap = HEAP;
-  for (Object* p = receiver; p != heap->null_value(); p = p->GetPrototype()) {
+  Isolate* isolate = fun->GetIsolate();
+  for (Object* p = receiver;
+       p != isolate->heap()->null_value();
+       p = p->GetPrototype(isolate)) {
     if (p->IsJSObject()) {
       Object* key = JSObject::cast(p)->SlowReverseLookup(fun);
-      if (key != heap->undefined_value()) {
+      if (key != isolate->heap()->undefined_value()) {
         if (!name->IsString() ||
             !key->IsString() ||
             !String::cast(name)->Equals(String::cast(key))) {
@@ -573,7 +574,7 @@ char* HeapStringAllocator::grow(unsigned* bytes) {
   if (new_space == NULL) {
     return space_;
   }
-  memcpy(new_space, space_, *bytes);
+  OS::MemCopy(new_space, space_, *bytes);
   *bytes = new_bytes;
   DeleteArray(space_);
   space_ = new_space;

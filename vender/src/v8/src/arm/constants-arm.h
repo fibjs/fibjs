@@ -33,51 +33,20 @@
 #error ARM EABI support is required.
 #endif
 
-// This means that interwork-compatible jump instructions are generated.  We
-// want to generate them on the simulator too so it makes snapshots that can
-// be used on real hardware.
-#if defined(__THUMB_INTERWORK__) || !defined(__arm__)
-# define USE_THUMB_INTERWORK 1
-#endif
-
 #if defined(__ARM_ARCH_7A__) || \
     defined(__ARM_ARCH_7R__) || \
     defined(__ARM_ARCH_7__)
 # define CAN_USE_ARMV7_INSTRUCTIONS 1
+#ifndef CAN_USE_VFP3_INSTRUCTIONS
+# define CAN_USE_VFP3_INSTRUCTIONS
+#endif
 #endif
 
-#if defined(__ARM_ARCH_6__) ||   \
-    defined(__ARM_ARCH_6J__) ||  \
-    defined(__ARM_ARCH_6K__) ||  \
-    defined(__ARM_ARCH_6Z__) ||  \
-    defined(__ARM_ARCH_6ZK__) || \
-    defined(__ARM_ARCH_6T2__) || \
-    defined(CAN_USE_ARMV7_INSTRUCTIONS)
-# define CAN_USE_ARMV6_INSTRUCTIONS 1
-#endif
-
-#if defined(__ARM_ARCH_5T__)             || \
-    defined(__ARM_ARCH_5TE__)            || \
-    defined(__ARM_ARCH_5TEJ__)           || \
-    defined(CAN_USE_ARMV6_INSTRUCTIONS)
-# define CAN_USE_ARMV5_INSTRUCTIONS 1
-# define CAN_USE_THUMB_INSTRUCTIONS 1
-#endif
-
-// Simulator should support ARM5 instructions and unaligned access by default.
+// Simulator should support unaligned access by default.
 #if !defined(__arm__)
-# define CAN_USE_ARMV5_INSTRUCTIONS 1
-# define CAN_USE_THUMB_INSTRUCTIONS 1
-
 # ifndef CAN_USE_UNALIGNED_ACCESSES
 #  define CAN_USE_UNALIGNED_ACCESSES 1
 # endif
-
-#endif
-
-// Using blx may yield better code, so use it when required or when available
-#if defined(USE_THUMB_INTERWORK) || defined(CAN_USE_ARMV5_INSTRUCTIONS)
-#define USE_BLX 1
 #endif
 
 namespace v8 {
@@ -102,7 +71,7 @@ const int kNumRegisters = 16;
 
 // VFP support.
 const int kNumVFPSingleRegisters = 32;
-const int kNumVFPDoubleRegisters = 16;
+const int kNumVFPDoubleRegisters = 32;
 const int kNumVFPRegisters = kNumVFPSingleRegisters + kNumVFPDoubleRegisters;
 
 // PC is register 15.
@@ -403,6 +372,7 @@ const uint32_t kVFPOverflowExceptionBit = 1 << 2;
 const uint32_t kVFPUnderflowExceptionBit = 1 << 3;
 const uint32_t kVFPInexactExceptionBit = 1 << 4;
 const uint32_t kVFPFlushToZeroMask = 1 << 24;
+const uint32_t kVFPDefaultNaNModeControlBit = 1 << 25;
 
 const uint32_t kVFPNConditionFlagBit = 1 << 31;
 const uint32_t kVFPZConditionFlagBit = 1 << 30;

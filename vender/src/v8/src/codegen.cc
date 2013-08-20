@@ -86,12 +86,12 @@ void CodeGenerator::MakeCodePrologue(CompilationInfo* info) {
     PrintF(" ***\n");
   }
 
-  if (print_source) {
+  if (!info->IsStub() && print_source) {
     PrintF("--- Source from AST ---\n%s\n",
            PrettyPrinter().PrintProgram(info->function()));
   }
 
-  if (print_ast) {
+  if (!info->IsStub() && print_ast) {
     PrintF("--- AST ---\n%s\n",
            AstPrinter().PrintProgram(info->function()));
   }
@@ -106,10 +106,13 @@ Handle<Code> CodeGenerator::MakeCodeEpilogue(MacroAssembler* masm,
 
   // Allocate and install the code.
   CodeDesc desc;
+  bool is_crankshafted =
+      Code::ExtractKindFromFlags(flags) == Code::OPTIMIZED_FUNCTION ||
+      info->IsStub();
   masm->GetCode(&desc);
   Handle<Code> code =
-      isolate->factory()->NewCode(desc, flags, masm->CodeObject());
-
+      isolate->factory()->NewCode(desc, flags, masm->CodeObject(),
+                                  false, is_crankshafted);
   if (!code.is_null()) {
     isolate->counters()->total_compiled_code_size()->Increment(
         code->instruction_size());
@@ -123,11 +126,13 @@ void CodeGenerator::PrintCode(Handle<Code> code, CompilationInfo* info) {
 #ifdef ENABLE_DISASSEMBLER
   bool print_code = Isolate::Current()->bootstrapper()->IsActive()
       ? FLAG_print_builtin_code
-      : (FLAG_print_code || (info->IsOptimizing() && FLAG_print_opt_code));
+      : (FLAG_print_code ||
+         (info->IsStub() && FLAG_print_code_stubs) ||
+         (info->IsOptimizing() && FLAG_print_opt_code));
   if (print_code) {
     // Print the source code if available.
     FunctionLiteral* function = info->function();
-    if (code->kind() != Code::COMPILED_STUB) {
+    if (code->kind() == Code::OPTIMIZED_FUNCTION) {
       Handle<Script> script = info->script();
       if (!script->IsUndefined() && !script->source()->IsUndefined()) {
         PrintF("--- Raw source ---\n");
@@ -169,12 +174,13 @@ void CodeGenerator::PrintCode(Handle<Code> code, CompilationInfo* info) {
 bool CodeGenerator::ShouldGenerateLog(Expression* type) {
   ASSERT(type != NULL);
   Isolate* isolate = Isolate::Current();
-  if (!isolate->logger()->is_logging() && !CpuProfiler::is_profiling(isolate)) {
+  if (!isolate->logger()->is_logging() &&
+      !isolate->cpu_profiler()->is_profiling()) {
     return false;
   }
   Handle<String> name = Handle<String>::cast(type->AsLiteral()->handle());
   if (FLAG_log_regexp) {
-    if (name->IsEqualTo(CStrVector("regexp")))
+    if (name->IsOneByteEqualTo(STATIC_ASCII_VECTOR("regexp")))
       return true;
   }
   return false;

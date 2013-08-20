@@ -164,7 +164,7 @@ Page* Page::Initialize(Heap* heap,
                        Executability executable,
                        PagedSpace* owner) {
   Page* page = reinterpret_cast<Page*>(chunk);
-  ASSERT(chunk->size() <= static_cast<size_t>(kPageSize));
+  ASSERT(page->area_size() <= kNonCodeObjectAreaSize);
   ASSERT(chunk->owner() == owner);
   owner->IncreaseCapacity(page->area_size());
   owner->Free(page->area_start(), page->area_size());
@@ -348,23 +348,6 @@ LargePage* LargePage::Initialize(Heap* heap, MemoryChunk* chunk) {
 
 intptr_t LargeObjectSpace::Available() {
   return ObjectSizeFor(heap()->isolate()->memory_allocator()->Available());
-}
-
-
-template <typename StringType>
-void NewSpace::ShrinkStringAtAllocationBoundary(String* string, int length) {
-  ASSERT(length <= string->length());
-  ASSERT(string->IsSeqString());
-  ASSERT(string->address() + StringType::SizeFor(string->length()) ==
-         allocation_info_.top);
-  Address old_top = allocation_info_.top;
-  allocation_info_.top =
-      string->address() + StringType::SizeFor(length);
-  string->set_length(length);
-  if (Marking::IsBlack(Marking::MarkBitFrom(string))) {
-    int delta = static_cast<int>(old_top - allocation_info_.top);
-    MemoryChunk::IncrementLiveBytesFromMutator(string->address(), -delta);
-  }
 }
 
 

@@ -200,9 +200,22 @@ const Register r14 = { kRegister_r14_Code };
 const Register r15 = { kRegister_r15_Code };
 const Register no_reg = { kRegister_no_reg_Code };
 
+#ifdef _WIN64
+  // Windows calling convention
+  const Register arg_reg_1 = { kRegister_rcx_Code };
+  const Register arg_reg_2 = { kRegister_rdx_Code };
+  const Register arg_reg_3 = { kRegister_r8_Code };
+  const Register arg_reg_4 = { kRegister_r9_Code };
+#else
+  // AMD64 calling convention
+  const Register arg_reg_1 = { kRegister_rdi_Code };
+  const Register arg_reg_2 = { kRegister_rsi_Code };
+  const Register arg_reg_3 = { kRegister_rdx_Code };
+  const Register arg_reg_4 = { kRegister_rcx_Code };
+#endif  // _WIN64
 
 struct XMMRegister {
-  static const int kNumRegisters = 16;
+  static const int kMaxNumRegisters = 16;
   static const int kMaxNumAllocatableRegisters = 15;
   static int NumAllocatableRegisters() {
     return kMaxNumAllocatableRegisters;
@@ -243,11 +256,11 @@ struct XMMRegister {
 
   static XMMRegister from_code(int code) {
     ASSERT(code >= 0);
-    ASSERT(code < kNumRegisters);
+    ASSERT(code < kMaxNumRegisters);
     XMMRegister r = { code };
     return r;
   }
-  bool is_valid() const { return 0 <= code_ && code_ < kNumRegisters; }
+  bool is_valid() const { return 0 <= code_ && code_ < kMaxNumRegisters; }
   bool is(XMMRegister reg) const { return code_ == reg.code_; }
   int code() const {
     ASSERT(is_valid());
@@ -442,13 +455,13 @@ class Operand BASE_EMBEDDED {
 
 
 // CpuFeatures keeps track of which features are supported by the target CPU.
-// Supported features must be enabled by a Scope before use.
+// Supported features must be enabled by a CpuFeatureScope before use.
 // Example:
-//   if (CpuFeatures::IsSupported(SSE3)) {
-//     CpuFeatures::Scope fscope(SSE3);
+//   if (assembler->IsSupported(SSE3)) {
+//     CpuFeatureScope fscope(assembler, SSE3);
 //     // Generate SSE3 floating point code.
 //   } else {
-//     // Generate standard x87 or SSE2 floating point code.
+//     // Generate standard SSE2 floating point code.
 //   }
 class CpuFeatures : public AllStatic {
  public:
@@ -459,77 +472,39 @@ class CpuFeatures : public AllStatic {
   // Check whether a feature is supported by the target CPU.
   static bool IsSupported(CpuFeature f) {
     ASSERT(initialized_);
-    if (f == SSE2 && !FLAG_enable_sse2) return false;
     if (f == SSE3 && !FLAG_enable_sse3) return false;
     if (f == SSE4_1 && !FLAG_enable_sse4_1) return false;
     if (f == CMOV && !FLAG_enable_cmov) return false;
     if (f == RDTSC && !FLAG_enable_rdtsc) return false;
     if (f == SAHF && !FLAG_enable_sahf) return false;
-    return (supported_ & (V8_UINT64_C(1) << f)) != 0;
+    return (supported_ & (static_cast<uint64_t>(1) << f)) != 0;
   }
 
-#ifdef DEBUG
-  // Check whether a feature is currently enabled.
-  static bool IsEnabled(CpuFeature f) {
+  static bool IsFoundByRuntimeProbingOnly(CpuFeature f) {
     ASSERT(initialized_);
-    Isolate* isolate = Isolate::UncheckedCurrent();
-    if (isolate == NULL) {
-      // When no isolate is available, work as if we're running in
-      // release mode.
-      return IsSupported(f);
-    }
-    uint64_t enabled = isolate->enabled_cpu_features();
-    return (enabled & (V8_UINT64_C(1) << f)) != 0;
+    return (found_by_runtime_probing_only_ &
+            (static_cast<uint64_t>(1) << f)) != 0;
   }
-#endif
 
-  // Enable a specified feature within a scope.
-  class Scope BASE_EMBEDDED {
-#ifdef DEBUG
-
-   public:
-    explicit Scope(CpuFeature f) {
-      uint64_t mask = V8_UINT64_C(1) << f;
-      ASSERT(CpuFeatures::IsSupported(f));
-      ASSERT(!Serializer::enabled() ||
-             (CpuFeatures::found_by_runtime_probing_ & mask) == 0);
-      isolate_ = Isolate::UncheckedCurrent();
-      old_enabled_ = 0;
-      if (isolate_ != NULL) {
-        old_enabled_ = isolate_->enabled_cpu_features();
-        isolate_->set_enabled_cpu_features(old_enabled_ | mask);
-      }
-    }
-    ~Scope() {
-      ASSERT_EQ(Isolate::UncheckedCurrent(), isolate_);
-      if (isolate_ != NULL) {
-        isolate_->set_enabled_cpu_features(old_enabled_);
-      }
-    }
-
-   private:
-    Isolate* isolate_;
-    uint64_t old_enabled_;
-#else
-
-   public:
-    explicit Scope(CpuFeature f) {}
-#endif
-  };
+  static bool IsSafeForSnapshot(CpuFeature f) {
+    return (IsSupported(f) &&
+            (!Serializer::enabled() || !IsFoundByRuntimeProbingOnly(f)));
+  }
 
  private:
-  // Safe defaults include SSE2 and CMOV for X64. It is always available, if
+  // Safe defaults include CMOV for X64. It is always available, if
   // anyone checks, but they shouldn't need to check.
   // The required user mode extensions in X64 are (from AMD64 ABI Table A.1):
   //   fpu, tsc, cx8, cmov, mmx, sse, sse2, fxsr, syscall
-  static const uint64_t kDefaultCpuFeatures = (1 << SSE2 | 1 << CMOV);
+  static const uint64_t kDefaultCpuFeatures = (1 << CMOV);
 
 #ifdef DEBUG
   static bool initialized_;
 #endif
   static uint64_t supported_;
-  static uint64_t found_by_runtime_probing_;
+  static uint64_t found_by_runtime_probing_only_;
 
+  friend class ExternalReference;
   DISALLOW_COPY_AND_ASSIGN(CpuFeatures);
 };
 
@@ -598,6 +573,7 @@ class Assembler : public AssemblerBase {
   }
 
   inline Handle<Object> code_target_object_handle_at(Address pc);
+  inline Address runtime_entry_at(Address pc);
   // Number of bytes taken up by the branch target in the code.
   static const int kSpecialTargetSize = 4;  // Use 32-bit displacement.
   // Distance between the address of the code target in the call instruction
@@ -732,6 +708,7 @@ class Assembler : public AssemblerBase {
   void movzxbl(Register dst, const Operand& src);
   void movzxwq(Register dst, const Operand& src);
   void movzxwl(Register dst, const Operand& src);
+  void movzxwl(Register dst, Register src);
 
   // Repeated moves.
 
@@ -1216,6 +1193,7 @@ class Assembler : public AssemblerBase {
   // Calls
   // Call near relative 32-bit displacement, relative to next instruction.
   void call(Label* L);
+  void call(Address entry, RelocInfo::Mode rmode);
   void call(Handle<Code> target,
             RelocInfo::Mode rmode = RelocInfo::CODE_TARGET,
             TypeFeedbackId ast_id = TypeFeedbackId::None());
@@ -1237,6 +1215,7 @@ class Assembler : public AssemblerBase {
   // Use a 32-bit signed displacement.
   // Unconditional jump to L
   void jmp(Label* L, Label::Distance distance = Label::kFar);
+  void jmp(Address entry, RelocInfo::Mode rmode);
   void jmp(Handle<Code> target, RelocInfo::Mode rmode);
 
   // Jump near absolute indirect (r64)
@@ -1249,6 +1228,7 @@ class Assembler : public AssemblerBase {
   void j(Condition cc,
          Label* L,
          Label::Distance distance = Label::kFar);
+  void j(Condition cc, Address entry, RelocInfo::Mode rmode);
   void j(Condition cc, Handle<Code> target, RelocInfo::Mode rmode);
 
   // Floating-point operations
@@ -1341,6 +1321,9 @@ class Assembler : public AssemblerBase {
 
   void movdqa(const Operand& dst, XMMRegister src);
   void movdqa(XMMRegister dst, const Operand& src);
+
+  void movdqu(const Operand& dst, XMMRegister src);
+  void movdqu(XMMRegister dst, const Operand& src);
 
   void movapd(XMMRegister dst, XMMRegister src);
   void movaps(XMMRegister dst, XMMRegister src);
@@ -1466,6 +1449,7 @@ class Assembler : public AssemblerBase {
   inline void emit_code_target(Handle<Code> target,
                                RelocInfo::Mode rmode,
                                TypeFeedbackId ast_id = TypeFeedbackId::None());
+  inline void emit_runtime_entry(Address entry, RelocInfo::Mode rmode);
   void emit(Immediate x) { emitl(x.value_); }
 
   // Emits a REX prefix that encodes a 64-bit operand size and

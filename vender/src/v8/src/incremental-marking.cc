@@ -490,10 +490,16 @@ bool IncrementalMarking::WorthActivating() {
   // debug tests run with incremental marking and some without.
   static const intptr_t kActivationThreshold = 0;
 #endif
-
+  // Only start incremental marking in a safe state: 1) when expose GC is
+  // deactivated, 2) when incremental marking is turned on, 3) when we are
+  // currently not in a GC, and 4) when we are currently not serializing
+  // or deserializing the heap.
   return !FLAG_expose_gc &&
       FLAG_incremental_marking &&
+      FLAG_incremental_marking_steps &&
+      heap_->gc_state() == Heap::NOT_IN_GC &&
       !Serializer::enabled() &&
+      heap_->isolate()->IsInitialized() &&
       heap_->PromotedSpaceSizeOfObjects() > kActivationThreshold;
 }
 
@@ -561,18 +567,21 @@ void IncrementalMarking::UncommitMarkingDeque() {
 }
 
 
-void IncrementalMarking::Start() {
+void IncrementalMarking::Start(CompactionFlag flag) {
   if (FLAG_trace_incremental_marking) {
     PrintF("[IncrementalMarking] Start\n");
   }
   ASSERT(FLAG_incremental_marking);
+  ASSERT(FLAG_incremental_marking_steps);
   ASSERT(state_ == STOPPED);
+  ASSERT(heap_->gc_state() == Heap::NOT_IN_GC);
+  ASSERT(!Serializer::enabled());
+  ASSERT(heap_->isolate()->IsInitialized());
 
   ResetStepCounters();
 
-  if (heap_->old_pointer_space()->IsSweepingComplete() &&
-      heap_->old_data_space()->IsSweepingComplete()) {
-    StartMarking(ALLOW_COMPACTION);
+  if (heap_->IsSweepingComplete()) {
+    StartMarking(flag);
   } else {
     if (FLAG_trace_incremental_marking) {
       PrintF("[IncrementalMarking] Start sweeping.\n");
@@ -754,18 +763,24 @@ void IncrementalMarking::ProcessMarkingDeque() {
 void IncrementalMarking::Hurry() {
   if (state() == MARKING) {
     double start = 0.0;
-    if (FLAG_trace_incremental_marking) {
-      PrintF("[IncrementalMarking] Hurry\n");
+    if (FLAG_trace_incremental_marking || FLAG_print_cumulative_gc_stat) {
       start = OS::TimeCurrentMillis();
+      if (FLAG_trace_incremental_marking) {
+        PrintF("[IncrementalMarking] Hurry\n");
+      }
     }
     // TODO(gc) hurry can mark objects it encounters black as mutator
     // was stopped.
     ProcessMarkingDeque();
     state_ = COMPLETE;
-    if (FLAG_trace_incremental_marking) {
+    if (FLAG_trace_incremental_marking || FLAG_print_cumulative_gc_stat) {
       double end = OS::TimeCurrentMillis();
-      PrintF("[IncrementalMarking] Complete (hurry), spent %d ms.\n",
-             static_cast<int>(end - start));
+      double delta = end - start;
+      heap_->AddMarkingTime(delta);
+      if (FLAG_trace_incremental_marking) {
+        PrintF("[IncrementalMarking] Complete (hurry), spent %d ms.\n",
+               static_cast<int>(delta));
+      }
     }
   }
 
@@ -855,6 +870,17 @@ void IncrementalMarking::MarkingComplete(CompletionAction action) {
 }
 
 
+void IncrementalMarking::OldSpaceStep(intptr_t allocated) {
+  if (IsStopped() && WorthActivating() && heap_->NextGCIsLikelyToBeFull()) {
+    // TODO(hpayer): Let's play safe for now, but compaction should be
+    // in principle possible.
+    Start(PREVENT_COMPACTION);
+  } else {
+    Step(allocated * kFastMarking / kInitialMarkingSpeed, GC_VIA_STACK_GUARD);
+  }
+}
+
+
 void IncrementalMarking::Step(intptr_t allocated_bytes,
                               CompletionAction action) {
   if (heap_->gc_state() != Heap::NOT_IN_GC ||
@@ -889,12 +915,13 @@ void IncrementalMarking::Step(intptr_t allocated_bytes,
 
   double start = 0;
 
-  if (FLAG_trace_incremental_marking || FLAG_trace_gc) {
+  if (FLAG_trace_incremental_marking || FLAG_trace_gc ||
+      FLAG_print_cumulative_gc_stat) {
     start = OS::TimeCurrentMillis();
   }
 
   if (state_ == SWEEPING) {
-    if (heap_->AdvanceSweepers(static_cast<int>(bytes_to_process))) {
+    if (heap_->EnsureSweepersProgressed(static_cast<int>(bytes_to_process))) {
       bytes_scanned_ = 0;
       StartMarking(PREVENT_COMPACTION);
     }
@@ -959,7 +986,7 @@ void IncrementalMarking::Step(intptr_t allocated_bytes,
         PrintPID("Postponing speeding up marking until marking starts\n");
       }
     } else {
-      marking_speed_ += kMarkingSpeedAccellerationInterval;
+      marking_speed_ += kMarkingSpeedAccelleration;
       marking_speed_ = static_cast<int>(
           Min(kMaxMarkingSpeed,
               static_cast<intptr_t>(marking_speed_ * 1.3)));
@@ -969,12 +996,14 @@ void IncrementalMarking::Step(intptr_t allocated_bytes,
     }
   }
 
-  if (FLAG_trace_incremental_marking || FLAG_trace_gc) {
+  if (FLAG_trace_incremental_marking || FLAG_trace_gc ||
+      FLAG_print_cumulative_gc_stat) {
     double end = OS::TimeCurrentMillis();
     double delta = (end - start);
     longest_step_ = Max(longest_step_, delta);
     steps_took_ += delta;
     steps_took_since_last_gc_ += delta;
+    heap_->AddMarkingTime(delta);
   }
 }
 

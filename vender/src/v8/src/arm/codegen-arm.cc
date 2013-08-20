@@ -62,7 +62,6 @@ double fast_exp_simulator(double x) {
 
 
 UnaryMathFunction CreateExpFunction() {
-  if (!CpuFeatures::IsSupported(VFP2)) return &exp;
   if (!FLAG_fast_math) return &exp;
   size_t actual_size;
   byte* buffer = static_cast<byte*>(OS::Allocate(1 * KB, &actual_size, true));
@@ -72,7 +71,6 @@ UnaryMathFunction CreateExpFunction() {
   MacroAssembler masm(NULL, buffer, static_cast<int>(actual_size));
 
   {
-    CpuFeatures::Scope use_vfp(VFP2);
     DwVfpRegister input = d0;
     DwVfpRegister result = d1;
     DwVfpRegister double_scratch1 = d2;
@@ -101,6 +99,7 @@ UnaryMathFunction CreateExpFunction() {
 
   CodeDesc desc;
   masm.GetCode(&desc);
+  ASSERT(!RelocInfo::RequiresRelocation(desc));
 
   CPU::FlushICache(buffer, actual_size);
   OS::ProtectCode(buffer, actual_size);
@@ -144,7 +143,8 @@ void StubRuntimeCallHelper::AfterCall(MacroAssembler* masm) const {
 #define __ ACCESS_MASM(masm)
 
 void ElementsTransitionGenerator::GenerateMapChangeElementsTransition(
-    MacroAssembler* masm) {
+    MacroAssembler* masm, AllocationSiteMode mode,
+    Label* allocation_site_info_found) {
   // ----------- S t a t e -------------
   //  -- r0    : value
   //  -- r1    : key
@@ -153,6 +153,12 @@ void ElementsTransitionGenerator::GenerateMapChangeElementsTransition(
   //  -- r3    : target map, scratch for subsequent call
   //  -- r4    : scratch (elements)
   // -----------------------------------
+  if (mode == TRACK_ALLOCATION_SITE) {
+    ASSERT(allocation_site_info_found != NULL);
+    __ TestJSArrayForAllocationSiteInfo(r2, r4);
+    __ b(eq, allocation_site_info_found);
+  }
+
   // Set transitioned map.
   __ str(r3, FieldMemOperand(r2, HeapObject::kMapOffset));
   __ RecordWriteField(r2,
@@ -167,7 +173,7 @@ void ElementsTransitionGenerator::GenerateMapChangeElementsTransition(
 
 
 void ElementsTransitionGenerator::GenerateSmiToDouble(
-    MacroAssembler* masm, Label* fail) {
+    MacroAssembler* masm, AllocationSiteMode mode, Label* fail) {
   // ----------- S t a t e -------------
   //  -- r0    : value
   //  -- r1    : key
@@ -177,7 +183,11 @@ void ElementsTransitionGenerator::GenerateSmiToDouble(
   //  -- r4    : scratch (elements)
   // -----------------------------------
   Label loop, entry, convert_hole, gc_required, only_change_map, done;
-  bool vfp2_supported = CpuFeatures::IsSupported(VFP2);
+
+  if (mode == TRACK_ALLOCATION_SITE) {
+    __ TestJSArrayForAllocationSiteInfo(r2, r4);
+    __ b(eq, fail);
+  }
 
   // Check for empty arrays, which only require a map transition and no changes
   // to the backing store.
@@ -194,7 +204,7 @@ void ElementsTransitionGenerator::GenerateSmiToDouble(
   // Use lr as a temporary register.
   __ mov(lr, Operand(r5, LSL, 2));
   __ add(lr, lr, Operand(FixedDoubleArray::kHeaderSize));
-  __ AllocateInNewSpace(lr, r6, r7, r9, &gc_required, DOUBLE_ALIGNMENT);
+  __ Allocate(lr, r6, r7, r9, &gc_required, DOUBLE_ALIGNMENT);
   // r6: destination FixedDoubleArray, not tagged as heap object.
 
   // Set destination FixedDoubleArray's length and map.
@@ -235,7 +245,6 @@ void ElementsTransitionGenerator::GenerateSmiToDouble(
   // r5: kHoleNanUpper32
   // r6: end of destination FixedDoubleArray, not tagged
   // r7: begin of FixedDoubleArray element fields, not tagged
-  if (!vfp2_supported) __ Push(r1, r0);
 
   __ b(&entry);
 
@@ -263,23 +272,10 @@ void ElementsTransitionGenerator::GenerateSmiToDouble(
   __ UntagAndJumpIfNotSmi(r9, r9, &convert_hole);
 
   // Normal smi, convert to double and store.
-  if (vfp2_supported) {
-    CpuFeatures::Scope scope(VFP2);
-    __ vmov(s0, r9);
-    __ vcvt_f64_s32(d0, s0);
-    __ vstr(d0, r7, 0);
-    __ add(r7, r7, Operand(8));
-  } else {
-    FloatingPointHelper::ConvertIntToDouble(masm,
-                                            r9,
-                                            FloatingPointHelper::kCoreRegisters,
-                                            d0,
-                                            r0,
-                                            r1,
-                                            lr,
-                                            s0);
-    __ Strd(r0, r1, MemOperand(r7, 8, PostIndex));
-  }
+  __ vmov(s0, r9);
+  __ vcvt_f64_s32(d0, s0);
+  __ vstr(d0, r7, 0);
+  __ add(r7, r7, Operand(8));
   __ b(&entry);
 
   // Hole found, store the-hole NaN.
@@ -297,14 +293,13 @@ void ElementsTransitionGenerator::GenerateSmiToDouble(
   __ cmp(r7, r6);
   __ b(lt, &loop);
 
-  if (!vfp2_supported) __ Pop(r1, r0);
   __ pop(lr);
   __ bind(&done);
 }
 
 
 void ElementsTransitionGenerator::GenerateDoubleToObject(
-    MacroAssembler* masm, Label* fail) {
+    MacroAssembler* masm, AllocationSiteMode mode, Label* fail) {
   // ----------- S t a t e -------------
   //  -- r0    : value
   //  -- r1    : key
@@ -314,6 +309,11 @@ void ElementsTransitionGenerator::GenerateDoubleToObject(
   //  -- r4    : scratch (elements)
   // -----------------------------------
   Label entry, loop, convert_hole, gc_required, only_change_map;
+
+  if (mode == TRACK_ALLOCATION_SITE) {
+    __ TestJSArrayForAllocationSiteInfo(r2, r4);
+    __ b(eq, fail);
+  }
 
   // Check for empty arrays, which only require a map transition and no changes
   // to the backing store.
@@ -330,7 +330,7 @@ void ElementsTransitionGenerator::GenerateDoubleToObject(
   // Allocate new FixedArray.
   __ mov(r0, Operand(FixedDoubleArray::kHeaderSize));
   __ add(r0, r0, Operand(r5, LSL, 1));
-  __ AllocateInNewSpace(r0, r6, r7, r9, &gc_required, NO_ALLOCATION_FLAGS);
+  __ Allocate(r0, r6, r7, r9, &gc_required, NO_ALLOCATION_FLAGS);
   // r6: destination FixedArray, not tagged as heap object
   // Set destination FixedDoubleArray's length and map.
   __ LoadRoot(r9, Heap::kFixedArrayMapRootIndex);
@@ -450,7 +450,7 @@ void StringCharLoadGenerator::Generate(MacroAssembler* masm,
   // the string.
   __ bind(&cons_string);
   __ ldr(result, FieldMemOperand(string, ConsString::kSecondOffset));
-  __ CompareRoot(result, Heap::kEmptyStringRootIndex);
+  __ CompareRoot(result, Heap::kempty_stringRootIndex);
   __ b(ne, call_runtime);
   // Get the first of the two strings and load its instance type.
   __ ldr(string, FieldMemOperand(string, ConsString::kFirstOffset));
@@ -673,7 +673,7 @@ void Code::PatchPlatformCodeAge(byte* sequence,
   uint32_t young_length;
   byte* young_sequence = GetNoCodeAgeSequence(&young_length);
   if (age == kNoAge) {
-    memcpy(sequence, young_sequence, young_length);
+    CopyBytes(sequence, young_sequence, young_length);
     CPU::FlushICache(sequence, young_length);
   } else {
     Code* stub = GetCodeAgeStub(age, parity);

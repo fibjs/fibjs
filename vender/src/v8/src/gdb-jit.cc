@@ -187,7 +187,7 @@ class Writer BASE_EMBEDDED {
   byte* buffer_;
 };
 
-class StringTable;
+class ELFStringTable;
 
 template<typename THeader>
 class DebugSectionBase : public ZoneObject {
@@ -338,7 +338,7 @@ class ELFSection : public DebugSectionBase<ELFSectionHeader> {
 
   virtual ~ELFSection() { }
 
-  void PopulateHeader(Writer::Slot<Header> header, StringTable* strtab);
+  void PopulateHeader(Writer::Slot<Header> header, ELFStringTable* strtab);
 
   virtual void WriteBody(Writer::Slot<Header> header, Writer* w) {
     uintptr_t start = w->position();
@@ -438,9 +438,9 @@ class FullHeaderELFSection : public ELFSection {
 };
 
 
-class StringTable : public ELFSection {
+class ELFStringTable : public ELFSection {
  public:
-  explicit StringTable(const char* name)
+  explicit ELFStringTable(const char* name)
       : ELFSection(name, TYPE_STRTAB, 1), writer_(NULL), offset_(0), size_(0) {
   }
 
@@ -488,7 +488,7 @@ class StringTable : public ELFSection {
 
 
 void ELFSection::PopulateHeader(Writer::Slot<ELFSection::Header> header,
-                                StringTable* strtab) {
+                                ELFStringTable* strtab) {
   header->name = strtab->Add(name_);
   header->type = type_;
   header->alignment = align_;
@@ -629,9 +629,9 @@ class MachO BASE_EMBEDDED {
 #if defined(__ELF)
 class ELF BASE_EMBEDDED {
  public:
-  ELF(Zone* zone) : sections_(6, zone) {
+  explicit ELF(Zone* zone) : sections_(6, zone) {
     sections_.Add(new(zone) ELFSection("", ELFSection::TYPE_NULL, 0), zone);
-    sections_.Add(new(zone) StringTable(".shstrtab"), zone);
+    sections_.Add(new(zone) ELFStringTable(".shstrtab"), zone);
   }
 
   void Write(Writer* w) {
@@ -681,7 +681,7 @@ class ELF BASE_EMBEDDED {
 #else
 #error Unsupported target architecture.
 #endif
-    memcpy(header->ident, ident, 16);
+    OS::MemCopy(header->ident, ident, 16);
     header->type = 1;
 #if defined(V8_TARGET_ARCH_IA32)
     header->machine = 3;
@@ -718,7 +718,7 @@ class ELF BASE_EMBEDDED {
         w->CreateSlotsHere<ELFSection::Header>(sections_.length());
 
     // String table for section table is the first section.
-    StringTable* strtab = static_cast<StringTable*>(SectionAt(1));
+    ELFStringTable* strtab = static_cast<ELFStringTable*>(SectionAt(1));
     strtab->AttachWriter(w);
     for (int i = 0, length = sections_.length();
          i < length;
@@ -832,7 +832,7 @@ class ELFSymbol BASE_EMBEDDED {
   };
 #endif
 
-  void Write(Writer::Slot<SerializedLayout> s, StringTable* t) {
+  void Write(Writer::Slot<SerializedLayout> s, ELFStringTable* t) {
     // Convert symbol names from strings to indexes in the string table.
     s->name = t->Add(name);
     s->value = value;
@@ -871,8 +871,8 @@ class ELFSymbolTable : public ELFSection {
     header->size = w->position() - header->offset;
 
     // String table for this symbol table should follow it in the section table.
-    StringTable* strtab =
-        static_cast<StringTable*>(w->debug_object()->SectionAt(index() + 1));
+    ELFStringTable* strtab =
+        static_cast<ELFStringTable*>(w->debug_object()->SectionAt(index() + 1));
     strtab->AttachWriter(w);
     symbols.at(0).set(ELFSymbol::SerializedLayout(0,
                                                   0,
@@ -905,7 +905,7 @@ class ELFSymbolTable : public ELFSection {
  private:
   void WriteSymbolsList(const ZoneList<ELFSymbol>* src,
                         Writer::Slot<ELFSymbol::SerializedLayout> dst,
-                        StringTable* strtab) {
+                        ELFStringTable* strtab) {
     for (int i = 0, len = src->length();
          i < len;
          i++) {
@@ -1019,11 +1019,11 @@ class CodeDescription BASE_EMBEDDED {
 
 #if defined(__ELF)
 static void CreateSymbolsTable(CodeDescription* desc,
+                               Zone* zone,
                                ELF* elf,
                                int text_section_index) {
-  Zone* zone = desc->info()->zone();
   ELFSymbolTable* symtab = new(zone) ELFSymbolTable(".symtab", zone);
-  StringTable* strtab = new(zone) StringTable(".strtab");
+  ELFStringTable* strtab = new(zone) ELFStringTable(".strtab");
 
   // Symbol table should be followed by the linked string table.
   elf->AddSection(symtab, zone);
@@ -1213,8 +1213,11 @@ class DebugInfoSection : public DebugSection {
         w->WriteSLEB128(StandardFrameConstants::kContextOffset);
         block_size.set(static_cast<uint32_t>(w->position() - block_start));
       }
+
+      w->WriteULEB128(0);  // Terminate the sub program.
     }
 
+    w->WriteULEB128(0);  // Terminate the compile unit.
     size.set(static_cast<uint32_t>(w->position() - start));
     return true;
   }
@@ -1324,15 +1327,14 @@ class DebugAbbrevSection : public DebugSection {
       // The real slot ID is internal_slots + context_slot_id.
       int internal_slots = Context::MIN_CONTEXT_SLOTS;
       int locals = scope->StackLocalCount();
-      int total_children =
-          params + slots + context_slots + internal_slots + locals + 2;
+      // Total children is params + slots + context_slots + internal_slots +
+      // locals + 2 (__function and __context).
 
       // The extra duplication below seems to be necessary to keep
       // gdb from getting upset on OSX.
       w->WriteULEB128(current_abbreviation++);  // Abbreviation code.
       w->WriteULEB128(DW_TAG_SUBPROGRAM);
-      w->Write<uint8_t>(
-          total_children != 0 ? DW_CHILDREN_YES : DW_CHILDREN_NO);
+      w->Write<uint8_t>(DW_CHILDREN_YES);
       w->WriteULEB128(DW_AT_NAME);
       w->WriteULEB128(DW_FORM_STRING);
       w->WriteULEB128(DW_AT_LOW_PC);
@@ -1384,9 +1386,7 @@ class DebugAbbrevSection : public DebugSection {
       // The context.
       WriteVariableAbbreviation(w, current_abbreviation++, true, false);
 
-      if (total_children != 0) {
-        w->WriteULEB128(0);  // Terminate the sibling list.
-      }
+      w->WriteULEB128(0);  // Terminate the sibling list.
     }
 
     w->WriteULEB128(0);  // Terminate the table.
@@ -1789,8 +1789,9 @@ bool UnwindInfoSection::WriteBodyInternal(Writer* w) {
 
 #endif  // V8_TARGET_ARCH_X64
 
-static void CreateDWARFSections(CodeDescription* desc, DebugObject* obj) {
-  Zone* zone = desc->info()->zone();
+static void CreateDWARFSections(CodeDescription* desc,
+                                Zone* zone,
+                                DebugObject* obj) {
   if (desc->IsLineInfoAvailable()) {
     obj->AddSection(new(zone) DebugInfoSection(desc), zone);
     obj->AddSection(new(zone) DebugAbbrevSection(desc), zone);
@@ -1841,7 +1842,7 @@ extern "C" {
 #ifdef OBJECT_PRINT
   void __gdb_print_v8_object(MaybeObject* object) {
     object->Print();
-    fprintf(stdout, "\n");
+    PrintF(stdout, "\n");
   }
 #endif
 }
@@ -1854,7 +1855,7 @@ static JITCodeEntry* CreateCodeEntry(Address symfile_addr,
 
   entry->symfile_addr_ = reinterpret_cast<Address>(entry + 1);
   entry->symfile_size_ = symfile_size;
-  memcpy(entry->symfile_addr_, symfile_addr, symfile_size);
+  OS::MemCopy(entry->symfile_addr_, symfile_addr, symfile_size);
 
   entry->prev_ = entry->next_ = NULL;
 
@@ -1915,8 +1916,7 @@ static void UnregisterCodeEntry(JITCodeEntry* entry) {
 }
 
 
-static JITCodeEntry* CreateELFObject(CodeDescription* desc) {
-  Zone* zone = desc->info()->zone();
+static JITCodeEntry* CreateELFObject(CodeDescription* desc, Zone* zone) {
   ZoneScope zone_scope(zone, DELETE_ON_EXIT);
 #ifdef __MACH_O
   MachO mach_o;
@@ -1944,9 +1944,9 @@ static JITCodeEntry* CreateELFObject(CodeDescription* desc) {
           ELFSection::FLAG_ALLOC | ELFSection::FLAG_EXEC),
       zone);
 
-  CreateSymbolsTable(desc, &elf, text_section_index);
+  CreateSymbolsTable(desc, zone, &elf, text_section_index);
 
-  CreateDWARFSections(desc, &elf);
+  CreateDWARFSections(desc, zone, &elf);
 
   elf.Write(&w);
 #endif
@@ -1996,7 +1996,7 @@ static GDBJITLineInfo* UntagLineInfo(void* ptr) {
 }
 
 
-void GDBJITInterface::AddCode(Handle<String> name,
+void GDBJITInterface::AddCode(Handle<Name> name,
                               Handle<Script> script,
                               Handle<Code> code,
                               CompilationInfo* info) {
@@ -2005,8 +2005,9 @@ void GDBJITInterface::AddCode(Handle<String> name,
   // Force initialization of line_ends array.
   GetScriptLineNumber(script, 0);
 
-  if (!name.is_null()) {
-    SmartArrayPointer<char> name_cstring = name->ToCString(DISALLOW_NULLS);
+  if (!name.is_null() && name->IsString()) {
+    SmartArrayPointer<char> name_cstring =
+        Handle<String>::cast(name)->ToCString(DISALLOW_NULLS);
     AddCode(*name_cstring, *code, GDBJITInterface::FUNCTION, *script, info);
   } else {
     AddCode("", *code, GDBJITInterface::FUNCTION, *script, info);
@@ -2082,7 +2083,8 @@ void GDBJITInterface::AddCode(const char* name,
   }
 
   AddUnwindInfo(&code_desc);
-  JITCodeEntry* entry = CreateELFObject(&code_desc);
+  Zone* zone = code->GetIsolate()->runtime_zone();
+  JITCodeEntry* entry = CreateELFObject(&code_desc, zone);
   ASSERT(!IsLineInfoTagged(entry));
 
   delete lineinfo;
@@ -2124,10 +2126,14 @@ void GDBJITInterface::AddCode(GDBJITInterface::CodeTag tag,
 
 
 void GDBJITInterface::AddCode(GDBJITInterface::CodeTag tag,
-                              String* name,
+                              Name* name,
                               Code* code) {
   if (!FLAG_gdbjit) return;
-  AddCode(tag, name != NULL ? *name->ToCString(DISALLOW_NULLS) : NULL, code);
+  if (name != NULL && name->IsString()) {
+    AddCode(tag, *String::cast(name)->ToCString(DISALLOW_NULLS), code);
+  } else {
+    AddCode(tag, "", code);
+  }
 }
 
 

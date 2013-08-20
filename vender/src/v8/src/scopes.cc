@@ -52,8 +52,8 @@ namespace internal {
 static bool Match(void* key1, void* key2) {
   String* name1 = *reinterpret_cast<String**>(key1);
   String* name2 = *reinterpret_cast<String**>(key2);
-  ASSERT(name1->IsSymbol());
-  ASSERT(name2->IsSymbol());
+  ASSERT(name1->IsInternalizedString());
+  ASSERT(name2->IsInternalizedString());
   return name1 == name2;
 }
 
@@ -105,7 +105,7 @@ Variable* VariableMap::Lookup(Handle<String> name) {
 // Implementation of Scope
 
 Scope::Scope(Scope* outer_scope, ScopeType type, Zone* zone)
-    : isolate_(Isolate::Current()),
+    : isolate_(zone->isolate()),
       inner_scopes_(4, zone),
       variables_(zone),
       internals_(4, zone),
@@ -182,7 +182,7 @@ void Scope::SetDefaults(ScopeType type,
                         Handle<ScopeInfo> scope_info) {
   outer_scope_ = outer_scope;
   type_ = type;
-  scope_name_ = isolate_->factory()->empty_symbol();
+  scope_name_ = isolate_->factory()->empty_string();
   dynamics_ = NULL;
   receiver_ = NULL;
   function_ = NULL;
@@ -197,6 +197,8 @@ void Scope::SetDefaults(ScopeType type,
   outer_scope_calls_non_strict_eval_ = false;
   inner_scope_calls_eval_ = false;
   force_eager_compilation_ = false;
+  force_context_allocation_ = (outer_scope != NULL && !is_function_scope())
+      ? outer_scope->has_forced_context_allocation() : false;
   num_var_or_const_ = 0;
   num_stack_slots_ = 0;
   num_heap_slots_ = 0;
@@ -335,7 +337,7 @@ void Scope::Initialize() {
   if (is_declaration_scope()) {
     Variable* var =
         variables_.Declare(this,
-                           isolate_->factory()->this_symbol(),
+                           isolate_->factory()->this_string(),
                            VAR,
                            false,
                            Variable::THIS,
@@ -352,7 +354,7 @@ void Scope::Initialize() {
     // Note that it might never be accessed, in which case it won't be
     // allocated during variable allocation.
     variables_.Declare(this,
-                       isolate_->factory()->arguments_symbol(),
+                       isolate_->factory()->arguments_string(),
                        VAR,
                        true,
                        Variable::ARGUMENTS,
@@ -603,12 +605,18 @@ void Scope::CollectStackAndContextLocals(ZoneList<Variable*>* stack_locals,
     }
   }
 
-  // Collect temporaries which are always allocated on the stack.
+  // Collect temporaries which are always allocated on the stack, unless the
+  // context as a whole has forced context allocation.
   for (int i = 0; i < temps_.length(); i++) {
     Variable* var = temps_[i];
     if (var->is_used()) {
-      ASSERT(var->IsStackLocal());
-      stack_locals->Add(var, zone());
+      if (var->IsContextSlot()) {
+        ASSERT(has_forced_context_allocation());
+        context_locals->Add(var, zone());
+      } else {
+        ASSERT(var->IsStackLocal());
+        stack_locals->Add(var, zone());
+      }
     }
   }
 
@@ -718,7 +726,10 @@ int Scope::ContextChainLength(Scope* scope) {
   int n = 0;
   for (Scope* s = this; s != scope; s = s->outer_scope_) {
     ASSERT(s != NULL);  // scope must be in the scope chain
-    if (s->num_heap_slots() > 0) n++;
+    if (s->is_with_scope() || s->num_heap_slots() > 0) n++;
+    // Catch and module scopes always have heap slots.
+    ASSERT(!s->is_catch_scope() || s->num_heap_slots() > 0);
+    ASSERT(!s->is_module_scope() || s->num_heap_slots() > 0);
   }
   return n;
 }
@@ -1182,8 +1193,11 @@ bool Scope::MustAllocateInContext(Variable* var) {
   // an eval() call or a runtime with lookup), it must be allocated in the
   // context.
   //
-  // Exceptions: temporary variables are never allocated in a context;
-  // catch-bound variables are always allocated in a context.
+  // Exceptions: If the scope as a whole has forced context allocation, all
+  // variables will have context allocation, even temporaries.  Otherwise
+  // temporary variables are always stack-allocated.  Catch-bound variables are
+  // always context-allocated.
+  if (has_forced_context_allocation()) return true;
   if (var->mode() == TEMPORARY) return false;
   if (var->mode() == INTERNAL) return true;
   if (is_catch_scope() || is_block_scope() || is_module_scope()) return true;
@@ -1198,7 +1212,7 @@ bool Scope::MustAllocateInContext(Variable* var) {
 bool Scope::HasArgumentsParameter() {
   for (int i = 0; i < params_.length(); i++) {
     if (params_[i]->name().is_identical_to(
-            isolate_->factory()->arguments_symbol())) {
+            isolate_->factory()->arguments_string())) {
       return true;
     }
   }
@@ -1218,7 +1232,7 @@ void Scope::AllocateHeapSlot(Variable* var) {
 
 void Scope::AllocateParameterLocals() {
   ASSERT(is_function_scope());
-  Variable* arguments = LocalLookup(isolate_->factory()->arguments_symbol());
+  Variable* arguments = LocalLookup(isolate_->factory()->arguments_string());
   ASSERT(arguments != NULL);  // functions have 'arguments' declared implicitly
 
   bool uses_nonstrict_arguments = false;
@@ -1274,7 +1288,7 @@ void Scope::AllocateParameterLocals() {
 
 void Scope::AllocateNonParameterLocal(Variable* var) {
   ASSERT(var->scope() == this);
-  ASSERT(!var->IsVariable(isolate_->factory()->result_symbol()) ||
+  ASSERT(!var->IsVariable(isolate_->factory()->result_string()) ||
          !var->IsStackLocal());
   if (var->IsUnallocated() && MustAllocate(var)) {
     if (MustAllocateInContext(var)) {
@@ -1359,7 +1373,7 @@ void Scope::AllocateModulesRecursively(Scope* host_scope) {
   if (already_resolved()) return;
   if (is_module_scope()) {
     ASSERT(interface_->IsFrozen());
-    Handle<String> name = isolate_->factory()->LookupOneByteSymbol(
+    Handle<String> name = isolate_->factory()->InternalizeOneByteString(
         STATIC_ASCII_VECTOR(".module"));
     ASSERT(module_var_ == NULL);
     module_var_ = host_scope->NewInternal(name);

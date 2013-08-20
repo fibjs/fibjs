@@ -50,8 +50,8 @@ void Disassembler::Dump(FILE* f, byte* begin, byte* end) {
              pc - begin,
              *pc);
     } else {
-      fprintf(f, "%" V8PRIxPTR "  %4" V8PRIdPTR "  %02x\n",
-              reinterpret_cast<uintptr_t>(pc), pc - begin, *pc);
+      PrintF(f, "%" V8PRIxPTR "  %4" V8PRIdPTR "  %02x\n",
+             reinterpret_cast<uintptr_t>(pc), pc - begin, *pc);
     }
   }
 }
@@ -101,21 +101,21 @@ static void DumpBuffer(FILE* f, StringBuilder* out) {
   if (f == NULL) {
     PrintF("%s\n", out->Finalize());
   } else {
-    fprintf(f, "%s\n", out->Finalize());
+    PrintF(f, "%s\n", out->Finalize());
   }
   out->Reset();
 }
 
 
-
 static const int kOutBufferSize = 2048 + String::kMaxShortPrintLength;
 static const int kRelocInfoPosition = 57;
 
-static int DecodeIt(FILE* f,
+static int DecodeIt(Isolate* isolate,
+                    FILE* f,
                     const V8NameConverter& converter,
                     byte* begin,
                     byte* end) {
-  NoHandleAllocation ha;
+  NoHandleAllocation ha(isolate);
   AssertNoAllocation no_alloc;
   ExternalReferenceEncoder ref_encoder;
   Heap* heap = HEAP;
@@ -281,13 +281,17 @@ static int DecodeIt(FILE* f,
         if (rmode == RelocInfo::CODE_TARGET_WITH_ID) {
           out.AddFormatted(" (id = %d)", static_cast<int>(relocinfo.data()));
         }
-      } else if (rmode == RelocInfo::RUNTIME_ENTRY &&
-                 Isolate::Current()->deoptimizer_data() != NULL) {
+      } else if (RelocInfo::IsRuntimeEntry(rmode) &&
+                 isolate->deoptimizer_data() != NULL) {
         // A runtime entry reloinfo might be a deoptimization bailout.
         Address addr = relocinfo.target_address();
-        int id = Deoptimizer::GetDeoptimizationId(addr, Deoptimizer::EAGER);
+        int id = Deoptimizer::GetDeoptimizationId(isolate,
+                                                  addr,
+                                                  Deoptimizer::EAGER);
         if (id == Deoptimizer::kNotDeoptimizationEntry) {
-          id = Deoptimizer::GetDeoptimizationId(addr, Deoptimizer::LAZY);
+          id = Deoptimizer::GetDeoptimizationId(isolate,
+                                                addr,
+                                                Deoptimizer::LAZY);
           if (id == Deoptimizer::kNotDeoptimizationEntry) {
             out.AddFormatted("    ;; %s", RelocInfo::RelocModeName(rmode));
           } else {
@@ -319,34 +323,36 @@ static int DecodeIt(FILE* f,
 }
 
 
-int Disassembler::Decode(FILE* f, byte* begin, byte* end) {
+int Disassembler::Decode(Isolate* isolate, FILE* f, byte* begin, byte* end) {
   V8NameConverter defaultConverter(NULL);
-  return DecodeIt(f, defaultConverter, begin, end);
+  return DecodeIt(isolate, f, defaultConverter, begin, end);
 }
 
 
 // Called by Code::CodePrint.
 void Disassembler::Decode(FILE* f, Code* code) {
-  int decode_size = (code->kind() == Code::OPTIMIZED_FUNCTION ||
-                     code->kind() == Code::COMPILED_STUB)
+  Isolate* isolate = code->GetIsolate();
+  int decode_size = code->is_crankshafted()
       ? static_cast<int>(code->safepoint_table_offset())
       : code->instruction_size();
-  // If there might be a stack check table, stop before reaching it.
+  // If there might be a back edge table, stop before reaching it.
   if (code->kind() == Code::FUNCTION) {
     decode_size =
-        Min(decode_size, static_cast<int>(code->stack_check_table_offset()));
+        Min(decode_size, static_cast<int>(code->back_edge_table_offset()));
   }
 
   byte* begin = code->instruction_start();
   byte* end = begin + decode_size;
   V8NameConverter v8NameConverter(code);
-  DecodeIt(f, v8NameConverter, begin, end);
+  DecodeIt(isolate, f, v8NameConverter, begin, end);
 }
 
 #else  // ENABLE_DISASSEMBLER
 
 void Disassembler::Dump(FILE* f, byte* begin, byte* end) {}
-int Disassembler::Decode(FILE* f, byte* begin, byte* end) { return 0; }
+int Disassembler::Decode(Isolate* isolate, FILE* f, byte* begin, byte* end) {
+  return 0;
+}
 void Disassembler::Decode(FILE* f, Code* code) {}
 
 #endif  // ENABLE_DISASSEMBLER

@@ -40,6 +40,13 @@ static const int kPrologueOffsetNotSet = -1;
 class ScriptDataImpl;
 class HydrogenCodeStub;
 
+// ParseRestriction is used to restrict the set of valid statements in a
+// unit of compilation.  Restriction violations cause a syntax error.
+enum ParseRestriction {
+  NO_PARSE_RESTRICTION,         // All expressions are allowed.
+  ONLY_SINGLE_FUNCTION_LITERAL  // Only a single FunctionLiteral expression.
+};
+
 // CompilationInfo encapsulates some information known at compile time.  It
 // is constructed based on the resources available at compile-time.
 class CompilationInfo {
@@ -49,15 +56,13 @@ class CompilationInfo {
   CompilationInfo(Handle<JSFunction> closure, Zone* zone);
   CompilationInfo(HydrogenCodeStub* stub, Isolate* isolate, Zone* zone);
 
-  virtual ~CompilationInfo();
+  ~CompilationInfo();
 
   Isolate* isolate() {
     ASSERT(Isolate::Current() == isolate_);
     return isolate_;
   }
-  Zone* zone() {
-    return zone_;
-  }
+  Zone* zone() { return zone_; }
   bool is_lazy() const { return IsLazy::decode(flags_); }
   bool is_eval() const { return IsEval::decode(flags_); }
   bool is_global() const { return IsGlobal::decode(flags_); }
@@ -74,11 +79,12 @@ class CompilationInfo {
   Handle<JSFunction> closure() const { return closure_; }
   Handle<SharedFunctionInfo> shared_info() const { return shared_info_; }
   Handle<Script> script() const { return script_; }
-  HydrogenCodeStub* code_stub() {return code_stub_; }
+  HydrogenCodeStub* code_stub() const {return code_stub_; }
   v8::Extension* extension() const { return extension_; }
   ScriptDataImpl* pre_parse_data() const { return pre_parse_data_; }
   Handle<Context> context() const { return context_; }
   BailoutId osr_ast_id() const { return osr_ast_id_; }
+  int opt_count() const { return opt_count_; }
   int num_parameters() const;
   int num_heap_slots() const;
   Code::Flags flags() const;
@@ -127,6 +133,30 @@ class CompilationInfo {
 
   bool is_non_deferred_calling() const {
     return IsNonDeferredCalling::decode(flags_);
+  }
+
+  void MarkAsSavesCallerDoubles() {
+    flags_ |= SavesCallerDoubles::encode(true);
+  }
+
+  bool saves_caller_doubles() const {
+    return SavesCallerDoubles::decode(flags_);
+  }
+
+  void MarkAsRequiresFrame() {
+    flags_ |= RequiresFrame::encode(true);
+  }
+
+  bool requires_frame() const {
+    return RequiresFrame::decode(flags_);
+  }
+
+  void SetParseRestriction(ParseRestriction restriction) {
+    flags_ = ParseRestricitonField::update(flags_, restriction);
+  }
+
+  ParseRestriction parse_restriction() const {
+    return ParseRestricitonField::decode(flags_);
   }
 
   void SetFunction(FunctionLiteral* literal) {
@@ -274,7 +304,12 @@ class CompilationInfo {
   class IsDeferredCalling: public BitField<bool, 10, 1> {};
   // If the compiled code contains calls that require building a frame
   class IsNonDeferredCalling: public BitField<bool, 11, 1> {};
-
+  // If the compiled code saves double caller registers that it clobbers.
+  class SavesCallerDoubles: public BitField<bool, 12, 1> {};
+  // If the set of valid statements is restricted.
+  class ParseRestricitonField: public BitField<ParseRestriction, 13, 1> {};
+  // If the function requires a frame (for unspecified reasons)
+  class RequiresFrame: public BitField<bool, 14, 1> {};
 
   unsigned flags_;
 
@@ -326,6 +361,10 @@ class CompilationInfo {
 
   int prologue_offset_;
 
+  // A copy of shared_info()->opt_count() to avoid handle deref
+  // during graph optimization.
+  int opt_count_;
+
   DISALLOW_COPY_AND_ASSIGN(CompilationInfo);
 };
 
@@ -334,8 +373,6 @@ class CompilationInfo {
 // Zone on construction and deallocates it on exit.
 class CompilationInfoWithZone: public CompilationInfo {
  public:
-  INLINE(void* operator new(size_t size)) { return Malloced::New(size); }
-
   explicit CompilationInfoWithZone(Handle<Script> script)
       : CompilationInfo(script, &zone_),
         zone_(script->GetIsolate()),
@@ -409,6 +446,7 @@ class OptimizingCompiler: public ZoneObject {
 
   Status last_status() const { return last_status_; }
   CompilationInfo* info() const { return info_; }
+  Isolate* isolate() const { return info()->isolate(); }
 
   MUST_USE_RESULT Status AbortOptimization() {
     info_->AbortOptimization();
@@ -488,6 +526,7 @@ class Compiler : public AllStatic {
                                                 Handle<Context> context,
                                                 bool is_global,
                                                 LanguageMode language_mode,
+                                                ParseRestriction restriction,
                                                 int scope_position);
 
   // Compile from function info (used for lazy compilation). Returns true on

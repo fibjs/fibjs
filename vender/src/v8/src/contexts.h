@@ -103,6 +103,7 @@ enum BindingFlags {
   V(NUMBER_FUNCTION_INDEX, JSFunction, number_function) \
   V(STRING_FUNCTION_INDEX, JSFunction, string_function) \
   V(STRING_FUNCTION_PROTOTYPE_MAP_INDEX, Map, string_function_prototype_map) \
+  V(SYMBOL_FUNCTION_INDEX, JSFunction, symbol_function) \
   V(OBJECT_FUNCTION_INDEX, JSFunction, object_function) \
   V(INTERNAL_ARRAY_FUNCTION_INDEX, JSFunction, internal_array_function) \
   V(ARRAY_FUNCTION_INDEX, JSFunction, array_function) \
@@ -122,14 +123,21 @@ enum BindingFlags {
   V(GLOBAL_EVAL_FUN_INDEX, JSFunction, global_eval_fun) \
   V(INSTANTIATE_FUN_INDEX, JSFunction, instantiate_fun) \
   V(CONFIGURE_INSTANCE_FUN_INDEX, JSFunction, configure_instance_fun) \
+  V(ARRAY_BUFFER_FUN_INDEX, JSFunction, array_buffer_fun) \
+  V(UINT8_ARRAY_FUN_INDEX, JSFunction, uint8_array_fun) \
+  V(INT8_ARRAY_FUN_INDEX, JSFunction, int8_array_fun) \
+  V(UINT16_ARRAY_FUN_INDEX, JSFunction, uint16_array_fun) \
+  V(INT16_ARRAY_FUN_INDEX, JSFunction, int16_array_fun) \
+  V(UINT32_ARRAY_FUN_INDEX, JSFunction, uint32_array_fun) \
+  V(INT32_ARRAY_FUN_INDEX, JSFunction, int32_array_fun) \
+  V(FLOAT_ARRAY_FUN_INDEX, JSFunction, float_array_fun) \
+  V(DOUBLE_ARRAY_FUN_INDEX, JSFunction, double_array_fun) \
+  V(UINT8C_ARRAY_FUN_INDEX, JSFunction, uint8c_array_fun) \
   V(FUNCTION_MAP_INDEX, Map, function_map) \
   V(STRICT_MODE_FUNCTION_MAP_INDEX, Map, strict_mode_function_map) \
   V(FUNCTION_WITHOUT_PROTOTYPE_MAP_INDEX, Map, function_without_prototype_map) \
   V(STRICT_MODE_FUNCTION_WITHOUT_PROTOTYPE_MAP_INDEX, Map, \
     strict_mode_function_without_prototype_map) \
-  V(FUNCTION_INSTANCE_MAP_INDEX, Map, function_instance_map) \
-  V(STRICT_MODE_FUNCTION_INSTANCE_MAP_INDEX, Map, \
-    strict_mode_function_instance_map) \
   V(REGEXP_RESULT_MAP_INDEX, Map, regexp_result_map)\
   V(ARGUMENTS_BOILERPLATE_INDEX, JSObject, arguments_boilerplate) \
   V(ALIASED_ARGUMENTS_BOILERPLATE_INDEX, JSObject, \
@@ -164,6 +172,12 @@ enum BindingFlags {
   V(PROXY_ENUMERATE_INDEX, JSFunction, proxy_enumerate) \
   V(OBSERVERS_NOTIFY_CHANGE_INDEX, JSFunction, observers_notify_change) \
   V(OBSERVERS_DELIVER_CHANGES_INDEX, JSFunction, observers_deliver_changes) \
+  V(GENERATOR_FUNCTION_MAP_INDEX, Map, generator_function_map) \
+  V(STRICT_MODE_GENERATOR_FUNCTION_MAP_INDEX, Map, \
+    strict_mode_generator_function_map) \
+  V(GENERATOR_OBJECT_PROTOTYPE_MAP_INDEX, Map, \
+    generator_object_prototype_map) \
+  V(GENERATOR_RESULT_MAP_INDEX, Map, generator_result_map) \
   V(RANDOM_SEED_INDEX, ByteArray, random_seed)
 
 // JSFunctions are pairs (context, function code), sometimes also called
@@ -243,13 +257,12 @@ class Context: public FixedArray {
     STRICT_MODE_FUNCTION_MAP_INDEX,
     FUNCTION_WITHOUT_PROTOTYPE_MAP_INDEX,
     STRICT_MODE_FUNCTION_WITHOUT_PROTOTYPE_MAP_INDEX,
-    FUNCTION_INSTANCE_MAP_INDEX,
-    STRICT_MODE_FUNCTION_INSTANCE_MAP_INDEX,
     INITIAL_OBJECT_PROTOTYPE_INDEX,
     BOOLEAN_FUNCTION_INDEX,
     NUMBER_FUNCTION_INDEX,
     STRING_FUNCTION_INDEX,
     STRING_FUNCTION_PROTOTYPE_MAP_INDEX,
+    SYMBOL_FUNCTION_INDEX,
     OBJECT_FUNCTION_INDEX,
     INTERNAL_ARRAY_FUNCTION_INDEX,
     ARRAY_FUNCTION_INDEX,
@@ -269,6 +282,16 @@ class Context: public FixedArray {
     GLOBAL_EVAL_FUN_INDEX,
     INSTANTIATE_FUN_INDEX,
     CONFIGURE_INSTANCE_FUN_INDEX,
+    ARRAY_BUFFER_FUN_INDEX,
+    UINT8_ARRAY_FUN_INDEX,
+    INT8_ARRAY_FUN_INDEX,
+    UINT16_ARRAY_FUN_INDEX,
+    INT16_ARRAY_FUN_INDEX,
+    UINT32_ARRAY_FUN_INDEX,
+    INT32_ARRAY_FUN_INDEX,
+    FLOAT_ARRAY_FUN_INDEX,
+    DOUBLE_ARRAY_FUN_INDEX,
+    UINT8C_ARRAY_FUN_INDEX,
     MESSAGE_LISTENERS_INDEX,
     MAKE_MESSAGE_FUN_INDEX,
     GET_STACK_TRACE_LINE_INDEX,
@@ -293,6 +316,10 @@ class Context: public FixedArray {
     PROXY_ENUMERATE_INDEX,
     OBSERVERS_NOTIFY_CHANGE_INDEX,
     OBSERVERS_DELIVER_CHANGES_INDEX,
+    GENERATOR_FUNCTION_MAP_INDEX,
+    STRICT_MODE_GENERATOR_FUNCTION_MAP_INDEX,
+    GENERATOR_OBJECT_PROTOTYPE_MAP_INDEX,
+    GENERATOR_RESULT_MAP_INDEX,
     RANDOM_SEED_INDEX,
 
     // Properties from here are treated as weak references by the full GC.
@@ -435,6 +462,16 @@ class Context: public FixedArray {
   // Code generation support.
   static int SlotOffset(int index) {
     return kHeaderSize + index * kPointerSize - kHeapObjectTag;
+  }
+
+  static int FunctionMapIndex(LanguageMode language_mode, bool is_generator) {
+    return is_generator
+      ? (language_mode == CLASSIC_MODE
+         ? GENERATOR_FUNCTION_MAP_INDEX
+         : STRICT_MODE_GENERATOR_FUNCTION_MAP_INDEX)
+      : (language_mode == CLASSIC_MODE
+         ? FUNCTION_MAP_INDEX
+         : STRICT_MODE_FUNCTION_MAP_INDEX);
   }
 
   static const int kSize = kHeaderSize + NATIVE_CONTEXT_SLOTS * kPointerSize;

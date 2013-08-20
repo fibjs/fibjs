@@ -35,6 +35,8 @@ namespace v8 {
 namespace internal {
 
 
+void ArrayNativeCode(MacroAssembler* masm, Label* call_generic_code);
+
 // Compute a transcendental math function natively, or call the
 // TranscendentalCache runtime function.
 class TranscendentalCacheStub: public PlatformCodeStub {
@@ -68,7 +70,7 @@ class StoreBufferOverflowStub: public PlatformCodeStub {
   void Generate(MacroAssembler* masm);
 
   virtual bool IsPregenerated() { return true; }
-  static void GenerateFixedRegStubsAheadOfTime();
+  static void GenerateFixedRegStubsAheadOfTime(Isolate* isolate);
   virtual bool SometimesSetsUpAFrame() { return false; }
 
  private:
@@ -127,9 +129,9 @@ class UnaryOpStub: public PlatformCodeStub {
                              Label* non_smi,
                              Label::Distance non_smi_near);
 
-  void GenerateHeapNumberStub(MacroAssembler* masm);
-  void GenerateHeapNumberStubSub(MacroAssembler* masm);
-  void GenerateHeapNumberStubBitNot(MacroAssembler* masm);
+  void GenerateNumberStub(MacroAssembler* masm);
+  void GenerateNumberStubSub(MacroAssembler* masm);
+  void GenerateNumberStubBitNot(MacroAssembler* masm);
   void GenerateHeapNumberCodeSub(MacroAssembler* masm, Label* slow);
   void GenerateHeapNumberCodeBitNot(MacroAssembler* masm, Label* slow);
 
@@ -138,7 +140,7 @@ class UnaryOpStub: public PlatformCodeStub {
   void GenerateGenericStubBitNot(MacroAssembler* masm);
   void GenerateGenericCodeFallback(MacroAssembler* masm);
 
-  virtual int GetCodeKind() { return Code::UNARY_OP_IC; }
+  virtual Code::Kind GetCodeKind() const { return Code::UNARY_OP_IC; }
 
   virtual InlineCacheState GetICState() {
     return UnaryOpIC::ToState(operand_type_);
@@ -172,11 +174,11 @@ class StringHelper : public AllStatic {
                                         bool ascii);
 
 
-  // Probe the symbol table for a two character string. If the string is
+  // Probe the string table for a two character string. If the string is
   // not found by probing a jump to the label not_found is performed. This jump
-  // does not guarantee that the string is not in the symbol table. If the
+  // does not guarantee that the string is not in the string table. If the
   // string is found the code falls through with the string in register rax.
-  static void GenerateTwoCharacterSymbolTableProbe(MacroAssembler* masm,
+  static void GenerateTwoCharacterStringTableProbe(MacroAssembler* masm,
                                                    Register c1,
                                                    Register c2,
                                                    Register scratch1,
@@ -316,14 +318,14 @@ class NumberToStringStub: public PlatformCodeStub {
 };
 
 
-class StringDictionaryLookupStub: public PlatformCodeStub {
+class NameDictionaryLookupStub: public PlatformCodeStub {
  public:
   enum LookupMode { POSITIVE_LOOKUP, NEGATIVE_LOOKUP };
 
-  StringDictionaryLookupStub(Register dictionary,
-                             Register result,
-                             Register index,
-                             LookupMode mode)
+  NameDictionaryLookupStub(Register dictionary,
+                           Register result,
+                           Register index,
+                           LookupMode mode)
       : dictionary_(dictionary), result_(result), index_(index), mode_(mode) { }
 
   void Generate(MacroAssembler* masm);
@@ -332,7 +334,7 @@ class StringDictionaryLookupStub: public PlatformCodeStub {
                                      Label* miss,
                                      Label* done,
                                      Register properties,
-                                     Handle<String> name,
+                                     Handle<Name> name,
                                      Register r0);
 
   static void GeneratePositiveLookup(MacroAssembler* masm,
@@ -350,14 +352,14 @@ class StringDictionaryLookupStub: public PlatformCodeStub {
   static const int kTotalProbes = 20;
 
   static const int kCapacityOffset =
-      StringDictionary::kHeaderSize +
-      StringDictionary::kCapacityIndex * kPointerSize;
+      NameDictionary::kHeaderSize +
+      NameDictionary::kCapacityIndex * kPointerSize;
 
   static const int kElementsStartOffset =
-      StringDictionary::kHeaderSize +
-      StringDictionary::kElementsStartIndex * kPointerSize;
+      NameDictionary::kHeaderSize +
+      NameDictionary::kElementsStartIndex * kPointerSize;
 
-  Major MajorKey() { return StringDictionaryLookup; }
+  Major MajorKey() { return NameDictionaryLookup; }
 
   int MinorKey() {
     return DictionaryBits::encode(dictionary_.code()) |
@@ -402,7 +404,7 @@ class RecordWriteStub: public PlatformCodeStub {
   };
 
   virtual bool IsPregenerated();
-  static void GenerateFixedRegStubsAheadOfTime();
+  static void GenerateFixedRegStubsAheadOfTime(Isolate* isolate);
   virtual bool SometimesSetsUpAFrame() { return false; }
 
   static const byte kTwoByteNopInstruction = 0x3c;  // Cmpb al, #imm8.

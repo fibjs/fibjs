@@ -376,6 +376,7 @@
     <ClCompile Include="src\v8\src\global-handles.cc" />
     <ClCompile Include="src\v8\src\handles.cc" />
     <ClCompile Include="src\v8\src\heap-profiler.cc" />
+    <ClCompile Include="src\v8\src\heap-snapshot-generator.cc" />
     <ClCompile Include="src\v8\src\heap.cc" />
     <ClCompile Include="src\v8\src\hydrogen-instructions.cc" />
     <ClCompile Include="src\v8\src\hydrogen.cc" />
@@ -412,6 +413,7 @@
     <ClCompile Include="src\v8\src\log-utils.cc" />
     <ClCompile Include="src\v8\src\log.cc" />
     <ClCompile Include="src\v8\src\mark-compact.cc" />
+    <ClCompile Include="src\v8\src\marking-thread.cc" />
     <ClCompile Include="src\v8\src\messages.cc" />
     <ClCompile Include="src\v8\src\objects-debug.cc" />
     <ClCompile Include="src\v8\src\objects-printer.cc" />
@@ -441,6 +443,7 @@
     <ClCompile Include="src\v8\src\runtime-profiler.cc" />
     <ClCompile Include="src\v8\src\runtime.cc" />
     <ClCompile Include="src\v8\src\safepoint-table.cc" />
+    <ClCompile Include="src\v8\src\sampler.cc" />
     <ClCompile Include="src\v8\src\scanner-character-streams.cc" />
     <ClCompile Include="src\v8\src\scanner.cc" />
     <ClCompile Include="src\v8\src\scopeinfo.cc" />
@@ -454,6 +457,7 @@
     <ClCompile Include="src\v8\src\string-stream.cc" />
     <ClCompile Include="src\v8\src\strtod.cc" />
     <ClCompile Include="src\v8\src\stub-cache.cc" />
+    <ClCompile Include="src\v8\src\sweeper-thread.cc" />
     <ClCompile Include="src\v8\src\token.cc" />
     <ClCompile Include="src\v8\src\transitions.cc" />
     <ClCompile Include="src\v8\src\type-info.cc" />
@@ -792,6 +796,7 @@
     <ClInclude Include="src\v8\src\bignum-dtoa.h" />
     <ClInclude Include="src\v8\src\bignum.h" />
     <ClInclude Include="src\v8\src\bootstrapper.h" />
+    <ClInclude Include="src\v8\src\builtins-decls.h" />
     <ClInclude Include="src\v8\src\builtins.h" />
     <ClInclude Include="src\v8\src\bytecodes-irregexp.h" />
     <ClInclude Include="src\v8\src\cached-powers.h" />
@@ -848,6 +853,8 @@
     <ClInclude Include="src\v8\src\hashmap.h" />
     <ClInclude Include="src\v8\src\heap-inl.h" />
     <ClInclude Include="src\v8\src\heap-profiler.h" />
+    <ClInclude Include="src\v8\src\heap-snapshot-generator-inl.h" />
+    <ClInclude Include="src\v8\src\heap-snapshot-generator.h" />
     <ClInclude Include="src\v8\src\heap.h" />
     <ClInclude Include="src\v8\src\hydrogen-instructions.h" />
     <ClInclude Include="src\v8\src\hydrogen.h" />
@@ -873,6 +880,7 @@
     <ClInclude Include="src\v8\src\isolate.h" />
     <ClInclude Include="src\v8\src\json-parser.h" />
     <ClInclude Include="src\v8\src\json-stringifier.h" />
+    <ClInclude Include="src\v8\src\jsregexp-inl.h" />
     <ClInclude Include="src\v8\src\jsregexp.h" />
     <ClInclude Include="src\v8\src\lazy-instance.h" />
     <ClInclude Include="src\v8\src\list-inl.h" />
@@ -889,6 +897,7 @@
     <ClInclude Include="src\v8\src\macro-assembler.h" />
     <ClInclude Include="src\v8\src\mark-compact-inl.h" />
     <ClInclude Include="src\v8\src\mark-compact.h" />
+    <ClInclude Include="src\v8\src\marking-thread.h" />
     <ClInclude Include="src\v8\src\messages.h" />
     <ClInclude Include="src\v8\src\misc-intrinsics.h" />
     <ClInclude Include="src\v8\src\natives.h" />
@@ -921,6 +930,7 @@
     <ClInclude Include="src\v8\src\runtime-profiler.h" />
     <ClInclude Include="src\v8\src\runtime.h" />
     <ClInclude Include="src\v8\src\safepoint-table.h" />
+    <ClInclude Include="src\v8\src\sampler.h" />
     <ClInclude Include="src\v8\src\scanner-character-streams.h" />
     <ClInclude Include="src\v8\src\scanner.h" />
     <ClInclude Include="src\v8\src\scopeinfo.h" />
@@ -941,6 +951,7 @@
     <ClInclude Include="src\v8\src\string-stream.h" />
     <ClInclude Include="src\v8\src\strtod.h" />
     <ClInclude Include="src\v8\src\stub-cache.h" />
+    <ClInclude Include="src\v8\src\sweeper-thread.h" />
     <ClInclude Include="src\v8\src\third_party\valgrind\valgrind.h" />
     <ClInclude Include="src\v8\src\token.h" />
     <ClInclude Include="src\v8\src\transitions-inl.h" />
@@ -950,6 +961,7 @@
     <ClInclude Include="src\v8\src\unbound-queue.h" />
     <ClInclude Include="src\v8\src\unicode-inl.h" />
     <ClInclude Include="src\v8\src\unicode.h" />
+    <ClInclude Include="src\v8\src\uri.h" />
     <ClInclude Include="src\v8\src\utils-inl.h" />
     <ClInclude Include="src\v8\src\utils.h" />
     <ClInclude Include="src\v8\src\v8-counters.h" />

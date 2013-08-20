@@ -50,7 +50,6 @@ class OptimizingCompilerThread : public Thread {
       isolate_(isolate),
       stop_semaphore_(OS::CreateSemaphore(0)),
       input_queue_semaphore_(OS::CreateSemaphore(0)),
-      output_queue_semaphore_(OS::CreateSemaphore(0)),
       time_spent_compiling_(0),
       time_spent_total_(0) {
     NoBarrier_Store(&stop_thread_, static_cast<AtomicWord>(false));
@@ -59,11 +58,9 @@ class OptimizingCompilerThread : public Thread {
 
   void Run();
   void Stop();
+  void CompileNext();
   void QueueForOptimization(OptimizingCompiler* optimizing_compiler);
   void InstallOptimizedFunctions();
-
-  // Wait for the next optimized function and install it.
-  Handle<SharedFunctionInfo> InstallNextOptimizedFunction();
 
   inline bool IsQueueAvailable() {
     // We don't need a barrier since we have a data dependency right
@@ -84,7 +81,6 @@ class OptimizingCompilerThread : public Thread {
 #endif
 
   ~OptimizingCompilerThread() {
-    delete output_queue_semaphore_;  // Only used for manual mode.
     delete input_queue_semaphore_;
     delete stop_semaphore_;
   }
@@ -97,7 +93,6 @@ class OptimizingCompilerThread : public Thread {
   Isolate* isolate_;
   Semaphore* stop_semaphore_;
   Semaphore* input_queue_semaphore_;
-  Semaphore* output_queue_semaphore_;
   UnboundQueue<OptimizingCompiler*> input_queue_;
   UnboundQueue<OptimizingCompiler*> output_queue_;
   volatile AtomicWord stop_thread_;
