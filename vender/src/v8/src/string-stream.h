@@ -137,6 +137,12 @@ class StringStream {
            FmtElm arg1,
            FmtElm arg2,
            FmtElm arg3);
+  void Add(const char* format,
+           FmtElm arg0,
+           FmtElm arg1,
+           FmtElm arg2,
+           FmtElm arg3,
+           FmtElm arg4);
 
   // Getting the message out.
   void OutputToFile(FILE* out);
@@ -184,6 +190,31 @@ class StringStream {
   int space() const { return capacity_ - length_; }
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StringStream);
+};
+
+
+// Utility class to print a list of items to a stream, divided by a separator.
+class SimpleListPrinter {
+ public:
+  explicit SimpleListPrinter(StringStream* stream, char separator = ',') {
+    separator_ = separator;
+    stream_ = stream;
+    first_ = true;
+  }
+
+  void Add(const char* str) {
+    if (first_) {
+      first_ = false;
+    } else {
+      stream_->Put(separator_);
+    }
+    stream_->Add(str);
+  }
+
+ private:
+  bool first_;
+  char separator_;
+  StringStream* stream_;
 };
 
 

@@ -580,38 +580,21 @@ void MacroAssembler::StoreNumberToDoubleElements(
 
 void MacroAssembler::CompareMap(Register obj,
                                 Handle<Map> map,
-                                Label* early_success,
-                                CompareMapMode mode) {
+                                Label* early_success) {
   cmp(FieldOperand(obj, HeapObject::kMapOffset), map);
-  if (mode == ALLOW_ELEMENT_TRANSITION_MAPS) {
-    ElementsKind kind = map->elements_kind();
-    if (IsFastElementsKind(kind)) {
-      bool packed = IsFastPackedElementsKind(kind);
-      Map* current_map = *map;
-      while (CanTransitionToMoreGeneralFastElementsKind(kind, packed)) {
-        kind = GetNextMoreGeneralFastElementsKind(kind, packed);
-        current_map = current_map->LookupElementsTransitionMap(kind);
-        if (!current_map) break;
-        j(equal, early_success, Label::kNear);
-        cmp(FieldOperand(obj, HeapObject::kMapOffset),
-            Handle<Map>(current_map));
-      }
-    }
-  }
 }
 
 
 void MacroAssembler::CheckMap(Register obj,
                               Handle<Map> map,
                               Label* fail,
-                              SmiCheckType smi_check_type,
-                              CompareMapMode mode) {
+                              SmiCheckType smi_check_type) {
   if (smi_check_type == DO_SMI_CHECK) {
     JumpIfSmi(obj, fail);
   }
 
   Label success;
-  CompareMap(obj, map, &success, mode);
+  CompareMap(obj, map, &success);
   j(not_equal, fail);
   bind(&success);
 }
@@ -1954,14 +1937,14 @@ static const bool kReturnHandlesDirectly = false;
 #endif
 
 
-Operand ApiParameterOperand(int index) {
-  return Operand(
-      esp, (index + (kReturnHandlesDirectly ? 0 : 1)) * kPointerSize);
+Operand ApiParameterOperand(int index, bool returns_handle) {
+  int offset = (index +(kReturnHandlesDirectly || !returns_handle ? 0 : 1));
+  return Operand(esp, offset * kPointerSize);
 }
 
 
-void MacroAssembler::PrepareCallApiFunction(int argc) {
-  if (kReturnHandlesDirectly) {
+void MacroAssembler::PrepareCallApiFunction(int argc, bool returns_handle) {
+  if (kReturnHandlesDirectly || !returns_handle) {
     EnterApiExitFrame(argc);
     // When handles are returned directly we don't have to allocate extra
     // space for and pass an out parameter.
@@ -1990,7 +1973,9 @@ void MacroAssembler::PrepareCallApiFunction(int argc) {
 
 
 void MacroAssembler::CallApiFunctionAndReturn(Address function_address,
-                                              int stack_space) {
+                                              int stack_space,
+                                              bool returns_handle,
+                                              int return_value_offset) {
   ExternalReference next_address =
       ExternalReference::handle_scope_next_address(isolate());
   ExternalReference limit_address =
@@ -2026,23 +2011,29 @@ void MacroAssembler::CallApiFunctionAndReturn(Address function_address,
     PopSafepointRegisters();
   }
 
-  if (!kReturnHandlesDirectly) {
-    // PrepareCallApiFunction saved pointer to the output slot into
-    // callee-save register esi.
-    mov(eax, Operand(esi, 0));
-  }
-
-  Label empty_handle;
   Label prologue;
+  if (returns_handle) {
+    if (!kReturnHandlesDirectly) {
+      // PrepareCallApiFunction saved pointer to the output slot into
+      // callee-save register esi.
+      mov(eax, Operand(esi, 0));
+    }
+    Label empty_handle;
+    // Check if the result handle holds 0.
+    test(eax, eax);
+    j(zero, &empty_handle);
+    // It was non-zero.  Dereference to get the result value.
+    mov(eax, Operand(eax, 0));
+    jmp(&prologue);
+    bind(&empty_handle);
+  }
+  // Load the value from ReturnValue
+  mov(eax, Operand(ebp, return_value_offset * kPointerSize));
+
   Label promote_scheduled_exception;
   Label delete_allocated_handles;
   Label leave_exit_frame;
 
-  // Check if the result handle holds 0.
-  test(eax, eax);
-  j(zero, &empty_handle);
-  // It was non-zero.  Dereference to get the result value.
-  mov(eax, Operand(eax, 0));
   bind(&prologue);
   // No more valid handles (the result handle was the last one). Restore
   // previous handle scope.
@@ -2097,11 +2088,6 @@ void MacroAssembler::CallApiFunctionAndReturn(Address function_address,
 
   LeaveApiExitFrame();
   ret(stack_space * kPointerSize);
-
-  bind(&empty_handle);
-  // It was zero; the result is undefined.
-  mov(eax, isolate()->factory()->undefined_value());
-  jmp(&prologue);
 
   bind(&promote_scheduled_exception);
   TailCallRuntime(Runtime::kPromoteScheduledException, 0, 1);
@@ -2514,6 +2500,18 @@ void MacroAssembler::LoadHeapObject(Register result,
     mov(result, Operand::Cell(cell));
   } else {
     mov(result, object);
+  }
+}
+
+
+void MacroAssembler::CmpHeapObject(Register reg, Handle<HeapObject> object) {
+  ALLOW_HANDLE_DEREF(isolate(), "using raw address");
+  if (isolate()->heap()->InNewSpace(*object)) {
+    Handle<JSGlobalPropertyCell> cell =
+        isolate()->factory()->NewJSGlobalPropertyCell(object);
+    cmp(reg, Operand::Cell(cell));
+  } else {
+    cmp(reg, object);
   }
 }
 

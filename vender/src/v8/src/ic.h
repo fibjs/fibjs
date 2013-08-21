@@ -62,7 +62,7 @@ namespace internal {
   ICU(CompareIC_Miss)                                 \
   ICU(CompareNilIC_Miss)                              \
   ICU(Unreachable)                                    \
-  ICU(ToBoolean_Patch)
+  ICU(ToBooleanIC_Miss)
 //
 // IC is the base class for LoadIC, StoreIC, CallIC, KeyedLoadIC,
 // and KeyedStoreIC.
@@ -787,11 +787,7 @@ class CompareNilIC: public IC {
 
   static Handle<Code> GetUninitialized();
 
-  static Code* GetRawUninitialized(EqualityKind kind, NilValue nil);
-
   static void Clear(Address address, Code* target);
-
-  void patch(Code* code);
 
   static MUST_USE_RESULT MaybeObject* DoCompareNilSlow(EqualityKind kind,
                                                        NilValue nil,
@@ -801,9 +797,9 @@ class CompareNilIC: public IC {
 
 class ToBooleanIC: public IC {
  public:
-  explicit ToBooleanIC(Isolate* isolate) : IC(NO_EXTRA_FRAME, isolate) { }
+  explicit ToBooleanIC(Isolate* isolate) : IC(EXTRA_CALL_FRAME, isolate) { }
 
-  void patch(Code* code);
+  MaybeObject* ToBoolean(Handle<Object> object, Code::ExtraICState state);
 };
 
 
@@ -814,6 +810,7 @@ void PatchInlinedSmiCode(Address address, InlinedSmiCheck check);
 DECLARE_RUNTIME_FUNCTION(MaybeObject*, KeyedLoadIC_MissFromStubFailure);
 DECLARE_RUNTIME_FUNCTION(MaybeObject*, KeyedStoreIC_MissFromStubFailure);
 DECLARE_RUNTIME_FUNCTION(MaybeObject*, CompareNilIC_Miss);
+DECLARE_RUNTIME_FUNCTION(MaybeObject*, ToBooleanIC_Miss);
 
 
 } }  // namespace v8::internal

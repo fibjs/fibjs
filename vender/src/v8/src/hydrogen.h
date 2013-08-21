@@ -34,7 +34,6 @@
 #include "ast.h"
 #include "compiler.h"
 #include "hydrogen-instructions.h"
-#include "type-info.h"
 #include "zone.h"
 #include "scopes.h"
 
@@ -277,17 +276,15 @@ class HGraph: public ZoneObject {
   void GlobalValueNumbering();
   bool ProcessArgumentsObject();
   void EliminateRedundantPhis();
-  void EliminateUnreachablePhis();
   void Canonicalize();
   void OrderBlocks();
   void AssignDominators();
   void SetupInformativeDefinitions();
   void EliminateRedundantBoundsChecks();
   void DehoistSimpleArrayIndexComputations();
-  void DeadCodeElimination();
   void RestoreActualValues();
+  void DeadCodeElimination(const char *phase_name);
   void PropagateDeoptimizingMark();
-  void EliminateUnusedInstructions();
 
   // Returns false if there are phi-uses of the arguments-object
   // which are not supported by the optimizing compiler.
@@ -305,8 +302,6 @@ class HGraph: public ZoneObject {
   HConstant* GetConstantUndefined() const { return undefined_constant_.get(); }
   HConstant* GetConstant0();
   HConstant* GetConstant1();
-  HConstant* GetConstantSmi0();
-  HConstant* GetConstantSmi1();
   HConstant* GetConstantMinus1();
   HConstant* GetConstantTrue();
   HConstant* GetConstantFalse();
@@ -389,6 +384,14 @@ class HGraph: public ZoneObject {
     return is_recursive_;
   }
 
+  void MarkDependsOnEmptyArrayProtoElements() {
+    depends_on_empty_array_proto_elements_ = true;
+  }
+
+  bool depends_on_empty_array_proto_elements() {
+    return depends_on_empty_array_proto_elements_;
+  }
+
   void RecordUint32Instruction(HInstruction* instr) {
     if (uint32_instructions_ == NULL) {
       uint32_instructions_ = new(zone()) ZoneList<HInstruction*>(4, zone());
@@ -397,11 +400,12 @@ class HGraph: public ZoneObject {
   }
 
  private:
-  HConstant* GetConstantInt32(SetOncePointer<HConstant>* pointer,
-                              int32_t integer_value);
-  HConstant* GetConstantSmi(SetOncePointer<HConstant>* pointer,
-                            int32_t integer_value);
+  HConstant* GetConstant(SetOncePointer<HConstant>* pointer,
+                         int32_t integer_value);
 
+  void MarkLive(HValue* ref, HValue* instr, ZoneList<HValue*>* worklist);
+  void MarkLiveInstructions();
+  void RemoveDeadInstructions();
   void MarkAsDeoptimizingRecursively(HBasicBlock* block);
   void NullifyUnreachableInstructions();
   void InsertTypeConversions(HInstruction* instr);
@@ -430,8 +434,6 @@ class HGraph: public ZoneObject {
   SetOncePointer<HConstant> undefined_constant_;
   SetOncePointer<HConstant> constant_0_;
   SetOncePointer<HConstant> constant_1_;
-  SetOncePointer<HConstant> constant_smi_0_;
-  SetOncePointer<HConstant> constant_smi_1_;
   SetOncePointer<HConstant> constant_minus1_;
   SetOncePointer<HConstant> constant_true_;
   SetOncePointer<HConstant> constant_false_;
@@ -449,6 +451,7 @@ class HGraph: public ZoneObject {
   bool is_recursive_;
   bool use_optimistic_licm_;
   bool has_soft_deoptimize_;
+  bool depends_on_empty_array_proto_elements_;
   int type_change_checksum_;
 
   DISALLOW_COPY_AND_ASSIGN(HGraph);
@@ -788,12 +791,10 @@ class TestContext: public AstContext {
  public:
   TestContext(HOptimizedGraphBuilder* owner,
               Expression* condition,
-              TypeFeedbackOracle* oracle,
               HBasicBlock* if_true,
               HBasicBlock* if_false)
       : AstContext(owner, Expression::kTest),
         condition_(condition),
-        oracle_(oracle),
         if_true_(if_true),
         if_false_(if_false) {
   }
@@ -810,7 +811,6 @@ class TestContext: public AstContext {
   }
 
   Expression* condition() const { return condition_; }
-  TypeFeedbackOracle* oracle() const { return oracle_; }
   HBasicBlock* if_true() const { return if_true_; }
   HBasicBlock* if_false() const { return if_false_; }
 
@@ -820,7 +820,6 @@ class TestContext: public AstContext {
   void BuildBranch(HValue* value);
 
   Expression* condition_;
-  TypeFeedbackOracle* oracle_;
   HBasicBlock* if_true_;
   HBasicBlock* if_false_;
 };
@@ -830,12 +829,10 @@ class FunctionState {
  public:
   FunctionState(HOptimizedGraphBuilder* owner,
                 CompilationInfo* info,
-                TypeFeedbackOracle* oracle,
                 InliningKind inlining_kind);
   ~FunctionState();
 
   CompilationInfo* compilation_info() { return compilation_info_; }
-  TypeFeedbackOracle* oracle() { return oracle_; }
   AstContext* call_context() { return call_context_; }
   InliningKind inlining_kind() const { return inlining_kind_; }
   HBasicBlock* function_return() { return function_return_; }
@@ -861,7 +858,6 @@ class FunctionState {
   HOptimizedGraphBuilder* owner_;
 
   CompilationInfo* compilation_info_;
-  TypeFeedbackOracle* oracle_;
 
   // During function inlining, expression context of the call being
   // inlined. NULL when not inlining.
@@ -956,11 +952,7 @@ class HGraphBuilder {
   HInstruction* AddInstruction(HInstruction* instr);
   void AddSimulate(BailoutId id,
                    RemovableSimulate removable = FIXED_SIMULATE);
-  HBoundsCheck* AddBoundsCheck(
-      HValue* index,
-      HValue* length,
-      BoundsCheckKeyMode key_mode = DONT_ALLOW_SMI_KEY,
-      Representation r = Representation::None());
+  HBoundsCheck* AddBoundsCheck(HValue* index, HValue* length);
 
   HReturn* AddReturn(HValue* value);
 
@@ -982,11 +974,6 @@ class HGraphBuilder {
   HValue* BuildCheckMap(HValue* obj, Handle<Map> map);
 
   // Building common constructs
-  HLoadNamedField* DoBuildLoadNamedField(HValue* object,
-                                         bool inobject,
-                                         Representation representation,
-                                         int offset);
-
   HInstruction* BuildExternalArrayElementAccess(
       HValue* external_elements,
       HValue* checked_key,
@@ -1002,6 +989,7 @@ class HGraphBuilder {
       HValue* dependency,
       ElementsKind elements_kind,
       bool is_store,
+      LoadKeyedHoleMode load_mode,
       KeyedAccessStoreMode store_mode);
 
   HValue* BuildCheckForCapacityGrow(HValue* object,
@@ -1024,11 +1012,27 @@ class HGraphBuilder {
       bool is_js_array,
       ElementsKind elements_kind,
       bool is_store,
-      KeyedAccessStoreMode store_mode,
-      Representation checked_index_representation = Representation::None());
+      LoadKeyedHoleMode load_mode,
+      KeyedAccessStoreMode store_mode);
 
-  HInstruction* BuildStoreMap(HValue* object, HValue* map);
-  HInstruction* BuildStoreMap(HValue* object, Handle<Map> map);
+  HLoadNamedField* AddLoad(
+      HValue *object,
+      HObjectAccess access,
+      HValue *typecheck = NULL,
+      Representation representation = Representation::Tagged());
+
+  HLoadNamedField* BuildLoadNamedField(
+      HValue* object,
+      HObjectAccess access,
+      Representation representation);
+
+  HStoreNamedField* AddStore(
+      HValue *object,
+      HObjectAccess access,
+      HValue *val,
+      Representation representation = Representation::Tagged());
+
+  HStoreNamedField* AddStoreMapConstant(HValue *object, Handle<Map>);
 
   HLoadNamedField* AddLoadElements(HValue *object, HValue *typecheck = NULL);
 
@@ -1268,13 +1272,13 @@ class HGraphBuilder {
                                 ElementsKind kind,
                                 HValue* capacity);
 
-  void BuildInitializeElements(HValue* elements,
-                               ElementsKind kind,
-                               HValue* capacity);
+  void BuildInitializeElementsHeader(HValue* elements,
+                                     ElementsKind kind,
+                                     HValue* capacity);
 
-  HValue* BuildAllocateAndInitializeElements(HValue* context,
-                                             ElementsKind kind,
-                                             HValue* capacity);
+  HValue* BuildAllocateElementsAndInitializeElementsHeader(HValue* context,
+                                                           ElementsKind kind,
+                                                           HValue* capacity);
 
   // array must have been allocated with enough room for
   // 1) the JSArray, 2) a AllocationSiteInfo if mode requires it,
@@ -1338,9 +1342,6 @@ class HGraphBuilder {
 
 class HOptimizedGraphBuilder: public HGraphBuilder, public AstVisitor {
  public:
-  enum BreakType { BREAK, CONTINUE };
-  enum SwitchType { UNKNOWN_SWITCH, SMI_SWITCH, STRING_SWITCH };
-
   // A class encapsulating (lazily-allocated) break and continue blocks for
   // a breakable statement.  Separated from BreakAndContinueScope so that it
   // can have a separate lifetime.
@@ -1385,6 +1386,7 @@ class HOptimizedGraphBuilder: public HGraphBuilder, public AstVisitor {
     BreakAndContinueScope* next() { return next_; }
 
     // Search the break stack for a break or continue target.
+    enum BreakType { BREAK, CONTINUE };
     HBasicBlock* Get(BreakableStatement* stmt, BreakType type, int* drop_extra);
 
    private:
@@ -1393,7 +1395,7 @@ class HOptimizedGraphBuilder: public HGraphBuilder, public AstVisitor {
     BreakAndContinueScope* next_;
   };
 
-  HOptimizedGraphBuilder(CompilationInfo* info, TypeFeedbackOracle* oracle);
+  explicit HOptimizedGraphBuilder(CompilationInfo* info);
 
   virtual bool BuildGraph();
 
@@ -1410,8 +1412,6 @@ class HOptimizedGraphBuilder: public HGraphBuilder, public AstVisitor {
   HBasicBlock* CreateJoin(HBasicBlock* first,
                           HBasicBlock* second,
                           BailoutId join_id);
-
-  TypeFeedbackOracle* oracle() const { return function_state()->oracle(); }
 
   FunctionState* function_state() const { return function_state_; }
 
@@ -1680,9 +1680,6 @@ class HOptimizedGraphBuilder: public HGraphBuilder, public AstVisitor {
                                    bool is_store,
                                    bool* has_side_effects);
 
-  HLoadNamedField* BuildLoadNamedField(HValue* object,
-                                       Handle<Map> map,
-                                       LookupResult* result);
   HInstruction* BuildLoadNamedGeneric(HValue* object,
                                       Handle<String> name,
                                       Property* expr);
@@ -1738,12 +1735,36 @@ class HOptimizedGraphBuilder: public HGraphBuilder, public AstVisitor {
                          int* offset,
                          AllocationSiteMode mode);
 
-  MUST_USE_RESULT HValue* BuildCopyObjectHeader(
+  MUST_USE_RESULT HValue* BuildEmitObjectHeader(
       Handle<JSObject> boilerplat_object,
       HInstruction* target,
       int object_offset,
       int elements_offset,
       int elements_size);
+
+  void BuildEmitInObjectProperties(Handle<JSObject> boilerplate_object,
+                                   Handle<JSObject> original_boilerplate_object,
+                                   HValue* object_properties,
+                                   HInstruction* target,
+                                   int* offset);
+
+  void BuildEmitElements(Handle<FixedArrayBase> elements,
+                         Handle<FixedArrayBase> original_elements,
+                         ElementsKind kind,
+                         HValue* object_elements,
+                         HInstruction* target,
+                         int* offset);
+
+  void BuildEmitFixedDoubleArray(Handle<FixedArrayBase> elements,
+                                 ElementsKind kind,
+                                 HValue* object_elements);
+
+  void BuildEmitFixedArray(Handle<FixedArrayBase> elements,
+                           Handle<FixedArrayBase> original_elements,
+                           ElementsKind kind,
+                           HValue* object_elements,
+                           HInstruction* target,
+                           int* offset);
 
   void AddCheckPrototypeMaps(Handle<JSObject> holder,
                              Handle<Map> receiver_map);
@@ -1784,90 +1805,6 @@ class HOptimizedGraphBuilder: public HGraphBuilder, public AstVisitor {
 
 
 Zone* AstContext::zone() const { return owner_->zone(); }
-
-
-class HValueMap: public ZoneObject {
- public:
-  explicit HValueMap(Zone* zone)
-      : array_size_(0),
-        lists_size_(0),
-        count_(0),
-        present_flags_(0),
-        array_(NULL),
-        lists_(NULL),
-        free_list_head_(kNil) {
-    ResizeLists(kInitialSize, zone);
-    Resize(kInitialSize, zone);
-  }
-
-  void Kill(GVNFlagSet flags);
-
-  void Add(HValue* value, Zone* zone) {
-    present_flags_.Add(value->gvn_flags());
-    Insert(value, zone);
-  }
-
-  HValue* Lookup(HValue* value) const;
-
-  HValueMap* Copy(Zone* zone) const {
-    return new(zone) HValueMap(zone, this);
-  }
-
-  bool IsEmpty() const { return count_ == 0; }
-
- private:
-  // A linked list of HValue* values.  Stored in arrays.
-  struct HValueMapListElement {
-    HValue* value;
-    int next;  // Index in the array of the next list element.
-  };
-  static const int kNil = -1;  // The end of a linked list
-
-  // Must be a power of 2.
-  static const int kInitialSize = 16;
-
-  HValueMap(Zone* zone, const HValueMap* other);
-
-  void Resize(int new_size, Zone* zone);
-  void ResizeLists(int new_size, Zone* zone);
-  void Insert(HValue* value, Zone* zone);
-  uint32_t Bound(uint32_t value) const { return value & (array_size_ - 1); }
-
-  int array_size_;
-  int lists_size_;
-  int count_;  // The number of values stored in the HValueMap.
-  GVNFlagSet present_flags_;  // All flags that are in any value in the
-                              // HValueMap.
-  HValueMapListElement* array_;  // Primary store - contains the first value
-  // with a given hash.  Colliding elements are stored in linked lists.
-  HValueMapListElement* lists_;  // The linked lists containing hash collisions.
-  int free_list_head_;  // Unused elements in lists_ are on the free list.
-};
-
-
-class HSideEffectMap BASE_EMBEDDED {
- public:
-  HSideEffectMap();
-  explicit HSideEffectMap(HSideEffectMap* other);
-  HSideEffectMap& operator= (const HSideEffectMap& other);
-
-  void Kill(GVNFlagSet flags);
-
-  void Store(GVNFlagSet flags, HInstruction* instr);
-
-  bool IsEmpty() const { return count_ == 0; }
-
-  inline HInstruction* operator[](int i) const {
-    ASSERT(0 <= i);
-    ASSERT(i < kNumberOfTrackedSideEffects);
-    return data_[i];
-  }
-  inline HInstruction* at(int i) const { return operator[](i); }
-
- private:
-  int count_;
-  HInstruction* data_[kNumberOfTrackedSideEffects];
-};
 
 
 class HStatistics: public Malloced {

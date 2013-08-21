@@ -272,6 +272,7 @@ class MacroAssembler: public Assembler {
   void LoadFromSafepointRegisterSlot(Register dst, Register src);
 
   void LoadHeapObject(Register result, Handle<HeapObject> object);
+  void CmpHeapObject(Register reg, Handle<HeapObject> object);
   void PushHeapObject(Handle<HeapObject> object);
 
   void LoadObject(Register result, Handle<Object> object) {
@@ -280,6 +281,15 @@ class MacroAssembler: public Assembler {
       LoadHeapObject(result, Handle<HeapObject>::cast(object));
     } else {
       Set(result, Immediate(object));
+    }
+  }
+
+  void CmpObject(Register reg, Handle<Object> object) {
+    ALLOW_HANDLE_DEREF(isolate(), "heap object check");
+    if (object->IsHeapObject()) {
+      CmpHeapObject(reg, Handle<HeapObject>::cast(object));
+    } else {
+      cmp(reg, Immediate(object));
     }
   }
 
@@ -399,8 +409,7 @@ class MacroAssembler: public Assembler {
   // sequences branches to early_success.
   void CompareMap(Register obj,
                   Handle<Map> map,
-                  Label* early_success,
-                  CompareMapMode mode = REQUIRE_EXACT_MAP);
+                  Label* early_success);
 
   // Check if the map of an object is equal to a specified map and branch to
   // label if not. Skip the smi check if not required (object is known to be a
@@ -409,8 +418,7 @@ class MacroAssembler: public Assembler {
   void CheckMap(Register obj,
                 Handle<Map> map,
                 Label* fail,
-                SmiCheckType smi_check_type,
-                CompareMapMode mode = REQUIRE_EXACT_MAP);
+                SmiCheckType smi_check_type);
 
   // Check if the map of an object is equal to a specified map and branch to a
   // specified target if equal. Skip the smi check if not required (object is
@@ -769,13 +777,16 @@ class MacroAssembler: public Assembler {
   // Arguments must be stored in ApiParameterOperand(0), ApiParameterOperand(1)
   // etc. Saves context (esi). If space was reserved for return value then
   // stores the pointer to the reserved slot into esi.
-  void PrepareCallApiFunction(int argc);
+  void PrepareCallApiFunction(int argc, bool returns_handle);
 
   // Calls an API function.  Allocates HandleScope, extracts returned value
   // from handle and propagates exceptions.  Clobbers ebx, edi and
   // caller-save registers.  Restores context.  On return removes
   // stack_space * kPointerSize (GCed).
-  void CallApiFunctionAndReturn(Address function_address, int stack_space);
+  void CallApiFunctionAndReturn(Address function_address,
+                                int stack_space,
+                                bool returns_handle,
+                                int return_value_offset_from_ebp);
 
   // Jump to a runtime routine.
   void JumpToExternalReference(const ExternalReference& ext);
@@ -1010,7 +1021,7 @@ inline Operand GlobalObjectOperand() {
 
 
 // Generates an Operand for saving parameters after PrepareCallApiFunction.
-Operand ApiParameterOperand(int index);
+Operand ApiParameterOperand(int index, bool returns_handle);
 
 
 #ifdef GENERATED_CODE_COVERAGE

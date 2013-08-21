@@ -128,7 +128,6 @@ namespace internal {
   V(Map, short_external_ascii_string_map, ShortExternalAsciiStringMap)         \
   V(Map, undetectable_string_map, UndetectableStringMap)                       \
   V(Map, undetectable_ascii_string_map, UndetectableAsciiStringMap)            \
-  V(Map, external_pixel_array_map, ExternalPixelArrayMap)                      \
   V(Map, external_byte_array_map, ExternalByteArrayMap)                        \
   V(Map, external_unsigned_byte_array_map, ExternalUnsignedByteArrayMap)       \
   V(Map, external_short_array_map, ExternalShortArrayMap)                      \
@@ -137,6 +136,21 @@ namespace internal {
   V(Map, external_unsigned_int_array_map, ExternalUnsignedIntArrayMap)         \
   V(Map, external_float_array_map, ExternalFloatArrayMap)                      \
   V(Map, external_double_array_map, ExternalDoubleArrayMap)                    \
+  V(Map, external_pixel_array_map, ExternalPixelArrayMap)                      \
+  V(ExternalArray, empty_external_byte_array,                                  \
+      EmptyExternalByteArray)                                                  \
+  V(ExternalArray, empty_external_unsigned_byte_array,                         \
+      EmptyExternalUnsignedByteArray)                                          \
+  V(ExternalArray, empty_external_short_array, EmptyExternalShortArray)        \
+  V(ExternalArray, empty_external_unsigned_short_array,                        \
+      EmptyExternalUnsignedShortArray)                                         \
+  V(ExternalArray, empty_external_int_array, EmptyExternalIntArray)            \
+  V(ExternalArray, empty_external_unsigned_int_array,                          \
+      EmptyExternalUnsignedIntArray)                                           \
+  V(ExternalArray, empty_external_float_array, EmptyExternalFloatArray)        \
+  V(ExternalArray, empty_external_double_array, EmptyExternalDoubleArray)      \
+  V(ExternalArray, empty_external_pixel_array,                                 \
+      EmptyExternalPixelArray)                                                 \
   V(Map, non_strict_arguments_elements_map, NonStrictArgumentsElementsMap)     \
   V(Map, function_context_map, FunctionContextMap)                             \
   V(Map, catch_context_map, CatchContextMap)                                   \
@@ -167,7 +181,10 @@ namespace internal {
   V(Smi, getter_stub_deopt_pc_offset, GetterStubDeoptPCOffset)                 \
   V(Smi, setter_stub_deopt_pc_offset, SetterStubDeoptPCOffset)                 \
   V(JSObject, observation_state, ObservationState)                             \
-  V(Map, external_map, ExternalMap)
+  V(Map, external_map, ExternalMap)                                            \
+  V(Symbol, frozen_symbol, FrozenSymbol)                                       \
+  V(SeededNumberDictionary, empty_slow_element_dictionary,                     \
+      EmptySlowElementDictionary)
 
 #define ROOT_LIST(V)                                  \
   STRONG_ROOT_LIST(V)                                 \
@@ -273,7 +290,11 @@ namespace internal {
   V(minus_infinity_string, "-Infinity")                                  \
   V(hidden_stack_trace_string, "v8::hidden_stack_trace")                 \
   V(query_colon_string, "(?:)")                                          \
-  V(Generator_string, "Generator")
+  V(Generator_string, "Generator")                                       \
+  V(send_string, "send")                                                 \
+  V(throw_string, "throw")                                               \
+  V(done_string, "done")                                                 \
+  V(value_string, "value")
 
 // Forward declarations.
 class GCTracer;
@@ -529,7 +550,7 @@ class Heap {
   int InitialSemiSpaceSize() { return initial_semispace_size_; }
   intptr_t MaxOldGenerationSize() { return max_old_generation_size_; }
   intptr_t MaxExecutableSize() { return max_executable_size_; }
-  int MaxNewSpaceAllocationSize() { return InitialSemiSpaceSize() * 3/4; }
+  int MaxRegularSpaceAllocationSize() { return InitialSemiSpaceSize() * 3/4; }
 
   // Returns the capacity of the heap in bytes w/o growing. Heap grows when
   // more spaces are needed until it reaches the limit.
@@ -1528,7 +1549,12 @@ class Heap {
   // Predicate that governs global pre-tenuring decisions based on observed
   // promotion rates of previous collections.
   inline bool ShouldGloballyPretenure() {
-    return new_space_high_promotion_mode_active_;
+    return FLAG_pretenuring && new_space_high_promotion_mode_active_;
+  }
+
+  // This is only needed for testing high promotion mode.
+  void SetNewSpaceHighPromotionModeActive(bool mode) {
+    new_space_high_promotion_mode_active_ = mode;
   }
 
   inline PretenureFlag GetPretenureMode() {
@@ -1543,42 +1569,29 @@ class Heap {
     return PromotedSpaceSizeOfObjects() + PromotedExternalMemorySize();
   }
 
-  // True if we have reached the allocation limit in the old generation that
-  // should force the next GC (caused normally) to be a full one.
-  inline bool OldGenerationPromotionLimitReached() {
-    return PromotedTotalSize() > old_gen_promotion_limit_;
-  }
-
   inline intptr_t OldGenerationSpaceAvailable() {
-    return old_gen_allocation_limit_ - PromotedTotalSize();
+    return old_generation_allocation_limit_ - PromotedTotalSize();
   }
 
   inline intptr_t OldGenerationCapacityAvailable() {
     return max_old_generation_size_ - PromotedTotalSize();
   }
 
-  static const intptr_t kMinimumPromotionLimit = 5 * Page::kPageSize;
-  static const intptr_t kMinimumAllocationLimit =
+  static const intptr_t kMinimumOldGenerationAllocationLimit =
       8 * (Page::kPageSize > MB ? Page::kPageSize : MB);
 
-  intptr_t OldGenPromotionLimit(intptr_t old_gen_size) {
+  intptr_t OldGenerationAllocationLimit(intptr_t old_gen_size) {
     const int divisor = FLAG_stress_compaction ? 10 :
         new_space_high_promotion_mode_active_ ? 1 : 3;
     intptr_t limit =
-        Max(old_gen_size + old_gen_size / divisor, kMinimumPromotionLimit);
+        Max(old_gen_size + old_gen_size / divisor,
+            kMinimumOldGenerationAllocationLimit);
     limit += new_space_.Capacity();
-    limit *= old_gen_limit_factor_;
-    intptr_t halfway_to_the_max = (old_gen_size + max_old_generation_size_) / 2;
-    return Min(limit, halfway_to_the_max);
-  }
-
-  intptr_t OldGenAllocationLimit(intptr_t old_gen_size) {
-    const int divisor = FLAG_stress_compaction ? 8 :
-        new_space_high_promotion_mode_active_ ? 1 : 2;
-    intptr_t limit =
-        Max(old_gen_size + old_gen_size / divisor, kMinimumAllocationLimit);
-    limit += new_space_.Capacity();
-    limit *= old_gen_limit_factor_;
+    // TODO(hpayer): Can be removed when when pretenuring is supported for all
+    // allocation sites.
+    if (IsHighSurvivalRate() && IsStableOrIncreasingSurvivalTrend()) {
+      limit *= 2;
+    }
     intptr_t halfway_to_the_max = (old_gen_size + max_old_generation_size_) / 2;
     return Min(limit, halfway_to_the_max);
   }
@@ -1626,6 +1639,9 @@ class Heap {
   RootListIndex RootIndexForExternalArrayType(
       ExternalArrayType array_type);
 
+  RootListIndex RootIndexForEmptyExternalArray(ElementsKind kind);
+  ExternalArray* EmptyExternalArrayForMap(Map* map);
+
   void RecordStats(HeapStats* stats, bool take_snapshot = false);
 
   // Copy block of memory from src to dst. Size of block should be aligned
@@ -1650,21 +1666,13 @@ class Heap {
 
     if (FLAG_stress_compaction && (gc_count_ & 1) != 0) return true;
 
-    intptr_t total_promoted = PromotedTotalSize();
-
-    intptr_t adjusted_promotion_limit =
-        old_gen_promotion_limit_ - new_space_.Capacity();
-
-    if (total_promoted >= adjusted_promotion_limit) return true;
-
     intptr_t adjusted_allocation_limit =
-        old_gen_allocation_limit_ - new_space_.Capacity() / 5;
+        old_generation_allocation_limit_ - new_space_.Capacity();
 
-    if (PromotedSpaceSizeOfObjects() >= adjusted_allocation_limit) return true;
+    if (PromotedTotalSize() >= adjusted_allocation_limit) return true;
 
     return false;
   }
-
 
   void UpdateNewSpaceReferencesInExternalStringTable(
       ExternalStringTableUpdaterCallback updater_func);
@@ -1990,17 +1998,9 @@ class Heap {
 
   // Limit that triggers a global GC on the next (normally caused) GC.  This
   // is checked when we have already decided to do a GC to help determine
-  // which collector to invoke.
-  intptr_t old_gen_promotion_limit_;
-
-  // Limit that triggers a global GC as soon as is reasonable.  This is
-  // checked before expanding a paged space in the old generation and on
-  // every allocation in large object space.
-  intptr_t old_gen_allocation_limit_;
-
-  // Sometimes the heuristics dictate that those limits are increased.  This
-  // variable records that fact.
-  int old_gen_limit_factor_;
+  // which collector to invoke, before expanding a paged space in the old
+  // generation and on every allocation in large object space.
+  intptr_t old_generation_allocation_limit_;
 
   // Used to adjust the limits that control the timing of the next GC.
   intptr_t size_of_old_gen_at_last_old_space_gc_;
@@ -2018,7 +2018,7 @@ class Heap {
 
   // Indicates that an allocation has failed in the old generation since the
   // last GC.
-  int old_gen_exhausted_;
+  bool old_gen_exhausted_;
 
   Object* native_contexts_list_;
 
@@ -2139,6 +2139,10 @@ class Heap {
 
   // Allocate empty fixed array.
   MUST_USE_RESULT MaybeObject* AllocateEmptyFixedArray();
+
+  // Allocate empty external array of given type.
+  MUST_USE_RESULT MaybeObject* AllocateEmptyExternalArray(
+      ExternalArrayType array_type);
 
   // Allocate empty fixed double array.
   MUST_USE_RESULT MaybeObject* AllocateEmptyFixedDoubleArray();
@@ -2262,7 +2266,6 @@ class Heap {
 
   void StartIdleRound() {
     mark_sweeps_since_idle_round_started_ = 0;
-    ms_count_at_last_idle_notification_ = ms_count_;
   }
 
   void FinishIdleRound() {
@@ -2339,7 +2342,6 @@ class Heap {
   bool last_idle_notification_gc_count_init_;
 
   int mark_sweeps_since_idle_round_started_;
-  int ms_count_at_last_idle_notification_;
   unsigned int gc_count_at_last_idle_gc_;
   int scavenges_since_last_idle_round_;
 

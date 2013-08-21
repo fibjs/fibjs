@@ -38,6 +38,24 @@
 namespace v8 {
 namespace internal {
 
+
+static inline double read_double_value(Address p) {
+#ifdef V8_HOST_CAN_READ_UNALIGNED
+  return Memory::double_at(p);
+#else  // V8_HOST_CAN_READ_UNALIGNED
+  // Prevent gcc from using load-double (mips ldc1) on (possibly)
+  // non-64-bit aligned address.
+  union conversion {
+    double d;
+    uint32_t u[2];
+  } c;
+  c.u[0] = *reinterpret_cast<uint32_t*>(p);
+  c.u[1] = *reinterpret_cast<uint32_t*>(p + 4);
+  return c.d;
+#endif  // V8_HOST_CAN_READ_UNALIGNED
+}
+
+
 class FrameDescription;
 class TranslationIterator;
 class DeoptimizingCodeListNode;
@@ -98,51 +116,32 @@ class OptimizedFunctionFilter BASE_EMBEDDED {
 class Deoptimizer;
 
 
-class DeoptimizerData {
- public:
-  explicit DeoptimizerData(MemoryAllocator* allocator);
-  ~DeoptimizerData();
-
-#ifdef ENABLE_DEBUGGER_SUPPORT
-  void Iterate(ObjectVisitor* v);
-#endif
-
-  Code* FindDeoptimizingCode(Address addr);
-  void RemoveDeoptimizingCode(Code* code);
-
- private:
-  MemoryAllocator* allocator_;
-  int eager_deoptimization_entry_code_entries_;
-  int lazy_deoptimization_entry_code_entries_;
-  MemoryChunk* eager_deoptimization_entry_code_;
-  MemoryChunk* lazy_deoptimization_entry_code_;
-  Deoptimizer* current_;
-
-#ifdef ENABLE_DEBUGGER_SUPPORT
-  DeoptimizedFrameInfo* deoptimized_frame_info_;
-#endif
-
-  // List of deoptimized code which still have references from active stack
-  // frames. These code objects are needed by the deoptimizer when deoptimizing
-  // a frame for which the code object for the function function has been
-  // changed from the code present when deoptimizing was done.
-  DeoptimizingCodeListNode* deoptimizing_code_list_;
-
-  friend class Deoptimizer;
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptimizerData);
-};
-
-
 class Deoptimizer : public Malloced {
  public:
   enum BailoutType {
     EAGER,
     LAZY,
+    SOFT,
     OSR,
     // This last bailout type is not really a bailout, but used by the
     // debugger to deoptimize stack frames to allow inspection.
     DEBUGGER
+  };
+
+  static const int kBailoutTypesWithCodeEntry = SOFT + 1;
+
+  struct JumpTableEntry {
+    inline JumpTableEntry(Address entry,
+                          Deoptimizer::BailoutType type,
+                          bool frame)
+        : label(),
+          address(entry),
+          bailout_type(type),
+          needs_frame(frame) { }
+    Label label;
+    Address address;
+    Deoptimizer::BailoutType bailout_type;
+    bool needs_frame;
   };
 
   static bool TraceEnabledFor(BailoutType deopt_type,
@@ -354,7 +353,6 @@ class Deoptimizer : public Malloced {
               int fp_to_sp_delta,
               Code* optimized_code);
   Code* FindOptimizedCode(JSFunction* function, Code* optimized_code);
-  void Trace();
   void PrintFunctionName();
   void DeleteFrameDescriptions();
 
@@ -426,6 +424,10 @@ class Deoptimizer : public Malloced {
   // from the input frame's double registers.
   void CopyDoubleRegisters(FrameDescription* output_frame);
 
+  // Determines whether the input frame contains alignment padding by looking
+  // at the dynamic alignment state slot inside the frame.
+  bool HasAlignmentPadding(JSFunction* function);
+
   Isolate* isolate_;
   JSFunction* function_;
   Code* compiled_code_;
@@ -492,19 +494,7 @@ class FrameDescription {
 
   double GetDoubleFrameSlot(unsigned offset) {
     intptr_t* ptr = GetFrameSlotPointer(offset);
-#if V8_TARGET_ARCH_MIPS
-    // Prevent gcc from using load-double (mips ldc1) on (possibly)
-    // non-64-bit aligned double. Uses two lwc1 instructions.
-    union conversion {
-      double d;
-      uint32_t u[2];
-    } c;
-    c.u[0] = *reinterpret_cast<uint32_t*>(ptr);
-    c.u[1] = *(reinterpret_cast<uint32_t*>(ptr) + 1);
-    return c.d;
-#else
-    return *reinterpret_cast<double*>(ptr);
-#endif
+    return read_double_value(reinterpret_cast<Address>(ptr));
   }
 
   void SetFrameSlot(unsigned offset, intptr_t value) {
@@ -623,6 +613,40 @@ class FrameDescription {
   }
 
   int ComputeFixedSize();
+};
+
+
+class DeoptimizerData {
+ public:
+  explicit DeoptimizerData(MemoryAllocator* allocator);
+  ~DeoptimizerData();
+
+#ifdef ENABLE_DEBUGGER_SUPPORT
+  void Iterate(ObjectVisitor* v);
+#endif
+
+  Code* FindDeoptimizingCode(Address addr);
+  void RemoveDeoptimizingCode(Code* code);
+
+ private:
+  MemoryAllocator* allocator_;
+  int deopt_entry_code_entries_[Deoptimizer::kBailoutTypesWithCodeEntry];
+  MemoryChunk* deopt_entry_code_[Deoptimizer::kBailoutTypesWithCodeEntry];
+  Deoptimizer* current_;
+
+#ifdef ENABLE_DEBUGGER_SUPPORT
+  DeoptimizedFrameInfo* deoptimized_frame_info_;
+#endif
+
+  // List of deoptimized code which still have references from active stack
+  // frames. These code objects are needed by the deoptimizer when deoptimizing
+  // a frame for which the code object for the function function has been
+  // changed from the code present when deoptimizing was done.
+  DeoptimizingCodeListNode* deoptimizing_code_list_;
+
+  friend class Deoptimizer;
+
+  DISALLOW_COPY_AND_ASSIGN(DeoptimizerData);
 };
 
 
@@ -800,7 +824,7 @@ class SlotRef BASE_EMBEDDED {
       }
 
       case DOUBLE: {
-        double value = Memory::double_at(addr_);
+        double value = read_double_value(addr_);
         return isolate->factory()->NewNumber(value);
       }
 

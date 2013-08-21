@@ -46,7 +46,6 @@ void FastCloneShallowArrayStub::InitializeInterfaceDescriptor(
   static Register registers[] = { rax, rbx, rcx };
   descriptor->register_param_count_ = 3;
   descriptor->register_params_ = registers;
-  descriptor->stack_parameter_count_ = NULL;
   descriptor->deoptimization_handler_ =
       Runtime::FunctionForId(Runtime::kCreateArrayLiteralShallow)->entry;
 }
@@ -58,7 +57,6 @@ void FastCloneShallowObjectStub::InitializeInterfaceDescriptor(
   static Register registers[] = { rax, rbx, rcx, rdx };
   descriptor->register_param_count_ = 4;
   descriptor->register_params_ = registers;
-  descriptor->stack_parameter_count_ = NULL;
   descriptor->deoptimization_handler_ =
       Runtime::FunctionForId(Runtime::kCreateObjectLiteralShallow)->entry;
 }
@@ -81,7 +79,6 @@ void LoadFieldStub::InitializeInterfaceDescriptor(
   static Register registers[] = { rax };
   descriptor->register_param_count_ = 1;
   descriptor->register_params_ = registers;
-  descriptor->stack_parameter_count_ = NULL;
   descriptor->deoptimization_handler_ = NULL;
 }
 
@@ -92,7 +89,6 @@ void KeyedLoadFieldStub::InitializeInterfaceDescriptor(
   static Register registers[] = { rdx };
   descriptor->register_param_count_ = 1;
   descriptor->register_params_ = registers;
-  descriptor->stack_parameter_count_ = NULL;
   descriptor->deoptimization_handler_ = NULL;
 }
 
@@ -170,8 +166,21 @@ void CompareNilICStub::InitializeInterfaceDescriptor(
   descriptor->register_params_ = registers;
   descriptor->deoptimization_handler_ =
       FUNCTION_ADDR(CompareNilIC_Miss);
-  descriptor->miss_handler_ =
-      ExternalReference(IC_Utility(IC::kCompareNilIC_Miss), isolate);
+  descriptor->SetMissHandler(
+      ExternalReference(IC_Utility(IC::kCompareNilIC_Miss), isolate));
+}
+
+
+void ToBooleanStub::InitializeInterfaceDescriptor(
+    Isolate* isolate,
+    CodeStubInterfaceDescriptor* descriptor) {
+  static Register registers[] = { rax };
+  descriptor->register_param_count_ = 1;
+  descriptor->register_params_ = registers;
+  descriptor->deoptimization_handler_ =
+     FUNCTION_ADDR(ToBooleanIC_Miss);
+  descriptor->SetMissHandler(
+      ExternalReference(IC_Utility(IC::kToBooleanIC_Miss), isolate));
 }
 
 
@@ -194,7 +203,7 @@ void HydrogenCodeStub::GenerateLightweightMiss(MacroAssembler* masm) {
     for (int i = 0; i < param_count; ++i) {
       __ push(descriptor->register_params_[i]);
     }
-    ExternalReference miss = descriptor->miss_handler_;
+    ExternalReference miss = descriptor->miss_handler();
     __ CallExternalReference(miss, descriptor->register_param_count_);
   }
 
@@ -287,8 +296,8 @@ void FastNewClosureStub::Generate(MacroAssembler* masm) {
   // The optimized code map must never be empty, so check the first elements.
   Label install_optimized;
   // Speculatively move code object into edx.
-  __ movq(rdx, FieldOperand(rbx, FixedArray::kHeaderSize + kPointerSize));
-  __ cmpq(rcx, FieldOperand(rbx, FixedArray::kHeaderSize));
+  __ movq(rdx, FieldOperand(rbx, SharedFunctionInfo::kFirstCodeSlot));
+  __ cmpq(rcx, FieldOperand(rbx, SharedFunctionInfo::kFirstContextSlot));
   __ j(equal, &install_optimized);
 
   // Iterate through the rest of map backwards. rdx holds an index.
@@ -298,9 +307,9 @@ void FastNewClosureStub::Generate(MacroAssembler* masm) {
   __ SmiToInteger32(rdx, rdx);
   __ bind(&loop);
   // Do not double check first entry.
-  __ cmpq(rdx, Immediate(SharedFunctionInfo::kEntryLength));
+  __ cmpq(rdx, Immediate(SharedFunctionInfo::kSecondEntryIndex));
   __ j(equal, &restore);
-  __ subq(rdx, Immediate(SharedFunctionInfo::kEntryLength));  // Skip an entry.
+  __ subq(rdx, Immediate(SharedFunctionInfo::kEntryLength));
   __ cmpq(rcx, FieldOperand(rbx,
                             rdx,
                             times_pointer_size,
@@ -462,106 +471,6 @@ void FastNewBlockContextStub::Generate(MacroAssembler* masm) {
 }
 
 
-// The stub expects its argument on the stack and returns its result in tos_:
-// zero for false, and a non-zero value for true.
-void ToBooleanStub::Generate(MacroAssembler* masm) {
-  // This stub overrides SometimesSetsUpAFrame() to return false.  That means
-  // we cannot call anything that could cause a GC from this stub.
-  Label patch;
-  const Register argument = rax;
-  const Register map = rdx;
-
-  if (!types_.IsEmpty()) {
-    __ movq(argument, Operand(rsp, 1 * kPointerSize));
-  }
-
-  // undefined -> false
-  CheckOddball(masm, UNDEFINED, Heap::kUndefinedValueRootIndex, false);
-
-  // Boolean -> its value
-  CheckOddball(masm, BOOLEAN, Heap::kFalseValueRootIndex, false);
-  CheckOddball(masm, BOOLEAN, Heap::kTrueValueRootIndex, true);
-
-  // 'null' -> false.
-  CheckOddball(masm, NULL_TYPE, Heap::kNullValueRootIndex, false);
-
-  if (types_.Contains(SMI)) {
-    // Smis: 0 -> false, all other -> true
-    Label not_smi;
-    __ JumpIfNotSmi(argument, &not_smi, Label::kNear);
-    // argument contains the correct return value already
-    if (!tos_.is(argument)) {
-      __ movq(tos_, argument);
-    }
-    __ ret(1 * kPointerSize);
-    __ bind(&not_smi);
-  } else if (types_.NeedsMap()) {
-    // If we need a map later and have a Smi -> patch.
-    __ JumpIfSmi(argument, &patch, Label::kNear);
-  }
-
-  if (types_.NeedsMap()) {
-    __ movq(map, FieldOperand(argument, HeapObject::kMapOffset));
-
-    if (types_.CanBeUndetectable()) {
-      __ testb(FieldOperand(map, Map::kBitFieldOffset),
-               Immediate(1 << Map::kIsUndetectable));
-      // Undetectable -> false.
-      Label not_undetectable;
-      __ j(zero, &not_undetectable, Label::kNear);
-      __ Set(tos_, 0);
-      __ ret(1 * kPointerSize);
-      __ bind(&not_undetectable);
-    }
-  }
-
-  if (types_.Contains(SPEC_OBJECT)) {
-    // spec object -> true.
-    Label not_js_object;
-    __ CmpInstanceType(map, FIRST_SPEC_OBJECT_TYPE);
-    __ j(below, &not_js_object, Label::kNear);
-    // argument contains the correct return value already.
-    if (!tos_.is(argument)) {
-      __ Set(tos_, 1);
-    }
-    __ ret(1 * kPointerSize);
-    __ bind(&not_js_object);
-  }
-
-  if (types_.Contains(STRING)) {
-    // String value -> false iff empty.
-    Label not_string;
-    __ CmpInstanceType(map, FIRST_NONSTRING_TYPE);
-    __ j(above_equal, &not_string, Label::kNear);
-    __ movq(tos_, FieldOperand(argument, String::kLengthOffset));
-    __ ret(1 * kPointerSize);  // the string length is OK as the return value
-    __ bind(&not_string);
-  }
-
-  if (types_.Contains(HEAP_NUMBER)) {
-    // heap number -> false iff +0, -0, or NaN.
-    Label not_heap_number, false_result;
-    __ CompareRoot(map, Heap::kHeapNumberMapRootIndex);
-    __ j(not_equal, &not_heap_number, Label::kNear);
-    __ xorps(xmm0, xmm0);
-    __ ucomisd(xmm0, FieldOperand(argument, HeapNumber::kValueOffset));
-    __ j(zero, &false_result, Label::kNear);
-    // argument contains the correct return value already.
-    if (!tos_.is(argument)) {
-      __ Set(tos_, 1);
-    }
-    __ ret(1 * kPointerSize);
-    __ bind(&false_result);
-    __ Set(tos_, 0);
-    __ ret(1 * kPointerSize);
-    __ bind(&not_heap_number);
-  }
-
-  __ bind(&patch);
-  GenerateTypeTransition(masm);
-}
-
-
 void StoreBufferOverflowStub::Generate(MacroAssembler* masm) {
   __ PushCallerSaved(save_doubles_);
   const int argument_count = 1;
@@ -575,44 +484,6 @@ void StoreBufferOverflowStub::Generate(MacroAssembler* masm) {
       argument_count);
   __ PopCallerSaved(save_doubles_);
   __ ret(0);
-}
-
-
-void ToBooleanStub::CheckOddball(MacroAssembler* masm,
-                                 Type type,
-                                 Heap::RootListIndex value,
-                                 bool result) {
-  const Register argument = rax;
-  if (types_.Contains(type)) {
-    // If we see an expected oddball, return its ToBoolean value tos_.
-    Label different_value;
-    __ CompareRoot(argument, value);
-    __ j(not_equal, &different_value, Label::kNear);
-    if (!result) {
-      // If we have to return zero, there is no way around clearing tos_.
-      __ Set(tos_, 0);
-    } else if (!tos_.is(argument)) {
-      // If we have to return non-zero, we can re-use the argument if it is the
-      // same register as the result, because we never see Smi-zero here.
-      __ Set(tos_, 1);
-    }
-    __ ret(1 * kPointerSize);
-    __ bind(&different_value);
-  }
-}
-
-
-void ToBooleanStub::GenerateTypeTransition(MacroAssembler* masm) {
-  __ pop(rcx);  // Get return address, operand is now on top of stack.
-  __ Push(Smi::FromInt(tos_.code()));
-  __ Push(Smi::FromInt(types_.ToByte()));
-  __ push(rcx);  // Push return address.
-  // Patch the caller to an appropriate specialized stub and return the
-  // operation result to the caller of the stub.
-  __ TailCallExternalReference(
-      ExternalReference(IC_Utility(IC::kToBoolean_Patch), masm->isolate()),
-      3,
-      1);
 }
 
 
@@ -1272,6 +1143,17 @@ static void BinaryOpStub_GenerateFloatingPointCode(MacroAssembler* masm,
 }
 
 
+static void BinaryOpStub_GenerateRegisterArgsPushUnderReturn(
+    MacroAssembler* masm) {
+  // Push arguments, but ensure they are under the return address
+  // for a tail call.
+  __ pop(rcx);
+  __ push(rdx);
+  __ push(rax);
+  __ push(rcx);
+}
+
+
 void BinaryOpStub::GenerateAddStrings(MacroAssembler* masm) {
   ASSERT(op_ == Token::ADD);
   Label left_not_string, call_runtime;
@@ -1284,8 +1166,9 @@ void BinaryOpStub::GenerateAddStrings(MacroAssembler* masm) {
   __ JumpIfSmi(left, &left_not_string, Label::kNear);
   __ CmpObjectType(left, FIRST_NONSTRING_TYPE, rcx);
   __ j(above_equal, &left_not_string, Label::kNear);
-  StringAddStub string_add_left_stub(NO_STRING_CHECK_LEFT_IN_STUB);
-  GenerateRegisterArgsPush(masm);
+  StringAddStub string_add_left_stub((StringAddFlags)
+      (ERECT_FRAME | NO_STRING_CHECK_LEFT_IN_STUB));
+  BinaryOpStub_GenerateRegisterArgsPushUnderReturn(masm);
   __ TailCallStub(&string_add_left_stub);
 
   // Left operand is not a string, test right.
@@ -1294,8 +1177,9 @@ void BinaryOpStub::GenerateAddStrings(MacroAssembler* masm) {
   __ CmpObjectType(right, FIRST_NONSTRING_TYPE, rcx);
   __ j(above_equal, &call_runtime, Label::kNear);
 
-  StringAddStub string_add_right_stub(NO_STRING_CHECK_RIGHT_IN_STUB);
-  GenerateRegisterArgsPush(masm);
+  StringAddStub string_add_right_stub((StringAddFlags)
+      (ERECT_FRAME | NO_STRING_CHECK_RIGHT_IN_STUB));
+  BinaryOpStub_GenerateRegisterArgsPushUnderReturn(masm);
   __ TailCallStub(&string_add_right_stub);
 
   // Neither argument is a string.
@@ -1322,8 +1206,12 @@ void BinaryOpStub::GenerateSmiStub(MacroAssembler* masm) {
 
   if (call_runtime.is_linked()) {
     __ bind(&call_runtime);
-    GenerateRegisterArgsPush(masm);
-    GenerateCallRuntime(masm);
+    {
+      FrameScope scope(masm, StackFrame::INTERNAL);
+      GenerateRegisterArgsPush(masm);
+      GenerateCallRuntime(masm);
+    }
+    __ Ret();
   }
 }
 
@@ -1356,8 +1244,9 @@ void BinaryOpStub::GenerateBothStringStub(MacroAssembler* masm) {
   __ CmpObjectType(right, FIRST_NONSTRING_TYPE, rcx);
   __ j(above_equal, &call_runtime);
 
-  StringAddStub string_add_stub(NO_STRING_CHECK_IN_STUB);
-  GenerateRegisterArgsPush(masm);
+  StringAddStub string_add_stub((StringAddFlags)
+                                (ERECT_FRAME | NO_STRING_CHECK_IN_STUB));
+  BinaryOpStub_GenerateRegisterArgsPushUnderReturn(masm);
   __ TailCallStub(&string_add_stub);
 
   __ bind(&call_runtime);
@@ -1442,8 +1331,12 @@ void BinaryOpStub::GenerateNumberStub(MacroAssembler* masm) {
   GenerateTypeTransition(masm);
 
   __ bind(&gc_required);
-  GenerateRegisterArgsPush(masm);
-  GenerateCallRuntime(masm);
+  {
+    FrameScope scope(masm, StackFrame::INTERNAL);
+    GenerateRegisterArgsPush(masm);
+    GenerateCallRuntime(masm);
+  }
+  __ Ret();
 }
 
 
@@ -1462,8 +1355,12 @@ void BinaryOpStub::GenerateGeneric(MacroAssembler* masm) {
   }
 
   __ bind(&call_runtime);
-  GenerateRegisterArgsPush(masm);
-  GenerateCallRuntime(masm);
+  {
+    FrameScope scope(masm, StackFrame::INTERNAL);
+    GenerateRegisterArgsPush(masm);
+    GenerateCallRuntime(masm);
+  }
+  __ Ret();
 }
 
 
@@ -1507,10 +1404,8 @@ static void BinaryOpStub_GenerateHeapResultAllocation(MacroAssembler* masm,
 
 
 void BinaryOpStub::GenerateRegisterArgsPush(MacroAssembler* masm) {
-  __ pop(rcx);
   __ push(rdx);
   __ push(rax);
-  __ push(rcx);
 }
 
 
@@ -4791,7 +4686,7 @@ void StringAddStub::Generate(MacroAssembler* masm) {
   __ movq(rdx, Operand(rsp, 1 * kPointerSize));  // Second argument (right).
 
   // Make sure that both arguments are strings if not known in advance.
-  if (flags_ == NO_STRING_ADD_FLAGS) {
+  if ((flags_ & NO_STRING_ADD_FLAGS) != 0) {
     __ JumpIfSmi(rax, &call_runtime);
     __ CmpObjectType(rax, FIRST_NONSTRING_TYPE, r8);
     __ j(above_equal, &call_runtime);
@@ -5068,12 +4963,50 @@ void StringAddStub::Generate(MacroAssembler* masm) {
 
   // Just jump to runtime to add the two strings.
   __ bind(&call_runtime);
-  __ TailCallRuntime(Runtime::kStringAdd, 2, 1);
+
+  if ((flags_ & ERECT_FRAME) != 0) {
+    GenerateRegisterArgsPop(masm, rcx);
+    // Build a frame
+    {
+      FrameScope scope(masm, StackFrame::INTERNAL);
+      GenerateRegisterArgsPush(masm);
+      __ CallRuntime(Runtime::kStringAdd, 2);
+    }
+    __ Ret();
+  } else {
+    __ TailCallRuntime(Runtime::kStringAdd, 2, 1);
+  }
 
   if (call_builtin.is_linked()) {
     __ bind(&call_builtin);
-    __ InvokeBuiltin(builtin_id, JUMP_FUNCTION);
+    if ((flags_ & ERECT_FRAME) != 0) {
+      GenerateRegisterArgsPop(masm, rcx);
+      // Build a frame
+      {
+        FrameScope scope(masm, StackFrame::INTERNAL);
+        GenerateRegisterArgsPush(masm);
+        __ InvokeBuiltin(builtin_id, CALL_FUNCTION);
+      }
+      __ Ret();
+    } else {
+      __ InvokeBuiltin(builtin_id, JUMP_FUNCTION);
+    }
   }
+}
+
+
+void StringAddStub::GenerateRegisterArgsPush(MacroAssembler* masm) {
+  __ push(rax);
+  __ push(rdx);
+}
+
+
+void StringAddStub::GenerateRegisterArgsPop(MacroAssembler* masm,
+                                            Register temp) {
+  __ pop(temp);
+  __ pop(rdx);
+  __ pop(rax);
+  __ push(temp);
 }
 
 

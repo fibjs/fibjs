@@ -677,8 +677,13 @@ static int Offset(ExternalReference ref0, ExternalReference ref1) {
 }
 
 
-void MacroAssembler::PrepareCallApiFunction(int arg_stack_space) {
+void MacroAssembler::PrepareCallApiFunction(int arg_stack_space,
+                                            bool returns_handle) {
 #if defined(_WIN64) && !defined(__MINGW64__)
+  if (!returns_handle) {
+    EnterApiExitFrame(arg_stack_space);
+    return;
+  }
   // We need to prepare a slot for result handle on stack and put
   // a pointer to it into 1st arg register.
   EnterApiExitFrame(arg_stack_space + 1);
@@ -692,8 +697,9 @@ void MacroAssembler::PrepareCallApiFunction(int arg_stack_space) {
 
 
 void MacroAssembler::CallApiFunctionAndReturn(Address function_address,
-                                              int stack_space) {
-  Label empty_result;
+                                              int stack_space,
+                                              bool returns_handle,
+                                              int return_value_offset) {
   Label prologue;
   Label promote_scheduled_exception;
   Label delete_allocated_handles;
@@ -745,15 +751,25 @@ void MacroAssembler::CallApiFunctionAndReturn(Address function_address,
     PopSafepointRegisters();
   }
 
+  // Can skip the result check for new-style callbacks
+  // TODO(dcarney): may need to pass this information down
+  // as some function_addresses might not have been registered
+  if (returns_handle) {
+    Label empty_result;
 #if defined(_WIN64) && !defined(__MINGW64__)
-  // rax keeps a pointer to v8::Handle, unpack it.
-  movq(rax, Operand(rax, 0));
+    // rax keeps a pointer to v8::Handle, unpack it.
+    movq(rax, Operand(rax, 0));
 #endif
-  // Check if the result handle holds 0.
-  testq(rax, rax);
-  j(zero, &empty_result);
-  // It was non-zero.  Dereference to get the result value.
-  movq(rax, Operand(rax, 0));
+    // Check if the result handle holds 0.
+    testq(rax, rax);
+    j(zero, &empty_result);
+    // It was non-zero.  Dereference to get the result value.
+    movq(rax, Operand(rax, 0));
+    jmp(&prologue);
+    bind(&empty_result);
+  }
+  // Load the value from ReturnValue
+  movq(rax, Operand(rbp, return_value_offset * kPointerSize));
   bind(&prologue);
 
   // No more valid handles (the result handle was the last one). Restore
@@ -806,11 +822,6 @@ void MacroAssembler::CallApiFunctionAndReturn(Address function_address,
 
   LeaveApiExitFrame();
   ret(stack_space * kPointerSize);
-
-  bind(&empty_result);
-  // It was zero; the result is undefined.
-  LoadRoot(rax, Heap::kUndefinedValueRootIndex);
-  jmp(&prologue);
 
   bind(&promote_scheduled_exception);
   TailCallRuntime(Runtime::kPromoteScheduledException, 0, 1);
@@ -2288,6 +2299,7 @@ void MacroAssembler::Move(Register dst, Handle<Object> source) {
   if (source->IsSmi()) {
     Move(dst, Smi::cast(*source));
   } else {
+    ASSERT(source->IsHeapObject());
     movq(dst, source, RelocInfo::EMBEDDED_OBJECT);
   }
 }
@@ -2298,6 +2310,7 @@ void MacroAssembler::Move(const Operand& dst, Handle<Object> source) {
   if (source->IsSmi()) {
     Move(dst, Smi::cast(*source));
   } else {
+    ASSERT(source->IsHeapObject());
     movq(kScratchRegister, source, RelocInfo::EMBEDDED_OBJECT);
     movq(dst, kScratchRegister);
   }
@@ -2309,7 +2322,8 @@ void MacroAssembler::Cmp(Register dst, Handle<Object> source) {
   if (source->IsSmi()) {
     Cmp(dst, Smi::cast(*source));
   } else {
-    Move(kScratchRegister, source);
+    ASSERT(source->IsHeapObject());
+    movq(kScratchRegister, source, RelocInfo::EMBEDDED_OBJECT);
     cmpq(dst, kScratchRegister);
   }
 }
@@ -2349,6 +2363,19 @@ void MacroAssembler::LoadHeapObject(Register result,
     movq(result, Operand(result, 0));
   } else {
     Move(result, object);
+  }
+}
+
+
+void MacroAssembler::CmpHeapObject(Register reg, Handle<HeapObject> object) {
+  ALLOW_HANDLE_DEREF(isolate(), "using raw address");
+  if (isolate()->heap()->InNewSpace(*object)) {
+    Handle<JSGlobalPropertyCell> cell =
+        isolate()->factory()->NewJSGlobalPropertyCell(object);
+    movq(kScratchRegister, cell, RelocInfo::GLOBAL_PROPERTY_CELL);
+    cmpq(reg, Operand(kScratchRegister, 0));
+  } else {
+    Cmp(reg, object);
   }
 }
 
@@ -2842,38 +2869,21 @@ void MacroAssembler::StoreNumberToDoubleElements(
 
 void MacroAssembler::CompareMap(Register obj,
                                 Handle<Map> map,
-                                Label* early_success,
-                                CompareMapMode mode) {
+                                Label* early_success) {
   Cmp(FieldOperand(obj, HeapObject::kMapOffset), map);
-  if (mode == ALLOW_ELEMENT_TRANSITION_MAPS) {
-    ElementsKind kind = map->elements_kind();
-    if (IsFastElementsKind(kind)) {
-      bool packed = IsFastPackedElementsKind(kind);
-      Map* current_map = *map;
-      while (CanTransitionToMoreGeneralFastElementsKind(kind, packed)) {
-        kind = GetNextMoreGeneralFastElementsKind(kind, packed);
-        current_map = current_map->LookupElementsTransitionMap(kind);
-        if (!current_map) break;
-        j(equal, early_success, Label::kNear);
-        Cmp(FieldOperand(obj, HeapObject::kMapOffset),
-            Handle<Map>(current_map));
-      }
-    }
-  }
 }
 
 
 void MacroAssembler::CheckMap(Register obj,
                               Handle<Map> map,
                               Label* fail,
-                              SmiCheckType smi_check_type,
-                              CompareMapMode mode) {
+                              SmiCheckType smi_check_type) {
   if (smi_check_type == DO_SMI_CHECK) {
     JumpIfSmi(obj, fail);
   }
 
   Label success;
-  CompareMap(obj, map, &success, mode);
+  CompareMap(obj, map, &success);
   j(not_equal, fail);
   bind(&success);
 }

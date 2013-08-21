@@ -149,12 +149,10 @@ class RegisteredExtension {
   static void UnregisterAll();
   Extension* extension() { return extension_; }
   RegisteredExtension* next() { return next_; }
-  RegisteredExtension* next_auto() { return next_auto_; }
   static RegisteredExtension* first_extension() { return first_extension_; }
  private:
   Extension* extension_;
   RegisteredExtension* next_;
-  RegisteredExtension* next_auto_;
   static RegisteredExtension* first_extension_;
 };
 
@@ -639,7 +637,12 @@ void HandleScopeImplementer::DeleteExtensions(internal::Object** prev_limit) {
     internal::Object** block_limit = block_start + kHandleBlockSize;
 #ifdef DEBUG
     // NoHandleAllocation may make the prev_limit to point inside the block.
-    if (block_start <= prev_limit && prev_limit <= block_limit) break;
+    if (block_start <= prev_limit && prev_limit <= block_limit) {
+#ifdef ENABLE_EXTRA_CHECKS
+      internal::HandleScope::ZapRange(prev_limit, block_limit);
+#endif
+      break;
+    }
 #else
     if (prev_limit == block_limit) break;
 #endif

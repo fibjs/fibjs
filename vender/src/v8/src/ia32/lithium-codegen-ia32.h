@@ -111,8 +111,12 @@ class LCodeGen BASE_EMBEDDED {
   bool IsX87TopOfStack(LOperand* op) const;
 
   bool IsInteger32(LConstantOperand* op) const;
+  bool IsSmi(LConstantOperand* op) const;
   Immediate ToInteger32Immediate(LOperand* op) const {
     return Immediate(ToInteger32(LConstantOperand::cast(op)));
+  }
+  Immediate ToSmiImmediate(LOperand* op) const {
+    return Immediate(Smi::FromInt(ToInteger32(LConstantOperand::cast(op))));
   }
 
   // Support for non-sse2 (x87) floating point stack handling.
@@ -160,8 +164,7 @@ class LCodeGen BASE_EMBEDDED {
   void DoDeferredInstanceOfKnownGlobal(LInstanceOfKnownGlobal* instr,
                                        Label* map_check);
 
-  void DoCheckMapCommon(Register reg, Handle<Map> map,
-                        CompareMapMode mode, LInstruction* instr);
+  void DoCheckMapCommon(Register reg, Handle<Map> map, LInstruction* instr);
 
   // Parallel move support.
   void DoParallelMove(LParallelMove* move);
@@ -276,7 +279,11 @@ class LCodeGen BASE_EMBEDDED {
 
   void RegisterEnvironmentForDeoptimization(LEnvironment* environment,
                                             Safepoint::DeoptMode mode);
+  void DeoptimizeIf(Condition cc,
+                    LEnvironment* environment,
+                    Deoptimizer::BailoutType bailout_type);
   void DeoptimizeIf(Condition cc, LEnvironment* environment);
+  void SoftDeoptimize(LEnvironment* environment);
 
   void AddToTranslation(Translation* translation,
                         LOperand* op,
@@ -324,7 +331,7 @@ class LCodeGen BASE_EMBEDDED {
       Register input,
       Register temp,
       XMMRegister result,
-      bool deoptimize_on_undefined,
+      bool allow_undefined_as_nan,
       bool deoptimize_on_minus_zero,
       LEnvironment* env,
       NumberUntagDMode mode = NUMBER_CANDIDATE_IS_ANY_TAGGED);
@@ -332,7 +339,7 @@ class LCodeGen BASE_EMBEDDED {
   void EmitNumberUntagDNoSSE2(
       Register input,
       Register temp,
-      bool deoptimize_on_undefined,
+      bool allow_undefined_as_nan,
       bool deoptimize_on_minus_zero,
       LEnvironment* env,
       NumberUntagDMode mode = NUMBER_CANDIDATE_IS_ANY_TAGGED);
@@ -397,23 +404,11 @@ class LCodeGen BASE_EMBEDDED {
   MacroAssembler* const masm_;
   CompilationInfo* const info_;
 
-  struct JumpTableEntry {
-    inline JumpTableEntry(Address entry, bool frame, bool is_lazy)
-        : label(),
-          address(entry),
-          needs_frame(frame),
-          is_lazy_deopt(is_lazy) { }
-    Label label;
-    Address address;
-    bool needs_frame;
-    bool is_lazy_deopt;
-  };
-
   int current_block_;
   int current_instruction_;
   const ZoneList<LInstruction*>* instructions_;
   ZoneList<LEnvironment*> deoptimizations_;
-  ZoneList<JumpTableEntry> jump_table_;
+  ZoneList<Deoptimizer::JumpTableEntry> jump_table_;
   ZoneList<Handle<Object> > deoptimization_literals_;
   ZoneList<Handle<Map> > prototype_maps_;
   ZoneList<Handle<Map> > transition_maps_;

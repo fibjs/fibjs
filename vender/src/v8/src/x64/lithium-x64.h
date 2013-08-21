@@ -87,13 +87,16 @@ class LCodeGen;
   V(CmpT)                                       \
   V(ConstantD)                                  \
   V(ConstantI)                                  \
+  V(ConstantS)                                  \
   V(ConstantT)                                  \
   V(Context)                                    \
+  V(DebugBreak)                                 \
   V(DeclareGlobals)                             \
   V(DeleteProperty)                             \
   V(Deoptimize)                                 \
   V(DivI)                                       \
   V(DoubleToI)                                  \
+  V(DoubleToSmi)                                \
   V(DummyUse)                                   \
   V(ElementsKind)                               \
   V(FixedArrayBaseLength)                       \
@@ -111,10 +114,10 @@ class LCodeGen;
   V(InstanceSize)                               \
   V(InstructionGap)                             \
   V(Integer32ToDouble)                          \
+  V(Integer32ToSmi)                             \
   V(Uint32ToDouble)                             \
   V(InvokeFunction)                             \
   V(IsConstructCallAndBranch)                   \
-  V(IsNilAndBranch)                             \
   V(IsObjectAndBranch)                          \
   V(IsStringAndBranch)                          \
   V(IsSmiAndBranch)                             \
@@ -822,26 +825,6 @@ class LCmpConstantEqAndBranch: public LControlInstruction<1, 0> {
 };
 
 
-class LIsNilAndBranch: public LControlInstruction<1, 1> {
- public:
-  LIsNilAndBranch(LOperand* value, LOperand* temp) {
-    inputs_[0] = value;
-    temps_[0] = temp;
-  }
-
-  LOperand* value() { return inputs_[0]; }
-  LOperand* temp() { return temps_[0]; }
-
-  DECLARE_CONCRETE_INSTRUCTION(IsNilAndBranch, "is-nil-and-branch")
-  DECLARE_HYDROGEN_ACCESSOR(IsNilAndBranch)
-
-  EqualityKind kind() const { return hydrogen()->kind(); }
-  NilValue nil() const { return hydrogen()->nil(); }
-
-  virtual void PrintDataTo(StringStream* stream);
-};
-
-
 class LIsObjectAndBranch: public LControlInstruction<1, 0> {
  public:
   explicit LIsObjectAndBranch(LOperand* value) {
@@ -1154,6 +1137,15 @@ class LConstantI: public LTemplateInstruction<1, 0, 0> {
 };
 
 
+class LConstantS: public LTemplateInstruction<1, 0, 0> {
+ public:
+  DECLARE_CONCRETE_INSTRUCTION(ConstantS, "constant-s")
+  DECLARE_HYDROGEN_ACCESSOR(Constant)
+
+  Smi* value() const { return Smi::FromInt(hydrogen()->Integer32Value()); }
+};
+
+
 class LConstantD: public LTemplateInstruction<1, 0, 1> {
  public:
   explicit LConstantD(LOperand* temp) {
@@ -1190,6 +1182,12 @@ class LBranch: public LControlInstruction<1, 0> {
   DECLARE_HYDROGEN_ACCESSOR(Branch)
 
   virtual void PrintDataTo(StringStream* stream);
+};
+
+
+class LDebugBreak: public LTemplateInstruction<0, 0, 0> {
+ public:
+  DECLARE_CONCRETE_INSTRUCTION(DebugBreak, "break")
 };
 
 
@@ -1901,6 +1899,19 @@ class LInteger32ToDouble: public LTemplateInstruction<1, 1, 0> {
 };
 
 
+class LInteger32ToSmi: public LTemplateInstruction<1, 1, 0> {
+ public:
+  explicit LInteger32ToSmi(LOperand* value) {
+    inputs_[0] = value;
+  }
+
+  LOperand* value() { return inputs_[0]; }
+
+  DECLARE_CONCRETE_INSTRUCTION(Integer32ToSmi, "int32-to-smi")
+  DECLARE_HYDROGEN_ACCESSOR(Change)
+};
+
+
 class LUint32ToDouble: public LTemplateInstruction<1, 1, 1> {
  public:
   explicit LUint32ToDouble(LOperand* value, LOperand* temp) {
@@ -1969,6 +1980,19 @@ class LDoubleToI: public LTemplateInstruction<1, 1, 0> {
   DECLARE_HYDROGEN_ACCESSOR(UnaryOperation)
 
   bool truncating() { return hydrogen()->CanTruncateToInt32(); }
+};
+
+
+class LDoubleToSmi: public LTemplateInstruction<1, 1, 0> {
+ public:
+  explicit LDoubleToSmi(LOperand* value) {
+    inputs_[0] = value;
+  }
+
+  LOperand* value() { return inputs_[0]; }
+
+  DECLARE_CONCRETE_INSTRUCTION(DoubleToSmi, "double-to-smi")
+  DECLARE_HYDROGEN_ACCESSOR(UnaryOperation)
 };
 
 
@@ -2049,9 +2073,6 @@ class LStoreNamedField: public LTemplateInstruction<0, 2, 1> {
 
   virtual void PrintDataTo(StringStream* stream);
 
-  Handle<Object> name() const { return hydrogen()->name(); }
-  bool is_in_object() { return hydrogen()->is_in_object(); }
-  int offset() { return hydrogen()->offset(); }
   Handle<Map> transition() const { return hydrogen()->transition(); }
   Representation representation() const {
     return hydrogen()->field_representation();
@@ -2279,7 +2300,7 @@ class LCheckPrototypeMaps: public LTemplateInstruction<0, 0, 1> {
 };
 
 
-class LCheckSmi: public LTemplateInstruction<0, 1, 0> {
+class LCheckSmi: public LTemplateInstruction<1, 1, 0> {
  public:
   explicit LCheckSmi(LOperand* value) {
     inputs_[0] = value;

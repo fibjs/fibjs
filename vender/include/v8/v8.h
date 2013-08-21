@@ -144,6 +144,17 @@ class Value;
 template <class T> class Handle;
 template <class T> class Local;
 template <class T> class Persistent;
+class FunctionTemplate;
+class ObjectTemplate;
+class Data;
+class AccessorInfo;
+template<typename T> class PropertyCallbackInfo;
+class StackTrace;
+class StackFrame;
+class Isolate;
+class DeclaredAccessorDescriptor;
+class ObjectOperationDescriptor;
+class RawOperationDescriptor;
 
 namespace internal {
 class Arguments;
@@ -151,6 +162,10 @@ class Heap;
 class HeapObject;
 class Isolate;
 class Object;
+template<typename T>
+class CustomArguments;
+class PropertyCallbackArguments;
+class FunctionCallbackArguments;
 }
 
 
@@ -213,6 +228,7 @@ typedef void (*NearDeathCallback)(Isolate* isolate,
 
 
 #define V8_USE_UNSAFE_HANDLES
+#define V8_USE_OLD_STYLE_PERSISTENT_HANDLE_VISITORS
 
 /**
  * An object reference managed by the v8 garbage collector.
@@ -355,11 +371,11 @@ template <class T> class Handle {
 #endif
 
  private:
-  template<class F>
-  friend class Persistent;
-  template<class F>
-  friend class Local;
+  template<class F> friend class Persistent;
+  template<class F> friend class Local;
   friend class Arguments;
+  template<class F> friend class FunctionCallbackInfo;
+  template<class F> friend class PropertyCallbackInfo;
   friend class String;
   friend class Object;
   friend class AccessorInfo;
@@ -370,6 +386,7 @@ template <class T> class Handle {
   friend class Context;
   friend class InternalHandleHelper;
   friend class LocalContext;
+  friend class HandleScope;
 
 #ifndef V8_USE_UNSAFE_HANDLES
   V8_INLINE(static Handle<T> New(Isolate* isolate, T* that));
@@ -443,17 +460,18 @@ template <class T> class Local : public Handle<T> {
 #endif
 
  private:
-  template<class F>
-  friend class Persistent;
-  template<class F>
-  friend class Handle;
+  template<class F> friend class Persistent;
+  template<class F> friend class Handle;
   friend class Arguments;
+  template<class F> friend class FunctionCallbackInfo;
+  template<class F> friend class PropertyCallbackInfo;
   friend class String;
   friend class Object;
   friend class AccessorInfo;
   friend class Context;
   friend class InternalHandleHelper;
   friend class LocalContext;
+  friend class HandleScope;
 
   V8_INLINE(static Local<T> New(Isolate* isolate, T* that));
 };
@@ -499,6 +517,10 @@ template <class T> class Persistent // NOLINT
    * to be separately disposed.
    */
   template <class S> V8_INLINE(Persistent(Isolate* isolate, Handle<S> that))
+      : val_(*New(isolate, that)) { }
+
+  template <class S> V8_INLINE(Persistent(Isolate* isolate,
+                                          Persistent<S>& that)) // NOLINT
       : val_(*New(isolate, that)) { }
 
 #else
@@ -548,6 +570,7 @@ template <class T> class Persistent // NOLINT
 
 #endif
 
+#ifdef V8_USE_UNSAFE_HANDLES
   template <class S> V8_INLINE(static Persistent<T> Cast(Persistent<S> that)) {
 #ifdef V8_ENABLE_CHECKS
     // If we're going to perform the type check then we have to check
@@ -560,6 +583,22 @@ template <class T> class Persistent // NOLINT
   template <class S> V8_INLINE(Persistent<S> As()) {
     return Persistent<S>::Cast(*this);
   }
+
+#else
+  template <class S>
+  V8_INLINE(static Persistent<T>& Cast(Persistent<S>& that)) { // NOLINT
+#ifdef V8_ENABLE_CHECKS
+    // If we're going to perform the type check then we have to check
+    // that the handle isn't empty before doing the checked cast.
+    if (!that.IsEmpty()) T::Cast(*that);
+#endif
+    return reinterpret_cast<Persistent<T>&>(that);
+  }
+
+  template <class S> V8_INLINE(Persistent<S>& As()) { // NOLINT
+    return Persistent<S>::Cast(*this);
+  }
+#endif
 
   V8_DEPRECATED(static Persistent<T> New(Handle<T> that));
 
@@ -600,20 +639,8 @@ template <class T> class Persistent // NOLINT
    * This handle's reference, and any other references to the storage
    * cell remain and IsEmpty will still return false.
    */
-  // TODO(dcarney): remove before cutover
-  V8_INLINE(void Dispose(Isolate* isolate));
-
-  template<typename S, typename P>
-  V8_INLINE(void MakeWeak(
-      Isolate* isolate,
-      P* parameters,
-      typename WeakReferenceCallbacks<S, P>::Revivable callback));
-
-  template<typename P>
-  V8_INLINE(void MakeWeak(
-      Isolate* isolate,
-      P* parameters,
-      typename WeakReferenceCallbacks<T, P>::Revivable callback));
+  // TODO(dcarney): deprecate
+  V8_INLINE(void Dispose(Isolate* isolate)) { Dispose(); }
 
   /**
    * Make the reference to this object weak.  When only weak handles
@@ -621,6 +648,34 @@ template <class T> class Persistent // NOLINT
    * callback to the given V8::NearDeathCallback function, passing
    * it the object reference and the given parameters.
    */
+  template<typename S, typename P>
+  V8_INLINE(void MakeWeak(
+      P* parameters,
+      typename WeakReferenceCallbacks<S, P>::Revivable callback));
+
+  template<typename P>
+  V8_INLINE(void MakeWeak(
+      P* parameters,
+      typename WeakReferenceCallbacks<T, P>::Revivable callback));
+
+  // TODO(dcarney): deprecate
+  template<typename S, typename P>
+  V8_INLINE(void MakeWeak(
+      Isolate* isolate,
+      P* parameters,
+      typename WeakReferenceCallbacks<S, P>::Revivable callback)) {
+    MakeWeak<S, P>(parameters, callback);
+  }
+
+  // TODO(dcarney): deprecate
+  template<typename P>
+  V8_INLINE(void MakeWeak(
+      Isolate* isolate,
+      P* parameters,
+      typename WeakReferenceCallbacks<T, P>::Revivable callback)) {
+    MakeWeak<P>(parameters, callback);
+  }
+
   // TODO(dcarney): remove before cutover
   V8_INLINE(void MakeWeak(Isolate* isolate,
                           void* parameters,
@@ -628,10 +683,8 @@ template <class T> class Persistent // NOLINT
 
   V8_INLINE(void ClearWeak());
 
-  // TODO(dcarney): remove before cutover
-  V8_INLINE(void ClearWeak(Isolate* isolate));
-
-  V8_INLINE(void MarkIndependent());
+  // TODO(dcarney): deprecate
+  V8_INLINE(void ClearWeak(Isolate* isolate)) { ClearWeak(); }
 
   /**
    * Marks the reference to this object independent. Garbage collector is free
@@ -639,10 +692,10 @@ template <class T> class Persistent // NOLINT
    * independent handle should not assume that it will be preceded by a global
    * GC prologue callback or followed by a global GC epilogue callback.
    */
-  // TODO(dcarney): remove before cutover
-  V8_INLINE(void MarkIndependent(Isolate* isolate));
+  V8_INLINE(void MarkIndependent());
 
-  V8_INLINE(void MarkPartiallyDependent());
+  // TODO(dcarney): deprecate
+  V8_INLINE(void MarkIndependent(Isolate* isolate)) { MarkIndependent(); }
 
   /**
    * Marks the reference to this object partially dependent. Partially dependent
@@ -652,48 +705,62 @@ template <class T> class Persistent // NOLINT
    * external dependencies. This mark is automatically cleared after each
    * garbage collection.
    */
-  // TODO(dcarney): remove before cutover
-  V8_INLINE(void MarkPartiallyDependent(Isolate* isolate));
+  V8_INLINE(void MarkPartiallyDependent());
+
+  // TODO(dcarney): deprecate
+  V8_INLINE(void MarkPartiallyDependent(Isolate* isolate)) {
+    MarkPartiallyDependent();
+  }
 
   V8_INLINE(bool IsIndependent() const);
 
-  // TODO(dcarney): remove before cutover
-  V8_INLINE(bool IsIndependent(Isolate* isolate) const);
-
-  V8_INLINE(bool IsNearDeath() const);
+  // TODO(dcarney): deprecate
+  V8_INLINE(bool IsIndependent(Isolate* isolate) const) {
+    return IsIndependent();
+  }
 
   /** Checks if the handle holds the only reference to an object. */
-  // TODO(dcarney): remove before cutover
-  V8_INLINE(bool IsNearDeath(Isolate* isolate) const);
+  V8_INLINE(bool IsNearDeath() const);
 
-  V8_INLINE(bool IsWeak() const);
+  // TODO(dcarney): deprecate
+  V8_INLINE(bool IsNearDeath(Isolate* isolate) const) { return IsNearDeath(); }
 
   /** Returns true if the handle's reference is weak.  */
-  // TODO(dcarney): remove before cutover
-  V8_INLINE(bool IsWeak(Isolate* isolate) const);
+  V8_INLINE(bool IsWeak() const);
 
-  V8_INLINE(void SetWrapperClassId(uint16_t class_id));
+  // TODO(dcarney): deprecate
+  V8_INLINE(bool IsWeak(Isolate* isolate) const) { return IsWeak(); }
 
   /**
    * Assigns a wrapper class ID to the handle. See RetainedObjectInfo interface
    * description in v8-profiler.h for details.
    */
-  // TODO(dcarney): remove before cutover
-  V8_INLINE(void SetWrapperClassId(Isolate* isolate, uint16_t class_id));
+  V8_INLINE(void SetWrapperClassId(uint16_t class_id));
 
-  V8_INLINE(uint16_t WrapperClassId() const);
+  // TODO(dcarney): deprecate
+  V8_INLINE(void SetWrapperClassId(Isolate* isolate, uint16_t class_id)) {
+    SetWrapperClassId(class_id);
+  }
 
   /**
    * Returns the class ID previously assigned to this handle or 0 if no class ID
    * was previously assigned.
    */
-  // TODO(dcarney): remove before cutover
-  V8_INLINE(uint16_t WrapperClassId(Isolate* isolate) const);
+  V8_INLINE(uint16_t WrapperClassId() const);
+
+  // TODO(dcarney): deprecate
+  V8_INLINE(uint16_t WrapperClassId(Isolate* isolate) const) {
+    return WrapperClassId();
+  }
 
   /**
    * Disposes the current contents of the handle and replaces it.
    */
   V8_INLINE(void Reset(Isolate* isolate, const Handle<T>& other));
+
+#ifndef V8_USE_UNSAFE_HANDLES
+  V8_INLINE(void Reset(Isolate* isolate, const Persistent<T>& other));
+#endif
 
   /**
    * Returns the underlying raw pointer and clears the handle. The caller is
@@ -744,10 +811,8 @@ template <class T> class Persistent // NOLINT
 #endif
 
  private:
-  template<class F>
-  friend class Handle;
-  template<class F>
-  friend class Local;
+  template<class F> friend class Handle;
+  template<class F> friend class Local;
   friend class ImplementationUtilities;
   friend class ObjectTemplate;
   friend class Context;
@@ -1187,7 +1252,8 @@ class V8EXPORT StackFrame {
   /**
    * Returns the name of the resource that contains the script for the
    * function for this StackFrame or sourceURL value if the script name
-   * is undefined and its source ends with //@ sourceURL=... string.
+   * is undefined and its source ends with //# sourceURL=... string or
+   * deprecated //@ sourceURL=... string.
    */
   Local<String> GetScriptNameOrSourceURL() const;
 
@@ -1789,6 +1855,7 @@ class V8EXPORT String : public Primitive {
    */
   class V8EXPORT AsciiValue {
    public:
+    // TODO(dcarney): deprecate
     explicit AsciiValue(Handle<v8::Value> obj);
     ~AsciiValue();
     char* operator*() { return str_; }
@@ -1863,6 +1930,7 @@ class V8EXPORT Number : public Primitive {
  public:
   double Value() const;
   static Local<Number> New(double value);
+  static Local<Number> New(Isolate* isolate, double value);
   V8_INLINE(static Number* Cast(v8::Value* obj));
  private:
   Number();
@@ -1935,11 +2003,18 @@ enum ExternalArrayType {
  */
 typedef Handle<Value> (*AccessorGetter)(Local<String> property,
                                         const AccessorInfo& info);
+typedef void (*AccessorGetterCallback)(
+    Local<String> property,
+    const PropertyCallbackInfo<Value>& info);
 
 
 typedef void (*AccessorSetter)(Local<String> property,
                                Local<Value> value,
                                const AccessorInfo& info);
+typedef void (*AccessorSetterCallback)(
+    Local<String> property,
+    Local<Value> value,
+    const PropertyCallbackInfo<void>& info);
 
 
 /**
@@ -2009,9 +2084,16 @@ class V8EXPORT Object : public Value {
 
   bool Delete(uint32_t index);
 
+  // TODO(dcarney): deprecate
   bool SetAccessor(Handle<String> name,
                    AccessorGetter getter,
                    AccessorSetter setter = 0,
+                   Handle<Value> data = Handle<Value>(),
+                   AccessControl settings = DEFAULT,
+                   PropertyAttribute attribute = None);
+  bool SetAccessor(Handle<String> name,
+                   AccessorGetterCallback getter,
+                   AccessorSetterCallback setter = 0,
                    Handle<Value> data = Handle<Value>(),
                    AccessControl settings = DEFAULT,
                    PropertyAttribute attribute = None);
@@ -2294,6 +2376,33 @@ class V8EXPORT Function : public Object {
   static void CheckCast(Value* obj);
 };
 
+/**
+ * The contents of an |ArrayBuffer|. Externalization of |ArrayBuffer|
+ * populates an instance of this class with a pointer to data and byte length.
+ *
+ * |ArrayBufferContents| is the owner of its data. When an instance of
+ * this class is destructed, the |Data| is freed.
+ *
+ * This API is experimental and may change significantly.
+ */
+class V8EXPORT ArrayBufferContents {
+ public:
+  ArrayBufferContents() : data_(NULL), byte_length_(0) {}
+  ~ArrayBufferContents();
+
+  void* Data() const { return data_; }
+  size_t ByteLength() const { return byte_length_; }
+
+ private:
+  void* data_;
+  size_t byte_length_;
+
+  friend class ArrayBuffer;
+};
+
+#ifndef V8_ARRAY_BUFFER_INTERNAL_FIELD_COUNT
+#define V8_ARRAY_BUFFER_INTERNAL_FIELD_COUNT 2
+#endif
 
 /**
  * An instance of the built-in ArrayBuffer constructor (ES6 draft 15.13.5).
@@ -2305,26 +2414,39 @@ class V8EXPORT ArrayBuffer : public Object {
    * Data length in bytes.
    */
   size_t ByteLength() const;
-  /**
-   * Raw pointer to the array buffer data
-   */
-  void* Data() const;
 
   /**
    * Create a new ArrayBuffer. Allocate |byte_length| bytes.
    * Allocated memory will be owned by a created ArrayBuffer and
-   * will be deallocated when it is garbage-collected.
+   * will be deallocated when it is garbage-collected,
+   * unless the object is externalized.
    */
   static Local<ArrayBuffer> New(size_t byte_length);
 
   /**
    * Create a new ArrayBuffer over an existing memory block.
+   * The created array buffer is immediately in externalized state.
    * The memory block will not be reclaimed when a created ArrayBuffer
    * is garbage-collected.
    */
   static Local<ArrayBuffer> New(void* data, size_t byte_length);
 
+  /**
+   * Returns true if ArrayBuffer is extrenalized, that is, does not
+   * own its memory block.
+   */
+  bool IsExternal() const;
+
+  /**
+   * Pass the ownership of this ArrayBuffer's backing store to
+   * a given ArrayBufferContents.
+   */
+  void Externalize(ArrayBufferContents* contents);
+
   V8_INLINE(static ArrayBuffer* Cast(Value* obj));
+
+
+  static const int kInternalFieldCount = V8_ARRAY_BUFFER_INTERNAL_FIELD_COUNT;
 
  private:
   ArrayBuffer();
@@ -2703,13 +2825,36 @@ class V8EXPORT Template : public Data {
 };
 
 
+template<typename T>
+class ReturnValue {
+ public:
+  V8_INLINE(explicit ReturnValue(internal::Object** slot));
+  // Handle setters
+  template <typename S> V8_INLINE(void Set(const Persistent<S>& handle));
+  template <typename S> V8_INLINE(void Set(const Handle<S> handle));
+  // Fast primitive setters
+  V8_INLINE(void Set(bool value));
+  V8_INLINE(void Set(double i));
+  V8_INLINE(void Set(int32_t i));
+  V8_INLINE(void Set(uint32_t i));
+  // Fast JS primitive setters
+  V8_INLINE(void SetNull());
+  V8_INLINE(void SetUndefined());
+  // Convenience getter for Isolate
+  V8_INLINE(Isolate* GetIsolate());
+ private:
+  internal::Object** value_;
+};
+
+
 /**
  * The argument information given to function call callbacks.  This
  * class provides access to information about the context of the call,
  * including the receiver, the number and values of arguments, and
  * the holder of the function.
  */
-class V8EXPORT Arguments {
+template<typename T>
+class FunctionCallbackInfo {
  public:
   V8_INLINE(int Length() const);
   V8_INLINE(Local<Value> operator[](int i) const);
@@ -2719,15 +2864,20 @@ class V8EXPORT Arguments {
   V8_INLINE(bool IsConstructCall() const);
   V8_INLINE(Local<Value> Data() const);
   V8_INLINE(Isolate* GetIsolate() const);
+  V8_INLINE(ReturnValue<T> GetReturnValue() const);
+  // This shouldn't be public, but the arm compiler needs it.
+  static const int kArgsLength = 5;
 
- private:
-  static const int kIsolateIndex = 0;
-  static const int kDataIndex = -1;
-  static const int kCalleeIndex = -2;
-  static const int kHolderIndex = -3;
+ protected:
+  friend class internal::FunctionCallbackArguments;
+  friend class internal::CustomArguments<FunctionCallbackInfo>;
+  static const int kReturnValueIndex = 0;
+  static const int kIsolateIndex = -1;
+  static const int kDataIndex = -2;
+  static const int kCalleeIndex = -3;
+  static const int kHolderIndex = -4;
 
-  friend class ImplementationUtilities;
-  V8_INLINE(Arguments(internal::Object** implicit_args,
+  V8_INLINE(FunctionCallbackInfo(internal::Object** implicit_args,
                    internal::Object** values,
                    int length,
                    bool is_construct_call));
@@ -2738,25 +2888,56 @@ class V8EXPORT Arguments {
 };
 
 
+class V8EXPORT Arguments : public FunctionCallbackInfo<Value> {
+ private:
+  friend class internal::FunctionCallbackArguments;
+  V8_INLINE(Arguments(internal::Object** implicit_args,
+                      internal::Object** values,
+                      int length,
+                      bool is_construct_call));
+};
+
 /**
- * The information passed to an accessor callback about the context
+ * The information passed to a property callback about the context
  * of the property access.
  */
-class V8EXPORT AccessorInfo {
+template<typename T>
+class PropertyCallbackInfo {
  public:
-  V8_INLINE(AccessorInfo(internal::Object** args))
-      : args_(args) { }
   V8_INLINE(Isolate* GetIsolate() const);
   V8_INLINE(Local<Value> Data() const);
   V8_INLINE(Local<Object> This() const);
   V8_INLINE(Local<Object> Holder() const);
+  V8_INLINE(ReturnValue<T> GetReturnValue() const);
+  // This shouldn't be public, but the arm compiler needs it.
+  static const int kArgsLength = 5;
 
- private:
+ protected:
+  friend class MacroAssembler;
+  friend class internal::PropertyCallbackArguments;
+  friend class internal::CustomArguments<PropertyCallbackInfo>;
+  static const int kThisIndex = 0;
+  static const int kHolderIndex = -1;
+  static const int kDataIndex = -2;
+  static const int kReturnValueIndex = -3;
+  static const int kIsolateIndex = -4;
+
+  V8_INLINE(PropertyCallbackInfo(internal::Object** args))
+      : args_(args) { }
   internal::Object** args_;
 };
 
 
+class V8EXPORT AccessorInfo : public PropertyCallbackInfo<Value> {
+ private:
+  friend class internal::PropertyCallbackArguments;
+  V8_INLINE(AccessorInfo(internal::Object** args))
+      : PropertyCallbackInfo<Value>(args) { }
+};
+
+
 typedef Handle<Value> (*InvocationCallback)(const Arguments& args);
+typedef void (*FunctionCallback)(const FunctionCallbackInfo<Value>& info);
 
 /**
  * NamedProperty[Getter|Setter] are used as interceptors on object.
@@ -2764,6 +2945,9 @@ typedef Handle<Value> (*InvocationCallback)(const Arguments& args);
  */
 typedef Handle<Value> (*NamedPropertyGetter)(Local<String> property,
                                              const AccessorInfo& info);
+typedef void (*NamedPropertyGetterCallback)(
+    Local<String> property,
+    const PropertyCallbackInfo<Value>& info);
 
 
 /**
@@ -2773,6 +2957,11 @@ typedef Handle<Value> (*NamedPropertyGetter)(Local<String> property,
 typedef Handle<Value> (*NamedPropertySetter)(Local<String> property,
                                              Local<Value> value,
                                              const AccessorInfo& info);
+typedef void (*NamedPropertySetterCallback)(
+    Local<String> property,
+    Local<Value> value,
+    const PropertyCallbackInfo<Value>& info);
+
 
 /**
  * Returns a non-empty handle if the interceptor intercepts the request.
@@ -2781,6 +2970,9 @@ typedef Handle<Value> (*NamedPropertySetter)(Local<String> property,
  */
 typedef Handle<Integer> (*NamedPropertyQuery)(Local<String> property,
                                               const AccessorInfo& info);
+typedef void (*NamedPropertyQueryCallback)(
+    Local<String> property,
+    const PropertyCallbackInfo<Integer>& info);
 
 
 /**
@@ -2790,12 +2982,18 @@ typedef Handle<Integer> (*NamedPropertyQuery)(Local<String> property,
  */
 typedef Handle<Boolean> (*NamedPropertyDeleter)(Local<String> property,
                                                 const AccessorInfo& info);
+typedef void (*NamedPropertyDeleterCallback)(
+    Local<String> property,
+    const PropertyCallbackInfo<Boolean>& info);
+
 
 /**
  * Returns an array containing the names of the properties the named
  * property getter intercepts.
  */
 typedef Handle<Array> (*NamedPropertyEnumerator)(const AccessorInfo& info);
+typedef void (*NamedPropertyEnumeratorCallback)(
+    const PropertyCallbackInfo<Array>& info);
 
 
 /**
@@ -2804,6 +3002,9 @@ typedef Handle<Array> (*NamedPropertyEnumerator)(const AccessorInfo& info);
  */
 typedef Handle<Value> (*IndexedPropertyGetter)(uint32_t index,
                                                const AccessorInfo& info);
+typedef void (*IndexedPropertyGetterCallback)(
+    uint32_t index,
+    const PropertyCallbackInfo<Value>& info);
 
 
 /**
@@ -2813,6 +3014,10 @@ typedef Handle<Value> (*IndexedPropertyGetter)(uint32_t index,
 typedef Handle<Value> (*IndexedPropertySetter)(uint32_t index,
                                                Local<Value> value,
                                                const AccessorInfo& info);
+typedef void (*IndexedPropertySetterCallback)(
+    uint32_t index,
+    Local<Value> value,
+    const PropertyCallbackInfo<Value>& info);
 
 
 /**
@@ -2821,6 +3026,10 @@ typedef Handle<Value> (*IndexedPropertySetter)(uint32_t index,
  */
 typedef Handle<Integer> (*IndexedPropertyQuery)(uint32_t index,
                                                 const AccessorInfo& info);
+typedef void (*IndexedPropertyQueryCallback)(
+    uint32_t index,
+    const PropertyCallbackInfo<Integer>& info);
+
 
 /**
  * Returns a non-empty handle if the deleter intercepts the request.
@@ -2829,12 +3038,18 @@ typedef Handle<Integer> (*IndexedPropertyQuery)(uint32_t index,
  */
 typedef Handle<Boolean> (*IndexedPropertyDeleter)(uint32_t index,
                                                   const AccessorInfo& info);
+typedef void (*IndexedPropertyDeleterCallback)(
+    uint32_t index,
+    const PropertyCallbackInfo<Boolean>& info);
+
 
 /**
  * Returns an array containing the indices of the properties the
  * indexed property getter intercepts.
  */
 typedef Handle<Array> (*IndexedPropertyEnumerator)(const AccessorInfo& info);
+typedef void (*IndexedPropertyEnumeratorCallback)(
+    const PropertyCallbackInfo<Array>& info);
 
 
 /**
@@ -2964,11 +3179,18 @@ typedef bool (*IndexedSecurityCallback)(Local<Object> host,
 class V8EXPORT FunctionTemplate : public Template {
  public:
   /** Creates a function template.*/
+  // TODO(dcarney): deprecate
   static Local<FunctionTemplate> New(
       InvocationCallback callback = 0,
       Handle<Value> data = Handle<Value>(),
       Handle<Signature> signature = Handle<Signature>(),
       int length = 0);
+  static Local<FunctionTemplate> New(
+      FunctionCallback callback,  // TODO(dcarney): add back default param.
+      Handle<Value> data = Handle<Value>(),
+      Handle<Signature> signature = Handle<Signature>(),
+      int length = 0);
+
   /** Returns the unique function instance in the current execution context.*/
   Local<Function> GetFunction();
 
@@ -2977,7 +3199,10 @@ class V8EXPORT FunctionTemplate : public Template {
    * callback is called whenever the function created from this
    * FunctionTemplate is called.
    */
+  // TODO(dcarney): deprecate
   void SetCallHandler(InvocationCallback callback,
+                      Handle<Value> data = Handle<Value>());
+  void SetCallHandler(FunctionCallback callback,
                       Handle<Value> data = Handle<Value>());
 
   /** Set the predefined length property for the FunctionTemplate. */
@@ -3030,21 +3255,6 @@ class V8EXPORT FunctionTemplate : public Template {
 
  private:
   FunctionTemplate();
-  void SetNamedInstancePropertyHandler(NamedPropertyGetter getter,
-                                       NamedPropertySetter setter,
-                                       NamedPropertyQuery query,
-                                       NamedPropertyDeleter remover,
-                                       NamedPropertyEnumerator enumerator,
-                                       Handle<Value> data);
-  void SetIndexedInstancePropertyHandler(IndexedPropertyGetter getter,
-                                         IndexedPropertySetter setter,
-                                         IndexedPropertyQuery query,
-                                         IndexedPropertyDeleter remover,
-                                         IndexedPropertyEnumerator enumerator,
-                                         Handle<Value> data);
-  void SetInstanceCallAsFunctionHandler(InvocationCallback callback,
-                                        Handle<Value> data);
-
   friend class Context;
   friend class ObjectTemplate;
 };
@@ -3093,9 +3303,18 @@ class V8EXPORT ObjectTemplate : public Template {
    *   defined by FunctionTemplate::HasInstance()), an implicit TypeError is
    *   thrown and no callback is invoked.
    */
+  // TODO(dcarney): deprecate
   void SetAccessor(Handle<String> name,
                    AccessorGetter getter,
                    AccessorSetter setter = 0,
+                   Handle<Value> data = Handle<Value>(),
+                   AccessControl settings = DEFAULT,
+                   PropertyAttribute attribute = None,
+                   Handle<AccessorSignature> signature =
+                       Handle<AccessorSignature>());
+  void SetAccessor(Handle<String> name,
+                   AccessorGetterCallback getter,
+                   AccessorSetterCallback setter = 0,
                    Handle<Value> data = Handle<Value>(),
                    AccessControl settings = DEFAULT,
                    PropertyAttribute attribute = None,
@@ -3127,12 +3346,20 @@ class V8EXPORT ObjectTemplate : public Template {
    * \param data A piece of data that will be passed to the callbacks
    *   whenever they are invoked.
    */
+  // TODO(dcarney): deprecate
   void SetNamedPropertyHandler(NamedPropertyGetter getter,
                                NamedPropertySetter setter = 0,
                                NamedPropertyQuery query = 0,
                                NamedPropertyDeleter deleter = 0,
                                NamedPropertyEnumerator enumerator = 0,
                                Handle<Value> data = Handle<Value>());
+  void SetNamedPropertyHandler(
+      NamedPropertyGetterCallback getter,
+      NamedPropertySetterCallback setter = 0,
+      NamedPropertyQueryCallback query = 0,
+      NamedPropertyDeleterCallback deleter = 0,
+      NamedPropertyEnumeratorCallback enumerator = 0,
+      Handle<Value> data = Handle<Value>());
 
   /**
    * Sets an indexed property handler on the object template.
@@ -3150,12 +3377,20 @@ class V8EXPORT ObjectTemplate : public Template {
    * \param data A piece of data that will be passed to the callbacks
    *   whenever they are invoked.
    */
+  // TODO(dcarney): deprecate
   void SetIndexedPropertyHandler(IndexedPropertyGetter getter,
                                  IndexedPropertySetter setter = 0,
                                  IndexedPropertyQuery query = 0,
                                  IndexedPropertyDeleter deleter = 0,
                                  IndexedPropertyEnumerator enumerator = 0,
                                  Handle<Value> data = Handle<Value>());
+  void SetIndexedPropertyHandler(
+      IndexedPropertyGetterCallback getter,
+      IndexedPropertySetterCallback setter = 0,
+      IndexedPropertyQueryCallback query = 0,
+      IndexedPropertyDeleterCallback deleter = 0,
+      IndexedPropertyEnumeratorCallback enumerator = 0,
+      Handle<Value> data = Handle<Value>());
 
   /**
    * Sets the callback to be used when calling instances created from
@@ -3163,7 +3398,10 @@ class V8EXPORT ObjectTemplate : public Template {
    * behave like normal JavaScript objects that cannot be called as a
    * function.
    */
+  // TODO(dcarney): deprecate
   void SetCallAsFunctionHandler(InvocationCallback callback,
+                                Handle<Value> data = Handle<Value>());
+  void SetCallAsFunctionHandler(FunctionCallback callback,
                                 Handle<Value> data = Handle<Value>());
 
   /**
@@ -3840,25 +4078,29 @@ struct JitCodeEvent {
   // CODE_ADD_LINE_POS_INFO and CODE_END_LINE_INFO_RECORDING events.
   void* user_data;
 
+  struct name_t {
+    // Name of the object associated with the code, note that the string is not
+    // zero-terminated.
+    const char* str;
+    // Number of chars in str.
+    size_t len;
+  };
+
+  struct line_info_t {
+    // PC offset
+    size_t offset;
+    // Code postion
+    size_t pos;
+    // The position type.
+    PositionType position_type;
+  };
+
   union {
     // Only valid for CODE_ADDED.
-    struct {
-      // Name of the object associated with the code, note that the string is
-      // not zero-terminated.
-      const char* str;
-      // Number of chars in str.
-      size_t len;
-    } name;
+    struct name_t name;
 
     // Only valid for CODE_ADD_LINE_POS_INFO
-    struct {
-      // PC offset
-      size_t offset;
-      // Code postion
-      size_t pos;
-      // The position type.
-      PositionType position_type;
-    } line_info;
+    struct line_info_t line_info;
 
     // New location of instructions. Only valid for CODE_MOVED.
     void* new_code_start;
@@ -3899,8 +4141,13 @@ class V8EXPORT ExternalResourceVisitor {  // NOLINT
 class V8EXPORT PersistentHandleVisitor {  // NOLINT
  public:
   virtual ~PersistentHandleVisitor() {}
+#ifdef V8_USE_OLD_STYLE_PERSISTENT_HANDLE_VISITORS
   virtual void VisitPersistentHandle(Persistent<Value> value,
                                      uint16_t class_id) {}
+#else
+  virtual void VisitPersistentHandle(Persistent<Value>* value,
+                                     uint16_t class_id) {}
+#endif
 };
 
 
@@ -4124,41 +4371,6 @@ class V8EXPORT V8 {
    * Removes callback that was installed by AddCallCompletedCallback.
    */
   static void RemoveCallCompletedCallback(CallCompletedCallback callback);
-
-  /**
-   * Allows the host application to group objects together. If one
-   * object in the group is alive, all objects in the group are alive.
-   * After each garbage collection, object groups are removed. It is
-   * intended to be used in the before-garbage-collection callback
-   * function, for instance to simulate DOM tree connections among JS
-   * wrapper objects. Object groups for all dependent handles need to
-   * be provided for kGCTypeMarkSweepCompact collections, for all other
-   * garbage collection types it is sufficient to provide object groups
-   * for partially dependent handles only.
-   * See v8-profiler.h for RetainedObjectInfo interface description.
-   */
-  // TODO(marja): deprecate AddObjectGroup. Use Isolate::SetObjectGroupId and
-  // HeapProfiler::SetRetainedObjectInfo instead.
-  static void AddObjectGroup(Persistent<Value>* objects,
-                             size_t length,
-                             RetainedObjectInfo* info = NULL);
-  static void AddObjectGroup(Isolate* isolate,
-                             Persistent<Value>* objects,
-                             size_t length,
-                             RetainedObjectInfo* info = NULL);
-
-  /**
-   * Allows the host application to declare implicit references between
-   * the objects: if |parent| is alive, all |children| are alive too.
-   * After each garbage collection, all implicit references
-   * are removed.  It is intended to be used in the before-garbage-collection
-   * callback function.
-   */
-  // TODO(marja): Deprecate AddImplicitReferences. Use
-  // Isolate::SetReferenceFromGroup instead.
-  static void AddImplicitReferences(Persistent<Object> parent,
-                                    Persistent<Value>* children,
-                                    size_t length);
 
   /**
    * Initializes from snapshot if possible. Otherwise, attempts to
@@ -4390,16 +4602,13 @@ class V8EXPORT V8 {
 
   static internal::Object** GlobalizeReference(internal::Isolate* isolate,
                                                internal::Object** handle);
-  static void DisposeGlobal(internal::Isolate* isolate,
-                            internal::Object** global_handle);
+  static void DisposeGlobal(internal::Object** global_handle);
   typedef WeakReferenceCallbacks<Value, void>::Revivable RevivableCallback;
-  static void MakeWeak(internal::Isolate* isolate,
-                       internal::Object** global_handle,
+  static void MakeWeak(internal::Object** global_handle,
                        void* data,
                        RevivableCallback weak_reference_callback,
                        NearDeathCallback near_death_callback);
-  static void ClearWeak(internal::Isolate* isolate,
-                        internal::Object** global_handle);
+  static void ClearWeak(internal::Object** global_handle);
 
   template <class T> friend class Handle;
   template <class T> friend class Local;
@@ -4739,6 +4948,7 @@ class V8EXPORT Context {
     explicit V8_INLINE(Scope(Handle<Context> context)) : context_(context) {
       context_->Enter();
     }
+    // TODO(dcarney): deprecate
     V8_INLINE(Scope(Isolate* isolate, Persistent<Context>& context)) // NOLINT
 #ifndef V8_USE_UNSAFE_HANDLES
     : context_(Handle<Context>::New(isolate, context)) {
@@ -4991,6 +5201,14 @@ const intptr_t kSmiTagMask = (1 << kSmiTagSize) - 1;
 
 template <size_t ptr_size> struct SmiTagging;
 
+template<int kSmiShiftSize>
+V8_INLINE(internal::Object* IntToSmi(int value)) {
+  int smi_shift_bits = kSmiTagSize + kSmiShiftSize;
+  intptr_t tagged_value =
+      (static_cast<intptr_t>(value) << smi_shift_bits) | kSmiTag;
+  return reinterpret_cast<internal::Object*>(tagged_value);
+}
+
 // Smi constants for 32-bit systems.
 template <> struct SmiTagging<4> {
   static const int kSmiShiftSize = 0;
@@ -4999,6 +5217,23 @@ template <> struct SmiTagging<4> {
     int shift_bits = kSmiTagSize + kSmiShiftSize;
     // Throw away top 32 bits and shift down (requires >> to be sign extending).
     return static_cast<int>(reinterpret_cast<intptr_t>(value)) >> shift_bits;
+  }
+  V8_INLINE(static internal::Object* IntToSmi(int value)) {
+    return internal::IntToSmi<kSmiShiftSize>(value);
+  }
+  V8_INLINE(static bool IsValidSmi(intptr_t value)) {
+    // To be representable as an tagged small integer, the two
+    // most-significant bits of 'value' must be either 00 or 11 due to
+    // sign-extension. To check this we add 01 to the two
+    // most-significant bits, and check if the most-significant bit is 0
+    //
+    // CAUTION: The original code below:
+    // bool result = ((value + 0x40000000) & 0x80000000) == 0;
+    // may lead to incorrect results according to the C language spec, and
+    // in fact doesn't work correctly with gcc4.1.1 in some cases: The
+    // compiler may produce undefined results in case of signed integer
+    // overflow. The computation must be done w/ unsigned ints.
+    return static_cast<uintptr_t>(value + 0x40000000U) < 0x80000000U;
   }
 };
 
@@ -5010,6 +5245,13 @@ template <> struct SmiTagging<8> {
     int shift_bits = kSmiTagSize + kSmiShiftSize;
     // Shift down and throw away top 32 bits.
     return static_cast<int>(reinterpret_cast<intptr_t>(value) >> shift_bits);
+  }
+  V8_INLINE(static internal::Object* IntToSmi(int value)) {
+    return internal::IntToSmi<kSmiShiftSize>(value);
+  }
+  V8_INLINE(static bool IsValidSmi(intptr_t value)) {
+    // To be representable as a long smi, the value must be a 32-bit integer.
+    return (value == static_cast<int32_t>(value));
   }
 };
 
@@ -5035,7 +5277,7 @@ class Internals {
   static const int kJSObjectHeaderSize = 3 * kApiPointerSize;
   static const int kFixedArrayHeaderSize = 2 * kApiPointerSize;
   static const int kContextHeaderSize = 2 * kApiPointerSize;
-  static const int kContextEmbedderDataIndex = 63;
+  static const int kContextEmbedderDataIndex = 64;
   static const int kFullStringRepresentationMask = 0x07;
   static const int kStringEncodingMask = 0x4;
   static const int kExternalTwoByteRepresentationTag = 0x02;
@@ -5048,7 +5290,7 @@ class Internals {
   static const int kNullValueRootIndex = 7;
   static const int kTrueValueRootIndex = 8;
   static const int kFalseValueRootIndex = 9;
-  static const int kEmptyStringRootIndex = 118;
+  static const int kEmptyStringRootIndex = 129;
 
   static const int kNodeClassIdOffset = 1 * kApiPointerSize;
   static const int kNodeFlagsOffset = 1 * kApiPointerSize + 3;
@@ -5073,6 +5315,14 @@ class Internals {
 
   V8_INLINE(static int SmiValue(internal::Object* value)) {
     return PlatformSmiTagging::SmiToInt(value);
+  }
+
+  V8_INLINE(static internal::Object* IntToSmi(int value)) {
+    return PlatformSmiTagging::IntToSmi(value);
+  }
+
+  V8_INLINE(static bool IsValidSmi(intptr_t value)) {
+    return PlatformSmiTagging::IsValidSmi(value);
   }
 
   V8_INLINE(static int GetInstanceType(internal::Object* obj)) {
@@ -5247,15 +5497,8 @@ Persistent<T> Persistent<T>::New(Isolate* isolate, T* that) {
 
 template <class T>
 bool Persistent<T>::IsIndependent() const {
-  return IsIndependent(Isolate::GetCurrent());
-}
-
-
-template <class T>
-bool Persistent<T>::IsIndependent(Isolate* isolate) const {
   typedef internal::Internals I;
   if (this->IsEmpty()) return false;
-  if (!I::IsInitialized(isolate)) return false;
   return I::GetNodeFlag(reinterpret_cast<internal::Object**>(this->val_),
                         I::kNodeIsIndependentShift);
 }
@@ -5263,15 +5506,8 @@ bool Persistent<T>::IsIndependent(Isolate* isolate) const {
 
 template <class T>
 bool Persistent<T>::IsNearDeath() const {
-  return IsNearDeath(Isolate::GetCurrent());
-}
-
-
-template <class T>
-bool Persistent<T>::IsNearDeath(Isolate* isolate) const {
   typedef internal::Internals I;
   if (this->IsEmpty()) return false;
-  if (!I::IsInitialized(isolate)) return false;
   return I::GetNodeState(reinterpret_cast<internal::Object**>(this->val_)) ==
       I::kNodeStateIsNearDeathValue;
 }
@@ -5279,15 +5515,8 @@ bool Persistent<T>::IsNearDeath(Isolate* isolate) const {
 
 template <class T>
 bool Persistent<T>::IsWeak() const {
-  return IsWeak(Isolate::GetCurrent());
-}
-
-
-template <class T>
-bool Persistent<T>::IsWeak(Isolate* isolate) const {
   typedef internal::Internals I;
   if (this->IsEmpty()) return false;
-  if (!I::IsInitialized(isolate)) return false;
   return I::GetNodeState(reinterpret_cast<internal::Object**>(this->val_)) ==
       I::kNodeStateIsWeakValue;
 }
@@ -5295,15 +5524,8 @@ bool Persistent<T>::IsWeak(Isolate* isolate) const {
 
 template <class T>
 void Persistent<T>::Dispose() {
-  Dispose(Isolate::GetCurrent());
-}
-
-
-template <class T>
-void Persistent<T>::Dispose(Isolate* isolate) {
   if (this->IsEmpty()) return;
-  V8::DisposeGlobal(reinterpret_cast<internal::Isolate*>(isolate),
-                    reinterpret_cast<internal::Object**>(this->val_));
+  V8::DisposeGlobal(reinterpret_cast<internal::Object**>(this->val_));
 #ifndef V8_USE_UNSAFE_HANDLES
   val_ = 0;
 #endif
@@ -5313,13 +5535,11 @@ void Persistent<T>::Dispose(Isolate* isolate) {
 template <class T>
 template <typename S, typename P>
 void Persistent<T>::MakeWeak(
-    Isolate* isolate,
     P* parameters,
     typename WeakReferenceCallbacks<S, P>::Revivable callback) {
   TYPE_CHECK(S, T);
   typedef typename WeakReferenceCallbacks<Value, void>::Revivable Revivable;
-  V8::MakeWeak(reinterpret_cast<internal::Isolate*>(isolate),
-               reinterpret_cast<internal::Object**>(this->val_),
+  V8::MakeWeak(reinterpret_cast<internal::Object**>(this->val_),
                parameters,
                reinterpret_cast<Revivable>(callback),
                NULL);
@@ -5329,10 +5549,9 @@ void Persistent<T>::MakeWeak(
 template <class T>
 template <typename P>
 void Persistent<T>::MakeWeak(
-    Isolate* isolate,
     P* parameters,
     typename WeakReferenceCallbacks<T, P>::Revivable callback) {
-  MakeWeak<T, P>(isolate, parameters, callback);
+  MakeWeak<T, P>(parameters, callback);
 }
 
 
@@ -5340,57 +5559,36 @@ template <class T>
 void Persistent<T>::MakeWeak(Isolate* isolate,
                              void* parameters,
                              NearDeathCallback callback) {
-  V8::MakeWeak(reinterpret_cast<internal::Isolate*>(isolate),
-               reinterpret_cast<internal::Object**>(this->val_),
+  V8::MakeWeak(reinterpret_cast<internal::Object**>(this->val_),
                parameters,
                NULL,
                callback);
 }
 
-template <class T>
-void Persistent<T>::ClearWeak() {
-  ClearWeak(Isolate::GetCurrent());
-}
 
 template <class T>
-void Persistent<T>::ClearWeak(Isolate* isolate) {
-  V8::ClearWeak(reinterpret_cast<internal::Isolate*>(isolate),
-                reinterpret_cast<internal::Object**>(this->val_));
+void Persistent<T>::ClearWeak() {
+  V8::ClearWeak(reinterpret_cast<internal::Object**>(this->val_));
 }
+
 
 template <class T>
 void Persistent<T>::MarkIndependent() {
-  MarkIndependent(Isolate::GetCurrent());
-}
-
-template <class T>
-void Persistent<T>::MarkIndependent(Isolate* isolate) {
   typedef internal::Internals I;
   if (this->IsEmpty()) return;
-  if (!I::IsInitialized(isolate)) return;
   I::UpdateNodeFlag(reinterpret_cast<internal::Object**>(this->val_),
                     true,
                     I::kNodeIsIndependentShift);
 }
 
-template <class T>
-void Persistent<T>::MarkPartiallyDependent() {
-  MarkPartiallyDependent(Isolate::GetCurrent());
-}
 
 template <class T>
-void Persistent<T>::MarkPartiallyDependent(Isolate* isolate) {
+void Persistent<T>::MarkPartiallyDependent() {
   typedef internal::Internals I;
   if (this->IsEmpty()) return;
-  if (!I::IsInitialized(isolate)) return;
   I::UpdateNodeFlag(reinterpret_cast<internal::Object**>(this->val_),
                     true,
                     I::kNodeIsPartiallyDependentShift);
-}
-
-template <class T>
-void Persistent<T>::SetWrapperClassId(uint16_t class_id) {
-  SetWrapperClassId(Isolate::GetCurrent(), class_id);
 }
 
 
@@ -5411,6 +5609,21 @@ void Persistent<T>::Reset(Isolate* isolate, const Handle<T>& other) {
 }
 
 
+#ifndef V8_USE_UNSAFE_HANDLES
+template <class T>
+void Persistent<T>::Reset(Isolate* isolate, const Persistent<T>& other) {
+  Dispose(isolate);
+  if (other.IsEmpty()) {
+    this->val_ = NULL;
+    return;
+  }
+  internal::Object** p = reinterpret_cast<internal::Object**>(other.val_);
+  this->val_ = reinterpret_cast<T*>(
+      V8::GlobalizeReference(reinterpret_cast<internal::Isolate*>(isolate), p));
+}
+#endif
+
+
 template <class T>
 T* Persistent<T>::ClearAndLeak() {
   T* old;
@@ -5426,78 +5639,177 @@ T* Persistent<T>::ClearAndLeak() {
 
 
 template <class T>
-void Persistent<T>::SetWrapperClassId(Isolate* isolate, uint16_t class_id) {
+void Persistent<T>::SetWrapperClassId(uint16_t class_id) {
   typedef internal::Internals I;
   if (this->IsEmpty()) return;
-  if (!I::IsInitialized(isolate)) return;
   internal::Object** obj = reinterpret_cast<internal::Object**>(this->val_);
   uint8_t* addr = reinterpret_cast<uint8_t*>(obj) + I::kNodeClassIdOffset;
   *reinterpret_cast<uint16_t*>(addr) = class_id;
 }
 
-template <class T>
-uint16_t Persistent<T>::WrapperClassId() const {
-  return WrapperClassId(Isolate::GetCurrent());
-}
 
 template <class T>
-uint16_t Persistent<T>::WrapperClassId(Isolate* isolate) const {
+uint16_t Persistent<T>::WrapperClassId() const {
   typedef internal::Internals I;
   if (this->IsEmpty()) return 0;
-  if (!I::IsInitialized(isolate)) return 0;
   internal::Object** obj = reinterpret_cast<internal::Object**>(this->val_);
   uint8_t* addr = reinterpret_cast<uint8_t*>(obj) + I::kNodeClassIdOffset;
   return *reinterpret_cast<uint16_t*>(addr);
 }
 
-Arguments::Arguments(internal::Object** implicit_args,
-                     internal::Object** values, int length,
-                     bool is_construct_call)
+
+template<typename T>
+ReturnValue<T>::ReturnValue(internal::Object** slot) : value_(slot) {}
+
+template<typename T>
+template<typename S>
+void ReturnValue<T>::Set(const Persistent<S>& handle) {
+  TYPE_CHECK(T, S);
+  if (V8_UNLIKELY(handle.IsEmpty())) {
+    SetUndefined();
+  } else {
+    *value_ = *reinterpret_cast<internal::Object**>(*handle);
+  }
+}
+
+template<typename T>
+template<typename S>
+void ReturnValue<T>::Set(const Handle<S> handle) {
+  TYPE_CHECK(T, S);
+  if (V8_UNLIKELY(handle.IsEmpty())) {
+    SetUndefined();
+  } else {
+    *value_ = *reinterpret_cast<internal::Object**>(*handle);
+  }
+}
+
+template<typename T>
+void ReturnValue<T>::Set(double i) {
+  Set(Number::New(GetIsolate(), i));
+}
+
+template<typename T>
+void ReturnValue<T>::Set(int32_t i) {
+  typedef internal::Internals I;
+  if (V8_LIKELY(I::IsValidSmi(i))) {
+    *value_ = I::IntToSmi(i);
+    return;
+  }
+  Set(Integer::New(i, GetIsolate()));
+}
+
+template<typename T>
+void ReturnValue<T>::Set(uint32_t i) {
+  typedef internal::Internals I;
+  if (V8_LIKELY(I::IsValidSmi(i))) {
+    *value_ = I::IntToSmi(i);
+    return;
+  }
+  Set(Integer::NewFromUnsigned(i, GetIsolate()));
+}
+
+template<typename T>
+void ReturnValue<T>::Set(bool value) {
+  typedef internal::Internals I;
+  int root_index;
+  if (value) {
+    root_index = I::kTrueValueRootIndex;
+  } else {
+    root_index = I::kFalseValueRootIndex;
+  }
+  *value_ = *I::GetRoot(GetIsolate(), root_index);
+}
+
+template<typename T>
+void ReturnValue<T>::SetNull() {
+  typedef internal::Internals I;
+  *value_ = *I::GetRoot(GetIsolate(), I::kNullValueRootIndex);
+}
+
+template<typename T>
+void ReturnValue<T>::SetUndefined() {
+  typedef internal::Internals I;
+  *value_ = *I::GetRoot(GetIsolate(), I::kUndefinedValueRootIndex);
+}
+
+template<typename T>
+Isolate* ReturnValue<T>::GetIsolate() {
+  // Isolate is always the pointer below value_ on the stack.
+  return *reinterpret_cast<Isolate**>(&value_[-1]);
+}
+
+
+template<typename T>
+FunctionCallbackInfo<T>::FunctionCallbackInfo(internal::Object** implicit_args,
+                                              internal::Object** values,
+                                              int length,
+                                              bool is_construct_call)
     : implicit_args_(implicit_args),
       values_(values),
       length_(length),
       is_construct_call_(is_construct_call) { }
 
 
-Local<Value> Arguments::operator[](int i) const {
+Arguments::Arguments(internal::Object** args,
+                     internal::Object** values,
+                     int length,
+                     bool is_construct_call)
+    : FunctionCallbackInfo<Value>(args, values, length, is_construct_call) { }
+
+
+template<typename T>
+Local<Value> FunctionCallbackInfo<T>::operator[](int i) const {
   if (i < 0 || length_ <= i) return Local<Value>(*Undefined());
   return Local<Value>(reinterpret_cast<Value*>(values_ - i));
 }
 
 
-Local<Function> Arguments::Callee() const {
+template<typename T>
+Local<Function> FunctionCallbackInfo<T>::Callee() const {
   return Local<Function>(reinterpret_cast<Function*>(
       &implicit_args_[kCalleeIndex]));
 }
 
 
-Local<Object> Arguments::This() const {
+template<typename T>
+Local<Object> FunctionCallbackInfo<T>::This() const {
   return Local<Object>(reinterpret_cast<Object*>(values_ + 1));
 }
 
 
-Local<Object> Arguments::Holder() const {
+template<typename T>
+Local<Object> FunctionCallbackInfo<T>::Holder() const {
   return Local<Object>(reinterpret_cast<Object*>(
       &implicit_args_[kHolderIndex]));
 }
 
 
-Local<Value> Arguments::Data() const {
+template<typename T>
+Local<Value> FunctionCallbackInfo<T>::Data() const {
   return Local<Value>(reinterpret_cast<Value*>(&implicit_args_[kDataIndex]));
 }
 
 
-Isolate* Arguments::GetIsolate() const {
+template<typename T>
+Isolate* FunctionCallbackInfo<T>::GetIsolate() const {
   return *reinterpret_cast<Isolate**>(&implicit_args_[kIsolateIndex]);
 }
 
 
-bool Arguments::IsConstructCall() const {
+template<typename T>
+ReturnValue<T> FunctionCallbackInfo<T>::GetReturnValue() const {
+  return ReturnValue<T>(&implicit_args_[kReturnValueIndex]);
+}
+
+
+template<typename T>
+bool FunctionCallbackInfo<T>::IsConstructCall() const {
   return is_construct_call_;
 }
 
 
-int Arguments::Length() const {
+template<typename T>
+int FunctionCallbackInfo<T>::Length() const {
   return length_;
 }
 
@@ -5886,23 +6198,33 @@ External* External::Cast(v8::Value* value) {
 }
 
 
-Isolate* AccessorInfo::GetIsolate() const {
-  return *reinterpret_cast<Isolate**>(&args_[-3]);
+template<typename T>
+Isolate* PropertyCallbackInfo<T>::GetIsolate() const {
+  return *reinterpret_cast<Isolate**>(&args_[kIsolateIndex]);
 }
 
 
-Local<Value> AccessorInfo::Data() const {
-  return Local<Value>(reinterpret_cast<Value*>(&args_[-2]));
+template<typename T>
+Local<Value> PropertyCallbackInfo<T>::Data() const {
+  return Local<Value>(reinterpret_cast<Value*>(&args_[kDataIndex]));
 }
 
 
-Local<Object> AccessorInfo::This() const {
-  return Local<Object>(reinterpret_cast<Object*>(&args_[0]));
+template<typename T>
+Local<Object> PropertyCallbackInfo<T>::This() const {
+  return Local<Object>(reinterpret_cast<Object*>(&args_[kThisIndex]));
 }
 
 
-Local<Object> AccessorInfo::Holder() const {
-  return Local<Object>(reinterpret_cast<Object*>(&args_[-1]));
+template<typename T>
+Local<Object> PropertyCallbackInfo<T>::Holder() const {
+  return Local<Object>(reinterpret_cast<Object*>(&args_[kHolderIndex]));
+}
+
+
+template<typename T>
+ReturnValue<T> PropertyCallbackInfo<T>::GetReturnValue() const {
+  return ReturnValue<T>(&args_[kReturnValueIndex]);
 }
 
 

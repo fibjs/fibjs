@@ -2020,7 +2020,14 @@ MaybeObject* KeyedStoreIC::Store(State state,
 
   bool use_ic = FLAG_use_ic && !object->IsAccessCheckNeeded() &&
       !(FLAG_harmony_observation && object->IsJSObject() &&
-          JSObject::cast(*object)->map()->is_observed());
+        JSObject::cast(*object)->map()->is_observed());
+  if (use_ic && !object->IsSmi()) {
+    // Don't use ICs for maps of the objects in Array's prototype chain. We
+    // expect to be able to trap element sets to objects with those maps in the
+    // runtime to enable optimization of element hole access.
+    Handle<HeapObject> heap_object = Handle<HeapObject>::cast(object);
+    if (heap_object->map()->IsMapInArrayPrototypeChain()) use_ic = false;
+  }
   ASSERT(!(use_ic && object->IsJSGlobalProxy()));
 
   if (use_ic) {
@@ -2881,25 +2888,17 @@ RUNTIME_FUNCTION(Code*, CompareIC_Miss) {
 }
 
 
-Code* CompareNilIC::GetRawUninitialized(EqualityKind kind,
-                                        NilValue nil) {
-  CompareNilICStub stub(kind, nil);
-  Code* code = NULL;
-  CHECK(stub.FindCodeInCache(&code, Isolate::Current()));
-  return code;
-}
-
-
 void CompareNilIC::Clear(Address address, Code* target) {
   if (target->ic_state() == UNINITIALIZED) return;
   Code::ExtraICState state = target->extended_extra_ic_state();
 
-  EqualityKind kind =
-      CompareNilICStub::EqualityKindFromExtraICState(state);
-  NilValue nil =
-      CompareNilICStub::NilValueFromExtraICState(state);
+  CompareNilICStub stub(state, HydrogenCodeStub::UNINITIALIZED);
+  stub.ClearTypes();
 
-  SetTargetAtAddress(address, GetRawUninitialized(kind, nil));
+  Code* code = NULL;
+  CHECK(stub.FindCodeInCache(&code, target->GetIsolate()));
+
+  SetTargetAtAddress(address, code);
 }
 
 
@@ -2923,40 +2922,31 @@ MaybeObject* CompareNilIC::DoCompareNilSlow(EqualityKind kind,
 MaybeObject* CompareNilIC::CompareNil(Handle<Object> object) {
   Code::ExtraICState extra_ic_state = target()->extended_extra_ic_state();
 
+  CompareNilICStub stub(extra_ic_state);
+
   // Extract the current supported types from the patched IC and calculate what
   // types must be supported as a result of the miss.
-  bool already_monomorphic;
-  CompareNilICStub::Types types =
-      CompareNilICStub::GetPatchedICFlags(extra_ic_state,
-                                          object, &already_monomorphic);
+  bool already_monomorphic = stub.IsMonomorphic();
 
-  EqualityKind kind =
-      CompareNilICStub::EqualityKindFromExtraICState(extra_ic_state);
-  NilValue nil =
-      CompareNilICStub::NilValueFromExtraICState(extra_ic_state);
+  CompareNilICStub::Types old_types = stub.GetTypes();
+  stub.Record(object);
+  old_types.TraceTransition(stub.GetTypes());
+
+  EqualityKind kind = stub.GetKind();
+  NilValue nil = stub.GetNilValue();
 
   // Find or create the specialized stub to support the new set of types.
-  CompareNilICStub stub(kind, nil, types);
   Handle<Code> code;
-  if ((types & CompareNilICStub::kCompareAgainstMonomorphicMap) != 0) {
+  if (stub.IsMonomorphic()) {
     Handle<Map> monomorphic_map(already_monomorphic
                                 ? target()->FindFirstMap()
                                 : HeapObject::cast(*object)->map());
-    code = isolate()->stub_cache()->ComputeCompareNil(monomorphic_map,
-                                                      nil,
-                                                      stub.GetTypes());
+    code = isolate()->stub_cache()->ComputeCompareNil(monomorphic_map, stub);
   } else {
     code = stub.GetCode(isolate());
   }
-
-  patch(*code);
-
+  set_target(*code);
   return DoCompareNilSlow(kind, nil, object);
-}
-
-
-void CompareNilIC::patch(Code* code) {
-  set_target(code);
 }
 
 
@@ -2975,28 +2965,23 @@ RUNTIME_FUNCTION(MaybeObject*, Unreachable) {
 }
 
 
-RUNTIME_FUNCTION(MaybeObject*, ToBoolean_Patch) {
-  ASSERT(args.length() == 3);
-
-  HandleScope scope(isolate);
-  Handle<Object> object = args.at<Object>(0);
-  Register tos = Register::from_code(args.smi_at(1));
-  ToBooleanStub::Types old_types(args.smi_at(2));
-
-  ToBooleanStub::Types new_types(old_types);
-  bool to_boolean_value = new_types.Record(object);
-  old_types.TraceTransition(new_types);
-
-  ToBooleanStub stub(tos, new_types);
-  Handle<Code> code = stub.GetCode(isolate);
-  ToBooleanIC ic(isolate);
-  ic.patch(*code);
+MaybeObject* ToBooleanIC::ToBoolean(Handle<Object> object,
+                                    Code::ExtraICState extra_ic_state) {
+  ToBooleanStub stub(extra_ic_state);
+  bool to_boolean_value = stub.Record(object);
+  Handle<Code> code = stub.GetCode(isolate());
+  set_target(*code);
   return Smi::FromInt(to_boolean_value ? 1 : 0);
 }
 
 
-void ToBooleanIC::patch(Code* code) {
-  set_target(code);
+RUNTIME_FUNCTION(MaybeObject*, ToBooleanIC_Miss) {
+  ASSERT(args.length() == 1);
+  HandleScope scope(isolate);
+  Handle<Object> object = args.at<Object>(0);
+  ToBooleanIC ic(isolate);
+  Code::ExtraICState ic_state = ic.target()->extended_extra_ic_state();
+  return ic.ToBoolean(object, ic_state);
 }
 
 

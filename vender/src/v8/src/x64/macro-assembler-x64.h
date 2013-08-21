@@ -788,6 +788,7 @@ class MacroAssembler: public Assembler {
   // Load a heap object and handle the case of new-space objects by
   // indirecting via a global cell.
   void LoadHeapObject(Register result, Handle<HeapObject> object);
+  void CmpHeapObject(Register reg, Handle<HeapObject> object);
   void PushHeapObject(Handle<HeapObject> object);
 
   void LoadObject(Register result, Handle<Object> object) {
@@ -796,6 +797,15 @@ class MacroAssembler: public Assembler {
       LoadHeapObject(result, Handle<HeapObject>::cast(object));
     } else {
       Move(result, object);
+    }
+  }
+
+  void CmpObject(Register reg, Handle<Object> object) {
+    ALLOW_HANDLE_DEREF(isolate(), "heap object check");
+    if (object->IsHeapObject()) {
+      CmpHeapObject(reg, Handle<HeapObject>::cast(object));
+    } else {
+      Cmp(reg, object);
     }
   }
 
@@ -898,8 +908,7 @@ class MacroAssembler: public Assembler {
   // sequences branches to early_success.
   void CompareMap(Register obj,
                   Handle<Map> map,
-                  Label* early_success,
-                  CompareMapMode mode = REQUIRE_EXACT_MAP);
+                  Label* early_success);
 
   // Check if the map of an object is equal to a specified map and branch to
   // label if not. Skip the smi check if not required (object is known to be a
@@ -908,8 +917,7 @@ class MacroAssembler: public Assembler {
   void CheckMap(Register obj,
                 Handle<Map> map,
                 Label* fail,
-                SmiCheckType smi_check_type,
-                CompareMapMode mode = REQUIRE_EXACT_MAP);
+                SmiCheckType smi_check_type);
 
   // Check if the map of an object is equal to a specified map and branch to a
   // specified target if equal. Skip the smi check if not required (object is
@@ -1224,13 +1232,16 @@ class MacroAssembler: public Assembler {
   // rcx (rcx must be preserverd until CallApiFunctionAndReturn).  Saves
   // context (rsi).  Clobbers rax.  Allocates arg_stack_space * kPointerSize
   // inside the exit frame (not GCed) accessible via StackSpaceOperand.
-  void PrepareCallApiFunction(int arg_stack_space);
+  void PrepareCallApiFunction(int arg_stack_space, bool returns_handle);
 
   // Calls an API function.  Allocates HandleScope, extracts returned value
   // from handle and propagates exceptions.  Clobbers r14, r15, rbx and
   // caller-save registers.  Restores context.  On return removes
   // stack_space * kPointerSize (GCed).
-  void CallApiFunctionAndReturn(Address function_address, int stack_space);
+  void CallApiFunctionAndReturn(Address function_address,
+                                int stack_space,
+                                bool returns_handle,
+                                int return_value_offset_from_rbp);
 
   // Before calling a C-function from generated code, align arguments on stack.
   // After aligning the frame, arguments must be stored in esp[0], esp[4],

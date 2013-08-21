@@ -161,6 +161,7 @@ void FullCodeGenerator::Generate() {
   __ mov(ebp, esp);
   __ push(esi);  // Callee's context.
   __ push(edi);  // Callee's JS Function.
+  info->AddNoFrameRange(0, masm_->pc_offset());
 
   { Comment cmnt(masm_, "[ Allocate locals");
     int locals_count = info->scope()->num_stack_slots();
@@ -410,6 +411,7 @@ void FullCodeGenerator::EmitReturnSequence() {
     // Do not use the leave instruction here because it is too short to
     // patch with the code required by the debugger.
     __ mov(esp, ebp);
+    int no_frame_start = masm_->pc_offset();
     __ pop(ebp);
 
     int arguments_bytes = (info_->scope()->num_parameters() + 1) * kPointerSize;
@@ -420,6 +422,7 @@ void FullCodeGenerator::EmitReturnSequence() {
     ASSERT(Assembler::kJSReturnSequenceLength <=
            masm_->SizeOfCodeGeneratedSince(&check_exit_codesize));
 #endif
+    info_->AddNoFrameRange(no_frame_start, masm_->pc_offset());
   }
 }
 
@@ -638,9 +641,8 @@ void FullCodeGenerator::DoTest(Expression* condition,
                                Label* if_true,
                                Label* if_false,
                                Label* fall_through) {
-  ToBooleanStub stub(result_register());
-  __ push(result_register());
-  __ CallStub(&stub, condition->test_id());
+  Handle<Code> ic = ToBooleanStub::GetUninitialized(isolate());
+  CallIC(ic, RelocInfo::CODE_TARGET, condition->test_id());
   __ test(result_register(), result_register());
   // The stub returns nonzero for true.
   Split(not_zero, if_true, if_false, fall_through);
@@ -1922,8 +1924,94 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
       break;
     }
 
-    case Yield::DELEGATING:
-      UNIMPLEMENTED();
+    case Yield::DELEGATING: {
+      VisitForStackValue(expr->generator_object());
+
+      // Initial stack layout is as follows:
+      // [sp + 1 * kPointerSize] iter
+      // [sp + 0 * kPointerSize] g
+
+      Label l_catch, l_try, l_resume, l_send, l_call, l_loop;
+      // Initial send value is undefined.
+      __ mov(eax, isolate()->factory()->undefined_value());
+      __ jmp(&l_send);
+
+      // catch (e) { receiver = iter; f = iter.throw; arg = e; goto l_call; }
+      __ bind(&l_catch);
+      handler_table()->set(expr->index(), Smi::FromInt(l_catch.pos()));
+      __ mov(edx, Operand(esp, 1 * kPointerSize));       // iter
+      __ push(edx);                                      // iter
+      __ push(eax);                                      // exception
+      __ mov(ecx, isolate()->factory()->throw_string());  // "throw"
+      Handle<Code> throw_ic = isolate()->builtins()->LoadIC_Initialize();
+      CallIC(throw_ic);                                  // iter.throw in eax
+      __ jmp(&l_call);
+
+      // try { received = yield result.value }
+      __ bind(&l_try);
+      __ pop(eax);                                       // result.value
+      __ PushTryHandler(StackHandler::CATCH, expr->index());
+      const int handler_size = StackHandlerConstants::kSize;
+      __ push(eax);                                      // result.value
+      __ push(Operand(esp, (0 + 1) * kPointerSize + handler_size));  // g
+      __ CallRuntime(Runtime::kSuspendJSGeneratorObject, 1);
+      __ mov(context_register(),
+             Operand(ebp, StandardFrameConstants::kContextOffset));
+      __ CompareRoot(eax, Heap::kTheHoleValueRootIndex);
+      __ j(not_equal, &l_resume);
+      EmitReturnIteratorResult(false);
+      __ bind(&l_resume);                                // received in eax
+      __ PopTryHandler();
+
+      // receiver = iter; f = iter.send; arg = received;
+      __ bind(&l_send);
+      __ mov(edx, Operand(esp, 1 * kPointerSize));       // iter
+      __ push(edx);                                      // iter
+      __ push(eax);                                      // received
+      __ mov(ecx, isolate()->factory()->send_string());  // "send"
+      Handle<Code> send_ic = isolate()->builtins()->LoadIC_Initialize();
+      CallIC(send_ic);                                   // iter.send in eax
+
+      // result = f.call(receiver, arg);
+      __ bind(&l_call);
+      Label l_call_runtime;
+      __ JumpIfSmi(eax, &l_call_runtime);
+      __ CmpObjectType(eax, JS_FUNCTION_TYPE, ebx);
+      __ j(not_equal, &l_call_runtime);
+      __ mov(edi, eax);
+      ParameterCount count(1);
+      __ InvokeFunction(edi, count, CALL_FUNCTION,
+                        NullCallWrapper(), CALL_AS_METHOD);
+      __ mov(esi, Operand(ebp, StandardFrameConstants::kContextOffset));
+      __ jmp(&l_loop);
+      __ bind(&l_call_runtime);
+      __ push(eax);
+      __ CallRuntime(Runtime::kCall, 3);
+
+      // val = result.value; if (!result.done) goto l_try;
+      __ bind(&l_loop);
+      // result.value
+      __ push(eax);                                      // save result
+      __ mov(edx, eax);                                  // result
+      __ mov(ecx, isolate()->factory()->value_string());  // "value"
+      Handle<Code> value_ic = isolate()->builtins()->LoadIC_Initialize();
+      CallIC(value_ic);                                  // result.value in eax
+      __ pop(ebx);                                       // result
+      __ push(eax);                                      // result.value
+      __ mov(edx, ebx);                                  // result
+      __ mov(ecx, isolate()->factory()->done_string());  // "done"
+      Handle<Code> done_ic = isolate()->builtins()->LoadIC_Initialize();
+      CallIC(done_ic);                                   // result.done in eax
+      Handle<Code> bool_ic = ToBooleanStub::GetUninitialized(isolate());
+      CallIC(bool_ic);
+      __ test(eax, eax);
+      __ j(zero, &l_try);
+
+      // result.value
+      __ pop(eax);                                       // result.value
+      context()->DropAndPlug(2, eax);                    // drop iter and g
+      break;
+    }
   }
 }
 
@@ -3283,19 +3371,57 @@ void FullCodeGenerator::EmitDateField(CallRuntime* expr) {
 }
 
 
+void FullCodeGenerator::EmitSeqStringSetCharCheck(Register string,
+                                                  Register index,
+                                                  Register value,
+                                                  uint32_t encoding_mask) {
+  __ test(index, Immediate(kSmiTagMask));
+  __ Check(zero, "Non-smi index");
+  __ test(value, Immediate(kSmiTagMask));
+  __ Check(zero, "Non-smi value");
+
+  __ cmp(index, FieldOperand(string, String::kLengthOffset));
+  __ Check(less, "Index is too large");
+
+  __ cmp(index, Immediate(Smi::FromInt(0)));
+  __ Check(greater_equal, "Index is negative");
+
+  __ push(value);
+  __ mov(value, FieldOperand(string, HeapObject::kMapOffset));
+  __ movzx_b(value, FieldOperand(value, Map::kInstanceTypeOffset));
+
+  __ and_(value, Immediate(kStringRepresentationMask | kStringEncodingMask));
+  __ cmp(value, Immediate(encoding_mask));
+  __ Check(equal, "Unexpected string type");
+  __ pop(value);
+}
+
+
 void FullCodeGenerator::EmitOneByteSeqStringSetChar(CallRuntime* expr) {
   ZoneList<Expression*>* args = expr->arguments();
   ASSERT_EQ(3, args->length());
 
+  Register string = eax;
+  Register index = ebx;
+  Register value = ecx;
+
   VisitForStackValue(args->at(1));  // index
   VisitForStackValue(args->at(2));  // value
-  __ pop(ecx);
-  __ pop(ebx);
+  __ pop(value);
+  __ pop(index);
   VisitForAccumulatorValue(args->at(0));  // string
 
-  static const String::Encoding encoding = String::ONE_BYTE_ENCODING;
-  SeqStringSetCharGenerator::Generate(masm_, encoding, eax, ebx, ecx);
-  context()->Plug(eax);
+
+  if (FLAG_debug_code) {
+    static const uint32_t one_byte_seq_type = kSeqStringTag | kOneByteStringTag;
+    EmitSeqStringSetCharCheck(string, index, value, one_byte_seq_type);
+  }
+
+  __ SmiUntag(value);
+  __ SmiUntag(index);
+  __ mov_b(FieldOperand(string, index, times_1, SeqOneByteString::kHeaderSize),
+           value);
+  context()->Plug(string);
 }
 
 
@@ -3303,15 +3429,26 @@ void FullCodeGenerator::EmitTwoByteSeqStringSetChar(CallRuntime* expr) {
   ZoneList<Expression*>* args = expr->arguments();
   ASSERT_EQ(3, args->length());
 
+  Register string = eax;
+  Register index = ebx;
+  Register value = ecx;
+
   VisitForStackValue(args->at(1));  // index
   VisitForStackValue(args->at(2));  // value
-  __ pop(ecx);
-  __ pop(ebx);
+  __ pop(value);
+  __ pop(index);
   VisitForAccumulatorValue(args->at(0));  // string
 
-  static const String::Encoding encoding = String::TWO_BYTE_ENCODING;
-  SeqStringSetCharGenerator::Generate(masm_, encoding, eax, ebx, ecx);
-  context()->Plug(eax);
+  if (FLAG_debug_code) {
+    static const uint32_t two_byte_seq_type = kSeqStringTag | kTwoByteStringTag;
+    EmitSeqStringSetCharCheck(string, index, value, two_byte_seq_type);
+  }
+
+  __ SmiUntag(value);
+  // No need to untag a smi for two-byte addressing.
+  __ mov_w(FieldOperand(string, index, times_1, SeqTwoByteString::kHeaderSize),
+           value);
+  context()->Plug(string);
 }
 
 

@@ -1076,7 +1076,7 @@ OS::MemoryMappedFile* OS::MemoryMappedFile::create(const char* name, int size,
   if (file_mapping == NULL) return NULL;
   // Map a view of the file into memory
   void* memory = MapViewOfFile(file_mapping, FILE_MAP_ALL_ACCESS, 0, 0, size);
-  if (memory) memmove(memory, initial, size);
+  if (memory) OS::MemMove(memory, initial, size);
   return new Win32MemoryMappedFile(file, file_mapping, memory, size);
 }
 

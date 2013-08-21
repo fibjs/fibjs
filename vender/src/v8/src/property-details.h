@@ -39,7 +39,7 @@ enum PropertyAttributes {
   DONT_ENUM         = v8::DontEnum,
   DONT_DELETE       = v8::DontDelete,
 
-  SEALED            = DONT_ENUM | DONT_DELETE,
+  SEALED            = DONT_DELETE,
   FROZEN            = SEALED | READ_ONLY,
 
   SYMBOLIC          = 8,  // Used to filter symbol names
@@ -83,6 +83,7 @@ class Representation {
     kSmi,
     kInteger32,
     kDouble,
+    kHeapObject,
     kTagged,
     kExternal,
     kNumRepresentations
@@ -95,6 +96,7 @@ class Representation {
   static Representation Smi() { return Representation(kSmi); }
   static Representation Integer32() { return Representation(kInteger32); }
   static Representation Double() { return Representation(kDouble); }
+  static Representation HeapObject() { return Representation(kHeapObject); }
   static Representation External() { return Representation(kExternal); }
 
   static Representation FromKind(Kind kind) { return Representation(kind); }
@@ -111,6 +113,7 @@ class Representation {
   bool is_more_general_than(const Representation& other) const {
     ASSERT(kind_ != kExternal);
     ASSERT(other.kind_ != kExternal);
+    if (IsHeapObject()) return other.IsDouble();
     return kind_ > other.kind_;
   }
 
@@ -119,19 +122,20 @@ class Representation {
   }
 
   Representation generalize(Representation other) {
-    if (is_more_general_than(other)) {
-      return *this;
-    } else {
-      return other;
-    }
+    if (other.fits_into(*this)) return *this;
+    if (other.is_more_general_than(*this)) return other;
+    return Representation::Tagged();
   }
 
   Kind kind() const { return static_cast<Kind>(kind_); }
   bool IsNone() const { return kind_ == kNone; }
   bool IsTagged() const { return kind_ == kTagged; }
   bool IsSmi() const { return kind_ == kSmi; }
+  bool IsSmiOrTagged() const { return IsSmi() || IsTagged(); }
   bool IsInteger32() const { return kind_ == kInteger32; }
+  bool IsSmiOrInteger32() const { return IsSmi() || IsInteger32(); }
   bool IsDouble() const { return kind_ == kDouble; }
+  bool IsHeapObject() const { return kind_ == kHeapObject; }
   bool IsExternal() const { return kind_ == kExternal; }
   bool IsSpecialization() const {
     return kind_ == kInteger32 || kind_ == kDouble;
@@ -165,10 +169,12 @@ class PropertyDetails BASE_EMBEDDED {
 
   PropertyDetails(PropertyAttributes attributes,
                   PropertyType type,
-                  Representation representation) {
+                  Representation representation,
+                  int field_index = 0) {
     value_ = TypeField::encode(type)
         | AttributesField::encode(attributes)
-        | RepresentationField::encode(EncodeRepresentation(representation));
+        | RepresentationField::encode(EncodeRepresentation(representation))
+        | FieldIndexField::encode(field_index);
   }
 
   int pointer() { return DescriptorPointer::decode(value_); }
@@ -177,6 +183,11 @@ class PropertyDetails BASE_EMBEDDED {
 
   PropertyDetails CopyWithRepresentation(Representation representation) {
     return PropertyDetails(value_, representation);
+  }
+  PropertyDetails CopyAddAttributes(PropertyAttributes new_attributes) {
+    new_attributes =
+        static_cast<PropertyAttributes>(attributes() | new_attributes);
+    return PropertyDetails(value_, new_attributes);
   }
 
   // Conversion for storing details as Object*.
@@ -205,6 +216,10 @@ class PropertyDetails BASE_EMBEDDED {
     return DecodeRepresentation(RepresentationField::decode(value_));
   }
 
+  int  field_index() {
+    return FieldIndexField::decode(value_);
+  }
+
   inline PropertyDetails AsDeleted();
 
   static bool IsValidIndex(int index) {
@@ -220,10 +235,15 @@ class PropertyDetails BASE_EMBEDDED {
   // constants can be embedded in generated code.
   class TypeField:                public BitField<PropertyType,       0,  3> {};
   class AttributesField:          public BitField<PropertyAttributes, 3,  3> {};
+
+  // Bit fields for normalized objects.
   class DeletedField:             public BitField<uint32_t,           6,  1> {};
   class DictionaryStorageField:   public BitField<uint32_t,           7, 24> {};
-  class DescriptorPointer:        public BitField<uint32_t,           7, 11> {};
-  class RepresentationField:      public BitField<uint32_t,          18,  3> {};
+
+  // Bit fields for fast objects.
+  class DescriptorPointer:        public BitField<uint32_t,           6, 11> {};
+  class RepresentationField:      public BitField<uint32_t,          17,  3> {};
+  class FieldIndexField:          public BitField<uint32_t,          20, 11> {};
 
   static const int kInitialIndex = 1;
 
@@ -234,6 +254,9 @@ class PropertyDetails BASE_EMBEDDED {
   PropertyDetails(int value, Representation representation) {
     value_ = RepresentationField::update(
         value, EncodeRepresentation(representation));
+  }
+  PropertyDetails(int value, PropertyAttributes attributes) {
+    value_ = AttributesField::update(value, attributes);
   }
 
   uint32_t value_;

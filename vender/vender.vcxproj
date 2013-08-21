@@ -311,6 +311,7 @@
     <ClCompile Include="src\v8\src\accessors.cc" />
     <ClCompile Include="src\v8\src\allocation.cc" />
     <ClCompile Include="src\v8\src\api.cc" />
+    <ClCompile Include="src\v8\src\arguments.cc" />
     <ClCompile Include="src\v8\src\arm\assembler-arm.cc" />
     <ClCompile Include="src\v8\src\arm\builtins-arm.cc" />
     <ClCompile Include="src\v8\src\arm\code-stubs-arm.cc" />
@@ -378,6 +379,7 @@
     <ClCompile Include="src\v8\src\heap-profiler.cc" />
     <ClCompile Include="src\v8\src\heap-snapshot-generator.cc" />
     <ClCompile Include="src\v8\src\heap.cc" />
+    <ClCompile Include="src\v8\src\hydrogen-gvn.cc" />
     <ClCompile Include="src\v8\src\hydrogen-instructions.cc" />
     <ClCompile Include="src\v8\src\hydrogen.cc" />
     <ClCompile Include="src\v8\src\ia32\assembler-ia32.cc" />
@@ -461,6 +463,7 @@
     <ClCompile Include="src\v8\src\token.cc" />
     <ClCompile Include="src\v8\src\transitions.cc" />
     <ClCompile Include="src\v8\src\type-info.cc" />
+    <ClCompile Include="src\v8\src\typing.cc" />
     <ClCompile Include="src\v8\src\unicode.cc" />
     <ClCompile Include="src\v8\src\utils.cc" />
     <ClCompile Include="src\v8\src\v8-counters.cc" />
@@ -856,6 +859,7 @@
     <ClInclude Include="src\v8\src\heap-snapshot-generator-inl.h" />
     <ClInclude Include="src\v8\src\heap-snapshot-generator.h" />
     <ClInclude Include="src\v8\src\heap.h" />
+    <ClInclude Include="src\v8\src\hydrogen-gvn.h" />
     <ClInclude Include="src\v8\src\hydrogen-instructions.h" />
     <ClInclude Include="src\v8\src\hydrogen.h" />
     <ClInclude Include="src\v8\src\ia32\assembler-ia32-inl.h" />
@@ -957,6 +961,7 @@
     <ClInclude Include="src\v8\src\transitions-inl.h" />
     <ClInclude Include="src\v8\src\transitions.h" />
     <ClInclude Include="src\v8\src\type-info.h" />
+    <ClInclude Include="src\v8\src\typing.h" />
     <ClInclude Include="src\v8\src\unbound-queue-inl.h" />
     <ClInclude Include="src\v8\src\unbound-queue.h" />
     <ClInclude Include="src\v8\src\unicode-inl.h" />
