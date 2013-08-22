@@ -73,7 +73,7 @@ public:
 			if (v8::Isolate::GetCurrent())
 			{
 				if (!handle_.IsEmpty())
-					handle_.MakeWeak(v8::Isolate::GetCurrent(), this, WeakCallback);
+					handle_.MakeWeak(v8::Isolate::GetCurrent(), (object_base*)this, WeakCallback);
 				else
 					delete this;
 			}
@@ -133,9 +133,9 @@ private:
 	v8::Persistent<v8::Object> handle_;
 
 private:
-	static void WeakCallback(v8::Isolate* isolate, v8::Persistent<v8::Value> value, void* data)
+	static void WeakCallback(v8::Isolate* isolate, v8::Persistent<v8::Object>* value, object_base* data)
 	{
-		(static_cast<object_base*>(data))->dispose();
+		data->dispose();
 	}
 
 public:
