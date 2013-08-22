@@ -121,7 +121,7 @@ BreakLocationIterator::~BreakLocationIterator() {
 
 
 void BreakLocationIterator::Next() {
-  AssertNoAllocation nogc;
+  DisallowHeapAllocation no_gc;
   ASSERT(!RinfoDone());
 
   // Iterate through reloc info for code and original code stopping at each
@@ -619,14 +619,14 @@ void ScriptCache::Add(Handle<Script> script) {
           (global_handles->Create(*script)));
   global_handles->MakeWeak(reinterpret_cast<Object**>(script_.location()),
                            this,
-                           NULL,
                            ScriptCache::HandleWeakScript);
   entry->value = script_.location();
 }
 
 
 Handle<FixedArray> ScriptCache::GetScripts() {
-  Handle<FixedArray> instances = FACTORY->NewFixedArray(occupancy());
+  Factory* factory = Isolate::Current()->factory();
+  Handle<FixedArray> instances = factory->NewFixedArray(occupancy());
   int count = 0;
   for (HashMap::Entry* entry = Start(); entry != NULL; entry = Next(entry)) {
     ASSERT(entry->value != NULL);
@@ -664,12 +664,12 @@ void ScriptCache::Clear() {
 
 
 void ScriptCache::HandleWeakScript(v8::Isolate* isolate,
-                                   v8::Persistent<v8::Value> obj,
+                                   v8::Persistent<v8::Value>* obj,
                                    void* data) {
   ScriptCache* script_cache = reinterpret_cast<ScriptCache*>(data);
   // Find the location of the global handle.
   Script** location =
-      reinterpret_cast<Script**>(Utils::OpenHandle(*obj).location());
+      reinterpret_cast<Script**>(Utils::OpenHandle(**obj).location());
   ASSERT((*location)->IsScript());
 
   // Remove the entry from the cache.
@@ -678,8 +678,7 @@ void ScriptCache::HandleWeakScript(v8::Isolate* isolate,
   script_cache->collected_scripts_.Add(id);
 
   // Clear the weak handle.
-  obj.Dispose(isolate);
-  obj.Clear();
+  obj->Dispose(isolate);
 }
 
 
@@ -699,7 +698,7 @@ void Debug::SetUp(bool create_heap_objects) {
 
 
 void Debug::HandleWeakDebugInfo(v8::Isolate* isolate,
-                                v8::Persistent<v8::Value> obj,
+                                v8::Persistent<v8::Value>* obj,
                                 void* data) {
   Debug* debug = reinterpret_cast<Isolate*>(isolate)->debug();
   DebugInfoListNode* node = reinterpret_cast<DebugInfoListNode*>(data);
@@ -727,7 +726,6 @@ DebugInfoListNode::DebugInfoListNode(DebugInfo* debug_info): next_(NULL) {
       (global_handles->Create(debug_info)));
   global_handles->MakeWeak(reinterpret_cast<Object**>(debug_info_.location()),
                            this,
-                           NULL,
                            Debug::HandleWeakDebugInfo);
 }
 
@@ -790,7 +788,7 @@ bool Debug::CompileDebuggerScript(int index) {
     MessageLocation computed_location;
     isolate->ComputeLocation(&computed_location);
     Handle<Object> message = MessageHandler::MakeMessageObject(
-        "error_loading_debugger", &computed_location,
+        isolate, "error_loading_debugger", &computed_location,
         Vector<Handle<Object> >::empty(), Handle<String>(), Handle<JSArray>());
     ASSERT(!isolate->has_pending_exception());
     if (!exception.is_null()) {
@@ -2025,7 +2023,7 @@ void Debug::PrepareForBreakPoints() {
 
       // Ensure no GC in this scope as we are going to use gc_metadata
       // field in the Code object to mark active functions.
-      AssertNoAllocation no_allocation;
+      DisallowHeapAllocation no_allocation;
 
       Object* active_code_marker = heap->the_hole_value();
 
@@ -2140,7 +2138,7 @@ Object* Debug::FindSharedFunctionInfoInScript(Handle<Script> script,
   while (!done) {
     { // Extra scope for iterator and no-allocation.
       heap->EnsureHeapIsIterable();
-      AssertNoAllocation no_alloc_during_heap_iteration;
+      DisallowHeapAllocation no_alloc_during_heap_iteration;
       HeapIterator iterator(heap);
       for (HeapObject* obj = iterator.next();
            obj != NULL; obj = iterator.next()) {
@@ -2229,6 +2227,8 @@ Object* Debug::FindSharedFunctionInfoInScript(Handle<Script> script,
 // Ensures the debug information is present for shared.
 bool Debug::EnsureDebugInfo(Handle<SharedFunctionInfo> shared,
                             Handle<JSFunction> function) {
+  Isolate* isolate = shared->GetIsolate();
+
   // Return if we already have the debug info for shared.
   if (HasDebugInfo(shared)) {
     ASSERT(shared->is_compiled());
@@ -2245,7 +2245,7 @@ bool Debug::EnsureDebugInfo(Handle<SharedFunctionInfo> shared,
   }
 
   // Create the debug info object.
-  Handle<DebugInfo> debug_info = FACTORY->NewDebugInfo(shared);
+  Handle<DebugInfo> debug_info = isolate->factory()->NewDebugInfo(shared);
 
   // Add debug info to the list.
   DebugInfoListNode* node = new DebugInfoListNode(*debug_info);
@@ -2476,7 +2476,7 @@ void Debug::CreateScriptCache() {
   // Scan heap for Script objects.
   int count = 0;
   HeapIterator iterator(heap);
-  AssertNoAllocation no_allocation;
+  DisallowHeapAllocation no_allocation;
 
   for (HeapObject* obj = iterator.next(); obj != NULL; obj = iterator.next()) {
     if (obj->IsScript() && Script::cast(obj)->HasValidSource()) {

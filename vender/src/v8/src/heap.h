@@ -31,6 +31,7 @@
 #include <cmath>
 
 #include "allocation.h"
+#include "assert-scope.h"
 #include "globals.h"
 #include "incremental-marking.h"
 #include "list.h"
@@ -58,6 +59,7 @@ namespace internal {
   V(Oddball, null_value, NullValue)                                            \
   V(Oddball, true_value, TrueValue)                                            \
   V(Oddball, false_value, FalseValue)                                          \
+  V(Oddball, uninitialized_value, UninitializedValue)                          \
   V(Map, global_property_cell_map, GlobalPropertyCellMap)                      \
   V(Map, shared_function_info_map, SharedFunctionInfoMap)                      \
   V(Map, meta_map, MetaMap)                                                    \
@@ -937,6 +939,10 @@ class Heap {
   // Please note this does not perform a garbage collection.
   MUST_USE_RESULT MaybeObject* AllocateJSGlobalPropertyCell(Object* value);
 
+  // Allocate Box.
+  MUST_USE_RESULT MaybeObject* AllocateBox(Object* value,
+                                           PretenureFlag pretenure);
+
   // Allocates a fixed array initialized with undefined values
   // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
   // failed.
@@ -1346,6 +1352,12 @@ class Heap {
   }
   Object* native_contexts_list() { return native_contexts_list_; }
 
+  void set_array_buffers_list(Object* object) {
+    array_buffers_list_ = object;
+  }
+  Object* array_buffers_list() { return array_buffers_list_; }
+
+
   // Number of mark-sweeps.
   unsigned int ms_count() { return ms_count_; }
 
@@ -1496,10 +1508,6 @@ class Heap {
   inline bool IsInGCPostProcessing() { return gc_post_processing_depth_ > 0; }
 
 #ifdef DEBUG
-  bool IsAllocationAllowed() { return allocation_allowed_; }
-  inline void set_allow_allocation(bool allocation_allowed);
-  inline bool allow_allocation(bool enable);
-
   bool disallow_allocation_failure() {
     return disallow_allocation_failure_;
   }
@@ -1979,8 +1987,6 @@ class Heap {
 #undef ROOT_ACCESSOR
 
 #ifdef DEBUG
-  bool allocation_allowed_;
-
   // If the --gc-interval flag is set to a positive value, this
   // variable holds the value indicating the number of allocations
   // remain until the next failure and garbage collection.
@@ -2021,6 +2027,8 @@ class Heap {
   bool old_gen_exhausted_;
 
   Object* native_contexts_list_;
+
+  Object* array_buffers_list_;
 
   StoreBufferRebuilder store_buffer_rebuilder_;
 
@@ -2165,6 +2173,9 @@ class Heap {
   // Code to be run before and after mark-compact.
   void MarkCompactPrologue();
 
+  void ProcessNativeContexts(WeakObjectRetainer* retainer, bool record_slots);
+  void ProcessArrayBuffers(WeakObjectRetainer* retainer, bool record_slots);
+
   // Record statistics before and after garbage collection.
   void ReportStatisticsBeforeGC();
   void ReportStatisticsAfterGC();
@@ -2266,6 +2277,7 @@ class Heap {
 
   void StartIdleRound() {
     mark_sweeps_since_idle_round_started_ = 0;
+    ms_count_at_last_idle_notification_ = ms_count_;
   }
 
   void FinishIdleRound() {
@@ -2342,6 +2354,7 @@ class Heap {
   bool last_idle_notification_gc_count_init_;
 
   int mark_sweeps_since_idle_round_started_;
+  int ms_count_at_last_idle_notification_;
   unsigned int gc_count_at_last_idle_gc_;
   int scavenges_since_last_idle_round_;
 
@@ -2697,43 +2710,6 @@ class DescriptorLookupCache {
 };
 
 
-// A helper class to document/test C++ scopes where we do not
-// expect a GC. Usage:
-//
-// /* Allocation not allowed: we cannot handle a GC in this scope. */
-// { AssertNoAllocation nogc;
-//   ...
-// }
-
-#ifdef DEBUG
-inline bool EnterAllocationScope(Isolate* isolate, bool allow_allocation);
-inline void ExitAllocationScope(Isolate* isolate, bool last_state);
-#endif
-
-
-class AssertNoAllocation {
- public:
-  inline AssertNoAllocation();
-  inline ~AssertNoAllocation();
-
-#ifdef DEBUG
- private:
-  bool last_state_;
-#endif
-};
-
-
-class DisableAssertNoAllocation {
- public:
-  inline DisableAssertNoAllocation();
-  inline ~DisableAssertNoAllocation();
-
-#ifdef DEBUG
- private:
-  bool last_state_;
-#endif
-};
-
 // GCTracer collects and prints ONE line after each garbage collector
 // invocation IFF --trace_gc is used.
 
@@ -2753,6 +2729,8 @@ class GCTracer BASE_EMBEDDED {
       MC_UPDATE_POINTERS_TO_EVACUATED,
       MC_UPDATE_POINTERS_BETWEEN_EVACUATED,
       MC_UPDATE_MISC_POINTERS,
+      MC_WEAKMAP_PROCESS,
+      MC_WEAKMAP_CLEAR,
       MC_FLUSH_CODE,
       kNumberOfScopes
     };
@@ -3048,7 +3026,7 @@ class PathTracer : public ObjectVisitor {
         what_to_find_(what_to_find),
         visit_mode_(visit_mode),
         object_stack_(20),
-        no_alloc() {}
+        no_allocation() {}
 
   virtual void VisitPointers(Object** start, Object** end);
 
@@ -3077,7 +3055,7 @@ class PathTracer : public ObjectVisitor {
   VisitMode visit_mode_;
   List<Object*> object_stack_;
 
-  AssertNoAllocation no_alloc;  // i.e. no gc allowed.
+  DisallowHeapAllocation no_allocation;  // i.e. no gc allowed.
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(PathTracer);

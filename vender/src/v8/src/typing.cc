@@ -27,7 +27,6 @@
 
 #include "typing.h"
 
-#include "v8.h"
 #include "parser.h"  // for CompileTimeValue; TODO(rossberg): should move
 #include "scopes.h"
 
@@ -222,6 +221,13 @@ void AstTyper::VisitForInStatement(ForInStatement* stmt) {
   CHECK_ALIVE(Visit(stmt->body()));
 
   stmt->RecordTypeFeedback(oracle());
+}
+
+
+void AstTyper::VisitForOfStatement(ForOfStatement* stmt) {
+  ASSERT(!HasStackOverflow());
+  CHECK_ALIVE(Visit(stmt->iterable()));
+  CHECK_ALIVE(Visit(stmt->body()));
 }
 
 

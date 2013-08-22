@@ -214,11 +214,6 @@ class WeakReferenceCallbacks {
                             P* parameter);
 };
 
-// TODO(svenpanne) Temporary definition until Chrome is in sync.
-typedef void (*NearDeathCallback)(Isolate* isolate,
-                                  Persistent<Value> object,
-                                  void* parameter);
-
 // --- Handles ---
 
 #define TYPE_CHECK(T, S)                                       \
@@ -228,7 +223,6 @@ typedef void (*NearDeathCallback)(Isolate* isolate,
 
 
 #define V8_USE_UNSAFE_HANDLES
-#define V8_USE_OLD_STYLE_PERSISTENT_HANDLE_VISITORS
 
 /**
  * An object reference managed by the v8 garbage collector.
@@ -676,11 +670,6 @@ template <class T> class Persistent // NOLINT
     MakeWeak<P>(parameters, callback);
   }
 
-  // TODO(dcarney): remove before cutover
-  V8_INLINE(void MakeWeak(Isolate* isolate,
-                          void* parameters,
-                          NearDeathCallback callback));
-
   V8_INLINE(void ClearWeak());
 
   // TODO(dcarney): deprecate
@@ -774,10 +763,7 @@ template <class T> class Persistent // NOLINT
 
 #ifndef V8_USE_UNSAFE_HANDLES
 
-#ifndef V8_ALLOW_ACCESS_TO_PERSISTENT_IMPLICIT
-
  private:
-#endif
   // TODO(dcarney): make unlinkable before cutover
   V8_INLINE(Persistent(const Persistent& that)) : val_(that.val_) {}
   // TODO(dcarney): make unlinkable before cutover
@@ -800,11 +786,8 @@ template <class T> class Persistent // NOLINT
   }
   // TODO(dcarney): remove before cutover
   V8_INLINE(T* operator*() const) { return val_; }
- public:
-#ifndef V8_ALLOW_ACCESS_TO_PERSISTENT_ARROW
 
  private:
-#endif
   // TODO(dcarney): remove before cutover
   V8_INLINE(T* operator->() const) { return val_; }
  public:
@@ -813,6 +796,7 @@ template <class T> class Persistent // NOLINT
  private:
   template<class F> friend class Handle;
   template<class F> friend class Local;
+  template<class F> friend class ReturnValue;
   friend class ImplementationUtilities;
   friend class ObjectTemplate;
   friend class Context;
@@ -1486,6 +1470,8 @@ class V8EXPORT Value : public Data {
   bool Equals(Handle<Value> that) const;
   bool StrictEquals(Handle<Value> that) const;
 
+  template <class T> V8_INLINE(static Value* Cast(T* value));
+
  private:
   V8_INLINE(bool QuickIsUndefined() const);
   V8_INLINE(bool QuickIsNull() const);
@@ -1541,9 +1527,17 @@ class V8EXPORT String : public Primitive {
   V8_DEPRECATED(V8_INLINE(bool MayContainNonAscii()) const) { return true; }
 
   /**
-   * Returns whether this string contains only one byte data.
+   * Returns whether this string is known to contain only one byte data.
+   * Does not read the string.
+   * False negatives are possible.
    */
   bool IsOneByte() const;
+
+  /**
+   * Returns whether this string contain only one byte data.
+   * Will read the entire string in some cases.
+   */
+  bool ContainsOnlyOneByte() const;
 
   /**
    * Write the contents of the string to an external buffer.
@@ -2828,7 +2822,10 @@ class V8EXPORT Template : public Data {
 template<typename T>
 class ReturnValue {
  public:
-  V8_INLINE(explicit ReturnValue(internal::Object** slot));
+  template <class S> V8_INLINE(ReturnValue(const ReturnValue<S>& that))
+      : value_(that.value_) {
+    TYPE_CHECK(T, S);
+  }
   // Handle setters
   template <typename S> V8_INLINE(void Set(const Persistent<S>& handle));
   template <typename S> V8_INLINE(void Set(const Handle<S> handle));
@@ -2842,7 +2839,12 @@ class ReturnValue {
   V8_INLINE(void SetUndefined());
   // Convenience getter for Isolate
   V8_INLINE(Isolate* GetIsolate());
+
  private:
+  template<class F> friend class ReturnValue;
+  template<class F> friend class FunctionCallbackInfo;
+  template<class F> friend class PropertyCallbackInfo;
+  V8_INLINE(explicit ReturnValue(internal::Object** slot));
   internal::Object** value_;
 };
 
@@ -4141,13 +4143,8 @@ class V8EXPORT ExternalResourceVisitor {  // NOLINT
 class V8EXPORT PersistentHandleVisitor {  // NOLINT
  public:
   virtual ~PersistentHandleVisitor() {}
-#ifdef V8_USE_OLD_STYLE_PERSISTENT_HANDLE_VISITORS
-  virtual void VisitPersistentHandle(Persistent<Value> value,
-                                     uint16_t class_id) {}
-#else
   virtual void VisitPersistentHandle(Persistent<Value>* value,
                                      uint16_t class_id) {}
-#endif
 };
 
 
@@ -4158,13 +4155,13 @@ class V8EXPORT PersistentHandleVisitor {  // NOLINT
  */
 class V8EXPORT AssertNoGCScope {
 #ifndef DEBUG
-  V8_INLINE(AssertNoGCScope(Isolate* isolate)) {}
+  // TODO(yangguo): remove isolate argument.
+  V8_INLINE(AssertNoGCScope(Isolate* isolate)) { }
 #else
   AssertNoGCScope(Isolate* isolate);
   ~AssertNoGCScope();
  private:
-  Isolate* isolate_;
-  bool last_state_;
+  void* disallow_heap_allocation_;
 #endif
 };
 
@@ -4606,8 +4603,7 @@ class V8EXPORT V8 {
   typedef WeakReferenceCallbacks<Value, void>::Revivable RevivableCallback;
   static void MakeWeak(internal::Object** global_handle,
                        void* data,
-                       RevivableCallback weak_reference_callback,
-                       NearDeathCallback near_death_callback);
+                       RevivableCallback weak_reference_callback);
   static void ClearWeak(internal::Object** global_handle);
 
   template <class T> friend class Handle;
@@ -5290,7 +5286,7 @@ class Internals {
   static const int kNullValueRootIndex = 7;
   static const int kTrueValueRootIndex = 8;
   static const int kFalseValueRootIndex = 9;
-  static const int kEmptyStringRootIndex = 129;
+  static const int kEmptyStringRootIndex = 130;
 
   static const int kNodeClassIdOffset = 1 * kApiPointerSize;
   static const int kNodeFlagsOffset = 1 * kApiPointerSize + 3;
@@ -5300,10 +5296,10 @@ class Internals {
   static const int kNodeIsIndependentShift = 4;
   static const int kNodeIsPartiallyDependentShift = 5;
 
-  static const int kJSObjectType = 0xae;
+  static const int kJSObjectType = 0xaf;
   static const int kFirstNonstringType = 0x80;
   static const int kOddballType = 0x83;
-  static const int kForeignType = 0x86;
+  static const int kForeignType = 0x87;
 
   static const int kUndefinedOddballKind = 5;
   static const int kNullOddballKind = 3;
@@ -5541,8 +5537,7 @@ void Persistent<T>::MakeWeak(
   typedef typename WeakReferenceCallbacks<Value, void>::Revivable Revivable;
   V8::MakeWeak(reinterpret_cast<internal::Object**>(this->val_),
                parameters,
-               reinterpret_cast<Revivable>(callback),
-               NULL);
+               reinterpret_cast<Revivable>(callback));
 }
 
 
@@ -5552,17 +5547,6 @@ void Persistent<T>::MakeWeak(
     P* parameters,
     typename WeakReferenceCallbacks<T, P>::Revivable callback) {
   MakeWeak<T, P>(parameters, callback);
-}
-
-
-template <class T>
-void Persistent<T>::MakeWeak(Isolate* isolate,
-                             void* parameters,
-                             NearDeathCallback callback) {
-  V8::MakeWeak(reinterpret_cast<internal::Object**>(this->val_),
-               parameters,
-               NULL,
-               callback);
 }
 
 
@@ -5701,8 +5685,10 @@ void ReturnValue<T>::Set(int32_t i) {
 template<typename T>
 void ReturnValue<T>::Set(uint32_t i) {
   typedef internal::Internals I;
-  if (V8_LIKELY(I::IsValidSmi(i))) {
-    *value_ = I::IntToSmi(i);
+  // Can't simply use INT32_MAX here for whatever reason.
+  bool fits_into_int32_t = (i & (1 << 31)) == 0;
+  if (V8_LIKELY(fits_into_int32_t)) {
+    Set(static_cast<int32_t>(i));
     return;
   }
   Set(Integer::NewFromUnsigned(i, GetIsolate()));
@@ -6014,6 +6000,11 @@ bool Value::QuickIsString() const {
 }
 
 
+template <class T> Value* Value::Cast(T* value) {
+  return static_cast<Value*>(value);
+}
+
+
 Symbol* Symbol::Cast(v8::Value* value) {
 #ifdef V8_ENABLE_CHECKS
   CheckCast(value);
@@ -6179,6 +6170,14 @@ Float64Array* Float64Array::Cast(v8::Value* value) {
   CheckCast(value);
 #endif
   return static_cast<Float64Array*>(value);
+}
+
+
+Uint8ClampedArray* Uint8ClampedArray::Cast(v8::Value* value) {
+#ifdef V8_ENABLE_CHECKS
+  CheckCast(value);
+#endif
+  return static_cast<Uint8ClampedArray*>(value);
 }
 
 

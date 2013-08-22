@@ -407,7 +407,14 @@ void LStoreKeyed::PrintDataTo(StringStream* stream) {
   } else {
     stream->Add("] <- ");
   }
-  value()->PrintTo(stream);
+
+  if (value() == NULL) {
+    ASSERT(hydrogen()->IsConstantHoleStore() &&
+           hydrogen()->value()->representation().IsDouble());
+    stream->Add("<the hole(nan)>");
+  } else {
+    value()->PrintTo(stream);
+  }
 }
 
 
@@ -697,6 +704,12 @@ LInstruction* LChunkBuilder::DoBlockEntry(HBlockEntry* instr) {
 
 LInstruction* LChunkBuilder::DoDummyUse(HDummyUse* instr) {
   return DefineAsRegister(new(zone()) LDummyUse(UseAny(instr->value())));
+}
+
+
+LInstruction* LChunkBuilder::DoEnvironmentMarker(HEnvironmentMarker* instr) {
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -2343,10 +2356,11 @@ LInstruction* LChunkBuilder::DoStoreNamedField(HStoreNamedField* instr) {
   LOperand* temp = needs_write_barrier_for_map ? TempRegister() : NULL;
 
   LStoreNamedField* result = new(zone()) LStoreNamedField(obj, val, temp);
-  if ((FLAG_track_fields && instr->field_representation().IsSmi()) ||
-      (FLAG_track_heap_object_fields &&
-       instr->field_representation().IsHeapObject())) {
-    return AssignEnvironment(result);
+  if (FLAG_track_heap_object_fields &&
+      instr->field_representation().IsHeapObject()) {
+    if (!instr->value()->type().IsHeapObject()) {
+      return AssignEnvironment(result);
+    }
   }
   return result;
 }
@@ -2387,14 +2401,6 @@ LInstruction* LChunkBuilder::DoStringCharFromCode(HStringCharFromCode* instr) {
 LInstruction* LChunkBuilder::DoStringLength(HStringLength* instr) {
   LOperand* string = UseRegisterAtStart(instr->value());
   return DefineAsRegister(new(zone()) LStringLength(string));
-}
-
-
-LInstruction* LChunkBuilder::DoAllocateObject(HAllocateObject* instr) {
-  info()->MarkAsDeferredCalling();
-  LAllocateObject* result =
-      new(zone()) LAllocateObject(TempRegister(), TempRegister());
-  return AssignPointerMap(DefineAsRegister(result));
 }
 
 

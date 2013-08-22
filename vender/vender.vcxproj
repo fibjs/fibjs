@@ -379,6 +379,7 @@
     <ClCompile Include="src\v8\src\heap-profiler.cc" />
     <ClCompile Include="src\v8\src\heap-snapshot-generator.cc" />
     <ClCompile Include="src\v8\src\heap.cc" />
+    <ClCompile Include="src\v8\src\hydrogen-environment-liveness.cc" />
     <ClCompile Include="src\v8\src\hydrogen-gvn.cc" />
     <ClCompile Include="src\v8\src\hydrogen-instructions.cc" />
     <ClCompile Include="src\v8\src\hydrogen.cc" />
@@ -402,7 +403,6 @@
     <ClCompile Include="src\v8\src\ia32\stub-cache-ia32.cc" />
     <ClCompile Include="src\v8\src\ic.cc" />
     <ClCompile Include="src\v8\src\incremental-marking.cc" />
-    <ClCompile Include="src\v8\src\inspector.cc" />
     <ClCompile Include="src\v8\src\interface.cc" />
     <ClCompile Include="src\v8\src\interpreter-irregexp.cc" />
     <ClCompile Include="src\v8\src\isolate.cc" />
@@ -411,7 +411,6 @@
     <ClCompile Include="src\v8\src\lithium-allocator.cc" />
     <ClCompile Include="src\v8\src\lithium.cc" />
     <ClCompile Include="src\v8\src\liveedit.cc" />
-    <ClCompile Include="src\v8\src\liveobjectlist.cc" />
     <ClCompile Include="src\v8\src\log-utils.cc" />
     <ClCompile Include="src\v8\src\log.cc" />
     <ClCompile Include="src\v8\src\mark-compact.cc" />
@@ -463,6 +462,7 @@
     <ClCompile Include="src\v8\src\token.cc" />
     <ClCompile Include="src\v8\src\transitions.cc" />
     <ClCompile Include="src\v8\src\type-info.cc" />
+    <ClCompile Include="src\v8\src\types.cc" />
     <ClCompile Include="src\v8\src\typing.cc" />
     <ClCompile Include="src\v8\src\unicode.cc" />
     <ClCompile Include="src\v8\src\utils.cc" />
@@ -790,6 +790,7 @@
     <ClInclude Include="src\v8\src\arm\regexp-macro-assembler-arm.h" />
     <ClInclude Include="src\v8\src\arm\simulator-arm.h" />
     <ClInclude Include="src\v8\src\assembler.h" />
+    <ClInclude Include="src\v8\src\assert-scope.h" />
     <ClInclude Include="src\v8\src\ast.h" />
     <ClInclude Include="src\v8\src\atomicops.h" />
     <ClInclude Include="src\v8\src\atomicops_internals_arm_gcc.h" />
@@ -799,7 +800,6 @@
     <ClInclude Include="src\v8\src\bignum-dtoa.h" />
     <ClInclude Include="src\v8\src\bignum.h" />
     <ClInclude Include="src\v8\src\bootstrapper.h" />
-    <ClInclude Include="src\v8\src\builtins-decls.h" />
     <ClInclude Include="src\v8\src\builtins.h" />
     <ClInclude Include="src\v8\src\bytecodes-irregexp.h" />
     <ClInclude Include="src\v8\src\cached-powers.h" />
@@ -859,6 +859,7 @@
     <ClInclude Include="src\v8\src\heap-snapshot-generator-inl.h" />
     <ClInclude Include="src\v8\src\heap-snapshot-generator.h" />
     <ClInclude Include="src\v8\src\heap.h" />
+    <ClInclude Include="src\v8\src\hydrogen-environment-liveness.h" />
     <ClInclude Include="src\v8\src\hydrogen-gvn.h" />
     <ClInclude Include="src\v8\src\hydrogen-instructions.h" />
     <ClInclude Include="src\v8\src\hydrogen.h" />
@@ -877,7 +878,6 @@
     <ClInclude Include="src\v8\src\ic.h" />
     <ClInclude Include="src\v8\src\incremental-marking-inl.h" />
     <ClInclude Include="src\v8\src\incremental-marking.h" />
-    <ClInclude Include="src\v8\src\inspector.h" />
     <ClInclude Include="src\v8\src\interface.h" />
     <ClInclude Include="src\v8\src\interpreter-irregexp.h" />
     <ClInclude Include="src\v8\src\isolate-inl.h" />
@@ -893,8 +893,6 @@
     <ClInclude Include="src\v8\src\lithium-allocator.h" />
     <ClInclude Include="src\v8\src\lithium.h" />
     <ClInclude Include="src\v8\src\liveedit.h" />
-    <ClInclude Include="src\v8\src\liveobjectlist-inl.h" />
-    <ClInclude Include="src\v8\src\liveobjectlist.h" />
     <ClInclude Include="src\v8\src\log-inl.h" />
     <ClInclude Include="src\v8\src\log-utils.h" />
     <ClInclude Include="src\v8\src\log.h" />
@@ -942,7 +940,6 @@
     <ClInclude Include="src\v8\src\serialize.h" />
     <ClInclude Include="src\v8\src\simulator.h" />
     <ClInclude Include="src\v8\src\small-pointer-list.h" />
-    <ClInclude Include="src\v8\src\smart-array-pointer.h" />
     <ClInclude Include="src\v8\src\smart-pointers.h" />
     <ClInclude Include="src\v8\src\snapshot.h" />
     <ClInclude Include="src\v8\src\spaces-inl.h" />
@@ -961,6 +958,7 @@
     <ClInclude Include="src\v8\src\transitions-inl.h" />
     <ClInclude Include="src\v8\src\transitions.h" />
     <ClInclude Include="src\v8\src\type-info.h" />
+    <ClInclude Include="src\v8\src\types.h" />
     <ClInclude Include="src\v8\src\typing.h" />
     <ClInclude Include="src\v8\src\unbound-queue-inl.h" />
     <ClInclude Include="src\v8\src\unbound-queue.h" />
