@@ -215,7 +215,58 @@ result_t BufferedStream::onerror(v8::Handle<v8::Function> func)
 result_t BufferedStream::readText(int32_t size, std::string& retVal,
 		exlib::AsyncEvent* ac)
 {
-	return 0;
+	class asyncRead: public asyncBuffer
+	{
+	public:
+		asyncRead(BufferedStream* pThis, int32_t size,
+				std::string& retVal, exlib::AsyncEvent* ac) :
+				asyncBuffer(pThis, ac), m_size(size), m_retVal(retVal)
+		{
+		}
+
+		static result_t process(BufferedStream* pThis, int32_t size,
+				std::string& retVal, bool streamEnd)
+		{
+			int n = size - (int) pThis->m_strbuf.size();
+			int n1 = (int) pThis->m_buf.length() - pThis->m_pos;
+
+			if (n > n1)
+				n = n1;
+
+			if (n > 0)
+				pThis->append(n);
+
+			if (streamEnd || size == (int) pThis->m_strbuf.size())
+			{
+				retVal = pThis->m_strbuf.str();
+
+				if (retVal.length() == 0)
+					return CALL_RETURN_NULL;
+
+				return 0;
+			}
+
+			return CALL_E_PENDDING;
+		}
+
+		virtual result_t process(bool streamEnd)
+		{
+			return process(m_pThis, m_size, m_retVal, streamEnd);
+		}
+
+	public:
+		int32_t m_size;
+		std::string& m_retVal;
+	};
+
+	result_t hr = asyncRead::process(this, size, retVal, false);
+	if (hr != CALL_E_PENDDING)
+		return hr;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	return (new asyncRead(this, size, retVal, ac))->post(0);
 }
 
 result_t BufferedStream::readLine(int32_t maxlen, std::string& retVal,

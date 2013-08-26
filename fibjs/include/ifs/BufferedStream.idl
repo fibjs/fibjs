@@ -14,7 +14,7 @@ class BufferedStream : Stream
 	BufferedStream(Stream stm);
 
 	/*! @brief 读取指定字符的文本
-	 * @param size 指定读取的文本字符个数
+	 * @param size 指定读取的文本字符个数，以 utf8 编码字节数为准
 	 * @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
 	 */
 	String readText(Integer size) async;
