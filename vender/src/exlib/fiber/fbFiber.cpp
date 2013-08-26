@@ -136,7 +136,7 @@ public:
 			if (p == NULL)
 				break;
 
-			tm = s_time + p->m_tm * 1000;
+			tm = s_time + p->m_tm * 1000L;
 			s_tms.insert(std::make_pair(tm, p));
 		}
 
