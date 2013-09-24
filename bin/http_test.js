@@ -205,9 +205,10 @@ var c = get_form('GET /test HTTP/1.0\r\nContent-type:multipart/form-data;boundar
 assert.equal(c['a'], '100');
 assert.equal(c['b'], '200');
 
-var c = get_form('GET /test HTTP/1.0\r\nContent-type:multipart/form-data;boundary=7d33a816d302b6\r\nContent-length:166\r\n\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="a"\r\n\r\n100\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="b";filename="test"\r\n\r\n200\r\n--7d33a816d302b6\r\n');
+var c = get_form('GET /test HTTP/1.0\r\nContent-type:multipart/form-data;boundary=7d33a816d302b6\r\nContent-length:201\r\n\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="a"\r\n\r\n100\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="b";filename="test"\r\nContent-Transfer-Encoding: base64\r\n\r\n200\r\n--7d33a816d302b6\r\n');
 assert.equal(c['a'], '100');
 assert.equal(c['b'].fileName, 'test');
+assert.equal(c['b'].contentTransferEncoding, 'base64');
 assert.equal(c['b'].body.read().toString(), '200');
 
 var ms = new io.MemoryStream();
