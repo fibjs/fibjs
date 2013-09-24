@@ -82,7 +82,7 @@ protected:
 				v8::Handle<v8::Value> v;
 
 				if (hr != CALL_RETURN_NULL)
-					v = ReturnValue(pv);
+					v = GetReturnValue(pv);
 				else
 					v = v8::Null();
 

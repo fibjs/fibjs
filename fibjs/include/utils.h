@@ -171,7 +171,7 @@ typedef int result_t;
 #define METHOD_RETURN() \
     }while(0); \
     if(hr == CALL_RETURN_NULL)return v8::Null(); \
-    if(hr >= 0)return ReturnValue(vr); \
+    if(hr >= 0)return GetReturnValue(vr); \
     if(hr == CALL_E_JAVASCRIPT)return v8::Handle<v8::Value>(); \
     return ThrowResult(hr);
 
@@ -394,63 +394,63 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v,
 	return 0;
 }
 
-inline v8::Handle<v8::Value> ReturnValue(int32_t v)
+inline v8::Handle<v8::Value> GetReturnValue(int32_t v)
 {
 	return v8::Int32::New(v);
 }
 
-inline v8::Handle<v8::Value> ReturnValue(bool v)
+inline v8::Handle<v8::Value> GetReturnValue(bool v)
 {
 	return v ? v8::True() : v8::False();
 }
 
-inline v8::Handle<v8::Value> ReturnValue(double v)
+inline v8::Handle<v8::Value> GetReturnValue(double v)
 {
 	return v8::Number::New(v);
 }
 
-inline v8::Handle<v8::Value> ReturnValue(int64_t v)
+inline v8::Handle<v8::Value> GetReturnValue(int64_t v)
 {
 	return v8::Number::New((double) v);
 }
 
-inline v8::Handle<v8::Value> ReturnValue(std::string& str)
+inline v8::Handle<v8::Value> GetReturnValue(std::string& str)
 {
 	return v8::String::New(str.c_str(), (int) str.length());
 }
 
-inline v8::Handle<v8::Value> ReturnValue(date_t& v)
+inline v8::Handle<v8::Value> GetReturnValue(date_t& v)
 {
 	return v;
 }
 
-inline v8::Handle<v8::Value> ReturnValue(Variant& v)
+inline v8::Handle<v8::Value> GetReturnValue(Variant& v)
 {
 	return v;
 }
 
-inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Object>& obj)
+inline v8::Handle<v8::Value> GetReturnValue(v8::Handle<v8::Object>& obj)
 {
 	return obj;
 }
 
-inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Array>& array)
+inline v8::Handle<v8::Value> GetReturnValue(v8::Handle<v8::Array>& array)
 {
 	return array;
 }
 
-inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Value>& value)
+inline v8::Handle<v8::Value> GetReturnValue(v8::Handle<v8::Value>& value)
 {
 	return value;
 }
 
-inline v8::Handle<v8::Value> ReturnValue(v8::Handle<v8::Function>& func)
+inline v8::Handle<v8::Value> GetReturnValue(v8::Handle<v8::Function>& func)
 {
 	return func;
 }
 
 template<class T>
-inline v8::Handle<v8::Value> ReturnValue(obj_ptr<T>& obj)
+inline v8::Handle<v8::Value> GetReturnValue(obj_ptr<T>& obj)
 {
 	v8::Handle<v8::Value> retVal;
 	obj->ValueOf(retVal);
