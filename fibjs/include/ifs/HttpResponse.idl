@@ -9,7 +9,7 @@ class HttpResponse : HttpMessage
 	Integer status;
 
 	/*! @brief 发送重定向到客户端
-	 * @param 重定向的地址
+	 * @param url 重定向的地址
 	 */
 	redirect(String url);
 };
