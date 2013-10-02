@@ -178,54 +178,58 @@ result_t Image::load(Buffer_base* data)
 		{
 			ExifData* ed = exif_data_new_from_data(
 					(const unsigned char *) strBuf.c_str(), strBuf.length());
-			if(ed)
+			if (ed)
 			{
+				int dir = 1;
+				int sx, sy;
+				gdImagePtr newImage;
+
 				ExifEntry* entry = exif_content_get_entry(ed->ifd[EXIF_IFD_0],
 						EXIF_TAG_ORIENTATION);
+
 				if (entry)
+					dir = exif_get_short(entry->data,
+							exif_data_get_byte_order(ed));
+
+				exif_data_unref(ed);
+
+				switch (dir)
 				{
-					int sx, sy;
-					gdImagePtr newImage;
+				case 2:
+					gdImageFlipHorizontal(m_image);
+					break;
+				case 3:
+					gdImageFlipBoth(m_image);
+					break;
+				case 4:
+					gdImageFlipVertical(m_image);
+					break;
+				case 5:
+					gdImageFlipVertical(m_image);
+				case 6:
+					sx = gdImageSX(m_image);
+					sy = gdImageSY(m_image);
 
-					switch (exif_get_short(entry->data,
-							exif_data_get_byte_order(ed)))
-					{
-					case 2:
-						gdImageFlipHorizontal(m_image);
-						break;
-					case 3:
-						gdImageFlipBoth(m_image);
-						break;
-					case 4:
-						gdImageFlipVertical(m_image);
-						break;
-					case 5:
-						gdImageFlipVertical(m_image);
-					case 6:
-						sx = gdImageSX(m_image);
-						sy = gdImageSY(m_image);
+					newImage = gdImageCreateTrueColor(sy, sx);
+					gdImageCopyRotated(newImage, m_image, (double) sy / 2,
+							(double) sx / 2, 0, 0, sx, sy, 270);
 
-						newImage = gdImageCreateTrueColor(sy, sx);
-						gdImageCopyRotated(newImage, m_image, (double) sy / 2,
-								(double) sx / 2, 0, 0, sx, sy, 270);
+					gdImageDestroy(m_image);
+					m_image = newImage;
+					break;
+				case 7:
+					gdImageFlipVertical(m_image);
+				case 8:
+					sx = gdImageSX(m_image);
+					sy = gdImageSY(m_image);
 
-						gdImageDestroy(m_image);
-						m_image = newImage;
-						break;
-					case 7:
-						gdImageFlipVertical(m_image);
-					case 8:
-						sx = gdImageSX(m_image);
-						sy = gdImageSY(m_image);
+					newImage = gdImageCreateTrueColor(sy, sx);
+					gdImageCopyRotated(newImage, m_image, (double) sy / 2,
+							(double) sx / 2, 0, 0, sx, sy, 90);
 
-						newImage = gdImageCreateTrueColor(sy, sx);
-						gdImageCopyRotated(newImage, m_image, (double) sy / 2,
-								(double) sx / 2, 0, 0, sx, sy, 90);
-
-						gdImageDestroy(m_image);
-						m_image = newImage;
-						break;
-					}
+					gdImageDestroy(m_image);
+					m_image = newImage;
+					break;
 				}
 			}
 
