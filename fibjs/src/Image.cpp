@@ -7,6 +7,7 @@
 
 #include "Image.h"
 #include "Buffer.h"
+#include <libexif/exif-data.h>
 #include <vector>
 
 namespace fibjs
@@ -173,6 +174,63 @@ result_t Image::load(Buffer_base* data)
 	case gd_base::_JPEG:
 		m_image = gdImageCreateFromJpegPtr((int) strBuf.length(),
 				(void*) strBuf.c_str());
+		if (m_image != NULL)
+		{
+			ExifData* ed = exif_data_new_from_data(
+					(const unsigned char *) strBuf.c_str(), strBuf.length());
+			if(ed)
+			{
+				ExifEntry* entry = exif_content_get_entry(ed->ifd[EXIF_IFD_0],
+						EXIF_TAG_ORIENTATION);
+				if (entry)
+				{
+					int sx, sy;
+					gdImagePtr newImage;
+
+					switch (exif_get_short(entry->data,
+							exif_data_get_byte_order(ed)))
+					{
+					case 2:
+						gdImageFlipHorizontal(m_image);
+						break;
+					case 3:
+						gdImageFlipBoth(m_image);
+						break;
+					case 4:
+						gdImageFlipVertical(m_image);
+						break;
+					case 5:
+						gdImageFlipVertical(m_image);
+					case 6:
+						sx = gdImageSX(m_image);
+						sy = gdImageSY(m_image);
+
+						newImage = gdImageCreateTrueColor(sy, sx);
+						gdImageCopyRotated(newImage, m_image, (double) sy / 2,
+								(double) sx / 2, 0, 0, sx, sy, 270);
+
+						gdImageDestroy(m_image);
+						m_image = newImage;
+						break;
+					case 7:
+						gdImageFlipVertical(m_image);
+					case 8:
+						sx = gdImageSX(m_image);
+						sy = gdImageSY(m_image);
+
+						newImage = gdImageCreateTrueColor(sy, sx);
+						gdImageCopyRotated(newImage, m_image, (double) sy / 2,
+								(double) sx / 2, 0, 0, sx, sy, 90);
+
+						gdImageDestroy(m_image);
+						m_image = newImage;
+						break;
+					}
+				}
+			}
+
+		}
+
 		break;
 	case gd_base::_TIFF:
 		m_image = gdImageCreateFromTiffPtr((int) strBuf.length(),
