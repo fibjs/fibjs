@@ -145,6 +145,11 @@ s2.bind(8082);
 s2.listen();
 accept2.start(s2);
 
+new net.TCPServer(8811, function(c) {});
+assert.throws(function(){
+	new net.TCPServer(8811, function(c) {});
+});
+
 var c1 = new net.Socket();
 c1.connect('127.0.0.1', 8082);
 assert.equal('a', c1.recv(100));
