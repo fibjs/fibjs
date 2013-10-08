@@ -283,7 +283,9 @@ result_t Socket::bind(const char* addr, int32_t port, bool allowIPv4)
 		return CALL_E_INVALIDARG;
 
 	int on = 1;
+#ifndef _WIN32
 	setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (const char*) &on, sizeof(on));
+#endif
 
 	if (m_family == net_base::_AF_INET6)
 	{
