@@ -177,7 +177,7 @@ result_t Image::load(Buffer_base* data)
 		if (m_image != NULL)
 		{
 			ExifData* ed = exif_data_new_from_data(
-					(const unsigned char *) strBuf.c_str(), strBuf.length());
+					(const unsigned char *) strBuf.c_str(), (unsigned int)strBuf.length());
 			if (ed)
 			{
 				int dir = 1;
@@ -1023,7 +1023,7 @@ result_t Image::copyResampled(Image_base* source, int32_t dstX, int32_t dstY,
 	return 0;
 }
 
-result_t Image::copyRotated(Image_base* source, int32_t dstX, int32_t dstY,
+result_t Image::copyRotated(Image_base* source, double dstX, double dstY,
 		int32_t srcX, int32_t srcY, int32_t width, int32_t height,
 		int32_t angle, exlib::AsyncEvent* ac)
 {

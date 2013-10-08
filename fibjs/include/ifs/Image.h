@@ -73,7 +73,7 @@ public:
 	virtual result_t copyMergeGray(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent, exlib::AsyncEvent* ac) = 0;
 	virtual result_t copyResized(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, exlib::AsyncEvent* ac) = 0;
 	virtual result_t copyResampled(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, exlib::AsyncEvent* ac) = 0;
-	virtual result_t copyRotated(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t angle, exlib::AsyncEvent* ac) = 0;
+	virtual result_t copyRotated(Image_base* source, double dstX, double dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t angle, exlib::AsyncEvent* ac) = 0;
 
 	DECLARE_CLASSINFO(Image_base);
 
@@ -156,7 +156,7 @@ public:
 	ASYNC_CALLBACK9(Image_base, copyResized);
 	ASYNC_MEMBER9(Image_base, copyResampled, Image_base*, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
 	ASYNC_CALLBACK9(Image_base, copyResampled);
-	ASYNC_MEMBER8(Image_base, copyRotated, Image_base*, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
+	ASYNC_MEMBER8(Image_base, copyRotated, Image_base*, double, double, int32_t, int32_t, int32_t, int32_t, int32_t);
 	ASYNC_CALLBACK8(Image_base, copyRotated);
 };
 
@@ -971,8 +971,8 @@ namespace fibjs
 		METHOD_ENTER(8, 8);
 
 		ARG(obj_ptr<Image_base>, 0);
-		ARG(int32_t, 1);
-		ARG(int32_t, 2);
+		ARG(double, 1);
+		ARG(double, 2);
 		ARG(int32_t, 3);
 		ARG(int32_t, 4);
 		ARG(int32_t, 5);

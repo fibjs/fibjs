@@ -367,5 +367,5 @@ class Image : object
 	 * @param height 指定复制的高度
 	 * @param angle 指定旋转的角度
 	 */
-	copyRotated(Image source, Integer dstX, Integer dstY, Integer srcX, Integer srcY, Integer width, Integer height, Integer angle) async;
+	copyRotated(Image source, Number dstX, Number dstY, Integer srcX, Integer srcY, Integer width, Integer height, Integer angle) async;
 };
