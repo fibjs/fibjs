@@ -67,6 +67,7 @@ public:
 	virtual result_t resample(int32_t width, int32_t height, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t crop(int32_t x, int32_t y, int32_t width, int32_t height, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t flip(int32_t dir, exlib::AsyncEvent* ac) = 0;
+	virtual result_t rotate(int32_t dir, exlib::AsyncEvent* ac) = 0;
 	virtual result_t convert(int32_t color, exlib::AsyncEvent* ac) = 0;
 	virtual result_t copy(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, exlib::AsyncEvent* ac) = 0;
 	virtual result_t copyMerge(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent, exlib::AsyncEvent* ac) = 0;
@@ -121,6 +122,7 @@ public:
 	static v8::Handle<v8::Value> s_resample(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_crop(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_flip(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_rotate(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_convert(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_copy(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_copyMerge(const v8::Arguments& args);
@@ -144,6 +146,8 @@ public:
 	ASYNC_VALUEBACK4(Image_base, crop, obj_ptr<Image_base>);
 	ASYNC_MEMBER1(Image_base, flip, int32_t);
 	ASYNC_CALLBACK1(Image_base, flip);
+	ASYNC_MEMBER1(Image_base, rotate, int32_t);
+	ASYNC_CALLBACK1(Image_base, rotate);
 	ASYNC_MEMBER1(Image_base, convert, int32_t);
 	ASYNC_CALLBACK1(Image_base, convert);
 	ASYNC_MEMBER7(Image_base, copy, Image_base*, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
@@ -206,6 +210,7 @@ namespace fibjs
 			{"resample", s_resample},
 			{"crop", s_crop},
 			{"flip", s_flip},
+			{"rotate", s_rotate},
 			{"convert", s_convert},
 			{"copy", s_copy},
 			{"copyMerge", s_copyMerge},
@@ -229,7 +234,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Image", NULL, 
-			41, s_method, 0, NULL, 7, s_property, NULL, NULL,
+			42, s_method, 0, NULL, 7, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -853,6 +858,18 @@ namespace fibjs
 		OPT_ARG(int32_t, 0, gd_base::_HORIZONTAL);
 
 		hr = pInst->ac_flip(v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Image_base::s_rotate(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(int32_t, 0);
+
+		hr = pInst->ac_rotate(v0);
 
 		METHOD_VOID();
 	}

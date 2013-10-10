@@ -42,7 +42,9 @@ public:
 		_EDGED = 4,
 		_HORIZONTAL = 1,
 		_VERTICAL = 2,
-		_BOTH = 3
+		_BOTH = 3,
+		_LEFT = 1,
+		_RIGHT = 2
 	};
 
 public:
@@ -71,6 +73,8 @@ public:
 	static v8::Handle<v8::Value> s_get_HORIZONTAL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_VERTICAL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_BOTH(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_LEFT(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_RIGHT(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_create(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_load(const v8::Arguments& args);
 
@@ -114,13 +118,15 @@ namespace fibjs
 			{"EDGED", s_get_EDGED, NULL, true},
 			{"HORIZONTAL", s_get_HORIZONTAL, NULL, true},
 			{"VERTICAL", s_get_VERTICAL, NULL, true},
-			{"BOTH", s_get_BOTH, NULL, true}
+			{"BOTH", s_get_BOTH, NULL, true},
+			{"LEFT", s_get_LEFT, NULL, true},
+			{"RIGHT", s_get_RIGHT, NULL, true}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"gd", NULL, 
-			2, s_method, 0, NULL, 17, s_property, NULL, NULL,
+			2, s_method, 0, NULL, 19, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -243,6 +249,20 @@ namespace fibjs
 	inline v8::Handle<v8::Value> gd_base::s_get_BOTH(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
 		int32_t vr = _BOTH;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> gd_base::s_get_LEFT(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _LEFT;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> gd_base::s_get_RIGHT(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _RIGHT;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}

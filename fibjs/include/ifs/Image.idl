@@ -291,6 +291,11 @@ class Image : object
 	 */
 	flip(Integer dir = gd.HORIZONTAL) async;
 
+	/*! @brief 旋转当前图像
+	 * @param dir 旋转方向，允许值为 gd.LEFT, gd.RIGHT
+	 */
+	rotate(Integer dir) async;
+
 	/*! @brief 转换当前图像类型
 	 * @param color 指定图像类型，允许值为 gd.TRUECOLOR 或 gd.PALETTE
 	 */

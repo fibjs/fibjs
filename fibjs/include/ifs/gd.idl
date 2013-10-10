@@ -50,14 +50,20 @@ class gd : module
 	/*! @brief 扇形绘制样式，绘制一条连接起点和终点的弧和连接原点的直线 */
 	const Integer EDGED = 4;
 
-	/*! @brief 镜像方向，横向都做镜像处理 */
+	/*! @brief 镜像方向，横向做镜像处理 */
 	const Integer HORIZONTAL = 1;
 
-	/*! @brief 镜像方向，纵向都做镜像处理 */
+	/*! @brief 镜像方向，纵向做镜像处理 */
 	const Integer VERTICAL = 2;
 
 	/*! @brief 镜像方向，横向和纵向都做镜像处理 */
 	const Integer BOTH = 3;
+
+	/*! @brief 旋转方向，向左旋转 */
+	const Integer LEFT = 1;
+
+	/*! @brief 旋转方向，向右旋转 */
+	const Integer RIGHT = 2;
 
 
 	/*! @brief 创建一个新图像

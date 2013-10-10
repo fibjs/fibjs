@@ -181,8 +181,6 @@ result_t Image::load(Buffer_base* data)
 			if (ed)
 			{
 				int dir = 1;
-				int sx, sy;
-				gdImagePtr newImage;
 
 				ExifEntry* entry = exif_content_get_entry(ed->ifd[EXIF_IFD_0],
 						EXIF_TAG_ORIENTATION);
@@ -207,32 +205,15 @@ result_t Image::load(Buffer_base* data)
 				case 5:
 					gdImageFlipVertical(m_image);
 				case 6:
-					sx = gdImageSX(m_image);
-					sy = gdImageSY(m_image);
-
-					newImage = gdImageCreateTrueColor(sy, sx);
-					gdImageCopyRotated(newImage, m_image, (double) sy / 2,
-							(double) sx / 2, 0, 0, sx, sy, 270);
-
-					gdImageDestroy(m_image);
-					m_image = newImage;
+					rotate(gd_base::_RIGHT);
 					break;
 				case 7:
 					gdImageFlipVertical(m_image);
 				case 8:
-					sx = gdImageSX(m_image);
-					sy = gdImageSY(m_image);
-
-					newImage = gdImageCreateTrueColor(sy, sx);
-					gdImageCopyRotated(newImage, m_image, (double) sy / 2,
-							(double) sx / 2, 0, 0, sx, sy, 90);
-
-					gdImageDestroy(m_image);
-					m_image = newImage;
+					rotate(gd_base::_LEFT);
 					break;
 				}
 			}
-
 		}
 
 		break;
@@ -882,6 +863,58 @@ result_t Image::flip(int32_t dir, exlib::AsyncEvent* ac)
 		return CALL_E_INVALIDARG;
 
 	return 0;
+}
+
+result_t Image::rotate(int32_t dir)
+{
+	if (dir != gd_base::_LEFT && dir != gd_base::_RIGHT)
+		return CALL_E_INVALIDARG;
+
+	int sx = gdImageSX(m_image);
+	int sy = gdImageSY(m_image);
+	int i, j;
+	gdImagePtr newImage;
+
+	if (gdImageTrueColor(m_image))
+		newImage = gdImageCreateTrueColor(sy, sx);
+	else
+	{
+		newImage = gdImageCreate(sy, sx);
+		gdImagePaletteCopy(newImage, m_image);
+	}
+
+	gdImageColorTransparent(newImage, gdImageGetTransparent(m_image));
+
+	if (dir == gd_base::_LEFT)
+	{
+		for (i = 0; i < sx; i++)
+			for (j = 0; j < sy; j++)
+				gdImageSetPixel(newImage, j, sx - i - 1,
+						gdImageGetPixel(m_image, i, j));
+	}
+	else
+	{
+		for (i = 0; i < sx; i++)
+			for (j = 0; j < sy; j++)
+				gdImageSetPixel(newImage, sy - j - 1, i,
+						gdImageGetPixel(m_image, i, j));
+	}
+
+	gdImageDestroy(m_image);
+	m_image = newImage;
+
+	return 0;
+}
+
+result_t Image::rotate(int32_t dir, exlib::AsyncEvent* ac)
+{
+	if (!m_image)
+		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	return rotate(dir);
 }
 
 result_t Image::convert(int32_t color, exlib::AsyncEvent* ac)

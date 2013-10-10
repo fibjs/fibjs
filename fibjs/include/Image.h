@@ -74,6 +74,7 @@ public:
 	virtual result_t resample(int32_t width, int32_t height, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
 	virtual result_t crop(int32_t x, int32_t y, int32_t width, int32_t height, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
 	virtual result_t flip(int32_t dir, exlib::AsyncEvent* ac);
+	virtual result_t rotate(int32_t dir, exlib::AsyncEvent* ac);
 	virtual result_t convert(int32_t color, exlib::AsyncEvent* ac);
 	virtual result_t copy(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, exlib::AsyncEvent* ac);
 	virtual result_t copyMerge(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, int32_t percent, exlib::AsyncEvent* ac);
@@ -85,6 +86,7 @@ public:
 public:
 	result_t create(int32_t width, int32_t height, int32_t color);
 	result_t load(Buffer_base* data);
+	result_t rotate(int32_t dir);
 
 private:
 	result_t New(int32_t width, int32_t height, obj_ptr<Image>& retVal);
