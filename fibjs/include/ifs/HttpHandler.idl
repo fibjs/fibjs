@@ -8,6 +8,9 @@ class HttpHandler: Handler
 	/*! @brief 查询和设置是否允许跨域请求，缺省为 false */
 	Boolean crossDomain;
 
+	/*! @brief 查询和设置是否允强制使用 gzip 压缩输出，缺省为 false */
+	Boolean forceGZIP;
+
 	/*! @brief 查询和设置最大请求头个数，缺省为 128 */
 	Integer maxHeadersCount;
 

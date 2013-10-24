@@ -123,6 +123,15 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				}
 			}
 
+			if (pThis->m_pThis->m_forceGZIP)
+			{
+				bool v;
+
+				pThis->m_req->hasHeader("Accept-Encoding", v);
+				if (!v)
+					pThis->m_req->setHeader("Accept-Encoding", "gzip");
+			}
+
 			return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_req, pThis);
 		}
 
@@ -286,6 +295,18 @@ result_t HttpHandler::get_crossDomain(bool& retVal)
 result_t HttpHandler::set_crossDomain(bool newVal)
 {
 	m_crossDomain = newVal;
+	return 0;
+}
+
+result_t HttpHandler::get_forceGZIP(bool& retVal)
+{
+	retVal = m_forceGZIP;
+	return 0;
+}
+
+result_t HttpHandler::set_forceGZIP(bool newVal)
+{
+	m_forceGZIP = newVal;
 	return 0;
 }
 
