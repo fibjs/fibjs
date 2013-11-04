@@ -35,7 +35,7 @@ public:
 	static result_t time(const char* label);
 	static result_t timeEnd(const char* label);
 	static result_t trace(const char* label);
-	static result_t assert(bool value, const char* msg);
+	static result_t assert(v8::Handle<v8::Value> value, const char* msg);
 
 	DECLARE_CLASSINFO(console_base);
 
@@ -218,7 +218,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(bool, 0);
+		ARG(v8::Handle<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = assert(v0, v1);

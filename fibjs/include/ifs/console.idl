@@ -83,5 +83,5 @@ class console : module
 	 * @param value 测试的数值
 	 * @param msg 报错信息
 	 */
-	static assert(Boolean value, String msg = "");
+	static assert(Value value, String msg = "");
 };

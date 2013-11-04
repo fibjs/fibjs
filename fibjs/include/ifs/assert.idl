@@ -10,10 +10,16 @@
 class assert : module
 {
 	/*! @brief 测试数值为真，为假则断言失败
-	 * @param value 要测试的数值
+	 * @param actual 要测试的数值
 	 * @param msg 断言失败时的提示信息
 	 */
-	static ok(Boolean value, String msg = "");
+	static ok(Value actual, String msg = "");
+
+	/*! @brief 测试数值为假，为真则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static notOk(Value actual, String msg = "");
 
 	/*! @brief 测试数值等于预期值，不相等则断言失败
 	 * @param actual 要测试的数值
@@ -42,6 +48,164 @@ class assert : module
 	 * @param msg 断言失败时的提示信息
 	 */
 	static notStrictEqual(Value actual, Value expected, String msg = "");
+
+	/*! @brief 测试数值深度等于预期值，不相等则断言失败
+	 * @param actual 要测试的数值
+	 * @param expected 预期的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static deepEqual(Value actual, Value expected, String msg = "");
+
+	/*! @brief 测试数值不深度等于预期值，相等则断言失败
+	 * @param actual 要测试的数值
+	 * @param expected 预期的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static notDeepEqual(Value actual, Value expected, String msg = "");
+
+	/*! @brief 测试数值近似等于预期值，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param expected 预期的数值
+	 * @param delta 近似的小数精度
+	 * @param msg 断言失败时的提示信息
+	 */
+	static closeTo(Value actual, Value expected, Value delta, String msg = "");
+
+	/*! @brief 测试数值小于预期值，大于或等于则断言失败
+	 * @param actual 要测试的数值
+	 * @param expected 预期的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static lessThan(Value actual, Value expected, String msg = "");
+
+	/*! @brief 测试数值大于预期值，小于或等于则断言失败
+	 * @param actual 要测试的数值
+	 * @param expected 预期的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static greaterThan(Value actual, Value expected, String msg = "");
+
+	/*! @brief 测试数值为布尔值真，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isTrue(Value actual, String msg = "");
+
+	/*! @brief 测试数值为布尔值假，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isFalse(Value actual, String msg = "");
+
+	/*! @brief 测试数值为 Null，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isNull(Value actual, String msg = "");
+
+	/*! @brief 测试数值不为 Null，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isNotNull(Value actual, String msg = "");
+
+	/*! @brief 测试数值为 undefined，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isUndefined(Value actual, String msg = "");
+
+	/*! @brief 测试数值不为 undefined，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isDefined(Value actual, String msg = "");
+
+	/*! @brief 测试数值为函数，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isFunction(Value actual, String msg = "");
+
+	/*! @brief 测试数值不为函数，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isNotFunction(Value actual, String msg = "");
+
+	/*! @brief 测试数值为对象，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isObject(Value actual, String msg = "");
+
+	/*! @brief 测试数值不为对象，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isNotObject(Value actual, String msg = "");
+
+	/*! @brief 测试数值为数组，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isArray(Value actual, String msg = "");
+
+	/*! @brief 测试数值不为数组，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isNotArray(Value actual, String msg = "");
+
+	/*! @brief 测试数值为字符串，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isString(Value actual, String msg = "");
+
+	/*! @brief 测试数值不为字符串，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isNotString(Value actual, String msg = "");
+
+	/*! @brief 测试数值为数字，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isNumber(Value actual, String msg = "");
+
+	/*! @brief 测试数值不为数字，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isNotNumber(Value actual, String msg = "");
+
+	/*! @brief 测试数值为布尔，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isBoolean(Value actual, String msg = "");
+
+	/*! @brief 测试数值不为布尔，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isNotBoolean(Value actual, String msg = "");
+
+	/*! @brief 测试对象中包含指定属性，否则断言失败
+	 * @param object 要测试的对象
+	 * @param prop 要测试的属性
+	 * @param msg 断言失败时的提示信息
+	 */
+	static property(Value object, Value prop, String msg = "");
+	
+	/*! @brief 测试对象中不包含指定属性，否则断言失败
+	 * @param object 要测试的对象
+	 * @param prop 要测试的属性
+	 * @param msg 断言失败时的提示信息
+	 */
+	static notProperty(Value object, Value prop, String msg = "");
 
 	/*! @brief 测试给定的代码会抛出错误，未抛出则断言失败
 	 * @param block 指定测试的代码，以函数形式给出
