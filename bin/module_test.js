@@ -12,8 +12,8 @@ assert.strictEqual(a.foo().foo, b.foo,
 a = require('module/a1');
 b = require('module/b1');
 
-assert.ok(a.a, 'a exists');
-assert.ok(b.b, 'b exists')
+assert.property(a, "a", 'a exists');
+assert.property(b, "b", 'b exists')
 assert.strictEqual(a.a().b, b.b, 'a gets b');
 assert.strictEqual(b.b().a, a.a, 'b gets a');
 
