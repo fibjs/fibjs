@@ -417,7 +417,7 @@ function parserIDL(fname) {
 	}
 
 	function _member(st) {
-		var attr, ftype, fname, name, value, args, argArray = false, pos = 0, s, argStra = "", argCount = 0, argOpt = 0, ifStr = "", fnStr = "", argVars = "";
+		var attr, attr1, ftype, fname, name, value, args, argArray = false, pos = 0, s, argStra = "", argCount = 0, argOpt = 0, ifStr = "", fnStr = "", argVars = "";
 
 		args = [];
 
@@ -427,6 +427,11 @@ function parserIDL(fname) {
 		} else
 			attr = "";
 
+		if(attr == "static" && st[pos] == "readonly") {
+			attr1 = "readonly";
+			pos++;
+		}
+		
 		ftype = "";
 		s = st[pos];
 		if (s === ns && st[pos + 1] === "(") {
@@ -754,8 +759,35 @@ function parserIDL(fname) {
 						+ "& retVal);";
 				ifs.push(ifStr);
 
-				difps.push("			{\"" + fname + "\", s_get_" + fname
-						+ ", NULL, true}");
+				if (attr1 != "readonly") {
+					iffs
+							.push("	static void s_set_"
+									+ fname
+									+ "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);");
+					fnStr = "	inline void "
+							+ ns
+							+ "_base::s_set_"
+							+ fname
+							+ "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)\n	{\n		PROPERTY_ENTER();\n";
+					if (ftype === "String")
+						fnStr += "		PROPERTY_VAL_String();\n";
+					else
+						fnStr += "		PROPERTY_VAL(" + map_type(ftype) + ");\n\n";
+					fnStr += "		hr = set_" + fname
+							+ "(v0);\n\n		PROPERTY_SET_LEAVE();\n	}\n";
+					ffs.push(fnStr)
+
+					ifStr = "	static result_t set_" + fname + "("
+							+ arg_type(ftype) + " newVal);";
+					ifs.push(ifStr);
+				}
+				
+				if (attr1 == "readonly")
+					difps.push("			{\"" + fname + "\", s_get_" + fname
+							+ ", NULL, true}");
+				else
+					difps.push("			{\"" + fname + "\", s_get_" + fname
+							+ ", s_set_" + fname + "}");
 
 			} else if (fname === "operator") {
 				if ((st[pos] === "[") && (st[pos + 1] === "]")

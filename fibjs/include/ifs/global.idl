@@ -6,7 +6,7 @@ class global : module
 	static Buffer new Buffer();
 
 	/*! @brief 控制台访问对象*/
-	static console console;
+	static readonly console console;
 
 	/*! @brief 记录普通日志信息，与 console.log 等同
 	 * @param fmt 格式化字符串

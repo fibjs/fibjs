@@ -9,19 +9,19 @@
 class os : module
 {
 	/*! @brief 查询当前运行环境主机名 */
-	static String hostname;
+	static readonly String hostname;
 
 	/*! @brief 查询当前运行环境操作系统名称 */
-	static String type;
+	static readonly String type;
 
 	/*! @brief 查询当前运行环境操作系统版本 */
-	static String version;
+	static readonly String version;
 
 	/*! @brief 查询当前运行环境 */
-	static String arch;
+	static readonly String arch;
 
 	/*! @brief 查询运行环境当前时区 */
-	static Integer timezone;
+	static readonly Integer timezone;
 
 	/*! @brief 查询运行环境运行时间，以秒为单位 */
 	static Number uptime();
@@ -50,7 +50,7 @@ class os : module
 	static Date time(String tmString = "");
 
 	/*! @brief 查询当前运行执行文件完整路径 */
-	static String execPath;
+	static readonly String execPath;
 
 	/*! @brief 查询当前进程内存使用报告
 	 * @return 返回包含内存报告

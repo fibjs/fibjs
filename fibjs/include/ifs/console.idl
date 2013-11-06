@@ -15,13 +15,13 @@
 class console : module
 {
 	/*! @brief 查询当前进程的错误输出流对象 */
-	static BufferedStream stderr;
+	static readonly BufferedStream stderr;
 
 	/*! @brief 查询当前进程的标准输入流对象 */
-	static BufferedStream stdin;
+	static readonly BufferedStream stdin;
 
 	/*! @brief 查询当前进程的标准输出流对象 */
-	static BufferedStream stdout;
+	static readonly BufferedStream stdout;
 
 	/*! @brief 记录普通日志信息，与 info 等同
 	 *

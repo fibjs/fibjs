@@ -8,19 +8,19 @@
 class process : module
 {
 	/*! @brief 查询当前进程的错误输出流对象 */
-	static BufferedStream stderr;
+	static readonly BufferedStream stderr;
 
 	/*! @brief 查询当前进程的标准输入流对象 */
-	static BufferedStream stdin;
+	static readonly BufferedStream stdin;
 
 	/*! @brief 查询当前进程的标准输出流对象 */
-	static BufferedStream stdout;
+	static readonly BufferedStream stdout;
 
 	/*! @brief 返回当前进程的命令行参数 */
-	static Array argv;
+	static readonly Array argv;
 
 	/*! @brief 查询当前运行执行文件完整路径 */
-	static String execPath;
+	static readonly String execPath;
 
 	/*! @brief 退出当前进程，并返回结果
 	 * @param code 返回进程结果
