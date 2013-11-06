@@ -23,6 +23,20 @@ class console : module
 	/*! @brief 查询当前进程的标准输出流对象 */
 	static readonly BufferedStream stdout;
 
+	const Integer FATAL = 0;
+	const Integer ALERT = 100;
+	const Integer CRIT = 200;
+	const Integer ERROR = 300;
+	const Integer WARN = 400;
+	const Integer NOTICE = 500;
+	const Integer INFO = 600;
+	const Integer DEBUG = 700;
+	const Integer NOTSET = 800;
+	
+	/*! @brief 输出级别，用以过滤输出信息，缺省为 NOTSET，全部输出
+	 */
+	static Integer loglevel;
+	
 	/*! @brief 记录普通日志信息，与 info 等同
 	 *
 	 * 记录一般等级的日志信息。通常用于输出非错误性提示信息。

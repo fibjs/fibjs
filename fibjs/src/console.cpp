@@ -60,6 +60,20 @@ result_t console_base::get_stdout(obj_ptr<BufferedStream_base>& retVal)
 	return process_base::get_stdout(retVal);
 }
 
+extern int32_t g_loglevel;
+
+result_t console_base::get_loglevel(int32_t& retVal)
+{
+	retVal = g_loglevel;
+	return 0;
+}
+
+result_t console_base::set_loglevel(int32_t newVal)
+{
+	g_loglevel = newVal;
+	return 0;
+}
+
 std::string Format(const char* fmt, const v8::Arguments& args, int idx = 1)
 {
 	const char* s = fmt;

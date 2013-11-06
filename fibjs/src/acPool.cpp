@@ -52,10 +52,14 @@ public:
 static AsyncLogQueue s_acLog;
 static bool s_logEmpty;
 
+int32_t g_loglevel = log4cpp::Priority::NOTSET;
+
 void asyncLog(int priority, std::string msg)
 {
-//	log4cpp::Category::getRoot().log(priority, msg);
-	s_acLog.put(new AsyncLog(priority, msg));
+	if(priority <= g_loglevel){
+		//	log4cpp::Category::getRoot().log(priority, msg);
+		s_acLog.put(new AsyncLog(priority, msg));
+	}
 }
 
 void flushLog()

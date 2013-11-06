@@ -23,10 +23,25 @@ class BufferedStream_base;
 class console_base : public module_base
 {
 public:
+	enum{
+		_FATAL = 0,
+		_ALERT = 100,
+		_CRIT = 200,
+		_ERROR = 300,
+		_WARN = 400,
+		_NOTICE = 500,
+		_INFO = 600,
+		_DEBUG = 700,
+		_NOTSET = 800
+	};
+
+public:
 	// console_base
 	static result_t get_stderr(obj_ptr<BufferedStream_base>& retVal);
 	static result_t get_stdin(obj_ptr<BufferedStream_base>& retVal);
 	static result_t get_stdout(obj_ptr<BufferedStream_base>& retVal);
+	static result_t get_loglevel(int32_t& retVal);
+	static result_t set_loglevel(int32_t newVal);
 	static result_t log(const char* fmt, const v8::Arguments& args);
 	static result_t info(const char* fmt, const v8::Arguments& args);
 	static result_t warn(const char* fmt, const v8::Arguments& args);
@@ -43,6 +58,17 @@ public:
 	static v8::Handle<v8::Value> s_get_stderr(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_stdin(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_stdout(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_FATAL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_ALERT(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_CRIT(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_ERROR(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_WARN(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_NOTICE(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_INFO(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_DEBUG(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_NOTSET(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_loglevel(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s_set_loglevel(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_log(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_info(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_warn(const v8::Arguments& args);
@@ -79,13 +105,23 @@ namespace fibjs
 		{
 			{"stderr", s_get_stderr, NULL, true},
 			{"stdin", s_get_stdin, NULL, true},
-			{"stdout", s_get_stdout, NULL, true}
+			{"stdout", s_get_stdout, NULL, true},
+			{"FATAL", s_get_FATAL, NULL, true},
+			{"ALERT", s_get_ALERT, NULL, true},
+			{"CRIT", s_get_CRIT, NULL, true},
+			{"ERROR", s_get_ERROR, NULL, true},
+			{"WARN", s_get_WARN, NULL, true},
+			{"NOTICE", s_get_NOTICE, NULL, true},
+			{"INFO", s_get_INFO, NULL, true},
+			{"DEBUG", s_get_DEBUG, NULL, true},
+			{"NOTSET", s_get_NOTSET, NULL, true},
+			{"loglevel", s_get_loglevel, s_set_loglevel}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"console", NULL, 
-			9, s_method, 0, NULL, 3, s_property, NULL, NULL,
+			9, s_method, 0, NULL, 13, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -124,6 +160,90 @@ namespace fibjs
 		hr = get_stdout(vr);
 
 		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> console_base::s_get_FATAL(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _FATAL;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> console_base::s_get_ALERT(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _ALERT;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> console_base::s_get_CRIT(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _CRIT;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> console_base::s_get_ERROR(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _ERROR;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> console_base::s_get_WARN(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _WARN;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> console_base::s_get_NOTICE(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _NOTICE;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> console_base::s_get_INFO(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _INFO;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> console_base::s_get_DEBUG(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _DEBUG;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> console_base::s_get_NOTSET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _NOTSET;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> console_base::s_get_loglevel(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr;
+
+		PROPERTY_ENTER();
+
+		hr = get_loglevel(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void console_base::s_set_loglevel(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	{
+		PROPERTY_ENTER();
+		PROPERTY_VAL(int32_t);
+
+		hr = set_loglevel(v0);
+
+		PROPERTY_SET_LEAVE();
 	}
 
 	inline v8::Handle<v8::Value> console_base::s_log(const v8::Arguments& args)
