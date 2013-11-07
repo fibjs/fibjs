@@ -115,7 +115,7 @@ inline const char* ToCString(const v8::String::Utf8Value& value)
 	return *value ? *value : "<string conversion failed>";
 }
 
-void ReportException(v8::TryCatch& try_catch, result_t hr)
+std::string GetException(v8::TryCatch& try_catch, result_t hr)
 {
 	if (try_catch.HasCaught())
 	{
@@ -123,7 +123,7 @@ void ReportException(v8::TryCatch& try_catch, result_t hr)
 
 		v8::Handle<v8::Message> message = try_catch.Message();
 		if (message.IsEmpty())
-			asyncLog(log4cpp::Priority::ERROR, ToCString(exception));
+			return ToCString(exception);
 		else
 		{
 			v8::Handle<v8::Value> trace_value = try_catch.StackTrace();
@@ -131,9 +131,7 @@ void ReportException(v8::TryCatch& try_catch, result_t hr)
 			if (!IsEmpty(trace_value))
 			{
 				v8::String::Utf8Value stack_trace(trace_value);
-
-				asyncLog(log4cpp::Priority::ERROR, ToCString(stack_trace));
-				return;
+				return ToCString(stack_trace);
 			}
 
 			std::stringstream strError;
@@ -145,11 +143,19 @@ void ReportException(v8::TryCatch& try_catch, result_t hr)
 			strError << ':' << lineNumber << ':'
 					<< (message->GetStartColumn() + 1);
 
-			asyncLog(log4cpp::Priority::ERROR, strError.str());
+			return strError.str();
 		}
 	}
 	else if (hr < 0)
-		asyncLog(log4cpp::Priority::ERROR, getResultMessage(hr));
+		return getResultMessage(hr);
+
+	return "";
+}
+
+void ReportException(v8::TryCatch& try_catch, result_t hr)
+{
+	if (try_catch.HasCaught() ||  hr < 0)
+		asyncLog(log4cpp::Priority::ERROR, GetException(try_catch, hr));
 }
 
 std::string traceInfo()

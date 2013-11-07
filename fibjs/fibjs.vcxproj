@@ -202,6 +202,7 @@
     <ClInclude Include="include\ifs\Stat.h" />
     <ClInclude Include="include\ifs\Stream.h" />
     <ClInclude Include="include\ifs\TCPServer.h" />
+    <ClInclude Include="include\ifs\test.h" />
     <ClInclude Include="include\ifs\Trigger.h" />
     <ClInclude Include="include\ifs\Url.h" />
     <ClInclude Include="include\ifs\uuid.h" />

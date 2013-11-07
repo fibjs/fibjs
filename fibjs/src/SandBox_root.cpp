@@ -8,6 +8,8 @@
 #include "SandBox.h"
 
 #include "ifs/assert.h"
+#include "ifs/test.h"
+
 #include "ifs/path.h"
 #include "ifs/os.h"
 #include "ifs/coroutine.h"
@@ -49,6 +51,8 @@ void SandBox::initRoot()
 	InstallNativeModule("collection", collection_base::class_info());
 
 	InstallNativeModule("assert", assert_base::class_info());
+	InstallNativeModule("test", test_base::class_info());
+
 	InstallNativeModule("path", path_base::class_info());
 
 	InstallNativeModule("coroutine", coroutine_base::class_info());
