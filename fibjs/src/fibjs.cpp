@@ -18,23 +18,16 @@
 #include "utf8.h"
 #include <exlib/thread.h>
 
-#define RESET "\033[0m"
-#define BLACK "\033[30m" /* Black */
-#define RED "\033[31m" /* Red */
-#define GREEN "\033[32m" /* Green */
-#define YELLOW "\033[33m" /* Yellow */
-#define BLUE "\033[34m" /* Blue */
-#define MAGENTA "\033[35m" /* Magenta */
-#define CYAN "\033[36m" /* Cyan */
-#define WHITE "\033[37m" /* White */
-#define BOLDBLACK "\033[1m\033[30m" /* Bold Black */
-#define BOLDRED "\033[1m\033[31m" /* Bold Red */
-#define BOLDGREEN "\033[1m\033[32m" /* Bold Green */
-#define BOLDYELLOW "\033[1m\033[33m" /* Bold Yellow */
-#define BOLDBLUE "\033[1m\033[34m" /* Bold Blue */
-#define BOLDMAGENTA "\033[1m\033[35m" /* Bold Magenta */
-#define BOLDCYAN "\033[1m\033[36m" /* Bold Cyan */
-#define BOLDWHITE "\033[1m\033[37m" /* Bold White */
+#define COLOR_RESET "\x1b[0m"
+#define COLOR_BLACK "\x1b[30m" /* Black */
+#define COLOR_RED "\x1b[31m" /* Red */
+#define COLOR_GREEN "\x1b[32m" /* Green */
+#define COLOR_YELLOW "\x1b[33m" /* Yellow */
+#define COLOR_BLUE "\x1b[34m" /* Blue */
+#define COLOR_MAGENTA "\x1b[35m" /* Magenta */
+#define COLOR_CYAN "\x1b[36m" /* Cyan */
+#define COLOR_WHITE "\x1b[37m" /* White */
+#define COLOR_NORMAL "\x1b[39m" /* White */
 
 namespace fibjs
 {
@@ -44,16 +37,115 @@ exlib::Service* g_pService;
 
 class MyAppender: public log4cpp::LayoutAppender
 {
+#ifdef _WIN32
+protected:
+	class color_out
+	{
+	public:
+		void init(DWORD type)
+		{
+			CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+
+			m_handle = GetStdHandle(type);
+			GetConsoleScreenBufferInfo(m_handle, &csbiInfo);
+			m_Now = m_wAttr = csbiInfo.wAttributes;
+
+			if (type == STD_ERROR_HANDLE)
+				m_stream = stderr;
+			else if (type == STD_OUTPUT_HANDLE)
+				m_stream = stdout;
+		}
+
+		void out(const std::string& message)
+		{
+			std::wstring s = UTF8_W(message);
+			s.append(L"\r\n", 2);
+			LPWSTR ptr = (LPWSTR) s.c_str();
+			LPWSTR ptr1, ptr2;
+
+			ptr1 = ptr;
+			while (ptr2 = (LPWSTR) qstrchr(ptr1, L'\x1b'))
+			{
+				ptr1 = ptr2 + 1;
+
+				if (ptr2[1] == '[')
+				{
+					WORD mask, val;
+
+					if (ptr2[2] == '9' && ptr2[3] == '0' && ptr2[4] == 'm')
+					{
+						mask = 0xf0;
+						val = FOREGROUND_BLUE | FOREGROUND_GREEN
+								| FOREGROUND_RED;
+
+						if (ptr2 > ptr + 1)
+						{
+							ptr2[0] = 0;
+							fputws(ptr, m_stream);
+							fflush(m_stream);
+						}
+
+						m_Now = (m_Now & mask) | val;
+						SetConsoleTextAttribute(m_handle, m_Now);
+
+						ptr = ptr1 = ptr2 + 5;
+					}
+					else if ((ptr2[2] == '3' || ptr2[2] == '4')
+							&& (ptr2[3] >= '0' && ptr2[3] <= '9')
+							&& ptr2[4] == 'm')
+					{
+						if (ptr2[2] == '3')
+							mask = 0xf0;
+						else
+							mask = 0x0f;
+
+						val = ptr2[3] - '0';
+
+						if (val == 9)
+							val = (mask ^ 0xff) & m_wAttr;
+						else
+						{
+							val = (val & 2) | ((val & 1) ? 4 : 0)
+									| ((val & 4) ? 1 : 0)
+									| FOREGROUND_INTENSITY;
+
+							if (mask == 0x0f)
+								val <<= 4;
+						}
+
+						if (ptr2 > ptr + 1)
+						{
+							ptr2[0] = 0;
+							fputws(ptr, m_stream);
+							fflush(m_stream);
+						}
+
+						m_Now = (m_Now & mask) | val;
+						SetConsoleTextAttribute(m_handle, m_Now);
+
+						ptr = ptr1 = ptr2 + 5;
+					}
+				}
+			}
+
+			fputws(ptr, m_stream);
+			fflush(m_stream);
+		}
+
+	private:
+		HANDLE m_handle;
+		FILE *m_stream;
+		WORD m_wAttr, m_Now;
+	};
+#endif
+
 public:
 	MyAppender() :
 			LayoutAppender("console")
 	{
 #ifdef _WIN32
-		CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
-
-		m_hError = GetStdHandle(STD_ERROR_HANDLE);
-		GetConsoleScreenBufferInfo(m_hError, &csbiInfo);
-		m_wAttributes = csbiInfo.wAttributes;
+		err.init(STD_ERROR_HANDLE);
+		out.init(STD_OUTPUT_HANDLE);
 #endif
 	}
 
@@ -67,15 +159,9 @@ protected:
 		if (event.priority < log4cpp::Priority::NOTICE)
 		{
 #ifndef _WIN32
-			std::cerr << RED << event.message << RESET << std::endl;
+			std::cerr << COLOR_RED << event.message << COLOR_NORMAL << std::endl;
 #else
-			std::wstring s = UTF8_W(event.message);
-			s.append(L"\r\n", 2);
-
-			SetConsoleTextAttribute(m_hError, FOREGROUND_RED);
-			fputws(s.c_str(), stderr);
-			fflush(stderr);
-			SetConsoleTextAttribute(m_hError, m_wAttributes);
+			out.out(COLOR_RED + event.message + COLOR_NORMAL);
 #endif
 		}
 		else
@@ -83,18 +169,14 @@ protected:
 #ifndef _WIN32
 			std::cout << event.message << std::endl;
 #else
-			std::wstring s = UTF8_W(event.message);
-			s.append(L"\r\n", 2);
-			fputws(s.c_str(), stdout);
-			fflush(stdout);
+			out.out(event.message);
 #endif
 		}
 	}
 
 #ifdef _WIN32
 private:
-	HANDLE m_hError;
-	WORD m_wAttributes;
+	color_out err, out;
 #endif
 };
 
