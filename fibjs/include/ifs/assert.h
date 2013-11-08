@@ -56,7 +56,6 @@ public:
 	static result_t notProperty(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, const char* msg);
 	static result_t throws(v8::Handle<v8::Function> block, const char* msg);
 	static result_t doesNotThrow(v8::Handle<v8::Function> block, const char* msg);
-	static result_t throwAssert(bool bThrow);
 
 	DECLARE_CLASSINFO(assert_base);
 
@@ -94,7 +93,6 @@ public:
 	static v8::Handle<v8::Value> s_notProperty(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_throws(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_doesNotThrow(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_throwAssert(const v8::Arguments& args);
 };
 
 }
@@ -138,14 +136,13 @@ namespace fibjs
 			{"property", s_property, true},
 			{"notProperty", s_notProperty, true},
 			{"throws", s_throws, true},
-			{"doesNotThrow", s_doesNotThrow, true},
-			{"throwAssert", s_throwAssert, true}
+			{"doesNotThrow", s_doesNotThrow, true}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"assert", NULL, 
-			34, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			33, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -558,17 +555,6 @@ namespace fibjs
 		OPT_ARG_String(1, "");
 
 		hr = doesNotThrow(v0, v1);
-
-		METHOD_VOID();
-	}
-
-	inline v8::Handle<v8::Value> assert_base::s_throwAssert(const v8::Arguments& args)
-	{
-		METHOD_ENTER(1, 0);
-
-		OPT_ARG(bool, 0, true);
-
-		hr = throwAssert(v0);
 
 		METHOD_VOID();
 	}

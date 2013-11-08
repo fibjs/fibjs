@@ -6,7 +6,7 @@
  */
 
 #include "ifs/test.h"
-#include "ifs/console.h"
+#include "ifs/assert.h"
 #include "QuickArray.h"
 #include <log4cpp/Category.hh>
 
@@ -313,6 +313,17 @@ result_t test_base::afterEach(v8::Handle<v8::Function> func)
 result_t test_base::run(int32_t loglevel)
 {
 	return _case::run(loglevel);
+}
+
+result_t test_base::get_assert(obj_ptr<assert_base>& retVal)
+{
+	static obj_ptr<assert_base> s_assert;
+
+	if (s_assert == NULL)
+		s_assert = new assert_base();
+
+	retVal = s_assert;
+	return 0;
 }
 
 }

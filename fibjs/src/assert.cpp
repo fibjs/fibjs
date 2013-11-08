@@ -7,26 +7,40 @@
 
 #include "ifs/assert.h"
 #include "ifs/encoding.h"
+#include "QuickArray.h"
 #include <log4cpp/Category.hh>
 #include <sstream>
 
-namespace fibjs {
+namespace fibjs
+{
 
-static bool s_bThrow;
-
-result_t assert_base::throwAssert(bool bThrow) {
-	s_bThrow = bThrow;
-	return 0;
-}
-
-class _msg {
+class _msg
+{
 public:
-	_msg(const char * s0, const char * s1, v8::Handle<v8::Value>& v1,
-			const char * s2) {
-		if (*s0) {
+	_msg(const char * s0, const char * s1)
+	{
+		if (*s0)
+		{
 			strs[0] = s0;
 			strs[1] = NULL;
-		} else {
+		}
+		else
+		{
+			strs[0] = s1;
+			strs[1] = NULL;
+		}
+	}
+
+	_msg(const char * s0, const char * s1, v8::Handle<v8::Value>& v1,
+			const char * s2)
+	{
+		if (*s0)
+		{
+			strs[0] = s0;
+			strs[1] = NULL;
+		}
+		else
+		{
 			strs[0] = s1;
 			strs[1] = s2;
 			strs[2] = NULL;
@@ -36,11 +50,15 @@ public:
 	}
 
 	_msg(const char * s0, const char * s1, v8::Handle<v8::Value>& v1,
-			const char * s2, v8::Handle<v8::Value>& v2, const char * s3 = "") {
-		if (*s0) {
+			const char * s2, v8::Handle<v8::Value>& v2, const char * s3 = "")
+	{
+		if (*s0)
+		{
 			strs[0] = s0;
 			strs[1] = NULL;
-		} else {
+		}
+		else
+		{
 			strs[0] = s1;
 			strs[1] = s2;
 			strs[2] = s3;
@@ -53,11 +71,15 @@ public:
 
 	_msg(const char * s0, const char * s1, v8::Handle<v8::Value>& v1,
 			const char * s2, v8::Handle<v8::Value>& v2, const char * s3,
-			v8::Handle<v8::Value>& v3, const char * s4 = "") {
-		if (*s0) {
+			v8::Handle<v8::Value>& v3, const char * s4 = "")
+	{
+		if (*s0)
+		{
 			strs[0] = s0;
 			strs[1] = NULL;
-		} else {
+		}
+		else
+		{
 			strs[0] = s1;
 			strs[1] = s2;
 			strs[2] = s3;
@@ -69,23 +91,27 @@ public:
 		}
 	}
 
-	std::string str() {
+	std::string str()
+	{
 		std::string str;
 		std::string s;
 
 		str = strs[0];
 
-		if (strs[1]) {
+		if (strs[1])
+		{
 			encoding_base::jsonEncode(*vs[0], s);
 			str.append(s);
 			str.append(strs[1]);
 
-			if (strs[2]) {
+			if (strs[2])
+			{
 				encoding_base::jsonEncode(*vs[1], s);
 				str.append(s);
 				str.append(strs[2]);
 
-				if (strs[3]) {
+				if (strs[3])
+				{
 					encoding_base::jsonEncode(*vs[2], s);
 					str.append(s);
 					str.append(strs[3]);
@@ -101,48 +127,33 @@ private:
 	v8::Handle<v8::Value>* vs[3];
 };
 
-inline void _test(bool value, _msg msg) {
-	if (!value) {
+inline void _test(bool value, _msg msg)
+{
+	if (!value)
+	{
 		std::string str("assert: ");
 
 		str.append(msg.str());
-
-		if (s_bThrow)
-			ThrowError(str.c_str());
-		else {
-			str.append(traceInfo());
-			asyncLog(log4cpp::Priority::WARN, str.c_str());
-		}
+		ThrowError(str.c_str());
 	}
 }
 
-inline void _throw(const char* msg) {
-	std::stringstream strBuffer;
-
-	strBuffer << "assert: " << msg;
-
-	if (s_bThrow)
-		ThrowError(strBuffer.str().c_str());
-	else {
-		strBuffer << traceInfo();
-		asyncLog(log4cpp::Priority::WARN, strBuffer.str());
-	}
-}
-
-result_t assert_base::ok(v8::Handle<v8::Value> actual, const char* msg) {
-	_test(actual->Equals(v8::True()),
+result_t assert_base::ok(v8::Handle<v8::Value> actual, const char* msg)
+{
+	_test(actual->BooleanValue(),
 			_msg(msg, "expected ", actual, " to be truthy"));
 	return 0;
 }
 
-result_t assert_base::notOk(v8::Handle<v8::Value> actual, const char* msg) {
-	_test(!actual->Equals(v8::True()),
+result_t assert_base::notOk(v8::Handle<v8::Value> actual, const char* msg)
+{
+	_test(!actual->BooleanValue(),
 			_msg(msg, "expected ", actual, " to be falsy"));
 	return 0;
 }
 
-bool regexpEquals(v8::Handle<v8::Value> actual,
-		v8::Handle<v8::Value> expected) {
+bool regexpEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
+{
 	v8::Handle<v8::RegExp> re1 = v8::Handle<v8::RegExp>::Cast(actual);
 	v8::Handle<v8::String> src1 = re1->GetSource();
 	v8::RegExp::Flags flgs1 = re1->GetFlags();
@@ -155,117 +166,177 @@ bool regexpEquals(v8::Handle<v8::Value> actual,
 }
 
 bool deepEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected);
+static QuickArray<v8::Handle<v8::Object> > s_acts;
+static QuickArray<v8::Handle<v8::Object> > s_exps;
 
-bool arrayEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected) {
+int checkStack(v8::Handle<v8::Object> actual, v8::Handle<v8::Object> expected)
+{
+	int i;
+
+	for (i = 0; i < s_acts.size(); i++)
+		if (actual->Equals(s_acts[i]))
+		{
+			if (expected->Equals(s_exps[i]))
+				return 0;
+			return -1;
+		}
+
+	s_acts.append(actual);
+	s_exps.append(expected);
+
+	return 1;
+}
+
+bool arrayEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
+{
 	v8::Handle<v8::Array> act = v8::Handle<v8::Array>::Cast(actual);
 	v8::Handle<v8::Array> exp = v8::Handle<v8::Array>::Cast(expected);
 	int len = (int) act->Length();
 	int i;
 
-	if (len != (int) exp->Length())
+	i = checkStack(act, exp);
+	if (i == 0)
+		return true;
+	if (i == -1)
 		return false;
+
+	if (len != (int) exp->Length())
+	{
+		s_acts.pop();
+		s_exps.pop();
+		return false;
+	}
 
 	for (i = 0; i < len; i++)
 		if (!deepEquals(act->Get(i), exp->Get(i)))
+		{
+			s_acts.pop();
+			s_exps.pop();
 			return false;
+		}
 
+	s_acts.pop();
+	s_exps.pop();
 	return true;
 }
 
-bool objectEquals(v8::Handle<v8::Value> actual,
-		v8::Handle<v8::Value> expected) {
-	if (actual->IsArray() && expected->IsArray())
-		return arrayEqual(actual, expected);
-
+bool objectEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
+{
 	v8::Handle<v8::Object> act = v8::Handle<v8::Object>::Cast(actual);
 	v8::Handle<v8::Object> exp = v8::Handle<v8::Object>::Cast(expected);
 
-	v8::Handle<v8::Array> keys = act->GetPropertyNames();
-	int len = (int) keys->Length();
 	int i;
 
-	if (!arrayEqual(keys, exp->GetPropertyNames()))
+	i = checkStack(act, exp);
+	if (i == 0)
+		return true;
+	if (i == -1)
 		return false;
 
-	for (i = 0; i < len; i++) {
+	v8::Handle<v8::Array> keys = act->GetPropertyNames();
+	int len = (int) keys->Length();
+
+	if (len != (int) exp->GetPropertyNames()->Length())
+	{
+		s_acts.pop();
+		s_exps.pop();
+		return false;
+	}
+
+	for (i = 0; i < len; i++)
+	{
 		v8::Handle<v8::Value> ks = keys->Get(i);
 
-		if (!ks->IsNumber()) {
+		if (!ks->IsNumber())
+		{
 			v8::Handle<v8::String> k = v8::Handle<v8::String>::Cast(ks);
 
 			if (!deepEquals(act->Get(k), exp->Get(k)))
+			{
+				s_acts.pop();
+				s_exps.pop();
 				return false;
+			}
 		}
 	}
 
+	s_acts.pop();
+	s_exps.pop();
 	return true;
 }
 
-bool deepEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected) {
+bool deepEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
+{
 	if (!IsEmpty(actual) && !IsEmpty(expected) && !actual->IsFunction()
-			&& !expected->IsFunction()) {
-		if (actual->IsDate() && expected->IsDate())
-			return actual->NumberValue() == expected->NumberValue();
-		else if (actual->IsRegExp() && expected->IsRegExp())
-			return regexpEquals(actual, expected);
-		else if (actual->IsObject() && expected->IsObject())
+			&& !expected->IsFunction())
+	{
+		if (actual->IsDate())
+			return expected->IsDate()
+					&& (actual->NumberValue() == expected->NumberValue());
+
+		if (expected->IsDate())
+			return false;
+
+		if (actual->IsRegExp())
+			return expected->IsRegExp() && regexpEquals(actual, expected);
+
+		if (expected->IsRegExp())
+			return false;
+
+		if (actual->IsArray() && expected->IsArray())
+			return arrayEquals(actual, expected);
+
+		if (actual->IsObject() && expected->IsObject())
 			return objectEquals(actual, expected);
 	}
 
 	return actual->Equals(expected);
 }
 
-bool valueEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected,
-		bool bStrict) {
-	if (!IsEmpty(actual) && !IsEmpty(expected) && !actual->IsFunction()
-			&& !expected->IsFunction()) {
-		if (actual->IsDate() && expected->IsDate())
-			return actual->NumberValue() == expected->NumberValue();
-		else if (actual->IsRegExp() && expected->IsRegExp())
-			return regexpEquals(actual, expected);
-	}
-
-	return bStrict ? actual->StrictEquals(expected) : actual->Equals(expected);
-}
-
 result_t assert_base::equal(v8::Handle<v8::Value> actual,
-		v8::Handle<v8::Value> expected, const char* msg) {
-	_test(valueEquals(actual, expected, false),
+		v8::Handle<v8::Value> expected, const char* msg)
+{
+	_test(actual->Equals(expected),
 			_msg(msg, "expected ", actual, " to equal ", expected));
 	return 0;
 }
 
 result_t assert_base::notEqual(v8::Handle<v8::Value> actual,
-		v8::Handle<v8::Value> expected, const char* msg) {
-	_test(!valueEquals(actual, expected, false),
+		v8::Handle<v8::Value> expected, const char* msg)
+{
+	_test(!actual->Equals(expected),
 			_msg(msg, "expected ", actual, " to not equal ", expected));
 	return 0;
 }
 
 result_t assert_base::strictEqual(v8::Handle<v8::Value> actual,
-		v8::Handle<v8::Value> expected, const char* msg) {
-	_test(valueEquals(actual, expected, true),
+		v8::Handle<v8::Value> expected, const char* msg)
+{
+	_test(actual->StrictEquals(expected),
 			_msg(msg, "expected ", actual, " to strictly equal ", expected));
 	return 0;
 }
 
 result_t assert_base::notStrictEqual(v8::Handle<v8::Value> actual,
-		v8::Handle<v8::Value> expected, const char* msg) {
-	_test(!valueEquals(actual, expected, true),
+		v8::Handle<v8::Value> expected, const char* msg)
+{
+	_test(!actual->StrictEquals(expected),
 			_msg(msg, "expected ", actual, " to not strictly equal ",
 					expected));
 	return 0;
 }
 
 result_t assert_base::deepEqual(v8::Handle<v8::Value> actual,
-		v8::Handle<v8::Value> expected, const char* msg) {
+		v8::Handle<v8::Value> expected, const char* msg)
+{
 	_test(deepEquals(actual, expected),
 			_msg(msg, "expected ", actual, " to deeply equal ", expected));
 	return 0;
 }
 
 result_t assert_base::notDeepEqual(v8::Handle<v8::Value> actual,
-		v8::Handle<v8::Value> expected, const char* msg) {
+		v8::Handle<v8::Value> expected, const char* msg)
+{
 	_test(!deepEquals(actual, expected),
 			_msg(msg, "expected ", actual, " to not deeply equal ", expected));
 	return 0;
@@ -273,7 +344,8 @@ result_t assert_base::notDeepEqual(v8::Handle<v8::Value> actual,
 
 result_t assert_base::closeTo(v8::Handle<v8::Value> actual,
 		v8::Handle<v8::Value> expected, v8::Handle<v8::Value> delta,
-		const char* msg) {
+		const char* msg)
+{
 	double n, n1;
 
 	n = actual->NumberValue();
@@ -298,7 +370,8 @@ result_t assert_base::closeTo(v8::Handle<v8::Value> actual,
 	return 0;
 }
 
-double valcmp(v8::Handle<v8::Value>& val1, v8::Handle<v8::Value>& val2) {
+double valcmp(v8::Handle<v8::Value>& val1, v8::Handle<v8::Value>& val2)
+{
 	bool n1 = val1->IsNumber();
 	bool n2 = val2->IsNumber();
 	double v1;
@@ -306,11 +379,14 @@ double valcmp(v8::Handle<v8::Value>& val1, v8::Handle<v8::Value>& val2) {
 	if (n1 && n2)
 		return val1->NumberValue() - val2->NumberValue();
 
-	if (n1) {
+	if (n1)
+	{
 		v1 = val2->NumberValue();
 		if (!isnan(v1))
 			return val1->NumberValue() - v1;
-	} else if (n2) {
+	}
+	else if (n2)
+	{
 		v1 = val1->NumberValue();
 		if (!isnan(v1))
 			return v1 - val2->NumberValue();
@@ -326,7 +402,8 @@ double valcmp(v8::Handle<v8::Value>& val1, v8::Handle<v8::Value>& val2) {
 }
 
 result_t assert_base::lessThan(v8::Handle<v8::Value> actual,
-		v8::Handle<v8::Value> expected, const char* msg) {
+		v8::Handle<v8::Value> expected, const char* msg)
+{
 	double r = valcmp(actual, expected);
 
 	if (isnan(r))
@@ -337,7 +414,8 @@ result_t assert_base::lessThan(v8::Handle<v8::Value> actual,
 }
 
 result_t assert_base::greaterThan(v8::Handle<v8::Value> actual,
-		v8::Handle<v8::Value> expected, const char* msg) {
+		v8::Handle<v8::Value> expected, const char* msg)
+{
 	double r = valcmp(actual, expected);
 
 	if (isnan(r))
@@ -347,116 +425,130 @@ result_t assert_base::greaterThan(v8::Handle<v8::Value> actual,
 	return 0;
 }
 
-result_t assert_base::isTrue(v8::Handle<v8::Value> actual, const char* msg) {
+result_t assert_base::isTrue(v8::Handle<v8::Value> actual, const char* msg)
+{
 	_test(actual->IsTrue(), _msg(msg, "expected ", actual, " to be true"));
 	return 0;
 }
 
-result_t assert_base::isFalse(v8::Handle<v8::Value> actual, const char* msg) {
+result_t assert_base::isFalse(v8::Handle<v8::Value> actual, const char* msg)
+{
 	_test(actual->IsFalse(), _msg(msg, "expected ", actual, " to be false"));
 	return 0;
 }
 
-result_t assert_base::isNull(v8::Handle<v8::Value> actual, const char* msg) {
+result_t assert_base::isNull(v8::Handle<v8::Value> actual, const char* msg)
+{
 	_test(actual->IsNull(), _msg(msg, "expected ", actual, " to be null"));
 	return 0;
 }
 
-result_t assert_base::isNotNull(v8::Handle<v8::Value> actual, const char* msg) {
+result_t assert_base::isNotNull(v8::Handle<v8::Value> actual, const char* msg)
+{
 	_test(!actual->IsNull(), _msg(msg, "expected ", actual, " not to be null"));
 	return 0;
 }
 
-result_t assert_base::isUndefined(v8::Handle<v8::Value> actual,
-		const char* msg) {
+result_t assert_base::isUndefined(v8::Handle<v8::Value> actual, const char* msg)
+{
 	_test(actual->IsUndefined(),
 			_msg(msg, "expected ", actual, " to be undefined"));
 	return 0;
 }
 
-result_t assert_base::isDefined(v8::Handle<v8::Value> actual, const char* msg) {
+result_t assert_base::isDefined(v8::Handle<v8::Value> actual, const char* msg)
+{
 	_test(!actual->IsUndefined(),
 			_msg(msg, "expected ", actual, " not to be undefined"));
 	return 0;
 }
 
-result_t assert_base::isFunction(v8::Handle<v8::Value> actual,
-		const char* msg) {
+result_t assert_base::isFunction(v8::Handle<v8::Value> actual, const char* msg)
+{
 	_test(actual->IsFunction(),
 			_msg(msg, "expected ", actual, " to be function"));
 	return 0;
 }
 
 result_t assert_base::isNotFunction(v8::Handle<v8::Value> actual,
-		const char* msg) {
+		const char* msg)
+{
 	_test(!actual->IsFunction(),
 			_msg(msg, "expected ", actual, " not to be function"));
 	return 0;
 }
 
-result_t assert_base::isObject(v8::Handle<v8::Value> actual, const char* msg) {
+result_t assert_base::isObject(v8::Handle<v8::Value> actual, const char* msg)
+{
 	_test(actual->IsObject(), _msg(msg, "expected ", actual, " to be object"));
 	return 0;
 }
 
-result_t assert_base::isNotObject(v8::Handle<v8::Value> actual,
-		const char* msg) {
+result_t assert_base::isNotObject(v8::Handle<v8::Value> actual, const char* msg)
+{
 	_test(!actual->IsObject(),
 			_msg(msg, "expected ", actual, " not to be object"));
 	return 0;
 }
 
-result_t assert_base::isArray(v8::Handle<v8::Value> actual, const char* msg) {
+result_t assert_base::isArray(v8::Handle<v8::Value> actual, const char* msg)
+{
 	_test(actual->IsArray(), _msg(msg, "expected ", actual, " to be array"));
 	return 0;
 }
 
-result_t assert_base::isNotArray(v8::Handle<v8::Value> actual,
-		const char* msg) {
+result_t assert_base::isNotArray(v8::Handle<v8::Value> actual, const char* msg)
+{
 	_test(!actual->IsArray(),
 			_msg(msg, "expected ", actual, " not to be array"));
 	return 0;
 }
 
-result_t assert_base::isString(v8::Handle<v8::Value> actual, const char* msg) {
-	_test(actual->IsString(), _msg(msg, "expected ", actual, " to be string"));
+result_t assert_base::isString(v8::Handle<v8::Value> actual, const char* msg)
+{
+	_test(actual->IsString() || actual->IsStringObject(),
+			_msg(msg, "expected ", actual, " to be string"));
 	return 0;
 }
 
-result_t assert_base::isNotString(v8::Handle<v8::Value> actual,
-		const char* msg) {
-	_test(!actual->IsString(),
+result_t assert_base::isNotString(v8::Handle<v8::Value> actual, const char* msg)
+{
+	_test(!actual->IsString() && !actual->IsStringObject(),
 			_msg(msg, "expected ", actual, " not to be string"));
 	return 0;
 }
 
-result_t assert_base::isNumber(v8::Handle<v8::Value> actual, const char* msg) {
+result_t assert_base::isNumber(v8::Handle<v8::Value> actual, const char* msg)
+{
 	_test(actual->IsNumber(), _msg(msg, "expected ", actual, " to be number"));
 	return 0;
 }
 
-result_t assert_base::isNotNumber(v8::Handle<v8::Value> actual,
-		const char* msg) {
+result_t assert_base::isNotNumber(v8::Handle<v8::Value> actual, const char* msg)
+{
 	_test(!actual->IsNumber(),
 			_msg(msg, "expected ", actual, " not to be number"));
 	return 0;
 }
 
-result_t assert_base::isBoolean(v8::Handle<v8::Value> actual, const char* msg) {
+result_t assert_base::isBoolean(v8::Handle<v8::Value> actual, const char* msg)
+{
 	_test(actual->IsBoolean(),
 			_msg(msg, "expected ", actual, " to be boolean"));
 	return 0;
 }
 
 result_t assert_base::isNotBoolean(v8::Handle<v8::Value> actual,
-		const char* msg) {
+		const char* msg)
+{
 	_test(!actual->IsBoolean(),
 			_msg(msg, "expected ", actual, " not to be boolean"));
 	return 0;
 }
 
 result_t assert_base::property(v8::Handle<v8::Value> object,
-		v8::Handle<v8::Value> prop, const char* msg) {
+		v8::Handle<v8::Value> prop, const char* msg)
+{
 	if (!object->IsObject() || !prop->IsString())
 		return CALL_E_INVALIDARG;
 
@@ -466,7 +558,8 @@ result_t assert_base::property(v8::Handle<v8::Value> object,
 }
 
 result_t assert_base::notProperty(v8::Handle<v8::Value> object,
-		v8::Handle<v8::Value> prop, const char* msg) {
+		v8::Handle<v8::Value> prop, const char* msg)
+{
 	if (!object->IsObject() || !prop->IsString())
 		return CALL_E_INVALIDARG;
 
@@ -476,27 +569,23 @@ result_t assert_base::notProperty(v8::Handle<v8::Value> object,
 	return 0;
 }
 
-result_t assert_base::throws(v8::Handle<v8::Function> block, const char* msg) {
+result_t assert_base::throws(v8::Handle<v8::Function> block, const char* msg)
+{
 	v8::TryCatch try_catch;
 	block->Call(block, 0, NULL);
-	if (!try_catch.HasCaught()) {
-		std::string str = "Missing expected exception. ";
-		str += msg;
-		_throw(str.c_str());
-	}
+	_test(try_catch.HasCaught(), _msg(msg, "Missing expected exception.")
+	);
 
 	return 0;
 }
 
 result_t assert_base::doesNotThrow(v8::Handle<v8::Function> block,
-		const char* msg) {
+		const char* msg)
+{
 	v8::TryCatch try_catch;
 	block->Call(block, 0, NULL);
-	if (try_catch.HasCaught()) {
-		std::string str = "Got unwanted exception. ";
-		str += msg;
-		_throw(str.c_str());
-	}
+	_test(!try_catch.HasCaught(), _msg(msg, "Got unwanted exception.")
+	);
 
 	return 0;
 }

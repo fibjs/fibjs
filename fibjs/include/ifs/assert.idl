@@ -6,6 +6,11 @@
  * @code
  * var assert = require('assert');
  * @endcode
+ * 或者通过 test 模块引用：
+ * @code
+ * var test = require('test');
+ * var assert = test.assert;
+ * @endcode
  */
 class assert : module
 {
@@ -218,9 +223,4 @@ class assert : module
 	 * @param msg 断言失败时的提示信息
 	 */
 	static doesNotThrow(Function block, String msg = "");
-
-	/*! @brief 设定断言失败的策略，系统启动时为 false
-	 * @param bThrow 为 true 时，断言失败将被抛出错误，否则只输出错误信息到警告日志
-	 */
-	static throwAssert(Boolean bThrow = true);
 };
