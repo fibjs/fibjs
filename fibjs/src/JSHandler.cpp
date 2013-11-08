@@ -20,7 +20,7 @@ result_t JSHandler::setHandler(v8::Handle<v8::Value> hdlr)
 	if (!hdlr->IsFunction() && !hdlr->IsObject())
 		return CALL_E_BADVARTYPE;
 
-	m_handler = v8::Persistent < v8::Value > ::New(v8::Isolate::GetCurrent(), hdlr);
+	m_handler = v8::Persistent < v8::Value > ::New(isolate, hdlr);
 	return 0;
 }
 

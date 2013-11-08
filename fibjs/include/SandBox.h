@@ -19,7 +19,7 @@ class SandBox: public fibjs::SandBox_base
 public:
 	~SandBox()
 	{
-		m_require.Dispose(v8::Isolate::GetCurrent());
+		m_require.Dispose(isolate);
 	}
 
 public:
@@ -28,7 +28,7 @@ public:
 	public:
 		~mod()
 		{
-			m_mod.Dispose(v8::Isolate::GetCurrent());
+			m_mod.Dispose(isolate);
 		}
 
 	public:
@@ -49,7 +49,7 @@ public:
 	void initRoot();
 	void initRequire(v8::Handle<v8::Function> func)
 	{
-		m_require = v8::Persistent < v8::Function > ::New(v8::Isolate::GetCurrent(), func);
+		m_require = v8::Persistent < v8::Function > ::New(isolate, func);
 	}
 
 	void InstallModule(std::string fname, v8::Handle<v8::Value> o,

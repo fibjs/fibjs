@@ -19,8 +19,7 @@ public:
 	Expect(v8::Handle<v8::Value> actual, const char* msg) :
 			m_msg(msg), m_not(false), m_deep(false)
 	{
-		m_actual = v8::Persistent<v8::Value>::New(v8::Isolate::GetCurrent(),
-				actual);
+		m_actual = v8::Persistent<v8::Value>::New(isolate, actual);
 	}
 
 public:

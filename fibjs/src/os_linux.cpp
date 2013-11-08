@@ -381,7 +381,7 @@ result_t os_base::memoryUsage(v8::Handle<v8::Object>& retVal)
 	v8::Handle<v8::Object> info = v8::Object::New();
 
 	v8::HeapStatistics v8_heap_stats;
-	v8::Isolate::GetCurrent()->GetHeapStatistics(&v8_heap_stats);
+	isolate->GetHeapStatistics(&v8_heap_stats);
 	info->Set(v8::String::New("rss"), v8::Integer::New((int32_t)rss));
 	info->Set(v8::String::New("heapTotal"),
 			v8::Integer::New((int32_t)v8_heap_stats.total_heap_size()));

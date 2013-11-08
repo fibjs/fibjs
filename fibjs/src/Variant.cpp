@@ -72,7 +72,7 @@ Variant& Variant::operator=(v8::Handle<v8::Value> v)
 								v8::Object>();
 
 						*(v8::Persistent<v8::Object>*) m_Val.jsobjVal =
-								v8::Persistent<v8::Object>::New(v8::Isolate::GetCurrent(),
+								v8::Persistent<v8::Object>::New(isolate,
 										v8::Handle<v8::Object>::Cast(v));
 					}
 					else

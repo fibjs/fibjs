@@ -493,7 +493,6 @@ inline result_t SocketError()
 #endif
 }
 
-extern v8::Isolate* isolate;
 extern exlib::Service* g_pService;
 
 std::string traceInfo();

@@ -62,7 +62,7 @@ public:
 		if (internalRef() == 1)
 		{
 			if (!handle_.IsEmpty())
-				handle_.ClearWeak(v8::Isolate::GetCurrent());
+				handle_.ClearWeak(isolate);
 		}
 	}
 
@@ -73,7 +73,7 @@ public:
 			if (v8::Isolate::GetCurrent())
 			{
 				if (!handle_.IsEmpty())
-					handle_.MakeWeak(v8::Isolate::GetCurrent(), (object_base*)this, WeakCallback);
+					handle_.MakeWeak(isolate, (object_base*)this, WeakCallback);
 				else
 					delete this;
 			}
@@ -143,7 +143,7 @@ public:
 	{
 		if (handle_.IsEmpty())
 		{
-			handle_ = v8::Persistent<v8::Object>::New(v8::Isolate::GetCurrent(), o);
+			handle_ = v8::Persistent<v8::Object>::New(isolate, o);
 			handle_->SetAlignedPointerInInternalField(0, this);
 
 			v8::V8::AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
@@ -233,9 +233,9 @@ public:
 	{
 		if (!handle_.IsEmpty())
 		{
-			handle_.ClearWeak(v8::Isolate::GetCurrent());
+			handle_.ClearWeak(isolate);
 			handle_->SetAlignedPointerInInternalField(0, 0);
-			handle_.Dispose(v8::Isolate::GetCurrent());
+			handle_.Dispose(isolate);
 			handle_.Clear();
 
 			m_nTriggers = 0;

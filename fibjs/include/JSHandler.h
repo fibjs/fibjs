@@ -19,7 +19,7 @@ class JSHandler: public Handler_base
 public:
 	~JSHandler()
 	{
-		m_handler.Dispose(v8::Isolate::GetCurrent());
+		m_handler.Dispose(isolate);
 	}
 
 public:

@@ -77,7 +77,7 @@ public:
 	{
 		v8::HandleScope handle_scope;
 
-		m_class = v8::Persistent<v8::FunctionTemplate>::New(v8::Isolate::GetCurrent(),
+		m_class = v8::Persistent<v8::FunctionTemplate>::New(isolate,
 				v8::FunctionTemplate::New(cd.cor));
 
 		m_class->SetClassName(v8::String::NewSymbol(cd.name));
@@ -125,8 +125,8 @@ public:
 			ot->SetNamedPropertyHandler(pcd->cns->getter, pcd->cns->setter,
 					NULL, pcd->cns->remover, pcd->cns->enumerator);
 
-		m_function = v8::Persistent<v8::Function>::New(v8::Isolate::GetCurrent(), m_class->GetFunction());
-		m_cache = v8::Persistent<v8::Object>::New(v8::Isolate::GetCurrent(), m_function->NewInstance());
+		m_function = v8::Persistent<v8::Function>::New(isolate, m_class->GetFunction());
+		m_cache = v8::Persistent<v8::Object>::New(isolate, m_function->NewInstance());
 	}
 
 	void* getInstance(void* o);

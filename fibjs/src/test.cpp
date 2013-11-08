@@ -48,10 +48,10 @@ class _case: public obj_base
 	{
 		int i, j;
 
-		m_block.Dispose(v8::Isolate::GetCurrent());
+		m_block.Dispose(isolate);
 		for (i = 0; i < 4; i++)
 			for (j = 0; j < (int) m_hooks[i].size(); j++)
-				m_hooks[i][j].Dispose(v8::Isolate::GetCurrent());
+				m_hooks[i][j].Dispose(isolate);
 	}
 
 public:
@@ -79,8 +79,7 @@ public:
 			return CALL_E_INVALID_CALL;
 
 		_case* p = new _case(name);
-		p->m_block = v8::Persistent<v8::Function>::New(
-				v8::Isolate::GetCurrent(), block);
+		p->m_block = v8::Persistent<v8::Function>::New(isolate, block);
 
 		now->m_subs.append(p);
 		return 0;
@@ -94,8 +93,7 @@ public:
 			return CALL_E_INVALID_CALL;
 
 		now->m_hooks[type].append(
-				v8::Persistent<v8::Function>::New(v8::Isolate::GetCurrent(),
-						func));
+				v8::Persistent<v8::Function>::New(isolate, func));
 		return 0;
 	}
 
