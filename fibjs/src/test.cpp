@@ -8,6 +8,7 @@
 #include "ifs/test.h"
 #include "ifs/assert.h"
 #include "QuickArray.h"
+#include "Expect.h"
 #include <log4cpp/Category.hh>
 
 #define COLOR_RESET "\x1b[0m"
@@ -323,6 +324,13 @@ result_t test_base::get_assert(obj_ptr<assert_base>& retVal)
 		s_assert = new assert_base();
 
 	retVal = s_assert;
+	return 0;
+}
+
+result_t test_base::expect(v8::Handle<v8::Value> actual, const char* msg,
+		obj_ptr<Expect_base>& retVal)
+{
+	retVal = new Expect(actual, msg);
 	return 0;
 }
 

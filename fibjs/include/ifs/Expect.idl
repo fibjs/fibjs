@@ -1,0 +1,48 @@
+
+/*! @brief 断言期望对象
+ *
+ * Expect 对象为 assert 模块内部对象，用于实现 expect 风格断言，创建：
+ * @code
+ * var obj = assert.expect(exp);
+ * @endcode
+ */
+class Expect : object
+{
+	readonly Expect to;
+	readonly Expect be;
+	readonly Expect been;
+	readonly Expect is;
+	readonly Expect that;
+	readonly Expect and;
+	readonly Expect have;
+	readonly Expect with;
+	readonly Expect at;
+	readonly Expect of;
+	readonly Expect same;
+	readonly Expect not;
+	readonly Expect deep;
+	a(String type);
+	an(String type);
+	readonly Boolean ok;
+	readonly Boolean true;
+	readonly Boolean false;
+	readonly Boolean null;
+	readonly Boolean undefined;
+	readonly Boolean function;
+	readonly Boolean object;
+	readonly Boolean array;
+	readonly Boolean string;
+	readonly Boolean number;
+	readonly Boolean boolean;
+	readonly Boolean exist;
+	equal(Value expected);
+	eql(Value expected);
+	above(Value expected);
+	greaterThan(Value expected);
+	least(Value expected);
+	below(Value expected);
+	lessThan(Value expected);
+	most(Value expected);
+	closeTo(Value expected, Value delta);
+};
+
