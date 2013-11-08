@@ -286,9 +286,19 @@ result_t test_base::describe(const char* name, v8::Handle<v8::Function> block)
 	return 0;
 }
 
+result_t test_base::xdescribe(const char* name, v8::Handle<v8::Function> block)
+{
+	return 0;
+}
+
 result_t test_base::it(const char* name, v8::Handle<v8::Function> block)
 {
 	return _case::it(name, block);
+}
+
+result_t test_base::xit(const char* name, v8::Handle<v8::Function> block)
+{
+	return 0;
 }
 
 result_t test_base::before(v8::Handle<v8::Function> func)

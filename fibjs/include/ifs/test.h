@@ -27,7 +27,9 @@ class test_base : public module_base
 public:
 	// test_base
 	static result_t describe(const char* name, v8::Handle<v8::Function> block);
+	static result_t xdescribe(const char* name, v8::Handle<v8::Function> block);
 	static result_t it(const char* name, v8::Handle<v8::Function> block);
+	static result_t xit(const char* name, v8::Handle<v8::Function> block);
 	static result_t before(v8::Handle<v8::Function> func);
 	static result_t after(v8::Handle<v8::Function> func);
 	static result_t beforeEach(v8::Handle<v8::Function> func);
@@ -40,7 +42,9 @@ public:
 
 public:
 	static v8::Handle<v8::Value> s_describe(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_xdescribe(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_it(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_xit(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_before(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_after(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_beforeEach(const v8::Arguments& args);
@@ -63,7 +67,9 @@ namespace fibjs
 		static ClassData::ClassMethod s_method[] = 
 		{
 			{"describe", s_describe, true},
+			{"xdescribe", s_xdescribe, true},
 			{"it", s_it, true},
+			{"xit", s_xit, true},
 			{"before", s_before, true},
 			{"after", s_after, true},
 			{"beforeEach", s_beforeEach, true},
@@ -80,7 +86,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"test", NULL, 
-			8, s_method, 0, NULL, 1, s_property, NULL, NULL,
+			10, s_method, 0, NULL, 1, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -111,6 +117,18 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
+	inline v8::Handle<v8::Value> test_base::s_xdescribe(const v8::Arguments& args)
+	{
+		METHOD_ENTER(2, 2);
+
+		ARG_String(0);
+		ARG(v8::Handle<v8::Function>, 1);
+
+		hr = xdescribe(v0, v1);
+
+		METHOD_VOID();
+	}
+
 	inline v8::Handle<v8::Value> test_base::s_it(const v8::Arguments& args)
 	{
 		METHOD_ENTER(2, 2);
@@ -119,6 +137,18 @@ namespace fibjs
 		ARG(v8::Handle<v8::Function>, 1);
 
 		hr = it(v0, v1);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> test_base::s_xit(const v8::Arguments& args)
+	{
+		METHOD_ENTER(2, 2);
+
+		ARG_String(0);
+		ARG(v8::Handle<v8::Function>, 1);
+
+		hr = xit(v0, v1);
 
 		METHOD_VOID();
 	}
