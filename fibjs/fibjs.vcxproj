@@ -37,6 +37,7 @@
     <ClCompile Include="src\encoding.cpp" />
     <ClCompile Include="src\encoding_bson.cpp" />
     <ClCompile Include="src\Event.cpp" />
+    <ClCompile Include="src\Expect.cpp" />
     <ClCompile Include="src\Fiber.cpp" />
     <ClCompile Include="src\fibjs.cpp" />
     <ClCompile Include="src\File.cpp" />
@@ -128,6 +129,7 @@
     <ClInclude Include="include\Digest.h" />
     <ClInclude Include="include\encoding_bson.h" />
     <ClInclude Include="include\Event.h" />
+    <ClInclude Include="include\Expect.h" />
     <ClInclude Include="include\Fiber.h" />
     <ClInclude Include="include\File.h" />
     <ClInclude Include="include\GridFS.h" />
@@ -155,6 +157,7 @@
     <ClInclude Include="include\ifs\Digest.h" />
     <ClInclude Include="include\ifs\encoding.h" />
     <ClInclude Include="include\ifs\Event.h" />
+    <ClInclude Include="include\ifs\Expect.h" />
     <ClInclude Include="include\ifs\Fiber.h" />
     <ClInclude Include="include\ifs\File.h" />
     <ClInclude Include="include\ifs\fs.h" />

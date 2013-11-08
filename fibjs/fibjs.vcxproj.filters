@@ -285,6 +285,9 @@
     <ClCompile Include="src\AsyncWaitHandler.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Expect.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -697,6 +700,12 @@
     </ClInclude>
     <ClInclude Include="include\ifs\test.h">
       <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\Expect.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Expect.h">
+      <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
