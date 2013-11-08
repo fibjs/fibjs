@@ -33,7 +33,7 @@ function t_db(conn) {
 	assert.strictEqual(r['t1'], 1123);
 	assert.strictEqual(r['t2'], 'aaaaa');
 	assert.strictEqual(r['t3'].toString(), 'DDDDDDDDDD');
-	assert.strictEqual(r['t4'], new Date('1998-04-14 12:12:12'));
+	assert.deepEqual(r['t4'], new Date('1998-04-14 12:12:12'));
 
 	var call_back = false;
 	var rs = conn.execute('select * from test;', function(r) {
@@ -45,7 +45,7 @@ function t_db(conn) {
 		assert.strictEqual(r['t1'], 1123);
 		assert.strictEqual(r['t2'], 'aaaaa');
 		assert.strictEqual(r['t3'].toString(), 'DDDDDDDDDD');
-		assert.strictEqual(r['t4'], new Date('1998-04-14 12:12:12'));
+		assert.deepEqual(r['t4'], new Date('1998-04-14 12:12:12'));
 		call_back = true;
 	});
 

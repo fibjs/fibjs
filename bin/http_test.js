@@ -95,7 +95,7 @@ assert.equal(d['f'], '214.123');
 t = new Date('2012-12-12 12:12:12');
 d.set('f', t);
 
-assert.equal(new Date(d['f']), t);
+assert.deepEqual(new Date(d['f']), t);
 
 function get_request(u) {
 	var ms = new io.MemoryStream();
@@ -316,6 +316,8 @@ function hfh_test(url, headers) {
 	return req.response;
 }
 
+try{fs.unlink('test.html');}catch(e){};
+
 var url = 'test.html';
 
 var rep = hfh_test(url);
@@ -328,7 +330,7 @@ var rep = hfh_test(url);
 assert.equal(200, rep.status);
 assert.equal(14, rep.length);
 
-assert.equal(new Date(rep.firstHeader('Last-Modified')),
+assert.deepEqual(new Date(rep.firstHeader('Last-Modified')),
 		fs.stat('test.html').mtime);
 
 var rep1 = hfh_test(url, {

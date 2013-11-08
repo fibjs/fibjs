@@ -197,5 +197,5 @@ for ( var i = 0; i < 8; i++) {
 		re : re
 	}));
 
-	assert.equal(re, o.re);
+	assert.deepEqual(re, o.re);
 }

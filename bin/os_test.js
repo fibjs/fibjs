@@ -24,10 +24,10 @@ var tms = [ '98-4-14', '1998-4', '1998-4-14', '1998-4-14 12:00',
 		'Tue 14 Apr 1998 09:46:05', '1998-04-14T12:12:12.123Z' ];
 
 tms.forEach(function(s) {
-	assert.equal(os.time(s), new Date(s));
+	assert.deepEqual(os.time(s), new Date(s));
 });
 
-assert.equal(os.time(), new Date());
+assert.deepEqual(os.time(), new Date());
 
 var tmse = [ '2000-1-32', '2001-2-29', '2000-13-1', '2000-12-32', '13/13/13' ];
 
