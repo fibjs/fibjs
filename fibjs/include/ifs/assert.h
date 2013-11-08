@@ -32,10 +32,17 @@ public:
 	static result_t deepEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg);
 	static result_t notDeepEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg);
 	static result_t closeTo(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, v8::Handle<v8::Value> delta, const char* msg);
+	static result_t notCloseTo(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, v8::Handle<v8::Value> delta, const char* msg);
 	static result_t lessThan(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg);
+	static result_t notLessThan(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg);
 	static result_t greaterThan(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg);
+	static result_t notGreaterThan(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg);
+	static result_t exist(v8::Handle<v8::Value> actual, const char* msg);
+	static result_t notExist(v8::Handle<v8::Value> actual, const char* msg);
 	static result_t isTrue(v8::Handle<v8::Value> actual, const char* msg);
+	static result_t isNotTrue(v8::Handle<v8::Value> actual, const char* msg);
 	static result_t isFalse(v8::Handle<v8::Value> actual, const char* msg);
+	static result_t isNotFalse(v8::Handle<v8::Value> actual, const char* msg);
 	static result_t isNull(v8::Handle<v8::Value> actual, const char* msg);
 	static result_t isNotNull(v8::Handle<v8::Value> actual, const char* msg);
 	static result_t isUndefined(v8::Handle<v8::Value> actual, const char* msg);
@@ -52,6 +59,8 @@ public:
 	static result_t isNotNumber(v8::Handle<v8::Value> actual, const char* msg);
 	static result_t isBoolean(v8::Handle<v8::Value> actual, const char* msg);
 	static result_t isNotBoolean(v8::Handle<v8::Value> actual, const char* msg);
+	static result_t typeOf(v8::Handle<v8::Value> actual, const char* type, const char* msg);
+	static result_t notTypeOf(v8::Handle<v8::Value> actual, const char* type, const char* msg);
 	static result_t property(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, const char* msg);
 	static result_t notProperty(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, const char* msg);
 	static result_t throws(v8::Handle<v8::Function> block, const char* msg);
@@ -69,10 +78,17 @@ public:
 	static v8::Handle<v8::Value> s_deepEqual(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_notDeepEqual(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_closeTo(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_notCloseTo(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_lessThan(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_notLessThan(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_greaterThan(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_notGreaterThan(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_exist(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_notExist(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_isTrue(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_isNotTrue(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_isFalse(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_isNotFalse(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_isNull(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_isNotNull(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_isUndefined(const v8::Arguments& args);
@@ -89,6 +105,8 @@ public:
 	static v8::Handle<v8::Value> s_isNotNumber(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_isBoolean(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_isNotBoolean(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_typeOf(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_notTypeOf(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_property(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_notProperty(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_throws(const v8::Arguments& args);
@@ -113,10 +131,17 @@ namespace fibjs
 			{"deepEqual", s_deepEqual, true},
 			{"notDeepEqual", s_notDeepEqual, true},
 			{"closeTo", s_closeTo, true},
+			{"notCloseTo", s_notCloseTo, true},
 			{"lessThan", s_lessThan, true},
+			{"notLessThan", s_notLessThan, true},
 			{"greaterThan", s_greaterThan, true},
+			{"notGreaterThan", s_notGreaterThan, true},
+			{"exist", s_exist, true},
+			{"notExist", s_notExist, true},
 			{"isTrue", s_isTrue, true},
+			{"isNotTrue", s_isNotTrue, true},
 			{"isFalse", s_isFalse, true},
+			{"isNotFalse", s_isNotFalse, true},
 			{"isNull", s_isNull, true},
 			{"isNotNull", s_isNotNull, true},
 			{"isUndefined", s_isUndefined, true},
@@ -133,6 +158,8 @@ namespace fibjs
 			{"isNotNumber", s_isNotNumber, true},
 			{"isBoolean", s_isBoolean, true},
 			{"isNotBoolean", s_isNotBoolean, true},
+			{"typeOf", s_typeOf, true},
+			{"notTypeOf", s_notTypeOf, true},
 			{"property", s_property, true},
 			{"notProperty", s_notProperty, true},
 			{"throws", s_throws, true},
@@ -142,7 +169,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"assert", NULL, 
-			33, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			42, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -267,6 +294,20 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
+	inline v8::Handle<v8::Value> assert_base::s_notCloseTo(const v8::Arguments& args)
+	{
+		METHOD_ENTER(4, 3);
+
+		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Handle<v8::Value>, 2);
+		OPT_ARG_String(3, "");
+
+		hr = notCloseTo(v0, v1, v2, v3);
+
+		METHOD_VOID();
+	}
+
 	inline v8::Handle<v8::Value> assert_base::s_lessThan(const v8::Arguments& args)
 	{
 		METHOD_ENTER(3, 2);
@@ -276,6 +317,19 @@ namespace fibjs
 		OPT_ARG_String(2, "");
 
 		hr = lessThan(v0, v1, v2);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> assert_base::s_notLessThan(const v8::Arguments& args)
+	{
+		METHOD_ENTER(3, 2);
+
+		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Handle<v8::Value>, 1);
+		OPT_ARG_String(2, "");
+
+		hr = notLessThan(v0, v1, v2);
 
 		METHOD_VOID();
 	}
@@ -293,6 +347,43 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
+	inline v8::Handle<v8::Value> assert_base::s_notGreaterThan(const v8::Arguments& args)
+	{
+		METHOD_ENTER(3, 2);
+
+		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Handle<v8::Value>, 1);
+		OPT_ARG_String(2, "");
+
+		hr = notGreaterThan(v0, v1, v2);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> assert_base::s_exist(const v8::Arguments& args)
+	{
+		METHOD_ENTER(2, 1);
+
+		ARG(v8::Handle<v8::Value>, 0);
+		OPT_ARG_String(1, "");
+
+		hr = exist(v0, v1);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> assert_base::s_notExist(const v8::Arguments& args)
+	{
+		METHOD_ENTER(2, 1);
+
+		ARG(v8::Handle<v8::Value>, 0);
+		OPT_ARG_String(1, "");
+
+		hr = notExist(v0, v1);
+
+		METHOD_VOID();
+	}
+
 	inline v8::Handle<v8::Value> assert_base::s_isTrue(const v8::Arguments& args)
 	{
 		METHOD_ENTER(2, 1);
@@ -305,6 +396,18 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
+	inline v8::Handle<v8::Value> assert_base::s_isNotTrue(const v8::Arguments& args)
+	{
+		METHOD_ENTER(2, 1);
+
+		ARG(v8::Handle<v8::Value>, 0);
+		OPT_ARG_String(1, "");
+
+		hr = isNotTrue(v0, v1);
+
+		METHOD_VOID();
+	}
+
 	inline v8::Handle<v8::Value> assert_base::s_isFalse(const v8::Arguments& args)
 	{
 		METHOD_ENTER(2, 1);
@@ -313,6 +416,18 @@ namespace fibjs
 		OPT_ARG_String(1, "");
 
 		hr = isFalse(v0, v1);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> assert_base::s_isNotFalse(const v8::Arguments& args)
+	{
+		METHOD_ENTER(2, 1);
+
+		ARG(v8::Handle<v8::Value>, 0);
+		OPT_ARG_String(1, "");
+
+		hr = isNotFalse(v0, v1);
 
 		METHOD_VOID();
 	}
@@ -505,6 +620,32 @@ namespace fibjs
 		OPT_ARG_String(1, "");
 
 		hr = isNotBoolean(v0, v1);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> assert_base::s_typeOf(const v8::Arguments& args)
+	{
+		METHOD_ENTER(3, 2);
+
+		ARG(v8::Handle<v8::Value>, 0);
+		ARG_String(1);
+		OPT_ARG_String(2, "");
+
+		hr = typeOf(v0, v1, v2);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> assert_base::s_notTypeOf(const v8::Arguments& args)
+	{
+		METHOD_ENTER(3, 2);
+
+		ARG(v8::Handle<v8::Value>, 0);
+		ARG_String(1);
+		OPT_ARG_String(2, "");
+
+		hr = notTypeOf(v0, v1, v2);
 
 		METHOD_VOID();
 	}

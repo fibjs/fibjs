@@ -290,7 +290,7 @@ bool deepEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
 			return objectEquals(actual, expected);
 	}
 
-	return actual->Equals(expected);
+	return actual->StrictEquals(expected);
 }
 
 result_t assert_base::equal(v8::Handle<v8::Value> actual,
@@ -370,6 +370,34 @@ result_t assert_base::closeTo(v8::Handle<v8::Value> actual,
 	return 0;
 }
 
+result_t assert_base::notCloseTo(v8::Handle<v8::Value> actual,
+		v8::Handle<v8::Value> expected, v8::Handle<v8::Value> delta,
+		const char* msg)
+{
+	double n, n1;
+
+	n = actual->NumberValue();
+	if (isnan(n))
+		return CALL_E_INVALIDARG;
+
+	n1 = expected->NumberValue();
+	if (isnan(n1))
+		return CALL_E_INVALIDARG;
+
+	n -= n1;
+
+	n1 = delta->NumberValue();
+	if (isnan(n1))
+		return CALL_E_INVALIDARG;
+
+	if (n < 0)
+		n = -n;
+	_test(n > n1,
+			_msg(msg, "expected ", actual, " not to be close to ", expected,
+					" +/- ", delta));
+	return 0;
+}
+
 double valcmp(v8::Handle<v8::Value>& val1, v8::Handle<v8::Value>& val2)
 {
 	bool n1 = val1->IsNumber();
@@ -413,6 +441,18 @@ result_t assert_base::lessThan(v8::Handle<v8::Value> actual,
 	return 0;
 }
 
+result_t assert_base::notLessThan(v8::Handle<v8::Value> actual,
+		v8::Handle<v8::Value> expected, const char* msg)
+{
+	double r = valcmp(actual, expected);
+
+	if (isnan(r))
+		return CALL_E_INVALIDARG;
+
+	_test(r >= 0, _msg(msg, "expected ", actual, " to be at least ", expected));
+	return 0;
+}
+
 result_t assert_base::greaterThan(v8::Handle<v8::Value> actual,
 		v8::Handle<v8::Value> expected, const char* msg)
 {
@@ -425,15 +465,54 @@ result_t assert_base::greaterThan(v8::Handle<v8::Value> actual,
 	return 0;
 }
 
+result_t assert_base::notGreaterThan(v8::Handle<v8::Value> actual,
+		v8::Handle<v8::Value> expected, const char* msg)
+{
+	double r = valcmp(actual, expected);
+
+	if (isnan(r))
+		return CALL_E_INVALIDARG;
+
+	_test(r <= 0, _msg(msg, "expected ", actual, " to be at most ", expected));
+	return 0;
+}
+
+result_t assert_base::exist(v8::Handle<v8::Value> actual, const char* msg)
+{
+	_test(!actual->IsNull() && !actual->IsUndefined(),
+			_msg(msg, "expected ", actual, " to be true"));
+	return 0;
+}
+
+result_t assert_base::notExist(v8::Handle<v8::Value> actual, const char* msg)
+{
+	_test(actual->IsNull() || actual->IsUndefined(),
+			_msg(msg, "expected ", actual, " not to be true"));
+	return 0;
+}
+
 result_t assert_base::isTrue(v8::Handle<v8::Value> actual, const char* msg)
 {
 	_test(actual->IsTrue(), _msg(msg, "expected ", actual, " to be true"));
 	return 0;
 }
 
+result_t assert_base::isNotTrue(v8::Handle<v8::Value> actual, const char* msg)
+{
+	_test(!actual->IsTrue(), _msg(msg, "expected ", actual, " not to be true"));
+	return 0;
+}
+
 result_t assert_base::isFalse(v8::Handle<v8::Value> actual, const char* msg)
 {
 	_test(actual->IsFalse(), _msg(msg, "expected ", actual, " to be false"));
+	return 0;
+}
+
+result_t assert_base::isNotFalse(v8::Handle<v8::Value> actual, const char* msg)
+{
+	_test(!actual->IsFalse(),
+			_msg(msg, "expected ", actual, " not to be false"));
 	return 0;
 }
 
@@ -520,20 +599,21 @@ result_t assert_base::isNotString(v8::Handle<v8::Value> actual, const char* msg)
 
 result_t assert_base::isNumber(v8::Handle<v8::Value> actual, const char* msg)
 {
-	_test(actual->IsNumber(), _msg(msg, "expected ", actual, " to be number"));
+	_test(actual->IsNumber() || actual->IsNumberObject(),
+			_msg(msg, "expected ", actual, " to be number"));
 	return 0;
 }
 
 result_t assert_base::isNotNumber(v8::Handle<v8::Value> actual, const char* msg)
 {
-	_test(!actual->IsNumber(),
+	_test(!actual->IsNumber() && !actual->IsNumberObject(),
 			_msg(msg, "expected ", actual, " not to be number"));
 	return 0;
 }
 
 result_t assert_base::isBoolean(v8::Handle<v8::Value> actual, const char* msg)
 {
-	_test(actual->IsBoolean(),
+	_test(actual->IsBoolean() || actual->IsBooleanObject(),
 			_msg(msg, "expected ", actual, " to be boolean"));
 	return 0;
 }
@@ -541,9 +621,55 @@ result_t assert_base::isBoolean(v8::Handle<v8::Value> actual, const char* msg)
 result_t assert_base::isNotBoolean(v8::Handle<v8::Value> actual,
 		const char* msg)
 {
-	_test(!actual->IsBoolean(),
+	_test(!actual->IsBoolean() && !actual->IsBooleanObject(),
 			_msg(msg, "expected ", actual, " not to be boolean"));
 	return 0;
+}
+
+result_t assert_base::typeOf(v8::Handle<v8::Value> actual, const char* type,
+		const char* msg)
+{
+	if (!qstricmp(type, "array"))
+		return isArray(actual, msg);
+	if (!qstricmp(type, "function"))
+		return isFunction(actual, msg);
+	if (!qstricmp(type, "string"))
+		return isString(actual, msg);
+	if (!qstricmp(type, "object"))
+		return isObject(actual, msg);
+	if (!qstricmp(type, "number"))
+		return isNumber(actual, msg);
+	if (!qstricmp(type, "boolean"))
+		return isBoolean(actual, msg);
+	if (!qstricmp(type, "null"))
+		return isNull(actual, msg);
+	if (!qstricmp(type, "undefined"))
+		return isUndefined(actual, msg);
+
+	return CALL_E_INVALIDARG;
+}
+
+result_t assert_base::notTypeOf(v8::Handle<v8::Value> actual, const char* type,
+		const char* msg)
+{
+	if (!qstricmp(type, "array"))
+		return isNotArray(actual, msg);
+	if (!qstricmp(type, "function"))
+		return isNotFunction(actual, msg);
+	if (!qstricmp(type, "string"))
+		return isNotString(actual, msg);
+	if (!qstricmp(type, "object"))
+		return isNotObject(actual, msg);
+	if (!qstricmp(type, "number"))
+		return isNotNumber(actual, msg);
+	if (!qstricmp(type, "boolean"))
+		return isNotBoolean(actual, msg);
+	if (!qstricmp(type, "null"))
+		return isNotNull(actual, msg);
+	if (!qstricmp(type, "undefined"))
+		return isDefined(actual, msg);
+
+	return CALL_E_INVALIDARG;
 }
 
 result_t assert_base::property(v8::Handle<v8::Value> object,
@@ -573,8 +699,7 @@ result_t assert_base::throws(v8::Handle<v8::Function> block, const char* msg)
 {
 	v8::TryCatch try_catch;
 	block->Call(block, 0, NULL);
-	_test(try_catch.HasCaught(), _msg(msg, "Missing expected exception.")
-	);
+	_test(try_catch.HasCaught(), _msg(msg, "Missing expected exception."));
 
 	return 0;
 }
@@ -584,8 +709,7 @@ result_t assert_base::doesNotThrow(v8::Handle<v8::Function> block,
 {
 	v8::TryCatch try_catch;
 	block->Call(block, 0, NULL);
-	_test(!try_catch.HasCaught(), _msg(msg, "Got unwanted exception.")
-	);
+	_test(!try_catch.HasCaught(), _msg(msg, "Got unwanted exception."));
 
 	return 0;
 }

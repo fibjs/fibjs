@@ -76,12 +76,27 @@ class assert : module
 	 */
 	static closeTo(Value actual, Value expected, Value delta, String msg = "");
 
+	/*! @brief 测试数值不近似等于预期值，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param expected 预期的数值
+	 * @param delta 近似的小数精度
+	 * @param msg 断言失败时的提示信息
+	 */
+	static notCloseTo(Value actual, Value expected, Value delta, String msg = "");
+
 	/*! @brief 测试数值小于预期值，大于或等于则断言失败
 	 * @param actual 要测试的数值
 	 * @param expected 预期的数值
 	 * @param msg 断言失败时的提示信息
 	 */
 	static lessThan(Value actual, Value expected, String msg = "");
+
+	/*! @brief 测试数值不小于预期值，小于则断言失败
+	 * @param actual 要测试的数值
+	 * @param expected 预期的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static notLessThan(Value actual, Value expected, String msg = "");
 
 	/*! @brief 测试数值大于预期值，小于或等于则断言失败
 	 * @param actual 要测试的数值
@@ -90,17 +105,48 @@ class assert : module
 	 */
 	static greaterThan(Value actual, Value expected, String msg = "");
 
+	/*! @brief 测试数值不大于预期值，大于则断言失败
+	 * @param actual 要测试的数值
+	 * @param expected 预期的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static notGreaterThan(Value actual, Value expected, String msg = "");
+	
+	/*! @brief 测试变量存在，为假则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static exist(Value actual, String msg = "");
+
+	/*! @brief 测试变量不存在，为真则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static notExist(Value actual, String msg = "");
+
 	/*! @brief 测试数值为布尔值真，否则断言失败
 	 * @param actual 要测试的数值
 	 * @param msg 断言失败时的提示信息
 	 */
 	static isTrue(Value actual, String msg = "");
 
+	/*! @brief 测试数值不为布尔值真，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isNotTrue(Value actual, String msg = "");
+
 	/*! @brief 测试数值为布尔值假，否则断言失败
 	 * @param actual 要测试的数值
 	 * @param msg 断言失败时的提示信息
 	 */
 	static isFalse(Value actual, String msg = "");
+
+	/*! @brief 测试数值不为布尔值假，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static isNotFalse(Value actual, String msg = "");
 
 	/*! @brief 测试数值为 Null，否则断言失败
 	 * @param actual 要测试的数值
@@ -197,7 +243,21 @@ class assert : module
 	 * @param msg 断言失败时的提示信息
 	 */
 	static isNotBoolean(Value actual, String msg = "");
+	
+	/*! @brief 测试数值为给定类型，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param type 指定的类型
+	 * @param msg 断言失败时的提示信息
+	 */
+	static typeOf(Value actual, String type, String msg = "");
 
+	/*! @brief 测试数值不为给定类型，否则断言失败
+	 * @param actual 要测试的数值
+	 * @param type 指定的类型
+	 * @param msg 断言失败时的提示信息
+	 */
+	static notTypeOf(Value actual, String type, String msg = "");
+	
 	/*! @brief 测试对象中包含指定属性，否则断言失败
 	 * @param object 要测试的对象
 	 * @param prop 要测试的属性
