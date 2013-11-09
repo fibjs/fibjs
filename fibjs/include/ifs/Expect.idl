@@ -43,6 +43,8 @@ class Expect : object
 	below(Value expected);
 	lessThan(Value expected);
 	most(Value expected);
+	property(Value prop);
+	property(Value prop, Value value);
 	closeTo(Value expected, Value delta);
 };
 

@@ -55,6 +55,8 @@ public:
 	virtual result_t below(v8::Handle<v8::Value> expected) = 0;
 	virtual result_t lessThan(v8::Handle<v8::Value> expected) = 0;
 	virtual result_t most(v8::Handle<v8::Value> expected) = 0;
+	virtual result_t property(v8::Handle<v8::Value> prop) = 0;
+	virtual result_t property(v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value) = 0;
 	virtual result_t closeTo(v8::Handle<v8::Value> expected, v8::Handle<v8::Value> delta) = 0;
 
 	DECLARE_CLASSINFO(Expect_base);
@@ -95,6 +97,7 @@ public:
 	static v8::Handle<v8::Value> s_below(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_lessThan(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_most(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_property(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_closeTo(const v8::Arguments& args);
 };
 
@@ -116,6 +119,7 @@ namespace fibjs
 			{"below", s_below},
 			{"lessThan", s_lessThan},
 			{"most", s_most},
+			{"property", s_property},
 			{"closeTo", s_closeTo}
 		};
 
@@ -151,7 +155,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Expect", NULL, 
-			11, s_method, 0, NULL, 25, s_property, NULL, NULL,
+			12, s_method, 0, NULL, 25, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -575,6 +579,25 @@ namespace fibjs
 		ARG(v8::Handle<v8::Value>, 0);
 
 		hr = pInst->most(v0);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Expect_base::s_property(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Expect_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Handle<v8::Value>, 0);
+
+		hr = pInst->property(v0);
+
+		METHOD_OVER(2, 2);
+
+		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Handle<v8::Value>, 1);
+
+		hr = pInst->property(v0, v1);
 
 		METHOD_VOID();
 	}

@@ -59,6 +59,8 @@ public:
 	virtual result_t below(v8::Handle<v8::Value> expected);
 	virtual result_t lessThan(v8::Handle<v8::Value> expected);
 	virtual result_t most(v8::Handle<v8::Value> expected);
+	virtual result_t property(v8::Handle<v8::Value> prop);
+	virtual result_t property(v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value);
 	virtual result_t closeTo(v8::Handle<v8::Value> expected,
 			v8::Handle<v8::Value> delta);
 

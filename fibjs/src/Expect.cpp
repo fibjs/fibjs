@@ -190,7 +190,7 @@ result_t Expect::get_exist(bool& retVal)
 
 result_t Expect::equal(v8::Handle<v8::Value> expected)
 {
-	if(m_deep)
+	if (m_deep)
 		return !m_not ?
 				assert_base::deepEqual(m_actual, expected, m_msg.c_str()) :
 				assert_base::notDeepEqual(m_actual, expected, m_msg.c_str());
@@ -242,6 +242,33 @@ result_t Expect::most(v8::Handle<v8::Value> expected)
 	return !m_not ?
 			assert_base::notGreaterThan(m_actual, expected, m_msg.c_str()) :
 			assert_base::greaterThan(m_actual, expected, m_msg.c_str());
+}
+
+result_t Expect::property(v8::Handle<v8::Value> prop)
+{
+	if (m_deep)
+		return !m_not ?
+				assert_base::deepProperty(m_actual, prop, m_msg.c_str()) :
+				assert_base::notDeepProperty(m_actual, prop, m_msg.c_str());
+
+	return !m_not ?
+			assert_base::property(m_actual, prop, m_msg.c_str()) :
+			assert_base::notProperty(m_actual, prop, m_msg.c_str());
+}
+
+result_t Expect::property(v8::Handle<v8::Value> prop,
+		v8::Handle<v8::Value> value)
+{
+	if (m_deep)
+		return !m_not ?
+				assert_base::deepPropertyVal(m_actual, prop, value,
+						m_msg.c_str()) :
+				assert_base::deepPropertyNotVal(m_actual, prop, value,
+						m_msg.c_str());
+
+	return !m_not ?
+			assert_base::propertyVal(m_actual, prop, value, m_msg.c_str()) :
+			assert_base::propertyNotVal(m_actual, prop, value, m_msg.c_str());
 }
 
 result_t Expect::closeTo(v8::Handle<v8::Value> expected,

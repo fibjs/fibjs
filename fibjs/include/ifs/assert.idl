@@ -272,6 +272,52 @@ class assert : module
 	 */
 	static notProperty(Value object, Value prop, String msg = "");
 
+	/*! @brief 深度测试对象中包含指定属性，否则断言失败
+	 * @param object 要测试的对象
+	 * @param prop 要测试的属性，以“.”分割
+	 * @param msg 断言失败时的提示信息
+	 */
+	static deepProperty(Value object, Value prop, String msg = "");
+	
+	/*! @brief 深度测试对象中不包含指定属性，否则断言失败
+	 * @param object 要测试的对象
+	 * @param prop 要测试的属性，以“.”分割
+	 * @param msg 断言失败时的提示信息
+	 */
+	static notDeepProperty(Value object, Value prop, String msg = "");
+
+	/*! @brief 测试对象中指定属性的值为给定值，否则断言失败
+	 * @param object 要测试的对象
+	 * @param prop 要测试的属性
+	 * @param value 给定的值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static propertyVal(Value object, Value prop, Value value, String msg = "");
+	
+	/*! @brief 测试对象中指定属性的值不为给定值，否则断言失败
+	 * @param object 要测试的对象
+	 * @param prop 要测试的属性
+	 * @param value 给定的值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static propertyNotVal(Value object, Value prop, Value value, String msg = "");
+
+	/*! @brief 深度测试对象中指定属性的值为给定值，否则断言失败
+	 * @param object 要测试的对象
+	 * @param prop 要测试的属性，以“.”分割
+	 * @param value 给定的值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static deepPropertyVal(Value object, Value prop, Value value, String msg = "");
+	
+	/*! @brief 深度测试对象中指定属性的值不为给定值，否则断言失败
+	 * @param object 要测试的对象
+	 * @param prop 要测试的属性，以“.”分割
+	 * @param value 给定的值
+	 * @param msg 断言失败时的提示信息
+	 */
+	static deepPropertyNotVal(Value object, Value prop, Value value, String msg = "");
+
 	/*! @brief 测试给定的代码会抛出错误，未抛出则断言失败
 	 * @param block 指定测试的代码，以函数形式给出
 	 * @param msg 断言失败时的提示信息

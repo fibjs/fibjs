@@ -84,10 +84,36 @@ public:
 			strs[1] = s2;
 			strs[2] = s3;
 			strs[3] = s4;
+			strs[4] = NULL;
 
 			vs[0] = &v1;
 			vs[1] = &v2;
 			vs[2] = &v3;
+		}
+	}
+
+	_msg(const char * s0, const char * s1, v8::Handle<v8::Value>& v1,
+			const char * s2, v8::Handle<v8::Value>& v2, const char * s3,
+			v8::Handle<v8::Value>& v3, const char * s4,
+			v8::Handle<v8::Value>& v4, const char * s5 = "")
+	{
+		if (*s0)
+		{
+			strs[0] = s0;
+			strs[1] = NULL;
+		}
+		else
+		{
+			strs[0] = s1;
+			strs[1] = s2;
+			strs[2] = s3;
+			strs[3] = s4;
+			strs[4] = s5;
+
+			vs[0] = &v1;
+			vs[1] = &v2;
+			vs[2] = &v3;
+			vs[3] = &v4;
 		}
 	}
 
@@ -115,6 +141,13 @@ public:
 					encoding_base::jsonEncode(*vs[2], s);
 					str.append(s);
 					str.append(strs[3]);
+
+					if (strs[4])
+					{
+						encoding_base::jsonEncode(*vs[3], s);
+						str.append(s);
+						str.append(strs[4]);
+					}
 				}
 			}
 		}
@@ -123,8 +156,8 @@ public:
 	}
 
 private:
-	const char * strs[4];
-	v8::Handle<v8::Value>* vs[3];
+	const char * strs[5];
+	v8::Handle<v8::Value>* vs[4];
 };
 
 inline void _test(bool value, _msg msg)
@@ -672,26 +705,205 @@ result_t assert_base::notTypeOf(v8::Handle<v8::Value> actual, const char* type,
 	return CALL_E_INVALIDARG;
 }
 
-result_t assert_base::property(v8::Handle<v8::Value> object,
-		v8::Handle<v8::Value> prop, const char* msg)
+result_t has_prop(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop,
+		bool& retVal)
 {
-	if (!object->IsObject() || !prop->IsString())
+	if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
 		return CALL_E_INVALIDARG;
 
 	v8::Handle<v8::Object> v = v8::Handle<v8::Object>::Cast(object);
-	_test(v->Has(prop), _msg(msg, "expected ", object, " to have a ", prop));
+	retVal = v->Has(prop);
+
+	return 0;
+}
+
+result_t assert_base::property(v8::Handle<v8::Value> object,
+		v8::Handle<v8::Value> prop, const char* msg)
+{
+	bool r;
+	result_t hr = has_prop(object, prop, r);
+	if (hr < 0)
+		return hr;
+
+	_test(r, _msg(msg, "expected ", object, " to have a property ", prop));
 	return 0;
 }
 
 result_t assert_base::notProperty(v8::Handle<v8::Value> object,
 		v8::Handle<v8::Value> prop, const char* msg)
 {
-	if (!object->IsObject() || !prop->IsString())
+	bool r;
+	result_t hr = has_prop(object, prop, r);
+	if (hr < 0)
+		return hr;
+
+	_test(!r, _msg(msg, "expected ", object, " to not have a property ", prop));
+	return 0;
+}
+
+result_t deep_has_prop(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop,
+		bool& retVal)
+{
+	if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
 		return CALL_E_INVALIDARG;
 
 	v8::Handle<v8::Object> v = v8::Handle<v8::Object>::Cast(object);
-	_test(!v->Has(prop),
-			_msg(msg, "expected ", object, " to not have a ", prop));
+	v8::String::Utf8Value s(prop);
+	const char *p, *p1;
+
+	p = *s;
+	while ((p1 = qstrchr(p, '.')) != NULL)
+	{
+		object = v->Get(v8::String::New(p, p1 - p));
+		if (object.IsEmpty() || (!object->IsObject() && !object->IsString()))
+		{
+			retVal = false;
+			return 0;
+		}
+
+		v = v8::Handle<v8::Object>::Cast(object);
+		p = p1 + 1;
+	}
+
+	retVal = v->Has(v8::String::New(p));
+
+	return 0;
+}
+
+result_t assert_base::deepProperty(v8::Handle<v8::Value> object,
+		v8::Handle<v8::Value> prop, const char* msg)
+{
+	bool r;
+	result_t hr = deep_has_prop(object, prop, r);
+	if (hr < 0)
+		return hr;
+
+	_test(r, _msg(msg, "expected ", object, " to have a deep property ", prop));
+	return 0;
+}
+
+result_t assert_base::notDeepProperty(v8::Handle<v8::Value> object,
+		v8::Handle<v8::Value> prop, const char* msg)
+{
+	bool r;
+	result_t hr = deep_has_prop(object, prop, r);
+	if (hr < 0)
+		return hr;
+
+	_test(!r,
+			_msg(msg, "expected ", object, " to not have a deep property ",
+					prop));
+	return 0;
+}
+
+result_t has_val(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop,
+		v8::Handle<v8::Value> value, bool& retVal, v8::Handle<v8::Value>& got)
+{
+	if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
+		return CALL_E_INVALIDARG;
+
+	v8::Handle<v8::Object> v = v8::Handle<v8::Object>::Cast(object);
+	got = v->Get(prop);
+	retVal = value->Equals(got);
+
+	return 0;
+}
+
+result_t assert_base::propertyVal(v8::Handle<v8::Value> object,
+		v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value,
+		const char* msg)
+{
+	bool r;
+	v8::Handle < v8::Value > got;
+
+	result_t hr = has_val(object, prop, value, r, got);
+	if (hr < 0)
+		return hr;
+
+	_test(r,
+			_msg(msg, "expected ", object, " to have a property ", prop, " of ",
+					value, ", but got ", got));
+	return 0;
+}
+
+result_t assert_base::propertyNotVal(v8::Handle<v8::Value> object,
+		v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value,
+		const char* msg)
+{
+	bool r;
+	v8::Handle < v8::Value > got;
+
+	result_t hr = has_val(object, prop, value, r, got);
+	if (hr < 0)
+		return hr;
+
+	_test(!r,
+			_msg(msg, "expected ", object, " not to have a property ", prop,
+					" of ", value));
+	return 0;
+}
+
+result_t deep_has_val(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop,
+		v8::Handle<v8::Value> value, bool& retVal, v8::Handle<v8::Value>& got)
+{
+	if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
+		return CALL_E_INVALIDARG;
+
+	v8::Handle<v8::Object> v = v8::Handle<v8::Object>::Cast(object);
+	v8::String::Utf8Value s(prop);
+	const char *p, *p1;
+
+	p = *s;
+	while ((p1 = qstrchr(p, '.')) != NULL)
+	{
+		object = v->Get(v8::String::New(p, p1 - p));
+		if (object.IsEmpty() || (!object->IsObject() && !object->IsString()))
+		{
+			retVal = false;
+			return 0;
+		}
+
+		v = v8::Handle<v8::Object>::Cast(object);
+		p = p1 + 1;
+	}
+
+	got = v->Get(v8::String::New(p));
+	retVal = value->Equals(got);
+
+	return 0;
+}
+
+result_t assert_base::deepPropertyVal(v8::Handle<v8::Value> object,
+		v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value,
+		const char* msg)
+{
+	bool r;
+	v8::Handle < v8::Value > got;
+
+	result_t hr = deep_has_val(object, prop, value, r, got);
+	if (hr < 0)
+		return hr;
+
+	_test(r,
+			_msg(msg, "expected ", object, " to have a deep property ", prop,
+					" of ", value, ", but got ", got));
+	return 0;
+}
+
+result_t assert_base::deepPropertyNotVal(v8::Handle<v8::Value> object,
+		v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value,
+		const char* msg)
+{
+	bool r;
+	v8::Handle < v8::Value > got;
+
+	result_t hr = deep_has_val(object, prop, value, r, got);
+	if (hr < 0)
+		return hr;
+
+	_test(!r,
+			_msg(msg, "expected ", object, " not to have a deep property ",
+					prop, " of ", value));
 	return 0;
 }
 

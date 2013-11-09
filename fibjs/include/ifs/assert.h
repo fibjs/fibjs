@@ -63,6 +63,12 @@ public:
 	static result_t notTypeOf(v8::Handle<v8::Value> actual, const char* type, const char* msg);
 	static result_t property(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, const char* msg);
 	static result_t notProperty(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, const char* msg);
+	static result_t deepProperty(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, const char* msg);
+	static result_t notDeepProperty(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, const char* msg);
+	static result_t propertyVal(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value, const char* msg);
+	static result_t propertyNotVal(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value, const char* msg);
+	static result_t deepPropertyVal(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value, const char* msg);
+	static result_t deepPropertyNotVal(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value, const char* msg);
 	static result_t throws(v8::Handle<v8::Function> block, const char* msg);
 	static result_t doesNotThrow(v8::Handle<v8::Function> block, const char* msg);
 
@@ -109,6 +115,12 @@ public:
 	static v8::Handle<v8::Value> s_notTypeOf(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_property(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_notProperty(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_deepProperty(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_notDeepProperty(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_propertyVal(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_propertyNotVal(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_deepPropertyVal(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_deepPropertyNotVal(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_throws(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_doesNotThrow(const v8::Arguments& args);
 };
@@ -162,6 +174,12 @@ namespace fibjs
 			{"notTypeOf", s_notTypeOf, true},
 			{"property", s_property, true},
 			{"notProperty", s_notProperty, true},
+			{"deepProperty", s_deepProperty, true},
+			{"notDeepProperty", s_notDeepProperty, true},
+			{"propertyVal", s_propertyVal, true},
+			{"propertyNotVal", s_propertyNotVal, true},
+			{"deepPropertyVal", s_deepPropertyVal, true},
+			{"deepPropertyNotVal", s_deepPropertyNotVal, true},
 			{"throws", s_throws, true},
 			{"doesNotThrow", s_doesNotThrow, true}
 		};
@@ -169,7 +187,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"assert", NULL, 
-			42, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			48, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -672,6 +690,88 @@ namespace fibjs
 		OPT_ARG_String(2, "");
 
 		hr = notProperty(v0, v1, v2);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> assert_base::s_deepProperty(const v8::Arguments& args)
+	{
+		METHOD_ENTER(3, 2);
+
+		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Handle<v8::Value>, 1);
+		OPT_ARG_String(2, "");
+
+		hr = deepProperty(v0, v1, v2);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> assert_base::s_notDeepProperty(const v8::Arguments& args)
+	{
+		METHOD_ENTER(3, 2);
+
+		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Handle<v8::Value>, 1);
+		OPT_ARG_String(2, "");
+
+		hr = notDeepProperty(v0, v1, v2);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> assert_base::s_propertyVal(const v8::Arguments& args)
+	{
+		METHOD_ENTER(4, 3);
+
+		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Handle<v8::Value>, 2);
+		OPT_ARG_String(3, "");
+
+		hr = propertyVal(v0, v1, v2, v3);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> assert_base::s_propertyNotVal(const v8::Arguments& args)
+	{
+		METHOD_ENTER(4, 3);
+
+		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Handle<v8::Value>, 2);
+		OPT_ARG_String(3, "");
+
+		hr = propertyNotVal(v0, v1, v2, v3);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> assert_base::s_deepPropertyVal(const v8::Arguments& args)
+	{
+		METHOD_ENTER(4, 3);
+
+		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Handle<v8::Value>, 2);
+		OPT_ARG_String(3, "");
+
+		hr = deepPropertyVal(v0, v1, v2, v3);
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> assert_base::s_deepPropertyNotVal(const v8::Arguments& args)
+	{
+		METHOD_ENTER(4, 3);
+
+		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Handle<v8::Value>, 2);
+		OPT_ARG_String(3, "");
+
+		hr = deepPropertyNotVal(v0, v1, v2, v3);
 
 		METHOD_VOID();
 	}
