@@ -1,5 +1,3 @@
-console.log('assert testing....');
-
 var test = require("test");
 
 assert = test.assert;
@@ -398,6 +396,50 @@ describe(
 					assert.isNotBoolean(false);
 				}, "expected false not to be a boolean");
 			});
+
+			it('property', function () {
+			    var obj = { foo: { bar: 'baz' } };
+			    var simpleObj = { foo: 'bar' };
+			    assert.property(obj, 'foo');
+			    assert.deepProperty(obj, 'foo.bar');
+			    assert.notProperty(obj, 'baz');
+			    assert.notProperty(obj, 'foo.bar');
+			    assert.notDeepProperty(obj, 'foo.baz');
+			    assert.deepPropertyVal(obj, 'foo.bar', 'baz');
+			    assert.deepPropertyNotVal(obj, 'foo.bar', 'flow');
+
+			    assert.throws(function () {
+			      assert.property(obj, 'baz');
+			    }, "expected { foo: { bar: 'baz' } } to have a property 'baz'");
+
+			    assert.throws(function () {
+			      assert.deepProperty(obj, 'foo.baz');
+			    }, "expected { foo: { bar: 'baz' } } to have a deep property 'foo.baz'");
+
+			    assert.throws(function () {
+			      assert.notProperty(obj, 'foo');
+			    }, "expected { foo: { bar: 'baz' } } to not have property 'foo'");
+
+			    assert.throws(function () {
+			      assert.notDeepProperty(obj, 'foo.bar');
+			    }, "expected { foo: { bar: 'baz' } } to not have deep property 'foo.bar'");
+
+			    assert.throws(function () {
+			      assert.propertyVal(simpleObj, 'foo', 'ball');
+			    }, "expected { foo: 'bar' } to have a property 'foo' of 'ball', but got 'bar'");
+
+			    assert.throws(function () {
+			      assert.deepPropertyVal(obj, 'foo.bar', 'ball');
+			    }, "expected { foo: { bar: 'baz' } } to have a deep property 'foo.bar' of 'ball', but got 'baz'");
+
+			    assert.throws(function () {
+			      assert.propertyNotVal(simpleObj, 'foo', 'bar');
+			    }, "expected { foo: 'bar' } to not have a property 'foo' of 'bar'");
+
+			    assert.throws(function () {
+			      assert.deepPropertyNotVal(obj, 'foo.bar', 'baz');
+			    }, "expected { foo: { bar: 'baz' } } to not have a deep property 'foo.bar' of 'baz'");
+			  });
 
 			it(
 					'throws',

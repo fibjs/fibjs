@@ -216,6 +216,53 @@ describe('expect', function () {
     expect(a).not.to.deep.equal({});
   });
 
+
+  it('deep.property(name)', function(){
+    expect({ 'foo.bar': 'baz'})
+      .to.not.have.deep.property('foo.bar');
+    expect({ foo: { bar: 'baz' } })
+      .to.have.deep.property('foo.bar');
+
+    assert.throws(function(){
+      expect({ 'foo.bar': 'baz' })
+        .to.have.deep.property('foo.bar');
+    }, "expected { 'foo.bar': 'baz' } to have a deep property 'foo.bar'");
+  });
+
+  it('property(name, val)', function(){
+    expect('test').to.have.property('length', 4);
+
+    assert.throws(function(){
+      expect('asd').to.have.property('length', 4, 'blah');
+    }, "blah: expected 'asd' to have a property 'length' of 4, but got 3");
+
+    assert.throws(function(){
+      expect('asd').to.not.have.property('length', 3, 'blah');
+    }, "blah: expected 'asd' to not have a property 'length' of 3");
+
+    assert.throws(function(){
+      expect('asd').to.not.have.property('foo', 3, 'blah');
+    }, "blah: 'asd' has no property 'foo'");
+  });
+
+  it('deep.property(name, val)', function(){
+    expect({ foo: { bar: 'baz' } })
+      .to.have.deep.property('foo.bar', 'baz');
+
+    assert.throws(function(){
+      expect({ foo: { bar: 'baz' } })
+        .to.have.deep.property('foo.bar', 'quux', 'blah');
+    }, "blah: expected { foo: { bar: 'baz' } } to have a deep property 'foo.bar' of 'quux', but got 'baz'");
+    assert.throws(function(){
+      expect({ foo: { bar: 'baz' } })
+        .to.not.have.deep.property('foo.bar', 'baz', 'blah');
+    }, "blah: expected { foo: { bar: 'baz' } } to not have a deep property 'foo.bar' of 'baz'");
+    assert.throws(function(){
+      expect({ foo: 5 })
+        .to.not.have.deep.property('foo.bar', 'baz', 'blah');
+    }, "blah: { foo: 5 } has no deep property 'foo.bar'");
+  });
+  
   it('closeTo', function(){
     expect(1.5).to.be.closeTo(1.0, 0.5);
     expect(10).to.be.closeTo(20, 20);
