@@ -1,13 +1,5 @@
 var test = require("test");
-
-assert = test.assert;
-expect = test.expect;
-describe = test.describe;
-it = test.it;
-before = test.before;
-after = test.after;
-beforeEach = test.beforeEach;
-afterEach = test.afterEach;
+test.setup();
 
 describe('expect', function () {
   it('assertion', function(){
