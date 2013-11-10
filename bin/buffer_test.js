@@ -1,31 +1,32 @@
-/**
- * 
- */
+var test = require("test");
+test.setup();
 
-console.log('buffer testing....');
+describe('Buffer', function() {
+	it('new', function() {
+		var buf = new Buffer("abcd");
+		assert.equal(buf.length, 4);
+	});
 
-var assert = require('assert');
+	it('resize', function() {
+		var buf = new Buffer();
+		buf.resize(100);
+		assert.equal(buf.length, 100);
 
-var buf = new Buffer();
-buf.resize(100);
-assert.equal(buf.length, 100);
+		assert.doesNotThrow(function() {
+			buf.resize("12")
+		});
+		assert.throws(function() {
+			buf.resize("a12")
+		});
 
-var buf = new Buffer("abcd");
-assert.equal(buf.length, 4);
+		assert.throws(function() {
+			buf.resize("12a")
+		});
 
-var buf = new Buffer();
-assert.doesNotThrow(function() {
-	buf.resize("12")
+		assert.throws(function() {
+			buf.resize("12.a")
+		});
+	});
 });
 
-assert.throws(function() {
-	buf.resize("a12")
-});
-
-assert.throws(function() {
-	buf.resize("12a")
-});
-
-assert.throws(function() {
-	buf.resize("12.a")
-});
+//test.run();

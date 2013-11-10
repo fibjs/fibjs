@@ -1,3 +1,4 @@
+var test = require("test");
 var os = require('os');
 
 run("assert_test.js");
@@ -8,6 +9,9 @@ run("path_test");
 run("fiber_test");
 run("fibmod_test");
 run("trigger_test");
+
+test.run();
+
 run("lock_test");
 run("fs_test");
 run("ms_test");
