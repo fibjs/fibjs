@@ -754,7 +754,7 @@ result_t deep_has_prop(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop,
 	p = *s;
 	while ((p1 = qstrchr(p, '.')) != NULL)
 	{
-		object = v->Get(v8::String::New(p, p1 - p));
+		object = v->Get(v8::String::New(p, (int)(p1 - p)));
 		if (object.IsEmpty() || (!object->IsObject() && !object->IsString()))
 		{
 			retVal = false;
@@ -856,7 +856,7 @@ result_t deep_has_val(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop,
 	p = *s;
 	while ((p1 = qstrchr(p, '.')) != NULL)
 	{
-		object = v->Get(v8::String::New(p, p1 - p));
+		object = v->Get(v8::String::New(p, (int)(p1 - p)));
 		if (object.IsEmpty() || (!object->IsObject() && !object->IsString()))
 		{
 			retVal = false;
