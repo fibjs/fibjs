@@ -66,4 +66,8 @@ class test : module
 	 * @return 返回 Expect 对象用以链式调用
 	 */
 	static Expect expect(Value actual, String msg = "");
+	
+	/*! @brief 初始化当前脚本的测试环境，将 test 模块方法复制为当前脚本全局变量
+	 */
+	static setup();
 };

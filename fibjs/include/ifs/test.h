@@ -37,6 +37,7 @@ public:
 	static result_t run(int32_t loglevel);
 	static result_t get_assert(obj_ptr<assert_base>& retVal);
 	static result_t expect(v8::Handle<v8::Value> actual, const char* msg, obj_ptr<Expect_base>& retVal);
+	static result_t setup();
 
 	DECLARE_CLASSINFO(test_base);
 
@@ -52,6 +53,7 @@ public:
 	static v8::Handle<v8::Value> s_run(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_assert(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_expect(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_setup(const v8::Arguments& args);
 };
 
 }
@@ -75,7 +77,8 @@ namespace fibjs
 			{"beforeEach", s_beforeEach, true},
 			{"afterEach", s_afterEach, true},
 			{"run", s_run, true},
-			{"expect", s_expect, true}
+			{"expect", s_expect, true},
+			{"setup", s_setup, true}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -86,7 +89,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"test", NULL, 
-			10, s_method, 0, NULL, 1, s_property, NULL, NULL,
+			11, s_method, 0, NULL, 1, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -220,6 +223,15 @@ namespace fibjs
 		hr = expect(v0, v1, vr);
 
 		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> test_base::s_setup(const v8::Arguments& args)
+	{
+		METHOD_ENTER(0, 0);
+
+		hr = setup();
+
+		METHOD_VOID();
 	}
 
 }
