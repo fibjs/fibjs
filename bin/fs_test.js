@@ -1,21 +1,7 @@
-/**
- * 
- */
-
-console.log('fs testing....');
-
-var assert = require('assert');
+var test = require("test");
+test.setup();
 
 var fs = require('fs');
-
-var f = fs.open('fs_test.js');
-assert.doesNotThrow(function() {
-	f.read(100);
-});
-f.close();
-assert.throws(function() {
-	f.read(100);
-});
 
 function unlink(pathname) {
 	try {
@@ -24,78 +10,124 @@ function unlink(pathname) {
 	}
 }
 
-assert.ok(fs.exists('fs_test.js'));
-
 var pathname = 'test_dir';
 var pathname1 = 'test1_dir';
-unlink(pathname);
-unlink(pathname1);
 
-fs.mkdir(pathname);
-assert.equal(fs.exists(pathname), true);
+describe('fs', function() {
+	before(function() {
+		unlink(pathname);
+		unlink(pathname1);
+	});
 
-fs.rename(pathname, pathname1);
-assert.equal(fs.exists(pathname), false);
-assert.equal(fs.exists(pathname1), true);
+	it("file open & close", function() {
+		var f = fs.open('fs_test.js');
+		assert.doesNotThrow(function() {
+			f.read(100);
+		});
+		f.close();
+		assert.throws(function() {
+			f.read(100);
+		});
 
-fs.rmdir(pathname1);
-assert.equal(fs.exists(pathname1), false);
+		assert.ok(fs.exists('fs_test.js'));
+	});
 
-var st = fs.stat('.');
+	it("mkdir", function() {
+		fs.mkdir(pathname);
+		assert.equal(fs.exists(pathname), true);
+	});
 
-assert.equal(st.isDirectory(), true);
-assert.equal(st.isFile(), false);
-assert.equal(st.isExecutable(), true);
-assert.equal(st.isReadable(), true);
-assert.equal(st.isWritable(), true);
+	it("rename", function() {
+		fs.rename(pathname, pathname1);
+		assert.equal(fs.exists(pathname), false);
+		assert.equal(fs.exists(pathname1), true);
+	});
 
-f = fs.open('fs_test.js');
+	it("rmdir", function() {
+		fs.rmdir(pathname1);
+		assert.equal(fs.exists(pathname1), false);
+	});
 
-var st = fs.stat('fs_test.js');
-assert.equal(st.size, f.size());
+	it("stat", function() {
+		var st = fs.stat('.');
 
-var f1 = fs.open('fs_test.js.bak', 'w');
-f1.write(f.read(f.size()));
+		assert.equal(st.isDirectory(), true);
+		assert.equal(st.isFile(), false);
+		assert.equal(st.isExecutable(), true);
+		assert.equal(st.isReadable(), true);
+		assert.equal(st.isWritable(), true);
+	});
 
-f.rewind();
-var b = f.read(st.size + 100);
-assert.equal(st.size, b.length);
-assert.equal(true, f.eof());
+	it("file.size", function(){
+		var f = fs.open('fs_test.js');
+		var st = fs.stat('fs_test.js');
+		assert.equal(st.size, f.size());
+		f.close();
+	});
 
-f.close();
+	it("file read & write", function(){
+		f = fs.open('fs_test.js');
 
-var s = fs.readFile("fs_test.js");
-assert.equal(s, b.toString());
+		var f1 = fs.open('fs_test.js.bak', 'w+');
+		f1.write(f.read(f.size()));
 
-st = fs.stat('fs_test.js');
-assert.equal(st.size, f1.size());
+		f1.rewind();
+		var b = f1.read(f1.size() + 100);
+		assert.equal(true, f1.eof());
+		assert.equal(f1.size(), b.length);
 
-assert.equal(st.size, f1.tell());
-f1.rewind();
-assert.equal(0, f1.tell());
+		f.close();
+		f1.close();
+		fs.unlink('fs_test.js.bak');
+	});
+	
+	it("readFile", function(){
+		f = fs.open('fs_test.js');
 
-f1.close();
+		var s = fs.readFile("fs_test.js");
+		assert.equal(s, f.read(f.size()).toString());
+		
+		f.close();
+	});
+	
+	it("tell", function(){
+		f = fs.open('fs_test.js');
+		var st = fs.stat('fs_test.js');
 
-fs.unlink('fs_test.js.bak');
+		f.read(f.size());
 
-f = fs.open('fs_test.js');
-f.seek(f.size() + 10, fs.SEEK_SET);
-assert.equal(f.tell(), f.size() + 10);
-f.seek(10, fs.SEEK_SET);
-b = f.read(f.size());
-assert.equal(f.size() - 10, b.length);
-f.close();
+		assert.equal(st.size, f.tell());
+		f.rewind();
+		assert.equal(0, f.tell());
+		
+		f.close();
+	});
 
-f = fs.open('fs_test.js');
-f1 = fs.open('fs_test.js.bak', 'w');
+	it("seek", function(){
+		f = fs.open('fs_test.js');
+		f.seek(f.size() + 10, fs.SEEK_SET);
+		assert.equal(f.tell(), f.size() + 10);
+		f.seek(10, fs.SEEK_SET);
+		b = f.read(f.size());
+		assert.equal(f.size() - 10, b.length);
+		f.close();
+	});
 
-var s = f.copyTo(f1, 100);
-assert.equal(s, 100);
-assert.equal(f1.size(), 100);
-f.copyTo(f1);
-assert.equal(f1.size(), f.size());
+	it("copyTo", function(){
+		f = fs.open('fs_test.js');
+		f1 = fs.open('fs_test.js.bak', 'w');
 
-f.close();
-f1.close();
+		var s = f.copyTo(f1, 100);
+		assert.equal(s, 100);
+		assert.equal(f1.size(), 100);
+		f.copyTo(f1);
+		assert.equal(f1.size(), f.size());
 
-fs.unlink('fs_test.js.bak');
+		f.close();
+		f1.close();
+
+		fs.unlink('fs_test.js.bak');
+	});
+});
+
+//test.run();

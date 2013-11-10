@@ -9,12 +9,12 @@ run("path_test");
 run("fiber_test");
 run("fibmod_test");
 run("trigger_test");
-
-test.run();
-
 run("lock_test");
 run("fs_test");
 run("ms_test");
+
+test.run();
+
 run("os_test");
 run("process_test");
 run("encoding_test");
