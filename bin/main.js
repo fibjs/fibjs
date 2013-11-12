@@ -19,12 +19,12 @@ run("module_test");
 run("define_test");
 run("net_test");
 run("hash_test");
-
-test.run();
-
 run("buffered_test");
 run("url_test");
 run("http_test");
+
+test.run();
+
 run("mq_test");
 run("rpc_test");
 
