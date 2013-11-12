@@ -70,4 +70,8 @@ class test : module
 	/*! @brief 初始化当前脚本的测试环境，将 test 模块方法复制为当前脚本全局变量
 	 */
 	static setup();
+	
+	/*! @brief 设置和查询慢速测试警告阀值，以 ms 为单位，缺省为 75
+	 */
+	static Integer slow;
 };

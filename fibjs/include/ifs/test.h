@@ -38,6 +38,8 @@ public:
 	static result_t get_assert(obj_ptr<assert_base>& retVal);
 	static result_t expect(v8::Handle<v8::Value> actual, const char* msg, obj_ptr<Expect_base>& retVal);
 	static result_t setup();
+	static result_t get_slow(int32_t& retVal);
+	static result_t set_slow(int32_t newVal);
 
 	DECLARE_CLASSINFO(test_base);
 
@@ -54,6 +56,8 @@ public:
 	static v8::Handle<v8::Value> s_get_assert(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_expect(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_setup(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_get_slow(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s_set_slow(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 };
 
 }
@@ -83,13 +87,14 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"assert", s_get_assert, NULL, true}
+			{"assert", s_get_assert, NULL, true},
+			{"slow", s_get_slow, s_set_slow}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"test", NULL, 
-			11, s_method, 0, NULL, 1, s_property, NULL, NULL,
+			11, s_method, 0, NULL, 2, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -106,6 +111,27 @@ namespace fibjs
 		hr = get_assert(vr);
 
 		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> test_base::s_get_slow(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr;
+
+		PROPERTY_ENTER();
+
+		hr = get_slow(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void test_base::s_set_slow(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	{
+		PROPERTY_ENTER();
+		PROPERTY_VAL(int32_t);
+
+		hr = set_slow(v0);
+
+		PROPERTY_SET_LEAVE();
 	}
 
 	inline v8::Handle<v8::Value> test_base::s_describe(const v8::Arguments& args)

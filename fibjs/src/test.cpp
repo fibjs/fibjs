@@ -10,6 +10,7 @@
 #include "QuickArray.h"
 #include "Expect.h"
 #include <log4cpp/Category.hh>
+#include "date.h"
 
 #define COLOR_RESET "\x1b[0m"
 #define COLOR_BLACK "\x1b[30m" /* Black */
@@ -29,6 +30,7 @@ class _case;
 
 static obj_ptr<_case> s_root;
 static obj_ptr<_case> s_now;
+static int32_t s_slow = 75;
 
 enum
 {
@@ -114,11 +116,14 @@ public:
 		int32_t oldlevel = 0;
 		int32_t cnt = 0, errcnt = 0;
 		char buf[128];
+		date_t da1, da2;
 
 		console_base::get_loglevel(oldlevel);
 		console_base::set_loglevel(loglevel);
 
 		stack.append(s_root);
+
+		da1.now();
 
 		while (stack.size())
 		{
@@ -172,7 +177,12 @@ public:
 				cnt++;
 				{
 					v8::TryCatch try_catch;
+					date_t d1, d2;
+
+					d1.now();
 					p1->m_block->Call(o, 0, NULL);
+					d2.now();
+
 					if (try_catch.HasCaught())
 					{
 						errcnt++;
@@ -188,8 +198,22 @@ public:
 					}
 					else
 					{
+						double n = d2.diff(d1);
+
 						str.append(COLOR_GREEN "\xe2\x88\x9a " COLOR_GREY);
-						str.append(p1->m_name + COLOR_NORMAL);
+						str.append(p1->m_name);
+						if (n > s_slow / 2)
+						{
+							sprintf(buf, " (%dms) ", (int) n);
+
+							if (n > s_slow)
+								str.append(COLOR_RED);
+							else
+								str.append(COLOR_YELLOW);
+
+							str.append(buf);
+						}
+						str.append(COLOR_NORMAL);
 					}
 				}
 
@@ -232,8 +256,11 @@ public:
 
 		if (errcnt == 0)
 		{
+			da2.now();
+
 			sprintf(buf,
-			COLOR_GREEN "  \xe2\x88\x9a %d tests completed" COLOR_NORMAL, cnt);
+					COLOR_GREEN "  \xe2\x88\x9a %d tests completed" COLOR_NORMAL " (%dms)",
+					cnt, (int) da2.diff(da1));
 			asyncLog(log4cpp::Priority::INFO, buf);
 		}
 		else
@@ -381,6 +408,18 @@ result_t test_base::setup()
 		glob->ForceSet(v8::String::New("assert"), assert->wrap(), v8::ReadOnly);
 	}
 
+	return 0;
+}
+
+result_t test_base::get_slow(int32_t& retVal)
+{
+	retVal = s_slow;
+	return 0;
+}
+
+result_t test_base::set_slow(int32_t newVal)
+{
+	s_slow = newVal;
 	return 0;
 }
 
