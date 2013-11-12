@@ -259,7 +259,7 @@ public:
 			da2.now();
 
 			sprintf(buf,
-					COLOR_GREEN "  \xe2\x88\x9a %d tests completed" COLOR_NORMAL " (%dms)",
+					COLOR_GREEN "  \xe2\x88\x9a %d tests completed" COLOR_GREY " (%dms)" COLOR_NORMAL,
 					cnt, (int) da2.diff(da1));
 			asyncLog(log4cpp::Priority::INFO, buf);
 		}
