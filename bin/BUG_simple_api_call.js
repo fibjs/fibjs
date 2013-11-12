@@ -1,7 +1,13 @@
-
-console.log('BUG_simple_api_call testing....');
+var test = require("test");
+test.setup();
 
 var coroutine = require('coroutine');
 
-for(var i = 0; i < 100; i ++)
-	coroutine.sleep(1);
+describe("BUG:simple_api_call", function() {
+	it("not hungup", function() {
+		for (var i = 0; i < 100; i++)
+			coroutine.sleep(1);
+	});
+});
+
+//test.run();

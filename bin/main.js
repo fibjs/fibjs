@@ -22,20 +22,14 @@ run("hash_test");
 run("buffered_test");
 run("url_test");
 run("http_test");
-
-test.run();
-
 run("mq_test");
 run("rpc_test");
-
-if (os.type != 'Windows' || os.version >= "6.0")
-	run("zmq_test");
-
 run("uuid_test");
 run("gd_test");
 run("zlib_test");
-run("db_test");
 run("vm_test");
+run("db_test");
 
 run('BUG_simple_api_call');
-console.log("TEST End.");
+
+test.run();
