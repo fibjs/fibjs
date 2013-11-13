@@ -299,6 +299,25 @@ describe(
 									assert.equal(c['b'].body.read().toString(),
 											'200');
 								});
+						it(
+								"chunk",
+								function() {
+									function chunk(data) {
+										return data.length.toString(16)
+												+ '\r\n' + data + '\r\n';
+									}
+
+									var datas = [ 'This is the first chunk',
+											'This is the second chunk',
+											'This is the third chunk',
+											'This is the fourth chunk',
+											'This is the 5th chunk', '' ];
+
+									var rep = get_response('HTTP/1.1 200\r\nConnection: close\r\nTransfer-encoding: chunked\r\n\r\n'
+											+ datas.map(chunk).join(''));
+									assert.equal(datas.join(''), rep.body.read());
+								});
+
 					});
 
 			describe(
