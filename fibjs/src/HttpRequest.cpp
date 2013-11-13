@@ -217,52 +217,34 @@ result_t HttpRequest::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 			asyncReadFrom* pThis = (asyncReadFrom*) pState;
 
 			pThis->set(command);
-			return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine, pThis);
+			return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine,
+					pThis);
 		}
 
 		static int command(asyncState* pState, int n)
 		{
 			asyncReadFrom* pThis = (asyncReadFrom*) pState;
+			_parser p(pThis->m_strLine);
 			result_t hr;
 
-			int p1, p2;
-			_parser p(pThis->m_strLine);
-
-			p1 = p.pos;
-			p.skipWord();
-			p2 = p.pos;
-			if (p1 == p2)
+			if (!p.getWord(pThis->m_pThis->m_method))
 				return CALL_E_INVALID_DATA;
-
-			pThis->m_pThis->m_method.assign(p.string + p1, p2 - p1);
 
 			p.skipSpace();
 
-			p1 = p.pos;
-			p.skipWord('?');
-			p2 = p.pos;
-			if (p1 == p2)
+			if (!p.getWord(pThis->m_pThis->m_address, '?'))
 				return CALL_E_INVALID_DATA;
-
-			pThis->m_pThis->m_address.assign(p.string + p1, p2 - p1);
 			pThis->m_pThis->m_message.set_value(pThis->m_pThis->m_address);
 
-			if (p.get() == '?')
-			{
-				p.skip();
-
-				p1 = p.pos;
-				p.skipWord();
-				p2 = p.pos;
-				pThis->m_pThis->m_queryString.assign(p.string + p1, p2 - p1);
-			}
+			if (p.want('?'))
+				p.getWord(pThis->m_pThis->m_queryString);
 
 			p.skipSpace();
 
 			if (p.end())
 				return CALL_E_INVALID_DATA;
 
-			hr = pThis->m_pThis->set_protocol(p.string + p.pos);
+			hr = pThis->m_pThis->set_protocol(p.now());
 			if (hr < 0)
 				return hr;
 
@@ -343,7 +325,7 @@ result_t HttpRequest::get_response(obj_ptr<HttpResponse_base>& retVal)
 void HttpRequest::parse(std::string& str, char split,
 		obj_ptr<HttpCollection_base>& retVal)
 {
-	obj_ptr<HttpCollection> c = new HttpCollection();
+	obj_ptr < HttpCollection > c = new HttpCollection();
 
 	const char* pstr = str.c_str();
 	int nSize = (int) str.length();
@@ -444,10 +426,10 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
 					"application/x-www-form-urlencoded", 33))
 				return CALL_E_INVALID_DATA;
 
-			obj_ptr<Buffer_base> buf;
-			obj_ptr<SeekableStream_base> _body;
+			obj_ptr < Buffer_base > buf;
+			obj_ptr < SeekableStream_base > _body;
 
-			get_body(_body);
+			get_body (_body);
 			_body->rewind();
 			result_t hr = _body->read((int32_t) len, buf, NULL);
 			if (hr < 0)
@@ -458,7 +440,8 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
 
 			if (bUpload)
 			{
-				obj_ptr<HttpUploadCollection> col = new HttpUploadCollection();
+				obj_ptr < HttpUploadCollection > col =
+						new HttpUploadCollection();
 				col->parse(strForm, strType.c_str());
 				m_form = col;
 			}

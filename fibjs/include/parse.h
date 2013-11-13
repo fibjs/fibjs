@@ -100,6 +100,58 @@ public:
 		}
 	}
 
+	int getWord(std::string& retVal)
+	{
+		int p1, p2;
+
+		p1 = pos;
+		skipWord();
+		p2 = pos - p1;
+
+		retVal.assign(string + p1, p2);
+
+		return p2;
+	}
+
+	int getWord(std::string& retVal, char ch1)
+	{
+		int p1, p2;
+
+		p1 = pos;
+		skipWord(ch1);
+		p2 = pos - p1;
+
+		retVal.assign(string + p1, p2);
+
+		return p2;
+	}
+
+	int getWord(std::string& retVal, char ch1, char ch2)
+	{
+		int p1, p2;
+
+		p1 = pos;
+		skipWord(ch1, ch2);
+		p2 = pos - p1;
+
+		retVal.assign(string + p1, p2);
+
+		return p2;
+	}
+
+	int getWord(std::string& retVal, char ch1, char ch2, char ch3)
+	{
+		int p1, p2;
+
+		p1 = pos;
+		skipWord(ch1, ch2, ch3);
+		p2 = pos - p1;
+
+		retVal.assign(string + p1, p2);
+
+		return p2;
+	}
+
 	bool want(char ch)
 	{
 		skipSpace();
@@ -116,6 +168,16 @@ public:
 	bool end()
 	{
 		return pos >= sz;
+	}
+
+	const char* now()
+	{
+		return string + pos;
+	}
+
+	int left()
+	{
+		return sz - pos;
 	}
 
 public:

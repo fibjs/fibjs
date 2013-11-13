@@ -134,8 +134,8 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 	public:
 		asyncReadFrom(HttpMessage* pThis, BufferedStream_base* stm,
 				exlib::AsyncEvent* ac) :
-				asyncState(ac), m_pThis(pThis), m_stm(stm), m_contentLength(0), m_headCount(
-						0)
+				asyncState(ac), m_pThis(pThis), m_stm(stm), m_contentLength(0), m_bChunked(
+						false), m_headCount(0)
 		{
 			set(begin);
 		}
@@ -165,6 +165,19 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 									> pThis->m_pThis->m_maxUploadSize * 1048576))
 						return CALL_E_INVALID_DATA;
 				}
+				else if (!qstricmp(pThis->m_strLine.c_str(),
+						"transfer-encoding:", 18))
+				{
+					_parser p(pThis->m_strLine.c_str() + 18,
+							pThis->m_strLine.length() - 18);
+
+					p.skipSpace();
+					puts(p.now());
+					if (qstricmp(p.now(), "chunked"))
+						return CALL_E_INVALID_DATA;
+
+					pThis->m_bChunked = true;
+				}
 				else
 				{
 					result_t hr = pThis->m_pThis->addHeader(pThis->m_strLine);
@@ -180,15 +193,25 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 						pThis);
 			}
 
-			if (pThis->m_contentLength == 0)
-				return pThis->done(0);
+			if (pThis->m_bChunked)
+			{
+				if (pThis->m_contentLength)
+					return CALL_E_INVALID_DATA;
 
-			pThis->set(body);
+				pThis->m_pThis->get_body(pThis->m_body);
+				return chunk_head(pState, n);
+			}
 
-			pThis->m_pThis->get_body(pThis->m_body);
+			if (pThis->m_contentLength > 0)
+			{
+				pThis->m_pThis->get_body(pThis->m_body);
 
-			return pThis->m_stm->copyTo(pThis->m_body, pThis->m_contentLength,
-					pThis->m_copySize, pThis);
+				pThis->set(body);
+				return pThis->m_stm->copyTo(pThis->m_body,
+						pThis->m_contentLength, pThis->m_copySize, pThis);
+			}
+
+			return pThis->done(0);
 		}
 
 		static int body(asyncState* pState, int n)
@@ -203,12 +226,70 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 			return pThis->done(0);
 		}
 
+		static int chunk_head(asyncState* pState, int n)
+		{
+			asyncReadFrom* pThis = (asyncReadFrom*) pState;
+
+			pThis->set(chunk_body);
+			return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine,
+					pThis);
+		}
+
+		static int chunk_body(asyncState* pState, int n)
+		{
+			asyncReadFrom* pThis = (asyncReadFrom*) pState;
+			_parser p(pThis->m_strLine);
+			char ch;
+			int64_t sz = 0;
+
+			p.skipSpace();
+
+			if (!qisxdigit(p.get()))
+				return CALL_E_INVALID_DATA;
+
+			if (p.get() != '0')
+			{
+				while (qisxdigit(ch = p.get()))
+				{
+					sz = (sz << 4) + qhex(ch);
+					p.skip();
+				}
+
+				pThis->set(chunk_body_end);
+				return pThis->m_stm->copyTo(pThis->m_body, sz,
+						pThis->m_copySize, pThis);
+			}
+
+			pThis->set(chunk_end);
+			return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine,
+					pThis);
+		}
+
+		static int chunk_body_end(asyncState* pState, int n)
+		{
+			asyncReadFrom* pThis = (asyncReadFrom*) pState;
+
+			pThis->set(chunk_head);
+			return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine,
+					pThis);
+		}
+
+		static int chunk_end(asyncState* pState, int n)
+		{
+			asyncReadFrom* pThis = (asyncReadFrom*) pState;
+
+			pThis->m_body->rewind();
+
+			return pThis->done(0);
+		}
+
 	public:
 		HttpMessage* m_pThis;
 		obj_ptr<BufferedStream_base> m_stm;
 		obj_ptr<SeekableStream_base> m_body;
 		std::string m_strLine;
 		int64_t m_contentLength;
+		bool m_bChunked;
 		int32_t m_headCount;
 		int64_t m_copySize;
 	};
@@ -241,7 +322,7 @@ result_t HttpMessage::addHeader(std::string& strLine)
 		return CALL_E_INVALID_DATA;
 
 	p.skipSpace();
-	addHeader(p.string, p2, p.string + p.pos, p.sz - p.pos);
+	addHeader(p.string, p2, p.now(), p.left());
 
 	return 0;
 }
@@ -437,7 +518,7 @@ result_t HttpMessage::removeHeader(const char* name)
 
 result_t HttpMessage::get_stream(obj_ptr<Stream_base>& retVal)
 {
-	if(!m_stm)
+	if (!m_stm)
 		return CALL_RETURN_NULL;
 
 	retVal = m_stm;
