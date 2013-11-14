@@ -1,10 +1,10 @@
 
 /*! @brief 输入输出处理模块
- *
- * 使用方法：
- * @code
- * var io = require('io');
- * @endcode
+
+ 使用方法：
+ @code
+ var io = require('io');
+ @endcode
  */
 class io : module
 {

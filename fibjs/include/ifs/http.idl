@@ -9,23 +9,23 @@ class http : module
 	static HttpResponse new Response();
 
 	/*! @brief 创建一个 http 协议处理器对象，将流对象的数据转变为 http 消息对象
-	 * @param hdlr http 消息处理器
-	 * @return 返回一个可以将流对象数据转变为 http 消息的处理器
+	 @param hdlr http 消息处理器
+	 @return 返回一个可以将流对象数据转变为 http 消息的处理器
 	 */
 	static HttpHandler handler(Handler hdlr);
 
 	/*! @brief 创建一个 http 协议处理器对象，将流对象的数据转变为 http 消息对象
-	 * @param hdlr http 消息处理函数
-	 * @return 返回一个可以将流对象数据转变为 http 消息的处理器
+	 @param hdlr http 消息处理函数
+	 @return 返回一个可以将流对象数据转变为 http 消息的处理器
 	 */
 	static HttpHandler handler(Function hdlr);
 
 	/*! @brief 创建一个 http 静态文件处理器，用以用静态文件响应 http 消息
-	 * @param root 文件跟路径
-	 * @return 返回一个静态文件处理器用于处理 http 消息
-	 *
-	 * fileHandler 支持 gzip 预压缩，当请求接受 gzip 编码，且相同路径下 filename.ext.gz 文件存在时，将直接返回此文件，
-	 * 从而避免重复压缩带来服务器负载。
+	 @param root 文件跟路径
+	 @return 返回一个静态文件处理器用于处理 http 消息
+	
+	 fileHandler 支持 gzip 预压缩，当请求接受 gzip 编码，且相同路径下 filename.ext.gz 文件存在时，将直接返回此文件，
+	 从而避免重复压缩带来服务器负载。
 	 */
 	static Handler fileHandler(String root);
 };

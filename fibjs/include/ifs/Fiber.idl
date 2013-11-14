@@ -1,18 +1,18 @@
 
 /*! @brief 纤程操作对象，此对象不可直接创建
- * 
- * Function.start 或 coroutine.start 创建纤程后，将返回此对象，用于纤程处理和纤程间通信。
- * 纤程主函数可以通过 this 访问本纤程对象，也可通过 coroutine.current 获取当前纤程。
- * @code
- * function func(v1)
- * {
- *   print(v1 + this.v);
- * }
- *
- * var fb = func.start(100);
- * fb.v = 123;
- * fb.join();
- * @endcode
+ 
+ Function.start 或 coroutine.start 创建纤程后，将返回此对象，用于纤程处理和纤程间通信。
+ 纤程主函数可以通过 this 访问本纤程对象，也可通过 coroutine.current 获取当前纤程。
+ @code
+ function func(v1)
+ {
+   print(v1 + this.v);
+ }
+
+ var fb = func.start(100);
+ fb.v = 123;
+ fb.join();
+ @endcode
  */
 class Fiber : Trigger
 {
@@ -23,12 +23,12 @@ class Fiber : Trigger
 	readonly Fiber caller;
 
 	/*! @brief 设定纤程错误触发器，当纤程发生未被捕获的错误时，处罚此事件，等效于 on('error', trigger);
-	 * @param trigger 触发器函数，trigger 的定义为 function(err);其中 err 为纤程抛出的错误
+	 @param trigger 触发器函数，trigger 的定义为 function(err);其中 err 为纤程抛出的错误
 	 */
 	onerror(Function trigger);
 
 	/*! @brief 设定纤程退出触发器，等效于 on('exit', trigger);
-	 * @param trigger 触发器函数，trigger 的定义为 function(retVal);其中 retVal 为纤程返回值
+	 @param trigger 触发器函数，trigger 的定义为 function(retVal);其中 retVal 为纤程返回值
 	 */
 	onexit(Function trigger);
 };

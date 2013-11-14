@@ -1,93 +1,93 @@
 
 /*! @brief 编码与解码模块，用于处理不同的数据编码格式与二进制之间的转换
- * 引用方式：
- * @code
- * var encoding = require('encoding');
- * @endcode
+ 引用方式：
+ @code
+ var encoding = require('encoding');
+ @endcode
  */
 class encoding : module
 {
 	/*! @brief 以 base32 方式编码数据
-	 * @param data 要编码的数据
-	 * @return 返回编码的字符串
+	 @param data 要编码的数据
+	 @return 返回编码的字符串
 	 */
 	static String base32Encode(Buffer data);
 
 	/*! @brief 以 base32 方式解码字符串为二进制数据
-	 * @param data 要解码的字符串
-	 * @return 返回解码的二进制数据
+	 @param data 要解码的字符串
+	 @return 返回解码的二进制数据
 	 */
 	static Buffer base32Decode(String data);
 
 	/*! @brief 以 base64 方式编码数据
-	 * @param data 要编码的数据
-	 * @return 返回编码的字符串
+	 @param data 要编码的数据
+	 @return 返回编码的字符串
 	 */
 	static String base64Encode(Buffer data);
 
 	/*! @brief 以 base64 方式解码字符串为二进制数据
-	 * @param data 要解码的字符串
-	 * @return 返回解码的二进制数据
+	 @param data 要解码的字符串
+	 @return 返回解码的二进制数据
 	 */
 	static Buffer base64Decode(String data);
 
 	/*! @brief 以 hex 方式编码数据
-	 * @param data 要编码的数据
-	 * @return 返回编码的字符串
+	 @param data 要编码的数据
+	 @return 返回编码的字符串
 	 */
 	static String hexEncode(Buffer data);
 
 	/*! @brief 以 hex 方式解码字符串为二进制数据
-	 * @param data 要解码的字符串
-	 * @return 返回解码的二进制数据
+	 @param data 要解码的字符串
+	 @return 返回解码的二进制数据
 	 */
 	static Buffer hexDecode(String data);
 
 	/*! @brief 将字符串编码为 javascript 转义字符串，用以在 javascript 代码中包含文本
-	 * @param str 要编码的字符串
-	 * @return 返回编码的字符串
+	 @param str 要编码的字符串
+	 @return 返回编码的字符串
 	 */
 	static String jsstr(String str);
 
 	/*! @brief url 字符串安全编码
-	 * @param url 要编码的 url
-	 * @return 返回编码的字符串
+	 @param url 要编码的 url
+	 @return 返回编码的字符串
 	 */
 	static String encodeURI(String url);
 
 	/*! @brief url 部件字符串安全编码
-	 * @param url 要编码的 url
-	 * @return 返回编码的字符串
+	 @param url 要编码的 url
+	 @return 返回编码的字符串
 	 */
 	static String encodeURIComponent(String url);
 
 	/*! @brief url 安全字符串解码
-	 * @param url 要解码的 url
-	 * @return 返回解码的字符串
+	 @param url 要解码的 url
+	 @return 返回解码的字符串
 	 */
 	static String decodeURI(String url);
 
 	/*! @brief 以 json 格式编码变量
-	 * @param data 要编码的变量
-	 * @return 返回编码的字符串
+	 @param data 要编码的变量
+	 @return 返回编码的字符串
 	 */
 	static String jsonEncode(Value data);
 
 	/*! @brief 以 json 方式解码字符串为一个变量
-	 * @param data 要解码的字符串
-	 * @return 返回解码的变量
+	 @param data 要解码的字符串
+	 @return 返回解码的变量
 	 */
 	static Value jsonDecode(String data);
 
 	/*! @brief 以 bson 格式编码变量
-	 * @param data 要编码的变量
-	 * @return 返回编码的二进制数据
+	 @param data 要编码的变量
+	 @return 返回编码的二进制数据
 	 */
 	static Buffer bsonEncode(Object data);
 
 	/*! @brief 以 bson 方式解码字符串为一个变量
-	 * @param data 要解码的二进制数据
-	 * @return 返回解码的变量
+	 @param data 要解码的二进制数据
+	 @return 返回解码的变量
 	 */
 	static Object bsonDecode(Buffer data);
 };

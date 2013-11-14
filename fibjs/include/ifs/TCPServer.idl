@@ -1,46 +1,46 @@
 
 /*! @brief tcp 服务器对象，可方便创建一个标准多纤程 tcp 服务器
- *
- * 使用 TCPServer 对象可以迅速创建一个多纤程并发处理的 tcp 服务器。
- * @code
- * function func(conn)
- * {
- *     var data;
- *
- *     while(data = conn.read())
- *         conn.write(data);
- *
- *     conn.close();
- * }
- *
- * new net.TCPServer(8080, func).run();
- * @endcode
+
+ 使用 TCPServer 对象可以迅速创建一个多纤程并发处理的 tcp 服务器。
+ @code
+ function func(conn)
+ {
+     var data;
+
+     while(data = conn.read())
+         conn.write(data);
+
+     conn.close();
+ }
+
+ new net.TCPServer(8080, func).run();
+ @endcode
  */
 class TCPServer : object
 {
 	/*! @brief TCPServer 构造函数，在所有本机地址侦听
-	 *  @param port 指定 tcp 服务器侦听端口
-	 *  @param listener 指定 tcp 接收到的连接的处理器
+	  @param port 指定 tcp 服务器侦听端口
+	  @param listener 指定 tcp 接收到的连接的处理器
 	 */
 	TCPServer(Integer port, Handler listener);
 
 	/*! @brief TCPServer 构造函数，在所有本机地址侦听
-	 *  @param port 指定 tcp 服务器侦听端口
-	 *  @param listener 指定 tcp 接收到的连接的处理函数
+	  @param port 指定 tcp 服务器侦听端口
+	  @param listener 指定 tcp 接收到的连接的处理函数
 	 */
 	TCPServer(Integer port, Function listener);
 
 	/*! @brief TCPServer 构造函数
-	 *  @param addr 指定 tcp 服务器侦听地址，为 "" 则在本机所有地址侦听
-	 *  @param port 指定 tcp 服务器侦听端口
-	 *  @param listener 指定 tcp 接收到的连接的处理函器
+	  @param addr 指定 tcp 服务器侦听地址，为 "" 则在本机所有地址侦听
+	  @param port 指定 tcp 服务器侦听端口
+	  @param listener 指定 tcp 接收到的连接的处理函器
 	 */
 	TCPServer(String addr, Integer port, Handler listener);
 
 	/*! @brief TCPServer 构造函数
-	 *  @param addr 指定 tcp 服务器侦听地址，为 "" 则在本机所有地址侦听
-	 *  @param port 指定 tcp 服务器侦听端口
-	 *  @param listener 指定 tcp 接收到的连接的处理函数
+	  @param addr 指定 tcp 服务器侦听地址，为 "" 则在本机所有地址侦听
+	  @param port 指定 tcp 服务器侦听端口
+	  @param listener 指定 tcp 接收到的连接的处理函数
 	 */
 	TCPServer(String addr, Integer port, Function listener);
 

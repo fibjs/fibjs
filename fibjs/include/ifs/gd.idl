@@ -1,10 +1,10 @@
 
 /*! @brief 图像文件处理模块
- *
- * 基础模块。可用于创建和操作图像文件，引用方式：
- * \code
- * var gd = require('gd');
- * \endcode
+
+ 基础模块。可用于创建和操作图像文件，引用方式：
+ \code
+ var gd = require('gd');
+ \endcode
  */
 class gd : module
 {
@@ -67,22 +67,22 @@ class gd : module
 
 
 	/*! @brief 创建一个新图像
-	 * @param width 指定图像宽度
-	 * @param height 指定图像高度
-	 * @param color 指定图像类型，允许值为 gd.TRUECOLOR 或 gd.PALETTE
-	 * @return 返回创建成功的图像对象
+	 @param width 指定图像宽度
+	 @param height 指定图像高度
+	 @param color 指定图像类型，允许值为 gd.TRUECOLOR 或 gd.PALETTE
+	 @return 返回创建成功的图像对象
 	 */
 	static Image create(Integer width, Integer height, Integer color = gd.TRUECOLOR) async;
 
 	/*! @brief 从格式数据中解码图像
-	 * @param data 给定解码的图像数据
-	 * @return 返回解码成功的图像对象
+	 @param data 给定解码的图像数据
+	 @return 返回解码成功的图像对象
 	 */
 	static Image load(Buffer data) async;
 
 	/*! @brief 从流对象中解码图像
-	 * @param stm 给定图像数据所在的流对象
-	 * @return 返回解码成功的图像对象
+	 @param stm 给定图像数据所在的流对象
+	 @return 返回解码成功的图像对象
 	 */
 	static Image load(SeekableStream stm) async;
 };

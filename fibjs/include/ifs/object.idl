@@ -8,8 +8,8 @@ class object
 	String toString();
 
 	/*! @brief 返回对象的 JSON 格式表示，一般返回对象定义的可读属性集合
-	 * @param key
-	 * @return 返回包含可 JSON 序列化的值
+	 @param key
+	 @return 返回包含可 JSON 序列化的值
 	 */
 	Value toJSON(String key = "");
 

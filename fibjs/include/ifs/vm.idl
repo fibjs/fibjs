@@ -1,37 +1,37 @@
 
 /*! @brief 安全沙箱模块，用于隔离不同安全等级的运行环境
- *
- * 通过建立安全沙箱，可以限制脚本运行时可以接触的资源，隔离不同脚本执行环境，并可以为不同的环境定制基础模块，以保障整体运行环境的安全。
- *
- * 下面的示例创建一个沙箱，限制只允许访问全局基础模块中的 assert 模块，并添加 a 和 b 两个定制模块：
- * @code
- * var vm = require('vm');
- * var sbox = vm.create({
- *   a: 100,
- *   b: 200,
- *   assert: require('assert')
- * });
- *
- * var mod_in_sbox = sbox.require('./path/to/mod');
- * @endcode
+
+ 通过建立安全沙箱，可以限制脚本运行时可以接触的资源，隔离不同脚本执行环境，并可以为不同的环境定制基础模块，以保障整体运行环境的安全。
+
+ 下面的示例创建一个沙箱，限制只允许访问全局基础模块中的 assert 模块，并添加 a 和 b 两个定制模块：
+ @code
+ var vm = require('vm');
+ var sbox = vm.create({
+   a: 100,
+   b: 200,
+   assert: require('assert')
+ });
+
+ var mod_in_sbox = sbox.require('./path/to/mod');
+ @endcode
  */
 class vm : module
 {
 	/*! @brief 创建一个新的安全沙箱对象，并初始化基础模块
-	 * @param mods 指定要添加的模块对象字典
-	 * @return 返回新建的安全沙箱对象
+	 @param mods 指定要添加的模块对象字典
+	 @return 返回新建的安全沙箱对象
 	 */
 	static SandBox create(Object mods);
 
 	/*! @brief 创建一个新的安全沙箱对象，并初始化基础模块
-	 * @param mods 指定要添加的模块对象字典
-	 * @param require 自定义 require 函数，当模块不存在时，先调用自定义函数，无返回再从文件中加载
-	 * @return 返回新建的安全沙箱对象
+	 @param mods 指定要添加的模块对象字典
+	 @param require 自定义 require 函数，当模块不存在时，先调用自定义函数，无返回再从文件中加载
+	 @return 返回新建的安全沙箱对象
 	 */
 	static SandBox create(Object mods, Function require);
 
 	/*! @brief 获取当前安全沙箱对象
-	 * @return 返回当前安全沙箱对象
+	 @return 返回当前安全沙箱对象
 	 */
 	static SandBox current();
 };

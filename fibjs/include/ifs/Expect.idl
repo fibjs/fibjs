@@ -1,10 +1,10 @@
 
 /*! @brief 断言期望对象
- *
- * Expect 对象为 assert 模块内部对象，用于实现 expect 风格断言，创建：
- * @code
- * var obj = assert.expect(exp);
- * @endcode
+
+ Expect 对象为 assert 模块内部对象，用于实现 expect 风格断言，创建：
+ @code
+ var obj = assert.expect(exp);
+ @endcode
  */
 class Expect : object
 {

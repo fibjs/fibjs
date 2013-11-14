@@ -9,6 +9,6 @@ class SQLite : DbConnection
 	Integer timeout;
 
 	/*! @brief 备份当前数据库到新文件
-	 * @param fileName 指定备份的数据库文件名 */
+	 @param fileName 指定备份的数据库文件名 */
 	backup(String fileName);
 };

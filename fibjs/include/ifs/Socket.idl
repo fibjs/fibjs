@@ -4,8 +4,8 @@
 class Socket : Stream
 {
 	/*! @brief Socket 构造函数，创建一个新的 Socket 对象
-	 * @param family 指定地址集，缺省为 AF_INET，ipv4
-	 * @param type 指定协议族，缺省为 SOCK_STREAM，tcp
+	 @param family 指定地址集，缺省为 AF_INET，ipv4
+	 @param type 指定协议族，缺省为 SOCK_STREAM，tcp
 	 */
 	Socket(Integer family = net.AF_INET, Integer type = net.SOCK_STREAM);
 
@@ -28,43 +28,43 @@ class Socket : Stream
 	readonly Integer localPort;
 
 	/*! @brief 建立一个 tcp 连接
-	 * @param host 指定对方地址或主机名
-	 * @param port 指定对方端口
+	 @param host 指定对方地址或主机名
+	 @param port 指定对方端口
 	 */
 	connect(String host, Integer port) async;
 
 	/*! @brief 异步建立一个 tcp 连接
-	 * @param host 指定对方地址或主机名
-	 * @param port 指定对方端口
+	 @param host 指定对方地址或主机名
+	 @param port 指定对方端口
 	 */
 	asyncConnect(String host, Integer port);
 
 	/*! @brief 注册 "connect" 事件，等同于 on("connect", func);
-	 * @param func 事件处理函数
-	 *
-	 * "connect" 事件定义如下：
-	 * @code
-	 * function on_connect()
-	 * {}
-	 * @endcode
+	 @param func 事件处理函数
+	
+	 "connect" 事件定义如下：
+	 @code
+	 function on_connect()
+	 {}
+	 @endcode
 	 */
 	onconnect(Function func);
 
 	/*! @brief 将当前 Socket 绑定至本地所有地址的指定端口
-	 * @param port 指定绑定的端口
-	 * @param allowIPv4 指定是否接受 ipv4 连接，缺省为 true。本参数在 ipv6 时有效，并依赖于操作系统
+	 @param port 指定绑定的端口
+	 @param allowIPv4 指定是否接受 ipv4 连接，缺省为 true。本参数在 ipv6 时有效，并依赖于操作系统
 	 */
 	bind(Integer port, Boolean allowIPv4 = true);
 
 	/*! @brief 将当前 Socket 绑定至指定地址的指定端口
-	 * @param addr 指定绑定的地址
-	 * @param port 指定绑定的端口
-	 * @param allowIPv4 指定是否接受 ipv4 连接，缺省为 true。本参数在 ipv6 时有效，并依赖于操作系统
+	 @param addr 指定绑定的地址
+	 @param port 指定绑定的端口
+	 @param allowIPv4 指定是否接受 ipv4 连接，缺省为 true。本参数在 ipv6 时有效，并依赖于操作系统
 	 */
 	bind(String addr, Integer port, Boolean allowIPv4 = true);
 
 	/*! @brief 开始监听连接请求
-	 * @param backlog 指定请求队列长度，超出的请求将被拒绝，缺省为 120
+	 @param backlog 指定请求队列长度，超出的请求将被拒绝，缺省为 120
 	 */
 	listen(Integer backlog = 120);
 
@@ -75,58 +75,58 @@ class Socket : Stream
 	asyncAccept();
 
 	/*! @brief 注册 "accept" 事件，等同于 on("accept", func);
-	 * @param func 事件处理函数
-	 *
-	 * "accept" 事件定义如下：
-	 * @code
-	 * function on_accept(s)
-	 * {}
-	 * @endcode
+	 @param func 事件处理函数
+	
+	 "accept" 事件定义如下：
+	 @code
+	 function on_accept(s)
+	 {}
+	 @endcode
 	 */
 	onaccept(Function func);
 
 	/*! @brief 从连接读取指定大小的数据，不同于 read 方法，recv 并不保证读完要求的数据，而是在读取到数据后立即返回
-	 * @param bytes 指定要读取的数据量，缺省读取任意尺寸的数据
-	 * @return 返回从连接读取的数据
+	 @param bytes 指定要读取的数据量，缺省读取任意尺寸的数据
+	 @return 返回从连接读取的数据
 	 */
 	Buffer recv(Integer bytes = -1) async;
 
 	/*! @brief 从流内异步读取指定大小的数据，完成后触发事件 "read"
-	 * @param bytes 指定要读取的数据量，缺省读取任意尺寸的数据
+	 @param bytes 指定要读取的数据量，缺省读取任意尺寸的数据
 	 */
 	asyncRecv(Integer bytes = -1);
 
 	/*! @brief 注册 "recv" 事件，等同于 on("recv", func);
-	 * @param func 事件处理函数
-	 *
-	 * "recv" 事件定义如下，参数为读取的数据：
-	 * @code
-	 * function on_recv(data)
-	 * {}
-	 * @endcode
+	 @param func 事件处理函数
+	
+	 "recv" 事件定义如下，参数为读取的数据：
+	 @code
+	 function on_recv(data)
+	 {}
+	 @endcode
 	 */
 	onrecv(Function func);
 
 	Buffer recvFrom(Integer bytes = -1);
 
 	/*! @brief 将给定的数据写入连接，此方法等效于 write 方法
-	 * @param data 给定要写入的数据
+	 @param data 给定要写入的数据
 	 */
 	send(Buffer data) async;
 
 	/*! @brief 将给定的数据异步写入流，完成后触发事件 "write"
-	 * @param data 给定要写入的数据
+	 @param data 给定要写入的数据
 	 */
 	asyncSend(Buffer data);
 
 	/*! @brief 注册 "send" 事件，等同于 on("send", func);
-	 * @param func 事件处理函数
-	 *
-	 * "send" 事件定义如下：
-	 * @code
-	 * function on_send()
-	 * {}
-	 * @endcode
+	 @param func 事件处理函数
+	
+	 "send" 事件定义如下：
+	 @code
+	 function on_send()
+	 {}
+	 @endcode
 	 */
 	onsend(Function func);
 

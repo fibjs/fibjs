@@ -3,9 +3,9 @@
 class re : module
 {
 	/*! @brief 编译一个正则表达式模版，并返回正则表达式处理对象
-	 * @param pattern 正则表达式
-	 * @param opt 规定匹配的类型。"g" 用于全局匹配，"i" 用于区分大小写，"gi" 用于全局区分大小写的匹配
-	 * @return 返回正则表达式对象
+	 @param pattern 正则表达式
+	 @param opt 规定匹配的类型。"g" 用于全局匹配，"i" 用于区分大小写，"gi" 用于全局区分大小写的匹配
+	 @return 返回正则表达式对象
 	 */
 	static Regex compile(String pattern, String opt = "");
 };

@@ -1,9 +1,9 @@
 /*! @brief 文件操作对象，用于二进制文件读写
- * 
- * 文件操作对象用于对二进制文件进行操作，可使用 fs 模块打开和创建文件：
- * @code
- * var f = fs.open('test.txt');
- * @endcode
+ 
+ 文件操作对象用于对二进制文件进行操作，可使用 fs 模块打开和创建文件：
+ @code
+ var f = fs.open('test.txt');
+ @endcode
  */
 class File: SeekableStream
 {
@@ -11,23 +11,23 @@ class File: SeekableStream
 	readonly String name;
 
 	/*! @brief 修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
-	 *  @param bytes 新的文件尺寸
+	  @param bytes 新的文件尺寸
 	 */
 	truncate(Long bytes) async;
 
 	/*! @brief 异步修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
-	 *  @param bytes 新的文件尺寸
+	  @param bytes 新的文件尺寸
 	 */
 	asyncTruncate(Long bytes);
 
 	/*! @brief 注册 "truncate" 事件，等同于 on("truncate", func);
-	 * @param func 事件处理函数
-	 *
-	 * "truncate" 事件定义如下：
-	 * @code
-	 * function on_truncate()
-	 * {}
-	 * @endcode
+	 @param func 事件处理函数
+	
+	 "truncate" 事件定义如下：
+	 @code
+	 function on_truncate()
+	 {}
+	 @endcode
 	 */
 	ontruncate(Function func);
 
@@ -41,13 +41,13 @@ class File: SeekableStream
 	asyncFlush();
 
 	/*! @brief 注册 "flush" 事件，等同于 on("flush", func);
-	 * @param func 事件处理函数
-	 *
-	 * "flush" 事件定义如下：
-	 * @code
-	 * function on_flush()
-	 * {}
-	 * @endcode
+	 @param func 事件处理函数
+	
+	 "flush" 事件定义如下：
+	 @code
+	 function on_flush()
+	 {}
+	 @endcode
 	 */
 	onflush(Function func);
 };

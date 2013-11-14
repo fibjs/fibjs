@@ -1,5 +1,5 @@
 /*! @brief 信号量对象
- *
+
  */
 class Event : Lock
 {

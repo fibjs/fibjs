@@ -1,60 +1,60 @@
 /*! @brief 消息处理器路由对象
- *
- * 路由对象根据设定的规则匹配消息，将消息传递给符合规则的第一个处理器。后加入的路由规则优先匹配。创建方法：
- * @code
- * var routing = mq.routing({
- *   "^/func1(/.*)$": func1,
- *   "^/func2(/.*)$": func2
- * });
- * @endcode
- * 正则表达式匹配的项目修改消息的 value 属性，子项目存入消息的 params 属性。例如：
- * @code
- * var routing = mq.routing({
- *   "^/func1(/([0-9]+)/([0-9]+)\.html)$": func1,
- * });
- * @endcode
- * 匹配消息 "/func1/123/456.html" 后，value == "/123/456.html"，params == ["123", "456"];
- *
- * 如果匹配的结果没有子项，则 value 为空，params 为空。例如：
- * @code
- * var routing = mq.routing({
- *   "^/func1/[0-9]+/[0-9]+\.html$": func1,
- * });
- * @endcode
- * 匹配消息 "/func1/123/456.html" 后，value == ""，params == [];
- *
- * 如果匹配的结果第一级有多个子项，则 value 为空，params 为第一级子项。例如：
- * @code
- * var routing = mq.routing({
- *   "^/func1/([0-9]+)/([0-9]+)\.html$": func1,
- * });
- * @endcode
- * 匹配消息 "/func1/123/456.html" 后，value == ""，params == ["123", "456"];
- *
- * 如果匹配的结果只有一个子项，并且无下级子项，则 value 和 params 均为此子项。例如：
- * @code
- * var routing = mq.routing({
- *   "^/func1/([0-9]+)/[0-9]+\.html$": func1,
- * });
- * @endcode
- * 匹配消息 "/func1/123/456.html" 后，value == "123"，params == ["123"];
+
+ 路由对象根据设定的规则匹配消息，将消息传递给符合规则的第一个处理器。后加入的路由规则优先匹配。创建方法：
+ @code
+ var routing = mq.routing({
+   "^/func1(/.*)$": func1,
+   "^/func2(/.*)$": func2
+ });
+ @endcode
+ 正则表达式匹配的项目修改消息的 value 属性，子项目存入消息的 params 属性。例如：
+ @code
+ var routing = mq.routing({
+   "^/func1(/([0-9]+)/([0-9]+)\.html)$": func1,
+ });
+ @endcode
+ 匹配消息 "/func1/123/456.html" 后，value == "/123/456.html"，params == ["123", "456"];
+
+ 如果匹配的结果没有子项，则 value 为空，params 为空。例如：
+ @code
+ var routing = mq.routing({
+   "^/func1/[0-9]+/[0-9]+\.html$": func1,
+ });
+ @endcode
+ 匹配消息 "/func1/123/456.html" 后，value == ""，params == [];
+
+ 如果匹配的结果第一级有多个子项，则 value 为空，params 为第一级子项。例如：
+ @code
+ var routing = mq.routing({
+   "^/func1/([0-9]+)/([0-9]+)\.html$": func1,
+ });
+ @endcode
+ 匹配消息 "/func1/123/456.html" 后，value == ""，params == ["123", "456"];
+
+ 如果匹配的结果只有一个子项，并且无下级子项，则 value 和 params 均为此子项。例如：
+ @code
+ var routing = mq.routing({
+   "^/func1/([0-9]+)/[0-9]+\.html$": func1,
+ });
+ @endcode
+ 匹配消息 "/func1/123/456.html" 后，value == "123"，params == ["123"];
  */
 class Routing: Handler
 {
 	/*! @brief 添加一组路由规则
-	 * @param map 路由参数
+	 @param map 路由参数
 	 */
 	append(Object map);
 
 	/*! @brief 添加一条路由规则
-	 * @param pattern 消息匹配格式
-	 * @param hdlr 消息处理器
+	 @param pattern 消息匹配格式
+	 @param hdlr 消息处理器
 	 */
 	append(String pattern, Handler hdlr);
 
 	/*! @brief 添加一条 javascript 处理函数路由规则
-	 * @param pattern 消息匹配格式
-	 * @param hdlr javascript 消息处理器，详见 mq.jsHandler
+	 @param pattern 消息匹配格式
+	 @param hdlr javascript 消息处理器，详见 mq.jsHandler
 	 */
 	append(String pattern, Value hdlr);
 };

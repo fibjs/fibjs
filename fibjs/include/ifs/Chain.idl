@@ -1,26 +1,26 @@
 /*! @brief 消息处理器链处理对象
- *
- * 消息处理器链处理对象用于链接一系列消息处理器，按照指定的顺序链式处理。创建方法：
- * @code
- * var chain = mq.chain([
- *   func1, func2
- * ]);
- * @endcode
+
+ 消息处理器链处理对象用于链接一系列消息处理器，按照指定的顺序链式处理。创建方法：
+ @code
+ var chain = mq.chain([
+   func1, func2
+ ]);
+ @endcode
  */
 class Chain: Handler
 {
 	/*! @brief 添加处理器数组
-	 * @param hdlrs 处理器数组
+	 @param hdlrs 处理器数组
 	 */
 	append(Array hdlrs);
 
 	/*! @brief 添加处理器
-	 * @param hdlr 消息处理器
+	 @param hdlr 消息处理器
 	 */
 	append(Handler hdlr);
 
 	/*! @brief 添加 javascript 处理器函数
-	 * @param hdlr javascript 消息处理器，详见 mq.jsHandler
+	 @param hdlr javascript 消息处理器，详见 mq.jsHandler
 	 */
 	append(Value hdlr);
 };

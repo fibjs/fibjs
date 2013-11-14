@@ -9,25 +9,25 @@ class global : module
 	static readonly console console;
 
 	/*! @brief 记录普通日志信息，与 console.log 等同
-	 * @param fmt 格式化字符串
-	 * @param ... 可选参数列表
+	 @param fmt 格式化字符串
+	 @param ... 可选参数列表
 	 */
 	static print(String fmt, ...);
 
 	/*! @brief 运行一个脚本
-	 * @param fname 指定要运行的脚本路径
+	 @param fname 指定要运行的脚本路径
 	 */
 	static run(String fname);
 
 	/*! @brief 定义一个模块，更多信息参阅 @ref module
-	 * @param id 定义的模块名称
-	 * @param deps 依赖模块列表
-	 * @param factory 模块定义
+	 @param id 定义的模块名称
+	 @param deps 依赖模块列表
+	 @param factory 模块定义
 	 */
 	static define(String id, Array deps, Value factory);
 
 	/*! @brief 加载一个模块并返回模块对象，更多信息参阅 @ref module
-	 * @param id 指定要加载的模块名称
+	 @param id 指定要加载的模块名称
 	 */
 	static Value require(String id);
 

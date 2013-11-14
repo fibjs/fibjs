@@ -3,28 +3,28 @@
 class SandBox: object
 {
 	/*! @brief 向沙箱中添加一个基础模块
-	 * @param id 指定要添加的模块名称
-	 * @param mod 指定要添加的模块对象
+	 @param id 指定要添加的模块名称
+	 @param mod 指定要添加的模块对象
 	 */
 	add(String id, Value mod);
 
 	/*! @brief 向沙箱中添加一组基础模块
-	 * @param mods 指定要添加的模块对象字典，添加的 javascript 模块将会生成一份复制，以避免沙箱修改对象产生互相干扰
+	 @param mods 指定要添加的模块对象字典，添加的 javascript 模块将会生成一份复制，以避免沙箱修改对象产生互相干扰
 	 */
 	add(Object mods);
 
 	/*! @brief 从沙箱中删除指定的基础模块
-	 * @param id 指定要删除的模块名称
+	 @param id 指定要删除的模块名称
 	 */
 	remove(String id);
 
 	/*! @brief 运行一个脚本
-	 * @param fname 指定要运行的脚本路径
+	 @param fname 指定要运行的脚本路径
 	 */
 	run(String fname);
 
 	/*! @brief 加载一个模块并返回模块对象，更多信息参阅 @ref module
-	 * @param id 指定要加载的模块名称
+	 @param id 指定要加载的模块名称
 	 */
 	Value require(String id);
 };
