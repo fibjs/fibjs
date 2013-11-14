@@ -169,7 +169,7 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 						"transfer-encoding:", 18))
 				{
 					_parser p(pThis->m_strLine.c_str() + 18,
-							pThis->m_strLine.length() - 18);
+							(int)pThis->m_strLine.length() - 18);
 
 					p.skipSpace();
 					puts(p.now());
