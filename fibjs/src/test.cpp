@@ -368,7 +368,7 @@ result_t test_base::expect(v8::Handle<v8::Value> actual, const char* msg,
 	return 0;
 }
 
-result_t test_base::setup()
+result_t test_base::setup(int32_t mode)
 {
 	v8::Handle < v8::Context > ctx = v8::Context::GetCalling();
 
@@ -378,28 +378,63 @@ result_t test_base::setup()
 		v8::Handle < v8::Object > glob = ctx->Global();
 		obj_ptr < assert_base > assert;
 
-		glob->ForceSet(v8::String::New("describe"),
-				v8::FunctionTemplate::New(s_describe)->GetFunction(),
-				v8::ReadOnly);
-		glob->ForceSet(v8::String::New("xdescribe"),
-				v8::FunctionTemplate::New(s_xdescribe)->GetFunction(),
-				v8::ReadOnly);
-		glob->ForceSet(v8::String::New("it"),
-				v8::FunctionTemplate::New(s_it)->GetFunction(), v8::ReadOnly);
-		glob->ForceSet(v8::String::New("xit"),
-				v8::FunctionTemplate::New(s_xit)->GetFunction(), v8::ReadOnly);
-		glob->ForceSet(v8::String::New("before"),
-				v8::FunctionTemplate::New(s_before)->GetFunction(),
-				v8::ReadOnly);
-		glob->ForceSet(v8::String::New("after"),
-				v8::FunctionTemplate::New(s_after)->GetFunction(),
-				v8::ReadOnly);
-		glob->ForceSet(v8::String::New("beforeEach"),
-				v8::FunctionTemplate::New(s_describe)->GetFunction(),
-				v8::ReadOnly);
-		glob->ForceSet(v8::String::New("afterEach"),
-				v8::FunctionTemplate::New(s_describe)->GetFunction(),
-				v8::ReadOnly);
+		if (mode == _BDD)
+		{
+			glob->ForceSet(v8::String::New("describe"),
+					v8::FunctionTemplate::New(s_describe)->GetFunction(),
+					v8::ReadOnly);
+			glob->ForceSet(v8::String::New("xdescribe"),
+					v8::FunctionTemplate::New(s_xdescribe)->GetFunction(),
+					v8::ReadOnly);
+			glob->ForceSet(v8::String::New("it"),
+					v8::FunctionTemplate::New(s_it)->GetFunction(),
+					v8::ReadOnly);
+			glob->ForceSet(v8::String::New("xit"),
+					v8::FunctionTemplate::New(s_xit)->GetFunction(),
+					v8::ReadOnly);
+			glob->ForceSet(v8::String::New("before"),
+					v8::FunctionTemplate::New(s_before)->GetFunction(),
+					v8::ReadOnly);
+			glob->ForceSet(v8::String::New("after"),
+					v8::FunctionTemplate::New(s_after)->GetFunction(),
+					v8::ReadOnly);
+			glob->ForceSet(v8::String::New("beforeEach"),
+					v8::FunctionTemplate::New(s_describe)->GetFunction(),
+					v8::ReadOnly);
+			glob->ForceSet(v8::String::New("afterEach"),
+					v8::FunctionTemplate::New(s_describe)->GetFunction(),
+					v8::ReadOnly);
+		}
+		else if (mode == _TDD)
+		{
+			glob->ForceSet(v8::String::New("suite"),
+					v8::FunctionTemplate::New(s_describe)->GetFunction(),
+					v8::ReadOnly);
+			glob->ForceSet(v8::String::New("xsuite"),
+					v8::FunctionTemplate::New(s_xdescribe)->GetFunction(),
+					v8::ReadOnly);
+			glob->ForceSet(v8::String::New("test"),
+					v8::FunctionTemplate::New(s_it)->GetFunction(),
+					v8::ReadOnly);
+			glob->ForceSet(v8::String::New("xtest"),
+					v8::FunctionTemplate::New(s_xit)->GetFunction(),
+					v8::ReadOnly);
+			glob->ForceSet(v8::String::New("suiteSetup"),
+					v8::FunctionTemplate::New(s_before)->GetFunction(),
+					v8::ReadOnly);
+			glob->ForceSet(v8::String::New("suiteTeardown"),
+					v8::FunctionTemplate::New(s_after)->GetFunction(),
+					v8::ReadOnly);
+			glob->ForceSet(v8::String::New("setup"),
+					v8::FunctionTemplate::New(s_describe)->GetFunction(),
+					v8::ReadOnly);
+			glob->ForceSet(v8::String::New("teardown"),
+					v8::FunctionTemplate::New(s_describe)->GetFunction(),
+					v8::ReadOnly);
+		}
+		else
+			return CALL_E_INVALIDARG;
+
 		glob->ForceSet(v8::String::New("expect"),
 				v8::FunctionTemplate::New(s_expect)->GetFunction(),
 				v8::ReadOnly);

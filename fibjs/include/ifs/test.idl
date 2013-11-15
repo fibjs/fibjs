@@ -8,6 +8,14 @@
  */
 class test : module
 {
+	/*! @brief 定义 BDD(Behavior Drive Development) 测试环境，支持 describe, xdescribe, it, xit, before, after, beforeEach 和 afterEach，同时初始化 assert 和expect
+	 */
+	const Integer BDD = 0;
+
+	/*! @brief 定义 TDD(Test Drive Development) 测试环境，支持 suite, xsuite, test, xtest, setup, teardown, suiteSetup 和 suiteTeardown，同时初始化 assert 和expect
+	 */
+	const Integer TDD = 1;
+	
 	/*! @brief 定义一个测试模块，可嵌套定义
 	 @param name 定义模块名称
 	 @param block 模块初始化代码
@@ -68,8 +76,9 @@ class test : module
 	static Expect expect(Value actual, String msg = "");
 	
 	/*! @brief 初始化当前脚本的测试环境，将 test 模块方法复制为当前脚本全局变量
+	 @param mode 指定初始化的模式，缺省为 BDD
 	 */
-	static setup();
+	static setup(Integer mode = BDD);
 	
 	/*! @brief 设置和查询慢速测试警告阀值，以 ms 为单位，缺省为 75
 	 */

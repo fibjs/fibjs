@@ -25,6 +25,12 @@ class Expect_base;
 class test_base : public module_base
 {
 public:
+	enum{
+		_BDD = 0,
+		_TDD = 1
+	};
+
+public:
 	// test_base
 	static result_t describe(const char* name, v8::Handle<v8::Function> block);
 	static result_t xdescribe(const char* name, v8::Handle<v8::Function> block);
@@ -37,13 +43,15 @@ public:
 	static result_t run(int32_t loglevel);
 	static result_t get_assert(obj_ptr<assert_base>& retVal);
 	static result_t expect(v8::Handle<v8::Value> actual, const char* msg, obj_ptr<Expect_base>& retVal);
-	static result_t setup();
+	static result_t setup(int32_t mode);
 	static result_t get_slow(int32_t& retVal);
 	static result_t set_slow(int32_t newVal);
 
 	DECLARE_CLASSINFO(test_base);
 
 public:
+	static v8::Handle<v8::Value> s_get_BDD(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_TDD(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_describe(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_xdescribe(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_it(const v8::Arguments& args);
@@ -87,6 +95,8 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
+			{"BDD", s_get_BDD, NULL, true},
+			{"TDD", s_get_TDD, NULL, true},
 			{"assert", s_get_assert, NULL, true},
 			{"slow", s_get_slow, s_set_slow}
 		};
@@ -94,12 +104,26 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"test", NULL, 
-			11, s_method, 0, NULL, 2, s_property, NULL, NULL,
+			11, s_method, 0, NULL, 4, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
+	}
+
+	inline v8::Handle<v8::Value> test_base::s_get_BDD(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _BDD;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> test_base::s_get_TDD(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr = _TDD;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> test_base::s_get_assert(v8::Local<v8::String> property, const v8::AccessorInfo &info)
@@ -253,9 +277,11 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> test_base::s_setup(const v8::Arguments& args)
 	{
-		METHOD_ENTER(0, 0);
+		METHOD_ENTER(1, 0);
 
-		hr = setup();
+		OPT_ARG(int32_t, 0, _BDD);
+
+		hr = setup(v0);
 
 		METHOD_VOID();
 	}
