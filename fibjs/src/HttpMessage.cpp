@@ -172,7 +172,6 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 							(int)pThis->m_strLine.length() - 18);
 
 					p.skipSpace();
-					puts(p.now());
 					if (qstricmp(p.now(), "chunked"))
 						return CALL_E_INVALID_DATA;
 

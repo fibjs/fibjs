@@ -28,9 +28,8 @@ void setOption(SOCKET s)
 
 	setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, (const char *) &keepAlive,
 			sizeof(keepAlive));
-	if (WSAIoctl(s, SIO_KEEPALIVE_VALS, &Settings, sizeof(Settings), NULL, 0,
-			&dwBytes, NULL, NULL))
-		puts("WSAIoctl");
+	WSAIoctl(s, SIO_KEEPALIVE_VALS, &Settings, sizeof(Settings), NULL, 0,
+			&dwBytes, NULL, NULL);
 
 	int noDelay = 1;
 
