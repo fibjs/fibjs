@@ -337,6 +337,8 @@ public:
 		return m_v;
 	}
 
+	void sleep(int ms);
+
 public:
 	AsyncEvent* m_next;
 

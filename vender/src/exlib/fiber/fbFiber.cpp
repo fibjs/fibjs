@@ -79,25 +79,8 @@ void Fiber::yield()
 		pService->yield();
 }
 
-class AsyncSleep: public AsyncEvent
-{
-public:
-	AsyncSleep(Service* pService, int tm) :
-			AsyncEvent(pService), m_tm(tm)
-	{
-	}
-
-	int wait()
-	{
-		return AsyncEvent::wait();
-	}
-
-public:
-	int m_tm;
-};
-
-exlib::lockfree<AsyncSleep> s_acSleep;
-std::multimap<int64_t, AsyncSleep*> s_tms;
+exlib::lockfree<AsyncEvent> s_acSleep;
+std::multimap<int64_t, AsyncEvent*> s_tms;
 static int64_t s_time;
 
 #ifndef _WIN32
@@ -126,9 +109,9 @@ public:
 	static void PASCAL Timer(unsigned int uTimerID, unsigned int uMsg,
 			DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2)
 	{
-		AsyncSleep *p;
+		AsyncEvent *p;
 		int64_t tm;
-		std::multimap<int64_t, AsyncSleep*>::iterator e;
+		std::multimap<int64_t, AsyncEvent*>::iterator e;
 
 		while (1)
 		{
@@ -136,7 +119,7 @@ public:
 			if (p == NULL)
 				break;
 
-			tm = s_time + p->m_tm * 1000L;
+			tm = s_time + p->result() * 1000L;
 			s_tms.insert(std::make_pair(tm, p));
 		}
 
@@ -150,7 +133,7 @@ public:
 			if (e->first > s_time)
 				break;
 
-			e->second->post(0);
+			e->second->apost(0);
 			s_tms.erase(e);
 		}
 	}
@@ -180,6 +163,12 @@ public:
 	}
 } s_timer;
 
+void AsyncEvent::sleep(int ms)
+{
+	m_v = ms;
+	s_acSleep.put(this);
+}
+
 void Fiber::sleep(int ms)
 {
 	Service* pService = Service::getFiberService();
@@ -190,10 +179,10 @@ void Fiber::sleep(int ms)
 			yield();
 		else
 		{
-			AsyncSleep as(pService, ms);
-			s_acSleep.put(&as);
-			as.wait();
+			AsyncEvent as(pService);
 
+			as.sleep(ms);
+			as.wait();
 		}
 	}
 	else
