@@ -150,13 +150,6 @@ describe(
 				s2.listen();
 				accept2.start(s2);
 
-				new net.TCPServer(8811, function(c) {
-				});
-				assert.throws(function() {
-					new net.TCPServer(8811, function(c) {
-					});
-				});
-
 				var c1 = new net.Socket();
 				c1.connect('127.0.0.1', 8082);
 				assert.equal('a', c1.recv(100));
@@ -164,6 +157,75 @@ describe(
 				assert.equal('d', c1.read(3));
 			});
 
+			it("bind same port", function() {
+				new net.TCPServer(8811, function(c) {
+				});
+				assert.throws(function() {
+					new net.TCPServer(8811, function(c) {
+					});
+				});
+			});
+
+			it("stats", function() {
+				var svr = new net.TCPServer(8812, function(c) {
+					var d;
+					while (d = c.read(100))
+						c.write(d);
+				});
+				svr.asyncRun();
+
+				function stats() {
+					var s = svr.stats;
+					delete s.distance;
+					return s;
+				}
+
+				assert.deepEqual({
+					"total" : 0,
+					"pendding" : 0,
+					"begin" : 0,
+					"end" : 0
+				}, stats());
+
+				var c1 = new net.Socket();
+				c1.connect('127.0.0.1', 8812);
+
+				coroutine.sleep(10);
+				assert.deepEqual({
+					"total" : 1,
+					"pendding" : 1,
+					"begin" : 1,
+					"end" : 0
+				}, stats());
+
+				assert.deepEqual({
+					"total" : 1,
+					"pendding" : 1,
+					"begin" : 0,
+					"end" : 0
+				}, stats());
+
+				c1.close();
+
+				coroutine.sleep(10);
+				assert.deepEqual({
+					"total" : 1,
+					"pendding" : 0,
+					"begin" : 0,
+					"end" : 1
+				}, stats());
+
+				assert.deepEqual({
+					"total" : 1,
+					"pendding" : 0,
+					"begin" : 0,
+					"end" : 0
+				}, stats());
+
+				coroutine.sleep(100);
+				assert.closeTo(100, svr.stats.distance, 10);
+			});
+
 		});
 
-//test.run();
+// test.run();
