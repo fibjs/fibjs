@@ -22,9 +22,13 @@ public:
 	virtual result_t run(exlib::AsyncEvent* ac);
 	virtual result_t asyncRun();
 	virtual result_t get_socket(obj_ptr<Socket_base>& retVal);
+	virtual result_t get_stats(v8::Handle<v8::Object>& retVal);
 
 public:
 	result_t create(const char* addr, int32_t port, Handler_base* listener);
+
+public:
+	_stats m_stats;
 
 private:
 	obj_ptr<Socket_base> m_socket;

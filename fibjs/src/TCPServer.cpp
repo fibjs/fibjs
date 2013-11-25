@@ -21,7 +21,7 @@ result_t TCPServer_base::_new(int32_t port, Handler_base* listener,
 result_t TCPServer_base::_new(const char* addr, int32_t port,
 		Handler_base* listener, obj_ptr<TCPServer_base>& retVal)
 {
-	obj_ptr<TCPServer> svr = new TCPServer();
+	obj_ptr < TCPServer > svr = new TCPServer();
 	result_t hr = svr->create(addr, port, listener);
 	if (hr < 0)
 		return hr;
@@ -40,7 +40,7 @@ result_t TCPServer_base::_new(int32_t port, v8::Handle<v8::Function> listener,
 result_t TCPServer_base::_new(const char* addr, int32_t port,
 		v8::Handle<v8::Function> listener, obj_ptr<TCPServer_base>& retVal)
 {
-	obj_ptr<Handler_base> hdlr1;
+	obj_ptr < Handler_base > hdlr1;
 	result_t hr = JSHandler::New(listener, hdlr1);
 	if (hr < 0)
 		return hr;
@@ -75,8 +75,8 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 	class asyncInvoke: public asyncState
 	{
 	public:
-		asyncInvoke(Handler_base* hdlr, Socket_base* pSock) :
-				asyncState(NULL), m_hdlr(hdlr), m_sock(pSock), m_obj(pSock)
+		asyncInvoke(TCPServer* pThis, Socket_base* pSock) :
+				asyncState(NULL), m_pThis(pThis), m_sock(pSock), m_obj(pSock)
 		{
 			set(invoke);
 		}
@@ -88,7 +88,7 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 
 			pThis->set(close);
 
-			return mq_base::invoke(pThis->m_hdlr, pThis->m_obj, pThis);
+			return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_obj, pThis);
 		}
 
 		static int close(asyncState* pState, int n)
@@ -96,11 +96,12 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 			asyncInvoke* pThis = (asyncInvoke*) pState;
 
 			pThis->done(0);
+			pThis->m_pThis->m_stats.end();
 			return pThis->m_sock->close(pThis);
 		}
 
 	private:
-		obj_ptr<Handler_base> m_hdlr;
+		TCPServer* m_pThis;
 		obj_ptr<Socket_base> m_sock;
 		obj_ptr<object_base> m_obj;
 	};
@@ -127,13 +128,14 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 		{
 			asyncAccept* pThis = (asyncAccept*) pState;
 
-			(new asyncInvoke(pThis->m_pThis->m_hdlr, pThis->m_retVal))->apost(0);
+			pThis->m_pThis->m_stats.begin();
+			(new asyncInvoke(pThis->m_pThis, pThis->m_retVal))->apost(0);
 
 			return pThis->m_pThis->m_socket->accept(pThis->m_retVal, pThis);
 		}
 
 	private:
-		TCPServer* m_pThis;
+		obj_ptr<TCPServer> m_pThis;
 		obj_ptr<Socket_base> m_retVal;
 	};
 
@@ -152,6 +154,12 @@ result_t TCPServer::asyncRun()
 result_t TCPServer::get_socket(obj_ptr<Socket_base>& retVal)
 {
 	retVal = m_socket;
+	return 0;
+}
+
+result_t TCPServer::get_stats(v8::Handle<v8::Object>& retVal)
+{
+	m_stats.get(retVal);
 	return 0;
 }
 

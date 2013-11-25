@@ -52,4 +52,19 @@ class TCPServer : object
 
 	/*! @brief tcp 服务器当前侦听的 Socket 对象  */
 	readonly Socket socket;
+	
+	/*! @brief 查询当前服务器运行状态
+	 
+	  返回的结果为一个 js 对象，结构如下：
+	  @code
+	  {
+	      total : 1000,    // 总计处理的连接
+	      pendding : 100,  // 当前正在处理的连接
+	      begin : 10,      // 上次查询后新建的连接
+	      end : 10,        // 上次查询后关闭的连接
+	      distance : 100   // 距离上次查询的时间间隔
+	  }
+	  @endcode
+	 */
+	readonly Object stats;
 };

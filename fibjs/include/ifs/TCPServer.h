@@ -30,6 +30,7 @@ public:
 	virtual result_t run(exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncRun() = 0;
 	virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
+	virtual result_t get_stats(v8::Handle<v8::Object>& retVal) = 0;
 
 	DECLARE_CLASSINFO(TCPServer_base);
 
@@ -38,6 +39,7 @@ public:
 	static v8::Handle<v8::Value> s_run(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_asyncRun(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_socket(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_stats(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 
 public:
 	ASYNC_MEMBER0(TCPServer_base, run);
@@ -61,13 +63,14 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"socket", s_get_socket}
+			{"socket", s_get_socket},
+			{"stats", s_get_stats}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"TCPServer", s__new, 
-			2, s_method, 0, NULL, 1, s_property, NULL, NULL,
+			2, s_method, 0, NULL, 2, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -83,6 +86,18 @@ namespace fibjs
 		PROPERTY_INSTANCE(TCPServer_base);
 
 		hr = pInst->get_socket(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> TCPServer_base::s_get_stats(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		v8::Handle<v8::Object> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(TCPServer_base);
+
+		hr = pInst->get_stats(vr);
 
 		METHOD_RETURN();
 	}
