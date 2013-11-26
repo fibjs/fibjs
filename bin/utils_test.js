@@ -2,6 +2,7 @@ var test = require("test");
 test.setup();
 
 var utils = require('utils');
+var coroutine = require('coroutine');
 
 describe('utils', function() {
 	describe('Stats', function() {
@@ -74,7 +75,12 @@ describe('utils', function() {
 			assert.equal(s.a, 100);
 			assert.equal(s["a"], 100);
 		});
+
+		it("uptime", function() {
+			coroutine.sleep(100);
+			assert.closeTo(100, s.uptime(), 10);
+		});
 	});
 });
 
-// test.run();
+//test.run();
