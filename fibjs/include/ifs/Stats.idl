@@ -39,6 +39,9 @@ class Stats : object
 	/*! @brief 初始化计数器，除 staticKeys 指定的计数器全部清零 */
 	reset();
 
+	/*! @brief 查询上次 reset 到现在的运行时间 */
+	Integer uptime();
+	
 	/*! @brief 允许使用键值下标直接访问数值 */
 	readonly Integer operator[String];
 };

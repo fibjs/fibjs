@@ -26,6 +26,7 @@ public:
 	virtual result_t dec(const char* key) = 0;
 	virtual result_t add(const char* key, int32_t value) = 0;
 	virtual result_t reset() = 0;
+	virtual result_t uptime(int32_t& retVal) = 0;
 	virtual result_t _named_getter(const char* property, int32_t& retVal) = 0;
 	virtual result_t _named_enumerator(v8::Handle<v8::Array>& retVal) = 0;
 
@@ -37,6 +38,7 @@ public:
 	static v8::Handle<v8::Value> s_dec(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_add(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_reset(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_uptime(const v8::Arguments& args);
 	static v8::Handle<v8::Value> i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info);
 	static v8::Handle<v8::Array> i_NamedEnumerator(const v8::AccessorInfo& info);
 };
@@ -52,7 +54,8 @@ namespace fibjs
 			{"inc", s_inc},
 			{"dec", s_dec},
 			{"add", s_add},
-			{"reset", s_reset}
+			{"reset", s_reset},
+			{"uptime", s_uptime}
 		};
 
 		static ClassData::ClassNamed s_named = 
@@ -63,7 +66,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Stats", s__new, 
-			4, s_method, 0, NULL, 0, NULL, NULL, &s_named,
+			5, s_method, 0, NULL, 0, NULL, NULL, &s_named,
 			&object_base::class_info()
 		};
 
@@ -164,6 +167,18 @@ namespace fibjs
 		hr = pInst->reset();
 
 		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Stats_base::s_uptime(const v8::Arguments& args)
+	{
+		int32_t vr;
+
+		METHOD_INSTANCE(Stats_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->uptime(vr);
+
+		METHOD_RETURN();
 	}
 
 }
