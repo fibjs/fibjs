@@ -55,16 +55,15 @@ class TCPServer : object
 	
 	/*! @brief 查询当前服务器运行状态
 	 
-	  返回的结果为一个 js 对象，结构如下：
+	  返回的结果为一个 Stats 对象，初始化计数器如下：
 	  @code
 	  {
-	      total : 1000,    // 总计处理的连接
-	      pendding : 100,  // 当前正在处理的连接
-	      begin : 10,      // 上次查询后新建的连接
-	      end : 10,        // 上次查询后关闭的连接
-	      distance : 100   // 距离上次查询的时间间隔
+	      total : 1000,      // 总计处理的连接
+	      connections : 100, // 当前正在处理的连接
+	      accept : 10,       // 上次查询后新建的连接
+	      close : 10         // 上次查询后关闭的连接
 	  }
 	  @endcode
 	 */
-	readonly Object stats;
+	readonly Stats stats;
 };

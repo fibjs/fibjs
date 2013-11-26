@@ -18,6 +18,7 @@ namespace fibjs
 
 class Handler_base;
 class Socket_base;
+class Stats_base;
 
 class TCPServer_base : public object_base
 {
@@ -30,7 +31,7 @@ public:
 	virtual result_t run(exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncRun() = 0;
 	virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
-	virtual result_t get_stats(v8::Handle<v8::Object>& retVal) = 0;
+	virtual result_t get_stats(obj_ptr<Stats_base>& retVal) = 0;
 
 	DECLARE_CLASSINFO(TCPServer_base);
 
@@ -50,6 +51,7 @@ public:
 
 #include "Handler.h"
 #include "Socket.h"
+#include "Stats.h"
 
 namespace fibjs
 {
@@ -92,7 +94,7 @@ namespace fibjs
 
 	inline v8::Handle<v8::Value> TCPServer_base::s_get_stats(v8::Local<v8::String> property, const v8::AccessorInfo &info)
 	{
-		v8::Handle<v8::Object> vr;
+		obj_ptr<Stats_base> vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(TCPServer_base);

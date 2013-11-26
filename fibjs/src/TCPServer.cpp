@@ -47,6 +47,22 @@ result_t TCPServer_base::_new(const char* addr, int32_t port,
 	return _new("", port, hdlr1, retVal);
 }
 
+static const char* s_staticCounter[] =
+{ "total", "connections" };
+static const char* s_Counter[] =
+{ "accept", "close" };
+
+enum
+{
+	TCPS_TOTAL = 0, TCPS_CONNECTIONS, TCPS_ACCEPT, TCPS_CLOSE
+};
+
+TCPServer::TCPServer()
+{
+	m_stats = new Stats();
+	m_stats->init(s_staticCounter, 2, s_Counter, 2);
+}
+
 result_t TCPServer::create(const char* addr, int32_t port,
 		Handler_base* listener)
 {
@@ -96,7 +112,8 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 			asyncInvoke* pThis = (asyncInvoke*) pState;
 
 			pThis->done(0);
-			pThis->m_pThis->m_stats.end();
+			pThis->m_pThis->m_stats->inc(TCPS_CLOSE);
+			pThis->m_pThis->m_stats->dec(TCPS_CONNECTIONS);
 			return pThis->m_sock->close(pThis);
 		}
 
@@ -128,7 +145,9 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 		{
 			asyncAccept* pThis = (asyncAccept*) pState;
 
-			pThis->m_pThis->m_stats.begin();
+			pThis->m_pThis->m_stats->inc(TCPS_TOTAL);
+			pThis->m_pThis->m_stats->inc(TCPS_ACCEPT);
+			pThis->m_pThis->m_stats->inc(TCPS_CONNECTIONS);
 			(new asyncInvoke(pThis->m_pThis, pThis->m_retVal))->apost(0);
 
 			return pThis->m_pThis->m_socket->accept(pThis->m_retVal, pThis);
@@ -157,9 +176,9 @@ result_t TCPServer::get_socket(obj_ptr<Socket_base>& retVal)
 	return 0;
 }
 
-result_t TCPServer::get_stats(v8::Handle<v8::Object>& retVal)
+result_t TCPServer::get_stats(obj_ptr<Stats_base>& retVal)
 {
-	m_stats.get(retVal);
+	retVal = m_stats;
 	return 0;
 }
 
