@@ -58,16 +58,13 @@ result_t fs_base::readFile(const char* fname, std::string& retVal,
 
 	obj_ptr<File> f = new File();
 	obj_ptr<Buffer_base> buf;
-	int64_t sz;
 	result_t hr;
 
 	hr = f->open(fname, "r", ac);
 	if (hr < 0)
 		return hr;
 
-	hr = f->size(sz);
-
-	hr = f->read((int32_t) sz, buf, ac);
+	hr = f->readAll(buf, ac);
 	f->close(ac);
 
 	if (hr < 0 || hr == CALL_RETURN_NULL)
