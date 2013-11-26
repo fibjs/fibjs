@@ -94,6 +94,19 @@ inline int atom_dec(__volatile__ int *dest)
 	return atom_add(dest, -1);
 }
 
+inline int atom_xchg(int* ptr, int new_value)
+{
+	int prev;
+
+	__asm __volatile(
+			"lock xchgl %2,(%1)"
+			: "=r" (prev)
+			: "r" (ptr), "0" (new_value)
+			: "memory");
+
+	return prev;
+}
+
 #endif
 
 inline void* CompareAndSwap(void** ptr, void* old_value, void* new_value)
