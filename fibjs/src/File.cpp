@@ -431,7 +431,10 @@ result_t File::close(exlib::AsyncEvent* ac)
 		if (!ac)
 			return CALL_E_NOSYNC;
 
-		fclose(m_file);
+		if (m_pipe)
+			pclose(m_file);
+		else
+			fclose(m_file);
 		m_file = NULL;
 	}
 
