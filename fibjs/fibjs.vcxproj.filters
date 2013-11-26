@@ -288,6 +288,9 @@
     <ClCompile Include="src\Expect.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Stats.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -705,6 +708,12 @@
       <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\Expect.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\Stats.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Stats.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>

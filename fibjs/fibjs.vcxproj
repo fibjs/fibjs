@@ -96,6 +96,7 @@
     <ClCompile Include="src\Socket_iocp.cpp" />
     <ClCompile Include="src\SQLite.cpp" />
     <ClCompile Include="src\Stat.cpp" />
+    <ClCompile Include="src\Stats.cpp" />
     <ClCompile Include="src\Stream.cpp" />
     <ClCompile Include="src\TCPServer.cpp" />
     <ClCompile Include="src\test.cpp" />
@@ -203,6 +204,7 @@
     <ClInclude Include="include\ifs\Socket.h" />
     <ClInclude Include="include\ifs\SQLite.h" />
     <ClInclude Include="include\ifs\Stat.h" />
+    <ClInclude Include="include\ifs\Stats.h" />
     <ClInclude Include="include\ifs\Stream.h" />
     <ClInclude Include="include\ifs\TCPServer.h" />
     <ClInclude Include="include\ifs\test.h" />
@@ -243,6 +245,7 @@
     <ClInclude Include="include\Socket_api.h" />
     <ClInclude Include="include\SQLite.h" />
     <ClInclude Include="include\Stat.h" />
+    <ClInclude Include="include\Stats.h" />
     <ClInclude Include="include\Stream.h" />
     <ClInclude Include="include\StringBuffer.h" />
     <ClInclude Include="include\TCPServer.h" />

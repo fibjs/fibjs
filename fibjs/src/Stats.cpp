@@ -166,7 +166,7 @@ result_t Stats::_named_enumerator(v8::Handle<v8::Array>& retVal)
 	retVal = v8::Array::New();
 
 	for (i = 0; i < m_size; i++)
-		retVal->Set(i, v8::String::New(m_keys[i].c_str(), m_keys[i].length()));
+		retVal->Set(i, v8::String::New(m_keys[i].c_str(), (int)m_keys[i].length()));
 
 	return 0;
 }
