@@ -153,7 +153,7 @@ result_t Stats::uptime(int32_t& retVal)
 
 	d1.now();
 
-	retVal = d1.diff(m_date);
+	retVal = (int)d1.diff(m_date);
 	return 0;
 }
 
