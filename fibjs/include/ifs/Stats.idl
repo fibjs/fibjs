@@ -1,0 +1,45 @@
+
+/*! @brief 数据统计对象，用以构建应用运行时数据收集
+
+ 创建方法：
+ @code
+ var utils = require("utils");
+ var stats = new utils.Stats(["begin", "end", "error"]);
+ @endcode
+ */
+class Stats : object
+{
+	/*! @brief 数据统计对象构造方法
+	 @param keys 指定计数器的名称
+	 */
+	Stats(Array keys);
+
+	/*! @brief 数据统计对象构造方法
+	 @param staticKeys 指定静态计数器的名称，静态计数器不会被 reset
+	 @param keys 指定计数器的名称
+	 */
+	Stats(Array staticKeys, Array keys);
+	
+	/*! @brief 指定的计数器增一
+	 @param key 指定计数器名称
+	 */
+	inc(String key);
+
+	/*! @brief 指定的计数器减一
+	 @param key 指定计数器名称
+	 */
+	dec(String key);
+
+	/*! @brief 指定的计数器加指定值
+	 @param key 指定计数器名称
+	 @param value 指定数值
+	 */
+	add(String key, Integer value);
+	
+	/*! @brief 初始化计数器，除 staticKeys 指定的计数器全部清零 */
+	reset();
+
+	/*! @brief 允许使用键值下标直接访问数值 */
+	readonly Integer operator[String];
+};
+
