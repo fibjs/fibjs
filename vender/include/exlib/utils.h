@@ -44,6 +44,11 @@ inline int atom_dec(int *dest)
 	return InterlockedDecrement((LONG*)dest);
 }
 
+inline int atom_xchg(int* ptr, int new_value)
+{
+	return InterlockedExchange((LONG*)ptr, new_value);
+}
+
 #else
 
 #ifdef x64
