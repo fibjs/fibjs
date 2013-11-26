@@ -147,6 +147,16 @@ result_t Stats::reset()
 	return 0;
 }
 
+result_t Stats::uptime(int32_t& retVal)
+{
+	date_t d1;
+
+	d1.now();
+
+	retVal = d1.diff(m_date);
+	return 0;
+}
+
 result_t Stats::_named_getter(const char* property, int32_t& retVal)
 {
 	int i = find(property);
@@ -166,7 +176,8 @@ result_t Stats::_named_enumerator(v8::Handle<v8::Array>& retVal)
 	retVal = v8::Array::New();
 
 	for (i = 0; i < m_size; i++)
-		retVal->Set(i, v8::String::New(m_keys[i].c_str(), (int)m_keys[i].length()));
+		retVal->Set(i,
+				v8::String::New(m_keys[i].c_str(), (int) m_keys[i].length()));
 
 	return 0;
 }
