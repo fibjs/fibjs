@@ -424,6 +424,10 @@ result_t File::onflush(v8::Handle<v8::Function> func)
 	return on("flush", func);
 }
 
+#ifdef _WIN32
+#define pclose _pclose
+#endif
+
 result_t File::close(exlib::AsyncEvent* ac)
 {
 	if (m_file)
