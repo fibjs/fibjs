@@ -6,6 +6,7 @@ run("expect_test.js");
 run("list_test.js");
 run("buffer_test.js");
 run("path_test");
+run("utils_test");
 run("fiber_test");
 run("fibmod_test");
 run("trigger_test");
