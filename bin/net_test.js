@@ -174,18 +174,12 @@ describe(
 				});
 				svr.asyncRun();
 
-				function stats() {
-					var s = svr.stats;
-					delete s.distance;
-					return s;
-				}
-
 				assert.deepEqual({
 					"total" : 0,
-					"pendding" : 0,
-					"begin" : 0,
-					"end" : 0
-				}, stats());
+					"connections" : 0,
+					"accept" : 0,
+					"close" : 0
+				}, svr.stats.toJSON());
 
 				var c1 = new net.Socket();
 				c1.connect('127.0.0.1', 8812);
@@ -193,39 +187,30 @@ describe(
 				coroutine.sleep(10);
 				assert.deepEqual({
 					"total" : 1,
-					"pendding" : 1,
-					"begin" : 1,
-					"end" : 0
-				}, stats());
+					"connections" : 1,
+					"accept" : 1,
+					"close" : 0
+				}, svr.stats.toJSON());
 
+				svr.stats.reset();
 				assert.deepEqual({
 					"total" : 1,
-					"pendding" : 1,
-					"begin" : 0,
-					"end" : 0
-				}, stats());
+					"connections" : 1,
+					"accept" : 0,
+					"close" : 0
+				}, svr.stats.toJSON());
 
 				c1.close();
 
+				svr.stats.reset();
 				coroutine.sleep(10);
 				assert.deepEqual({
 					"total" : 1,
-					"pendding" : 0,
-					"begin" : 0,
-					"end" : 1
-				}, stats());
-
-				assert.deepEqual({
-					"total" : 1,
-					"pendding" : 0,
-					"begin" : 0,
-					"end" : 0
-				}, stats());
-
-				coroutine.sleep(100);
-				assert.closeTo(100, svr.stats.distance, 10);
+					"connections" : 0,
+					"accept" : 0,
+					"close" : 1
+				}, svr.stats.toJSON());
 			});
-
 		});
 
-// test.run();
+ test.run();
