@@ -4,8 +4,10 @@ test.setup();
 var io = require('io');
 var fs = require('fs');
 var http = require('http');
+var net = require('net');
 var encoding = require('encoding');
 var zlib = require('zlib');
+var coroutine = require("coroutine");
 
 describe(
 		"http",
@@ -315,7 +317,8 @@ describe(
 
 									var rep = get_response('HTTP/1.1 200\r\nConnection: close\r\nTransfer-encoding: chunked\r\n\r\n'
 											+ datas.map(chunk).join(''));
-									assert.equal(datas.join(''), rep.body.read());
+									assert.equal(datas.join(''), rep.body
+											.read());
 								});
 
 					});
@@ -391,6 +394,174 @@ describe(
 													'GET /docs?page=100&style=wap HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
 								});
 					});
+
+			describe("handler", function() {
+				var svr, hdr;
+				var c, bs;
+
+				before(function() {
+					hdr = http.handler(function(r) {
+						console.log(r.value);
+
+						if (r.value == '/throw')
+							throw new Error('throw test');
+						else if (r.value == '/not_found')
+							r.response.status = 404;
+						else if (r.value == '/remote_close')
+							coroutine.sleep(20);
+					});
+					svr = new net.TCPServer(8881, hdr);
+
+					svr.asyncRun();
+				});
+
+				beforeEach(function() {
+					c = new net.Socket();
+					c.connect('127.0.0.1', 8881);
+
+					bs = new io.BufferedStream(c);
+					bs.EOL = "\r\n";
+				});
+
+				afterEach(function() {
+					c.close();
+					bs.close();
+				});
+
+				function get_response() {
+					var req = new http.Response();
+					req.readFrom(bs);
+					return req;
+				}
+
+				it("normal request", function() {
+					c.write(new Buffer("GET / HTTP/1.0\r\n\r\n"));
+					var req = get_response();
+					assert.equal(req.status, 200);
+
+					assert.deepEqual(hdr.stats.toJSON(), {
+						"total" : 1,
+						"pendding" : 0,
+						"request" : 1,
+						"response" : 1,
+						"error" : 0,
+						"error_400" : 0,
+						"error_404" : 0,
+						"error_500" : 0
+					});
+				});
+
+				it("bad request(error 400)", function() {
+					c.write(new Buffer("GET /\r\n\r\n"));
+					var req = get_response();
+					assert.equal(req.status, 400);
+
+					assert.deepEqual(hdr.stats.toJSON(), {
+						"total" : 2,
+						"pendding" : 0,
+						"request" : 2,
+						"response" : 2,
+						"error" : 1,
+						"error_400" : 1,
+						"error_404" : 0,
+						"error_500" : 0
+					});
+				});
+
+				it("error 404", function() {
+					c.write(new Buffer("GET /not_found HTTP/1.0\r\n\r\n"));
+					var req = get_response();
+					assert.equal(req.status, 404);
+
+					assert.deepEqual(hdr.stats.toJSON(), {
+						"total" : 3,
+						"pendding" : 0,
+						"request" : 3,
+						"response" : 3,
+						"error" : 1,
+						"error_400" : 1,
+						"error_404" : 1,
+						"error_500" : 0
+					});
+				});
+
+				it("error 500", function() {
+					c.write(new Buffer("GET /throw HTTP/1.0\r\n\r\n"));
+					var req = get_response();
+					assert.equal(req.status, 500);
+
+					assert.deepEqual(hdr.stats.toJSON(), {
+						"total" : 4,
+						"pendding" : 0,
+						"request" : 4,
+						"response" : 4,
+						"error" : 2,
+						"error_400" : 1,
+						"error_404" : 1,
+						"error_500" : 1
+					});
+				});
+
+				it("remote close when response", function() {
+					c.write(new Buffer("GET /remote_close HTTP/1.0\r\n\r\n"));
+					c.close();
+
+					coroutine.sleep(10);
+					assert.deepEqual(hdr.stats.toJSON(), {
+						"total" : 5,
+						"pendding" : 1,
+						"request" : 5,
+						"response" : 4,
+						"error" : 2,
+						"error_400" : 1,
+						"error_404" : 1,
+						"error_500" : 1
+					});
+
+					coroutine.sleep(30);
+					assert.deepEqual(hdr.stats.toJSON(), {
+						"total" : 5,
+						"pendding" : 0,
+						"request" : 5,
+						"response" : 5,
+						"error" : 2,
+						"error_400" : 1,
+						"error_404" : 1,
+						"error_500" : 1
+					});
+				});
+
+				it("remote close when request", function() {
+					c.write(new Buffer("GET / HTTP/1.0\r\n"));
+					c.close();
+
+					coroutine.sleep(10);
+					assert.deepEqual(hdr.stats.toJSON(), {
+						"total" : 6,
+						"pendding" : 0,
+						"request" : 6,
+						"response" : 6,
+						"error" : 2,
+						"error_400" : 1,
+						"error_404" : 1,
+						"error_500" : 1
+					});
+				});
+
+				it("reset stats", function() {
+					hdr.stats.reset();
+					assert.deepEqual(hdr.stats.toJSON(), {
+						"total" : 6,
+						"pendding" : 0,
+						"request" : 0,
+						"response" : 0,
+						"error" : 0,
+						"error_400" : 0,
+						"error_404" : 0,
+						"error_500" : 0
+					});
+				});
+			});
 
 			describe("file handler", function() {
 				var hfHandler = new http.fileHandler('./');
@@ -491,4 +662,4 @@ describe(
 			});
 		});
 
-//test.run();
+// test.run();
