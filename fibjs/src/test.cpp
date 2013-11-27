@@ -399,10 +399,10 @@ result_t test_base::setup(int32_t mode)
 					v8::FunctionTemplate::New(s_after)->GetFunction(),
 					v8::ReadOnly);
 			glob->ForceSet(v8::String::New("beforeEach"),
-					v8::FunctionTemplate::New(s_describe)->GetFunction(),
+					v8::FunctionTemplate::New(s_beforeEach)->GetFunction(),
 					v8::ReadOnly);
 			glob->ForceSet(v8::String::New("afterEach"),
-					v8::FunctionTemplate::New(s_describe)->GetFunction(),
+					v8::FunctionTemplate::New(s_afterEach)->GetFunction(),
 					v8::ReadOnly);
 		}
 		else if (mode == _TDD)
@@ -426,10 +426,10 @@ result_t test_base::setup(int32_t mode)
 					v8::FunctionTemplate::New(s_after)->GetFunction(),
 					v8::ReadOnly);
 			glob->ForceSet(v8::String::New("setup"),
-					v8::FunctionTemplate::New(s_describe)->GetFunction(),
+					v8::FunctionTemplate::New(s_beforeEach)->GetFunction(),
 					v8::ReadOnly);
 			glob->ForceSet(v8::String::New("teardown"),
-					v8::FunctionTemplate::New(s_describe)->GetFunction(),
+					v8::FunctionTemplate::New(s_afterEach)->GetFunction(),
 					v8::ReadOnly);
 		}
 		else
