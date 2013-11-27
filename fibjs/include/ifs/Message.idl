@@ -62,6 +62,6 @@ class Message: Trigger
 	 */
 	onreadfrom(Function func);
 
-	/*! @brief 查询消息读取时的流对象 */
+	/*! @brief 查询消息 readFrom 时的流对象 */
 	readonly Stream stream;
 };

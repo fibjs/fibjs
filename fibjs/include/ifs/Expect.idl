@@ -3,48 +3,188 @@
 
  Expect 对象为 assert 模块内部对象，用于实现 expect 风格断言，创建：
  @code
- var obj = assert.expect(exp);
+ var test = require("test");
+ var obj = test.expect(exp);
  @endcode
- */
+ 或者直接引用：
+ @code
+ var expect = require("expect");
+ var obj = expect(exp);
+ @endcode
+ 或者通过 test.setup 配置：
+ @code
+ require("test").setup();
+ var obj = expect(exp);
+ @endcode
+  */
 class Expect : object
 {
+	/*! @brief 无任何修改，仅用于构建语义
+	 @return 返回对象本身
+	 */
 	readonly Expect to;
+
+	/*! @brief 无任何修改，仅用于构建语义
+	 @return 返回对象本身
+	 */
 	readonly Expect be;
+
+	/*! @brief 无任何修改，仅用于构建语义
+	 @return 返回对象本身
+	 */
 	readonly Expect been;
+
+	/*! @brief 无任何修改，仅用于构建语义
+	 @return 返回对象本身
+	 */
 	readonly Expect is;
+
+	/*! @brief 无任何修改，仅用于构建语义
+	 @return 返回对象本身
+	 */
 	readonly Expect that;
+
+	/*! @brief 无任何修改，仅用于构建语义
+	 @return 返回对象本身
+	 */
 	readonly Expect and;
+
+	/*! @brief 无任何修改，仅用于构建语义
+	 @return 返回对象本身
+	 */
 	readonly Expect have;
+
+	/*! @brief 无任何修改，仅用于构建语义
+	 @return 返回对象本身
+	 */
 	readonly Expect with;
+
+	/*! @brief 无任何修改，仅用于构建语义
+	 @return 返回对象本身
+	 */
 	readonly Expect at;
+
+	/*! @brief 无任何修改，仅用于构建语义
+	 @return 返回对象本身
+	 */
 	readonly Expect of;
+
+	/*! @brief 无任何修改，仅用于构建语义
+	 @return 返回对象本身
+	 */
 	readonly Expect same;
+
+	/*! @brief 取反当前比对
+	 @return 返回对象本身
+	 */
 	readonly Expect not;
+
+	/*! @brief 标记当前比对为深度比较
+	 @return 返回对象本身
+	 */
 	readonly Expect deep;
+
+	/*! @brief 断言给定数值为制定类型，断言失败则抛出错误
+	 @param type 指定断言的数据类型字符串 
+	 */
 	a(String type);
+
+	/*! @brief 断言给定数值为制定类型，断言失败则抛出错误
+	 @param type 指定断言的数据类型字符串 
+	 */
 	an(String type);
+
+	/*! @brief 断言给定数值为真，断言失败则抛出错误*/
 	readonly Boolean ok;
+
+	/*! @brief 断言给定数值为 Boolean 类型 true，断言失败则抛出错误*/
 	readonly Boolean true;
+
+	/*! @brief 断言给定数值为 Boolean 类型 false，断言失败则抛出错误*/
 	readonly Boolean false;
+
+	/*! @brief 断言给定数值为 null，断言失败则抛出错误*/
 	readonly Boolean null;
+
+	/*! @brief 断言给定数值为 undefined，断言失败则抛出错误*/
 	readonly Boolean undefined;
+
+	/*! @brief 断言给定数值为函数，断言失败则抛出错误*/
 	readonly Boolean function;
+
+	/*! @brief 断言给定数值为对象，断言失败则抛出错误*/
 	readonly Boolean object;
+
+	/*! @brief 断言给定数值为数组，断言失败则抛出错误*/
 	readonly Boolean array;
+
+	/*! @brief 断言给定数值为字符串，断言失败则抛出错误*/
 	readonly Boolean string;
+
+	/*! @brief 断言给定数值为数字，断言失败则抛出错误*/
 	readonly Boolean number;
+
+	/*! @brief 断言给定数值为 Boolean 类型，断言失败则抛出错误*/
 	readonly Boolean boolean;
+
+	/*! @brief 断言给定数值存在，断言失败则抛出错误*/
 	readonly Boolean exist;
+
+	/*! @brief 断言给定数值严格等于预期的数值，若标记 deep 则深度比较，断言失败则抛出错误
+	 @param expected 预期的数值
+	 */
 	equal(Value expected);
+
+	/*! @brief 断言给定数值严格等于预期的数值，若标记 deep 则深度比较，断言失败则抛出错误
+	 @param expected 预期的数值
+	 */
 	eql(Value expected);
+
+	/*! @brief 断言给定数值大于预期的数值，断言失败则抛出错误
+	 @param expected 预期的数值
+	 */
 	above(Value expected);
+
+	/*! @brief 断言给定数值大于预期的数值，断言失败则抛出错误
+	 @param expected 预期的数值
+	 */
 	greaterThan(Value expected);
+
+	/*! @brief 断言给定数值最小为预期的数值，断言失败则抛出错误
+	 @param expected 预期的数值
+	 */
 	least(Value expected);
+
+	/*! @brief 断言给定数值小于预期的数值，断言失败则抛出错误
+	 @param expected 预期的数值
+	 */
 	below(Value expected);
+
+	/*! @brief 断言给定数值小于预期的数值，断言失败则抛出错误
+	 @param expected 预期的数值
+	 */
 	lessThan(Value expected);
+
+	/*! @brief 断言给定数值最大为预期的数值，断言失败则抛出错误
+	 @param expected 预期的数值
+	 */
 	most(Value expected);
+
+	/*! @brief 断言给定数值包含指定属性，标记 deep 则深度比较，断言失败则抛出错误
+	 @param prop 要测试的属性
+	 */
 	property(Value prop);
+
+	/*! @brief 断言给定数值指定属性的值为给定值，标记 deep 则深度比较，断言失败则抛出错误
+	 @param prop 要测试的属性
+	 @param value 给定的值
+	 */
 	property(Value prop, Value value);
+	
+	/*! @brief 测试数值近似等于预期值，断言失败则抛出错误
+	 @param expected 预期的数值
+	 @param delta 近似的小数精度
+	 */
 	closeTo(Value expected, Value delta);
 };
 

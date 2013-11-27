@@ -23,14 +23,31 @@ class console : module
 	/*! @brief 查询当前进程的标准输出流对象 */
 	static readonly BufferedStream stdout;
 
+	/*! @brief loglevel 级别常量 */
 	const Integer FATAL = 0;
+
+	/*! @brief loglevel 级别常量 */
 	const Integer ALERT = 100;
+
+	/*! @brief loglevel 级别常量 */
 	const Integer CRIT = 200;
+
+	/*! @brief loglevel 级别常量 */
 	const Integer ERROR = 300;
+
+	/*! @brief loglevel 级别常量 */
 	const Integer WARN = 400;
+
+	/*! @brief loglevel 级别常量 */
 	const Integer NOTICE = 500;
+
+	/*! @brief loglevel 级别常量 */
 	const Integer INFO = 600;
+
+	/*! @brief loglevel 级别常量 */
 	const Integer DEBUG = 700;
+
+	/*! @brief loglevel 级别常量 */
 	const Integer NOTSET = 800;
 	
 	/*! @brief 输出级别，用以过滤输出信息，缺省为 NOTSET，全部输出

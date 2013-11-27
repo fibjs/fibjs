@@ -11,6 +11,10 @@
  var test = require('test');
  var assert = test.assert;
  @endcode
+ 或者通过 test.setup 配置：
+ @code
+ require("test").setup();
+ @endcode
  */
 class assert : module
 {
