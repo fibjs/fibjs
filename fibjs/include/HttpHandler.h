@@ -6,6 +6,7 @@
  */
 
 #include "ifs/HttpHandler.h"
+#include "Stats.h"
 
 #ifndef HTTPHANDLER_H_
 #define HTTPHANDLER_H_
@@ -16,11 +17,7 @@ namespace fibjs
 class HttpHandler: public HttpHandler_base
 {
 public:
-	HttpHandler(Handler_base* hdlr) :
-			m_hdlr(hdlr), m_crossDomain(false), m_forceGZIP(false), m_maxHeadersCount(
-					128), m_maxUploadSize(64)
-	{
-	}
+	HttpHandler(Handler_base* hdlr);
 
 public:
 	// Handler_base
@@ -37,6 +34,10 @@ public:
 	virtual result_t set_maxHeadersCount(int32_t newVal);
 	virtual result_t get_maxUploadSize(int32_t& retVal);
 	virtual result_t set_maxUploadSize(int32_t newVal);
+	virtual result_t get_stats(obj_ptr<Stats_base>& retVal);
+
+public:
+	obj_ptr<Stats> m_stats;
 
 private:
 	obj_ptr<Handler_base> m_hdlr;

@@ -17,6 +17,31 @@
 namespace fibjs
 {
 
+static const char* s_staticCounter[] =
+{ "total", "pendding" };
+static const char* s_Counter[] =
+{ "request", "response", "error", "error_400", "error_404", "error_500" };
+
+enum
+{
+	HTTP_TOTAL = 0,
+	HTTP_PENDDING,
+	HTTP_REQUEST,
+	HTTP_RESPONSE,
+	HTTP_ERROR,
+	HTTP_ERROR_400,
+	HTTP_ERROR_404,
+	HTTP_ERROR_500
+};
+
+HttpHandler::HttpHandler(Handler_base* hdlr) :
+		m_hdlr(hdlr), m_crossDomain(false), m_forceGZIP(false), m_maxHeadersCount(
+				128), m_maxUploadSize(64)
+{
+	m_stats = new Stats();
+	m_stats->init(s_staticCounter, 2, s_Counter, 6);
+}
+
 static std::string s_crossdomain;
 
 result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
@@ -60,6 +85,10 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		{
 			asyncInvoke* pThis = (asyncInvoke*) pState;
 
+			pThis->m_pThis->m_stats->inc(HTTP_TOTAL);
+			pThis->m_pThis->m_stats->inc(HTTP_REQUEST);
+			pThis->m_pThis->m_stats->inc(HTTP_PENDDING);
+
 			std::string str;
 
 			pThis->m_req->get_protocol(str);
@@ -83,8 +112,8 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 								"<cross-domain-policy><allow-access-from domain=\"*\" to-ports=\"*\" /></cross-domain-policy>",
 								88);
 
-					obj_ptr<MemoryStream> body = new MemoryStream();
-					obj_ptr<Buffer> buf = new Buffer(s_crossdomain);
+					obj_ptr < MemoryStream > body = new MemoryStream();
+					obj_ptr < Buffer > buf = new Buffer(s_crossdomain);
 
 					pThis->m_rep->set_body(body);
 					body->write(buf, NULL);
@@ -147,10 +176,17 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				pThis->m_rep->hasHeader("Last-Modified", t);
 				if (!t)
 				{
-					pThis->m_rep->addHeader("Cache-Control", "no-cache, no-store");
+					pThis->m_rep->addHeader("Cache-Control",
+							"no-cache, no-store");
 					pThis->m_rep->addHeader("Expires", "-1");
 				}
 			}
+			else if (s == 400)
+				pThis->m_pThis->m_stats->inc(HTTP_ERROR_400);
+			else if (s == 404)
+				pThis->m_pThis->m_stats->inc(HTTP_ERROR_404);
+			else if (s == 500)
+				pThis->m_pThis->m_stats->inc(HTTP_ERROR_500);
 
 			int64_t len;
 
@@ -218,7 +254,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 				}
 			}
 
-			pThis->set(close);
+			pThis->set(end);
 			return pThis->m_rep->sendTo(pThis->m_stm, pThis);
 		}
 
@@ -228,16 +264,19 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
 			pThis->m_rep->set_body(pThis->m_zip);
 
-			pThis->set(close);
+			pThis->set(end);
 			return pThis->m_rep->sendTo(pThis->m_stm, pThis);
 		}
 
-		static int close(asyncState* pState, int n)
+		static int end(asyncState* pState, int n)
 		{
 			asyncInvoke* pThis = (asyncInvoke*) pState;
 
 			if (!pThis->m_body)
 				pThis->m_rep->get_body(pThis->m_body);
+
+			pThis->m_pThis->m_stats->inc(HTTP_RESPONSE);
+			pThis->m_pThis->m_stats->dec(HTTP_PENDDING);
 
 			pThis->set(read);
 			if (!pThis->m_body)
@@ -248,6 +287,8 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
 		virtual int error(int v)
 		{
+			m_pThis->m_stats->inc(HTTP_ERROR);
+
 			if (is(send))
 			{
 				m_rep->set_status(500);
@@ -256,12 +297,17 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
 			if (is(invoke))
 			{
+				m_pThis->m_stats->inc(HTTP_TOTAL);
+				m_pThis->m_stats->inc(HTTP_REQUEST);
+				m_pThis->m_stats->inc(HTTP_PENDDING);
+
 				m_rep->set_keepAlive(false);
 				m_rep->set_status(400);
 				set(send);
 				return 0;
 			}
 
+			m_pThis->m_stats->dec(HTTP_PENDDING);
 			return v;
 		}
 
@@ -278,7 +324,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	obj_ptr<Stream_base> stm = Stream_base::getInstance(v);
+	obj_ptr < Stream_base > stm = Stream_base::getInstance(v);
 
 	if (stm == NULL)
 		return CALL_E_BADVARTYPE;
@@ -337,6 +383,12 @@ result_t HttpHandler::set_maxUploadSize(int32_t newVal)
 		return CALL_E_OUTRANGE;
 
 	m_maxUploadSize = newVal;
+	return 0;
+}
+
+result_t HttpHandler::get_stats(obj_ptr<Stats_base>& retVal)
+{
+	retVal = m_stats;
 	return 0;
 }
 

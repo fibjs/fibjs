@@ -561,53 +561,6 @@ private:
 #define STEP_CHECK(n) _step_checker::g().chk((n), __FILE__, __LINE__)
 #define STEP_RESET() _step_checker::g().rst()
 
-class _stats
-{
-public:
-	_stats() :
-			_total(0), _pendding(0), _begin(0), _end(0)
-	{
-		m_date.now();
-	}
-
-	void begin()
-	{
-		exlib::atom_inc(&_begin);
-		exlib::atom_inc(&_pendding);
-		exlib::atom_inc(&_total);
-	}
-
-	void end()
-	{
-		exlib::atom_inc(&_end);
-		exlib::atom_dec(&_pendding);
-	}
-
-	void get(v8::Handle<v8::Object>& retVal)
-	{
-		date_t date1;
-
-		date1.now();
-
-		retVal = v8::Object::New();
-
-		retVal->Set(v8::String::New("total"), v8::Number::New(_total));
-		retVal->Set(v8::String::New("pendding"), v8::Number::New(_pendding));
-		retVal->Set(v8::String::New("begin"),
-				v8::Number::New(exlib::atom_xchg(&_begin, 0)));
-		retVal->Set(v8::String::New("end"),
-				v8::Number::New(exlib::atom_xchg(&_end, 0)));
-		retVal->Set(v8::String::New("distance"),
-				v8::Number::New(date1.diff(m_date)));
-
-		m_date = date1;
-	}
-
-private:
-	int _total, _pendding, _begin, _end;
-	date_t m_date;
-};
-
 }
 
 #endif

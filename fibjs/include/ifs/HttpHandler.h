@@ -18,6 +18,7 @@ namespace fibjs
 {
 
 class Handler_base;
+class Stats_base;
 
 class HttpHandler_base : public Handler_base
 {
@@ -31,6 +32,7 @@ public:
 	virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
 	virtual result_t get_maxUploadSize(int32_t& retVal) = 0;
 	virtual result_t set_maxUploadSize(int32_t newVal) = 0;
+	virtual result_t get_stats(obj_ptr<Stats_base>& retVal) = 0;
 
 	DECLARE_CLASSINFO(HttpHandler_base);
 
@@ -43,10 +45,12 @@ public:
 	static void s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_maxUploadSize(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_maxUploadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
+	static v8::Handle<v8::Value> s_get_stats(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 };
 
 }
 
+#include "Stats.h"
 
 namespace fibjs
 {
@@ -57,13 +61,14 @@ namespace fibjs
 			{"crossDomain", s_get_crossDomain, s_set_crossDomain},
 			{"forceGZIP", s_get_forceGZIP, s_set_forceGZIP},
 			{"maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount},
-			{"maxUploadSize", s_get_maxUploadSize, s_set_maxUploadSize}
+			{"maxUploadSize", s_get_maxUploadSize, s_set_maxUploadSize},
+			{"stats", s_get_stats}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"HttpHandler", NULL, 
-			0, NULL, 0, NULL, 4, s_property, NULL, NULL,
+			0, NULL, 0, NULL, 5, s_property, NULL, NULL,
 			&Handler_base::class_info()
 		};
 
@@ -161,6 +166,18 @@ namespace fibjs
 		hr = pInst->set_maxUploadSize(v0);
 
 		PROPERTY_SET_LEAVE();
+	}
+
+	inline v8::Handle<v8::Value> HttpHandler_base::s_get_stats(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		obj_ptr<Stats_base> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(HttpHandler_base);
+
+		hr = pInst->get_stats(vr);
+
+		METHOD_RETURN();
 	}
 
 }
