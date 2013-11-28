@@ -1,0 +1,209 @@
+/***************************************************************************
+ *   Copyright (C) 2012 by Leo Hoo                                         *
+ *   lion@9465.net                                                         *
+ *                                                                         *
+ ***************************************************************************/
+
+#ifndef _Queue_base_H_
+#define _Queue_base_H_
+
+/**
+ @author Leo Hoo <lion@9465.net>
+ */
+
+#include "../object.h"
+
+namespace fibjs
+{
+
+class Queue_base : public object_base
+{
+public:
+	// Queue_base
+	static result_t _new(int32_t size, obj_ptr<Queue_base>& retVal);
+	virtual result_t add(Variant e, bool& retVal) = 0;
+	virtual result_t offer(Variant e, bool& retVal) = 0;
+	virtual result_t remove(Variant& retVal) = 0;
+	virtual result_t poll(Variant& retVal) = 0;
+	virtual result_t element(Variant& retVal) = 0;
+	virtual result_t peek(Variant& retVal) = 0;
+	virtual result_t clear() = 0;
+	virtual result_t toArray(v8::Handle<v8::Array>& retVal) = 0;
+	virtual result_t get_length(int32_t& retVal) = 0;
+
+	DECLARE_CLASSINFO(Queue_base);
+
+public:
+	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_add(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_offer(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_remove(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_poll(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_element(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_peek(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_clear(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_toArray(const v8::Arguments& args);
+	static v8::Handle<v8::Value> s_get_length(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+};
+
+}
+
+namespace fibjs
+{
+	inline ClassInfo& Queue_base::class_info()
+	{
+		static ClassData::ClassMethod s_method[] = 
+		{
+			{"add", s_add},
+			{"offer", s_offer},
+			{"remove", s_remove},
+			{"poll", s_poll},
+			{"element", s_element},
+			{"peek", s_peek},
+			{"clear", s_clear},
+			{"toArray", s_toArray}
+		};
+
+		static ClassData::ClassProperty s_property[] = 
+		{
+			{"length", s_get_length}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"Queue", s__new, 
+			8, s_method, 0, NULL, 1, s_property, NULL, NULL,
+			&object_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
+	inline v8::Handle<v8::Value> Queue_base::s_get_length(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	{
+		int32_t vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Queue_base);
+
+		hr = pInst->get_length(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Queue_base::s__new(const v8::Arguments& args)
+	{
+		obj_ptr<Queue_base> vr;
+
+		CONSTRUCT_ENTER(1, 1);
+
+		ARG(int32_t, 0);
+
+		hr = _new(v0, vr);
+
+		CONSTRUCT_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Queue_base::s_add(const v8::Arguments& args)
+	{
+		bool vr;
+
+		METHOD_INSTANCE(Queue_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(Variant, 0);
+
+		hr = pInst->add(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Queue_base::s_offer(const v8::Arguments& args)
+	{
+		bool vr;
+
+		METHOD_INSTANCE(Queue_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(Variant, 0);
+
+		hr = pInst->offer(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Queue_base::s_remove(const v8::Arguments& args)
+	{
+		Variant vr;
+
+		METHOD_INSTANCE(Queue_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->remove(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Queue_base::s_poll(const v8::Arguments& args)
+	{
+		Variant vr;
+
+		METHOD_INSTANCE(Queue_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->poll(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Queue_base::s_element(const v8::Arguments& args)
+	{
+		Variant vr;
+
+		METHOD_INSTANCE(Queue_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->element(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Queue_base::s_peek(const v8::Arguments& args)
+	{
+		Variant vr;
+
+		METHOD_INSTANCE(Queue_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->peek(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Queue_base::s_clear(const v8::Arguments& args)
+	{
+		METHOD_INSTANCE(Queue_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->clear();
+
+		METHOD_VOID();
+	}
+
+	inline v8::Handle<v8::Value> Queue_base::s_toArray(const v8::Arguments& args)
+	{
+		v8::Handle<v8::Array> vr;
+
+		METHOD_INSTANCE(Queue_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->toArray(vr);
+
+		METHOD_RETURN();
+	}
+
+}
+
+#endif
+

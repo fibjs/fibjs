@@ -1,5 +1,12 @@
 
-/*! @brief Variant 数组对象，一般用以返回一组 Variant 数据 */
+/*! @brief Variant 数组对象，一般用以返回一组 Variant 数据
+
+ 用以创建和管理数组对象，创建方法：
+ @code
+ var collection = require("collection");
+ var a = new collection.List();
+ @endcode
+ */
 class List : object
 {
 	/*! @brief List 对象构造函数*/

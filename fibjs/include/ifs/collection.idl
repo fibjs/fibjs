@@ -1,5 +1,11 @@
 
-/*! @brief 基础容器模块 */
+/*! @brief 基础容器模块
+
+ 引用方法：
+ @code
+ var collection = require("collection");
+ @endcode
+ */
 class collection : module
 {
 	/*! @brief 创建一个 Map 容器，参见 Map */
@@ -7,4 +13,7 @@ class collection : module
 
 	/*! @brief 创建一个 List 容器，参见 List */
 	static List new List();
+
+	/*! @brief 创建一个 Queue 容器，参见 Queue */
+	static Queue new Queue();
 };

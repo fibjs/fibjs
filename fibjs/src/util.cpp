@@ -56,6 +56,8 @@ std::string getResultMessage(result_t hr)
 			"Index was out of range.",
 			// CALL_E_OVERFLOW
 			"Memory overflow error.",
+			// CALL_E_EMPTY
+			"Collection is empty.",
 			// CALL_E_PENDDING
 			"Operation now in progress.",
 			// CALL_E_NOSYNC
