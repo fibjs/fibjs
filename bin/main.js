@@ -3,7 +3,7 @@ var os = require('os');
 
 run("assert_test.js");
 run("expect_test.js");
-run("list_test.js");
+run("collection_test.js");
 run("buffer_test.js");
 run("path_test");
 run("utils_test");
