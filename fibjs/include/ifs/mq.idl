@@ -2,6 +2,9 @@
 /*! @brief 消息队列模块 */
 class mq : module
 {
+	/*! @brief 创建一个消息对象，参见 Chain */
+	static Message new Message();
+	
 	/*! @brief 创建一个消息处理器链处理对象，参见 Chain
 	 @param hdlrs 处理器数组
 	 */

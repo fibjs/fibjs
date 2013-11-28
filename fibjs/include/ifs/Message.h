@@ -27,6 +27,7 @@ class Message_base : public Trigger_base
 {
 public:
 	// Message_base
+	static result_t _new(obj_ptr<Message_base>& retVal);
 	virtual result_t get_value(std::string& retVal) = 0;
 	virtual result_t set_value(const char* newVal) = 0;
 	virtual result_t get_params(obj_ptr<List_base>& retVal) = 0;
@@ -48,6 +49,7 @@ public:
 	DECLARE_CLASSINFO(Message_base);
 
 public:
+	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
 	static v8::Handle<v8::Value> s_get_value(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 	static void s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
 	static v8::Handle<v8::Value> s_get_params(v8::Local<v8::String> property, const v8::AccessorInfo &info);
@@ -107,7 +109,7 @@ namespace fibjs
 
 		static ClassData s_cd = 
 		{ 
-			"Message", NULL, 
+			"Message", s__new, 
 			7, s_method, 0, NULL, 6, s_property, NULL, NULL,
 			&Trigger_base::class_info()
 		};
@@ -230,6 +232,17 @@ namespace fibjs
 		hr = pInst->get_stream(vr);
 
 		METHOD_RETURN();
+	}
+
+	inline v8::Handle<v8::Value> Message_base::s__new(const v8::Arguments& args)
+	{
+		obj_ptr<Message_base> vr;
+
+		CONSTRUCT_ENTER(0, 0);
+
+		hr = _new(vr);
+
+		CONSTRUCT_RETURN();
 	}
 
 	inline v8::Handle<v8::Value> Message_base::s_clear(const v8::Arguments& args)

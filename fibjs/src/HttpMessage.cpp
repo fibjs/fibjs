@@ -526,7 +526,7 @@ result_t HttpMessage::get_stream(obj_ptr<Stream_base>& retVal)
 
 result_t HttpMessage::clear()
 {
-	Message::clear();
+	Message::_msg::clear();
 
 	m_protocol.assign("HTTP/1.1", 8);
 	m_keepAlive = true;

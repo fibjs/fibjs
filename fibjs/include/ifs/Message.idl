@@ -2,6 +2,9 @@
 /*! @brief 基础消息对象  */
 class Message: Trigger
 {
+	/*! @brief 消息对象构造函数 */
+	Message();
+
 	/*! @brief 消息的基本内容 */
 	String value;
 

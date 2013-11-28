@@ -18,6 +18,7 @@ namespace fibjs
 {
 
 class module_base;
+class Message_base;
 class Chain_base;
 class Routing_base;
 class Handler_base;
@@ -53,6 +54,7 @@ public:
 
 }
 
+#include "Message.h"
 #include "Chain.h"
 #include "Routing.h"
 #include "Handler.h"
@@ -73,10 +75,15 @@ namespace fibjs
 			{"invoke", s_invoke, true}
 		};
 
+		static ClassData::ClassObject s_object[] = 
+		{
+			{"Message", Message_base::class_info}
+		};
+
 		static ClassData s_cd = 
 		{ 
 			"mq", NULL, 
-			7, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			7, s_method, 1, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
