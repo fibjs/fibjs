@@ -79,7 +79,7 @@ result_t BlockQueue::peek(Variant& retVal)
 
 result_t BlockQueue::clear()
 {
-	int32_t n = m_list.size();
+	int32_t n = (int32_t)m_list.size();
 
 	if (n > 0)
 	{
