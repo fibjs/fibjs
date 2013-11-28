@@ -1,5 +1,12 @@
 
-/*! @brief 基础消息对象  */
+/*! @brief 基础消息对象 
+ 
+ Message 对象兼容于 mq 各个模块，可用于构建自定义消息处理系统，创建方法：
+ @code
+ var mq = require("mq");
+ var m = new mq.Message();
+ @endcode 
+ *  */
 class Message: Trigger
 {
 	/*! @brief 消息对象构造函数 */
