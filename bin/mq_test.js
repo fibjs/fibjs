@@ -23,6 +23,10 @@ function hdlr3(v) {
 describe(
 		"mq",
 		function() {
+			it("create Message", function() {
+				var m = new mq.Message();
+			});
+
 			describe("function handler", function() {
 				var n = 0;
 
