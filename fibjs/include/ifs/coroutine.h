@@ -23,6 +23,7 @@ class Semaphore_base;
 class Condition_base;
 class Event_base;
 class Trigger_base;
+class BlockQueue_base;
 class Fiber_base;
 
 class coroutine_base : public module_base
@@ -52,6 +53,7 @@ public:
 #include "Condition.h"
 #include "Event.h"
 #include "Trigger.h"
+#include "BlockQueue.h"
 #include "Fiber.h"
 
 namespace fibjs
@@ -72,13 +74,14 @@ namespace fibjs
 			{"Semaphore", Semaphore_base::class_info},
 			{"Condition", Condition_base::class_info},
 			{"Event", Event_base::class_info},
-			{"Trigger", Trigger_base::class_info}
+			{"Trigger", Trigger_base::class_info},
+			{"BlockQueue", BlockQueue_base::class_info}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"coroutine", NULL, 
-			4, s_method, 5, s_object, 0, NULL, NULL, NULL,
+			4, s_method, 6, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
