@@ -1707,6 +1707,7 @@ void BinaryOpStub_GenerateSmiSmiOperation(MacroAssembler* masm,
       __ Ret();
 
       if (CpuFeatures::IsSupported(SUDIV)) {
+        CpuFeatureScope scope(masm, SUDIV);
         Label result_not_zero;
 
         __ bind(&div_with_sdiv);
@@ -1763,6 +1764,7 @@ void BinaryOpStub_GenerateSmiSmiOperation(MacroAssembler* masm,
       __ Ret();
 
       if (CpuFeatures::IsSupported(SUDIV)) {
+        CpuFeatureScope scope(masm, SUDIV);
         __ bind(&modulo_with_sdiv);
         __ mov(scratch2, right);
         // Perform modulus with sdiv and mls.
@@ -2208,42 +2210,25 @@ void BinaryOpStub::GenerateInt32Stub(MacroAssembler* masm) {
             UNREACHABLE();
         }
 
-        if (op_ != Token::DIV) {
-          // These operations produce an integer result.
-          // Try to return a smi if we can.
-          // Otherwise return a heap number if allowed, or jump to type
-          // transition.
-
-          if (result_type_ <= BinaryOpIC::INT32) {
-            __ TryDoubleToInt32Exact(scratch1, d5, d8);
-            // If the ne condition is set, result does
-            // not fit in a 32-bit integer.
-            __ b(ne, &transition);
-          } else {
-            __ vcvt_s32_f64(s8, d5);
-            __ vmov(scratch1, s8);
-          }
-
-          // Check if the result fits in a smi.
-          __ add(scratch2, scratch1, Operand(0x40000000), SetCC);
-          // If not try to return a heap number.
-          __ b(mi, &return_heap_number);
-          // Check for minus zero. Return heap number for minus zero if
-          // double results are allowed; otherwise transition.
+        if (result_type_ <= BinaryOpIC::INT32) {
+          __ TryDoubleToInt32Exact(scratch1, d5, d8);
+          // If the ne condition is set, result does
+          // not fit in a 32-bit integer.
+          __ b(ne, &transition);
+          // Try to tag the result as a Smi, return heap number on overflow.
+          __ SmiTag(scratch1, SetCC);
+          __ b(vs, &return_heap_number);
+          // Check for minus zero, transition in that case (because we need
+          // to return a heap number).
           Label not_zero;
-          __ cmp(scratch1, Operand::Zero());
+          ASSERT(kSmiTag == 0);
           __ b(ne, &not_zero);
           __ vmov(scratch2, d5.high());
           __ tst(scratch2, Operand(HeapNumber::kSignMask));
-          __ b(ne, result_type_ <= BinaryOpIC::INT32 ? &transition
-                                                     : &return_heap_number);
+          __ b(ne, &transition);
           __ bind(&not_zero);
-
-          // Tag the result and return.
-          __ SmiTag(r0, scratch1);
+          __ mov(r0, scratch1);
           __ Ret();
-        } else {
-          // DIV just falls through to allocating a heap number.
         }
 
         __ bind(&return_heap_number);
@@ -3519,7 +3504,7 @@ void InstanceofStub::Generate(MacroAssembler* masm) {
     // Get the map location in scratch and patch it.
     __ GetRelocatedValueLocation(inline_site, scratch);
     __ ldr(scratch, MemOperand(scratch));
-    __ str(map, FieldMemOperand(scratch, JSGlobalPropertyCell::kValueOffset));
+    __ str(map, FieldMemOperand(scratch, Cell::kValueOffset));
   }
 
   // Register mapping: r3 is object map and r4 is function prototype.
@@ -4652,7 +4637,7 @@ static void GenerateRecordCallTargetNoArray(MacroAssembler* masm) {
             masm->isolate()->heap()->the_hole_value());
 
   // Load the cache state into r3.
-  __ ldr(r3, FieldMemOperand(r2, JSGlobalPropertyCell::kValueOffset));
+  __ ldr(r3, FieldMemOperand(r2, Cell::kValueOffset));
 
   // A monomorphic cache hit or an already megamorphic state: invoke the
   // function without changing the state.
@@ -4667,10 +4652,10 @@ static void GenerateRecordCallTargetNoArray(MacroAssembler* masm) {
   // MegamorphicSentinel is an immortal immovable object (undefined) so no
   // write-barrier is needed.
   __ LoadRoot(ip, Heap::kUndefinedValueRootIndex, ne);
-  __ str(ip, FieldMemOperand(r2, JSGlobalPropertyCell::kValueOffset), ne);
+  __ str(ip, FieldMemOperand(r2, Cell::kValueOffset), ne);
 
   // An uninitialized cache is patched with the function.
-  __ str(r1, FieldMemOperand(r2, JSGlobalPropertyCell::kValueOffset), eq);
+  __ str(r1, FieldMemOperand(r2, Cell::kValueOffset), eq);
   // No need for a write barrier here - cells are rescanned.
 
   __ bind(&done);
@@ -4692,7 +4677,7 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
             masm->isolate()->heap()->the_hole_value());
 
   // Load the cache state into r3.
-  __ ldr(r3, FieldMemOperand(r2, JSGlobalPropertyCell::kValueOffset));
+  __ ldr(r3, FieldMemOperand(r2, Cell::kValueOffset));
 
   // A monomorphic cache hit or an already megamorphic state: invoke the
   // function without changing the state.
@@ -4726,7 +4711,7 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
   // write-barrier is needed.
   __ bind(&megamorphic);
   __ LoadRoot(ip, Heap::kUndefinedValueRootIndex);
-  __ str(ip, FieldMemOperand(r2, JSGlobalPropertyCell::kValueOffset));
+  __ str(ip, FieldMemOperand(r2, Cell::kValueOffset));
   __ jmp(&done);
 
   // An uninitialized cache is patched with the function or sentinel to
@@ -4744,11 +4729,11 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
       TypeFeedbackCells::MonomorphicArraySentinel(masm->isolate(),
           GetInitialFastElementsKind());
   __ mov(r3, Operand(initial_kind_sentinel));
-  __ str(r3, FieldMemOperand(r2, JSGlobalPropertyCell::kValueOffset));
+  __ str(r3, FieldMemOperand(r2, Cell::kValueOffset));
   __ b(&done);
 
   __ bind(&not_array_function);
-  __ str(r1, FieldMemOperand(r2, JSGlobalPropertyCell::kValueOffset));
+  __ str(r1, FieldMemOperand(r2, Cell::kValueOffset));
   // No need for a write barrier here - cells are rescanned.
 
   __ bind(&done);
@@ -4824,7 +4809,7 @@ void CallFunctionStub::Generate(MacroAssembler* masm) {
     ASSERT_EQ(*TypeFeedbackCells::MegamorphicSentinel(masm->isolate()),
               masm->isolate()->heap()->undefined_value());
     __ LoadRoot(ip, Heap::kUndefinedValueRootIndex);
-    __ str(ip, FieldMemOperand(r2, JSGlobalPropertyCell::kValueOffset));
+    __ str(ip, FieldMemOperand(r2, Cell::kValueOffset));
   }
   // Check for function proxy.
   __ cmp(r3, Operand(JS_FUNCTION_PROXY_TYPE));
@@ -7347,14 +7332,13 @@ void ArrayConstructorStub::Generate(MacroAssembler* masm) {
     __ CompareObjectType(r3, r3, r4, MAP_TYPE);
     __ Assert(eq, "Unexpected initial map for Array function");
 
-    // We should either have undefined in ebx or a valid jsglobalpropertycell
+    // We should either have undefined in ebx or a valid cell
     Label okay_here;
-    Handle<Map> global_property_cell_map(
-        masm->isolate()->heap()->global_property_cell_map());
+    Handle<Map> cell_map = masm->isolate()->factory()->cell_map();
     __ cmp(r2, Operand(undefined_sentinel));
     __ b(eq, &okay_here);
     __ ldr(r3, FieldMemOperand(r2, 0));
-    __ cmp(r3, Operand(global_property_cell_map));
+    __ cmp(r3, Operand(cell_map));
     __ Assert(eq, "Expected property cell in register ebx");
     __ bind(&okay_here);
   }

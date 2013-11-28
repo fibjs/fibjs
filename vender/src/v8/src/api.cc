@@ -183,6 +183,10 @@ void i::V8::FatalProcessOutOfMemory(const char* location, bool take_snapshot) {
   heap_stats.cell_space_size = &cell_space_size;
   intptr_t cell_space_capacity;
   heap_stats.cell_space_capacity = &cell_space_capacity;
+  intptr_t property_cell_space_size;
+  heap_stats.property_cell_space_size = &property_cell_space_size;
+  intptr_t property_cell_space_capacity;
+  heap_stats.property_cell_space_capacity = &property_cell_space_capacity;
   intptr_t lo_space_size;
   heap_stats.lo_space_size = &lo_space_size;
   int global_handle_count;
@@ -4303,6 +4307,23 @@ bool String::IsOneByte() const {
   return str->HasOnlyOneByteChars();
 }
 
+// Helpers for ContainsOnlyOneByteHelper
+template<size_t size> struct OneByteMask;
+template<> struct OneByteMask<4> {
+  static const uint32_t value = 0xFF00FF00;
+};
+template<> struct OneByteMask<8> {
+  static const uint64_t value = V8_2PART_UINT64_C(0xFF00FF00, FF00FF00);
+};
+static const uintptr_t kOneByteMask = OneByteMask<sizeof(uintptr_t)>::value;
+static const uintptr_t kAlignmentMask = sizeof(uintptr_t) - 1;
+static inline bool Unaligned(const uint16_t* chars) {
+  return reinterpret_cast<const uintptr_t>(chars) & kAlignmentMask;
+}
+static inline const uint16_t* Align(const uint16_t* chars) {
+  return reinterpret_cast<uint16_t*>(
+    reinterpret_cast<uintptr_t>(chars) & ~kAlignmentMask);
+}
 
 class ContainsOnlyOneByteHelper {
  public:
@@ -4315,14 +4336,36 @@ class ContainsOnlyOneByteHelper {
   void VisitOneByteString(const uint8_t* chars, int length) {
     // Nothing to do.
   }
-  // TODO(dcarney): do word aligned read.
   void VisitTwoByteString(const uint16_t* chars, int length) {
-    // Check whole string without breaking.
-    uint16_t total = 0;
-    for (int i = 0; i < length; i++) {
-      total |= chars[i] >> 8;
+    // Accumulated bits.
+    uintptr_t acc = 0;
+    // Align to uintptr_t.
+    const uint16_t* end = chars + length;
+    while (Unaligned(chars) && chars != end) {
+        acc |= *chars++;
     }
-    if (total != 0) is_one_byte_ = false;
+    // Read word aligned in blocks,
+    // checking the return value at the end of each block.
+    const uint16_t* aligned_end = Align(end);
+    const int increment = sizeof(uintptr_t)/sizeof(uint16_t);
+    const int inner_loops = 16;
+    while (chars + inner_loops*increment < aligned_end) {
+      for (int i = 0; i < inner_loops; i++) {
+        acc |= *reinterpret_cast<const uintptr_t*>(chars);
+        chars += increment;
+      }
+      // Check for early return.
+      if ((acc & kOneByteMask) != 0) {
+        is_one_byte_ = false;
+        return;
+      }
+    }
+    // Read the rest.
+    while (chars != end) {
+      acc |= *chars++;
+    }
+    // Check result.
+    if ((acc & kOneByteMask) != 0) is_one_byte_ = false;
   }
 
  private:
@@ -5119,6 +5162,15 @@ void v8::V8::SetJitCodeEventHandler(
   // Ensure that logging is initialized for our isolate.
   isolate->InitializeLoggingAndCounters();
   isolate->logger()->SetCodeEventHandler(options, event_handler);
+}
+
+void v8::V8::SetArrayBufferAllocator(
+    ArrayBuffer::Allocator* allocator) {
+  if (!ApiCheck(i::V8::ArrayBufferAllocator() == NULL,
+                "v8::V8::SetArrayBufferAllocator",
+                "ArrayBufferAllocator might only be set once"))
+    return;
+  i::V8::SetArrayBufferAllocator(allocator);
 }
 
 
@@ -6090,25 +6142,36 @@ bool v8::ArrayBuffer::IsExternal() const {
   return Utils::OpenHandle(this)->is_external();
 }
 
-v8::ArrayBufferContents::~ArrayBufferContents() {
-  free(data_);
-  data_ = NULL;
-  byte_length_ = 0;
-}
-
-
-void v8::ArrayBuffer::Externalize(ArrayBufferContents* contents) {
+v8::ArrayBuffer::Contents v8::ArrayBuffer::Externalize() {
   i::Handle<i::JSArrayBuffer> obj = Utils::OpenHandle(this);
   ApiCheck(!obj->is_external(),
             "v8::ArrayBuffer::Externalize",
             "ArrayBuffer already externalized");
   obj->set_is_external(true);
   size_t byte_length = static_cast<size_t>(obj->byte_length()->Number());
-  ApiCheck(contents->data_ == NULL,
-           "v8::ArrayBuffer::Externalize",
-           "Externalizing into non-empty ArrayBufferContents");
-  contents->data_ = obj->backing_store();
-  contents->byte_length_ = byte_length;
+  Contents contents;
+  contents.data_ = obj->backing_store();
+  contents.byte_length_ = byte_length;
+  return contents;
+}
+
+
+void v8::ArrayBuffer::Neuter() {
+  i::Handle<i::JSArrayBuffer> obj = Utils::OpenHandle(this);
+  i::Isolate* isolate = obj->GetIsolate();
+  ApiCheck(obj->is_external(),
+           "v8::ArrayBuffer::Neuter",
+           "Only externalized ArrayBuffers can be neutered");
+  LOG_API(obj->GetIsolate(), "v8::ArrayBuffer::Neuter()");
+  ENTER_V8(isolate);
+
+  for (i::Handle<i::Object> array_obj(obj->weak_first_array(), isolate);
+       !array_obj->IsUndefined();) {
+    i::Handle<i::JSTypedArray> typed_array(i::JSTypedArray::cast(*array_obj));
+    typed_array->Neuter();
+    array_obj = i::handle(typed_array->weak_next(), isolate);
+  }
+  obj->Neuter();
 }
 
 

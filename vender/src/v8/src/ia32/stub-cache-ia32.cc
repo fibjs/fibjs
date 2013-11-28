@@ -469,11 +469,12 @@ static void GenerateFastApiCall(MacroAssembler* masm,
   //                           (first fast api call extra argument)
   //  -- esp[12]             : api call data
   //  -- esp[16]             : isolate
-  //  -- esp[20]             : ReturnValue
-  //  -- esp[24]             : last argument
+  //  -- esp[20]             : ReturnValue default value
+  //  -- esp[24]             : ReturnValue
+  //  -- esp[28]             : last argument
   //  -- ...
-  //  -- esp[(argc + 5) * 4] : first argument
-  //  -- esp[(argc + 6) * 4] : receiver
+  //  -- esp[(argc + 6) * 4] : first argument
+  //  -- esp[(argc + 7) * 4] : receiver
   // -----------------------------------
   // Get the function and setup the context.
   Handle<JSFunction> function = optimization.constant_function();
@@ -495,9 +496,11 @@ static void GenerateFastApiCall(MacroAssembler* masm,
          Immediate(reinterpret_cast<int>(masm->isolate())));
   __ mov(Operand(esp, 5 * kPointerSize),
          masm->isolate()->factory()->undefined_value());
+  __ mov(Operand(esp, 6 * kPointerSize),
+         masm->isolate()->factory()->undefined_value());
 
   // Prepare arguments.
-  STATIC_ASSERT(kFastApiCallArguments == 5);
+  STATIC_ASSERT(kFastApiCallArguments == 6);
   __ lea(eax, Operand(esp, kFastApiCallArguments * kPointerSize));
 
   const int kApiArgc = 1;  // API function gets reference to the v8::Arguments.
@@ -759,7 +762,7 @@ static void GenerateCheckPropertyCell(MacroAssembler* masm,
     __ cmp(FieldOperand(scratch, JSGlobalPropertyCell::kValueOffset),
            Immediate(the_hole));
   } else {
-    __ cmp(Operand::Cell(cell), Immediate(the_hole));
+    __ cmp(Operand::ForCell(cell), Immediate(the_hole));
   }
   __ j(not_equal, miss);
 }
@@ -1387,6 +1390,8 @@ void BaseLoadStubCompiler::GenerateLoadCallback(
     __ push(Immediate(Handle<Object>(callback->data(), isolate())));
   }
   __ push(Immediate(isolate()->factory()->undefined_value()));  // ReturnValue
+  // ReturnValue default value
+  __ push(Immediate(isolate()->factory()->undefined_value()));
   __ push(Immediate(reinterpret_cast<int>(isolate())));
 
   // Save a pointer to where we pushed the arguments pointer.  This will be
@@ -1420,7 +1425,7 @@ void BaseLoadStubCompiler::GenerateLoadCallback(
   __ CallApiFunctionAndReturn(getter_address,
                               kStackSpace,
                               returns_handle,
-                              5);
+                              6);
 }
 
 
@@ -1560,15 +1565,15 @@ void CallStubCompiler::GenerateGlobalReceiverCheck(Handle<JSObject> object,
 
 
 void CallStubCompiler::GenerateLoadFunctionFromCell(
-    Handle<JSGlobalPropertyCell> cell,
+    Handle<Cell> cell,
     Handle<JSFunction> function,
     Label* miss) {
   // Get the value from the cell.
   if (Serializer::enabled()) {
     __ mov(edi, Immediate(cell));
-    __ mov(edi, FieldOperand(edi, JSGlobalPropertyCell::kValueOffset));
+    __ mov(edi, FieldOperand(edi, Cell::kValueOffset));
   } else {
-    __ mov(edi, Operand::Cell(cell));
+    __ mov(edi, Operand::ForCell(cell));
   }
 
   // Check that the cell contains the same function.
@@ -1662,7 +1667,7 @@ Handle<Code> CallStubCompiler::CompileCallField(Handle<JSObject> object,
 Handle<Code> CallStubCompiler::CompileArrayPushCall(
     Handle<Object> object,
     Handle<JSObject> holder,
-    Handle<JSGlobalPropertyCell> cell,
+    Handle<Cell> cell,
     Handle<JSFunction> function,
     Handle<String> name) {
   // ----------- S t a t e -------------
@@ -1920,7 +1925,7 @@ Handle<Code> CallStubCompiler::CompileArrayPushCall(
 Handle<Code> CallStubCompiler::CompileArrayPopCall(
     Handle<Object> object,
     Handle<JSObject> holder,
-    Handle<JSGlobalPropertyCell> cell,
+    Handle<Cell> cell,
     Handle<JSFunction> function,
     Handle<String> name) {
   // ----------- S t a t e -------------
@@ -2002,7 +2007,7 @@ Handle<Code> CallStubCompiler::CompileArrayPopCall(
 Handle<Code> CallStubCompiler::CompileStringCharCodeAtCall(
     Handle<Object> object,
     Handle<JSObject> holder,
-    Handle<JSGlobalPropertyCell> cell,
+    Handle<Cell> cell,
     Handle<JSFunction> function,
     Handle<String> name) {
   // ----------- S t a t e -------------
@@ -2086,7 +2091,7 @@ Handle<Code> CallStubCompiler::CompileStringCharCodeAtCall(
 Handle<Code> CallStubCompiler::CompileStringCharAtCall(
     Handle<Object> object,
     Handle<JSObject> holder,
-    Handle<JSGlobalPropertyCell> cell,
+    Handle<Cell> cell,
     Handle<JSFunction> function,
     Handle<String> name) {
   // ----------- S t a t e -------------
@@ -2172,7 +2177,7 @@ Handle<Code> CallStubCompiler::CompileStringCharAtCall(
 Handle<Code> CallStubCompiler::CompileStringFromCharCodeCall(
     Handle<Object> object,
     Handle<JSObject> holder,
-    Handle<JSGlobalPropertyCell> cell,
+    Handle<Cell> cell,
     Handle<JSFunction> function,
     Handle<String> name) {
   // ----------- S t a t e -------------
@@ -2248,7 +2253,7 @@ Handle<Code> CallStubCompiler::CompileStringFromCharCodeCall(
 Handle<Code> CallStubCompiler::CompileMathFloorCall(
     Handle<Object> object,
     Handle<JSObject> holder,
-    Handle<JSGlobalPropertyCell> cell,
+    Handle<Cell> cell,
     Handle<JSFunction> function,
     Handle<String> name) {
   // ----------- S t a t e -------------
@@ -2379,7 +2384,7 @@ Handle<Code> CallStubCompiler::CompileMathFloorCall(
 Handle<Code> CallStubCompiler::CompileMathAbsCall(
     Handle<Object> object,
     Handle<JSObject> holder,
-    Handle<JSGlobalPropertyCell> cell,
+    Handle<Cell> cell,
     Handle<JSFunction> function,
     Handle<String> name) {
   // ----------- S t a t e -------------
@@ -2486,7 +2491,7 @@ Handle<Code> CallStubCompiler::CompileFastApiCall(
     const CallOptimization& optimization,
     Handle<Object> object,
     Handle<JSObject> holder,
-    Handle<JSGlobalPropertyCell> cell,
+    Handle<Cell> cell,
     Handle<JSFunction> function,
     Handle<String> name) {
   ASSERT(optimization.is_simple_api_call());
@@ -2668,7 +2673,7 @@ Handle<Code> CallStubCompiler::CompileCallConstant(
 
   if (HasCustomCallGenerator(function)) {
     Handle<Code> code = CompileCustomCall(object, holder,
-                                          Handle<JSGlobalPropertyCell>::null(),
+                                          Handle<Cell>::null(),
                                           function, Handle<String>::cast(name));
     // A null handle means bail out to the regular compiler code below.
     if (!code.is_null()) return code;
@@ -3116,7 +3121,7 @@ Handle<Code> LoadStubCompiler::CompileLoadGlobal(
     __ mov(eax, Immediate(cell));
     __ mov(eax, FieldOperand(eax, JSGlobalPropertyCell::kValueOffset));
   } else {
-    __ mov(eax, Operand::Cell(cell));
+    __ mov(eax, Operand::ForCell(cell));
   }
 
   // Check for deleted property if property can actually be deleted.

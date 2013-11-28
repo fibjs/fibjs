@@ -96,7 +96,7 @@ namespace internal {
   F(ClearFunctionTypeFeedback, 1, 1) \
   F(RunningInSimulator, 0, 1) \
   F(OptimizeFunctionOnNextCall, -1, 1) \
-  F(WaitUntilOptimized, 1, 1) \
+  F(CompleteOptimization, 1, 1) \
   F(GetOptimizationStatus, 1, 1) \
   F(GetOptimizationCount, 1, 1) \
   F(CompileForOnStackReplacement, 1, 1) \
@@ -572,7 +572,7 @@ namespace internal {
   F(HasCachedArrayIndex, 1, 1)                                               \
   F(GetCachedArrayIndex, 1, 1)                                               \
   F(FastAsciiArrayJoin, 2, 1)                                                \
-  F(GeneratorSend, 2, 1)                                                     \
+  F(GeneratorNext, 2, 1)                                                     \
   F(GeneratorThrow, 2, 1)
 
 

@@ -909,8 +909,6 @@ Handle<Code> StubCache::ComputeCallMiss(int argc,
 
 Handle<Code> StubCache::ComputeCompareNil(Handle<Map> receiver_map,
                                           CompareNilICStub& stub) {
-  stub.SetKind(kNonStrictEquality);
-
   Handle<String> name(isolate_->heap()->empty_string());
   if (!receiver_map->is_shared()) {
     Handle<Code> cached_ic = FindIC(name, receiver_map, Code::COMPARE_NIL_IC,
@@ -1138,7 +1136,7 @@ RUNTIME_FUNCTION(MaybeObject*, LoadPropertyWithInterceptorOnly) {
   Handle<InterceptorInfo> interceptor_info = args.at<InterceptorInfo>(1);
   ASSERT(kArgsOffset == 2);
   // No ReturnValue in interceptors.
-  ASSERT(args.length() == kArgsOffset + PCA::kArgsLength - 1);
+  ASSERT_EQ(kArgsOffset + PCA::kArgsLength - 2, args.length());
 
   // TODO(rossberg): Support symbols in the API.
   if (name_handle->IsSymbol())
@@ -1205,7 +1203,7 @@ static MaybeObject* LoadWithInterceptor(Arguments* args,
   Handle<InterceptorInfo> interceptor_info = args->at<InterceptorInfo>(1);
   ASSERT(kArgsOffset == 2);
   // No ReturnValue in interceptors.
-  ASSERT(args->length() == kArgsOffset + PCA::kArgsLength - 1);
+  ASSERT_EQ(kArgsOffset + PCA::kArgsLength - 2, args->length());
   Handle<JSObject> receiver_handle =
       args->at<JSObject>(kArgsOffset - PCA::kThisIndex);
   Handle<JSObject> holder_handle =
@@ -1979,7 +1977,7 @@ bool CallStubCompiler::HasCustomCallGenerator(Handle<JSFunction> function) {
 Handle<Code> CallStubCompiler::CompileCustomCall(
     Handle<Object> object,
     Handle<JSObject> holder,
-    Handle<JSGlobalPropertyCell> cell,
+    Handle<Cell> cell,
     Handle<JSFunction> function,
     Handle<String> fname) {
   ASSERT(HasCustomCallGenerator(function));

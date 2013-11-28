@@ -503,19 +503,7 @@ void CountOperation::RecordTypeFeedback(TypeFeedbackOracle* oracle,
 
 
 void CaseClause::RecordTypeFeedback(TypeFeedbackOracle* oracle) {
-  TypeInfo info = oracle->SwitchType(this);
-  if (info.IsUninitialized()) info = TypeInfo::Unknown();
-  if (info.IsSmi()) {
-    compare_type_ = SMI_ONLY;
-  } else if (info.IsInternalizedString()) {
-    compare_type_ = NAME_ONLY;
-  } else if (info.IsNonInternalizedString()) {
-    compare_type_ = STRING_ONLY;
-  } else if (info.IsNonPrimitive()) {
-    compare_type_ = OBJECT_ONLY;
-  } else {
-    ASSERT(compare_type_ == NONE);
-  }
+  compare_type_ = oracle->ClauseType(CompareId());
 }
 
 
@@ -570,11 +558,11 @@ bool Call::ComputeTarget(Handle<Map> type, Handle<String> name) {
 bool Call::ComputeGlobalTarget(Handle<GlobalObject> global,
                                LookupResult* lookup) {
   target_ = Handle<JSFunction>::null();
-  cell_ = Handle<JSGlobalPropertyCell>::null();
+  cell_ = Handle<Cell>::null();
   ASSERT(lookup->IsFound() &&
          lookup->type() == NORMAL &&
          lookup->holder() == *global);
-  cell_ = Handle<JSGlobalPropertyCell>(global->GetPropertyCell(lookup));
+  cell_ = Handle<Cell>(global->GetPropertyCell(lookup));
   if (cell_->value()->IsJSFunction()) {
     Handle<JSFunction> candidate(JSFunction::cast(cell_->value()));
     // If the function is in new space we assume it's more likely to
@@ -655,17 +643,15 @@ void Call::RecordTypeFeedback(TypeFeedbackOracle* oracle,
 
 
 void CallNew::RecordTypeFeedback(TypeFeedbackOracle* oracle) {
+  allocation_info_cell_ = oracle->GetCallNewAllocationInfoCell(this);
   is_monomorphic_ = oracle->CallNewIsMonomorphic(this);
   if (is_monomorphic_) {
     target_ = oracle->GetCallNewTarget(this);
-    elements_kind_ = oracle->GetCallNewElementsKind(this);
+    Object* value = allocation_info_cell_->value();
+    if (value->IsSmi()) {
+      elements_kind_ = static_cast<ElementsKind>(Smi::cast(value)->value());
+    }
   }
-  Handle<Object> alloc_elements_kind = oracle->GetInfo(CallNewFeedbackId());
-//  if (alloc_elements_kind->IsSmi())
-//    alloc_elements_kind_ = Handle<Smi>::cast(alloc_elements_kind);
-  alloc_elements_kind_ = alloc_elements_kind->IsSmi()
-      ? Handle<Smi>::cast(alloc_elements_kind)
-      : handle(Smi::FromInt(GetInitialFastElementsKind()), oracle->isolate());
 }
 
 
@@ -687,17 +673,11 @@ void BinaryOperation::RecordTypeFeedback(TypeFeedbackOracle* oracle) {
 }
 
 
+// TODO(rossberg): this function (and all other RecordTypeFeedback functions)
+// should disappear once we use the common type field in the AST consistently.
 void CompareOperation::RecordTypeFeedback(TypeFeedbackOracle* oracle) {
-  oracle->CompareType(this, &left_type_, &right_type_, &overall_type_);
-  if (!overall_type_.IsUninitialized() && overall_type_.IsNonPrimitive() &&
-      (op_ == Token::EQ || op_ == Token::EQ_STRICT)) {
-    map_ = oracle->GetCompareMap(this);
-  } else {
-    // May be a compare to nil.
-    map_ = oracle->CompareNilMonomorphicReceiverType(this);
-    if (op_ != Token::EQ_STRICT)
-      compare_nil_types_ = oracle->CompareNilTypes(this);
-  }
+  oracle->CompareTypes(CompareOperationFeedbackId(),
+      &left_type_, &right_type_, &overall_type_, &compare_nil_type_);
 }
 
 
@@ -1074,7 +1054,7 @@ CaseClause::CaseClause(Isolate* isolate,
     : label_(label),
       statements_(statements),
       position_(pos),
-      compare_type_(NONE),
+      compare_type_(Type::None(), isolate),
       compare_id_(AstNode::GetNextId(isolate)),
       entry_id_(AstNode::GetNextId(isolate)) {
 }

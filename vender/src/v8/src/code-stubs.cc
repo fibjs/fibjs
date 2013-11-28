@@ -305,6 +305,27 @@ void BinaryOpStub::GenerateStringStub(MacroAssembler* masm) {
 }
 
 
+InlineCacheState ICCompareStub::GetICState() {
+  CompareIC::State state = Max(left_, right_);
+  switch (state) {
+    case CompareIC::UNINITIALIZED:
+      return ::v8::internal::UNINITIALIZED;
+    case CompareIC::SMI:
+    case CompareIC::NUMBER:
+    case CompareIC::INTERNALIZED_STRING:
+    case CompareIC::STRING:
+    case CompareIC::UNIQUE_NAME:
+    case CompareIC::OBJECT:
+    case CompareIC::KNOWN_OBJECT:
+      return MONOMORPHIC;
+    case CompareIC::GENERIC:
+      return ::v8::internal::GENERIC;
+  }
+  UNREACHABLE();
+  return ::v8::internal::UNINITIALIZED;
+}
+
+
 void ICCompareStub::AddToSpecialCache(Handle<Code> new_object) {
   ASSERT(*known_map_ != NULL);
   Isolate* isolate = new_object->GetIsolate();
@@ -410,31 +431,24 @@ void ICCompareStub::Generate(MacroAssembler* masm) {
 
 
 void CompareNilICStub::Record(Handle<Object> object) {
-  ASSERT(types_ != Types::FullCompare());
-  if (equality_kind_ == kStrictEquality) {
-    // When testing for strict equality only one value will evaluate to true
-    types_.RemoveAll();
-    types_.Add((nil_value_ == kNullValue) ? NULL_TYPE:
-                                            UNDEFINED);
+  ASSERT(state_ != State::Generic());
+  if (object->IsNull()) {
+    state_.Add(NULL_TYPE);
+  } else if (object->IsUndefined()) {
+    state_.Add(UNDEFINED);
+  } else if (object->IsUndetectableObject() ||
+             object->IsOddball() ||
+             !object->IsHeapObject()) {
+    state_ = State::Generic();
+  } else if (IsMonomorphic()) {
+    state_ = State::Generic();
   } else {
-    if (object->IsNull()) {
-      types_.Add(NULL_TYPE);
-    } else if (object->IsUndefined()) {
-      types_.Add(UNDEFINED);
-    } else if (object->IsUndetectableObject() ||
-               object->IsOddball() ||
-               !object->IsHeapObject()) {
-      types_ = Types::FullCompare();
-    } else if (IsMonomorphic()) {
-      types_ = Types::FullCompare();
-    } else {
-      types_.Add(MONOMORPHIC_MAP);
-    }
+    state_.Add(MONOMORPHIC_MAP);
   }
 }
 
 
-void CompareNilICStub::Types::TraceTransition(Types to) const {
+void CompareNilICStub::State::TraceTransition(State to) const {
   #ifdef DEBUG
   if (!FLAG_trace_ic) return;
   char buffer[100];
@@ -453,15 +467,13 @@ void CompareNilICStub::Types::TraceTransition(Types to) const {
 
 void CompareNilICStub::PrintName(StringStream* stream) {
   stream->Add("CompareNilICStub_");
-  types_.Print(stream);
+  state_.Print(stream);
   stream->Add((nil_value_ == kNullValue) ? "(NullValue|":
                                            "(UndefinedValue|");
-  stream->Add((equality_kind_ == kStrictEquality) ? "StrictEquality)":
-                                                    "NonStrictEquality)");
 }
 
 
-void CompareNilICStub::Types::Print(StringStream* stream) const {
+void CompareNilICStub::State::Print(StringStream* stream) const {
   stream->Add("(");
   SimpleListPrinter printer(stream);
   if (IsEmpty()) printer.Add("None");
@@ -469,7 +481,37 @@ void CompareNilICStub::Types::Print(StringStream* stream) const {
   if (Contains(NULL_TYPE)) printer.Add("Null");
   if (Contains(MONOMORPHIC_MAP)) printer.Add("MonomorphicMap");
   if (Contains(UNDETECTABLE)) printer.Add("Undetectable");
+  if (Contains(GENERIC)) printer.Add("Generic");
   stream->Add(")");
+}
+
+
+Handle<Type> CompareNilICStub::StateToType(
+    Isolate* isolate,
+    State state,
+    Handle<Map> map) {
+  if (state.Contains(CompareNilICStub::GENERIC)) {
+    return handle(Type::Any(), isolate);
+  }
+
+  Handle<Type> result(Type::None(), isolate);
+  if (state.Contains(CompareNilICStub::UNDEFINED)) {
+    result = handle(Type::Union(result, handle(Type::Undefined(), isolate)),
+                    isolate);
+  }
+  if (state.Contains(CompareNilICStub::NULL_TYPE)) {
+    result = handle(Type::Union(result, handle(Type::Null(), isolate)),
+                    isolate);
+  }
+  if (state.Contains(CompareNilICStub::UNDETECTABLE)) {
+    result = handle(Type::Union(result, handle(Type::Undetectable(), isolate)),
+                    isolate);
+  } else if (state.Contains(CompareNilICStub::MONOMORPHIC_MAP)) {
+    Type* type = map.is_null() ? Type::Detectable() : Type::Class(map);
+    result = handle(Type::Union(result, handle(type, isolate)), isolate);
+  }
+
+  return result;
 }
 
 

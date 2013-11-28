@@ -2624,15 +2624,89 @@ WhileStatement* Parser::ParseWhileStatement(ZoneStringList* labels, bool* ok) {
 }
 
 
-bool Parser::CheckInOrOf(ForEachStatement::VisitMode* visit_mode) {
+bool Parser::CheckInOrOf(bool accept_OF,
+                         ForEachStatement::VisitMode* visit_mode) {
   if (Check(Token::IN)) {
     *visit_mode = ForEachStatement::ENUMERATE;
     return true;
-  } else if (allow_for_of() && CheckContextualKeyword(CStrVector("of"))) {
+  } else if (allow_for_of() && accept_OF &&
+             CheckContextualKeyword(CStrVector("of"))) {
     *visit_mode = ForEachStatement::ITERATE;
     return true;
   }
   return false;
+}
+
+
+void Parser::InitializeForEachStatement(ForEachStatement* stmt,
+                                        Expression* each,
+                                        Expression* subject,
+                                        Statement* body) {
+  ForOfStatement* for_of = stmt->AsForOfStatement();
+
+  if (for_of != NULL) {
+    Factory* heap_factory = isolate()->factory();
+    Handle<String> iterator_str = heap_factory->InternalizeOneByteString(
+        STATIC_ASCII_VECTOR(".iterator"));
+    Handle<String> result_str = heap_factory->InternalizeOneByteString(
+        STATIC_ASCII_VECTOR(".result"));
+    Variable* iterator =
+        top_scope_->DeclarationScope()->NewTemporary(iterator_str);
+    Variable* result = top_scope_->DeclarationScope()->NewTemporary(result_str);
+
+    Expression* assign_iterator;
+    Expression* next_result;
+    Expression* result_done;
+    Expression* assign_each;
+
+    // var iterator = iterable;
+    {
+      Expression* iterator_proxy = factory()->NewVariableProxy(iterator);
+      assign_iterator = factory()->NewAssignment(
+          Token::ASSIGN, iterator_proxy, subject, RelocInfo::kNoPosition);
+    }
+
+    // var result = iterator.next();
+    {
+      Expression* iterator_proxy = factory()->NewVariableProxy(iterator);
+      Expression* next_literal =
+          factory()->NewLiteral(heap_factory->next_string());
+      Expression* next_property = factory()->NewProperty(
+          iterator_proxy, next_literal, RelocInfo::kNoPosition);
+      ZoneList<Expression*>* next_arguments =
+          new(zone()) ZoneList<Expression*>(0, zone());
+      Expression* next_call = factory()->NewCall(
+          next_property, next_arguments, RelocInfo::kNoPosition);
+      Expression* result_proxy = factory()->NewVariableProxy(result);
+      next_result = factory()->NewAssignment(
+          Token::ASSIGN, result_proxy, next_call, RelocInfo::kNoPosition);
+    }
+
+    // result.done
+    {
+      Expression* done_literal =
+          factory()->NewLiteral(heap_factory->done_string());
+      Expression* result_proxy = factory()->NewVariableProxy(result);
+      result_done = factory()->NewProperty(
+          result_proxy, done_literal, RelocInfo::kNoPosition);
+    }
+
+    // each = result.value
+    {
+      Expression* value_literal =
+          factory()->NewLiteral(heap_factory->value_string());
+      Expression* result_proxy = factory()->NewVariableProxy(result);
+      Expression* result_value = factory()->NewProperty(
+          result_proxy, value_literal, RelocInfo::kNoPosition);
+      assign_each = factory()->NewAssignment(
+          Token::ASSIGN, each, result_value, RelocInfo::kNoPosition);
+    }
+
+    for_of->Initialize(each, subject, body,
+                       assign_iterator, next_result, result_done, assign_each);
+  } else {
+    stmt->Initialize(each, subject, body);
+  }
 }
 
 
@@ -2654,11 +2728,14 @@ Statement* Parser::ParseForStatement(ZoneStringList* labels, bool* ok) {
     if (peek() == Token::VAR || peek() == Token::CONST) {
       bool is_const = peek() == Token::CONST;
       Handle<String> name;
+      VariableDeclarationProperties decl_props = kHasNoInitializers;
       Block* variable_statement =
-          ParseVariableDeclarations(kForStatement, NULL, NULL, &name, CHECK_OK);
+          ParseVariableDeclarations(kForStatement, &decl_props, NULL, &name,
+                                    CHECK_OK);
+      bool accept_OF = decl_props == kHasNoInitializers;
       ForEachStatement::VisitMode mode;
 
-      if (!name.is_null() && CheckInOrOf(&mode)) {
+      if (!name.is_null() && CheckInOrOf(accept_OF, &mode)) {
         Interface* interface =
             is_const ? Interface::NewConst() : Interface::NewValue();
         ForEachStatement* loop = factory()->NewForEachStatement(mode, labels);
@@ -2670,7 +2747,7 @@ Statement* Parser::ParseForStatement(ZoneStringList* labels, bool* ok) {
         VariableProxy* each =
             top_scope_->NewUnresolved(factory(), name, interface);
         Statement* body = ParseStatement(NULL, CHECK_OK);
-        loop->Initialize(each, enumerable, body);
+        InitializeForEachStatement(loop, each, enumerable, body);
         Block* result = factory()->NewBlock(NULL, 2, false);
         result->AddStatement(variable_statement, zone());
         result->AddStatement(loop, zone());
@@ -2690,9 +2767,10 @@ Statement* Parser::ParseForStatement(ZoneStringList* labels, bool* ok) {
          ParseVariableDeclarations(kForStatement, &decl_props, NULL, &name,
                                    CHECK_OK);
       bool accept_IN = !name.is_null() && decl_props != kHasInitializers;
+      bool accept_OF = decl_props == kHasNoInitializers;
       ForEachStatement::VisitMode mode;
 
-      if (accept_IN && CheckInOrOf(&mode)) {
+      if (accept_IN && CheckInOrOf(accept_OF, &mode)) {
         // Rewrite a for-in statement of the form
         //
         //   for (let x in e) b
@@ -2734,7 +2812,7 @@ Statement* Parser::ParseForStatement(ZoneStringList* labels, bool* ok) {
         body_block->AddStatement(variable_statement, zone());
         body_block->AddStatement(assignment_statement, zone());
         body_block->AddStatement(body, zone());
-        loop->Initialize(temp_proxy, enumerable, body_block);
+        InitializeForEachStatement(loop, temp_proxy, enumerable, body_block);
         top_scope_ = saved_scope;
         for_scope->set_end_position(scanner().location().end_pos);
         for_scope = for_scope->FinalizeBlockScope();
@@ -2748,8 +2826,9 @@ Statement* Parser::ParseForStatement(ZoneStringList* labels, bool* ok) {
     } else {
       Expression* expression = ParseExpression(false, CHECK_OK);
       ForEachStatement::VisitMode mode;
+      bool accept_OF = expression->AsVariableProxy();
 
-      if (CheckInOrOf(&mode)) {
+      if (CheckInOrOf(accept_OF, &mode)) {
         // Signal a reference error if the expression is an invalid
         // left-hand side expression.  We could report this as a syntax
         // error here but for compatibility with JSC we choose to report
@@ -2766,7 +2845,7 @@ Statement* Parser::ParseForStatement(ZoneStringList* labels, bool* ok) {
         Expect(Token::RPAREN, CHECK_OK);
 
         Statement* body = ParseStatement(NULL, CHECK_OK);
-        loop->Initialize(expression, enumerable, body);
+        InitializeForEachStatement(loop, expression, enumerable, body);
         top_scope_ = saved_scope;
         for_scope->set_end_position(scanner().location().end_pos);
         for_scope = for_scope->FinalizeBlockScope();

@@ -741,6 +741,9 @@ class CompareIC: public IC {
     GENERIC
   };
 
+  static Handle<Type> StateToType(
+      Isolate* isolate, State state, Handle<Map> map = Handle<Map>());
+
   CompareIC(Isolate* isolate, Token::Value op)
       : IC(EXTRA_CALL_FRAME, isolate), op_(op) { }
 
@@ -789,8 +792,7 @@ class CompareNilIC: public IC {
 
   static void Clear(Address address, Code* target);
 
-  static MUST_USE_RESULT MaybeObject* DoCompareNilSlow(EqualityKind kind,
-                                                       NilValue nil,
+  static MUST_USE_RESULT MaybeObject* DoCompareNilSlow(NilValue nil,
                                                        Handle<Object> object);
 };
 

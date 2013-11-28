@@ -358,6 +358,7 @@ class Expression: public AstNode {
 
   // Expression type
   Handle<Type> type() { return type_; }
+  void set_type(Handle<Type> type) { type_ = type; }
 
   // Type feedback information for assignments and properties.
   virtual bool IsMonomorphic() {
@@ -388,7 +389,7 @@ class Expression: public AstNode {
 
  protected:
   explicit Expression(Isolate* isolate)
-      : type_(Type::Any(), isolate),
+      : type_(Type::None(), isolate),
         id_(GetNextId(isolate)),
         test_id_(GetNextId(isolate)) {}
 
@@ -891,25 +892,16 @@ class ForEachStatement: public IterationStatement {
   Expression* each() const { return each_; }
   Expression* subject() const { return subject_; }
 
-  virtual BailoutId ContinueId() const { return EntryId(); }
-  virtual BailoutId StackCheckId() const { return body_id_; }
-  BailoutId BodyId() const { return body_id_; }
-  BailoutId PrepareId() const { return prepare_id_; }
-
  protected:
   ForEachStatement(Isolate* isolate, ZoneStringList* labels)
       : IterationStatement(isolate, labels),
         each_(NULL),
-        subject_(NULL),
-        body_id_(GetNextId(isolate)),
-        prepare_id_(GetNextId(isolate)) {
+        subject_(NULL) {
   }
 
  private:
   Expression* each_;
   Expression* subject_;
-  const BailoutId body_id_;
-  const BailoutId prepare_id_;
 };
 
 
@@ -926,13 +918,22 @@ class ForInStatement: public ForEachStatement {
   enum ForInType { FAST_FOR_IN, SLOW_FOR_IN };
   ForInType for_in_type() const { return for_in_type_; }
 
+  BailoutId BodyId() const { return body_id_; }
+  BailoutId PrepareId() const { return prepare_id_; }
+  virtual BailoutId ContinueId() const { return EntryId(); }
+  virtual BailoutId StackCheckId() const { return body_id_; }
+
  protected:
   ForInStatement(Isolate* isolate, ZoneStringList* labels)
       : ForEachStatement(isolate, labels),
-        for_in_type_(SLOW_FOR_IN) {
+        for_in_type_(SLOW_FOR_IN),
+        body_id_(GetNextId(isolate)),
+        prepare_id_(GetNextId(isolate)) {
   }
 
   ForInType for_in_type_;
+  const BailoutId body_id_;
+  const BailoutId prepare_id_;
 };
 
 
@@ -940,14 +941,64 @@ class ForOfStatement: public ForEachStatement {
  public:
   DECLARE_NODE_TYPE(ForOfStatement)
 
+  void Initialize(Expression* each,
+                  Expression* subject,
+                  Statement* body,
+                  Expression* assign_iterator,
+                  Expression* next_result,
+                  Expression* result_done,
+                  Expression* assign_each) {
+    ForEachStatement::Initialize(each, subject, body);
+    assign_iterator_ = assign_iterator;
+    next_result_ = next_result;
+    result_done_ = result_done;
+    assign_each_ = assign_each;
+  }
+
   Expression* iterable() const {
     return subject();
   }
 
+  // var iterator = iterable;
+  Expression* assign_iterator() const {
+    return assign_iterator_;
+  }
+
+  // var result = iterator.next();
+  Expression* next_result() const {
+    return next_result_;
+  }
+
+  // result.done
+  Expression* result_done() const {
+    return result_done_;
+  }
+
+  // each = result.value
+  Expression* assign_each() const {
+    return assign_each_;
+  }
+
+  virtual BailoutId ContinueId() const { return EntryId(); }
+  virtual BailoutId StackCheckId() const { return BackEdgeId(); }
+
+  BailoutId BackEdgeId() const { return back_edge_id_; }
+
  protected:
   ForOfStatement(Isolate* isolate, ZoneStringList* labels)
-      : ForEachStatement(isolate, labels) {
+      : ForEachStatement(isolate, labels),
+        assign_iterator_(NULL),
+        next_result_(NULL),
+        result_done_(NULL),
+        assign_each_(NULL),
+        back_edge_id_(GetNextId(isolate)) {
   }
+
+  Expression* assign_iterator_;
+  Expression* next_result_;
+  Expression* result_done_;
+  Expression* assign_each_;
+  const BailoutId back_edge_id_;
 };
 
 
@@ -1056,24 +1107,15 @@ class CaseClause: public ZoneObject {
   // Type feedback information.
   TypeFeedbackId CompareId() { return compare_id_; }
   void RecordTypeFeedback(TypeFeedbackOracle* oracle);
-  bool IsSmiCompare() { return compare_type_ == SMI_ONLY; }
-  bool IsNameCompare() { return compare_type_ == NAME_ONLY; }
-  bool IsStringCompare() { return compare_type_ == STRING_ONLY; }
-  bool IsObjectCompare() { return compare_type_ == OBJECT_ONLY; }
+  Handle<Type> compare_type() { return compare_type_; }
 
  private:
   Expression* label_;
   Label body_target_;
   ZoneList<Statement*>* statements_;
   int position_;
-  enum CompareTypeFeedback {
-    NONE,
-    SMI_ONLY,
-    NAME_ONLY,
-    STRING_ONLY,
-    OBJECT_ONLY
-  };
-  CompareTypeFeedback compare_type_;
+  Handle<Type> compare_type_;
+
   const TypeFeedbackId compare_id_;
   const BailoutId entry_id_;
 };
@@ -1655,7 +1697,7 @@ class Call: public Expression {
   // as the holder!
   Handle<JSObject> holder() { return holder_; }
 
-  Handle<JSGlobalPropertyCell> cell() { return cell_; }
+  Handle<Cell> cell() { return cell_; }
 
   bool ComputeTarget(Handle<Map> type, Handle<String> name);
   bool ComputeGlobalTarget(Handle<GlobalObject> global, LookupResult* lookup);
@@ -1695,7 +1737,7 @@ class Call: public Expression {
   SmallMapList receiver_types_;
   Handle<JSFunction> target_;
   Handle<JSObject> holder_;
-  Handle<JSGlobalPropertyCell> cell_;
+  Handle<Cell> cell_;
 
   const BailoutId return_id_;
 };
@@ -1715,7 +1757,9 @@ class CallNew: public Expression {
   virtual bool IsMonomorphic() { return is_monomorphic_; }
   Handle<JSFunction> target() const { return target_; }
   ElementsKind elements_kind() const { return elements_kind_; }
-  Handle<Smi> allocation_elements_kind() const { return alloc_elements_kind_; }
+  Handle<Cell> allocation_info_cell() const {
+    return allocation_info_cell_;
+  }
 
   BailoutId ReturnId() const { return return_id_; }
 
@@ -1740,7 +1784,7 @@ class CallNew: public Expression {
   bool is_monomorphic_;
   Handle<JSFunction> target_;
   ElementsKind elements_kind_;
-  Handle<Smi> alloc_elements_kind_;
+  Handle<Cell> allocation_info_cell_;
 
   const BailoutId return_id_;
 };
@@ -1951,11 +1995,10 @@ class CompareOperation: public Expression {
   // Type feedback information.
   TypeFeedbackId CompareOperationFeedbackId() const { return reuse(id()); }
   void RecordTypeFeedback(TypeFeedbackOracle* oracle);
-  TypeInfo left_type() const { return left_type_; }
-  TypeInfo right_type() const { return right_type_; }
-  TypeInfo overall_type() const { return overall_type_; }
-  byte compare_nil_types() const { return compare_nil_types_; }
-  Handle<Map> map() const { return map_; }
+  Handle<Type> left_type() const { return left_type_; }
+  Handle<Type> right_type() const { return right_type_; }
+  Handle<Type> overall_type() const { return overall_type_; }
+  Handle<Type> compare_nil_type() const { return compare_nil_type_; }
 
   // Match special cases.
   bool IsLiteralCompareTypeof(Expression** expr, Handle<String>* check);
@@ -1982,11 +2025,10 @@ class CompareOperation: public Expression {
   Expression* right_;
   int pos_;
 
-  TypeInfo left_type_;
-  TypeInfo right_type_;
-  TypeInfo overall_type_;
-  byte compare_nil_types_;
-  Handle<Map> map_;
+  Handle<Type> left_type_;
+  Handle<Type> right_type_;
+  Handle<Type> overall_type_;
+  Handle<Type> compare_nil_type_;
 };
 
 

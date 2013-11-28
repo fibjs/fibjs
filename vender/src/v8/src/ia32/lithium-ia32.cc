@@ -990,7 +990,7 @@ LEnvironment* LChunkBuilder::CreateEnvironment(
   BailoutId ast_id = hydrogen_env->ast_id();
   ASSERT(!ast_id.IsNone() ||
          hydrogen_env->frame_type() != JS_FUNCTION);
-  int value_count = hydrogen_env->length();
+  int value_count = hydrogen_env->length() - hydrogen_env->specials_count();
   LEnvironment* result =
       new(zone()) LEnvironment(hydrogen_env->closure(),
                                hydrogen_env->frame_type(),
@@ -1001,13 +1001,15 @@ LEnvironment* LChunkBuilder::CreateEnvironment(
                                outer,
                                hydrogen_env->entry(),
                                zone());
+  bool needs_arguments_object_materialization = false;
   int argument_index = *argument_index_accumulator;
-  for (int i = 0; i < value_count; ++i) {
+  for (int i = 0; i < hydrogen_env->length(); ++i) {
     if (hydrogen_env->is_special_index(i)) continue;
 
     HValue* value = hydrogen_env->values()->at(i);
     LOperand* op = NULL;
     if (value->IsArgumentsObject()) {
+      needs_arguments_object_materialization = true;
       op = NULL;
     } else if (value->IsPushArgument()) {
       op = new(zone()) LArgument(argument_index++);
@@ -1017,6 +1019,22 @@ LEnvironment* LChunkBuilder::CreateEnvironment(
     result->AddValue(op,
                      value->representation(),
                      value->CheckFlag(HInstruction::kUint32));
+  }
+
+  if (needs_arguments_object_materialization) {
+    HArgumentsObject* arguments = hydrogen_env->entry() == NULL
+        ? graph()->GetArgumentsObject()
+        : hydrogen_env->entry()->arguments_object();
+    ASSERT(arguments->IsLinked());
+    for (int i = 1; i < arguments->arguments_count(); ++i) {
+      HValue* value = arguments->arguments_values()->at(i);
+      ASSERT(!value->IsArgumentsObject() && !value->IsPushArgument());
+      ASSERT(HInstruction::cast(value)->IsLinked());
+      LOperand* op = UseAny(value);
+      result->AddValue(op,
+                       value->representation(),
+                       value->CheckFlag(HInstruction::kUint32));
+    }
   }
 
   if (hydrogen_env->frame_type() == JS_FUNCTION) {
@@ -1524,43 +1542,54 @@ LInstruction* LChunkBuilder::DoMathFloorOfDiv(HMathFloorOfDiv* instr) {
 
 
 LInstruction* LChunkBuilder::DoMod(HMod* instr) {
+  HValue* left = instr->left();
+  HValue* right = instr->right();
   if (instr->representation().IsInteger32()) {
-    ASSERT(instr->left()->representation().IsInteger32());
-    ASSERT(instr->right()->representation().IsInteger32());
-
-    LInstruction* result;
+    ASSERT(left->representation().IsInteger32());
+    ASSERT(right->representation().IsInteger32());
     if (instr->HasPowerOf2Divisor()) {
-      ASSERT(!instr->CheckFlag(HValue::kCanBeDivByZero));
-      LOperand* value = UseRegisterAtStart(instr->left());
-      LModI* mod =
-          new(zone()) LModI(value, UseOrConstant(instr->right()), NULL);
-      result = DefineSameAsFirst(mod);
+      ASSERT(!right->CanBeZero());
+      LModI* mod = new(zone()) LModI(UseRegisterAtStart(left),
+                                     UseOrConstant(right),
+                                     NULL);
+      LInstruction* result = DefineSameAsFirst(mod);
+      return (left->CanBeNegative() &&
+              instr->CheckFlag(HValue::kBailoutOnMinusZero))
+          ? AssignEnvironment(result)
+          : result;
+    } else if (instr->has_fixed_right_arg()) {
+      LModI* mod = new(zone()) LModI(UseRegister(left),
+                                     UseRegisterAtStart(right),
+                                     NULL);
+      return AssignEnvironment(DefineSameAsFirst(mod));
     } else {
-      // The temporary operand is necessary to ensure that right is
-      // not allocated into edx.
-      LOperand* temp = FixedTemp(edx);
-      LOperand* value = UseFixed(instr->left(), eax);
-      LOperand* divisor = UseRegister(instr->right());
-      LModI* mod = new(zone()) LModI(value, divisor, temp);
-      result = DefineFixed(mod, edx);
+      // The temporary operand is necessary to ensure that right is not
+      // allocated into edx.
+      LModI* mod = new(zone()) LModI(UseFixed(left, eax),
+                                     UseRegister(right),
+                                     FixedTemp(edx));
+      LInstruction* result = DefineFixed(mod, edx);
+      return (right->CanBeZero() ||
+              (left->RangeCanInclude(kMinInt) &&
+               right->RangeCanInclude(-1) &&
+               instr->CheckFlag(HValue::kBailoutOnMinusZero)) ||
+              (left->CanBeNegative() &&
+               instr->CanBeZero() &&
+               instr->CheckFlag(HValue::kBailoutOnMinusZero)))
+          ? AssignEnvironment(result)
+          : result;
     }
-
-    return (instr->CheckFlag(HValue::kBailoutOnMinusZero) ||
-            instr->CheckFlag(HValue::kCanBeDivByZero) ||
-            instr->CheckFlag(HValue::kCanOverflow))
-        ? AssignEnvironment(result)
-        : result;
   } else if (instr->representation().IsSmiOrTagged()) {
     return DoArithmeticT(Token::MOD, instr);
   } else {
     ASSERT(instr->representation().IsDouble());
-    // We call a C function for double modulo. It can't trigger a GC.
-    // We need to use fixed result register for the call.
+    // We call a C function for double modulo. It can't trigger a GC. We need
+    // to use fixed result register for the call.
     // TODO(fschneider): Allow any register as input registers.
-    LOperand* left = UseFixedDouble(instr->left(), xmm2);
-    LOperand* right = UseFixedDouble(instr->right(), xmm1);
-    LArithmeticD* result = new(zone()) LArithmeticD(Token::MOD, left, right);
-    return MarkAsCall(DefineFixedDouble(result, xmm1), instr);
+    LArithmeticD* mod = new(zone()) LArithmeticD(Token::MOD,
+                                                 UseFixedDouble(left, xmm2),
+                                                 UseFixedDouble(right, xmm1));
+    return MarkAsCall(DefineFixedDouble(mod, xmm1), instr);
   }
 }
 

@@ -2370,30 +2370,6 @@ class V8EXPORT Function : public Object {
   static void CheckCast(Value* obj);
 };
 
-/**
- * The contents of an |ArrayBuffer|. Externalization of |ArrayBuffer|
- * populates an instance of this class with a pointer to data and byte length.
- *
- * |ArrayBufferContents| is the owner of its data. When an instance of
- * this class is destructed, the |Data| is freed.
- *
- * This API is experimental and may change significantly.
- */
-class V8EXPORT ArrayBufferContents {
- public:
-  ArrayBufferContents() : data_(NULL), byte_length_(0) {}
-  ~ArrayBufferContents();
-
-  void* Data() const { return data_; }
-  size_t ByteLength() const { return byte_length_; }
-
- private:
-  void* data_;
-  size_t byte_length_;
-
-  friend class ArrayBuffer;
-};
-
 #ifndef V8_ARRAY_BUFFER_INTERNAL_FIELD_COUNT
 #define V8_ARRAY_BUFFER_INTERNAL_FIELD_COUNT 2
 #endif
@@ -2404,6 +2380,53 @@ class V8EXPORT ArrayBufferContents {
  */
 class V8EXPORT ArrayBuffer : public Object {
  public:
+  /**
+   * Allocator that V8 uses to allocate |ArrayBuffer|'s memory.
+   * The allocator is a global V8 setting. It should be set with
+   * V8::SetArrayBufferAllocator prior to creation of a first ArrayBuffer.
+   *
+   * This API is experimental and may change significantly.
+   */
+  class V8EXPORT Allocator { // NOLINT
+   public:
+    virtual ~Allocator() {}
+
+    /**
+     * Allocate |length| bytes. Return NULL if allocation is not successful.
+     */
+    virtual void* Allocate(size_t length) = 0;
+    /**
+     * Free the memory pointed to |data|. That memory is guaranteed to be
+     * previously allocated by |Allocate|.
+     */
+    virtual void Free(void* data) = 0;
+  };
+
+  /**
+   * The contents of an |ArrayBuffer|. Externalization of |ArrayBuffer|
+   * returns an instance of this class, populated, with a pointer to data
+   * and byte length.
+   *
+   * The Data pointer of ArrayBuffer::Contents is always allocated with
+   * Allocator::Allocate that is set with V8::SetArrayBufferAllocator.
+   *
+   * This API is experimental and may change significantly.
+   */
+  class V8EXPORT Contents { // NOLINT
+   public:
+    Contents() : data_(NULL), byte_length_(0) {}
+
+    void* Data() const { return data_; }
+    size_t ByteLength() const { return byte_length_; }
+
+   private:
+    void* data_;
+    size_t byte_length_;
+
+    friend class ArrayBuffer;
+  };
+
+
   /**
    * Data length in bytes.
    */
@@ -2432,13 +2455,25 @@ class V8EXPORT ArrayBuffer : public Object {
   bool IsExternal() const;
 
   /**
-   * Pass the ownership of this ArrayBuffer's backing store to
-   * a given ArrayBufferContents.
+   * Neuters this ArrayBuffer and all its views (typed arrays).
+   * Neutering sets the byte length of the buffer and all typed arrays to zero,
+   * preventing JavaScript from ever accessing underlying backing store.
+   * ArrayBuffer should have been externalized.
    */
-  void Externalize(ArrayBufferContents* contents);
+  void Neuter();
+
+  /**
+   * Make this ArrayBuffer external. The pointer to underlying memory block
+   * and byte length are returned as |Contents| structure. After ArrayBuffer
+   * had been etxrenalized, it does no longer owns the memory block. The caller
+   * should take steps to free memory when it is no longer needed.
+   *
+   * The memory block is guaranteed to be allocated with |Allocator::Allocate|
+   * that has been set with V8::SetArrayBufferAllocator.
+   */
+  Contents Externalize();
 
   V8_INLINE(static ArrayBuffer* Cast(Value* obj));
-
 
   static const int kInternalFieldCount = V8_ARRAY_BUFFER_INTERNAL_FIELD_COUNT;
 
@@ -2837,6 +2872,7 @@ class ReturnValue {
   // Fast JS primitive setters
   V8_INLINE(void SetNull());
   V8_INLINE(void SetUndefined());
+  V8_INLINE(void SetEmptyString());
   // Convenience getter for Isolate
   V8_INLINE(Isolate* GetIsolate());
 
@@ -2844,6 +2880,7 @@ class ReturnValue {
   template<class F> friend class ReturnValue;
   template<class F> friend class FunctionCallbackInfo;
   template<class F> friend class PropertyCallbackInfo;
+  V8_INLINE(internal::Object* GetDefaultValue());
   V8_INLINE(explicit ReturnValue(internal::Object** slot));
   internal::Object** value_;
 };
@@ -2868,16 +2905,17 @@ class FunctionCallbackInfo {
   V8_INLINE(Isolate* GetIsolate() const);
   V8_INLINE(ReturnValue<T> GetReturnValue() const);
   // This shouldn't be public, but the arm compiler needs it.
-  static const int kArgsLength = 5;
+  static const int kArgsLength = 6;
 
  protected:
   friend class internal::FunctionCallbackArguments;
   friend class internal::CustomArguments<FunctionCallbackInfo>;
   static const int kReturnValueIndex = 0;
-  static const int kIsolateIndex = -1;
-  static const int kDataIndex = -2;
-  static const int kCalleeIndex = -3;
-  static const int kHolderIndex = -4;
+  static const int kReturnValueDefaultValueIndex = -1;
+  static const int kIsolateIndex = -2;
+  static const int kDataIndex = -3;
+  static const int kCalleeIndex = -4;
+  static const int kHolderIndex = -5;
 
   V8_INLINE(FunctionCallbackInfo(internal::Object** implicit_args,
                    internal::Object** values,
@@ -2912,7 +2950,7 @@ class PropertyCallbackInfo {
   V8_INLINE(Local<Object> Holder() const);
   V8_INLINE(ReturnValue<T> GetReturnValue() const);
   // This shouldn't be public, but the arm compiler needs it.
-  static const int kArgsLength = 5;
+  static const int kArgsLength = 6;
 
  protected:
   friend class MacroAssembler;
@@ -2922,7 +2960,8 @@ class PropertyCallbackInfo {
   static const int kHolderIndex = -1;
   static const int kDataIndex = -2;
   static const int kReturnValueIndex = -3;
-  static const int kIsolateIndex = -4;
+  static const int kReturnValueDefaultValueIndex = -4;
+  static const int kIsolateIndex = -5;
 
   V8_INLINE(PropertyCallbackInfo(internal::Object** args))
       : args_(args) { }
@@ -4182,6 +4221,14 @@ class V8EXPORT V8 {
       AllowCodeGenerationFromStringsCallback that);
 
   /**
+   * Set allocator to use for ArrayBuffer memory.
+   * The allocator should be set only once. The allocator should be set
+   * before any code tha uses ArrayBuffers is executed.
+   * This allocator is used in all isolates.
+   */
+  static void SetArrayBufferAllocator(ArrayBuffer::Allocator* allocator);
+
+  /**
    * Ignore out-of-memory exceptions.
    *
    * V8 running out of memory is treated as a fatal error by default.
@@ -5286,7 +5333,7 @@ class Internals {
   static const int kNullValueRootIndex = 7;
   static const int kTrueValueRootIndex = 8;
   static const int kFalseValueRootIndex = 9;
-  static const int kEmptyStringRootIndex = 130;
+  static const int kEmptyStringRootIndex = 131;
 
   static const int kNodeClassIdOffset = 1 * kApiPointerSize;
   static const int kNodeFlagsOffset = 1 * kApiPointerSize + 3;
@@ -5296,10 +5343,10 @@ class Internals {
   static const int kNodeIsIndependentShift = 4;
   static const int kNodeIsPartiallyDependentShift = 5;
 
-  static const int kJSObjectType = 0xaf;
+  static const int kJSObjectType = 0xb0;
   static const int kFirstNonstringType = 0x80;
   static const int kOddballType = 0x83;
-  static const int kForeignType = 0x87;
+  static const int kForeignType = 0x88;
 
   static const int kUndefinedOddballKind = 5;
   static const int kNullOddballKind = 3;
@@ -5650,7 +5697,7 @@ template<typename S>
 void ReturnValue<T>::Set(const Persistent<S>& handle) {
   TYPE_CHECK(T, S);
   if (V8_UNLIKELY(handle.IsEmpty())) {
-    SetUndefined();
+    *value_ = GetDefaultValue();
   } else {
     *value_ = *reinterpret_cast<internal::Object**>(*handle);
   }
@@ -5661,7 +5708,7 @@ template<typename S>
 void ReturnValue<T>::Set(const Handle<S> handle) {
   TYPE_CHECK(T, S);
   if (V8_UNLIKELY(handle.IsEmpty())) {
-    SetUndefined();
+    *value_ = GetDefaultValue();
   } else {
     *value_ = *reinterpret_cast<internal::Object**>(*handle);
   }
@@ -5719,9 +5766,21 @@ void ReturnValue<T>::SetUndefined() {
 }
 
 template<typename T>
+void ReturnValue<T>::SetEmptyString() {
+  typedef internal::Internals I;
+  *value_ = *I::GetRoot(GetIsolate(), I::kEmptyStringRootIndex);
+}
+
+template<typename T>
 Isolate* ReturnValue<T>::GetIsolate() {
-  // Isolate is always the pointer below value_ on the stack.
-  return *reinterpret_cast<Isolate**>(&value_[-1]);
+  // Isolate is always the pointer below the default value on the stack.
+  return *reinterpret_cast<Isolate**>(&value_[-2]);
+}
+
+template<typename T>
+internal::Object* ReturnValue<T>::GetDefaultValue() {
+  // Default value is always the pointer below value_ on the stack.
+  return value_[-1];
 }
 
 

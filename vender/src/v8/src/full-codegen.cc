@@ -164,8 +164,8 @@ void BreakableStatementChecker::VisitForInStatement(ForInStatement* stmt) {
 
 
 void BreakableStatementChecker::VisitForOfStatement(ForOfStatement* stmt) {
-  // Mark for in statements breakable if the iterable expression is.
-  Visit(stmt->iterable());
+  // For-of is breakable because of the next() call.
+  is_breakable_ = true;
 }
 
 
@@ -473,7 +473,7 @@ void FullCodeGenerator::PrepareForBailoutForId(BailoutId id, State state) {
 
 
 void FullCodeGenerator::RecordTypeFeedbackCell(
-    TypeFeedbackId id, Handle<JSGlobalPropertyCell> cell) {
+    TypeFeedbackId id, Handle<Cell> cell) {
   TypeFeedbackCellEntry entry = { id, cell };
   type_feedback_cells_.Add(entry, zone());
 }
@@ -926,10 +926,10 @@ void FullCodeGenerator::EmitInlineRuntimeCall(CallRuntime* expr) {
 }
 
 
-void FullCodeGenerator::EmitGeneratorSend(CallRuntime* expr) {
+void FullCodeGenerator::EmitGeneratorNext(CallRuntime* expr) {
   ZoneList<Expression*>* args = expr->arguments();
   ASSERT(args->length() == 2);
-  EmitGeneratorResume(args->at(0), args->at(1), JSGeneratorObject::SEND);
+  EmitGeneratorResume(args->at(0), args->at(1), JSGeneratorObject::NEXT);
 }
 
 
@@ -1230,13 +1230,7 @@ void FullCodeGenerator::VisitBreakStatement(BreakStatement* stmt) {
 }
 
 
-void FullCodeGenerator::VisitReturnStatement(ReturnStatement* stmt) {
-  Comment cmnt(masm_, "[ ReturnStatement");
-  SetStatementPosition(stmt);
-  Expression* expr = stmt->expression();
-  VisitForAccumulatorValue(expr);
-
-  // Exit all nested statements.
+void FullCodeGenerator::EmitUnwindBeforeReturn() {
   NestedStatement* current = nesting_stack_;
   int stack_depth = 0;
   int context_length = 0;
@@ -1244,7 +1238,15 @@ void FullCodeGenerator::VisitReturnStatement(ReturnStatement* stmt) {
     current = current->Exit(&stack_depth, &context_length);
   }
   __ Drop(stack_depth);
+}
 
+
+void FullCodeGenerator::VisitReturnStatement(ReturnStatement* stmt) {
+  Comment cmnt(masm_, "[ ReturnStatement");
+  SetStatementPosition(stmt);
+  Expression* expr = stmt->expression();
+  VisitForAccumulatorValue(expr);
+  EmitUnwindBeforeReturn();
   EmitReturnSequence();
 }
 
@@ -1386,11 +1388,6 @@ void FullCodeGenerator::VisitForStatement(ForStatement* stmt) {
   PrepareForBailoutForId(stmt->ExitId(), NO_REGISTERS);
   __ bind(loop_statement.break_label());
   decrement_loop_depth();
-}
-
-
-void FullCodeGenerator::VisitForOfStatement(ForOfStatement* stmt) {
-  // TODO(wingo): Implement.
 }
 
 
