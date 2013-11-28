@@ -291,6 +291,9 @@
     <ClCompile Include="src\Stats.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Queue.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -715,6 +718,12 @@
     </ClInclude>
     <ClInclude Include="include\Stats.h">
       <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Queue.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\Queue.h">
+      <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

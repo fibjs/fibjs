@@ -102,7 +102,7 @@ result_t Queue::toArray(v8::Handle<v8::Array>& retVal)
 
 result_t Queue::get_length(int32_t& retVal)
 {
-	retVal = m_list.size();
+	retVal = (int)m_list.size();
 	return 0;
 }
 

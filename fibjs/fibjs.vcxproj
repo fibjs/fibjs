@@ -81,6 +81,7 @@
     <ClCompile Include="src\os_win.cpp" />
     <ClCompile Include="src\path.cpp" />
     <ClCompile Include="src\process.cpp" />
+    <ClCompile Include="src\Queue.cpp" />
     <ClCompile Include="src\Regex.cpp" />
     <ClCompile Include="src\resolve.cpp" />
     <ClCompile Include="src\Routing.cpp" />
@@ -194,6 +195,7 @@
     <ClInclude Include="include\ifs\os.h" />
     <ClInclude Include="include\ifs\path.h" />
     <ClInclude Include="include\ifs\process.h" />
+    <ClInclude Include="include\ifs\Queue.h" />
     <ClInclude Include="include\ifs\re.h" />
     <ClInclude Include="include\ifs\Regex.h" />
     <ClInclude Include="include\ifs\Routing.h" />
@@ -235,6 +237,7 @@
     <ClInclude Include="include\obj_ptr.h" />
     <ClInclude Include="include\parse.h" />
     <ClInclude Include="include\qstring.h" />
+    <ClInclude Include="include\Queue.h" />
     <ClInclude Include="include\QuickArray.h" />
     <ClInclude Include="include\Regex.h" />
     <ClInclude Include="include\Routing.h" />
