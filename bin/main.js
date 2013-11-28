@@ -7,7 +7,7 @@ run("collection_test.js");
 run("buffer_test.js");
 run("path_test");
 run("utils_test");
-run("fiber_test");
+run("coroutine_test");
 run("fibmod_test");
 run("trigger_test");
 run("lock_test");
