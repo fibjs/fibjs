@@ -167,7 +167,7 @@ void HeapObject::HeapObjectVerify() {
       Cell::cast(this)->CellVerify();
       break;
     case PROPERTY_CELL_TYPE:
-      JSGlobalPropertyCell::cast(this)->JSGlobalPropertyCellVerify();
+      PropertyCell::cast(this)->PropertyCellVerify();
       break;
     case JS_ARRAY_TYPE:
       JSArray::cast(this)->JSArrayVerify();
@@ -206,6 +206,9 @@ void HeapObject::HeapObjectVerify() {
       break;
     case JS_TYPED_ARRAY_TYPE:
       JSTypedArray::cast(this)->JSTypedArrayVerify();
+      break;
+    case JS_DATA_VIEW_TYPE:
+      JSDataView::cast(this)->JSDataViewVerify();
       break;
 
 #define MAKE_STRUCT_CASE(NAME, Name, name) \
@@ -624,8 +627,8 @@ void Cell::CellVerify() {
 }
 
 
-void JSGlobalPropertyCell::JSGlobalPropertyCellVerify() {
-  CHECK(IsJSGlobalPropertyCell());
+void PropertyCell::PropertyCellVerify() {
+  CHECK(IsPropertyCell());
   VerifyObjectField(kValueOffset);
   VerifyObjectField(kTypeOffset);
 }
@@ -761,8 +764,8 @@ void JSArrayBuffer::JSArrayBufferVerify() {
 }
 
 
-void JSTypedArray::JSTypedArrayVerify() {
-  CHECK(IsJSTypedArray());
+void JSArrayBufferView::JSArrayBufferViewVerify() {
+  CHECK(IsJSArrayBufferView());
   JSObjectVerify();
   VerifyPointer(buffer());
   CHECK(buffer()->IsJSArrayBuffer() || buffer()->IsUndefined());
@@ -774,12 +777,23 @@ void JSTypedArray::JSTypedArrayVerify() {
   VerifyPointer(byte_length());
   CHECK(byte_length()->IsSmi() || byte_length()->IsHeapNumber()
         || byte_length()->IsUndefined());
+}
 
+
+void JSTypedArray::JSTypedArrayVerify() {
+  CHECK(IsJSTypedArray());
+  JSArrayBufferViewVerify();
   VerifyPointer(length());
   CHECK(length()->IsSmi() || length()->IsHeapNumber()
         || length()->IsUndefined());
 
   VerifyPointer(elements());
+}
+
+
+void JSDataView::JSDataViewVerify() {
+  CHECK(IsJSDataView());
+  JSArrayBufferViewVerify();
 }
 
 

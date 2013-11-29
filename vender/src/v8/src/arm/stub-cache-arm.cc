@@ -27,7 +27,7 @@
 
 #include "v8.h"
 
-#if defined(V8_TARGET_ARCH_ARM)
+#if V8_TARGET_ARCH_ARM
 
 #include "ic-inl.h"
 #include "codegen.h"
@@ -512,7 +512,13 @@ void StubCompiler::GenerateStoreTransition(MacroAssembler* masm,
 
   Register storage_reg = name_reg;
 
-  if (FLAG_track_fields && representation.IsSmi()) {
+  if (details.type() == CONSTANT_FUNCTION) {
+    Handle<HeapObject> constant(
+        HeapObject::cast(descriptors->GetValue(descriptor)));
+    __ LoadHeapObject(scratch1, constant);
+    __ cmp(value_reg, scratch1);
+    __ b(ne, miss_restore_name);
+  } else if (FLAG_track_fields && representation.IsSmi()) {
     __ JumpIfNotSmi(value_reg, miss_restore_name);
   } else if (FLAG_track_heap_object_fields && representation.IsHeapObject()) {
     __ JumpIfSmi(value_reg, miss_restore_name);
@@ -541,7 +547,8 @@ void StubCompiler::GenerateStoreTransition(MacroAssembler* masm,
   ASSERT(object->IsJSGlobalProxy() || !object->IsAccessCheckNeeded());
 
   // Perform map transition for the receiver if necessary.
-  if (object->map()->unused_property_fields() == 0) {
+  if (details.type() == FIELD &&
+      object->map()->unused_property_fields() == 0) {
     // The properties must be extended before we can store the value.
     // We jump to a runtime call that extends the properties array.
     __ push(receiver_reg);
@@ -569,6 +576,12 @@ void StubCompiler::GenerateStoreTransition(MacroAssembler* masm,
                       kDontSaveFPRegs,
                       OMIT_REMEMBERED_SET,
                       OMIT_SMI_CHECK);
+
+  if (details.type() == CONSTANT_FUNCTION) {
+    ASSERT(value_reg.is(r0));
+    __ Ret();
+    return;
+  }
 
   int index = transition->instance_descriptors()->GetFieldIndex(
       transition->LastAdded());
@@ -956,8 +969,22 @@ static void GenerateFastApiDirectCall(MacroAssembler* masm,
   ExternalReference ref = ExternalReference(&fun,
                                             type,
                                             masm->isolate());
+  Address thunk_address = returns_handle
+      ? FUNCTION_ADDR(&InvokeInvocationCallback)
+      : FUNCTION_ADDR(&InvokeFunctionCallback);
+  ExternalReference::Type thunk_type =
+      returns_handle ?
+          ExternalReference::PROFILING_API_CALL :
+          ExternalReference::PROFILING_API_CALL_NEW;
+  ApiFunction thunk_fun(thunk_address);
+  ExternalReference thunk_ref = ExternalReference(&thunk_fun, thunk_type,
+      masm->isolate());
+
   AllowExternalCallThatCantCauseGC scope(masm);
   __ CallApiFunctionAndReturn(ref,
+                              function_address,
+                              thunk_ref,
+                              r1,
                               kStackUnwindSpace,
                               returns_handle,
                               kFastApiCallArguments + 1);
@@ -1454,14 +1481,28 @@ void BaseLoadStubCompiler::GenerateLoadCallback(
   Address getter_address = v8::ToCData<Address>(callback->getter());
   bool returns_handle =
       !CallbackTable::ReturnsVoid(isolate(), getter_address);
+
   ApiFunction fun(getter_address);
   ExternalReference::Type type =
       returns_handle ?
           ExternalReference::DIRECT_GETTER_CALL :
           ExternalReference::DIRECT_GETTER_CALL_NEW;
-
   ExternalReference ref = ExternalReference(&fun, type, isolate());
+
+  Address thunk_address = returns_handle
+      ? FUNCTION_ADDR(&InvokeAccessorGetter)
+      : FUNCTION_ADDR(&InvokeAccessorGetterCallback);
+  ExternalReference::Type thunk_type =
+      returns_handle ?
+          ExternalReference::PROFILING_GETTER_CALL :
+          ExternalReference::PROFILING_GETTER_CALL_NEW;
+  ApiFunction thunk_fun(thunk_address);
+  ExternalReference thunk_ref = ExternalReference(&thunk_fun, thunk_type,
+      isolate());
   __ CallApiFunctionAndReturn(ref,
+                              getter_address,
+                              thunk_ref,
+                              r2,
                               kStackUnwindSpace,
                               returns_handle,
                               5);
@@ -1657,12 +1698,61 @@ Handle<Code> CallStubCompiler::CompileCallField(Handle<JSObject> object,
 }
 
 
+Handle<Code> CallStubCompiler::CompileArrayCodeCall(
+    Handle<Object> object,
+    Handle<JSObject> holder,
+    Handle<Cell> cell,
+    Handle<JSFunction> function,
+    Handle<String> name,
+    Code::StubType type) {
+  Label miss;
+
+  // Check that function is still array
+  const int argc = arguments().immediate();
+  GenerateNameCheck(name, &miss);
+  Register receiver = r1;
+
+  if (cell.is_null()) {
+    __ ldr(receiver, MemOperand(sp, argc * kPointerSize));
+
+    // Check that the receiver isn't a smi.
+    __ JumpIfSmi(receiver, &miss);
+
+    // Check that the maps haven't changed.
+    CheckPrototypes(Handle<JSObject>::cast(object), receiver, holder, r3, r0,
+                    r4, name, &miss);
+  } else {
+    ASSERT(cell->value() == *function);
+    GenerateGlobalReceiverCheck(Handle<JSObject>::cast(object), holder, name,
+                                &miss);
+    GenerateLoadFunctionFromCell(cell, function, &miss);
+  }
+
+  Handle<Smi> kind(Smi::FromInt(GetInitialFastElementsKind()), isolate());
+  Handle<Cell> kind_feedback_cell =
+      isolate()->factory()->NewCell(kind);
+  __ mov(r0, Operand(argc));
+  __ mov(r2, Operand(kind_feedback_cell));
+  __ mov(r1, Operand(function));
+
+  ArrayConstructorStub stub(isolate());
+  __ TailCallStub(&stub);
+
+  __ bind(&miss);
+  GenerateMissBranch();
+
+  // Return the generated code.
+  return GetCode(type, name);
+}
+
+
 Handle<Code> CallStubCompiler::CompileArrayPushCall(
     Handle<Object> object,
     Handle<JSObject> holder,
     Handle<Cell> cell,
     Handle<JSFunction> function,
-    Handle<String> name) {
+    Handle<String> name,
+    Code::StubType type) {
   // ----------- S t a t e -------------
   //  -- r2    : name
   //  -- lr    : return address
@@ -1906,7 +1996,7 @@ Handle<Code> CallStubCompiler::CompileArrayPushCall(
   GenerateMissBranch();
 
   // Return the generated code.
-  return GetCode(function);
+  return GetCode(type, name);
 }
 
 
@@ -1915,7 +2005,8 @@ Handle<Code> CallStubCompiler::CompileArrayPopCall(
     Handle<JSObject> holder,
     Handle<Cell> cell,
     Handle<JSFunction> function,
-    Handle<String> name) {
+    Handle<String> name,
+    Code::StubType type) {
   // ----------- S t a t e -------------
   //  -- r2    : name
   //  -- lr    : return address
@@ -1988,7 +2079,7 @@ Handle<Code> CallStubCompiler::CompileArrayPopCall(
   GenerateMissBranch();
 
   // Return the generated code.
-  return GetCode(function);
+  return GetCode(type, name);
 }
 
 
@@ -1997,7 +2088,8 @@ Handle<Code> CallStubCompiler::CompileStringCharCodeAtCall(
     Handle<JSObject> holder,
     Handle<Cell> cell,
     Handle<JSFunction> function,
-    Handle<String> name) {
+    Handle<String> name,
+    Code::StubType type) {
   // ----------- S t a t e -------------
   //  -- r2                     : function name
   //  -- lr                     : return address
@@ -2070,7 +2162,7 @@ Handle<Code> CallStubCompiler::CompileStringCharCodeAtCall(
   GenerateMissBranch();
 
   // Return the generated code.
-  return GetCode(function);
+  return GetCode(type, name);
 }
 
 
@@ -2079,7 +2171,8 @@ Handle<Code> CallStubCompiler::CompileStringCharAtCall(
     Handle<JSObject> holder,
     Handle<Cell> cell,
     Handle<JSFunction> function,
-    Handle<String> name) {
+    Handle<String> name,
+    Code::StubType type) {
   // ----------- S t a t e -------------
   //  -- r2                     : function name
   //  -- lr                     : return address
@@ -2153,7 +2246,7 @@ Handle<Code> CallStubCompiler::CompileStringCharAtCall(
   GenerateMissBranch();
 
   // Return the generated code.
-  return GetCode(function);
+  return GetCode(type, name);
 }
 
 
@@ -2162,7 +2255,8 @@ Handle<Code> CallStubCompiler::CompileStringFromCharCodeCall(
     Handle<JSObject> holder,
     Handle<Cell> cell,
     Handle<JSFunction> function,
-    Handle<String> name) {
+    Handle<String> name,
+    Code::StubType type) {
   // ----------- S t a t e -------------
   //  -- r2                     : function name
   //  -- lr                     : return address
@@ -2225,7 +2319,7 @@ Handle<Code> CallStubCompiler::CompileStringFromCharCodeCall(
   GenerateMissBranch();
 
   // Return the generated code.
-  return cell.is_null() ? GetCode(function) : GetCode(Code::NORMAL, name);
+  return GetCode(type, name);
 }
 
 
@@ -2234,7 +2328,8 @@ Handle<Code> CallStubCompiler::CompileMathFloorCall(
     Handle<JSObject> holder,
     Handle<Cell> cell,
     Handle<JSFunction> function,
-    Handle<String> name) {
+    Handle<String> name,
+    Code::StubType type) {
   // ----------- S t a t e -------------
   //  -- r2                     : function name
   //  -- lr                     : return address
@@ -2333,7 +2428,7 @@ Handle<Code> CallStubCompiler::CompileMathFloorCall(
   GenerateMissBranch();
 
   // Return the generated code.
-  return cell.is_null() ? GetCode(function) : GetCode(Code::NORMAL, name);
+  return GetCode(type, name);
 }
 
 
@@ -2342,7 +2437,8 @@ Handle<Code> CallStubCompiler::CompileMathAbsCall(
     Handle<JSObject> holder,
     Handle<Cell> cell,
     Handle<JSFunction> function,
-    Handle<String> name) {
+    Handle<String> name,
+    Code::StubType type) {
   // ----------- S t a t e -------------
   //  -- r2                     : function name
   //  -- lr                     : return address
@@ -2431,7 +2527,7 @@ Handle<Code> CallStubCompiler::CompileMathAbsCall(
   GenerateMissBranch();
 
   // Return the generated code.
-  return cell.is_null() ? GetCode(function) : GetCode(Code::NORMAL, name);
+  return GetCode(type, name);
 }
 
 
@@ -2612,7 +2708,8 @@ Handle<Code> CallStubCompiler::CompileCallConstant(
   if (HasCustomCallGenerator(function)) {
     Handle<Code> code = CompileCustomCall(object, holder,
                                           Handle<Cell>::null(),
-                                          function, Handle<String>::cast(name));
+                                          function, Handle<String>::cast(name),
+                                          Code::CONSTANT_FUNCTION);
     // A null handle means bail out to the regular compiler code below.
     if (!code.is_null()) return code;
   }
@@ -2669,7 +2766,7 @@ Handle<Code> CallStubCompiler::CompileCallInterceptor(Handle<JSObject> object,
 Handle<Code> CallStubCompiler::CompileCallGlobal(
     Handle<JSObject> object,
     Handle<GlobalObject> holder,
-    Handle<JSGlobalPropertyCell> cell,
+    Handle<PropertyCell> cell,
     Handle<JSFunction> function,
     Handle<Name> name) {
   // ----------- S t a t e -------------
@@ -2678,7 +2775,8 @@ Handle<Code> CallStubCompiler::CompileCallGlobal(
   // -----------------------------------
   if (HasCustomCallGenerator(function)) {
     Handle<Code> code = CompileCustomCall(
-        object, holder, cell, function, Handle<String>::cast(name));
+        object, holder, cell, function, Handle<String>::cast(name),
+        Code::NORMAL);
     // A null handle means bail out to the regular compiler code below.
     if (!code.is_null()) return code;
   }
@@ -2842,7 +2940,7 @@ Handle<Code> StoreStubCompiler::CompileStoreInterceptor(
 
 Handle<Code> StoreStubCompiler::CompileStoreGlobal(
     Handle<GlobalObject> object,
-    Handle<JSGlobalPropertyCell> cell,
+    Handle<PropertyCell> cell,
     Handle<Name> name) {
   Label miss;
 
@@ -2986,7 +3084,7 @@ void LoadStubCompiler::GenerateLoadViaGetter(MacroAssembler* masm,
 Handle<Code> LoadStubCompiler::CompileLoadGlobal(
     Handle<JSObject> object,
     Handle<GlobalObject> global,
-    Handle<JSGlobalPropertyCell> cell,
+    Handle<PropertyCell> cell,
     Handle<Name> name,
     bool is_dont_delete) {
   Label success, miss;

@@ -163,6 +163,7 @@ Semaphore* OS::CreateSemaphore(int count)
 	return new FiberSemaphore(count);
 }
 
+/*
 class Sampler::PlatformData: public Malloced
 {
 public:
@@ -188,7 +189,7 @@ private:
 	// For details, consult "Mac OS X Internals" book, Section 7.3.
 	exlib::Fiber* m_pFiber;
 };
-
+*/
 #undef REGISTER_FIELD
 
 extern Mutex* limit_mutex;

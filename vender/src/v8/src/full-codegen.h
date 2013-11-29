@@ -123,14 +123,15 @@ class FullCodeGenerator: public AstVisitor {
 
   static const int kMaxBackEdgeWeight = 127;
 
+  // Platform-specific code size multiplier.
 #if V8_TARGET_ARCH_IA32
-  static const int kBackEdgeDistanceUnit = 100;
+  static const int kCodeSizeMultiplier = 100;
 #elif V8_TARGET_ARCH_X64
-  static const int kBackEdgeDistanceUnit = 162;
+  static const int kCodeSizeMultiplier = 162;
 #elif V8_TARGET_ARCH_ARM
-  static const int kBackEdgeDistanceUnit = 142;
+  static const int kCodeSizeMultiplier = 142;
 #elif V8_TARGET_ARCH_MIPS
-  static const int kBackEdgeDistanceUnit = 142;
+  static const int kCodeSizeMultiplier = 142;
 #else
 #error Unsupported target architecture.
 #endif
@@ -331,7 +332,7 @@ class FullCodeGenerator: public AstVisitor {
 
   // Helper function to split control flow and avoid a branch to the
   // fall-through label if it is set up.
-#ifdef V8_TARGET_ARCH_MIPS
+#if V8_TARGET_ARCH_MIPS
   void Split(Condition cc,
              Register lhs,
              const Operand&  rhs,

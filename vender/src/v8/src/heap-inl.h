@@ -313,13 +313,13 @@ MaybeObject* Heap::AllocateRawCell() {
 }
 
 
-MaybeObject* Heap::AllocateRawJSGlobalPropertyCell() {
+MaybeObject* Heap::AllocateRawPropertyCell() {
 #ifdef DEBUG
   isolate_->counters()->objs_since_last_full()->Increment();
   isolate_->counters()->objs_since_last_young()->Increment();
 #endif
   MaybeObject* result =
-      property_cell_space_->AllocateRaw(JSGlobalPropertyCell::kSize);
+      property_cell_space_->AllocateRaw(PropertyCell::kSize);
   if (result->IsFailure()) old_gen_exhausted_ = true;
   return result;
 }
@@ -550,7 +550,7 @@ intptr_t Heap::AdjustAmountOfExternalAllocatedMemory(
     if (amount >= 0) {
       amount_of_external_allocated_memory_ = amount;
     } else {
-      // Give up and reset the counters in case of an overflow.
+      // Give up and reset the counters in case of an underflow.
       amount_of_external_allocated_memory_ = 0;
       amount_of_external_allocated_memory_at_last_global_gc_ = 0;
     }
@@ -558,17 +558,15 @@ intptr_t Heap::AdjustAmountOfExternalAllocatedMemory(
   if (FLAG_trace_external_memory) {
     PrintPID("%8.0f ms: ", isolate()->time_millis_since_init());
     PrintF("Adjust amount of external memory: delta=%6" V8_PTR_PREFIX "d KB, "
-           " amount=%6" V8_PTR_PREFIX "d KB, isolate=0x%08" V8PRIxPTR ".\n",
-           change_in_bytes / 1024, amount_of_external_allocated_memory_ / 1024,
+           "amount=%6" V8_PTR_PREFIX "d KB, since_gc=%6" V8_PTR_PREFIX "d KB, "
+           "isolate=0x%08" V8PRIxPTR ".\n",
+           change_in_bytes / KB,
+           amount_of_external_allocated_memory_ / KB,
+           PromotedExternalMemorySize() / KB,
            reinterpret_cast<intptr_t>(isolate()));
   }
   ASSERT(amount_of_external_allocated_memory_ >= 0);
   return amount_of_external_allocated_memory_;
-}
-
-
-void Heap::SetLastScriptId(Object* last_script_id) {
-  roots_[kLastScriptIdRootIndex] = last_script_id;
 }
 
 

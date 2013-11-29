@@ -940,6 +940,11 @@ void FullCodeGenerator::EmitGeneratorThrow(CallRuntime* expr) {
 }
 
 
+void FullCodeGenerator::EmitDebugBreakInOptimizedCode(CallRuntime* expr) {
+  context()->Plug(handle(Smi::FromInt(0), isolate()));
+}
+
+
 void FullCodeGenerator::VisitBinaryOperation(BinaryOperation* expr) {
   switch (expr->op()) {
     case Token::COMMA:
@@ -1545,7 +1550,7 @@ void FullCodeGenerator::VisitConditional(Conditional* expr) {
 
 void FullCodeGenerator::VisitLiteral(Literal* expr) {
   Comment cmnt(masm_, "[ Literal");
-  context()->Plug(expr->handle());
+  context()->Plug(expr->value());
 }
 
 

@@ -175,7 +175,7 @@ namespace internal {
   V(Code, js_entry_code, JsEntryCode)                                          \
   V(Code, js_construct_entry_code, JsConstructEntryCode)                       \
   V(FixedArray, natives_source_cache, NativesSourceCache)                      \
-  V(Object, last_script_id, LastScriptId)                                      \
+  V(Smi, last_script_id, LastScriptId)                                         \
   V(Script, empty_script, EmptyScript)                                         \
   V(Smi, real_stack_limit, RealStackLimit)                                     \
   V(NameDictionary, intrinsic_function_names, IntrinsicFunctionNames)        \
@@ -949,7 +949,7 @@ class Heap {
   // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
   // failed.
   // Please note this does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* AllocateJSGlobalPropertyCell(Object* value);
+  MUST_USE_RESULT MaybeObject* AllocatePropertyCell(Object* value);
 
   // Allocate Box.
   MUST_USE_RESULT MaybeObject* AllocateBox(Object* value,
@@ -1440,9 +1440,6 @@ class Heap {
     roots_[kStoreBufferTopRootIndex] = reinterpret_cast<Smi*>(top);
   }
 
-  // Update the next script id.
-  inline void SetLastScriptId(Object* last_script_id);
-
   // Generated code can embed this address to get access to the roots.
   Object** roots_array_start() { return roots_; }
 
@@ -1873,7 +1870,7 @@ class Heap {
   enum {
     FIRST_CODE_KIND_SUB_TYPE = LAST_TYPE + 1,
     FIRST_FIXED_ARRAY_SUB_TYPE =
-        FIRST_CODE_KIND_SUB_TYPE + Code::LAST_CODE_KIND + 1,
+        FIRST_CODE_KIND_SUB_TYPE + Code::NUMBER_OF_KINDS,
     OBJECT_STATS_COUNT =
         FIRST_FIXED_ARRAY_SUB_TYPE + LAST_FIXED_ARRAY_SUB_TYPE + 1
   };
@@ -1885,7 +1882,7 @@ class Heap {
       object_sizes_[type] += size;
     } else {
       if (type == CODE_TYPE) {
-        ASSERT(sub_type <= Code::LAST_CODE_KIND);
+        ASSERT(sub_type < Code::NUMBER_OF_KINDS);
         object_counts_[FIRST_CODE_KIND_SUB_TYPE + sub_type]++;
         object_sizes_[FIRST_CODE_KIND_SUB_TYPE + sub_type] += size;
       } else if (type == FIXED_ARRAY_TYPE) {
@@ -1958,7 +1955,7 @@ class Heap {
 
   int scan_on_scavenge_pages_;
 
-#if defined(V8_TARGET_ARCH_X64)
+#if V8_TARGET_ARCH_X64
   static const int kMaxObjectSizeInNewSpace = 1024*KB;
 #else
   static const int kMaxObjectSizeInNewSpace = 512*KB;
@@ -2131,7 +2128,7 @@ class Heap {
   MUST_USE_RESULT inline MaybeObject* AllocateRawCell();
 
   // Allocate an uninitialized object in the global property cell space.
-  MUST_USE_RESULT inline MaybeObject* AllocateRawJSGlobalPropertyCell();
+  MUST_USE_RESULT inline MaybeObject* AllocateRawPropertyCell();
 
   // Initializes a JSObject based on its map.
   void InitializeJSObjectFromMap(JSObject* obj,
@@ -2191,6 +2188,9 @@ class Heap {
 
   void ProcessNativeContexts(WeakObjectRetainer* retainer, bool record_slots);
   void ProcessArrayBuffers(WeakObjectRetainer* retainer, bool record_slots);
+
+  // Called on heap tear-down.
+  void TearDownArrayBuffers();
 
   // Record statistics before and after garbage collection.
   void ReportStatisticsBeforeGC();
@@ -2293,7 +2293,6 @@ class Heap {
 
   void StartIdleRound() {
     mark_sweeps_since_idle_round_started_ = 0;
-    ms_count_at_last_idle_notification_ = ms_count_;
   }
 
   void FinishIdleRound() {
@@ -2370,7 +2369,6 @@ class Heap {
   bool last_idle_notification_gc_count_init_;
 
   int mark_sweeps_since_idle_round_started_;
-  int ms_count_at_last_idle_notification_;
   unsigned int gc_count_at_last_idle_gc_;
   int scavenges_since_last_idle_round_;
 
@@ -2952,6 +2950,10 @@ class TranscendentalCache {
 
   TranscendentalCache() {
     for (int i = 0; i < kNumberOfCaches; ++i) caches_[i] = NULL;
+  }
+
+  ~TranscendentalCache() {
+    for (int i = 0; i < kNumberOfCaches; ++i) delete caches_[i];
   }
 
   // Used to create an external reference.

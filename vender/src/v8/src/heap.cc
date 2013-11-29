@@ -32,6 +32,7 @@
 #include "bootstrapper.h"
 #include "codegen.h"
 #include "compilation-cache.h"
+#include "cpu-profiler.h"
 #include "debug.h"
 #include "deoptimizer.h"
 #include "global-handles.h"
@@ -66,7 +67,7 @@ Heap::Heap()
     : isolate_(NULL),
 // semispace_size_ should be a power of 2 and old_generation_size_ should be
 // a multiple of Page::kPageSize.
-#if defined(V8_TARGET_ARCH_X64)
+#if V8_TARGET_ARCH_X64
 #define LUMP_OF_MEMORY (2 * MB)
       code_range_size_(512*MB),
 #else
@@ -152,7 +153,6 @@ Heap::Heap()
       last_idle_notification_gc_count_(0),
       last_idle_notification_gc_count_init_(false),
       mark_sweeps_since_idle_round_started_(0),
-      ms_count_at_last_idle_notification_(0),
       gc_count_at_last_idle_gc_(0),
       scavenges_since_last_idle_round_(kIdleScavengeThreshold),
       gcs_since_last_deopt_(0),
@@ -407,6 +407,8 @@ void Heap::PrintShortHeapStatistics() {
            this->SizeOfObjects() / KB,
            this->Available() / KB,
            this->CommittedMemory() / KB);
+  PrintPID("External memory reported: %6" V8_PTR_PREFIX "d KB\n",
+           amount_of_external_allocated_memory_ / KB);
   PrintPID("Total time spent in GC  : %.1f ms\n", total_gc_time_ms_);
 }
 
@@ -1393,8 +1395,8 @@ void Heap::Scavenge() {
   for (HeapObject* heap_object = js_global_property_cell_iterator.Next();
        heap_object != NULL;
        heap_object = js_global_property_cell_iterator.Next()) {
-    if (heap_object->IsJSGlobalPropertyCell()) {
-      JSGlobalPropertyCell* cell = JSGlobalPropertyCell::cast(heap_object);
+    if (heap_object->IsPropertyCell()) {
+      PropertyCell* cell = PropertyCell::cast(heap_object);
       Address value_address = cell->ValueAddress();
       scavenge_visitor.VisitPointer(reinterpret_cast<Object**>(value_address));
       Address type_address = cell->TypeAddress();
@@ -1567,6 +1569,8 @@ static Object* VisitWeakList(Heap* heap,
       // tail is a live object, visit it.
       WeakListVisitor<T>::VisitLiveObject(
           heap, tail, retainer, record_slots);
+    } else {
+      WeakListVisitor<T>::VisitPhantomObject(heap, candidate);
     }
 
     // Move to next element in the list.
@@ -1597,6 +1601,9 @@ struct WeakListVisitor<JSFunction> {
 
   static void VisitLiveObject(Heap*, JSFunction*,
                               WeakObjectRetainer*, bool) {
+  }
+
+  static void VisitPhantomObject(Heap*, JSFunction*) {
   }
 };
 
@@ -1636,6 +1643,9 @@ struct WeakListVisitor<Context> {
     }
   }
 
+  static void VisitPhantomObject(Heap*, Context*) {
+  }
+
   static int WeakNextOffset() {
     return FixedArray::SizeFor(Context::NEXT_CONTEXT_LINK);
   }
@@ -1665,22 +1675,24 @@ void Heap::ProcessNativeContexts(WeakObjectRetainer* retainer,
 
 
 template<>
-struct WeakListVisitor<JSTypedArray> {
-  static void SetWeakNext(JSTypedArray* obj, Object* next) {
+struct WeakListVisitor<JSArrayBufferView> {
+  static void SetWeakNext(JSArrayBufferView* obj, Object* next) {
     obj->set_weak_next(next);
   }
 
-  static Object* WeakNext(JSTypedArray* obj) {
+  static Object* WeakNext(JSArrayBufferView* obj) {
     return obj->weak_next();
   }
 
   static void VisitLiveObject(Heap*,
-                              JSTypedArray* obj,
+                              JSArrayBufferView* obj,
                               WeakObjectRetainer* retainer,
                               bool record_slots) {}
 
+  static void VisitPhantomObject(Heap*, JSArrayBufferView*) {}
+
   static int WeakNextOffset() {
-    return JSTypedArray::kWeakNextOffset;
+    return JSArrayBufferView::kWeakNextOffset;
   }
 };
 
@@ -1700,16 +1712,20 @@ struct WeakListVisitor<JSArrayBuffer> {
                               WeakObjectRetainer* retainer,
                               bool record_slots) {
     Object* typed_array_obj =
-        VisitWeakList<JSTypedArray>(
+        VisitWeakList<JSArrayBufferView>(
             heap,
-            array_buffer->weak_first_array(),
+            array_buffer->weak_first_view(),
             retainer, record_slots);
-    array_buffer->set_weak_first_array(typed_array_obj);
+    array_buffer->set_weak_first_view(typed_array_obj);
     if (typed_array_obj != heap->undefined_value() && record_slots) {
       Object** slot = HeapObject::RawField(
-          array_buffer, JSArrayBuffer::kWeakFirstArrayOffset);
+          array_buffer, JSArrayBuffer::kWeakFirstViewOffset);
       heap->mark_compact_collector()->RecordSlot(slot, slot, typed_array_obj);
     }
+  }
+
+  static void VisitPhantomObject(Heap* heap, JSArrayBuffer* phantom) {
+    Runtime::FreeArrayBuffer(heap->isolate(), phantom);
   }
 
   static int WeakNextOffset() {
@@ -1725,6 +1741,17 @@ void Heap::ProcessArrayBuffers(WeakObjectRetainer* retainer,
                                    array_buffers_list(),
                                    retainer, record_slots);
   set_array_buffers_list(array_buffer_obj);
+}
+
+
+void Heap::TearDownArrayBuffers() {
+  Object* undefined = undefined_value();
+  for (Object* o = array_buffers_list(); o != undefined;) {
+    JSArrayBuffer* buffer = JSArrayBuffer::cast(o);
+    Runtime::FreeArrayBuffer(isolate(), buffer);
+    o = buffer->weak_next();
+  }
+  array_buffers_list_ = undefined;
 }
 
 
@@ -1908,6 +1935,10 @@ class ScavengingVisitor : public StaticVisitorBase {
                     Visit);
 
     table_.Register(kVisitJSTypedArray,
+                    &ObjectEvacuationStrategy<POINTER_OBJECT>::
+                    Visit);
+
+    table_.Register(kVisitJSDataView,
                     &ObjectEvacuationStrategy<POINTER_OBJECT>::
                     Visit);
 
@@ -2677,7 +2708,7 @@ bool Heap::CreateInitialMaps() {
   set_cell_map(Map::cast(obj));
 
   { MaybeObject* maybe_obj = AllocateMap(PROPERTY_CELL_TYPE,
-                                         JSGlobalPropertyCell::kSize);
+                                         PropertyCell::kSize);
     if (!maybe_obj->ToObject(&obj)) return false;
   }
   set_global_property_cell_map(Map::cast(obj));
@@ -2822,15 +2853,18 @@ MaybeObject* Heap::AllocateCell(Object* value) {
 }
 
 
-MaybeObject* Heap::AllocateJSGlobalPropertyCell(Object* value) {
+MaybeObject* Heap::AllocatePropertyCell(Object* value) {
   Object* result;
-  { MaybeObject* maybe_result = AllocateRawJSGlobalPropertyCell();
+  { MaybeObject* maybe_result = AllocateRawPropertyCell();
     if (!maybe_result->ToObject(&result)) return maybe_result;
   }
   HeapObject::cast(result)->set_map_no_write_barrier(
       global_property_cell_map());
-  JSGlobalPropertyCell::cast(result)->set_value(value);
-  JSGlobalPropertyCell::cast(result)->set_type(Type::None());
+  PropertyCell* cell = PropertyCell::cast(result);
+  cell->set_dependent_code(DependentCode::cast(empty_fixed_array()),
+                           SKIP_WRITE_BARRIER);
+  cell->set_value(value);
+  cell->set_type(Type::None());
   return result;
 }
 
@@ -3125,7 +3159,7 @@ bool Heap::CreateInitialObjects() {
   set_empty_slow_element_dictionary(SeededNumberDictionary::cast(obj));
 
   // Handling of script id generation is in Factory::NewScript.
-  set_last_script_id(undefined_value());
+  set_last_script_id(Smi::FromInt(v8::Script::kNoScriptId));
 
   // Initialize keyed lookup cache.
   isolate_->keyed_lookup_cache()->Clear();
@@ -4395,7 +4429,10 @@ MaybeObject* Heap::AllocateJSObjectFromMap(Map* map, PretenureFlag pretenure) {
   ASSERT(map->instance_type() != JS_BUILTINS_OBJECT_TYPE);
 
   // Allocate the backing storage for the properties.
-  int prop_size = map->InitialPropertiesLength();
+  int prop_size =
+      map->pre_allocated_property_fields() +
+      map->unused_property_fields() -
+      map->inobject_properties();
   ASSERT(prop_size >= 0);
   Object* properties;
   { MaybeObject* maybe_properties = AllocateFixedArray(prop_size, pretenure);
@@ -4432,7 +4469,10 @@ MaybeObject* Heap::AllocateJSObjectFromMapWithAllocationSite(Map* map,
   ASSERT(map->instance_type() != JS_BUILTINS_OBJECT_TYPE);
 
   // Allocate the backing storage for the properties.
-  int prop_size = map->InitialPropertiesLength();
+  int prop_size =
+      map->pre_allocated_property_fields() +
+      map->unused_property_fields() -
+      map->inobject_properties();
   ASSERT(prop_size >= 0);
   Object* properties;
   { MaybeObject* maybe_properties = AllocateFixedArray(prop_size);
@@ -4723,7 +4763,7 @@ MaybeObject* Heap::AllocateGlobalObject(JSFunction* constructor) {
 
   // Make sure no field properties are described in the initial map.
   // This guarantees us that normalizing the properties does not
-  // require us to change property values to JSGlobalPropertyCells.
+  // require us to change property values to PropertyCells.
   ASSERT(map->NextFreePropertyIndex() == 0);
 
   // Make sure we don't have a ton of pre-allocated slots in the
@@ -4752,7 +4792,7 @@ MaybeObject* Heap::AllocateGlobalObject(JSFunction* constructor) {
     ASSERT(details.type() == CALLBACKS);  // Only accessors are expected.
     PropertyDetails d = PropertyDetails(details.attributes(), CALLBACKS, i + 1);
     Object* value = descs->GetCallbacksObject(i);
-    MaybeObject* maybe_value = AllocateJSGlobalPropertyCell(value);
+    MaybeObject* maybe_value = AllocatePropertyCell(value);
     if (!maybe_value->ToObject(&value)) return maybe_value;
 
     MaybeObject* maybe_added = dictionary->Add(descs->GetKey(i), value, d);
@@ -5857,6 +5897,7 @@ void Heap::AdvanceIdleIncrementalMarking(intptr_t step_size) {
       uncommit = true;
     }
     CollectAllGarbage(kNoGCFlags, "idle notification: finalize incremental");
+    mark_sweeps_since_idle_round_started_++;
     gc_count_at_last_idle_gc_ = gc_count_;
     if (uncommit) {
       new_space_.Shrink();
@@ -5870,6 +5911,7 @@ bool Heap::IdleNotification(int hint) {
   // Hints greater than this value indicate that
   // the embedder is requesting a lot of GC work.
   const int kMaxHint = 1000;
+  const int kMinHintForIncrementalMarking = 10;
   // Minimal hint that allows to do full GC.
   const int kMinHintForFullGC = 100;
   intptr_t size_factor = Min(Max(hint, 20), kMaxHint) / 4;
@@ -5932,17 +5974,8 @@ bool Heap::IdleNotification(int hint) {
     }
   }
 
-  int new_mark_sweeps = ms_count_ - ms_count_at_last_idle_notification_;
-  mark_sweeps_since_idle_round_started_ += new_mark_sweeps;
-  ms_count_at_last_idle_notification_ = ms_count_;
-
   int remaining_mark_sweeps = kMaxMarkSweepsInIdleRound -
                               mark_sweeps_since_idle_round_started_;
-
-  if (remaining_mark_sweeps <= 0) {
-    FinishIdleRound();
-    return true;
-  }
 
   if (incremental_marking()->IsStopped()) {
     // If there are no more than two GCs left in this idle round and we are
@@ -5953,13 +5986,21 @@ bool Heap::IdleNotification(int hint) {
     if (remaining_mark_sweeps <= 2 && hint >= kMinHintForFullGC) {
       CollectAllGarbage(kReduceMemoryFootprintMask,
                         "idle notification: finalize idle round");
-    } else {
+      mark_sweeps_since_idle_round_started_++;
+    } else if (hint > kMinHintForIncrementalMarking) {
       incremental_marking()->Start();
     }
   }
-  if (!incremental_marking()->IsStopped()) {
+  if (!incremental_marking()->IsStopped() &&
+      hint > kMinHintForIncrementalMarking) {
     AdvanceIdleIncrementalMarking(step_size);
   }
+
+  if (mark_sweeps_since_idle_round_started_ >= kMaxMarkSweepsInIdleRound) {
+    FinishIdleRound();
+    return true;
+  }
+
   return false;
 }
 
@@ -6076,7 +6117,7 @@ void Heap::ReportHeapStatistics(const char* title) {
   map_space_->ReportStatistics();
   PrintF("Cell space : ");
   cell_space_->ReportStatistics();
-  PrintF("JSGlobalPropertyCell space : ");
+  PrintF("PropertyCell space : ");
   property_cell_space_->ReportStatistics();
   PrintF("Large object space : ");
   lo_space_->ReportStatistics();
@@ -6618,7 +6659,12 @@ bool Heap::ConfigureHeap(int max_semispace_size,
   max_semispace_size_ = RoundUpToPowerOf2(max_semispace_size_);
   reserved_semispace_size_ = RoundUpToPowerOf2(reserved_semispace_size_);
   initial_semispace_size_ = Min(initial_semispace_size_, max_semispace_size_);
-  external_allocation_limit_ = 16 * max_semispace_size_;
+
+  // The external allocation limit should be below 256 MB on all architectures
+  // to avoid unnecessary low memory notifications, as that is the threshold
+  // for some embedders.
+  external_allocation_limit_ = 12 * max_semispace_size_;
+  ASSERT(external_allocation_limit_ <= 256 * MB);
 
   // The old generation is paged and needs at least one page for each space.
   int paged_space_count = LAST_PAGED_SPACE - FIRST_PAGED_SPACE + 1;
@@ -6866,6 +6912,8 @@ void Heap::TearDown() {
     PrintF("total_sweeping_time=%.1f ", sweeping_time());
     PrintF("\n\n");
   }
+
+  TearDownArrayBuffers();
 
   isolate_->global_handles()->TearDown();
 

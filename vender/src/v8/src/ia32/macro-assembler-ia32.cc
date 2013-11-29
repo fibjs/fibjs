@@ -27,10 +27,11 @@
 
 #include "v8.h"
 
-#if defined(V8_TARGET_ARCH_IA32)
+#if V8_TARGET_ARCH_IA32
 
 #include "bootstrapper.h"
 #include "codegen.h"
+#include "cpu-profiler.h"
 #include "debug.h"
 #include "runtime.h"
 #include "serialize.h"
@@ -1973,6 +1974,8 @@ void MacroAssembler::PrepareCallApiFunction(int argc, bool returns_handle) {
 
 
 void MacroAssembler::CallApiFunctionAndReturn(Address function_address,
+                                              Address thunk_address,
+                                              Operand thunk_last_arg,
                                               int stack_space,
                                               bool returns_handle,
                                               int return_value_offset) {
@@ -1998,8 +2001,26 @@ void MacroAssembler::CallApiFunctionAndReturn(Address function_address,
     PopSafepointRegisters();
   }
 
+
+  Label profiler_disabled;
+  Label end_profiler_check;
+  bool* is_profiling_flag =
+      isolate()->cpu_profiler()->is_profiling_address();
+  STATIC_ASSERT(sizeof(*is_profiling_flag) == 1);
+  mov(eax, Immediate(reinterpret_cast<Address>(is_profiling_flag)));
+  cmpb(Operand(eax, 0), 0);
+  j(zero, &profiler_disabled);
+
+  // Additional parameter is the address of the actual getter function.
+  mov(thunk_last_arg, Immediate(function_address));
+  // Call the api function.
+  call(thunk_address, RelocInfo::RUNTIME_ENTRY);
+  jmp(&end_profiler_check);
+
+  bind(&profiler_disabled);
   // Call the api function.
   call(function_address, RelocInfo::RUNTIME_ENTRY);
+  bind(&end_profiler_check);
 
   if (FLAG_log_timer_events) {
     FrameScope frame(this, StackFrame::MANUAL);
@@ -2784,6 +2805,17 @@ void MacroAssembler::JumpIfNotBothSequentialAsciiStrings(Register object1,
   lea(scratch1, Operand(scratch1, scratch2, times_8, 0));
   cmp(scratch1, kFlatAsciiStringTag | (kFlatAsciiStringTag << 3));
   j(not_equal, failure);
+}
+
+
+void MacroAssembler::JumpIfNotUniqueName(Operand operand,
+                                         Label* not_unique_name,
+                                         Label::Distance distance) {
+  STATIC_ASSERT(((SYMBOL_TYPE - 1) & kIsInternalizedMask) == kInternalizedTag);
+  cmp(operand, Immediate(kInternalizedTag));
+  j(less, not_unique_name, distance);
+  cmp(operand, Immediate(SYMBOL_TYPE));
+  j(greater, not_unique_name, distance);
 }
 
 

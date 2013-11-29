@@ -220,7 +220,6 @@ enum StringStubFeedback {
 // Forward declarations.
 // TODO(rossberg): these should all go away eventually.
 class Assignment;
-class BinaryOperation;
 class Call;
 class CallNew;
 class CaseClause;
@@ -231,7 +230,6 @@ class ForInStatement;
 class ICStub;
 class Property;
 class SmallMapList;
-class UnaryOperation;
 class ObjectLiteral;
 class ObjectLiteralProperty;
 
@@ -246,6 +244,7 @@ class TypeFeedbackOracle: public ZoneObject {
   bool LoadIsMonomorphicNormal(Property* expr);
   bool LoadIsUninitialized(Property* expr);
   bool LoadIsPolymorphic(Property* expr);
+  bool StoreIsUninitialized(TypeFeedbackId ast_id);
   bool StoreIsMonomorphicNormal(TypeFeedbackId ast_id);
   bool StoreIsPolymorphic(TypeFeedbackId ast_id);
   bool CallIsMonomorphic(Call* expr);
@@ -296,19 +295,17 @@ class TypeFeedbackOracle: public ZoneObject {
   byte ToBooleanTypes(TypeFeedbackId id);
 
   // Get type information for arithmetic operations and compares.
-  TypeInfo UnaryType(UnaryOperation* expr);
-  void BinaryType(BinaryOperation* expr,
-                  TypeInfo* left,
-                  TypeInfo* right,
-                  TypeInfo* result,
-                  bool* has_fixed_right_arg,
-                  int* fixed_right_arg_value);
+  Handle<Type> UnaryType(TypeFeedbackId id);
+  void BinaryType(TypeFeedbackId id,
+                  Handle<Type>* left,
+                  Handle<Type>* right,
+                  Handle<Type>* result,
+                  Maybe<int>* fixed_right_arg);
 
-  void CompareTypes(TypeFeedbackId id,
-                    Handle<Type>* left_type,
-                    Handle<Type>* right_type,
-                    Handle<Type>* overall_type,
-                    Handle<Type>* compare_nil_type);
+  void CompareType(TypeFeedbackId id,
+                   Handle<Type>* left_type,
+                   Handle<Type>* right_type,
+                   Handle<Type>* combined_type);
 
   Handle<Type> ClauseType(TypeFeedbackId id);
 

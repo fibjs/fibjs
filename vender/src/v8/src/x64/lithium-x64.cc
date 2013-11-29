@@ -27,7 +27,7 @@
 
 #include "v8.h"
 
-#if defined(V8_TARGET_ARCH_X64)
+#if V8_TARGET_ARCH_X64
 
 #include "lithium-allocator-inl.h"
 #include "x64/lithium-x64.h"
@@ -42,31 +42,6 @@ namespace internal {
   }
 LITHIUM_CONCRETE_INSTRUCTION_LIST(DEFINE_COMPILE)
 #undef DEFINE_COMPILE
-
-LOsrEntry::LOsrEntry() {
-  for (int i = 0; i < Register::NumAllocatableRegisters(); ++i) {
-    register_spills_[i] = NULL;
-  }
-  for (int i = 0; i < DoubleRegister::NumAllocatableRegisters(); ++i) {
-    double_register_spills_[i] = NULL;
-  }
-}
-
-
-void LOsrEntry::MarkSpilledRegister(int allocation_index,
-                                    LOperand* spill_operand) {
-  ASSERT(spill_operand->IsStackSlot());
-  ASSERT(register_spills_[allocation_index] == NULL);
-  register_spills_[allocation_index] = spill_operand;
-}
-
-
-void LOsrEntry::MarkSpilledDoubleRegister(int allocation_index,
-                                          LOperand* spill_operand) {
-  ASSERT(spill_operand->IsDoubleStackSlot());
-  ASSERT(double_register_spills_[allocation_index] == NULL);
-  double_register_spills_[allocation_index] = spill_operand;
-}
 
 
 #ifdef DEBUG
@@ -354,8 +329,7 @@ void LCallNewArray::PrintDataTo(StringStream* stream) {
   constructor()->PrintTo(stream);
   stream->Add(" #%d / ", arity());
   ASSERT(hydrogen()->property_cell()->value()->IsSmi());
-  ElementsKind kind = static_cast<ElementsKind>(
-      Smi::cast(hydrogen()->property_cell()->value())->value());
+  ElementsKind kind = hydrogen()->elements_kind();
   stream->Add(" (%s) ", ElementsKindToString(kind));
 }
 
@@ -456,7 +430,7 @@ void LTransitionElementsKind::PrintDataTo(StringStream* stream) {
 LPlatformChunk* LChunkBuilder::Build() {
   ASSERT(is_unused());
   chunk_ = new(zone()) LPlatformChunk(info(), graph());
-  HPhase phase("L_Building chunk", chunk_);
+  LPhase phase("L_Building chunk", chunk_);
   status_ = BUILDING;
   const ZoneList<HBasicBlock*>* blocks = graph()->blocks();
   for (int i = 0; i < blocks->length(); i++) {
@@ -976,7 +950,6 @@ LEnvironment* LChunkBuilder::CreateEnvironment(
     for (int i = 1; i < arguments->arguments_count(); ++i) {
       HValue* value = arguments->arguments_values()->at(i);
       ASSERT(!value->IsArgumentsObject() && !value->IsPushArgument());
-      ASSERT(HInstruction::cast(value)->IsLinked());
       LOperand* op = UseAny(value);
       result->AddValue(op,
                        value->representation(),
@@ -1015,10 +988,13 @@ LInstruction* LChunkBuilder::DoBranch(HBranch* instr) {
 
   LBranch* result = new(zone()) LBranch(UseRegister(value));
   // Tagged values that are not known smis or booleans require a
-  // deoptimization environment.
+  // deoptimization environment. If the instruction is generic no
+  // environment is needed since all cases are handled.
+  ToBooleanStub::Types expected = instr->expected_input_types();
   Representation rep = value->representation();
   HType type = value->type();
-  if (rep.IsTagged() && !type.IsSmi() && !type.IsBoolean()) {
+  if (rep.IsTagged() && !type.IsSmi() && !type.IsBoolean() &&
+      !expected.IsGeneric()) {
     return AssignEnvironment(result);
   }
   return result;
@@ -1288,7 +1264,6 @@ LInstruction* LChunkBuilder::DoCallNew(HCallNew* instr) {
 
 
 LInstruction* LChunkBuilder::DoCallNewArray(HCallNewArray* instr) {
-  ASSERT(FLAG_optimize_constructed_arrays);
   LOperand* constructor = UseFixed(instr->constructor(), rdi);
   argument_count_ -= instr->argument_count();
   LCallNewArray* result = new(zone()) LCallNewArray(constructor);
@@ -1386,19 +1361,6 @@ LInstruction* LChunkBuilder::DoDiv(HDiv* instr) {
 }
 
 
-HValue* LChunkBuilder::SimplifiedDividendForMathFloorOfDiv(HValue* dividend) {
-  // A value with an integer representation does not need to be transformed.
-  if (dividend->representation().IsInteger32()) {
-    return dividend;
-  // A change from an integer32 can be replaced by the integer32 value.
-  } else if (dividend->IsChange() &&
-      HChange::cast(dividend)->from().IsInteger32()) {
-    return HChange::cast(dividend)->value();
-  }
-  return NULL;
-}
-
-
 HValue* LChunkBuilder::SimplifiedDivisorForMathFloorOfDiv(HValue* divisor) {
   if (divisor->IsConstant() &&
       HConstant::cast(divisor)->HasInteger32Value()) {
@@ -1470,7 +1432,7 @@ LInstruction* LChunkBuilder::DoMod(HMod* instr) {
               instr->CheckFlag(HValue::kBailoutOnMinusZero))
           ? AssignEnvironment(result)
           : result;
-    } else if (instr->has_fixed_right_arg()) {
+    } else if (instr->fixed_right_arg().has_value) {
       LModI* mod = new(zone()) LModI(UseRegister(left),
                                      UseRegisterAtStart(right),
                                      NULL);
@@ -1756,13 +1718,6 @@ LInstruction* LChunkBuilder::DoClassOfTestAndBranch(
 }
 
 
-LInstruction* LChunkBuilder::DoFixedArrayBaseLength(
-    HFixedArrayBaseLength* instr) {
-  LOperand* array = UseRegisterAtStart(instr->value());
-  return DefineAsRegister(new(zone()) LFixedArrayBaseLength(array));
-}
-
-
 LInstruction* LChunkBuilder::DoMapEnumLength(HMapEnumLength* instr) {
   LOperand* map = UseRegisterAtStart(instr->value());
   return DefineAsRegister(new(zone()) LMapEnumLength(map));
@@ -1950,7 +1905,7 @@ LInstruction* LChunkBuilder::DoChange(HChange* instr) {
 }
 
 
-LInstruction* LChunkBuilder::DoCheckNonSmi(HCheckNonSmi* instr) {
+LInstruction* LChunkBuilder::DoCheckHeapObject(HCheckHeapObject* instr) {
   LOperand* value = UseRegisterAtStart(instr->value());
   return AssignEnvironment(new(zone()) LCheckNonSmi(value));
 }
@@ -2371,6 +2326,13 @@ LInstruction* LChunkBuilder::DoStringLength(HStringLength* instr) {
 }
 
 
+LInstruction* LChunkBuilder::DoAllocateObject(HAllocateObject* instr) {
+  info()->MarkAsDeferredCalling();
+  LAllocateObject* result = new(zone()) LAllocateObject(TempRegister());
+  return AssignPointerMap(DefineAsRegister(result));
+}
+
+
 LInstruction* LChunkBuilder::DoAllocate(HAllocate* instr) {
   info()->MarkAsDeferredCalling();
   LOperand* size = instr->size()->IsConstant()
@@ -2543,8 +2505,9 @@ LInstruction* LChunkBuilder::DoEnterInlined(HEnterInlined* instr) {
                                                undefined,
                                                instr->inlining_kind(),
                                                instr->undefined_receiver());
-  if (instr->arguments_var() != NULL) {
-    inner->Bind(instr->arguments_var(), graph()->GetArgumentsObject());
+  // Only replay binding of arguments object if it wasn't removed from graph.
+  if (instr->arguments_var() != NULL && instr->arguments_object()->IsLinked()) {
+    inner->Bind(instr->arguments_var(), instr->arguments_object());
   }
   inner->set_entry(instr);
   current_block_->UpdateEnvironment(inner);
