@@ -1794,6 +1794,21 @@
     <ClCompile Include="src\v8\src\zone.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-escape-analysis.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-infer-representation.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-osr.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-range-analysis.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-uint32-analysis.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -3348,6 +3363,21 @@
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\zone-inl.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-escape-analysis.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-infer-representation.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-osr.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-range-analysis.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-uint32-analysis.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
   </ItemGroup>
