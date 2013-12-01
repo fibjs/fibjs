@@ -22,6 +22,11 @@ public:
 		m_actual.Reset(isolate, actual);
 	}
 
+	~Expect()
+	{
+		m_actual.Dispose();
+	}
+
 public:
 	// Expect_base
 	virtual result_t get_to(obj_ptr<Expect_base>& retVal);
