@@ -19,7 +19,7 @@ public:
 	Expect(v8::Handle<v8::Value> actual, const char* msg) :
 			m_msg(msg), m_not(false), m_deep(false)
 	{
-		m_actual = v8::Persistent<v8::Value>::New(isolate, actual);
+		m_actual.Reset(isolate, actual);
 	}
 
 public:

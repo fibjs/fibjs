@@ -9,6 +9,7 @@
 #include "ifs/Fiber.h"
 #include "Runtime.h"
 #include <vector>
+#include "QuickArray.h"
 
 #ifndef FIBER_H_
 #define FIBER_H_
@@ -86,7 +87,7 @@ public:
 	{
 	public:
 		scope(JSFiber* fb = NULL) :
-			m_hr(0), m_pFiber(fb)
+				m_hr(0), m_pFiber(fb)
 		{
 			if (fb == NULL)
 				m_pFiber = new JSFiber();
@@ -137,15 +138,16 @@ public:
 
 		m_argv.resize(nArgCount - nArgStart);
 		for (i = nArgStart; i < nArgCount; i++)
-			m_argv[i - nArgStart] = v8::Persistent<v8::Value>::New(isolate, args[i]);
-		m_func = v8::Persistent<v8::Function>::New(isolate, func);
+			m_argv[i - nArgStart].Reset(isolate, args[i]);
+		m_func.Reset(isolate, func);
 
 		start();
 	}
 
 	template<typename T>
 	static result_t New(v8::Handle<v8::Function> func,
-			const v8::FunctionCallbackInfo<v8::Value>& args, int nArgStart, obj_ptr<T>& retVal)
+			const v8::FunctionCallbackInfo<v8::Value>& args, int nArgStart,
+			obj_ptr<T>& retVal)
 	{
 		obj_ptr<JSFiber> fb = new JSFiber();
 		fb->New(func, args, nArgStart, args.Length());
@@ -165,9 +167,8 @@ public:
 		return 0;
 	}
 
-	static void call(v8::Handle<v8::Function> func,
-			v8::Handle<v8::Value>* args, int argCount,
-			v8::Handle<v8::Value>& retVal)
+	static void call(v8::Handle<v8::Function> func, v8::Handle<v8::Value>* args,
+			int argCount, v8::Handle<v8::Value>& retVal)
 	{
 		JSFiber* fb = (JSFiber*) g_pService->tlsGet(g_tlsCurrent);
 
@@ -180,7 +181,7 @@ public:
 		if (m_result.IsEmpty())
 			return CALL_RETURN_NULL;
 
-		retVal = m_result;
+		retVal = v8::Handle < v8::Value > ::New(isolate, m_result);
 		return 0;
 	}
 
@@ -209,7 +210,7 @@ private:
 
 private:
 	v8::Persistent<v8::Function> m_func;
-	std::vector<v8::Persistent<v8::Value> > m_argv;
+	QuickArray<v8::Persistent<v8::Value> > m_argv;
 	v8::Persistent<v8::Value> m_result;
 	bool m_error;
 };

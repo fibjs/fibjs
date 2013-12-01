@@ -89,7 +89,8 @@ void* FiberBase::fiber_proc(void* p)
 	v8::Isolate::Scope isolate_scope(isolate);
 
 	v8::HandleScope handle_scope;
-	v8::Context::Scope context_scope(s_context);
+	v8::Context::Scope context_scope(
+			v8::Handle < v8::Context > ::New(isolate, s_context));
 
 	while (1)
 	{
@@ -129,7 +130,7 @@ void JSFiber::callFunction1(v8::Handle<v8::Function> func,
 	retVal = func->Call(wrap(), argCount, args);
 	if (try_catch.HasCaught())
 	{
-		v8::Handle<v8::Value> err = try_catch.Exception();
+		v8::Handle < v8::Value > err = try_catch.Exception();
 		m_error = true;
 
 		_trigger("error", &err, 1);
@@ -141,37 +142,38 @@ void JSFiber::callFunction(v8::Handle<v8::Value>& retVal)
 {
 	size_t i;
 
-	std::vector<v8::Handle<v8::Value> > argv;
+	std::vector < v8::Handle<v8::Value> > argv;
 
 	argv.resize(m_argv.size());
 	for (i = 0; i < m_argv.size(); i++)
-		argv[i] = m_argv[i];
+		argv[i] = v8::Handle < v8::Value > ::New(isolate, m_argv[i]);
 
-	callFunction1(m_func, argv.data(), (int) argv.size(), retVal);
+	callFunction1(v8::Handle < v8::Function > ::New(isolate, m_func),
+			argv.data(), (int) argv.size(), retVal);
 
 	if (!IsEmpty(retVal))
 	{
-		m_result = v8::Persistent<v8::Value>::New(isolate, retVal);
+		m_result.Reset(isolate, retVal);
 		_trigger("exit", &retVal, 1);
 	}
 	else
 	{
-		v8::Handle<v8::Value> v = v8::Null();
+		v8::Handle < v8::Value > v = v8::Null();
 		_trigger("exit", &v, 1);
 	}
 }
 
 void JSFiber::js_callback()
 {
-	v8::Handle<v8::Value> retVal;
+	v8::Handle < v8::Value > retVal;
 
 	scope s(this);
 
 	Unref();
 
-	callFunction(retVal);
+	callFunction (retVal);
 
-	v8::Handle<v8::Object> o = wrap();
+	v8::Handle < v8::Object > o = wrap();
 
 	m_quit.set();
 	dispose();

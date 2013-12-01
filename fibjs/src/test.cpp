@@ -81,7 +81,7 @@ public:
 			return CALL_E_INVALID_CALL;
 
 		_case* p = new _case(name);
-		p->m_block = v8::Persistent<v8::Function>::New(isolate, block);
+		p->m_block.Reset(isolate, block);
 
 		now->m_subs.append(p);
 		return 0;
@@ -94,8 +94,12 @@ public:
 		if (!s_now)
 			return CALL_E_INVALID_CALL;
 
-		now->m_hooks[type].append(
-				v8::Persistent<v8::Function>::New(isolate, func));
+		QuickArray<v8::Persistent<v8::Function> >& fa = now->m_hooks[type];
+		size_t sz = fa.size();
+
+		fa.resize(sz + 1);
+		fa[sz].Reset(isolate, func);
+
 		return 0;
 	}
 
@@ -133,7 +137,8 @@ public:
 			if (p->m_pos == 0)
 			{
 				for (i = 0; i < (int) p->m_hooks[HOOK_BEFORE].size(); i++)
-					if (p->m_hooks[HOOK_BEFORE][i]->Call(o, 0, NULL).IsEmpty())
+					if (v8::Handle<v8::Function>::New(isolate,
+							p->m_hooks[HOOK_BEFORE][i])->Call(o, 0, NULL).IsEmpty())
 					{
 						console_base::set_loglevel(oldlevel);
 						clear();
@@ -166,7 +171,9 @@ public:
 					p2 = stack[j];
 					for (i = 0; i < (int) p2->m_hooks[HOOK_BEFORECASE].size();
 							i++)
-						if (p2->m_hooks[HOOK_BEFORECASE][i]->Call(o, 0, NULL).IsEmpty())
+						if (v8::Handle<v8::Function>::New(isolate,
+								p2->m_hooks[HOOK_BEFORECASE][i])->Call(o, 0,
+						NULL).IsEmpty())
 						{
 							console_base::set_loglevel(oldlevel);
 							clear();
@@ -180,7 +187,8 @@ public:
 					date_t d1, d2;
 
 					d1.now();
-					p1->m_block->Call(o, 0, NULL);
+					v8::Handle<v8::Function>::New(isolate, p1->m_block)->Call(o,
+							0, NULL);
 					d2.now();
 
 					if (try_catch.HasCaught())
@@ -229,7 +237,9 @@ public:
 					p2 = stack[j];
 					for (i = (int) p2->m_hooks[HOOK_AFTERCASE].size() - 1;
 							i >= 0; i--)
-						if (p2->m_hooks[HOOK_AFTERCASE][i]->Call(o, 0, NULL).IsEmpty())
+						if (v8::Handle<v8::Function>::New(isolate,
+								p2->m_hooks[HOOK_AFTERCASE][i])->Call(o, 0,
+						NULL).IsEmpty())
 						{
 							console_base::set_loglevel(oldlevel);
 							clear();
@@ -241,7 +251,8 @@ public:
 			if (p->m_pos == p->m_subs.size())
 			{
 				for (i = (int) p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--)
-					if (p->m_hooks[HOOK_AFTER][i]->Call(o, 0, NULL).IsEmpty())
+					if (v8::Handle<v8::Function>::New(isolate,
+							p->m_hooks[HOOK_AFTER][i])->Call(o, 0, NULL).IsEmpty())
 					{
 						console_base::set_loglevel(oldlevel);
 						clear();

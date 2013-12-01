@@ -73,7 +73,8 @@ public:
 			if (v8::Isolate::GetCurrent())
 			{
 				if (!handle_.IsEmpty())
-					handle_.MakeWeak(isolate, (object_base*)this, WeakCallback);
+					handle_.MakeWeak(isolate, (object_base*) this,
+							WeakCallback);
 				else
 					delete this;
 			}
@@ -133,7 +134,8 @@ private:
 	v8::Persistent<v8::Object> handle_;
 
 private:
-	static void WeakCallback(v8::Isolate* isolate, v8::Persistent<v8::Object>* value, object_base* data)
+	static void WeakCallback(v8::Isolate* isolate,
+			v8::Persistent<v8::Object>* value, object_base* data)
 	{
 		data->dispose();
 	}
@@ -143,13 +145,15 @@ public:
 	{
 		if (handle_.IsEmpty())
 		{
-			handle_ = v8::Persistent<v8::Object>::New(isolate, o);
-			handle_->SetAlignedPointerInInternalField(0, this);
+			handle_.Reset(isolate, o);
+			o->SetAlignedPointerInInternalField(0, this);
 
 			v8::V8::AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
+
+			return o;
 		}
 
-		return handle_;
+		return v8::Handle<v8::Object>::New(isolate, handle_);
 	}
 
 	v8::Handle<v8::Object> wrap()
@@ -157,7 +161,7 @@ public:
 		if (handle_.IsEmpty())
 			return wrap(Classinfo().CreateInstance());
 
-		return handle_;
+		return v8::Handle<v8::Object>::New(isolate, handle_);
 	}
 
 public:
@@ -187,7 +191,8 @@ public:
 	result_t once(v8::Handle<v8::Object> map);
 	result_t off(const char* ev, v8::Handle<v8::Function> func);
 	result_t off(v8::Handle<v8::Object> map);
-	result_t trigger(const char* ev, const v8::FunctionCallbackInfo<v8::Value>& args);
+	result_t trigger(const char* ev,
+			const v8::FunctionCallbackInfo<v8::Value>& args);
 	result_t _trigger(const char* ev, v8::Handle<v8::Value>* args,
 			int argCount);
 
@@ -234,7 +239,8 @@ public:
 		if (!handle_.IsEmpty())
 		{
 			handle_.ClearWeak(isolate);
-			handle_->SetAlignedPointerInInternalField(0, 0);
+			v8::Handle<v8::Object>::New(isolate, handle_)->SetAlignedPointerInInternalField(
+					0, 0);
 			handle_.Dispose(isolate);
 			handle_.Clear();
 

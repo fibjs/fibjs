@@ -288,8 +288,7 @@ inline void initJSON()
 		v8::Handle<v8::Context> context = v8::Context::GetCurrent();
 		v8::Handle<v8::Object> global = context->Global();
 
-		s_json = v8::Persistent<v8::Object>::New(isolate,
-				global->Get(v8::String::New("JSON"))->ToObject());
+		s_json.Reset(isolate, global->Get(v8::String::New("JSON"))->ToObject());
 	}
 }
 
@@ -298,12 +297,16 @@ result_t encoding_base::jsonEncode(v8::Handle<v8::Value> data,
 {
 	initJSON();
 
-	if (s_stringify.IsEmpty())
-		s_stringify = v8::Persistent<v8::Function>::New(isolate,
-				v8::Handle<v8::Function>::Cast(
-						s_json->Get(v8::String::New("stringify"))));
+	v8::Handle < v8::Object > _json = v8::Handle < v8::Object
+			> ::New(isolate, s_json);
 
-	v8::Handle<v8::Value> str = s_stringify->Call(s_json, 1, &data);
+	if (s_stringify.IsEmpty())
+		s_stringify.Reset(isolate,
+				v8::Handle < v8::Function
+						> ::Cast(_json->Get(v8::String::New("stringify"))));
+
+	v8::Handle < v8::Value > str = v8::Handle < v8::Function
+			> ::New(isolate, s_stringify)->Call(_json, 1, &data);
 	if (str.IsEmpty())
 		return CALL_E_JAVASCRIPT;
 
@@ -318,13 +321,17 @@ result_t encoding_base::jsonDecode(const char* data,
 {
 	initJSON();
 
-	if (s_parse.IsEmpty())
-		s_parse = v8::Persistent<v8::Function>::New(isolate,
-				v8::Handle<v8::Function>::Cast(
-						s_json->Get(v8::String::New("parse"))));
+	v8::Handle < v8::Object > _json = v8::Handle < v8::Object
+			> ::New(isolate, s_json);
 
-	v8::Handle<v8::Value> v = v8::String::New(data);
-	retVal = s_parse->Call(s_json, 1, &v);
+	if (s_parse.IsEmpty())
+		s_parse.Reset(isolate,
+				v8::Handle < v8::Function
+						> ::Cast(_json->Get(v8::String::New("parse"))));
+
+	v8::Handle < v8::Value > v = v8::String::New(data);
+	retVal = v8::Handle < v8::Function
+			> ::New(isolate, s_parse)->Call(_json, 1, &v);
 	if (retVal.IsEmpty())
 		return CALL_E_JAVASCRIPT;
 

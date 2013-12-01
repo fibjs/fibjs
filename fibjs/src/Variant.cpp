@@ -71,9 +71,8 @@ Variant& Variant::operator=(v8::Handle<v8::Value> v)
 						new (((v8::Persistent<v8::Object>*) m_Val.jsobjVal)) v8::Persistent<
 								v8::Object>();
 
-						*(v8::Persistent<v8::Object>*) m_Val.jsobjVal =
-								v8::Persistent<v8::Object>::New(isolate,
-										v8::Handle<v8::Object>::Cast(v));
+						((v8::Persistent<v8::Object>*) m_Val.jsobjVal)->Reset(
+								isolate, v8::Handle<v8::Object>::Cast(v));
 					}
 					else
 					{
@@ -131,7 +130,8 @@ Variant::operator v8::Handle<v8::Value>() const
 		v8::Handle<v8::Value> v;
 
 		if (isPersistent())
-			v = *(v8::Persistent<v8::Object>*) m_Val.jsobjVal;
+			v = v8::Handle<v8::Object>::New(isolate,
+					*(v8::Persistent<v8::Object>*) m_Val.jsobjVal);
 		else
 			v = *(v8::Handle<v8::Object>*) m_Val.jsobjVal;
 

@@ -72,7 +72,7 @@ void SandBox::InstallModule(std::string fname, v8::Handle<v8::Value> o,
 		m->m_mod.Dispose(isolate);
 	}
 
-	m->m_mod = v8::Persistent < v8::Value > ::New(isolate, o);
+	m->m_mod.Reset(isolate, o);
 	m->m_mtime = mtime;
 	m->m_check = check;
 }

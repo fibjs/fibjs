@@ -23,7 +23,7 @@ MongoCursor::MongoCursor(MongoDB* db, const std::string& ns,
 
 	mongo_cursor_init(&m_cursor, &db->m_conn, ns.c_str());
 
-	m_query = v8::Persistent < v8::Object > ::New(isolate, query->Clone());
+	m_query.Reset(isolate, query->Clone());
 
 	mongo_cursor_set_query(&m_cursor, &m_bbq);
 
@@ -39,7 +39,7 @@ MongoCursor::~MongoCursor()
 {
 	m_query.Dispose(isolate);
 	mongo_cursor_destroy(&m_cursor);
-	if(m_bInit)
+	if (m_bInit)
 		bson_destroy(&m_bbq);
 	bson_destroy(&m_bbp);
 }
@@ -50,10 +50,11 @@ void MongoCursor::ensureSpecial()
 	{
 		v8::Handle < v8::Object > o = v8::Object::New();
 
-		o->Set(v8::String::New("query"), m_query);
+		o->Set(v8::String::New("query"),
+				v8::Handle < v8::Object > ::New(isolate, m_query));
 		m_query.Dispose(isolate);
 
-		m_query = v8::Persistent < v8::Object > ::New(isolate, o);
+		m_query.Reset(isolate, o);
 		m_bSpecial = true;
 	}
 }
@@ -82,9 +83,11 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t& retVal)
 	bson_append_string(&bbq, "count", m_name.c_str());
 
 	if (m_bSpecial)
-		encodeValue(&bbq, "query", m_query->Get(v8::String::New("query")));
+		encodeValue(&bbq, "query",
+				v8::Handle < v8::Object
+						> ::New(isolate, m_query)->Get(v8::String::New("query")));
 	else
-		encodeValue(&bbq, "query", m_query);
+		encodeValue(&bbq, "query", v8::Handle<v8::Object>::New(isolate, m_query));
 
 	if (applySkipLimit)
 	{
@@ -156,7 +159,7 @@ result_t MongoCursor::hasNext(bool& retVal)
 	{
 		result_t hr;
 
-		hr = encodeObject(&m_bbq, m_query);
+		hr = encodeObject(&m_bbq, v8::Handle<v8::Object>::New(isolate, m_query));
 		if (hr < 0)
 			return hr;
 
@@ -219,7 +222,7 @@ result_t MongoCursor::_addSpecial(const char* name, v8::Handle<v8::Value> opts,
 		return CALL_E_INVALID_CALL;
 
 	ensureSpecial();
-	m_query->Set(v8::String::New(name), opts);
+	v8::Handle<v8::Object>::New(isolate, m_query)->Set(v8::String::New(name), opts);
 
 	retVal = this;
 	return 0;

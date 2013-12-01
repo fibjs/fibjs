@@ -205,8 +205,9 @@ void _main(const char* fname)
 
 	v8::HandleScope handle_scope;
 
-	s_context = v8::Persistent<v8::Context>::New(isolate, v8::Context::New(isolate));
-	v8::Context::Scope context_scope(s_context);
+	v8::Handle<v8::Context> _context = v8::Context::New(isolate);
+	s_context.Reset(isolate, _context);
+	v8::Context::Scope context_scope(_context);
 
 	Fiber_base* fb = new JSFiber();
 	g_pService->tlsPut(g_tlsCurrent, fb);

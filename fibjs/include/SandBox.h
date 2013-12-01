@@ -49,7 +49,7 @@ public:
 	void initRoot();
 	void initRequire(v8::Handle<v8::Function> func)
 	{
-		m_require = v8::Persistent < v8::Function > ::New(isolate, func);
+		m_require.Reset(isolate, func);
 	}
 
 	void InstallModule(std::string fname, v8::Handle<v8::Value> o,

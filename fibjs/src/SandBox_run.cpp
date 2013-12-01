@@ -127,14 +127,15 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 				&& (it->second->m_check.empty()
 						|| now.diff(it->second->m_check) < 1000))
 		{
-			retVal = it->second->m_mod;
+			retVal = v8::Handle < v8::Value > ::New(isolate, it->second->m_mod);
 			return 1;
 		}
 
 		if (!m_require.IsEmpty())
 		{
 			v8::Handle < v8::Value > arg = v8::String::New(fname.c_str());
-			retVal = m_require->Call(wrap(), 1, &arg);
+			retVal = v8::Handle < v8::Function
+					> ::New(isolate, m_require)->Call(wrap(), 1, &arg);
 			if (retVal.IsEmpty())
 				return CALL_E_JAVASCRIPT;
 
@@ -170,7 +171,8 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 			if (mtime.diff(it->second->m_mtime) == 0)
 			{
 				it->second->m_check = now;
-				retVal = it->second->m_mod;
+				retVal = v8::Handle < v8::Value
+						> ::New(isolate, it->second->m_mod);
 				return 0;
 			}
 		}
@@ -183,14 +185,14 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 
 	v8::HandleScope handle_scope;
 
-	v8::Persistent < v8::Context > context = v8::Persistent<v8::Context>::New(isolate, v8::Context::New(isolate));
+	v8::Handle<v8::Context> context(v8::Context::New (isolate));
 	v8::Context::Scope context_scope(context);
 
 	v8::Handle < v8::Script > script;
 	hr = compileScript(fname.c_str(), buf, script);
 	if (hr < 0)
 	{
-		context.Dispose(isolate);
+		//context.Dispose(isolate);
 		return hr;
 	}
 
@@ -264,7 +266,7 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 			m_mods.erase(fname);
 		}
 
-		context.Dispose(isolate);
+		//context.Dispose(isolate);
 		return CALL_E_JAVASCRIPT;
 	}
 
@@ -281,7 +283,7 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 		{
 			// delete from modules
 			m_mods.erase(fname);
-			context.Dispose(isolate);
+			//context.Dispose(isolate);
 
 			return hr;
 		}
@@ -297,7 +299,7 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 		retVal = handle_scope.Close(v);
 	}
 
-	context.Dispose(isolate);
+	//context.Dispose(isolate);
 	return 0;
 }
 

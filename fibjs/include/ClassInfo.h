@@ -77,15 +77,18 @@ public:
 	{
 		v8::HandleScope handle_scope;
 
-		m_class = v8::Persistent<v8::FunctionTemplate>::New(isolate,
-				v8::FunctionTemplate::New(cd.cor));
+		v8::Handle<v8::FunctionTemplate> _class = v8::FunctionTemplate::New(
+				cd.cor);
+		m_class.Reset(isolate, _class);
 
-		m_class->SetClassName(v8::String::NewSymbol(cd.name));
+		_class->SetClassName(v8::String::NewSymbol(cd.name));
 
 		if (cd.base)
-			m_class->Inherit(cd.base->m_class);
+			_class->Inherit(
+					v8::Handle<v8::FunctionTemplate>::New(isolate,
+							cd.base->m_class));
 
-		v8::Local<v8::ObjectTemplate> pt = m_class->PrototypeTemplate();
+		v8::Local<v8::ObjectTemplate> pt = _class->PrototypeTemplate();
 		int i;
 
 		pt->MarkAsUndetectable();
@@ -95,13 +98,17 @@ public:
 					v8::FunctionTemplate::New(cd.cms[i].invoker));
 
 		for (i = 0; i < cd.oc; i++)
-			pt->Set(cd.cos[i].name, cd.cos[i].invoker().m_class);
+			pt->Set(
+
+			cd.cos[i].name,
+					v8::Handle<v8::FunctionTemplate>::New(isolate,
+							cd.cos[i].invoker().m_class));
 
 		for (i = 0; i < cd.pc; i++)
 			pt->SetAccessor(v8::String::NewSymbol(cd.cps[i].name),
 					cd.cps[i].getter, cd.cps[i].setter);
 
-		v8::Local<v8::ObjectTemplate> ot = m_class->InstanceTemplate();
+		v8::Local<v8::ObjectTemplate> ot = _class->InstanceTemplate();
 		ot->SetInternalFieldCount(1);
 
 		ClassData* pcd;
@@ -119,16 +126,19 @@ public:
 
 		if (pcd)
 			ot->SetNamedPropertyHandler(pcd->cns->getter, pcd->cns->setter,
-					NULL, pcd->cns->remover, pcd->cns->enumerator);
+			NULL, pcd->cns->remover, pcd->cns->enumerator);
 
-		m_function = v8::Persistent<v8::Function>::New(isolate, m_class->GetFunction());
-		m_cache = v8::Persistent<v8::Object>::New(isolate, m_function->NewInstance());
+		v8::Handle<v8::Function> _function = _class->GetFunction();
+		m_function.Reset(isolate, _function);
+		m_cache.Reset(isolate, _function->NewInstance());
 	}
 
 	void* getInstance(void* o);
 	void* getInstance(v8::Handle<v8::Value> o)
 	{
-		if (o.IsEmpty() || !o->IsObject() || !m_class->HasInstance(o))
+		if (o.IsEmpty() || !o->IsObject()
+				|| !v8::Handle<v8::FunctionTemplate>::New(isolate, m_class)->HasInstance(
+						o))
 			return NULL;
 
 		return o->ToObject()->GetAlignedPointerFromInternalField(0);
@@ -136,7 +146,7 @@ public:
 
 	v8::Handle<v8::Object> CreateInstance()
 	{
-		return m_cache->Clone();
+		return v8::Handle<v8::Object>::New(isolate, m_cache)->Clone();
 	}
 
 	bool has(const char* name)
@@ -144,15 +154,15 @@ public:
 		int i;
 
 		for (i = 0; i < m_cd.mc; i++)
-			if(!qstrcmp(name, m_cd.cms[i].name))
+			if (!qstrcmp(name, m_cd.cms[i].name))
 				return true;
 
 		for (i = 0; i < m_cd.oc; i++)
-			if(!qstrcmp(name, m_cd.cos[i].name))
+			if (!qstrcmp(name, m_cd.cos[i].name))
 				return true;
 
 		for (i = 0; i < m_cd.pc; i++)
-			if(!qstrcmp(name, m_cd.cps[i].name))
+			if (!qstrcmp(name, m_cd.cps[i].name))
 				return true;
 
 		return false;
@@ -174,7 +184,8 @@ public:
 
 		for (i = 0; i < m_cd.oc; i++)
 			o->Set(v8::String::NewSymbol(m_cd.cos[i].name),
-					m_cd.cos[i].invoker().m_function, v8::ReadOnly);
+					v8::Handle<v8::Function>::New(isolate,
+							m_cd.cos[i].invoker().m_function), v8::ReadOnly);
 
 		for (i = 0; i < m_cd.pc; i++)
 			o->SetAccessor(v8::String::NewSymbol(m_cd.cps[i].name),
