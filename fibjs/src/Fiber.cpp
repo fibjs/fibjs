@@ -88,7 +88,7 @@ void* FiberBase::fiber_proc(void* p)
 	v8::Locker locker(isolate);
 	v8::Isolate::Scope isolate_scope(isolate);
 
-	v8::HandleScope handle_scope;
+	v8::HandleScope handle_scope(isolate);
 	v8::Context::Scope context_scope(
 			v8::Handle < v8::Context > ::New(isolate, s_context));
 
@@ -106,7 +106,7 @@ void* FiberBase::fiber_proc(void* p)
 			break;
 
 		{
-			v8::HandleScope handle_scope;
+			v8::HandleScope handle_scope(isolate);
 			ae->js_callback();
 		}
 	}

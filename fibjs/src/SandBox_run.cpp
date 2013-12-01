@@ -183,7 +183,7 @@ result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,
 	if (hr < 0)
 		return hr;
 
-	v8::HandleScope handle_scope;
+	v8::HandleScope handle_scope(isolate);
 
 	v8::Handle<v8::Context> context(v8::Context::New (isolate));
 	v8::Context::Scope context_scope(context);

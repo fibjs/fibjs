@@ -65,7 +65,7 @@ void _define(const v8::FunctionCallbackInfo<v8::Value>& args)
 		return;
 	}
 
-	v8::HandleScope handle_scope;
+	v8::HandleScope handle_scope(isolate);
 
 	v8::Handle<v8::Object> glob = v8::Context::GetCalling()->Global();
 

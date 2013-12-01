@@ -203,7 +203,7 @@ void _main(const char* fname)
 	v8::Locker locker(fibjs::isolate);
 	v8::Isolate::Scope isolate_scope(fibjs::isolate);
 
-	v8::HandleScope handle_scope;
+	v8::HandleScope handle_scope(isolate);
 
 	v8::Handle<v8::Context> _context = v8::Context::New(isolate);
 	s_context.Reset(isolate, _context);

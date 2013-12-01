@@ -75,7 +75,7 @@ public:
 	ClassInfo(ClassData& cd) :
 			m_cd(cd)
 	{
-		v8::HandleScope handle_scope;
+		v8::HandleScope handle_scope(isolate);
 
 		v8::Handle<v8::FunctionTemplate> _class = v8::FunctionTemplate::New(
 				cd.cor);
