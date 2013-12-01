@@ -47,45 +47,46 @@ class Variant
 public:
 	enum Type
 	{
-		VT_Null = 0,
-		VT_Boolean = 1,
-		VT_Integer = 2,
-		VT_Long = 3,
-		VT_Number = 4,
-		VT_Date = 5,
-		VT_String = 6,
-		VT_Object = 7,
-		VT_JSObject = 8,
+		VT_Undefined = 0,
+		VT_Null,
+		VT_Boolean,
+		VT_Integer,
+		VT_Long,
+		VT_Number,
+		VT_Date,
+		VT_String,
+		VT_Object,
+		VT_JSObject,
 		VT_Type = 255,
 		VT_Persistent = 256
 	};
 
 public:
 	Variant() :
-			m_type(VT_Null)
+			m_type(VT_Undefined)
 	{
 	}
 
 	Variant(const Variant& v) :
-			m_type(VT_Null)
+			m_type(VT_Undefined)
 	{
 		operator=(v);
 	}
 
 	Variant(const std::string& v) :
-			m_type(VT_Null)
+			m_type(VT_Undefined)
 	{
 		operator=(v);
 	}
 
 	Variant(const char* v) :
-			m_type(VT_Null)
+			m_type(VT_Undefined)
 	{
 		operator=(v);
 	}
 
 	Variant(v8::Handle<v8::Value> v) :
-			m_type(VT_Null)
+			m_type(VT_Undefined)
 	{
 		operator=(v);
 	}
@@ -118,7 +119,7 @@ public:
 			}
 		}
 
-		set_type(VT_Null);
+		set_type(VT_Undefined);
 	}
 
 	Variant& operator=(const Variant& v)

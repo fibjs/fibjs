@@ -30,7 +30,7 @@ public:
 	DECLARE_CLASSINFO(rpc_base);
 
 public:
-	static v8::Handle<v8::Value> s_json(const v8::Arguments& args);
+	static void s_json(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -58,7 +58,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> rpc_base::s_json(const v8::Arguments& args)
+	inline void rpc_base::s_json(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Handler_base> vr;
 

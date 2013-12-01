@@ -34,8 +34,8 @@ public:
 	DECLARE_CLASSINFO(http_base);
 
 public:
-	static v8::Handle<v8::Value> s_handler(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_fileHandler(const v8::Arguments& args);
+	static void s_handler(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -73,7 +73,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> http_base::s_handler(const v8::Arguments& args)
+	inline void http_base::s_handler(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<HttpHandler_base> vr;
 
@@ -92,7 +92,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> http_base::s_fileHandler(const v8::Arguments& args)
+	inline void http_base::s_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Handler_base> vr;
 

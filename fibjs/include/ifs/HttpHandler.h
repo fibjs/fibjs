@@ -37,15 +37,15 @@ public:
 	DECLARE_CLASSINFO(HttpHandler_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_crossDomain(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_crossDomain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_forceGZIP(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_forceGZIP(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_maxHeadersCount(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_maxUploadSize(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_maxUploadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_stats(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s_get_crossDomain(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_crossDomain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_forceGZIP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_forceGZIP(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_maxHeadersCount(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_maxUploadSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_maxUploadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_stats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
 }
@@ -62,7 +62,7 @@ namespace fibjs
 			{"forceGZIP", s_get_forceGZIP, s_set_forceGZIP},
 			{"maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount},
 			{"maxUploadSize", s_get_maxUploadSize, s_set_maxUploadSize},
-			{"stats", s_get_stats}
+			{"stats", s_get_stats, block_set}
 		};
 
 		static ClassData s_cd = 
@@ -76,7 +76,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> HttpHandler_base::s_get_crossDomain(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpHandler_base::s_get_crossDomain(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -88,7 +88,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void HttpHandler_base::s_set_crossDomain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void HttpHandler_base::s_set_crossDomain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpHandler_base);
@@ -99,7 +99,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> HttpHandler_base::s_get_forceGZIP(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpHandler_base::s_get_forceGZIP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -111,7 +111,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void HttpHandler_base::s_set_forceGZIP(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void HttpHandler_base::s_set_forceGZIP(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpHandler_base);
@@ -122,7 +122,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> HttpHandler_base::s_get_maxHeadersCount(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpHandler_base::s_get_maxHeadersCount(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -134,7 +134,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void HttpHandler_base::s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void HttpHandler_base::s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpHandler_base);
@@ -145,7 +145,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> HttpHandler_base::s_get_maxUploadSize(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpHandler_base::s_get_maxUploadSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -157,7 +157,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void HttpHandler_base::s_set_maxUploadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void HttpHandler_base::s_set_maxUploadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpHandler_base);
@@ -168,7 +168,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> HttpHandler_base::s_get_stats(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpHandler_base::s_get_stats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Stats_base> vr;
 

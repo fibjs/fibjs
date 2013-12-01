@@ -30,10 +30,10 @@ public:
 	DECLARE_CLASSINFO(HttpUploadData_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_fileName(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_contentType(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_contentTransferEncoding(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_body(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s_get_fileName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_contentType(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_contentTransferEncoding(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_body(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
 }
@@ -46,10 +46,10 @@ namespace fibjs
 	{
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"fileName", s_get_fileName},
-			{"contentType", s_get_contentType},
-			{"contentTransferEncoding", s_get_contentTransferEncoding},
-			{"body", s_get_body}
+			{"fileName", s_get_fileName, block_set},
+			{"contentType", s_get_contentType, block_set},
+			{"contentTransferEncoding", s_get_contentTransferEncoding, block_set},
+			{"body", s_get_body, block_set}
 		};
 
 		static ClassData s_cd = 
@@ -63,7 +63,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> HttpUploadData_base::s_get_fileName(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpUploadData_base::s_get_fileName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -75,7 +75,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> HttpUploadData_base::s_get_contentType(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpUploadData_base::s_get_contentType(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -87,7 +87,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> HttpUploadData_base::s_get_contentTransferEncoding(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpUploadData_base::s_get_contentTransferEncoding(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -99,7 +99,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> HttpUploadData_base::s_get_body(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpUploadData_base::s_get_body(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<SeekableStream_base> vr;
 

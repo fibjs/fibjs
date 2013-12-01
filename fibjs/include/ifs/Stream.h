@@ -41,19 +41,19 @@ public:
 	DECLARE_CLASSINFO(Stream_base);
 
 public:
-	static v8::Handle<v8::Value> s_read(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncRead(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onread(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_write(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncWrite(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onwrite(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_close(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncClose(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onclose(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_copyTo(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncCopyTo(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_oncopyto(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onerror(const v8::Arguments& args);
+	static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_asyncRead(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_onread(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_asyncWrite(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_onwrite(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_asyncClose(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_copyTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_asyncCopyTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_oncopyto(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_MEMBERVALUE2(Stream_base, read, int32_t, obj_ptr<Buffer_base>);
@@ -103,7 +103,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> Stream_base::s_read(const v8::Arguments& args)
+	inline void Stream_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -117,7 +117,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stream_base::s_asyncRead(const v8::Arguments& args)
+	inline void Stream_base::s_asyncRead(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Stream_base);
 		METHOD_ENTER(1, 0);
@@ -129,7 +129,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Stream_base::s_onread(const v8::Arguments& args)
+	inline void Stream_base::s_onread(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Stream_base);
 		METHOD_ENTER(1, 1);
@@ -141,7 +141,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Stream_base::s_write(const v8::Arguments& args)
+	inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Stream_base);
 		METHOD_ENTER(1, 1);
@@ -153,7 +153,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Stream_base::s_asyncWrite(const v8::Arguments& args)
+	inline void Stream_base::s_asyncWrite(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Stream_base);
 		METHOD_ENTER(1, 1);
@@ -165,7 +165,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Stream_base::s_onwrite(const v8::Arguments& args)
+	inline void Stream_base::s_onwrite(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Stream_base);
 		METHOD_ENTER(1, 1);
@@ -177,7 +177,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Stream_base::s_close(const v8::Arguments& args)
+	inline void Stream_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Stream_base);
 		METHOD_ENTER(0, 0);
@@ -187,7 +187,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Stream_base::s_asyncClose(const v8::Arguments& args)
+	inline void Stream_base::s_asyncClose(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Stream_base);
 		METHOD_ENTER(0, 0);
@@ -197,7 +197,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Stream_base::s_onclose(const v8::Arguments& args)
+	inline void Stream_base::s_onclose(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Stream_base);
 		METHOD_ENTER(1, 1);
@@ -209,7 +209,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Stream_base::s_copyTo(const v8::Arguments& args)
+	inline void Stream_base::s_copyTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int64_t vr;
 
@@ -224,7 +224,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stream_base::s_asyncCopyTo(const v8::Arguments& args)
+	inline void Stream_base::s_asyncCopyTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Stream_base);
 		METHOD_ENTER(2, 1);
@@ -237,7 +237,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Stream_base::s_oncopyto(const v8::Arguments& args)
+	inline void Stream_base::s_oncopyto(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Stream_base);
 		METHOD_ENTER(1, 1);
@@ -249,7 +249,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Stream_base::s_onerror(const v8::Arguments& args)
+	inline void Stream_base::s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Stream_base);
 		METHOD_ENTER(1, 1);

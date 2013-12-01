@@ -40,13 +40,13 @@ public:
 	DECLARE_CLASSINFO(mq_base);
 
 public:
-	static v8::Handle<v8::Value> s_chain(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_routing(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_jsHandler(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_moduleHandler(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_await(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_nullHandler(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_invoke(const v8::Arguments& args);
+	static void s_chain(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_routing(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_jsHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_moduleHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_await(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_nullHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_STATIC2(mq_base, invoke, Handler_base*, object_base*);
@@ -92,7 +92,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> mq_base::s_chain(const v8::Arguments& args)
+	inline void mq_base::s_chain(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Chain_base> vr;
 
@@ -105,7 +105,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> mq_base::s_routing(const v8::Arguments& args)
+	inline void mq_base::s_routing(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Routing_base> vr;
 
@@ -118,7 +118,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> mq_base::s_jsHandler(const v8::Arguments& args)
+	inline void mq_base::s_jsHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Handler_base> vr;
 
@@ -131,7 +131,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> mq_base::s_moduleHandler(const v8::Arguments& args)
+	inline void mq_base::s_moduleHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Handler_base> vr;
 
@@ -145,7 +145,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> mq_base::s_await(const v8::Arguments& args)
+	inline void mq_base::s_await(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<AsyncWait_base> vr;
 
@@ -156,7 +156,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> mq_base::s_nullHandler(const v8::Arguments& args)
+	inline void mq_base::s_nullHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Handler_base> vr;
 
@@ -167,7 +167,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> mq_base::s_invoke(const v8::Arguments& args)
+	inline void mq_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 2);
 

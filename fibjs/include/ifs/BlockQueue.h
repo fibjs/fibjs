@@ -30,9 +30,9 @@ public:
 	DECLARE_CLASSINFO(BlockQueue_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_put(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_take(const v8::Arguments& args);
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_put(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_take(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -60,7 +60,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> BlockQueue_base::s__new(const v8::Arguments& args)
+	inline void BlockQueue_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<BlockQueue_base> vr;
 
@@ -73,7 +73,7 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> BlockQueue_base::s_put(const v8::Arguments& args)
+	inline void BlockQueue_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(BlockQueue_base);
 		METHOD_ENTER(1, 1);
@@ -85,7 +85,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> BlockQueue_base::s_take(const v8::Arguments& args)
+	inline void BlockQueue_base::s_take(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		Variant vr;
 

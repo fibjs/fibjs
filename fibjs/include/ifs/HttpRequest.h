@@ -40,17 +40,17 @@ public:
 	DECLARE_CLASSINFO(HttpRequest_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_method(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_method(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_address(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_address(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_queryString(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_queryString(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_response(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_cookie(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_form(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_query(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_method(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_method(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_address(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_address(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_queryString(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_queryString(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_response(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_cookie(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_form(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_query(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
 }
@@ -67,10 +67,10 @@ namespace fibjs
 			{"method", s_get_method, s_set_method},
 			{"address", s_get_address, s_set_address},
 			{"queryString", s_get_queryString, s_set_queryString},
-			{"response", s_get_response},
-			{"cookie", s_get_cookie},
-			{"form", s_get_form},
-			{"query", s_get_query}
+			{"response", s_get_response, block_set},
+			{"cookie", s_get_cookie, block_set},
+			{"form", s_get_form, block_set},
+			{"query", s_get_query, block_set}
 		};
 
 		static ClassData s_cd = 
@@ -84,7 +84,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> HttpRequest_base::s_get_method(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpRequest_base::s_get_method(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -96,7 +96,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void HttpRequest_base::s_set_method(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void HttpRequest_base::s_set_method(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpRequest_base);
@@ -107,7 +107,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> HttpRequest_base::s_get_address(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpRequest_base::s_get_address(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -119,7 +119,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void HttpRequest_base::s_set_address(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void HttpRequest_base::s_set_address(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpRequest_base);
@@ -130,7 +130,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> HttpRequest_base::s_get_queryString(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpRequest_base::s_get_queryString(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -142,7 +142,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void HttpRequest_base::s_set_queryString(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void HttpRequest_base::s_set_queryString(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpRequest_base);
@@ -153,7 +153,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> HttpRequest_base::s_get_response(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpRequest_base::s_get_response(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<HttpResponse_base> vr;
 
@@ -165,7 +165,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> HttpRequest_base::s_get_cookie(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpRequest_base::s_get_cookie(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<HttpCollection_base> vr;
 
@@ -177,7 +177,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> HttpRequest_base::s_get_form(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpRequest_base::s_get_form(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<HttpCollection_base> vr;
 
@@ -189,7 +189,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> HttpRequest_base::s_get_query(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpRequest_base::s_get_query(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<HttpCollection_base> vr;
 
@@ -201,7 +201,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> HttpRequest_base::s__new(const v8::Arguments& args)
+	inline void HttpRequest_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<HttpRequest_base> vr;
 

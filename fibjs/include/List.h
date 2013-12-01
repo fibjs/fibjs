@@ -27,10 +27,10 @@ public:
 	virtual result_t get_length(int32_t& retVal);
 	virtual result_t resize(int32_t sz);
 	virtual result_t push(Variant v);
-	virtual result_t push(const v8::Arguments& args);
+	virtual result_t push(const v8::FunctionCallbackInfo<v8::Value>& args);
 	virtual result_t pop(Variant& retVal);
 	virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal);
-	virtual result_t concat(const v8::Arguments& args, obj_ptr<List_base>& retVal);
+	virtual result_t concat(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<List_base>& retVal);
 	virtual result_t every(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp, bool& retVal);
 	virtual result_t filter(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp, obj_ptr<List_base>& retVal);
 	virtual result_t forEach(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp);
@@ -46,10 +46,10 @@ public:
 		result_t get_length(int32_t& retVal);
 		result_t resize(int32_t sz);
 		result_t push(Variant v);
-		result_t push(const v8::Arguments& args);
+		result_t push(const v8::FunctionCallbackInfo<v8::Value>& args);
 		result_t pop(Variant& retVal);
 		result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal);
-		result_t concat(const v8::Arguments& args, obj_ptr<List_base>& retVal);
+		result_t concat(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<List_base>& retVal);
 		result_t every(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp, bool& retVal);
 		result_t filter(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp, obj_ptr<List_base>& retVal);
 		result_t forEach(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp);

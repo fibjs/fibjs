@@ -30,9 +30,9 @@ public:
 	DECLARE_CLASSINFO(DBResult_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_insertId(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_affected(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_fields(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s_get_insertId(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_affected(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_fields(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
 }
@@ -44,9 +44,9 @@ namespace fibjs
 	{
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"insertId", s_get_insertId},
-			{"affected", s_get_affected},
-			{"fields", s_get_fields}
+			{"insertId", s_get_insertId, block_set},
+			{"affected", s_get_affected, block_set},
+			{"fields", s_get_fields, block_set}
 		};
 
 		static ClassData s_cd = 
@@ -60,7 +60,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> DBResult_base::s_get_insertId(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void DBResult_base::s_get_insertId(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int64_t vr;
 
@@ -72,7 +72,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> DBResult_base::s_get_affected(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void DBResult_base::s_get_affected(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int64_t vr;
 
@@ -84,7 +84,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> DBResult_base::s_get_fields(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void DBResult_base::s_get_fields(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		v8::Handle<v8::Array> vr;
 

@@ -33,15 +33,15 @@ public:
 	DECLARE_CLASSINFO(Buffer_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> i_IndexedGetter(uint32_t index, const v8::AccessorInfo& info);
-	static v8::Handle<v8::Value> i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::AccessorInfo& info);
-	static v8::Handle<v8::Value> s_get_length(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_resize(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_write(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_slice(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_hex(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_base64(const v8::Arguments& args);
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_resize(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_slice(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_hex(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_base64(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -61,7 +61,7 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"length", s_get_length}
+			{"length", s_get_length, block_set}
 		};
 
 		static ClassData::ClassIndexed s_indexed = 
@@ -80,7 +80,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> Buffer_base::i_IndexedGetter(uint32_t index, const v8::AccessorInfo& info)
+	inline void Buffer_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -92,7 +92,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Buffer_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::AccessorInfo& info)
+	inline void Buffer_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Buffer_base);
@@ -103,7 +103,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Buffer_base::s_get_length(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Buffer_base::s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -115,7 +115,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Buffer_base::s__new(const v8::Arguments& args)
+	inline void Buffer_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -128,7 +128,7 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Buffer_base::s_resize(const v8::Arguments& args)
+	inline void Buffer_base::s_resize(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Buffer_base);
 		METHOD_ENTER(1, 1);
@@ -140,7 +140,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Buffer_base::s_write(const v8::Arguments& args)
+	inline void Buffer_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Buffer_base);
 		METHOD_ENTER(1, 1);
@@ -152,7 +152,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Buffer_base::s_slice(const v8::Arguments& args)
+	inline void Buffer_base::s_slice(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -167,7 +167,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Buffer_base::s_hex(const v8::Arguments& args)
+	inline void Buffer_base::s_hex(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -179,7 +179,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Buffer_base::s_base64(const v8::Arguments& args)
+	inline void Buffer_base::s_base64(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 

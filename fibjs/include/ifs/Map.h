@@ -37,18 +37,18 @@ public:
 	DECLARE_CLASSINFO(Map_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_size(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_clear(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_has(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_put(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_remove(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isEmpty(const v8::Arguments& args);
-	static v8::Handle<v8::Value> i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info);
-	static v8::Handle<v8::Array> i_NamedEnumerator(const v8::AccessorInfo& info);
-	static v8::Handle<v8::Value> i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info);
-	static v8::Handle<v8::Boolean> i_NamedDeleter(v8::Local<v8::String> property, const v8::AccessorInfo& info);
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_has(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_put(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isEmpty(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args);
+	static void i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args);
 };
 
 }
@@ -69,7 +69,7 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"size", s_get_size}
+			{"size", s_get_size, block_set}
 		};
 
 		static ClassData::ClassNamed s_named = 
@@ -88,7 +88,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> Map_base::s_get_size(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Map_base::s_get_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -100,7 +100,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Map_base::i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info)
+	inline void Map_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		Variant vr;
 
@@ -108,15 +108,15 @@ namespace fibjs
 		PROPERTY_INSTANCE(Map_base);
 
 		v8::String::Utf8Value k(property);
-		if(class_info().has(*k))return v8::Handle<v8::Value>();
+		if(class_info().has(*k))return;
 
 		hr = pInst->_named_getter(*k, vr);
-		if(hr == CALL_RETURN_NULL)return v8::Handle<v8::Value>();
+		if(hr == CALL_RETURN_NULL)return;
 
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Array> Map_base::i_NamedEnumerator(const v8::AccessorInfo& info)
+	inline void Map_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)
 	{
 		v8::Handle<v8::Array> vr;
 
@@ -128,21 +128,21 @@ namespace fibjs
 		METHOD_RETURN1();
 	}
 
-	inline v8::Handle<v8::Value> Map_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info)
+	inline void Map_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Map_base);
 
 		PROPERTY_VAL(Variant);
 		v8::String::Utf8Value k(property);
-		if(class_info().has(*k))return v8::Handle<v8::Value>();
+		if(class_info().has(*k))return;
 
 		hr = pInst->_named_setter(*k, v0);
 
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Boolean> Map_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::AccessorInfo& info)
+	inline void Map_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args)
 	{
 		v8::Handle<v8::Boolean> vr;
 
@@ -150,13 +150,13 @@ namespace fibjs
 		PROPERTY_INSTANCE(Map_base);
 
 		v8::String::Utf8Value k(property);
-		if(class_info().has(*k))return v8::False();
+		if(class_info().has(*k)){args.GetReturnValue().Set(v8::False());return;}
 
 		hr = pInst->_named_deleter(*k, vr);
 		METHOD_RETURN1();
 	}
 
-	inline v8::Handle<v8::Value> Map_base::s__new(const v8::Arguments& args)
+	inline void Map_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Map_base> vr;
 
@@ -167,7 +167,7 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Map_base::s_clear(const v8::Arguments& args)
+	inline void Map_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Map_base);
 		METHOD_ENTER(0, 0);
@@ -177,7 +177,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Map_base::s_has(const v8::Arguments& args)
+	inline void Map_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -191,7 +191,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Map_base::s_get(const v8::Arguments& args)
+	inline void Map_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		Variant vr;
 
@@ -205,7 +205,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Map_base::s_put(const v8::Arguments& args)
+	inline void Map_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Map_base);
 		METHOD_ENTER(1, 1);
@@ -224,7 +224,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Map_base::s_remove(const v8::Arguments& args)
+	inline void Map_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Map_base);
 		METHOD_ENTER(1, 1);
@@ -236,7 +236,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Map_base::s_isEmpty(const v8::Arguments& args)
+	inline void Map_base::s_isEmpty(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 

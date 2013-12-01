@@ -27,7 +27,7 @@ public:
 	DECLARE_CLASSINFO(Handler_base);
 
 public:
-	static v8::Handle<v8::Value> s_invoke(const v8::Arguments& args);
+	static void s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_MEMBERVALUE2(Handler_base, invoke, object_base*, obj_ptr<Handler_base>);
@@ -58,7 +58,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> Handler_base::s_invoke(const v8::Arguments& args)
+	inline void Handler_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Handler_base> vr;
 

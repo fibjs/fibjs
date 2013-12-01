@@ -29,7 +29,7 @@ public:
 	DECLARE_CLASSINFO(re_base);
 
 public:
-	static v8::Handle<v8::Value> s_compile(const v8::Arguments& args);
+	static void s_compile(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -57,7 +57,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> re_base::s_compile(const v8::Arguments& args)
+	inline void re_base::s_compile(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Regex_base> vr;
 

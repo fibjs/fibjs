@@ -267,7 +267,7 @@ result_t mysql::execute(const char* sql, int sLen,
 	return 0;
 }
 
-result_t mysql::execute(const char* sql, const v8::Arguments& args,
+result_t mysql::execute(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args,
 		obj_ptr<DBResult_base>& retVal)
 {
 	std::string str;
@@ -285,7 +285,7 @@ result_t mysql::execute(const char* sql, const v8::Arguments& args,
 	return hr;
 }
 
-result_t mysql::format(const char* sql, const v8::Arguments& args,
+result_t mysql::format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args,
 		std::string& retVal)
 {
 	return db_base::formatMySQL(sql, args, retVal);

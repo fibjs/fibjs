@@ -26,18 +26,18 @@ public:
 	virtual result_t begin() = 0;
 	virtual result_t commit() = 0;
 	virtual result_t rollback() = 0;
-	virtual result_t execute(const char* sql, const v8::Arguments& args, obj_ptr<DBResult_base>& retVal) = 0;
-	virtual result_t format(const char* sql, const v8::Arguments& args, std::string& retVal) = 0;
+	virtual result_t execute(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<DBResult_base>& retVal) = 0;
+	virtual result_t format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal) = 0;
 
 	DECLARE_CLASSINFO(DbConnection_base);
 
 public:
-	static v8::Handle<v8::Value> s_close(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_begin(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_commit(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_rollback(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_execute(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_format(const v8::Arguments& args);
+	static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_begin(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_commit(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_rollback(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_execute(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_format(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -70,7 +70,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> DbConnection_base::s_close(const v8::Arguments& args)
+	inline void DbConnection_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(DbConnection_base);
 		METHOD_ENTER(0, 0);
@@ -80,7 +80,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> DbConnection_base::s_begin(const v8::Arguments& args)
+	inline void DbConnection_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(DbConnection_base);
 		METHOD_ENTER(0, 0);
@@ -90,7 +90,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> DbConnection_base::s_commit(const v8::Arguments& args)
+	inline void DbConnection_base::s_commit(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(DbConnection_base);
 		METHOD_ENTER(0, 0);
@@ -100,7 +100,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> DbConnection_base::s_rollback(const v8::Arguments& args)
+	inline void DbConnection_base::s_rollback(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(DbConnection_base);
 		METHOD_ENTER(0, 0);
@@ -110,7 +110,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> DbConnection_base::s_execute(const v8::Arguments& args)
+	inline void DbConnection_base::s_execute(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<DBResult_base> vr;
 
@@ -124,7 +124,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> DbConnection_base::s_format(const v8::Arguments& args)
+	inline void DbConnection_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 

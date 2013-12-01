@@ -79,57 +79,57 @@ public:
 	DECLARE_CLASSINFO(Image_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_width(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_height(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_format(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_colorsTotal(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_transparent(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_transparent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_alphaBlending(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_alphaBlending(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_getData(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_save(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_colorAllocate(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_colorAllocateAlpha(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_colorDeallocate(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_colorClosest(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_colorClosestHWB(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_colorClosestAlpha(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_colorExact(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_colorExactAlpha(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_colorResolve(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_colorResolveAlpha(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_clip(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_getPixel(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_getTrueColorPixel(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_setPixel(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_setThickness(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_line(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_rectangle(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_filledRectangle(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_polygon(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_openPolygon(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_filledPolygon(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_ellipse(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_filledEllipse(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_arc(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_filledArc(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_fill(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_fillToBorder(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_colorReplace(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_clone(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_resample(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_crop(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_flip(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_rotate(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_convert(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_copy(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_copyMerge(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_copyMergeGray(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_copyResized(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_copyResampled(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_copyRotated(const v8::Arguments& args);
+	static void s_get_width(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_height(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_format(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_colorsTotal(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_transparent(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_transparent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_alphaBlending(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_alphaBlending(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_getData(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_save(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_colorAllocate(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_colorAllocateAlpha(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_colorDeallocate(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_colorClosest(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_colorClosestHWB(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_colorClosestAlpha(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_colorExact(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_colorExactAlpha(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_colorResolve(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_colorResolveAlpha(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_clip(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_getPixel(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_getTrueColorPixel(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_setPixel(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_setThickness(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_line(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_rectangle(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_filledRectangle(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_polygon(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_openPolygon(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_filledPolygon(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_ellipse(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_filledEllipse(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_arc(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_filledArc(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_fill(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_fillToBorder(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_colorReplace(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_resample(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_crop(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_flip(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_rotate(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_convert(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_copyMerge(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_copyMergeGray(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_copyResized(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_copyResampled(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_copyRotated(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_MEMBERVALUE3(Image_base, getData, int32_t, int32_t, obj_ptr<Buffer_base>);
@@ -222,11 +222,11 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"width", s_get_width},
-			{"height", s_get_height},
-			{"format", s_get_format},
-			{"type", s_get_type},
-			{"colorsTotal", s_get_colorsTotal},
+			{"width", s_get_width, block_set},
+			{"height", s_get_height, block_set},
+			{"format", s_get_format, block_set},
+			{"type", s_get_type, block_set},
+			{"colorsTotal", s_get_colorsTotal, block_set},
 			{"transparent", s_get_transparent, s_set_transparent},
 			{"alphaBlending", s_get_alphaBlending, s_set_alphaBlending}
 		};
@@ -242,7 +242,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_get_width(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Image_base::s_get_width(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -254,7 +254,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_get_height(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Image_base::s_get_height(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -266,7 +266,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_get_format(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Image_base::s_get_format(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -278,7 +278,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Image_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -290,7 +290,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_get_colorsTotal(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Image_base::s_get_colorsTotal(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -302,7 +302,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_get_transparent(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Image_base::s_get_transparent(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -314,7 +314,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void Image_base::s_set_transparent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void Image_base::s_set_transparent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Image_base);
@@ -325,7 +325,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_get_alphaBlending(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Image_base::s_get_alphaBlending(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -337,7 +337,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void Image_base::s_set_alphaBlending(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void Image_base::s_set_alphaBlending(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Image_base);
@@ -348,7 +348,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_getData(const v8::Arguments& args)
+	inline void Image_base::s_getData(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -363,7 +363,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_save(const v8::Arguments& args)
+	inline void Image_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(3, 1);
@@ -377,7 +377,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_colorAllocate(const v8::Arguments& args)
+	inline void Image_base::s_colorAllocate(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int32_t vr;
 
@@ -393,7 +393,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_colorAllocateAlpha(const v8::Arguments& args)
+	inline void Image_base::s_colorAllocateAlpha(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int32_t vr;
 
@@ -410,7 +410,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_colorDeallocate(const v8::Arguments& args)
+	inline void Image_base::s_colorDeallocate(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(1, 1);
@@ -422,7 +422,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_colorClosest(const v8::Arguments& args)
+	inline void Image_base::s_colorClosest(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int32_t vr;
 
@@ -438,7 +438,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_colorClosestHWB(const v8::Arguments& args)
+	inline void Image_base::s_colorClosestHWB(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int32_t vr;
 
@@ -454,7 +454,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_colorClosestAlpha(const v8::Arguments& args)
+	inline void Image_base::s_colorClosestAlpha(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int32_t vr;
 
@@ -471,7 +471,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_colorExact(const v8::Arguments& args)
+	inline void Image_base::s_colorExact(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int32_t vr;
 
@@ -487,7 +487,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_colorExactAlpha(const v8::Arguments& args)
+	inline void Image_base::s_colorExactAlpha(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int32_t vr;
 
@@ -504,7 +504,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_colorResolve(const v8::Arguments& args)
+	inline void Image_base::s_colorResolve(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int32_t vr;
 
@@ -520,7 +520,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_colorResolveAlpha(const v8::Arguments& args)
+	inline void Image_base::s_colorResolveAlpha(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int32_t vr;
 
@@ -537,7 +537,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_clip(const v8::Arguments& args)
+	inline void Image_base::s_clip(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(4, 4);
@@ -552,7 +552,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_getPixel(const v8::Arguments& args)
+	inline void Image_base::s_getPixel(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int32_t vr;
 
@@ -567,7 +567,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_getTrueColorPixel(const v8::Arguments& args)
+	inline void Image_base::s_getTrueColorPixel(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int32_t vr;
 
@@ -582,7 +582,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_setPixel(const v8::Arguments& args)
+	inline void Image_base::s_setPixel(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(3, 3);
@@ -596,7 +596,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_setThickness(const v8::Arguments& args)
+	inline void Image_base::s_setThickness(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(1, 1);
@@ -608,7 +608,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_line(const v8::Arguments& args)
+	inline void Image_base::s_line(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(5, 5);
@@ -624,7 +624,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_rectangle(const v8::Arguments& args)
+	inline void Image_base::s_rectangle(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(5, 5);
@@ -640,7 +640,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_filledRectangle(const v8::Arguments& args)
+	inline void Image_base::s_filledRectangle(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(5, 5);
@@ -656,7 +656,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_polygon(const v8::Arguments& args)
+	inline void Image_base::s_polygon(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(2, 2);
@@ -669,7 +669,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_openPolygon(const v8::Arguments& args)
+	inline void Image_base::s_openPolygon(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(2, 2);
@@ -682,7 +682,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_filledPolygon(const v8::Arguments& args)
+	inline void Image_base::s_filledPolygon(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(2, 2);
@@ -695,7 +695,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_ellipse(const v8::Arguments& args)
+	inline void Image_base::s_ellipse(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(5, 5);
@@ -711,7 +711,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_filledEllipse(const v8::Arguments& args)
+	inline void Image_base::s_filledEllipse(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(5, 5);
@@ -727,7 +727,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_arc(const v8::Arguments& args)
+	inline void Image_base::s_arc(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(7, 7);
@@ -745,7 +745,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_filledArc(const v8::Arguments& args)
+	inline void Image_base::s_filledArc(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(8, 7);
@@ -764,7 +764,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_fill(const v8::Arguments& args)
+	inline void Image_base::s_fill(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(3, 3);
@@ -778,7 +778,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_fillToBorder(const v8::Arguments& args)
+	inline void Image_base::s_fillToBorder(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(4, 4);
@@ -793,7 +793,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_colorReplace(const v8::Arguments& args)
+	inline void Image_base::s_colorReplace(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(2, 2);
@@ -806,7 +806,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_clone(const v8::Arguments& args)
+	inline void Image_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Image_base> vr;
 
@@ -818,7 +818,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_resample(const v8::Arguments& args)
+	inline void Image_base::s_resample(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Image_base> vr;
 
@@ -833,7 +833,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_crop(const v8::Arguments& args)
+	inline void Image_base::s_crop(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Image_base> vr;
 
@@ -850,7 +850,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_flip(const v8::Arguments& args)
+	inline void Image_base::s_flip(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(1, 0);
@@ -862,7 +862,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_rotate(const v8::Arguments& args)
+	inline void Image_base::s_rotate(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(1, 1);
@@ -874,7 +874,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_convert(const v8::Arguments& args)
+	inline void Image_base::s_convert(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(1, 0);
@@ -886,7 +886,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_copy(const v8::Arguments& args)
+	inline void Image_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(7, 7);
@@ -904,7 +904,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_copyMerge(const v8::Arguments& args)
+	inline void Image_base::s_copyMerge(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(8, 8);
@@ -923,7 +923,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_copyMergeGray(const v8::Arguments& args)
+	inline void Image_base::s_copyMergeGray(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(8, 8);
@@ -942,7 +942,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_copyResized(const v8::Arguments& args)
+	inline void Image_base::s_copyResized(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(9, 9);
@@ -962,7 +962,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_copyResampled(const v8::Arguments& args)
+	inline void Image_base::s_copyResampled(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(9, 9);
@@ -982,7 +982,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Image_base::s_copyRotated(const v8::Arguments& args)
+	inline void Image_base::s_copyRotated(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Image_base);
 		METHOD_ENTER(8, 8);

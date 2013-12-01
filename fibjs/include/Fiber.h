@@ -145,7 +145,7 @@ public:
 
 	template<typename T>
 	static result_t New(v8::Handle<v8::Function> func,
-			const v8::Arguments& args, int nArgStart, obj_ptr<T>& retVal)
+			const v8::FunctionCallbackInfo<v8::Value>& args, int nArgStart, obj_ptr<T>& retVal)
 	{
 		obj_ptr<JSFiber> fb = new JSFiber();
 		fb->New(func, args, nArgStart, args.Length());

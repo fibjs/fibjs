@@ -44,25 +44,25 @@ public:
 	DECLARE_CLASSINFO(Url_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_parse(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_format(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_resolve(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_normalize(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_href(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_protocol(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_slashes(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_auth(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_username(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_password(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_host(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_hostname(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_port(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_path(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_pathname(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_search(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_query(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_hash(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_format(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_href(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_protocol(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_slashes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_auth(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_username(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_password(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_host(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_hostname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_port(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_path(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_pathname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_search(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_query(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_hash(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
 }
@@ -81,20 +81,20 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"href", s_get_href},
-			{"protocol", s_get_protocol},
-			{"slashes", s_get_slashes},
-			{"auth", s_get_auth},
-			{"username", s_get_username},
-			{"password", s_get_password},
-			{"host", s_get_host},
-			{"hostname", s_get_hostname},
-			{"port", s_get_port},
-			{"path", s_get_path},
-			{"pathname", s_get_pathname},
-			{"search", s_get_search},
-			{"query", s_get_query},
-			{"hash", s_get_hash}
+			{"href", s_get_href, block_set},
+			{"protocol", s_get_protocol, block_set},
+			{"slashes", s_get_slashes, block_set},
+			{"auth", s_get_auth, block_set},
+			{"username", s_get_username, block_set},
+			{"password", s_get_password, block_set},
+			{"host", s_get_host, block_set},
+			{"hostname", s_get_hostname, block_set},
+			{"port", s_get_port, block_set},
+			{"path", s_get_path, block_set},
+			{"pathname", s_get_pathname, block_set},
+			{"search", s_get_search, block_set},
+			{"query", s_get_query, block_set},
+			{"hash", s_get_hash, block_set}
 		};
 
 		static ClassData s_cd = 
@@ -108,7 +108,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_get_href(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Url_base::s_get_href(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -120,7 +120,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_get_protocol(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Url_base::s_get_protocol(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -132,7 +132,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_get_slashes(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Url_base::s_get_slashes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -144,7 +144,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_get_auth(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Url_base::s_get_auth(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -156,7 +156,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_get_username(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Url_base::s_get_username(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -168,7 +168,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_get_password(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Url_base::s_get_password(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -180,7 +180,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_get_host(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Url_base::s_get_host(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -192,7 +192,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_get_hostname(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Url_base::s_get_hostname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -204,7 +204,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_get_port(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Url_base::s_get_port(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -216,7 +216,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_get_path(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Url_base::s_get_path(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -228,7 +228,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_get_pathname(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Url_base::s_get_pathname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -240,7 +240,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_get_search(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Url_base::s_get_search(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -252,7 +252,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_get_query(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Url_base::s_get_query(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -264,7 +264,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_get_hash(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Url_base::s_get_hash(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -276,7 +276,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s__new(const v8::Arguments& args)
+	inline void Url_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Url_base> vr;
 
@@ -295,7 +295,7 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_parse(const v8::Arguments& args)
+	inline void Url_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Url_base);
 		METHOD_ENTER(1, 1);
@@ -307,7 +307,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_format(const v8::Arguments& args)
+	inline void Url_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Url_base);
 		METHOD_ENTER(1, 1);
@@ -319,7 +319,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_resolve(const v8::Arguments& args)
+	inline void Url_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Url_base> vr;
 
@@ -333,7 +333,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Url_base::s_normalize(const v8::Arguments& args)
+	inline void Url_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Url_base);
 		METHOD_ENTER(0, 0);

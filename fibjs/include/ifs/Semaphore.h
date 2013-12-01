@@ -31,10 +31,10 @@ public:
 	DECLARE_CLASSINFO(Semaphore_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_wait(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_post(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_trywait(const v8::Arguments& args);
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_wait(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_post(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_trywait(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -63,7 +63,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> Semaphore_base::s__new(const v8::Arguments& args)
+	inline void Semaphore_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Semaphore_base> vr;
 
@@ -76,7 +76,7 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Semaphore_base::s_wait(const v8::Arguments& args)
+	inline void Semaphore_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Semaphore_base);
 		METHOD_ENTER(0, 0);
@@ -86,7 +86,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Semaphore_base::s_post(const v8::Arguments& args)
+	inline void Semaphore_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Semaphore_base);
 		METHOD_ENTER(0, 0);
@@ -96,7 +96,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Semaphore_base::s_trywait(const v8::Arguments& args)
+	inline void Semaphore_base::s_trywait(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 

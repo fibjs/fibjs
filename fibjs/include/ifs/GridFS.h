@@ -36,12 +36,12 @@ public:
 	DECLARE_CLASSINFO(GridFS_base);
 
 public:
-	static v8::Handle<v8::Value> s_retrieve(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_store(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_exists(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_remove(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_files(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_chunks(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s_retrieve(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_store(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_exists(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_files(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_chunks(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
 }
@@ -65,8 +65,8 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"files", s_get_files},
-			{"chunks", s_get_chunks}
+			{"files", s_get_files, block_set},
+			{"chunks", s_get_chunks, block_set}
 		};
 
 		static ClassData s_cd = 
@@ -80,7 +80,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> GridFS_base::s_get_files(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void GridFS_base::s_get_files(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<MongoCollection_base> vr;
 
@@ -92,7 +92,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> GridFS_base::s_get_chunks(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void GridFS_base::s_get_chunks(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<MongoCollection_base> vr;
 
@@ -104,7 +104,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> GridFS_base::s_retrieve(const v8::Arguments& args)
+	inline void GridFS_base::s_retrieve(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<MemoryStream_base> vr;
 
@@ -118,7 +118,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> GridFS_base::s_store(const v8::Arguments& args)
+	inline void GridFS_base::s_store(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(GridFS_base);
 		METHOD_ENTER(2, 2);
@@ -138,7 +138,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> GridFS_base::s_exists(const v8::Arguments& args)
+	inline void GridFS_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -152,7 +152,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> GridFS_base::s_remove(const v8::Arguments& args)
+	inline void GridFS_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(GridFS_base);
 		METHOD_ENTER(1, 1);

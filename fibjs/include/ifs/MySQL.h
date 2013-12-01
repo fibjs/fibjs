@@ -32,11 +32,11 @@ public:
 	DECLARE_CLASSINFO(MySQL_base);
 
 public:
-	static v8::Handle<v8::Value> s_use(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_rxBufferSize(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_rxBufferSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_txBufferSize(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_txBufferSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
+	static void s_use(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_rxBufferSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_rxBufferSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_txBufferSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_txBufferSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 };
 
 }
@@ -68,7 +68,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> MySQL_base::s_get_rxBufferSize(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void MySQL_base::s_get_rxBufferSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -80,7 +80,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void MySQL_base::s_set_rxBufferSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void MySQL_base::s_set_rxBufferSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(MySQL_base);
@@ -91,7 +91,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> MySQL_base::s_get_txBufferSize(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void MySQL_base::s_get_txBufferSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -103,7 +103,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void MySQL_base::s_set_txBufferSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void MySQL_base::s_set_txBufferSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(MySQL_base);
@@ -114,7 +114,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> MySQL_base::s_use(const v8::Arguments& args)
+	inline void MySQL_base::s_use(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(MySQL_base);
 		METHOD_ENTER(1, 1);

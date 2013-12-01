@@ -31,8 +31,8 @@ public:
 	DECLARE_CLASSINFO(vm_base);
 
 public:
-	static v8::Handle<v8::Value> s_create(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_current(const v8::Arguments& args);
+	static void s_create(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_current(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -61,7 +61,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> vm_base::s_create(const v8::Arguments& args)
+	inline void vm_base::s_create(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<SandBox_base> vr;
 
@@ -81,7 +81,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> vm_base::s_current(const v8::Arguments& args)
+	inline void vm_base::s_current(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<SandBox_base> vr;
 

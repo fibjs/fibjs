@@ -26,10 +26,10 @@ public:
 	virtual result_t get_length(int32_t& retVal) = 0;
 	virtual result_t resize(int32_t sz) = 0;
 	virtual result_t push(Variant v) = 0;
-	virtual result_t push(const v8::Arguments& args) = 0;
+	virtual result_t push(const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
 	virtual result_t pop(Variant& retVal) = 0;
 	virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal) = 0;
-	virtual result_t concat(const v8::Arguments& args, obj_ptr<List_base>& retVal) = 0;
+	virtual result_t concat(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<List_base>& retVal) = 0;
 	virtual result_t every(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp, bool& retVal) = 0;
 	virtual result_t filter(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp, obj_ptr<List_base>& retVal) = 0;
 	virtual result_t forEach(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp) = 0;
@@ -39,20 +39,20 @@ public:
 	DECLARE_CLASSINFO(List_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> i_IndexedGetter(uint32_t index, const v8::AccessorInfo& info);
-	static v8::Handle<v8::Value> i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::AccessorInfo& info);
-	static v8::Handle<v8::Value> s_get_length(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_resize(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_push(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_pop(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_slice(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_concat(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_every(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_filter(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_forEach(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_map(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_toArray(const v8::Arguments& args);
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_resize(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_push(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_pop(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_slice(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_concat(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_every(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_filter(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_map(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -77,7 +77,7 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"length", s_get_length}
+			{"length", s_get_length, block_set}
 		};
 
 		static ClassData::ClassIndexed s_indexed = 
@@ -96,7 +96,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> List_base::i_IndexedGetter(uint32_t index, const v8::AccessorInfo& info)
+	inline void List_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		Variant vr;
 
@@ -108,7 +108,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> List_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::AccessorInfo& info)
+	inline void List_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(List_base);
@@ -119,7 +119,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> List_base::s_get_length(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void List_base::s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -131,7 +131,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> List_base::s__new(const v8::Arguments& args)
+	inline void List_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<List_base> vr;
 
@@ -142,7 +142,7 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> List_base::s_resize(const v8::Arguments& args)
+	inline void List_base::s_resize(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(List_base);
 		METHOD_ENTER(1, 1);
@@ -154,7 +154,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> List_base::s_push(const v8::Arguments& args)
+	inline void List_base::s_push(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(List_base);
 		METHOD_ENTER(1, 1);
@@ -170,7 +170,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> List_base::s_pop(const v8::Arguments& args)
+	inline void List_base::s_pop(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		Variant vr;
 
@@ -182,7 +182,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> List_base::s_slice(const v8::Arguments& args)
+	inline void List_base::s_slice(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<List_base> vr;
 
@@ -197,7 +197,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> List_base::s_concat(const v8::Arguments& args)
+	inline void List_base::s_concat(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<List_base> vr;
 
@@ -209,7 +209,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> List_base::s_every(const v8::Arguments& args)
+	inline void List_base::s_every(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -224,7 +224,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> List_base::s_filter(const v8::Arguments& args)
+	inline void List_base::s_filter(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<List_base> vr;
 
@@ -239,7 +239,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> List_base::s_forEach(const v8::Arguments& args)
+	inline void List_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(List_base);
 		METHOD_ENTER(2, 1);
@@ -252,7 +252,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> List_base::s_map(const v8::Arguments& args)
+	inline void List_base::s_map(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<List_base> vr;
 
@@ -267,7 +267,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> List_base::s_toArray(const v8::Arguments& args)
+	inline void List_base::s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Array> vr;
 

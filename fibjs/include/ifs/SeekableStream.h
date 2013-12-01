@@ -39,16 +39,16 @@ public:
 	DECLARE_CLASSINFO(SeekableStream_base);
 
 public:
-	static v8::Handle<v8::Value> s_seek(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_tell(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_rewind(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_size(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_readAll(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncReadAll(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onreadall(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_stat(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncStat(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onstat(const v8::Arguments& args);
+	static void s_seek(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_tell(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_rewind(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_size(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_asyncReadAll(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_onreadall(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_stat(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_asyncStat(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_onstat(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_MEMBERVALUE1(SeekableStream_base, readAll, obj_ptr<Buffer_base>);
@@ -92,7 +92,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> SeekableStream_base::s_seek(const v8::Arguments& args)
+	inline void SeekableStream_base::s_seek(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(SeekableStream_base);
 		METHOD_ENTER(2, 2);
@@ -105,7 +105,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> SeekableStream_base::s_tell(const v8::Arguments& args)
+	inline void SeekableStream_base::s_tell(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int64_t vr;
 
@@ -117,7 +117,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> SeekableStream_base::s_rewind(const v8::Arguments& args)
+	inline void SeekableStream_base::s_rewind(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(SeekableStream_base);
 		METHOD_ENTER(0, 0);
@@ -127,7 +127,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> SeekableStream_base::s_size(const v8::Arguments& args)
+	inline void SeekableStream_base::s_size(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int64_t vr;
 
@@ -139,7 +139,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> SeekableStream_base::s_readAll(const v8::Arguments& args)
+	inline void SeekableStream_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -151,7 +151,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> SeekableStream_base::s_asyncReadAll(const v8::Arguments& args)
+	inline void SeekableStream_base::s_asyncReadAll(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(SeekableStream_base);
 		METHOD_ENTER(0, 0);
@@ -161,7 +161,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> SeekableStream_base::s_onreadall(const v8::Arguments& args)
+	inline void SeekableStream_base::s_onreadall(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(SeekableStream_base);
 		METHOD_ENTER(1, 1);
@@ -173,7 +173,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> SeekableStream_base::s_stat(const v8::Arguments& args)
+	inline void SeekableStream_base::s_stat(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Stat_base> vr;
 
@@ -185,7 +185,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> SeekableStream_base::s_asyncStat(const v8::Arguments& args)
+	inline void SeekableStream_base::s_asyncStat(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(SeekableStream_base);
 		METHOD_ENTER(0, 0);
@@ -195,7 +195,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> SeekableStream_base::s_onstat(const v8::Arguments& args)
+	inline void SeekableStream_base::s_onstat(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(SeekableStream_base);
 		METHOD_ENTER(1, 1);

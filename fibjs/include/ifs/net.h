@@ -42,14 +42,14 @@ public:
 	DECLARE_CLASSINFO(net_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_AF_INET(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_AF_INET6(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_resolve(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_ip(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_ipv6(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_backend(const v8::Arguments& args);
+	static void s_get_AF_INET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_AF_INET6(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_ip(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_ipv6(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_backend(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_STATICVALUE3(net_base, resolve, const char*, int32_t, std::string);
@@ -84,10 +84,10 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"AF_INET", s_get_AF_INET, NULL, true},
-			{"AF_INET6", s_get_AF_INET6, NULL, true},
-			{"SOCK_STREAM", s_get_SOCK_STREAM, NULL, true},
-			{"SOCK_DGRAM", s_get_SOCK_DGRAM, NULL, true}
+			{"AF_INET", s_get_AF_INET, block_set, true},
+			{"AF_INET6", s_get_AF_INET6, block_set, true},
+			{"SOCK_STREAM", s_get_SOCK_STREAM, block_set, true},
+			{"SOCK_DGRAM", s_get_SOCK_DGRAM, block_set, true}
 		};
 
 		static ClassData s_cd = 
@@ -101,35 +101,35 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> net_base::s_get_AF_INET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void net_base::s_get_AF_INET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _AF_INET;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> net_base::s_get_AF_INET6(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void net_base::s_get_AF_INET6(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _AF_INET6;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> net_base::s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void net_base::s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _SOCK_STREAM;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> net_base::s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void net_base::s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _SOCK_DGRAM;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> net_base::s_resolve(const v8::Arguments& args)
+	inline void net_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -143,7 +143,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> net_base::s_ip(const v8::Arguments& args)
+	inline void net_base::s_ip(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -156,7 +156,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> net_base::s_ipv6(const v8::Arguments& args)
+	inline void net_base::s_ipv6(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -169,7 +169,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> net_base::s_backend(const v8::Arguments& args)
+	inline void net_base::s_backend(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 

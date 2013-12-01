@@ -53,29 +53,29 @@ public:
 	DECLARE_CLASSINFO(Socket_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_family(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_remoteAddress(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_remotePort(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_localAddress(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_localPort(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_connect(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncConnect(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onconnect(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_bind(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_listen(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_accept(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncAccept(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onaccept(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_recv(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncRecv(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onrecv(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_recvFrom(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_send(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncSend(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onsend(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_sendto(const v8::Arguments& args);
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_family(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_remoteAddress(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_remotePort(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_localAddress(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_localPort(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_asyncConnect(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_onconnect(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_bind(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_listen(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_accept(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_asyncAccept(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_onaccept(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_recv(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_asyncRecv(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_onrecv(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_recvFrom(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_send(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_asyncSend(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_onsend(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_sendto(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_MEMBER2(Socket_base, connect, const char*, int32_t);
@@ -119,12 +119,12 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"family", s_get_family},
-			{"type", s_get_type},
-			{"remoteAddress", s_get_remoteAddress},
-			{"remotePort", s_get_remotePort},
-			{"localAddress", s_get_localAddress},
-			{"localPort", s_get_localPort}
+			{"family", s_get_family, block_set},
+			{"type", s_get_type, block_set},
+			{"remoteAddress", s_get_remoteAddress, block_set},
+			{"remotePort", s_get_remotePort, block_set},
+			{"localAddress", s_get_localAddress, block_set},
+			{"localPort", s_get_localPort, block_set}
 		};
 
 		static ClassData s_cd = 
@@ -138,7 +138,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_get_family(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Socket_base::s_get_family(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -150,7 +150,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Socket_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -162,7 +162,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_get_remoteAddress(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Socket_base::s_get_remoteAddress(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -174,7 +174,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_get_remotePort(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Socket_base::s_get_remotePort(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -186,7 +186,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_get_localAddress(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Socket_base::s_get_localAddress(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -198,7 +198,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_get_localPort(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Socket_base::s_get_localPort(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -210,7 +210,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s__new(const v8::Arguments& args)
+	inline void Socket_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Socket_base> vr;
 
@@ -224,7 +224,7 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_connect(const v8::Arguments& args)
+	inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(2, 2);
@@ -237,7 +237,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_asyncConnect(const v8::Arguments& args)
+	inline void Socket_base::s_asyncConnect(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(2, 2);
@@ -250,7 +250,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_onconnect(const v8::Arguments& args)
+	inline void Socket_base::s_onconnect(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(1, 1);
@@ -262,7 +262,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_bind(const v8::Arguments& args)
+	inline void Socket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(2, 1);
@@ -283,7 +283,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_listen(const v8::Arguments& args)
+	inline void Socket_base::s_listen(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(1, 0);
@@ -295,7 +295,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_accept(const v8::Arguments& args)
+	inline void Socket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Socket_base> vr;
 
@@ -307,7 +307,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_asyncAccept(const v8::Arguments& args)
+	inline void Socket_base::s_asyncAccept(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(0, 0);
@@ -317,7 +317,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_onaccept(const v8::Arguments& args)
+	inline void Socket_base::s_onaccept(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(1, 1);
@@ -329,7 +329,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_recv(const v8::Arguments& args)
+	inline void Socket_base::s_recv(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -343,7 +343,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_asyncRecv(const v8::Arguments& args)
+	inline void Socket_base::s_asyncRecv(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(1, 0);
@@ -355,7 +355,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_onrecv(const v8::Arguments& args)
+	inline void Socket_base::s_onrecv(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(1, 1);
@@ -367,7 +367,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_recvFrom(const v8::Arguments& args)
+	inline void Socket_base::s_recvFrom(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -381,7 +381,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_send(const v8::Arguments& args)
+	inline void Socket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(1, 1);
@@ -393,7 +393,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_asyncSend(const v8::Arguments& args)
+	inline void Socket_base::s_asyncSend(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(1, 1);
@@ -405,7 +405,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_onsend(const v8::Arguments& args)
+	inline void Socket_base::s_onsend(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(1, 1);
@@ -417,7 +417,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Socket_base::s_sendto(const v8::Arguments& args)
+	inline void Socket_base::s_sendto(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(3, 3);

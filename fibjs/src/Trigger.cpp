@@ -179,7 +179,7 @@ result_t object_base::off(v8::Handle<v8::Object> map)
 	return _map(this, map, &object_base::off);
 }
 
-inline result_t _fire(v8::Handle<v8::Function> func, const v8::Arguments& args,
+inline result_t _fire(v8::Handle<v8::Function> func, const v8::FunctionCallbackInfo<v8::Value>& args,
 		int argCount)
 {
 	obj_ptr<Fiber_base> retVal;
@@ -244,7 +244,7 @@ result_t object_base::_trigger(const char* ev, v8::Handle<v8::Value>* args,
 	return 0;
 }
 
-result_t object_base::trigger(const char* ev, const v8::Arguments& args)
+result_t object_base::trigger(const char* ev, const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	extMemory(0);
 

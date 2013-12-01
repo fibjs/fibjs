@@ -28,8 +28,8 @@ public:
 	DECLARE_CLASSINFO(uuidValue_base);
 
 public:
-	static v8::Handle<v8::Value> s_data(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_detail(const v8::Arguments& args);
+	static void s_data(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_detail(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -58,7 +58,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> uuidValue_base::s_data(const v8::Arguments& args)
+	inline void uuidValue_base::s_data(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -70,7 +70,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> uuidValue_base::s_detail(const v8::Arguments& args)
+	inline void uuidValue_base::s_detail(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 

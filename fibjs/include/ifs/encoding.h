@@ -42,20 +42,20 @@ public:
 	DECLARE_CLASSINFO(encoding_base);
 
 public:
-	static v8::Handle<v8::Value> s_base32Encode(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_base32Decode(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_base64Encode(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_base64Decode(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_hexEncode(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_hexDecode(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_jsstr(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_encodeURI(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_encodeURIComponent(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_decodeURI(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_jsonEncode(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_jsonDecode(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_bsonEncode(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_bsonDecode(const v8::Arguments& args);
+	static void s_base32Encode(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_base32Decode(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_base64Encode(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_base64Decode(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_hexEncode(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_hexDecode(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_jsstr(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_encodeURI(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_encodeURIComponent(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_decodeURI(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_jsonEncode(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_jsonDecode(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_bsonEncode(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_bsonDecode(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -96,7 +96,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> encoding_base::s_base32Encode(const v8::Arguments& args)
+	inline void encoding_base::s_base32Encode(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -109,7 +109,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> encoding_base::s_base32Decode(const v8::Arguments& args)
+	inline void encoding_base::s_base32Decode(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -122,7 +122,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> encoding_base::s_base64Encode(const v8::Arguments& args)
+	inline void encoding_base::s_base64Encode(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -135,7 +135,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> encoding_base::s_base64Decode(const v8::Arguments& args)
+	inline void encoding_base::s_base64Decode(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -148,7 +148,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> encoding_base::s_hexEncode(const v8::Arguments& args)
+	inline void encoding_base::s_hexEncode(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -161,7 +161,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> encoding_base::s_hexDecode(const v8::Arguments& args)
+	inline void encoding_base::s_hexDecode(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -174,7 +174,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> encoding_base::s_jsstr(const v8::Arguments& args)
+	inline void encoding_base::s_jsstr(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -187,7 +187,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> encoding_base::s_encodeURI(const v8::Arguments& args)
+	inline void encoding_base::s_encodeURI(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -200,7 +200,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> encoding_base::s_encodeURIComponent(const v8::Arguments& args)
+	inline void encoding_base::s_encodeURIComponent(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -213,7 +213,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> encoding_base::s_decodeURI(const v8::Arguments& args)
+	inline void encoding_base::s_decodeURI(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -226,7 +226,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> encoding_base::s_jsonEncode(const v8::Arguments& args)
+	inline void encoding_base::s_jsonEncode(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -239,7 +239,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> encoding_base::s_jsonDecode(const v8::Arguments& args)
+	inline void encoding_base::s_jsonDecode(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Value> vr;
 
@@ -252,7 +252,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> encoding_base::s_bsonEncode(const v8::Arguments& args)
+	inline void encoding_base::s_bsonEncode(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -265,7 +265,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> encoding_base::s_bsonDecode(const v8::Arguments& args)
+	inline void encoding_base::s_bsonDecode(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Object> vr;
 

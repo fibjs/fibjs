@@ -187,7 +187,7 @@ public:
 	result_t once(v8::Handle<v8::Object> map);
 	result_t off(const char* ev, v8::Handle<v8::Function> func);
 	result_t off(v8::Handle<v8::Object> map);
-	result_t trigger(const char* ev, const v8::Arguments& args);
+	result_t trigger(const char* ev, const v8::FunctionCallbackInfo<v8::Value>& args);
 	result_t _trigger(const char* ev, v8::Handle<v8::Value>* args,
 			int argCount);
 
@@ -272,34 +272,46 @@ public:
 	}
 
 public:
-	static v8::Handle<v8::Value> i_IndexedSetter(uint32_t index,
-			v8::Local<v8::Value> value, const v8::AccessorInfo& info)
+	static void block_set(v8::Local<v8::String> property,
+			v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &info)
 	{
-		return ThrowException(
+		std::string strError = "Property \'";
+
+		strError += *v8::String::Utf8Value(property);
+		strError += "\' is read-only.";
+		ThrowException(
+				v8::String::New(strError.c_str(), (int) strError.length()));
+	}
+
+	static void i_IndexedSetter(uint32_t index,
+			v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
+	{
+		ThrowException(
 				v8::String::NewSymbol("Indexed Property is read-only."));
 	}
 
-	static v8::Handle<v8::Value> i_NamedSetter(v8::Local<v8::String> property,
-			v8::Local<v8::Value> value, const v8::AccessorInfo& info)
+	static void i_NamedSetter(v8::Local<v8::String> property,
+			v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
 	{
-		return ThrowException(
+		ThrowException(
 				v8::String::NewSymbol("Named Property is read-only."));
 	}
 
-	static v8::Handle<v8::Boolean> i_NamedDeleter(
-			v8::Local<v8::String> property, const v8::AccessorInfo& info)
+	static void i_NamedDeleter(
+			v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean>& info)
 	{
-		return v8::False();
+		ThrowException(
+				v8::String::NewSymbol("Named Property is read-only."));
 	}
 
 	//------------------------------------------------------------------
 	DECLARE_CLASSINFO(object_base);
 
 private:
-	static v8::Handle<v8::Value> s_dispose(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_toString(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_toJSON(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_ValueOf(const v8::Arguments& args);
+	static void s_dispose(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_ValueOf(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -344,7 +356,7 @@ inline ClassInfo& object_base::class_info()
 	return s_ci;
 }
 
-inline v8::Handle<v8::Value> object_base::s_dispose(const v8::Arguments& args)
+inline void object_base::s_dispose(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	METHOD_INSTANCE(object_base);
 	METHOD_ENTER(0, 0);
@@ -354,7 +366,7 @@ inline v8::Handle<v8::Value> object_base::s_dispose(const v8::Arguments& args)
 	METHOD_VOID();
 }
 
-inline v8::Handle<v8::Value> object_base::s_toString(const v8::Arguments& args)
+inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string vr;
 
@@ -366,7 +378,7 @@ inline v8::Handle<v8::Value> object_base::s_toString(const v8::Arguments& args)
 	METHOD_RETURN();
 }
 
-inline v8::Handle<v8::Value> object_base::s_toJSON(const v8::Arguments& args)
+inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	v8::Handle<v8::Value> vr;
 
@@ -380,7 +392,7 @@ inline v8::Handle<v8::Value> object_base::s_toJSON(const v8::Arguments& args)
 	METHOD_RETURN();
 }
 
-inline v8::Handle<v8::Value> object_base::s_ValueOf(const v8::Arguments& args)
+inline void object_base::s_ValueOf(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	v8::Handle<v8::Value> vr;
 

@@ -27,16 +27,16 @@ public:
 	static result_t basename(const char* path, const char* ext, std::string& retVal);
 	static result_t extname(const char* path, std::string& retVal);
 	static result_t dirname(const char* path, std::string& retVal);
-	static result_t combine(const v8::Arguments& args, std::string& retVal);
+	static result_t combine(const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);
 
 	DECLARE_CLASSINFO(path_base);
 
 public:
-	static v8::Handle<v8::Value> s_normalize(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_basename(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_extname(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_dirname(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_combine(const v8::Arguments& args);
+	static void s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_basename(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_extname(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_dirname(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_combine(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -67,7 +67,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> path_base::s_normalize(const v8::Arguments& args)
+	inline void path_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -80,7 +80,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> path_base::s_basename(const v8::Arguments& args)
+	inline void path_base::s_basename(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -94,7 +94,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> path_base::s_extname(const v8::Arguments& args)
+	inline void path_base::s_extname(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -107,7 +107,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> path_base::s_dirname(const v8::Arguments& args)
+	inline void path_base::s_dirname(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -120,7 +120,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> path_base::s_combine(const v8::Arguments& args)
+	inline void path_base::s_combine(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 

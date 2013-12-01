@@ -31,9 +31,9 @@ public:
 	DECLARE_CLASSINFO(Digest_base);
 
 public:
-	static v8::Handle<v8::Value> s_update(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_digest(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_size(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s_update(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_digest(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
 }
@@ -52,7 +52,7 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"size", s_get_size}
+			{"size", s_get_size, block_set}
 		};
 
 		static ClassData s_cd = 
@@ -66,7 +66,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> Digest_base::s_get_size(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Digest_base::s_get_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -78,7 +78,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Digest_base::s_update(const v8::Arguments& args)
+	inline void Digest_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Digest_base);
 		METHOD_ENTER(1, 1);
@@ -96,7 +96,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Digest_base::s_digest(const v8::Arguments& args)
+	inline void Digest_base::s_digest(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 

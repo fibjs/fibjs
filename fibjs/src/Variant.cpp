@@ -101,6 +101,8 @@ Variant::operator v8::Handle<v8::Value>() const
 {
 	switch (type())
 	{
+	case VT_Undefined:
+		return v8::Undefined();
 	case VT_Null:
 	case VT_Type:
 	case VT_Persistent:
@@ -253,6 +255,9 @@ bool Variant::toString(std::string& retVal)
 {
 	switch (type())
 	{
+	case VT_Undefined:
+		retVal = "undefined";
+		return false;
 	case VT_Null:
 	case VT_Type:
 	case VT_Persistent:

@@ -43,15 +43,15 @@ public:
 	DECLARE_CLASSINFO(uuid_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_DNS(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_URL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_OID(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_X509(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_uuid(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_node(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_md5(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_random(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_sha1(const v8::Arguments& args);
+	static void s_get_DNS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_URL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_OID(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_X509(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_uuid(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_node(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_md5(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_random(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_sha1(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -74,10 +74,10 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"DNS", s_get_DNS, NULL, true},
-			{"URL", s_get_URL, NULL, true},
-			{"OID", s_get_OID, NULL, true},
-			{"X509", s_get_X509, NULL, true}
+			{"DNS", s_get_DNS, block_set, true},
+			{"URL", s_get_URL, block_set, true},
+			{"OID", s_get_OID, block_set, true},
+			{"X509", s_get_X509, block_set, true}
 		};
 
 		static ClassData s_cd = 
@@ -91,35 +91,35 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> uuid_base::s_get_DNS(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void uuid_base::s_get_DNS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _DNS;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> uuid_base::s_get_URL(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void uuid_base::s_get_URL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _URL;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> uuid_base::s_get_OID(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void uuid_base::s_get_OID(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _OID;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> uuid_base::s_get_X509(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void uuid_base::s_get_X509(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _X509;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> uuid_base::s_uuid(const v8::Arguments& args)
+	inline void uuid_base::s_uuid(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<uuidValue_base> vr;
 
@@ -138,7 +138,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> uuid_base::s_node(const v8::Arguments& args)
+	inline void uuid_base::s_node(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<uuidValue_base> vr;
 
@@ -149,7 +149,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> uuid_base::s_md5(const v8::Arguments& args)
+	inline void uuid_base::s_md5(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<uuidValue_base> vr;
 
@@ -163,7 +163,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> uuid_base::s_random(const v8::Arguments& args)
+	inline void uuid_base::s_random(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<uuidValue_base> vr;
 
@@ -174,7 +174,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> uuid_base::s_sha1(const v8::Arguments& args)
+	inline void uuid_base::s_sha1(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<uuidValue_base> vr;
 

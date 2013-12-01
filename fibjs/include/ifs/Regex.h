@@ -31,13 +31,13 @@ public:
 	DECLARE_CLASSINFO(Regex_base);
 
 public:
-	static v8::Handle<v8::Value> s_exec(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_test(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_lastIndex(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_lastIndex(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_global(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_ignoreCase(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_multiline(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s_exec(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_test(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_lastIndex(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_lastIndex(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_global(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_ignoreCase(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_multiline(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
 }
@@ -55,9 +55,9 @@ namespace fibjs
 		static ClassData::ClassProperty s_property[] = 
 		{
 			{"lastIndex", s_get_lastIndex, s_set_lastIndex},
-			{"global", s_get_global},
-			{"ignoreCase", s_get_ignoreCase},
-			{"multiline", s_get_multiline}
+			{"global", s_get_global, block_set},
+			{"ignoreCase", s_get_ignoreCase, block_set},
+			{"multiline", s_get_multiline, block_set}
 		};
 
 		static ClassData s_cd = 
@@ -71,7 +71,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> Regex_base::s_get_lastIndex(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Regex_base::s_get_lastIndex(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -83,7 +83,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void Regex_base::s_set_lastIndex(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void Regex_base::s_set_lastIndex(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Regex_base);
@@ -94,7 +94,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> Regex_base::s_get_global(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Regex_base::s_get_global(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -106,7 +106,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Regex_base::s_get_ignoreCase(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Regex_base::s_get_ignoreCase(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -118,7 +118,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Regex_base::s_get_multiline(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Regex_base::s_get_multiline(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -130,7 +130,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Regex_base::s_exec(const v8::Arguments& args)
+	inline void Regex_base::s_exec(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Array> vr;
 
@@ -144,7 +144,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Regex_base::s_test(const v8::Arguments& args)
+	inline void Regex_base::s_test(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 

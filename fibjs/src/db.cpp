@@ -162,7 +162,7 @@ void _appendValue(std::string& str, v8::Handle<v8::Value>& v, bool mysql)
 	}
 }
 
-result_t _format(const char* sql, const v8::Arguments& args, bool mysql,
+result_t _format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, bool mysql,
 		std::string& retVal)
 {
 	std::string str;
@@ -234,13 +234,13 @@ result_t _format(const char* sql, const v8::Arguments& args, bool mysql,
 	return 0;
 }
 
-result_t db_base::format(const char* sql, const v8::Arguments& args,
+result_t db_base::format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args,
 		std::string& retVal)
 {
 	return _format(sql, args, false, retVal);
 }
 
-result_t db_base::formatMySQL(const char* sql, const v8::Arguments& args,
+result_t db_base::formatMySQL(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args,
 		std::string& retVal)
 {
 	return _format(sql, args, true, retVal);

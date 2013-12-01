@@ -35,14 +35,14 @@ public:
 	DECLARE_CLASSINFO(File_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_name(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_truncate(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncTruncate(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_ontruncate(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_eof(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_flush(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncFlush(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onflush(const v8::Arguments& args);
+	static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_asyncTruncate(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_ontruncate(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_eof(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_flush(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_asyncFlush(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_onflush(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_MEMBER1(File_base, truncate, int64_t);
@@ -71,7 +71,7 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"name", s_get_name}
+			{"name", s_get_name, block_set}
 		};
 
 		static ClassData s_cd = 
@@ -85,7 +85,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> File_base::s_get_name(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void File_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -97,7 +97,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> File_base::s_truncate(const v8::Arguments& args)
+	inline void File_base::s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(File_base);
 		METHOD_ENTER(1, 1);
@@ -109,7 +109,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> File_base::s_asyncTruncate(const v8::Arguments& args)
+	inline void File_base::s_asyncTruncate(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(File_base);
 		METHOD_ENTER(1, 1);
@@ -121,7 +121,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> File_base::s_ontruncate(const v8::Arguments& args)
+	inline void File_base::s_ontruncate(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(File_base);
 		METHOD_ENTER(1, 1);
@@ -133,7 +133,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> File_base::s_eof(const v8::Arguments& args)
+	inline void File_base::s_eof(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -145,7 +145,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> File_base::s_flush(const v8::Arguments& args)
+	inline void File_base::s_flush(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(File_base);
 		METHOD_ENTER(0, 0);
@@ -155,7 +155,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> File_base::s_asyncFlush(const v8::Arguments& args)
+	inline void File_base::s_asyncFlush(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(File_base);
 		METHOD_ENTER(0, 0);
@@ -165,7 +165,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> File_base::s_onflush(const v8::Arguments& args)
+	inline void File_base::s_onflush(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(File_base);
 		METHOD_ENTER(1, 1);

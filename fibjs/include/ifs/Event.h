@@ -33,12 +33,12 @@ public:
 	DECLARE_CLASSINFO(Event_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isSet(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_set(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_pulse(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_clear(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_wait(const v8::Arguments& args);
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isSet(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_set(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_pulse(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_wait(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -69,7 +69,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> Event_base::s__new(const v8::Arguments& args)
+	inline void Event_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Event_base> vr;
 
@@ -82,7 +82,7 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Event_base::s_isSet(const v8::Arguments& args)
+	inline void Event_base::s_isSet(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -94,7 +94,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Event_base::s_set(const v8::Arguments& args)
+	inline void Event_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Event_base);
 		METHOD_ENTER(0, 0);
@@ -104,7 +104,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Event_base::s_pulse(const v8::Arguments& args)
+	inline void Event_base::s_pulse(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Event_base);
 		METHOD_ENTER(0, 0);
@@ -114,7 +114,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Event_base::s_clear(const v8::Arguments& args)
+	inline void Event_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Event_base);
 		METHOD_ENTER(0, 0);
@@ -124,7 +124,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Event_base::s_wait(const v8::Arguments& args)
+	inline void Event_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Event_base);
 		METHOD_ENTER(0, 0);

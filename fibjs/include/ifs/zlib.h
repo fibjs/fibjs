@@ -49,18 +49,18 @@ public:
 	DECLARE_CLASSINFO(zlib_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_NO_COMPRESSION(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_BEST_SPEED(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_BEST_COMPRESSION(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_DEFAULT_COMPRESSION(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_deflate(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_deflateTo(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_inflate(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_inflateTo(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_gzip(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_gzipTo(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_gunzip(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_gunzipTo(const v8::Arguments& args);
+	static void s_get_NO_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_BEST_SPEED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_BEST_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_DEFAULT_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_deflate(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_deflateTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_inflate(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_inflateTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_gzip(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_gzipTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_gunzip(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_gunzipTo(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_STATICVALUE3(zlib_base, deflate, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
@@ -100,10 +100,10 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"NO_COMPRESSION", s_get_NO_COMPRESSION, NULL, true},
-			{"BEST_SPEED", s_get_BEST_SPEED, NULL, true},
-			{"BEST_COMPRESSION", s_get_BEST_COMPRESSION, NULL, true},
-			{"DEFAULT_COMPRESSION", s_get_DEFAULT_COMPRESSION, NULL, true}
+			{"NO_COMPRESSION", s_get_NO_COMPRESSION, block_set, true},
+			{"BEST_SPEED", s_get_BEST_SPEED, block_set, true},
+			{"BEST_COMPRESSION", s_get_BEST_COMPRESSION, block_set, true},
+			{"DEFAULT_COMPRESSION", s_get_DEFAULT_COMPRESSION, block_set, true}
 		};
 
 		static ClassData s_cd = 
@@ -117,35 +117,35 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> zlib_base::s_get_NO_COMPRESSION(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void zlib_base::s_get_NO_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _NO_COMPRESSION;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zlib_base::s_get_BEST_SPEED(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void zlib_base::s_get_BEST_SPEED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _BEST_SPEED;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zlib_base::s_get_BEST_COMPRESSION(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void zlib_base::s_get_BEST_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _BEST_COMPRESSION;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zlib_base::s_get_DEFAULT_COMPRESSION(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void zlib_base::s_get_DEFAULT_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _DEFAULT_COMPRESSION;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zlib_base::s_deflate(const v8::Arguments& args)
+	inline void zlib_base::s_deflate(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -159,7 +159,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zlib_base::s_deflateTo(const v8::Arguments& args)
+	inline void zlib_base::s_deflateTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 2);
 
@@ -180,7 +180,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> zlib_base::s_inflate(const v8::Arguments& args)
+	inline void zlib_base::s_inflate(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -193,7 +193,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zlib_base::s_inflateTo(const v8::Arguments& args)
+	inline void zlib_base::s_inflateTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 2);
 
@@ -212,7 +212,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> zlib_base::s_gzip(const v8::Arguments& args)
+	inline void zlib_base::s_gzip(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -225,7 +225,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zlib_base::s_gzipTo(const v8::Arguments& args)
+	inline void zlib_base::s_gzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 2);
 
@@ -244,7 +244,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> zlib_base::s_gunzip(const v8::Arguments& args)
+	inline void zlib_base::s_gunzip(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -257,7 +257,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zlib_base::s_gunzipTo(const v8::Arguments& args)
+	inline void zlib_base::s_gunzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 2);
 

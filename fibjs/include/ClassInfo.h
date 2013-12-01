@@ -24,15 +24,15 @@ struct ClassData
 	struct ClassProperty
 	{
 		const char* name;
-		v8::AccessorGetter getter;
-		v8::AccessorSetter setter;
+		v8::AccessorGetterCallback getter;
+		v8::AccessorSetterCallback setter;
 		bool bStatic;
 	};
 
 	struct ClassMethod
 	{
 		const char* name;
-		v8::InvocationCallback invoker;
+		v8::FunctionCallback invoker;
 		bool bStatic;
 	};
 
@@ -44,20 +44,20 @@ struct ClassData
 
 	struct ClassIndexed
 	{
-		v8::IndexedPropertyGetter getter;
-		v8::IndexedPropertySetter setter;
+		v8::IndexedPropertyGetterCallback getter;
+		v8::IndexedPropertySetterCallback setter;
 	};
 
 	struct ClassNamed
 	{
-		v8::NamedPropertyGetter getter;
-		v8::NamedPropertySetter setter;
-		v8::NamedPropertyDeleter remover;
-		v8::NamedPropertyEnumerator enumerator;
+		v8::NamedPropertyGetterCallback getter;
+		v8::NamedPropertySetterCallback setter;
+		v8::NamedPropertyDeleterCallback remover;
+		v8::NamedPropertyEnumeratorCallback enumerator;
 	};
 
 	const char* name;
-	v8::InvocationCallback cor;
+	v8::FunctionCallback cor;
 	int mc;
 	const ClassMethod* cms;
 	int oc;
@@ -98,12 +98,8 @@ public:
 			pt->Set(cd.cos[i].name, cd.cos[i].invoker().m_class);
 
 		for (i = 0; i < cd.pc; i++)
-			if (cd.cps[i].setter)
-				pt->SetAccessor(v8::String::NewSymbol(cd.cps[i].name),
-						cd.cps[i].getter, cd.cps[i].setter);
-			else
-				pt->SetAccessor(v8::String::NewSymbol(cd.cps[i].name),
-						cd.cps[i].getter, block_set);
+			pt->SetAccessor(v8::String::NewSymbol(cd.cps[i].name),
+					cd.cps[i].getter, cd.cps[i].setter);
 
 		v8::Local<v8::ObjectTemplate> ot = m_class->InstanceTemplate();
 		ot->SetInternalFieldCount(1);
@@ -181,24 +177,8 @@ public:
 					m_cd.cos[i].invoker().m_function, v8::ReadOnly);
 
 		for (i = 0; i < m_cd.pc; i++)
-			if (m_cd.cps[i].setter)
-				o->SetAccessor(v8::String::NewSymbol(m_cd.cps[i].name),
-						m_cd.cps[i].getter, m_cd.cps[i].setter);
-			else
-				o->SetAccessor(v8::String::NewSymbol(m_cd.cps[i].name),
-						m_cd.cps[i].getter, block_set);
-	}
-
-protected:
-	static void block_set(v8::Local<v8::String> property,
-			v8::Local<v8::Value> value, const v8::AccessorInfo &info)
-	{
-		std::string strError = "Property \'";
-
-		strError += *v8::String::Utf8Value(property);
-		strError += "\' is read-only.";
-		ThrowException(
-				v8::String::New(strError.c_str(), (int) strError.length()));
+			o->SetAccessor(v8::String::NewSymbol(m_cd.cps[i].name),
+					m_cd.cps[i].getter, m_cd.cps[i].setter);
 	}
 
 private:

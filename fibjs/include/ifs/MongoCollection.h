@@ -46,23 +46,23 @@ public:
 	DECLARE_CLASSINFO(MongoCollection_base);
 
 public:
-	static v8::Handle<v8::Value> s_find(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_findOne(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_findAndModify(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_insert(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_save(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_update(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_remove(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_runCommand(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_drop(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_ensureIndex(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_reIndex(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_dropIndex(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_dropIndexes(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_getIndexes(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_getCollection(const v8::Arguments& args);
-	static v8::Handle<v8::Value> i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info);
-	static v8::Handle<v8::Array> i_NamedEnumerator(const v8::AccessorInfo& info);
+	static void s_find(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_findOne(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_findAndModify(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_insert(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_save(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_update(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_runCommand(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_drop(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_ensureIndex(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_reIndex(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_dropIndex(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_dropIndexes(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_getIndexes(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_getCollection(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args);
 };
 
 }
@@ -108,7 +108,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> MongoCollection_base::i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info)
+	inline void MongoCollection_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<MongoCollection_base> vr;
 
@@ -116,15 +116,15 @@ namespace fibjs
 		PROPERTY_INSTANCE(MongoCollection_base);
 
 		v8::String::Utf8Value k(property);
-		if(class_info().has(*k))return v8::Handle<v8::Value>();
+		if(class_info().has(*k))return;
 
 		hr = pInst->_named_getter(*k, vr);
-		if(hr == CALL_RETURN_NULL)return v8::Handle<v8::Value>();
+		if(hr == CALL_RETURN_NULL)return;
 
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Array> MongoCollection_base::i_NamedEnumerator(const v8::AccessorInfo& info)
+	inline void MongoCollection_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)
 	{
 		v8::Handle<v8::Array> vr;
 
@@ -136,7 +136,7 @@ namespace fibjs
 		METHOD_RETURN1();
 	}
 
-	inline v8::Handle<v8::Value> MongoCollection_base::s_find(const v8::Arguments& args)
+	inline void MongoCollection_base::s_find(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<MongoCursor_base> vr;
 
@@ -151,7 +151,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoCollection_base::s_findOne(const v8::Arguments& args)
+	inline void MongoCollection_base::s_findOne(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Object> vr;
 
@@ -166,7 +166,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoCollection_base::s_findAndModify(const v8::Arguments& args)
+	inline void MongoCollection_base::s_findAndModify(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Object> vr;
 
@@ -180,7 +180,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoCollection_base::s_insert(const v8::Arguments& args)
+	inline void MongoCollection_base::s_insert(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(1, 1);
@@ -198,7 +198,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> MongoCollection_base::s_save(const v8::Arguments& args)
+	inline void MongoCollection_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(1, 1);
@@ -210,7 +210,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> MongoCollection_base::s_update(const v8::Arguments& args)
+	inline void MongoCollection_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(4, 2);
@@ -233,7 +233,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> MongoCollection_base::s_remove(const v8::Arguments& args)
+	inline void MongoCollection_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(1, 1);
@@ -245,7 +245,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> MongoCollection_base::s_runCommand(const v8::Arguments& args)
+	inline void MongoCollection_base::s_runCommand(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Object> vr;
 
@@ -266,7 +266,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoCollection_base::s_drop(const v8::Arguments& args)
+	inline void MongoCollection_base::s_drop(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(0, 0);
@@ -276,7 +276,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> MongoCollection_base::s_ensureIndex(const v8::Arguments& args)
+	inline void MongoCollection_base::s_ensureIndex(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(2, 1);
@@ -289,7 +289,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> MongoCollection_base::s_reIndex(const v8::Arguments& args)
+	inline void MongoCollection_base::s_reIndex(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Object> vr;
 
@@ -301,7 +301,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoCollection_base::s_dropIndex(const v8::Arguments& args)
+	inline void MongoCollection_base::s_dropIndex(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Object> vr;
 
@@ -315,7 +315,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoCollection_base::s_dropIndexes(const v8::Arguments& args)
+	inline void MongoCollection_base::s_dropIndexes(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Object> vr;
 
@@ -327,7 +327,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoCollection_base::s_getIndexes(const v8::Arguments& args)
+	inline void MongoCollection_base::s_getIndexes(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<MongoCursor_base> vr;
 
@@ -339,7 +339,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoCollection_base::s_getCollection(const v8::Arguments& args)
+	inline void MongoCollection_base::s_getCollection(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<MongoCollection_base> vr;
 

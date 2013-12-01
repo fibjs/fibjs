@@ -26,7 +26,7 @@ class global_base : public module_base
 public:
 	// global_base
 	static result_t get_console(obj_ptr<console_base>& retVal);
-	static result_t print(const char* fmt, const v8::Arguments& args);
+	static result_t print(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t run(const char* fname);
 	static result_t define(const char* id, v8::Handle<v8::Array> deps, v8::Handle<v8::Value> factory);
 	static result_t require(const char* id, v8::Handle<v8::Value>& retVal);
@@ -35,12 +35,12 @@ public:
 	DECLARE_CLASSINFO(global_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_console(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_print(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_run(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_define(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_require(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_GC(const v8::Arguments& args);
+	static void s_get_console(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_print(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_define(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_GC(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -68,7 +68,7 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"console", s_get_console, NULL, true}
+			{"console", s_get_console, block_set, true}
 		};
 
 		static ClassData s_cd = 
@@ -82,7 +82,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> global_base::s_get_console(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void global_base::s_get_console(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<console_base> vr;
 
@@ -93,7 +93,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> global_base::s_print(const v8::Arguments& args)
+	inline void global_base::s_print(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(-1, 1);
 
@@ -104,7 +104,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> global_base::s_run(const v8::Arguments& args)
+	inline void global_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 1);
 
@@ -115,7 +115,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> global_base::s_define(const v8::Arguments& args)
+	inline void global_base::s_define(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 3);
 
@@ -128,7 +128,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> global_base::s_require(const v8::Arguments& args)
+	inline void global_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Value> vr;
 
@@ -141,7 +141,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> global_base::s_GC(const v8::Arguments& args)
+	inline void global_base::s_GC(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(0, 0);
 

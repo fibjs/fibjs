@@ -24,12 +24,12 @@ class Function_base : public module_base
 {
 public:
 	// Function_base
-	static result_t start(const v8::Arguments& args, obj_ptr<Fiber_base>& retVal);
+	static result_t start(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<Fiber_base>& retVal);
 
 	DECLARE_CLASSINFO(Function_base);
 
 public:
-	static v8::Handle<v8::Value> s_start(const v8::Arguments& args);
+	static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -57,7 +57,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> Function_base::s_start(const v8::Arguments& args)
+	inline void Function_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Fiber_base> vr;
 

@@ -36,11 +36,11 @@ public:
 	DECLARE_CLASSINFO(TCPServer_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_run(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncRun(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_socket(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_stats(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_asyncRun(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_stats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 
 public:
 	ASYNC_MEMBER0(TCPServer_base, run);
@@ -65,8 +65,8 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"socket", s_get_socket},
-			{"stats", s_get_stats}
+			{"socket", s_get_socket, block_set},
+			{"stats", s_get_stats, block_set}
 		};
 
 		static ClassData s_cd = 
@@ -80,7 +80,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> TCPServer_base::s_get_socket(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void TCPServer_base::s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Socket_base> vr;
 
@@ -92,7 +92,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> TCPServer_base::s_get_stats(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void TCPServer_base::s_get_stats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Stats_base> vr;
 
@@ -104,7 +104,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> TCPServer_base::s__new(const v8::Arguments& args)
+	inline void TCPServer_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<TCPServer_base> vr;
 
@@ -141,7 +141,7 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> TCPServer_base::s_run(const v8::Arguments& args)
+	inline void TCPServer_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(TCPServer_base);
 		METHOD_ENTER(0, 0);
@@ -151,7 +151,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> TCPServer_base::s_asyncRun(const v8::Arguments& args)
+	inline void TCPServer_base::s_asyncRun(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(TCPServer_base);
 		METHOD_ENTER(0, 0);

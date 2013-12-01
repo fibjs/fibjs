@@ -74,7 +74,7 @@ result_t console_base::set_loglevel(int32_t newVal)
 	return 0;
 }
 
-std::string Format(const char* fmt, const v8::Arguments& args, int idx = 1)
+std::string Format(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args, int idx = 1)
 {
 	const char* s = fmt;
 	const char* s1;
@@ -131,25 +131,25 @@ std::string Format(const char* fmt, const v8::Arguments& args, int idx = 1)
 	return strBuffer.str();
 }
 
-result_t console_base::log(const char* fmt, const v8::Arguments& args)
+result_t console_base::log(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	asyncLog(log4cpp::Priority::INFO, Format(fmt, args));
 	return 0;
 }
 
-result_t console_base::info(const char* fmt, const v8::Arguments& args)
+result_t console_base::info(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	asyncLog(log4cpp::Priority::INFO, Format(fmt, args));
 	return 0;
 }
 
-result_t console_base::warn(const char* fmt, const v8::Arguments& args)
+result_t console_base::warn(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	asyncLog(log4cpp::Priority::WARN, Format(fmt, args));
 	return 0;
 }
 
-result_t console_base::error(const char* fmt, const v8::Arguments& args)
+result_t console_base::error(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	asyncLog(log4cpp::Priority::ERROR, Format(fmt, args));
 	return 0;

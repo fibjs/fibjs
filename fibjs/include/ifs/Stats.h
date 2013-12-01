@@ -33,14 +33,14 @@ public:
 	DECLARE_CLASSINFO(Stats_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_inc(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_dec(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_add(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_reset(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_uptime(const v8::Arguments& args);
-	static v8::Handle<v8::Value> i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info);
-	static v8::Handle<v8::Array> i_NamedEnumerator(const v8::AccessorInfo& info);
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_inc(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_dec(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_reset(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args);
 };
 
 }
@@ -74,7 +74,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> Stats_base::i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info)
+	inline void Stats_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -82,15 +82,15 @@ namespace fibjs
 		PROPERTY_INSTANCE(Stats_base);
 
 		v8::String::Utf8Value k(property);
-		if(class_info().has(*k))return v8::Handle<v8::Value>();
+		if(class_info().has(*k))return;
 
 		hr = pInst->_named_getter(*k, vr);
-		if(hr == CALL_RETURN_NULL)return v8::Handle<v8::Value>();
+		if(hr == CALL_RETURN_NULL)return;
 
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Array> Stats_base::i_NamedEnumerator(const v8::AccessorInfo& info)
+	inline void Stats_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)
 	{
 		v8::Handle<v8::Array> vr;
 
@@ -102,7 +102,7 @@ namespace fibjs
 		METHOD_RETURN1();
 	}
 
-	inline v8::Handle<v8::Value> Stats_base::s__new(const v8::Arguments& args)
+	inline void Stats_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Stats_base> vr;
 
@@ -122,7 +122,7 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stats_base::s_inc(const v8::Arguments& args)
+	inline void Stats_base::s_inc(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Stats_base);
 		METHOD_ENTER(1, 1);
@@ -134,7 +134,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Stats_base::s_dec(const v8::Arguments& args)
+	inline void Stats_base::s_dec(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Stats_base);
 		METHOD_ENTER(1, 1);
@@ -146,7 +146,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Stats_base::s_add(const v8::Arguments& args)
+	inline void Stats_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Stats_base);
 		METHOD_ENTER(2, 2);
@@ -159,7 +159,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Stats_base::s_reset(const v8::Arguments& args)
+	inline void Stats_base::s_reset(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Stats_base);
 		METHOD_ENTER(0, 0);
@@ -169,7 +169,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Stats_base::s_uptime(const v8::Arguments& args)
+	inline void Stats_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int32_t vr;
 

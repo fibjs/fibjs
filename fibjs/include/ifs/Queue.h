@@ -34,16 +34,16 @@ public:
 	DECLARE_CLASSINFO(Queue_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_add(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_offer(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_remove(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_poll(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_element(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_peek(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_clear(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_toArray(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_length(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_offer(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_poll(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_element(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_peek(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
 }
@@ -66,7 +66,7 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"length", s_get_length}
+			{"length", s_get_length, block_set}
 		};
 
 		static ClassData s_cd = 
@@ -80,7 +80,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> Queue_base::s_get_length(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Queue_base::s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -92,7 +92,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Queue_base::s__new(const v8::Arguments& args)
+	inline void Queue_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Queue_base> vr;
 
@@ -105,7 +105,7 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Queue_base::s_add(const v8::Arguments& args)
+	inline void Queue_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -119,7 +119,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Queue_base::s_offer(const v8::Arguments& args)
+	inline void Queue_base::s_offer(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -133,7 +133,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Queue_base::s_remove(const v8::Arguments& args)
+	inline void Queue_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		Variant vr;
 
@@ -145,7 +145,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Queue_base::s_poll(const v8::Arguments& args)
+	inline void Queue_base::s_poll(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		Variant vr;
 
@@ -157,7 +157,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Queue_base::s_element(const v8::Arguments& args)
+	inline void Queue_base::s_element(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		Variant vr;
 
@@ -169,7 +169,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Queue_base::s_peek(const v8::Arguments& args)
+	inline void Queue_base::s_peek(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		Variant vr;
 
@@ -181,7 +181,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Queue_base::s_clear(const v8::Arguments& args)
+	inline void Queue_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Queue_base);
 		METHOD_ENTER(0, 0);
@@ -191,7 +191,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Queue_base::s_toArray(const v8::Arguments& args)
+	inline void Queue_base::s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Array> vr;
 

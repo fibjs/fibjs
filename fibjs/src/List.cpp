@@ -42,7 +42,7 @@ result_t List::push(Variant v)
 	return 0;
 }
 
-result_t List::push(const v8::Arguments& args)
+result_t List::push(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	m_array.push(args);
 	return 0;
@@ -58,7 +58,7 @@ result_t List::slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal)
 	return m_array.slice(start, end, retVal);
 }
 
-result_t List::concat(const v8::Arguments& args, obj_ptr<List_base>& retVal)
+result_t List::concat(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<List_base>& retVal)
 {
 	return m_array.concat(args, retVal);
 }
@@ -135,7 +135,7 @@ result_t List::array::push(Variant v)
 	return 0;
 }
 
-result_t List::array::push(const v8::Arguments& args)
+result_t List::array::push(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	int len = args.Length();
 	int i;
@@ -169,7 +169,7 @@ result_t List::array::slice(int32_t start, int32_t end,
 	return 0;
 }
 
-result_t List::array::concat(const v8::Arguments& args,
+result_t List::array::concat(const v8::FunctionCallbackInfo<v8::Value>& args,
 		obj_ptr<List_base>& retVal)
 {
 	obj_ptr<List> a;

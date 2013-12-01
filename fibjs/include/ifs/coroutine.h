@@ -30,20 +30,20 @@ class coroutine_base : public module_base
 {
 public:
 	// coroutine_base
-	static result_t start(v8::Handle<v8::Function> func, const v8::Arguments& args, obj_ptr<Fiber_base>& retVal);
+	static result_t start(v8::Handle<v8::Function> func, const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<Fiber_base>& retVal);
 	static result_t parallel(v8::Handle<v8::Array> func, v8::Handle<v8::Array>& retVal);
 	static result_t parallel(v8::Handle<v8::Array> data, v8::Handle<v8::Function> func, v8::Handle<v8::Array>& retVal);
-	static result_t parallel(const v8::Arguments& args, v8::Handle<v8::Array>& retVal);
+	static result_t parallel(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Handle<v8::Array>& retVal);
 	static result_t current(obj_ptr<Fiber_base>& retVal);
 	static result_t sleep(int32_t ms);
 
 	DECLARE_CLASSINFO(coroutine_base);
 
 public:
-	static v8::Handle<v8::Value> s_start(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_parallel(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_current(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_sleep(const v8::Arguments& args);
+	static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_parallel(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_current(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_sleep(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -90,7 +90,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> coroutine_base::s_start(const v8::Arguments& args)
+	inline void coroutine_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Fiber_base> vr;
 
@@ -103,7 +103,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> coroutine_base::s_parallel(const v8::Arguments& args)
+	inline void coroutine_base::s_parallel(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Array> vr;
 
@@ -127,7 +127,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> coroutine_base::s_current(const v8::Arguments& args)
+	inline void coroutine_base::s_current(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Fiber_base> vr;
 
@@ -138,7 +138,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> coroutine_base::s_sleep(const v8::Arguments& args)
+	inline void coroutine_base::s_sleep(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 0);
 

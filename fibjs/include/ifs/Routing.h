@@ -30,7 +30,7 @@ public:
 	DECLARE_CLASSINFO(Routing_base);
 
 public:
-	static v8::Handle<v8::Value> s_append(const v8::Arguments& args);
+	static void s_append(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -57,7 +57,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> Routing_base::s_append(const v8::Arguments& args)
+	inline void Routing_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Routing_base);
 		METHOD_ENTER(1, 1);

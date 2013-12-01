@@ -256,7 +256,7 @@ result_t path_base::normalize(const char* path, std::string& retVal)
 	return 0;
 }
 
-result_t path_base::combine(const v8::Arguments& args, std::string& retVal)
+result_t path_base::combine(const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal)
 {
 	std::string strBuffer;
 	int argc = args.Length();

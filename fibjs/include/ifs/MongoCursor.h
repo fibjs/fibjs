@@ -35,17 +35,17 @@ public:
 	DECLARE_CLASSINFO(MongoCursor_base);
 
 public:
-	static v8::Handle<v8::Value> s_skip(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_limit(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_sort(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_hasNext(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_next(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_count(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_size(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_forEach(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_map(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_toArray(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_hint(const v8::Arguments& args);
+	static void s_skip(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_limit(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_sort(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_hasNext(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_next(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_count(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_size(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_map(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_hint(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -81,7 +81,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> MongoCursor_base::s_skip(const v8::Arguments& args)
+	inline void MongoCursor_base::s_skip(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<MongoCursor_base> vr;
 
@@ -95,7 +95,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoCursor_base::s_limit(const v8::Arguments& args)
+	inline void MongoCursor_base::s_limit(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<MongoCursor_base> vr;
 
@@ -109,7 +109,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoCursor_base::s_sort(const v8::Arguments& args)
+	inline void MongoCursor_base::s_sort(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<MongoCursor_base> vr;
 
@@ -123,7 +123,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoCursor_base::s_hasNext(const v8::Arguments& args)
+	inline void MongoCursor_base::s_hasNext(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -135,7 +135,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoCursor_base::s_next(const v8::Arguments& args)
+	inline void MongoCursor_base::s_next(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Object> vr;
 
@@ -147,7 +147,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoCursor_base::s_count(const v8::Arguments& args)
+	inline void MongoCursor_base::s_count(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int32_t vr;
 
@@ -161,7 +161,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoCursor_base::s_size(const v8::Arguments& args)
+	inline void MongoCursor_base::s_size(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int32_t vr;
 
@@ -173,7 +173,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoCursor_base::s_forEach(const v8::Arguments& args)
+	inline void MongoCursor_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(MongoCursor_base);
 		METHOD_ENTER(1, 1);
@@ -185,7 +185,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> MongoCursor_base::s_map(const v8::Arguments& args)
+	inline void MongoCursor_base::s_map(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Array> vr;
 
@@ -199,7 +199,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoCursor_base::s_toArray(const v8::Arguments& args)
+	inline void MongoCursor_base::s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Array> vr;
 
@@ -211,7 +211,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoCursor_base::s_hint(const v8::Arguments& args)
+	inline void MongoCursor_base::s_hint(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<MongoCursor_base> vr;
 

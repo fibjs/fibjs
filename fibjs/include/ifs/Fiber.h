@@ -31,10 +31,10 @@ public:
 	DECLARE_CLASSINFO(Fiber_base);
 
 public:
-	static v8::Handle<v8::Value> s_join(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_caller(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_onerror(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onexit(const v8::Arguments& args);
+	static void s_join(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_caller(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_onexit(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -53,7 +53,7 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"caller", s_get_caller}
+			{"caller", s_get_caller, block_set}
 		};
 
 		static ClassData s_cd = 
@@ -67,7 +67,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> Fiber_base::s_get_caller(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Fiber_base::s_get_caller(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Fiber_base> vr;
 
@@ -79,7 +79,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Fiber_base::s_join(const v8::Arguments& args)
+	inline void Fiber_base::s_join(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Fiber_base);
 		METHOD_ENTER(0, 0);
@@ -89,7 +89,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Fiber_base::s_onerror(const v8::Arguments& args)
+	inline void Fiber_base::s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Fiber_base);
 		METHOD_ENTER(1, 1);
@@ -101,7 +101,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Fiber_base::s_onexit(const v8::Arguments& args)
+	inline void Fiber_base::s_onexit(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Fiber_base);
 		METHOD_ENTER(1, 1);

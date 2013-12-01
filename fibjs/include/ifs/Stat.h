@@ -38,20 +38,20 @@ public:
 	DECLARE_CLASSINFO(Stat_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_name(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_size(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_mtime(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_atime(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_ctime(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_isWritable(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isReadable(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isExecutable(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isHidden(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isDirectory(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isFile(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isSymbolicLink(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isMemory(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isSocket(const v8::Arguments& args);
+	static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_mtime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_atime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_ctime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_isWritable(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isReadable(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isExecutable(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isHidden(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isDirectory(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isSymbolicLink(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isMemory(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isSocket(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -75,11 +75,11 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"name", s_get_name},
-			{"size", s_get_size},
-			{"mtime", s_get_mtime},
-			{"atime", s_get_atime},
-			{"ctime", s_get_ctime}
+			{"name", s_get_name, block_set},
+			{"size", s_get_size, block_set},
+			{"mtime", s_get_mtime, block_set},
+			{"atime", s_get_atime, block_set},
+			{"ctime", s_get_ctime, block_set}
 		};
 
 		static ClassData s_cd = 
@@ -93,7 +93,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> Stat_base::s_get_name(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Stat_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -105,7 +105,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stat_base::s_get_size(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Stat_base::s_get_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int64_t vr;
 
@@ -117,7 +117,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stat_base::s_get_mtime(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Stat_base::s_get_mtime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		date_t vr;
 
@@ -129,7 +129,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stat_base::s_get_atime(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Stat_base::s_get_atime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		date_t vr;
 
@@ -141,7 +141,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stat_base::s_get_ctime(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Stat_base::s_get_ctime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		date_t vr;
 
@@ -153,7 +153,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stat_base::s_isWritable(const v8::Arguments& args)
+	inline void Stat_base::s_isWritable(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -165,7 +165,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stat_base::s_isReadable(const v8::Arguments& args)
+	inline void Stat_base::s_isReadable(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -177,7 +177,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stat_base::s_isExecutable(const v8::Arguments& args)
+	inline void Stat_base::s_isExecutable(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -189,7 +189,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stat_base::s_isHidden(const v8::Arguments& args)
+	inline void Stat_base::s_isHidden(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -201,7 +201,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stat_base::s_isDirectory(const v8::Arguments& args)
+	inline void Stat_base::s_isDirectory(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -213,7 +213,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stat_base::s_isFile(const v8::Arguments& args)
+	inline void Stat_base::s_isFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -225,7 +225,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stat_base::s_isSymbolicLink(const v8::Arguments& args)
+	inline void Stat_base::s_isSymbolicLink(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -237,7 +237,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stat_base::s_isMemory(const v8::Arguments& args)
+	inline void Stat_base::s_isMemory(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -249,7 +249,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Stat_base::s_isSocket(const v8::Arguments& args)
+	inline void Stat_base::s_isSocket(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 

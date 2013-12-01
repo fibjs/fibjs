@@ -49,24 +49,24 @@ public:
 	DECLARE_CLASSINFO(Message_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_value(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_params(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_params(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_result(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_result(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_body(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_body(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_length(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_clear(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_sendTo(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncSendTo(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onsendto(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_readFrom(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_asyncReadFrom(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_onreadfrom(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_stream(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_value(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_params(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_params(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_result(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_result(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_body(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_body(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_asyncSendTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_onsendto(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_asyncReadFrom(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_onreadfrom(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 
 public:
 	ASYNC_MEMBER1(Message_base, sendTo, Stream_base*);
@@ -103,8 +103,8 @@ namespace fibjs
 			{"params", s_get_params, s_set_params},
 			{"result", s_get_result, s_set_result},
 			{"body", s_get_body, s_set_body},
-			{"length", s_get_length},
-			{"stream", s_get_stream}
+			{"length", s_get_length, block_set},
+			{"stream", s_get_stream, block_set}
 		};
 
 		static ClassData s_cd = 
@@ -118,7 +118,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_get_value(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Message_base::s_get_value(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -130,7 +130,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void Message_base::s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void Message_base::s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Message_base);
@@ -141,7 +141,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_get_params(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Message_base::s_get_params(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<List_base> vr;
 
@@ -153,7 +153,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void Message_base::s_set_params(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void Message_base::s_set_params(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Message_base);
@@ -164,7 +164,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_get_result(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Message_base::s_get_result(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		Variant vr;
 
@@ -176,7 +176,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void Message_base::s_set_result(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void Message_base::s_set_result(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Message_base);
@@ -187,7 +187,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_get_body(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Message_base::s_get_body(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<SeekableStream_base> vr;
 
@@ -199,7 +199,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void Message_base::s_set_body(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void Message_base::s_set_body(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Message_base);
@@ -210,7 +210,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_get_length(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Message_base::s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int64_t vr;
 
@@ -222,7 +222,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_get_stream(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Message_base::s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Stream_base> vr;
 
@@ -234,7 +234,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s__new(const v8::Arguments& args)
+	inline void Message_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Message_base> vr;
 
@@ -245,7 +245,7 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_clear(const v8::Arguments& args)
+	inline void Message_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Message_base);
 		METHOD_ENTER(0, 0);
@@ -255,7 +255,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_sendTo(const v8::Arguments& args)
+	inline void Message_base::s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Message_base);
 		METHOD_ENTER(1, 1);
@@ -267,7 +267,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_asyncSendTo(const v8::Arguments& args)
+	inline void Message_base::s_asyncSendTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Message_base);
 		METHOD_ENTER(1, 1);
@@ -279,7 +279,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_onsendto(const v8::Arguments& args)
+	inline void Message_base::s_onsendto(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Message_base);
 		METHOD_ENTER(1, 1);
@@ -291,7 +291,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_readFrom(const v8::Arguments& args)
+	inline void Message_base::s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Message_base);
 		METHOD_ENTER(1, 1);
@@ -303,7 +303,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_asyncReadFrom(const v8::Arguments& args)
+	inline void Message_base::s_asyncReadFrom(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Message_base);
 		METHOD_ENTER(1, 1);
@@ -315,7 +315,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Message_base::s_onreadfrom(const v8::Arguments& args)
+	inline void Message_base::s_onreadfrom(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Message_base);
 		METHOD_ENTER(1, 1);

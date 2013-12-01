@@ -40,17 +40,17 @@ public:
 	DECLARE_CLASSINFO(zmq_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_PAIR(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_PUB(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_SUB(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_REQ(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_REP(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_DEALER(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_ROUTER(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_PULL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_PUSH(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_XPUB(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_XSUB(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+	static void s_get_PAIR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_PUB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_SUB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_REQ(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_REP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_DEALER(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_ROUTER(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_PULL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_PUSH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_XPUB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_XSUB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
 }
@@ -68,17 +68,17 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"PAIR", s_get_PAIR, NULL, true},
-			{"PUB", s_get_PUB, NULL, true},
-			{"SUB", s_get_SUB, NULL, true},
-			{"REQ", s_get_REQ, NULL, true},
-			{"REP", s_get_REP, NULL, true},
-			{"DEALER", s_get_DEALER, NULL, true},
-			{"ROUTER", s_get_ROUTER, NULL, true},
-			{"PULL", s_get_PULL, NULL, true},
-			{"PUSH", s_get_PUSH, NULL, true},
-			{"XPUB", s_get_XPUB, NULL, true},
-			{"XSUB", s_get_XSUB, NULL, true}
+			{"PAIR", s_get_PAIR, block_set, true},
+			{"PUB", s_get_PUB, block_set, true},
+			{"SUB", s_get_SUB, block_set, true},
+			{"REQ", s_get_REQ, block_set, true},
+			{"REP", s_get_REP, block_set, true},
+			{"DEALER", s_get_DEALER, block_set, true},
+			{"ROUTER", s_get_ROUTER, block_set, true},
+			{"PULL", s_get_PULL, block_set, true},
+			{"PUSH", s_get_PUSH, block_set, true},
+			{"XPUB", s_get_XPUB, block_set, true},
+			{"XSUB", s_get_XSUB, block_set, true}
 		};
 
 		static ClassData s_cd = 
@@ -92,77 +92,77 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> zmq_base::s_get_PAIR(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void zmq_base::s_get_PAIR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _PAIR;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zmq_base::s_get_PUB(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void zmq_base::s_get_PUB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _PUB;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zmq_base::s_get_SUB(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void zmq_base::s_get_SUB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _SUB;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zmq_base::s_get_REQ(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void zmq_base::s_get_REQ(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _REQ;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zmq_base::s_get_REP(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void zmq_base::s_get_REP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _REP;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zmq_base::s_get_DEALER(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void zmq_base::s_get_DEALER(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _DEALER;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zmq_base::s_get_ROUTER(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void zmq_base::s_get_ROUTER(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _ROUTER;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zmq_base::s_get_PULL(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void zmq_base::s_get_PULL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _PULL;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zmq_base::s_get_PUSH(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void zmq_base::s_get_PUSH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _PUSH;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zmq_base::s_get_XPUB(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void zmq_base::s_get_XPUB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _XPUB;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> zmq_base::s_get_XSUB(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void zmq_base::s_get_XSUB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _XSUB;
 		PROPERTY_ENTER();

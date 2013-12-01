@@ -510,7 +510,7 @@ function parserIDL(fname) {
 
 					if (argCount)
 						ifStr += ", ";
-					ifStr += "const v8::Arguments& args";
+					ifStr += "const v8::FunctionCallbackInfo<v8::Value>& args";
 
 					argArray = true;
 					break;
@@ -599,11 +599,11 @@ function parserIDL(fname) {
 				fnStr = ids[fname][1] + "\n		METHOD_OVER("
 						+ (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
 			} else {
-				iffs.push("	static v8::Handle<v8::Value> s_" + fname
-						+ "(const v8::Arguments& args);");
+				iffs.push("	static void s_" + fname
+						+ "(const v8::FunctionCallbackInfo<v8::Value>& args);");
 
-				fnStr = "	inline v8::Handle<v8::Value> " + ns + "_base::s_"
-						+ fname + "(const v8::Arguments& args)\n	{\n";
+				fnStr = "	inline void " + ns + "_base::s_"
+						+ fname + "(const v8::FunctionCallbackInfo<v8::Value>& args)\n	{\n";
 
 				if (ftype != "")
 					fnStr += "		" + map_type(ftype) + " vr;\n\n";
@@ -716,14 +716,14 @@ function parserIDL(fname) {
 				value = st[pos++];
 
 				iffs
-						.push("	static v8::Handle<v8::Value> s_get_"
+						.push("	static void s_get_"
 								+ fname
-								+ "(v8::Local<v8::String> property, const v8::AccessorInfo &info);");
-				fnStr = "	inline v8::Handle<v8::Value> "
+								+ "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
+				fnStr = "	inline void "
 						+ ns
 						+ "_base::s_get_"
 						+ fname
-						+ "(v8::Local<v8::String> property, const v8::AccessorInfo &info)\n	{\n";
+						+ "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n	{\n";
 				fnStr += "		" + map_type(ftype) + " vr = _" + fname + ";\n";
 				fnStr += "		PROPERTY_ENTER();\n		METHOD_RETURN();\n	}\n";
 				ffs.push(fnStr)
@@ -733,20 +733,20 @@ function parserIDL(fname) {
 				svs.push(ifStr);
 
 				difps.push("			{\"" + fname + "\", s_get_" + fname
-						+ ", NULL, true}");
+						+ ", block_set, true}");
 			} else if (attr == "static") {
 				if (st[pos] != ";")
 					return reportErr();
 
 				iffs
-						.push("	static v8::Handle<v8::Value> s_get_"
+						.push("	static void s_get_"
 								+ fname
-								+ "(v8::Local<v8::String> property, const v8::AccessorInfo &info);");
-				fnStr = "	inline v8::Handle<v8::Value> "
+								+ "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
+				fnStr = "	inline void "
 						+ ns
 						+ "_base::s_get_"
 						+ fname
-						+ "(v8::Local<v8::String> property, const v8::AccessorInfo &info)\n	{\n";
+						+ "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n	{\n";
 				fnStr += "		" + map_type(ftype)
 						+ " vr;\n\n		PROPERTY_ENTER();\n\n";
 
@@ -763,12 +763,12 @@ function parserIDL(fname) {
 					iffs
 							.push("	static void s_set_"
 									+ fname
-									+ "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);");
+									+ "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);");
 					fnStr = "	inline void "
 							+ ns
 							+ "_base::s_set_"
 							+ fname
-							+ "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)\n	{\n		PROPERTY_ENTER();\n";
+							+ "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)\n	{\n		PROPERTY_ENTER();\n";
 					if (ftype === "String")
 						fnStr += "		PROPERTY_VAL_String();\n";
 					else
@@ -784,7 +784,7 @@ function parserIDL(fname) {
 				
 				if (attr1 == "readonly")
 					difps.push("			{\"" + fname + "\", s_get_" + fname
-							+ ", NULL, true}");
+							+ ", block_set, true}");
 				else
 					difps.push("			{\"" + fname + "\", s_get_" + fname
 							+ ", s_set_" + fname + "}");
@@ -796,10 +796,10 @@ function parserIDL(fname) {
 					hasIndexed = true;
 
 					iffs
-							.push("	static v8::Handle<v8::Value> i_IndexedGetter(uint32_t index, const v8::AccessorInfo& info);");
-					fnStr = "	inline v8::Handle<v8::Value> "
+							.push("	static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args);");
+					fnStr = "	inline void "
 							+ ns
-							+ "_base::i_IndexedGetter(uint32_t index, const v8::AccessorInfo& info)\n	{\n";
+							+ "_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args)\n	{\n";
 					fnStr += "		" + map_type(ftype) + " vr;\n\n";
 					fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE(" + ns
 							+ "_base);\n\n";
@@ -813,10 +813,10 @@ function parserIDL(fname) {
 
 					if (attr != "readonly") {
 						iffs
-								.push("	static v8::Handle<v8::Value> i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::AccessorInfo& info);");
-						fnStr = "	inline v8::Handle<v8::Value> "
+								.push("	static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);");
+						fnStr = "	inline void "
 								+ ns
-								+ "_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::AccessorInfo& info)\n	{\n		PROPERTY_ENTER();\n";
+								+ "_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)\n	{\n		PROPERTY_ENTER();\n";
 						fnStr += "		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 						if (ftype === "String")
 							fnStr += "		PROPERTY_VAL_String();\n";
@@ -836,16 +836,16 @@ function parserIDL(fname) {
 					hasNamed = true;
 
 					iffs
-							.push("	static v8::Handle<v8::Value> i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info);");
-					fnStr = "	inline v8::Handle<v8::Value> "
+							.push("	static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
+					fnStr = "	inline void "
 							+ ns
-							+ "_base::i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info)\n	{\n";
+							+ "_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n	{\n";
 					fnStr += "		" + map_type(ftype) + " vr;\n\n";
 					fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE(" + ns
 							+ "_base);\n\n";
 
-					fnStr += "		v8::String::Utf8Value k(property);\n		if(class_info().has(*k))return v8::Handle<v8::Value>();\n\n"
-					fnStr += "		hr = pInst->_named_getter(*k, vr);\n		if(hr == CALL_RETURN_NULL)return v8::Handle<v8::Value>();\n\n		METHOD_RETURN();\n	}\n";
+					fnStr += "		v8::String::Utf8Value k(property);\n		if(class_info().has(*k))return;\n\n"
+					fnStr += "		hr = pInst->_named_getter(*k, vr);\n		if(hr == CALL_RETURN_NULL)return;\n\n		METHOD_RETURN();\n	}\n";
 
 					ffs.push(fnStr)
 
@@ -854,10 +854,10 @@ function parserIDL(fname) {
 					ifs.push(ifStr);
 
 					iffs
-							.push("	static v8::Handle<v8::Array> i_NamedEnumerator(const v8::AccessorInfo& info);");
-					fnStr = "	inline v8::Handle<v8::Array> "
+							.push("	static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args);");
+					fnStr = "	inline void "
 							+ ns
-							+ "_base::i_NamedEnumerator(const v8::AccessorInfo& info)\n	{\n";
+							+ "_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)\n	{\n";
 					fnStr += "		v8::Handle<v8::Array> vr;\n\n";
 					fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE(" + ns
 							+ "_base);\n\n";
@@ -871,17 +871,17 @@ function parserIDL(fname) {
 
 					if (attr != "readonly") {
 						iffs
-								.push("	static v8::Handle<v8::Value> i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info);");
-						fnStr = "	inline v8::Handle<v8::Value> "
+								.push("	static void i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);");
+						fnStr = "	inline void "
 								+ ns
-								+ "_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info)\n	{\n		PROPERTY_ENTER();\n";
+								+ "_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)\n	{\n		PROPERTY_ENTER();\n";
 						fnStr += "		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 						if (ftype === "String")
 							fnStr += "		PROPERTY_VAL_String();\n";
 						else
 							fnStr += "		PROPERTY_VAL(" + map_type(ftype)
 									+ ");\n";
-						fnStr += "		v8::String::Utf8Value k(property);\n		if(class_info().has(*k))return v8::Handle<v8::Value>();\n\n"
+						fnStr += "		v8::String::Utf8Value k(property);\n		if(class_info().has(*k))return;\n\n"
 						fnStr += "		hr = pInst->_named_setter(*k, v0);\n\n		METHOD_VOID();\n	}\n";
 						ffs.push(fnStr);
 
@@ -890,15 +890,15 @@ function parserIDL(fname) {
 						ifs.push(ifStr);
 
 						iffs
-								.push("	static v8::Handle<v8::Boolean> i_NamedDeleter(v8::Local<v8::String> property, const v8::AccessorInfo& info);");
-						fnStr = "	inline v8::Handle<v8::Boolean> "
+								.push("	static void i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args);");
+						fnStr = "	inline void "
 								+ ns
-								+ "_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::AccessorInfo& info)\n	{\n";
+								+ "_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args)\n	{\n";
 						fnStr += "		v8::Handle<v8::Boolean> vr;\n\n";
 						fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE("
 								+ ns + "_base);\n\n";
 
-						fnStr += "		v8::String::Utf8Value k(property);\n		if(class_info().has(*k))return v8::False();\n\n"
+						fnStr += "		v8::String::Utf8Value k(property);\n		if(class_info().has(*k)){args.GetReturnValue().Set(v8::False());return;}\n\n"
 						fnStr += "		hr = pInst->_named_deleter(*k, vr);\n		METHOD_RETURN1();\n	}\n";
 
 						ffs.push(fnStr)
@@ -922,14 +922,14 @@ function parserIDL(fname) {
 							+ "_base);");
 
 				iffs
-						.push("	static v8::Handle<v8::Value> s_get_"
+						.push("	static void s_get_"
 								+ fname
-								+ "(v8::Local<v8::String> property, const v8::AccessorInfo &info);");
-				fnStr = "	inline v8::Handle<v8::Value> "
+								+ "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
+				fnStr = "	inline void "
 						+ ns
 						+ "_base::s_get_"
 						+ fname
-						+ "(v8::Local<v8::String> property, const v8::AccessorInfo &info)\n	{\n";
+						+ "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n	{\n";
 				fnStr += "		" + map_type(ftype) + " vr;\n\n";
 				fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE(" + ns
 						+ "_base);\n\n";
@@ -947,12 +947,12 @@ function parserIDL(fname) {
 					iffs
 							.push("	static void s_set_"
 									+ fname
-									+ "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);");
+									+ "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);");
 					fnStr = "	inline void "
 							+ ns
 							+ "_base::s_set_"
 							+ fname
-							+ "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)\n	{\n		PROPERTY_ENTER();\n";
+							+ "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)\n	{\n		PROPERTY_ENTER();\n";
 					fnStr += "		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 					if (ftype === "String")
 						fnStr += "		PROPERTY_VAL_String();\n";
@@ -968,7 +968,7 @@ function parserIDL(fname) {
 				}
 
 				if (attr == "readonly")
-					difps.push("			{\"" + fname + "\", s_get_" + fname + "}");
+					difps.push("			{\"" + fname + "\", s_get_" + fname + ", block_set}");
 				else
 					difps.push("			{\"" + fname + "\", s_get_" + fname
 							+ ", s_set_" + fname + "}");

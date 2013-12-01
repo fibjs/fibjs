@@ -27,9 +27,9 @@ public:
 	DECLARE_CLASSINFO(Lock_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_acquire(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_release(const v8::Arguments& args);
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_acquire(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_release(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -56,7 +56,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> Lock_base::s__new(const v8::Arguments& args)
+	inline void Lock_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Lock_base> vr;
 
@@ -67,7 +67,7 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Lock_base::s_acquire(const v8::Arguments& args)
+	inline void Lock_base::s_acquire(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -81,7 +81,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Lock_base::s_release(const v8::Arguments& args)
+	inline void Lock_base::s_release(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Lock_base);
 		METHOD_ENTER(0, 0);

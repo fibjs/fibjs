@@ -75,54 +75,54 @@ public:
 	DECLARE_CLASSINFO(assert_base);
 
 public:
-	static v8::Handle<v8::Value> s_ok(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_notOk(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_equal(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_notEqual(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_strictEqual(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_notStrictEqual(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_deepEqual(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_notDeepEqual(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_closeTo(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_notCloseTo(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_lessThan(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_notLessThan(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_greaterThan(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_notGreaterThan(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_exist(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_notExist(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isTrue(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isNotTrue(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isFalse(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isNotFalse(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isNull(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isNotNull(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isUndefined(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isDefined(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isFunction(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isNotFunction(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isObject(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isNotObject(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isArray(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isNotArray(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isString(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isNotString(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isNumber(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isNotNumber(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isBoolean(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_isNotBoolean(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_typeOf(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_notTypeOf(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_property(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_notProperty(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_deepProperty(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_notDeepProperty(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_propertyVal(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_propertyNotVal(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_deepPropertyVal(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_deepPropertyNotVal(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_throws(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_doesNotThrow(const v8::Arguments& args);
+	static void s_ok(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_notOk(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_equal(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_notEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_strictEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_notStrictEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_deepEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_notDeepEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_closeTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_notCloseTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_lessThan(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_notLessThan(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_greaterThan(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_notGreaterThan(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_exist(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_notExist(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isTrue(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isNotTrue(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isFalse(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isNotFalse(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isNull(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isNotNull(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isUndefined(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isDefined(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isFunction(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isNotFunction(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isObject(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isNotObject(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isArray(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isNotArray(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isString(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isNotString(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isNumber(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isNotNumber(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isBoolean(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isNotBoolean(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_typeOf(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_notTypeOf(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_property(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_notProperty(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_deepProperty(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_notDeepProperty(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_propertyVal(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_propertyNotVal(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_deepPropertyVal(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_deepPropertyNotVal(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_throws(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_doesNotThrow(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -196,7 +196,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> assert_base::s_ok(const v8::Arguments& args)
+	inline void assert_base::s_ok(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -208,7 +208,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_notOk(const v8::Arguments& args)
+	inline void assert_base::s_notOk(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -220,7 +220,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_equal(const v8::Arguments& args)
+	inline void assert_base::s_equal(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 2);
 
@@ -233,7 +233,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_notEqual(const v8::Arguments& args)
+	inline void assert_base::s_notEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 2);
 
@@ -246,7 +246,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_strictEqual(const v8::Arguments& args)
+	inline void assert_base::s_strictEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 2);
 
@@ -259,7 +259,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_notStrictEqual(const v8::Arguments& args)
+	inline void assert_base::s_notStrictEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 2);
 
@@ -272,7 +272,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_deepEqual(const v8::Arguments& args)
+	inline void assert_base::s_deepEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 2);
 
@@ -285,7 +285,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_notDeepEqual(const v8::Arguments& args)
+	inline void assert_base::s_notDeepEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 2);
 
@@ -298,7 +298,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_closeTo(const v8::Arguments& args)
+	inline void assert_base::s_closeTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(4, 3);
 
@@ -312,7 +312,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_notCloseTo(const v8::Arguments& args)
+	inline void assert_base::s_notCloseTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(4, 3);
 
@@ -326,7 +326,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_lessThan(const v8::Arguments& args)
+	inline void assert_base::s_lessThan(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 2);
 
@@ -339,7 +339,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_notLessThan(const v8::Arguments& args)
+	inline void assert_base::s_notLessThan(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 2);
 
@@ -352,7 +352,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_greaterThan(const v8::Arguments& args)
+	inline void assert_base::s_greaterThan(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 2);
 
@@ -365,7 +365,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_notGreaterThan(const v8::Arguments& args)
+	inline void assert_base::s_notGreaterThan(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 2);
 
@@ -378,7 +378,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_exist(const v8::Arguments& args)
+	inline void assert_base::s_exist(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -390,7 +390,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_notExist(const v8::Arguments& args)
+	inline void assert_base::s_notExist(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -402,7 +402,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isTrue(const v8::Arguments& args)
+	inline void assert_base::s_isTrue(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -414,7 +414,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isNotTrue(const v8::Arguments& args)
+	inline void assert_base::s_isNotTrue(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -426,7 +426,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isFalse(const v8::Arguments& args)
+	inline void assert_base::s_isFalse(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -438,7 +438,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isNotFalse(const v8::Arguments& args)
+	inline void assert_base::s_isNotFalse(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -450,7 +450,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isNull(const v8::Arguments& args)
+	inline void assert_base::s_isNull(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -462,7 +462,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isNotNull(const v8::Arguments& args)
+	inline void assert_base::s_isNotNull(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -474,7 +474,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isUndefined(const v8::Arguments& args)
+	inline void assert_base::s_isUndefined(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -486,7 +486,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isDefined(const v8::Arguments& args)
+	inline void assert_base::s_isDefined(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -498,7 +498,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isFunction(const v8::Arguments& args)
+	inline void assert_base::s_isFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -510,7 +510,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isNotFunction(const v8::Arguments& args)
+	inline void assert_base::s_isNotFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -522,7 +522,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isObject(const v8::Arguments& args)
+	inline void assert_base::s_isObject(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -534,7 +534,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isNotObject(const v8::Arguments& args)
+	inline void assert_base::s_isNotObject(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -546,7 +546,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isArray(const v8::Arguments& args)
+	inline void assert_base::s_isArray(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -558,7 +558,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isNotArray(const v8::Arguments& args)
+	inline void assert_base::s_isNotArray(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -570,7 +570,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isString(const v8::Arguments& args)
+	inline void assert_base::s_isString(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -582,7 +582,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isNotString(const v8::Arguments& args)
+	inline void assert_base::s_isNotString(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -594,7 +594,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isNumber(const v8::Arguments& args)
+	inline void assert_base::s_isNumber(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -606,7 +606,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isNotNumber(const v8::Arguments& args)
+	inline void assert_base::s_isNotNumber(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -618,7 +618,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isBoolean(const v8::Arguments& args)
+	inline void assert_base::s_isBoolean(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -630,7 +630,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_isNotBoolean(const v8::Arguments& args)
+	inline void assert_base::s_isNotBoolean(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -642,7 +642,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_typeOf(const v8::Arguments& args)
+	inline void assert_base::s_typeOf(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 2);
 
@@ -655,7 +655,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_notTypeOf(const v8::Arguments& args)
+	inline void assert_base::s_notTypeOf(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 2);
 
@@ -668,7 +668,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_property(const v8::Arguments& args)
+	inline void assert_base::s_property(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 2);
 
@@ -681,7 +681,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_notProperty(const v8::Arguments& args)
+	inline void assert_base::s_notProperty(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 2);
 
@@ -694,7 +694,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_deepProperty(const v8::Arguments& args)
+	inline void assert_base::s_deepProperty(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 2);
 
@@ -707,7 +707,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_notDeepProperty(const v8::Arguments& args)
+	inline void assert_base::s_notDeepProperty(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(3, 2);
 
@@ -720,7 +720,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_propertyVal(const v8::Arguments& args)
+	inline void assert_base::s_propertyVal(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(4, 3);
 
@@ -734,7 +734,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_propertyNotVal(const v8::Arguments& args)
+	inline void assert_base::s_propertyNotVal(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(4, 3);
 
@@ -748,7 +748,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_deepPropertyVal(const v8::Arguments& args)
+	inline void assert_base::s_deepPropertyVal(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(4, 3);
 
@@ -762,7 +762,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_deepPropertyNotVal(const v8::Arguments& args)
+	inline void assert_base::s_deepPropertyNotVal(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(4, 3);
 
@@ -776,7 +776,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_throws(const v8::Arguments& args)
+	inline void assert_base::s_throws(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 
@@ -788,7 +788,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> assert_base::s_doesNotThrow(const v8::Arguments& args)
+	inline void assert_base::s_doesNotThrow(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 

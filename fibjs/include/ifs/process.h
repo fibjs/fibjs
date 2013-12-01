@@ -37,15 +37,15 @@ public:
 	DECLARE_CLASSINFO(process_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_stderr(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_stdin(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_stdout(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_argv(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_execPath(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_exit(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_memoryUsage(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_system(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_exec(const v8::Arguments& args);
+	static void s_get_stderr(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_exit(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_system(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_exec(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_STATICVALUE2(process_base, system, const char*, int32_t);
@@ -70,11 +70,11 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"stderr", s_get_stderr, NULL, true},
-			{"stdin", s_get_stdin, NULL, true},
-			{"stdout", s_get_stdout, NULL, true},
-			{"argv", s_get_argv, NULL, true},
-			{"execPath", s_get_execPath, NULL, true}
+			{"stderr", s_get_stderr, block_set, true},
+			{"stdin", s_get_stdin, block_set, true},
+			{"stdout", s_get_stdout, block_set, true},
+			{"argv", s_get_argv, block_set, true},
+			{"execPath", s_get_execPath, block_set, true}
 		};
 
 		static ClassData s_cd = 
@@ -88,7 +88,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> process_base::s_get_stderr(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void process_base::s_get_stderr(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<BufferedStream_base> vr;
 
@@ -99,7 +99,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> process_base::s_get_stdin(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void process_base::s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<BufferedStream_base> vr;
 
@@ -110,7 +110,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> process_base::s_get_stdout(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void process_base::s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<BufferedStream_base> vr;
 
@@ -121,7 +121,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> process_base::s_get_argv(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void process_base::s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		v8::Handle<v8::Array> vr;
 
@@ -132,7 +132,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> process_base::s_get_execPath(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void process_base::s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -143,7 +143,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> process_base::s_exit(const v8::Arguments& args)
+	inline void process_base::s_exit(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 1);
 
@@ -154,7 +154,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> process_base::s_memoryUsage(const v8::Arguments& args)
+	inline void process_base::s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Object> vr;
 
@@ -165,7 +165,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> process_base::s_system(const v8::Arguments& args)
+	inline void process_base::s_system(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int32_t vr;
 
@@ -178,7 +178,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> process_base::s_exec(const v8::Arguments& args)
+	inline void process_base::s_exec(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<BufferedStream_base> vr;
 

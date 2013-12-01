@@ -50,22 +50,22 @@ public:
 	DECLARE_CLASSINFO(test_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_BDD(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_TDD(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_describe(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_xdescribe(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_it(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_xit(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_before(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_after(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_beforeEach(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_afterEach(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_run(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_assert(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_expect(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_setup(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_slow(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_slow(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
+	static void s_get_BDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_TDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_describe(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_xdescribe(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_it(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_xit(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_before(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_after(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_beforeEach(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_afterEach(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_assert(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_expect(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_setup(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_slow(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_slow(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 };
 
 }
@@ -95,9 +95,9 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"BDD", s_get_BDD, NULL, true},
-			{"TDD", s_get_TDD, NULL, true},
-			{"assert", s_get_assert, NULL, true},
+			{"BDD", s_get_BDD, block_set, true},
+			{"TDD", s_get_TDD, block_set, true},
+			{"assert", s_get_assert, block_set, true},
 			{"slow", s_get_slow, s_set_slow}
 		};
 
@@ -112,21 +112,21 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> test_base::s_get_BDD(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void test_base::s_get_BDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _BDD;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> test_base::s_get_TDD(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void test_base::s_get_TDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _TDD;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> test_base::s_get_assert(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void test_base::s_get_assert(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<assert_base> vr;
 
@@ -137,7 +137,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> test_base::s_get_slow(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void test_base::s_get_slow(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -148,7 +148,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void test_base::s_set_slow(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void test_base::s_set_slow(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_VAL(int32_t);
@@ -158,7 +158,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> test_base::s_describe(const v8::Arguments& args)
+	inline void test_base::s_describe(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 2);
 
@@ -170,7 +170,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> test_base::s_xdescribe(const v8::Arguments& args)
+	inline void test_base::s_xdescribe(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 2);
 
@@ -182,7 +182,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> test_base::s_it(const v8::Arguments& args)
+	inline void test_base::s_it(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 2);
 
@@ -194,7 +194,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> test_base::s_xit(const v8::Arguments& args)
+	inline void test_base::s_xit(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 2);
 
@@ -206,7 +206,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> test_base::s_before(const v8::Arguments& args)
+	inline void test_base::s_before(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 1);
 
@@ -217,7 +217,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> test_base::s_after(const v8::Arguments& args)
+	inline void test_base::s_after(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 1);
 
@@ -228,7 +228,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> test_base::s_beforeEach(const v8::Arguments& args)
+	inline void test_base::s_beforeEach(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 1);
 
@@ -239,7 +239,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> test_base::s_afterEach(const v8::Arguments& args)
+	inline void test_base::s_afterEach(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 1);
 
@@ -250,7 +250,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> test_base::s_run(const v8::Arguments& args)
+	inline void test_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 0);
 
@@ -261,7 +261,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> test_base::s_expect(const v8::Arguments& args)
+	inline void test_base::s_expect(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Expect_base> vr;
 
@@ -275,7 +275,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> test_base::s_setup(const v8::Arguments& args)
+	inline void test_base::s_setup(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 0);
 

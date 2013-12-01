@@ -31,10 +31,10 @@ public:
 	DECLARE_CLASSINFO(SQLite_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_fileName(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_timeout(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_backup(const v8::Arguments& args);
+	static void s_get_fileName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_backup(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -51,7 +51,7 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"fileName", s_get_fileName},
+			{"fileName", s_get_fileName, block_set},
 			{"timeout", s_get_timeout, s_set_timeout}
 		};
 
@@ -66,7 +66,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> SQLite_base::s_get_fileName(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void SQLite_base::s_get_fileName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -78,7 +78,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> SQLite_base::s_get_timeout(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void SQLite_base::s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -90,7 +90,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void SQLite_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void SQLite_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(SQLite_base);
@@ -101,7 +101,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> SQLite_base::s_backup(const v8::Arguments& args)
+	inline void SQLite_base::s_backup(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(SQLite_base);
 		METHOD_ENTER(1, 1);

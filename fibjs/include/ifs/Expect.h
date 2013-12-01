@@ -62,43 +62,43 @@ public:
 	DECLARE_CLASSINFO(Expect_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_to(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_be(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_been(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_is(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_that(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_and(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_have(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_with(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_at(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_of(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_same(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_not(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_deep(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_a(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_an(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_ok(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_true(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_false(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_null(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_undefined(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_function(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_object(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_array(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_string(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_number(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_boolean(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_exist(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_equal(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_eql(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_above(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_greaterThan(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_least(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_below(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_lessThan(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_most(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_property(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_closeTo(const v8::Arguments& args);
+	static void s_get_to(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_be(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_been(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_is(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_that(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_and(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_have(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_with(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_at(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_of(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_same(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_not(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_deep(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_a(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_an(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_ok(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_true(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_false(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_null(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_undefined(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_function(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_object(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_array(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_string(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_number(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_boolean(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_exist(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_equal(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_eql(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_above(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_greaterThan(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_least(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_below(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_lessThan(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_most(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_property(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_closeTo(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -125,31 +125,31 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"to", s_get_to},
-			{"be", s_get_be},
-			{"been", s_get_been},
-			{"is", s_get_is},
-			{"that", s_get_that},
-			{"and", s_get_and},
-			{"have", s_get_have},
-			{"with", s_get_with},
-			{"at", s_get_at},
-			{"of", s_get_of},
-			{"same", s_get_same},
-			{"not", s_get_not},
-			{"deep", s_get_deep},
-			{"ok", s_get_ok},
-			{"true", s_get_true},
-			{"false", s_get_false},
-			{"null", s_get_null},
-			{"undefined", s_get_undefined},
-			{"function", s_get_function},
-			{"object", s_get_object},
-			{"array", s_get_array},
-			{"string", s_get_string},
-			{"number", s_get_number},
-			{"boolean", s_get_boolean},
-			{"exist", s_get_exist}
+			{"to", s_get_to, block_set},
+			{"be", s_get_be, block_set},
+			{"been", s_get_been, block_set},
+			{"is", s_get_is, block_set},
+			{"that", s_get_that, block_set},
+			{"and", s_get_and, block_set},
+			{"have", s_get_have, block_set},
+			{"with", s_get_with, block_set},
+			{"at", s_get_at, block_set},
+			{"of", s_get_of, block_set},
+			{"same", s_get_same, block_set},
+			{"not", s_get_not, block_set},
+			{"deep", s_get_deep, block_set},
+			{"ok", s_get_ok, block_set},
+			{"true", s_get_true, block_set},
+			{"false", s_get_false, block_set},
+			{"null", s_get_null, block_set},
+			{"undefined", s_get_undefined, block_set},
+			{"function", s_get_function, block_set},
+			{"object", s_get_object, block_set},
+			{"array", s_get_array, block_set},
+			{"string", s_get_string, block_set},
+			{"number", s_get_number, block_set},
+			{"boolean", s_get_boolean, block_set},
+			{"exist", s_get_exist, block_set}
 		};
 
 		static ClassData s_cd = 
@@ -163,7 +163,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_to(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_to(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Expect_base> vr;
 
@@ -175,7 +175,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_be(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_be(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Expect_base> vr;
 
@@ -187,7 +187,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_been(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_been(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Expect_base> vr;
 
@@ -199,7 +199,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_is(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_is(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Expect_base> vr;
 
@@ -211,7 +211,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_that(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_that(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Expect_base> vr;
 
@@ -223,7 +223,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_and(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_and(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Expect_base> vr;
 
@@ -235,7 +235,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_have(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_have(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Expect_base> vr;
 
@@ -247,7 +247,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_with(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_with(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Expect_base> vr;
 
@@ -259,7 +259,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_at(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_at(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Expect_base> vr;
 
@@ -271,7 +271,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_of(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_of(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Expect_base> vr;
 
@@ -283,7 +283,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_same(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_same(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Expect_base> vr;
 
@@ -295,7 +295,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_not(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_not(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Expect_base> vr;
 
@@ -307,7 +307,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_deep(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_deep(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Expect_base> vr;
 
@@ -319,7 +319,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_ok(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_ok(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -331,7 +331,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_true(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_true(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -343,7 +343,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_false(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_false(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -355,7 +355,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_null(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_null(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -367,7 +367,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_undefined(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_undefined(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -379,7 +379,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_function(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_function(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -391,7 +391,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_object(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_object(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -403,7 +403,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_array(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_array(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -415,7 +415,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_string(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_string(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -427,7 +427,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_number(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_number(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -439,7 +439,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_boolean(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_boolean(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -451,7 +451,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_get_exist(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void Expect_base::s_get_exist(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -463,7 +463,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_a(const v8::Arguments& args)
+	inline void Expect_base::s_a(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
@@ -475,7 +475,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_an(const v8::Arguments& args)
+	inline void Expect_base::s_an(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
@@ -487,7 +487,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_equal(const v8::Arguments& args)
+	inline void Expect_base::s_equal(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
@@ -499,7 +499,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_eql(const v8::Arguments& args)
+	inline void Expect_base::s_eql(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
@@ -511,7 +511,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_above(const v8::Arguments& args)
+	inline void Expect_base::s_above(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
@@ -523,7 +523,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_greaterThan(const v8::Arguments& args)
+	inline void Expect_base::s_greaterThan(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
@@ -535,7 +535,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_least(const v8::Arguments& args)
+	inline void Expect_base::s_least(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
@@ -547,7 +547,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_below(const v8::Arguments& args)
+	inline void Expect_base::s_below(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
@@ -559,7 +559,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_lessThan(const v8::Arguments& args)
+	inline void Expect_base::s_lessThan(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
@@ -571,7 +571,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_most(const v8::Arguments& args)
+	inline void Expect_base::s_most(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
@@ -583,7 +583,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_property(const v8::Arguments& args)
+	inline void Expect_base::s_property(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
@@ -602,7 +602,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Expect_base::s_closeTo(const v8::Arguments& args)
+	inline void Expect_base::s_closeTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(2, 2);

@@ -152,17 +152,17 @@ typedef int result_t;
 
 #define CONSTRUCT_ENTER(c, o) \
 	static bool s_bInit = false; \
-	if(!s_bInit){s_bInit = true; return args.This();} \
-    if (!args.IsConstructCall())return ThrowResult(CALL_E_CONSTRUCTOR); \
+	if(!s_bInit){s_bInit = true; return;} \
+    if (!args.IsConstructCall()){ThrowResult(CALL_E_CONSTRUCTOR); return;} \
     METHOD_ENTER(c, o)
 
 #define METHOD_INSTANCE(cls) \
     obj_ptr<cls> pInst = cls::getInstance(args.This()); \
-    if(pInst == NULL)return ThrowResult(CALL_E_NOTINSTANCE); \
+    if(pInst == NULL){ ThrowResult(CALL_E_NOTINSTANCE); return;} \
     scope l(pInst);
 
 #define PROPERTY_INSTANCE(cls) \
-    obj_ptr<cls> pInst = cls::getInstance(info.This()); \
+    obj_ptr<cls> pInst = cls::getInstance(args.This()); \
     if(pInst == NULL){hr = CALL_E_NOTINSTANCE;break;} \
     scope l(pInst);
 
@@ -172,25 +172,25 @@ typedef int result_t;
 
 #define METHOD_RETURN() \
     }while(0); \
-    if(hr == CALL_RETURN_NULL)return v8::Null(); \
-    if(hr >= 0)return GetReturnValue(vr); \
-    if(hr == CALL_E_JAVASCRIPT)return v8::Handle<v8::Value>(); \
-    return ThrowResult(hr);
+    if(hr == CALL_RETURN_NULL){ args.GetReturnValue().SetNull(); return;} \
+    if(hr >= 0){ args.GetReturnValue().Set(GetReturnValue(vr)); return;} \
+    if(hr == CALL_E_JAVASCRIPT){ args.GetReturnValue().Set(v8::Handle<v8::Value>()); return;} \
+    ThrowResult(hr); return;
 
 #define METHOD_RETURN1() \
-    }while(0); return vr;
+    }while(0); args.GetReturnValue().Set(vr); return;
 
 #define METHOD_VOID() \
     }while(0); \
-    if(hr >= 0)return v8::Undefined(); \
-    if(hr == CALL_E_JAVASCRIPT)return v8::Handle<v8::Value>(); \
-    return ThrowResult(hr);
+    if(hr >= 0){ args.GetReturnValue().Set(v8::Undefined()); return;} \
+    if(hr == CALL_E_JAVASCRIPT){ args.GetReturnValue().Set(v8::Handle<v8::Value>()); return;} \
+    ThrowResult(hr); return;
 
 #define CONSTRUCT_RETURN() \
     }while(0); \
-    if(hr >= 0)return vr->wrap(args.This()); \
-    if(hr == CALL_E_JAVASCRIPT)return v8::Handle<v8::Value>(); \
-    return ThrowResult(hr);
+    if(hr >= 0){ vr->wrap(args.This()); return;} \
+    if(hr == CALL_E_JAVASCRIPT){ args.GetReturnValue().Set(v8::Handle<v8::Value>()); return;} \
+    ThrowResult(hr); return;
 
 #define ARG_String(n) \
     v8::String::Utf8Value tv##n(args[n]); \
@@ -250,7 +250,7 @@ typedef int result_t;
 			{	return object_base::off(ev, func);} \
 			virtual result_t off(v8::Handle<v8::Object> map) \
 			{	return object_base::off(map);} \
-			virtual result_t trigger(const char* ev, const v8::Arguments& args) \
+			virtual result_t trigger(const char* ev, const v8::FunctionCallbackInfo<v8::Value>& args) \
 			{	return object_base::trigger(ev, args);}
 
 #define FIBER_FREE() \

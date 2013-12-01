@@ -103,7 +103,7 @@ inline result_t compileScript(const char* fname, std::string& buf,
 	return 0;
 }
 
-v8::Handle<v8::Value> _define(const v8::Arguments& args);
+void _define(const v8::FunctionCallbackInfo<v8::Value>& args);
 result_t doDefine(v8::Handle<v8::Object>& mod);
 
 result_t SandBox::runScript(const char* id, v8::Handle<v8::Value>& retVal,

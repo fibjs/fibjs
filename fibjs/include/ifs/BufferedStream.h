@@ -36,15 +36,15 @@ public:
 	DECLARE_CLASSINFO(BufferedStream_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_readText(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_readLine(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_readUntil(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_writeText(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_writeLine(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_stream(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_EOL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_EOL(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_readText(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_readUntil(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_writeText(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_writeLine(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_EOL(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 
 public:
 	ASYNC_MEMBERVALUE2(BufferedStream_base, readText, int32_t, std::string);
@@ -77,7 +77,7 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"stream", s_get_stream},
+			{"stream", s_get_stream, block_set},
 			{"EOL", s_get_EOL, s_set_EOL}
 		};
 
@@ -92,7 +92,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> BufferedStream_base::s_get_stream(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void BufferedStream_base::s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<Stream_base> vr;
 
@@ -104,7 +104,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> BufferedStream_base::s_get_EOL(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void BufferedStream_base::s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -116,7 +116,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void BufferedStream_base::s_set_EOL(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void BufferedStream_base::s_set_EOL(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(BufferedStream_base);
@@ -127,7 +127,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> BufferedStream_base::s__new(const v8::Arguments& args)
+	inline void BufferedStream_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<BufferedStream_base> vr;
 
@@ -140,7 +140,7 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> BufferedStream_base::s_readText(const v8::Arguments& args)
+	inline void BufferedStream_base::s_readText(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -154,7 +154,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> BufferedStream_base::s_readLine(const v8::Arguments& args)
+	inline void BufferedStream_base::s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -168,7 +168,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> BufferedStream_base::s_readUntil(const v8::Arguments& args)
+	inline void BufferedStream_base::s_readUntil(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -183,7 +183,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> BufferedStream_base::s_writeText(const v8::Arguments& args)
+	inline void BufferedStream_base::s_writeText(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(BufferedStream_base);
 		METHOD_ENTER(1, 1);
@@ -195,7 +195,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> BufferedStream_base::s_writeLine(const v8::Arguments& args)
+	inline void BufferedStream_base::s_writeLine(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(BufferedStream_base);
 		METHOD_ENTER(1, 1);

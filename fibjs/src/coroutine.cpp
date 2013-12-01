@@ -14,7 +14,7 @@ namespace fibjs
 {
 
 result_t coroutine_base::start(v8::Handle<v8::Function> func,
-		const v8::Arguments& args, obj_ptr<Fiber_base>& retVal)
+		const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<Fiber_base>& retVal)
 {
 	return JSFiber::New(func, args, 1, retVal);
 }
@@ -84,7 +84,7 @@ result_t coroutine_base::parallel(v8::Handle<v8::Array> func,
 	return _parallel(funs, retVal);
 }
 
-result_t coroutine_base::parallel(const v8::Arguments& args,
+result_t coroutine_base::parallel(const v8::FunctionCallbackInfo<v8::Value>& args,
 		v8::Handle<v8::Array>& retVal)
 {
 	int l = args.Length();

@@ -56,27 +56,27 @@ public:
 	DECLARE_CLASSINFO(gd_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_NONE(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_JPEG(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_GIF(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_PNG(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_TIFF(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_BMP(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_GD(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_GD2(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_TRUECOLOR(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_PALETTE(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_ARC(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_CHORD(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_NOFILL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_EDGED(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_HORIZONTAL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_VERTICAL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_BOTH(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_LEFT(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_RIGHT(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_create(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_load(const v8::Arguments& args);
+	static void s_get_NONE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_JPEG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_GIF(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_PNG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_TIFF(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_BMP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_GD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_GD2(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_TRUECOLOR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_PALETTE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_ARC(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_CHORD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_NOFILL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_EDGED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_HORIZONTAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_VERTICAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_BOTH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_LEFT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_RIGHT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_create(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_load(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_STATICVALUE4(gd_base, create, int32_t, int32_t, int32_t, obj_ptr<Image_base>);
@@ -102,25 +102,25 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"NONE", s_get_NONE, NULL, true},
-			{"JPEG", s_get_JPEG, NULL, true},
-			{"GIF", s_get_GIF, NULL, true},
-			{"PNG", s_get_PNG, NULL, true},
-			{"TIFF", s_get_TIFF, NULL, true},
-			{"BMP", s_get_BMP, NULL, true},
-			{"GD", s_get_GD, NULL, true},
-			{"GD2", s_get_GD2, NULL, true},
-			{"TRUECOLOR", s_get_TRUECOLOR, NULL, true},
-			{"PALETTE", s_get_PALETTE, NULL, true},
-			{"ARC", s_get_ARC, NULL, true},
-			{"CHORD", s_get_CHORD, NULL, true},
-			{"NOFILL", s_get_NOFILL, NULL, true},
-			{"EDGED", s_get_EDGED, NULL, true},
-			{"HORIZONTAL", s_get_HORIZONTAL, NULL, true},
-			{"VERTICAL", s_get_VERTICAL, NULL, true},
-			{"BOTH", s_get_BOTH, NULL, true},
-			{"LEFT", s_get_LEFT, NULL, true},
-			{"RIGHT", s_get_RIGHT, NULL, true}
+			{"NONE", s_get_NONE, block_set, true},
+			{"JPEG", s_get_JPEG, block_set, true},
+			{"GIF", s_get_GIF, block_set, true},
+			{"PNG", s_get_PNG, block_set, true},
+			{"TIFF", s_get_TIFF, block_set, true},
+			{"BMP", s_get_BMP, block_set, true},
+			{"GD", s_get_GD, block_set, true},
+			{"GD2", s_get_GD2, block_set, true},
+			{"TRUECOLOR", s_get_TRUECOLOR, block_set, true},
+			{"PALETTE", s_get_PALETTE, block_set, true},
+			{"ARC", s_get_ARC, block_set, true},
+			{"CHORD", s_get_CHORD, block_set, true},
+			{"NOFILL", s_get_NOFILL, block_set, true},
+			{"EDGED", s_get_EDGED, block_set, true},
+			{"HORIZONTAL", s_get_HORIZONTAL, block_set, true},
+			{"VERTICAL", s_get_VERTICAL, block_set, true},
+			{"BOTH", s_get_BOTH, block_set, true},
+			{"LEFT", s_get_LEFT, block_set, true},
+			{"RIGHT", s_get_RIGHT, block_set, true}
 		};
 
 		static ClassData s_cd = 
@@ -134,140 +134,140 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_NONE(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_NONE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _NONE;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_JPEG(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_JPEG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _JPEG;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_GIF(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_GIF(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _GIF;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_PNG(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_PNG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _PNG;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_TIFF(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_TIFF(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _TIFF;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_BMP(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_BMP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _BMP;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_GD(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_GD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _GD;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_GD2(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_GD2(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _GD2;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_TRUECOLOR(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_TRUECOLOR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _TRUECOLOR;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_PALETTE(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_PALETTE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _PALETTE;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_ARC(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_ARC(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _ARC;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_CHORD(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_CHORD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _CHORD;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_NOFILL(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_NOFILL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _NOFILL;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_EDGED(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_EDGED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _EDGED;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_HORIZONTAL(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_HORIZONTAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _HORIZONTAL;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_VERTICAL(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_VERTICAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _VERTICAL;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_BOTH(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_BOTH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _BOTH;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_LEFT(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_LEFT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _LEFT;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_get_RIGHT(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void gd_base::s_get_RIGHT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _RIGHT;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_create(const v8::Arguments& args)
+	inline void gd_base::s_create(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Image_base> vr;
 
@@ -282,7 +282,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> gd_base::s_load(const v8::Arguments& args)
+	inline void gd_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Image_base> vr;
 

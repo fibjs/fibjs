@@ -45,21 +45,21 @@ public:
 	DECLARE_CLASSINFO(HttpMessage_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_protocol(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_protocol(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_headers(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_keepAlive(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_keepAlive(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_maxHeadersCount(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_maxUploadSize(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_maxUploadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_hasHeader(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_firstHeader(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_allHeader(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_addHeader(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_setHeader(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_removeHeader(const v8::Arguments& args);
+	static void s_get_protocol(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_protocol(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_headers(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_keepAlive(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_keepAlive(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_maxHeadersCount(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_maxUploadSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_maxUploadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_hasHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_firstHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_allHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_addHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_setHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_removeHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -83,7 +83,7 @@ namespace fibjs
 		static ClassData::ClassProperty s_property[] = 
 		{
 			{"protocol", s_get_protocol, s_set_protocol},
-			{"headers", s_get_headers},
+			{"headers", s_get_headers, block_set},
 			{"keepAlive", s_get_keepAlive, s_set_keepAlive},
 			{"maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount},
 			{"maxUploadSize", s_get_maxUploadSize, s_set_maxUploadSize}
@@ -100,7 +100,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> HttpMessage_base::s_get_protocol(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpMessage_base::s_get_protocol(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -112,7 +112,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void HttpMessage_base::s_set_protocol(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void HttpMessage_base::s_set_protocol(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpMessage_base);
@@ -123,7 +123,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> HttpMessage_base::s_get_headers(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpMessage_base::s_get_headers(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<HttpCollection_base> vr;
 
@@ -135,7 +135,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> HttpMessage_base::s_get_keepAlive(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpMessage_base::s_get_keepAlive(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		bool vr;
 
@@ -147,7 +147,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void HttpMessage_base::s_set_keepAlive(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void HttpMessage_base::s_set_keepAlive(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpMessage_base);
@@ -158,7 +158,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> HttpMessage_base::s_get_maxHeadersCount(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpMessage_base::s_get_maxHeadersCount(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -170,7 +170,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void HttpMessage_base::s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void HttpMessage_base::s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpMessage_base);
@@ -181,7 +181,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> HttpMessage_base::s_get_maxUploadSize(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void HttpMessage_base::s_get_maxUploadSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -193,7 +193,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void HttpMessage_base::s_set_maxUploadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void HttpMessage_base::s_set_maxUploadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpMessage_base);
@@ -204,7 +204,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> HttpMessage_base::s_hasHeader(const v8::Arguments& args)
+	inline void HttpMessage_base::s_hasHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -218,7 +218,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> HttpMessage_base::s_firstHeader(const v8::Arguments& args)
+	inline void HttpMessage_base::s_firstHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		Variant vr;
 
@@ -232,7 +232,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> HttpMessage_base::s_allHeader(const v8::Arguments& args)
+	inline void HttpMessage_base::s_allHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Array> vr;
 
@@ -246,7 +246,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> HttpMessage_base::s_addHeader(const v8::Arguments& args)
+	inline void HttpMessage_base::s_addHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(HttpMessage_base);
 		METHOD_ENTER(1, 1);
@@ -265,7 +265,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> HttpMessage_base::s_setHeader(const v8::Arguments& args)
+	inline void HttpMessage_base::s_setHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(HttpMessage_base);
 		METHOD_ENTER(1, 1);
@@ -284,7 +284,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> HttpMessage_base::s_removeHeader(const v8::Arguments& args)
+	inline void HttpMessage_base::s_removeHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(HttpMessage_base);
 		METHOD_ENTER(1, 1);

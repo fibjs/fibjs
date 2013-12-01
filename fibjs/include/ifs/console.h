@@ -42,10 +42,10 @@ public:
 	static result_t get_stdout(obj_ptr<BufferedStream_base>& retVal);
 	static result_t get_loglevel(int32_t& retVal);
 	static result_t set_loglevel(int32_t newVal);
-	static result_t log(const char* fmt, const v8::Arguments& args);
-	static result_t info(const char* fmt, const v8::Arguments& args);
-	static result_t warn(const char* fmt, const v8::Arguments& args);
-	static result_t error(const char* fmt, const v8::Arguments& args);
+	static result_t log(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+	static result_t info(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+	static result_t warn(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+	static result_t error(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t dir(v8::Handle<v8::Object> obj);
 	static result_t time(const char* label);
 	static result_t timeEnd(const char* label);
@@ -55,29 +55,29 @@ public:
 	DECLARE_CLASSINFO(console_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_stderr(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_stdin(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_stdout(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_FATAL(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_ALERT(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_CRIT(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_ERROR(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_WARN(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_NOTICE(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_INFO(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_DEBUG(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_NOTSET(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_loglevel(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static void s_set_loglevel(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_log(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_info(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_warn(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_error(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_dir(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_time(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_timeEnd(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_trace(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_assert(const v8::Arguments& args);
+	static void s_get_stderr(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_FATAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_ALERT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_CRIT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_ERROR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_WARN(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_NOTICE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_INFO(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_DEBUG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_NOTSET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_loglevel(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_loglevel(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_log(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_info(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_warn(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_error(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_dir(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_time(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_trace(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_assert(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -103,18 +103,18 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"stderr", s_get_stderr, NULL, true},
-			{"stdin", s_get_stdin, NULL, true},
-			{"stdout", s_get_stdout, NULL, true},
-			{"FATAL", s_get_FATAL, NULL, true},
-			{"ALERT", s_get_ALERT, NULL, true},
-			{"CRIT", s_get_CRIT, NULL, true},
-			{"ERROR", s_get_ERROR, NULL, true},
-			{"WARN", s_get_WARN, NULL, true},
-			{"NOTICE", s_get_NOTICE, NULL, true},
-			{"INFO", s_get_INFO, NULL, true},
-			{"DEBUG", s_get_DEBUG, NULL, true},
-			{"NOTSET", s_get_NOTSET, NULL, true},
+			{"stderr", s_get_stderr, block_set, true},
+			{"stdin", s_get_stdin, block_set, true},
+			{"stdout", s_get_stdout, block_set, true},
+			{"FATAL", s_get_FATAL, block_set, true},
+			{"ALERT", s_get_ALERT, block_set, true},
+			{"CRIT", s_get_CRIT, block_set, true},
+			{"ERROR", s_get_ERROR, block_set, true},
+			{"WARN", s_get_WARN, block_set, true},
+			{"NOTICE", s_get_NOTICE, block_set, true},
+			{"INFO", s_get_INFO, block_set, true},
+			{"DEBUG", s_get_DEBUG, block_set, true},
+			{"NOTSET", s_get_NOTSET, block_set, true},
 			{"loglevel", s_get_loglevel, s_set_loglevel}
 		};
 
@@ -129,7 +129,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_get_stderr(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void console_base::s_get_stderr(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<BufferedStream_base> vr;
 
@@ -140,7 +140,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_get_stdin(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void console_base::s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<BufferedStream_base> vr;
 
@@ -151,7 +151,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_get_stdout(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void console_base::s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<BufferedStream_base> vr;
 
@@ -162,70 +162,70 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_get_FATAL(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void console_base::s_get_FATAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _FATAL;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_get_ALERT(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void console_base::s_get_ALERT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _ALERT;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_get_CRIT(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void console_base::s_get_CRIT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _CRIT;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_get_ERROR(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void console_base::s_get_ERROR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _ERROR;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_get_WARN(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void console_base::s_get_WARN(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _WARN;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_get_NOTICE(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void console_base::s_get_NOTICE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _NOTICE;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_get_INFO(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void console_base::s_get_INFO(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _INFO;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_get_DEBUG(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void console_base::s_get_DEBUG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _DEBUG;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_get_NOTSET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void console_base::s_get_NOTSET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _NOTSET;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_get_loglevel(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void console_base::s_get_loglevel(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -236,7 +236,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void console_base::s_set_loglevel(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo &info)
+	inline void console_base::s_set_loglevel(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
 	{
 		PROPERTY_ENTER();
 		PROPERTY_VAL(int32_t);
@@ -246,7 +246,7 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_log(const v8::Arguments& args)
+	inline void console_base::s_log(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(-1, 1);
 
@@ -257,7 +257,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_info(const v8::Arguments& args)
+	inline void console_base::s_info(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(-1, 1);
 
@@ -268,7 +268,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_warn(const v8::Arguments& args)
+	inline void console_base::s_warn(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(-1, 1);
 
@@ -279,7 +279,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_error(const v8::Arguments& args)
+	inline void console_base::s_error(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(-1, 1);
 
@@ -290,7 +290,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_dir(const v8::Arguments& args)
+	inline void console_base::s_dir(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 1);
 
@@ -301,7 +301,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_time(const v8::Arguments& args)
+	inline void console_base::s_time(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 0);
 
@@ -312,7 +312,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_timeEnd(const v8::Arguments& args)
+	inline void console_base::s_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 0);
 
@@ -323,7 +323,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_trace(const v8::Arguments& args)
+	inline void console_base::s_trace(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 0);
 
@@ -334,7 +334,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> console_base::s_assert(const v8::Arguments& args)
+	inline void console_base::s_assert(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 1);
 

@@ -36,13 +36,13 @@ public:
 	DECLARE_CLASSINFO(MongoDB_base);
 
 public:
-	static v8::Handle<v8::Value> s_getCollection(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_runCommand(const v8::Arguments& args);
-	static v8::Handle<v8::Value> i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info);
-	static v8::Handle<v8::Array> i_NamedEnumerator(const v8::AccessorInfo& info);
-	static v8::Handle<v8::Value> s_get_fs(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_oid(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_close(const v8::Arguments& args);
+	static void s_getCollection(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_runCommand(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args);
+	static void s_get_fs(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_oid(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -65,7 +65,7 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"fs", s_get_fs}
+			{"fs", s_get_fs, block_set}
 		};
 
 		static ClassData::ClassNamed s_named = 
@@ -84,7 +84,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> MongoDB_base::i_NamedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info)
+	inline void MongoDB_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<MongoCollection_base> vr;
 
@@ -92,15 +92,15 @@ namespace fibjs
 		PROPERTY_INSTANCE(MongoDB_base);
 
 		v8::String::Utf8Value k(property);
-		if(class_info().has(*k))return v8::Handle<v8::Value>();
+		if(class_info().has(*k))return;
 
 		hr = pInst->_named_getter(*k, vr);
-		if(hr == CALL_RETURN_NULL)return v8::Handle<v8::Value>();
+		if(hr == CALL_RETURN_NULL)return;
 
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Array> MongoDB_base::i_NamedEnumerator(const v8::AccessorInfo& info)
+	inline void MongoDB_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)
 	{
 		v8::Handle<v8::Array> vr;
 
@@ -112,7 +112,7 @@ namespace fibjs
 		METHOD_RETURN1();
 	}
 
-	inline v8::Handle<v8::Value> MongoDB_base::s_get_fs(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void MongoDB_base::s_get_fs(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		obj_ptr<GridFS_base> vr;
 
@@ -124,7 +124,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoDB_base::s_getCollection(const v8::Arguments& args)
+	inline void MongoDB_base::s_getCollection(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<MongoCollection_base> vr;
 
@@ -138,7 +138,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoDB_base::s_runCommand(const v8::Arguments& args)
+	inline void MongoDB_base::s_runCommand(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Object> vr;
 
@@ -159,7 +159,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoDB_base::s_oid(const v8::Arguments& args)
+	inline void MongoDB_base::s_oid(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<MongoID_base> vr;
 
@@ -173,7 +173,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> MongoDB_base::s_close(const v8::Arguments& args)
+	inline void MongoDB_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(MongoDB_base);
 		METHOD_ENTER(0, 0);

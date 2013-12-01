@@ -27,16 +27,16 @@ public:
 	virtual result_t once(v8::Handle<v8::Object> map) = 0;
 	virtual result_t off(const char* ev, v8::Handle<v8::Function> func) = 0;
 	virtual result_t off(v8::Handle<v8::Object> map) = 0;
-	virtual result_t trigger(const char* ev, const v8::Arguments& args) = 0;
+	virtual result_t trigger(const char* ev, const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
 
 	DECLARE_CLASSINFO(Trigger_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_on(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_once(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_off(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_trigger(const v8::Arguments& args);
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_on(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_once(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_off(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_trigger(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -65,7 +65,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> Trigger_base::s__new(const v8::Arguments& args)
+	inline void Trigger_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Trigger_base> vr;
 
@@ -76,7 +76,7 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Trigger_base::s_on(const v8::Arguments& args)
+	inline void Trigger_base::s_on(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Trigger_base);
 		METHOD_ENTER(2, 2);
@@ -95,7 +95,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Trigger_base::s_once(const v8::Arguments& args)
+	inline void Trigger_base::s_once(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Trigger_base);
 		METHOD_ENTER(2, 2);
@@ -114,7 +114,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Trigger_base::s_off(const v8::Arguments& args)
+	inline void Trigger_base::s_off(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Trigger_base);
 		METHOD_ENTER(2, 2);
@@ -133,7 +133,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Trigger_base::s_trigger(const v8::Arguments& args)
+	inline void Trigger_base::s_trigger(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Trigger_base);
 		METHOD_ENTER(-1, 1);

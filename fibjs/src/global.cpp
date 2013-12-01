@@ -16,7 +16,7 @@ result_t global_base::get_console(obj_ptr<console_base>& retVal)
 	return 0;
 }
 
-result_t global_base::print(const char* fmt, const v8::Arguments& args)
+result_t global_base::print(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	return console_base::log(fmt, args);
 }

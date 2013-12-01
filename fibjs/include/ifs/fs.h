@@ -48,20 +48,20 @@ public:
 	DECLARE_CLASSINFO(fs_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_SEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_SEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_exists(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_unlink(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_mkdir(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_rmdir(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_rename(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_stat(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_readdir(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_open(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_tmpFile(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_readFile(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_writeFile(const v8::Arguments& args);
+	static void s_get_SEEK_SET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_SEEK_END(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_exists(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_unlink(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_rename(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_stat(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_tmpFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_readFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_STATICVALUE2(fs_base, exists, const char*, bool);
@@ -104,9 +104,9 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"SEEK_SET", s_get_SEEK_SET, NULL, true},
-			{"SEEK_CUR", s_get_SEEK_CUR, NULL, true},
-			{"SEEK_END", s_get_SEEK_END, NULL, true}
+			{"SEEK_SET", s_get_SEEK_SET, block_set, true},
+			{"SEEK_CUR", s_get_SEEK_CUR, block_set, true},
+			{"SEEK_END", s_get_SEEK_END, block_set, true}
 		};
 
 		static ClassData s_cd = 
@@ -120,28 +120,28 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> fs_base::s_get_SEEK_SET(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void fs_base::s_get_SEEK_SET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _SEEK_SET;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> fs_base::s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void fs_base::s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _SEEK_CUR;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> fs_base::s_get_SEEK_END(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void fs_base::s_get_SEEK_END(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _SEEK_END;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> fs_base::s_exists(const v8::Arguments& args)
+	inline void fs_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		bool vr;
 
@@ -154,7 +154,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> fs_base::s_unlink(const v8::Arguments& args)
+	inline void fs_base::s_unlink(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 1);
 
@@ -165,7 +165,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> fs_base::s_mkdir(const v8::Arguments& args)
+	inline void fs_base::s_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 1);
 
@@ -176,7 +176,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> fs_base::s_rmdir(const v8::Arguments& args)
+	inline void fs_base::s_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 1);
 
@@ -187,7 +187,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> fs_base::s_rename(const v8::Arguments& args)
+	inline void fs_base::s_rename(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 2);
 
@@ -199,7 +199,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> fs_base::s_stat(const v8::Arguments& args)
+	inline void fs_base::s_stat(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Stat_base> vr;
 
@@ -212,7 +212,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> fs_base::s_readdir(const v8::Arguments& args)
+	inline void fs_base::s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<List_base> vr;
 
@@ -225,7 +225,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> fs_base::s_open(const v8::Arguments& args)
+	inline void fs_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<File_base> vr;
 
@@ -239,7 +239,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> fs_base::s_tmpFile(const v8::Arguments& args)
+	inline void fs_base::s_tmpFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<File_base> vr;
 
@@ -250,7 +250,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> fs_base::s_readFile(const v8::Arguments& args)
+	inline void fs_base::s_readFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		std::string vr;
 
@@ -263,7 +263,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> fs_base::s_writeFile(const v8::Arguments& args)
+	inline void fs_base::s_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(2, 2);
 

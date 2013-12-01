@@ -51,7 +51,7 @@ result_t DBResult::push(Variant v)
 	return 0;
 }
 
-result_t DBResult::push(const v8::Arguments& args)
+result_t DBResult::push(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	if (!m_size)
 		return CALL_E_INVALID_CALL;
@@ -76,7 +76,7 @@ result_t DBResult::slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal)
 	return m_array.slice(start, end, retVal);
 }
 
-result_t DBResult::concat(const v8::Arguments& args, obj_ptr<List_base>& retVal)
+result_t DBResult::concat(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<List_base>& retVal)
 {
 	if (!m_size)
 		return CALL_E_INVALID_CALL;

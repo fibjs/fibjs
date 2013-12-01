@@ -42,21 +42,21 @@ public:
 	DECLARE_CLASSINFO(os_base);
 
 public:
-	static v8::Handle<v8::Value> s_get_hostname(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_version(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_arch(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_get_timezone(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_uptime(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_loadavg(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_totalmem(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_freemem(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_CPUInfo(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_CPUs(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_networkInfo(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_time(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_get_execPath(v8::Local<v8::String> property, const v8::AccessorInfo &info);
-	static v8::Handle<v8::Value> s_memoryUsage(const v8::Arguments& args);
+	static void s_get_hostname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_timezone(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_totalmem(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_freemem(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_CPUInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_CPUs(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_networkInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_time(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -81,12 +81,12 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"hostname", s_get_hostname, NULL, true},
-			{"type", s_get_type, NULL, true},
-			{"version", s_get_version, NULL, true},
-			{"arch", s_get_arch, NULL, true},
-			{"timezone", s_get_timezone, NULL, true},
-			{"execPath", s_get_execPath, NULL, true}
+			{"hostname", s_get_hostname, block_set, true},
+			{"type", s_get_type, block_set, true},
+			{"version", s_get_version, block_set, true},
+			{"arch", s_get_arch, block_set, true},
+			{"timezone", s_get_timezone, block_set, true},
+			{"execPath", s_get_execPath, block_set, true}
 		};
 
 		static ClassData s_cd = 
@@ -100,7 +100,7 @@ namespace fibjs
 		return s_ci;
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_get_hostname(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void os_base::s_get_hostname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -111,7 +111,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_get_type(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void os_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -122,7 +122,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_get_version(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void os_base::s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -133,7 +133,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_get_arch(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void os_base::s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -144,7 +144,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_get_timezone(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void os_base::s_get_timezone(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr;
 
@@ -155,7 +155,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_get_execPath(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+	inline void os_base::s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		std::string vr;
 
@@ -166,7 +166,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_uptime(const v8::Arguments& args)
+	inline void os_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		double vr;
 
@@ -177,7 +177,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_loadavg(const v8::Arguments& args)
+	inline void os_base::s_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Array> vr;
 
@@ -188,7 +188,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_totalmem(const v8::Arguments& args)
+	inline void os_base::s_totalmem(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int64_t vr;
 
@@ -199,7 +199,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_freemem(const v8::Arguments& args)
+	inline void os_base::s_freemem(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int64_t vr;
 
@@ -210,7 +210,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_CPUInfo(const v8::Arguments& args)
+	inline void os_base::s_CPUInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Array> vr;
 
@@ -221,7 +221,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_CPUs(const v8::Arguments& args)
+	inline void os_base::s_CPUs(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		int32_t vr;
 
@@ -232,7 +232,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_networkInfo(const v8::Arguments& args)
+	inline void os_base::s_networkInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Object> vr;
 
@@ -243,7 +243,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_time(const v8::Arguments& args)
+	inline void os_base::s_time(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		date_t vr;
 
@@ -256,7 +256,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> os_base::s_memoryUsage(const v8::Arguments& args)
+	inline void os_base::s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Handle<v8::Object> vr;
 

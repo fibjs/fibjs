@@ -32,10 +32,10 @@ public:
 	DECLARE_CLASSINFO(Condition_base);
 
 public:
-	static v8::Handle<v8::Value> s__new(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_wait(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_notify(const v8::Arguments& args);
-	static v8::Handle<v8::Value> s_notifyAll(const v8::Arguments& args);
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_wait(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_notify(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_notifyAll(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -64,7 +64,7 @@ namespace fibjs
 	}
 
 
-	inline v8::Handle<v8::Value> Condition_base::s__new(const v8::Arguments& args)
+	inline void Condition_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Condition_base> vr;
 
@@ -81,7 +81,7 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline v8::Handle<v8::Value> Condition_base::s_wait(const v8::Arguments& args)
+	inline void Condition_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Condition_base);
 		METHOD_ENTER(0, 0);
@@ -91,7 +91,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Condition_base::s_notify(const v8::Arguments& args)
+	inline void Condition_base::s_notify(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Condition_base);
 		METHOD_ENTER(0, 0);
@@ -101,7 +101,7 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline v8::Handle<v8::Value> Condition_base::s_notifyAll(const v8::Arguments& args)
+	inline void Condition_base::s_notifyAll(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Condition_base);
 		METHOD_ENTER(0, 0);

@@ -50,13 +50,20 @@ inline std::string resolvePath(std::string base, const char* id)
 	return fname;
 }
 
-v8::Handle<v8::Value> _define(const v8::Arguments& args)
+void _define(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	int argc = args.Length();
 	if (argc == 0)
-		return ThrowResult(CALL_E_PARAMNOTOPTIONAL);
+	{
+		ThrowResult(CALL_E_PARAMNOTOPTIONAL);
+		return;
+	}
+
 	if (argc > 3)
-		return ThrowResult(CALL_E_BADPARAMCOUNT);
+	{
+		ThrowResult(CALL_E_BADPARAMCOUNT);
+		return;
+	}
 
 	v8::HandleScope handle_scope;
 
@@ -124,7 +131,10 @@ v8::Handle<v8::Value> _define(const v8::Arguments& args)
 	}
 
 	if (n > 1)
-		return ThrowResult(CALL_E_INVALIDARG);
+	{
+		ThrowResult(CALL_E_INVALIDARG);
+		return;
+	}
 	else if (n == 1)
 	{
 		// we have an id name
@@ -189,7 +199,7 @@ v8::Handle<v8::Value> _define(const v8::Arguments& args)
 	// append to define array
 	defs->Set(defs->Length(), modDef);
 
-	return v8::Null();
+	args.GetReturnValue().Set(v8::Null());
 }
 
 result_t doDefine(v8::Handle<v8::Object>& mod)
