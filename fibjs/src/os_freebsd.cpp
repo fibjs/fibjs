@@ -229,6 +229,7 @@ result_t os_base::get_execPath(std::string& retVal)
 	return 0;
 }
 
+int g_obj_refs;
 result_t os_base::memoryUsage(v8::Handle<v8::Object>& retVal)
 {
 	size_t rss;
@@ -268,6 +269,8 @@ result_t os_base::memoryUsage(v8::Handle<v8::Object>& retVal)
 			v8::Integer::New((int32_t)v8_heap_stats.total_heap_size()));
 	info->Set(v8::String::New("heapUsed"),
 			v8::Integer::New((int32_t)v8_heap_stats.used_heap_size()));
+	info->Set(v8::String::New("nativeObjects"),
+			v8::Integer::New((int32_t)g_obj_refs));
 
 	retVal = info;
 

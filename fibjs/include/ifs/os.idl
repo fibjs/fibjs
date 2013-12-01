@@ -60,13 +60,15 @@ class os : module
 	 {
 	   "rss": 8622080,
 	   "heapTotal": 4083456,
-	   "heapUsed": 1621800
+	   "heapUsed": 1621800,
+	   "nativeObjects": 122
 	 }
 	 @endcode
 	 其中：
 	 - rss 返回进程当前占用物理内存大小
 	 - heapTotal 返回 v8 引擎堆内存大小
 	 - heapUsed 返回 v8 引擎正在使用堆内存大小
+	 - nativeObjects 返回当前有效内置对象数
 	 */
 	static Object memoryUsage();
 };

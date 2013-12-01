@@ -14,16 +14,20 @@
 namespace fibjs
 {
 
+extern int g_obj_refs;
+
 class obj_base
 {
 public:
 	obj_base() :
 			refs_(0)
 	{
+		exlib::atom_inc(&g_obj_refs);
 	}
 
 	virtual ~obj_base()
 	{
+		exlib::atom_dec(&g_obj_refs);
 	}
 
 public:
