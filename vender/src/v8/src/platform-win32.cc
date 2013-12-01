@@ -156,6 +156,7 @@ static void MemMoveWrapper(void* dest, const void* src, size_t size) {
   memmove(dest, src, size);
 }
 
+
 // Initialize to library version so we can call this at any time during startup.
 static OS::MemMoveFunction memmove_function = &MemMoveWrapper;
 
@@ -181,6 +182,7 @@ ModuloFunction CreateModuloFunction();
 void init_modulo_function() {
   modulo_function = CreateModuloFunction();
 }
+
 
 double modulo(double x, double y) {
   // Note: here we rely on dependent reads being ordered. This is true
@@ -324,6 +326,7 @@ class Time {
 
   TimeStamp time_;
 };
+
 
 // Static variables.
 bool Time::tz_initialized_ = false;
@@ -619,6 +622,7 @@ double OS::TimeCurrentMillis() {
   t.SetToCurrentTime();
   return t.ToJSTime();
 }
+
 
 // Returns the tickcounter based on timeGetTime.
 int64_t OS::Ticks() {
@@ -1455,6 +1459,7 @@ int OS::StackWalk(Vector<OS::StackFrame> frames) {
   return frames_count;
 }
 
+
 // Restore warnings to previous settings.
 #pragma warning(pop)
 
@@ -1485,6 +1490,10 @@ double OS::nan_value() {
 int OS::ActivationFrameAlignment() {
 #ifdef _WIN64
   return 16;  // Windows 64-bit ABI requires the stack to be 16-byte aligned.
+#elif defined(__MINGW32__)
+  // With gcc 4.4 the tree vectorization optimizer can generate code
+  // that requires 16 byte alignment such as movdqa on x86.
+  return 16;
 #else
   return 8;  // Floating-point math runs faster with 8-byte alignment.
 #endif

@@ -330,6 +330,7 @@ static void MemMoveWrapper(void* dest, const void* src, size_t size) {
   memmove(dest, src, size);
 }
 
+
 // Initialize to library version so we can call this at any time during startup.
 static OS::MemMoveFunction memmove_function = &MemMoveWrapper;
 
@@ -361,6 +362,7 @@ void POSIXPostSetUp() {
   // fast_exp is initialized lazily.
   init_fast_sqrt_function();
 }
+
 
 // ----------------------------------------------------------------------------
 // POSIX string support.
