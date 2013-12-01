@@ -40,8 +40,6 @@
 
 #include "v8stdint.h"
 
-#define V8_USE_UNSAFE_HANDLES
-
 #ifdef _WIN32
 
 // Setup for Windows DLL export/import. When building the V8 DLL the
