@@ -6,13 +6,27 @@ var collection = require('collection');
 describe("collection", function() {
 	describe('List', function() {
 		var a = new collection.List();
-		
+
 		function isBigEnough(element, index) {
 			return (element >= 10);
 		}
 
 		it("pop empty list", function() {
 			assert.equal(a.pop(), null);
+		});
+
+		it("resize", function() {
+			a.resize(256);
+			assert.equal(a.length, 256);
+			assert.isUndefined(a[0]);
+		});
+
+		it("index", function() {
+			for (i = 0; i < 256; i++) {
+				a[i] = 256 - i;
+				assert.equal(a[i], 256 - i);
+			}
+			a.resize(0);
 		});
 
 		it("toArray", function() {
@@ -36,16 +50,15 @@ describe("collection", function() {
 			assert.deepEqual(a.slice(1, 0).toArray(), []);
 		});
 
-		it("concat",
-				function() {
-					assert.deepEqual(a.concat(a).toArray(), [ 1, 2, 3, 1, 2, 3 ]);
-					assert.deepEqual(a.concat(new collection.List()).toArray(), [
-							1, 2, 3 ]);
-					assert.deepEqual(a.concat([ 4, 5, 6 ]).toArray(), [ 1, 2, 3, 4,
-							5, 6 ]);
-					assert.deepEqual(a.concat(a, [ 4, 5, 6 ], a).toArray(), [ 1, 2,
-							3, 1, 2, 3, 4, 5, 6, 1, 2, 3 ]);
-				});
+		it("concat", function() {
+			assert.deepEqual(a.concat(a).toArray(), [ 1, 2, 3, 1, 2, 3 ]);
+			assert.deepEqual(a.concat(new collection.List()).toArray(), [ 1, 2,
+					3 ]);
+			assert.deepEqual(a.concat([ 4, 5, 6 ]).toArray(), [ 1, 2, 3, 4, 5,
+					6 ]);
+			assert.deepEqual(a.concat(a, [ 4, 5, 6 ], a).toArray(), [ 1, 2, 3,
+					1, 2, 3, 4, 5, 6, 1, 2, 3 ]);
+		});
 
 		it("every", function() {
 			var passed = new collection.List();
@@ -57,13 +70,12 @@ describe("collection", function() {
 			assert.equal(passed.every(isBigEnough), true);
 		});
 
-		it("filter",
-				function() {
-					var passed = new collection.List();
-					passed.push(12, 5, 8, 130, 44);
-					assert.deepEqual(passed.filter(isBigEnough).toArray(), [ 12,
-							130, 44 ]);
-				});
+		it("filter", function() {
+			var passed = new collection.List();
+			passed.push(12, 5, 8, 130, 44);
+			assert.deepEqual(passed.filter(isBigEnough).toArray(), [ 12, 130,
+					44 ]);
+		});
 
 		it("map", function() {
 			var passed = new collection.List();
