@@ -34,6 +34,8 @@
 #include "ast.h"
 #include "compiler.h"
 #include "type-info.h"
+#include "types.h"
+#include "effects.h"
 #include "zone.h"
 #include "scopes.h"
 
@@ -56,17 +58,33 @@ class AstTyper: public AstVisitor {
  private:
   explicit AstTyper(CompilationInfo* info);
 
+  static const int kNoVar = INT_MIN;
+  typedef v8::internal::Effects<int, kNoVar> Effects;
+  typedef v8::internal::NestedEffects<int, kNoVar> Store;
+
   CompilationInfo* info_;
   TypeFeedbackOracle oracle_;
+  Store store_;
 
   TypeFeedbackOracle* oracle() { return &oracle_; }
   Zone* zone() const { return info_->zone(); }
 
-  void MergeLowerType(Expression* e, Handle<Type> t) {
-    e->set_lower_type(handle(Type::Union(e->lower_type(), t), isolate_));
+  void NarrowType(Expression* e, Bounds b) {
+    e->set_bounds(Bounds::Both(e->bounds(), b, isolate_));
   }
-  void MergeUpperType(Expression* e, Handle<Type> t) {
-    e->set_upper_type(handle(Type::Intersect(e->upper_type(), t), isolate_));
+  void NarrowLowerType(Expression* e, Handle<Type> t) {
+    e->set_bounds(Bounds::NarrowLower(e->bounds(), t, isolate_));
+  }
+
+  Effects EnterEffects() {
+    store_ = store_.Push();
+    return store_.Top();
+  }
+  void ExitEffects() { store_ = store_.Pop(); }
+
+  int variable_index(Variable* var) {
+    return var->IsStackLocal() ? var->index() :
+           var->IsParameter() ? -var->index() : kNoVar;
   }
 
   void VisitDeclarations(ZoneList<Declaration*>* declarations);

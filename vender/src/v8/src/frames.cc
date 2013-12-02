@@ -36,6 +36,7 @@
 #include "safepoint-table.h"
 #include "scopeinfo.h"
 #include "string-stream.h"
+#include "vm-state-inl.h"
 
 #include "allocation-inl.h"
 
@@ -205,7 +206,7 @@ void StackTraceFrameIterator::Advance() {
 
 bool StackTraceFrameIterator::IsValidFrame() {
     if (!frame()->function()->IsJSFunction()) return false;
-    Object* script = JSFunction::cast(frame()->function())->shared()->script();
+    Object* script = frame()->function()->shared()->script();
     // Don't show functions from native scripts to user.
     return (script->IsScript() &&
             Script::TYPE_NATIVE != Script::cast(script)->type()->value());
@@ -221,7 +222,8 @@ SafeStackFrameIterator::SafeStackFrameIterator(
     : StackFrameIteratorBase(isolate, false),
       low_bound_(sp),
       high_bound_(js_entry_sp),
-      top_frame_type_(StackFrame::NONE) {
+      top_frame_type_(StackFrame::NONE),
+      external_callback_scope_(isolate->external_callback_scope()) {
   StackFrame::State state;
   StackFrame::Type type;
   ThreadLocalTop* top = isolate->thread_local_top();
@@ -256,16 +258,28 @@ SafeStackFrameIterator::SafeStackFrameIterator(
   }
   if (SingletonFor(type) == NULL) return;
   frame_ = SingletonFor(type, &state);
+  if (frame_ == NULL) return;
 
-  if (!done()) Advance();
+  Advance();
+
+  if (frame_ != NULL && !frame_->is_exit() &&
+      external_callback_scope_ != NULL &&
+      external_callback_scope_->scope_address() < frame_->fp()) {
+    // Skip top ExternalCallbackScope if we already advanced to a JS frame
+    // under it. Sampler will anyways take this top external callback.
+    external_callback_scope_ = external_callback_scope_->previous();
+  }
 }
 
 
 bool SafeStackFrameIterator::IsValidTop(ThreadLocalTop* top) const {
-  Address fp = Isolate::c_entry_fp(top);
-  if (!IsValidExitFrame(fp)) return false;
+  Address c_entry_fp = Isolate::c_entry_fp(top);
+  if (!IsValidExitFrame(c_entry_fp)) return false;
   // There should be at least one JS_ENTRY stack handler.
-  return Isolate::handler(top) != NULL;
+  Address handler = Isolate::handler(top);
+  if (handler == NULL) return false;
+  // Check that there are no js frames on top of the native frames.
+  return c_entry_fp < handler;
 }
 
 
@@ -340,6 +354,24 @@ void SafeStackFrameIterator::Advance() {
     AdvanceOneFrame();
     if (done()) return;
     if (frame_->is_java_script()) return;
+    if (frame_->is_exit() && external_callback_scope_) {
+      // Some of the EXIT frames may have ExternalCallbackScope allocated on
+      // top of them. In that case the scope corresponds to the first EXIT
+      // frame beneath it. There may be other EXIT frames on top of the
+      // ExternalCallbackScope, just skip them as we cannot collect any useful
+      // information about them.
+      if (external_callback_scope_->scope_address() < frame_->fp()) {
+        Address* callback_address =
+            external_callback_scope_->callback_address();
+        if (*callback_address != NULL) {
+          frame_->state_.pc_address = callback_address;
+        }
+        external_callback_scope_ = external_callback_scope_->previous();
+        ASSERT(external_callback_scope_ == NULL ||
+               external_callback_scope_->scope_address() > frame_->fp());
+        return;
+      }
+    }
   }
 }
 
@@ -457,7 +489,7 @@ Address StackFrame::UnpaddedFP() const {
 
 
 Code* EntryFrame::unchecked_code() const {
-  return HEAP->js_entry_code();
+  return isolate()->heap()->js_entry_code();
 }
 
 
@@ -480,7 +512,7 @@ StackFrame::Type EntryFrame::GetCallerState(State* state) const {
 
 
 Code* EntryConstructFrame::unchecked_code() const {
-  return HEAP->js_construct_entry_code();
+  return isolate()->heap()->js_construct_entry_code();
 }
 
 
@@ -540,7 +572,7 @@ void ExitFrame::FillState(Address fp, Address sp, State* state) {
   state->sp = sp;
   state->fp = fp;
   state->pc_address = ResolveReturnAddressLocation(
-      reinterpret_cast<Address*>(sp - 1 * kPointerSize));
+      reinterpret_cast<Address*>(sp - 1 * kPCOnStackSize));
 }
 
 
@@ -673,7 +705,7 @@ void StubFrame::Iterate(ObjectVisitor* v) const {
 
 
 Code* StubFrame::unchecked_code() const {
-  return static_cast<Code*>(isolate()->heap()->FindCodeObject(pc()));
+  return static_cast<Code*>(isolate()->FindCodeObject(pc()));
 }
 
 
@@ -724,8 +756,7 @@ int JavaScriptFrame::GetArgumentsLength() const {
 
 
 Code* JavaScriptFrame::unchecked_code() const {
-  JSFunction* function = JSFunction::cast(this->function());
-  return function->code();
+  return function()->code();
 }
 
 
@@ -733,8 +764,7 @@ int JavaScriptFrame::GetNumberOfIncomingArguments() const {
   ASSERT(can_access_heap_objects() &&
          isolate()->heap()->gc_state() == Heap::NOT_IN_GC);
 
-  JSFunction* function = JSFunction::cast(this->function());
-  return function->shared()->formal_parameter_count();
+  return function()->shared()->formal_parameter_count();
 }
 
 
@@ -745,7 +775,7 @@ Address JavaScriptFrame::GetCallerStackPointer() const {
 
 void JavaScriptFrame::GetFunctions(List<JSFunction*>* functions) {
   ASSERT(functions->length() == 0);
-  functions->Add(JSFunction::cast(function()));
+  functions->Add(function());
 }
 
 
@@ -754,7 +784,7 @@ void JavaScriptFrame::Summarize(List<FrameSummary>* functions) {
   Code* code_pointer = LookupCode();
   int offset = static_cast<int>(pc() - code_pointer->address());
   FrameSummary summary(receiver(),
-                       JSFunction::cast(function()),
+                       function(),
                        code_pointer,
                        offset,
                        IsConstructor());
@@ -775,40 +805,34 @@ void JavaScriptFrame::PrintTop(Isolate* isolate,
       JavaScriptFrame* frame = it.frame();
       if (frame->IsConstructor()) PrintF(file, "new ");
       // function name
-      Object* maybe_fun = frame->function();
-      if (maybe_fun->IsJSFunction()) {
-        JSFunction* fun = JSFunction::cast(maybe_fun);
-        fun->PrintName();
-        Code* js_code = frame->unchecked_code();
-        Address pc = frame->pc();
-        int code_offset =
-            static_cast<int>(pc - js_code->instruction_start());
-        PrintF("+%d", code_offset);
-        SharedFunctionInfo* shared = fun->shared();
-        if (print_line_number) {
-          Code* code = Code::cast(
-              v8::internal::Isolate::Current()->heap()->FindCodeObject(pc));
-          int source_pos = code->SourcePosition(pc);
-          Object* maybe_script = shared->script();
-          if (maybe_script->IsScript()) {
-            Handle<Script> script(Script::cast(maybe_script));
-            int line = GetScriptLineNumberSafe(script, source_pos) + 1;
-            Object* script_name_raw = script->name();
-            if (script_name_raw->IsString()) {
-              String* script_name = String::cast(script->name());
-              SmartArrayPointer<char> c_script_name =
-                  script_name->ToCString(DISALLOW_NULLS,
-                                         ROBUST_STRING_TRAVERSAL);
-              PrintF(file, " at %s:%d", *c_script_name, line);
-            } else {
-              PrintF(file, " at <unknown>:%d", line);
-            }
+      JSFunction* fun = frame->function();
+      fun->PrintName();
+      Code* js_code = frame->unchecked_code();
+      Address pc = frame->pc();
+      int code_offset =
+          static_cast<int>(pc - js_code->instruction_start());
+      PrintF("+%d", code_offset);
+      SharedFunctionInfo* shared = fun->shared();
+      if (print_line_number) {
+        Code* code = Code::cast(isolate->FindCodeObject(pc));
+        int source_pos = code->SourcePosition(pc);
+        Object* maybe_script = shared->script();
+        if (maybe_script->IsScript()) {
+          Handle<Script> script(Script::cast(maybe_script));
+          int line = GetScriptLineNumberSafe(script, source_pos) + 1;
+          Object* script_name_raw = script->name();
+          if (script_name_raw->IsString()) {
+            String* script_name = String::cast(script->name());
+            SmartArrayPointer<char> c_script_name =
+                script_name->ToCString(DISALLOW_NULLS,
+                                       ROBUST_STRING_TRAVERSAL);
+            PrintF(file, " at %s:%d", *c_script_name, line);
           } else {
-            PrintF(file, " at <unknown>:<unknown>");
+            PrintF(file, " at <unknown>:%d", line);
           }
+        } else {
+          PrintF(file, " at <unknown>:<unknown>");
         }
-      } else {
-        PrintF("<unknown>");
       }
 
       if (print_args) {
@@ -913,7 +937,7 @@ void FrameSummary::Print() {
 JSFunction* OptimizedFrame::LiteralAt(FixedArray* literal_array,
                                       int literal_id) {
   if (literal_id == Translation::kSelfLiteralId) {
-    return JSFunction::cast(function());
+    return function();
   }
 
   return JSFunction::cast(literal_array->get(literal_id));
@@ -1018,7 +1042,7 @@ DeoptimizationInputData* OptimizedFrame::GetDeoptimizationData(
     int* deopt_index) {
   ASSERT(is_optimized());
 
-  JSFunction* opt_function = JSFunction::cast(function());
+  JSFunction* opt_function = function();
   Code* code = opt_function->code();
 
   // The code object may have been replaced by lazy deoptimization. Fall
@@ -1132,7 +1156,7 @@ void JavaScriptFrame::Print(StringStream* accumulator,
                             int index) const {
   HandleScope scope(isolate());
   Object* receiver = this->receiver();
-  Object* function = this->function();
+  JSFunction* function = this->function();
 
   accumulator->PrintSecurityTokenIfChanged(function);
   PrintIndex(accumulator, mode, index);
@@ -1146,29 +1170,27 @@ void JavaScriptFrame::Print(StringStream* accumulator,
   // or context slots.
   Handle<ScopeInfo> scope_info(ScopeInfo::Empty(isolate()));
 
-  if (function->IsJSFunction()) {
-    Handle<SharedFunctionInfo> shared(JSFunction::cast(function)->shared());
-    scope_info = Handle<ScopeInfo>(shared->scope_info());
-    Object* script_obj = shared->script();
-    if (script_obj->IsScript()) {
-      Handle<Script> script(Script::cast(script_obj));
-      accumulator->Add(" [");
-      accumulator->PrintName(script->name());
+  Handle<SharedFunctionInfo> shared(function->shared());
+  scope_info = Handle<ScopeInfo>(shared->scope_info());
+  Object* script_obj = shared->script();
+  if (script_obj->IsScript()) {
+    Handle<Script> script(Script::cast(script_obj));
+    accumulator->Add(" [");
+    accumulator->PrintName(script->name());
 
-      Address pc = this->pc();
-      if (code != NULL && code->kind() == Code::FUNCTION &&
-          pc >= code->instruction_start() && pc < code->instruction_end()) {
-        int source_pos = code->SourcePosition(pc);
-        int line = GetScriptLineNumberSafe(script, source_pos) + 1;
-        accumulator->Add(":%d", line);
-      } else {
-        int function_start_pos = shared->start_position();
-        int line = GetScriptLineNumberSafe(script, function_start_pos) + 1;
-        accumulator->Add(":~%d", line);
-      }
-
-      accumulator->Add("] ");
+    Address pc = this->pc();
+    if (code != NULL && code->kind() == Code::FUNCTION &&
+        pc >= code->instruction_start() && pc < code->instruction_end()) {
+      int source_pos = code->SourcePosition(pc);
+      int line = GetScriptLineNumberSafe(script, source_pos) + 1;
+      accumulator->Add(":%d", line);
+    } else {
+      int function_start_pos = shared->start_position();
+      int line = GetScriptLineNumberSafe(script, function_start_pos) + 1;
+      accumulator->Add(":~%d", line);
     }
+
+    accumulator->Add("] ");
   }
 
   accumulator->Add("(this=%o", receiver);
@@ -1258,7 +1280,7 @@ void JavaScriptFrame::Print(StringStream* accumulator,
 
   // Print details about the function.
   if (FLAG_max_stack_trace_source_length != 0 && code != NULL) {
-    SharedFunctionInfo* shared = JSFunction::cast(function)->shared();
+    SharedFunctionInfo* shared = function->shared();
     accumulator->Add("--------- s o u r c e   c o d e ---------\n");
     shared->SourceCodePrint(accumulator, FLAG_max_stack_trace_source_length);
     accumulator->Add("\n-----------------------------------------\n");
@@ -1273,10 +1295,8 @@ void ArgumentsAdaptorFrame::Print(StringStream* accumulator,
                                   int index) const {
   int actual = ComputeParametersCount();
   int expected = -1;
-  Object* function = this->function();
-  if (function->IsJSFunction()) {
-    expected = JSFunction::cast(function)->shared()->formal_parameter_count();
-  }
+  JSFunction* function = this->function();
+  expected = function->shared()->formal_parameter_count();
 
   PrintIndex(accumulator, mode, index);
   accumulator->Add("arguments adaptor frame: %d->%d", actual, expected);
@@ -1500,9 +1520,9 @@ void StackHandler::Unwind(Isolate* isolate,
                           FixedArray* array,
                           int offset,
                           int previous_handler_offset) const {
-  STATIC_ASSERT(StackHandlerConstants::kSlotCount == 5);
+  STATIC_ASSERT(StackHandlerConstants::kSlotCount >= 5);
   ASSERT_LE(0, offset);
-  ASSERT_GE(array->length(), offset + 5);
+  ASSERT_GE(array->length(), offset + StackHandlerConstants::kSlotCount);
   // Unwinding a stack handler into an array chains it in the opposite
   // direction, re-using the "next" slot as a "previous" link, so that stack
   // handlers can be later re-wound in the correct order.  Decode the "state"
@@ -1521,9 +1541,9 @@ int StackHandler::Rewind(Isolate* isolate,
                          FixedArray* array,
                          int offset,
                          Address fp) {
-  STATIC_ASSERT(StackHandlerConstants::kSlotCount == 5);
+  STATIC_ASSERT(StackHandlerConstants::kSlotCount >= 5);
   ASSERT_LE(0, offset);
-  ASSERT_GE(array->length(), offset + 5);
+  ASSERT_GE(array->length(), offset + StackHandlerConstants::kSlotCount);
   Smi* prev_handler_offset = Smi::cast(array->get(offset));
   Code* code = Code::cast(array->get(offset + 1));
   Smi* smi_index = Smi::cast(array->get(offset + 2));
@@ -1539,7 +1559,7 @@ int StackHandler::Rewind(Isolate* isolate,
   Memory::uintptr_at(address() + StackHandlerConstants::kStateOffset) = state;
   Memory::Object_at(address() + StackHandlerConstants::kContextOffset) =
       context;
-  Memory::Address_at(address() + StackHandlerConstants::kFPOffset) = fp;
+  SetFp(address() + StackHandlerConstants::kFPOffset, fp);
 
   *isolate->handler_address() = address();
 

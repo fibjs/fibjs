@@ -63,98 +63,32 @@ void CpuFeatures::Probe() {
     return;  // No features if we might serialize.
   }
 
-  const int kBufferSize = 4 * KB;
-  VirtualMemory* memory = new VirtualMemory(kBufferSize);
-  if (!memory->IsReserved()) {
-    delete memory;
-    return;
+  uint64_t probed_features = 0;
+  CPU cpu;
+  if (cpu.has_sse41()) {
+    probed_features |= static_cast<uint64_t>(1) << SSE4_1;
   }
-  ASSERT(memory->size() >= static_cast<size_t>(kBufferSize));
-  if (!memory->Commit(memory->address(), kBufferSize, true/*executable*/)) {
-    delete memory;
-    return;
+  if (cpu.has_sse3()) {
+    probed_features |= static_cast<uint64_t>(1) << SSE3;
   }
 
-  Assembler assm(NULL, memory->address(), kBufferSize);
-  Label cpuid, done;
-#define __ assm.
-  // Save old rsp, since we are going to modify the stack.
-  __ push(rbp);
-  __ pushfq();
-  __ push(rdi);
-  __ push(rcx);
-  __ push(rbx);
-  __ movq(rbp, rsp);
+  // SSE2 must be available on every x64 CPU.
+  ASSERT(cpu.has_sse2());
+  probed_features |= static_cast<uint64_t>(1) << SSE2;
 
-  // If we can modify bit 21 of the EFLAGS register, then CPUID is supported.
-  __ pushfq();
-  __ pop(rax);
-  __ movq(rdx, rax);
-  __ xor_(rax, Immediate(0x200000));  // Flip bit 21.
-  __ push(rax);
-  __ popfq();
-  __ pushfq();
-  __ pop(rax);
-  __ xor_(rax, rdx);  // Different if CPUID is supported.
-  __ j(not_zero, &cpuid);
+  // CMOD must be available on every x64 CPU.
+  ASSERT(cpu.has_cmov());
+  probed_features |= static_cast<uint64_t>(1) << CMOV;
 
-  // CPUID not supported. Clear the supported features in rax.
-  __ xor_(rax, rax);
-  __ jmp(&done);
-
-  // Invoke CPUID with 1 in eax to get feature information in
-  // ecx:edx. Temporarily enable CPUID support because we know it's
-  // safe here.
-  __ bind(&cpuid);
-  __ movl(rax, Immediate(1));
-  supported_ = kDefaultCpuFeatures | (1 << CPUID);
-  { CpuFeatureScope fscope(&assm, CPUID);
-    __ cpuid();
-    // Move the result from ecx:edx to rdi.
-    __ movl(rdi, rdx);  // Zero-extended to 64 bits.
-    __ shl(rcx, Immediate(32));
-    __ or_(rdi, rcx);
-
-    // Get the sahf supported flag, from CPUID(0x80000001)
-    __ movq(rax, 0x80000001, RelocInfo::NONE64);
-    __ cpuid();
+  // SAHF is not generally available in long mode.
+  if (cpu.has_sahf()) {
+    probed_features |= static_cast<uint64_t>(1) << SAHF;
   }
-  supported_ = kDefaultCpuFeatures;
 
-  // Put the CPU flags in rax.
-  // rax = (rcx & 1) | (rdi & ~1) | (1 << CPUID).
-  __ movl(rax, Immediate(1));
-  __ and_(rcx, rax);  // Bit 0 is set if SAHF instruction supported.
-  __ not_(rax);
-  __ and_(rax, rdi);
-  __ or_(rax, rcx);
-  __ or_(rax, Immediate(1 << CPUID));
-
-  // Done.
-  __ bind(&done);
-  __ movq(rsp, rbp);
-  __ pop(rbx);
-  __ pop(rcx);
-  __ pop(rdi);
-  __ popfq();
-  __ pop(rbp);
-  __ ret(0);
-#undef __
-
-  typedef uint64_t (*F0)();
-  F0 probe = FUNCTION_CAST<F0>(reinterpret_cast<Address>(memory->address()));
-
-  uint64_t probed_features = probe();
   uint64_t platform_features = OS::CpuFeaturesImpliedByPlatform();
   supported_ = probed_features | platform_features;
   found_by_runtime_probing_only_
       = probed_features & ~kDefaultCpuFeatures & ~platform_features;
-
-  // CMOV must be available on an X64 CPU.
-  ASSERT(IsSupported(CPUID));
-  ASSERT(IsSupported(CMOV));
-
-  delete memory;
 }
 
 
@@ -164,10 +98,7 @@ void CpuFeatures::Probe() {
 // Patch the code at the current PC with a call to the target address.
 // Additional guard int3 instructions can be added if required.
 void RelocInfo::PatchCodeWithCall(Address target, int guard_bytes) {
-  // Load register with immediate 64 and call through a register instructions
-  // takes up 13 bytes and int3 takes up one byte.
-  static const int kCallCodeSize = 13;
-  int code_size = kCallCodeSize + guard_bytes;
+  int code_size = Assembler::kCallSequenceLength + guard_bytes;
 
   // Create a code patcher.
   CodePatcher patcher(pc_, code_size);
@@ -183,7 +114,7 @@ void RelocInfo::PatchCodeWithCall(Address target, int guard_bytes) {
   patcher.masm()->call(r10);
 
   // Check that the size of the code generated is as expected.
-  ASSERT_EQ(kCallCodeSize,
+  ASSERT_EQ(Assembler::kCallSequenceLength,
             patcher.masm()->SizeOfCodeGeneratedSince(&check_codesize));
 
   // Add the requested number of int3 instructions after the call.
@@ -465,7 +396,7 @@ void Assembler::GrowBuffer() {
   // Some internal data structures overflow for very large buffers,
   // they must ensure that kMaximalBufferSize is not too large.
   if ((desc.buffer_size > kMaximalBufferSize) ||
-      (desc.buffer_size > HEAP->MaxOldGenerationSize())) {
+      (desc.buffer_size > isolate()->heap()->MaxOldGenerationSize())) {
     V8::FatalProcessOutOfMemory("Assembler::GrowBuffer");
   }
 
@@ -990,7 +921,6 @@ void Assembler::cmpb_al(Immediate imm8) {
 
 
 void Assembler::cpuid() {
-  ASSERT(IsEnabled(CPUID));
   EnsureSpace ensure_space(this);
   emit(0x0F);
   emit(0xA2);
@@ -1377,7 +1307,7 @@ void Assembler::load_rax(void* value, RelocInfo::Mode mode) {
   EnsureSpace ensure_space(this);
   emit(0x48);  // REX.W
   emit(0xA1);
-  emitq(reinterpret_cast<uintptr_t>(value), mode);
+  emitp(value, mode);
 }
 
 
@@ -1529,7 +1459,7 @@ void Assembler::movq(Register dst, void* value, RelocInfo::Mode rmode) {
   EnsureSpace ensure_space(this);
   emit_rex_64(dst);
   emit(0xB8 | dst.low_bits());
-  emitq(reinterpret_cast<uintptr_t>(value), rmode);
+  emitp(value, rmode);
 }
 
 
@@ -1603,10 +1533,10 @@ void Assembler::movq(Register dst, Handle<Object> value, RelocInfo::Mode mode) {
   } else {
     EnsureSpace ensure_space(this);
     ASSERT(value->IsHeapObject());
-    ASSERT(!HEAP->InNewSpace(*value));
+    ASSERT(!isolate()->heap()->InNewSpace(*value));
     emit_rex_64(dst);
     emit(0xB8 | dst.low_bits());
-    emitq(reinterpret_cast<uintptr_t>(value.location()), mode);
+    emitp(value.location(), mode);
   }
 }
 
@@ -1922,13 +1852,6 @@ void Assembler::pushfq() {
 }
 
 
-void Assembler::rdtsc() {
-  EnsureSpace ensure_space(this);
-  emit(0x0F);
-  emit(0x31);
-}
-
-
 void Assembler::ret(int imm16) {
   EnsureSpace ensure_space(this);
   ASSERT(is_uint16(imm16));
@@ -1998,7 +1921,7 @@ void Assembler::store_rax(void* dst, RelocInfo::Mode mode) {
   EnsureSpace ensure_space(this);
   emit(0x48);  // REX.W
   emit(0xA3);
-  emitq(reinterpret_cast<uintptr_t>(dst), mode);
+  emitp(dst, mode);
 }
 
 
@@ -2135,6 +2058,10 @@ void Assembler::testq(Register dst, Register src) {
 
 
 void Assembler::testq(Register dst, Immediate mask) {
+  if (is_uint8(mask.value_)) {
+    testb(dst, mask);
+    return;
+  }
   EnsureSpace ensure_space(this);
   if (dst.is(rax)) {
     emit_rex_64();
@@ -2992,6 +2919,17 @@ void Assembler::ucomisd(XMMRegister dst, const Operand& src) {
   emit(0x0f);
   emit(0x2e);
   emit_sse_operand(dst, src);
+}
+
+
+void Assembler::cmpltsd(XMMRegister dst, XMMRegister src) {
+  EnsureSpace ensure_space(this);
+  emit(0xF2);
+  emit_optional_rex_32(dst, src);
+  emit(0x0F);
+  emit(0xC2);
+  emit_sse_operand(dst, src);
+  emit(0x01);  // LT == 1
 }
 
 

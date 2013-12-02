@@ -218,7 +218,7 @@ public:
 	void pulse();
 	void set();
 	void reset();
-	bool isset();
+	bool isSet();
 
 private:
 	bool m_set;
@@ -327,9 +327,9 @@ public:
 		return m_v;
 	}
 
-	bool isset()
+	bool isSet()
 	{
-		return weak.isset();
+		return weak.isSet();
 	}
 
 	int result()

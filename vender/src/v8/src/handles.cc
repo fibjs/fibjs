@@ -101,7 +101,7 @@ void HandleScope::DeleteExtensions(Isolate* isolate) {
 }
 
 
-#ifdef ENABLE_EXTRA_CHECKS
+#ifdef ENABLE_HANDLE_ZAPPING
 void HandleScope::ZapRange(Object** start, Object** end) {
   ASSERT(end - start <= kHandleBlockSize);
   for (Object** p = start; p != end; p++) {
@@ -169,12 +169,6 @@ void SetExpectedNofProperties(Handle<JSFunction> func, int nof) {
 }
 
 
-void SetPrototypeProperty(Handle<JSFunction> func, Handle<JSObject> value) {
-  CALL_HEAP_FUNCTION_VOID(func->GetIsolate(),
-                          func->SetPrototype(*value));
-}
-
-
 static int ExpectedNofPropertiesFromEstimate(int estimate) {
   // If no properties are added in the constructor, they are more likely
   // to be added later.
@@ -211,17 +205,6 @@ void FlattenString(Handle<String> string) {
 
 Handle<String> FlattenGetString(Handle<String> string) {
   CALL_HEAP_FUNCTION(string->GetIsolate(), string->TryFlatten(), String);
-}
-
-
-Handle<Object> SetPrototype(Handle<JSFunction> function,
-                            Handle<Object> prototype) {
-  ASSERT(function->should_have_prototype());
-  CALL_HEAP_FUNCTION(function->GetIsolate(),
-                     Accessors::FunctionSetPrototype(*function,
-                                                     *prototype,
-                                                     NULL),
-                     Object);
 }
 
 
@@ -299,35 +282,6 @@ Handle<Object> LookupSingleCharacterStringFromCode(Isolate* isolate,
   CALL_HEAP_FUNCTION(
       isolate,
       isolate->heap()->LookupSingleCharacterStringFromCode(index), Object);
-}
-
-
-Handle<String> SubString(Handle<String> str,
-                         int start,
-                         int end,
-                         PretenureFlag pretenure) {
-  CALL_HEAP_FUNCTION(str->GetIsolate(),
-                     str->SubString(start, end, pretenure), String);
-}
-
-
-Handle<JSObject> Copy(Handle<JSObject> obj) {
-  Isolate* isolate = obj->GetIsolate();
-  CALL_HEAP_FUNCTION(isolate,
-                     isolate->heap()->CopyJSObject(*obj), JSObject);
-}
-
-
-Handle<JSObject> DeepCopy(Handle<JSObject> obj) {
-  Isolate* isolate = obj->GetIsolate();
-  CALL_HEAP_FUNCTION(isolate,
-                     obj->DeepCopy(isolate),
-                     JSObject);
-}
-
-
-Handle<Object> SetAccessor(Handle<JSObject> obj, Handle<AccessorInfo> info) {
-  CALL_HEAP_FUNCTION(obj->GetIsolate(), obj->DefineAccessor(*info), Object);
 }
 
 
@@ -549,8 +503,9 @@ v8::Handle<v8::Array> GetKeysForNamedInterceptor(Handle<JSReceiver> receiver,
       args(isolate, interceptor->data(), *receiver, *object);
   v8::Handle<v8::Array> result;
   if (!interceptor->enumerator()->IsUndefined()) {
-    v8::NamedPropertyEnumerator enum_fun =
-        v8::ToCData<v8::NamedPropertyEnumerator>(interceptor->enumerator());
+    v8::NamedPropertyEnumeratorCallback enum_fun =
+        v8::ToCData<v8::NamedPropertyEnumeratorCallback>(
+            interceptor->enumerator());
     LOG(isolate, ApiObjectAccess("interceptor-named-enum", *object));
     result = args.Call(enum_fun);
   }
@@ -571,8 +526,9 @@ v8::Handle<v8::Array> GetKeysForIndexedInterceptor(Handle<JSReceiver> receiver,
       args(isolate, interceptor->data(), *receiver, *object);
   v8::Handle<v8::Array> result;
   if (!interceptor->enumerator()->IsUndefined()) {
-    v8::IndexedPropertyEnumerator enum_fun =
-        v8::ToCData<v8::IndexedPropertyEnumerator>(interceptor->enumerator());
+    v8::IndexedPropertyEnumeratorCallback enum_fun =
+        v8::ToCData<v8::IndexedPropertyEnumeratorCallback>(
+            interceptor->enumerator());
     LOG(isolate, ApiObjectAccess("interceptor-indexed-enum", *object));
     result = args.Call(enum_fun);
 #if ENABLE_EXTRA_CHECKS
@@ -635,8 +591,12 @@ Handle<FixedArray> GetKeysInFixedArrayFor(Handle<JSReceiver> object,
     if (p->IsJSProxy()) {
       Handle<JSProxy> proxy(JSProxy::cast(*p), isolate);
       Handle<Object> args[] = { proxy };
-      Handle<Object> names = Execution::Call(
-          isolate->proxy_enumerate(), object, ARRAY_SIZE(args), args, threw);
+      Handle<Object> names = Execution::Call(isolate,
+                                             isolate->proxy_enumerate(),
+                                             object,
+                                             ARRAY_SIZE(args),
+                                             args,
+                                             threw);
       if (*threw) return content;
       content = AddKeysFromJSArray(content, Handle<JSArray>::cast(names));
       break;
@@ -650,6 +610,10 @@ Handle<FixedArray> GetKeysInFixedArrayFor(Handle<JSReceiver> object,
                                  isolate->heap()->undefined_value(),
                                  v8::ACCESS_KEYS)) {
       isolate->ReportFailedAccessCheck(*current, v8::ACCESS_KEYS);
+      if (isolate->has_scheduled_exception()) {
+        isolate->PromoteScheduledException();
+        *threw = true;
+      }
       break;
     }
 

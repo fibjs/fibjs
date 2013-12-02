@@ -97,7 +97,7 @@ const int kPageSizeBits = 20;
 // On Intel architecture, cache line size is 64 bytes.
 // On ARM it may be less (32 bytes), but as far this constant is
 // used for aligning data, it doesn't hurt to align on a greater value.
-const int kProcessorCacheLineSize = 64;
+#define PROCESSOR_CACHE_LINE_SIZE 64
 
 // Constants relevant to double precision floating point numbers.
 // If looking only at the top 32 bits, the QNaN mask is bits 19 to 30.
@@ -163,6 +163,7 @@ class Deserializer;
 class MessageLocation;
 class VirtualMemory;
 class Mutex;
+class RecursiveMutex;
 
 typedef bool (*WeakSlotCallback)(Object** pointer);
 
@@ -346,8 +347,9 @@ union IeeeDoubleBigEndianArchType {
 
 // AccessorCallback
 struct AccessorDescriptor {
-  MaybeObject* (*getter)(Object* object, void* data);
-  MaybeObject* (*setter)(JSObject* object, Object* value, void* data);
+  MaybeObject* (*getter)(Isolate* isolate, Object* object, void* data);
+  MaybeObject* (*setter)(
+      Isolate* isolate, JSObject* object, Object* value, void* data);
   void* data;
 };
 
@@ -363,7 +365,8 @@ enum StateTag {
   GC,
   COMPILER,
   OTHER,
-  EXTERNAL
+  EXTERNAL,
+  IDLE
 };
 
 
@@ -411,29 +414,19 @@ enum StateTag {
 #endif
 
 
-enum CpuImplementer {
-  UNKNOWN_IMPLEMENTER,
-  ARM_IMPLEMENTER,
-  QUALCOMM_IMPLEMENTER
-};
-
-
 // Feature flags bit positions. They are mostly based on the CPUID spec.
-// (We assign CPUID itself to one of the currently reserved bits --
-// feel free to change this if needed.)
 // On X86/X64, values below 32 are bits in EDX, values above 32 are bits in ECX.
 enum CpuFeature { SSE4_1 = 32 + 19,  // x86
                   SSE3 = 32 + 0,     // x86
                   SSE2 = 26,   // x86
                   CMOV = 15,   // x86
-                  RDTSC = 4,   // x86
-                  CPUID = 10,  // x86
                   VFP3 = 1,    // ARM
                   ARMv7 = 2,   // ARM
                   SUDIV = 3,   // ARM
                   UNALIGNED_ACCESSES = 4,  // ARM
                   MOVW_MOVT_IMMEDIATE_LOADS = 5,  // ARM
                   VFP32DREGS = 6,  // ARM
+                  NEON = 7,    // ARM
                   SAHF = 0,    // x86
                   FPU = 1};    // MIPS
 
@@ -571,6 +564,11 @@ enum ClearExceptionFlag {
   CLEAR_EXCEPTION
 };
 
+
+enum MinusZeroMode {
+  TREAT_MINUS_ZERO_AS_ZERO,
+  FAIL_ON_MINUS_ZERO
+};
 
 } }  // namespace v8::internal
 

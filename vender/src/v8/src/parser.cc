@@ -542,6 +542,7 @@ Parser::Parser(CompilationInfo* info)
       scanner_(isolate_->unicode_cache()),
       reusable_preparser_(NULL),
       top_scope_(NULL),
+      original_scope_(NULL),
       current_function_state_(NULL),
       target_stack_(NULL),
       extension_(info->extension()),
@@ -563,14 +564,18 @@ Parser::Parser(CompilationInfo* info)
   set_allow_lazy(false);  // Must be explicitly enabled.
   set_allow_generators(FLAG_harmony_generators);
   set_allow_for_of(FLAG_harmony_iteration);
+  set_allow_harmony_numeric_literals(FLAG_harmony_numeric_literals);
 }
 
 
 FunctionLiteral* Parser::ParseProgram() {
-  HistogramTimerScope timer(isolate()->counters()->parse());
+  HistogramTimerScope timer_scope(isolate()->counters()->parse());
   Handle<String> source(String::cast(script_->source()));
   isolate()->counters()->total_parse_size()->Increment(source->length());
-  int64_t start = FLAG_trace_parse ? OS::Ticks() : 0;
+  ElapsedTimer timer;
+  if (FLAG_trace_parse) {
+    timer.Start();
+  }
   fni_ = new(zone()) FuncNameInferrer(isolate(), zone());
 
   // Initialize parser state.
@@ -591,7 +596,7 @@ FunctionLiteral* Parser::ParseProgram() {
   }
 
   if (FLAG_trace_parse && result != NULL) {
-    double ms = static_cast<double>(OS::Ticks() - start) / 1000;
+    double ms = timer.Elapsed().InMillisecondsF();
     if (info()->is_eval()) {
       PrintF("[parsing eval");
     } else if (info()->script()->name()->IsString()) {
@@ -621,6 +626,7 @@ FunctionLiteral* Parser::DoParseProgram(CompilationInfo* info,
     if (!info->context().is_null()) {
       scope = Scope::DeserializeScopeChain(*info->context(), scope, zone());
     }
+    original_scope_ = scope;
     if (info->is_eval()) {
       if (!scope->is_global_scope() || info->language_mode() != CLASSIC_MODE) {
         scope = NewScope(scope, EVAL_SCOPE);
@@ -681,6 +687,8 @@ FunctionLiteral* Parser::DoParseProgram(CompilationInfo* info,
           FunctionLiteral::kNotParenthesized,
           FunctionLiteral::kNotGenerator);
       result->set_ast_properties(factory()->visitor()->ast_properties());
+      result->set_dont_optimize_reason(
+          factory()->visitor()->dont_optimize_reason());
     } else if (stack_overflow_) {
       isolate()->StackOverflow();
     }
@@ -694,10 +702,13 @@ FunctionLiteral* Parser::DoParseProgram(CompilationInfo* info,
 
 
 FunctionLiteral* Parser::ParseLazy() {
-  HistogramTimerScope timer(isolate()->counters()->parse_lazy());
+  HistogramTimerScope timer_scope(isolate()->counters()->parse_lazy());
   Handle<String> source(String::cast(script_->source()));
   isolate()->counters()->total_parse_size()->Increment(source->length());
-  int64_t start = FLAG_trace_parse ? OS::Ticks() : 0;
+  ElapsedTimer timer;
+  if (FLAG_trace_parse) {
+    timer.Start();
+  }
   Handle<SharedFunctionInfo> shared_info = info()->shared_info();
 
   // Initialize parser state.
@@ -717,7 +728,7 @@ FunctionLiteral* Parser::ParseLazy() {
   }
 
   if (FLAG_trace_parse && result != NULL) {
-    double ms = static_cast<double>(OS::Ticks() - start) / 1000;
+    double ms = timer.Elapsed().InMillisecondsF();
     SmartArrayPointer<char> name_chars = result->debug_name()->ToCString();
     PrintF("[parsing function: %s - took %0.3f ms]\n", *name_chars, ms);
   }
@@ -748,6 +759,7 @@ FunctionLiteral* Parser::ParseLazy(Utf16CharacterStream* source) {
       scope = Scope::DeserializeScopeChain(info()->closure()->context(), scope,
                                            zone());
     }
+    original_scope_ = scope;
     FunctionState function_state(this, scope, isolate());
     ASSERT(scope->language_mode() != STRICT_MODE || !info()->is_classic_mode());
     ASSERT(scope->language_mode() != EXTENDED_MODE ||
@@ -1563,24 +1575,18 @@ void Parser::Declare(Declaration* declaration, bool resolve, bool* ok) {
     // For global const variables we bind the proxy to a variable.
     ASSERT(resolve);  // should be set by all callers
     Variable::Kind kind = Variable::NORMAL;
-    var = new(zone()) Variable(declaration_scope,
-                               name,
-                               mode,
-                               true,
-                               kind,
-                               kNeedsInitialization);
+    var = new(zone()) Variable(
+        declaration_scope, name, mode, true, kind,
+        kNeedsInitialization, proxy->interface());
   } else if (declaration_scope->is_eval_scope() &&
              declaration_scope->is_classic_mode()) {
     // For variable declarations in a non-strict eval scope the proxy is bound
     // to a lookup variable to force a dynamic declaration using the
     // DeclareContextSlot runtime function.
     Variable::Kind kind = Variable::NORMAL;
-    var = new(zone()) Variable(declaration_scope,
-                               name,
-                               mode,
-                               true,
-                               kind,
-                               declaration->initialization());
+    var = new(zone()) Variable(
+        declaration_scope, name, mode, true, kind,
+        declaration->initialization(), proxy->interface());
     var->AllocateTo(Variable::LOOKUP, -1);
     resolve = true;
   }
@@ -3202,6 +3208,20 @@ Expression* Parser::ParseUnaryExpression(bool* ok) {
                                            factory()->NewNumberLiteral(1),
                                            position);
     }
+    // The same idea for '-foo' => 'foo*(-1)'.
+    if (op == Token::SUB) {
+      return factory()->NewBinaryOperation(Token::MUL,
+                                           expression,
+                                           factory()->NewNumberLiteral(-1),
+                                           position);
+    }
+    // ...and one more time for '~foo' => 'foo^(~0)'.
+    if (op == Token::BIT_NOT) {
+      return factory()->NewBinaryOperation(Token::BIT_XOR,
+                                           expression,
+                                           factory()->NewNumberLiteral(~0),
+                                           position);
+    }
 
     return factory()->NewUnaryOperation(op, expression, position);
 
@@ -3579,7 +3599,8 @@ Expression* Parser::ParsePrimaryExpression(bool* ok) {
       ASSERT(scanner().is_literal_ascii());
       double value = StringToDouble(isolate()->unicode_cache(),
                                     scanner().literal_ascii_string(),
-                                    ALLOW_HEX | ALLOW_OCTALS);
+                                    ALLOW_HEX | ALLOW_OCTAL |
+                                        ALLOW_IMPLICIT_OCTAL | ALLOW_BINARY);
       result = factory()->NewNumberLiteral(value);
       break;
     }
@@ -3725,8 +3746,9 @@ bool CompileTimeValue::IsCompileTimeValue(Expression* expression) {
 }
 
 
-Handle<FixedArray> CompileTimeValue::GetValue(Expression* expression) {
-  Factory* factory = Isolate::Current()->factory();
+Handle<FixedArray> CompileTimeValue::GetValue(Isolate* isolate,
+                                              Expression* expression) {
+  Factory* factory = isolate->factory();
   ASSERT(IsCompileTimeValue(expression));
   Handle<FixedArray> result = factory->NewFixedArray(2, TENURED);
   ObjectLiteral* object_literal = expression->AsObjectLiteral();
@@ -3765,7 +3787,7 @@ Handle<Object> Parser::GetBoilerplateValue(Expression* expression) {
     return expression->AsLiteral()->value();
   }
   if (CompileTimeValue::IsCompileTimeValue(expression)) {
-    return CompileTimeValue::GetValue(expression);
+    return CompileTimeValue::GetValue(isolate(), expression);
   }
   return isolate()->factory()->uninitialized_value();
 }
@@ -4032,7 +4054,8 @@ Expression* Parser::ParseObjectLiteral(bool* ok) {
         ASSERT(scanner().is_literal_ascii());
         double value = StringToDouble(isolate()->unicode_cache(),
                                       scanner().literal_ascii_string(),
-                                      ALLOW_HEX | ALLOW_OCTALS);
+                                      ALLOW_HEX | ALLOW_OCTAL |
+                                          ALLOW_IMPLICIT_OCTAL | ALLOW_BINARY);
         key = factory()->NewNumberLiteral(value);
         break;
       }
@@ -4268,10 +4291,38 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
   // Function declarations are function scoped in normal mode, so they are
   // hoisted. In harmony block scoping mode they are block scoped, so they
   // are not hoisted.
+  //
+  // One tricky case are function declarations in a local sloppy-mode eval:
+  // their declaration is hoisted, but they still see the local scope. E.g.,
+  //
+  // function() {
+  //   var x = 0
+  //   try { throw 1 } catch (x) { eval("function g() { return x }") }
+  //   return g()
+  // }
+  //
+  // needs to return 1. To distinguish such cases, we need to detect
+  // (1) whether a function stems from a sloppy eval, and
+  // (2) whether it actually hoists across the eval.
+  // Unfortunately, we do not represent sloppy eval scopes, so we do not have
+  // either information available directly, especially not when lazily compiling
+  // a function like 'g'. We hence rely on the following invariants:
+  // - (1) is the case iff the innermost scope of the deserialized scope chain
+  //   under which we compile is _not_ a declaration scope. This holds because
+  //   in all normal cases, function declarations are fully hoisted to a
+  //   declaration scope and compiled relative to that.
+  // - (2) is the case iff the current declaration scope is still the original
+  //   one relative to the deserialized scope chain. Otherwise we must be
+  //   compiling a function in an inner declaration scope in the eval, e.g. a
+  //   nested function, and hoisting works normally relative to that.
+  Scope* declaration_scope = top_scope_->DeclarationScope();
+  Scope* original_declaration_scope = original_scope_->DeclarationScope();
   Scope* scope =
-      (function_type == FunctionLiteral::DECLARATION && !is_extended_mode())
-      ? NewScope(top_scope_->DeclarationScope(), FUNCTION_SCOPE)
-      : NewScope(top_scope_, FUNCTION_SCOPE);
+      function_type == FunctionLiteral::DECLARATION && !is_extended_mode() &&
+      (original_scope_ == original_declaration_scope ||
+       declaration_scope != original_declaration_scope)
+          ? NewScope(declaration_scope, FUNCTION_SCOPE)
+          : NewScope(top_scope_, FUNCTION_SCOPE);
   ZoneList<Statement*>* body = NULL;
   int materialized_literal_count = -1;
   int expected_property_count = -1;
@@ -4285,6 +4336,7 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
       ? FunctionLiteral::kIsGenerator
       : FunctionLiteral::kNotGenerator;
   AstProperties ast_properties;
+  BailoutReason dont_optimize_reason = kNoReason;
   // Parse function body.
   { FunctionState function_state(this, scope, isolate());
     top_scope_->SetScopeName(function_name);
@@ -4544,6 +4596,7 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
                         CHECK_OK);
     }
     ast_properties = *factory()->visitor()->ast_properties();
+    dont_optimize_reason = factory()->visitor()->dont_optimize_reason();
   }
 
   if (is_extended_mode()) {
@@ -4565,6 +4618,7 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
                                     generator);
   function_literal->set_function_token_position(function_token_position);
   function_literal->set_ast_properties(&ast_properties);
+  function_literal->set_dont_optimize_reason(dont_optimize_reason);
 
   if (fni_ != NULL && should_infer_name) fni_->AddFunction(function_literal);
   return function_literal;
@@ -4587,6 +4641,8 @@ preparser::PreParser::PreParseResult Parser::LazyParseFunctionLiteral(
     reusable_preparser_->set_allow_lazy(true);
     reusable_preparser_->set_allow_generators(allow_generators());
     reusable_preparser_->set_allow_for_of(allow_for_of());
+    reusable_preparser_->set_allow_harmony_numeric_literals(
+        allow_harmony_numeric_literals());
   }
   preparser::PreParser::PreParseResult result =
       reusable_preparser_->PreParseLazyFunction(top_scope_->language_mode(),
@@ -4973,7 +5029,7 @@ RegExpParser::RegExpParser(FlatStringReader* in,
                            Handle<String>* error,
                            bool multiline,
                            Zone* zone)
-    : isolate_(Isolate::Current()),
+    : isolate_(zone->isolate()),
       zone_(zone),
       error_(error),
       captures_(NULL),
@@ -5845,9 +5901,9 @@ int ScriptDataImpl::ReadNumber(byte** source) {
 
 
 // Create a Scanner for the preparser to use as input, and preparse the source.
-ScriptDataImpl* PreParserApi::PreParse(Utf16CharacterStream* source) {
+ScriptDataImpl* PreParserApi::PreParse(Isolate* isolate,
+                                       Utf16CharacterStream* source) {
   CompleteParserRecorder recorder;
-  Isolate* isolate = Isolate::Current();
   HistogramTimerScope timer(isolate->counters()->pre_parse());
   Scanner scanner(isolate->unicode_cache());
   intptr_t stack_limit = isolate->stack_guard()->real_climit();
@@ -5856,6 +5912,7 @@ ScriptDataImpl* PreParserApi::PreParse(Utf16CharacterStream* source) {
   preparser.set_allow_generators(FLAG_harmony_generators);
   preparser.set_allow_for_of(FLAG_harmony_iteration);
   preparser.set_allow_harmony_scoping(FLAG_harmony_scoping);
+  preparser.set_allow_harmony_numeric_literals(FLAG_harmony_numeric_literals);
   scanner.Initialize(source);
   preparser::PreParser::PreParseResult result = preparser.PreParseProgram();
   if (result == preparser::PreParser::kPreParseStackOverflow) {

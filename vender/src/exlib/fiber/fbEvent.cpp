@@ -48,7 +48,7 @@ void Event::reset()
 	m_set = false;
 }
 
-bool Event::isset()
+bool Event::isSet()
 {
 	return m_set;
 }

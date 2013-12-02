@@ -45,8 +45,9 @@ inline MemOperand FieldMemOperand(Register object, int offset) {
 
 
 // Give alias names to registers
-const Register cp = { 8 };  // JavaScript context pointer
-const Register kRootRegister = { 10 };  // Roots array pointer.
+const Register pp = { kRegister_r7_Code };  // Constant pool pointer.
+const Register cp = { kRegister_r8_Code };  // JavaScript context pointer.
+const Register kRootRegister = { kRegister_r10_Code };  // Roots array pointer.
 
 // Flags used for AllocateHeapNumber
 enum TaggingMode {
@@ -60,6 +61,14 @@ enum TaggingMode {
 enum RememberedSetAction { EMIT_REMEMBERED_SET, OMIT_REMEMBERED_SET };
 enum SmiCheck { INLINE_SMI_CHECK, OMIT_SMI_CHECK };
 enum LinkRegisterStatus { kLRHasNotBeenSaved, kLRHasBeenSaved };
+
+
+Register GetRegisterThatIsNotOneOf(Register reg1,
+                                   Register reg2 = no_reg,
+                                   Register reg3 = no_reg,
+                                   Register reg4 = no_reg,
+                                   Register reg5 = no_reg,
+                                   Register reg6 = no_reg);
 
 
 #ifdef DEBUG
@@ -144,6 +153,8 @@ class MacroAssembler: public Assembler {
             Condition cond = al);
 
   void Call(Label* target);
+  void Push(Register src) { push(src); }
+  void Pop(Register dst) { pop(dst); }
 
   // Register move. May do nothing if the registers are identical.
   void Move(Register dst, Handle<Object> value);
@@ -459,8 +470,13 @@ class MacroAssembler: public Assembler {
   void VFPEnsureFPSCRState(Register scratch);
 
   // If the value is a NaN, canonicalize the value else, do nothing.
-  void VFPCanonicalizeNaN(const DwVfpRegister value,
+  void VFPCanonicalizeNaN(const DwVfpRegister dst,
+                          const DwVfpRegister src,
                           const Condition cond = al);
+  void VFPCanonicalizeNaN(const DwVfpRegister value,
+                          const Condition cond = al) {
+    VFPCanonicalizeNaN(value, value, cond);
+  }
 
   // Compare double values and move the result to the normal condition flags.
   void VFPCompareAndSetFlags(const DwVfpRegister src1,
@@ -484,24 +500,16 @@ class MacroAssembler: public Assembler {
             const double imm,
             const Register scratch = no_reg);
 
-  // Converts the smi or heap number in object to an int32 using the rules
-  // for ToInt32 as described in ECMAScript 9.5.: the value is truncated
-  // and brought into the range -2^31 .. +2^31 - 1.
-  void ConvertNumberToInt32(Register object,
-                            Register dst,
-                            Register heap_number_map,
-                            Register scratch1,
-                            Register scratch2,
-                            Register scratch3,
-                            DwVfpRegister double_scratch1,
-                            DwVfpRegister double_scratch2,
-                            Label* not_int32);
+  void VmovHigh(Register dst, DwVfpRegister src);
+  void VmovHigh(DwVfpRegister dst, Register src);
+  void VmovLow(Register dst, DwVfpRegister src);
+  void VmovLow(DwVfpRegister dst, Register src);
 
   // Loads the number from object into dst register.
   // If |object| is neither smi nor heap number, |not_number| is jumped to
   // with |object| still intact.
   void LoadNumber(Register object,
-                  DwVfpRegister dst,
+                  LowDwVfpRegister dst,
                   Register heap_number_map,
                   Register scratch,
                   Label* not_number);
@@ -515,7 +523,7 @@ class MacroAssembler: public Assembler {
                                DwVfpRegister double_dst,
                                Register heap_number_map,
                                Register scratch,
-                               DwVfpRegister double_scratch,
+                               LowDwVfpRegister double_scratch,
                                Label* not_int32);
 
   // Loads the number from object into dst as a 32-bit integer.
@@ -528,7 +536,7 @@ class MacroAssembler: public Assembler {
                          Register heap_number_map,
                          Register scratch,
                          DwVfpRegister double_scratch0,
-                         DwVfpRegister double_scratch1,
+                         LowDwVfpRegister double_scratch1,
                          Label* not_int32);
 
 
@@ -539,7 +547,9 @@ class MacroAssembler: public Assembler {
   // Leave the current exit frame. Expects the return value in r0.
   // Expect the number of values, pushed prior to the exit frame, to
   // remove in a register (or no_reg, if there is nothing to remove).
-  void LeaveExitFrame(bool save_doubles, Register argument_count);
+  void LeaveExitFrame(bool save_doubles,
+                      Register argument_count,
+                      bool restore_context);
 
   // Get the actual activation frame alignment for target environment.
   static int ActivationFrameAlignment();
@@ -796,8 +806,7 @@ class MacroAssembler: public Assembler {
   // Copies a fixed number of fields of heap objects from src to dst.
   void CopyFields(Register dst,
                   Register src,
-                  DwVfpRegister double_scratch,
-                  SwVfpRegister single_scratch,
+                  LowDwVfpRegister double_scratch,
                   int field_count);
 
   // Copies a number of bytes from src to dst. All registers are clobbered. On
@@ -874,6 +883,7 @@ class MacroAssembler: public Assembler {
                                    Register key_reg,
                                    Register elements_reg,
                                    Register scratch1,
+                                   LowDwVfpRegister double_scratch,
                                    Label* fail,
                                    int elements_offset = 0);
 
@@ -957,39 +967,59 @@ class MacroAssembler: public Assembler {
 
   // Load the value of a smi object into a double register.
   // The register value must be between d0 and d15.
-  void SmiToDouble(DwVfpRegister value, Register smi);
+  void SmiToDouble(LowDwVfpRegister value, Register smi);
 
   // Check if a double can be exactly represented as a signed 32-bit integer.
   // Z flag set to one if true.
   void TestDoubleIsInt32(DwVfpRegister double_input,
-                         DwVfpRegister double_scratch);
+                         LowDwVfpRegister double_scratch);
 
   // Try to convert a double to a signed 32-bit integer.
   // Z flag set to one and result assigned if the conversion is exact.
   void TryDoubleToInt32Exact(Register result,
                              DwVfpRegister double_input,
-                             DwVfpRegister double_scratch);
+                             LowDwVfpRegister double_scratch);
 
   // Floor a double and writes the value to the result register.
   // Go to exact if the conversion is exact (to be able to test -0),
   // fall through calling code if an overflow occurred, else go to done.
+  // In return, input_high is loaded with high bits of input.
   void TryInt32Floor(Register result,
                      DwVfpRegister double_input,
                      Register input_high,
-                     DwVfpRegister double_scratch,
+                     LowDwVfpRegister double_scratch,
                      Label* done,
                      Label* exact);
 
   // Performs a truncating conversion of a floating point number as used by
+  // the JS bitwise operations. See ECMA-262 9.5: ToInt32. Goes to 'done' if it
+  // succeeds, otherwise falls through if result is saturated. On return
+  // 'result' either holds answer, or is clobbered on fall through.
+  //
+  // Only public for the test code in test-code-stubs-arm.cc.
+  void TryInlineTruncateDoubleToI(Register result,
+                                  DwVfpRegister input,
+                                  Label* done);
+
+  // Performs a truncating conversion of a floating point number as used by
   // the JS bitwise operations. See ECMA-262 9.5: ToInt32.
-  // Double_scratch must be between d0 and d15.
-  // Exits with 'result' holding the answer and all other registers clobbered.
-  void ECMAToInt32(Register result,
-                   DwVfpRegister double_input,
-                   Register scratch,
-                   Register scratch_high,
-                   Register scratch_low,
-                   DwVfpRegister double_scratch);
+  // Exits with 'result' holding the answer.
+  void TruncateDoubleToI(Register result, DwVfpRegister double_input);
+
+  // Performs a truncating conversion of a heap number as used by
+  // the JS bitwise operations. See ECMA-262 9.5: ToInt32. 'result' and 'input'
+  // must be different registers.  Exits with 'result' holding the answer.
+  void TruncateHeapNumberToI(Register result, Register object);
+
+  // Converts the smi or heap number in object to an int32 using the rules
+  // for ToInt32 as described in ECMAScript 9.5.: the value is truncated
+  // and brought into the range -2^31 .. +2^31 - 1. 'result' and 'input' must be
+  // different registers.
+  void TruncateNumberToI(Register object,
+                         Register result,
+                         Register heap_number_map,
+                         Register scratch1,
+                         Label* not_int32);
 
   // Check whether d16-d31 are available on the CPU. The result is given by the
   // Z condition flag: Z==0 if d16-d31 available, Z==1 otherwise.
@@ -1089,8 +1119,8 @@ class MacroAssembler: public Assembler {
                                 ExternalReference thunk_ref,
                                 Register thunk_last_arg,
                                 int stack_space,
-                                bool returns_handle,
-                                int return_value_offset_from_fp);
+                                MemOperand return_value_operand,
+                                MemOperand* context_restore_operand);
 
   // Jump to a runtime routine.
   void JumpToExternalReference(const ExternalReference& builtin);
@@ -1130,14 +1160,14 @@ class MacroAssembler: public Assembler {
 
   // Calls Abort(msg) if the condition cond is not satisfied.
   // Use --debug_code to enable.
-  void Assert(Condition cond, const char* msg);
+  void Assert(Condition cond, BailoutReason reason);
   void AssertFastElements(Register elements);
 
   // Like Assert(), but always enabled.
-  void Check(Condition cond, const char* msg);
+  void Check(Condition cond, BailoutReason reason);
 
   // Print a message to stdout and abort execution.
-  void Abort(const char* msg);
+  void Abort(BailoutReason msg);
 
   // Verify restrictions about code generated in stubs.
   void set_generating_stub(bool value) { generating_stub_ = value; }
@@ -1265,6 +1295,18 @@ class MacroAssembler: public Assembler {
   // ---------------------------------------------------------------------------
   // String utilities
 
+  // Generate code to do a lookup in the number string cache. If the number in
+  // the register object is found in the cache the generated code falls through
+  // with the result in the result register. The object and the result register
+  // can be the same. If the number is not found in the cache the code jumps to
+  // the label not_found with only the content of register object unchanged.
+  void LookupNumberStringCache(Register object,
+                               Register result,
+                               Register scratch1,
+                               Register scratch2,
+                               Register scratch3,
+                               Label* not_found);
+
   // Checks if both objects are sequential ASCII strings and jumps to label
   // if either is not. Assumes that neither object is a smi.
   void JumpIfNonSmisNotBothSequentialAsciiStrings(Register object1,
@@ -1311,7 +1353,7 @@ class MacroAssembler: public Assembler {
 
   void ClampDoubleToUint8(Register result_reg,
                           DwVfpRegister input_reg,
-                          DwVfpRegister temp_double_reg);
+                          LowDwVfpRegister double_scratch);
 
 
   void LoadInstanceDescriptors(Register map, Register descriptors);
@@ -1334,14 +1376,14 @@ class MacroAssembler: public Assembler {
   // in r0.  Assumes that any other register can be used as a scratch.
   void CheckEnumCache(Register null_value, Label* call_runtime);
 
-  // AllocationSiteInfo support. Arrays may have an associated
-  // AllocationSiteInfo object that can be checked for in order to pretransition
+  // AllocationMemento support. Arrays may have an associated
+  // AllocationMemento object that can be checked for in order to pretransition
   // to another type.
   // On entry, receiver_reg should point to the array object.
   // scratch_reg gets clobbered.
   // If allocation info is present, condition flags are set to eq
-  void TestJSArrayForAllocationSiteInfo(Register receiver_reg,
-                                        Register scratch_reg);
+  void TestJSArrayForAllocationMemento(Register receiver_reg,
+                                       Register scratch_reg);
 
  private:
   void CallCFunctionHelper(Register function,
@@ -1408,7 +1450,14 @@ class MacroAssembler: public Assembler {
 // an assertion to fail.
 class CodePatcher {
  public:
-  CodePatcher(byte* address, int instructions);
+  enum FlushICache {
+    FLUSH,
+    DONT_FLUSH
+  };
+
+  CodePatcher(byte* address,
+              int instructions,
+              FlushICache flush_cache = FLUSH);
   virtual ~CodePatcher();
 
   // Macro assembler to emit code.
@@ -1428,6 +1477,7 @@ class CodePatcher {
   byte* address_;  // The address of the code being patched.
   int size_;  // Number of bytes of the expected patch size.
   MacroAssembler masm_;  // Macro assembler used to generate the code.
+  FlushICache flush_cache_;  // Whether to flush the I cache after patching.
 };
 
 

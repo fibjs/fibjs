@@ -55,6 +55,7 @@ class StaticVisitorBase : public AllStatic {
   V(FixedArray)               \
   V(FixedDoubleArray)         \
   V(NativeContext)            \
+  V(AllocationSite)           \
   V(DataObject2)              \
   V(DataObject3)              \
   V(DataObject4)              \
@@ -93,6 +94,7 @@ class StaticVisitorBase : public AllStatic {
   V(SharedFunctionInfo)       \
   V(JSFunction)               \
   V(JSWeakMap)                \
+  V(JSWeakSet)                \
   V(JSArrayBuffer)            \
   V(JSTypedArray)             \
   V(JSDataView)               \
@@ -139,7 +141,7 @@ class StaticVisitorBase : public AllStatic {
            (base == kVisitJSObject));
     ASSERT(IsAligned(object_size, kPointerSize));
     ASSERT(kMinObjectSizeInWords * kPointerSize <= object_size);
-    ASSERT(object_size < Page::kMaxNonCodeHeapObjectSize);
+    ASSERT(object_size <= Page::kMaxNonCodeHeapObjectSize);
 
     const VisitorId specialization = static_cast<VisitorId>(
         base + (object_size >> kPointerSizeLog2) - kMinObjectSizeInWords);

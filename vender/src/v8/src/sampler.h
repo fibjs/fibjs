@@ -94,17 +94,32 @@ class Sampler {
   void Start();
   void Stop();
 
-  // Is the sampler used for profiling?
-  bool IsProfiling() const { return NoBarrier_Load(&profiling_) > 0; }
-  void IncreaseProfilingDepth() { NoBarrier_AtomicIncrement(&profiling_, 1); }
-  void DecreaseProfilingDepth() { NoBarrier_AtomicIncrement(&profiling_, -1); }
+  // Whether the sampling thread should use this Sampler for CPU profiling?
+  bool IsProfiling() const {
+    return NoBarrier_Load(&profiling_) > 0 &&
+        !NoBarrier_Load(&has_processing_thread_);
+  }
+  void IncreaseProfilingDepth();
+  void DecreaseProfilingDepth();
 
   // Whether the sampler is running (that is, consumes resources).
   bool IsActive() const { return NoBarrier_Load(&active_); }
 
+  void DoSample();
+  // If true next sample must be initiated on the profiler event processor
+  // thread right after latest sample is processed.
+  void SetHasProcessingThread(bool value) {
+    NoBarrier_Store(&has_processing_thread_, value);
+  }
+
   // Used in tests to make sure that stack sampling is performed.
-  int samples_taken() const { return samples_taken_; }
-  void ResetSamplesTaken() { samples_taken_ = 0; }
+  unsigned js_and_external_sample_count() const {
+    return js_and_external_sample_count_;
+  }
+  void StartCountingSamples() {
+      is_counting_samples_ = true;
+      js_and_external_sample_count_ = 0;
+  }
 
   class PlatformData;
   PlatformData* platform_data() const { return data_; }
@@ -120,9 +135,12 @@ class Sampler {
   Isolate* isolate_;
   const int interval_;
   Atomic32 profiling_;
+  Atomic32 has_processing_thread_;
   Atomic32 active_;
   PlatformData* data_;  // Platform specific data.
-  int samples_taken_;  // Counts stack samples taken.
+  bool is_counting_samples_;
+  // Counts stack samples taken in JS VM state.
+  unsigned js_and_external_sample_count_;
   DISALLOW_IMPLICIT_CONSTRUCTORS(Sampler);
 };
 

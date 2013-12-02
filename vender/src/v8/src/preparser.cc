@@ -42,10 +42,10 @@
 #include "unicode.h"
 #include "utils.h"
 
-#ifdef _MSC_VER
+#if V8_CC_MSVC && (_MSC_VER < 1800)
 namespace std {
 
-// Usually defined in math.h, but not in MSVC.
+// Usually defined in math.h, but not in MSVC until VS2013+.
 // Abstracted to work
 int isfinite(double value);
 
@@ -1724,7 +1724,8 @@ int DuplicateFinder::AddNumber(i::Vector<const char> key, int value) {
     return AddAsciiSymbol(key, value);
   }
 
-  int flags = i::ALLOW_HEX | i::ALLOW_OCTALS;
+  int flags = i::ALLOW_HEX | i::ALLOW_OCTAL | i::ALLOW_IMPLICIT_OCTAL |
+      i::ALLOW_BINARY;
   double double_value = StringToDouble(unicode_constants_, key, flags, 0.0);
   int length;
   const char* string;

@@ -89,6 +89,8 @@ void StaticNewSpaceVisitor<StaticVisitor>::Initialize() {
 
   table_.Register(kVisitJSWeakMap, &JSObjectVisitor::Visit);
 
+  table_.Register(kVisitJSWeakSet, &JSObjectVisitor::Visit);
+
   table_.Register(kVisitJSRegExp, &JSObjectVisitor::Visit);
 
   table_.template RegisterSpecializations<DataObjectVisitor,
@@ -185,6 +187,11 @@ void StaticMarkingVisitor<StaticVisitor>::Initialize() {
 
   table_.Register(kVisitNativeContext, &VisitNativeContext);
 
+  table_.Register(kVisitAllocationSite,
+                  &FixedBodyVisitor<StaticVisitor,
+                  AllocationSite::BodyDescriptor,
+                  void>::Visit);
+
   table_.Register(kVisitByteArray, &DataObjectVisitor::Visit);
 
   table_.Register(kVisitFreeSpace, &DataObjectVisitor::Visit);
@@ -193,7 +200,9 @@ void StaticMarkingVisitor<StaticVisitor>::Initialize() {
 
   table_.Register(kVisitSeqTwoByteString, &DataObjectVisitor::Visit);
 
-  table_.Register(kVisitJSWeakMap, &StaticVisitor::VisitJSWeakMap);
+  table_.Register(kVisitJSWeakMap, &StaticVisitor::VisitWeakCollection);
+
+  table_.Register(kVisitJSWeakSet, &StaticVisitor::VisitWeakCollection);
 
   table_.Register(kVisitOddball,
                   &FixedBodyVisitor<StaticVisitor,
@@ -295,7 +304,7 @@ void StaticMarkingVisitor<StaticVisitor>::VisitCodeTarget(
       && (target->ic_state() == MEGAMORPHIC || target->ic_state() == GENERIC ||
           target->ic_state() == POLYMORPHIC || heap->flush_monomorphic_ics() ||
           Serializer::enabled() || target->ic_age() != heap->global_ic_age())) {
-    IC::Clear(rinfo->pc());
+    IC::Clear(target->GetIsolate(), rinfo->pc());
     target = Code::GetCodeFromTargetAddress(rinfo->target_address());
   }
   heap->mark_compact_collector()->RecordRelocSlot(rinfo, target);
@@ -839,8 +848,9 @@ void Code::CodeIterateBody(ObjectVisitor* v) {
   IteratePointer(v, kTypeFeedbackInfoOffset);
 
   RelocIterator it(this, mode_mask);
+  Isolate* isolate = this->GetIsolate();
   for (; !it.done(); it.next()) {
-    it.rinfo()->Visit(v);
+    it.rinfo()->Visit(isolate, v);
   }
 }
 

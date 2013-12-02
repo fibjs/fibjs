@@ -475,7 +475,6 @@ class CpuFeatures : public AllStatic {
     if (f == SSE3 && !FLAG_enable_sse3) return false;
     if (f == SSE4_1 && !FLAG_enable_sse4_1) return false;
     if (f == CMOV && !FLAG_enable_cmov) return false;
-    if (f == RDTSC && !FLAG_enable_rdtsc) return false;
     if (f == SAHF && !FLAG_enable_sahf) return false;
     return (supported_ & (static_cast<uint64_t>(1) << f)) != 0;
   }
@@ -505,6 +504,7 @@ class CpuFeatures : public AllStatic {
   static uint64_t found_by_runtime_probing_only_;
 
   friend class ExternalReference;
+  friend class PlatformFeatureScope;
   DISALLOW_COPY_AND_ASSIGN(CpuFeatures);
 };
 
@@ -579,29 +579,36 @@ class Assembler : public AssemblerBase {
   // Distance between the address of the code target in the call instruction
   // and the return address pushed on the stack.
   static const int kCallTargetAddressOffset = 4;  // Use 32-bit displacement.
-  // Distance between the start of the JS return sequence and where the
-  // 32-bit displacement of a near call would be, relative to the pushed
-  // return address.  TODO: Use return sequence length instead.
-  // Should equal Debug::kX64JSReturnSequenceLength - kCallTargetAddressOffset;
-  static const int kPatchReturnSequenceAddressOffset = 13 - 4;
-  // Distance between start of patched debug break slot and where the
-  // 32-bit displacement of a near call would be, relative to the pushed
-  // return address.  TODO: Use return sequence length instead.
-  // Should equal Debug::kX64JSReturnSequenceLength - kCallTargetAddressOffset;
-  static const int kPatchDebugBreakSlotAddressOffset = 13 - 4;
-  // TODO(X64): Rename this, removing the "Real", after changing the above.
-  static const int kRealPatchReturnSequenceAddressOffset = 2;
-
-  // Some x64 JS code is padded with int3 to make it large
-  // enough to hold an instruction when the debugger patches it.
-  static const int kJumpInstructionLength = 13;
-  static const int kCallInstructionLength = 13;
-  static const int kJSReturnSequenceLength = 13;
+  // The length of call(kScratchRegister).
+  static const int kCallScratchRegisterInstructionLength = 3;
+  // The length of call(Immediate32).
   static const int kShortCallInstructionLength = 5;
-  static const int kPatchDebugBreakSlotReturnOffset = 4;
+  // The length of movq(kScratchRegister, address).
+  static const int kMoveAddressIntoScratchRegisterInstructionLength =
+      2 + kPointerSize;
+  // The length of movq(kScratchRegister, address) and call(kScratchRegister).
+  static const int kCallSequenceLength =
+      kMoveAddressIntoScratchRegisterInstructionLength +
+      kCallScratchRegisterInstructionLength;
 
-  // The debug break slot must be able to contain a call instruction.
-  static const int kDebugBreakSlotLength = kCallInstructionLength;
+  // The js return and debug break slot must be able to contain an indirect
+  // call sequence, some x64 JS code is padded with int3 to make it large
+  // enough to hold an instruction when the debugger patches it.
+  static const int kJSReturnSequenceLength = kCallSequenceLength;
+  static const int kDebugBreakSlotLength = kCallSequenceLength;
+  static const int kPatchDebugBreakSlotReturnOffset = kCallTargetAddressOffset;
+  // Distance between the start of the JS return sequence and where the
+  // 32-bit displacement of a short call would be. The short call is from
+  // SetDebugBreakAtIC from debug-x64.cc.
+  static const int kPatchReturnSequenceAddressOffset =
+      kJSReturnSequenceLength - kPatchDebugBreakSlotReturnOffset;
+  // Distance between the start of the JS return sequence and where the
+  // 32-bit displacement of a short call would be. The short call is from
+  // SetDebugBreakAtIC from debug-x64.cc.
+  static const int kPatchDebugBreakSlotAddressOffset =
+      kDebugBreakSlotLength - kPatchDebugBreakSlotReturnOffset;
+  static const int kRealPatchReturnSequenceAddressOffset =
+      kMoveAddressIntoScratchRegisterInstructionLength - kPointerSize;
 
   // One byte opcode for test eax,0xXXXXXXXX.
   static const byte kTestEaxByte = 0xA9;
@@ -1169,7 +1176,6 @@ class Assembler : public AssemblerBase {
   void hlt();
   void int3();
   void nop();
-  void rdtsc();
   void ret(int imm16);
   void setcc(Condition cc, Register reg);
 
@@ -1379,6 +1385,8 @@ class Assembler : public AssemblerBase {
   void movmskpd(Register dst, XMMRegister src);
   void movmskps(Register dst, XMMRegister src);
 
+  void cmpltsd(XMMRegister dst, XMMRegister src);
+
   // The first argument is the reg field, the second argument is the r/m field.
   void emit_sse_operand(XMMRegister dst, XMMRegister src);
   void emit_sse_operand(XMMRegister reg, const Operand& adr);
@@ -1444,6 +1452,7 @@ class Assembler : public AssemblerBase {
 
   void emit(byte x) { *pc_++ = x; }
   inline void emitl(uint32_t x);
+  inline void emitp(void* x, RelocInfo::Mode rmode);
   inline void emitq(uint64_t x, RelocInfo::Mode rmode);
   inline void emitw(uint16_t x);
   inline void emit_code_target(Handle<Code> target,

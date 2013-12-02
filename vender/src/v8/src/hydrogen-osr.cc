@@ -37,19 +37,8 @@ bool HOsrBuilder::HasOsrEntryAt(IterationStatement* statement) {
 }
 
 
-// Build a new loop header block and set it as the current block.
-HBasicBlock *HOsrBuilder::BuildLoopEntry() {
-  HBasicBlock* loop_entry = builder_->CreateLoopHeaderBlock();
-  builder_->current_block()->Goto(loop_entry);
-  builder_->set_current_block(loop_entry);
-  return loop_entry;
-}
-
-
-HBasicBlock* HOsrBuilder::BuildPossibleOsrLoopEntry(
-    IterationStatement* statement) {
-  // Check if there is an OSR here first.
-  if (!HasOsrEntryAt(statement)) return BuildLoopEntry();
+HBasicBlock* HOsrBuilder::BuildOsrLoopEntry(IterationStatement* statement) {
+  ASSERT(HasOsrEntryAt(statement));
 
   Zone* zone = builder_->zone();
   HGraph* graph = builder_->graph();
@@ -63,8 +52,8 @@ HBasicBlock* HOsrBuilder::BuildPossibleOsrLoopEntry(
   HBasicBlock* non_osr_entry = graph->CreateBasicBlock();
   osr_entry_ = graph->CreateBasicBlock();
   HValue* true_value = graph->GetConstantTrue();
-  HBranch* test = new(zone) HBranch(true_value, ToBooleanStub::Types(),
-                                    non_osr_entry, osr_entry_);
+  HBranch* test = builder_->New<HBranch>(true_value, ToBooleanStub::Types(),
+                                         non_osr_entry, osr_entry_);
   builder_->current_block()->Finish(test);
 
   HBasicBlock* loop_predecessor = graph->CreateBasicBlock();
@@ -80,7 +69,8 @@ HBasicBlock* HOsrBuilder::BuildPossibleOsrLoopEntry(
   osr_values_ = new(zone) ZoneList<HUnknownOSRValue*>(length, zone);
 
   for (int i = 0; i < first_expression_index; ++i) {
-    HUnknownOSRValue* osr_value = builder_->Add<HUnknownOSRValue>();
+    HUnknownOSRValue* osr_value
+        = builder_->Add<HUnknownOSRValue>(environment, i);
     environment->Bind(i, osr_value);
     osr_values_->Add(osr_value, zone);
   }
@@ -88,13 +78,22 @@ HBasicBlock* HOsrBuilder::BuildPossibleOsrLoopEntry(
   if (first_expression_index != length) {
     environment->Drop(length - first_expression_index);
     for (int i = first_expression_index; i < length; ++i) {
-      HUnknownOSRValue* osr_value = builder_->Add<HUnknownOSRValue>();
+      HUnknownOSRValue* osr_value
+          = builder_->Add<HUnknownOSRValue>(environment, i);
       environment->Push(osr_value);
       osr_values_->Add(osr_value, zone);
     }
   }
 
-  builder_->AddSimulate(osr_entry_id);
+  unoptimized_frame_slots_ =
+      environment->local_count() + environment->push_count();
+
+  // Keep a copy of the old environment, since the OSR values need it
+  // to figure out where exactly they are located in the unoptimized frame.
+  environment = environment->Copy();
+  builder_->current_block()->UpdateEnvironment(environment);
+
+  builder_->Add<HSimulate>(osr_entry_id);
   builder_->Add<HOsrEntry>(osr_entry_id);
   HContext* context = builder_->Add<HContext>();
   environment->BindContext(context);
@@ -103,7 +102,7 @@ HBasicBlock* HOsrBuilder::BuildPossibleOsrLoopEntry(
   builder_->set_current_block(loop_predecessor);
 
   // Create the final loop entry
-  osr_loop_entry_ = BuildLoopEntry();
+  osr_loop_entry_ = builder_->BuildLoopEntry();
   return osr_loop_entry_;
 }
 
@@ -117,7 +116,9 @@ void HOsrBuilder::FinishOsrValues() {
   const ZoneList<HPhi*>* phis = osr_loop_entry_->phis();
   for (int j = 0; j < phis->length(); j++) {
     HPhi* phi = phis->at(j);
-    osr_values_->at(phi->merged_index())->set_incoming_value(phi);
+    if (phi->HasMergedIndex()) {
+      osr_values_->at(phi->merged_index())->set_incoming_value(phi);
+    }
   }
 }
 

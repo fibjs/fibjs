@@ -302,7 +302,7 @@ class MacroAssembler: public Assembler {
 
   // Leave the current exit frame. Expects/provides the return value in
   // register rax (untouched).
-  void LeaveApiExitFrame();
+  void LeaveApiExitFrame(bool restore_context);
 
   // Push and pop the registers that can hold pointers.
   void PushSafepointRegisters() { Pushad(); }
@@ -374,6 +374,11 @@ class MacroAssembler: public Assembler {
 
   // ---------------------------------------------------------------------------
   // Smi tagging, untagging and operations on tagged smis.
+
+  // Support for constant splitting.
+  bool IsUnsafeInt(const int32_t x);
+  void SafeMove(Register dst, Smi* src);
+  void SafePush(Smi* src);
 
   void InitializeSmiConstantRegister() {
     movq(kSmiConstantRegister,
@@ -527,15 +532,6 @@ class MacroAssembler: public Assembler {
   // Smis represent a subset of integers. The subset is always equivalent to
   // a two's complement interpretation of a fixed number of bits.
 
-  // Optimistically adds an integer constant to a supposed smi.
-  // If the src is not a smi, or the result is not a smi, jump to
-  // the label.
-  void SmiTryAddConstant(Register dst,
-                         Register src,
-                         Smi* constant,
-                         Label* on_not_smi_result,
-                         Label::Distance near_jump = Label::kFar);
-
   // Add an integer constant to a tagged smi, giving a tagged smi as result.
   // No overflow testing on the result is done.
   void SmiAddConstant(Register dst, Register src, Smi* constant);
@@ -591,23 +587,22 @@ class MacroAssembler: public Assembler {
               Register src2);
 
   // Subtracts smi values and return the result as a smi.
-  // If dst is src1, then src1 will be destroyed, even if
-  // the operation is unsuccessful.
+  // If dst is src1, then src1 will be destroyed if the operation is
+  // successful, otherwise kept intact.
   void SmiSub(Register dst,
               Register src1,
               Register src2,
+              Label* on_not_smi_result,
+              Label::Distance near_jump = Label::kFar);
+  void SmiSub(Register dst,
+              Register src1,
+              const Operand& src2,
               Label* on_not_smi_result,
               Label::Distance near_jump = Label::kFar);
 
   void SmiSub(Register dst,
               Register src1,
               Register src2);
-
-  void SmiSub(Register dst,
-              Register src1,
-              const Operand& src2,
-              Label* on_not_smi_result,
-              Label::Distance near_jump = Label::kFar);
 
   void SmiSub(Register dst,
               Register src1,
@@ -720,11 +715,30 @@ class MacroAssembler: public Assembler {
   }
 
   void Push(Smi* smi);
+
+  // Save away a 64-bit integer on the stack as two 32-bit integers
+  // masquerading as smis so that the garbage collector skips visiting them.
+  void PushInt64AsTwoSmis(Register src, Register scratch = kScratchRegister);
+  // Reconstruct a 64-bit integer from two 32-bit integers masquerading as
+  // smis on the top of stack.
+  void PopInt64AsTwoSmis(Register dst, Register scratch = kScratchRegister);
+
   void Test(const Operand& dst, Smi* source);
 
 
   // ---------------------------------------------------------------------------
   // String macros.
+
+  // Generate code to do a lookup in the number string cache. If the number in
+  // the register object is found in the cache the generated code falls through
+  // with the result in the result register. The object and the result register
+  // can be the same. If the number is not found in the cache the code jumps to
+  // the label not_found with only the content of register object unchanged.
+  void LookupNumberStringCache(Register object,
+                               Register result,
+                               Register scratch1,
+                               Register scratch2,
+                               Label* not_found);
 
   // If object is a string, its map is loaded into object_map.
   void JumpIfNotString(Register object,
@@ -771,13 +785,14 @@ class MacroAssembler: public Assembler {
   void Set(Register dst, int64_t x);
   void Set(const Operand& dst, int64_t x);
 
+  // cvtsi2sd instruction only writes to the low 64-bit of dst register, which
+  // hinders register renaming and makes dependence chains longer. So we use
+  // xorps to clear the dst register before cvtsi2sd to solve this issue.
+  void Cvtlsi2sd(XMMRegister dst, Register src);
+  void Cvtlsi2sd(XMMRegister dst, const Operand& src);
+
   // Move if the registers are not identical.
   void Move(Register target, Register source);
-
-  // Support for constant splitting.
-  bool IsUnsafeInt(const int x);
-  void SafeMove(Register dst, Smi* src);
-  void SafePush(Smi* src);
 
   // Bit-field support.
   void TestBit(const Operand& dst, int bit_index);
@@ -823,6 +838,10 @@ class MacroAssembler: public Assembler {
   void Drop(int stack_elements);
 
   void Call(Label* target) { call(target); }
+  void Push(Register src) { push(src); }
+  void Pop(Register dst) { pop(dst); }
+  void PushReturnAddressFrom(Register src) { push(src); }
+  void PopReturnAddressTo(Register dst) { pop(dst); }
 
   // Control Flow
   void Jump(Address destination, RelocInfo::Mode rmode);
@@ -837,7 +856,7 @@ class MacroAssembler: public Assembler {
 
   // The size of the code generated for different call instructions.
   int CallSize(Address destination, RelocInfo::Mode rmode) {
-    return kCallInstructionLength;
+    return kCallSequenceLength;
   }
   int CallSize(ExternalReference ext);
   int CallSize(Handle<Code> code_object) {
@@ -963,6 +982,20 @@ class MacroAssembler: public Assembler {
                           XMMRegister temp_xmm_reg,
                           Register result_reg);
 
+  void SlowTruncateToI(Register result_reg, Register input_reg,
+      int offset = HeapNumber::kValueOffset - kHeapObjectTag);
+
+  void TruncateHeapNumberToI(Register result_reg, Register input_reg);
+  void TruncateDoubleToI(Register result_reg, XMMRegister input_reg);
+
+  void DoubleToI(Register result_reg, XMMRegister input_reg,
+      XMMRegister scratch, MinusZeroMode minus_zero_mode,
+      Label* conversion_failed, Label::Distance dst = Label::kFar);
+
+  void TaggedToI(Register result_reg, Register input_reg, XMMRegister temp,
+      MinusZeroMode minus_zero_mode, Label* lost_precision,
+      Label::Distance dst = Label::kFar);
+
   void LoadUint32(XMMRegister dst, Register src, XMMRegister scratch);
 
   void LoadInstanceDescriptors(Register map, Register descriptors);
@@ -1002,7 +1035,7 @@ class MacroAssembler: public Assembler {
   // enabled via --debug-code.
   void AssertRootValue(Register src,
                        Heap::RootListIndex root_value_index,
-                       const char* message);
+                       BailoutReason reason);
 
   // ---------------------------------------------------------------------------
   // Exception handling
@@ -1238,7 +1271,7 @@ class MacroAssembler: public Assembler {
   // rcx (rcx must be preserverd until CallApiFunctionAndReturn).  Saves
   // context (rsi).  Clobbers rax.  Allocates arg_stack_space * kPointerSize
   // inside the exit frame (not GCed) accessible via StackSpaceOperand.
-  void PrepareCallApiFunction(int arg_stack_space, bool returns_handle);
+  void PrepareCallApiFunction(int arg_stack_space);
 
   // Calls an API function.  Allocates HandleScope, extracts returned value
   // from handle and propagates exceptions.  Clobbers r14, r15, rbx and
@@ -1248,8 +1281,8 @@ class MacroAssembler: public Assembler {
                                 Address thunk_address,
                                 Register thunk_last_arg,
                                 int stack_space,
-                                bool returns_handle,
-                                int return_value_offset_from_rbp);
+                                Operand return_value_operand,
+                                Operand* context_restore_operand);
 
   // Before calling a C-function from generated code, align arguments on stack.
   // After aligning the frame, arguments must be stored in rsp[0], rsp[8],
@@ -1319,15 +1352,15 @@ class MacroAssembler: public Assembler {
 
   // Calls Abort(msg) if the condition cc is not satisfied.
   // Use --debug_code to enable.
-  void Assert(Condition cc, const char* msg);
+  void Assert(Condition cc, BailoutReason reason);
 
   void AssertFastElements(Register elements);
 
   // Like Assert(), but always enabled.
-  void Check(Condition cc, const char* msg);
+  void Check(Condition cc, BailoutReason reason);
 
   // Print a message to stdout and abort execution.
-  void Abort(const char* msg);
+  void Abort(BailoutReason msg);
 
   // Check that the stack is aligned.
   void CheckStackAlignment();
@@ -1354,14 +1387,14 @@ class MacroAssembler: public Assembler {
   void CheckEnumCache(Register null_value,
                       Label* call_runtime);
 
-  // AllocationSiteInfo support. Arrays may have an associated
-  // AllocationSiteInfo object that can be checked for in order to pretransition
+  // AllocationMemento support. Arrays may have an associated
+  // AllocationMemento object that can be checked for in order to pretransition
   // to another type.
   // On entry, receiver_reg should point to the array object.
   // scratch_reg gets clobbered.
   // If allocation info is present, condition flags are set to equal
-  void TestJSArrayForAllocationSiteInfo(Register receiver_reg,
-                                        Register scratch_reg);
+  void TestJSArrayForAllocationMemento(Register receiver_reg,
+                                       Register scratch_reg);
 
  private:
   // Order general registers are pushed by Pushad.
@@ -1405,7 +1438,7 @@ class MacroAssembler: public Assembler {
   // accessible via StackSpaceOperand.
   void EnterExitFrameEpilogue(int arg_stack_space, bool save_doubles);
 
-  void LeaveExitFrameEpilogue();
+  void LeaveExitFrameEpilogue(bool restore_context);
 
   // Allocation support helpers.
   // Loads the top of new-space into the result register.
@@ -1517,6 +1550,10 @@ inline Operand StackSpaceOperand(int index) {
 #endif
 }
 
+
+inline Operand StackOperandForReturnAddress(int32_t disp) {
+  return Operand(rsp, disp);
+}
 
 
 #ifdef GENERATED_CODE_COVERAGE

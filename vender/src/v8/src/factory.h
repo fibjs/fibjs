@@ -243,6 +243,8 @@ class Factory {
 
   Handle<PropertyCell> NewPropertyCell(Handle<Object> value);
 
+  Handle<AllocationSite> NewAllocationSite();
+
   Handle<Map> NewMap(
       InstanceType type,
       int instance_size,
@@ -299,7 +301,11 @@ class Factory {
   // JS objects are pretenured when allocated by the bootstrapper and
   // runtime.
   Handle<JSObject> NewJSObjectFromMap(Handle<Map> map,
-                                      PretenureFlag pretenure = NOT_TENURED);
+                                      PretenureFlag pretenure = NOT_TENURED,
+                                      bool allocate_properties = true);
+
+  Handle<JSObject> NewJSObjectFromMapForDeoptimizer(
+      Handle<Map> map, PretenureFlag pretenure = NOT_TENURED);
 
   // JS modules are pretenured.
   Handle<JSModule> NewJSModule(Handle<Context> context,
@@ -322,12 +328,6 @@ class Factory {
 
   void SetContent(Handle<JSArray> array, Handle<FixedArrayBase> elements);
 
-  void EnsureCanContainHeapObjectElements(Handle<JSArray> array);
-  void EnsureCanContainElements(Handle<JSArray> array,
-                                Handle<FixedArrayBase> elements,
-                                uint32_t length,
-                                EnsureElementsMode mode);
-
   Handle<JSArrayBuffer> NewJSArrayBuffer();
 
   Handle<JSTypedArray> NewJSTypedArray(ExternalArrayType type);
@@ -339,8 +339,6 @@ class Factory {
   // Change the type of the argument into a JS object/function and reinitialize.
   void BecomeJSObject(Handle<JSReceiver> object);
   void BecomeJSFunction(Handle<JSReceiver> object);
-
-  void SetIdentityHash(Handle<JSObject> object, Smi* hash);
 
   Handle<JSFunction> NewFunction(Handle<String> name,
                                  Handle<Object> prototype);
@@ -459,7 +457,15 @@ class Factory {
         &isolate()->heap()->roots_[Heap::k##camel_name##RootIndex]));          \
   }
   ROOT_LIST(ROOT_ACCESSOR)
-#undef ROOT_ACCESSOR_ACCESSOR
+#undef ROOT_ACCESSOR
+
+#define STRUCT_MAP_ACCESSOR(NAME, Name, name)                                  \
+  inline Handle<Map> name##_map() {                                            \
+    return Handle<Map>(BitCast<Map**>(                                         \
+        &isolate()->heap()->roots_[Heap::k##Name##MapRootIndex]));             \
+    }
+  STRUCT_LIST(STRUCT_MAP_ACCESSOR)
+#undef STRUCT_MAP_ACCESSOR
 
 #define STRING_ACCESSOR(name, str)                                             \
   inline Handle<String> name() {                                               \
@@ -633,6 +639,24 @@ class IdempotentPointerToHandleCodeTrampoline {
     Object* result = (*function)(p1, p2);
     return (collections == isolate_->heap()->gc_count())
         ? result
+        : reinterpret_cast<MaybeObject*>(Failure::RetryAfterGC());
+  }
+
+  template<typename R, typename P1, typename P2, typename P3, typename P4,
+           typename P5, typename P6, typename P7>
+  MUST_USE_RESULT MaybeObject* CallWithReturnValue(
+      R (*function)(P1, P2, P3, P4, P5, P6, P7),
+      P1 p1,
+      P2 p2,
+      P3 p3,
+      P4 p4,
+      P5 p5,
+      P6 p6,
+      P7 p7) {
+    int collections = isolate_->heap()->gc_count();
+    Handle<Object> result = (*function)(p1, p2, p3, p4, p5, p6, p7);
+    return (collections == isolate_->heap()->gc_count())
+        ? *result
         : reinterpret_cast<MaybeObject*>(Failure::RetryAfterGC());
   }
 

@@ -58,7 +58,6 @@ static inline double read_double_value(Address p) {
 
 class FrameDescription;
 class TranslationIterator;
-class DeoptimizingCodeListNode;
 class DeoptimizedFrameInfo;
 
 class HeapNumberMaterializationDescriptor BASE_EMBEDDED {
@@ -77,15 +76,31 @@ class HeapNumberMaterializationDescriptor BASE_EMBEDDED {
 
 class ObjectMaterializationDescriptor BASE_EMBEDDED {
  public:
-  ObjectMaterializationDescriptor(Address slot_address, int length)
-      : slot_address_(slot_address), object_length_(length) { }
+  ObjectMaterializationDescriptor(
+      Address slot_address, int frame, int length, int duplicate, bool is_args)
+      : slot_address_(slot_address),
+        jsframe_index_(frame),
+        object_length_(length),
+        duplicate_object_(duplicate),
+        is_arguments_(is_args) { }
 
   Address slot_address() const { return slot_address_; }
+  int jsframe_index() const { return jsframe_index_; }
   int object_length() const { return object_length_; }
+  int duplicate_object() const { return duplicate_object_; }
+  bool is_arguments() const { return is_arguments_; }
+
+  // Only used for allocated receivers in DoComputeConstructStubFrame.
+  void patch_slot_address(intptr_t slot) {
+    slot_address_ = reinterpret_cast<Address>(slot);
+  }
 
  private:
   Address slot_address_;
+  int jsframe_index_;
   int object_length_;
+  int duplicate_object_;
+  bool is_arguments_;
 };
 
 
@@ -105,24 +120,12 @@ class OptimizedFunctionVisitor BASE_EMBEDDED {
 };
 
 
-class OptimizedFunctionFilter BASE_EMBEDDED {
- public:
-  virtual ~OptimizedFunctionFilter() {}
-
-  virtual bool TakeFunction(JSFunction* function) = 0;
-};
-
-
-class Deoptimizer;
-
-
 class Deoptimizer : public Malloced {
  public:
   enum BailoutType {
     EAGER,
     LAZY,
     SOFT,
-    OSR,
     // This last bailout type is not really a bailout, but used by the
     // debugger to deoptimize stack frames to allow inspection.
     DEBUGGER
@@ -150,7 +153,9 @@ class Deoptimizer : public Malloced {
 
   int output_count() const { return output_count_; }
 
-  Code::Kind compiled_code_kind() const { return compiled_code_->kind(); }
+  Handle<JSFunction> function() const { return Handle<JSFunction>(function_); }
+  Handle<Code> compiled_code() const { return Handle<Code>(compiled_code_); }
+  BailoutType bailout_type() const { return bailout_type_; }
 
   // Number of created JS frames. Not all created frames are necessarily JS.
   int jsframe_count() const { return jsframe_count_; }
@@ -185,68 +190,23 @@ class Deoptimizer : public Malloced {
   // execution returns.
   static void DeoptimizeFunction(JSFunction* function);
 
-  // Iterate over all the functions which share the same code object
-  // and make them use unoptimized version.
-  static void ReplaceCodeForRelatedFunctions(JSFunction* function, Code* code);
-
-  // Deoptimize all functions in the heap.
+  // Deoptimize all code in the given isolate.
   static void DeoptimizeAll(Isolate* isolate);
 
+  // Deoptimize code associated with the given global object.
   static void DeoptimizeGlobalObject(JSObject* object);
 
-  static void DeoptimizeAllFunctionsWith(Isolate* isolate,
-                                         OptimizedFunctionFilter* filter);
+  // Deoptimizes all optimized code that has been previously marked
+  // (via code->set_marked_for_deoptimization) and unlinks all functions that
+  // refer to that code.
+  static void DeoptimizeMarkedCode(Isolate* isolate);
 
-  static void DeoptimizeAllFunctionsForContext(
-      Context* context, OptimizedFunctionFilter* filter);
-
-  static void VisitAllOptimizedFunctionsForContext(
-      Context* context, OptimizedFunctionVisitor* visitor);
-
-  static void VisitAllOptimizedFunctions(Isolate* isolate,
-                                         OptimizedFunctionVisitor* visitor);
+  // Visit all the known optimized functions in a given isolate.
+  static void VisitAllOptimizedFunctions(
+      Isolate* isolate, OptimizedFunctionVisitor* visitor);
 
   // The size in bytes of the code required at a lazy deopt patch site.
   static int patch_size();
-
-  // Patch all interrupts with allowed loop depth in the unoptimized code to
-  // unconditionally call replacement_code.
-  static void PatchInterruptCode(Code* unoptimized_code,
-                                 Code* interrupt_code,
-                                 Code* replacement_code);
-
-  // Patch the interrupt at the instruction before pc_after in
-  // the unoptimized code to unconditionally call replacement_code.
-  static void PatchInterruptCodeAt(Code* unoptimized_code,
-                                   Address pc_after,
-                                   Code* interrupt_code,
-                                   Code* replacement_code);
-
-  // Change all patched interrupts patched in the unoptimized code
-  // back to normal interrupts.
-  static void RevertInterruptCode(Code* unoptimized_code,
-                                  Code* interrupt_code,
-                                  Code* replacement_code);
-
-  // Change patched interrupt in the unoptimized code
-  // back to a normal interrupt.
-  static void RevertInterruptCodeAt(Code* unoptimized_code,
-                                    Address pc_after,
-                                    Code* interrupt_code,
-                                    Code* replacement_code);
-
-#ifdef DEBUG
-  static bool InterruptCodeIsPatched(Code* unoptimized_code,
-                                     Address pc_after,
-                                     Code* interrupt_code,
-                                     Code* replacement_code);
-
-  // Verify that all back edges of a certain loop depth are patched.
-  static void VerifyInterruptCode(Code* unoptimized_code,
-                                  Code* interrupt_code,
-                                  Code* replacement_code,
-                                  int loop_nesting_level);
-#endif  // DEBUG
 
   ~Deoptimizer();
 
@@ -357,7 +317,6 @@ class Deoptimizer : public Malloced {
   void DeleteFrameDescriptions();
 
   void DoComputeOutputFrames();
-  void DoComputeOsrOutputFrame();
   void DoComputeJSFrame(TranslationIterator* iterator, int frame_index);
   void DoComputeArgumentsAdaptorFrame(TranslationIterator* iterator,
                                       int frame_index);
@@ -370,7 +329,7 @@ class Deoptimizer : public Malloced {
                                   int frame_index);
 
   void DoTranslateObject(TranslationIterator* iterator,
-                         int object_opcode,
+                         int object_index,
                          int field_index);
 
   enum DeoptimizerTranslatedValueType {
@@ -383,13 +342,6 @@ class Deoptimizer : public Malloced {
       unsigned output_offset,
       DeoptimizerTranslatedValueType value_type = TRANSLATED_VALUE_IS_TAGGED);
 
-  // Translate a command for OSR.  Updates the input offset to be used for
-  // the next command.  Returns false if translation of the command failed
-  // (e.g., a number conversion failed) and may or may not have updated the
-  // input offset.
-  bool DoOsrTranslateCommand(TranslationIterator* iterator,
-                             int* input_offset);
-
   unsigned ComputeInputFrameSize() const;
   unsigned ComputeFixedSize(JSFunction* function) const;
 
@@ -398,22 +350,48 @@ class Deoptimizer : public Malloced {
 
   Object* ComputeLiteral(int index) const;
 
-  void AddObjectStart(intptr_t slot_address, int argc);
+  void AddObjectStart(intptr_t slot_address, int argc, bool is_arguments);
+  void AddObjectDuplication(intptr_t slot, int object_index);
   void AddObjectTaggedValue(intptr_t value);
   void AddObjectDoubleValue(double value);
   void AddDoubleValue(intptr_t slot_address, double value);
 
+  bool ArgumentsObjectIsAdapted(int object_index) {
+    ObjectMaterializationDescriptor desc = deferred_objects_.at(object_index);
+    int reverse_jsframe_index = jsframe_count_ - desc.jsframe_index() - 1;
+    return jsframe_has_adapted_arguments_[reverse_jsframe_index];
+  }
+
+  Handle<JSFunction> ArgumentsObjectFunction(int object_index) {
+    ObjectMaterializationDescriptor desc = deferred_objects_.at(object_index);
+    int reverse_jsframe_index = jsframe_count_ - desc.jsframe_index() - 1;
+    return jsframe_functions_[reverse_jsframe_index];
+  }
+
+  // Helper function for heap object materialization.
+  Handle<Object> MaterializeNextHeapObject();
+  Handle<Object> MaterializeNextValue();
+
   static void GenerateDeoptimizationEntries(
       MacroAssembler* masm, int count, BailoutType type);
 
-  // Weak handle callback for deoptimizing code objects.
-  static void HandleWeakDeoptimizedCode(v8::Isolate* isolate,
-                                        v8::Persistent<v8::Value>* obj,
-                                        void* data);
+  // Marks all the code in the given context for deoptimization.
+  static void MarkAllCodeForContext(Context* native_context);
 
-  // Deoptimize function assuming that function->next_function_link() points
-  // to a list that contains all functions that share the same optimized code.
-  static void DeoptimizeFunctionWithPreparedFunctionList(JSFunction* function);
+  // Visit all the known optimized functions in a given context.
+  static void VisitAllOptimizedFunctionsForContext(
+      Context* context, OptimizedFunctionVisitor* visitor);
+
+  // Deoptimizes all code marked in the given context.
+  static void DeoptimizeMarkedCodeForContext(Context* native_context);
+
+  // Patch the given code so that it will deoptimize itself.
+  static void PatchCodeForDeoptimization(Isolate* isolate, Code* code);
+
+  // Searches the list of known deoptimizing code for a Code object
+  // containing the given address (which is supposedly faster than
+  // searching all code objects).
+  Code* FindDeoptimizingCode(Address addr);
 
   // Fill the input from from a JavaScript frame. This is used when
   // the debugger needs to inspect an optimized frame. For normal
@@ -451,10 +429,22 @@ class Deoptimizer : public Malloced {
   // Array of output frame descriptions.
   FrameDescription** output_;
 
+  // Deferred values to be materialized.
   List<Object*> deferred_objects_tagged_values_;
   List<double> deferred_objects_double_values_;
   List<ObjectMaterializationDescriptor> deferred_objects_;
   List<HeapNumberMaterializationDescriptor> deferred_heap_numbers_;
+
+  // Output frame information. Only used during heap object materialization.
+  List<Handle<JSFunction> > jsframe_functions_;
+  List<bool> jsframe_has_adapted_arguments_;
+
+  // Materialized objects. Only used during heap object materialization.
+  List<Handle<Object> >* materialized_values_;
+  List<Handle<Object> >* materialized_objects_;
+  int materialization_value_index_;
+  int materialization_object_index_;
+
 #ifdef DEBUG
   DisallowHeapAllocation* disallow_heap_allocation_;
 #endif  // DEBUG
@@ -464,7 +454,6 @@ class Deoptimizer : public Malloced {
   static const int table_entry_size_;
 
   friend class FrameDescription;
-  friend class DeoptimizingCodeListNode;
   friend class DeoptimizedFrameInfo;
 };
 
@@ -509,6 +498,10 @@ class FrameDescription {
   void SetFrameSlot(unsigned offset, intptr_t value) {
     *GetFrameSlotPointer(offset) = value;
   }
+
+  void SetCallerPc(unsigned offset, intptr_t value);
+
+  void SetCallerFp(unsigned offset, intptr_t value);
 
   intptr_t GetRegister(unsigned n) const {
     ASSERT(n < ARRAY_SIZE(registers_));
@@ -634,24 +627,16 @@ class DeoptimizerData {
   void Iterate(ObjectVisitor* v);
 #endif
 
-  Code* FindDeoptimizingCode(Address addr);
-  void RemoveDeoptimizingCode(Code* code);
-
  private:
   MemoryAllocator* allocator_;
   int deopt_entry_code_entries_[Deoptimizer::kBailoutTypesWithCodeEntry];
   MemoryChunk* deopt_entry_code_[Deoptimizer::kBailoutTypesWithCodeEntry];
-  Deoptimizer* current_;
 
 #ifdef ENABLE_DEBUGGER_SUPPORT
   DeoptimizedFrameInfo* deoptimized_frame_info_;
 #endif
 
-  // List of deoptimized code which still have references from active stack
-  // frames. These code objects are needed by the deoptimizer when deoptimizing
-  // a frame for which the code object for the function function has been
-  // changed from the code present when deoptimizing was done.
-  DeoptimizingCodeListNode* deoptimizing_code_list_;
+  Deoptimizer* current_;
 
   friend class Deoptimizer;
 
@@ -704,7 +689,9 @@ class Translation BASE_EMBEDDED {
     SETTER_STUB_FRAME,
     ARGUMENTS_ADAPTOR_FRAME,
     COMPILED_STUB_FRAME,
+    DUPLICATED_OBJECT,
     ARGUMENTS_OBJECT,
+    CAPTURED_OBJECT,
     REGISTER,
     INT32_REGISTER,
     UINT32_REGISTER,
@@ -736,6 +723,8 @@ class Translation BASE_EMBEDDED {
   void BeginGetterStubFrame(int literal_id);
   void BeginSetterStubFrame(int literal_id);
   void BeginArgumentsObject(int args_length);
+  void BeginCapturedObject(int length);
+  void DuplicateObject(int object_index);
   void StoreRegister(Register reg);
   void StoreInt32Register(Register reg);
   void StoreUint32Register(Register reg);
@@ -762,26 +751,6 @@ class Translation BASE_EMBEDDED {
   TranslationBuffer* buffer_;
   int index_;
   Zone* zone_;
-};
-
-
-// Linked list holding deoptimizing code objects. The deoptimizing code objects
-// are kept as weak handles until they are no longer activated on the stack.
-class DeoptimizingCodeListNode : public Malloced {
- public:
-  explicit DeoptimizingCodeListNode(Code* code);
-  ~DeoptimizingCodeListNode();
-
-  DeoptimizingCodeListNode* next() const { return next_; }
-  void set_next(DeoptimizingCodeListNode* next) { next_ = next; }
-  Handle<Code> code() const { return code_; }
-
- private:
-  // Global (weak) handle to the deoptimizing code object.
-  Handle<Code> code_;
-
-  // Next pointer for linked list.
-  DeoptimizingCodeListNode* next_;
 };
 
 

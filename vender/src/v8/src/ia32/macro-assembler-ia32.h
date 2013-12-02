@@ -61,6 +61,15 @@ class MacroAssembler: public Assembler {
   // macro assembler.
   MacroAssembler(Isolate* isolate, void* buffer, int size);
 
+  // Operations on roots in the root-array.
+  void LoadRoot(Register destination, Heap::RootListIndex index);
+  void StoreRoot(Register source, Register scratch, Heap::RootListIndex index);
+  void CompareRoot(Register with, Register scratch, Heap::RootListIndex index);
+  // These methods can only be used with constant roots (i.e. non-writable
+  // and not in new space).
+  void CompareRoot(Register with, Heap::RootListIndex index);
+  void CompareRoot(const Operand& with, Heap::RootListIndex index);
+
   // ---------------------------------------------------------------------------
   // GC Support
   enum RememberedSetFinalAction {
@@ -231,7 +240,7 @@ class MacroAssembler: public Assembler {
 
   // Leave the current exit frame. Expects the return value in
   // register eax (untouched).
-  void LeaveApiExitFrame();
+  void LeaveApiExitFrame(bool restore_context);
 
   // Find the function context up the context chain.
   void LoadContext(Register dst, int context_chain_length);
@@ -357,14 +366,16 @@ class MacroAssembler: public Assembler {
   void Set(Register dst, const Immediate& x);
   void Set(const Operand& dst, const Immediate& x);
 
+  // cvtsi2sd instruction only writes to the low 64-bit of dst register, which
+  // hinders register renaming and makes dependence chains longer. So we use
+  // xorps to clear the dst register before cvtsi2sd to solve this issue.
+  void Cvtsi2sd(XMMRegister dst, Register src) { Cvtsi2sd(dst, Operand(src)); }
+  void Cvtsi2sd(XMMRegister dst, const Operand& src);
+
   // Support for constant splitting.
   bool IsUnsafeImmediate(const Immediate& x);
   void SafeSet(Register dst, const Immediate& x);
   void SafePush(const Immediate& x);
-
-  // Compare against a known root, e.g. undefined, null, true, ...
-  void CompareRoot(Register with, Heap::RootListIndex index);
-  void CompareRoot(const Operand& with, Heap::RootListIndex index);
 
   // Compare object type for heap object.
   // Incoming register is heap_object and outgoing register is map.
@@ -469,6 +480,21 @@ class MacroAssembler: public Assembler {
                           XMMRegister scratch_reg,
                           Register result_reg);
 
+  void SlowTruncateToI(Register result_reg, Register input_reg,
+      int offset = HeapNumber::kValueOffset - kHeapObjectTag);
+
+  void TruncateHeapNumberToI(Register result_reg, Register input_reg);
+  void TruncateDoubleToI(Register result_reg, XMMRegister input_reg);
+  void TruncateX87TOSToI(Register result_reg);
+
+  void DoubleToI(Register result_reg, XMMRegister input_reg,
+      XMMRegister scratch, MinusZeroMode minus_zero_mode,
+      Label* conversion_failed, Label::Distance dst = Label::kFar);
+  void X87TOSToI(Register result_reg, MinusZeroMode minus_zero_mode,
+      Label* conversion_failed, Label::Distance dst = Label::kFar);
+
+  void TaggedToI(Register result_reg, Register input_reg, XMMRegister temp,
+      MinusZeroMode minus_zero_mode, Label* lost_precision);
 
   // Smi tagging support.
   void SmiTag(Register reg) {
@@ -777,7 +803,7 @@ class MacroAssembler: public Assembler {
   // Arguments must be stored in ApiParameterOperand(0), ApiParameterOperand(1)
   // etc. Saves context (esi). If space was reserved for return value then
   // stores the pointer to the reserved slot into esi.
-  void PrepareCallApiFunction(int argc, bool returns_handle);
+  void PrepareCallApiFunction(int argc);
 
   // Calls an API function.  Allocates HandleScope, extracts returned value
   // from handle and propagates exceptions.  Clobbers ebx, edi and
@@ -787,8 +813,8 @@ class MacroAssembler: public Assembler {
                                 Address thunk_address,
                                 Operand thunk_last_arg,
                                 int stack_space,
-                                bool returns_handle,
-                                int return_value_offset_from_ebp);
+                                Operand return_value_operand,
+                                Operand* context_restore_operand);
 
   // Jump to a runtime routine.
   void JumpToExternalReference(const ExternalReference& ext);
@@ -807,6 +833,8 @@ class MacroAssembler: public Assembler {
   void Drop(int element_count);
 
   void Call(Label* target) { call(target); }
+  void Push(Register src) { push(src); }
+  void Pop(Register dst) { pop(dst); }
 
   // Emit call to the code we are currently generating.
   void CallSelf() {
@@ -844,15 +872,15 @@ class MacroAssembler: public Assembler {
 
   // Calls Abort(msg) if the condition cc is not satisfied.
   // Use --debug_code to enable.
-  void Assert(Condition cc, const char* msg);
+  void Assert(Condition cc, BailoutReason reason);
 
   void AssertFastElements(Register elements);
 
   // Like Assert(), but always enabled.
-  void Check(Condition cc, const char* msg);
+  void Check(Condition cc, BailoutReason reason);
 
   // Print a message to stdout and abort execution.
-  void Abort(const char* msg);
+  void Abort(BailoutReason reason);
 
   // Check that the stack is aligned.
   void CheckStackAlignment();
@@ -868,6 +896,17 @@ class MacroAssembler: public Assembler {
 
   // ---------------------------------------------------------------------------
   // String utilities.
+
+  // Generate code to do a lookup in the number string cache. If the number in
+  // the register object is found in the cache the generated code falls through
+  // with the result in the result register. The object and the result register
+  // can be the same. If the number is not found in the cache the code jumps to
+  // the label not_found with only the content of register object unchanged.
+  void LookupNumberStringCache(Register object,
+                               Register result,
+                               Register scratch1,
+                               Register scratch2,
+                               Label* not_found);
 
   // Check whether the instance type represents a flat ASCII string. Jump to the
   // label if not. If the instance type can be scratched specify same register
@@ -905,14 +944,14 @@ class MacroAssembler: public Assembler {
   // in eax.  Assumes that any other register can be used as a scratch.
   void CheckEnumCache(Label* call_runtime);
 
-  // AllocationSiteInfo support. Arrays may have an associated
-  // AllocationSiteInfo object that can be checked for in order to pretransition
+  // AllocationMemento support. Arrays may have an associated
+  // AllocationMemento object that can be checked for in order to pretransition
   // to another type.
   // On entry, receiver_reg should point to the array object.
   // scratch_reg gets clobbered.
   // If allocation info is present, conditional code is set to equal
-  void TestJSArrayForAllocationSiteInfo(Register receiver_reg,
-                                        Register scratch_reg);
+  void TestJSArrayForAllocationMemento(Register receiver_reg,
+                                       Register scratch_reg);
 
  private:
   bool generating_stub_;
@@ -936,7 +975,7 @@ class MacroAssembler: public Assembler {
   void EnterExitFramePrologue();
   void EnterExitFrameEpilogue(int argc, bool save_doubles);
 
-  void LeaveExitFrameEpilogue();
+  void LeaveExitFrameEpilogue(bool restore_context);
 
   // Allocation support helpers.
   void LoadAllocationTopHelper(Register result,
@@ -1032,7 +1071,7 @@ inline Operand GlobalObjectOperand() {
 
 
 // Generates an Operand for saving parameters after PrepareCallApiFunction.
-Operand ApiParameterOperand(int index, bool returns_handle);
+Operand ApiParameterOperand(int index);
 
 
 #ifdef GENERATED_CODE_COVERAGE

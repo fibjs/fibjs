@@ -134,6 +134,19 @@ class CpuFeatureScope BASE_EMBEDDED {
 };
 
 
+// Enable a unsupported feature within a scope for cross-compiling for a
+// different CPU.
+class PlatformFeatureScope BASE_EMBEDDED {
+ public:
+  explicit PlatformFeatureScope(CpuFeature f);
+  ~PlatformFeatureScope();
+
+ private:
+  uint64_t old_supported_;
+  uint64_t old_found_by_runtime_probing_only_;
+};
+
+
 // -----------------------------------------------------------------------------
 // Labels represent pc locations; they are typically jump or call targets.
 // After declaration, a label can be freely used to denote known or (yet)
@@ -196,7 +209,6 @@ class Label BASE_EMBEDDED {
   }
 
   friend class Assembler;
-  friend class RegexpAssembler;
   friend class Displacement;
   friend class RegExpMacroAssemblerIrregexp;
 };
@@ -425,7 +437,7 @@ class RelocInfo BASE_EMBEDDED {
   INLINE(Object** call_object_address());
 
   template<typename StaticVisitor> inline void Visit(Heap* heap);
-  inline void Visit(ObjectVisitor* v);
+  inline void Visit(Isolate* isolate, ObjectVisitor* v);
 
   // Patch the code with some other code.
   void PatchCode(byte* instructions, int instruction_count);
@@ -644,38 +656,21 @@ class ExternalReference BASE_EMBEDDED {
     BUILTIN_FP_INT_CALL,
 
     // Direct call to API function callback.
-    // Handle<Value> f(v8::Arguments&)
+    // void f(v8::FunctionCallbackInfo&)
     DIRECT_API_CALL,
 
-    // Call to invocation callback via InvokeInvocationCallback.
-    // Handle<Value> f(v8::Arguments&, v8::InvocationCallback)
+    // Call to function callback via InvokeFunctionCallback.
+    // void f(v8::FunctionCallbackInfo&, v8::FunctionCallback)
     PROFILING_API_CALL,
 
-    // Direct call to API function callback.
-    // void f(v8::Arguments&)
-    DIRECT_API_CALL_NEW,
-
-    // Call to function callback via InvokeFunctionCallback.
-    // void f(v8::Arguments&, v8::FunctionCallback)
-    PROFILING_API_CALL_NEW,
-
     // Direct call to accessor getter callback.
-    // Handle<value> f(Local<String> property, AccessorInfo& info)
+    // void f(Local<String> property, PropertyCallbackInfo& info)
     DIRECT_GETTER_CALL,
 
-    // Call to accessor getter callback via InvokeAccessorGetter.
-    // Handle<value> f(Local<String> property, AccessorInfo& info,
-    //     AccessorGetter getter)
-    PROFILING_GETTER_CALL,
-
-    // Direct call to accessor getter callback.
-    // void f(Local<String> property, AccessorInfo& info)
-    DIRECT_GETTER_CALL_NEW,
-
     // Call to accessor getter callback via InvokeAccessorGetterCallback.
-    // void f(Local<String> property, AccessorInfo& info,
+    // void f(Local<String> property, PropertyCallbackInfo& info,
     //     AccessorGetterCallback callback)
-    PROFILING_GETTER_CALL_NEW
+    PROFILING_GETTER_CALL
   };
 
   static void SetUp();
@@ -683,6 +678,8 @@ class ExternalReference BASE_EMBEDDED {
   static void TearDownMathExpData();
 
   typedef void* ExternalReferenceRedirector(void* original, Type type);
+
+  ExternalReference() : address_(NULL) {}
 
   ExternalReference(Builtins::CFunctionId id, Isolate* isolate);
 
@@ -706,7 +703,7 @@ class ExternalReference BASE_EMBEDDED {
 
   explicit ExternalReference(const SCTableReference& table_ref);
 
-  // Isolate::Current() as an external reference.
+  // Isolate as an external reference.
   static ExternalReference isolate_address(Isolate* isolate);
 
   // One-of-a-kind references. These references are not part of a general
@@ -746,6 +743,9 @@ class ExternalReference BASE_EMBEDDED {
 
   // Static variable Heap::roots_array_start()
   static ExternalReference roots_array_start(Isolate* isolate);
+
+  // Static variable Heap::allocation_sites_list_address()
+  static ExternalReference allocation_sites_list_address(Isolate* isolate);
 
   // Static variable StackGuard::address_of_jslimit()
   static ExternalReference address_of_stack_limit(Isolate* isolate);
@@ -826,7 +826,7 @@ class ExternalReference BASE_EMBEDDED {
 
   static ExternalReference cpu_features();
 
-  Address address() const {return reinterpret_cast<Address>(address_);}
+  Address address() const { return reinterpret_cast<Address>(address_); }
 
 #ifdef ENABLE_DEBUGGER_SUPPORT
   // Function Debug::Break()
@@ -861,6 +861,16 @@ class ExternalReference BASE_EMBEDDED {
     ASSERT(isolate->external_reference_redirector() == NULL);
     isolate->set_external_reference_redirector(
         reinterpret_cast<ExternalReferenceRedirectorPointer*>(redirector));
+  }
+
+  static ExternalReference stress_deopt_count(Isolate* isolate);
+
+  bool operator==(const ExternalReference& other) const {
+    return address_ == other.address_;
+  }
+
+  bool operator!=(const ExternalReference& other) const {
+    return !(*this == other);
   }
 
  private:

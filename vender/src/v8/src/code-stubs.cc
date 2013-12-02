@@ -46,7 +46,7 @@ CodeStubInterfaceDescriptor::CodeStubInterfaceDescriptor()
       function_mode_(NOT_JS_FUNCTION_STUB_MODE),
       register_params_(NULL),
       deoptimization_handler_(NULL),
-      miss_handler_(IC_Utility(IC::kUnreachable), Isolate::Current()),
+      miss_handler_(),
       has_miss_handler_(false) { }
 
 
@@ -93,8 +93,7 @@ Handle<Code> CodeStub::GetCodeCopyFromTemplate(Isolate* isolate) {
 }
 
 
-Handle<Code> PlatformCodeStub::GenerateCode() {
-  Isolate* isolate = Isolate::Current();
+Handle<Code> PlatformCodeStub::GenerateCode(Isolate* isolate) {
   Factory* factory = isolate->factory();
 
   // Generate the new code.
@@ -137,14 +136,14 @@ Handle<Code> CodeStub::GetCode(Isolate* isolate) {
   if (UseSpecialCache()
       ? FindCodeInSpecialCache(&code, isolate)
       : FindCodeInCache(&code, isolate)) {
-    ASSERT(IsPregenerated() == code->is_pregenerated());
+    ASSERT(IsPregenerated(isolate) == code->is_pregenerated());
     return Handle<Code>(code);
   }
 
   {
     HandleScope scope(isolate);
 
-    Handle<Code> new_object = GenerateCode();
+    Handle<Code> new_object = GenerateCode(isolate);
     new_object->set_major_key(MajorKey());
     FinishCode(new_object);
     RecordCodeGeneration(*new_object, isolate);
@@ -201,71 +200,6 @@ void CodeStub::PrintBaseName(StringStream* stream) {
 void CodeStub::PrintName(StringStream* stream) {
   PrintBaseName(stream);
   PrintState(stream);
-}
-
-
-Builtins::JavaScript UnaryOpStub::ToJSBuiltin() {
-  switch (operation_) {
-    default:
-      UNREACHABLE();
-    case Token::SUB:
-      return Builtins::UNARY_MINUS;
-    case Token::BIT_NOT:
-      return Builtins::BIT_NOT;
-  }
-}
-
-
-Handle<JSFunction> UnaryOpStub::ToJSFunction(Isolate* isolate) {
-  Handle<JSBuiltinsObject> builtins(isolate->js_builtins_object());
-  Object* builtin = builtins->javascript_builtin(ToJSBuiltin());
-  return Handle<JSFunction>(JSFunction::cast(builtin), isolate);
-}
-
-
-MaybeObject* UnaryOpStub::Result(Handle<Object> object, Isolate* isolate) {
-  Handle<JSFunction> builtin_function = ToJSFunction(isolate);
-  bool caught_exception;
-  Handle<Object> result = Execution::Call(builtin_function, object,
-                                          0, NULL, &caught_exception);
-  if (caught_exception) {
-    return Failure::Exception();
-  }
-  return *result;
-}
-
-
-void UnaryOpStub::UpdateStatus(Handle<Object> object) {
-  State old_state(state_);
-  if (object->IsSmi()) {
-    state_.Add(SMI);
-    if (operation_ == Token::SUB && *object == 0) {
-      // The result (-0) has to be represented as double.
-      state_.Add(HEAP_NUMBER);
-    }
-  } else if (object->IsHeapNumber()) {
-    state_.Add(HEAP_NUMBER);
-  } else {
-    state_.Add(GENERIC);
-  }
-  TraceTransition(old_state, state_);
-}
-
-
-Handle<Type> UnaryOpStub::GetType(Isolate* isolate) {
-  if (state_.Contains(GENERIC)) {
-    return handle(Type::Any(), isolate);
-  }
-  Handle<Type> type = handle(Type::None(), isolate);
-  if (state_.Contains(SMI)) {
-    type = handle(
-        Type::Union(type, handle(Type::Smi(), isolate)), isolate);
-  }
-  if (state_.Contains(HEAP_NUMBER)) {
-    type = handle(
-        Type::Union(type, handle(Type::Double(), isolate)), isolate);
-  }
-  return type;
 }
 
 
@@ -352,29 +286,6 @@ void BinaryOpStub::GenerateCallRuntime(MacroAssembler* masm) {
 
 
 #undef __
-
-
-void UnaryOpStub::PrintBaseName(StringStream* stream) {
-  CodeStub::PrintBaseName(stream);
-  if (operation_ == Token::SUB) stream->Add("Minus");
-  if (operation_ == Token::BIT_NOT) stream->Add("Not");
-}
-
-
-void UnaryOpStub::PrintState(StringStream* stream) {
-  state_.Print(stream);
-}
-
-
-void UnaryOpStub::State::Print(StringStream* stream) const {
-  stream->Add("(");
-  SimpleListPrinter printer(stream);
-  if (IsEmpty()) printer.Add("None");
-  if (Contains(GENERIC)) printer.Add("Generic");
-  if (Contains(HEAP_NUMBER)) printer.Add("HeapNumber");
-  if (Contains(SMI)) printer.Add("Smi");
-  stream->Add(")");
-}
 
 
 void BinaryOpStub::PrintName(StringStream* stream) {
@@ -534,7 +445,7 @@ void ICCompareStub::Generate(MacroAssembler* masm) {
 
 
 void CompareNilICStub::UpdateStatus(Handle<Object> object) {
-  ASSERT(state_ != State::Generic());
+  ASSERT(!state_.Contains(GENERIC));
   State old_state(state_);
   if (object->IsNull()) {
     state_.Add(NULL_TYPE);
@@ -543,9 +454,11 @@ void CompareNilICStub::UpdateStatus(Handle<Object> object) {
   } else if (object->IsUndetectableObject() ||
              object->IsOddball() ||
              !object->IsHeapObject()) {
-    state_ = State::Generic();
+    state_.RemoveAll();
+    state_.Add(GENERIC);
   } else if (IsMonomorphic()) {
-    state_ = State::Generic();
+    state_.RemoveAll();
+    state_.Add(GENERIC);
   } else {
     state_.Add(MONOMORPHIC_MAP);
   }
@@ -555,6 +468,9 @@ void CompareNilICStub::UpdateStatus(Handle<Object> object) {
 
 template<class StateType>
 void HydrogenCodeStub::TraceTransition(StateType from, StateType to) {
+  // Note: Although a no-op transition is semantically OK, it is hinting at a
+  // bug somewhere in our state transition machinery.
+  ASSERT(from != to);
   #ifdef DEBUG
   if (!FLAG_trace_ic) return;
   char buffer[100];
@@ -592,38 +508,43 @@ void CompareNilICStub::State::Print(StringStream* stream) const {
   if (Contains(UNDEFINED)) printer.Add("Undefined");
   if (Contains(NULL_TYPE)) printer.Add("Null");
   if (Contains(MONOMORPHIC_MAP)) printer.Add("MonomorphicMap");
-  if (Contains(UNDETECTABLE)) printer.Add("Undetectable");
   if (Contains(GENERIC)) printer.Add("Generic");
   stream->Add(")");
 }
 
 
-Handle<Type> CompareNilICStub::StateToType(
+Handle<Type> CompareNilICStub::GetType(
     Isolate* isolate,
-    State state,
     Handle<Map> map) {
-  if (state.Contains(CompareNilICStub::GENERIC)) {
+  if (state_.Contains(CompareNilICStub::GENERIC)) {
     return handle(Type::Any(), isolate);
   }
 
   Handle<Type> result(Type::None(), isolate);
-  if (state.Contains(CompareNilICStub::UNDEFINED)) {
+  if (state_.Contains(CompareNilICStub::UNDEFINED)) {
     result = handle(Type::Union(result, handle(Type::Undefined(), isolate)),
                     isolate);
   }
-  if (state.Contains(CompareNilICStub::NULL_TYPE)) {
+  if (state_.Contains(CompareNilICStub::NULL_TYPE)) {
     result = handle(Type::Union(result, handle(Type::Null(), isolate)),
                     isolate);
   }
-  if (state.Contains(CompareNilICStub::UNDETECTABLE)) {
-    result = handle(Type::Union(result, handle(Type::Undetectable(), isolate)),
-                    isolate);
-  } else if (state.Contains(CompareNilICStub::MONOMORPHIC_MAP)) {
+  if (state_.Contains(CompareNilICStub::MONOMORPHIC_MAP)) {
     Type* type = map.is_null() ? Type::Detectable() : Type::Class(map);
     result = handle(Type::Union(result, handle(type, isolate)), isolate);
   }
 
   return result;
+}
+
+
+Handle<Type> CompareNilICStub::GetInputType(
+    Isolate* isolate,
+    Handle<Map> map) {
+  Handle<Type> output_type = GetType(isolate, map);
+  Handle<Type> nil_type = handle(nil_value_ == kNullValue
+      ? Type::Null() : Type::Undefined(), isolate);
+  return handle(Type::Union(output_type, nil_type), isolate);
 }
 
 
@@ -663,24 +584,20 @@ void KeyedLoadDictionaryElementStub::Generate(MacroAssembler* masm) {
 }
 
 
+void CreateAllocationSiteStub::GenerateAheadOfTime(Isolate* isolate) {
+  CreateAllocationSiteStub stub;
+  stub.GetCode(isolate)->set_is_pregenerated(true);
+}
+
+
 void KeyedStoreElementStub::Generate(MacroAssembler* masm) {
   switch (elements_kind_) {
     case FAST_ELEMENTS:
     case FAST_HOLEY_ELEMENTS:
     case FAST_SMI_ELEMENTS:
-    case FAST_HOLEY_SMI_ELEMENTS: {
-      KeyedStoreStubCompiler::GenerateStoreFastElement(masm,
-                                                       is_js_array_,
-                                                       elements_kind_,
-                                                       store_mode_);
-    }
-      break;
+    case FAST_HOLEY_SMI_ELEMENTS:
     case FAST_DOUBLE_ELEMENTS:
     case FAST_HOLEY_DOUBLE_ELEMENTS:
-      KeyedStoreStubCompiler::GenerateStoreFastDoubleElement(masm,
-                                                             is_js_array_,
-                                                             store_mode_);
-      break;
     case EXTERNAL_BYTE_ELEMENTS:
     case EXTERNAL_UNSIGNED_BYTE_ELEMENTS:
     case EXTERNAL_SHORT_ELEMENTS:
@@ -690,7 +607,7 @@ void KeyedStoreElementStub::Generate(MacroAssembler* masm) {
     case EXTERNAL_FLOAT_ELEMENTS:
     case EXTERNAL_DOUBLE_ELEMENTS:
     case EXTERNAL_PIXEL_ELEMENTS:
-      KeyedStoreStubCompiler::GenerateStoreExternalArray(masm, elements_kind_);
+      UNREACHABLE();
       break;
     case DICTIONARY_ELEMENTS:
       KeyedStoreStubCompiler::GenerateStoreDictionaryElement(masm);
@@ -805,44 +722,6 @@ bool ToBooleanStub::Types::CanBeUndetectable() const {
 }
 
 
-void ElementsTransitionAndStoreStub::Generate(MacroAssembler* masm) {
-  Label fail;
-  AllocationSiteMode mode = AllocationSiteInfo::GetMode(from_, to_);
-  ASSERT(!IsFastHoleyElementsKind(from_) || IsFastHoleyElementsKind(to_));
-  if (!FLAG_trace_elements_transitions) {
-    if (IsFastSmiOrObjectElementsKind(to_)) {
-      if (IsFastSmiOrObjectElementsKind(from_)) {
-        ElementsTransitionGenerator::
-            GenerateMapChangeElementsTransition(masm, mode, &fail);
-      } else if (IsFastDoubleElementsKind(from_)) {
-        ASSERT(!IsFastSmiElementsKind(to_));
-        ElementsTransitionGenerator::GenerateDoubleToObject(masm, mode, &fail);
-      } else {
-        UNREACHABLE();
-      }
-      KeyedStoreStubCompiler::GenerateStoreFastElement(masm,
-                                                       is_jsarray_,
-                                                       to_,
-                                                       store_mode_);
-    } else if (IsFastSmiElementsKind(from_) &&
-               IsFastDoubleElementsKind(to_)) {
-      ElementsTransitionGenerator::GenerateSmiToDouble(masm, mode, &fail);
-      KeyedStoreStubCompiler::GenerateStoreFastDoubleElement(masm,
-                                                             is_jsarray_,
-                                                             store_mode_);
-    } else if (IsFastDoubleElementsKind(from_)) {
-      ASSERT(to_ == FAST_HOLEY_DOUBLE_ELEMENTS);
-      ElementsTransitionGenerator::
-          GenerateMapChangeElementsTransition(masm, mode, &fail);
-    } else {
-      UNREACHABLE();
-    }
-  }
-  masm->bind(&fail);
-  KeyedStoreIC::GenerateRuntimeSetProperty(masm, strict_mode_);
-}
-
-
 void StubFailureTrampolineStub::GenerateAheadOfTime(Isolate* isolate) {
   StubFailureTrampolineStub stub1(NOT_JS_FUNCTION_STUB_MODE);
   StubFailureTrampolineStub stub2(JS_FUNCTION_STUB_MODE);
@@ -852,8 +731,9 @@ void StubFailureTrampolineStub::GenerateAheadOfTime(Isolate* isolate) {
 
 
 void ProfileEntryHookStub::EntryHookTrampoline(intptr_t function,
-                                               intptr_t stack_pointer) {
-  FunctionEntryHook entry_hook = Isolate::Current()->function_entry_hook();
+                                               intptr_t stack_pointer,
+                                               Isolate* isolate) {
+  FunctionEntryHook entry_hook = isolate->function_entry_hook();
   ASSERT(entry_hook != NULL);
   entry_hook(function, stack_pointer);
 }
@@ -876,6 +756,12 @@ void ArrayConstructorStubBase::InstallDescriptors(Isolate* isolate) {
   InstallDescriptor(isolate, &stub2);
   ArrayNArgumentsConstructorStub stub3(GetInitialFastElementsKind());
   InstallDescriptor(isolate, &stub3);
+}
+
+
+void FastNewClosureStub::InstallDescriptors(Isolate* isolate) {
+  FastNewClosureStub stub(STRICT_MODE, false);
+  InstallDescriptor(isolate, &stub);
 }
 
 

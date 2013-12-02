@@ -68,7 +68,7 @@ class StoreBufferOverflowStub: public PlatformCodeStub {
 
   void Generate(MacroAssembler* masm);
 
-  virtual bool IsPregenerated() { return true; }
+  virtual bool IsPregenerated(Isolate* isolate) V8_OVERRIDE { return true; }
   static void GenerateFixedRegStubsAheadOfTime(Isolate* isolate);
   virtual bool SometimesSetsUpAFrame() { return false; }
 
@@ -106,7 +106,6 @@ class StringHelper : public AllStatic {
                                          Register scratch2,
                                          Register scratch3,
                                          Register scratch4,
-                                         Register scratch5,
                                          int flags);
 
 
@@ -141,21 +140,6 @@ class StringHelper : public AllStatic {
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(StringHelper);
-};
-
-
-// Flag that indicates how to generate code for the stub StringAddStub.
-enum StringAddFlags {
-  NO_STRING_ADD_FLAGS = 1 << 0,
-  // Omit left string check in stub (left is definitely a string).
-  NO_STRING_CHECK_LEFT_IN_STUB = 1 << 1,
-  // Omit right string check in stub (right is definitely a string).
-  NO_STRING_CHECK_RIGHT_IN_STUB = 1 << 2,
-  // Stub needs a frame before calling the runtime
-  ERECT_FRAME = 1 << 3,
-  // Omit both string checks in stub.
-  NO_STRING_CHECK_IN_STUB =
-      NO_STRING_CHECK_LEFT_IN_STUB | NO_STRING_CHECK_RIGHT_IN_STUB
 };
 
 
@@ -247,7 +231,7 @@ class WriteInt32ToHeapNumberStub : public PlatformCodeStub {
         the_heap_number_(the_heap_number),
         scratch_(scratch) { }
 
-  bool IsPregenerated();
+  virtual bool IsPregenerated(Isolate* isolate) V8_OVERRIDE;
   static void GenerateFixedRegStubsAheadOfTime(Isolate* isolate);
 
  private:
@@ -267,32 +251,6 @@ class WriteInt32ToHeapNumberStub : public PlatformCodeStub {
            | HeapNumberRegisterBits::encode(the_heap_number_.code())
            | ScratchRegisterBits::encode(scratch_.code());
   }
-
-  void Generate(MacroAssembler* masm);
-};
-
-
-class NumberToStringStub: public PlatformCodeStub {
- public:
-  NumberToStringStub() { }
-
-  // Generate code to do a lookup in the number string cache. If the number in
-  // the register object is found in the cache the generated code falls through
-  // with the result in the result register. The object and the result register
-  // can be the same. If the number is not found in the cache the code jumps to
-  // the label not_found with only the content of register object unchanged.
-  static void GenerateLookupNumberStringCache(MacroAssembler* masm,
-                                              Register object,
-                                              Register result,
-                                              Register scratch1,
-                                              Register scratch2,
-                                              Register scratch3,
-                                              bool object_is_smi,
-                                              Label* not_found);
-
- private:
-  Major MajorKey() { return NumberToString; }
-  int MinorKey() { return 0; }
 
   void Generate(MacroAssembler* masm);
 };
@@ -321,7 +279,7 @@ class RecordWriteStub: public PlatformCodeStub {
     INCREMENTAL_COMPACTION
   };
 
-  virtual bool IsPregenerated();
+  virtual bool IsPregenerated(Isolate* isolate) V8_OVERRIDE;
   static void GenerateFixedRegStubsAheadOfTime(Isolate* isolate);
   virtual bool SometimesSetsUpAFrame() { return false; }
 
@@ -392,7 +350,7 @@ class RecordWriteStub: public PlatformCodeStub {
           address_(address),
           scratch0_(scratch0) {
       ASSERT(!AreAliased(scratch0, object, address, no_reg));
-      scratch1_ = GetRegThatIsNotOneOf(object_, address_, scratch0_);
+      scratch1_ = GetRegisterThatIsNotOneOf(object_, address_, scratch0_);
     }
 
     void Save(MacroAssembler* masm) {
@@ -435,19 +393,6 @@ class RecordWriteStub: public PlatformCodeStub {
     Register scratch0_;
     Register scratch1_;
 
-    Register GetRegThatIsNotOneOf(Register r1,
-                                  Register r2,
-                                  Register r3) {
-      for (int i = 0; i < Register::NumAllocatableRegisters(); i++) {
-        Register candidate = Register::FromAllocationIndex(i);
-        if (candidate.is(r1)) continue;
-        if (candidate.is(r2)) continue;
-        if (candidate.is(r3)) continue;
-        return candidate;
-      }
-      UNREACHABLE();
-      return no_reg;
-    }
     friend class RecordWriteStub;
   };
 
@@ -491,23 +436,6 @@ class RecordWriteStub: public PlatformCodeStub {
   SaveFPRegsMode save_fp_regs_mode_;
   Label slow_;
   RegisterAllocation regs_;
-};
-
-
-// Enter C code from generated RegExp code in a way that allows
-// the C code to fix the return address in case of a GC.
-// Currently only needed on ARM.
-class RegExpCEntryStub: public PlatformCodeStub {
- public:
-  RegExpCEntryStub() {}
-  virtual ~RegExpCEntryStub() {}
-  void Generate(MacroAssembler* masm);
-
- private:
-  Major MajorKey() { return RegExpCEntry; }
-  int MinorKey() { return 0; }
-
-  bool NeedsImmovableCode() { return true; }
 };
 
 

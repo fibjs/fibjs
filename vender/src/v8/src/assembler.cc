@@ -43,7 +43,7 @@
 #include "deoptimizer.h"
 #include "execution.h"
 #include "ic.h"
-#include "isolate.h"
+#include "isolate-inl.h"
 #include "jsregexp.h"
 #include "lazy-instance.h"
 #include "platform.h"
@@ -119,7 +119,7 @@ AssemblerBase::AssemblerBase(Isolate* isolate, void* buffer, int buffer_size)
       emit_debug_code_(FLAG_debug_code),
       predictable_code_size_(false) {
   if (FLAG_mask_constants_with_cookie && isolate != NULL)  {
-    jit_cookie_ = V8::RandomPrivate(isolate);
+    jit_cookie_ = isolate->random_number_generator()->NextInt();
   }
 
   if (buffer == NULL) {
@@ -204,6 +204,26 @@ CpuFeatureScope::~CpuFeatureScope() {
   assembler_->set_enabled_cpu_features(old_enabled_);
 }
 #endif
+
+
+// -----------------------------------------------------------------------------
+// Implementation of PlatformFeatureScope
+
+PlatformFeatureScope::PlatformFeatureScope(CpuFeature f)
+    : old_supported_(CpuFeatures::supported_),
+      old_found_by_runtime_probing_only_(
+          CpuFeatures::found_by_runtime_probing_only_) {
+  uint64_t mask = static_cast<uint64_t>(1) << f;
+  CpuFeatures::supported_ |= mask;
+  CpuFeatures::found_by_runtime_probing_only_ &= ~mask;
+}
+
+
+PlatformFeatureScope::~PlatformFeatureScope() {
+  CpuFeatures::supported_ = old_supported_;
+  CpuFeatures::found_by_runtime_probing_only_ =
+      old_found_by_runtime_probing_only_;
+}
 
 
 // -----------------------------------------------------------------------------
@@ -798,7 +818,7 @@ void RelocInfo::Print(Isolate* isolate, FILE* out) {
     target_object()->ShortPrint(out);
     PrintF(out, ")");
   } else if (rmode_ == EXTERNAL_REFERENCE) {
-    ExternalReferenceEncoder ref_encoder;
+    ExternalReferenceEncoder ref_encoder(isolate);
     PrintF(out, " (%s)  (%p)",
            ref_encoder.NameOfAddress(*target_reference_address()),
            *target_reference_address());
@@ -849,7 +869,7 @@ void RelocInfo::Verify() {
       CHECK(addr != NULL);
       // Check that we can find the right code object.
       Code* code = Code::GetCodeFromTargetAddress(addr);
-      Object* found = HEAP->FindCodeObject(addr);
+      Object* found = code->GetIsolate()->FindCodeObject(addr);
       CHECK(found->IsCode());
       CHECK(code->address() == HeapObject::cast(found)->address());
       break;
@@ -891,7 +911,7 @@ void ExternalReference::SetUp() {
   double_constants.the_hole_nan = BitCast<double>(kHoleNanInt64);
   double_constants.negative_infinity = -V8_INFINITY;
 
-  math_exp_data_mutex = OS::CreateMutex();
+  math_exp_data_mutex = new Mutex();
 }
 
 
@@ -899,7 +919,7 @@ void ExternalReference::InitializeMathExpData() {
   // Early return?
   if (math_exp_data_initialized) return;
 
-  math_exp_data_mutex->Lock();
+  LockGuard<Mutex> lock_guard(math_exp_data_mutex);
   if (!math_exp_data_initialized) {
     // If this is changed, generated code must be adapted too.
     const int kTableSizeBits = 11;
@@ -935,7 +955,6 @@ void ExternalReference::InitializeMathExpData() {
 
     math_exp_data_initialized = true;
   }
-  math_exp_data_mutex->Unlock();
 }
 
 
@@ -1073,6 +1092,11 @@ ExternalReference ExternalReference::date_cache_stamp(Isolate* isolate) {
 }
 
 
+ExternalReference ExternalReference::stress_deopt_count(Isolate* isolate) {
+  return ExternalReference(isolate->stress_deopt_count_address());
+}
+
+
 ExternalReference ExternalReference::transcendental_cache_array_address(
     Isolate* isolate) {
   return ExternalReference(
@@ -1122,6 +1146,12 @@ ExternalReference ExternalReference::keyed_lookup_cache_field_offsets(
 
 ExternalReference ExternalReference::roots_array_start(Isolate* isolate) {
   return ExternalReference(isolate->heap()->roots_array_start());
+}
+
+
+ExternalReference ExternalReference::allocation_sites_list_address(
+    Isolate* isolate) {
+  return ExternalReference(isolate->heap()->allocation_sites_list_address());
 }
 
 

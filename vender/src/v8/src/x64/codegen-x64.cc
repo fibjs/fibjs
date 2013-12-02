@@ -253,7 +253,7 @@ ModuloFunction CreateModuloFunction() {
 
 void ElementsTransitionGenerator::GenerateMapChangeElementsTransition(
     MacroAssembler* masm, AllocationSiteMode mode,
-    Label* allocation_site_info_found) {
+    Label* allocation_memento_found) {
   // ----------- S t a t e -------------
   //  -- rax    : value
   //  -- rbx    : target map
@@ -262,9 +262,9 @@ void ElementsTransitionGenerator::GenerateMapChangeElementsTransition(
   //  -- rsp[0] : return address
   // -----------------------------------
   if (mode == TRACK_ALLOCATION_SITE) {
-    ASSERT(allocation_site_info_found != NULL);
-    __ TestJSArrayForAllocationSiteInfo(rdx, rdi);
-    __ j(equal, allocation_site_info_found);
+    ASSERT(allocation_memento_found != NULL);
+    __ TestJSArrayForAllocationMemento(rdx, rdi);
+    __ j(equal, allocation_memento_found);
   }
 
   // Set transitioned map.
@@ -292,7 +292,7 @@ void ElementsTransitionGenerator::GenerateSmiToDouble(
   Label allocated, new_backing_store, only_change_map, done;
 
   if (mode == TRACK_ALLOCATION_SITE) {
-    __ TestJSArrayForAllocationSiteInfo(rdx, rdi);
+    __ TestJSArrayForAllocationMemento(rdx, rdi);
     __ j(equal, fail);
   }
 
@@ -386,7 +386,7 @@ void ElementsTransitionGenerator::GenerateSmiToDouble(
   // rbx: current element (smi-tagged)
   __ JumpIfNotSmi(rbx, &convert_hole);
   __ SmiToInteger32(rbx, rbx);
-  __ cvtlsi2sd(xmm0, rbx);
+  __ Cvtlsi2sd(xmm0, rbx);
   __ movsd(FieldOperand(r14, r9, times_8, FixedDoubleArray::kHeaderSize),
            xmm0);
   __ jmp(&entry);
@@ -394,7 +394,7 @@ void ElementsTransitionGenerator::GenerateSmiToDouble(
 
   if (FLAG_debug_code) {
     __ CompareRoot(rbx, Heap::kTheHoleValueRootIndex);
-    __ Assert(equal, "object found in smi-only array");
+    __ Assert(equal, kObjectFoundInSmiOnlyArray);
   }
 
   __ movq(FieldOperand(r14, r9, times_8, FixedDoubleArray::kHeaderSize), r15);
@@ -418,7 +418,7 @@ void ElementsTransitionGenerator::GenerateDoubleToObject(
   Label loop, entry, convert_hole, gc_required, only_change_map;
 
   if (mode == TRACK_ALLOCATION_SITE) {
-    __ TestJSArrayForAllocationSiteInfo(rdx, rdi);
+    __ TestJSArrayForAllocationMemento(rdx, rdi);
     __ j(equal, fail);
   }
 
@@ -577,7 +577,7 @@ void StringCharLoadGenerator::Generate(MacroAssembler* masm,
     // Assert that we do not have a cons or slice (indirect strings) here.
     // Sequential strings have already been ruled out.
     __ testb(result, Immediate(kIsIndirectStringMask));
-    __ Assert(zero, "external string expected, but not found");
+    __ Assert(zero, kExternalStringExpectedButNotFound);
   }
   // Rule out short external strings.
   STATIC_CHECK(kShortExternalStringTag != 0);
@@ -723,7 +723,8 @@ void Code::GetCodeAgeAndParity(byte* sequence, Age* age,
 }
 
 
-void Code::PatchPlatformCodeAge(byte* sequence,
+void Code::PatchPlatformCodeAge(Isolate* isolate,
+                                byte* sequence,
                                 Code::Age age,
                                 MarkingParity parity) {
   uint32_t young_length;
@@ -732,7 +733,7 @@ void Code::PatchPlatformCodeAge(byte* sequence,
     CopyBytes(sequence, young_sequence, young_length);
     CPU::FlushICache(sequence, young_length);
   } else {
-    Code* stub = GetCodeAgeStub(age, parity);
+    Code* stub = GetCodeAgeStub(isolate, age, parity);
     CodePatcher patcher(sequence, young_length);
     patcher.masm()->call(stub->instruction_start());
     for (int i = 0;
@@ -740,6 +741,28 @@ void Code::PatchPlatformCodeAge(byte* sequence,
          i++) {
       patcher.masm()->nop();
     }
+  }
+}
+
+
+Operand StackArgumentsAccessor::GetArgumentOperand(int index) {
+  ASSERT(index >= 0);
+  ASSERT(base_reg_.is(rsp) || base_reg_.is(rbp));
+  int receiver = (receiver_mode_ == ARGUMENTS_CONTAIN_RECEIVER) ? 1 : 0;
+  int displacement_to_last_argument = base_reg_.is(rsp) ?
+      kPCOnStackSize : kFPOnStackSize + kPCOnStackSize;
+  displacement_to_last_argument += extra_displacement_to_last_argument_;
+  if (argument_count_reg_.is(no_reg)) {
+    // argument[0] is at base_reg_ + displacement_to_last_argument +
+    // (argument_count_immediate_ + receiver - 1) * kPointerSize.
+    ASSERT(argument_count_immediate_ + receiver > 0);
+    return Operand(base_reg_, displacement_to_last_argument +
+        (argument_count_immediate_ + receiver - 1 - index) * kPointerSize);
+  } else {
+    // argument[0] is at base_reg_ + displacement_to_last_argument +
+    // argument_count_reg_ * times_pointer_size + (receiver - 1) * kPointerSize.
+    return Operand(base_reg_, argument_count_reg_, times_pointer_size,
+        displacement_to_last_argument + (receiver - 1 - index) * kPointerSize);
   }
 }
 

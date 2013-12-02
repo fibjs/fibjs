@@ -100,7 +100,9 @@ class HeapEntry BASE_EMBEDDED {
     kRegExp = v8::HeapGraphNode::kRegExp,
     kHeapNumber = v8::HeapGraphNode::kHeapNumber,
     kNative = v8::HeapGraphNode::kNative,
-    kSynthetic = v8::HeapGraphNode::kSynthetic
+    kSynthetic = v8::HeapGraphNode::kSynthetic,
+    kConsString = v8::HeapGraphNode::kConsString,
+    kSlicedString = v8::HeapGraphNode::kSlicedString
   };
   static const int kNoEntry;
 
@@ -235,7 +237,7 @@ class HeapObjectsMap {
   SnapshotObjectId PushHeapObjectsStats(OutputStream* stream);
   size_t GetUsedMemorySize() const;
 
-  static SnapshotObjectId GenerateId(v8::RetainedObjectInfo* info);
+  static SnapshotObjectId GenerateId(Heap* heap, v8::RetainedObjectInfo* info);
   static inline SnapshotObjectId GetNthGcSubrootId(int delta);
 
   static const int kObjectIdStep = 2;
@@ -265,16 +267,6 @@ class HeapObjectsMap {
 
   void UpdateHeapObjectsMap();
   void RemoveDeadEntries();
-
-  static bool AddressesMatch(void* key1, void* key2) {
-    return key1 == key2;
-  }
-
-  static uint32_t AddressHash(Address addr) {
-    return ComputeIntegerHash(
-        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(addr)),
-        v8::internal::kZeroHashSeed);
-  }
 
   SnapshotObjectId next_id_;
   HashMap entries_map_;
@@ -460,6 +452,7 @@ class V8HeapExplorer : public HeapEntriesAllocator {
   void ExtractCodeReferences(int entry, Code* code);
   void ExtractCellReferences(int entry, Cell* cell);
   void ExtractPropertyCellReferences(int entry, PropertyCell* cell);
+  void ExtractAllocationSiteReferences(int entry, AllocationSite* site);
   void ExtractClosureReferences(JSObject* js_obj, int entry);
   void ExtractPropertyReferences(JSObject* js_obj, int entry);
   bool ExtractAccessorPairProperty(JSObject* js_obj, int entry,
@@ -547,7 +540,7 @@ class NativeGroupRetainedObjectInfo;
 class NativeObjectsExplorer {
  public:
   NativeObjectsExplorer(HeapSnapshot* snapshot,
-                      SnapshottingProgressReportingInterface* progress);
+                        SnapshottingProgressReportingInterface* progress);
   virtual ~NativeObjectsExplorer();
   void AddRootEntries(SnapshotFillerInterface* filler);
   int EstimateObjectsCount();
@@ -579,6 +572,7 @@ class NativeObjectsExplorer {
 
   NativeGroupRetainedObjectInfo* FindOrAddGroupInfo(const char* label);
 
+  Isolate* isolate_;
   HeapSnapshot* snapshot_;
   HeapSnapshotsCollection* collection_;
   SnapshottingProgressReportingInterface* progress_;
@@ -634,7 +628,7 @@ class HeapSnapshotJSONSerializer {
  public:
   explicit HeapSnapshotJSONSerializer(HeapSnapshot* snapshot)
       : snapshot_(snapshot),
-        strings_(ObjectsMatch),
+        strings_(StringsMatch),
         next_node_id_(1),
         next_string_id_(1),
         writer_(NULL) {
@@ -642,14 +636,16 @@ class HeapSnapshotJSONSerializer {
   void Serialize(v8::OutputStream* stream);
 
  private:
-  INLINE(static bool ObjectsMatch(void* key1, void* key2)) {
-    return key1 == key2;
+  INLINE(static bool StringsMatch(void* key1, void* key2)) {
+    return strcmp(reinterpret_cast<char*>(key1),
+                  reinterpret_cast<char*>(key2)) == 0;
   }
 
-  INLINE(static uint32_t ObjectHash(const void* key)) {
-    return ComputeIntegerHash(
-        static_cast<uint32_t>(reinterpret_cast<uintptr_t>(key)),
-        v8::internal::kZeroHashSeed);
+  INLINE(static uint32_t StringHash(const void* string)) {
+    const char* s = reinterpret_cast<const char*>(string);
+    int len = static_cast<int>(strlen(s));
+    return StringHasher::HashSequentialString(
+        s, len, v8::internal::kZeroHashSeed);
   }
 
   int GetStringId(const char* s);
@@ -662,7 +658,6 @@ class HeapSnapshotJSONSerializer {
   void SerializeSnapshot();
   void SerializeString(const unsigned char* s);
   void SerializeStrings();
-  void SortHashMap(HashMap* map, List<HashMap::Entry*>* sorted_entries);
 
   static const int kEdgeFieldsCount;
   static const int kNodeFieldsCount;

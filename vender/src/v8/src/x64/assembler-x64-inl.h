@@ -51,6 +51,16 @@ void Assembler::emitl(uint32_t x) {
 }
 
 
+void Assembler::emitp(void* x, RelocInfo::Mode rmode) {
+  uintptr_t value = reinterpret_cast<uintptr_t>(x);
+  Memory::uintptr_at(pc_) = value;
+  if (!RelocInfo::IsNone(rmode)) {
+    RecordRelocInfo(rmode, value);
+  }
+  pc_ += sizeof(uintptr_t);
+}
+
+
 void Assembler::emitq(uint64_t x, RelocInfo::Mode rmode) {
   Memory::uint64_at(pc_) = x;
   if (!RelocInfo::IsNone(rmode)) {
@@ -363,13 +373,14 @@ void RelocInfo::set_target_cell(Cell* cell, WriteBarrierMode mode) {
 
 bool RelocInfo::IsPatchedReturnSequence() {
   // The recognized call sequence is:
-  //  movq(kScratchRegister, immediate64); call(kScratchRegister);
+  //  movq(kScratchRegister, address); call(kScratchRegister);
   // It only needs to be distinguished from a return sequence
   //  movq(rsp, rbp); pop(rbp); ret(n); int3 *6
   // The 11th byte is int3 (0xCC) in the return sequence and
   // REX.WB (0x48+register bit) for the call sequence.
 #ifdef ENABLE_DEBUGGER_SUPPORT
-  return pc_[10] != 0xCC;
+  return pc_[Assembler::kMoveAddressIntoScratchRegisterInstructionLength] !=
+         0xCC;
 #else
   return false;
 #endif
@@ -437,7 +448,7 @@ Object** RelocInfo::call_object_address() {
 }
 
 
-void RelocInfo::Visit(ObjectVisitor* visitor) {
+void RelocInfo::Visit(Isolate* isolate, ObjectVisitor* visitor) {
   RelocInfo::Mode mode = rmode();
   if (mode == RelocInfo::EMBEDDED_OBJECT) {
     visitor->VisitEmbeddedPointer(this);
@@ -452,12 +463,11 @@ void RelocInfo::Visit(ObjectVisitor* visitor) {
   } else if (RelocInfo::IsCodeAgeSequence(mode)) {
     visitor->VisitCodeAgeSequence(this);
 #ifdef ENABLE_DEBUGGER_SUPPORT
-  // TODO(isolates): Get a cached isolate below.
   } else if (((RelocInfo::IsJSReturn(mode) &&
               IsPatchedReturnSequence()) ||
              (RelocInfo::IsDebugBreakSlot(mode) &&
               IsPatchedDebugBreakSlotSequence())) &&
-             Isolate::Current()->debug()->has_break_points()) {
+             isolate->debug()->has_break_points()) {
     visitor->VisitDebugTarget(this);
 #endif
   } else if (RelocInfo::IsRuntimeEntry(mode)) {

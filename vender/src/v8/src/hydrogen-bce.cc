@@ -189,6 +189,8 @@ class BoundsCheckBbData: public ZoneObject {
     }
 
     if (!keep_new_check) {
+      new_check->block()->graph()->isolate()->counters()->
+          bounds_checks_eliminated()->Increment();
       new_check->DeleteAndReplaceWith(new_check->ActualValue());
     }
 
@@ -258,12 +260,12 @@ class BoundsCheckBbData: public ZoneObject {
     HValue* index_context = IndexContext(*add, check);
     if (index_context == NULL) return false;
 
-    HConstant* new_constant = new(BasicBlock()->zone()) HConstant(
-        new_offset, representation);
+    Zone* zone = BasicBlock()->zone();
+    HConstant* new_constant = HConstant::New(zone, index_context,
+                                             new_offset, representation);
     if (*add == NULL) {
       new_constant->InsertBefore(check);
-      (*add) = HAdd::New(
-          BasicBlock()->zone(), index_context, original_value, new_constant);
+      (*add) = HAdd::New(zone, index_context, original_value, new_constant);
       (*add)->AssumeRepresentation(representation);
       (*add)->InsertBefore(check);
     } else {
@@ -316,12 +318,54 @@ void BoundsCheckTable::Delete(BoundsCheckKey* key) {
 }
 
 
+class HBoundsCheckEliminationState {
+ public:
+  HBasicBlock* block_;
+  BoundsCheckBbData* bb_data_list_;
+  int index_;
+};
+
+
 // Eliminates checks in bb and recursively in the dominated blocks.
 // Also replace the results of check instructions with the original value, if
 // the result is used. This is safe now, since we don't do code motion after
 // this point. It enables better register allocation since the value produced
 // by check instructions is really a copy of the original value.
 void HBoundsCheckEliminationPhase::EliminateRedundantBoundsChecks(
+    HBasicBlock* entry) {
+  // Allocate the stack.
+  HBoundsCheckEliminationState* stack =
+    zone()->NewArray<HBoundsCheckEliminationState>(graph()->blocks()->length());
+
+  // Explicitly push the entry block.
+  stack[0].block_ = entry;
+  stack[0].bb_data_list_ = PreProcessBlock(entry);
+  stack[0].index_ = 0;
+  int stack_depth = 1;
+
+  // Implement depth-first traversal with a stack.
+  while (stack_depth > 0) {
+    int current = stack_depth - 1;
+    HBoundsCheckEliminationState* state = &stack[current];
+    const ZoneList<HBasicBlock*>* children = state->block_->dominated_blocks();
+
+    if (state->index_ < children->length()) {
+      // Recursively visit children blocks.
+      HBasicBlock* child = children->at(state->index_++);
+      int next = stack_depth++;
+      stack[next].block_ = child;
+      stack[next].bb_data_list_ = PreProcessBlock(child);
+      stack[next].index_ = 0;
+    } else {
+      // Finished with all children; post process the block.
+      PostProcessBlock(state->block_, state->bb_data_list_);
+      stack_depth--;
+    }
+  }
+}
+
+
+BoundsCheckBbData* HBoundsCheckEliminationPhase::PreProcessBlock(
     HBasicBlock* bb) {
   BoundsCheckBbData* bb_data_list = NULL;
 
@@ -347,6 +391,8 @@ void HBoundsCheckEliminationPhase::EliminateRedundantBoundsChecks(
                                                    NULL);
       *data_p = bb_data_list;
     } else if (data->OffsetIsCovered(offset)) {
+      bb->graph()->isolate()->counters()->
+          bounds_checks_eliminated()->Increment();
       check->DeleteAndReplaceWith(check->ActualValue());
     } else if (data->BasicBlock() != bb ||
                !data->CoverCheck(check, offset)) {
@@ -371,19 +417,20 @@ void HBoundsCheckEliminationPhase::EliminateRedundantBoundsChecks(
     }
   }
 
-  for (int i = 0; i < bb->dominated_blocks()->length(); ++i) {
-    EliminateRedundantBoundsChecks(bb->dominated_blocks()->at(i));
-  }
+  return bb_data_list;
+}
 
-  for (BoundsCheckBbData* data = bb_data_list;
-       data != NULL;
-       data = data->NextInBasicBlock()) {
+
+void HBoundsCheckEliminationPhase::PostProcessBlock(
+    HBasicBlock* block, BoundsCheckBbData* data) {
+  while (data != NULL) {
     data->RemoveZeroOperations();
     if (data->FatherInDominatorTree()) {
       table_.Insert(data->Key(), data->FatherInDominatorTree(), zone());
     } else {
       table_.Delete(data->Key());
     }
+    data = data->NextInBasicBlock();
   }
 }
 

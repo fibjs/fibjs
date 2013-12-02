@@ -333,7 +333,7 @@ bool FullCodeGenerator::MakeCode(CompilationInfo* info) {
   Code::Flags flags = Code::ComputeFlags(Code::FUNCTION);
   Handle<Code> code = CodeGenerator::MakeCodeEpilogue(&masm, flags, info);
   code->set_optimizable(info->IsOptimizable() &&
-                        !info->function()->flags()->Contains(kDontOptimize) &&
+                        !info->function()->dont_optimize() &&
                         info->function()->scope()->AllowsLazyCompilation());
   cgen.PopulateDeoptimizationData(code);
   cgen.PopulateTypeFeedbackInfo(code);
@@ -350,21 +350,17 @@ bool FullCodeGenerator::MakeCode(CompilationInfo* info) {
   code->set_back_edge_table_offset(table_offset);
   code->set_back_edges_patched_for_osr(false);
   CodeGenerator::PrintCode(code, info);
-  info->SetCode(code);  // May be an empty handle.
+  info->SetCode(code);
 #ifdef ENABLE_GDB_JIT_INTERFACE
-  if (FLAG_gdbjit && !code.is_null()) {
+  if (FLAG_gdbjit) {
     GDBJITLineInfo* lineinfo =
         masm.positions_recorder()->DetachGDBJITLineInfo();
-
     GDBJIT(RegisterDetailedLineInfo(*code, lineinfo));
   }
 #endif
-  if (!code.is_null()) {
-    void* line_info =
-        masm.positions_recorder()->DetachJITHandlerData();
-    LOG_CODE_EVENT(isolate, CodeEndLinePosInfoRecordEvent(*code, line_info));
-  }
-  return !code.is_null();
+  void* line_info = masm.positions_recorder()->DetachJITHandlerData();
+  LOG_CODE_EVENT(isolate, CodeEndLinePosInfoRecordEvent(*code, line_info));
+  return true;
 }
 
 
@@ -379,7 +375,7 @@ unsigned FullCodeGenerator::EmitBackEdgeTable() {
   for (unsigned i = 0; i < length; ++i) {
     __ dd(back_edges_[i].id.ToInt());
     __ dd(back_edges_[i].pc);
-    __ db(back_edges_[i].loop_depth);
+    __ dd(back_edges_[i].loop_depth);
   }
   return offset;
 }
@@ -419,7 +415,7 @@ void FullCodeGenerator::Initialize() {
                          !Snapshot::HaveASnapshotToStartFrom();
   masm_->set_emit_debug_code(generate_debug_code_);
   masm_->set_predictable_code_size(true);
-  InitializeAstVisitor();
+  InitializeAstVisitor(info_->isolate());
 }
 
 
@@ -512,7 +508,7 @@ void FullCodeGenerator::AccumulatorValueContext::Plug(Register reg) const {
 
 
 void FullCodeGenerator::StackValueContext::Plug(Register reg) const {
-  __ push(reg);
+  __ Push(reg);
 }
 
 
@@ -530,7 +526,7 @@ void FullCodeGenerator::EffectContext::PlugTOS() const {
 
 
 void FullCodeGenerator::AccumulatorValueContext::PlugTOS() const {
-  __ pop(result_register());
+  __ Pop(result_register());
 }
 
 
@@ -540,7 +536,7 @@ void FullCodeGenerator::StackValueContext::PlugTOS() const {
 
 void FullCodeGenerator::TestContext::PlugTOS() const {
   // For simplicity we always test the accumulator register.
-  __ pop(result_register());
+  __ Pop(result_register());
   codegen()->PrepareForBailoutBeforeSplit(condition(), false, NULL, NULL);
   codegen()->DoTest(this);
 }
@@ -834,7 +830,7 @@ void FullCodeGenerator::SetStatementPosition(Statement* stmt) {
   } else {
     // Check if the statement will be breakable without adding a debug break
     // slot.
-    BreakableStatementChecker checker;
+    BreakableStatementChecker checker(isolate());
     checker.Check(stmt);
     // Record the statement position right here if the statement is not
     // breakable. For breakable statements the actual recording of the
@@ -860,7 +856,7 @@ void FullCodeGenerator::SetExpressionPosition(Expression* expr, int pos) {
   } else {
     // Check if the expression will be breakable without adding a debug break
     // slot.
-    BreakableStatementChecker checker;
+    BreakableStatementChecker checker(isolate());
     checker.Check(expr);
     // Record a statement position right here if the expression is not
     // breakable. For breakable expressions the actual recording of the
@@ -1006,7 +1002,7 @@ void FullCodeGenerator::VisitLogicalExpression(BinaryOperation* expr) {
     VisitForAccumulatorValue(left);
     // We want the value in the accumulator for the test, and on the stack in
     // case we need it.
-    __ push(result_register());
+    __ Push(result_register());
     Label discard, restore;
     if (is_logical_and) {
       DoTest(left, &discard, &restore, &restore);
@@ -1014,7 +1010,7 @@ void FullCodeGenerator::VisitLogicalExpression(BinaryOperation* expr) {
       DoTest(left, &restore, &discard, &restore);
     }
     __ bind(&restore);
-    __ pop(result_register());
+    __ Pop(result_register());
     __ jmp(&done);
     __ bind(&discard);
     __ Drop(1);
@@ -1024,7 +1020,7 @@ void FullCodeGenerator::VisitLogicalExpression(BinaryOperation* expr) {
     VisitForAccumulatorValue(left);
     // We want the value in the accumulator for the test, and on the stack in
     // case we need it.
-    __ push(result_register());
+    __ Push(result_register());
     Label discard;
     if (is_logical_and) {
       DoTest(left, &discard, &done, &discard);
@@ -1416,7 +1412,7 @@ void FullCodeGenerator::VisitTryCatchStatement(TryCatchStatement* stmt) {
   // Extend the context before executing the catch block.
   { Comment cmnt(masm_, "[ Extend catch context");
     __ Push(stmt->variable()->name());
-    __ push(result_register());
+    __ Push(result_register());
     PushFunctionArgumentForContextAllocation();
     __ CallRuntime(Runtime::kPushCatchContext, 3);
     StoreToFrameField(StandardFrameConstants::kContextOffset,
@@ -1481,7 +1477,7 @@ void FullCodeGenerator::VisitTryFinallyStatement(TryFinallyStatement* stmt) {
   // preserved by the finally block.  Call the finally block and then
   // rethrow the exception if it returns.
   __ Call(&finally_entry);
-  __ push(result_register());
+  __ Push(result_register());
   __ CallRuntime(Runtime::kReThrow, 1);
 
   // Finally block implementation.
@@ -1605,7 +1601,7 @@ bool FullCodeGenerator::TryLiteralCompare(CompareOperation* expr) {
     return true;
   }
 
-  if (expr->IsLiteralCompareUndefined(&sub_expr)) {
+  if (expr->IsLiteralCompareUndefined(&sub_expr, isolate())) {
     EmitLiteralCompareNil(expr, sub_expr, kUndefinedValue);
     return true;
   }
@@ -1617,6 +1613,100 @@ bool FullCodeGenerator::TryLiteralCompare(CompareOperation* expr) {
 
   return false;
 }
+
+
+void BackEdgeTable::Patch(Isolate* isolate,
+                          Code* unoptimized) {
+  DisallowHeapAllocation no_gc;
+  Code* patch = isolate->builtins()->builtin(Builtins::kOnStackReplacement);
+
+  // Iterate over the back edge table and patch every interrupt
+  // call to an unconditional call to the replacement code.
+  int loop_nesting_level = unoptimized->allow_osr_at_loop_nesting_level();
+
+  BackEdgeTable back_edges(unoptimized, &no_gc);
+  for (uint32_t i = 0; i < back_edges.length(); i++) {
+    if (static_cast<int>(back_edges.loop_depth(i)) == loop_nesting_level) {
+      ASSERT_EQ(INTERRUPT, GetBackEdgeState(isolate,
+                                            unoptimized,
+                                            back_edges.pc(i)));
+      PatchAt(unoptimized, back_edges.pc(i), ON_STACK_REPLACEMENT, patch);
+    }
+  }
+
+  unoptimized->set_back_edges_patched_for_osr(true);
+  ASSERT(Verify(isolate, unoptimized, loop_nesting_level));
+}
+
+
+void BackEdgeTable::Revert(Isolate* isolate,
+                           Code* unoptimized) {
+  DisallowHeapAllocation no_gc;
+  Code* patch = isolate->builtins()->builtin(Builtins::kInterruptCheck);
+
+  // Iterate over the back edge table and revert the patched interrupt calls.
+  ASSERT(unoptimized->back_edges_patched_for_osr());
+  int loop_nesting_level = unoptimized->allow_osr_at_loop_nesting_level();
+
+  BackEdgeTable back_edges(unoptimized, &no_gc);
+  for (uint32_t i = 0; i < back_edges.length(); i++) {
+    if (static_cast<int>(back_edges.loop_depth(i)) <= loop_nesting_level) {
+      ASSERT_NE(INTERRUPT, GetBackEdgeState(isolate,
+                                            unoptimized,
+                                            back_edges.pc(i)));
+      PatchAt(unoptimized, back_edges.pc(i), INTERRUPT, patch);
+    }
+  }
+
+  unoptimized->set_back_edges_patched_for_osr(false);
+  unoptimized->set_allow_osr_at_loop_nesting_level(0);
+  // Assert that none of the back edges are patched anymore.
+  ASSERT(Verify(isolate, unoptimized, -1));
+}
+
+
+void BackEdgeTable::AddStackCheck(CompilationInfo* info) {
+  DisallowHeapAllocation no_gc;
+  Isolate* isolate = info->isolate();
+  Code* code = info->shared_info()->code();
+  Address pc = code->instruction_start() + info->osr_pc_offset();
+  ASSERT_EQ(ON_STACK_REPLACEMENT, GetBackEdgeState(isolate, code, pc));
+  Code* patch = isolate->builtins()->builtin(Builtins::kOsrAfterStackCheck);
+  PatchAt(code, pc, OSR_AFTER_STACK_CHECK, patch);
+}
+
+
+void BackEdgeTable::RemoveStackCheck(CompilationInfo* info) {
+  DisallowHeapAllocation no_gc;
+  Isolate* isolate = info->isolate();
+  Code* code = info->shared_info()->code();
+  Address pc = code->instruction_start() + info->osr_pc_offset();
+  if (GetBackEdgeState(isolate, code, pc) == OSR_AFTER_STACK_CHECK) {
+    Code* patch = isolate->builtins()->builtin(Builtins::kOnStackReplacement);
+    PatchAt(code, pc, ON_STACK_REPLACEMENT, patch);
+  }
+}
+
+
+#ifdef DEBUG
+bool BackEdgeTable::Verify(Isolate* isolate,
+                           Code* unoptimized,
+                           int loop_nesting_level) {
+  DisallowHeapAllocation no_gc;
+  BackEdgeTable back_edges(unoptimized, &no_gc);
+  for (uint32_t i = 0; i < back_edges.length(); i++) {
+    uint32_t loop_depth = back_edges.loop_depth(i);
+    CHECK_LE(static_cast<int>(loop_depth), Code::kMaxLoopNestingMarker);
+    // Assert that all back edges for shallower loops (and only those)
+    // have already been patched.
+    CHECK_EQ((static_cast<int>(loop_depth) <= loop_nesting_level),
+             GetBackEdgeState(isolate,
+                              unoptimized,
+                              back_edges.pc(i)) != INTERRUPT);
+  }
+  return true;
+}
+#endif  // DEBUG
 
 
 #undef __

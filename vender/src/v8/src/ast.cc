@@ -71,8 +71,14 @@ bool Expression::IsNullLiteral() {
 }
 
 
-bool Expression::IsUndefinedLiteral() {
-  return AsLiteral() != NULL && AsLiteral()->value()->IsUndefined();
+bool Expression::IsUndefinedLiteral(Isolate* isolate) {
+  VariableProxy* var_proxy = AsVariableProxy();
+  if (var_proxy == NULL) return false;
+  Variable* var = var_proxy->var();
+  // The global identifier "undefined" is immutable. Everything
+  // else could be reassigned.
+  return var != NULL && var->location() == Variable::UNALLOCATED &&
+         var_proxy->name()->Equals(isolate->heap()->undefined_string());
 }
 
 
@@ -267,7 +273,8 @@ void ObjectLiteral::CalculateEmitStore(Zone* zone) {
     uint32_t hash = literal->Hash();
     // If the key of a computed property is in the table, do not emit
     // a store for the property later.
-    if (property->kind() == ObjectLiteral::Property::COMPUTED &&
+    if ((property->kind() == ObjectLiteral::Property::MATERIALIZED_LITERAL ||
+         property->kind() == ObjectLiteral::Property::COMPUTED) &&
         table.Lookup(literal, hash, false, allocator) != NULL) {
       property->set_emit_store(false);
     } else {
@@ -295,17 +302,6 @@ void UnaryOperation::RecordToBooleanTypeFeedback(TypeFeedbackOracle* oracle) {
   // corresponding to the TestContext, therefore we have to store it here and
   // not on the operand.
   set_to_boolean_types(oracle->ToBooleanTypes(expression()->test_id()));
-}
-
-
-bool UnaryOperation::ResultOverwriteAllowed() {
-  switch (op_) {
-    case Token::BIT_NOT:
-    case Token::SUB:
-      return true;
-    default:
-      return false;
-  }
 }
 
 
@@ -385,12 +381,13 @@ static bool IsVoidOfLiteral(Expression* expr) {
 static bool MatchLiteralCompareUndefined(Expression* left,
                                          Token::Value op,
                                          Expression* right,
-                                         Expression** expr) {
+                                         Expression** expr,
+                                         Isolate* isolate) {
   if (IsVoidOfLiteral(left) && Token::IsEqualityOp(op)) {
     *expr = right;
     return true;
   }
-  if (left->IsUndefinedLiteral() && Token::IsEqualityOp(op)) {
+  if (left->IsUndefinedLiteral(isolate) && Token::IsEqualityOp(op)) {
     *expr = right;
     return true;
   }
@@ -398,9 +395,10 @@ static bool MatchLiteralCompareUndefined(Expression* left,
 }
 
 
-bool CompareOperation::IsLiteralCompareUndefined(Expression** expr) {
-  return MatchLiteralCompareUndefined(left_, op_, right_, expr) ||
-      MatchLiteralCompareUndefined(right_, op_, left_, expr);
+bool CompareOperation::IsLiteralCompareUndefined(
+    Expression** expr, Isolate* isolate) {
+  return MatchLiteralCompareUndefined(left_, op_, right_, expr, isolate) ||
+      MatchLiteralCompareUndefined(right_, op_, left_, expr, isolate);
 }
 
 
@@ -462,10 +460,7 @@ void Property::RecordTypeFeedback(TypeFeedbackOracle* oracle,
   receiver_types_.Clear();
   if (key()->IsPropertyName()) {
     FunctionPrototypeStub proto_stub(Code::LOAD_IC);
-    StringLengthStub string_stub(Code::LOAD_IC, false);
-    if (oracle->LoadIsStub(this, &string_stub)) {
-      is_string_length_ = true;
-    } else if (oracle->LoadIsStub(this, &proto_stub)) {
+    if (oracle->LoadIsStub(this, &proto_stub)) {
       is_function_prototype_ = true;
     } else {
       Literal* lit_key = key()->AsLiteral();
@@ -503,7 +498,7 @@ void Assignment::RecordTypeFeedback(TypeFeedbackOracle* oracle,
     // Record receiver type for monomorphic keyed stores.
     receiver_types_.Add(oracle->StoreMonomorphicReceiverType(id), zone);
     store_mode_ = oracle->GetStoreMode(id);
-  } else if (oracle->StoreIsPolymorphic(id)) {
+  } else if (oracle->StoreIsKeyedPolymorphic(id)) {
     receiver_types_.Reserve(kMaxKeyedPolymorphism, zone);
     oracle->CollectKeyedReceiverTypes(id, &receiver_types_);
     store_mode_ = oracle->GetStoreMode(id);
@@ -520,9 +515,11 @@ void CountOperation::RecordTypeFeedback(TypeFeedbackOracle* oracle,
     // Record receiver type for monomorphic keyed stores.
     receiver_types_.Add(
         oracle->StoreMonomorphicReceiverType(id), zone);
-  } else if (oracle->StoreIsPolymorphic(id)) {
+  } else if (oracle->StoreIsKeyedPolymorphic(id)) {
     receiver_types_.Reserve(kMaxKeyedPolymorphism, zone);
     oracle->CollectKeyedReceiverTypes(id, &receiver_types_);
+  } else {
+    oracle->CollectPolymorphicStoreReceiverTypes(id, &receiver_types_);
   }
   store_mode_ = oracle->GetStoreMode(id);
   type_ = oracle->IncrementType(this);
@@ -555,11 +552,16 @@ bool Call::ComputeTarget(Handle<Map> type, Handle<String> name) {
     type->LookupDescriptor(NULL, *name, &lookup);
     if (lookup.IsFound()) {
       switch (lookup.type()) {
-        case CONSTANT_FUNCTION:
+        case CONSTANT: {
           // We surely know the target for a constant function.
-          target_ =
-              Handle<JSFunction>(lookup.GetConstantFunctionFromMap(*type));
-          return true;
+          Handle<Object> constant(lookup.GetConstantFromMap(*type),
+                                  type->GetIsolate());
+          if (constant->IsJSFunction()) {
+            target_ = Handle<JSFunction>::cast(constant);
+            return true;
+          }
+          // Fall through.
+        }
         case NORMAL:
         case FIELD:
         case CALLBACKS:
@@ -594,7 +596,7 @@ bool Call::ComputeGlobalTarget(Handle<GlobalObject> global,
     Handle<JSFunction> candidate(JSFunction::cast(cell_->value()));
     // If the function is in new space we assume it's more likely to
     // change and thus prefer the general IC code.
-    if (!HEAP->InNewSpace(*candidate)) {
+    if (!lookup->isolate()->heap()->InNewSpace(*candidate)) {
       target_ = candidate;
       return true;
     }
@@ -641,8 +643,15 @@ void Call::RecordTypeFeedback(TypeFeedbackOracle* oracle,
     Literal* key = property->key()->AsLiteral();
     ASSERT(key != NULL && key->value()->IsString());
     Handle<String> name = Handle<String>::cast(key->value());
+    check_type_ = oracle->GetCallCheckType(this);
     receiver_types_.Clear();
-    oracle->CallReceiverTypes(this, name, call_kind, &receiver_types_);
+    if (check_type_ == RECEIVER_MAP_CHECK) {
+      oracle->CallReceiverTypes(this, name, call_kind, &receiver_types_);
+      is_monomorphic_ = is_monomorphic_ && receiver_types_.length() > 0;
+    } else {
+      holder_ = GetPrototypeForPrimitiveCheck(check_type_, oracle->isolate());
+      receiver_types_.Add(handle(holder_->map()), oracle->zone());
+    }
 #ifdef DEBUG
     if (FLAG_enable_slow_asserts) {
       int length = receiver_types_.length();
@@ -652,17 +661,8 @@ void Call::RecordTypeFeedback(TypeFeedbackOracle* oracle,
       }
     }
 #endif
-    check_type_ = oracle->GetCallCheckType(this);
     if (is_monomorphic_) {
-      Handle<Map> map;
-      if (receiver_types_.length() > 0) {
-        ASSERT(check_type_ == RECEIVER_MAP_CHECK);
-        map = receiver_types_.at(0);
-      } else {
-        ASSERT(check_type_ != RECEIVER_MAP_CHECK);
-        holder_ = GetPrototypeForPrimitiveCheck(check_type_, oracle->isolate());
-        map = Handle<Map>(holder_->map());
-      }
+      Handle<Map> map = receiver_types_.first();
       is_monomorphic_ = ComputeTarget(map, name);
     }
   }
@@ -676,8 +676,9 @@ void CallNew::RecordTypeFeedback(TypeFeedbackOracle* oracle) {
     target_ = oracle->GetCallNewTarget(this);
     Object* value = allocation_info_cell_->value();
     ASSERT(!value->IsTheHole());
-    if (value->IsSmi()) {
-      elements_kind_ = static_cast<ElementsKind>(Smi::cast(value)->value());
+    if (value->IsAllocationSite()) {
+      AllocationSite* site = AllocationSite::cast(value);
+      elements_kind_ = site->GetElementsKind();
     }
   }
 }
@@ -702,7 +703,9 @@ void AstVisitor::VisitDeclarations(ZoneList<Declaration*>* declarations) {
 
 void AstVisitor::VisitStatements(ZoneList<Statement*>* statements) {
   for (int i = 0; i < statements->length(); i++) {
-    Visit(statements->at(i));
+    Statement* stmt = statements->at(i);
+    Visit(stmt);
+    if (stmt->IsJump()) break;
   }
 }
 
@@ -852,12 +855,13 @@ bool RegExpCapture::IsAnchoredAtEnd() {
 // in as many cases as possible, to make it more difficult for incorrect
 // parses to look as correct ones which is likely if the input and
 // output formats are alike.
-class RegExpUnparser: public RegExpVisitor {
+class RegExpUnparser V8_FINAL : public RegExpVisitor {
  public:
   explicit RegExpUnparser(Zone* zone);
   void VisitCharacterRange(CharacterRange that);
   SmartArrayPointer<const char> ToString() { return stream_.ToCString(); }
-#define MAKE_CASE(Name) virtual void* Visit##Name(RegExp##Name*, void* data);
+#define MAKE_CASE(Name) virtual void* Visit##Name(RegExp##Name*,          \
+                                                  void* data) V8_OVERRIDE;
   FOR_EACH_REG_EXP_TREE_TYPE(MAKE_CASE)
 #undef MAKE_CASE
  private:
@@ -955,12 +959,12 @@ void* RegExpUnparser::VisitAtom(RegExpAtom* that, void* data) {
 
 void* RegExpUnparser::VisitText(RegExpText* that, void* data) {
   if (that->elements()->length() == 1) {
-    that->elements()->at(0).data.u_atom->Accept(this, data);
+    that->elements()->at(0).tree()->Accept(this, data);
   } else {
     stream()->Add("(!");
     for (int i = 0; i < that->elements()->length(); i++) {
       stream()->Add(" ");
-      that->elements()->at(i).data.u_atom->Accept(this, data);
+      that->elements()->at(i).tree()->Accept(this, data);
     }
     stream()->Add(")");
   }
@@ -1076,7 +1080,7 @@ CaseClause::CaseClause(Isolate* isolate,
 #define DONT_OPTIMIZE_NODE(NodeType) \
   void AstConstructionVisitor::Visit##NodeType(NodeType* node) { \
     increase_node_count(); \
-    add_flag(kDontOptimize); \
+    set_dont_optimize_reason(k##NodeType); \
     add_flag(kDontInline); \
     add_flag(kDontSelfOptimize); \
   }
@@ -1088,7 +1092,7 @@ CaseClause::CaseClause(Isolate* isolate,
 #define DONT_CACHE_NODE(NodeType) \
   void AstConstructionVisitor::Visit##NodeType(NodeType* node) { \
     increase_node_count(); \
-    add_flag(kDontOptimize); \
+    set_dont_optimize_reason(k##NodeType); \
     add_flag(kDontInline); \
     add_flag(kDontSelfOptimize); \
     add_flag(kDontCache); \
@@ -1174,7 +1178,6 @@ void AstConstructionVisitor::VisitCallRuntime(CallRuntime* node) {
 
 Handle<String> Literal::ToString() {
   if (value_->IsString()) return Handle<String>::cast(value_);
-  Factory* factory = Isolate::Current()->factory();
   ASSERT(value_->IsNumber());
   char arr[100];
   Vector<char> buffer(arr, ARRAY_SIZE(arr));
@@ -1186,7 +1189,7 @@ Handle<String> Literal::ToString() {
   } else {
     str = DoubleToCString(value_->Number(), buffer);
   }
-  return factory->NewStringFromAscii(CStrVector(str));
+  return isolate_->factory()->NewStringFromAscii(CStrVector(str));
 }
 
 

@@ -41,8 +41,8 @@ namespace v8 {
 namespace internal {
 
 
-StringsStorage::StringsStorage()
-    : names_(StringsMatch) {
+StringsStorage::StringsStorage(Heap* heap)
+    : hash_seed_(heap->HashSeed()), names_(StringsMatch) {
 }
 
 
@@ -61,7 +61,7 @@ const char* StringsStorage::GetCopy(const char* src) {
   OS::StrNCpy(dst, src, len);
   dst[len] = '\0';
   uint32_t hash =
-      StringHasher::HashSequentialString(dst.start(), len, HEAP->HashSeed());
+      StringHasher::HashSequentialString(dst.start(), len, hash_seed_);
   return AddOrDisposeString(dst.start(), hash);
 }
 
@@ -95,7 +95,7 @@ const char* StringsStorage::GetVFormatted(const char* format, va_list args) {
     return format;
   }
   uint32_t hash = StringHasher::HashSequentialString(
-      str.start(), len, HEAP->HashSeed());
+      str.start(), len, hash_seed_);
   return AddOrDisposeString(str.start(), hash);
 }
 
@@ -133,6 +133,7 @@ size_t StringsStorage::GetUsedMemorySize() const {
 
 const char* const CodeEntry::kEmptyNamePrefix = "";
 const char* const CodeEntry::kEmptyResourceName = "";
+const char* const CodeEntry::kEmptyBailoutReason = "";
 
 
 CodeEntry::~CodeEntry() {
@@ -209,24 +210,15 @@ ProfileNode* ProfileNode::FindOrAddChild(CodeEntry* entry) {
 }
 
 
-double ProfileNode::GetSelfMillis() const {
-  return tree_->TicksToMillis(self_ticks_);
-}
-
-
-double ProfileNode::GetTotalMillis() const {
-  return tree_->TicksToMillis(total_ticks_);
-}
-
-
 void ProfileNode::Print(int indent) {
-  OS::Print("%5u %5u %*c %s%s #%d %d",
-            total_ticks_, self_ticks_,
+  OS::Print("%5u %*c %s%s %d #%d %s",
+            self_ticks_,
             indent, ' ',
             entry_->name_prefix(),
             entry_->name(),
             entry_->script_id(),
-            id());
+            id(),
+            entry_->bailout_reason());
   if (entry_->resource_name()[0] != '\0')
     OS::Print(" %s:%d", entry_->resource_name(), entry_->line_number());
   OS::Print("\n");
@@ -298,11 +290,6 @@ struct NodesPair {
 };
 
 
-void ProfileTree::SetTickRatePerMs(double ticks_per_ms) {
-  ms_to_ticks_scale_ = ticks_per_ms > 0 ? 1.0 / ticks_per_ms : 1.0;
-}
-
-
 class Position {
  public:
   explicit Position(ProfileNode* node)
@@ -345,30 +332,12 @@ void ProfileTree::TraverseDepthFirst(Callback* callback) {
 }
 
 
-class CalculateTotalTicksCallback {
- public:
-  void BeforeTraversingChild(ProfileNode*, ProfileNode*) { }
-
-  void AfterAllChildrenTraversed(ProfileNode* node) {
-    node->IncreaseTotalTicks(node->self_ticks());
-  }
-
-  void AfterChildTraversed(ProfileNode* parent, ProfileNode* child) {
-    parent->IncreaseTotalTicks(child->total_ticks());
-  }
-};
-
-
-void ProfileTree::CalculateTotalTicks() {
-  CalculateTotalTicksCallback cb;
-  TraverseDepthFirst(&cb);
-}
-
-
-void ProfileTree::ShortPrint() {
-  OS::Print("root: %u %u %.2fms %.2fms\n",
-            root_->total_ticks(), root_->self_ticks(),
-            root_->GetTotalMillis(), root_->GetSelfMillis());
+CpuProfile::CpuProfile(const char* title, unsigned uid, bool record_samples)
+    : title_(title),
+      uid_(uid),
+      record_samples_(record_samples),
+      start_time_(Time::NowFromSystemTime()) {
+  timer_.Start();
 }
 
 
@@ -378,19 +347,8 @@ void CpuProfile::AddPath(const Vector<CodeEntry*>& path) {
 }
 
 
-void CpuProfile::CalculateTotalTicks() {
-  top_down_.CalculateTotalTicks();
-}
-
-
-void CpuProfile::SetActualSamplingRate(double actual_sampling_rate) {
-  top_down_.SetTickRatePerMs(actual_sampling_rate);
-}
-
-
-void CpuProfile::ShortPrint() {
-  OS::Print("top down ");
-  top_down_.ShortPrint();
+void CpuProfile::CalculateTotalTicksAndSamplingRate() {
+  end_time_ = start_time_ + timer_.Elapsed();
 }
 
 
@@ -485,8 +443,9 @@ void CodeMap::Print() {
 }
 
 
-CpuProfilesCollection::CpuProfilesCollection()
-    : current_profiles_semaphore_(OS::CreateSemaphore(1)) {
+CpuProfilesCollection::CpuProfilesCollection(Heap* heap)
+    : function_and_resource_names_(heap),
+      current_profiles_semaphore_(1) {
 }
 
 
@@ -501,7 +460,6 @@ static void DeleteCpuProfile(CpuProfile** profile_ptr) {
 
 
 CpuProfilesCollection::~CpuProfilesCollection() {
-  delete current_profiles_semaphore_;
   finished_profiles_.Iterate(DeleteCpuProfile);
   current_profiles_.Iterate(DeleteCpuProfile);
   code_entries_.Iterate(DeleteCodeEntry);
@@ -511,40 +469,38 @@ CpuProfilesCollection::~CpuProfilesCollection() {
 bool CpuProfilesCollection::StartProfiling(const char* title, unsigned uid,
                                            bool record_samples) {
   ASSERT(uid > 0);
-  current_profiles_semaphore_->Wait();
+  current_profiles_semaphore_.Wait();
   if (current_profiles_.length() >= kMaxSimultaneousProfiles) {
-    current_profiles_semaphore_->Signal();
+    current_profiles_semaphore_.Signal();
     return false;
   }
   for (int i = 0; i < current_profiles_.length(); ++i) {
     if (strcmp(current_profiles_[i]->title(), title) == 0) {
       // Ignore attempts to start profile with the same title.
-      current_profiles_semaphore_->Signal();
+      current_profiles_semaphore_.Signal();
       return false;
     }
   }
   current_profiles_.Add(new CpuProfile(title, uid, record_samples));
-  current_profiles_semaphore_->Signal();
+  current_profiles_semaphore_.Signal();
   return true;
 }
 
 
-CpuProfile* CpuProfilesCollection::StopProfiling(const char* title,
-                                                 double actual_sampling_rate) {
+CpuProfile* CpuProfilesCollection::StopProfiling(const char* title) {
   const int title_len = StrLength(title);
   CpuProfile* profile = NULL;
-  current_profiles_semaphore_->Wait();
+  current_profiles_semaphore_.Wait();
   for (int i = current_profiles_.length() - 1; i >= 0; --i) {
     if (title_len == 0 || strcmp(current_profiles_[i]->title(), title) == 0) {
       profile = current_profiles_.Remove(i);
       break;
     }
   }
-  current_profiles_semaphore_->Signal();
+  current_profiles_semaphore_.Signal();
 
   if (profile == NULL) return NULL;
-  profile->CalculateTotalTicks();
-  profile->SetActualSamplingRate(actual_sampling_rate);
+  profile->CalculateTotalTicksAndSamplingRate();
   finished_profiles_.Add(profile);
   return profile;
 }
@@ -577,11 +533,11 @@ void CpuProfilesCollection::AddPathToCurrentProfiles(
   // As starting / stopping profiles is rare relatively to this
   // method, we don't bother minimizing the duration of lock holding,
   // e.g. copying contents of the list to a local vector.
-  current_profiles_semaphore_->Wait();
+  current_profiles_semaphore_.Wait();
   for (int i = 0; i < current_profiles_.length(); ++i) {
     current_profiles_[i]->AddPath(path);
   }
-  current_profiles_semaphore_->Signal();
+  current_profiles_semaphore_.Signal();
 }
 
 
@@ -601,33 +557,12 @@ CodeEntry* CpuProfilesCollection::NewCodeEntry(
 }
 
 
-void SampleRateCalculator::Tick() {
-  if (--wall_time_query_countdown_ == 0)
-    UpdateMeasurements(OS::TimeCurrentMillis());
-}
-
-
-void SampleRateCalculator::UpdateMeasurements(double current_time) {
-  if (measurements_count_++ != 0) {
-    const double measured_ticks_per_ms =
-        (kWallTimeQueryIntervalMs * ticks_per_ms_) /
-        (current_time - last_wall_time_);
-    // Update the average value.
-    ticks_per_ms_ +=
-        (measured_ticks_per_ms - ticks_per_ms_) / measurements_count_;
-    // Update the externally accessible result.
-    result_ = static_cast<AtomicWord>(ticks_per_ms_ * kResultScale);
-  }
-  last_wall_time_ = current_time;
-  wall_time_query_countdown_ =
-      static_cast<unsigned>(kWallTimeQueryIntervalMs * ticks_per_ms_);
-}
-
-
 const char* const ProfileGenerator::kAnonymousFunctionName =
     "(anonymous function)";
 const char* const ProfileGenerator::kProgramEntryName =
     "(program)";
+const char* const ProfileGenerator::kIdleEntryName =
+    "(idle)";
 const char* const ProfileGenerator::kGarbageCollectorEntryName =
     "(garbage collector)";
 const char* const ProfileGenerator::kUnresolvedFunctionName =
@@ -638,6 +573,8 @@ ProfileGenerator::ProfileGenerator(CpuProfilesCollection* profiles)
     : profiles_(profiles),
       program_entry_(
           profiles->NewCodeEntry(Logger::FUNCTION_TAG, kProgramEntryName)),
+      idle_entry_(
+          profiles->NewCodeEntry(Logger::FUNCTION_TAG, kIdleEntryName)),
       gc_entry_(
           profiles->NewCodeEntry(Logger::BUILTIN_TAG,
                                  kGarbageCollectorEntryName)),
@@ -655,7 +592,8 @@ void ProfileGenerator::RecordTickSample(const TickSample& sample) {
   CodeEntry** entry = entries.start();
   memset(entry, 0, entries.length() * sizeof(*entry));
   if (sample.pc != NULL) {
-    if (sample.has_external_callback) {
+    if (sample.has_external_callback && sample.state == EXTERNAL &&
+        sample.top_frame_type == StackFrame::EXIT) {
       // Don't use PC when in external callback code, as it can point
       // inside callback's code, and we will erroneously report
       // that a callback calls itself.

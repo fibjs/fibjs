@@ -163,22 +163,9 @@ void HEnvironmentLivenessAnalysisPhase::UpdateLivenessAtInstruction(
       live->Clear();
       for (int i = 0; i < enter->return_targets()->length(); ++i) {
         int return_id = enter->return_targets()->at(i)->block_id();
-        // When an AbnormalExit is involved, it can happen that the return
-        // target block doesn't actually exist.
-        if (return_id < live_at_block_start_.length()) {
-          live->Union(*live_at_block_start_[return_id]);
-        }
+        live->Union(*live_at_block_start_[return_id]);
       }
       last_simulate_ = NULL;
-      break;
-    }
-    case HValue::kDeoptimize: {
-      // Keep all environment slots alive.
-      HDeoptimize* deopt = HDeoptimize::cast(instr);
-      for (int i = deopt->first_local_index();
-           i < deopt->first_expression_index(); ++i) {
-        live->Add(i);
-      }
       break;
     }
     case HValue::kSimulate:

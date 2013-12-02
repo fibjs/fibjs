@@ -67,9 +67,17 @@ void StoreBuffer::EnterDirectlyIntoStoreBuffer(Address addr) {
     if (top >= old_limit_) {
       ASSERT(callback_ != NULL);
       (*callback_)(heap_,
-                   MemoryChunk::FromAnyPointerAddress(addr),
+                   MemoryChunk::FromAnyPointerAddress(heap_, addr),
                    kStoreBufferFullEvent);
     }
+  }
+}
+
+
+void StoreBuffer::ClearDeadObject(HeapObject* object) {
+  Address& map_field = Memory::Address_at(object->address());
+  if (heap_->map_space()->Contains(map_field)) {
+    map_field = NULL;
   }
 }
 
