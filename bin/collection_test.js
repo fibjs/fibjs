@@ -2,6 +2,7 @@ var test = require("test");
 test.setup();
 
 var collection = require('collection');
+var os = require('os');
 
 describe("collection", function() {
 	describe('List', function() {
@@ -27,6 +28,17 @@ describe("collection", function() {
 				assert.equal(a[i], 256 - i);
 			}
 			a.resize(0);
+		});
+
+		it("Memory Leak detect", function() {
+			GC();
+			var no1 = os.memoryUsage().nativeObjects;
+			a.push(new Buffer());
+			GC();
+			assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
+			a.resize(0);
+			GC();
+			assert.equal(no1, os.memoryUsage().nativeObjects);
 		});
 
 		it("toArray", function() {

@@ -30,6 +30,17 @@ describe('coroutine', function() {
 		assert.equal(n, 323);
 	});
 
+	it("Memory Leak detect", function() {
+		GC();
+		var no1 = os.memoryUsage().nativeObjects;
+		var f = (function(v){}).start(new Buffer());
+		GC();
+		assert.equal(no1 + 2, os.memoryUsage().nativeObjects);
+		f.join();
+		GC();
+		assert.equal(no1, os.memoryUsage().nativeObjects);
+	});
+
 	it('Fiber-local storage', function() {
 		function t_fiber1(v1, v2) {
 			n = v1 + v2 + this.v;
