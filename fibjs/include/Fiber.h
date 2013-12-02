@@ -195,11 +195,11 @@ public:
 		size_t i;
 
 		for (i = 0; i < m_argv.size(); i++)
-			m_argv[i].Dispose(isolate);
+			m_argv[i].Dispose();
 		m_argv.resize(0);
 
-		m_func.Dispose(isolate);
-		m_result.Dispose(isolate);
+		m_func.Dispose();
+		m_result.Dispose();
 	}
 
 private:

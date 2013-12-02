@@ -50,10 +50,10 @@ class _case: public obj_base
 	{
 		int i, j;
 
-		m_block.Dispose(isolate);
+		m_block.Dispose();
 		for (i = 0; i < 4; i++)
 			for (j = 0; j < (int) m_hooks[i].size(); j++)
-				m_hooks[i][j].Dispose(isolate);
+				m_hooks[i][j].Dispose();
 	}
 
 public:

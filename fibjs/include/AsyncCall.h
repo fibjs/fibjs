@@ -19,7 +19,7 @@ public:
 
 	int wait()
 	{
-		if(isset())
+		if(isSet())
 			return result();
 
 		v8::Unlocker unlocker(isolate);

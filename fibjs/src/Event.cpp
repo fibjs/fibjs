@@ -23,7 +23,7 @@ result_t Event::acquire(bool blocking, bool& retVal)
 {
 	if(!blocking)
 	{
-		retVal = m_event.isset();
+		retVal = m_event.isSet();
 		return 0;
 	}
 
@@ -39,7 +39,7 @@ result_t Event::release()
 
 result_t Event::isSet(bool& retVal)
 {
-	retVal = m_event.isset();
+	retVal = m_event.isSet();
 	return 0;
 }
 
@@ -63,7 +63,7 @@ result_t Event::clear()
 
 result_t Event::wait()
 {
-	if (m_event.isset())
+	if (m_event.isSet())
 		return 0;
 
 	v8::Unlocker unlocker(isolate);

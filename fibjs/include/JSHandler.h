@@ -19,7 +19,7 @@ class JSHandler: public Handler_base
 public:
 	~JSHandler()
 	{
-		m_handler.Dispose(isolate);
+		m_handler.Dispose();
 	}
 
 public:

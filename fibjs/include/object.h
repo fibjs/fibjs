@@ -62,7 +62,7 @@ public:
 		if (internalRef() == 1)
 		{
 			if (!handle_.IsEmpty())
-				handle_.ClearWeak(isolate);
+				handle_.ClearWeak();
 		}
 	}
 
@@ -73,7 +73,7 @@ public:
 			if (v8::Isolate::GetCurrent())
 			{
 				if (!handle_.IsEmpty())
-					handle_.MakeWeak(isolate, (object_base*) this,
+					handle_.MakeWeak((object_base*) this,
 							WeakCallback);
 				else
 					delete this;
@@ -238,10 +238,10 @@ public:
 	{
 		if (!handle_.IsEmpty())
 		{
-			handle_.ClearWeak(isolate);
+			handle_.ClearWeak();
 			v8::Handle<v8::Object>::New(isolate, handle_)->SetAlignedPointerInInternalField(
 					0, 0);
-			handle_.Dispose(isolate);
+			handle_.Dispose();
 			handle_.Clear();
 
 			m_nTriggers = 0;

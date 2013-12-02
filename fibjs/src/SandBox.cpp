@@ -69,7 +69,7 @@ void SandBox::InstallModule(std::string fname, v8::Handle<v8::Value> o,
 	else
 	{
 		m = it->second;
-		m->m_mod.Dispose(isolate);
+		m->m_mod.Dispose();
 	}
 
 	m->m_mod.Reset(isolate, o);

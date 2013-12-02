@@ -225,7 +225,7 @@ void _main(const char* fname)
 
 	process_base::exit(0);
 
-	s_context.Dispose(isolate);
+	s_context.Dispose();
 }
 
 }

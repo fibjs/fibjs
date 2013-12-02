@@ -24,7 +24,7 @@ public:
 
 	~Expect()
 	{
-		m_actual.Dispose(isolate);
+		m_actual.Dispose();
 	}
 
 public:

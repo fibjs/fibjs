@@ -37,7 +37,7 @@ MongoCursor::MongoCursor(MongoDB* db, const std::string& ns,
 
 MongoCursor::~MongoCursor()
 {
-	m_query.Dispose(isolate);
+	m_query.Dispose();
 	mongo_cursor_destroy(&m_cursor);
 	if (m_bInit)
 		bson_destroy(&m_bbq);
@@ -52,7 +52,7 @@ void MongoCursor::ensureSpecial()
 
 		o->Set(v8::String::New("query"),
 				v8::Handle < v8::Object > ::New(isolate, m_query));
-		m_query.Dispose(isolate);
+		m_query.Dispose();
 
 		m_query.Reset(isolate, o);
 		m_bSpecial = true;
