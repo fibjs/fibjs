@@ -5,6 +5,8 @@
  *      Author: lion
  */
 
+#include <stdlib.h>
+
 #ifndef QUICKARRAY_H_
 #define QUICKARRAY_H_
 

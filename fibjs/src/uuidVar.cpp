@@ -8,6 +8,7 @@
 #include "uuidVar.h"
 #include "Buffer.h"
 #include "ifs/uuid.h"
+#include <stdlib.h>
 
 namespace fibjs
 {
