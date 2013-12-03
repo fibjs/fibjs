@@ -25,30 +25,37 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef V8_V8_DEFAULTS_H_
-#define V8_V8_DEFAULTS_H_
+#ifndef V8_TRIG_TABLE_H_
+#define V8_TRIG_TABLE_H_
 
-#include "v8.h"
 
-/**
- * Default configuration support for the V8 JavaScript engine.
- */
 namespace v8 {
+namespace internal {
 
-/**
- * Configures the constraints with reasonable default values based on the
- * capabilities of the current device the VM is running on.
- */
-bool V8_EXPORT ConfigureResourceConstraintsForCurrentPlatform(
-    ResourceConstraints* constraints);
+class TrigonometricLookupTable : public AllStatic {
+ public:
+  // Casting away const-ness to use as argument for typed array constructor.
+  static void* sin_table() {
+    return const_cast<double*>(&kSinTable[0]);
+  }
 
+  static void* cos_x_interval_table() {
+    return const_cast<double*>(&kCosXIntervalTable[0]);
+  }
 
-/**
- * Convience function which performs SetResourceConstraints with the settings
- * returned by ConfigureResourceConstraintsForCurrentPlatform.
- */
-bool V8_EXPORT SetDefaultResourceConstraintsForCurrentPlatform();
+  static double samples_over_pi_half() { return kSamplesOverPiHalf; }
+  static int samples() { return kSamples; }
+  static int table_num_bytes() { return kTableSize * sizeof(*kSinTable); }
+  static int table_size() { return kTableSize; }
 
-}  // namespace v8
+ private:
+  static const double kSinTable[];
+  static const double kCosXIntervalTable[];
+  static const int kSamples;
+  static const int kTableSize;
+  static const double kSamplesOverPiHalf;
+};
 
-#endif  // V8_V8_DEFAULTS_H_
+} }  // namespace v8::internal
+
+#endif  // V8_TRIG_TABLE_H_

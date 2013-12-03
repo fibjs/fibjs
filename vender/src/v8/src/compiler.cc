@@ -59,7 +59,8 @@ CompilationInfo::CompilationInfo(Handle<Script> script,
     : flags_(LanguageModeField::encode(CLASSIC_MODE)),
       script_(script),
       osr_ast_id_(BailoutId::None()),
-      osr_pc_offset_(0) {
+      osr_pc_offset_(0),
+      parameter_count_(0) {
   Initialize(script->GetIsolate(), BASE, zone);
 }
 
@@ -70,7 +71,8 @@ CompilationInfo::CompilationInfo(Handle<SharedFunctionInfo> shared_info,
       shared_info_(shared_info),
       script_(Handle<Script>(Script::cast(shared_info->script()))),
       osr_ast_id_(BailoutId::None()),
-      osr_pc_offset_(0) {
+      osr_pc_offset_(0),
+      parameter_count_(0) {
   Initialize(script_->GetIsolate(), BASE, zone);
 }
 
@@ -83,7 +85,8 @@ CompilationInfo::CompilationInfo(Handle<JSFunction> closure,
       script_(Handle<Script>(Script::cast(shared_info_->script()))),
       context_(closure->context()),
       osr_ast_id_(BailoutId::None()),
-      osr_pc_offset_(0) {
+      osr_pc_offset_(0),
+      parameter_count_(0) {
   Initialize(script_->GetIsolate(), BASE, zone);
 }
 
@@ -94,7 +97,8 @@ CompilationInfo::CompilationInfo(HydrogenCodeStub* stub,
     : flags_(LanguageModeField::encode(CLASSIC_MODE) |
              IsLazy::encode(true)),
       osr_ast_id_(BailoutId::None()),
-      osr_pc_offset_(0) {
+      osr_pc_offset_(0),
+      parameter_count_(0) {
   Initialize(isolate, STUB, zone);
   code_stub_ = stub;
 }
@@ -184,8 +188,12 @@ void CompilationInfo::RollbackDependencies() {
 
 
 int CompilationInfo::num_parameters() const {
-  ASSERT(!IsStub());
-  return scope()->num_parameters();
+  if (IsStub()) {
+    ASSERT(parameter_count_ > 0);
+    return parameter_count_;
+  } else {
+    return scope()->num_parameters();
+  }
 }
 
 
@@ -262,8 +270,11 @@ static bool AlwaysFullCompiler(Isolate* isolate) {
 
 void RecompileJob::RecordOptimizationStats() {
   Handle<JSFunction> function = info()->closure();
-  int opt_count = function->shared()->opt_count();
-  function->shared()->set_opt_count(opt_count + 1);
+  if (!function->IsOptimized()) {
+    // Concurrent recompilation and OSR may race.  Increment only once.
+    int opt_count = function->shared()->opt_count();
+    function->shared()->set_opt_count(opt_count + 1);
+  }
   double ms_creategraph = time_taken_to_create_graph_.InMillisecondsF();
   double ms_optimize = time_taken_to_optimize_.InMillisecondsF();
   double ms_codegen = time_taken_to_codegen_.InMillisecondsF();
@@ -313,9 +324,9 @@ static bool MakeCrankshaftCode(CompilationInfo* info) {
 }
 
 
-class HOptimizedGraphBuilderWithPotisions: public HOptimizedGraphBuilder {
+class HOptimizedGraphBuilderWithPositions: public HOptimizedGraphBuilder {
  public:
-  explicit HOptimizedGraphBuilderWithPotisions(CompilationInfo* info)
+  explicit HOptimizedGraphBuilderWithPositions(CompilationInfo* info)
       : HOptimizedGraphBuilder(info) {
   }
 
@@ -457,7 +468,7 @@ RecompileJob::Status RecompileJob::CreateGraph() {
   AstTyper::Run(info());
 
   graph_builder_ = FLAG_emit_opt_code_positions
-      ? new(info()->zone()) HOptimizedGraphBuilderWithPotisions(info())
+      ? new(info()->zone()) HOptimizedGraphBuilderWithPositions(info())
       : new(info()->zone()) HOptimizedGraphBuilder(info());
 
   Timer t(this, &time_taken_to_create_graph_);
@@ -502,7 +513,7 @@ RecompileJob::Status RecompileJob::OptimizeGraph() {
   ASSERT(graph_ != NULL);
   BailoutReason bailout_reason = kNoReason;
   if (!graph_->Optimize(&bailout_reason)) {
-    if (bailout_reason == kNoReason) graph_builder_->Bailout(bailout_reason);
+    if (bailout_reason != kNoReason) graph_builder_->Bailout(bailout_reason);
     return SetLastStatus(BAILED_OUT);
   } else {
     chunk_ = LChunk::NewChunk(graph_);

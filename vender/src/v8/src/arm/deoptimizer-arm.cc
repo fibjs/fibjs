@@ -109,7 +109,7 @@ void Deoptimizer::SetPlatformCompiledStubRegisters(
   ApiFunction function(descriptor->deoptimization_handler_);
   ExternalReference xref(&function, ExternalReference::BUILTIN_CALL, isolate_);
   intptr_t handler = reinterpret_cast<intptr_t>(xref.address());
-  int params = descriptor->environment_length();
+  int params = descriptor->GetHandlerParameterCount();
   output_frame->SetRegister(r0.code(), params);
   output_frame->SetRegister(r1.code(), handler);
 }
@@ -126,6 +126,11 @@ void Deoptimizer::CopyDoubleRegisters(FrameDescription* output_frame) {
 bool Deoptimizer::HasAlignmentPadding(JSFunction* function) {
   // There is no dynamic alignment padding on ARM in the input frame.
   return false;
+}
+
+
+Code* Deoptimizer::NotifyStubFailureBuiltin() {
+  return isolate_->builtins()->builtin(Builtins::kNotifyStubFailureSaveDoubles);
 }
 
 

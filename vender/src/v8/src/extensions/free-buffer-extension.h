@@ -25,30 +25,25 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef V8_V8_DEFAULTS_H_
-#define V8_V8_DEFAULTS_H_
+#ifndef V8_EXTENSIONS_FREE_BUFFER_EXTENSION_H_
+#define V8_EXTENSIONS_FREE_BUFFER_EXTENSION_H_
 
 #include "v8.h"
 
-/**
- * Default configuration support for the V8 JavaScript engine.
- */
 namespace v8 {
+namespace internal {
 
-/**
- * Configures the constraints with reasonable default values based on the
- * capabilities of the current device the VM is running on.
- */
-bool V8_EXPORT ConfigureResourceConstraintsForCurrentPlatform(
-    ResourceConstraints* constraints);
+class FreeBufferExtension : public v8::Extension {
+ public:
+  explicit FreeBufferExtension(const char* source)
+      : v8::Extension("v8/free-buffer", source) {}
+  virtual v8::Handle<v8::FunctionTemplate> GetNativeFunctionTemplate(
+      v8::Isolate* isolate,
+      v8::Handle<v8::String> name);
+  static void FreeBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void Register();
+};
 
+} }  // namespace v8::internal
 
-/**
- * Convience function which performs SetResourceConstraints with the settings
- * returned by ConfigureResourceConstraintsForCurrentPlatform.
- */
-bool V8_EXPORT SetDefaultResourceConstraintsForCurrentPlatform();
-
-}  // namespace v8
-
-#endif  // V8_V8_DEFAULTS_H_
+#endif  // V8_EXTENSIONS_FREE_BUFFER_EXTENSION_H_

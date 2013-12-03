@@ -709,7 +709,7 @@ void ScriptCache::HandleWeakScript(v8::Isolate* isolate,
   script_cache->collected_scripts_.Add(id);
 
   // Clear the weak handle.
-  obj->Dispose();
+  obj->Reset();
 }
 
 
@@ -2056,7 +2056,7 @@ void Debug::PrepareForBreakPoints() {
   // If preparing for the first break point make sure to deoptimize all
   // functions as debugging does not work with optimized code.
   if (!has_break_points_) {
-    if (FLAG_concurrent_recompilation) {
+    if (isolate_->concurrent_recompilation_enabled()) {
       isolate_->optimizing_compiler_thread()->Flush();
     }
 
@@ -3071,6 +3071,7 @@ void Debugger::NotifyMessageHandler(v8::DebugEvent event,
                                     Handle<JSObject> exec_state,
                                     Handle<JSObject> event_data,
                                     bool auto_continue) {
+  v8::Isolate* isolate = reinterpret_cast<v8::Isolate*>(isolate_);
   HandleScope scope(isolate_);
 
   if (!isolate_->debug()->Load()) return;
@@ -3131,12 +3132,12 @@ void Debugger::NotifyMessageHandler(v8::DebugEvent event,
   {
     v8::Local<v8::Object> api_exec_state =
         v8::Utils::ToLocal(Handle<JSObject>::cast(exec_state));
-    v8::Local<v8::String> fun_name =
-        v8::String::New("debugCommandProcessor");
+    v8::Local<v8::String> fun_name = v8::String::NewFromUtf8(
+        isolate, "debugCommandProcessor");
     v8::Local<v8::Function> fun =
         v8::Local<v8::Function>::Cast(api_exec_state->Get(fun_name));
 
-    v8::Handle<v8::Boolean> running = v8::Boolean::New(auto_continue);
+    v8::Handle<v8::Boolean> running = v8::Boolean::New(isolate, auto_continue);
     static const int kArgc = 1;
     v8::Handle<Value> argv[kArgc] = { running };
     cmd_processor = v8::Local<v8::Object>::Cast(
@@ -3179,11 +3180,12 @@ void Debugger::NotifyMessageHandler(v8::DebugEvent event,
     v8::Local<v8::Function> fun;
     v8::Local<v8::Value> request;
     v8::TryCatch try_catch;
-    fun_name = v8::String::New("processDebugRequest");
+    fun_name = v8::String::NewFromUtf8(isolate, "processDebugRequest");
     fun = v8::Local<v8::Function>::Cast(cmd_processor->Get(fun_name));
 
-    request = v8::String::New(command.text().start(),
-                              command.text().length());
+    request = v8::String::NewFromTwoByte(isolate, command.text().start(),
+                                         v8::String::kNormalString,
+                                         command.text().length());
     static const int kArgc = 1;
     v8::Handle<Value> argv[kArgc] = { request };
     v8::Local<v8::Value> response_val = fun->Call(cmd_processor, kArgc, argv);
@@ -3195,7 +3197,7 @@ void Debugger::NotifyMessageHandler(v8::DebugEvent event,
       if (!response_val->IsUndefined()) {
         response = v8::Local<v8::String>::Cast(response_val);
       } else {
-        response = v8::String::New("");
+        response = v8::String::NewFromUtf8(isolate, "");
       }
 
       // Log the JSON request/response.
@@ -3205,7 +3207,7 @@ void Debugger::NotifyMessageHandler(v8::DebugEvent event,
       }
 
       // Get the running state.
-      fun_name = v8::String::New("isRunning");
+      fun_name = v8::String::NewFromUtf8(isolate, "isRunning");
       fun = v8::Local<v8::Function>::Cast(cmd_processor->Get(fun_name));
       static const int kArgc = 1;
       v8::Handle<Value> argv[kArgc] = { response };
@@ -3638,7 +3640,7 @@ v8::Handle<v8::Object> MessageImpl::GetEventData() const {
 
 
 v8::Handle<v8::String> MessageImpl::GetJSON() const {
-  v8::HandleScope scope(
+  v8::EscapableHandleScope scope(
       reinterpret_cast<v8::Isolate*>(event_data_->GetIsolate()));
 
   if (IsEvent()) {
@@ -3654,7 +3656,7 @@ v8::Handle<v8::String> MessageImpl::GetJSON() const {
     if (caught_exception || !json->IsString()) {
       return v8::Handle<v8::String>();
     }
-    return scope.Close(v8::Utils::ToLocal(Handle<String>::cast(json)));
+    return scope.Escape(v8::Utils::ToLocal(Handle<String>::cast(json)));
   } else {
     return v8::Utils::ToLocal(response_json_);
   }

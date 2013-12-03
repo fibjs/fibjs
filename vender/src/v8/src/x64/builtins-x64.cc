@@ -158,7 +158,7 @@ static void Generate_JSConstructStubHelper(MacroAssembler* masm,
 #ifdef ENABLE_DEBUGGER_SUPPORT
       ExternalReference debug_step_in_fp =
           ExternalReference::debug_step_in_fp_address(masm->isolate());
-      __ movq(kScratchRegister, debug_step_in_fp);
+      __ Move(kScratchRegister, debug_step_in_fp);
       __ cmpq(Operand(kScratchRegister, 0), Immediate(0));
       __ j(not_equal, &rt_call);
 #endif
@@ -600,8 +600,7 @@ static void GenerateMakeCodeYoungAgainCommon(MacroAssembler* masm) {
   // the stub returns.
   __ subq(Operand(rsp, 0), Immediate(5));
   __ Pushad();
-  __ movq(arg_reg_2,
-          ExternalReference::isolate_address(masm->isolate()));
+  __ Move(arg_reg_2, ExternalReference::isolate_address(masm->isolate()));
   __ movq(arg_reg_1, Operand(rsp, kNumSafepointRegisters * kPointerSize));
   {  // NOLINT
     FrameScope scope(masm, StackFrame::MANUAL);
@@ -633,7 +632,7 @@ void Builtins::Generate_MarkCodeAsExecutedOnce(MacroAssembler* masm) {
   // save/restore the registers without worrying about which of them contain
   // pointers.
   __ Pushad();
-  __ movq(arg_reg_2, ExternalReference::isolate_address(masm->isolate()));
+  __ Move(arg_reg_2, ExternalReference::isolate_address(masm->isolate()));
   __ movq(arg_reg_1, Operand(rsp, kNumSafepointRegisters * kPointerSize));
   __ subq(arg_reg_1, Immediate(Assembler::kShortCallInstructionLength));
   {  // NOLINT
@@ -663,7 +662,8 @@ void Builtins::Generate_MarkCodeAsExecutedTwice(MacroAssembler* masm) {
 }
 
 
-void Builtins::Generate_NotifyStubFailure(MacroAssembler* masm) {
+static void Generate_NotifyStubFailureHelper(MacroAssembler* masm,
+                                             SaveFPRegsMode save_doubles) {
   // Enter an internal frame.
   {
     FrameScope scope(masm, StackFrame::INTERNAL);
@@ -672,13 +672,23 @@ void Builtins::Generate_NotifyStubFailure(MacroAssembler* masm) {
     // stubs that tail call the runtime on deopts passing their parameters in
     // registers.
     __ Pushad();
-    __ CallRuntime(Runtime::kNotifyStubFailure, 0);
+    __ CallRuntime(Runtime::kNotifyStubFailure, 0, save_doubles);
     __ Popad();
     // Tear down internal frame.
   }
 
   __ pop(MemOperand(rsp, 0));  // Ignore state offset
   __ ret(0);  // Return to IC Miss stub, continuation still on stack.
+}
+
+
+void Builtins::Generate_NotifyStubFailure(MacroAssembler* masm) {
+  Generate_NotifyStubFailureHelper(masm, kDontSaveFPRegs);
+}
+
+
+void Builtins::Generate_NotifyStubFailureSaveDoubles(MacroAssembler* masm) {
+  Generate_NotifyStubFailureHelper(masm, kSaveFPRegs);
 }
 
 

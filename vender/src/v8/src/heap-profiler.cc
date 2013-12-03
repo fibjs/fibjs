@@ -27,7 +27,6 @@
 
 #include "v8.h"
 
-#include "deoptimizer.h"
 #include "heap-profiler.h"
 #include "heap-snapshot-generator-inl.h"
 
@@ -37,7 +36,8 @@ namespace internal {
 HeapProfiler::HeapProfiler(Heap* heap)
     : snapshots_(new HeapSnapshotsCollection(heap)),
       next_snapshot_uid_(1),
-      is_tracking_allocations_(false) {
+      is_tracking_allocations_(false),
+      is_tracking_object_moves_(false) {
 }
 
 
@@ -85,6 +85,7 @@ HeapSnapshot* HeapProfiler::TakeSnapshot(
     }
   }
   snapshots_->SnapshotGenerationFinished(result);
+  is_tracking_object_moves_ = true;
   return result;
 }
 
@@ -97,8 +98,14 @@ HeapSnapshot* HeapProfiler::TakeSnapshot(
 }
 
 
-void HeapProfiler::StartHeapObjectsTracking() {
-  snapshots_->StartHeapObjectsTracking();
+void HeapProfiler::StartHeapObjectsTracking(bool track_allocations) {
+  snapshots_->StartHeapObjectsTracking(track_allocations);
+  is_tracking_object_moves_ = true;
+  ASSERT(!is_tracking_allocations_);
+  if (track_allocations) {
+    heap()->DisableInlineAllocation();
+    is_tracking_allocations_ = true;
+  }
 }
 
 
@@ -109,6 +116,10 @@ SnapshotObjectId HeapProfiler::PushHeapObjectsStats(OutputStream* stream) {
 
 void HeapProfiler::StopHeapObjectsTracking() {
   snapshots_->StopHeapObjectsTracking();
+  if (is_tracking_allocations_) {
+    heap()->EnableInlineAllocation();
+    is_tracking_allocations_ = false;
+  }
 }
 
 
@@ -139,8 +150,8 @@ void HeapProfiler::ObjectMoveEvent(Address from, Address to, int size) {
 }
 
 
-void HeapProfiler::NewObjectEvent(Address addr, int size) {
-  snapshots_->NewObjectEvent(addr, size);
+void HeapProfiler::AllocationEvent(Address addr, int size) {
+  snapshots_->AllocationEvent(addr, size);
 }
 
 
@@ -153,66 +164,6 @@ void HeapProfiler::SetRetainedObjectInfo(UniqueId id,
                                          RetainedObjectInfo* info) {
   // TODO(yurus, marja): Don't route this information through GlobalHandles.
   heap()->isolate()->global_handles()->SetRetainedObjectInfo(id, info);
-}
-
-
-void HeapProfiler::StartHeapAllocationsRecording() {
-  StartHeapObjectsTracking();
-  is_tracking_allocations_ = true;
-  DropCompiledCode();
-  snapshots_->UpdateHeapObjectsMap();
-}
-
-
-void HeapProfiler::StopHeapAllocationsRecording() {
-  StopHeapObjectsTracking();
-  is_tracking_allocations_ = false;
-  DropCompiledCode();
-}
-
-
-void HeapProfiler::RecordObjectAllocationFromMasm(Isolate* isolate,
-                                                  Address obj,
-                                                  int size) {
-  isolate->heap_profiler()->NewObjectEvent(obj, size);
-}
-
-
-void HeapProfiler::DropCompiledCode() {
-  Isolate* isolate = heap()->isolate();
-  HandleScope scope(isolate);
-
-  if (FLAG_concurrent_recompilation) {
-    isolate->optimizing_compiler_thread()->Flush();
-  }
-
-  Deoptimizer::DeoptimizeAll(isolate);
-
-  Handle<Code> lazy_compile =
-      Handle<Code>(isolate->builtins()->builtin(Builtins::kLazyCompile));
-
-  heap()->CollectAllGarbage(Heap::kMakeHeapIterableMask,
-                            "switch allocations tracking");
-
-  DisallowHeapAllocation no_allocation;
-
-  HeapIterator iterator(heap());
-  HeapObject* obj = NULL;
-  while (((obj = iterator.next()) != NULL)) {
-    if (obj->IsJSFunction()) {
-      JSFunction* function = JSFunction::cast(obj);
-      SharedFunctionInfo* shared = function->shared();
-
-      if (!shared->allows_lazy_compilation()) continue;
-      if (!shared->script()->IsScript()) continue;
-
-      Code::Kind kind = function->code()->kind();
-      if (kind == Code::FUNCTION || kind == Code::BUILTIN) {
-        function->set_code(*lazy_compile);
-        shared->set_code(*lazy_compile);
-      }
-    }
-  }
 }
 
 

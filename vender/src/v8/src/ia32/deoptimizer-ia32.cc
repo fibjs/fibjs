@@ -202,7 +202,7 @@ void Deoptimizer::SetPlatformCompiledStubRegisters(
     FrameDescription* output_frame, CodeStubInterfaceDescriptor* descriptor) {
   intptr_t handler =
       reinterpret_cast<intptr_t>(descriptor->deoptimization_handler_);
-  int params = descriptor->environment_length();
+  int params = descriptor->GetHandlerParameterCount();
   output_frame->SetRegister(eax.code(), params);
   output_frame->SetRegister(ebx.code(), handler);
 }
@@ -228,6 +228,13 @@ bool Deoptimizer::HasAlignmentPadding(JSFunction* function) {
       JavaScriptFrameConstants::kLocal0Offset);
   int32_t alignment_state = input_->GetFrameSlot(alignment_state_offset);
   return (alignment_state == kAlignmentPaddingPushed);
+}
+
+
+Code* Deoptimizer::NotifyStubFailureBuiltin() {
+  Builtins::Name name = CpuFeatures::IsSupported(SSE2) ?
+      Builtins::kNotifyStubFailureSaveDoubles : Builtins::kNotifyStubFailure;
+  return isolate_->builtins()->builtin(name);
 }
 
 

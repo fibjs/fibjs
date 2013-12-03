@@ -1887,6 +1887,12 @@
     <ClCompile Include="src\exlib\fiber\fbUtils.cpp">
       <Filter>Source Files\exlib\fiber</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\allocation-tracker.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\trig-table.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -2049,9 +2055,6 @@
       <Filter>Source Files\v8\include</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\include\v8-debug.h">
-      <Filter>Source Files\v8\include</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\include\v8-preparser.h">
       <Filter>Source Files\v8\include</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\include\v8-profiler.h">
@@ -2654,9 +2657,6 @@
     <ClInclude Include="include\v8\v8-debug.h">
       <Filter>Header Files\v8</Filter>
     </ClInclude>
-    <ClInclude Include="include\v8\v8-preparser.h">
-      <Filter>Header Files\v8</Filter>
-    </ClInclude>
     <ClInclude Include="include\v8\v8-profiler.h">
       <Filter>Header Files\v8</Filter>
     </ClInclude>
@@ -2891,13 +2891,7 @@
     <ClInclude Include="include\v8\v8config.h">
       <Filter>Header Files\v8</Filter>
     </ClInclude>
-    <ClInclude Include="include\v8\v8-defaults.h">
-      <Filter>Header Files\v8</Filter>
-    </ClInclude>
     <ClInclude Include="src\v8\include\v8config.h">
-      <Filter>Source Files\v8\include</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\include\v8-defaults.h">
       <Filter>Source Files\v8\include</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\platform\condition-variable.h">
@@ -3543,6 +3537,12 @@
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\zone-inl.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\allocation-tracker.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\trig-table.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
   </ItemGroup>

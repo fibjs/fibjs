@@ -74,6 +74,7 @@ class LCodeGen;
   V(ClampTToUint8NoSSE2)                        \
   V(ClassOfTestAndBranch)                       \
   V(ClobberDoubles)                             \
+  V(CompareMinusZeroAndBranch)                  \
   V(CompareNumericAndBranch)                    \
   V(CmpObjectEqAndBranch)                       \
   V(CmpHoleAndBranch)                           \
@@ -93,6 +94,7 @@ class LCodeGen;
   V(DoubleToI)                                  \
   V(DoubleToSmi)                                \
   V(Drop)                                       \
+  V(Dummy)                                      \
   V(DummyUse)                                   \
   V(ElementsKind)                               \
   V(ForInCacheArray)                            \
@@ -152,10 +154,10 @@ class LCodeGen;
   V(OuterContext)                               \
   V(Parameter)                                  \
   V(Power)                                      \
-  V(Random)                                     \
   V(PushArgument)                               \
   V(RegExpLiteral)                              \
   V(Return)                                     \
+  V(SeqStringGetChar)                           \
   V(SeqStringSetChar)                           \
   V(ShiftI)                                     \
   V(SmiTag)                                     \
@@ -428,6 +430,13 @@ class LGoto V8_FINAL : public LTemplateInstruction<0, 0, 0> {
 class LLazyBailout V8_FINAL : public LTemplateInstruction<0, 0, 0> {
  public:
   DECLARE_CONCRETE_INSTRUCTION(LazyBailout, "lazy-bailout")
+};
+
+
+class LDummy V8_FINAL : public LTemplateInstruction<1, 0, 0> {
+ public:
+  explicit LDummy() { }
+  DECLARE_CONCRETE_INSTRUCTION(Dummy, "dummy")
 };
 
 
@@ -741,15 +750,13 @@ class LMathFloor V8_FINAL : public LTemplateInstruction<1, 1, 0> {
 };
 
 
-class LMathRound V8_FINAL : public LTemplateInstruction<1, 2, 1> {
+class LMathRound V8_FINAL : public LTemplateInstruction<1, 1, 1> {
  public:
-  LMathRound(LOperand* context, LOperand* value, LOperand* temp) {
-    inputs_[1] = context;
+  LMathRound(LOperand* value, LOperand* temp) {
     inputs_[0] = value;
     temps_[0] = temp;
   }
 
-  LOperand* context() { return inputs_[1]; }
   LOperand* value() { return inputs_[0]; }
   LOperand* temp() { return temps_[0]; }
 
@@ -852,15 +859,13 @@ class LMathSqrt V8_FINAL : public LTemplateInstruction<1, 1, 0> {
 };
 
 
-class LMathPowHalf V8_FINAL : public LTemplateInstruction<1, 2, 1> {
+class LMathPowHalf V8_FINAL : public LTemplateInstruction<1, 1, 1> {
  public:
-  LMathPowHalf(LOperand* context, LOperand* value, LOperand* temp) {
-    inputs_[1] = context;
+  LMathPowHalf(LOperand* value, LOperand* temp) {
     inputs_[0] = value;
     temps_[0] = temp;
   }
 
-  LOperand* context() { return inputs_[1]; }
   LOperand* value() { return inputs_[0]; }
   LOperand* temp() { return temps_[0]; }
 
@@ -892,6 +897,22 @@ class LCmpHoleAndBranch V8_FINAL : public LControlInstruction<1, 0> {
 
   DECLARE_CONCRETE_INSTRUCTION(CmpHoleAndBranch, "cmp-hole-and-branch")
   DECLARE_HYDROGEN_ACCESSOR(CompareHoleAndBranch)
+};
+
+
+class LCompareMinusZeroAndBranch V8_FINAL : public LControlInstruction<1, 1> {
+ public:
+  LCompareMinusZeroAndBranch(LOperand* value, LOperand* temp) {
+    inputs_[0] = value;
+    temps_[0] = temp;
+  }
+
+  LOperand* value() { return inputs_[0]; }
+  LOperand* temp() { return temps_[0]; }
+
+  DECLARE_CONCRETE_INSTRUCTION(CompareMinusZeroAndBranch,
+                               "cmp-minus-zero-and-branch")
+  DECLARE_HYDROGEN_ACCESSOR(CompareMinusZeroAndBranch)
 };
 
 
@@ -969,6 +990,7 @@ class LStringCompareAndBranch V8_FINAL : public LControlInstruction<3, 0> {
     inputs_[2] = right;
   }
 
+  LOperand* context() { return inputs_[1]; }
   LOperand* left() { return inputs_[1]; }
   LOperand* right() { return inputs_[2]; }
 
@@ -1073,6 +1095,7 @@ class LCmpT V8_FINAL : public LTemplateInstruction<1, 3, 0> {
   DECLARE_CONCRETE_INSTRUCTION(CmpT, "cmp-t")
   DECLARE_HYDROGEN_ACCESSOR(CompareGeneric)
 
+  LOperand* context() { return inputs_[0]; }
   Token::Value op() const { return hydrogen()->token(); }
 };
 
@@ -1099,6 +1122,7 @@ class LInstanceOfKnownGlobal V8_FINAL : public LTemplateInstruction<1, 2, 1> {
     temps_[0] = temp;
   }
 
+  LOperand* context() { return inputs_[0]; }
   LOperand* value() { return inputs_[1]; }
   LOperand* temp() { return temps_[0]; }
 
@@ -1337,27 +1361,39 @@ class LDateField V8_FINAL : public LTemplateInstruction<1, 1, 1> {
 };
 
 
-class LSeqStringSetChar V8_FINAL : public LTemplateInstruction<1, 3, 0> {
+class LSeqStringGetChar V8_FINAL : public LTemplateInstruction<1, 2, 0> {
  public:
-  LSeqStringSetChar(String::Encoding encoding,
-                    LOperand* string,
-                    LOperand* index,
-                    LOperand* value) : encoding_(encoding) {
+  LSeqStringGetChar(LOperand* string, LOperand* index) {
     inputs_[0] = string;
     inputs_[1] = index;
-    inputs_[2] = value;
   }
 
-  String::Encoding encoding() { return encoding_; }
-  LOperand* string() { return inputs_[0]; }
-  LOperand* index() { return inputs_[1]; }
-  LOperand* value() { return inputs_[2]; }
+  LOperand* string() const { return inputs_[0]; }
+  LOperand* index() const { return inputs_[1]; }
+
+  DECLARE_CONCRETE_INSTRUCTION(SeqStringGetChar, "seq-string-get-char")
+  DECLARE_HYDROGEN_ACCESSOR(SeqStringGetChar)
+};
+
+
+class LSeqStringSetChar V8_FINAL : public LTemplateInstruction<1, 4, 0> {
+ public:
+  LSeqStringSetChar(LOperand* context,
+                    LOperand* string,
+                    LOperand* index,
+                    LOperand* value) {
+    inputs_[0] = context;
+    inputs_[1] = string;
+    inputs_[2] = index;
+    inputs_[3] = value;
+  }
+
+  LOperand* string() { return inputs_[1]; }
+  LOperand* index() { return inputs_[2]; }
+  LOperand* value() { return inputs_[3]; }
 
   DECLARE_CONCRETE_INSTRUCTION(SeqStringSetChar, "seq-string-set-char")
   DECLARE_HYDROGEN_ACCESSOR(SeqStringSetChar)
-
- private:
-  String::Encoding encoding_;
 };
 
 
@@ -1425,28 +1461,6 @@ class LPower V8_FINAL : public LTemplateInstruction<1, 2, 0> {
 };
 
 
-class LRandom V8_FINAL : public LTemplateInstruction<1, 1, 3> {
- public:
-  LRandom(LOperand* global_object,
-          LOperand* scratch,
-          LOperand* scratch2,
-          LOperand* scratch3) {
-    inputs_[0] = global_object;
-    temps_[0] = scratch;
-    temps_[1] = scratch2;
-    temps_[2] = scratch3;
-  }
-
-  LOperand* global_object() const { return inputs_[0]; }
-  LOperand* scratch() const { return temps_[0]; }
-  LOperand* scratch2() const { return temps_[1]; }
-  LOperand* scratch3() const { return temps_[2]; }
-
-  DECLARE_CONCRETE_INSTRUCTION(Random, "random")
-  DECLARE_HYDROGEN_ACCESSOR(Random)
-};
-
-
 class LArithmeticD V8_FINAL : public LTemplateInstruction<1, 2, 0> {
  public:
   LArithmeticD(Token::Value op, LOperand* left, LOperand* right)
@@ -1502,7 +1516,8 @@ class LArithmeticT V8_FINAL : public LTemplateInstruction<1, 3, 0> {
 
 class LReturn V8_FINAL : public LTemplateInstruction<0, 3, 0> {
  public:
-  explicit LReturn(LOperand* value, LOperand* context,
+  explicit LReturn(LOperand* value,
+                   LOperand* context,
                    LOperand* parameter_count) {
     inputs_[0] = value;
     inputs_[1] = context;
@@ -1786,19 +1801,19 @@ class LStoreCodeEntry V8_FINAL: public LTemplateInstruction<0, 1, 1> {
 };
 
 
-class LInnerAllocatedObject V8_FINAL: public LTemplateInstruction<1, 1, 0> {
+class LInnerAllocatedObject V8_FINAL: public LTemplateInstruction<1, 2, 0> {
  public:
-  explicit LInnerAllocatedObject(LOperand* base_object) {
+  LInnerAllocatedObject(LOperand* base_object, LOperand* offset) {
     inputs_[0] = base_object;
+    inputs_[1] = offset;
   }
 
-  LOperand* base_object() { return inputs_[0]; }
-  int offset() { return hydrogen()->offset(); }
+  LOperand* base_object() const { return inputs_[0]; }
+  LOperand* offset() const { return inputs_[1]; }
 
   virtual void PrintDataTo(StringStream* stream);
 
-  DECLARE_CONCRETE_INSTRUCTION(InnerAllocatedObject, "sub-allocated-object")
-  DECLARE_HYDROGEN_ACCESSOR(InnerAllocatedObject)
+  DECLARE_CONCRETE_INSTRUCTION(InnerAllocatedObject, "inner-allocated-object")
 };
 
 
@@ -2832,6 +2847,10 @@ class LChunkBuilder V8_FINAL BASE_EMBEDDED {
   MUST_USE_RESULT LOperand* UseOrConstant(HValue* value);
   MUST_USE_RESULT LOperand* UseOrConstantAtStart(HValue* value);
 
+  // An input operand in a fixed register or a constant operand.
+  MUST_USE_RESULT LOperand* UseFixedOrConstant(HValue* value,
+                                               Register fixed_register);
+
   // An input operand in a register or a constant operand.
   MUST_USE_RESULT LOperand* UseRegisterOrConstant(HValue* value);
   MUST_USE_RESULT LOperand* UseRegisterOrConstantAtStart(HValue* value);
@@ -2876,6 +2895,8 @@ class LChunkBuilder V8_FINAL BASE_EMBEDDED {
   LInstruction* AssignPointerMap(LInstruction* instr);
 
   enum CanDeoptimize { CAN_DEOPTIMIZE_EAGERLY, CANNOT_DEOPTIMIZE_EAGERLY };
+
+  LOperand* GetSeqStringSetCharOperand(HSeqStringSetChar* instr);
 
   // Marks a call for the register allocator.  Assigns a pointer map to
   // support GC and lazy deoptimization.  Assigns an environment to support

@@ -91,11 +91,10 @@ struct Register {
   // The non-allocatable registers are:
   //  rsp - stack pointer
   //  rbp - frame pointer
-  //  rsi - context register
   //  r10 - fixed scratch register
   //  r12 - smi constant register
   //  r13 - root register
-  static const int kMaxNumAllocatableRegisters = 10;
+  static const int kMaxNumAllocatableRegisters = 11;
   static int NumAllocatableRegisters() {
     return kMaxNumAllocatableRegisters;
   }
@@ -118,6 +117,7 @@ struct Register {
       "rbx",
       "rdx",
       "rcx",
+      "rsi",
       "rdi",
       "r8",
       "r9",
@@ -586,13 +586,6 @@ class Assembler : public AssemblerBase {
     set_target_address_at(instruction_payload, target);
   }
 
-  // This sets the branch destination (which is a load instruction on x64).
-  // This is for calls and branches to runtime code.
-  inline static void set_external_target_at(Address instruction_payload,
-                                            Address target) {
-    *reinterpret_cast<Address*>(instruction_payload) = target;
-  }
-
   inline Handle<Object> code_target_object_handle_at(Address pc);
   inline Address runtime_entry_at(Address pc);
   // Number of bytes taken up by the branch target in the code.
@@ -694,10 +687,13 @@ class Assembler : public AssemblerBase {
   void movb(Register dst, const Operand& src);
   void movb(Register dst, Immediate imm);
   void movb(const Operand& dst, Register src);
+  void movb(const Operand& dst, Immediate imm);
 
   // Move the low 16 bits of a 64-bit register value to a 16-bit
   // memory location.
+  void movw(Register dst, const Operand& src);
   void movw(const Operand& dst, Register src);
+  void movw(const Operand& dst, Immediate imm);
 
   void movl(Register dst, Register src);
   void movl(Register dst, const Operand& src);
@@ -719,12 +715,10 @@ class Assembler : public AssemblerBase {
 
   // Move sign extended immediate to memory location.
   void movq(const Operand& dst, Immediate value);
-  // Instructions to load a 64-bit immediate into a register.
-  // All 64-bit immediates must have a relocation mode.
+  // Loads a pointer into a register with a relocation mode.
   void movq(Register dst, void* ptr, RelocInfo::Mode rmode);
-  void movq(Register dst, int64_t value, RelocInfo::Mode rmode);
-  // Moves the address of the external reference into the register.
-  void movq(Register dst, ExternalReference ext);
+  // Loads a 64-bit immediate into a register.
+  void movq(Register dst, int64_t value);
   void movq(Register dst, Handle<Object> handle, RelocInfo::Mode rmode);
 
   void movsxbq(Register dst, const Operand& src);
@@ -1350,14 +1344,27 @@ class Assembler : public AssemblerBase {
   void movaps(XMMRegister dst, XMMRegister src);
   void movss(XMMRegister dst, const Operand& src);
   void movss(const Operand& dst, XMMRegister src);
+  void shufps(XMMRegister dst, XMMRegister src, byte imm8);
 
   void cvttss2si(Register dst, const Operand& src);
   void cvttss2si(Register dst, XMMRegister src);
   void cvtlsi2ss(XMMRegister dst, Register src);
 
   void andps(XMMRegister dst, XMMRegister src);
+  void andps(XMMRegister dst, const Operand& src);
   void orps(XMMRegister dst, XMMRegister src);
+  void orps(XMMRegister dst, const Operand& src);
   void xorps(XMMRegister dst, XMMRegister src);
+  void xorps(XMMRegister dst, const Operand& src);
+
+  void addps(XMMRegister dst, XMMRegister src);
+  void addps(XMMRegister dst, const Operand& src);
+  void subps(XMMRegister dst, XMMRegister src);
+  void subps(XMMRegister dst, const Operand& src);
+  void mulps(XMMRegister dst, XMMRegister src);
+  void mulps(XMMRegister dst, const Operand& src);
+  void divps(XMMRegister dst, XMMRegister src);
+  void divps(XMMRegister dst, const Operand& src);
 
   void movmskps(Register dst, XMMRegister src);
 

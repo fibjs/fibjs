@@ -53,12 +53,8 @@ class HeapProfiler {
       v8::ActivityControl* control,
       v8::HeapProfiler::ObjectNameResolver* resolver);
 
-  void StartHeapObjectsTracking();
+  void StartHeapObjectsTracking(bool track_allocations);
   void StopHeapObjectsTracking();
-
-  static void RecordObjectAllocationFromMasm(Isolate* isolate,
-                                             Address obj,
-                                             int size);
 
   SnapshotObjectId PushHeapObjectsStats(OutputStream* stream);
   int GetSnapshotsCount();
@@ -68,7 +64,7 @@ class HeapProfiler {
 
   void ObjectMoveEvent(Address from, Address to, int size);
 
-  void NewObjectEvent(Address addr, int size);
+  void AllocationEvent(Address addr, int size);
 
   void UpdateObjectSizeEvent(Address addr, int size);
 
@@ -77,24 +73,14 @@ class HeapProfiler {
 
   v8::RetainedObjectInfo* ExecuteWrapperClassCallback(uint16_t class_id,
                                                       Object** wrapper);
-  INLINE(bool is_profiling()) {
-    return snapshots_->is_tracking_objects();
-  }
-
   void SetRetainedObjectInfo(UniqueId id, RetainedObjectInfo* info);
 
-  bool is_tracking_allocations() {
-    return is_tracking_allocations_;
-  }
-
-  void StartHeapAllocationsRecording();
-  void StopHeapAllocationsRecording();
+  bool is_tracking_object_moves() const { return is_tracking_object_moves_; }
+  bool is_tracking_allocations() const { return is_tracking_allocations_; }
 
   int FindUntrackedObjects() {
     return snapshots_->FindUntrackedObjects();
   }
-
-  void DropCompiledCode();
 
  private:
   Heap* heap() const { return snapshots_->heap(); }
@@ -103,6 +89,7 @@ class HeapProfiler {
   unsigned next_snapshot_uid_;
   List<v8::HeapProfiler::WrapperInfoCallback> wrapper_callbacks_;
   bool is_tracking_allocations_;
+  bool is_tracking_object_moves_;
 };
 
 } }  // namespace v8::internal

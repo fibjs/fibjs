@@ -83,7 +83,7 @@ class Handle {
 
   // Closes the given scope, but lets this handle escape. See
   // implementation in api.h.
-  inline Handle<T> EscapeFrom(v8::HandleScope* scope);
+  inline Handle<T> EscapeFrom(v8::EscapableHandleScope* scope);
 
 #ifdef DEBUG
   enum DereferenceCheckMode { INCLUDE_DEFERRED_CHECK, NO_DEFERRED_CHECK };
@@ -227,13 +227,6 @@ void FlattenString(Handle<String> str);
 // Flattens a string and returns the underlying external or sequential
 // string.
 Handle<String> FlattenGetString(Handle<String> str);
-
-Handle<Object> SetProperty(Isolate* isolate,
-                           Handle<Object> object,
-                           Handle<Object> key,
-                           Handle<Object> value,
-                           PropertyAttributes attributes,
-                           StrictModeFlag strict_mode);
 
 Handle<Object> ForceSetProperty(Handle<JSObject> object,
                                 Handle<Object> key,

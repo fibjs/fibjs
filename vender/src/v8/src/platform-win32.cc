@@ -137,11 +137,6 @@ intptr_t OS::MaxVirtualMemory() {
 }
 
 
-double ceiling(double x) {
-  return ceil(x);
-}
-
-
 #if V8_TARGET_ARCH_IA32
 static void MemMoveWrapper(void* dest, const void* src, size_t size) {
   memmove(dest, src, size);
@@ -599,9 +594,7 @@ int OS::GetUserTime(uint32_t* secs,  uint32_t* usecs) {
 // Returns current time as the number of milliseconds since
 // 00:00:00 UTC, January 1, 1970.
 double OS::TimeCurrentMillis() {
-  Win32Time t;
-  t.SetToCurrentTime();
-  return t.ToJSTime();
+  return Time::Now().ToJsTime();
 }
 
 

@@ -311,6 +311,7 @@
     <ClCompile Include="src\uuid\uuid_ui64.c" />
     <ClCompile Include="src\v8\src\accessors.cc" />
     <ClCompile Include="src\v8\src\allocation-site-scopes.cc" />
+    <ClCompile Include="src\v8\src\allocation-tracker.cc" />
     <ClCompile Include="src\v8\src\allocation.cc" />
     <ClCompile Include="src\v8\src\api.cc" />
     <ClCompile Include="src\v8\src\arguments.cc" />
@@ -489,6 +490,7 @@
     <ClCompile Include="src\v8\src\sweeper-thread.cc" />
     <ClCompile Include="src\v8\src\token.cc" />
     <ClCompile Include="src\v8\src\transitions.cc" />
+    <ClCompile Include="src\v8\src\trig-table.cc" />
     <ClCompile Include="src\v8\src\type-info.cc" />
     <ClCompile Include="src\v8\src\types.cc" />
     <ClCompile Include="src\v8\src\typing.cc" />
@@ -655,8 +657,6 @@
     <ClInclude Include="include\umysql\umysql.h" />
     <ClInclude Include="include\uuid.h" />
     <ClInclude Include="include\v8\v8-debug.h" />
-    <ClInclude Include="include\v8\v8-defaults.h" />
-    <ClInclude Include="include\v8\v8-preparser.h" />
     <ClInclude Include="include\v8\v8-profiler.h" />
     <ClInclude Include="include\v8\v8-testing.h" />
     <ClInclude Include="include\v8\v8.h" />
@@ -797,8 +797,6 @@
     <ClInclude Include="src\uuid\uuid_ui64.h" />
     <ClInclude Include="src\uuid\uuid_vers.h" />
     <ClInclude Include="src\v8\include\v8-debug.h" />
-    <ClInclude Include="src\v8\include\v8-defaults.h" />
-    <ClInclude Include="src\v8\include\v8-preparser.h" />
     <ClInclude Include="src\v8\include\v8-profiler.h" />
     <ClInclude Include="src\v8\include\v8-testing.h" />
     <ClInclude Include="src\v8\include\v8.h" />
@@ -807,6 +805,7 @@
     <ClInclude Include="src\v8\src\accessors.h" />
     <ClInclude Include="src\v8\src\allocation-inl.h" />
     <ClInclude Include="src\v8\src\allocation-site-scopes.h" />
+    <ClInclude Include="src\v8\src\allocation-tracker.h" />
     <ClInclude Include="src\v8\src\allocation.h" />
     <ClInclude Include="src\v8\src\api.h" />
     <ClInclude Include="src\v8\src\apiutils.h" />
@@ -1018,6 +1017,7 @@
     <ClInclude Include="src\v8\src\token.h" />
     <ClInclude Include="src\v8\src\transitions-inl.h" />
     <ClInclude Include="src\v8\src\transitions.h" />
+    <ClInclude Include="src\v8\src\trig-table.h" />
     <ClInclude Include="src\v8\src\type-info.h" />
     <ClInclude Include="src\v8\src\types.h" />
     <ClInclude Include="src\v8\src\typing.h" />

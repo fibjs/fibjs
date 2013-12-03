@@ -242,7 +242,6 @@ namespace internal {
   SC(math_asin, V8.MathAsin)                                          \
   SC(math_atan, V8.MathAtan)                                          \
   SC(math_atan2, V8.MathAtan2)                                        \
-  SC(math_ceil, V8.MathCeil)                                          \
   SC(math_cos, V8.MathCos)                                            \
   SC(math_exp, V8.MathExp)                                            \
   SC(math_floor, V8.MathFloor)                                        \
@@ -261,6 +260,9 @@ namespace internal {
   SC(soft_deopts_requested, V8.SoftDeoptsRequested)                   \
   SC(soft_deopts_inserted, V8.SoftDeoptsInserted)                     \
   SC(soft_deopts_executed, V8.SoftDeoptsExecuted)                     \
+  /* Number of write barriers in generated code. */                   \
+  SC(write_barriers_dynamic, V8.WriteBarriersDynamic)                 \
+  SC(write_barriers_static, V8.WriteBarriersStatic)                   \
   SC(new_space_bytes_available, V8.MemoryNewSpaceBytesAvailable)      \
   SC(new_space_bytes_committed, V8.MemoryNewSpaceBytesCommitted)      \
   SC(new_space_bytes_used, V8.MemoryNewSpaceBytesUsed)                \
@@ -343,7 +345,7 @@ class Counters {
     { return &count_of_CODE_AGE_##name##_; } \
   StatsCounter* size_of_CODE_AGE_##name() \
     { return &size_of_CODE_AGE_##name##_; }
-  CODE_AGE_LIST_WITH_NO_AGE(SC)
+  CODE_AGE_LIST_COMPLETE(SC)
 #undef SC
 
   enum Id {
@@ -373,7 +375,7 @@ class Counters {
 #undef COUNTER_ID
 #define COUNTER_ID(name) kCountOfCODE_AGE__##name, \
     kSizeOfCODE_AGE__##name,
-    CODE_AGE_LIST_WITH_NO_AGE(COUNTER_ID)
+    CODE_AGE_LIST_COMPLETE(COUNTER_ID)
 #undef COUNTER_ID
     stats_counter_count
   };
@@ -423,7 +425,7 @@ class Counters {
 #define SC(name) \
   StatsCounter size_of_CODE_AGE_##name##_; \
   StatsCounter count_of_CODE_AGE_##name##_;
-  CODE_AGE_LIST_WITH_NO_AGE(SC)
+  CODE_AGE_LIST_COMPLETE(SC)
 #undef SC
 
   friend class Isolate;

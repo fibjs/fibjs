@@ -354,6 +354,20 @@ Handle<Object> Execution::TryGetConstructorDelegate(
 }
 
 
+void Execution::RunMicrotasks(Isolate* isolate) {
+  ASSERT(isolate->microtask_pending());
+  bool threw = false;
+  Execution::Call(
+      isolate,
+      isolate->run_microtasks(),
+      isolate->factory()->undefined_value(),
+      0,
+      NULL,
+      &threw);
+  ASSERT(!threw);
+}
+
+
 bool StackGuard::IsStackOverflow() {
   ExecutionAccess access(isolate_);
   return (thread_local_.jslimit_ != kInterruptLimit &&
@@ -814,8 +828,6 @@ static Object* RuntimePreempt(Isolate* isolate) {
   // Clear the preempt request flag.
   isolate->stack_guard()->Continue(PREEMPT);
 
-  ContextSwitcher::PreemptionReceived();
-
 #ifdef ENABLE_DEBUGGER_SUPPORT
   if (isolate->debug()->InDebugger()) {
     // If currently in the debugger don't do any actual preemption but record
@@ -951,7 +963,7 @@ MaybeObject* Execution::HandleStackGuardInterrupt(Isolate* isolate) {
     Deoptimizer::DeoptimizeAll(isolate);
   }
   if (stack_guard->IsInstallCodeRequest()) {
-    ASSERT(FLAG_concurrent_recompilation);
+    ASSERT(isolate->concurrent_recompilation_enabled());
     stack_guard->Continue(INSTALL_CODE);
     isolate->optimizing_compiler_thread()->InstallOptimizedFunctions();
   }

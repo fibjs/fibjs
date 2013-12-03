@@ -294,12 +294,6 @@ void OS::DebugBreak() {
 // ----------------------------------------------------------------------------
 // Math functions
 
-double ceiling(double x) {
-  // Correct buggy 'ceil' on some systems (i.e. FreeBSD, OS X 10.5)
-  return (-1.0 < x && x < 0.0) ? -0.0 : ceil(x);
-}
-
-
 double modulo(double x, double y) {
   return fmod(x, y);
 }
@@ -570,6 +564,9 @@ Thread::Thread(const Options& options)
     : data_(new PlatformData),
       stack_size_(options.stack_size()),
       start_semaphore_(NULL) {
+  if (stack_size_ > 0 && stack_size_ < PTHREAD_STACK_MIN) {
+    stack_size_ = PTHREAD_STACK_MIN;
+  }
   set_name(options.name());
 }
 

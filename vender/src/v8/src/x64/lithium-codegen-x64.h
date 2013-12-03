@@ -153,6 +153,10 @@ class LCodeGen: public LCodeGenBase {
 
   void AddDeferredCode(LDeferredCode* code) { deferred_.Add(code, zone()); }
 
+
+  void SaveCallerDoubles();
+  void RestoreCallerDoubles();
+
   // Code generation passes.  Returns true if code generation should
   // continue.
   bool GeneratePrologue();
@@ -193,7 +197,10 @@ class LCodeGen: public LCodeGenBase {
 
   void CallRuntimeFromDeferred(Runtime::FunctionId id,
                                int argc,
-                               LInstruction* instr);
+                               LInstruction* instr,
+                               LOperand* context);
+
+  void LoadContextFromDeferred(LOperand* context);
 
   enum RDIState {
     RDI_UNINITIALIZED,
@@ -220,6 +227,10 @@ class LCodeGen: public LCodeGenBase {
   void DeoptimizeIf(Condition cc, LEnvironment* environment);
   void ApplyCheckIf(Condition cc, LBoundsCheck* check);
 
+  bool DeoptEveryNTimes() {
+    return FLAG_deopt_every_n_times != 0 && !info()->IsStub();
+  }
+
   void AddToTranslation(LEnvironment* environment,
                         Translation* translation,
                         LOperand* op,
@@ -242,6 +253,10 @@ class LCodeGen: public LCodeGenBase {
       uint32_t offset,
       uint32_t additional_index = 0);
 
+  Operand BuildSeqStringOperand(Register string,
+                                LOperand* index,
+                                String::Encoding encoding);
+
   void EmitIntegerMathAbs(LMathAbs* instr);
   void EmitSmiMathAbs(LMathAbs* instr);
 
@@ -259,6 +274,8 @@ class LCodeGen: public LCodeGenBase {
 
   static Condition TokenToCondition(Token::Value op, bool is_unsigned);
   void EmitGoto(int block);
+
+  // EmitBranch expects to be the last instruction of a block.
   template<class InstrType>
   void EmitBranch(InstrType instr, Condition cc);
   template<class InstrType>
@@ -274,10 +291,7 @@ class LCodeGen: public LCodeGenBase {
   // Emits optimized code for typeof x == "y".  Modifies input register.
   // Returns the condition on which a final split to
   // true and false label should be made, to optimize fallthrough.
-  Condition EmitTypeofIs(Label* true_label,
-                         Label* false_label,
-                         Register input,
-                         Handle<String> type_name);
+  Condition EmitTypeofIs(LTypeofIsAndBranch* instr, Register input);
 
   // Emits optimized code for %_IsObject(x).  Preserves input register.
   // Returns the condition on which a final split to

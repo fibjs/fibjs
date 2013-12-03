@@ -333,15 +333,9 @@ class Deoptimizer : public Malloced {
                          int object_index,
                          int field_index);
 
-  enum DeoptimizerTranslatedValueType {
-    TRANSLATED_VALUE_IS_NATIVE,
-    TRANSLATED_VALUE_IS_TAGGED
-  };
-
   void DoTranslateCommand(TranslationIterator* iterator,
-      int frame_index,
-      unsigned output_offset,
-      DeoptimizerTranslatedValueType value_type = TRANSLATED_VALUE_IS_TAGGED);
+                          int frame_index,
+                          unsigned output_offset);
 
   unsigned ComputeInputFrameSize() const;
   unsigned ComputeFixedSize(JSFunction* function) const;
@@ -412,6 +406,10 @@ class Deoptimizer : public Malloced {
   // at the dynamic alignment state slot inside the frame.
   bool HasAlignmentPadding(JSFunction* function);
 
+  // Select the version of NotifyStubFailure builtin that either saves or
+  // doesn't save the double registers depending on CPU features.
+  Code* NotifyStubFailureBuiltin();
+
   Isolate* isolate_;
   JSFunction* function_;
   Code* compiled_code_;
@@ -451,7 +449,7 @@ class Deoptimizer : public Malloced {
   DisallowHeapAllocation* disallow_heap_allocation_;
 #endif  // DEBUG
 
-  bool trace_;
+  CodeTracer::Scope* trace_scope_;
 
   static const int table_entry_size_;
 

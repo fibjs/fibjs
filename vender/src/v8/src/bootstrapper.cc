@@ -40,6 +40,8 @@
 #include "objects-visiting.h"
 #include "platform.h"
 #include "snapshot.h"
+#include "trig-table.h"
+#include "extensions/free-buffer-extension.h"
 #include "extensions/externalize-string-extension.h"
 #include "extensions/gc-extension.h"
 #include "extensions/statistics-extension.h"
@@ -99,6 +101,9 @@ void Bootstrapper::Initialize(bool create_heap_objects) {
 
 
 void Bootstrapper::InitializeOncePerProcess() {
+#ifdef ADDRESS_SANITIZER
+  FreeBufferExtension::Register();
+#endif
   GCExtension::Register();
   ExternalizeStringExtension::Register();
   StatisticsExtension::Register();
@@ -1308,10 +1313,6 @@ void Genesis::InitializeGlobal(Handle<GlobalObject> inner_global,
   // Initialize the embedder data slot.
   Handle<FixedArray> embedder_data = factory->NewFixedArray(2);
   native_context()->set_embedder_data(*embedder_data);
-
-  // Allocate the random seed slot.
-  Handle<ByteArray> random_seed = factory->NewByteArray(kRandomStateSize);
-  native_context()->set_random_seed(*random_seed);
 }
 
 
@@ -1578,6 +1579,7 @@ void Genesis::InstallNativeFunctions() {
 
 
 void Genesis::InstallExperimentalNativeFunctions() {
+  INSTALL_NATIVE(JSFunction, "RunMicrotasks", run_microtasks);
   if (FLAG_harmony_proxies) {
     INSTALL_NATIVE(JSFunction, "DerivedHasTrap", derived_has_trap);
     INSTALL_NATIVE(JSFunction, "DerivedGetTrap", derived_get_trap);
@@ -1591,8 +1593,6 @@ void Genesis::InstallExperimentalNativeFunctions() {
                    observers_begin_perform_splice);
     INSTALL_NATIVE(JSFunction, "EndPerformSplice",
                    observers_end_perform_splice);
-    INSTALL_NATIVE(JSFunction, "DeliverChangeRecords",
-                   observers_deliver_changes);
   }
 }
 
@@ -2023,55 +2023,28 @@ bool Genesis::InstallNatives() {
 }
 
 
+#define INSTALL_EXPERIMENTAL_NATIVE(i, flag, file)                \
+  if (FLAG_harmony_##flag &&                                      \
+      strcmp(ExperimentalNatives::GetScriptName(i).start(),       \
+          "native " file) == 0) {                                 \
+    if (!CompileExperimentalBuiltin(isolate(), i)) return false;  \
+  }
+
+
 bool Genesis::InstallExperimentalNatives() {
   for (int i = ExperimentalNatives::GetDebuggerCount();
        i < ExperimentalNatives::GetBuiltinsCount();
        i++) {
-    if (FLAG_harmony_symbols &&
-        strcmp(ExperimentalNatives::GetScriptName(i).start(),
-               "native symbol.js") == 0) {
-      if (!CompileExperimentalBuiltin(isolate(), i)) return false;
-    }
-    if (FLAG_harmony_proxies &&
-        strcmp(ExperimentalNatives::GetScriptName(i).start(),
-               "native proxy.js") == 0) {
-      if (!CompileExperimentalBuiltin(isolate(), i)) return false;
-    }
-    if (FLAG_harmony_collections &&
-        strcmp(ExperimentalNatives::GetScriptName(i).start(),
-               "native collection.js") == 0) {
-      if (!CompileExperimentalBuiltin(isolate(), i)) return false;
-    }
-    if (FLAG_harmony_observation &&
-        strcmp(ExperimentalNatives::GetScriptName(i).start(),
-               "native object-observe.js") == 0) {
-      if (!CompileExperimentalBuiltin(isolate(), i)) return false;
-    }
-    if (FLAG_harmony_generators &&
-        strcmp(ExperimentalNatives::GetScriptName(i).start(),
-               "native generator.js") == 0) {
-      if (!CompileExperimentalBuiltin(isolate(), i)) return false;
-    }
-    if (FLAG_harmony_iteration &&
-        strcmp(ExperimentalNatives::GetScriptName(i).start(),
-               "native array-iterator.js") == 0) {
-      if (!CompileExperimentalBuiltin(isolate(), i)) return false;
-    }
-    if (FLAG_harmony_strings &&
-        strcmp(ExperimentalNatives::GetScriptName(i).start(),
-               "native harmony-string.js") == 0) {
-      if (!CompileExperimentalBuiltin(isolate(), i)) return false;
-    }
-    if (FLAG_harmony_arrays &&
-        strcmp(ExperimentalNatives::GetScriptName(i).start(),
-               "native harmony-array.js") == 0) {
-      if (!CompileExperimentalBuiltin(isolate(), i)) return false;
-    }
-    if (FLAG_harmony_maths &&
-        strcmp(ExperimentalNatives::GetScriptName(i).start(),
-               "native harmony-math.js") == 0) {
-      if (!CompileExperimentalBuiltin(isolate(), i)) return false;
-    }
+    INSTALL_EXPERIMENTAL_NATIVE(i, symbols, "symbol.js")
+    INSTALL_EXPERIMENTAL_NATIVE(i, proxies, "proxy.js")
+    INSTALL_EXPERIMENTAL_NATIVE(i, collections, "collection.js")
+    INSTALL_EXPERIMENTAL_NATIVE(i, observation, "object-observe.js")
+    INSTALL_EXPERIMENTAL_NATIVE(i, promises, "promise.js")
+    INSTALL_EXPERIMENTAL_NATIVE(i, generators, "generator.js")
+    INSTALL_EXPERIMENTAL_NATIVE(i, iteration, "array-iterator.js")
+    INSTALL_EXPERIMENTAL_NATIVE(i, strings, "harmony-string.js")
+    INSTALL_EXPERIMENTAL_NATIVE(i, arrays, "harmony-array.js")
+    INSTALL_EXPERIMENTAL_NATIVE(i, maths, "harmony-math.js")
   }
 
   InstallExperimentalNativeFunctions();
@@ -2281,6 +2254,11 @@ bool Genesis::InstallExtensions(Handle<Context> native_context,
     current = current->next();
   }
 
+#ifdef ADDRESS_SANITIZER
+  if (FLAG_expose_free_buffer) {
+    InstallExtension(isolate, "v8/free-buffer", &extension_states);
+  }
+#endif
   if (FLAG_expose_gc) InstallExtension(isolate, "v8/gc", &extension_states);
   if (FLAG_expose_externalize_string) {
     InstallExtension(isolate, "v8/externalize", &extension_states);
@@ -2426,8 +2404,8 @@ bool Genesis::ConfigureGlobalObjects(
 bool Genesis::ConfigureApiObject(Handle<JSObject> object,
     Handle<ObjectTemplateInfo> object_template) {
   ASSERT(!object_template.is_null());
-  ASSERT(object->IsInstanceOf(
-      FunctionTemplateInfo::cast(object_template->constructor())));
+  ASSERT(FunctionTemplateInfo::cast(object_template->constructor())
+             ->IsTemplateFor(object->map()));;
 
   bool pending_exception = false;
   Handle<JSObject> obj =
@@ -2635,13 +2613,67 @@ Genesis::Genesis(Isolate* isolate,
   InitializeExperimentalGlobal();
   if (!InstallExperimentalNatives()) return;
 
-  // Initially seed the per-context random number generator
-  // using the per-isolate random number generator.
-  uint32_t* state = reinterpret_cast<uint32_t*>(
-      native_context()->random_seed()->GetDataStartAddress());
-  do {
-    isolate->random_number_generator()->NextBytes(state, kRandomStateSize);
-  } while (state[0] == 0 || state[1] == 0);
+  // We can't (de-)serialize typed arrays currently, but we are lucky: The state
+  // of the random number generator needs no initialization during snapshot
+  // creation time and we don't need trigonometric functions then.
+  if (!Serializer::enabled()) {
+    // Initially seed the per-context random number generator using the
+    // per-isolate random number generator.
+    const int num_elems = 2;
+    const int num_bytes = num_elems * sizeof(uint32_t);
+    uint32_t* state = reinterpret_cast<uint32_t*>(malloc(num_bytes));
+
+    do {
+      isolate->random_number_generator()->NextBytes(state, num_bytes);
+    } while (state[0] == 0 || state[1] == 0);
+
+    v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(
+        reinterpret_cast<v8::Isolate*>(isolate), state, num_bytes);
+    Utils::OpenHandle(*buffer)->set_should_be_freed(true);
+    v8::Local<v8::Uint32Array> ta = v8::Uint32Array::New(buffer, 0, num_elems);
+    Handle<JSBuiltinsObject> builtins(native_context()->builtins());
+    ForceSetProperty(builtins,
+                     factory()->InternalizeOneByteString(
+                         STATIC_ASCII_VECTOR("rngstate")),
+                     Utils::OpenHandle(*ta),
+                     NONE);
+
+    // Initialize trigonometric lookup tables and constants.
+    const int table_num_bytes = TrigonometricLookupTable::table_num_bytes();
+    v8::Local<v8::ArrayBuffer> sin_buffer = v8::ArrayBuffer::New(
+        reinterpret_cast<v8::Isolate*>(isolate),
+        TrigonometricLookupTable::sin_table(), table_num_bytes);
+    v8::Local<v8::ArrayBuffer> cos_buffer = v8::ArrayBuffer::New(
+        reinterpret_cast<v8::Isolate*>(isolate),
+        TrigonometricLookupTable::cos_x_interval_table(), table_num_bytes);
+    v8::Local<v8::Float64Array> sin_table = v8::Float64Array::New(
+        sin_buffer, 0, TrigonometricLookupTable::table_size());
+    v8::Local<v8::Float64Array> cos_table = v8::Float64Array::New(
+        cos_buffer, 0, TrigonometricLookupTable::table_size());
+
+    ForceSetProperty(builtins,
+                     factory()->InternalizeOneByteString(
+                         STATIC_ASCII_VECTOR("kSinTable")),
+                     Utils::OpenHandle(*sin_table),
+                     NONE);
+    ForceSetProperty(builtins,
+                     factory()->InternalizeOneByteString(
+                         STATIC_ASCII_VECTOR("kCosXIntervalTable")),
+                     Utils::OpenHandle(*cos_table),
+                     NONE);
+    ForceSetProperty(builtins,
+                     factory()->InternalizeOneByteString(
+                         STATIC_ASCII_VECTOR("kSamples")),
+                     factory()->NewHeapNumber(
+                         TrigonometricLookupTable::samples()),
+                     NONE);
+    ForceSetProperty(builtins,
+                     factory()->InternalizeOneByteString(
+                         STATIC_ASCII_VECTOR("kIndexConvert")),
+                     factory()->NewHeapNumber(
+                         TrigonometricLookupTable::samples_over_pi_half()),
+                     NONE);
+  }
 
   result_ = native_context();
 }

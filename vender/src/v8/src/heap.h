@@ -209,8 +209,10 @@ namespace internal {
   V(Boolean_string, "Boolean")                                           \
   V(callee_string, "callee")                                             \
   V(constructor_string, "constructor")                                   \
-  V(result_string, ".result")                                            \
+  V(dot_result_string, ".result")                                        \
   V(dot_for_string, ".for.")                                             \
+  V(dot_iterator_string, ".iterator")                                    \
+  V(dot_generator_object_string, ".generator_object")                    \
   V(eval_string, "eval")                                                 \
   V(empty_string, "")                                                    \
   V(function_string, "function")                                         \
@@ -615,9 +617,6 @@ class Heap {
     return old_data_space_->allocation_limit_address();
   }
 
-  // Uncommit unused semi space.
-  bool UncommitFromSpace() { return new_space_.UncommitFromSpace(); }
-
   // Allocates and initializes a new JavaScript object based on a
   // constructor.
   // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
@@ -762,6 +761,9 @@ class Heap {
   // Clear the Instanceof cache (used when a prototype changes).
   inline void ClearInstanceofCache();
 
+  // Iterates the whole code space to clear all ICs of the given kind.
+  void ClearAllICsByKind(Code::Kind kind);
+
   // For use during bootup.
   void RepairFreeListsAfterBoot();
 
@@ -876,6 +878,7 @@ class Heap {
   // failed.
   // Please note this does not perform a garbage collection.
   MUST_USE_RESULT MaybeObject* AllocateSymbol();
+  MUST_USE_RESULT MaybeObject* AllocatePrivateSymbol();
 
   // Allocate a tenured AllocationSite. It's payload is null
   MUST_USE_RESULT MaybeObject* AllocateAllocationSite();
@@ -1169,19 +1172,6 @@ class Heap {
   // Converts the given boolean condition to JavaScript boolean value.
   inline Object* ToBoolean(bool condition);
 
-  // Code that should be run before and after each GC.  Includes some
-  // reporting/verification activities when compiled with DEBUG set.
-  void GarbageCollectionPrologue();
-  void GarbageCollectionEpilogue();
-
-  // Performs garbage collection operation.
-  // Returns whether there is a chance that another major GC could
-  // collect more garbage.
-  bool CollectGarbage(AllocationSpace space,
-                      GarbageCollector collector,
-                      const char* gc_reason,
-                      const char* collector_reason);
-
   // Performs garbage collection operation.
   // Returns whether there is a chance that another major GC could
   // collect more garbage.
@@ -1423,9 +1413,6 @@ class Heap {
 #endif
   }
 
-  // Fill in bogus values in from space
-  void ZapFromSpace();
-
   // Print short heap statistics.
   void PrintShortHeapStatistics();
 
@@ -1469,8 +1456,10 @@ class Heap {
   static inline void ScavengePointer(HeapObject** p);
   static inline void ScavengeObject(HeapObject** p, HeapObject* object);
 
-  // Commits from space if it is uncommitted.
-  void EnsureFromSpaceIsCommitted();
+  // An object may have an AllocationSite associated with it through a trailing
+  // AllocationMemento. Its feedback should be updated when objects are found
+  // in the heap.
+  static inline void UpdateAllocationSiteFeedback(HeapObject* object);
 
   // Support for partial snapshots.  After calling this we have a linear
   // space to write objects in each space.
@@ -1491,8 +1480,8 @@ class Heap {
 
   // Adjusts the amount of registered external memory.
   // Returns the adjusted value.
-  inline intptr_t AdjustAmountOfExternalAllocatedMemory(
-      intptr_t change_in_bytes);
+  inline int64_t AdjustAmountOfExternalAllocatedMemory(
+      int64_t change_in_bytes);
 
   // This is only needed for testing high promotion mode.
   void SetNewSpaceHighPromotionModeActive(bool mode) {
@@ -1511,7 +1500,10 @@ class Heap {
   }
 
   inline intptr_t PromotedTotalSize() {
-    return PromotedSpaceSizeOfObjects() + PromotedExternalMemorySize();
+    int64_t total = PromotedSpaceSizeOfObjects() + PromotedExternalMemorySize();
+    if (total > kMaxInt) return static_cast<intptr_t>(kMaxInt);
+    if (total < 0) return 0;
+    return static_cast<intptr_t>(total);
   }
 
   inline intptr_t OldGenerationSpaceAvailable() {
@@ -1540,6 +1532,13 @@ class Heap {
     intptr_t halfway_to_the_max = (old_gen_size + max_old_generation_size_) / 2;
     return Min(limit, halfway_to_the_max);
   }
+
+  // Indicates whether inline bump-pointer allocation has been disabled.
+  bool inline_allocation_disabled() { return inline_allocation_disabled_; }
+
+  // Switch whether inline bump-pointer allocation should be used.
+  void EnableInlineAllocation();
+  void DisableInlineAllocation();
 
   // Implements the corresponding V8 API function.
   bool IdleNotification(int hint);
@@ -1708,12 +1707,7 @@ class Heap {
            old_pointer_space()->IsLazySweepingComplete();
   }
 
-  bool AdvanceSweepers(int step_size) {
-    ASSERT(!FLAG_parallel_sweeping && !FLAG_concurrent_sweeping);
-    bool sweeping_complete = old_data_space()->AdvanceSweeper(step_size);
-    sweeping_complete &= old_pointer_space()->AdvanceSweeper(step_size);
-    return sweeping_complete;
-  }
+  bool AdvanceSweepers(int step_size);
 
   bool EnsureSweepersProgressed(int step_size) {
     bool sweeping_complete = old_data_space()->EnsureSweeperProgress(step_size);
@@ -1794,7 +1788,7 @@ class Heap {
 
   bool flush_monomorphic_ics() { return flush_monomorphic_ics_; }
 
-  intptr_t amount_of_external_allocated_memory() {
+  int64_t amount_of_external_allocated_memory() {
     return amount_of_external_allocated_memory_;
   }
 
@@ -1807,7 +1801,7 @@ class Heap {
         FIRST_CODE_KIND_SUB_TYPE + Code::NUMBER_OF_KINDS,
     FIRST_CODE_AGE_SUB_TYPE =
         FIRST_FIXED_ARRAY_SUB_TYPE + LAST_FIXED_ARRAY_SUB_TYPE + 1,
-    OBJECT_STATS_COUNT = FIRST_CODE_AGE_SUB_TYPE + Code::kLastCodeAge + 1
+    OBJECT_STATS_COUNT = FIRST_CODE_AGE_SUB_TYPE + Code::kCodeAgeCount + 1
   };
 
   void RecordObjectStats(InstanceType type, size_t size) {
@@ -1817,12 +1811,17 @@ class Heap {
   }
 
   void RecordCodeSubTypeStats(int code_sub_type, int code_age, size_t size) {
-    ASSERT(code_sub_type < Code::NUMBER_OF_KINDS);
-    ASSERT(code_age < Code::kLastCodeAge);
-    object_counts_[FIRST_CODE_KIND_SUB_TYPE + code_sub_type]++;
-    object_sizes_[FIRST_CODE_KIND_SUB_TYPE + code_sub_type] += size;
-    object_counts_[FIRST_CODE_AGE_SUB_TYPE + code_age]++;
-    object_sizes_[FIRST_CODE_AGE_SUB_TYPE + code_age] += size;
+    int code_sub_type_index = FIRST_CODE_KIND_SUB_TYPE + code_sub_type;
+    int code_age_index =
+        FIRST_CODE_AGE_SUB_TYPE + code_age - Code::kFirstCodeAge;
+    ASSERT(code_sub_type_index >= FIRST_CODE_KIND_SUB_TYPE &&
+           code_sub_type_index < FIRST_CODE_AGE_SUB_TYPE);
+    ASSERT(code_age_index >= FIRST_CODE_AGE_SUB_TYPE &&
+           code_age_index < OBJECT_STATS_COUNT);
+    object_counts_[code_sub_type_index]++;
+    object_sizes_[code_sub_type_index] += size;
+    object_counts_[code_age_index]++;
+    object_sizes_[code_age_index] += size;
   }
 
   void RecordFixedArraySubTypeStats(int array_sub_type, size_t size) {
@@ -1837,22 +1836,18 @@ class Heap {
   // only when FLAG_concurrent_recompilation is true.
   class RelocationLock {
    public:
-    explicit RelocationLock(Heap* heap);
-
-    ~RelocationLock() {
+    explicit RelocationLock(Heap* heap) : heap_(heap) {
       if (FLAG_concurrent_recompilation) {
-#ifdef DEBUG
-        heap_->relocation_mutex_locked_by_optimizer_thread_ = false;
-#endif  // DEBUG
-        heap_->relocation_mutex_->Unlock();
+        heap_->relocation_mutex_->Lock();
       }
     }
 
-#ifdef DEBUG
-    static bool IsLockedByOptimizerThread(Heap* heap) {
-      return heap->relocation_mutex_locked_by_optimizer_thread_;
+
+    ~RelocationLock() {
+      if (FLAG_concurrent_recompilation) {
+        heap_->relocation_mutex_->Unlock();
+      }
     }
-#endif  // DEBUG
 
    private:
     Heap* heap_;
@@ -1902,9 +1897,6 @@ class Heap {
 
   bool flush_monomorphic_ics_;
 
-  // AllocationMementos found in new space.
-  int allocation_mementos_found_;
-
   int scan_on_scavenge_pages_;
 
   NewSpace new_space_;
@@ -1919,7 +1911,7 @@ class Heap {
   int gc_post_processing_depth_;
 
   // Returns the amount of external memory registered since last global gc.
-  intptr_t PromotedExternalMemorySize();
+  int64_t PromotedExternalMemorySize();
 
   unsigned int ms_count_;  // how many mark-sweep collections happened
   unsigned int gc_count_;  // how many gc happened
@@ -1973,14 +1965,18 @@ class Heap {
 
   // The amount of external memory registered through the API kept alive
   // by global handles
-  intptr_t amount_of_external_allocated_memory_;
+  int64_t amount_of_external_allocated_memory_;
 
   // Caches the amount of external memory registered at the last global gc.
-  intptr_t amount_of_external_allocated_memory_at_last_global_gc_;
+  int64_t amount_of_external_allocated_memory_at_last_global_gc_;
 
   // Indicates that an allocation has failed in the old generation since the
   // last GC.
   bool old_gen_exhausted_;
+
+  // Indicates that inline bump-pointer allocation has been globally disabled
+  // for all spaces. This is used to disable allocations in generated code.
+  bool inline_allocation_disabled_;
 
   // Weak list heads, threaded through the objects.
   // List heads are initilized lazily and contain the undefined_value at start.
@@ -2064,9 +2060,22 @@ class Heap {
     gc_safe_size_of_old_object_ = &GcSafeSizeOfOldObject;
   }
 
+  // Code that should be run before and after each GC.  Includes some
+  // reporting/verification activities when compiled with DEBUG set.
+  void GarbageCollectionPrologue();
+  void GarbageCollectionEpilogue();
+
   // Checks whether a global GC is necessary
   GarbageCollector SelectGarbageCollector(AllocationSpace space,
                                           const char** reason);
+
+  // Performs garbage collection operation.
+  // Returns whether there is a chance that another major GC could
+  // collect more garbage.
+  bool CollectGarbage(AllocationSpace space,
+                      GarbageCollector collector,
+                      const char* gc_reason,
+                      const char* collector_reason);
 
   // Performs garbage collection
   // Returns whether there is a chance another major GC could
@@ -2103,6 +2112,8 @@ class Heap {
   void InitializeJSObjectFromMap(JSObject* obj,
                                  FixedArray* properties,
                                  Map* map);
+  void InitializeAllocationMemento(AllocationMemento* memento,
+                                   AllocationSite* allocation_site);
 
   bool CreateInitialMaps();
   bool CreateInitialObjects();
@@ -2113,6 +2124,7 @@ class Heap {
   NO_INLINE(void CreateJSConstructEntryStub());
 
   void CreateFixedStubs();
+  void CreateStubsRequiringBuiltins();
 
   MUST_USE_RESULT MaybeObject* CreateOddball(const char* to_string,
                                              Object* to_number,
@@ -2145,6 +2157,15 @@ class Heap {
 
   // Performs a minor collection in new generation.
   void Scavenge();
+
+  // Commits from space if it is uncommitted.
+  void EnsureFromSpaceIsCommitted();
+
+  // Uncommit unused semi space.
+  bool UncommitFromSpace() { return new_space_.UncommitFromSpace(); }
+
+  // Fill in bogus values in from space
+  void ZapFromSpace();
 
   static String* UpdateNewSpaceReferenceInExternalStringTableEntry(
       Heap* heap,
@@ -2464,6 +2485,7 @@ class AlwaysAllocateScope {
   // Implicitly disable artificial allocation failures.
   DisallowAllocationFailure disallow_allocation_failure_;
 };
+
 
 #ifdef VERIFY_HEAP
 class NoWeakObjectVerificationScope {

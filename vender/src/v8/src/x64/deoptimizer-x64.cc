@@ -106,7 +106,7 @@ void Deoptimizer::SetPlatformCompiledStubRegisters(
     FrameDescription* output_frame, CodeStubInterfaceDescriptor* descriptor) {
   intptr_t handler =
       reinterpret_cast<intptr_t>(descriptor->deoptimization_handler_);
-  int params = descriptor->environment_length();
+  int params = descriptor->GetHandlerParameterCount();
   output_frame->SetRegister(rax.code(), params);
   output_frame->SetRegister(rbx.code(), handler);
 }
@@ -123,6 +123,11 @@ void Deoptimizer::CopyDoubleRegisters(FrameDescription* output_frame) {
 bool Deoptimizer::HasAlignmentPadding(JSFunction* function) {
   // There is no dynamic alignment padding on x64 in the input frame.
   return false;
+}
+
+
+Code* Deoptimizer::NotifyStubFailureBuiltin() {
+  return isolate_->builtins()->builtin(Builtins::kNotifyStubFailureSaveDoubles);
 }
 
 

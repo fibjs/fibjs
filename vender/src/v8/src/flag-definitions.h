@@ -171,6 +171,7 @@ DEFINE_bool(harmony_modules, false,
             "enable harmony modules (implies block scoping)")
 DEFINE_bool(harmony_symbols, false,
             "enable harmony symbols (a.k.a. private names)")
+DEFINE_bool(harmony_promises, false, "enable harmony promises")
 DEFINE_bool(harmony_proxies, false, "enable harmony proxies")
 DEFINE_bool(harmony_collections, false,
             "enable harmony collections (sets, maps, and weak maps)")
@@ -187,6 +188,7 @@ DEFINE_bool(harmony, false, "enable all harmony features (except typeof)")
 DEFINE_implication(harmony, harmony_scoping)
 DEFINE_implication(harmony, harmony_modules)
 DEFINE_implication(harmony, harmony_symbols)
+DEFINE_implication(harmony, harmony_promises)
 DEFINE_implication(harmony, harmony_proxies)
 DEFINE_implication(harmony, harmony_collections)
 DEFINE_implication(harmony, harmony_observation)
@@ -196,12 +198,15 @@ DEFINE_implication(harmony, harmony_numeric_literals)
 DEFINE_implication(harmony, harmony_strings)
 DEFINE_implication(harmony, harmony_arrays)
 DEFINE_implication(harmony, harmony_maths)
+DEFINE_implication(harmony_promises, harmony_collections)
 DEFINE_implication(harmony_modules, harmony_scoping)
 DEFINE_implication(harmony_observation, harmony_collections)
 
 // Flags for experimental implementation features.
 DEFINE_bool(packed_arrays, true, "optimizes arrays that have no holes")
 DEFINE_bool(smi_only_arrays, true, "tracks arrays with only smi values")
+DEFINE_bool(compiled_keyed_dictionary_loads, true,
+            "use optimizing compiler to generate keyed dictionary load stubs")
 DEFINE_bool(clever_optimizations, true,
             "Optimize object size, Array shift, DOM strings and string +")
 DEFINE_bool(pretenuring, true, "allocate objects in old space")
@@ -210,6 +215,8 @@ DEFINE_bool(pretenuring, true, "allocate objects in old space")
 DEFINE_bool(pretenuring_call_new, false, "pretenure call new")
 DEFINE_bool(allocation_site_pretenuring, false,
             "pretenure with allocation sites")
+DEFINE_bool(trace_pretenuring, false,
+            "trace pretenuring decisions of HAllocate instructions")
 DEFINE_bool(track_fields, true, "track fields with only smi values")
 DEFINE_bool(track_double_fields, true, "track fields with double values")
 DEFINE_bool(track_heap_object_fields, true, "track fields with heap values")
@@ -289,7 +296,7 @@ DEFINE_bool(array_index_dehoisting, true,
             "perform array index dehoisting")
 DEFINE_bool(analyze_environment_liveness, true,
             "analyze liveness of environment slots and zap dead values")
-DEFINE_bool(load_elimination, false, "use load elimination")
+DEFINE_bool(load_elimination, true, "use load elimination")
 DEFINE_bool(check_elimination, false, "use check elimination")
 DEFINE_bool(dead_code_elimination, true, "use dead code elimination")
 DEFINE_bool(fold_constants, true, "use constant folding")
@@ -337,6 +344,8 @@ DEFINE_implication(concurrent_osr, concurrent_recompilation)
 DEFINE_bool(omit_map_checks_for_leaf_maps, true,
             "do not emit check maps for constant values that have a leaf map, "
             "deoptimize the optimized code if the layout of the maps changes.")
+
+DEFINE_bool(new_string_add, false, "enable new string addition")
 
 // Experimental profiler changes.
 DEFINE_bool(experimental_profiler, true, "enable all profiler experiments")
@@ -403,6 +412,9 @@ DEFINE_bool(enable_vldr_imm, false,
 // bootstrapper.cc
 DEFINE_string(expose_natives_as, NULL, "expose natives in global object")
 DEFINE_string(expose_debug_as, NULL, "expose debug in global object")
+#ifdef ADDRESS_SANITIZER
+DEFINE_bool(expose_free_buffer, false, "expose freeBuffer extension")
+#endif
 DEFINE_bool(expose_gc, false, "expose gc extension")
 DEFINE_string(expose_gc_as, NULL,
               "expose gc extension under the specified name")
@@ -596,8 +608,6 @@ DEFINE_bool(abort_on_uncaught_exception, false,
             "abort program (dump core) when an uncaught exception is thrown")
 DEFINE_bool(trace_exception, false,
             "print stack trace when throwing exceptions")
-DEFINE_bool(preallocate_message_memory, false,
-            "preallocate some memory to build stack traces.")
 DEFINE_bool(randomize_hashes, true,
             "randomize hashes to avoid predictable hash collisions "
             "(with snapshots this option cannot override the baked-in seed)")
@@ -608,10 +618,6 @@ DEFINE_int(hash_seed, 0,
 // snapshot-common.cc
 DEFINE_bool(profile_deserialization, false,
             "Print the time it takes to deserialize the snapshot.")
-
-// v8.cc
-DEFINE_bool(preemption, false,
-            "activate a 100ms timer that switches between V8 threads")
 
 // Regexp
 DEFINE_bool(regexp_optimization, true, "generate optimized regexp code")
@@ -787,6 +793,10 @@ DEFINE_bool(log_regexp, false, "Log regular expression execution.")
 DEFINE_string(logfile, "v8.log", "Specify the name of the log file.")
 DEFINE_bool(logfile_per_isolate, true, "Separate log files for each isolate.")
 DEFINE_bool(ll_prof, false, "Enable low-level linux profiler.")
+DEFINE_bool(perf_basic_prof, false,
+            "Enable perf linux profiler (basic support).")
+DEFINE_bool(perf_jit_prof, false,
+            "Enable perf linux profiler (experimental annotate support).")
 DEFINE_string(gc_fake_mmap, "/tmp/__v8_gc__",
               "Specify the name of the file for fake gc mmap used in ll_prof")
 DEFINE_bool(log_internal_timer_events, false, "Time internal events.")
@@ -794,6 +804,12 @@ DEFINE_bool(log_timer_events, false,
             "Time events including external callbacks.")
 DEFINE_implication(log_timer_events, log_internal_timer_events)
 DEFINE_implication(log_internal_timer_events, prof)
+
+DEFINE_bool(redirect_code_traces, false,
+            "output deopt information and disassembly into file "
+            "code-<pid>-<isolate id>.asm")
+DEFINE_string(redirect_code_traces_to, NULL,
+            "output deopt information and disassembly into the given file")
 
 //
 // Disassembler only flags

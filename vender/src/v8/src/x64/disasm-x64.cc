@@ -1260,26 +1260,37 @@ int DisassemblerX64::TwoByteOpcodeInstruction(byte* data) {
     byte_size_operand_ = idesc.byte_size_operation;
     current += PrintOperands(idesc.mnem, idesc.op_order_, current);
 
-  } else if (opcode == 0x54) {
-    // andps xmm, xmm/m128
+  } else if (opcode >= 0x53 && opcode <= 0x5F) {
+    const char* const pseudo_op[] = {
+      "rcpps",
+      "andps",
+      "andnps",
+      "orps",
+      "xorps",
+      "addps",
+      "mulps",
+      "cvtps2pd",
+      "cvtdq2ps",
+      "subps",
+      "minps",
+      "divps",
+      "maxps",
+    };
     int mod, regop, rm;
     get_modrm(*current, &mod, &regop, &rm);
-    AppendToBuffer("andps %s,", NameOfXMMRegister(regop));
+    AppendToBuffer("%s %s,",
+                   pseudo_op[opcode - 0x53],
+                   NameOfXMMRegister(regop));
     current += PrintRightXMMOperand(current);
 
-  } else if (opcode == 0x56) {
-    // orps xmm, xmm/m128
+  } else if (opcode == 0xC6) {
+    // shufps xmm, xmm/m128, imm8
     int mod, regop, rm;
     get_modrm(*current, &mod, &regop, &rm);
-    AppendToBuffer("orps %s,", NameOfXMMRegister(regop));
+    AppendToBuffer("shufps %s, ", NameOfXMMRegister(regop));
     current += PrintRightXMMOperand(current);
-
-  } else if (opcode == 0x57) {
-    // xorps xmm, xmm/m128
-    int mod, regop, rm;
-    get_modrm(*current, &mod, &regop, &rm);
-    AppendToBuffer("xorps %s,", NameOfXMMRegister(regop));
-    current += PrintRightXMMOperand(current);
+    AppendToBuffer(", %d", (*current) & 3);
+    current += 1;
 
   } else if (opcode == 0x50) {
     // movmskps reg, xmm
@@ -1565,9 +1576,15 @@ int DisassemblerX64::InstructionDecode(v8::internal::Vector<char> out_buffer,
         } else {
           AppendToBuffer("mov%c ", operand_size_code());
           data += PrintRightOperand(data);
-          int32_t imm = *reinterpret_cast<int32_t*>(data);
-          AppendToBuffer(",0x%x", imm);
-          data += 4;
+          if (operand_size() == OPERAND_WORD_SIZE) {
+            int16_t imm = *reinterpret_cast<int16_t*>(data);
+            AppendToBuffer(",0x%x", imm);
+            data += 2;
+          } else {
+            int32_t imm = *reinterpret_cast<int32_t*>(data);
+            AppendToBuffer(",0x%x", imm);
+            data += 4;
+          }
         }
       }
         break;

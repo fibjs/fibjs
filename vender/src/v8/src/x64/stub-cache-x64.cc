@@ -379,17 +379,12 @@ static void CompileCallLoadPropertyWithInterceptor(
     Register receiver,
     Register holder,
     Register name,
-    Handle<JSObject> holder_obj) {
+    Handle<JSObject> holder_obj,
+    IC::UtilityId id) {
   PushInterceptorArguments(masm, receiver, holder, name, holder_obj);
-
-  ExternalReference ref =
-      ExternalReference(IC_Utility(IC::kLoadPropertyWithInterceptorOnly),
-                        masm->isolate());
-  __ Set(rax, StubCache::kInterceptorArgsLength);
-  __ LoadAddress(rbx, ref);
-
-  CEntryStub stub(1);
-  __ CallStub(&stub);
+  __ CallExternalReference(
+      ExternalReference(IC_Utility(id), masm->isolate()),
+      StubCache::kInterceptorArgsLength);
 }
 
 
@@ -436,21 +431,16 @@ static void FreeSpaceForFastApiCall(MacroAssembler* masm, Register scratch) {
 }
 
 
+static void GenerateFastApiCallBody(MacroAssembler* masm,
+                                    const CallOptimization& optimization,
+                                    int argc,
+                                    bool restore_context);
+
+
 // Generates call to API function.
 static void GenerateFastApiCall(MacroAssembler* masm,
                                 const CallOptimization& optimization,
-                                int argc,
-                                bool restore_context) {
-  // ----------- S t a t e -------------
-  //  -- rsp[0]              : return address
-  //  -- rsp[8] - rsp[56]    : FunctionCallbackInfo, incl.
-  //                         :  object passing the type check
-  //                            (set by CheckPrototypes)
-  //  -- rsp[64]             : last argument
-  //  -- ...
-  //  -- rsp[(argc + 7) * 8] : first argument
-  //  -- rsp[(argc + 8) * 8] : receiver
-  // -----------------------------------
+                                int argc) {
   typedef FunctionCallbackArguments FCA;
   StackArgumentsAccessor args(rsp, argc + kFastApiCallArguments);
 
@@ -473,7 +463,7 @@ static void GenerateFastApiCall(MacroAssembler* masm,
   } else {
     __ Move(args.GetArgumentOperand(offset - FCA::kDataIndex), call_data);
   }
-  __ movq(kScratchRegister,
+  __ Move(kScratchRegister,
           ExternalReference::isolate_address(masm->isolate()));
   __ movq(args.GetArgumentOperand(offset - FCA::kIsolateIndex),
           kScratchRegister);
@@ -485,8 +475,121 @@ static void GenerateFastApiCall(MacroAssembler* masm,
 
   // Prepare arguments.
   STATIC_ASSERT(kFastApiCallArguments == 7);
-  __ lea(rbx, Operand(rsp, 1 * kPointerSize));
+  __ lea(rax, Operand(rsp, 1 * kPointerSize));
 
+  GenerateFastApiCallBody(masm, optimization, argc, false);
+}
+
+
+// Generate call to api function.
+// This function uses push() to generate smaller, faster code than
+// the version above. It is an optimization that should will be removed
+// when api call ICs are generated in hydrogen.
+static void GenerateFastApiCall(MacroAssembler* masm,
+                                const CallOptimization& optimization,
+                                Register receiver,
+                                Register scratch1,
+                                Register scratch2,
+                                Register scratch3,
+                                int argc,
+                                Register* values) {
+  ASSERT(optimization.is_simple_api_call());
+
+  // Copy return value.
+  __ pop(scratch1);
+
+  // receiver
+  __ push(receiver);
+
+  // Write the arguments to stack frame.
+  for (int i = 0; i < argc; i++) {
+    Register arg = values[argc-1-i];
+    ASSERT(!receiver.is(arg));
+    ASSERT(!scratch1.is(arg));
+    ASSERT(!scratch2.is(arg));
+    ASSERT(!scratch3.is(arg));
+    __ push(arg);
+  }
+
+  typedef FunctionCallbackArguments FCA;
+
+  STATIC_ASSERT(FCA::kHolderIndex == 0);
+  STATIC_ASSERT(FCA::kIsolateIndex == 1);
+  STATIC_ASSERT(FCA::kReturnValueDefaultValueIndex == 2);
+  STATIC_ASSERT(FCA::kReturnValueOffset == 3);
+  STATIC_ASSERT(FCA::kDataIndex == 4);
+  STATIC_ASSERT(FCA::kCalleeIndex == 5);
+  STATIC_ASSERT(FCA::kContextSaveIndex == 6);
+  STATIC_ASSERT(FCA::kArgsLength == 7);
+
+  // context save
+  __ push(rsi);
+
+  // Get the function and setup the context.
+  Handle<JSFunction> function = optimization.constant_function();
+  __ Move(scratch2, function);
+  __ push(scratch2);
+
+  Isolate* isolate = masm->isolate();
+  Handle<CallHandlerInfo> api_call_info = optimization.api_call_info();
+  Handle<Object> call_data(api_call_info->data(), isolate);
+  // Push data from ExecutableAccessorInfo.
+  bool call_data_undefined = false;
+  if (isolate->heap()->InNewSpace(*call_data)) {
+    __ Move(scratch2, api_call_info);
+    __ movq(scratch3, FieldOperand(scratch2, CallHandlerInfo::kDataOffset));
+  } else if (call_data->IsUndefined()) {
+    call_data_undefined = true;
+    __ LoadRoot(scratch3, Heap::kUndefinedValueRootIndex);
+  } else {
+    __ Move(scratch3, call_data);
+  }
+  // call data
+  __ push(scratch3);
+  if (!call_data_undefined) {
+    __ LoadRoot(scratch3, Heap::kUndefinedValueRootIndex);
+  }
+  // return value
+  __ push(scratch3);
+  // return value default
+  __ push(scratch3);
+  // isolate
+  __ Move(scratch3,
+          ExternalReference::isolate_address(masm->isolate()));
+  __ push(scratch3);
+  // holder
+  __ push(receiver);
+
+  ASSERT(!scratch1.is(rax));
+  // store receiver address for GenerateFastApiCallBody
+  __ movq(rax, rsp);
+
+  // return address
+  __ push(scratch1);
+
+  GenerateFastApiCallBody(masm, optimization, argc, true);
+}
+
+
+static void GenerateFastApiCallBody(MacroAssembler* masm,
+                                    const CallOptimization& optimization,
+                                    int argc,
+                                    bool restore_context) {
+  // ----------- S t a t e -------------
+  //  -- rsp[0]              : return address
+  //  -- rsp[8] - rsp[56]    : FunctionCallbackInfo, incl.
+  //                         :  object passing the type check
+  //                            (set by CheckPrototypes)
+  //  -- rsp[64]             : last argument
+  //  -- ...
+  //  -- rsp[(argc + 7) * 8] : first argument
+  //  -- rsp[(argc + 8) * 8] : receiver
+  //
+  // rax : receiver address
+  // -----------------------------------
+  typedef FunctionCallbackArguments FCA;
+
+  Handle<CallHandlerInfo> api_call_info = optimization.api_call_info();
   // Function address is a foreign pointer outside V8's heap.
   Address function_address = v8::ToCData<Address>(api_call_info->callback());
 
@@ -496,9 +599,9 @@ static void GenerateFastApiCall(MacroAssembler* masm,
 
   __ PrepareCallApiFunction(kApiStackSpace);
 
-  __ movq(StackSpaceOperand(0), rbx);  // FunctionCallbackInfo::implicit_args_.
-  __ addq(rbx, Immediate((argc + kFastApiCallArguments - 1) * kPointerSize));
-  __ movq(StackSpaceOperand(1), rbx);  // FunctionCallbackInfo::values_.
+  __ movq(StackSpaceOperand(0), rax);  // FunctionCallbackInfo::implicit_args_.
+  __ addq(rax, Immediate((argc + kFastApiCallArguments - 1) * kPointerSize));
+  __ movq(StackSpaceOperand(1), rax);  // FunctionCallbackInfo::values_.
   __ Set(StackSpaceOperand(2), argc);  // FunctionCallbackInfo::length_.
   // FunctionCallbackInfo::is_construct_call_.
   __ Set(StackSpaceOperand(3), 0);
@@ -532,45 +635,12 @@ static void GenerateFastApiCall(MacroAssembler* masm,
 }
 
 
-// Generate call to api function.
-static void GenerateFastApiCall(MacroAssembler* masm,
-                                const CallOptimization& optimization,
-                                Register receiver,
-                                Register scratch,
-                                int argc,
-                                Register* values) {
-  ASSERT(optimization.is_simple_api_call());
-  ASSERT(!receiver.is(scratch));
-
-  const int fast_api_call_argc = argc + kFastApiCallArguments;
-  StackArgumentsAccessor args(rsp, fast_api_call_argc);
-  // argc + 1 is the argument number before FastApiCall arguments, 1 ~ receiver
-  const int kHolderIndex = argc + 1 +
-      kFastApiCallArguments - 1 - FunctionCallbackArguments::kHolderIndex;
-  __ movq(scratch, StackOperandForReturnAddress(0));
-  // Assign stack space for the call arguments and receiver.
-  __ subq(rsp, Immediate((fast_api_call_argc + 1) * kPointerSize));
-  __ movq(StackOperandForReturnAddress(0), scratch);
-  // Write holder to stack frame.
-  __ movq(args.GetArgumentOperand(kHolderIndex), receiver);
-  __ movq(args.GetReceiverOperand(), receiver);
-  // Write the arguments to stack frame.
-  for (int i = 0; i < argc; i++) {
-    ASSERT(!receiver.is(values[i]));
-    ASSERT(!scratch.is(values[i]));
-    __ movq(args.GetArgumentOperand(i + 1), values[i]);
-  }
-
-  GenerateFastApiCall(masm, optimization, argc, true);
-}
-
-
 class CallInterceptorCompiler BASE_EMBEDDED {
  public:
-  CallInterceptorCompiler(StubCompiler* stub_compiler,
+  CallInterceptorCompiler(CallStubCompiler* stub_compiler,
                           const ParameterCount& arguments,
                           Register name,
-                          Code::ExtraICState extra_ic_state)
+                          ExtraICState extra_ic_state)
       : stub_compiler_(stub_compiler),
         arguments_(arguments),
         name_(name),
@@ -645,9 +715,10 @@ class CallInterceptorCompiler BASE_EMBEDDED {
     Label miss_cleanup;
     Label* miss = can_do_fast_api_call ? &miss_cleanup : miss_label;
     Register holder =
-        stub_compiler_->CheckPrototypes(object, receiver, interceptor_holder,
-                                        scratch1, scratch2, scratch3,
-                                        name, depth1, miss);
+        stub_compiler_->CheckPrototypes(
+            IC::CurrentTypeOf(object, masm->isolate()), receiver,
+            interceptor_holder, scratch1, scratch2, scratch3,
+            name, depth1, miss);
 
     // Invoke an interceptor and if it provides a value,
     // branch to |regular_invoke|.
@@ -661,10 +732,10 @@ class CallInterceptorCompiler BASE_EMBEDDED {
     // Check that the maps from interceptor's holder to constant function's
     // holder haven't changed and thus we can use cached constant function.
     if (*interceptor_holder != lookup->holder()) {
-      stub_compiler_->CheckPrototypes(interceptor_holder, receiver,
-                                      Handle<JSObject>(lookup->holder()),
-                                      scratch1, scratch2, scratch3,
-                                      name, depth2, miss);
+      stub_compiler_->CheckPrototypes(
+          IC::CurrentTypeOf(interceptor_holder, masm->isolate()), receiver,
+          handle(lookup->holder()), scratch1, scratch2, scratch3,
+          name, depth2, miss);
     } else {
       // CheckPrototypes has a side effect of fetching a 'holder'
       // for API (object which is instanceof for the signature).  It's
@@ -675,15 +746,10 @@ class CallInterceptorCompiler BASE_EMBEDDED {
 
     // Invoke function.
     if (can_do_fast_api_call) {
-      GenerateFastApiCall(masm, optimization, arguments_.immediate(), false);
+      GenerateFastApiCall(masm, optimization, arguments_.immediate());
     } else {
-      CallKind call_kind = CallICBase::Contextual::decode(extra_ic_state_)
-          ? CALL_AS_FUNCTION
-          : CALL_AS_METHOD;
       Handle<JSFunction> fun = optimization.constant_function();
-      ParameterCount expected(fun);
-      __ InvokeFunction(fun, expected, arguments_,
-                        JUMP_FUNCTION, NullCallWrapper(), call_kind);
+      stub_compiler_->GenerateJumpFunctionIgnoreReceiver(fun);
     }
 
     // Deferred code for fast API call case---clean preallocated space.
@@ -710,20 +776,17 @@ class CallInterceptorCompiler BASE_EMBEDDED {
                       Handle<JSObject> interceptor_holder,
                       Label* miss_label) {
     Register holder =
-        stub_compiler_->CheckPrototypes(object, receiver, interceptor_holder,
-                                        scratch1, scratch2, scratch3,
-                                        name, miss_label);
+        stub_compiler_->CheckPrototypes(
+            IC::CurrentTypeOf(object, masm->isolate()), receiver,
+            interceptor_holder, scratch1, scratch2, scratch3, name, miss_label);
 
     FrameScope scope(masm, StackFrame::INTERNAL);
     // Save the name_ register across the call.
     __ push(name_);
 
-    PushInterceptorArguments(masm, receiver, holder, name_, interceptor_holder);
-
-    __ CallExternalReference(
-        ExternalReference(IC_Utility(IC::kLoadPropertyWithInterceptorForCall),
-                          masm->isolate()),
-        StubCache::kInterceptorArgsLength);
+    CompileCallLoadPropertyWithInterceptor(
+        masm, receiver, holder, name_, interceptor_holder,
+        IC::kLoadPropertyWithInterceptorForCall);
 
     // Restore the name_ register.
     __ pop(name_);
@@ -741,11 +804,9 @@ class CallInterceptorCompiler BASE_EMBEDDED {
       __ push(holder);  // Save the holder.
       __ push(name_);  // Save the name.
 
-      CompileCallLoadPropertyWithInterceptor(masm,
-                                             receiver,
-                                             holder,
-                                             name_,
-                                             holder_obj);
+      CompileCallLoadPropertyWithInterceptor(
+          masm, receiver, holder, name_, holder_obj,
+          IC::kLoadPropertyWithInterceptorOnly);
 
       __ pop(name_);  // Restore the name.
       __ pop(receiver);  // Restore the holder.
@@ -756,10 +817,10 @@ class CallInterceptorCompiler BASE_EMBEDDED {
     __ j(not_equal, interceptor_succeeded);
   }
 
-  StubCompiler* stub_compiler_;
+  CallStubCompiler* stub_compiler_;
   const ParameterCount& arguments_;
   Register name_;
-  Code::ExtraICState extra_ic_state_;
+  ExtraICState extra_ic_state_;
 };
 
 
@@ -1047,26 +1108,6 @@ void StoreStubCompiler::GenerateStoreField(MacroAssembler* masm,
 }
 
 
-void StubCompiler::GenerateCheckPropertyCells(MacroAssembler* masm,
-                                              Handle<JSObject> object,
-                                              Handle<JSObject> holder,
-                                              Handle<Name> name,
-                                              Register scratch,
-                                              Label* miss) {
-  Handle<JSObject> current = object;
-  while (!current.is_identical_to(holder)) {
-    if (current->IsJSGlobalObject()) {
-      GenerateCheckPropertyCell(masm,
-                                Handle<JSGlobalObject>::cast(current),
-                                name,
-                                scratch,
-                                miss);
-    }
-    current = Handle<JSObject>(JSObject::cast(current->GetPrototype()));
-  }
-}
-
-
 void StubCompiler::GenerateTailCall(MacroAssembler* masm, Handle<Code> code) {
   __ jmp(code, RelocInfo::CODE_TARGET);
 }
@@ -1076,7 +1117,7 @@ void StubCompiler::GenerateTailCall(MacroAssembler* masm, Handle<Code> code) {
 #define __ ACCESS_MASM((masm()))
 
 
-Register StubCompiler::CheckPrototypes(Handle<JSObject> object,
+Register StubCompiler::CheckPrototypes(Handle<Type> type,
                                        Register object_reg,
                                        Handle<JSObject> holder,
                                        Register holder_reg,
@@ -1086,11 +1127,11 @@ Register StubCompiler::CheckPrototypes(Handle<JSObject> object,
                                        int save_at_depth,
                                        Label* miss,
                                        PrototypeCheckType check) {
+  Handle<Map> receiver_map(IC::TypeToMap(*type, isolate()));
   // Make sure that the type feedback oracle harvests the receiver map.
   // TODO(svenpanne) Remove this hack when all ICs are reworked.
-  __ Move(scratch1, Handle<Map>(object->map()));
+  __ Move(scratch1, receiver_map);
 
-  Handle<JSObject> first = object;
   // Make sure there's no overlap between holder and object registers.
   ASSERT(!scratch1.is(object_reg) && !scratch1.is(holder_reg));
   ASSERT(!scratch2.is(object_reg) && !scratch2.is(holder_reg)
@@ -1111,25 +1152,31 @@ Register StubCompiler::CheckPrototypes(Handle<JSObject> object,
     __ movq(args.GetArgumentOperand(kHolderIndex), object_reg);
   }
 
-  // Check the maps in the prototype chain.
-  // Traverse the prototype chain from the object and do map checks.
-  Handle<JSObject> current = object;
-  while (!current.is_identical_to(holder)) {
+  Handle<JSObject> current = Handle<JSObject>::null();
+  if (type->IsConstant()) current = Handle<JSObject>::cast(type->AsConstant());
+  Handle<JSObject> prototype = Handle<JSObject>::null();
+  Handle<Map> current_map = receiver_map;
+  Handle<Map> holder_map(holder->map());
+  // Traverse the prototype chain and check the maps in the prototype chain for
+  // fast and global objects or do negative lookup for normal objects.
+  while (!current_map.is_identical_to(holder_map)) {
     ++depth;
 
     // Only global objects and objects that do not require access
     // checks are allowed in stubs.
-    ASSERT(current->IsJSGlobalProxy() || !current->IsAccessCheckNeeded());
+    ASSERT(current_map->IsJSGlobalProxyMap() ||
+           !current_map->is_access_check_needed());
 
-    Handle<JSObject> prototype(JSObject::cast(current->GetPrototype()));
-    if (!current->HasFastProperties() &&
-        !current->IsJSGlobalObject() &&
-        !current->IsJSGlobalProxy()) {
+    prototype = handle(JSObject::cast(current_map->prototype()));
+    if (current_map->is_dictionary_map() &&
+        !current_map->IsJSGlobalObjectMap() &&
+        !current_map->IsJSGlobalProxyMap()) {
       if (!name->IsUniqueName()) {
         ASSERT(name->IsString());
         name = factory()->InternalizeString(Handle<String>::cast(name));
       }
-      ASSERT(current->property_dictionary()->FindEntry(*name) ==
+      ASSERT(current.is_null() ||
+             current->property_dictionary()->FindEntry(*name) ==
              NameDictionary::kNotFound);
 
       GenerateDictionaryNegativeLookup(masm(), miss, reg, name,
@@ -1140,20 +1187,23 @@ Register StubCompiler::CheckPrototypes(Handle<JSObject> object,
       __ movq(reg, FieldOperand(scratch1, Map::kPrototypeOffset));
     } else {
       bool in_new_space = heap()->InNewSpace(*prototype);
-      Handle<Map> current_map(current->map());
       if (in_new_space) {
         // Save the map in scratch1 for later.
         __ movq(scratch1, FieldOperand(reg, HeapObject::kMapOffset));
       }
-      if (!current.is_identical_to(first) || check == CHECK_ALL_MAPS) {
+      if (depth != 1 || check == CHECK_ALL_MAPS) {
         __ CheckMap(reg, current_map, miss, DONT_DO_SMI_CHECK);
       }
 
       // Check access rights to the global object.  This has to happen after
       // the map check so that we know that the object is actually a global
       // object.
-      if (current->IsJSGlobalProxy()) {
+      if (current_map->IsJSGlobalProxyMap()) {
         __ CheckAccessGlobalProxy(reg, scratch2, miss);
+      } else if (current_map->IsJSGlobalObjectMap()) {
+        GenerateCheckPropertyCell(
+            masm(), Handle<JSGlobalObject>::cast(current), name,
+            scratch2, miss);
       }
       reg = holder_reg;  // From now on the object will be in holder_reg.
 
@@ -1173,65 +1223,60 @@ Register StubCompiler::CheckPrototypes(Handle<JSObject> object,
 
     // Go to the next object in the prototype chain.
     current = prototype;
+    current_map = handle(current->map());
   }
-  ASSERT(current.is_identical_to(holder));
 
   // Log the check depth.
   LOG(isolate(), IntEvent("check-maps-depth", depth + 1));
 
-  if (!holder.is_identical_to(first) || check == CHECK_ALL_MAPS) {
+  if (depth != 0 || check == CHECK_ALL_MAPS) {
     // Check the holder map.
-    __ CheckMap(reg, Handle<Map>(holder->map()), miss, DONT_DO_SMI_CHECK);
+    __ CheckMap(reg, current_map, miss, DONT_DO_SMI_CHECK);
   }
 
   // Perform security check for access to the global object.
-  ASSERT(current->IsJSGlobalProxy() || !current->IsAccessCheckNeeded());
-  if (current->IsJSGlobalProxy()) {
+  ASSERT(current_map->IsJSGlobalProxyMap() ||
+         !current_map->is_access_check_needed());
+  if (current_map->IsJSGlobalProxyMap()) {
     __ CheckAccessGlobalProxy(reg, scratch1, miss);
   }
-
-  // If we've skipped any global objects, it's not enough to verify that
-  // their maps haven't changed.  We also need to check that the property
-  // cell for the property is still empty.
-  GenerateCheckPropertyCells(masm(), object, holder, name, scratch1, miss);
 
   // Return the register containing the holder.
   return reg;
 }
 
 
-void LoadStubCompiler::HandlerFrontendFooter(Handle<Name> name,
-                                             Label* success,
-                                             Label* miss) {
+void LoadStubCompiler::HandlerFrontendFooter(Handle<Name> name, Label* miss) {
   if (!miss->is_unused()) {
-    __ jmp(success);
+    Label success;
+    __ jmp(&success);
     __ bind(miss);
     TailCallBuiltin(masm(), MissBuiltin(kind()));
+    __ bind(&success);
   }
 }
 
 
-void StoreStubCompiler::HandlerFrontendFooter(Handle<Name> name,
-                                              Label* success,
-                                              Label* miss) {
+void StoreStubCompiler::HandlerFrontendFooter(Handle<Name> name, Label* miss) {
   if (!miss->is_unused()) {
-    __ jmp(success);
+    Label success;
+    __ jmp(&success);
     GenerateRestoreName(masm(), miss, name);
     TailCallBuiltin(masm(), MissBuiltin(kind()));
+    __ bind(&success);
   }
 }
 
 
 Register LoadStubCompiler::CallbackHandlerFrontend(
-    Handle<JSObject> object,
+    Handle<Type> type,
     Register object_reg,
     Handle<JSObject> holder,
     Handle<Name> name,
-    Label* success,
     Handle<Object> callback) {
   Label miss;
 
-  Register reg = HandlerFrontendHeader(object, object_reg, holder, name, &miss);
+  Register reg = HandlerFrontendHeader(type, object_reg, holder, name, &miss);
 
   if (!holder->HasFastProperties() && !holder->IsJSGlobalObject()) {
     ASSERT(!reg.is(scratch2()));
@@ -1268,7 +1313,7 @@ Register LoadStubCompiler::CallbackHandlerFrontend(
     __ j(not_equal, &miss);
   }
 
-  HandlerFrontendFooter(name, success, &miss);
+  HandlerFrontendFooter(name, &miss);
   return reg;
 }
 
@@ -1295,7 +1340,8 @@ void LoadStubCompiler::GenerateLoadField(Register reg,
 void LoadStubCompiler::GenerateLoadCallback(
     const CallOptimization& call_optimization) {
   GenerateFastApiCall(
-      masm(), call_optimization, receiver(), scratch3(), 0, NULL);
+      masm(), call_optimization, receiver(),
+      scratch1(), scratch2(), name(), 0, NULL);
 }
 
 
@@ -1389,7 +1435,7 @@ void LoadStubCompiler::GenerateLoadConstant(Handle<Object> value) {
 
 void LoadStubCompiler::GenerateLoadInterceptor(
     Register holder_reg,
-    Handle<JSObject> object,
+    Handle<Object> object,
     Handle<JSObject> interceptor_holder,
     LookupResult* lookup,
     Handle<Name> name) {
@@ -1440,11 +1486,9 @@ void LoadStubCompiler::GenerateLoadInterceptor(
       // Invoke an interceptor.  Note: map checks from receiver to
       // interceptor's holder has been compiled before (see a caller
       // of this method.)
-      CompileCallLoadPropertyWithInterceptor(masm(),
-                                             receiver(),
-                                             holder_reg,
-                                             this->name(),
-                                             interceptor_holder);
+      CompileCallLoadPropertyWithInterceptor(
+          masm(), receiver(), holder_reg, this->name(), interceptor_holder,
+          IC::kLoadPropertyWithInterceptorOnly);
 
       // Check if interceptor provided a value for property.  If it's
       // the case, return immediately.
@@ -1488,19 +1532,12 @@ void CallStubCompiler::GenerateNameCheck(Handle<Name> name, Label* miss) {
 }
 
 
-void CallStubCompiler::GenerateGlobalReceiverCheck(Handle<JSObject> object,
-                                                   Handle<JSObject> holder,
-                                                   Handle<Name> name,
-                                                   Label* miss) {
-  ASSERT(holder->IsGlobalObject());
-
-  StackArgumentsAccessor args(rsp, arguments());
-  __ movq(rdx, args.GetReceiverOperand());
-
-
-  // Check that the maps haven't changed.
-  __ JumpIfSmi(rdx, miss);
-  CheckPrototypes(object, rdx, holder, rbx, rax, rdi, name, miss);
+void CallStubCompiler::GenerateFunctionCheck(Register function,
+                                             Register scratch,
+                                             Label* miss) {
+  __ JumpIfSmi(function, miss);
+  __ CmpObjectType(function, JS_FUNCTION_TYPE, scratch);
+  __ j(not_equal, miss);
 }
 
 
@@ -1519,9 +1556,7 @@ void CallStubCompiler::GenerateLoadFunctionFromCell(
     // the nice side effect that multiple closures based on the same
     // function can all use this call IC. Before we load through the
     // function, we have to verify that it still is a function.
-    __ JumpIfSmi(rdi, miss);
-    __ CmpObjectType(rdi, JS_FUNCTION_TYPE, rax);
-    __ j(not_equal, miss);
+    GenerateFunctionCheck(rdi, rax, miss);
 
     // Check the shared function info. Make sure it hasn't changed.
     __ Move(rax, Handle<SharedFunctionInfo>(function->shared()));
@@ -1537,7 +1572,7 @@ void CallStubCompiler::GenerateMissBranch() {
   Handle<Code> code =
       isolate()->stub_cache()->ComputeCallMiss(arguments().immediate(),
                                                kind_,
-                                               extra_state_);
+                                               extra_state());
   __ Jump(code, RelocInfo::CODE_TARGET);
 }
 
@@ -1546,57 +1581,19 @@ Handle<Code> CallStubCompiler::CompileCallField(Handle<JSObject> object,
                                                 Handle<JSObject> holder,
                                                 PropertyIndex index,
                                                 Handle<Name> name) {
-  // ----------- S t a t e -------------
-  // rcx                 : function name
-  // rsp[0]              : return address
-  // rsp[8]              : argument argc
-  // rsp[16]             : argument argc - 1
-  // ...
-  // rsp[argc * 8]       : argument 1
-  // rsp[(argc + 1) * 8] : argument 0 = receiver
-  // -----------------------------------
   Label miss;
 
-  GenerateNameCheck(name, &miss);
-
-  StackArgumentsAccessor args(rsp, arguments());
-  __ movq(rdx, args.GetReceiverOperand());
-
-  // Check that the receiver isn't a smi.
-  __ JumpIfSmi(rdx, &miss);
-
-  // Do the right check and compute the holder register.
-  Register reg = CheckPrototypes(object, rdx, holder, rbx, rax, rdi,
-                                 name, &miss);
+  Register reg = HandlerFrontendHeader(
+      object, holder, name, RECEIVER_MAP_CHECK, &miss);
 
   GenerateFastPropertyLoad(masm(), rdi, reg, index.is_inobject(holder),
                            index.translate(holder), Representation::Tagged());
+  GenerateJumpFunction(object, rdi, &miss);
 
-  // Check that the function really is a function.
-  __ JumpIfSmi(rdi, &miss);
-  __ CmpObjectType(rdi, JS_FUNCTION_TYPE, rbx);
-  __ j(not_equal, &miss);
-
-  // Patch the receiver on the stack with the global proxy if
-  // necessary.
-  if (object->IsGlobalObject()) {
-    __ movq(rdx, FieldOperand(rdx, GlobalObject::kGlobalReceiverOffset));
-    __ movq(args.GetReceiverOperand(), rdx);
-  }
-
-  // Invoke the function.
-  CallKind call_kind = CallICBase::Contextual::decode(extra_state_)
-      ? CALL_AS_FUNCTION
-      : CALL_AS_METHOD;
-  __ InvokeFunction(rdi, arguments(), JUMP_FUNCTION,
-                    NullCallWrapper(), call_kind);
-
-  // Handle call cache miss.
-  __ bind(&miss);
-  GenerateMissBranch();
+  HandlerFrontendFooter(&miss);
 
   // Return the generated code.
-  return GetCode(Code::FIELD, name);
+  return GetCode(Code::FAST, name);
 }
 
 
@@ -1609,28 +1606,16 @@ Handle<Code> CallStubCompiler::CompileArrayCodeCall(
     Code::StubType type) {
   Label miss;
 
-  // Check that function is still array
-  const int argc = arguments().immediate();
-  StackArgumentsAccessor args(rsp, argc);
-  GenerateNameCheck(name, &miss);
-
-  if (cell.is_null()) {
-    __ movq(rdx, args.GetReceiverOperand());
-
-    // Check that the receiver isn't a smi.
-    __ JumpIfSmi(rdx, &miss);
-    CheckPrototypes(Handle<JSObject>::cast(object), rdx, holder, rbx, rax, rdi,
-                    name, &miss);
-  } else {
+  HandlerFrontendHeader(object, holder, name, RECEIVER_MAP_CHECK, &miss);
+  if (!cell.is_null()) {
     ASSERT(cell->value() == *function);
-    GenerateGlobalReceiverCheck(Handle<JSObject>::cast(object), holder, name,
-                                &miss);
     GenerateLoadFunctionFromCell(cell, function, &miss);
   }
 
   Handle<AllocationSite> site = isolate()->factory()->NewAllocationSite();
-  site->set_transition_info(Smi::FromInt(GetInitialFastElementsKind()));
+  site->SetElementsKind(GetInitialFastElementsKind());
   Handle<Cell> site_feedback_cell = isolate()->factory()->NewCell(site);
+  const int argc = arguments().immediate();
   __ movq(rax, Immediate(argc));
   __ Move(rbx, site_feedback_cell);
   __ Move(rdi, function);
@@ -1638,8 +1623,7 @@ Handle<Code> CallStubCompiler::CompileArrayCodeCall(
   ArrayConstructorStub stub(isolate());
   __ TailCallStub(&stub);
 
-  __ bind(&miss);
-  GenerateMissBranch();
+  HandlerFrontendFooter(&miss);
 
   // Return the generated code.
   return GetCode(type, name);
@@ -1653,30 +1637,21 @@ Handle<Code> CallStubCompiler::CompileArrayPushCall(
     Handle<JSFunction> function,
     Handle<String> name,
     Code::StubType type) {
-  // ----------- S t a t e -------------
-  //  -- rcx                 : name
-  //  -- rsp[0]              : return address
-  //  -- rsp[(argc - n) * 8] : arg[n] (zero-based)
-  //  -- ...
-  //  -- rsp[(argc + 1) * 8] : receiver
-  // -----------------------------------
-
-  // If object is not an array, bail out to regular call.
-  if (!object->IsJSArray() || !cell.is_null()) return Handle<Code>::null();
+  // If object is not an array or is observed or sealed, bail out to regular
+  // call.
+  if (!object->IsJSArray() ||
+      !cell.is_null() ||
+      Handle<JSArray>::cast(object)->map()->is_observed() ||
+      !Handle<JSArray>::cast(object)->map()->is_extensible()) {
+    return Handle<Code>::null();
+  }
 
   Label miss;
-  GenerateNameCheck(name, &miss);
+
+  HandlerFrontendHeader(object, holder, name, RECEIVER_MAP_CHECK, &miss);
 
   const int argc = arguments().immediate();
   StackArgumentsAccessor args(rsp, argc);
-  __ movq(rdx, args.GetReceiverOperand());
-
-  // Check that the receiver isn't a smi.
-  __ JumpIfSmi(rdx, &miss);
-
-  CheckPrototypes(Handle<JSObject>::cast(object), rdx, holder, rbx, rax, rdi,
-                  name, &miss);
-
   if (argc == 0) {
     // Noop, return the length.
     __ movq(rax, FieldOperand(rdx, JSArray::kLengthOffset));
@@ -1889,8 +1864,7 @@ Handle<Code> CallStubCompiler::CompileArrayPushCall(
                                  1);
   }
 
-  __ bind(&miss);
-  GenerateMissBranch();
+  HandlerFrontendFooter(&miss);
 
   // Return the generated code.
   return GetCode(type, name);
@@ -1904,29 +1878,18 @@ Handle<Code> CallStubCompiler::CompileArrayPopCall(
     Handle<JSFunction> function,
     Handle<String> name,
     Code::StubType type) {
-  // ----------- S t a t e -------------
-  //  -- rcx                 : name
-  //  -- rsp[0]              : return address
-  //  -- rsp[(argc - n) * 8] : arg[n] (zero-based)
-  //  -- ...
-  //  -- rsp[(argc + 1) * 8] : receiver
-  // -----------------------------------
-
-  // If object is not an array, bail out to regular call.
-  if (!object->IsJSArray() || !cell.is_null()) return Handle<Code>::null();
+  // If object is not an array or is observed or sealed, bail out to regular
+  // call.
+  if (!object->IsJSArray() ||
+      !cell.is_null() ||
+      Handle<JSArray>::cast(object)->map()->is_observed() ||
+      !Handle<JSArray>::cast(object)->map()->is_extensible()) {
+    return Handle<Code>::null();
+  }
 
   Label miss, return_undefined, call_builtin;
-  GenerateNameCheck(name, &miss);
 
-  const int argc = arguments().immediate();
-  StackArgumentsAccessor args(rsp, argc);
-  __ movq(rdx, args.GetReceiverOperand());
-
-  // Check that the receiver isn't a smi.
-  __ JumpIfSmi(rdx, &miss);
-
-  CheckPrototypes(Handle<JSObject>::cast(object), rdx, holder, rbx, rax, rdi,
-                  name, &miss);
+  HandlerFrontendHeader(object, holder, name, RECEIVER_MAP_CHECK, &miss);
 
   // Get the elements array of the object.
   __ movq(rbx, FieldOperand(rdx, JSArray::kElementsOffset));
@@ -1959,6 +1922,7 @@ Handle<Code> CallStubCompiler::CompileArrayPopCall(
                        rcx, times_pointer_size,
                        FixedArray::kHeaderSize),
           r9);
+  const int argc = arguments().immediate();
   __ ret((argc + 1) * kPointerSize);
 
   __ bind(&return_undefined);
@@ -1971,8 +1935,7 @@ Handle<Code> CallStubCompiler::CompileArrayPopCall(
       argc + 1,
       1);
 
-  __ bind(&miss);
-  GenerateMissBranch();
+  HandlerFrontendFooter(&miss);
 
   // Return the generated code.
   return GetCode(type, name);
@@ -1986,44 +1949,27 @@ Handle<Code> CallStubCompiler::CompileStringCharCodeAtCall(
     Handle<JSFunction> function,
     Handle<String> name,
     Code::StubType type) {
-  // ----------- S t a t e -------------
-  //  -- rcx                 : function name
-  //  -- rsp[0]              : return address
-  //  -- rsp[(argc - n) * 8] : arg[n] (zero-based)
-  //  -- ...
-  //  -- rsp[(argc + 1) * 8] : receiver
-  // -----------------------------------
-
   // If object is not a string, bail out to regular call.
   if (!object->IsString() || !cell.is_null()) return Handle<Code>::null();
-
-  const int argc = arguments().immediate();
-  StackArgumentsAccessor args(rsp, argc);
 
   Label miss;
   Label name_miss;
   Label index_out_of_range;
   Label* index_out_of_range_label = &index_out_of_range;
   if (kind_ == Code::CALL_IC &&
-      (CallICBase::StringStubState::decode(extra_state_) ==
+      (CallICBase::StringStubState::decode(extra_state()) ==
        DEFAULT_STRING_STUB)) {
     index_out_of_range_label = &miss;
   }
-  GenerateNameCheck(name, &name_miss);
 
-  // Check that the maps starting from the prototype haven't changed.
-  GenerateDirectLoadGlobalFunctionPrototype(masm(),
-                                            Context::STRING_FUNCTION_INDEX,
-                                            rax,
-                                            &miss);
-  ASSERT(!object.is_identical_to(holder));
-  CheckPrototypes(
-      Handle<JSObject>(JSObject::cast(object->GetPrototype(isolate()))),
-      rax, holder, rbx, rdx, rdi, name, &miss);
+  HandlerFrontendHeader(object, holder, name, STRING_CHECK, &name_miss);
 
   Register receiver = rbx;
   Register index = rdi;
   Register result = rax;
+  const int argc = arguments().immediate();
+  StackArgumentsAccessor args(rsp, argc);
+
   __ movq(receiver, args.GetReceiverOperand());
   if (argc > 0) {
     __ movq(index, args.GetArgumentOperand(1));
@@ -2053,8 +1999,7 @@ Handle<Code> CallStubCompiler::CompileStringCharCodeAtCall(
   __ bind(&miss);
   // Restore function name in rcx.
   __ Move(rcx, name);
-  __ bind(&name_miss);
-  GenerateMissBranch();
+  HandlerFrontendFooter(&name_miss);
 
   // Return the generated code.
   return GetCode(type, name);
@@ -2068,14 +2013,6 @@ Handle<Code> CallStubCompiler::CompileStringCharAtCall(
     Handle<JSFunction> function,
     Handle<String> name,
     Code::StubType type) {
-  // ----------- S t a t e -------------
-  //  -- rcx                 : function name
-  //  -- rsp[0]              : return address
-  //  -- rsp[(argc - n) * 8] : arg[n] (zero-based)
-  //  -- ...
-  //  -- rsp[(argc + 1) * 8] : receiver
-  // -----------------------------------
-
   // If object is not a string, bail out to regular call.
   if (!object->IsString() || !cell.is_null()) return Handle<Code>::null();
 
@@ -2087,21 +2024,12 @@ Handle<Code> CallStubCompiler::CompileStringCharAtCall(
   Label index_out_of_range;
   Label* index_out_of_range_label = &index_out_of_range;
   if (kind_ == Code::CALL_IC &&
-      (CallICBase::StringStubState::decode(extra_state_) ==
+      (CallICBase::StringStubState::decode(extra_state()) ==
        DEFAULT_STRING_STUB)) {
     index_out_of_range_label = &miss;
   }
-  GenerateNameCheck(name, &name_miss);
 
-  // Check that the maps starting from the prototype haven't changed.
-  GenerateDirectLoadGlobalFunctionPrototype(masm(),
-                                            Context::STRING_FUNCTION_INDEX,
-                                            rax,
-                                            &miss);
-  ASSERT(!object.is_identical_to(holder));
-  CheckPrototypes(
-      Handle<JSObject>(JSObject::cast(object->GetPrototype(isolate()))),
-      rax, holder, rbx, rdx, rdi, name, &miss);
+  HandlerFrontendHeader(object, holder, name, STRING_CHECK, &name_miss);
 
   Register receiver = rax;
   Register index = rdi;
@@ -2136,8 +2064,7 @@ Handle<Code> CallStubCompiler::CompileStringCharAtCall(
   __ bind(&miss);
   // Restore function name in rcx.
   __ Move(rcx, name);
-  __ bind(&name_miss);
-  GenerateMissBranch();
+  HandlerFrontendFooter(&name_miss);
 
   // Return the generated code.
   return GetCode(type, name);
@@ -2151,14 +2078,6 @@ Handle<Code> CallStubCompiler::CompileStringFromCharCodeCall(
     Handle<JSFunction> function,
     Handle<String> name,
     Code::StubType type) {
-  // ----------- S t a t e -------------
-  //  -- rcx                 : function name
-  //  -- rsp[0]              : return address
-  //  -- rsp[(argc - n) * 8] : arg[n] (zero-based)
-  //  -- ...
-  //  -- rsp[(argc + 1) * 8] : receiver
-  // -----------------------------------
-
   // If the object is not a JSObject or we got an unexpected number of
   // arguments, bail out to the regular call.
   const int argc = arguments().immediate();
@@ -2166,17 +2085,10 @@ Handle<Code> CallStubCompiler::CompileStringFromCharCodeCall(
   if (!object->IsJSObject() || argc != 1) return Handle<Code>::null();
 
   Label miss;
-  GenerateNameCheck(name, &miss);
 
-  if (cell.is_null()) {
-    __ movq(rdx, args.GetReceiverOperand());
-    __ JumpIfSmi(rdx, &miss);
-    CheckPrototypes(Handle<JSObject>::cast(object), rdx, holder, rbx, rax, rdi,
-                    name, &miss);
-  } else {
+  HandlerFrontendHeader(object, holder, name, RECEIVER_MAP_CHECK, &miss);
+  if (!cell.is_null()) {
     ASSERT(cell->value() == *function);
-    GenerateGlobalReceiverCheck(Handle<JSObject>::cast(object), holder, name,
-                                &miss);
     GenerateLoadFunctionFromCell(cell, function, &miss);
   }
 
@@ -2198,19 +2110,12 @@ Handle<Code> CallStubCompiler::CompileStringFromCharCodeCall(
   StubRuntimeCallHelper call_helper;
   generator.GenerateSlow(masm(), call_helper);
 
-  // Tail call the full function. We do not have to patch the receiver
-  // because the function makes no use of it.
   __ bind(&slow);
-  CallKind call_kind = CallICBase::Contextual::decode(extra_state_)
-      ? CALL_AS_FUNCTION
-      : CALL_AS_METHOD;
-  ParameterCount expected(function);
-  __ InvokeFunction(function, expected, arguments(),
-                    JUMP_FUNCTION, NullCallWrapper(), call_kind);
+  // We do not have to patch the receiver because the function makes no use of
+  // it.
+  GenerateJumpFunctionIgnoreReceiver(function);
 
-  __ bind(&miss);
-  // rcx: function name.
-  GenerateMissBranch();
+  HandlerFrontendFooter(&miss);
 
   // Return the generated code.
   return GetCode(type, name);
@@ -2224,13 +2129,6 @@ Handle<Code> CallStubCompiler::CompileMathFloorCall(
     Handle<JSFunction> function,
     Handle<String> name,
     Code::StubType type) {
-  // ----------- S t a t e -------------
-  //  -- rcx                 : name
-  //  -- rsp[0]              : return address
-  //  -- rsp[(argc - n) * 4] : arg[n] (zero-based)
-  //  -- ...
-  //  -- rsp[(argc + 1) * 4] : receiver
-  // -----------------------------------
   const int argc = arguments().immediate();
   StackArgumentsAccessor args(rsp, argc);
 
@@ -2240,21 +2138,11 @@ Handle<Code> CallStubCompiler::CompileMathFloorCall(
     return Handle<Code>::null();
   }
 
-  Label miss;
-  GenerateNameCheck(name, &miss);
+  Label miss, slow;
 
-  if (cell.is_null()) {
-    __ movq(rdx, args.GetReceiverOperand());
-
-    STATIC_ASSERT(kSmiTag == 0);
-    __ JumpIfSmi(rdx, &miss);
-
-    CheckPrototypes(Handle<JSObject>::cast(object), rdx, holder, rbx, rax, rdi,
-                    name, &miss);
-  } else {
+  HandlerFrontendHeader(object, holder, name, RECEIVER_MAP_CHECK, &miss);
+  if (!cell.is_null()) {
     ASSERT(cell->value() == *function);
-    GenerateGlobalReceiverCheck(Handle<JSObject>::cast(object), holder, name,
-                                &miss);
     GenerateLoadFunctionFromCell(cell, function, &miss);
   }
 
@@ -2267,7 +2155,6 @@ Handle<Code> CallStubCompiler::CompileMathFloorCall(
   __ JumpIfSmi(rax, &smi);
 
   // Check if the argument is a heap number and load its value into xmm0.
-  Label slow;
   __ CheckMap(rax, factory()->heap_number_map(), &slow, DONT_DO_SMI_CHECK);
   __ movsd(xmm0, FieldOperand(rax, HeapNumber::kValueOffset));
 
@@ -2293,7 +2180,7 @@ Handle<Code> CallStubCompiler::CompileMathFloorCall(
   Label already_round;
   __ bind(&conversion_failure);
   int64_t kTwoMantissaBits= V8_INT64_C(0x4330000000000000);
-  __ movq(rbx, kTwoMantissaBits, RelocInfo::NONE64);
+  __ movq(rbx, kTwoMantissaBits);
   __ movq(xmm1, rbx);
   __ ucomisd(xmm0, xmm1);
   __ j(above_equal, &already_round);
@@ -2314,7 +2201,7 @@ Handle<Code> CallStubCompiler::CompileMathFloorCall(
 
   // Subtract 1 if the argument was less than the tentative result.
   int64_t kOne = V8_INT64_C(0x3ff0000000000000);
-  __ movq(rbx, kOne, RelocInfo::NONE64);
+  __ movq(rbx, kOne);
   __ movq(xmm1, rbx);
   __ andpd(xmm1, xmm2);
   __ subsd(xmm0, xmm1);
@@ -2329,16 +2216,12 @@ Handle<Code> CallStubCompiler::CompileMathFloorCall(
   __ movq(rax, args.GetArgumentOperand(1));
   __ ret(2 * kPointerSize);
 
-  // Tail call the full function. We do not have to patch the receiver
-  // because the function makes no use of it.
   __ bind(&slow);
-  ParameterCount expected(function);
-  __ InvokeFunction(function, expected, arguments(),
-                    JUMP_FUNCTION, NullCallWrapper(), CALL_AS_METHOD);
+  // We do not have to patch the receiver because the function makes no use of
+  // it.
+  GenerateJumpFunctionIgnoreReceiver(function);
 
-  __ bind(&miss);
-  // rcx: function name.
-  GenerateMissBranch();
+  HandlerFrontendFooter(&miss);
 
   // Return the generated code.
   return GetCode(type, name);
@@ -2352,14 +2235,6 @@ Handle<Code> CallStubCompiler::CompileMathAbsCall(
     Handle<JSFunction> function,
     Handle<String> name,
     Code::StubType type) {
-  // ----------- S t a t e -------------
-  //  -- rcx                 : function name
-  //  -- rsp[0]              : return address
-  //  -- rsp[(argc - n) * 8] : arg[n] (zero-based)
-  //  -- ...
-  //  -- rsp[(argc + 1) * 8] : receiver
-  // -----------------------------------
-
   // If the object is not a JSObject or we got an unexpected number of
   // arguments, bail out to the regular call.
   const int argc = arguments().immediate();
@@ -2367,19 +2242,13 @@ Handle<Code> CallStubCompiler::CompileMathAbsCall(
   if (!object->IsJSObject() || argc != 1) return Handle<Code>::null();
 
   Label miss;
-  GenerateNameCheck(name, &miss);
 
-  if (cell.is_null()) {
-    __ movq(rdx, args.GetReceiverOperand());
-    __ JumpIfSmi(rdx, &miss);
-    CheckPrototypes(Handle<JSObject>::cast(object), rdx, holder, rbx, rax, rdi,
-                    name, &miss);
-  } else {
+  HandlerFrontendHeader(object, holder, name, RECEIVER_MAP_CHECK, &miss);
+  if (!cell.is_null()) {
     ASSERT(cell->value() == *function);
-    GenerateGlobalReceiverCheck(Handle<JSObject>::cast(object), holder, name,
-                                &miss);
     GenerateLoadFunctionFromCell(cell, function, &miss);
   }
+
   // Load the (only) argument into rax.
   __ movq(rax, args.GetArgumentOperand(1));
 
@@ -2418,8 +2287,7 @@ Handle<Code> CallStubCompiler::CompileMathAbsCall(
   Label negative_sign;
   const int sign_mask_shift =
       (HeapNumber::kExponentOffset - HeapNumber::kValueOffset) * kBitsPerByte;
-  __ movq(rdi, static_cast<int64_t>(HeapNumber::kSignMask) << sign_mask_shift,
-          RelocInfo::NONE64);
+  __ Set(rdi, static_cast<int64_t>(HeapNumber::kSignMask) << sign_mask_shift);
   __ testq(rbx, rdi);
   __ j(not_zero, &negative_sign);
   __ ret(2 * kPointerSize);
@@ -2432,19 +2300,12 @@ Handle<Code> CallStubCompiler::CompileMathAbsCall(
   __ MoveDouble(FieldOperand(rax, HeapNumber::kValueOffset), rbx);
   __ ret(2 * kPointerSize);
 
-  // Tail call the full function. We do not have to patch the receiver
-  // because the function makes no use of it.
   __ bind(&slow);
-  CallKind call_kind = CallICBase::Contextual::decode(extra_state_)
-      ? CALL_AS_FUNCTION
-      : CALL_AS_METHOD;
-  ParameterCount expected(function);
-  __ InvokeFunction(function, expected, arguments(),
-                    JUMP_FUNCTION, NullCallWrapper(), call_kind);
+  // We do not have to patch the receiver because the function makes no use of
+  // it.
+  GenerateJumpFunctionIgnoreReceiver(function);
 
-  __ bind(&miss);
-  // rcx: function name.
-  GenerateMissBranch();
+  HandlerFrontendFooter(&miss);
 
   // Return the generated code.
   return GetCode(type, name);
@@ -2487,50 +2348,61 @@ Handle<Code> CallStubCompiler::CompileFastApiCall(
   __ subq(rsp, Immediate(kFastApiCallArguments * kPointerSize));
 
   // Check that the maps haven't changed and find a Holder as a side effect.
-  CheckPrototypes(Handle<JSObject>::cast(object), rdx, holder, rbx, rax, rdi,
-                  name, depth, &miss);
+  CheckPrototypes(IC::CurrentTypeOf(object, isolate()), rdx, holder,
+                  rbx, rax, rdi, name, depth, &miss);
 
   // Move the return address on top of the stack.
   __ movq(rax,
           StackOperandForReturnAddress(kFastApiCallArguments * kPointerSize));
   __ movq(StackOperandForReturnAddress(0), rax);
 
-  GenerateFastApiCall(masm(), optimization, argc, false);
+  GenerateFastApiCall(masm(), optimization, argc);
 
   __ bind(&miss);
   __ addq(rsp, Immediate(kFastApiCallArguments * kPointerSize));
 
-  __ bind(&miss_before_stack_reserved);
-  GenerateMissBranch();
+  HandlerFrontendFooter(&miss_before_stack_reserved);
 
   // Return the generated code.
   return GetCode(function);
 }
 
 
-void CallStubCompiler::CompileHandlerFrontend(Handle<Object> object,
-                                              Handle<JSObject> holder,
-                                              Handle<Name> name,
-                                              CheckType check,
-                                              Label* success) {
-  // ----------- S t a t e -------------
-  // rcx                 : function name
-  // rsp[0]              : return address
-  // rsp[8]              : argument argc
-  // rsp[16]             : argument argc - 1
-  // ...
-  // rsp[argc * 8]       : argument 1
-  // rsp[(argc + 1) * 8] : argument 0 = receiver
-  // -----------------------------------
-  Label miss;
-  GenerateNameCheck(name, &miss);
+void StubCompiler::GenerateBooleanCheck(Register object, Label* miss) {
+  Label success;
+  // Check that the object is a boolean.
+  __ CompareRoot(object, Heap::kTrueValueRootIndex);
+  __ j(equal, &success);
+  __ CompareRoot(object, Heap::kFalseValueRootIndex);
+  __ j(not_equal, miss);
+  __ bind(&success);
+}
+
+
+void CallStubCompiler::PatchGlobalProxy(Handle<Object> object) {
+  if (object->IsGlobalObject()) {
+    StackArgumentsAccessor args(rsp, arguments());
+    __ movq(rdx, FieldOperand(rdx, GlobalObject::kGlobalReceiverOffset));
+    __ movq(args.GetReceiverOperand(), rdx);
+  }
+}
+
+
+Register CallStubCompiler::HandlerFrontendHeader(Handle<Object> object,
+                                                 Handle<JSObject> holder,
+                                                 Handle<Name> name,
+                                                 CheckType check,
+                                                 Label* miss) {
+  GenerateNameCheck(name, miss);
+
+  Register reg = rdx;
 
   StackArgumentsAccessor args(rsp, arguments());
-  __ movq(rdx, args.GetReceiverOperand());
+  __ movq(reg, args.GetReceiverOperand());
 
   // Check that the receiver isn't a smi.
   if (check != NUMBER_CHECK) {
-    __ JumpIfSmi(rdx, &miss);
+    __ JumpIfSmi(reg, miss);
   }
 
   // Make sure that it's okay not to patch the on stack receiver
@@ -2543,133 +2415,80 @@ void CallStubCompiler::CompileHandlerFrontend(Handle<Object> object,
       __ IncrementCounter(counters->call_const(), 1);
 
       // Check that the maps haven't changed.
-      CheckPrototypes(Handle<JSObject>::cast(object), rdx, holder, rbx, rax,
-                      rdi, name, &miss);
-
-      // Patch the receiver on the stack with the global proxy if
-      // necessary.
-      if (object->IsGlobalObject()) {
-        __ movq(rdx, FieldOperand(rdx, GlobalObject::kGlobalReceiverOffset));
-        __ movq(args.GetReceiverOperand(), rdx);
-      }
+      reg = CheckPrototypes(IC::CurrentTypeOf(object, isolate()), reg, holder,
+                            rbx, rax, rdi, name, miss);
       break;
 
-    case STRING_CHECK:
+    case STRING_CHECK: {
       // Check that the object is a string.
-      __ CmpObjectType(rdx, FIRST_NONSTRING_TYPE, rax);
-      __ j(above_equal, &miss);
+      __ CmpObjectType(reg, FIRST_NONSTRING_TYPE, rax);
+      __ j(above_equal, miss);
       // Check that the maps starting from the prototype haven't changed.
       GenerateDirectLoadGlobalFunctionPrototype(
-          masm(), Context::STRING_FUNCTION_INDEX, rax, &miss);
-      CheckPrototypes(
-          Handle<JSObject>(JSObject::cast(object->GetPrototype(isolate()))),
-          rax, holder, rbx, rdx, rdi, name, &miss);
+          masm(), Context::STRING_FUNCTION_INDEX, rax, miss);
       break;
-
-    case SYMBOL_CHECK:
+    }
+    case SYMBOL_CHECK: {
       // Check that the object is a symbol.
-      __ CmpObjectType(rdx, SYMBOL_TYPE, rax);
-      __ j(not_equal, &miss);
+      __ CmpObjectType(reg, SYMBOL_TYPE, rax);
+      __ j(not_equal, miss);
       // Check that the maps starting from the prototype haven't changed.
       GenerateDirectLoadGlobalFunctionPrototype(
-          masm(), Context::SYMBOL_FUNCTION_INDEX, rax, &miss);
-      CheckPrototypes(
-          Handle<JSObject>(JSObject::cast(object->GetPrototype(isolate()))),
-          rax, holder, rbx, rdx, rdi, name, &miss);
+          masm(), Context::SYMBOL_FUNCTION_INDEX, rax, miss);
       break;
-
+    }
     case NUMBER_CHECK: {
       Label fast;
       // Check that the object is a smi or a heap number.
-      __ JumpIfSmi(rdx, &fast);
-      __ CmpObjectType(rdx, HEAP_NUMBER_TYPE, rax);
-      __ j(not_equal, &miss);
+      __ JumpIfSmi(reg, &fast);
+      __ CmpObjectType(reg, HEAP_NUMBER_TYPE, rax);
+      __ j(not_equal, miss);
       __ bind(&fast);
       // Check that the maps starting from the prototype haven't changed.
       GenerateDirectLoadGlobalFunctionPrototype(
-          masm(), Context::NUMBER_FUNCTION_INDEX, rax, &miss);
-      CheckPrototypes(
-          Handle<JSObject>(JSObject::cast(object->GetPrototype(isolate()))),
-          rax, holder, rbx, rdx, rdi, name, &miss);
+          masm(), Context::NUMBER_FUNCTION_INDEX, rax, miss);
       break;
     }
     case BOOLEAN_CHECK: {
-      Label fast;
-      // Check that the object is a boolean.
-      __ CompareRoot(rdx, Heap::kTrueValueRootIndex);
-      __ j(equal, &fast);
-      __ CompareRoot(rdx, Heap::kFalseValueRootIndex);
-      __ j(not_equal, &miss);
-      __ bind(&fast);
+      GenerateBooleanCheck(reg, miss);
       // Check that the maps starting from the prototype haven't changed.
       GenerateDirectLoadGlobalFunctionPrototype(
-          masm(), Context::BOOLEAN_FUNCTION_INDEX, rax, &miss);
-      CheckPrototypes(
-          Handle<JSObject>(JSObject::cast(object->GetPrototype(isolate()))),
-          rax, holder, rbx, rdx, rdi, name, &miss);
+          masm(), Context::BOOLEAN_FUNCTION_INDEX, rax, miss);
       break;
     }
   }
 
-  __ jmp(success);
-
-  // Handle call cache miss.
-  __ bind(&miss);
-  GenerateMissBranch();
-}
-
-
-void CallStubCompiler::CompileHandlerBackend(Handle<JSFunction> function) {
-  CallKind call_kind = CallICBase::Contextual::decode(extra_state_)
-      ? CALL_AS_FUNCTION
-      : CALL_AS_METHOD;
-  ParameterCount expected(function);
-  __ InvokeFunction(function, expected, arguments(),
-                    JUMP_FUNCTION, NullCallWrapper(), call_kind);
-}
-
-
-Handle<Code> CallStubCompiler::CompileCallConstant(
-    Handle<Object> object,
-    Handle<JSObject> holder,
-    Handle<Name> name,
-    CheckType check,
-    Handle<JSFunction> function) {
-  if (HasCustomCallGenerator(function)) {
-    Handle<Code> code = CompileCustomCall(object, holder,
-                                          Handle<PropertyCell>::null(),
-                                          function, Handle<String>::cast(name),
-                                          Code::CONSTANT);
-    // A null handle means bail out to the regular compiler code below.
-    if (!code.is_null()) return code;
+  if (check != RECEIVER_MAP_CHECK) {
+    Handle<Object> prototype(object->GetPrototype(isolate()), isolate());
+    reg = CheckPrototypes(
+        IC::CurrentTypeOf(prototype, isolate()),
+        rax, holder, rbx, rdx, rdi, name, miss);
   }
 
-  Label success;
+  return reg;
+}
 
-  CompileHandlerFrontend(object, holder, name, check, &success);
-  __ bind(&success);
-  CompileHandlerBackend(function);
 
-  // Return the generated code.
-  return GetCode(function);
+void CallStubCompiler::GenerateJumpFunction(Handle<Object> object,
+                                            Register function,
+                                            Label* miss) {
+  // Check that the function really is a function.
+  GenerateFunctionCheck(function, rbx, miss);
+
+  if (!function.is(rdi)) __ movq(rdi, function);
+  PatchGlobalProxy(object);
+
+  // Invoke the function.
+  __ InvokeFunction(rdi, arguments(), JUMP_FUNCTION,
+                    NullCallWrapper(), call_kind());
 }
 
 
 Handle<Code> CallStubCompiler::CompileCallInterceptor(Handle<JSObject> object,
                                                       Handle<JSObject> holder,
                                                       Handle<Name> name) {
-  // ----------- S t a t e -------------
-  // rcx                 : function name
-  // rsp[0]              : return address
-  // rsp[8]              : argument argc
-  // rsp[16]             : argument argc - 1
-  // ...
-  // rsp[argc * 8]       : argument 1
-  // rsp[(argc + 1) * 8] : argument 0 = receiver
-  // -----------------------------------
   Label miss;
   GenerateNameCheck(name, &miss);
-
 
   LookupResult lookup(isolate());
   LookupPostInterceptor(holder, name, &lookup);
@@ -2678,39 +2497,19 @@ Handle<Code> CallStubCompiler::CompileCallInterceptor(Handle<JSObject> object,
   StackArgumentsAccessor args(rsp, arguments());
   __ movq(rdx, args.GetReceiverOperand());
 
-  CallInterceptorCompiler compiler(this, arguments(), rcx, extra_state_);
+  CallInterceptorCompiler compiler(this, arguments(), rcx, extra_state());
   compiler.Compile(masm(), object, holder, name, &lookup, rdx, rbx, rdi, rax,
                    &miss);
 
   // Restore receiver.
   __ movq(rdx, args.GetReceiverOperand());
 
-  // Check that the function really is a function.
-  __ JumpIfSmi(rax, &miss);
-  __ CmpObjectType(rax, JS_FUNCTION_TYPE, rbx);
-  __ j(not_equal, &miss);
+  GenerateJumpFunction(object, rax, &miss);
 
-  // Patch the receiver on the stack with the global proxy if
-  // necessary.
-  if (object->IsGlobalObject()) {
-    __ movq(rdx, FieldOperand(rdx, GlobalObject::kGlobalReceiverOffset));
-    __ movq(args.GetReceiverOperand(), rdx);
-  }
-
-  // Invoke the function.
-  __ movq(rdi, rax);
-  CallKind call_kind = CallICBase::Contextual::decode(extra_state_)
-      ? CALL_AS_FUNCTION
-      : CALL_AS_METHOD;
-  __ InvokeFunction(rdi, arguments(), JUMP_FUNCTION,
-                    NullCallWrapper(), call_kind);
-
-  // Handle load cache miss.
-  __ bind(&miss);
-  GenerateMissBranch();
+  HandlerFrontendFooter(&miss);
 
   // Return the generated code.
-  return GetCode(Code::INTERCEPTOR, name);
+  return GetCode(Code::FAST, name);
 }
 
 
@@ -2720,16 +2519,6 @@ Handle<Code> CallStubCompiler::CompileCallGlobal(
     Handle<PropertyCell> cell,
     Handle<JSFunction> function,
     Handle<Name> name) {
-  // ----------- S t a t e -------------
-  // rcx                 : function name
-  // rsp[0]              : return address
-  // rsp[8]              : argument argc
-  // rsp[16]             : argument argc - 1
-  // ...
-  // rsp[argc * 8]       : argument 1
-  // rsp[(argc + 1) * 8] : argument 0 = receiver
-  // -----------------------------------
-
   if (HasCustomCallGenerator(function)) {
     Handle<Code> code = CompileCustomCall(
         object, holder, cell, function, Handle<String>::cast(name),
@@ -2739,39 +2528,14 @@ Handle<Code> CallStubCompiler::CompileCallGlobal(
   }
 
   Label miss;
-  GenerateNameCheck(name, &miss);
-
-  StackArgumentsAccessor args(rsp, arguments());
-  GenerateGlobalReceiverCheck(object, holder, name, &miss);
+  HandlerFrontendHeader(object, holder, name, RECEIVER_MAP_CHECK, &miss);
+  // Potentially loads a closure that matches the shared function info of the
+  // function, rather than function.
   GenerateLoadFunctionFromCell(cell, function, &miss);
-
-  // Patch the receiver on the stack with the global proxy.
-  if (object->IsGlobalObject()) {
-    __ movq(rdx, FieldOperand(rdx, GlobalObject::kGlobalReceiverOffset));
-    __ movq(args.GetReceiverOperand(), rdx);
-  }
-
-  // Set up the context (function already in rdi).
-  __ movq(rsi, FieldOperand(rdi, JSFunction::kContextOffset));
-
-  // Jump to the cached code (tail call).
   Counters* counters = isolate()->counters();
   __ IncrementCounter(counters->call_global_inline(), 1);
-  ParameterCount expected(function->shared()->formal_parameter_count());
-  CallKind call_kind = CallICBase::Contextual::decode(extra_state_)
-      ? CALL_AS_FUNCTION
-      : CALL_AS_METHOD;
-  // We call indirectly through the code field in the function to
-  // allow recompilation to take effect without changing any of the
-  // call sites.
-  __ movq(rdx, FieldOperand(rdi, JSFunction::kCodeEntryOffset));
-  __ InvokeCode(rdx, expected, arguments(), JUMP_FUNCTION,
-                NullCallWrapper(), call_kind);
-
-  // Handle call cache miss.
-  __ bind(&miss);
-  __ IncrementCounter(counters->call_global_inline_miss(), 1);
-  GenerateMissBranch();
+  GenerateJumpFunction(object, rdi, function);
+  HandlerFrontendFooter(&miss);
 
   // Return the generated code.
   return GetCode(Code::NORMAL, name);
@@ -2783,9 +2547,8 @@ Handle<Code> StoreStubCompiler::CompileStoreCallback(
     Handle<JSObject> holder,
     Handle<Name> name,
     Handle<ExecutableAccessorInfo> callback) {
-  Label success;
-  HandlerFrontend(object, receiver(), holder, name, &success);
-  __ bind(&success);
+  HandlerFrontend(IC::CurrentTypeOf(object, isolate()),
+                  receiver(), holder, name);
 
   __ PopReturnAddressTo(scratch1());
   __ push(receiver());
@@ -2800,7 +2563,7 @@ Handle<Code> StoreStubCompiler::CompileStoreCallback(
   __ TailCallExternalReference(store_callback_property, 4, 1);
 
   // Return the generated code.
-  return GetCode(kind(), Code::CALLBACKS, name);
+  return GetCode(kind(), Code::FAST, name);
 }
 
 
@@ -2809,16 +2572,16 @@ Handle<Code> StoreStubCompiler::CompileStoreCallback(
     Handle<JSObject> holder,
     Handle<Name> name,
     const CallOptimization& call_optimization) {
-  Label success;
-  HandlerFrontend(object, receiver(), holder, name, &success);
-  __ bind(&success);
+  HandlerFrontend(IC::CurrentTypeOf(object, isolate()),
+                  receiver(), holder, name);
 
   Register values[] = { value() };
   GenerateFastApiCall(
-      masm(), call_optimization, receiver(), scratch3(), 1, values);
+      masm(), call_optimization, receiver(), scratch1(),
+      scratch2(), this->name(), 1, values);
 
   // Return the generated code.
-  return GetCode(kind(), Code::CALLBACKS, name);
+  return GetCode(kind(), Code::FAST, name);
 }
 
 
@@ -2876,16 +2639,15 @@ Handle<Code> StoreStubCompiler::CompileStoreInterceptor(
   __ push(receiver());
   __ push(this->name());
   __ push(value());
-  __ Push(Smi::FromInt(strict_mode()));
   __ PushReturnAddressFrom(scratch1());
 
   // Do tail-call to the runtime system.
   ExternalReference store_ic_property =
       ExternalReference(IC_Utility(IC::kStoreInterceptorProperty), isolate());
-  __ TailCallExternalReference(store_ic_property, 4, 1);
+  __ TailCallExternalReference(store_ic_property, 3, 1);
 
   // Return the generated code.
-  return GetCode(kind(), Code::INTERCEPTOR, name);
+  return GetCode(kind(), Code::FAST, name);
 }
 
 
@@ -2924,23 +2686,18 @@ Handle<Code> KeyedStoreStubCompiler::CompileStorePolymorphic(
 }
 
 
-Handle<Code> LoadStubCompiler::CompileLoadNonexistent(
-    Handle<JSObject> object,
-    Handle<JSObject> last,
-    Handle<Name> name,
-    Handle<JSGlobalObject> global) {
-  Label success;
+Handle<Code> LoadStubCompiler::CompileLoadNonexistent(Handle<Type> type,
+                                                      Handle<JSObject> last,
+                                                      Handle<Name> name) {
+  NonexistentHandlerFrontend(type, last, name);
 
-  NonexistentHandlerFrontend(object, last, name, &success, global);
-
-  __ bind(&success);
   // Return undefined if maps of the full prototype chain are still the
   // same and no global property with this name contains a value.
   __ LoadRoot(rax, Heap::kUndefinedValueRootIndex);
   __ ret(0);
 
   // Return the generated code.
-  return GetCode(kind(), Code::NONEXISTENT, name);
+  return GetCode(kind(), Code::FAST, name);
 }
 
 
@@ -3028,19 +2785,16 @@ void LoadStubCompiler::GenerateLoadViaGetter(MacroAssembler* masm,
 
 
 Handle<Code> LoadStubCompiler::CompileLoadGlobal(
-    Handle<JSObject> object,
+    Handle<Type> type,
     Handle<GlobalObject> global,
     Handle<PropertyCell> cell,
     Handle<Name> name,
     bool is_dont_delete) {
-  Label success, miss;
+  Label miss;
   // TODO(verwaest): Directly store to rax. Currently we cannot do this, since
   // rax is used as receiver(), which we would otherwise clobber before a
   // potential miss.
-
-  __ CheckMap(receiver(), Handle<Map>(object->map()), &miss, DO_SMI_CHECK);
-  HandlerFrontendHeader(
-      object, receiver(), Handle<JSObject>::cast(global), name, &miss);
+  HandlerFrontendHeader(type, receiver(), global, name, &miss);
 
   // Get the value from the cell.
   __ Move(rbx, cell);
@@ -3055,8 +2809,7 @@ Handle<Code> LoadStubCompiler::CompileLoadGlobal(
     __ Check(not_equal, kDontDeleteCellsCannotContainTheHole);
   }
 
-  HandlerFrontendFooter(name, &success, &miss);
-  __ bind(&success);
+  HandlerFrontendFooter(name, &miss);
 
   Counters* counters = isolate()->counters();
   __ IncrementCounter(counters->named_load_global_stub(), 1);
@@ -3064,12 +2817,12 @@ Handle<Code> LoadStubCompiler::CompileLoadGlobal(
   __ ret(0);
 
   // Return the generated code.
-  return GetICCode(kind(), Code::NORMAL, name);
+  return GetCode(kind(), Code::NORMAL, name);
 }
 
 
 Handle<Code> BaseLoadStoreStubCompiler::CompilePolymorphicIC(
-    MapHandleList* receiver_maps,
+    TypeHandleList* types,
     CodeHandleList* handlers,
     Handle<Name> name,
     Code::StubType type,
@@ -3080,17 +2833,25 @@ Handle<Code> BaseLoadStoreStubCompiler::CompilePolymorphicIC(
     GenerateNameCheck(name, this->name(), &miss);
   }
 
-  __ JumpIfSmi(receiver(), &miss);
+  Label number_case;
+  Label* smi_target = IncludesNumberType(types) ? &number_case : &miss;
+  __ JumpIfSmi(receiver(), smi_target);
+
   Register map_reg = scratch1();
   __ movq(map_reg, FieldOperand(receiver(), HeapObject::kMapOffset));
-  int receiver_count = receiver_maps->length();
+  int receiver_count = types->length();
   int number_of_handled_maps = 0;
   for (int current = 0; current < receiver_count; ++current) {
-    Handle<Map> map = receiver_maps->at(current);
+    Handle<Type> type = types->at(current);
+    Handle<Map> map = IC::TypeToMap(*type, isolate());
     if (!map->is_deprecated()) {
       number_of_handled_maps++;
       // Check map and tail call if there's a match
-      __ Cmp(map_reg, receiver_maps->at(current));
+      __ Cmp(map_reg, map);
+      if (type->Is(Type::Number())) {
+        ASSERT(!number_case.is_unused());
+        __ bind(&number_case);
+      }
       __ j(equal, handlers->at(current), RelocInfo::CODE_TARGET);
     }
   }
@@ -3117,12 +2878,12 @@ void KeyedLoadStubCompiler::GenerateLoadDictionaryElement(
   //  -- rdx    : receiver
   //  -- rsp[0] : return address
   // -----------------------------------
-  Label slow, miss_force_generic;
+  Label slow, miss;
 
   // This stub is meant to be tail-jumped to, the receiver must already
   // have been verified by the caller to not be a smi.
 
-  __ JumpIfNotSmi(rax, &miss_force_generic);
+  __ JumpIfNotSmi(rax, &miss);
   __ SmiToInteger32(rbx, rax);
   __ movq(rcx, FieldOperand(rdx, JSObject::kElementsOffset));
 
@@ -3142,13 +2903,13 @@ void KeyedLoadStubCompiler::GenerateLoadDictionaryElement(
   // -----------------------------------
   TailCallBuiltin(masm, Builtins::kKeyedLoadIC_Slow);
 
-  __ bind(&miss_force_generic);
+  __ bind(&miss);
   // ----------- S t a t e -------------
   //  -- rax    : key
   //  -- rdx    : receiver
   //  -- rsp[0] : return address
   // -----------------------------------
-  TailCallBuiltin(masm, Builtins::kKeyedLoadIC_MissForceGeneric);
+  TailCallBuiltin(masm, Builtins::kKeyedLoadIC_Miss);
 }
 
 

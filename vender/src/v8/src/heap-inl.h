@@ -217,10 +217,7 @@ MaybeObject* Heap::AllocateRaw(int size_in_bytes,
   ASSERT(AllowHandleAllocation::IsAllowed());
   ASSERT(AllowHeapAllocation::IsAllowed());
   ASSERT(gc_state_ == NOT_IN_GC);
-  ASSERT(space != NEW_SPACE ||
-         retry_space == OLD_POINTER_SPACE ||
-         retry_space == OLD_DATA_SPACE ||
-         retry_space == LO_SPACE);
+  HeapProfiler* profiler = isolate_->heap_profiler();
 #ifdef DEBUG
   if (FLAG_gc_interval >= 0 &&
       !disallow_allocation_failure_ &&
@@ -230,12 +227,17 @@ MaybeObject* Heap::AllocateRaw(int size_in_bytes,
   isolate_->counters()->objs_since_last_full()->Increment();
   isolate_->counters()->objs_since_last_young()->Increment();
 #endif
+
+  HeapObject* object;
   MaybeObject* result;
   if (NEW_SPACE == space) {
     result = new_space_.AllocateRaw(size_in_bytes);
-    if (always_allocate() && result->IsFailure()) {
+    if (always_allocate() && result->IsFailure() && retry_space != NEW_SPACE) {
       space = retry_space;
     } else {
+      if (profiler->is_tracking_allocations() && result->To(&object)) {
+        profiler->AllocationEvent(object->address(), size_in_bytes);
+      }
       return result;
     }
   }
@@ -257,6 +259,9 @@ MaybeObject* Heap::AllocateRaw(int size_in_bytes,
     result = map_space_->AllocateRaw(size_in_bytes);
   }
   if (result->IsFailure()) old_gen_exhausted_ = true;
+  if (profiler->is_tracking_allocations() && result->To(&object)) {
+    profiler->AllocationEvent(object->address(), size_in_bytes);
+  }
   return result;
 }
 
@@ -478,6 +483,18 @@ void Heap::ScavengePointer(HeapObject** p) {
 }
 
 
+void Heap::UpdateAllocationSiteFeedback(HeapObject* object) {
+  if (FLAG_allocation_site_pretenuring && object->IsJSObject()) {
+    AllocationMemento* memento = AllocationMemento::FindForJSObject(
+        JSObject::cast(object), true);
+    if (memento != NULL) {
+      ASSERT(memento->IsValid());
+      memento->GetAllocationSite()->IncrementMementoFoundCount();
+    }
+  }
+}
+
+
 void Heap::ScavengeObject(HeapObject** p, HeapObject* object) {
   ASSERT(object->GetIsolate()->heap()->InFromSpace(object));
 
@@ -496,12 +513,7 @@ void Heap::ScavengeObject(HeapObject** p, HeapObject* object) {
     return;
   }
 
-  if (FLAG_trace_track_allocation_sites && object->IsJSObject()) {
-    if (AllocationMemento::FindForJSObject(JSObject::cast(object), true) !=
-        NULL) {
-      object->GetIsolate()->heap()->allocation_mementos_found_++;
-    }
-  }
+  UpdateAllocationSiteFeedback(object);
 
   // AllocationMementos are unrooted and shouldn't survive a scavenge
   ASSERT(object->map() != object->GetHeap()->allocation_memento_map());
@@ -536,10 +548,10 @@ MaybeObject* Heap::PrepareForCompare(String* str) {
 }
 
 
-intptr_t Heap::AdjustAmountOfExternalAllocatedMemory(
-    intptr_t change_in_bytes) {
+int64_t Heap::AdjustAmountOfExternalAllocatedMemory(
+    int64_t change_in_bytes) {
   ASSERT(HasBeenSetUp());
-  intptr_t amount = amount_of_external_allocated_memory_ + change_in_bytes;
+  int64_t amount = amount_of_external_allocated_memory_ + change_in_bytes;
   if (change_in_bytes > 0) {
     // Avoid overflow.
     if (amount > amount_of_external_allocated_memory_) {
@@ -549,7 +561,7 @@ intptr_t Heap::AdjustAmountOfExternalAllocatedMemory(
       amount_of_external_allocated_memory_ = 0;
       amount_of_external_allocated_memory_at_last_global_gc_ = 0;
     }
-    intptr_t amount_since_last_global_gc = PromotedExternalMemorySize();
+    int64_t amount_since_last_global_gc = PromotedExternalMemorySize();
     if (amount_since_last_global_gc > external_allocation_limit_) {
       CollectAllGarbage(kNoGCFlags, "external memory allocation limit reached");
     }
@@ -568,9 +580,9 @@ intptr_t Heap::AdjustAmountOfExternalAllocatedMemory(
     PrintF("Adjust amount of external memory: delta=%6" V8_PTR_PREFIX "d KB, "
            "amount=%6" V8_PTR_PREFIX "d KB, since_gc=%6" V8_PTR_PREFIX "d KB, "
            "isolate=0x%08" V8PRIxPTR ".\n",
-           change_in_bytes / KB,
-           amount_of_external_allocated_memory_ / KB,
-           PromotedExternalMemorySize() / KB,
+           static_cast<intptr_t>(change_in_bytes / KB),
+           static_cast<intptr_t>(amount_of_external_allocated_memory_ / KB),
+           static_cast<intptr_t>(PromotedExternalMemorySize() / KB),
            reinterpret_cast<intptr_t>(isolate()));
   }
   ASSERT(amount_of_external_allocated_memory_ >= 0);
