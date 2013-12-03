@@ -294,10 +294,8 @@ static void CallRuntimePassFunction(MacroAssembler* masm,
   FrameScope scope(masm, StackFrame::INTERNAL);
   // Push a copy of the function onto the stack.
   __ push(r1);
-  // Push call kind information.
-  __ push(r5);
-  // Function is also the parameter to the runtime call.
-  __ push(r1);
+  // Push call kind information and function as parameter to the runtime call.
+  __ Push(r5, r1);
 
   __ CallRuntime(function_id, 1);
   // Restore call kind information.
@@ -406,9 +404,9 @@ static void Generate_JSConstructStubHelper(MacroAssembler* masm,
         __ strb(r4, constructor_count);
         __ b(ne, &allocate);
 
-        __ Push(r1, r2);
+        __ push(r1);
 
-        __ push(r1);  // constructor
+        __ Push(r2, r1);  // r1 = constructor
         // The call will replace the stub, so the countdown is only done once.
         __ CallRuntime(Runtime::kFinalizeInstanceSize, 1);
 
@@ -826,6 +824,39 @@ CODE_AGE_LIST(DEFINE_CODE_AGE_BUILTIN_GENERATOR)
 #undef DEFINE_CODE_AGE_BUILTIN_GENERATOR
 
 
+void Builtins::Generate_MarkCodeAsExecutedOnce(MacroAssembler* masm) {
+  // For now, as in GenerateMakeCodeYoungAgainCommon, we are relying on the fact
+  // that make_code_young doesn't do any garbage collection which allows us to
+  // save/restore the registers without worrying about which of them contain
+  // pointers.
+
+  // The following registers must be saved and restored when calling through to
+  // the runtime:
+  //   r0 - contains return address (beginning of patch sequence)
+  //   r1 - isolate
+  FrameScope scope(masm, StackFrame::MANUAL);
+  __ stm(db_w, sp, r0.bit() | r1.bit() | fp.bit() | lr.bit());
+  __ PrepareCallCFunction(1, 0, r2);
+  __ mov(r1, Operand(ExternalReference::isolate_address(masm->isolate())));
+  __ CallCFunction(ExternalReference::get_mark_code_as_executed_function(
+        masm->isolate()), 2);
+  __ ldm(ia_w, sp, r0.bit() | r1.bit() | fp.bit() | lr.bit());
+
+  // Perform prologue operations usually performed by the young code stub.
+  __ stm(db_w, sp, r1.bit() | cp.bit() | fp.bit() | lr.bit());
+  __ add(fp, sp, Operand(2 * kPointerSize));
+
+  // Jump to point after the code-age stub.
+  __ add(r0, r0, Operand(kNoCodeAgeSequenceLength * Assembler::kInstrSize));
+  __ mov(pc, r0);
+}
+
+
+void Builtins::Generate_MarkCodeAsExecutedTwice(MacroAssembler* masm) {
+  GenerateMakeCodeYoungAgainCommon(masm);
+}
+
+
 void Builtins::Generate_NotifyStubFailure(MacroAssembler* masm) {
   {
     FrameScope scope(masm, StackFrame::INTERNAL);
@@ -1175,8 +1206,7 @@ void Builtins::Generate_FunctionApply(MacroAssembler* masm) {
 
     // Out of stack space.
     __ ldr(r1, MemOperand(fp, kFunctionOffset));
-    __ push(r1);
-    __ push(r0);
+    __ Push(r1, r0);
     __ InvokeBuiltin(Builtins::APPLY_OVERFLOW, CALL_FUNCTION);
     // End of stack check.
 
@@ -1258,8 +1288,7 @@ void Builtins::Generate_FunctionApply(MacroAssembler* masm) {
     // r0: current argument index
     __ bind(&loop);
     __ ldr(r1, MemOperand(fp, kArgsOffset));
-    __ push(r1);
-    __ push(r0);
+    __ Push(r1, r0);
 
     // Call the runtime to access the property in the arguments array.
     __ CallRuntime(Runtime::kGetProperty, 2);

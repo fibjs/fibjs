@@ -584,8 +584,9 @@ template <class T, class M> class Persistent {
    */
   template <class S, class M2>
   V8_INLINE void Reset(Isolate* isolate, const Persistent<S, M2>& other);
-  // TODO(dcarney): deprecate
-  V8_INLINE void Dispose() { Reset(); }
+
+  V8_DEPRECATED("Use Reset instead",
+                V8_INLINE void Dispose()) { Reset(); }
 
   V8_INLINE bool IsEmpty() const { return val_ == 0; }
 
@@ -641,17 +642,19 @@ template <class T, class M> class Persistent {
       P* parameter,
       typename WeakCallbackData<S, P>::Callback callback);
 
-  // TODO(dcarney): deprecate
   template<typename S, typename P>
-  V8_INLINE void MakeWeak(
-      P* parameter,
-      typename WeakReferenceCallbacks<S, P>::Revivable callback);
+  V8_DEPRECATED(
+      "Use SetWeak instead",
+      V8_INLINE void MakeWeak(
+          P* parameter,
+          typename WeakReferenceCallbacks<S, P>::Revivable callback));
 
-  // TODO(dcarney): deprecate
   template<typename P>
-  V8_INLINE void MakeWeak(
-      P* parameter,
-      typename WeakReferenceCallbacks<T, P>::Revivable callback);
+  V8_DEPRECATED(
+      "Use SetWeak instead",
+      V8_INLINE void MakeWeak(
+          P* parameter,
+          typename WeakReferenceCallbacks<T, P>::Revivable callback));
 
   V8_INLINE void ClearWeak();
 
@@ -693,11 +696,11 @@ template <class T, class M> class Persistent {
    */
   V8_INLINE uint16_t WrapperClassId() const;
 
-  // TODO(dcarney): remove
-  V8_INLINE T* ClearAndLeak();
+  V8_DEPRECATED("This will be removed",
+                V8_INLINE T* ClearAndLeak());
 
-  // TODO(dcarney): remove
-  V8_INLINE void Clear() { val_ = 0; }
+  V8_DEPRECATED("This will be removed",
+                V8_INLINE void Clear()) { val_ = 0; }
 
   // TODO(dcarney): remove
 #ifndef V8_ALLOW_ACCESS_TO_RAW_HANDLE_CONSTRUCTOR
@@ -709,6 +712,7 @@ template <class T, class M> class Persistent {
   V8_INLINE T* operator*() const { return val_; }
 
  private:
+  friend class Isolate;
   friend class Utils;
   template<class F> friend class Handle;
   template<class F> friend class Local;
@@ -742,8 +746,9 @@ class V8_EXPORT HandleScope {
 
   ~HandleScope();
 
-  // TODO(dcarney): deprecated - use EscapableHandleScope::Escape.
-  template <class T> Local<T> Close(Handle<T> value);
+  template <class T>
+  V8_DEPRECATED("Use EscapableHandleScope::Escape instead",
+                Local<T> Close(Handle<T> value));
 
   /**
    * Counts the number of allocated handles.
@@ -843,7 +848,7 @@ class V8_EXPORT EscapableHandleScope : public HandleScope {
  * value.
  */
 template<class T>
-struct V8_EXPORT Maybe {
+struct Maybe {
   Maybe() : has_value(false) {}
   explicit Maybe(T t) : has_value(true), value(t) {}
   Maybe(bool has, T t) : has_value(has), value(t) {}
@@ -881,7 +886,9 @@ class V8_EXPORT ScriptData {  // NOLINT
    * \param input Pointer to UTF-8 script source code.
    * \param length Length of UTF-8 script source code.
    */
-  static ScriptData* PreCompile(const char* input, int length);
+  static ScriptData* PreCompile(Isolate* isolate,
+                                const char* input,
+                                int length);
 
   /**
    * Pre-compiles the specified script (context-independent).
@@ -1033,9 +1040,8 @@ class V8_EXPORT Script {
 
   /**
    * Returns the script id value.
-   * DEPRECATED: Please use GetId().
    */
-  Local<Value> Id();
+  V8_DEPRECATED("Use GetId instead", Local<Value> Id());
 
   /**
    * Returns the script id.
@@ -1821,15 +1827,17 @@ class V8_EXPORT String : public Primitive {
    */
   bool CanMakeExternal();
 
-  // TODO(dcarney): deprecate
   /** Creates an undetectable string from the supplied ASCII or UTF-8 data.*/
-  V8_INLINE static Local<String> NewUndetectable(const char* data,
-                                                 int length = -1);
+  V8_DEPRECATED(
+      "Use NewFromUtf8 instead",
+      V8_INLINE static Local<String> NewUndetectable(const char* data,
+                                                     int length = -1));
 
-  // TODO(dcarney): deprecate
   /** Creates an undetectable string from the supplied 16-bit character codes.*/
-  V8_INLINE static Local<String> NewUndetectable(const uint16_t* data,
-                                                 int length = -1);
+  V8_DEPRECATED(
+      "Use NewFromTwoByte instead",
+      V8_INLINE static Local<String> NewUndetectable(const uint16_t* data,
+                                                     int length = -1));
 
   /**
    * Converts an object to a UTF-8-encoded character array.  Useful if
@@ -1863,8 +1871,8 @@ class V8_EXPORT String : public Primitive {
    */
   class V8_EXPORT AsciiValue {
    public:
-    // TODO(dcarney): deprecate
-    explicit AsciiValue(Handle<v8::Value> obj);
+    V8_DEPRECATED("Use Utf8Value instead",
+                  explicit AsciiValue(Handle<v8::Value> obj));
     ~AsciiValue();
     char* operator*() { return str_; }
     const char* operator*() const { return str_; }
@@ -2389,13 +2397,13 @@ class FunctionCallbackInfo {
  protected:
   friend class internal::FunctionCallbackArguments;
   friend class internal::CustomArguments<FunctionCallbackInfo>;
-  static const int kContextSaveIndex = 0;
-  static const int kCalleeIndex = -1;
-  static const int kDataIndex = -2;
-  static const int kReturnValueIndex = -3;
-  static const int kReturnValueDefaultValueIndex = -4;
-  static const int kIsolateIndex = -5;
-  static const int kHolderIndex = -6;
+  static const int kHolderIndex = 0;
+  static const int kIsolateIndex = 1;
+  static const int kReturnValueDefaultValueIndex = 2;
+  static const int kReturnValueIndex = 3;
+  static const int kDataIndex = 4;
+  static const int kCalleeIndex = 5;
+  static const int kContextSaveIndex = 6;
 
   V8_INLINE FunctionCallbackInfo(internal::Object** implicit_args,
                    internal::Object** values,
@@ -2427,12 +2435,12 @@ class PropertyCallbackInfo {
   friend class MacroAssembler;
   friend class internal::PropertyCallbackArguments;
   friend class internal::CustomArguments<PropertyCallbackInfo>;
-  static const int kThisIndex = 0;
-  static const int kDataIndex = -1;
-  static const int kReturnValueIndex = -2;
-  static const int kReturnValueDefaultValueIndex = -3;
-  static const int kIsolateIndex = -4;
-  static const int kHolderIndex = -5;
+  static const int kHolderIndex = 0;
+  static const int kIsolateIndex = 1;
+  static const int kReturnValueDefaultValueIndex = 2;
+  static const int kReturnValueIndex = 3;
+  static const int kDataIndex = 4;
+  static const int kThisIndex = 5;
 
   V8_INLINE PropertyCallbackInfo(internal::Object** args) : args_(args) {}
   internal::Object** args_;
@@ -2471,6 +2479,12 @@ class V8_EXPORT Function : public Object {
   Handle<Value> GetInferredName() const;
 
   /**
+   * User-defined name assigned to the "displayName" property of this function.
+   * Used to facilitate debugging and profiling of JavaScript code.
+   */
+  Handle<Value> GetDisplayName() const;
+
+  /**
    * Returns zero based line number of function body and
    * kLineOffsetNotFound if no information available.
    */
@@ -2482,10 +2496,14 @@ class V8_EXPORT Function : public Object {
   int GetScriptColumnNumber() const;
 
   /**
-   * Returns scriptId object.
-   * DEPRECATED: use ScriptId() instead.
+   * Tells whether this function is builtin.
    */
-  Handle<Value> GetScriptId() const;
+  bool IsBuiltin() const;
+
+  /**
+   * Returns scriptId object.
+   */
+  V8_DEPRECATED("Use ScriptId instead", Handle<Value> GetScriptId()) const;
 
   /**
    * Returns scriptId.
@@ -2847,9 +2865,9 @@ class V8_EXPORT Date : public Object {
  public:
   static Local<Value> New(double time);
 
-  // Deprecated, use Date::ValueOf() instead.
-  // TODO(svenpanne) Actually deprecate when Chrome is adapted.
-  double NumberValue() const { return ValueOf(); }
+  V8_DEPRECATED(
+      "Use ValueOf instead",
+      double NumberValue()) const { return ValueOf(); }
 
   /**
    * A specialization of Value::NumberValue that is more efficient
@@ -2885,9 +2903,9 @@ class V8_EXPORT NumberObject : public Object {
  public:
   static Local<Value> New(double value);
 
-  // Deprecated, use NumberObject::ValueOf() instead.
-  // TODO(svenpanne) Actually deprecate when Chrome is adapted.
-  double NumberValue() const { return ValueOf(); }
+  V8_DEPRECATED(
+      "Use ValueOf instead",
+      double NumberValue()) const { return ValueOf(); }
 
   /**
    * Returns the Number held by the object.
@@ -2908,9 +2926,9 @@ class V8_EXPORT BooleanObject : public Object {
  public:
   static Local<Value> New(bool value);
 
-  // Deprecated, use BooleanObject::ValueOf() instead.
-  // TODO(svenpanne) Actually deprecate when Chrome is adapted.
-  bool BooleanValue() const { return ValueOf(); }
+  V8_DEPRECATED(
+      "Use ValueOf instead",
+      bool BooleanValue()) const { return ValueOf(); }
 
   /**
    * Returns the Boolean held by the object.
@@ -2931,9 +2949,9 @@ class V8_EXPORT StringObject : public Object {
  public:
   static Local<Value> New(Handle<String> value);
 
-  // Deprecated, use StringObject::ValueOf() instead.
-  // TODO(svenpanne) Actually deprecate when Chrome is adapted.
-  Local<String> StringValue() const { return ValueOf(); }
+  V8_DEPRECATED(
+      "Use ValueOf instead",
+      Local<String> StringValue()) const { return ValueOf(); }
 
   /**
    * Returns the String held by the object.
@@ -2956,9 +2974,9 @@ class V8_EXPORT SymbolObject : public Object {
  public:
   static Local<Value> New(Isolate* isolate, Handle<Symbol> value);
 
-  // Deprecated, use SymbolObject::ValueOf() instead.
-  // TODO(svenpanne) Actually deprecate when Chrome is adapted.
-  Local<Symbol> SymbolValue() const { return ValueOf(); }
+  V8_DEPRECATED(
+      "Use ValueOf instead",
+      Local<Symbol> SymbolValue()) const { return ValueOf(); }
 
   /**
    * Returns the Symbol held by the object.
@@ -3785,8 +3803,9 @@ typedef void (*FatalErrorCallback)(const char* location, const char* message);
 typedef void (*MessageCallback)(Handle<Message> message, Handle<Value> error);
 
 
-// TODO(dcarney): remove. Use Isolate::ThrowException instead.
-Handle<Value> V8_EXPORT ThrowException(Handle<Value> exception);
+V8_DEPRECATED(
+    "Use Isolate::ThrowException instead",
+    Handle<Value> V8_EXPORT ThrowException(Handle<Value> exception));
 
 /**
  * Create new error objects by calling the corresponding error object
@@ -4059,8 +4078,8 @@ class V8_EXPORT Isolate {
    * garbage collection types it is sufficient to provide object groups
    * for partially dependent handles only.
    */
-  void SetObjectGroupId(const Persistent<Value>& object,
-                        UniqueId id);
+  template<typename T> void SetObjectGroupId(const Persistent<T>& object,
+                                             UniqueId id);
 
   /**
    * Allows the host application to declare implicit references from an object
@@ -4069,8 +4088,8 @@ class V8_EXPORT Isolate {
    * are removed. It is intended to be used in the before-garbage-collection
    * callback function.
    */
-  void SetReferenceFromGroup(UniqueId id,
-                             const Persistent<Value>& child);
+  template<typename T> void SetReferenceFromGroup(UniqueId id,
+                                                  const Persistent<T>& child);
 
   /**
    * Allows the host application to declare implicit references from an object
@@ -4078,8 +4097,8 @@ class V8_EXPORT Isolate {
    * too. After each garbage collection, all implicit references are removed. It
    * is intended to be used in the before-garbage-collection callback function.
    */
-  void SetReference(const Persistent<Object>& parent,
-                    const Persistent<Value>& child);
+  template<typename T, typename S>
+  void SetReference(const Persistent<T>& parent, const Persistent<S>& child);
 
   typedef void (*GCPrologueCallback)(Isolate* isolate,
                                      GCType type,
@@ -4133,8 +4152,11 @@ class V8_EXPORT Isolate {
   Isolate& operator=(const Isolate&);
   void* operator new(size_t size);
   void operator delete(void*, size_t);
-};
 
+  void SetObjectGroupId(internal::Object** object, UniqueId id);
+  void SetReferenceFromGroup(UniqueId id, internal::Object** object);
+  void SetReference(internal::Object** parent, internal::Object** child);
+};
 
 class V8_EXPORT StartupData {
  public:
@@ -4587,10 +4609,10 @@ class V8_EXPORT V8 {
   static void SetJitCodeEventHandler(JitCodeEventOptions options,
                                      JitCodeEventHandler event_handler);
 
-  // TODO(svenpanne) Really deprecate me when Chrome is fixed.
-  /** Deprecated. Use Isolate::AdjustAmountOfExternalAllocatedMemory instead. */
-  static intptr_t AdjustAmountOfExternalAllocatedMemory(
-      intptr_t change_in_bytes);
+  V8_DEPRECATED(
+      "Use Isolate::AdjustAmountOfExternalAllocatedMemory instead",
+      static intptr_t AdjustAmountOfExternalAllocatedMemory(
+          intptr_t change_in_bytes));
 
   /**
    * Forcefully terminate the current thread of JavaScript execution
@@ -4980,9 +5002,8 @@ class V8_EXPORT Context {
   /** Returns true if the context has experienced an out of memory situation. */
   bool HasOutOfMemoryException();
 
-  // TODO(dcarney) Remove this function.
-  /** Deprecated. Use Isolate::InContext instead. */
-  static bool InContext();
+  V8_DEPRECATED("Use Isolate::InContext instead",
+                static bool InContext());
 
   /** Returns an isolate associated with a current context. */
   v8::Isolate* GetIsolate();
@@ -5053,8 +5074,9 @@ class V8_EXPORT Context {
     explicit V8_INLINE Scope(Handle<Context> context) : context_(context) {
       context_->Enter();
     }
-    // TODO(dcarney): deprecate
-    V8_INLINE Scope(Isolate* isolate, Persistent<Context>& context) // NOLINT
+    V8_DEPRECATED(
+        "Use Handle version instead",
+        V8_INLINE Scope(Isolate* isolate, Persistent<Context>& context)) // NOLINT
     : context_(Handle<Context>::New(isolate, context)) {
       context_->Enter();
     }
@@ -5386,7 +5408,7 @@ class Internals {
   static const int kNullValueRootIndex = 7;
   static const int kTrueValueRootIndex = 8;
   static const int kFalseValueRootIndex = 9;
-  static const int kEmptyStringRootIndex = 131;
+  static const int kEmptyStringRootIndex = 132;
 
   static const int kNodeClassIdOffset = 1 * kApiPointerSize;
   static const int kNodeFlagsOffset = 1 * kApiPointerSize + 3;
@@ -5397,7 +5419,7 @@ class Internals {
   static const int kNodeIsIndependentShift = 4;
   static const int kNodeIsPartiallyDependentShift = 5;
 
-  static const int kJSObjectType = 0xb1;
+  static const int kJSObjectType = 0xb2;
   static const int kFirstNonstringType = 0x80;
   static const int kOddballType = 0x83;
   static const int kForeignType = 0x87;
@@ -6410,6 +6432,33 @@ void Isolate::SetData(void* data) {
 void* Isolate::GetData() {
   typedef internal::Internals I;
   return I::GetEmbedderData(this);
+}
+
+
+template<typename T>
+void Isolate::SetObjectGroupId(const Persistent<T>& object,
+                               UniqueId id) {
+  TYPE_CHECK(Value, T);
+  SetObjectGroupId(reinterpret_cast<v8::internal::Object**>(object.val_), id);
+}
+
+
+template<typename T>
+void Isolate::SetReferenceFromGroup(UniqueId id,
+                                    const Persistent<T>& object) {
+  TYPE_CHECK(Value, T);
+  SetReferenceFromGroup(id,
+                        reinterpret_cast<v8::internal::Object**>(object.val_));
+}
+
+
+template<typename T, typename S>
+void Isolate::SetReference(const Persistent<T>& parent,
+                           const Persistent<S>& child) {
+  TYPE_CHECK(Object, T);
+  TYPE_CHECK(Value, S);
+  SetReference(reinterpret_cast<v8::internal::Object**>(parent.val_),
+               reinterpret_cast<v8::internal::Object**>(child.val_));
 }
 
 

@@ -105,7 +105,6 @@ class LCodeGen;
   V(InnerAllocatedObject)                       \
   V(InstanceOf)                                 \
   V(InstanceOfKnownGlobal)                      \
-  V(InstanceSize)                               \
   V(InstructionGap)                             \
   V(Integer32ToDouble)                          \
   V(Integer32ToSmi)                             \
@@ -185,6 +184,7 @@ class LCodeGen;
   V(Typeof)                                     \
   V(TypeofIsAndBranch)                          \
   V(Uint32ToDouble)                             \
+  V(Uint32ToSmi)                                \
   V(UnknownOSRValue)                            \
   V(ValueOf)                                    \
   V(WrapReceiver)
@@ -216,7 +216,6 @@ class LInstruction : public ZoneObject {
       : environment_(NULL),
         hydrogen_value_(NULL),
         bit_field_(IsCallBits::encode(false)) {
-    set_position(RelocInfo::kNoPosition);
   }
 
   virtual ~LInstruction() {}
@@ -257,15 +256,6 @@ class LInstruction : public ZoneObject {
   LPointerMap* pointer_map() const { return pointer_map_.get(); }
   bool HasPointerMap() const { return pointer_map_.is_set(); }
 
-  // The 31 bits PositionBits is used to store the int position value. And the
-  // position value may be RelocInfo::kNoPosition (-1). The accessor always
-  // +1/-1 so that the encoded value of position in bit_field_ is always >= 0
-  // and can fit into the 31 bits PositionBits.
-  void set_position(int pos) {
-    bit_field_ = PositionBits::update(bit_field_, pos + 1);
-  }
-  int position() { return PositionBits::decode(bit_field_) - 1; }
-
   void set_hydrogen_value(HValue* value) { hydrogen_value_ = value; }
   HValue* hydrogen_value() const { return hydrogen_value_; }
 
@@ -277,7 +267,7 @@ class LInstruction : public ZoneObject {
   // Interface to the register allocator and iterators.
   bool ClobbersTemps() const { return IsCall(); }
   bool ClobbersRegisters() const { return IsCall(); }
-  bool ClobbersDoubleRegisters() const { return IsCall(); }
+  virtual bool ClobbersDoubleRegisters() const { return IsCall(); }
 
   // Interface to the register allocator and iterators.
   bool IsMarkedAsCall() const { return IsCall(); }
@@ -305,7 +295,6 @@ class LInstruction : public ZoneObject {
   virtual LOperand* TempAt(int i) = 0;
 
   class IsCallBits: public BitField<bool, 0, 1> {};
-  class PositionBits: public BitField<int, 1, 31> {};
 
   LEnvironment* environment_;
   SetOncePointer<LPointerMap> pointer_map_;
@@ -404,17 +393,17 @@ class LInstructionGap V8_FINAL : public LGap {
 
 class LGoto V8_FINAL : public LTemplateInstruction<0, 0, 0> {
  public:
-  explicit LGoto(int block_id) : block_id_(block_id) { }
+  explicit LGoto(HBasicBlock* block) : block_(block) { }
 
   virtual bool HasInterestingComment(LCodeGen* gen) const V8_OVERRIDE;
   DECLARE_CONCRETE_INSTRUCTION(Goto, "goto")
   virtual void PrintDataTo(StringStream* stream) V8_OVERRIDE;
   virtual bool IsControl() const V8_OVERRIDE { return true; }
 
-  int block_id() const { return block_id_; }
+  int block_id() const { return block_->block_id(); }
 
  private:
-  int block_id_;
+  HBasicBlock* block_;
 };
 
 
@@ -1145,19 +1134,6 @@ class LInstanceOfKnownGlobal V8_FINAL : public LTemplateInstruction<1, 2, 1> {
 
  private:
   LEnvironment* lazy_deopt_env_;
-};
-
-
-class LInstanceSize V8_FINAL : public LTemplateInstruction<1, 1, 0> {
- public:
-  explicit LInstanceSize(LOperand* object) {
-    inputs_[0] = object;
-  }
-
-  LOperand* object() { return inputs_[0]; }
-
-  DECLARE_CONCRETE_INSTRUCTION(InstanceSize, "instance-size")
-  DECLARE_HYDROGEN_ACCESSOR(InstanceSize)
 };
 
 
@@ -2052,8 +2028,13 @@ class LCallRuntime V8_FINAL : public LTemplateInstruction<1, 1, 0> {
   DECLARE_CONCRETE_INSTRUCTION(CallRuntime, "call-runtime")
   DECLARE_HYDROGEN_ACCESSOR(CallRuntime)
 
+  virtual bool ClobbersDoubleRegisters() const V8_OVERRIDE {
+    return save_doubles() == kDontSaveFPRegs;
+  }
+
   const Runtime::Function* function() const { return hydrogen()->function(); }
   int arity() const { return hydrogen()->argument_count(); }
+  SaveFPRegsMode save_doubles() const { return hydrogen()->save_doubles(); }
 };
 
 
@@ -2091,6 +2072,19 @@ class LUint32ToDouble V8_FINAL : public LTemplateInstruction<1, 1, 0> {
   LOperand* value() { return inputs_[0]; }
 
   DECLARE_CONCRETE_INSTRUCTION(Uint32ToDouble, "uint32-to-double")
+};
+
+
+class LUint32ToSmi V8_FINAL : public LTemplateInstruction<1, 1, 0> {
+ public:
+  explicit LUint32ToSmi(LOperand* value) {
+    inputs_[0] = value;
+  }
+
+  LOperand* value() { return inputs_[0]; }
+
+  DECLARE_CONCRETE_INSTRUCTION(Uint32ToSmi, "uint32-to-smi")
+  DECLARE_HYDROGEN_ACCESSOR(Change)
 };
 
 
@@ -2752,6 +2746,8 @@ class LChunkBuilder V8_FINAL BASE_EMBEDDED {
 
   // Build the sequence for the graph.
   LPlatformChunk* Build();
+
+  LInstruction* CheckElideControlInstruction(HControlInstruction* instr);
 
   // Declare methods that deal with the individual node types.
 #define DECLARE_DO(type) LInstruction* Do##type(H##type* node);

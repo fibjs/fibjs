@@ -43,6 +43,7 @@ namespace internal {
 
 
 static const byte kCallOpcode = 0xE8;
+static const int kNoCodeAgeSequenceLength = 6;
 
 
 void Assembler::emitl(uint32_t x) {
@@ -61,11 +62,8 @@ void Assembler::emitp(void* x, RelocInfo::Mode rmode) {
 }
 
 
-void Assembler::emitq(uint64_t x, RelocInfo::Mode rmode) {
+void Assembler::emitq(uint64_t x) {
   Memory::uint64_at(pc_) = x;
-  if (!RelocInfo::IsNone(rmode)) {
-    RecordRelocInfo(rmode, x);
-  }
   pc_ += sizeof(uint64_t);
 }
 
@@ -79,7 +77,8 @@ void Assembler::emitw(uint16_t x) {
 void Assembler::emit_code_target(Handle<Code> target,
                                  RelocInfo::Mode rmode,
                                  TypeFeedbackId ast_id) {
-  ASSERT(RelocInfo::IsCodeTarget(rmode));
+  ASSERT(RelocInfo::IsCodeTarget(rmode) ||
+      rmode == RelocInfo::CODE_AGE_SEQUENCE);
   if (rmode == RelocInfo::CODE_TARGET && !ast_id.IsNone()) {
     RecordRelocInfo(RelocInfo::CODE_TARGET_WITH_ID, ast_id.ToInt());
   } else {
@@ -304,15 +303,9 @@ Handle<Object> RelocInfo::target_object_handle(Assembler* origin) {
 }
 
 
-Object** RelocInfo::target_object_address() {
-  ASSERT(IsCodeTarget(rmode_) || rmode_ == EMBEDDED_OBJECT);
-  return reinterpret_cast<Object**>(pc_);
-}
-
-
-Address* RelocInfo::target_reference_address() {
+Address RelocInfo::target_reference() {
   ASSERT(rmode_ == RelocInfo::EXTERNAL_REFERENCE);
-  return reinterpret_cast<Address*>(pc_);
+  return Memory::Address_at(pc_);
 }
 
 
@@ -371,6 +364,18 @@ void RelocInfo::set_target_cell(Cell* cell, WriteBarrierMode mode) {
 }
 
 
+void RelocInfo::WipeOut() {
+  if (IsEmbeddedObject(rmode_) || IsExternalReference(rmode_)) {
+    Memory::Address_at(pc_) = NULL;
+  } else if (IsCodeTarget(rmode_) || IsRuntimeEntry(rmode_)) {
+    // Effectively write zero into the relocation.
+    Assembler::set_target_address_at(pc_, pc_ + sizeof(int32_t));
+  } else {
+    UNREACHABLE();
+  }
+}
+
+
 bool RelocInfo::IsPatchedReturnSequence() {
   // The recognized call sequence is:
   //  movq(kScratchRegister, address); call(kScratchRegister);
@@ -389,6 +394,13 @@ bool RelocInfo::IsPatchedReturnSequence() {
 
 bool RelocInfo::IsPatchedDebugBreakSlotSequence() {
   return !Assembler::IsNop(pc());
+}
+
+
+Handle<Object> RelocInfo::code_age_stub_handle(Assembler* origin) {
+  ASSERT(rmode_ == RelocInfo::CODE_AGE_SEQUENCE);
+  ASSERT(*pc_ == kCallOpcode);
+  return origin->code_target_object_handle_at(pc_ + 1);
 }
 
 

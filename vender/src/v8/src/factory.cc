@@ -79,6 +79,21 @@ Handle<FixedDoubleArray> Factory::NewFixedDoubleArray(int size,
 }
 
 
+Handle<ConstantPoolArray> Factory::NewConstantPoolArray(
+    int number_of_int64_entries,
+    int number_of_ptr_entries,
+    int number_of_int32_entries) {
+  ASSERT(number_of_int64_entries > 0 || number_of_ptr_entries > 0 ||
+         number_of_int32_entries > 0);
+  CALL_HEAP_FUNCTION(
+      isolate(),
+      isolate()->heap()->AllocateConstantPoolArray(number_of_int64_entries,
+                                                   number_of_ptr_entries,
+                                                   number_of_int32_entries),
+      ConstantPoolArray);
+}
+
+
 Handle<NameDictionary> Factory::NewNameDictionary(int at_least_space_for) {
   ASSERT(0 <= at_least_space_for);
   CALL_HEAP_FUNCTION(isolate(),
@@ -117,12 +132,27 @@ Handle<ObjectHashSet> Factory::NewObjectHashSet(int at_least_space_for) {
 }
 
 
-Handle<ObjectHashTable> Factory::NewObjectHashTable(int at_least_space_for) {
+Handle<ObjectHashTable> Factory::NewObjectHashTable(
+    int at_least_space_for,
+    MinimumCapacity capacity_option) {
   ASSERT(0 <= at_least_space_for);
   CALL_HEAP_FUNCTION(isolate(),
                      ObjectHashTable::Allocate(isolate()->heap(),
-                                               at_least_space_for),
+                                               at_least_space_for,
+                                               capacity_option),
                      ObjectHashTable);
+}
+
+
+Handle<WeakHashTable> Factory::NewWeakHashTable(int at_least_space_for) {
+  ASSERT(0 <= at_least_space_for);
+  CALL_HEAP_FUNCTION(
+      isolate(),
+      WeakHashTable::Allocate(isolate()->heap(),
+                              at_least_space_for,
+                              USE_DEFAULT_MINIMUM_CAPACITY,
+                              TENURED),
+      WeakHashTable);
 }
 
 
@@ -511,12 +541,19 @@ Handle<Cell> Factory::NewCell(Handle<Object> value) {
 }
 
 
-Handle<PropertyCell> Factory::NewPropertyCell(Handle<Object> value) {
-  AllowDeferredHandleDereference convert_to_cell;
+Handle<PropertyCell> Factory::NewPropertyCellWithHole() {
   CALL_HEAP_FUNCTION(
       isolate(),
-      isolate()->heap()->AllocatePropertyCell(*value),
+      isolate()->heap()->AllocatePropertyCell(),
       PropertyCell);
+}
+
+
+Handle<PropertyCell> Factory::NewPropertyCell(Handle<Object> value) {
+  AllowDeferredHandleDereference convert_to_cell;
+  Handle<PropertyCell> cell = NewPropertyCellWithHole();
+  PropertyCell::SetValueInferType(cell, value);
+  return cell;
 }
 
 
@@ -539,10 +576,32 @@ Handle<Map> Factory::NewMap(InstanceType type,
 
 
 Handle<JSObject> Factory::NewFunctionPrototype(Handle<JSFunction> function) {
-  CALL_HEAP_FUNCTION(
-      isolate(),
-      isolate()->heap()->AllocateFunctionPrototype(*function),
-      JSObject);
+  // Make sure to use globals from the function's context, since the function
+  // can be from a different context.
+  Handle<Context> native_context(function->context()->native_context());
+  Handle<Map> new_map;
+  if (function->shared()->is_generator()) {
+    // Generator prototypes can share maps since they don't have "constructor"
+    // properties.
+    new_map = handle(native_context->generator_object_prototype_map());
+  } else {
+    // Each function prototype gets a fresh map to avoid unwanted sharing of
+    // maps between prototypes of different constructors.
+    Handle<JSFunction> object_function(native_context->object_function());
+    ASSERT(object_function->has_initial_map());
+    new_map = Map::Copy(handle(object_function->initial_map()));
+  }
+
+  Handle<JSObject> prototype = NewJSObjectFromMap(new_map);
+
+  if (!function->shared()->is_generator()) {
+    JSObject::SetLocalPropertyIgnoreAttributes(prototype,
+                                               constructor_string(),
+                                               function,
+                                               DONT_ENUM);
+  }
+
+  return prototype;
 }
 
 
@@ -598,14 +657,23 @@ Handle<FixedArray> Factory::CopyFixedArray(Handle<FixedArray> array) {
 
 
 Handle<FixedArray> Factory::CopySizeFixedArray(Handle<FixedArray> array,
-                                               int new_length) {
-  CALL_HEAP_FUNCTION(isolate(), array->CopySize(new_length), FixedArray);
+                                               int new_length,
+                                               PretenureFlag pretenure) {
+  CALL_HEAP_FUNCTION(isolate(),
+                     array->CopySize(new_length, pretenure),
+                     FixedArray);
 }
 
 
 Handle<FixedDoubleArray> Factory::CopyFixedDoubleArray(
     Handle<FixedDoubleArray> array) {
   CALL_HEAP_FUNCTION(isolate(), array->Copy(), FixedDoubleArray);
+}
+
+
+Handle<ConstantPoolArray> Factory::CopyConstantPoolArray(
+    Handle<ConstantPoolArray> array) {
+  CALL_HEAP_FUNCTION(isolate(), array->Copy(), ConstantPoolArray);
 }
 
 
@@ -972,10 +1040,12 @@ Handle<Code> Factory::NewCode(const CodeDesc& desc,
                               Code::Flags flags,
                               Handle<Object> self_ref,
                               bool immovable,
-                              bool crankshafted) {
+                              bool crankshafted,
+                              int prologue_offset) {
   CALL_HEAP_FUNCTION(isolate(),
                      isolate()->heap()->CreateCode(
-                         desc, flags, self_ref, immovable, crankshafted),
+                         desc, flags, self_ref, immovable, crankshafted,
+                         prologue_offset),
                      Code);
 }
 
@@ -1002,6 +1072,7 @@ Handle<String> Factory::InternalizedStringFromString(Handle<String> value) {
 
 Handle<JSObject> Factory::NewJSObject(Handle<JSFunction> constructor,
                                       PretenureFlag pretenure) {
+  JSFunction::EnsureHasInitialMap(constructor);
   CALL_HEAP_FUNCTION(
       isolate(),
       isolate()->heap()->AllocateJSObject(*constructor, pretenure), JSObject);
@@ -1016,13 +1087,78 @@ Handle<JSModule> Factory::NewJSModule(Handle<Context> context,
 }
 
 
-Handle<GlobalObject> Factory::NewGlobalObject(
-    Handle<JSFunction> constructor) {
-  CALL_HEAP_FUNCTION(isolate(),
-                     isolate()->heap()->AllocateGlobalObject(*constructor),
+// TODO(mstarzinger): Temporary wrapper until handlified.
+static Handle<NameDictionary> NameDictionaryAdd(Handle<NameDictionary> dict,
+                                                Handle<Name> name,
+                                                Handle<Object> value,
+                                                PropertyDetails details) {
+  CALL_HEAP_FUNCTION(dict->GetIsolate(),
+                     dict->Add(*name, *value, details),
+                     NameDictionary);
+}
+
+
+static Handle<GlobalObject> NewGlobalObjectFromMap(Isolate* isolate,
+                                                   Handle<Map> map) {
+  CALL_HEAP_FUNCTION(isolate,
+                     isolate->heap()->Allocate(*map, OLD_POINTER_SPACE),
                      GlobalObject);
 }
 
+
+Handle<GlobalObject> Factory::NewGlobalObject(Handle<JSFunction> constructor) {
+  ASSERT(constructor->has_initial_map());
+  Handle<Map> map(constructor->initial_map());
+  ASSERT(map->is_dictionary_map());
+
+  // Make sure no field properties are described in the initial map.
+  // This guarantees us that normalizing the properties does not
+  // require us to change property values to PropertyCells.
+  ASSERT(map->NextFreePropertyIndex() == 0);
+
+  // Make sure we don't have a ton of pre-allocated slots in the
+  // global objects. They will be unused once we normalize the object.
+  ASSERT(map->unused_property_fields() == 0);
+  ASSERT(map->inobject_properties() == 0);
+
+  // Initial size of the backing store to avoid resize of the storage during
+  // bootstrapping. The size differs between the JS global object ad the
+  // builtins object.
+  int initial_size = map->instance_type() == JS_GLOBAL_OBJECT_TYPE ? 64 : 512;
+
+  // Allocate a dictionary object for backing storage.
+  int at_least_space_for = map->NumberOfOwnDescriptors() * 2 + initial_size;
+  Handle<NameDictionary> dictionary = NewNameDictionary(at_least_space_for);
+
+  // The global object might be created from an object template with accessors.
+  // Fill these accessors into the dictionary.
+  Handle<DescriptorArray> descs(map->instance_descriptors());
+  for (int i = 0; i < map->NumberOfOwnDescriptors(); i++) {
+    PropertyDetails details = descs->GetDetails(i);
+    ASSERT(details.type() == CALLBACKS);  // Only accessors are expected.
+    PropertyDetails d = PropertyDetails(details.attributes(), CALLBACKS, i + 1);
+    Handle<Name> name(descs->GetKey(i));
+    Handle<Object> value(descs->GetCallbacksObject(i), isolate());
+    Handle<PropertyCell> cell = NewPropertyCell(value);
+    NameDictionaryAdd(dictionary, name, cell, d);
+  }
+
+  // Allocate the global object and initialize it with the backing store.
+  Handle<GlobalObject> global = NewGlobalObjectFromMap(isolate(), map);
+  isolate()->heap()->InitializeJSObjectFromMap(*global, *dictionary, *map);
+
+  // Create a new map for the global object.
+  Handle<Map> new_map = Map::CopyDropDescriptors(map);
+  new_map->set_dictionary_map(true);
+
+  // Set up the global object as a normalized object.
+  global->set_map(*new_map);
+  global->set_properties(*dictionary);
+
+  // Make sure result is a global object with properties in dictionary.
+  ASSERT(global->IsGlobalObject() && !global->HasFastProperties());
+  return global;
+}
 
 
 Handle<JSObject> Factory::NewJSObjectFromMap(Handle<Map> map,
@@ -1080,6 +1216,19 @@ void Factory::SetContent(Handle<JSArray> array,
   CALL_HEAP_FUNCTION_VOID(
       isolate(),
       array->SetContent(*elements));
+}
+
+
+Handle<JSGeneratorObject> Factory::NewJSGeneratorObject(
+    Handle<JSFunction> function) {
+  ASSERT(function->shared()->is_generator());
+  JSFunction::EnsureHasInitialMap(function);
+  Handle<Map> map(function->initial_map());
+  ASSERT(map->instance_type() == JS_GENERATOR_OBJECT_TYPE);
+  CALL_HEAP_FUNCTION(
+      isolate(),
+      isolate()->heap()->AllocateJSObjectFromMap(*map),
+      JSGeneratorObject);
 }
 
 

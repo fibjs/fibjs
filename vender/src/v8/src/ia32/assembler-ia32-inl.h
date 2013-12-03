@@ -47,6 +47,7 @@ namespace internal {
 
 
 static const byte kCallOpcode = 0xE8;
+static const int kNoCodeAgeSequenceLength = 5;
 
 
 // The modes possibly affected by apply must be in kApplyMask.
@@ -124,12 +125,6 @@ Handle<Object> RelocInfo::target_object_handle(Assembler* origin) {
 }
 
 
-Object** RelocInfo::target_object_address() {
-  ASSERT(IsCodeTarget(rmode_) || rmode_ == EMBEDDED_OBJECT);
-  return &Memory::Object_at(pc_);
-}
-
-
 void RelocInfo::set_target_object(Object* target, WriteBarrierMode mode) {
   ASSERT(IsCodeTarget(rmode_) || rmode_ == EMBEDDED_OBJECT);
   ASSERT(!target->IsConsString());
@@ -144,9 +139,9 @@ void RelocInfo::set_target_object(Object* target, WriteBarrierMode mode) {
 }
 
 
-Address* RelocInfo::target_reference_address() {
+Address RelocInfo::target_reference() {
   ASSERT(rmode_ == RelocInfo::EXTERNAL_REFERENCE);
-  return reinterpret_cast<Address*>(pc_);
+  return Memory::Address_at(pc_);
 }
 
 
@@ -187,6 +182,13 @@ void RelocInfo::set_target_cell(Cell* cell, WriteBarrierMode mode) {
     host()->GetHeap()->incremental_marking()->RecordWrite(
         host(), NULL, cell);
   }
+}
+
+
+Handle<Object> RelocInfo::code_age_stub_handle(Assembler* origin) {
+  ASSERT(rmode_ == RelocInfo::CODE_AGE_SEQUENCE);
+  ASSERT(*pc_ == kCallOpcode);
+  return Memory::Object_Handle_at(pc_ + 1);
 }
 
 
@@ -238,6 +240,18 @@ Object** RelocInfo::call_object_address() {
   ASSERT((IsJSReturn(rmode()) && IsPatchedReturnSequence()) ||
          (IsDebugBreakSlot(rmode()) && IsPatchedDebugBreakSlotSequence()));
   return reinterpret_cast<Object**>(pc_ + 1);
+}
+
+
+void RelocInfo::WipeOut() {
+  if (IsEmbeddedObject(rmode_) || IsExternalReference(rmode_)) {
+    Memory::Address_at(pc_) = NULL;
+  } else if (IsCodeTarget(rmode_) || IsRuntimeEntry(rmode_)) {
+    // Effectively write zero into the relocation.
+    Assembler::set_target_address_at(pc_, pc_ + sizeof(int32_t));
+  } else {
+    UNREACHABLE();
+  }
 }
 
 
@@ -379,7 +393,8 @@ void Assembler::emit(Handle<Object> handle) {
 void Assembler::emit(uint32_t x, RelocInfo::Mode rmode, TypeFeedbackId id) {
   if (rmode == RelocInfo::CODE_TARGET && !id.IsNone()) {
     RecordRelocInfo(RelocInfo::CODE_TARGET_WITH_ID, id.ToInt());
-  } else if (!RelocInfo::IsNone(rmode)) {
+  } else if (!RelocInfo::IsNone(rmode)
+      && rmode != RelocInfo::CODE_AGE_SEQUENCE) {
     RecordRelocInfo(rmode);
   }
   emit(x);

@@ -8,46 +8,33 @@
 
 #include "../osconfig.h"
 
-#ifdef _MSC_VER
-#include <windows.h>
-#endif
-
 #ifndef _ex_utils_h__
 #define _ex_utils_h__
 
 namespace exlib
 {
 
-#ifdef _MSC_VER
+#ifdef WIN32
+
+void* _CompareAndSwap(
+		void* volatile *Destination,
+		void* Exchange,
+		void* Comparand
+);
 
 template<typename T>
 inline T* CompareAndSwap(T** ptr, T* old_value, T* new_value)
 {
-	PVOID result = InterlockedCompareExchangePointer(
-			reinterpret_cast<PVOID*>(ptr),
-			reinterpret_cast<PVOID>(new_value), reinterpret_cast<PVOID>(old_value));
+	void* result = _CompareAndSwap(
+			reinterpret_cast<void**>(ptr),
+			reinterpret_cast<void*>(new_value), reinterpret_cast<void*>(old_value));
 	return reinterpret_cast<T*>(result);
 }
 
-inline int atom_add(int *dest, int incr)
-{
-	return InterlockedExchangeAdd((LONG*)dest, incr) + incr;
-}
-
-inline int atom_inc(int *dest)
-{
-	return InterlockedIncrement((LONG*)dest);
-}
-
-inline int atom_dec(int *dest)
-{
-	return InterlockedDecrement((LONG*)dest);
-}
-
-inline int atom_xchg(int* ptr, int new_value)
-{
-	return InterlockedExchange((LONG*)ptr, new_value);
-}
+int atom_add(int *dest, int incr);
+int atom_inc(int *dest);
+int atom_dec(int *dest);
+int atom_xchg(int* ptr, int new_value);
 
 #else
 

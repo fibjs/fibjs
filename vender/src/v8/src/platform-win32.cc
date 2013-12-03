@@ -935,11 +935,11 @@ void OS::Guard(void* address, const size_t size) {
   VirtualProtect(address, size, PAGE_NOACCESS, &oldprotect);
 }
 
-
+#if 0
 void OS::Sleep(int milliseconds) {
   ::Sleep(milliseconds);
 }
-
+#endif
 
 void OS::Abort() {
   if (IsDebuggerPresent() || FLAG_break_on_abort) {
@@ -1427,7 +1427,7 @@ bool VirtualMemory::HasLazyCommits() {
   return false;
 }
 
-
+#if 0
 // ----------------------------------------------------------------------------
 // Win32 thread support.
 
@@ -1530,6 +1530,7 @@ void Thread::YieldCPU() {
   Sleep(0);
 }
 
+#endif
 } }  // namespace v8::internal
 
 #endif

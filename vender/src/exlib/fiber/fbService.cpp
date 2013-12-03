@@ -9,6 +9,8 @@
 #include <osconfig.h>
 #include <exlib/fiber.h>
 #include <exlib/thread.h>
+#include <string.h>
+#include <stdlib.h>
 
 #ifdef MacOS
 #include <sys/sysctl.h>

@@ -50,6 +50,7 @@ bool CpuFeatures::initialized_ = false;
 #endif
 unsigned CpuFeatures::supported_ = 0;
 unsigned CpuFeatures::found_by_runtime_probing_only_ = 0;
+unsigned CpuFeatures::cross_compile_ = 0;
 unsigned CpuFeatures::cache_line_size_ = 64;
 
 
@@ -3179,6 +3180,14 @@ void Assembler::dd(uint32_t data) {
   ASSERT(num_pending_64_bit_reloc_info_ == 0);
   CheckBuffer();
   *reinterpret_cast<uint32_t*>(pc_) = data;
+  pc_ += sizeof(uint32_t);
+}
+
+
+void Assembler::emit_code_stub_address(Code* stub) {
+  CheckBuffer();
+  *reinterpret_cast<uint32_t*>(pc_) =
+      reinterpret_cast<uint32_t>(stub->instruction_start());
   pc_ += sizeof(uint32_t);
 }
 

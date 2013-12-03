@@ -509,6 +509,17 @@ const char* HValue::Mnemonic() const {
 }
 
 
+bool HValue::CanReplaceWithDummyUses() {
+  return FLAG_unreachable_code_elimination &&
+      !(block()->IsReachable() ||
+        IsBlockEntry() ||
+        IsControlInstruction() ||
+        IsSimulate() ||
+        IsEnterInlined() ||
+        IsLeaveInlined());
+}
+
+
 bool HValue::IsInteger32Constant() {
   return IsConstant() && HConstant::cast(this)->HasInteger32Value();
 }
@@ -730,6 +741,10 @@ void HInstruction::InsertBefore(HInstruction* next) {
   next_ = next;
   previous_ = prev;
   SetBlock(next->block());
+  if (position() == RelocInfo::kNoPosition &&
+      next->position() != RelocInfo::kNoPosition) {
+    set_position(next->position());
+  }
 }
 
 
@@ -763,6 +778,10 @@ void HInstruction::InsertAfter(HInstruction* previous) {
   if (next != NULL) next->previous_ = this;
   if (block->last() == previous) {
     block->set_last(this);
+  }
+  if (position() == RelocInfo::kNoPosition &&
+      previous->position() != RelocInfo::kNoPosition) {
+    set_position(previous->position());
   }
 }
 
@@ -973,6 +992,9 @@ void HCallNewArray::PrintDataTo(StringStream* stream) {
 
 void HCallRuntime::PrintDataTo(StringStream* stream) {
   stream->Add("%o ", *name());
+  if (save_doubles() == kSaveFPRegs) {
+    stream->Add("[save doubles] ");
+  }
   stream->Add("#%d", argument_count());
 }
 
@@ -1047,6 +1069,21 @@ Representation HBranch::observed_input_representation(int index) {
     return Representation::Smi();
   }
   return Representation::None();
+}
+
+
+bool HBranch::KnownSuccessorBlock(HBasicBlock** block) {
+  HValue* value = this->value();
+  if (value->EmitAtUses()) {
+    ASSERT(value->IsConstant());
+    ASSERT(!value->representation().IsDouble());
+    *block = HConstant::cast(value)->BooleanValue()
+        ? FirstSuccessor()
+        : SecondSuccessor();
+    return true;
+  }
+  *block = NULL;
+  return false;
 }
 
 
@@ -1218,8 +1255,15 @@ static bool IsIdentityOperation(HValue* arg1, HValue* arg2, int32_t identity) {
 
 
 HValue* HAdd::Canonicalize() {
-  if (IsIdentityOperation(left(), right(), 0)) return left();
-  if (IsIdentityOperation(right(), left(), 0)) return right();
+  // Adding 0 is an identity operation except in case of -0: -0 + 0 = +0
+  if (IsIdentityOperation(left(), right(), 0) &&
+      !left()->representation().IsDouble()) {  // Left could be -0.
+    return left();
+  }
+  if (IsIdentityOperation(right(), left(), 0) &&
+      !left()->representation().IsDouble()) {  // Right could be -0.
+    return right();
+  }
   return this;
 }
 
@@ -1560,6 +1604,11 @@ Range* HConstant::InferRange(Zone* zone) {
     return result;
   }
   return HValue::InferRange(zone);
+}
+
+
+int HPhi::position() const {
+  return block()->first()->position();
 }
 
 
@@ -2367,6 +2416,12 @@ void HCapturedObject::ReplayEnvironment(HEnvironment* env) {
 }
 
 
+void HCapturedObject::PrintDataTo(StringStream* stream) {
+  stream->Add("#%d ", capture_id());
+  HDematerializedObject::PrintDataTo(stream);
+}
+
+
 void HEnterInlined::RegisterReturnTarget(HBasicBlock* return_target,
                                          Zone* zone) {
   ASSERT(return_target->IsInlineReturnTarget());
@@ -2528,6 +2583,7 @@ bool HConstant::EmitAtUses() {
   ASSERT(IsLinked());
   if (block()->graph()->has_osr() &&
       block()->graph()->IsStandardConstant(this)) {
+    // TODO(titzer): this seems like a hack that should be fixed by custom OSR.
     return true;
   }
   if (UseCount() == 0) return true;
@@ -2800,6 +2856,9 @@ Range* HShl::InferRange(Zone* zone) {
 
 
 Range* HLoadNamedField::InferRange(Zone* zone) {
+  if (access().representation().IsByte()) {
+    return new(zone) Range(0, 255);
+  }
   if (access().IsStringLength()) {
     return new(zone) Range(0, String::kMaxLength);
   }
@@ -2854,6 +2913,20 @@ void HCompareObjectEqAndBranch::PrintDataTo(StringStream* stream) {
   stream->Add(" ");
   right()->PrintNameTo(stream);
   HControlInstruction::PrintDataTo(stream);
+}
+
+
+bool HCompareObjectEqAndBranch::KnownSuccessorBlock(HBasicBlock** block) {
+  if (left()->IsConstant() && right()->IsConstant()) {
+    bool comparison_result =
+        HConstant::cast(left())->Equals(HConstant::cast(right()));
+    *block = comparison_result
+        ? FirstSuccessor()
+        : SecondSuccessor();
+    return true;
+  }
+  *block = NULL;
+  return false;
 }
 
 
@@ -3991,7 +4064,7 @@ Representation HValue::RepresentationFromUseRequirements() {
   Representation rep = Representation::None();
   for (HUseIterator it(uses()); !it.Done(); it.Advance()) {
     // Ignore the use requirement from never run code
-    if (it.value()->block()->IsDeoptimizing()) continue;
+    if (it.value()->block()->IsUnreachable()) continue;
 
     // We check for observed_input_representation elsewhere.
     Representation use_rep =

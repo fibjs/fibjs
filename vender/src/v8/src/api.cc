@@ -1646,10 +1646,13 @@ void ObjectTemplate::SetInternalFieldCount(int value) {
 // --- S c r i p t D a t a ---
 
 
-ScriptData* ScriptData::PreCompile(const char* input, int length) {
+ScriptData* ScriptData::PreCompile(v8::Isolate* isolate,
+                                   const char* input,
+                                   int length) {
   i::Utf8ToUtf16CharacterStream stream(
       reinterpret_cast<const unsigned char*>(input), length);
-  return i::PreParserApi::PreParse(i::Isolate::Current(), &stream);
+  return i::PreParserApi::PreParse(
+      reinterpret_cast<i::Isolate*>(isolate), &stream);
 }
 
 
@@ -1696,13 +1699,13 @@ Local<Script> Script::New(v8::Handle<String> source,
                           v8::ScriptOrigin* origin,
                           v8::ScriptData* pre_data,
                           v8::Handle<String> script_data) {
-  i::Isolate* isolate = i::Isolate::Current();
+  i::Handle<i::String> str = Utils::OpenHandle(*source);
+  i::Isolate* isolate = str->GetIsolate();
   ON_BAILOUT(isolate, "v8::Script::New()", return Local<Script>());
   LOG_API(isolate, "Script::New");
   ENTER_V8(isolate);
   i::SharedFunctionInfo* raw_result = NULL;
   { i::HandleScope scope(isolate);
-    i::Handle<i::String> str = Utils::OpenHandle(*source);
     i::Handle<i::Object> name_obj;
     int line_offset = 0;
     int column_offset = 0;
@@ -1765,7 +1768,8 @@ Local<Script> Script::Compile(v8::Handle<String> source,
                               v8::ScriptOrigin* origin,
                               v8::ScriptData* pre_data,
                               v8::Handle<String> script_data) {
-  i::Isolate* isolate = i::Isolate::Current();
+  i::Handle<i::String> str = Utils::OpenHandle(*source);
+  i::Isolate* isolate = str->GetIsolate();
   ON_BAILOUT(isolate, "v8::Script::Compile()", return Local<Script>());
   LOG_API(isolate, "Script::Compile");
   ENTER_V8(isolate);
@@ -1792,7 +1796,11 @@ Local<Script> Script::Compile(v8::Handle<String> source,
 
 
 Local<Value> Script::Run() {
-  i::Isolate* isolate = i::Isolate::Current();
+  // If execution is terminating, Compile(script)->Run() requires this check.
+  if (this == NULL) return Local<Value>();
+  i::Handle<i::HeapObject> obj =
+      i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
+  i::Isolate* isolate = obj->GetIsolate();
   ON_BAILOUT(isolate, "v8::Script::Run()", return Local<Value>());
   LOG_API(isolate, "Script::Run");
   ENTER_V8(isolate);
@@ -1801,7 +1809,6 @@ Local<Value> Script::Run() {
   i::Object* raw_result = NULL;
   {
     i::HandleScope scope(isolate);
-    i::Handle<i::Object> obj = Utils::OpenHandle(this);
     i::Handle<i::JSFunction> fun;
     if (obj->IsSharedFunctionInfo()) {
       i::Handle<i::SharedFunctionInfo>
@@ -1839,7 +1846,9 @@ static i::Handle<i::SharedFunctionInfo> OpenScript(Script* script) {
 
 
 Local<Value> Script::Id() {
-  i::Isolate* isolate = i::Isolate::Current();
+  i::Handle<i::HeapObject> obj =
+      i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
+  i::Isolate* isolate = obj->GetIsolate();
   ON_BAILOUT(isolate, "v8::Script::Id()", return Local<Value>());
   LOG_API(isolate, "Script::Id");
   i::Object* raw_id = NULL;
@@ -1856,7 +1865,9 @@ Local<Value> Script::Id() {
 
 
 int Script::GetId() {
-  i::Isolate* isolate = i::Isolate::Current();
+  i::Handle<i::HeapObject> obj =
+      i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
+  i::Isolate* isolate = obj->GetIsolate();
   ON_BAILOUT(isolate, "v8::Script::Id()", return -1);
   LOG_API(isolate, "Script::Id");
   {
@@ -1869,10 +1880,11 @@ int Script::GetId() {
 
 
 int Script::GetLineNumber(int code_pos) {
-  i::Isolate* isolate = i::Isolate::Current();
+  i::Handle<i::HeapObject> obj =
+      i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
+  i::Isolate* isolate = obj->GetIsolate();
   ON_BAILOUT(isolate, "v8::Script::GetLineNumber()", return -1);
   LOG_API(isolate, "Script::GetLineNumber");
-  i::Handle<i::Object> obj = Utils::OpenHandle(this);
   if (obj->IsScript()) {
     i::Handle<i::Script> script = i::Handle<i::Script>(i::Script::cast(*obj));
     return i::GetScriptLineNumber(script, code_pos);
@@ -1883,10 +1895,11 @@ int Script::GetLineNumber(int code_pos) {
 
 
 Handle<Value> Script::GetScriptName() {
-  i::Isolate* isolate = i::Isolate::Current();
+  i::Handle<i::HeapObject> obj =
+      i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
+  i::Isolate* isolate = obj->GetIsolate();
   ON_BAILOUT(isolate, "v8::Script::GetName()", return Handle<String>());
   LOG_API(isolate, "Script::GetName");
-  i::Handle<i::Object> obj = Utils::OpenHandle(this);
   if (obj->IsScript()) {
     i::Object* name = i::Script::cast(*obj)->name();
     return Utils::ToLocal(i::Handle<i::Object>(name, isolate));
@@ -1897,7 +1910,9 @@ Handle<Value> Script::GetScriptName() {
 
 
 void Script::SetData(v8::Handle<String> data) {
-  i::Isolate* isolate = i::Isolate::Current();
+  i::Handle<i::HeapObject> obj =
+      i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
+  i::Isolate* isolate = obj->GetIsolate();
   ON_BAILOUT(isolate, "v8::Script::SetData()", return);
   LOG_API(isolate, "Script::SetData");
   {
@@ -3511,9 +3526,8 @@ bool v8::Object::HasRealNamedProperty(Handle<String> key) {
   i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
   ON_BAILOUT(isolate, "v8::Object::HasRealNamedProperty()",
              return false);
-  return Utils::OpenHandle(this)->HasRealNamedProperty(
-      isolate,
-      *Utils::OpenHandle(*key));
+  return i::JSObject::HasRealNamedProperty(Utils::OpenHandle(this),
+                                           Utils::OpenHandle(*key));
 }
 
 
@@ -3521,7 +3535,7 @@ bool v8::Object::HasRealIndexedProperty(uint32_t index) {
   i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
   ON_BAILOUT(isolate, "v8::Object::HasRealIndexedProperty()",
              return false);
-  return Utils::OpenHandle(this)->HasRealElementProperty(isolate, index);
+  return i::JSObject::HasRealElementProperty(Utils::OpenHandle(this), index);
 }
 
 
@@ -3531,9 +3545,8 @@ bool v8::Object::HasRealNamedCallbackProperty(Handle<String> key) {
              "v8::Object::HasRealNamedCallbackProperty()",
              return false);
   ENTER_V8(isolate);
-  return Utils::OpenHandle(this)->HasRealNamedCallbackProperty(
-      isolate,
-      *Utils::OpenHandle(*key));
+  return i::JSObject::HasRealNamedCallbackProperty(Utils::OpenHandle(this),
+                                                   Utils::OpenHandle(*key));
 }
 
 
@@ -3675,7 +3688,8 @@ int v8::Object::GetIdentityHash() {
   ENTER_V8(isolate);
   i::HandleScope scope(isolate);
   i::Handle<i::JSObject> self = Utils::OpenHandle(this);
-  return i::JSObject::GetIdentityHash(self);
+  return i::Handle<i::Smi>::cast(
+      i::JSReceiver::GetOrCreateIdentityHash(self))->value();
 }
 
 
@@ -4097,6 +4111,29 @@ Handle<Value> Function::GetInferredName() const {
 }
 
 
+Handle<Value> Function::GetDisplayName() const {
+  i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
+  ON_BAILOUT(isolate, "v8::Function::GetDisplayName()",
+             return ToApiHandle<Primitive>(
+                isolate->factory()->undefined_value()));
+  ENTER_V8(isolate);
+  i::Handle<i::JSFunction> func = Utils::OpenHandle(this);
+  i::Handle<i::String> property_name =
+      isolate->factory()->InternalizeOneByteString(
+          STATIC_ASCII_VECTOR("displayName"));
+  i::LookupResult lookup(isolate);
+  func->LookupRealNamedProperty(*property_name, &lookup);
+  if (lookup.IsFound()) {
+    i::Object* value = lookup.GetLazyValue();
+    if (value && value->IsString()) {
+      i::String* name = i::String::cast(value);
+      if (name->length() > 0) return Utils::ToLocal(i::Handle<i::String>(name));
+    }
+  }
+  return ToApiHandle<Primitive>(isolate->factory()->undefined_value());
+}
+
+
 ScriptOrigin Function::GetScriptOrigin() const {
   i::Handle<i::JSFunction> func = Utils::OpenHandle(this);
   if (func->shared()->script()->IsScript()) {
@@ -4132,6 +4169,12 @@ int Function::GetScriptColumnNumber() const {
     return i::GetScriptColumnNumber(script, func->shared()->start_position());
   }
   return kLineOffsetNotFound;
+}
+
+
+bool Function::IsBuiltin() const {
+  i::Handle<i::JSFunction> func = Utils::OpenHandle(this);
+  return func->IsBuiltin();
 }
 
 
@@ -5610,6 +5653,12 @@ bool v8::String::CanMakeExternal() {
   if (!internal::FLAG_clever_optimizations) return false;
   i::Handle<i::String> obj = Utils::OpenHandle(this);
   i::Isolate* isolate = obj->GetIsolate();
+
+  // TODO(yangguo): Externalizing sliced/cons strings allocates.
+  // This rule can be removed when all code that can
+  // trigger an access check is handlified and therefore GC safe.
+  if (isolate->heap()->old_pointer_space()->Contains(*obj)) return false;
+
   if (isolate->string_tracker()->IsFreshUnusedString(obj)) return false;
   int size = obj->Size();  // Byte size of the original string.
   if (size < i::ExternalString::kShortSize) return false;
@@ -6329,31 +6378,30 @@ v8::Local<Value> Isolate::ThrowException(v8::Local<v8::Value> value) {
 }
 
 
-void Isolate::SetObjectGroupId(const Persistent<Value>& object,
-                               UniqueId id) {
+void Isolate::SetObjectGroupId(internal::Object** object, UniqueId id) {
   i::Isolate* internal_isolate = reinterpret_cast<i::Isolate*>(this);
   internal_isolate->global_handles()->SetObjectGroupId(
-      Utils::OpenPersistent(object).location(),
+      v8::internal::Handle<v8::internal::Object>(object).location(),
       id);
 }
 
 
-void Isolate::SetReferenceFromGroup(UniqueId id,
-                                    const Persistent<Value>& object) {
+void Isolate::SetReferenceFromGroup(UniqueId id, internal::Object** object) {
   i::Isolate* internal_isolate = reinterpret_cast<i::Isolate*>(this);
   internal_isolate->global_handles()->SetReferenceFromGroup(
       id,
-      Utils::OpenPersistent(object).location());
+      v8::internal::Handle<v8::internal::Object>(object).location());
 }
 
 
-void Isolate::SetReference(const Persistent<Object>& parent,
-                           const Persistent<Value>& child) {
+void Isolate::SetReference(internal::Object** parent,
+                           internal::Object** child) {
   i::Isolate* internal_isolate = reinterpret_cast<i::Isolate*>(this);
-  i::Object** parent_location = Utils::OpenPersistent(parent).location();
+  i::Object** parent_location =
+      v8::internal::Handle<v8::internal::Object>(parent).location();
   internal_isolate->global_handles()->SetReference(
       reinterpret_cast<i::HeapObject**>(parent_location),
-      Utils::OpenPersistent(child).location());
+      v8::internal::Handle<v8::internal::Object>(child).location());
 }
 
 
@@ -6907,6 +6955,12 @@ int CpuProfileNode::GetLineNumber() const {
 }
 
 
+int CpuProfileNode::GetColumnNumber() const {
+  return reinterpret_cast<const i::ProfileNode*>(this)->
+      entry()->column_number();
+}
+
+
 const char* CpuProfileNode::GetBailoutReason() const {
   const i::ProfileNode* node = reinterpret_cast<const i::ProfileNode*>(this);
   return node->entry()->bailout_reason();
@@ -7270,6 +7324,16 @@ size_t HeapProfiler::GetProfilerMemorySize() {
 void HeapProfiler::SetRetainedObjectInfo(UniqueId id,
                                          RetainedObjectInfo* info) {
   reinterpret_cast<i::HeapProfiler*>(this)->SetRetainedObjectInfo(id, info);
+}
+
+
+void HeapProfiler::StartRecordingHeapAllocations() {
+  reinterpret_cast<i::HeapProfiler*>(this)->StartHeapAllocationsRecording();
+}
+
+
+void HeapProfiler::StopRecordingHeapAllocations() {
+  reinterpret_cast<i::HeapProfiler*>(this)->StopHeapAllocationsRecording();
 }
 
 

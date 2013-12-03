@@ -227,7 +227,7 @@ static int DecodeIt(Isolate* isolate,
         out.AddFormatted("    ;; object: %s", *obj_name);
       } else if (rmode == RelocInfo::EXTERNAL_REFERENCE) {
         const char* reference_name =
-            ref_encoder.NameOfAddress(*relocinfo.target_reference_address());
+            ref_encoder.NameOfAddress(relocinfo.target_reference());
         out.AddFormatted("    ;; external reference (%s)", reference_name);
       } else if (RelocInfo::IsCodeTarget(rmode)) {
         out.AddFormatted("    ;; code:");
@@ -250,7 +250,7 @@ static int DecodeIt(Isolate* isolate,
           if (kind == Code::CALL_IC || kind == Code::KEYED_CALL_IC) {
             out.AddFormatted(", argc = %d", code->arguments_count());
           }
-        } else if (kind == Code::STUB) {
+        } else if (kind == Code::STUB || kind == Code::HANDLER) {
           // Reverse lookup required as the minor key cannot be retrieved
           // from the code object.
           Object* obj = heap->code_stubs()->SlowReverseLookup(code);

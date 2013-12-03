@@ -577,8 +577,8 @@ void KeyedCallIC::GenerateMegamorphic(MacroAssembler* masm, int argc) {
   __ IncrementCounter(counters->keyed_call_generic_slow_load(), 1, r0, r3);
   {
     FrameScope scope(masm, StackFrame::INTERNAL);
-    __ push(r2);  // save the key
-    __ Push(r1, r2);  // pass the receiver and the key
+    __ Push(r2, r1);  // save the key and the receiver
+    __ push(r2);  // pass the receiver and the key
     __ CallRuntime(Runtime::kKeyedGetProperty, 2);
     __ pop(r2);  // restore the key
   }
@@ -656,7 +656,7 @@ void LoadIC::GenerateMegamorphic(MacroAssembler* masm) {
 
   // Probe the stub cache.
   Code::Flags flags = Code::ComputeFlags(
-      Code::STUB, MONOMORPHIC, Code::kNoExtraICState,
+      Code::HANDLER, MONOMORPHIC, Code::kNoExtraICState,
       Code::NORMAL, Code::LOAD_IC);
   masm->isolate()->stub_cache()->GenerateProbe(
       masm, flags, r0, r2, r3, r4, r5, r6);
@@ -1487,7 +1487,7 @@ void StoreIC::GenerateMegamorphic(MacroAssembler* masm,
 
   // Get the receiver from the stack and probe the stub cache.
   Code::Flags flags = Code::ComputeFlags(
-      Code::STUB, MONOMORPHIC, strict_mode,
+      Code::HANDLER, MONOMORPHIC, strict_mode,
       Code::NORMAL, Code::STORE_IC);
 
   masm->isolate()->stub_cache()->GenerateProbe(

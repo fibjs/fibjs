@@ -99,6 +99,7 @@ namespace internal {
   F(NeverOptimizeFunction, 1, 1) \
   F(GetOptimizationStatus, -1, 1) \
   F(GetOptimizationCount, 1, 1) \
+  F(UnblockConcurrentRecompilation, 0, 1) \
   F(CompileForOnStackReplacement, 2, 1) \
   F(SetAllocationTimeout, 2, 1) \
   F(AllocateInNewSpace, 1, 1) \
@@ -299,7 +300,6 @@ namespace internal {
   F(MaterializeRegExpLiteral, 4, 1)\
   F(CreateObjectLiteral, 4, 1) \
   F(CreateArrayLiteral, 3, 1) \
-  F(CreateArrayLiteralShallow, 3, 1) \
   \
   /* Harmony generators */ \
   F(CreateJSGeneratorObject, 0, 1) \
@@ -362,6 +362,7 @@ namespace internal {
   F(ArrayBufferInitialize, 2, 1)\
   F(ArrayBufferGetByteLength, 1, 1)\
   F(ArrayBufferSliceImpl, 3, 1) \
+  F(ArrayBufferIsView, 1, 1) \
   \
   F(TypedArrayInitialize, 5, 1) \
   F(TypedArrayInitializeFromArrayLike, 4, 1) \

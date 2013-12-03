@@ -1419,10 +1419,31 @@
     <ClCompile Include="src\exif\pentax\mnote-pentax-tag.c">
       <Filter>Source Files\exif\pentax</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\platform\condition-variable.cc">
+      <Filter>Source Files\v8\src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\platform\mutex.cc">
+      <Filter>Source Files\v8\src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\platform\semaphore.cc">
+      <Filter>Source Files\v8\src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\platform\socket.cc">
+      <Filter>Source Files\v8\src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\platform\time.cc">
+      <Filter>Source Files\v8\src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\utils\random-number-generator.cc">
+      <Filter>Source Files\v8\src\utils</Filter>
+    </ClCompile>
     <ClCompile Include="src\v8\src\accessors.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
     <ClCompile Include="src\v8\src\allocation.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\allocation-site-scopes.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
     <ClCompile Include="src\v8\src\api.cc">
@@ -1458,9 +1479,6 @@
     <ClCompile Include="src\v8\src\checks.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\v8\src\circular-queue.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
     <ClCompile Include="src\v8\src\codegen.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
@@ -1483,6 +1501,9 @@
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
     <ClCompile Include="src\v8\src\counters.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\cpu.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
     <ClCompile Include="src\v8\src\cpu-profiler.cc">
@@ -1569,16 +1590,79 @@
     <ClCompile Include="src\v8\src\hydrogen.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-bce.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-bch.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-canonicalize.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-check-elimination.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-dce.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-dehoist.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
     <ClCompile Include="src\v8\src\hydrogen-environment-liveness.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-escape-analysis.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
     <ClCompile Include="src\v8\src\hydrogen-gvn.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-infer-representation.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-infer-types.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
     <ClCompile Include="src\v8\src\hydrogen-instructions.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-load-elimination.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-mark-deoptimize.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-mark-unreachable.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-minus-zero.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-osr.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-range-analysis.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-redundant-phi.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-removable-simulates.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-representation-changes.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-sce.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-uint32-analysis.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
     <ClCompile Include="src\v8\src\ic.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\icu_util.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
     <ClCompile Include="src\v8\src\incremental-marking.cc">
@@ -1605,6 +1689,9 @@
     <ClCompile Include="src\v8\src\lithium-allocator.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\lithium-codegen.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
     <ClCompile Include="src\v8\src\liveedit.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
@@ -1615,9 +1702,6 @@
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
     <ClCompile Include="src\v8\src\mark-compact.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\marking-thread.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
     <ClCompile Include="src\v8\src\messages.cc">
@@ -1800,89 +1884,8 @@
     <ClCompile Include="src\v8\src\zone.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-escape-analysis.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-infer-representation.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-osr.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-range-analysis.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-uint32-analysis.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-bce.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-dce.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-infer-types.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-redundant-phi.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-sce.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\cpu.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-bch.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-canonicalize.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-check-elimination.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-dehoist.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-deoptimizing-mark.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-load-elimination.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-mark-deoptimize.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-minus-zero.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-removable-simulates.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\hydrogen-representation-changes.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\icu_util.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\platform\condition-variable.cc">
-      <Filter>Source Files\v8\src\platform</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\platform\mutex.cc">
-      <Filter>Source Files\v8\src\platform</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\platform\semaphore.cc">
-      <Filter>Source Files\v8\src\platform</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\platform\socket.cc">
-      <Filter>Source Files\v8\src\platform</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\platform\time.cc">
-      <Filter>Source Files\v8\src\platform</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\utils\random-number-generator.cc">
-      <Filter>Source Files\v8\src\utils</Filter>
+    <ClCompile Include="src\exlib\fiber\fbUtils.cpp">
+      <Filter>Source Files\exlib\fiber</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2885,6 +2888,39 @@
     <ClInclude Include="include\libexif\i18n.h">
       <Filter>Header Files\libexif</Filter>
     </ClInclude>
+    <ClInclude Include="include\v8\v8config.h">
+      <Filter>Header Files\v8</Filter>
+    </ClInclude>
+    <ClInclude Include="include\v8\v8-defaults.h">
+      <Filter>Header Files\v8</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\include\v8config.h">
+      <Filter>Source Files\v8\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\include\v8-defaults.h">
+      <Filter>Source Files\v8\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\platform\condition-variable.h">
+      <Filter>Source Files\v8\src\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\platform\elapsed-timer.h">
+      <Filter>Source Files\v8\src\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\platform\mutex.h">
+      <Filter>Source Files\v8\src\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\platform\semaphore.h">
+      <Filter>Source Files\v8\src\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\platform\socket.h">
+      <Filter>Source Files\v8\src\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\platform\time.h">
+      <Filter>Source Files\v8\src\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\utils\random-number-generator.h">
+      <Filter>Source Files\v8\src\utils</Filter>
+    </ClInclude>
     <ClInclude Include="src\v8\src\accessors.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
@@ -2892,6 +2928,9 @@
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\allocation-inl.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\allocation-site-scopes.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\api.h">
@@ -3035,6 +3074,9 @@
     <ClInclude Include="src\v8\src\dtoa.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\v8\src\effects.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
     <ClInclude Include="src\v8\src\elements.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
@@ -3107,19 +3149,88 @@
     <ClInclude Include="src\v8\src\hydrogen.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-alias-analysis.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-bce.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-bch.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-canonicalize.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-check-elimination.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-dce.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-dehoist.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
     <ClInclude Include="src\v8\src\hydrogen-environment-liveness.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-escape-analysis.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-flow-engine.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\hydrogen-gvn.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-infer-representation.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-infer-types.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
     <ClInclude Include="src\v8\src\hydrogen-instructions.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-load-elimination.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-mark-deoptimize.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-mark-unreachable.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-minus-zero.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-osr.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-range-analysis.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-redundant-phi.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-removable-simulates.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-representation-changes.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-sce.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-uint32-analysis.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\ic.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\ic-inl.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\icu_util.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\incremental-marking.h">
@@ -3170,6 +3281,9 @@
     <ClInclude Include="src\v8\src\lithium-allocator-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\v8\src\lithium-codegen.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
     <ClInclude Include="src\v8\src\liveedit.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
@@ -3191,13 +3305,13 @@
     <ClInclude Include="src\v8\src\mark-compact-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\v8\src\marking-thread.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
     <ClInclude Include="src\v8\src\messages.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\misc-intrinsics.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\msan.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\natives.h">
@@ -3225,18 +3339,6 @@
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\platform.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\platform-posix.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\platform-tls.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\platform-tls-mac.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\platform-tls-win32.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\preparse-data.h">
@@ -3383,6 +3485,9 @@
     <ClInclude Include="src\v8\src\unicode-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\v8\src\unique.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
     <ClInclude Include="src\v8\src\uri.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
@@ -3439,111 +3544,6 @@
     </ClInclude>
     <ClInclude Include="src\v8\src\zone-inl.h">
       <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-escape-analysis.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-infer-representation.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-osr.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-range-analysis.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-uint32-analysis.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-bce.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-dce.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-infer-types.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-redundant-phi.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-sce.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="include\v8\v8config.h">
-      <Filter>Header Files\v8</Filter>
-    </ClInclude>
-    <ClInclude Include="include\v8\v8-defaults.h">
-      <Filter>Header Files\v8</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\include\v8config.h">
-      <Filter>Source Files\v8\include</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\include\v8-defaults.h">
-      <Filter>Source Files\v8\include</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\effects.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-alias-analysis.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-bch.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-canonicalize.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-check-elimination.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-dehoist.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-deoptimizing-mark.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-load-elimination.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-mark-deoptimize.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-minus-zero.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-removable-simulates.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\hydrogen-representation-changes.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\icu_util.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\unique.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\platform\condition-variable.h">
-      <Filter>Source Files\v8\src\platform</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\platform\elapsed-timer.h">
-      <Filter>Source Files\v8\src\platform</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\platform\mutex.h">
-      <Filter>Source Files\v8\src\platform</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\platform\semaphore.h">
-      <Filter>Source Files\v8\src\platform</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\platform\socket.h">
-      <Filter>Source Files\v8\src\platform</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\platform\time.h">
-      <Filter>Source Files\v8\src\platform</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\utils\random-number-generator.h">
-      <Filter>Source Files\v8\src\utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

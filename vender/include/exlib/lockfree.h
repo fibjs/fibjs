@@ -22,13 +22,13 @@ class lockfree
 {
 public:
 	lockfree() :
-			m_first(NULL), m_lock(NULL)
+			m_first(0), m_lock(0)
 	{
 	}
 
 	bool empty()
 	{
-		return m_first == NULL;
+		return m_first == 0;
 	}
 
 	void put(T* o)
@@ -46,8 +46,8 @@ public:
 	{
 		T* p;
 
-		if (m_first == NULL)
-			return NULL;
+		if (m_first == 0)
+			return 0;
 
 		while (CompareAndSwap((void**) &m_lock, (void*) (0), (void*) (-1)))
 			;
@@ -55,14 +55,14 @@ public:
 		do
 		{
 			p = (T*) m_first;
-			if (p == NULL)
+			if (p == 0)
 				break;
 		} while (CompareAndSwap((T**) &m_first, p, (T*) (p->m_next)) != p);
 
 		m_lock = 0;
 
-		if (p != NULL)
-			p->m_next = NULL;
+		if (p != 0)
+			p->m_next = 0;
 
 		return p;
 	}
@@ -71,8 +71,8 @@ public:
 	{
 		T* p;
 
-		if (m_first == NULL)
-			return NULL;
+		if (m_first == 0)
+			return 0;
 
 		while (CompareAndSwap((void**) &m_lock, (void*) (0), (void*) (-1)))
 			;
@@ -80,9 +80,9 @@ public:
 		do
 		{
 			p = (T*) m_first;
-			if (p == NULL)
+			if (p == 0)
 				break;
-		} while (CompareAndSwap((T**) &m_first, p, (T*) (NULL)) != p);
+		} while (CompareAndSwap((T**) &m_first, p, (T*) (0)) != p);
 
 		m_lock = 0;
 
@@ -99,7 +99,7 @@ public:
 				nCount++;
 
 			T* p = get();
-			if (p != NULL)
+			if (p != 0)
 				return p;
 
 			if (nCount > 11000)
@@ -110,7 +110,7 @@ public:
 				Sleep(0);
 		}
 
-		return NULL;
+		return 0;
 	}
 
 private:

@@ -206,6 +206,11 @@ MaybeObject* Heap::CopyFixedDoubleArray(FixedDoubleArray* src) {
 }
 
 
+MaybeObject* Heap::CopyConstantPoolArray(ConstantPoolArray* src) {
+  return CopyConstantPoolArrayWithMap(src, src->map());
+}
+
+
 MaybeObject* Heap::AllocateRaw(int size_in_bytes,
                                AllocationSpace space,
                                AllocationSpace retry_space) {
@@ -288,40 +293,6 @@ void Heap::FinalizeExternalString(String* string) {
     (*resource_addr)->Dispose();
     *resource_addr = NULL;
   }
-}
-
-
-MaybeObject* Heap::AllocateRawMap() {
-#ifdef DEBUG
-  isolate_->counters()->objs_since_last_full()->Increment();
-  isolate_->counters()->objs_since_last_young()->Increment();
-#endif
-  MaybeObject* result = map_space_->AllocateRaw(Map::kSize);
-  if (result->IsFailure()) old_gen_exhausted_ = true;
-  return result;
-}
-
-
-MaybeObject* Heap::AllocateRawCell() {
-#ifdef DEBUG
-  isolate_->counters()->objs_since_last_full()->Increment();
-  isolate_->counters()->objs_since_last_young()->Increment();
-#endif
-  MaybeObject* result = cell_space_->AllocateRaw(Cell::kSize);
-  if (result->IsFailure()) old_gen_exhausted_ = true;
-  return result;
-}
-
-
-MaybeObject* Heap::AllocateRawPropertyCell() {
-#ifdef DEBUG
-  isolate_->counters()->objs_since_last_full()->Increment();
-  isolate_->counters()->objs_since_last_young()->Increment();
-#endif
-  MaybeObject* result =
-      property_cell_space_->AllocateRaw(PropertyCell::kSize);
-  if (result->IsFailure()) old_gen_exhausted_ = true;
-  return result;
 }
 
 
@@ -523,6 +494,13 @@ void Heap::ScavengeObject(HeapObject** p, HeapObject* object) {
     ASSERT(object->GetIsolate()->heap()->InFromSpace(*p));
     *p = dest;
     return;
+  }
+
+  if (FLAG_trace_track_allocation_sites && object->IsJSObject()) {
+    if (AllocationMemento::FindForJSObject(JSObject::cast(object), true) !=
+        NULL) {
+      object->GetIsolate()->heap()->allocation_mementos_found_++;
+    }
   }
 
   // AllocationMementos are unrooted and shouldn't survive a scavenge
@@ -839,15 +817,15 @@ AlwaysAllocateScope::~AlwaysAllocateScope() {
 
 
 #ifdef VERIFY_HEAP
-NoWeakEmbeddedMapsVerificationScope::NoWeakEmbeddedMapsVerificationScope() {
+NoWeakObjectVerificationScope::NoWeakObjectVerificationScope() {
   Isolate* isolate = Isolate::Current();
-  isolate->heap()->no_weak_embedded_maps_verification_scope_depth_++;
+  isolate->heap()->no_weak_object_verification_scope_depth_++;
 }
 
 
-NoWeakEmbeddedMapsVerificationScope::~NoWeakEmbeddedMapsVerificationScope() {
+NoWeakObjectVerificationScope::~NoWeakObjectVerificationScope() {
   Isolate* isolate = Isolate::Current();
-  isolate->heap()->no_weak_embedded_maps_verification_scope_depth_--;
+  isolate->heap()->no_weak_object_verification_scope_depth_--;
 }
 #endif
 

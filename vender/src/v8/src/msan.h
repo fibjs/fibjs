@@ -25,42 +25,25 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef V8_MARKING_THREAD_H_
-#define V8_MARKING_THREAD_H_
+// MemorySanitizer support.
 
-#include "atomicops.h"
-#include "flags.h"
-#include "platform.h"
-#include "v8utils.h"
+#ifndef V8_MSAN_H_
+#define V8_MSAN_H_
 
-#include "spaces.h"
+#ifndef __has_feature
+# define __has_feature(x) 0
+#endif
 
-#include "heap.h"
+#if __has_feature(memory_sanitizer) && !defined(MEMORY_SANITIZER)
+# define MEMORY_SANITIZER
+#endif
 
-namespace v8 {
-namespace internal {
+#ifdef MEMORY_SANITIZER
+# include <sanitizer/msan_interface.h>
+// Marks a memory range as fully initialized.
+# define MSAN_MEMORY_IS_INITIALIZED(p, s) __msan_unpoison((p), (s))
+#else
+# define MSAN_MEMORY_IS_INITIALIZED(p, s)
+#endif
 
-class MarkingThread : public Thread {
- public:
-  explicit MarkingThread(Isolate* isolate);
-  ~MarkingThread() {}
-
-  void Run();
-  void Stop();
-  void StartMarking();
-  void WaitForMarkingThread();
-
- private:
-  Isolate* isolate_;
-  Heap* heap_;
-  Semaphore start_marking_semaphore_;
-  Semaphore end_marking_semaphore_;
-  Semaphore stop_semaphore_;
-  volatile AtomicWord stop_thread_;
-  int id_;
-  static Atomic32 id_counter_;
-};
-
-} }  // namespace v8::internal
-
-#endif  // V8_MARKING_THREAD_H_
+#endif  // V8_MSAN_H_

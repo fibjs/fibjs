@@ -2,8 +2,12 @@
 #ifndef V8_PLATFORM_MUTEX_H_
 #define V8_PLATFORM_MUTEX_H_
 
-#include <exlib/fiber.h>
 #include "lazy-instance.h"
+#include <exlib/fiber.h>
+
+#if V8_OS_WIN
+#include "../win32-headers.h"
+#endif
 
 namespace v8 {
 namespace internal {

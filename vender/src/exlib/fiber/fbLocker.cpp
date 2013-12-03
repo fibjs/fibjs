@@ -68,7 +68,7 @@ void Locker::unlock()
 				if (m_blocks.empty())
 				{
 					m_locked = false;
-					m_locker = NULL;
+					m_locker = 0;
 				}
 				else
 				{

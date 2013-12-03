@@ -60,6 +60,7 @@
     <ClCompile Include="src\exlib\fiber\fbService.cpp" />
     <ClCompile Include="src\exlib\fiber\fbSwitch.cpp" />
     <ClCompile Include="src\exlib\fiber\fbTls.cpp" />
+    <ClCompile Include="src\exlib\fiber\fbUtils.cpp" />
     <ClCompile Include="src\exlib\thread.cpp" />
     <ClCompile Include="src\gd\gd.c" />
     <ClCompile Include="src\gd\gdcache.c" />
@@ -309,6 +310,7 @@
     <ClCompile Include="src\uuid\uuid_ui128.c" />
     <ClCompile Include="src\uuid\uuid_ui64.c" />
     <ClCompile Include="src\v8\src\accessors.cc" />
+    <ClCompile Include="src\v8\src\allocation-site-scopes.cc" />
     <ClCompile Include="src\v8\src\allocation.cc" />
     <ClCompile Include="src\v8\src\api.cc" />
     <ClCompile Include="src\v8\src\arguments.cc" />
@@ -340,7 +342,6 @@
     <ClCompile Include="src\v8\src\builtins.cc" />
     <ClCompile Include="src\v8\src\cached-powers.cc" />
     <ClCompile Include="src\v8\src\checks.cc" />
-    <ClCompile Include="src\v8\src\circular-queue.cc" />
     <ClCompile Include="src\v8\src\code-stubs-hydrogen.cc" />
     <ClCompile Include="src\v8\src\code-stubs.cc" />
     <ClCompile Include="src\v8\src\codegen.cc" />
@@ -386,7 +387,6 @@
     <ClCompile Include="src\v8\src\hydrogen-check-elimination.cc" />
     <ClCompile Include="src\v8\src\hydrogen-dce.cc" />
     <ClCompile Include="src\v8\src\hydrogen-dehoist.cc" />
-    <ClCompile Include="src\v8\src\hydrogen-deoptimizing-mark.cc" />
     <ClCompile Include="src\v8\src\hydrogen-environment-liveness.cc" />
     <ClCompile Include="src\v8\src\hydrogen-escape-analysis.cc" />
     <ClCompile Include="src\v8\src\hydrogen-gvn.cc" />
@@ -395,6 +395,7 @@
     <ClCompile Include="src\v8\src\hydrogen-instructions.cc" />
     <ClCompile Include="src\v8\src\hydrogen-load-elimination.cc" />
     <ClCompile Include="src\v8\src\hydrogen-mark-deoptimize.cc" />
+    <ClCompile Include="src\v8\src\hydrogen-mark-unreachable.cc" />
     <ClCompile Include="src\v8\src\hydrogen-minus-zero.cc" />
     <ClCompile Include="src\v8\src\hydrogen-osr.cc" />
     <ClCompile Include="src\v8\src\hydrogen-range-analysis.cc" />
@@ -431,12 +432,12 @@
     <ClCompile Include="src\v8\src\jsregexp.cc" />
     <ClCompile Include="src\v8\src\libraries.cc" />
     <ClCompile Include="src\v8\src\lithium-allocator.cc" />
+    <ClCompile Include="src\v8\src\lithium-codegen.cc" />
     <ClCompile Include="src\v8\src\lithium.cc" />
     <ClCompile Include="src\v8\src\liveedit.cc" />
     <ClCompile Include="src\v8\src\log-utils.cc" />
     <ClCompile Include="src\v8\src\log.cc" />
     <ClCompile Include="src\v8\src\mark-compact.cc" />
-    <ClCompile Include="src\v8\src\marking-thread.cc" />
     <ClCompile Include="src\v8\src\messages.cc" />
     <ClCompile Include="src\v8\src\objects-debug.cc" />
     <ClCompile Include="src\v8\src\objects-printer.cc" />
@@ -805,6 +806,7 @@
     <ClInclude Include="src\v8\include\v8stdint.h" />
     <ClInclude Include="src\v8\src\accessors.h" />
     <ClInclude Include="src\v8\src\allocation-inl.h" />
+    <ClInclude Include="src\v8\src\allocation-site-scopes.h" />
     <ClInclude Include="src\v8\src\allocation.h" />
     <ClInclude Include="src\v8\src\api.h" />
     <ClInclude Include="src\v8\src\apiutils.h" />
@@ -899,15 +901,16 @@
     <ClInclude Include="src\v8\src\hydrogen-check-elimination.h" />
     <ClInclude Include="src\v8\src\hydrogen-dce.h" />
     <ClInclude Include="src\v8\src\hydrogen-dehoist.h" />
-    <ClInclude Include="src\v8\src\hydrogen-deoptimizing-mark.h" />
     <ClInclude Include="src\v8\src\hydrogen-environment-liveness.h" />
     <ClInclude Include="src\v8\src\hydrogen-escape-analysis.h" />
+    <ClInclude Include="src\v8\src\hydrogen-flow-engine.h" />
     <ClInclude Include="src\v8\src\hydrogen-gvn.h" />
     <ClInclude Include="src\v8\src\hydrogen-infer-representation.h" />
     <ClInclude Include="src\v8\src\hydrogen-infer-types.h" />
     <ClInclude Include="src\v8\src\hydrogen-instructions.h" />
     <ClInclude Include="src\v8\src\hydrogen-load-elimination.h" />
     <ClInclude Include="src\v8\src\hydrogen-mark-deoptimize.h" />
+    <ClInclude Include="src\v8\src\hydrogen-mark-unreachable.h" />
     <ClInclude Include="src\v8\src\hydrogen-minus-zero.h" />
     <ClInclude Include="src\v8\src\hydrogen-osr.h" />
     <ClInclude Include="src\v8\src\hydrogen-range-analysis.h" />
@@ -946,6 +949,7 @@
     <ClInclude Include="src\v8\src\list.h" />
     <ClInclude Include="src\v8\src\lithium-allocator-inl.h" />
     <ClInclude Include="src\v8\src\lithium-allocator.h" />
+    <ClInclude Include="src\v8\src\lithium-codegen.h" />
     <ClInclude Include="src\v8\src\lithium.h" />
     <ClInclude Include="src\v8\src\liveedit.h" />
     <ClInclude Include="src\v8\src\log-inl.h" />
@@ -954,9 +958,9 @@
     <ClInclude Include="src\v8\src\macro-assembler.h" />
     <ClInclude Include="src\v8\src\mark-compact-inl.h" />
     <ClInclude Include="src\v8\src\mark-compact.h" />
-    <ClInclude Include="src\v8\src\marking-thread.h" />
     <ClInclude Include="src\v8\src\messages.h" />
     <ClInclude Include="src\v8\src\misc-intrinsics.h" />
+    <ClInclude Include="src\v8\src\msan.h" />
     <ClInclude Include="src\v8\src\natives.h" />
     <ClInclude Include="src\v8\src\objects-inl.h" />
     <ClInclude Include="src\v8\src\objects-visiting-inl.h" />
@@ -965,10 +969,6 @@
     <ClInclude Include="src\v8\src\once.h" />
     <ClInclude Include="src\v8\src\optimizing-compiler-thread.h" />
     <ClInclude Include="src\v8\src\parser.h" />
-    <ClInclude Include="src\v8\src\platform-posix.h" />
-    <ClInclude Include="src\v8\src\platform-tls-mac.h" />
-    <ClInclude Include="src\v8\src\platform-tls-win32.h" />
-    <ClInclude Include="src\v8\src\platform-tls.h" />
     <ClInclude Include="src\v8\src\platform.h" />
     <ClInclude Include="src\v8\src\platform\condition-variable.h" />
     <ClInclude Include="src\v8\src\platform\elapsed-timer.h" />
@@ -1279,7 +1279,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;ENABLE_DEBUGGER_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;ENABLE_DEBUGGER_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
@@ -1299,7 +1299,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;ENABLE_DEBUGGER_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;ENABLE_DEBUGGER_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
@@ -1321,7 +1321,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;ENABLE_DEBUGGER_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;ENABLE_DEBUGGER_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
@@ -1347,7 +1347,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;ENABLE_DEBUGGER_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;ENABLE_DEBUGGER_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>

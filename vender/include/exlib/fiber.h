@@ -6,11 +6,7 @@
  *  lion@9465.net
  */
 
-#include <string.h>
 #include <osconfig.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "lockfree.h"
 
 #ifndef _ex_fiber_h__
@@ -87,7 +83,7 @@ public:
 	void Unref()
 	{
 		if (--refs_ == 0)
-			free(this);
+			destroy();
 	}
 
 	void join();
@@ -95,6 +91,9 @@ public:
 	static void sleep(int ms);
 	static void yield();
 	static Fiber* Current();
+
+private:
+	void destroy();
 
 public:
 	context m_cntxt;
@@ -109,7 +108,7 @@ class List
 {
 public:
 	List() :
-			m_first(NULL), m_last(NULL), m_count(0)
+			m_first(0), m_last(0), m_count(0)
 	{
 	}
 
@@ -132,10 +131,10 @@ public:
 		if (pNow)
 		{
 			m_first = (T*)pNow->m_next;
-			if (m_first == NULL)
-				m_last = NULL;
+			if (m_first == 0)
+				m_last = 0;
 
-			pNow->m_next = NULL;
+			pNow->m_next = 0;
 
 			m_count--;
 		}
@@ -356,7 +355,7 @@ public:
 	Service();
 
 public:
-	static Fiber* CreateFiber(void* (*func)(void *), void *data = NULL,
+	static Fiber* CreateFiber(void* (*func)(void *), void *data = 0,
 			int stacksize = FIBER_STACK_SIZE);
 
 	static int tlsAlloc();

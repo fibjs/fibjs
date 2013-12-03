@@ -13,7 +13,7 @@ namespace exlib
 
 AsyncEvent::AsyncEvent(Service* pService)
 {
-    m_next = NULL;
+    m_next = 0;
     m_service = pService;
 }
 

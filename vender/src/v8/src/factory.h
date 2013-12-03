@@ -59,6 +59,11 @@ class Factory {
       int size,
       PretenureFlag pretenure = NOT_TENURED);
 
+  Handle<ConstantPoolArray> NewConstantPoolArray(
+      int number_of_int64_entries,
+      int number_of_ptr_entries,
+      int number_of_int32_entries);
+
   Handle<SeededNumberDictionary> NewSeededNumberDictionary(
       int at_least_space_for);
 
@@ -69,7 +74,11 @@ class Factory {
 
   Handle<ObjectHashSet> NewObjectHashSet(int at_least_space_for);
 
-  Handle<ObjectHashTable> NewObjectHashTable(int at_least_space_for);
+  Handle<ObjectHashTable> NewObjectHashTable(
+      int at_least_space_for,
+      MinimumCapacity capacity_option = USE_DEFAULT_MINIMUM_CAPACITY);
+
+  Handle<WeakHashTable> NewWeakHashTable(int at_least_space_for);
 
   Handle<DescriptorArray> NewDescriptorArray(int number_of_descriptors,
                                              int slack = 0);
@@ -241,6 +250,8 @@ class Factory {
 
   Handle<Cell> NewCell(Handle<Object> value);
 
+  Handle<PropertyCell> NewPropertyCellWithHole();
+
   Handle<PropertyCell> NewPropertyCell(Handle<Object> value);
 
   Handle<AllocationSite> NewAllocationSite();
@@ -265,10 +276,14 @@ class Factory {
   Handle<FixedArray> CopyFixedArray(Handle<FixedArray> array);
 
   Handle<FixedArray> CopySizeFixedArray(Handle<FixedArray> array,
-                                        int new_length);
+                                        int new_length,
+                                        PretenureFlag pretenure = NOT_TENURED);
 
   Handle<FixedDoubleArray> CopyFixedDoubleArray(
       Handle<FixedDoubleArray> array);
+
+  Handle<ConstantPoolArray> CopyConstantPoolArray(
+      Handle<ConstantPoolArray> array);
 
   // Numbers (e.g. literals) are pretenured by the parser.
   Handle<Object> NewNumber(double value,
@@ -295,7 +310,7 @@ class Factory {
   Handle<JSObject> NewJSObject(Handle<JSFunction> constructor,
                                PretenureFlag pretenure = NOT_TENURED);
 
-  // Global objects are pretenured.
+  // Global objects are pretenured and initialized based on a constructor.
   Handle<GlobalObject> NewGlobalObject(Handle<JSFunction> constructor);
 
   // JS objects are pretenured when allocated by the bootstrapper and
@@ -327,6 +342,8 @@ class Factory {
                                     int length);
 
   void SetContent(Handle<JSArray> array, Handle<FixedArrayBase> elements);
+
+  Handle<JSGeneratorObject> NewJSGeneratorObject(Handle<JSFunction> function);
 
   Handle<JSArrayBuffer> NewJSArrayBuffer();
 
@@ -367,7 +384,8 @@ class Factory {
                        Code::Flags flags,
                        Handle<Object> self_reference,
                        bool immovable = false,
-                       bool crankshafted = false);
+                       bool crankshafted = false,
+                       int prologue_offset = Code::kPrologueOffsetNotSet);
 
   Handle<Code> CopyCode(Handle<Code> code);
 

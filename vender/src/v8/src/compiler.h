@@ -35,8 +35,6 @@
 namespace v8 {
 namespace internal {
 
-static const int kPrologueOffsetNotSet = -1;
-
 class ScriptDataImpl;
 class HydrogenCodeStub;
 
@@ -269,12 +267,12 @@ class CompilationInfo {
   void set_bailout_reason(BailoutReason reason) { bailout_reason_ = reason; }
 
   int prologue_offset() const {
-    ASSERT_NE(kPrologueOffsetNotSet, prologue_offset_);
+    ASSERT_NE(Code::kPrologueOffsetNotSet, prologue_offset_);
     return prologue_offset_;
   }
 
   void set_prologue_offset(int prologue_offset) {
-    ASSERT_EQ(kPrologueOffsetNotSet, prologue_offset_);
+    ASSERT_EQ(Code::kPrologueOffsetNotSet, prologue_offset_);
     prologue_offset_ = prologue_offset;
   }
 
@@ -513,7 +511,8 @@ class RecompileJob: public ZoneObject {
         graph_builder_(NULL),
         graph_(NULL),
         chunk_(NULL),
-        last_status_(FAILED) { }
+        last_status_(FAILED),
+        awaiting_install_(false) { }
 
   enum Status {
     FAILED, BAILED_OUT, SUCCEEDED

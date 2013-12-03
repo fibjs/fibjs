@@ -79,6 +79,11 @@ void Fiber::yield()
 		pService->yield();
 }
 
+void Fiber::destroy()
+{
+	free(this);
+}
+
 exlib::lockfree<AsyncEvent> s_acSleep;
 std::multimap<int64_t, AsyncEvent*> s_tms;
 static int64_t s_time;

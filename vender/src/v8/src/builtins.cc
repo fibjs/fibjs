@@ -273,10 +273,20 @@ static FixedArrayBase* LeftTrimFixedArray(Heap* heap,
     MemoryChunk::IncrementLiveBytesFromMutator(elms->address(), -size_delta);
   }
 
-  HEAP_PROFILE(heap, ObjectMoveEvent(elms->address(),
-                                     elms->address() + size_delta));
-  return FixedArrayBase::cast(HeapObject::FromAddress(
-      elms->address() + to_trim * entry_size));
+  FixedArrayBase* new_elms = FixedArrayBase::cast(HeapObject::FromAddress(
+      elms->address() + size_delta));
+  HeapProfiler* profiler = heap->isolate()->heap_profiler();
+  if (profiler->is_profiling()) {
+    profiler->ObjectMoveEvent(elms->address(),
+                              new_elms->address(),
+                              new_elms->Size());
+    if (profiler->is_tracking_allocations()) {
+      // Report filler object as a new allocation.
+      // Otherwise it will become an untracked object.
+      profiler->NewObjectEvent(elms->address(), elms->Size());
+    }
+  }
+  return new_elms;
 }
 
 
@@ -1319,7 +1329,8 @@ static void Generate_LoadIC_Normal(MacroAssembler* masm) {
 
 
 static void Generate_LoadIC_Getter_ForDeopt(MacroAssembler* masm) {
-  LoadStubCompiler::GenerateLoadViaGetter(masm, Handle<JSFunction>());
+  LoadStubCompiler::GenerateLoadViaGetter(
+      masm, LoadStubCompiler::registers()[0], Handle<JSFunction>());
 }
 
 
@@ -1374,6 +1385,11 @@ static void Generate_KeyedLoadIC_NonStrictArguments(MacroAssembler* masm) {
 
 
 static void Generate_StoreIC_Slow(MacroAssembler* masm) {
+  StoreIC::GenerateSlow(masm);
+}
+
+
+static void Generate_StoreIC_Slow_Strict(MacroAssembler* masm) {
   StoreIC::GenerateSlow(masm);
 }
 
@@ -1469,6 +1485,11 @@ static void Generate_KeyedStoreIC_MissForceGeneric(MacroAssembler* masm) {
 
 
 static void Generate_KeyedStoreIC_Slow(MacroAssembler* masm) {
+  KeyedStoreIC::GenerateSlow(masm);
+}
+
+
+static void Generate_KeyedStoreIC_Slow_Strict(MacroAssembler* masm) {
   KeyedStoreIC::GenerateSlow(masm);
 }
 
@@ -1655,8 +1676,19 @@ void Builtins::InitBuiltinFunctionTable() {
     functions->extra_args = NO_EXTRA_ARGUMENTS;                             \
     ++functions;
 
+#define DEF_FUNCTION_PTR_H(aname, kind, extra)                              \
+    functions->generator = FUNCTION_ADDR(Generate_##aname);                 \
+    functions->c_code = NULL;                                               \
+    functions->s_name = #aname;                                             \
+    functions->name = k##aname;                                             \
+    functions->flags = Code::ComputeFlags(                                  \
+        Code::HANDLER, MONOMORPHIC, extra, Code::NORMAL, Code::kind);       \
+    functions->extra_args = NO_EXTRA_ARGUMENTS;                             \
+    ++functions;
+
   BUILTIN_LIST_C(DEF_FUNCTION_PTR_C)
   BUILTIN_LIST_A(DEF_FUNCTION_PTR_A)
+  BUILTIN_LIST_H(DEF_FUNCTION_PTR_H)
   BUILTIN_LIST_DEBUG_A(DEF_FUNCTION_PTR_A)
 
 #undef DEF_FUNCTION_PTR_C
@@ -1781,8 +1813,15 @@ Handle<Code> Builtins::name() {                             \
       reinterpret_cast<Code**>(builtin_address(k##name));   \
   return Handle<Code>(code_address);                        \
 }
+#define DEFINE_BUILTIN_ACCESSOR_H(name, kind, extra)        \
+Handle<Code> Builtins::name() {                             \
+  Code** code_address =                                     \
+      reinterpret_cast<Code**>(builtin_address(k##name));   \
+  return Handle<Code>(code_address);                        \
+}
 BUILTIN_LIST_C(DEFINE_BUILTIN_ACCESSOR_C)
 BUILTIN_LIST_A(DEFINE_BUILTIN_ACCESSOR_A)
+BUILTIN_LIST_H(DEFINE_BUILTIN_ACCESSOR_H)
 BUILTIN_LIST_DEBUG_A(DEFINE_BUILTIN_ACCESSOR_A)
 #undef DEFINE_BUILTIN_ACCESSOR_C
 #undef DEFINE_BUILTIN_ACCESSOR_A
