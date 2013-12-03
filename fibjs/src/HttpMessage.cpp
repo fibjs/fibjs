@@ -8,6 +8,7 @@
 #include "HttpMessage.h"
 #include "parse.h"
 #include "Buffer.h"
+#include <string.h>
 
 namespace fibjs
 {

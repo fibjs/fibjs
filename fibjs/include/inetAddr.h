@@ -6,6 +6,7 @@
  */
 
 #include "ifs/net.h"
+#include <string.h>
 
 #ifndef INETADDR_H_
 #define INETADDR_H_

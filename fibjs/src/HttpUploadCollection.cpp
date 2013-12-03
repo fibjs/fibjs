@@ -8,6 +8,7 @@
 #include "HttpUploadCollection.h"
 #include "HttpUploadData.h"
 #include "MemoryStream.h"
+#include <string.h>
 
 namespace fibjs
 {

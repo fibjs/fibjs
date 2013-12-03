@@ -8,6 +8,7 @@
 #include "ifs/hash.h"
 #include "Digest.h"
 #include "Buffer.h"
+#include <string.h>
 #include <crypto/md2.h>
 #include <crypto/md4.h>
 #include <crypto/md5.h>

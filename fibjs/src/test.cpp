@@ -248,7 +248,7 @@ public:
 				}
 			}
 
-			if (p->m_pos == p->m_subs.size())
+			if (p->m_pos == (int)p->m_subs.size())
 			{
 				for (i = (int) p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--)
 					if (v8::Handle<v8::Function>::New(isolate,

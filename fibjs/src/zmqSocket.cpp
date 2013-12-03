@@ -7,6 +7,7 @@
 
 #include "zmqSocket.h"
 #include "Buffer.h"
+#include <string.h>
 
 namespace fibjs
 {

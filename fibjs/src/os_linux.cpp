@@ -13,6 +13,7 @@
 #include <dlfcn.h>
 #include <sys/sysinfo.h>
 #include <sys/param.h>
+#include <string.h>
 
 #ifndef CLOCK_BOOTTIME
 #define CLOCK_BOOTTIME 7

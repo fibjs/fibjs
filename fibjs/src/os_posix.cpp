@@ -13,6 +13,7 @@
 # include <sys/utsname.h>
 #include <ifaddrs.h>
 #include <net/if.h>
+#include <string.h>
 
 namespace fibjs
 {

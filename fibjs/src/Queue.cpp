@@ -18,7 +18,7 @@ result_t Queue_base::_new(int32_t size, obj_ptr<Queue_base>& retVal)
 
 result_t Queue::add(Variant e, bool& retVal)
 {
-	if (m_list.size() == m_size)
+	if ((int)m_list.size() == m_size)
 		return CALL_E_OVERFLOW;
 
 	m_list.push_back(e);
@@ -29,7 +29,7 @@ result_t Queue::add(Variant e, bool& retVal)
 
 result_t Queue::offer(Variant e, bool& retVal)
 {
-	if (m_list.size() == m_size)
+	if ((int)m_list.size() == m_size)
 	{
 		retVal = false;
 		return 0;

@@ -6,6 +6,7 @@
  */
 
 #include "HttpCollection.h"
+#include <string.h>
 
 namespace fibjs
 {

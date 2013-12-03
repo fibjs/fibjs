@@ -18,7 +18,7 @@ result_t BlockQueue_base::_new(int32_t size, obj_ptr<BlockQueue_base>& retVal)
 
 result_t BlockQueue::add(Variant e, bool& retVal)
 {
-	if (m_list.size() == m_size)
+	if ((int)m_list.size() == m_size)
 		return CALL_E_OVERFLOW;
 
 	put(e);
@@ -29,7 +29,7 @@ result_t BlockQueue::add(Variant e, bool& retVal)
 
 result_t BlockQueue::offer(Variant e, bool& retVal)
 {
-	if (m_list.size() == m_size)
+	if ((int)m_list.size() == m_size)
 	{
 		retVal = false;
 		return 0;
@@ -129,7 +129,7 @@ result_t BlockQueue::toJSON(const char* key, v8::Handle<v8::Value>& retVal)
 
 result_t BlockQueue::put(Variant e)
 {
-	if (m_list.size() == m_size)
+	if ((int)m_list.size() == m_size)
 	{
 		v8::Unlocker unlocker(isolate);
 

@@ -206,7 +206,7 @@ int checkStack(v8::Handle<v8::Object> actual, v8::Handle<v8::Object> expected)
 {
 	int i;
 
-	for (i = 0; i < s_acts.size(); i++)
+	for (i = 0; i < (int)s_acts.size(); i++)
 		if (actual->Equals(s_acts[i]))
 		{
 			if (expected->Equals(s_exps[i]))

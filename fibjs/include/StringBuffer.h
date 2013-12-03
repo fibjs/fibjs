@@ -7,6 +7,7 @@
 
 #include "QuickArray.h"
 #include <string>
+#include <string.h>
 
 #ifndef STRINGARRAY_H_
 #define STRINGARRAY_H_
