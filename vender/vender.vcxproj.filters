@@ -1893,6 +1893,9 @@
     <ClCompile Include="src\v8\src\trig-table.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\mongo\bcon.c">
+      <Filter>Source Files\mongo</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -3544,6 +3547,9 @@
     </ClInclude>
     <ClInclude Include="src\v8\src\trig-table.h">
       <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mongo\bcon.h">
+      <Filter>Source Files\mongo</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

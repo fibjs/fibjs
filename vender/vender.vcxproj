@@ -215,6 +215,7 @@
     <ClCompile Include="src\matrixssl\matrixssl\sslEncode.c" />
     <ClCompile Include="src\matrixssl\matrixssl\sslv3.c" />
     <ClCompile Include="src\matrixssl\matrixssl\tls.c" />
+    <ClCompile Include="src\mongo\bcon.c" />
     <ClCompile Include="src\mongo\bson.c" />
     <ClCompile Include="src\mongo\encoding.c" />
     <ClCompile Include="src\mongo\gridfs.c" />
@@ -735,6 +736,7 @@
     <ClInclude Include="src\matrixssl\matrixssl\matrixsslConfig.h" />
     <ClInclude Include="src\matrixssl\matrixssl\matrixssllib.h" />
     <ClInclude Include="src\matrixssl\matrixssl\version.h" />
+    <ClInclude Include="src\mongo\bcon.h" />
     <ClInclude Include="src\mongo\bson.h" />
     <ClInclude Include="src\mongo\encoding.h" />
     <ClInclude Include="src\mongo\env.h" />
