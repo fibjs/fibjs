@@ -20,9 +20,9 @@ int mongo_env_set_socket_op_timeout(mongo *conn, int millis)
 	return MONGO_OK;
 }
 
-int mongo_env_read_socket(mongo *conn, void *buf, int len)
+int mongo_env_read_socket(mongo *conn, void *buf, size_t len)
 {
-	if (fibjs::socket::read(conn->sock, buf, len) < 0)
+	if (fibjs::socket::read(conn->sock, buf, (int)len) < 0)
 	{
 		__mongo_set_error(conn, MONGO_IO_ERROR, NULL,
 				fibjs::Runtime::errNumber());
@@ -32,9 +32,9 @@ int mongo_env_read_socket(mongo *conn, void *buf, int len)
 	return MONGO_OK;
 }
 
-int mongo_env_write_socket(mongo *conn, const void *buf, int len)
+int mongo_env_write_socket(mongo *conn, const void *buf, size_t len)
 {
-	if (fibjs::socket::send(conn->sock, buf, len) < 0)
+	if (fibjs::socket::send(conn->sock, buf, (int)len) < 0)
 	{
 		__mongo_set_error(conn, MONGO_IO_ERROR, NULL,
 				fibjs::Runtime::errNumber());
@@ -67,57 +67,48 @@ int mongo_env_close_socket(void* socket)
 	return 0;
 }
 
-int mongo_run_command(mongo *conn, const char *db, const bson *command,
-		bson *out)
+MONGO_EXPORT int mongo_run_command(mongo *conn, const char *db,
+		const bson *command, bson *out)
 {
-	int ret = MONGO_OK;
-	bson response =
-	{ NULL, 0 };
-	bson fields;
-	int sl = (int) strlen(db);
-	char *ns = (char*) bson_malloc(sl + 5 + 1); /* ".$cmd" + nul */
-	int res, success = 0;
+	bson response[1];
+	bson_iterator it[1];
+	size_t sl = strlen(db);
+	char *ns = (char*) bson_malloc(sl + 5 + 1);
+	int res = 0;
 
 	strcpy(ns, db);
 	strcpy(ns + sl, ".$cmd");
 
-	res = mongo_find_one(conn, ns, command, bson_empty(&fields), &response);
+	res = mongo_find_one(conn, ns, command, bson_shared_empty(), response);
 	bson_free(ns);
 
-	if (res != MONGO_OK)
-		ret = MONGO_ERROR;
-	else
+	if (res == MONGO_OK
+			&& (!bson_find(it, response, "ok") || !bson_iterator_bool(it)))
 	{
-		bson_iterator it;
-		if (bson_find(&it, &response, "ok"))
-			success = bson_iterator_bool(&it);
-
-		if (!success)
+		if (bson_find(it, response, "errmsg"))
 		{
-			if (bson_find(&it, &response, "errmsg"))
-			{
-				int result_len = bson_iterator_string_len(&it);
-				const char *result_string = bson_iterator_string(&it);
-				int len =
-						result_len < MONGO_ERR_LEN ? result_len : MONGO_ERR_LEN;
-				memcpy(conn->lasterrstr, result_string, len);
-				conn->lasterrcode = -1;
-			}
-			else
-				conn->err = MONGO_COMMAND_FAILED;
-
-			bson_destroy(&response);
-			ret = MONGO_ERROR;
+			int result_len = bson_iterator_string_len(it);
+			const char *result_string = bson_iterator_string(it);
+			int len = result_len < MONGO_ERR_LEN ? result_len : MONGO_ERR_LEN;
+			memcpy(conn->lasterrstr, result_string, len);
+			conn->lasterrcode = -1;
 		}
 		else
-		{
-			if (out)
-				*out = response;
-			else
-				bson_destroy(&response);
-		}
+			conn->err = MONGO_COMMAND_FAILED;
+
+		bson_destroy(response);
+		res = MONGO_ERROR;
 	}
-	return ret;
+
+	if (out)
+		if (res == MONGO_OK)
+			*out = *response;
+		else
+			bson_init_zero(out);
+	else if (res == MONGO_OK)
+		bson_destroy(response);
+
+	return res;
 }
 
 namespace fibjs

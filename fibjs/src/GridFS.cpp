@@ -34,7 +34,7 @@ result_t GridFS::retrieve(const char* name, obj_ptr<MemoryStream_base>& retVal)
 	if (len > 0)
 	{
 		strBuf.resize((size_t)len);
-		if (gridfile_read(&f, len, &strBuf[0]) != len)
+		if (gridfile_read_buffer(&f, &strBuf[0], len) != len)
 		{
 			gridfile_destroy(&f);
 			return m_db->error();
@@ -56,7 +56,7 @@ result_t GridFS::store(const char* name, Stream_base* src)
 	result_t hr;
 	gridfile f;
 
-	gridfile_writer_init(&f, &m_fs, name, "");
+	gridfile_writer_init(&f, &m_fs, name, "", GRIDFILE_DEFAULT);
 
 	while (true)
 	{
@@ -91,7 +91,7 @@ result_t GridFS::store(const char* name, Buffer_base* data)
 
 	gridfile f;
 
-	gridfile_writer_init(&f, &m_fs, name, "");
+	gridfile_writer_init(&f, &m_fs, name, "", GRIDFILE_DEFAULT);
 
 	std::string strBuf;
 	data->toString(strBuf);
