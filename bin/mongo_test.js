@@ -25,17 +25,17 @@ mdb.test.insert(datas);
 assert.equal(mdb.test.find().skip(10).count(), 30);
 assert.equal(mdb.test.find().skip(10).size(), 20);
 
-assert.equal(mdb.test.find().toJSON(), datas);
-assert.equal(mdb.test.findOne({
+assert.deepEqual(mdb.test.find().toJSON(), datas);
+assert.deepEqual(mdb.test.findOne({
 	_id : 3
 }), datas[3]);
-assert.equal(mdb.test.find().skip(10).toJSON(), datas.slice(10));
-assert.equal(mdb.test.find().skip(10).limit(10).toJSON(), datas.slice(10, 20));
+assert.deepEqual(mdb.test.find().skip(10).toJSON(), datas.slice(10));
+assert.deepEqual(mdb.test.find().skip(10).limit(10).toJSON(), datas.slice(10, 20));
 
 datas[0].data = 'new data';
 mdb.test.save(datas[0]);
 
-assert.equal(mdb.test.find().sort({
+assert.deepEqual(mdb.test.find().sort({
 	_id : 1
 }).toJSON(), datas);
 
@@ -48,10 +48,10 @@ var r = mdb.test.findAndModify({
 	}
 });
 
-assert.equal(r.value, datas[10]);
+assert.deepEqual(r.value, datas[10]);
 datas[10].data = "new data1";
 
-assert.equal(mdb.test.find().sort({
+assert.deepEqual(mdb.test.find().sort({
 	_id : 1
 }).toJSON(), datas);
 
@@ -87,7 +87,7 @@ var data = new Buffer("this is a gridfs file.");
 fs.store("test.txt", data);
 assert.ok(fs.exists("test.txt"), "file created.");
 
-assert.equal(fs.retrieve("test.txt").readAll(), data);
+assert.deepEqual(fs.retrieve("test.txt").readAll(), data);
 
 fs.remove('test.txt');
 assert.ok(!fs.exists("test.txt"), "file removed.");
