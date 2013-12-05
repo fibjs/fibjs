@@ -1,7 +1,7 @@
 
 /*! @brief 网络套接口对象
  */
-class zmqSocket : Trigger
+class zmqSocket : object
 {
 	zmqSocket(Integer type = zmq.PAIR);
 	bind(String addr);

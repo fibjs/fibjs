@@ -46,46 +46,14 @@ result_t MemoryStream::CloneStream::read(int32_t bytes,
 	return 0;
 }
 
-result_t MemoryStream::CloneStream::asyncRead(int32_t bytes)
-{
-	acb_read(bytes);
-	return 0;
-}
-
-result_t MemoryStream::CloneStream::onread(v8::Handle<v8::Function> func)
-{
-	return on("read", func);
-}
-
 result_t MemoryStream::CloneStream::readAll(obj_ptr<Buffer_base>& retVal,
 		exlib::AsyncEvent* ac)
 {
 	return read(-1, retVal, ac);
 }
 
-result_t MemoryStream::CloneStream::asyncReadAll()
-{
-	acb_readAll();
-	return 0;
-}
-
-result_t MemoryStream::CloneStream::onreadall(v8::Handle<v8::Function> func)
-{
-	return on("readall", func);
-}
-
 result_t MemoryStream::CloneStream::write(Buffer_base* data,
 		exlib::AsyncEvent* ac)
-{
-	return CALL_E_INVALID_CALL;
-}
-
-result_t MemoryStream::CloneStream::asyncWrite(Buffer_base* data)
-{
-	return CALL_E_INVALID_CALL;
-}
-
-result_t MemoryStream::CloneStream::onwrite(v8::Handle<v8::Function> func)
 {
 	return CALL_E_INVALID_CALL;
 }
@@ -95,31 +63,10 @@ result_t MemoryStream::CloneStream::close(exlib::AsyncEvent* ac)
 	return 0;
 }
 
-result_t MemoryStream::CloneStream::asyncClose()
-{
-	return 0;
-}
-
-result_t MemoryStream::CloneStream::onclose(v8::Handle<v8::Function> func)
-{
-	return on("close", func);
-}
-
 result_t MemoryStream::CloneStream::copyTo(Stream_base* stm, int64_t bytes,
 		int64_t& retVal, exlib::AsyncEvent* ac)
 {
 	return copyStream(this, stm, bytes, retVal, ac);
-}
-
-result_t MemoryStream::CloneStream::asyncCopyTo(Stream_base* stm, int64_t bytes)
-{
-	acb_copyTo(stm, bytes);
-	return 0;
-}
-
-result_t MemoryStream::CloneStream::oncopyto(v8::Handle<v8::Function> func)
-{
-	return on("copyto", func);
 }
 
 result_t MemoryStream::CloneStream::stat(obj_ptr<Stat_base>& retVal,
@@ -135,22 +82,6 @@ result_t MemoryStream::CloneStream::stat(obj_ptr<Stat_base>& retVal,
 	retVal = st;
 
 	return 0;
-}
-
-result_t MemoryStream::CloneStream::asyncStat()
-{
-	acb_stat();
-	return 0;
-}
-
-result_t MemoryStream::CloneStream::onstat(v8::Handle<v8::Function> func)
-{
-	return on("stat", func);
-}
-
-result_t MemoryStream::CloneStream::onerror(v8::Handle<v8::Function> func)
-{
-	return on("error", func);
 }
 
 result_t MemoryStream::CloneStream::seek(int64_t offset, int32_t whence)

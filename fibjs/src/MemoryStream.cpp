@@ -58,32 +58,10 @@ result_t MemoryStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 	return 0;
 }
 
-result_t MemoryStream::asyncRead(int32_t bytes)
-{
-	acb_read(bytes);
-	return 0;
-}
-
-result_t MemoryStream::onread(v8::Handle<v8::Function> func)
-{
-	return on("read", func);
-}
-
 result_t MemoryStream::readAll(obj_ptr<Buffer_base>& retVal,
 		exlib::AsyncEvent* ac)
 {
 	return read(-1, retVal, ac);
-}
-
-result_t MemoryStream::asyncReadAll()
-{
-	acb_readAll();
-	return 0;
-}
-
-result_t MemoryStream::onreadall(v8::Handle<v8::Function> func)
-{
-	return on("readall", func);
 }
 
 result_t MemoryStream::write(Buffer_base* data, exlib::AsyncEvent* ac)
@@ -106,47 +84,15 @@ result_t MemoryStream::write(Buffer_base* data, exlib::AsyncEvent* ac)
 	return 0;
 }
 
-result_t MemoryStream::asyncWrite(Buffer_base* data)
-{
-	acb_write(data);
-	return 0;
-}
-
-result_t MemoryStream::onwrite(v8::Handle<v8::Function> func)
-{
-	return on("write", func);
-}
-
 result_t MemoryStream::close(exlib::AsyncEvent* ac)
 {
 	return 0;
-}
-
-result_t MemoryStream::asyncClose()
-{
-	return 0;
-}
-
-result_t MemoryStream::onclose(v8::Handle<v8::Function> func)
-{
-	return on("close", func);
 }
 
 result_t MemoryStream::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal,
 		exlib::AsyncEvent* ac)
 {
 	return copyStream(this, stm, bytes, retVal, ac);
-}
-
-result_t MemoryStream::asyncCopyTo(Stream_base* stm, int64_t bytes)
-{
-	acb_copyTo(stm, bytes);
-	return 0;
-}
-
-result_t MemoryStream::oncopyto(v8::Handle<v8::Function> func)
-{
-	return on("copyto", func);
 }
 
 result_t MemoryStream::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
@@ -161,22 +107,6 @@ result_t MemoryStream::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
 	retVal = st;
 
 	return 0;
-}
-
-result_t MemoryStream::asyncStat()
-{
-	acb_stat();
-	return 0;
-}
-
-result_t MemoryStream::onstat(v8::Handle<v8::Function> func)
-{
-	return on("stat", func);
-}
-
-result_t MemoryStream::onerror(v8::Handle<v8::Function> func)
-{
-	return on("error", func);
 }
 
 result_t MemoryStream::seek(int64_t offset, int32_t whence)

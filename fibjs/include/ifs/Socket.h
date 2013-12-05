@@ -33,21 +33,13 @@ public:
 	virtual result_t get_localAddress(std::string& retVal) = 0;
 	virtual result_t get_localPort(int32_t& retVal) = 0;
 	virtual result_t connect(const char* host, int32_t port, exlib::AsyncEvent* ac) = 0;
-	virtual result_t asyncConnect(const char* host, int32_t port) = 0;
-	virtual result_t onconnect(v8::Handle<v8::Function> func) = 0;
 	virtual result_t bind(int32_t port, bool allowIPv4) = 0;
 	virtual result_t bind(const char* addr, int32_t port, bool allowIPv4) = 0;
 	virtual result_t listen(int32_t backlog) = 0;
 	virtual result_t accept(obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t asyncAccept() = 0;
-	virtual result_t onaccept(v8::Handle<v8::Function> func) = 0;
 	virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t asyncRecv(int32_t bytes) = 0;
-	virtual result_t onrecv(v8::Handle<v8::Function> func) = 0;
 	virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t send(Buffer_base* data, exlib::AsyncEvent* ac) = 0;
-	virtual result_t asyncSend(Buffer_base* data) = 0;
-	virtual result_t onsend(v8::Handle<v8::Function> func) = 0;
 	virtual result_t sendto(Buffer_base* data, const char* host, int32_t port) = 0;
 
 	DECLARE_CLASSINFO(Socket_base);
@@ -61,20 +53,12 @@ public:
 	static void s_get_localAddress(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_localPort(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_asyncConnect(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_onconnect(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_bind(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_listen(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_accept(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_asyncAccept(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_onaccept(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_recv(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_asyncRecv(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_onrecv(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_recvFrom(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_send(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_asyncSend(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_onsend(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_sendto(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -100,20 +84,12 @@ namespace fibjs
 		static ClassData::ClassMethod s_method[] = 
 		{
 			{"connect", s_connect},
-			{"asyncConnect", s_asyncConnect},
-			{"onconnect", s_onconnect},
 			{"bind", s_bind},
 			{"listen", s_listen},
 			{"accept", s_accept},
-			{"asyncAccept", s_asyncAccept},
-			{"onaccept", s_onaccept},
 			{"recv", s_recv},
-			{"asyncRecv", s_asyncRecv},
-			{"onrecv", s_onrecv},
 			{"recvFrom", s_recvFrom},
 			{"send", s_send},
-			{"asyncSend", s_asyncSend},
-			{"onsend", s_onsend},
 			{"sendto", s_sendto}
 		};
 
@@ -130,7 +106,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Socket", s__new, 
-			16, s_method, 0, NULL, 6, s_property, NULL, NULL,
+			8, s_method, 0, NULL, 6, s_property, NULL, NULL,
 			&Stream_base::class_info()
 		};
 
@@ -237,31 +213,6 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline void Socket_base::s_asyncConnect(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(Socket_base);
-		METHOD_ENTER(2, 2);
-
-		ARG_String(0);
-		ARG(int32_t, 1);
-
-		hr = pInst->asyncConnect(v0, v1);
-
-		METHOD_VOID();
-	}
-
-	inline void Socket_base::s_onconnect(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(Socket_base);
-		METHOD_ENTER(1, 1);
-
-		ARG(v8::Handle<v8::Function>, 0);
-
-		hr = pInst->onconnect(v0);
-
-		METHOD_VOID();
-	}
-
 	inline void Socket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Socket_base);
@@ -307,28 +258,6 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void Socket_base::s_asyncAccept(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(Socket_base);
-		METHOD_ENTER(0, 0);
-
-		hr = pInst->asyncAccept();
-
-		METHOD_VOID();
-	}
-
-	inline void Socket_base::s_onaccept(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(Socket_base);
-		METHOD_ENTER(1, 1);
-
-		ARG(v8::Handle<v8::Function>, 0);
-
-		hr = pInst->onaccept(v0);
-
-		METHOD_VOID();
-	}
-
 	inline void Socket_base::s_recv(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
@@ -341,30 +270,6 @@ namespace fibjs
 		hr = pInst->ac_recv(v0, vr);
 
 		METHOD_RETURN();
-	}
-
-	inline void Socket_base::s_asyncRecv(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(Socket_base);
-		METHOD_ENTER(1, 0);
-
-		OPT_ARG(int32_t, 0, -1);
-
-		hr = pInst->asyncRecv(v0);
-
-		METHOD_VOID();
-	}
-
-	inline void Socket_base::s_onrecv(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(Socket_base);
-		METHOD_ENTER(1, 1);
-
-		ARG(v8::Handle<v8::Function>, 0);
-
-		hr = pInst->onrecv(v0);
-
-		METHOD_VOID();
 	}
 
 	inline void Socket_base::s_recvFrom(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -389,30 +294,6 @@ namespace fibjs
 		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->ac_send(v0);
-
-		METHOD_VOID();
-	}
-
-	inline void Socket_base::s_asyncSend(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(Socket_base);
-		METHOD_ENTER(1, 1);
-
-		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = pInst->asyncSend(v0);
-
-		METHOD_VOID();
-	}
-
-	inline void Socket_base::s_onsend(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(Socket_base);
-		METHOD_ENTER(1, 1);
-
-		ARG(v8::Handle<v8::Function>, 0);
-
-		hr = pInst->onsend(v0);
 
 		METHOD_VOID();
 	}

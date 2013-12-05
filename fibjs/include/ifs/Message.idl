@@ -7,7 +7,7 @@
  var m = new mq.Message();
  @endcode 
  *  */
-class Message: Trigger
+class Message: object
 {
 	/*! @brief 消息对象构造函数 */
 	Message();
@@ -35,42 +35,10 @@ class Message: Trigger
 	 */
 	sendTo(Stream stm) async;
 
-	/*! @brief 异步发送格式化消息到给定的流对象，操作完成将触发 sendto 事件
-	 @param stm 指定接收格式化消息的流对象
-	 */
-	asyncSendTo(Stream stm);
-
-	/*! @brief 注册 "sendto" 事件，等同于 on("sendto", func);
-	 @param func 事件处理函数
-	
-	 "sendto" 事件定义如下：
-	 @code
-	 function on_sendto()
-	 {}
-	 @endcode
-	 */
-	onsendto(Function func);
-
 	/*! @brief 从给定的缓存流对象中读取格式化消息，并解析填充对象
 	 @param stm 指定读取格式化消息的流对象
 	 */
 	readFrom(BufferedStream stm) async;
-
-	/*! @brief 异步从给定的缓存流对象中读取格式化消息，并解析填充对象，操作完成将触发 readfrom 事件
-	 @param stm 指定读取格式化消息的流对象
-	 */
-	asyncReadFrom(BufferedStream stm);
-
-	/*! @brief 注册 "readfrom" 事件，等同于 on("readfrom", func);
-	 @param func 事件处理函数
-	
-	 "readfrom" 事件定义如下：
-	 @code
-	 function on_readfrom()
-	 {}
-	 @endcode
-	 */
-	onreadfrom(Function func);
 
 	/*! @brief 查询消息 readFrom 时的流对象 */
 	readonly Stream stream;

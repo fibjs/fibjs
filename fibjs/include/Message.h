@@ -17,8 +17,6 @@ namespace fibjs
 
 class Message: public Message_base
 {
-	EVENT_SUPPORT();
-
 public:
 	// Message_base
 	virtual result_t get_value(std::string& retVal);
@@ -32,11 +30,7 @@ public:
 	virtual result_t get_length(int64_t& retVal);
 	virtual result_t clear();
 	virtual result_t sendTo(Stream_base* stm, exlib::AsyncEvent* ac);
-	virtual result_t asyncSendTo(Stream_base* stm);
-	virtual result_t onsendto(v8::Handle<v8::Function> func);
 	virtual result_t readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac);
-	virtual result_t asyncReadFrom(BufferedStream_base* stm);
-	virtual result_t onreadfrom(v8::Handle<v8::Function> func);
 	virtual result_t get_stream(obj_ptr<Stream_base>& retVal);
 
 public:

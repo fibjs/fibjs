@@ -22,40 +22,8 @@ class SeekableStream : Stream
 	 */
 	Buffer readAll() async;
 
-	/*! @brief 从流内异步读取指定大小的数据，完成后触发事件 "read"
-	 */
-	asyncReadAll();
-
-	/*! @brief 注册 "readall" 事件，等同于 on("readall", func);
-	 @param func 事件处理函数
-	
-	 "readall" 事件定义如下，参数为读取的数据：
-	 @code
-	 function on_readallß(data)
-	 {}
-	 @endcode
-	 */
-	onreadall(Function func);
-
 	/*! @brief 查询当前文件的基础信息
 	 @return 返回 Stat 对象描述文件信息
 	 */
 	Stat stat() async;
-
-	/*! @brief 异步查询当前文件的基础信息
-	 @return 返回 Stat 对象描述文件信息
-	 */
-	asyncStat();
-
-	/*! @brief 注册 "stat" 事件，等同于 on("stat", func);
-	 @param func 事件处理函数
-	
-	 "stat" 事件定义如下：
-	 @code
-	 function on_stat(Stat)
-	 {}
-	 @endcode
-	 */
-	onstat(Function func);
-
 };

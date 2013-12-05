@@ -1,6 +1,6 @@
 
 /*! @brief 流操作对象，用于二进制数据流读写*/
-class Stream : Trigger
+class Stream : object
 {
 	/*! @brief 从流内读取指定大小的数据
 	 @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
@@ -8,59 +8,13 @@ class Stream : Trigger
 	 */
 	Buffer read(Integer bytes = -1) async;
 
-	/*! @brief 从流内异步读取指定大小的数据，完成后触发事件 "read"
-	 @param bytes 指定要读取的数据量，缺省为读取剩余全部数据
-	 */
-	asyncRead(Integer bytes = -1);
-
-	/*! @brief 注册 "read" 事件，等同于 on("read", func);
-	 @param func 事件处理函数
-	
-	 "read" 事件定义如下，参数为读取的数据：
-	 @code
-	 function on_read(data)
-	 {}
-	 @endcode
-	 */
-	onread(Function func);
-
 	/*! @brief 将给定的数据写入流
 	 @param data 给定要写入的数据
 	 */
 	write(Buffer data) async;
 
-	/*! @brief 将给定的数据异步写入流，完成后触发事件 "write"
-	 @param data 给定要写入的数据
-	 */
-	asyncWrite(Buffer data);
-
-	/*! @brief 注册 "write" 事件，等同于 on("write", func);
-	 @param func 事件处理函数
-	
-	 "write" 事件定义如下：
-	 @code
-	 function on_write()
-	 {}
-	 @endcode
-	 */
-	onwrite(Function func);
-
 	/*! @brief 关闭当前流对象 */
 	close() async;
-
-	/*! @brief 异步关闭当前流对象，完成后触发事件 "close" */
-	asyncClose();
-
-	/*! @brief 注册 "close" 事件，等同于 on("close", func);
-	 @param func 事件处理函数
-	
-	 "close" 事件定义如下：
-	 @code
-	 function on_close()
-	 {}
-	 @endcode
-	 */
-	onclose(Function func);
 
 	/*! @brief 复制流数据到目标流中
 	 @param stm 目标流对象
@@ -68,32 +22,4 @@ class Stream : Trigger
 	 @return 返回复制的字节数
 	 */
 	Long copyTo(Stream stm, Long bytes = -1) async;
-
-	/*! @brief 异步复制流数据到目标流中，完成后触发事件 "copyto"
-	 @param stm 目标流对象
-	 @param bytes 复制的字节数
-	 */
-	asyncCopyTo(Stream stm, Long bytes = -1);
-
-	/*! @brief 注册 "copyto" 事件，等同于 on("copyto", func);
-	 @param func 事件处理函数
-	
-	 "copyto" 事件定义如下，参数为复制字节数：
-	 @code
-	 function on_copyto(num)
-	 {}
-	 @endcode
-	 */
-	oncopyto(Function func);
-
-	/*! @brief 注册 "error" 事件，等同于 on("error", func);
-	 @param func 事件处理函数
-	
-	 "error" 事件定义如下：
-	 @code
-	 function on_error(err)
-	 {}
-	 @endcode
-	 */
-	onerror(Function func);
 };

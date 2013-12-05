@@ -12,16 +12,14 @@
  */
 
 #include "../object.h"
-#include "Trigger.h"
 
 namespace fibjs
 {
 
-class Trigger_base;
 class zmq_base;
 class Buffer_base;
 
-class zmqSocket_base : public Trigger_base
+class zmqSocket_base : public object_base
 {
 public:
 	// zmqSocket_base
@@ -76,7 +74,7 @@ namespace fibjs
 		{ 
 			"zmqSocket", s__new, 
 			5, s_method, 0, NULL, 1, s_property, NULL, NULL,
-			&Trigger_base::class_info()
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);

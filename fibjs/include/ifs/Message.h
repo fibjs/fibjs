@@ -12,18 +12,16 @@
  */
 
 #include "../object.h"
-#include "Trigger.h"
 
 namespace fibjs
 {
 
-class Trigger_base;
 class List_base;
 class SeekableStream_base;
 class Stream_base;
 class BufferedStream_base;
 
-class Message_base : public Trigger_base
+class Message_base : public object_base
 {
 public:
 	// Message_base
@@ -39,11 +37,7 @@ public:
 	virtual result_t get_length(int64_t& retVal) = 0;
 	virtual result_t clear() = 0;
 	virtual result_t sendTo(Stream_base* stm, exlib::AsyncEvent* ac) = 0;
-	virtual result_t asyncSendTo(Stream_base* stm) = 0;
-	virtual result_t onsendto(v8::Handle<v8::Function> func) = 0;
 	virtual result_t readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac) = 0;
-	virtual result_t asyncReadFrom(BufferedStream_base* stm) = 0;
-	virtual result_t onreadfrom(v8::Handle<v8::Function> func) = 0;
 	virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
 
 	DECLARE_CLASSINFO(Message_base);
@@ -61,11 +55,7 @@ public:
 	static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_asyncSendTo(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_onsendto(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_asyncReadFrom(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_onreadfrom(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 
 public:
@@ -90,11 +80,7 @@ namespace fibjs
 		{
 			{"clear", s_clear},
 			{"sendTo", s_sendTo},
-			{"asyncSendTo", s_asyncSendTo},
-			{"onsendto", s_onsendto},
-			{"readFrom", s_readFrom},
-			{"asyncReadFrom", s_asyncReadFrom},
-			{"onreadfrom", s_onreadfrom}
+			{"readFrom", s_readFrom}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -110,8 +96,8 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Message", s__new, 
-			7, s_method, 0, NULL, 6, s_property, NULL, NULL,
-			&Trigger_base::class_info()
+			3, s_method, 0, NULL, 6, s_property, NULL, NULL,
+			&object_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
@@ -267,30 +253,6 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline void Message_base::s_asyncSendTo(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(Message_base);
-		METHOD_ENTER(1, 1);
-
-		ARG(obj_ptr<Stream_base>, 0);
-
-		hr = pInst->asyncSendTo(v0);
-
-		METHOD_VOID();
-	}
-
-	inline void Message_base::s_onsendto(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(Message_base);
-		METHOD_ENTER(1, 1);
-
-		ARG(v8::Handle<v8::Function>, 0);
-
-		hr = pInst->onsendto(v0);
-
-		METHOD_VOID();
-	}
-
 	inline void Message_base::s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Message_base);
@@ -299,30 +261,6 @@ namespace fibjs
 		ARG(obj_ptr<BufferedStream_base>, 0);
 
 		hr = pInst->ac_readFrom(v0);
-
-		METHOD_VOID();
-	}
-
-	inline void Message_base::s_asyncReadFrom(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(Message_base);
-		METHOD_ENTER(1, 1);
-
-		ARG(obj_ptr<BufferedStream_base>, 0);
-
-		hr = pInst->asyncReadFrom(v0);
-
-		METHOD_VOID();
-	}
-
-	inline void Message_base::s_onreadfrom(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(Message_base);
-		METHOD_ENTER(1, 1);
-
-		ARG(v8::Handle<v8::Function>, 0);
-
-		hr = pInst->onreadfrom(v0);
 
 		METHOD_VOID();
 	}

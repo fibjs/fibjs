@@ -102,20 +102,6 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 	return 0;
 }
 
-result_t File::asyncRead(int32_t bytes)
-{
-	if (!m_file)
-		return CALL_E_INVALID_CALL;
-
-	acb_read(bytes);
-	return 0;
-}
-
-result_t File::onread(v8::Handle<v8::Function> func)
-{
-	return on("read", func);
-}
-
 result_t File::readAll(obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac)
 {
 	if (!m_file)
@@ -167,20 +153,6 @@ result_t File::readAll(obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac)
 	return 0;
 }
 
-result_t File::asyncReadAll()
-{
-	if (!m_file)
-		return CALL_E_INVALID_CALL;
-
-	acb_readAll();
-	return 0;
-}
-
-result_t File::onreadall(v8::Handle<v8::Function> func)
-{
-	return on("readall", func);
-}
-
 result_t File::Write(const char* p, int sz)
 {
 	if (!m_file)
@@ -216,20 +188,6 @@ result_t File::write(Buffer_base* data, exlib::AsyncEvent* ac)
 	return Write(strBuf.c_str(), (int) strBuf.length());
 }
 
-result_t File::asyncWrite(Buffer_base* data)
-{
-	if (!m_file)
-		return CALL_E_INVALID_CALL;
-
-	acb_write(data);
-	return 0;
-}
-
-result_t File::onwrite(v8::Handle<v8::Function> func)
-{
-	return on("write", func);
-}
-
 result_t File::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal,
 		exlib::AsyncEvent* ac)
 {
@@ -237,20 +195,6 @@ result_t File::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal,
 		return CALL_E_INVALID_CALL;
 
 	return copyStream(this, stm, bytes, retVal, ac);
-}
-
-result_t File::asyncCopyTo(Stream_base* stm, int64_t bytes)
-{
-	if (!m_file)
-		return CALL_E_INVALID_CALL;
-
-	acb_copyTo(stm, bytes);
-	return 0;
-}
-
-result_t File::oncopyto(v8::Handle<v8::Function> func)
-{
-	return on("copyto", func);
 }
 
 #ifndef _WIN32
@@ -319,20 +263,6 @@ result_t File::stat(obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac)
 	retVal = pStat;
 
 	return 0;
-}
-
-result_t File::asyncStat()
-{
-	if (!m_file)
-		return CALL_E_INVALID_CALL;
-
-	acb_stat();
-	return 0;
-}
-
-result_t File::onstat(v8::Handle<v8::Function> func)
-{
-	return on("stat", func);
 }
 
 result_t File::size(int64_t& retVal)
@@ -410,20 +340,6 @@ result_t File::flush(exlib::AsyncEvent* ac)
 	return 0;
 }
 
-result_t File::asyncFlush()
-{
-	if (!m_file)
-		return CALL_E_INVALID_CALL;
-
-	acb_flush();
-	return 0;
-}
-
-result_t File::onflush(v8::Handle<v8::Function> func)
-{
-	return on("flush", func);
-}
-
 #ifdef _WIN32
 #define pclose _pclose
 #endif
@@ -445,20 +361,6 @@ result_t File::close(exlib::AsyncEvent* ac)
 	return 0;
 }
 
-result_t File::asyncClose()
-{
-	if (!m_file)
-		return CALL_E_INVALID_CALL;
-
-	acb_close();
-	return 0;
-}
-
-result_t File::onclose(v8::Handle<v8::Function> func)
-{
-	return on("close", func);
-}
-
 result_t File::truncate(int64_t bytes, exlib::AsyncEvent* ac)
 {
 	if (!m_file)
@@ -471,25 +373,6 @@ result_t File::truncate(int64_t bytes, exlib::AsyncEvent* ac)
 		return LastError();
 
 	return 0;
-}
-
-result_t File::asyncTruncate(int64_t bytes)
-{
-	if (!m_file)
-		return CALL_E_INVALID_CALL;
-
-	acb_truncate(bytes);
-	return 0;
-}
-
-result_t File::ontruncate(v8::Handle<v8::Function> func)
-{
-	return on("truncate", func);
-}
-
-result_t File::onerror(v8::Handle<v8::Function> func)
-{
-	return on("error", func);
 }
 
 }

@@ -150,27 +150,7 @@ result_t Message::sendTo(Stream_base* stm, exlib::AsyncEvent* ac)
 	return CALL_E_INVALID_CALL;
 }
 
-result_t Message::asyncSendTo(Stream_base* stm)
-{
-	return CALL_E_INVALID_CALL;
-}
-
-result_t Message::onsendto(v8::Handle<v8::Function> func)
-{
-	return CALL_E_INVALID_CALL;
-}
-
 result_t Message::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
-{
-	return CALL_E_INVALID_CALL;
-}
-
-result_t Message::asyncReadFrom(BufferedStream_base* stm)
-{
-	return CALL_E_INVALID_CALL;
-}
-
-result_t Message::onreadfrom(v8::Handle<v8::Function> func)
 {
 	return CALL_E_INVALID_CALL;
 }

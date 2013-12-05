@@ -219,17 +219,6 @@ result_t HttpResponse::sendTo(Stream_base* stm, exlib::AsyncEvent* ac)
 	return m_message.sendTo(stm, strCommand, ac);
 }
 
-result_t HttpResponse::asyncSendTo(Stream_base* stm)
-{
-	acb_sendTo(stm);
-	return 0;
-}
-
-result_t HttpResponse::onsendto(v8::Handle<v8::Function> func)
-{
-	return on("sendto", func);
-}
-
 result_t HttpResponse::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 {
 	class asyncReadFrom: public asyncState
@@ -286,17 +275,6 @@ result_t HttpResponse::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 		return CALL_E_NOSYNC;
 
 	return (new asyncReadFrom(this, stm, ac))->post(0);
-}
-
-result_t HttpResponse::asyncReadFrom(BufferedStream_base* stm)
-{
-	acb_readFrom(stm);
-	return 0;
-}
-
-result_t HttpResponse::onreadfrom(v8::Handle<v8::Function> func)
-{
-	return on("readfrom", func);
 }
 
 result_t HttpResponse::get_stream(obj_ptr<Stream_base>& retVal)

@@ -16,8 +16,6 @@ namespace fibjs
 
 class zmqSocket : public zmqSocket_base
 {
-	EVENT_SUPPORT();
-
 public:
 	zmqSocket(int32_t type);
 	virtual ~zmqSocket();

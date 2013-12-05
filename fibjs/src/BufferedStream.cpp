@@ -148,31 +148,9 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 	return (new asyncRead(this, bytes, retVal, ac))->post(0);
 }
 
-result_t BufferedStream::asyncRead(int32_t bytes)
-{
-	acb_read(bytes);
-	return 0;
-}
-
-result_t BufferedStream::onread(v8::Handle<v8::Function> func)
-{
-	return on("read", func);
-}
-
 result_t BufferedStream::write(Buffer_base* data, exlib::AsyncEvent* ac)
 {
 	return m_stm->write(data, ac);
-}
-
-result_t BufferedStream::asyncWrite(Buffer_base* data)
-{
-	acb_write(data);
-	return 0;
-}
-
-result_t BufferedStream::onwrite(v8::Handle<v8::Function> func)
-{
-	return on("write", func);
 }
 
 result_t BufferedStream::close(exlib::AsyncEvent* ac)
@@ -180,36 +158,10 @@ result_t BufferedStream::close(exlib::AsyncEvent* ac)
 	return 0;
 }
 
-result_t BufferedStream::asyncClose()
-{
-	return 0;
-}
-
-result_t BufferedStream::onclose(v8::Handle<v8::Function> func)
-{
-	return on("close", func);
-}
-
 result_t BufferedStream::copyTo(Stream_base* stm, int64_t bytes,
 		int64_t& retVal, exlib::AsyncEvent* ac)
 {
 	return copyStream(this, stm, bytes, retVal, ac);
-}
-
-result_t BufferedStream::asyncCopyTo(Stream_base* stm, int64_t bytes)
-{
-	acb_copyTo(stm, bytes);
-	return 0;
-}
-
-result_t BufferedStream::oncopyto(v8::Handle<v8::Function> func)
-{
-	return on("copyto", func);
-}
-
-result_t BufferedStream::onerror(v8::Handle<v8::Function> func)
-{
-	return on("error", func);
 }
 
 result_t BufferedStream::readText(int32_t size, std::string& retVal,
