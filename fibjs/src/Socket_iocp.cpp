@@ -102,6 +102,9 @@ public:
 		DWORD dwBytes, dwError;
 		LPOVERLAPPED pOverlap;
 
+		Runtime rt;
+		Runtime::reg(&rt);
+
 		while (true)
 		{
 			v = 0;

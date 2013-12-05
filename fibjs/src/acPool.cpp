@@ -33,6 +33,9 @@ public:
 	{
 		asyncEvent *p;
 
+		Runtime rt;
+		Runtime::reg(&rt);
+
 		while (1)
 		{
 			if (exlib::atom_inc(&s_idleThreads) > s_threads * 2)

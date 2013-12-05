@@ -17,17 +17,31 @@ public:
 	{
 	}
 
+	virtual int post(int v)
+	{
+		if (v == CALL_E_EXCEPTION)
+			m_error = Runtime::errMessage();
+
+		return asyncEvent::post(v);
+	}
+
 	int wait()
 	{
-		if(isSet())
+		if (isSet())
 			return result();
 
 		v8::Unlocker unlocker(isolate);
-		return asyncEvent::wait();
+		int r = asyncEvent::wait();
+
+		if (r == CALL_E_EXCEPTION)
+			Runtime::setError(m_error);
+
+		return r;
 	}
 
 public:
 	void ** args;
+	std::string m_error;
 };
 
 class asyncState: public asyncCallBack
@@ -73,7 +87,8 @@ public:
 				if (bAsyncState && m_ac)
 					m_ac->post(hr);
 
-				return end(hr);
+				delete this;
+				return hr;
 			}
 
 			hr = m_state(this, hr);
@@ -97,12 +112,6 @@ public:
 
 	virtual int error(int v)
 	{
-		return v;
-	}
-
-	virtual int end(int v)
-	{
-		delete this;
 		return v;
 	}
 

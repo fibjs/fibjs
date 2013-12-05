@@ -154,6 +154,9 @@ public:
 		ev_timer tm;
 		tm_cb(s_loop, &tm, 0);
 
+		Runtime rt;
+		Runtime::reg(&rt);
+
 		ev_run(s_loop, 0);
 	}
 
