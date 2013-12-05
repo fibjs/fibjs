@@ -8,7 +8,7 @@
 #ifndef BLOCKQUEUE_H_
 #define BLOCKQUEUE_H_
 
-#include <ifs/BlockQueue.h>
+#include "ifs/BlockQueue.h"
 #include <list>
 
 namespace fibjs
