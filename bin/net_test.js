@@ -223,6 +223,53 @@ describe(
 					"close" : 1
 				}, svr.stats.toJSON());
 			});
+
+			xdescribe("Smtp", function() {
+				var s;
+
+				it("new & connect", function() {
+					s = new net.Smtp();
+					s.connect("smtp.ym.163.com", 25);
+					s.socket.close();
+				});
+
+				it("net.openSmtp", function() {
+					s = net.openSmtp("smtp.exmail.qq.com", 25);
+				});
+
+				it("command", function() {
+					assert.equal(s.command("HELO", "baoz.me").substr(0, 4),
+							"250 ");
+
+					assert.throws(function() {
+						s.command("FUCK", "baoz.me");
+					});
+				});
+
+				it("hello", function() {
+					s.hello();
+				});
+
+				it("login", function() {
+					s.login("lion@baoz.cn", "");
+				});
+
+				it("from", function() {
+					s.from("lion@baoz.cn");
+				});
+
+				it("to", function() {
+					s.to("lion@baoz.cn");
+				});
+
+				it("data", function() {
+					s.data("from:lion@baoz.cn\r\nto:lion@baoz.cn\r\nsubject:test title\r\n\r\ntest text");
+				});
+
+				it("quit", function() {
+					s.quit();
+				});
+			});
 		});
 
-// test.run();
+// test.run(console.DEBUG);
