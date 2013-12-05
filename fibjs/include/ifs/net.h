@@ -19,6 +19,7 @@ namespace fibjs
 
 class module_base;
 class Socket_base;
+class Smtp_base;
 class TCPServer_base;
 class Url_base;
 
@@ -38,6 +39,7 @@ public:
 	static result_t ip(const char* name, std::string& retVal, exlib::AsyncEvent* ac);
 	static result_t ipv6(const char* name, std::string& retVal, exlib::AsyncEvent* ac);
 	static result_t connect(const char* host, int32_t port, int32_t family, obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t openSmtp(const char* host, int32_t port, int32_t family, obj_ptr<Smtp_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t backend(std::string& retVal);
 
 	DECLARE_CLASSINFO(net_base);
@@ -51,6 +53,7 @@ public:
 	static void s_ip(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_ipv6(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_openSmtp(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_backend(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -58,11 +61,13 @@ public:
 	ASYNC_STATICVALUE2(net_base, ip, const char*, std::string);
 	ASYNC_STATICVALUE2(net_base, ipv6, const char*, std::string);
 	ASYNC_STATICVALUE4(net_base, connect, const char*, int32_t, int32_t, obj_ptr<Socket_base>);
+	ASYNC_STATICVALUE4(net_base, openSmtp, const char*, int32_t, int32_t, obj_ptr<Smtp_base>);
 };
 
 }
 
 #include "Socket.h"
+#include "Smtp.h"
 #include "TCPServer.h"
 #include "Url.h"
 
@@ -76,12 +81,14 @@ namespace fibjs
 			{"ip", s_ip, true},
 			{"ipv6", s_ipv6, true},
 			{"connect", s_connect, true},
+			{"openSmtp", s_openSmtp, true},
 			{"backend", s_backend, true}
 		};
 
 		static ClassData::ClassObject s_object[] = 
 		{
 			{"Socket", Socket_base::class_info},
+			{"Smtp", Smtp_base::class_info},
 			{"TCPServer", TCPServer_base::class_info},
 			{"Url", Url_base::class_info}
 		};
@@ -97,7 +104,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"net", NULL, 
-			5, s_method, 3, s_object, 4, s_property, NULL, NULL,
+			6, s_method, 4, s_object, 4, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -184,6 +191,21 @@ namespace fibjs
 		OPT_ARG(int32_t, 2, net_base::_AF_INET);
 
 		hr = ac_connect(v0, v1, v2, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void net_base::s_openSmtp(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<Smtp_base> vr;
+
+		METHOD_ENTER(3, 2);
+
+		ARG_String(0);
+		ARG(int32_t, 1);
+		OPT_ARG(int32_t, 2, net_base::_AF_INET);
+
+		hr = ac_openSmtp(v0, v1, v2, vr);
 
 		METHOD_RETURN();
 	}

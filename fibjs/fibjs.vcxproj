@@ -73,6 +73,7 @@
     <ClCompile Include="src\MongoDB.cpp" />
     <ClCompile Include="src\mq.cpp" />
     <ClCompile Include="src\mysql.cpp" />
+    <ClCompile Include="src\net.cpp" />
     <ClCompile Include="src\NullHandler.cpp" />
     <ClCompile Include="src\os.cpp" />
     <ClCompile Include="src\os_freebsd.cpp" />
@@ -84,7 +85,6 @@
     <ClCompile Include="src\process.cpp" />
     <ClCompile Include="src\Queue.cpp" />
     <ClCompile Include="src\Regex.cpp" />
-    <ClCompile Include="src\resolve.cpp" />
     <ClCompile Include="src\Routing.cpp" />
     <ClCompile Include="src\rpc.cpp" />
     <ClCompile Include="src\Runtime.cpp" />
@@ -92,6 +92,7 @@
     <ClCompile Include="src\SandBox_root.cpp" />
     <ClCompile Include="src\SandBox_run.cpp" />
     <ClCompile Include="src\Semaphore.cpp" />
+    <ClCompile Include="src\Smtp.cpp" />
     <ClCompile Include="src\Socket.cpp" />
     <ClCompile Include="src\Socket_api.cpp" />
     <ClCompile Include="src\Socket_ev.cpp" />
@@ -206,6 +207,7 @@
     <ClInclude Include="include\ifs\SandBox.h" />
     <ClInclude Include="include\ifs\SeekableStream.h" />
     <ClInclude Include="include\ifs\Semaphore.h" />
+    <ClInclude Include="include\ifs\Smtp.h" />
     <ClInclude Include="include\ifs\Socket.h" />
     <ClInclude Include="include\ifs\SQLite.h" />
     <ClInclude Include="include\ifs\Stat.h" />
@@ -215,6 +217,7 @@
     <ClInclude Include="include\ifs\test.h" />
     <ClInclude Include="include\ifs\Trigger.h" />
     <ClInclude Include="include\ifs\Url.h" />
+    <ClInclude Include="include\ifs\utils.h" />
     <ClInclude Include="include\ifs\uuid.h" />
     <ClInclude Include="include\ifs\uuidValue.h" />
     <ClInclude Include="include\ifs\vm.h" />
@@ -247,6 +250,7 @@
     <ClInclude Include="include\Runtime.h" />
     <ClInclude Include="include\SandBox.h" />
     <ClInclude Include="include\Semaph.h" />
+    <ClInclude Include="include\Smtp.h" />
     <ClInclude Include="include\Socket.h" />
     <ClInclude Include="include\Socket_api.h" />
     <ClInclude Include="include\SQLite.h" />

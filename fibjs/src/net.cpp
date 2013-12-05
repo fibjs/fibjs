@@ -6,6 +6,7 @@
  */
 
 #include "Socket.h"
+#include "Smtp.h"
 
 namespace fibjs
 {
@@ -86,6 +87,24 @@ result_t net_base::connect(const char* host, int32_t port, int32_t family,
 		return hr;
 
 	return retVal->connect(host, port, ac);
+}
+
+result_t net_base::openSmtp(const char* host, int32_t port, int32_t family,
+		obj_ptr<Smtp_base>& retVal, exlib::AsyncEvent* ac)
+{
+	if (family != net_base::_AF_INET && family != net_base::_AF_INET6)
+		return CALL_E_INVALIDARG;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	result_t hr;
+
+	hr = Smtp_base::_new(retVal);
+	if (hr < 0)
+		return hr;
+
+	return retVal->connect(host, port, family, ac);
 }
 
 }

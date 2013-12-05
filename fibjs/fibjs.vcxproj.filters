@@ -123,9 +123,6 @@
     <ClCompile Include="src\uuidVar.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\resolve.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
     <ClCompile Include="src\inetAddr.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
@@ -295,6 +292,12 @@
       <Filter>Source Files\src</Filter>
     </ClCompile>
     <ClCompile Include="src\BlockQueue.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Smtp.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\net.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -733,6 +736,15 @@
     </ClInclude>
     <ClInclude Include="include\ifs\BlockQueue.h">
       <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\Smtp.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\utils.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Smtp.h">
+      <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
