@@ -31,7 +31,6 @@ public:
 
 public:
 	ASYNC_MEMBERVALUE2(Handler_base, invoke, object_base*, obj_ptr<Handler_base>);
-	ASYNC_VALUEBACK1(Handler_base, invoke, obj_ptr<Handler_base>);
 };
 
 }

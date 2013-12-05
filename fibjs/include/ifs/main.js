@@ -651,14 +651,6 @@ function parserIDL(fname) {
 					afs.push('	ASYNC_MEMBER' + (ftype != "" ? "VALUE" : "")
 							+ (ftype == "" ? argCount : argCount + 1) + '('
 							+ ns + '_base, ' + fname + argStra + ');');
-
-					if (ftype == "")
-						afs.push('	ASYNC_CALLBACK' + argCount + '(' + ns
-								+ '_base, ' + fname + ');');
-					else
-						afs.push('	ASYNC_VALUEBACK' + argCount + '(' + ns
-								+ '_base, ' + fname + ', ' + map_type(ftype)
-								+ ');');
 				}
 
 				// if (argArray || (ftype != "") || (argCount > 0))

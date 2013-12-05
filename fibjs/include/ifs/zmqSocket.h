@@ -44,7 +44,6 @@ public:
 
 public:
 	ASYNC_MEMBERVALUE1(zmqSocket_base, recv, obj_ptr<Buffer_base>);
-	ASYNC_VALUEBACK0(zmqSocket_base, recv, obj_ptr<Buffer_base>);
 };
 
 }

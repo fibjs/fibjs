@@ -182,11 +182,6 @@ void JSFiber::js_callback()
 	o->SetAlignedPointerInInternalField(0, &s_null);
 }
 
-void AsyncCallBack::callback()
-{
-	g_jobs.put(this);
-}
-
 void asyncCallBack::callback()
 {
 	g_jobs.put(this);

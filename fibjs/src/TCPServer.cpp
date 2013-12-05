@@ -166,7 +166,22 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 
 result_t TCPServer::asyncRun()
 {
-	acb_run();
+	class asyncCall: public AsyncCall
+	{
+	public:
+		asyncCall() :
+				AsyncCall(NULL)
+		{
+		}
+
+		virtual int post(int v)
+		{
+			delete this;
+			return 0;
+		}
+	};
+
+	run(new asyncCall());
 	return 0;
 }
 

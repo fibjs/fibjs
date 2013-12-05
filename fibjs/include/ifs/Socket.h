@@ -63,13 +63,9 @@ public:
 
 public:
 	ASYNC_MEMBER2(Socket_base, connect, const char*, int32_t);
-	ASYNC_CALLBACK2(Socket_base, connect);
 	ASYNC_MEMBERVALUE1(Socket_base, accept, obj_ptr<Socket_base>);
-	ASYNC_VALUEBACK0(Socket_base, accept, obj_ptr<Socket_base>);
 	ASYNC_MEMBERVALUE2(Socket_base, recv, int32_t, obj_ptr<Buffer_base>);
-	ASYNC_VALUEBACK1(Socket_base, recv, obj_ptr<Buffer_base>);
 	ASYNC_MEMBER1(Socket_base, send, Buffer_base*);
-	ASYNC_CALLBACK1(Socket_base, send);
 };
 
 }

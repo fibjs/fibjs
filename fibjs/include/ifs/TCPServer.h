@@ -44,7 +44,6 @@ public:
 
 public:
 	ASYNC_MEMBER0(TCPServer_base, run);
-	ASYNC_CALLBACK0(TCPServer_base, run);
 };
 
 }

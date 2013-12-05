@@ -44,9 +44,7 @@ public:
 
 public:
 	ASYNC_MEMBERVALUE1(SeekableStream_base, readAll, obj_ptr<Buffer_base>);
-	ASYNC_VALUEBACK0(SeekableStream_base, readAll, obj_ptr<Buffer_base>);
 	ASYNC_MEMBERVALUE1(SeekableStream_base, stat, obj_ptr<Stat_base>);
-	ASYNC_VALUEBACK0(SeekableStream_base, stat, obj_ptr<Stat_base>);
 };
 
 }

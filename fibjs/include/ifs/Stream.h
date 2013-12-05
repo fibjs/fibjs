@@ -37,13 +37,9 @@ public:
 
 public:
 	ASYNC_MEMBERVALUE2(Stream_base, read, int32_t, obj_ptr<Buffer_base>);
-	ASYNC_VALUEBACK1(Stream_base, read, obj_ptr<Buffer_base>);
 	ASYNC_MEMBER1(Stream_base, write, Buffer_base*);
-	ASYNC_CALLBACK1(Stream_base, write);
 	ASYNC_MEMBER0(Stream_base, close);
-	ASYNC_CALLBACK0(Stream_base, close);
 	ASYNC_MEMBERVALUE3(Stream_base, copyTo, Stream_base*, int64_t, int64_t);
-	ASYNC_VALUEBACK2(Stream_base, copyTo, int64_t);
 };
 
 }
