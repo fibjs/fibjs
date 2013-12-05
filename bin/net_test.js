@@ -58,7 +58,7 @@ describe(
 						s.listen();
 						accept.start(s);
 
-						function conn() {
+						function conn_socket() {
 							var s1 = new net.Socket(net_config.family,
 									net.SOCK_STREAM);
 							s1.connect(net_config.address, 8080);
@@ -70,6 +70,18 @@ describe(
 							s1.dispose();
 						}
 
+						function conn() {
+							var s1 = net.connect(net_config.address, 8080,
+									net_config.family);
+							console.log(s1.remoteAddress, s1.remotePort, "<-",
+									s1.localAddress, s1.localPort);
+							s1.send(new Buffer("GET / HTTP/1.0"));
+							assert.equal("GET / HTTP/1.0", s1.recv());
+							s1.close();
+							s1.dispose();
+						}
+
+						conn_socket();
 						conn();
 					});
 
@@ -213,4 +225,4 @@ describe(
 			});
 		});
 
-//  test.run();
+// test.run();
