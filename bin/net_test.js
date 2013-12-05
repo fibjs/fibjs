@@ -224,7 +224,7 @@ describe(
 				}, svr.stats.toJSON());
 			});
 
-			xdescribe("Smtp", function() {
+			describe("Smtp", function() {
 				var s;
 
 				it("new & connect", function() {
@@ -250,20 +250,23 @@ describe(
 					s.hello();
 				});
 
-				it("login", function() {
-					s.login("lion@baoz.cn", "");
-				});
+				xdescribe("Auth", function() {
+					it("login", function() {
+						s.login("lion@baoz.cn", "");
+					});
 
-				it("from", function() {
-					s.from("lion@baoz.cn");
-				});
+					it("from", function() {
+						s.from("lion@baoz.cn");
+					});
 
-				it("to", function() {
-					s.to("lion@baoz.cn");
-				});
+					it("to", function() {
+						s.to("lion@baoz.cn");
+					});
 
-				it("data", function() {
-					s.data("from:lion@baoz.cn\r\nto:lion@baoz.cn\r\nsubject:test title\r\n\r\ntest text");
+					it("data", function() {
+						s.data("from:lion@baoz.cn\r\n" + "to:lion@baoz.cn\r\n"
+								+ "subject:test title\r\n\r\n" + "test text");
+					});
 				});
 
 				it("quit", function() {
