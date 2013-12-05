@@ -51,7 +51,9 @@ class Socket : Stream
 	 */
 	listen(Integer backlog = 120);
 
-	/*! @brief 等待并接受一个连接 */
+	/*! @brief 等待并接受一个连接
+	 @return 返回接收到得连接对象
+	 */
 	Socket accept() async;
 
 	/*! @brief 从连接读取指定大小的数据，不同于 read 方法，recv 并不保证读完要求的数据，而是在读取到数据后立即返回

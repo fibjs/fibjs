@@ -70,5 +70,22 @@ result_t net_base::ipv6(const char* name, std::string& retVal,
 	return resolve(name, net_base::_AF_INET6, retVal, ac);
 }
 
+result_t net_base::connect(const char* host, int32_t port, int32_t family,
+		obj_ptr<Socket_base>& retVal, exlib::AsyncEvent* ac)
+{
+	if (family != net_base::_AF_INET && family != net_base::_AF_INET6)
+		return CALL_E_INVALIDARG;
+
+	if (!ac)
+		return CALL_E_NOSYNC;
+
+	result_t hr;
+
+	hr = Socket_base::_new(family, net_base::_SOCK_STREAM, retVal);
+	if (hr < 0)
+		return hr;
+
+	return retVal->connect(host, port, ac);
+}
 
 }
