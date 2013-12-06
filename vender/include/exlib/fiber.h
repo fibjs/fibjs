@@ -389,6 +389,8 @@ public:
 	IDLE_PROC m_Idle;
 };
 
+double FastCurrentMillis();
+
 }
 
 #endif

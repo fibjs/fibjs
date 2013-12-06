@@ -13,39 +13,19 @@
 #include <stdlib.h>
 #include <map>
 
-#ifdef _WIN32
-#include <windows.h>
-
-static LARGE_INTEGER systemFrequency;
-
-#ifndef int64_t
-typedef __int64 int64_t;
-#endif
-
-inline int64_t Ticks()
+namespace v8
 {
-	LARGE_INTEGER t;
-
-	if(systemFrequency.QuadPart == 0)
-	QueryPerformanceFrequency(&systemFrequency);
-
-	QueryPerformanceCounter(&t);
-
-	return t.QuadPart * 1000000 / systemFrequency.QuadPart;
-}
-
-#else
-#include <sys/time.h>
-
-inline int64_t Ticks()
+namespace internal
 {
-	struct timeval tv;
-	if (gettimeofday(&tv, NULL) < 0)
-		return 0;
-	return (tv.tv_sec * 1000000ll) + tv.tv_usec;
-}
 
-#endif
+class OS
+{
+public:
+	static double TimeCurrentMillis();
+};
+
+}
+}
 
 namespace exlib
 {
@@ -85,8 +65,8 @@ void Fiber::destroy()
 }
 
 exlib::lockfree<AsyncEvent> s_acSleep;
-std::multimap<int64_t, AsyncEvent*> s_tms;
-static int64_t s_time;
+std::multimap<double, AsyncEvent*> s_tms;
+static double s_time;
 
 #ifndef _WIN32
 #define PASCAL
@@ -95,12 +75,17 @@ static int64_t s_time;
 static int s_nTimer;
 #endif
 
+double FastCurrentMillis()
+{
+	return s_time;
+}
+
 static class _timerThread: public OSThread
 {
 public:
 	_timerThread()
 	{
-		s_time = Ticks();
+		s_time = v8::internal::OS::TimeCurrentMillis();
 		start();
 	}
 
@@ -116,7 +101,7 @@ public:
 	{
 		AsyncEvent *p;
 		int64_t tm;
-		std::multimap<int64_t, AsyncEvent*>::iterator e;
+		std::multimap<double, AsyncEvent*>::iterator e;
 
 		while (1)
 		{
@@ -124,11 +109,11 @@ public:
 			if (p == NULL)
 				break;
 
-			tm = s_time + p->result() * 1000L;
+			tm = s_time + p->result();
 			s_tms.insert(std::make_pair(tm, p));
 		}
 
-		s_time = Ticks();
+		s_time = v8::internal::OS::TimeCurrentMillis();
 
 		while (1)
 		{
