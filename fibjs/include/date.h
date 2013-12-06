@@ -6,6 +6,7 @@
  */
 
 #include <string>
+#include <exlib/fiber.h>
 
 #ifndef DATE_H_
 #define DATE_H_
@@ -18,7 +19,6 @@ namespace internal
 class OS
 {
 public:
-	static double TimeCurrentMillis();
 	static double LocalTimeOffset();
 };
 
@@ -54,7 +54,7 @@ public:
 
 	void now()
 	{
-		d = v8::internal::OS::TimeCurrentMillis();
+		d = exlib::FastCurrentMillis();
 	}
 
 	date_t& operator=(double v)

@@ -446,9 +446,7 @@ void date_t::parse(const char* str, int len)
 
 	if (wMonth > 11 || wDay > MaxDaysInMonth(wYear, wMonth) - 1)
 	{
-		static uint64_t nan = 0x7fffffffffffffffLL;
-
-		d = *(double*) &nan;
+		d = NAN;
 		return;
 	}
 
