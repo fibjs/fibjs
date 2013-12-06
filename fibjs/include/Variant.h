@@ -221,6 +221,8 @@ public:
 		return operator=((obj_base*) v);
 	}
 
+	Variant& operator=(v8::Handle<v8::Object> v);
+
 	Variant& operator=(v8::Handle<v8::Value> v);
 
 	Type type() const

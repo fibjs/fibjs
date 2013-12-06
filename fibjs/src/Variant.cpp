@@ -13,6 +13,31 @@
 namespace fibjs
 {
 
+Variant& Variant::operator=(v8::Handle<v8::Object> v)
+{
+	clear();
+
+	if (!v.IsEmpty())
+	{
+		set_type(VT_JSObject);
+
+		if (isPersistent())
+		{
+			new (((v8::Persistent<v8::Object>*) m_Val.jsobjVal)) v8::Persistent<
+					v8::Object>();
+			((v8::Persistent<v8::Object>*) m_Val.jsobjVal)->Reset(isolate, v);
+		}
+		else
+		{
+			new (((v8::Handle<v8::Object>*) m_Val.jsobjVal)) v8::Handle<
+					v8::Object>();
+			*(v8::Handle<v8::Object>*) m_Val.jsobjVal = v;
+		}
+	}
+
+	return *this;
+}
+
 Variant& Variant::operator=(v8::Handle<v8::Value> v)
 {
 	clear();
@@ -61,34 +86,15 @@ Variant& Variant::operator=(v8::Handle<v8::Value> v)
 				object_base* obj = object_base::getInstance(v);
 
 				if (obj)
-					operator=(obj);
+					return operator=(obj);
 				else
-				{
-					clear();
-					set_type(VT_JSObject);
-					if (isPersistent())
-					{
-						new (((v8::Persistent<v8::Object>*) m_Val.jsobjVal)) v8::Persistent<
-								v8::Object>();
-
-						((v8::Persistent<v8::Object>*) m_Val.jsobjVal)->Reset(
-								isolate, v8::Handle<v8::Object>::Cast(v));
-					}
-					else
-					{
-						new (((v8::Handle<v8::Object>*) m_Val.jsobjVal)) v8::Handle<
-								v8::Object>();
-
-						*(v8::Handle<v8::Object>*) m_Val.jsobjVal = v8::Handle<
-								v8::Object>::Cast(v);
-					}
-				}
+					return operator=(v8::Handle<v8::Object>::Cast(v));
 			}
 			else
 			{
 				v8::String::Utf8Value s(v);
 				std::string str(*s, s.length());
-				operator=(str);
+				return operator=(str);
 			}
 		}
 	}
