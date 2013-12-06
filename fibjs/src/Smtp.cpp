@@ -26,18 +26,14 @@ public:
 	asyncSmtp(Smtp* pThis, std::string& retVal, exlib::AsyncEvent* ac) :
 			asyncState(ac), m_pThis(pThis), m_retVal(retVal)
 	{
-		m_stmBuffered = new BufferedStream(pThis->m_sock);
-		m_stmBuffered->set_EOL("\r\n");
-
+		m_stmBuffered = pThis->m_stmBuffered;
 		set(ok);
 	}
 
 	asyncSmtp(Smtp* pThis, exlib::AsyncEvent* ac) :
 			asyncState(ac), m_pThis(pThis), m_retVal(m_strLine)
 	{
-		m_stmBuffered = new BufferedStream(pThis->m_sock);
-		m_stmBuffered->set_EOL("\r\n");
-
+		m_stmBuffered = pThis->m_stmBuffered;
 		set(ok);
 	}
 
@@ -134,6 +130,9 @@ result_t Smtp::connect(const char* host, int32_t port, int32_t family,
 	hr = Socket_base::_new(family, net_base::_SOCK_STREAM, m_sock);
 	if (hr < 0)
 		return hr;
+
+	m_stmBuffered = new BufferedStream(m_sock);
+	m_stmBuffered->set_EOL("\r\n");
 
 	return (new asyncSmtp(this, ac))->connect(host, port);
 }
@@ -328,7 +327,9 @@ result_t Smtp::quit(exlib::AsyncEvent* ac)
 		return CALL_E_NOSYNC;
 
 	asyncSmtp* pSmtp = new asyncSmtp(this, ac);
+
 	m_sock.Release();
+	m_stmBuffered.Release();
 
 	return pSmtp->command("QUIT", "");
 }
@@ -336,15 +337,6 @@ result_t Smtp::quit(exlib::AsyncEvent* ac)
 result_t Smtp::get_socket(obj_ptr<Socket_base>& retVal)
 {
 	retVal = m_sock;
-	return 0;
-}
-
-result_t Smtp::set_socket(Socket_base* newVal)
-{
-	if (m_sock)
-		return CALL_E_INVALID_CALL;
-
-	m_sock = newVal;
 	return 0;
 }
 

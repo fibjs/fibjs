@@ -51,5 +51,5 @@ class Smtp : object
 	quit() async;
 	
 	/*! @brief 查询 Smtp 对象当前连接的 Socket */
-	Socket socket;
+	readonly Socket socket;
 };

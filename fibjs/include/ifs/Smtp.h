@@ -33,7 +33,6 @@ public:
 	virtual result_t data(const char* txt, exlib::AsyncEvent* ac) = 0;
 	virtual result_t quit(exlib::AsyncEvent* ac) = 0;
 	virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
-	virtual result_t set_socket(Socket_base* newVal) = 0;
 
 	DECLARE_CLASSINFO(Smtp_base);
 
@@ -48,7 +47,6 @@ public:
 	static void s_data(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_quit(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_set_socket(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 
 public:
 	ASYNC_MEMBER3(Smtp_base, connect, const char*, int32_t, int32_t);
@@ -84,7 +82,7 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"socket", s_get_socket, s_set_socket}
+			{"socket", s_get_socket, block_set}
 		};
 
 		static ClassData s_cd = 
@@ -108,17 +106,6 @@ namespace fibjs
 		hr = pInst->get_socket(vr);
 
 		METHOD_RETURN();
-	}
-
-	inline void Smtp_base::s_set_socket(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-	{
-		PROPERTY_ENTER();
-		PROPERTY_INSTANCE(Smtp_base);
-
-		PROPERTY_VAL(obj_ptr<Socket_base>);
-		hr = pInst->set_socket(v0);
-
-		PROPERTY_SET_LEAVE();
 	}
 
 	inline void Smtp_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

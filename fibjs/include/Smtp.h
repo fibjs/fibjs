@@ -27,13 +27,13 @@ public:
 	virtual result_t data(const char* txt, exlib::AsyncEvent* ac);
 	virtual result_t quit(exlib::AsyncEvent* ac);
 	virtual result_t get_socket(obj_ptr<Socket_base>& retVal);
-	virtual result_t set_socket(Socket_base* newVal);
 
 private:
 	result_t command(const char* cmd, const char* arg, exlib::AsyncEvent* ac);
 
 public:
 	obj_ptr<Socket_base> m_sock;
+	obj_ptr<BufferedStream_base> m_stmBuffered;
 };
 
 } /* namespace fibjs */
