@@ -95,7 +95,7 @@ result_t Map::_named_enumerator(v8::Handle<v8::Array>& retVal)
 {
 	int32_t i = 0;
 
-	retVal = v8::Array::New(m_datas.size());
+	retVal = v8::Array::New((int)m_datas.size());
 	std::map<std::string, VariantEx>::iterator iter;
 
 	for (iter = m_datas.begin(); iter != m_datas.end(); iter++)

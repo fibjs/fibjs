@@ -8,6 +8,7 @@
 #include <v8/v8.h>
 #include "date.h"
 #include "qstring.h"
+#include "utils.h"
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
