@@ -17,10 +17,6 @@ namespace fibjs
 class Map: public Map_base
 {
 public:
-	Map();
-	virtual ~Map();
-
-public:
 	// Map_base
 	virtual result_t get_size(int32_t& retVal);
 	virtual result_t clear();

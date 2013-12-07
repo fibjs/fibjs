@@ -16,17 +16,6 @@ result_t Map_base::_new(obj_ptr<Map_base>& retVal)
 	return 0;
 }
 
-Map::Map()
-{
-	// TODO Auto-generated constructor stub
-
-}
-
-Map::~Map()
-{
-	// TODO Auto-generated destructor stub
-}
-
 result_t Map::get_size(int32_t& retVal)
 {
 	retVal = (int32_t) m_datas.size();
@@ -106,7 +95,7 @@ result_t Map::_named_enumerator(v8::Handle<v8::Array>& retVal)
 {
 	int32_t i = 0;
 
-	retVal = v8::Array::New();
+	retVal = v8::Array::New(m_datas.size());
 	std::map<std::string, VariantEx>::iterator iter;
 
 	for (iter = m_datas.begin(); iter != m_datas.end(); iter++)
@@ -125,7 +114,7 @@ result_t Map::_named_setter(const char* property, Variant newVal)
 result_t Map::_named_deleter(const char* property,
 		v8::Handle<v8::Boolean>& retVal)
 {
-	return m_datas.erase(property) > 0;
+	return remove(property);
 }
 
 } /* namespace fibjs */
