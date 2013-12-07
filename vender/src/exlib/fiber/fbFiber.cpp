@@ -67,6 +67,7 @@ void Fiber::destroy()
 exlib::lockfree<AsyncEvent> s_acSleep;
 std::multimap<double, AsyncEvent*> s_tms;
 static double s_time;
+static int s_now;
 
 #ifndef _WIN32
 #define PASCAL
@@ -77,7 +78,7 @@ static int s_nTimer;
 
 double FastCurrentMillis()
 {
-	return s_time;
+	return s_time + s_now;
 }
 
 static class _timerThread: public OSThread
@@ -86,6 +87,7 @@ public:
 	_timerThread()
 	{
 		s_time = v8::internal::OS::TimeCurrentMillis();
+		s_now = 0;
 		start();
 	}
 
@@ -109,18 +111,18 @@ public:
 			if (p == NULL)
 				break;
 
-			tm = s_time + p->result();
+			tm = s_time + s_now + p->result();
 			s_tms.insert(std::make_pair(tm, p));
 		}
 
-		s_time = v8::internal::OS::TimeCurrentMillis();
+		atom_xchg(&s_now, (int)(v8::internal::OS::TimeCurrentMillis() - s_time));
 
 		while (1)
 		{
 			e = s_tms.begin();
 			if (e == s_tms.end())
 				break;
-			if (e->first > s_time)
+			if (e->first > s_time + s_now)
 				break;
 
 			e->second->apost(0);
@@ -136,7 +138,7 @@ public:
 		timeGetDevCaps(&tc, sizeof(TIMECAPS));
 
 		if (tc.wPeriodMin < 1)
-		tc.wPeriodMin = 1;
+			tc.wPeriodMin = 1;
 
 		timeBeginPeriod(tc.wPeriodMin);
 		s_nTimer = timeSetEvent(tc.wPeriodMin, tc.wPeriodMin, Timer, 0, TIME_PERIODIC);
