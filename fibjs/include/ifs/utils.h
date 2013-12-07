@@ -19,6 +19,7 @@ namespace fibjs
 
 class module_base;
 class Stats_base;
+class LruCache_base;
 
 class utils_base : public module_base
 {
@@ -31,6 +32,7 @@ public:
 }
 
 #include "Stats.h"
+#include "LruCache.h"
 
 namespace fibjs
 {
@@ -38,13 +40,14 @@ namespace fibjs
 	{
 		static ClassData::ClassObject s_object[] = 
 		{
-			{"Stats", Stats_base::class_info}
+			{"Stats", Stats_base::class_info},
+			{"LruCache", LruCache_base::class_info}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"utils", NULL, 
-			0, NULL, 1, s_object, 0, NULL, NULL, NULL,
+			0, NULL, 2, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 

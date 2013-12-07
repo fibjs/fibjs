@@ -63,6 +63,7 @@
     <ClCompile Include="src\JsonRpcHandler.cpp" />
     <ClCompile Include="src\List.cpp" />
     <ClCompile Include="src\Lock.cpp" />
+    <ClCompile Include="src\LruCache.cpp" />
     <ClCompile Include="src\Map.cpp" />
     <ClCompile Include="src\MemoryCloneStream.cpp" />
     <ClCompile Include="src\MemoryStream.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="include\ifs\io.h" />
     <ClInclude Include="include\ifs\List.h" />
     <ClInclude Include="include\ifs\Lock.h" />
+    <ClInclude Include="include\ifs\LruCache.h" />
     <ClInclude Include="include\ifs\Map.h" />
     <ClInclude Include="include\ifs\MemoryStream.h" />
     <ClInclude Include="include\ifs\Message.h" />
@@ -230,6 +232,7 @@
     <ClInclude Include="include\JsonRpcHandler.h" />
     <ClInclude Include="include\List.h" />
     <ClInclude Include="include\Lock.h" />
+    <ClInclude Include="include\LruCache.h" />
     <ClInclude Include="include\Map.h" />
     <ClInclude Include="include\MemoryStream.h" />
     <ClInclude Include="include\Message.h" />

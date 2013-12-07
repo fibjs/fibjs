@@ -5,4 +5,6 @@ class utils : module
 	/*! @brief 数据统计对象，用以构建应用运行时数据收集，参见 Stats 对象。*/
 	static Stats new Stats();
 	
+	/*! @brief LRU(least recently used) 缓存对象，参见 LruCache 对象。*/
+	static LruCache new LruCache();
 };
