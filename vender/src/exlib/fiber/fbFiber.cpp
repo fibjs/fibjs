@@ -100,7 +100,7 @@ public:
 			DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2)
 	{
 		AsyncEvent *p;
-		int64_t tm;
+		double tm;
 		std::multimap<double, AsyncEvent*>::iterator e;
 
 		while (1)
