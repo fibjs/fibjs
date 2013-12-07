@@ -203,7 +203,7 @@ typedef int result_t;
     v8::Local<v8::Value> tvv##n; \
     if(n < argc)tvv##n = args[n]; \
     v8::String::Utf8Value tv##n(tvv##n); \
-    const char* v##n = (n) < argc ? *tv##n : (d); \
+    const char* v##n = ((n) < argc && !args[n]->IsUndefined()) ? *tv##n : (d); \
     if(v##n == NULL){hr = CALL_E_INVALIDARG;break;}
 
 #define PROPERTY_VAL_String() \
@@ -224,8 +224,9 @@ typedef int result_t;
 #define OPT_ARG(t, n, d) \
     t v##n; \
     if((n) < argc){ \
-        hr = SafeGetValue(args[n], v##n); \
-        if(hr < 0)break; \
+    	if(args[n]->IsUndefined())v##n = (d); \
+    	else {hr = SafeGetValue(args[n], v##n); \
+        if(hr < 0)break;} \
     }else v##n = (d);
 
 #define DECLARE_CLASSINFO(c) \
