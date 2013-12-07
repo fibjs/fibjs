@@ -29,18 +29,18 @@ class Map : object
 	 @param name 指定要查询的键值
 	 @return 返回键值所对应的值，若不存在，则返回 null
 	 */
-	Variant get(String name);
+	Value get(String name);
 
-	/*! @brief 设定一个键值数据，设定数据将修改键值所对应的第一个数值，并清除其余键值数据
+	/*! @brief 设定一个键值数据，键值不存在则插入一条新数据
 	 @param map 指定要设定的键值数据字典
 	 */
 	put(Object map);
 
-	/*! @brief 设定一个键值数据，设定数据将修改键值所对应的第一个数值，并清除其余键值数据
+	/*! @brief 设定一个键值数据，键值不存在则插入新数据
 	 @param name 指定要设定的键值
 	 @param value 指定要设定的数据
 	 */
-	put(String name, Variant value);
+	put(String name, Value value);
 
 	/*! @brief 删除指定键值的全部值
 	 @param name 指定要删除的键值
@@ -53,6 +53,6 @@ class Map : object
 	Boolean isEmpty();
 
 	/*! @brief 允许使用键值下标直接访问数值 */
-	Variant operator[String];
+	Value operator[String];
 
 };

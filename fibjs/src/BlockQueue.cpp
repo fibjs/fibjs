@@ -16,7 +16,7 @@ result_t BlockQueue_base::_new(int32_t size, obj_ptr<BlockQueue_base>& retVal)
 	return 0;
 }
 
-result_t BlockQueue::add(Variant e, bool& retVal)
+result_t BlockQueue::add(v8::Handle<v8::Value> e, bool& retVal)
 {
 	if ((int)m_list.size() == m_size)
 		return CALL_E_OVERFLOW;
@@ -27,7 +27,7 @@ result_t BlockQueue::add(Variant e, bool& retVal)
 	return 0;
 }
 
-result_t BlockQueue::offer(Variant e, bool& retVal)
+result_t BlockQueue::offer(v8::Handle<v8::Value> e, bool& retVal)
 {
 	if ((int)m_list.size() == m_size)
 	{
@@ -41,7 +41,7 @@ result_t BlockQueue::offer(Variant e, bool& retVal)
 	return 0;
 }
 
-result_t BlockQueue::remove(Variant& retVal)
+result_t BlockQueue::remove(v8::Handle<v8::Value>& retVal)
 {
 	if (m_list.size() == 0)
 		return CALL_E_EMPTY;
@@ -49,7 +49,7 @@ result_t BlockQueue::remove(Variant& retVal)
 	return take(retVal);
 }
 
-result_t BlockQueue::poll(Variant& retVal)
+result_t BlockQueue::poll(v8::Handle<v8::Value>& retVal)
 {
 	if (m_list.size() == 0)
 		return CALL_RETURN_NULL;
@@ -57,7 +57,7 @@ result_t BlockQueue::poll(Variant& retVal)
 	return take(retVal);
 }
 
-result_t BlockQueue::element(Variant& retVal)
+result_t BlockQueue::element(v8::Handle<v8::Value>& retVal)
 {
 	if (m_list.size() == 0)
 		return CALL_E_EMPTY;
@@ -67,7 +67,7 @@ result_t BlockQueue::element(Variant& retVal)
 	return 0;
 }
 
-result_t BlockQueue::peek(Variant& retVal)
+result_t BlockQueue::peek(v8::Handle<v8::Value>& retVal)
 {
 	if (m_list.size() == 0)
 		return CALL_RETURN_NULL;
@@ -127,7 +127,7 @@ result_t BlockQueue::toJSON(const char* key, v8::Handle<v8::Value>& retVal)
 	return 0;
 }
 
-result_t BlockQueue::put(Variant e)
+result_t BlockQueue::put(v8::Handle<v8::Value> e)
 {
 	if ((int)m_list.size() == m_size)
 	{
@@ -145,7 +145,7 @@ result_t BlockQueue::put(Variant e)
 	return 0;
 }
 
-result_t BlockQueue::take(Variant& retVal)
+result_t BlockQueue::take(v8::Handle<v8::Value>& retVal)
 {
 	if (m_list.size() == 0)
 	{

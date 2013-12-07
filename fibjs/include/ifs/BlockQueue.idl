@@ -16,10 +16,10 @@ class BlockQueue : Queue
 	/*! @brief 插入一个新的元素到队列，成功返回 True，队列满则等待
 	 @param e 要插入的元素
 	 */
-	put(Variant e);
+	put(Value e);
 	
 	/*! @brief 从队列中移除一个元素并返回，如果队列为空则等待
 	 @return 返回取出的元素
 	 */
-	Variant take();
+	Value take();
 };

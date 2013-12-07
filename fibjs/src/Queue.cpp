@@ -16,7 +16,7 @@ result_t Queue_base::_new(int32_t size, obj_ptr<Queue_base>& retVal)
 	return 0;
 }
 
-result_t Queue::add(Variant e, bool& retVal)
+result_t Queue::add(v8::Handle<v8::Value> e, bool& retVal)
 {
 	if ((int)m_list.size() == m_size)
 		return CALL_E_OVERFLOW;
@@ -27,7 +27,7 @@ result_t Queue::add(Variant e, bool& retVal)
 	return 0;
 }
 
-result_t Queue::offer(Variant e, bool& retVal)
+result_t Queue::offer(v8::Handle<v8::Value> e, bool& retVal)
 {
 	if ((int)m_list.size() == m_size)
 	{
@@ -41,7 +41,7 @@ result_t Queue::offer(Variant e, bool& retVal)
 	return 0;
 }
 
-result_t Queue::remove(Variant& retVal)
+result_t Queue::remove(v8::Handle<v8::Value>& retVal)
 {
 	if (m_list.size() == 0)
 		return CALL_E_EMPTY;
@@ -51,7 +51,7 @@ result_t Queue::remove(Variant& retVal)
 	return 0;
 }
 
-result_t Queue::poll(Variant& retVal)
+result_t Queue::poll(v8::Handle<v8::Value>& retVal)
 {
 	if (m_list.size() == 0)
 		return CALL_RETURN_NULL;
@@ -61,7 +61,7 @@ result_t Queue::poll(Variant& retVal)
 	return 0;
 }
 
-result_t Queue::element(Variant& retVal)
+result_t Queue::element(v8::Handle<v8::Value>& retVal)
 {
 	if (m_list.size() == 0)
 		return CALL_E_EMPTY;
@@ -71,7 +71,7 @@ result_t Queue::element(Variant& retVal)
 	return 0;
 }
 
-result_t Queue::peek(Variant& retVal)
+result_t Queue::peek(v8::Handle<v8::Value>& retVal)
 {
 	if (m_list.size() == 0)
 		return CALL_RETURN_NULL;

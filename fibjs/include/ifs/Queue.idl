@@ -17,33 +17,33 @@ class Queue : object
 	 @param e 要插入的元素
 	 @return 成功返回 True
 	 */
-	Boolean add(Variant e);
+	Boolean add(Value e);
 	
 	/*! @brief 插入一个新的元素到队列，成功返回 True，队列满则返回 False
 	 @param e 要插入的元素
 	 @return 成功返回 True
 	 */
-	Boolean offer(Variant e);
+	Boolean offer(Value e);
 	
 	/*! @brief 从队列中移除一个元素并返回，如果队列为空则抛出错误
 	 @return 返回取出的元素
 	 */
-	Variant remove();
+	Value remove();
 
 	/*! @brief 从队列中移除一个元素并返回
 	 @return 返回取出的元素，队列为空则返回 Null
 	 */
-	Variant poll();
+	Value poll();
 	
 	/*! @brief 从队列中返回一个元素，但不移除，队列为空则抛出错误
 	 @return 返回取出的元素
 	 */
-	Variant element();
+	Value element();
 
 	/*! @brief 从队列中返回一个元素，但不移除
 	 @return 返回取出的元素，队列为空则返回 Null
 	 */
-	Variant peek();
+	Value peek();
 
 	/*! @brief 清除当前队列 */
 	clear();
