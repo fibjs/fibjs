@@ -217,12 +217,13 @@ result_t HttpRequest::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 			result_t hr;
 
 			if (!p.getWord(pThis->m_pThis->m_method))
-				return CALL_E_INVALID_DATA;
+				return Runtime::setError("bad method.");
 
 			p.skipSpace();
 
 			if (!p.getWord(pThis->m_pThis->m_address, '?'))
-				return CALL_E_INVALID_DATA;
+				return Runtime::setError("bad address.");
+
 			pThis->m_pThis->m_message.set_value(pThis->m_pThis->m_address);
 
 			if (p.want('?'))
@@ -231,7 +232,7 @@ result_t HttpRequest::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 			p.skipSpace();
 
 			if (p.end())
-				return CALL_E_INVALID_DATA;
+				return Runtime::setError("bad protocol.");
 
 			hr = pThis->m_pThis->set_protocol(p.now());
 			if (hr < 0)
@@ -394,7 +395,7 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
 			Variant v;
 
 			if (firstHeader("Content-Type", v) == CALL_RETURN_NULL)
-				return CALL_E_INVALID_DATA;
+				return Runtime::setError("unknown form format.");
 
 			strType = v.string();
 
@@ -402,7 +403,7 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
 				bUpload = true;
 			else if (qstricmp(strType.c_str(),
 					"application/x-www-form-urlencoded", 33))
-				return CALL_E_INVALID_DATA;
+				return Runtime::setError("unknown form format.");
 
 			obj_ptr < Buffer_base > buf;
 			obj_ptr < SeekableStream_base > _body;

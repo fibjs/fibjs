@@ -60,7 +60,7 @@ result_t HttpMessage::sendTo(Stream_base* stm, std::string& strCommand,
 				pThis->m_buffer.Release();
 
 				if (pThis->m_contentLength != (int) pThis->m_body.length())
-					return CALL_E_INVALID_DATA;
+					return Runtime::setError("body is not complate.");
 			}
 
 			sz1 = pThis->m_pThis->size();
@@ -105,7 +105,7 @@ result_t HttpMessage::sendTo(Stream_base* stm, std::string& strCommand,
 			asyncSendTo* pThis = (asyncSendTo*) pState;
 
 			if (pThis->m_contentLength != pThis->m_copySize)
-				return CALL_E_INVALID_DATA;
+				return Runtime::setError("body is not complate.");
 
 			return pThis->done(0);
 		}
@@ -164,7 +164,7 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 					if ((pThis->m_contentLength < 0)
 							|| (pThis->m_contentLength
 									> pThis->m_pThis->m_maxUploadSize * 1048576))
-						return CALL_E_INVALID_DATA;
+						return Runtime::setError("body is too huge.");
 				}
 				else if (!qstricmp(pThis->m_strLine.c_str(),
 						"transfer-encoding:", 18))
@@ -174,7 +174,7 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 
 					p.skipSpace();
 					if (qstricmp(p.now(), "chunked"))
-						return CALL_E_INVALID_DATA;
+						return Runtime::setError("unknown transfer-encoding.");
 
 					pThis->m_bChunked = true;
 				}
@@ -186,7 +186,7 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 
 					pThis->m_headCount++;
 					if (pThis->m_headCount > pThis->m_pThis->m_maxHeadersCount)
-						return CALL_E_INVALID_DATA;
+						return Runtime::setError("too many headers.");
 				}
 
 				return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine,
@@ -219,7 +219,7 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 			asyncReadFrom* pThis = (asyncReadFrom*) pState;
 
 			if (pThis->m_contentLength != pThis->m_copySize)
-				return CALL_E_INVALID_DATA;
+				return Runtime::setError("body is not complate.");
 
 			pThis->m_body->rewind();
 
@@ -245,7 +245,7 @@ result_t HttpMessage::readFrom(BufferedStream_base* stm, exlib::AsyncEvent* ac)
 			p.skipSpace();
 
 			if (!qisxdigit(p.get()))
-				return CALL_E_INVALID_DATA;
+				return Runtime::setError("bad chunk size.");
 
 			if (p.get() != '0')
 			{
@@ -319,7 +319,7 @@ result_t HttpMessage::addHeader(std::string& strLine)
 	p.skipWord(':');
 	p2 = p.pos;
 	if (0 == p2 || !p.want(':'))
-		return CALL_E_INVALID_DATA;
+		return Runtime::setError("bad header: " + strLine);
 
 	p.skipSpace();
 	addHeader(p.string, p2, p.now(), p.left());
