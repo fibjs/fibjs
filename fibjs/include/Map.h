@@ -22,6 +22,7 @@ public:
 	virtual result_t clear();
 	virtual result_t has(const char* name, bool& retVal);
 	virtual result_t get(const char* name, Variant& retVal);
+	virtual result_t put(v8::Handle<v8::Object> map);
 	virtual result_t put(const char* name, Variant value);
 	virtual result_t remove(const char* name);
 	virtual result_t isEmpty(bool& retVal);
