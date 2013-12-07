@@ -34,30 +34,12 @@ result_t Map::has(const char* name, bool& retVal)
 	return 0;
 }
 
-inline result_t _map(Map* o, v8::Handle<v8::Object> m,
-		result_t (Map::*fn)(const char* name, Variant value))
-{
-	v8::Handle<v8::Array> ks = m->GetPropertyNames();
-	int len = ks->Length();
-	int i;
-
-	for (i = 0; i < len; i++)
-	{
-		v8::Handle<v8::Value> k = ks->Get(i);
-
-		if (!k->IsNumber())
-			(o->*fn)(*v8::String::Utf8Value(k), m->Get(k));
-	}
-
-	return 0;
-}
-
 result_t Map::get(const char* name, Variant& retVal)
 {
 	std::map<std::string, VariantEx>::iterator it = m_datas.find(name);
 
 	if (it == m_datas.end())
-		return CALL_RETURN_NULL;
+		return 0;
 
 	retVal = it->second;
 	return 0;
@@ -67,11 +49,6 @@ result_t Map::put(const char* name, Variant value)
 {
 	m_datas.insert(std::pair<std::string, Variant>(name, value));
 	return 0;
-}
-
-result_t Map::put(v8::Handle<v8::Object> map)
-{
-	return _map(this, map, &Map::put);
 }
 
 result_t Map::remove(const char* name)
@@ -88,7 +65,8 @@ result_t Map::isEmpty(bool& retVal)
 
 result_t Map::_named_getter(const char* property, Variant& retVal)
 {
-	return get(property, retVal);
+	get(property, retVal);
+	return retVal.type() == Variant::VT_Undefined ? CALL_RETURN_NULL : 0;
 }
 
 result_t Map::_named_enumerator(v8::Handle<v8::Array>& retVal)

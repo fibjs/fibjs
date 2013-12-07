@@ -25,7 +25,6 @@ public:
 	virtual result_t clear() = 0;
 	virtual result_t has(const char* name, bool& retVal) = 0;
 	virtual result_t get(const char* name, Variant& retVal) = 0;
-	virtual result_t put(v8::Handle<v8::Object> map) = 0;
 	virtual result_t put(const char* name, Variant value) = 0;
 	virtual result_t remove(const char* name) = 0;
 	virtual result_t isEmpty(bool& retVal) = 0;
@@ -208,13 +207,7 @@ namespace fibjs
 	inline void Map_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(Map_base);
-		METHOD_ENTER(1, 1);
-
-		ARG(v8::Handle<v8::Object>, 0);
-
-		hr = pInst->put(v0);
-
-		METHOD_OVER(2, 2);
+		METHOD_ENTER(2, 2);
 
 		ARG_String(0);
 		ARG(Variant, 1);
