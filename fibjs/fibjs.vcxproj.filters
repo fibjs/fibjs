@@ -162,9 +162,6 @@
     <ClCompile Include="src\hash.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\TCPServer.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
     <ClCompile Include="src\HttpRequest.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
@@ -304,6 +301,9 @@
       <Filter>Source Files\src</Filter>
     </ClCompile>
     <ClCompile Include="src\HttpServer.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TcpServer.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -520,12 +520,6 @@
     </ClInclude>
     <ClInclude Include="include\ifs\hash.h">
       <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\TCPServer.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TCPServer.h">
-      <Filter>Header Files\include</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\http.h">
       <Filter>Header Files\include\ifs</Filter>
@@ -762,6 +756,12 @@
       <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\HttpServer.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\TcpServer.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TcpServer.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>

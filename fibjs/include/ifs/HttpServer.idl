@@ -1,6 +1,6 @@
 /*! @brief http 服务器对象
 
- http 服务器对象是将 TCPServer 和 HttpHandler 组合封装的对象，方便快速搭建服务器，创建方法：
+ http 服务器对象是将 TcpServer 和 HttpHandler 组合封装的对象，方便快速搭建服务器，创建方法：
  @code
  var http = require("http");
  var svr = new http.Server(function(req){

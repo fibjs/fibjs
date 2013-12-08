@@ -20,7 +20,7 @@ namespace fibjs
 class module_base;
 class Socket_base;
 class Smtp_base;
-class TCPServer_base;
+class TcpServer_base;
 class Url_base;
 
 class net_base : public module_base
@@ -68,7 +68,7 @@ public:
 
 #include "Socket.h"
 #include "Smtp.h"
-#include "TCPServer.h"
+#include "TcpServer.h"
 #include "Url.h"
 
 namespace fibjs
@@ -89,7 +89,7 @@ namespace fibjs
 		{
 			{"Socket", Socket_base::class_info},
 			{"Smtp", Smtp_base::class_info},
-			{"TCPServer", TCPServer_base::class_info},
+			{"TcpServer", TcpServer_base::class_info},
 			{"Url", Url_base::class_info}
 		};
 

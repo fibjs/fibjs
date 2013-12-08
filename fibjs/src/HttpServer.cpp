@@ -7,7 +7,6 @@
 
 #include "HttpServer.h"
 #include "JSHandler.h"
-#include "TCPServer.h"
 
 namespace fibjs
 {
@@ -50,7 +49,7 @@ result_t HttpServer_base::_new(const char* addr, int32_t port,
 
 result_t HttpServer::create(const char* addr, int32_t port, Handler_base* hdlr)
 {
-	m_server = new TCPServer();
+	m_server = new TcpServer();
 	m_handler = new HttpHandler(hdlr);
 	return m_server->create(addr, port, m_handler);
 }

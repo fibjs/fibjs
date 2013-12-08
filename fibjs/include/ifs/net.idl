@@ -61,8 +61,8 @@ class net : module
 	 */
 	static Smtp openSmtp(String host, Integer port, Integer family = net.AF_INET) async;
 
-	/*! @brief 创建一个 TCPServer 对象，参见 TCPServer */
-	static TCPServer new TCPServer();
+	/*! @brief 创建一个 TcpServer 对象，参见 TcpServer */
+	static TcpServer new TcpServer();
 
 	/*! @brief 创建一个 Url 对象，参见 Url */
 	static Url new Url();

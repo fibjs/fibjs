@@ -1,27 +1,27 @@
 /*
- * TCPServer.cpp
+ * TcpServer.cpp
  *
  *  Created on: Aug 8, 2012
  *      Author: lion
  */
 
-#include "TCPServer.h"
+#include "TcpServer.h"
 #include "ifs/mq.h"
 #include "JSHandler.h"
 
 namespace fibjs
 {
 
-result_t TCPServer_base::_new(int32_t port, Handler_base* listener,
-		obj_ptr<TCPServer_base>& retVal)
+result_t TcpServer_base::_new(int32_t port, Handler_base* listener,
+		obj_ptr<TcpServer_base>& retVal)
 {
 	return _new("", port, listener, retVal);
 }
 
-result_t TCPServer_base::_new(const char* addr, int32_t port,
-		Handler_base* listener, obj_ptr<TCPServer_base>& retVal)
+result_t TcpServer_base::_new(const char* addr, int32_t port,
+		Handler_base* listener, obj_ptr<TcpServer_base>& retVal)
 {
-	obj_ptr < TCPServer > svr = new TCPServer();
+	obj_ptr < TcpServer > svr = new TcpServer();
 	result_t hr = svr->create(addr, port, listener);
 	if (hr < 0)
 		return hr;
@@ -31,14 +31,14 @@ result_t TCPServer_base::_new(const char* addr, int32_t port,
 	return 0;
 }
 
-result_t TCPServer_base::_new(int32_t port, v8::Handle<v8::Function> listener,
-		obj_ptr<TCPServer_base>& retVal)
+result_t TcpServer_base::_new(int32_t port, v8::Handle<v8::Function> listener,
+		obj_ptr<TcpServer_base>& retVal)
 {
 	return _new("", port, listener, retVal);
 }
 
-result_t TCPServer_base::_new(const char* addr, int32_t port,
-		v8::Handle<v8::Function> listener, obj_ptr<TCPServer_base>& retVal)
+result_t TcpServer_base::_new(const char* addr, int32_t port,
+		v8::Handle<v8::Function> listener, obj_ptr<TcpServer_base>& retVal)
 {
 	obj_ptr < Handler_base > hdlr1;
 	result_t hr = JSHandler::New(listener, hdlr1);
@@ -58,14 +58,14 @@ enum
 	TCPS_TOTAL = 0, TCPS_CONNECTIONS, TCPS_ACCEPT, TCPS_CLOSE
 };
 
-TCPServer::TCPServer()
+TcpServer::TcpServer()
 {
 	m_stats = new Stats();
 	m_stats->init(s_staticCounter, 2, s_Counter, 2);
 	m_running = false;
 }
 
-result_t TCPServer::create(const char* addr, int32_t port,
+result_t TcpServer::create(const char* addr, int32_t port,
 		Handler_base* listener)
 {
 	result_t hr;
@@ -88,12 +88,12 @@ result_t TCPServer::create(const char* addr, int32_t port,
 	return 0;
 }
 
-result_t TCPServer::run(exlib::AsyncEvent* ac)
+result_t TcpServer::run(exlib::AsyncEvent* ac)
 {
 	class asyncInvoke: public asyncState
 	{
 	public:
-		asyncInvoke(TCPServer* pThis, Socket_base* pSock) :
+		asyncInvoke(TcpServer* pThis, Socket_base* pSock) :
 				asyncState(NULL), m_pThis(pThis), m_sock(pSock), m_obj(pSock)
 		{
 			set(invoke);
@@ -120,7 +120,7 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 		}
 
 	private:
-		TCPServer* m_pThis;
+		TcpServer* m_pThis;
 		obj_ptr<Socket_base> m_sock;
 		obj_ptr<object_base> m_obj;
 	};
@@ -128,7 +128,7 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 	class asyncAccept: public asyncState
 	{
 	public:
-		asyncAccept(TCPServer* pThis, exlib::AsyncEvent* ac) :
+		asyncAccept(TcpServer* pThis, exlib::AsyncEvent* ac) :
 				asyncState(ac), m_pThis(pThis)
 		{
 			set(accept);
@@ -156,7 +156,7 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 		}
 
 	private:
-		TCPServer* m_pThis;
+		TcpServer* m_pThis;
 		obj_ptr<Socket_base> m_retVal;
 	};
 
@@ -170,7 +170,7 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 	return (new asyncAccept(this, ac))->post(0);
 }
 
-result_t TCPServer::asyncRun()
+result_t TcpServer::asyncRun()
 {
 	class asyncCall: public AsyncCall
 	{
@@ -194,13 +194,13 @@ result_t TCPServer::asyncRun()
 	return 0;
 }
 
-result_t TCPServer::get_socket(obj_ptr<Socket_base>& retVal)
+result_t TcpServer::get_socket(obj_ptr<Socket_base>& retVal)
 {
 	retVal = m_socket;
 	return 0;
 }
 
-result_t TCPServer::get_stats(obj_ptr<Stats_base>& retVal)
+result_t TcpServer::get_stats(obj_ptr<Stats_base>& retVal)
 {
 	retVal = m_stats;
 	return 0;

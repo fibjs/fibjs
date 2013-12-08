@@ -9,7 +9,7 @@
 #define HTTPSERVER_H_
 
 #include "ifs/HttpServer.h"
-#include "TCPServer.h"
+#include "TcpServer.h"
 #include "HttpHandler.h"
 
 namespace fibjs
@@ -39,7 +39,7 @@ public:
 	result_t create(const char* addr, int32_t port, Handler_base* listener);
 
 private:
-	obj_ptr<TCPServer> m_server;
+	obj_ptr<TcpServer> m_server;
 	obj_ptr<HttpHandler> m_handler;
 };
 

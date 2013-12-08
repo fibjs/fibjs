@@ -103,7 +103,7 @@
     <ClCompile Include="src\Stat.cpp" />
     <ClCompile Include="src\Stats.cpp" />
     <ClCompile Include="src\Stream.cpp" />
-    <ClCompile Include="src\TCPServer.cpp" />
+    <ClCompile Include="src\TcpServer.cpp" />
     <ClCompile Include="src\test.cpp" />
     <ClCompile Include="src\Trigger.cpp" />
     <ClCompile Include="src\Url.cpp" />
@@ -218,7 +218,7 @@
     <ClInclude Include="include\ifs\Stat.h" />
     <ClInclude Include="include\ifs\Stats.h" />
     <ClInclude Include="include\ifs\Stream.h" />
-    <ClInclude Include="include\ifs\TCPServer.h" />
+    <ClInclude Include="include\ifs\TcpServer.h" />
     <ClInclude Include="include\ifs\test.h" />
     <ClInclude Include="include\ifs\Trigger.h" />
     <ClInclude Include="include\ifs\Url.h" />
@@ -264,7 +264,7 @@
     <ClInclude Include="include\Stats.h" />
     <ClInclude Include="include\Stream.h" />
     <ClInclude Include="include\StringBuffer.h" />
-    <ClInclude Include="include\TCPServer.h" />
+    <ClInclude Include="include\TcpServer.h" />
     <ClInclude Include="include\Trigger.h" />
     <ClInclude Include="include\Url.h" />
     <ClInclude Include="include\utf8.h" />
