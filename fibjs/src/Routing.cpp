@@ -90,7 +90,7 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 		}
 	}
 
-	return CALL_E_INVALID_CALL;
+	return Runtime::setError("unknown routing.");
 }
 
 result_t Routing::append(const char* pattern, Handler_base* hdlr)
