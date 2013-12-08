@@ -225,6 +225,11 @@ public:
 
 	Variant& operator=(v8::Handle<v8::Value> v);
 
+	Variant& operator=(v8::Handle<v8::Function> v)
+	{
+		return operator=(v8::Handle<v8::Object>::Cast(v));
+	}
+
 	Type type() const
 	{
 		return (Type) (m_type & VT_Type);
@@ -233,6 +238,11 @@ public:
 	void set_type(Type t)
 	{
 		m_type = (Type) (t | (m_type & VT_Persistent));
+	}
+
+	bool isUndefined()
+	{
+		return type() == VT_Undefined;
 	}
 
 	void toPersistent()
