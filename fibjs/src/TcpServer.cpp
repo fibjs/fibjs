@@ -163,7 +163,7 @@ result_t TcpServer::run(exlib::AsyncEvent* ac)
 	if (!ac)
 		return CALL_E_NOSYNC;
 
-	if(m_running)
+	if (m_running)
 		return CALL_E_INVALID_CALL;
 	m_running = true;
 
@@ -172,25 +172,27 @@ result_t TcpServer::run(exlib::AsyncEvent* ac)
 
 result_t TcpServer::asyncRun()
 {
-	class asyncCall: public AsyncCall
+	class asyncCall: public asyncEvent
 	{
 	public:
-		asyncCall() :
-				AsyncCall(NULL)
+		asyncCall(TcpServer* pThis) :
+				m_pThis(pThis)
 		{
 		}
 
-		virtual int post(int v)
+		virtual void invoke()
 		{
-			delete this;
-			return 0;
+			m_pThis->run(this);
 		}
+
+	private:
+		obj_ptr<TcpServer> m_pThis;
 	};
 
-	if(m_running)
+	if (m_running)
 		return CALL_E_INVALID_CALL;
 
-	run(new asyncCall());
+	s_acPool.put(new asyncCall(this));
 	return 0;
 }
 
