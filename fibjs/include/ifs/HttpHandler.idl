@@ -19,7 +19,7 @@ class HttpHandler: Handler
 
 	/*! @brief 查询 http 协议转换处理器的工作状态
 	 
-	  返回的结果为一个 js 对象，结构如下：
+	  返回的结果为一个 Stats 对象，结构如下：
 	  @code
 	  {
 	      total : 1000,    // 总计处理的请求
