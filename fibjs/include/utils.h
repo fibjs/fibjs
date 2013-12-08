@@ -81,6 +81,10 @@ typedef int SOCKET;
 #include <exlib/fiber.h>
 #include <exlib/lockfree.h>
 
+#ifdef _DEBUG
+#undef _DEBUG
+#endif
+
 namespace fibjs
 {
 
