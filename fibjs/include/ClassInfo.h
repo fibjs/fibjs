@@ -130,7 +130,10 @@ public:
 
 		v8::Handle<v8::Function> _function = _class->GetFunction();
 		m_function.Reset(isolate, _function);
-		m_cache.Reset(isolate, _function->NewInstance());
+
+		v8::Handle<v8::Object> o = _function->NewInstance();
+		o->SetAlignedPointerInInternalField(0, 0);
+		m_cache.Reset(isolate, o);
 	}
 
 	void* getInstance(void* o);
