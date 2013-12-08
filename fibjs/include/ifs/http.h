@@ -20,6 +20,7 @@ namespace fibjs
 class module_base;
 class HttpRequest_base;
 class HttpResponse_base;
+class HttpServer_base;
 class Handler_base;
 class HttpHandler_base;
 class SeekableStream_base;
@@ -60,6 +61,7 @@ public:
 
 #include "HttpRequest.h"
 #include "HttpResponse.h"
+#include "HttpServer.h"
 #include "Handler.h"
 #include "HttpHandler.h"
 #include "SeekableStream.h"
@@ -81,13 +83,14 @@ namespace fibjs
 		static ClassData::ClassObject s_object[] = 
 		{
 			{"Request", HttpRequest_base::class_info},
-			{"Response", HttpResponse_base::class_info}
+			{"Response", HttpResponse_base::class_info},
+			{"Server", HttpServer_base::class_info}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"http", NULL, 
-			5, s_method, 2, s_object, 0, NULL, NULL, NULL,
+			5, s_method, 3, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
