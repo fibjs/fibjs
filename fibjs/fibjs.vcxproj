@@ -54,6 +54,7 @@
     <ClCompile Include="src\HttpMessage.cpp" />
     <ClCompile Include="src\HttpRequest.cpp" />
     <ClCompile Include="src\HttpResponse.cpp" />
+    <ClCompile Include="src\HttpServer.cpp" />
     <ClCompile Include="src\HttpUploadCollection.cpp" />
     <ClCompile Include="src\HttpUploadData.cpp" />
     <ClCompile Include="src\Image.cpp" />
@@ -145,6 +146,7 @@
     <ClInclude Include="include\HttpMessage.h" />
     <ClInclude Include="include\HttpRequest.h" />
     <ClInclude Include="include\HttpResponse.h" />
+    <ClInclude Include="include\HttpServer.h" />
     <ClInclude Include="include\HttpUploadCollection.h" />
     <ClInclude Include="include\HttpUploadData.h" />
     <ClInclude Include="include\ifs\assert.h" />
@@ -180,6 +182,7 @@
     <ClInclude Include="include\ifs\HttpMessage.h" />
     <ClInclude Include="include\ifs\HttpRequest.h" />
     <ClInclude Include="include\ifs\HttpResponse.h" />
+    <ClInclude Include="include\ifs\HttpServer.h" />
     <ClInclude Include="include\ifs\HttpUploadData.h" />
     <ClInclude Include="include\ifs\Image.h" />
     <ClInclude Include="include\ifs\io.h" />
