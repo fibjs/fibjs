@@ -72,13 +72,35 @@ protected:
 				{
 					WORD mask, val;
 
-					if (ptr2[2] == '9' && ptr2[3] == '0' && ptr2[4] == 'm')
+					if ( qisdigit(ptr2[2]) && ptr2[3] == 'm')
+					{
+						if (ptr2 > ptr)
+						{
+							ptr2[0] = 0;
+							fputws(ptr, m_stream);
+							fflush(m_stream);
+						}
+
+						ptr = ptr1 = ptr2 + 4;
+					}
+					else if ( ptr2[2] == '2' && qisdigit(ptr2[3]) && ptr2[4] == 'm')
+					{
+						if (ptr2 > ptr)
+						{
+							ptr2[0] = 0;
+							fputws(ptr, m_stream);
+							fflush(m_stream);
+						}
+
+						ptr = ptr1 = ptr2 + 5;
+					}
+					else if (ptr2[2] == '9' && ptr2[3] == '0' && ptr2[4] == 'm')
 					{
 						mask = 0xf0;
 						val = FOREGROUND_BLUE | FOREGROUND_GREEN
 								| FOREGROUND_RED;
 
-						if (ptr2 > ptr + 1)
+						if (ptr2 > ptr)
 						{
 							ptr2[0] = 0;
 							fputws(ptr, m_stream);
@@ -91,7 +113,7 @@ protected:
 						ptr = ptr1 = ptr2 + 5;
 					}
 					else if ((ptr2[2] == '3' || ptr2[2] == '4')
-							&& (ptr2[3] >= '0' && ptr2[3] <= '9')
+							&& qisdigit(ptr2[3])
 							&& ptr2[4] == 'm')
 					{
 						if (ptr2[2] == '3')
@@ -113,7 +135,7 @@ protected:
 								val <<= 4;
 						}
 
-						if (ptr2 > ptr + 1)
+						if (ptr2 > ptr)
 						{
 							ptr2[0] = 0;
 							fputws(ptr, m_stream);
