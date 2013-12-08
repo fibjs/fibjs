@@ -408,7 +408,7 @@ describe(
 						else if (r.value == '/remote_close')
 							coroutine.sleep(20);
 					});
-					svr = new net.TCPServer(8881, hdr);
+					svr = new net.TcpServer(8881, hdr);
 
 					svr.asyncRun();
 				});

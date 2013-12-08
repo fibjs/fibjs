@@ -112,7 +112,7 @@ describe(
 					}
 				}));
 				hdlr.crossDomain = true;
-				new net.TCPServer(8090, hdlr).asyncRun();
+				new net.TcpServer(8090, hdlr).asyncRun();
 
 				var s = new net.Socket();
 				s.connect('127.0.0.1', 8090);

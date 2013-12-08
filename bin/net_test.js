@@ -170,16 +170,16 @@ describe(
 			});
 
 			it("bind same port", function() {
-				new net.TCPServer(8811, function(c) {
+				new net.TcpServer(8811, function(c) {
 				});
 				assert.throws(function() {
-					new net.TCPServer(8811, function(c) {
+					new net.TcpServer(8811, function(c) {
 					});
 				});
 			});
 
 			it("stats", function() {
-				var svr = new net.TCPServer(8812, function(c) {
+				var svr = new net.TcpServer(8812, function(c) {
 					var d;
 					while (d = c.read(100))
 						c.write(d);
