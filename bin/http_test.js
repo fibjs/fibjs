@@ -401,8 +401,6 @@ describe(
 
 				before(function() {
 					hdr = http.handler(function(r) {
-						console.log(r.value);
-
 						if (r.value == '/throw')
 							throw new Error('throw test');
 						else if (r.value == '/not_found')
@@ -658,6 +656,75 @@ describe(
 					assert.equal(200, rep.status);
 					assert.equal(null, rep.firstHeader('Content-Encoding'));
 					rep.clear();
+				});
+			});
+
+			describe("server/request", function() {
+				it("server", function() {
+					new http.Server(8882, function(r) {
+						r.response.body.write(new Buffer(r.address));
+						r.body.copyTo(r.response.body);
+						if (r.hasHeader("test_header"))
+							r.response.body.write(new Buffer(r
+									.firstHeader("test_header")));
+					}).asyncRun();
+				});
+
+				describe("request", function() {
+					it("simple", function() {
+						assert.equal(http.request("GET",
+								"http://127.0.0.1:8882/request").body.read()
+								.toString(), "/request");
+					});
+
+					it("body", function() {
+						assert.equal(http.request("GET",
+								"http://127.0.0.1:8882/request:", "body").body
+								.read().toString(), "/request:body");
+					});
+
+					it("header", function() {
+						assert.equal(http.request("GET",
+								"http://127.0.0.1:8882/request:", {
+									"test_header" : "header"
+								}).body.read().toString(), "/request:header");
+					});
+				});
+
+				describe("get", function() {
+					it("simple", function() {
+						assert.equal(
+								http.get("http://127.0.0.1:8882/request").body
+										.read().toString(), "/request");
+					});
+
+					it("header", function() {
+						assert.equal(http.get("http://127.0.0.1:8882/request:",
+								{
+									"test_header" : "header"
+								}).body.read().toString(), "/request:header");
+					});
+				});
+
+				describe("post", function() {
+					it("simple", function() {
+						assert.equal(
+								http.post("http://127.0.0.1:8882/request").body
+										.read().toString(), "/request");
+					});
+
+					it("body", function() {
+						assert.equal(http.post(
+								"http://127.0.0.1:8882/request:", "body").body
+								.read().toString(), "/request:body");
+					});
+
+					it("header", function() {
+						assert.equal(http.post(
+								"http://127.0.0.1:8882/request:", {
+									"test_header" : "header"
+								}).body.read().toString(), "/request:header");
+					});
 				});
 			});
 		});
