@@ -21,6 +21,8 @@ class TCPServer: public TCPServer_base
 public:
 	TCPServer();
 
+	FIBER_FREE();
+
 public:
 	// TCPServer_base
 	virtual result_t run(exlib::AsyncEvent* ac);
@@ -32,6 +34,7 @@ public:
 	result_t create(const char* addr, int32_t port, Handler_base* listener);
 
 private:
+	bool m_running;
 	obj_ptr<Socket_base> m_socket;
 	obj_ptr<Handler_base> m_hdlr;
 	obj_ptr<Stats> m_stats;

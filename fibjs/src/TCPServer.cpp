@@ -44,7 +44,8 @@ result_t TCPServer_base::_new(const char* addr, int32_t port,
 	result_t hr = JSHandler::New(listener, hdlr1);
 	if (hr < 0)
 		return hr;
-	return _new("", port, hdlr1, retVal);
+
+	return _new(addr, port, hdlr1, retVal);
 }
 
 static const char* s_staticCounter[] =
@@ -61,6 +62,7 @@ TCPServer::TCPServer()
 {
 	m_stats = new Stats();
 	m_stats->init(s_staticCounter, 2, s_Counter, 2);
+	m_running = false;
 }
 
 result_t TCPServer::create(const char* addr, int32_t port,
@@ -161,6 +163,10 @@ result_t TCPServer::run(exlib::AsyncEvent* ac)
 	if (!ac)
 		return CALL_E_NOSYNC;
 
+	if(m_running)
+		return CALL_E_INVALID_CALL;
+	m_running = true;
+
 	return (new asyncAccept(this, ac))->post(0);
 }
 
@@ -180,6 +186,9 @@ result_t TCPServer::asyncRun()
 			return 0;
 		}
 	};
+
+	if(m_running)
+		return CALL_E_INVALID_CALL;
 
 	run(new asyncCall());
 	return 0;
