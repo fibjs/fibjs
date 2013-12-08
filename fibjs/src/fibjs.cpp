@@ -344,12 +344,20 @@ void enableDump()
 
 #endif
 
+#ifdef x64
+int stack_size = 512;
+#else
+int stack_size = 256;
+#endif
+
 int main(int argc, char* argv[])
 {
-	static const char s_opts[] = "--stack_size=110 --harmony";
+	static char s_opts[64];
 	enableDump();
 
 	exlib::OSThread::Sleep(1);
+
+	sprintf(s_opts, "--stack_size=%d --harmony", stack_size - 16);
 
 	v8::V8::SetFlagsFromString(s_opts, sizeof(s_opts) - 1);
 	v8::V8::SetFlagsFromCommandLine(&argc, argv, true);

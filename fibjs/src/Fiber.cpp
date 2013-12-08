@@ -8,6 +8,8 @@
 #include "Fiber.h"
 #include "ifs/os.h"
 
+extern int stack_size;
+
 namespace fibjs
 {
 
@@ -41,7 +43,8 @@ public:
 		if (!g_jobs.empty() && (s_fibers < s_cpus * FIBER_PER_CPU))
 		{
 			s_fibers++;
-			exlib::Service::CreateFiber(FiberBase::fiber_proc)->Unref();
+			exlib::Service::CreateFiber(FiberBase::fiber_proc, NULL,
+					stack_size * 1024)->Unref();
 		}
 
 		if (s_oldIdle)
