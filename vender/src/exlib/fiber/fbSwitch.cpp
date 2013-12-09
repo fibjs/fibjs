@@ -51,61 +51,64 @@ asm(".globl nix_switch, _nix_switch");
 asm("nix_switch:");
 asm("_nix_switch:");
 
-asm("   movq	%rcx,0x10(%rdi)");
-asm("   movq    %rdi, %rcx");
-asm("	movq	%rbp,(%rcx)");
-asm("	movq	%rbx,0x08(%rcx)");
+asm("	movq	%rbp,(%rdi)");
 
-asm("   movq	%rdx,0x18(%rcx)");
-asm("	movq	%rsi,0x20(%rcx)");
-asm("	movq	%rdi,0x28(%rcx)");
-asm("	movq	%r12,0x30(%rcx)");
-asm("	movq	%r13,0x38(%rcx)");
-asm("	movq	%r14,0x40(%rcx)");
-asm("	movq	%r15,0x48(%rcx)");
+asm("	movq	%rbx,0x08(%rdi)");
+asm("   movq	%rcx,0x10(%rdi)");
+asm("   movq	%rdx,0x18(%rdi)");
+asm("	movq	%rsi,0x20(%rdi)");
+asm("	movq	%rdi,0x28(%rdi)");
+asm("	movq	%r12,0x30(%rdi)");
+asm("	movq	%r13,0x38(%rdi)");
+asm("	movq	%r14,0x40(%rdi)");
+asm("	movq	%r15,0x48(%rdi)");
 
 asm("	leaq	8(%rsp),%rax");
-asm("	movq	%rax,0x50(%rcx)");
+asm("	movq	%rax,0x50(%rdi)");
 
 asm("	movq	(%rsp),%rax");
-asm("	movq	%rax,0x58(%rcx)");
+asm("	movq	%rax,0x58(%rdi)");
 
-asm("	movdqa	%xmm6, 0x60(%rcx)");
-asm("	movdqa	%xmm7, 0x70(%rcx)");
-asm("	movdqa	%xmm8, 0x80(%rcx)");
-asm("	movdqa	%xmm9, 0x90(%rcx)");
-asm("	movdqa	%xmm10, 0xa0(%rcx)");
-asm("	movdqa	%xmm11, 0xb0(%rcx)");
-asm("	movdqa	%xmm12, 0xc0(%rcx)");
-asm("	movdqa	%xmm13, 0xd0(%rcx)");
-asm("	movdqa	%xmm14, 0xe0(%rcx)");
-asm("	movdqa	%xmm15, 0xf0(%rcx)");
+asm("	movdqa	%xmm6, 0x60(%rdi)");
+asm("	movdqa	%xmm7, 0x70(%rdi)");
+asm("	movdqa	%xmm8, 0x80(%rdi)");
+asm("	movdqa	%xmm9, 0x90(%rdi)");
+asm("	movdqa	%xmm10, 0xa0(%rdi)");
+asm("	movdqa	%xmm11, 0xb0(%rdi)");
+asm("	movdqa	%xmm12, 0xc0(%rdi)");
+asm("	movdqa	%xmm13, 0xd0(%rdi)");
+asm("	movdqa	%xmm14, 0xe0(%rdi)");
+asm("	movdqa	%xmm15, 0xf0(%rdi)");
 
-asm("   movq	%rsi, %rcx");
+asm("   movq	%rsi, %rdi");
 
-asm("	movq	(%rcx), %rbp");
-asm("	movq	0x08(%rcx), %rbx");
+asm("	movq	(%rdi), %rbp");
+asm("	movq	0x08(%rdi), %rbx");
+asm("	movq	0x10(%rdi), %rcx");
+asm("	movq	0x18(%rdi), %rdx");
+asm("	movq	0x20(%rdi), %rsi");
 
-asm("	movq	0x18(%rcx), %rdx");
-asm("	movq	0x20(%rcx), %rsi");
-asm("	movq	0x28(%rcx), %rdi");
-asm("	movq	0x30(%rcx), %r12");
-asm("	movq	0x38(%rcx), %r13");
-asm("	movq	0x40(%rcx), %r14");
-asm("	movq	0x48(%rcx), %r15");
-asm("	movq	0x50(%rcx), %rsp");
-asm("	movq	0x58(%rcx), %rax");
-asm("	movdqa	0x60(%rcx), %xmm6");
-asm("	movdqa	0x70(%rcx), %xmm7");
-asm("	movdqa	0x80(%rcx), %xmm8");
-asm("	movdqa	0x90(%rcx), %xmm9");
-asm("	movdqa	0xa0(%rcx), %xmm10");
-asm("	movdqa	0xb0(%rcx), %xmm11");
-asm("	movdqa	0xc0(%rcx), %xmm12");
-asm("	movdqa	0xd0(%rcx), %xmm13");
-asm("	movdqa	0xe0(%rcx), %xmm14");
-asm("	movdqa	0xf0(%rcx), %xmm15");
-asm("	movq	0x10(%rcx), %rcx");
+asm("	movq	0x30(%rdi), %r12");
+asm("	movq	0x38(%rdi), %r13");
+asm("	movq	0x40(%rdi), %r14");
+asm("	movq	0x48(%rdi), %r15");
+asm("	movq	0x50(%rdi), %rsp");
+
+asm("	movq	0x58(%rdi), %rax");
+
+asm("	movdqa	0x60(%rdi), %xmm6");
+asm("	movdqa	0x70(%rdi), %xmm7");
+asm("	movdqa	0x80(%rdi), %xmm8");
+asm("	movdqa	0x90(%rdi), %xmm9");
+asm("	movdqa	0xa0(%rdi), %xmm10");
+asm("	movdqa	0xb0(%rdi), %xmm11");
+asm("	movdqa	0xc0(%rdi), %xmm12");
+asm("	movdqa	0xd0(%rdi), %xmm13");
+asm("	movdqa	0xe0(%rdi), %xmm14");
+asm("	movdqa	0xf0(%rdi), %xmm15");
+
+asm("	movq	0x28(%rdi), %rdi");
+
 asm("	pushq   %rax");
 asm("	xorq	%rax,%rax");
 asm("	ret");
