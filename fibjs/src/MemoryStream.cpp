@@ -28,7 +28,8 @@ result_t MemoryStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 	int64_t p = m_buffer.tellg();
 
 	m_buffer.seekg(0, std::ios::end);
-	sz = m_buffer.tellg() - p;
+	int64_t p1 = m_buffer.tellg();
+	sz = p1 - p;
 	m_buffer.seekg(p, std::ios::beg);
 
 	if (bytes < 0 || bytes > sz)

@@ -18,6 +18,7 @@
 #include <sys/resource.h>
 #include <sys/sysctl.h>
 #include <vm/vm_param.h>
+#include <stdlib.h>
 
 #undef NANOSEC
 #define NANOSEC ((uint64_t) 1e9)
