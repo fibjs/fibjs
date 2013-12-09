@@ -1,0 +1,15 @@
+
+on ubuntu:
+apt-get install cmake
+apt-get install g++
+
+32bit on ubuntu:
+apt-get install g++-multilib
+
+on osx:
+brew install cmake
+
+
+
+build:
+sh build
