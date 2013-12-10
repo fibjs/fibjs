@@ -1,0 +1,55 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then
+	echo ""
+	echo "build [Release | Release32 | Debug | Debug32 | clean]"
+	echo ""
+	exit 0
+fi
+
+if [ $1 = 'clean' ]; then
+	if [ -e "Release" ]; then
+		rm -r -f "Release"
+	fi
+
+	if [ -e "Release32" ]; then
+		rm -r -f "Release32"
+	fi
+
+	if [ -e "Debug" ]; then
+		rm -r -f "Debug"
+	fi
+
+	if [ -e "Debug32" ]; then
+		rm -r -f "Debug32"
+	fi
+
+	exit 0
+fi
+
+if [ $1 != 'Release' ] && [ $1 != 'Release32' ] && [ $1 != 'Debug' ] && [ $1 != 'Debug32' ]; then
+	echo ""
+	echo "build [Release | Release32 | Debug | Debug32 | clean]"
+	echo ""
+	exit 0
+fi
+
+if [ ! -e "$1" ]; then
+	mkdir "$1"
+fi
+
+
+SVN_INFO=`svn info | sed -n '/http:\/\/www\.tooscript\.org\/svn\/exlib/,/Revision/p' | sed -n 's/Revision: /-DSVN_INFO=/p'`
+
+OS=`uname`
+
+cd "$1"
+cmake -DBUILD_TYPE=$1 -DOS_TYPE=$OS $SVN_INFO ..
+find . -name "*.c" -delete
+find . -name "*.cpp" -delete
+make
+
+cd ..
+
+echo "copy $1/fibjs to bin"
+cp "$1/fibjs" "../bin/$1/fibjs"

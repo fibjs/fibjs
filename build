@@ -7,81 +7,17 @@ if [ $# -lt 1 ]; then
 	exit 0
 fi
 
-if [ $1 = 'clean' ]; then
-	if [ -e "vender/Release" ]; then
-		rm -r -f "vender/Release"
-	fi
-
-	if [ -e "fibjs/Release" ]; then
-		rm -r -f "fibjs/Release"
-	fi
-
-	if [ -e "vender/Release32" ]; then
-		rm -r -f "vender/Release32"
-	fi
-
-	if [ -e "fibjs/Release32" ]; then
-		rm -r -f "fibjs/Release32"
-	fi
-
-	if [ -e "vender/Debug" ]; then
-		rm -r -f "vender/Debug"
-	fi
-
-	if [ -e "fibjs/Debug" ]; then
-		rm -r -f "fibjs/Debug"
-	fi
-
-	if [ -e "vender/Debug32" ]; then
-		rm -r -f "vender/Debug32"
-	fi
-
-	if [ -e "fibjs/Debug32" ]; then
-		rm -r -f "fibjs/Debug32"
-	fi
-
-	exit 0
-fi
-
-if [ $1 != 'Release' ] && [ $1 != 'Release32' ] && [ $1 != 'Debug' ] && [ $1 != 'Debug32' ]; then
+if [ $1 != 'Release' ] && [ $1 != 'Release32' ] && [ $1 != 'Debug' ] && [ $1 != 'Debug32' ] && [ $1 != 'clean' ]; then
 	echo ""
 	echo "build [Release | Release32 | Debug | Debug32 | clean]"
 	echo ""
 	exit 0
 fi
 
-if [ ! -e "vender/$1" ]; then
-	mkdir "vender/$1"
-fi
+cd vender
+sh build $1
+cd ..
 
-if [ ! -e "fibjs/$1" ]; then
-	mkdir "fibjs/$1"
-fi
-
-if [ ! -e "bin/$1" ]; then
-	mkdir "bin/$1"
-fi
-
-
-SVN_INFO=`svn info | sed -n '/http:\/\/www\.tooscript\.org\/svn\/exlib/,/Revision/p' | sed -n 's/Revision: /-DSVN_INFO=/p'`
-
-OS=`uname`
-
-cd "vender/$1"
-cmake -DBUILD_TYPE=$1 ..
-find . -name "*.c" -delete
-find . -name "*.cpp" -delete
-make
-
-cd ../..
-
-cd "fibjs/$1"
-cmake -DBUILD_TYPE=$1 -DOS_TYPE=$OS $SVN_INFO ..
-find . -name "*.c" -delete
-find . -name "*.cpp" -delete
-make
-
-cd ../..
-
-echo "copy fibjs/$1/fibjs to bin/$1/fibjs"
-cp "fibjs/$1/fibjs" "bin/$1/fibjs"
+cd fibjs
+sh build $1
+cd ..
