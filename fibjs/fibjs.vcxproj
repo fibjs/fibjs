@@ -109,6 +109,7 @@
     <ClCompile Include="src\Url.cpp" />
     <ClCompile Include="src\utf8.cpp" />
     <ClCompile Include="src\util.cpp" />
+    <ClCompile Include="src\utils.cpp" />
     <ClCompile Include="src\uuidVar.cpp" />
     <ClCompile Include="src\Variant.cpp" />
     <ClCompile Include="src\zlib.cpp" />

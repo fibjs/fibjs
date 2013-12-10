@@ -42,8 +42,12 @@ if(${BUILD_TYPE} STREQUAL "Debug32")
 	set(link_flags "${link_flags} -m32")
 endif()
 
-
 set_target_properties(fibjs PROPERTIES COMPILE_FLAGS ${flags})
+
+if(${SVN_INFO})
+	add_definitions("-DSVN_INFO=${SVN_INFO}")
+endif()
+
 include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../vender/include")
 
 set_target_properties(fibjs PROPERTIES LINK_FLAGS ${link_flags})

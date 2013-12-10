@@ -62,6 +62,9 @@ if [ ! -e "bin/$1" ]; then
 	mkdir "bin/$1"
 fi
 
+
+SVN_INFO=`svn info | sed -n '/http:\/\/www\.tooscript\.org\/svn\/exlib/,/Revision/p' | sed -n 's/Revision: /-DSVN_INFO=/p'`
+
 OS=`uname`
 
 cd "vender/$1"
@@ -73,7 +76,7 @@ make
 cd ../..
 
 cd "fibjs/$1"
-cmake -DBUILD_TYPE=$1 -DOS_TYPE=$OS ..
+cmake -DBUILD_TYPE=$1 -DOS_TYPE=$OS $SVN_INFO ..
 find . -name "*.c" -delete
 find . -name "*.cpp" -delete
 make

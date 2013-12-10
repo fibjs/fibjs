@@ -23,10 +23,14 @@ class LruCache_base;
 
 class utils_base : public module_base
 {
+public:
+	// utils_base
+	static result_t buildInfo(v8::Handle<v8::Object>& retVal);
+
 	DECLARE_CLASSINFO(utils_base);
 
 public:
-
+	static void s_buildInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -38,6 +42,11 @@ namespace fibjs
 {
 	inline ClassInfo& utils_base::class_info()
 	{
+		static ClassData::ClassMethod s_method[] = 
+		{
+			{"buildInfo", s_buildInfo, true}
+		};
+
 		static ClassData::ClassObject s_object[] = 
 		{
 			{"Stats", Stats_base::class_info},
@@ -47,7 +56,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"utils", NULL, 
-			0, NULL, 2, s_object, 0, NULL, NULL, NULL,
+			1, s_method, 2, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -55,6 +64,17 @@ namespace fibjs
 		return s_ci;
 	}
 
+
+	inline void utils_base::s_buildInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		v8::Handle<v8::Object> vr;
+
+		METHOD_ENTER(0, 0);
+
+		hr = buildInfo(vr);
+
+		METHOD_RETURN();
+	}
 
 }
 
