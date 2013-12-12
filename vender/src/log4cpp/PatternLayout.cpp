@@ -370,7 +370,7 @@ namespace log4cpp {
                         literal = "";
                     }
                     if ((minWidth != 0) || (maxWidth != 0)) {
-                        component = new FormatModifierComponent(component, std::abs(minWidth), maxWidth, minWidth < 0);
+                        component = new FormatModifierComponent(component, minWidth < 0 ? -minWidth : minWidth, maxWidth, minWidth < 0);
                         minWidth = maxWidth = 0;
                     }
                     _components.push_back(component);
