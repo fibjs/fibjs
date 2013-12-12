@@ -29,6 +29,7 @@
     <ClCompile Include="src\Condition.cpp" />
     <ClCompile Include="src\Console.cpp" />
     <ClCompile Include="src\coroutine.cpp" />
+    <ClCompile Include="src\DataCache.cpp" />
     <ClCompile Include="src\date.cpp" />
     <ClCompile Include="src\db.cpp" />
     <ClCompile Include="src\DBResult.cpp" />
@@ -130,6 +131,7 @@
     <ClInclude Include="include\Chain.h" />
     <ClInclude Include="include\ClassInfo.h" />
     <ClInclude Include="include\Condition.h" />
+    <ClInclude Include="include\DataCache.h" />
     <ClInclude Include="include\date.h" />
     <ClInclude Include="include\DBField.h" />
     <ClInclude Include="include\DBResult.h" />
