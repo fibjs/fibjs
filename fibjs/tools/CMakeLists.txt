@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(fibjs)
 
-file(GLOB_RECURSE src_list "src/*.c*")
+file(GLOB_RECURSE src_list "../src/*.c*")
 add_executable(fibjs ${src_list})
 
 
@@ -50,9 +50,9 @@ if(${SVN_INFO})
 	add_definitions("-DSVN_INFO=${SVN_INFO}")
 endif()
 
-include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../vender/include")
+include_directories("${PROJECT_SOURCE_DIR}/../include" "${PROJECT_SOURCE_DIR}/../../vender/include")
 
 set_target_properties(fibjs PROPERTIES LINK_FLAGS ${link_flags})
 
-find_library(lib_list vender "${PROJECT_SOURCE_DIR}/../vender/${BUILD_TYPE}")
+find_library(lib_list vender "${PROJECT_SOURCE_DIR}/../../vender/${BUILD_TYPE}")
 target_link_libraries(fibjs ${lib_list})

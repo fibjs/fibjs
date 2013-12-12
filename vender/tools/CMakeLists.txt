@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(vender)
 
-file(GLOB_RECURSE src_list "src/*.c*")
+file(GLOB_RECURSE src_list "../src/*.c*")
 add_library(vender ${src_list})
 
 set(flags "-c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections")
@@ -33,4 +33,4 @@ if(link_flags)
 	set_target_properties(vender PROPERTIES LINK_FLAGS ${link_flags})
 endif()
 
-include_directories("${PROJECT_SOURCE_DIR}/include/" "${PROJECT_SOURCE_DIR}/src/v8/src/" "/usr/local/include/")
+include_directories("${PROJECT_SOURCE_DIR}/../include/" "${PROJECT_SOURCE_DIR}/../src/v8/src/" "/usr/local/include/")
