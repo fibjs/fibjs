@@ -60,7 +60,7 @@ result_t utils_base::buildInfo(v8::Handle<v8::Object>& retVal)
 	vender->Set(v8::String::New("uuid"), v8::String::New("1.6.2"));
 	vender->Set(v8::String::New("v8"), v8::String::New(v8::V8::GetVersion()));
 	vender->Set(v8::String::New("zlib"), v8::String::New(ZLIB_VERSION));
-	vender->Set(v8::String::New("zmp"), v8::String::New(
+	vender->Set(v8::String::New("zmq"), v8::String::New(
 			STR(ZMQ_VERSION_MAJOR) "." STR(ZMQ_VERSION_MINOR)));
 
 	return 0;
