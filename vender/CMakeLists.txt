@@ -33,4 +33,4 @@ if(link_flags)
 	set_target_properties(vender PROPERTIES LINK_FLAGS ${link_flags})
 endif()
 
-include_directories("${PROJECT_SOURCE_DIR}/include/" "${PROJECT_SOURCE_DIR}/src/v8/src/")
+include_directories("${PROJECT_SOURCE_DIR}/include/" "${PROJECT_SOURCE_DIR}/src/v8/src/" "/usr/local/include/")
