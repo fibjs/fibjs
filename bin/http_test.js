@@ -107,9 +107,10 @@ describe(
 					d.set('f', 214.123);
 					assert.equal(d['f'], '214.123');
 
-					t = new Date('2012-12-12 12:12:12');
+					t = new Date('2012-12-12T12:12:12Z');
 					d.set('f', t);
-
+					
+					assert.deepEqual(d['f'], "Wed, 12 Dec 2012 12:12:12 GMT");
 					assert.deepEqual(new Date(d['f']), t);
 				});
 			});
