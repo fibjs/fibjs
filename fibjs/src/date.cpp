@@ -8,6 +8,7 @@
 #include <v8/v8.h>
 #include "date.h"
 #include "qstring.h"
+#include "Runtime.h"
 #include "utils.h"
 #include <math.h>
 #include <string.h>
@@ -228,6 +229,7 @@ void date_t::parse(const char* str, int len)
 	char ch;
 	int mint, mon;
 	int tz = 0;
+	bool bLocal = true;
 	const char *monstr, *timstr = NULL, *tzstr = NULL;
 	static const int months[12] =
 	{ ('J' << 16) | ('a' << 8) | 'n', ('F' << 16) | ('e' << 8) | 'b',
@@ -253,53 +255,44 @@ void date_t::parse(const char* str, int len)
 	{
 		wYear = (short) getInt(str, len, pos);
 		ch = pick(str, len, pos);
-		if (ch == '-')
-		{
-			next(len, pos);
-			wMonth = (short) getInt(str, len, pos) - 1;
 
-			if (pick(str, len, pos) == '-')
-			{
-				next(len, pos);
-				wDay = (short) getInt(str, len, pos) - 1;
-
-				ch = pick(str, len, pos);
-				if (ch == ' ' || ch == 'T' || ch == 't')
-				{
-					if (ch != ' ')
-						tz = date_t::LocalOffset();
-
-					next(len, pos);
-					wHour = (short) getInt(str, len, pos);
-					bTime = true;
-				}
-			}
-		}
-		else if (ch == '/')
+		if (ch == '/' || ch == '-')
 		{
 			wMonth = wYear;
 
 			next(len, pos);
 			wDay = (short) getInt(str, len, pos);
 
-			if (pick(str, len, pos) == '/')
+			ch = pick(str, len, pos);
+			if (ch == '/' || ch == '-')
 			{
 				next(len, pos);
 				wYear = (short) getInt(str, len, pos);
 
-				if (pick(str, len, pos) == ' ')
+				ch = pick(str, len, pos);
+				if (ch == ' ' || ch == 'T' || ch == 't')
 				{
+					if (ch != ' ')
+						bLocal = false;
+
 					next(len, pos);
 					wHour = (short) getInt(str, len, pos);
 					bTime = true;
 				}
 			}
+			else if (wMonth > 12 && wDay <= 12)
+			{
+				wYear = wMonth;
+				wMonth = wDay;
+				wDay = 1;
+			}
 			else
 				wYear = 2001;
 
-			// m/d/y -> y/m/d
+			// check m/d/y
 			if (wMonth
-					> 12&& wDay <= 12 && wYear <= MaxDaysInMonth(wMonth, wDay)){
+					> 12&& wDay <= 12 && wYear <= MaxDaysInMonth(wMonth, wDay - 1))
+			{
 				int n = wYear;
 				wYear = wMonth;
 				wMonth = wDay;
@@ -371,7 +364,7 @@ void date_t::parse(const char* str, int len)
 			++str;
 		}
 
-		if (checkmask(str, len, "@$$ ## #### ##:##:##*")) /* Javascript format */
+		if (checkmask(str, len, "@$$ ## #### ##:##:##*")) // Javascript format
 		{
 			wYear = (((str[7] & 0xf) * 10 + (str[8] & 0xf)) * 100
 					+ ((str[9] & 0xf) * 10) + (str[10] & 0xf));
@@ -382,7 +375,7 @@ void date_t::parse(const char* str, int len)
 			timstr = str + 12;
 			tzstr = str + 20;
 		}
-		else if (checkmask(str, len, "## @$$ #### ##:##:##*")) /* RFC 1123 format */
+		else if (checkmask(str, len, "## @$$ #### ##:##:##*")) // RFC 1123 format
 		{
 			wYear = (((str[7] & 0xf) * 10 + (str[8] & 0xf)) * 100
 					+ ((str[9] & 0xf) * 10) + (str[10] & 0xf));
@@ -393,7 +386,7 @@ void date_t::parse(const char* str, int len)
 			timstr = str + 12;
 			tzstr = str + 20;
 		}
-		else if (checkmask(str, len, "##-@$$-## ##:##:##*")) /* RFC 850 format  */
+		else if (checkmask(str, len, "##-@$$-## ##:##:##*")) // RFC 850 format
 		{
 			wYear = (((str[7] & 0xf) * 10) + (str[8] & 0xf));
 			if (wYear < 70)
@@ -406,7 +399,7 @@ void date_t::parse(const char* str, int len)
 			timstr = str + 10;
 			tzstr = str + 18;
 		}
-		else if (checkmask(str, len, "@$$ ~# ##:##:## ####*")) /* asctime format  */
+		else if (checkmask(str, len, "@$$ ~# ##:##:## ####*")) // asctime format
 		{
 			wYear = (((str[16] & 0xf) * 10 + (str[17] & 0xf)) * 100
 					+ ((str[18] & 0xf) * 10) + (str[19] & 0xf));
@@ -431,16 +424,21 @@ void date_t::parse(const char* str, int len)
 
 		wMonth = mon;
 
-		if (tzstr && !qstricmp(tzstr, " gmt", 4))
+		if (tzstr)
 		{
-			tz = date_t::LocalOffset();
-
-			if (qisdigit(tzstr[5]))
+			if (!qstricmp(tzstr, " gmt", 4))
 			{
-				if (tzstr[4] == '+')
-					tz -= atoi(tzstr + 5) / 100;
-				else if (tzstr[4] == '-')
-					tz += atoi(tzstr + 5) / 100;
+				tz = 0;
+
+				if (qisdigit(tzstr[5]))
+				{
+					if (tzstr[4] == '+')
+						tz -= atoi(tzstr + 5);
+					else if (tzstr[4] == '-')
+						tz += atoi(tzstr + 5);
+				}
+
+				bLocal = false;
 			}
 		}
 	}
@@ -462,7 +460,12 @@ void date_t::parse(const char* str, int len)
 
 	d = ElapsedDays * 86400000.0
 			+ ((wHour * 60 + wMinute) * 60 + wSecond) * 1000 + wMicroSecond
-			+ tz * 3600000 - 62135625600000.0;
+			- 62135596800000.0;
+
+	if (bLocal)
+		d = (double) Runtime::now().m_pDateCache->ToUTC((int64_t) d);
+	else
+		d += tz * 36000;
 }
 
 void inline putStr(char *& ptrBuf, const char *ptr, int n)
@@ -482,8 +485,11 @@ void inline putInt(char *& ptrBuf, int v, int n)
 	ptrBuf += n1;
 }
 
-void date_t::toGMTString(std::string& retVal, bool bTimeZone)
+void date_t::toGMTString(std::string& retVal)
 {
+	if (isnan(d))
+		return;
+
 	static char szMonth[][4] =
 	{ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct",
 			"Nov", "Dec" };
@@ -494,15 +500,7 @@ void date_t::toGMTString(std::string& retVal, bool bTimeZone)
 			0;
 
 	int Days, Milliseconds, NumberOf400s, NumberOf100s, NumberOf4s;
-	int64_t d1 = (int64_t) (d + 62135625600000ll);
-
-	int tz = date_t::LocalOffset();
-
-	if (!bTimeZone && tz)
-	{
-		d1 -= tz * 3600000;
-		tz = 0;
-	}
+	int64_t d1 = (int64_t) (d + 62135596800000ll);
 
 	Days = (int) (d1 / 86400000);
 	Milliseconds = d1 % 86400000;
@@ -543,7 +541,7 @@ void date_t::toGMTString(std::string& retVal, bool bTimeZone)
 	wHour = wMinute / 60;
 	wMinute = wMinute % 60;
 
-	retVal.resize(29 + (tz ? 5 : 0));
+	retVal.resize(29);
 	char* ptrBuf = &retVal[0];
 
 	putStr(ptrBuf, szDays[wDayOfWeek], 3);
@@ -560,24 +558,17 @@ void date_t::toGMTString(std::string& retVal, bool bTimeZone)
 	*ptrBuf++ = ':';
 	putInt(ptrBuf, wSecond, 2);
 	putStr(ptrBuf, " GMT", 4);
-	if (tz > 0)
-	{
-		putStr(ptrBuf, "+0", 2);
-		putInt(ptrBuf, tz * 100, 3);
-	}
-	else if (tz < 0)
-	{
-		putStr(ptrBuf, "-0", 2);
-		putInt(ptrBuf, -tz * 100, 3);
-	}
 }
 
 void date_t::sqlString(std::string& retVal)
 {
+	if (isnan(d))
+		return;
+
 	int wYear = 0, wMonth = 1, wHour = 0, wMinute = 0, wSecond = 0;
 
 	int Days, Milliseconds, NumberOf400s, NumberOf100s, NumberOf4s;
-	int64_t d1 = (int64_t) (d + 62135625600000ll);
+	int64_t d1 = (int64_t) (Runtime::now().m_pDateCache->ToLocal((int64_t) d) + 62135596800000ll);
 
 	Days = (int) (d1 / 86400000);
 	Milliseconds = d1 % 86400000;
@@ -632,5 +623,14 @@ void date_t::sqlString(std::string& retVal)
 	putInt(ptrBuf, wSecond, 2);
 }
 
+void date_t::toLocal()
+{
+	d = (double) Runtime::now().m_pDateCache->ToLocal((int64_t) d);
 }
 
+void date_t::toUTC()
+{
+	d = (double) Runtime::now().m_pDateCache->ToUTC((int64_t) d);
+}
+
+}

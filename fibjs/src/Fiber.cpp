@@ -22,6 +22,7 @@ static int32_t s_cpus;
 static int32_t s_fibers;
 
 int g_tlsCurrent;
+DateCache FiberBase::g_dc;
 
 static class _fiber_init
 {

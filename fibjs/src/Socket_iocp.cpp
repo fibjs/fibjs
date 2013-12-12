@@ -103,6 +103,9 @@ public:
 		LPOVERLAPPED pOverlap;
 
 		Runtime rt;
+		DateCache dc;
+		rt.m_pDateCache = &dc;
+
 		Runtime::reg(&rt);
 
 		while (true)

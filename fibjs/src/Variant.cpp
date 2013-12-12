@@ -300,7 +300,7 @@ bool Variant::toString(std::string& retVal)
 		return true;
 	}
 	case VT_Date:
-		((date_t*) m_Val.dateVal)->toString(retVal);
+		((date_t*) m_Val.dateVal)->toGMTString(retVal);
 		return true;
 	case VT_Object:
 		return false;

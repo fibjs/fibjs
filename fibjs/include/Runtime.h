@@ -6,6 +6,7 @@
  */
 
 #include "utils.h"
+#include "DataCache.h"
 
 #ifndef RUNTIME_H_
 #define RUNTIME_H_
@@ -54,6 +55,9 @@ public:
 	{
 		return Runtime::now().m_code;
 	}
+
+public:
+	DateCache* m_pDateCache;
 
 private:
 	result_t m_code;

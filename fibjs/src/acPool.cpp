@@ -34,6 +34,9 @@ public:
 		asyncEvent *p;
 
 		Runtime rt;
+		DateCache dc;
+		rt.m_pDateCache = &dc;
+
 		Runtime::reg(&rt);
 
 		while (1)

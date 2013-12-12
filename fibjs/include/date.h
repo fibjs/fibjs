@@ -20,6 +20,8 @@ class OS
 {
 public:
 	static double LocalTimeOffset();
+	static double DaylightSavingsOffset(double time);
+	static const char* LocalTimezone(double time);
 };
 
 }
@@ -90,16 +92,15 @@ public:
 		return d - d1.d;
 	}
 
+	void toLocal();
+	void toUTC();
+
 	void parse(const char* str, int len = -1);
-	void toGMTString(std::string& retVal, bool bTimeZone = false);
-	void toString(std::string& retVal)
-	{
-		toGMTString(retVal, true);
-	}
+	void toGMTString(std::string& retVal);
 	void sqlString(std::string& retVal);
 	static int LocalOffset()
 	{
-		return (int) v8::internal::OS::LocalTimeOffset() / 3600000;
+		return (int) v8::internal::OS::LocalTimeOffset() / 36000;
 	}
 
 private:
