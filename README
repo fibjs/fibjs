@@ -1,7 +1,9 @@
 
 on ubuntu:
-apt-get install cmake
 apt-get install g++
+apt-get install make
+apt-get install cmake
+apt-get install subversion
 
 32bit on ubuntu:
 apt-get install g++-multilib
