@@ -52,4 +52,9 @@ make
 cd ..
 
 echo "copy $1/fibjs to bin"
+
+if [ ! -e "../bin/$1" ]; then
+	mkdir "../bin/$1"
+fi
+
 cp "$1/fibjs" "../bin/$1/fibjs"
