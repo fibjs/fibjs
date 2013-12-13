@@ -156,7 +156,7 @@ result_t TcpServer::run(exlib::AsyncEvent* ac)
 		}
 
 	private:
-		TcpServer* m_pThis;
+		obj_ptr<TcpServer> m_pThis;
 		obj_ptr<Socket_base> m_retVal;
 	};
 
