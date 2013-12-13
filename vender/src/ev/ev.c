@@ -1277,7 +1277,7 @@ static EV_ATOMIC_T have_monotonic; /* did clock_gettime (CLOCK_MONOTONIC) work? 
 #endif
 
 #ifdef _WIN32
-# include "ev_win32.c"
+# include "ev_win32.inl"
 #endif
 
 /*****************************************************************************/
