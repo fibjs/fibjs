@@ -17,6 +17,14 @@ if (os.type == 'Windows' && os.version < "6.0")
 		address : '127.0.0.1'
 	};
 
+var backend = {
+	"Windows" : "IOCP",
+	"Darwin" : "KQueue",
+	"FreeBSD" : "KQueue",
+	"Linux" : "EPoll"
+}[os.type];
+
+
 function del(f) {
 	try {
 		fs.unlink(f);
@@ -28,7 +36,7 @@ describe(
 		"net",
 		function() {
 			it("backend", function() {
-				console.log('Backend:', net.backend());
+				assert.equal(net.backend(), backend);
 			});
 
 			it("echo",
