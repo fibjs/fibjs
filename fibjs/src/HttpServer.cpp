@@ -6,6 +6,7 @@
  */
 
 #include "HttpServer.h"
+#include "ifs/http.h"
 #include "JSHandler.h"
 
 namespace fibjs
@@ -28,6 +29,22 @@ result_t HttpServer_base::_new(const char* addr, int32_t port,
 	retVal = svr;
 
 	return 0;
+}
+
+result_t HttpServer_base::_new(int32_t port, const char* root, obj_ptr<HttpServer_base>& retVal)
+{
+	return _new("", port, root, retVal);
+}
+
+result_t HttpServer_base::_new(const char* addr, int32_t port, const char* root, obj_ptr<HttpServer_base>& retVal)
+{
+	obj_ptr < Handler_base > hdlr;
+
+	result_t hr = http_base::fileHandler(root, hdlr);
+	if (hr < 0)
+		return hr;
+
+	return _new(addr, port, hdlr, retVal);
 }
 
 result_t HttpServer_base::_new(int32_t port, v8::Handle<v8::Function> hdlr,

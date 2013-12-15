@@ -26,8 +26,10 @@ public:
 	// HttpServer_base
 	static result_t _new(int32_t port, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal);
 	static result_t _new(int32_t port, v8::Handle<v8::Function> hdlr, obj_ptr<HttpServer_base>& retVal);
+	static result_t _new(int32_t port, const char* root, obj_ptr<HttpServer_base>& retVal);
 	static result_t _new(const char* addr, int32_t port, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal);
 	static result_t _new(const char* addr, int32_t port, v8::Handle<v8::Function> hdlr, obj_ptr<HttpServer_base>& retVal);
+	static result_t _new(const char* addr, int32_t port, const char* root, obj_ptr<HttpServer_base>& retVal);
 	virtual result_t run(exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncRun() = 0;
 	virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
@@ -248,6 +250,13 @@ namespace fibjs
 
 		hr = _new(v0, v1, vr);
 
+		METHOD_OVER(2, 2);
+
+		ARG(int32_t, 0);
+		ARG_String(1);
+
+		hr = _new(v0, v1, vr);
+
 		METHOD_OVER(3, 3);
 
 		ARG_String(0);
@@ -261,6 +270,14 @@ namespace fibjs
 		ARG_String(0);
 		ARG(int32_t, 1);
 		ARG(v8::Handle<v8::Function>, 2);
+
+		hr = _new(v0, v1, v2, vr);
+
+		METHOD_OVER(3, 3);
+
+		ARG_String(0);
+		ARG(int32_t, 1);
+		ARG_String(2);
 
 		hr = _new(v0, v1, v2, vr);
 
