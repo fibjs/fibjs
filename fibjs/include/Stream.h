@@ -13,10 +13,10 @@
 namespace fibjs
 {
 
-result_t copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
-		int64_t& retVal, exlib::AsyncEvent* ac);
+result_t copyStream(Stream_base *from, Stream_base *to, int64_t bytes,
+                    int64_t &retVal, exlib::AsyncEvent *ac);
 
-#define STREAM_BUFF_SIZE	4096
+#define STREAM_BUFF_SIZE    4096
 
 }
 

@@ -17,32 +17,32 @@ namespace fibjs
 class Condition: public Condition_base
 {
 public:
-	Condition(Lock_base* lock) :
-		m_lockCond(lock)
-	{
-	}
+    Condition(Lock_base *lock) :
+        m_lockCond(lock)
+    {
+    }
 
-	Condition()
-	{
-		m_lockCond = new Lock();
-	}
+    Condition()
+    {
+        m_lockCond = new Lock();
+    }
 
-	FIBER_FREE();
-
-public:
-	// Lock_base
-	virtual result_t acquire(bool blocking, bool& retVal);
-	virtual result_t release();
+    FIBER_FREE();
 
 public:
-	// Condition_base
-	virtual result_t wait();
-	virtual result_t notify();
-	virtual result_t notifyAll();
+    // Lock_base
+    virtual result_t acquire(bool blocking, bool &retVal);
+    virtual result_t release();
+
+public:
+    // Condition_base
+    virtual result_t wait();
+    virtual result_t notify();
+    virtual result_t notifyAll();
 
 private:
-	obj_ptr<Lock_base> m_lockCond;
-	exlib::CondVar m_cond;
+    obj_ptr<Lock_base> m_lockCond;
+    exlib::CondVar m_cond;
 };
 
 }

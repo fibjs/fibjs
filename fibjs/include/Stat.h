@@ -24,13 +24,13 @@
 
 inline int ftruncate64(int fd, __int64 where)
 {
-	if(_lseeki64(fd, where, SEEK_SET) < 0)
-		return -1;
+    if (_lseeki64(fd, where, SEEK_SET) < 0)
+        return -1;
 
-	if(!SetEndOfFile((HANDLE)_get_osfhandle(fd)))
-		return -1;
+    if (!SetEndOfFile((HANDLE)_get_osfhandle(fd)))
+        return -1;
 
-	return 0;
+    return 0;
 }
 
 #define S_ISLNK(m) 0
@@ -62,39 +62,39 @@ namespace fibjs
 class Stat: public Stat_base
 {
 public:
-	// Stat_base
-	virtual result_t get_name(std::string& retVal);
-	virtual result_t get_size(int64_t& retVal);
-	virtual result_t get_mtime(date_t& retVal);
-	virtual result_t get_atime(date_t& retVal);
-	virtual result_t get_ctime(date_t& retVal);
-	virtual result_t isWritable(bool& retVal);
-	virtual result_t isReadable(bool& retVal);
-	virtual result_t isExecutable(bool& retVal);
-	virtual result_t isHidden(bool& retVal);
-	virtual result_t isDirectory(bool& retVal);
-	virtual result_t isFile(bool& retVal);
-	virtual result_t isSymbolicLink(bool& retVal);
-	virtual result_t isMemory(bool& retVal);
-	virtual result_t isSocket(bool& retVal);
+    // Stat_base
+    virtual result_t get_name(std::string &retVal);
+    virtual result_t get_size(int64_t &retVal);
+    virtual result_t get_mtime(date_t &retVal);
+    virtual result_t get_atime(date_t &retVal);
+    virtual result_t get_ctime(date_t &retVal);
+    virtual result_t isWritable(bool &retVal);
+    virtual result_t isReadable(bool &retVal);
+    virtual result_t isExecutable(bool &retVal);
+    virtual result_t isHidden(bool &retVal);
+    virtual result_t isDirectory(bool &retVal);
+    virtual result_t isFile(bool &retVal);
+    virtual result_t isSymbolicLink(bool &retVal);
+    virtual result_t isMemory(bool &retVal);
+    virtual result_t isSocket(bool &retVal);
 
 public:
-	result_t getStat(const char* path);
-	void fill(const char* path, struct stat64& st);
+    result_t getStat(const char *path);
+    void fill(const char *path, struct stat64 &st);
 
 #ifdef _WIN32
-	void fill(WIN32_FIND_DATAW& fd);
+    void fill(WIN32_FIND_DATAW &fd);
 #endif
 
-	void init();
+    void init();
 
 public:
-	std::string name;
-	int64_t size;
-	date_t mtime, atime, ctime;
-	bool m_isWritable, m_isReadable, m_isExecutable, m_isHidden;
-	bool m_isDirectory, m_isFile, m_isSymbolicLink;
-	bool m_isMemory, m_isSocket;
+    std::string name;
+    int64_t size;
+    date_t mtime, atime, ctime;
+    bool m_isWritable, m_isReadable, m_isExecutable, m_isHidden;
+    bool m_isDirectory, m_isFile, m_isSymbolicLink;
+    bool m_isMemory, m_isSocket;
 };
 
 }

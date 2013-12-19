@@ -10,111 +10,111 @@
 namespace fibjs
 {
 
-result_t Map_base::_new(obj_ptr<Map_base>& retVal)
+result_t Map_base::_new(obj_ptr<Map_base> &retVal)
 {
-	retVal = new Map();
-	return 0;
+    retVal = new Map();
+    return 0;
 }
 
-result_t Map::get_size(int32_t& retVal)
+result_t Map::get_size(int32_t &retVal)
 {
-	retVal = (int32_t) m_datas.size();
-	return 0;
+    retVal = (int32_t) m_datas.size();
+    return 0;
 }
 
 result_t Map::clear()
 {
-	m_datas.clear();
-	return 0;
+    m_datas.clear();
+    return 0;
 }
 
-result_t Map::has(const char* name, bool& retVal)
+result_t Map::has(const char *name, bool &retVal)
 {
-	retVal = m_datas.find(name) != m_datas.end();
-	return 0;
+    retVal = m_datas.find(name) != m_datas.end();
+    return 0;
 }
 
-inline result_t _map(Map* o, v8::Handle<v8::Object> m,
-		result_t (Map::*fn)(const char* name, v8::Handle<v8::Value> value))
+inline result_t _map(Map *o, v8::Handle<v8::Object> m,
+                     result_t (Map::*fn)(const char *name, v8::Handle<v8::Value> value))
 {
-	v8::Handle<v8::Array> ks = m->GetPropertyNames();
-	int len = ks->Length();
-	int i;
+    v8::Handle<v8::Array> ks = m->GetPropertyNames();
+    int len = ks->Length();
+    int i;
 
-	for (i = 0; i < len; i++)
-	{
-		v8::Handle<v8::Value> k = ks->Get(i);
+    for (i = 0; i < len; i++)
+    {
+        v8::Handle<v8::Value> k = ks->Get(i);
 
-		if (!k->IsNumber())
-			(o->*fn)(*v8::String::Utf8Value(k), m->Get(k));
-	}
+        if (!k->IsNumber())
+            (o->*fn)(*v8::String::Utf8Value(k), m->Get(k));
+    }
 
-	return 0;
+    return 0;
 }
 
-result_t Map::get(const char* name, v8::Handle<v8::Value>& retVal)
+result_t Map::get(const char *name, v8::Handle<v8::Value> &retVal)
 {
-	std::map<std::string, VariantEx>::iterator it = m_datas.find(name);
+    std::map<std::string, VariantEx>::iterator it = m_datas.find(name);
 
-	if (it == m_datas.end())
-		return CALL_RETURN_NULL;
+    if (it == m_datas.end())
+        return CALL_RETURN_NULL;
 
-	retVal = it->second;
-	return 0;
+    retVal = it->second;
+    return 0;
 }
 
-result_t Map::put(const char* name, v8::Handle<v8::Value> value)
+result_t Map::put(const char *name, v8::Handle<v8::Value> value)
 {
-	m_datas.insert(std::pair<std::string, Variant>(name, value));
-	return 0;
+    m_datas.insert(std::pair<std::string, Variant>(name, value));
+    return 0;
 }
 
 result_t Map::put(v8::Handle<v8::Object> map)
 {
-	return _map(this, map, &Map::put);
+    return _map(this, map, &Map::put);
 }
 
-result_t Map::remove(const char* name)
+result_t Map::remove(const char *name)
 {
-	m_datas.erase(name);
-	return 0;
+    m_datas.erase(name);
+    return 0;
 }
 
-result_t Map::isEmpty(bool& retVal)
+result_t Map::isEmpty(bool &retVal)
 {
-	retVal = m_datas.empty();
-	return 0;
+    retVal = m_datas.empty();
+    return 0;
 }
 
-result_t Map::_named_getter(const char* property, v8::Handle<v8::Value>& retVal)
+result_t Map::_named_getter(const char *property, v8::Handle<v8::Value> &retVal)
 {
-	return get(property, retVal);
+    return get(property, retVal);
 }
 
-result_t Map::_named_enumerator(v8::Handle<v8::Array>& retVal)
+result_t Map::_named_enumerator(v8::Handle<v8::Array> &retVal)
 {
-	int32_t i = 0;
+    int32_t i = 0;
 
-	retVal = v8::Array::New((int)m_datas.size());
-	std::map<std::string, VariantEx>::iterator iter;
+    retVal = v8::Array::New((int)m_datas.size());
+    std::map<std::string, VariantEx>::iterator iter;
 
-	for (iter = m_datas.begin(); iter != m_datas.end(); iter++)
-		retVal->Set(i++,
-				v8::String::New(iter->first.c_str(),
-						(int) iter->first.length()));
+    for (iter = m_datas.begin(); iter != m_datas.end(); iter++)
+        retVal->Set(i++,
+                    v8::String::New(iter->first.c_str(),
+                                    (int) iter->first.length()));
 
-	return 0;
+    return 0;
 }
 
-result_t Map::_named_setter(const char* property, v8::Handle<v8::Value> newVal)
+result_t Map::_named_setter(const char *property, v8::Handle<v8::Value> newVal)
 {
-	return put(property, newVal);
+    return put(property, newVal);
 }
 
-result_t Map::_named_deleter(const char* property,
-		v8::Handle<v8::Boolean>& retVal)
+result_t Map::_named_deleter(const char *property,
+                             v8::Handle<v8::Boolean> &retVal)
 {
-	return remove(property);
+    return remove(property);
 }
 
 } /* namespace fibjs */

@@ -10,28 +10,28 @@
 namespace fibjs
 {
 
-result_t HttpUploadData::get_fileName(std::string& retVal)
+result_t HttpUploadData::get_fileName(std::string &retVal)
 {
-	retVal = m_name;
-	return 0;
+    retVal = m_name;
+    return 0;
 }
 
-result_t HttpUploadData::get_contentType(std::string& retVal)
+result_t HttpUploadData::get_contentType(std::string &retVal)
 {
-	retVal = m_type;
-	return 0;
+    retVal = m_type;
+    return 0;
 }
 
-result_t HttpUploadData::get_contentTransferEncoding(std::string& retVal)
+result_t HttpUploadData::get_contentTransferEncoding(std::string &retVal)
 {
-	retVal = m_encoding;
-	return 0;
+    retVal = m_encoding;
+    return 0;
 }
 
-result_t HttpUploadData::get_body(obj_ptr<SeekableStream_base>& retVal)
+result_t HttpUploadData::get_body(obj_ptr<SeekableStream_base> &retVal)
 {
-	retVal = m_body;
-	return 0;
+    retVal = m_body;
+    return 0;
 }
 
 } /* namespace fibjs */

@@ -14,343 +14,343 @@ namespace fibjs
 {
 
 inline const char *
-ToCString(const v8::String::Utf8Value& value)
+ToCString(const v8::String::Utf8Value &value)
 {
-	return *value ? *value : "<string conversion failed>";
+    return *value ? *value : "<string conversion failed>";
 }
 
 void encodeArray(bson *bb, const char *name, v8::Handle<v8::Value> element);
 bool encodeObject(bson *bb, const char *name, v8::Handle<v8::Value> element,
-		bool doJson);
+                  bool doJson);
 
 void encodeValue(bson *bb, const char *name, v8::Handle<v8::Value> element,
-		bool doJson)
+                 bool doJson)
 {
-	if (element.IsEmpty() || element->IsUndefined() || element->IsFunction())
-		;
-	else if (element->IsNull())
-		bson_append_null(bb, name);
-	else if (element->IsDate())
-		bson_append_date(bb, name, (bson_date_t) element->NumberValue());
-	else if (element->IsBoolean())
-		bson_append_bool(bb, name, element->IsTrue());
-	else if (element->IsNumber())
-	{
+    if (element.IsEmpty() || element->IsUndefined() || element->IsFunction())
+        ;
+    else if (element->IsNull())
+        bson_append_null(bb, name);
+    else if (element->IsDate())
+        bson_append_date(bb, name, (bson_date_t) element->NumberValue());
+    else if (element->IsBoolean())
+        bson_append_bool(bb, name, element->IsTrue());
+    else if (element->IsNumber())
+    {
 
-		double value = element->NumberValue();
-		int64_t num = (int64_t) value;
+        double value = element->NumberValue();
+        int64_t num = (int64_t) value;
 
-		if (value == (double) num)
-		{
-			if (num >= -2147483648ll && num <= 2147483647ll)
-				bson_append_int(bb, name, (int) num);
-			else
-				bson_append_long(bb, name, num);
-		}
-		else
-			bson_append_double(bb, name, value);
-	}
-	else if (element->IsArray())
-		encodeArray(bb, name, element);
-	else if (element->IsRegExp())
-	{
-		v8::Handle<v8::RegExp> re = v8::Handle<v8::RegExp>::Cast(element);
-		v8::Handle<v8::String> src = re->GetSource();
-		v8::RegExp::Flags flgs = re->GetFlags();
-		char flgStr[4];
-		char* p = flgStr;
+        if (value == (double) num)
+        {
+            if (num >= -2147483648ll && num <= 2147483647ll)
+                bson_append_int(bb, name, (int) num);
+            else
+                bson_append_long(bb, name, num);
+        }
+        else
+            bson_append_double(bb, name, value);
+    }
+    else if (element->IsArray())
+        encodeArray(bb, name, element);
+    else if (element->IsRegExp())
+    {
+        v8::Handle<v8::RegExp> re = v8::Handle<v8::RegExp>::Cast(element);
+        v8::Handle<v8::String> src = re->GetSource();
+        v8::RegExp::Flags flgs = re->GetFlags();
+        char flgStr[4];
+        char *p = flgStr;
 
-		if (flgs & v8::RegExp::kIgnoreCase)
-			*p++ = 'i';
-		if (flgs & v8::RegExp::kGlobal)
-			*p++ = 'g';
-		if (flgs & v8::RegExp::kMultiline)
-			*p++ = 'm';
+        if (flgs & v8::RegExp::kIgnoreCase)
+            *p++ = 'i';
+        if (flgs & v8::RegExp::kGlobal)
+            *p++ = 'g';
+        if (flgs & v8::RegExp::kMultiline)
+            *p++ = 'm';
 
-		*p = 0;
+        *p = 0;
 
-		bson_append_regex(bb, name, *v8::String::Utf8Value(src), flgStr);
-	}
-	else if (element->IsObject())
-	{
-		{
-			obj_ptr<Buffer_base> buf = Buffer_base::getInstance(element);
+        bson_append_regex(bb, name, *v8::String::Utf8Value(src), flgStr);
+    }
+    else if (element->IsObject())
+    {
+        {
+            obj_ptr<Buffer_base> buf = Buffer_base::getInstance(element);
 
-			if (buf)
-			{
-				std::string strBuf;
+            if (buf)
+            {
+                std::string strBuf;
 
-				buf->toString(strBuf);
-				bson_append_binary(bb, name, BSON_BIN_BINARY, strBuf.c_str(),
-						(int) strBuf.length());
+                buf->toString(strBuf);
+                bson_append_binary(bb, name, BSON_BIN_BINARY, strBuf.c_str(),
+                                   (int) strBuf.length());
 
-				return;
-			}
-		}
+                return;
+            }
+        }
 
-		{
-			obj_ptr<MongoID> oid = (MongoID*) MongoID_base::getInstance(
-					element);
+        {
+            obj_ptr<MongoID> oid = (MongoID *) MongoID_base::getInstance(
+                                       element);
 
-			if (oid)
-			{
-				bson_append_oid(bb, name, &oid->m_id);
-				return;
-			}
-		}
+            if (oid)
+            {
+                bson_append_oid(bb, name, &oid->m_id);
+                return;
+            }
+        }
 
-		encodeObject(bb, name, element, doJson);
-	}
-	else
-	{
-		v8::String::Utf8Value v(element);
-		bson_append_string(bb, name, ToCString(v));
-	}
+        encodeObject(bb, name, element, doJson);
+    }
+    else
+    {
+        v8::String::Utf8Value v(element);
+        bson_append_string(bb, name, ToCString(v));
+    }
 }
 
 void encodeValue(bson *bb, const char *name, v8::Handle<v8::Value> element)
 {
-	encodeValue(bb, name, element, true);
+    encodeValue(bb, name, element, true);
 }
 
 void encodeArray(bson *bb, const char *name, v8::Handle<v8::Value> element)
 {
-	v8::Handle<v8::Array> a = v8::Handle<v8::Array>::Cast(element);
+    v8::Handle<v8::Array> a = v8::Handle<v8::Array>::Cast(element);
 
-	bson_append_start_array(bb, name);
+    bson_append_start_array(bb, name);
 
-	for (int i = 0, l = a->Length(); i < l; i++)
-	{
-		v8::Handle<v8::Value> val = a->Get(v8::Number::New(i));
-		char numStr[32];
+    for (int i = 0, l = a->Length(); i < l; i++)
+    {
+        v8::Handle<v8::Value> val = a->Get(v8::Number::New(i));
+        char numStr[32];
 
-		sprintf(numStr, "%d", i);
-		encodeValue(bb, numStr, val);
-	}
+        sprintf(numStr, "%d", i);
+        encodeValue(bb, numStr, val);
+    }
 
-	bson_append_finish_array(bb);
+    bson_append_finish_array(bb);
 }
 
 bool encodeObject(bson *bb, const char *name, v8::Handle<v8::Value> element,
-		bool doJson)
+                  bool doJson)
 {
-	v8::Handle<v8::Object> object = element->ToObject();
+    v8::Handle<v8::Object> object = element->ToObject();
 
-	if (doJson)
-	{
-		v8::Handle<v8::Value> jsonFun = object->Get(
-				v8::String::New("toJSON", 6));
+    if (doJson)
+    {
+        v8::Handle<v8::Value> jsonFun = object->Get(
+                                            v8::String::New("toJSON", 6));
 
-		if (!IsEmpty(jsonFun) && jsonFun->IsFunction())
-		{
-			v8::Handle<v8::Value> p = v8::String::New(name ? name : "");
-			v8::Handle<v8::Value> element1 = v8::Handle<v8::Function>::Cast(
-					jsonFun)->Call(object, 1, &p);
+        if (!IsEmpty(jsonFun) && jsonFun->IsFunction())
+        {
+            v8::Handle<v8::Value> p = v8::String::New(name ? name : "");
+            v8::Handle<v8::Value> element1 = v8::Handle<v8::Function>::Cast(
+                                                 jsonFun)->Call(object, 1, &p);
 
-			if (name)
-			{
-				encodeValue(bb, name, element1, false);
-				return true;
-			}
+            if (name)
+            {
+                encodeValue(bb, name, element1, false);
+                return true;
+            }
 
-			if (!element1->IsObject())
-				return false;
+            if (!element1->IsObject())
+                return false;
 
-			object = element1->ToObject();
-		}
-	}
+            object = element1->ToObject();
+        }
+    }
 
-	if (!name
-			&& (object->IsDate() || object->IsArray() || object->IsRegExp()
-					|| Buffer_base::getInstance(object)))
-		return false;
+    if (!name
+            && (object->IsDate() || object->IsArray() || object->IsRegExp()
+                || Buffer_base::getInstance(object)))
+        return false;
 
-	if (name)
-		bson_append_start_object(bb, name);
+    if (name)
+        bson_append_start_object(bb, name);
 
-	v8::Handle<v8::Array> properties = object->GetPropertyNames();
+    v8::Handle<v8::Array> properties = object->GetPropertyNames();
 
-	for (int i = 0; i < (int) properties->Length(); i++)
-	{
-		v8::Handle<v8::Value> prop_name = properties->Get(v8::Integer::New(i));
+    for (int i = 0; i < (int) properties->Length(); i++)
+    {
+        v8::Handle<v8::Value> prop_name = properties->Get(v8::Integer::New(i));
 
-		if (!prop_name->IsNumber())
-		{
-			v8::Handle<v8::Value> prop_val = object->Get(prop_name->ToString());
+        if (!prop_name->IsNumber())
+        {
+            v8::Handle<v8::Value> prop_val = object->Get(prop_name->ToString());
 
-			v8::String::Utf8Value n(prop_name);
-			const char *pname = ToCString(n);
+            v8::String::Utf8Value n(prop_name);
+            const char *pname = ToCString(n);
 
-			encodeValue(bb, pname, prop_val);
-		}
-	}
+            encodeValue(bb, pname, prop_val);
+        }
+    }
 
-	if (name)
-		bson_append_finish_object(bb);
+    if (name)
+        bson_append_finish_object(bb);
 
-	return true;
+    return true;
 }
 
 bool appendObject(bson *bb, v8::Handle<v8::Value> element)
 {
-	return encodeObject(bb, NULL, element, true);
+    return encodeObject(bb, NULL, element, true);
 }
 
 result_t encodeObject(bson *bb, v8::Handle<v8::Value> element)
 {
-	bson_init(bb);
-	if (!encodeObject(bb, NULL, element, true))
-	{
-		bson_destroy(bb);
-		return CALL_E_INVALIDARG;
-	}
-	bson_finish(bb);
+    bson_init(bb);
+    if (!encodeObject(bb, NULL, element, true))
+    {
+        bson_destroy(bb);
+        return CALL_E_INVALIDARG;
+    }
+    bson_finish(bb);
 
-	return 0;
+    return 0;
 }
 
 result_t encoding_base::bsonEncode(v8::Handle<v8::Object> data,
-		obj_ptr<Buffer_base>& retVal)
+                                   obj_ptr<Buffer_base> &retVal)
 {
-	bson bb;
-	result_t hr;
+    bson bb;
+    result_t hr;
 
-	hr = encodeObject(&bb, data);
-	if(hr < 0)
-		return hr;
+    hr = encodeObject(&bb, data);
+    if (hr < 0)
+        return hr;
 
-	std::string strBuffer(bson_data(&bb), bson_size(&bb));
-	retVal = new Buffer(strBuffer);
+    std::string strBuffer(bson_data(&bb), bson_size(&bb));
+    retVal = new Buffer(strBuffer);
 
-	bson_destroy(&bb);
+    bson_destroy(&bb);
 
-	return 0;
+    return 0;
 }
 
 v8::Handle<v8::Object> decodeObject(bson_iterator *it, bool bArray);
 
 void decodeValue(v8::Handle<v8::Object> obj, bson_iterator *it)
 {
-	bson_type type = bson_iterator_type(it);
-	const char *key = bson_iterator_key(it);
+    bson_type type = bson_iterator_type(it);
+    const char *key = bson_iterator_key(it);
 
-	switch (type)
-	{
-	case BSON_NULL:
-		obj->Set(v8::String::New(key), v8::Null());
-		break;
-	case BSON_STRING:
-		obj->Set(v8::String::New(key),
-				v8::String::New(bson_iterator_string(it)));
-		break;
-	case BSON_BOOL:
-		obj->Set(v8::String::New(key),
-				bson_iterator_bool(it) ? v8::True() : v8::False());
-		break;
-	case BSON_INT:
-		obj->Set(v8::String::New(key), v8::Number::New(bson_iterator_int(it)));
-		break;
-	case BSON_LONG:
-		obj->Set(v8::String::New(key),
-				v8::Number::New((double) bson_iterator_long(it)));
-		break;
-	case BSON_DOUBLE:
-		obj->Set(v8::String::New(key),
-				v8::Number::New(bson_iterator_double(it)));
-		break;
-	case BSON_DATE:
-		obj->Set(v8::String::New(key),
-				v8::Date::New((double) bson_iterator_date(it)));
-		break;
-	case BSON_BINDATA:
-	{
-		obj_ptr<Buffer_base> buf = new Buffer(
-				std::string(bson_iterator_bin_data(it),
-						bson_iterator_bin_len(it)));
+    switch (type)
+    {
+    case BSON_NULL:
+        obj->Set(v8::String::New(key), v8::Null());
+        break;
+    case BSON_STRING:
+        obj->Set(v8::String::New(key),
+                 v8::String::New(bson_iterator_string(it)));
+        break;
+    case BSON_BOOL:
+        obj->Set(v8::String::New(key),
+                 bson_iterator_bool(it) ? v8::True() : v8::False());
+        break;
+    case BSON_INT:
+        obj->Set(v8::String::New(key), v8::Number::New(bson_iterator_int(it)));
+        break;
+    case BSON_LONG:
+        obj->Set(v8::String::New(key),
+                 v8::Number::New((double) bson_iterator_long(it)));
+        break;
+    case BSON_DOUBLE:
+        obj->Set(v8::String::New(key),
+                 v8::Number::New(bson_iterator_double(it)));
+        break;
+    case BSON_DATE:
+        obj->Set(v8::String::New(key),
+                 v8::Date::New((double) bson_iterator_date(it)));
+        break;
+    case BSON_BINDATA:
+    {
+        obj_ptr<Buffer_base> buf = new Buffer(
+            std::string(bson_iterator_bin_data(it),
+                        bson_iterator_bin_len(it)));
 
-		obj->Set(v8::String::New(key), buf->wrap());
-		break;
-	}
-	case BSON_OID:
-	{
-		obj_ptr<MongoID> oid = new MongoID(bson_iterator_oid(it));
-		obj->Set(v8::String::New(key), oid->wrap());
-		break;
-	}
-	case BSON_REGEX:
-	{
-		v8::RegExp::Flags flgs = v8::RegExp::kNone;
-		const char* opts = bson_iterator_regex_opts(it);
-		char ch;
+        obj->Set(v8::String::New(key), buf->wrap());
+        break;
+    }
+    case BSON_OID:
+    {
+        obj_ptr<MongoID> oid = new MongoID(bson_iterator_oid(it));
+        obj->Set(v8::String::New(key), oid->wrap());
+        break;
+    }
+    case BSON_REGEX:
+    {
+        v8::RegExp::Flags flgs = v8::RegExp::kNone;
+        const char *opts = bson_iterator_regex_opts(it);
+        char ch;
 
-		while ((ch = *opts++) != 0)
-			if (ch == 'm')
-				flgs = (v8::RegExp::Flags) (flgs | v8::RegExp::kMultiline);
-			else if (ch == 'g')
-				flgs = (v8::RegExp::Flags) (flgs | v8::RegExp::kGlobal);
-			else if (ch == 'i')
-				flgs = (v8::RegExp::Flags) (flgs | v8::RegExp::kIgnoreCase);
+        while ((ch = *opts++) != 0)
+            if (ch == 'm')
+                flgs = (v8::RegExp::Flags) (flgs | v8::RegExp::kMultiline);
+            else if (ch == 'g')
+                flgs = (v8::RegExp::Flags) (flgs | v8::RegExp::kGlobal);
+            else if (ch == 'i')
+                flgs = (v8::RegExp::Flags) (flgs | v8::RegExp::kIgnoreCase);
 
-		obj->Set(v8::String::New(key),
-				v8::RegExp::New(v8::String::New(bson_iterator_regex(it)),
-						flgs));
-		break;
-	}
-	case BSON_OBJECT:
-	case BSON_ARRAY:
-	{
-		bson_iterator it1;
+        obj->Set(v8::String::New(key),
+                 v8::RegExp::New(v8::String::New(bson_iterator_regex(it)),
+                                 flgs));
+        break;
+    }
+    case BSON_OBJECT:
+    case BSON_ARRAY:
+    {
+        bson_iterator it1;
 
-		bson_iterator_subiterator(it, &it1);
-		obj->Set(v8::String::New(key), decodeObject(&it1, type == BSON_ARRAY));
-		break;
-	}
-	default:
-		printf("unknown type: %d\n", type);
-		break;
-	}
+        bson_iterator_subiterator(it, &it1);
+        obj->Set(v8::String::New(key), decodeObject(&it1, type == BSON_ARRAY));
+        break;
+    }
+    default:
+        printf("unknown type: %d\n", type);
+        break;
+    }
 }
 
 v8::Handle<v8::Object> decodeObject(bson_iterator *it, bool bArray)
 {
-	v8::Handle<v8::Object> obj;
+    v8::Handle<v8::Object> obj;
 
-	if (bArray)
-		obj = v8::Array::New();
-	else
-		obj = v8::Object::New();
+    if (bArray)
+        obj = v8::Array::New();
+    else
+        obj = v8::Object::New();
 
-	while (bson_iterator_next(it))
-		decodeValue(obj, it);
+    while (bson_iterator_next(it))
+        decodeValue(obj, it);
 
-	return obj;
+    return obj;
 }
 
-v8::Handle<v8::Object> decodeObject(const bson* bb)
+v8::Handle<v8::Object> decodeObject(const bson *bb)
 {
-	bson_iterator it;
-	bson_iterator_from_buffer(&it, bson_data(bb));
+    bson_iterator it;
+    bson_iterator_from_buffer(&it, bson_data(bb));
 
-	return decodeObject(&it, false);
+    return decodeObject(&it, false);
 }
 
-v8::Handle<v8::Object> decodeObject(const char* buffer)
+v8::Handle<v8::Object> decodeObject(const char *buffer)
 {
-	bson_iterator it;
-	bson_iterator_from_buffer(&it, buffer);
+    bson_iterator it;
+    bson_iterator_from_buffer(&it, buffer);
 
-	return decodeObject(&it, false);
+    return decodeObject(&it, false);
 }
 
-result_t encoding_base::bsonDecode(Buffer_base* data,
-		v8::Handle<v8::Object>& retVal)
+result_t encoding_base::bsonDecode(Buffer_base *data,
+                                   v8::Handle<v8::Object> &retVal)
 {
-	std::string strBuf;
+    std::string strBuf;
 
-	data->toString(strBuf);
-	retVal = decodeObject(strBuf.c_str());
+    data->toString(strBuf);
+    retVal = decodeObject(strBuf.c_str());
 
-	return 0;
+    return 0;
 }
 
 }

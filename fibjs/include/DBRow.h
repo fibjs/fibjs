@@ -17,32 +17,32 @@ namespace fibjs
 class DBRow: public DBRow_base
 {
 public:
-	DBRow(DBField* fields, int32_t sz)
-	{
-		m_fields = fields;
-		m_cols.resize(sz);
-	}
+    DBRow(DBField *fields, int32_t sz)
+    {
+        m_fields = fields;
+        m_cols.resize(sz);
+    }
 
 public:
-	// object_base
-	virtual result_t toJSON(const char* key, v8::Handle<v8::Value>& retVal);
+    // object_base
+    virtual result_t toJSON(const char *key, v8::Handle<v8::Value> &retVal);
 
 public:
-	// DBRow_base
-	virtual result_t _indexed_getter(uint32_t index, v8::Handle<v8::Value>& retVal);
-	virtual result_t _named_getter(const char* property, v8::Handle<v8::Value>& retVal);
-	virtual result_t _named_enumerator(v8::Handle<v8::Array>& retVal);
+    // DBRow_base
+    virtual result_t _indexed_getter(uint32_t index, v8::Handle<v8::Value> &retVal);
+    virtual result_t _named_getter(const char *property, v8::Handle<v8::Value> &retVal);
+    virtual result_t _named_enumerator(v8::Handle<v8::Array> &retVal);
 
 public:
-	void setValue(int32_t i, Variant& v)
-	{
-		if(i >= 0 && i < (int32_t)m_cols.size())
-			m_cols[i] = v;
-	}
+    void setValue(int32_t i, Variant &v)
+    {
+        if (i >= 0 && i < (int32_t)m_cols.size())
+            m_cols[i] = v;
+    }
 
 private:
-	std::vector<VariantEx> m_cols;
-	obj_ptr<DBField> m_fields;
+    std::vector<VariantEx> m_cols;
+    obj_ptr<DBField> m_fields;
 };
 
 } /* namespace fibjs */

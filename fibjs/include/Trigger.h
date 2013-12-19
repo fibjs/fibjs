@@ -15,7 +15,7 @@ namespace fibjs
 
 class Trigger: public Trigger_base
 {
-	EVENT_SUPPORT();
+    EVENT_SUPPORT();
 };
 
 }

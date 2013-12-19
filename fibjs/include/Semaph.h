@@ -16,26 +16,26 @@ namespace fibjs
 class Semaphore: public Semaphore_base
 {
 public:
-	Semaphore(int count) :
-		m_sem(count)
-	{
-	}
+    Semaphore(int count) :
+        m_sem(count)
+    {
+    }
 
-	FIBER_FREE();
-
-public:
-	// Lock_base
-	virtual result_t acquire(bool blocking, bool& retVal);
-	virtual result_t release();
+    FIBER_FREE();
 
 public:
-	// Semaphore_base
-	virtual result_t wait();
-	virtual result_t post();
-	virtual result_t trywait(bool& retVal);
+    // Lock_base
+    virtual result_t acquire(bool blocking, bool &retVal);
+    virtual result_t release();
+
+public:
+    // Semaphore_base
+    virtual result_t wait();
+    virtual result_t post();
+    virtual result_t trywait(bool &retVal);
 
 private:
-	exlib::Semaphore m_sem;
+    exlib::Semaphore m_sem;
 };
 
 }

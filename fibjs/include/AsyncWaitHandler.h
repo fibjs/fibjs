@@ -17,43 +17,43 @@ namespace fibjs
 class AsyncWaitHandler: public AsyncWait_base
 {
 
-	FIBER_FREE();
+    FIBER_FREE();
 
 public:
-	class asyncWaiter: public AsyncCall
-	{
-	public:
-		asyncWaiter(exlib::AsyncEvent* ac) :
-			AsyncCall(NULL), m_ac(ac)
-		{}
+    class asyncWaiter: public AsyncCall
+    {
+    public:
+        asyncWaiter(exlib::AsyncEvent *ac) :
+            AsyncCall(NULL), m_ac(ac)
+        {}
 
-	public:
-		virtual void invoke()
-		{
-			m_ac->post(CALL_RETURN_NULL);
-			delete this;
-		}
+    public:
+        virtual void invoke()
+        {
+            m_ac->post(CALL_RETURN_NULL);
+            delete this;
+        }
 
-	private:
-		exlib::AsyncEvent* m_ac;
-	};
-
-public:
-	AsyncWaitHandler() : m_ac(NULL), m_as(NULL)
-	{}
+    private:
+        exlib::AsyncEvent *m_ac;
+    };
 
 public:
-	// Handler_base
-	virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
-			exlib::AsyncEvent* ac);
+    AsyncWaitHandler() : m_ac(NULL), m_as(NULL)
+    {}
 
 public:
-	// AsyncWait_base
-	virtual result_t end();
+    // Handler_base
+    virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal,
+                            exlib::AsyncEvent *ac);
+
+public:
+    // AsyncWait_base
+    virtual result_t end();
 
 private:
-	AsyncCall m_ac;
-	asyncWaiter* m_as;
+    AsyncCall m_ac;
+    asyncWaiter *m_as;
 };
 
 } /* namespace fibjs */

@@ -16,17 +16,17 @@ namespace fibjs
 class JsonRpcHandler: public Handler_base
 {
 public:
-	JsonRpcHandler(Handler_base* hdlr) :
-			m_hdlr(hdlr)
-	{
-	}
+    JsonRpcHandler(Handler_base *hdlr) :
+        m_hdlr(hdlr)
+    {
+    }
 
 public:
-	// Handler_base
-	virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal, exlib::AsyncEvent* ac);
+    // Handler_base
+    virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal, exlib::AsyncEvent *ac);
 
 private:
-	obj_ptr<Handler_base> m_hdlr;
+    obj_ptr<Handler_base> m_hdlr;
 };
 
 } /* namespace fibjs */

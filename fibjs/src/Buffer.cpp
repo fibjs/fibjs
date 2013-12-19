@@ -4,95 +4,95 @@
 namespace fibjs
 {
 
-result_t Buffer_base::_new(const char* str, obj_ptr<Buffer_base>& retVal)
+result_t Buffer_base::_new(const char *str, obj_ptr<Buffer_base> &retVal)
 {
-	retVal = new Buffer();
-	retVal->write(str);
+    retVal = new Buffer();
+    retVal->write(str);
 
-	return 0;
+    return 0;
 }
 
-result_t Buffer::_indexed_getter(uint32_t index, int32_t& retVal)
+result_t Buffer::_indexed_getter(uint32_t index, int32_t &retVal)
 {
-	if (index >= m_data.length())
-		return CALL_E_BADINDEX;
+    if (index >= m_data.length())
+        return CALL_E_BADINDEX;
 
-	retVal = (unsigned char) m_data[index];
-	return 0;
+    retVal = (unsigned char) m_data[index];
+    return 0;
 }
 
 result_t Buffer::_indexed_setter(uint32_t index, int32_t newVal)
 {
-	if (index >= m_data.length())
-		return CALL_E_BADINDEX;
+    if (index >= m_data.length())
+        return CALL_E_BADINDEX;
 
-	if (newVal < 0 || newVal > 255)
-		return CALL_E_OUTRANGE;
+    if (newVal < 0 || newVal > 255)
+        return CALL_E_OUTRANGE;
 
-	m_data[index] = newVal;
-	return 0;
+    m_data[index] = newVal;
+    return 0;
 }
 
-result_t Buffer::get_length(int32_t& retVal)
+result_t Buffer::get_length(int32_t &retVal)
 {
-	retVal = (int32_t) m_data.length();
-	return 0;
+    retVal = (int32_t) m_data.length();
+    return 0;
 }
 
 result_t Buffer::resize(int32_t sz)
 {
-	if (sz < 0)
-		return CALL_E_INVALIDARG;
+    if (sz < 0)
+        return CALL_E_INVALIDARG;
 
-	extMemory(sz - (int) m_data.length());
-	m_data.resize(sz);
+    extMemory(sz - (int) m_data.length());
+    m_data.resize(sz);
 
-	return 0;
+    return 0;
 }
 
-result_t Buffer::write(const char* str)
+result_t Buffer::write(const char *str)
 {
-	size_t sz = qstrlen(str);
+    size_t sz = qstrlen(str);
 
-	extMemory((int) sz);
-	m_data.append(str, sz);
-	return 0;
+    extMemory((int) sz);
+    m_data.append(str, sz);
+    return 0;
 }
 
-result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal)
+result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal)
 {
-	if (start < 0)
-		return CALL_E_INVALIDARG;
+    if (start < 0)
+        return CALL_E_INVALIDARG;
 
-	if (end < 0)
-		end = (int32_t) m_data.length();
+    if (end < 0)
+        end = (int32_t) m_data.length();
 
-	obj_ptr<Buffer> pNew = new Buffer();
+    obj_ptr<Buffer> pNew = new Buffer();
 
-	pNew->m_data.append(m_data, start, end - start);
-	pNew->extMemory((int) (end - start));
+    pNew->m_data.append(m_data, start, end - start);
+    pNew->extMemory((int) (end - start));
 
-	retVal = pNew;
+    retVal = pNew;
 
-	return 0;
+    return 0;
 }
 
-result_t Buffer::toString(std::string& retVal)
+result_t Buffer::toString(std::string &retVal)
 {
-	retVal = m_data;
-	return 0;
+    retVal = m_data;
+    return 0;
 }
 
-result_t Buffer::hex(std::string& retVal)
+result_t Buffer::hex(std::string &retVal)
 {
-	obj_ptr<Buffer_base> data = this;
-	return encoding_base::hexEncode(data, retVal);
+    obj_ptr<Buffer_base> data = this;
+    return encoding_base::hexEncode(data, retVal);
 }
 
-result_t Buffer::base64(std::string& retVal)
+result_t Buffer::base64(std::string &retVal)
 {
-	obj_ptr<Buffer_base> data = this;
-	return encoding_base::base64Encode(data, retVal);
+    obj_ptr<Buffer_base> data = this;
+    return encoding_base::base64Encode(data, retVal);
 }
 
 }

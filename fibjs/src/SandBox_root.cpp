@@ -46,41 +46,41 @@ namespace fibjs
 
 void SandBox::initRoot()
 {
-	InstallNativeModule("encoding", encoding_base::class_info());
-	InstallNativeModule("uuid", uuid_base::class_info());
+    InstallNativeModule("encoding", encoding_base::class_info());
+    InstallNativeModule("uuid", uuid_base::class_info());
 
-	InstallNativeModule("re", re_base::class_info());
-	InstallNativeModule("collection", collection_base::class_info());
+    InstallNativeModule("re", re_base::class_info());
+    InstallNativeModule("collection", collection_base::class_info());
 
-	InstallNativeModule("test", test_base::class_info());
-	InstallNativeModule("assert", assert_base::class_info());
-	InstallModule("expect",
-			v8::FunctionTemplate::New(test_base::s_expect)->GetFunction());
+    InstallNativeModule("test", test_base::class_info());
+    InstallNativeModule("assert", assert_base::class_info());
+    InstallModule("expect",
+                  v8::FunctionTemplate::New(test_base::s_expect)->GetFunction());
 
-	InstallNativeModule("path", path_base::class_info());
+    InstallNativeModule("path", path_base::class_info());
 
-	InstallNativeModule("coroutine", coroutine_base::class_info());
-	InstallNativeModule("process", process_base::class_info());
+    InstallNativeModule("coroutine", coroutine_base::class_info());
+    InstallNativeModule("process", process_base::class_info());
 
-	InstallNativeModule("vm", vm_base::class_info());
-	InstallNativeModule("io", io_base::class_info());
-	InstallNativeModule("fs", fs_base::class_info());
-	InstallNativeModule("os", os_base::class_info());
-	InstallNativeModule("net", net_base::class_info());
-	InstallNativeModule("zmq", zmq_base::class_info());
+    InstallNativeModule("vm", vm_base::class_info());
+    InstallNativeModule("io", io_base::class_info());
+    InstallNativeModule("fs", fs_base::class_info());
+    InstallNativeModule("os", os_base::class_info());
+    InstallNativeModule("net", net_base::class_info());
+    InstallNativeModule("zmq", zmq_base::class_info());
 
-	InstallNativeModule("mq", mq_base::class_info());
+    InstallNativeModule("mq", mq_base::class_info());
 
-	InstallNativeModule("http", http_base::class_info());
-	InstallNativeModule("rpc", rpc_base::class_info());
+    InstallNativeModule("http", http_base::class_info());
+    InstallNativeModule("rpc", rpc_base::class_info());
 
-	InstallNativeModule("db", db_base::class_info());
-	InstallNativeModule("hash", hash_base::class_info());
-	InstallNativeModule("zlib", zlib_base::class_info());
+    InstallNativeModule("db", db_base::class_info());
+    InstallNativeModule("hash", hash_base::class_info());
+    InstallNativeModule("zlib", zlib_base::class_info());
 
-	InstallNativeModule("gd", gd_base::class_info());
+    InstallNativeModule("gd", gd_base::class_info());
 
-	InstallNativeModule("utils", utils_base::class_info());
+    InstallNativeModule("utils", utils_base::class_info());
 }
 
 }

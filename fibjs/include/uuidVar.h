@@ -17,23 +17,23 @@ namespace fibjs
 class uuidVar : public uuidValue_base
 {
 public:
-	uuidVar() : m_uid(NULL)
-	{
-	}
+    uuidVar() : m_uid(NULL)
+    {
+    }
 
-	virtual ~uuidVar();
-
-public:
-	// object_base
-	result_t toString(std::string& retVal);
+    virtual ~uuidVar();
 
 public:
-	// uuidValue_base
-	result_t data(obj_ptr<Buffer_base>& retVal);
-	result_t detail(std::string& retVal);
+    // object_base
+    result_t toString(std::string &retVal);
 
 public:
-	uuid_st *m_uid;
+    // uuidValue_base
+    result_t data(obj_ptr<Buffer_base> &retVal);
+    result_t detail(std::string &retVal);
+
+public:
+    uuid_st *m_uid;
 };
 
 } /* namespace fibjs */

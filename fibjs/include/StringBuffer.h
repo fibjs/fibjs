@@ -18,58 +18,58 @@ namespace fibjs
 class StringBuffer
 {
 public:
-	StringBuffer() :
-			m_size(0)
-	{
-	}
+    StringBuffer() :
+        m_size(0)
+    {
+    }
 
 public:
-	std::string str()
-	{
-		int i, p = 0;
-		std::string s;
+    std::string str()
+    {
+        int i, p = 0;
+        std::string s;
 
-		if (m_size > 0)
-		{
-			if (m_array.size() == 1)
-				s = m_array[0];
-			else
-			{
-				s.resize(m_size);
-				for (i = 0; i < (int) m_array.size(); i++)
-				{
-					std::string& s1 = m_array[i];
-					size_t len = s1.length();
+        if (m_size > 0)
+        {
+            if (m_array.size() == 1)
+                s = m_array[0];
+            else
+            {
+                s.resize(m_size);
+                for (i = 0; i < (int) m_array.size(); i++)
+                {
+                    std::string &s1 = m_array[i];
+                    size_t len = s1.length();
 
-					memcpy(&s[p], s1.c_str(), len);
-					p += (int) len;
-				}
-			}
+                    memcpy(&s[p], s1.c_str(), len);
+                    p += (int) len;
+                }
+            }
 
-			m_size = 0;
-			m_array.resize(0);
-		}
+            m_size = 0;
+            m_array.resize(0);
+        }
 
-		return s;
-	}
+        return s;
+    }
 
-	size_t size()
-	{
-		return m_size;
-	}
+    size_t size()
+    {
+        return m_size;
+    }
 
-	void append(std::string s)
-	{
-		if (s.length() > 0)
-		{
-			m_size += s.length();
-			m_array.append(s);
-		}
-	}
+    void append(std::string s)
+    {
+        if (s.length() > 0)
+        {
+            m_size += s.length();
+            m_array.append(s);
+        }
+    }
 
 private:
-	QuickArray<std::string> m_array;
-	size_t m_size;
+    QuickArray<std::string> m_array;
+    size_t m_size;
 };
 
 }

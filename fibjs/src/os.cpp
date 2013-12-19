@@ -15,42 +15,42 @@
 namespace fibjs
 {
 
-result_t os_base::get_hostname(std::string& retVal)
+result_t os_base::get_hostname(std::string &retVal)
 {
-	char s[255];
+    char s[255];
 
-	if (gethostname(s, 255) < 0)
-		return LastError();
+    if (gethostname(s, 255) < 0)
+        return LastError();
 
-	retVal = s;
-	return 0;
+    retVal = s;
+    return 0;
 }
 
-result_t os_base::get_arch(std::string& retVal)
+result_t os_base::get_arch(std::string &retVal)
 {
 #ifdef x64
-	retVal = "x86_64";
+    retVal = "x86_64";
 #else
-	retVal = "i686";
+    retVal = "i686";
 #endif
 
-	return 0;
+    return 0;
 }
 
-result_t os_base::time(const char* tmString, date_t& retVal)
+result_t os_base::time(const char *tmString, date_t &retVal)
 {
-	if (!tmString || !*tmString)
-		retVal.now();
-	else
-		retVal.parse(tmString);
+    if (!tmString || !*tmString)
+        retVal.now();
+    else
+        retVal.parse(tmString);
 
-	return 0;
+    return 0;
 }
 
-result_t os_base::get_timezone(int32_t& retVal)
+result_t os_base::get_timezone(int32_t &retVal)
 {
-	retVal = date_t::LocalOffset();
-	return 0;
+    retVal = date_t::LocalOffset();
+    return 0;
 }
 
 }

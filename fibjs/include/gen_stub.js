@@ -1,16 +1,15 @@
 /**
- * 
+ *
  */
 
 var txt = [];
 
 var fs = require('fs');
 
-for ( var i = 0; i < 10; i++) {
+for (var i = 0; i < 10; i++) {
 	gen_stub(i, false, false);
 	gen_stub(i, true, false);
-	if(i > 0)
-	{
+	if (i > 0) {
 		gen_stub(i, false, true);
 		gen_stub(i, true, true);
 	}
@@ -23,12 +22,11 @@ function gen_stub(argn, bInst, bRet) {
 	var s, i, a, fa, an = bInst ? 1 : 0;
 
 	if (argn > 0) {
-		s = '#define ASYNC_' + (bInst ? 'MEMBER' : 'STATIC') + (bRet ? "VALUE" : "") + argn
-				+ '(cls, m, ';
+		s = '#define ASYNC_' + (bInst ? 'MEMBER' : 'STATIC') + (bRet ? "VALUE" : "") + argn + '(cls, m, ';
 		a = [];
 		for (i = 0; i < argn; i++)
 			a.push('T' + i);
-		
+
 		s += a.join(', ');
 		s += ') \\';
 		txt.push(s);
@@ -40,23 +38,21 @@ function gen_stub(argn, bInst, bRet) {
 		for (i = 0; i < argn; i++)
 			a.push('T' + i + ' v' + i);
 
-		if(bRet)
+		if (bRet)
 			a[i - 1] = 'T' + (i - 1) + '& v' + (i - 1);
 
 		s += a.join(', ');
 		s += ') {\\';
 		txt.push(s);
 	} else {
-		txt.push('#define ASYNC_' + (bInst ? 'MEMBER' : 'STATIC' + (bRet ? "VALUE" : "")) + argn
-				+ '(cls, m) \\');
+		txt.push('#define ASYNC_' + (bInst ? 'MEMBER' : 'STATIC' + (bRet ? "VALUE" : "")) + argn + '(cls, m) \\');
 		txt.push((bInst ? '	' : '	static ') + 'result_t ac_##m() { \\');
 	}
 
 	txt.push('	class _t : public AsyncCall { public: \\');
 	txt.push('		_t(void ** a) : AsyncCall(a) {} \\');
 	txt.push('		virtual void invoke() { \\');
-	txt.push('			result_t hr = '
-			+ (bInst ? '((cls*)args[' + (argn) + '])->' : 'cls::') + 'm( \\');
+	txt.push('			result_t hr = ' + (bInst ? '((cls*)args[' + (argn) + '])->' : 'cls::') + 'm( \\');
 
 	s = '				';
 	a = [];

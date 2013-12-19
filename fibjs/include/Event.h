@@ -16,23 +16,23 @@ namespace fibjs
 class Event: public Event_base
 {
 
-	FIBER_FREE();
+    FIBER_FREE();
 
 public:
-	// Lock_base
-	virtual result_t acquire(bool blocking, bool& retVal);
-	virtual result_t release();
+    // Lock_base
+    virtual result_t acquire(bool blocking, bool &retVal);
+    virtual result_t release();
 
 public:
-	// Event_base
-	virtual result_t isSet(bool& retVal);
-	virtual result_t set();
-	virtual result_t pulse();
-	virtual result_t clear();
-	virtual result_t wait();
+    // Event_base
+    virtual result_t isSet(bool &retVal);
+    virtual result_t set();
+    virtual result_t pulse();
+    virtual result_t clear();
+    virtual result_t wait();
 
 private:
-	exlib::Event m_event;
+    exlib::Event m_event;
 };
 
 }

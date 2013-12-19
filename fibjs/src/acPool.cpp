@@ -14,45 +14,45 @@ static int32_t s_idleCount;
 static class _acThread: public exlib::OSThread
 {
 public:
-	_acThread()
-	{
-		int32_t cpus;
-		if (os_base::CPUs(cpus) < 3)
-			cpus = 3;
+    _acThread()
+    {
+        int32_t cpus;
+        if (os_base::CPUs(cpus) < 3)
+            cpus = 3;
 
-		s_threads = cpus * 2;
+        s_threads = cpus * 2;
 
-		for (int i = 0; i < s_threads; i++)
-		{
-			start();
-			detach();
-		}
-	}
+        for (int i = 0; i < s_threads; i++)
+        {
+            start();
+            detach();
+        }
+    }
 
-	virtual void Run()
-	{
-		asyncEvent *p;
+    virtual void Run()
+    {
+        asyncEvent *p;
 
-		Runtime rt;
-		DateCache dc;
-		rt.m_pDateCache = &dc;
+        Runtime rt;
+        DateCache dc;
+        rt.m_pDateCache = &dc;
 
-		Runtime::reg(&rt);
+        Runtime::reg(&rt);
 
-		while (1)
-		{
-			if (exlib::atom_inc(&s_idleThreads) > s_threads * 2)
-			{
-				exlib::atom_dec(&s_idleThreads);
-				break;
-			}
+        while (1)
+        {
+            if (exlib::atom_inc(&s_idleThreads) > s_threads * 2)
+            {
+                exlib::atom_dec(&s_idleThreads);
+                break;
+            }
 
-			p = s_acPool.wait();
-			exlib::atom_dec(&s_idleThreads);
+            p = s_acPool.wait();
+            exlib::atom_dec(&s_idleThreads);
 
-			p->invoke();
-		}
-	}
+            p->invoke();
+        }
+    }
 } s_ac;
 
 static AsyncLogQueue s_acLog;
@@ -62,81 +62,82 @@ int32_t g_loglevel = log4cpp::Priority::NOTSET;
 
 void asyncLog(int priority, std::string msg)
 {
-	if(priority <= g_loglevel){
-		//	log4cpp::Category::getRoot().log(priority, msg);
-		s_acLog.put(new AsyncLog(priority, msg));
-	}
+    if (priority <= g_loglevel)
+    {
+        //  log4cpp::Category::getRoot().log(priority, msg);
+        s_acLog.put(new AsyncLog(priority, msg));
+    }
 }
 
 void flushLog()
 {
-	while (!s_acLog.empty() || !s_logEmpty)
-		exlib::OSThread::Sleep(1);
+    while (!s_acLog.empty() || !s_logEmpty)
+        exlib::OSThread::Sleep(1);
 }
 
 static class _loggerThread: public exlib::OSThread
 {
 public:
-	_loggerThread()
-	{
-		start();
-	}
+    _loggerThread()
+    {
+        start();
+    }
 
-	virtual void Run()
-	{
-		std::multimap<int64_t, AsyncCall*>::iterator e;
-		AsyncLog *p1, *p2, *pn;
+    virtual void Run()
+    {
+        std::multimap<int64_t, AsyncCall *>::iterator e;
+        AsyncLog *p1, *p2, *pn;
 
-		while (1)
-		{
-			s_logEmpty = false;
+        while (1)
+        {
+            s_logEmpty = false;
 
-			p1 = s_acLog.getList();
-			while (p1)
-			{
-				log4cpp::Category& root = log4cpp::Category::getRoot();
-				pn = NULL;
+            p1 = s_acLog.getList();
+            while (p1)
+            {
+                log4cpp::Category &root = log4cpp::Category::getRoot();
+                pn = NULL;
 
-				while (p1)
-				{
-					p2 = p1;
-					p1 = (AsyncLog*) p1->m_next;
-					p2->m_next = pn;
-					pn = p2;
-				}
+                while (p1)
+                {
+                    p2 = p1;
+                    p1 = (AsyncLog *) p1->m_next;
+                    p2->m_next = pn;
+                    pn = p2;
+                }
 
-				while (pn)
-				{
-					p1 = pn;
-					pn = (AsyncLog*) pn->m_next;
-					root.log(p1->m_priority, p1->m_msg);
-					delete p1;
-				}
+                while (pn)
+                {
+                    p1 = pn;
+                    pn = (AsyncLog *) pn->m_next;
+                    root.log(p1->m_priority, p1->m_msg);
+                    delete p1;
+                }
 
-				p1 = s_acLog.getList();
-			}
+                p1 = s_acLog.getList();
+            }
 
-			s_logEmpty = true;
+            s_logEmpty = true;
 
-			if (s_idleThreads < s_threads)
-			{
-				if (++s_idleCount > 50)
-				{
-					s_idleCount = 0;
+            if (s_idleThreads < s_threads)
+            {
+                if (++s_idleCount > 50)
+                {
+                    s_idleCount = 0;
 
-					for (int i = s_idleThreads; i < s_threads; i++)
-					{
-						s_ac.start();
-						s_ac.detach();
-					}
-				}
-			}
-			else
-				s_idleCount = 0;
+                    for (int i = s_idleThreads; i < s_threads; i++)
+                    {
+                        s_ac.start();
+                        s_ac.detach();
+                    }
+                }
+            }
+            else
+                s_idleCount = 0;
 
-			Sleep(10);
-		}
-	}
+            Sleep(10);
+        }
+    }
 } s_logger;
 
 }
