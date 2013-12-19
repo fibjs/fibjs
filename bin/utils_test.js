@@ -9,18 +9,18 @@ describe('utils', function() {
 		var s;
 
 		it("new", function() {
-			s = new utils.Stats([ 'a' ], [ 'b', 'c' ]);
+			s = new utils.Stats(['a'], ['b', 'c']);
 			assert.deepEqual(s.toJSON(), {
-				"a" : 0,
-				"b" : 0,
-				"c" : 0
+				"a": 0,
+				"b": 0,
+				"c": 0
 			});
 
-			var s1 = new utils.Stats([ 'a', 'b', 'c' ]);
+			var s1 = new utils.Stats(['a', 'b', 'c']);
 			assert.deepEqual(s1.toJSON(), {
-				"a" : 0,
-				"b" : 0,
-				"c" : 0
+				"a": 0,
+				"b": 0,
+				"c": 0
 			});
 
 			assert.throws(function() {
@@ -31,43 +31,43 @@ describe('utils', function() {
 		it("inc", function() {
 			s.inc('a');
 			assert.deepEqual(s.toJSON(), {
-				"a" : 1,
-				"b" : 0,
-				"c" : 0
+				"a": 1,
+				"b": 0,
+				"c": 0
 			});
 
 			s.inc('c');
 			assert.deepEqual(s.toJSON(), {
-				"a" : 1,
-				"b" : 0,
-				"c" : 1
+				"a": 1,
+				"b": 0,
+				"c": 1
 			});
 		});
 
 		it("dec", function() {
 			s.dec('a');
 			assert.deepEqual(s.toJSON(), {
-				"a" : 0,
-				"b" : 0,
-				"c" : 1
+				"a": 0,
+				"b": 0,
+				"c": 1
 			});
 		});
 
 		it("add", function() {
 			s.add('a', 100);
 			assert.deepEqual(s.toJSON(), {
-				"a" : 100,
-				"b" : 0,
-				"c" : 1
+				"a": 100,
+				"b": 0,
+				"c": 1
 			});
 		});
 
 		it("reset", function() {
 			s.reset();
 			assert.deepEqual(s.toJSON(), {
-				"a" : 100,
-				"b" : 0,
-				"c" : 0
+				"a": 100,
+				"b": 0,
+				"c": 0
 			});
 		});
 
@@ -98,24 +98,24 @@ describe('utils', function() {
 		it("put", function() {
 			c.put("b", 100);
 			deepEqual(c.toJSON(), {
-				"b" : 100
+				"b": 100
 			});
 
 			c.put({
-				"b" : 200,
-				"a" : 100
+				"b": 200,
+				"a": 100
 			});
 			deepEqual(c.toJSON(), {
-				"a" : 100,
-				"b" : 200
+				"a": 100,
+				"b": 200
 			});
 		});
 
 		it("set", function() {
 			c.set("c", 100);
 			deepEqual(c.toJSON(), {
-				"a" : 100,
-				"b" : 200
+				"a": 100,
+				"b": 200
 			});
 		});
 
@@ -129,21 +129,21 @@ describe('utils', function() {
 			assert.isUndefined(c.get('c'));
 
 			deepEqual(c.toJSON(), {
-				"a" : 100,
-				"b" : 200
+				"a": 100,
+				"b": 200
 			});
 
 			assert.equal(c.get('b'), 200);
 			deepEqual(c.toJSON(), {
-				"b" : 200,
-				"a" : 100
+				"b": 200,
+				"a": 100
 			});
 		});
 
 		it("remove", function() {
 			c.remove("b");
 			deepEqual(c.toJSON(), {
-				"a" : 100
+				"a": 100
 			});
 
 			c.remove('a');
@@ -164,9 +164,9 @@ describe('utils', function() {
 			assert.equal(c.size, 3);
 
 			deepEqual(c.toJSON(), {
-				"e" : 400,
-				"d" : 300,
-				"c" : 200
+				"e": 400,
+				"d": 300,
+				"c": 200
 			});
 		});
 
@@ -174,14 +174,14 @@ describe('utils', function() {
 			coroutine.sleep(50);
 			c.put('f', 500);
 			deepEqual(c.toJSON(), {
-				"f" : 500,
-				"e" : 400,
-				"d" : 300
+				"f": 500,
+				"e": 400,
+				"d": 300
 			});
 
 			coroutine.sleep(51);
 			deepEqual(c.toJSON(), {
-				"f" : 500
+				"f": 500
 			});
 		});
 	});

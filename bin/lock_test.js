@@ -12,6 +12,7 @@ describe('lock', function() {
 		});
 
 		var v = 100;
+
 		function f() {
 			l.acquire();
 			v = 200;
@@ -34,6 +35,7 @@ describe('lock', function() {
 		assert.equal(false, sem.trywait());
 
 		var v = 100;
+
 		function f1() {
 			while (1) {
 				sem.wait();

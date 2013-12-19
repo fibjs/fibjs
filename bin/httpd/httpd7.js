@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 
 var net = require('net');
@@ -8,12 +8,12 @@ var mq = require('mq');
 var rpc = require('rpc');
 
 var hdlr = http.handler(mq.routing({
-	'^(/.*)$' : http.fileHandler('httpd/www/'),
-	'^/docs(/.*)$' : http.fileHandler('../fibjs/docs/'),
-	'^/xhr(/.*)$' : rpc.json({
-		test : {
-			test : {
-				fun : function(request, d) {
+	'^(/.*)$': http.fileHandler('httpd/www/'),
+	'^/docs(/.*)$': http.fileHandler('../fibjs/docs/'),
+	'^/xhr(/.*)$': rpc.json({
+		test: {
+			test: {
+				fun: function(request, d) {
 					console.log(d);
 					return "ok"
 				}
@@ -27,4 +27,4 @@ var hdlr = http.handler(mq.routing({
 }));
 hdlr.crossDomain = true;
 
-new net.TCPServer(8080, hdlr).run();
+new net.TcpServer(8080, hdlr).run();

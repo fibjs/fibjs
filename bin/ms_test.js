@@ -54,7 +54,7 @@ describe('ms', function() {
 		assert.equal('qrstuvwxyz', ms.read(ms.size()).toString());
 	});
 
-	it("clone", function(){
+	it("clone", function() {
 		cms = ms.clone();
 		assert.deepEqual(cms.stat().mtime, ms.stat().mtime);
 
@@ -78,7 +78,7 @@ describe('ms', function() {
 		assert.equal('qrstuvwxyz', cms.read(cms.size()).toString());
 	});
 
-	it("seek & write", function(){
+	it("seek & write", function() {
 		ms.seek(10, fs.SEEK_SET);
 		ms.write(new Buffer('abcdefghijklmnopqrstuvwxyz'));
 		assert.equal(36, ms.size());
@@ -87,7 +87,7 @@ describe('ms', function() {
 		ms.rewind();
 		assert.equal('abcdefghijabcdefghijklmnopqrstuvwxyz', ms.read().toString());
 	});
-	
+
 });
 
 //test.run();

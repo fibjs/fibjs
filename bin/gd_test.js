@@ -46,7 +46,7 @@ describe("gd", function() {
 		img.filledRectangle(60, 40, 70, 50, img.colorAllocate(255, 255, 0));
 
 		img.filledRectangle(20, 20, 70, 50, img.colorAllocateAlpha(255, 255,
-				255, 64));
+			255, 64));
 	});
 
 	it("transparent", function() {
@@ -61,11 +61,26 @@ describe("gd", function() {
 
 	it("polygon", function() {
 		img.setThickness(1);
-		img.openPolygon([ [ 1, 1 ], [ 1, 10 ], [ 10, 15 ], [ 10, 20 ] ], b);
-		img.polygon([ [ 101, 101 ], [ 101, 110 ], [ 110, 115 ], [ 110, 100 ] ],
-				b);
+		img.openPolygon([
+			[1, 1],
+			[1, 10],
+			[10, 15],
+			[10, 20]
+		], b);
+		img.polygon([
+				[101, 101],
+				[101, 110],
+				[110, 115],
+				[110, 100]
+			],
+			b);
 		img.filledPolygon(
-				[ [ 101, 1 ], [ 101, 10 ], [ 110, 15 ], [ 110, 10 ] ], b);
+			[
+				[101, 1],
+				[101, 10],
+				[110, 15],
+				[110, 10]
+			], b);
 	});
 
 	it("ellipse", function() {

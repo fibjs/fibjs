@@ -1,28 +1,26 @@
 /**
- * 
+ *
  */
 
 var net = require('net');
 var b = new Buffer("HTTP/1.0 200 ok\r\nConnection: keep-alive\r\nContent-Length: 6\r\n\r\nhello.");
 
-function connect(c)
-{
-	try{
-		while(c.read())
+function connect(c) {
+	try {
+		while (c.read())
 			c.write(b);
-	}catch(e){}
-	
+	} catch (e) {}
+
 	c.close();
 }
 
 var s = new net.Socket();
 s.bind(8080);
 s.listen(128);
-while(1)
-{
-//	console.log('wait accept..');
+while (1) {
+	//	console.log('wait accept..');
 	var s1 = s.accept();
-//	console.log('accept..');
+	//	console.log('accept..');
 	connect.start(s1);
-//	console.log('start fiber..');
+	//	console.log('start fiber..');
 }

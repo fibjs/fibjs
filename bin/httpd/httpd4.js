@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 
 var net = require('net');
@@ -13,15 +13,15 @@ txt = txt + txt;
 
 var body = new io.MemoryStream();
 
-for(var i = 0; i < 10; i ++)
+for (var i = 0; i < 10; i++)
 	body.write(new Buffer(txt));
 
-new net.TCPServer(8080, function(c) {
+new net.TcpServer(8080, function(c) {
 	var bs = new io.BufferedStream(c);
 	bs.EOL = "\r\n";
 
 	var body1 = body.clone();
-	
+
 	var req = new http.Request();
 	var rep = req.response;
 
@@ -31,7 +31,7 @@ new net.TCPServer(8080, function(c) {
 		} catch (e) {
 			break;
 		}
-			
+
 		rep.sendTo(c);
 	}
 

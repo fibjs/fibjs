@@ -17,7 +17,7 @@ function t2(a1, a2) {
 
 
 describe('trigger', function() {
-	it("on", function(){
+	it("on", function() {
 		v1 = v2 = 0;
 		e.on('test', t1);
 		e.trigger('test', 200, 100);
@@ -34,7 +34,7 @@ describe('trigger', function() {
 		assert.equal(5321, v2);
 	});
 
-	it("off", function(){
+	it("off", function() {
 		e.off('test', t1);
 		e.trigger('test', 20, 10);
 		coroutine.sleep();
@@ -42,7 +42,7 @@ describe('trigger', function() {
 		assert.equal(9652, v2);
 	});
 
-	it("once", function(){
+	it("once", function() {
 		e.once('test', t1);
 		e.trigger('test', 20, 10);
 		coroutine.sleep();
@@ -50,7 +50,7 @@ describe('trigger', function() {
 		assert.equal(13983, v2);
 	});
 
-	it("off all", function(){
+	it("off all", function() {
 		e.off('test', t2);
 		e.trigger('test', 20, 10);
 		coroutine.sleep();
@@ -58,10 +58,10 @@ describe('trigger', function() {
 		assert.equal(13983, v2);
 	});
 
-	it("on({...})", function(){
+	it("on({...})", function() {
 		e.on({
-			test : t1,
-			test1 : t2
+			test: t1,
+			test1: t2
 		});
 		e.trigger('test', 20, 10);
 		coroutine.sleep();
@@ -73,10 +73,10 @@ describe('trigger', function() {
 		assert.equal(18314, v2);
 	});
 
-	it("off({...})", function(){
+	it("off({...})", function() {
 		e.off({
-			test : t1,
-			test1 : t2
+			test: t1,
+			test1: t2
 		});
 		e.trigger('test', 20, 10);
 		e.trigger('test1', 20, 10);
@@ -85,7 +85,7 @@ describe('trigger', function() {
 		assert.equal(18314, v2);
 	});
 
-	it("overwrite", function(){
+	it("overwrite", function() {
 		e.on('test', t1);
 		e.once('test', t1);
 		e.trigger('test', 20, 10);

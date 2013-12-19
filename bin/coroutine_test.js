@@ -33,7 +33,7 @@ describe('coroutine', function() {
 	it("Memory Leak detect", function() {
 		GC();
 		var no1 = os.memoryUsage().nativeObjects;
-		var f = (function(v){}).start(new Buffer());
+		var f = (function(v) {}).start(new Buffer());
 		GC();
 		assert.equal(no1 + 2, os.memoryUsage().nativeObjects);
 		f.join();
@@ -92,6 +92,7 @@ describe('coroutine', function() {
 
 	it('onexit', function() {
 		n = 0;
+
 		function t_fiber4(a1, a2) {
 			return a1 + a2 + 123;
 		}
@@ -112,11 +113,11 @@ describe('coroutine', function() {
 		n = 0;
 
 		t_fiber5.start(100, 200).on({
-			exit : function(r) {
+			exit: function(r) {
 				assert.equal(r, undefined);
 				n = 1000;
 			},
-			error : function(e) {
+			error: function(e) {
 				n1 = 2000;
 			}
 		});
@@ -126,23 +127,29 @@ describe('coroutine', function() {
 	});
 
 	it('parallel', function() {
-		var funs = [ function() {
-			coroutine.sleep(100);
-			return 1;
-		}, function() {
-			coroutine.sleep(100);
-			return 2;
-		}, function() {
-			coroutine.sleep(100);
-			return 3;
-		}, function() {
-			coroutine.sleep(100);
-		}, function() {
-			coroutine.sleep(100);
-		} ];
+		var funs = [
+			function() {
+				coroutine.sleep(100);
+				return 1;
+			},
+			function() {
+				coroutine.sleep(100);
+				return 2;
+			},
+			function() {
+				coroutine.sleep(100);
+				return 3;
+			},
+			function() {
+				coroutine.sleep(100);
+			},
+			function() {
+				coroutine.sleep(100);
+			}
+		];
 
 		var rs = coroutine
-				.parallel(funs[0], funs[1], funs[2], funs[3], funs[4]);
+			.parallel(funs[0], funs[1], funs[2], funs[3], funs[4]);
 		assert.equal(rs[0], 1);
 		assert.equal(rs[1], 2);
 		assert.equal(rs[2], 3);
@@ -154,9 +161,9 @@ describe('coroutine', function() {
 
 		assert.throws(function() {
 			coroutine.parallel(funs[0], funs[1], funs[2], funs[3], funs[4],
-					function() {
-						console.log(notExistsValue);
-					});
+				function() {
+					console.log(notExistsValue);
+				});
 		});
 
 		assert.throws(function() {
@@ -165,9 +172,9 @@ describe('coroutine', function() {
 			}, funs[0], funs[1], funs[2], funs[3], funs[4]);
 		});
 
-		assert.deepEqual(coroutine.parallel([ 1, 2, 3, 4, 5 ], function(v) {
+		assert.deepEqual(coroutine.parallel([1, 2, 3, 4, 5], function(v) {
 			return v + 1;
-		}), [ 2, 3, 4, 5, 6 ]);
+		}), [2, 3, 4, 5, 6]);
 	});
 
 	it('stack overflow', function() {
@@ -192,12 +199,12 @@ describe('coroutine', function() {
 			assert.equal(q.add(100), true);
 			assert.equal(q.add(200), true);
 			assert.equal(q.add(300), true);
-			assert.deepEqual(q.toArray(), [ 100, 200, 300 ]);
+			assert.deepEqual(q.toArray(), [100, 200, 300]);
 
 			assert.throws(function() {
 				q.add(400);
 			});
-			assert.deepEqual(q.toArray(), [ 100, 200, 300 ]);
+			assert.deepEqual(q.toArray(), [100, 200, 300]);
 		});
 
 		it("offer", function() {
@@ -206,10 +213,10 @@ describe('coroutine', function() {
 			assert.equal(q.offer(100), true);
 			assert.equal(q.offer(200), true);
 			assert.equal(q.offer(300), true);
-			assert.deepEqual(q.toArray(), [ 100, 200, 300 ]);
+			assert.deepEqual(q.toArray(), [100, 200, 300]);
 
 			assert.equal(q.offer(400), false);
-			assert.deepEqual(q.toArray(), [ 100, 200, 300 ]);
+			assert.deepEqual(q.toArray(), [100, 200, 300]);
 		});
 
 		it("remove", function() {
@@ -218,7 +225,7 @@ describe('coroutine', function() {
 			q.add(100);
 			q.add(200);
 			assert.equal(q.remove(), 100);
-			assert.deepEqual(q.toArray(), [ 200 ]);
+			assert.deepEqual(q.toArray(), [200]);
 
 			assert.equal(q.remove(), 200);
 			assert.deepEqual(q.toArray(), []);
@@ -235,7 +242,7 @@ describe('coroutine', function() {
 			q.add(100);
 			q.add(200);
 			assert.equal(q.poll(), 100);
-			assert.deepEqual(q.toArray(), [ 200 ]);
+			assert.deepEqual(q.toArray(), [200]);
 
 			assert.equal(q.poll(), 200);
 			assert.deepEqual(q.toArray(), []);
@@ -249,7 +256,7 @@ describe('coroutine', function() {
 
 			q.add(100);
 			q.add(200);
-			assert.deepEqual(q.toArray(), [ 100, 200 ]);
+			assert.deepEqual(q.toArray(), [100, 200]);
 
 			q.clear();
 			assert.deepEqual(q.toArray(), []);
@@ -262,7 +269,7 @@ describe('coroutine', function() {
 			q.add(100);
 			q.add(200);
 			assert.equal(q.element(), 100);
-			assert.deepEqual(q.toArray(), [ 100, 200 ]);
+			assert.deepEqual(q.toArray(), [100, 200]);
 
 			q.clear();
 			assert.throws(function() {
@@ -276,7 +283,7 @@ describe('coroutine', function() {
 			q.add(100);
 			q.add(200);
 			assert.equal(q.element(), 100);
-			assert.deepEqual(q.toArray(), [ 100, 200 ]);
+			assert.deepEqual(q.toArray(), [100, 200]);
 
 			q.clear();
 			assert.isNull(q.peek());
@@ -288,20 +295,20 @@ describe('coroutine', function() {
 			q.add(100);
 			q.add(200);
 			assert.equal(q.element(), 100);
-			assert.deepEqual(q.toArray(), [ 100, 200 ]);
+			assert.deepEqual(q.toArray(), [100, 200]);
 
 			q.put(300);
-			assert.deepEqual(q.toArray(), [ 100, 200, 300 ]);
+			assert.deepEqual(q.toArray(), [100, 200, 300]);
 
 			(function() {
 				q.put(400);
 			}).start();
 			coroutine.sleep(10);
-			assert.deepEqual(q.toArray(), [ 100, 200, 300 ]);
+			assert.deepEqual(q.toArray(), [100, 200, 300]);
 			q.remove();
-			assert.deepEqual(q.toArray(), [ 200, 300 ]);
+			assert.deepEqual(q.toArray(), [200, 300]);
 			coroutine.sleep(10);
-			assert.deepEqual(q.toArray(), [ 200, 300, 400 ]);
+			assert.deepEqual(q.toArray(), [200, 300, 400]);
 		});
 
 		it("take", function() {
@@ -315,11 +322,11 @@ describe('coroutine', function() {
 
 			q.add(100);
 			q.add(200);
-			assert.deepEqual(q.toArray(), [ 100, 200 ]);
+			assert.deepEqual(q.toArray(), [100, 200]);
 
 			coroutine.sleep(10);
 			assert.equal(e, 100);
-			assert.deepEqual(q.toArray(), [ 200 ]);
+			assert.deepEqual(q.toArray(), [200]);
 		});
 	});
 });

@@ -97,18 +97,18 @@ describe('path', function() {
 			assert.equal(path.dirname('\\\\unc\\share\\foo'), '\\\\unc\\share\\');
 			assert.equal(path.dirname('\\\\unc\\share\\foo\\'), '\\\\unc\\share\\');
 			assert.equal(path.dirname('\\\\unc\\share\\foo\\bar'),
-					'\\\\unc\\share\\foo');
+				'\\\\unc\\share\\foo');
 			assert.equal(path.dirname('\\\\unc\\share\\foo\\bar\\'),
-					'\\\\unc\\share\\foo');
+				'\\\\unc\\share\\foo');
 			assert.equal(path.dirname('\\\\unc\\share\\foo\\bar\\baz'),
-					'\\\\unc\\share\\foo\\bar');
+				'\\\\unc\\share\\foo\\bar');
 		}
 	});
 
 	it('normalize', function() {
 		if (isWindows) {
 			assert.equal(path.normalize('./fixtures///b/../b/c.js'),
-					'fixtures\\b\\c.js');
+				'fixtures\\b\\c.js');
 			assert.equal(path.normalize('/foo/../../../bar'), '\\bar');
 			assert.equal(path.normalize('a//b//../b'), 'a\\b');
 			assert.equal(path.normalize('a//b//./c'), 'a\\b\\c');
@@ -116,9 +116,9 @@ describe('path', function() {
 			assert.equal(path.normalize('c:/foo/../../../bar'), 'c:\\bar');
 			assert.equal(path.normalize('f:/'), 'f:\\');
 			assert.equal(path.normalize('f:path/to/../../../../path1'),
-					'f:..\\..\\path1');
+				'f:..\\..\\path1');
 			assert.equal(path.normalize('\\\\unc\\share\/foo/..//.///../../bar\\'),
-					'\\\\unc\\share\\bar');
+				'\\\\unc\\share\\bar');
 			assert.equal(path.normalize('\\\\unc\\share\\'), '\\\\unc\\share\\');
 		} else {
 			assert.equal(path.normalize('./fixtures///b/../b/c.js'), 'fixtures/b/c.js');
@@ -132,36 +132,132 @@ describe('path', function() {
 
 	it('combine', function() {
 		var failures = [];
-		var combineTests = [ [ [ '.', 'x/b', '..', 'b/c.js' ], 'x/b/c.js' ],
-				[ [ '/.', 'x/b', '..', 'b/c.js' ], '/x/b/c.js' ],
-				[ [ '/.', 'x/b', '..', '/b/c.js' ], '/b/c.js' ],
-				[ [ '/foo', '../../../bar' ], '/bar' ],
-				[ [ 'foo', '../../../bar' ], '../../bar' ],
-				[ [ 'foo/', '../../../bar' ], '../../bar' ],
-				[ [ 'foo/x', '../../../bar' ], '../bar' ],
-				[ [ 'foo/x', './bar' ], 'foo/x/bar' ],
-				[ [ 'foo/x/', './bar' ], 'foo/x/bar' ],
-				[ [ 'foo/x/', '.', 'bar' ], 'foo/x/bar' ], [ [ './' ], '' ],
-				[ [ '.', './' ], '' ], [ [ '.', '.', '.' ], '' ],
-				[ [ '.', './', '.' ], '' ], [ [ '.', '/./', '.' ], '/' ],
-				[ [ '.' ], '' ], [ [ '', '.' ], '' ], [ [ '', 'foo' ], 'foo' ],
-				[ [ 'foo', '/bar' ], '/bar' ], [ [ '', '/foo' ], '/foo' ],
-				[ [ '', '', '/foo' ], '/foo' ], [ [ '', '', 'foo' ], 'foo' ],
-				[ [ 'foo', '' ], 'foo' ], [ [ 'foo/', '' ], 'foo' ],
-				[ [ 'foo', '', '/bar' ], '/bar' ], [ [ './', '..', '/foo' ], '/foo' ],
-				[ [ './', '..', '..', 'foo' ], '../../foo' ],
-				[ [ '.', '..', '..', 'foo' ], '../../foo' ],
-				[ [ '', '..', '..', 'foo' ], '../../foo' ], [ [ '/' ], '/' ],
-				[ [ '/', '.' ], '/' ], [ [ '/', '..' ], '/' ],
-				[ [ '/', '..', '..' ], '/' ], [ [ '' ], '' ], [ [ '', '' ], '' ],
-				[ [ ' /foo' ], ' /foo' ], [ [ ' ', 'foo' ], ' /foo' ],
-				[ [ ' ', '.' ], ' ' ], [ [ ' ', '/' ], '/' ], [ [ ' ', '' ], ' ' ] ];
+		var combineTests = [
+			[
+				['.', 'x/b', '..', 'b/c.js'], 'x/b/c.js'
+			],
+			[
+				['/.', 'x/b', '..', 'b/c.js'], '/x/b/c.js'
+			],
+			[
+				['/.', 'x/b', '..', '/b/c.js'], '/b/c.js'
+			],
+			[
+				['/foo', '../../../bar'], '/bar'
+			],
+			[
+				['foo', '../../../bar'], '../../bar'
+			],
+			[
+				['foo/', '../../../bar'], '../../bar'
+			],
+			[
+				['foo/x', '../../../bar'], '../bar'
+			],
+			[
+				['foo/x', './bar'], 'foo/x/bar'
+			],
+			[
+				['foo/x/', './bar'], 'foo/x/bar'
+			],
+			[
+				['foo/x/', '.', 'bar'], 'foo/x/bar'
+			],
+			[
+				['./'], ''
+			],
+			[
+				['.', './'], ''
+			],
+			[
+				['.', '.', '.'], ''
+			],
+			[
+				['.', './', '.'], ''
+			],
+			[
+				['.', '/./', '.'], '/'
+			],
+			[
+				['.'], ''
+			],
+			[
+				['', '.'], ''
+			],
+			[
+				['', 'foo'], 'foo'
+			],
+			[
+				['foo', '/bar'], '/bar'
+			],
+			[
+				['', '/foo'], '/foo'
+			],
+			[
+				['', '', '/foo'], '/foo'
+			],
+			[
+				['', '', 'foo'], 'foo'
+			],
+			[
+				['foo', ''], 'foo'
+			],
+			[
+				['foo/', ''], 'foo'
+			],
+			[
+				['foo', '', '/bar'], '/bar'
+			],
+			[
+				['./', '..', '/foo'], '/foo'
+			],
+			[
+				['./', '..', '..', 'foo'], '../../foo'
+			],
+			[
+				['.', '..', '..', 'foo'], '../../foo'
+			],
+			[
+				['', '..', '..', 'foo'], '../../foo'
+			],
+			[
+				['/'], '/'
+			],
+			[
+				['/', '.'], '/'
+			],
+			[
+				['/', '..'], '/'
+			],
+			[
+				['/', '..', '..'], '/'
+			],
+			[
+				[''], ''
+			],
+			[
+				['', ''], ''
+			],
+			[
+				[' /foo'], ' /foo'
+			],
+			[
+				[' ', 'foo'], ' /foo'
+			],
+			[
+				[' ', '.'], ' '
+			],
+			[
+				[' ', '/'], '/'
+			],
+			[
+				[' ', ''], ' '
+			]
+		];
 		combineTests.forEach(function(test) {
 			var actual = path.combine.apply(path, test[0]);
 			var expected = isWindows ? test[1].replace(/\//g, '\\') : test[1];
-			var message = 'path.combine(' + test[0].map(JSON.stringify).join(',') + ')'
-					+ '\n  expect=' + JSON.stringify(expected) + '\n  actual='
-					+ JSON.stringify(actual);
+			var message = 'path.combine(' + test[0].map(JSON.stringify).join(',') + ')' + '\n  expect=' + JSON.stringify(expected) + '\n  actual=' + JSON.stringify(actual);
 			if (actual !== expected)
 				failures.push('\n' + message);
 		});

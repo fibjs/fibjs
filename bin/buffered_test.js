@@ -5,21 +5,21 @@ var fs = require('fs');
 var io = require('io');
 var net = require('net');
 
-describe("buffered stream", function(){
+describe("buffered stream", function() {
 	var s;
 
-	before(function(){
+	before(function() {
 		s = '0123456789\r\n';
 
-		for ( var i = 0; i < 10; i++)
+		for (var i = 0; i < 10; i++)
 			s = s + s;
 
 		var f = fs.open("test0000", 'w');
 		f.write(new Buffer(s));
 		f.close();
 	});
-	
-	after(function(){
+
+	after(function() {
 		fs.unlink("test0000");
 	});
 
@@ -37,13 +37,13 @@ describe("buffered stream", function(){
 		}
 		f.close();
 	}
-	
-	it("block size", function(){
-		for ( var i = 3; i < 100000; i *= 3)
+
+	it("block size", function() {
+		for (var i = 3; i < 100000; i *= 3)
 			t_read(fs.open("test0000"), i);
 	});
 
-	it("buffered tcp stream", function(){
+	it("buffered tcp stream", function() {
 		function accept1(s) {
 			while (true) {
 				var c = s.accept();
@@ -59,14 +59,14 @@ describe("buffered stream", function(){
 		s1.listen();
 		accept1.start(s1);
 
-		for ( var i = 3; i < 100000; i *= 3) {
+		for (var i = 3; i < 100000; i *= 3) {
 			var conn = new net.Socket();
 			conn.connect('127.0.0.1', 8182);
 			t_read(conn, i);
 		}
 	});
 
-	it("readline", function(){
+	it("readline", function() {
 		f = fs.open("test0000");
 		var r = new io.BufferedStream(f);
 		r.EOL = '\r\n';

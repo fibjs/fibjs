@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 
 var net = require('net');
@@ -16,13 +16,13 @@ var body = new io.MemoryStream();
 
 var sz = 1;
 
-for(var i = 0; i < sz; i ++)
+for (var i = 0; i < sz; i++)
 	body.write(new Buffer(txt));
 
 body.setTime(new Date());
 console.log(body.clone().stat().mtime);
 
-new net.TCPServer(8080, http.handler(function(req){
+new net.TcpServer(8080, http.handler(function(req) {
 	req.response.body = body.clone();
 })).run();
 

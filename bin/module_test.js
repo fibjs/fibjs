@@ -10,7 +10,7 @@ describe("module", function() {
 		a = require('module/a');
 		b = require('b');
 		assert.strictEqual(a.foo().foo, b.foo,
-				'require works with absolute identifiers');
+			'require works with absolute identifiers');
 	});
 
 	it("circular dependency", function() {
@@ -44,7 +44,7 @@ describe("module", function() {
 		a = require('module/a3');
 		b = require('b');
 		assert.strictEqual(a.foo, b.foo,
-				'a and b share foo through a relative require');
+			'a and b share foo through a relative require');
 	});
 
 	it("transitive", function() {

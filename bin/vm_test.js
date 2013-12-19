@@ -6,13 +6,13 @@ var vm = require('vm');
 describe("vm", function() {
 	it("sandbox", function() {
 		var b = {
-			a : 1000
+			a: 1000
 		}
 
 		var sbox = vm.create({
-			a : 100,
-			assert : assert,
-			b : b
+			a: 100,
+			assert: assert,
+			b: b
 		}, function(name) {
 			if (name == 'c')
 				return 300;

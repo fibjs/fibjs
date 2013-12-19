@@ -6,8 +6,7 @@ var fs = require('fs');
 function unlink(pathname) {
 	try {
 		fs.rmdir(pathname);
-	} catch (e) {
-	}
+	} catch (e) {}
 }
 
 var pathname = 'test_dir';
@@ -58,14 +57,14 @@ describe('fs', function() {
 		assert.equal(st.isWritable(), true);
 	});
 
-	it("file.size", function(){
+	it("file.size", function() {
 		var f = fs.open('fs_test.js');
 		var st = fs.stat('fs_test.js');
 		assert.equal(st.size, f.size());
 		f.close();
 	});
 
-	it("file read & write", function(){
+	it("file read & write", function() {
 		f = fs.open('fs_test.js');
 
 		var f1 = fs.open('fs_test.js.bak', 'w+');
@@ -80,17 +79,17 @@ describe('fs', function() {
 		f1.close();
 		fs.unlink('fs_test.js.bak');
 	});
-	
-	it("readFile", function(){
+
+	it("readFile", function() {
 		f = fs.open('fs_test.js');
 
 		var s = fs.readFile("fs_test.js");
 		assert.equal(s, f.read(f.size()).toString());
-		
+
 		f.close();
 	});
-	
-	it("tell", function(){
+
+	it("tell", function() {
 		f = fs.open('fs_test.js');
 		var st = fs.stat('fs_test.js');
 
@@ -99,11 +98,11 @@ describe('fs', function() {
 		assert.equal(st.size, f.tell());
 		f.rewind();
 		assert.equal(0, f.tell());
-		
+
 		f.close();
 	});
 
-	it("seek", function(){
+	it("seek", function() {
 		f = fs.open('fs_test.js');
 		f.seek(f.size() + 10, fs.SEEK_SET);
 		assert.equal(f.tell(), f.size() + 10);
@@ -113,7 +112,7 @@ describe('fs', function() {
 		f.close();
 	});
 
-	it("copyTo", function(){
+	it("copyTo", function() {
 		f = fs.open('fs_test.js');
 		f1 = fs.open('fs_test.js.bak', 'w');
 

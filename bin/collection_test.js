@@ -43,12 +43,12 @@ describe("collection", function() {
 
 		it("toArray", function() {
 			a.push(1);
-			assert.deepEqual(a.toArray(), [ 1 ]);
+			assert.deepEqual(a.toArray(), [1]);
 		});
 
 		it("push", function() {
 			a.push(2, 3, 4);
-			assert.deepEqual(a.toArray(), [ 1, 2, 3, 4 ]);
+			assert.deepEqual(a.toArray(), [1, 2, 3, 4]);
 		});
 
 		it("pop", function() {
@@ -57,19 +57,22 @@ describe("collection", function() {
 		});
 
 		it("slice", function() {
-			assert.deepEqual(a.slice(1).toArray(), [ 2, 3 ]);
-			assert.deepEqual(a.slice(1, 2).toArray(), [ 2 ]);
+			assert.deepEqual(a.slice(1).toArray(), [2, 3]);
+			assert.deepEqual(a.slice(1, 2).toArray(), [2]);
 			assert.deepEqual(a.slice(1, 0).toArray(), []);
 		});
 
 		it("concat", function() {
-			assert.deepEqual(a.concat(a).toArray(), [ 1, 2, 3, 1, 2, 3 ]);
-			assert.deepEqual(a.concat(new collection.List()).toArray(), [ 1, 2,
-					3 ]);
-			assert.deepEqual(a.concat([ 4, 5, 6 ]).toArray(), [ 1, 2, 3, 4, 5,
-					6 ]);
-			assert.deepEqual(a.concat(a, [ 4, 5, 6 ], a).toArray(), [ 1, 2, 3,
-					1, 2, 3, 4, 5, 6, 1, 2, 3 ]);
+			assert.deepEqual(a.concat(a).toArray(), [1, 2, 3, 1, 2, 3]);
+			assert.deepEqual(a.concat(new collection.List()).toArray(), [1, 2,
+				3
+			]);
+			assert.deepEqual(a.concat([4, 5, 6]).toArray(), [1, 2, 3, 4, 5,
+				6
+			]);
+			assert.deepEqual(a.concat(a, [4, 5, 6], a).toArray(), [1, 2, 3,
+				1, 2, 3, 4, 5, 6, 1, 2, 3
+			]);
 		});
 
 		it("every", function() {
@@ -85,14 +88,15 @@ describe("collection", function() {
 		it("filter", function() {
 			var passed = new collection.List();
 			passed.push(12, 5, 8, 130, 44);
-			assert.deepEqual(passed.filter(isBigEnough).toArray(), [ 12, 130,
-					44 ]);
+			assert.deepEqual(passed.filter(isBigEnough).toArray(), [12, 130,
+				44
+			]);
 		});
 
 		it("map", function() {
 			var passed = new collection.List();
 			passed.push(1, 4, 9);
-			assert.deepEqual(passed.map(Math.sqrt).toArray(), [ 1, 2, 3 ]);
+			assert.deepEqual(passed.map(Math.sqrt).toArray(), [1, 2, 3]);
 		});
 
 		it("forEach", function() {
@@ -111,12 +115,12 @@ describe("collection", function() {
 			assert.equal(q.add(100), true);
 			assert.equal(q.add(200), true);
 			assert.equal(q.add(300), true);
-			assert.deepEqual(q.toArray(), [ 100, 200, 300 ]);
+			assert.deepEqual(q.toArray(), [100, 200, 300]);
 
 			assert.throws(function() {
 				q.add(400);
 			});
-			assert.deepEqual(q.toArray(), [ 100, 200, 300 ]);
+			assert.deepEqual(q.toArray(), [100, 200, 300]);
 		});
 
 		it("offer", function() {
@@ -125,10 +129,10 @@ describe("collection", function() {
 			assert.equal(q.offer(100), true);
 			assert.equal(q.offer(200), true);
 			assert.equal(q.offer(300), true);
-			assert.deepEqual(q.toArray(), [ 100, 200, 300 ]);
+			assert.deepEqual(q.toArray(), [100, 200, 300]);
 
 			assert.equal(q.offer(400), false);
-			assert.deepEqual(q.toArray(), [ 100, 200, 300 ]);
+			assert.deepEqual(q.toArray(), [100, 200, 300]);
 		});
 
 		it("remove", function() {
@@ -137,7 +141,7 @@ describe("collection", function() {
 			q.add(100);
 			q.add(200);
 			assert.equal(q.remove(), 100);
-			assert.deepEqual(q.toArray(), [ 200 ]);
+			assert.deepEqual(q.toArray(), [200]);
 
 			assert.equal(q.remove(), 200);
 			assert.deepEqual(q.toArray(), []);
@@ -154,7 +158,7 @@ describe("collection", function() {
 			q.add(100);
 			q.add(200);
 			assert.equal(q.poll(), 100);
-			assert.deepEqual(q.toArray(), [ 200 ]);
+			assert.deepEqual(q.toArray(), [200]);
 
 			assert.equal(q.poll(), 200);
 			assert.deepEqual(q.toArray(), []);
@@ -168,7 +172,7 @@ describe("collection", function() {
 
 			q.add(100);
 			q.add(200);
-			assert.deepEqual(q.toArray(), [ 100, 200 ]);
+			assert.deepEqual(q.toArray(), [100, 200]);
 
 			q.clear();
 			assert.deepEqual(q.toArray(), []);
@@ -181,7 +185,7 @@ describe("collection", function() {
 			q.add(100);
 			q.add(200);
 			assert.equal(q.element(), 100);
-			assert.deepEqual(q.toArray(), [ 100, 200 ]);
+			assert.deepEqual(q.toArray(), [100, 200]);
 
 			q.clear();
 			assert.throws(function() {
@@ -195,7 +199,7 @@ describe("collection", function() {
 			q.add(100);
 			q.add(200);
 			assert.equal(q.element(), 100);
-			assert.deepEqual(q.toArray(), [ 100, 200 ]);
+			assert.deepEqual(q.toArray(), [100, 200]);
 
 			q.clear();
 			assert.isNull(q.peek());
