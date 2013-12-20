@@ -21,6 +21,7 @@ class module_base;
 class Stat_base;
 class List_base;
 class File_base;
+class BufferedStream_base;
 
 class fs_base : public module_base
 {
@@ -42,6 +43,7 @@ public:
 	static result_t readdir(const char* path, obj_ptr<List_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t open(const char* fname, const char* mode, obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t tmpFile(obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t openTextStream(const char* fname, const char* mode, obj_ptr<BufferedStream_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t readFile(const char* fname, std::string& retVal, exlib::AsyncEvent* ac);
 	static result_t writeFile(const char* fname, const char* txt, exlib::AsyncEvent* ac);
 
@@ -60,6 +62,7 @@ public:
 	static void s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_tmpFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_openTextStream(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readFile(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -73,6 +76,7 @@ public:
 	ASYNC_STATICVALUE2(fs_base, readdir, const char*, obj_ptr<List_base>);
 	ASYNC_STATICVALUE3(fs_base, open, const char*, const char*, obj_ptr<File_base>);
 	ASYNC_STATICVALUE1(fs_base, tmpFile, obj_ptr<File_base>);
+	ASYNC_STATICVALUE3(fs_base, openTextStream, const char*, const char*, obj_ptr<BufferedStream_base>);
 	ASYNC_STATICVALUE2(fs_base, readFile, const char*, std::string);
 	ASYNC_STATIC2(fs_base, writeFile, const char*, const char*);
 };
@@ -82,6 +86,7 @@ public:
 #include "Stat.h"
 #include "List.h"
 #include "File.h"
+#include "BufferedStream.h"
 
 namespace fibjs
 {
@@ -98,6 +103,7 @@ namespace fibjs
 			{"readdir", s_readdir, true},
 			{"open", s_open, true},
 			{"tmpFile", s_tmpFile, true},
+			{"openTextStream", s_openTextStream, true},
 			{"readFile", s_readFile, true},
 			{"writeFile", s_writeFile, true}
 		};
@@ -112,7 +118,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"fs", NULL, 
-			11, s_method, 0, NULL, 3, s_property, NULL, NULL,
+			12, s_method, 0, NULL, 3, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -246,6 +252,20 @@ namespace fibjs
 		METHOD_ENTER(0, 0);
 
 		hr = ac_tmpFile(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void fs_base::s_openTextStream(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<BufferedStream_base> vr;
+
+		METHOD_ENTER(2, 1);
+
+		ARG_String(0);
+		OPT_ARG_String(1, "r");
+
+		hr = ac_openTextStream(v0, v1, vr);
 
 		METHOD_RETURN();
 	}

@@ -26,6 +26,7 @@ public:
 	static result_t _new(Stream_base* stm, obj_ptr<BufferedStream_base>& retVal);
 	virtual result_t readText(int32_t size, std::string& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t readLine(int32_t maxlen, std::string& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t readLines(int32_t maxlines, v8::Handle<v8::Array>& retVal) = 0;
 	virtual result_t readUntil(const char* mk, int32_t maxlen, std::string& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t writeText(const char* txt, exlib::AsyncEvent* ac) = 0;
 	virtual result_t writeLine(const char* txt, exlib::AsyncEvent* ac) = 0;
@@ -39,6 +40,7 @@ public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readText(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_readLines(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readUntil(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_writeText(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_writeLine(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -65,6 +67,7 @@ namespace fibjs
 		{
 			{"readText", s_readText},
 			{"readLine", s_readLine},
+			{"readLines", s_readLines},
 			{"readUntil", s_readUntil},
 			{"writeText", s_writeText},
 			{"writeLine", s_writeLine}
@@ -79,7 +82,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"BufferedStream", s__new, 
-			5, s_method, 0, NULL, 2, s_property, NULL, NULL,
+			6, s_method, 0, NULL, 2, s_property, NULL, NULL,
 			&Stream_base::class_info()
 		};
 
@@ -159,6 +162,20 @@ namespace fibjs
 		OPT_ARG(int32_t, 0, -1);
 
 		hr = pInst->ac_readLine(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void BufferedStream_base::s_readLines(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		v8::Handle<v8::Array> vr;
+
+		METHOD_INSTANCE(BufferedStream_base);
+		METHOD_ENTER(1, 0);
+
+		OPT_ARG(int32_t, 0, -1);
+
+		hr = pInst->readLines(v0, vr);
 
 		METHOD_RETURN();
 	}

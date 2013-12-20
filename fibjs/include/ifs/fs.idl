@@ -69,6 +69,19 @@ class fs : module
 	static File open(String fname, String mode = "r") async;
 	static File tmpFile() async;
 
+	/*! @brief 打开文本文件，用于读取，写入，或者同时读写
+	 @param fname 指定文件名
+	 @param mode 指定文件打开方式，缺省为 "r"，只读方式。支持的方式如下：
+	 - 'r' 只读方式，文件不存在则抛出错误。
+	 - 'r+' 读写方式，文件不存在则抛出错误。
+	 - 'w' 只写方式，文件不存在则自动创建，存在则将被清空。
+	 - 'w+' 读写方式，文件不存在则自动创建。
+	 - 'a' 只写添加方式，文件不存在则自动创建。
+	 - 'a+' 读写添加方式，文件不存在则自动创建。
+	 @return 返回打开的文件对象
+	 */
+	static BufferedStream openTextStream(String fname, String mode = "r") async;
+
 	/*! @brief 打开文件，并读取内容
 	 @param fname 指定文件名
 	 @return 返回文件文本内容

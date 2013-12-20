@@ -155,7 +155,7 @@ result_t BufferedStream::write(Buffer_base *data, exlib::AsyncEvent *ac)
 
 result_t BufferedStream::close(exlib::AsyncEvent *ac)
 {
-    return 0;
+    return m_stm->close(ac);
 }
 
 result_t BufferedStream::copyTo(Stream_base *stm, int64_t bytes,
@@ -225,6 +225,37 @@ result_t BufferedStream::readLine(int32_t maxlen, std::string &retVal,
                                   exlib::AsyncEvent *ac)
 {
     return readUntil(m_eol.c_str(), maxlen, retVal, ac);
+}
+
+result_t BufferedStream::readLines(int32_t maxlines, v8::Handle<v8::Array> &retVal)
+{
+    result_t hr = 0;
+    std::string str;
+    int32_t n = 0;
+    retVal = v8::Array::New();
+
+    if (maxlines == 0)
+        return 0;
+
+    while (true)
+    {
+        hr = ac_readLine(-1, str);
+
+        if (hr < 0)
+            return hr;
+        if (hr > 0)
+            return 0;
+
+        retVal->Set(n ++, v8::String::New(str.c_str(), str.length()));
+        if (maxlines > 0)
+        {
+            maxlines --;
+            if (maxlines == 0)
+                break;
+        }
+    }
+
+    return 0;
 }
 
 result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,

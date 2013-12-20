@@ -50,6 +50,21 @@ result_t fs_base::tmpFile(obj_ptr<File_base> &retVal, exlib::AsyncEvent *ac)
     return 0;
 }
 
+result_t fs_base::openTextStream(const char *fname, const char *mode,
+                                 obj_ptr<BufferedStream_base> &retVal,
+                                 exlib::AsyncEvent *ac)
+{
+    if (!ac)
+        return CALL_E_NOSYNC;
+
+    obj_ptr<File_base> pFile;
+    result_t hr = open(fname, mode, pFile, ac);
+    if (hr < 0)
+        return hr;
+
+    return BufferedStream_base::_new(pFile, retVal);
+}
+
 result_t fs_base::readFile(const char *fname, std::string &retVal,
                            exlib::AsyncEvent *ac)
 {
