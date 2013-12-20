@@ -89,6 +89,15 @@ describe('fs', function() {
 		f.close();
 	});
 
+	it("openTextStream", function() {
+		f = fs.openTextStream('fs_test.js');
+
+		var a = fs.readFile("fs_test.js").replace(/\r/g, "").split("\n");
+		assert.deepEqual(a, f.readLines());
+
+		f.close();
+	});
+
 	it("tell", function() {
 		f = fs.open('fs_test.js');
 		var st = fs.stat('fs_test.js');
