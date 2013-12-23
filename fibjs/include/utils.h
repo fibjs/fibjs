@@ -139,8 +139,16 @@ typedef int result_t;
 
 #define CALL_E_MIN              -100100
 
+#if 0
+#define V8_SCOPE()  v8::HandleScope handle_scope(isolate)
+#define V8_RETURN(v)  handle_scope.Close(v)
+#else
+#define V8_SCOPE()
+#define V8_RETURN(v)  (v)
+#endif
+
 #define PROPERTY_ENTER() \
-    v8::HandleScope handle_scope(isolate); \
+    V8_SCOPE(); \
     result_t hr = 0;do{
 
 #define METHOD_OVER(c, o) \
@@ -152,7 +160,7 @@ typedef int result_t;
             if((o) > 0 && argc < (o)){hr = CALL_E_PARAMNOTOPTIONAL;break;}
 
 #define METHOD_ENTER(c, o) \
-    v8::HandleScope handle_scope(isolate); \
+    V8_SCOPE(); \
     result_t hr = CALL_E_BADPARAMCOUNT; do{\
         METHOD_OVER(c, o)
 
@@ -179,12 +187,12 @@ typedef int result_t;
 #define METHOD_RETURN() \
     }while(0); \
     if(hr == CALL_RETURN_NULL){ args.GetReturnValue().SetNull(); return;} \
-    if(hr >= 0){ args.GetReturnValue().Set(handle_scope.Close(GetReturnValue(vr))); return;} \
+    if(hr >= 0){ args.GetReturnValue().Set(V8_RETURN(GetReturnValue(vr))); return;} \
     if(hr == CALL_E_JAVASCRIPT){ args.GetReturnValue().Set(v8::Handle<v8::Value>()); return;} \
     ThrowResult(hr); return;
 
 #define METHOD_RETURN1() \
-    }while(0); args.GetReturnValue().Set(handle_scope.Close(vr)); return;
+    }while(0); args.GetReturnValue().Set(V8_RETURN(vr)); return;
 
 #define METHOD_VOID() \
     }while(0); \
