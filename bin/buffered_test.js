@@ -73,8 +73,8 @@ describe("buffered stream", function() {
 
 		var n = 0;
 
-		while ((s = r.readLine()) !== null) {
-			assert.equal('0123456789', s);
+		while ((s1 = r.readLine()) !== null) {
+			assert.equal('0123456789', s1);
 			n++;
 		}
 		assert.equal(1024, n);
@@ -91,6 +91,40 @@ describe("buffered stream", function() {
 
 		f.close();
 	});
+
+	it('packet read&write', function() {
+		f = fs.open("test0000", 'w+');
+		var r = new io.BufferedStream(f);
+
+		for (var i = 0; i < 1000; i++)
+			r.writePacket(new Buffer(s.substring(0, i)));
+
+		f.rewind();
+		for (var i = 0; i < 1000; i++)
+			assert.equal(r.readPacket().toString(), s.substring(0, i));
+	});
+
+	it('readPacket return null at the end of file', function() {
+		var r = new io.BufferedStream(f);
+		assert.isNull(r.readPacket());
+	});
+
+	it('readPacket limit', function() {
+		var r = new io.BufferedStream(f);
+		f.rewind();
+		r.writePacket(new Buffer(s.substring(0, 1024)));
+
+		f.rewind();
+		assert.doesNotThrow(function() {
+			r.readPacket(1024);
+		});
+
+		f.rewind();
+		r = new io.BufferedStream(f);
+		assert.throws(function() {
+			r.readPacket(1023);
+		});
+	});
 });
 
-//test.run();
+// test.run(console.DEBUG);

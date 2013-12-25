@@ -18,7 +18,7 @@ class BufferedStream: public fibjs::BufferedStream_base
 {
 public:
     BufferedStream(Stream_base *stm) :
-        m_stm(stm), m_pos(0), m_mkpos(0)
+        m_stm(stm), m_pos(0), m_temp(0)
     {
 #ifdef _WIN32
         m_eol.assign("\r\n", 2);
@@ -41,8 +41,10 @@ public:
     virtual result_t readLine(int32_t maxlen, std::string &retVal, exlib::AsyncEvent *ac);
     virtual result_t readLines(int32_t maxlines, v8::Handle<v8::Array> &retVal);
     virtual result_t readUntil(const char *mk, int32_t maxlen, std::string &retVal, exlib::AsyncEvent *ac);
+    virtual result_t readPacket(int32_t limit, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
     virtual result_t writeText(const char *txt, exlib::AsyncEvent *ac);
     virtual result_t writeLine(const char *txt, exlib::AsyncEvent *ac);
+    virtual result_t writePacket(Buffer_base* data, exlib::AsyncEvent* ac);
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
     virtual result_t get_EOL(std::string &retVal);
     virtual result_t set_EOL(const char *newVal);
@@ -67,7 +69,7 @@ public:
     obj_ptr<Stream_base> m_stm;
     std::string m_buf;
     int m_pos;
-    int m_mkpos;
+    int m_temp;
     std::string m_eol;
     StringBuffer m_strbuf;
 };
