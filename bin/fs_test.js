@@ -91,6 +91,7 @@ describe('fs', function() {
 
 	it("openTextStream", function() {
 		f = fs.openTextStream('fs_test.js');
+		f.EOL = '\n';
 
 		var a = fs.readFile("fs_test.js").replace(/\r/g, "").split("\n");
 		assert.deepEqual(a, f.readLines());
@@ -138,4 +139,4 @@ describe('fs', function() {
 	});
 });
 
-//test.run();
+//test.run(console.DEBUG);

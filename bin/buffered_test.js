@@ -124,6 +124,8 @@ describe("buffered stream", function() {
 		assert.throws(function() {
 			r.readPacket(1023);
 		});
+
+		f.close();
 	});
 });
 
