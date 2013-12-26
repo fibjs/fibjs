@@ -1,0 +1,12 @@
+
+/*! @brief 包处理消息对象  */
+class PacketMessage: Message
+{
+	/*! @brief 包处理消息对象构造函数
+	@param maxSize 最大包尺寸，以 MB 为单位，缺省为 64
+	 */
+	PacketMessage(Integer maxSize = 64);
+
+	/*! @brief 查询和设置最大包尺寸，以 MB 为单位，缺省为 64 */
+	Integer maxSize;
+};

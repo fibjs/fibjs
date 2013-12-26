@@ -312,6 +312,12 @@
     <ClCompile Include="src\DataCache.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\PacketMessage.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PacketHandler.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -771,6 +777,18 @@
       <Filter>Header Files\include</Filter>
     </ClInclude>
     <ClInclude Include="include\DataCache.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\PacketHandler.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\PacketMessage.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\PacketMessage.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\PacketHandler.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>

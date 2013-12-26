@@ -2,9 +2,24 @@
 /*! @brief 消息队列模块 */
 class mq : module
 {
-	/*! @brief 创建一个消息对象，参见 Chain */
+	/*! @brief 创建一个消息对象，参见 Message */
 	static Message new Message();
 	
+	/*! @brief 创建一个包处理消息对象，参见 PacketMessage */
+	static PacketMessage new PacketMessage();
+
+	/*! @brief 创建一个 Packet 包处理器
+	 @param hdlr http 消息处理器
+	 @return 返回 Packet 处理函数
+	 */
+	static PacketHandler packetHandler(Value hdlr);
+
+	/*! @brief 创建一个 http 协议处理器对象，将流对象的数据转变为 http 消息对象
+	 @param hdlr http 消息处理器
+	 @return 返回一个可以将流对象数据转变为 http 消息的内置消息处理器
+	 */
+	static HttpHandler httpHandler(Value hdlr);
+
 	/*! @brief 创建一个消息处理器链处理对象，参见 Chain
 	 @param hdlrs 处理器数组
 	 */

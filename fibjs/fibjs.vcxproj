@@ -84,6 +84,8 @@
     <ClCompile Include="src\os_osx.cpp" />
     <ClCompile Include="src\os_posix.cpp" />
     <ClCompile Include="src\os_win.cpp" />
+    <ClCompile Include="src\PacketHandler.cpp" />
+    <ClCompile Include="src\PacketMessage.cpp" />
     <ClCompile Include="src\path.cpp" />
     <ClCompile Include="src\process.cpp" />
     <ClCompile Include="src\Queue.cpp" />
@@ -205,6 +207,8 @@
     <ClInclude Include="include\ifs\net.h" />
     <ClInclude Include="include\ifs\object.h" />
     <ClInclude Include="include\ifs\os.h" />
+    <ClInclude Include="include\ifs\PacketHandler.h" />
+    <ClInclude Include="include\ifs\PacketMessage.h" />
     <ClInclude Include="include\ifs\path.h" />
     <ClInclude Include="include\ifs\process.h" />
     <ClInclude Include="include\ifs\Queue.h" />
@@ -250,6 +254,8 @@
     <ClInclude Include="include\NullHandler.h" />
     <ClInclude Include="include\object.h" />
     <ClInclude Include="include\obj_ptr.h" />
+    <ClInclude Include="include\PacketHandler.h" />
+    <ClInclude Include="include\PacketMessage.h" />
     <ClInclude Include="include\parse.h" />
     <ClInclude Include="include\qstring.h" />
     <ClInclude Include="include\Queue.h" />
