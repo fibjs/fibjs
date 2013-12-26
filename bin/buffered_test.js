@@ -4,6 +4,7 @@ test.setup();
 var fs = require('fs');
 var io = require('io');
 var net = require('net');
+var mq = require('mq');
 
 describe("buffered stream", function() {
 	var s;
@@ -104,7 +105,49 @@ describe("buffered stream", function() {
 			assert.equal(r.readPacket().toString(), s.substring(0, i));
 	});
 
+	it("PacketMessage sendTo", function() {
+		f.rewind();
+		f.truncate(0);
+
+		var m = new mq.PacketMessage();
+
+		for (var i = 0; i < 1000; i++) {
+			m.body.write(new Buffer(s.substring(0, i)));
+			m.sendTo(f);
+			m.clear();
+		}
+
+		f.rewind();
+		var r = new io.BufferedStream(f);
+
+		for (var i = 0; i < 1000; i++) {
+			assert.equal(r.readPacket().toString(), s.substring(0, i));
+		}
+	});
+
+	it("PacketMessage readFrom", function() {
+		f.rewind();
+		f.truncate(0);
+
+		var r = new io.BufferedStream(f);
+
+		for (var i = 1; i < 1000; i++)
+			r.writePacket(new Buffer(s.substring(0, i)));
+
+		var m = new mq.PacketMessage();
+
+		f.rewind();
+		for (var i = 1; i < 1000; i++) {
+			m.readFrom(r);
+			assert.equal(m.body.readAll().toString(), s.substring(0, i));
+			m.clear();
+		}
+	});
+
 	it('readPacket return null at the end of file', function() {
+		f.rewind();
+		f.truncate(0);
+
 		var r = new io.BufferedStream(f);
 		assert.isNull(r.readPacket());
 	});
@@ -129,4 +172,4 @@ describe("buffered stream", function() {
 	});
 });
 
-// test.run(console.DEBUG);
+//test.run(console.DEBUG);

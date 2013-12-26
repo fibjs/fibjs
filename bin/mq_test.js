@@ -210,6 +210,7 @@ describe(
 
 			it("http request", function() {
 				var handler = mq.chain([
+
 					function(v) {
 						return {};
 					},
@@ -224,6 +225,7 @@ describe(
 				assert.equal("aaa[object Object]", req.result);
 
 				var handler = mq.chain([
+
 					function(v) {
 						v.params[0] = {};
 					},
