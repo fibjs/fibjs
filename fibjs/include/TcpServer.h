@@ -6,6 +6,7 @@
  */
 
 #include "ifs/net.h"
+#include "ifs/Handler.h"
 #include "ifs/TcpServer.h"
 #include "Socket.h"
 #include "Stats.h"

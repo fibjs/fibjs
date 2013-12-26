@@ -52,12 +52,6 @@ result_t Chain::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     return (new asyncInvoke(this, v, ac))->post(0);
 }
 
-result_t Chain::append(Handler_base *hdlr)
-{
-    m_array.append(hdlr);
-    return 0;
-}
-
 result_t Chain::append(v8::Handle<v8::Value> hdlr)
 {
     obj_ptr<Handler_base> hdlr1;

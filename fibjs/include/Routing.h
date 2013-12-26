@@ -46,8 +46,10 @@ public:
 public:
     // Routing_base
     virtual result_t append(v8::Handle<v8::Object> map);
-    virtual result_t append(const char *pattern, Handler_base *hdlr);
     virtual result_t append(const char *pattern, v8::Handle<v8::Value> hdlr);
+
+public:
+    result_t append(const char *pattern, Handler_base *hdlr);
 
 private:
     QuickArray<obj_ptr<rule> > m_array;

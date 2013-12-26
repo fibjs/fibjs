@@ -30,7 +30,7 @@ class utils : module
 	     "uuid": "1.6.2",
 	     "v8": "3.23.17 (candidate)",
 	     "zlib": "1.2.7",
-	     "zmp": "3.1"
+	     "zmq": "3.1"
 	   }
 	 }
 	 @endcode

@@ -12,15 +12,9 @@ class HttpServer: object
 {
 	/*! @brief HttpServer 构造函数，在所有本机地址侦听
 	  @param port 指定 http 服务器侦听端口
-	  @param hdlr http 消息处理器
+	  @param hdlr http 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
 	 */
-	HttpServer(Integer port, Handler hdlr);
-
-	/*! @brief HttpServer 构造函数，在所有本机地址侦听
-	  @param port 指定 http 服务器侦听端口
-	  @param hdlr http 消息处理函数
-	 */
-	HttpServer(Integer port, Function hdlr);
+	HttpServer(Integer port, Value hdlr);
 
 	/*! @brief HttpServer 构造函数，在所有本机地址侦听，并绑定静态文件目录
 	  @param port 指定 http 服务器侦听端口
@@ -31,16 +25,9 @@ class HttpServer: object
 	/*! @brief HttpServer 构造函数
 	  @param addr 指定 http 服务器侦听地址，为 "" 则在本机所有地址侦听
 	  @param port 指定 http 服务器侦听端口
-	  @param hdlr http 消息处理器
+	  @param hdlr http 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
 	 */
-	HttpServer(String addr, Integer port, Handler hdlr);
-
-	/*! @brief HttpServer 构造函数
-	  @param addr 指定 http 服务器侦听地址，为 "" 则在本机所有地址侦听
-	  @param port 指定 http 服务器侦听端口
-	  @param hdlr http 消息处理函数
-	 */
-	HttpServer(String addr, Integer port, Function hdlr);
+	HttpServer(String addr, Integer port, Value hdlr);
 
 	/*! @brief HttpServer 构造函数，在所有本机地址侦听，并绑定静态文件目录
 	  @param addr 指定 http 服务器侦听地址，为 "" 则在本机所有地址侦听

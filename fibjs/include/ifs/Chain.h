@@ -24,7 +24,6 @@ class Chain_base : public Handler_base
 public:
 	// Chain_base
 	virtual result_t append(v8::Handle<v8::Array> hdlrs) = 0;
-	virtual result_t append(Handler_base* hdlr) = 0;
 	virtual result_t append(v8::Handle<v8::Value> hdlr) = 0;
 
 	DECLARE_CLASSINFO(Chain_base);
@@ -63,12 +62,6 @@ namespace fibjs
 		METHOD_ENTER(1, 1);
 
 		ARG(v8::Handle<v8::Array>, 0);
-
-		hr = pInst->append(v0);
-
-		METHOD_OVER(1, 1);
-
-		ARG(obj_ptr<Handler_base>, 0);
 
 		hr = pInst->append(v0);
 

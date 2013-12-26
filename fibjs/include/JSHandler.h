@@ -28,15 +28,16 @@ public:
                             exlib::AsyncEvent *ac);
 
 public:
-    result_t setHandler(v8::Handle<v8::Value> hdlr);
-
     static result_t New(v8::Handle<v8::Value> hdlr,
                         obj_ptr<Handler_base> &retVal)
     {
+        if (hdlr->IsString() || hdlr->IsStringObject() ||
+                hdlr->IsNumberObject() || hdlr->IsRegExp() ||
+                (!hdlr->IsFunction() && !hdlr->IsObject()))
+            return CALL_E_BADVARTYPE;
+
         obj_ptr<JSHandler> r = new JSHandler();
-        result_t hr = r->setHandler(hdlr);
-        if (hr < 0)
-            return hr;
+        r->m_handler.Reset(isolate, hdlr);
 
         retVal = r;
 

@@ -90,6 +90,9 @@ result_t mq_base::routing(v8::Handle<v8::Object> map,
 result_t mq_base::jsHandler(v8::Handle<v8::Value> hdlr,
                             obj_ptr<Handler_base> &retVal)
 {
+    if ((retVal = Handler_base::getInstance(hdlr)) != NULL)
+        return 0;
+
     return JSHandler::New(hdlr, retVal);
 }
 

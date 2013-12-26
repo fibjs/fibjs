@@ -15,8 +15,8 @@ class mq : module
 	 */
 	static Routing routing(Object map);
 
-	/*! @brief 创建一个 javascript 消息处理器对象
-	 @param hdlr 处理函数，或 javascript 消息映射对象，处理器将自动映射子对象及函数
+	/*! @brief 创建一个 javascript 消息处理器对象，传递值内置处理器则直接返回
+	 @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，处理器将自动映射子对象及函数
 	 @return 返回封装了处理函数的处理器
 	
 	 消息处理函数语法如下：
@@ -27,7 +27,7 @@ class mq : module
 	 参数 v 为正在处理的消息，返回结果允许有三种:
 	 - Object javascript 对象，下一阶段将使用此对象进行消息映射
 	 - Function javascript 函数，将使用此函数进行下一阶段处理
-	 - Handler 普通处理器，将使用此处理器进行下一阶段处理
+	 - Handler 内置处理器，将使用此处理器进行下一阶段处理
 	 无返回或者其他的返回结果将结束消息处理。
 	
 	 使用消息映射对象处理器将根据对象属性嵌套逻辑处理消息，如下所示：

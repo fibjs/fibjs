@@ -21,8 +21,8 @@ class module_base;
 class HttpRequest_base;
 class HttpResponse_base;
 class HttpServer_base;
-class Handler_base;
 class HttpHandler_base;
+class Handler_base;
 class SeekableStream_base;
 class Buffer_base;
 
@@ -30,8 +30,7 @@ class http_base : public module_base
 {
 public:
 	// http_base
-	static result_t handler(Handler_base* hdlr, obj_ptr<HttpHandler_base>& retVal);
-	static result_t handler(v8::Handle<v8::Function> hdlr, obj_ptr<HttpHandler_base>& retVal);
+	static result_t handler(v8::Handle<v8::Value> hdlr, obj_ptr<HttpHandler_base>& retVal);
 	static result_t fileHandler(const char* root, obj_ptr<Handler_base>& retVal);
 	static result_t request(const char* host, int32_t port, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t request(const char* method, const char* url, v8::Handle<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
@@ -62,8 +61,8 @@ public:
 #include "HttpRequest.h"
 #include "HttpResponse.h"
 #include "HttpServer.h"
-#include "Handler.h"
 #include "HttpHandler.h"
+#include "Handler.h"
 #include "SeekableStream.h"
 #include "Buffer.h"
 
@@ -105,13 +104,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG(obj_ptr<Handler_base>, 0);
-
-		hr = handler(v0, vr);
-
-		METHOD_OVER(1, 1);
-
-		ARG(v8::Handle<v8::Function>, 0);
+		ARG(v8::Handle<v8::Value>, 0);
 
 		hr = handler(v0, vr);
 

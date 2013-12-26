@@ -12,14 +12,8 @@
 namespace fibjs
 {
 
-result_t TcpServer_base::_new(int32_t port, Handler_base *listener,
-                              obj_ptr<TcpServer_base> &retVal)
-{
-    return _new("", port, listener, retVal);
-}
-
-result_t TcpServer_base::_new(const char *addr, int32_t port,
-                              Handler_base *listener, obj_ptr<TcpServer_base> &retVal)
+result_t _new_tcpServer(const char *addr, int32_t port,
+                        Handler_base *listener, obj_ptr<TcpServer_base> &retVal)
 {
     obj_ptr < TcpServer > svr = new TcpServer();
     result_t hr = svr->create(addr, port, listener);
@@ -31,21 +25,21 @@ result_t TcpServer_base::_new(const char *addr, int32_t port,
     return 0;
 }
 
-result_t TcpServer_base::_new(int32_t port, v8::Handle<v8::Function> listener,
+result_t TcpServer_base::_new(int32_t port, v8::Handle<v8::Value> listener,
                               obj_ptr<TcpServer_base> &retVal)
 {
     return _new("", port, listener, retVal);
 }
 
 result_t TcpServer_base::_new(const char *addr, int32_t port,
-                              v8::Handle<v8::Function> listener, obj_ptr<TcpServer_base> &retVal)
+                              v8::Handle<v8::Value> listener, obj_ptr<TcpServer_base> &retVal)
 {
     obj_ptr < Handler_base > hdlr1;
     result_t hr = JSHandler::New(listener, hdlr1);
     if (hr < 0)
         return hr;
 
-    return _new(addr, port, hdlr1, retVal);
+    return _new_tcpServer(addr, port, hdlr1, retVal);
 }
 
 static const char *s_staticCounter[] =

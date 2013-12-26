@@ -275,7 +275,7 @@ bool objectEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
     {
         v8::Handle<v8::Value> ks = keys->Get(i);
 
-        if (!ks->IsNumber())
+        if (!ks->IsNumber() && !ks->IsNumberObject())
         {
             v8::Handle<v8::String> k = v8::Handle<v8::String>::Cast(ks);
 
@@ -428,8 +428,8 @@ result_t assert_base::notCloseTo(v8::Handle<v8::Value> actual,
 
 double valcmp(v8::Handle<v8::Value> &val1, v8::Handle<v8::Value> &val2)
 {
-    bool n1 = val1->IsNumber();
-    bool n2 = val2->IsNumber();
+    bool n1 = val1->IsNumber() || val1->IsNumberObject();
+    bool n2 = val2->IsNumber() || val2->IsNumberObject();
     double v1;
 
     if (n1 && n2)

@@ -48,13 +48,7 @@ class Routing: Handler
 
 	/*! @brief 添加一条路由规则
 	 @param pattern 消息匹配格式
-	 @param hdlr 消息处理器
-	 */
-	append(String pattern, Handler hdlr);
-
-	/*! @brief 添加一条 javascript 处理函数路由规则
-	 @param pattern 消息匹配格式
-	 @param hdlr javascript 消息处理器，详见 mq.jsHandler
+	 @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
 	 */
 	append(String pattern, Value hdlr);
 };

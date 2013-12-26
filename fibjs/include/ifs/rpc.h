@@ -24,7 +24,6 @@ class rpc_base : public module_base
 {
 public:
 	// rpc_base
-	static result_t json(Handler_base* hdlr, obj_ptr<Handler_base>& retVal);
 	static result_t json(v8::Handle<v8::Value> hdlr, obj_ptr<Handler_base>& retVal);
 
 	DECLARE_CLASSINFO(rpc_base);
@@ -63,12 +62,6 @@ namespace fibjs
 		obj_ptr<Handler_base> vr;
 
 		METHOD_ENTER(1, 1);
-
-		ARG(obj_ptr<Handler_base>, 0);
-
-		hr = json(v0, vr);
-
-		METHOD_OVER(1, 1);
 
 		ARG(v8::Handle<v8::Value>, 0);
 

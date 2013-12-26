@@ -15,15 +15,6 @@
 namespace fibjs
 {
 
-result_t JSHandler::setHandler(v8::Handle<v8::Value> hdlr)
-{
-    if (!hdlr->IsFunction() && !hdlr->IsObject())
-        return CALL_E_BADVARTYPE;
-
-    m_handler.Reset(isolate, hdlr);
-    return 0;
-}
-
 inline result_t msgMethod(Message_base *msg, std::string &method)
 {
     std::string str;

@@ -24,8 +24,14 @@ public:
 public:
     // Chain_base
     virtual result_t append(v8::Handle<v8::Array> hdlrs);
-    virtual result_t append(Handler_base *hdlr);
     virtual result_t append(v8::Handle<v8::Value> hdlr);
+
+public:
+    result_t append(Handler_base *hdlr)
+    {
+        m_array.append(hdlr);
+        return 0;
+    }
 
 private:
     QuickArray<obj_ptr<Handler_base> > m_array;

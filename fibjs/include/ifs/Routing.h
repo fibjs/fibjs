@@ -24,7 +24,6 @@ class Routing_base : public Handler_base
 public:
 	// Routing_base
 	virtual result_t append(v8::Handle<v8::Object> map) = 0;
-	virtual result_t append(const char* pattern, Handler_base* hdlr) = 0;
 	virtual result_t append(const char* pattern, v8::Handle<v8::Value> hdlr) = 0;
 
 	DECLARE_CLASSINFO(Routing_base);
@@ -65,13 +64,6 @@ namespace fibjs
 		ARG(v8::Handle<v8::Object>, 0);
 
 		hr = pInst->append(v0);
-
-		METHOD_OVER(2, 2);
-
-		ARG_String(0);
-		ARG(obj_ptr<Handler_base>, 1);
-
-		hr = pInst->append(v0, v1);
 
 		METHOD_OVER(2, 2);
 

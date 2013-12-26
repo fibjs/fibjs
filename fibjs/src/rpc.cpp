@@ -12,12 +12,6 @@
 namespace fibjs
 {
 
-result_t rpc_base::json(Handler_base *hdlr, obj_ptr<Handler_base> &retVal)
-{
-    retVal = new JsonRpcHandler(hdlr);
-    return 0;
-}
-
 result_t rpc_base::json(v8::Handle<v8::Value> hdlr,
                         obj_ptr<Handler_base> &retVal)
 {
@@ -25,7 +19,9 @@ result_t rpc_base::json(v8::Handle<v8::Value> hdlr,
     result_t hr = JSHandler::New(hdlr, hdlr1);
     if (hr < 0)
         return hr;
-    return json(hdlr1, retVal);
+
+    retVal = new JsonRpcHandler(hdlr1);
+    return 0;
 }
 
 }
