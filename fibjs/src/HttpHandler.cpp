@@ -36,7 +36,7 @@ enum
 
 HttpHandler::HttpHandler(Handler_base *hdlr) :
     m_hdlr(hdlr), m_crossDomain(false), m_forceGZIP(false), m_maxHeadersCount(
-        128), m_maxUploadSize(64)
+        128), m_maxUploadSize(67108864)
 {
     m_stats = new Stats();
     m_stats->init(s_staticCounter, 2, s_Counter, 6);

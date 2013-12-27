@@ -149,7 +149,7 @@ result_t PacketMessage::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
             pThis->set(body);
-            return pThis->m_stm->readPacket(pThis->m_pThis->m_maxSize * 1048576,
+            return pThis->m_stm->readPacket(pThis->m_pThis->m_maxSize,
                                             pThis->m_buffer, pThis);
         }
 

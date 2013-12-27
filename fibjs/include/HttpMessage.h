@@ -21,7 +21,7 @@ class HttpMessage: public Message::_msg
 {
 public:
     HttpMessage(bool bResponse = false) :
-        m_bResponse(bResponse), m_maxHeadersCount(128), m_maxUploadSize(64)
+        m_bResponse(bResponse), m_maxHeadersCount(128), m_maxUploadSize(67108864)
     {
         m_headers = new HttpCollection();
         clear();

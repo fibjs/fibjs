@@ -413,7 +413,7 @@ result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
                 return 0;
             }
 
-            if (limit != -1 && pThis->m_temp > limit)
+            if (limit > 0 && pThis->m_temp > limit)
                 return CALL_E_INVALID_DATA;
 
             int bytes = pThis->m_temp;

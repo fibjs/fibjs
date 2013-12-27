@@ -87,7 +87,7 @@ namespace fibjs
 
 		CONSTRUCT_ENTER(1, 0);
 
-		OPT_ARG(int32_t, 0, 64);
+		OPT_ARG(int32_t, 0, 67108864);
 
 		hr = _new(v0, vr);
 

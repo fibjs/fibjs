@@ -7,6 +7,7 @@
 
 #include "ifs/mq.h"
 #include "PacketHandler.h"
+#include "PacketMessage.h"
 #include "BufferedStream.h"
 #include "JSHandler.h"
 
@@ -20,27 +21,106 @@ static const char *s_Counter[] =
 
 enum
 {
-    HTTP_TOTAL = 0,
-    HTTP_PENDDING,
-    HTTP_REQUEST,
-    HTTP_RESPONSE,
-    HTTP_ERROR
+    PACKET_TOTAL = 0,
+    PACKET_PENDDING,
+    PACKET_REQUEST,
+    PACKET_RESPONSE,
+    PACKET_ERROR
 };
 
 PacketHandler::PacketHandler(Handler_base *hdlr) :
-    m_hdlr(hdlr)
+    m_hdlr(hdlr), m_maxSize(67108864)
 {
     m_stats = new Stats();
-    m_stats->init(s_staticCounter, 2, s_Counter, 6);
+    m_stats->init(s_staticCounter, 2, s_Counter, 3);
 }
 
 result_t PacketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                                exlib::AsyncEvent *ac)
 {
+    class asyncInvoke: public asyncState
+    {
+    public:
+        asyncInvoke(PacketHandler *pThis, Stream_base *stm, exlib::AsyncEvent *ac) :
+            asyncState(ac), m_pThis(pThis), m_stm(stm)
+        {
+            m_stmBuffered = new BufferedStream(stm);
+            m_msg = new PacketMessage(pThis->m_maxSize);
+
+            set(read);
+        }
+
+        static int read(asyncState *pState, int n)
+        {
+            asyncInvoke *pThis = (asyncInvoke *) pState;
+
+            pThis->m_msg->clear();
+            pThis->set(invoke);
+            return pThis->m_msg->readFrom(pThis->m_stmBuffered, pThis);
+        }
+
+        static int invoke(asyncState *pState, int n)
+        {
+            asyncInvoke *pThis = (asyncInvoke *) pState;
+
+            pThis->m_pThis->m_stats->inc(PACKET_TOTAL);
+            pThis->m_pThis->m_stats->inc(PACKET_REQUEST);
+            pThis->m_pThis->m_stats->inc(PACKET_PENDDING);
+
+            pThis->set(send);
+            return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_msg, pThis);
+        }
+
+        static int send(asyncState *pState, int n)
+        {
+            asyncInvoke *pThis = (asyncInvoke *) pState;
+
+            pThis->set(end);
+            return pThis->m_msg->sendTo(pThis->m_stm, pThis);
+        }
+
+        static int end(asyncState *pState, int n)
+        {
+            asyncInvoke *pThis = (asyncInvoke *) pState;
+
+            pThis->m_pThis->m_stats->inc(PACKET_RESPONSE);
+            pThis->m_pThis->m_stats->dec(PACKET_PENDDING);
+
+            pThis->set(read);
+            return 0;
+        }
+
+        virtual int error(int v)
+        {
+            m_pThis->m_stats->inc(PACKET_ERROR);
+
+            if (is(end))
+                m_pThis->m_stats->dec(PACKET_PENDDING);
+            else if (is(invoke))
+            {
+                m_pThis->m_stats->inc(PACKET_TOTAL);
+                m_pThis->m_stats->inc(PACKET_REQUEST);
+            }
+
+            return v;
+        }
+
+    private:
+        obj_ptr<PacketHandler> m_pThis;
+        obj_ptr<Stream_base> m_stm;
+        obj_ptr<BufferedStream_base> m_stmBuffered;
+        obj_ptr<PacketMessage_base> m_msg;
+    };
+
     if (!ac)
         return CALL_E_NOSYNC;
 
-    return CALL_E_BADVARTYPE;
+    obj_ptr<Stream_base> stm = Stream_base::getInstance(v);
+
+    if (stm == NULL)
+        return CALL_E_BADVARTYPE;
+
+    return (new asyncInvoke(this, stm, ac))->post(0);
 }
 
 result_t PacketHandler::get_maxSize(int32_t &retVal)

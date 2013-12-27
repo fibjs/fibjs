@@ -2,10 +2,10 @@ var test = require("test");
 test.setup();
 
 var mq = require('mq');
-var http = require('http');
-var coroutine = require("coroutine");
+var net = require('net');
+var io = require('io');
 
-var m = new http.Request();
+var m = new mq.Message();
 var v = new Buffer('abcd');
 
 function hdlr1(v) {
@@ -208,7 +208,7 @@ describe(
 				mq.invoke(chain1, m);
 			});
 
-			it("http request", function() {
+			it("Message", function() {
 				var handler = mq.chain([
 
 					function(v) {
@@ -220,7 +220,7 @@ describe(
 					}
 				]);
 
-				var req = new http.Request();
+				var req = new mq.Message();
 				mq.invoke(handler, req);
 				assert.equal("aaa[object Object]", req.result);
 
@@ -234,7 +234,7 @@ describe(
 					}
 				]);
 
-				var req = new http.Request();
+				var req = new mq.Message();
 				req.params.push("aaasssssssssssssss");
 				mq.invoke(handler, req);
 			});
@@ -347,7 +347,7 @@ describe(
 				});
 
 				it("object param", function() {
-					var req = new http.Request();
+					var req = new mq.Message();
 					req.params.resize(1);
 					req.params[0] = [];
 
@@ -363,7 +363,7 @@ describe(
 						"^/api/a(/.*)$": function(v) {}
 					});
 
-					var m = new http.Request();
+					var m = new mq.Message();
 					m.value = '/api/a';
 					mq.invoke(r, m);
 					assert.equal('', m.value);
@@ -391,6 +391,28 @@ describe(
 			}), m);
 			assert.equal(n, 200);
 		});
+
+		it("PacketHandler", function() {
+			var s = new net.TcpServer(8884, mq.packetHandler(function(r) {
+				var d = r.body.readAll();
+				r.clear();
+				r.body.write(new Buffer(d.toString().toUpperCase()));
+			}));
+
+			s.asyncRun();
+
+			var c = new net.Socket();
+			c.connect('127.0.0.1', 8884);
+			var r = new io.BufferedStream(c);
+
+			r.writePacket(new Buffer('abcdefg'));
+			var b = r.readPacket();
+			assert.equal(b.toString(), 'ABCDEFG');
+
+			r.writePacket(new Buffer('abcdefg'));
+			var b = r.readPacket();
+			assert.equal(b.toString(), 'ABCDEFG');
+		});
 	});
 
-//test.run();
+//test.run(console.DEBUG);
