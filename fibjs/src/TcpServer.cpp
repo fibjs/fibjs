@@ -99,7 +99,6 @@ result_t TcpServer::run(exlib::AsyncEvent *ac)
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
             pThis->set(close);
-
             return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_obj, pThis);
         }
 
@@ -111,6 +110,12 @@ result_t TcpServer::run(exlib::AsyncEvent *ac)
             pThis->m_pThis->m_stats->inc(TCPS_CLOSE);
             pThis->m_pThis->m_stats->dec(TCPS_CONNECTIONS);
             return pThis->m_sock->close(pThis);
+        }
+
+        virtual int error(int v)
+        {
+            set(close);
+            return 0;
         }
 
     private:
