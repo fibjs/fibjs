@@ -79,7 +79,7 @@ static const char *s_mimeTypes[][2] =
     { "texinfo", "application/x-texinfo" },
     { "tif", "image/tiff" },
     { "tiff", "image/tiff" },
-    { "tff", "application/x-font-ttf" },
+    { "ttf", "application/x-font-ttf" },
     { "txt", "text/plain" },
     { "wav", "audio/x-wav" },
     { "wbmp", "image/vnd.wap.wbmp" },
