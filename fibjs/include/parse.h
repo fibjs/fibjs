@@ -160,7 +160,6 @@ public:
             return false;
 
         skip();
-        skipSpace();
 
         return true;
     }

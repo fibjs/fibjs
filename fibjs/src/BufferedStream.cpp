@@ -407,7 +407,7 @@ result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
                 n1 -= sizeof(int32_t) - n2;
             }
 
-            if (pThis->m_temp == 0)
+            if (pThis->m_temp <= 0)
             {
                 retVal = new Buffer();
                 return 0;
