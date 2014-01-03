@@ -206,9 +206,11 @@ result_t fs_base::readdir(const char *path, obj_ptr<List_base> &retVal,
         fpath += '/';
         fpath += ep->d_name;
 
-        hr = stat(fpath.c_str(), fstat, NULL);
-        if (hr >= 0)
-            oa->append(fstat);
+        hr = stat(fpath.c_str(), fstat, ac);
+        if (hr < 0)
+            return hr;
+
+        oa->append(fstat);
     }
     ::closedir(dp);
 

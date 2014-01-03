@@ -137,6 +137,13 @@ describe('fs', function() {
 
 		fs.unlink('fs_test.js.bak');
 	});
+
+	it("readdir", function() {
+		var fl = fs.readdir('vm_test');
+		assert.equal(fl.length, 4);
+		assert.equal(fl[2].name, 't1.js');
+		assert.equal(fl[3].name, 't2.js');
+	});
 });
 
 //test.run(console.DEBUG);
