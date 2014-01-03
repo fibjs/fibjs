@@ -50,7 +50,9 @@ typedef int SOCKET;
 #include <net/if.h>
 #include <netinet/tcp.h>
 
+#ifndef ETIME
 #define ETIME   ETIMEDOUT
+#endif
 #else
 #include <netinet/tcp.h>
 
