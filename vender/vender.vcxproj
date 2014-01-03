@@ -368,8 +368,10 @@
     <ClCompile Include="src\v8\src\execution.cc" />
     <ClCompile Include="src\v8\src\experimental-libraries.cc" />
     <ClCompile Include="src\v8\src\extensions\externalize-string-extension.cc" />
+    <ClCompile Include="src\v8\src\extensions\free-buffer-extension.cc" />
     <ClCompile Include="src\v8\src\extensions\gc-extension.cc" />
     <ClCompile Include="src\v8\src\extensions\statistics-extension.cc" />
+    <ClCompile Include="src\v8\src\extensions\trigger-failure-extension.cc" />
     <ClCompile Include="src\v8\src\factory.cc" />
     <ClCompile Include="src\v8\src\fast-dtoa.cc" />
     <ClCompile Include="src\v8\src\fixed-dtoa.cc" />
@@ -873,8 +875,10 @@
     <ClInclude Include="src\v8\src\elements.h" />
     <ClInclude Include="src\v8\src\execution.h" />
     <ClInclude Include="src\v8\src\extensions\externalize-string-extension.h" />
+    <ClInclude Include="src\v8\src\extensions\free-buffer-extension.h" />
     <ClInclude Include="src\v8\src\extensions\gc-extension.h" />
     <ClInclude Include="src\v8\src\extensions\statistics-extension.h" />
+    <ClInclude Include="src\v8\src\extensions\trigger-failure-extension.h" />
     <ClInclude Include="src\v8\src\factory.h" />
     <ClInclude Include="src\v8\src\fast-dtoa.h" />
     <ClInclude Include="src\v8\src\fixed-dtoa.h" />
@@ -985,6 +989,7 @@
     <ClInclude Include="src\v8\src\profile-generator.h" />
     <ClInclude Include="src\v8\src\property-details.h" />
     <ClInclude Include="src\v8\src\property.h" />
+    <ClInclude Include="src\v8\src\qnx-math.h" />
     <ClInclude Include="src\v8\src\regexp-macro-assembler-irregexp-inl.h" />
     <ClInclude Include="src\v8\src\regexp-macro-assembler-irregexp.h" />
     <ClInclude Include="src\v8\src\regexp-macro-assembler-tracer.h" />

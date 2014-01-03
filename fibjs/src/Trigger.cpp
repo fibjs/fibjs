@@ -21,7 +21,7 @@ result_t Trigger_base::_new(obj_ptr<Trigger_base> &retVal)
 v8::Handle<v8::Array> object_base::GetHiddenArray(const char *k, bool create,
         bool autoDelete)
 {
-    v8::Local < v8::String > s = v8::String::NewSymbol(k);
+    v8::Local < v8::String > s = v8::String::NewFromUtf8(isolate, k);
     v8::Handle < v8::Object > o = wrap();
     v8::Handle < v8::Value > es = o->GetHiddenValue(s);
     v8::Handle < v8::Array > esa;
@@ -30,7 +30,7 @@ v8::Handle<v8::Array> object_base::GetHiddenArray(const char *k, bool create,
     {
         if (create)
         {
-            esa = v8::Array::New();
+            esa = v8::Array::New(isolate);
             o->SetHiddenValue(s, esa);
         }
     }

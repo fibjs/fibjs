@@ -46,7 +46,8 @@ public:
         std::string str;
 
         toString(str);
-        retVal = v8::String::New(str.c_str(), (int) str.length());
+        retVal = v8::String::NewFromUtf8(isolate, str.c_str(), v8::String::kNormalString,
+                                         (int) str.length());
 
         return 0;
     }

@@ -230,7 +230,7 @@ result_t BufferedStream::readLines(int32_t maxlines, v8::Handle<v8::Array> &retV
     result_t hr = 0;
     std::string str;
     int32_t n = 0;
-    retVal = v8::Array::New();
+    retVal = v8::Array::New(isolate);
 
     if (maxlines == 0)
         return 0;
@@ -244,7 +244,8 @@ result_t BufferedStream::readLines(int32_t maxlines, v8::Handle<v8::Array> &retV
         if (hr > 0)
             return 0;
 
-        retVal->Set(n ++, v8::String::New(str.c_str(), (int)str.length()));
+        retVal->Set(n ++, v8::String::NewFromUtf8(isolate, str.c_str(),
+                    v8::String::kNormalString, (int)str.length()));
         if (maxlines > 0)
         {
             maxlines --;

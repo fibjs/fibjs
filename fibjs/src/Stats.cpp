@@ -173,11 +173,13 @@ result_t Stats::_named_enumerator(v8::Handle<v8::Array> &retVal)
 {
     int i;
 
-    retVal = v8::Array::New();
+    retVal = v8::Array::New(isolate);
 
     for (i = 0; i < m_size; i++)
         retVal->Set(i,
-                    v8::String::New(m_keys[i].c_str(), (int) m_keys[i].length()));
+                    v8::String::NewFromUtf8(isolate, m_keys[i].c_str(),
+                                            v8::String::kNormalString,
+                                            (int) m_keys[i].length()));
 
     return 0;
 }

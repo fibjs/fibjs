@@ -222,7 +222,7 @@ v8::Handle<v8::Value> List::array::_call(v8::Handle<v8::Function> func,
         v8::Handle<v8::Object> thisp, int i)
 {
     v8::Handle<v8::Value> args[] =
-    { m_array[i], v8::Number::New(i) };
+    { m_array[i], v8::Number::New(isolate, i) };
 
     return func->Call(thisp, 2, args);
 }
@@ -319,7 +319,7 @@ result_t List::array::map(v8::Handle<v8::Function> func,
 
 result_t List::array::toArray(v8::Handle<v8::Array> &retVal)
 {
-    v8::Handle < v8::Array > a = v8::Array::New((int) m_array.size());
+    v8::Handle < v8::Array > a = v8::Array::New(isolate, (int) m_array.size());
     int i;
 
     for (i = 0; i < (int) m_array.size(); i++)

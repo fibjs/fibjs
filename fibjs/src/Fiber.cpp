@@ -162,7 +162,7 @@ void JSFiber::callFunction(v8::Handle<v8::Value> &retVal)
     }
     else
     {
-        v8::Handle < v8::Value > v = v8::Null();
+        v8::Handle < v8::Value > v = v8::Null(isolate);
         _trigger("exit", &v, 1);
     }
 }

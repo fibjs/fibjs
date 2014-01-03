@@ -108,10 +108,10 @@ std::string getResultMessage(result_t hr)
 v8::Handle<v8::Value> ThrowResult(result_t hr)
 {
     v8::Handle<v8::Value> e = v8::Exception::Error(
-                                  v8::String::New(getResultMessage(hr).c_str()));
-    e->ToObject()->Set(v8::String::NewSymbol("number"), v8::Int32::New(-hr));
+                                  v8::String::NewFromUtf8(isolate, getResultMessage(hr).c_str()));
+    e->ToObject()->Set(v8::String::NewFromUtf8(isolate, "number"), v8::Int32::New(isolate, -hr));
 
-    return v8::ThrowException(e);
+    return isolate->ThrowException(e);
 }
 
 inline const char *ToCString(const v8::String::Utf8Value &value)
@@ -165,7 +165,7 @@ void ReportException(v8::TryCatch &try_catch, result_t hr)
 std::string traceInfo()
 {
     v8::Handle<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
-            10, v8::StackTrace::kOverview);
+            isolate, 10, v8::StackTrace::kOverview);
     int count = stackTrace->GetFrameCount();
     int i;
     std::stringstream strBuffer;

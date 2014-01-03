@@ -50,10 +50,10 @@ class _case: public obj_base
     {
         int i, j;
 
-        m_block.Dispose();
+        m_block.Reset();
         for (i = 0; i < 4; i++)
             for (j = 0; j < (int) m_hooks[i].size(); j++)
-                m_hooks[i][j].Dispose();
+                m_hooks[i][j].Reset();
     }
 
 public:
@@ -116,7 +116,7 @@ public:
         QuickArray<obj_ptr<_case> > stack;
         QuickArray<std::string> names;
         QuickArray<std::string> msgs;
-        v8::Handle<v8::Object> o = v8::Object::New();
+        v8::Handle<v8::Object> o = v8::Object::New(isolate);
         int i, j;
         int32_t oldlevel = 0;
         int32_t cnt = 0, errcnt = 0;
@@ -397,7 +397,7 @@ result_t test_base::expect(v8::Handle<v8::Value> actual, const char *msg,
 
 result_t test_base::setup(int32_t mode)
 {
-    v8::Handle < v8::Context > ctx = v8::Context::GetCalling();
+    v8::Handle < v8::Context > ctx = isolate->GetCallingContext();
 
     if (!ctx.IsEmpty())
     {
@@ -407,67 +407,67 @@ result_t test_base::setup(int32_t mode)
 
         if (mode == _BDD)
         {
-            glob->ForceSet(v8::String::New("describe"),
-                           v8::FunctionTemplate::New(s_describe)->GetFunction(),
+            glob->ForceSet(v8::String::NewFromUtf8(isolate, "describe"),
+                           v8::FunctionTemplate::New(isolate, s_describe)->GetFunction(),
                            v8::ReadOnly);
-            glob->ForceSet(v8::String::New("xdescribe"),
-                           v8::FunctionTemplate::New(s_xdescribe)->GetFunction(),
+            glob->ForceSet(v8::String::NewFromUtf8(isolate, "xdescribe"),
+                           v8::FunctionTemplate::New(isolate, s_xdescribe)->GetFunction(),
                            v8::ReadOnly);
-            glob->ForceSet(v8::String::New("it"),
-                           v8::FunctionTemplate::New(s_it)->GetFunction(),
+            glob->ForceSet(v8::String::NewFromUtf8(isolate, "it"),
+                           v8::FunctionTemplate::New(isolate, s_it)->GetFunction(),
                            v8::ReadOnly);
-            glob->ForceSet(v8::String::New("xit"),
-                           v8::FunctionTemplate::New(s_xit)->GetFunction(),
+            glob->ForceSet(v8::String::NewFromUtf8(isolate, "xit"),
+                           v8::FunctionTemplate::New(isolate, s_xit)->GetFunction(),
                            v8::ReadOnly);
-            glob->ForceSet(v8::String::New("before"),
-                           v8::FunctionTemplate::New(s_before)->GetFunction(),
+            glob->ForceSet(v8::String::NewFromUtf8(isolate, "before"),
+                           v8::FunctionTemplate::New(isolate, s_before)->GetFunction(),
                            v8::ReadOnly);
-            glob->ForceSet(v8::String::New("after"),
-                           v8::FunctionTemplate::New(s_after)->GetFunction(),
+            glob->ForceSet(v8::String::NewFromUtf8(isolate, "after"),
+                           v8::FunctionTemplate::New(isolate, s_after)->GetFunction(),
                            v8::ReadOnly);
-            glob->ForceSet(v8::String::New("beforeEach"),
-                           v8::FunctionTemplate::New(s_beforeEach)->GetFunction(),
+            glob->ForceSet(v8::String::NewFromUtf8(isolate, "beforeEach"),
+                           v8::FunctionTemplate::New(isolate, s_beforeEach)->GetFunction(),
                            v8::ReadOnly);
-            glob->ForceSet(v8::String::New("afterEach"),
-                           v8::FunctionTemplate::New(s_afterEach)->GetFunction(),
+            glob->ForceSet(v8::String::NewFromUtf8(isolate, "afterEach"),
+                           v8::FunctionTemplate::New(isolate, s_afterEach)->GetFunction(),
                            v8::ReadOnly);
         }
         else if (mode == _TDD)
         {
-            glob->ForceSet(v8::String::New("suite"),
-                           v8::FunctionTemplate::New(s_describe)->GetFunction(),
+            glob->ForceSet(v8::String::NewFromUtf8(isolate, "suite"),
+                           v8::FunctionTemplate::New(isolate, s_describe)->GetFunction(),
                            v8::ReadOnly);
-            glob->ForceSet(v8::String::New("xsuite"),
-                           v8::FunctionTemplate::New(s_xdescribe)->GetFunction(),
+            glob->ForceSet(v8::String::NewFromUtf8(isolate, "xsuite"),
+                           v8::FunctionTemplate::New(isolate, s_xdescribe)->GetFunction(),
                            v8::ReadOnly);
-            glob->ForceSet(v8::String::New("test"),
-                           v8::FunctionTemplate::New(s_it)->GetFunction(),
+            glob->ForceSet(v8::String::NewFromUtf8(isolate, "test"),
+                           v8::FunctionTemplate::New(isolate, s_it)->GetFunction(),
                            v8::ReadOnly);
-            glob->ForceSet(v8::String::New("xtest"),
-                           v8::FunctionTemplate::New(s_xit)->GetFunction(),
+            glob->ForceSet(v8::String::NewFromUtf8(isolate, "xtest"),
+                           v8::FunctionTemplate::New(isolate, s_xit)->GetFunction(),
                            v8::ReadOnly);
-            glob->ForceSet(v8::String::New("suiteSetup"),
-                           v8::FunctionTemplate::New(s_before)->GetFunction(),
+            glob->ForceSet(v8::String::NewFromUtf8(isolate, "suiteSetup"),
+                           v8::FunctionTemplate::New(isolate, s_before)->GetFunction(),
                            v8::ReadOnly);
-            glob->ForceSet(v8::String::New("suiteTeardown"),
-                           v8::FunctionTemplate::New(s_after)->GetFunction(),
+            glob->ForceSet(v8::String::NewFromUtf8(isolate, "suiteTeardown"),
+                           v8::FunctionTemplate::New(isolate, s_after)->GetFunction(),
                            v8::ReadOnly);
-            glob->ForceSet(v8::String::New("setup"),
-                           v8::FunctionTemplate::New(s_beforeEach)->GetFunction(),
+            glob->ForceSet(v8::String::NewFromUtf8(isolate, "setup"),
+                           v8::FunctionTemplate::New(isolate, s_beforeEach)->GetFunction(),
                            v8::ReadOnly);
-            glob->ForceSet(v8::String::New("teardown"),
-                           v8::FunctionTemplate::New(s_afterEach)->GetFunction(),
+            glob->ForceSet(v8::String::NewFromUtf8(isolate, "teardown"),
+                           v8::FunctionTemplate::New(isolate, s_afterEach)->GetFunction(),
                            v8::ReadOnly);
         }
         else
             return CALL_E_INVALIDARG;
 
-        glob->ForceSet(v8::String::New("expect"),
-                       v8::FunctionTemplate::New(s_expect)->GetFunction(),
+        glob->ForceSet(v8::String::NewFromUtf8(isolate, "expect"),
+                       v8::FunctionTemplate::New(isolate, s_expect)->GetFunction(),
                        v8::ReadOnly);
 
         get_assert (assert);
-        glob->ForceSet(v8::String::New("assert"), assert->wrap(), v8::ReadOnly);
+        glob->ForceSet(v8::String::NewFromUtf8(isolate, "assert"), assert->wrap(), v8::ReadOnly);
     }
 
     return 0;

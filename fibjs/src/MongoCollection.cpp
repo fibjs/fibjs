@@ -97,14 +97,15 @@ result_t MongoCollection::insert(v8::Handle<v8::Object> document)
 
 result_t MongoCollection::save(v8::Handle<v8::Object> document)
 {
-    v8::Handle < v8::String > strId = v8::String::NewSymbol("_id", 3);
+    v8::Handle < v8::String > strId = v8::String::NewFromUtf8(isolate, "_id",
+                                      v8::String::kNormalString, 3);
     v8::Handle < v8::Value > id = document->Get(strId);
 
     if (IsEmpty (id))
         return insert(document);
     else
     {
-        v8::Handle < v8::Object > query = v8::Object::New();
+        v8::Handle < v8::Object > query = v8::Object::New(isolate);
 
         query->Set(strId, id);
         return update(query, document, true, false);
@@ -147,8 +148,10 @@ result_t MongoCollection::update(v8::Handle<v8::Object> query,
                                  v8::Handle<v8::Object> document, v8::Handle<v8::Object> options)
 {
     return update(query, document,
-                  options->Get(v8::String::NewSymbol("upsert", 6))->BooleanValue(),
-                  options->Get(v8::String::NewSymbol("multi", 5))->BooleanValue());
+                  options->Get(v8::String::NewFromUtf8(isolate, "upsert",
+                               v8::String::kNormalString, 6))->BooleanValue(),
+                  options->Get(v8::String::NewFromUtf8(isolate, "multi",
+                               v8::String::kNormalString, 5))->BooleanValue());
 }
 
 result_t MongoCollection::remove(v8::Handle<v8::Object> query)
@@ -213,7 +216,8 @@ result_t MongoCollection::drop()
 {
     v8::Handle < v8::Object > r;
     return m_db->runCommand("drop",
-                            v8::String::New(m_name.c_str(), (int) m_name.length()), r);
+                            v8::String::NewFromUtf8(isolate, m_name.c_str(),
+                                    v8::String::kNormalString, (int) m_name.length()), r);
 }
 
 result_t MongoCollection::ensureIndex(v8::Handle<v8::Object> keys,
@@ -244,14 +248,16 @@ result_t MongoCollection::ensureIndex(v8::Handle<v8::Object> keys,
         name.append(*sv, sv.length());
     }
 
-    v8::Handle < v8::Object > idx = v8::Object::New();
+    v8::Handle < v8::Object > idx = v8::Object::New(isolate);
 
-    idx->Set(v8::String::New("ns"),
-             v8::String::New(m_ns.c_str(), (int) m_ns.length()));
-    idx->Set(v8::String::New("key"), keys);
+    idx->Set(v8::String::NewFromUtf8(isolate, "ns"),
+             v8::String::NewFromUtf8(isolate, m_ns.c_str(),
+                                     v8::String::kNormalString, (int) m_ns.length()));
+    idx->Set(v8::String::NewFromUtf8(isolate, "key"), keys);
 
-    idx->Set(v8::String::New("name"),
-             v8::String::New(name.c_str(), (int) name.length()));
+    idx->Set(v8::String::NewFromUtf8(isolate, "name"),
+             v8::String::NewFromUtf8(isolate, name.c_str(),
+                                     v8::String::kNormalString, (int) name.length()));
 
     extend(idx, options);
 
@@ -290,10 +296,11 @@ result_t MongoCollection::getIndexes(obj_ptr<MongoCursor_base> &retVal)
     if (hr < 0)
         return hr;
 
-    v8::Handle < v8::Object > f = v8::Object::New();
-    v8::Handle < v8::Object > q = v8::Object::New();
-    q->Set(v8::String::New("ns"),
-           v8::String::New(m_ns.c_str(), (int) m_ns.length()));
+    v8::Handle < v8::Object > f = v8::Object::New(isolate);
+    v8::Handle < v8::Object > q = v8::Object::New(isolate);
+    q->Set(v8::String::NewFromUtf8(isolate, "ns"),
+           v8::String::NewFromUtf8(isolate, m_ns.c_str(),
+                                   v8::String::kNormalString, (int) m_ns.length()));
 
     return coll->find(q, f, retVal);
 }

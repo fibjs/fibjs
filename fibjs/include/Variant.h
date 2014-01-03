@@ -16,8 +16,6 @@
 namespace fibjs
 {
 
-extern v8::Isolate *isolate;
-
 inline bool IsEmpty(v8::Handle<v8::Value> &v)
 {
     return v.IsEmpty() || v->IsUndefined() || v->IsNull();
@@ -108,7 +106,7 @@ public:
             {
                 v8::Persistent<v8::Object> &jsobj =
                     *(v8::Persistent<v8::Object> *) m_Val.jsobjVal;
-                jsobj.Dispose();
+                jsobj.Reset();
                 jsobj.~Persistent();
             }
             else

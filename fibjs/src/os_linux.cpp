@@ -74,10 +74,10 @@ result_t os_base::loadavg(v8::Handle<v8::Array> &retVal)
     avg[1] = (double) info.loads[1] / 65536.0;
     avg[2] = (double) info.loads[2] / 65536.0;
 
-    retVal = v8::Array::New(3);
-    retVal->Set(0, v8::Number::New(avg[0]));
-    retVal->Set(1, v8::Number::New(avg[1]));
-    retVal->Set(2, v8::Number::New(avg[2]));
+    retVal = v8::Array::New(isolate, 3);
+    retVal->Set(0, v8::Number::New(isolate, avg[0]));
+    retVal->Set(1, v8::Number::New(isolate, avg[1]));
+    retVal->Set(2, v8::Number::New(isolate, avg[2]));
 
     return 0;
 }
@@ -125,7 +125,7 @@ result_t os_base::CPUs(int32_t &retVal)
 
 result_t os_base::CPUInfo(v8::Handle<v8::Array> &retVal)
 {
-    retVal = v8::Array::New();
+    retVal = v8::Array::New(isolate);
 
     v8::Local<v8::Object> cpuinfo;
     v8::Local<v8::Object> cputimes;
@@ -189,23 +189,23 @@ result_t os_base::CPUInfo(v8::Handle<v8::Array> &retVal)
                 fclose(fpSpeed);
             }
 
-            cpuinfo = v8::Object::New();
-            cputimes = v8::Object::New();
-            cputimes->Set(v8::String::New("user"),
-                          v8::Number::New(ticks_user * multiplier));
-            cputimes->Set(v8::String::New("nice"),
-                          v8::Number::New(ticks_nice * multiplier));
-            cputimes->Set(v8::String::New("sys"),
-                          v8::Number::New(ticks_sys * multiplier));
-            cputimes->Set(v8::String::New("idle"),
-                          v8::Number::New(ticks_idle * multiplier));
-            cputimes->Set(v8::String::New("irq"),
-                          v8::Number::New(ticks_intr * multiplier));
+            cpuinfo = v8::Object::New(isolate);
+            cputimes = v8::Object::New(isolate);
+            cputimes->Set(v8::String::NewFromUtf8(isolate, "user"),
+                          v8::Number::New(isolate, ticks_user * multiplier));
+            cputimes->Set(v8::String::NewFromUtf8(isolate, "nice"),
+                          v8::Number::New(isolate, ticks_nice * multiplier));
+            cputimes->Set(v8::String::NewFromUtf8(isolate, "sys"),
+                          v8::Number::New(isolate, ticks_sys * multiplier));
+            cputimes->Set(v8::String::NewFromUtf8(isolate, "idle"),
+                          v8::Number::New(isolate, ticks_idle * multiplier));
+            cputimes->Set(v8::String::NewFromUtf8(isolate, "irq"),
+                          v8::Number::New(isolate, ticks_intr * multiplier));
 
-            cpuinfo->Set(v8::String::New("model"), v8::String::New(model));
-            cpuinfo->Set(v8::String::New("speed"), v8::Number::New(cpuspeed));
+            cpuinfo->Set(v8::String::NewFromUtf8(isolate, "model"), v8::String::NewFromUtf8(isolate, model));
+            cpuinfo->Set(v8::String::NewFromUtf8(isolate, "speed"), v8::Number::New(isolate, cpuspeed));
 
-            cpuinfo->Set(v8::String::New("times"), cputimes);
+            cpuinfo->Set(v8::String::NewFromUtf8(isolate, "times"), cputimes);
             retVal->Set(i++, cpuinfo);
         }
         fclose(fpStat);
@@ -382,17 +382,17 @@ result_t os_base::memoryUsage(v8::Handle<v8::Object> &retVal)
 
 error: fclose(f);
 
-    v8::Handle<v8::Object> info = v8::Object::New();
+    v8::Handle<v8::Object> info = v8::Object::New(isolate);
 
     v8::HeapStatistics v8_heap_stats;
     isolate->GetHeapStatistics(&v8_heap_stats);
-    info->Set(v8::String::New("rss"), v8::Integer::New((int32_t)rss));
-    info->Set(v8::String::New("heapTotal"),
-              v8::Integer::New((int32_t)v8_heap_stats.total_heap_size()));
-    info->Set(v8::String::New("heapUsed"),
-              v8::Integer::New((int32_t)v8_heap_stats.used_heap_size()));
-    info->Set(v8::String::New("nativeObjects"),
-              v8::Integer::New((int32_t)g_obj_refs));
+    info->Set(v8::String::NewFromUtf8(isolate, "rss"), v8::Integer::New(isolate, (int32_t)rss));
+    info->Set(v8::String::NewFromUtf8(isolate, "heapTotal"),
+              v8::Integer::New(isolate, (int32_t)v8_heap_stats.total_heap_size()));
+    info->Set(v8::String::NewFromUtf8(isolate, "heapUsed"),
+              v8::Integer::New(isolate, (int32_t)v8_heap_stats.used_heap_size()));
+    info->Set(v8::String::NewFromUtf8(isolate, "nativeObjects"),
+              v8::Integer::New(isolate, (int32_t)g_obj_refs));
 
     retVal = info;
 

@@ -94,13 +94,14 @@ result_t HttpCollection::all(const char *name, v8::Handle<v8::Array> &retVal)
 {
     int32_t i, n = 0;
 
-    retVal = v8::Array::New();
+    retVal = v8::Array::New(isolate);
 
     for (i = 0; i < m_count; i++)
         if (!qstricmp(m_names[i].c_str(), name))
         {
             std::string &v = m_values[i];
-            retVal->Set(n++, v8::String::New(v.c_str(), (int) v.length()));
+            retVal->Set(n++, v8::String::NewFromUtf8(isolate, v.c_str(),
+                        v8::String::kNormalString, (int) v.length()));
         }
 
     return 0;
@@ -226,10 +227,11 @@ result_t HttpCollection::_named_enumerator(v8::Handle<v8::Array> &retVal)
 {
     int32_t i;
 
-    retVal = v8::Array::New();
+    retVal = v8::Array::New(isolate);
     for (i = 0; i < m_count; i++)
         retVal->Set(i,
-                    v8::String::New(m_names[i].c_str(), (int) m_names[i].length()));
+                    v8::String::NewFromUtf8(isolate, m_names[i].c_str(), 
+                        v8::String::kNormalString, (int) m_names[i].length()));
 
     return 0;
 }

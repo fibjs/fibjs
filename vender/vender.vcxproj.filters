@@ -1896,6 +1896,12 @@
     <ClCompile Include="src\mongo\bcon.c">
       <Filter>Source Files\mongo</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\extensions\free-buffer-extension.cc">
+      <Filter>Source Files\v8\src\extensions</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\extensions\trigger-failure-extension.cc">
+      <Filter>Source Files\v8\src\extensions</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -3550,6 +3556,15 @@
     </ClInclude>
     <ClInclude Include="src\mongo\bcon.h">
       <Filter>Source Files\mongo</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\qnx-math.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\extensions\free-buffer-extension.h">
+      <Filter>Source Files\v8\src\extensions</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\extensions\trigger-failure-extension.h">
+      <Filter>Source Files\v8\src\extensions</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

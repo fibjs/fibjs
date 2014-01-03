@@ -532,13 +532,13 @@ function parserIDL(fname) {
 						value = "_" + value;
 					else if (value === '{') {
 						if (st[pos] == '}' && type === "Object") {
-							value = 'v8::Object::New()';
+							value = 'v8::Object::New(isolate)';
 							pos++;
 						} else
 							reportErr();
 					} else if (value === '[') {
 						if (st[pos] == ']' && type === "Array") {
-							value = 'v8::Array::New()';
+							value = 'v8::Array::New(isolate)';
 							pos++;
 						} else
 							reportErr();
@@ -820,7 +820,7 @@ function parserIDL(fname) {
 						fnStr += "		v8::Handle<v8::Boolean> vr;\n\n";
 						fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 
-						fnStr += "		v8::String::Utf8Value k(property);\n		if(class_info().has(*k)){args.GetReturnValue().Set(v8::False());return;}\n\n"
+						fnStr += "		v8::String::Utf8Value k(property);\n		if(class_info().has(*k)){args.GetReturnValue().Set(v8::False(isolate));return;}\n\n"
 						fnStr += "		hr = pInst->_named_deleter(*k, vr);\n		METHOD_RETURN1();\n	}\n";
 
 						ffs.push(fnStr)

@@ -103,9 +103,7 @@ void LCodeGen::FinishCode(Handle<Code> code) {
   ASSERT(is_done());
   code->set_stack_slots(GetStackSlotCount());
   code->set_safepoint_table_offset(safepoints_.GetCodeOffset());
-  if (FLAG_weak_embedded_maps_in_optimized_code) {
-    RegisterDependentCodeForEmbeddedMaps(code);
-  }
+  RegisterDependentCodeForEmbeddedMaps(code);
   PopulateDeoptimizationData(code);
   if (!info()->IsStub()) {
     Deoptimizer::EnsureRelocSpaceForLazyDeoptimization(code);
@@ -1162,36 +1160,6 @@ void LCodeGen::DeoptimizeIf(Condition cc,
 }
 
 
-void LCodeGen::RegisterDependentCodeForEmbeddedMaps(Handle<Code> code) {
-  ZoneList<Handle<Map> > maps(1, zone());
-  ZoneList<Handle<JSObject> > objects(1, zone());
-  int mode_mask = RelocInfo::ModeMask(RelocInfo::EMBEDDED_OBJECT);
-  for (RelocIterator it(*code, mode_mask); !it.done(); it.next()) {
-    if (Code::IsWeakEmbeddedObject(code->kind(), it.rinfo()->target_object())) {
-      if (it.rinfo()->target_object()->IsMap()) {
-        Handle<Map> map(Map::cast(it.rinfo()->target_object()));
-        maps.Add(map, zone());
-      } else if (it.rinfo()->target_object()->IsJSObject()) {
-        Handle<JSObject> object(JSObject::cast(it.rinfo()->target_object()));
-        objects.Add(object, zone());
-      }
-    }
-  }
-#ifdef VERIFY_HEAP
-  // This disables verification of weak embedded objects after full GC.
-  // AddDependentCode can cause a GC, which would observe the state where
-  // this code is not yet in the depended code lists of the embedded maps.
-  NoWeakObjectVerificationScope disable_verification_of_embedded_objects;
-#endif
-  for (int i = 0; i < maps.length(); i++) {
-    maps.at(i)->AddDependentCode(DependentCode::kWeaklyEmbeddedGroup, code);
-  }
-  for (int i = 0; i < objects.length(); i++) {
-    AddWeakObjectToCodeDependency(isolate()->heap(), objects.at(i), code);
-  }
-}
-
-
 void LCodeGen::PopulateDeoptimizationData(Handle<Code> code) {
   int length = deoptimizations_.length();
   if (length == 0) return;
@@ -1378,12 +1346,6 @@ void LCodeGen::DoCallStub(LCallStub* instr) {
     }
     case CodeStub::StringCompare: {
       StringCompareStub stub;
-      CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
-      break;
-    }
-    case CodeStub::TranscendentalCache: {
-      TranscendentalCacheStub stub(instr->transcendental_type(),
-                                   TranscendentalCacheStub::TAGGED);
       CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
       break;
     }
@@ -2291,7 +2253,7 @@ void LCodeGen::DoArithmeticD(LArithmeticD* instr) {
         __ movsd(Operand(esp, 0 * kDoubleSize), left);
         __ movsd(Operand(esp, 1 * kDoubleSize), right);
         __ CallCFunction(
-            ExternalReference::double_fp_operation(Token::MOD, isolate()),
+            ExternalReference::mod_two_doubles_operation(isolate()),
             4);
 
         // Return value is in st(0) on ia32.
@@ -2335,7 +2297,7 @@ void LCodeGen::DoArithmeticD(LArithmeticD* instr) {
         ASSERT(left.is(result));
         X87PrepareToWrite(result);
         __ CallCFunction(
-            ExternalReference::double_fp_operation(Token::MOD, isolate()),
+            ExternalReference::mod_two_doubles_operation(isolate()),
             4);
 
         // Return value is in st(0) on ia32.
@@ -4194,7 +4156,7 @@ void LCodeGen::DoMathLog(LMathLog* instr) {
   __ xorps(xmm_scratch, xmm_scratch);
   __ ucomisd(input_reg, xmm_scratch);
   __ j(above, &positive, Label::kNear);
-  __ j(equal, &zero, Label::kNear);
+  __ j(not_carry, &zero, Label::kNear);
   ExternalReference nan =
       ExternalReference::address_of_canonical_non_hole_nan();
   __ movsd(input_reg, Operand::StaticVariable(nan));
@@ -4226,39 +4188,6 @@ void LCodeGen::DoMathExp(LMathExp* instr) {
   Register temp2 = ToRegister(instr->temp2());
 
   MathExpGenerator::EmitMathExp(masm(), input, result, temp0, temp1, temp2);
-}
-
-
-void LCodeGen::DoMathTan(LMathTan* instr) {
-  ASSERT(ToDoubleRegister(instr->result()).is(xmm1));
-  // Set the context register to a GC-safe fake value. Clobbering it is
-  // OK because this instruction is marked as a call.
-  __ Set(esi, Immediate(0));
-  TranscendentalCacheStub stub(TranscendentalCache::TAN,
-                               TranscendentalCacheStub::UNTAGGED);
-  CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
-}
-
-
-void LCodeGen::DoMathCos(LMathCos* instr) {
-  ASSERT(ToDoubleRegister(instr->result()).is(xmm1));
-  // Set the context register to a GC-safe fake value. Clobbering it is
-  // OK because this instruction is marked as a call.
-  __ Set(esi, Immediate(0));
-  TranscendentalCacheStub stub(TranscendentalCache::COS,
-                               TranscendentalCacheStub::UNTAGGED);
-  CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
-}
-
-
-void LCodeGen::DoMathSin(LMathSin* instr) {
-  ASSERT(ToDoubleRegister(instr->result()).is(xmm1));
-  // Set the context register to a GC-safe fake value. Clobbering it is
-  // OK because this instruction is marked as a call.
-  __ Set(esi, Immediate(0));
-  TranscendentalCacheStub stub(TranscendentalCache::SIN,
-                               TranscendentalCacheStub::UNTAGGED);
-  CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
 }
 
 
@@ -4983,7 +4912,7 @@ void LCodeGen::DoStringAdd(LStringAdd* instr) {
     ASSERT(ToRegister(instr->left()).is(edx));
     ASSERT(ToRegister(instr->right()).is(eax));
     NewStringAddStub stub(instr->hydrogen()->flags(),
-                          isolate()->heap()->GetPretenureMode());
+                          instr->hydrogen()->pretenure_flag());
     CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
   } else {
     EmitPushTaggedOperand(instr->left());

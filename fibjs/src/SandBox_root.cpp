@@ -55,7 +55,7 @@ void SandBox::initRoot()
     InstallNativeModule("test", test_base::class_info());
     InstallNativeModule("assert", assert_base::class_info());
     InstallModule("expect",
-                  v8::FunctionTemplate::New(test_base::s_expect)->GetFunction());
+                  v8::FunctionTemplate::New(isolate, test_base::s_expect)->GetFunction());
 
     InstallNativeModule("path", path_base::class_info());
 

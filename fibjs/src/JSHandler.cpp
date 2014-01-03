@@ -84,8 +84,9 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             hdlr = v8::Handle < v8::Object
                    > ::Cast(hdlr)->Get(
-                       v8::String::New(m_method.c_str(),
-                                       (int) m_method.length()));
+                       v8::String::NewFromUtf8(isolate, m_method.c_str(),
+                                               v8::String::kNormalString,
+                                               (int) m_method.length()));
             if (IsEmpty (hdlr))
                 return CALL_E_INVALID_CALL;
         }
@@ -154,8 +155,9 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             hdlr = v8::Handle < v8::Object
                    > ::Cast(hdlr)->Get(
-                       v8::String::New(method.c_str(),
-                                       (int) method.length()));
+                       v8::String::NewFromUtf8(isolate, method.c_str(),
+                                               v8::String::kNormalString,
+                                               (int) method.length()));
             if (IsEmpty (hdlr))
                 return CALL_E_INVALID_CALL;
 

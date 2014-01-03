@@ -264,7 +264,7 @@ result_t HttpUploadCollection::all(const char *name,
 {
     int32_t i, n = 0;
 
-    retVal = v8::Array::New();
+    retVal = v8::Array::New(isolate);
 
     for (i = 0; i < m_count; i++)
         if (!qstricmp(m_names[i].c_str(), name))
@@ -384,10 +384,12 @@ result_t HttpUploadCollection::_named_enumerator(v8::Handle<v8::Array> &retVal)
 {
     int32_t i;
 
-    retVal = v8::Array::New();
+    retVal = v8::Array::New(isolate);
     for (i = 0; i < m_count; i++)
         retVal->Set(i,
-                    v8::String::New(m_names[i].c_str(), (int) m_names[i].length()));
+                    v8::String::NewFromUtf8(isolate, m_names[i].c_str(),
+                                            v8::String::kNormalString,
+                                            (int) m_names[i].length()));
 
     return 0;
 }

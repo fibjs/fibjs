@@ -23,14 +23,12 @@ Variant &Variant::operator=(v8::Handle<v8::Object> v)
 
         if (isPersistent())
         {
-            new (((v8::Persistent<v8::Object> *) m_Val.jsobjVal)) v8::Persistent <
-            v8::Object > ();
+            new (((v8::Persistent<v8::Object> *) m_Val.jsobjVal)) v8::Persistent<v8::Object>();
             ((v8::Persistent<v8::Object> *) m_Val.jsobjVal)->Reset(isolate, v);
         }
         else
         {
-            new (((v8::Handle<v8::Object> *) m_Val.jsobjVal)) v8::Handle <
-            v8::Object > ();
+            new (((v8::Handle<v8::Object> *) m_Val.jsobjVal)) v8::Handle<v8::Object>();
             *(v8::Handle<v8::Object> *) m_Val.jsobjVal = v;
         }
     }
@@ -107,19 +105,19 @@ Variant::operator v8::Handle<v8::Value>() const
     switch (type())
     {
     case VT_Undefined:
-        return v8::Undefined();
+        return v8::Undefined(isolate);
     case VT_Null:
     case VT_Type:
     case VT_Persistent:
-        return v8::Null();
+        return v8::Null(isolate);
     case VT_Boolean:
-        return m_Val.boolVal ? v8::True() : v8::False();
+        return m_Val.boolVal ? v8::True(isolate) : v8::False(isolate);
     case VT_Integer:
-        return v8::Int32::New(m_Val.intVal);
+        return v8::Int32::New(isolate, m_Val.intVal);
     case VT_Long:
-        return v8::Number::New((double) m_Val.longVal);
+        return v8::Number::New(isolate, (double) m_Val.longVal);
     case VT_Number:
-        return v8::Number::New(m_Val.dblVal);
+        return v8::Number::New(isolate, m_Val.dblVal);
     case VT_Date:
         return *(date_t *) m_Val.dateVal;
     case VT_Object:
@@ -146,11 +144,13 @@ Variant::operator v8::Handle<v8::Value>() const
     case VT_String:
     {
         std::string &str = *(std::string *) m_Val.strVal;
-        return v8::String::New(str.c_str(), (int) str.length());
+        return v8::String::NewFromUtf8(isolate, str.c_str(),
+                                       v8::String::kNormalString,
+                                       (int) str.length());
     }
     }
 
-    return v8::Null();
+    return v8::Null(isolate);
 }
 
 inline void next(int &len, int &pos)

@@ -35,7 +35,7 @@ inline result_t _parallel(std::vector<v8::Handle<v8::Function> > &funs,
 
     if (!bError)
     {
-        retVal = v8::Array::New((int) funs.size());
+        retVal = v8::Array::New(isolate, (int) funs.size());
         retVal->Set(0, r);
     }
 
@@ -64,7 +64,7 @@ result_t coroutine_base::parallel(v8::Handle<v8::Array> func,
 
     if (l == 0)
     {
-        retVal = v8::Array::New();
+        retVal = v8::Array::New(isolate);
         return 0;
     }
 
@@ -92,7 +92,7 @@ result_t coroutine_base::parallel(const v8::FunctionCallbackInfo<v8::Value> &arg
 
     if (l == 0)
     {
-        retVal = v8::Array::New();
+        retVal = v8::Array::New(isolate);
         return 0;
     }
 
@@ -133,7 +133,7 @@ result_t coroutine_base::parallel(v8::Handle<v8::Array> data,
 
     if (!bError)
     {
-        retVal = v8::Array::New(len);
+        retVal = v8::Array::New(isolate, len);
         retVal->Set(0, r);
     }
 

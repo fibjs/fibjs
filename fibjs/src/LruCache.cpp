@@ -191,11 +191,13 @@ result_t LruCache::toJSON(const char *key, v8::Handle<v8::Value> &retVal)
     cleanup();
 
     std::map<std::string, _linkedNode>::iterator it = m_begin;
-    v8::Handle < v8::Object > obj = v8::Object::New();
+    v8::Handle < v8::Object > obj = v8::Object::New(isolate);
 
     while (it != m_datas.end())
     {
-        obj->Set(v8::String::New(it->first.c_str(), (int) it->first.length()),
+        obj->Set(v8::String::NewFromUtf8(isolate, it->first.c_str(),
+                                         v8::String::kNormalString,
+                                         (int) it->first.length()),
                  it->second.value);
         it = it->second.next();
     }

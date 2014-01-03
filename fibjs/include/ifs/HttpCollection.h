@@ -133,7 +133,7 @@ namespace fibjs
 		PROPERTY_INSTANCE(HttpCollection_base);
 
 		v8::String::Utf8Value k(property);
-		if(class_info().has(*k)){args.GetReturnValue().Set(v8::False());return;}
+		if(class_info().has(*k)){args.GetReturnValue().Set(v8::False(isolate));return;}
 
 		hr = pInst->_named_deleter(*k, vr);
 		METHOD_RETURN1();

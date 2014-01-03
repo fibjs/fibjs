@@ -280,7 +280,7 @@ std::string getValue(v8::Handle<v8::Object> &args, const char *key)
 {
     std::string s;
 
-    v8::Handle<v8::Value> v = args->Get(v8::String::NewSymbol(key));
+    v8::Handle<v8::Value> v = args->Get(v8::String::NewFromUtf8(isolate, key));
 
     if (!v.IsEmpty() && v->IsString())
         s = *v8::String::Utf8Value(v);
@@ -314,7 +314,7 @@ result_t Url::format(v8::Handle<v8::Object> args)
     if (m_slashes && m_protocol.compare("file:") && m_hostname.length() == 0)
         m_slashes = false;
 
-    v8::Handle < v8::Value > v = args->Get(v8::String::NewSymbol("slashes"));
+    v8::Handle < v8::Value > v = args->Get(v8::String::NewFromUtf8(isolate, "slashes"));
 
     if (!IsEmpty(v))
         m_slashes = v->BooleanValue();

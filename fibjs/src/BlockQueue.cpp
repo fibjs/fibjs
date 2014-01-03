@@ -97,7 +97,7 @@ result_t BlockQueue::clear()
 
 result_t BlockQueue::toArray(v8::Handle<v8::Array> &retVal)
 {
-    v8::Handle < v8::Array > a = v8::Array::New((int) m_list.size());
+    v8::Handle < v8::Array > a = v8::Array::New(isolate, (int) m_list.size());
     int32_t i = 0;
 
     for (std::list<VariantEx>::iterator it = m_list.begin(); it != m_list.end();

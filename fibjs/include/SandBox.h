@@ -19,7 +19,7 @@ class SandBox: public fibjs::SandBox_base
 public:
     ~SandBox()
     {
-        m_require.Dispose();
+        m_require.Reset();
     }
 
 public:
@@ -28,7 +28,7 @@ public:
     public:
         ~mod()
         {
-            m_mod.Dispose();
+            m_mod.Reset();
         }
 
     public:

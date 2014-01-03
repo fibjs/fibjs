@@ -78,10 +78,10 @@ public:
         v8::HandleScope handle_scope(isolate);
 
         v8::Handle<v8::FunctionTemplate> _class = v8::FunctionTemplate::New(
-                    cd.cor);
+                    isolate, cd.cor);
         m_class.Reset(isolate, _class);
 
-        _class->SetClassName(v8::String::NewSymbol(cd.name));
+        _class->SetClassName(v8::String::NewFromUtf8(isolate, cd.name));
 
         if (cd.base)
             _class->Inherit(
@@ -94,18 +94,16 @@ public:
         pt->MarkAsUndetectable();
 
         for (i = 0; i < cd.mc; i++)
-            pt->Set(cd.cms[i].name,
-                    v8::FunctionTemplate::New(cd.cms[i].invoker));
+            pt->Set(v8::String::NewFromUtf8(isolate, cd.cms[i].name),
+                    v8::FunctionTemplate::New(isolate, cd.cms[i].invoker));
 
         for (i = 0; i < cd.oc; i++)
-            pt->Set(
-
-                cd.cos[i].name,
-                v8::Handle<v8::FunctionTemplate>::New(isolate,
-                        cd.cos[i].invoker().m_class));
+            pt->Set(v8::String::NewFromUtf8(isolate, cd.cos[i].name),
+                    v8::Handle<v8::FunctionTemplate>::New(isolate,
+                            cd.cos[i].invoker().m_class));
 
         for (i = 0; i < cd.pc; i++)
-            pt->SetAccessor(v8::String::NewSymbol(cd.cps[i].name),
+            pt->SetAccessor(v8::String::NewFromUtf8(isolate, cd.cps[i].name),
                             cd.cps[i].getter, cd.cps[i].setter);
 
         v8::Local<v8::ObjectTemplate> ot = _class->InstanceTemplate();
@@ -181,17 +179,17 @@ public:
         int i;
 
         for (i = 0; i < m_cd.mc; i++)
-            o->Set(v8::String::NewSymbol(m_cd.cms[i].name),
-                   v8::FunctionTemplate::New(m_cd.cms[i].invoker)->GetFunction(),
+            o->Set(v8::String::NewFromUtf8(isolate, m_cd.cms[i].name),
+                   v8::FunctionTemplate::New(isolate, m_cd.cms[i].invoker)->GetFunction(),
                    v8::ReadOnly);
 
         for (i = 0; i < m_cd.oc; i++)
-            o->Set(v8::String::NewSymbol(m_cd.cos[i].name),
-                   v8::Handle<v8::Function>::New(isolate,
-                                                 m_cd.cos[i].invoker().m_function), v8::ReadOnly);
+            o->Set(v8::String::NewFromUtf8(isolate, m_cd.cos[i].name),
+                   v8::Handle<v8::Function>::New(isolate, m_cd.cos[i].invoker().m_function),
+                   v8::ReadOnly);
 
         for (i = 0; i < m_cd.pc; i++)
-            o->SetAccessor(v8::String::NewSymbol(m_cd.cps[i].name),
+            o->SetAccessor(v8::String::NewFromUtf8(isolate, m_cd.cps[i].name),
                            m_cd.cps[i].getter, m_cd.cps[i].setter);
     }
 

@@ -38,7 +38,7 @@ public:
 
     virtual result_t toJSON(const char *key, v8::Handle<v8::Value> &retVal)
     {
-        retVal = v8::Object::New();
+        retVal = v8::Object::New(isolate);
         return 0;
     }
 

@@ -415,27 +415,28 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v,
 
 inline v8::Handle<v8::Value> GetReturnValue(int32_t v)
 {
-    return v8::Int32::New(v);
+    return v8::Int32::New(isolate, v);
 }
 
 inline v8::Handle<v8::Value> GetReturnValue(bool v)
 {
-    return v ? v8::True() : v8::False();
+    return v ? v8::True(isolate) : v8::False(isolate);
 }
 
 inline v8::Handle<v8::Value> GetReturnValue(double v)
 {
-    return v8::Number::New(v);
+    return v8::Number::New(isolate, v);
 }
 
 inline v8::Handle<v8::Value> GetReturnValue(int64_t v)
 {
-    return v8::Number::New((double) v);
+    return v8::Number::New(isolate, (double) v);
 }
 
 inline v8::Handle<v8::Value> GetReturnValue(std::string &str)
 {
-    return v8::String::New(str.c_str(), (int) str.length());
+    return v8::String::NewFromUtf8(isolate, str.c_str(),
+                                   v8::String::kNormalString, (int) str.length());
 }
 
 inline v8::Handle<v8::Value> GetReturnValue(date_t &v)
@@ -479,17 +480,20 @@ inline v8::Handle<v8::Value> GetReturnValue(obj_ptr<T> &obj)
 
 inline v8::Handle<v8::Value> ThrowError(const char *msg)
 {
-    return v8::ThrowException(v8::Exception::Error(v8::String::New(msg)));
+    return isolate->ThrowException(v8::Exception::Error(
+                                       v8::String::NewFromUtf8(isolate, msg)));
 }
 
 inline v8::Handle<v8::Value> ThrowTypeError(const char *msg)
 {
-    return v8::ThrowException(v8::Exception::TypeError(v8::String::New(msg)));
+    return isolate->ThrowException(v8::Exception::TypeError(
+                                       v8::String::NewFromUtf8(isolate, msg)));
 }
 
 inline v8::Handle<v8::Value> ThrowRangeError(const char *msg)
 {
-    return v8::ThrowException(v8::Exception::RangeError(v8::String::New(msg)));
+    return isolate->ThrowException(v8::Exception::RangeError(
+                                       v8::String::NewFromUtf8(isolate, msg)));
 }
 
 inline result_t LastError()

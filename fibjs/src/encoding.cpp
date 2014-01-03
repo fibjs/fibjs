@@ -287,10 +287,10 @@ inline void initJSON()
 {
     if (s_json.IsEmpty())
     {
-        v8::Handle<v8::Context> context = v8::Context::GetCurrent();
+        v8::Handle<v8::Context> context = isolate->GetCurrentContext();
         v8::Handle<v8::Object> global = context->Global();
 
-        s_json.Reset(isolate, global->Get(v8::String::New("JSON"))->ToObject());
+        s_json.Reset(isolate, global->Get(v8::String::NewFromUtf8(isolate, "JSON"))->ToObject());
     }
 }
 
@@ -305,7 +305,7 @@ result_t encoding_base::jsonEncode(v8::Handle<v8::Value> data,
     if (s_stringify.IsEmpty())
         s_stringify.Reset(isolate,
                           v8::Handle < v8::Function
-                          > ::Cast(_json->Get(v8::String::New("stringify"))));
+                          > ::Cast(_json->Get(v8::String::NewFromUtf8(isolate, "stringify"))));
 
     v8::Handle < v8::Value > str = v8::Handle < v8::Function
                                    > ::New(isolate, s_stringify)->Call(_json, 1, &data);
@@ -329,9 +329,9 @@ result_t encoding_base::jsonDecode(const char *data,
     if (s_parse.IsEmpty())
         s_parse.Reset(isolate,
                       v8::Handle < v8::Function
-                      > ::Cast(_json->Get(v8::String::New("parse"))));
+                      > ::Cast(_json->Get(v8::String::NewFromUtf8(isolate, "parse"))));
 
-    v8::Handle < v8::Value > v = v8::String::New(data);
+    v8::Handle < v8::Value > v = v8::String::NewFromUtf8(isolate, data);
     retVal = v8::Handle < v8::Function
              > ::New(isolate, s_parse)->Call(_json, 1, &v);
     if (retVal.IsEmpty())

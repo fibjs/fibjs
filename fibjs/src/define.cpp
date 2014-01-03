@@ -65,16 +65,16 @@ void _define(const v8::FunctionCallbackInfo<v8::Value> &args)
         return;
     }
 
-    v8::HandleScope handle_scope(isolate);
+//    v8::HandleScope handle_scope(isolate);
 
-    v8::Handle<v8::Object> glob = v8::Context::GetCalling()->Global();
+    v8::Handle<v8::Object> glob = isolate->GetCallingContext()->Global();
 
     // cache string
-    v8::Handle<v8::String> strRequire = v8::String::NewSymbol("require");
-    v8::Handle<v8::String> strExports = v8::String::NewSymbol("exports");
-    v8::Handle<v8::String> strModule = v8::String::NewSymbol("module");
-    v8::Handle<v8::String> strDefs = v8::String::NewSymbol("defs");
-    v8::Handle<v8::String> strId = v8::String::NewSymbol("id");
+    v8::Handle<v8::String> strRequire = v8::String::NewFromUtf8(isolate, "require");
+    v8::Handle<v8::String> strExports = v8::String::NewFromUtf8(isolate, "exports");
+    v8::Handle<v8::String> strModule = v8::String::NewFromUtf8(isolate, "module");
+    v8::Handle<v8::String> strDefs = v8::String::NewFromUtf8(isolate, "defs");
+    v8::Handle<v8::String> strId = v8::String::NewFromUtf8(isolate, "id");
 
     // fetch default module object
     v8::Handle<v8::Object> mod = glob->Get(strModule)->ToObject();
@@ -94,7 +94,7 @@ void _define(const v8::FunctionCallbackInfo<v8::Value> &args)
         else
         {
             // create one if not exists.
-            defs = v8::Array::New(0);
+            defs = v8::Array::New(isolate);
             mod->SetHiddenValue(strDefs, defs);
         }
     }
@@ -110,19 +110,19 @@ void _define(const v8::FunctionCallbackInfo<v8::Value> &args)
         v8::Handle<v8::Array> a = v8::Handle<v8::Array>::Cast(args[n - 1]);
         int an = a->Length();
 
-        deps = v8::Array::New(an);
+        deps = v8::Array::New(isolate, an);
 
         // copy deps array to module.deps
         for (i = 0; i < an; i++)
         {
             v8::String::Utf8Value s(a->Get(i));
-            deps->Set(i, v8::String::New(resolvePath(path, *s).c_str()));
+            deps->Set(i, v8::String::NewFromUtf8(isolate, resolvePath(path, *s).c_str()));
         }
         n--;
     }
     else
     {
-        deps = v8::Array::New(3);
+        deps = v8::Array::New(isolate, 3);
 
         // default deps: ['require', 'exports', 'module']
         deps->Set(0, strRequire);
@@ -154,22 +154,22 @@ void _define(const v8::FunctionCallbackInfo<v8::Value> &args)
         // named module
         id = resolvePath(path, id.c_str());
 
-        modDef = v8::Object::New();
-        v8::Handle<v8::Object> exports = v8::Object::New();
+        modDef = v8::Object::New(isolate);
+        v8::Handle<v8::Object> exports = v8::Object::New(isolate);
 
         // init module properties
         modDef->Set(strExports, exports);
         modDef->Set(strRequire, glob->Get(strRequire), v8::ReadOnly);
 
-        v8::Handle<v8::String> strFname = v8::String::New(id.c_str(),
-                                          (int) id.length());
+        v8::Handle<v8::String> strFname = v8::String::NewFromUtf8(isolate, id.c_str(),
+                                          v8::String::kNormalString, (int) id.length());
         modDef->Set(strId, strFname, v8::ReadOnly);
 
         // add to modules
         InstallModule(id, exports);
     }
 
-    v8::Handle<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(1,
+    v8::Handle<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(isolate, 1,
                                             v8::StackTrace::kOverview);
     std::stringstream strBuffer;
 
@@ -191,15 +191,16 @@ void _define(const v8::FunctionCallbackInfo<v8::Value> &args)
     std::string strStack = strBuffer.str();
 
     // set hidden value module.deps and module.factory
-    modDef->SetHiddenValue(v8::String::NewSymbol("deps"), deps);
-    modDef->SetHiddenValue(v8::String::NewSymbol("factory"), args[argc - 1]);
-    modDef->SetHiddenValue(v8::String::NewSymbol("stack"),
-                           v8::String::New(strStack.c_str(), (int) strStack.length()));
+    modDef->SetHiddenValue(v8::String::NewFromUtf8(isolate, "deps"), deps);
+    modDef->SetHiddenValue(v8::String::NewFromUtf8(isolate, "factory"), args[argc - 1]);
+    modDef->SetHiddenValue(v8::String::NewFromUtf8(isolate, "stack"),
+                           v8::String::NewFromUtf8(isolate, strStack.c_str(),
+                                   v8::String::kNormalString, (int) strStack.length()));
 
     // append to define array
     defs->Set(defs->Length(), modDef);
 
-    args.GetReturnValue().Set(v8::Null());
+    args.GetReturnValue().Set(v8::Null(isolate));
 }
 
 result_t doDefine(v8::Handle<v8::Object> &mod)
@@ -207,7 +208,7 @@ result_t doDefine(v8::Handle<v8::Object> &mod)
     v8::Handle<v8::Array> defs;
     {
         v8::Handle<v8::Value> v;
-        v8::Handle<v8::String> strDefs = v8::String::NewSymbol("defs");
+        v8::Handle<v8::String> strDefs = v8::String::NewFromUtf8(isolate, "defs");
 
         // get define array from default module
         v = mod->GetHiddenValue(strDefs);
@@ -225,11 +226,11 @@ result_t doDefine(v8::Handle<v8::Object> &mod)
     std::set<std::string> depns;
 
     // cache string
-    v8::Handle<v8::String> strRequire = v8::String::NewSymbol("require");
-    v8::Handle<v8::String> strExports = v8::String::NewSymbol("exports");
-    v8::Handle<v8::String> strDeps = v8::String::NewSymbol("deps");
-    v8::Handle<v8::String> strFactory = v8::String::NewSymbol("factory");
-    v8::Handle<v8::String> strId = v8::String::NewSymbol("id");
+    v8::Handle<v8::String> strRequire = v8::String::NewFromUtf8(isolate, "require");
+    v8::Handle<v8::String> strExports = v8::String::NewFromUtf8(isolate, "exports");
+    v8::Handle<v8::String> strDeps = v8::String::NewFromUtf8(isolate, "deps");
+    v8::Handle<v8::String> strFactory = v8::String::NewFromUtf8(isolate, "factory");
+    v8::Handle<v8::String> strId = v8::String::NewFromUtf8(isolate, "id");
 
     // copy data to local
     mods.resize(an);

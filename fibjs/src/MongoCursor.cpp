@@ -37,7 +37,7 @@ MongoCursor::MongoCursor(MongoDB *db, const std::string &ns,
 
 MongoCursor::~MongoCursor()
 {
-    m_query.Dispose();
+    m_query.Reset();
     mongo_cursor_destroy(&m_cursor);
     if (m_bInit)
         bson_destroy(&m_bbq);
@@ -48,11 +48,11 @@ void MongoCursor::ensureSpecial()
 {
     if (!m_bSpecial)
     {
-        v8::Handle < v8::Object > o = v8::Object::New();
+        v8::Handle < v8::Object > o = v8::Object::New(isolate);
 
-        o->Set(v8::String::New("query"),
-               v8::Handle < v8::Object > ::New(isolate, m_query));
-        m_query.Dispose();
+        o->Set(v8::String::NewFromUtf8(isolate, "query"),
+               v8::Handle<v8::Object>::New(isolate, m_query));
+        m_query.Reset();
 
         m_query.Reset(isolate, o);
         m_bSpecial = true;
@@ -85,7 +85,7 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
     if (m_bSpecial)
         encodeValue(&bbq, "query",
                     v8::Handle < v8::Object
-                    > ::New(isolate, m_query)->Get(v8::String::New("query")));
+                    > ::New(isolate, m_query)->Get(v8::String::NewFromUtf8(isolate, "query")));
     else
         encodeValue(&bbq, "query", v8::Handle<v8::Object>::New(isolate, m_query));
 
@@ -105,7 +105,7 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
     if (hr < 0)
         return hr;
 
-    retVal = res->Get(v8::String::New("n"))->Int32Value();
+    retVal = res->Get(v8::String::NewFromUtf8(isolate, "n"))->Int32Value();
 
     return 0;
 }
@@ -114,7 +114,7 @@ result_t MongoCursor::forEach(v8::Handle<v8::Function> func)
 {
     result_t hr;
     v8::Handle < v8::Object > o;
-    v8::Handle < v8::Object > o1 = v8::Object::New();
+    v8::Handle < v8::Object > o1 = v8::Object::New(isolate);
 
     while ((hr = next(o)) != CALL_RETURN_NULL)
     {
@@ -133,8 +133,8 @@ result_t MongoCursor::map(v8::Handle<v8::Function> func,
 {
     result_t hr;
     v8::Handle < v8::Object > o;
-    v8::Handle < v8::Object > o1 = v8::Object::New();
-    v8::Handle < v8::Array > as = v8::Array::New();
+    v8::Handle < v8::Object > o1 = v8::Object::New(isolate);
+    v8::Handle < v8::Array > as = v8::Array::New(isolate);
     int n = 0;
 
     while ((hr = next(o)) != CALL_RETURN_NULL)
@@ -222,7 +222,7 @@ result_t MongoCursor::_addSpecial(const char *name, v8::Handle<v8::Value> opts,
         return CALL_E_INVALID_CALL;
 
     ensureSpecial();
-    v8::Handle<v8::Object>::New(isolate, m_query)->Set(v8::String::New(name), opts);
+    v8::Handle<v8::Object>::New(isolate, m_query)->Set(v8::String::NewFromUtf8(isolate, name), opts);
 
     retVal = this;
     return 0;
@@ -232,7 +232,7 @@ result_t MongoCursor::toArray(v8::Handle<v8::Array> &retVal)
 {
     result_t hr;
     v8::Handle < v8::Object > o;
-    v8::Handle < v8::Array > as = v8::Array::New();
+    v8::Handle < v8::Array > as = v8::Array::New(isolate);
     int n = 0;
 
     while ((hr = next(o)) != CALL_RETURN_NULL)

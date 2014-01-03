@@ -40,13 +40,13 @@ result_t vm_base::create(v8::Handle<v8::Object> mods,
 
 result_t vm_base::current(obj_ptr<SandBox_base> &retVal)
 {
-    v8::Handle < v8::Context > ctx = v8::Context::GetCalling();
+    v8::Handle < v8::Context > ctx = isolate->GetCallingContext();
 
     if (ctx.IsEmpty())
         return CALL_E_INVALID_CALL;
 
     v8::Handle < v8::Value > sbox = ctx->Global()->GetHiddenValue(
-                                        v8::String::NewSymbol("SandBox"));
+                                        v8::String::NewFromUtf8(isolate, "SandBox"));
 
     if (sbox.IsEmpty())
         return CALL_E_INTERNAL;
@@ -69,7 +69,7 @@ void SandBox::InstallModule(std::string fname, v8::Handle<v8::Value> o,
     else
     {
         m = it->second;
-        m->m_mod.Dispose();
+        m->m_mod.Reset();
     }
 
     m->m_mod.Reset(isolate, o);

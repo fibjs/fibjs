@@ -95,13 +95,14 @@ result_t Map::_named_enumerator(v8::Handle<v8::Array> &retVal)
 {
     int32_t i = 0;
 
-    retVal = v8::Array::New((int)m_datas.size());
+    retVal = v8::Array::New(isolate, (int)m_datas.size());
     std::map<std::string, VariantEx>::iterator iter;
 
     for (iter = m_datas.begin(); iter != m_datas.end(); iter++)
         retVal->Set(i++,
-                    v8::String::New(iter->first.c_str(),
-                                    (int) iter->first.length()));
+                    v8::String::NewFromUtf8(isolate, iter->first.c_str(),
+                                            v8::String::kNormalString,
+                                            (int) iter->first.length()));
 
     return 0;
 }
