@@ -110,6 +110,9 @@ result_t fs_base::writeFile(const char *fname, const char *txt,
 result_t fs_base::stat(const char *path, obj_ptr<Stat_base> &retVal,
                        exlib::AsyncEvent *ac)
 {
+    if (!ac)
+        return CALL_E_NOSYNC;
+
     obj_ptr<Stat> pStat = new Stat();
 
     result_t hr = pStat->getStat(path);

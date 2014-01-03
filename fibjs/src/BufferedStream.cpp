@@ -463,6 +463,9 @@ result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
 
 result_t BufferedStream::writeText(const char *txt, exlib::AsyncEvent *ac)
 {
+    if (!ac)
+        return CALL_E_NOSYNC;
+
     std::string strBuf = txt;
     obj_ptr<Buffer_base> data = new Buffer(strBuf);
     return write(data, ac);
@@ -470,6 +473,9 @@ result_t BufferedStream::writeText(const char *txt, exlib::AsyncEvent *ac)
 
 result_t BufferedStream::writeLine(const char *txt, exlib::AsyncEvent *ac)
 {
+    if (!ac)
+        return CALL_E_NOSYNC;
+
     std::string strBuf = txt;
     strBuf.append(m_eol);
     obj_ptr<Buffer_base> data = new Buffer(strBuf);
@@ -478,6 +484,9 @@ result_t BufferedStream::writeLine(const char *txt, exlib::AsyncEvent *ac)
 
 result_t BufferedStream::writePacket(Buffer_base *data, exlib::AsyncEvent *ac)
 {
+    if (!ac)
+        return CALL_E_NOSYNC;
+
     std::string strBuf;
     std::string strData;
     int32_t len;
@@ -494,9 +503,6 @@ result_t BufferedStream::writePacket(Buffer_base *data, exlib::AsyncEvent *ac)
 
 result_t BufferedStream::get_stream(obj_ptr<Stream_base> &retVal)
 {
-    if (!m_stm)
-        return CALL_RETURN_NULL;
-
     retVal = m_stm;
     return 0;
 }
