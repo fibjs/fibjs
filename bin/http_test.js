@@ -9,6 +9,15 @@ var encoding = require('encoding');
 var zlib = require('zlib');
 var coroutine = require("coroutine");
 
+function Step() {
+	this.step = 0;
+	this.wait = function(n) {
+		while (this.step != n)
+			coroutine.sleep(1);
+		this.step ++;
+	};
+}
+
 describe(
 	"http",
 	function() {
@@ -412,6 +421,7 @@ describe(
 		describe("handler", function() {
 			var svr, hdr;
 			var c, bs;
+			var st;
 
 			before(function() {
 				hdr = http.handler(function(r) {
@@ -419,8 +429,10 @@ describe(
 						throw new Error('throw test');
 					else if (r.value == '/not_found')
 						r.response.status = 404;
-					else if (r.value == '/remote_close')
-						coroutine.sleep(20);
+					else if (r.value == '/remote_close') {
+						st.step = 1;
+						st.wait(2);
+					}
 				});
 				svr = new net.TcpServer(8881, hdr);
 
@@ -515,10 +527,13 @@ describe(
 			});
 
 			it("remote close when response", function() {
+				st = new Step();
+
 				c.write(new Buffer("GET /remote_close HTTP/1.0\r\n\r\n"));
 				c.close();
 
-				coroutine.sleep(0);
+				st.wait(1);
+
 				assert.deepEqual(hdr.stats.toJSON(), {
 					"total": 5,
 					"pendding": 1,
@@ -530,7 +545,7 @@ describe(
 					"error_500": 1
 				});
 
-				coroutine.sleep(30);
+				st.wait(3);
 				assert.deepEqual(hdr.stats.toJSON(), {
 					"total": 5,
 					"pendding": 0,
