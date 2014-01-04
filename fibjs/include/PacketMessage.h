@@ -38,9 +38,29 @@ public:
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
 
 public:
-	// PacketMessage_base
-	virtual result_t get_maxSize(int32_t& retVal);
-	virtual result_t set_maxSize(int32_t newVal);
+    // PacketMessage_base
+    virtual result_t get_maxSize(int32_t &retVal);
+    virtual result_t set_maxSize(int32_t newVal);
+
+public:
+    static void packetSize(int32_t sz, std::string &strBuf)
+    {
+        unsigned char buf[sizeof(int32_t) + 1] = {0};
+        int n = sizeof(int32_t) + 1;
+        int m = 0;
+
+        while (sz)
+        {
+            buf[--n] = (unsigned char)((sz & 0x7f) | m);
+            m = 0x80;
+            sz >>= 7;
+        }
+
+        if (n == sizeof(int32_t) + 1)
+            n --;
+
+        strBuf.append((const char *)&buf[n], sizeof(int32_t) + 1 - n);
+    }
 
 public:
     obj_ptr<Stream_base> m_stm;

@@ -12,7 +12,7 @@ describe("buffered stream", function() {
 	before(function() {
 		s = '0123456789\r\n';
 
-		for (var i = 0; i < 10; i++)
+		for (var i = 0; i < 13; i++)
 			s = s + s;
 
 		var f = fs.open("test0000", 'w');
@@ -78,7 +78,7 @@ describe("buffered stream", function() {
 			assert.equal('0123456789', s1);
 			n++;
 		}
-		assert.equal(1024, n);
+		assert.equal(8192, n);
 		f.close();
 
 		f = fs.open("test0000");
@@ -155,17 +155,15 @@ describe("buffered stream", function() {
 	it('readPacket limit', function() {
 		var r = new io.BufferedStream(f);
 		f.rewind();
-		r.writePacket(new Buffer(s.substring(0, 1024)));
+		r.writePacket(new Buffer(s.substring(0, 65567)));
 
 		f.rewind();
-		assert.doesNotThrow(function() {
-			r.readPacket(1024);
-		});
+		assert.equal(r.readPacket(65567).toString(), s.substring(0, 65567));
 
 		f.rewind();
 		r = new io.BufferedStream(f);
 		assert.throws(function() {
-			r.readPacket(1023);
+			r.readPacket(65566);
 		});
 
 		f.close();

@@ -8,6 +8,7 @@
 #include "BufferedStream.h"
 #include "Stream.h"
 #include "Buffer.h"
+#include "PacketMessage.h"
 
 namespace fibjs
 {
@@ -296,14 +297,10 @@ result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,
 
                 if (pThis->m_temp > 0)
                 {
-                    char ch;
-
                     while ((pos < (int) pThis->m_buf.length())
                             && (pThis->m_temp < mklen))
                     {
-                        ch = mk[pThis->m_temp];
-
-                        if (pThis->m_buf[pos] != ch)
+                        if (pThis->m_buf[pos] != mk[pThis->m_temp])
                         {
                             pThis->m_temp = 0;
                             break;
@@ -323,11 +320,11 @@ result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,
 
             pThis->append(pos - pThis->m_pos);
 
-            if (streamEnd || (pThis->m_temp >= mklen))
+            if (streamEnd || (pThis->m_temp == mklen))
             {
                 retVal = pThis->m_strbuf.str();
 
-                if (pThis->m_temp)
+                if (pThis->m_temp == mklen)
                 {
                     retVal.resize(retVal.length() - pThis->m_temp);
                     pThis->m_temp = 0;
@@ -383,8 +380,15 @@ result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
             if (pThis->m_temp == 0)
             {
                 int n2 = (int) pThis->m_strbuf.size();
+                int n3 = 0;
 
-                if (n1 + n2 < sizeof(int32_t))
+                while (n3 < n1 && ((unsigned char)pThis->m_buf[pThis->m_pos + n3] & 0x80))
+                    n3 ++;
+
+                if (n2 + n3 > sizeof(int32_t))
+                    return CALL_E_INVALID_DATA;
+
+                if (n3 == n1)
                 {
                     if (streamEnd)
                     {
@@ -392,20 +396,28 @@ result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
                         return CALL_RETURN_NULL;
                     }
 
-                    pThis->append(n1);
+                    pThis->append(n3);
                     return CALL_E_PENDDING;
                 }
 
-                if (n2 > 0)
-                {
-                    std::string s = pThis->m_strbuf.str();
-                    memcpy(&pThis->m_temp, &s[0], n2);
-                }
+                n3 ++;
 
-                memcpy((char *)&pThis->m_temp + n2, &pThis->m_buf[pThis->m_pos],
-                       sizeof(int32_t) - n2);
-                pThis->m_pos += sizeof(int32_t) - n2;
-                n1 -= sizeof(int32_t) - n2;
+                unsigned char buf[5];
+
+                if (n2 > 0)
+                    memcpy(&buf, pThis->m_strbuf.str().c_str(), n2);
+
+                memcpy((char *)&buf + n2, pThis->m_buf.c_str() + pThis->m_pos, n3);
+                pThis->m_pos += n3;
+                n1 -= n3;
+
+                n2 += n3;
+                n3 = 0;
+                while (n3 < n2)
+                {
+                    pThis->m_temp = (pThis->m_temp << 7) | (buf[n3] & 0x7f);
+                    n3 ++;
+                }
             }
 
             if (pThis->m_temp <= 0)
@@ -415,7 +427,10 @@ result_t BufferedStream::readPacket(int32_t limit, obj_ptr<Buffer_base> &retVal,
             }
 
             if (limit > 0 && pThis->m_temp > limit)
+            {
+                pThis->m_temp = 0;
                 return CALL_E_INVALID_DATA;
+            }
 
             int bytes = pThis->m_temp;
             int n = bytes - (int) pThis->m_strbuf.size();
@@ -495,7 +510,7 @@ result_t BufferedStream::writePacket(Buffer_base *data, exlib::AsyncEvent *ac)
     data->toString(strData);
     len = (int32_t)strData.length();
 
-    strBuf.append((char *)&len, sizeof(len));
+    PacketMessage::packetSize(len, strBuf);
     strBuf.append(strData);
 
     obj_ptr<Buffer_base> data1 = new Buffer(strBuf);

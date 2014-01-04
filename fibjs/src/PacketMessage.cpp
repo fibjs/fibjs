@@ -105,11 +105,11 @@ result_t PacketMessage::sendTo(Stream_base *stm, exlib::AsyncEvent *ac)
                 pThis->m_buffer->toString(strData);
                 len = (int32_t)strData.length();
 
-                strBuf.append((char *)&len, sizeof(len));
+                packetSize(len, strBuf);
                 strBuf.append(strData);
             }
             else
-                strBuf.append("\0\0\0\0", 4);
+                strBuf.append("\0", 1);
 
             pThis->m_buffer = new Buffer(strBuf);
 
