@@ -139,10 +139,18 @@ describe('fs', function() {
 	});
 
 	it("readdir", function() {
-		var fl = fs.readdir('vm_test');
-		assert.equal(fl.length, 4);
-		assert.equal(fl[2].name, 't1.js');
-		assert.equal(fl[3].name, 't2.js');
+		var fl = fs.readdir('vm_test').toJSON();
+		fl.sort(function(a, b) {
+			if (a.name > b.name)
+				return 1;
+			if (a.name < b.name)
+				return -1;
+			return 0;
+		});
+		var sz = fl.length;
+		assert.greaterThan(sz, 3);
+		assert.equal(fl[sz - 2].name, 't1.js');
+		assert.equal(fl[sz - 1].name, 't2.js');
 	});
 });
 
