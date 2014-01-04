@@ -203,7 +203,7 @@ public:
                         {
                             std::string str1(buf);
 
-                            for (i = 1; i < stack.size(); i ++)
+                            for (i = 1; i < (int)stack.size(); i ++)
                             {
                                 str1.append(stack[i]->m_name);
                                 str1.append(" ", 1);
