@@ -285,7 +285,12 @@ bool Variant::toString(std::string &retVal)
     {
         char str[STRING_BUF_SIZE];
 
+#ifdef _WIN32
         sprintf(str, "%lld", m_Val.longVal);
+#else
+        sprintf(str, "%lld", (long long) m_Val.longVal);
+#endif
+
         retVal = str;
 
         return true;
