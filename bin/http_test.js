@@ -546,6 +546,7 @@ describe(
 				});
 
 				st.wait(3);
+				coroutine.sleep(50);
 				assert.deepEqual(hdr.stats.toJSON(), {
 					"total": 5,
 					"pendding": 0,

@@ -78,7 +78,7 @@ describe('utils', function() {
 
 		it("uptime", function() {
 			coroutine.sleep(100);
-			assert.closeTo(100, s.uptime(), 10);
+			assert.closeTo(100, s.uptime(), 40);
 		});
 	});
 
