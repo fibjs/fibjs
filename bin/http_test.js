@@ -518,7 +518,7 @@ describe(
 				c.write(new Buffer("GET /remote_close HTTP/1.0\r\n\r\n"));
 				c.close();
 
-				coroutine.sleep(10);
+				coroutine.sleep(0);
 				assert.deepEqual(hdr.stats.toJSON(), {
 					"total": 5,
 					"pendding": 1,
