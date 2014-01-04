@@ -15,6 +15,8 @@
 
 #define ftello64 ftell
 #define fseeko64 fseek
+#define stat64 stat
+#define fstat64 fstat
 #define ftruncate64 ftruncate
 
 #elif defined(_WIN32)
