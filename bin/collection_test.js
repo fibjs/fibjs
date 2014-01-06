@@ -39,6 +39,10 @@ describe("collection", function() {
 			a.resize(0);
 			GC();
 			assert.equal(no1, os.memoryUsage().nativeObjects);
+			new Buffer();
+			assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
+			GC();
+			assert.equal(no1, os.memoryUsage().nativeObjects);
 		});
 
 		it("toArray", function() {
@@ -207,4 +211,4 @@ describe("collection", function() {
 	});
 });
 
-// test.run();
+//test.run(console.DEBUG);
