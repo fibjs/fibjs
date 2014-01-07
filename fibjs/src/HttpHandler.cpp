@@ -324,7 +324,14 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     if (!ac)
         return CALL_E_NOSYNC;
 
-    obj_ptr < Stream_base > stm = Stream_base::getInstance(v);
+    obj_ptr<Stream_base> stm = Stream_base::getInstance(v);
+    if (stm == NULL)
+    {
+        obj_ptr<Message_base> msg = Message_base::getInstance(v);
+        if (msg != NULL)
+            msg->get_stream(stm);
+
+    }
 
     if (stm == NULL)
         return CALL_E_BADVARTYPE;
