@@ -158,7 +158,7 @@ result_t PacketMessage::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
             if (n == CALL_RETURN_NULL)
-                return pThis->done(0);
+                return CALL_E_INVALID_CALL;
 
             pThis->set(body_end);
             return pThis->m_body->write(pThis->m_buffer, pThis);
