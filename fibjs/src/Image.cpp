@@ -7,8 +7,8 @@
 
 #include "Image.h"
 #include "Buffer.h"
-#include <libexif/exif-data.h>
 #include <vector>
+#include <stdlib.h>
 
 namespace fibjs
 {
@@ -176,20 +176,21 @@ result_t Image::load(Buffer_base *data)
                                            (void *) strBuf.c_str());
         if (m_image != NULL)
         {
-            ExifData *ed = exif_data_new_from_data(
-                               (const unsigned char *) strBuf.c_str(), (unsigned int)strBuf.length());
-            if (ed)
+            m_ed = exif_data_new_from_data(
+                       (const unsigned char *) strBuf.c_str(), (unsigned int)strBuf.length());
+            if (m_ed)
             {
                 int dir = 1;
 
-                ExifEntry *entry = exif_content_get_entry(ed->ifd[EXIF_IFD_0],
+                ExifEntry *entry = exif_content_get_entry(m_ed->ifd[EXIF_IFD_0],
                                    EXIF_TAG_ORIENTATION);
 
                 if (entry)
+                {
                     dir = exif_get_short(entry->data,
-                                         exif_data_get_byte_order(ed));
-
-                exif_data_unref(ed);
+                                         exif_data_get_byte_order(m_ed));
+                    exif_content_remove_entry(m_ed->ifd[EXIF_IFD_0], entry);
+                }
 
                 switch (dir)
                 {
@@ -286,8 +287,19 @@ result_t Image::getData(int32_t format, int32_t quality,
         data = gdImagePngPtr(m_image, &size);
         break;
     case gd_base::_JPEG:
-        data = gdImageJpegPtr(m_image, &size, quality);
-        break;
+    {
+        unsigned char *ed_data = NULL;
+        unsigned int  ed_size = 0;
+
+        if (m_ed)
+            exif_data_save_data(m_ed, &ed_data, &ed_size);
+
+        data = gdImageJpegPtr(m_image, &size, quality, ed_data, ed_size);
+
+        if (ed_data)
+            free(ed_data);
+    }
+    break;
     case gd_base::_TIFF:
         data = gdImageTiffPtr(m_image, &size);
         break;
@@ -766,6 +778,12 @@ result_t Image::New(int32_t width, int32_t height, obj_ptr<Image> &retVal)
 
     gdImagePaletteCopy(img->m_image, m_image);
     gdImageColorTransparent(img->m_image, gdImageGetTransparent(m_image));
+
+    if (m_ed)
+    {
+        img->m_ed = m_ed;
+        exif_data_ref(m_ed);
+    }
 
     img->setExtMemory();
 
