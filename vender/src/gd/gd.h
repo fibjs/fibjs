@@ -627,11 +627,11 @@ BGD_DECLARE(void *) gdImageWBMPPtr (gdImagePtr im, int *size, int fg);
 
 /* 100 is highest quality (there is always a little loss with JPEG).
 	0 is lowest. 10 is about the lowest useful setting. */
-BGD_DECLARE(void) gdImageJpeg (gdImagePtr im, FILE * out, int quality);
-BGD_DECLARE(void) gdImageJpegCtx (gdImagePtr im, gdIOCtx * out, int quality);
+BGD_DECLARE(void) gdImageJpeg (gdImagePtr im, FILE * out, int quality, unsigned char *ex_data, unsigned int ex_size);
+BGD_DECLARE(void) gdImageJpegCtx (gdImagePtr im, gdIOCtx * out, int quality, unsigned char *ex_data, unsigned int ex_size);
 
 /* Best to free this memory with gdFree(), not free() */
-BGD_DECLARE(void *) gdImageJpegPtr (gdImagePtr im, int *size, int quality);
+BGD_DECLARE(void *) gdImageJpegPtr (gdImagePtr im, int *size, int quality, unsigned char *ex_data, unsigned int ex_size);
 
 /* Legal values for Disposal. gdDisposalNone is always used by
 	the built-in optimizer if previm is passed. */

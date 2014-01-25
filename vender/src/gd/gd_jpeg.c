@@ -90,20 +90,20 @@ static void fatal_jpeg_error(j_common_ptr cinfo)
  * library documentation for more details.
  */
 
-BGD_DECLARE(void) gdImageJpeg(gdImagePtr im, FILE *outFile, int quality)
+BGD_DECLARE(void) gdImageJpeg(gdImagePtr im, FILE *outFile, int quality, unsigned char *ex_data, unsigned int ex_size)
 {
 	gdIOCtx *out = gdNewFileCtx(outFile);
 	if (out == NULL) return;
-	gdImageJpegCtx(im, out, quality);
+	gdImageJpegCtx(im, out, quality, ex_data, ex_size);
 	out->gd_free(out);
 }
 
-BGD_DECLARE(void *) gdImageJpegPtr(gdImagePtr im, int *size, int quality)
+BGD_DECLARE(void *) gdImageJpegPtr(gdImagePtr im, int *size, int quality, unsigned char *ex_data, unsigned int ex_size)
 {
 	void *rv;
 	gdIOCtx *out = gdNewDynamicCtx(2048, NULL);
 	if (out == NULL) return NULL;
-	gdImageJpegCtx(im, out, quality);
+	gdImageJpegCtx(im, out, quality, ex_data, ex_size);
 	rv = gdDPExtractData(out, size);
 	out->gd_free(out);
 	return rv;
@@ -111,7 +111,7 @@ BGD_DECLARE(void *) gdImageJpegPtr(gdImagePtr im, int *size, int quality)
 
 void jpeg_gdIOCtx_dest(j_compress_ptr cinfo, gdIOCtx *outfile);
 
-BGD_DECLARE(void) gdImageJpegCtx(gdImagePtr im, gdIOCtx *outfile, int quality)
+BGD_DECLARE(void) gdImageJpegCtx(gdImagePtr im, gdIOCtx *outfile, int quality, unsigned char *ex_data, unsigned int ex_size)
 {
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
@@ -188,7 +188,7 @@ BGD_DECLARE(void) gdImageJpegCtx(gdImagePtr im, gdIOCtx *outfile, int quality)
 	rowptr[0] = row;
 
 	jpeg_start_compress(&cinfo, TRUE);
-
+/*
 	sprintf(comment, "CREATOR: gd-jpeg v%s (using IJG JPEG v%d),", GD_JPEG_VERSION, JPEG_LIB_VERSION);
 
 	if(quality >= 0) {
@@ -198,6 +198,9 @@ BGD_DECLARE(void) gdImageJpegCtx(gdImagePtr im, gdIOCtx *outfile, int quality)
 	}
 
 	jpeg_write_marker(&cinfo, JPEG_COM, (unsigned char *) comment, (unsigned int)strlen(comment));
+*/
+	if (ex_data)
+		jpeg_write_marker(&cinfo, JPEG_APP0 + 1, ex_data, ex_size);
 
 	if(im->trueColor) {
 #if BITS_IN_JSAMPLE == 12
