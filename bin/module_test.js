@@ -27,7 +27,7 @@ describe("module", function() {
 		var a = require('module/a2');
 		var foo = a.foo;
 		assert.strictEqual(a.foo(), a, 'calling a module member');
-		assert.strictEqual(foo(), (function() {
+		assert.deepEqual(foo(), (function() {
 			return this
 		})(), 'members not implicitly bound');
 		a.set(10);
@@ -68,4 +68,4 @@ describe("module", function() {
 	});
 });
 
-//test.run();
+//test.run(console.DEBUG);
