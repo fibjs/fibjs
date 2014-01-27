@@ -134,7 +134,7 @@ Variant::operator v8::Handle<v8::Value>() const
         v8::Handle<v8::Value> v;
 
         if (isPersistent())
-            v = v8::Handle<v8::Object>::New(isolate,
+            v = v8::Local<v8::Object>::New(isolate,
                                             *(v8::Persistent<v8::Object> *) m_Val.jsobjVal);
         else
             v = *(v8::Handle<v8::Object> *) m_Val.jsobjVal;

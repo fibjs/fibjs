@@ -132,7 +132,7 @@ public:
         {
             if (v.isPersistent())
                 return operator=(
-                           v8::Handle<v8::Object>::New(isolate,
+                           v8::Local<v8::Object>::New(isolate,
                                                        *(v8::Persistent<v8::Object> *) v.m_Val.jsobjVal));
             else
                 return operator=(*(v8::Handle<v8::Object> *) v.m_Val.jsobjVal);

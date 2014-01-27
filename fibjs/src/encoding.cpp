@@ -299,16 +299,13 @@ result_t encoding_base::jsonEncode(v8::Handle<v8::Value> data,
 {
     initJSON();
 
-    v8::Handle < v8::Object > _json = v8::Handle < v8::Object
-                                      > ::New(isolate, s_json);
+    v8::Handle<v8::Object> _json = v8::Local<v8::Object>::New(isolate, s_json);
 
     if (s_stringify.IsEmpty())
         s_stringify.Reset(isolate,
-                          v8::Handle < v8::Function
-                          > ::Cast(_json->Get(v8::String::NewFromUtf8(isolate, "stringify"))));
+                          v8::Handle<v8::Function>::Cast(_json->Get(v8::String::NewFromUtf8(isolate, "stringify"))));
 
-    v8::Handle < v8::Value > str = v8::Handle < v8::Function
-                                   > ::New(isolate, s_stringify)->Call(_json, 1, &data);
+    v8::Handle<v8::Value> str = v8::Local<v8::Function>::New(isolate, s_stringify)->Call(_json, 1, &data);
     if (str.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
@@ -323,17 +320,14 @@ result_t encoding_base::jsonDecode(const char *data,
 {
     initJSON();
 
-    v8::Handle < v8::Object > _json = v8::Handle < v8::Object
-                                      > ::New(isolate, s_json);
+    v8::Handle<v8::Object> _json = v8::Local<v8::Object>::New(isolate, s_json);
 
     if (s_parse.IsEmpty())
         s_parse.Reset(isolate,
-                      v8::Handle < v8::Function
-                      > ::Cast(_json->Get(v8::String::NewFromUtf8(isolate, "parse"))));
+                      v8::Handle<v8::Function>::Cast(_json->Get(v8::String::NewFromUtf8(isolate, "parse"))));
 
-    v8::Handle < v8::Value > v = v8::String::NewFromUtf8(isolate, data);
-    retVal = v8::Handle < v8::Function
-             > ::New(isolate, s_parse)->Call(_json, 1, &v);
+    v8::Handle<v8::Value> v = v8::String::NewFromUtf8(isolate, data);
+    retVal = v8::Local<v8::Function>::New(isolate, s_parse)->Call(_json, 1, &v);
     if (retVal.IsEmpty())
         return CALL_E_JAVASCRIPT;
 

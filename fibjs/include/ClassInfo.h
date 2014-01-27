@@ -85,7 +85,7 @@ public:
 
         if (cd.base)
             _class->Inherit(
-                v8::Handle<v8::FunctionTemplate>::New(isolate,
+                v8::Local<v8::FunctionTemplate>::New(isolate,
                         cd.base->m_class));
 
         v8::Local<v8::ObjectTemplate> pt = _class->PrototypeTemplate();
@@ -99,7 +99,7 @@ public:
 
         for (i = 0; i < cd.oc; i++)
             pt->Set(v8::String::NewFromUtf8(isolate, cd.cos[i].name),
-                    v8::Handle<v8::FunctionTemplate>::New(isolate,
+                    v8::Local<v8::FunctionTemplate>::New(isolate,
                             cd.cos[i].invoker().m_class));
 
         for (i = 0; i < cd.pc; i++)
@@ -138,7 +138,7 @@ public:
     void *getInstance(v8::Handle<v8::Value> o)
     {
         if (o.IsEmpty() || !o->IsObject()
-                || !v8::Handle<v8::FunctionTemplate>::New(isolate, m_class)->HasInstance(
+                || !v8::Local<v8::FunctionTemplate>::New(isolate, m_class)->HasInstance(
                     o))
             return NULL;
 
@@ -147,7 +147,7 @@ public:
 
     v8::Handle<v8::Object> CreateInstance()
     {
-        return v8::Handle<v8::Object>::New(isolate, m_cache)->Clone();
+        return v8::Local<v8::Object>::New(isolate, m_cache)->Clone();
     }
 
     bool has(const char *name)
@@ -185,7 +185,7 @@ public:
 
         for (i = 0; i < m_cd.oc; i++)
             o->Set(v8::String::NewFromUtf8(isolate, m_cd.cos[i].name),
-                   v8::Handle<v8::Function>::New(isolate, m_cd.cos[i].invoker().m_function),
+                   v8::Local<v8::Function>::New(isolate, m_cd.cos[i].invoker().m_function),
                    v8::ReadOnly);
 
         for (i = 0; i < m_cd.pc; i++)

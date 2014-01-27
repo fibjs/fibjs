@@ -182,7 +182,7 @@ public:
         if (m_result.IsEmpty())
             return CALL_RETURN_NULL;
 
-        retVal = v8::Handle < v8::Value > ::New(isolate, m_result);
+        retVal = v8::Local<v8::Value>::New(isolate, m_result);
         return 0;
     }
 

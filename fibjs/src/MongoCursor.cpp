@@ -48,10 +48,10 @@ void MongoCursor::ensureSpecial()
 {
     if (!m_bSpecial)
     {
-        v8::Handle < v8::Object > o = v8::Object::New(isolate);
+        v8::Handle<v8::Object> o = v8::Object::New(isolate);
 
         o->Set(v8::String::NewFromUtf8(isolate, "query"),
-               v8::Handle<v8::Object>::New(isolate, m_query));
+               v8::Local<v8::Object>::New(isolate, m_query));
         m_query.Reset();
 
         m_query.Reset(isolate, o);
@@ -84,10 +84,9 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
 
     if (m_bSpecial)
         encodeValue(&bbq, "query",
-                    v8::Handle < v8::Object
-                    > ::New(isolate, m_query)->Get(v8::String::NewFromUtf8(isolate, "query")));
+                    v8::Local<v8::Object>::New(isolate, m_query)->Get(v8::String::NewFromUtf8(isolate, "query")));
     else
-        encodeValue(&bbq, "query", v8::Handle<v8::Object>::New(isolate, m_query));
+        encodeValue(&bbq, "query", v8::Local<v8::Object>::New(isolate, m_query));
 
     if (applySkipLimit)
     {
@@ -99,7 +98,7 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
 
     bson_finish(&bbq);
 
-    v8::Handle < v8::Object > res;
+    v8::Handle<v8::Object> res;
 
     result_t hr = m_db->run_command(&bbq, res);
     if (hr < 0)
@@ -113,13 +112,13 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
 result_t MongoCursor::forEach(v8::Handle<v8::Function> func)
 {
     result_t hr;
-    v8::Handle < v8::Object > o;
-    v8::Handle < v8::Object > o1 = v8::Object::New(isolate);
+    v8::Handle<v8::Object> o;
+    v8::Handle<v8::Object> o1 = v8::Object::New(isolate);
 
     while ((hr = next(o)) != CALL_RETURN_NULL)
     {
-        v8::Handle < v8::Value > a = o;
-        v8::Handle < v8::Value > v = func->Call(o1, 1, &a);
+        v8::Handle<v8::Value> a = o;
+        v8::Handle<v8::Value> v = func->Call(o1, 1, &a);
 
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -132,15 +131,15 @@ result_t MongoCursor::map(v8::Handle<v8::Function> func,
                           v8::Handle<v8::Array> &retVal)
 {
     result_t hr;
-    v8::Handle < v8::Object > o;
-    v8::Handle < v8::Object > o1 = v8::Object::New(isolate);
-    v8::Handle < v8::Array > as = v8::Array::New(isolate);
+    v8::Handle<v8::Object> o;
+    v8::Handle<v8::Object> o1 = v8::Object::New(isolate);
+    v8::Handle<v8::Array> as = v8::Array::New(isolate);
     int n = 0;
 
     while ((hr = next(o)) != CALL_RETURN_NULL)
     {
-        v8::Handle < v8::Value > a = o;
-        v8::Handle < v8::Value > v = func->Call(o1, 1, &a);
+        v8::Handle<v8::Value> a = o;
+        v8::Handle<v8::Value> v = func->Call(o1, 1, &a);
 
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -159,7 +158,7 @@ result_t MongoCursor::hasNext(bool &retVal)
     {
         result_t hr;
 
-        hr = encodeObject(&m_bbq, v8::Handle<v8::Object>::New(isolate, m_query));
+        hr = encodeObject(&m_bbq, v8::Local<v8::Object>::New(isolate, m_query));
         if (hr < 0)
             return hr;
 
@@ -222,7 +221,7 @@ result_t MongoCursor::_addSpecial(const char *name, v8::Handle<v8::Value> opts,
         return CALL_E_INVALID_CALL;
 
     ensureSpecial();
-    v8::Handle<v8::Object>::New(isolate, m_query)->Set(v8::String::NewFromUtf8(isolate, name), opts);
+    v8::Local<v8::Object>::New(isolate, m_query)->Set(v8::String::NewFromUtf8(isolate, name), opts);
 
     retVal = this;
     return 0;
@@ -231,8 +230,8 @@ result_t MongoCursor::_addSpecial(const char *name, v8::Handle<v8::Value> opts,
 result_t MongoCursor::toArray(v8::Handle<v8::Array> &retVal)
 {
     result_t hr;
-    v8::Handle < v8::Object > o;
-    v8::Handle < v8::Array > as = v8::Array::New(isolate);
+    v8::Handle<v8::Object> o;
+    v8::Handle<v8::Array> as = v8::Array::New(isolate);
     int n = 0;
 
     while ((hr = next(o)) != CALL_RETURN_NULL)
@@ -251,7 +250,7 @@ result_t MongoCursor::toArray(v8::Handle<v8::Array> &retVal)
 result_t MongoCursor::toJSON(const char *key, v8::Handle<v8::Value> &retVal)
 {
     result_t hr;
-    v8::Handle < v8::Array > as;
+    v8::Handle<v8::Array> as;
 
     hr = toArray(as);
     if (hr < 0)

@@ -128,15 +128,14 @@ result_t SandBox::runScript(const char *id, v8::Handle<v8::Value> &retVal,
                 && (it->second->m_check.empty()
                     || now.diff(it->second->m_check) < 1000))
         {
-            retVal = v8::Handle < v8::Value > ::New(isolate, it->second->m_mod);
+            retVal = v8::Local<v8::Value>::New(isolate, it->second->m_mod);
             return 1;
         }
 
         if (!m_require.IsEmpty())
         {
-            v8::Handle < v8::Value > arg = v8::String::NewFromUtf8(isolate, fname.c_str());
-            retVal = v8::Handle < v8::Function
-                     > ::New(isolate, m_require)->Call(wrap(), 1, &arg);
+            v8::Handle<v8::Value> arg = v8::String::NewFromUtf8(isolate, fname.c_str());
+            retVal = v8::Local<v8::Function>::New(isolate, m_require)->Call(wrap(), 1, &arg);
             if (retVal.IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -172,8 +171,7 @@ result_t SandBox::runScript(const char *id, v8::Handle<v8::Value> &retVal,
             if (mtime.diff(it->second->m_mtime) == 0)
             {
                 it->second->m_check = now;
-                retVal = v8::Handle < v8::Value
-                         > ::New(isolate, it->second->m_mod);
+                retVal = v8::Local<v8::Value>::New(isolate, it->second->m_mod);
                 return 0;
             }
         }
@@ -295,7 +293,7 @@ result_t SandBox::runScript(const char *id, v8::Handle<v8::Value> &retVal,
         glob->Set(strExports, exports, v8::ReadOnly);
 
         // use module.exports as result value
-        v8::Handle < v8::Value > v = mod->Get(strExports);
+        v8::Handle<v8::Value> v = mod->Get(strExports);
         InstallModule(fname, v, now, mtime);
 
         // retVal = handle_scope.Close(v);
@@ -308,7 +306,7 @@ result_t SandBox::runScript(const char *id, v8::Handle<v8::Value> &retVal,
 
 result_t SandBox::run(const char *fname)
 {
-    v8::Handle < v8::Value > retTemp;
+    v8::Handle<v8::Value> retTemp;
     return runScript(fname, retTemp, false);
 }
 

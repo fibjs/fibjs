@@ -151,7 +151,7 @@ public:
             return o;
         }
 
-        return v8::Handle<v8::Object>::New(isolate, handle_);
+        return v8::Local<v8::Object>::New(isolate, handle_);
     }
 
     v8::Handle<v8::Object> wrap()
@@ -159,7 +159,7 @@ public:
         if (handle_.IsEmpty())
             return wrap(Classinfo().CreateInstance());
 
-        return v8::Handle<v8::Object>::New(isolate, handle_);
+        return v8::Local<v8::Object>::New(isolate, handle_);
     }
 
 public:
@@ -237,7 +237,7 @@ public:
         if (!handle_.IsEmpty())
         {
             handle_.ClearWeak();
-            v8::Handle<v8::Object>::New(isolate, handle_)->SetAlignedPointerInInternalField(
+            v8::Local<v8::Object>::New(isolate, handle_)->SetAlignedPointerInInternalField(
                 0, 0);
             handle_.Reset();
 

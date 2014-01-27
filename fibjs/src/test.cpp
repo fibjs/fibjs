@@ -138,7 +138,7 @@ public:
             if (p->m_pos == 0)
             {
                 for (i = 0; i < (int) p->m_hooks[HOOK_BEFORE].size(); i++)
-                    if (v8::Handle<v8::Function>::New(isolate,
+                    if (v8::Local<v8::Function>::New(isolate,
                                                       p->m_hooks[HOOK_BEFORE][i])->Call(o, 0, NULL).IsEmpty())
                     {
                         console_base::set_loglevel(oldlevel);
@@ -172,7 +172,7 @@ public:
                     p2 = stack[j];
                     for (i = 0; i < (int) p2->m_hooks[HOOK_BEFORECASE].size();
                             i++)
-                        if (v8::Handle<v8::Function>::New(isolate,
+                        if (v8::Local<v8::Function>::New(isolate,
                                                           p2->m_hooks[HOOK_BEFORECASE][i])->Call(o, 0,
                                                                   NULL).IsEmpty())
                         {
@@ -188,7 +188,7 @@ public:
                     date_t d1, d2;
 
                     d1.now();
-                    v8::Handle<v8::Function>::New(isolate, p1->m_block)->Call(o,
+                    v8::Local<v8::Function>::New(isolate, p1->m_block)->Call(o,
                             0, NULL);
                     d2.now();
 
@@ -250,7 +250,7 @@ public:
                     p2 = stack[j];
                     for (i = (int) p2->m_hooks[HOOK_AFTERCASE].size() - 1;
                             i >= 0; i--)
-                        if (v8::Handle<v8::Function>::New(isolate,
+                        if (v8::Local<v8::Function>::New(isolate,
                                                           p2->m_hooks[HOOK_AFTERCASE][i])->Call(o, 0,
                                                                   NULL).IsEmpty())
                         {
@@ -264,7 +264,7 @@ public:
             if (p->m_pos == (int)p->m_subs.size())
             {
                 for (i = (int) p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--)
-                    if (v8::Handle<v8::Function>::New(isolate,
+                    if (v8::Local<v8::Function>::New(isolate,
                                                       p->m_hooks[HOOK_AFTER][i])->Call(o, 0, NULL).IsEmpty())
                     {
                         console_base::set_loglevel(oldlevel);
