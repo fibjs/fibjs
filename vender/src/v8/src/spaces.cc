@@ -1079,12 +1079,7 @@ intptr_t PagedSpace::SizeOfFirstPage() {
         // upgraded to handle small pages.
         size = AreaSize();
       } else {
-#if V8_TARGET_ARCH_MIPS
-        // TODO(plind): Investigate larger code stubs size on MIPS.
         size = 480 * KB;
-#else
-        size = 416 * KB;
-#endif
       }
       break;
     default:
@@ -1146,6 +1141,11 @@ void PagedSpace::ReleasePage(Page* page, bool unlink) {
   } else {
     DecreaseUnsweptFreeBytes(page);
   }
+
+  // TODO(hpayer): This check is just used for debugging purpose and
+  // should be removed or turned into an assert after investigating the
+  // crash in concurrent sweeping.
+  CHECK(!free_list_.ContainsPageFreeListItems(page));
 
   if (Page::FromAllocationTop(allocation_info_.top()) == page) {
     allocation_info_.set_top(NULL);
@@ -2130,6 +2130,16 @@ intptr_t FreeListCategory::EvictFreeListItemsInList(Page* p) {
 }
 
 
+bool FreeListCategory::ContainsPageFreeListItemsInList(Page* p) {
+  FreeListNode** n = &top_;
+  while (*n != NULL) {
+    if (Page::FromAddress((*n)->address()) == p) return true;
+    n = (*n)->next_address();
+  }
+  return false;
+}
+
+
 FreeListNode* FreeListCategory::PickNodeFromList(int *node_size) {
   FreeListNode* node = top_;
 
@@ -2457,6 +2467,14 @@ intptr_t FreeList::EvictFreeListItems(Page* p) {
 }
 
 
+bool FreeList::ContainsPageFreeListItems(Page* p) {
+  return huge_list_.EvictFreeListItemsInList(p) ||
+         small_list_.EvictFreeListItemsInList(p) ||
+         medium_list_.EvictFreeListItemsInList(p) ||
+         large_list_.EvictFreeListItemsInList(p);
+}
+
+
 void FreeList::RepairLists(Heap* heap) {
   small_list_.RepairFreeList(heap);
   medium_list_.RepairFreeList(heap);
@@ -2617,7 +2635,7 @@ bool PagedSpace::EnsureSweeperProgress(intptr_t size_in_bytes) {
   MarkCompactCollector* collector = heap()->mark_compact_collector();
   if (collector->AreSweeperThreadsActivated()) {
     if (collector->IsConcurrentSweepingInProgress()) {
-      if (collector->StealMemoryFromSweeperThreads(this) < size_in_bytes) {
+      if (collector->RefillFreeLists(this) < size_in_bytes) {
         if (!collector->sequential_sweeping()) {
           collector->WaitUntilSweepingCompleted();
           return true;

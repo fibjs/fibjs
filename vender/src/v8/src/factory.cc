@@ -206,9 +206,8 @@ Handle<TypeFeedbackInfo> Factory::NewTypeFeedbackInfo() {
 
 // Internalized strings are created in the old generation (data space).
 Handle<String> Factory::InternalizeUtf8String(Vector<const char> string) {
-  CALL_HEAP_FUNCTION(isolate(),
-                     isolate()->heap()->InternalizeUtf8String(string),
-                     String);
+  Utf8StringKey key(string, isolate()->heap()->HashSeed());
+  return InternalizeStringWithKey(&key);
 }
 
 
@@ -221,24 +220,28 @@ Handle<String> Factory::InternalizeString(Handle<String> string) {
 
 
 Handle<String> Factory::InternalizeOneByteString(Vector<const uint8_t> string) {
-  CALL_HEAP_FUNCTION(isolate(),
-                     isolate()->heap()->InternalizeOneByteString(string),
-                     String);
+  OneByteStringKey key(string, isolate()->heap()->HashSeed());
+  return InternalizeStringWithKey(&key);
 }
 
 
 Handle<String> Factory::InternalizeOneByteString(
     Handle<SeqOneByteString> string, int from, int length) {
-  CALL_HEAP_FUNCTION(isolate(),
-                     isolate()->heap()->InternalizeOneByteString(
-                         string, from, length),
-                     String);
+  SubStringOneByteStringKey key(string, from, length);
+  return InternalizeStringWithKey(&key);
 }
 
 
 Handle<String> Factory::InternalizeTwoByteString(Vector<const uc16> string) {
+  TwoByteStringKey key(string, isolate()->heap()->HashSeed());
+  return InternalizeStringWithKey(&key);
+}
+
+
+template<class StringTableKey>
+Handle<String> Factory::InternalizeStringWithKey(StringTableKey* key) {
   CALL_HEAP_FUNCTION(isolate(),
-                     isolate()->heap()->InternalizeTwoByteString(string),
+                     isolate()->heap()->InternalizeStringWithKey(key),
                      String);
 }
 
@@ -729,7 +732,7 @@ Handle<ExternalArray> Factory::NewExternalArray(int length,
                                                 ExternalArrayType array_type,
                                                 void* external_pointer,
                                                 PretenureFlag pretenure) {
-  ASSERT(0 <= length);
+  ASSERT(0 <= length && length <= Smi::kMaxValue);
   CALL_HEAP_FUNCTION(
       isolate(),
       isolate()->heap()->AllocateExternalArray(length,
@@ -737,6 +740,20 @@ Handle<ExternalArray> Factory::NewExternalArray(int length,
                                                external_pointer,
                                                pretenure),
       ExternalArray);
+}
+
+
+Handle<FixedTypedArrayBase> Factory::NewFixedTypedArray(
+    int length,
+    ExternalArrayType array_type,
+    PretenureFlag pretenure) {
+  ASSERT(0 <= length && length <= Smi::kMaxValue);
+  CALL_HEAP_FUNCTION(
+      isolate(),
+      isolate()->heap()->AllocateFixedTypedArray(length,
+                                                 array_type,
+                                                 pretenure),
+      FixedTypedArrayBase);
 }
 
 
@@ -1469,32 +1486,12 @@ static JSFunction* GetTypedArrayFun(ExternalArrayType type,
                                     Isolate* isolate) {
   Context* native_context = isolate->context()->native_context();
   switch (type) {
-    case kExternalUnsignedByteArray:
-      return native_context->uint8_array_fun();
+#define TYPED_ARRAY_FUN(Type, type, TYPE, ctype, size)                        \
+    case kExternal##Type##Array:                                              \
+      return native_context->type##_array_fun();
 
-    case kExternalByteArray:
-      return native_context->int8_array_fun();
-
-    case kExternalUnsignedShortArray:
-      return native_context->uint16_array_fun();
-
-    case kExternalShortArray:
-      return native_context->int16_array_fun();
-
-    case kExternalUnsignedIntArray:
-      return native_context->uint32_array_fun();
-
-    case kExternalIntArray:
-      return native_context->int32_array_fun();
-
-    case kExternalFloatArray:
-      return native_context->float_array_fun();
-
-    case kExternalDoubleArray:
-      return native_context->double_array_fun();
-
-    case kExternalPixelArray:
-      return native_context->uint8c_array_fun();
+    TYPED_ARRAYS(TYPED_ARRAY_FUN)
+#undef TYPED_ARRAY_FUN
 
     default:
       UNREACHABLE();

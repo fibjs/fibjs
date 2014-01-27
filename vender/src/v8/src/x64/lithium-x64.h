@@ -52,12 +52,9 @@ class LCodeGen;
   V(BitI)                                       \
   V(BoundsCheck)                                \
   V(Branch)                                     \
-  V(CallConstantFunction)                       \
+  V(CallJSFunction)                             \
+  V(CallWithDescriptor)                         \
   V(CallFunction)                               \
-  V(CallGlobal)                                 \
-  V(CallKeyed)                                  \
-  V(CallKnownGlobal)                            \
-  V(CallNamed)                                  \
   V(CallNew)                                    \
   V(CallNewArray)                               \
   V(CallRuntime)                                \
@@ -161,7 +158,6 @@ class LCodeGen;
   V(StoreCodeEntry)                             \
   V(StoreContextSlot)                           \
   V(StoreGlobalCell)                            \
-  V(StoreGlobalGeneric)                         \
   V(StoreKeyed)                                 \
   V(StoreKeyedGeneric)                          \
   V(StoreNamedField)                            \
@@ -300,10 +296,8 @@ class LInstruction : public ZoneObject {
 
 
 // R = number of result operands (0 or 1).
-// I = number of input operands.
-// T = number of temporary operands.
-template<int R, int I, int T>
-class LTemplateInstruction : public LInstruction {
+template<int R>
+class LTemplateResultInstruction : public LInstruction {
  public:
   // Allow 0 or 1 output operands.
   STATIC_ASSERT(R == 0 || R == 1);
@@ -315,6 +309,15 @@ class LTemplateInstruction : public LInstruction {
 
  protected:
   EmbeddedContainer<LOperand*, R> results_;
+};
+
+
+// R = number of result operands (0 or 1).
+// I = number of input operands.
+// T = number of temporary operands.
+template<int R, int I, int T>
+class LTemplateInstruction : public LTemplateResultInstruction<R> {
+ protected:
   EmbeddedContainer<LOperand*, I> inputs_;
   EmbeddedContainer<LOperand*, T> temps_;
 
@@ -1536,6 +1539,12 @@ class LLoadKeyed V8_FINAL : public LTemplateInstruction<1, 2, 0> {
   bool is_external() const {
     return hydrogen()->is_external();
   }
+  bool is_fixed_typed_array() const {
+    return hydrogen()->is_fixed_typed_array();
+  }
+  bool is_typed_elements() const {
+    return is_external() || is_fixed_typed_array();
+  }
   LOperand* elements() { return inputs_[0]; }
   LOperand* key() { return inputs_[1]; }
   virtual void PrintDataTo(StringStream* stream) V8_OVERRIDE;
@@ -1598,28 +1607,6 @@ class LStoreGlobalCell V8_FINAL : public LTemplateInstruction<0, 1, 1> {
 
   DECLARE_CONCRETE_INSTRUCTION(StoreGlobalCell, "store-global-cell")
   DECLARE_HYDROGEN_ACCESSOR(StoreGlobalCell)
-};
-
-
-class LStoreGlobalGeneric V8_FINAL : public LTemplateInstruction<0, 3, 0> {
- public:
-  explicit LStoreGlobalGeneric(LOperand* context,
-                               LOperand* global_object,
-                               LOperand* value) {
-    inputs_[0] = context;
-    inputs_[1] = global_object;
-    inputs_[2] = value;
-  }
-
-  LOperand* context() { return inputs_[0]; }
-  LOperand* global_object() { return inputs_[1]; }
-  LOperand* value() { return inputs_[2]; }
-
-  DECLARE_CONCRETE_INSTRUCTION(StoreGlobalGeneric, "store-global-generic")
-  DECLARE_HYDROGEN_ACCESSOR(StoreGlobalGeneric)
-
-  Handle<Object> name() const { return hydrogen()->name(); }
-  StrictModeFlag strict_mode_flag() { return hydrogen()->strict_mode_flag(); }
 };
 
 
@@ -1782,15 +1769,51 @@ class LGlobalReceiver V8_FINAL : public LTemplateInstruction<1, 1, 0> {
 };
 
 
-class LCallConstantFunction V8_FINAL : public LTemplateInstruction<1, 0, 0> {
+class LCallJSFunction V8_FINAL : public LTemplateInstruction<1, 1, 0> {
  public:
-  DECLARE_CONCRETE_INSTRUCTION(CallConstantFunction, "call-constant-function")
-  DECLARE_HYDROGEN_ACCESSOR(CallConstantFunction)
+  explicit LCallJSFunction(LOperand* function) {
+    inputs_[0] = function;
+  }
 
-  virtual void PrintDataTo(StringStream* stream);
+  LOperand* function() { return inputs_[0]; }
 
-  Handle<JSFunction> function() { return hydrogen()->function(); }
+  DECLARE_CONCRETE_INSTRUCTION(CallJSFunction, "call-js-function")
+  DECLARE_HYDROGEN_ACCESSOR(CallJSFunction)
+
+  virtual void PrintDataTo(StringStream* stream) V8_OVERRIDE;
+
   int arity() const { return hydrogen()->argument_count() - 1; }
+};
+
+
+class LCallWithDescriptor V8_FINAL : public LTemplateResultInstruction<1> {
+ public:
+  LCallWithDescriptor(const CallInterfaceDescriptor* descriptor,
+                      ZoneList<LOperand*>& operands,
+                      Zone* zone)
+    : inputs_(descriptor->environment_length() + 1, zone) {
+    ASSERT(descriptor->environment_length() + 1 == operands.length());
+    inputs_.AddAll(operands, zone);
+  }
+
+  LOperand* target() const { return inputs_[0]; }
+
+ private:
+  DECLARE_CONCRETE_INSTRUCTION(CallWithDescriptor, "call-with-descriptor")
+  DECLARE_HYDROGEN_ACCESSOR(CallWithDescriptor)
+
+  virtual void PrintDataTo(StringStream* stream) V8_OVERRIDE;
+
+  int arity() const { return hydrogen()->argument_count() - 1; }
+
+  ZoneList<LOperand*> inputs_;
+
+  // Iterator support.
+  virtual int InputCount() V8_FINAL V8_OVERRIDE { return inputs_.length(); }
+  virtual LOperand* InputAt(int i) V8_FINAL V8_OVERRIDE { return inputs_[i]; }
+
+  virtual int TempCount() V8_FINAL V8_OVERRIDE { return 0; }
+  virtual LOperand* TempAt(int i) V8_FINAL V8_OVERRIDE { return NULL; }
 };
 
 
@@ -1813,43 +1836,6 @@ class LInvokeFunction V8_FINAL : public LTemplateInstruction<1, 2, 0> {
 };
 
 
-class LCallKeyed V8_FINAL : public LTemplateInstruction<1, 2, 0> {
- public:
-  LCallKeyed(LOperand* context, LOperand* key) {
-    inputs_[0] = context;
-    inputs_[1] = key;
-  }
-
-  DECLARE_CONCRETE_INSTRUCTION(CallKeyed, "call-keyed")
-  DECLARE_HYDROGEN_ACCESSOR(CallKeyed)
-
-  LOperand* context() { return inputs_[0]; }
-  LOperand* key() { return inputs_[1]; }
-
-  virtual void PrintDataTo(StringStream* stream) V8_OVERRIDE;
-
-  int arity() const { return hydrogen()->argument_count() - 1; }
-};
-
-
-class LCallNamed V8_FINAL : public LTemplateInstruction<1, 1, 0> {
- public:
-  explicit LCallNamed(LOperand* context) {
-    inputs_[0] = context;
-  }
-
-  LOperand* context() { return inputs_[0]; }
-
-  DECLARE_CONCRETE_INSTRUCTION(CallNamed, "call-named")
-  DECLARE_HYDROGEN_ACCESSOR(CallNamed)
-
-  virtual void PrintDataTo(StringStream* stream) V8_OVERRIDE;
-
-  Handle<String> name() const { return hydrogen()->name(); }
-  int arity() const { return hydrogen()->argument_count() - 1; }
-};
-
-
 class LCallFunction V8_FINAL : public LTemplateInstruction<1, 2, 0> {
  public:
   LCallFunction(LOperand* context, LOperand* function) {
@@ -1863,35 +1849,6 @@ class LCallFunction V8_FINAL : public LTemplateInstruction<1, 2, 0> {
   LOperand* context() { return inputs_[0]; }
   LOperand* function() { return inputs_[1]; }
   int arity() const { return hydrogen()->argument_count() - 1; }
-};
-
-
-class LCallGlobal V8_FINAL : public LTemplateInstruction<1, 1, 0> {
- public:
-  explicit LCallGlobal(LOperand* context) {
-    inputs_[0] = context;
-  }
-
-  LOperand* context() { return inputs_[0]; }
-
-  DECLARE_CONCRETE_INSTRUCTION(CallGlobal, "call-global")
-  DECLARE_HYDROGEN_ACCESSOR(CallGlobal)
-
-  virtual void PrintDataTo(StringStream* stream) V8_OVERRIDE;
-
-  Handle<String> name() const {return hydrogen()->name(); }
-  int arity() const { return hydrogen()->argument_count() - 1; }
-};
-
-
-class LCallKnownGlobal V8_FINAL : public LTemplateInstruction<1, 0, 0> {
- public:
-  DECLARE_CONCRETE_INSTRUCTION(CallKnownGlobal, "call-known-global")
-  DECLARE_HYDROGEN_ACCESSOR(CallKnownGlobal)
-
-  virtual void PrintDataTo(StringStream* stream) V8_OVERRIDE;
-
-  int arity() const { return hydrogen()->argument_count() - 1;  }
 };
 
 
@@ -2191,6 +2148,12 @@ class LStoreKeyed V8_FINAL : public LTemplateInstruction<0, 3, 0> {
   }
 
   bool is_external() const { return hydrogen()->is_external(); }
+  bool is_fixed_typed_array() const {
+    return hydrogen()->is_fixed_typed_array();
+  }
+  bool is_typed_elements() const {
+    return is_external() || is_fixed_typed_array();
+  }
   LOperand* elements() { return inputs_[0]; }
   LOperand* key() { return inputs_[1]; }
   LOperand* value() { return inputs_[2]; }
@@ -2630,18 +2593,17 @@ class LPlatformChunk V8_FINAL : public LChunk {
 };
 
 
-class LChunkBuilder V8_FINAL BASE_EMBEDDED {
+class LChunkBuilder V8_FINAL : public LChunkBuilderBase {
  public:
   LChunkBuilder(CompilationInfo* info, HGraph* graph, LAllocator* allocator)
-      : chunk_(NULL),
+      : LChunkBuilderBase(graph->zone()),
+        chunk_(NULL),
         info_(info),
         graph_(graph),
-        zone_(graph->zone()),
         status_(UNUSED),
         current_instruction_(NULL),
         current_block_(NULL),
         next_block_(NULL),
-        argument_count_(0),
         allocator_(allocator),
         instruction_pending_deoptimization_environment_(NULL),
         pending_deoptimization_ast_id_(BailoutId::None()) { }
@@ -2655,8 +2617,6 @@ class LChunkBuilder V8_FINAL BASE_EMBEDDED {
 #define DECLARE_DO(type) LInstruction* Do##type(H##type* node);
   HYDROGEN_CONCRETE_INSTRUCTION_LIST(DECLARE_DO)
 #undef DECLARE_DO
-
-  static HValue* SimplifiedDivisorForMathFloorOfDiv(HValue* val);
 
   LInstruction* DoMathFloor(HUnaryMathOperation* instr);
   LInstruction* DoMathRound(HUnaryMathOperation* instr);
@@ -2677,7 +2637,6 @@ class LChunkBuilder V8_FINAL BASE_EMBEDDED {
   LPlatformChunk* chunk() const { return chunk_; }
   CompilationInfo* info() const { return info_; }
   HGraph* graph() const { return graph_; }
-  Zone* zone() const { return zone_; }
 
   bool is_unused() const { return status_ == UNUSED; }
   bool is_building() const { return status_ == BUILDING; }
@@ -2730,7 +2689,7 @@ class LChunkBuilder V8_FINAL BASE_EMBEDDED {
 
   // An input operand in register, stack slot or a constant operand.
   // Will not be moved to a register even if one is freely available.
-  MUST_USE_RESULT LOperand* UseAny(HValue* value);
+  virtual MUST_USE_RESULT LOperand* UseAny(HValue* value) V8_OVERRIDE;
 
   // Temporary operand that must be in a register.
   MUST_USE_RESULT LUnallocated* TempRegister();
@@ -2739,22 +2698,16 @@ class LChunkBuilder V8_FINAL BASE_EMBEDDED {
 
   // Methods for setting up define-use relationships.
   // Return the same instruction that they are passed.
-  template<int I, int T>
-      LInstruction* Define(LTemplateInstruction<1, I, T>* instr,
-                           LUnallocated* result);
-  template<int I, int T>
-      LInstruction* DefineAsRegister(LTemplateInstruction<1, I, T>* instr);
-  template<int I, int T>
-      LInstruction* DefineAsSpilled(LTemplateInstruction<1, I, T>* instr,
-                                    int index);
-  template<int I, int T>
-      LInstruction* DefineSameAsFirst(LTemplateInstruction<1, I, T>* instr);
-  template<int I, int T>
-      LInstruction* DefineFixed(LTemplateInstruction<1, I, T>* instr,
-                                Register reg);
-  template<int I, int T>
-      LInstruction* DefineFixedDouble(LTemplateInstruction<1, I, T>* instr,
-                                      XMMRegister reg);
+  LInstruction* Define(LTemplateResultInstruction<1>* instr,
+                       LUnallocated* result);
+  LInstruction* DefineAsRegister(LTemplateResultInstruction<1>* instr);
+  LInstruction* DefineAsSpilled(LTemplateResultInstruction<1>* instr,
+                                int index);
+  LInstruction* DefineSameAsFirst(LTemplateResultInstruction<1>* instr);
+  LInstruction* DefineFixed(LTemplateResultInstruction<1>* instr,
+                            Register reg);
+  LInstruction* DefineFixedDouble(LTemplateResultInstruction<1>* instr,
+                                  XMMRegister reg);
   // Assigns an environment to an instruction.  An instruction which can
   // deoptimize must have an environment.
   LInstruction* AssignEnvironment(LInstruction* instr);
@@ -2772,10 +2725,6 @@ class LChunkBuilder V8_FINAL BASE_EMBEDDED {
       HInstruction* hinstr,
       CanDeoptimize can_deoptimize = CANNOT_DEOPTIMIZE_EAGERLY);
 
-  LEnvironment* CreateEnvironment(HEnvironment* hydrogen_env,
-                                  int* argument_index_accumulator,
-                                  ZoneList<HValue*>* objects_to_materialize);
-
   void VisitInstruction(HInstruction* current);
 
   void DoBasicBlock(HBasicBlock* block, HBasicBlock* next_block);
@@ -2788,12 +2737,10 @@ class LChunkBuilder V8_FINAL BASE_EMBEDDED {
   LPlatformChunk* chunk_;
   CompilationInfo* info_;
   HGraph* const graph_;
-  Zone* zone_;
   Status status_;
   HInstruction* current_instruction_;
   HBasicBlock* current_block_;
   HBasicBlock* next_block_;
-  int argument_count_;
   LAllocator* allocator_;
   LInstruction* instruction_pending_deoptimization_environment_;
   BailoutId pending_deoptimization_ast_id_;

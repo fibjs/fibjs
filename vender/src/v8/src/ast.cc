@@ -82,8 +82,8 @@ bool Expression::IsUndefinedLiteral(Isolate* isolate) {
 }
 
 
-VariableProxy::VariableProxy(Isolate* isolate, Variable* var, int position)
-    : Expression(isolate, position),
+VariableProxy::VariableProxy(Zone* zone, Variable* var, int position)
+    : Expression(zone, position),
       name_(var->name()),
       var_(NULL),  // Will be set by the call to BindTo.
       is_this_(var->is_this()),
@@ -94,12 +94,12 @@ VariableProxy::VariableProxy(Isolate* isolate, Variable* var, int position)
 }
 
 
-VariableProxy::VariableProxy(Isolate* isolate,
+VariableProxy::VariableProxy(Zone* zone,
                              Handle<String> name,
                              bool is_this,
                              Interface* interface,
                              int position)
-    : Expression(isolate, position),
+    : Expression(zone, position),
       name_(name),
       var_(NULL),
       is_this_(is_this),
@@ -126,17 +126,17 @@ void VariableProxy::BindTo(Variable* var) {
 }
 
 
-Assignment::Assignment(Isolate* isolate,
+Assignment::Assignment(Zone* zone,
                        Token::Value op,
                        Expression* target,
                        Expression* value,
                        int pos)
-    : Expression(isolate, pos),
+    : Expression(zone, pos),
       op_(op),
       target_(target),
       value_(value),
       binary_operation_(NULL),
-      assignment_id_(GetNextId(isolate)),
+      assignment_id_(GetNextId(zone)),
       is_uninitialized_(false),
       is_pre_monomorphic_(false),
       store_mode_(STANDARD_STORE) { }
@@ -186,15 +186,31 @@ LanguageMode FunctionLiteral::language_mode() const {
 }
 
 
-ObjectLiteralProperty::ObjectLiteralProperty(Literal* key,
-                                             Expression* value,
-                                             Isolate* isolate) {
+void FunctionLiteral::InitializeSharedInfo(
+    Handle<Code> unoptimized_code) {
+  for (RelocIterator it(*unoptimized_code); !it.done(); it.next()) {
+    RelocInfo* rinfo = it.rinfo();
+    if (rinfo->rmode() != RelocInfo::EMBEDDED_OBJECT) continue;
+    Object* obj = rinfo->target_object();
+    if (obj->IsSharedFunctionInfo()) {
+      SharedFunctionInfo* shared = SharedFunctionInfo::cast(obj);
+      if (shared->start_position() == start_position()) {
+        shared_info_ = Handle<SharedFunctionInfo>(shared);
+        break;
+      }
+    }
+  }
+}
+
+
+ObjectLiteralProperty::ObjectLiteralProperty(
+    Zone* zone, Literal* key, Expression* value) {
   emit_store_ = true;
   key_ = key;
   value_ = value;
   Object* k = *key->value();
   if (k->IsInternalizedString() &&
-      isolate->heap()->proto_string()->Equals(String::cast(k))) {
+      zone->isolate()->heap()->proto_string()->Equals(String::cast(k))) {
     kind_ = PROTOTYPE;
   } else if (value_->AsMaterializedLiteral() != NULL) {
     kind_ = MATERIALIZED_LITERAL;
@@ -206,8 +222,8 @@ ObjectLiteralProperty::ObjectLiteralProperty(Literal* key,
 }
 
 
-ObjectLiteralProperty::ObjectLiteralProperty(bool is_getter,
-                                             FunctionLiteral* value) {
+ObjectLiteralProperty::ObjectLiteralProperty(
+    Zone* zone, bool is_getter, FunctionLiteral* value) {
   emit_store_ = true;
   value_ = value;
   kind_ = is_getter ? GETTER : SETTER;
@@ -573,9 +589,25 @@ bool FunctionDeclaration::IsInlineable() const {
 // TODO(rossberg): all RecordTypeFeedback functions should disappear
 // once we use the common type field in the AST consistently.
 
-
 void Expression::RecordToBooleanTypeFeedback(TypeFeedbackOracle* oracle) {
   to_boolean_types_ = oracle->ToBooleanTypes(test_id());
+}
+
+
+Call::CallType Call::GetCallType(Isolate* isolate) const {
+  VariableProxy* proxy = expression()->AsVariableProxy();
+  if (proxy != NULL) {
+    if (proxy->var()->is_possibly_eval(isolate)) {
+      return POSSIBLY_EVAL_CALL;
+    } else if (proxy->var()->IsUnallocated()) {
+      return GLOBAL_CALL;
+    } else if (proxy->var()->IsLookupSlot()) {
+      return LOOKUP_SLOT_CALL;
+    }
+  }
+
+  Property* property = expression()->AsProperty();
+  return property != NULL ? PROPERTY_CALL : OTHER_CALL;
 }
 
 
@@ -679,8 +711,7 @@ Handle<JSObject> Call::GetPrototypeForPrimitiveCheck(
 }
 
 
-void Call::RecordTypeFeedback(TypeFeedbackOracle* oracle,
-                              CallKind call_kind) {
+void Call::RecordTypeFeedback(TypeFeedbackOracle* oracle) {
   is_monomorphic_ = oracle->CallIsMonomorphic(CallFeedbackId());
   Property* property = expression()->AsProperty();
   if (property == NULL) {
@@ -695,7 +726,7 @@ void Call::RecordTypeFeedback(TypeFeedbackOracle* oracle,
     receiver_types_.Clear();
     if (check_type_ == RECEIVER_MAP_CHECK) {
       oracle->CallReceiverTypes(CallFeedbackId(),
-          name, arguments()->length(), call_kind, &receiver_types_);
+          name, arguments()->length(), &receiver_types_);
       is_monomorphic_ = is_monomorphic_ && receiver_types_.length() > 0;
     } else {
       holder_ = GetPrototypeForPrimitiveCheck(check_type_, oracle->isolate());
@@ -724,16 +755,13 @@ void Call::RecordTypeFeedback(TypeFeedbackOracle* oracle,
 
 
 void CallNew::RecordTypeFeedback(TypeFeedbackOracle* oracle) {
-  allocation_info_cell_ =
-      oracle->GetCallNewAllocationInfoCell(CallNewFeedbackId());
+  allocation_site_ =
+      oracle->GetCallNewAllocationSite(CallNewFeedbackId());
   is_monomorphic_ = oracle->CallNewIsMonomorphic(CallNewFeedbackId());
   if (is_monomorphic_) {
     target_ = oracle->GetCallNewTarget(CallNewFeedbackId());
-    Object* value = allocation_info_cell_->value();
-    ASSERT(!value->IsTheHole());
-    if (value->IsAllocationSite()) {
-      AllocationSite* site = AllocationSite::cast(value);
-      elements_kind_ = site->GetElementsKind();
+    if (!allocation_site_.is_null()) {
+      elements_kind_ = allocation_site_->GetElementsKind();
     }
   }
 }
@@ -1117,16 +1145,16 @@ RegExpAlternative::RegExpAlternative(ZoneList<RegExpTree*>* nodes)
 }
 
 
-CaseClause::CaseClause(Isolate* isolate,
+CaseClause::CaseClause(Zone* zone,
                        Expression* label,
                        ZoneList<Statement*>* statements,
                        int pos)
-    : Expression(isolate, pos),
+    : Expression(zone, pos),
       label_(label),
       statements_(statements),
-      compare_type_(Type::None(), isolate),
-      compare_id_(AstNode::GetNextId(isolate)),
-      entry_id_(AstNode::GetNextId(isolate)) {
+      compare_type_(Type::None(zone)),
+      compare_id_(AstNode::GetNextId(zone)),
+      entry_id_(AstNode::GetNextId(zone)) {
 }
 
 

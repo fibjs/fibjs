@@ -2939,9 +2939,6 @@
     <ClInclude Include="src\v8\src\api.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\v8\src\apiutils.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
     <ClInclude Include="src\v8\src\arguments.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>

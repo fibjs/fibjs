@@ -738,7 +738,7 @@ template <class T, class M> class Persistent : public PersistentBase<T> {
 template<class T>
 class UniquePersistent : public PersistentBase<T> {
   struct RValue {
-    V8_INLINE explicit RValue(UniquePersistent* object) : object(object) {}
+    V8_INLINE explicit RValue(UniquePersistent* obj) : object(obj) {}
     UniquePersistent* object;
   };
 
@@ -823,20 +823,24 @@ class V8_EXPORT HandleScope {
   /**
    * Counts the number of allocated handles.
    */
-  static int NumberOfHandles();
+  static int NumberOfHandles(Isolate* isolate);
 
- private:
-  /**
-   * Creates a new handle with the given value.
-   */
+  V8_INLINE Isolate* GetIsolate() const {
+    return reinterpret_cast<Isolate*>(isolate_);
+  }
+
+ protected:
+  V8_INLINE HandleScope() {}
+
+  void Initialize(Isolate* isolate);
+
   static internal::Object** CreateHandle(internal::Isolate* isolate,
                                          internal::Object* value);
-  // Uses HeapObject to obtain the current Isolate.
+
+ private:
+  // Uses heap_object to obtain the current Isolate.
   static internal::Object** CreateHandle(internal::HeapObject* heap_object,
                                          internal::Object* value);
-
-  V8_INLINE HandleScope() {}
-  void Initialize(Isolate* isolate);
 
   // Make it hard to create heap-allocated or illegal handle scopes by
   // disallowing certain operations.
@@ -845,27 +849,15 @@ class V8_EXPORT HandleScope {
   void* operator new(size_t size);
   void operator delete(void*, size_t);
 
-  // This Data class is accessible internally as HandleScopeData through a
-  // typedef in the ImplementationUtilities class.
-  class V8_EXPORT Data {
-   public:
-    internal::Object** next;
-    internal::Object** limit;
-    int level;
-    V8_INLINE void Initialize() {
-      next = limit = NULL;
-      level = 0;
-    }
-  };
-
   internal::Isolate* isolate_;
   internal::Object** prev_next_;
   internal::Object** prev_limit_;
 
-  friend class ImplementationUtilities;
-  friend class EscapableHandleScope;
-  template<class F> friend class Handle;
+  // Local::New uses CreateHandle with an Isolate* parameter.
   template<class F> friend class Local;
+
+  // Object::GetInternalField and Context::GetEmbedderData use CreateHandle with
+  // a HeapObject* in their shortcuts.
   friend class Object;
   friend class Context;
 };
@@ -941,16 +933,6 @@ class V8_EXPORT Data {
 class V8_EXPORT ScriptData {  // NOLINT
  public:
   virtual ~ScriptData() { }
-
-  /**
-   * Pre-compiles the specified script (context-independent).
-   *
-   * \param input Pointer to UTF-8 script source code.
-   * \param length Length of UTF-8 script source code.
-   */
-  static ScriptData* PreCompile(Isolate* isolate,
-                                const char* input,
-                                int length);
 
   /**
    * Pre-compiles the specified script (context-independent).
@@ -1646,7 +1628,11 @@ class V8_EXPORT String : public Primitive {
     NO_OPTIONS = 0,
     HINT_MANY_WRITES_EXPECTED = 1,
     NO_NULL_TERMINATION = 2,
-    PRESERVE_ASCII_NULL = 4
+    PRESERVE_ASCII_NULL = 4,
+    // Used by WriteUtf8 to replace orphan surrogate code units with the
+    // unicode replacement character. Needs to be set to guarantee valid UTF-8
+    // output.
+    REPLACE_INVALID_UTF8 = 8
   };
 
   // 16-bit character codes.
@@ -2014,15 +2000,26 @@ enum PropertyAttribute {
 };
 
 enum ExternalArrayType {
-  kExternalByteArray = 1,
-  kExternalUnsignedByteArray,
-  kExternalShortArray,
-  kExternalUnsignedShortArray,
-  kExternalIntArray,
-  kExternalUnsignedIntArray,
-  kExternalFloatArray,
-  kExternalDoubleArray,
-  kExternalPixelArray
+  kExternalInt8Array = 1,
+  kExternalUint8Array,
+  kExternalInt16Array,
+  kExternalUint16Array,
+  kExternalInt32Array,
+  kExternalUint32Array,
+  kExternalFloat32Array,
+  kExternalFloat64Array,
+  kExternalUint8ClampedArray,
+
+  // Legacy constant names
+  kExternalByteArray = kExternalInt8Array,
+  kExternalUnsignedByteArray = kExternalUint8Array,
+  kExternalShortArray = kExternalInt16Array,
+  kExternalUnsignedShortArray = kExternalUint16Array,
+  kExternalIntArray = kExternalInt32Array,
+  kExternalUnsignedIntArray = kExternalUint32Array,
+  kExternalFloatArray = kExternalFloat32Array,
+  kExternalDoubleArray = kExternalFloat64Array,
+  kExternalPixelArray = kExternalUint8ClampedArray
 };
 
 /**
@@ -3736,17 +3733,6 @@ class V8_EXPORT Extension {  // NOLINT
 void V8_EXPORT RegisterExtension(Extension* extension);
 
 
-/**
- * Ignore
- */
-class V8_EXPORT DeclareExtension {
- public:
-  V8_INLINE DeclareExtension(Extension* extension) {
-    RegisterExtension(extension);
-  }
-};
-
-
 // --- Statics ---
 
 V8_INLINE Handle<Primitive> Undefined(Isolate* isolate);
@@ -3903,7 +3889,8 @@ enum GCType {
 enum GCCallbackFlags {
   kNoGCCallbackFlags = 0,
   kGCCallbackFlagCompacted = 1 << 0,
-  kGCCallbackFlagConstructRetainedObjectInfos = 1 << 1
+  kGCCallbackFlagConstructRetainedObjectInfos = 1 << 1,
+  kGCCallbackFlagForced = 1 << 2
 };
 
 typedef void (*GCPrologueCallback)(GCType type, GCCallbackFlags flags);
@@ -3970,6 +3957,15 @@ class V8_EXPORT Isolate {
     // Prevent copying of Scope objects.
     Scope(const Scope&);
     Scope& operator=(const Scope&);
+  };
+
+  /**
+   * Types of garbage collections that can be requested via
+   * RequestGarbageCollectionForTesting.
+   */
+  enum GarbageCollectionType {
+    kFullGarbageCollection,
+    kMinorGarbageCollection
   };
 
   /**
@@ -4184,6 +4180,17 @@ class V8_EXPORT Isolate {
    */
   void ClearInterrupt();
 
+  /**
+   * Request garbage collection in this Isolate. It is only valid to call this
+   * function if --expose_gc was specified.
+   *
+   * This should only be used for testing purposes and not to enforce a garbage
+   * collection schedule. It has strong negative impact on the garbage
+   * collection performance. Use IdleNotification() or LowMemoryNotification()
+   * instead to influence the garbage collection schedule.
+   */
+  void RequestGarbageCollectionForTesting(GarbageCollectionType type);
+
  private:
   Isolate();
   Isolate(const Isolate&);
@@ -4377,24 +4384,6 @@ class V8_EXPORT PersistentHandleVisitor {  // NOLINT
   virtual ~PersistentHandleVisitor() {}
   virtual void VisitPersistentHandle(Persistent<Value>* value,
                                      uint16_t class_id) {}
-};
-
-
-/**
- * Asserts that no action is performed that could cause a handle's value
- * to be modified. Useful when otherwise unsafe handle operations need to
- * be performed.
- */
-class V8_EXPORT AssertNoGCScope {
-#ifndef DEBUG
-  // TODO(yangguo): remove isolate argument.
-  V8_INLINE AssertNoGCScope(Isolate* isolate) {}
-#else
-  AssertNoGCScope(Isolate* isolate);
-  ~AssertNoGCScope();
- private:
-  void* disallow_heap_allocation_;
-#endif
 };
 
 
@@ -4930,15 +4919,19 @@ class V8_EXPORT TryCatch {
 
 
 /**
- * Ignore
+ * A container for extension names.
  */
 class V8_EXPORT ExtensionConfiguration {
  public:
+  ExtensionConfiguration() : name_count_(0), names_(NULL) { }
   ExtensionConfiguration(int name_count, const char* names[])
       : name_count_(name_count), names_(names) { }
+
+  const char** begin() const { return &names_[0]; }
+  const char** end()  const { return &names_[name_count_]; }
+
  private:
-  friend class ImplementationUtilities;
-  int name_count_;
+  const int name_count_;
   const char** names_;
 };
 
@@ -5405,7 +5398,7 @@ class Internals {
   static const int kNullValueRootIndex = 7;
   static const int kTrueValueRootIndex = 8;
   static const int kFalseValueRootIndex = 9;
-  static const int kEmptyStringRootIndex = 135;
+  static const int kEmptyStringRootIndex = 145;
 
   static const int kNodeClassIdOffset = 1 * kApiPointerSize;
   static const int kNodeFlagsOffset = 1 * kApiPointerSize + 3;
@@ -5416,7 +5409,7 @@ class Internals {
   static const int kNodeIsIndependentShift = 4;
   static const int kNodeIsPartiallyDependentShift = 5;
 
-  static const int kJSObjectType = 0xb2;
+  static const int kJSObjectType = 0xbb;
   static const int kFirstNonstringType = 0x80;
   static const int kOddballType = 0x83;
   static const int kForeignType = 0x87;

@@ -415,8 +415,7 @@ static void GenerateFunctionTailCall(MacroAssembler* masm,
 
   // Invoke the function.
   ParameterCount actual(argc);
-  __ InvokeFunction(r1, actual, JUMP_FUNCTION,
-                    NullCallWrapper(), CALL_AS_METHOD);
+  __ InvokeFunction(r1, actual, JUMP_FUNCTION, NullCallWrapper());
 }
 
 
@@ -491,21 +490,14 @@ void CallICBase::GenerateMiss(MacroAssembler* masm,
 
     // Patch the receiver on the stack.
     __ bind(&global);
-    __ ldr(r2, FieldMemOperand(r2, GlobalObject::kGlobalReceiverOffset));
+    __ LoadRoot(r2, Heap::kUndefinedValueRootIndex);
     __ str(r2, MemOperand(sp, argc * kPointerSize));
     __ bind(&invoke);
   }
 
   // Invoke the function.
-  CallKind call_kind = CallICBase::Contextual::decode(extra_state)
-      ? CALL_AS_FUNCTION
-      : CALL_AS_METHOD;
   ParameterCount actual(argc);
-  __ InvokeFunction(r1,
-                    actual,
-                    JUMP_FUNCTION,
-                    NullCallWrapper(),
-                    call_kind);
+  __ InvokeFunction(r1, actual, JUMP_FUNCTION, NullCallWrapper());
 }
 
 
@@ -647,7 +639,7 @@ void KeyedCallIC::GenerateNormal(MacroAssembler* masm, int argc) {
 }
 
 
-void LoadIC::GenerateMegamorphic(MacroAssembler* masm) {
+void LoadIC::GenerateMegamorphic(MacroAssembler* masm, ContextualMode mode) {
   // ----------- S t a t e -------------
   //  -- r2    : name
   //  -- lr    : return address
@@ -655,8 +647,9 @@ void LoadIC::GenerateMegamorphic(MacroAssembler* masm) {
   // -----------------------------------
 
   // Probe the stub cache.
+  ExtraICState extra_ic_state = LoadIC::ComputeExtraICState(mode);
   Code::Flags flags = Code::ComputeFlags(
-      Code::HANDLER, MONOMORPHIC, kNoExtraICState,
+      Code::HANDLER, MONOMORPHIC, extra_ic_state,
       Code::NORMAL, Code::LOAD_IC);
   masm->isolate()->stub_cache()->GenerateProbe(
       masm, flags, r0, r2, r3, r4, r5, r6);

@@ -259,9 +259,11 @@ static Handle<Object> CreateObjectLiteralBoilerplate(
                                 constant_properties,
                                 &is_result_from_cache);
 
+  PretenureFlag pretenure_flag =
+      isolate->heap()->InNewSpace(*literals) ? NOT_TENURED : TENURED;
+
   Handle<JSObject> boilerplate =
-      isolate->factory()->NewJSObjectFromMap(
-          map, isolate->heap()->GetPretenureMode());
+      isolate->factory()->NewJSObjectFromMap(map, pretenure_flag);
 
   // Normalize the elements of the boilerplate to save space if needed.
   if (!should_have_fast_elements) JSObject::NormalizeElements(boilerplate);
@@ -367,9 +369,11 @@ Handle<Object> Runtime::CreateArrayLiteralBoilerplate(
   Handle<JSFunction> constructor(
       JSFunction::NativeContextFromLiterals(*literals)->array_function());
 
+  PretenureFlag pretenure_flag =
+      isolate->heap()->InNewSpace(*literals) ? NOT_TENURED : TENURED;
+
   Handle<JSArray> object = Handle<JSArray>::cast(
-      isolate->factory()->NewJSObject(
-          constructor, isolate->heap()->GetPretenureMode()));
+      isolate->factory()->NewJSObject(constructor, pretenure_flag));
 
   ElementsKind constant_elements_kind =
       static_cast<ElementsKind>(Smi::cast(elements->get(0))->value());
@@ -866,42 +870,15 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_ArrayBufferIsView) {
 void Runtime::ArrayIdToTypeAndSize(
     int arrayId, ExternalArrayType* array_type, size_t* element_size) {
   switch (arrayId) {
-    case ARRAY_ID_UINT8:
-      *array_type = kExternalUnsignedByteArray;
-      *element_size = 1;
+#define ARRAY_ID_CASE(Type, type, TYPE, ctype, size)                           \
+    case ARRAY_ID_##TYPE:                                                      \
+      *array_type = kExternal##Type##Array;                                    \
+      *element_size = size;                                                    \
       break;
-    case ARRAY_ID_INT8:
-      *array_type = kExternalByteArray;
-      *element_size = 1;
-      break;
-    case ARRAY_ID_UINT16:
-      *array_type = kExternalUnsignedShortArray;
-      *element_size = 2;
-      break;
-    case ARRAY_ID_INT16:
-      *array_type = kExternalShortArray;
-      *element_size = 2;
-      break;
-    case ARRAY_ID_UINT32:
-      *array_type = kExternalUnsignedIntArray;
-      *element_size = 4;
-      break;
-    case ARRAY_ID_INT32:
-      *array_type = kExternalIntArray;
-      *element_size = 4;
-      break;
-    case ARRAY_ID_FLOAT32:
-      *array_type = kExternalFloatArray;
-      *element_size = 4;
-      break;
-    case ARRAY_ID_FLOAT64:
-      *array_type = kExternalDoubleArray;
-      *element_size = 8;
-      break;
-    case ARRAY_ID_UINT8C:
-      *array_type = kExternalPixelArray;
-      *element_size = 1;
-      break;
+
+    TYPED_ARRAYS(ARRAY_ID_CASE)
+#undef ARRAY_ID_CASE
+
     default:
       UNREACHABLE();
   }
@@ -923,7 +900,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_TypedArrayInitialize) {
     holder->SetInternalField(i, Smi::FromInt(0));
   }
 
-  ExternalArrayType array_type = kExternalByteArray;  // Bogus initialization.
+  ExternalArrayType array_type = kExternalInt8Array;  // Bogus initialization.
   size_t element_size = 1;  // Bogus initialization.
   Runtime::ArrayIdToTypeAndSize(arrayId, &array_type, &element_size);
 
@@ -975,7 +952,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_TypedArrayInitializeFromArrayLike) {
     holder->SetInternalField(i, Smi::FromInt(0));
   }
 
-  ExternalArrayType array_type = kExternalByteArray;  // Bogus initialization.
+  ExternalArrayType array_type = kExternalInt8Array;  // Bogus initialization.
   size_t element_size = 1;  // Bogus initialization.
   Runtime::ArrayIdToTypeAndSize(arrayId, &array_type, &element_size);
 
@@ -2663,14 +2640,6 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_SpecialArrayFunctions) {
 }
 
 
-RUNTIME_FUNCTION(MaybeObject*, Runtime_IsCallable) {
-  SealHandleScope shs(isolate);
-  ASSERT(args.length() == 1);
-  CONVERT_ARG_CHECKED(Object, obj, 0);
-  return isolate->heap()->ToBoolean(obj->IsCallable());
-}
-
-
 RUNTIME_FUNCTION(MaybeObject*, Runtime_IsClassicModeFunction) {
   SealHandleScope shs(isolate);
   ASSERT(args.length() == 1);
@@ -3124,8 +3093,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_ResumeJSGeneratorObject) {
   ASSERT_EQ(frame->function(), generator_object->function());
   ASSERT(frame->function()->is_compiled());
 
-  STATIC_ASSERT(JSGeneratorObject::kGeneratorExecuting <= 0);
-  STATIC_ASSERT(JSGeneratorObject::kGeneratorClosed <= 0);
+  STATIC_ASSERT(JSGeneratorObject::kGeneratorExecuting < 0);
+  STATIC_ASSERT(JSGeneratorObject::kGeneratorClosed == 0);
 
   Address pc = generator_object->function()->code()->instruction_start();
   int offset = generator_object->continuation();
@@ -5226,7 +5195,8 @@ Handle<Object> Runtime::SetObjectProperty(Isolate* isolate,
     }
 
     js_object->ValidateElements();
-    if (js_object->HasExternalArrayElements()) {
+    if (js_object->HasExternalArrayElements() ||
+        js_object->HasFixedTypedArrayElements()) {
       if (!value->IsNumber() && !value->IsUndefined()) {
         bool has_exception;
         Handle<Object> number =
@@ -5744,6 +5714,7 @@ static int LocalPrototypeChainLength(JSObject* obj) {
 
 // Return the names of the local named properties.
 // args[0]: object
+// args[1]: PropertyAttributes as int
 RUNTIME_FUNCTION(MaybeObject*, Runtime_GetLocalPropertyNames) {
   HandleScope scope(isolate);
   ASSERT(args.length() == 2);
@@ -5751,8 +5722,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_GetLocalPropertyNames) {
     return isolate->heap()->undefined_value();
   }
   CONVERT_ARG_HANDLE_CHECKED(JSObject, obj, 0);
-  CONVERT_BOOLEAN_ARG_CHECKED(include_symbols, 1);
-  PropertyAttributes filter = include_symbols ? NONE : SYMBOLIC;
+  CONVERT_SMI_ARG_CHECKED(filter_value, 1);
+  PropertyAttributes filter = static_cast<PropertyAttributes>(filter_value);
 
   // Skip the global proxy as it has no properties and always delegates to the
   // real global object.
@@ -6815,8 +6786,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_NumberToStringSkipCache) {
   Object* number = args[0];
   RUNTIME_ASSERT(number->IsNumber());
 
-  return isolate->heap()->NumberToString(
-      number, false, isolate->heap()->GetPretenureMode());
+  return isolate->heap()->NumberToString(number, false);
 }
 
 
@@ -7680,7 +7650,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_Math_acos) {
   isolate->counters()->math_acos()->Increment();
 
   CONVERT_DOUBLE_ARG_CHECKED(x, 0);
-  return isolate->heap()->AllocateHeapNumber(acos(x));
+  return isolate->heap()->AllocateHeapNumber(std::acos(x));
 }
 
 
@@ -7690,7 +7660,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_Math_asin) {
   isolate->counters()->math_asin()->Increment();
 
   CONVERT_DOUBLE_ARG_CHECKED(x, 0);
-  return isolate->heap()->AllocateHeapNumber(asin(x));
+  return isolate->heap()->AllocateHeapNumber(std::asin(x));
 }
 
 
@@ -7700,7 +7670,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_Math_atan) {
   isolate->counters()->math_atan()->Increment();
 
   CONVERT_DOUBLE_ARG_CHECKED(x, 0);
-  return isolate->heap()->AllocateHeapNumber(atan(x));
+  return isolate->heap()->AllocateHeapNumber(std::atan(x));
 }
 
 
@@ -7724,7 +7694,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_Math_atan2) {
     if (y < 0) multiplier *= 3;
     result = multiplier * kPiDividedBy4;
   } else {
-    result = atan2(x, y);
+    result = std::atan2(x, y);
   }
   return isolate->heap()->AllocateHeapNumber(result);
 }
@@ -7747,7 +7717,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_Math_floor) {
   isolate->counters()->math_floor()->Increment();
 
   CONVERT_DOUBLE_ARG_CHECKED(x, 0);
-  return isolate->heap()->NumberFromDouble(floor(x));
+  return isolate->heap()->NumberFromDouble(std::floor(x));
 }
 
 
@@ -7757,7 +7727,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_Math_log) {
   isolate->counters()->math_log()->Increment();
 
   CONVERT_DOUBLE_ARG_CHECKED(x, 0);
-  return isolate->heap()->AllocateHeapNumber(log(x));
+  return isolate->heap()->AllocateHeapNumber(std::log(x));
 }
 
 
@@ -7842,7 +7812,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_RoundNumber) {
   if (sign && value >= -0.5) return isolate->heap()->minus_zero_value();
 
   // Do not call NumberFromDouble() to avoid extra checks.
-  return isolate->heap()->AllocateHeapNumber(floor(value + 0.5));
+  return isolate->heap()->AllocateHeapNumber(std::floor(value + 0.5));
 }
 
 
@@ -8747,12 +8717,21 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_CompileForOnStackReplacement) {
 
 RUNTIME_FUNCTION(MaybeObject*, Runtime_SetAllocationTimeout) {
   SealHandleScope shs(isolate);
-  ASSERT(args.length() == 2);
+  ASSERT(args.length() == 2 || args.length() == 3);
 #ifdef DEBUG
   CONVERT_SMI_ARG_CHECKED(interval, 0);
   CONVERT_SMI_ARG_CHECKED(timeout, 1);
   isolate->heap()->set_allocation_timeout(timeout);
   FLAG_gc_interval = interval;
+  if (args.length() == 3) {
+    // Enable/disable inline allocation if requested.
+    CONVERT_BOOLEAN_ARG_CHECKED(inline_allocation, 2);
+    if (inline_allocation) {
+      isolate->heap()->EnableInlineAllocation();
+    } else {
+      isolate->heap()->DisableInlineAllocation();
+    }
+  }
 #endif
   return isolate->heap()->undefined_value();
 }
@@ -8872,7 +8851,6 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_NewGlobalContext) {
 
   ASSERT(function->context() == isolate->context());
   ASSERT(function->context()->global_object() == result->global_object());
-  isolate->set_context(result);
   result->global_object()->set_global_context(result);
 
   return result;  // non-failure
@@ -8885,14 +8863,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_NewFunctionContext) {
 
   CONVERT_ARG_CHECKED(JSFunction, function, 0);
   int length = function->shared()->scope_info()->ContextLength();
-  Context* result;
-  MaybeObject* maybe_result =
-      isolate->heap()->AllocateFunctionContext(length, function);
-  if (!maybe_result->To(&result)) return maybe_result;
-
-  isolate->set_context(result);
-
-  return result;  // non-failure
+  return isolate->heap()->AllocateFunctionContext(length, function);
 }
 
 
@@ -9177,9 +9148,8 @@ static Object* ComputeReceiverForNonGlobal(Isolate* isolate,
   if (constructor != context_extension_function) return holder;
   // Fall back to using the global object as the implicit receiver if
   // the property turns out to be a local variable allocated in a
-  // context extension object - introduced via eval. Implicit global
-  // receivers are indicated with the hole value.
-  return isolate->heap()->the_hole_value();
+  // context extension object - introduced via eval.
+  return isolate->heap()->undefined_value();
 }
 
 
@@ -9213,11 +9183,7 @@ static ObjectPair LoadContextSlotHelper(Arguments args,
     ASSERT(holder->IsContext());
     // If the "property" we were looking for is a local variable, the
     // receiver is the global object; see ECMA-262, 3rd., 10.1.6 and 10.2.3.
-    //
-    // Use the hole as the receiver to signal that the receiver is implicit
-    // and that the global receiver should be used (as distinguished from an
-    // explicit receiver that happens to be a global object).
-    Handle<Object> receiver = isolate->factory()->the_hole_value();
+    Handle<Object> receiver = isolate->factory()->undefined_value();
     Object* value = Context::cast(*holder)->get(index);
     // Check for uninitialized bindings.
     switch (binding_flags) {
@@ -9252,7 +9218,7 @@ static ObjectPair LoadContextSlotHelper(Arguments args,
     // GetProperty below can cause GC.
     Handle<Object> receiver_handle(
         object->IsGlobalObject()
-            ? GlobalObject::cast(*object)->global_receiver()
+            ? Object::cast(isolate->heap()->undefined_value())
             : object->IsJSProxy() ? static_cast<Object*>(*object)
                 : ComputeReceiverForNonGlobal(isolate, JSObject::cast(*object)),
         isolate);
@@ -9557,7 +9523,7 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_DateCurrentTime) {
   // the number in a Date object representing a particular instant in
   // time is milliseconds. Therefore, we floor the result of getting
   // the OS time.
-  double millis = floor(OS::TimeCurrentMillis());
+  double millis = std::floor(OS::TimeCurrentMillis());
   return isolate->heap()->NumberFromDouble(millis);
 }
 
@@ -9751,7 +9717,7 @@ RUNTIME_FUNCTION(ObjectPair, Runtime_ResolvePossiblyDirectEval) {
   // the first argument without doing anything).
   if (*callee != isolate->native_context()->global_eval_fun() ||
       !args[1]->IsString()) {
-    return MakePair(*callee, isolate->heap()->the_hole_value());
+    return MakePair(*callee, isolate->heap()->undefined_value());
   }
 
   CONVERT_LANGUAGE_MODE_ARG(language_mode, 3);
@@ -9773,7 +9739,7 @@ static MaybeObject* Allocate(Isolate* isolate,
   Heap* heap = isolate->heap();
   RUNTIME_ASSERT(IsAligned(size, kPointerSize));
   RUNTIME_ASSERT(size > 0);
-  RUNTIME_ASSERT(size <= heap->MaxRegularSpaceAllocationSize());
+  RUNTIME_ASSERT(size <= Page::kMaxRegularHeapObjectSize);
   HeapObject* allocation;
   { MaybeObject* maybe_allocation = heap->AllocateRaw(size, space, space);
     if (!maybe_allocation->To(&allocation)) return maybe_allocation;
@@ -10010,15 +9976,12 @@ static uint32_t EstimateElementCount(Handle<JSArray> array) {
       break;
     }
     case NON_STRICT_ARGUMENTS_ELEMENTS:
-    case EXTERNAL_BYTE_ELEMENTS:
-    case EXTERNAL_UNSIGNED_BYTE_ELEMENTS:
-    case EXTERNAL_SHORT_ELEMENTS:
-    case EXTERNAL_UNSIGNED_SHORT_ELEMENTS:
-    case EXTERNAL_INT_ELEMENTS:
-    case EXTERNAL_UNSIGNED_INT_ELEMENTS:
-    case EXTERNAL_FLOAT_ELEMENTS:
-    case EXTERNAL_DOUBLE_ELEMENTS:
-    case EXTERNAL_PIXEL_ELEMENTS:
+#define TYPED_ARRAY_CASE(Type, type, TYPE, ctype, size)                      \
+    case EXTERNAL_##TYPE##_ELEMENTS:                                         \
+    case TYPE##_ELEMENTS:                                                    \
+
+    TYPED_ARRAYS(TYPED_ARRAY_CASE)
+#undef TYPED_ARRAY_CASE
       // External arrays are always dense.
       return length;
   }
@@ -10126,51 +10089,16 @@ static void CollectElementIndices(Handle<JSObject> object,
     default: {
       int dense_elements_length;
       switch (kind) {
-        case EXTERNAL_PIXEL_ELEMENTS: {
-          dense_elements_length =
-              ExternalPixelArray::cast(object->elements())->length();
-          break;
+#define TYPED_ARRAY_CASE(Type, type, TYPE, ctype, size)                        \
+        case EXTERNAL_##TYPE##_ELEMENTS: {                                     \
+          dense_elements_length =                                              \
+              External##Type##Array::cast(object->elements())->length();       \
+          break;                                                               \
         }
-        case EXTERNAL_BYTE_ELEMENTS: {
-          dense_elements_length =
-              ExternalByteArray::cast(object->elements())->length();
-          break;
-        }
-        case EXTERNAL_UNSIGNED_BYTE_ELEMENTS: {
-          dense_elements_length =
-              ExternalUnsignedByteArray::cast(object->elements())->length();
-          break;
-        }
-        case EXTERNAL_SHORT_ELEMENTS: {
-          dense_elements_length =
-              ExternalShortArray::cast(object->elements())->length();
-          break;
-        }
-        case EXTERNAL_UNSIGNED_SHORT_ELEMENTS: {
-          dense_elements_length =
-              ExternalUnsignedShortArray::cast(object->elements())->length();
-          break;
-        }
-        case EXTERNAL_INT_ELEMENTS: {
-          dense_elements_length =
-              ExternalIntArray::cast(object->elements())->length();
-          break;
-        }
-        case EXTERNAL_UNSIGNED_INT_ELEMENTS: {
-          dense_elements_length =
-              ExternalUnsignedIntArray::cast(object->elements())->length();
-          break;
-        }
-        case EXTERNAL_FLOAT_ELEMENTS: {
-          dense_elements_length =
-              ExternalFloatArray::cast(object->elements())->length();
-          break;
-        }
-        case EXTERNAL_DOUBLE_ELEMENTS: {
-          dense_elements_length =
-              ExternalDoubleArray::cast(object->elements())->length();
-          break;
-        }
+
+        TYPED_ARRAYS(TYPED_ARRAY_CASE)
+#undef TYPED_ARRAY_CASE
+
         default:
           UNREACHABLE();
           dense_elements_length = 0;
@@ -10287,8 +10215,8 @@ static bool IterateElements(Isolate* isolate,
       }
       break;
     }
-    case EXTERNAL_PIXEL_ELEMENTS: {
-      Handle<ExternalPixelArray> pixels(ExternalPixelArray::cast(
+    case EXTERNAL_UINT8_CLAMPED_ELEMENTS: {
+      Handle<ExternalUint8ClampedArray> pixels(ExternalUint8ClampedArray::cast(
           receiver->elements()));
       for (uint32_t j = 0; j < length; j++) {
         Handle<Smi> e(Smi::FromInt(pixels->get_scalar(j)), isolate);
@@ -10296,43 +10224,43 @@ static bool IterateElements(Isolate* isolate,
       }
       break;
     }
-    case EXTERNAL_BYTE_ELEMENTS: {
-      IterateExternalArrayElements<ExternalByteArray, int8_t>(
+    case EXTERNAL_INT8_ELEMENTS: {
+      IterateExternalArrayElements<ExternalInt8Array, int8_t>(
           isolate, receiver, true, true, visitor);
       break;
     }
-    case EXTERNAL_UNSIGNED_BYTE_ELEMENTS: {
-      IterateExternalArrayElements<ExternalUnsignedByteArray, uint8_t>(
+    case EXTERNAL_UINT8_ELEMENTS: {
+      IterateExternalArrayElements<ExternalUint8Array, uint8_t>(
           isolate, receiver, true, true, visitor);
       break;
     }
-    case EXTERNAL_SHORT_ELEMENTS: {
-      IterateExternalArrayElements<ExternalShortArray, int16_t>(
+    case EXTERNAL_INT16_ELEMENTS: {
+      IterateExternalArrayElements<ExternalInt16Array, int16_t>(
           isolate, receiver, true, true, visitor);
       break;
     }
-    case EXTERNAL_UNSIGNED_SHORT_ELEMENTS: {
-      IterateExternalArrayElements<ExternalUnsignedShortArray, uint16_t>(
+    case EXTERNAL_UINT16_ELEMENTS: {
+      IterateExternalArrayElements<ExternalUint16Array, uint16_t>(
           isolate, receiver, true, true, visitor);
       break;
     }
-    case EXTERNAL_INT_ELEMENTS: {
-      IterateExternalArrayElements<ExternalIntArray, int32_t>(
+    case EXTERNAL_INT32_ELEMENTS: {
+      IterateExternalArrayElements<ExternalInt32Array, int32_t>(
           isolate, receiver, true, false, visitor);
       break;
     }
-    case EXTERNAL_UNSIGNED_INT_ELEMENTS: {
-      IterateExternalArrayElements<ExternalUnsignedIntArray, uint32_t>(
+    case EXTERNAL_UINT32_ELEMENTS: {
+      IterateExternalArrayElements<ExternalUint32Array, uint32_t>(
           isolate, receiver, true, false, visitor);
       break;
     }
-    case EXTERNAL_FLOAT_ELEMENTS: {
-      IterateExternalArrayElements<ExternalFloatArray, float>(
+    case EXTERNAL_FLOAT32_ELEMENTS: {
+      IterateExternalArrayElements<ExternalFloat32Array, float>(
           isolate, receiver, false, false, visitor);
       break;
     }
-    case EXTERNAL_DOUBLE_ELEMENTS: {
-      IterateExternalArrayElements<ExternalDoubleArray, double>(
+    case EXTERNAL_FLOAT64_ELEMENTS: {
+      IterateExternalArrayElements<ExternalFloat64Array, double>(
           isolate, receiver, false, false, visitor);
       break;
     }
@@ -11343,11 +11271,15 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_GetFrameDetails) {
     // by creating correct wrapper object based on the calling frame's
     // native context.
     it.Advance();
-    Handle<Context> calling_frames_native_context(
-        Context::cast(Context::cast(it.frame()->context())->native_context()));
-    ASSERT(!receiver->IsUndefined() && !receiver->IsNull());
-    receiver =
-        isolate->factory()->ToObject(receiver, calling_frames_native_context);
+    if (receiver->IsUndefined()) {
+      Context* context = function->context();
+      receiver = handle(context->global_object()->global_receiver());
+    } else {
+      ASSERT(!receiver->IsNull());
+      Context* context = Context::cast(it.frame()->context());
+      Handle<Context> native_context(Context::cast(context->native_context()));
+      receiver = isolate->factory()->ToObject(receiver, native_context);
+    }
   }
   details->set(kFrameDetailsReceiverIndex, *receiver);
 
@@ -14336,14 +14268,19 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_NotifyContextDisposed) {
 }
 
 
-RUNTIME_FUNCTION(MaybeObject*, Runtime_MigrateInstance) {
+RUNTIME_FUNCTION(MaybeObject*, Runtime_TryMigrateInstance) {
   HandleScope scope(isolate);
   ASSERT(args.length() == 1);
   CONVERT_ARG_HANDLE_CHECKED(Object, object, 0);
   if (!object->IsJSObject()) return Smi::FromInt(0);
   Handle<JSObject> js_object = Handle<JSObject>::cast(object);
   if (!js_object->map()->is_deprecated()) return Smi::FromInt(0);
-  JSObject::MigrateInstance(js_object);
+  // This call must not cause lazy deopts, because it's called from deferred
+  // code where we can't handle lazy deopts for lack of a suitable bailout
+  // ID. So we just try migration and signal failure if necessary,
+  // which will also trigger a deopt.
+  Handle<Object> result = JSObject::TryMigrateInstance(js_object);
+  if (result.is_null()) return Smi::FromInt(0);
   return *object;
 }
 
@@ -14541,20 +14478,22 @@ ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(FastDoubleElements)
 ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(FastHoleyElements)
 ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(DictionaryElements)
 ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(NonStrictArgumentsElements)
-ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(ExternalPixelElements)
 ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(ExternalArrayElements)
-ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(ExternalByteElements)
-ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(ExternalUnsignedByteElements)
-ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(ExternalShortElements)
-ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(ExternalUnsignedShortElements)
-ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(ExternalIntElements)
-ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(ExternalUnsignedIntElements)
-ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(ExternalFloatElements)
-ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(ExternalDoubleElements)
 // Properties test sitting with elements tests - not fooling anyone.
 ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION(FastProperties)
 
 #undef ELEMENTS_KIND_CHECK_RUNTIME_FUNCTION
+
+
+#define TYPED_ARRAYS_CHECK_RUNTIME_FUNCTION(Type, type, TYPE, ctype, size)     \
+  RUNTIME_FUNCTION(MaybeObject*, Runtime_HasExternal##Type##Elements) {        \
+    CONVERT_ARG_CHECKED(JSObject, obj, 0);                                     \
+    return isolate->heap()->ToBoolean(obj->HasExternal##Type##Elements());     \
+  }
+
+TYPED_ARRAYS(TYPED_ARRAYS_CHECK_RUNTIME_FUNCTION)
+
+#undef TYPED_ARRAYS_CHECK_RUNTIME_FUNCTION
 
 
 RUNTIME_FUNCTION(MaybeObject*, Runtime_HaveSameMap) {
@@ -14772,10 +14711,8 @@ RUNTIME_FUNCTION(MaybeObject*, Runtime_ArrayConstructor) {
 
   Handle<AllocationSite> site;
   if (!type_info.is_null() &&
-      *type_info != isolate->heap()->undefined_value() &&
-      Cell::cast(*type_info)->value()->IsAllocationSite()) {
-    site = Handle<AllocationSite>(
-        AllocationSite::cast(Cell::cast(*type_info)->value()), isolate);
+      *type_info != isolate->heap()->undefined_value()) {
+    site = Handle<AllocationSite>::cast(type_info);
     ASSERT(!site->SitePointsToLiteral());
   }
 

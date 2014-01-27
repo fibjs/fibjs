@@ -81,24 +81,6 @@ class CodeStubGraphBuilderBase : public HGraphBuilder {
   HContext* context() { return context_; }
   Isolate* isolate() { return info_.isolate(); }
 
-  class ArrayContextChecker {
-   public:
-    ArrayContextChecker(HGraphBuilder* builder, HValue* constructor,
-                        HValue* array_function)
-        : checker_(builder) {
-      checker_.If<HCompareObjectEqAndBranch, HValue*>(constructor,
-                                                      array_function);
-      checker_.Then();
-    }
-
-    ~ArrayContextChecker() {
-      checker_.ElseDeopt("Array constructor called from different context");
-      checker_.End();
-    }
-   private:
-    IfBuilder checker_;
-  };
-
   enum ArgumentClass {
     NONE,
     SINGLE,
@@ -106,7 +88,6 @@ class CodeStubGraphBuilderBase : public HGraphBuilder {
   };
 
   HValue* BuildArrayConstructor(ElementsKind kind,
-                                ContextCheckMode context_mode,
                                 AllocationSiteOverrideMode override_mode,
                                 ArgumentClass argument_class);
   HValue* BuildInternalArrayConstructor(ElementsKind kind,
@@ -342,7 +323,7 @@ template <>
 HValue* CodeStubGraphBuilder<NumberToStringStub>::BuildCodeStub() {
   info()->MarkAsSavesCallerDoubles();
   HValue* number = GetParameter(NumberToStringStub::kNumber);
-  return BuildNumberToString(number, handle(Type::Number(), isolate()));
+  return BuildNumberToString(number, Type::Number(zone()));
 }
 
 
@@ -510,20 +491,16 @@ HValue* CodeStubGraphBuilder<CreateAllocationSiteStub>::BuildCodeStub() {
                             AllocationSite::kNestedSiteOffset),
                         graph()->GetConstant0());
 
-  // Pretenuring calculation fields.
+  // Pretenuring calculation field.
   Add<HStoreNamedField>(object,
                         HObjectAccess::ForAllocationSiteOffset(
-                            AllocationSite::kMementoFoundCountOffset),
+                            AllocationSite::kPretenureDataOffset),
                         graph()->GetConstant0());
 
+  // Pretenuring memento creation count field.
   Add<HStoreNamedField>(object,
                         HObjectAccess::ForAllocationSiteOffset(
-                            AllocationSite::kMementoCreateCountOffset),
-                        graph()->GetConstant0());
-
-  Add<HStoreNamedField>(object,
-                        HObjectAccess::ForAllocationSiteOffset(
-                            AllocationSite::kPretenureDecisionOffset),
+                            AllocationSite::kPretenureCreateCountOffset),
                         graph()->GetConstant0());
 
   // Store an empty fixed array for the code dependency.
@@ -672,19 +649,10 @@ Handle<Code> TransitionElementsKindStub::GenerateCode(Isolate* isolate) {
 
 HValue* CodeStubGraphBuilderBase::BuildArrayConstructor(
     ElementsKind kind,
-    ContextCheckMode context_mode,
     AllocationSiteOverrideMode override_mode,
     ArgumentClass argument_class) {
   HValue* constructor = GetParameter(ArrayConstructorStubBase::kConstructor);
-  if (context_mode == CONTEXT_CHECK_REQUIRED) {
-    HInstruction* array_function = BuildGetArrayFunction();
-    ArrayContextChecker checker(this, constructor, array_function);
-  }
-
-  HValue* property_cell = GetParameter(ArrayConstructorStubBase::kPropertyCell);
-  // Walk through the property cell to the AllocationSite
-  HValue* alloc_site = Add<HLoadNamedField>(property_cell,
-                                            HObjectAccess::ForCellValue());
+  HValue* alloc_site = GetParameter(ArrayConstructorStubBase::kAllocationSite);
   JSArrayBuilder array_builder(this, kind, alloc_site, constructor,
                                override_mode);
   HValue* result = NULL;
@@ -787,9 +755,8 @@ HValue* CodeStubGraphBuilderBase::BuildArrayNArgumentsConstructor(
 template <>
 HValue* CodeStubGraphBuilder<ArrayNoArgumentConstructorStub>::BuildCodeStub() {
   ElementsKind kind = casted_stub()->elements_kind();
-  ContextCheckMode context_mode = casted_stub()->context_mode();
   AllocationSiteOverrideMode override_mode = casted_stub()->override_mode();
-  return BuildArrayConstructor(kind, context_mode, override_mode, NONE);
+  return BuildArrayConstructor(kind, override_mode, NONE);
 }
 
 
@@ -802,9 +769,8 @@ template <>
 HValue* CodeStubGraphBuilder<ArraySingleArgumentConstructorStub>::
     BuildCodeStub() {
   ElementsKind kind = casted_stub()->elements_kind();
-  ContextCheckMode context_mode = casted_stub()->context_mode();
   AllocationSiteOverrideMode override_mode = casted_stub()->override_mode();
-  return BuildArrayConstructor(kind, context_mode, override_mode, SINGLE);
+  return BuildArrayConstructor(kind, override_mode, SINGLE);
 }
 
 
@@ -817,9 +783,8 @@ Handle<Code> ArraySingleArgumentConstructorStub::GenerateCode(
 template <>
 HValue* CodeStubGraphBuilder<ArrayNArgumentsConstructorStub>::BuildCodeStub() {
   ElementsKind kind = casted_stub()->elements_kind();
-  ContextCheckMode context_mode = casted_stub()->context_mode();
   AllocationSiteOverrideMode override_mode = casted_stub()->override_mode();
-  return BuildArrayConstructor(kind, context_mode, override_mode, MULTIPLE);
+  return BuildArrayConstructor(kind, override_mode, MULTIPLE);
 }
 
 
@@ -876,7 +841,7 @@ HValue* CodeStubGraphBuilder<CompareNilICStub>::BuildCodeInitializedStub() {
   CompareNilICStub* stub = casted_stub();
   HIfContinuation continuation;
   Handle<Map> sentinel_map(isolate->heap()->meta_map());
-  Handle<Type> type = stub->GetType(isolate, sentinel_map);
+  Type* type = stub->GetType(zone(), sentinel_map);
   BuildCompareNil(GetParameter(0), type, &continuation);
   IfBuilder if_nil(this, &continuation);
   if_nil.Then();
@@ -903,9 +868,9 @@ HValue* CodeStubGraphBuilder<BinaryOpICStub>::BuildCodeInitializedStub() {
   HValue* left = GetParameter(BinaryOpICStub::kLeft);
   HValue* right = GetParameter(BinaryOpICStub::kRight);
 
-  Handle<Type> left_type = state.GetLeftType(isolate());
-  Handle<Type> right_type = state.GetRightType(isolate());
-  Handle<Type> result_type = state.GetResultType(isolate());
+  Type* left_type = state.GetLeftType(zone());
+  Type* right_type = state.GetRightType(zone());
+  Type* result_type = state.GetResultType(zone());
 
   ASSERT(!left_type->Is(Type::None()) && !right_type->Is(Type::None()) &&
          (state.HasSideEffects() || !result_type->Is(Type::None())));
@@ -924,7 +889,7 @@ HValue* CodeStubGraphBuilder<BinaryOpICStub>::BuildCodeInitializedStub() {
       {
         Push(BuildBinaryOperation(
                     state.op(), left, right,
-                    handle(Type::String(), isolate()), right_type,
+                    Type::String(zone()), right_type,
                     result_type, state.fixed_right_arg(),
                     allocation_mode));
       }
@@ -944,7 +909,7 @@ HValue* CodeStubGraphBuilder<BinaryOpICStub>::BuildCodeInitializedStub() {
       {
         Push(BuildBinaryOperation(
                     state.op(), left, right,
-                    left_type, handle(Type::String(), isolate()),
+                    left_type, Type::String(zone()),
                     result_type, state.fixed_right_arg(),
                     allocation_mode));
       }
@@ -1018,9 +983,9 @@ HValue* CodeStubGraphBuilder<BinaryOpWithAllocationSiteStub>::BuildCodeStub() {
   HValue* left = GetParameter(BinaryOpWithAllocationSiteStub::kLeft);
   HValue* right = GetParameter(BinaryOpWithAllocationSiteStub::kRight);
 
-  Handle<Type> left_type = state.GetLeftType(isolate());
-  Handle<Type> right_type = state.GetRightType(isolate());
-  Handle<Type> result_type = state.GetResultType(isolate());
+  Type* left_type = state.GetLeftType(zone());
+  Type* right_type = state.GetRightType(zone());
+  Type* result_type = state.GetResultType(zone());
   HAllocationMode allocation_mode(allocation_site);
 
   return BuildBinaryOperation(state.op(), left, right,
@@ -1035,13 +1000,13 @@ Handle<Code> BinaryOpWithAllocationSiteStub::GenerateCode(Isolate* isolate) {
 
 
 template <>
-HValue* CodeStubGraphBuilder<NewStringAddStub>::BuildCodeInitializedStub() {
-  NewStringAddStub* stub = casted_stub();
+HValue* CodeStubGraphBuilder<StringAddStub>::BuildCodeInitializedStub() {
+  StringAddStub* stub = casted_stub();
   StringAddFlags flags = stub->flags();
   PretenureFlag pretenure_flag = stub->pretenure_flag();
 
-  HValue* left = GetParameter(NewStringAddStub::kLeft);
-  HValue* right = GetParameter(NewStringAddStub::kRight);
+  HValue* left = GetParameter(StringAddStub::kLeft);
+  HValue* right = GetParameter(StringAddStub::kRight);
 
   // Make sure that both arguments are strings if not known in advance.
   if ((flags & STRING_ADD_CHECK_LEFT) == STRING_ADD_CHECK_LEFT) {
@@ -1055,7 +1020,7 @@ HValue* CodeStubGraphBuilder<NewStringAddStub>::BuildCodeInitializedStub() {
 }
 
 
-Handle<Code> NewStringAddStub::GenerateCode(Isolate* isolate) {
+Handle<Code> StringAddStub::GenerateCode(Isolate* isolate) {
   return DoGenerateCode(isolate, this);
 }
 
@@ -1360,6 +1325,60 @@ HValue* CodeStubGraphBuilder<FastNewClosureStub>::BuildCodeStub() {
 
 
 Handle<Code> FastNewClosureStub::GenerateCode(Isolate* isolate) {
+  return DoGenerateCode(isolate, this);
+}
+
+
+template<>
+HValue* CodeStubGraphBuilder<FastNewContextStub>::BuildCodeStub() {
+  int length = casted_stub()->slots() + Context::MIN_CONTEXT_SLOTS;
+
+  // Get the function.
+  HParameter* function = GetParameter(FastNewContextStub::kFunction);
+
+  // Allocate the context in new space.
+  HAllocate* function_context = Add<HAllocate>(
+      Add<HConstant>(length * kPointerSize + FixedArray::kHeaderSize),
+      HType::Tagged(), NOT_TENURED, FIXED_ARRAY_TYPE);
+
+  // Set up the object header.
+  AddStoreMapConstant(function_context,
+                      isolate()->factory()->function_context_map());
+  Add<HStoreNamedField>(function_context,
+                        HObjectAccess::ForFixedArrayLength(),
+                        Add<HConstant>(length));
+
+  // Set up the fixed slots.
+  Add<HStoreNamedField>(function_context,
+                        HObjectAccess::ForContextSlot(Context::CLOSURE_INDEX),
+                        function);
+  Add<HStoreNamedField>(function_context,
+                        HObjectAccess::ForContextSlot(Context::PREVIOUS_INDEX),
+                        context());
+  Add<HStoreNamedField>(function_context,
+                        HObjectAccess::ForContextSlot(Context::EXTENSION_INDEX),
+                        graph()->GetConstant0());
+
+  // Copy the global object from the previous context.
+  HValue* global_object = Add<HLoadNamedField>(
+      context(), HObjectAccess::ForContextSlot(Context::GLOBAL_OBJECT_INDEX));
+  Add<HStoreNamedField>(function_context,
+                        HObjectAccess::ForContextSlot(
+                            Context::GLOBAL_OBJECT_INDEX),
+                        global_object);
+
+  // Initialize the rest of the slots to undefined.
+  for (int i = Context::MIN_CONTEXT_SLOTS; i < length; ++i) {
+    Add<HStoreNamedField>(function_context,
+                          HObjectAccess::ForContextSlot(i),
+                          graph()->GetConstantUndefined());
+  }
+
+  return function_context;
+}
+
+
+Handle<Code> FastNewContextStub::GenerateCode(Isolate* isolate) {
   return DoGenerateCode(isolate, this);
 }
 

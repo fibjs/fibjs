@@ -967,10 +967,13 @@ void MacroAssembler::EnterExitFrame(bool save_doubles, int stack_space) {
   Push(lr, fp);
   mov(fp, Operand(sp));  // Set up new frame pointer.
   // Reserve room for saved entry sp and code object.
-  sub(sp, sp, Operand(2 * kPointerSize));
+  sub(sp, sp, Operand(ExitFrameConstants::kFrameSize));
   if (emit_debug_code()) {
     mov(ip, Operand::Zero());
     str(ip, MemOperand(fp, ExitFrameConstants::kSPOffset));
+  }
+  if (FLAG_enable_ool_constant_pool) {
+    str(pp, MemOperand(fp, ExitFrameConstants::kConstantPoolOffset));
   }
   mov(ip, Operand(CodeObject()));
   str(ip, MemOperand(fp, ExitFrameConstants::kCodeOffset));
@@ -985,8 +988,10 @@ void MacroAssembler::EnterExitFrame(bool save_doubles, int stack_space) {
   if (save_doubles) {
     SaveFPRegs(sp, ip);
     // Note that d0 will be accessible at
-    //   fp - 2 * kPointerSize - DwVfpRegister::kMaxNumRegisters * kDoubleSize,
-    // since the sp slot and code slot were pushed after the fp.
+    //   fp - ExitFrameConstants::kFrameSize -
+    //   DwVfpRegister::kMaxNumRegisters * kDoubleSize,
+    // since the sp slot, code slot and constant pool slot (if
+    // FLAG_enable_ool_constant_pool) were pushed after the fp.
   }
 
   // Reserve place for the return address and stack space and align the frame
@@ -1042,7 +1047,7 @@ void MacroAssembler::LeaveExitFrame(bool save_doubles,
   // Optionally restore all double registers.
   if (save_doubles) {
     // Calculate the stack location of the saved doubles and restore them.
-    const int offset = 2 * kPointerSize;
+    const int offset = ExitFrameConstants::kFrameSize;
     sub(r3, fp,
         Operand(offset + DwVfpRegister::kMaxNumRegisters * kDoubleSize));
     RestoreFPRegs(r3, ip);
@@ -1065,6 +1070,9 @@ void MacroAssembler::LeaveExitFrame(bool save_doubles,
 #endif
 
   // Tear down the exit frame, pop the arguments, and return.
+  if (FLAG_enable_ool_constant_pool) {
+    ldr(pp, MemOperand(fp, ExitFrameConstants::kConstantPoolOffset));
+  }
   mov(sp, Operand(fp));
   ldm(ia_w, sp, fp.bit() | lr.bit());
   if (argument_count.is_valid()) {
@@ -1073,7 +1081,7 @@ void MacroAssembler::LeaveExitFrame(bool save_doubles,
 }
 
 
-void MacroAssembler::GetCFunctionDoubleResult(const DwVfpRegister dst) {
+void MacroAssembler::MovFromFloatResult(const DwVfpRegister dst) {
   if (use_eabi_hardfloat()) {
     Move(dst, d0);
   } else {
@@ -1082,17 +1090,9 @@ void MacroAssembler::GetCFunctionDoubleResult(const DwVfpRegister dst) {
 }
 
 
-void MacroAssembler::SetCallKind(Register dst, CallKind call_kind) {
-  // This macro takes the dst register to make the code more readable
-  // at the call sites. However, the dst register has to be r5 to
-  // follow the calling convention which requires the call type to be
-  // in r5.
-  ASSERT(dst.is(r5));
-  if (call_kind == CALL_AS_FUNCTION) {
-    mov(dst, Operand(Smi::FromInt(1)));
-  } else {
-    mov(dst, Operand(Smi::FromInt(0)));
-  }
+// On ARM this is just a synonym to make the purpose clear.
+void MacroAssembler::MovFromFloatParameter(DwVfpRegister dst) {
+  MovFromFloatResult(dst);
 }
 
 
@@ -1103,8 +1103,7 @@ void MacroAssembler::InvokePrologue(const ParameterCount& expected,
                                     Label* done,
                                     bool* definitely_mismatches,
                                     InvokeFlag flag,
-                                    const CallWrapper& call_wrapper,
-                                    CallKind call_kind) {
+                                    const CallWrapper& call_wrapper) {
   bool definitely_matches = false;
   *definitely_mismatches = false;
   Label regular_invoke;
@@ -1114,7 +1113,6 @@ void MacroAssembler::InvokePrologue(const ParameterCount& expected,
   //  r0: actual arguments count
   //  r1: function (passed through to callee)
   //  r2: expected arguments count
-  //  r3: callee code entry
 
   // The code below is made a lot easier because the calling code already sets
   // up actual and expected registers according to the contract if values are
@@ -1162,14 +1160,12 @@ void MacroAssembler::InvokePrologue(const ParameterCount& expected,
         isolate()->builtins()->ArgumentsAdaptorTrampoline();
     if (flag == CALL_FUNCTION) {
       call_wrapper.BeforeCall(CallSize(adaptor));
-      SetCallKind(r5, call_kind);
       Call(adaptor);
       call_wrapper.AfterCall();
       if (!*definitely_mismatches) {
         b(done);
       }
     } else {
-      SetCallKind(r5, call_kind);
       Jump(adaptor, RelocInfo::CODE_TARGET);
     }
     bind(&regular_invoke);
@@ -1181,8 +1177,7 @@ void MacroAssembler::InvokeCode(Register code,
                                 const ParameterCount& expected,
                                 const ParameterCount& actual,
                                 InvokeFlag flag,
-                                const CallWrapper& call_wrapper,
-                                CallKind call_kind) {
+                                const CallWrapper& call_wrapper) {
   // You can't call a function without a valid frame.
   ASSERT(flag == JUMP_FUNCTION || has_frame());
 
@@ -1190,47 +1185,15 @@ void MacroAssembler::InvokeCode(Register code,
   bool definitely_mismatches = false;
   InvokePrologue(expected, actual, Handle<Code>::null(), code,
                  &done, &definitely_mismatches, flag,
-                 call_wrapper, call_kind);
+                 call_wrapper);
   if (!definitely_mismatches) {
     if (flag == CALL_FUNCTION) {
       call_wrapper.BeforeCall(CallSize(code));
-      SetCallKind(r5, call_kind);
       Call(code);
       call_wrapper.AfterCall();
     } else {
       ASSERT(flag == JUMP_FUNCTION);
-      SetCallKind(r5, call_kind);
       Jump(code);
-    }
-
-    // Continue here if InvokePrologue does handle the invocation due to
-    // mismatched parameter counts.
-    bind(&done);
-  }
-}
-
-
-void MacroAssembler::InvokeCode(Handle<Code> code,
-                                const ParameterCount& expected,
-                                const ParameterCount& actual,
-                                RelocInfo::Mode rmode,
-                                InvokeFlag flag,
-                                CallKind call_kind) {
-  // You can't call a function without a valid frame.
-  ASSERT(flag == JUMP_FUNCTION || has_frame());
-
-  Label done;
-  bool definitely_mismatches = false;
-  InvokePrologue(expected, actual, code, no_reg,
-                 &done, &definitely_mismatches, flag,
-                 NullCallWrapper(), call_kind);
-  if (!definitely_mismatches) {
-    if (flag == CALL_FUNCTION) {
-      SetCallKind(r5, call_kind);
-      Call(code, rmode);
-    } else {
-      SetCallKind(r5, call_kind);
-      Jump(code, rmode);
     }
 
     // Continue here if InvokePrologue does handle the invocation due to
@@ -1243,8 +1206,7 @@ void MacroAssembler::InvokeCode(Handle<Code> code,
 void MacroAssembler::InvokeFunction(Register fun,
                                     const ParameterCount& actual,
                                     InvokeFlag flag,
-                                    const CallWrapper& call_wrapper,
-                                    CallKind call_kind) {
+                                    const CallWrapper& call_wrapper) {
   // You can't call a function without a valid frame.
   ASSERT(flag == JUMP_FUNCTION || has_frame());
 
@@ -1264,7 +1226,7 @@ void MacroAssembler::InvokeFunction(Register fun,
       FieldMemOperand(r1, JSFunction::kCodeEntryOffset));
 
   ParameterCount expected(expected_reg);
-  InvokeCode(code_reg, expected, actual, flag, call_wrapper, call_kind);
+  InvokeCode(code_reg, expected, actual, flag, call_wrapper);
 }
 
 
@@ -1272,8 +1234,7 @@ void MacroAssembler::InvokeFunction(Register function,
                                     const ParameterCount& expected,
                                     const ParameterCount& actual,
                                     InvokeFlag flag,
-                                    const CallWrapper& call_wrapper,
-                                    CallKind call_kind) {
+                                    const CallWrapper& call_wrapper) {
   // You can't call a function without a valid frame.
   ASSERT(flag == JUMP_FUNCTION || has_frame());
 
@@ -1287,7 +1248,7 @@ void MacroAssembler::InvokeFunction(Register function,
   // allow recompilation to take effect without changing any of the
   // call sites.
   ldr(r3, FieldMemOperand(r1, JSFunction::kCodeEntryOffset));
-  InvokeCode(r3, expected, actual, flag, call_wrapper, call_kind);
+  InvokeCode(r3, expected, actual, flag, call_wrapper);
 }
 
 
@@ -1295,10 +1256,9 @@ void MacroAssembler::InvokeFunction(Handle<JSFunction> function,
                                     const ParameterCount& expected,
                                     const ParameterCount& actual,
                                     InvokeFlag flag,
-                                    const CallWrapper& call_wrapper,
-                                    CallKind call_kind) {
+                                    const CallWrapper& call_wrapper) {
   Move(r1, function);
-  InvokeFunction(r1, expected, actual, flag, call_wrapper, call_kind);
+  InvokeFunction(r1, expected, actual, flag, call_wrapper);
 }
 
 
@@ -1679,7 +1639,7 @@ void MacroAssembler::Allocate(int object_size,
                               Register scratch2,
                               Label* gc_required,
                               AllocationFlags flags) {
-  ASSERT(object_size <= Page::kMaxNonCodeHeapObjectSize);
+  ASSERT(object_size <= Page::kMaxRegularHeapObjectSize);
   if (!FLAG_inline_new) {
     if (emit_debug_code()) {
       // Trash the registers to simulate an allocation failure.
@@ -2745,12 +2705,10 @@ void MacroAssembler::InvokeBuiltin(Builtins::JavaScript id,
   GetBuiltinEntry(r2, id);
   if (flag == CALL_FUNCTION) {
     call_wrapper.BeforeCall(CallSize(r2));
-    SetCallKind(r5, CALL_AS_METHOD);
     Call(r2);
     call_wrapper.AfterCall();
   } else {
     ASSERT(flag == JUMP_FUNCTION);
-    SetCallKind(r5, CALL_AS_METHOD);
     Jump(r2);
   }
 }
@@ -3532,33 +3490,27 @@ void MacroAssembler::PrepareCallCFunction(int num_reg_arguments,
 }
 
 
-void MacroAssembler::SetCallCDoubleArguments(DwVfpRegister dreg) {
-  ASSERT(dreg.is(d0));
+void MacroAssembler::MovToFloatParameter(DwVfpRegister src) {
+  ASSERT(src.is(d0));
   if (!use_eabi_hardfloat()) {
-    vmov(r0, r1, dreg);
+    vmov(r0, r1, src);
   }
 }
 
 
-void MacroAssembler::SetCallCDoubleArguments(DwVfpRegister dreg1,
-                                             DwVfpRegister dreg2) {
-  ASSERT(dreg1.is(d0));
-  ASSERT(dreg2.is(d1));
-  if (!use_eabi_hardfloat()) {
-    vmov(r0, r1, dreg1);
-    vmov(r2, r3, dreg2);
-  }
+// On ARM this is just a synonym to make the purpose clear.
+void MacroAssembler::MovToFloatResult(DwVfpRegister src) {
+  MovToFloatParameter(src);
 }
 
 
-void MacroAssembler::SetCallCDoubleArguments(DwVfpRegister dreg,
-                                             Register reg) {
-  ASSERT(dreg.is(d0));
-  if (use_eabi_hardfloat()) {
-    Move(r0, reg);
-  } else {
-    Move(r2, reg);
-    vmov(r0, r1, dreg);
+void MacroAssembler::MovToFloatParameters(DwVfpRegister src1,
+                                          DwVfpRegister src2) {
+  ASSERT(src1.is(d0));
+  ASSERT(src2.is(d1));
+  if (!use_eabi_hardfloat()) {
+    vmov(r0, r1, src1);
+    vmov(r2, r3, src2);
   }
 }
 
@@ -3974,10 +3926,16 @@ void MacroAssembler::CheckEnumCache(Register null_value, Label* call_runtime) {
 
   // Check that there are no elements. Register r2 contains the current JS
   // object we've reached through the prototype chain.
+  Label no_elements;
   ldr(r2, FieldMemOperand(r2, JSObject::kElementsOffset));
   cmp(r2, empty_fixed_array_value);
+  b(eq, &no_elements);
+
+  // Second chance, the object may be using the empty slow element dictionary.
+  CompareRoot(r2, Heap::kEmptySlowElementDictionaryRootIndex);
   b(ne, call_runtime);
 
+  bind(&no_elements);
   ldr(r2, FieldMemOperand(r1, Map::kPrototypeOffset));
   cmp(r2, null_value);
   b(ne, &next);

@@ -812,7 +812,6 @@
     <ClInclude Include="src\v8\src\allocation-tracker.h" />
     <ClInclude Include="src\v8\src\allocation.h" />
     <ClInclude Include="src\v8\src\api.h" />
-    <ClInclude Include="src\v8\src\apiutils.h" />
     <ClInclude Include="src\v8\src\arguments.h" />
     <ClInclude Include="src\v8\src\arm\assembler-arm-inl.h" />
     <ClInclude Include="src\v8\src\arm\assembler-arm.h" />

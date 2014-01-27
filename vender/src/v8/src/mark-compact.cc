@@ -56,7 +56,7 @@ const char* Marking::kImpossibleBitPattern = "01";
 // -------------------------------------------------------------------------
 // MarkCompactCollector
 
-MarkCompactCollector::MarkCompactCollector() :  // NOLINT
+MarkCompactCollector::MarkCompactCollector(Heap* heap) :  // NOLINT
 #ifdef DEBUG
       state_(IDLE),
 #endif
@@ -70,7 +70,7 @@ MarkCompactCollector::MarkCompactCollector() :  // NOLINT
       sequential_sweeping_(false),
       tracer_(NULL),
       migration_slots_buffer_(NULL),
-      heap_(NULL),
+      heap_(heap),
       code_flusher_(NULL),
       encountered_weak_collections_(NULL),
       have_code_to_deoptimize_(false) { }
@@ -95,6 +95,14 @@ class VerifyMarkingVisitor: public ObjectVisitor {
                                     rinfo->target_object())) {
       Object* p = rinfo->target_object();
       VisitPointer(&p);
+    }
+  }
+
+  void VisitCell(RelocInfo* rinfo) {
+    Code* code = rinfo->host();
+    ASSERT(rinfo->rmode() == RelocInfo::CELL);
+    if (!Code::IsWeakEmbeddedObject(code->kind(), rinfo->target_cell())) {
+      ObjectVisitor::VisitCell(rinfo);
     }
   }
 
@@ -340,6 +348,12 @@ static void VerifyNativeContextSeparation(Heap* heap) {
 #endif
 
 
+void MarkCompactCollector::SetUp() {
+  free_list_old_data_space_.Reset(new FreeList(heap_->old_data_space()));
+  free_list_old_pointer_space_.Reset(new FreeList(heap_->old_pointer_space()));
+}
+
+
 void MarkCompactCollector::TearDown() {
   AbortCompaction();
 }
@@ -556,6 +570,11 @@ void MarkCompactCollector::ClearMarkbits() {
 
 
 void MarkCompactCollector::StartSweeperThreads() {
+  // TODO(hpayer): This check is just used for debugging purpose and
+  // should be removed or turned into an assert after investigating the
+  // crash in concurrent sweeping.
+  CHECK(free_list_old_pointer_space_.get()->IsEmpty());
+  CHECK(free_list_old_data_space_.get()->IsEmpty());
   sweeping_pending_ = true;
   for (int i = 0; i < isolate()->num_sweeper_threads(); i++) {
     isolate()->sweeper_threads()[i]->StartSweeping();
@@ -569,19 +588,27 @@ void MarkCompactCollector::WaitUntilSweepingCompleted() {
     isolate()->sweeper_threads()[i]->WaitForSweeperThread();
   }
   sweeping_pending_ = false;
-  StealMemoryFromSweeperThreads(heap()->paged_space(OLD_DATA_SPACE));
-  StealMemoryFromSweeperThreads(heap()->paged_space(OLD_POINTER_SPACE));
+  RefillFreeLists(heap()->paged_space(OLD_DATA_SPACE));
+  RefillFreeLists(heap()->paged_space(OLD_POINTER_SPACE));
   heap()->paged_space(OLD_DATA_SPACE)->ResetUnsweptFreeBytes();
   heap()->paged_space(OLD_POINTER_SPACE)->ResetUnsweptFreeBytes();
 }
 
 
-intptr_t MarkCompactCollector::
-             StealMemoryFromSweeperThreads(PagedSpace* space) {
-  intptr_t freed_bytes = 0;
-  for (int i = 0; i < isolate()->num_sweeper_threads(); i++) {
-    freed_bytes += isolate()->sweeper_threads()[i]->StealMemory(space);
+intptr_t MarkCompactCollector::RefillFreeLists(PagedSpace* space) {
+  FreeList* free_list;
+
+  if (space == heap()->old_pointer_space()) {
+    free_list = free_list_old_pointer_space_.get();
+  } else if (space == heap()->old_data_space()) {
+    free_list = free_list_old_data_space_.get();
+  } else {
+    // Any PagedSpace might invoke RefillFreeLists, so we need to make sure
+    // to only refill them for old data and pointer spaces.
+    return 0;
   }
+
+  intptr_t freed_bytes = space->free_list()->Concatenate(free_list);
   space->AddToAccountingStats(freed_bytes);
   space->DecrementUnsweptFreeBytes(freed_bytes);
   return freed_bytes;
@@ -726,7 +753,7 @@ void MarkCompactCollector::CollectEvacuationCandidates(PagedSpace* space) {
   static const int kMaxMaxEvacuationCandidates = 1000;
   int number_of_pages = space->CountTotalPages();
   int max_evacuation_candidates =
-      static_cast<int>(sqrt(number_of_pages / 2.0) + 1);
+      static_cast<int>(std::sqrt(number_of_pages / 2.0) + 1);
 
   if (FLAG_stress_compaction || FLAG_always_compact) {
     max_evacuation_candidates = kMaxMaxEvacuationCandidates;
@@ -2551,6 +2578,16 @@ void MarkCompactCollector::ClearNonLiveReferences() {
       if (!table->IsKey(key)) continue;
       uint32_t value_index = table->EntryToValueIndex(i);
       Object* value = table->get(value_index);
+      if (key->IsCell() && !IsMarked(key)) {
+        Cell* cell = Cell::cast(key);
+        Object* object = cell->value();
+        if (IsMarked(object)) {
+          MarkBit mark = Marking::MarkBitFrom(cell);
+          SetMark(cell, mark);
+          Object** value_slot = HeapObject::RawField(cell, Cell::kValueOffset);
+          RecordSlot(value_slot, value_slot, *value_slot);
+        }
+      }
       if (IsMarked(key)) {
         if (!IsMarked(value)) {
           HeapObject* obj = HeapObject::cast(value);
@@ -2755,7 +2792,7 @@ void MarkCompactCollector::MigrateObject(Address dst,
     heap_profiler->ObjectMoveEvent(src, dst, size);
   }
   ASSERT(heap()->AllowedToBeMigrated(HeapObject::FromAddress(src), dest));
-  ASSERT(dest != LO_SPACE && size <= Page::kMaxNonCodeHeapObjectSize);
+  ASSERT(dest != LO_SPACE && size <= Page::kMaxRegularHeapObjectSize);
   if (dest == OLD_POINTER_SPACE) {
     Address src_slot = src;
     Address dst_slot = dst;
@@ -2929,7 +2966,7 @@ static String* UpdateReferenceInExternalStringTableEntry(Heap* heap,
 bool MarkCompactCollector::TryPromoteObject(HeapObject* object,
                                             int object_size) {
   // TODO(hpayer): Replace that check with an assert.
-  CHECK(object_size <= Page::kMaxNonCodeHeapObjectSize);
+  CHECK(object_size <= Page::kMaxRegularHeapObjectSize);
 
   OldSpace* target_space = heap()->TargetSpace(object);
 
@@ -3036,8 +3073,12 @@ void MarkCompactCollector::EvacuatePages() {
   int npages = evacuation_candidates_.length();
   for (int i = 0; i < npages; i++) {
     Page* p = evacuation_candidates_[i];
-    ASSERT(p->IsEvacuationCandidate() ||
-           p->IsFlagSet(Page::RESCAN_ON_EVACUATION));
+    // TODO(hpayer): This check is just used for debugging purpose and
+    // should be removed or turned into an assert after investigating the
+    // crash in concurrent sweeping.
+    CHECK(p->IsEvacuationCandidate() ||
+          p->IsFlagSet(Page::RESCAN_ON_EVACUATION));
+    CHECK_EQ(static_cast<int>(p->parallel_sweeping()), 0);
     if (p->IsEvacuationCandidate()) {
       // During compaction we might have to request a new page.
       // Check that space still have room for that.
@@ -3868,7 +3909,10 @@ template<MarkCompactCollector::SweepingParallelism mode>
 intptr_t MarkCompactCollector::SweepConservatively(PagedSpace* space,
                                                    FreeList* free_list,
                                                    Page* p) {
-  ASSERT(!p->IsEvacuationCandidate() && !p->WasSwept());
+  // TODO(hpayer): This check is just used for debugging purpose and
+  // should be removed or turned into an assert after investigating the
+  // crash in concurrent sweeping.
+  CHECK(!p->IsEvacuationCandidate() && !p->WasSwept());
   ASSERT((mode == MarkCompactCollector::SWEEP_IN_PARALLEL &&
          free_list != NULL) ||
          (mode == MarkCompactCollector::SWEEP_SEQUENTIALLY &&
@@ -3952,16 +3996,18 @@ intptr_t MarkCompactCollector::SweepConservatively(PagedSpace* space,
 }
 
 
-void MarkCompactCollector::SweepInParallel(PagedSpace* space,
-                                           FreeList* private_free_list,
-                                           FreeList* free_list) {
+void MarkCompactCollector::SweepInParallel(PagedSpace* space) {
   PageIterator it(space);
+  FreeList* free_list = space == heap()->old_pointer_space()
+                            ? free_list_old_pointer_space_.get()
+                            : free_list_old_data_space_.get();
+  FreeList private_free_list(space);
   while (it.has_next()) {
     Page* p = it.next();
 
     if (p->TryParallelSweeping()) {
-      SweepConservatively<SWEEP_IN_PARALLEL>(space, private_free_list, p);
-      free_list->Concatenate(private_free_list);
+      SweepConservatively<SWEEP_IN_PARALLEL>(space, &private_free_list, p);
+      free_list->Concatenate(&private_free_list);
     }
   }
 }
@@ -4103,7 +4149,6 @@ void MarkCompactCollector::SweepSpaces() {
     if (FLAG_parallel_sweeping) how_to_sweep = PARALLEL_CONSERVATIVE;
     if (FLAG_concurrent_sweeping) how_to_sweep = CONCURRENT_CONSERVATIVE;
   }
-  if (FLAG_expose_gc) how_to_sweep = CONSERVATIVE;
   if (sweep_precisely_) how_to_sweep = PRECISE;
 
   // Unlink evacuation candidates before sweeper threads access the list of

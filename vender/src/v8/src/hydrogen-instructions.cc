@@ -54,14 +54,6 @@ HYDROGEN_CONCRETE_INSTRUCTION_LIST(DEFINE_COMPILE)
 #undef DEFINE_COMPILE
 
 
-int HValue::LoopWeight() const {
-  const int w = FLAG_loop_weight;
-  static const int weights[] = { 1, w, w*w, w*w*w, w*w*w*w };
-  return weights[Min(block()->LoopNestingDepth(),
-                     static_cast<int>(ARRAY_SIZE(weights)-1))];
-}
-
-
 Isolate* HValue::isolate() const {
   ASSERT(block() != NULL);
   return block()->isolate();
@@ -106,7 +98,7 @@ Representation HValue::RepresentationFromUses() {
              id(), Mnemonic(), use->id(), use->Mnemonic(), rep.Mnemonic(),
              (use->CheckFlag(kTruncatingToInt32) ? "-trunc" : ""));
     }
-    use_count[rep.kind()] += use->LoopWeight();
+    use_count[rep.kind()] += 1;
   }
   if (IsPhi()) HPhi::cast(this)->AddIndirectUsesTo(&use_count[0]);
   int tagged_count = use_count[Representation::kTagged];
@@ -849,6 +841,37 @@ void HUnaryCall::PrintDataTo(StringStream* stream) {
 }
 
 
+void HCallJSFunction::PrintDataTo(StringStream* stream) {
+  function()->PrintNameTo(stream);
+  stream->Add(" ");
+  stream->Add("#%d", argument_count());
+}
+
+
+HCallJSFunction* HCallJSFunction::New(
+    Zone* zone,
+    HValue* context,
+    HValue* function,
+    int argument_count,
+    bool pass_argument_count) {
+  bool has_stack_check = false;
+  if (function->IsConstant()) {
+    HConstant* fun_const = HConstant::cast(function);
+    Handle<JSFunction> jsfun =
+        Handle<JSFunction>::cast(fun_const->handle(zone->isolate()));
+    has_stack_check = !jsfun.is_null() &&
+        (jsfun->code()->kind() == Code::FUNCTION ||
+         jsfun->code()->kind() == Code::OPTIMIZED_FUNCTION);
+  }
+
+  return new(zone) HCallJSFunction(
+      function, argument_count, pass_argument_count,
+      has_stack_check);
+}
+
+
+
+
 void HBinaryCall::PrintDataTo(StringStream* stream) {
   first()->PrintNameTo(stream);
   stream->Add(" ");
@@ -974,30 +997,11 @@ void HBoundsCheckBaseIndexInformation::PrintDataTo(StringStream* stream) {
 }
 
 
-void HCallConstantFunction::PrintDataTo(StringStream* stream) {
-  if (IsApplyFunction()) {
-    stream->Add("optimized apply ");
-  } else {
-    stream->Add("%o ", function()->shared()->DebugName());
+void HCallWithDescriptor::PrintDataTo(StringStream* stream) {
+  for (int i = 0; i < OperandCount(); i++) {
+    OperandAt(i)->PrintNameTo(stream);
+    stream->Add(" ");
   }
-  stream->Add("#%d", argument_count());
-}
-
-
-void HCallNamed::PrintDataTo(StringStream* stream) {
-  stream->Add("%o ", *name());
-  HUnaryCall::PrintDataTo(stream);
-}
-
-
-void HCallGlobal::PrintDataTo(StringStream* stream) {
-  stream->Add("%o ", *name());
-  HUnaryCall::PrintDataTo(stream);
-}
-
-
-void HCallKnownGlobal::PrintDataTo(StringStream* stream) {
-  stream->Add("%o ", target()->shared()->DebugName());
   stream->Add("#%d", argument_count());
 }
 
@@ -1404,91 +1408,51 @@ void HChange::PrintDataTo(StringStream* stream) {
 }
 
 
-static HValue* SimplifiedDividendForMathFloorOfDiv(HValue* dividend) {
-  // A value with an integer representation does not need to be transformed.
-  if (dividend->representation().IsInteger32()) {
-    return dividend;
-  }
-  // A change from an integer32 can be replaced by the integer32 value.
-  if (dividend->IsChange() &&
-      HChange::cast(dividend)->from().IsInteger32()) {
-    return HChange::cast(dividend)->value();
-  }
-  return NULL;
-}
-
-
 HValue* HUnaryMathOperation::Canonicalize() {
   if (op() == kMathRound || op() == kMathFloor) {
     HValue* val = value();
     if (val->IsChange()) val = HChange::cast(val)->value();
-
-    // If the input is smi or integer32 then we replace the instruction with its
-    // input.
     if (val->representation().IsSmiOrInteger32()) {
-      if (!val->representation().Equals(representation())) {
-        HChange* result = new(block()->zone()) HChange(
-            val, representation(), false, false);
-        result->InsertBefore(this);
-        return result;
-      }
-      return val;
+      if (val->representation().Equals(representation())) return val;
+      return Prepend(new(block()->zone()) HChange(
+          val, representation(), false, false));
     }
   }
+  if (op() == kMathFloor && value()->IsDiv() && value()->UseCount() == 1) {
+    HDiv* hdiv = HDiv::cast(value());
 
-  if (op() == kMathFloor) {
-    HValue* val = value();
-    if (val->IsChange()) val = HChange::cast(val)->value();
-    if (val->IsDiv() && (val->UseCount() == 1)) {
-      HDiv* hdiv = HDiv::cast(val);
-      HValue* left = hdiv->left();
-      HValue* right = hdiv->right();
-      // Try to simplify left and right values of the division.
-      HValue* new_left = SimplifiedDividendForMathFloorOfDiv(left);
-      if (new_left == NULL &&
-          hdiv->observed_input_representation(1).IsSmiOrInteger32()) {
-        new_left = new(block()->zone()) HChange(
-            left, Representation::Integer32(), false, false);
-        HChange::cast(new_left)->InsertBefore(this);
-      }
-      HValue* new_right =
-          LChunkBuilder::SimplifiedDivisorForMathFloorOfDiv(right);
-      if (new_right == NULL &&
-#if V8_TARGET_ARCH_ARM
-          CpuFeatures::IsSupported(SUDIV) &&
-#endif
-          hdiv->observed_input_representation(2).IsSmiOrInteger32()) {
-        new_right = new(block()->zone()) HChange(
-            right, Representation::Integer32(), false, false);
-        HChange::cast(new_right)->InsertBefore(this);
-      }
-
-      // Return if left or right are not optimizable.
-      if ((new_left == NULL) || (new_right == NULL)) return this;
-
-      // Insert the new values in the graph.
-      if (new_left->IsInstruction() &&
-          !HInstruction::cast(new_left)->IsLinked()) {
-        HInstruction::cast(new_left)->InsertBefore(this);
-      }
-      if (new_right->IsInstruction() &&
-          !HInstruction::cast(new_right)->IsLinked()) {
-        HInstruction::cast(new_right)->InsertBefore(this);
-      }
-      HMathFloorOfDiv* instr =
-          HMathFloorOfDiv::New(block()->zone(), context(), new_left, new_right);
-      // Replace this HMathFloor instruction by the new HMathFloorOfDiv.
-      instr->InsertBefore(this);
-      ReplaceAllUsesWith(instr);
-      Kill();
-      // We know the division had no other uses than this HMathFloor. Delete it.
-      // Dead code elimination will deal with |left| and |right| if
-      // appropriate.
-      hdiv->DeleteAndReplaceWith(NULL);
-
-      // Return NULL to remove this instruction from the graph.
-      return NULL;
+    HValue* left = hdiv->left();
+    if (left->representation().IsInteger32()) {
+      // A value with an integer representation does not need to be transformed.
+    } else if (left->IsChange() && HChange::cast(left)->from().IsInteger32()) {
+      // A change from an integer32 can be replaced by the integer32 value.
+      left = HChange::cast(left)->value();
+    } else if (hdiv->observed_input_representation(1).IsSmiOrInteger32()) {
+      left = Prepend(new(block()->zone()) HChange(
+          left, Representation::Integer32(), false, false));
+    } else {
+      return this;
     }
+
+    HValue* right = hdiv->right();
+    if (right->IsInteger32Constant()) {
+      right = Prepend(HConstant::cast(right)->CopyToRepresentation(
+          Representation::Integer32(), right->block()->zone()));
+    } else if (right->representation().IsInteger32()) {
+      // A value with an integer representation does not need to be transformed.
+    } else if (right->IsChange() &&
+               HChange::cast(right)->from().IsInteger32()) {
+      // A change from an integer32 can be replaced by the integer32 value.
+      right = HChange::cast(right)->value();
+    } else if (hdiv->observed_input_representation(2).IsSmiOrInteger32()) {
+      right = Prepend(new(block()->zone()) HChange(
+          right, Representation::Integer32(), false, false));
+    } else {
+      return this;
+    }
+
+    return Prepend(HMathFloorOfDiv::New(
+        block()->zone(), context(), left, right));
   }
   return this;
 }
@@ -2357,7 +2321,7 @@ void HPhi::InitRealUses(int phi_id) {
     HValue* value = it.value();
     if (!value->IsPhi()) {
       Representation rep = value->observed_input_representation(it.index());
-      non_phi_uses_[rep.kind()] += value->LoopWeight();
+      non_phi_uses_[rep.kind()] += 1;
       if (FLAG_trace_representation) {
         PrintF("#%d Phi is used by real #%d %s as %s\n",
                id(), value->id(), value->Mnemonic(), rep.Mnemonic());
@@ -2527,6 +2491,7 @@ HConstant::HConstant(Handle<Object> handle, Representation r)
     has_smi_value_ = has_int32_value_ && Smi::IsValid(int32_value_);
     double_value_ = n;
     has_double_value_ = true;
+    // TODO(titzer): if this heap number is new space, tenure a new one.
   } else {
     is_internalized_string_ = handle->IsInternalizedString();
   }
@@ -2724,6 +2689,9 @@ void HConstant::PrintDataTo(StringStream* stream) {
             external_reference_value_.address()));
   } else {
     handle(Isolate::Current())->ShortPrint(stream);
+  }
+  if (!is_not_in_new_space_) {
+    stream->Add("[new space] ");
   }
 }
 
@@ -2941,14 +2909,14 @@ Range* HLoadNamedField::InferRange(Zone* zone) {
 
 Range* HLoadKeyed::InferRange(Zone* zone) {
   switch (elements_kind()) {
-    case EXTERNAL_BYTE_ELEMENTS:
+    case EXTERNAL_INT8_ELEMENTS:
       return new(zone) Range(kMinInt8, kMaxInt8);
-    case EXTERNAL_UNSIGNED_BYTE_ELEMENTS:
-    case EXTERNAL_PIXEL_ELEMENTS:
+    case EXTERNAL_UINT8_ELEMENTS:
+    case EXTERNAL_UINT8_CLAMPED_ELEMENTS:
       return new(zone) Range(kMinUInt8, kMaxUInt8);
-    case EXTERNAL_SHORT_ELEMENTS:
+    case EXTERNAL_INT16_ELEMENTS:
       return new(zone) Range(kMinInt16, kMaxInt16);
-    case EXTERNAL_UNSIGNED_SHORT_ELEMENTS:
+    case EXTERNAL_UINT16_ELEMENTS:
       return new(zone) Range(kMinUInt16, kMaxUInt16);
     default:
       return HValue::InferRange(zone);
@@ -3228,10 +3196,8 @@ HValue* HLoadKeyedGeneric::Canonicalize() {
             key_load->elements_kind());
         map_check->InsertBefore(this);
         index->InsertBefore(this);
-        HLoadFieldByIndex* load = new(block()->zone()) HLoadFieldByIndex(
-            object(), index);
-        load->InsertBefore(this);
-        return load;
+        return Prepend(new(block()->zone()) HLoadFieldByIndex(
+            object(), index));
       }
     }
   }
@@ -3345,12 +3311,6 @@ void HStoreGlobalCell::PrintDataTo(StringStream* stream) {
 }
 
 
-void HStoreGlobalGeneric::PrintDataTo(StringStream* stream) {
-  stream->Add("%o = ", *name());
-  value()->PrintNameTo(stream);
-}
-
-
 void HLoadContextSlot::PrintDataTo(StringStream* stream) {
   value()->PrintNameTo(stream);
   stream->Add("[%d]", slot_index());
@@ -3461,7 +3421,9 @@ void HAllocate::HandleSideEffectDominator(GVNFlag side_effect,
     }
   }
 
-  if (new_dominator_size > isolate()->heap()->MaxRegularSpaceAllocationSize()) {
+  // Since we clear the first word after folded memory, we cannot use the
+  // whole Page::kMaxRegularHeapObjectSize memory.
+  if (new_dominator_size > Page::kMaxRegularHeapObjectSize - kPointerSize) {
     if (FLAG_trace_allocation_folding) {
       PrintF("#%d (%s) cannot fold into #%d (%s) due to size: %d\n",
           id(), Mnemonic(), dominator_allocate->id(),
@@ -3898,7 +3860,7 @@ HInstruction* HUnaryMathOperation::New(
       case kMathExp:
         return H_CONSTANT_DOUBLE(fast_exp(d));
       case kMathLog:
-        return H_CONSTANT_DOUBLE(log(d));
+        return H_CONSTANT_DOUBLE(std::log(d));
       case kMathSqrt:
         return H_CONSTANT_DOUBLE(fast_sqrt(d));
       case kMathPowHalf:
@@ -3911,9 +3873,9 @@ HInstruction* HUnaryMathOperation::New(
         // Doubles are represented as Significant * 2 ^ Exponent. If the
         // Exponent is not negative, the double value is already an integer.
         if (Double(d).Exponent() >= 0) return H_CONSTANT_DOUBLE(d);
-        return H_CONSTANT_DOUBLE(floor(d + 0.5));
+        return H_CONSTANT_DOUBLE(std::floor(d + 0.5));
       case kMathFloor:
-        return H_CONSTANT_DOUBLE(floor(d));
+        return H_CONSTANT_DOUBLE(std::floor(d));
       default:
         UNREACHABLE();
         break;
@@ -4284,11 +4246,9 @@ HObjectAccess HObjectAccess::ForAllocationSiteOffset(int offset) {
       return HObjectAccess(kInobject, offset, Representation::Tagged());
     case AllocationSite::kNestedSiteOffset:
       return HObjectAccess(kInobject, offset, Representation::Tagged());
-    case AllocationSite::kMementoFoundCountOffset:
+    case AllocationSite::kPretenureDataOffset:
       return HObjectAccess(kInobject, offset, Representation::Smi());
-    case AllocationSite::kMementoCreateCountOffset:
-      return HObjectAccess(kInobject, offset, Representation::Smi());
-    case AllocationSite::kPretenureDecisionOffset:
+    case AllocationSite::kPretenureCreateCountOffset:
       return HObjectAccess(kInobject, offset, Representation::Smi());
     case AllocationSite::kDependentCodeOffset:
       return HObjectAccess(kInobject, offset, Representation::Tagged());
@@ -4353,7 +4313,7 @@ HObjectAccess HObjectAccess::ForField(Handle<Map> map,
     // Negative property indices are in-object properties, indexed
     // from the end of the fixed part of the object.
     int offset = (index * kPointerSize) + map->instance_size();
-    return HObjectAccess(kInobject, offset, representation);
+    return HObjectAccess(kInobject, offset, representation, name);
   } else {
     // Non-negative property indices are in the properties array.
     int offset = (index * kPointerSize) + FixedArray::kHeaderSize;
