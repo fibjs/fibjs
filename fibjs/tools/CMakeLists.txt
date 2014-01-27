@@ -15,7 +15,7 @@ if(${OS_TYPE} STREQUAL "Darwin")
 endif()
 
 if(${OS_TYPE} STREQUAL "Linux")
-	set(link_flags "--static-libgcc --static-libstdc++ -Wl,--no-as-needed")
+	set(link_flags "-static-libgcc -static-libstdc++ -Wl,--no-as-needed")
 	target_link_libraries(fibjs pthread dl rt)
 endif()
 
