@@ -10,6 +10,14 @@ apt-get install g++-multilib
 
 
 ----------------------------------
+on fedora:
+yum install gcc-c++
+yum install libstdc++-static
+yum install make
+yum install cmake
+yum install subversion
+
+----------------------------------
 on osx:
 brew install cmake
 
