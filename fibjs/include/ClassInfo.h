@@ -75,8 +75,6 @@ public:
     ClassInfo(ClassData &cd) :
         m_cd(cd)
     {
-        v8::HandleScope handle_scope(isolate);
-
         v8::Local<v8::FunctionTemplate> _class = v8::FunctionTemplate::New(
                     isolate, cd.cor);
         m_class.Reset(isolate, _class);

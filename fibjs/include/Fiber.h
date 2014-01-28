@@ -134,7 +134,6 @@ public:
     void New(v8::Local<v8::Function> func, T &args, int nArgStart,
              int nArgCount)
     {
-        v8::HandleScope handle_scope(isolate);
         int i;
 
         m_argv.resize(nArgCount - nArgStart);
