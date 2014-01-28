@@ -51,12 +51,12 @@ public:
         return 0;
     }
 
-    result_t onerror(v8::Handle<v8::Function> trigger)
+    result_t onerror(v8::Local<v8::Function> trigger)
     {
         return on("error", trigger);
     }
 
-    result_t onexit(v8::Handle<v8::Function> trigger)
+    result_t onexit(v8::Local<v8::Function> trigger)
     {
         return on("exit", trigger);
     }
@@ -131,7 +131,7 @@ public:
     virtual void js_callback();
 
     template<typename T>
-    void New(v8::Handle<v8::Function> func, T &args, int nArgStart,
+    void New(v8::Local<v8::Function> func, T &args, int nArgStart,
              int nArgCount)
     {
         v8::HandleScope handle_scope(isolate);
@@ -146,7 +146,7 @@ public:
     }
 
     template<typename T>
-    static result_t New(v8::Handle<v8::Function> func,
+    static result_t New(v8::Local<v8::Function> func,
                         const v8::FunctionCallbackInfo<v8::Value> &args, int nArgStart,
                         obj_ptr<T> &retVal)
     {
@@ -158,8 +158,8 @@ public:
     }
 
     template<typename T>
-    static result_t New(v8::Handle<v8::Function> func,
-                        v8::Handle<v8::Value> *args, int argCount, obj_ptr<T> &retVal)
+    static result_t New(v8::Local<v8::Function> func,
+                        v8::Local<v8::Value> *args, int argCount, obj_ptr<T> &retVal)
     {
         obj_ptr<JSFiber> fb = new JSFiber();
         fb->New(func, args, 0, argCount);
@@ -168,8 +168,8 @@ public:
         return 0;
     }
 
-    static void call(v8::Handle<v8::Function> func, v8::Handle<v8::Value> *args,
-                     int argCount, v8::Handle<v8::Value> &retVal)
+    static void call(v8::Local<v8::Function> func, v8::Local<v8::Value> *args,
+                     int argCount, v8::Local<v8::Value> &retVal)
     {
         JSFiber *fb = (JSFiber *) g_pService->tlsGet(g_tlsCurrent);
 
@@ -177,7 +177,7 @@ public:
             fb->callFunction1(func, args, argCount, retVal);
     }
 
-    result_t get_result(v8::Handle<v8::Value> &retVal)
+    result_t get_result(v8::Local<v8::Value> &retVal)
     {
         if (m_result.IsEmpty())
             return CALL_RETURN_NULL;
@@ -204,10 +204,10 @@ public:
     }
 
 private:
-    void callFunction(v8::Handle<v8::Value> &retVal);
-    void callFunction1(v8::Handle<v8::Function> func,
-                       v8::Handle<v8::Value> *args, int argCount,
-                       v8::Handle<v8::Value> &retVal);
+    void callFunction(v8::Local<v8::Value> &retVal);
+    void callFunction1(v8::Local<v8::Function> func,
+                       v8::Local<v8::Value> *args, int argCount,
+                       v8::Local<v8::Value> &retVal);
 
 private:
     v8::Persistent<v8::Function> m_func;

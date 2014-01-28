@@ -24,8 +24,8 @@ class BlockQueue_base : public Queue_base
 public:
 	// BlockQueue_base
 	static result_t _new(int32_t size, obj_ptr<BlockQueue_base>& retVal);
-	virtual result_t put(v8::Handle<v8::Value> e) = 0;
-	virtual result_t take(v8::Handle<v8::Value>& retVal) = 0;
+	virtual result_t put(v8::Local<v8::Value> e) = 0;
+	virtual result_t take(v8::Local<v8::Value>& retVal) = 0;
 
 	DECLARE_CLASSINFO(BlockQueue_base);
 
@@ -78,7 +78,7 @@ namespace fibjs
 		METHOD_INSTANCE(BlockQueue_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = pInst->put(v0);
 
@@ -87,7 +87,7 @@ namespace fibjs
 
 	inline void BlockQueue_base::s_take(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Value> vr;
+		v8::Local<v8::Value> vr;
 
 		METHOD_INSTANCE(BlockQueue_base);
 		METHOD_ENTER(0, 0);

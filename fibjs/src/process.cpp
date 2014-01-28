@@ -67,9 +67,9 @@ void init_argv(int argc, char **argv)
     s_argv = argv;
 }
 
-result_t process_base::get_argv(v8::Handle<v8::Array> &retVal)
+result_t process_base::get_argv(v8::Local<v8::Array> &retVal)
 {
-    v8::Handle<v8::Array> args = v8::Array::New(isolate, s_argc);
+    v8::Local<v8::Array> args = v8::Array::New(isolate, s_argc);
 
     for (int i = 0; i < s_argc; i ++)
         args->Set(i, v8::String::NewFromUtf8(isolate, s_argv[i]));
@@ -94,7 +94,7 @@ result_t process_base::exit(int32_t code)
     return 0;
 }
 
-result_t process_base::memoryUsage(v8::Handle<v8::Object> &retVal)
+result_t process_base::memoryUsage(v8::Local<v8::Object> &retVal)
 {
     return os_base::memoryUsage(retVal);
 }

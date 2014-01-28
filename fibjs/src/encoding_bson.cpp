@@ -19,11 +19,11 @@ ToCString(const v8::String::Utf8Value &value)
     return *value ? *value : "<string conversion failed>";
 }
 
-void encodeArray(bson *bb, const char *name, v8::Handle<v8::Value> element);
-bool encodeObject(bson *bb, const char *name, v8::Handle<v8::Value> element,
+void encodeArray(bson *bb, const char *name, v8::Local<v8::Value> element);
+bool encodeObject(bson *bb, const char *name, v8::Local<v8::Value> element,
                   bool doJson);
 
-void encodeValue(bson *bb, const char *name, v8::Handle<v8::Value> element,
+void encodeValue(bson *bb, const char *name, v8::Local<v8::Value> element,
                  bool doJson)
 {
     if (element.IsEmpty() || element->IsUndefined() || element->IsFunction())
@@ -54,8 +54,8 @@ void encodeValue(bson *bb, const char *name, v8::Handle<v8::Value> element,
         encodeArray(bb, name, element);
     else if (element->IsRegExp())
     {
-        v8::Handle<v8::RegExp> re = v8::Handle<v8::RegExp>::Cast(element);
-        v8::Handle<v8::String> src = re->GetSource();
+        v8::Local<v8::RegExp> re = v8::Local<v8::RegExp>::Cast(element);
+        v8::Local<v8::String> src = re->GetSource();
         v8::RegExp::Flags flgs = re->GetFlags();
         char flgStr[4];
         char *p = flgStr;
@@ -108,20 +108,20 @@ void encodeValue(bson *bb, const char *name, v8::Handle<v8::Value> element,
     }
 }
 
-void encodeValue(bson *bb, const char *name, v8::Handle<v8::Value> element)
+void encodeValue(bson *bb, const char *name, v8::Local<v8::Value> element)
 {
     encodeValue(bb, name, element, true);
 }
 
-void encodeArray(bson *bb, const char *name, v8::Handle<v8::Value> element)
+void encodeArray(bson *bb, const char *name, v8::Local<v8::Value> element)
 {
-    v8::Handle<v8::Array> a = v8::Handle<v8::Array>::Cast(element);
+    v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(element);
 
     bson_append_start_array(bb, name);
 
     for (int i = 0, l = a->Length(); i < l; i++)
     {
-        v8::Handle<v8::Value> val = a->Get(v8::Number::New(isolate, i));
+        v8::Local<v8::Value> val = a->Get(v8::Number::New(isolate, i));
         char numStr[32];
 
         sprintf(numStr, "%d", i);
@@ -131,21 +131,21 @@ void encodeArray(bson *bb, const char *name, v8::Handle<v8::Value> element)
     bson_append_finish_array(bb);
 }
 
-bool encodeObject(bson *bb, const char *name, v8::Handle<v8::Value> element,
+bool encodeObject(bson *bb, const char *name, v8::Local<v8::Value> element,
                   bool doJson)
 {
-    v8::Handle<v8::Object> object = element->ToObject();
+    v8::Local<v8::Object> object = element->ToObject();
 
     if (doJson)
     {
-        v8::Handle<v8::Value> jsonFun = object->Get(
+        v8::Local<v8::Value> jsonFun = object->Get(
                                             v8::String::NewFromUtf8(isolate, "toJSON",
                                                     v8::String::kNormalString, 6));
 
         if (!IsEmpty(jsonFun) && jsonFun->IsFunction())
         {
-            v8::Handle<v8::Value> p = v8::String::NewFromUtf8(isolate, name ? name : "");
-            v8::Handle<v8::Value> element1 = v8::Handle<v8::Function>::Cast(
+            v8::Local<v8::Value> p = v8::String::NewFromUtf8(isolate, name ? name : "");
+            v8::Local<v8::Value> element1 = v8::Local<v8::Function>::Cast(
                                                  jsonFun)->Call(object, 1, &p);
 
             if (name)
@@ -169,15 +169,15 @@ bool encodeObject(bson *bb, const char *name, v8::Handle<v8::Value> element,
     if (name)
         bson_append_start_object(bb, name);
 
-    v8::Handle<v8::Array> properties = object->GetPropertyNames();
+    v8::Local<v8::Array> properties = object->GetPropertyNames();
 
     for (int i = 0; i < (int) properties->Length(); i++)
     {
-        v8::Handle<v8::Value> prop_name = properties->Get(v8::Integer::New(isolate, i));
+        v8::Local<v8::Value> prop_name = properties->Get(v8::Integer::New(isolate, i));
 
         if (!prop_name->IsNumber())
         {
-            v8::Handle<v8::Value> prop_val = object->Get(prop_name->ToString());
+            v8::Local<v8::Value> prop_val = object->Get(prop_name->ToString());
 
             v8::String::Utf8Value n(prop_name);
             const char *pname = ToCString(n);
@@ -192,12 +192,12 @@ bool encodeObject(bson *bb, const char *name, v8::Handle<v8::Value> element,
     return true;
 }
 
-bool appendObject(bson *bb, v8::Handle<v8::Value> element)
+bool appendObject(bson *bb, v8::Local<v8::Value> element)
 {
     return encodeObject(bb, NULL, element, true);
 }
 
-result_t encodeObject(bson *bb, v8::Handle<v8::Value> element)
+result_t encodeObject(bson *bb, v8::Local<v8::Value> element)
 {
     bson_init(bb);
     if (!encodeObject(bb, NULL, element, true))
@@ -210,7 +210,7 @@ result_t encodeObject(bson *bb, v8::Handle<v8::Value> element)
     return 0;
 }
 
-result_t encoding_base::bsonEncode(v8::Handle<v8::Object> data,
+result_t encoding_base::bsonEncode(v8::Local<v8::Object> data,
                                    obj_ptr<Buffer_base> &retVal)
 {
     bson bb;
@@ -228,9 +228,9 @@ result_t encoding_base::bsonEncode(v8::Handle<v8::Object> data,
     return 0;
 }
 
-v8::Handle<v8::Object> decodeObject(bson_iterator *it, bool bArray);
+v8::Local<v8::Object> decodeObject(bson_iterator *it, bool bArray);
 
-void decodeValue(v8::Handle<v8::Object> obj, bson_iterator *it)
+void decodeValue(v8::Local<v8::Object> obj, bson_iterator *it)
 {
     bson_type type = bson_iterator_type(it);
     const char *key = bson_iterator_key(it);
@@ -312,9 +312,9 @@ void decodeValue(v8::Handle<v8::Object> obj, bson_iterator *it)
     }
 }
 
-v8::Handle<v8::Object> decodeObject(bson_iterator *it, bool bArray)
+v8::Local<v8::Object> decodeObject(bson_iterator *it, bool bArray)
 {
-    v8::Handle<v8::Object> obj;
+    v8::Local<v8::Object> obj;
 
     if (bArray)
         obj = v8::Array::New(isolate);
@@ -327,7 +327,7 @@ v8::Handle<v8::Object> decodeObject(bson_iterator *it, bool bArray)
     return obj;
 }
 
-v8::Handle<v8::Object> decodeObject(const bson *bb)
+v8::Local<v8::Object> decodeObject(const bson *bb)
 {
     bson_iterator it;
     bson_iterator_from_buffer(&it, bson_data(bb));
@@ -335,7 +335,7 @@ v8::Handle<v8::Object> decodeObject(const bson *bb)
     return decodeObject(&it, false);
 }
 
-v8::Handle<v8::Object> decodeObject(const char *buffer)
+v8::Local<v8::Object> decodeObject(const char *buffer)
 {
     bson_iterator it;
     bson_iterator_from_buffer(&it, buffer);
@@ -344,7 +344,7 @@ v8::Handle<v8::Object> decodeObject(const char *buffer)
 }
 
 result_t encoding_base::bsonDecode(Buffer_base *data,
-                                   v8::Handle<v8::Object> &retVal)
+                                   v8::Local<v8::Object> &retVal)
 {
     std::string strBuf;
 

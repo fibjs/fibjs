@@ -32,17 +32,17 @@ public:
 
 public:
 	// test_base
-	static result_t describe(const char* name, v8::Handle<v8::Function> block);
-	static result_t xdescribe(const char* name, v8::Handle<v8::Function> block);
-	static result_t it(const char* name, v8::Handle<v8::Function> block);
-	static result_t xit(const char* name, v8::Handle<v8::Function> block);
-	static result_t before(v8::Handle<v8::Function> func);
-	static result_t after(v8::Handle<v8::Function> func);
-	static result_t beforeEach(v8::Handle<v8::Function> func);
-	static result_t afterEach(v8::Handle<v8::Function> func);
+	static result_t describe(const char* name, v8::Local<v8::Function> block);
+	static result_t xdescribe(const char* name, v8::Local<v8::Function> block);
+	static result_t it(const char* name, v8::Local<v8::Function> block);
+	static result_t xit(const char* name, v8::Local<v8::Function> block);
+	static result_t before(v8::Local<v8::Function> func);
+	static result_t after(v8::Local<v8::Function> func);
+	static result_t beforeEach(v8::Local<v8::Function> func);
+	static result_t afterEach(v8::Local<v8::Function> func);
 	static result_t run(int32_t loglevel);
 	static result_t get_assert(obj_ptr<assert_base>& retVal);
-	static result_t expect(v8::Handle<v8::Value> actual, const char* msg, obj_ptr<Expect_base>& retVal);
+	static result_t expect(v8::Local<v8::Value> actual, const char* msg, obj_ptr<Expect_base>& retVal);
 	static result_t setup(int32_t mode);
 	static result_t get_slow(int32_t& retVal);
 	static result_t set_slow(int32_t newVal);
@@ -163,7 +163,7 @@ namespace fibjs
 		METHOD_ENTER(2, 2);
 
 		ARG_String(0);
-		ARG(v8::Handle<v8::Function>, 1);
+		ARG(v8::Local<v8::Function>, 1);
 
 		hr = describe(v0, v1);
 
@@ -175,7 +175,7 @@ namespace fibjs
 		METHOD_ENTER(2, 2);
 
 		ARG_String(0);
-		ARG(v8::Handle<v8::Function>, 1);
+		ARG(v8::Local<v8::Function>, 1);
 
 		hr = xdescribe(v0, v1);
 
@@ -187,7 +187,7 @@ namespace fibjs
 		METHOD_ENTER(2, 2);
 
 		ARG_String(0);
-		ARG(v8::Handle<v8::Function>, 1);
+		ARG(v8::Local<v8::Function>, 1);
 
 		hr = it(v0, v1);
 
@@ -199,7 +199,7 @@ namespace fibjs
 		METHOD_ENTER(2, 2);
 
 		ARG_String(0);
-		ARG(v8::Handle<v8::Function>, 1);
+		ARG(v8::Local<v8::Function>, 1);
 
 		hr = xit(v0, v1);
 
@@ -210,7 +210,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Function>, 0);
+		ARG(v8::Local<v8::Function>, 0);
 
 		hr = before(v0);
 
@@ -221,7 +221,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Function>, 0);
+		ARG(v8::Local<v8::Function>, 0);
 
 		hr = after(v0);
 
@@ -232,7 +232,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Function>, 0);
+		ARG(v8::Local<v8::Function>, 0);
 
 		hr = beforeEach(v0);
 
@@ -243,7 +243,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Function>, 0);
+		ARG(v8::Local<v8::Function>, 0);
 
 		hr = afterEach(v0);
 
@@ -267,7 +267,7 @@ namespace fibjs
 
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = expect(v0, v1, vr);

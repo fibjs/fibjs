@@ -29,8 +29,8 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     obj_ptr<HttpRequest_base> htreq = HttpRequest_base::getInstance(v);
     obj_ptr<SeekableStream_base> body;
     obj_ptr<Buffer_base> buf;
-    v8::Handle<v8::Value> jsval;
-    v8::Handle<v8::Object> o;
+    v8::Local<v8::Value> jsval;
+    v8::Local<v8::Object> o;
     Variant result;
     std::string str;
     int64_t len;
@@ -84,7 +84,7 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     if (!jsval->IsObject())
         return CALL_E_INVALID_CALL;
 
-    o = v8::Handle<v8::Object>::Cast(jsval);
+    o = v8::Local<v8::Object>::Cast(jsval);
 
     jsval = o->Get(v8::String::NewFromUtf8(isolate, "method",
                                            v8::String::kNormalString, 6));
@@ -100,7 +100,7 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                                            v8::String::kNormalString, 6));
     if (!jsval.IsEmpty() && jsval->IsArray())
     {
-        v8::Handle<v8::Array> jsparams = v8::Handle<v8::Array>::Cast(jsval);
+        v8::Local<v8::Array> jsparams = v8::Local<v8::Array>::Cast(jsval);
 
         sz = jsparams->Length();
         msg->get_params(params);
@@ -116,7 +116,7 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     if (hr >= 0 && hr != CALL_RETURN_NULL)
         hr = mq_base::ac_invoke(hdlr1, v);
 
-    v8::Handle<v8::String> strId = v8::String::NewFromUtf8(isolate, "id",
+    v8::Local<v8::String> strId = v8::String::NewFromUtf8(isolate, "id",
                                    v8::String::kNormalString, 2);
     jsval = o->Get(strId);
 

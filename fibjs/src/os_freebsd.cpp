@@ -55,7 +55,7 @@ result_t os_base::uptime(double &retVal)
     return 0;
 }
 
-result_t os_base::loadavg(v8::Handle<v8::Array> &retVal)
+result_t os_base::loadavg(v8::Local<v8::Array> &retVal)
 {
     double avg[3] = { 0, 0, 0 };
 
@@ -128,7 +128,7 @@ result_t os_base::CPUs(int32_t &retVal)
     return 0;
 }
 
-result_t os_base::CPUInfo(v8::Handle<v8::Array> &retVal)
+result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
 {
     retVal = v8::Array::New(isolate);
 
@@ -241,7 +241,7 @@ result_t os_base::get_execPath(std::string &retVal)
 }
 
 int g_obj_refs;
-result_t os_base::memoryUsage(v8::Handle<v8::Object> &retVal)
+result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
 {
     size_t rss;
 
@@ -271,7 +271,7 @@ result_t os_base::memoryUsage(v8::Handle<v8::Object> &retVal)
 #endif
     kvm_close(kd);
 
-    v8::Handle<v8::Object> info = v8::Object::New(isolate);
+    v8::Local<v8::Object> info = v8::Object::New(isolate);
 
     v8::HeapStatistics v8_heap_stats;
     isolate->GetHeapStatistics(&v8_heap_stats);

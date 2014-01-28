@@ -18,30 +18,30 @@ class MongoCursor: public MongoCursor_base
 {
 public:
     MongoCursor(MongoDB *db, const std::string &ns, const std::string &name,
-                v8::Handle<v8::Object> query, v8::Handle<v8::Object> projection);
+                v8::Local<v8::Object> query, v8::Local<v8::Object> projection);
     ~MongoCursor();
 
 public:
     // object_base
-    virtual result_t toJSON(const char *key, v8::Handle<v8::Value> &retVal);
+    virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal);
 
 public:
     // MongoCursor_base
     virtual result_t skip(int32_t num, obj_ptr<MongoCursor_base> &retVal);
     virtual result_t limit(int32_t size, obj_ptr<MongoCursor_base> &retVal);
-    virtual result_t sort(v8::Handle<v8::Object> opts, obj_ptr<MongoCursor_base> &retVal);
+    virtual result_t sort(v8::Local<v8::Object> opts, obj_ptr<MongoCursor_base> &retVal);
     virtual result_t hasNext(bool &retVal);
-    virtual result_t next(v8::Handle<v8::Object> &retVal);
+    virtual result_t next(v8::Local<v8::Object> &retVal);
     virtual result_t count(bool applySkipLimit, int32_t &retVal);
     virtual result_t size(int32_t &retVal);
-    virtual result_t forEach(v8::Handle<v8::Function> func);
-    virtual result_t map(v8::Handle<v8::Function> func, v8::Handle<v8::Array> &retVal);
-    virtual result_t toArray(v8::Handle<v8::Array> &retVal);
-    virtual result_t hint(v8::Handle<v8::Object> opts, obj_ptr<MongoCursor_base> &retVal);
+    virtual result_t forEach(v8::Local<v8::Function> func);
+    virtual result_t map(v8::Local<v8::Function> func, v8::Local<v8::Array> &retVal);
+    virtual result_t toArray(v8::Local<v8::Array> &retVal);
+    virtual result_t hint(v8::Local<v8::Object> opts, obj_ptr<MongoCursor_base> &retVal);
 
 private:
     void ensureSpecial();
-    result_t _addSpecial(const char *name, v8::Handle<v8::Value> opts,
+    result_t _addSpecial(const char *name, v8::Local<v8::Value> opts,
                          obj_ptr<MongoCursor_base> &retVal);
 
 private:

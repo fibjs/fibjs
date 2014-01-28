@@ -35,10 +35,10 @@ public:
 	virtual result_t set_maxUploadSize(int32_t newVal) = 0;
 	virtual result_t hasHeader(const char* name, bool& retVal) = 0;
 	virtual result_t firstHeader(const char* name, Variant& retVal) = 0;
-	virtual result_t allHeader(const char* name, v8::Handle<v8::Array>& retVal) = 0;
-	virtual result_t addHeader(v8::Handle<v8::Object> map) = 0;
+	virtual result_t allHeader(const char* name, v8::Local<v8::Array>& retVal) = 0;
+	virtual result_t addHeader(v8::Local<v8::Object> map) = 0;
 	virtual result_t addHeader(const char* name, Variant value) = 0;
-	virtual result_t setHeader(v8::Handle<v8::Object> map) = 0;
+	virtual result_t setHeader(v8::Local<v8::Object> map) = 0;
 	virtual result_t setHeader(const char* name, Variant value) = 0;
 	virtual result_t removeHeader(const char* name) = 0;
 
@@ -234,7 +234,7 @@ namespace fibjs
 
 	inline void HttpMessage_base::s_allHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Local<v8::Array> vr;
 
 		METHOD_INSTANCE(HttpMessage_base);
 		METHOD_ENTER(1, 1);
@@ -251,7 +251,7 @@ namespace fibjs
 		METHOD_INSTANCE(HttpMessage_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->addHeader(v0);
 
@@ -270,7 +270,7 @@ namespace fibjs
 		METHOD_INSTANCE(HttpMessage_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->setHeader(v0);
 

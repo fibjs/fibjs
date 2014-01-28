@@ -23,54 +23,54 @@ class assert_base : public module_base
 {
 public:
 	// assert_base
-	static result_t ok(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t notOk(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t equal(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg);
-	static result_t notEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg);
-	static result_t strictEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg);
-	static result_t notStrictEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg);
-	static result_t deepEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg);
-	static result_t notDeepEqual(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg);
-	static result_t closeTo(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, v8::Handle<v8::Value> delta, const char* msg);
-	static result_t notCloseTo(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, v8::Handle<v8::Value> delta, const char* msg);
-	static result_t lessThan(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg);
-	static result_t notLessThan(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg);
-	static result_t greaterThan(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg);
-	static result_t notGreaterThan(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected, const char* msg);
-	static result_t exist(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t notExist(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isTrue(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isNotTrue(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isFalse(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isNotFalse(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isNull(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isNotNull(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isUndefined(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isDefined(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isFunction(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isNotFunction(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isObject(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isNotObject(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isArray(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isNotArray(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isString(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isNotString(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isNumber(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isNotNumber(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isBoolean(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t isNotBoolean(v8::Handle<v8::Value> actual, const char* msg);
-	static result_t typeOf(v8::Handle<v8::Value> actual, const char* type, const char* msg);
-	static result_t notTypeOf(v8::Handle<v8::Value> actual, const char* type, const char* msg);
-	static result_t property(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, const char* msg);
-	static result_t notProperty(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, const char* msg);
-	static result_t deepProperty(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, const char* msg);
-	static result_t notDeepProperty(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, const char* msg);
-	static result_t propertyVal(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value, const char* msg);
-	static result_t propertyNotVal(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value, const char* msg);
-	static result_t deepPropertyVal(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value, const char* msg);
-	static result_t deepPropertyNotVal(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value, const char* msg);
-	static result_t throws(v8::Handle<v8::Function> block, const char* msg);
-	static result_t doesNotThrow(v8::Handle<v8::Function> block, const char* msg);
+	static result_t ok(v8::Local<v8::Value> actual, const char* msg);
+	static result_t notOk(v8::Local<v8::Value> actual, const char* msg);
+	static result_t equal(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, const char* msg);
+	static result_t notEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, const char* msg);
+	static result_t strictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, const char* msg);
+	static result_t notStrictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, const char* msg);
+	static result_t deepEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, const char* msg);
+	static result_t notDeepEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, const char* msg);
+	static result_t closeTo(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> delta, const char* msg);
+	static result_t notCloseTo(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> delta, const char* msg);
+	static result_t lessThan(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, const char* msg);
+	static result_t notLessThan(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, const char* msg);
+	static result_t greaterThan(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, const char* msg);
+	static result_t notGreaterThan(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, const char* msg);
+	static result_t exist(v8::Local<v8::Value> actual, const char* msg);
+	static result_t notExist(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isTrue(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isNotTrue(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isFalse(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isNotFalse(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isNull(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isNotNull(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isUndefined(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isDefined(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isFunction(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isNotFunction(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isObject(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isNotObject(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isArray(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isNotArray(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isString(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isNotString(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isNumber(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isNotNumber(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isBoolean(v8::Local<v8::Value> actual, const char* msg);
+	static result_t isNotBoolean(v8::Local<v8::Value> actual, const char* msg);
+	static result_t typeOf(v8::Local<v8::Value> actual, const char* type, const char* msg);
+	static result_t notTypeOf(v8::Local<v8::Value> actual, const char* type, const char* msg);
+	static result_t property(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, const char* msg);
+	static result_t notProperty(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, const char* msg);
+	static result_t deepProperty(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, const char* msg);
+	static result_t notDeepProperty(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, const char* msg);
+	static result_t propertyVal(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> value, const char* msg);
+	static result_t propertyNotVal(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> value, const char* msg);
+	static result_t deepPropertyVal(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> value, const char* msg);
+	static result_t deepPropertyNotVal(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> value, const char* msg);
+	static result_t throws(v8::Local<v8::Function> block, const char* msg);
+	static result_t doesNotThrow(v8::Local<v8::Function> block, const char* msg);
 
 	DECLARE_CLASSINFO(assert_base);
 
@@ -200,7 +200,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = ok(v0, v1);
@@ -212,7 +212,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = notOk(v0, v1);
@@ -224,8 +224,8 @@ namespace fibjs
 	{
 		METHOD_ENTER(3, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
 		OPT_ARG_String(2, "");
 
 		hr = equal(v0, v1, v2);
@@ -237,8 +237,8 @@ namespace fibjs
 	{
 		METHOD_ENTER(3, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
 		OPT_ARG_String(2, "");
 
 		hr = notEqual(v0, v1, v2);
@@ -250,8 +250,8 @@ namespace fibjs
 	{
 		METHOD_ENTER(3, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
 		OPT_ARG_String(2, "");
 
 		hr = strictEqual(v0, v1, v2);
@@ -263,8 +263,8 @@ namespace fibjs
 	{
 		METHOD_ENTER(3, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
 		OPT_ARG_String(2, "");
 
 		hr = notStrictEqual(v0, v1, v2);
@@ -276,8 +276,8 @@ namespace fibjs
 	{
 		METHOD_ENTER(3, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
 		OPT_ARG_String(2, "");
 
 		hr = deepEqual(v0, v1, v2);
@@ -289,8 +289,8 @@ namespace fibjs
 	{
 		METHOD_ENTER(3, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
 		OPT_ARG_String(2, "");
 
 		hr = notDeepEqual(v0, v1, v2);
@@ -302,9 +302,9 @@ namespace fibjs
 	{
 		METHOD_ENTER(4, 3);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
-		ARG(v8::Handle<v8::Value>, 2);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 2);
 		OPT_ARG_String(3, "");
 
 		hr = closeTo(v0, v1, v2, v3);
@@ -316,9 +316,9 @@ namespace fibjs
 	{
 		METHOD_ENTER(4, 3);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
-		ARG(v8::Handle<v8::Value>, 2);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 2);
 		OPT_ARG_String(3, "");
 
 		hr = notCloseTo(v0, v1, v2, v3);
@@ -330,8 +330,8 @@ namespace fibjs
 	{
 		METHOD_ENTER(3, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
 		OPT_ARG_String(2, "");
 
 		hr = lessThan(v0, v1, v2);
@@ -343,8 +343,8 @@ namespace fibjs
 	{
 		METHOD_ENTER(3, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
 		OPT_ARG_String(2, "");
 
 		hr = notLessThan(v0, v1, v2);
@@ -356,8 +356,8 @@ namespace fibjs
 	{
 		METHOD_ENTER(3, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
 		OPT_ARG_String(2, "");
 
 		hr = greaterThan(v0, v1, v2);
@@ -369,8 +369,8 @@ namespace fibjs
 	{
 		METHOD_ENTER(3, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
 		OPT_ARG_String(2, "");
 
 		hr = notGreaterThan(v0, v1, v2);
@@ -382,7 +382,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = exist(v0, v1);
@@ -394,7 +394,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = notExist(v0, v1);
@@ -406,7 +406,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isTrue(v0, v1);
@@ -418,7 +418,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isNotTrue(v0, v1);
@@ -430,7 +430,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isFalse(v0, v1);
@@ -442,7 +442,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isNotFalse(v0, v1);
@@ -454,7 +454,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isNull(v0, v1);
@@ -466,7 +466,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isNotNull(v0, v1);
@@ -478,7 +478,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isUndefined(v0, v1);
@@ -490,7 +490,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isDefined(v0, v1);
@@ -502,7 +502,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isFunction(v0, v1);
@@ -514,7 +514,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isNotFunction(v0, v1);
@@ -526,7 +526,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isObject(v0, v1);
@@ -538,7 +538,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isNotObject(v0, v1);
@@ -550,7 +550,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isArray(v0, v1);
@@ -562,7 +562,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isNotArray(v0, v1);
@@ -574,7 +574,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isString(v0, v1);
@@ -586,7 +586,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isNotString(v0, v1);
@@ -598,7 +598,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isNumber(v0, v1);
@@ -610,7 +610,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isNotNumber(v0, v1);
@@ -622,7 +622,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isBoolean(v0, v1);
@@ -634,7 +634,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = isNotBoolean(v0, v1);
@@ -646,7 +646,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(3, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		ARG_String(1);
 		OPT_ARG_String(2, "");
 
@@ -659,7 +659,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(3, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		ARG_String(1);
 		OPT_ARG_String(2, "");
 
@@ -672,8 +672,8 @@ namespace fibjs
 	{
 		METHOD_ENTER(3, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
 		OPT_ARG_String(2, "");
 
 		hr = property(v0, v1, v2);
@@ -685,8 +685,8 @@ namespace fibjs
 	{
 		METHOD_ENTER(3, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
 		OPT_ARG_String(2, "");
 
 		hr = notProperty(v0, v1, v2);
@@ -698,8 +698,8 @@ namespace fibjs
 	{
 		METHOD_ENTER(3, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
 		OPT_ARG_String(2, "");
 
 		hr = deepProperty(v0, v1, v2);
@@ -711,8 +711,8 @@ namespace fibjs
 	{
 		METHOD_ENTER(3, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
 		OPT_ARG_String(2, "");
 
 		hr = notDeepProperty(v0, v1, v2);
@@ -724,9 +724,9 @@ namespace fibjs
 	{
 		METHOD_ENTER(4, 3);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
-		ARG(v8::Handle<v8::Value>, 2);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 2);
 		OPT_ARG_String(3, "");
 
 		hr = propertyVal(v0, v1, v2, v3);
@@ -738,9 +738,9 @@ namespace fibjs
 	{
 		METHOD_ENTER(4, 3);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
-		ARG(v8::Handle<v8::Value>, 2);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 2);
 		OPT_ARG_String(3, "");
 
 		hr = propertyNotVal(v0, v1, v2, v3);
@@ -752,9 +752,9 @@ namespace fibjs
 	{
 		METHOD_ENTER(4, 3);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
-		ARG(v8::Handle<v8::Value>, 2);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 2);
 		OPT_ARG_String(3, "");
 
 		hr = deepPropertyVal(v0, v1, v2, v3);
@@ -766,9 +766,9 @@ namespace fibjs
 	{
 		METHOD_ENTER(4, 3);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
-		ARG(v8::Handle<v8::Value>, 2);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 2);
 		OPT_ARG_String(3, "");
 
 		hr = deepPropertyNotVal(v0, v1, v2, v3);
@@ -780,7 +780,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Function>, 0);
+		ARG(v8::Local<v8::Function>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = throws(v0, v1);
@@ -792,7 +792,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Function>, 0);
+		ARG(v8::Local<v8::Function>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = doesNotThrow(v0, v1);

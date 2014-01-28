@@ -20,7 +20,7 @@ class Regex_base : public object_base
 {
 public:
 	// Regex_base
-	virtual result_t exec(const char* str, v8::Handle<v8::Array>& retVal) = 0;
+	virtual result_t exec(const char* str, v8::Local<v8::Array>& retVal) = 0;
 	virtual result_t test(const char* str, bool& retVal) = 0;
 	virtual result_t get_lastIndex(int32_t& retVal) = 0;
 	virtual result_t set_lastIndex(int32_t newVal) = 0;
@@ -132,7 +132,7 @@ namespace fibjs
 
 	inline void Regex_base::s_exec(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Local<v8::Array> vr;
 
 		METHOD_INSTANCE(Regex_base);
 		METHOD_ENTER(1, 1);

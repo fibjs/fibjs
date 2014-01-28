@@ -27,7 +27,7 @@ public:
 	static result_t _new(Stream_base* stm, obj_ptr<BufferedStream_base>& retVal);
 	virtual result_t readText(int32_t size, std::string& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t readLine(int32_t maxlen, std::string& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t readLines(int32_t maxlines, v8::Handle<v8::Array>& retVal) = 0;
+	virtual result_t readLines(int32_t maxlines, v8::Local<v8::Array>& retVal) = 0;
 	virtual result_t readUntil(const char* mk, int32_t maxlen, std::string& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t readPacket(int32_t limit, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t writeText(const char* txt, exlib::AsyncEvent* ac) = 0;
@@ -178,7 +178,7 @@ namespace fibjs
 
 	inline void BufferedStream_base::s_readLines(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Local<v8::Array> vr;
 
 		METHOD_INSTANCE(BufferedStream_base);
 		METHOD_ENTER(1, 0);

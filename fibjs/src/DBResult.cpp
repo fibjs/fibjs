@@ -84,8 +84,8 @@ result_t DBResult::concat(const v8::FunctionCallbackInfo<v8::Value> &args, obj_p
     return m_array.concat(args, retVal);
 }
 
-result_t DBResult::every(v8::Handle<v8::Function> func,
-                         v8::Handle<v8::Object> thisp, bool &retVal)
+result_t DBResult::every(v8::Local<v8::Function> func,
+                         v8::Local<v8::Object> thisp, bool &retVal)
 {
     if (!m_size)
         return CALL_E_INVALID_CALL;
@@ -93,8 +93,8 @@ result_t DBResult::every(v8::Handle<v8::Function> func,
     return m_array.every(func, thisp, retVal);
 }
 
-result_t DBResult::filter(v8::Handle<v8::Function> func,
-                          v8::Handle<v8::Object> thisp, obj_ptr<List_base> &retVal)
+result_t DBResult::filter(v8::Local<v8::Function> func,
+                          v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
 {
     if (!m_size)
         return CALL_E_INVALID_CALL;
@@ -102,8 +102,8 @@ result_t DBResult::filter(v8::Handle<v8::Function> func,
     return m_array.filter(func, thisp, retVal);
 }
 
-result_t DBResult::forEach(v8::Handle<v8::Function> func,
-                           v8::Handle<v8::Object> thisp)
+result_t DBResult::forEach(v8::Local<v8::Function> func,
+                           v8::Local<v8::Object> thisp)
 {
     if (!m_size)
         return CALL_E_INVALID_CALL;
@@ -111,8 +111,8 @@ result_t DBResult::forEach(v8::Handle<v8::Function> func,
     return m_array.forEach(func, thisp);
 }
 
-result_t DBResult::map(v8::Handle<v8::Function> func,
-                       v8::Handle<v8::Object> thisp, obj_ptr<List_base> &retVal)
+result_t DBResult::map(v8::Local<v8::Function> func,
+                       v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
 {
     if (!m_size)
         return CALL_E_INVALID_CALL;
@@ -120,7 +120,7 @@ result_t DBResult::map(v8::Handle<v8::Function> func,
     return m_array.map(func, thisp, retVal);
 }
 
-result_t DBResult::toArray(v8::Handle<v8::Array> &retVal)
+result_t DBResult::toArray(v8::Local<v8::Array> &retVal)
 {
     if (!m_size)
         return CALL_E_INVALID_CALL;
@@ -128,12 +128,12 @@ result_t DBResult::toArray(v8::Handle<v8::Array> &retVal)
     return m_array.toArray(retVal);
 }
 
-result_t DBResult::toJSON(const char *key, v8::Handle<v8::Value> &retVal)
+result_t DBResult::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 {
     if (m_size)
         return m_array.toJSON(key, retVal);
 
-    v8::Handle < v8::Object > o = v8::Object::New(isolate);
+    v8::Local < v8::Object > o = v8::Object::New(isolate);
 
     o->Set(v8::String::NewFromUtf8(isolate, "affected", v8::String::kNormalString, 8),
            v8::Number::New(isolate, (double) m_affected));
@@ -163,7 +163,7 @@ result_t DBResult::get_affected(int64_t &retVal)
     return 0;
 }
 
-result_t DBResult::get_fields(v8::Handle<v8::Array> &retVal)
+result_t DBResult::get_fields(v8::Local<v8::Array> &retVal)
 {
     if (!m_size)
         return CALL_E_INVALID_CALL;

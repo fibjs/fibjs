@@ -23,16 +23,16 @@ public:
 	virtual result_t clear() = 0;
 	virtual result_t has(const char* name, bool& retVal) = 0;
 	virtual result_t first(const char* name, Variant& retVal) = 0;
-	virtual result_t all(const char* name, v8::Handle<v8::Array>& retVal) = 0;
-	virtual result_t add(v8::Handle<v8::Object> map) = 0;
+	virtual result_t all(const char* name, v8::Local<v8::Array>& retVal) = 0;
+	virtual result_t add(v8::Local<v8::Object> map) = 0;
 	virtual result_t add(const char* name, Variant value) = 0;
-	virtual result_t set(v8::Handle<v8::Object> map) = 0;
+	virtual result_t set(v8::Local<v8::Object> map) = 0;
 	virtual result_t set(const char* name, Variant value) = 0;
 	virtual result_t remove(const char* name) = 0;
 	virtual result_t _named_getter(const char* property, Variant& retVal) = 0;
-	virtual result_t _named_enumerator(v8::Handle<v8::Array>& retVal) = 0;
+	virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
 	virtual result_t _named_setter(const char* property, Variant newVal) = 0;
-	virtual result_t _named_deleter(const char* property, v8::Handle<v8::Boolean>& retVal) = 0;
+	virtual result_t _named_deleter(const char* property, v8::Local<v8::Boolean>& retVal) = 0;
 
 	DECLARE_CLASSINFO(HttpCollection_base);
 
@@ -101,7 +101,7 @@ namespace fibjs
 
 	inline void HttpCollection_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Local<v8::Array> vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpCollection_base);
@@ -127,7 +127,7 @@ namespace fibjs
 
 	inline void HttpCollection_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args)
 	{
-		v8::Handle<v8::Boolean> vr;
+		v8::Local<v8::Boolean> vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpCollection_base);
@@ -179,7 +179,7 @@ namespace fibjs
 
 	inline void HttpCollection_base::s_all(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Local<v8::Array> vr;
 
 		METHOD_INSTANCE(HttpCollection_base);
 		METHOD_ENTER(1, 1);
@@ -196,7 +196,7 @@ namespace fibjs
 		METHOD_INSTANCE(HttpCollection_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->add(v0);
 
@@ -215,7 +215,7 @@ namespace fibjs
 		METHOD_INSTANCE(HttpCollection_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->set(v0);
 

@@ -28,7 +28,7 @@ public:
                             exlib::AsyncEvent *ac);
 
 public:
-    static result_t New(v8::Handle<v8::Value> hdlr,
+    static result_t New(v8::Local<v8::Value> hdlr,
                         obj_ptr<Handler_base> &retVal)
     {
         if (hdlr->IsString() || hdlr->IsStringObject() ||

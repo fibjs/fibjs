@@ -22,15 +22,15 @@ public:
 	// MongoCursor_base
 	virtual result_t skip(int32_t num, obj_ptr<MongoCursor_base>& retVal) = 0;
 	virtual result_t limit(int32_t size, obj_ptr<MongoCursor_base>& retVal) = 0;
-	virtual result_t sort(v8::Handle<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal) = 0;
+	virtual result_t sort(v8::Local<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal) = 0;
 	virtual result_t hasNext(bool& retVal) = 0;
-	virtual result_t next(v8::Handle<v8::Object>& retVal) = 0;
+	virtual result_t next(v8::Local<v8::Object>& retVal) = 0;
 	virtual result_t count(bool applySkipLimit, int32_t& retVal) = 0;
 	virtual result_t size(int32_t& retVal) = 0;
-	virtual result_t forEach(v8::Handle<v8::Function> func) = 0;
-	virtual result_t map(v8::Handle<v8::Function> func, v8::Handle<v8::Array>& retVal) = 0;
-	virtual result_t toArray(v8::Handle<v8::Array>& retVal) = 0;
-	virtual result_t hint(v8::Handle<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal) = 0;
+	virtual result_t forEach(v8::Local<v8::Function> func) = 0;
+	virtual result_t map(v8::Local<v8::Function> func, v8::Local<v8::Array>& retVal) = 0;
+	virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
+	virtual result_t hint(v8::Local<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal) = 0;
 
 	DECLARE_CLASSINFO(MongoCursor_base);
 
@@ -116,7 +116,7 @@ namespace fibjs
 		METHOD_INSTANCE(MongoCursor_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->sort(v0, vr);
 
@@ -137,7 +137,7 @@ namespace fibjs
 
 	inline void MongoCursor_base::s_next(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Object> vr;
+		v8::Local<v8::Object> vr;
 
 		METHOD_INSTANCE(MongoCursor_base);
 		METHOD_ENTER(0, 0);
@@ -178,7 +178,7 @@ namespace fibjs
 		METHOD_INSTANCE(MongoCursor_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Function>, 0);
+		ARG(v8::Local<v8::Function>, 0);
 
 		hr = pInst->forEach(v0);
 
@@ -187,12 +187,12 @@ namespace fibjs
 
 	inline void MongoCursor_base::s_map(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Local<v8::Array> vr;
 
 		METHOD_INSTANCE(MongoCursor_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Function>, 0);
+		ARG(v8::Local<v8::Function>, 0);
 
 		hr = pInst->map(v0, vr);
 
@@ -201,7 +201,7 @@ namespace fibjs
 
 	inline void MongoCursor_base::s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Local<v8::Array> vr;
 
 		METHOD_INSTANCE(MongoCursor_base);
 		METHOD_ENTER(0, 0);
@@ -218,7 +218,7 @@ namespace fibjs
 		METHOD_INSTANCE(MongoCursor_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->hint(v0, vr);
 

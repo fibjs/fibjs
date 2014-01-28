@@ -30,18 +30,18 @@ class http_base : public module_base
 {
 public:
 	// http_base
-	static result_t handler(v8::Handle<v8::Value> hdlr, obj_ptr<HttpHandler_base>& retVal);
+	static result_t handler(v8::Local<v8::Value> hdlr, obj_ptr<HttpHandler_base>& retVal);
 	static result_t fileHandler(const char* root, obj_ptr<Handler_base>& retVal);
 	static result_t request(const char* host, int32_t port, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t request(const char* method, const char* url, v8::Handle<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-	static result_t request(const char* method, const char* url, SeekableStream_base* body, v8::Handle<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-	static result_t request(const char* method, const char* url, Buffer_base* body, v8::Handle<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-	static result_t request(const char* method, const char* url, const char* body, v8::Handle<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-	static result_t get(const char* url, v8::Handle<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-	static result_t post(const char* url, v8::Handle<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-	static result_t post(const char* url, SeekableStream_base* body, v8::Handle<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-	static result_t post(const char* url, Buffer_base* body, v8::Handle<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-	static result_t post(const char* url, const char* body, v8::Handle<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+	static result_t request(const char* method, const char* url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+	static result_t request(const char* method, const char* url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+	static result_t request(const char* method, const char* url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+	static result_t request(const char* method, const char* url, const char* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+	static result_t get(const char* url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+	static result_t post(const char* url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+	static result_t post(const char* url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+	static result_t post(const char* url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+	static result_t post(const char* url, const char* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 
 	DECLARE_CLASSINFO(http_base);
 
@@ -104,7 +104,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = handler(v0, vr);
 
@@ -140,7 +140,7 @@ namespace fibjs
 
 		ARG_String(0);
 		ARG_String(1);
-		OPT_ARG(v8::Handle<v8::Object>, 2, v8::Object::New(isolate));
+		OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
 		hr = request(v0, v1, v2, vr);
 
@@ -149,7 +149,7 @@ namespace fibjs
 		ARG_String(0);
 		ARG_String(1);
 		ARG(obj_ptr<SeekableStream_base>, 2);
-		OPT_ARG(v8::Handle<v8::Object>, 3, v8::Object::New(isolate));
+		OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
 
 		hr = request(v0, v1, v2, v3, vr);
 
@@ -158,7 +158,7 @@ namespace fibjs
 		ARG_String(0);
 		ARG_String(1);
 		ARG(obj_ptr<Buffer_base>, 2);
-		OPT_ARG(v8::Handle<v8::Object>, 3, v8::Object::New(isolate));
+		OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
 
 		hr = request(v0, v1, v2, v3, vr);
 
@@ -167,7 +167,7 @@ namespace fibjs
 		ARG_String(0);
 		ARG_String(1);
 		ARG_String(2);
-		OPT_ARG(v8::Handle<v8::Object>, 3, v8::Object::New(isolate));
+		OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
 
 		hr = request(v0, v1, v2, v3, vr);
 
@@ -181,7 +181,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG_String(0);
-		OPT_ARG(v8::Handle<v8::Object>, 1, v8::Object::New(isolate));
+		OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
 		hr = get(v0, v1, vr);
 
@@ -195,7 +195,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG_String(0);
-		OPT_ARG(v8::Handle<v8::Object>, 1, v8::Object::New(isolate));
+		OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
 		hr = post(v0, v1, vr);
 
@@ -203,7 +203,7 @@ namespace fibjs
 
 		ARG_String(0);
 		ARG(obj_ptr<SeekableStream_base>, 1);
-		OPT_ARG(v8::Handle<v8::Object>, 2, v8::Object::New(isolate));
+		OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
 		hr = post(v0, v1, v2, vr);
 
@@ -211,7 +211,7 @@ namespace fibjs
 
 		ARG_String(0);
 		ARG(obj_ptr<Buffer_base>, 1);
-		OPT_ARG(v8::Handle<v8::Object>, 2, v8::Object::New(isolate));
+		OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
 		hr = post(v0, v1, v2, vr);
 
@@ -219,7 +219,7 @@ namespace fibjs
 
 		ARG_String(0);
 		ARG_String(1);
-		OPT_ARG(v8::Handle<v8::Object>, 2, v8::Object::New(isolate));
+		OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
 		hr = post(v0, v1, v2, vr);
 

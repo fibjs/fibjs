@@ -486,12 +486,12 @@ result_t HttpMessage::firstHeader(const char *name, Variant &retVal)
     return m_headers->first(name, retVal);
 }
 
-result_t HttpMessage::allHeader(const char *name, v8::Handle<v8::Array> &retVal)
+result_t HttpMessage::allHeader(const char *name, v8::Local<v8::Array> &retVal)
 {
     return m_headers->all(name, retVal);
 }
 
-result_t HttpMessage::addHeader(v8::Handle<v8::Object> map)
+result_t HttpMessage::addHeader(v8::Local<v8::Object> map)
 {
     return m_headers->add(map);
 }
@@ -501,7 +501,7 @@ result_t HttpMessage::addHeader(const char *name, Variant value)
     return m_headers->add(name, value);
 }
 
-result_t HttpMessage::setHeader(v8::Handle<v8::Object> map)
+result_t HttpMessage::setHeader(v8::Local<v8::Object> map)
 {
     return m_headers->set(map);
 }

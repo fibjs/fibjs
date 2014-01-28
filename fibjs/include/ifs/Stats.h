@@ -20,15 +20,15 @@ class Stats_base : public object_base
 {
 public:
 	// Stats_base
-	static result_t _new(v8::Handle<v8::Array> keys, obj_ptr<Stats_base>& retVal);
-	static result_t _new(v8::Handle<v8::Array> staticKeys, v8::Handle<v8::Array> keys, obj_ptr<Stats_base>& retVal);
+	static result_t _new(v8::Local<v8::Array> keys, obj_ptr<Stats_base>& retVal);
+	static result_t _new(v8::Local<v8::Array> staticKeys, v8::Local<v8::Array> keys, obj_ptr<Stats_base>& retVal);
 	virtual result_t inc(const char* key) = 0;
 	virtual result_t dec(const char* key) = 0;
 	virtual result_t add(const char* key, int32_t value) = 0;
 	virtual result_t reset() = 0;
 	virtual result_t uptime(int32_t& retVal) = 0;
 	virtual result_t _named_getter(const char* property, int32_t& retVal) = 0;
-	virtual result_t _named_enumerator(v8::Handle<v8::Array>& retVal) = 0;
+	virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
 
 	DECLARE_CLASSINFO(Stats_base);
 
@@ -92,7 +92,7 @@ namespace fibjs
 
 	inline void Stats_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Local<v8::Array> vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Stats_base);
@@ -108,14 +108,14 @@ namespace fibjs
 
 		CONSTRUCT_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Array>, 0);
+		ARG(v8::Local<v8::Array>, 0);
 
 		hr = _new(v0, vr);
 
 		METHOD_OVER(2, 2);
 
-		ARG(v8::Handle<v8::Array>, 0);
-		ARG(v8::Handle<v8::Array>, 1);
+		ARG(v8::Local<v8::Array>, 0);
+		ARG(v8::Local<v8::Array>, 1);
 
 		hr = _new(v0, v1, vr);
 

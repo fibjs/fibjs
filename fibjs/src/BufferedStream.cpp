@@ -226,7 +226,7 @@ result_t BufferedStream::readLine(int32_t maxlen, std::string &retVal,
     return readUntil(m_eol.c_str(), maxlen, retVal, ac);
 }
 
-result_t BufferedStream::readLines(int32_t maxlines, v8::Handle<v8::Array> &retVal)
+result_t BufferedStream::readLines(int32_t maxlines, v8::Local<v8::Array> &retVal)
 {
     result_t hr = 0;
     std::string str;

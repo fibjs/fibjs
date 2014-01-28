@@ -24,19 +24,19 @@ public:
 
 public:
     // Queue_base
-    virtual result_t add(v8::Handle<v8::Value> e, bool &retVal);
-    virtual result_t offer(v8::Handle<v8::Value> e, bool &retVal);
-    virtual result_t remove(v8::Handle<v8::Value> &retVal);
-    virtual result_t poll(v8::Handle<v8::Value> &retVal);
-    virtual result_t element(v8::Handle<v8::Value> &retVal);
-    virtual result_t peek(v8::Handle<v8::Value> &retVal);
+    virtual result_t add(v8::Local<v8::Value> e, bool &retVal);
+    virtual result_t offer(v8::Local<v8::Value> e, bool &retVal);
+    virtual result_t remove(v8::Local<v8::Value> &retVal);
+    virtual result_t poll(v8::Local<v8::Value> &retVal);
+    virtual result_t element(v8::Local<v8::Value> &retVal);
+    virtual result_t peek(v8::Local<v8::Value> &retVal);
     virtual result_t clear();
-    virtual result_t toArray(v8::Handle<v8::Array> &retVal);
+    virtual result_t toArray(v8::Local<v8::Array> &retVal);
     virtual result_t get_length(int32_t &retVal);
 
 public:
     // Object
-    virtual result_t toJSON(const char *key, v8::Handle<v8::Value> &retVal);
+    virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal);
 
 private:
     std::list<VariantEx> m_list;

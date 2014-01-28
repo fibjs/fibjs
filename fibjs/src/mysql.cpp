@@ -130,9 +130,9 @@ int API_resultRowEnd(void *result, void *opt)
         res->_indexed_getter(0, val);
         res->resize(0);
 
-        v8::Handle<v8::Value> v;
+        v8::Local<v8::Value> v;
         v = val;
-        v8::Handle<v8::Value> r = db->m_func->Call(db->wrap(), 1, &v);
+        v8::Local<v8::Value> r = db->m_func->Call(db->wrap(), 1, &v);
         if (r.IsEmpty())
         {
             Runtime::setError(CALL_E_JAVASCRIPT);
@@ -277,9 +277,9 @@ result_t mysql::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Valu
     if (hr < 0)
         return hr;
 
-    v8::Handle < v8::Value > v = args[args.Length() - 1];
+    v8::Local < v8::Value > v = args[args.Length() - 1];
     if (v->IsFunction())
-        m_func = v8::Handle < v8::Function > ::Cast(v);
+        m_func = v8::Local < v8::Function > ::Cast(v);
 
     hr = execute(str.c_str(), (int) str.length(), retVal);
     m_func.Clear();

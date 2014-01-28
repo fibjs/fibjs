@@ -69,7 +69,7 @@ result_t Regex::compile(const char *pattern, const char *opt)
 }
 
 #define RE_SIZE 32
-result_t Regex::exec(const char *str, v8::Handle<v8::Array> &retVal)
+result_t Regex::exec(const char *str, v8::Local<v8::Array> &retVal)
 {
     int rc = 0;
     int ovector[RE_SIZE];

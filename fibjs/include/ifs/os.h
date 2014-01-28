@@ -29,15 +29,15 @@ public:
 	static result_t get_arch(std::string& retVal);
 	static result_t get_timezone(int32_t& retVal);
 	static result_t uptime(double& retVal);
-	static result_t loadavg(v8::Handle<v8::Array>& retVal);
+	static result_t loadavg(v8::Local<v8::Array>& retVal);
 	static result_t totalmem(int64_t& retVal);
 	static result_t freemem(int64_t& retVal);
-	static result_t CPUInfo(v8::Handle<v8::Array>& retVal);
+	static result_t CPUInfo(v8::Local<v8::Array>& retVal);
 	static result_t CPUs(int32_t& retVal);
-	static result_t networkInfo(v8::Handle<v8::Object>& retVal);
+	static result_t networkInfo(v8::Local<v8::Object>& retVal);
 	static result_t time(const char* tmString, date_t& retVal);
 	static result_t get_execPath(std::string& retVal);
-	static result_t memoryUsage(v8::Handle<v8::Object>& retVal);
+	static result_t memoryUsage(v8::Local<v8::Object>& retVal);
 
 	DECLARE_CLASSINFO(os_base);
 
@@ -179,7 +179,7 @@ namespace fibjs
 
 	inline void os_base::s_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Local<v8::Array> vr;
 
 		METHOD_ENTER(0, 0);
 
@@ -212,7 +212,7 @@ namespace fibjs
 
 	inline void os_base::s_CPUInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Local<v8::Array> vr;
 
 		METHOD_ENTER(0, 0);
 
@@ -234,7 +234,7 @@ namespace fibjs
 
 	inline void os_base::s_networkInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Object> vr;
+		v8::Local<v8::Object> vr;
 
 		METHOD_ENTER(0, 0);
 
@@ -258,7 +258,7 @@ namespace fibjs
 
 	inline void os_base::s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Object> vr;
+		v8::Local<v8::Object> vr;
 
 		METHOD_ENTER(0, 0);
 

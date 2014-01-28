@@ -13,7 +13,7 @@
 namespace fibjs
 {
 
-Variant &Variant::operator=(v8::Handle<v8::Object> v)
+Variant &Variant::operator=(v8::Local<v8::Object> v)
 {
     clear();
 
@@ -28,15 +28,15 @@ Variant &Variant::operator=(v8::Handle<v8::Object> v)
         }
         else
         {
-            new (((v8::Handle<v8::Object> *) m_Val.jsobjVal)) v8::Handle<v8::Object>();
-            *(v8::Handle<v8::Object> *) m_Val.jsobjVal = v;
+            new (((v8::Local<v8::Object> *) m_Val.jsobjVal)) v8::Local<v8::Object>();
+            *(v8::Local<v8::Object> *) m_Val.jsobjVal = v;
         }
     }
 
     return *this;
 }
 
-Variant &Variant::operator=(v8::Handle<v8::Value> v)
+Variant &Variant::operator=(v8::Local<v8::Value> v)
 {
     clear();
 
@@ -86,7 +86,7 @@ Variant &Variant::operator=(v8::Handle<v8::Value> v)
                 if (obj)
                     return operator=(obj);
                 else
-                    return operator=(v8::Handle<v8::Object>::Cast(v));
+                    return operator=(v8::Local<v8::Object>::Cast(v));
             }
             else
             {
@@ -100,7 +100,7 @@ Variant &Variant::operator=(v8::Handle<v8::Value> v)
     return *this;
 }
 
-Variant::operator v8::Handle<v8::Value>() const
+Variant::operator v8::Local<v8::Value>() const
 {
     switch (type())
     {
@@ -131,13 +131,13 @@ Variant::operator v8::Handle<v8::Value>() const
     }
     case VT_JSObject:
     {
-        v8::Handle<v8::Value> v;
+        v8::Local<v8::Value> v;
 
         if (isPersistent())
             v = v8::Local<v8::Object>::New(isolate,
                                             *(v8::Persistent<v8::Object> *) m_Val.jsobjVal);
         else
-            v = *(v8::Handle<v8::Object> *) m_Val.jsobjVal;
+            v = *(v8::Local<v8::Object> *) m_Val.jsobjVal;
 
         return v;
     }

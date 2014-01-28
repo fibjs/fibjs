@@ -19,7 +19,7 @@
 namespace fibjs
 {
 
-result_t http_base::handler(v8::Handle<v8::Value> hdlr,
+result_t http_base::handler(v8::Local<v8::Value> hdlr,
                             obj_ptr<HttpHandler_base> &retVal)
 {
     obj_ptr < Handler_base > hdlr1;
@@ -105,7 +105,7 @@ result_t http_base::request(const char *host, int32_t port,
 }
 
 result_t http_base::request(const char *method, const char *url,
-                            SeekableStream_base *body, v8::Handle<v8::Object> headers,
+                            SeekableStream_base *body, v8::Local<v8::Object> headers,
                             obj_ptr<HttpResponse_base> &retVal)
 {
     result_t hr;
@@ -147,13 +147,13 @@ result_t http_base::request(const char *method, const char *url,
 }
 
 result_t http_base::request(const char *method, const char *url,
-                            v8::Handle<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+                            v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
 {
     return request(method, url, (SeekableStream_base *) NULL, headers, retVal);
 }
 
 result_t http_base::request(const char *method, const char *url,
-                            Buffer_base *body, v8::Handle<v8::Object> headers,
+                            Buffer_base *body, v8::Local<v8::Object> headers,
                             obj_ptr<HttpResponse_base> &retVal)
 {
     obj_ptr < SeekableStream_base > stm = new MemoryStream();
@@ -162,39 +162,39 @@ result_t http_base::request(const char *method, const char *url,
 }
 
 result_t http_base::request(const char *method, const char *url,
-                            const char *body, v8::Handle<v8::Object> headers,
+                            const char *body, v8::Local<v8::Object> headers,
                             obj_ptr<HttpResponse_base> &retVal)
 {
     obj_ptr < Buffer_base > buf = new Buffer(body);
     return request(method, url, buf, headers, retVal);
 }
 
-result_t http_base::get(const char *url, v8::Handle<v8::Object> headers,
+result_t http_base::get(const char *url, v8::Local<v8::Object> headers,
                         obj_ptr<HttpResponse_base> &retVal)
 {
     return request("GET", url, headers, retVal);
 }
 
-result_t http_base::post(const char *url, v8::Handle<v8::Object> headers,
+result_t http_base::post(const char *url, v8::Local<v8::Object> headers,
                          obj_ptr<HttpResponse_base> &retVal)
 {
     return request("POST", url, headers, retVal);
 }
 
 result_t http_base::post(const char *url, Buffer_base *body,
-                         v8::Handle<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+                         v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
 {
     return request("POST", url, body, headers, retVal);
 }
 
 result_t http_base::post(const char *url, SeekableStream_base *body,
-                         v8::Handle<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+                         v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
 {
     return request("POST", url, body, headers, retVal);
 }
 
 result_t http_base::post(const char *url, const char *body,
-                         v8::Handle<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+                         v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
 {
     return request("POST", url, body, headers, retVal);
 }

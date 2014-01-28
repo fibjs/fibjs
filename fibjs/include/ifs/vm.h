@@ -24,8 +24,8 @@ class vm_base : public module_base
 {
 public:
 	// vm_base
-	static result_t create(v8::Handle<v8::Object> mods, obj_ptr<SandBox_base>& retVal);
-	static result_t create(v8::Handle<v8::Object> mods, v8::Handle<v8::Function> require, obj_ptr<SandBox_base>& retVal);
+	static result_t create(v8::Local<v8::Object> mods, obj_ptr<SandBox_base>& retVal);
+	static result_t create(v8::Local<v8::Object> mods, v8::Local<v8::Function> require, obj_ptr<SandBox_base>& retVal);
 	static result_t current(obj_ptr<SandBox_base>& retVal);
 
 	DECLARE_CLASSINFO(vm_base);
@@ -67,14 +67,14 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = create(v0, vr);
 
 		METHOD_OVER(2, 2);
 
-		ARG(v8::Handle<v8::Object>, 0);
-		ARG(v8::Handle<v8::Function>, 1);
+		ARG(v8::Local<v8::Object>, 0);
+		ARG(v8::Local<v8::Function>, 1);
 
 		hr = create(v0, v1, vr);
 

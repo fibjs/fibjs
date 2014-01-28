@@ -137,10 +137,10 @@ function parserIDL(fname) {
 			"Boolean": "bool",
 			"String": "std::string",
 			"Date": "date_t",
-			"Object": "v8::Handle<v8::Object>",
-			"Array": "v8::Handle<v8::Array>",
-			"Function": "v8::Handle<v8::Function>",
-			"Value": "v8::Handle<v8::Value>",
+			"Object": "v8::Local<v8::Object>",
+			"Array": "v8::Local<v8::Array>",
+			"Function": "v8::Local<v8::Function>",
+			"Value": "v8::Local<v8::Value>",
 			"Variant": "Variant"
 		}, aTypeMap = {
 			"Integer": "int32_t",
@@ -149,10 +149,10 @@ function parserIDL(fname) {
 			"Boolean": "bool",
 			"String": "const char*",
 			"Date": "date_t",
-			"Object": "v8::Handle<v8::Object>",
-			"Array": "v8::Handle<v8::Array>",
-			"Function": "v8::Handle<v8::Function>",
-			"Value": "v8::Handle<v8::Value>",
+			"Object": "v8::Local<v8::Object>",
+			"Array": "v8::Local<v8::Array>",
+			"Function": "v8::Local<v8::Function>",
+			"Value": "v8::Local<v8::Value>",
 			"Variant": "Variant"
 		};
 
@@ -282,7 +282,7 @@ function parserIDL(fname) {
 
 		/*
 		 * if (tjfs.length) { txt .push(" virtual result_t toJSON(const char*
-		 * key, v8::Handle<v8::Object>& retVal)\n {\n result_t hr = " +
+		 * key, v8::Local<v8::Object>& retVal)\n {\n result_t hr = " +
 		 * baseClass + "_base::toJSON(key, retVal);\n if(hr < 0)return hr;\n");
 		 * txt.push(tjfs.join("\n")); txt.push("\n return 0;\n }\n"); }
 		 */
@@ -788,14 +788,14 @@ function parserIDL(fname) {
 					iffs
 						.push("	static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args);");
 					fnStr = "	inline void " + ns + "_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)\n	{\n";
-					fnStr += "		v8::Handle<v8::Array> vr;\n\n";
+					fnStr += "		v8::Local<v8::Array> vr;\n\n";
 					fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 
 					fnStr += "		hr = pInst->_named_enumerator(vr);\n\n		METHOD_RETURN1();\n	}\n";
 
 					ffs.push(fnStr)
 
-					ifStr = "	virtual result_t _named_enumerator(v8::Handle<v8::Array>& retVal) = 0;";
+					ifStr = "	virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;";
 					ifs.push(ifStr);
 
 					if (attr != "readonly") {
@@ -817,7 +817,7 @@ function parserIDL(fname) {
 						iffs
 							.push("	static void i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args);");
 						fnStr = "	inline void " + ns + "_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args)\n	{\n";
-						fnStr += "		v8::Handle<v8::Boolean> vr;\n\n";
+						fnStr += "		v8::Local<v8::Boolean> vr;\n\n";
 						fnStr += "		PROPERTY_ENTER();\n		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 
 						fnStr += "		v8::String::Utf8Value k(property);\n		if(class_info().has(*k)){args.GetReturnValue().Set(v8::False(isolate));return;}\n\n"
@@ -825,7 +825,7 @@ function parserIDL(fname) {
 
 						ffs.push(fnStr)
 
-						ifStr = "	virtual result_t _named_deleter(const char* property, v8::Handle<v8::Boolean>& retVal) = 0;";
+						ifStr = "	virtual result_t _named_deleter(const char* property, v8::Local<v8::Boolean>& retVal) = 0;";
 						ifs.push(ifStr);
 					}
 				} else

@@ -132,7 +132,7 @@ inline void _escape(const char *str, int sz, bool mysql, std::string &retVal)
     }
 }
 
-void _appendValue(std::string &str, v8::Handle<v8::Value> &v, bool mysql)
+void _appendValue(std::string &str, v8::Local<v8::Value> &v, bool mysql)
 {
     bool bNumber = v->IsNumber();
 
@@ -183,7 +183,7 @@ result_t _format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &arg
 
             if (cnt < args.Length())
             {
-                v8::Handle<v8::Value> v = args[cnt];
+                v8::Local<v8::Value> v = args[cnt];
 
                 if (v->IsFunction())
                     return CALL_E_TYPEMISMATCH;
@@ -201,7 +201,7 @@ result_t _format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &arg
                 }
                 else if (v->IsArray())
                 {
-                    v8::Handle<v8::Array> a = v8::Handle<v8::Array>::Cast(v);
+                    v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(v);
                     int len = a->Length();
                     int i;
 
@@ -209,7 +209,7 @@ result_t _format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &arg
 
                     for (i = 0; i < len; i++)
                     {
-                        v8::Handle<v8::Value> v1 = a->Get(i);
+                        v8::Local<v8::Value> v1 = a->Get(i);
 
                         if (i > 0)
                             str += ',';

@@ -63,7 +63,7 @@ private:
     }
 
 public:
-    v8::Handle<v8::Function> m_func;
+    v8::Local<v8::Function> m_func;
 
 private:
     UMConnection m_conn;

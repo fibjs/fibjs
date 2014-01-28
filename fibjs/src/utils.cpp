@@ -26,7 +26,7 @@ namespace fibjs
 
 static const char s_version[] = "0.1.0";
 
-result_t utils_base::buildInfo(v8::Handle<v8::Object> &retVal)
+result_t utils_base::buildInfo(v8::Local<v8::Object> &retVal)
 {
     retVal = v8::Object::New(isolate);
 
@@ -44,7 +44,7 @@ result_t utils_base::buildInfo(v8::Handle<v8::Object> &retVal)
 #endif
 
     {
-        v8::Handle < v8::Object > vender = v8::Object::New(isolate);
+        v8::Local < v8::Object > vender = v8::Object::New(isolate);
 
         retVal->Set(v8::String::NewFromUtf8(isolate, "vender"), vender);
 

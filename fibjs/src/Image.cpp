@@ -632,7 +632,7 @@ result_t Image::filledRectangle(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
     return 0;
 }
 
-result_t getPoints(v8::Handle<v8::Array> &points, std::vector<gdPoint> &pts)
+result_t getPoints(v8::Local<v8::Array> &points, std::vector<gdPoint> &pts)
 {
     int32_t i, len = points->Length();
 
@@ -640,12 +640,12 @@ result_t getPoints(v8::Handle<v8::Array> &points, std::vector<gdPoint> &pts)
 
     for (i = 0; i < len; i++)
     {
-        v8::Handle<v8::Value> v = points->Get(i);
+        v8::Local<v8::Value> v = points->Get(i);
 
         if (!v->IsArray())
             return CALL_E_TYPEMISMATCH;
 
-        v8::Handle<v8::Array> pt = v8::Handle<v8::Array>::Cast(v);
+        v8::Local<v8::Array> pt = v8::Local<v8::Array>::Cast(v);
 
         if (pt->Length() != 2)
             return CALL_E_TYPEMISMATCH;
@@ -657,7 +657,7 @@ result_t getPoints(v8::Handle<v8::Array> &points, std::vector<gdPoint> &pts)
     return 0;
 }
 
-result_t Image::polygon(v8::Handle<v8::Array> points, int32_t color)
+result_t Image::polygon(v8::Local<v8::Array> points, int32_t color)
 {
     if (!m_image)
         return CALL_E_INVALID_CALL;
@@ -672,7 +672,7 @@ result_t Image::polygon(v8::Handle<v8::Array> points, int32_t color)
     return 0;
 }
 
-result_t Image::openPolygon(v8::Handle<v8::Array> points, int32_t color)
+result_t Image::openPolygon(v8::Local<v8::Array> points, int32_t color)
 {
     if (!m_image)
         return CALL_E_INVALID_CALL;
@@ -687,7 +687,7 @@ result_t Image::openPolygon(v8::Handle<v8::Array> points, int32_t color)
     return 0;
 }
 
-result_t Image::filledPolygon(v8::Handle<v8::Array> points, int32_t color)
+result_t Image::filledPolygon(v8::Local<v8::Array> points, int32_t color)
 {
     if (!m_image)
         return CALL_E_INVALID_CALL;

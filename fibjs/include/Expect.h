@@ -16,7 +16,7 @@ namespace fibjs
 class Expect: public Expect_base
 {
 public:
-    Expect(v8::Handle<v8::Value> actual, const char *msg) :
+    Expect(v8::Local<v8::Value> actual, const char *msg) :
         m_msg(msg), m_not(false), m_deep(false)
     {
         m_actual.Reset(isolate, actual);
@@ -56,18 +56,18 @@ public:
     virtual result_t get_number(bool &retVal);
     virtual result_t get_boolean(bool &retVal);
     virtual result_t get_exist(bool &retVal);
-    virtual result_t equal(v8::Handle<v8::Value> expected);
-    virtual result_t eql(v8::Handle<v8::Value> expected);
-    virtual result_t above(v8::Handle<v8::Value> expected);
-    virtual result_t greaterThan(v8::Handle<v8::Value> expected);
-    virtual result_t least(v8::Handle<v8::Value> expected);
-    virtual result_t below(v8::Handle<v8::Value> expected);
-    virtual result_t lessThan(v8::Handle<v8::Value> expected);
-    virtual result_t most(v8::Handle<v8::Value> expected);
-    virtual result_t property(v8::Handle<v8::Value> prop);
-    virtual result_t property(v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value);
-    virtual result_t closeTo(v8::Handle<v8::Value> expected,
-                             v8::Handle<v8::Value> delta);
+    virtual result_t equal(v8::Local<v8::Value> expected);
+    virtual result_t eql(v8::Local<v8::Value> expected);
+    virtual result_t above(v8::Local<v8::Value> expected);
+    virtual result_t greaterThan(v8::Local<v8::Value> expected);
+    virtual result_t least(v8::Local<v8::Value> expected);
+    virtual result_t below(v8::Local<v8::Value> expected);
+    virtual result_t lessThan(v8::Local<v8::Value> expected);
+    virtual result_t most(v8::Local<v8::Value> expected);
+    virtual result_t property(v8::Local<v8::Value> prop);
+    virtual result_t property(v8::Local<v8::Value> prop, v8::Local<v8::Value> value);
+    virtual result_t closeTo(v8::Local<v8::Value> expected,
+                             v8::Local<v8::Value> delta);
 
 private:
     v8::Persistent<v8::Value> m_actual;

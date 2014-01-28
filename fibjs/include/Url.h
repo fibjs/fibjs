@@ -31,7 +31,7 @@ public:
 public:
     // Url_base
     virtual result_t parse(const char *url);
-    virtual result_t format(v8::Handle<v8::Object> args);
+    virtual result_t format(v8::Local<v8::Object> args);
     virtual result_t resolve(const char *to, obj_ptr<Url_base> &retVal);
     virtual result_t normalize();
     virtual result_t get_href(std::string &retVal);

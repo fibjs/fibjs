@@ -75,12 +75,12 @@ public:
         return CALL_E_INVALID_CALL;
     }
 
-    result_t onerror(v8::Handle<v8::Function> trigger)
+    result_t onerror(v8::Local<v8::Function> trigger)
     {
         return 0;
     }
 
-    result_t onexit(v8::Handle<v8::Function> trigger)
+    result_t onexit(v8::Local<v8::Function> trigger)
     {
         return 0;
     }
@@ -126,15 +126,15 @@ void FiberBase::start()
     Ref();
 }
 
-void JSFiber::callFunction1(v8::Handle<v8::Function> func,
-                            v8::Handle<v8::Value> *args, int argCount,
-                            v8::Handle<v8::Value> &retVal)
+void JSFiber::callFunction1(v8::Local<v8::Function> func,
+                            v8::Local<v8::Value> *args, int argCount,
+                            v8::Local<v8::Value> &retVal)
 {
     v8::TryCatch try_catch;
     retVal = func->Call(wrap(), argCount, args);
     if (try_catch.HasCaught())
     {
-        v8::Handle<v8::Value> err = try_catch.Exception();
+        v8::Local<v8::Value> err = try_catch.Exception();
         m_error = true;
 
         _trigger("error", &err, 1);
@@ -142,11 +142,11 @@ void JSFiber::callFunction1(v8::Handle<v8::Function> func,
     }
 }
 
-void JSFiber::callFunction(v8::Handle<v8::Value> &retVal)
+void JSFiber::callFunction(v8::Local<v8::Value> &retVal)
 {
     size_t i;
 
-    std::vector < v8::Handle<v8::Value> > argv;
+    std::vector < v8::Local<v8::Value> > argv;
 
     argv.resize(m_argv.size());
     for (i = 0; i < m_argv.size(); i++)
@@ -162,14 +162,14 @@ void JSFiber::callFunction(v8::Handle<v8::Value> &retVal)
     }
     else
     {
-        v8::Handle<v8::Value> v = v8::Null(isolate);
+        v8::Local<v8::Value> v = v8::Null(isolate);
         _trigger("exit", &v, 1);
     }
 }
 
 void JSFiber::js_callback()
 {
-    v8::Handle<v8::Value> retVal;
+    v8::Local<v8::Value> retVal;
 
     scope s(this);
 
@@ -177,7 +177,7 @@ void JSFiber::js_callback()
 
     callFunction (retVal);
 
-    v8::Handle<v8::Object> o = wrap();
+    v8::Local<v8::Object> o = wrap();
 
     m_quit.set();
     dispose();

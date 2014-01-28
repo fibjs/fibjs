@@ -63,7 +63,7 @@ result_t mq_base::invoke(Handler_base *hdlr, object_base *v,
     return (new asyncInvoke(hdlr, v, ac))->post(0);
 }
 
-result_t mq_base::chain(v8::Handle<v8::Array> hdlrs,
+result_t mq_base::chain(v8::Local<v8::Array> hdlrs,
                         obj_ptr<Chain_base> &retVal)
 {
     obj_ptr<Chain_base> chain = new Chain();
@@ -76,7 +76,7 @@ result_t mq_base::chain(v8::Handle<v8::Array> hdlrs,
     return 0;
 }
 
-result_t mq_base::routing(v8::Handle<v8::Object> map,
+result_t mq_base::routing(v8::Local<v8::Object> map,
                           obj_ptr<Routing_base> &retVal)
 {
     obj_ptr<Routing_base> r = new Routing();
@@ -89,7 +89,7 @@ result_t mq_base::routing(v8::Handle<v8::Object> map,
     return 0;
 }
 
-result_t mq_base::jsHandler(v8::Handle<v8::Value> hdlr,
+result_t mq_base::jsHandler(v8::Local<v8::Value> hdlr,
                             obj_ptr<Handler_base> &retVal)
 {
     if ((retVal = Handler_base::getInstance(hdlr)) != NULL)
@@ -116,7 +116,7 @@ result_t mq_base::nullHandler(obj_ptr<Handler_base> &retVal)
     return 0;
 }
 
-result_t mq_base::packetHandler(v8::Handle<v8::Value> hdlr,
+result_t mq_base::packetHandler(v8::Local<v8::Value> hdlr,
                                 obj_ptr<PacketHandler_base> &retVal)
 {
     obj_ptr < Handler_base > hdlr1;
@@ -128,7 +128,7 @@ result_t mq_base::packetHandler(v8::Handle<v8::Value> hdlr,
     return 0;
 }
 
-result_t mq_base::httpHandler(v8::Handle<v8::Value> hdlr,
+result_t mq_base::httpHandler(v8::Local<v8::Value> hdlr,
                               obj_ptr<HttpHandler_base> &retVal)
 {
     obj_ptr < Handler_base > hdlr1;

@@ -89,12 +89,12 @@ result_t HttpRequest::firstHeader(const char *name, Variant &retVal)
     return m_message.firstHeader(name, retVal);
 }
 
-result_t HttpRequest::allHeader(const char *name, v8::Handle<v8::Array> &retVal)
+result_t HttpRequest::allHeader(const char *name, v8::Local<v8::Array> &retVal)
 {
     return m_message.allHeader(name, retVal);
 }
 
-result_t HttpRequest::addHeader(v8::Handle<v8::Object> map)
+result_t HttpRequest::addHeader(v8::Local<v8::Object> map)
 {
     return m_message.addHeader(map);
 }
@@ -104,7 +104,7 @@ result_t HttpRequest::addHeader(const char *name, Variant value)
     return m_message.addHeader(name, value);
 }
 
-result_t HttpRequest::setHeader(v8::Handle<v8::Object> map)
+result_t HttpRequest::setHeader(v8::Local<v8::Object> map)
 {
     return m_message.setHeader(map);
 }

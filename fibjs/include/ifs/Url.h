@@ -20,10 +20,10 @@ class Url_base : public object_base
 {
 public:
 	// Url_base
-	static result_t _new(v8::Handle<v8::Object> args, obj_ptr<Url_base>& retVal);
+	static result_t _new(v8::Local<v8::Object> args, obj_ptr<Url_base>& retVal);
 	static result_t _new(const char* url, obj_ptr<Url_base>& retVal);
 	virtual result_t parse(const char* url) = 0;
-	virtual result_t format(v8::Handle<v8::Object> args) = 0;
+	virtual result_t format(v8::Local<v8::Object> args) = 0;
 	virtual result_t resolve(const char* url, obj_ptr<Url_base>& retVal) = 0;
 	virtual result_t normalize() = 0;
 	virtual result_t get_href(std::string& retVal) = 0;
@@ -282,7 +282,7 @@ namespace fibjs
 
 		CONSTRUCT_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = _new(v0, vr);
 
@@ -312,7 +312,7 @@ namespace fibjs
 		METHOD_INSTANCE(Url_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->format(v0);
 

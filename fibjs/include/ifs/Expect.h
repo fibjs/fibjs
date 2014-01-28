@@ -47,17 +47,17 @@ public:
 	virtual result_t get_number(bool& retVal) = 0;
 	virtual result_t get_boolean(bool& retVal) = 0;
 	virtual result_t get_exist(bool& retVal) = 0;
-	virtual result_t equal(v8::Handle<v8::Value> expected) = 0;
-	virtual result_t eql(v8::Handle<v8::Value> expected) = 0;
-	virtual result_t above(v8::Handle<v8::Value> expected) = 0;
-	virtual result_t greaterThan(v8::Handle<v8::Value> expected) = 0;
-	virtual result_t least(v8::Handle<v8::Value> expected) = 0;
-	virtual result_t below(v8::Handle<v8::Value> expected) = 0;
-	virtual result_t lessThan(v8::Handle<v8::Value> expected) = 0;
-	virtual result_t most(v8::Handle<v8::Value> expected) = 0;
-	virtual result_t property(v8::Handle<v8::Value> prop) = 0;
-	virtual result_t property(v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value) = 0;
-	virtual result_t closeTo(v8::Handle<v8::Value> expected, v8::Handle<v8::Value> delta) = 0;
+	virtual result_t equal(v8::Local<v8::Value> expected) = 0;
+	virtual result_t eql(v8::Local<v8::Value> expected) = 0;
+	virtual result_t above(v8::Local<v8::Value> expected) = 0;
+	virtual result_t greaterThan(v8::Local<v8::Value> expected) = 0;
+	virtual result_t least(v8::Local<v8::Value> expected) = 0;
+	virtual result_t below(v8::Local<v8::Value> expected) = 0;
+	virtual result_t lessThan(v8::Local<v8::Value> expected) = 0;
+	virtual result_t most(v8::Local<v8::Value> expected) = 0;
+	virtual result_t property(v8::Local<v8::Value> prop) = 0;
+	virtual result_t property(v8::Local<v8::Value> prop, v8::Local<v8::Value> value) = 0;
+	virtual result_t closeTo(v8::Local<v8::Value> expected, v8::Local<v8::Value> delta) = 0;
 
 	DECLARE_CLASSINFO(Expect_base);
 
@@ -492,7 +492,7 @@ namespace fibjs
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = pInst->equal(v0);
 
@@ -504,7 +504,7 @@ namespace fibjs
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = pInst->eql(v0);
 
@@ -516,7 +516,7 @@ namespace fibjs
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = pInst->above(v0);
 
@@ -528,7 +528,7 @@ namespace fibjs
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = pInst->greaterThan(v0);
 
@@ -540,7 +540,7 @@ namespace fibjs
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = pInst->least(v0);
 
@@ -552,7 +552,7 @@ namespace fibjs
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = pInst->below(v0);
 
@@ -564,7 +564,7 @@ namespace fibjs
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = pInst->lessThan(v0);
 
@@ -576,7 +576,7 @@ namespace fibjs
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = pInst->most(v0);
 
@@ -588,14 +588,14 @@ namespace fibjs
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = pInst->property(v0);
 
 		METHOD_OVER(2, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
 
 		hr = pInst->property(v0, v1);
 
@@ -607,8 +607,8 @@ namespace fibjs
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(2, 2);
 
-		ARG(v8::Handle<v8::Value>, 0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 1);
 
 		hr = pInst->closeTo(v0, v1);
 

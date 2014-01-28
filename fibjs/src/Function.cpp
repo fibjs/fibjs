@@ -9,7 +9,7 @@ result_t Function_base::start(const v8::FunctionCallbackInfo<v8::Value> &args, o
     if (!args.This()->IsFunction())
         return CALL_E_NOTINSTANCE;
 
-    return JSFiber::New(v8::Handle<v8::Function>::Cast(args.This()), args, 0, retVal);
+    return JSFiber::New(v8::Local<v8::Function>::Cast(args.This()), args, 0, retVal);
 }
 
 }

@@ -70,7 +70,7 @@ result_t LruCache::has(const char *name, bool &retVal)
     return 0;
 }
 
-result_t LruCache::get(const char *name, v8::Handle<v8::Value> &retVal)
+result_t LruCache::get(const char *name, v8::Local<v8::Value> &retVal)
 {
     cleanup();
 
@@ -91,7 +91,7 @@ result_t LruCache::get(const char *name, v8::Handle<v8::Value> &retVal)
     return 0;
 }
 
-result_t LruCache::set(const char *name, v8::Handle<v8::Value> value)
+result_t LruCache::set(const char *name, v8::Local<v8::Value> value)
 {
     std::map<std::string, _linkedNode>::iterator find = m_datas.find(name);
 
@@ -112,7 +112,7 @@ result_t LruCache::set(const char *name, v8::Handle<v8::Value> value)
     return 0;
 }
 
-result_t LruCache::put(const char *name, v8::Handle<v8::Value> value)
+result_t LruCache::put(const char *name, v8::Local<v8::Value> value)
 {
     std::map<std::string, _linkedNode>::iterator find = m_datas.find(name);
 
@@ -142,16 +142,16 @@ result_t LruCache::put(const char *name, v8::Handle<v8::Value> value)
     return 0;
 }
 
-inline result_t _map(LruCache *o, v8::Handle<v8::Object> m,
-                     result_t (LruCache::*fn)(const char *name, v8::Handle<v8::Value> value))
+inline result_t _map(LruCache *o, v8::Local<v8::Object> m,
+                     result_t (LruCache::*fn)(const char *name, v8::Local<v8::Value> value))
 {
-    v8::Handle<v8::Array> ks = m->GetPropertyNames();
+    v8::Local<v8::Array> ks = m->GetPropertyNames();
     int len = ks->Length();
     int i;
 
     for (i = 0; i < len; i++)
     {
-        v8::Handle<v8::Value> k = ks->Get(i);
+        v8::Local<v8::Value> k = ks->Get(i);
 
         if (!k->IsNumber())
             (o->*fn)(*v8::String::Utf8Value(k), m->Get(k));
@@ -160,7 +160,7 @@ inline result_t _map(LruCache *o, v8::Handle<v8::Object> m,
     return 0;
 }
 
-result_t LruCache::put(v8::Handle<v8::Object> map)
+result_t LruCache::put(v8::Local<v8::Object> map)
 {
     return _map(this, map, &LruCache::put);
 }
@@ -186,12 +186,12 @@ result_t LruCache::isEmpty(bool &retVal)
     return 0;
 }
 
-result_t LruCache::toJSON(const char *key, v8::Handle<v8::Value> &retVal)
+result_t LruCache::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 {
     cleanup();
 
     std::map<std::string, _linkedNode>::iterator it = m_begin;
-    v8::Handle < v8::Object > obj = v8::Object::New(isolate);
+    v8::Local < v8::Object > obj = v8::Object::New(isolate);
 
     while (it != m_datas.end())
     {

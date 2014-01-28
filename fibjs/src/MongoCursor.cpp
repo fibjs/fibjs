@@ -12,8 +12,8 @@ namespace fibjs
 {
 
 MongoCursor::MongoCursor(MongoDB *db, const std::string &ns,
-                         const std::string &name, v8::Handle<v8::Object> query,
-                         v8::Handle<v8::Object> projection)
+                         const std::string &name, v8::Local<v8::Object> query,
+                         v8::Local<v8::Object> projection)
 {
     m_state = CUR_NONE;
     m_db = db;
@@ -48,7 +48,7 @@ void MongoCursor::ensureSpecial()
 {
     if (!m_bSpecial)
     {
-        v8::Handle<v8::Object> o = v8::Object::New(isolate);
+        v8::Local<v8::Object> o = v8::Object::New(isolate);
 
         o->Set(v8::String::NewFromUtf8(isolate, "query"),
                v8::Local<v8::Object>::New(isolate, m_query));
@@ -59,7 +59,7 @@ void MongoCursor::ensureSpecial()
     }
 }
 
-result_t MongoCursor::hint(v8::Handle<v8::Object> opts,
+result_t MongoCursor::hint(v8::Local<v8::Object> opts,
                            obj_ptr<MongoCursor_base> &retVal)
 {
     return _addSpecial("$hint", opts, retVal);
@@ -98,7 +98,7 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
 
     bson_finish(&bbq);
 
-    v8::Handle<v8::Object> res;
+    v8::Local<v8::Object> res;
 
     result_t hr = m_db->run_command(&bbq, res);
     if (hr < 0)
@@ -109,16 +109,16 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
     return 0;
 }
 
-result_t MongoCursor::forEach(v8::Handle<v8::Function> func)
+result_t MongoCursor::forEach(v8::Local<v8::Function> func)
 {
     result_t hr;
-    v8::Handle<v8::Object> o;
-    v8::Handle<v8::Object> o1 = v8::Object::New(isolate);
+    v8::Local<v8::Object> o;
+    v8::Local<v8::Object> o1 = v8::Object::New(isolate);
 
     while ((hr = next(o)) != CALL_RETURN_NULL)
     {
-        v8::Handle<v8::Value> a = o;
-        v8::Handle<v8::Value> v = func->Call(o1, 1, &a);
+        v8::Local<v8::Value> a = o;
+        v8::Local<v8::Value> v = func->Call(o1, 1, &a);
 
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -127,19 +127,19 @@ result_t MongoCursor::forEach(v8::Handle<v8::Function> func)
     return hr < 0 ? hr : 0;
 }
 
-result_t MongoCursor::map(v8::Handle<v8::Function> func,
-                          v8::Handle<v8::Array> &retVal)
+result_t MongoCursor::map(v8::Local<v8::Function> func,
+                          v8::Local<v8::Array> &retVal)
 {
     result_t hr;
-    v8::Handle<v8::Object> o;
-    v8::Handle<v8::Object> o1 = v8::Object::New(isolate);
-    v8::Handle<v8::Array> as = v8::Array::New(isolate);
+    v8::Local<v8::Object> o;
+    v8::Local<v8::Object> o1 = v8::Object::New(isolate);
+    v8::Local<v8::Array> as = v8::Array::New(isolate);
     int n = 0;
 
     while ((hr = next(o)) != CALL_RETURN_NULL)
     {
-        v8::Handle<v8::Value> a = o;
-        v8::Handle<v8::Value> v = func->Call(o1, 1, &a);
+        v8::Local<v8::Value> a = o;
+        v8::Local<v8::Value> v = func->Call(o1, 1, &a);
 
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -175,7 +175,7 @@ result_t MongoCursor::hasNext(bool &retVal)
     return m_db->error();
 }
 
-result_t MongoCursor::next(v8::Handle<v8::Object> &retVal)
+result_t MongoCursor::next(v8::Local<v8::Object> &retVal)
 {
     bool has;
     result_t hr = hasNext(has);
@@ -208,13 +208,13 @@ result_t MongoCursor::skip(int32_t num, obj_ptr<MongoCursor_base> &retVal)
     return 0;
 }
 
-result_t MongoCursor::sort(v8::Handle<v8::Object> opts,
+result_t MongoCursor::sort(v8::Local<v8::Object> opts,
                            obj_ptr<MongoCursor_base> &retVal)
 {
     return _addSpecial("orderby", opts, retVal);
 }
 
-result_t MongoCursor::_addSpecial(const char *name, v8::Handle<v8::Value> opts,
+result_t MongoCursor::_addSpecial(const char *name, v8::Local<v8::Value> opts,
                                   obj_ptr<MongoCursor_base> &retVal)
 {
     if (m_bInit)
@@ -227,11 +227,11 @@ result_t MongoCursor::_addSpecial(const char *name, v8::Handle<v8::Value> opts,
     return 0;
 }
 
-result_t MongoCursor::toArray(v8::Handle<v8::Array> &retVal)
+result_t MongoCursor::toArray(v8::Local<v8::Array> &retVal)
 {
     result_t hr;
-    v8::Handle<v8::Object> o;
-    v8::Handle<v8::Array> as = v8::Array::New(isolate);
+    v8::Local<v8::Object> o;
+    v8::Local<v8::Array> as = v8::Array::New(isolate);
     int n = 0;
 
     while ((hr = next(o)) != CALL_RETURN_NULL)
@@ -247,10 +247,10 @@ result_t MongoCursor::toArray(v8::Handle<v8::Array> &retVal)
     return 0;
 }
 
-result_t MongoCursor::toJSON(const char *key, v8::Handle<v8::Value> &retVal)
+result_t MongoCursor::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 {
     result_t hr;
-    v8::Handle<v8::Array> as;
+    v8::Local<v8::Array> as;
 
     hr = toArray(as);
     if (hr < 0)

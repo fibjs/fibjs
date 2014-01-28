@@ -29,7 +29,7 @@ inline result_t throwSyntaxError(v8::TryCatch &try_catch)
 {
     v8::String::Utf8Value exception(try_catch.Exception());
 
-    v8::Handle<v8::Message> message = try_catch.Message();
+    v8::Local<v8::Message> message = try_catch.Message();
     if (message.IsEmpty())
         ThrowError(ToCString(exception));
     else
@@ -62,11 +62,11 @@ inline std::string resolvePath(const char *id)
     if (id[0] == '.'
             && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
     {
-        v8::Handle<v8::Context> ctx = isolate->GetCallingContext();
+        v8::Local<v8::Context> ctx = isolate->GetCallingContext();
 
         if (!ctx.IsEmpty())
         {
-            v8::Handle<v8::Value> path = ctx->Global()->GetHiddenValue(
+            v8::Local<v8::Value> path = ctx->Global()->GetHiddenValue(
                                              v8::String::NewFromUtf8(isolate, "id"));
 
             if (!path.IsEmpty())
@@ -90,7 +90,7 @@ inline std::string resolvePath(const char *id)
 }
 
 inline result_t compileScript(const char *fname, std::string &buf,
-                              v8::Handle<v8::Script> &script)
+                              v8::Local<v8::Script> &script)
 {
     v8::TryCatch try_catch;
 
@@ -105,9 +105,9 @@ inline result_t compileScript(const char *fname, std::string &buf,
 }
 
 void _define(const v8::FunctionCallbackInfo<v8::Value> &args);
-result_t doDefine(v8::Handle<v8::Object> &mod);
+result_t doDefine(v8::Local<v8::Object> &mod);
 
-result_t SandBox::runScript(const char *id, v8::Handle<v8::Value> &retVal,
+result_t SandBox::runScript(const char *id, v8::Local<v8::Value> &retVal,
                             bool bMod)
 {
     std::string fname = resolvePath(id);
@@ -134,7 +134,7 @@ result_t SandBox::runScript(const char *id, v8::Handle<v8::Value> &retVal,
 
         if (!m_require.IsEmpty())
         {
-            v8::Handle<v8::Value> arg = v8::String::NewFromUtf8(isolate, fname.c_str());
+            v8::Local<v8::Value> arg = v8::String::NewFromUtf8(isolate, fname.c_str());
             retVal = v8::Local<v8::Function>::New(isolate, m_require)->Call(wrap(), 1, &arg);
             if (retVal.IsEmpty())
                 return CALL_E_JAVASCRIPT;
@@ -182,12 +182,12 @@ result_t SandBox::runScript(const char *id, v8::Handle<v8::Value> &retVal,
     if (hr < 0)
         return hr;
 
-    // v8::HandleScope handle_scope(isolate);
+    // v8::LocalScope handle_scope(isolate);
 
-    v8::Handle<v8::Context> context(v8::Context::New (isolate));
+    v8::Local<v8::Context> context(v8::Context::New (isolate));
     v8::Context::Scope context_scope(context);
 
-    v8::Handle < v8::Script > script;
+    v8::Local < v8::Script > script;
     hr = compileScript(fname.c_str(), buf, script);
     if (hr < 0)
     {
@@ -195,23 +195,23 @@ result_t SandBox::runScript(const char *id, v8::Handle<v8::Value> &retVal,
         return hr;
     }
 
-    v8::Handle < v8::Object > glob = context->Global();
-    v8::Handle < v8::Object > mod;
-    v8::Handle < v8::Object > exports;
+    v8::Local < v8::Object > glob = context->Global();
+    v8::Local < v8::Object > mod;
+    v8::Local < v8::Object > exports;
 
     glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "SandBox"), wrap());
 
     // cache string
-    v8::Handle < v8::String > strRequire = v8::String::NewFromUtf8(isolate, "require");
-    v8::Handle < v8::String > strExports = v8::String::NewFromUtf8(isolate, "exports");
-    v8::Handle < v8::String > strModule = v8::String::NewFromUtf8(isolate, "module");
-    v8::Handle < v8::String > strDefine = v8::String::NewFromUtf8(isolate, "define");
-    v8::Handle < v8::String > strId = v8::String::NewFromUtf8(isolate, "id");
+    v8::Local < v8::String > strRequire = v8::String::NewFromUtf8(isolate, "require");
+    v8::Local < v8::String > strExports = v8::String::NewFromUtf8(isolate, "exports");
+    v8::Local < v8::String > strModule = v8::String::NewFromUtf8(isolate, "module");
+    v8::Local < v8::String > strDefine = v8::String::NewFromUtf8(isolate, "define");
+    v8::Local < v8::String > strId = v8::String::NewFromUtf8(isolate, "id");
 
     // attach define function first.
     if (bMod)
     {
-        v8::Handle < v8::Function > def =
+        v8::Local < v8::Function > def =
             v8::FunctionTemplate::New(isolate, _define)->GetFunction();
 
         def->ToObject()->Set(v8::String::NewFromUtf8(isolate, "amd"), v8::Object::New(isolate),
@@ -228,7 +228,7 @@ result_t SandBox::runScript(const char *id, v8::Handle<v8::Value> &retVal,
 
     // module.id
     fname.resize(fname.length() - 3);
-    v8::Handle < v8::String > strFname = v8::String::NewFromUtf8(isolate, fname.c_str(),
+    v8::Local < v8::String > strFname = v8::String::NewFromUtf8(isolate, fname.c_str(),
                                          v8::String::kNormalString,
                                          (int) fname.length());
     glob->SetHiddenValue(strId, strFname);
@@ -293,7 +293,7 @@ result_t SandBox::runScript(const char *id, v8::Handle<v8::Value> &retVal,
         glob->Set(strExports, exports, v8::ReadOnly);
 
         // use module.exports as result value
-        v8::Handle<v8::Value> v = mod->Get(strExports);
+        v8::Local<v8::Value> v = mod->Get(strExports);
         InstallModule(fname, v, now, mtime);
 
         // retVal = handle_scope.Close(v);
@@ -306,11 +306,11 @@ result_t SandBox::runScript(const char *id, v8::Handle<v8::Value> &retVal,
 
 result_t SandBox::run(const char *fname)
 {
-    v8::Handle<v8::Value> retTemp;
+    v8::Local<v8::Value> retTemp;
     return runScript(fname, retTemp, false);
 }
 
-result_t SandBox::require(const char *id, v8::Handle<v8::Value> &retVal)
+result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
 {
     return runScript(id, retVal, true);
 }

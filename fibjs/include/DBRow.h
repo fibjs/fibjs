@@ -25,13 +25,13 @@ public:
 
 public:
     // object_base
-    virtual result_t toJSON(const char *key, v8::Handle<v8::Value> &retVal);
+    virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal);
 
 public:
     // DBRow_base
-    virtual result_t _indexed_getter(uint32_t index, v8::Handle<v8::Value> &retVal);
-    virtual result_t _named_getter(const char *property, v8::Handle<v8::Value> &retVal);
-    virtual result_t _named_enumerator(v8::Handle<v8::Array> &retVal);
+    virtual result_t _indexed_getter(uint32_t index, v8::Local<v8::Value> &retVal);
+    virtual result_t _named_getter(const char *property, v8::Local<v8::Value> &retVal);
+    virtual result_t _named_enumerator(v8::Local<v8::Array> &retVal);
 
 public:
     void setValue(int32_t i, Variant &v)

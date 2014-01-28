@@ -34,10 +34,10 @@ public:
 	static result_t encodeURI(const char* url, std::string& retVal);
 	static result_t encodeURIComponent(const char* url, std::string& retVal);
 	static result_t decodeURI(const char* url, std::string& retVal);
-	static result_t jsonEncode(v8::Handle<v8::Value> data, std::string& retVal);
-	static result_t jsonDecode(const char* data, v8::Handle<v8::Value>& retVal);
-	static result_t bsonEncode(v8::Handle<v8::Object> data, obj_ptr<Buffer_base>& retVal);
-	static result_t bsonDecode(Buffer_base* data, v8::Handle<v8::Object>& retVal);
+	static result_t jsonEncode(v8::Local<v8::Value> data, std::string& retVal);
+	static result_t jsonDecode(const char* data, v8::Local<v8::Value>& retVal);
+	static result_t bsonEncode(v8::Local<v8::Object> data, obj_ptr<Buffer_base>& retVal);
+	static result_t bsonDecode(Buffer_base* data, v8::Local<v8::Object>& retVal);
 
 	DECLARE_CLASSINFO(encoding_base);
 
@@ -232,7 +232,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = jsonEncode(v0, vr);
 
@@ -241,7 +241,7 @@ namespace fibjs
 
 	inline void encoding_base::s_jsonDecode(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Value> vr;
+		v8::Local<v8::Value> vr;
 
 		METHOD_ENTER(1, 1);
 
@@ -258,7 +258,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = bsonEncode(v0, vr);
 
@@ -267,7 +267,7 @@ namespace fibjs
 
 	inline void encoding_base::s_bsonDecode(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Object> vr;
+		v8::Local<v8::Object> vr;
 
 		METHOD_ENTER(1, 1);
 

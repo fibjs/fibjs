@@ -124,7 +124,7 @@ result_t Routing::append(const char *pattern, Handler_base *hdlr)
     return 0;
 }
 
-result_t Routing::append(const char *pattern, v8::Handle<v8::Value> hdlr)
+result_t Routing::append(const char *pattern, v8::Local<v8::Value> hdlr)
 {
     obj_ptr<Handler_base> hdlr1;
     result_t hr = JSHandler::New(hdlr, hdlr1);
@@ -133,20 +133,20 @@ result_t Routing::append(const char *pattern, v8::Handle<v8::Value> hdlr)
     return append(pattern, hdlr1);
 }
 
-result_t Routing::append(v8::Handle<v8::Object> map)
+result_t Routing::append(v8::Local<v8::Object> map)
 {
-    v8::Handle < v8::Array > ks = map->GetPropertyNames();
+    v8::Local < v8::Array > ks = map->GetPropertyNames();
     int len = ks->Length();
     int i;
     result_t hr;
 
     for (i = 0; i < len; i++)
     {
-        v8::Handle < v8::Value > k = ks->Get(i);
+        v8::Local < v8::Value > k = ks->Get(i);
 
         if (!k->IsNumber())
         {
-            v8::Handle < v8::Value > v = map->Get(k);
+            v8::Local < v8::Value > v = map->Get(k);
 
             if (v->IsObject())
             {

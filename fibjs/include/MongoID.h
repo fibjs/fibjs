@@ -41,7 +41,7 @@ public:
         return 0;
     }
 
-    virtual result_t toJSON(const char *key, v8::Handle<v8::Value> &retVal)
+    virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal)
     {
         std::string str;
 

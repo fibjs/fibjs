@@ -244,7 +244,7 @@ result_t MongoDB::getCollection(const char *name,
     return 0;
 }
 
-result_t MongoDB::run_command(bson *command, v8::Handle<v8::Object> &retVal)
+result_t MongoDB::run_command(bson *command, v8::Local<v8::Object> &retVal)
 {
     bson out;
 
@@ -261,8 +261,8 @@ result_t MongoDB::run_command(bson *command, v8::Handle<v8::Object> &retVal)
     return 0;
 }
 
-result_t MongoDB::runCommand(v8::Handle<v8::Object> cmd,
-                             v8::Handle<v8::Object> &retVal)
+result_t MongoDB::runCommand(v8::Local<v8::Object> cmd,
+                             v8::Local<v8::Object> &retVal)
 {
     bson bbq;
     result_t hr;
@@ -274,8 +274,8 @@ result_t MongoDB::runCommand(v8::Handle<v8::Object> cmd,
     return run_command(&bbq, retVal);
 }
 
-result_t MongoDB::runCommand(const char *cmd, v8::Handle<v8::Value> arg,
-                             v8::Handle<v8::Object> &retVal)
+result_t MongoDB::runCommand(const char *cmd, v8::Local<v8::Value> arg,
+                             v8::Local<v8::Object> &retVal)
 {
     bson bbq;
 
@@ -292,7 +292,7 @@ result_t MongoDB::_named_getter(const char *property,
     return getCollection(property, retVal);
 }
 
-result_t MongoDB::_named_enumerator(v8::Handle<v8::Array> &retVal)
+result_t MongoDB::_named_enumerator(v8::Local<v8::Array> &retVal)
 {
     return 0;
 }

@@ -25,7 +25,7 @@ public:
 	// DBResult_base
 	virtual result_t get_insertId(int64_t& retVal) = 0;
 	virtual result_t get_affected(int64_t& retVal) = 0;
-	virtual result_t get_fields(v8::Handle<v8::Array>& retVal) = 0;
+	virtual result_t get_fields(v8::Local<v8::Array>& retVal) = 0;
 
 	DECLARE_CLASSINFO(DBResult_base);
 
@@ -86,7 +86,7 @@ namespace fibjs
 
 	inline void DBResult_base::s_get_fields(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Local<v8::Array> vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(DBResult_base);

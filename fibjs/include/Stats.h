@@ -24,7 +24,7 @@ public:
     virtual result_t reset();
     virtual result_t uptime(int32_t &retVal);
     virtual result_t _named_getter(const char *property, int32_t &retVal);
-    virtual result_t _named_enumerator(v8::Handle<v8::Array> &retVal);
+    virtual result_t _named_enumerator(v8::Local<v8::Array> &retVal);
 
 public:
     void inc(int n)
@@ -45,7 +45,7 @@ public:
 public:
     void init(int sn, int n);
     void set_key(int n, const char *key);
-    result_t set_key(int n, v8::Handle<v8::Value> key);
+    result_t set_key(int n, v8::Local<v8::Value> key);
 
     void init(const char **staticKeys, int sn, const char **keys, int n)
     {

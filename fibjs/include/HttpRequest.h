@@ -55,10 +55,10 @@ public:
     virtual result_t set_maxUploadSize(int32_t newVal);
     virtual result_t hasHeader(const char *name, bool &retVal);
     virtual result_t firstHeader(const char *name, Variant &retVal);
-    virtual result_t allHeader(const char *name, v8::Handle<v8::Array> &retVal);
-    virtual result_t addHeader(v8::Handle<v8::Object> map);
+    virtual result_t allHeader(const char *name, v8::Local<v8::Array> &retVal);
+    virtual result_t addHeader(v8::Local<v8::Object> map);
     virtual result_t addHeader(const char *name, Variant value);
-    virtual result_t setHeader(v8::Handle<v8::Object> map);
+    virtual result_t setHeader(v8::Local<v8::Object> map);
     virtual result_t setHeader(const char *name, Variant value);
     virtual result_t removeHeader(const char *name);
 

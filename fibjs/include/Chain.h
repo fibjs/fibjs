@@ -23,8 +23,8 @@ public:
 
 public:
     // Chain_base
-    virtual result_t append(v8::Handle<v8::Array> hdlrs);
-    virtual result_t append(v8::Handle<v8::Value> hdlr);
+    virtual result_t append(v8::Local<v8::Array> hdlrs);
+    virtual result_t append(v8::Local<v8::Value> hdlr);
 
 public:
     result_t append(Handler_base *hdlr)

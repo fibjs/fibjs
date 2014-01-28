@@ -139,7 +139,7 @@ private:
     }
 
 public:
-    v8::Handle<v8::Object> wrap(v8::Handle<v8::Object> o)
+    v8::Local<v8::Object> wrap(v8::Local<v8::Object> o)
     {
         if (handle_.IsEmpty())
         {
@@ -154,7 +154,7 @@ public:
         return v8::Local<v8::Object>::New(isolate, handle_);
     }
 
-    v8::Handle<v8::Object> wrap()
+    v8::Local<v8::Object> wrap()
     {
         if (handle_.IsEmpty())
             return wrap(Classinfo().CreateInstance());
@@ -183,15 +183,15 @@ public:
 
 public:
     // Event
-    result_t on(const char *ev, v8::Handle<v8::Function> func);
-    result_t on(v8::Handle<v8::Object> map);
-    result_t once(const char *ev, v8::Handle<v8::Function> func);
-    result_t once(v8::Handle<v8::Object> map);
-    result_t off(const char *ev, v8::Handle<v8::Function> func);
-    result_t off(v8::Handle<v8::Object> map);
+    result_t on(const char *ev, v8::Local<v8::Function> func);
+    result_t on(v8::Local<v8::Object> map);
+    result_t once(const char *ev, v8::Local<v8::Function> func);
+    result_t once(v8::Local<v8::Object> map);
+    result_t off(const char *ev, v8::Local<v8::Function> func);
+    result_t off(v8::Local<v8::Object> map);
     result_t trigger(const char *ev,
                      const v8::FunctionCallbackInfo<v8::Value> &args);
-    result_t _trigger(const char *ev, v8::Handle<v8::Value> *args,
+    result_t _trigger(const char *ev, v8::Local<v8::Value> *args,
                       int argCount);
 
     bool hasTrigger()
@@ -222,7 +222,7 @@ public:
     }
 
 private:
-    v8::Handle<v8::Array> GetHiddenArray(const char *k, bool create = false,
+    v8::Local<v8::Array> GetHiddenArray(const char *k, bool create = false,
                                          bool autoDelete = false);
 
 private:
@@ -257,10 +257,10 @@ public:
         return 0;
     }
 
-    virtual result_t toJSON(const char *key, v8::Handle<v8::Value> &retVal)
+    virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal)
     {
-        v8::Handle<v8::Object> o = wrap();
-        v8::Handle<v8::Object> o1 = v8::Object::New(isolate);
+        v8::Local<v8::Object> o = wrap();
+        v8::Local<v8::Object> o1 = v8::Object::New(isolate);
 
         extend(o, o1);
         retVal = o1;
@@ -268,7 +268,7 @@ public:
         return 0;
     }
 
-    virtual result_t ValueOf(v8::Handle<v8::Value> &retVal)
+    virtual result_t ValueOf(v8::Local<v8::Value> &retVal)
     {
         retVal = wrap();
         return 0;
@@ -385,7 +385,7 @@ inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value> &a
 
 inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    v8::Handle<v8::Value> vr;
+    v8::Local<v8::Value> vr;
 
     METHOD_INSTANCE(object_base);
     METHOD_ENTER(1, 0);
@@ -399,7 +399,7 @@ inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value> &arg
 
 inline void object_base::s_ValueOf(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    v8::Handle<v8::Value> vr;
+    v8::Local<v8::Value> vr;
 
     METHOD_INSTANCE(object_base);
     METHOD_ENTER(0, 0);

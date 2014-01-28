@@ -22,26 +22,26 @@ class MongoCollection_base : public object_base
 {
 public:
 	// MongoCollection_base
-	virtual result_t find(v8::Handle<v8::Object> query, v8::Handle<v8::Object> projection, obj_ptr<MongoCursor_base>& retVal) = 0;
-	virtual result_t findOne(v8::Handle<v8::Object> query, v8::Handle<v8::Object> projection, v8::Handle<v8::Object>& retVal) = 0;
-	virtual result_t findAndModify(v8::Handle<v8::Object> query, v8::Handle<v8::Object>& retVal) = 0;
-	virtual result_t insert(v8::Handle<v8::Array> documents) = 0;
-	virtual result_t insert(v8::Handle<v8::Object> document) = 0;
-	virtual result_t save(v8::Handle<v8::Object> document) = 0;
-	virtual result_t update(v8::Handle<v8::Object> query, v8::Handle<v8::Object> document, bool upsert, bool multi) = 0;
-	virtual result_t update(v8::Handle<v8::Object> query, v8::Handle<v8::Object> document, v8::Handle<v8::Object> options) = 0;
-	virtual result_t remove(v8::Handle<v8::Object> query) = 0;
-	virtual result_t runCommand(v8::Handle<v8::Object> cmd, v8::Handle<v8::Object>& retVal) = 0;
-	virtual result_t runCommand(const char* cmd, v8::Handle<v8::Object> arg, v8::Handle<v8::Object>& retVal) = 0;
+	virtual result_t find(v8::Local<v8::Object> query, v8::Local<v8::Object> projection, obj_ptr<MongoCursor_base>& retVal) = 0;
+	virtual result_t findOne(v8::Local<v8::Object> query, v8::Local<v8::Object> projection, v8::Local<v8::Object>& retVal) = 0;
+	virtual result_t findAndModify(v8::Local<v8::Object> query, v8::Local<v8::Object>& retVal) = 0;
+	virtual result_t insert(v8::Local<v8::Array> documents) = 0;
+	virtual result_t insert(v8::Local<v8::Object> document) = 0;
+	virtual result_t save(v8::Local<v8::Object> document) = 0;
+	virtual result_t update(v8::Local<v8::Object> query, v8::Local<v8::Object> document, bool upsert, bool multi) = 0;
+	virtual result_t update(v8::Local<v8::Object> query, v8::Local<v8::Object> document, v8::Local<v8::Object> options) = 0;
+	virtual result_t remove(v8::Local<v8::Object> query) = 0;
+	virtual result_t runCommand(v8::Local<v8::Object> cmd, v8::Local<v8::Object>& retVal) = 0;
+	virtual result_t runCommand(const char* cmd, v8::Local<v8::Object> arg, v8::Local<v8::Object>& retVal) = 0;
 	virtual result_t drop() = 0;
-	virtual result_t ensureIndex(v8::Handle<v8::Object> keys, v8::Handle<v8::Object> options) = 0;
-	virtual result_t reIndex(v8::Handle<v8::Object>& retVal) = 0;
-	virtual result_t dropIndex(const char* name, v8::Handle<v8::Object>& retVal) = 0;
-	virtual result_t dropIndexes(v8::Handle<v8::Object>& retVal) = 0;
+	virtual result_t ensureIndex(v8::Local<v8::Object> keys, v8::Local<v8::Object> options) = 0;
+	virtual result_t reIndex(v8::Local<v8::Object>& retVal) = 0;
+	virtual result_t dropIndex(const char* name, v8::Local<v8::Object>& retVal) = 0;
+	virtual result_t dropIndexes(v8::Local<v8::Object>& retVal) = 0;
 	virtual result_t getIndexes(obj_ptr<MongoCursor_base>& retVal) = 0;
 	virtual result_t getCollection(const char* name, obj_ptr<MongoCollection_base>& retVal) = 0;
 	virtual result_t _named_getter(const char* property, obj_ptr<MongoCollection_base>& retVal) = 0;
-	virtual result_t _named_enumerator(v8::Handle<v8::Array>& retVal) = 0;
+	virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
 
 	DECLARE_CLASSINFO(MongoCollection_base);
 
@@ -126,7 +126,7 @@ namespace fibjs
 
 	inline void MongoCollection_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Local<v8::Array> vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(MongoCollection_base);
@@ -143,8 +143,8 @@ namespace fibjs
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(2, 0);
 
-		OPT_ARG(v8::Handle<v8::Object>, 0, v8::Object::New(isolate));
-		OPT_ARG(v8::Handle<v8::Object>, 1, v8::Object::New(isolate));
+		OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate));
+		OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
 		hr = pInst->find(v0, v1, vr);
 
@@ -153,13 +153,13 @@ namespace fibjs
 
 	inline void MongoCollection_base::s_findOne(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Object> vr;
+		v8::Local<v8::Object> vr;
 
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(2, 0);
 
-		OPT_ARG(v8::Handle<v8::Object>, 0, v8::Object::New(isolate));
-		OPT_ARG(v8::Handle<v8::Object>, 1, v8::Object::New(isolate));
+		OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate));
+		OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
 		hr = pInst->findOne(v0, v1, vr);
 
@@ -168,12 +168,12 @@ namespace fibjs
 
 	inline void MongoCollection_base::s_findAndModify(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Object> vr;
+		v8::Local<v8::Object> vr;
 
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->findAndModify(v0, vr);
 
@@ -185,13 +185,13 @@ namespace fibjs
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Array>, 0);
+		ARG(v8::Local<v8::Array>, 0);
 
 		hr = pInst->insert(v0);
 
 		METHOD_OVER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->insert(v0);
 
@@ -203,7 +203,7 @@ namespace fibjs
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->save(v0);
 
@@ -215,8 +215,8 @@ namespace fibjs
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(4, 2);
 
-		ARG(v8::Handle<v8::Object>, 0);
-		ARG(v8::Handle<v8::Object>, 1);
+		ARG(v8::Local<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 1);
 		OPT_ARG(bool, 2, false);
 		OPT_ARG(bool, 3, false);
 
@@ -224,9 +224,9 @@ namespace fibjs
 
 		METHOD_OVER(3, 3);
 
-		ARG(v8::Handle<v8::Object>, 0);
-		ARG(v8::Handle<v8::Object>, 1);
-		ARG(v8::Handle<v8::Object>, 2);
+		ARG(v8::Local<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 1);
+		ARG(v8::Local<v8::Object>, 2);
 
 		hr = pInst->update(v0, v1, v2);
 
@@ -238,7 +238,7 @@ namespace fibjs
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->remove(v0);
 
@@ -247,19 +247,19 @@ namespace fibjs
 
 	inline void MongoCollection_base::s_runCommand(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Object> vr;
+		v8::Local<v8::Object> vr;
 
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->runCommand(v0, vr);
 
 		METHOD_OVER(2, 1);
 
 		ARG_String(0);
-		OPT_ARG(v8::Handle<v8::Object>, 1, v8::Object::New(isolate));
+		OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
 		hr = pInst->runCommand(v0, v1, vr);
 
@@ -281,8 +281,8 @@ namespace fibjs
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
-		OPT_ARG(v8::Handle<v8::Object>, 1, v8::Object::New(isolate));
+		ARG(v8::Local<v8::Object>, 0);
+		OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
 		hr = pInst->ensureIndex(v0, v1);
 
@@ -291,7 +291,7 @@ namespace fibjs
 
 	inline void MongoCollection_base::s_reIndex(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Object> vr;
+		v8::Local<v8::Object> vr;
 
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(0, 0);
@@ -303,7 +303,7 @@ namespace fibjs
 
 	inline void MongoCollection_base::s_dropIndex(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Object> vr;
+		v8::Local<v8::Object> vr;
 
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(1, 1);
@@ -317,7 +317,7 @@ namespace fibjs
 
 	inline void MongoCollection_base::s_dropIndexes(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Object> vr;
+		v8::Local<v8::Object> vr;
 
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(0, 0);

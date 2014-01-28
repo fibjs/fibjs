@@ -46,11 +46,11 @@ public:
 	static result_t info(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t warn(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t error(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
-	static result_t dir(v8::Handle<v8::Object> obj);
+	static result_t dir(v8::Local<v8::Object> obj);
 	static result_t time(const char* label);
 	static result_t timeEnd(const char* label);
 	static result_t trace(const char* label);
-	static result_t assert(v8::Handle<v8::Value> value, const char* msg);
+	static result_t assert(v8::Local<v8::Value> value, const char* msg);
 
 	DECLARE_CLASSINFO(console_base);
 
@@ -294,7 +294,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = dir(v0);
 
@@ -338,7 +338,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 		OPT_ARG_String(1, "");
 
 		hr = assert(v0, v1);

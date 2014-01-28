@@ -25,7 +25,7 @@ class utils_base : public module_base
 {
 public:
 	// utils_base
-	static result_t buildInfo(v8::Handle<v8::Object>& retVal);
+	static result_t buildInfo(v8::Local<v8::Object>& retVal);
 
 	DECLARE_CLASSINFO(utils_base);
 
@@ -67,7 +67,7 @@ namespace fibjs
 
 	inline void utils_base::s_buildInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Object> vr;
+		v8::Local<v8::Object> vr;
 
 		METHOD_ENTER(0, 0);
 

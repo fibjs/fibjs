@@ -77,7 +77,7 @@ public:
     {
         v8::HandleScope handle_scope(isolate);
 
-        v8::Handle<v8::FunctionTemplate> _class = v8::FunctionTemplate::New(
+        v8::Local<v8::FunctionTemplate> _class = v8::FunctionTemplate::New(
                     isolate, cd.cor);
         m_class.Reset(isolate, _class);
 
@@ -126,16 +126,16 @@ public:
             ot->SetNamedPropertyHandler(pcd->cns->getter, pcd->cns->setter,
                                         NULL, pcd->cns->remover, pcd->cns->enumerator);
 
-        v8::Handle<v8::Function> _function = _class->GetFunction();
+        v8::Local<v8::Function> _function = _class->GetFunction();
         m_function.Reset(isolate, _function);
 
-        v8::Handle<v8::Object> o = _function->NewInstance();
+        v8::Local<v8::Object> o = _function->NewInstance();
         o->SetAlignedPointerInInternalField(0, 0);
         m_cache.Reset(isolate, o);
     }
 
     void *getInstance(void *o);
-    void *getInstance(v8::Handle<v8::Value> o)
+    void *getInstance(v8::Local<v8::Value> o)
     {
         if (o.IsEmpty() || !o->IsObject()
                 || !v8::Local<v8::FunctionTemplate>::New(isolate, m_class)->HasInstance(
@@ -145,7 +145,7 @@ public:
         return o->ToObject()->GetAlignedPointerFromInternalField(0);
     }
 
-    v8::Handle<v8::Object> CreateInstance()
+    v8::Local<v8::Object> CreateInstance()
     {
         return v8::Local<v8::Object>::New(isolate, m_cache)->Clone();
     }
@@ -174,7 +174,7 @@ public:
         return m_cd.name;
     }
 
-    void Attach(v8::Handle<v8::Object> o)
+    void Attach(v8::Local<v8::Object> o)
     {
         int i;
 

@@ -21,12 +21,12 @@ class Trigger_base : public object_base
 public:
 	// Trigger_base
 	static result_t _new(obj_ptr<Trigger_base>& retVal);
-	virtual result_t on(const char* ev, v8::Handle<v8::Function> func) = 0;
-	virtual result_t on(v8::Handle<v8::Object> map) = 0;
-	virtual result_t once(const char* ev, v8::Handle<v8::Function> func) = 0;
-	virtual result_t once(v8::Handle<v8::Object> map) = 0;
-	virtual result_t off(const char* ev, v8::Handle<v8::Function> func) = 0;
-	virtual result_t off(v8::Handle<v8::Object> map) = 0;
+	virtual result_t on(const char* ev, v8::Local<v8::Function> func) = 0;
+	virtual result_t on(v8::Local<v8::Object> map) = 0;
+	virtual result_t once(const char* ev, v8::Local<v8::Function> func) = 0;
+	virtual result_t once(v8::Local<v8::Object> map) = 0;
+	virtual result_t off(const char* ev, v8::Local<v8::Function> func) = 0;
+	virtual result_t off(v8::Local<v8::Object> map) = 0;
 	virtual result_t trigger(const char* ev, const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
 
 	DECLARE_CLASSINFO(Trigger_base);
@@ -82,13 +82,13 @@ namespace fibjs
 		METHOD_ENTER(2, 2);
 
 		ARG_String(0);
-		ARG(v8::Handle<v8::Function>, 1);
+		ARG(v8::Local<v8::Function>, 1);
 
 		hr = pInst->on(v0, v1);
 
 		METHOD_OVER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->on(v0);
 
@@ -101,13 +101,13 @@ namespace fibjs
 		METHOD_ENTER(2, 2);
 
 		ARG_String(0);
-		ARG(v8::Handle<v8::Function>, 1);
+		ARG(v8::Local<v8::Function>, 1);
 
 		hr = pInst->once(v0, v1);
 
 		METHOD_OVER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->once(v0);
 
@@ -120,13 +120,13 @@ namespace fibjs
 		METHOD_ENTER(2, 2);
 
 		ARG_String(0);
-		ARG(v8::Handle<v8::Function>, 1);
+		ARG(v8::Local<v8::Function>, 1);
 
 		hr = pInst->off(v0, v1);
 
 		METHOD_OVER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->off(v0);
 

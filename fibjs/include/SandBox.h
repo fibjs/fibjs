@@ -39,23 +39,23 @@ public:
 
 public:
     // SandBox_base
-    virtual result_t add(const char *id, v8::Handle<v8::Value> mod);
-    virtual result_t add(v8::Handle<v8::Object> mods);
+    virtual result_t add(const char *id, v8::Local<v8::Value> mod);
+    virtual result_t add(v8::Local<v8::Object> mods);
     virtual result_t remove(const char *id);
     virtual result_t run(const char *fname);
-    virtual result_t require(const char *id, v8::Handle<v8::Value> &retVal);
+    virtual result_t require(const char *id, v8::Local<v8::Value> &retVal);
 
 public:
     void initRoot();
-    void initRequire(v8::Handle<v8::Function> func)
+    void initRequire(v8::Local<v8::Function> func)
     {
         m_require.Reset(isolate, func);
     }
 
-    void InstallModule(std::string fname, v8::Handle<v8::Value> o,
+    void InstallModule(std::string fname, v8::Local<v8::Value> o,
                        date_t check = 0, date_t mtime = 0);
 
-    result_t runScript(const char *id, v8::Handle<v8::Value> &retVal,
+    result_t runScript(const char *id, v8::Local<v8::Value> &retVal,
                        bool bMod);
 
     inline void InstallNativeModule(const char *fname, ClassInfo &ci)

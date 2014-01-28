@@ -21,7 +21,7 @@ result_t global_base::run(const char *fname)
     return sbox->run(fname);
 }
 
-result_t global_base::require(const char *id, v8::Handle<v8::Value> &retVal)
+result_t global_base::require(const char *id, v8::Local<v8::Value> &retVal)
 {
     obj_ptr < SandBox_base > sbox;
     result_t hr = vm_base::current(sbox);

@@ -30,7 +30,7 @@ result_t Url_base::_new(const char *url, obj_ptr<Url_base> &retVal)
     return 0;
 }
 
-result_t Url_base::_new(v8::Handle<v8::Object> args, obj_ptr<Url_base> &retVal)
+result_t Url_base::_new(v8::Local<v8::Object> args, obj_ptr<Url_base> &retVal)
 {
     obj_ptr < Url > u = new Url();
 
@@ -276,11 +276,11 @@ result_t Url::parse(const char *url)
     return 0;
 }
 
-std::string getValue(v8::Handle<v8::Object> &args, const char *key)
+std::string getValue(v8::Local<v8::Object> &args, const char *key)
 {
     std::string s;
 
-    v8::Handle<v8::Value> v = args->Get(v8::String::NewFromUtf8(isolate, key));
+    v8::Local<v8::Value> v = args->Get(v8::String::NewFromUtf8(isolate, key));
 
     if (!v.IsEmpty() && v->IsString())
         s = *v8::String::Utf8Value(v);
@@ -288,7 +288,7 @@ std::string getValue(v8::Handle<v8::Object> &args, const char *key)
     return s;
 }
 
-result_t Url::format(v8::Handle<v8::Object> args)
+result_t Url::format(v8::Local<v8::Object> args)
 {
     clear();
 
@@ -314,7 +314,7 @@ result_t Url::format(v8::Handle<v8::Object> args)
     if (m_slashes && m_protocol.compare("file:") && m_hostname.length() == 0)
         m_slashes = false;
 
-    v8::Handle < v8::Value > v = args->Get(v8::String::NewFromUtf8(isolate, "slashes"));
+    v8::Local < v8::Value > v = args->Get(v8::String::NewFromUtf8(isolate, "slashes"));
 
     if (!IsEmpty(v))
         m_slashes = v->BooleanValue();

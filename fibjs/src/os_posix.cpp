@@ -38,7 +38,7 @@ result_t os_base::get_version(std::string &retVal)
     return 0;
 }
 
-result_t os_base::networkInfo(v8::Handle<v8::Object> &retVal)
+result_t os_base::networkInfo(v8::Local<v8::Object> &retVal)
 {
     struct ::ifaddrs *addrs, *ent;
     struct ::sockaddr_in *in4;

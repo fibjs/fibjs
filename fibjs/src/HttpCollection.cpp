@@ -90,7 +90,7 @@ result_t HttpCollection::first(const char *name, Variant &retVal)
     return CALL_RETURN_NULL;
 }
 
-result_t HttpCollection::all(const char *name, v8::Handle<v8::Array> &retVal)
+result_t HttpCollection::all(const char *name, v8::Local<v8::Array> &retVal)
 {
     int32_t i, n = 0;
 
@@ -107,17 +107,17 @@ result_t HttpCollection::all(const char *name, v8::Handle<v8::Array> &retVal)
     return 0;
 }
 
-inline result_t _map(HttpCollection *o, v8::Handle<v8::Object> m,
+inline result_t _map(HttpCollection *o, v8::Local<v8::Object> m,
                      result_t (HttpCollection::*fn)(const char *name, Variant value))
 {
-    v8::Handle<v8::Array> ks = m->GetPropertyNames();
+    v8::Local<v8::Array> ks = m->GetPropertyNames();
     int len = ks->Length();
     int i;
     result_t hr;
 
     for (i = 0; i < len; i++)
     {
-        v8::Handle<v8::Value> k = ks->Get(i);
+        v8::Local<v8::Value> k = ks->Get(i);
 
         if (!k->IsNumber())
         {
@@ -144,7 +144,7 @@ result_t HttpCollection::add(const char *name, Variant value)
     return 0;
 }
 
-result_t HttpCollection::add(v8::Handle<v8::Object> map)
+result_t HttpCollection::add(v8::Local<v8::Object> map)
 {
     return _map(this, map, &HttpCollection::add);
 }
@@ -191,7 +191,7 @@ result_t HttpCollection::set(const char *name, Variant value)
     return 0;
 }
 
-result_t HttpCollection::set(v8::Handle<v8::Object> map)
+result_t HttpCollection::set(v8::Local<v8::Object> map)
 {
     return _map(this, map, &HttpCollection::set);
 }
@@ -223,7 +223,7 @@ result_t HttpCollection::_named_getter(const char *property, Variant &retVal)
     return first(property, retVal);
 }
 
-result_t HttpCollection::_named_enumerator(v8::Handle<v8::Array> &retVal)
+result_t HttpCollection::_named_enumerator(v8::Local<v8::Array> &retVal)
 {
     int32_t i;
 
@@ -242,7 +242,7 @@ result_t HttpCollection::_named_setter(const char *property, Variant newVal)
 }
 
 result_t HttpCollection::_named_deleter(const char *property,
-                                        v8::Handle<v8::Boolean> &retVal)
+                                        v8::Local<v8::Boolean> &retVal)
 {
     int32_t n = m_count;
     remove(property);

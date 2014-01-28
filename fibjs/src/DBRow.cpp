@@ -10,7 +10,7 @@
 namespace fibjs
 {
 
-result_t DBRow::_indexed_getter(uint32_t index, v8::Handle<v8::Value> &retVal)
+result_t DBRow::_indexed_getter(uint32_t index, v8::Local<v8::Value> &retVal)
 {
     if (index >= m_cols.size())
         return CALL_E_BADINDEX;
@@ -21,7 +21,7 @@ result_t DBRow::_indexed_getter(uint32_t index, v8::Handle<v8::Value> &retVal)
 }
 
 result_t DBRow::_named_getter(const char *property,
-                              v8::Handle<v8::Value> &retVal)
+                              v8::Local<v8::Value> &retVal)
 {
     int32_t i = m_fields->index(property);
 
@@ -31,7 +31,7 @@ result_t DBRow::_named_getter(const char *property,
     return 0;
 }
 
-result_t DBRow::_named_enumerator(v8::Handle<v8::Array> &retVal)
+result_t DBRow::_named_enumerator(v8::Local<v8::Array> &retVal)
 {
     int32_t i;
 
@@ -42,9 +42,9 @@ result_t DBRow::_named_enumerator(v8::Handle<v8::Array> &retVal)
     return 0;
 }
 
-result_t DBRow::toJSON(const char *key, v8::Handle<v8::Value> &retVal)
+result_t DBRow::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 {
-    v8::Handle<v8::Object> o = v8::Object::New(isolate);
+    v8::Local<v8::Object> o = v8::Object::New(isolate);
     int32_t i;
 
     for (i = 0; i < (int32_t) m_cols.size(); i++)

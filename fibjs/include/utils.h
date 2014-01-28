@@ -190,7 +190,7 @@ typedef int result_t;
     }while(0); \
     if(hr == CALL_RETURN_NULL){ args.GetReturnValue().SetNull(); return;} \
     if(hr >= 0){ args.GetReturnValue().Set(V8_RETURN(GetReturnValue(vr))); return;} \
-    if(hr == CALL_E_JAVASCRIPT){ args.GetReturnValue().Set(v8::Handle<v8::Value>()); return;} \
+    if(hr == CALL_E_JAVASCRIPT){ args.GetReturnValue().Set(v8::Local<v8::Value>()); return;} \
     ThrowResult(hr); return;
 
 #define METHOD_RETURN1() \
@@ -199,13 +199,13 @@ typedef int result_t;
 #define METHOD_VOID() \
     }while(0); \
     if(hr >= 0){ args.GetReturnValue().Set(v8::Undefined(isolate)); return;} \
-    if(hr == CALL_E_JAVASCRIPT){ args.GetReturnValue().Set(v8::Handle<v8::Value>()); return;} \
+    if(hr == CALL_E_JAVASCRIPT){ args.GetReturnValue().Set(v8::Local<v8::Value>()); return;} \
     ThrowResult(hr); return;
 
 #define CONSTRUCT_RETURN() \
     }while(0); \
     if(hr >= 0){ vr->wrap(args.This()); return;} \
-    if(hr == CALL_E_JAVASCRIPT){ args.GetReturnValue().Set(v8::Handle<v8::Value>()); return;} \
+    if(hr == CALL_E_JAVASCRIPT){ args.GetReturnValue().Set(v8::Local<v8::Value>()); return;} \
     ThrowResult(hr); return;
 
 #define ARG_String(n) \
@@ -250,22 +250,22 @@ typedef int result_t;
     {   return class_info();} \
     static c* getInstance(void *o) \
     {   return (c*)class_info().getInstance(o); } \
-    static c* getInstance(v8::Handle<v8::Value> o) \
+    static c* getInstance(v8::Local<v8::Value> o) \
     {   return (c*)class_info().getInstance(o); }
 
 #define EVENT_SUPPORT() \
     public: \
-    virtual result_t on(const char* ev, v8::Handle<v8::Function> func) \
+    virtual result_t on(const char* ev, v8::Local<v8::Function> func) \
     {   return object_base::on(ev, func);} \
-    virtual result_t on(v8::Handle<v8::Object> map) \
+    virtual result_t on(v8::Local<v8::Object> map) \
     {   return object_base::on(map);} \
-    virtual result_t once(const char* ev, v8::Handle<v8::Function> func) \
+    virtual result_t once(const char* ev, v8::Local<v8::Function> func) \
     {   return object_base::once(ev, func);} \
-    virtual result_t once(v8::Handle<v8::Object> map) \
+    virtual result_t once(v8::Local<v8::Object> map) \
     {   return object_base::once(map);} \
-    virtual result_t off(const char* ev, v8::Handle<v8::Function> func) \
+    virtual result_t off(const char* ev, v8::Local<v8::Function> func) \
     {   return object_base::off(ev, func);} \
-    virtual result_t off(v8::Handle<v8::Object> map) \
+    virtual result_t off(v8::Local<v8::Object> map) \
     {   return object_base::off(map);} \
     virtual result_t trigger(const char* ev, const v8::FunctionCallbackInfo<v8::Value>& args) \
     {   return object_base::trigger(ev, args);}
@@ -283,7 +283,7 @@ typedef int result_t;
 #define isnan _isnan
 #endif
 
-inline result_t SafeGetValue(v8::Handle<v8::Value> v, double &n)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, double &n)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -302,7 +302,7 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, double &n)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Handle<v8::Value> v, int64_t &n)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, int64_t &n)
 {
     double num;
 
@@ -318,7 +318,7 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, int64_t &n)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Handle<v8::Value> v, int32_t &n)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, int32_t &n)
 {
     double num;
 
@@ -334,7 +334,7 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, int32_t &n)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Handle<v8::Value> v, bool &n)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, bool &n)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -343,7 +343,7 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, bool &n)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Handle<v8::Value> v, date_t &d)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, date_t &d)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -355,14 +355,14 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, date_t &d)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Handle<v8::Value> v, Variant &d)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, Variant &d)
 {
     d = v;
     return 0;
 }
 
 template<class T>
-inline result_t SafeGetValue(v8::Handle<v8::Value> v, obj_ptr<T> &vr)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, obj_ptr<T> &vr)
 {
     vr = T::getInstance(v);
     if (vr == NULL)
@@ -371,8 +371,8 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, obj_ptr<T> &vr)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Handle<v8::Value> v,
-                             v8::Handle<v8::Object> &vr)
+inline result_t SafeGetValue(v8::Local<v8::Value> v,
+                             v8::Local<v8::Object> &vr)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -380,11 +380,11 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v,
     if (!v->IsObject())
         return CALL_E_INVALIDARG;
 
-    vr = v8::Handle<v8::Object>::Cast(v);
+    vr = v8::Local<v8::Object>::Cast(v);
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Handle<v8::Value> v, v8::Handle<v8::Array> &vr)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Array> &vr)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -392,18 +392,18 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v, v8::Handle<v8::Array> &vr)
     if (!v->IsArray())
         return CALL_E_INVALIDARG;
 
-    vr = v8::Handle<v8::Array>::Cast(v);
+    vr = v8::Local<v8::Array>::Cast(v);
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Handle<v8::Value> v, v8::Handle<v8::Value> &vr)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Value> &vr)
 {
     vr = v;
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Handle<v8::Value> v,
-                             v8::Handle<v8::Function> &vr)
+inline result_t SafeGetValue(v8::Local<v8::Value> v,
+                             v8::Local<v8::Function> &vr)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -411,88 +411,88 @@ inline result_t SafeGetValue(v8::Handle<v8::Value> v,
     if (!v->IsFunction())
         return CALL_E_INVALIDARG;
 
-    vr = v8::Handle<v8::Function>::Cast(v);
+    vr = v8::Local<v8::Function>::Cast(v);
     return 0;
 }
 
-inline v8::Handle<v8::Value> GetReturnValue(int32_t v)
+inline v8::Local<v8::Value> GetReturnValue(int32_t v)
 {
     return v8::Int32::New(isolate, v);
 }
 
-inline v8::Handle<v8::Value> GetReturnValue(bool v)
+inline v8::Local<v8::Value> GetReturnValue(bool v)
 {
     return v ? v8::True(isolate) : v8::False(isolate);
 }
 
-inline v8::Handle<v8::Value> GetReturnValue(double v)
+inline v8::Local<v8::Value> GetReturnValue(double v)
 {
     return v8::Number::New(isolate, v);
 }
 
-inline v8::Handle<v8::Value> GetReturnValue(int64_t v)
+inline v8::Local<v8::Value> GetReturnValue(int64_t v)
 {
     return v8::Number::New(isolate, (double) v);
 }
 
-inline v8::Handle<v8::Value> GetReturnValue(std::string &str)
+inline v8::Local<v8::Value> GetReturnValue(std::string &str)
 {
     return v8::String::NewFromUtf8(isolate, str.c_str(),
                                    v8::String::kNormalString, (int) str.length());
 }
 
-inline v8::Handle<v8::Value> GetReturnValue(date_t &v)
+inline v8::Local<v8::Value> GetReturnValue(date_t &v)
 {
     return v;
 }
 
-inline v8::Handle<v8::Value> GetReturnValue(Variant &v)
+inline v8::Local<v8::Value> GetReturnValue(Variant &v)
 {
     return v;
 }
 
-inline v8::Handle<v8::Value> GetReturnValue(v8::Handle<v8::Object> &obj)
+inline v8::Local<v8::Value> GetReturnValue(v8::Local<v8::Object> &obj)
 {
     return obj;
 }
 
-inline v8::Handle<v8::Value> GetReturnValue(v8::Handle<v8::Array> &array)
+inline v8::Local<v8::Value> GetReturnValue(v8::Local<v8::Array> &array)
 {
     return array;
 }
 
-inline v8::Handle<v8::Value> GetReturnValue(v8::Handle<v8::Value> &value)
+inline v8::Local<v8::Value> GetReturnValue(v8::Local<v8::Value> &value)
 {
     return value;
 }
 
-inline v8::Handle<v8::Value> GetReturnValue(v8::Handle<v8::Function> &func)
+inline v8::Local<v8::Value> GetReturnValue(v8::Local<v8::Function> &func)
 {
     return func;
 }
 
 template<class T>
-inline v8::Handle<v8::Value> GetReturnValue(obj_ptr<T> &obj)
+inline v8::Local<v8::Value> GetReturnValue(obj_ptr<T> &obj)
 {
-    v8::Handle<v8::Value> retVal;
+    v8::Local<v8::Value> retVal;
     obj->ValueOf(retVal);
 
     return retVal;
 }
 
-inline v8::Handle<v8::Value> ThrowError(const char *msg)
+inline v8::Local<v8::Value> ThrowError(const char *msg)
 {
     return isolate->ThrowException(v8::Exception::Error(
                                        v8::String::NewFromUtf8(isolate, msg)));
 }
 
-inline v8::Handle<v8::Value> ThrowTypeError(const char *msg)
+inline v8::Local<v8::Value> ThrowTypeError(const char *msg)
 {
     return isolate->ThrowException(v8::Exception::TypeError(
                                        v8::String::NewFromUtf8(isolate, msg)));
 }
 
-inline v8::Handle<v8::Value> ThrowRangeError(const char *msg)
+inline v8::Local<v8::Value> ThrowRangeError(const char *msg)
 {
     return isolate->ThrowException(v8::Exception::RangeError(
                                        v8::String::NewFromUtf8(isolate, msg)));
@@ -520,7 +520,7 @@ extern exlib::Service *g_pService;
 
 std::string traceInfo();
 std::string getResultMessage(result_t hr);
-v8::Handle<v8::Value> ThrowResult(result_t hr);
+v8::Local<v8::Value> ThrowResult(result_t hr);
 void ReportException(v8::TryCatch &try_catch, result_t hr);
 std::string GetException(v8::TryCatch &try_catch, result_t hr);
 

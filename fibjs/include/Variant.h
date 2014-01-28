@@ -16,22 +16,22 @@
 namespace fibjs
 {
 
-inline bool IsEmpty(v8::Handle<v8::Value> &v)
+inline bool IsEmpty(v8::Local<v8::Value> &v)
 {
     return v.IsEmpty() || v->IsUndefined() || v->IsNull();
 }
 
-inline void extend(const v8::Handle<v8::Object> src,
-                   v8::Handle<v8::Object> &dest, bool bDataOnly = true)
+inline void extend(const v8::Local<v8::Object> src,
+                   v8::Local<v8::Object> &dest, bool bDataOnly = true)
 {
-    v8::Handle<v8::Array> ks = src->GetPropertyNames();
+    v8::Local<v8::Array> ks = src->GetPropertyNames();
     int len = ks->Length();
     int i;
 
     for (i = 0; i < len; i++)
     {
-        v8::Handle<v8::Value> k = ks->Get(i);
-        v8::Handle<v8::Value> v = src->Get(k);
+        v8::Local<v8::Value> k = ks->Get(i);
+        v8::Local<v8::Value> v = src->Get(k);
 
         if (!bDataOnly || (!v.IsEmpty() && !v->IsFunction()))
             dest->Set(k, v);
@@ -83,7 +83,7 @@ public:
         operator=(v);
     }
 
-    Variant(v8::Handle<v8::Value> v) :
+    Variant(v8::Local<v8::Value> v) :
         m_type(VT_Undefined)
     {
         operator=(v);
@@ -111,9 +111,9 @@ public:
             }
             else
             {
-                v8::Handle<v8::Object> &jsobj =
-                    *(v8::Handle<v8::Object> *) m_Val.jsobjVal;
-                jsobj.~Handle();
+                v8::Local<v8::Object> &jsobj =
+                    *(v8::Local<v8::Object> *) m_Val.jsobjVal;
+                jsobj.~Local();
             }
         }
 
@@ -135,7 +135,7 @@ public:
                            v8::Local<v8::Object>::New(isolate,
                                                        *(v8::Persistent<v8::Object> *) v.m_Val.jsobjVal));
             else
-                return operator=(*(v8::Handle<v8::Object> *) v.m_Val.jsobjVal);
+                return operator=(*(v8::Local<v8::Object> *) v.m_Val.jsobjVal);
         }
 
         clear();
@@ -219,13 +219,13 @@ public:
         return operator=((obj_base *) v);
     }
 
-    Variant &operator=(v8::Handle<v8::Object> v);
+    Variant &operator=(v8::Local<v8::Object> v);
 
-    Variant &operator=(v8::Handle<v8::Value> v);
+    Variant &operator=(v8::Local<v8::Value> v);
 
-    Variant &operator=(v8::Handle<v8::Function> v)
+    Variant &operator=(v8::Local<v8::Function> v)
     {
-        return operator=(v8::Handle<v8::Object>::Cast(v));
+        return operator=(v8::Local<v8::Object>::Cast(v));
     }
 
     Type type() const
@@ -268,7 +268,7 @@ public:
         return *(std::string *) m_Val.strVal;
     }
 
-    operator v8::Handle<v8::Value>() const;
+    operator v8::Local<v8::Value>() const;
 
     void parseNumber(const char *str, int len = -1);
     void parseDate(const char *str, int len = -1)
@@ -322,7 +322,7 @@ public:
         operator=(v);
     }
 
-    VariantEx(v8::Handle<v8::Value> v)
+    VariantEx(v8::Local<v8::Value> v)
     {
         toPersistent();
         operator=(v);
@@ -346,9 +346,9 @@ public:
         return Variant::operator=(v);
     }
 
-    operator v8::Handle<v8::Value>() const
+    operator v8::Local<v8::Value>() const
     {
-        return Variant::operator v8::Handle<v8::Value>();
+        return Variant::operator v8::Local<v8::Value>();
     }
 };
 

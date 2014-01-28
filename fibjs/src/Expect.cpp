@@ -239,7 +239,7 @@ result_t Expect::get_exist(bool &retVal)
                m_msg.c_str());
 }
 
-result_t Expect::equal(v8::Handle<v8::Value> expected)
+result_t Expect::equal(v8::Local<v8::Value> expected)
 {
     if (m_deep)
         return !m_not ?
@@ -259,13 +259,13 @@ result_t Expect::equal(v8::Handle<v8::Value> expected)
                m_msg.c_str());
 }
 
-result_t Expect::eql(v8::Handle<v8::Value> expected)
+result_t Expect::eql(v8::Local<v8::Value> expected)
 {
     m_deep = true;
     return equal(expected);
 }
 
-result_t Expect::above(v8::Handle<v8::Value> expected)
+result_t Expect::above(v8::Local<v8::Value> expected)
 {
     return !m_not ?
            assert_base::greaterThan(
@@ -276,12 +276,12 @@ result_t Expect::above(v8::Handle<v8::Value> expected)
                m_msg.c_str());
 }
 
-result_t Expect::greaterThan(v8::Handle<v8::Value> expected)
+result_t Expect::greaterThan(v8::Local<v8::Value> expected)
 {
     return above(expected);
 }
 
-result_t Expect::least(v8::Handle<v8::Value> expected)
+result_t Expect::least(v8::Local<v8::Value> expected)
 {
     return !m_not ?
            assert_base::notLessThan(
@@ -292,7 +292,7 @@ result_t Expect::least(v8::Handle<v8::Value> expected)
                m_msg.c_str());
 }
 
-result_t Expect::below(v8::Handle<v8::Value> expected)
+result_t Expect::below(v8::Local<v8::Value> expected)
 {
     return !m_not ?
            assert_base::lessThan(
@@ -303,12 +303,12 @@ result_t Expect::below(v8::Handle<v8::Value> expected)
                m_msg.c_str());
 }
 
-result_t Expect::lessThan(v8::Handle<v8::Value> expected)
+result_t Expect::lessThan(v8::Local<v8::Value> expected)
 {
     return below(expected);
 }
 
-result_t Expect::most(v8::Handle<v8::Value> expected)
+result_t Expect::most(v8::Local<v8::Value> expected)
 {
     return !m_not ?
            assert_base::notGreaterThan(
@@ -319,7 +319,7 @@ result_t Expect::most(v8::Handle<v8::Value> expected)
                m_msg.c_str());
 }
 
-result_t Expect::property(v8::Handle<v8::Value> prop)
+result_t Expect::property(v8::Local<v8::Value> prop)
 {
     if (m_deep)
         return !m_not ?
@@ -339,8 +339,8 @@ result_t Expect::property(v8::Handle<v8::Value> prop)
                m_msg.c_str());
 }
 
-result_t Expect::property(v8::Handle<v8::Value> prop,
-                          v8::Handle<v8::Value> value)
+result_t Expect::property(v8::Local<v8::Value> prop,
+                          v8::Local<v8::Value> value)
 {
     if (m_deep)
         return !m_not ?
@@ -360,8 +360,8 @@ result_t Expect::property(v8::Handle<v8::Value> prop,
                value, m_msg.c_str());
 }
 
-result_t Expect::closeTo(v8::Handle<v8::Value> expected,
-                         v8::Handle<v8::Value> delta)
+result_t Expect::closeTo(v8::Local<v8::Value> expected,
+                         v8::Local<v8::Value> delta)
 {
     return !m_not ?
            assert_base::closeTo(

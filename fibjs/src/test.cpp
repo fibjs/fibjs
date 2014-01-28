@@ -74,7 +74,7 @@ public:
         return 0;
     }
 
-    static result_t it(const char *name, v8::Handle<v8::Function> block)
+    static result_t it(const char *name, v8::Local<v8::Function> block)
     {
         _case *now = s_now;
         if (s_now == s_root)
@@ -88,7 +88,7 @@ public:
     }
 
 public:
-    static result_t set_hook(int type, v8::Handle<v8::Function> func)
+    static result_t set_hook(int type, v8::Local<v8::Function> func)
     {
         _case *now = s_now;
         if (!s_now)
@@ -116,7 +116,7 @@ public:
         QuickArray<obj_ptr<_case> > stack;
         QuickArray<std::string> names;
         QuickArray<std::string> msgs;
-        v8::Handle<v8::Object> o = v8::Object::New(isolate);
+        v8::Local<v8::Object> o = v8::Object::New(isolate);
         int i, j;
         int32_t oldlevel = 0;
         int32_t cnt = 0, errcnt = 0;
@@ -321,7 +321,7 @@ private:
     bool m_error;
 };
 
-result_t test_base::describe(const char *name, v8::Handle<v8::Function> block)
+result_t test_base::describe(const char *name, v8::Local<v8::Function> block)
 {
     _case::init();
 
@@ -337,37 +337,37 @@ result_t test_base::describe(const char *name, v8::Handle<v8::Function> block)
     return 0;
 }
 
-result_t test_base::xdescribe(const char *name, v8::Handle<v8::Function> block)
+result_t test_base::xdescribe(const char *name, v8::Local<v8::Function> block)
 {
     return 0;
 }
 
-result_t test_base::it(const char *name, v8::Handle<v8::Function> block)
+result_t test_base::it(const char *name, v8::Local<v8::Function> block)
 {
     return _case::it(name, block);
 }
 
-result_t test_base::xit(const char *name, v8::Handle<v8::Function> block)
+result_t test_base::xit(const char *name, v8::Local<v8::Function> block)
 {
     return 0;
 }
 
-result_t test_base::before(v8::Handle<v8::Function> func)
+result_t test_base::before(v8::Local<v8::Function> func)
 {
     return _case::set_hook(HOOK_BEFORE, func);
 }
 
-result_t test_base::after(v8::Handle<v8::Function> func)
+result_t test_base::after(v8::Local<v8::Function> func)
 {
     return _case::set_hook(HOOK_AFTER, func);
 }
 
-result_t test_base::beforeEach(v8::Handle<v8::Function> func)
+result_t test_base::beforeEach(v8::Local<v8::Function> func)
 {
     return _case::set_hook(HOOK_BEFORECASE, func);
 }
 
-result_t test_base::afterEach(v8::Handle<v8::Function> func)
+result_t test_base::afterEach(v8::Local<v8::Function> func)
 {
     return _case::set_hook(HOOK_AFTERCASE, func);
 }
@@ -388,7 +388,7 @@ result_t test_base::get_assert(obj_ptr<assert_base> &retVal)
     return 0;
 }
 
-result_t test_base::expect(v8::Handle<v8::Value> actual, const char *msg,
+result_t test_base::expect(v8::Local<v8::Value> actual, const char *msg,
                            obj_ptr<Expect_base> &retVal)
 {
     retVal = new Expect(actual, msg);
@@ -397,12 +397,12 @@ result_t test_base::expect(v8::Handle<v8::Value> actual, const char *msg,
 
 result_t test_base::setup(int32_t mode)
 {
-    v8::Handle < v8::Context > ctx = isolate->GetCallingContext();
+    v8::Local < v8::Context > ctx = isolate->GetCallingContext();
 
     if (!ctx.IsEmpty())
     {
         v8::Context::Scope context_scope(ctx);
-        v8::Handle < v8::Object > glob = ctx->Global();
+        v8::Local < v8::Object > glob = ctx->Global();
         obj_ptr < assert_base > assert;
 
         if (mode == _BDD)

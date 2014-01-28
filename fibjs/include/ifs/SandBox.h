@@ -20,11 +20,11 @@ class SandBox_base : public object_base
 {
 public:
 	// SandBox_base
-	virtual result_t add(const char* id, v8::Handle<v8::Value> mod) = 0;
-	virtual result_t add(v8::Handle<v8::Object> mods) = 0;
+	virtual result_t add(const char* id, v8::Local<v8::Value> mod) = 0;
+	virtual result_t add(v8::Local<v8::Object> mods) = 0;
 	virtual result_t remove(const char* id) = 0;
 	virtual result_t run(const char* fname) = 0;
-	virtual result_t require(const char* id, v8::Handle<v8::Value>& retVal) = 0;
+	virtual result_t require(const char* id, v8::Local<v8::Value>& retVal) = 0;
 
 	DECLARE_CLASSINFO(SandBox_base);
 
@@ -67,13 +67,13 @@ namespace fibjs
 		METHOD_ENTER(2, 2);
 
 		ARG_String(0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 1);
 
 		hr = pInst->add(v0, v1);
 
 		METHOD_OVER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->add(v0);
 
@@ -106,7 +106,7 @@ namespace fibjs
 
 	inline void SandBox_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Value> vr;
+		v8::Local<v8::Value> vr;
 
 		METHOD_INSTANCE(SandBox_base);
 		METHOD_ENTER(1, 1);

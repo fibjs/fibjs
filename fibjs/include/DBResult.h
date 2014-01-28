@@ -32,7 +32,7 @@ public:
 
 public:
     // object_base
-    virtual result_t toJSON(const char *key, v8::Handle<v8::Value> &retVal);
+    virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal);
 
 public:
     // ObjectArray_base
@@ -45,17 +45,17 @@ public:
     virtual result_t pop(Variant &retVal);
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base> &retVal);
     virtual result_t concat(const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<List_base> &retVal);
-    virtual result_t every(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp, bool &retVal);
-    virtual result_t filter(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp, obj_ptr<List_base> &retVal);
-    virtual result_t forEach(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp);
-    virtual result_t map(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp, obj_ptr<List_base> &retVal);
-    virtual result_t toArray(v8::Handle<v8::Array> &retVal);
+    virtual result_t every(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp, bool &retVal);
+    virtual result_t filter(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal);
+    virtual result_t forEach(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp);
+    virtual result_t map(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal);
+    virtual result_t toArray(v8::Local<v8::Array> &retVal);
 
 public:
     // DBResult_base
     virtual result_t get_insertId(int64_t &retVal);
     virtual result_t get_affected(int64_t &retVal);
-    virtual result_t get_fields(v8::Handle<v8::Array> &retVal);
+    virtual result_t get_fields(v8::Local<v8::Array> &retVal);
 
 public:
     void setField(int32_t i, std::string &s)

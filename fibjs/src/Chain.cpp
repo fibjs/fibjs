@@ -52,7 +52,7 @@ result_t Chain::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     return (new asyncInvoke(this, v, ac))->post(0);
 }
 
-result_t Chain::append(v8::Handle<v8::Value> hdlr)
+result_t Chain::append(v8::Local<v8::Value> hdlr)
 {
     obj_ptr<Handler_base> hdlr1;
     result_t hr = JSHandler::New(hdlr, hdlr1);
@@ -61,7 +61,7 @@ result_t Chain::append(v8::Handle<v8::Value> hdlr)
     return append(hdlr1);
 }
 
-result_t Chain::append(v8::Handle<v8::Array> hdlrs)
+result_t Chain::append(v8::Local<v8::Array> hdlrs)
 {
     int32_t len = hdlrs->Length();
     int32_t i;
@@ -69,7 +69,7 @@ result_t Chain::append(v8::Handle<v8::Array> hdlrs)
 
     for (i = 0; i < len; i++)
     {
-        v8::Handle<v8::Value> v = hdlrs->Get(i);
+        v8::Local<v8::Value> v = hdlrs->Get(i);
 
         if (v->IsObject())
         {

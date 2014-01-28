@@ -31,7 +31,7 @@ public:
         }
     }
 
-    _msg(const char *s0, const char *s1, v8::Handle<v8::Value> &v1,
+    _msg(const char *s0, const char *s1, v8::Local<v8::Value> &v1,
          const char *s2)
     {
         if (*s0)
@@ -49,8 +49,8 @@ public:
         }
     }
 
-    _msg(const char *s0, const char *s1, v8::Handle<v8::Value> &v1,
-         const char *s2, v8::Handle<v8::Value> &v2, const char *s3 = "")
+    _msg(const char *s0, const char *s1, v8::Local<v8::Value> &v1,
+         const char *s2, v8::Local<v8::Value> &v2, const char *s3 = "")
     {
         if (*s0)
         {
@@ -69,9 +69,9 @@ public:
         }
     }
 
-    _msg(const char *s0, const char *s1, v8::Handle<v8::Value> &v1,
-         const char *s2, v8::Handle<v8::Value> &v2, const char *s3,
-         v8::Handle<v8::Value> &v3, const char *s4 = "")
+    _msg(const char *s0, const char *s1, v8::Local<v8::Value> &v1,
+         const char *s2, v8::Local<v8::Value> &v2, const char *s3,
+         v8::Local<v8::Value> &v3, const char *s4 = "")
     {
         if (*s0)
         {
@@ -92,10 +92,10 @@ public:
         }
     }
 
-    _msg(const char *s0, const char *s1, v8::Handle<v8::Value> &v1,
-         const char *s2, v8::Handle<v8::Value> &v2, const char *s3,
-         v8::Handle<v8::Value> &v3, const char *s4,
-         v8::Handle<v8::Value> &v4, const char *s5 = "")
+    _msg(const char *s0, const char *s1, v8::Local<v8::Value> &v1,
+         const char *s2, v8::Local<v8::Value> &v2, const char *s3,
+         v8::Local<v8::Value> &v3, const char *s4,
+         v8::Local<v8::Value> &v4, const char *s5 = "")
     {
         if (*s0)
         {
@@ -157,7 +157,7 @@ public:
 
 private:
     const char *strs[5];
-    v8::Handle<v8::Value> *vs[4];
+    v8::Local<v8::Value> *vs[4];
 };
 
 inline void _test(bool value, _msg msg)
@@ -166,38 +166,38 @@ inline void _test(bool value, _msg msg)
         ThrowError(msg.str().c_str());
 }
 
-result_t assert_base::ok(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::ok(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(actual->BooleanValue(),
           _msg(msg, "expected ", actual, " to be truthy"));
     return 0;
 }
 
-result_t assert_base::notOk(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::notOk(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(!actual->BooleanValue(),
           _msg(msg, "expected ", actual, " to be falsy"));
     return 0;
 }
 
-bool regexpEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
+bool regexpEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
-    v8::Handle<v8::RegExp> re1 = v8::Handle<v8::RegExp>::Cast(actual);
-    v8::Handle<v8::String> src1 = re1->GetSource();
+    v8::Local<v8::RegExp> re1 = v8::Local<v8::RegExp>::Cast(actual);
+    v8::Local<v8::String> src1 = re1->GetSource();
     v8::RegExp::Flags flgs1 = re1->GetFlags();
 
-    v8::Handle<v8::RegExp> re2 = v8::Handle<v8::RegExp>::Cast(expected);
-    v8::Handle<v8::String> src2 = re2->GetSource();
+    v8::Local<v8::RegExp> re2 = v8::Local<v8::RegExp>::Cast(expected);
+    v8::Local<v8::String> src2 = re2->GetSource();
     v8::RegExp::Flags flgs2 = re2->GetFlags();
 
     return src1->StrictEquals(src2) && flgs1 == flgs2;
 }
 
-bool deepEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected);
-static QuickArray<v8::Handle<v8::Object> > s_acts;
-static QuickArray<v8::Handle<v8::Object> > s_exps;
+bool deepEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected);
+static QuickArray<v8::Local<v8::Object> > s_acts;
+static QuickArray<v8::Local<v8::Object> > s_exps;
 
-int checkStack(v8::Handle<v8::Object> actual, v8::Handle<v8::Object> expected)
+int checkStack(v8::Local<v8::Object> actual, v8::Local<v8::Object> expected)
 {
     int i;
 
@@ -215,10 +215,10 @@ int checkStack(v8::Handle<v8::Object> actual, v8::Handle<v8::Object> expected)
     return 1;
 }
 
-bool arrayEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
+bool arrayEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
-    v8::Handle<v8::Array> act = v8::Handle<v8::Array>::Cast(actual);
-    v8::Handle<v8::Array> exp = v8::Handle<v8::Array>::Cast(expected);
+    v8::Local<v8::Array> act = v8::Local<v8::Array>::Cast(actual);
+    v8::Local<v8::Array> exp = v8::Local<v8::Array>::Cast(expected);
     int len = (int) act->Length();
     int i;
 
@@ -248,10 +248,10 @@ bool arrayEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
     return true;
 }
 
-bool objectEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
+bool objectEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
-    v8::Handle<v8::Object> act = v8::Handle<v8::Object>::Cast(actual);
-    v8::Handle<v8::Object> exp = v8::Handle<v8::Object>::Cast(expected);
+    v8::Local<v8::Object> act = v8::Local<v8::Object>::Cast(actual);
+    v8::Local<v8::Object> exp = v8::Local<v8::Object>::Cast(expected);
 
     int i;
 
@@ -261,7 +261,7 @@ bool objectEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
     if (i == -1)
         return false;
 
-    v8::Handle<v8::Array> keys = act->GetPropertyNames();
+    v8::Local<v8::Array> keys = act->GetPropertyNames();
     int len = (int) keys->Length();
 
     if (len != (int) exp->GetPropertyNames()->Length())
@@ -273,11 +273,11 @@ bool objectEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
 
     for (i = 0; i < len; i++)
     {
-        v8::Handle<v8::Value> ks = keys->Get(i);
+        v8::Local<v8::Value> ks = keys->Get(i);
 
         if (!ks->IsNumber() && !ks->IsNumberObject())
         {
-            v8::Handle<v8::String> k = v8::Handle<v8::String>::Cast(ks);
+            v8::Local<v8::String> k = v8::Local<v8::String>::Cast(ks);
 
             if (!deepEquals(act->Get(k), exp->Get(k)))
             {
@@ -293,7 +293,7 @@ bool objectEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
     return true;
 }
 
-bool deepEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
+bool deepEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
     if (!IsEmpty(actual) && !IsEmpty(expected) && !actual->IsFunction()
             && !expected->IsFunction())
@@ -321,32 +321,32 @@ bool deepEquals(v8::Handle<v8::Value> actual, v8::Handle<v8::Value> expected)
     return actual->StrictEquals(expected);
 }
 
-result_t assert_base::equal(v8::Handle<v8::Value> actual,
-                            v8::Handle<v8::Value> expected, const char *msg)
+result_t assert_base::equal(v8::Local<v8::Value> actual,
+                            v8::Local<v8::Value> expected, const char *msg)
 {
     _test(actual->Equals(expected),
           _msg(msg, "expected ", actual, " to equal ", expected));
     return 0;
 }
 
-result_t assert_base::notEqual(v8::Handle<v8::Value> actual,
-                               v8::Handle<v8::Value> expected, const char *msg)
+result_t assert_base::notEqual(v8::Local<v8::Value> actual,
+                               v8::Local<v8::Value> expected, const char *msg)
 {
     _test(!actual->Equals(expected),
           _msg(msg, "expected ", actual, " to not equal ", expected));
     return 0;
 }
 
-result_t assert_base::strictEqual(v8::Handle<v8::Value> actual,
-                                  v8::Handle<v8::Value> expected, const char *msg)
+result_t assert_base::strictEqual(v8::Local<v8::Value> actual,
+                                  v8::Local<v8::Value> expected, const char *msg)
 {
     _test(actual->StrictEquals(expected),
           _msg(msg, "expected ", actual, " to strictly equal ", expected));
     return 0;
 }
 
-result_t assert_base::notStrictEqual(v8::Handle<v8::Value> actual,
-                                     v8::Handle<v8::Value> expected, const char *msg)
+result_t assert_base::notStrictEqual(v8::Local<v8::Value> actual,
+                                     v8::Local<v8::Value> expected, const char *msg)
 {
     _test(!actual->StrictEquals(expected),
           _msg(msg, "expected ", actual, " to not strictly equal ",
@@ -354,24 +354,24 @@ result_t assert_base::notStrictEqual(v8::Handle<v8::Value> actual,
     return 0;
 }
 
-result_t assert_base::deepEqual(v8::Handle<v8::Value> actual,
-                                v8::Handle<v8::Value> expected, const char *msg)
+result_t assert_base::deepEqual(v8::Local<v8::Value> actual,
+                                v8::Local<v8::Value> expected, const char *msg)
 {
     _test(deepEquals(actual, expected),
           _msg(msg, "expected ", actual, " to deeply equal ", expected));
     return 0;
 }
 
-result_t assert_base::notDeepEqual(v8::Handle<v8::Value> actual,
-                                   v8::Handle<v8::Value> expected, const char *msg)
+result_t assert_base::notDeepEqual(v8::Local<v8::Value> actual,
+                                   v8::Local<v8::Value> expected, const char *msg)
 {
     _test(!deepEquals(actual, expected),
           _msg(msg, "expected ", actual, " to not deeply equal ", expected));
     return 0;
 }
 
-result_t assert_base::closeTo(v8::Handle<v8::Value> actual,
-                              v8::Handle<v8::Value> expected, v8::Handle<v8::Value> delta,
+result_t assert_base::closeTo(v8::Local<v8::Value> actual,
+                              v8::Local<v8::Value> expected, v8::Local<v8::Value> delta,
                               const char *msg)
 {
     double n, n1;
@@ -398,8 +398,8 @@ result_t assert_base::closeTo(v8::Handle<v8::Value> actual,
     return 0;
 }
 
-result_t assert_base::notCloseTo(v8::Handle<v8::Value> actual,
-                                 v8::Handle<v8::Value> expected, v8::Handle<v8::Value> delta,
+result_t assert_base::notCloseTo(v8::Local<v8::Value> actual,
+                                 v8::Local<v8::Value> expected, v8::Local<v8::Value> delta,
                                  const char *msg)
 {
     double n, n1;
@@ -426,7 +426,7 @@ result_t assert_base::notCloseTo(v8::Handle<v8::Value> actual,
     return 0;
 }
 
-double valcmp(v8::Handle<v8::Value> &val1, v8::Handle<v8::Value> &val2)
+double valcmp(v8::Local<v8::Value> &val1, v8::Local<v8::Value> &val2)
 {
     bool n1 = val1->IsNumber() || val1->IsNumberObject();
     bool n2 = val2->IsNumber() || val2->IsNumberObject();
@@ -457,8 +457,8 @@ double valcmp(v8::Handle<v8::Value> &val1, v8::Handle<v8::Value> &val2)
     return qstrcmp(*s1, *s2);
 }
 
-result_t assert_base::lessThan(v8::Handle<v8::Value> actual,
-                               v8::Handle<v8::Value> expected, const char *msg)
+result_t assert_base::lessThan(v8::Local<v8::Value> actual,
+                               v8::Local<v8::Value> expected, const char *msg)
 {
     double r = valcmp(actual, expected);
 
@@ -469,8 +469,8 @@ result_t assert_base::lessThan(v8::Handle<v8::Value> actual,
     return 0;
 }
 
-result_t assert_base::notLessThan(v8::Handle<v8::Value> actual,
-                                  v8::Handle<v8::Value> expected, const char *msg)
+result_t assert_base::notLessThan(v8::Local<v8::Value> actual,
+                                  v8::Local<v8::Value> expected, const char *msg)
 {
     double r = valcmp(actual, expected);
 
@@ -481,8 +481,8 @@ result_t assert_base::notLessThan(v8::Handle<v8::Value> actual,
     return 0;
 }
 
-result_t assert_base::greaterThan(v8::Handle<v8::Value> actual,
-                                  v8::Handle<v8::Value> expected, const char *msg)
+result_t assert_base::greaterThan(v8::Local<v8::Value> actual,
+                                  v8::Local<v8::Value> expected, const char *msg)
 {
     double r = valcmp(actual, expected);
 
@@ -493,8 +493,8 @@ result_t assert_base::greaterThan(v8::Handle<v8::Value> actual,
     return 0;
 }
 
-result_t assert_base::notGreaterThan(v8::Handle<v8::Value> actual,
-                                     v8::Handle<v8::Value> expected, const char *msg)
+result_t assert_base::notGreaterThan(v8::Local<v8::Value> actual,
+                                     v8::Local<v8::Value> expected, const char *msg)
 {
     double r = valcmp(actual, expected);
 
@@ -505,79 +505,79 @@ result_t assert_base::notGreaterThan(v8::Handle<v8::Value> actual,
     return 0;
 }
 
-result_t assert_base::exist(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::exist(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(!actual->IsNull() && !actual->IsUndefined(),
           _msg(msg, "expected ", actual, " to be true"));
     return 0;
 }
 
-result_t assert_base::notExist(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::notExist(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(actual->IsNull() || actual->IsUndefined(),
           _msg(msg, "expected ", actual, " not to be true"));
     return 0;
 }
 
-result_t assert_base::isTrue(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isTrue(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(actual->IsTrue(), _msg(msg, "expected ", actual, " to be true"));
     return 0;
 }
 
-result_t assert_base::isNotTrue(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isNotTrue(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(!actual->IsTrue(), _msg(msg, "expected ", actual, " not to be true"));
     return 0;
 }
 
-result_t assert_base::isFalse(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isFalse(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(actual->IsFalse(), _msg(msg, "expected ", actual, " to be false"));
     return 0;
 }
 
-result_t assert_base::isNotFalse(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isNotFalse(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(!actual->IsFalse(),
           _msg(msg, "expected ", actual, " not to be false"));
     return 0;
 }
 
-result_t assert_base::isNull(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isNull(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(actual->IsNull(), _msg(msg, "expected ", actual, " to be null"));
     return 0;
 }
 
-result_t assert_base::isNotNull(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isNotNull(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(!actual->IsNull(), _msg(msg, "expected ", actual, " not to be null"));
     return 0;
 }
 
-result_t assert_base::isUndefined(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isUndefined(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(actual->IsUndefined(),
           _msg(msg, "expected ", actual, " to be undefined"));
     return 0;
 }
 
-result_t assert_base::isDefined(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isDefined(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(!actual->IsUndefined(),
           _msg(msg, "expected ", actual, " not to be undefined"));
     return 0;
 }
 
-result_t assert_base::isFunction(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isFunction(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(actual->IsFunction(),
           _msg(msg, "expected ", actual, " to be function"));
     return 0;
 }
 
-result_t assert_base::isNotFunction(v8::Handle<v8::Value> actual,
+result_t assert_base::isNotFunction(v8::Local<v8::Value> actual,
                                     const char *msg)
 {
     _test(!actual->IsFunction(),
@@ -585,68 +585,68 @@ result_t assert_base::isNotFunction(v8::Handle<v8::Value> actual,
     return 0;
 }
 
-result_t assert_base::isObject(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isObject(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(actual->IsObject(), _msg(msg, "expected ", actual, " to be object"));
     return 0;
 }
 
-result_t assert_base::isNotObject(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isNotObject(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(!actual->IsObject(),
           _msg(msg, "expected ", actual, " not to be object"));
     return 0;
 }
 
-result_t assert_base::isArray(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isArray(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(actual->IsArray(), _msg(msg, "expected ", actual, " to be array"));
     return 0;
 }
 
-result_t assert_base::isNotArray(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isNotArray(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(!actual->IsArray(),
           _msg(msg, "expected ", actual, " not to be array"));
     return 0;
 }
 
-result_t assert_base::isString(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isString(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(actual->IsString() || actual->IsStringObject(),
           _msg(msg, "expected ", actual, " to be string"));
     return 0;
 }
 
-result_t assert_base::isNotString(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isNotString(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(!actual->IsString() && !actual->IsStringObject(),
           _msg(msg, "expected ", actual, " not to be string"));
     return 0;
 }
 
-result_t assert_base::isNumber(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isNumber(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(actual->IsNumber() || actual->IsNumberObject(),
           _msg(msg, "expected ", actual, " to be number"));
     return 0;
 }
 
-result_t assert_base::isNotNumber(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isNotNumber(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(!actual->IsNumber() && !actual->IsNumberObject(),
           _msg(msg, "expected ", actual, " not to be number"));
     return 0;
 }
 
-result_t assert_base::isBoolean(v8::Handle<v8::Value> actual, const char *msg)
+result_t assert_base::isBoolean(v8::Local<v8::Value> actual, const char *msg)
 {
     _test(actual->IsBoolean() || actual->IsBooleanObject(),
           _msg(msg, "expected ", actual, " to be boolean"));
     return 0;
 }
 
-result_t assert_base::isNotBoolean(v8::Handle<v8::Value> actual,
+result_t assert_base::isNotBoolean(v8::Local<v8::Value> actual,
                                    const char *msg)
 {
     _test(!actual->IsBoolean() && !actual->IsBooleanObject(),
@@ -654,7 +654,7 @@ result_t assert_base::isNotBoolean(v8::Handle<v8::Value> actual,
     return 0;
 }
 
-result_t assert_base::typeOf(v8::Handle<v8::Value> actual, const char *type,
+result_t assert_base::typeOf(v8::Local<v8::Value> actual, const char *type,
                              const char *msg)
 {
     if (!qstricmp(type, "array"))
@@ -677,7 +677,7 @@ result_t assert_base::typeOf(v8::Handle<v8::Value> actual, const char *type,
     return CALL_E_INVALIDARG;
 }
 
-result_t assert_base::notTypeOf(v8::Handle<v8::Value> actual, const char *type,
+result_t assert_base::notTypeOf(v8::Local<v8::Value> actual, const char *type,
                                 const char *msg)
 {
     if (!qstricmp(type, "array"))
@@ -700,20 +700,20 @@ result_t assert_base::notTypeOf(v8::Handle<v8::Value> actual, const char *type,
     return CALL_E_INVALIDARG;
 }
 
-result_t has_prop(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop,
+result_t has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
                   bool &retVal)
 {
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
         return CALL_E_INVALIDARG;
 
-    v8::Handle<v8::Object> v = v8::Handle<v8::Object>::Cast(object);
+    v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
     retVal = v->Has(prop);
 
     return 0;
 }
 
-result_t assert_base::property(v8::Handle<v8::Value> object,
-                               v8::Handle<v8::Value> prop, const char *msg)
+result_t assert_base::property(v8::Local<v8::Value> object,
+                               v8::Local<v8::Value> prop, const char *msg)
 {
     bool r;
     result_t hr = has_prop(object, prop, r);
@@ -724,8 +724,8 @@ result_t assert_base::property(v8::Handle<v8::Value> object,
     return 0;
 }
 
-result_t assert_base::notProperty(v8::Handle<v8::Value> object,
-                                  v8::Handle<v8::Value> prop, const char *msg)
+result_t assert_base::notProperty(v8::Local<v8::Value> object,
+                                  v8::Local<v8::Value> prop, const char *msg)
 {
     bool r;
     result_t hr = has_prop(object, prop, r);
@@ -736,13 +736,13 @@ result_t assert_base::notProperty(v8::Handle<v8::Value> object,
     return 0;
 }
 
-result_t deep_has_prop(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop,
+result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
                        bool &retVal)
 {
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
         return CALL_E_INVALIDARG;
 
-    v8::Handle<v8::Object> v = v8::Handle<v8::Object>::Cast(object);
+    v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
     v8::String::Utf8Value s(prop);
     const char *p, *p1;
 
@@ -759,7 +759,7 @@ result_t deep_has_prop(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop,
             return 0;
         }
 
-        v = v8::Handle<v8::Object>::Cast(object);
+        v = v8::Local<v8::Object>::Cast(object);
         p = p1 + 1;
     }
 
@@ -768,8 +768,8 @@ result_t deep_has_prop(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop,
     return 0;
 }
 
-result_t assert_base::deepProperty(v8::Handle<v8::Value> object,
-                                   v8::Handle<v8::Value> prop, const char *msg)
+result_t assert_base::deepProperty(v8::Local<v8::Value> object,
+                                   v8::Local<v8::Value> prop, const char *msg)
 {
     bool r;
     result_t hr = deep_has_prop(object, prop, r);
@@ -780,8 +780,8 @@ result_t assert_base::deepProperty(v8::Handle<v8::Value> object,
     return 0;
 }
 
-result_t assert_base::notDeepProperty(v8::Handle<v8::Value> object,
-                                      v8::Handle<v8::Value> prop, const char *msg)
+result_t assert_base::notDeepProperty(v8::Local<v8::Value> object,
+                                      v8::Local<v8::Value> prop, const char *msg)
 {
     bool r;
     result_t hr = deep_has_prop(object, prop, r);
@@ -794,25 +794,25 @@ result_t assert_base::notDeepProperty(v8::Handle<v8::Value> object,
     return 0;
 }
 
-result_t has_val(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop,
-                 v8::Handle<v8::Value> value, bool &retVal, v8::Handle<v8::Value> &got)
+result_t has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
+                 v8::Local<v8::Value> value, bool &retVal, v8::Local<v8::Value> &got)
 {
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
         return CALL_E_INVALIDARG;
 
-    v8::Handle<v8::Object> v = v8::Handle<v8::Object>::Cast(object);
+    v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
     got = v->Get(prop);
     retVal = value->Equals(got);
 
     return 0;
 }
 
-result_t assert_base::propertyVal(v8::Handle<v8::Value> object,
-                                  v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value,
+result_t assert_base::propertyVal(v8::Local<v8::Value> object,
+                                  v8::Local<v8::Value> prop, v8::Local<v8::Value> value,
                                   const char *msg)
 {
     bool r;
-    v8::Handle < v8::Value > got;
+    v8::Local < v8::Value > got;
 
     result_t hr = has_val(object, prop, value, r, got);
     if (hr < 0)
@@ -824,12 +824,12 @@ result_t assert_base::propertyVal(v8::Handle<v8::Value> object,
     return 0;
 }
 
-result_t assert_base::propertyNotVal(v8::Handle<v8::Value> object,
-                                     v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value,
+result_t assert_base::propertyNotVal(v8::Local<v8::Value> object,
+                                     v8::Local<v8::Value> prop, v8::Local<v8::Value> value,
                                      const char *msg)
 {
     bool r;
-    v8::Handle < v8::Value > got;
+    v8::Local < v8::Value > got;
 
     result_t hr = has_val(object, prop, value, r, got);
     if (hr < 0)
@@ -841,13 +841,13 @@ result_t assert_base::propertyNotVal(v8::Handle<v8::Value> object,
     return 0;
 }
 
-result_t deep_has_val(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop,
-                      v8::Handle<v8::Value> value, bool &retVal, v8::Handle<v8::Value> &got)
+result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
+                      v8::Local<v8::Value> value, bool &retVal, v8::Local<v8::Value> &got)
 {
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
         return CALL_E_INVALIDARG;
 
-    v8::Handle<v8::Object> v = v8::Handle<v8::Object>::Cast(object);
+    v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
     v8::String::Utf8Value s(prop);
     const char *p, *p1;
 
@@ -864,7 +864,7 @@ result_t deep_has_val(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop,
             return 0;
         }
 
-        v = v8::Handle<v8::Object>::Cast(object);
+        v = v8::Local<v8::Object>::Cast(object);
         p = p1 + 1;
     }
 
@@ -874,12 +874,12 @@ result_t deep_has_val(v8::Handle<v8::Value> object, v8::Handle<v8::Value> prop,
     return 0;
 }
 
-result_t assert_base::deepPropertyVal(v8::Handle<v8::Value> object,
-                                      v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value,
+result_t assert_base::deepPropertyVal(v8::Local<v8::Value> object,
+                                      v8::Local<v8::Value> prop, v8::Local<v8::Value> value,
                                       const char *msg)
 {
     bool r;
-    v8::Handle < v8::Value > got;
+    v8::Local < v8::Value > got;
 
     result_t hr = deep_has_val(object, prop, value, r, got);
     if (hr < 0)
@@ -891,12 +891,12 @@ result_t assert_base::deepPropertyVal(v8::Handle<v8::Value> object,
     return 0;
 }
 
-result_t assert_base::deepPropertyNotVal(v8::Handle<v8::Value> object,
-        v8::Handle<v8::Value> prop, v8::Handle<v8::Value> value,
+result_t assert_base::deepPropertyNotVal(v8::Local<v8::Value> object,
+        v8::Local<v8::Value> prop, v8::Local<v8::Value> value,
         const char *msg)
 {
     bool r;
-    v8::Handle < v8::Value > got;
+    v8::Local < v8::Value > got;
 
     result_t hr = deep_has_val(object, prop, value, r, got);
     if (hr < 0)
@@ -908,7 +908,7 @@ result_t assert_base::deepPropertyNotVal(v8::Handle<v8::Value> object,
     return 0;
 }
 
-result_t assert_base::throws(v8::Handle<v8::Function> block, const char *msg)
+result_t assert_base::throws(v8::Local<v8::Function> block, const char *msg)
 {
     v8::TryCatch try_catch;
     block->Call(block, 0, NULL);
@@ -917,7 +917,7 @@ result_t assert_base::throws(v8::Handle<v8::Function> block, const char *msg)
     return 0;
 }
 
-result_t assert_base::doesNotThrow(v8::Handle<v8::Function> block,
+result_t assert_base::doesNotThrow(v8::Local<v8::Function> block,
                                    const char *msg)
 {
     v8::TryCatch try_catch;

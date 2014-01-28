@@ -64,9 +64,9 @@ public:
     virtual result_t line(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t color);
     virtual result_t rectangle(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t color);
     virtual result_t filledRectangle(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t color);
-    virtual result_t polygon(v8::Handle<v8::Array> points, int32_t color);
-    virtual result_t openPolygon(v8::Handle<v8::Array> points, int32_t color);
-    virtual result_t filledPolygon(v8::Handle<v8::Array> points, int32_t color);
+    virtual result_t polygon(v8::Local<v8::Array> points, int32_t color);
+    virtual result_t openPolygon(v8::Local<v8::Array> points, int32_t color);
+    virtual result_t filledPolygon(v8::Local<v8::Array> points, int32_t color);
     virtual result_t ellipse(int32_t x, int32_t y, int32_t width, int32_t height, int32_t color);
     virtual result_t filledEllipse(int32_t x, int32_t y, int32_t width, int32_t height, int32_t color);
     virtual result_t arc(int32_t x, int32_t y, int32_t width, int32_t height, int32_t start, int32_t end, int32_t color);

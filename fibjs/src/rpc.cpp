@@ -12,7 +12,7 @@
 namespace fibjs
 {
 
-result_t rpc_base::json(v8::Handle<v8::Value> hdlr,
+result_t rpc_base::json(v8::Local<v8::Value> hdlr,
                         obj_ptr<Handler_base> &retVal)
 {
     obj_ptr<Handler_base> hdlr1;

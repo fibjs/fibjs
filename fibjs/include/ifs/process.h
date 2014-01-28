@@ -27,10 +27,10 @@ public:
 	static result_t get_stderr(obj_ptr<BufferedStream_base>& retVal);
 	static result_t get_stdin(obj_ptr<BufferedStream_base>& retVal);
 	static result_t get_stdout(obj_ptr<BufferedStream_base>& retVal);
-	static result_t get_argv(v8::Handle<v8::Array>& retVal);
+	static result_t get_argv(v8::Local<v8::Array>& retVal);
 	static result_t get_execPath(std::string& retVal);
 	static result_t exit(int32_t code);
-	static result_t memoryUsage(v8::Handle<v8::Object>& retVal);
+	static result_t memoryUsage(v8::Local<v8::Object>& retVal);
 	static result_t system(const char* cmd, int32_t& retVal, exlib::AsyncEvent* ac);
 	static result_t exec(const char* cmd, obj_ptr<BufferedStream_base>& retVal, exlib::AsyncEvent* ac);
 
@@ -123,7 +123,7 @@ namespace fibjs
 
 	inline void process_base::s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Local<v8::Array> vr;
 
 		PROPERTY_ENTER();
 
@@ -156,7 +156,7 @@ namespace fibjs
 
 	inline void process_base::s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Object> vr;
+		v8::Local<v8::Object> vr;
 
 		METHOD_ENTER(0, 0);
 

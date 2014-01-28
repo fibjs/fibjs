@@ -21,14 +21,14 @@ class Queue_base : public object_base
 public:
 	// Queue_base
 	static result_t _new(int32_t size, obj_ptr<Queue_base>& retVal);
-	virtual result_t add(v8::Handle<v8::Value> e, bool& retVal) = 0;
-	virtual result_t offer(v8::Handle<v8::Value> e, bool& retVal) = 0;
-	virtual result_t remove(v8::Handle<v8::Value>& retVal) = 0;
-	virtual result_t poll(v8::Handle<v8::Value>& retVal) = 0;
-	virtual result_t element(v8::Handle<v8::Value>& retVal) = 0;
-	virtual result_t peek(v8::Handle<v8::Value>& retVal) = 0;
+	virtual result_t add(v8::Local<v8::Value> e, bool& retVal) = 0;
+	virtual result_t offer(v8::Local<v8::Value> e, bool& retVal) = 0;
+	virtual result_t remove(v8::Local<v8::Value>& retVal) = 0;
+	virtual result_t poll(v8::Local<v8::Value>& retVal) = 0;
+	virtual result_t element(v8::Local<v8::Value>& retVal) = 0;
+	virtual result_t peek(v8::Local<v8::Value>& retVal) = 0;
 	virtual result_t clear() = 0;
-	virtual result_t toArray(v8::Handle<v8::Array>& retVal) = 0;
+	virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
 	virtual result_t get_length(int32_t& retVal) = 0;
 
 	DECLARE_CLASSINFO(Queue_base);
@@ -112,7 +112,7 @@ namespace fibjs
 		METHOD_INSTANCE(Queue_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = pInst->add(v0, vr);
 
@@ -126,7 +126,7 @@ namespace fibjs
 		METHOD_INSTANCE(Queue_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = pInst->offer(v0, vr);
 
@@ -135,7 +135,7 @@ namespace fibjs
 
 	inline void Queue_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Value> vr;
+		v8::Local<v8::Value> vr;
 
 		METHOD_INSTANCE(Queue_base);
 		METHOD_ENTER(0, 0);
@@ -147,7 +147,7 @@ namespace fibjs
 
 	inline void Queue_base::s_poll(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Value> vr;
+		v8::Local<v8::Value> vr;
 
 		METHOD_INSTANCE(Queue_base);
 		METHOD_ENTER(0, 0);
@@ -159,7 +159,7 @@ namespace fibjs
 
 	inline void Queue_base::s_element(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Value> vr;
+		v8::Local<v8::Value> vr;
 
 		METHOD_INSTANCE(Queue_base);
 		METHOD_ENTER(0, 0);
@@ -171,7 +171,7 @@ namespace fibjs
 
 	inline void Queue_base::s_peek(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Value> vr;
+		v8::Local<v8::Value> vr;
 
 		METHOD_INSTANCE(Queue_base);
 		METHOD_ENTER(0, 0);
@@ -193,7 +193,7 @@ namespace fibjs
 
 	inline void Queue_base::s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Local<v8::Array> vr;
 
 		METHOD_INSTANCE(Queue_base);
 		METHOD_ENTER(0, 0);

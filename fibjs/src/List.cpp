@@ -63,36 +63,36 @@ result_t List::concat(const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<L
     return m_array.concat(args, retVal);
 }
 
-result_t List::every(v8::Handle<v8::Function> func,
-                     v8::Handle<v8::Object> thisp, bool &retVal)
+result_t List::every(v8::Local<v8::Function> func,
+                     v8::Local<v8::Object> thisp, bool &retVal)
 {
     return m_array.every(func, thisp, retVal);
 }
 
-result_t List::filter(v8::Handle<v8::Function> func,
-                      v8::Handle<v8::Object> thisp, obj_ptr<List_base> &retVal)
+result_t List::filter(v8::Local<v8::Function> func,
+                      v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
 {
     return m_array.filter(func, thisp, retVal);
 }
 
-result_t List::forEach(v8::Handle<v8::Function> func,
-                       v8::Handle<v8::Object> thisp)
+result_t List::forEach(v8::Local<v8::Function> func,
+                       v8::Local<v8::Object> thisp)
 {
     return m_array.forEach(func, thisp);
 }
 
-result_t List::map(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp,
+result_t List::map(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp,
                    obj_ptr<List_base> &retVal)
 {
     return m_array.map(func, thisp, retVal);
 }
 
-result_t List::toArray(v8::Handle<v8::Array> &retVal)
+result_t List::toArray(v8::Local<v8::Array> &retVal)
 {
     return m_array.toArray(retVal);
 }
 
-result_t List::toJSON(const char *key, v8::Handle<v8::Value> &retVal)
+result_t List::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 {
     return m_array.toJSON(key, retVal);
 }
@@ -184,7 +184,7 @@ result_t List::array::concat(const v8::FunctionCallbackInfo<v8::Value> &args,
     len = args.Length();
     for (i = 0; i < len; i++)
     {
-        v8::Handle < v8::Value > v = args[i];
+        v8::Local < v8::Value > v = args[i];
         obj_ptr<List_base> a1 = List_base::getInstance(v);
 
         if (a1)
@@ -203,7 +203,7 @@ result_t List::array::concat(const v8::FunctionCallbackInfo<v8::Value> &args,
         else if (v->IsArray())
         {
             int32_t i1, len1;
-            v8::Handle < v8::Array > arr = v8::Handle < v8::Array > ::Cast(v);
+            v8::Local < v8::Array > arr = v8::Local < v8::Array > ::Cast(v);
 
             len1 = arr->Length();
             for (i1 = 0; i1 < len1; i1++)
@@ -218,24 +218,24 @@ result_t List::array::concat(const v8::FunctionCallbackInfo<v8::Value> &args,
     return 0;
 }
 
-v8::Handle<v8::Value> List::array::_call(v8::Handle<v8::Function> func,
-        v8::Handle<v8::Object> thisp, int i)
+v8::Local<v8::Value> List::array::_call(v8::Local<v8::Function> func,
+        v8::Local<v8::Object> thisp, int i)
 {
-    v8::Handle<v8::Value> args[] =
+    v8::Local<v8::Value> args[] =
     { m_array[i], v8::Number::New(isolate, i) };
 
     return func->Call(thisp, 2, args);
 }
 
-result_t List::array::every(v8::Handle<v8::Function> func,
-                            v8::Handle<v8::Object> thisp, bool &retVal)
+result_t List::array::every(v8::Local<v8::Function> func,
+                            v8::Local<v8::Object> thisp, bool &retVal)
 {
     int i, len;
 
     len = (int)m_array.size();
     for (i = 0; i < len; i++)
     {
-        v8::Handle < v8::Value > r = _call(func, thisp, i);
+        v8::Local < v8::Value > r = _call(func, thisp, i);
 
         if (r.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -251,8 +251,8 @@ result_t List::array::every(v8::Handle<v8::Function> func,
     return 0;
 }
 
-result_t List::array::filter(v8::Handle<v8::Function> func,
-                             v8::Handle<v8::Object> thisp, obj_ptr<List_base> &retVal)
+result_t List::array::filter(v8::Local<v8::Function> func,
+                             v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
 {
     obj_ptr<List> a;
     int i, len;
@@ -262,7 +262,7 @@ result_t List::array::filter(v8::Handle<v8::Function> func,
     len = (int)m_array.size();
     for (i = 0; i < len; i++)
     {
-        v8::Handle < v8::Value > r = _call(func, thisp, i);
+        v8::Local < v8::Value > r = _call(func, thisp, i);
 
         if (r.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -276,15 +276,15 @@ result_t List::array::filter(v8::Handle<v8::Function> func,
     return 0;
 }
 
-result_t List::array::forEach(v8::Handle<v8::Function> func,
-                              v8::Handle<v8::Object> thisp)
+result_t List::array::forEach(v8::Local<v8::Function> func,
+                              v8::Local<v8::Object> thisp)
 {
     int i, len;
 
     len = (int)m_array.size();
     for (i = 0; i < len; i++)
     {
-        v8::Handle < v8::Value > r = _call(func, thisp, i);
+        v8::Local < v8::Value > r = _call(func, thisp, i);
 
         if (r.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -293,8 +293,8 @@ result_t List::array::forEach(v8::Handle<v8::Function> func,
     return 0;
 }
 
-result_t List::array::map(v8::Handle<v8::Function> func,
-                          v8::Handle<v8::Object> thisp, obj_ptr<List_base> &retVal)
+result_t List::array::map(v8::Local<v8::Function> func,
+                          v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
 {
     obj_ptr<List> a;
     int i, len;
@@ -304,7 +304,7 @@ result_t List::array::map(v8::Handle<v8::Function> func,
     len = (int)m_array.size();
     for (i = 0; i < len; i++)
     {
-        v8::Handle < v8::Value > r = _call(func, thisp, i);
+        v8::Local < v8::Value > r = _call(func, thisp, i);
 
         if (r.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -317,9 +317,9 @@ result_t List::array::map(v8::Handle<v8::Function> func,
     return 0;
 }
 
-result_t List::array::toArray(v8::Handle<v8::Array> &retVal)
+result_t List::array::toArray(v8::Local<v8::Array> &retVal)
 {
-    v8::Handle < v8::Array > a = v8::Array::New(isolate, (int) m_array.size());
+    v8::Local < v8::Array > a = v8::Array::New(isolate, (int) m_array.size());
     int i;
 
     for (i = 0; i < (int) m_array.size(); i++)
@@ -330,10 +330,10 @@ result_t List::array::toArray(v8::Handle<v8::Array> &retVal)
     return 0;
 }
 
-result_t List::array::toJSON(const char *key, v8::Handle<v8::Value> &retVal)
+result_t List::array::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 {
     result_t hr;
-    v8::Handle < v8::Array > as;
+    v8::Local < v8::Array > as;
 
     hr = toArray(as);
     if (hr < 0)

@@ -10,7 +10,7 @@
 namespace fibjs
 {
 
-result_t Stats_base::_new(v8::Handle<v8::Array> keys,
+result_t Stats_base::_new(v8::Local<v8::Array> keys,
                           obj_ptr<Stats_base> &retVal)
 {
     obj_ptr < Stats > pStats = new Stats();
@@ -31,8 +31,8 @@ result_t Stats_base::_new(v8::Handle<v8::Array> keys,
     return 0;
 }
 
-result_t Stats_base::_new(v8::Handle<v8::Array> staticKeys,
-                          v8::Handle<v8::Array> keys, obj_ptr<Stats_base> &retVal)
+result_t Stats_base::_new(v8::Local<v8::Array> staticKeys,
+                          v8::Local<v8::Array> keys, obj_ptr<Stats_base> &retVal)
 {
     obj_ptr < Stats > pStats = new Stats();
     int sn = staticKeys->Length();
@@ -79,7 +79,7 @@ void Stats::set_key(int n, const char *key)
     m_keys[n] = key;
 }
 
-result_t Stats::set_key(int n, v8::Handle<v8::Value> key)
+result_t Stats::set_key(int n, v8::Local<v8::Value> key)
 {
     v8::String::Utf8Value str(key);
     const char *p = *str;
@@ -169,7 +169,7 @@ result_t Stats::_named_getter(const char *property, int32_t &retVal)
     return 0;
 }
 
-result_t Stats::_named_enumerator(v8::Handle<v8::Array> &retVal)
+result_t Stats::_named_enumerator(v8::Local<v8::Array> &retVal)
 {
     int i;
 

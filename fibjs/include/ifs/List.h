@@ -30,11 +30,11 @@ public:
 	virtual result_t pop(Variant& retVal) = 0;
 	virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal) = 0;
 	virtual result_t concat(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<List_base>& retVal) = 0;
-	virtual result_t every(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp, bool& retVal) = 0;
-	virtual result_t filter(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp, obj_ptr<List_base>& retVal) = 0;
-	virtual result_t forEach(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp) = 0;
-	virtual result_t map(v8::Handle<v8::Function> func, v8::Handle<v8::Object> thisp, obj_ptr<List_base>& retVal) = 0;
-	virtual result_t toArray(v8::Handle<v8::Array>& retVal) = 0;
+	virtual result_t every(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp, bool& retVal) = 0;
+	virtual result_t filter(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp, obj_ptr<List_base>& retVal) = 0;
+	virtual result_t forEach(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp) = 0;
+	virtual result_t map(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp, obj_ptr<List_base>& retVal) = 0;
+	virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
 
 	DECLARE_CLASSINFO(List_base);
 
@@ -216,8 +216,8 @@ namespace fibjs
 		METHOD_INSTANCE(List_base);
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Function>, 0);
-		OPT_ARG(v8::Handle<v8::Object>, 1, v8::Object::New(isolate));
+		ARG(v8::Local<v8::Function>, 0);
+		OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
 		hr = pInst->every(v0, v1, vr);
 
@@ -231,8 +231,8 @@ namespace fibjs
 		METHOD_INSTANCE(List_base);
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Function>, 0);
-		OPT_ARG(v8::Handle<v8::Object>, 1, v8::Object::New(isolate));
+		ARG(v8::Local<v8::Function>, 0);
+		OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
 		hr = pInst->filter(v0, v1, vr);
 
@@ -244,8 +244,8 @@ namespace fibjs
 		METHOD_INSTANCE(List_base);
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Function>, 0);
-		OPT_ARG(v8::Handle<v8::Object>, 1, v8::Object::New(isolate));
+		ARG(v8::Local<v8::Function>, 0);
+		OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
 		hr = pInst->forEach(v0, v1);
 
@@ -259,8 +259,8 @@ namespace fibjs
 		METHOD_INSTANCE(List_base);
 		METHOD_ENTER(2, 1);
 
-		ARG(v8::Handle<v8::Function>, 0);
-		OPT_ARG(v8::Handle<v8::Object>, 1, v8::Object::New(isolate));
+		ARG(v8::Local<v8::Function>, 0);
+		OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
 		hr = pInst->map(v0, v1, vr);
 
@@ -269,7 +269,7 @@ namespace fibjs
 
 	inline void List_base::s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Local<v8::Array> vr;
 
 		METHOD_INSTANCE(List_base);
 		METHOD_ENTER(0, 0);

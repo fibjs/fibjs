@@ -45,7 +45,7 @@ public:
     {
     }
 
-    date_t(v8::Handle<v8::Value> v) :
+    date_t(v8::Local<v8::Value> v) :
         d(0)
     {
         operator=(v);
@@ -73,13 +73,13 @@ public:
         return *this;
     }
 
-    date_t &operator=(v8::Handle<v8::Value> v)
+    date_t &operator=(v8::Local<v8::Value> v)
     {
         d = v->NumberValue();
         return *this;
     }
 
-    operator v8::Handle<v8::Value>() const
+    operator v8::Local<v8::Value>() const
     {
         return v8::Date::New(isolate, d);
     }

@@ -180,9 +180,9 @@ result_t SQLite::execute(const char *sql, int sLen,
                     res->_indexed_getter(0, val);
                     res->resize(0);
 
-                    v8::Handle < v8::Value > v;
+                    v8::Local < v8::Value > v;
                     v = val;
-                    v8::Handle < v8::Value > r = m_func->Call(wrap(), 1, &v);
+                    v8::Local < v8::Value > r = m_func->Call(wrap(), 1, &v);
                     if (r.IsEmpty())
                     {
                         sqlite3_finalize(stmt);
@@ -227,9 +227,9 @@ result_t SQLite::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Val
     if (hr < 0)
         return hr;
 
-    v8::Handle < v8::Value > v = args[args.Length() - 1];
+    v8::Local < v8::Value > v = args[args.Length() - 1];
     if (v->IsFunction())
-        m_func = v8::Handle < v8::Function > ::Cast(v);
+        m_func = v8::Local < v8::Function > ::Cast(v);
 
     hr = execute(str.c_str(), (int) str.length(), retVal);
     m_func.Clear();

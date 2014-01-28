@@ -20,9 +20,9 @@ class DBRow_base : public object_base
 {
 public:
 	// DBRow_base
-	virtual result_t _indexed_getter(uint32_t index, v8::Handle<v8::Value>& retVal) = 0;
-	virtual result_t _named_getter(const char* property, v8::Handle<v8::Value>& retVal) = 0;
-	virtual result_t _named_enumerator(v8::Handle<v8::Array>& retVal) = 0;
+	virtual result_t _indexed_getter(uint32_t index, v8::Local<v8::Value>& retVal) = 0;
+	virtual result_t _named_getter(const char* property, v8::Local<v8::Value>& retVal) = 0;
+	virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
 
 	DECLARE_CLASSINFO(DBRow_base);
 
@@ -61,7 +61,7 @@ namespace fibjs
 
 	inline void DBRow_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
-		v8::Handle<v8::Value> vr;
+		v8::Local<v8::Value> vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(DBRow_base);
@@ -73,7 +73,7 @@ namespace fibjs
 
 	inline void DBRow_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
-		v8::Handle<v8::Value> vr;
+		v8::Local<v8::Value> vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(DBRow_base);
@@ -89,7 +89,7 @@ namespace fibjs
 
 	inline void DBRow_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Local<v8::Array> vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(DBRow_base);

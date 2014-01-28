@@ -105,9 +105,9 @@ std::string getResultMessage(result_t hr)
 #endif
 }
 
-v8::Handle<v8::Value> ThrowResult(result_t hr)
+v8::Local<v8::Value> ThrowResult(result_t hr)
 {
-    v8::Handle<v8::Value> e = v8::Exception::Error(
+    v8::Local<v8::Value> e = v8::Exception::Error(
                                   v8::String::NewFromUtf8(isolate, getResultMessage(hr).c_str()));
     e->ToObject()->Set(v8::String::NewFromUtf8(isolate, "number"), v8::Int32::New(isolate, -hr));
 
@@ -125,12 +125,12 @@ std::string GetException(v8::TryCatch &try_catch, result_t hr)
     {
         v8::String::Utf8Value exception(try_catch.Exception());
 
-        v8::Handle<v8::Message> message = try_catch.Message();
+        v8::Local<v8::Message> message = try_catch.Message();
         if (message.IsEmpty())
             return ToCString(exception);
         else
         {
-            v8::Handle<v8::Value> trace_value = try_catch.StackTrace();
+            v8::Local<v8::Value> trace_value = try_catch.StackTrace();
 
             if (!IsEmpty(trace_value))
             {
@@ -164,7 +164,7 @@ void ReportException(v8::TryCatch &try_catch, result_t hr)
 
 std::string traceInfo()
 {
-    v8::Handle<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
+    v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
             isolate, 10, v8::StackTrace::kOverview);
     int count = stackTrace->GetFrameCount();
     int i;

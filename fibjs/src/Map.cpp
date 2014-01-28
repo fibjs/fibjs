@@ -34,16 +34,16 @@ result_t Map::has(const char *name, bool &retVal)
     return 0;
 }
 
-inline result_t _map(Map *o, v8::Handle<v8::Object> m,
-                     result_t (Map::*fn)(const char *name, v8::Handle<v8::Value> value))
+inline result_t _map(Map *o, v8::Local<v8::Object> m,
+                     result_t (Map::*fn)(const char *name, v8::Local<v8::Value> value))
 {
-    v8::Handle<v8::Array> ks = m->GetPropertyNames();
+    v8::Local<v8::Array> ks = m->GetPropertyNames();
     int len = ks->Length();
     int i;
 
     for (i = 0; i < len; i++)
     {
-        v8::Handle<v8::Value> k = ks->Get(i);
+        v8::Local<v8::Value> k = ks->Get(i);
 
         if (!k->IsNumber())
             (o->*fn)(*v8::String::Utf8Value(k), m->Get(k));
@@ -52,7 +52,7 @@ inline result_t _map(Map *o, v8::Handle<v8::Object> m,
     return 0;
 }
 
-result_t Map::get(const char *name, v8::Handle<v8::Value> &retVal)
+result_t Map::get(const char *name, v8::Local<v8::Value> &retVal)
 {
     std::map<std::string, VariantEx>::iterator it = m_datas.find(name);
 
@@ -63,13 +63,13 @@ result_t Map::get(const char *name, v8::Handle<v8::Value> &retVal)
     return 0;
 }
 
-result_t Map::put(const char *name, v8::Handle<v8::Value> value)
+result_t Map::put(const char *name, v8::Local<v8::Value> value)
 {
     m_datas.insert(std::pair<std::string, Variant>(name, value));
     return 0;
 }
 
-result_t Map::put(v8::Handle<v8::Object> map)
+result_t Map::put(v8::Local<v8::Object> map)
 {
     return _map(this, map, &Map::put);
 }
@@ -86,12 +86,12 @@ result_t Map::isEmpty(bool &retVal)
     return 0;
 }
 
-result_t Map::_named_getter(const char *property, v8::Handle<v8::Value> &retVal)
+result_t Map::_named_getter(const char *property, v8::Local<v8::Value> &retVal)
 {
     return get(property, retVal);
 }
 
-result_t Map::_named_enumerator(v8::Handle<v8::Array> &retVal)
+result_t Map::_named_enumerator(v8::Local<v8::Array> &retVal)
 {
     int32_t i = 0;
 
@@ -107,13 +107,13 @@ result_t Map::_named_enumerator(v8::Handle<v8::Array> &retVal)
     return 0;
 }
 
-result_t Map::_named_setter(const char *property, v8::Handle<v8::Value> newVal)
+result_t Map::_named_setter(const char *property, v8::Local<v8::Value> newVal)
 {
     return put(property, newVal);
 }
 
 result_t Map::_named_deleter(const char *property,
-                             v8::Handle<v8::Boolean> &retVal)
+                             v8::Local<v8::Boolean> &retVal)
 {
     return remove(property);
 }

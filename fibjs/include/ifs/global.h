@@ -28,8 +28,8 @@ public:
 	static result_t get_console(obj_ptr<console_base>& retVal);
 	static result_t print(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t run(const char* fname);
-	static result_t define(const char* id, v8::Handle<v8::Array> deps, v8::Handle<v8::Value> factory);
-	static result_t require(const char* id, v8::Handle<v8::Value>& retVal);
+	static result_t define(const char* id, v8::Local<v8::Array> deps, v8::Local<v8::Value> factory);
+	static result_t require(const char* id, v8::Local<v8::Value>& retVal);
 	static result_t GC();
 
 	DECLARE_CLASSINFO(global_base);
@@ -120,8 +120,8 @@ namespace fibjs
 		METHOD_ENTER(3, 3);
 
 		ARG_String(0);
-		ARG(v8::Handle<v8::Array>, 1);
-		ARG(v8::Handle<v8::Value>, 2);
+		ARG(v8::Local<v8::Array>, 1);
+		ARG(v8::Local<v8::Value>, 2);
 
 		hr = define(v0, v1, v2);
 
@@ -130,7 +130,7 @@ namespace fibjs
 
 	inline void global_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Value> vr;
+		v8::Local<v8::Value> vr;
 
 		METHOD_ENTER(1, 1);
 

@@ -24,15 +24,15 @@ public:
 	virtual result_t get_size(int32_t& retVal) = 0;
 	virtual result_t clear() = 0;
 	virtual result_t has(const char* name, bool& retVal) = 0;
-	virtual result_t get(const char* name, v8::Handle<v8::Value>& retVal) = 0;
-	virtual result_t put(v8::Handle<v8::Object> map) = 0;
-	virtual result_t put(const char* name, v8::Handle<v8::Value> value) = 0;
+	virtual result_t get(const char* name, v8::Local<v8::Value>& retVal) = 0;
+	virtual result_t put(v8::Local<v8::Object> map) = 0;
+	virtual result_t put(const char* name, v8::Local<v8::Value> value) = 0;
 	virtual result_t remove(const char* name) = 0;
 	virtual result_t isEmpty(bool& retVal) = 0;
-	virtual result_t _named_getter(const char* property, v8::Handle<v8::Value>& retVal) = 0;
-	virtual result_t _named_enumerator(v8::Handle<v8::Array>& retVal) = 0;
-	virtual result_t _named_setter(const char* property, v8::Handle<v8::Value> newVal) = 0;
-	virtual result_t _named_deleter(const char* property, v8::Handle<v8::Boolean>& retVal) = 0;
+	virtual result_t _named_getter(const char* property, v8::Local<v8::Value>& retVal) = 0;
+	virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
+	virtual result_t _named_setter(const char* property, v8::Local<v8::Value> newVal) = 0;
+	virtual result_t _named_deleter(const char* property, v8::Local<v8::Boolean>& retVal) = 0;
 
 	DECLARE_CLASSINFO(Map_base);
 
@@ -102,7 +102,7 @@ namespace fibjs
 
 	inline void Map_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
-		v8::Handle<v8::Value> vr;
+		v8::Local<v8::Value> vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Map_base);
@@ -118,7 +118,7 @@ namespace fibjs
 
 	inline void Map_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)
 	{
-		v8::Handle<v8::Array> vr;
+		v8::Local<v8::Array> vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Map_base);
@@ -133,7 +133,7 @@ namespace fibjs
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Map_base);
 
-		PROPERTY_VAL(v8::Handle<v8::Value>);
+		PROPERTY_VAL(v8::Local<v8::Value>);
 		v8::String::Utf8Value k(property);
 		if(class_info().has(*k))return;
 
@@ -144,7 +144,7 @@ namespace fibjs
 
 	inline void Map_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args)
 	{
-		v8::Handle<v8::Boolean> vr;
+		v8::Local<v8::Boolean> vr;
 
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Map_base);
@@ -193,7 +193,7 @@ namespace fibjs
 
 	inline void Map_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		v8::Handle<v8::Value> vr;
+		v8::Local<v8::Value> vr;
 
 		METHOD_INSTANCE(Map_base);
 		METHOD_ENTER(1, 1);
@@ -210,14 +210,14 @@ namespace fibjs
 		METHOD_INSTANCE(Map_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = pInst->put(v0);
 
 		METHOD_OVER(2, 2);
 
 		ARG_String(0);
-		ARG(v8::Handle<v8::Value>, 1);
+		ARG(v8::Local<v8::Value>, 1);
 
 		hr = pInst->put(v0, v1);
 

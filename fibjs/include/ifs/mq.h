@@ -32,11 +32,11 @@ class mq_base : public module_base
 {
 public:
 	// mq_base
-	static result_t packetHandler(v8::Handle<v8::Value> hdlr, obj_ptr<PacketHandler_base>& retVal);
-	static result_t httpHandler(v8::Handle<v8::Value> hdlr, obj_ptr<HttpHandler_base>& retVal);
-	static result_t chain(v8::Handle<v8::Array> hdlrs, obj_ptr<Chain_base>& retVal);
-	static result_t routing(v8::Handle<v8::Object> map, obj_ptr<Routing_base>& retVal);
-	static result_t jsHandler(v8::Handle<v8::Value> hdlr, obj_ptr<Handler_base>& retVal);
+	static result_t packetHandler(v8::Local<v8::Value> hdlr, obj_ptr<PacketHandler_base>& retVal);
+	static result_t httpHandler(v8::Local<v8::Value> hdlr, obj_ptr<HttpHandler_base>& retVal);
+	static result_t chain(v8::Local<v8::Array> hdlrs, obj_ptr<Chain_base>& retVal);
+	static result_t routing(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
+	static result_t jsHandler(v8::Local<v8::Value> hdlr, obj_ptr<Handler_base>& retVal);
 	static result_t moduleHandler(const char* id, const char* method, obj_ptr<Handler_base>& retVal);
 	static result_t await(obj_ptr<AsyncWait_base>& retVal);
 	static result_t nullHandler(obj_ptr<Handler_base>& retVal);
@@ -111,7 +111,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = packetHandler(v0, vr);
 
@@ -124,7 +124,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = httpHandler(v0, vr);
 
@@ -137,7 +137,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Array>, 0);
+		ARG(v8::Local<v8::Array>, 0);
 
 		hr = chain(v0, vr);
 
@@ -150,7 +150,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Object>, 0);
+		ARG(v8::Local<v8::Object>, 0);
 
 		hr = routing(v0, vr);
 
@@ -163,7 +163,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Value>, 0);
+		ARG(v8::Local<v8::Value>, 0);
 
 		hr = jsHandler(v0, vr);
 

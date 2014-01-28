@@ -25,8 +25,8 @@ public:
 	// Fiber_base
 	virtual result_t join() = 0;
 	virtual result_t get_caller(obj_ptr<Fiber_base>& retVal) = 0;
-	virtual result_t onerror(v8::Handle<v8::Function> trigger) = 0;
-	virtual result_t onexit(v8::Handle<v8::Function> trigger) = 0;
+	virtual result_t onerror(v8::Local<v8::Function> trigger) = 0;
+	virtual result_t onexit(v8::Local<v8::Function> trigger) = 0;
 
 	DECLARE_CLASSINFO(Fiber_base);
 
@@ -94,7 +94,7 @@ namespace fibjs
 		METHOD_INSTANCE(Fiber_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Function>, 0);
+		ARG(v8::Local<v8::Function>, 0);
 
 		hr = pInst->onerror(v0);
 
@@ -106,7 +106,7 @@ namespace fibjs
 		METHOD_INSTANCE(Fiber_base);
 		METHOD_ENTER(1, 1);
 
-		ARG(v8::Handle<v8::Function>, 0);
+		ARG(v8::Local<v8::Function>, 0);
 
 		hr = pInst->onexit(v0);
 
