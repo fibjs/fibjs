@@ -13,7 +13,7 @@ namespace fibjs
 
 result_t global_base::run(const char *fname)
 {
-    obj_ptr < SandBox_base > sbox;
+    obj_ptr<SandBox_base> sbox;
     result_t hr = vm_base::current(sbox);
     if (hr < 0)
         return hr;
@@ -23,7 +23,7 @@ result_t global_base::run(const char *fname)
 
 result_t global_base::require(const char *id, v8::Local<v8::Value> &retVal)
 {
-    obj_ptr < SandBox_base > sbox;
+    obj_ptr<SandBox_base> sbox;
     result_t hr = vm_base::current(sbox);
     if (hr < 0)
         return hr;

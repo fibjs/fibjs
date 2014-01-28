@@ -15,7 +15,7 @@ result_t db_base::open(const char *connString, obj_ptr<object_base> &retVal)
 {
     if (!qstrcmp(connString, "mysql:", 6))
     {
-        obj_ptr < MySQL_base > db;
+        obj_ptr<MySQL_base> db;
         result_t hr;
 
         hr = openMySQL(connString, db);
@@ -28,7 +28,7 @@ result_t db_base::open(const char *connString, obj_ptr<object_base> &retVal)
 
     if (!qstrcmp(connString, "sqlite:", 7))
     {
-        obj_ptr < SQLite_base > db;
+        obj_ptr<SQLite_base> db;
         result_t hr;
 
         hr = openSQLite(connString, db);
@@ -41,7 +41,7 @@ result_t db_base::open(const char *connString, obj_ptr<object_base> &retVal)
 
     if (!qstrcmp(connString, "mongodb:", 8))
     {
-        obj_ptr < MongoDB_base > db;
+        obj_ptr<MongoDB_base> db;
         result_t hr;
 
         hr = openMongoDB(connString, db);

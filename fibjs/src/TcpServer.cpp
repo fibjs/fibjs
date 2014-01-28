@@ -15,7 +15,7 @@ namespace fibjs
 result_t _new_tcpServer(const char *addr, int32_t port,
                         Handler_base *listener, obj_ptr<TcpServer_base> &retVal)
 {
-    obj_ptr < TcpServer > svr = new TcpServer();
+    obj_ptr<TcpServer> svr = new TcpServer();
     result_t hr = svr->create(addr, port, listener);
     if (hr < 0)
         return hr;
@@ -34,7 +34,7 @@ result_t TcpServer_base::_new(int32_t port, v8::Local<v8::Value> listener,
 result_t TcpServer_base::_new(const char *addr, int32_t port,
                               v8::Local<v8::Value> listener, obj_ptr<TcpServer_base> &retVal)
 {
-    obj_ptr < Handler_base > hdlr1;
+    obj_ptr<Handler_base> hdlr1;
     result_t hr = JSHandler::New(listener, hdlr1);
     if (hr < 0)
         return hr;

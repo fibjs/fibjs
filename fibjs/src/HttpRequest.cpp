@@ -304,7 +304,7 @@ result_t HttpRequest::get_response(obj_ptr<HttpResponse_base> &retVal)
 void HttpRequest::parse(std::string &str, char split,
                         obj_ptr<HttpCollection_base> &retVal)
 {
-    obj_ptr < HttpCollection > c = new HttpCollection();
+    obj_ptr<HttpCollection> c = new HttpCollection();
 
     const char *pstr = str.c_str();
     int nSize = (int) str.length();
@@ -405,8 +405,8 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base> &retVal)
                               "application/x-www-form-urlencoded", 33))
                 return Runtime::setError("unknown form format.");
 
-            obj_ptr < Buffer_base > buf;
-            obj_ptr < SeekableStream_base > _body;
+            obj_ptr<Buffer_base> buf;
+            obj_ptr<SeekableStream_base> _body;
 
             get_body (_body);
             _body->rewind();
@@ -419,7 +419,7 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base> &retVal)
 
             if (bUpload)
             {
-                obj_ptr < HttpUploadCollection > col =
+                obj_ptr<HttpUploadCollection> col =
                     new HttpUploadCollection();
                 col->parse(strForm, strType.c_str());
                 m_form = col;

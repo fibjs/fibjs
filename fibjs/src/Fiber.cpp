@@ -146,7 +146,7 @@ void JSFiber::callFunction(v8::Local<v8::Value> &retVal)
 {
     size_t i;
 
-    std::vector < v8::Local<v8::Value> > argv;
+    std::vector<v8::Local<v8::Value> > argv;
 
     argv.resize(m_argv.size());
     for (i = 0; i < m_argv.size(); i++)

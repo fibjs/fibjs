@@ -191,7 +191,7 @@ result_t LruCache::toJSON(const char *key, v8::Local<v8::Value> &retVal)
     cleanup();
 
     std::map<std::string, _linkedNode>::iterator it = m_begin;
-    v8::Local < v8::Object > obj = v8::Object::New(isolate);
+    v8::Local<v8::Object> obj = v8::Object::New(isolate);
 
     while (it != m_datas.end())
     {

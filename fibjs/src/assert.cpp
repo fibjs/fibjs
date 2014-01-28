@@ -812,7 +812,7 @@ result_t assert_base::propertyVal(v8::Local<v8::Value> object,
                                   const char *msg)
 {
     bool r;
-    v8::Local < v8::Value > got;
+    v8::Local<v8::Value> got;
 
     result_t hr = has_val(object, prop, value, r, got);
     if (hr < 0)
@@ -829,7 +829,7 @@ result_t assert_base::propertyNotVal(v8::Local<v8::Value> object,
                                      const char *msg)
 {
     bool r;
-    v8::Local < v8::Value > got;
+    v8::Local<v8::Value> got;
 
     result_t hr = has_val(object, prop, value, r, got);
     if (hr < 0)
@@ -879,7 +879,7 @@ result_t assert_base::deepPropertyVal(v8::Local<v8::Value> object,
                                       const char *msg)
 {
     bool r;
-    v8::Local < v8::Value > got;
+    v8::Local<v8::Value> got;
 
     result_t hr = deep_has_val(object, prop, value, r, got);
     if (hr < 0)
@@ -896,7 +896,7 @@ result_t assert_base::deepPropertyNotVal(v8::Local<v8::Value> object,
         const char *msg)
 {
     bool r;
-    v8::Local < v8::Value > got;
+    v8::Local<v8::Value> got;
 
     result_t hr = deep_has_val(object, prop, value, r, got);
     if (hr < 0)

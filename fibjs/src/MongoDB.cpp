@@ -154,7 +154,7 @@ result_t db_base::openMongoDB(const char *connString,
     if (qstrcmp(connString, "mongodb:", 8))
         return CALL_E_INVALIDARG;
 
-    obj_ptr < MongoDB > db = new MongoDB();
+    obj_ptr<MongoDB> db = new MongoDB();
     result_t hr = db->open(connString);
     if (hr < 0)
         return hr;
@@ -166,7 +166,7 @@ result_t db_base::openMongoDB(const char *connString,
 
 result_t MongoDB::open(const char *connString)
 {
-    obj_ptr < Url > u = new Url();
+    obj_ptr<Url> u = new Url();
     int result;
     int nPort;
 

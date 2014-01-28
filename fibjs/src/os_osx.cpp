@@ -116,8 +116,8 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
 {
     retVal = v8::Array::New(isolate);
 
-    v8::Local < v8::Object > cpuinfo;
-    v8::Local < v8::Object > cputimes;
+    v8::Local<v8::Object> cpuinfo;
+    v8::Local<v8::Object> cputimes;
     unsigned int ticks = (unsigned int) sysconf(_SC_CLK_TCK), multiplier =
                              ((uint64_t) 1000L / ticks);
     char model[512];

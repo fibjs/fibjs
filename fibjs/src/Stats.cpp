@@ -13,7 +13,7 @@ namespace fibjs
 result_t Stats_base::_new(v8::Local<v8::Array> keys,
                           obj_ptr<Stats_base> &retVal)
 {
-    obj_ptr < Stats > pStats = new Stats();
+    obj_ptr<Stats> pStats = new Stats();
     int n = keys->Length();
     int i;
     result_t hr;
@@ -34,7 +34,7 @@ result_t Stats_base::_new(v8::Local<v8::Array> keys,
 result_t Stats_base::_new(v8::Local<v8::Array> staticKeys,
                           v8::Local<v8::Array> keys, obj_ptr<Stats_base> &retVal)
 {
-    obj_ptr < Stats > pStats = new Stats();
+    obj_ptr<Stats> pStats = new Stats();
     int sn = staticKeys->Length();
     int n = keys->Length();
     int i;

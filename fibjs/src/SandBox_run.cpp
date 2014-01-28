@@ -155,7 +155,7 @@ result_t SandBox::runScript(const char *id, v8::Local<v8::Value> &retVal,
 
     result_t hr;
     const char *pname = fname.c_str();
-    obj_ptr < Stat_base > st;
+    obj_ptr<Stat_base> st;
     date_t mtime;
 
     if (bMod)
@@ -187,7 +187,7 @@ result_t SandBox::runScript(const char *id, v8::Local<v8::Value> &retVal,
     v8::Local<v8::Context> context(v8::Context::New (isolate));
     v8::Context::Scope context_scope(context);
 
-    v8::Local < v8::Script > script;
+    v8::Local<v8::Script> script;
     hr = compileScript(fname.c_str(), buf, script);
     if (hr < 0)
     {
@@ -195,23 +195,23 @@ result_t SandBox::runScript(const char *id, v8::Local<v8::Value> &retVal,
         return hr;
     }
 
-    v8::Local < v8::Object > glob = context->Global();
-    v8::Local < v8::Object > mod;
-    v8::Local < v8::Object > exports;
+    v8::Local<v8::Object> glob = context->Global();
+    v8::Local<v8::Object> mod;
+    v8::Local<v8::Object> exports;
 
     glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "SandBox"), wrap());
 
     // cache string
-    v8::Local < v8::String > strRequire = v8::String::NewFromUtf8(isolate, "require");
-    v8::Local < v8::String > strExports = v8::String::NewFromUtf8(isolate, "exports");
-    v8::Local < v8::String > strModule = v8::String::NewFromUtf8(isolate, "module");
-    v8::Local < v8::String > strDefine = v8::String::NewFromUtf8(isolate, "define");
-    v8::Local < v8::String > strId = v8::String::NewFromUtf8(isolate, "id");
+    v8::Local<v8::String> strRequire = v8::String::NewFromUtf8(isolate, "require");
+    v8::Local<v8::String> strExports = v8::String::NewFromUtf8(isolate, "exports");
+    v8::Local<v8::String> strModule = v8::String::NewFromUtf8(isolate, "module");
+    v8::Local<v8::String> strDefine = v8::String::NewFromUtf8(isolate, "define");
+    v8::Local<v8::String> strId = v8::String::NewFromUtf8(isolate, "id");
 
     // attach define function first.
     if (bMod)
     {
-        v8::Local < v8::Function > def =
+        v8::Local<v8::Function> def =
             v8::FunctionTemplate::New(isolate, _define)->GetFunction();
 
         def->ToObject()->Set(v8::String::NewFromUtf8(isolate, "amd"), v8::Object::New(isolate),
@@ -228,7 +228,7 @@ result_t SandBox::runScript(const char *id, v8::Local<v8::Value> &retVal,
 
     // module.id
     fname.resize(fname.length() - 3);
-    v8::Local < v8::String > strFname = v8::String::NewFromUtf8(isolate, fname.c_str(),
+    v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate, fname.c_str(),
                                          v8::String::kNormalString,
                                          (int) fname.length());
     glob->SetHiddenValue(strId, strFname);

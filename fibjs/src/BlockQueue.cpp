@@ -97,7 +97,7 @@ result_t BlockQueue::clear()
 
 result_t BlockQueue::toArray(v8::Local<v8::Array> &retVal)
 {
-    v8::Local < v8::Array > a = v8::Array::New(isolate, (int) m_list.size());
+    v8::Local<v8::Array> a = v8::Array::New(isolate, (int) m_list.size());
     int32_t i = 0;
 
     for (std::list<VariantEx>::iterator it = m_list.begin(); it != m_list.end();
@@ -117,7 +117,7 @@ result_t BlockQueue::get_length(int32_t &retVal)
 result_t BlockQueue::toJSON(const char *key, v8::Local<v8::Value> &retVal)
 {
     result_t hr;
-    v8::Local < v8::Array > as;
+    v8::Local<v8::Array> as;
 
     hr = toArray(as);
     if (hr < 0)

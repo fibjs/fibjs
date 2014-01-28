@@ -185,14 +185,14 @@ result_t Smtp::login(const char *username, const char *password,
 
             std::string s("AUTH LOGIN\r\n", 12);
 
-            obj_ptr < Buffer > buf = new Buffer(s);
+            obj_ptr<Buffer> buf = new Buffer(s);
             pThis->set(ok);
             return pThis->m_stmBuffered->write(buf, pThis);
         }
 
         int send_base64(const char *str)
         {
-            obj_ptr < Buffer > buf = new Buffer(str);
+            obj_ptr<Buffer> buf = new Buffer(str);
             std::string s;
 
             encoding_base::base64Encode(buf, s);
@@ -274,7 +274,7 @@ result_t Smtp::data(const char *txt, exlib::AsyncEvent *ac)
 
             std::string s("DATA\r\n", 6);
 
-            obj_ptr < Buffer > buf = new Buffer(s);
+            obj_ptr<Buffer> buf = new Buffer(s);
             pThis->set(ok);
             return pThis->m_stmBuffered->write(buf, pThis);
         }
@@ -287,7 +287,7 @@ result_t Smtp::data(const char *txt, exlib::AsyncEvent *ac)
 
             s.append("\r\n.\r\n", 5);
 
-            obj_ptr < Buffer > buf = new Buffer(s);
+            obj_ptr<Buffer> buf = new Buffer(s);
             pThis->set(ok);
             return pThis->m_stmBuffered->write(buf, pThis);
         }

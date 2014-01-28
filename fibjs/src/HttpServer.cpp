@@ -15,7 +15,7 @@ namespace fibjs
 result_t _new_httpServer(const char *addr, int32_t port,
                          Handler_base *hdlr, obj_ptr<HttpServer_base> &retVal)
 {
-    obj_ptr < HttpServer > svr = new HttpServer();
+    obj_ptr<HttpServer> svr = new HttpServer();
     result_t hr = svr->create(addr, port, hdlr);
     if (hr < 0)
         return hr;
@@ -34,7 +34,7 @@ result_t HttpServer_base::_new(int32_t port, const char *root,
 result_t HttpServer_base::_new(const char *addr, int32_t port,
                                const char *root, obj_ptr<HttpServer_base> &retVal)
 {
-    obj_ptr < Handler_base > hdlr;
+    obj_ptr<Handler_base> hdlr;
 
     result_t hr = http_base::fileHandler(root, hdlr);
     if (hr < 0)
@@ -52,7 +52,7 @@ result_t HttpServer_base::_new(int32_t port, v8::Local<v8::Value> hdlr,
 result_t HttpServer_base::_new(const char *addr, int32_t port, v8::Local<v8::Value> hdlr,
                                obj_ptr<HttpServer_base> &retVal)
 {
-    obj_ptr < Handler_base > hdlr1;
+    obj_ptr<Handler_base> hdlr1;
     result_t hr = JSHandler::New(hdlr, hdlr1);
     if (hr < 0)
         return hr;

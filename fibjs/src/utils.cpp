@@ -44,7 +44,7 @@ result_t utils_base::buildInfo(v8::Local<v8::Object> &retVal)
 #endif
 
     {
-        v8::Local < v8::Object > vender = v8::Object::New(isolate);
+        v8::Local<v8::Object> vender = v8::Object::New(isolate);
 
         retVal->Set(v8::String::NewFromUtf8(isolate, "vender"), vender);
 

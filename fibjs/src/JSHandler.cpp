@@ -94,7 +94,7 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     {
         if (hdlr->IsFunction())
         {
-            obj_ptr < List_base > params;
+            obj_ptr<List_base> params;
             int32_t len = 0, i;
 
             if (msg != NULL)
@@ -105,7 +105,7 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             if (len > 0)
             {
-                std::vector < v8::Local<v8::Value> > argv;
+                std::vector<v8::Local<v8::Value> > argv;
 
                 argv.resize(len + 1);
                 argv[0] = a;
@@ -151,8 +151,7 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             if (hr < 0)
                 return hr;
 
-            hdlr = v8::Local < v8::Object
-                   > ::Cast(hdlr)->Get(
+            hdlr = v8::Local<v8::Object>::Cast(hdlr)->Get(
                        v8::String::NewFromUtf8(isolate, method.c_str(),
                                                v8::String::kNormalString,
                                                (int) method.length()));

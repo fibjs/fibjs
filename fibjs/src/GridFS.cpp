@@ -60,7 +60,7 @@ result_t GridFS::store(const char *name, Stream_base *src)
 
     while (true)
     {
-        obj_ptr < Buffer_base > data;
+        obj_ptr<Buffer_base> data;
 
         hr = src->ac_read(-1, data);
         if (hr < 0)

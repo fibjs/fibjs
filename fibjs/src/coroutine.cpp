@@ -68,15 +68,15 @@ result_t coroutine_base::parallel(v8::Local<v8::Array> func,
         return 0;
     }
 
-    std::vector < v8::Local<v8::Function> > funs;
+    std::vector<v8::Local<v8::Function> > funs;
     funs.resize(l);
 
     for (i = 0; i < l; i++)
     {
-        v8::Local < v8::Value > v = func->Get(i);
+        v8::Local<v8::Value> v = func->Get(i);
 
         if (!v.IsEmpty() && v->IsFunction())
-            funs[i] = v8::Local < v8::Function > ::Cast(v);
+            funs[i] = v8::Local<v8::Function> ::Cast(v);
         else
             return CALL_E_INVALIDARG;
     }
@@ -96,15 +96,15 @@ result_t coroutine_base::parallel(const v8::FunctionCallbackInfo<v8::Value> &arg
         return 0;
     }
 
-    std::vector < v8::Local<v8::Function> > funs;
+    std::vector<v8::Local<v8::Function> > funs;
     funs.resize(l);
 
     for (i = 0; i < l; i++)
     {
-        v8::Local < v8::Value > v = args[i];
+        v8::Local<v8::Value> v = args[i];
 
         if (!v.IsEmpty() && v->IsFunction())
-            funs[i] = v8::Local < v8::Function > ::Cast(v);
+            funs[i] = v8::Local<v8::Function>::Cast(v);
         else
             return CALL_E_INVALIDARG;
     }
@@ -115,19 +115,19 @@ result_t coroutine_base::parallel(const v8::FunctionCallbackInfo<v8::Value> &arg
 result_t coroutine_base::parallel(v8::Local<v8::Array> data,
                                   v8::Local<v8::Function> func, v8::Local<v8::Array> &retVal)
 {
-    std::vector < obj_ptr<JSFiber> > fibers;
+    std::vector<obj_ptr<JSFiber> > fibers;
     int i;
     int len = data->Length();
 
     fibers.resize(len);
     for (i = 1; i < (int) len; i++)
     {
-        v8::Local < v8::Value > v = data->Get(i);
+        v8::Local<v8::Value> v = data->Get(i);
         JSFiber::New(func, &v, 1, fibers[i]);
     }
 
-    v8::Local < v8::Value > r;
-    v8::Local < v8::Value > v = data->Get(0);
+    v8::Local<v8::Value> r;
+    v8::Local<v8::Value> v = data->Get(0);
     JSFiber::call(func, &v, 1, r);
     bool bError = r.IsEmpty();
 

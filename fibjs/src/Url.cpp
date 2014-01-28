@@ -19,7 +19,7 @@ static const char *hashTable =
 
 result_t Url_base::_new(const char *url, obj_ptr<Url_base> &retVal)
 {
-    obj_ptr < Url > u = new Url();
+    obj_ptr<Url> u = new Url();
 
     result_t hr = u->parse(url);
     if (hr < 0)
@@ -32,7 +32,7 @@ result_t Url_base::_new(const char *url, obj_ptr<Url_base> &retVal)
 
 result_t Url_base::_new(v8::Local<v8::Object> args, obj_ptr<Url_base> &retVal)
 {
-    obj_ptr < Url > u = new Url();
+    obj_ptr<Url> u = new Url();
 
     result_t hr = u->format(args);
     if (hr < 0)
@@ -314,7 +314,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     if (m_slashes && m_protocol.compare("file:") && m_hostname.length() == 0)
         m_slashes = false;
 
-    v8::Local < v8::Value > v = args->Get(v8::String::NewFromUtf8(isolate, "slashes"));
+    v8::Local<v8::Value> v = args->Get(v8::String::NewFromUtf8(isolate, "slashes"));
 
     if (!IsEmpty(v))
         m_slashes = v->BooleanValue();

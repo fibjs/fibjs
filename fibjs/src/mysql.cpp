@@ -171,7 +171,7 @@ result_t db_base::openMySQL(const char *connString, obj_ptr<MySQL_base> &retVal)
     if (qstrcmp(connString, "mysql:", 6))
         return CALL_E_INVALIDARG;
 
-    obj_ptr < Url > u = new Url();
+    obj_ptr<Url> u = new Url();
 
     result_t hr = u->parse(connString);
     if (hr < 0)
@@ -181,7 +181,7 @@ result_t db_base::openMySQL(const char *connString, obj_ptr<MySQL_base> &retVal)
     if (u->m_port.length() > 0)
         nPort = atoi(u->m_port.c_str());
 
-    obj_ptr < mysql > conn = new mysql();
+    obj_ptr<mysql> conn = new mysql();
 
     hr = conn->connect(u->m_hostname.c_str(), nPort, u->m_username.c_str(),
                        u->m_password.c_str(),
@@ -229,7 +229,7 @@ result_t mysql::close()
 
 result_t mysql::use(const char *dbName)
 {
-    obj_ptr < DBResult_base > retVal;
+    obj_ptr<DBResult_base> retVal;
     std::string s("USE ", 4);
     s.append(dbName);
     return execute(s.c_str(), (int) s.length(), retVal);
@@ -237,19 +237,19 @@ result_t mysql::use(const char *dbName)
 
 result_t mysql::begin()
 {
-    obj_ptr < DBResult_base > retVal;
+    obj_ptr<DBResult_base> retVal;
     return execute("BEGIN", 5, retVal);
 }
 
 result_t mysql::commit()
 {
-    obj_ptr < DBResult_base > retVal;
+    obj_ptr<DBResult_base> retVal;
     return execute("COMMIT", 6, retVal);
 }
 
 result_t mysql::rollback()
 {
-    obj_ptr < DBResult_base > retVal;
+    obj_ptr<DBResult_base> retVal;
     return execute("ROLLBACK", 8, retVal);
 }
 
@@ -277,9 +277,9 @@ result_t mysql::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Valu
     if (hr < 0)
         return hr;
 
-    v8::Local < v8::Value > v = args[args.Length() - 1];
+    v8::Local<v8::Value> v = args[args.Length() - 1];
     if (v->IsFunction())
-        m_func = v8::Local < v8::Function > ::Cast(v);
+        m_func = v8::Local<v8::Function>::Cast(v);
 
     hr = execute(str.c_str(), (int) str.length(), retVal);
     m_func.Clear();

@@ -267,7 +267,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     if (!ac)
         return CALL_E_NOSYNC;
 
-    obj_ptr < HttpRequest_base > req = HttpRequest_base::getInstance(v);
+    obj_ptr<HttpRequest_base> req = HttpRequest_base::getInstance(v);
 
     if (req == NULL)
         return CALL_E_BADVARTYPE;

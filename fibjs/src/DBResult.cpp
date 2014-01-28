@@ -133,7 +133,7 @@ result_t DBResult::toJSON(const char *key, v8::Local<v8::Value> &retVal)
     if (m_size)
         return m_array.toJSON(key, retVal);
 
-    v8::Local < v8::Object > o = v8::Object::New(isolate);
+    v8::Local<v8::Object> o = v8::Object::New(isolate);
 
     o->Set(v8::String::NewFromUtf8(isolate, "affected", v8::String::kNormalString, 8),
            v8::Number::New(isolate, (double) m_affected));

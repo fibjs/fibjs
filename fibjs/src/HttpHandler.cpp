@@ -112,8 +112,8 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                             "<cross-domain-policy><allow-access-from domain=\"*\" to-ports=\"*\" /></cross-domain-policy>",
                             88);
 
-                    obj_ptr < MemoryStream > body = new MemoryStream();
-                    obj_ptr < Buffer > buf = new Buffer(s_crossdomain);
+                    obj_ptr<MemoryStream> body = new MemoryStream();
+                    obj_ptr<Buffer> buf = new Buffer(s_crossdomain);
 
                     pThis->m_rep->set_body(body);
                     body->write(buf, NULL);

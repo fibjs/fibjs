@@ -19,7 +19,7 @@ result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 {
     int i, j;
     int rc = 0;
-    obj_ptr < Message_base > msg = Message_base::getInstance(v);
+    obj_ptr<Message_base> msg = Message_base::getInstance(v);
     int ovector[RE_SIZE];
 
     if (msg == NULL)
@@ -36,7 +36,7 @@ result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         if ((rc = pcre_exec(r->m_re, r->m_extra, value.c_str(),
                             (int) value.length(), 0, 0, ovector, RE_SIZE)) > 0)
         {
-            obj_ptr < List > list = new List();
+            obj_ptr<List> list = new List();
 
             if (rc == 1)
                 msg->set_value("");
@@ -135,18 +135,18 @@ result_t Routing::append(const char *pattern, v8::Local<v8::Value> hdlr)
 
 result_t Routing::append(v8::Local<v8::Object> map)
 {
-    v8::Local < v8::Array > ks = map->GetPropertyNames();
+    v8::Local<v8::Array> ks = map->GetPropertyNames();
     int len = ks->Length();
     int i;
     result_t hr;
 
     for (i = 0; i < len; i++)
     {
-        v8::Local < v8::Value > k = ks->Get(i);
+        v8::Local<v8::Value> k = ks->Get(i);
 
         if (!k->IsNumber())
         {
-            v8::Local < v8::Value > v = map->Get(k);
+            v8::Local<v8::Value> v = map->Get(k);
 
             if (v->IsObject())
             {

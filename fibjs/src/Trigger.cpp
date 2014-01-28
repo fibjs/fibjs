@@ -21,10 +21,10 @@ result_t Trigger_base::_new(obj_ptr<Trigger_base> &retVal)
 v8::Local<v8::Array> object_base::GetHiddenArray(const char *k, bool create,
         bool autoDelete)
 {
-    v8::Local < v8::String > s = v8::String::NewFromUtf8(isolate, k);
-    v8::Local < v8::Object > o = wrap();
-    v8::Local < v8::Value > es = o->GetHiddenValue(s);
-    v8::Local < v8::Array > esa;
+    v8::Local<v8::String> s = v8::String::NewFromUtf8(isolate, k);
+    v8::Local<v8::Object> o = wrap();
+    v8::Local<v8::Value> es = o->GetHiddenValue(s);
+    v8::Local<v8::Array> esa;
 
     if (es.IsEmpty())
     {
@@ -35,7 +35,7 @@ v8::Local<v8::Array> object_base::GetHiddenArray(const char *k, bool create,
         }
     }
     else
-        esa = v8::Local < v8::Array > ::Cast(es);
+        esa = v8::Local<v8::Array> ::Cast(es);
 
     if (autoDelete)
         o->DeleteHiddenValue(s);

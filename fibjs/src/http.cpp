@@ -22,7 +22,7 @@ namespace fibjs
 result_t http_base::handler(v8::Local<v8::Value> hdlr,
                             obj_ptr<HttpHandler_base> &retVal)
 {
-    obj_ptr < Handler_base > hdlr1;
+    obj_ptr<Handler_base> hdlr1;
     result_t hr = JSHandler::New(hdlr, hdlr1);
     if (hr < 0)
         return hr;
@@ -111,10 +111,10 @@ result_t http_base::request(const char *method, const char *url,
     result_t hr;
     std::string hostname;
     int nPort = 80;
-    obj_ptr < HttpRequest > req;
+    obj_ptr<HttpRequest> req;
 
     {
-        obj_ptr < Url > u = new Url();
+        obj_ptr<Url> u = new Url();
 
         hr = u->parse(url);
         if (hr < 0)
@@ -156,7 +156,7 @@ result_t http_base::request(const char *method, const char *url,
                             Buffer_base *body, v8::Local<v8::Object> headers,
                             obj_ptr<HttpResponse_base> &retVal)
 {
-    obj_ptr < SeekableStream_base > stm = new MemoryStream();
+    obj_ptr<SeekableStream_base> stm = new MemoryStream();
     stm->write(body, NULL);
     return request(method, url, stm, headers, retVal);
 }
@@ -165,7 +165,7 @@ result_t http_base::request(const char *method, const char *url,
                             const char *body, v8::Local<v8::Object> headers,
                             obj_ptr<HttpResponse_base> &retVal)
 {
-    obj_ptr < Buffer_base > buf = new Buffer(body);
+    obj_ptr<Buffer_base> buf = new Buffer(body);
     return request(method, url, buf, headers, retVal);
 }
 

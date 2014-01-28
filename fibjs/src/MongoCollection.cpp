@@ -23,9 +23,9 @@ result_t MongoCollection::find(v8::Local<v8::Object> query,
 result_t MongoCollection::findOne(v8::Local<v8::Object> query,
                                   v8::Local<v8::Object> projection, v8::Local<v8::Object> &retVal)
 {
-    obj_ptr < MongoCursor > cur = new MongoCursor(m_db, m_ns, m_name, query,
+    obj_ptr<MongoCursor> cur = new MongoCursor(m_db, m_ns, m_name, query,
             projection);
-    obj_ptr < MongoCursor_base > cur1;
+    obj_ptr<MongoCursor_base> cur1;
 
     cur->limit(1, cur1);
     return cur->next(retVal);
@@ -39,7 +39,7 @@ result_t MongoCollection::findAndModify(v8::Local<v8::Object> query,
 
 result_t MongoCollection::insert(v8::Local<v8::Array> documents)
 {
-    std::vector < bson > bbs;
+    std::vector<bson> bbs;
     std::vector<const bson *> pbbs;
     int n = documents->Length();
     int i;
@@ -97,15 +97,15 @@ result_t MongoCollection::insert(v8::Local<v8::Object> document)
 
 result_t MongoCollection::save(v8::Local<v8::Object> document)
 {
-    v8::Local < v8::String > strId = v8::String::NewFromUtf8(isolate, "_id",
+    v8::Local<v8::String> strId = v8::String::NewFromUtf8(isolate, "_id",
                                       v8::String::kNormalString, 3);
-    v8::Local < v8::Value > id = document->Get(strId);
+    v8::Local<v8::Value> id = document->Get(strId);
 
     if (IsEmpty (id))
         return insert(document);
     else
     {
-        v8::Local < v8::Object > query = v8::Object::New(isolate);
+        v8::Local<v8::Object> query = v8::Object::New(isolate);
 
         query->Set(strId, id);
         return update(query, document, true, false);
@@ -214,7 +214,7 @@ result_t MongoCollection::runCommand(const char *cmd, const char *cmd1,
 
 result_t MongoCollection::drop()
 {
-    v8::Local < v8::Object > r;
+    v8::Local<v8::Object> r;
     return m_db->runCommand("drop",
                             v8::String::NewFromUtf8(isolate, m_name.c_str(),
                                     v8::String::kNormalString, (int) m_name.length()), r);
@@ -225,14 +225,14 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
 {
     std::string name;
 
-    v8::Local < v8::Array > ks = keys->GetPropertyNames();
+    v8::Local<v8::Array> ks = keys->GetPropertyNames();
     int len = (int) ks->Length();
     int i;
 
     for (i = 0; i < len; i++)
     {
-        v8::Local < v8::Value > k = ks->Get(i);
-        v8::Local < v8::Value > v = keys->Get(k);
+        v8::Local<v8::Value> k = ks->Get(i);
+        v8::Local<v8::Value> v = keys->Get(k);
 
         if (!v->IsNumber())
             return CALL_E_INVALIDARG;
@@ -248,7 +248,7 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
         name.append(*sv, sv.length());
     }
 
-    v8::Local < v8::Object > idx = v8::Object::New(isolate);
+    v8::Local<v8::Object> idx = v8::Object::New(isolate);
 
     idx->Set(v8::String::NewFromUtf8(isolate, "ns"),
              v8::String::NewFromUtf8(isolate, m_ns.c_str(),
@@ -296,8 +296,8 @@ result_t MongoCollection::getIndexes(obj_ptr<MongoCursor_base> &retVal)
     if (hr < 0)
         return hr;
 
-    v8::Local < v8::Object > f = v8::Object::New(isolate);
-    v8::Local < v8::Object > q = v8::Object::New(isolate);
+    v8::Local<v8::Object> f = v8::Object::New(isolate);
+    v8::Local<v8::Object> q = v8::Object::New(isolate);
     q->Set(v8::String::NewFromUtf8(isolate, "ns"),
            v8::String::NewFromUtf8(isolate, m_ns.c_str(),
                                    v8::String::kNormalString, (int) m_ns.length()));

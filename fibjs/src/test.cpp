@@ -397,13 +397,13 @@ result_t test_base::expect(v8::Local<v8::Value> actual, const char *msg,
 
 result_t test_base::setup(int32_t mode)
 {
-    v8::Local < v8::Context > ctx = isolate->GetCallingContext();
+    v8::Local<v8::Context> ctx = isolate->GetCallingContext();
 
     if (!ctx.IsEmpty())
     {
         v8::Context::Scope context_scope(ctx);
-        v8::Local < v8::Object > glob = ctx->Global();
-        obj_ptr < assert_base > assert;
+        v8::Local<v8::Object> glob = ctx->Global();
+        obj_ptr<assert_base> assert;
 
         if (mode == _BDD)
         {

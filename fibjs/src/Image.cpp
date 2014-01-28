@@ -32,7 +32,7 @@ result_t gd_base::create(int32_t width, int32_t height, int32_t color,
     if (!ac)
         return CALL_E_NOSYNC;
 
-    obj_ptr < Image > img = new Image();
+    obj_ptr<Image> img = new Image();
     result_t hr = img->create(width, height, color);
     if (hr < 0)
         return hr;
@@ -47,7 +47,7 @@ result_t gd_base::load(Buffer_base *data, obj_ptr<Image_base> &retVal,
     if (!ac)
         return CALL_E_NOSYNC;
 
-    obj_ptr < Image > img = new Image();
+    obj_ptr<Image> img = new Image();
     result_t hr = img->load(data);
     if (hr < 0)
         return hr;
@@ -94,7 +94,7 @@ result_t gd_base::load(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
             if (n == CALL_RETURN_NULL)
                 return CALL_E_INVALID_DATA;
 
-            obj_ptr < Image > img = new Image();
+            obj_ptr<Image> img = new Image();
             result_t hr = img->load(pThis->m_buffer);
             if (hr < 0)
                 return hr;
@@ -332,7 +332,7 @@ result_t Image::save(Stream_base *stm, int32_t format, int32_t quality,
     if (!ac)
         return CALL_E_NOSYNC;
 
-    obj_ptr < Buffer_base > buf;
+    obj_ptr<Buffer_base> buf;
     result_t hr = getData(format, quality, buf, ac);
     if (hr < 0)
         return hr;
