@@ -132,8 +132,10 @@ class HLoadEliminationTable : public ZoneObject {
     return this;
   }
 
-  // Support for global analysis with HFlowEngine: Copy state to sucessor block.
-  HLoadEliminationTable* Copy(HBasicBlock* succ, Zone* zone) {
+  // Support for global analysis with HFlowEngine: Copy state to successor
+  // block.
+  HLoadEliminationTable* Copy(HBasicBlock* succ, HBasicBlock* from_block,
+                              Zone* zone) {
     HLoadEliminationTable* copy =
         new(zone) HLoadEliminationTable(zone, aliasing_);
     copy->EnsureFields(fields_.length());
@@ -149,8 +151,8 @@ class HLoadEliminationTable : public ZoneObject {
 
   // Support for global analysis with HFlowEngine: Merge this state with
   // the other incoming state.
-  HLoadEliminationTable* Merge(HBasicBlock* succ,
-      HLoadEliminationTable* that, Zone* zone) {
+  HLoadEliminationTable* Merge(HBasicBlock* succ, HLoadEliminationTable* that,
+                               HBasicBlock* that_block, Zone* zone) {
     if (that->fields_.length() < fields_.length()) {
       // Drop fields not in the other table.
       fields_.Rewind(that->fields_.length());
@@ -176,6 +178,10 @@ class HLoadEliminationTable : public ZoneObject {
         approx = approx->next_;
       }
     }
+    if (FLAG_trace_load_elimination) {
+      TRACE((" merge-to B%d\n", succ->block_id()));
+      Print();
+    }
     return this;
   }
 
@@ -187,6 +193,10 @@ class HLoadEliminationTable : public ZoneObject {
   // load or store for this object and field exists, return the new value with
   // which the load should be replaced. Otherwise, return {instr}.
   HValue* load(HLoadNamedField* instr) {
+    // There must be no loads from non observable in-object properties.
+    ASSERT(!instr->access().IsInobject() ||
+           instr->access().existing_inobject_property());
+
     int field = FieldOf(instr->access());
     if (field < 0) return instr;
 
@@ -197,9 +207,12 @@ class HLoadEliminationTable : public ZoneObject {
       // Load is not redundant. Fill out a new entry.
       approx->last_value_ = instr;
       return instr;
-    } else {
+    } else if (approx->last_value_->block()->EqualToOrDominates(
+        instr->block())) {
       // Eliminate the load. Reuse previously stored value or load instruction.
       return approx->last_value_;
+    } else {
+      return instr;
     }
   }
 
@@ -208,6 +221,12 @@ class HLoadEliminationTable : public ZoneObject {
   // the stored values are the same), return NULL indicating that this store
   // instruction is redundant. Otherwise, return {instr}.
   HValue* store(HStoreNamedField* instr) {
+    if (instr->access().IsInobject() &&
+        !instr->access().existing_inobject_property()) {
+      TRACE(("  skipping non existing property initialization store\n"));
+      return instr;
+    }
+
     int field = FieldOf(instr->access());
     if (field < 0) return KillIfMisaligned(instr);
 

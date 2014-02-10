@@ -1082,11 +1082,6 @@ void LCodeGen::DoCallStub(LCallStub* instr) {
   ASSERT(ToRegister(instr->context()).is(cp));
   ASSERT(ToRegister(instr->result()).is(r0));
   switch (instr->hydrogen()->major_key()) {
-    case CodeStub::RegExpConstructResult: {
-      RegExpConstructResultStub stub;
-      CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
-      break;
-    }
     case CodeStub::RegExpExec: {
       RegExpExecStub stub;
       CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
@@ -1871,42 +1866,6 @@ void LCodeGen::DoMapEnumLength(LMapEnumLength* instr) {
 }
 
 
-void LCodeGen::DoElementsKind(LElementsKind* instr) {
-  Register result = ToRegister(instr->result());
-  Register input = ToRegister(instr->value());
-
-  // Load map into |result|.
-  __ ldr(result, FieldMemOperand(input, HeapObject::kMapOffset));
-  // Load the map's "bit field 2" into |result|. We only need the first byte,
-  // but the following bit field extraction takes care of that anyway.
-  __ ldr(result, FieldMemOperand(result, Map::kBitField2Offset));
-  // Retrieve elements_kind from bit field 2.
-  __ ubfx(result, result, Map::kElementsKindShift, Map::kElementsKindBitCount);
-}
-
-
-void LCodeGen::DoValueOf(LValueOf* instr) {
-  Register input = ToRegister(instr->value());
-  Register result = ToRegister(instr->result());
-  Register map = ToRegister(instr->temp());
-  Label done;
-
-  if (!instr->hydrogen()->value()->IsHeapObject()) {
-    // If the object is a smi return the object.
-    __ SmiTst(input);
-    __ Move(result, input, eq);
-    __ b(eq, &done);
-  }
-
-  // If the object is not a value type, return the object.
-  __ CompareObjectType(input, map, map, JS_VALUE_TYPE);
-  __ Move(result, input, ne);
-  __ ldr(result, FieldMemOperand(input, JSValue::kValueOffset), eq);
-
-  __ bind(&done);
-}
-
-
 void LCodeGen::DoDateField(LDateField* instr) {
   Register object = ToRegister(instr->date());
   Register result = ToRegister(instr->result());
@@ -2018,17 +1977,6 @@ void LCodeGen::DoSeqStringSetChar(LSeqStringSetChar* instr) {
     __ strb(value, operand);
   } else {
     __ strh(value, operand);
-  }
-}
-
-
-void LCodeGen::DoThrow(LThrow* instr) {
-  __ push(ToRegister(instr->value()));
-  ASSERT(ToRegister(instr->context()).is(cp));
-  CallRuntime(Runtime::kThrow, 1, instr);
-
-  if (FLAG_debug_code) {
-    __ stop("Unreachable code.");
   }
 }
 
@@ -3149,15 +3097,6 @@ void LCodeGen::DoLoadRoot(LLoadRoot* instr) {
 }
 
 
-void LCodeGen::DoLoadExternalArrayPointer(
-    LLoadExternalArrayPointer* instr) {
-  Register to_reg = ToRegister(instr->result());
-  Register from_reg  = ToRegister(instr->object());
-  __ ldr(to_reg, FieldMemOperand(from_reg,
-                                 ExternalArray::kExternalPointerOffset));
-}
-
-
 void LCodeGen::DoAccessArgumentsAt(LAccessArgumentsAt* instr) {
   Register arguments = ToRegister(instr->arguments());
   Register result = ToRegister(instr->result());
@@ -3492,19 +3431,21 @@ void LCodeGen::DoWrapReceiver(LWrapReceiver* instr) {
   // passed unchanged to builtins and strict-mode functions.
   Label global_object, result_in_receiver;
 
-  // Do not transform the receiver to object for strict mode
-  // functions.
-  __ ldr(scratch,
-         FieldMemOperand(function, JSFunction::kSharedFunctionInfoOffset));
-  __ ldr(scratch,
-         FieldMemOperand(scratch, SharedFunctionInfo::kCompilerHintsOffset));
-  __ tst(scratch,
-         Operand(1 << (SharedFunctionInfo::kStrictModeFunction + kSmiTagSize)));
-  __ b(ne, &result_in_receiver);
+  if (!instr->hydrogen()->known_function()) {
+    // Do not transform the receiver to object for strict mode
+    // functions.
+    __ ldr(scratch,
+           FieldMemOperand(function, JSFunction::kSharedFunctionInfoOffset));
+    __ ldr(scratch,
+           FieldMemOperand(scratch, SharedFunctionInfo::kCompilerHintsOffset));
+    int mask = 1 << (SharedFunctionInfo::kStrictModeFunction + kSmiTagSize);
+    __ tst(scratch, Operand(mask));
+    __ b(ne, &result_in_receiver);
 
-  // Do not transform the receiver to object for builtins.
-  __ tst(scratch, Operand(1 << (SharedFunctionInfo::kNative + kSmiTagSize)));
-  __ b(ne, &result_in_receiver);
+    // Do not transform the receiver to object for builtins.
+    __ tst(scratch, Operand(1 << (SharedFunctionInfo::kNative + kSmiTagSize)));
+    __ b(ne, &result_in_receiver);
+  }
 
   // Normal function. Replace undefined or null with global receiver.
   __ LoadRoot(scratch, Heap::kNullValueRootIndex);
@@ -3519,14 +3460,14 @@ void LCodeGen::DoWrapReceiver(LWrapReceiver* instr) {
   DeoptimizeIf(eq, instr->environment());
   __ CompareObjectType(receiver, scratch, scratch, FIRST_SPEC_OBJECT_TYPE);
   DeoptimizeIf(lt, instr->environment());
-  __ b(&result_in_receiver);
 
+  __ b(&result_in_receiver);
   __ bind(&global_object);
-  __ ldr(receiver, FieldMemOperand(function, JSFunction::kContextOffset));
-  __ ldr(receiver,
-         ContextOperand(receiver, Context::GLOBAL_OBJECT_INDEX));
-  __ ldr(receiver,
-         FieldMemOperand(receiver, GlobalObject::kGlobalReceiverOffset));
+  __ ldr(result, FieldMemOperand(function, JSFunction::kContextOffset));
+  __ ldr(result,
+         ContextOperand(result, Context::GLOBAL_OBJECT_INDEX));
+  __ ldr(result,
+         FieldMemOperand(result, GlobalObject::kGlobalReceiverOffset));
 
   if (result.is(receiver)) {
     __ bind(&result_in_receiver);
@@ -3621,14 +3562,6 @@ void LCodeGen::DoContext(LContext* instr) {
 }
 
 
-void LCodeGen::DoOuterContext(LOuterContext* instr) {
-  Register context = ToRegister(instr->context());
-  Register result = ToRegister(instr->result());
-  __ ldr(result,
-         MemOperand(context, Context::SlotOffset(Context::PREVIOUS_INDEX)));
-}
-
-
 void LCodeGen::DoDeclareGlobals(LDeclareGlobals* instr) {
   ASSERT(ToRegister(instr->context()).is(cp));
   __ push(cp);  // The context is the first argument.
@@ -3637,20 +3570,6 @@ void LCodeGen::DoDeclareGlobals(LDeclareGlobals* instr) {
   __ mov(scratch0(), Operand(Smi::FromInt(instr->hydrogen()->flags())));
   __ push(scratch0());
   CallRuntime(Runtime::kDeclareGlobals, 3, instr);
-}
-
-
-void LCodeGen::DoGlobalObject(LGlobalObject* instr) {
-  Register context = ToRegister(instr->context());
-  Register result = ToRegister(instr->result());
-  __ ldr(result, ContextOperand(context, Context::GLOBAL_OBJECT_INDEX));
-}
-
-
-void LCodeGen::DoGlobalReceiver(LGlobalReceiver* instr) {
-  Register global = ToRegister(instr->global_object());
-  Register result = ToRegister(instr->result());
-  __ ldr(result, FieldMemOperand(global, GlobalObject::kGlobalReceiverOffset));
 }
 
 
@@ -4029,13 +3948,8 @@ void LCodeGen::DoCallFunction(LCallFunction* instr) {
   ASSERT(ToRegister(instr->result()).is(r0));
 
   int arity = instr->arity();
-  CallFunctionStub stub(arity, NO_CALL_FUNCTION_FLAGS);
-  if (instr->hydrogen()->IsTailCall()) {
-    if (NeedsEagerFrame()) __ mov(sp, fp);
-    __ Jump(stub.GetCode(isolate()), RelocInfo::CODE_TARGET);
-  } else {
-    CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
-  }
+  CallFunctionStub stub(arity, instr->hydrogen()->function_flags());
+  CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
 }
 
 
@@ -4146,7 +4060,7 @@ void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
       __ SmiTst(value);
       DeoptimizeIf(eq, instr->environment());
     }
-  } else if (FLAG_track_double_fields && representation.IsDouble()) {
+  } else if (representation.IsDouble()) {
     ASSERT(transition.is_null());
     ASSERT(access.IsInobject());
     ASSERT(!instr->hydrogen()->NeedsWriteBarrier());
@@ -4174,7 +4088,6 @@ void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
 
   // Do the store.
   Register value = ToRegister(instr->value());
-  ASSERT(!object.is(value));
   SmiCheck check_needed =
       instr->hydrogen()->value()->IsHeapObject()
           ? OMIT_SMI_CHECK : INLINE_SMI_CHECK;
@@ -4515,7 +4428,7 @@ void LCodeGen::DoStringAdd(LStringAdd* instr) {
   ASSERT(ToRegister(instr->left()).is(r1));
   ASSERT(ToRegister(instr->right()).is(r0));
   StringAddStub stub(instr->hydrogen()->flags(),
-                     isolate()->heap()->GetPretenureMode());
+                     instr->hydrogen()->pretenure_flag());
   CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
 }
 

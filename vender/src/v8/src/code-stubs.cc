@@ -43,18 +43,12 @@ CodeStubInterfaceDescriptor::CodeStubInterfaceDescriptor()
     : register_param_count_(-1),
       stack_parameter_count_(no_reg),
       hint_stack_parameter_count_(-1),
-      continuation_type_(NORMAL_CONTINUATION),
       function_mode_(NOT_JS_FUNCTION_STUB_MODE),
       register_params_(NULL),
       deoptimization_handler_(NULL),
       handler_arguments_mode_(DONT_PASS_ARGUMENTS),
       miss_handler_(),
       has_miss_handler_(false) { }
-
-
-void CodeStub::GenerateStubsRequiringBuiltinsAheadOfTime(Isolate* isolate) {
-  StubFailureTailCallTrampolineStub::GenerateAheadOfTime(isolate);
-}
 
 
 bool CodeStub::FindCodeInCache(Code** code_out, Isolate* isolate) {
@@ -707,12 +701,6 @@ void StubFailureTrampolineStub::GenerateAheadOfTime(Isolate* isolate) {
 }
 
 
-void StubFailureTailCallTrampolineStub::GenerateAheadOfTime(Isolate* isolate) {
-  StubFailureTailCallTrampolineStub stub;
-  stub.GetCode(isolate);
-}
-
-
 void ProfileEntryHookStub::EntryHookTrampoline(intptr_t function,
                                                intptr_t stack_pointer,
                                                Isolate* isolate) {
@@ -777,6 +765,13 @@ void BinaryOpWithAllocationSiteStub::InstallDescriptors(Isolate* isolate) {
 // static
 void StringAddStub::InstallDescriptors(Isolate* isolate) {
   StringAddStub stub(STRING_ADD_CHECK_NONE, NOT_TENURED);
+  InstallDescriptor(isolate, &stub);
+}
+
+
+// static
+void RegExpConstructResultStub::InstallDescriptors(Isolate* isolate) {
+  RegExpConstructResultStub stub;
   InstallDescriptor(isolate, &stub);
 }
 

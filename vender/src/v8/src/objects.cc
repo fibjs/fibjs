@@ -1273,27 +1273,37 @@ bool String::MakeExternal(v8::String::ExternalStringResource* resource) {
   bool is_ascii = this->IsOneByteRepresentation();
   bool is_internalized = this->IsInternalizedString();
 
-  // Morph the object to an external string by adjusting the map and
-  // reinitializing the fields.
-  if (size >= ExternalString::kSize) {
+  // Morph the string to an external string by replacing the map and
+  // reinitializing the fields.  This won't work if
+  // - the space the existing string occupies is too small for a regular
+  //   external string.
+  // - the existing string is in old pointer space and the backing store of
+  //   the external string is not aligned.  The GC cannot deal with fields
+  //   containing an unaligned address that points to outside of V8's heap.
+  // In either case we resort to a short external string instead, omitting
+  // the field caching the address of the backing store.  When we encounter
+  // short external strings in generated code, we need to bailout to runtime.
+  if (size < ExternalString::kSize ||
+      (!IsAligned(reinterpret_cast<intptr_t>(resource->data()), kPointerSize) &&
+       heap->old_pointer_space()->Contains(this))) {
     this->set_map_no_write_barrier(
         is_internalized
             ? (is_ascii
-                   ? heap->external_internalized_string_with_one_byte_data_map()
-                   : heap->external_internalized_string_map())
+                ? heap->
+                    short_external_internalized_string_with_one_byte_data_map()
+                : heap->short_external_internalized_string_map())
             : (is_ascii
-                   ? heap->external_string_with_one_byte_data_map()
-                   : heap->external_string_map()));
+                ? heap->short_external_string_with_one_byte_data_map()
+                : heap->short_external_string_map()));
   } else {
     this->set_map_no_write_barrier(
         is_internalized
-          ? (is_ascii
-               ? heap->
-                   short_external_internalized_string_with_one_byte_data_map()
-               : heap->short_external_internalized_string_map())
-          : (is_ascii
-                 ? heap->short_external_string_with_one_byte_data_map()
-                 : heap->short_external_string_map()));
+            ? (is_ascii
+                ? heap->external_internalized_string_with_one_byte_data_map()
+                : heap->external_internalized_string_map())
+            : (is_ascii
+                ? heap->external_string_with_one_byte_data_map()
+                : heap->external_string_map()));
   }
   ExternalTwoByteString* self = ExternalTwoByteString::cast(this);
   self->set_resource(resource);
@@ -1334,16 +1344,26 @@ bool String::MakeExternal(v8::String::ExternalAsciiStringResource* resource) {
   }
   bool is_internalized = this->IsInternalizedString();
 
-  // Morph the object to an external string by adjusting the map and
-  // reinitializing the fields.  Use short version if space is limited.
-  if (size >= ExternalString::kSize) {
-    this->set_map_no_write_barrier(
-        is_internalized ? heap->external_ascii_internalized_string_map()
-                        : heap->external_ascii_string_map());
-  } else {
+  // Morph the string to an external string by replacing the map and
+  // reinitializing the fields.  This won't work if
+  // - the space the existing string occupies is too small for a regular
+  //   external string.
+  // - the existing string is in old pointer space and the backing store of
+  //   the external string is not aligned.  The GC cannot deal with fields
+  //   containing an unaligned address that points to outside of V8's heap.
+  // In either case we resort to a short external string instead, omitting
+  // the field caching the address of the backing store.  When we encounter
+  // short external strings in generated code, we need to bailout to runtime.
+  if (size < ExternalString::kSize ||
+      (!IsAligned(reinterpret_cast<intptr_t>(resource->data()), kPointerSize) &&
+       heap->old_pointer_space()->Contains(this))) {
     this->set_map_no_write_barrier(
         is_internalized ? heap->short_external_ascii_internalized_string_map()
                         : heap->short_external_ascii_string_map());
+  } else {
+    this->set_map_no_write_barrier(
+        is_internalized ? heap->external_ascii_internalized_string_map()
+                        : heap->external_ascii_string_map());
   }
   ExternalAsciiString* self = ExternalAsciiString::cast(this);
   self->set_resource(resource);
@@ -6682,7 +6702,9 @@ MaybeObject* Map::RawCopy(int instance_size) {
   new_bit_field3 = EnumLengthBits::update(new_bit_field3,
                                           kInvalidEnumCacheSentinel);
   new_bit_field3 = Deprecated::update(new_bit_field3, false);
-  new_bit_field3 = IsUnstable::update(new_bit_field3, false);
+  if (!is_dictionary_map()) {
+    new_bit_field3 = IsUnstable::update(new_bit_field3, false);
+  }
   result->set_bit_field3(new_bit_field3);
   return result;
 }
@@ -9862,11 +9884,18 @@ bool JSFunction::PassesFilter(const char* raw_filter) {
   Vector<const char> filter = CStrVector(raw_filter);
   if (filter.length() == 0) return name->length() == 0;
   if (filter[0] == '-') {
+    // Negative filter.
     if (filter.length() == 1) {
       return (name->length() != 0);
-    } else if (!name->IsUtf8EqualTo(filter.SubVector(1, filter.length()))) {
-      return true;
+    } else if (name->IsUtf8EqualTo(filter.SubVector(1, filter.length()))) {
+      return false;
     }
+    if (filter[filter.length() - 1] == '*' &&
+        name->IsUtf8EqualTo(filter.SubVector(1, filter.length() - 1), true)) {
+      return false;
+    }
+    return true;
+
   } else if (name->IsUtf8EqualTo(filter)) {
     return true;
   }
@@ -10505,7 +10534,7 @@ void Code::FindAllTypes(TypeHandleList* types) {
     Object* object = info->target_object();
     if (object->IsMap()) {
       Handle<Map> map(Map::cast(object));
-      types->Add(IC::MapToType(map));
+      types->Add(IC::MapToType<HeapType>(map, map->GetIsolate()));
     }
   }
 }
@@ -11066,9 +11095,6 @@ void Code::Disassemble(const char* name, FILE* out) {
         extended_extra_ic_state() : extra_ic_state());
     if (ic_state() == MONOMORPHIC) {
       PrintF(out, "type = %s\n", StubType2String(type()));
-    }
-    if (is_call_stub() || is_keyed_call_stub()) {
-      PrintF(out, "argc = %d\n", arguments_count());
     }
     if (is_compare_ic_stub()) {
       ASSERT(major_key() == CodeStub::CompareIC);
@@ -11738,14 +11764,23 @@ bool DependentCode::MarkCodeForDeoptimization(
   // Mark all the code that needs to be deoptimized.
   bool marked = false;
   for (int i = start; i < end; i++) {
-    if (is_code_at(i)) {
-      Code* code = code_at(i);
+    Object* object = object_at(i);
+    // TODO(hpayer): This is a temporary hack. Foreign objects move after
+    // new space evacuation. Since pretenuring may mark these objects as aborted
+    // we have to follow the forwarding pointer in that case.
+    MapWord map_word = HeapObject::cast(object)->map_word();
+    if (map_word.IsForwardingAddress()) {
+      object = map_word.ToForwardingAddress();
+    }
+    if (object->IsCode()) {
+      Code* code = Code::cast(object);
       if (!code->marked_for_deoptimization()) {
         code->set_marked_for_deoptimization(true);
         marked = true;
       }
     } else {
-      CompilationInfo* info = compilation_info_at(i);
+      CompilationInfo* info = reinterpret_cast<CompilationInfo*>(
+          Foreign::cast(object)->foreign_address());
       info->AbortDueToDependencyChange();
     }
   }
@@ -12726,8 +12761,7 @@ void AllocationSite::ResetPretenureDecision() {
 PretenureFlag AllocationSite::GetPretenureMode() {
   PretenureDecision mode = pretenure_decision();
   // Zombie objects "decide" to be untenured.
-  return (mode == kTenure && GetHeap()->GetPretenureMode() == TENURED)
-      ? TENURED : NOT_TENURED;
+  return mode == kTenure ? TENURED : NOT_TENURED;
 }
 
 
@@ -12824,15 +12858,26 @@ MaybeObject* JSObject::UpdateAllocationSite(ElementsKind to_kind) {
   Heap* heap = GetHeap();
   if (!heap->InNewSpace(this)) return this;
 
+  // Check if there is potentially a memento behind the object. If
+  // the last word of the momento is on another page we return
+  // immediatelly.
+  Address object_address = address();
+  Address memento_address = object_address + JSArray::kSize;
+  Address last_memento_word_address = memento_address + kPointerSize;
+  if (!NewSpacePage::OnSamePage(object_address,
+                                last_memento_word_address)) {
+    return this;
+  }
+
   // Either object is the last object in the new space, or there is another
   // object of at least word size (the header map word) following it, so
   // suffices to compare ptr and top here.
-  Address ptr = address() + JSArray::kSize;
   Address top = heap->NewSpaceTop();
-  ASSERT(ptr == top || ptr + HeapObject::kHeaderSize <= top);
-  if (ptr == top) return this;
+  ASSERT(memento_address == top ||
+         memento_address + HeapObject::kHeaderSize <= top);
+  if (memento_address == top) return this;
 
-  HeapObject* candidate = HeapObject::FromAddress(ptr);
+  HeapObject* candidate = HeapObject::FromAddress(memento_address);
   if (candidate->map() != heap->allocation_memento_map()) return this;
 
   AllocationMemento* memento = AllocationMemento::cast(candidate);
@@ -13825,17 +13870,61 @@ MaybeObject* OneByteStringKey::AsObject(Heap* heap) {
 }
 
 
-MaybeObject* SubStringOneByteStringKey::AsObject(Heap* heap) {
-  if (hash_field_ == 0) Hash();
-  Vector<const uint8_t> chars(string_->GetChars() + from_, length_);
-  return heap->AllocateOneByteInternalizedString(chars, hash_field_);
-}
-
-
 MaybeObject* TwoByteStringKey::AsObject(Heap* heap) {
   if (hash_field_ == 0) Hash();
   return heap->AllocateTwoByteInternalizedString(string_, hash_field_);
 }
+
+
+template<>
+const uint8_t* SubStringKey<uint8_t>::GetChars() {
+  return string_->IsSeqOneByteString()
+      ? SeqOneByteString::cast(*string_)->GetChars()
+      : ExternalAsciiString::cast(*string_)->GetChars();
+}
+
+
+template<>
+const uint16_t* SubStringKey<uint16_t>::GetChars() {
+  return string_->IsSeqTwoByteString()
+      ? SeqTwoByteString::cast(*string_)->GetChars()
+      : ExternalTwoByteString::cast(*string_)->GetChars();
+}
+
+
+template<>
+MaybeObject* SubStringKey<uint8_t>::AsObject(Heap* heap) {
+  if (hash_field_ == 0) Hash();
+  Vector<const uint8_t> chars(GetChars() + from_, length_);
+  return heap->AllocateOneByteInternalizedString(chars, hash_field_);
+}
+
+
+template<>
+MaybeObject* SubStringKey<uint16_t>::AsObject(
+    Heap* heap) {
+  if (hash_field_ == 0) Hash();
+  Vector<const uint16_t> chars(GetChars() + from_, length_);
+  return heap->AllocateTwoByteInternalizedString(chars, hash_field_);
+}
+
+
+template<>
+bool SubStringKey<uint8_t>::IsMatch(Object* string) {
+  Vector<const uint8_t> chars(GetChars() + from_, length_);
+  return String::cast(string)->IsOneByteEqualTo(chars);
+}
+
+
+template<>
+bool SubStringKey<uint16_t>::IsMatch(Object* string) {
+  Vector<const uint16_t> chars(GetChars() + from_, length_);
+  return String::cast(string)->IsTwoByteEqualTo(chars);
+}
+
+
+template class SubStringKey<uint8_t>;
+template class SubStringKey<uint16_t>;
 
 
 // InternalizedStringKey carries a string/internalized-string object as key.

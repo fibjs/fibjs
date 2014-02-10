@@ -509,6 +509,7 @@ void MacroAssembler::RecordWrite(Register object,
                                  SaveFPRegsMode fp_mode,
                                  RememberedSetAction remembered_set_action,
                                  SmiCheck smi_check) {
+  ASSERT(!object.is(value));
   if (emit_debug_code()) {
     ldr(ip, MemOperand(address));
     cmp(ip, value);
@@ -2298,10 +2299,8 @@ static int AddressOffset(ExternalReference ref0, ExternalReference ref1) {
 
 
 void MacroAssembler::CallApiFunctionAndReturn(
-    ExternalReference function,
-    Address function_address,
+    Register function_address,
     ExternalReference thunk_ref,
-    Register thunk_last_arg,
     int stack_space,
     MemOperand return_value_operand,
     MemOperand* context_restore_operand) {
@@ -2315,7 +2314,25 @@ void MacroAssembler::CallApiFunctionAndReturn(
       ExternalReference::handle_scope_level_address(isolate()),
       next_address);
 
-  ASSERT(!thunk_last_arg.is(r3));
+  ASSERT(function_address.is(r1) || function_address.is(r2));
+
+  Label profiler_disabled;
+  Label end_profiler_check;
+  bool* is_profiling_flag =
+      isolate()->cpu_profiler()->is_profiling_address();
+  STATIC_ASSERT(sizeof(*is_profiling_flag) == 1);
+  mov(r9, Operand(reinterpret_cast<int32_t>(is_profiling_flag)));
+  ldrb(r9, MemOperand(r9, 0));
+  cmp(r9, Operand(0));
+  b(eq, &profiler_disabled);
+
+  // Additional parameter is the address of the actual callback.
+  mov(r3, Operand(thunk_ref));
+  jmp(&end_profiler_check);
+
+  bind(&profiler_disabled);
+  Move(r3, function_address);
+  bind(&end_profiler_check);
 
   // Allocate HandleScope in callee-save registers.
   mov(r9, Operand(next_address));
@@ -2333,25 +2350,6 @@ void MacroAssembler::CallApiFunctionAndReturn(
     CallCFunction(ExternalReference::log_enter_external_function(isolate()), 1);
     PopSafepointRegisters();
   }
-
-  Label profiler_disabled;
-  Label end_profiler_check;
-  bool* is_profiling_flag =
-      isolate()->cpu_profiler()->is_profiling_address();
-  STATIC_ASSERT(sizeof(*is_profiling_flag) == 1);
-  mov(r3, Operand(reinterpret_cast<int32_t>(is_profiling_flag)));
-  ldrb(r3, MemOperand(r3, 0));
-  cmp(r3, Operand(0));
-  b(eq, &profiler_disabled);
-
-  // Additional parameter is the address of the actual callback.
-  mov(thunk_last_arg, Operand(reinterpret_cast<int32_t>(function_address)));
-  mov(r3, Operand(thunk_ref));
-  jmp(&end_profiler_check);
-
-  bind(&profiler_disabled);
-  mov(r3, Operand(function));
-  bind(&end_profiler_check);
 
   // Native call returns to the DirectCEntry stub which redirects to the
   // return address pushed on stack (could have moved after GC).
@@ -3434,14 +3432,14 @@ void MacroAssembler::EmitSeqStringSetCharCheck(Register string,
                                                uint32_t encoding_mask) {
   Label is_object;
   SmiTst(string);
-  ThrowIf(eq, kNonObject);
+  Check(ne, kNonObject);
 
   ldr(ip, FieldMemOperand(string, HeapObject::kMapOffset));
   ldrb(ip, FieldMemOperand(ip, Map::kInstanceTypeOffset));
 
   and_(ip, ip, Operand(kStringRepresentationMask | kStringEncodingMask));
   cmp(ip, Operand(encoding_mask));
-  ThrowIf(ne, kUnexpectedStringType);
+  Check(eq, kUnexpectedStringType);
 
   // The index is assumed to be untagged coming in, tag it to compare with the
   // string length without using a temp register, it is restored at the end of
@@ -3450,15 +3448,15 @@ void MacroAssembler::EmitSeqStringSetCharCheck(Register string,
   TrySmiTag(index, index, &index_tag_bad);
   b(&index_tag_ok);
   bind(&index_tag_bad);
-  Throw(kIndexIsTooLarge);
+  Abort(kIndexIsTooLarge);
   bind(&index_tag_ok);
 
   ldr(ip, FieldMemOperand(string, String::kLengthOffset));
   cmp(index, ip);
-  ThrowIf(ge, kIndexIsTooLarge);
+  Check(lt, kIndexIsTooLarge);
 
   cmp(index, Operand(Smi::FromInt(0)));
-  ThrowIf(lt, kIndexIsNegative);
+  Check(ge, kIndexIsNegative);
 
   SmiUntag(index, index);
 }

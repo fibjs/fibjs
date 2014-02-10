@@ -671,7 +671,7 @@ void MacroAssembler::PrepareCallApiFunction(int arg_stack_space) {
 
 
 void MacroAssembler::CallApiFunctionAndReturn(
-    Address function_address,
+    Register function_address,
     Address thunk_address,
     Register thunk_last_arg,
     int stack_space,
@@ -697,6 +697,7 @@ void MacroAssembler::CallApiFunctionAndReturn(
   ExternalReference scheduled_exception_address =
       ExternalReference::scheduled_exception_address(isolate());
 
+  ASSERT(rdx.is(function_address) || r8.is(function_address));
   // Allocate HandleScope in callee-save registers.
   Register prev_next_address_reg = r14;
   Register prev_limit_reg = rbx;
@@ -726,14 +727,13 @@ void MacroAssembler::CallApiFunctionAndReturn(
   j(zero, &profiler_disabled);
 
   // Third parameter is the address of the actual getter function.
-  Move(thunk_last_arg, function_address, RelocInfo::EXTERNAL_REFERENCE);
+  Move(thunk_last_arg, function_address);
   Move(rax, thunk_address, RelocInfo::EXTERNAL_REFERENCE);
   jmp(&end_profiler_check);
 
   bind(&profiler_disabled);
   // Call the api function!
-  Move(rax, reinterpret_cast<Address>(function_address),
-       RelocInfo::EXTERNAL_REFERENCE);
+  Move(rax, function_address);
 
   bind(&end_profiler_check);
 
@@ -4605,7 +4605,7 @@ void MacroAssembler::EmitSeqStringSetCharCheck(Register string,
                                                uint32_t encoding_mask) {
   Label is_object;
   JumpIfNotSmi(string, &is_object);
-  Throw(kNonObject);
+  Abort(kNonObject);
   bind(&is_object);
 
   push(value);
@@ -4615,17 +4615,17 @@ void MacroAssembler::EmitSeqStringSetCharCheck(Register string,
   andb(value, Immediate(kStringRepresentationMask | kStringEncodingMask));
   cmpq(value, Immediate(encoding_mask));
   pop(value);
-  ThrowIf(not_equal, kUnexpectedStringType);
+  Check(equal, kUnexpectedStringType);
 
   // The index is assumed to be untagged coming in, tag it to compare with the
   // string length without using a temp register, it is restored at the end of
   // this function.
   Integer32ToSmi(index, index);
   SmiCompare(index, FieldOperand(string, String::kLengthOffset));
-  ThrowIf(greater_equal, kIndexIsTooLarge);
+  Check(less, kIndexIsTooLarge);
 
   SmiCompare(index, Smi::FromInt(0));
-  ThrowIf(less, kIndexIsNegative);
+  Check(greater_equal, kIndexIsNegative);
 
   // Restore the index
   SmiToInteger32(index, index);

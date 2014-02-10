@@ -952,11 +952,6 @@ void LCodeGen::DoCallStub(LCallStub* instr) {
   ASSERT(ToRegister(instr->context()).is(rsi));
   ASSERT(ToRegister(instr->result()).is(rax));
   switch (instr->hydrogen()->major_key()) {
-    case CodeStub::RegExpConstructResult: {
-      RegExpConstructResultStub stub;
-      CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
-      break;
-    }
     case CodeStub::RegExpExec: {
       RegExpExecStub stub;
       CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
@@ -1579,40 +1574,6 @@ void LCodeGen::DoMapEnumLength(LMapEnumLength* instr) {
 }
 
 
-void LCodeGen::DoElementsKind(LElementsKind* instr) {
-  Register result = ToRegister(instr->result());
-  Register input = ToRegister(instr->value());
-
-  // Load map into |result|.
-  __ movp(result, FieldOperand(input, HeapObject::kMapOffset));
-  // Load the map's "bit field 2" into |result|. We only need the first byte.
-  __ movzxbq(result, FieldOperand(result, Map::kBitField2Offset));
-  // Retrieve elements_kind from bit field 2.
-  __ and_(result, Immediate(Map::kElementsKindMask));
-  __ shr(result, Immediate(Map::kElementsKindShift));
-}
-
-
-void LCodeGen::DoValueOf(LValueOf* instr) {
-  Register input = ToRegister(instr->value());
-  Register result = ToRegister(instr->result());
-  ASSERT(input.is(result));
-  Label done;
-
-  if (!instr->hydrogen()->value()->IsHeapObject()) {
-    // If the object is a smi return the object.
-    __ JumpIfSmi(input, &done, Label::kNear);
-  }
-
-  // If the object is not a value type, return the object.
-  __ CmpObjectType(input, JS_VALUE_TYPE, kScratchRegister);
-  __ j(not_equal, &done, Label::kNear);
-  __ movp(result, FieldOperand(input, JSValue::kValueOffset));
-
-  __ bind(&done);
-}
-
-
 void LCodeGen::DoDateField(LDateField* instr) {
   Register object = ToRegister(instr->date());
   Register result = ToRegister(instr->result());
@@ -1729,18 +1690,6 @@ void LCodeGen::DoSeqStringSetChar(LSeqStringSetChar* instr) {
     } else {
       __ movw(operand, value);
     }
-  }
-}
-
-
-void LCodeGen::DoThrow(LThrow* instr) {
-  __ push(ToRegister(instr->value()));
-  ASSERT(ToRegister(instr->context()).is(rsi));
-  CallRuntime(Runtime::kThrow, 1, instr);
-
-  if (FLAG_debug_code) {
-    Comment("Unreachable code.");
-    __ int3();
   }
 }
 
@@ -2815,8 +2764,7 @@ void LCodeGen::DoLoadNamedField(LLoadNamedField* instr) {
   }
 
   Register object = ToRegister(instr->object());
-  if (FLAG_track_double_fields &&
-      instr->hydrogen()->representation().IsDouble()) {
+  if (instr->hydrogen()->representation().IsDouble()) {
     XMMRegister result = ToDoubleRegister(instr->result());
     __ movsd(result, FieldOperand(object, offset));
     return;
@@ -2896,16 +2844,6 @@ void LCodeGen::DoLoadFunctionPrototype(LLoadFunctionPrototype* instr) {
 void LCodeGen::DoLoadRoot(LLoadRoot* instr) {
   Register result = ToRegister(instr->result());
   __ LoadRoot(result, instr->index());
-}
-
-
-void LCodeGen::DoLoadExternalArrayPointer(
-    LLoadExternalArrayPointer* instr) {
-  Register result = ToRegister(instr->result());
-  Register input = ToRegister(instr->object());
-  __ movp(result,
-        FieldOperand(input,
-                     ExternalUint8ClampedArray::kExternalPointerOffset));
 }
 
 
@@ -3223,20 +3161,22 @@ void LCodeGen::DoWrapReceiver(LWrapReceiver* instr) {
   Label global_object, receiver_ok;
   Label::Distance dist = DeoptEveryNTimes() ? Label::kFar : Label::kNear;
 
-  // Do not transform the receiver to object for strict mode
-  // functions.
-  __ movp(kScratchRegister,
-          FieldOperand(function, JSFunction::kSharedFunctionInfoOffset));
-  __ testb(FieldOperand(kScratchRegister,
-                        SharedFunctionInfo::kStrictModeByteOffset),
-           Immediate(1 << SharedFunctionInfo::kStrictModeBitWithinByte));
-  __ j(not_equal, &receiver_ok, dist);
+  if (!instr->hydrogen()->known_function()) {
+    // Do not transform the receiver to object for strict mode
+    // functions.
+    __ movp(kScratchRegister,
+            FieldOperand(function, JSFunction::kSharedFunctionInfoOffset));
+    __ testb(FieldOperand(kScratchRegister,
+                          SharedFunctionInfo::kStrictModeByteOffset),
+             Immediate(1 << SharedFunctionInfo::kStrictModeBitWithinByte));
+    __ j(not_equal, &receiver_ok, dist);
 
-  // Do not transform the receiver to object for builtins.
-  __ testb(FieldOperand(kScratchRegister,
-                        SharedFunctionInfo::kNativeByteOffset),
-           Immediate(1 << SharedFunctionInfo::kNativeBitWithinByte));
-  __ j(not_equal, &receiver_ok, dist);
+    // Do not transform the receiver to object for builtins.
+    __ testb(FieldOperand(kScratchRegister,
+                          SharedFunctionInfo::kNativeByteOffset),
+             Immediate(1 << SharedFunctionInfo::kNativeBitWithinByte));
+    __ j(not_equal, &receiver_ok, dist);
+  }
 
   // Normal function. Replace undefined or null with global receiver.
   __ CompareRoot(receiver, Heap::kNullValueRootIndex);
@@ -3249,14 +3189,16 @@ void LCodeGen::DoWrapReceiver(LWrapReceiver* instr) {
   DeoptimizeIf(is_smi, instr->environment());
   __ CmpObjectType(receiver, FIRST_SPEC_OBJECT_TYPE, kScratchRegister);
   DeoptimizeIf(below, instr->environment());
-  __ jmp(&receiver_ok, Label::kNear);
 
+  __ jmp(&receiver_ok, Label::kNear);
   __ bind(&global_object);
   __ movp(receiver, FieldOperand(function, JSFunction::kContextOffset));
   __ movp(receiver,
-          Operand(receiver, Context::SlotOffset(Context::GLOBAL_OBJECT_INDEX)));
+          Operand(receiver,
+                  Context::SlotOffset(Context::GLOBAL_OBJECT_INDEX)));
   __ movp(receiver,
           FieldOperand(receiver, GlobalObject::kGlobalReceiverOffset));
+
   __ bind(&receiver_ok);
 }
 
@@ -3331,35 +3273,12 @@ void LCodeGen::DoContext(LContext* instr) {
 }
 
 
-void LCodeGen::DoOuterContext(LOuterContext* instr) {
-  Register context = ToRegister(instr->context());
-  Register result = ToRegister(instr->result());
-  __ movp(result,
-          Operand(context, Context::SlotOffset(Context::PREVIOUS_INDEX)));
-}
-
-
 void LCodeGen::DoDeclareGlobals(LDeclareGlobals* instr) {
   ASSERT(ToRegister(instr->context()).is(rsi));
   __ push(rsi);  // The context is the first argument.
   __ Push(instr->hydrogen()->pairs());
   __ Push(Smi::FromInt(instr->hydrogen()->flags()));
   CallRuntime(Runtime::kDeclareGlobals, 3, instr);
-}
-
-
-void LCodeGen::DoGlobalObject(LGlobalObject* instr) {
-  Register context = ToRegister(instr->context());
-  Register result = ToRegister(instr->result());
-  __ movp(result,
-          Operand(context, Context::SlotOffset(Context::GLOBAL_OBJECT_INDEX)));
-}
-
-
-void LCodeGen::DoGlobalReceiver(LGlobalReceiver* instr) {
-  Register global = ToRegister(instr->global());
-  Register result = ToRegister(instr->result());
-  __ movp(result, FieldOperand(global, GlobalObject::kGlobalReceiverOffset));
 }
 
 
@@ -3498,10 +3417,10 @@ void LCodeGen::DoDeferredMathAbsTaggedHeapNumber(LMathAbs* instr) {
   __ LoadFromSafepointRegisterSlot(input_reg, input_reg);
 
   __ bind(&allocated);
-  __ MoveDouble(tmp2, FieldOperand(input_reg, HeapNumber::kValueOffset));
+  __ movq(tmp2, FieldOperand(input_reg, HeapNumber::kValueOffset));
   __ shl(tmp2, Immediate(1));
   __ shr(tmp2, Immediate(1));
-  __ MoveDouble(FieldOperand(tmp, HeapNumber::kValueOffset), tmp2);
+  __ movq(FieldOperand(tmp, HeapNumber::kValueOffset), tmp2);
   __ StoreToSafepointRegisterSlot(input_reg, tmp);
 
   __ bind(&done);
@@ -3835,13 +3754,8 @@ void LCodeGen::DoCallFunction(LCallFunction* instr) {
   ASSERT(ToRegister(instr->result()).is(rax));
 
   int arity = instr->arity();
-  CallFunctionStub stub(arity, NO_CALL_FUNCTION_FLAGS);
-  if (instr->hydrogen()->IsTailCall()) {
-    if (NeedsEagerFrame()) __ leave();
-    __ jmp(stub.GetCode(isolate()), RelocInfo::CODE_TARGET);
-  } else {
-    CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
-  }
+  CallFunctionStub stub(arity, instr->hydrogen()->function_flags());
+  CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
 }
 
 
@@ -3975,7 +3889,7 @@ void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
         DeoptimizeIf(cc, instr->environment());
       }
     }
-  } else if (FLAG_track_double_fields && representation.IsDouble()) {
+  } else if (representation.IsDouble()) {
     ASSERT(transition.is_null());
     ASSERT(access.IsInobject());
     ASSERT(!hinstr->NeedsWriteBarrier());
@@ -4393,7 +4307,7 @@ void LCodeGen::DoStringAdd(LStringAdd* instr) {
   ASSERT(ToRegister(instr->left()).is(rdx));
   ASSERT(ToRegister(instr->right()).is(rax));
   StringAddStub stub(instr->hydrogen()->flags(),
-                     isolate()->heap()->GetPretenureMode());
+                     instr->hydrogen()->pretenure_flag());
   CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
 }
 

@@ -2297,7 +2297,7 @@ void MacroAssembler::PrepareCallApiFunction(int argc) {
 
 
 void MacroAssembler::CallApiFunctionAndReturn(
-    Address function_address,
+    Register function_address,
     Address thunk_address,
     Operand thunk_last_arg,
     int stack_space,
@@ -2310,6 +2310,7 @@ void MacroAssembler::CallApiFunctionAndReturn(
   ExternalReference level_address =
       ExternalReference::handle_scope_level_address(isolate());
 
+  ASSERT(edx.is(function_address));
   // Allocate HandleScope in callee-save registers.
   mov(ebx, Operand::StaticVariable(next_address));
   mov(edi, Operand::StaticVariable(limit_address));
@@ -2336,14 +2337,14 @@ void MacroAssembler::CallApiFunctionAndReturn(
   j(zero, &profiler_disabled);
 
   // Additional parameter is the address of the actual getter function.
-  mov(thunk_last_arg, Immediate(function_address));
+  mov(thunk_last_arg, function_address);
   // Call the api function.
   call(thunk_address, RelocInfo::RUNTIME_ENTRY);
   jmp(&end_profiler_check);
 
   bind(&profiler_disabled);
   // Call the api function.
-  call(function_address, RelocInfo::RUNTIME_ENTRY);
+  call(function_address);
   bind(&end_profiler_check);
 
   if (FLAG_log_timer_events) {
@@ -3222,7 +3223,7 @@ void MacroAssembler::EmitSeqStringSetCharCheck(Register string,
                                                uint32_t encoding_mask) {
   Label is_object;
   JumpIfNotSmi(string, &is_object, Label::kNear);
-  Throw(kNonObject);
+  Abort(kNonObject);
   bind(&is_object);
 
   push(value);
@@ -3232,20 +3233,19 @@ void MacroAssembler::EmitSeqStringSetCharCheck(Register string,
   and_(value, Immediate(kStringRepresentationMask | kStringEncodingMask));
   cmp(value, Immediate(encoding_mask));
   pop(value);
-  ThrowIf(not_equal, kUnexpectedStringType);
+  Check(equal, kUnexpectedStringType);
 
   // The index is assumed to be untagged coming in, tag it to compare with the
   // string length without using a temp register, it is restored at the end of
   // this function.
   SmiTag(index);
-  // Can't use overflow here directly, compiler can't seem to disambiguate.
-  ThrowIf(NegateCondition(no_overflow), kIndexIsTooLarge);
+  Check(no_overflow, kIndexIsTooLarge);
 
   cmp(index, FieldOperand(string, String::kLengthOffset));
-  ThrowIf(greater_equal, kIndexIsTooLarge);
+  Check(less, kIndexIsTooLarge);
 
   cmp(index, Immediate(Smi::FromInt(0)));
-  ThrowIf(less, kIndexIsNegative);
+  Check(greater_equal, kIndexIsNegative);
 
   // Restore the index
   SmiUntag(index);

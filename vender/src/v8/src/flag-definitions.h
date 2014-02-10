@@ -224,6 +224,8 @@ DEFINE_bool(allocation_site_pretenuring, true,
             "pretenure with allocation sites")
 DEFINE_bool(trace_pretenuring, false,
             "trace pretenuring decisions of HAllocate instructions")
+DEFINE_bool(trace_pretenuring_statistics, false,
+            "trace allocation site pretenuring statistics")
 DEFINE_bool(track_fields, true, "track fields with only smi values")
 DEFINE_bool(track_double_fields, true, "track fields with double values")
 DEFINE_bool(track_heap_object_fields, true, "track fields with heap values")
@@ -232,6 +234,7 @@ DEFINE_implication(track_double_fields, track_fields)
 DEFINE_implication(track_heap_object_fields, track_fields)
 DEFINE_implication(track_computed_fields, track_fields)
 DEFINE_bool(smi_binop, true, "support smi representation in binary operations")
+DEFINE_bool(smi_x64_store_opt, false, "optimized stores of smi on x64")
 
 // Flags for optimization types.
 DEFINE_bool(optimize_for_size, false,
@@ -247,9 +250,10 @@ DEFINE_bool(crankshaft, true, "use crankshaft")
 DEFINE_string(hydrogen_filter, "*", "optimization filter")
 DEFINE_bool(use_range, true, "use hydrogen range analysis")
 DEFINE_bool(use_gvn, true, "use hydrogen global value numbering")
+DEFINE_int(gvn_iterations, 3, "maximum number of GVN fix-point iterations")
 DEFINE_bool(use_canonicalizing, true, "use hydrogen instruction canonicalizing")
 DEFINE_bool(use_inlining, true, "use function inlining")
-DEFINE_bool(use_escape_analysis, false, "use hydrogen escape analysis")
+DEFINE_bool(use_escape_analysis, true, "use hydrogen escape analysis")
 DEFINE_bool(use_allocation_folding, true, "use allocation folding")
 DEFINE_int(max_inlining_levels, 5, "maximum number of inlining levels")
 DEFINE_int(max_inlined_source_size, 600,
@@ -351,8 +355,8 @@ DEFINE_bool(omit_map_checks_for_leaf_maps, true,
 
 // Profiler flags.
 DEFINE_int(frame_count, 1, "number of stack frames inspected by the profiler")
-           // 0x1700 fits in the immediate field of an ARM instruction.
-DEFINE_int(interrupt_budget, 0x1700,
+           // 0x1800 fits in the immediate field of an ARM instruction.
+DEFINE_int(interrupt_budget, 0x1800,
            "execution budget before interrupt is triggered")
 DEFINE_int(type_info_threshold, 25,
            "percentage of ICs that must have type info to allow optimization")

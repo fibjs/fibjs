@@ -201,11 +201,58 @@ namespace internal {
   V(Symbol, elements_transition_symbol, ElementsTransitionSymbol)              \
   V(SeededNumberDictionary, empty_slow_element_dictionary,                     \
       EmptySlowElementDictionary)                                              \
-  V(Symbol, observed_symbol, ObservedSymbol)
+  V(Symbol, observed_symbol, ObservedSymbol)                                   \
+  V(FixedArray, materialized_objects, MaterializedObjects)                     \
+  V(FixedArray, allocation_sites_scratchpad, AllocationSitesScratchpad)
 
 #define ROOT_LIST(V)                                  \
   STRONG_ROOT_LIST(V)                                 \
   V(StringTable, string_table, StringTable)
+
+// Heap roots that are known to be immortal immovable, for which we can safely
+// skip write barriers.
+#define IMMORTAL_IMMOVABLE_ROOT_LIST(V)   \
+  V(byte_array_map)                       \
+  V(free_space_map)                       \
+  V(one_pointer_filler_map)               \
+  V(two_pointer_filler_map)               \
+  V(undefined_value)                      \
+  V(the_hole_value)                       \
+  V(null_value)                           \
+  V(true_value)                           \
+  V(false_value)                          \
+  V(uninitialized_value)                  \
+  V(cell_map)                             \
+  V(global_property_cell_map)             \
+  V(shared_function_info_map)             \
+  V(meta_map)                             \
+  V(heap_number_map)                      \
+  V(native_context_map)                   \
+  V(fixed_array_map)                      \
+  V(code_map)                             \
+  V(scope_info_map)                       \
+  V(fixed_cow_array_map)                  \
+  V(fixed_double_array_map)               \
+  V(constant_pool_array_map)              \
+  V(no_interceptor_result_sentinel)       \
+  V(hash_table_map)                       \
+  V(empty_fixed_array)                    \
+  V(empty_byte_array)                     \
+  V(empty_descriptor_array)               \
+  V(empty_constant_pool_array)            \
+  V(arguments_marker)                     \
+  V(symbol_map)                           \
+  V(non_strict_arguments_elements_map)    \
+  V(function_context_map)                 \
+  V(catch_context_map)                    \
+  V(with_context_map)                     \
+  V(block_context_map)                    \
+  V(module_context_map)                   \
+  V(global_context_map)                   \
+  V(oddball_map)                          \
+  V(message_object_map)                   \
+  V(foreign_map)                          \
+  V(neander_map)
 
 #define INTERNALIZED_STRING_LIST(V)                                      \
   V(Array_string, "Array")                                               \
@@ -1367,6 +1414,10 @@ class Heap {
     roots_[kStoreBufferTopRootIndex] = reinterpret_cast<Smi*>(top);
   }
 
+  void public_set_materialized_objects(FixedArray* objects) {
+    roots_[kMaterializedObjectsRootIndex] = objects;
+  }
+
   // Generated code can embed this address to get access to the roots.
   Object** roots_array_start() { return roots_; }
 
@@ -1512,17 +1563,11 @@ class Heap {
       8 * (Page::kPageSize > MB ? Page::kPageSize : MB);
 
   intptr_t OldGenerationAllocationLimit(intptr_t old_gen_size) {
-    const int divisor = FLAG_stress_compaction ? 10 :
-        new_space_high_promotion_mode_active_ ? 1 : 3;
+    const int divisor = FLAG_stress_compaction ? 10 : 1;
     intptr_t limit =
         Max(old_gen_size + old_gen_size / divisor,
             kMinimumOldGenerationAllocationLimit);
     limit += new_space_.Capacity();
-    // TODO(hpayer): Can be removed when when pretenuring is supported for all
-    // allocation sites.
-    if (IsHighSurvivalRate() && IsStableOrIncreasingSurvivalTrend()) {
-      limit *= 2;
-    }
     intptr_t halfway_to_the_max = (old_gen_size + max_old_generation_size_) / 2;
     return Min(limit, halfway_to_the_max);
   }
@@ -2079,7 +2124,6 @@ class Heap {
   // Returns whether there is a chance that another major GC could
   // collect more garbage.
   bool CollectGarbage(
-      AllocationSpace space,
       GarbageCollector collector,
       const char* gc_reason,
       const char* collector_reason,
@@ -2134,7 +2178,6 @@ class Heap {
   NO_INLINE(void CreateJSConstructEntryStub());
 
   void CreateFixedStubs();
-  void CreateStubsRequiringBuiltins();
 
   MUST_USE_RESULT MaybeObject* CreateOddball(const char* to_string,
                                              Object* to_number,
@@ -2242,6 +2285,18 @@ class Heap {
   int FullSizeNumberStringCacheLength();
   // Flush the number to string cache.
   void FlushNumberStringCache();
+
+  // Allocates a fixed-size allocation sites scratchpad.
+  MUST_USE_RESULT MaybeObject* AllocateAllocationSitesScratchpad();
+
+  // Sets used allocation sites entries to undefined.
+  void FlushAllocationSitesScratchpad();
+
+  // Initializes the allocation sites scratchpad with undefined values.
+  void InitializeAllocationSitesScratchpad();
+
+  // Adds an allocation site to the scratchpad if there is space left.
+  void AddAllocationSiteToScratchpad(AllocationSite* site);
 
   void UpdateSurvivalRateTrend(int start_new_space_size);
 
@@ -2415,10 +2470,8 @@ class Heap {
   int no_weak_object_verification_scope_depth_;
 #endif
 
-
   static const int kAllocationSiteScratchpadSize = 256;
-  int allocation_sites_scratchpad_length;
-  AllocationSite* allocation_sites_scratchpad[kAllocationSiteScratchpadSize];
+  int allocation_sites_scratchpad_length_;
 
   static const int kMaxMarkSweepsInIdleRound = 7;
   static const int kIdleScavengeThreshold = 5;

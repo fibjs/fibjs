@@ -112,6 +112,7 @@ class HBasicBlock V8_FINAL : public ZoneObject {
   void RemovePhi(HPhi* phi);
   void AddInstruction(HInstruction* instr, int position);
   bool Dominates(HBasicBlock* other) const;
+  bool EqualToOrDominates(HBasicBlock* other) const;
   int LoopNestingDepth() const;
 
   void SetInitialEnvironment(HEnvironment* env);
@@ -1311,6 +1312,10 @@ class HGraphBuilder {
   HValue* BuildUncheckedDictionaryElementLoad(HValue* receiver,
                                               HValue* key);
 
+  HValue* BuildRegExpConstructResult(HValue* length,
+                                     HValue* index,
+                                     HValue* input);
+
   // Allocates a new object according with the given allocation properties.
   HAllocate* BuildAllocate(HValue* object_size,
                            HType type,
@@ -2179,7 +2184,11 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
   AST_NODE_LIST(DECLARE_VISIT)
 #undef DECLARE_VISIT
 
+  Type* ToType(Handle<Map> map) { return IC::MapToType<Type>(map, zone()); }
+
  private:
+  enum PropertyAccessType { LOAD, STORE };
+
   // Helpers for flow graph construction.
   enum GlobalPropertyAccess {
     kUseCell,
@@ -2206,12 +2215,14 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
                  BailoutId return_id,
                  InliningKind inlining_kind);
 
-  bool TryInlineCall(Call* expr, bool drop_extra = false);
+  bool TryInlineCall(Call* expr);
   bool TryInlineConstruct(CallNew* expr, HValue* implicit_return_value);
   bool TryInlineGetter(Handle<JSFunction> getter,
+                       Handle<Map> receiver_map,
                        BailoutId ast_id,
                        BailoutId return_id);
   bool TryInlineSetter(Handle<JSFunction> setter,
+                       Handle<Map> receiver_map,
                        BailoutId id,
                        BailoutId assignment_id,
                        HValue* implicit_return_value);
@@ -2220,9 +2231,30 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
                       int arguments_count);
   bool TryInlineBuiltinMethodCall(Call* expr,
                                   HValue* receiver,
-                                  Handle<Map> receiver_map,
-                                  CheckType check_type);
-  bool TryInlineBuiltinFunctionCall(Call* expr, bool drop_extra);
+                                  Handle<Map> receiver_map);
+  bool TryInlineBuiltinFunctionCall(Call* expr);
+  enum ApiCallType {
+    kCallApiFunction,
+    kCallApiMethod,
+    kCallApiGetter,
+    kCallApiSetter
+  };
+  bool TryInlineApiMethodCall(Call* expr,
+                              HValue* receiver,
+                              SmallMapList* receiver_types);
+  bool TryInlineApiFunctionCall(Call* expr, HValue* receiver);
+  bool TryInlineApiGetter(Handle<JSFunction> function,
+                          Handle<Map> receiver_map,
+                          BailoutId ast_id);
+  bool TryInlineApiSetter(Handle<JSFunction> function,
+                          Handle<Map> receiver_map,
+                          BailoutId ast_id);
+  bool TryInlineApiCall(Handle<JSFunction> function,
+                         HValue* receiver,
+                         SmallMapList* receiver_maps,
+                         int argc,
+                         BailoutId ast_id,
+                         ApiCallType call_type);
 
   // If --trace-inlining, print a line of the inlining trace.  Inlining
   // succeeded if the reason string is NULL and failed if there is a
@@ -2237,11 +2269,13 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
 
   void HandlePropertyAssignment(Assignment* expr);
   void HandleCompoundAssignment(Assignment* expr);
-  void HandlePolymorphicLoadNamedField(BailoutId ast_id,
-                                       BailoutId return_id,
-                                       HValue* object,
-                                       SmallMapList* types,
-                                       Handle<String> name);
+  void HandlePolymorphicNamedFieldAccess(PropertyAccessType access_type,
+                                         BailoutId ast_id,
+                                         BailoutId return_id,
+                                         HValue* object,
+                                         HValue* value,
+                                         SmallMapList* types,
+                                         Handle<String> name);
 
   void VisitTypedArrayInitialize(CallRuntime* expr);
 
@@ -2252,16 +2286,21 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
 
   class PropertyAccessInfo {
    public:
-    PropertyAccessInfo(Isolate* isolate, Handle<Map> map, Handle<String> name)
-        : lookup_(isolate),
-          map_(map),
+    PropertyAccessInfo(HOptimizedGraphBuilder* builder,
+                       PropertyAccessType access_type,
+                       Type* type,
+                       Handle<String> name)
+        : lookup_(builder->isolate()),
+          builder_(builder),
+          access_type_(access_type),
+          type_(type),
           name_(name),
           access_(HObjectAccess::ForMap()) { }
 
     // Checkes whether this PropertyAccessInfo can be handled as a monomorphic
     // load named. It additionally fills in the fields necessary to generate the
     // lookup code.
-    bool CanLoadMonomorphic();
+    bool CanAccessMonomorphic();
 
     // Checks whether all types behave uniform when loading name. If all maps
     // behave the same, a single monomorphic load instruction can be emitted,
@@ -2269,56 +2308,69 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
     // an instance of any of the types.
     // This method skips the first type in types, assuming that this
     // PropertyAccessInfo is built for types->first().
-    bool CanLoadAsMonomorphic(SmallMapList* types);
+    bool CanAccessAsMonomorphic(SmallMapList* types);
+
+    Handle<Map> map() {
+      if (type_->Is(Type::Number())) {
+        Context* context = current_info()->closure()->context();
+        context = context->native_context();
+        return handle(context->number_function()->initial_map());
+      } else if (type_->Is(Type::Boolean())) {
+        Context* context = current_info()->closure()->context();
+        context = context->native_context();
+        return handle(context->boolean_function()->initial_map());
+      } else if (type_->Is(Type::String())) {
+        Context* context = current_info()->closure()->context();
+        context = context->native_context();
+        return handle(context->string_function()->initial_map());
+      } else {
+        return type_->AsClass();
+      }
+    }
+    Type* type() const { return type_; }
+    Handle<String> name() const { return name_; }
 
     bool IsJSObjectFieldAccessor() {
       int offset;  // unused
-      return Accessors::IsJSObjectFieldAccessor(map_, name_, &offset);
+      return Accessors::IsJSObjectFieldAccessor<Type>(type_, name_, &offset);
     }
 
     bool GetJSObjectFieldAccess(HObjectAccess* access) {
-      if (IsStringLength()) {
-        *access = HObjectAccess::ForStringLength();
-        return true;
-      } else if (IsArrayLength()) {
-        *access = HObjectAccess::ForArrayLength(map_->elements_kind());
-        return true;
-      } else {
-        int offset;
-        if (Accessors::IsJSObjectFieldAccessor(map_, name_, &offset)) {
-          *access = HObjectAccess::ForJSObjectOffset(offset);
-          return true;
+      int offset;
+      if (Accessors::IsJSObjectFieldAccessor<Type>(type_, name_, &offset)) {
+        if (type_->Is(Type::String())) {
+          ASSERT(name_->Equals(isolate()->heap()->length_string()));
+          *access = HObjectAccess::ForStringLength();
+        } else if (type_->Is(Type::Array())) {
+          ASSERT(name_->Equals(isolate()->heap()->length_string()));
+          *access = HObjectAccess::ForArrayLength(map()->elements_kind());
+        } else {
+          *access = HObjectAccess::ForMapAndOffset(map(), offset);
         }
-        return false;
+        return true;
       }
+      return false;
     }
 
     bool has_holder() { return !holder_.is_null(); }
+    bool IsLoad() const { return access_type_ == LOAD; }
 
     LookupResult* lookup() { return &lookup_; }
-    Handle<Map> map() { return map_; }
     Handle<JSObject> holder() { return holder_; }
     Handle<JSFunction> accessor() { return accessor_; }
     Handle<Object> constant() { return constant_; }
+    Handle<Object> transition() { return transition_; }
     HObjectAccess access() { return access_; }
 
    private:
+    Type* ToType(Handle<Map> map) { return builder_->ToType(map); }
     Isolate* isolate() { return lookup_.isolate(); }
-
-    bool IsStringLength() {
-      return map_->instance_type() < FIRST_NONSTRING_TYPE &&
-          name_->Equals(isolate()->heap()->length_string());
-    }
-
-    bool IsArrayLength() {
-      return map_->instance_type() == JS_ARRAY_TYPE &&
-          name_->Equals(isolate()->heap()->length_string());
-    }
+    CompilationInfo* current_info() { return builder_->current_info(); }
 
     bool LoadResult(Handle<Map> map);
     bool LookupDescriptor();
     bool LookupInPrototypes();
-    bool IsCompatibleForLoad(PropertyAccessInfo* other);
+    bool IsCompatible(PropertyAccessInfo* other);
 
     void GeneralizeRepresentation(Representation r) {
       access_ = access_.WithRepresentation(
@@ -2326,39 +2378,39 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
     }
 
     LookupResult lookup_;
-    Handle<Map> map_;
+    HOptimizedGraphBuilder* builder_;
+    PropertyAccessType access_type_;
+    Type* type_;
     Handle<String> name_;
     Handle<JSObject> holder_;
     Handle<JSFunction> accessor_;
+    Handle<JSObject> api_holder_;
     Handle<Object> constant_;
+    Handle<Map> transition_;
     HObjectAccess access_;
   };
 
-  HInstruction* BuildLoadMonomorphic(PropertyAccessInfo* info,
-                                     HValue* object,
-                                     HInstruction* checked_object,
-                                     BailoutId ast_id,
-                                     BailoutId return_id,
-                                     bool can_inline_accessor = true);
+  HInstruction* BuildMonomorphicAccess(PropertyAccessInfo* info,
+                                       HValue* object,
+                                       HValue* checked_object,
+                                       HValue* value,
+                                       BailoutId ast_id,
+                                       BailoutId return_id,
+                                       bool can_inline_accessor = true);
 
-  void HandlePolymorphicStoreNamedField(BailoutId assignment_id,
-                                        HValue* object,
-                                        HValue* value,
-                                        SmallMapList* types,
-                                        Handle<String> name);
-  bool TryStorePolymorphicAsMonomorphic(BailoutId assignment_id,
-                                        HValue* object,
-                                        HValue* value,
-                                        SmallMapList* types,
-                                        Handle<String> name);
+  HInstruction* BuildNamedAccess(PropertyAccessType access,
+                                 BailoutId ast_id,
+                                 BailoutId reutrn_id,
+                                 Expression* expr,
+                                 HValue* object,
+                                 Handle<String> name,
+                                 HValue* value,
+                                 bool is_uninitialized = false);
+
   void HandlePolymorphicCallNamed(Call* expr,
                                   HValue* receiver,
                                   SmallMapList* types,
                                   Handle<String> name);
-  bool TryCallPolymorphicAsMonomorphic(Call* expr,
-                                       HValue* receiver,
-                                       SmallMapList* types,
-                                       Handle<String> name);
   void HandleLiteralCompareTypeof(CompareOperation* expr,
                                   Expression* sub_expr,
                                   Handle<String> check);
@@ -2377,9 +2429,16 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
 
   HInstruction* BuildStringCharCodeAt(HValue* string,
                                       HValue* index);
-  HValue* BuildBinaryOperation(BinaryOperation* expr,
-                               HValue* left,
-                               HValue* right);
+
+  enum PushBeforeSimulateBehavior {
+    PUSH_BEFORE_SIMULATE,
+    NO_PUSH_BEFORE_SIMULATE
+  };
+  HValue* BuildBinaryOperation(
+      BinaryOperation* expr,
+      HValue* left,
+      HValue* right,
+      PushBeforeSimulateBehavior push_sim_result);
   HInstruction* BuildIncrement(bool returns_original_input,
                                CountOperation* expr);
   HInstruction* BuildLoadKeyedGeneric(HValue* object,
@@ -2415,9 +2474,11 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
                                    bool is_store,
                                    bool* has_side_effects);
 
-  HInstruction* BuildLoadNamedGeneric(HValue* object,
-                                      Handle<String> name,
-                                      Property* expr);
+  HInstruction* BuildNamedGeneric(PropertyAccessType access,
+                                  HValue* object,
+                                  Handle<String> name,
+                                  HValue* value,
+                                  bool is_uninitialized = false);
 
   HCheckMaps* AddCheckMap(HValue* object, Handle<Map> map);
 
@@ -2441,18 +2502,9 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
                   BailoutId return_id,
                   bool is_uninitialized = false);
 
-  HInstruction* BuildStoreNamedField(HValue* object,
-                                     Handle<String> name,
-                                     HValue* value,
-                                     Handle<Map> map,
-                                     LookupResult* lookup);
-  HInstruction* BuildStoreNamedGeneric(HValue* object,
-                                       Handle<String> name,
-                                       HValue* value);
-  HInstruction* BuildStoreNamedMonomorphic(HValue* object,
-                                           Handle<String> name,
-                                           HValue* value,
-                                           Handle<Map> map);
+  HInstruction* BuildStoreNamedField(PropertyAccessInfo* info,
+                                     HValue* checked_object,
+                                     HValue* value);
   HInstruction* BuildStoreKeyedGeneric(HValue* object,
                                        HValue* key,
                                        HValue* value);
@@ -2493,10 +2545,6 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
   void AddCheckPrototypeMaps(Handle<JSObject> holder,
                              Handle<Map> receiver_map);
 
-  void AddCheckConstantFunction(Handle<JSObject> holder,
-                                HValue* receiver,
-                                Handle<Map> receiver_map);
-
   HInstruction* NewPlainFunctionCall(HValue* fun,
                                      int argument_count,
                                      bool pass_argument_count);
@@ -2507,10 +2555,6 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
 
   HInstruction* BuildCallConstantFunction(Handle<JSFunction> target,
                                           int argument_count);
-
-  HInstruction* NewCallKeyed(HValue* key, int argument_count);
-
-  HInstruction* NewCallNamed(Handle<String> name, int argument_count);
 
   // The translation state of the currently-being-translated function.
   FunctionState* function_state_;

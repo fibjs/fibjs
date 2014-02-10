@@ -150,7 +150,7 @@ Heap::Heap()
 #ifdef VERIFY_HEAP
       no_weak_object_verification_scope_depth_(0),
 #endif
-      allocation_sites_scratchpad_length(0),
+      allocation_sites_scratchpad_length_(0),
       promotion_queue_(this),
       configured_(false),
       external_string_table_(this),
@@ -506,8 +506,7 @@ void Heap::RepairFreeListsAfterBoot() {
 
 
 void Heap::ProcessPretenuringFeedback() {
-  if (FLAG_allocation_site_pretenuring &&
-      new_space_high_promotion_mode_active_) {
+  if (FLAG_allocation_site_pretenuring) {
     int tenure_decisions = 0;
     int dont_tenure_decisions = 0;
     int allocation_mementos_found = 0;
@@ -517,16 +516,17 @@ void Heap::ProcessPretenuringFeedback() {
     // If the scratchpad overflowed, we have to iterate over the allocation
     // sites list.
     bool use_scratchpad =
-        allocation_sites_scratchpad_length < kAllocationSiteScratchpadSize;
+        allocation_sites_scratchpad_length_ < kAllocationSiteScratchpadSize;
 
     int i = 0;
     Object* list_element = allocation_sites_list();
     bool trigger_deoptimization = false;
     while (use_scratchpad ?
-              i < allocation_sites_scratchpad_length :
+              i < allocation_sites_scratchpad_length_ :
               list_element->IsAllocationSite()) {
       AllocationSite* site = use_scratchpad ?
-        allocation_sites_scratchpad[i] : AllocationSite::cast(list_element);
+          AllocationSite::cast(allocation_sites_scratchpad()->get(i)) :
+          AllocationSite::cast(list_element);
       allocation_mementos_found += site->memento_found_count();
       if (site->memento_found_count() > 0) {
         active_allocation_sites++;
@@ -547,12 +547,9 @@ void Heap::ProcessPretenuringFeedback() {
 
     if (trigger_deoptimization) isolate_->stack_guard()->DeoptMarkedCode();
 
-    allocation_sites_scratchpad_length = 0;
+    FlushAllocationSitesScratchpad();
 
-    // TODO(mvstanton): Pretenure decisions are only made once for an allocation
-    // site. Find a sane way to decide about revisiting the decision later.
-
-    if (FLAG_trace_track_allocation_sites &&
+    if (FLAG_trace_pretenuring_statistics &&
         (allocation_mementos_found > 0 ||
          tenure_decisions > 0 ||
          dont_tenure_decisions > 0)) {
@@ -740,7 +737,7 @@ void Heap::CollectAllAvailableGarbage(const char* gc_reason) {
   const int kMaxNumberOfAttempts = 7;
   const int kMinNumberOfAttempts = 2;
   for (int attempt = 0; attempt < kMaxNumberOfAttempts; attempt++) {
-    if (!CollectGarbage(OLD_POINTER_SPACE, MARK_COMPACTOR, gc_reason, NULL) &&
+    if (!CollectGarbage(MARK_COMPACTOR, gc_reason, NULL) &&
         attempt + 1 >= kMinNumberOfAttempts) {
       break;
     }
@@ -752,8 +749,7 @@ void Heap::CollectAllAvailableGarbage(const char* gc_reason) {
 }
 
 
-bool Heap::CollectGarbage(AllocationSpace space,
-                          GarbageCollector collector,
+bool Heap::CollectGarbage(GarbageCollector collector,
                           const char* gc_reason,
                           const char* collector_reason,
                           const v8::GCCallbackFlags gc_callback_flags) {
@@ -768,6 +764,18 @@ bool Heap::CollectGarbage(AllocationSpace space,
   // allocation attempts to go through.
   allocation_timeout_ = Max(6, FLAG_gc_interval);
 #endif
+
+  // There may be an allocation memento behind every object in new space.
+  // If we evacuate a not full new space or if we are on the last page of
+  // the new space, then there may be uninitialized memory behind the top
+  // pointer of the new space page. We store a filler object there to
+  // identify the unused space.
+  Address from_top = new_space_.top();
+  Address from_limit = new_space_.limit();
+  if (from_top < from_limit) {
+    int remaining_in_page = static_cast<int>(from_limit - from_top);
+    CreateFillerObjectAt(from_top, remaining_in_page);
+  }
 
   if (collector == SCAVENGER && !incremental_marking()->IsStopped()) {
     if (FLAG_trace_incremental_marking) {
@@ -1113,9 +1121,7 @@ bool Heap::PerformGarbageCollection(
     // to deoptimize all optimized code in global pretenuring mode and all
     // code which should be tenured in local pretenuring mode.
     if (FLAG_pretenuring) {
-      if (FLAG_allocation_site_pretenuring) {
-        ResetAllAllocationSitesDependentCode(NOT_TENURED);
-      } else {
+      if (!FLAG_allocation_site_pretenuring) {
         isolate_->stack_guard()->FullDeopt();
       }
     }
@@ -3065,12 +3071,6 @@ void Heap::CreateFixedStubs() {
 }
 
 
-void Heap::CreateStubsRequiringBuiltins() {
-  HandleScope scope(isolate());
-  CodeStub::GenerateStubsRequiringBuiltinsAheadOfTime(isolate());
-}
-
-
 bool Heap::CreateInitialObjects() {
   Object* obj;
 
@@ -3293,8 +3293,19 @@ bool Heap::CreateInitialObjects() {
   Symbol::cast(obj)->set_is_private(true);
   set_observed_symbol(Symbol::cast(obj));
 
+  { MaybeObject* maybe_obj = AllocateFixedArray(0, TENURED);
+    if (!maybe_obj->ToObject(&obj)) return false;
+  }
+  set_materialized_objects(FixedArray::cast(obj));
+
   // Handling of script id generation is in Factory::NewScript.
   set_last_script_id(Smi::FromInt(v8::Script::kNoScriptId));
+
+  { MaybeObject* maybe_obj = AllocateAllocationSitesScratchpad();
+    if (!maybe_obj->ToObject(&obj)) return false;
+  }
+  set_allocation_sites_scratchpad(FixedArray::cast(obj));
+  InitializeAllocationSitesScratchpad();
 
   // Initialize keyed lookup cache.
   isolate_->keyed_lookup_cache()->Clear();
@@ -3582,6 +3593,39 @@ MaybeObject* Heap::Uint32ToString(uint32_t value,
   MaybeObject* maybe = NumberFromUint32(value);
   if (!maybe->To<Object>(&number)) return maybe;
   return NumberToString(number, check_number_string_cache);
+}
+
+
+MaybeObject* Heap::AllocateAllocationSitesScratchpad() {
+  MaybeObject* maybe_obj =
+      AllocateFixedArray(kAllocationSiteScratchpadSize, TENURED);
+  return maybe_obj;
+}
+
+
+void Heap::FlushAllocationSitesScratchpad() {
+  for (int i = 0; i < allocation_sites_scratchpad_length_; i++) {
+    allocation_sites_scratchpad()->set_undefined(i);
+  }
+  allocation_sites_scratchpad_length_ = 0;
+}
+
+
+void Heap::InitializeAllocationSitesScratchpad() {
+  ASSERT(allocation_sites_scratchpad()->length() ==
+         kAllocationSiteScratchpadSize);
+  for (int i = 0; i < kAllocationSiteScratchpadSize; i++) {
+    allocation_sites_scratchpad()->set_undefined(i);
+  }
+}
+
+
+void Heap::AddAllocationSiteToScratchpad(AllocationSite* site) {
+  if (allocation_sites_scratchpad_length_ < kAllocationSiteScratchpadSize) {
+    allocation_sites_scratchpad()->set(
+        allocation_sites_scratchpad_length_, site);
+    allocation_sites_scratchpad_length_++;
+  }
 }
 
 
@@ -3976,9 +4020,6 @@ MaybeObject* Heap::CreateCode(const CodeDesc& desc,
   code->set_flags(flags);
   code->set_raw_kind_specific_flags1(0);
   code->set_raw_kind_specific_flags2(0);
-  if (code->is_call_stub() || code->is_keyed_call_stub()) {
-    code->set_check_type(RECEIVER_MAP_CHECK);
-  }
   code->set_is_crankshafted(crankshafted);
   code->set_deoptimization_data(empty_fixed_array(), SKIP_WRITE_BARRIER);
   code->set_raw_type_feedback_info(undefined_value());

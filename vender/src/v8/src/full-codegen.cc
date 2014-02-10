@@ -445,9 +445,11 @@ void FullCodeGenerator::PrepareForBailout(Expression* node, State state) {
 }
 
 
-void FullCodeGenerator::CallLoadIC(ContextualMode mode, TypeFeedbackId id) {
-  Handle<Code> ic = LoadIC::initialize_stub(isolate(), mode);
-  CallIC(ic, mode, id);
+void FullCodeGenerator::CallLoadIC(ContextualMode contextual_mode,
+                                   TypeFeedbackId id) {
+  ExtraICState extra_state = LoadIC::ComputeExtraICState(contextual_mode);
+  Handle<Code> ic = LoadIC::initialize_stub(isolate(), extra_state);
+  CallIC(ic, contextual_mode, id);
 }
 
 
@@ -1098,16 +1100,9 @@ void FullCodeGenerator::VisitBlock(Block* stmt) {
     scope_ = stmt->scope();
     ASSERT(!scope_->is_module_scope());
     { Comment cmnt(masm_, "[ Extend block context");
-      Handle<ScopeInfo> scope_info = scope_->GetScopeInfo();
-      int heap_slots = scope_info->ContextLength() - Context::MIN_CONTEXT_SLOTS;
-      __ Push(scope_info);
+      __ Push(scope_->GetScopeInfo());
       PushFunctionArgumentForContextAllocation();
-      if (heap_slots <= FastNewBlockContextStub::kMaximumSlots) {
-        FastNewBlockContextStub stub(heap_slots);
-        __ CallStub(&stub);
-      } else {
-        __ CallRuntime(Runtime::kPushBlockContext, 2);
-      }
+      __ CallRuntime(Runtime::kPushBlockContext, 2);
 
       // Replace the context stored in the frame.
       StoreToFrameField(StandardFrameConstants::kContextOffset,

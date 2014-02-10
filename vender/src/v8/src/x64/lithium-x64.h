@@ -91,13 +91,10 @@ class LCodeGen;
   V(Drop)                                       \
   V(DummyUse)                                   \
   V(Dummy)                                      \
-  V(ElementsKind)                               \
   V(ForInCacheArray)                            \
   V(ForInPrepareMap)                            \
   V(FunctionLiteral)                            \
   V(GetCachedArrayIndex)                        \
-  V(GlobalObject)                               \
-  V(GlobalReceiver)                             \
   V(Goto)                                       \
   V(HasCachedArrayIndexAndBranch)               \
   V(HasInstanceTypeAndBranch)                   \
@@ -116,7 +113,6 @@ class LCodeGen;
   V(Label)                                      \
   V(LazyBailout)                                \
   V(LoadContextSlot)                            \
-  V(LoadExternalArrayPointer)                   \
   V(LoadRoot)                                   \
   V(LoadFieldByIndex)                           \
   V(LoadFunctionPrototype)                      \
@@ -143,7 +139,6 @@ class LCodeGen;
   V(NumberTagU)                                 \
   V(NumberUntagD)                               \
   V(OsrEntry)                                   \
-  V(OuterContext)                               \
   V(Parameter)                                  \
   V(Power)                                      \
   V(PushArgument)                               \
@@ -169,7 +164,6 @@ class LCodeGen;
   V(SubI)                                       \
   V(TaggedToI)                                  \
   V(ThisFunction)                               \
-  V(Throw)                                      \
   V(ToFastProperties)                           \
   V(TransitionElementsKind)                     \
   V(TrapAllocationMemento)                      \
@@ -178,7 +172,6 @@ class LCodeGen;
   V(Uint32ToDouble)                             \
   V(Uint32ToSmi)                                \
   V(UnknownOSRValue)                            \
-  V(ValueOf)                                    \
   V(WrapReceiver)
 
 
@@ -559,6 +552,7 @@ class LWrapReceiver V8_FINAL : public LTemplateInstruction<1, 2, 0> {
   LOperand* function() { return inputs_[1]; }
 
   DECLARE_CONCRETE_INSTRUCTION(WrapReceiver, "wrap-receiver")
+  DECLARE_HYDROGEN_ACCESSOR(WrapReceiver)
 };
 
 
@@ -1240,32 +1234,6 @@ class LMapEnumLength V8_FINAL : public LTemplateInstruction<1, 1, 0> {
 };
 
 
-class LElementsKind V8_FINAL : public LTemplateInstruction<1, 1, 0> {
- public:
-  explicit LElementsKind(LOperand* value) {
-    inputs_[0] = value;
-  }
-
-  LOperand* value() { return inputs_[0]; }
-
-  DECLARE_CONCRETE_INSTRUCTION(ElementsKind, "elements-kind")
-  DECLARE_HYDROGEN_ACCESSOR(ElementsKind)
-};
-
-
-class LValueOf V8_FINAL : public LTemplateInstruction<1, 1, 0> {
- public:
-  explicit LValueOf(LOperand* value) {
-    inputs_[0] = value;
-  }
-
-  LOperand* value() { return inputs_[0]; }
-
-  DECLARE_CONCRETE_INSTRUCTION(ValueOf, "value-of")
-  DECLARE_HYDROGEN_ACCESSOR(ValueOf)
-};
-
-
 class LDateField V8_FINAL : public LTemplateInstruction<1, 1, 0> {
  public:
   LDateField(LOperand* date, Smi* index) : index_(index) {
@@ -1316,20 +1284,6 @@ class LSeqStringSetChar V8_FINAL : public LTemplateInstruction<1, 4, 0> {
 
   DECLARE_CONCRETE_INSTRUCTION(SeqStringSetChar, "seq-string-set-char")
   DECLARE_HYDROGEN_ACCESSOR(SeqStringSetChar)
-};
-
-
-class LThrow V8_FINAL : public LTemplateInstruction<0, 2, 0> {
- public:
-  explicit LThrow(LOperand* context, LOperand* value) {
-    inputs_[0] = context;
-    inputs_[1] = value;
-  }
-
-  LOperand* context() { return inputs_[0]; }
-  LOperand* value() { return inputs_[1]; }
-
-  DECLARE_CONCRETE_INSTRUCTION(Throw, "throw")
 };
 
 
@@ -1509,20 +1463,6 @@ class LLoadRoot V8_FINAL : public LTemplateInstruction<1, 0, 0> {
   DECLARE_HYDROGEN_ACCESSOR(LoadRoot)
 
   Heap::RootListIndex index() const { return hydrogen()->index(); }
-};
-
-
-class LLoadExternalArrayPointer V8_FINAL
-    : public LTemplateInstruction<1, 1, 0> {
- public:
-  explicit LLoadExternalArrayPointer(LOperand* object) {
-    inputs_[0] = object;
-  }
-
-  LOperand* object() { return inputs_[0]; }
-
-  DECLARE_CONCRETE_INSTRUCTION(LoadExternalArrayPointer,
-                               "load-external-array-pointer")
 };
 
 
@@ -1720,18 +1660,6 @@ class LContext V8_FINAL : public LTemplateInstruction<1, 0, 0> {
 };
 
 
-class LOuterContext V8_FINAL : public LTemplateInstruction<1, 1, 0> {
- public:
-  explicit LOuterContext(LOperand* context) {
-    inputs_[0] = context;
-  }
-
-  LOperand* context() { return inputs_[0]; }
-
-  DECLARE_CONCRETE_INSTRUCTION(OuterContext, "outer-context")
-};
-
-
 class LDeclareGlobals V8_FINAL : public LTemplateInstruction<0, 1, 0> {
  public:
   explicit LDeclareGlobals(LOperand* context) {
@@ -1742,30 +1670,6 @@ class LDeclareGlobals V8_FINAL : public LTemplateInstruction<0, 1, 0> {
 
   DECLARE_CONCRETE_INSTRUCTION(DeclareGlobals, "declare-globals")
   DECLARE_HYDROGEN_ACCESSOR(DeclareGlobals)
-};
-
-
-class LGlobalObject V8_FINAL : public LTemplateInstruction<1, 1, 0> {
- public:
-  explicit LGlobalObject(LOperand* context) {
-    inputs_[0] = context;
-  }
-
-  LOperand* context() { return inputs_[0]; }
-
-  DECLARE_CONCRETE_INSTRUCTION(GlobalObject, "global-object")
-};
-
-
-class LGlobalReceiver V8_FINAL : public LTemplateInstruction<1, 1, 0> {
- public:
-  explicit LGlobalReceiver(LOperand* global_object) {
-    inputs_[0] = global_object;
-  }
-
-  LOperand* global() { return inputs_[0]; }
-
-  DECLARE_CONCRETE_INSTRUCTION(GlobalReceiver, "global-receiver")
 };
 
 

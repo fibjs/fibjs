@@ -134,6 +134,17 @@ void KeyedLoadDictionaryElementStub::InitializeInterfaceDescriptor(
 }
 
 
+void RegExpConstructResultStub::InitializeInterfaceDescriptor(
+    Isolate* isolate,
+    CodeStubInterfaceDescriptor* descriptor) {
+  static Register registers[] = { r2, r1, r0 };
+  descriptor->register_param_count_ = 3;
+  descriptor->register_params_ = registers;
+  descriptor->deoptimization_handler_ =
+      Runtime::FunctionForId(Runtime::kRegExpConstructResult)->entry;
+}
+
+
 void LoadFieldStub::InitializeInterfaceDescriptor(
     Isolate* isolate,
     CodeStubInterfaceDescriptor* descriptor) {
@@ -151,19 +162,6 @@ void KeyedLoadFieldStub::InitializeInterfaceDescriptor(
   descriptor->register_param_count_ = 1;
   descriptor->register_params_ = registers;
   descriptor->deoptimization_handler_ = NULL;
-}
-
-
-void KeyedArrayCallStub::InitializeInterfaceDescriptor(
-    Isolate* isolate,
-    CodeStubInterfaceDescriptor* descriptor) {
-  static Register registers[] = { r2 };
-  descriptor->register_param_count_ = 1;
-  descriptor->register_params_ = registers;
-  descriptor->continuation_type_ = TAIL_CALL_CONTINUATION;
-  descriptor->handler_arguments_mode_ = PASS_ARGUMENTS;
-  descriptor->deoptimization_handler_ =
-      FUNCTION_ADDR(KeyedCallIC_MissFromStubFailure);
 }
 
 
@@ -442,6 +440,27 @@ void CallDescriptors::InitializeForIsolate(Isolate* isolate) {
     descriptor->param_representations_ = representations;
     descriptor->platform_specific_descriptor_ = &default_descriptor;
   }
+  {
+    CallInterfaceDescriptor* descriptor =
+        isolate->call_descriptor(Isolate::ApiFunctionCall);
+    static Register registers[] = { r0,  // callee
+                                    r4,  // call_data
+                                    r2,  // holder
+                                    r1,  // api_function_address
+                                    cp,  // context
+    };
+    static Representation representations[] = {
+        Representation::Tagged(),    // callee
+        Representation::Tagged(),    // call_data
+        Representation::Tagged(),    // holder
+        Representation::External(),  // api_function_address
+        Representation::Tagged(),    // context
+    };
+    descriptor->register_param_count_ = 5;
+    descriptor->register_params_ = registers;
+    descriptor->param_representations_ = representations;
+    descriptor->platform_specific_descriptor_ = &default_descriptor;
+  }
 }
 
 
@@ -483,68 +502,6 @@ void HydrogenCodeStub::GenerateLightweightMiss(MacroAssembler* masm) {
   }
 
   __ Ret();
-}
-
-
-void FastNewBlockContextStub::Generate(MacroAssembler* masm) {
-  // Stack layout on entry:
-  //
-  // [sp]: function.
-  // [sp + kPointerSize]: serialized scope info
-
-  // Try to allocate the context in new space.
-  Label gc;
-  int length = slots_ + Context::MIN_CONTEXT_SLOTS;
-  __ Allocate(FixedArray::SizeFor(length), r0, r1, r2, &gc, TAG_OBJECT);
-
-  // Load the function from the stack.
-  __ ldr(r3, MemOperand(sp, 0));
-
-  // Load the serialized scope info from the stack.
-  __ ldr(r1, MemOperand(sp, 1 * kPointerSize));
-
-  // Set up the object header.
-  __ LoadRoot(r2, Heap::kBlockContextMapRootIndex);
-  __ str(r2, FieldMemOperand(r0, HeapObject::kMapOffset));
-  __ mov(r2, Operand(Smi::FromInt(length)));
-  __ str(r2, FieldMemOperand(r0, FixedArray::kLengthOffset));
-
-  // If this block context is nested in the native context we get a smi
-  // sentinel instead of a function. The block context should get the
-  // canonical empty function of the native context as its closure which
-  // we still have to look up.
-  Label after_sentinel;
-  __ JumpIfNotSmi(r3, &after_sentinel);
-  if (FLAG_debug_code) {
-    __ cmp(r3, Operand::Zero());
-    __ Assert(eq, kExpected0AsASmiSentinel);
-  }
-  __ ldr(r3, GlobalObjectOperand());
-  __ ldr(r3, FieldMemOperand(r3, GlobalObject::kNativeContextOffset));
-  __ ldr(r3, ContextOperand(r3, Context::CLOSURE_INDEX));
-  __ bind(&after_sentinel);
-
-  // Set up the fixed slots, copy the global object from the previous context.
-  __ ldr(r2, ContextOperand(cp, Context::GLOBAL_OBJECT_INDEX));
-  __ str(r3, ContextOperand(r0, Context::CLOSURE_INDEX));
-  __ str(cp, ContextOperand(r0, Context::PREVIOUS_INDEX));
-  __ str(r1, ContextOperand(r0, Context::EXTENSION_INDEX));
-  __ str(r2, ContextOperand(r0, Context::GLOBAL_OBJECT_INDEX));
-
-  // Initialize the rest of the slots to the hole value.
-  __ LoadRoot(r1, Heap::kTheHoleValueRootIndex);
-  for (int i = 0; i < slots_; i++) {
-    __ str(r1, ContextOperand(r0, i + Context::MIN_CONTEXT_SLOTS));
-  }
-
-  // Remove the on-stack argument and return.
-  __ mov(cp, r0);
-  __ add(sp, sp, Operand(2 * kPointerSize));
-  __ Ret();
-
-  // Need to collect. Call into runtime system.
-  __ bind(&gc);
-  __ TailCallRuntime(Runtime::kPushBlockContext, 2, 1);
 }
 
 
@@ -3046,96 +3003,6 @@ void RegExpExecStub::Generate(MacroAssembler* masm) {
 }
 
 
-void RegExpConstructResultStub::Generate(MacroAssembler* masm) {
-  const int kMaxInlineLength = 100;
-  Label slowcase;
-  Label done;
-  Factory* factory = masm->isolate()->factory();
-
-  __ ldr(r1, MemOperand(sp, kPointerSize * 2));
-  STATIC_ASSERT(kSmiTag == 0);
-  STATIC_ASSERT(kSmiTagSize == 1);
-  __ JumpIfNotSmi(r1, &slowcase);
-  __ cmp(r1, Operand(Smi::FromInt(kMaxInlineLength)));
-  __ b(hi, &slowcase);
-  // Smi-tagging is equivalent to multiplying by 2.
-  // Allocate RegExpResult followed by FixedArray with size in ebx.
-  // JSArray:   [Map][empty properties][Elements][Length-smi][index][input]
-  // Elements:  [Map][Length][..elements..]
-  // Size of JSArray with two in-object properties and the header of a
-  // FixedArray.
-  int objects_size =
-      (JSRegExpResult::kSize + FixedArray::kHeaderSize) / kPointerSize;
-  __ SmiUntag(r5, r1);
-  __ add(r2, r5, Operand(objects_size));
-  __ Allocate(
-      r2,  // In: Size, in words.
-      r0,  // Out: Start of allocation (tagged).
-      r3,  // Scratch register.
-      r4,  // Scratch register.
-      &slowcase,
-      static_cast<AllocationFlags>(TAG_OBJECT | SIZE_IN_WORDS));
-  // r0: Start of allocated area, object-tagged.
-  // r1: Number of elements in array, as smi.
-  // r5: Number of elements, untagged.
-
-  // Set JSArray map to global.regexp_result_map().
-  // Set empty properties FixedArray.
-  // Set elements to point to FixedArray allocated right after the JSArray.
-  // Interleave operations for better latency.
-  __ ldr(r2, ContextOperand(cp, Context::GLOBAL_OBJECT_INDEX));
-  __ add(r3, r0, Operand(JSRegExpResult::kSize));
-  __ mov(r4, Operand(factory->empty_fixed_array()));
-  __ ldr(r2, FieldMemOperand(r2, GlobalObject::kNativeContextOffset));
-  __ str(r3, FieldMemOperand(r0, JSObject::kElementsOffset));
-  __ ldr(r2, ContextOperand(r2, Context::REGEXP_RESULT_MAP_INDEX));
-  __ str(r4, FieldMemOperand(r0, JSObject::kPropertiesOffset));
-  __ str(r2, FieldMemOperand(r0, HeapObject::kMapOffset));
-
-  // Set input, index and length fields from arguments.
-  __ ldr(r1, MemOperand(sp, kPointerSize * 0));
-  __ ldr(r2, MemOperand(sp, kPointerSize * 1));
-  __ ldr(r6, MemOperand(sp, kPointerSize * 2));
-  __ str(r1, FieldMemOperand(r0, JSRegExpResult::kInputOffset));
-  __ str(r2, FieldMemOperand(r0, JSRegExpResult::kIndexOffset));
-  __ str(r6, FieldMemOperand(r0, JSArray::kLengthOffset));
-
-  // Fill out the elements FixedArray.
-  // r0: JSArray, tagged.
-  // r3: FixedArray, tagged.
-  // r5: Number of elements in array, untagged.
-
-  // Set map.
-  __ mov(r2, Operand(factory->fixed_array_map()));
-  __ str(r2, FieldMemOperand(r3, HeapObject::kMapOffset));
-  // Set FixedArray length.
-  __ SmiTag(r6, r5);
-  __ str(r6, FieldMemOperand(r3, FixedArray::kLengthOffset));
-  // Fill contents of fixed-array with undefined.
-  __ LoadRoot(r2, Heap::kUndefinedValueRootIndex);
-  __ add(r3, r3, Operand(FixedArray::kHeaderSize - kHeapObjectTag));
-  // Fill fixed array elements with undefined.
-  // r0: JSArray, tagged.
-  // r2: undefined.
-  // r3: Start of elements in FixedArray.
-  // r5: Number of elements to fill.
-  Label loop;
-  __ cmp(r5, Operand::Zero());
-  __ bind(&loop);
-  __ b(le, &done);  // Jump if r5 is negative or zero.
-  __ sub(r5, r5, Operand(1), SetCC);
-  __ str(r2, MemOperand(r3, r5, LSL, kPointerSizeLog2));
-  __ jmp(&loop);
-
-  __ bind(&done);
-  __ add(sp, sp, Operand(3 * kPointerSize));
-  __ Ret();
-
-  __ bind(&slowcase);
-  __ TailCallRuntime(Runtime::kRegExpConstructResult, 3, 1);
-}
-
-
 static void GenerateRecordCallTarget(MacroAssembler* masm) {
   // Cache the called function in a global property cell.  Cache states
   // are uninitialized, monomorphic (indicated by a JSFunction), and
@@ -3221,59 +3088,102 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
 void CallFunctionStub::Generate(MacroAssembler* masm) {
   // r1 : the function to call
   // r2 : cache cell for call target
-  Label slow, non_function;
+  Label slow, non_function, wrap, cont;
 
-  // Check that the function is really a JavaScript function.
-  // r1: pushed function (to be verified)
-  __ JumpIfSmi(r1, &non_function);
+  if (NeedsChecks()) {
+    // Check that the function is really a JavaScript function.
+    // r1: pushed function (to be verified)
+    __ JumpIfSmi(r1, &non_function);
 
-  // Goto slow case if we do not have a function.
-  __ CompareObjectType(r1, r3, r3, JS_FUNCTION_TYPE);
-  __ b(ne, &slow);
+    // Goto slow case if we do not have a function.
+    __ CompareObjectType(r1, r3, r3, JS_FUNCTION_TYPE);
+    __ b(ne, &slow);
 
-  if (RecordCallTarget()) {
-    GenerateRecordCallTarget(masm);
+    if (RecordCallTarget()) {
+      GenerateRecordCallTarget(masm);
+    }
   }
 
   // Fast-case: Invoke the function now.
   // r1: pushed function
   ParameterCount actual(argc_);
 
+  if (CallAsMethod()) {
+    if (NeedsChecks()) {
+      // Do not transform the receiver for strict mode functions.
+      __ ldr(r3, FieldMemOperand(r1, JSFunction::kSharedFunctionInfoOffset));
+      __ ldr(r4, FieldMemOperand(r3, SharedFunctionInfo::kCompilerHintsOffset));
+      __ tst(r4, Operand(1 << (SharedFunctionInfo::kStrictModeFunction +
+                               kSmiTagSize)));
+      __ b(ne, &cont);
+
+      // Do not transform the receiver for native (Compilerhints already in r3).
+      __ tst(r4, Operand(1 << (SharedFunctionInfo::kNative + kSmiTagSize)));
+      __ b(ne, &cont);
+    }
+
+    // Compute the receiver in non-strict mode.
+    __ ldr(r3, MemOperand(sp, argc_ * kPointerSize));
+
+    if (NeedsChecks()) {
+      __ JumpIfSmi(r3, &wrap);
+      __ CompareObjectType(r3, r4, r4, FIRST_SPEC_OBJECT_TYPE);
+      __ b(lt, &wrap);
+    } else {
+      __ jmp(&wrap);
+    }
+
+    __ bind(&cont);
+  }
   __ InvokeFunction(r1, actual, JUMP_FUNCTION, NullCallWrapper());
 
-  // Slow-case: Non-function called.
-  __ bind(&slow);
-  if (RecordCallTarget()) {
-    // If there is a call target cache, mark it megamorphic in the
-    // non-function case.  MegamorphicSentinel is an immortal immovable
-    // object (undefined) so no write barrier is needed.
-    ASSERT_EQ(*TypeFeedbackCells::MegamorphicSentinel(masm->isolate()),
-              masm->isolate()->heap()->undefined_value());
-    __ LoadRoot(ip, Heap::kUndefinedValueRootIndex);
-    __ str(ip, FieldMemOperand(r2, Cell::kValueOffset));
-  }
-  // Check for function proxy.
-  __ cmp(r3, Operand(JS_FUNCTION_PROXY_TYPE));
-  __ b(ne, &non_function);
-  __ push(r1);  // put proxy as additional argument
-  __ mov(r0, Operand(argc_ + 1, RelocInfo::NONE32));
-  __ mov(r2, Operand::Zero());
-  __ GetBuiltinFunction(r1, Builtins::CALL_FUNCTION_PROXY);
-  {
-    Handle<Code> adaptor =
-      masm->isolate()->builtins()->ArgumentsAdaptorTrampoline();
-    __ Jump(adaptor, RelocInfo::CODE_TARGET);
+  if (NeedsChecks()) {
+    // Slow-case: Non-function called.
+    __ bind(&slow);
+    if (RecordCallTarget()) {
+      // If there is a call target cache, mark it megamorphic in the
+      // non-function case.  MegamorphicSentinel is an immortal immovable
+      // object (undefined) so no write barrier is needed.
+      ASSERT_EQ(*TypeFeedbackCells::MegamorphicSentinel(masm->isolate()),
+                masm->isolate()->heap()->undefined_value());
+      __ LoadRoot(ip, Heap::kUndefinedValueRootIndex);
+      __ str(ip, FieldMemOperand(r2, Cell::kValueOffset));
+    }
+    // Check for function proxy.
+    __ cmp(r3, Operand(JS_FUNCTION_PROXY_TYPE));
+    __ b(ne, &non_function);
+    __ push(r1);  // put proxy as additional argument
+    __ mov(r0, Operand(argc_ + 1, RelocInfo::NONE32));
+    __ mov(r2, Operand::Zero());
+    __ GetBuiltinFunction(r1, Builtins::CALL_FUNCTION_PROXY);
+    {
+      Handle<Code> adaptor =
+        masm->isolate()->builtins()->ArgumentsAdaptorTrampoline();
+      __ Jump(adaptor, RelocInfo::CODE_TARGET);
+    }
+
+    // CALL_NON_FUNCTION expects the non-function callee as receiver (instead
+    // of the original receiver from the call site).
+    __ bind(&non_function);
+    __ str(r1, MemOperand(sp, argc_ * kPointerSize));
+    __ mov(r0, Operand(argc_));  // Set up the number of arguments.
+    __ mov(r2, Operand::Zero());
+    __ GetBuiltinFunction(r1, Builtins::CALL_NON_FUNCTION);
+    __ Jump(masm->isolate()->builtins()->ArgumentsAdaptorTrampoline(),
+            RelocInfo::CODE_TARGET);
   }
 
-  // CALL_NON_FUNCTION expects the non-function callee as receiver (instead
-  // of the original receiver from the call site).
-  __ bind(&non_function);
-  __ str(r1, MemOperand(sp, argc_ * kPointerSize));
-  __ mov(r0, Operand(argc_));  // Set up the number of arguments.
-  __ mov(r2, Operand::Zero());
-  __ GetBuiltinFunction(r1, Builtins::CALL_NON_FUNCTION);
-  __ Jump(masm->isolate()->builtins()->ArgumentsAdaptorTrampoline(),
-          RelocInfo::CODE_TARGET);
+  if (CallAsMethod()) {
+    __ bind(&wrap);
+    // Wrap the receiver and patch it back onto the stack.
+    { FrameScope frame_scope(masm, StackFrame::INTERNAL);
+      __ Push(r1, r3);
+      __ InvokeBuiltin(Builtins::TO_OBJECT, CALL_FUNCTION);
+      __ pop(r1);
+    }
+    __ str(r0, MemOperand(sp, argc_ * kPointerSize));
+    __ jmp(&cont);
+  }
 }
 
 
@@ -5127,23 +5037,6 @@ void StubFailureTrampolineStub::Generate(MacroAssembler* masm) {
 }
 
 
-void StubFailureTailCallTrampolineStub::Generate(MacroAssembler* masm) {
-  CEntryStub ces(1, fp_registers_ ? kSaveFPRegs : kDontSaveFPRegs);
-  __ Call(ces.GetCode(masm->isolate()), RelocInfo::CODE_TARGET);
-  __ mov(r1, r0);
-  int parameter_count_offset =
-      StubFailureTrampolineFrame::kCallerStackParameterCountFrameOffset;
-  __ ldr(r0, MemOperand(fp, parameter_count_offset));
-  // The parameter count above includes the receiver for the arguments passed to
-  // the deoptimization handler. Subtract the receiver for the parameter count
-  // for the call.
-  __ sub(r0, r0, Operand(1));
-  masm->LeaveFrame(StackFrame::STUB_FAILURE_TRAMPOLINE);
-  ParameterCount argument_count(r0);
-  __ InvokeFunction(r1, argument_count, JUMP_FUNCTION, NullCallWrapper());
-}
-
-
 void ProfileEntryHookStub::MaybeCallEntryHook(MacroAssembler* masm) {
   if (masm->isolate()->function_entry_hook() != NULL) {
     PredictableCodeSizeScope predictable(masm, 4 * Assembler::kInstrSize);
@@ -5512,6 +5405,155 @@ void InternalArrayConstructorStub::Generate(MacroAssembler* masm) {
 
   __ bind(&fast_elements_case);
   GenerateCase(masm, FAST_ELEMENTS);
+}
+
+
+void CallApiFunctionStub::Generate(MacroAssembler* masm) {
+  // ----------- S t a t e -------------
+  //  -- r0                  : callee
+  //  -- r4                  : call_data
+  //  -- r2                  : holder
+  //  -- r1                  : api_function_address
+  //  -- cp                  : context
+  //  --
+  //  -- sp[0]               : last argument
+  //  -- ...
+  //  -- sp[(argc - 1)* 4]   : first argument
+  //  -- sp[argc * 4]        : receiver
+  // -----------------------------------
+
+  Register callee = r0;
+  Register call_data = r4;
+  Register holder = r2;
+  Register api_function_address = r1;
+  Register context = cp;
+
+  int argc = ArgumentBits::decode(bit_field_);
+  bool restore_context = RestoreContextBits::decode(bit_field_);
+  bool call_data_undefined = CallDataUndefinedBits::decode(bit_field_);
+
+  typedef FunctionCallbackArguments FCA;
+
+  STATIC_ASSERT(FCA::kContextSaveIndex == 6);
+  STATIC_ASSERT(FCA::kCalleeIndex == 5);
+  STATIC_ASSERT(FCA::kDataIndex == 4);
+  STATIC_ASSERT(FCA::kReturnValueOffset == 3);
+  STATIC_ASSERT(FCA::kReturnValueDefaultValueIndex == 2);
+  STATIC_ASSERT(FCA::kIsolateIndex == 1);
+  STATIC_ASSERT(FCA::kHolderIndex == 0);
+  STATIC_ASSERT(FCA::kArgsLength == 7);
+
+  Isolate* isolate = masm->isolate();
+
+  // context save
+  __ push(context);
+  // load context from callee
+  __ ldr(context, FieldMemOperand(callee, JSFunction::kContextOffset));
+
+  // callee
+  __ push(callee);
+
+  // call data
+  __ push(call_data);
+
+  Register scratch = call_data;
+  if (!call_data_undefined) {
+    __ LoadRoot(scratch, Heap::kUndefinedValueRootIndex);
+  }
+  // return value
+  __ push(scratch);
+  // return value default
+  __ push(scratch);
+  // isolate
+  __ mov(scratch,
+         Operand(ExternalReference::isolate_address(isolate)));
+  __ push(scratch);
+  // holder
+  __ push(holder);
+
+  // Prepare arguments.
+  __ mov(scratch, sp);
+
+  // Allocate the v8::Arguments structure in the arguments' space since
+  // it's not controlled by GC.
+  const int kApiStackSpace = 4;
+
+  FrameScope frame_scope(masm, StackFrame::MANUAL);
+  __ EnterExitFrame(false, kApiStackSpace);
+
+  ASSERT(!api_function_address.is(r0) && !scratch.is(r0));
+  // r0 = FunctionCallbackInfo&
+  // Arguments is after the return address.
+  __ add(r0, sp, Operand(1 * kPointerSize));
+  // FunctionCallbackInfo::implicit_args_
+  __ str(scratch, MemOperand(r0, 0 * kPointerSize));
+  // FunctionCallbackInfo::values_
+  __ add(ip, scratch, Operand((FCA::kArgsLength - 1 + argc) * kPointerSize));
+  __ str(ip, MemOperand(r0, 1 * kPointerSize));
+  // FunctionCallbackInfo::length_ = argc
+  __ mov(ip, Operand(argc));
+  __ str(ip, MemOperand(r0, 2 * kPointerSize));
+  // FunctionCallbackInfo::is_construct_call = 0
+  __ mov(ip, Operand::Zero());
+  __ str(ip, MemOperand(r0, 3 * kPointerSize));
+
+  const int kStackUnwindSpace = argc + FCA::kArgsLength + 1;
+  Address thunk_address = FUNCTION_ADDR(&InvokeFunctionCallback);
+  ExternalReference::Type thunk_type = ExternalReference::PROFILING_API_CALL;
+  ApiFunction thunk_fun(thunk_address);
+  ExternalReference thunk_ref = ExternalReference(&thunk_fun, thunk_type,
+      masm->isolate());
+
+  AllowExternalCallThatCantCauseGC scope(masm);
+  MemOperand context_restore_operand(
+      fp, (2 + FCA::kContextSaveIndex) * kPointerSize);
+  MemOperand return_value_operand(fp,
+                                  (2 + FCA::kReturnValueOffset) * kPointerSize);
+
+  __ CallApiFunctionAndReturn(api_function_address,
+                              thunk_ref,
+                              kStackUnwindSpace,
+                              return_value_operand,
+                              restore_context ?
+                                  &context_restore_operand : NULL);
+}
+
+
+void CallApiGetterStub::Generate(MacroAssembler* masm) {
+  // ----------- S t a t e -------------
+  //  -- sp[0]                  : name
+  //  -- sp[4 - kArgsLength*4]  : PropertyCallbackArguments object
+  //  -- ...
+  //  -- r2                     : api_function_address
+  // -----------------------------------
+
+  Register api_function_address = r2;
+
+  __ mov(r0, sp);  // r0 = Handle<Name>
+  __ add(r1, r0, Operand(1 * kPointerSize));  // r1 = PCA
+
+  const int kApiStackSpace = 1;
+  FrameScope frame_scope(masm, StackFrame::MANUAL);
+  __ EnterExitFrame(false, kApiStackSpace);
+
+  // Create PropertyAccessorInfo instance on the stack above the exit frame with
+  // r1 (internal::Object** args_) as the data.
+  __ str(r1, MemOperand(sp, 1 * kPointerSize));
+  __ add(r1, sp, Operand(1 * kPointerSize));  // r1 = AccessorInfo&
+
+  const int kStackUnwindSpace = PropertyCallbackArguments::kArgsLength + 1;
+
+  Address thunk_address = FUNCTION_ADDR(&InvokeAccessorGetterCallback);
+  ExternalReference::Type thunk_type =
+      ExternalReference::PROFILING_GETTER_CALL;
+  ApiFunction thunk_fun(thunk_address);
+  ExternalReference thunk_ref = ExternalReference(&thunk_fun, thunk_type,
+      masm->isolate());
+  __ CallApiFunctionAndReturn(api_function_address,
+                              thunk_ref,
+                              kStackUnwindSpace,
+                              MemOperand(fp, 6 * kPointerSize),
+                              NULL);
 }
 
 
