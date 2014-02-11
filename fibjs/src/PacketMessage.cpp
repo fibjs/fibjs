@@ -169,7 +169,7 @@ result_t PacketMessage::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
             pThis->m_body->rewind();
-            return pThis->done(0);
+            return pThis->done();
         }
 
     public:

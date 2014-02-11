@@ -85,4 +85,10 @@ class gd : module
 	 @return 返回解码成功的图像对象
 	 */
 	static Image load(SeekableStream stm) async;
+
+	/*! @brief 从指定文件中解码图像
+	 @param fname 指定文件名
+	 @return 返回解码成功的图像对象
+	 */
+	static Image load(String fname) async;
 };

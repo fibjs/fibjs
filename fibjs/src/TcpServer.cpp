@@ -106,7 +106,7 @@ result_t TcpServer::run(exlib::AsyncEvent *ac)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
-            pThis->done(0);
+            pThis->done();
             pThis->m_pThis->m_stats->inc(TCPS_CLOSE);
             pThis->m_pThis->m_stats->dec(TCPS_CONNECTIONS);
             return pThis->m_sock->close(pThis);

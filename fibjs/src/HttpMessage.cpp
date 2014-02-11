@@ -79,7 +79,7 @@ result_t HttpMessage::sendTo(Stream_base *stm, std::string &strCommand,
             pThis->m_buffer = new Buffer(m_strBuf);
 
             if (pThis->m_contentLength == 0 || pThis->m_body.length() > 0)
-                pThis->done(0);
+                pThis->done();
             else
                 pThis->set(body);
 
@@ -91,7 +91,7 @@ result_t HttpMessage::sendTo(Stream_base *stm, std::string &strCommand,
             asyncSendTo *pThis = (asyncSendTo *) pState;
 
             if (pThis->m_contentLength == 0)
-                return pThis->done(0);
+                return pThis->done();
 
             pThis->m_pThis->body()->rewind();
 
@@ -107,7 +107,7 @@ result_t HttpMessage::sendTo(Stream_base *stm, std::string &strCommand,
             if (pThis->m_contentLength != pThis->m_copySize)
                 return Runtime::setError("body is not complate.");
 
-            return pThis->done(0);
+            return pThis->done();
         }
 
     public:
@@ -211,7 +211,7 @@ result_t HttpMessage::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
                                             pThis->m_contentLength, pThis->m_copySize, pThis);
             }
 
-            return pThis->done(0);
+            return pThis->done();
         }
 
         static int body(asyncState *pState, int n)
@@ -223,7 +223,7 @@ result_t HttpMessage::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
 
             pThis->m_body->rewind();
 
-            return pThis->done(0);
+            return pThis->done();
         }
 
         static int chunk_head(asyncState *pState, int n)
@@ -280,7 +280,7 @@ result_t HttpMessage::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
 
             pThis->m_body->rewind();
 
-            return pThis->done(0);
+            return pThis->done();
         }
 
     public:

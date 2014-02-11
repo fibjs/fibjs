@@ -63,7 +63,7 @@ public:
         return m_state == fn;
     }
 
-    int done(int v)
+    int done(int v = 0)
     {
         m_state = NULL;
         return v;

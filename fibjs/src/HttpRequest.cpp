@@ -238,7 +238,7 @@ result_t HttpRequest::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
             if (hr < 0)
                 return hr;
 
-            pThis->done(0);
+            pThis->done();
             return pThis->m_pThis->m_message.readFrom(pThis->m_stm, pThis);
         }
 

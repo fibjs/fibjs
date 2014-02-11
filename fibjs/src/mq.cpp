@@ -38,7 +38,7 @@ result_t mq_base::invoke(Handler_base *hdlr, object_base *v,
             result_t hr;
 
             if (n == CALL_RETURN_NULL)
-                return pThis->done(0);
+                return pThis->done();
 
             pThis->m_hdlr = pThis->m_next;
             pThis->m_next.Release();

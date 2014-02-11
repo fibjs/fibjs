@@ -86,7 +86,7 @@ result_t http_base::request(const char *host, int32_t port,
 
         static int ok(asyncState *pState, int n)
         {
-            return pState->done(0);
+            return pState->done();
         }
 
     private:

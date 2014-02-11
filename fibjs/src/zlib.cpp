@@ -82,7 +82,7 @@ public:
                         && pThis->m_pThis->fin())
                 {
                     pThis->m_pThis->end();
-                    return pThis->done(0);
+                    return pThis->done();
                 }
 
                 pThis->m_pThis->strm.avail_out = CHUNK;
@@ -205,7 +205,7 @@ public:
                 asyncProcess *pThis = (asyncProcess *) pState;
 
                 pThis->m_pThis->end();
-                return pThis->done(0);
+                return pThis->done();
             }
 
             virtual int error(int v)

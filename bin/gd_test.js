@@ -14,13 +14,8 @@ describe("gd", function() {
 	var b = img.colorAllocate(0, 0, 255);
 
 	function gd_test(fmt) {
-		var f = fs.open('test.pic', 'w');
-		img.save(f, fmt);
-		f.close();
-
-		f = fs.open('test.pic', 'r');
-		var img1 = gd.load(f);
-		f.close();
+		img.save('test.pic', fmt);
+		var img1 = gd.load('test.pic');
 
 		fs.unlink('test.pic');
 
@@ -136,10 +131,10 @@ describe("gd", function() {
 	});
 
 	it("flip", function() {
-		img.save(fs.open('test.png', 'w'), gd.PNG);
+		img.save('test.png', gd.PNG);
 		img1 = img.resample(220, 120);
 		img1.flip();
-		img1.save(fs.open('test1.png', 'w'), gd.PNG);
+		img1.save('test1.png', gd.PNG);
 	});
 });
 

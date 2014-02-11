@@ -103,7 +103,7 @@ public:
 
     virtual int recv_ok()
     {
-        return done(0);
+        return done();
     }
 
 protected:
@@ -229,7 +229,7 @@ result_t Smtp::login(const char *username, const char *password,
                 set(send_password);
                 return 0;
             }
-            return done(0);
+            return done();
         }
 
     private:
@@ -301,7 +301,7 @@ result_t Smtp::data(const char *txt, exlib::AsyncEvent *ac)
                 set(send_data);
                 return 0;
             }
-            return done(0);
+            return done();
         }
 
     private:

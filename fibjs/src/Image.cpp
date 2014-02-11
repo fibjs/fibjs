@@ -7,6 +7,7 @@
 
 #include "Image.h"
 #include "Buffer.h"
+#include "ifs/fs.h"
 #include <vector>
 #include <stdlib.h>
 
@@ -100,7 +101,7 @@ result_t gd_base::load(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
                 return hr;
 
             pThis->m_retVal = img;
-            return pThis->done(0);
+            return pThis->done();
         }
 
     private:
@@ -113,6 +114,55 @@ result_t gd_base::load(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
         return CALL_E_NOSYNC;
 
     return (new asyncLoad(stm, retVal, ac))->post(0);
+}
+
+result_t gd_base::load(const char *fname, obj_ptr<Image_base> &retVal,
+                       exlib::AsyncEvent *ac)
+{
+    class asyncLoad: public asyncState
+    {
+    public:
+        asyncLoad(const char *fname, obj_ptr<Image_base> &retVal,
+                  exlib::AsyncEvent *ac) :
+            asyncState(ac), m_fname(fname), m_retVal(retVal)
+        {
+            set(open);
+        }
+
+        static int open(asyncState *pState, int n)
+        {
+            asyncLoad *pThis = (asyncLoad *) pState;
+
+            pThis->set(read);
+            return fs_base::open(pThis->m_fname.c_str(), "r", pThis->m_file, pThis);
+        }
+
+        static int read(asyncState *pState, int n)
+        {
+            asyncLoad *pThis = (asyncLoad *) pState;
+
+            pThis->set(close);
+            return load(pThis->m_file, pThis->m_retVal, pThis);
+        }
+
+        static int close(asyncState *pState, int n)
+        {
+            asyncLoad *pThis = (asyncLoad *) pState;
+
+            pThis->done();
+            return pThis->m_file->close(pThis);
+        }
+
+    private:
+        std::string m_fname;
+        obj_ptr<File_base> m_file;
+        obj_ptr<Image_base> &m_retVal;
+    };
+
+    if (!ac)
+        return CALL_E_NOSYNC;
+
+    return (new asyncLoad(fname, retVal, ac))->post(0);
 }
 
 result_t Image::create(int32_t width, int32_t height, int32_t color)
@@ -326,18 +376,102 @@ result_t Image::getData(int32_t format, int32_t quality,
 result_t Image::save(Stream_base *stm, int32_t format, int32_t quality,
                      exlib::AsyncEvent *ac)
 {
+    class asyncSave: public asyncState
+    {
+    public:
+        asyncSave(Image *img, Stream_base *stm, int32_t format, int32_t quality,
+                  exlib::AsyncEvent *ac) :
+            asyncState(ac), m_pThis(img), m_stm(stm), m_format(format), m_quality(quality)
+        {
+            set(getData);
+        }
+
+        static int getData(asyncState *pState, int n)
+        {
+            asyncSave *pThis = (asyncSave *) pState;
+
+            pThis->set(save);
+            return pThis->m_pThis->getData(pThis->m_format, pThis->m_quality, pThis->m_buf, pThis);
+        }
+
+        static int save(asyncState *pState, int n)
+        {
+            asyncSave *pThis = (asyncSave *) pState;
+
+            pThis->done();
+            return pThis->m_stm->write(pThis->m_buf, pThis);
+        }
+
+    private:
+        obj_ptr<Image> m_pThis;
+        obj_ptr<Stream_base> m_stm;
+        int32_t m_format;
+        int32_t m_quality;
+        obj_ptr<Buffer_base> m_buf;
+    };
+
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
     if (!ac)
         return CALL_E_NOSYNC;
 
-    obj_ptr<Buffer_base> buf;
-    result_t hr = getData(format, quality, buf, ac);
-    if (hr < 0)
-        return hr;
+    return (new asyncSave(this, stm, format, quality, ac))->post(0);
+}
 
-    return stm->write(buf, ac);
+result_t Image::save(const char *fname, int32_t format, int32_t quality,
+                     exlib::AsyncEvent *ac)
+{
+    class asyncSave: public asyncState
+    {
+    public:
+        asyncSave(Image *img, const char *fname, int32_t format, int32_t quality,
+                  exlib::AsyncEvent *ac) :
+            asyncState(ac), m_pThis(img), m_fname(fname), m_format(format), m_quality(quality)
+        {
+            set(open);
+        }
+
+        static int open(asyncState *pState, int n)
+        {
+            asyncSave *pThis = (asyncSave *) pState;
+
+            pThis->set(save);
+            return fs_base::open(pThis->m_fname.c_str(), "w", pThis->m_file, pThis);
+        }
+
+        static int save(asyncState *pState, int n)
+        {
+            asyncSave *pThis = (asyncSave *) pState;
+
+            pThis->set(close);
+            return pThis->m_pThis->save(pThis->m_file, pThis->m_format, pThis->m_quality, pThis);
+        }
+
+        static int close(asyncState *pState, int n)
+        {
+            asyncSave *pThis = (asyncSave *) pState;
+
+            pThis->done();
+            return pThis->m_file->close(pThis);
+        }
+
+    private:
+        obj_ptr<Image> m_pThis;
+        std::string m_fname;
+        obj_ptr<File_base> m_file;
+        int32_t m_format;
+        int32_t m_quality;
+        obj_ptr<Buffer_base> m_buf;
+    };
+
+    if (!m_image)
+        return CALL_E_INVALID_CALL;
+
+    if (!ac)
+        return CALL_E_NOSYNC;
+
+    return (new asyncSave(this, fname, format, quality, ac))->post(0);
 }
 
 result_t Image::get_width(int32_t &retVal)

@@ -52,6 +52,7 @@ public:
 	static result_t create(int32_t width, int32_t height, int32_t color, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t load(Buffer_base* data, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t load(SeekableStream_base* stm, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t load(const char* fname, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
 
 	DECLARE_CLASSINFO(gd_base);
 
@@ -82,6 +83,7 @@ public:
 	ASYNC_STATICVALUE4(gd_base, create, int32_t, int32_t, int32_t, obj_ptr<Image_base>);
 	ASYNC_STATICVALUE2(gd_base, load, Buffer_base*, obj_ptr<Image_base>);
 	ASYNC_STATICVALUE2(gd_base, load, SeekableStream_base*, obj_ptr<Image_base>);
+	ASYNC_STATICVALUE2(gd_base, load, const char*, obj_ptr<Image_base>);
 };
 
 }
@@ -295,6 +297,12 @@ namespace fibjs
 		METHOD_OVER(1, 1);
 
 		ARG(obj_ptr<SeekableStream_base>, 0);
+
+		hr = ac_load(v0, vr);
+
+		METHOD_OVER(1, 1);
+
+		ARG_String(0);
 
 		hr = ac_load(v0, vr);
 

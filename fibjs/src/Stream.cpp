@@ -33,7 +33,7 @@ result_t copyStream(Stream_base *from, Stream_base *to, int64_t bytes,
             pThis->set(write);
 
             if (pThis->m_bytes == 0)
-                return pThis->done(0);
+                return pThis->done();
 
             if (pThis->m_bytes > STREAM_BUFF_SIZE)
                 len = STREAM_BUFF_SIZE;
@@ -52,7 +52,7 @@ result_t copyStream(Stream_base *from, Stream_base *to, int64_t bytes,
             pThis->set(read);
 
             if (n == CALL_RETURN_NULL)
-                return pThis->done(0);
+                return pThis->done();
 
             pThis->m_buf->get_length(blen);
             pThis->m_retVal += blen;
