@@ -8,7 +8,6 @@
 #include "ifs/Image.h"
 #include "ifs/SeekableStream.h"
 #include <gd.h>
-#include <libexif/exif-data.h>
 
 #ifndef IMAGE_H_
 #define IMAGE_H_
@@ -20,7 +19,7 @@ class Image: public Image_base
 {
 public:
     Image() :
-        m_image(NULL), m_ed(NULL), m_type(gd_base::_NONE)
+        m_image(NULL), m_type(gd_base::_NONE)
     {
     }
 
@@ -28,9 +27,6 @@ public:
     {
         if (m_image)
             gdImageDestroy(m_image);
-
-        if (m_ed)
-            exif_data_unref(m_ed);
     }
 
 public:
@@ -99,7 +95,6 @@ private:
 
 private:
     gdImagePtr m_image;
-    ExifData *m_ed;
     int32_t m_type;
 };
 

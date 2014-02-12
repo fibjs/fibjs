@@ -10,6 +10,7 @@
 #include "ifs/fs.h"
 #include <vector>
 #include <stdlib.h>
+#include <exif.h>
 
 namespace fibjs
 {
@@ -226,44 +227,31 @@ result_t Image::load(Buffer_base *data)
                                            (void *) strBuf.c_str());
         if (m_image != NULL)
         {
-            m_ed = exif_data_new_from_data(
-                       (const unsigned char *) strBuf.c_str(), (unsigned int)strBuf.length());
-            if (m_ed)
+            EXIFInfo result;
+            result.parseFrom((const unsigned char *) strBuf.c_str(),
+                             (unsigned int)strBuf.length());
+
+            switch (result.Orientation)
             {
-                int dir = 1;
-
-                ExifEntry *entry = exif_content_get_entry(m_ed->ifd[EXIF_IFD_0],
-                                   EXIF_TAG_ORIENTATION);
-
-                if (entry)
-                {
-                    dir = exif_get_short(entry->data,
-                                         exif_data_get_byte_order(m_ed));
-                    exif_content_remove_entry(m_ed->ifd[EXIF_IFD_0], entry);
-                }
-
-                switch (dir)
-                {
-                case 2:
-                    gdImageFlipHorizontal(m_image);
-                    break;
-                case 3:
-                    gdImageFlipBoth(m_image);
-                    break;
-                case 4:
-                    gdImageFlipVertical(m_image);
-                    break;
-                case 5:
-                    gdImageFlipVertical(m_image);
-                case 6:
-                    rotate(gd_base::_RIGHT);
-                    break;
-                case 7:
-                    gdImageFlipVertical(m_image);
-                case 8:
-                    rotate(gd_base::_LEFT);
-                    break;
-                }
+            case 2:
+                gdImageFlipHorizontal(m_image);
+                break;
+            case 3:
+                gdImageFlipBoth(m_image);
+                break;
+            case 4:
+                gdImageFlipVertical(m_image);
+                break;
+            case 5:
+                gdImageFlipVertical(m_image);
+            case 6:
+                rotate(gd_base::_RIGHT);
+                break;
+            case 7:
+                gdImageFlipVertical(m_image);
+            case 8:
+                rotate(gd_base::_LEFT);
+                break;
             }
         }
 
@@ -340,9 +328,6 @@ result_t Image::getData(int32_t format, int32_t quality,
     {
         unsigned char *ed_data = NULL;
         unsigned int  ed_size = 0;
-
-        if (m_ed)
-            exif_data_save_data(m_ed, &ed_data, &ed_size);
 
         data = gdImageJpegPtr(m_image, &size, quality, ed_data, ed_size);
 
@@ -912,12 +897,6 @@ result_t Image::New(int32_t width, int32_t height, obj_ptr<Image> &retVal)
 
     gdImagePaletteCopy(img->m_image, m_image);
     gdImageColorTransparent(img->m_image, gdImageGetTransparent(m_image));
-
-    if (m_ed)
-    {
-        img->m_ed = m_ed;
-        exif_data_ref(m_ed);
-    }
 
     img->setExtMemory();
 
