@@ -26,6 +26,7 @@
     <ClCompile Include="src\cripto\hash_sha1.c" />
     <ClCompile Include="src\cripto\hash_sha2.c" />
     <ClCompile Include="src\cripto\hash_sha4.c" />
+    <ClCompile Include="src\easyexif\exif.cpp" />
     <ClCompile Include="src\ev\ev.c" />
     <ClCompile Include="src\exif\canon\exif-mnote-data-canon.c" />
     <ClCompile Include="src\exif\canon\mnote-canon-entry.c" />
@@ -603,6 +604,7 @@
     <ClInclude Include="include\crypto\sha4.h" />
     <ClInclude Include="include\ev++.h" />
     <ClInclude Include="include\ev.h" />
+    <ClInclude Include="include\exif.h" />
     <ClInclude Include="include\exlib\fiber.h" />
     <ClInclude Include="include\exlib\lockfree.h" />
     <ClInclude Include="include\exlib\thread.h" />

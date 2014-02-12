@@ -181,6 +181,9 @@
     <Filter Include="Source Files\v8\src\utils">
       <UniqueIdentifier>{9fc317aa-0102-4036-a0a5-0ffc7a59aa4c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\easyexif">
+      <UniqueIdentifier>{6646d974-6961-4e50-b88c-897f43bd5034}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zlib\adler32.c">
@@ -1902,6 +1905,9 @@
     <ClCompile Include="src\v8\src\extensions\trigger-failure-extension.cc">
       <Filter>Source Files\v8\src\extensions</Filter>
     </ClCompile>
+    <ClCompile Include="src\easyexif\exif.cpp">
+      <Filter>Source Files\easyexif</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -3562,6 +3568,9 @@
     </ClInclude>
     <ClInclude Include="src\v8\src\extensions\trigger-failure-extension.h">
       <Filter>Source Files\v8\src\extensions</Filter>
+    </ClInclude>
+    <ClInclude Include="include\exif.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
