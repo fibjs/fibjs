@@ -25,11 +25,11 @@ result_t AsyncWaitHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 result_t AsyncWaitHandler::end()
 {
     m_ac.wait();
-    if (m_as)
-    {
-        s_acPool.put(m_as);
-        m_as = NULL;
-    }
+    if (!m_as)
+        return CALL_E_INVALID_CALL;
+
+    s_acPool.put(m_as);
+    m_as = NULL;
 
     return 0;
 }
