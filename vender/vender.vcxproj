@@ -155,6 +155,7 @@
     <ClCompile Include="src\log4cpp\Category.cpp" />
     <ClCompile Include="src\log4cpp\CategoryStream.cpp" />
     <ClCompile Include="src\log4cpp\Configurator.cpp" />
+    <ClCompile Include="src\log4cpp\ConsoleAppenfer.cpp" />
     <ClCompile Include="src\log4cpp\DummyThreads.cpp" />
     <ClCompile Include="src\log4cpp\FactoryParams.cpp" />
     <ClCompile Include="src\log4cpp\FileAppender.cpp" />
@@ -1168,6 +1169,7 @@
     <None Include="include\log4cpp\Category.hh" />
     <None Include="include\log4cpp\CategoryStream.hh" />
     <None Include="include\log4cpp\Configurator.hh" />
+    <None Include="include\log4cpp\ConsoleAppender.hh" />
     <None Include="include\log4cpp\Export.hh" />
     <None Include="include\log4cpp\FactoryParams.hh" />
     <None Include="include\log4cpp\FileAppender.hh" />

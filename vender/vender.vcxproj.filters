@@ -1908,6 +1908,9 @@
     <ClCompile Include="src\easyexif\exif.cpp">
       <Filter>Source Files\easyexif</Filter>
     </ClCompile>
+    <ClCompile Include="src\log4cpp\ConsoleAppenfer.cpp">
+      <Filter>Source Files\log4cpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -3746,6 +3749,9 @@
       <Filter>Header Files\log4cpp</Filter>
     </None>
     <None Include="include\log4cpp\Win32DebugAppender.hh">
+      <Filter>Header Files\log4cpp</Filter>
+    </None>
+    <None Include="include\log4cpp\ConsoleAppender.hh">
       <Filter>Header Files\log4cpp</Filter>
     </None>
   </ItemGroup>

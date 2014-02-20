@@ -2,7 +2,7 @@
 
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
-#include <log4cpp/LayoutAppender.hh>
+#include <log4cpp/ConsoleAppender.hh>
 
 #include <locale.h>
 
@@ -202,10 +202,17 @@ private:
 #endif
 };
 
+log4cpp::Appender *my_get_console(const std::string &appenderName)
+{
+    return new MyAppender();
+}
+
 void init_argv(int argc, char **argv);
 
 void _main(const char *fname)
 {
+    set_ConsoleGetter(my_get_console);
+
     try
     {
         log4cpp::PropertyConfigurator::configure("log.ini");

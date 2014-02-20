@@ -47,6 +47,8 @@
 #include <log4cpp/Priority.hh>
 #include <log4cpp/NDC.hh>
 
+#include <log4cpp/ConsoleAppender.hh>
+
 #include <list>
 #include <vector>
 #include <iterator>
@@ -199,7 +201,8 @@ namespace log4cpp {
 
         // and instantiate the appropriate object
         if (appenderType == "ConsoleAppender") {
-            appender = new OstreamAppender(appenderName, &std::cout);
+            //appender = new OstreamAppender(appenderName, &std::cout);
+            appender = get_console(appenderName);
         }
         else if (appenderType == "FileAppender") {
             std::string fileName = _properties.getString(appenderPrefix + ".fileName", "foobar");
