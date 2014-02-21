@@ -883,6 +883,7 @@
     <ClInclude Include="src\v8\src\extensions\trigger-failure-extension.h" />
     <ClInclude Include="src\v8\src\factory.h" />
     <ClInclude Include="src\v8\src\fast-dtoa.h" />
+    <ClInclude Include="src\v8\src\feedback-slots.h" />
     <ClInclude Include="src\v8\src\fixed-dtoa.h" />
     <ClInclude Include="src\v8\src\flag-definitions.h" />
     <ClInclude Include="src\v8\src\flags.h" />

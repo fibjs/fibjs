@@ -3575,6 +3575,9 @@
     <ClInclude Include="include\exif.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\v8\src\feedback-slots.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\log4cpp\threading\BoostThreads.hh">

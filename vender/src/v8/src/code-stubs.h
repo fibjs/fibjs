@@ -101,7 +101,7 @@ namespace internal {
   V(KeyedLoadField)
 
 // List of code stubs only used on ARM platforms.
-#if V8_TARGET_ARCH_ARM
+#if defined(V8_TARGET_ARCH_ARM) || defined(V8_TARGET_ARCH_A64)
 #define CODE_STUB_LIST_ARM(V)  \
   V(GetProperty)               \
   V(SetProperty)               \
@@ -187,9 +187,6 @@ class CodeStub BASE_EMBEDDED {
   }
   virtual Code::StubType GetStubType() {
     return Code::NORMAL;
-  }
-  virtual int GetStubFlags() {
-    return -1;
   }
 
   virtual void PrintName(StringStream* stream);
@@ -442,6 +439,8 @@ class RuntimeCallHelper {
 #include "ia32/code-stubs-ia32.h"
 #elif V8_TARGET_ARCH_X64
 #include "x64/code-stubs-x64.h"
+#elif V8_TARGET_ARCH_A64
+#include "a64/code-stubs-a64.h"
 #elif V8_TARGET_ARCH_ARM
 #include "arm/code-stubs-arm.h"
 #elif V8_TARGET_ARCH_MIPS
@@ -883,7 +882,7 @@ class HICStub: public HydrogenCodeStub {
 class HandlerStub: public HICStub {
  public:
   virtual Code::Kind GetCodeKind() const { return Code::HANDLER; }
-  virtual int GetStubFlags() { return kind(); }
+  virtual ExtraICState GetExtraICState() { return kind(); }
 
  protected:
   HandlerStub() : HICStub() { }
@@ -955,19 +954,27 @@ class LoadFieldStub: public HandlerStub {
 
 class StoreGlobalStub : public HandlerStub {
  public:
-  explicit StoreGlobalStub(bool is_constant) {
-    bit_field_ = IsConstantBits::encode(is_constant);
+  explicit StoreGlobalStub(bool is_constant, bool check_global) {
+    bit_field_ = IsConstantBits::encode(is_constant) |
+        CheckGlobalBits::encode(check_global);
+  }
+
+  static Handle<HeapObject> global_placeholder(Isolate* isolate) {
+    return isolate->factory()->uninitialized_value();
   }
 
   Handle<Code> GetCodeCopyFromTemplate(Isolate* isolate,
-                                       Map* receiver_map,
+                                       GlobalObject* global,
                                        PropertyCell* cell) {
     Handle<Code> code = CodeStub::GetCodeCopyFromTemplate(isolate);
-    // Replace the placeholder cell and global object map with the actual global
-    // cell and receiver map.
+    if (check_global()) {
+      // Replace the placeholder cell and global object map with the actual
+      // global cell and receiver map.
+      code->ReplaceNthObject(1, global_placeholder(isolate)->map(), global);
+      code->ReplaceNthObject(1, isolate->heap()->meta_map(), global->map());
+    }
     Map* cell_map = isolate->heap()->global_property_cell_map();
     code->ReplaceNthObject(1, cell_map, cell);
-    code->ReplaceNthObject(1, isolate->heap()->meta_map(), receiver_map);
     return code;
   }
 
@@ -979,10 +986,11 @@ class StoreGlobalStub : public HandlerStub {
       Isolate* isolate,
       CodeStubInterfaceDescriptor* descriptor);
 
-  virtual ExtraICState GetExtraICState() { return bit_field_; }
-
-  bool is_constant() {
+  bool is_constant() const {
     return IsConstantBits::decode(bit_field_);
+  }
+  bool check_global() const {
+    return CheckGlobalBits::decode(bit_field_);
   }
   void set_is_constant(bool value) {
     bit_field_ = IsConstantBits::update(bit_field_, value);
@@ -996,13 +1004,11 @@ class StoreGlobalStub : public HandlerStub {
   }
 
  private:
-  virtual int NotMissMinorKey() { return GetExtraICState(); }
   Major MajorKey() { return StoreGlobal; }
 
   class IsConstantBits: public BitField<bool, 0, 1> {};
   class RepresentationBits: public BitField<Representation::Kind, 1, 8> {};
-
-  int bit_field_;
+  class CheckGlobalBits: public BitField<bool, 9, 1> {};
 
   DISALLOW_COPY_AND_ASSIGN(StoreGlobalStub);
 };
@@ -1010,13 +1016,14 @@ class StoreGlobalStub : public HandlerStub {
 
 class CallApiFunctionStub : public PlatformCodeStub {
  public:
-  CallApiFunctionStub(bool restore_context,
+  CallApiFunctionStub(bool is_store,
                       bool call_data_undefined,
                       int argc) {
     bit_field_ =
-        RestoreContextBits::encode(restore_context) |
+        IsStoreBits::encode(is_store) |
         CallDataUndefinedBits::encode(call_data_undefined) |
         ArgumentBits::encode(argc);
+    ASSERT(!is_store || argc == 1);
   }
 
  private:
@@ -1024,7 +1031,7 @@ class CallApiFunctionStub : public PlatformCodeStub {
   virtual Major MajorKey() V8_OVERRIDE { return CallApiFunction; }
   virtual int MinorKey() V8_OVERRIDE { return bit_field_; }
 
-  class RestoreContextBits: public BitField<bool, 0, 1> {};
+  class IsStoreBits: public BitField<bool, 0, 1> {};
   class CallDataUndefinedBits: public BitField<bool, 1, 1> {};
   class ArgumentBits: public BitField<int, 2, Code::kArgumentsBits> {};
 
@@ -1866,23 +1873,21 @@ class DoubleToIStub : public PlatformCodeStub {
                 int offset,
                 bool is_truncating,
                 bool skip_fastpath = false) : bit_field_(0) {
-    bit_field_ = SourceRegisterBits::encode(source.code_) |
-      DestinationRegisterBits::encode(destination.code_) |
+    bit_field_ = SourceRegisterBits::encode(source.code()) |
+      DestinationRegisterBits::encode(destination.code()) |
       OffsetBits::encode(offset) |
       IsTruncatingBits::encode(is_truncating) |
       SkipFastPathBits::encode(skip_fastpath) |
       SSEBits::encode(CpuFeatures::IsSafeForSnapshot(SSE2) ?
-                          CpuFeatures::IsSafeForSnapshot(SSE3) ? 2 : 1 : 0);
+                      CpuFeatures::IsSafeForSnapshot(SSE3) ? 2 : 1 : 0);
   }
 
   Register source() {
-    Register result = { SourceRegisterBits::decode(bit_field_) };
-    return result;
+    return Register::from_code(SourceRegisterBits::decode(bit_field_));
   }
 
   Register destination() {
-    Register result = { DestinationRegisterBits::decode(bit_field_) };
-    return result;
+    return Register::from_code(DestinationRegisterBits::decode(bit_field_));
   }
 
   bool is_truncating() {
