@@ -50,7 +50,6 @@ result_t utils_base::buildInfo(v8::Local<v8::Object> &retVal)
 
         vender->Set(v8::String::NewFromUtf8(isolate, "ev"),
                     v8::String::NewFromUtf8(isolate,  STR(EV_VERSION_MAJOR) "." STR(EV_VERSION_MINOR)));
-        vender->Set(v8::String::NewFromUtf8(isolate, "exif"), v8::String::NewFromUtf8(isolate, "0.6.21"));
         vender->Set(v8::String::NewFromUtf8(isolate, "gd"), v8::String::NewFromUtf8(isolate, GD_VERSION_STRING));
         vender->Set(v8::String::NewFromUtf8(isolate, "jpeg"), v8::String::NewFromUtf8(isolate,
                     STR(JPEG_LIB_VERSION_MAJOR) "." STR(JPEG_LIB_VERSION_MINOR)));
