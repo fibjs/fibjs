@@ -221,10 +221,19 @@ result_t HttpRequest::readFrom(BufferedStream_base *stm, exlib::AsyncEvent *ac)
 
             p.skipSpace();
 
-            if (!p.getWord(pThis->m_pThis->m_address, '?'))
+            std::string &addr = pThis->m_pThis->m_address;
+
+            if (!p.getWord(addr, '?'))
                 return Runtime::setError("bad address.");
 
-            pThis->m_pThis->m_message.set_value(pThis->m_pThis->m_address);
+            if (!qstricmp(addr.c_str(), "http://", 7))
+            {
+                const char *p = qstrchr(addr.c_str() + 7, '/');
+                if (p)
+                    pThis->m_pThis->m_message.set_value(p);
+            }
+            else
+                pThis->m_pThis->m_message.set_value(addr);
 
             if (p.want('?'))
                 p.getWord(pThis->m_pThis->m_queryString);

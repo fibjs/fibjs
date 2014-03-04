@@ -14,7 +14,7 @@ function Step() {
 	this.wait = function(n) {
 		while (this.step != n)
 			coroutine.sleep(1);
-		this.step ++;
+		this.step++;
 	};
 }
 
@@ -112,311 +112,291 @@ describe(
 			});
 		});
 
-		describe(
-			"parse",
-			function() {
-				function get_request(u) {
-					var ms = new io.MemoryStream();
-					var bs = new io.BufferedStream(ms);
-					bs.EOL = "\r\n";
+		describe("parse", function() {
+			function get_request(u) {
+				var ms = new io.MemoryStream();
+				var bs = new io.BufferedStream(ms);
+				bs.EOL = "\r\n";
 
-					bs.writeText(u);
-					ms.seek(0, fs.SEEK_SET);
+				bs.writeText(u);
+				ms.seek(0, fs.SEEK_SET);
 
-					var r = new http.Request();
+				var r = new http.Request();
 
-					r.readFrom(bs);
+				r.readFrom(bs);
 
-					return r;
+				return r;
+			}
+
+			function get_response(txt) {
+				var ms = new io.MemoryStream();
+				var bs = new io.BufferedStream(ms);
+				bs.EOL = "\r\n";
+
+				bs.writeText(txt);
+				ms.seek(0, fs.SEEK_SET);
+
+				var req = new http.Response();
+				req.readFrom(bs);
+				return req;
+			}
+
+			it("bad request", function() {
+				var bad_reqs = [
+					" GET / HTTP/1.0\r\nkeepalive: close\r\n\r\n",
+					"GET ? HTTP/1.0\r\nkeepalive: close\r\n\r\n",
+					"GET / \r\nkeepalive: close\r\n\r\n",
+					"GET / HTTP/a.0\r\nkeepalive: close\r\n\r\n",
+					"GET / HTT/1.0\r\nkeepalive: close\r\n\r\n",
+					"GET / HTTP/1.\r\nkeepalive: close\r\n\r\n"
+				];
+
+				function readreq(u) {
+					assert.throws(function() {
+						get_request(u);
+					});
 				}
 
-				function get_response(txt) {
-					var ms = new io.MemoryStream();
-					var bs = new io.BufferedStream(ms);
-					bs.EOL = "\r\n";
+				bad_reqs.forEach(readreq);
+			});
 
-					bs.writeText(txt);
-					ms.seek(0, fs.SEEK_SET);
-
-					var req = new http.Response();
-					req.readFrom(bs);
-					return req;
-				}
-
-				it(
-					"bad request",
-					function() {
-						var bad_reqs = [
-							" GET / HTTP/1.0\r\nkeepalive: close\r\n\r\n",
-							"GET ? HTTP/1.0\r\nkeepalive: close\r\n\r\n",
-							"GET / \r\nkeepalive: close\r\n\r\n",
-							"GET / HTTP/a.0\r\nkeepalive: close\r\n\r\n",
-							"GET / HTT/1.0\r\nkeepalive: close\r\n\r\n",
-							"GET / HTTP/1.\r\nkeepalive: close\r\n\r\n"
-						];
-
-						function readreq(u) {
-							assert.throws(function() {
-								get_request(u);
-							});
-						}
-
-						bad_reqs.forEach(readreq);
-					});
-
-				it("bad response", function() {
-					assert.throws(function() {
-						get_response("HTTP/1.0\r\n\r\n");
-					});
-
-					assert.throws(function() {
-						get_response("HTTP/1.0 \r\n\r\n");
-					});
-
-					assert.throws(function() {
-						get_response("HTTP/1.0,200\r\n\r\n");
-					});
-
-					assert.throws(function() {
-						get_response("HTTP/1.0 1\r\n\r\n");
-					});
-
-					assert.throws(function() {
-						get_response("HTTP/1.0 1111\r\n\r\n");
-					});
-
-					assert.throws(function() {
-						get_response("HTTP/1.0 asd\r\n\r\n");
-					});
+			it("bad response", function() {
+				assert.throws(function() {
+					get_response("HTTP/1.0\r\n\r\n");
 				});
 
-				it(
-					"basic format",
-					function() {
-						var req = get_request("GET / HTTP/1.0\r\nhead1: 100\r\nhead2: 200\r\nContent-type:test\r\nContent-length:    10\r\n\r\n0123456789");
+				assert.throws(function() {
+					get_response("HTTP/1.0 \r\n\r\n");
+				});
 
-						assert.equal('100', req.headers['head1']);
-						assert.equal('200', req.headers['head2']);
-						assert.equal(10, req.length);
-						assert.equal('test',
-							req.headers['content-type']);
-						assert.equal('0123456789', req.body.read());
+				assert.throws(function() {
+					get_response("HTTP/1.0,200\r\n\r\n");
+				});
 
-						assert.equal(req.stream.size(), 94);
-						req.clear();
-						assert.equal(req.stream, null);
+				assert.throws(function() {
+					get_response("HTTP/1.0 1\r\n\r\n");
+				});
 
-						var r = get_response("HTTP/1.0 200\r\n\r\n");
-						assert.equal(r.status, 200);
-						assert.equal(r.protocol, 'HTTP/1.0');
-					});
+				assert.throws(function() {
+					get_response("HTTP/1.0 1111\r\n\r\n");
+				});
 
-				it(
-					"keep-alive",
-					function() {
-						var keep_reqs = {
-							"GET / HTTP/1.0\r\n\r\n": false,
-							"GET / HTTP/1.0\r\nconnection: close\r\n\r\n": false,
-							"GET / HTTP/1.0\r\nconnection: keep-alive\r\n\r\n": true,
-							"GET / HTTP/1.1\r\n\r\n": true,
-							"GET / HTTP/1.1\r\nconnection: close\r\n\r\n": false,
-							"GET / HTTP/1.1\r\nconnection: keep-alive\r\n\r\n": true,
-						};
-
-						for (var n in keep_reqs) {
-							var req = get_request(n);
-							assert.equal(keep_reqs[n],
-								req.keepAlive);
-						}
-					});
-
-				it(
-					"cookie",
-					function() {
-						function get_cookie(txt) {
-							return get_request(txt).cookie.toJSON();
-						}
-
-						var c = get_cookie("GET / HTTP/1.0\r\ncookie: $Version=1; Skin=new;\r\n\r\n");
-						assert.deepEqual(c, {
-							'$Version': '1',
-							'Skin': 'new'
-						});
-
-						var c = get_cookie("GET / HTTP/1.0\r\ncookie: $Version=1; Skin=new%20\r\n\r\n");
-						assert.deepEqual(c, {
-							'$Version': '1',
-							'Skin': 'new '
-						});
-
-						var c = get_cookie("GET / HTTP/1.0\r\ncookie: $Version=1; Skin=new%20cookie %sdf\r\n\r\n");
-						assert.deepEqual(c, {
-							'$Version': '1',
-							'Skin': 'new cookie %sdf'
-						});
-					});
-
-				it(
-					"query",
-					function() {
-						function get_query(txt) {
-							return get_request(txt).query.toJSON();
-						}
-
-						var c = get_query("GET /test?a=100&b=200 HTTP/1.0\r\n\r\n");
-						assert.deepEqual(c, {
-							'a': '100',
-							'b': '200'
-						});
-
-						var c = get_query("GET /test?a&b HTTP/1.0\r\n\r\n");
-						assert.deepEqual(c, {
-							'a': '',
-							'b': ''
-						});
-
-						var c = get_query("GET /test?a&&&&&&&&&&&&&&&&&&&&&&&&&b HTTP/1.0\r\n\r\n");
-						assert.deepEqual(c, {
-							'a': '',
-							'b': ''
-						});
-
-						var c = get_query("GET /test? HTTP/1.0\r\n\r\n");
-						assert.deepEqual(c, {});
-					});
-
-				it(
-					"form",
-					function() {
-						function get_form(txt) {
-							return get_request(txt).form;
-						}
-
-						var c = get_form("GET /test HTTP/1.0\r\nContent-type:application/x-www-form-urlencoded\r\nContent-length:11\r\n\r\na=100&b=200");
-						assert.deepEqual(c.toJSON(), {
-							'a': '100',
-							'b': '200'
-						});
-
-						var c = get_form("GET /test HTTP/1.0\r\nContent-type:application/x-www-form-urlencoded\r\nContent-length:3\r\n\r\na&b");
-						assert.deepEqual(c.toJSON(), {
-							'a': '',
-							'b': ''
-						});
-
-						var c = get_form("GET /test HTTP/1.0\r\nContent-type:application/x-www-form-urlencoded\r\nContent-length:27\r\n\r\na&&&&&&&&&&&&&&&&&&&&&&&&&b");
-						assert.deepEqual(c.toJSON(), {
-							'a': '',
-							'b': ''
-						});
-
-						var c = get_form('GET /test HTTP/1.0\r\nContent-type:multipart/form-data;boundary=7d33a816d302b6\r\nContent-length:150\r\n\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="a"\r\n\r\n100\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="b"\r\n\r\n200\r\n--7d33a816d302b6\r\n');
-						assert.deepEqual(c.toJSON(), {
-							'a': '100',
-							'b': '200'
-						});
-
-						var c = get_form('GET /test HTTP/1.0\r\nContent-type:multipart/form-data;boundary=7d33a816d302b6\r\nContent-length:201\r\n\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="a"\r\n\r\n100\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="b";filename="test"\r\nContent-Transfer-Encoding: base64\r\n\r\n200\r\n--7d33a816d302b6\r\n');
-						assert.equal(c['a'], '100');
-						assert.equal(c['b'].fileName, 'test');
-						assert.equal(
-							c['b'].contentTransferEncoding,
-							'base64');
-						assert.equal(c['b'].body.read().toString(),
-							'200');
-					});
-				it(
-					"chunk",
-					function() {
-						function chunk(data) {
-							return data.length.toString(16) + '\r\n' + data + '\r\n';
-						}
-
-						var datas = ['This is the first chunk',
-							'This is the second chunk',
-							'This is the third chunk',
-							'This is the fourth chunk',
-							'This is the 5th chunk', ''
-						];
-
-						var rep = get_response('HTTP/1.1 200\r\nConnection: close\r\nTransfer-encoding: chunked\r\n\r\n' + datas.map(chunk).join(''));
-						assert.equal(datas.join(''), rep.body
-							.read());
-					});
-
+				assert.throws(function() {
+					get_response("HTTP/1.0 asd\r\n\r\n");
+				});
 			});
 
-		describe(
-			"encode",
-			function() {
-				it(
-					"response",
-					function() {
-						var rep = new http.Request();
-						rep.body.write(new Buffer("0123456789"));
+			it("proxy request", function() {
+				var req = get_request("GET http://www.com/index.html HTTP/1.0\r\nkeepalive: close\r\n\r\n");
+				assert.equal("http://www.com/index.html", req.address);
+				assert.equal("/index.html", req.value);
 
-						var ms = new io.MemoryStream();
-
-						rep.sendTo(ms);
-						ms.rewind();
-						assert
-							.equal(
-								ms.read(),
-								'GET / HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
-					});
-				it(
-					"response",
-					function() {
-						var ms = new io.MemoryStream();
-
-						var rep = new http.Response();
-						rep.body.write(new Buffer("0123456789"));
-
-						rep.sendTo(ms);
-						ms.rewind();
-						assert
-							.equal(
-								ms.read(),
-								'HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
-					});
-
-				it(
-					"address",
-					function() {
-						var rep = new http.Request();
-						rep.body.write(new Buffer("0123456789"));
-						rep.address = "/docs/";
-						rep.value = "/docs/";
-
-						var ms = new io.MemoryStream();
-
-						rep.sendTo(ms);
-						ms.rewind();
-						assert
-							.equal(
-								ms.read(),
-								'GET /docs/ HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
-					});
-
-				it(
-					"query",
-					function() {
-						var rep = new http.Request();
-						rep.body.write(new Buffer("0123456789"));
-						rep.address = "/docs";
-						rep.value = "/docs";
-						rep.queryString = "page=100&style=wap";
-
-						var ms = new io.MemoryStream();
-
-						rep.sendTo(ms);
-						ms.rewind();
-						assert
-							.equal(
-								ms.read(),
-								'GET /docs?page=100&style=wap HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
-					});
+				var req = get_request("GET http://www.com.index.html HTTP/1.0\r\nkeepalive: close\r\n\r\n");
+				assert.equal("http://www.com.index.html", req.address);
+				assert.equal("", req.value);
 			});
+
+			it("basic format", function() {
+				var req = get_request("GET / HTTP/1.0\r\nhead1: 100\r\nhead2: 200\r\nContent-type:test\r\nContent-length:    10\r\n\r\n0123456789");
+
+				assert.equal('100', req.headers['head1']);
+				assert.equal('200', req.headers['head2']);
+				assert.equal(10, req.length);
+				assert.equal('test', req.headers['content-type']);
+				assert.equal('0123456789', req.body.read());
+
+				assert.equal(req.stream.size(), 94);
+				req.clear();
+				assert.equal(req.stream, null);
+
+				var r = get_response("HTTP/1.0 200\r\n\r\n");
+				assert.equal(r.status, 200);
+				assert.equal(r.protocol, 'HTTP/1.0');
+			});
+
+			it("keep-alive", function() {
+				var keep_reqs = {
+					"GET / HTTP/1.0\r\n\r\n": false,
+					"GET / HTTP/1.0\r\nconnection: close\r\n\r\n": false,
+					"GET / HTTP/1.0\r\nconnection: keep-alive\r\n\r\n": true,
+					"GET / HTTP/1.1\r\n\r\n": true,
+					"GET / HTTP/1.1\r\nconnection: close\r\n\r\n": false,
+					"GET / HTTP/1.1\r\nconnection: keep-alive\r\n\r\n": true,
+				};
+
+				for (var n in keep_reqs) {
+					var req = get_request(n);
+					assert.equal(keep_reqs[n],
+						req.keepAlive);
+				}
+			});
+
+			it("cookie", function() {
+				function get_cookie(txt) {
+					return get_request(txt).cookie.toJSON();
+				}
+
+				var c = get_cookie("GET / HTTP/1.0\r\ncookie: $Version=1; Skin=new;\r\n\r\n");
+				assert.deepEqual(c, {
+					'$Version': '1',
+					'Skin': 'new'
+				});
+
+				var c = get_cookie("GET / HTTP/1.0\r\ncookie: $Version=1; Skin=new%20\r\n\r\n");
+				assert.deepEqual(c, {
+					'$Version': '1',
+					'Skin': 'new '
+				});
+
+				var c = get_cookie("GET / HTTP/1.0\r\ncookie: $Version=1; Skin=new%20cookie %sdf\r\n\r\n");
+				assert.deepEqual(c, {
+					'$Version': '1',
+					'Skin': 'new cookie %sdf'
+				});
+			});
+
+			it("query", function() {
+				function get_query(txt) {
+					return get_request(txt).query.toJSON();
+				}
+
+				var c = get_query("GET /test?a=100&b=200 HTTP/1.0\r\n\r\n");
+				assert.deepEqual(c, {
+					'a': '100',
+					'b': '200'
+				});
+
+				var c = get_query("GET /test?a&b HTTP/1.0\r\n\r\n");
+				assert.deepEqual(c, {
+					'a': '',
+					'b': ''
+				});
+
+				var c = get_query("GET /test?a&&&&&&&&&&&&&&&&&&&&&&&&&b HTTP/1.0\r\n\r\n");
+				assert.deepEqual(c, {
+					'a': '',
+					'b': ''
+				});
+
+				var c = get_query("GET /test? HTTP/1.0\r\n\r\n");
+				assert.deepEqual(c, {});
+			});
+
+			it("form", function() {
+				function get_form(txt) {
+					return get_request(txt).form;
+				}
+
+				var c = get_form("GET /test HTTP/1.0\r\nContent-type:application/x-www-form-urlencoded\r\nContent-length:11\r\n\r\na=100&b=200");
+				assert.deepEqual(c.toJSON(), {
+					'a': '100',
+					'b': '200'
+				});
+
+				var c = get_form("GET /test HTTP/1.0\r\nContent-type:application/x-www-form-urlencoded\r\nContent-length:3\r\n\r\na&b");
+				assert.deepEqual(c.toJSON(), {
+					'a': '',
+					'b': ''
+				});
+
+				var c = get_form("GET /test HTTP/1.0\r\nContent-type:application/x-www-form-urlencoded\r\nContent-length:27\r\n\r\na&&&&&&&&&&&&&&&&&&&&&&&&&b");
+				assert.deepEqual(c.toJSON(), {
+					'a': '',
+					'b': ''
+				});
+
+				var c = get_form('GET /test HTTP/1.0\r\nContent-type:multipart/form-data;boundary=7d33a816d302b6\r\nContent-length:150\r\n\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="a"\r\n\r\n100\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="b"\r\n\r\n200\r\n--7d33a816d302b6\r\n');
+				assert.deepEqual(c.toJSON(), {
+					'a': '100',
+					'b': '200'
+				});
+
+				var c = get_form('GET /test HTTP/1.0\r\nContent-type:multipart/form-data;boundary=7d33a816d302b6\r\nContent-length:201\r\n\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="a"\r\n\r\n100\r\n--7d33a816d302b6\r\nContent-Disposition: form-data;name="b";filename="test"\r\nContent-Transfer-Encoding: base64\r\n\r\n200\r\n--7d33a816d302b6\r\n');
+				assert.equal(c['a'], '100');
+				assert.equal(c['b'].fileName, 'test');
+				assert.equal(
+					c['b'].contentTransferEncoding,
+					'base64');
+				assert.equal(c['b'].body.read().toString(),
+					'200');
+			});
+			it("chunk", function() {
+				function chunk(data) {
+					return data.length.toString(16) + '\r\n' + data + '\r\n';
+				}
+
+				var datas = ['This is the first chunk',
+					'This is the second chunk',
+					'This is the third chunk',
+					'This is the fourth chunk',
+					'This is the 5th chunk', ''
+				];
+
+				var rep = get_response('HTTP/1.1 200\r\nConnection: close\r\nTransfer-encoding: chunked\r\n\r\n' + datas.map(chunk).join(''));
+				assert.equal(datas.join(''), rep.body
+					.read());
+			});
+
+		});
+
+		describe("encode", function() {
+			it("response", function() {
+				var rep = new http.Request();
+				rep.body.write(new Buffer("0123456789"));
+
+				var ms = new io.MemoryStream();
+
+				rep.sendTo(ms);
+				ms.rewind();
+				assert.equal(
+					ms.read(),
+					'GET / HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
+			});
+			it("response", function() {
+				var ms = new io.MemoryStream();
+
+				var rep = new http.Response();
+				rep.body.write(new Buffer("0123456789"));
+
+				rep.sendTo(ms);
+				ms.rewind();
+				assert.equal(
+					ms.read(),
+					'HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
+			});
+
+			it("address", function() {
+				var rep = new http.Request();
+				rep.body.write(new Buffer("0123456789"));
+				rep.address = "/docs/";
+				rep.value = "/docs/";
+
+				var ms = new io.MemoryStream();
+
+				rep.sendTo(ms);
+				ms.rewind();
+				assert
+					.equal(
+						ms.read(),
+						'GET /docs/ HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
+			});
+
+			it("query", function() {
+				var rep = new http.Request();
+				rep.body.write(new Buffer("0123456789"));
+				rep.address = "/docs";
+				rep.value = "/docs";
+				rep.queryString = "page=100&style=wap";
+
+				var ms = new io.MemoryStream();
+
+				rep.sendTo(ms);
+				ms.rewind();
+				assert.equal(
+					ms.read(),
+					'GET /docs?page=100&style=wap HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
+			});
+		});
 
 		describe("handler", function() {
 			var svr, hdr;
@@ -754,4 +734,4 @@ describe(
 		});
 	});
 
-//test.run(console.DEBUG);
+// test.run(console.DEBUG);
