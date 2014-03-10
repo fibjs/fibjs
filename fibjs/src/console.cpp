@@ -105,8 +105,12 @@ std::string Format(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &a
             {
             case 's':
             case 'd':
-                strBuffer << *v8::String::Utf8Value(args[idx++]);
-                break;
+            {
+                v8::String::Utf8Value s(args[idx++]);
+                if (*s)
+                    strBuffer << *s;
+            }
+            break;
             case 'j':
             {
                 std::string s;
@@ -126,7 +130,11 @@ std::string Format(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &a
     }
 
     while (idx < argc)
-        strBuffer << ' ' << *v8::String::Utf8Value(args[idx++]);
+    {
+        v8::String::Utf8Value s(args[idx++]);
+        if (*s)
+            strBuffer << ' ' << *s;
+    }
 
     return strBuffer.str();
 }
