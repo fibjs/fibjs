@@ -2194,7 +2194,7 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
   __ j(not_equal, &miss);
 
   // Make sure the function is the Array() function
-  __ LoadArrayFunction(rcx);
+  __ LoadGlobalFunction(Context::ARRAY_FUNCTION_INDEX, rcx);
   __ cmpq(rdi, rcx);
   __ j(not_equal, &megamorphic);
   __ jmp(&done);
@@ -2216,7 +2216,7 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
   // indicate the ElementsKind if function is the Array constructor.
   __ bind(&initialize);
   // Make sure the function is the Array() function
-  __ LoadArrayFunction(rcx);
+  __ LoadGlobalFunction(Context::ARRAY_FUNCTION_INDEX, rcx);
   __ cmpq(rdi, rcx);
   __ j(not_equal, &not_array_function);
 
@@ -2267,7 +2267,8 @@ static void GenerateRecordCallTarget(MacroAssembler* masm) {
 
 void CallFunctionStub::Generate(MacroAssembler* masm) {
   // rbx : feedback vector
-  // rdx : (only if rbx is not undefined) slot in feedback vector (Smi)
+  // rdx : (only if rbx is not the megamorphic symbol) slot in feedback
+  //       vector (Smi)
   // rdi : the function to call
   Isolate* isolate = masm->isolate();
   Label slow, non_function, wrap, cont;
@@ -2327,7 +2328,7 @@ void CallFunctionStub::Generate(MacroAssembler* masm) {
     if (RecordCallTarget()) {
       // If there is a call target cache, mark it megamorphic in the
       // non-function case.  MegamorphicSentinel is an immortal immovable
-      // object (undefined) so no write barrier is needed.
+      // object (megamorphic symbol) so no write barrier is needed.
       __ SmiToInteger32(rdx, rdx);
       __ Move(FieldOperand(rbx, rdx, times_pointer_size,
                            FixedArray::kHeaderSize),
@@ -2379,7 +2380,8 @@ void CallFunctionStub::Generate(MacroAssembler* masm) {
 void CallConstructStub::Generate(MacroAssembler* masm) {
   // rax : number of arguments
   // rbx : feedback vector
-  // rdx : (only if rbx is not undefined) slot in feedback vector (Smi)
+  // rdx : (only if rbx is not the megamorphic symbol) slot in feedback
+  //       vector (Smi)
   // rdi : constructor function
   Label slow, non_function_call;
 
@@ -4537,7 +4539,7 @@ void RecordWriteStub::GenerateIncremental(MacroAssembler* masm, Mode mode) {
     // remembered set.
     CheckNeedsToInformIncrementalMarker(
         masm, kUpdateRememberedSetOnNoNeedToInformIncrementalMarker, mode);
-    InformIncrementalMarker(masm, mode);
+    InformIncrementalMarker(masm);
     regs_.Restore(masm);
     __ RememberedSetHelper(object_,
                            address_,
@@ -4550,13 +4552,13 @@ void RecordWriteStub::GenerateIncremental(MacroAssembler* masm, Mode mode) {
 
   CheckNeedsToInformIncrementalMarker(
       masm, kReturnOnNoNeedToInformIncrementalMarker, mode);
-  InformIncrementalMarker(masm, mode);
+  InformIncrementalMarker(masm);
   regs_.Restore(masm);
   __ ret(0);
 }
 
 
-void RecordWriteStub::InformIncrementalMarker(MacroAssembler* masm, Mode mode) {
+void RecordWriteStub::InformIncrementalMarker(MacroAssembler* masm) {
   regs_.SaveCallerSaveRegisters(masm, save_fp_regs_mode_);
   Register address =
       arg_reg_1.is(regs_.address()) ? kScratchRegister : regs_.address();
@@ -4572,18 +4574,10 @@ void RecordWriteStub::InformIncrementalMarker(MacroAssembler* masm, Mode mode) {
 
   AllowExternalCallThatCantCauseGC scope(masm);
   __ PrepareCallCFunction(argument_count);
-  if (mode == INCREMENTAL_COMPACTION) {
-    __ CallCFunction(
-        ExternalReference::incremental_evacuation_record_write_function(
-            masm->isolate()),
-        argument_count);
-  } else {
-    ASSERT(mode == INCREMENTAL);
-    __ CallCFunction(
-        ExternalReference::incremental_marking_record_write_function(
-            masm->isolate()),
-        argument_count);
-  }
+  __ CallCFunction(
+      ExternalReference::incremental_marking_record_write_function(
+          masm->isolate()),
+      argument_count);
   regs_.RestoreCallerSaveRegisters(masm, save_fp_regs_mode_);
 }
 
@@ -5003,15 +4997,14 @@ void ArrayConstructorStub::GenerateDispatchToArrayStub(
 void ArrayConstructorStub::Generate(MacroAssembler* masm) {
   // ----------- S t a t e -------------
   //  -- rax    : argc
-  //  -- rbx    : feedback vector (fixed array or undefined)
+  //  -- rbx    : feedback vector (fixed array or megamorphic symbol)
   //  -- rdx    : slot index (if ebx is fixed array)
   //  -- rdi    : constructor
   //  -- rsp[0] : return address
   //  -- rsp[8] : last argument
   // -----------------------------------
-  Handle<Object> undefined_sentinel(
-      masm->isolate()->heap()->undefined_value(),
-      masm->isolate());
+  Handle<Object> megamorphic_sentinel =
+      TypeFeedbackInfo::MegamorphicSentinel(masm->isolate());
 
   if (FLAG_debug_code) {
     // The array construct code is only set for the global and natives
@@ -5026,24 +5019,26 @@ void ArrayConstructorStub::Generate(MacroAssembler* masm) {
     __ CmpObjectType(rcx, MAP_TYPE, rcx);
     __ Check(equal, kUnexpectedInitialMapForArrayFunction);
 
-    // We should either have undefined in rbx or a valid fixed array.
+    // We should either have the megamorphic symbol in rbx or a valid
+    // fixed array.
     Label okay_here;
     Handle<Map> fixed_array_map = masm->isolate()->factory()->fixed_array_map();
-    __ Cmp(rbx, undefined_sentinel);
+    __ Cmp(rbx, megamorphic_sentinel);
     __ j(equal, &okay_here);
     __ Cmp(FieldOperand(rbx, 0), fixed_array_map);
     __ Assert(equal, kExpectedFixedArrayInRegisterRbx);
 
-    // rdx should be a smi if we don't have undefined in rbx.
+    // rdx should be a smi if we don't have the megamorphic symbol in rbx.
     __ AssertSmi(rdx);
 
     __ bind(&okay_here);
   }
 
   Label no_info;
-  // If the feedback slot is undefined, or contains anything other than an
-  // AllocationSite, call an array constructor that doesn't use AllocationSites.
-  __ Cmp(rbx, undefined_sentinel);
+  // If the feedback slot is the megamorphic sentinel, or contains anything
+  // other than an AllocationSite, call an array constructor that doesn't use
+  // AllocationSites.
+  __ Cmp(rbx, megamorphic_sentinel);
   __ j(equal, &no_info);
   __ SmiToInteger32(rdx, rdx);
   __ movp(rbx, FieldOperand(rbx, rdx, times_pointer_size,

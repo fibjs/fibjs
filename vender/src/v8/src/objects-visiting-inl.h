@@ -426,9 +426,6 @@ void StaticMarkingVisitor<StaticVisitor>::VisitCode(
     Map* map, HeapObject* object) {
   Heap* heap = map->GetHeap();
   Code* code = Code::cast(object);
-  if (FLAG_cleanup_code_caches_at_gc) {
-    code->ClearTypeFeedbackInfo(heap);
-  }
   if (FLAG_age_code && !Serializer::enabled()) {
     code->MakeOlder(heap->mark_compact_collector()->marking_parity());
   }
@@ -443,6 +440,9 @@ void StaticMarkingVisitor<StaticVisitor>::VisitSharedFunctionInfo(
   SharedFunctionInfo* shared = SharedFunctionInfo::cast(object);
   if (shared->ic_age() != heap->global_ic_age()) {
     shared->ResetForNewContext(heap->global_ic_age());
+  }
+  if (FLAG_cleanup_code_caches_at_gc) {
+    shared->ClearTypeFeedbackInfo(heap);
   }
   if (FLAG_cache_optimized_code &&
       FLAG_flush_optimized_code_cache &&
@@ -489,16 +489,16 @@ void StaticMarkingVisitor<StaticVisitor>::VisitConstantPoolArray(
     Map* map, HeapObject* object) {
   Heap* heap = map->GetHeap();
   ConstantPoolArray* constant_pool = ConstantPoolArray::cast(object);
-  if (constant_pool->count_of_ptr_entries() > 0) {
-    int first_ptr_offset = constant_pool->OffsetOfElementAt(
-        constant_pool->first_ptr_index());
-    int last_ptr_offset = constant_pool->OffsetOfElementAt(
-        constant_pool->first_ptr_index() +
-        constant_pool->count_of_ptr_entries() - 1);
-    StaticVisitor::VisitPointers(
-        heap,
-        HeapObject::RawField(object, first_ptr_offset),
-        HeapObject::RawField(object, last_ptr_offset));
+  for (int i = 0; i < constant_pool->count_of_code_ptr_entries(); i++) {
+    int index = constant_pool->first_code_ptr_index() + i;
+    Address code_entry =
+        reinterpret_cast<Address>(constant_pool->RawFieldOfElementAt(index));
+    StaticVisitor::VisitCodeEntry(heap, code_entry);
+  }
+  for (int i = 0; i < constant_pool->count_of_heap_ptr_entries(); i++) {
+    int index = constant_pool->first_heap_ptr_index() + i;
+    StaticVisitor::VisitPointer(heap,
+                                constant_pool->RawFieldOfElementAt(index));
   }
 }
 

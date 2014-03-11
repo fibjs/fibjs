@@ -4547,15 +4547,6 @@ void MacroAssembler::LoadGlobalFunction(int index, Register function) {
 }
 
 
-void MacroAssembler::LoadArrayFunction(Register function) {
-  movp(function,
-       Operand(rsi, Context::SlotOffset(Context::GLOBAL_OBJECT_INDEX)));
-  movp(function, FieldOperand(function, GlobalObject::kGlobalContextOffset));
-  movp(function,
-       Operand(function, Context::SlotOffset(Context::ARRAY_FUNCTION_INDEX)));
-}
-
-
 void MacroAssembler::LoadGlobalFunctionInitialMap(Register function,
                                                   Register map) {
   // Load the initial map.  The global functions all have initial maps.
@@ -4985,6 +4976,18 @@ void MacroAssembler::JumpIfDictionaryInPrototypeChain(
   movp(current, FieldOperand(current, Map::kPrototypeOffset));
   CompareRoot(current, Heap::kNullValueRootIndex);
   j(not_equal, &loop_again);
+}
+
+
+void MacroAssembler::FlooringDiv(Register dividend, int32_t divisor) {
+  ASSERT(!dividend.is(rax));
+  ASSERT(!dividend.is(rdx));
+  MultiplierAndShift ms(divisor);
+  movl(rax, Immediate(ms.multiplier()));
+  imull(dividend);
+  if (divisor > 0 && ms.multiplier() < 0) addl(rdx, dividend);
+  if (divisor < 0 && ms.multiplier() > 0) subl(rdx, dividend);
+  if (ms.shift() > 0) sarl(rdx, Immediate(ms.shift()));
 }
 
 

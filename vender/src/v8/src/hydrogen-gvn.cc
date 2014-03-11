@@ -367,15 +367,28 @@ void HSideEffectMap::Store(SideEffects side_effects, HInstruction* instr) {
 
 
 SideEffects SideEffectsTracker::ComputeChanges(HInstruction* instr) {
+  int index;
   SideEffects result(instr->ChangesFlags());
+  if (result.ContainsFlag(kGlobalVars)) {
+    if (instr->IsStoreGlobalCell() &&
+        ComputeGlobalVar(HStoreGlobalCell::cast(instr)->cell(), &index)) {
+      result.RemoveFlag(kGlobalVars);
+      result.AddSpecial(GlobalVar(index));
+    } else {
+      for (index = 0; index < kNumberOfGlobalVars; ++index) {
+        result.AddSpecial(GlobalVar(index));
+      }
+    }
+  }
   if (result.ContainsFlag(kInobjectFields)) {
-    int index;
     if (instr->IsStoreNamedField() &&
         ComputeInobjectField(HStoreNamedField::cast(instr)->access(), &index)) {
       result.RemoveFlag(kInobjectFields);
-      result.AddSpecial(index);
+      result.AddSpecial(InobjectField(index));
     } else {
-      result.AddAllSpecial();
+      for (index = 0; index < kNumberOfInobjectFields; ++index) {
+        result.AddSpecial(InobjectField(index));
+      }
     }
   }
   return result;
@@ -383,15 +396,28 @@ SideEffects SideEffectsTracker::ComputeChanges(HInstruction* instr) {
 
 
 SideEffects SideEffectsTracker::ComputeDependsOn(HInstruction* instr) {
+  int index;
   SideEffects result(instr->DependsOnFlags());
+  if (result.ContainsFlag(kGlobalVars)) {
+    if (instr->IsLoadGlobalCell() &&
+        ComputeGlobalVar(HLoadGlobalCell::cast(instr)->cell(), &index)) {
+      result.RemoveFlag(kGlobalVars);
+      result.AddSpecial(GlobalVar(index));
+    } else {
+      for (index = 0; index < kNumberOfGlobalVars; ++index) {
+        result.AddSpecial(GlobalVar(index));
+      }
+    }
+  }
   if (result.ContainsFlag(kInobjectFields)) {
-    int index;
     if (instr->IsLoadNamedField() &&
         ComputeInobjectField(HLoadNamedField::cast(instr)->access(), &index)) {
       result.RemoveFlag(kInobjectFields);
-      result.AddSpecial(index);
+      result.AddSpecial(InobjectField(index));
     } else {
-      result.AddAllSpecial();
+      for (index = 0; index < kNumberOfInobjectFields; ++index) {
+        result.AddSpecial(InobjectField(index));
+      }
     }
   }
   return result;
@@ -420,14 +446,44 @@ GVN_UNTRACKED_FLAG_LIST(DECLARE_FLAG)
       }
     }
   }
+  for (int index = 0; index < num_global_vars_; ++index) {
+    if (side_effects.ContainsSpecial(GlobalVar(index))) {
+      stream->Add(separator);
+      separator = ", ";
+      stream->Add("[%p]", *global_vars_[index].handle());
+    }
+  }
   for (int index = 0; index < num_inobject_fields_; ++index) {
-    if (side_effects.ContainsSpecial(index)) {
+    if (side_effects.ContainsSpecial(InobjectField(index))) {
       stream->Add(separator);
       separator = ", ";
       inobject_fields_[index].PrintTo(stream);
     }
   }
   stream->Add("]");
+}
+
+
+bool SideEffectsTracker::ComputeGlobalVar(Unique<Cell> cell, int* index) {
+  for (int i = 0; i < num_global_vars_; ++i) {
+    if (cell == global_vars_[i]) {
+      *index = i;
+      return true;
+    }
+  }
+  if (num_global_vars_ < kNumberOfGlobalVars) {
+    if (FLAG_trace_gvn) {
+      HeapStringAllocator allocator;
+      StringStream stream(&allocator);
+      stream.Add("Tracking global var [%p] (mapped to index %d)\n",
+                 *cell.handle(), num_global_vars_);
+      stream.OutputToStdOut();
+    }
+    *index = num_global_vars_;
+    global_vars_[num_global_vars_++] = cell;
+    return true;
+  }
+  return false;
 }
 
 
@@ -439,13 +495,13 @@ bool SideEffectsTracker::ComputeInobjectField(HObjectAccess access,
       return true;
     }
   }
-  if (num_inobject_fields_ < SideEffects::kNumberOfSpecials) {
+  if (num_inobject_fields_ < kNumberOfInobjectFields) {
     if (FLAG_trace_gvn) {
       HeapStringAllocator allocator;
       StringStream stream(&allocator);
       stream.Add("Tracking inobject field access ");
       access.PrintTo(&stream);
-      stream.Add(" (mapped to special index %d)\n", num_inobject_fields_);
+      stream.Add(" (mapped to index %d)\n", num_inobject_fields_);
       stream.OutputToStdOut();
     }
     *index = num_inobject_fields_;
@@ -536,7 +592,9 @@ void HGlobalValueNumberingPhase::LoopInvariantCodeMotion() {
               graph()->use_optimistic_licm() ? "yes" : "no");
   for (int i = graph()->blocks()->length() - 1; i >= 0; --i) {
     HBasicBlock* block = graph()->blocks()->at(i);
-    if (block->IsLoopHeader()) {
+    if (block->IsLoopHeader() &&
+        block->IsReachable() &&
+        !block->IsDeoptimizing()) {
       SideEffects side_effects = loop_side_effects_[block->block_id()];
       if (FLAG_trace_gvn) {
         HeapStringAllocator allocator;
@@ -560,6 +618,7 @@ void HGlobalValueNumberingPhase::ProcessLoopBlock(
     HBasicBlock* block,
     HBasicBlock* loop_header,
     SideEffects loop_kills) {
+  if (!block->IsReachable() || block->IsDeoptimizing()) return;
   HBasicBlock* pre_header = loop_header->predecessors()->at(0);
   if (FLAG_trace_gvn) {
     HeapStringAllocator allocator;
@@ -624,10 +683,8 @@ bool HGlobalValueNumberingPhase::AllowCodeMotion() {
 
 bool HGlobalValueNumberingPhase::ShouldMove(HInstruction* instr,
                                             HBasicBlock* loop_header) {
-  // If we've disabled code motion or we're in a block that unconditionally
-  // deoptimizes, don't move any instructions.
-  return AllowCodeMotion() && !instr->block()->IsDeoptimizing() &&
-      instr->block()->IsReachable();
+  // If we've disabled code motion, don't move any instructions.
+  return AllowCodeMotion();
 }
 
 
@@ -720,20 +777,18 @@ class GvnBasicBlockState: public ZoneObject {
   }
 
   GvnBasicBlockState* next_dominated(Zone* zone) {
-    dominated_index_++;
-    if (dominated_index_ == length_ - 1) {
-      // No need to copy the map for the last child in the dominator tree.
-      Initialize(block_->dominated_blocks()->at(dominated_index_),
-                 map(),
-                 dominators(),
-                 false,
-                 zone);
-      return this;
-    } else if (dominated_index_ < length_) {
-      return push(zone, block_->dominated_blocks()->at(dominated_index_));
-    } else {
-      return NULL;
+    while (++dominated_index_ < length_) {
+      HBasicBlock* block = block_->dominated_blocks()->at(dominated_index_);
+      if (block->IsReachable()) {
+        if (dominated_index_ == length_ - 1) {
+          // No need to copy the map for the last child in the dominator tree.
+          Initialize(block, map(), dominators(), false, zone);
+          return this;
+        }
+        return push(zone, block);
+      }
     }
+    return NULL;
   }
 
   GvnBasicBlockState* push(Zone* zone, HBasicBlock* block) {

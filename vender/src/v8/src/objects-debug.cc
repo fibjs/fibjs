@@ -264,8 +264,9 @@ void FixedTypedArray<Traits>::FixedTypedArrayVerify() {
 
 
 bool JSObject::ElementsAreSafeToExamine() {
-  return (FLAG_use_gvn && FLAG_use_allocation_folding) ||
-      reinterpret_cast<Map*>(elements()) !=
+  // If a GC was caused while constructing this object, the elements
+  // pointer may point to a one pointer filler map.
+  return reinterpret_cast<Map*>(elements()) !=
       GetHeap()->one_pointer_filler_map();
 }
 
@@ -367,7 +368,6 @@ void PolymorphicCodeCache::PolymorphicCodeCacheVerify() {
 void TypeFeedbackInfo::TypeFeedbackInfoVerify() {
   VerifyObjectField(kStorage1Offset);
   VerifyObjectField(kStorage2Offset);
-  VerifyHeapPointer(feedback_vector());
 }
 
 
@@ -403,6 +403,13 @@ void FixedDoubleArray::FixedDoubleArrayVerify() {
 
 void ConstantPoolArray::ConstantPoolArrayVerify() {
   CHECK(IsConstantPoolArray());
+  for (int i = 0; i < count_of_code_ptr_entries(); i++) {
+    Address code_entry = get_code_ptr_entry(first_code_ptr_index() + i);
+    VerifyPointer(Code::GetCodeFromTargetAddress(code_entry));
+  }
+  for (int i = 0; i < count_of_heap_ptr_entries(); i++) {
+    VerifyObjectField(OffsetOfElementAt(first_heap_ptr_index() + i));
+  }
 }
 
 
@@ -544,6 +551,7 @@ void SharedFunctionInfo::SharedFunctionInfoVerify() {
   VerifyObjectField(kNameOffset);
   VerifyObjectField(kCodeOffset);
   VerifyObjectField(kOptimizedCodeMapOffset);
+  VerifyObjectField(kFeedbackVectorOffset);
   VerifyObjectField(kScopeInfoOffset);
   VerifyObjectField(kInstanceClassNameOffset);
   VerifyObjectField(kFunctionDataOffset);
@@ -930,7 +938,6 @@ void Script::ScriptVerify() {
   VerifyPointer(name());
   line_offset()->SmiVerify();
   column_offset()->SmiVerify();
-  VerifyPointer(data());
   VerifyPointer(wrapper());
   type()->SmiVerify();
   VerifyPointer(line_ends());

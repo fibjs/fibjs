@@ -666,15 +666,15 @@ static bool HasConsole() {
 
 
 static void VPrintHelper(FILE* stream, const char* format, va_list args) {
-  if (HasConsole()) {
-    vfprintf(stream, format, args);
-  } else {
+  if ((stream == stdout || stream == stderr) && !HasConsole()) {
     // It is important to use safe print here in order to avoid
     // overflowing the buffer. We might truncate the output, but this
     // does not crash.
     EmbeddedVector<char, 4096> buffer;
     OS::VSNPrintF(buffer, format, args);
     OutputDebugStringA(buffer.start());
+  } else {
+    vfprintf(stream, format, args);
   }
 }
 
@@ -927,12 +927,11 @@ void OS::Sleep(int milliseconds) {
 #endif
 
 void OS::Abort() {
-  if (IsDebuggerPresent() || FLAG_break_on_abort) {
-    DebugBreak();
-  } else {
-    // Make the MSVCRT do a silent abort.
-    raise(SIGABRT);
+  if (FLAG_hard_abort) {
+    V8_IMMEDIATE_CRASH();
   }
+  // Make the MSVCRT do a silent abort.
+  raise(SIGABRT);
 }
 
 

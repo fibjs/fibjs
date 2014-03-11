@@ -2408,6 +2408,9 @@ class JSObject: public JSReceiver {
       uint32_t arg_count,
       EnsureElementsMode mode);
 
+  // Would we convert a fast elements array to dictionary mode given
+  // an access at key?
+  bool WouldConvertToSlowElements(Handle<Object> key);
   // Do we want to keep the elements in fast case when increasing the
   // capacity?
   bool ShouldConvertToSlowElements(int new_capacity);
@@ -2916,7 +2919,7 @@ class JSObject: public JSReceiver {
   // Gets the current elements capacity and the number of used elements.
   void GetElementsCapacityAndUsage(int* capacity, int* used);
 
-  bool CanSetCallback(Name* name);
+  static bool CanSetCallback(Handle<JSObject> object, Handle<Name> name);
   static void SetElementCallback(Handle<JSObject> object,
                                  uint32_t index,
                                  Handle<Object> structure,
@@ -3155,29 +3158,35 @@ class FixedDoubleArray: public FixedArrayBase {
 // ConstantPoolArray describes a fixed-sized array containing constant pool
 // entires.
 // The format of the pool is:
-//   [0]: Field holding the first index which is a pointer entry
-//   [1]: Field holding the first index which is a int32 entry
-//   [2] ... [first_ptr_index() - 1]: 64 bit entries
-//   [first_ptr_index()] ... [first_int32_index() - 1]: pointer entries
-//   [first_int32_index()] ... [length - 1]: 32 bit entries
+//   [0]: Field holding the first index which is a raw code target pointer entry
+//   [1]: Field holding the first index which is a heap pointer entry
+//   [2]: Field holding the first index which is a int32 entry
+//   [3]                      ... [first_code_ptr_index() - 1] : 64 bit entries
+//   [first_code_ptr_index()] ... [first_heap_ptr_index() - 1] : code pointers
+//   [first_heap_ptr_index()] ... [first_int32_index() - 1]    : heap pointers
+//   [first_int32_index()]    ... [length - 1]                 : 32 bit entries
 class ConstantPoolArray: public FixedArrayBase {
  public:
   // Getters for the field storing the first index for different type entries.
-  inline int first_ptr_index();
+  inline int first_code_ptr_index();
+  inline int first_heap_ptr_index();
   inline int first_int64_index();
   inline int first_int32_index();
 
   // Getters for counts of different type entries.
-  inline int count_of_ptr_entries();
+  inline int count_of_code_ptr_entries();
+  inline int count_of_heap_ptr_entries();
   inline int count_of_int64_entries();
   inline int count_of_int32_entries();
 
   // Setter and getter for pool elements.
-  inline Object* get_ptr_entry(int index);
+  inline Address get_code_ptr_entry(int index);
+  inline Object* get_heap_ptr_entry(int index);
   inline int64_t get_int64_entry(int index);
   inline int32_t get_int32_entry(int index);
   inline double get_int64_entry_as_double(int index);
 
+  inline void set(int index, Address value);
   inline void set(int index, Object* value);
   inline void set(int index, int64_t value);
   inline void set(int index, double value);
@@ -3185,7 +3194,8 @@ class ConstantPoolArray: public FixedArrayBase {
 
   // Set up initial state.
   inline void SetEntryCounts(int number_of_int64_entries,
-                             int number_of_ptr_entries,
+                             int number_of_code_ptr_entries,
+                             int number_of_heap_ptr_entries,
                              int number_of_int32_entries);
 
   // Copy operations
@@ -3193,10 +3203,12 @@ class ConstantPoolArray: public FixedArrayBase {
 
   // Garbage collection support.
   inline static int SizeFor(int number_of_int64_entries,
-                            int number_of_ptr_entries,
+                            int number_of_code_ptr_entries,
+                            int number_of_heap_ptr_entries,
                             int number_of_int32_entries) {
     return RoundUp(OffsetAt(number_of_int64_entries,
-                            number_of_ptr_entries,
+                            number_of_code_ptr_entries,
+                            number_of_heap_ptr_entries,
                             number_of_int32_entries),
                    kPointerSize);
   }
@@ -3205,22 +3217,33 @@ class ConstantPoolArray: public FixedArrayBase {
   inline int OffsetOfElementAt(int index) {
     ASSERT(index < length());
     if (index >= first_int32_index()) {
-      return OffsetAt(count_of_int64_entries(), count_of_ptr_entries(),
-                      index - first_int32_index());
-    } else if (index >= first_ptr_index()) {
-      return OffsetAt(count_of_int64_entries(), index - first_ptr_index(), 0);
+      return OffsetAt(count_of_int64_entries(), count_of_code_ptr_entries(),
+                      count_of_heap_ptr_entries(), index - first_int32_index());
+    } else if (index >= first_heap_ptr_index()) {
+      return OffsetAt(count_of_int64_entries(), count_of_code_ptr_entries(),
+                      index - first_heap_ptr_index(), 0);
+    } else if (index >= first_code_ptr_index()) {
+      return OffsetAt(count_of_int64_entries(), index - first_code_ptr_index(),
+                      0, 0);
     } else {
-      return OffsetAt(index, 0, 0);
+      return OffsetAt(index, 0, 0, 0);
     }
   }
 
   // Casting.
   static inline ConstantPoolArray* cast(Object* obj);
 
+  // Garbage collection support.
+  Object** RawFieldOfElementAt(int index) {
+    return HeapObject::RawField(this, OffsetOfElementAt(index));
+  }
+
   // Layout description.
-  static const int kFirstPointerIndexOffset = FixedArray::kHeaderSize;
+  static const int kFirstCodePointerIndexOffset = FixedArray::kHeaderSize;
+  static const int kFirstHeapPointerIndexOffset =
+      kFirstCodePointerIndexOffset + kPointerSize;
   static const int kFirstInt32IndexOffset =
-      kFirstPointerIndexOffset + kPointerSize;
+      kFirstHeapPointerIndexOffset + kPointerSize;
   static const int kFirstOffset = kFirstInt32IndexOffset + kPointerSize;
 
   // Dispatched behavior.
@@ -3230,15 +3253,18 @@ class ConstantPoolArray: public FixedArrayBase {
   DECLARE_VERIFIER(ConstantPoolArray)
 
  private:
-  inline void set_first_ptr_index(int value);
+  inline void set_first_code_ptr_index(int value);
+  inline void set_first_heap_ptr_index(int value);
   inline void set_first_int32_index(int value);
 
   inline static int OffsetAt(int number_of_int64_entries,
-                             int number_of_ptr_entries,
+                             int number_of_code_ptr_entries,
+                             int number_of_heap_ptr_entries,
                              int number_of_int32_entries) {
     return kFirstOffset
         + (number_of_int64_entries * kInt64Size)
-        + (number_of_ptr_entries * kPointerSize)
+        + (number_of_code_ptr_entries * kPointerSize)
+        + (number_of_heap_ptr_entries * kPointerSize)
         + (number_of_int32_entries * kInt32Size);
   }
 
@@ -4993,7 +5019,8 @@ class DeoptimizationInputData: public FixedArray {
   static const int kOsrAstIdIndex = 3;
   static const int kOsrPcOffsetIndex = 4;
   static const int kOptimizationIdIndex = 5;
-  static const int kFirstDeoptEntryIndex = 6;
+  static const int kSharedFunctionInfoIndex = 6;
+  static const int kFirstDeoptEntryIndex = 7;
 
   // Offsets of deopt entry elements relative to the start of the entry.
   static const int kAstIdRawOffset = 0;
@@ -5017,6 +5044,7 @@ class DeoptimizationInputData: public FixedArray {
   DEFINE_ELEMENT_ACCESSORS(OsrAstId, Smi)
   DEFINE_ELEMENT_ACCESSORS(OsrPcOffset, Smi)
   DEFINE_ELEMENT_ACCESSORS(OptimizationId, Smi)
+  DEFINE_ELEMENT_ACCESSORS(SharedFunctionInfo, Object)
 
 #undef DEFINE_ELEMENT_ACCESSORS
 
@@ -5460,8 +5488,6 @@ class Code: public HeapObject {
   void ClearInlineCaches();
   void ClearInlineCaches(Kind kind);
 
-  void ClearTypeFeedbackInfo(Heap* heap);
-
   BailoutId TranslatePcOffsetToAstId(uint32_t pc_offset);
   uint32_t TranslateAstIdToPcOffset(BailoutId ast_id);
 
@@ -5623,6 +5649,7 @@ class Code: public HeapObject {
 
  private:
   friend class RelocIterator;
+  friend class Deoptimizer;  // For FindCodeAgeSequence.
 
   void ClearInlineCaches(Kind* kind);
 
@@ -6507,9 +6534,6 @@ class Script: public Struct {
   // extracted.
   DECL_ACCESSORS(column_offset, Smi)
 
-  // [data]: additional data associated with this script.
-  DECL_ACCESSORS(data, Object)
-
   // [context_data]: context data for the context this script was compiled in.
   DECL_ACCESSORS(context_data, Object)
 
@@ -6563,8 +6587,7 @@ class Script: public Struct {
   static const int kNameOffset = kSourceOffset + kPointerSize;
   static const int kLineOffsetOffset = kNameOffset + kPointerSize;
   static const int kColumnOffsetOffset = kLineOffsetOffset + kPointerSize;
-  static const int kDataOffset = kColumnOffsetOffset + kPointerSize;
-  static const int kContextOffset = kDataOffset + kPointerSize;
+  static const int kContextOffset = kColumnOffsetOffset + kPointerSize;
   static const int kWrapperOffset = kContextOffset + kPointerSize;
   static const int kTypeOffset = kWrapperOffset + kPointerSize;
   static const int kLineEndsOffset = kTypeOffset + kPointerSize;
@@ -6659,6 +6682,8 @@ class SharedFunctionInfo: public HeapObject {
 
   // Removed a specific optimized code object from the optimized code map.
   void EvictFromOptimizedCodeMap(Code* optimized_code, const char* reason);
+
+  void ClearTypeFeedbackInfo(Heap* heap);
 
   // Trims the optimized code map after entries have been removed.
   void TrimOptimizedCodeMap(int shrink_by);
@@ -6774,6 +6799,12 @@ class SharedFunctionInfo: public HeapObject {
   // the tracking phase.
   inline int construction_count();
   inline void set_construction_count(int value);
+
+  // [feedback_vector] - accumulates ast node feedback from full-codegen and
+  // (increasingly) from crankshafted code where sufficient feedback isn't
+  // available. Currently the field is duplicated in
+  // TypeFeedbackInfo::feedback_vector, but the allocation is done here.
+  DECL_ACCESSORS(feedback_vector, FixedArray)
 
   // [initial_map]: initial map of the first function called as a constructor.
   // Saved for the duration of the tracking phase.
@@ -7066,8 +7097,10 @@ class SharedFunctionInfo: public HeapObject {
   static const int kScriptOffset = kFunctionDataOffset + kPointerSize;
   static const int kDebugInfoOffset = kScriptOffset + kPointerSize;
   static const int kInferredNameOffset = kDebugInfoOffset + kPointerSize;
-  static const int kInitialMapOffset =
+  static const int kFeedbackVectorOffset =
       kInferredNameOffset + kPointerSize;
+  static const int kInitialMapOffset =
+      kFeedbackVectorOffset + kPointerSize;
   // ast_node_count is a Smi field. It could be grouped with another Smi field
   // into a PSEUDO_SMI_ACCESSORS pair (on x64), if one becomes available.
   static const int kAstNodeCountOffset =
@@ -7379,9 +7412,6 @@ class JSFunction: public JSObject {
   void MarkForOptimization();
   void MarkForConcurrentOptimization();
   void MarkInOptimizationQueue();
-
-  static bool CompileOptimized(Handle<JSFunction> function,
-                               ClearExceptionFlag flag);
 
   // Tells whether or not the function is already marked for lazy
   // recompilation.
@@ -8165,8 +8195,6 @@ class TypeFeedbackInfo: public Struct {
   inline void set_inlined_type_change_checksum(int checksum);
   inline bool matches_inlined_type_change_checksum(int checksum);
 
-  DECL_ACCESSORS(feedback_vector, FixedArray)
-
   static inline TypeFeedbackInfo* cast(Object* obj);
 
   // Dispatched behavior.
@@ -8175,10 +8203,9 @@ class TypeFeedbackInfo: public Struct {
 
   static const int kStorage1Offset = HeapObject::kHeaderSize;
   static const int kStorage2Offset = kStorage1Offset + kPointerSize;
-  static const int kFeedbackVectorOffset =
-      kStorage2Offset + kPointerSize;
-  static const int kSize = kFeedbackVectorOffset + kPointerSize;
+  static const int kSize = kStorage2Offset + kPointerSize;
 
+  // TODO(mvstanton): move these sentinel declarations to shared function info.
   // The object that indicates an uninitialized cache.
   static inline Handle<Object> UninitializedSentinel(Isolate* isolate);
 
@@ -8193,9 +8220,6 @@ class TypeFeedbackInfo: public Struct {
   // A raw version of the uninitialized sentinel that's safe to read during
   // garbage collection (e.g., for patching the cache).
   static inline Object* RawUninitializedSentinel(Heap* heap);
-
-  static const int kForInFastCaseMarker = 0;
-  static const int kForInSlowCaseMarker = 1;
 
  private:
   static const int kTypeChangeChecksumBits = 7;

@@ -81,14 +81,16 @@ Handle<FixedDoubleArray> Factory::NewFixedDoubleArray(int size,
 
 Handle<ConstantPoolArray> Factory::NewConstantPoolArray(
     int number_of_int64_entries,
-    int number_of_ptr_entries,
+    int number_of_code_ptr_entries,
+    int number_of_heap_ptr_entries,
     int number_of_int32_entries) {
-  ASSERT(number_of_int64_entries > 0 || number_of_ptr_entries > 0 ||
-         number_of_int32_entries > 0);
+  ASSERT(number_of_int64_entries > 0 || number_of_code_ptr_entries > 0 ||
+         number_of_heap_ptr_entries > 0 || number_of_int32_entries > 0);
   CALL_HEAP_FUNCTION(
       isolate(),
       isolate()->heap()->AllocateConstantPoolArray(number_of_int64_entries,
-                                                   number_of_ptr_entries,
+                                                   number_of_code_ptr_entries,
+                                                   number_of_heap_ptr_entries,
                                                    number_of_int32_entries),
       ConstantPoolArray);
 }
@@ -700,7 +702,6 @@ Handle<Script> Factory::NewScript(Handle<String> source) {
   script->set_id(Smi::FromInt(id));
   script->set_line_offset(Smi::FromInt(0));
   script->set_column_offset(Smi::FromInt(0));
-  script->set_data(heap->undefined_value());
   script->set_context_data(heap->undefined_value());
   script->set_type(Smi::FromInt(Script::TYPE_NORMAL));
   script->set_wrapper(*wrapper);
@@ -967,7 +968,9 @@ Handle<JSFunction> Factory::NewFunctionFromSharedFunctionInfo(
     FixedArray* literals =
         function_info->GetLiteralsFromOptimizedCodeMap(index);
     if (literals != NULL) result->set_literals(literals);
-    result->ReplaceCode(function_info->GetCodeFromOptimizedCodeMap(index));
+    Code* code = function_info->GetCodeFromOptimizedCodeMap(index);
+    ASSERT(!code->marked_for_deoptimization());
+    result->ReplaceCode(code);
     return result;
   }
 
@@ -1540,10 +1543,12 @@ Handle<SharedFunctionInfo> Factory::NewSharedFunctionInfo(
     int number_of_literals,
     bool is_generator,
     Handle<Code> code,
-    Handle<ScopeInfo> scope_info) {
+    Handle<ScopeInfo> scope_info,
+    Handle<FixedArray> feedback_vector) {
   Handle<SharedFunctionInfo> shared = NewSharedFunctionInfo(name);
   shared->set_code(*code);
   shared->set_scope_info(*scope_info);
+  shared->set_feedback_vector(*feedback_vector);
   int literals_array_size = number_of_literals;
   // If the function contains object, regexp or array literals,
   // allocate extra space for a literals array prefix containing the

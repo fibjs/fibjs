@@ -2119,7 +2119,6 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
   void Generate##Name(CallRuntime* call);
 
   INLINE_FUNCTION_LIST(INLINE_FUNCTION_GENERATOR_DECLARATION)
-  INLINE_RUNTIME_FUNCTION_LIST(INLINE_FUNCTION_GENERATOR_DECLARATION)
 #undef INLINE_FUNCTION_GENERATOR_DECLARATION
 
   void VisitDelete(UnaryOperation* expr);
@@ -2213,11 +2212,6 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
   void VisitForControl(Expression* expr,
                        HBasicBlock* true_block,
                        HBasicBlock* false_block);
-
-  // Visit an argument subexpression and emit a push to the outgoing arguments.
-  void VisitArgument(Expression* expr);
-
-  void VisitArgumentList(ZoneList<Expression*>* arguments);
 
   // Visit a list of expressions from left to right, each in a value context.
   void VisitExpressions(ZoneList<Expression*>* exprs);

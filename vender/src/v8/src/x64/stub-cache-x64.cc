@@ -346,7 +346,7 @@ void StubCompiler::GenerateFastPropertyLoad(MacroAssembler* masm,
                                             bool inobject,
                                             int index,
                                             Representation representation) {
-  ASSERT(!FLAG_track_double_fields || !representation.IsDouble());
+  ASSERT(!representation.IsDouble());
   int offset = index * kPointerSize;
   if (!inobject) {
     // Calculate the offset into the properties array.
@@ -537,11 +537,11 @@ void StoreStubCompiler::GenerateStoreTransition(MacroAssembler* masm,
     Handle<Object> constant(descriptors->GetValue(descriptor), masm->isolate());
     __ Cmp(value_reg, constant);
     __ j(not_equal, miss_label);
-  } else if (FLAG_track_fields && representation.IsSmi()) {
+  } else if (representation.IsSmi()) {
     __ JumpIfNotSmi(value_reg, miss_label);
-  } else if (FLAG_track_heap_object_fields && representation.IsHeapObject()) {
+  } else if (representation.IsHeapObject()) {
     __ JumpIfSmi(value_reg, miss_label);
-  } else if (FLAG_track_double_fields && representation.IsDouble()) {
+  } else if (representation.IsDouble()) {
     Label do_store, heap_number;
     __ AllocateHeapNumber(storage_reg, scratch1, slow);
 
@@ -614,15 +614,15 @@ void StoreStubCompiler::GenerateStoreTransition(MacroAssembler* masm,
   if (index < 0) {
     // Set the property straight into the object.
     int offset = object->map()->instance_size() + (index * kPointerSize);
-    if (FLAG_track_double_fields && representation.IsDouble()) {
+    if (representation.IsDouble()) {
       __ movp(FieldOperand(receiver_reg, offset), storage_reg);
     } else {
       __ movp(FieldOperand(receiver_reg, offset), value_reg);
     }
 
-    if (!FLAG_track_fields || !representation.IsSmi()) {
+    if (!representation.IsSmi()) {
       // Update the write barrier for the array address.
-      if (!FLAG_track_double_fields || !representation.IsDouble()) {
+      if (!representation.IsDouble()) {
         __ movp(storage_reg, value_reg);
       }
       __ RecordWriteField(
@@ -634,15 +634,15 @@ void StoreStubCompiler::GenerateStoreTransition(MacroAssembler* masm,
     int offset = index * kPointerSize + FixedArray::kHeaderSize;
     // Get the properties array (optimistically).
     __ movp(scratch1, FieldOperand(receiver_reg, JSObject::kPropertiesOffset));
-    if (FLAG_track_double_fields && representation.IsDouble()) {
+    if (representation.IsDouble()) {
       __ movp(FieldOperand(scratch1, offset), storage_reg);
     } else {
       __ movp(FieldOperand(scratch1, offset), value_reg);
     }
 
-    if (!FLAG_track_fields || !representation.IsSmi()) {
+    if (!representation.IsSmi()) {
       // Update the write barrier for the array address.
-      if (!FLAG_track_double_fields || !representation.IsDouble()) {
+      if (!representation.IsDouble()) {
         __ movp(storage_reg, value_reg);
       }
       __ RecordWriteField(
@@ -681,11 +681,11 @@ void StoreStubCompiler::GenerateStoreField(MacroAssembler* masm,
 
   Representation representation = lookup->representation();
   ASSERT(!representation.IsNone());
-  if (FLAG_track_fields && representation.IsSmi()) {
+  if (representation.IsSmi()) {
     __ JumpIfNotSmi(value_reg, miss_label);
-  } else if (FLAG_track_heap_object_fields && representation.IsHeapObject()) {
+  } else if (representation.IsHeapObject()) {
     __ JumpIfSmi(value_reg, miss_label);
-  } else if (FLAG_track_double_fields && representation.IsDouble()) {
+  } else if (representation.IsDouble()) {
     // Load the double storage.
     if (index < 0) {
       int offset = object->map()->instance_size() + (index * kPointerSize);
@@ -724,7 +724,7 @@ void StoreStubCompiler::GenerateStoreField(MacroAssembler* masm,
     int offset = object->map()->instance_size() + (index * kPointerSize);
     __ movp(FieldOperand(receiver_reg, offset), value_reg);
 
-    if (!FLAG_track_fields || !representation.IsSmi()) {
+    if (!representation.IsSmi()) {
       // Update the write barrier for the array address.
       // Pass the value being stored in the now unused name_reg.
       __ movp(name_reg, value_reg);
@@ -739,7 +739,7 @@ void StoreStubCompiler::GenerateStoreField(MacroAssembler* masm,
     __ movp(scratch1, FieldOperand(receiver_reg, JSObject::kPropertiesOffset));
     __ movp(FieldOperand(scratch1, offset), value_reg);
 
-    if (!FLAG_track_fields || !representation.IsSmi()) {
+    if (!representation.IsSmi()) {
       // Update the write barrier for the array address.
       // Pass the value being stored in the now unused name_reg.
       __ movp(name_reg, value_reg);
@@ -1154,20 +1154,16 @@ Handle<Code> StoreStubCompiler::CompileStoreCallback(
 void StoreStubCompiler::GenerateStoreViaSetter(
     MacroAssembler* masm,
     Handle<HeapType> type,
+    Register receiver,
     Handle<JSFunction> setter) {
   // ----------- S t a t e -------------
-  //  -- rax    : value
-  //  -- rcx    : name
-  //  -- rdx    : receiver
   //  -- rsp[0] : return address
   // -----------------------------------
   {
     FrameScope scope(masm, StackFrame::INTERNAL);
-    Register receiver = rdx;
-    Register value = rax;
 
     // Save value register, so we can restore it later.
-    __ push(value);
+    __ push(value());
 
     if (!setter.is_null()) {
       // Call the JavaScript setter with receiver and value on the stack.
@@ -1177,7 +1173,7 @@ void StoreStubCompiler::GenerateStoreViaSetter(
                 FieldOperand(receiver, JSGlobalObject::kGlobalReceiverOffset));
       }
       __ push(receiver);
-      __ push(value);
+      __ push(value());
       ParameterCount actual(1);
       ParameterCount expected(setter);
       __ InvokeFunction(setter, expected, actual,
@@ -1285,16 +1281,21 @@ Register* KeyedLoadStubCompiler::registers() {
 }
 
 
+Register StoreStubCompiler::value() {
+  return rax;
+}
+
+
 Register* StoreStubCompiler::registers() {
-  // receiver, name, value, scratch1, scratch2, scratch3.
-  static Register registers[] = { rdx, rcx, rax, rbx, rdi, r8 };
+  // receiver, name, scratch1, scratch2, scratch3.
+  static Register registers[] = { rdx, rcx, rbx, rdi, r8 };
   return registers;
 }
 
 
 Register* KeyedStoreStubCompiler::registers() {
-  // receiver, name, value, scratch1, scratch2, scratch3.
-  static Register registers[] = { rdx, rcx, rax, rbx, rdi, r8 };
+  // receiver, name, scratch1, scratch2, scratch3.
+  static Register registers[] = { rdx, rcx, rbx, rdi, r8 };
   return registers;
 }
 

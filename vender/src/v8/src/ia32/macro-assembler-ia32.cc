@@ -2689,16 +2689,6 @@ void MacroAssembler::LoadTransitionedArrayMapConditional(
 }
 
 
-void MacroAssembler::LoadGlobalContext(Register global_context) {
-  // Load the global or builtins object from the current context.
-  mov(global_context,
-      Operand(esi, Context::SlotOffset(Context::GLOBAL_OBJECT_INDEX)));
-  // Load the native context from the global or builtins object.
-  mov(global_context,
-      FieldOperand(global_context, GlobalObject::kNativeContextOffset));
-}
-
-
 void MacroAssembler::LoadGlobalFunction(int index, Register function) {
   // Load the global or builtins object from the current context.
   mov(function,
@@ -2839,6 +2829,15 @@ void MacroAssembler::Drop(int stack_elements) {
 void MacroAssembler::Move(Register dst, Register src) {
   if (!dst.is(src)) {
     mov(dst, src);
+  }
+}
+
+
+void MacroAssembler::Move(Register dst, Immediate imm) {
+  if (imm.is_zero()) {
+    xor_(dst, dst);
+  } else {
+    mov(dst, imm);
   }
 }
 
@@ -3612,6 +3611,19 @@ void MacroAssembler::JumpIfDictionaryInPrototypeChain(
   cmp(current, Immediate(factory->null_value()));
   j(not_equal, &loop_again);
 }
+
+
+void MacroAssembler::FlooringDiv(Register dividend, int32_t divisor) {
+  ASSERT(!dividend.is(eax));
+  ASSERT(!dividend.is(edx));
+  MultiplierAndShift ms(divisor);
+  mov(eax, Immediate(ms.multiplier()));
+  imul(dividend);
+  if (divisor > 0 && ms.multiplier() < 0) add(edx, dividend);
+  if (divisor < 0 && ms.multiplier() > 0) sub(edx, dividend);
+  if (ms.shift() > 0) sar(edx, ms.shift());
+}
+
 
 } }  // namespace v8::internal
 

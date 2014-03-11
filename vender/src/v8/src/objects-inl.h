@@ -278,10 +278,9 @@ bool Object::HasValidElements() {
 
 MaybeObject* Object::AllocateNewStorageFor(Heap* heap,
                                            Representation representation) {
-  if (FLAG_track_fields && representation.IsSmi() && IsUninitialized()) {
+  if (representation.IsSmi() && IsUninitialized()) {
     return Smi::FromInt(0);
   }
-  if (!FLAG_track_double_fields) return this;
   if (!representation.IsDouble()) return this;
   if (IsUninitialized()) {
     return heap->AllocateHeapNumber(0);
@@ -1482,7 +1481,7 @@ AllocationSiteMode AllocationSite::GetMode(
 AllocationSiteMode AllocationSite::GetMode(ElementsKind from,
                                            ElementsKind to) {
   if (IsFastSmiElementsKind(from) &&
-      IsMoreGeneralElementsKindTransition(from, to)) {
+       IsMoreGeneralElementsKindTransition(from, to)) {
     return TRACK_ALLOCATION_SITE;
   }
 
@@ -2083,7 +2082,6 @@ bool Object::IsStringObjectWithCharacterAt(uint32_t index) {
 }
 
 
-
 void Object::VerifyApiCallResultType() {
 #if ENABLE_EXTRA_CHECKS
   if (!(IsSmi() ||
@@ -2200,8 +2198,12 @@ bool FixedDoubleArray::is_the_hole(int index) {
 }
 
 
-SMI_ACCESSORS(ConstantPoolArray, first_ptr_index, kFirstPointerIndexOffset)
-SMI_ACCESSORS(ConstantPoolArray, first_int32_index, kFirstInt32IndexOffset)
+SMI_ACCESSORS(
+    ConstantPoolArray, first_code_ptr_index, kFirstCodePointerIndexOffset)
+SMI_ACCESSORS(
+    ConstantPoolArray, first_heap_ptr_index, kFirstHeapPointerIndexOffset)
+SMI_ACCESSORS(
+    ConstantPoolArray, first_int32_index, kFirstInt32IndexOffset)
 
 
 int ConstantPoolArray::first_int64_index() {
@@ -2210,12 +2212,17 @@ int ConstantPoolArray::first_int64_index() {
 
 
 int ConstantPoolArray::count_of_int64_entries() {
-  return first_ptr_index();
+  return first_code_ptr_index();
 }
 
 
-int ConstantPoolArray::count_of_ptr_entries() {
-  return first_int32_index() - first_ptr_index();
+int ConstantPoolArray::count_of_code_ptr_entries() {
+  return first_heap_ptr_index() - first_code_ptr_index();
+}
+
+
+int ConstantPoolArray::count_of_heap_ptr_entries() {
+  return first_int32_index() - first_heap_ptr_index();
 }
 
 
@@ -2225,32 +2232,44 @@ int ConstantPoolArray::count_of_int32_entries() {
 
 
 void ConstantPoolArray::SetEntryCounts(int number_of_int64_entries,
-                                       int number_of_ptr_entries,
+                                       int number_of_code_ptr_entries,
+                                       int number_of_heap_ptr_entries,
                                        int number_of_int32_entries) {
-  set_first_ptr_index(number_of_int64_entries);
-  set_first_int32_index(number_of_int64_entries + number_of_ptr_entries);
-  set_length(number_of_int64_entries + number_of_ptr_entries +
-             number_of_int32_entries);
+  int current_index = number_of_int64_entries;
+  set_first_code_ptr_index(current_index);
+  current_index += number_of_code_ptr_entries;
+  set_first_heap_ptr_index(current_index);
+  current_index += number_of_heap_ptr_entries;
+  set_first_int32_index(current_index);
+  current_index += number_of_int32_entries;
+  set_length(current_index);
 }
 
 
 int64_t ConstantPoolArray::get_int64_entry(int index) {
   ASSERT(map() == GetHeap()->constant_pool_array_map());
-  ASSERT(index >= 0 && index < first_ptr_index());
+  ASSERT(index >= 0 && index < first_code_ptr_index());
   return READ_INT64_FIELD(this, OffsetOfElementAt(index));
 }
 
 double ConstantPoolArray::get_int64_entry_as_double(int index) {
   STATIC_ASSERT(kDoubleSize == kInt64Size);
   ASSERT(map() == GetHeap()->constant_pool_array_map());
-  ASSERT(index >= 0 && index < first_ptr_index());
+  ASSERT(index >= 0 && index < first_code_ptr_index());
   return READ_DOUBLE_FIELD(this, OffsetOfElementAt(index));
 }
 
 
-Object* ConstantPoolArray::get_ptr_entry(int index) {
+Address ConstantPoolArray::get_code_ptr_entry(int index) {
   ASSERT(map() == GetHeap()->constant_pool_array_map());
-  ASSERT(index >= first_ptr_index() && index < first_int32_index());
+  ASSERT(index >= first_code_ptr_index() && index < first_heap_ptr_index());
+  return reinterpret_cast<Address>(READ_FIELD(this, OffsetOfElementAt(index)));
+}
+
+
+Object* ConstantPoolArray::get_heap_ptr_entry(int index) {
+  ASSERT(map() == GetHeap()->constant_pool_array_map());
+  ASSERT(index >= first_heap_ptr_index() && index < first_int32_index());
   return READ_FIELD(this, OffsetOfElementAt(index));
 }
 
@@ -2262,9 +2281,16 @@ int32_t ConstantPoolArray::get_int32_entry(int index) {
 }
 
 
+void ConstantPoolArray::set(int index, Address value) {
+  ASSERT(map() == GetHeap()->constant_pool_array_map());
+  ASSERT(index >= first_code_ptr_index() && index < first_heap_ptr_index());
+  WRITE_FIELD(this, OffsetOfElementAt(index), reinterpret_cast<Object*>(value));
+}
+
+
 void ConstantPoolArray::set(int index, Object* value) {
   ASSERT(map() == GetHeap()->constant_pool_array_map());
-  ASSERT(index >= first_ptr_index() && index < first_int32_index());
+  ASSERT(index >= first_code_ptr_index() && index < first_int32_index());
   WRITE_FIELD(this, OffsetOfElementAt(index), value);
   WRITE_BARRIER(GetHeap(), this, OffsetOfElementAt(index), value);
 }
@@ -2272,7 +2298,7 @@ void ConstantPoolArray::set(int index, Object* value) {
 
 void ConstantPoolArray::set(int index, int64_t value) {
   ASSERT(map() == GetHeap()->constant_pool_array_map());
-  ASSERT(index >= first_int64_index() && index < first_ptr_index());
+  ASSERT(index >= first_int64_index() && index < first_code_ptr_index());
   WRITE_INT64_FIELD(this, OffsetOfElementAt(index), value);
 }
 
@@ -2280,7 +2306,7 @@ void ConstantPoolArray::set(int index, int64_t value) {
 void ConstantPoolArray::set(int index, double value) {
   STATIC_ASSERT(kDoubleSize == kInt64Size);
   ASSERT(map() == GetHeap()->constant_pool_array_map());
-  ASSERT(index >= first_int64_index() && index < first_ptr_index());
+  ASSERT(index >= first_int64_index() && index < first_code_ptr_index());
   WRITE_DOUBLE_FIELD(this, OffsetOfElementAt(index), value);
 }
 
@@ -3848,7 +3874,8 @@ int HeapObject::SizeFromMap(Map* map) {
   if (instance_type == CONSTANT_POOL_ARRAY_TYPE) {
     return ConstantPoolArray::SizeFor(
         reinterpret_cast<ConstantPoolArray*>(this)->count_of_int64_entries(),
-        reinterpret_cast<ConstantPoolArray*>(this)->count_of_ptr_entries(),
+        reinterpret_cast<ConstantPoolArray*>(this)->count_of_code_ptr_entries(),
+        reinterpret_cast<ConstantPoolArray*>(this)->count_of_heap_ptr_entries(),
         reinterpret_cast<ConstantPoolArray*>(this)->count_of_int32_entries());
   }
   if (instance_type >= FIRST_FIXED_TYPED_ARRAY_TYPE &&
@@ -3992,8 +4019,7 @@ void Map::set_is_shared(bool value) {
 
 
 bool Map::is_shared() {
-  return IsShared::decode(bit_field3());
-}
+  return IsShared::decode(bit_field3()); }
 
 
 void Map::set_dictionary_map(bool value) {
@@ -4039,7 +4065,6 @@ void Map::deprecate() {
 
 
 bool Map::is_deprecated() {
-  if (!FLAG_track_fields) return false;
   return Deprecated::decode(bit_field3());
 }
 
@@ -4050,7 +4075,6 @@ void Map::set_migration_target(bool value) {
 
 
 bool Map::is_migration_target() {
-  if (!FLAG_track_fields) return false;
   return IsMigrationTarget::decode(bit_field3());
 }
 
@@ -4084,22 +4108,11 @@ bool Map::CanBeDeprecated() {
   int descriptor = LastAdded();
   for (int i = 0; i <= descriptor; i++) {
     PropertyDetails details = instance_descriptors()->GetDetails(i);
-    if (FLAG_track_fields && details.representation().IsNone()) {
-      return true;
-    }
-    if (FLAG_track_fields && details.representation().IsSmi()) {
-      return true;
-    }
-    if (FLAG_track_double_fields && details.representation().IsDouble()) {
-      return true;
-    }
-    if (FLAG_track_heap_object_fields &&
-        details.representation().IsHeapObject()) {
-      return true;
-    }
-    if (FLAG_track_fields && details.type() == CONSTANT) {
-      return true;
-    }
+    if (details.representation().IsNone()) return true;
+    if (details.representation().IsSmi()) return true;
+    if (details.representation().IsDouble()) return true;
+    if (details.representation().IsHeapObject()) return true;
+    if (details.type() == CONSTANT) return true;
   }
   return false;
 }
@@ -4923,7 +4936,6 @@ ACCESSORS(Script, name, Object, kNameOffset)
 ACCESSORS(Script, id, Smi, kIdOffset)
 ACCESSORS_TO_SMI(Script, line_offset, kLineOffsetOffset)
 ACCESSORS_TO_SMI(Script, column_offset, kColumnOffsetOffset)
-ACCESSORS(Script, data, Object, kDataOffset)
 ACCESSORS(Script, context_data, Object, kContextOffset)
 ACCESSORS(Script, wrapper, Foreign, kWrapperOffset)
 ACCESSORS_TO_SMI(Script, type, kTypeOffset)
@@ -4968,6 +4980,8 @@ ACCESSORS(SharedFunctionInfo, name, Object, kNameOffset)
 ACCESSORS(SharedFunctionInfo, optimized_code_map, Object,
                  kOptimizedCodeMapOffset)
 ACCESSORS(SharedFunctionInfo, construct_stub, Code, kConstructStubOffset)
+ACCESSORS(SharedFunctionInfo, feedback_vector, FixedArray,
+          kFeedbackVectorOffset)
 ACCESSORS(SharedFunctionInfo, initial_map, Object, kInitialMapOffset)
 ACCESSORS(SharedFunctionInfo, instance_class_name, Object,
           kInstanceClassNameOffset)
@@ -5433,11 +5447,6 @@ void JSFunction::set_code_no_write_barrier(Code* value) {
 void JSFunction::ReplaceCode(Code* code) {
   bool was_optimized = IsOptimized();
   bool is_optimized = code->kind() == Code::OPTIMIZED_FUNCTION;
-
-  if (was_optimized && is_optimized) {
-    shared()->EvictFromOptimizedCodeMap(
-      this->code(), "Replacing with another optimized code");
-  }
 
   set_code(code);
 
@@ -6554,12 +6563,12 @@ MaybeObject* ConstantPoolArray::Copy() {
 
 
 Handle<Object> TypeFeedbackInfo::UninitializedSentinel(Isolate* isolate) {
-  return isolate->factory()->the_hole_value();
+  return isolate->factory()->uninitialized_symbol();
 }
 
 
 Handle<Object> TypeFeedbackInfo::MegamorphicSentinel(Isolate* isolate) {
-  return isolate->factory()->undefined_value();
+  return isolate->factory()->megamorphic_symbol();
 }
 
 
@@ -6570,7 +6579,7 @@ Handle<Object> TypeFeedbackInfo::MonomorphicArraySentinel(Isolate* isolate,
 
 
 Object* TypeFeedbackInfo::RawUninitializedSentinel(Heap* heap) {
-  return heap->the_hole_value();
+  return heap->uninitialized_symbol();
 }
 
 
@@ -6650,10 +6659,6 @@ bool TypeFeedbackInfo::matches_inlined_type_change_checksum(int checksum) {
   int mask = (1 << kTypeChangeChecksumBits) - 1;
   return InlinedTypeChangeChecksum::decode(value) == (checksum & mask);
 }
-
-
-ACCESSORS(TypeFeedbackInfo, feedback_vector, FixedArray,
-          kFeedbackVectorOffset)
 
 
 SMI_ACCESSORS(AliasedArgumentsEntry, aliased_context_slot, kAliasedContextSlot)

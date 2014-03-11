@@ -571,7 +571,6 @@ class MacroAssembler: public Assembler {
       Label* no_map_match);
 
   void LoadGlobalFunction(int index, Register function);
-  void LoadArrayFunction(Register function);
 
   // Load the initial map from the global function. The registers
   // function and map can be the same, function is then overwritten.
@@ -1155,6 +1154,10 @@ class MacroAssembler: public Assembler {
     return code_object_;
   }
 
+
+  // Emit code for a flooring division by a constant. The dividend register is
+  // unchanged and ip gets clobbered. Dividend and result must be different.
+  void FlooringDiv(Register result, Register dividend, int32_t divisor);
 
   // ---------------------------------------------------------------------------
   // StatsCounter support

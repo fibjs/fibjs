@@ -1236,7 +1236,6 @@ class MacroAssembler: public Assembler {
 
   // Load the global function with the given index.
   void LoadGlobalFunction(int index, Register function);
-  void LoadArrayFunction(Register function);
 
   // Load the initial map from the global function. The registers
   // function and map can be the same.
@@ -1363,6 +1362,10 @@ class MacroAssembler: public Assembler {
                                   Register end_offset,
                                   Register filler);
 
+
+  // Emit code for a flooring division by a constant. The dividend register is
+  // unchanged, the result is in rdx, and rax gets clobbered.
+  void FlooringDiv(Register dividend, int32_t divisor);
 
   // ---------------------------------------------------------------------------
   // StatsCounter support
