@@ -17,74 +17,75 @@ Variant &Variant::operator=(v8::Local<v8::Value> v)
 {
     clear();
 
-    if (!IsEmpty(v))
+    if (v.IsEmpty() || v->IsUndefined())
+        set_type(VT_Undefined);
+    else if (v->IsNull())
+        set_type(VT_Null);
+    else if (v->IsDate())
     {
-        if (v->IsDate())
-        {
-            set_type(VT_Date);
-            *(date_t *) m_Val.dateVal = v;
-        }
-        else if (v->IsBoolean() || v->IsBooleanObject())
-        {
-            set_type(VT_Boolean);
-            m_Val.boolVal = v->BooleanValue();
-        }
-        else if (v->IsNumber() || v->IsNumberObject())
-        {
+        set_type(VT_Date);
+        *(date_t *) m_Val.dateVal = v;
+    }
+    else if (v->IsBoolean() || v->IsBooleanObject())
+    {
+        set_type(VT_Boolean);
+        m_Val.boolVal = v->BooleanValue();
+    }
+    else if (v->IsNumber() || v->IsNumberObject())
+    {
 
-            double n = v->NumberValue();
-            int64_t num = (int64_t) n;
+        double n = v->NumberValue();
+        int64_t num = (int64_t) n;
 
-            if (n == (double) num)
+        if (n == (double) num)
+        {
+            if (num >= -2147483648ll && num <= 2147483647ll)
             {
-                if (num >= -2147483648ll && num <= 2147483647ll)
-                {
-                    set_type(VT_Integer);
-                    m_Val.intVal = (int32_t) num;
-                }
-                else
-                {
-                    set_type(VT_Long);
-                    m_Val.longVal = num;
-                }
+                set_type(VT_Integer);
+                m_Val.intVal = (int32_t) num;
             }
             else
             {
-                set_type(VT_Number);
-                m_Val.dblVal = n;
+                set_type(VT_Long);
+                m_Val.longVal = num;
             }
         }
         else
         {
-            if (v->IsString() || v->IsStringObject())
-            {
-                v8::String::Utf8Value s(v);
-                std::string str(*s, s.length());
-                return operator=(str);
-            }
+            set_type(VT_Number);
+            m_Val.dblVal = n;
+        }
+    }
+    else
+    {
+        if (v->IsString() || v->IsStringObject())
+        {
+            v8::String::Utf8Value s(v);
+            std::string str(*s, s.length());
+            return operator=(str);
+        }
+        else
+        {
+            object_base *obj = object_base::getInstance(v);
+
+            if (obj)
+                return operator=(obj);
             else
             {
-                object_base *obj = object_base::getInstance(v);
+                set_type(VT_JSValue);
 
-                if (obj)
-                    return operator=(obj);
+                if (isPersistent())
+                {
+                    new (((v8::Persistent<v8::Value> *) m_Val.jsVal)) v8::Persistent<v8::Value>();
+                    ((v8::Persistent<v8::Value> *) m_Val.jsVal)->Reset(isolate, v);
+                }
                 else
                 {
-                    set_type(VT_JSValue);
-
-                    if (isPersistent())
-                    {
-                        new (((v8::Persistent<v8::Value> *) m_Val.jsVal)) v8::Persistent<v8::Value>();
-                        ((v8::Persistent<v8::Value> *) m_Val.jsVal)->Reset(isolate, v);
-                    }
-                    else
-                    {
-                        new (((v8::Local<v8::Value> *) m_Val.jsVal)) v8::Local<v8::Value>();
-                        *(v8::Local<v8::Value> *) m_Val.jsVal = v;
-                    }
-
-                    return *this;
+                    new (((v8::Local<v8::Value> *) m_Val.jsVal)) v8::Local<v8::Value>();
+                    *(v8::Local<v8::Value> *) m_Val.jsVal = v;
                 }
+
+                return *this;
             }
         }
     }
