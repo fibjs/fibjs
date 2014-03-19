@@ -219,7 +219,7 @@ result_t SandBox::addScript(const char *srcname, const char *script,
 result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
 {
     std::string fname = resolvePath(id);
-    std::map<std::string, obj_ptr<mod> >::iterator it;
+    std::map<std::string, VariantEx >::iterator it;
 
     // remove .js ext name if exists
     if (fname.length() > 3 && !qstrcmp(&fname[fname.length() - 3], ".js"))
@@ -229,7 +229,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
 
     if (it != m_mods.end())
     {
-        retVal = v8::Local<v8::Value>::New(isolate, it->second->m_mod);
+        retVal = v8::Local<v8::Value>::New(isolate, it->second);
         return 1;
     }
 

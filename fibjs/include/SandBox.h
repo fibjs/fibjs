@@ -23,19 +23,6 @@ public:
     }
 
 public:
-    class mod: public obj_base
-    {
-    public:
-        ~mod()
-        {
-            m_mod.Reset();
-        }
-
-    public:
-        v8::Persistent<v8::Value> m_mod;
-    };
-
-public:
     // SandBox_base
     virtual result_t add(const char *id, v8::Local<v8::Value> mod);
     virtual result_t add(v8::Local<v8::Object> mods);
@@ -58,7 +45,7 @@ public:
     }
 
 private:
-    std::map<std::string, obj_ptr<mod> > m_mods;
+    std::map<std::string, VariantEx > m_mods;
     v8::Persistent<v8::Function> m_require;
 };
 

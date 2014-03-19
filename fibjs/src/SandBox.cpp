@@ -46,7 +46,7 @@ result_t vm_base::current(obj_ptr<SandBox_base> &retVal)
         return CALL_E_INVALID_CALL;
 
     v8::Local<v8::Value> sbox = ctx->Global()->GetHiddenValue(
-                                        v8::String::NewFromUtf8(isolate, "SandBox"));
+                                    v8::String::NewFromUtf8(isolate, "SandBox"));
 
     if (sbox.IsEmpty())
         return CALL_E_INTERNAL;
@@ -57,21 +57,12 @@ result_t vm_base::current(obj_ptr<SandBox_base> &retVal)
 
 void SandBox::InstallModule(std::string fname, v8::Local<v8::Value> o)
 {
-    std::map<std::string, obj_ptr<mod> >::iterator it = m_mods.find(fname);
-    obj_ptr<mod> m;
+    std::map<std::string, VariantEx >::iterator it = m_mods.find(fname);
 
     if (it == m_mods.end())
-    {
-        m = new mod();
-        m_mods[fname] = m;
-    }
+        m_mods[fname] = o;
     else
-    {
-        m = it->second;
-        m->m_mod.Reset();
-    }
-
-    m->m_mod.Reset(isolate, o);
+        it->second = o;
 }
 
 result_t SandBox::add(const char *id, v8::Local<v8::Value> mod)
