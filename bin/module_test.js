@@ -50,22 +50,6 @@ describe("module", function() {
 	it("transitive", function() {
 		assert.strictEqual(require('module/a4').foo(), 1, 'transitive');
 	});
-
-	it("require check modify", function() {
-		var chkScript = "exports.foo = new Date();";
-
-		fs.writeFile("module/check.js", chkScript);
-		foo = require('module/check').foo;
-
-		coroutine.sleep(1010);
-		assert.equal(foo, require('module/check').foo);
-
-		fs.writeFile("module/check.js", chkScript);
-		coroutine.sleep(1010);
-		assert.notEqual(foo, require('module/check').foo);
-
-		fs.unlink('module/check.js');
-	});
 });
 
 //test.run(console.DEBUG);

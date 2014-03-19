@@ -67,7 +67,7 @@ inline std::string resolvePath(const char *id)
         if (!ctx.IsEmpty())
         {
             v8::Local<v8::Value> path = ctx->Global()->GetHiddenValue(
-                                             v8::String::NewFromUtf8(isolate, "id"));
+                                            v8::String::NewFromUtf8(isolate, "id"));
 
             if (!path.IsEmpty())
             {
@@ -107,92 +107,23 @@ inline result_t compileScript(const char *fname, std::string &buf,
 void _define(const v8::FunctionCallbackInfo<v8::Value> &args);
 result_t doDefine(v8::Local<v8::Object> &mod);
 
-result_t SandBox::runScript(const char *id, v8::Local<v8::Value> &retVal,
-                            bool bMod)
+result_t SandBox::addScript(const char *srcname, const char *script,
+                            v8::Local<v8::Value> &retVal)
 {
-    std::string fname = resolvePath(id);
-    std::map<std::string, obj_ptr<mod> >::iterator it;
-    date_t now;
-
-    // remove .js ext name if exists
-    if (fname.length() > 3 && !qstrcmp(&fname[fname.length() - 3], ".js"))
-        fname.resize(fname.length() - 3);
-
-    if (bMod)
-    {
-        now.now();
-
-        it = m_mods.find(fname);
-
-        if (it != m_mods.end()
-                && (it->second->m_check.empty()
-                    || now.diff(it->second->m_check) < 1000))
-        {
-            retVal = v8::Local<v8::Value>::New(isolate, it->second->m_mod);
-            return 1;
-        }
-
-        if (!m_require.IsEmpty())
-        {
-            v8::Local<v8::Value> arg = v8::String::NewFromUtf8(isolate, fname.c_str());
-            retVal = v8::Local<v8::Function>::New(isolate, m_require)->Call(wrap(), 1, &arg);
-            if (retVal.IsEmpty())
-                return CALL_E_JAVASCRIPT;
-
-            if (!IsEmpty(retVal))
-            {
-                if (retVal->IsObject())
-                    retVal = retVal->ToObject()->Clone();
-                InstallModule(fname, retVal, now);
-
-                return 0;
-            }
-        }
-    }
-
-    // append .js ext name
-    fname += ".js";
-
-    result_t hr;
-    const char *pname = fname.c_str();
-    obj_ptr<Stat_base> st;
-    date_t mtime;
-
-    if (bMod)
-    {
-        hr = fs_base::ac_stat(pname, st);
-        if (hr < 0)
-            return hr;
-
-        st->get_mtime(mtime);
-
-        if (it != m_mods.end())
-        {
-            if (mtime.diff(it->second->m_mtime) == 0)
-            {
-                it->second->m_check = now;
-                retVal = v8::Local<v8::Value>::New(isolate, it->second->m_mod);
-                return 0;
-            }
-        }
-    }
-
-    std::string buf;
-    hr = fs_base::ac_readFile(pname, buf);
-    if (hr < 0)
-        return hr;
-
-    // v8::LocalScope handle_scope(isolate);
-
     v8::Local<v8::Context> context(v8::Context::New (isolate));
     v8::Context::Scope context_scope(context);
+    result_t hr;
 
-    v8::Local<v8::Script> script;
-    hr = compileScript(fname.c_str(), buf, script);
-    if (hr < 0)
+    v8::Local<v8::Script> oscript;
     {
-        //context.Dispose(isolate);
-        return hr;
+        v8::TryCatch try_catch;
+
+        oscript = v8::Script::Compile(
+                      v8::String::NewFromUtf8(isolate, script,
+                                              v8::String::kNormalString, (int) qstrlen(script)),
+                      v8::String::NewFromUtf8(isolate, srcname));
+        if (oscript.IsEmpty())
+            return throwSyntaxError(try_catch);
     }
 
     v8::Local<v8::Object> glob = context->Global();
@@ -209,15 +140,12 @@ result_t SandBox::runScript(const char *id, v8::Local<v8::Value> &retVal,
     v8::Local<v8::String> strId = v8::String::NewFromUtf8(isolate, "id");
 
     // attach define function first.
-    if (bMod)
-    {
-        v8::Local<v8::Function> def =
-            v8::FunctionTemplate::New(isolate, _define)->GetFunction();
+    v8::Local<v8::Function> def =
+        v8::FunctionTemplate::New(isolate, _define)->GetFunction();
 
-        def->ToObject()->Set(v8::String::NewFromUtf8(isolate, "amd"), v8::Object::New(isolate),
-                             v8::ReadOnly);
-        glob->Set(strDefine, def, v8::ReadOnly);
-    }
+    def->ToObject()->Set(v8::String::NewFromUtf8(isolate, "amd"), v8::Object::New(isolate),
+                         v8::ReadOnly);
+    glob->Set(strDefine, def, v8::ReadOnly);
 
     // clone global function
     fibjs::global_base::class_info().Attach(glob);
@@ -227,92 +155,163 @@ result_t SandBox::runScript(const char *id, v8::Local<v8::Value> &retVal,
         glob->Get(v8::String::NewFromUtf8(isolate, "Function"))->ToObject()->GetPrototype()->ToObject());
 
     // module.id
+    std::string fname(srcname);
     fname.resize(fname.length() - 3);
     v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate, fname.c_str(),
-                                         v8::String::kNormalString,
-                                         (int) fname.length());
+                                     v8::String::kNormalString,
+                                     (int) fname.length());
     glob->SetHiddenValue(strId, strFname);
 
-    if (bMod)
+    exports = v8::Object::New(isolate);
+
+    // module and exports object
+    if (mod.IsEmpty())
+        mod = v8::Object::New(isolate);
+
+    // init module
+    mod->Set(strExports, exports);
+    mod->Set(strRequire, glob->Get(strRequire), v8::ReadOnly);
+
+    mod->Set(strId, strFname, v8::ReadOnly);
+
+    // add to modules
+    InstallModule(fname, exports);
+
+    // attach to global
+    glob->Set(strModule, mod, v8::ReadOnly);
+    glob->Set(strExports, exports, v8::ReadOnly);
+
+    if (oscript->Run().IsEmpty())
     {
-        exports = v8::Object::New(isolate);
-
-        // module and exports object
-        if (mod.IsEmpty())
-            mod = v8::Object::New(isolate);
-
-        // init module
-        mod->Set(strExports, exports);
-        mod->Set(strRequire, glob->Get(strRequire), v8::ReadOnly);
-
-        mod->Set(strId, strFname, v8::ReadOnly);
-
-        // add to modules
-        InstallModule(fname, exports, now, mtime);
-
-        // attach to global
-        glob->Set(strModule, mod, v8::ReadOnly);
-        glob->Set(strExports, exports, v8::ReadOnly);
-    }
-    else
-        // remove define function
-        glob->ForceDelete(strDefine);
-
-    if (script->Run().IsEmpty())
-    {
-        if (bMod)
-        {
-            // delete from modules
-            m_mods.erase(fname);
-        }
-
-        //context.Dispose(isolate);
+        // delete from modules
+        m_mods.erase(fname);
         return CALL_E_JAVASCRIPT;
     }
 
-    if (bMod)
+    // remove commonjs function
+    glob->ForceDelete(strDefine);
+    glob->ForceDelete(strModule);
+    glob->ForceDelete(strExports);
+
+    // process defined modules
+    hr = doDefine(mod);
+    if (hr < 0)
     {
-        // remove commonjs function
-        glob->ForceDelete(strDefine);
-        glob->ForceDelete(strModule);
-        glob->ForceDelete(strExports);
-
-        // process defined modules
-        hr = doDefine(mod);
-        if (hr < 0)
-        {
-            // delete from modules
-            m_mods.erase(fname);
-            //context.Dispose(isolate);
-
-            return hr;
-        }
-
-        // attach again
-        glob->Set(strModule, mod, v8::ReadOnly);
-        glob->Set(strExports, exports, v8::ReadOnly);
-
-        // use module.exports as result value
-        v8::Local<v8::Value> v = mod->Get(strExports);
-        InstallModule(fname, v, now, mtime);
-
-        // retVal = handle_scope.Close(v);
-        retVal = v;
+        // delete from modules
+        m_mods.erase(fname);
+        return hr;
     }
 
-    //context.Dispose(isolate);
-    return 0;
-}
+    // attach again
+    glob->Set(strModule, mod, v8::ReadOnly);
+    glob->Set(strExports, exports, v8::ReadOnly);
 
-result_t SandBox::run(const char *fname)
-{
-    v8::Local<v8::Value> retTemp;
-    return runScript(fname, retTemp, false);
+    // use module.exports as result value
+    v8::Local<v8::Value> v = mod->Get(strExports);
+    if (!exports->Equals(v))
+        InstallModule(fname, v);
+
+    retVal = v;
+
+    return 0;
 }
 
 result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
 {
-    return runScript(id, retVal, true);
+    std::string fname = resolvePath(id);
+    std::map<std::string, obj_ptr<mod> >::iterator it;
+
+    // remove .js ext name if exists
+    if (fname.length() > 3 && !qstrcmp(&fname[fname.length() - 3], ".js"))
+        fname.resize(fname.length() - 3);
+
+    it = m_mods.find(fname);
+
+    if (it != m_mods.end())
+    {
+        retVal = v8::Local<v8::Value>::New(isolate, it->second->m_mod);
+        return 1;
+    }
+
+    if (!m_require.IsEmpty())
+    {
+        v8::Local<v8::Value> arg = v8::String::NewFromUtf8(isolate, fname.c_str());
+        retVal = v8::Local<v8::Function>::New(isolate, m_require)->Call(wrap(), 1, &arg);
+        if (retVal.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+
+        if (!IsEmpty(retVal))
+        {
+            if (retVal->IsObject())
+                retVal = retVal->ToObject()->Clone();
+            InstallModule(fname, retVal);
+
+            return 0;
+        }
+    }
+
+    // append .js ext name
+    fname += ".js";
+
+    result_t hr;
+    const char *pname = fname.c_str();
+
+    std::string buf;
+    hr = fs_base::ac_readFile(pname, buf);
+    if (hr < 0)
+        return hr;
+
+    return addScript(pname, buf.c_str(), retVal);
+}
+
+result_t SandBox::run(const char *fname)
+{
+    std::string sfname = resolvePath(fname);
+
+    // add .js ext name if not exists
+    if (sfname.length() <= 3 || qstrcmp(&sfname[sfname.length() - 3], ".js"))
+        sfname += ".js";
+
+    result_t hr;
+    const char *pname = sfname.c_str();
+
+    std::string buf;
+    hr = fs_base::ac_readFile(pname, buf);
+    if (hr < 0)
+        return hr;
+
+    v8::Local<v8::Context> context(v8::Context::New (isolate));
+    v8::Context::Scope context_scope(context);
+
+    v8::Local<v8::Script> script;
+    hr = compileScript(sfname.c_str(), buf, script);
+    if (hr < 0)
+        return hr;
+
+    v8::Local<v8::Object> glob = context->Global();
+    v8::Local<v8::Object> mod;
+    v8::Local<v8::Object> exports;
+
+    glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "SandBox"), wrap());
+
+    // clone global function
+    fibjs::global_base::class_info().Attach(glob);
+
+    // clone Function.start
+    fibjs::Function_base::class_info().Attach(
+        glob->Get(v8::String::NewFromUtf8(isolate, "Function"))->ToObject()->GetPrototype()->ToObject());
+
+    // module.id
+    sfname.resize(sfname.length() - 3);
+    v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate, sfname.c_str(),
+                                     v8::String::kNormalString,
+                                     (int) sfname.length());
+    glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "id"), strFname);
+
+    if (script->Run().IsEmpty())
+        return CALL_E_JAVASCRIPT;
+
+    return 0;
 }
 
 }

@@ -13,6 +13,13 @@ class SandBox: object
 	 */
 	add(Object mods);
 
+	/*! @brief 向沙箱中添加一个脚本模块
+	 @param srcname 指定要添加的脚本名称
+	 @param script 指定要添加的脚本代码
+	 @return 返回加载的模块对象
+	 */
+	Value addScript(String srcname, String script);
+
 	/*! @brief 从沙箱中删除指定的基础模块
 	 @param id 指定要删除的模块名称
 	 */
@@ -25,6 +32,7 @@ class SandBox: object
 
 	/*! @brief 加载一个模块并返回模块对象，更多信息参阅 @ref module
 	 @param id 指定要加载的模块名称
+	 @return 返回加载的模块对象
 	 */
 	Value require(String id);
 };

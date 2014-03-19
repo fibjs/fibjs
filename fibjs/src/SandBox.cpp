@@ -55,8 +55,7 @@ result_t vm_base::current(obj_ptr<SandBox_base> &retVal)
     return retVal ? 0 : CALL_E_INTERNAL;
 }
 
-void SandBox::InstallModule(std::string fname, v8::Local<v8::Value> o,
-                            date_t check, date_t mtime)
+void SandBox::InstallModule(std::string fname, v8::Local<v8::Value> o)
 {
     std::map<std::string, obj_ptr<mod> >::iterator it = m_mods.find(fname);
     obj_ptr<mod> m;
@@ -73,8 +72,6 @@ void SandBox::InstallModule(std::string fname, v8::Local<v8::Value> o,
     }
 
     m->m_mod.Reset(isolate, o);
-    m->m_mtime = mtime;
-    m->m_check = check;
 }
 
 result_t SandBox::add(const char *id, v8::Local<v8::Value> mod)
