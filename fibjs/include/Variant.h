@@ -54,7 +54,7 @@ public:
         VT_Date,
         VT_String,
         VT_Object,
-        VT_JSObject,
+        VT_JSValue,
         VT_Type = 255,
         VT_Persistent = 256
     };
@@ -100,19 +100,19 @@ public:
             ((std::string *) m_Val.strVal)->~basic_string();
         else if (type() == VT_Object && m_Val.objVal)
             m_Val.objVal->Unref();
-        else if (type() == VT_JSObject)
+        else if (type() == VT_JSValue)
         {
             if (isPersistent())
             {
-                v8::Persistent<v8::Object> &jsobj =
-                    *(v8::Persistent<v8::Object> *) m_Val.jsobjVal;
+                v8::Persistent<v8::Value> &jsobj =
+                    *(v8::Persistent<v8::Value> *) m_Val.jsVal;
                 jsobj.Reset();
                 jsobj.~Persistent();
             }
             else
             {
-                v8::Local<v8::Object> &jsobj =
-                    *(v8::Local<v8::Object> *) m_Val.jsobjVal;
+                v8::Local<v8::Value> &jsobj =
+                    *(v8::Local<v8::Value> *) m_Val.jsVal;
                 jsobj.~Local();
             }
         }
@@ -128,14 +128,14 @@ public:
         if (v.type() == VT_Object)
             return operator=(v.m_Val.objVal);
 
-        if (v.type() == VT_JSObject)
+        if (v.type() == VT_JSValue)
         {
             if (v.isPersistent())
                 return operator=(
-                           v8::Local<v8::Object>::New(isolate,
-                                                       *(v8::Persistent<v8::Object> *) v.m_Val.jsobjVal));
+                           v8::Local<v8::Value>::New(isolate,
+                                                      *(v8::Persistent<v8::Value> *) v.m_Val.jsVal));
             else
-                return operator=(*(v8::Local<v8::Object> *) v.m_Val.jsobjVal);
+                return operator=(*(v8::Local<v8::Value> *) v.m_Val.jsVal);
         }
 
         clear();
@@ -219,13 +219,16 @@ public:
         return operator=((obj_base *) v);
     }
 
-    Variant &operator=(v8::Local<v8::Object> v);
-
     Variant &operator=(v8::Local<v8::Value> v);
 
     Variant &operator=(v8::Local<v8::Function> v)
     {
-        return operator=(v8::Local<v8::Object>::Cast(v));
+        return operator=(v8::Local<v8::Value>::Cast(v));
+    }
+
+    Variant &operator=(v8::Local<v8::Object> v)
+    {
+        return operator=(v8::Local<v8::Value>::Cast(v));
     }
 
     Type type() const
@@ -303,7 +306,7 @@ private:
         obj_base *objVal;
         char dateVal[sizeof(date_t)];
         char strVal[sizeof(std::string)];
-        char jsobjVal[sizeof(v8::Persistent<v8::Object>)];
+        char jsVal[sizeof(v8::Persistent<v8::Value>)];
     } m_Val;
 };
 

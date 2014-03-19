@@ -13,29 +13,6 @@
 namespace fibjs
 {
 
-Variant &Variant::operator=(v8::Local<v8::Object> v)
-{
-    clear();
-
-    if (!v.IsEmpty())
-    {
-        set_type(VT_JSObject);
-
-        if (isPersistent())
-        {
-            new (((v8::Persistent<v8::Object> *) m_Val.jsobjVal)) v8::Persistent<v8::Object>();
-            ((v8::Persistent<v8::Object> *) m_Val.jsobjVal)->Reset(isolate, v);
-        }
-        else
-        {
-            new (((v8::Local<v8::Object> *) m_Val.jsobjVal)) v8::Local<v8::Object>();
-            *(v8::Local<v8::Object> *) m_Val.jsobjVal = v;
-        }
-    }
-
-    return *this;
-}
-
 Variant &Variant::operator=(v8::Local<v8::Value> v)
 {
     clear();
@@ -47,12 +24,12 @@ Variant &Variant::operator=(v8::Local<v8::Value> v)
             set_type(VT_Date);
             *(date_t *) m_Val.dateVal = v;
         }
-        else if (v->IsBoolean())
+        else if (v->IsBoolean() || v->IsBooleanObject())
         {
             set_type(VT_Boolean);
             m_Val.boolVal = v->BooleanValue();
         }
-        else if (v->IsNumber())
+        else if (v->IsNumber() || v->IsNumberObject())
         {
 
             double n = v->NumberValue();
@@ -79,20 +56,35 @@ Variant &Variant::operator=(v8::Local<v8::Value> v)
         }
         else
         {
-            if (v->IsObject())
+            if (v->IsString() || v->IsStringObject())
+            {
+                v8::String::Utf8Value s(v);
+                std::string str(*s, s.length());
+                return operator=(str);
+            }
+            else
             {
                 object_base *obj = object_base::getInstance(v);
 
                 if (obj)
                     return operator=(obj);
                 else
-                    return operator=(v8::Local<v8::Object>::Cast(v));
-            }
-            else
-            {
-                v8::String::Utf8Value s(v);
-                std::string str(*s, s.length());
-                return operator=(str);
+                {
+                    set_type(VT_JSValue);
+
+                    if (isPersistent())
+                    {
+                        new (((v8::Persistent<v8::Value> *) m_Val.jsVal)) v8::Persistent<v8::Value>();
+                        ((v8::Persistent<v8::Value> *) m_Val.jsVal)->Reset(isolate, v);
+                    }
+                    else
+                    {
+                        new (((v8::Local<v8::Value> *) m_Val.jsVal)) v8::Local<v8::Value>();
+                        *(v8::Local<v8::Value> *) m_Val.jsVal = v;
+                    }
+
+                    return *this;
+                }
             }
         }
     }
@@ -129,15 +121,15 @@ Variant::operator v8::Local<v8::Value>() const
 
         return obj->wrap();
     }
-    case VT_JSObject:
+    case VT_JSValue:
     {
         v8::Local<v8::Value> v;
 
         if (isPersistent())
-            v = v8::Local<v8::Object>::New(isolate,
-                                            *(v8::Persistent<v8::Object> *) m_Val.jsobjVal);
+            v = v8::Local<v8::Value>::New(isolate,
+                                          *(v8::Persistent<v8::Value> *) m_Val.jsVal);
         else
-            v = *(v8::Local<v8::Object> *) m_Val.jsobjVal;
+            v = *(v8::Local<v8::Value> *) m_Val.jsVal;
 
         return v;
     }
@@ -312,7 +304,7 @@ bool Variant::toString(std::string &retVal)
     case VT_String:
         retVal = *(std::string *) m_Val.strVal;
         return true;
-    case VT_JSObject:
+    case VT_JSValue:
         return false;
     }
 
