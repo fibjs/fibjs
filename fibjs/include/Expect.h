@@ -19,12 +19,7 @@ public:
     Expect(v8::Local<v8::Value> actual, const char *msg) :
         m_msg(msg), m_not(false), m_deep(false)
     {
-        m_actual.Reset(isolate, actual);
-    }
-
-    ~Expect()
-    {
-        m_actual.Reset();
+        m_actual = actual;
     }
 
 public:
@@ -70,7 +65,7 @@ public:
                              v8::Local<v8::Value> delta);
 
 private:
-    v8::Persistent<v8::Value> m_actual;
+    VariantEx m_actual;
     std::string m_msg;
     bool m_not;
     bool m_deep;
