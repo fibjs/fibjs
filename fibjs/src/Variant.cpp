@@ -80,10 +80,7 @@ Variant &Variant::operator=(v8::Local<v8::Value> v)
                     ((v8::Persistent<v8::Value> *) m_Val.jsVal)->Reset(isolate, v);
                 }
                 else
-                {
-                    new (((v8::Local<v8::Value> *) m_Val.jsVal)) v8::Local<v8::Value>();
-                    *(v8::Local<v8::Value> *) m_Val.jsVal = v;
-                }
+                    new (((v8::Local<v8::Value> *) m_Val.jsVal)) v8::Local<v8::Value>(v);
 
                 return *this;
             }
@@ -123,17 +120,11 @@ Variant::operator v8::Local<v8::Value>() const
         return obj->wrap();
     }
     case VT_JSValue:
-    {
-        v8::Local<v8::Value> v;
-
         if (isPersistent())
-            v = v8::Local<v8::Value>::New(isolate,
-                                          *(v8::Persistent<v8::Value> *) m_Val.jsVal);
+            return v8::Local<v8::Value>::New(isolate,
+                                             *(v8::Persistent<v8::Value> *) m_Val.jsVal);
         else
-            v = *(v8::Local<v8::Value> *) m_Val.jsVal;
-
-        return v;
-    }
+            return *(v8::Local<v8::Value> *) m_Val.jsVal;
     case VT_String:
     {
         std::string &str = *(std::string *) m_Val.strVal;
