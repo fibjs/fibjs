@@ -49,7 +49,7 @@ result_t os_base::time(const char *tmString, date_t &retVal)
 
 result_t os_base::get_timezone(int32_t &retVal)
 {
-    retVal = date_t::LocalOffset();
+    retVal = Runtime::now().m_pDateCache->LocalOffset();
     return 0;
 }
 

@@ -11,22 +11,6 @@
 #ifndef DATE_H_
 #define DATE_H_
 
-namespace v8
-{
-namespace internal
-{
-
-class OS
-{
-public:
-    static double LocalTimeOffset();
-    static double DaylightSavingsOffset(double time);
-    static const char *LocalTimezone(double time);
-};
-
-}
-}
-
 namespace fibjs
 {
 
@@ -100,10 +84,6 @@ public:
     void parse(const char *str, int len = -1);
     void toGMTString(std::string &retVal);
     void sqlString(std::string &retVal);
-    static int LocalOffset()
-    {
-        return (int) v8::internal::OS::LocalTimeOffset() / 36000;
-    }
 
 private:
     double d;

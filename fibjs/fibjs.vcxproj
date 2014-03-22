@@ -30,7 +30,6 @@
     <ClCompile Include="src\Console.cpp" />
     <ClCompile Include="src\coroutine.cpp" />
     <ClCompile Include="src\date.cpp" />
-    <ClCompile Include="src\DateCache.cpp" />
     <ClCompile Include="src\db.cpp" />
     <ClCompile Include="src\DBResult.cpp" />
     <ClCompile Include="src\DBRow.cpp" />
