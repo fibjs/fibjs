@@ -133,7 +133,7 @@ public:
             if (v.isPersistent())
                 return operator=(
                            v8::Local<v8::Value>::New(isolate,
-                                                      *(v8::Persistent<v8::Value> *) v.m_Val.jsVal));
+                                                     *(v8::Persistent<v8::Value> *) v.m_Val.jsVal));
             else
                 return operator=(*(v8::Local<v8::Value> *) v.m_Val.jsVal);
         }
@@ -325,6 +325,12 @@ public:
         operator=(v);
     }
 
+    VariantEx(const VariantEx &v)
+    {
+        toPersistent();
+        operator=(v);
+    }
+
     VariantEx(v8::Local<v8::Value> v)
     {
         toPersistent();
@@ -343,10 +349,17 @@ public:
         operator=(v);
     }
 
-    template<typename T>
-    Variant &operator=(T v)
+    Variant &operator=(const VariantEx &v)
     {
-        return Variant::operator=(v);
+        Variant::operator=((const Variant)v);
+        return *this;
+    }
+
+    template<typename T>
+    VariantEx &operator=(T v)
+    {
+        Variant::operator=(v);
+        return *this;
     }
 
     operator v8::Local<v8::Value>() const

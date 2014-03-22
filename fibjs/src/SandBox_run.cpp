@@ -229,7 +229,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
 
     if (it != m_mods.end())
     {
-        retVal = v8::Local<v8::Value>::New(isolate, it->second);
+        retVal = it->second;
         return 1;
     }
 
