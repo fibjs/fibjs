@@ -314,6 +314,7 @@
     <ClCompile Include="src\v8\src\arm\simulator-arm.cc" />
     <ClCompile Include="src\v8\src\arm\stub-cache-arm.cc" />
     <ClCompile Include="src\v8\src\assembler.cc" />
+    <ClCompile Include="src\v8\src\assert-scope.cc" />
     <ClCompile Include="src\v8\src\ast.cc" />
     <ClCompile Include="src\v8\src\atomicops_internals_x86_gcc.cc" />
     <ClCompile Include="src\v8\src\bignum-dtoa.cc" />
@@ -440,6 +441,7 @@
     <ClCompile Include="src\v8\src\platform\semaphore.cc" />
     <ClCompile Include="src\v8\src\platform\socket.cc" />
     <ClCompile Include="src\v8\src\platform\time.cc" />
+    <ClCompile Include="src\v8\src\platform\_date_cache.cc" />
     <ClCompile Include="src\v8\src\preparse-data.cc" />
     <ClCompile Include="src\v8\src\preparser.cc" />
     <ClCompile Include="src\v8\src\prettyprinter.cc" />
@@ -776,6 +778,7 @@
     <ClInclude Include="src\v8\src\assert-scope.h" />
     <ClInclude Include="src\v8\src\ast.h" />
     <ClInclude Include="src\v8\src\atomicops.h" />
+    <ClInclude Include="src\v8\src\atomicops_internals_arm64_gcc.h" />
     <ClInclude Include="src\v8\src\atomicops_internals_arm_gcc.h" />
     <ClInclude Include="src\v8\src\atomicops_internals_atomicword_compat.h" />
     <ClInclude Include="src\v8\src\atomicops_internals_mac.h" />
@@ -934,6 +937,7 @@
     <ClInclude Include="src\v8\src\prettyprinter.h" />
     <ClInclude Include="src\v8\src\profile-generator-inl.h" />
     <ClInclude Include="src\v8\src\profile-generator.h" />
+    <ClInclude Include="src\v8\src\property-details-inl.h" />
     <ClInclude Include="src\v8\src\property-details.h" />
     <ClInclude Include="src\v8\src\property.h" />
     <ClInclude Include="src\v8\src\qnx-math.h" />

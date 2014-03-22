@@ -509,8 +509,12 @@ class CpuFeatures : public AllStatic {
 };
 
 
-#define ASSEMBLER_INSTRUCTION_LIST(V)  \
-  V(mov)
+#define ASSEMBLER_INSTRUCTION_LIST(V)   \
+  V(add)                                \
+  V(idiv)                               \
+  V(imul)                               \
+  V(mov)                                \
+  V(sub)
 
 
 class Assembler : public AssemblerBase {
@@ -555,8 +559,21 @@ class Assembler : public AssemblerBase {
   // the absolute address of the target.
   // These functions convert between absolute Addresses of Code objects and
   // the relative displacements stored in the code.
-  static inline Address target_address_at(Address pc);
-  static inline void set_target_address_at(Address pc, Address target);
+  static inline Address target_address_at(Address pc,
+                                          ConstantPoolArray* constant_pool);
+  static inline void set_target_address_at(Address pc,
+                                           ConstantPoolArray* constant_pool,
+                                           Address target);
+  static inline Address target_address_at(Address pc, Code* code) {
+    ConstantPoolArray* constant_pool = code ? code->constant_pool() : NULL;
+    return target_address_at(pc, constant_pool);
+  }
+  static inline void set_target_address_at(Address pc,
+                                           Code* code,
+                                           Address target) {
+    ConstantPoolArray* constant_pool = code ? code->constant_pool() : NULL;
+    set_target_address_at(pc, constant_pool, target);
+  }
 
   // Return the code target address at a call site from the return address
   // of that call in the instruction stream.
@@ -565,8 +582,8 @@ class Assembler : public AssemblerBase {
   // This sets the branch destination (which is in the instruction on x64).
   // This is for calls and branches within generated code.
   inline static void deserialization_set_special_target_at(
-      Address instruction_payload, Address target) {
-    set_target_address_at(instruction_payload, target);
+      Address instruction_payload, Code* code, Address target) {
+    set_target_address_at(instruction_payload, code, target);
   }
 
   static inline RelocInfo::Mode RelocInfoNone() {
@@ -651,6 +668,21 @@ class Assembler : public AssemblerBase {
   // Naming conflicts with C++ keywords are resolved by adding a trailing '_'.
 
 #define DECLARE_INSTRUCTION(instruction)                \
+  template<class P1>                                    \
+  void instruction##p(P1 p1) {                          \
+    emit_##instruction(p1, kPointerSize);               \
+  }                                                     \
+                                                        \
+  template<class P1>                                    \
+  void instruction##l(P1 p1) {                          \
+    emit_##instruction(p1, kInt32Size);                 \
+  }                                                     \
+                                                        \
+  template<class P1>                                    \
+  void instruction##q(P1 p1) {                          \
+    emit_##instruction(p1, kInt64Size);                 \
+  }                                                     \
+                                                        \
   template<class P1, class P2>                          \
   void instruction##p(P1 p1, P2 p2) {                   \
     emit_##instruction(p1, p2, kPointerSize);           \
@@ -664,6 +696,21 @@ class Assembler : public AssemblerBase {
   template<class P1, class P2>                          \
   void instruction##q(P1 p1, P2 p2) {                   \
     emit_##instruction(p1, p2, kInt64Size);             \
+  }                                                     \
+                                                        \
+  template<class P1, class P2, class P3>                \
+  void instruction##p(P1 p1, P2 p2, P3 p3) {            \
+    emit_##instruction(p1, p2, p3, kPointerSize);       \
+  }                                                     \
+                                                        \
+  template<class P1, class P2, class P3>                \
+  void instruction##l(P1 p1, P2 p2, P3 p3) {            \
+    emit_##instruction(p1, p2, p3, kInt32Size);         \
+  }                                                     \
+                                                        \
+  template<class P1, class P2, class P3>                \
+  void instruction##q(P1 p1, P2 p2, P3 p3) {            \
+    emit_##instruction(p1, p2, p3, kInt64Size);         \
   }
   ASSEMBLER_INSTRUCTION_LIST(DECLARE_INSTRUCTION)
 #undef DECLARE_INSTRUCTION
@@ -680,15 +727,15 @@ class Assembler : public AssemblerBase {
   void pushfq();
   void popfq();
 
-  void push(Immediate value);
+  void pushq(Immediate value);
   // Push a 32 bit integer, and guarantee that it is actually pushed as a
   // 32 bit value, the normal push will optimize the 8 bit case.
-  void push_imm32(int32_t imm32);
-  void push(Register src);
-  void push(const Operand& src);
+  void pushq_imm32(int32_t imm32);
+  void pushq(Register src);
+  void pushq(const Operand& src);
 
-  void pop(Register dst);
-  void pop(const Operand& dst);
+  void popq(Register dst);
+  void popq(const Operand& dst);
 
   void enter(Immediate size);
   void leave();
@@ -746,47 +793,6 @@ class Assembler : public AssemblerBase {
   // Exchange two registers
   void xchgq(Register dst, Register src);
   void xchgl(Register dst, Register src);
-
-  // Arithmetics
-  void addl(Register dst, Register src) {
-    arithmetic_op_32(0x03, dst, src);
-  }
-
-  void addl(Register dst, Immediate src) {
-    immediate_arithmetic_op_32(0x0, dst, src);
-  }
-
-  void addl(Register dst, const Operand& src) {
-    arithmetic_op_32(0x03, dst, src);
-  }
-
-  void addl(const Operand& dst, Immediate src) {
-    immediate_arithmetic_op_32(0x0, dst, src);
-  }
-
-  void addl(const Operand& dst, Register src) {
-    arithmetic_op_32(0x01, src, dst);
-  }
-
-  void addq(Register dst, Register src) {
-    arithmetic_op(0x03, dst, src);
-  }
-
-  void addq(Register dst, const Operand& src) {
-    arithmetic_op(0x03, dst, src);
-  }
-
-  void addq(const Operand& dst, Register src) {
-    arithmetic_op(0x01, src, dst);
-  }
-
-  void addq(Register dst, Immediate src) {
-    immediate_arithmetic_op(0x0, dst, src);
-  }
-
-  void addq(const Operand& dst, Immediate src) {
-    immediate_arithmetic_op(0x0, dst, src);
-  }
 
   void sbbl(Register dst, Register src) {
     arithmetic_op_32(0x1b, dst, src);
@@ -925,22 +931,6 @@ class Assembler : public AssemblerBase {
   void cqo();
   // Sign-extends eax into edx:eax.
   void cdq();
-
-  // Divide rdx:rax by src.  Quotient in rax, remainder in rdx.
-  void idivq(Register src);
-  // Divide edx:eax by lower 32 bits of src.  Quotient in eax, rem. in edx.
-  void idivl(Register src);
-
-  // Signed multiply instructions.
-  void imul(Register src);                               // rdx:rax = rax * src.
-  void imul(Register dst, Register src);                 // dst = dst * src.
-  void imul(Register dst, const Operand& src);           // dst = dst * src.
-  void imul(Register dst, Register src, Immediate imm);  // dst = src * imm.
-  // Signed 32-bit multiply instructions.
-  void imull(Register src);                              // edx:eax = eax * src.
-  void imull(Register dst, Register src);                 // dst = dst * src.
-  void imull(Register dst, const Operand& src);           // dst = dst * src.
-  void imull(Register dst, Register src, Immediate imm);  // dst = src * imm.
 
   void incq(Register dst);
   void incq(const Operand& dst);
@@ -1091,46 +1081,6 @@ class Assembler : public AssemblerBase {
 
   void store_rax(void* dst, RelocInfo::Mode mode);
   void store_rax(ExternalReference ref);
-
-  void subq(Register dst, Register src) {
-    arithmetic_op(0x2B, dst, src);
-  }
-
-  void subq(Register dst, const Operand& src) {
-    arithmetic_op(0x2B, dst, src);
-  }
-
-  void subq(const Operand& dst, Register src) {
-    arithmetic_op(0x29, src, dst);
-  }
-
-  void subq(Register dst, Immediate src) {
-    immediate_arithmetic_op(0x5, dst, src);
-  }
-
-  void subq(const Operand& dst, Immediate src) {
-    immediate_arithmetic_op(0x5, dst, src);
-  }
-
-  void subl(Register dst, Register src) {
-    arithmetic_op_32(0x2B, dst, src);
-  }
-
-  void subl(Register dst, const Operand& src) {
-    arithmetic_op_32(0x2B, dst, src);
-  }
-
-  void subl(const Operand& dst, Register src) {
-    arithmetic_op_32(0x29, src, dst);
-  }
-
-  void subl(const Operand& dst, Immediate src) {
-    immediate_arithmetic_op_32(0x5, dst, src);
-  }
-
-  void subl(Register dst, Immediate src) {
-    immediate_arithmetic_op_32(0x5, dst, src);
-  }
 
   void subb(Register dst, Immediate src) {
     immediate_arithmetic_op_8(0x5, dst, src);
@@ -1449,6 +1399,12 @@ class Assembler : public AssemblerBase {
   // Use --code-comments to enable.
   void RecordComment(const char* msg, bool force = false);
 
+  // Allocate a constant pool of the correct size for the generated code.
+  MaybeObject* AllocateConstantPool(Heap* heap);
+
+  // Generate the constant pool for the generated code.
+  void PopulateConstantPool(ConstantPoolArray* constant_pool);
+
   // Writes a single word of data in the code stream.
   // Used for inline tables, e.g., jump-tables.
   void db(uint8_t data);
@@ -1692,6 +1648,109 @@ class Assembler : public AssemblerBase {
 
   // record reloc info for current pc_
   void RecordRelocInfo(RelocInfo::Mode rmode, intptr_t data = 0);
+
+  // Arithmetics
+  void emit_add(Register dst, Register src, int size) {
+    if (size == kInt64Size) {
+      arithmetic_op(0x03, dst, src);
+    } else {
+      ASSERT(size == kInt32Size);
+      arithmetic_op_32(0x03, dst, src);
+    }
+  }
+
+  void emit_add(Register dst, Immediate src, int size) {
+    if (size == kInt64Size) {
+      immediate_arithmetic_op(0x0, dst, src);
+    } else {
+      ASSERT(size == kInt32Size);
+      immediate_arithmetic_op_32(0x0, dst, src);
+    }
+  }
+
+  void emit_add(Register dst, const Operand& src, int size) {
+    if (size == kInt64Size) {
+      arithmetic_op(0x03, dst, src);
+    } else {
+      ASSERT(size == kInt32Size);
+      arithmetic_op_32(0x03, dst, src);
+    }
+  }
+
+  void emit_add(const Operand& dst, Register src, int size) {
+    if (size == kInt64Size) {
+      arithmetic_op(0x1, src, dst);
+    } else {
+      ASSERT(size == kInt32Size);
+      arithmetic_op_32(0x1, src, dst);
+    }
+  }
+
+  void emit_add(const Operand& dst, Immediate src, int size) {
+    if (size == kInt64Size) {
+      immediate_arithmetic_op(0x0, dst, src);
+    } else {
+      ASSERT(size == kInt32Size);
+      immediate_arithmetic_op_32(0x0, dst, src);
+    }
+  }
+
+  // Divide rdx:rax by src.  Quotient in rax, remainder in rdx when size is 64.
+  // Divide edx:eax by lower 32 bits of src.  Quotient in eax, remainder in edx
+  // when size is 32.
+  void emit_idiv(Register src, int size);
+
+  // Signed multiply instructions.
+  // rdx:rax = rax * src when size is 64 or edx:eax = eax * src when size is 32.
+  void emit_imul(Register src, int size);
+  void emit_imul(Register dst, Register src, int size);
+  void emit_imul(Register dst, const Operand& src, int size);
+  void emit_imul(Register dst, Register src, Immediate imm, int size);
+
+  void emit_sub(Register dst, Register src, int size) {
+    if (size == kInt64Size) {
+      arithmetic_op(0x2B, dst, src);
+    } else {
+      ASSERT(size == kInt32Size);
+      arithmetic_op_32(0x2B, dst, src);
+    }
+  }
+
+  void emit_sub(Register dst, Immediate src, int size) {
+    if (size == kInt64Size) {
+      immediate_arithmetic_op(0x5, dst, src);
+    } else {
+      ASSERT(size == kInt32Size);
+      immediate_arithmetic_op_32(0x5, dst, src);
+    }
+  }
+
+  void emit_sub(Register dst, const Operand& src, int size) {
+    if (size == kInt64Size) {
+      arithmetic_op(0x2B, dst, src);
+    } else {
+      ASSERT(size == kInt32Size);
+      arithmetic_op_32(0x2B, dst, src);
+    }
+  }
+
+  void emit_sub(const Operand& dst, Register src, int size) {
+    if (size == kInt64Size) {
+      arithmetic_op(0x29, src, dst);
+    } else {
+      ASSERT(size == kInt32Size);
+      arithmetic_op_32(0x29, src, dst);
+    }
+  }
+
+  void emit_sub(const Operand& dst, Immediate src, int size) {
+    if (size == kInt64Size) {
+      immediate_arithmetic_op(0x5, dst, src);
+    } else {
+      ASSERT(size == kInt32Size);
+      immediate_arithmetic_op_32(0x5, dst, src);
+    }
+  }
 
   void emit_mov(Register dst, const Operand& src, int size);
   void emit_mov(Register dst, Register src, int size);

@@ -336,7 +336,7 @@ class MacroAssembler: public Assembler {
     ExternalReference roots_array_start =
         ExternalReference::roots_array_start(isolate());
     Move(kRootRegister, roots_array_start);
-    addq(kRootRegister, Immediate(kRootRegisterBias));
+    addp(kRootRegister, Immediate(kRootRegisterBias));
   }
 
   // ---------------------------------------------------------------------------
@@ -837,12 +837,16 @@ class MacroAssembler: public Assembler {
   void Drop(int stack_elements);
 
   void Call(Label* target) { call(target); }
-  void Push(Register src) { push(src); }
-  void Pop(Register dst) { pop(dst); }
-  void PushReturnAddressFrom(Register src) { push(src); }
-  void PopReturnAddressTo(Register dst) { pop(dst); }
+  void Push(Register src);
+  void Push(const Operand& src);
+  void Push(Immediate value);
+  void PushImm32(int32_t imm32);
+  void Pop(Register dst);
+  void Pop(const Operand& dst);
+  void PushReturnAddressFrom(Register src) { pushq(src); }
+  void PopReturnAddressTo(Register dst) { popq(dst); }
   void Move(Register dst, ExternalReference ext) {
-    movp(dst, reinterpret_cast<Address>(ext.address()),
+    movp(dst, reinterpret_cast<void*>(ext.address()),
          RelocInfo::EXTERNAL_REFERENCE);
   }
 
@@ -859,7 +863,7 @@ class MacroAssembler: public Assembler {
     ASSERT(!RelocInfo::IsNone(rmode));
     ASSERT(value->IsHeapObject());
     ASSERT(!isolate()->heap()->InNewSpace(*value));
-    movp(dst, value.location(), rmode);
+    movp(dst, reinterpret_cast<void*>(value.location()), rmode);
   }
 
   // Control Flow
@@ -1046,6 +1050,10 @@ class MacroAssembler: public Assembler {
 
   // Abort execution if argument is not a name, enabled via --debug-code.
   void AssertName(Register object);
+
+  // Abort execution if argument is not undefined or an AllocationSite, enabled
+  // via --debug-code.
+  void AssertUndefinedOrAllocationSite(Register object);
 
   // Abort execution if argument is not the root value with the given index,
   // enabled via --debug-code.
@@ -1363,9 +1371,9 @@ class MacroAssembler: public Assembler {
                                   Register filler);
 
 
-  // Emit code for a flooring division by a constant. The dividend register is
+  // Emit code for a truncating division by a constant. The dividend register is
   // unchanged, the result is in rdx, and rax gets clobbered.
-  void FlooringDiv(Register dividend, int32_t divisor);
+  void TruncatingDiv(Register dividend, int32_t divisor);
 
   // ---------------------------------------------------------------------------
   // StatsCounter support
@@ -1604,9 +1612,9 @@ extern void LogGeneratedCodeCoverage(const char* file_line);
     Address x64_coverage_function = FUNCTION_ADDR(LogGeneratedCodeCoverage); \
     masm->pushfq();                                                          \
     masm->Pushad();                                                          \
-    masm->push(Immediate(reinterpret_cast<int>(&__FILE_LINE__)));            \
+    masm->Push(Immediate(reinterpret_cast<int>(&__FILE_LINE__)));            \
     masm->Call(x64_coverage_function, RelocInfo::EXTERNAL_REFERENCE);        \
-    masm->pop(rax);                                                          \
+    masm->Pop(rax);                                                          \
     masm->Popad();                                                           \
     masm->popfq();                                                           \
   }                                                                          \

@@ -1031,6 +1031,20 @@ bool Object::IsNaN() {
 }
 
 
+Handle<Object> Object::ToSmi(Isolate* isolate, Handle<Object> object) {
+  if (object->IsSmi()) return object;
+  if (object->IsHeapNumber()) {
+    double value = Handle<HeapNumber>::cast(object)->value();
+    int int_value = FastD2I(value);
+    if (value == FastI2D(int_value) && Smi::IsValid(int_value)) {
+      return handle(Smi::FromInt(int_value), isolate);
+    }
+  }
+  return Handle<Object>();
+}
+
+
+// TODO(ishell): Use handlified version instead.
 MaybeObject* Object::ToSmi() {
   if (IsSmi()) return this;
   if (IsHeapNumber()) {
@@ -1049,20 +1063,33 @@ bool Object::HasSpecificClassOf(String* name) {
 }
 
 
-MaybeObject* Object::GetElement(Isolate* isolate, uint32_t index) {
+Handle<Object> Object::GetElement(Isolate* isolate,
+                                  Handle<Object> object,
+                                  uint32_t index) {
   // GetElement can trigger a getter which can cause allocation.
   // This was not always the case. This ASSERT is here to catch
   // leftover incorrect uses.
   ASSERT(AllowHeapAllocation::IsAllowed());
-  return GetElementWithReceiver(isolate, this, index);
+  CALL_HEAP_FUNCTION(isolate,
+                     object->GetElementWithReceiver(isolate, *object, index),
+                     Object);
 }
 
 
-Object* Object::GetElementNoExceptionThrown(Isolate* isolate, uint32_t index) {
-  MaybeObject* maybe = GetElementWithReceiver(isolate, this, index);
-  ASSERT(!maybe->IsFailure());
-  Object* result = NULL;  // Initialization to please compiler.
-  maybe->ToObject(&result);
+static Handle<Object> GetElementNoExceptionThrownHelper(Isolate* isolate,
+                                                        Handle<Object> object,
+                                                        uint32_t index) {
+  CALL_HEAP_FUNCTION(isolate,
+                     object->GetElementWithReceiver(isolate, *object, index),
+                     Object);
+}
+
+Handle<Object> Object::GetElementNoExceptionThrown(Isolate* isolate,
+                                                   Handle<Object> object,
+                                                   uint32_t index) {
+  Handle<Object> result =
+      GetElementNoExceptionThrownHelper(isolate, object, index);
+  CHECK_NOT_EMPTY_HANDLE(isolate, result);
   return result;
 }
 
@@ -1470,7 +1497,8 @@ void AllocationSite::MarkZombie() {
 // elements kind is the initial elements kind.
 AllocationSiteMode AllocationSite::GetMode(
     ElementsKind boilerplate_elements_kind) {
-  if (IsFastSmiElementsKind(boilerplate_elements_kind)) {
+  if (FLAG_pretenuring_call_new ||
+      IsFastSmiElementsKind(boilerplate_elements_kind)) {
     return TRACK_ALLOCATION_SITE;
   }
 
@@ -1480,8 +1508,9 @@ AllocationSiteMode AllocationSite::GetMode(
 
 AllocationSiteMode AllocationSite::GetMode(ElementsKind from,
                                            ElementsKind to) {
-  if (IsFastSmiElementsKind(from) &&
-       IsMoreGeneralElementsKindTransition(from, to)) {
+  if (FLAG_pretenuring_call_new ||
+      (IsFastSmiElementsKind(from) &&
+       IsMoreGeneralElementsKindTransition(from, to))) {
     return TRACK_ALLOCATION_SITE;
   }
 
@@ -1592,73 +1621,79 @@ void JSObject::EnsureCanContainHeapObjectElements(Handle<JSObject> object) {
 }
 
 
-MaybeObject* JSObject::EnsureCanContainElements(Object** objects,
-                                                uint32_t count,
-                                                EnsureElementsMode mode) {
-  ElementsKind current_kind = map()->elements_kind();
+void JSObject::EnsureCanContainElements(Handle<JSObject> object,
+                                        Object** objects,
+                                        uint32_t count,
+                                        EnsureElementsMode mode) {
+  ElementsKind current_kind = object->map()->elements_kind();
   ElementsKind target_kind = current_kind;
-  ASSERT(mode != ALLOW_COPIED_DOUBLE_ELEMENTS);
-  bool is_holey = IsFastHoleyElementsKind(current_kind);
-  if (current_kind == FAST_HOLEY_ELEMENTS) return this;
-  Heap* heap = GetHeap();
-  Object* the_hole = heap->the_hole_value();
-  for (uint32_t i = 0; i < count; ++i) {
-    Object* current = *objects++;
-    if (current == the_hole) {
-      is_holey = true;
-      target_kind = GetHoleyElementsKind(target_kind);
-    } else if (!current->IsSmi()) {
-      if (mode == ALLOW_CONVERTED_DOUBLE_ELEMENTS && current->IsNumber()) {
-        if (IsFastSmiElementsKind(target_kind)) {
-          if (is_holey) {
-            target_kind = FAST_HOLEY_DOUBLE_ELEMENTS;
-          } else {
-            target_kind = FAST_DOUBLE_ELEMENTS;
+  {
+    DisallowHeapAllocation no_allocation;
+    ASSERT(mode != ALLOW_COPIED_DOUBLE_ELEMENTS);
+    bool is_holey = IsFastHoleyElementsKind(current_kind);
+    if (current_kind == FAST_HOLEY_ELEMENTS) return;
+    Heap* heap = object->GetHeap();
+    Object* the_hole = heap->the_hole_value();
+    for (uint32_t i = 0; i < count; ++i) {
+      Object* current = *objects++;
+      if (current == the_hole) {
+        is_holey = true;
+        target_kind = GetHoleyElementsKind(target_kind);
+      } else if (!current->IsSmi()) {
+        if (mode == ALLOW_CONVERTED_DOUBLE_ELEMENTS && current->IsNumber()) {
+          if (IsFastSmiElementsKind(target_kind)) {
+            if (is_holey) {
+              target_kind = FAST_HOLEY_DOUBLE_ELEMENTS;
+            } else {
+              target_kind = FAST_DOUBLE_ELEMENTS;
+            }
           }
+        } else if (is_holey) {
+          target_kind = FAST_HOLEY_ELEMENTS;
+          break;
+        } else {
+          target_kind = FAST_ELEMENTS;
         }
-      } else if (is_holey) {
-        target_kind = FAST_HOLEY_ELEMENTS;
-        break;
-      } else {
-        target_kind = FAST_ELEMENTS;
       }
     }
   }
-
   if (target_kind != current_kind) {
-    return TransitionElementsKind(target_kind);
+    TransitionElementsKind(object, target_kind);
   }
-  return this;
 }
 
 
-MaybeObject* JSObject::EnsureCanContainElements(FixedArrayBase* elements,
-                                                uint32_t length,
-                                                EnsureElementsMode mode) {
-  if (elements->map() != GetHeap()->fixed_double_array_map()) {
-    ASSERT(elements->map() == GetHeap()->fixed_array_map() ||
-           elements->map() == GetHeap()->fixed_cow_array_map());
+void JSObject::EnsureCanContainElements(Handle<JSObject> object,
+                                        Handle<FixedArrayBase> elements,
+                                        uint32_t length,
+                                        EnsureElementsMode mode) {
+  Heap* heap = object->GetHeap();
+  if (elements->map() != heap->fixed_double_array_map()) {
+    ASSERT(elements->map() == heap->fixed_array_map() ||
+           elements->map() == heap->fixed_cow_array_map());
     if (mode == ALLOW_COPIED_DOUBLE_ELEMENTS) {
       mode = DONT_ALLOW_DOUBLE_ELEMENTS;
     }
-    Object** objects = FixedArray::cast(elements)->GetFirstElementAddress();
-    return EnsureCanContainElements(objects, length, mode);
+    Object** objects =
+        Handle<FixedArray>::cast(elements)->GetFirstElementAddress();
+    EnsureCanContainElements(object, objects, length, mode);
+    return;
   }
 
   ASSERT(mode == ALLOW_COPIED_DOUBLE_ELEMENTS);
-  if (GetElementsKind() == FAST_HOLEY_SMI_ELEMENTS) {
-    return TransitionElementsKind(FAST_HOLEY_DOUBLE_ELEMENTS);
-  } else if (GetElementsKind() == FAST_SMI_ELEMENTS) {
-    FixedDoubleArray* double_array = FixedDoubleArray::cast(elements);
+  if (object->GetElementsKind() == FAST_HOLEY_SMI_ELEMENTS) {
+    TransitionElementsKind(object, FAST_HOLEY_DOUBLE_ELEMENTS);
+  } else if (object->GetElementsKind() == FAST_SMI_ELEMENTS) {
+    Handle<FixedDoubleArray> double_array =
+        Handle<FixedDoubleArray>::cast(elements);
     for (uint32_t i = 0; i < length; ++i) {
       if (double_array->is_the_hole(i)) {
-        return TransitionElementsKind(FAST_HOLEY_DOUBLE_ELEMENTS);
+        TransitionElementsKind(object, FAST_HOLEY_DOUBLE_ELEMENTS);
+        return;
       }
     }
-    return TransitionElementsKind(FAST_DOUBLE_ELEMENTS);
+    TransitionElementsKind(object, FAST_DOUBLE_ELEMENTS);
   }
-
-  return this;
 }
 
 
@@ -1739,7 +1774,7 @@ MaybeObject* JSObject::ResetElements() {
     SeededNumberDictionary* dictionary;
     MaybeObject* maybe = SeededNumberDictionary::Allocate(GetHeap(), 0);
     if (!maybe->To(&dictionary)) return maybe;
-    if (map() == GetHeap()->non_strict_arguments_elements_map()) {
+    if (map() == GetHeap()->sloppy_arguments_elements_map()) {
       FixedArray::cast(elements())->set(1, dictionary);
     } else {
       set_elements(dictionary);
@@ -2086,6 +2121,7 @@ void Object::VerifyApiCallResultType() {
 #if ENABLE_EXTRA_CHECKS
   if (!(IsSmi() ||
         IsString() ||
+        IsSymbol() ||
         IsSpecObject() ||
         IsHeapNumber() ||
         IsUndefined() ||
@@ -2740,7 +2776,8 @@ void DescriptorArray::SwapSortedKeys(int first, int second) {
 DescriptorArray::WhitenessWitness::WhitenessWitness(FixedArray* array)
     : marking_(array->GetHeap()->incremental_marking()) {
   marking_->EnterNoMarkingScope();
-  ASSERT(Marking::Color(array) == Marking::WHITE_OBJECT);
+  ASSERT(!marking_->IsMarking() ||
+         Marking::Color(array) == Marking::WHITE_OBJECT);
 }
 
 
@@ -4591,6 +4628,24 @@ bool Code::IsWeakObjectInOptimizedCode(Object* object) {
 }
 
 
+class Code::FindAndReplacePattern {
+ public:
+  FindAndReplacePattern() : count_(0) { }
+  void Add(Handle<Map> map_to_find, Handle<Object> obj_to_replace) {
+    ASSERT(count_ < kMaxCount);
+    find_[count_] = map_to_find;
+    replace_[count_] = obj_to_replace;
+    ++count_;
+  }
+ private:
+  static const int kMaxCount = 4;
+  int count_;
+  Handle<Map> find_[kMaxCount];
+  Handle<Object> replace_[kMaxCount];
+  friend class Code;
+};
+
+
 Object* Map::prototype() {
   return READ_FIELD(this, kPrototypeOffset);
 }
@@ -4980,8 +5035,6 @@ ACCESSORS(SharedFunctionInfo, name, Object, kNameOffset)
 ACCESSORS(SharedFunctionInfo, optimized_code_map, Object,
                  kOptimizedCodeMapOffset)
 ACCESSORS(SharedFunctionInfo, construct_stub, Code, kConstructStubOffset)
-ACCESSORS(SharedFunctionInfo, feedback_vector, FixedArray,
-          kFeedbackVectorOffset)
 ACCESSORS(SharedFunctionInfo, initial_map, Object, kInitialMapOffset)
 ACCESSORS(SharedFunctionInfo, instance_class_name, Object,
           kInstanceClassNameOffset)
@@ -5146,39 +5199,21 @@ int SharedFunctionInfo::profiler_ticks() {
 }
 
 
-LanguageMode SharedFunctionInfo::language_mode() {
-  int hints = compiler_hints();
-  if (BooleanBit::get(hints, kExtendedModeFunction)) {
-    ASSERT(BooleanBit::get(hints, kStrictModeFunction));
-    return EXTENDED_MODE;
-  }
-  return BooleanBit::get(hints, kStrictModeFunction)
-      ? STRICT_MODE : CLASSIC_MODE;
+StrictMode SharedFunctionInfo::strict_mode() {
+  return BooleanBit::get(compiler_hints(), kStrictModeFunction)
+      ? STRICT : SLOPPY;
 }
 
 
-void SharedFunctionInfo::set_language_mode(LanguageMode language_mode) {
-  // We only allow language mode transitions that go set the same language mode
-  // again or go up in the chain:
-  //   CLASSIC_MODE -> STRICT_MODE -> EXTENDED_MODE.
-  ASSERT(this->language_mode() == CLASSIC_MODE ||
-         this->language_mode() == language_mode ||
-         language_mode == EXTENDED_MODE);
+void SharedFunctionInfo::set_strict_mode(StrictMode strict_mode) {
+  // We only allow mode transitions from sloppy to strict.
+  ASSERT(this->strict_mode() == SLOPPY || this->strict_mode() == strict_mode);
   int hints = compiler_hints();
-  hints = BooleanBit::set(
-      hints, kStrictModeFunction, language_mode != CLASSIC_MODE);
-  hints = BooleanBit::set(
-      hints, kExtendedModeFunction, language_mode == EXTENDED_MODE);
+  hints = BooleanBit::set(hints, kStrictModeFunction, strict_mode == STRICT);
   set_compiler_hints(hints);
 }
 
 
-bool SharedFunctionInfo::is_classic_mode() {
-  return !BooleanBit::get(compiler_hints(), kStrictModeFunction);
-}
-
-BOOL_GETTER(SharedFunctionInfo, compiler_hints, is_extended_mode,
-            kExtendedModeFunction)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, native, kNative)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, inline_builtin,
                kInlineBuiltin)
@@ -5448,6 +5483,11 @@ void JSFunction::ReplaceCode(Code* code) {
   bool was_optimized = IsOptimized();
   bool is_optimized = code->kind() == Code::OPTIMIZED_FUNCTION;
 
+  if (was_optimized && is_optimized) {
+    shared()->EvictFromOptimizedCodeMap(this->code(),
+        "Replacing with another optimized code");
+  }
+
   set_code(code);
 
   // Add/remove the function from the list of optimized functions for this
@@ -5704,6 +5744,7 @@ void Code::WipeOutHeader() {
   WRITE_FIELD(this, kRelocationInfoOffset, NULL);
   WRITE_FIELD(this, kHandlerTableOffset, NULL);
   WRITE_FIELD(this, kDeoptimizationDataOffset, NULL);
+  WRITE_FIELD(this, kConstantPoolOffset, NULL);
   // Do not wipe out e.g. a minor key.
   if (!READ_FIELD(this, kTypeFeedbackInfoOffset)->IsSmi()) {
     WRITE_FIELD(this, kTypeFeedbackInfoOffset, NULL);
@@ -5925,7 +5966,7 @@ ElementsKind JSObject::GetElementsKind() {
             fixed_array->IsFixedArray() &&
             fixed_array->IsDictionary()) ||
            (kind > DICTIONARY_ELEMENTS));
-    ASSERT((kind != NON_STRICT_ARGUMENTS_ELEMENTS) ||
+    ASSERT((kind != SLOPPY_ARGUMENTS_ELEMENTS) ||
            (elements()->IsFixedArray() && elements()->length() >= 2));
   }
 #endif
@@ -5973,8 +6014,8 @@ bool JSObject::HasDictionaryElements() {
 }
 
 
-bool JSObject::HasNonStrictArgumentsElements() {
-  return GetElementsKind() == NON_STRICT_ARGUMENTS_ELEMENTS;
+bool JSObject::HasSloppyArgumentsElements() {
+  return GetElementsKind() == SLOPPY_ARGUMENTS_ELEMENTS;
 }
 
 
@@ -6189,7 +6230,7 @@ bool JSReceiver::HasProperty(Handle<JSReceiver> object,
     Handle<JSProxy> proxy = Handle<JSProxy>::cast(object);
     return JSProxy::HasPropertyWithHandler(proxy, name);
   }
-  return object->GetPropertyAttribute(*name) != ABSENT;
+  return GetPropertyAttribute(object, name) != ABSENT;
 }
 
 
@@ -6199,25 +6240,28 @@ bool JSReceiver::HasLocalProperty(Handle<JSReceiver> object,
     Handle<JSProxy> proxy = Handle<JSProxy>::cast(object);
     return JSProxy::HasPropertyWithHandler(proxy, name);
   }
-  return object->GetLocalPropertyAttribute(*name) != ABSENT;
+  return GetLocalPropertyAttribute(object, name) != ABSENT;
 }
 
 
-PropertyAttributes JSReceiver::GetPropertyAttribute(Name* key) {
+PropertyAttributes JSReceiver::GetPropertyAttribute(Handle<JSReceiver> object,
+                                                    Handle<Name> key) {
   uint32_t index;
-  if (IsJSObject() && key->AsArrayIndex(&index)) {
-    return GetElementAttribute(index);
+  if (object->IsJSObject() && key->AsArrayIndex(&index)) {
+    return GetElementAttribute(object, index);
   }
-  return GetPropertyAttributeWithReceiver(this, key);
+  return GetPropertyAttributeWithReceiver(object, object, key);
 }
 
 
-PropertyAttributes JSReceiver::GetElementAttribute(uint32_t index) {
-  if (IsJSProxy()) {
-    return JSProxy::cast(this)->GetElementAttributeWithHandler(this, index);
+PropertyAttributes JSReceiver::GetElementAttribute(Handle<JSReceiver> object,
+                                                   uint32_t index) {
+  if (object->IsJSProxy()) {
+    return JSProxy::GetElementAttributeWithHandler(
+        Handle<JSProxy>::cast(object), object, index);
   }
-  return JSObject::cast(this)->GetElementAttributeWithReceiver(
-      this, index, true);
+  return JSObject::GetElementAttributeWithReceiver(
+      Handle<JSObject>::cast(object), object, index, true);
 }
 
 
@@ -6250,8 +6294,8 @@ bool JSReceiver::HasElement(Handle<JSReceiver> object, uint32_t index) {
     Handle<JSProxy> proxy = Handle<JSProxy>::cast(object);
     return JSProxy::HasElementWithHandler(proxy, index);
   }
-  return Handle<JSObject>::cast(object)->GetElementAttributeWithReceiver(
-      *object, index, true) != ABSENT;
+  return JSObject::GetElementAttributeWithReceiver(
+      Handle<JSObject>::cast(object), object, index, true) != ABSENT;
 }
 
 
@@ -6260,17 +6304,19 @@ bool JSReceiver::HasLocalElement(Handle<JSReceiver> object, uint32_t index) {
     Handle<JSProxy> proxy = Handle<JSProxy>::cast(object);
     return JSProxy::HasElementWithHandler(proxy, index);
   }
-  return Handle<JSObject>::cast(object)->GetElementAttributeWithReceiver(
-      *object, index, false) != ABSENT;
+  return JSObject::GetElementAttributeWithReceiver(
+      Handle<JSObject>::cast(object), object, index, false) != ABSENT;
 }
 
 
-PropertyAttributes JSReceiver::GetLocalElementAttribute(uint32_t index) {
-  if (IsJSProxy()) {
-    return JSProxy::cast(this)->GetElementAttributeWithHandler(this, index);
+PropertyAttributes JSReceiver::GetLocalElementAttribute(
+    Handle<JSReceiver> object, uint32_t index) {
+  if (object->IsJSProxy()) {
+    return JSProxy::GetElementAttributeWithHandler(
+        Handle<JSProxy>::cast(object), object, index);
   }
-  return JSObject::cast(this)->GetElementAttributeWithReceiver(
-      this, index, false);
+  return JSObject::GetElementAttributeWithReceiver(
+      Handle<JSObject>::cast(object), object, index, false);
 }
 
 
@@ -6528,19 +6574,19 @@ bool JSArray::AllowsSetElementsLength() {
 }
 
 
-MaybeObject* JSArray::SetContent(FixedArrayBase* storage) {
-  MaybeObject* maybe_result = EnsureCanContainElements(
-      storage, storage->length(), ALLOW_COPIED_DOUBLE_ELEMENTS);
-  if (maybe_result->IsFailure()) return maybe_result;
-  ASSERT((storage->map() == GetHeap()->fixed_double_array_map() &&
-          IsFastDoubleElementsKind(GetElementsKind())) ||
-         ((storage->map() != GetHeap()->fixed_double_array_map()) &&
-          (IsFastObjectElementsKind(GetElementsKind()) ||
-           (IsFastSmiElementsKind(GetElementsKind()) &&
-            FixedArray::cast(storage)->ContainsOnlySmisOrHoles()))));
-  set_elements(storage);
-  set_length(Smi::FromInt(storage->length()));
-  return this;
+void JSArray::SetContent(Handle<JSArray> array,
+                         Handle<FixedArrayBase> storage) {
+  EnsureCanContainElements(array, storage, storage->length(),
+                           ALLOW_COPIED_DOUBLE_ELEMENTS);
+
+  ASSERT((storage->map() == array->GetHeap()->fixed_double_array_map() &&
+          IsFastDoubleElementsKind(array->GetElementsKind())) ||
+         ((storage->map() != array->GetHeap()->fixed_double_array_map()) &&
+          (IsFastObjectElementsKind(array->GetElementsKind()) ||
+           (IsFastSmiElementsKind(array->GetElementsKind()) &&
+            Handle<FixedArray>::cast(storage)->ContainsOnlySmisOrHoles()))));
+  array->set_elements(*storage);
+  array->set_length(Smi::FromInt(storage->length()));
 }
 
 
@@ -6659,6 +6705,10 @@ bool TypeFeedbackInfo::matches_inlined_type_change_checksum(int checksum) {
   int mask = (1 << kTypeChangeChecksumBits) - 1;
   return InlinedTypeChangeChecksum::decode(value) == (checksum & mask);
 }
+
+
+ACCESSORS(TypeFeedbackInfo, feedback_vector, FixedArray,
+          kFeedbackVectorOffset)
 
 
 SMI_ACCESSORS(AliasedArgumentsEntry, aliased_context_slot, kAliasedContextSlot)

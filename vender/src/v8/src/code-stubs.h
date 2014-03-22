@@ -51,9 +51,7 @@ namespace internal {
   V(CompareIC)                           \
   V(CompareNilIC)                        \
   V(MathPow)                             \
-  V(StringLength)                        \
   V(FunctionPrototype)                   \
-  V(StoreArrayLength)                    \
   V(RecordWrite)                         \
   V(StoreBufferOverflow)                 \
   V(RegExpExec)                          \
@@ -98,10 +96,12 @@ namespace internal {
   V(CallApiGetter)                       \
   /* IC Handler stubs */                 \
   V(LoadField)                           \
-  V(KeyedLoadField)
+  V(KeyedLoadField)                      \
+  V(StringLength)                        \
+  V(KeyedStringLength)
 
 // List of code stubs only used on ARM platforms.
-#if defined(V8_TARGET_ARCH_ARM) || defined(V8_TARGET_ARCH_A64)
+#if defined(V8_TARGET_ARCH_ARM) || defined(V8_TARGET_ARCH_ARM64)
 #define CODE_STUB_LIST_ARM(V)  \
   V(GetProperty)               \
   V(SetProperty)               \
@@ -144,7 +144,9 @@ class CodeStub BASE_EMBEDDED {
   Handle<Code> GetCode(Isolate* isolate);
 
   // Retrieve the code for the stub, make and return a copy of the code.
-  Handle<Code> GetCodeCopyFromTemplate(Isolate* isolate);
+  Handle<Code> GetCodeCopy(
+      Isolate* isolate, const Code::FindAndReplacePattern& pattern);
+
   static Major MajorKeyFromKey(uint32_t key) {
     return static_cast<Major>(MajorKeyBits::decode(key));
   }
@@ -439,8 +441,8 @@ class RuntimeCallHelper {
 #include "ia32/code-stubs-ia32.h"
 #elif V8_TARGET_ARCH_X64
 #include "x64/code-stubs-x64.h"
-#elif V8_TARGET_ARCH_A64
-#include "a64/code-stubs-a64.h"
+#elif V8_TARGET_ARCH_ARM64
+#include "arm64/code-stubs-arm64.h"
 #elif V8_TARGET_ARCH_ARM
 #include "arm/code-stubs-arm.h"
 #elif V8_TARGET_ARCH_MIPS
@@ -522,8 +524,8 @@ class NumberToStringStub V8_FINAL : public HydrogenCodeStub {
 
 class FastNewClosureStub : public HydrogenCodeStub {
  public:
-  explicit FastNewClosureStub(LanguageMode language_mode, bool is_generator)
-    : language_mode_(language_mode),
+  explicit FastNewClosureStub(StrictMode strict_mode, bool is_generator)
+    : strict_mode_(strict_mode),
       is_generator_(is_generator) { }
 
   virtual Handle<Code> GenerateCode(Isolate* isolate);
@@ -534,7 +536,7 @@ class FastNewClosureStub : public HydrogenCodeStub {
 
   static void InstallDescriptors(Isolate* isolate);
 
-  LanguageMode language_mode() const { return language_mode_; }
+  StrictMode strict_mode() const { return strict_mode_; }
   bool is_generator() const { return is_generator_; }
 
  private:
@@ -543,11 +545,11 @@ class FastNewClosureStub : public HydrogenCodeStub {
 
   Major MajorKey() { return FastNewClosure; }
   int NotMissMinorKey() {
-    return StrictModeBits::encode(language_mode_ != CLASSIC_MODE) |
+    return StrictModeBits::encode(strict_mode_ == STRICT) |
       IsGeneratorBits::encode(is_generator_);
   }
 
-  LanguageMode language_mode_;
+  StrictMode strict_mode_;
   bool is_generator_;
 };
 
@@ -659,8 +661,7 @@ class FastCloneShallowObjectStub : public HydrogenCodeStub {
   // Maximum number of properties in copied object.
   static const int kMaximumClonedProperties = 6;
 
-  explicit FastCloneShallowObjectStub(int length)
-      : length_(length) {
+  explicit FastCloneShallowObjectStub(int length) : length_(length) {
     ASSERT_GE(length_, 0);
     ASSERT_LE(length_, kMaximumClonedProperties);
   }
@@ -834,20 +835,9 @@ class FunctionPrototypeStub: public ICStub {
 };
 
 
-class StringLengthStub: public ICStub {
- public:
-  explicit StringLengthStub(Code::Kind kind) : ICStub(kind) { }
-  virtual void Generate(MacroAssembler* masm);
-
- private:
-  STATIC_ASSERT(KindBits::kSize == 4);
-    virtual CodeStub::Major MajorKey() { return StringLength; }
-};
-
-
 class StoreICStub: public ICStub {
  public:
-  StoreICStub(Code::Kind kind, StrictModeFlag strict_mode)
+  StoreICStub(Code::Kind kind, StrictMode strict_mode)
       : ICStub(kind), strict_mode_(strict_mode) { }
 
  protected:
@@ -862,18 +852,7 @@ class StoreICStub: public ICStub {
     return KindBits::encode(kind()) | StrictModeBits::encode(strict_mode_);
   }
 
-  StrictModeFlag strict_mode_;
-};
-
-
-class StoreArrayLengthStub: public StoreICStub {
- public:
-  explicit StoreArrayLengthStub(Code::Kind kind, StrictModeFlag strict_mode)
-      : StoreICStub(kind, strict_mode) { }
-  virtual void Generate(MacroAssembler* masm);
-
- private:
-  virtual CodeStub::Major MajorKey() { return StoreArrayLength; }
+  StrictMode strict_mode_;
 };
 
 
@@ -960,6 +939,44 @@ class LoadFieldStub: public HandlerStub {
 };
 
 
+class StringLengthStub: public HandlerStub {
+ public:
+  explicit StringLengthStub() : HandlerStub() {
+    Initialize(Code::LOAD_IC);
+  }
+  virtual Handle<Code> GenerateCode(Isolate* isolate);
+  virtual void InitializeInterfaceDescriptor(
+      Isolate* isolate,
+      CodeStubInterfaceDescriptor* descriptor);
+
+ protected:
+  virtual Code::Kind kind() const {
+    return KindBits::decode(bit_field_);
+  }
+
+  void Initialize(Code::Kind kind) {
+    bit_field_ = KindBits::encode(kind);
+  }
+
+ private:
+  virtual CodeStub::Major MajorKey() { return StringLength; }
+};
+
+
+class KeyedStringLengthStub: public StringLengthStub {
+ public:
+  explicit KeyedStringLengthStub() : StringLengthStub() {
+    Initialize(Code::KEYED_LOAD_IC);
+  }
+  virtual void InitializeInterfaceDescriptor(
+      Isolate* isolate,
+      CodeStubInterfaceDescriptor* descriptor);
+
+ private:
+  virtual CodeStub::Major MajorKey() { return KeyedStringLength; }
+};
+
+
 class StoreGlobalStub : public HandlerStub {
  public:
   explicit StoreGlobalStub(bool is_constant, bool check_global) {
@@ -972,18 +989,19 @@ class StoreGlobalStub : public HandlerStub {
   }
 
   Handle<Code> GetCodeCopyFromTemplate(Isolate* isolate,
-                                       GlobalObject* global,
-                                       PropertyCell* cell) {
-    Handle<Code> code = CodeStub::GetCodeCopyFromTemplate(isolate);
+                                       Handle<GlobalObject> global,
+                                       Handle<PropertyCell> cell) {
     if (check_global()) {
-      // Replace the placeholder cell and global object map with the actual
-      // global cell and receiver map.
-      code->ReplaceNthObject(1, global_placeholder(isolate)->map(), global);
-      code->ReplaceNthObject(1, isolate->heap()->meta_map(), global->map());
+      Code::FindAndReplacePattern pattern;
+      pattern.Add(Handle<Map>(global_placeholder(isolate)->map()), global);
+      pattern.Add(isolate->factory()->meta_map(), Handle<Map>(global->map()));
+      pattern.Add(isolate->factory()->global_property_cell_map(), cell);
+      return CodeStub::GetCodeCopy(isolate, pattern);
+    } else {
+      Code::FindAndReplacePattern pattern;
+      pattern.Add(isolate->factory()->global_property_cell_map(), cell);
+      return CodeStub::GetCodeCopy(isolate, pattern);
     }
-    Map* cell_map = isolate->heap()->global_property_cell_map();
-    code->ReplaceNthObject(1, cell_map, cell);
-    return code;
   }
 
   virtual Code::Kind kind() const { return Code::STORE_IC; }
@@ -1072,8 +1090,6 @@ class KeyedLoadFieldStub: public LoadFieldStub {
   virtual void InitializeInterfaceDescriptor(
       Isolate* isolate,
       CodeStubInterfaceDescriptor* descriptor);
-
-  virtual Handle<Code> GenerateCode(Isolate* isolate);
 
  private:
   virtual CodeStub::Major MajorKey() { return KeyedLoadField; }
@@ -1170,10 +1186,9 @@ class BinaryOpICWithAllocationSiteStub V8_FINAL : public PlatformCodeStub {
 
   Handle<Code> GetCodeCopyFromTemplate(Isolate* isolate,
                                        Handle<AllocationSite> allocation_site) {
-    Handle<Code> code = CodeStub::GetCodeCopyFromTemplate(isolate);
-    // Replace the placeholder oddball with the actual allocation site.
-    code->ReplaceNthObject(1, isolate->heap()->oddball_map(), *allocation_site);
-    return code;
+    Code::FindAndReplacePattern pattern;
+    pattern.Add(isolate->factory()->oddball_map(), allocation_site);
+    return CodeStub::GetCodeCopy(isolate, pattern);
   }
 
   virtual Code::Kind GetCodeKind() const V8_OVERRIDE {
@@ -1535,8 +1550,8 @@ class ArgumentsAccessStub: public PlatformCodeStub {
  public:
   enum Type {
     READ_ELEMENT,
-    NEW_NON_STRICT_FAST,
-    NEW_NON_STRICT_SLOW,
+    NEW_SLOPPY_FAST,
+    NEW_SLOPPY_SLOW,
     NEW_STRICT
   };
 
@@ -1551,8 +1566,8 @@ class ArgumentsAccessStub: public PlatformCodeStub {
   void Generate(MacroAssembler* masm);
   void GenerateReadElement(MacroAssembler* masm);
   void GenerateNewStrict(MacroAssembler* masm);
-  void GenerateNewNonStrictFast(MacroAssembler* masm);
-  void GenerateNewNonStrictSlow(MacroAssembler* masm);
+  void GenerateNewSloppyFast(MacroAssembler* masm);
+  void GenerateNewSloppySlow(MacroAssembler* masm);
 
   virtual void PrintName(StringStream* stream);
 };
@@ -2022,9 +2037,11 @@ class KeyedStoreFastElementStub : public HydrogenCodeStub {
 class TransitionElementsKindStub : public HydrogenCodeStub {
  public:
   TransitionElementsKindStub(ElementsKind from_kind,
-                             ElementsKind to_kind) {
+                             ElementsKind to_kind,
+                             bool is_js_array) {
     bit_field_ = FromKindBits::encode(from_kind) |
-        ToKindBits::encode(to_kind);
+                 ToKindBits::encode(to_kind) |
+                 IsJSArrayBits::encode(is_js_array);
   }
 
   ElementsKind from_kind() const {
@@ -2033,6 +2050,10 @@ class TransitionElementsKindStub : public HydrogenCodeStub {
 
   ElementsKind to_kind() const {
     return ToKindBits::decode(bit_field_);
+  }
+
+  bool is_js_array() const {
+    return IsJSArrayBits::decode(bit_field_);
   }
 
   virtual Handle<Code> GenerateCode(Isolate* isolate);
@@ -2044,6 +2065,7 @@ class TransitionElementsKindStub : public HydrogenCodeStub {
  private:
   class FromKindBits: public BitField<ElementsKind, 8, 8> {};
   class ToKindBits: public BitField<ElementsKind, 0, 8> {};
+  class IsJSArrayBits: public BitField<bool, 16, 1> {};
   uint32_t bit_field_;
 
   Major MajorKey() { return TransitionElementsKind; }

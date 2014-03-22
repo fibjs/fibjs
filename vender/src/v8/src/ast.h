@@ -1840,7 +1840,9 @@ class CallNew V8_FINAL : public Expression, public FeedbackSlotInterface {
 
   // Type feedback information.
   virtual ComputablePhase GetComputablePhase() { return DURING_PARSE; }
-  virtual int ComputeFeedbackSlotCount(Isolate* isolate) { return 1; }
+  virtual int ComputeFeedbackSlotCount(Isolate* isolate) {
+    return FLAG_pretenuring_call_new ? 2 : 1;
+  }
   virtual void SetFirstFeedbackSlot(int slot) {
     callnew_feedback_slot_ = slot;
   }
@@ -1849,8 +1851,12 @@ class CallNew V8_FINAL : public Expression, public FeedbackSlotInterface {
     ASSERT(callnew_feedback_slot_ != kInvalidFeedbackSlot);
     return callnew_feedback_slot_;
   }
+  int AllocationSiteFeedbackSlot() {
+    ASSERT(callnew_feedback_slot_ != kInvalidFeedbackSlot);
+    ASSERT(FLAG_pretenuring_call_new);
+    return callnew_feedback_slot_ + 1;
+  }
 
-  TypeFeedbackId CallNewFeedbackId() const { return reuse(id()); }
   void RecordTypeFeedback(TypeFeedbackOracle* oracle);
   virtual bool IsMonomorphic() V8_OVERRIDE { return is_monomorphic_; }
   Handle<JSFunction> target() const { return target_; }
@@ -2315,8 +2321,7 @@ class FunctionLiteral V8_FINAL : public Expression {
   int SourceSize() const { return end_position() - start_position(); }
   bool is_expression() const { return IsExpression::decode(bitfield_); }
   bool is_anonymous() const { return IsAnonymous::decode(bitfield_); }
-  bool is_classic_mode() const { return language_mode() == CLASSIC_MODE; }
-  LanguageMode language_mode() const;
+  StrictMode strict_mode() const;
 
   int materialized_literal_count() { return materialized_literal_count_; }
   int expected_property_count() { return expected_property_count_; }

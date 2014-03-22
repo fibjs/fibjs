@@ -65,6 +65,13 @@ class ElementsAccessor {
   // can optionally pass in the backing store to use for the check, which must
   // be compatible with the ElementsKind of the ElementsAccessor. If
   // backing_store is NULL, the holder->elements() is used as the backing store.
+  MUST_USE_RESULT virtual Handle<Object> Get(
+      Handle<Object> receiver,
+      Handle<JSObject> holder,
+      uint32_t key,
+      Handle<FixedArrayBase> backing_store =
+          Handle<FixedArrayBase>::null()) = 0;
+
   MUST_USE_RESULT virtual MaybeObject* Get(
       Object* receiver,
       JSObject* holder,
@@ -109,8 +116,9 @@ class ElementsAccessor {
   // changing array sizes as defined in EcmaScript 5.1 15.4.5.2, i.e. array that
   // have non-deletable elements can only be shrunk to the size of highest
   // element that is non-deletable.
-  MUST_USE_RESULT virtual MaybeObject* SetLength(JSArray* holder,
-                                                 Object* new_length) = 0;
+  MUST_USE_RESULT virtual Handle<Object> SetLength(
+      Handle<JSArray> holder,
+      Handle<Object> new_length) = 0;
 
   // Modifies both the length and capacity of a JSArray, resizing the underlying
   // backing store as necessary. This method does NOT honor the semantics of
@@ -123,9 +131,10 @@ class ElementsAccessor {
                                                             int length) = 0;
 
   // Deletes an element in an object, returning a new elements backing store.
-  MUST_USE_RESULT virtual MaybeObject* Delete(JSObject* holder,
-                                              uint32_t key,
-                                              JSReceiver::DeleteMode mode) = 0;
+  MUST_USE_RESULT virtual Handle<Object> Delete(
+      Handle<JSObject> holder,
+      uint32_t key,
+      JSReceiver::DeleteMode mode) = 0;
 
   // If kCopyToEnd is specified as the copy_size to CopyElements, it copies all
   // of elements from source after source_start to the destination array.
@@ -140,6 +149,14 @@ class ElementsAccessor {
   // the source JSObject or JSArray in source_holder. If the holder's backing
   // store is available, it can be passed in source and source_holder is
   // ignored.
+  virtual void CopyElements(
+      Handle<JSObject> source_holder,
+      uint32_t source_start,
+      ElementsKind source_kind,
+      Handle<FixedArrayBase> destination,
+      uint32_t destination_start,
+      int copy_size,
+      Handle<FixedArrayBase> source = Handle<FixedArrayBase>::null()) = 0;
   MUST_USE_RESULT virtual MaybeObject* CopyElements(
       JSObject* source_holder,
       uint32_t source_start,
@@ -175,7 +192,7 @@ class ElementsAccessor {
   static void TearDown();
 
  protected:
-  friend class NonStrictArgumentsElementsAccessor;
+  friend class SloppyArgumentsElementsAccessor;
 
   virtual uint32_t GetCapacity(FixedArrayBase* backing_store) = 0;
 
@@ -200,8 +217,8 @@ class ElementsAccessor {
 void CheckArrayAbuse(JSObject* obj, const char* op, uint32_t key,
                      bool allow_appending = false);
 
-MUST_USE_RESULT MaybeObject* ArrayConstructInitializeElements(
-    JSArray* array, Arguments* args);
+Handle<Object> ArrayConstructInitializeElements(Handle<JSArray> array,
+                                                Arguments* args);
 
 } }  // namespace v8::internal
 

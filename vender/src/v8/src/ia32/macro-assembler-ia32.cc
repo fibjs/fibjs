@@ -1037,6 +1037,20 @@ void MacroAssembler::AssertName(Register object) {
 }
 
 
+void MacroAssembler::AssertUndefinedOrAllocationSite(Register object) {
+  if (emit_debug_code()) {
+    Label done_checking;
+    AssertNotSmi(object);
+    cmp(object, isolate()->factory()->undefined_value());
+    j(equal, &done_checking);
+    cmp(FieldOperand(object, 0),
+        Immediate(isolate()->factory()->allocation_site_map()));
+    Assert(equal, kExpectedUndefinedOrCell);
+    bind(&done_checking);
+  }
+}
+
+
 void MacroAssembler::AssertNotSmi(Register object) {
   if (emit_debug_code()) {
     test(object, Immediate(kSmiTagMask));
@@ -2842,6 +2856,23 @@ void MacroAssembler::Move(Register dst, Immediate imm) {
 }
 
 
+void MacroAssembler::Move(XMMRegister dst, double val) {
+  // TODO(titzer): recognize double constants with ExternalReferences.
+  CpuFeatureScope scope(this, SSE2);
+  uint64_t int_val = BitCast<uint64_t, double>(val);
+  if (int_val == 0) {
+    xorps(dst, dst);
+  } else {
+    int32_t lower = static_cast<int32_t>(int_val);
+    int32_t upper = static_cast<int32_t>(int_val >> kBitsPerInt);
+    push(Immediate(upper));
+    push(Immediate(lower));
+    movsd(dst, Operand(esp, 0));
+    add(esp, Immediate(kDoubleSize));
+  }
+}
+
+
 void MacroAssembler::SetCounter(StatsCounter* counter, int value) {
   if (FLAG_native_code_counters && counter->Enabled()) {
     mov(Operand::StaticVariable(ExternalReference(counter)), Immediate(value));
@@ -3613,7 +3644,7 @@ void MacroAssembler::JumpIfDictionaryInPrototypeChain(
 }
 
 
-void MacroAssembler::FlooringDiv(Register dividend, int32_t divisor) {
+void MacroAssembler::TruncatingDiv(Register dividend, int32_t divisor) {
   ASSERT(!dividend.is(eax));
   ASSERT(!dividend.is(edx));
   MultiplierAndShift ms(divisor);
@@ -3622,6 +3653,9 @@ void MacroAssembler::FlooringDiv(Register dividend, int32_t divisor) {
   if (divisor > 0 && ms.multiplier() < 0) add(edx, dividend);
   if (divisor < 0 && ms.multiplier() > 0) sub(edx, dividend);
   if (ms.shift() > 0) sar(edx, ms.shift());
+  mov(eax, dividend);
+  shr(eax, 31);
+  add(edx, eax);
 }
 
 

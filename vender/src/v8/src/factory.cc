@@ -69,6 +69,14 @@ Handle<FixedArray> Factory::NewFixedArrayWithHoles(int size,
 }
 
 
+Handle<FixedArray> Factory::NewUninitializedFixedArray(int size) {
+  CALL_HEAP_FUNCTION(
+      isolate(),
+      isolate()->heap()->AllocateUninitializedFixedArray(size),
+      FixedArray);
+}
+
+
 Handle<FixedDoubleArray> Factory::NewFixedDoubleArray(int size,
                                                       PretenureFlag pretenure) {
   ASSERT(0 <= size);
@@ -377,9 +385,7 @@ Handle<String> Factory::NewConsString(Handle<String> left,
   // Make sure that an out of memory exception is thrown if the length
   // of the new cons string is too large.
   if (length > String::kMaxLength || length < 0) {
-    isolate()->context()->mark_out_of_memory();
-    V8::FatalProcessOutOfMemory("String concatenation result too large.");
-    UNREACHABLE();
+    isolate()->ThrowInvalidStringLength();
     return Handle<String>::null();
   }
 
@@ -889,6 +895,15 @@ Handle<FixedArray> Factory::CopyFixedArray(Handle<FixedArray> array) {
 }
 
 
+Handle<FixedArray> Factory::CopyAndTenureFixedCOWArray(
+    Handle<FixedArray> array) {
+  ASSERT(isolate()->heap()->InNewSpace(*array));
+  CALL_HEAP_FUNCTION(isolate(),
+                     isolate()->heap()->CopyAndTenureFixedCOWArray(*array),
+                     FixedArray);
+}
+
+
 Handle<FixedArray> Factory::CopySizeFixedArray(Handle<FixedArray> array,
                                                int new_length,
                                                PretenureFlag pretenure) {
@@ -927,7 +942,7 @@ Handle<JSFunction> Factory::BaseNewFunctionFromSharedFunctionInfo(
 static Handle<Map> MapForNewFunction(Isolate *isolate,
                                      Handle<SharedFunctionInfo> function_info) {
   Context *context = isolate->context()->native_context();
-  int map_index = Context::FunctionMapIndex(function_info->language_mode(),
+  int map_index = Context::FunctionMapIndex(function_info->strict_mode(),
                                             function_info->is_generator());
   return Handle<Map>(Map::cast(context->get(map_index)));
 }
@@ -1067,6 +1082,12 @@ Handle<Object> Factory::NewReferenceError(const char* message,
 }
 
 
+Handle<Object> Factory::NewReferenceError(const char* message,
+                                          Handle<JSArray> args) {
+  return NewError("MakeReferenceError", message, args);
+}
+
+
 Handle<Object> Factory::NewReferenceError(Handle<String> message) {
   return NewError("$ReferenceError", message);
 }
@@ -1116,8 +1137,8 @@ Handle<String> Factory::EmergencyNewError(const char* message,
       *p++ = ' ';
       space--;
       if (space > 0) {
-        MaybeObject* maybe_arg = args->GetElement(isolate(), i);
-        Handle<String> arg_str(reinterpret_cast<String*>(maybe_arg));
+        Handle<String> arg_str = Handle<String>::cast(
+            Object::GetElementNoExceptionThrown(isolate(), args, i));
         SmartArrayPointer<char> arg = arg_str->ToCString();
         Vector<char> v2(p, static_cast<int>(space));
         OS::StrNCpy(v2, arg.get(), space);
@@ -1250,8 +1271,7 @@ Handle<JSFunction> Factory::NewFunctionWithPrototype(Handle<String> name,
 
 Handle<JSFunction> Factory::NewFunctionWithoutPrototype(Handle<String> name,
                                                         Handle<Code> code) {
-  Handle<JSFunction> function = NewFunctionWithoutPrototype(name,
-                                                            CLASSIC_MODE);
+  Handle<JSFunction> function = NewFunctionWithoutPrototype(name, SLOPPY);
   function->shared()->set_code(*code);
   function->set_code(*code);
   ASSERT(!function->has_initial_map());
@@ -1309,6 +1329,17 @@ Handle<JSObject> Factory::NewJSObject(Handle<JSFunction> constructor,
   CALL_HEAP_FUNCTION(
       isolate(),
       isolate()->heap()->AllocateJSObject(*constructor, pretenure), JSObject);
+}
+
+
+Handle<JSObject> Factory::NewJSObjectWithMemento(
+    Handle<JSFunction> constructor,
+    Handle<AllocationSite> site) {
+  JSFunction::EnsureHasInitialMap(constructor);
+  CALL_HEAP_FUNCTION(
+      isolate(),
+      isolate()->heap()->AllocateJSObject(*constructor, NOT_TENURED, *site),
+      JSObject);
 }
 
 
@@ -1394,18 +1425,25 @@ Handle<GlobalObject> Factory::NewGlobalObject(Handle<JSFunction> constructor) {
 }
 
 
-Handle<JSObject> Factory::NewJSObjectFromMap(Handle<Map> map,
-                                             PretenureFlag pretenure,
-                                             bool alloc_props) {
+Handle<JSObject> Factory::NewJSObjectFromMap(
+    Handle<Map> map,
+    PretenureFlag pretenure,
+    bool alloc_props,
+    Handle<AllocationSite> allocation_site) {
   CALL_HEAP_FUNCTION(
       isolate(),
-      isolate()->heap()->AllocateJSObjectFromMap(*map, pretenure, alloc_props),
+      isolate()->heap()->AllocateJSObjectFromMap(
+          *map,
+          pretenure,
+          alloc_props,
+          allocation_site.is_null() ? NULL : *allocation_site),
       JSObject);
 }
 
 
-Handle<JSArray> Factory::NewJSArray(int capacity,
-                                    ElementsKind elements_kind,
+Handle<JSArray> Factory::NewJSArray(ElementsKind elements_kind,
+                                    int length,
+                                    int capacity,
                                     PretenureFlag pretenure) {
   if (capacity != 0) {
     elements_kind = GetHoleyElementsKind(elements_kind);
@@ -1413,7 +1451,7 @@ Handle<JSArray> Factory::NewJSArray(int capacity,
   CALL_HEAP_FUNCTION(isolate(),
                      isolate()->heap()->AllocateJSArrayAndStorage(
                          elements_kind,
-                         0,
+                         length,
                          capacity,
                          INITIALIZE_ARRAY_ELEMENTS_WITH_HOLE,
                          pretenure),
@@ -1423,14 +1461,28 @@ Handle<JSArray> Factory::NewJSArray(int capacity,
 
 Handle<JSArray> Factory::NewJSArrayWithElements(Handle<FixedArrayBase> elements,
                                                 ElementsKind elements_kind,
+                                                int length,
                                                 PretenureFlag pretenure) {
+  ASSERT(length <= elements->length());
   CALL_HEAP_FUNCTION(
       isolate(),
       isolate()->heap()->AllocateJSArrayWithElements(*elements,
                                                      elements_kind,
-                                                     elements->length(),
+                                                     length,
                                                      pretenure),
       JSArray);
+}
+
+
+void Factory::NewJSArrayStorage(Handle<JSArray> array,
+                                     int length,
+                                     int capacity,
+                                     ArrayStorageAllocationMode mode) {
+  CALL_HEAP_FUNCTION_VOID(isolate(),
+                          isolate()->heap()->AllocateJSArrayStorage(*array,
+                                                                    length,
+                                                                    capacity,
+                                                                    mode));
 }
 
 
@@ -1441,14 +1493,6 @@ void Factory::SetElementsCapacityAndLength(Handle<JSArray> array,
   CALL_HEAP_FUNCTION_VOID(
       isolate(),
       accessor->SetCapacityAndLength(*array, capacity, length));
-}
-
-
-void Factory::SetContent(Handle<JSArray> array,
-                         Handle<FixedArrayBase> elements) {
-  CALL_HEAP_FUNCTION_VOID(
-      isolate(),
-      array->SetContent(*elements));
 }
 
 
@@ -1543,12 +1587,10 @@ Handle<SharedFunctionInfo> Factory::NewSharedFunctionInfo(
     int number_of_literals,
     bool is_generator,
     Handle<Code> code,
-    Handle<ScopeInfo> scope_info,
-    Handle<FixedArray> feedback_vector) {
+    Handle<ScopeInfo> scope_info) {
   Handle<SharedFunctionInfo> shared = NewSharedFunctionInfo(name);
   shared->set_code(*code);
   shared->set_scope_info(*scope_info);
-  shared->set_feedback_vector(*feedback_vector);
   int literals_array_size = number_of_literals;
   // If the function contains object, regexp or array literals,
   // allocate extra space for a literals array prefix containing the
@@ -1627,7 +1669,7 @@ Handle<JSFunction> Factory::NewFunctionHelper(Handle<String> name,
   Handle<SharedFunctionInfo> function_share = NewSharedFunctionInfo(name);
   CALL_HEAP_FUNCTION(
       isolate(),
-      isolate()->heap()->AllocateFunction(*isolate()->function_map(),
+      isolate()->heap()->AllocateFunction(*isolate()->sloppy_function_map(),
                                           *function_share,
                                           *prototype),
       JSFunction);
@@ -1644,11 +1686,11 @@ Handle<JSFunction> Factory::NewFunction(Handle<String> name,
 
 Handle<JSFunction> Factory::NewFunctionWithoutPrototypeHelper(
     Handle<String> name,
-    LanguageMode language_mode) {
+    StrictMode strict_mode) {
   Handle<SharedFunctionInfo> function_share = NewSharedFunctionInfo(name);
-  Handle<Map> map = (language_mode == CLASSIC_MODE)
-      ? isolate()->function_without_prototype_map()
-      : isolate()->strict_mode_function_without_prototype_map();
+  Handle<Map> map = strict_mode == SLOPPY
+      ? isolate()->sloppy_function_without_prototype_map()
+      : isolate()->strict_function_without_prototype_map();
   CALL_HEAP_FUNCTION(isolate(),
                      isolate()->heap()->AllocateFunction(
                          *map,
@@ -1660,9 +1702,8 @@ Handle<JSFunction> Factory::NewFunctionWithoutPrototypeHelper(
 
 Handle<JSFunction> Factory::NewFunctionWithoutPrototype(
     Handle<String> name,
-    LanguageMode language_mode) {
-  Handle<JSFunction> fun =
-      NewFunctionWithoutPrototypeHelper(name, language_mode);
+    StrictMode strict_mode) {
+  Handle<JSFunction> fun = NewFunctionWithoutPrototypeHelper(name, strict_mode);
   fun->set_context(isolate()->context()->native_context());
   return fun;
 }

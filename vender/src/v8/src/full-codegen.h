@@ -127,8 +127,8 @@ class FullCodeGenerator: public AstVisitor {
   static const int kCodeSizeMultiplier = 162;
 #elif V8_TARGET_ARCH_ARM
   static const int kCodeSizeMultiplier = 142;
-#elif V8_TARGET_ARCH_A64
-// TODO(all): Copied ARM value. Check this is sensible for A64.
+#elif V8_TARGET_ARCH_ARM64
+// TODO(all): Copied ARM value. Check this is sensible for ARM64.
   static const int kCodeSizeMultiplier = 142;
 #elif V8_TARGET_ARCH_MIPS
   static const int kCodeSizeMultiplier = 142;
@@ -437,8 +437,12 @@ class FullCodeGenerator: public AstVisitor {
   // Feedback slot support. The feedback vector will be cleared during gc and
   // collected by the type-feedback oracle.
   Handle<FixedArray> FeedbackVector() {
-    return info_->feedback_vector();
+    return feedback_vector_;
   }
+  void StoreFeedbackVectorSlot(int slot, Handle<Object> object) {
+    feedback_vector_->set(slot, *object);
+  }
+  void InitializeFeedbackVector();
 
   // Record a call's return site offset, used to rebuild the frame if the
   // called function was inlined at the site.
@@ -556,7 +560,7 @@ class FullCodeGenerator: public AstVisitor {
   // Helper functions to EmitVariableAssignment
   void EmitStoreToStackLocalOrContextSlot(Variable* var,
                                           MemOperand location);
-  void EmitCallStoreContextSlot(Handle<String> name, LanguageMode mode);
+  void EmitCallStoreContextSlot(Handle<String> name, StrictMode strict_mode);
 
   // Complete a named property assignment.  The receiver is expected on top
   // of the stack and the right-hand-side value in the accumulator.
@@ -602,11 +606,7 @@ class FullCodeGenerator: public AstVisitor {
   Handle<Script> script() { return info_->script(); }
   bool is_eval() { return info_->is_eval(); }
   bool is_native() { return info_->is_native(); }
-  bool is_classic_mode() { return language_mode() == CLASSIC_MODE; }
-  StrictModeFlag strict_mode() {
-    return is_classic_mode() ? kNonStrictMode : kStrictMode;
-  }
-  LanguageMode language_mode() { return function()->language_mode(); }
+  StrictMode strict_mode() { return function()->strict_mode(); }
   FunctionLiteral* function() { return info_->function(); }
   Scope* scope() { return scope_; }
 
@@ -844,6 +844,7 @@ class FullCodeGenerator: public AstVisitor {
   ZoneList<BackEdgeEntry> back_edges_;
   int ic_total_count_;
   Handle<FixedArray> handler_table_;
+  Handle<FixedArray> feedback_vector_;
   Handle<Cell> profiling_counter_;
   bool generate_debug_code_;
 

@@ -77,6 +77,13 @@ static Handle<Object> Invoke(bool is_construct,
 
   // Entering JavaScript.
   VMState<JS> state(isolate);
+  CHECK(AllowJavascriptExecution::IsAllowed(isolate));
+  if (!ThrowOnJavascriptExecution::IsAllowed(isolate)) {
+    isolate->ThrowIllegalOperation();
+    *has_pending_exception = true;
+    isolate->ReportPendingMessages();
+    return Handle<Object>();
+  }
 
   // Placeholder for return value.
   MaybeObject* value = reinterpret_cast<Object*>(kZapValue);
@@ -163,9 +170,10 @@ Handle<Object> Execution::Call(Isolate* isolate,
   }
   Handle<JSFunction> func = Handle<JSFunction>::cast(callable);
 
-  // In non-strict mode, convert receiver.
+  // In sloppy mode, convert receiver.
   if (convert_receiver && !receiver->IsJSReceiver() &&
-      !func->shared()->native() && func->shared()->is_classic_mode()) {
+      !func->shared()->native() &&
+      func->shared()->strict_mode() == SLOPPY) {
     if (receiver->IsUndefined() || receiver->IsNull()) {
       Object* global = func->context()->global_object()->global_receiver();
       // Under some circumstances, 'global' can be the JSBuiltinsObject
@@ -811,10 +819,10 @@ Handle<JSFunction> Execution::InstantiateFunction(
   if (!data->do_not_cache()) {
     // Fast case: see if the function has already been instantiated
     int serial_number = Smi::cast(data->serial_number())->value();
-    Object* elm =
-        isolate->native_context()->function_cache()->
-            GetElementNoExceptionThrown(isolate, serial_number);
-    if (elm->IsJSFunction()) return Handle<JSFunction>(JSFunction::cast(elm));
+    Handle<JSObject> cache(isolate->native_context()->function_cache());
+    Handle<Object> elm =
+        Object::GetElementNoExceptionThrown(isolate, cache, serial_number);
+    if (elm->IsJSFunction()) return Handle<JSFunction>::cast(elm);
   }
   // The function has not yet been instantiated in this context; do it.
   Handle<Object> args[] = { data };

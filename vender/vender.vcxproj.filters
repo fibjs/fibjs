@@ -1818,6 +1818,12 @@
     <ClCompile Include="src\log4cpp\ConsoleAppenfer.cpp">
       <Filter>Source Files\log4cpp</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\platform\_date_cache.cc">
+      <Filter>Source Files\v8\src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\assert-scope.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -3390,6 +3396,12 @@
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\atomicops_internals_mac.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\atomicops_internals_arm64_gcc.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\property-details-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
   </ItemGroup>

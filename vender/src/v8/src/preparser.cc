@@ -55,19 +55,34 @@ int isfinite(double value);
 namespace v8 {
 namespace internal {
 
+
+void PreParserTraits::CheckStrictModeLValue(PreParserExpression expression,
+                                            bool* ok) {
+  if (expression.IsIdentifier() &&
+      expression.AsIdentifier().IsEvalOrArguments()) {
+    pre_parser_->ReportMessage("strict_eval_arguments",
+                               Vector<const char*>::empty());
+    *ok = false;
+  }
+}
+
+
 void PreParserTraits::ReportMessageAt(Scanner::Location location,
                                       const char* message,
-                                      Vector<const char*> args) {
+                                      Vector<const char*> args,
+                                      bool is_reference_error) {
   ReportMessageAt(location.beg_pos,
                   location.end_pos,
                   message,
-                  args.length() > 0 ? args[0] : NULL);
+                  args.length() > 0 ? args[0] : NULL,
+                  is_reference_error);
 }
 
 
 void PreParserTraits::ReportMessageAt(Scanner::Location location,
                                       const char* type,
-                                      const char* name_opt) {
+                                      const char* name_opt,
+                                      bool is_reference_error) {
   pre_parser_->log_
       ->LogMessage(location.beg_pos, location.end_pos, type, name_opt);
 }
@@ -76,7 +91,8 @@ void PreParserTraits::ReportMessageAt(Scanner::Location location,
 void PreParserTraits::ReportMessageAt(int start_pos,
                                       int end_pos,
                                       const char* type,
-                                      const char* name_opt) {
+                                      const char* name_opt,
+                                      bool is_reference_error) {
   pre_parser_->log_->LogMessage(start_pos, end_pos, type, name_opt);
 }
 
@@ -91,16 +107,11 @@ PreParserIdentifier PreParserTraits::GetSymbol(Scanner* scanner) {
   } else if (scanner->current_token() == Token::YIELD) {
     return PreParserIdentifier::Yield();
   }
-  if (scanner->is_literal_ascii()) {
-    // Detect strict-mode poison words.
-    if (scanner->literal_length() == 4 &&
-        !strncmp(scanner->literal_ascii_string().start(), "eval", 4)) {
-      return PreParserIdentifier::Eval();
-    }
-    if (scanner->literal_length() == 9 &&
-        !strncmp(scanner->literal_ascii_string().start(), "arguments", 9)) {
-      return PreParserIdentifier::Arguments();
-    }
+  if (scanner->UnescapedLiteralMatches("eval", 4)) {
+    return PreParserIdentifier::Eval();
+  }
+  if (scanner->UnescapedLiteralMatches("arguments", 9)) {
+    return PreParserIdentifier::Arguments();
   }
   return PreParserIdentifier::Default();
 }
@@ -108,28 +119,11 @@ PreParserIdentifier PreParserTraits::GetSymbol(Scanner* scanner) {
 
 PreParserExpression PreParserTraits::ExpressionFromString(
     int pos, Scanner* scanner, PreParserFactory* factory) {
-  const int kUseStrictLength = 10;
-  const char* kUseStrictChars = "use strict";
   pre_parser_->LogSymbol();
-  if (scanner->is_literal_ascii() &&
-      scanner->literal_length() == kUseStrictLength &&
-      !scanner->literal_contains_escapes() &&
-      !strncmp(scanner->literal_ascii_string().start(), kUseStrictChars,
-               kUseStrictLength)) {
+  if (scanner->UnescapedLiteralMatches("use strict", 10)) {
     return PreParserExpression::UseStrictStringLiteral();
   }
   return PreParserExpression::StringLiteral();
-}
-
-
-PreParserExpression PreParserTraits::ParseObjectLiteral(bool* ok) {
-  return pre_parser_->ParseObjectLiteral(ok);
-}
-
-
-PreParserExpression PreParserTraits::ParseAssignmentExpression(bool accept_IN,
-                                                               bool* ok) {
-  return pre_parser_->ParseAssignmentExpression(accept_IN, ok);
 }
 
 
@@ -138,13 +132,27 @@ PreParserExpression PreParserTraits::ParseV8Intrinsic(bool* ok) {
 }
 
 
+PreParserExpression PreParserTraits::ParseFunctionLiteral(
+    PreParserIdentifier name,
+    Scanner::Location function_name_location,
+    bool name_is_strict_reserved,
+    bool is_generator,
+    int function_token_position,
+    FunctionLiteral::FunctionType type,
+    bool* ok) {
+  return pre_parser_->ParseFunctionLiteral(
+      name, function_name_location, name_is_strict_reserved, is_generator,
+      function_token_position, type, ok);
+}
+
+
 PreParser::PreParseResult PreParser::PreParseLazyFunction(
-    LanguageMode mode, bool is_generator, ParserRecorder* log) {
+    StrictMode strict_mode, bool is_generator, ParserRecorder* log) {
   log_ = log;
   // Lazy functions always have trivial outer scopes (no with/catch scopes).
   PreParserScope top_scope(scope_, GLOBAL_SCOPE);
   FunctionState top_state(&function_state_, &scope_, &top_scope);
-  scope_->SetLanguageMode(mode);
+  scope_->SetStrictMode(strict_mode);
   PreParserScope function_scope(scope_, FUNCTION_SCOPE);
   FunctionState function_state(&function_state_, &scope_, &function_scope);
   function_state.set_is_generator(is_generator);
@@ -157,7 +165,7 @@ PreParser::PreParseResult PreParser::PreParseLazyFunction(
     ReportUnexpectedToken(scanner()->current_token());
   } else {
     ASSERT_EQ(Token::RBRACE, scanner()->peek());
-    if (!scope_->is_classic_mode()) {
+    if (scope_->strict_mode() == STRICT) {
       int end_pos = scanner()->location().end_pos;
       CheckOctalLiteral(start_position, end_pos, &ok);
     }
@@ -224,8 +232,7 @@ PreParser::SourceElements PreParser::ParseSourceElements(int end_token,
     Statement statement = ParseSourceElement(CHECK_OK);
     if (directive_prologue) {
       if (statement.IsUseStrictLiteral()) {
-        scope_->SetLanguageMode(allow_harmony_scoping() ?
-                                EXTENDED_MODE : STRICT_MODE);
+        scope_->SetStrictMode(STRICT);
       } else if (!statement.IsStringLiteral()) {
         directive_prologue = false;
       }
@@ -319,7 +326,7 @@ PreParser::Statement PreParser::ParseStatement(bool* ok) {
       Scanner::Location start_location = scanner()->peek_location();
       Statement statement = ParseFunctionDeclaration(CHECK_OK);
       Scanner::Location end_location = scanner()->location();
-      if (!scope_->is_classic_mode()) {
+      if (strict_mode() == STRICT) {
         PreParserTraits::ReportMessageAt(start_location.beg_pos,
                                          end_location.end_pos,
                                          "strict_function",
@@ -372,7 +379,7 @@ PreParser::Statement PreParser::ParseBlock(bool* ok) {
   //
   Expect(Token::LBRACE, CHECK_OK);
   while (peek() != Token::RBRACE) {
-    if (scope_->is_extended_mode()) {
+    if (FLAG_harmony_scoping && strict_mode() == STRICT) {
       ParseSourceElement(CHECK_OK);
     } else {
       ParseStatement(CHECK_OK);
@@ -432,28 +439,24 @@ PreParser::Statement PreParser::ParseVariableDeclarations(
     // * It is a Syntax Error if the code that matches this production is not
     //   contained in extended code.
     //
-    // However disallowing const in classic mode will break compatibility with
+    // However disallowing const in sloppy mode will break compatibility with
     // existing pages. Therefore we keep allowing const with the old
-    // non-harmony semantics in classic mode.
+    // non-harmony semantics in sloppy mode.
     Consume(Token::CONST);
-    switch (scope_->language_mode()) {
-      case CLASSIC_MODE:
-        break;
-      case STRICT_MODE: {
-        Scanner::Location location = scanner()->peek_location();
-        ReportMessageAt(location, "strict_const");
-        *ok = false;
-        return Statement::Default();
-      }
-      case EXTENDED_MODE:
-        if (var_context != kSourceElement &&
-            var_context != kForStatement) {
+    if (strict_mode() == STRICT) {
+      if (FLAG_harmony_scoping) {
+        if (var_context != kSourceElement && var_context != kForStatement) {
           ReportMessageAt(scanner()->peek_location(), "unprotected_const");
           *ok = false;
           return Statement::Default();
         }
         require_initializer = true;
-        break;
+      } else {
+        Scanner::Location location = scanner()->peek_location();
+        ReportMessageAt(location, "strict_const");
+        *ok = false;
+        return Statement::Default();
+      }
     }
   } else if (peek() == Token::LET) {
     // ES6 Draft Rev4 section 12.2.1:
@@ -462,7 +465,9 @@ PreParser::Statement PreParser::ParseVariableDeclarations(
     //
     // * It is a Syntax Error if the code that matches this production is not
     //   contained in extended code.
-    if (!scope_->is_extended_mode()) {
+    //
+    // TODO(rossberg): make 'let' a legal identifier in sloppy mode.
+    if (!FLAG_harmony_scoping || strict_mode() == SLOPPY) {
       ReportMessageAt(scanner()->peek_location(), "illegal_let");
       *ok = false;
       return Statement::Default();
@@ -515,7 +520,7 @@ PreParser::Statement PreParser::ParseExpressionOrLabelledStatement(bool* ok) {
     // Expression is a single identifier, and not, e.g., a parenthesized
     // identifier.
     ASSERT(!expr.AsIdentifier().IsFutureReserved());
-    ASSERT(scope_->is_classic_mode() ||
+    ASSERT(strict_mode() == SLOPPY ||
            (!expr.AsIdentifier().IsFutureStrictReserved() &&
             !expr.AsIdentifier().IsYield()));
     Consume(Token::COLON);
@@ -613,7 +618,7 @@ PreParser::Statement PreParser::ParseWithStatement(bool* ok) {
   // WithStatement ::
   //   'with' '(' Expression ')' Statement
   Expect(Token::WITH, CHECK_OK);
-  if (!scope_->is_classic_mode()) {
+  if (strict_mode() == STRICT) {
     ReportMessageAt(scanner()->location(), "strict_mode_with");
     *ok = false;
     return Statement::Default();
@@ -832,410 +837,6 @@ PreParser::Statement PreParser::ParseDebuggerStatement(bool* ok) {
 #undef DUMMY
 
 
-// Precedence = 2
-PreParser::Expression PreParser::ParseAssignmentExpression(bool accept_IN,
-                                                           bool* ok) {
-  // AssignmentExpression ::
-  //   ConditionalExpression
-  //   YieldExpression
-  //   LeftHandSideExpression AssignmentOperator AssignmentExpression
-
-  if (function_state_->is_generator() && peek() == Token::YIELD) {
-    return ParseYieldExpression(ok);
-  }
-
-  Scanner::Location before = scanner()->peek_location();
-  Expression expression = ParseConditionalExpression(accept_IN, CHECK_OK);
-
-  if (!Token::IsAssignmentOp(peek())) {
-    // Parsed conditional expression only (no assignment).
-    return expression;
-  }
-
-  if (!scope_->is_classic_mode() &&
-      expression.IsIdentifier() &&
-      expression.AsIdentifier().IsEvalOrArguments()) {
-    Scanner::Location after = scanner()->location();
-    PreParserTraits::ReportMessageAt(before.beg_pos, after.end_pos,
-                                     "strict_eval_arguments", NULL);
-    *ok = false;
-    return Expression::Default();
-  }
-
-  Token::Value op = Next();  // Get assignment operator.
-  ParseAssignmentExpression(accept_IN, CHECK_OK);
-
-  if ((op == Token::ASSIGN) && expression.IsThisProperty()) {
-    function_state_->AddProperty();
-  }
-
-  return Expression::Default();
-}
-
-
-// Precedence = 3
-PreParser::Expression PreParser::ParseYieldExpression(bool* ok) {
-  // YieldExpression ::
-  //   'yield' '*'? AssignmentExpression
-  Consume(Token::YIELD);
-  Check(Token::MUL);
-
-  ParseAssignmentExpression(false, CHECK_OK);
-
-  return Expression::Default();
-}
-
-
-// Precedence = 3
-PreParser::Expression PreParser::ParseConditionalExpression(bool accept_IN,
-                                                            bool* ok) {
-  // ConditionalExpression ::
-  //   LogicalOrExpression
-  //   LogicalOrExpression '?' AssignmentExpression ':' AssignmentExpression
-
-  // We start using the binary expression parser for prec >= 4 only!
-  Expression expression = ParseBinaryExpression(4, accept_IN, CHECK_OK);
-  if (peek() != Token::CONDITIONAL) return expression;
-  Consume(Token::CONDITIONAL);
-  // In parsing the first assignment expression in conditional
-  // expressions we always accept the 'in' keyword; see ECMA-262,
-  // section 11.12, page 58.
-  ParseAssignmentExpression(true, CHECK_OK);
-  Expect(Token::COLON, CHECK_OK);
-  ParseAssignmentExpression(accept_IN, CHECK_OK);
-  return Expression::Default();
-}
-
-
-// Precedence >= 4
-PreParser::Expression PreParser::ParseBinaryExpression(int prec,
-                                                       bool accept_IN,
-                                                       bool* ok) {
-  Expression result = ParseUnaryExpression(CHECK_OK);
-  for (int prec1 = Precedence(peek(), accept_IN); prec1 >= prec; prec1--) {
-    // prec1 >= 4
-    while (Precedence(peek(), accept_IN) == prec1) {
-      Next();
-      ParseBinaryExpression(prec1 + 1, accept_IN, CHECK_OK);
-      result = Expression::Default();
-    }
-  }
-  return result;
-}
-
-
-PreParser::Expression PreParser::ParseUnaryExpression(bool* ok) {
-  // UnaryExpression ::
-  //   PostfixExpression
-  //   'delete' UnaryExpression
-  //   'void' UnaryExpression
-  //   'typeof' UnaryExpression
-  //   '++' UnaryExpression
-  //   '--' UnaryExpression
-  //   '+' UnaryExpression
-  //   '-' UnaryExpression
-  //   '~' UnaryExpression
-  //   '!' UnaryExpression
-
-  Token::Value op = peek();
-  if (Token::IsUnaryOp(op)) {
-    op = Next();
-    ParseUnaryExpression(ok);
-    return Expression::Default();
-  } else if (Token::IsCountOp(op)) {
-    op = Next();
-    Scanner::Location before = scanner()->peek_location();
-    Expression expression = ParseUnaryExpression(CHECK_OK);
-    if (!scope_->is_classic_mode() &&
-        expression.IsIdentifier() &&
-        expression.AsIdentifier().IsEvalOrArguments()) {
-      Scanner::Location after = scanner()->location();
-      PreParserTraits::ReportMessageAt(before.beg_pos, after.end_pos,
-                                       "strict_eval_arguments", NULL);
-      *ok = false;
-    }
-    return Expression::Default();
-  } else {
-    return ParsePostfixExpression(ok);
-  }
-}
-
-
-PreParser::Expression PreParser::ParsePostfixExpression(bool* ok) {
-  // PostfixExpression ::
-  //   LeftHandSideExpression ('++' | '--')?
-
-  Scanner::Location before = scanner()->peek_location();
-  Expression expression = ParseLeftHandSideExpression(CHECK_OK);
-  if (!scanner()->HasAnyLineTerminatorBeforeNext() &&
-      Token::IsCountOp(peek())) {
-    if (!scope_->is_classic_mode() &&
-        expression.IsIdentifier() &&
-        expression.AsIdentifier().IsEvalOrArguments()) {
-      Scanner::Location after = scanner()->location();
-      PreParserTraits::ReportMessageAt(before.beg_pos, after.end_pos,
-                                       "strict_eval_arguments", NULL);
-      *ok = false;
-      return Expression::Default();
-    }
-    Next();
-    return Expression::Default();
-  }
-  return expression;
-}
-
-
-PreParser::Expression PreParser::ParseLeftHandSideExpression(bool* ok) {
-  // LeftHandSideExpression ::
-  //   (NewExpression | MemberExpression) ...
-
-  Expression result = ParseMemberWithNewPrefixesExpression(CHECK_OK);
-
-  while (true) {
-    switch (peek()) {
-      case Token::LBRACK: {
-        Consume(Token::LBRACK);
-        ParseExpression(true, CHECK_OK);
-        Expect(Token::RBRACK, CHECK_OK);
-        if (result.IsThis()) {
-          result = Expression::ThisProperty();
-        } else {
-          result = Expression::Default();
-        }
-        break;
-      }
-
-      case Token::LPAREN: {
-        ParseArguments(CHECK_OK);
-        result = Expression::Default();
-        break;
-      }
-
-      case Token::PERIOD: {
-        Consume(Token::PERIOD);
-        ParseIdentifierName(CHECK_OK);
-        if (result.IsThis()) {
-          result = Expression::ThisProperty();
-        } else {
-          result = Expression::Default();
-        }
-        break;
-      }
-
-      default:
-        return result;
-    }
-  }
-}
-
-
-PreParser::Expression PreParser::ParseMemberWithNewPrefixesExpression(
-    bool* ok) {
-  // NewExpression ::
-  //   ('new')+ MemberExpression
-
-  // See Parser::ParseNewExpression.
-
-  if (peek() == Token::NEW) {
-    Consume(Token::NEW);
-    ParseMemberWithNewPrefixesExpression(CHECK_OK);
-    if (peek() == Token::LPAREN) {
-      // NewExpression with arguments.
-      ParseArguments(CHECK_OK);
-      // The expression can still continue with . or [ after the arguments.
-      ParseMemberExpressionContinuation(Expression::Default(), CHECK_OK);
-    }
-    return Expression::Default();
-  }
-  // No 'new' keyword.
-  return ParseMemberExpression(ok);
-}
-
-
-PreParser::Expression PreParser::ParseMemberExpression(bool* ok) {
-  // MemberExpression ::
-  //   (PrimaryExpression | FunctionLiteral)
-  //     ('[' Expression ']' | '.' Identifier | Arguments)*
-
-  // The '[' Expression ']' and '.' Identifier parts are parsed by
-  // ParseMemberExpressionContinuation, and the Arguments part is parsed by the
-  // caller.
-
-  // Parse the initial primary or function expression.
-  Expression result = Expression::Default();
-  if (peek() == Token::FUNCTION) {
-    Consume(Token::FUNCTION);
-    int function_token_position = position();
-    bool is_generator = allow_generators() && Check(Token::MUL);
-    Identifier name = Identifier::Default();
-    bool is_strict_reserved_name = false;
-    Scanner::Location function_name_location = Scanner::Location::invalid();
-    FunctionLiteral::FunctionType function_type =
-        FunctionLiteral::ANONYMOUS_EXPRESSION;
-    if (peek_any_identifier()) {
-      name = ParseIdentifierOrStrictReservedWord(&is_strict_reserved_name,
-                                                 CHECK_OK);
-      function_name_location = scanner()->location();
-      function_type = FunctionLiteral::NAMED_EXPRESSION;
-    }
-    result = ParseFunctionLiteral(name,
-                                  function_name_location,
-                                  is_strict_reserved_name,
-                                  is_generator,
-                                  function_token_position,
-                                  function_type,
-                                  CHECK_OK);
-  } else {
-    result = ParsePrimaryExpression(CHECK_OK);
-  }
-  result = ParseMemberExpressionContinuation(result, CHECK_OK);
-  return result;
-}
-
-
-PreParser::Expression PreParser::ParseMemberExpressionContinuation(
-    PreParserExpression expression, bool* ok) {
-  // Parses this part of MemberExpression:
-  // ('[' Expression ']' | '.' Identifier)*
-  while (true) {
-    switch (peek()) {
-      case Token::LBRACK: {
-        Consume(Token::LBRACK);
-        ParseExpression(true, CHECK_OK);
-        Expect(Token::RBRACK, CHECK_OK);
-        if (expression.IsThis()) {
-          expression = Expression::ThisProperty();
-        } else {
-          expression = Expression::Default();
-        }
-        break;
-      }
-      case Token::PERIOD: {
-        Consume(Token::PERIOD);
-        ParseIdentifierName(CHECK_OK);
-        if (expression.IsThis()) {
-          expression = Expression::ThisProperty();
-        } else {
-          expression = Expression::Default();
-        }
-        break;
-      }
-      default:
-        return expression;
-    }
-  }
-  ASSERT(false);
-  return PreParserExpression::Default();
-}
-
-
-PreParser::Expression PreParser::ParseObjectLiteral(bool* ok) {
-  // ObjectLiteral ::
-  // '{' ((
-  //       ((IdentifierName | String | Number) ':' AssignmentExpression) |
-  //       (('get' | 'set') (IdentifierName | String | Number) FunctionLiteral)
-  //      ) ',')* '}'
-  // (Except that trailing comma is not required and not allowed.)
-
-  ObjectLiteralChecker checker(this, scope_->language_mode());
-
-  Expect(Token::LBRACE, CHECK_OK);
-  while (peek() != Token::RBRACE) {
-    Token::Value next = peek();
-    switch (next) {
-      case Token::IDENTIFIER:
-      case Token::FUTURE_RESERVED_WORD:
-      case Token::FUTURE_STRICT_RESERVED_WORD: {
-        bool is_getter = false;
-        bool is_setter = false;
-        ParseIdentifierNameOrGetOrSet(&is_getter, &is_setter, CHECK_OK);
-        if ((is_getter || is_setter) && peek() != Token::COLON) {
-            Token::Value next = Next();
-            if (next != Token::IDENTIFIER &&
-                next != Token::FUTURE_RESERVED_WORD &&
-                next != Token::FUTURE_STRICT_RESERVED_WORD &&
-                next != Token::NUMBER &&
-                next != Token::STRING &&
-                !Token::IsKeyword(next)) {
-              ReportUnexpectedToken(next);
-              *ok = false;
-              return Expression::Default();
-            }
-            // Validate the property
-            PropertyKind type = is_getter ? kGetterProperty : kSetterProperty;
-            checker.CheckProperty(next, type, CHECK_OK);
-            PreParserIdentifier name = GetSymbol(scanner());
-            ParseFunctionLiteral(name,
-                                 scanner()->location(),
-                                 false,  // reserved words are allowed here
-                                 false,  // not a generator
-                                 RelocInfo::kNoPosition,
-                                 FunctionLiteral::ANONYMOUS_EXPRESSION,
-                                 CHECK_OK);
-            if (peek() != Token::RBRACE) {
-              Expect(Token::COMMA, CHECK_OK);
-            }
-            continue;  // restart the while
-        }
-        break;
-      }
-      case Token::STRING:
-        Consume(next);
-        LogSymbol();
-        break;
-      case Token::NUMBER:
-        Consume(next);
-        break;
-      default:
-        if (Token::IsKeyword(next)) {
-          Consume(next);
-          LogSymbol();
-        } else {
-          Token::Value next = Next();
-          ReportUnexpectedToken(next);
-          *ok = false;
-          return Expression::Default();
-        }
-    }
-
-    // Validate the property
-    checker.CheckProperty(next, kValueProperty, CHECK_OK);
-
-    Expect(Token::COLON, CHECK_OK);
-    ParseAssignmentExpression(true, CHECK_OK);
-
-    // TODO(1240767): Consider allowing trailing comma.
-    if (peek() != Token::RBRACE) Expect(Token::COMMA, CHECK_OK);
-  }
-  Expect(Token::RBRACE, CHECK_OK);
-
-  function_state_->NextMaterializedLiteralIndex();
-  return Expression::Default();
-}
-
-
-PreParser::Arguments PreParser::ParseArguments(bool* ok) {
-  // Arguments ::
-  //   '(' (AssignmentExpression)*[','] ')'
-
-  Expect(Token::LPAREN, ok);
-  if (!*ok) return -1;
-  bool done = (peek() == Token::RPAREN);
-  int argc = 0;
-  while (!done) {
-    ParseAssignmentExpression(true, ok);
-    if (!*ok) return -1;
-    argc++;
-    done = (peek() == Token::RPAREN);
-    if (!done) {
-      Expect(Token::COMMA, ok);
-      if (!*ok) return -1;
-    }
-  }
-  Expect(Token::RPAREN, ok);
-  return argc;
-}
-
 PreParser::Expression PreParser::ParseFunctionLiteral(
     Identifier function_name,
     Scanner::Location function_name_location,
@@ -1276,14 +877,7 @@ PreParser::Expression PreParser::ParseFunctionLiteral(
       reserved_error_loc = scanner()->location();
     }
 
-    int prev_value;
-    if (scanner()->is_literal_ascii()) {
-      prev_value =
-          duplicate_finder.AddAsciiSymbol(scanner()->literal_ascii_string(), 1);
-    } else {
-      prev_value =
-          duplicate_finder.AddUtf16Symbol(scanner()->literal_utf16_string(), 1);
-    }
+    int prev_value = scanner()->FindSymbol(&duplicate_finder, 1);
 
     if (!dupe_error_loc.IsValid() && prev_value != 0) {
       dupe_error_loc = scanner()->location();
@@ -1313,7 +907,7 @@ PreParser::Expression PreParser::ParseFunctionLiteral(
 
   // Validate strict mode. We can do this only after parsing the function,
   // since the function can declare itself strict.
-  if (!scope_->is_classic_mode()) {
+  if (strict_mode() == STRICT) {
     if (function_name.IsEvalOrArguments()) {
       ReportMessageAt(function_name_location, "strict_eval_arguments");
       *ok = false;
@@ -1342,7 +936,6 @@ PreParser::Expression PreParser::ParseFunctionLiteral(
 
     int end_position = scanner()->location().end_pos;
     CheckOctalLiteral(start_position, end_position, CHECK_OK);
-    return Expression::StrictFunction();
   }
 
   return Expression::Default();
@@ -1351,9 +944,10 @@ PreParser::Expression PreParser::ParseFunctionLiteral(
 
 void PreParser::ParseLazyFunctionLiteralBody(bool* ok) {
   int body_start = position();
-  log_->PauseRecording();
+  bool is_logging = log_->ShouldLogSymbols();
+  if (is_logging) log_->PauseRecording();
   ParseSourceElements(Token::RBRACE, ok);
-  log_->ResumeRecording();
+  if (is_logging) log_->ResumeRecording();
   if (!*ok) return;
 
   // Position right after terminal '}'.
@@ -1362,7 +956,7 @@ void PreParser::ParseLazyFunctionLiteralBody(bool* ok) {
   log_->LogFunction(body_start, body_end,
                     function_state_->materialized_literal_count(),
                     function_state_->expected_property_count(),
-                    scope_->language_mode());
+                    strict_mode());
 }
 
 
@@ -1385,11 +979,8 @@ PreParser::Expression PreParser::ParseV8Intrinsic(bool* ok) {
 
 
 void PreParser::LogSymbol() {
-  int identifier_pos = position();
-  if (scanner()->is_literal_ascii()) {
-    log_->LogAsciiSymbol(identifier_pos, scanner()->literal_ascii_string());
-  } else {
-    log_->LogUtf16Symbol(identifier_pos, scanner()->literal_utf16_string());
+  if (log_->ShouldLogSymbols()) {
+    scanner()->LogSymbol(log_, position());
   }
 }
 

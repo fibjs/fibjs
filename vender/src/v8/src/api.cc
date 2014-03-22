@@ -560,8 +560,8 @@ void V8::MakeWeak(i::Object** object,
 }
 
 
-void V8::ClearWeak(i::Object** obj) {
-  i::GlobalHandles::ClearWeakness(obj);
+void* V8::ClearWeak(i::Object** obj) {
+  return i::GlobalHandles::ClearWeakness(obj);
 }
 
 
@@ -1611,107 +1611,112 @@ ScriptData* ScriptData::New(const char* data, int length) {
 }
 
 
-// --- S c r i p t ---
+// --- S c r i p t s ---
 
 
-Local<Script> Script::New(v8::Handle<String> source,
-                          v8::ScriptOrigin* origin,
-                          v8::ScriptData* pre_data) {
-  i::Handle<i::String> str = Utils::OpenHandle(*source);
-  i::Isolate* isolate = str->GetIsolate();
-  ON_BAILOUT(isolate, "v8::Script::New()", return Local<Script>());
-  LOG_API(isolate, "Script::New");
-  ENTER_V8(isolate);
-  i::SharedFunctionInfo* raw_result = NULL;
-  { i::HandleScope scope(isolate);
-    i::Handle<i::Object> name_obj;
-    int line_offset = 0;
-    int column_offset = 0;
-    bool is_shared_cross_origin = false;
-    if (origin != NULL) {
-      if (!origin->ResourceName().IsEmpty()) {
-        name_obj = Utils::OpenHandle(*origin->ResourceName());
-      }
-      if (!origin->ResourceLineOffset().IsEmpty()) {
-        line_offset = static_cast<int>(origin->ResourceLineOffset()->Value());
-      }
-      if (!origin->ResourceColumnOffset().IsEmpty()) {
-        column_offset =
-            static_cast<int>(origin->ResourceColumnOffset()->Value());
-      }
-      if (!origin->ResourceIsSharedCrossOrigin().IsEmpty()) {
-        v8::Isolate* v8_isolate = reinterpret_cast<v8::Isolate*>(isolate);
-        is_shared_cross_origin =
-            origin->ResourceIsSharedCrossOrigin() == v8::True(v8_isolate);
-      }
-    }
-    EXCEPTION_PREAMBLE(isolate);
-    i::ScriptDataImpl* pre_data_impl =
-        static_cast<i::ScriptDataImpl*>(pre_data);
-    // We assert that the pre-data is sane, even though we can actually
-    // handle it if it turns out not to be in release mode.
-    ASSERT(pre_data_impl == NULL || pre_data_impl->SanityCheck());
-    // If the pre-data isn't sane we simply ignore it
-    if (pre_data_impl != NULL && !pre_data_impl->SanityCheck()) {
-      pre_data_impl = NULL;
-    }
-    i::Handle<i::SharedFunctionInfo> result =
-        i::Compiler::CompileScript(str,
-                                   name_obj,
-                                   line_offset,
-                                   column_offset,
-                                   is_shared_cross_origin,
-                                   isolate->global_context(),
-                                   NULL,
-                                   pre_data_impl,
-                                   i::NOT_NATIVES_CODE);
-    has_pending_exception = result.is_null();
-    EXCEPTION_BAILOUT_CHECK(isolate, Local<Script>());
-    raw_result = *result;
+// Internally, UnboundScript is a SharedFunctionInfo, and Script is a
+// JSFunction.
+
+ScriptCompiler::CachedData::CachedData(const uint8_t* data_, int length_,
+                                       BufferPolicy buffer_policy_)
+    : data(data_), length(length_), buffer_policy(buffer_policy_) {}
+
+
+ScriptCompiler::CachedData::~CachedData() {
+  if (buffer_policy == BufferOwned) {
+    delete[] data;
   }
-  i::Handle<i::SharedFunctionInfo> result(raw_result, isolate);
-  return ToApiHandle<Script>(result);
 }
 
 
-Local<Script> Script::New(v8::Handle<String> source,
-                          v8::Handle<Value> file_name) {
-  ScriptOrigin origin(file_name);
-  return New(source, &origin);
+ScriptCompiler::Source::Source(Local<String> string, const ScriptOrigin& origin,
+                               CachedData* data)
+    : source_string(string),
+      resource_name(origin.ResourceName()),
+      resource_line_offset(origin.ResourceLineOffset()),
+      resource_column_offset(origin.ResourceColumnOffset()),
+      resource_is_shared_cross_origin(origin.ResourceIsSharedCrossOrigin()),
+      cached_data(data) {}
+
+
+ScriptCompiler::Source::Source(Local<String> string,
+                               CachedData* data)
+    : source_string(string), cached_data(data) {}
+
+
+ScriptCompiler::Source::~Source() {
+  delete cached_data;
 }
 
 
-Local<Script> Script::Compile(v8::Handle<String> source,
-                              v8::ScriptOrigin* origin,
-                              v8::ScriptData* pre_data) {
-  i::Handle<i::String> str = Utils::OpenHandle(*source);
-  i::Isolate* isolate = str->GetIsolate();
-  ON_BAILOUT(isolate, "v8::Script::Compile()", return Local<Script>());
-  LOG_API(isolate, "Script::Compile");
-  ENTER_V8(isolate);
-  Local<Script> generic = New(source, origin, pre_data);
-  if (generic.IsEmpty())
-    return generic;
-  i::Handle<i::Object> obj = Utils::OpenHandle(*generic);
-  i::Handle<i::SharedFunctionInfo> function =
-      i::Handle<i::SharedFunctionInfo>(i::SharedFunctionInfo::cast(*obj));
-  i::Handle<i::JSFunction> result =
-      isolate->factory()->NewFunctionFromSharedFunctionInfo(
-          function,
-          isolate->global_context());
-  return ToApiHandle<Script>(result);
+const ScriptCompiler::CachedData* ScriptCompiler::Source::GetCachedData()
+    const {
+  return cached_data;
 }
 
 
-Local<Script> Script::Compile(v8::Handle<String> source,
-                              v8::Handle<Value> file_name) {
-  ScriptOrigin origin(file_name);
-  return Compile(source, &origin);
+Local<Script> UnboundScript::BindToCurrentContext() {
+  i::Handle<i::HeapObject> obj =
+      i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
+  i::Handle<i::SharedFunctionInfo>
+      function_info(i::SharedFunctionInfo::cast(*obj), obj->GetIsolate());
+  i::Handle<i::JSFunction> function =
+      obj->GetIsolate()->factory()->NewFunctionFromSharedFunctionInfo(
+          function_info, obj->GetIsolate()->global_context());
+  return ToApiHandle<Script>(function);
+}
+
+
+int UnboundScript::GetId() {
+  i::Handle<i::HeapObject> obj =
+      i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
+  i::Isolate* isolate = obj->GetIsolate();
+  ON_BAILOUT(isolate, "v8::UnboundScript::GetId()", return -1);
+  LOG_API(isolate, "v8::UnboundScript::GetId");
+  {
+    i::HandleScope scope(isolate);
+    i::Handle<i::SharedFunctionInfo> function_info(
+        i::SharedFunctionInfo::cast(*obj));
+    i::Handle<i::Script> script(i::Script::cast(function_info->script()));
+    return script->id()->value();
+  }
+}
+
+
+int UnboundScript::GetLineNumber(int code_pos) {
+  i::Handle<i::HeapObject> obj =
+      i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
+  i::Isolate* isolate = obj->GetIsolate();
+  ON_BAILOUT(isolate, "v8::UnboundScript::GetLineNumber()", return -1);
+  LOG_API(isolate, "UnboundScript::GetLineNumber");
+  if (obj->IsScript()) {
+    i::Handle<i::Script> script(i::Script::cast(*obj));
+    return i::GetScriptLineNumber(script, code_pos);
+  } else {
+    return -1;
+  }
+}
+
+
+Handle<Value> UnboundScript::GetScriptName() {
+  i::Handle<i::HeapObject> obj =
+      i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
+  i::Isolate* isolate = obj->GetIsolate();
+  ON_BAILOUT(isolate, "v8::UnboundScript::GetName()",
+             return Handle<String>());
+  LOG_API(isolate, "UnboundScript::GetName");
+  if (obj->IsScript()) {
+    i::Object* name = i::Script::cast(*obj)->name();
+    return Utils::ToLocal(i::Handle<i::Object>(name, isolate));
+  } else {
+    return Handle<String>();
+  }
 }
 
 
 Local<Value> Script::Run() {
-  // If execution is terminating, Compile(script)->Run() requires this check.
+  // If execution is terminating, Compile(..)->Run() requires this
+  // check.
   if (this == NULL) return Local<Value>();
   i::Handle<i::HeapObject> obj =
       i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
@@ -1724,15 +1729,8 @@ Local<Value> Script::Run() {
   i::Object* raw_result = NULL;
   {
     i::HandleScope scope(isolate);
-    i::Handle<i::JSFunction> fun;
-    if (obj->IsSharedFunctionInfo()) {
-      i::Handle<i::SharedFunctionInfo>
-          function_info(i::SharedFunctionInfo::cast(*obj), isolate);
-      fun = isolate->factory()->NewFunctionFromSharedFunctionInfo(
-          function_info, isolate->global_context());
-    } else {
-      fun = i::Handle<i::JSFunction>(i::JSFunction::cast(*obj), isolate);
-    }
+    i::Handle<i::JSFunction> fun =
+        i::Handle<i::JSFunction>(i::JSFunction::cast(*obj), isolate);
     EXCEPTION_PREAMBLE(isolate);
     i::Handle<i::Object> receiver(
         isolate->context()->global_proxy(), isolate);
@@ -1746,62 +1744,149 @@ Local<Value> Script::Run() {
 }
 
 
-static i::Handle<i::SharedFunctionInfo> OpenScript(Script* script) {
-  i::Handle<i::Object> obj = Utils::OpenHandle(script);
-  i::Handle<i::SharedFunctionInfo> result;
-  if (obj->IsSharedFunctionInfo()) {
-    result =
-        i::Handle<i::SharedFunctionInfo>(i::SharedFunctionInfo::cast(*obj));
-  } else {
-    result =
-        i::Handle<i::SharedFunctionInfo>(i::JSFunction::cast(*obj)->shared());
-  }
-  return result;
+Local<UnboundScript> Script::GetUnboundScript() {
+  i::Handle<i::Object> obj = Utils::OpenHandle(this);
+  return ToApiHandle<UnboundScript>(
+      i::Handle<i::SharedFunctionInfo>(i::JSFunction::cast(*obj)->shared()));
 }
 
 
-int Script::GetId() {
-  i::Handle<i::HeapObject> obj =
-      i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
-  i::Isolate* isolate = obj->GetIsolate();
-  ON_BAILOUT(isolate, "v8::Script::Id()", return -1);
-  LOG_API(isolate, "Script::Id");
-  {
-    i::HandleScope scope(isolate);
-    i::Handle<i::SharedFunctionInfo> function_info = OpenScript(this);
-    i::Handle<i::Script> script(i::Script::cast(function_info->script()));
-    return script->id()->value();
+Local<UnboundScript> ScriptCompiler::CompileUnbound(
+    Isolate* v8_isolate,
+    Source* source,
+    CompileOptions options) {
+  i::ScriptDataImpl* script_data_impl = NULL;
+  i::CachedDataMode cached_data_mode = i::NO_CACHED_DATA;
+  if (options & kProduceDataToCache) {
+    cached_data_mode = i::PRODUCE_CACHED_DATA;
+    ASSERT(source->cached_data == NULL);
+    if (source->cached_data) {
+      // Asked to produce cached data even though there is some already -> not
+      // good. In release mode, try to do the right thing: Just regenerate the
+      // data.
+      delete source->cached_data;
+      source->cached_data = NULL;
+    }
+  } else if (source->cached_data) {
+    // FIXME(marja): Make compiler use CachedData directly. Aligning needs to be
+    // taken care of.
+    script_data_impl = static_cast<i::ScriptDataImpl*>(ScriptData::New(
+        reinterpret_cast<const char*>(source->cached_data->data),
+        source->cached_data->length));
+    // We assert that the pre-data is sane, even though we can actually
+    // handle it if it turns out not to be in release mode.
+    ASSERT(script_data_impl->SanityCheck());
+    if (script_data_impl->SanityCheck()) {
+      cached_data_mode = i::CONSUME_CACHED_DATA;
+    } else {
+      // If the pre-data isn't sane we simply ignore it.
+      delete script_data_impl;
+      script_data_impl = NULL;
+      delete source->cached_data;
+      source->cached_data = NULL;
+    }
   }
+
+  i::Handle<i::String> str = Utils::OpenHandle(*(source->source_string));
+  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(v8_isolate);
+  ON_BAILOUT(isolate, "v8::ScriptCompiler::CompileUnbound()",
+             return Local<UnboundScript>());
+  LOG_API(isolate, "ScriptCompiler::CompileUnbound");
+  ENTER_V8(isolate);
+  i::SharedFunctionInfo* raw_result = NULL;
+  { i::HandleScope scope(isolate);
+    i::Handle<i::Object> name_obj;
+    int line_offset = 0;
+    int column_offset = 0;
+    bool is_shared_cross_origin = false;
+    if (!source->resource_name.IsEmpty()) {
+      name_obj = Utils::OpenHandle(*(source->resource_name));
+    }
+    if (!source->resource_line_offset.IsEmpty()) {
+      line_offset = static_cast<int>(source->resource_line_offset->Value());
+    }
+    if (!source->resource_column_offset.IsEmpty()) {
+      column_offset =
+          static_cast<int>(source->resource_column_offset->Value());
+    }
+    if (!source->resource_is_shared_cross_origin.IsEmpty()) {
+      v8::Isolate* v8_isolate = reinterpret_cast<v8::Isolate*>(isolate);
+      is_shared_cross_origin =
+          source->resource_is_shared_cross_origin == v8::True(v8_isolate);
+    }
+    EXCEPTION_PREAMBLE(isolate);
+    i::Handle<i::SharedFunctionInfo> result =
+        i::Compiler::CompileScript(str,
+                                   name_obj,
+                                   line_offset,
+                                   column_offset,
+                                   is_shared_cross_origin,
+                                   isolate->global_context(),
+                                   NULL,
+                                   &script_data_impl,
+                                   cached_data_mode,
+                                   i::NOT_NATIVES_CODE);
+    has_pending_exception = result.is_null();
+    EXCEPTION_BAILOUT_CHECK(isolate, Local<UnboundScript>());
+    raw_result = *result;
+    if ((options & kProduceDataToCache) && script_data_impl != NULL) {
+      // script_data_impl now contains the data that was generated. source will
+      // take the ownership.
+      source->cached_data = new CachedData(
+          reinterpret_cast<const uint8_t*>(script_data_impl->Data()),
+          script_data_impl->Length(), CachedData::BufferOwned);
+      script_data_impl->owns_store_ = false;
+    }
+    delete script_data_impl;
+  }
+  i::Handle<i::SharedFunctionInfo> result(raw_result, isolate);
+  return ToApiHandle<UnboundScript>(result);
 }
 
 
-int Script::GetLineNumber(int code_pos) {
-  i::Handle<i::HeapObject> obj =
-      i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
-  i::Isolate* isolate = obj->GetIsolate();
-  ON_BAILOUT(isolate, "v8::Script::GetLineNumber()", return -1);
-  LOG_API(isolate, "Script::GetLineNumber");
-  if (obj->IsScript()) {
-    i::Handle<i::Script> script = i::Handle<i::Script>(i::Script::cast(*obj));
-    return i::GetScriptLineNumber(script, code_pos);
-  } else {
-    return -1;
-  }
+Local<Script> ScriptCompiler::Compile(
+    Isolate* v8_isolate,
+    Source* source,
+    CompileOptions options) {
+  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(v8_isolate);
+  ON_BAILOUT(isolate, "v8::ScriptCompiler::Compile()",
+             return Local<Script>());
+  LOG_API(isolate, "ScriptCompiler::CompiletBound()");
+  ENTER_V8(isolate);
+  Local<UnboundScript> generic =
+      CompileUnbound(v8_isolate, source, options);
+  if (generic.IsEmpty()) return Local<Script>();
+  return generic->BindToCurrentContext();
 }
 
 
-Handle<Value> Script::GetScriptName() {
-  i::Handle<i::HeapObject> obj =
-      i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
-  i::Isolate* isolate = obj->GetIsolate();
-  ON_BAILOUT(isolate, "v8::Script::GetName()", return Handle<String>());
-  LOG_API(isolate, "Script::GetName");
-  if (obj->IsScript()) {
-    i::Object* name = i::Script::cast(*obj)->name();
-    return Utils::ToLocal(i::Handle<i::Object>(name, isolate));
-  } else {
-    return Handle<String>();
+Local<Script> Script::Compile(v8::Handle<String> source,
+                              v8::ScriptOrigin* origin,
+                              ScriptData* script_data) {
+  i::Handle<i::String> str = Utils::OpenHandle(*source);
+  ScriptCompiler::CachedData* cached_data = NULL;
+  if (script_data) {
+    cached_data = new ScriptCompiler::CachedData(
+        reinterpret_cast<const uint8_t*>(script_data->Data()),
+        script_data->Length());
   }
+  if (origin) {
+    ScriptCompiler::Source script_source(source, *origin, cached_data);
+    return ScriptCompiler::Compile(
+        reinterpret_cast<v8::Isolate*>(str->GetIsolate()),
+        &script_source);
+  }
+  ScriptCompiler::Source script_source(source, cached_data);
+  return ScriptCompiler::Compile(
+      reinterpret_cast<v8::Isolate*>(str->GetIsolate()),
+      &script_source);
+}
+
+
+Local<Script> Script::Compile(v8::Handle<String> source,
+                              v8::Handle<String> file_name) {
+  ScriptOrigin origin(file_name);
+  return Compile(source, &origin);
 }
 
 
@@ -2118,9 +2203,10 @@ Local<StackFrame> StackTrace::GetFrame(uint32_t index) const {
   ENTER_V8(isolate);
   EscapableHandleScope scope(reinterpret_cast<Isolate*>(isolate));
   i::Handle<i::JSArray> self = Utils::OpenHandle(this);
-  i::Object* raw_object = self->GetElementNoExceptionThrown(isolate, index);
-  i::Handle<i::JSObject> obj(i::JSObject::cast(raw_object));
-  return scope.Escape(Utils::StackFrameToLocal(obj));
+  i::Handle<i::Object> obj =
+      i::Object::GetElementNoExceptionThrown(isolate, self, index);
+  i::Handle<i::JSObject> jsobj = i::Handle<i::JSObject>::cast(obj);
+  return scope.Escape(Utils::StackFrameToLocal(jsobj));
 }
 
 
@@ -2651,6 +2737,20 @@ void v8::Array::CheckCast(Value* that) {
 }
 
 
+void v8::Promise::CheckCast(Value* that) {
+  Utils::ApiCheck(that->IsPromise(),
+                  "v8::Promise::Cast()",
+                  "Could not convert to promise");
+}
+
+
+void v8::Promise::Resolver::CheckCast(Value* that) {
+  Utils::ApiCheck(that->IsPromise(),
+                  "v8::Promise::Resolver::Cast()",
+                  "Could not convert to promise resolver");
+}
+
+
 void v8::ArrayBuffer::CheckCast(Value* that) {
   i::Handle<i::Object> obj = Utils::OpenHandle(that);
   Utils::ApiCheck(obj->IsJSArrayBuffer(),
@@ -2988,7 +3088,7 @@ bool v8::Object::Set(v8::Handle<Value> key, v8::Handle<Value> value,
       key_obj,
       value_obj,
       static_cast<PropertyAttributes>(attribs),
-      i::kNonStrictMode);
+      i::SLOPPY);
   has_pending_exception = obj.is_null();
   EXCEPTION_BAILOUT_CHECK(isolate, false);
   return true;
@@ -3008,7 +3108,7 @@ bool v8::Object::Set(uint32_t index, v8::Handle<Value> value) {
       index,
       value_obj,
       NONE,
-      i::kNonStrictMode);
+      i::SLOPPY);
   has_pending_exception = obj.is_null();
   EXCEPTION_BAILOUT_CHECK(isolate, false);
   return true;
@@ -3113,7 +3213,8 @@ PropertyAttribute v8::Object::GetPropertyAttributes(v8::Handle<Value> key) {
     EXCEPTION_BAILOUT_CHECK(isolate, static_cast<PropertyAttribute>(NONE));
   }
   i::Handle<i::Name> key_name = i::Handle<i::Name>::cast(key_obj);
-  PropertyAttributes result = self->GetPropertyAttribute(*key_name);
+  PropertyAttributes result =
+      i::JSReceiver::GetPropertyAttribute(self, key_name);
   if (result == ABSENT) return static_cast<PropertyAttribute>(NONE);
   return static_cast<PropertyAttribute>(result);
 }
@@ -4021,7 +4122,9 @@ bool Function::IsBuiltin() const {
 
 int Function::ScriptId() const {
   i::Handle<i::JSFunction> func = Utils::OpenHandle(this);
-  if (!func->shared()->script()->IsScript()) return v8::Script::kNoScriptId;
+  if (!func->shared()->script()->IsScript()) {
+    return v8::UnboundScript::kNoScriptId;
+  }
   i::Handle<i::Script> script(i::Script::cast(func->shared()->script()));
   return script->id()->value();
 }
@@ -5373,6 +5476,8 @@ Local<String> v8::String::Concat(Handle<String> left, Handle<String> right) {
   i::Handle<i::String> right_string = Utils::OpenHandle(*right);
   i::Handle<i::String> result = isolate->factory()->NewConsString(left_string,
                                                                   right_string);
+  // We do not expect this to throw an exception. Change this if it does.
+  CHECK_NOT_EMPTY_HANDLE(isolate, result);
   return Utils::ToLocal(result);
 }
 
@@ -5731,6 +5836,130 @@ Local<Object> Array::CloneElementAt(uint32_t index) {
 }
 
 
+bool Value::IsPromise() const {
+  i::Handle<i::Object> val = Utils::OpenHandle(this);
+  if (!i::FLAG_harmony_promises || !val->IsJSObject()) return false;
+  i::Handle<i::JSObject> obj = i::Handle<i::JSObject>::cast(val);
+  i::Isolate* isolate = obj->GetIsolate();
+  LOG_API(isolate, "IsPromise");
+  ENTER_V8(isolate);
+  EXCEPTION_PREAMBLE(isolate);
+  i::Handle<i::Object> argv[] = { obj };
+  i::Handle<i::Object> b = i::Execution::Call(
+      isolate,
+      handle(
+          isolate->context()->global_object()->native_context()->is_promise()),
+      isolate->factory()->undefined_value(),
+      ARRAY_SIZE(argv), argv,
+      &has_pending_exception,
+      false);
+  EXCEPTION_BAILOUT_CHECK(isolate, false);
+  return b->BooleanValue();
+}
+
+
+Local<Promise::Resolver> Promise::Resolver::New(Isolate* v8_isolate) {
+  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(v8_isolate);
+  LOG_API(isolate, "Promise::Resolver::New");
+  ENTER_V8(isolate);
+  EXCEPTION_PREAMBLE(isolate);
+  i::Handle<i::Object> result = i::Execution::Call(
+      isolate,
+      handle(isolate->context()->global_object()->native_context()->
+             promise_create()),
+      isolate->factory()->undefined_value(),
+      0, NULL,
+      &has_pending_exception,
+      false);
+  EXCEPTION_BAILOUT_CHECK(isolate, Local<Promise::Resolver>());
+  return Local<Promise::Resolver>::Cast(Utils::ToLocal(result));
+}
+
+
+Local<Promise> Promise::Resolver::GetPromise() {
+  i::Handle<i::JSObject> promise = Utils::OpenHandle(this);
+  return Local<Promise>::Cast(Utils::ToLocal(promise));
+}
+
+
+void Promise::Resolver::Resolve(Handle<Value> value) {
+  i::Handle<i::JSObject> promise = Utils::OpenHandle(this);
+  i::Isolate* isolate = promise->GetIsolate();
+  LOG_API(isolate, "Promise::Resolver::Resolve");
+  ENTER_V8(isolate);
+  EXCEPTION_PREAMBLE(isolate);
+  i::Handle<i::Object> argv[] = { promise, Utils::OpenHandle(*value) };
+  i::Execution::Call(
+      isolate,
+      handle(isolate->context()->global_object()->native_context()->
+             promise_resolve()),
+      isolate->factory()->undefined_value(),
+      ARRAY_SIZE(argv), argv,
+      &has_pending_exception,
+      false);
+  EXCEPTION_BAILOUT_CHECK(isolate, /* void */ ;);
+}
+
+
+void Promise::Resolver::Reject(Handle<Value> value) {
+  i::Handle<i::JSObject> promise = Utils::OpenHandle(this);
+  i::Isolate* isolate = promise->GetIsolate();
+  LOG_API(isolate, "Promise::Resolver::Reject");
+  ENTER_V8(isolate);
+  EXCEPTION_PREAMBLE(isolate);
+  i::Handle<i::Object> argv[] = { promise, Utils::OpenHandle(*value) };
+  i::Execution::Call(
+      isolate,
+      handle(isolate->context()->global_object()->native_context()->
+             promise_reject()),
+      isolate->factory()->undefined_value(),
+      ARRAY_SIZE(argv), argv,
+      &has_pending_exception,
+      false);
+  EXCEPTION_BAILOUT_CHECK(isolate, /* void */ ;);
+}
+
+
+Local<Promise> Promise::Chain(Handle<Function> handler) {
+  i::Handle<i::JSObject> promise = Utils::OpenHandle(this);
+  i::Isolate* isolate = promise->GetIsolate();
+  LOG_API(isolate, "Promise::Chain");
+  ENTER_V8(isolate);
+  EXCEPTION_PREAMBLE(isolate);
+  i::Handle<i::Object> argv[] = { Utils::OpenHandle(*handler) };
+  i::Handle<i::Object> result = i::Execution::Call(
+      isolate,
+      handle(isolate->context()->global_object()->native_context()->
+             promise_chain()),
+      promise,
+      ARRAY_SIZE(argv), argv,
+      &has_pending_exception,
+      false);
+  EXCEPTION_BAILOUT_CHECK(isolate, Local<Promise>());
+  return Local<Promise>::Cast(Utils::ToLocal(result));
+}
+
+
+Local<Promise> Promise::Catch(Handle<Function> handler) {
+  i::Handle<i::JSObject> promise = Utils::OpenHandle(this);
+  i::Isolate* isolate = promise->GetIsolate();
+  LOG_API(isolate, "Promise::Catch");
+  ENTER_V8(isolate);
+  EXCEPTION_PREAMBLE(isolate);
+  i::Handle<i::Object> argv[] = { Utils::OpenHandle(*handler) };
+  i::Handle<i::Object> result = i::Execution::Call(
+      isolate,
+      handle(isolate->context()->global_object()->native_context()->
+             promise_catch()),
+      promise,
+      ARRAY_SIZE(argv), argv,
+      &has_pending_exception,
+      false);
+  EXCEPTION_BAILOUT_CHECK(isolate, Local<Promise>());
+  return Local<Promise>::Cast(Utils::ToLocal(result));
+}
+
+
 bool v8::ArrayBuffer::IsExternal() const {
   return Utils::OpenHandle(this)->is_external();
 }
@@ -5758,20 +5987,7 @@ void v8::ArrayBuffer::Neuter() {
                   "Only externalized ArrayBuffers can be neutered");
   LOG_API(obj->GetIsolate(), "v8::ArrayBuffer::Neuter()");
   ENTER_V8(isolate);
-
-  for (i::Handle<i::Object> view_obj(obj->weak_first_view(), isolate);
-       !view_obj->IsUndefined();) {
-    i::Handle<i::JSArrayBufferView> view(i::JSArrayBufferView::cast(*view_obj));
-    if (view->IsJSTypedArray()) {
-      i::JSTypedArray::cast(*view)->Neuter();
-    } else if (view->IsJSDataView()) {
-      i::JSDataView::cast(*view)->Neuter();
-    } else {
-      UNREACHABLE();
-    }
-    view_obj = i::handle(view->weak_next(), isolate);
-  }
-  obj->Neuter();
+  i::Runtime::NeuterArrayBuffer(obj);
 }
 
 
@@ -6349,6 +6565,47 @@ void Isolate::Exit() {
 }
 
 
+Isolate::DisallowJavascriptExecutionScope::DisallowJavascriptExecutionScope(
+    Isolate* isolate,
+    Isolate::DisallowJavascriptExecutionScope::OnFailure on_failure)
+    : on_failure_(on_failure) {
+  i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
+  if (on_failure_ == CRASH_ON_FAILURE) {
+    internal_ = reinterpret_cast<void*>(
+        new i::DisallowJavascriptExecution(i_isolate));
+  } else {
+    ASSERT_EQ(THROW_ON_FAILURE, on_failure);
+    internal_ = reinterpret_cast<void*>(
+        new i::ThrowOnJavascriptExecution(i_isolate));
+  }
+}
+
+
+Isolate::DisallowJavascriptExecutionScope::~DisallowJavascriptExecutionScope() {
+  if (on_failure_ == CRASH_ON_FAILURE) {
+    delete reinterpret_cast<i::DisallowJavascriptExecution*>(internal_);
+  } else {
+    delete reinterpret_cast<i::ThrowOnJavascriptExecution*>(internal_);
+  }
+}
+
+
+Isolate::AllowJavascriptExecutionScope::AllowJavascriptExecutionScope(
+    Isolate* isolate) {
+  i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
+  internal_assert_ = reinterpret_cast<void*>(
+      new i::AllowJavascriptExecution(i_isolate));
+  internal_throws_ = reinterpret_cast<void*>(
+      new i::NoThrowOnJavascriptExecution(i_isolate));
+}
+
+
+Isolate::AllowJavascriptExecutionScope::~AllowJavascriptExecutionScope() {
+  delete reinterpret_cast<i::AllowJavascriptExecution*>(internal_assert_);
+  delete reinterpret_cast<i::NoThrowOnJavascriptExecution*>(internal_throws_);
+}
+
+
 void Isolate::GetHeapStatistics(HeapStatistics* heap_statistics) {
   i::Isolate* isolate = reinterpret_cast<i::Isolate*>(this);
   if (!isolate->IsInitialized()) {
@@ -6712,9 +6969,12 @@ Handle<String> CpuProfileNode::GetFunctionName() const {
     return ToApiHandle<String>(
         isolate->factory()->InternalizeUtf8String(entry->name()));
   } else {
-    return ToApiHandle<String>(isolate->factory()->NewConsString(
+    i::Handle<i::String> cons = isolate->factory()->NewConsString(
         isolate->factory()->InternalizeUtf8String(entry->name_prefix()),
-        isolate->factory()->InternalizeUtf8String(entry->name())));
+        isolate->factory()->InternalizeUtf8String(entry->name()));
+    // We do not expect this to throw an exception. Change this if it does.
+    CHECK_NOT_EMPTY_HANDLE(isolate, cons);
+    return ToApiHandle<String>(cons);
   }
 }
 
@@ -6830,16 +7090,26 @@ void CpuProfiler::SetSamplingInterval(int us) {
 }
 
 
-void CpuProfiler::StartCpuProfiling(Handle<String> title, bool record_samples) {
+void CpuProfiler::StartProfiling(Handle<String> title, bool record_samples) {
   reinterpret_cast<i::CpuProfiler*>(this)->StartProfiling(
       *Utils::OpenHandle(*title), record_samples);
 }
 
 
-const CpuProfile* CpuProfiler::StopCpuProfiling(Handle<String> title) {
-  return reinterpret_cast<const CpuProfile*>(
+void CpuProfiler::StartCpuProfiling(Handle<String> title, bool record_samples) {
+  StartProfiling(title, record_samples);
+}
+
+
+CpuProfile* CpuProfiler::StopProfiling(Handle<String> title) {
+  return reinterpret_cast<CpuProfile*>(
       reinterpret_cast<i::CpuProfiler*>(this)->StopProfiling(
           *Utils::OpenHandle(*title)));
+}
+
+
+const CpuProfile* CpuProfiler::StopCpuProfiling(Handle<String> title) {
+  return StopProfiling(title);
 }
 
 
@@ -7007,9 +7277,6 @@ void HeapSnapshot::Serialize(OutputStream* stream,
   Utils::ApiCheck(format == kJSON,
                   "v8::HeapSnapshot::Serialize",
                   "Unknown serialization format");
-  Utils::ApiCheck(stream->GetOutputEncoding() == OutputStream::kAscii,
-                  "v8::HeapSnapshot::Serialize",
-                  "Unsupported output encoding");
   Utils::ApiCheck(stream->GetChunkSize() > 0,
                   "v8::HeapSnapshot::Serialize",
                   "Invalid stream chunk size");

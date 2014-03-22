@@ -468,7 +468,7 @@ void KeyedLoadIC::GenerateGeneric(MacroAssembler* masm) {
     __ LoadAddress(kScratchRegister, cache_field_offsets);
     __ movl(rdi, Operand(kScratchRegister, rcx, times_4, 0));
     __ movzxbq(rcx, FieldOperand(rbx, Map::kInObjectPropertiesOffset));
-    __ subq(rdi, rcx);
+    __ subp(rdi, rcx);
     __ j(above_equal, &property_array_property);
     if (i != 0) {
       __ jmp(&load_in_object_property);
@@ -478,7 +478,7 @@ void KeyedLoadIC::GenerateGeneric(MacroAssembler* masm) {
   // Load in-object property.
   __ bind(&load_in_object_property);
   __ movzxbq(rcx, FieldOperand(rbx, Map::kInstanceSizeOffset));
-  __ addq(rcx, rdi);
+  __ addp(rcx, rdi);
   __ movp(rax, FieldOperand(rdx, rcx, times_pointer_size, 0));
   __ IncrementCounter(counters->keyed_load_generic_lookup_cache(), 1);
   __ ret(0);
@@ -571,8 +571,8 @@ void KeyedLoadIC::GenerateIndexedInterceptor(MacroAssembler* masm) {
 
   // Everything is fine, call runtime.
   __ PopReturnAddressTo(rcx);
-  __ push(rdx);  // receiver
-  __ push(rax);  // key
+  __ Push(rdx);  // receiver
+  __ Push(rax);  // key
   __ PushReturnAddressFrom(rcx);
 
   // Perform tail call to the entry.
@@ -734,7 +734,7 @@ static void KeyedStoreGenerateGenericHelper(
 
 
 void KeyedStoreIC::GenerateGeneric(MacroAssembler* masm,
-                                   StrictModeFlag strict_mode) {
+                                   StrictMode strict_mode) {
   // ----------- S t a t e -------------
   //  -- rax    : value
   //  -- rcx    : key
@@ -852,7 +852,7 @@ static Operand GenerateMappedArgumentsLookup(MacroAssembler* masm,
 
   // Load the elements into scratch1 and check its map. If not, jump
   // to the unmapped lookup with the parameter map in scratch1.
-  Handle<Map> arguments_map(heap->non_strict_arguments_elements_map());
+  Handle<Map> arguments_map(heap->sloppy_arguments_elements_map());
   __ movp(scratch1, FieldOperand(object, JSObject::kElementsOffset));
   __ CheckMap(scratch1, arguments_map, slow_case, DONT_DO_SMI_CHECK);
 
@@ -909,7 +909,7 @@ static Operand GenerateUnmappedArgumentsLookup(MacroAssembler* masm,
 }
 
 
-void KeyedLoadIC::GenerateNonStrictArguments(MacroAssembler* masm) {
+void KeyedLoadIC::GenerateSloppyArguments(MacroAssembler* masm) {
   // ----------- S t a t e -------------
   //  -- rax    : key
   //  -- rdx    : receiver
@@ -934,7 +934,7 @@ void KeyedLoadIC::GenerateNonStrictArguments(MacroAssembler* masm) {
 }
 
 
-void KeyedStoreIC::GenerateNonStrictArguments(MacroAssembler* masm) {
+void KeyedStoreIC::GenerateSloppyArguments(MacroAssembler* masm) {
   // ----------- S t a t e -------------
   //  -- rax    : value
   //  -- rcx    : key
@@ -1021,8 +1021,8 @@ void LoadIC::GenerateMiss(MacroAssembler* masm) {
   __ IncrementCounter(counters->load_miss(), 1);
 
   __ PopReturnAddressTo(rbx);
-  __ push(rax);  // receiver
-  __ push(rcx);  // name
+  __ Push(rax);  // receiver
+  __ Push(rcx);  // name
   __ PushReturnAddressFrom(rbx);
 
   // Perform tail call to the entry.
@@ -1040,8 +1040,8 @@ void LoadIC::GenerateRuntimeGetProperty(MacroAssembler* masm) {
   // -----------------------------------
 
   __ PopReturnAddressTo(rbx);
-  __ push(rax);  // receiver
-  __ push(rcx);  // name
+  __ Push(rax);  // receiver
+  __ Push(rcx);  // name
   __ PushReturnAddressFrom(rbx);
 
   // Perform tail call to the entry.
@@ -1060,8 +1060,8 @@ void KeyedLoadIC::GenerateMiss(MacroAssembler* masm) {
   __ IncrementCounter(counters->keyed_load_miss(), 1);
 
   __ PopReturnAddressTo(rbx);
-  __ push(rdx);  // receiver
-  __ push(rax);  // name
+  __ Push(rdx);  // receiver
+  __ Push(rax);  // name
   __ PushReturnAddressFrom(rbx);
 
   // Perform tail call to the entry.
@@ -1079,8 +1079,8 @@ void KeyedLoadIC::GenerateRuntimeGetProperty(MacroAssembler* masm) {
   // -----------------------------------
 
   __ PopReturnAddressTo(rbx);
-  __ push(rdx);  // receiver
-  __ push(rax);  // name
+  __ Push(rdx);  // receiver
+  __ Push(rax);  // name
   __ PushReturnAddressFrom(rbx);
 
   // Perform tail call to the entry.
@@ -1115,9 +1115,9 @@ void StoreIC::GenerateMiss(MacroAssembler* masm) {
   // -----------------------------------
 
   __ PopReturnAddressTo(rbx);
-  __ push(rdx);  // receiver
-  __ push(rcx);  // name
-  __ push(rax);  // value
+  __ Push(rdx);  // receiver
+  __ Push(rcx);  // name
+  __ Push(rax);  // value
   __ PushReturnAddressFrom(rbx);
 
   // Perform tail call to the entry.
@@ -1151,7 +1151,7 @@ void StoreIC::GenerateNormal(MacroAssembler* masm) {
 
 
 void StoreIC::GenerateRuntimeSetProperty(MacroAssembler* masm,
-                                         StrictModeFlag strict_mode) {
+                                         StrictMode strict_mode) {
   // ----------- S t a t e -------------
   //  -- rax    : value
   //  -- rcx    : name
@@ -1159,9 +1159,9 @@ void StoreIC::GenerateRuntimeSetProperty(MacroAssembler* masm,
   //  -- rsp[0] : return address
   // -----------------------------------
   __ PopReturnAddressTo(rbx);
-  __ push(rdx);
-  __ push(rcx);
-  __ push(rax);
+  __ Push(rdx);
+  __ Push(rcx);
+  __ Push(rax);
   __ Push(Smi::FromInt(NONE));  // PropertyAttributes
   __ Push(Smi::FromInt(strict_mode));
   __ PushReturnAddressFrom(rbx);
@@ -1172,7 +1172,7 @@ void StoreIC::GenerateRuntimeSetProperty(MacroAssembler* masm,
 
 
 void KeyedStoreIC::GenerateRuntimeSetProperty(MacroAssembler* masm,
-                                              StrictModeFlag strict_mode) {
+                                              StrictMode strict_mode) {
   // ----------- S t a t e -------------
   //  -- rax    : value
   //  -- rcx    : key
@@ -1181,9 +1181,9 @@ void KeyedStoreIC::GenerateRuntimeSetProperty(MacroAssembler* masm,
   // -----------------------------------
 
   __ PopReturnAddressTo(rbx);
-  __ push(rdx);  // receiver
-  __ push(rcx);  // key
-  __ push(rax);  // value
+  __ Push(rdx);  // receiver
+  __ Push(rcx);  // key
+  __ Push(rax);  // value
   __ Push(Smi::FromInt(NONE));          // PropertyAttributes
   __ Push(Smi::FromInt(strict_mode));   // Strict mode.
   __ PushReturnAddressFrom(rbx);
@@ -1202,9 +1202,9 @@ void StoreIC::GenerateSlow(MacroAssembler* masm) {
   // -----------------------------------
 
   __ PopReturnAddressTo(rbx);
-  __ push(rdx);  // receiver
-  __ push(rcx);  // key
-  __ push(rax);  // value
+  __ Push(rdx);  // receiver
+  __ Push(rcx);  // key
+  __ Push(rax);  // value
   __ PushReturnAddressFrom(rbx);
 
   // Do tail-call to runtime routine.
@@ -1222,9 +1222,9 @@ void KeyedStoreIC::GenerateSlow(MacroAssembler* masm) {
   // -----------------------------------
 
   __ PopReturnAddressTo(rbx);
-  __ push(rdx);  // receiver
-  __ push(rcx);  // key
-  __ push(rax);  // value
+  __ Push(rdx);  // receiver
+  __ Push(rcx);  // key
+  __ Push(rax);  // value
   __ PushReturnAddressFrom(rbx);
 
   // Do tail-call to runtime routine.
@@ -1242,9 +1242,9 @@ void KeyedStoreIC::GenerateMiss(MacroAssembler* masm) {
   // -----------------------------------
 
   __ PopReturnAddressTo(rbx);
-  __ push(rdx);  // receiver
-  __ push(rcx);  // key
-  __ push(rax);  // value
+  __ Push(rdx);  // receiver
+  __ Push(rcx);  // key
+  __ Push(rax);  // value
   __ PushReturnAddressFrom(rbx);
 
   // Do tail-call to runtime routine.

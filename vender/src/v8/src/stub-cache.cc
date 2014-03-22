@@ -222,7 +222,7 @@ Handle<Code> StubCache::ComputeKeyedLoadElement(Handle<Map> receiver_map) {
 
 Handle<Code> StubCache::ComputeKeyedStoreElement(
     Handle<Map> receiver_map,
-    StrictModeFlag strict_mode,
+    StrictMode strict_mode,
     KeyedAccessStoreMode store_mode) {
   ExtraICState extra_state =
       KeyedStoreIC::ComputeExtraICState(strict_mode, store_mode);
@@ -333,8 +333,9 @@ Handle<Code> StubCache::ComputeCompareNil(Handle<Map> receiver_map,
     if (!cached_ic.is_null()) return cached_ic;
   }
 
-  Handle<Code> ic = stub.GetCodeCopyFromTemplate(isolate_);
-  ic->ReplaceNthObject(1, isolate_->heap()->meta_map(), *receiver_map);
+  Code::FindAndReplacePattern pattern;
+  pattern.Add(isolate_->factory()->meta_map(), receiver_map);
+  Handle<Code> ic = stub.GetCodeCopy(isolate_, pattern);
 
   if (!receiver_map->is_shared()) {
     Map::UpdateCodeCache(receiver_map, name, ic);
@@ -396,7 +397,7 @@ Handle<Code> StubCache::ComputePolymorphicIC(
 Handle<Code> StubCache::ComputeStoreElementPolymorphic(
     MapHandleList* receiver_maps,
     KeyedAccessStoreMode store_mode,
-    StrictModeFlag strict_mode) {
+    StrictMode strict_mode) {
   ASSERT(store_mode == STANDARD_STORE ||
          store_mode == STORE_AND_GROW_NO_TRANSITION ||
          store_mode == STORE_NO_TRANSITION_IGNORE_OUT_OF_BOUNDS ||
@@ -722,7 +723,7 @@ Handle<Code> StubCompiler::CompileStorePreMonomorphic(Code::Flags flags) {
 
 Handle<Code> StubCompiler::CompileStoreGeneric(Code::Flags flags) {
   ExtraICState extra_state = Code::ExtractExtraICStateFromFlags(flags);
-  StrictModeFlag strict_mode = StoreIC::GetStrictMode(extra_state);
+  StrictMode strict_mode = StoreIC::GetStrictMode(extra_state);
   StoreIC::GenerateRuntimeSetProperty(masm(), strict_mode);
   Handle<Code> code = GetCodeWithFlags(flags, "CompileStoreGeneric");
   PROFILE(isolate(),
@@ -1118,6 +1119,30 @@ Handle<Code> StoreStubCompiler::CompileStoreField(Handle<JSObject> object,
 }
 
 
+Handle<Code> StoreStubCompiler::CompileStoreArrayLength(Handle<JSObject> object,
+                                                        LookupResult* lookup,
+                                                        Handle<Name> name) {
+  // This accepts as a receiver anything JSArray::SetElementsLength accepts
+  // (currently anything except for external arrays which means anything with
+  // elements of FixedArray type).  Value must be a number, but only smis are
+  // accepted as the most common case.
+  Label miss;
+
+  // Check that value is a smi.
+  __ JumpIfNotSmi(value(), &miss);
+
+  // Generate tail call to StoreIC_ArrayLength.
+  GenerateStoreArrayLength();
+
+  // Handle miss case.
+  __ bind(&miss);
+  TailCallBuiltin(masm(), MissBuiltin(kind()));
+
+  // Return the generated code.
+  return GetCode(kind(), Code::FAST, name);
+}
+
+
 Handle<Code> StoreStubCompiler::CompileStoreViaSetter(
     Handle<JSObject> object,
     Handle<JSObject> holder,
@@ -1281,6 +1306,8 @@ void KeyedLoadStubCompiler::CompileElementHandlers(MapHandleList* receiver_maps,
         cached_stub =
             KeyedLoadFastElementStub(is_js_array,
                                      elements_kind).GetCode(isolate());
+      } else if (elements_kind == SLOPPY_ARGUMENTS_ELEMENTS) {
+        cached_stub = isolate()->builtins()->KeyedLoadIC_SloppyArguments();
       } else {
         ASSERT(elements_kind == DICTIONARY_ELEMENTS);
         cached_stub = KeyedLoadDictionaryElementStub().GetCode(isolate());

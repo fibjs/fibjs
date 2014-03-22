@@ -227,6 +227,10 @@ static void VerifyEvacuation(NewSpace* space) {
 
 
 static void VerifyEvacuation(PagedSpace* space) {
+  // TODO(hpayer): Bring back VerifyEvacuation for parallel-concurrently
+  // swept pages.
+  if ((FLAG_concurrent_sweeping || FLAG_parallel_sweeping) &&
+      space->was_swept_conservatively()) return;
   PageIterator it(space);
 
   while (it.has_next()) {
@@ -660,15 +664,17 @@ bool MarkCompactCollector::IsConcurrentSweepingInProgress() {
 }
 
 
-bool Marking::TransferMark(Address old_start, Address new_start) {
+void Marking::TransferMark(Address old_start, Address new_start) {
   // This is only used when resizing an object.
   ASSERT(MemoryChunk::FromAddress(old_start) ==
          MemoryChunk::FromAddress(new_start));
 
+  if (!heap_->incremental_marking()->IsMarking()) return;
+
   // If the mark doesn't move, we don't check the color of the object.
   // It doesn't matter whether the object is black, since it hasn't changed
   // size, so the adjustment to the live data count will be zero anyway.
-  if (old_start == new_start) return false;
+  if (old_start == new_start) return;
 
   MarkBit new_mark_bit = MarkBitFrom(new_start);
   MarkBit old_mark_bit = MarkBitFrom(old_start);
@@ -681,9 +687,8 @@ bool Marking::TransferMark(Address old_start, Address new_start) {
     old_mark_bit.Clear();
     ASSERT(IsWhite(old_mark_bit));
     Marking::MarkBlack(new_mark_bit);
-    return true;
+    return;
   } else if (Marking::IsGrey(old_mark_bit)) {
-    ASSERT(heap_->incremental_marking()->IsMarking());
     old_mark_bit.Clear();
     old_mark_bit.Next().Clear();
     ASSERT(IsWhite(old_mark_bit));
@@ -696,8 +701,6 @@ bool Marking::TransferMark(Address old_start, Address new_start) {
   ObjectColor new_color = Color(new_mark_bit);
   ASSERT(new_color == old_color);
 #endif
-
-  return false;
 }
 
 
@@ -3046,7 +3049,7 @@ void MarkCompactCollector::EvacuateNewSpace() {
   // There are soft limits in the allocation code, designed trigger a mark
   // sweep collection by failing allocations.  But since we are already in
   // a mark-sweep allocation, there is no sense in trying to trigger one.
-  AlwaysAllocateScope scope;
+  AlwaysAllocateScope scope(isolate());
   heap()->CheckNewSpaceExpansionCriteria();
 
   NewSpace* new_space = heap()->new_space();
@@ -3078,7 +3081,7 @@ void MarkCompactCollector::EvacuateNewSpace() {
 
 
 void MarkCompactCollector::EvacuateLiveObjectsFromPage(Page* p) {
-  AlwaysAllocateScope always_allocate;
+  AlwaysAllocateScope always_allocate(isolate());
   PagedSpace* space = static_cast<PagedSpace*>(p->owner());
   ASSERT(p->IsEvacuationCandidate() && !p->WasSwept());
   p->MarkSweptPrecisely();
@@ -4240,20 +4243,22 @@ void MarkCompactCollector::SweepSpaces() {
   // the map space last because freeing non-live maps overwrites them and
   // the other spaces rely on possibly non-live maps to get the sizes for
   // non-live objects.
-  SequentialSweepingScope scope(this);
-  SweepSpace(heap()->old_pointer_space(), how_to_sweep);
-  SweepSpace(heap()->old_data_space(), how_to_sweep);
+  { GCTracer::Scope sweep_scope(tracer_, GCTracer::Scope::MC_SWEEP_OLDSPACE);
+    { SequentialSweepingScope scope(this);
+      SweepSpace(heap()->old_pointer_space(), how_to_sweep);
+      SweepSpace(heap()->old_data_space(), how_to_sweep);
+    }
 
-  if (how_to_sweep == PARALLEL_CONSERVATIVE ||
-      how_to_sweep == CONCURRENT_CONSERVATIVE) {
-    // TODO(hpayer): fix race with concurrent sweeper
-    StartSweeperThreads();
+    if (how_to_sweep == PARALLEL_CONSERVATIVE ||
+        how_to_sweep == CONCURRENT_CONSERVATIVE) {
+      // TODO(hpayer): fix race with concurrent sweeper
+      StartSweeperThreads();
+    }
+
+    if (how_to_sweep == PARALLEL_CONSERVATIVE) {
+      WaitUntilSweepingCompleted();
+    }
   }
-
-  if (how_to_sweep == PARALLEL_CONSERVATIVE) {
-    WaitUntilSweepingCompleted();
-  }
-
   RemoveDeadInvalidatedCode();
   SweepSpace(heap()->code_space(), PRECISE);
 

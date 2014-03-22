@@ -378,7 +378,7 @@ void JSObject::PrintElements(FILE* out) {
     case DICTIONARY_ELEMENTS:
       elements()->Print(out);
       break;
-    case NON_STRICT_ARGUMENTS_ELEMENTS: {
+    case SLOPPY_ARGUMENTS_ELEMENTS: {
       FixedArray* p = FixedArray::cast(elements());
       PrintF(out, "   parameter map:");
       for (int i = 2; i < p->length(); i++) {
@@ -566,6 +566,8 @@ void TypeFeedbackInfo::TypeFeedbackInfoPrint(FILE* out) {
   HeapObject::PrintHeader(out, "TypeFeedbackInfo");
   PrintF(out, " - ic_total_count: %d, ic_with_type_info_count: %d\n",
          ic_total_count(), ic_with_type_info_count());
+  PrintF(out, " - feedback_vector: ");
+  feedback_vector()->FixedArrayPrint(out);
 }
 
 
@@ -879,8 +881,6 @@ void SharedFunctionInfo::SharedFunctionInfoPrint(FILE* out) {
   PrintF(out, "\n - length = %d", length());
   PrintF(out, "\n - optimized_code_map = ");
   optimized_code_map()->ShortPrint(out);
-  PrintF(out, "\n - feedback_vector = ");
-  feedback_vector()->FixedArrayPrint(out);
   PrintF(out, "\n");
 }
 
