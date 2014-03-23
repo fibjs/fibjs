@@ -1,14 +1,14 @@
-###on ubuntu: 
+### on ubuntu: 
 	apt-get install g++ 
 	apt-get install make 
 	apt-get install cmake 
 	apt-get install subversion
 
-###32bit on ubuntu: 
+### 32bit on ubuntu: 
 	apt-get install g++-multilib
 
 ---------------------------------- 
-###on fedora: 
+### on fedora: 
 	yum install gcc-c++ 
 	yum install libstdc++-static 
 	yum install make 
@@ -16,15 +16,15 @@
 	yum install subversion
 
 ---------------------------------- 
-###on osx: 
+### on osx: 
 	brew install cmake
 
 ---------------------------------- 
-###on freebsd: 
+### on freebsd: 
 	pkg_add -r cmake 
 	pkg_add -r subversion 
 	pkg_add -r libexecinfo
 
 ---------------------------------- 
-###build: 
+### build: 
 	sh build
