@@ -1,6 +1,4 @@
-/**
- *
- */
+#!/bin/fibjs
 
 var txt = [];
 
