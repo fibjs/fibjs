@@ -25,13 +25,6 @@
 
 MONGO_EXTERN_C_START
 
-#if !defined(MONGO_ENV_STANDARD) && (defined(__APPLE__) || defined(__linux) || defined(__unix) || defined(__posix))
-  typedef int SOCKET;
-#else
-  typedef size_t SOCKET; /* Defined socket as size_t to avoid coupling here with Winsock header files. It creates other issues in other files because
-                            of redefined types that are used on .c files */
-#endif
-
 #define MONGO_MAJOR 0
 #define MONGO_MINOR 7
 #define MONGO_PATCH 0
