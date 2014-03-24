@@ -102,9 +102,6 @@
     <ClCompile Include="src\Socket_iocp.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\zmqSocket.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
     <ClCompile Include="src\Stream.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
@@ -424,15 +421,6 @@
     </ClInclude>
     <ClInclude Include="include\Trigger.h">
       <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\zmq.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zmqSocket.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\zmqSocket.h">
-      <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\Stream.h">
       <Filter>Header Files\include</Filter>

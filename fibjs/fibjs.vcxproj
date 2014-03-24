@@ -115,7 +115,6 @@
     <ClCompile Include="src\uuidVar.cpp" />
     <ClCompile Include="src\Variant.cpp" />
     <ClCompile Include="src\zlib.cpp" />
-    <ClCompile Include="src\zmqSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\vender\vender.vcxproj">
@@ -233,8 +232,6 @@
     <ClInclude Include="include\ifs\uuidValue.h" />
     <ClInclude Include="include\ifs\vm.h" />
     <ClInclude Include="include\ifs\zlib.h" />
-    <ClInclude Include="include\ifs\zmq.h" />
-    <ClInclude Include="include\ifs\zmqSocket.h" />
     <ClInclude Include="include\Image.h" />
     <ClInclude Include="include\inetAddr.h" />
     <ClInclude Include="include\JSHandler.h" />
@@ -279,7 +276,6 @@
     <ClInclude Include="include\utils.h" />
     <ClInclude Include="include\uuidVar.h" />
     <ClInclude Include="include\Variant.h" />
-    <ClInclude Include="include\zmqSocket.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl" />

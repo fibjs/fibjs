@@ -5,7 +5,6 @@
 #include <sstream>
 #include <log4cpp/Category.hh>
 #include "utf8.h"
-#include <zmq/zmq.h>
 
 namespace fibjs
 {
@@ -85,9 +84,6 @@ std::string getResultMessage(result_t hr)
         return fmtString(hr, s_errors[CALL_E_MAX - hr]);
 
     hr = -hr;
-
-    if (hr > ZMQ_HAUSNUMERO)
-        return fmtString(hr, zmq_strerror(hr));
 
 #ifdef _WIN32
     WCHAR MsgBuf[1024];

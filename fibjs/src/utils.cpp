@@ -16,7 +16,6 @@
 #include <pcre.h>
 #include <tiffvers.h>
 #include <mongo/mongo.h>
-#include <zmq/zmq.h>
 
 namespace fibjs
 {
@@ -64,8 +63,6 @@ result_t utils_base::buildInfo(v8::Local<v8::Object> &retVal)
         vender->Set(v8::String::NewFromUtf8(isolate, "uuid"), v8::String::NewFromUtf8(isolate, "1.6.2"));
         vender->Set(v8::String::NewFromUtf8(isolate, "v8"), v8::String::NewFromUtf8(isolate, v8::V8::GetVersion()));
         vender->Set(v8::String::NewFromUtf8(isolate, "zlib"), v8::String::NewFromUtf8(isolate, ZLIB_VERSION));
-        vender->Set(v8::String::NewFromUtf8(isolate, "zmq"), v8::String::NewFromUtf8(isolate,
-                    STR(ZMQ_VERSION_MAJOR) "." STR(ZMQ_VERSION_MINOR)));
     }
 
     return 0;
