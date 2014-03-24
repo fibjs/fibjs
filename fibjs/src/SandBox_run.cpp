@@ -89,21 +89,6 @@ inline std::string resolvePath(const char *id)
     return fname;
 }
 
-inline result_t compileScript(const char *fname, std::string &buf,
-                              v8::Local<v8::Script> &script)
-{
-    v8::TryCatch try_catch;
-
-    script = v8::Script::Compile(
-                 v8::String::NewFromUtf8(isolate, buf.c_str(),
-                                         v8::String::kNormalString, (int) buf.length()),
-                 v8::String::NewFromUtf8(isolate, fname));
-    if (script.IsEmpty())
-        return throwSyntaxError(try_catch);
-
-    return 0;
-}
-
 void _define(const v8::FunctionCallbackInfo<v8::Value> &args);
 result_t doDefine(v8::Local<v8::Object> &mod);
 
@@ -268,10 +253,6 @@ result_t SandBox::run(const char *fname)
 {
     std::string sfname = resolvePath(fname);
 
-    // add .js ext name if not exists
-    if (sfname.length() <= 3 || qstrcmp(&sfname[sfname.length() - 3], ".js"))
-        sfname += ".js";
-
     result_t hr;
     const char *pname = sfname.c_str();
 
@@ -284,9 +265,16 @@ result_t SandBox::run(const char *fname)
     v8::Context::Scope context_scope(context);
 
     v8::Local<v8::Script> script;
-    hr = compileScript(sfname.c_str(), buf, script);
-    if (hr < 0)
-        return hr;
+    {
+        v8::TryCatch try_catch;
+
+        script = v8::Script::Compile(
+                     v8::String::NewFromUtf8(isolate, buf.c_str(),
+                                             v8::String::kNormalString, (int) buf.length()),
+                     v8::String::NewFromUtf8(isolate, pname));
+        if (script.IsEmpty())
+            return throwSyntaxError(try_catch);
+    }
 
     v8::Local<v8::Object> glob = context->Global();
     v8::Local<v8::Object> mod;

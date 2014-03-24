@@ -9,7 +9,7 @@ var s;
 
 describe('fiber', function() {
 	it("execPath", function() {
-		cmd = process.execPath + ' exec_test';
+		cmd = process.execPath + ' exec_test.js';
 	});
 
 	it("exec", function() {

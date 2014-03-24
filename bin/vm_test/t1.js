@@ -9,7 +9,7 @@ assert.equal(1000, b.a);
 b.a = 2000;
 
 function fun() {
-	run('./t2');
+	run('./t2.js');
 }
 
 fun();
