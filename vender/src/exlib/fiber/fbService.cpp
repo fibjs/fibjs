@@ -124,6 +124,48 @@ bool Service::hasService()
 	return !!FastThreadLocal(keyService);
 }
 
+#elif defined(OpenBSD)
+
+static pthread_key_t keyService;
+static pthread_once_t once = PTHREAD_ONCE_INIT;
+
+static void once_run(void)
+{
+	pthread_key_create(&keyService, NULL);
+}
+
+Service* Service::getFiberService()
+{
+	pthread_once(&once, once_run);
+
+	Service* pService = (Service*) pthread_getspecific(keyService);
+
+	if (pService == NULL && s_bRootThread)
+	{
+		s_bRootThread = false;
+		pService = new Service();
+		pthread_setspecific(keyService, pService);
+	}
+
+	return pService;
+}
+
+void Service::init()
+{
+	Service* pService = (Service*) pthread_getspecific(keyService);
+
+	if (pService == NULL)
+	{
+		pService = new Service();
+		pthread_setspecific(keyService, pService);
+	}
+}
+
+bool Service::hasService()
+{
+	return !!pthread_getspecific(keyService);
+}
+
 #else
 
 #if defined(_MSC_VER)
