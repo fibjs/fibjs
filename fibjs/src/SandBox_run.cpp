@@ -268,6 +268,9 @@ result_t SandBox::run(const char *fname)
     {
         v8::TryCatch try_catch;
 
+        if (buf[0] == '#' && buf[1] == '!')
+            buf = "//" + buf;
+
         script = v8::Script::Compile(
                      v8::String::NewFromUtf8(isolate, buf.c_str(),
                                              v8::String::kNormalString, (int) buf.length()),
