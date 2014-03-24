@@ -81,6 +81,22 @@ void Runtime::reg(Runtime *rt)
     pthread_setspecific(keyRuntime, rt);
 }
 
+#elif defined(OpenBSD)
+
+static pthread_key_t keyRuntime;
+static pthread_once_t once = PTHREAD_ONCE_INIT;
+
+static void once_run(void)
+{
+        pthread_key_create(&keyRuntime, NULL);
+}
+
+void Runtime::reg(Runtime *rt)
+{
+    pthread_once(&once, once_run);
+    pthread_setspecific(keyRuntime, rt);
+}
+
 #else
 
 #if defined(_MSC_VER)
@@ -105,9 +121,12 @@ Runtime &Runtime::now()
 
 #ifdef MacOS
     return *(Runtime *) FastThreadLocal(keyRuntime);
+#elif defined(OpenBSD)
+    return *(Runtime *) pthread_getspecific(keyRuntime);
 #else
     return *th_rt;
 #endif
 }
 
 } /* namespace fibjs */
+
