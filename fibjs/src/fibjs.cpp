@@ -248,9 +248,7 @@ void _main(const char *fname)
         obj_ptr<SandBox> sbox = new SandBox();
 
         sbox->initRoot();
-        result_t hr = sbox->run(fname);
-        if (hr != -2 || qstrcmp(fname, "main.js"))
-            s.m_hr = hr;
+        s.m_hr = sbox->run(fname);
     }
 
     process_base::exit(0);
@@ -376,8 +374,6 @@ int main(int argc, char *argv[])
 
     if (argc >= 2 && argv[1][0] != '-')
         fibjs::_main(argv[1]);
-    else
-        fibjs::_main("main.js");
 
     return 0;
 }
