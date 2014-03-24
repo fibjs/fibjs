@@ -46,7 +46,7 @@ typedef int SOCKET;
 #define INVALID_SOCKET -1
 #define closesocket close
 
-#ifdef FreeBSD
+#if defined(FreeBSD) || defined(OpenBSD)
 #include <net/if.h>
 #include <netinet/tcp.h>
 

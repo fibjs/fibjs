@@ -48,9 +48,7 @@ inline int ftruncate64(int fd, __int64 where)
 #define S_IXUSR S_IEXEC
 #endif
 
-#endif
-
-#ifdef FreeBSD
+#elif defined(FreeBSD) || defined(OpenBSD)
 #define ftello64 ftello
 #define fseeko64 fseeko
 #define stat64 stat
