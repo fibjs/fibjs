@@ -40,8 +40,6 @@ fi
 
 cd "$1"
 cmake -DBUILD_TYPE=$1 ../tools
-find . -name "*.c" -delete
-find . -name "*.cpp" -delete
 make
 
 cd ..

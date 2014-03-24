@@ -45,8 +45,6 @@ OS=`uname`
 
 cd "$1"
 cmake -DBUILD_TYPE=$1 -DOS_TYPE=$OS $SVN_INFO ../tools
-find . -name "*.c" -delete
-find . -name "*.cpp" -delete
 make
 
 cd ..
