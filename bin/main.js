@@ -1,3 +1,5 @@
+#!/bin/fibjs
+
 var test = require("test");
 var os = require('os');
 
