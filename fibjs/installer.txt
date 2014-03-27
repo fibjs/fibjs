@@ -1,3 +1,3 @@
 #!/bin/sh
-( read l; read l; read l ;exec cat ) < "$0" | gunzip | tar xf - && rm /bin/fibjs > /dev/null && cp fibjs /usr/bin/ && ln -s /usr/bin/fibjs /bin/fibjs
+( read l; read l; read l ;exec cat ) < "$0" | gunzip | tar xf - && rm -f /bin/fibjs && cp fibjs /usr/bin/ && ln -s /usr/bin/fibjs /bin/fibjs
 exit
