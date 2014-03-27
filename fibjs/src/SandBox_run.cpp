@@ -10,6 +10,7 @@
 #include "ifs/vm.h"
 #include "ifs/fs.h"
 #include "ifs/path.h"
+#include "ifs/console.h"
 
 #include "ifs/Stat.h"
 #include "ifs/global.h"
@@ -99,18 +100,6 @@ result_t SandBox::addScript(const char *srcname, const char *script,
     v8::Context::Scope context_scope(context);
     result_t hr;
 
-    v8::Local<v8::Script> oscript;
-    {
-        v8::TryCatch try_catch;
-
-        oscript = v8::Script::Compile(
-                      v8::String::NewFromUtf8(isolate, script,
-                                              v8::String::kNormalString, (int) qstrlen(script)),
-                      v8::String::NewFromUtf8(isolate, srcname));
-        if (oscript.IsEmpty())
-            return throwSyntaxError(try_catch);
-    }
-
     v8::Local<v8::Object> glob = context->Global();
     v8::Local<v8::Object> mod;
     v8::Local<v8::Object> exports;
@@ -165,6 +154,18 @@ result_t SandBox::addScript(const char *srcname, const char *script,
     // attach to global
     glob->Set(strModule, mod, v8::ReadOnly);
     glob->Set(strExports, exports, v8::ReadOnly);
+
+    v8::Local<v8::Script> oscript;
+    {
+        v8::TryCatch try_catch;
+
+        oscript = v8::Script::Compile(
+                      v8::String::NewFromUtf8(isolate, script,
+                                              v8::String::kNormalString, (int) qstrlen(script)),
+                      v8::String::NewFromUtf8(isolate, srcname));
+        if (oscript.IsEmpty())
+            return throwSyntaxError(try_catch);
+    }
 
     if (oscript->Run().IsEmpty())
     {
@@ -251,9 +252,9 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
 
 result_t SandBox::run(const char *fname)
 {
-    std::string sfname = resolvePath(fname);
-
     result_t hr;
+
+    std::string sfname = resolvePath(fname);
     const char *pname = sfname.c_str();
 
     std::string buf;
@@ -264,25 +265,7 @@ result_t SandBox::run(const char *fname)
     v8::Local<v8::Context> context(v8::Context::New (isolate));
     v8::Context::Scope context_scope(context);
 
-    v8::Local<v8::Script> script;
-    {
-        v8::TryCatch try_catch;
-
-        if (buf[0] == '#' && buf[1] == '!')
-            buf = "//" + buf;
-
-        script = v8::Script::Compile(
-                     v8::String::NewFromUtf8(isolate, buf.c_str(),
-                                             v8::String::kNormalString, (int) buf.length()),
-                     v8::String::NewFromUtf8(isolate, pname));
-        if (script.IsEmpty())
-            return throwSyntaxError(try_catch);
-    }
-
     v8::Local<v8::Object> glob = context->Global();
-    v8::Local<v8::Object> mod;
-    v8::Local<v8::Object> exports;
-
     glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "SandBox"), wrap());
 
     // clone global function
@@ -299,8 +282,113 @@ result_t SandBox::run(const char *fname)
                                      (int) sfname.length());
     glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "id"), strFname);
 
+    v8::Local<v8::Script> script;
+    {
+        v8::TryCatch try_catch;
+
+        if (buf[0] == '#' && buf[1] == '!')
+            buf = "//" + buf;
+
+        script = v8::Script::Compile(
+                     v8::String::NewFromUtf8(isolate, buf.c_str(),
+                                             v8::String::kNormalString, (int) buf.length()),
+                     v8::String::NewFromUtf8(isolate, pname));
+        if (script.IsEmpty())
+            return throwSyntaxError(try_catch);
+    }
+
     if (script->Run().IsEmpty())
         return CALL_E_JAVASCRIPT;
+
+    return 0;
+}
+
+void flushLog();
+
+result_t SandBox::repl()
+{
+    result_t hr;
+
+    v8::Local<v8::Context> context(v8::Context::New (isolate));
+    v8::Context::Scope context_scope(context);
+
+    v8::Local<v8::Object> glob = context->Global();
+    glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "SandBox"), wrap());
+
+    // clone global function
+    fibjs::global_base::class_info().Attach(glob);
+
+    // clone Function.start
+    fibjs::Function_base::class_info().Attach(
+        glob->Get(v8::String::NewFromUtf8(isolate, "Function"))->ToObject()->GetPrototype()->ToObject());
+
+    // module.id
+    v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate, "",
+                                     v8::String::kNormalString, 0);
+    glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "id"), strFname);
+
+    obj_ptr<BufferedStream_base> stmOut;
+    obj_ptr<BufferedStream_base> stmIn;
+
+    console_base::get_stdout(stmOut);
+    console_base::get_stdin(stmIn);
+
+    std::string buf;
+    v8::Local<v8::Value> v, v1;
+
+    while (true)
+    {
+        flushLog();
+        if (!v.IsEmpty() && !v->IsUndefined())
+        {
+            v8::String::Utf8Value s(v);
+            if (*s)
+                puts(*s);
+            v = v1;
+        }
+
+        std::string line;
+
+        if (buf.empty())
+            stmOut->ac_writeText("> ");
+        else
+            stmOut->ac_writeText(" ... ");
+        stmIn->ac_readLine(-1, line);
+
+        if (line.empty())
+            continue;
+
+        if (!qstrcmp(line.c_str(), ".exit"))
+            return 0;
+
+        buf += line;
+        buf.append("\n", 1);
+
+        {
+            v8::Local<v8::Script> script;
+            v8::TryCatch try_catch;
+
+            script = v8::Script::Compile(
+                         v8::String::NewFromUtf8(isolate, buf.c_str(),
+                                                 v8::String::kNormalString, (int) buf.length()));
+            if (script.IsEmpty())
+            {
+                v8::String::Utf8Value exception(try_catch.Exception());
+                if (*exception && qstrcmp(*exception, "SyntaxError: Unexpected end of input"))
+                {
+                    buf.clear();
+                    ReportException(try_catch, 0);
+                }
+                continue;
+            }
+
+            buf.clear();
+
+            v = script->Run();
+            if (v.IsEmpty())
+                ReportException(try_catch, 0);
+        }
+    }
 
     return 0;
 }

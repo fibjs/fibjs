@@ -44,6 +44,8 @@ public:
         InstallModule(fname, ci.CreateInstance());
     }
 
+    result_t repl();
+
 private:
     std::map<std::string, VariantEx > m_mods;
     v8::Persistent<v8::Function> m_require;

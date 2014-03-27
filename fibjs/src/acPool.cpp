@@ -1,6 +1,7 @@
 #include "ifs/os.h"
 #include <log4cpp/Category.hh>
 #include <exlib/thread.h>
+#include "ifs/coroutine.h"
 
 namespace fibjs
 {
@@ -72,7 +73,7 @@ void asyncLog(int priority, std::string msg)
 void flushLog()
 {
     while (!s_acLog.empty() || !s_logEmpty)
-        exlib::OSThread::Sleep(1);
+        coroutine_base::sleep(1);
 }
 
 static class _loggerThread: public exlib::OSThread

@@ -248,7 +248,10 @@ void _main(const char *fname)
         obj_ptr<SandBox> sbox = new SandBox();
 
         sbox->initRoot();
-        s.m_hr = sbox->run(fname);
+        if (fname)
+            s.m_hr = sbox->run(fname);
+        else
+            s.m_hr = sbox->repl();
     }
 
     process_base::exit(0);
@@ -374,6 +377,8 @@ int main(int argc, char *argv[])
 
     if (argc >= 2 && argv[1][0] != '-')
         fibjs::_main(argv[1]);
+    else
+        fibjs::_main(NULL);
 
     return 0;
 }
