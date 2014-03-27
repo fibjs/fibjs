@@ -48,7 +48,7 @@ endif()
 
 set_target_properties(fibjs PROPERTIES COMPILE_FLAGS ${flags})
 
-if(${SVN_INFO})
+if(DEFINED SVN_INFO)
 	add_definitions("-DSVN_INFO=${SVN_INFO}")
 endif()
 
