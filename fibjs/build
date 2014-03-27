@@ -39,7 +39,7 @@ if [ ! -e "$1" ]; then
 fi
 
 
-SVN_INFO=`svn info | sed -n '/http:\/\/www\.tooscript\.org\/svn\/exlib/,/Revision/p' | sed -n 's/Revision: /-DSVN_INFO=/p'`
+SVN_INFO=`svn info | sed -n 's/Revision: /-DSVN_INFO=/p'`
 
 OS=`uname`
 
