@@ -39,6 +39,7 @@ public:
 	static result_t mkdir(const char* path, exlib::AsyncEvent* ac);
 	static result_t rmdir(const char* path, exlib::AsyncEvent* ac);
 	static result_t rename(const char* from, const char* to, exlib::AsyncEvent* ac);
+	static result_t chmod(const char* path, int32_t mode, exlib::AsyncEvent* ac);
 	static result_t stat(const char* path, obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t readdir(const char* path, obj_ptr<List_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t open(const char* fname, const char* mode, obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac);
@@ -58,6 +59,7 @@ public:
 	static void s_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_rename(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_stat(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -72,6 +74,7 @@ public:
 	ASYNC_STATIC1(fs_base, mkdir, const char*);
 	ASYNC_STATIC1(fs_base, rmdir, const char*);
 	ASYNC_STATIC2(fs_base, rename, const char*, const char*);
+	ASYNC_STATIC2(fs_base, chmod, const char*, int32_t);
 	ASYNC_STATICVALUE2(fs_base, stat, const char*, obj_ptr<Stat_base>);
 	ASYNC_STATICVALUE2(fs_base, readdir, const char*, obj_ptr<List_base>);
 	ASYNC_STATICVALUE3(fs_base, open, const char*, const char*, obj_ptr<File_base>);
@@ -99,6 +102,7 @@ namespace fibjs
 			{"mkdir", s_mkdir, true},
 			{"rmdir", s_rmdir, true},
 			{"rename", s_rename, true},
+			{"chmod", s_chmod, true},
 			{"stat", s_stat, true},
 			{"readdir", s_readdir, true},
 			{"open", s_open, true},
@@ -118,7 +122,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"fs", NULL, 
-			12, s_method, 0, NULL, 3, s_property, NULL, NULL,
+			13, s_method, 0, NULL, 3, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -201,6 +205,18 @@ namespace fibjs
 		ARG_String(1);
 
 		hr = ac_rename(v0, v1);
+
+		METHOD_VOID();
+	}
+
+	inline void fs_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_ENTER(2, 2);
+
+		ARG_String(0);
+		ARG(int32_t, 1);
+
+		hr = ac_chmod(v0, v1);
 
 		METHOD_VOID();
 	}

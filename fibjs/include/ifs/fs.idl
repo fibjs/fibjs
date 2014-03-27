@@ -43,6 +43,12 @@ class fs : module
 	 */
 	static rename(String from, String to) async;
 
+	/*! @brief 查询指定文件的访问权限
+	 @param path 指定操作的文件
+	 @param mode 指定设定的访问权限
+	 */
+	static chmod(String path, Integer mode) async;
+
 	/*! @brief 查询指定文件的基础信息
 	 @param path 指定查询的文件
 	 @return 返回文件的基础信息

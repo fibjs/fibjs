@@ -168,6 +168,17 @@ result_t fs_base::rmdir(const char *path, exlib::AsyncEvent *ac)
     return 0;
 }
 
+result_t fs_base::chmod(const char *path, int32_t mode, exlib::AsyncEvent *ac)
+{
+    if (!ac)
+        return CALL_E_NOSYNC;
+
+    if (::chmod(path, mode))
+        return LastError();
+
+    return 0;
+}
+
 result_t fs_base::rename(const char *from, const char *to,
                          exlib::AsyncEvent *ac)
 {
@@ -261,6 +272,11 @@ result_t fs_base::rmdir(const char *path, exlib::AsyncEvent *ac)
         return LastError();
 
     return 0;
+}
+
+result_t fs_base::chmod(const char *path, int32_t mode, exlib::AsyncEvent *ac)
+{
+    return CALL_E_INVALID_CALL;
 }
 
 result_t fs_base::rename(const char *from, const char *to, exlib::AsyncEvent *ac)
