@@ -47,6 +47,12 @@ cd "$1"
 cmake -DBUILD_TYPE=$1 -DOS_TYPE=$OS $SVN_INFO ../tools
 make
 
+if [ $1 == 'Release' ] || [ $1 == 'Release32' ]; then
+	cp "../installer.txt" "installer.sh"
+	tar -zcvf fibjs.tar.gz fibjs
+	cat fibjs.tar.gz >> installer.sh
+fi
+
 cd ..
 
 echo "copy $1/fibjs to bin"
@@ -56,3 +62,7 @@ if [ ! -e "../bin/$1" ]; then
 fi
 
 cp "$1/fibjs" "../bin/$1/fibjs"
+
+if [ $1 == 'Release' ] || [ $1 == 'Release32' ]; then
+	cp "$1/installer.sh" "../bin/$1/installer.sh"
+fi
