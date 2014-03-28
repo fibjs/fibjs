@@ -327,12 +327,6 @@ result_t SandBox::repl()
                                      v8::String::kNormalString, 0);
     glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "id"), strFname);
 
-    obj_ptr<BufferedStream_base> stmOut;
-    obj_ptr<BufferedStream_base> stmIn;
-
-    console_base::get_stdout(stmOut);
-    console_base::get_stdin(stmIn);
-
     std::string buf;
     v8::Local<v8::Value> v, v1;
 
@@ -353,15 +347,7 @@ result_t SandBox::repl()
             v = v1;
         }
 
-        std::string line;
-
-        flushLog();
-        if (buf.empty())
-            stmOut->ac_writeText("> ");
-        else
-            stmOut->ac_writeText(" ... ");
-        stmIn->ac_readLine(-1, line);
-
+        console_base::readLine(buf.empty() ? "> " : " ... ", line);
         if (line.empty())
             continue;
 
