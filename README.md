@@ -28,3 +28,7 @@
 ---------------------------------- 
 ### build: 
 	sh build
+
+---------------------------------- 
+### install: 
+	sudo sh bin/Release/installer.sh
