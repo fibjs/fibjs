@@ -27,7 +27,8 @@ endif()
 
 
 if(${BUILD_TYPE} STREQUAL "Release")
-	set(flags "${flags} -O3")
+	set(flags "${flags} -O3 -m64")
+	set(link_flags "${link_flags} -m64")
 	add_definitions("-DNDEBUG=1")
 endif()
 
@@ -38,7 +39,8 @@ if(${BUILD_TYPE} STREQUAL "Release32")
 endif()
 
 if(${BUILD_TYPE} STREQUAL "Debug")
-	set(flags "${flags} -g -O0")
+	set(flags "${flags} -g -O0 -m64")
+	set(link_flags "${link_flags} -m64")
 endif()
 
 if(${BUILD_TYPE} STREQUAL "Debug32")
