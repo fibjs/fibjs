@@ -1,3 +1,10 @@
+### Prerequisites (unix): 
+	GCC 4.2 or newer
+	CMake 2.6 or newer
+	GNU Make 3.81 or newer
+	libexecinfo (FreeBSD and OpenBSD only)
+
+---------------------------------- 
 ### on ubuntu: 
 	apt-get install g++ 
 	apt-get install make 
@@ -20,10 +27,16 @@
 	brew install cmake
 
 ---------------------------------- 
-### on freebsd: 
+### on freebsd (8,9): 
 	pkg_add -r cmake 
 	pkg_add -r subversion 
 	pkg_add -r libexecinfo
+
+---------------------------------- 
+### on freebsd 10: 
+	pkg install cmake 
+	pkg install subversion 
+	pkg install libexecinfo
 
 ---------------------------------- 
 ### build: 
