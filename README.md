@@ -23,7 +23,7 @@
 	yum install make 
 	yum install cmake 
 	yum install subversion
-	yum install libreadline-dev
+	yum install readline-devel
 
 ---------------------------------- 
 ### on osx: 
