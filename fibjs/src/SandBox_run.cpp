@@ -347,7 +347,8 @@ result_t SandBox::repl()
             v = v1;
         }
 
-        console_base::readLine(buf.empty() ? "> " : " ... ", line);
+        std::string line;
+        console_base::ac_readLine(buf.empty() ? "> " : " ... ", line);
         if (line.empty())
             continue;
 
