@@ -31,6 +31,8 @@ inline int64_t Ticks()
 
 #else
 #include <sys/time.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 inline int64_t Ticks()
 {
@@ -312,6 +314,32 @@ result_t console_base::trace(const char *label)
 result_t console_base::assert(v8::Local<v8::Value> value, const char *msg)
 {
     return assert_base::ok(value, msg);
+}
+
+result_t console_base::readLine(const char *msg, std::string &retVal,
+                                exlib::AsyncEvent *ac)
+{
+    if (!ac)
+    {
+        flushLog();
+        return CALL_E_NOSYNC;
+    }
+
+#ifdef _WIN32
+    std::cout << msg;
+    std::getline(std::cin, retVal);
+#else
+    char *line;
+
+    line = readline(msg);
+    if (line != NULL && *line)
+    {
+        add_history(line);
+        retVal = line;
+    }
+#endif
+
+    return 0;
 }
 
 }

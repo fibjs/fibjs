@@ -51,6 +51,7 @@ public:
 	static result_t timeEnd(const char* label);
 	static result_t trace(const char* label);
 	static result_t assert(v8::Local<v8::Value> value, const char* msg);
+	static result_t readLine(const char* msg, std::string& retVal, exlib::AsyncEvent* ac);
 
 	DECLARE_CLASSINFO(console_base);
 
@@ -78,6 +79,10 @@ public:
 	static void s_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_trace(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_assert(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+	ASYNC_STATICVALUE2(console_base, readLine, const char*, std::string);
 };
 
 }
@@ -98,7 +103,8 @@ namespace fibjs
 			{"time", s_time, true},
 			{"timeEnd", s_timeEnd, true},
 			{"trace", s_trace, true},
-			{"assert", s_assert, true}
+			{"assert", s_assert, true},
+			{"readLine", s_readLine, true}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -121,7 +127,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"console", NULL, 
-			9, s_method, 0, NULL, 13, s_property, NULL, NULL,
+			10, s_method, 0, NULL, 13, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -344,6 +350,19 @@ namespace fibjs
 		hr = assert(v0, v1);
 
 		METHOD_VOID();
+	}
+
+	inline void console_base::s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		std::string vr;
+
+		METHOD_ENTER(1, 0);
+
+		OPT_ARG_String(0, "");
+
+		hr = ac_readLine(v0, vr);
+
+		METHOD_RETURN();
 	}
 
 }
