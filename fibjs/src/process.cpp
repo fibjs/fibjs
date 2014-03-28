@@ -84,8 +84,6 @@ result_t process_base::get_execPath(std::string &retVal)
     return os_base::get_execPath(retVal);
 }
 
-void flushLog();
-
 result_t process_base::exit(int32_t code)
 {
     flushLog();

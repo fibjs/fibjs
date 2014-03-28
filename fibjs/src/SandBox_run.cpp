@@ -16,6 +16,8 @@
 #include "ifs/global.h"
 #include "ifs/Function.h"
 
+#include <log4cpp/Category.hh>
+
 #include <sstream>
 
 namespace fibjs
@@ -307,8 +309,6 @@ void flushLog();
 
 result_t SandBox::repl()
 {
-    result_t hr;
-
     v8::Local<v8::Context> context(v8::Context::New (isolate));
     v8::Context::Scope context_scope(context);
 
@@ -338,17 +338,24 @@ result_t SandBox::repl()
 
     while (true)
     {
-        flushLog();
         if (!v.IsEmpty() && !v->IsUndefined())
         {
             v8::String::Utf8Value s(v);
+
             if (*s)
-                puts(*s);
+            {
+                std::string str(COLOR_GREY);
+                str += *s;
+                str += COLOR_NORMAL;
+
+                asyncLog(log4cpp::Priority::INFO, str.c_str());
+            }
             v = v1;
         }
 
         std::string line;
 
+        flushLog();
         if (buf.empty())
             stmOut->ac_writeText("> ");
         else
