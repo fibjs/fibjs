@@ -3,6 +3,7 @@
 	CMake 2.6 or newer
 	GNU Make 3.81 or newer
 	libexecinfo (FreeBSD and OpenBSD only)
+	libreadline
 
 ---------------------------------- 
 ### on ubuntu: 
@@ -10,6 +11,7 @@
 	apt-get install make 
 	apt-get install cmake 
 	apt-get install subversion
+	apt-get install libreadline-dev
 
 ### 32bit on ubuntu: 
 	apt-get install g++-multilib
@@ -21,6 +23,7 @@
 	yum install make 
 	yum install cmake 
 	yum install subversion
+	yum install libreadline-dev
 
 ---------------------------------- 
 ### on osx: 
