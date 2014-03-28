@@ -1,4 +1,4 @@
-#!/bin/fibjs
+#!/bin/js
 
 var test = require("test");
 var os = require('os');

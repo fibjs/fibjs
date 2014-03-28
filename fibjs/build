@@ -49,7 +49,7 @@ make
 
 if [ $1 = 'Release' ] || [ $1 = 'Release32' ]; then
 	cp "../installer.txt" "installer.sh"
-	tar -zcvf fibjs.tar.gz fibjs
+	tar -zcf fibjs.tar.gz fibjs
 	cat fibjs.tar.gz >> installer.sh
 fi
 
