@@ -776,6 +776,9 @@
     <ClInclude Include="include\DateCache.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
+    <ClInclude Include="include\MyAppender.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl">

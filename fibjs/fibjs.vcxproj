@@ -246,6 +246,7 @@
     <ClInclude Include="include\MongoCursor.h" />
     <ClInclude Include="include\MongoDB.h" />
     <ClInclude Include="include\MongoID.h" />
+    <ClInclude Include="include\MyAppender.h" />
     <ClInclude Include="include\mysql.h" />
     <ClInclude Include="include\NullHandler.h" />
     <ClInclude Include="include\object.h" />

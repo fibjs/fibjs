@@ -1,8 +1,8 @@
+
 #include <v8/v8.h>
 
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
-#include <log4cpp/ConsoleAppender.hh>
 
 #include <locale.h>
 
@@ -17,179 +17,13 @@
 #include "Fiber.h"
 #include "utf8.h"
 #include <exlib/thread.h>
+#include "MyAppender.h"
 
 namespace fibjs
 {
 v8::Isolate *isolate;
 v8::Persistent<v8::Context> s_context;
 exlib::Service *g_pService;
-
-class MyAppender: public log4cpp::LayoutAppender
-{
-#ifdef _WIN32
-protected:
-    class color_out
-    {
-    public:
-        void init(DWORD type)
-        {
-            CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
-
-            m_handle = GetStdHandle(type);
-            GetConsoleScreenBufferInfo(m_handle, &csbiInfo);
-            m_Now = m_wAttr = csbiInfo.wAttributes;
-
-            if (type == STD_ERROR_HANDLE)
-                m_stream = stderr;
-            else if (type == STD_OUTPUT_HANDLE)
-                m_stream = stdout;
-        }
-
-        void out(const std::string &message)
-        {
-            std::wstring s = UTF8_W(message);
-            s.append(L"\r\n", 2);
-            LPWSTR ptr = (LPWSTR) s.c_str();
-            LPWSTR ptr1, ptr2;
-
-            ptr1 = ptr;
-            while (ptr2 = (LPWSTR) qstrchr(ptr1, L'\x1b'))
-            {
-                ptr1 = ptr2 + 1;
-
-                if (ptr2[1] == '[')
-                {
-                    WORD mask, val;
-
-                    if ( qisdigit(ptr2[2]) && ptr2[3] == 'm')
-                    {
-                        if (ptr2 > ptr)
-                        {
-                            ptr2[0] = 0;
-                            fputws(ptr, m_stream);
-                            fflush(m_stream);
-                        }
-
-                        ptr = ptr1 = ptr2 + 4;
-                    }
-                    else if ( ptr2[2] == '2' && qisdigit(ptr2[3]) && ptr2[4] == 'm')
-                    {
-                        if (ptr2 > ptr)
-                        {
-                            ptr2[0] = 0;
-                            fputws(ptr, m_stream);
-                            fflush(m_stream);
-                        }
-
-                        ptr = ptr1 = ptr2 + 5;
-                    }
-                    else if (ptr2[2] == '9' && ptr2[3] == '0' && ptr2[4] == 'm')
-                    {
-                        mask = 0xf0;
-                        val = FOREGROUND_BLUE | FOREGROUND_GREEN
-                              | FOREGROUND_RED;
-
-                        if (ptr2 > ptr)
-                        {
-                            ptr2[0] = 0;
-                            fputws(ptr, m_stream);
-                            fflush(m_stream);
-                        }
-
-                        m_Now = (m_Now & mask) | val;
-                        SetConsoleTextAttribute(m_handle, m_Now);
-
-                        ptr = ptr1 = ptr2 + 5;
-                    }
-                    else if ((ptr2[2] == '3' || ptr2[2] == '4')
-                             && qisdigit(ptr2[3])
-                             && ptr2[4] == 'm')
-                    {
-                        if (ptr2[2] == '3')
-                            mask = 0xf0;
-                        else
-                            mask = 0x0f;
-
-                        val = ptr2[3] - '0';
-
-                        if (val == 9)
-                            val = (mask ^ 0xff) & m_wAttr;
-                        else
-                        {
-                            val = (val & 2) | ((val & 1) ? 4 : 0)
-                                  | ((val & 4) ? 1 : 0)
-                                  | FOREGROUND_INTENSITY;
-
-                            if (mask == 0x0f)
-                                val <<= 4;
-                        }
-
-                        if (ptr2 > ptr)
-                        {
-                            ptr2[0] = 0;
-                            fputws(ptr, m_stream);
-                            fflush(m_stream);
-                        }
-
-                        m_Now = (m_Now & mask) | val;
-                        SetConsoleTextAttribute(m_handle, m_Now);
-
-                        ptr = ptr1 = ptr2 + 5;
-                    }
-                }
-            }
-
-            fputws(ptr, m_stream);
-            fflush(m_stream);
-        }
-
-    private:
-        HANDLE m_handle;
-        FILE *m_stream;
-        WORD m_wAttr, m_Now;
-    };
-#endif
-
-public:
-    MyAppender() :
-        LayoutAppender("console")
-    {
-#ifdef _WIN32
-        err.init(STD_ERROR_HANDLE);
-        out.init(STD_OUTPUT_HANDLE);
-#endif
-    }
-
-    void close()
-    {
-    }
-
-protected:
-    void _append(const log4cpp::LoggingEvent &event)
-    {
-        if (event.priority < log4cpp::Priority::NOTICE)
-        {
-#ifndef _WIN32
-            std::cerr << COLOR_RED << event.message << COLOR_NORMAL << std::endl;
-#else
-            out.out(COLOR_RED + event.message + COLOR_NORMAL);
-#endif
-        }
-        else
-        {
-#ifndef _WIN32
-            std::cout << event.message << std::endl;
-#else
-            out.out(event.message);
-#endif
-        }
-    }
-
-#ifdef _WIN32
-private:
-    color_out err, out;
-#endif
-};
 
 log4cpp::Appender *my_get_console(const std::string &appenderName)
 {

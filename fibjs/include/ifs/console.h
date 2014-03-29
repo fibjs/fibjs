@@ -51,6 +51,7 @@ public:
 	static result_t timeEnd(const char* label);
 	static result_t trace(const char* label);
 	static result_t assert(v8::Local<v8::Value> value, const char* msg);
+	static result_t write(const char* msg);
 	static result_t readLine(const char* msg, std::string& retVal, exlib::AsyncEvent* ac);
 
 	DECLARE_CLASSINFO(console_base);
@@ -79,6 +80,7 @@ public:
 	static void s_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_trace(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_assert(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -104,6 +106,7 @@ namespace fibjs
 			{"timeEnd", s_timeEnd, true},
 			{"trace", s_trace, true},
 			{"assert", s_assert, true},
+			{"write", s_write, true},
 			{"readLine", s_readLine, true}
 		};
 
@@ -127,7 +130,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"console", NULL, 
-			10, s_method, 0, NULL, 13, s_property, NULL, NULL,
+			11, s_method, 0, NULL, 13, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -348,6 +351,17 @@ namespace fibjs
 		OPT_ARG_String(1, "");
 
 		hr = assert(v0, v1);
+
+		METHOD_VOID();
+	}
+
+	inline void console_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = write(v0);
 
 		METHOD_VOID();
 	}

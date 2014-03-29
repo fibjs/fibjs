@@ -11,6 +11,7 @@
 #include "ifs/process.h"
 #include <log4cpp/Category.hh>
 #include <sstream>
+#include "MyAppender.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -316,6 +317,16 @@ result_t console_base::assert(v8::Local<v8::Value> value, const char *msg)
     return assert_base::ok(value, msg);
 }
 
+result_t console_base::write(const char *msg)
+{
+    MyAppender ma;
+
+    flushLog();
+    ma.out(msg);
+
+    return 0;
+}
+
 result_t console_base::readLine(const char *msg, std::string &retVal,
                                 exlib::AsyncEvent *ac)
 {
@@ -326,7 +337,9 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
     }
 
 #ifdef _WIN32
-    std::cout << msg;
+    MyAppender ma;
+
+    ma.out(msg);
     std::getline(std::cin, retVal);
 #else
     char *line;

@@ -116,6 +116,11 @@ class console : module
      */
     static assert(Value value, String msg = "");
 
+    /*! @brief 向控制台输出一段文本
+     @param msg 指定输出信息
+     */
+    static write(String msg);
+
     /*! @brief 从控制台读取用户输入
      @param msg 提示信息
      @return 返回用户输入的信息
