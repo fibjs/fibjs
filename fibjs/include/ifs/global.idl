@@ -8,12 +8,6 @@ class global : module
 	/*! @brief 控制台访问对象*/
 	static readonly console console;
 
-	/*! @brief 记录普通日志信息，与 console.log 等同
-	 @param fmt 格式化字符串
-	 @param ... 可选参数列表
-	 */
-	static print(String fmt, ...);
-
 	/*! @brief 运行一个脚本
 	 @param fname 指定要运行的脚本路径
 	 */

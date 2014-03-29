@@ -317,12 +317,12 @@ result_t console_base::assert(v8::Local<v8::Value> value, const char *msg)
     return assert_base::ok(value, msg);
 }
 
-result_t console_base::write(const char *msg)
+result_t console_base::print(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     MyAppender ma;
 
     flushLog();
-    ma.out(msg);
+    ma.out(Format(fmt, args).c_str());
 
     return 0;
 }

@@ -26,7 +26,6 @@ class global_base : public module_base
 public:
 	// global_base
 	static result_t get_console(obj_ptr<console_base>& retVal);
-	static result_t print(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t run(const char* fname);
 	static result_t define(const char* id, v8::Local<v8::Array> deps, v8::Local<v8::Value> factory);
 	static result_t require(const char* id, v8::Local<v8::Value>& retVal);
@@ -36,7 +35,6 @@ public:
 
 public:
 	static void s_get_console(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_print(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_define(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -54,7 +52,6 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"print", s_print, true},
 			{"run", s_run, true},
 			{"define", s_define, true},
 			{"require", s_require, true},
@@ -74,7 +71,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"global", NULL, 
-			5, s_method, 1, s_object, 1, s_property, NULL, NULL,
+			4, s_method, 1, s_object, 1, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -91,17 +88,6 @@ namespace fibjs
 		hr = get_console(vr);
 
 		METHOD_RETURN();
-	}
-
-	inline void global_base::s_print(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_ENTER(-1, 1);
-
-		ARG_String(0);
-
-		hr = print(v0, args);
-
-		METHOD_VOID();
 	}
 
 	inline void global_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
