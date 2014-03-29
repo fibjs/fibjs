@@ -36,15 +36,24 @@
 	pkg_add -r libexecinfo
 
 ---------------------------------- 
-### on freebsd 10: 
+### on freebsd 10+: 
 	pkg install cmake 
 	pkg install subversion 
 	pkg install libexecinfo
 
 ---------------------------------- 
-### build: 
+### build on linux/freebsd/osx: 
 	sh build
 
 ---------------------------------- 
-### install: 
+### install on linux/freebsd/osx:  
 	sudo sh bin/Release/installer.sh
+
+---------------------------------- 
+### build on linux/freebsd/osx: 
+	Start
+		All Programs
+			Microsoft Visual Studio 2012
+				Visual Studio Tools
+					Developer Command Prompt for VS2012
+	build
