@@ -52,8 +52,8 @@
 ---------------------------------- 
 ### build on linux/freebsd/osx: 
 	Start
-		All Programs
-			Microsoft Visual Studio 2012
-				Visual Studio Tools
-					Developer Command Prompt for VS2012
+	  All Programs
+	    Microsoft Visual Studio 2012
+	      Visual Studio Tools
+	        Developer Command Prompt for VS2012
 	build
