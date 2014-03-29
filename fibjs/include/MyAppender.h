@@ -140,7 +140,7 @@ protected:
         void outline(const std::string &message)
         {
             std::wstring s = UTF8_W(message);
-            s.append(L"\r\n", 2);
+            s.append(L"\n", 1);
             _out(s);
         }
 
