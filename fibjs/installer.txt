@@ -1,3 +1,3 @@
 #!/bin/sh
-rm -f /bin/js && rm -f /usr/bin/js && ( read l; read l; read l ;exec cat ) < "$0" | tar -C /usr/bin/ -xf - js && ln -s /usr/bin/js /bin/js
+rm -f /bin/js && ( read l; read l; read l ;exec cat ) < "$0" | tar -C /bin/ -zxf - js
 exit
