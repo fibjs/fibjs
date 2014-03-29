@@ -209,15 +209,22 @@ public:
     void out(const char *txt)
     {
         std::cout << txt;
+        std::cout.flush();
     }
 
 protected:
     void _append(const log4cpp::LoggingEvent &event)
     {
         if (event.priority < log4cpp::Priority::NOTICE)
+        {
             std::cerr << COLOR_RED << event.message << COLOR_NORMAL << std::endl;
+            std::cerr.flush();
+        }
         else
+        {
             std::cout << event.message << std::endl;
+            std::cout.flush();
+        }
     }
 };
 
