@@ -18,7 +18,6 @@ namespace fibjs
 {
 
 class module_base;
-class BufferedStream_base;
 
 class console_base : public module_base
 {
@@ -37,9 +36,6 @@ public:
 
 public:
 	// console_base
-	static result_t get_stderr(obj_ptr<BufferedStream_base>& retVal);
-	static result_t get_stdin(obj_ptr<BufferedStream_base>& retVal);
-	static result_t get_stdout(obj_ptr<BufferedStream_base>& retVal);
 	static result_t get_loglevel(int32_t& retVal);
 	static result_t set_loglevel(int32_t newVal);
 	static result_t log(const char* fmtprint, const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -57,9 +53,6 @@ public:
 	DECLARE_CLASSINFO(console_base);
 
 public:
-	static void s_get_stderr(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_FATAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_ALERT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_CRIT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -89,7 +82,6 @@ public:
 
 }
 
-#include "BufferedStream.h"
 
 namespace fibjs
 {
@@ -112,9 +104,6 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"stderr", s_get_stderr, block_set, true},
-			{"stdin", s_get_stdin, block_set, true},
-			{"stdout", s_get_stdout, block_set, true},
 			{"FATAL", s_get_FATAL, block_set, true},
 			{"ALERT", s_get_ALERT, block_set, true},
 			{"CRIT", s_get_CRIT, block_set, true},
@@ -130,45 +119,12 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"console", NULL, 
-			11, s_method, 0, NULL, 13, s_property, NULL, NULL,
+			11, s_method, 0, NULL, 10, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
-	}
-
-	inline void console_base::s_get_stderr(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		obj_ptr<BufferedStream_base> vr;
-
-		PROPERTY_ENTER();
-
-		hr = get_stderr(vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void console_base::s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		obj_ptr<BufferedStream_base> vr;
-
-		PROPERTY_ENTER();
-
-		hr = get_stdin(vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void console_base::s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		obj_ptr<BufferedStream_base> vr;
-
-		PROPERTY_ENTER();
-
-		hr = get_stdout(vr);
-
-		METHOD_RETURN();
 	}
 
 	inline void console_base::s_get_FATAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)

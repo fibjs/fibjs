@@ -17,8 +17,12 @@ describe('fiber', function() {
 	});
 
 	it("stdout", function() {
-		while ((s = bs.readLine()) != null)
-			console.log('>>>', s);
+		var sa = bs.readLines();
+
+		assert.equal(sa.length, 5);
+		assert.equal(sa[0], "exec testing....");
+		assert.equal(sa[2], "console.print....");
+		assert.equal(sa[4], "console.print....");
 	});
 
 	it("system", function() {

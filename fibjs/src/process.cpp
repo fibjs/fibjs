@@ -20,44 +20,6 @@
 namespace fibjs
 {
 
-static obj_ptr<BufferedStream_base> s_err, s_in, s_out;
-
-result_t process_base::get_stderr(obj_ptr<BufferedStream_base> &retVal)
-{
-    if (s_err == NULL)
-    {
-        s_err = new BufferedStream(new File(stderr, true));
-        s_err->set_EOL("\n");
-    }
-
-    retVal = s_err;
-    return 0;
-}
-
-result_t process_base::get_stdin(obj_ptr<BufferedStream_base> &retVal)
-{
-    if (s_in == NULL)
-    {
-        s_in = new BufferedStream(new File(stdin, true));
-        s_in->set_EOL("\n");
-    }
-
-    retVal = s_in;
-    return 0;
-}
-
-result_t process_base::get_stdout(obj_ptr<BufferedStream_base> &retVal)
-{
-    if (s_out == NULL)
-    {
-        s_out = new BufferedStream(new File(stdout, true));
-        s_out->set_EOL("\n");
-    }
-
-    retVal = s_out;
-    return 0;
-}
-
 static int s_argc;
 static char **s_argv;
 

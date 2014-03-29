@@ -5,7 +5,8 @@ var process = require('process');
 
 for (i = 0; i < 2; i++) {
 	console.log(new Date());
-	console.stdout.writeLine('console.out.writeLine....');
+	console.print('console.print....');
+	console.log();
 	coroutine.sleep(100);
 }
 

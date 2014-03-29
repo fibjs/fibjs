@@ -7,15 +7,6 @@
  */
 class process : module
 {
-	/*! @brief 查询当前进程的错误输出流对象 */
-	static readonly BufferedStream stderr;
-
-	/*! @brief 查询当前进程的标准输入流对象 */
-	static readonly BufferedStream stdin;
-
-	/*! @brief 查询当前进程的标准输出流对象 */
-	static readonly BufferedStream stdout;
-
 	/*! @brief 返回当前进程的命令行参数 */
 	static readonly Array argv;
 

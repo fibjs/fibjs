@@ -14,15 +14,6 @@
  */
 class console : module
 {
-    /*! @brief 查询当前进程的错误输出流对象 */
-    static readonly BufferedStream stderr;
-
-    /*! @brief 查询当前进程的标准输入流对象 */
-    static readonly BufferedStream stdin;
-
-    /*! @brief 查询当前进程的标准输出流对象 */
-    static readonly BufferedStream stdout;
-
     /*! @brief loglevel 级别常量 */
     const Integer FATAL = 0;
 

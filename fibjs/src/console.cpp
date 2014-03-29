@@ -48,21 +48,6 @@ inline int64_t Ticks()
 namespace fibjs
 {
 
-result_t console_base::get_stderr(obj_ptr<BufferedStream_base> &retVal)
-{
-    return process_base::get_stderr(retVal);
-}
-
-result_t console_base::get_stdin(obj_ptr<BufferedStream_base> &retVal)
-{
-    return process_base::get_stdin(retVal);
-}
-
-result_t console_base::get_stdout(obj_ptr<BufferedStream_base> &retVal)
-{
-    return process_base::get_stdout(retVal);
-}
-
 extern int32_t g_loglevel;
 
 result_t console_base::get_loglevel(int32_t &retVal)

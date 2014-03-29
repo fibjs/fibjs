@@ -24,9 +24,6 @@ class process_base : public module_base
 {
 public:
 	// process_base
-	static result_t get_stderr(obj_ptr<BufferedStream_base>& retVal);
-	static result_t get_stdin(obj_ptr<BufferedStream_base>& retVal);
-	static result_t get_stdout(obj_ptr<BufferedStream_base>& retVal);
 	static result_t get_argv(v8::Local<v8::Array>& retVal);
 	static result_t get_execPath(std::string& retVal);
 	static result_t exit(int32_t code);
@@ -37,9 +34,6 @@ public:
 	DECLARE_CLASSINFO(process_base);
 
 public:
-	static void s_get_stderr(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_exit(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -70,9 +64,6 @@ namespace fibjs
 
 		static ClassData::ClassProperty s_property[] = 
 		{
-			{"stderr", s_get_stderr, block_set, true},
-			{"stdin", s_get_stdin, block_set, true},
-			{"stdout", s_get_stdout, block_set, true},
 			{"argv", s_get_argv, block_set, true},
 			{"execPath", s_get_execPath, block_set, true}
 		};
@@ -80,45 +71,12 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"process", NULL, 
-			4, s_method, 0, NULL, 5, s_property, NULL, NULL,
+			4, s_method, 0, NULL, 2, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
 		static ClassInfo s_ci(s_cd);
 		return s_ci;
-	}
-
-	inline void process_base::s_get_stderr(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		obj_ptr<BufferedStream_base> vr;
-
-		PROPERTY_ENTER();
-
-		hr = get_stderr(vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void process_base::s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		obj_ptr<BufferedStream_base> vr;
-
-		PROPERTY_ENTER();
-
-		hr = get_stdin(vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void process_base::s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		obj_ptr<BufferedStream_base> vr;
-
-		PROPERTY_ENTER();
-
-		hr = get_stdout(vr);
-
-		METHOD_RETURN();
 	}
 
 	inline void process_base::s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
