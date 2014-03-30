@@ -93,6 +93,7 @@
     <ClCompile Include="src\rpc.cpp" />
     <ClCompile Include="src\Runtime.cpp" />
     <ClCompile Include="src\SandBox.cpp" />
+    <ClCompile Include="src\SandBox_repl.cpp" />
     <ClCompile Include="src\SandBox_root.cpp" />
     <ClCompile Include="src\SandBox_run.cpp" />
     <ClCompile Include="src\Semaphore.cpp" />

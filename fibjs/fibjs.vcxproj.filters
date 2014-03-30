@@ -240,6 +240,9 @@
     <ClCompile Include="src\SandBox_root.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\SandBox_repl.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
     <ClCompile Include="src\SandBox.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
