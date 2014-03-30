@@ -107,7 +107,7 @@ class console : module
      */
     static assert(Value value, String msg = "");
 
-    /*! @brief 向控制台输出格式化文本，输出内容不会记入日志系统
+    /*! @brief 向控制台输出格式化文本，输出内容不会记入日志系统，输出文本后不会自动换行，可连续输出
      @param fmt 格式化字符串
      @param ... 可选参数列表
      */
