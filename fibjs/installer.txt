@@ -3,6 +3,6 @@ rm -f /bin/js
 rm -f /usr/bin/js
 ( read l; read l; read l ; read l; read l; read l ; read l; read l; exec cat ) < "$0" | tar -C /usr/bin/ -zxf - js
 if [ ! -e "/bin/js" ]; then
-	ln /usr/bin/js /bin/js
+	cp /usr/bin/js /bin/js
 fi
 exit
