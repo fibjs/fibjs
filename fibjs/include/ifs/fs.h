@@ -36,15 +36,16 @@ public:
 	// fs_base
 	static result_t exists(const char* path, bool& retVal, exlib::AsyncEvent* ac);
 	static result_t unlink(const char* path, exlib::AsyncEvent* ac);
-	static result_t mkdir(const char* path, exlib::AsyncEvent* ac);
+	static result_t umask(int32_t mask, exlib::AsyncEvent* ac);
+	static result_t mkdir(const char* path, int32_t mode, exlib::AsyncEvent* ac);
 	static result_t rmdir(const char* path, exlib::AsyncEvent* ac);
 	static result_t rename(const char* from, const char* to, exlib::AsyncEvent* ac);
 	static result_t chmod(const char* path, int32_t mode, exlib::AsyncEvent* ac);
 	static result_t stat(const char* path, obj_ptr<Stat_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t readdir(const char* path, obj_ptr<List_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t open(const char* fname, const char* mode, obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t open(const char* fname, const char* flags, obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t tmpFile(obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t openTextStream(const char* fname, const char* mode, obj_ptr<BufferedStream_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t openTextStream(const char* fname, const char* flags, obj_ptr<BufferedStream_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t readFile(const char* fname, std::string& retVal, exlib::AsyncEvent* ac);
 	static result_t writeFile(const char* fname, const char* txt, exlib::AsyncEvent* ac);
 
@@ -56,6 +57,7 @@ public:
 	static void s_get_SEEK_END(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_exists(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_unlink(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_umask(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_rename(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -71,7 +73,8 @@ public:
 public:
 	ASYNC_STATICVALUE2(fs_base, exists, const char*, bool);
 	ASYNC_STATIC1(fs_base, unlink, const char*);
-	ASYNC_STATIC1(fs_base, mkdir, const char*);
+	ASYNC_STATIC1(fs_base, umask, int32_t);
+	ASYNC_STATIC2(fs_base, mkdir, const char*, int32_t);
 	ASYNC_STATIC1(fs_base, rmdir, const char*);
 	ASYNC_STATIC2(fs_base, rename, const char*, const char*);
 	ASYNC_STATIC2(fs_base, chmod, const char*, int32_t);
@@ -99,6 +102,7 @@ namespace fibjs
 		{
 			{"exists", s_exists, true},
 			{"unlink", s_unlink, true},
+			{"umask", s_umask, true},
 			{"mkdir", s_mkdir, true},
 			{"rmdir", s_rmdir, true},
 			{"rename", s_rename, true},
@@ -122,7 +126,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"fs", NULL, 
-			13, s_method, 0, NULL, 3, s_property, NULL, NULL,
+			14, s_method, 0, NULL, 3, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -175,13 +179,25 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
-	inline void fs_base::s_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args)
+	inline void fs_base::s_umask(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(int32_t, 0);
 
-		hr = ac_mkdir(v0);
+		hr = ac_umask(v0);
+
+		METHOD_VOID();
+	}
+
+	inline void fs_base::s_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_ENTER(2, 1);
+
+		ARG_String(0);
+		OPT_ARG(int32_t, 1, 0777);
+
+		hr = ac_mkdir(v0, v1);
 
 		METHOD_VOID();
 	}

@@ -22,6 +22,7 @@ public:
 	// Stat_base
 	virtual result_t get_name(std::string& retVal) = 0;
 	virtual result_t get_size(int64_t& retVal) = 0;
+	virtual result_t get_mode(int32_t& retVal) = 0;
 	virtual result_t get_mtime(date_t& retVal) = 0;
 	virtual result_t get_atime(date_t& retVal) = 0;
 	virtual result_t get_ctime(date_t& retVal) = 0;
@@ -40,6 +41,7 @@ public:
 public:
 	static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_mode(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_mtime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_atime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_ctime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -77,6 +79,7 @@ namespace fibjs
 		{
 			{"name", s_get_name, block_set},
 			{"size", s_get_size, block_set},
+			{"mode", s_get_mode, block_set},
 			{"mtime", s_get_mtime, block_set},
 			{"atime", s_get_atime, block_set},
 			{"ctime", s_get_ctime, block_set}
@@ -85,7 +88,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Stat", NULL, 
-			9, s_method, 0, NULL, 5, s_property, NULL, NULL,
+			9, s_method, 0, NULL, 6, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -113,6 +116,18 @@ namespace fibjs
 		PROPERTY_INSTANCE(Stat_base);
 
 		hr = pInst->get_size(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Stat_base::s_get_mode(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(Stat_base);
+
+		hr = pInst->get_mode(vr);
 
 		METHOD_RETURN();
 	}

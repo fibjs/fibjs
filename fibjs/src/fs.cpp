@@ -23,7 +23,7 @@
 namespace fibjs
 {
 
-result_t fs_base::open(const char *fname, const char *mode,
+result_t fs_base::open(const char *fname, const char *flags,
                        obj_ptr<File_base> &retVal, exlib::AsyncEvent *ac)
 {
     if (!ac)
@@ -32,7 +32,7 @@ result_t fs_base::open(const char *fname, const char *mode,
     obj_ptr<File> pFile = new File();
     result_t hr;
 
-    hr = pFile->open(fname, mode, ac);
+    hr = pFile->open(fname, flags, ac);
     if (hr < 0)
         return hr;
 
@@ -50,7 +50,7 @@ result_t fs_base::tmpFile(obj_ptr<File_base> &retVal, exlib::AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::openTextStream(const char *fname, const char *mode,
+result_t fs_base::openTextStream(const char *fname, const char *flags,
                                  obj_ptr<BufferedStream_base> &retVal,
                                  exlib::AsyncEvent *ac)
 {
@@ -58,7 +58,7 @@ result_t fs_base::openTextStream(const char *fname, const char *mode,
         return CALL_E_NOSYNC;
 
     obj_ptr<File_base> pFile;
-    result_t hr = open(fname, mode, pFile, ac);
+    result_t hr = open(fname, flags, pFile, ac);
     if (hr < 0)
         return hr;
 
@@ -146,12 +146,23 @@ result_t fs_base::unlink(const char *path, exlib::AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::mkdir(const char *path, exlib::AsyncEvent *ac)
+result_t fs_base::umask(int32_t mask, exlib::AsyncEvent *ac)
 {
     if (!ac)
         return CALL_E_NOSYNC;
 
-    if (::mkdir(path, 715))
+    if (::umask(mask))
+        return LastError();
+
+    return 0;
+}
+
+result_t fs_base::mkdir(const char *path, int32_t mode, exlib::AsyncEvent *ac)
+{
+    if (!ac)
+        return CALL_E_NOSYNC;
+
+    if (::mkdir(path, mode))
         return LastError();
 
     return 0;
@@ -252,7 +263,12 @@ result_t fs_base::unlink(const char *path, exlib::AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::mkdir(const char *path, exlib::AsyncEvent *ac)
+result_t fs_base::umask(int32_t mask, exlib::AsyncEvent *ac)
+{
+    return CALL_E_INVALID_CALL;
+}
+
+result_t fs_base::mkdir(const char *path, int32_t mode, exlib::AsyncEvent *ac)
 {
     if (!ac)
         return CALL_E_NOSYNC;

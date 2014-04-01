@@ -12,10 +12,23 @@ function unlink(pathname) {
 var pathname = 'test_dir';
 var pathname1 = 'test1_dir';
 
+var win = require("os").type == "Windows";
+
 describe('fs', function() {
 	before(function() {
+		if (!win) fs.umask(0);
 		unlink(pathname);
 		unlink(pathname1);
+	});
+
+	it("stat", function() {
+		var st = fs.stat('.');
+
+		assert.equal(st.isDirectory(), true);
+		assert.equal(st.isFile(), false);
+		assert.equal(st.isExecutable(), true);
+		assert.equal(st.isReadable(), true);
+		assert.equal(st.isWritable(), true);
 	});
 
 	it("file open & close", function() {
@@ -32,8 +45,13 @@ describe('fs', function() {
 	});
 
 	it("mkdir", function() {
-		fs.mkdir(pathname);
+		fs.mkdir(pathname, 0777);
 		assert.equal(fs.exists(pathname), true);
+
+		if (!win) {
+			var st = fs.stat(pathname);
+			assert.equal(st.mode & 0777, 0777);
+		}
 	});
 
 	it("rename", function() {
@@ -47,22 +65,43 @@ describe('fs', function() {
 		assert.equal(fs.exists(pathname1), false);
 	});
 
-	it("stat", function() {
-		var st = fs.stat('.');
-
-		assert.equal(st.isDirectory(), true);
-		assert.equal(st.isFile(), false);
-		assert.equal(st.isExecutable(), true);
-		assert.equal(st.isReadable(), true);
-		assert.equal(st.isWritable(), true);
-	});
-
 	it("file.size", function() {
 		var f = fs.open('fs_test.js');
 		var st = fs.stat('fs_test.js');
 		assert.equal(st.size, f.size());
 		f.close();
 	});
+
+	if (!win) {
+		it("fs.chmod", function() {
+			var st = fs.stat('fs_test.js');
+			var oldm = st.mode;
+
+			fs.chmod('fs_test.js', 0777);
+			var st = fs.stat('fs_test.js');
+			assert.equal(st.mode & 0777, 0777);
+
+			fs.chmod('fs_test.js', oldm);
+			var st = fs.stat('fs_test.js');
+			assert.equal(st.mode & 0777, oldm & 0777);
+		});
+
+		it("file.chmod", function() {
+			var f = fs.open('fs_test.js');
+			var st = fs.stat('fs_test.js');
+			var oldm = st.mode;
+
+			f.chmod(0777);
+			var st = fs.stat('fs_test.js');
+			assert.equal(st.mode & 0777, 0777);
+
+			f.chmod(oldm);
+			var st = fs.stat('fs_test.js');
+			assert.equal(st.mode & 0777, oldm & 0777);
+
+			f.close();
+		});
+	}
 
 	it("file read & write", function() {
 		f = fs.open('fs_test.js');

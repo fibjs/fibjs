@@ -201,7 +201,7 @@ result_t File::copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal,
 #define _fileno fileno
 #endif
 
-result_t File::open(const char *fname, const char *mode, exlib::AsyncEvent *ac)
+result_t File::open(const char *fname, const char *flags, exlib::AsyncEvent *ac)
 {
     if (!ac)
         return CALL_E_NOSYNC;
@@ -212,12 +212,12 @@ result_t File::open(const char *fname, const char *mode, exlib::AsyncEvent *ac)
     char m[] = "rb\0";
 #endif
 
-    if ((*mode != 'a' && *mode != 'r' && *mode != 'w')
-            || (mode[1] != '+' && mode[1]))
+    if ((*flags != 'a' && *flags != 'r' && *flags != 'w')
+            || (flags[1] != '+' && flags[1]))
         return CALL_E_INVALIDARG;
 
-    m[0] = mode[0];
-    m[2] = mode[1];
+    m[0] = flags[0];
+    m[2] = flags[1];
 
     close(NULL);
 
@@ -230,7 +230,10 @@ result_t File::open(const char *fname, const char *mode, exlib::AsyncEvent *ac)
         return LastError();
 
 #ifndef _WIN32
-    fcntl(_fileno(m_file), F_SETFD, FD_CLOEXEC);
+    int fd = _fileno(m_file);
+
+    if (::fcntl(fd, F_SETFD, FD_CLOEXEC))
+        return LastError();
 #endif
 
     name = fname;
@@ -373,6 +376,21 @@ result_t File::truncate(int64_t bytes, exlib::AsyncEvent *ac)
         return LastError();
 
     return 0;
+}
+
+result_t File::chmod(int32_t mode, exlib::AsyncEvent *ac)
+{
+#ifdef _WIN32
+    return CALL_E_INVALID_CALL;
+#else
+    if (!ac)
+        return CALL_E_NOSYNC;
+
+    if (::fchmod(_fileno(m_file), mode))
+        return LastError();
+
+    return 0;
+#endif
 }
 
 }

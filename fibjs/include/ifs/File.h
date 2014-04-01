@@ -27,6 +27,7 @@ public:
 	virtual result_t truncate(int64_t bytes, exlib::AsyncEvent* ac) = 0;
 	virtual result_t eof(bool& retVal) = 0;
 	virtual result_t flush(exlib::AsyncEvent* ac) = 0;
+	virtual result_t chmod(int32_t mode, exlib::AsyncEvent* ac) = 0;
 
 	DECLARE_CLASSINFO(File_base);
 
@@ -35,10 +36,12 @@ public:
 	static void s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_eof(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_flush(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_MEMBER1(File_base, truncate, int64_t);
 	ASYNC_MEMBER0(File_base, flush);
+	ASYNC_MEMBER1(File_base, chmod, int32_t);
 };
 
 }
@@ -52,7 +55,8 @@ namespace fibjs
 		{
 			{"truncate", s_truncate},
 			{"eof", s_eof},
-			{"flush", s_flush}
+			{"flush", s_flush},
+			{"chmod", s_chmod}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -63,7 +67,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"File", NULL, 
-			3, s_method, 0, NULL, 1, s_property, NULL, NULL,
+			4, s_method, 0, NULL, 1, s_property, NULL, NULL,
 			&SeekableStream_base::class_info()
 		};
 
@@ -113,6 +117,18 @@ namespace fibjs
 		METHOD_ENTER(0, 0);
 
 		hr = pInst->ac_flush();
+
+		METHOD_VOID();
+	}
+
+	inline void File_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(File_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(int32_t, 0);
+
+		hr = pInst->ac_chmod(v0);
 
 		METHOD_VOID();
 	}

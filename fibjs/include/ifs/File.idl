@@ -20,4 +20,9 @@ class File: SeekableStream
 
 	/*! @brief 将文件缓冲区内容写入物理设备 */
 	flush() async;
+
+	/*! @brief 查询当前文件的访问权限，Windows 不支持此方法
+	 @param mode 指定设定的访问权限
+	 */
+	chmod(Integer mode) async;
 };

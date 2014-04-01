@@ -9,6 +9,9 @@ class Stat : object
 	/*! @brief 文件尺寸 */
 	readonly Long size;
 
+	/*! @brief 文件权限，Windows 不支持此属性 */
+	readonly Integer mode;
+
 	/*! @brief 文件最后修改时间 */
 	readonly Date mtime;
 

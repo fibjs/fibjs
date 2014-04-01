@@ -42,9 +42,10 @@ public:
     virtual result_t truncate(int64_t bytes, exlib::AsyncEvent *ac);
     virtual result_t eof(bool &retVal);
     virtual result_t flush(exlib::AsyncEvent *ac);
+    virtual result_t chmod(int32_t mode, exlib::AsyncEvent *ac);
 
 public:
-    result_t open(const char *fname, const char *mode, exlib::AsyncEvent *ac);
+    result_t open(const char *fname, const char *flags, exlib::AsyncEvent *ac);
     result_t Write(const char *p, int sz);
 
 protected:
