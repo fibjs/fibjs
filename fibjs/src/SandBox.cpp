@@ -84,7 +84,7 @@ result_t SandBox::add(v8::Local<v8::Object> mods)
     {
         v8::Local<v8::Value> k = ks->Get(i);
 
-        if (!k->IsNumber())
+        if (!k->IsNumber() && !k->IsNumberObject())
             add(*v8::String::Utf8Value(k), mods->Get(k));
     }
 

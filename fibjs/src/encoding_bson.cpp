@@ -34,7 +34,7 @@ void encodeValue(bson *bb, const char *name, v8::Local<v8::Value> element,
         bson_append_date(bb, name, (bson_date_t) element->NumberValue());
     else if (element->IsBoolean())
         bson_append_bool(bb, name, element->IsTrue());
-    else if (element->IsNumber())
+    else if (element->IsNumber() || element->IsNumberObject())
     {
 
         double value = element->NumberValue();
@@ -175,7 +175,7 @@ bool encodeObject(bson *bb, const char *name, v8::Local<v8::Value> element,
     {
         v8::Local<v8::Value> prop_name = properties->Get(v8::Integer::New(isolate, i));
 
-        if (!prop_name->IsNumber())
+        if (!prop_name->IsNumber() && !prop_name->IsNumberObject())
         {
             v8::Local<v8::Value> prop_val = object->Get(prop_name->ToString());
 

@@ -119,7 +119,7 @@ inline result_t _map(HttpCollection *o, v8::Local<v8::Object> m,
     {
         v8::Local<v8::Value> k = ks->Get(i);
 
-        if (!k->IsNumber())
+        if (!k->IsNumber() && !k->IsNumberObject())
         {
             hr = (o->*fn)(*v8::String::Utf8Value(k), m->Get(k));
             if (hr < 0)
@@ -230,8 +230,8 @@ result_t HttpCollection::_named_enumerator(v8::Local<v8::Array> &retVal)
     retVal = v8::Array::New(isolate);
     for (i = 0; i < m_count; i++)
         retVal->Set(i,
-                    v8::String::NewFromUtf8(isolate, m_names[i].c_str(), 
-                        v8::String::kNormalString, (int) m_names[i].length()));
+                    v8::String::NewFromUtf8(isolate, m_names[i].c_str(),
+                                            v8::String::kNormalString, (int) m_names[i].length()));
 
     return 0;
 }

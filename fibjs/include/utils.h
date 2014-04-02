@@ -288,7 +288,7 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, double &n)
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
 
-    if (!v->IsNumber())
+    if (!v->IsNumber() && !v->IsNumberObject())
     {
         v = v->ToNumber();
         if (v.IsEmpty())

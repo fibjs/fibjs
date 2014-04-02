@@ -153,7 +153,7 @@ inline result_t _map(LruCache *o, v8::Local<v8::Object> m,
     {
         v8::Local<v8::Value> k = ks->Get(i);
 
-        if (!k->IsNumber())
+        if (!k->IsNumber() && !k->IsNumberObject())
             (o->*fn)(*v8::String::Utf8Value(k), m->Get(k));
     }
 

@@ -144,7 +144,7 @@ result_t Routing::append(v8::Local<v8::Object> map)
     {
         v8::Local<v8::Value> k = ks->Get(i);
 
-        if (!k->IsNumber())
+        if (!k->IsNumber() && !k->IsNumberObject())
         {
             v8::Local<v8::Value> v = map->Get(k);
 

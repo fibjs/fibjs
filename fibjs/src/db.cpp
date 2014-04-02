@@ -134,7 +134,7 @@ inline void _escape(const char *str, int sz, bool mysql, std::string &retVal)
 
 void _appendValue(std::string &str, v8::Local<v8::Value> &v, bool mysql)
 {
-    bool bNumber = v->IsNumber();
+    bool bNumber = v->IsNumber() || v->IsNumberObject();
 
     if (bNumber)
     {
