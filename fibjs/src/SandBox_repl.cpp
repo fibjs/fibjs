@@ -74,13 +74,8 @@ result_t SandBox::repl()
             v8::String::Utf8Value s(v);
 
             if (*s)
-            {
-                std::string str(COLOR_GREY);
-                str += *s;
-                str += COLOR_NORMAL;
+                asyncLog(log4cpp::Priority::INFO, *s);
 
-                asyncLog(log4cpp::Priority::INFO, str.c_str());
-            }
             v = v1;
         }
 
