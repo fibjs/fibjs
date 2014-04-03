@@ -153,6 +153,7 @@ public:
                     str.append(COLOR_TITLE);
                     str.append(p1->m_name);
                     str.append(COLOR_RESET);
+
                     asyncLog(log4cpp::Priority::INFO, str);
                     console_base::set_loglevel(loglevel);
 
@@ -202,7 +203,7 @@ public:
                                 str1.append(" ", 1);
                             }
                             str1.append(p1->m_name);
-                            names.append(str1);
+                            names.append(COLOR_TITLE + str1 + COLOR_RESET);
 
                             msgs.append(GetException(try_catch, 0));
                         }
