@@ -175,6 +175,22 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
   RUNTIME_FUNCTION_LIST(RUNTIME_ENTRY)
 #undef RUNTIME_ENTRY
 
+#define RUNTIME_HIDDEN_ENTRY(name, nargs, ressize) \
+  { RUNTIME_FUNCTION, \
+    Runtime::kHidden##name, \
+    "Runtime::Hidden" #name },
+
+  RUNTIME_HIDDEN_FUNCTION_LIST(RUNTIME_HIDDEN_ENTRY)
+#undef RUNTIME_HIDDEN_ENTRY
+
+#define INLINE_OPTIMIZED_ENTRY(name, nargs, ressize) \
+  { RUNTIME_FUNCTION, \
+    Runtime::kInlineOptimized##name, \
+    "Runtime::" #name },
+
+  INLINE_OPTIMIZED_FUNCTION_LIST(INLINE_OPTIMIZED_ENTRY)
+#undef INLINE_OPTIMIZED_ENTRY
+
   // IC utilities
 #define IC_ENTRY(name) \
   { IC_UTILITY, \
@@ -297,6 +313,11 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
       RUNTIME_ENTRY,
       1,
       "Runtime::PerformGC");
+  // Runtime entries
+  Add(ExternalReference::out_of_memory_function(isolate).address(),
+      RUNTIME_ENTRY,
+      2,
+      "Runtime::OutOfMemory");
   Add(ExternalReference::delete_handle_scope_extensions(isolate).address(),
       RUNTIME_ENTRY,
       4,
@@ -492,11 +513,12 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
       UNCLASSIFIED,
       52,
       "cpu_features");
-  Add(ExternalReference(Runtime::kAllocateInNewSpace, isolate).address(),
+  Add(ExternalReference(Runtime::kHiddenAllocateInNewSpace, isolate).address(),
       UNCLASSIFIED,
       53,
       "Runtime::AllocateInNewSpace");
-  Add(ExternalReference(Runtime::kAllocateInTargetSpace, isolate).address(),
+  Add(ExternalReference(
+          Runtime::kHiddenAllocateInTargetSpace, isolate).address(),
       UNCLASSIFIED,
       54,
       "Runtime::AllocateInTargetSpace");

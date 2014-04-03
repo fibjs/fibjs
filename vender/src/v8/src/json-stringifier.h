@@ -265,7 +265,7 @@ BasicJsonStringifier::BasicJsonStringifier(Isolate* isolate)
   accumulator_store_ = Handle<JSValue>::cast(
                            factory_->ToObject(factory_->empty_string()));
   part_length_ = kInitialPartLength;
-  current_part_ = factory_->NewRawOneByteString(part_length_);
+  current_part_ = factory_->NewRawOneByteString(part_length_).ToHandleChecked();
   tojson_string_ = factory_->toJSON_string();
   stack_ = factory_->NewJSArray(8);
 }
@@ -307,16 +307,16 @@ MaybeObject* BasicJsonStringifier::StringifyString(Isolate* isolate,
   FlattenString(object);
   ASSERT(object->IsFlat());
   if (object->IsOneByteRepresentationUnderneath()) {
-    Handle<String> result =
-        isolate->factory()->NewRawOneByteString(worst_case_length);
+    Handle<String> result = isolate->factory()->NewRawOneByteString(
+        worst_case_length).ToHandleChecked();
     DisallowHeapAllocation no_gc;
     return StringifyString_<SeqOneByteString>(
         isolate,
         object->GetFlatContent().ToOneByteVector(),
         result);
   } else {
-    Handle<String> result =
-        isolate->factory()->NewRawTwoByteString(worst_case_length);
+    Handle<String> result = isolate->factory()->NewRawTwoByteString(
+        worst_case_length).ToHandleChecked();
     DisallowHeapAllocation no_gc;
     return StringifyString_<SeqTwoByteString>(
         isolate,
@@ -390,13 +390,16 @@ BasicJsonStringifier::Result BasicJsonStringifier::StackPush(
   if (check.HasOverflowed()) return STACK_OVERFLOW;
 
   int length = Smi::cast(stack_->length())->value();
-  FixedArray* elements = FixedArray::cast(stack_->elements());
-  for (int i = 0; i < length; i++) {
-    if (elements->get(i) == *object) {
-      return CIRCULAR;
+  {
+    DisallowHeapAllocation no_allocation;
+    FixedArray* elements = FixedArray::cast(stack_->elements());
+    for (int i = 0; i < length; i++) {
+      if (elements->get(i) == *object) {
+        return CIRCULAR;
+      }
     }
   }
-  stack_->EnsureSize(length + 1);
+  JSArray::EnsureSize(stack_, length + 1);
   FixedArray::cast(stack_->elements())->set(length, *object);
   stack_->set_length(Smi::FromInt(length + 1));
   return SUCCESS;
@@ -495,8 +498,11 @@ BasicJsonStringifier::Result BasicJsonStringifier::SerializeGeneric(
   part_length_ = kInitialPartLength;  // Allocate conservatively.
   Extend();             // Attach current part and allocate new part.
   // Attach result string to the accumulator.
-  Handle<String> cons = factory_->NewConsString(accumulator(), result_string);
-  RETURN_IF_EMPTY_HANDLE_VALUE(isolate_, cons, EXCEPTION);
+  Handle<String> cons;
+  ASSIGN_RETURN_ON_EXCEPTION_VALUE(
+      isolate_, cons,
+      factory_->NewConsString(accumulator(), result_string),
+      EXCEPTION);
   set_accumulator(cons);
   return SUCCESS;
 }
@@ -665,7 +671,7 @@ BasicJsonStringifier::Result BasicJsonStringifier::SerializeJSObject(
                            map->instance_descriptors()->GetFieldIndex(i)),
                        isolate_);
       } else {
-        property = GetProperty(isolate_, object, key);
+        property = Object::GetPropertyOrElement(object, key);
         RETURN_IF_EMPTY_HANDLE_VALUE(isolate_, property, EXCEPTION);
       }
       Result result = SerializeProperty(property, comma, key);
@@ -684,7 +690,7 @@ BasicJsonStringifier::Result BasicJsonStringifier::SerializeJSObject(
       Handle<Object> property;
       if (key->IsString()) {
         key_handle = Handle<String>(String::cast(key), isolate_);
-        property = GetProperty(isolate_, object, key_handle);
+        property = Object::GetPropertyOrElement(object, key_handle);
       } else {
         ASSERT(key->IsNumber());
         key_handle = factory_->NumberToString(Handle<Object>(key, isolate_));
@@ -695,7 +701,7 @@ BasicJsonStringifier::Result BasicJsonStringifier::SerializeJSObject(
         } else if (key_handle->AsArrayIndex(&index)) {
           property = Object::GetElement(isolate_, object, index);
         } else {
-          property = GetProperty(isolate_, object, key_handle);
+          property = Object::GetPropertyOrElement(object, key_handle);
         }
       }
       RETURN_IF_EMPTY_HANDLE_VALUE(isolate_, property, EXCEPTION);
@@ -722,11 +728,11 @@ void BasicJsonStringifier::ShrinkCurrentPart() {
 void BasicJsonStringifier::Accumulate() {
   if (accumulator()->length() + current_part_->length() > String::kMaxLength) {
     // Screw it.  Simply set the flag and carry on.  Throw exception at the end.
-    // We most likely will trigger a real OOM before even reaching this point.
     set_accumulator(factory_->empty_string());
     overflowed_ = true;
   } else {
-    set_accumulator(factory_->NewConsString(accumulator(), current_part_));
+    set_accumulator(factory_->NewConsString(accumulator(),
+                                            current_part_).ToHandleChecked());
   }
 }
 
@@ -737,10 +743,13 @@ void BasicJsonStringifier::Extend() {
     part_length_ *= kPartLengthGrowthFactor;
   }
   if (is_ascii_) {
-    current_part_ = factory_->NewRawOneByteString(part_length_);
+    current_part_ =
+        factory_->NewRawOneByteString(part_length_).ToHandleChecked();
   } else {
-    current_part_ = factory_->NewRawTwoByteString(part_length_);
+    current_part_ =
+        factory_->NewRawTwoByteString(part_length_).ToHandleChecked();
   }
+  ASSERT(!current_part_.is_null());
   current_index_ = 0;
 }
 
@@ -748,7 +757,9 @@ void BasicJsonStringifier::Extend() {
 void BasicJsonStringifier::ChangeEncoding() {
   ShrinkCurrentPart();
   Accumulate();
-  current_part_ = factory_->NewRawTwoByteString(part_length_);
+  current_part_ =
+      factory_->NewRawTwoByteString(part_length_).ToHandleChecked();
+  ASSERT(!current_part_.is_null());
   current_index_ = 0;
   is_ascii_ = false;
 }

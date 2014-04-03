@@ -122,6 +122,30 @@ bool LCodeGenBase::GenerateBody() {
 }
 
 
+void LCodeGenBase::CheckEnvironmentUsage() {
+#ifdef DEBUG
+  bool dead_block = false;
+  for (int i = 0; i < instructions_->length(); i++) {
+    LInstruction* instr = instructions_->at(i);
+    HValue* hval = instr->hydrogen_value();
+    if (instr->IsLabel()) dead_block = LLabel::cast(instr)->HasReplacement();
+    if (dead_block || !hval->block()->IsReachable()) continue;
+
+    HInstruction* hinstr = HInstruction::cast(hval);
+    if (!hinstr->CanDeoptimize() && instr->HasEnvironment()) {
+      V8_Fatal(__FILE__, __LINE__, "CanDeoptimize is wrong for %s (%s)\n",
+               hinstr->Mnemonic(), instr->Mnemonic());
+    }
+
+    if (instr->HasEnvironment() && !instr->environment()->has_been_used()) {
+      V8_Fatal(__FILE__, __LINE__, "unused environment for %s (%s)\n",
+               hinstr->Mnemonic(), instr->Mnemonic());
+    }
+  }
+#endif
+}
+
+
 void LCodeGenBase::Comment(const char* format, ...) {
   if (!FLAG_code_comments) return;
   char buffer[4 * KB];

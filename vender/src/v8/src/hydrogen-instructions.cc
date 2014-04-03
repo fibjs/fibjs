@@ -509,6 +509,7 @@ bool HValue::CanReplaceWithDummyUses() {
       !(block()->IsReachable() ||
         IsBlockEntry() ||
         IsControlInstruction() ||
+        IsCapturedObject() ||
         IsSimulate() ||
         IsEnterInlined() ||
         IsLeaveInlined());
@@ -839,6 +840,136 @@ void HInstruction::Verify() {
   }
 }
 #endif
+
+
+bool HInstruction::CanDeoptimize() {
+  // TODO(titzer): make this a virtual method?
+  switch (opcode()) {
+    case HValue::kAbnormalExit:
+    case HValue::kAccessArgumentsAt:
+    case HValue::kAllocate:
+    case HValue::kArgumentsElements:
+    case HValue::kArgumentsLength:
+    case HValue::kArgumentsObject:
+    case HValue::kBlockEntry:
+    case HValue::kBoundsCheckBaseIndexInformation:
+    case HValue::kCallFunction:
+    case HValue::kCallJSFunction:
+    case HValue::kCallNew:
+    case HValue::kCallNewArray:
+    case HValue::kCallStub:
+    case HValue::kCallWithDescriptor:
+    case HValue::kCapturedObject:
+    case HValue::kClassOfTestAndBranch:
+    case HValue::kCompareGeneric:
+    case HValue::kCompareHoleAndBranch:
+    case HValue::kCompareMap:
+    case HValue::kCompareMinusZeroAndBranch:
+    case HValue::kCompareNumericAndBranch:
+    case HValue::kCompareObjectEqAndBranch:
+    case HValue::kConstant:
+    case HValue::kConstructDouble:
+    case HValue::kContext:
+    case HValue::kDebugBreak:
+    case HValue::kDeclareGlobals:
+    case HValue::kDoubleBits:
+    case HValue::kDummyUse:
+    case HValue::kEnterInlined:
+    case HValue::kEnvironmentMarker:
+    case HValue::kForceRepresentation:
+    case HValue::kGetCachedArrayIndex:
+    case HValue::kGoto:
+    case HValue::kHasCachedArrayIndexAndBranch:
+    case HValue::kHasInstanceTypeAndBranch:
+    case HValue::kInnerAllocatedObject:
+    case HValue::kInstanceOf:
+    case HValue::kInstanceOfKnownGlobal:
+    case HValue::kIsConstructCallAndBranch:
+    case HValue::kIsObjectAndBranch:
+    case HValue::kIsSmiAndBranch:
+    case HValue::kIsStringAndBranch:
+    case HValue::kIsUndetectableAndBranch:
+    case HValue::kLeaveInlined:
+    case HValue::kLoadFieldByIndex:
+    case HValue::kLoadGlobalGeneric:
+    case HValue::kLoadNamedField:
+    case HValue::kLoadNamedGeneric:
+    case HValue::kLoadRoot:
+    case HValue::kMapEnumLength:
+    case HValue::kMathMinMax:
+    case HValue::kParameter:
+    case HValue::kPhi:
+    case HValue::kPushArgument:
+    case HValue::kRegExpLiteral:
+    case HValue::kReturn:
+    case HValue::kRor:
+    case HValue::kSar:
+    case HValue::kSeqStringGetChar:
+    case HValue::kStoreCodeEntry:
+    case HValue::kStoreKeyed:
+    case HValue::kStoreNamedGeneric:
+    case HValue::kStringCharCodeAt:
+    case HValue::kStringCharFromCode:
+    case HValue::kThisFunction:
+    case HValue::kTypeofIsAndBranch:
+    case HValue::kUnknownOSRValue:
+    case HValue::kUseConst:
+      return false;
+
+    case HValue::kAdd:
+    case HValue::kApplyArguments:
+    case HValue::kBitwise:
+    case HValue::kBoundsCheck:
+    case HValue::kBranch:
+    case HValue::kCallRuntime:
+    case HValue::kChange:
+    case HValue::kCheckHeapObject:
+    case HValue::kCheckInstanceType:
+    case HValue::kCheckMapValue:
+    case HValue::kCheckMaps:
+    case HValue::kCheckSmi:
+    case HValue::kCheckValue:
+    case HValue::kClampToUint8:
+    case HValue::kDateField:
+    case HValue::kDeoptimize:
+    case HValue::kDiv:
+    case HValue::kForInCacheArray:
+    case HValue::kForInPrepareMap:
+    case HValue::kFunctionLiteral:
+    case HValue::kInvokeFunction:
+    case HValue::kLoadContextSlot:
+    case HValue::kLoadFunctionPrototype:
+    case HValue::kLoadGlobalCell:
+    case HValue::kLoadKeyed:
+    case HValue::kLoadKeyedGeneric:
+    case HValue::kMathFloorOfDiv:
+    case HValue::kMod:
+    case HValue::kMul:
+    case HValue::kOsrEntry:
+    case HValue::kPower:
+    case HValue::kSeqStringSetChar:
+    case HValue::kShl:
+    case HValue::kShr:
+    case HValue::kSimulate:
+    case HValue::kStackCheck:
+    case HValue::kStoreContextSlot:
+    case HValue::kStoreGlobalCell:
+    case HValue::kStoreKeyedGeneric:
+    case HValue::kStoreNamedField:
+    case HValue::kStringAdd:
+    case HValue::kStringCompareAndBranch:
+    case HValue::kSub:
+    case HValue::kToFastProperties:
+    case HValue::kTransitionElementsKind:
+    case HValue::kTrapAllocationMemento:
+    case HValue::kTypeof:
+    case HValue::kUnaryMathOperation:
+    case HValue::kWrapReceiver:
+      return true;
+  }
+  UNREACHABLE();
+  return true;
+}
 
 
 void HDummyUse::PrintDataTo(StringStream* stream) {
@@ -1460,6 +1591,7 @@ void HChange::PrintDataTo(StringStream* stream) {
   HUnaryOperation::PrintDataTo(stream);
   stream->Add(" %s to %s", from().Mnemonic(), to().Mnemonic());
 
+  if (CanTruncateToSmi()) stream->Add(" truncating-smi");
   if (CanTruncateToInt32()) stream->Add(" truncating-int32");
   if (CheckFlag(kBailoutOnMinusZero)) stream->Add(" -0?");
   if (CheckFlag(kAllowUndefinedAsNaN)) stream->Add(" allow-undefined-as-nan");
@@ -3519,7 +3651,8 @@ void HLoadGlobalGeneric::PrintDataTo(StringStream* stream) {
 
 void HInnerAllocatedObject::PrintDataTo(StringStream* stream) {
   base_object()->PrintNameTo(stream);
-  stream->Add(" offset %d", offset());
+  stream->Add(" offset ");
+  offset()->PrintTo(stream);
 }
 
 
@@ -3923,9 +4056,15 @@ HInstruction* HStringAdd::New(Zone* zone,
     HConstant* c_right = HConstant::cast(right);
     HConstant* c_left = HConstant::cast(left);
     if (c_left->HasStringValue() && c_right->HasStringValue()) {
-      Handle<String> concat = zone->isolate()->factory()->NewFlatConcatString(
-          c_left->StringValue(), c_right->StringValue());
-      return HConstant::New(zone, context, concat);
+      Handle<String> left_string = c_left->StringValue();
+      Handle<String> right_string = c_right->StringValue();
+      // Prevent possible exception by invalid string length.
+      if (left_string->length() + right_string->length() < String::kMaxLength) {
+        Handle<String> concat = zone->isolate()->factory()->NewFlatConcatString(
+            c_left->StringValue(), c_right->StringValue());
+        ASSERT(!concat.is_null());
+        return HConstant::New(zone, context, concat);
+      }
     }
   }
   return new(zone) HStringAdd(

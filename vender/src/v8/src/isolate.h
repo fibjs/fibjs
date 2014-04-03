@@ -134,12 +134,12 @@ typedef ZoneList<Handle<Object> > ZoneObjectList;
     }                                                     \
   } while (false)
 
-#define RETURN_IF_EMPTY_HANDLE_VALUE(isolate, call, value) \
-  do {                                                     \
-    if ((call).is_null()) {                                \
-      ASSERT((isolate)->has_pending_exception());          \
-      return (value);                                      \
-    }                                                      \
+#define RETURN_IF_EMPTY_HANDLE_VALUE(isolate, call, value)  \
+  do {                                                      \
+    if ((call).is_null()) {                                 \
+      ASSERT((isolate)->has_pending_exception());           \
+      return (value);                                       \
+    }                                                       \
   } while (false)
 
 #define CHECK_NOT_EMPTY_HANDLE(isolate, call)     \
@@ -148,8 +148,50 @@ typedef ZoneList<Handle<Object> > ZoneObjectList;
     CHECK(!(call).is_null());                     \
   } while (false)
 
-#define RETURN_IF_EMPTY_HANDLE(isolate, call)                       \
+#define RETURN_IF_EMPTY_HANDLE(isolate, call)  \
   RETURN_IF_EMPTY_HANDLE_VALUE(isolate, call, Failure::Exception())
+
+
+// Macros for MaybeHandle.
+
+#define RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, T)  \
+  do {                                                       \
+    Isolate* __isolate__ = (isolate);                        \
+    if (__isolate__->has_scheduled_exception()) {            \
+      __isolate__->PromoteScheduledException();              \
+      return MaybeHandle<T>();                               \
+    }                                                        \
+  } while (false)
+
+#define ASSIGN_RETURN_ON_EXCEPTION_VALUE(isolate, dst, call, value)  \
+  do {                                                               \
+    if (!(call).ToHandle(&dst)) {                                    \
+      ASSERT((isolate)->has_pending_exception());                    \
+      return value;                                                  \
+    }                                                                \
+  } while (false)
+
+#define ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, dst, call)  \
+  ASSIGN_RETURN_ON_EXCEPTION_VALUE(isolate, dst, call, Failure::Exception())
+
+#define ASSIGN_RETURN_ON_EXCEPTION(isolate, dst, call, T)  \
+  ASSIGN_RETURN_ON_EXCEPTION_VALUE(isolate, dst, call, MaybeHandle<T>())
+
+#define RETURN_ON_EXCEPTION_VALUE(isolate, dst, call, value)  \
+  do {                                                             \
+    if ((call).is_null()) {                                        \
+      ASSERT((isolate)->has_pending_exception());                  \
+      return value;                                                \
+    }                                                              \
+  } while (false)
+
+#define RETURN_FAILURE_ON_EXCEPTION(isolate, call)  \
+  RETURN_ON_EXCEPTION_VALUE(isolate, dst, call, Failure::Exception())
+
+#define RETURN_ON_EXCEPTION(isolate, call, T)  \
+  RETURN_ON_EXCEPTION_VALUE(                   \
+      isolate, dst, call, MaybeHandle<T>::Exception())
+
 
 #define FOR_EACH_ISOLATE_ADDRESS_NAME(C)                \
   C(Handler, handler)                                   \
@@ -287,9 +329,6 @@ class ThreadLocalTop BASE_EMBEDDED {
 
   // Head of the list of live LookupResults.
   LookupResult* top_lookup_result_;
-
-  // Whether out of memory exceptions should be ignored.
-  bool ignore_out_of_memory_;
 
  private:
   void InitializeInternal();
@@ -641,8 +680,7 @@ class Isolate {
   bool IsExternallyCaught();
 
   bool is_catchable_by_javascript(MaybeObject* exception) {
-    return (!exception->IsOutOfMemory()) &&
-        (exception != heap()->termination_exception());
+    return exception != heap()->termination_exception();
   }
 
   // Serializer.
@@ -721,12 +759,6 @@ class Isolate {
       int frame_limit,
       StackTrace::StackTraceOptions options);
 
-  // Tells whether the current context has experienced an out of memory
-  // exception.
-  bool is_out_of_memory();
-
-  THREAD_LOCAL_TOP_ACCESSOR(bool,  ignore_out_of_memory)
-
   void PrintCurrentStackTrace(FILE* out);
   void PrintStack(StringStream* accumulator);
   void PrintStack(FILE* out);
@@ -777,6 +809,14 @@ class Isolate {
   // Exception throwing support. The caller should use the result
   // of Throw() as its return value.
   Failure* Throw(Object* exception, MessageLocation* location = NULL);
+
+  template <typename T>
+  MUST_USE_RESULT MaybeHandle<T> Throw(Handle<Object> exception,
+                                       MessageLocation* location = NULL) {
+    Throw(*exception, location);
+    return MaybeHandle<T>();
+  }
+
   // Re-throw an exception.  This involves no error reporting since
   // error reporting was handled when the exception was thrown
   // originally.
@@ -1126,6 +1166,9 @@ class Isolate {
     return id;
   }
 
+  // Get (and lazily initialize) the registry for per-isolate symbols.
+  Handle<JSObject> GetSymbolRegistry();
+
  private:
   Isolate();
 
@@ -1474,17 +1517,6 @@ class PostponeInterruptsScope BASE_EMBEDDED {
   Isolate* isolate_;
 };
 
-
-// Tells whether the native context is marked with out of memory.
-inline bool Context::has_out_of_memory() {
-  return native_context()->out_of_memory()->IsTrue();
-}
-
-
-// Mark the native context with out of memory.
-inline void Context::mark_out_of_memory() {
-  native_context()->set_out_of_memory(GetIsolate()->heap()->true_value());
-}
 
 class CodeTracer V8_FINAL : public Malloced {
  public:

@@ -56,17 +56,6 @@ namespace v8 {
 namespace internal {
 
 
-void PreParserTraits::CheckStrictModeLValue(PreParserExpression expression,
-                                            bool* ok) {
-  if (expression.IsIdentifier() &&
-      expression.AsIdentifier().IsEvalOrArguments()) {
-    pre_parser_->ReportMessage("strict_eval_arguments",
-                               Vector<const char*>::empty());
-    *ok = false;
-  }
-}
-
-
 void PreParserTraits::ReportMessageAt(Scanner::Location location,
                                       const char* message,
                                       Vector<const char*> args,
@@ -83,8 +72,8 @@ void PreParserTraits::ReportMessageAt(Scanner::Location location,
                                       const char* type,
                                       const char* name_opt,
                                       bool is_reference_error) {
-  pre_parser_->log_
-      ->LogMessage(location.beg_pos, location.end_pos, type, name_opt);
+  pre_parser_->log_->LogMessage(location.beg_pos, location.end_pos, type,
+                                name_opt, is_reference_error);
 }
 
 
@@ -93,7 +82,8 @@ void PreParserTraits::ReportMessageAt(int start_pos,
                                       const char* type,
                                       const char* name_opt,
                                       bool is_reference_error) {
-  pre_parser_->log_->LogMessage(start_pos, end_pos, type, name_opt);
+  pre_parser_->log_->LogMessage(start_pos, end_pos, type, name_opt,
+                                is_reference_error);
 }
 
 
@@ -379,7 +369,7 @@ PreParser::Statement PreParser::ParseBlock(bool* ok) {
   //
   Expect(Token::LBRACE, CHECK_OK);
   while (peek() != Token::RBRACE) {
-    if (FLAG_harmony_scoping && strict_mode() == STRICT) {
+    if (allow_harmony_scoping() && strict_mode() == STRICT) {
       ParseSourceElement(CHECK_OK);
     } else {
       ParseStatement(CHECK_OK);
@@ -444,7 +434,7 @@ PreParser::Statement PreParser::ParseVariableDeclarations(
     // non-harmony semantics in sloppy mode.
     Consume(Token::CONST);
     if (strict_mode() == STRICT) {
-      if (FLAG_harmony_scoping) {
+      if (allow_harmony_scoping()) {
         if (var_context != kSourceElement && var_context != kForStatement) {
           ReportMessageAt(scanner()->peek_location(), "unprotected_const");
           *ok = false;
@@ -467,7 +457,7 @@ PreParser::Statement PreParser::ParseVariableDeclarations(
     //   contained in extended code.
     //
     // TODO(rossberg): make 'let' a legal identifier in sloppy mode.
-    if (!FLAG_harmony_scoping || strict_mode() == SLOPPY) {
+    if (!allow_harmony_scoping() || strict_mode() == SLOPPY) {
       ReportMessageAt(scanner()->peek_location(), "illegal_let");
       *ok = false;
       return Statement::Default();
@@ -592,7 +582,7 @@ PreParser::Statement PreParser::ParseReturnStatement(bool* ok) {
   // ReturnStatement ::
   //   'return' [no line terminator] Expression? ';'
 
-  // Consume the return token. It is necessary to do the before
+  // Consume the return token. It is necessary to do before
   // reporting any errors on it, because of the way errors are
   // reported (underlining).
   Expect(Token::RETURN, CHECK_OK);
@@ -850,7 +840,6 @@ PreParser::Expression PreParser::ParseFunctionLiteral(
 
   // Parse function body.
   ScopeType outer_scope_type = scope_->type();
-  bool inside_with = scope_->inside_with();
   PreParserScope function_scope(scope_, FUNCTION_SCOPE);
   FunctionState function_state(&function_state_, &scope_, &function_scope);
   function_state.set_is_generator(is_generator);
@@ -892,8 +881,7 @@ PreParser::Expression PreParser::ParseFunctionLiteral(
 
   // See Parser::ParseFunctionLiteral for more information about lazy parsing
   // and lazy compilation.
-  bool is_lazily_parsed = (outer_scope_type == GLOBAL_SCOPE &&
-                           !inside_with && allow_lazy() &&
+  bool is_lazily_parsed = (outer_scope_type == GLOBAL_SCOPE && allow_lazy() &&
                            !parenthesized_function_);
   parenthesized_function_ = false;
 

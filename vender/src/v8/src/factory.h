@@ -1,43 +1,18 @@
-// Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef V8_FACTORY_H_
 #define V8_FACTORY_H_
 
-#include "globals.h"
-#include "handles.h"
-#include "heap.h"
+#include "isolate.h"
 
 namespace v8 {
 namespace internal {
 
 // Interface for handle based allocation.
 
-class Factory {
+class Factory V8_FINAL {
  public:
   // Allocate a new boxed value.
   Handle<Box> NewBox(
@@ -157,16 +132,16 @@ class Factory {
   // Allocates and partially initializes an ASCII or TwoByte String. The
   // characters of the string are uninitialized. Currently used in regexp code
   // only, where they are pretenured.
-  Handle<SeqOneByteString> NewRawOneByteString(
+  MaybeHandle<SeqOneByteString> NewRawOneByteString(
       int length,
       PretenureFlag pretenure = NOT_TENURED);
-  Handle<SeqTwoByteString> NewRawTwoByteString(
+  MaybeHandle<SeqTwoByteString> NewRawTwoByteString(
       int length,
       PretenureFlag pretenure = NOT_TENURED);
 
   // Create a new cons string object which consists of a pair of strings.
-  Handle<String> NewConsString(Handle<String> left,
-                               Handle<String> right);
+  MUST_USE_RESULT MaybeHandle<String> NewConsString(Handle<String> left,
+                                                    Handle<String> right);
 
   Handle<ConsString> NewRawConsString(String::Encoding encoding);
 
@@ -191,9 +166,9 @@ class Factory {
   // in the system: ASCII and two byte.  Unlike other String types, it does
   // not make sense to have a UTF-8 factory function for external strings,
   // because we cannot change the underlying buffer.
-  Handle<String> NewExternalStringFromAscii(
+  MaybeHandle<String> NewExternalStringFromAscii(
       const ExternalAsciiString::Resource* resource);
-  Handle<String> NewExternalStringFromTwoByte(
+  MaybeHandle<String> NewExternalStringFromTwoByte(
       const ExternalTwoByteString::Resource* resource);
 
   // Create a symbol.
@@ -281,16 +256,6 @@ class Factory {
 
   Handle<JSObject> NewFunctionPrototype(Handle<JSFunction> function);
 
-  Handle<Map> CopyWithPreallocatedFieldDescriptors(Handle<Map> map);
-
-  // Copy the map adding more inobject properties if possible without
-  // overflowing the instance size.
-  Handle<Map> CopyMap(Handle<Map> map, int extra_inobject_props);
-  Handle<Map> CopyMap(Handle<Map> map);
-
-  Handle<Map> GetElementsTransitionMap(Handle<JSObject> object,
-                                       ElementsKind elements_kind);
-
   Handle<FixedArray> CopyFixedArray(Handle<FixedArray> array);
 
   // This method expects a COW array in new space, and creates a copy
@@ -315,8 +280,14 @@ class Factory {
                                   PretenureFlag pretenure = NOT_TENURED);
   Handle<Object> NewNumberFromUint(uint32_t value,
                                   PretenureFlag pretenure = NOT_TENURED);
-  inline Handle<Object> NewNumberFromSize(size_t value,
-                                   PretenureFlag pretenure = NOT_TENURED);
+  Handle<Object> NewNumberFromSize(size_t value,
+                                   PretenureFlag pretenure = NOT_TENURED) {
+    if (Smi::IsValid(static_cast<intptr_t>(value))) {
+      return Handle<Object>(Smi::FromIntptr(static_cast<intptr_t>(value)),
+                            isolate());
+    }
+    return NewNumber(static_cast<double>(value), pretenure);
+  }
   Handle<HeapNumber> NewHeapNumber(double value,
                                    PretenureFlag pretenure = NOT_TENURED);
 
@@ -358,13 +329,18 @@ class Factory {
       ElementsKind elements_kind,
       int length,
       int capacity,
+      ArrayStorageAllocationMode mode = INITIALIZE_ARRAY_ELEMENTS_WITH_HOLE,
       PretenureFlag pretenure = NOT_TENURED);
 
   Handle<JSArray> NewJSArray(
       int capacity,
       ElementsKind elements_kind = TERMINAL_FAST_ELEMENTS_KIND,
       PretenureFlag pretenure = NOT_TENURED) {
-    return NewJSArray(elements_kind, 0, capacity, pretenure);
+    if (capacity != 0) {
+      elements_kind = GetHoleyElementsKind(elements_kind);
+    }
+    return NewJSArray(elements_kind, 0, capacity,
+                      INITIALIZE_ARRAY_ELEMENTS_WITH_HOLE, pretenure);
   }
 
   Handle<JSArray> NewJSArrayWithElements(
@@ -386,10 +362,6 @@ class Factory {
       int length,
       int capacity,
       ArrayStorageAllocationMode mode = DONT_INITIALIZE_ARRAY_ELEMENTS);
-
-  void SetElementsCapacityAndLength(Handle<JSArray> array,
-                                    int capacity,
-                                    int length);
 
   Handle<JSGeneratorObject> NewJSGeneratorObject(Handle<JSFunction> function);
 
@@ -463,6 +435,11 @@ class Factory {
   Handle<Object> NewRangeError(const char* message,
                                Vector< Handle<Object> > args);
   Handle<Object> NewRangeError(Handle<String> message);
+
+  Handle<Object> NewInvalidStringLengthError() {
+    return NewRangeError("invalid_string_length",
+                         HandleVector<Object>(NULL, 0));
+  }
 
   Handle<Object> NewSyntaxError(const char* message, Handle<JSArray> args);
   Handle<Object> NewSyntaxError(Handle<String> message);
@@ -623,18 +600,6 @@ class Factory {
                                  Handle<FixedArray> keys,
                                  Handle<Map> map);
 };
-
-
-Handle<Object> Factory::NewNumberFromSize(size_t value,
-                                          PretenureFlag pretenure) {
-  if (Smi::IsValid(static_cast<intptr_t>(value))) {
-    return Handle<Object>(Smi::FromIntptr(static_cast<intptr_t>(value)),
-                          isolate());
-  } else {
-    return NewNumber(static_cast<double>(value), pretenure);
-  }
-}
-
 
 } }  // namespace v8::internal
 

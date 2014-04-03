@@ -154,7 +154,6 @@ Heap::Heap()
       configured_(false),
       external_string_table_(this),
       chunks_queued_for_free_(NULL),
-      relocation_mutex_(NULL),
       gc_callbacks_depth_(0) {
   // Allow build-time customization of the max semispace size. Building
   // V8 with snapshots and a non-default max semispace size is much
@@ -1776,6 +1775,18 @@ static Object* VisitWeakList(Heap* heap,
 }
 
 
+template <class T>
+static void ClearWeakList(Heap* heap,
+                          Object* list) {
+  Object* undefined = heap->undefined_value();
+  while (list != undefined) {
+    T* candidate = reinterpret_cast<T*>(list);
+    list = WeakListVisitor<T>::WeakNext(candidate);
+    WeakListVisitor<T>::SetWeakNext(candidate, undefined);
+  }
+}
+
+
 template<>
 struct WeakListVisitor<JSFunction> {
   static void SetWeakNext(JSFunction* function, Object* next) {
@@ -1869,7 +1880,11 @@ struct WeakListVisitor<Context> {
     }
   }
 
-  static void VisitPhantomObject(Heap*, Context*) {
+  static void VisitPhantomObject(Heap* heap, Context* context) {
+    ClearWeakList<JSFunction>(heap,
+        context->get(Context::OPTIMIZED_FUNCTIONS_LIST));
+    ClearWeakList<Code>(heap, context->get(Context::OPTIMIZED_CODE_LIST));
+    ClearWeakList<Code>(heap, context->get(Context::DEOPTIMIZED_CODE_LIST));
   }
 
   static int WeakNextOffset() {
@@ -2935,6 +2950,16 @@ bool Heap::CreateInitialMaps() {
 
     TYPED_ARRAYS(ALLOCATE_EMPTY_EXTERNAL_ARRAY)
 #undef ALLOCATE_EMPTY_EXTERNAL_ARRAY
+
+#define ALLOCATE_EMPTY_FIXED_TYPED_ARRAY(Type, type, TYPE, ctype, size)        \
+    { FixedTypedArrayBase* obj;                                                \
+      if (!AllocateEmptyFixedTypedArray(kExternal##Type##Array)->To(&obj))     \
+          return false;                                                        \
+      set_empty_fixed_##type##_array(obj);                                     \
+    }
+
+    TYPED_ARRAYS(ALLOCATE_EMPTY_FIXED_TYPED_ARRAY)
+#undef ALLOCATE_EMPTY_FIXED_TYPED_ARRAY
   }
   ASSERT(!InNewSpace(empty_fixed_array()));
   return true;
@@ -3288,13 +3313,8 @@ bool Heap::CreateInitialObjects() {
   }
   set_undefined_cell(Cell::cast(obj));
 
-  // Allocate objects to hold symbol registry.
-  { MaybeObject* maybe_obj = AllocateMap(JS_OBJECT_TYPE, JSObject::kHeaderSize);
-    if (!maybe_obj->ToObject(&obj)) return false;
-    maybe_obj = AllocateJSObjectFromMap(Map::cast(obj));
-    if (!maybe_obj->ToObject(&obj)) return false;
-  }
-  set_symbol_registry(JSObject::cast(obj));
+  // The symbol registry is initialized lazily.
+  set_symbol_registry(undefined_value());
 
   // Allocate object to hold object observation state.
   { MaybeObject* maybe_obj = AllocateMap(JS_OBJECT_TYPE, JSObject::kHeaderSize);
@@ -3768,9 +3788,31 @@ Heap::RootListIndex Heap::RootIndexForEmptyExternalArray(
 }
 
 
+Heap::RootListIndex Heap::RootIndexForEmptyFixedTypedArray(
+    ElementsKind elementsKind) {
+  switch (elementsKind) {
+#define ELEMENT_KIND_TO_ROOT_INDEX(Type, type, TYPE, ctype, size)             \
+    case TYPE##_ELEMENTS:                                                     \
+      return kEmptyFixed##Type##ArrayRootIndex;
+
+    TYPED_ARRAYS(ELEMENT_KIND_TO_ROOT_INDEX)
+#undef ELEMENT_KIND_TO_ROOT_INDEX
+    default:
+      UNREACHABLE();
+      return kUndefinedValueRootIndex;
+  }
+}
+
+
 ExternalArray* Heap::EmptyExternalArrayForMap(Map* map) {
   return ExternalArray::cast(
       roots_[RootIndexForEmptyExternalArray(map->elements_kind())]);
+}
+
+
+FixedTypedArrayBase* Heap::EmptyFixedTypedArrayForMap(Map* map) {
+  return FixedTypedArrayBase::cast(
+      roots_[RootIndexForEmptyFixedTypedArray(map->elements_kind())]);
 }
 
 
@@ -3871,8 +3913,7 @@ MaybeObject* Heap::AllocateExternalStringFromAscii(
     const ExternalAsciiString::Resource* resource) {
   size_t length = resource->length();
   if (length > static_cast<size_t>(String::kMaxLength)) {
-    isolate()->context()->mark_out_of_memory();
-    return Failure::OutOfMemoryException(0x5);
+    return isolate()->ThrowInvalidStringLength();
   }
 
   Map* map = external_ascii_string_map();
@@ -3894,8 +3935,7 @@ MaybeObject* Heap::AllocateExternalStringFromTwoByte(
     const ExternalTwoByteString::Resource* resource) {
   size_t length = resource->length();
   if (length > static_cast<size_t>(String::kMaxLength)) {
-    isolate()->context()->mark_out_of_memory();
-    return Failure::OutOfMemoryException(0x6);
+    return isolate()->ThrowInvalidStringLength();
   }
 
   // For small strings we check whether the resource contains only
@@ -3946,7 +3986,7 @@ MaybeObject* Heap::LookupSingleCharacterStringFromCode(uint16_t code) {
 
 MaybeObject* Heap::AllocateByteArray(int length, PretenureFlag pretenure) {
   if (length < 0 || length > ByteArray::kMaxLength) {
-    return Failure::OutOfMemoryException(0x7);
+    v8::internal::Heap::FatalProcessOutOfMemory("invalid array length", true);
   }
   int size = ByteArray::SizeFor(length);
   AllocationSpace space = SelectSpace(size, OLD_DATA_SPACE, pretenure);
@@ -3973,6 +4013,21 @@ void Heap::CreateFillerObjectAt(Address addr, int size) {
     filler->set_map_no_write_barrier(free_space_map());
     FreeSpace::cast(filler)->set_size(size);
   }
+}
+
+
+bool Heap::CanMoveObjectStart(HeapObject* object) {
+  Address address = object->address();
+  bool is_in_old_pointer_space = InOldPointerSpace(address);
+  bool is_in_old_data_space = InOldDataSpace(address);
+
+  if (lo_space()->Contains(object)) return false;
+
+  // We cannot move the object start if the given old space page is
+  // concurrently swept.
+  return (!is_in_old_pointer_space && !is_in_old_data_space) ||
+      Page::FromAddress(address)->parallel_sweeping() <=
+          MemoryChunk::PARALLEL_SWEEPING_FINALIZE;
 }
 
 
@@ -4056,6 +4111,7 @@ MaybeObject* Heap::AllocateFixedTypedArray(int length,
       reinterpret_cast<FixedTypedArrayBase*>(object);
   elements->set_map(MapForFixedTypedArray(array_type));
   elements->set_length(length);
+  memset(elements->DataPtr(), 0, elements->DataSize());
   return elements;
 }
 
@@ -4119,6 +4175,7 @@ MaybeObject* Heap::CreateCode(const CodeDesc& desc,
   code->set_is_crankshafted(crankshafted);
   code->set_deoptimization_data(empty_fixed_array(), SKIP_WRITE_BARRIER);
   code->set_raw_type_feedback_info(undefined_value());
+  code->set_next_code_link(undefined_value());
   code->set_handler_table(empty_fixed_array(), SKIP_WRITE_BARRIER);
   code->set_gc_metadata(Smi::FromInt(0));
   code->set_ic_age(global_ic_age_);
@@ -4464,7 +4521,8 @@ MaybeObject* Heap::AllocateJSObjectFromMap(
   // Initialize the JSObject.
   InitializeJSObjectFromMap(JSObject::cast(obj), properties, map);
   ASSERT(JSObject::cast(obj)->HasFastElements() ||
-         JSObject::cast(obj)->HasExternalArrayElements());
+         JSObject::cast(obj)->HasExternalArrayElements() ||
+         JSObject::cast(obj)->HasFixedTypedArrayElements());
   return obj;
 }
 
@@ -4906,8 +4964,6 @@ Map* Heap::InternalizedStringMapForString(String* string) {
   switch (string->map()->instance_type()) {
     case STRING_TYPE: return internalized_string_map();
     case ASCII_STRING_TYPE: return ascii_internalized_string_map();
-    case CONS_STRING_TYPE: return cons_internalized_string_map();
-    case CONS_ASCII_STRING_TYPE: return cons_ascii_internalized_string_map();
     case EXTERNAL_STRING_TYPE: return external_internalized_string_map();
     case EXTERNAL_ASCII_STRING_TYPE:
       return external_ascii_internalized_string_map();
@@ -4980,8 +5036,8 @@ MaybeObject* Heap::AllocateInternalizedStringImpl(
   int size;
   Map* map;
 
-  if (chars > String::kMaxLength) {
-    return Failure::OutOfMemoryException(0x9);
+  if (chars < 0 || chars > String::kMaxLength) {
+    return isolate()->ThrowInvalidStringLength();
   }
   if (is_one_byte) {
     map = ascii_internalized_string_map();
@@ -5029,7 +5085,7 @@ MaybeObject* Heap::AllocateInternalizedStringImpl<false>(
 MaybeObject* Heap::AllocateRawOneByteString(int length,
                                             PretenureFlag pretenure) {
   if (length < 0 || length > String::kMaxLength) {
-    return Failure::OutOfMemoryException(0xb);
+    return isolate()->ThrowInvalidStringLength();
   }
   int size = SeqOneByteString::SizeFor(length);
   ASSERT(size <= SeqOneByteString::kMaxSize);
@@ -5053,7 +5109,7 @@ MaybeObject* Heap::AllocateRawOneByteString(int length,
 MaybeObject* Heap::AllocateRawTwoByteString(int length,
                                             PretenureFlag pretenure) {
   if (length < 0 || length > String::kMaxLength) {
-    return Failure::OutOfMemoryException(0xc);
+    return isolate()->ThrowInvalidStringLength();
   }
   int size = SeqTwoByteString::SizeFor(length);
   ASSERT(size <= SeqTwoByteString::kMaxSize);
@@ -5132,6 +5188,11 @@ MaybeObject* Heap::CopyAndTenureFixedCOWArray(FixedArray* src) {
 }
 
 
+MaybeObject* Heap::AllocateEmptyFixedTypedArray(ExternalArrayType array_type) {
+  return AllocateFixedTypedArray(0, array_type, TENURED);
+}
+
+
 MaybeObject* Heap::CopyFixedArrayWithMap(FixedArray* src, Map* map) {
   int len = src->length();
   Object* obj;
@@ -5201,7 +5262,7 @@ MaybeObject* Heap::CopyConstantPoolArrayWithMap(ConstantPoolArray* src,
 
 MaybeObject* Heap::AllocateRawFixedArray(int length, PretenureFlag pretenure) {
   if (length < 0 || length > FixedArray::kMaxLength) {
-    return Failure::OutOfMemoryException(0xe);
+    v8::internal::Heap::FatalProcessOutOfMemory("invalid array length", true);
   }
   int size = FixedArray::SizeFor(length);
   AllocationSpace space = SelectSpace(size, OLD_POINTER_SPACE, pretenure);
@@ -5313,7 +5374,7 @@ MaybeObject* Heap::AllocateFixedDoubleArrayWithHoles(
 MaybeObject* Heap::AllocateRawFixedDoubleArray(int length,
                                                PretenureFlag pretenure) {
   if (length < 0 || length > FixedDoubleArray::kMaxLength) {
-    return Failure::OutOfMemoryException(0xf);
+    v8::internal::Heap::FatalProcessOutOfMemory("invalid array length", true);
   }
   int size = FixedDoubleArray::SizeFor(length);
 #ifndef V8_HOST_ARCH_64_BIT
@@ -6602,8 +6663,6 @@ bool Heap::SetUp() {
 
   mark_compact_collector()->SetUp();
 
-  if (FLAG_concurrent_recompilation) relocation_mutex_ = new Mutex;
-
   return true;
 }
 
@@ -6745,9 +6804,6 @@ void Heap::TearDown() {
   incremental_marking()->TearDown();
 
   isolate_->memory_allocator()->TearDown();
-
-  delete relocation_mutex_;
-  relocation_mutex_ = NULL;
 }
 
 

@@ -56,23 +56,23 @@ AST_NODE_LIST(DECL_ACCEPT)
 // Implementation of other node functionality.
 
 
-bool Expression::IsSmiLiteral() {
+bool Expression::IsSmiLiteral() const {
   return AsLiteral() != NULL && AsLiteral()->value()->IsSmi();
 }
 
 
-bool Expression::IsStringLiteral() {
+bool Expression::IsStringLiteral() const {
   return AsLiteral() != NULL && AsLiteral()->value()->IsString();
 }
 
 
-bool Expression::IsNullLiteral() {
+bool Expression::IsNullLiteral() const {
   return AsLiteral() != NULL && AsLiteral()->value()->IsNull();
 }
 
 
-bool Expression::IsUndefinedLiteral(Isolate* isolate) {
-  VariableProxy* var_proxy = AsVariableProxy();
+bool Expression::IsUndefinedLiteral(Isolate* isolate) const {
+  const VariableProxy* var_proxy = AsVariableProxy();
   if (var_proxy == NULL) return false;
   Variable* var = var_proxy->var();
   // The global identifier "undefined" is immutable. Everything
@@ -357,8 +357,7 @@ void ArrayLiteral::BuildConstantElements(Isolate* isolate) {
   // Allocate a fixed array to hold all the object literals.
   Handle<JSArray> array =
       isolate->factory()->NewJSArray(0, FAST_HOLEY_SMI_ELEMENTS);
-  isolate->factory()->SetElementsCapacityAndLength(
-      array, values()->length(), values()->length());
+  JSArray::Expand(array, values()->length());
 
   // Fill in the literals.
   bool is_simple = true;
@@ -464,7 +463,7 @@ void BinaryOperation::RecordToBooleanTypeFeedback(TypeFeedbackOracle* oracle) {
 }
 
 
-bool BinaryOperation::ResultOverwriteAllowed() {
+bool BinaryOperation::ResultOverwriteAllowed() const {
   switch (op_) {
     case Token::COMMA:
     case Token::OR:

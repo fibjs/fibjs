@@ -487,14 +487,18 @@ MaybeObject* JSProxy::GetPropertyWithHandler(Object* receiver_raw,
 }
 
 
-Handle<Object> Object::GetProperty(Handle<Object> object,
-                                   Handle<Name> name) {
-  // TODO(rossberg): The index test should not be here but in the GetProperty
-  // method (or somewhere else entirely). Needs more global clean-up.
+Handle<Object> Object::GetPropertyOrElement(Handle<Object> object,
+                                            Handle<Name> name) {
   uint32_t index;
   Isolate* isolate = name->GetIsolate();
   if (name->AsArrayIndex(&index)) return GetElement(isolate, object, index);
-  CALL_HEAP_FUNCTION(isolate, object->GetProperty(*name), Object);
+  return GetProperty(object, name);
+}
+
+
+Handle<Object> Object::GetProperty(Handle<Object> object,
+                                   Handle<Name> name) {
+  CALL_HEAP_FUNCTION(name->GetIsolate(), object->GetProperty(*name), Object);
 }
 
 
@@ -839,18 +843,6 @@ Handle<Object> Object::GetProperty(Handle<Object> object,
 }
 
 
-MaybeObject* Object::GetPropertyOrFail(Handle<Object> object,
-                                       Handle<Object> receiver,
-                                       LookupResult* result,
-                                       Handle<Name> key,
-                                       PropertyAttributes* attributes) {
-  Isolate* isolate = result->isolate();
-  CALL_HEAP_FUNCTION_PASS_EXCEPTION(
-      isolate,
-      object->GetProperty(*receiver, result, *key, attributes));
-}
-
-
 // TODO(yangguo): handlify this and get rid of.
 MaybeObject* Object::GetProperty(Object* receiver,
                                  LookupResult* result,
@@ -962,63 +954,70 @@ MaybeObject* Object::GetProperty(Object* receiver,
 }
 
 
-MaybeObject* Object::GetElementWithReceiver(Isolate* isolate,
-                                            Object* receiver,
-                                            uint32_t index) {
-  Heap* heap = isolate->heap();
-  Object* holder = this;
+Handle<Object> Object::GetElementWithReceiver(Isolate* isolate,
+                                              Handle<Object> object,
+                                              Handle<Object> receiver,
+                                              uint32_t index) {
+  Handle<Object> holder;
 
   // Iterate up the prototype chain until an element is found or the null
   // prototype is encountered.
-  for (holder = this;
-       holder != heap->null_value();
-       holder = holder->GetPrototype(isolate)) {
+  for (holder = object;
+       !holder->IsNull();
+       holder = Handle<Object>(holder->GetPrototype(isolate), isolate)) {
     if (!holder->IsJSObject()) {
       Context* native_context = isolate->context()->native_context();
       if (holder->IsNumber()) {
-        holder = native_context->number_function()->instance_prototype();
+        holder = Handle<Object>(
+            native_context->number_function()->instance_prototype(), isolate);
       } else if (holder->IsString()) {
-        holder = native_context->string_function()->instance_prototype();
+        holder = Handle<Object>(
+            native_context->string_function()->instance_prototype(), isolate);
       } else if (holder->IsSymbol()) {
-        holder = native_context->symbol_function()->instance_prototype();
+        holder = Handle<Object>(
+            native_context->symbol_function()->instance_prototype(), isolate);
       } else if (holder->IsBoolean()) {
-        holder = native_context->boolean_function()->instance_prototype();
+        holder = Handle<Object>(
+            native_context->boolean_function()->instance_prototype(), isolate);
       } else if (holder->IsJSProxy()) {
-        return JSProxy::cast(holder)->GetElementWithHandler(receiver, index);
+        CALL_HEAP_FUNCTION(isolate,
+            Handle<JSProxy>::cast(holder)->GetElementWithHandler(
+                *receiver, index),
+            Object);
       } else {
         // Undefined and null have no indexed properties.
         ASSERT(holder->IsUndefined() || holder->IsNull());
-        return heap->undefined_value();
+        return isolate->factory()->undefined_value();
       }
     }
 
     // Inline the case for JSObjects. Doing so significantly improves the
     // performance of fetching elements where checking the prototype chain is
     // necessary.
-    JSObject* js_object = JSObject::cast(holder);
+    Handle<JSObject> js_object = Handle<JSObject>::cast(holder);
 
     // Check access rights if needed.
     if (js_object->IsAccessCheckNeeded()) {
-      Isolate* isolate = heap->isolate();
-      if (!isolate->MayIndexedAccess(js_object, index, v8::ACCESS_GET)) {
-        isolate->ReportFailedAccessCheck(js_object, v8::ACCESS_GET);
-        RETURN_IF_SCHEDULED_EXCEPTION(isolate);
-        return heap->undefined_value();
+      if (!isolate->MayIndexedAccessWrapper(js_object, index, v8::ACCESS_GET)) {
+        isolate->ReportFailedAccessCheckWrapper(js_object, v8::ACCESS_GET);
+        RETURN_HANDLE_IF_SCHEDULED_EXCEPTION(isolate, Object);
+        return isolate->factory()->undefined_value();
       }
     }
 
     if (js_object->HasIndexedInterceptor()) {
-      return js_object->GetElementWithInterceptor(receiver, index);
+      return JSObject::GetElementWithInterceptor(js_object, receiver, index);
     }
 
-    if (js_object->elements() != heap->empty_fixed_array()) {
-      MaybeObject* result = js_object->GetElementsAccessor()->Get(
+    if (js_object->elements() != isolate->heap()->empty_fixed_array()) {
+      Handle<Object> result = js_object->GetElementsAccessor()->Get(
           receiver, js_object, index);
-      if (result != heap->the_hole_value()) return result;
+      RETURN_IF_EMPTY_HANDLE_VALUE(isolate, result, Handle<Object>());
+      if (!result->IsTheHole()) return result;
     }
   }
 
-  return heap->undefined_value();
+  return isolate->factory()->undefined_value();
 }
 
 
@@ -1273,34 +1272,39 @@ bool String::MakeExternal(v8::String::ExternalStringResource* resource) {
   // In either case we resort to a short external string instead, omitting
   // the field caching the address of the backing store.  When we encounter
   // short external strings in generated code, we need to bailout to runtime.
+  Map* new_map;
   if (size < ExternalString::kSize ||
       heap->old_pointer_space()->Contains(this)) {
-    this->set_map_no_write_barrier(
-        is_internalized
-            ? (is_ascii
-                ? heap->
-                    short_external_internalized_string_with_one_byte_data_map()
-                : heap->short_external_internalized_string_map())
-            : (is_ascii
-                ? heap->short_external_string_with_one_byte_data_map()
-                : heap->short_external_string_map()));
+    new_map = is_internalized
+        ? (is_ascii
+            ? heap->
+                short_external_internalized_string_with_one_byte_data_map()
+            : heap->short_external_internalized_string_map())
+        : (is_ascii
+            ? heap->short_external_string_with_one_byte_data_map()
+            : heap->short_external_string_map());
   } else {
-    this->set_map_no_write_barrier(
-        is_internalized
-            ? (is_ascii
-                ? heap->external_internalized_string_with_one_byte_data_map()
-                : heap->external_internalized_string_map())
-            : (is_ascii
-                ? heap->external_string_with_one_byte_data_map()
-                : heap->external_string_map()));
+    new_map = is_internalized
+        ? (is_ascii
+            ? heap->external_internalized_string_with_one_byte_data_map()
+            : heap->external_internalized_string_map())
+        : (is_ascii
+            ? heap->external_string_with_one_byte_data_map()
+            : heap->external_string_map());
   }
+
+  // Byte size of the external String object.
+  int new_size = this->SizeFromMap(new_map);
+  heap->CreateFillerObjectAt(this->address() + new_size, size - new_size);
+
+  // We are storing the new map using release store after creating a filler for
+  // the left-over space to avoid races with the sweeper thread.
+  this->synchronized_set_map(new_map);
+
   ExternalTwoByteString* self = ExternalTwoByteString::cast(this);
   self->set_resource(resource);
   if (is_internalized) self->Hash();  // Force regeneration of the hash value.
 
-  // Fill the remainder of the string with dead wood.
-  int new_size = this->Size();  // Byte size of the external String object.
-  heap->CreateFillerObjectAt(this->address() + new_size, size - new_size);
   heap->AdjustLiveBytes(this->address(), new_size - size, Heap::FROM_MUTATOR);
   return true;
 }
@@ -1340,23 +1344,30 @@ bool String::MakeExternal(v8::String::ExternalAsciiStringResource* resource) {
   // In either case we resort to a short external string instead, omitting
   // the field caching the address of the backing store.  When we encounter
   // short external strings in generated code, we need to bailout to runtime.
+  Map* new_map;
   if (size < ExternalString::kSize ||
       heap->old_pointer_space()->Contains(this)) {
-    this->set_map_no_write_barrier(
-        is_internalized ? heap->short_external_ascii_internalized_string_map()
-                        : heap->short_external_ascii_string_map());
+    new_map = is_internalized
+        ? heap->short_external_ascii_internalized_string_map()
+        : heap->short_external_ascii_string_map();
   } else {
-    this->set_map_no_write_barrier(
-        is_internalized ? heap->external_ascii_internalized_string_map()
-                        : heap->external_ascii_string_map());
+    new_map = is_internalized
+        ? heap->external_ascii_internalized_string_map()
+        : heap->external_ascii_string_map();
   }
+
+  // Byte size of the external String object.
+  int new_size = this->SizeFromMap(new_map);
+  heap->CreateFillerObjectAt(this->address() + new_size, size - new_size);
+
+  // We are storing the new map using release store after creating a filler for
+  // the left-over space to avoid races with the sweeper thread.
+  this->synchronized_set_map(new_map);
+
   ExternalAsciiString* self = ExternalAsciiString::cast(this);
   self->set_resource(resource);
   if (is_internalized) self->Hash();  // Force regeneration of the hash value.
 
-  // Fill the remainder of the string with dead wood.
-  int new_size = this->Size();  // Byte size of the external String object.
-  heap->CreateFillerObjectAt(this->address() + new_size, size - new_size);
   heap->AdjustLiveBytes(this->address(), new_size - size, Heap::FROM_MUTATOR);
   return true;
 }
@@ -1525,17 +1536,18 @@ void JSObject::JSObjectShortPrint(StringStream* accumulator) {
 
 
 void JSObject::PrintElementsTransition(
-    FILE* file, ElementsKind from_kind, FixedArrayBase* from_elements,
-    ElementsKind to_kind, FixedArrayBase* to_elements) {
+    FILE* file, Handle<JSObject> object,
+    ElementsKind from_kind, Handle<FixedArrayBase> from_elements,
+    ElementsKind to_kind, Handle<FixedArrayBase> to_elements) {
   if (from_kind != to_kind) {
     PrintF(file, "elements transition [");
     PrintElementsKind(file, from_kind);
     PrintF(file, " -> ");
     PrintElementsKind(file, to_kind);
     PrintF(file, "] in ");
-    JavaScriptFrame::PrintTop(GetIsolate(), file, false, true);
+    JavaScriptFrame::PrintTop(object->GetIsolate(), file, false, true);
     PrintF(file, " for ");
-    ShortPrint(file);
+    object->ShortPrint(file);
     PrintF(file, " from ");
     from_elements->ShortPrint(file);
     PrintF(file, " to ");
@@ -2289,7 +2301,9 @@ static void RightTrimFixedArray(Heap* heap, FixedArray* elms, int to_trim) {
   // we still do it.
   heap->CreateFillerObjectAt(new_end, size_delta);
 
-  elms->set_length(len - to_trim);
+  // We are storing the new length using release store after creating a filler
+  // for the left-over space to avoid races with the sweeper thread.
+  elms->synchronized_set_length(len - to_trim);
 
   heap->AdjustLiveBytes(elms->address(), -size_delta, mode);
 
@@ -2364,7 +2378,9 @@ void JSObject::MigrateToMap(Handle<JSObject> object, Handle<Map> new_map) {
   // converted to doubles.
   if (!old_map->InstancesNeedRewriting(
           *new_map, number_of_fields, inobject, unused)) {
-    object->set_map(*new_map);
+    // Writing the new map here does not require synchronization since it does
+    // not change the actual object size.
+    object->synchronized_set_map(*new_map);
     return;
   }
 
@@ -2434,6 +2450,11 @@ void JSObject::MigrateToMap(Handle<JSObject> object, Handle<Map> new_map) {
   int instance_size_delta = old_map->instance_size() - new_instance_size;
   ASSERT(instance_size_delta >= 0);
   Address address = object->address() + new_instance_size;
+
+  // The trimming is performed on a newly allocated object, which is on a
+  // fresly allocated page or on an already swept page. Hence, the sweeper
+  // thread can not get confused with the filler creation. No synchronization
+  // needed.
   isolate->heap()->CreateFillerObjectAt(address, instance_size_delta);
 
   // If there are properties in the new backing store, trim it to the correct
@@ -2443,6 +2464,10 @@ void JSObject::MigrateToMap(Handle<JSObject> object, Handle<Map> new_map) {
     object->set_properties(*array);
   }
 
+  // The trimming is performed on a newly allocated object, which is on a
+  // fresly allocated page or on an already swept page. Hence, the sweeper
+  // thread can not get confused with the filler creation. No synchronization
+  // needed.
   object->set_map(*new_map);
 }
 
@@ -2714,8 +2739,8 @@ Handle<Map> Map::GeneralizeRepresentation(Handle<Map> old_map,
   }
 
   Handle<DescriptorArray> new_descriptors = DescriptorArray::Merge(
-      updated_descriptors, verbatim, valid, descriptors, modify_index,
-      store_mode, old_descriptors);
+      updated, verbatim, valid, descriptors, modify_index,
+      store_mode, old_map);
   ASSERT(store_mode == ALLOW_AS_CONSTANT ||
          new_descriptors->GetDetails(modify_index).type() == FIELD);
 
@@ -3225,24 +3250,31 @@ Handle<Map> Map::FindTransitionedMap(MapHandleList* candidates) {
 
 static Map* FindClosestElementsTransition(Map* map, ElementsKind to_kind) {
   Map* current_map = map;
-  int index = GetSequenceIndexFromFastElementsKind(map->elements_kind());
-  int to_index = IsFastElementsKind(to_kind)
-      ? GetSequenceIndexFromFastElementsKind(to_kind)
-      : GetSequenceIndexFromFastElementsKind(TERMINAL_FAST_ELEMENTS_KIND);
+  int target_kind =
+      IsFastElementsKind(to_kind) || IsExternalArrayElementsKind(to_kind)
+      ? to_kind
+      : TERMINAL_FAST_ELEMENTS_KIND;
 
-  ASSERT(index <= to_index);
+  // Support for legacy API.
+  if (IsExternalArrayElementsKind(to_kind) &&
+      !IsFixedTypedArrayElementsKind(map->elements_kind())) {
+    return map;
+  }
 
-  for (; index < to_index; ++index) {
+  ElementsKind kind = map->elements_kind();
+  while (kind != target_kind) {
+    kind = GetNextTransitionElementsKind(kind);
     if (!current_map->HasElementsTransition()) return current_map;
     current_map = current_map->elements_transition_map();
   }
-  if (!IsFastElementsKind(to_kind) && current_map->HasElementsTransition()) {
+
+  if (to_kind != kind && current_map->HasElementsTransition()) {
+    ASSERT(to_kind == DICTIONARY_ELEMENTS);
     Map* next_map = current_map->elements_transition_map();
     if (next_map->elements_kind() == to_kind) return next_map;
   }
-  ASSERT(IsFastElementsKind(to_kind)
-         ? current_map->elements_kind() == to_kind
-         : current_map->elements_kind() == TERMINAL_FAST_ELEMENTS_KIND);
+
+  ASSERT(current_map->elements_kind() == target_kind);
   return current_map;
 }
 
@@ -3270,26 +3302,21 @@ bool Map::IsMapInArrayPrototypeChain() {
 
 static MaybeObject* AddMissingElementsTransitions(Map* map,
                                                   ElementsKind to_kind) {
-  ASSERT(IsFastElementsKind(map->elements_kind()));
-  int index = GetSequenceIndexFromFastElementsKind(map->elements_kind());
-  int to_index = IsFastElementsKind(to_kind)
-      ? GetSequenceIndexFromFastElementsKind(to_kind)
-      : GetSequenceIndexFromFastElementsKind(TERMINAL_FAST_ELEMENTS_KIND);
-
-  ASSERT(index <= to_index);
+  ASSERT(IsTransitionElementsKind(map->elements_kind()));
 
   Map* current_map = map;
 
-  for (; index < to_index; ++index) {
-    ElementsKind next_kind = GetFastElementsKindFromSequenceIndex(index + 1);
+  ElementsKind kind = map->elements_kind();
+  while (kind != to_kind && !IsTerminalElementsKind(kind)) {
+    kind = GetNextTransitionElementsKind(kind);
     MaybeObject* maybe_next_map =
-        current_map->CopyAsElementsKind(next_kind, INSERT_TRANSITION);
+        current_map->CopyAsElementsKind(kind, INSERT_TRANSITION);
     if (!maybe_next_map->To(&current_map)) return maybe_next_map;
   }
 
   // In case we are exiting the fast elements kind system, just add the map in
   // the end.
-  if (!IsFastElementsKind(to_kind)) {
+  if (kind != to_kind) {
     MaybeObject* maybe_next_map =
         current_map->CopyAsElementsKind(to_kind, INSERT_TRANSITION);
     if (!maybe_next_map->To(&current_map)) return maybe_next_map;
@@ -3321,7 +3348,7 @@ MaybeObject* JSObject::GetElementsTransitionMapSlow(ElementsKind to_kind) {
       // Only remember the map transition if there is not an already existing
       // non-matching element transition.
       !start_map->IsUndefined() && !start_map->is_shared() &&
-      IsFastElementsKind(from_kind);
+      IsTransitionElementsKind(from_kind);
 
   // Only store fast element maps in ascending generality.
   if (IsFastElementsKind(to_kind)) {
@@ -3592,9 +3619,8 @@ Handle<Object> JSProxy::SetPropertyViaPrototypesWithHandler(
   Handle<String> configurable_name =
       isolate->factory()->InternalizeOneByteString(
           STATIC_ASCII_VECTOR("configurable_"));
-  Handle<Object> configurable(
-      v8::internal::GetProperty(isolate, desc, configurable_name));
-  ASSERT(!isolate->has_pending_exception());
+  Handle<Object> configurable = Object::GetProperty(desc, configurable_name);
+  ASSERT(!configurable.is_null());
   ASSERT(configurable->IsTrue() || configurable->IsFalse());
   if (configurable->IsFalse()) {
     Handle<String> trap =
@@ -3612,17 +3638,15 @@ Handle<Object> JSProxy::SetPropertyViaPrototypesWithHandler(
   Handle<String> hasWritable_name =
       isolate->factory()->InternalizeOneByteString(
           STATIC_ASCII_VECTOR("hasWritable_"));
-  Handle<Object> hasWritable(
-      v8::internal::GetProperty(isolate, desc, hasWritable_name));
-  ASSERT(!isolate->has_pending_exception());
+  Handle<Object> hasWritable = Object::GetProperty(desc, hasWritable_name);
+  ASSERT(!hasWritable.is_null());
   ASSERT(hasWritable->IsTrue() || hasWritable->IsFalse());
   if (hasWritable->IsTrue()) {
     Handle<String> writable_name =
         isolate->factory()->InternalizeOneByteString(
             STATIC_ASCII_VECTOR("writable_"));
-    Handle<Object> writable(
-        v8::internal::GetProperty(isolate, desc, writable_name));
-    ASSERT(!isolate->has_pending_exception());
+    Handle<Object> writable = Object::GetProperty(desc, writable_name);
+    ASSERT(!writable.is_null());
     ASSERT(writable->IsTrue() || writable->IsFalse());
     *done = writable->IsFalse();
     if (!*done) return isolate->factory()->the_hole_value();
@@ -3637,8 +3661,8 @@ Handle<Object> JSProxy::SetPropertyViaPrototypesWithHandler(
   // We have an AccessorDescriptor.
   Handle<String> set_name = isolate->factory()->InternalizeOneByteString(
       STATIC_ASCII_VECTOR("set_"));
-  Handle<Object> setter(v8::internal::GetProperty(isolate, desc, set_name));
-  ASSERT(!isolate->has_pending_exception());
+  Handle<Object> setter = Object::GetProperty(desc, set_name);
+  ASSERT(!setter.is_null());
   if (!setter->IsUndefined()) {
     // TODO(rossberg): nicer would be to cast to some JSCallable here...
     return SetPropertyWithDefinedSetter(
@@ -3716,21 +3740,21 @@ PropertyAttributes JSProxy::GetPropertyAttributeWithHandler(
   // Convert result to PropertyAttributes.
   Handle<String> enum_n = isolate->factory()->InternalizeOneByteString(
       STATIC_ASCII_VECTOR("enumerable_"));
-  Handle<Object> enumerable(v8::internal::GetProperty(isolate, desc, enum_n));
-  if (isolate->has_pending_exception()) return NONE;
+  Handle<Object> enumerable = Object::GetProperty(desc, enum_n);
+  RETURN_IF_EMPTY_HANDLE_VALUE(isolate, enumerable, NONE);
   Handle<String> conf_n = isolate->factory()->InternalizeOneByteString(
       STATIC_ASCII_VECTOR("configurable_"));
-  Handle<Object> configurable(v8::internal::GetProperty(isolate, desc, conf_n));
-  if (isolate->has_pending_exception()) return NONE;
+  Handle<Object> configurable = Object::GetProperty(desc, conf_n);
+  RETURN_IF_EMPTY_HANDLE_VALUE(isolate, configurable, NONE);
   Handle<String> writ_n = isolate->factory()->InternalizeOneByteString(
       STATIC_ASCII_VECTOR("writable_"));
-  Handle<Object> writable(v8::internal::GetProperty(isolate, desc, writ_n));
-  if (isolate->has_pending_exception()) return NONE;
+  Handle<Object> writable = Object::GetProperty(desc, writ_n);
+  RETURN_IF_EMPTY_HANDLE_VALUE(isolate, writable, NONE);
   if (!writable->BooleanValue()) {
     Handle<String> set_n = isolate->factory()->InternalizeOneByteString(
         STATIC_ASCII_VECTOR("set_"));
-    Handle<Object> setter(v8::internal::GetProperty(isolate, desc, set_n));
-    if (isolate->has_pending_exception()) return NONE;
+    Handle<Object> setter = Object::GetProperty(desc, set_n);
+    RETURN_IF_EMPTY_HANDLE_VALUE(isolate, setter, NONE);
     writable = isolate->factory()->ToBoolean(!setter->IsUndefined());
   }
 
@@ -3793,8 +3817,8 @@ MUST_USE_RESULT Handle<Object> JSProxy::CallTrap(const char* name,
   Handle<Object> handler(this->handler(), isolate);
 
   Handle<String> trap_name = isolate->factory()->InternalizeUtf8String(name);
-  Handle<Object> trap(v8::internal::GetProperty(isolate, handler, trap_name));
-  if (isolate->has_pending_exception()) return trap;
+  Handle<Object> trap = Object::GetPropertyOrElement(handler, trap_name);
+  RETURN_IF_EMPTY_HANDLE_VALUE(isolate, trap, Handle<Object>());
 
   if (trap->IsUndefined()) {
     if (derived.is_null()) {
@@ -4060,7 +4084,7 @@ Handle<Object> JSObject::SetPropertyForResult(Handle<JSObject> object,
   bool is_observed = object->map()->is_observed() &&
                      *name != isolate->heap()->hidden_string();
   if (is_observed && lookup->IsDataProperty()) {
-    old_value = Object::GetProperty(object, name);
+    old_value = Object::GetPropertyOrElement(object, name);
     CHECK_NOT_EMPTY_HANDLE(isolate, old_value);
   }
 
@@ -4106,7 +4130,7 @@ Handle<Object> JSObject::SetPropertyForResult(Handle<JSObject> object,
       LookupResult new_lookup(isolate);
       object->LocalLookup(*name, &new_lookup, true);
       if (new_lookup.IsDataProperty()) {
-        Handle<Object> new_value = Object::GetProperty(object, name);
+        Handle<Object> new_value = Object::GetPropertyOrElement(object, name);
         CHECK_NOT_EMPTY_HANDLE(isolate, new_value);
         if (!new_value->SameValue(*old_value)) {
           EnqueueChangeRecord(object, "update", name, old_value);
@@ -4185,7 +4209,7 @@ Handle<Object> JSObject::SetLocalPropertyIgnoreAttributes(
                      *name != isolate->heap()->hidden_string();
   if (is_observed && lookup.IsProperty()) {
     if (lookup.IsDataProperty()) {
-      old_value = Object::GetProperty(object, name);
+      old_value = Object::GetPropertyOrElement(object, name);
       CHECK_NOT_EMPTY_HANDLE(isolate, old_value);
     }
     old_attributes = lookup.GetAttributes();
@@ -4231,7 +4255,7 @@ Handle<Object> JSObject::SetLocalPropertyIgnoreAttributes(
       object->LocalLookup(*name, &new_lookup, true);
       bool value_changed = false;
       if (new_lookup.IsDataProperty()) {
-        Handle<Object> new_value = Object::GetProperty(object, name);
+        Handle<Object> new_value = Object::GetPropertyOrElement(object, name);
         CHECK_NOT_EMPTY_HANDLE(isolate, new_value);
         value_changed = !old_value->SameValue(*new_value);
       }
@@ -4634,7 +4658,10 @@ void JSObject::NormalizeProperties(Handle<JSObject> object,
                         -instance_size_delta,
                         Heap::FROM_MUTATOR);
 
-  object->set_map(*new_map);
+  // We are storing the new map using release store after creating a filler for
+  // the left-over space to avoid races with the sweeper thread.
+  object->synchronized_set_map(*new_map);
+
   map->NotifyLeafMapLayoutChange();
 
   object->set_properties(*dictionary);
@@ -4658,6 +4685,13 @@ void JSObject::TransformToFastProperties(Handle<JSObject> object,
       object->GetIsolate(),
       object->property_dictionary()->TransformPropertiesToFastFor(
           *object, unused_property_fields));
+}
+
+
+void JSObject::ResetElements(Handle<JSObject> object) {
+  CALL_HEAP_FUNCTION_VOID(
+      object->GetIsolate(),
+      object->ResetElements());
 }
 
 
@@ -4693,7 +4727,8 @@ static Handle<SeededNumberDictionary> CopyFastElementsToDictionary(
 
 Handle<SeededNumberDictionary> JSObject::NormalizeElements(
     Handle<JSObject> object) {
-  ASSERT(!object->HasExternalArrayElements());
+  ASSERT(!object->HasExternalArrayElements() &&
+         !object->HasFixedTypedArrayElements());
   Isolate* isolate = object->GetIsolate();
   Factory* factory = isolate->factory();
 
@@ -5220,7 +5255,7 @@ Handle<Object> JSObject::DeleteProperty(Handle<JSObject> object,
   bool is_observed = object->map()->is_observed() &&
                      *name != isolate->heap()->hidden_string();
   if (is_observed && lookup.IsDataProperty()) {
-    old_value = Object::GetProperty(object, name);
+    old_value = Object::GetPropertyOrElement(object, name);
     CHECK_NOT_EMPTY_HANDLE(isolate, old_value);
   }
   Handle<Object> result;
@@ -5428,7 +5463,8 @@ Handle<Object> JSObject::PreventExtensions(Handle<JSObject> object) {
   }
 
   // It's not possible to seal objects with external array elements
-  if (object->HasExternalArrayElements()) {
+  if (object->HasExternalArrayElements() ||
+      object->HasFixedTypedArrayElements()) {
     Handle<Object> error  =
         isolate->factory()->NewTypeError(
             "cant_prevent_ext_external_array_elements",
@@ -5471,8 +5507,11 @@ static void FreezeDictionary(Dictionary* dictionary) {
       PropertyDetails details = dictionary->DetailsAt(i);
       int attrs = DONT_DELETE;
       // READ_ONLY is an invalid attribute for JS setters/getters.
-      if (details.type() != CALLBACKS ||
-          !dictionary->ValueAt(i)->IsAccessorPair()) {
+      if (details.type() == CALLBACKS) {
+        Object* v = dictionary->ValueAt(i);
+        if (v->IsPropertyCell()) v = PropertyCell::cast(v)->value();
+        if (!v->IsAccessorPair()) attrs |= READ_ONLY;
+      } else {
         attrs |= READ_ONLY;
       }
       details = details.CopyAddAttributes(
@@ -5483,7 +5522,7 @@ static void FreezeDictionary(Dictionary* dictionary) {
 }
 
 
-Handle<Object> JSObject::Freeze(Handle<JSObject> object) {
+MaybeHandle<Object> JSObject::Freeze(Handle<JSObject> object) {
   // Freezing sloppy arguments should be handled elsewhere.
   ASSERT(!object->HasSloppyArgumentsElements());
   ASSERT(!object->map()->is_observed());
@@ -5496,7 +5535,7 @@ Handle<Object> JSObject::Freeze(Handle<JSObject> object) {
                                       isolate->factory()->undefined_value(),
                                       v8::ACCESS_KEYS)) {
     isolate->ReportFailedAccessCheckWrapper(object, v8::ACCESS_KEYS);
-    RETURN_HANDLE_IF_SCHEDULED_EXCEPTION(isolate, Object);
+    RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, Object);
     return isolate->factory()->false_value();
   }
 
@@ -5508,13 +5547,13 @@ Handle<Object> JSObject::Freeze(Handle<JSObject> object) {
   }
 
   // It's not possible to freeze objects with external array elements
-  if (object->HasExternalArrayElements()) {
+  if (object->HasExternalArrayElements() ||
+      object->HasFixedTypedArrayElements()) {
     Handle<Object> error  =
         isolate->factory()->NewTypeError(
             "cant_prevent_ext_external_array_elements",
             HandleVector(&object, 1));
-    isolate->Throw(*error);
-    return Handle<Object>();
+    return isolate->Throw<Object>(error);
   }
 
   Handle<SeededNumberDictionary> new_element_dictionary;
@@ -5596,10 +5635,8 @@ Handle<Object> JSObject::Freeze(Handle<JSObject> object) {
 
 
 void JSObject::SetObserved(Handle<JSObject> object) {
+  ASSERT(!object->map()->is_observed());
   Isolate* isolate = object->GetIsolate();
-
-  if (object->map()->is_observed())
-    return;
 
   LookupResult result(isolate);
   object->map()->LookupTransition(*object,
@@ -5624,6 +5661,15 @@ Handle<JSObject> JSObject::Copy(Handle<JSObject> object) {
   Isolate* isolate = object->GetIsolate();
   CALL_HEAP_FUNCTION(isolate,
                      isolate->heap()->CopyJSObject(*object), JSObject);
+}
+
+
+Handle<Object> JSObject::FastPropertyAt(Handle<JSObject> object,
+                                        Representation representation,
+                                        int index) {
+  Isolate* isolate = object->GetIsolate();
+  CALL_HEAP_FUNCTION(isolate,
+                     object->FastPropertyAt(representation, index), Object);
 }
 
 
@@ -6326,7 +6372,7 @@ void JSObject::DefineAccessor(Handle<JSObject> object,
       object->LocalLookup(*name, &lookup, true);
       preexists = lookup.IsProperty();
       if (preexists && lookup.IsDataProperty()) {
-        old_value = Object::GetProperty(object, name);
+        old_value = Object::GetPropertyOrElement(object, name);
         CHECK_NOT_EMPTY_HANDLE(isolate, old_value);
       }
     }
@@ -6949,26 +6995,6 @@ Handle<Map> Map::CopyForObserved(Handle<Map> map) {
 }
 
 
-MaybeObject* Map::CopyWithPreallocatedFieldDescriptors() {
-  if (pre_allocated_property_fields() == 0) return CopyDropDescriptors();
-
-  // If the map has pre-allocated properties always start out with a descriptor
-  // array describing these properties.
-  ASSERT(constructor()->IsJSFunction());
-  JSFunction* ctor = JSFunction::cast(constructor());
-  Map* map = ctor->initial_map();
-  DescriptorArray* descriptors = map->instance_descriptors();
-
-  int number_of_own_descriptors = map->NumberOfOwnDescriptors();
-  DescriptorArray* new_descriptors;
-  MaybeObject* maybe_descriptors =
-      descriptors->CopyUpTo(number_of_own_descriptors);
-  if (!maybe_descriptors->To(&new_descriptors)) return maybe_descriptors;
-
-  return CopyReplaceDescriptors(new_descriptors, OMIT_TRANSITION);
-}
-
-
 Handle<Map> Map::Copy(Handle<Map> map) {
   CALL_HEAP_FUNCTION(map->GetIsolate(), map->Copy(), Map);
 }
@@ -6983,6 +7009,35 @@ MaybeObject* Map::Copy() {
   if (!maybe_descriptors->To(&new_descriptors)) return maybe_descriptors;
 
   return CopyReplaceDescriptors(new_descriptors, OMIT_TRANSITION);
+}
+
+
+Handle<Map> Map::Create(Handle<JSFunction> constructor,
+                        int extra_inobject_properties) {
+  Handle<Map> copy = Copy(handle(constructor->initial_map()));
+
+  // Check that we do not overflow the instance size when adding the
+  // extra inobject properties.
+  int instance_size_delta = extra_inobject_properties * kPointerSize;
+  int max_instance_size_delta =
+      JSObject::kMaxInstanceSize - copy->instance_size();
+  int max_extra_properties = max_instance_size_delta >> kPointerSizeLog2;
+
+  // If the instance size overflows, we allocate as many properties as we can as
+  // inobject properties.
+  if (extra_inobject_properties > max_extra_properties) {
+    instance_size_delta = max_instance_size_delta;
+    extra_inobject_properties = max_extra_properties;
+  }
+
+  // Adjust the map with the extra inobject properties.
+  int inobject_properties =
+      copy->inobject_properties() + extra_inobject_properties;
+  copy->set_inobject_properties(inobject_properties);
+  copy->set_unused_property_fields(inobject_properties);
+  copy->set_instance_size(copy->instance_size() + instance_size_delta);
+  copy->set_visitor_id(StaticVisitorBase::GetVisitorId(*copy));
+  return copy;
 }
 
 
@@ -7955,97 +8010,89 @@ void DescriptorArray::CopyFrom(int dst_index,
 }
 
 
-Handle<DescriptorArray> DescriptorArray::Merge(Handle<DescriptorArray> desc,
+// Creates a new descriptor array by merging the descriptor array of |right_map|
+// into the (at least partly) updated descriptor array of |left_map|.
+// The method merges two descriptor array in three parts. Both descriptor arrays
+// are identical up to |verbatim|. They also overlap in keys up to |valid|.
+// Between |verbatim| and |valid|, the resulting descriptor type as well as the
+// representation are generalized from both |left_map| and |right_map|. Beyond
+// |valid|, the descriptors are copied verbatim from |right_map| up to
+// |new_size|.
+// In case of incompatible types, the type and representation of |right_map| is
+// used.
+Handle<DescriptorArray> DescriptorArray::Merge(Handle<Map> left_map,
                                                int verbatim,
                                                int valid,
                                                int new_size,
                                                int modify_index,
                                                StoreMode store_mode,
-                                               Handle<DescriptorArray> other) {
-  CALL_HEAP_FUNCTION(desc->GetIsolate(),
-                     desc->Merge(verbatim, valid, new_size, modify_index,
-                                 store_mode, *other),
-                     DescriptorArray);
-}
-
-
-// Generalize the |other| descriptor array by merging it into the (at least
-// partly) updated |this| descriptor array.
-// The method merges two descriptor array in three parts. Both descriptor arrays
-// are identical up to |verbatim|. They also overlap in keys up to |valid|.
-// Between |verbatim| and |valid|, the resulting descriptor type as well as the
-// representation are generalized from both |this| and |other|. Beyond |valid|,
-// the descriptors are copied verbatim from |other| up to |new_size|.
-// In case of incompatible types, the type and representation of |other| is
-// used.
-MaybeObject* DescriptorArray::Merge(int verbatim,
-                                    int valid,
-                                    int new_size,
-                                    int modify_index,
-                                    StoreMode store_mode,
-                                    DescriptorArray* other) {
+                                               Handle<Map> right_map) {
   ASSERT(verbatim <= valid);
   ASSERT(valid <= new_size);
 
-  DescriptorArray* result;
   // Allocate a new descriptor array large enough to hold the required
   // descriptors, with minimally the exact same size as this descriptor array.
-  MaybeObject* maybe_descriptors = DescriptorArray::Allocate(
-      GetIsolate(), new_size,
-      Max(new_size, other->number_of_descriptors()) - new_size);
-  if (!maybe_descriptors->To(&result)) return maybe_descriptors;
-  ASSERT(result->length() > length() ||
+  Factory* factory = left_map->GetIsolate()->factory();
+  Handle<DescriptorArray> left(left_map->instance_descriptors());
+  Handle<DescriptorArray> right(right_map->instance_descriptors());
+  Handle<DescriptorArray> result = factory->NewDescriptorArray(
+      new_size, Max(new_size, right->number_of_descriptors()) - new_size);
+  ASSERT(result->length() > left->length() ||
          result->NumberOfSlackDescriptors() > 0 ||
-         result->number_of_descriptors() == other->number_of_descriptors());
+         result->number_of_descriptors() == right->number_of_descriptors());
   ASSERT(result->number_of_descriptors() == new_size);
-
-  DescriptorArray::WhitenessWitness witness(result);
 
   int descriptor;
 
   // 0 -> |verbatim|
   int current_offset = 0;
   for (descriptor = 0; descriptor < verbatim; descriptor++) {
-    if (GetDetails(descriptor).type() == FIELD) current_offset++;
-    result->CopyFrom(descriptor, other, descriptor, witness);
+    if (left->GetDetails(descriptor).type() == FIELD) current_offset++;
+    Descriptor d(right->GetKey(descriptor),
+                 right->GetValue(descriptor),
+                 right->GetDetails(descriptor));
+    result->Set(descriptor, &d);
   }
 
   // |verbatim| -> |valid|
   for (; descriptor < valid; descriptor++) {
-    Name* key = GetKey(descriptor);
-    PropertyDetails details = GetDetails(descriptor);
-    PropertyDetails other_details = other->GetDetails(descriptor);
-
-    if (details.type() == FIELD || other_details.type() == FIELD ||
+    PropertyDetails left_details = left->GetDetails(descriptor);
+    PropertyDetails right_details = right->GetDetails(descriptor);
+    if (left_details.type() == FIELD || right_details.type() == FIELD ||
         (store_mode == FORCE_FIELD && descriptor == modify_index) ||
-        (details.type() == CONSTANT &&
-         other_details.type() == CONSTANT &&
-         GetValue(descriptor) != other->GetValue(descriptor))) {
-      Representation representation =
-          details.representation().generalize(other_details.representation());
-      FieldDescriptor d(key,
+        (left_details.type() == CONSTANT &&
+         right_details.type() == CONSTANT &&
+         left->GetValue(descriptor) != right->GetValue(descriptor))) {
+      Representation representation = left_details.representation().generalize(
+          right_details.representation());
+      FieldDescriptor d(left->GetKey(descriptor),
                         current_offset++,
-                        other_details.attributes(),
+                        right_details.attributes(),
                         representation);
-      result->Set(descriptor, &d, witness);
+      result->Set(descriptor, &d);
     } else {
-      result->CopyFrom(descriptor, other, descriptor, witness);
+      Descriptor d(right->GetKey(descriptor),
+                   right->GetValue(descriptor),
+                   right_details);
+      result->Set(descriptor, &d);
     }
   }
 
   // |valid| -> |new_size|
   for (; descriptor < new_size; descriptor++) {
-    PropertyDetails details = other->GetDetails(descriptor);
-    if (details.type() == FIELD ||
+    PropertyDetails right_details = right->GetDetails(descriptor);
+    if (right_details.type() == FIELD ||
         (store_mode == FORCE_FIELD && descriptor == modify_index)) {
-      Name* key = other->GetKey(descriptor);
-      FieldDescriptor d(key,
+      FieldDescriptor d(right->GetKey(descriptor),
                         current_offset++,
-                        details.attributes(),
-                        details.representation());
-      result->Set(descriptor, &d, witness);
+                        right_details.attributes(),
+                        right_details.representation());
+      result->Set(descriptor, &d);
     } else {
-      result->CopyFrom(descriptor, other, descriptor, witness);
+      Descriptor d(right->GetKey(descriptor),
+                   right->GetValue(descriptor),
+                   right_details);
+      result->Set(descriptor, &d);
     }
   }
 
@@ -9143,7 +9190,6 @@ Handle<String> SeqString::Truncate(Handle<SeqString> string, int new_length) {
   }
 
   int delta = old_size - new_size;
-  string->set_length(new_length);
 
   Address start_of_string = string->address();
   ASSERT_OBJECT_ALIGNED(start_of_string);
@@ -9161,6 +9207,10 @@ Handle<String> SeqString::Truncate(Handle<SeqString> string, int new_length) {
     heap->CreateFillerObjectAt(start_of_string + new_size, delta);
   }
   heap->AdjustLiveBytes(start_of_string, -delta, Heap::FROM_MUTATOR);
+
+  // We are storing the new length using release store after creating a filler
+  // for the left-over space to avoid races with the sweeper thread.
+  string->synchronized_set_length(new_length);
 
   if (new_length == 0) return heap->isolate()->factory()->empty_string();
   return string;
@@ -10487,21 +10537,6 @@ void Code::FindAllMaps(MapHandleList* maps) {
 }
 
 
-void Code::FindAllTypes(TypeHandleList* types) {
-  ASSERT(is_inline_cache_stub());
-  DisallowHeapAllocation no_allocation;
-  int mask = RelocInfo::ModeMask(RelocInfo::EMBEDDED_OBJECT);
-  for (RelocIterator it(this, mask); !it.done(); it.next()) {
-    RelocInfo* info = it.rinfo();
-    Object* object = info->target_object();
-    if (object->IsMap()) {
-      Handle<Map> map(Map::cast(object));
-      types->Add(IC::MapToType<HeapType>(map, map->GetIsolate()));
-    }
-  }
-}
-
-
 Code* Code::FindFirstHandler() {
   ASSERT(is_inline_cache_stub());
   DisallowHeapAllocation no_allocation;
@@ -11132,33 +11167,20 @@ Handle<FixedArray> JSObject::SetFastElementsCapacityAndLength(
     int capacity,
     int length,
     SetFastElementsCapacitySmiMode smi_mode) {
-  CALL_HEAP_FUNCTION(
-      object->GetIsolate(),
-      object->SetFastElementsCapacityAndLength(capacity, length, smi_mode),
-      FixedArray);
-}
-
-
-MaybeObject* JSObject::SetFastElementsCapacityAndLength(
-    int capacity,
-    int length,
-    SetFastElementsCapacitySmiMode smi_mode) {
-  Heap* heap = GetHeap();
   // We should never end in here with a pixel or external array.
-  ASSERT(!HasExternalArrayElements());
+  ASSERT(!object->HasExternalArrayElements());
 
   // Allocate a new fast elements backing store.
-  FixedArray* new_elements;
-  MaybeObject* maybe = heap->AllocateUninitializedFixedArray(capacity);
-  if (!maybe->To(&new_elements)) return maybe;
+  Handle<FixedArray> new_elements =
+      object->GetIsolate()->factory()->NewUninitializedFixedArray(capacity);
 
-  ElementsKind elements_kind = GetElementsKind();
+  ElementsKind elements_kind = object->GetElementsKind();
   ElementsKind new_elements_kind;
   // The resized array has FAST_*_SMI_ELEMENTS if the capacity mode forces it,
   // or if it's allowed and the old elements array contained only SMIs.
   bool has_fast_smi_elements =
       (smi_mode == kForceSmiElements) ||
-      ((smi_mode == kAllowSmiElements) && HasFastSmiElements());
+      ((smi_mode == kAllowSmiElements) && object->HasFastSmiElements());
   if (has_fast_smi_elements) {
     if (IsHoleyElementsKind(elements_kind)) {
       new_elements_kind = FAST_HOLEY_SMI_ELEMENTS;
@@ -11172,37 +11194,31 @@ MaybeObject* JSObject::SetFastElementsCapacityAndLength(
       new_elements_kind = FAST_ELEMENTS;
     }
   }
-  FixedArrayBase* old_elements = elements();
+  Handle<FixedArrayBase> old_elements(object->elements());
   ElementsAccessor* accessor = ElementsAccessor::ForKind(new_elements_kind);
-  MaybeObject* maybe_obj =
-      accessor->CopyElements(this, new_elements, elements_kind);
-  if (maybe_obj->IsFailure()) return maybe_obj;
+  accessor->CopyElements(object, new_elements, elements_kind);
 
   if (elements_kind != SLOPPY_ARGUMENTS_ELEMENTS) {
-    Map* new_map = map();
-    if (new_elements_kind != elements_kind) {
-      MaybeObject* maybe =
-          GetElementsTransitionMap(GetIsolate(), new_elements_kind);
-      if (!maybe->To(&new_map)) return maybe;
-    }
-    ValidateElements();
-    set_map_and_elements(new_map, new_elements);
+    Handle<Map> new_map = (new_elements_kind != elements_kind)
+        ? GetElementsTransitionMap(object, new_elements_kind)
+        : handle(object->map());
+    object->ValidateElements();
+    JSObject::SetMapAndElements(object, new_map, new_elements);
 
     // Transition through the allocation site as well if present.
-    maybe_obj = UpdateAllocationSite(new_elements_kind);
-    if (maybe_obj->IsFailure()) return maybe_obj;
+    JSObject::UpdateAllocationSite(object, new_elements_kind);
   } else {
-    FixedArray* parameter_map = FixedArray::cast(old_elements);
-    parameter_map->set(1, new_elements);
+    Handle<FixedArray> parameter_map = Handle<FixedArray>::cast(old_elements);
+    parameter_map->set(1, *new_elements);
   }
 
   if (FLAG_trace_elements_transitions) {
-    PrintElementsTransition(stdout, elements_kind, old_elements,
-                            GetElementsKind(), new_elements);
+    PrintElementsTransition(stdout, object, elements_kind, old_elements,
+                            object->GetElementsKind(), new_elements);
   }
 
-  if (IsJSArray()) {
-    JSArray::cast(this)->set_length(Smi::FromInt(length));
+  if (object->IsJSArray()) {
+    Handle<JSArray>::cast(object)->set_length(Smi::FromInt(length));
   }
   return new_elements;
 }
@@ -11211,26 +11227,14 @@ MaybeObject* JSObject::SetFastElementsCapacityAndLength(
 void JSObject::SetFastDoubleElementsCapacityAndLength(Handle<JSObject> object,
                                                       int capacity,
                                                       int length) {
-  CALL_HEAP_FUNCTION_VOID(
-      object->GetIsolate(),
-      object->SetFastDoubleElementsCapacityAndLength(capacity, length));
-}
-
-
-MaybeObject* JSObject::SetFastDoubleElementsCapacityAndLength(
-    int capacity,
-    int length) {
-  Heap* heap = GetHeap();
   // We should never end in here with a pixel or external array.
-  ASSERT(!HasExternalArrayElements());
+  ASSERT(!object->HasExternalArrayElements());
 
-  FixedArrayBase* elems;
-  { MaybeObject* maybe_obj =
-        heap->AllocateUninitializedFixedDoubleArray(capacity);
-    if (!maybe_obj->To(&elems)) return maybe_obj;
-  }
+  Handle<FixedArrayBase> elems =
+      object->GetIsolate()->factory()->NewFixedDoubleArray(capacity);
 
-  ElementsKind elements_kind = GetElementsKind();
+  ElementsKind elements_kind = object->GetElementsKind();
+  CHECK(elements_kind != SLOPPY_ARGUMENTS_ELEMENTS);
   ElementsKind new_elements_kind = elements_kind;
   if (IsHoleyElementsKind(elements_kind)) {
     new_elements_kind = FAST_HOLEY_DOUBLE_ELEMENTS;
@@ -11238,36 +11242,23 @@ MaybeObject* JSObject::SetFastDoubleElementsCapacityAndLength(
     new_elements_kind = FAST_DOUBLE_ELEMENTS;
   }
 
-  Map* new_map;
-  { MaybeObject* maybe_obj =
-        GetElementsTransitionMap(heap->isolate(), new_elements_kind);
-    if (!maybe_obj->To(&new_map)) return maybe_obj;
-  }
+  Handle<Map> new_map = GetElementsTransitionMap(object, new_elements_kind);
 
-  FixedArrayBase* old_elements = elements();
+  Handle<FixedArrayBase> old_elements(object->elements());
   ElementsAccessor* accessor = ElementsAccessor::ForKind(FAST_DOUBLE_ELEMENTS);
-  { MaybeObject* maybe_obj =
-        accessor->CopyElements(this, elems, elements_kind);
-    if (maybe_obj->IsFailure()) return maybe_obj;
-  }
-  if (elements_kind != SLOPPY_ARGUMENTS_ELEMENTS) {
-    ValidateElements();
-    set_map_and_elements(new_map, elems);
-  } else {
-    FixedArray* parameter_map = FixedArray::cast(old_elements);
-    parameter_map->set(1, elems);
-  }
+  accessor->CopyElements(object, elems, elements_kind);
+
+  object->ValidateElements();
+  JSObject::SetMapAndElements(object, new_map, elems);
 
   if (FLAG_trace_elements_transitions) {
-    PrintElementsTransition(stdout, elements_kind, old_elements,
-                            GetElementsKind(), elems);
+    PrintElementsTransition(stdout, object, elements_kind, old_elements,
+                            object->GetElementsKind(), elems);
   }
 
-  if (IsJSArray()) {
-    JSArray::cast(this)->set_length(Smi::FromInt(length));
+  if (object->IsJSArray()) {
+    Handle<JSArray>::cast(object)->set_length(Smi::FromInt(length));
   }
-
-  return this;
 }
 
 
@@ -11279,9 +11270,9 @@ void JSArray::Initialize(Handle<JSArray> array, int capacity, int length) {
 }
 
 
-void JSArray::Expand(int required_size) {
-  GetIsolate()->factory()->SetElementsCapacityAndLength(
-      Handle<JSArray>(this), required_size, required_size);
+void JSArray::Expand(Handle<JSArray> array, int required_size) {
+  ElementsAccessor* accessor = array->GetElementsAccessor();
+  accessor->SetCapacityAndLength(array, required_size, required_size);
 }
 
 
@@ -11407,6 +11398,9 @@ Handle<Object> JSArray::SetElementsLength(Handle<JSArray> array,
   BeginPerformSplice(array);
 
   for (int i = 0; i < indices.length(); ++i) {
+    // For deletions where the property was an accessor, old_values[i]
+    // will be the hole, which instructs EnqueueChangeRecord to elide
+    // the "oldValue" property.
     JSObject::EnqueueChangeRecord(
         array, "delete", isolate->factory()->Uint32ToString(indices[i]),
         old_values[i]);
@@ -11423,6 +11417,9 @@ Handle<Object> JSArray::SetElementsLength(Handle<JSArray> array,
   Handle<JSArray> deleted = isolate->factory()->NewJSArray(0);
   if (delete_count > 0) {
     for (int i = indices.length() - 1; i >= 0; i--) {
+      // Skip deletions where the property was an accessor, leaving holes
+      // in the array of old values.
+      if (old_values[i]->IsTheHole()) continue;
       JSObject::SetElement(deleted, indices[i] - index, old_values[i], NONE,
                            SLOPPY);
     }
@@ -12441,7 +12438,8 @@ Handle<Object> JSObject::SetElement(Handle<JSObject> object,
                                     SetPropertyMode set_mode) {
   Isolate* isolate = object->GetIsolate();
 
-  if (object->HasExternalArrayElements()) {
+  if (object->HasExternalArrayElements() ||
+      object->HasFixedTypedArrayElements()) {
     if (!value->IsNumber() && !value->IsUndefined()) {
       bool has_exception;
       Handle<Object> number =
@@ -12471,7 +12469,9 @@ Handle<Object> JSObject::SetElement(Handle<JSObject> object,
   }
 
   // Don't allow element properties to be redefined for external arrays.
-  if (object->HasExternalArrayElements() && set_mode == DEFINE_PROPERTY) {
+  if ((object->HasExternalArrayElements() ||
+          object->HasFixedTypedArrayElements()) &&
+      set_mode == DEFINE_PROPERTY) {
     Handle<Object> number = isolate->factory()->NewNumberFromUint(index);
     Handle<Object> args[] = { object, number };
     Handle<Object> error = isolate->factory()->NewTypeError(
@@ -12659,13 +12659,6 @@ Handle<Object> JSObject::SetElementWithoutInterceptor(
 }
 
 
-void JSObject::TransitionElementsKind(Handle<JSObject> object,
-                                      ElementsKind to_kind) {
-  CALL_HEAP_FUNCTION_VOID(object->GetIsolate(),
-                          object->TransitionElementsKind(to_kind));
-}
-
-
 const double AllocationSite::kPretenureRatio = 0.85;
 
 
@@ -12697,11 +12690,13 @@ bool AllocationSite::IsNestedSite() {
 }
 
 
-MaybeObject* AllocationSite::DigestTransitionFeedback(ElementsKind to_kind) {
-  Isolate* isolate = GetIsolate();
+void AllocationSite::DigestTransitionFeedback(Handle<AllocationSite> site,
+                                              ElementsKind to_kind) {
+  Isolate* isolate = site->GetIsolate();
 
-  if (SitePointsToLiteral() && transition_info()->IsJSArray()) {
-    JSArray* transition_info = JSArray::cast(this->transition_info());
+  if (site->SitePointsToLiteral() && site->transition_info()->IsJSArray()) {
+    Handle<JSArray> transition_info =
+        handle(JSArray::cast(site->transition_info()));
     ElementsKind kind = transition_info->GetElementsKind();
     // if kind is holey ensure that to_kind is as well.
     if (IsHoleyElementsKind(kind)) {
@@ -12714,22 +12709,21 @@ MaybeObject* AllocationSite::DigestTransitionFeedback(ElementsKind to_kind) {
       CHECK(transition_info->length()->ToArrayIndex(&length));
       if (length <= kMaximumArrayBytesToPretransition) {
         if (FLAG_trace_track_allocation_sites) {
-          bool is_nested = IsNestedSite();
+          bool is_nested = site->IsNestedSite();
           PrintF(
               "AllocationSite: JSArray %p boilerplate %s updated %s->%s\n",
-              reinterpret_cast<void*>(this),
+              reinterpret_cast<void*>(*site),
               is_nested ? "(nested)" : "",
               ElementsKindToString(kind),
               ElementsKindToString(to_kind));
         }
-        MaybeObject* result = transition_info->TransitionElementsKind(to_kind);
-        if (result->IsFailure()) return result;
-        dependent_code()->DeoptimizeDependentCodeGroup(
+        JSObject::TransitionElementsKind(transition_info, to_kind);
+        site->dependent_code()->DeoptimizeDependentCodeGroup(
             isolate, DependentCode::kAllocationSiteTransitionChangedGroup);
       }
     }
   } else {
-    ElementsKind kind = GetElementsKind();
+    ElementsKind kind = site->GetElementsKind();
     // if kind is holey ensure that to_kind is as well.
     if (IsHoleyElementsKind(kind)) {
       to_kind = GetHoleyElementsKind(to_kind);
@@ -12737,16 +12731,15 @@ MaybeObject* AllocationSite::DigestTransitionFeedback(ElementsKind to_kind) {
     if (IsMoreGeneralElementsKindTransition(kind, to_kind)) {
       if (FLAG_trace_track_allocation_sites) {
         PrintF("AllocationSite: JSArray %p site updated %s->%s\n",
-               reinterpret_cast<void*>(this),
+               reinterpret_cast<void*>(*site),
                ElementsKindToString(kind),
                ElementsKindToString(to_kind));
       }
-      SetElementsKind(to_kind);
-      dependent_code()->DeoptimizeDependentCodeGroup(
+      site->SetElementsKind(to_kind);
+      site->dependent_code()->DeoptimizeDependentCodeGroup(
           isolate, DependentCode::kAllocationSiteTransitionChangedGroup);
     }
   }
-  return this;
 }
 
 
@@ -12765,64 +12758,62 @@ void AllocationSite::AddDependentCompilationInfo(Handle<AllocationSite> site,
 
 void JSObject::UpdateAllocationSite(Handle<JSObject> object,
                                     ElementsKind to_kind) {
-  CALL_HEAP_FUNCTION_VOID(object->GetIsolate(),
-      object->UpdateAllocationSite(to_kind));
-}
+  if (!object->IsJSArray()) return;
 
+  Heap* heap = object->GetHeap();
+  if (!heap->InNewSpace(*object)) return;
 
-MaybeObject* JSObject::UpdateAllocationSite(ElementsKind to_kind) {
-  if (!IsJSArray()) return this;
+  Handle<AllocationSite> site;
+  {
+    DisallowHeapAllocation no_allocation;
+    // Check if there is potentially a memento behind the object. If
+    // the last word of the momento is on another page we return
+    // immediatelly.
+    Address object_address = object->address();
+    Address memento_address = object_address + JSArray::kSize;
+    Address last_memento_word_address = memento_address + kPointerSize;
+    if (!NewSpacePage::OnSamePage(object_address,
+                                  last_memento_word_address)) {
+      return;
+    }
 
-  Heap* heap = GetHeap();
-  if (!heap->InNewSpace(this)) return this;
+    // Either object is the last object in the new space, or there is another
+    // object of at least word size (the header map word) following it, so
+    // suffices to compare ptr and top here.
+    Address top = heap->NewSpaceTop();
+    ASSERT(memento_address == top ||
+           memento_address + HeapObject::kHeaderSize <= top);
+    if (memento_address == top) return;
 
-  // Check if there is potentially a memento behind the object. If
-  // the last word of the momento is on another page we return
-  // immediatelly.
-  Address object_address = address();
-  Address memento_address = object_address + JSArray::kSize;
-  Address last_memento_word_address = memento_address + kPointerSize;
-  if (!NewSpacePage::OnSamePage(object_address,
-                                last_memento_word_address)) {
-    return this;
+    HeapObject* candidate = HeapObject::FromAddress(memento_address);
+    if (candidate->map() != heap->allocation_memento_map()) return;
+
+    AllocationMemento* memento = AllocationMemento::cast(candidate);
+    if (!memento->IsValid()) return;
+
+    // Walk through to the Allocation Site
+    site = handle(memento->GetAllocationSite());
   }
-
-  // Either object is the last object in the new space, or there is another
-  // object of at least word size (the header map word) following it, so
-  // suffices to compare ptr and top here.
-  Address top = heap->NewSpaceTop();
-  ASSERT(memento_address == top ||
-         memento_address + HeapObject::kHeaderSize <= top);
-  if (memento_address == top) return this;
-
-  HeapObject* candidate = HeapObject::FromAddress(memento_address);
-  if (candidate->map() != heap->allocation_memento_map()) return this;
-
-  AllocationMemento* memento = AllocationMemento::cast(candidate);
-  if (!memento->IsValid()) return this;
-
-  // Walk through to the Allocation Site
-  AllocationSite* site = memento->GetAllocationSite();
-  return site->DigestTransitionFeedback(to_kind);
+  AllocationSite::DigestTransitionFeedback(site, to_kind);
 }
 
 
-MaybeObject* JSObject::TransitionElementsKind(ElementsKind to_kind) {
-  ElementsKind from_kind = map()->elements_kind();
+void JSObject::TransitionElementsKind(Handle<JSObject> object,
+                                      ElementsKind to_kind) {
+  ElementsKind from_kind = object->map()->elements_kind();
 
   if (IsFastHoleyElementsKind(from_kind)) {
     to_kind = GetHoleyElementsKind(to_kind);
   }
 
-  if (from_kind == to_kind) return this;
+  if (from_kind == to_kind) return;
   // Don't update the site if to_kind isn't fast
   if (IsFastElementsKind(to_kind)) {
-    MaybeObject* maybe_failure = UpdateAllocationSite(to_kind);
-    if (maybe_failure->IsFailure()) return maybe_failure;
+    UpdateAllocationSite(object, to_kind);
   }
 
-  Isolate* isolate = GetIsolate();
-  if (elements() == isolate->heap()->empty_fixed_array() ||
+  Isolate* isolate = object->GetIsolate();
+  if (object->elements() == isolate->heap()->empty_fixed_array() ||
       (IsFastSmiOrObjectElementsKind(from_kind) &&
        IsFastSmiOrObjectElementsKind(to_kind)) ||
       (from_kind == FAST_DOUBLE_ELEMENTS &&
@@ -12830,55 +12821,48 @@ MaybeObject* JSObject::TransitionElementsKind(ElementsKind to_kind) {
     ASSERT(from_kind != TERMINAL_FAST_ELEMENTS_KIND);
     // No change is needed to the elements() buffer, the transition
     // only requires a map change.
-    MaybeObject* maybe_new_map = GetElementsTransitionMap(isolate, to_kind);
-    Map* new_map;
-    if (!maybe_new_map->To(&new_map)) return maybe_new_map;
-    // TODO(verwaest): Replace by MigrateToMap.
-    set_map(new_map);
+    Handle<Map> new_map = GetElementsTransitionMap(object, to_kind);
+    MigrateToMap(object, new_map);
     if (FLAG_trace_elements_transitions) {
-      FixedArrayBase* elms = FixedArrayBase::cast(elements());
-      PrintElementsTransition(stdout, from_kind, elms, to_kind, elms);
+      Handle<FixedArrayBase> elms(object->elements());
+      PrintElementsTransition(stdout, object, from_kind, elms, to_kind, elms);
     }
-    return this;
+    return;
   }
 
-  FixedArrayBase* elms = FixedArrayBase::cast(elements());
+  Handle<FixedArrayBase> elms(object->elements());
   uint32_t capacity = static_cast<uint32_t>(elms->length());
   uint32_t length = capacity;
 
-  if (IsJSArray()) {
-    Object* raw_length = JSArray::cast(this)->length();
+  if (object->IsJSArray()) {
+    Object* raw_length = Handle<JSArray>::cast(object)->length();
     if (raw_length->IsUndefined()) {
       // If length is undefined, then JSArray is being initialized and has no
       // elements, assume a length of zero.
       length = 0;
     } else {
-      CHECK(JSArray::cast(this)->length()->ToArrayIndex(&length));
+      CHECK(raw_length->ToArrayIndex(&length));
     }
   }
 
   if (IsFastSmiElementsKind(from_kind) &&
       IsFastDoubleElementsKind(to_kind)) {
-    MaybeObject* maybe_result =
-        SetFastDoubleElementsCapacityAndLength(capacity, length);
-    if (maybe_result->IsFailure()) return maybe_result;
-    ValidateElements();
-    return this;
+    SetFastDoubleElementsCapacityAndLength(object, capacity, length);
+    object->ValidateElements();
+    return;
   }
 
   if (IsFastDoubleElementsKind(from_kind) &&
       IsFastObjectElementsKind(to_kind)) {
-    MaybeObject* maybe_result = SetFastElementsCapacityAndLength(
-        capacity, length, kDontAllowSmiElements);
-    if (maybe_result->IsFailure()) return maybe_result;
-    ValidateElements();
-    return this;
+    SetFastElementsCapacityAndLength(object, capacity, length,
+                                     kDontAllowSmiElements);
+    object->ValidateElements();
+    return;
   }
 
   // This method should never be called for any other case than the ones
   // handled above.
   UNREACHABLE();
-  return GetIsolate()->heap()->null_value();
 }
 
 
@@ -12922,46 +12906,41 @@ MaybeObject* JSArray::JSArrayUpdateLengthFromIndex(uint32_t index,
 }
 
 
-MaybeObject* JSObject::GetElementWithInterceptor(Object* receiver,
-                                                 uint32_t index) {
-  Isolate* isolate = GetIsolate();
-  HandleScope scope(isolate);
+Handle<Object> JSObject::GetElementWithInterceptor(Handle<JSObject> object,
+                                                   Handle<Object> receiver,
+                                                   uint32_t index) {
+  Isolate* isolate = object->GetIsolate();
 
   // Make sure that the top context does not change when doing
   // callbacks or interceptor calls.
   AssertNoContextChange ncc(isolate);
 
-  Handle<InterceptorInfo> interceptor(GetIndexedInterceptor(), isolate);
-  Handle<Object> this_handle(receiver, isolate);
-  Handle<JSObject> holder_handle(this, isolate);
+  Handle<InterceptorInfo> interceptor(object->GetIndexedInterceptor(), isolate);
   if (!interceptor->getter()->IsUndefined()) {
     v8::IndexedPropertyGetterCallback getter =
         v8::ToCData<v8::IndexedPropertyGetterCallback>(interceptor->getter());
     LOG(isolate,
-        ApiIndexedPropertyAccess("interceptor-indexed-get", this, index));
+        ApiIndexedPropertyAccess("interceptor-indexed-get", *object, index));
     PropertyCallbackArguments
-        args(isolate, interceptor->data(), receiver, this);
+        args(isolate, interceptor->data(), *receiver, *object);
     v8::Handle<v8::Value> result = args.Call(getter, index);
-    RETURN_IF_SCHEDULED_EXCEPTION(isolate);
+    RETURN_HANDLE_IF_SCHEDULED_EXCEPTION(isolate, Object);
     if (!result.IsEmpty()) {
       Handle<Object> result_internal = v8::Utils::OpenHandle(*result);
       result_internal->VerifyApiCallResultType();
-      return *result_internal;
+      // Rebox handle before return.
+      return Handle<Object>(*result_internal, isolate);
     }
   }
 
-  Heap* heap = holder_handle->GetHeap();
-  ElementsAccessor* handler = holder_handle->GetElementsAccessor();
-  MaybeObject* raw_result = handler->Get(*this_handle,
-                                         *holder_handle,
-                                         index);
-  if (raw_result != heap->the_hole_value()) return raw_result;
+  ElementsAccessor* handler = object->GetElementsAccessor();
+  Handle<Object> result = handler->Get(receiver,  object, index);
+  RETURN_IF_EMPTY_HANDLE_VALUE(isolate, result, Handle<Object>());
+  if (!result->IsTheHole()) return result;
 
-  RETURN_IF_SCHEDULED_EXCEPTION(isolate);
-
-  Object* pt = holder_handle->GetPrototype();
-  if (pt == heap->null_value()) return heap->undefined_value();
-  return pt->GetElementWithReceiver(isolate, *this_handle, index);
+  Handle<Object> proto(object->GetPrototype(), isolate);
+  if (proto->IsNull()) return isolate->factory()->undefined_value();
+  return Object::GetElementWithReceiver(isolate, proto, receiver, index);
 }
 
 
@@ -13122,6 +13101,7 @@ bool JSObject::ShouldConvertToFastElements() {
 bool JSObject::ShouldConvertToFastDoubleElements(
     bool* has_smi_only_elements) {
   *has_smi_only_elements = false;
+  if (HasSloppyArgumentsElements()) return false;
   if (FLAG_unbox_double_arrays) {
     ASSERT(HasDictionaryElements());
     SeededNumberDictionary* dictionary = element_dictionary();
@@ -13874,9 +13854,6 @@ class InternalizedStringKey : public HashTableKey {
   }
 
   MaybeObject* AsObject(Heap* heap) {
-    // Attempt to flatten the string, so that internalized strings will most
-    // often be flat strings.
-    string_ = string_->TryFlattenGetString();
     // Internalize the string if possible.
     Map* map = heap->InternalizedStringMapForString(string_);
     if (map != NULL) {
@@ -13916,12 +13893,12 @@ MaybeObject* HashTable<Shape, Key>::Allocate(Heap* heap,
                                              int at_least_space_for,
                                              MinimumCapacity capacity_option,
                                              PretenureFlag pretenure) {
-  ASSERT(!capacity_option || IS_POWER_OF_TWO(at_least_space_for));
+  ASSERT(!capacity_option || IsPowerOf2(at_least_space_for));
   int capacity = (capacity_option == USE_CUSTOM_MINIMUM_CAPACITY)
                      ? at_least_space_for
                      : ComputeCapacity(at_least_space_for);
   if (capacity > HashTable::kMaxCapacity) {
-    return Failure::OutOfMemoryException(0x10);
+    v8::internal::Heap::FatalProcessOutOfMemory("invalid table size", true);
   }
 
   Object* obj;
@@ -14409,11 +14386,12 @@ Handle<Object> JSObject::PrepareElementsForSort(Handle<JSObject> object,
     dict->CopyValuesTo(*fast_elements);
     object->ValidateElements();
 
-    object->set_map_and_elements(*new_map, *fast_elements);
-  } else if (object->HasExternalArrayElements()) {
-    // External arrays cannot have holes or undefined elements.
+    JSObject::SetMapAndElements(object, new_map, fast_elements);
+  } else if (object->HasExternalArrayElements() ||
+             object->HasFixedTypedArrayElements()) {
+    // Typed arrays cannot have holes or undefined elements.
     return handle(Smi::FromInt(
-        ExternalArray::cast(object->elements())->length()), isolate);
+        FixedArrayBase::cast(object->elements())->length()), isolate);
   } else if (!object->HasFastDoubleElements()) {
     EnsureWritableFastElements(object);
   }
@@ -14514,12 +14492,14 @@ ExternalArrayType JSTypedArray::type() {
   switch (elements()->map()->instance_type()) {
 #define INSTANCE_TYPE_TO_ARRAY_TYPE(Type, type, TYPE, ctype, size)            \
     case EXTERNAL_##TYPE##_ARRAY_TYPE:                                        \
+    case FIXED_##TYPE##_ARRAY_TYPE:                                           \
       return kExternal##Type##Array;
 
     TYPED_ARRAYS(INSTANCE_TYPE_TO_ARRAY_TYPE)
 #undef INSTANCE_TYPE_TO_ARRAY_TYPE
 
     default:
+      UNREACHABLE();
       return static_cast<ExternalArrayType>(-1);
   }
 }
@@ -16355,6 +16335,65 @@ void JSTypedArray::Neuter() {
   NeuterView();
   set_length(Smi::FromInt(0));
   set_elements(GetHeap()->EmptyExternalArrayForMap(map()));
+}
+
+
+static ElementsKind FixedToExternalElementsKind(ElementsKind elements_kind) {
+  switch (elements_kind) {
+#define TYPED_ARRAY_CASE(Type, type, TYPE, ctype, size)                       \
+    case TYPE##_ELEMENTS: return EXTERNAL_##TYPE##_ELEMENTS;
+
+    TYPED_ARRAYS(TYPED_ARRAY_CASE)
+#undef TYPED_ARRAY_CASE
+
+    default:
+      UNREACHABLE();
+      return FIRST_EXTERNAL_ARRAY_ELEMENTS_KIND;
+  }
+}
+
+
+Handle<JSArrayBuffer> JSTypedArray::MaterializeArrayBuffer(
+    Handle<JSTypedArray> typed_array) {
+
+  Handle<Map> map(typed_array->map());
+  Isolate* isolate = typed_array->GetIsolate();
+
+  ASSERT(IsFixedTypedArrayElementsKind(map->elements_kind()));
+
+  Handle<JSArrayBuffer> buffer = isolate->factory()->NewJSArrayBuffer();
+  Handle<FixedTypedArrayBase> fixed_typed_array(
+      FixedTypedArrayBase::cast(typed_array->elements()));
+  Runtime::SetupArrayBufferAllocatingData(isolate, buffer,
+      fixed_typed_array->DataSize(), false);
+  memcpy(buffer->backing_store(),
+         fixed_typed_array->DataPtr(),
+         fixed_typed_array->DataSize());
+  Handle<ExternalArray> new_elements =
+      isolate->factory()->NewExternalArray(
+          fixed_typed_array->length(), typed_array->type(),
+          static_cast<uint8_t*>(buffer->backing_store()));
+  Handle<Map> new_map = JSObject::GetElementsTransitionMap(
+          typed_array,
+          FixedToExternalElementsKind(map->elements_kind()));
+
+  buffer->set_weak_first_view(*typed_array);
+  ASSERT(typed_array->weak_next() == isolate->heap()->undefined_value());
+  typed_array->set_buffer(*buffer);
+  JSObject::SetMapAndElements(typed_array, new_map, new_elements);
+
+  return buffer;
+}
+
+
+Handle<JSArrayBuffer> JSTypedArray::GetBuffer() {
+  Handle<Object> result(buffer(), GetIsolate());
+  if (*result != Smi::FromInt(0)) {
+    ASSERT(IsExternalArrayElementsKind(map()->elements_kind()));
+    return Handle<JSArrayBuffer>::cast(result);
+  }
+  Handle<JSTypedArray> self(this);
+  return MaterializeArrayBuffer(self);
 }
 
 

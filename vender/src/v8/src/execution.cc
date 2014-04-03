@@ -1,48 +1,17 @@
-// Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
-#include <stdlib.h>
+#include "execution.h"
 
-#include "v8.h"
-
-#include "api.h"
 #include "bootstrapper.h"
 #include "codegen.h"
-#include "debug.h"
 #include "deoptimizer.h"
 #include "isolate-inl.h"
-#include "runtime-profiler.h"
-#include "simulator.h"
-#include "v8threads.h"
 #include "vm-state-inl.h"
 
 namespace v8 {
 namespace internal {
-
 
 StackGuard::StackGuard()
     : isolate_(NULL) {
@@ -135,11 +104,6 @@ static Handle<Object> Invoke(bool is_construct,
   ASSERT(*has_pending_exception == isolate->has_pending_exception());
   if (*has_pending_exception) {
     isolate->ReportPendingMessages();
-    if (isolate->pending_exception()->IsOutOfMemory()) {
-      if (!isolate->ignore_out_of_memory()) {
-        V8::FatalProcessOutOfMemory("JS", true);
-      }
-    }
 #ifdef ENABLE_DEBUGGER_SUPPORT
     // Reset stepping state when script exits with uncaught exception.
     if (isolate->debugger()->IsDebuggerActive()) {
@@ -225,9 +189,6 @@ Handle<Object> Execution::TryCall(Handle<JSFunction> func,
     ASSERT(catcher.HasCaught());
     ASSERT(isolate->has_pending_exception());
     ASSERT(isolate->external_caught_exception());
-    if (isolate->is_out_of_memory() && !isolate->ignore_out_of_memory()) {
-      V8::FatalProcessOutOfMemory("OOM during Execution::TryCall");
-    }
     if (isolate->pending_exception() ==
         isolate->heap()->termination_exception()) {
       result = isolate->factory()->termination_exception();
@@ -558,11 +519,9 @@ bool StackGuard::IsDebugCommand() {
 
 
 void StackGuard::DebugCommand() {
-  if (FLAG_debugger_auto_break) {
-    ExecutionAccess access(isolate_);
-    thread_local_.interrupt_flags_ |= DEBUGCOMMAND;
-    set_interrupt_limits(access);
-  }
+  ExecutionAccess access(isolate_);
+  thread_local_.interrupt_flags_ |= DEBUGCOMMAND;
+  set_interrupt_limits(access);
 }
 #endif
 
@@ -791,8 +750,8 @@ Handle<Object> Execution::CharAt(Handle<String> string, uint32_t index) {
     return factory->undefined_value();
   }
 
-  Handle<Object> char_at = GetProperty(
-      isolate, isolate->js_builtins_object(), factory->char_at_string());
+  Handle<Object> char_at = Object::GetProperty(
+      isolate->js_builtins_object(), factory->char_at_string());
   if (!char_at->IsJSFunction()) {
     return factory->undefined_value();
   }
@@ -1007,8 +966,6 @@ void Execution::ProcessDebugMessages(Isolate* isolate,
   isolate->debugger()->OnDebugBreak(isolate->factory()->undefined_value(),
                                     debug_command_only);
 }
-
-
 #endif
 
 MaybeObject* Execution::HandleStackGuardInterrupt(Isolate* isolate) {
@@ -1060,6 +1017,5 @@ MaybeObject* Execution::HandleStackGuardInterrupt(Isolate* isolate) {
   isolate->runtime_profiler()->OptimizeNow();
   return isolate->heap()->undefined_value();
 }
-
 
 } }  // namespace v8::internal

@@ -97,6 +97,7 @@ class LCodeGen;
   V(Dummy)                                      \
   V(FlooringDivByConstI)                        \
   V(FlooringDivByPowerOf2I)                     \
+  V(FlooringDivI)                               \
   V(ForInCacheArray)                            \
   V(ForInPrepareMap)                            \
   V(FunctionLiteral)                            \
@@ -271,6 +272,10 @@ class LInstruction : public ZoneObject {
 
   virtual bool HasInterestingComment(LCodeGen* gen) const { return true; }
 
+  virtual bool MustSignExtendResult(LPlatformChunk* chunk) const {
+    return false;
+  }
+
 #ifdef DEBUG
   void VerifyCall();
 #endif
@@ -305,6 +310,9 @@ class LTemplateResultInstruction : public LInstruction {
   }
   void set_result(LOperand* operand) { results_[0] = operand; }
   LOperand* result() const { return results_[0]; }
+
+  virtual bool MustSignExtendResult(
+      LPlatformChunk* chunk) const V8_FINAL V8_OVERRIDE;
 
  protected:
   EmbeddedContainer<LOperand*, R> results_;
@@ -725,14 +733,14 @@ class LDivByConstI V8_FINAL : public LTemplateInstruction<1, 1, 2> {
 
 class LDivI V8_FINAL : public LTemplateInstruction<1, 2, 1> {
  public:
-  LDivI(LOperand* left, LOperand* right, LOperand* temp) {
-    inputs_[0] = left;
-    inputs_[1] = right;
+  LDivI(LOperand* dividend, LOperand* divisor, LOperand* temp) {
+    inputs_[0] = dividend;
+    inputs_[1] = divisor;
     temps_[0] = temp;
   }
 
-  LOperand* left() { return inputs_[0]; }
-  LOperand* right() { return inputs_[1]; }
+  LOperand* dividend() { return inputs_[0]; }
+  LOperand* divisor() { return inputs_[1]; }
   LOperand* temp() { return temps_[0]; }
 
   DECLARE_CONCRETE_INSTRUCTION(DivI, "div-i")
@@ -784,6 +792,23 @@ class LFlooringDivByConstI V8_FINAL : public LTemplateInstruction<1, 1, 3> {
 
  private:
   int32_t divisor_;
+};
+
+
+class LFlooringDivI V8_FINAL : public LTemplateInstruction<1, 2, 1> {
+ public:
+  LFlooringDivI(LOperand* dividend, LOperand* divisor, LOperand* temp) {
+    inputs_[0] = dividend;
+    inputs_[1] = divisor;
+    temps_[0] = temp;
+  }
+
+  LOperand* dividend() { return inputs_[0]; }
+  LOperand* divisor() { return inputs_[1]; }
+  LOperand* temp() { return temps_[0]; }
+
+  DECLARE_CONCRETE_INSTRUCTION(FlooringDivI, "flooring-div-i")
+  DECLARE_HYDROGEN_ACCESSOR(MathFloorOfDiv)
 };
 
 
@@ -2626,10 +2651,18 @@ class LChunkBuilder;
 class LPlatformChunk V8_FINAL : public LChunk {
  public:
   LPlatformChunk(CompilationInfo* info, HGraph* graph)
-      : LChunk(info, graph) { }
+      : LChunk(info, graph),
+        dehoisted_key_ids_(graph->GetMaximumValueID(), graph->zone()) { }
 
   int GetNextSpillIndex(RegisterKind kind);
   LOperand* GetNextSpillSlot(RegisterKind kind);
+  BitVector* GetDehoistedKeyIds() { return &dehoisted_key_ids_; }
+  bool IsDehoistedKey(HValue* value) {
+    return dehoisted_key_ids_.Contains(value->id());
+  }
+
+ private:
+  BitVector dehoisted_key_ids_;
 };
 
 
@@ -2666,12 +2699,13 @@ class LChunkBuilder V8_FINAL : public LChunkBuilderBase {
   LInstruction* DoMathClz32(HUnaryMathOperation* instr);
   LInstruction* DoDivByPowerOf2I(HDiv* instr);
   LInstruction* DoDivByConstI(HDiv* instr);
-  LInstruction* DoDivI(HBinaryOperation* instr);
+  LInstruction* DoDivI(HDiv* instr);
   LInstruction* DoModByPowerOf2I(HMod* instr);
   LInstruction* DoModByConstI(HMod* instr);
   LInstruction* DoModI(HMod* instr);
   LInstruction* DoFlooringDivByPowerOf2I(HMathFloorOfDiv* instr);
   LInstruction* DoFlooringDivByConstI(HMathFloorOfDiv* instr);
+  LInstruction* DoFlooringDivI(HMathFloorOfDiv* instr);
 
  private:
   enum Status {
@@ -2780,6 +2814,7 @@ class LChunkBuilder V8_FINAL : public LChunkBuilderBase {
                               HArithmeticBinaryOperation* instr);
   LInstruction* DoArithmeticT(Token::Value op,
                               HBinaryOperation* instr);
+  void FindDehoistedKeyDefinitions(HValue* candidate);
 
   LPlatformChunk* chunk_;
   CompilationInfo* info_;

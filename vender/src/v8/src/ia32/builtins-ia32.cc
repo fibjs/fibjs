@@ -115,7 +115,7 @@ void Builtins::Generate_InOptimizationQueue(MacroAssembler* masm) {
   __ cmp(esp, Operand::StaticVariable(stack_limit));
   __ j(above_equal, &ok, Label::kNear);
 
-  CallRuntimePassFunction(masm, Runtime::kTryInstallOptimizedCode);
+  CallRuntimePassFunction(masm, Runtime::kHiddenTryInstallOptimizedCode);
   GenerateTailCallToReturnedCode(masm);
 
   __ bind(&ok);
@@ -202,7 +202,7 @@ static void Generate_JSConstructStubHelper(MacroAssembler* masm,
 
         __ push(edi);  // constructor
         // The call will replace the stub, so the countdown is only done once.
-        __ CallRuntime(Runtime::kFinalizeInstanceSize, 1);
+        __ CallRuntime(Runtime::kHiddenFinalizeInstanceSize, 1);
 
         __ pop(edi);
         __ pop(eax);
@@ -370,9 +370,9 @@ static void Generate_JSConstructStubHelper(MacroAssembler* masm,
     // edi: function (constructor)
     __ push(edi);
     if (create_memento) {
-      __ CallRuntime(Runtime::kNewObjectWithAllocationSite, 2);
+      __ CallRuntime(Runtime::kHiddenNewObjectWithAllocationSite, 2);
     } else {
-      __ CallRuntime(Runtime::kNewObject, 1);
+      __ CallRuntime(Runtime::kHiddenNewObject, 1);
     }
     __ mov(ebx, eax);  // store result in ebx
 
@@ -500,7 +500,7 @@ static void Generate_JSEntryTrampolineHelper(MacroAssembler* masm,
   ProfileEntryHookStub::MaybeCallEntryHook(masm);
 
   // Clear the context before we push it when entering the internal frame.
-  __ Set(esi, Immediate(0));
+  __ Move(esi, Immediate(0));
 
   {
     FrameScope scope(masm, StackFrame::INTERNAL);
@@ -522,7 +522,7 @@ static void Generate_JSEntryTrampolineHelper(MacroAssembler* masm,
 
     // Copy arguments to the stack in a loop.
     Label loop, entry;
-    __ Set(ecx, Immediate(0));
+    __ Move(ecx, Immediate(0));
     __ jmp(&entry);
     __ bind(&loop);
     __ mov(edx, Operand(ebx, ecx, times_4, 0));  // push parameter from argv
@@ -567,7 +567,7 @@ void Builtins::Generate_JSConstructEntryTrampoline(MacroAssembler* masm) {
 
 
 void Builtins::Generate_CompileUnoptimized(MacroAssembler* masm) {
-  CallRuntimePassFunction(masm, Runtime::kCompileUnoptimized);
+  CallRuntimePassFunction(masm, Runtime::kHiddenCompileUnoptimized);
   GenerateTailCallToReturnedCode(masm);
 }
 
@@ -582,7 +582,7 @@ static void CallCompileOptimized(MacroAssembler* masm, bool concurrent) {
   // Whether to compile in a background thread.
   __ Push(masm->isolate()->factory()->ToBoolean(concurrent));
 
-  __ CallRuntime(Runtime::kCompileOptimized, 2);
+  __ CallRuntime(Runtime::kHiddenCompileOptimized, 2);
   // Restore receiver.
   __ pop(edi);
 }
@@ -686,7 +686,7 @@ static void Generate_NotifyStubFailureHelper(MacroAssembler* masm,
     // stubs that tail call the runtime on deopts passing their parameters in
     // registers.
     __ pushad();
-    __ CallRuntime(Runtime::kNotifyStubFailure, 0, save_doubles);
+    __ CallRuntime(Runtime::kHiddenNotifyStubFailure, 0, save_doubles);
     __ popad();
     // Tear down internal frame.
   }
@@ -718,7 +718,7 @@ static void Generate_NotifyDeoptimizedHelper(MacroAssembler* masm,
 
     // Pass deoptimization type to the runtime system.
     __ push(Immediate(Smi::FromInt(static_cast<int>(type))));
-    __ CallRuntime(Runtime::kNotifyDeoptimized, 1);
+    __ CallRuntime(Runtime::kHiddenNotifyDeoptimized, 1);
 
     // Tear down internal frame.
   }
@@ -785,7 +785,7 @@ void Builtins::Generate_FunctionCall(MacroAssembler* masm) {
 
   // 3a. Patch the first argument if necessary when calling a function.
   Label shift_arguments;
-  __ Set(edx, Immediate(0));  // indicate regular JS_FUNCTION
+  __ Move(edx, Immediate(0));  // indicate regular JS_FUNCTION
   { Label convert_to_object, use_global_receiver, patch_receiver;
     // Change context eagerly in case we need the global receiver.
     __ mov(esi, FieldOperand(edi, JSFunction::kContextOffset));
@@ -825,7 +825,7 @@ void Builtins::Generate_FunctionCall(MacroAssembler* masm) {
       __ push(ebx);
       __ InvokeBuiltin(Builtins::TO_OBJECT, CALL_FUNCTION);
       __ mov(ebx, eax);
-      __ Set(edx, Immediate(0));  // restore
+      __ Move(edx, Immediate(0));  // restore
 
       __ pop(eax);
       __ SmiUntag(eax);
@@ -848,11 +848,11 @@ void Builtins::Generate_FunctionCall(MacroAssembler* masm) {
 
   // 3b. Check for function proxy.
   __ bind(&slow);
-  __ Set(edx, Immediate(1));  // indicate function proxy
+  __ Move(edx, Immediate(1));  // indicate function proxy
   __ CmpInstanceType(ecx, JS_FUNCTION_PROXY_TYPE);
   __ j(equal, &shift_arguments);
   __ bind(&non_function);
-  __ Set(edx, Immediate(2));  // indicate non-function
+  __ Move(edx, Immediate(2));  // indicate non-function
 
   // 3c. Patch the first argument when calling a non-function.  The
   //     CALL_NON_FUNCTION builtin expects the non-function callee as
@@ -880,7 +880,7 @@ void Builtins::Generate_FunctionCall(MacroAssembler* masm) {
   { Label function, non_proxy;
     __ test(edx, edx);
     __ j(zero, &function);
-    __ Set(ebx, Immediate(0));
+    __ Move(ebx, Immediate(0));
     __ cmp(edx, Immediate(1));
     __ j(not_equal, &non_proxy);
 
@@ -1058,7 +1058,7 @@ void Builtins::Generate_FunctionApply(MacroAssembler* masm) {
     __ bind(&call_proxy);
     __ push(edi);  // add function proxy as last argument
     __ inc(eax);
-    __ Set(ebx, Immediate(0));
+    __ Move(ebx, Immediate(0));
     __ GetBuiltinEntry(edx, Builtins::CALL_FUNCTION_PROXY);
     __ call(masm->isolate()->builtins()->ArgumentsAdaptorTrampoline(),
             RelocInfo::CODE_TARGET);
@@ -1192,7 +1192,7 @@ void Builtins::Generate_StringConstructCode(MacroAssembler* masm) {
 
   // Set properties and elements.
   Factory* factory = masm->isolate()->factory();
-  __ Set(ecx, Immediate(factory->empty_fixed_array()));
+  __ Move(ecx, Immediate(factory->empty_fixed_array()));
   __ mov(FieldOperand(eax, JSObject::kPropertiesOffset), ecx);
   __ mov(FieldOperand(eax, JSObject::kElementsOffset), ecx);
 
@@ -1233,7 +1233,7 @@ void Builtins::Generate_StringConstructCode(MacroAssembler* masm) {
   // Load the empty string into ebx, remove the receiver from the
   // stack, and jump back to the case where the argument is a string.
   __ bind(&no_arguments);
-  __ Set(ebx, Immediate(factory->empty_string()));
+  __ Move(ebx, Immediate(factory->empty_string()));
   __ pop(ecx);
   __ lea(esp, Operand(esp, kPointerSize));
   __ push(ecx);
@@ -1419,7 +1419,7 @@ void Builtins::Generate_OsrAfterStackCheck(MacroAssembler* masm) {
   __ j(above_equal, &ok, Label::kNear);
   {
     FrameScope scope(masm, StackFrame::INTERNAL);
-    __ CallRuntime(Runtime::kStackGuard, 0);
+    __ CallRuntime(Runtime::kHiddenStackGuard, 0);
   }
   __ jmp(masm->isolate()->builtins()->OnStackReplacement(),
          RelocInfo::CODE_TARGET);

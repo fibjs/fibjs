@@ -109,8 +109,6 @@ namespace internal {
     ShortExternalStringWithOneByteDataMap)                                     \
   V(Map, internalized_string_map, InternalizedStringMap)                       \
   V(Map, ascii_internalized_string_map, AsciiInternalizedStringMap)            \
-  V(Map, cons_internalized_string_map, ConsInternalizedStringMap)              \
-  V(Map, cons_ascii_internalized_string_map, ConsAsciiInternalizedStringMap)   \
   V(Map,                                                                       \
     external_internalized_string_map,                                          \
     ExternalInternalizedStringMap)                                             \
@@ -164,6 +162,16 @@ namespace internal {
   V(Map, fixed_float32_array_map, FixedFloat32ArrayMap)                        \
   V(Map, fixed_float64_array_map, FixedFloat64ArrayMap)                        \
   V(Map, fixed_uint8_clamped_array_map, FixedUint8ClampedArrayMap)             \
+  V(FixedTypedArrayBase, empty_fixed_uint8_array, EmptyFixedUint8Array)        \
+  V(FixedTypedArrayBase, empty_fixed_int8_array, EmptyFixedInt8Array)          \
+  V(FixedTypedArrayBase, empty_fixed_uint16_array, EmptyFixedUint16Array)      \
+  V(FixedTypedArrayBase, empty_fixed_int16_array, EmptyFixedInt16Array)        \
+  V(FixedTypedArrayBase, empty_fixed_uint32_array, EmptyFixedUint32Array)      \
+  V(FixedTypedArrayBase, empty_fixed_int32_array, EmptyFixedInt32Array)        \
+  V(FixedTypedArrayBase, empty_fixed_float32_array, EmptyFixedFloat32Array)    \
+  V(FixedTypedArrayBase, empty_fixed_float64_array, EmptyFixedFloat64Array)    \
+  V(FixedTypedArrayBase, empty_fixed_uint8_clamped_array,                      \
+      EmptyFixedUint8ClampedArray)                                             \
   V(Map, sloppy_arguments_elements_map, SloppyArgumentsElementsMap)            \
   V(Map, function_context_map, FunctionContextMap)                             \
   V(Map, catch_context_map, CatchContextMap)                                   \
@@ -190,7 +198,7 @@ namespace internal {
   V(Cell, undefined_cell, UndefineCell)                                        \
   V(JSObject, observation_state, ObservationState)                             \
   V(Map, external_map, ExternalMap)                                            \
-  V(JSObject, symbol_registry, SymbolRegistry)                                 \
+  V(Object, symbol_registry, SymbolRegistry)                                   \
   V(Symbol, frozen_symbol, FrozenSymbol)                                       \
   V(Symbol, nonexistent_symbol, NonExistentSymbol)                             \
   V(Symbol, elements_transition_symbol, ElementsTransitionSymbol)              \
@@ -306,6 +314,11 @@ namespace internal {
   V(String_string, "String")                                             \
   V(symbol_string, "symbol")                                             \
   V(Symbol_string, "Symbol")                                             \
+  V(for_string, "for")                                                   \
+  V(for_api_string, "for_api")                                           \
+  V(for_intern_string, "for_intern")                                     \
+  V(private_api_string, "private_api")                                   \
+  V(private_intern_string, "private_intern")                             \
   V(Date_string, "Date")                                                 \
   V(this_string, "this")                                                 \
   V(to_string_string, "toString")                                        \
@@ -334,11 +347,7 @@ namespace internal {
   V(MakeReferenceError_string, "MakeReferenceError")                     \
   V(MakeSyntaxError_string, "MakeSyntaxError")                           \
   V(MakeTypeError_string, "MakeTypeError")                               \
-  V(illegal_return_string, "illegal_return")                             \
-  V(illegal_break_string, "illegal_break")                               \
-  V(illegal_continue_string, "illegal_continue")                         \
   V(unknown_label_string, "unknown_label")                               \
-  V(redeclaration_string, "redeclaration")                               \
   V(space_string, " ")                                                   \
   V(exec_string, "exec")                                                 \
   V(zero_string, "0")                                                    \
@@ -361,7 +370,9 @@ namespace internal {
   V(next_string, "next")                                                 \
   V(byte_length_string, "byteLength")                                    \
   V(byte_offset_string, "byteOffset")                                    \
-  V(buffer_string, "buffer")
+  V(buffer_string, "buffer")                                             \
+  V(intl_initialized_marker_string, "v8::intl_initialized_marker")       \
+  V(intl_impl_object_string, "v8::intl_object")
 
 // Forward declarations.
 class GCTracer;
@@ -1172,6 +1183,8 @@ class Heap {
   // when shortening objects.
   void CreateFillerObjectAt(Address addr, int size);
 
+  bool CanMoveObjectStart(HeapObject* object);
+
   enum InvocationMode { FROM_GC, FROM_MUTATOR };
 
   // Maintain marking consistency for IncrementalMarking.
@@ -1648,7 +1661,9 @@ class Heap {
       ExternalArrayType array_type);
 
   RootListIndex RootIndexForEmptyExternalArray(ElementsKind kind);
+  RootListIndex RootIndexForEmptyFixedTypedArray(ElementsKind kind);
   ExternalArray* EmptyExternalArrayForMap(Map* map);
+  FixedTypedArrayBase* EmptyFixedTypedArrayForMap(Map* map);
 
   void RecordStats(HeapStats* stats, bool take_snapshot = false);
 
@@ -1901,16 +1916,12 @@ class Heap {
   class RelocationLock {
    public:
     explicit RelocationLock(Heap* heap) : heap_(heap) {
-      if (FLAG_concurrent_recompilation) {
-        heap_->relocation_mutex_->Lock();
-      }
+      heap_->relocation_mutex_.Lock();
     }
 
 
     ~RelocationLock() {
-      if (FLAG_concurrent_recompilation) {
-        heap_->relocation_mutex_->Unlock();
-      }
+      heap_->relocation_mutex_.Unlock();
     }
 
    private:
@@ -2218,6 +2229,10 @@ class Heap {
   MUST_USE_RESULT MaybeObject* AllocateEmptyExternalArray(
       ExternalArrayType array_type);
 
+  // Allocate empty fixed typed array of given type.
+  MUST_USE_RESULT MaybeObject* AllocateEmptyFixedTypedArray(
+      ExternalArrayType array_type);
+
   // Allocate empty fixed double array.
   MUST_USE_RESULT MaybeObject* AllocateEmptyFixedDoubleArray();
 
@@ -2513,7 +2528,7 @@ class Heap {
 
   MemoryChunk* chunks_queued_for_free_;
 
-  Mutex* relocation_mutex_;
+  Mutex relocation_mutex_;
 
   int gc_callbacks_depth_;
 

@@ -129,10 +129,12 @@ template<class T,
          class M = NonCopyablePersistentTraits<T> > class Persistent;
 template<class T> class UniquePersistent;
 template<class K, class V, class T> class PersistentValueMap;
+template<class V, class T> class PersistentValueVector;
 template<class T, class P> class WeakCallbackObject;
 class FunctionTemplate;
 class ObjectTemplate;
 class Data;
+template<typename T> class FunctionCallbackInfo;
 template<typename T> class PropertyCallbackInfo;
 class StackTrace;
 class StackFrame;
@@ -416,6 +418,7 @@ template <class T> class Local : public Handle<T> {
   friend class HandleScope;
   friend class EscapableHandleScope;
   template<class F1, class F2, class F3> friend class PersistentValueMap;
+  template<class F1, class F2> friend class PersistentValueVector;
 
   V8_INLINE static Local<T> New(Isolate* isolate, T* that);
 };
@@ -521,6 +524,13 @@ template <class T> class PersistentBase {
     return !operator==(that);
   }
 
+  /**
+   *  Install a finalization callback on this object.
+   *  NOTE: There is no guarantee as to *when* or even *if* the callback is
+   *  invoked. The invocation is performed solely on a best effort basis.
+   *  As always, GC-based finalization should *not* be relied upon for any
+   *  critical form of resource management!
+   */
   template<typename P>
   V8_INLINE void SetWeak(
       P* parameter,
@@ -585,6 +595,7 @@ template <class T> class PersistentBase {
   template<class F> friend class PersistentBase;
   template<class F> friend class ReturnValue;
   template<class F1, class F2, class F3> friend class PersistentValueMap;
+  template<class F1, class F2> friend class PersistentValueVector;
   friend class Object;
 
   explicit V8_INLINE PersistentBase(T* val) : val_(val) {}
@@ -803,7 +814,7 @@ class UniquePersistent : public PersistentBase<T> {
   /**
    * Pass allows returning uniques from functions, etc.
    */
-  V8_INLINE UniquePersistent Pass() { return UniquePersistent(RValue(this)); }
+  UniquePersistent Pass() { return UniquePersistent(RValue(this)); }
 
  private:
   UniquePersistent(UniquePersistent&);
@@ -1120,6 +1131,7 @@ class V8_EXPORT ScriptCompiler {
   private:
      // Prevent copying. Not implemented.
      CachedData(const CachedData&);
+     CachedData& operator=(const CachedData&);
   };
 
   /**
@@ -1129,20 +1141,22 @@ class V8_EXPORT ScriptCompiler {
   class Source {
    public:
     // Source takes ownership of CachedData.
-    Source(Local<String> source_string, const ScriptOrigin& origin,
+    V8_INLINE Source(Local<String> source_string, const ScriptOrigin& origin,
            CachedData* cached_data = NULL);
-    Source(Local<String> source_string, CachedData* cached_data = NULL);
-    ~Source();
+    V8_INLINE Source(Local<String> source_string,
+                     CachedData* cached_data = NULL);
+    V8_INLINE ~Source();
 
     // Ownership of the CachedData or its buffers is *not* transferred to the
     // caller. The CachedData object is alive as long as the Source object is
     // alive.
-    const CachedData* GetCachedData() const;
+    V8_INLINE const CachedData* GetCachedData() const;
 
    private:
     friend class ScriptCompiler;
      // Prevent copying. Not implemented.
     Source(const Source&);
+    Source& operator=(const Source&);
 
     Local<String> source_string;
 
@@ -1998,9 +2012,20 @@ class V8_EXPORT Symbol : public Primitive {
   // Returns the print name string of the symbol, or undefined if none.
   Local<Value> Name() const;
 
-  // Create a symbol. If data is not NULL, it will be used as a print name.
+  // Create a symbol. If name is not empty, it will be used as the description.
   static Local<Symbol> New(
-      Isolate *isolate, const char* data = NULL, int length = -1);
+      Isolate *isolate, Local<String> name = Local<String>());
+
+  // Access global symbol registry.
+  // Note that symbols created this way are never collected, so
+  // they should only be used for statically fixed properties.
+  // Also, there is only one global name space for the names used as keys.
+  // To minimize the potential for clashes, use qualified names as keys.
+  static Local<Symbol> For(Isolate *isolate, Local<String> name);
+
+  // Retrieve a global symbol. Similar to |For|, but using a separate
+  // registry that is not accessible by (and cannot clash with) JavaScript code.
+  static Local<Symbol> ForApi(Isolate *isolate, Local<String> name);
 
   V8_INLINE static Symbol* Cast(v8::Value* obj);
  private:
@@ -2019,9 +2044,18 @@ class V8_EXPORT Private : public Data {
   // Returns the print name string of the private symbol, or undefined if none.
   Local<Value> Name() const;
 
-  // Create a private symbol. If data is not NULL, it will be the print name.
-  static Local<Private> New(Isolate *isolate,
-                            Local<String> name = Local<String>());
+  // Create a private symbol. If name is not empty, it will be the description.
+  static Local<Private> New(
+      Isolate *isolate, Local<String> name = Local<String>());
+
+  // Retrieve a global private symbol. If a symbol with this name has not
+  // been retrieved in the same isolate before, it is created.
+  // Note that private symbols created this way are never collected, so
+  // they should only be used for statically fixed properties.
+  // Also, there is only one global name space for the names used as keys.
+  // To minimize the potential for clashes, use qualified names as keys,
+  // e.g., "Class#property".
+  static Local<Private> ForApi(Isolate *isolate, Local<String> name);
 
  private:
   Private();
@@ -2202,6 +2236,12 @@ class V8_EXPORT Object : public Value {
   // This function is not yet stable and should not be used at this time.
   bool SetDeclaredAccessor(Local<String> name,
                            Local<DeclaredAccessorDescriptor> descriptor,
+                           PropertyAttribute attribute = None,
+                           AccessControl settings = DEFAULT);
+
+  void SetAccessorProperty(Local<String> name,
+                           Local<Function> getter,
+                           Handle<Function> setter = Handle<Function>(),
                            PropertyAttribute attribute = None,
                            AccessControl settings = DEFAULT);
 
@@ -4388,6 +4428,20 @@ class V8_EXPORT Isolate {
    */
   void SetEventLogger(LogEventCallback that);
 
+  /**
+   * Adds a callback to notify the host application when a script finished
+   * running.  If a script re-enters the runtime during executing, the
+   * CallCompletedCallback is only invoked when the outer-most script
+   * execution ends.  Executing scripts inside the callback do not trigger
+   * further callbacks.
+   */
+  void AddCallCompletedCallback(CallCompletedCallback callback);
+
+  /**
+   * Removes callback that was installed by AddCallCompletedCallback.
+   */
+  void RemoveCallCompletedCallback(CallCompletedCallback callback);
+
  private:
   template<class K, class V, class Traits> friend class PersistentValueMap;
 
@@ -4610,20 +4664,6 @@ class V8_EXPORT V8 {
   static void SetArrayBufferAllocator(ArrayBuffer::Allocator* allocator);
 
   /**
-   * Ignore out-of-memory exceptions.
-   *
-   * V8 running out of memory is treated as a fatal error by default.
-   * This means that the fatal error handler is called and that V8 is
-   * terminated.
-   *
-   * IgnoreOutOfMemoryException can be used to not treat an
-   * out-of-memory situation as a fatal error.  This way, the contexts
-   * that did not cause the out of memory problem might be able to
-   * continue execution.
-   */
-  static void IgnoreOutOfMemoryException();
-
-  /**
    * Check if V8 is dead and therefore unusable.  This is the case after
    * fatal errors such as out-of-memory situations.
    */
@@ -4769,11 +4809,15 @@ class V8_EXPORT V8 {
    * CallCompletedCallback is only invoked when the outer-most script
    * execution ends.  Executing scripts inside the callback do not trigger
    * further callbacks.
+   *
+   * Will be deprecated soon. Use Isolate::AddCallCompletedCallback.
    */
   static void AddCallCompletedCallback(CallCompletedCallback callback);
 
   /**
    * Removes callback that was installed by AddCallCompletedCallback.
+   *
+   * Will be deprecated soon. Use Isolate::RemoveCallCompletedCallback.
    */
   static void RemoveCallCompletedCallback(CallCompletedCallback callback);
 
@@ -4959,8 +5003,11 @@ class V8_EXPORT V8 {
   /**
    * Initialize the ICU library bundled with V8. The embedder should only
    * invoke this method when using the bundled ICU. Returns true on success.
+   *
+   * If V8 was compiled with the ICU data in an external file, the location
+   * of the data file has to be provided.
    */
-  static bool InitializeICU();
+  static bool InitializeICU(const char* icu_data_file = NULL);
 
   /**
    * Sets the v8::Platform to use. This should be invoked before V8 is
@@ -5228,7 +5275,7 @@ class V8_EXPORT Context {
   void Exit();
 
   /** Returns true if the context has experienced an out of memory situation. */
-  bool HasOutOfMemoryException();
+  bool HasOutOfMemoryException() { return false; }
 
   /** Returns an isolate associated with a current context. */
   v8::Isolate* GetIsolate();
@@ -5552,7 +5599,7 @@ class Internals {
   static const int kNullValueRootIndex = 7;
   static const int kTrueValueRootIndex = 8;
   static const int kFalseValueRootIndex = 9;
-  static const int kEmptyStringRootIndex = 145;
+  static const int kEmptyStringRootIndex = 152;
 
   static const int kNodeClassIdOffset = 1 * kApiPointerSize;
   static const int kNodeFlagsOffset = 1 * kApiPointerSize + 3;
@@ -6078,6 +6125,32 @@ Handle<Integer> ScriptOrigin::ResourceColumnOffset() const {
 
 Handle<Boolean> ScriptOrigin::ResourceIsSharedCrossOrigin() const {
   return resource_is_shared_cross_origin_;
+}
+
+
+ScriptCompiler::Source::Source(Local<String> string, const ScriptOrigin& origin,
+                               CachedData* data)
+    : source_string(string),
+      resource_name(origin.ResourceName()),
+      resource_line_offset(origin.ResourceLineOffset()),
+      resource_column_offset(origin.ResourceColumnOffset()),
+      resource_is_shared_cross_origin(origin.ResourceIsSharedCrossOrigin()),
+      cached_data(data) {}
+
+
+ScriptCompiler::Source::Source(Local<String> string,
+                               CachedData* data)
+    : source_string(string), cached_data(data) {}
+
+
+ScriptCompiler::Source::~Source() {
+  delete cached_data;
+}
+
+
+const ScriptCompiler::CachedData* ScriptCompiler::Source::GetCachedData()
+    const {
+  return cached_data;
 }
 
 

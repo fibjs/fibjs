@@ -196,11 +196,11 @@ void Deoptimizer::EntryGenerator::Generate() {
   // Get the address of the location in the code object
   // and compute the fp-to-sp delta in register arg5.
   __ movp(arg_reg_4, Operand(rsp, kSavedRegistersAreaSize + 1 * kRegisterSize));
-  __ lea(arg5, Operand(rsp, kSavedRegistersAreaSize + 1 * kRegisterSize +
+  __ leap(arg5, Operand(rsp, kSavedRegistersAreaSize + 1 * kRegisterSize +
                             kPCOnStackSize));
 
   __ subp(arg5, rbp);
-  __ neg(arg5);
+  __ negp(arg5);
 
   // Allocate a new deoptimizer object.
   __ PrepareCallCFunction(6);
@@ -251,7 +251,7 @@ void Deoptimizer::EntryGenerator::Generate() {
   // Unwind the stack down to - but not including - the unwinding
   // limit and copy the contents of the activation frame to the input
   // frame description.
-  __ lea(rdx, Operand(rbx, FrameDescription::frame_content_offset()));
+  __ leap(rdx, Operand(rbx, FrameDescription::frame_content_offset()));
   Label pop_loop_header;
   __ jmp(&pop_loop_header);
   Label pop_loop;
@@ -259,7 +259,7 @@ void Deoptimizer::EntryGenerator::Generate() {
   __ Pop(Operand(rdx, 0));
   __ addp(rdx, Immediate(sizeof(intptr_t)));
   __ bind(&pop_loop_header);
-  __ cmpq(rcx, rsp);
+  __ cmpp(rcx, rsp);
   __ j(not_equal, &pop_loop);
 
   // Compute the output frame in the deoptimizer.
@@ -281,7 +281,7 @@ void Deoptimizer::EntryGenerator::Generate() {
   // last FrameDescription**.
   __ movl(rdx, Operand(rax, Deoptimizer::output_count_offset()));
   __ movp(rax, Operand(rax, Deoptimizer::output_offset()));
-  __ lea(rdx, Operand(rax, rdx, times_pointer_size, 0));
+  __ leap(rdx, Operand(rax, rdx, times_pointer_size, 0));
   __ jmp(&outer_loop_header);
   __ bind(&outer_push_loop);
   // Inner loop state: rbx = current FrameDescription*, rcx = loop index.
@@ -292,11 +292,11 @@ void Deoptimizer::EntryGenerator::Generate() {
   __ subp(rcx, Immediate(sizeof(intptr_t)));
   __ Push(Operand(rbx, rcx, times_1, FrameDescription::frame_content_offset()));
   __ bind(&inner_loop_header);
-  __ testq(rcx, rcx);
+  __ testp(rcx, rcx);
   __ j(not_zero, &inner_push_loop);
   __ addp(rax, Immediate(kPointerSize));
   __ bind(&outer_loop_header);
-  __ cmpq(rax, rdx);
+  __ cmpp(rax, rdx);
   __ j(below, &outer_push_loop);
 
   for (int i = 0; i < XMMRegister::NumAllocatableRegisters(); ++i) {

@@ -212,7 +212,7 @@ static void GenerateDictionaryStore(MacroAssembler* masm,
 
   // Store the value at the masked, scaled index.
   const int kValueOffset = kElementsStartOffset + kPointerSize;
-  __ lea(scratch1, Operand(elements,
+  __ leap(scratch1, Operand(elements,
                            scratch1,
                            times_pointer_size,
                            kValueOffset - kHeapObjectTag));
@@ -421,12 +421,12 @@ void KeyedLoadIC::GenerateGeneric(MacroAssembler* masm) {
   // based on 32 bits of the map pointer and the string hash.
   __ movp(rbx, FieldOperand(rdx, HeapObject::kMapOffset));
   __ movl(rcx, rbx);
-  __ shr(rcx, Immediate(KeyedLookupCache::kMapHashShift));
+  __ shrl(rcx, Immediate(KeyedLookupCache::kMapHashShift));
   __ movl(rdi, FieldOperand(rax, String::kHashFieldOffset));
-  __ shr(rdi, Immediate(String::kHashShift));
-  __ xor_(rcx, rdi);
+  __ shrl(rdi, Immediate(String::kHashShift));
+  __ xorp(rcx, rdi);
   int mask = (KeyedLookupCache::kCapacityMask & KeyedLookupCache::kHashMask);
-  __ and_(rcx, Immediate(mask));
+  __ andp(rcx, Immediate(mask));
 
   // Load the key (consisting of map and internalized string) from the cache and
   // check for match.
@@ -439,20 +439,20 @@ void KeyedLoadIC::GenerateGeneric(MacroAssembler* masm) {
   for (int i = 0; i < kEntriesPerBucket - 1; i++) {
     Label try_next_entry;
     __ movp(rdi, rcx);
-    __ shl(rdi, Immediate(kPointerSizeLog2 + 1));
+    __ shlp(rdi, Immediate(kPointerSizeLog2 + 1));
     __ LoadAddress(kScratchRegister, cache_keys);
     int off = kPointerSize * i * 2;
-    __ cmpq(rbx, Operand(kScratchRegister, rdi, times_1, off));
+    __ cmpp(rbx, Operand(kScratchRegister, rdi, times_1, off));
     __ j(not_equal, &try_next_entry);
-    __ cmpq(rax, Operand(kScratchRegister, rdi, times_1, off + kPointerSize));
+    __ cmpp(rax, Operand(kScratchRegister, rdi, times_1, off + kPointerSize));
     __ j(equal, &hit_on_nth_entry[i]);
     __ bind(&try_next_entry);
   }
 
   int off = kPointerSize * (kEntriesPerBucket - 1) * 2;
-  __ cmpq(rbx, Operand(kScratchRegister, rdi, times_1, off));
+  __ cmpp(rbx, Operand(kScratchRegister, rdi, times_1, off));
   __ j(not_equal, &slow);
-  __ cmpq(rax, Operand(kScratchRegister, rdi, times_1, off + kPointerSize));
+  __ cmpp(rax, Operand(kScratchRegister, rdi, times_1, off + kPointerSize));
   __ j(not_equal, &slow);
 
   // Get field offset, which is a 32-bit integer.
@@ -467,7 +467,7 @@ void KeyedLoadIC::GenerateGeneric(MacroAssembler* masm) {
     }
     __ LoadAddress(kScratchRegister, cache_field_offsets);
     __ movl(rdi, Operand(kScratchRegister, rcx, times_4, 0));
-    __ movzxbq(rcx, FieldOperand(rbx, Map::kInObjectPropertiesOffset));
+    __ movzxbp(rcx, FieldOperand(rbx, Map::kInObjectPropertiesOffset));
     __ subp(rdi, rcx);
     __ j(above_equal, &property_array_property);
     if (i != 0) {
@@ -477,7 +477,7 @@ void KeyedLoadIC::GenerateGeneric(MacroAssembler* masm) {
 
   // Load in-object property.
   __ bind(&load_in_object_property);
-  __ movzxbq(rcx, FieldOperand(rbx, Map::kInstanceSizeOffset));
+  __ movzxbp(rcx, FieldOperand(rbx, Map::kInstanceSizeOffset));
   __ addp(rcx, rdi);
   __ movp(rax, FieldOperand(rdx, rcx, times_pointer_size, 0));
   __ IncrementCounter(counters->keyed_load_generic_lookup_cache(), 1);
@@ -859,7 +859,7 @@ static Operand GenerateMappedArgumentsLookup(MacroAssembler* masm,
   // Check if element is in the range of mapped arguments.
   __ movp(scratch2, FieldOperand(scratch1, FixedArray::kLengthOffset));
   __ SmiSubConstant(scratch2, scratch2, Smi::FromInt(2));
-  __ cmpq(key, scratch2);
+  __ cmpp(key, scratch2);
   __ j(greater_equal, unmapped_case);
 
   // Load element index and check whether it is the hole.
@@ -899,7 +899,7 @@ static Operand GenerateUnmappedArgumentsLookup(MacroAssembler* masm,
   Handle<Map> fixed_array_map(masm->isolate()->heap()->fixed_array_map());
   __ CheckMap(backing_store, fixed_array_map, slow_case, DONT_DO_SMI_CHECK);
   __ movp(scratch, FieldOperand(backing_store, FixedArray::kLengthOffset));
-  __ cmpq(key, scratch);
+  __ cmpp(key, scratch);
   __ j(greater_equal, slow_case);
   __ SmiToInteger64(scratch, key);
   return FieldOperand(backing_store,
@@ -945,7 +945,7 @@ void KeyedStoreIC::GenerateSloppyArguments(MacroAssembler* masm) {
   Operand mapped_location = GenerateMappedArgumentsLookup(
       masm, rdx, rcx, rbx, rdi, r8, &notin, &slow);
   __ movp(mapped_location, rax);
-  __ lea(r9, mapped_location);
+  __ leap(r9, mapped_location);
   __ movp(r8, rax);
   __ RecordWrite(rbx,
                  r9,
@@ -959,7 +959,7 @@ void KeyedStoreIC::GenerateSloppyArguments(MacroAssembler* masm) {
   Operand unmapped_location =
       GenerateUnmappedArgumentsLookup(masm, rcx, rbx, rdi, &slow);
   __ movp(unmapped_location, rax);
-  __ lea(r9, unmapped_location);
+  __ leap(r9, unmapped_location);
   __ movp(r8, rax);
   __ RecordWrite(rbx,
                  r9,

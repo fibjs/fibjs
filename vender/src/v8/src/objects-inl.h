@@ -125,6 +125,15 @@ PropertyDetails PropertyDetails::AsDeleted() const {
     WRITE_FIELD(this, offset, Smi::FromInt(value));     \
   }
 
+#define SYNCHRONIZED_SMI_ACCESSORS(holder, name, offset)    \
+  int holder::synchronized_##name() {                       \
+    Object* value = ACQUIRE_READ_FIELD(this, offset);       \
+    return Smi::cast(value)->value();                       \
+  }                                                         \
+  void holder::synchronized_set_##name(int value) {         \
+    RELEASE_WRITE_FIELD(this, offset, Smi::FromInt(value)); \
+  }
+
 
 #define BOOL_GETTER(holder, field, name, offset)           \
   bool holder::name() {                                    \
@@ -649,12 +658,6 @@ bool MaybeObject::IsRetryAfterGC() {
 }
 
 
-bool MaybeObject::IsOutOfMemory() {
-  return HAS_FAILURE_TAG(this)
-      && Failure::cast(this)->IsOutOfMemoryException();
-}
-
-
 bool MaybeObject::IsException() {
   return this == Failure::Exception();
 }
@@ -1070,25 +1073,15 @@ Handle<Object> Object::GetElement(Isolate* isolate,
   // This was not always the case. This ASSERT is here to catch
   // leftover incorrect uses.
   ASSERT(AllowHeapAllocation::IsAllowed());
-  CALL_HEAP_FUNCTION(isolate,
-                     object->GetElementWithReceiver(isolate, *object, index),
-                     Object);
+  return Object::GetElementWithReceiver(isolate, object, object, index);
 }
 
-
-static Handle<Object> GetElementNoExceptionThrownHelper(Isolate* isolate,
-                                                        Handle<Object> object,
-                                                        uint32_t index) {
-  CALL_HEAP_FUNCTION(isolate,
-                     object->GetElementWithReceiver(isolate, *object, index),
-                     Object);
-}
 
 Handle<Object> Object::GetElementNoExceptionThrown(Isolate* isolate,
                                                    Handle<Object> object,
                                                    uint32_t index) {
   Handle<Object> result =
-      GetElementNoExceptionThrownHelper(isolate, object, index);
+      Object::GetElementWithReceiver(isolate, object, object, index);
   CHECK_NOT_EMPTY_HANDLE(isolate, result);
   return result;
 }
@@ -1111,8 +1104,24 @@ MaybeObject* Object::GetProperty(Name* key, PropertyAttributes* attributes) {
 #define READ_FIELD(p, offset) \
   (*reinterpret_cast<Object**>(FIELD_ADDR(p, offset)))
 
+#define ACQUIRE_READ_FIELD(p, offset)                                    \
+  reinterpret_cast<Object*>(                                             \
+      Acquire_Load(reinterpret_cast<AtomicWord*>(FIELD_ADDR(p, offset))))
+
+#define NO_BARRIER_READ_FIELD(p, offset)                                    \
+  reinterpret_cast<Object*>(                                                \
+      NoBarrier_Load(reinterpret_cast<AtomicWord*>(FIELD_ADDR(p, offset))))
+
 #define WRITE_FIELD(p, offset, value) \
   (*reinterpret_cast<Object**>(FIELD_ADDR(p, offset)) = value)
+
+#define RELEASE_WRITE_FIELD(p, offset, value)                           \
+  Release_Store(reinterpret_cast<AtomicWord*>(FIELD_ADDR(p, offset)),   \
+                reinterpret_cast<AtomicWord>(value));
+
+#define NO_BARRIER_WRITE_FIELD(p, offset, value)                           \
+  NoBarrier_Store(reinterpret_cast<AtomicWord*>(FIELD_ADDR(p, offset)),    \
+                  reinterpret_cast<AtomicWord>(value));
 
 #define WRITE_BARRIER(heap, object, offset, value)                      \
   heap->incremental_marking()->RecordWrite(                             \
@@ -1245,11 +1254,6 @@ bool Failure::IsInternalError() const {
 }
 
 
-bool Failure::IsOutOfMemoryException() const {
-  return type() == OUT_OF_MEMORY_EXCEPTION;
-}
-
-
 AllocationSpace Failure::allocation_space() const {
   ASSERT_EQ(RETRY_AFTER_GC, type());
   return static_cast<AllocationSpace>((value() >> kFailureTypeTagSize)
@@ -1264,11 +1268,6 @@ Failure* Failure::InternalError() {
 
 Failure* Failure::Exception() {
   return Construct(EXCEPTION);
-}
-
-
-Failure* Failure::OutOfMemoryException(intptr_t value) {
-  return Construct(OUT_OF_MEMORY_EXCEPTION, value);
 }
 
 
@@ -1374,6 +1373,21 @@ void HeapObject::set_map(Map* value) {
 }
 
 
+Map* HeapObject::synchronized_map() {
+  return synchronized_map_word().ToMap();
+}
+
+
+void HeapObject::synchronized_set_map(Map* value) {
+  synchronized_set_map_word(MapWord::FromMap(value));
+  if (value != NULL) {
+    // TODO(1600) We are passing NULL as a slot because maps can never be on
+    // evacuation candidate.
+    value->GetHeap()->incremental_marking()->RecordWrite(this, NULL, value);
+  }
+}
+
+
 // Unsafe accessor omitting write barrier.
 void HeapObject::set_map_no_write_barrier(Map* value) {
   set_map_word(MapWord::FromMap(value));
@@ -1381,14 +1395,26 @@ void HeapObject::set_map_no_write_barrier(Map* value) {
 
 
 MapWord HeapObject::map_word() {
-  return MapWord(reinterpret_cast<uintptr_t>(READ_FIELD(this, kMapOffset)));
+  return MapWord(
+      reinterpret_cast<uintptr_t>(NO_BARRIER_READ_FIELD(this, kMapOffset)));
 }
 
 
 void HeapObject::set_map_word(MapWord map_word) {
-  // WRITE_FIELD does not invoke write barrier, but there is no need
-  // here.
-  WRITE_FIELD(this, kMapOffset, reinterpret_cast<Object*>(map_word.value_));
+  NO_BARRIER_WRITE_FIELD(
+      this, kMapOffset, reinterpret_cast<Object*>(map_word.value_));
+}
+
+
+MapWord HeapObject::synchronized_map_word() {
+  return MapWord(
+      reinterpret_cast<uintptr_t>(ACQUIRE_READ_FIELD(this, kMapOffset)));
+}
+
+
+void HeapObject::synchronized_set_map_word(MapWord map_word) {
+  RELEASE_WRITE_FIELD(
+      this, kMapOffset, reinterpret_cast<Object*>(map_word.value_));
 }
 
 
@@ -1416,6 +1442,11 @@ void HeapObject::IteratePointers(ObjectVisitor* v, int start, int end) {
 
 void HeapObject::IteratePointer(ObjectVisitor* v, int offset) {
   v->VisitPointer(reinterpret_cast<Object**>(FIELD_ADDR(this, offset)));
+}
+
+
+void HeapObject::IterateNextCodeLink(ObjectVisitor* v, int offset) {
+  v->VisitNextCodeLink(reinterpret_cast<Object**>(FIELD_ADDR(this, offset)));
 }
 
 
@@ -1719,31 +1750,24 @@ MaybeObject* JSObject::GetElementsTransitionMap(Isolate* isolate,
 }
 
 
-void JSObject::set_map_and_elements(Map* new_map,
-                                    FixedArrayBase* value,
-                                    WriteBarrierMode mode) {
-  ASSERT(value->HasValidElements());
-  if (new_map != NULL) {
-    if (mode == UPDATE_WRITE_BARRIER) {
-      set_map(new_map);
-    } else {
-      ASSERT(mode == SKIP_WRITE_BARRIER);
-      set_map_no_write_barrier(new_map);
-    }
-  }
-  ASSERT((map()->has_fast_smi_or_object_elements() ||
-          (value == GetHeap()->empty_fixed_array())) ==
-         (value->map() == GetHeap()->fixed_array_map() ||
-          value->map() == GetHeap()->fixed_cow_array_map()));
-  ASSERT((value == GetHeap()->empty_fixed_array()) ||
-         (map()->has_fast_double_elements() == value->IsFixedDoubleArray()));
-  WRITE_FIELD(this, kElementsOffset, value);
-  CONDITIONAL_WRITE_BARRIER(GetHeap(), this, kElementsOffset, value, mode);
+void JSObject::SetMapAndElements(Handle<JSObject> object,
+                                 Handle<Map> new_map,
+                                 Handle<FixedArrayBase> value) {
+  JSObject::MigrateToMap(object, new_map);
+  ASSERT((object->map()->has_fast_smi_or_object_elements() ||
+          (*value == object->GetHeap()->empty_fixed_array())) ==
+         (value->map() == object->GetHeap()->fixed_array_map() ||
+          value->map() == object->GetHeap()->fixed_cow_array_map()));
+  ASSERT((*value == object->GetHeap()->empty_fixed_array()) ||
+         (object->map()->has_fast_double_elements() ==
+          value->IsFixedDoubleArray()));
+  object->set_elements(*value);
 }
 
 
 void JSObject::set_elements(FixedArrayBase* value, WriteBarrierMode mode) {
-  set_map_and_elements(NULL, value, mode);
+  WRITE_FIELD(this, kElementsOffset, value);
+  CONDITIONAL_WRITE_BARRIER(GetHeap(), this, kElementsOffset, value, mode);
 }
 
 
@@ -1760,6 +1784,11 @@ void JSObject::initialize_elements() {
     WRITE_FIELD(this, kElementsOffset, GetHeap()->empty_fixed_array());
   } else if (map()->has_external_array_elements()) {
     ExternalArray* empty_array = GetHeap()->EmptyExternalArrayForMap(map());
+    ASSERT(!GetHeap()->InNewSpace(empty_array));
+    WRITE_FIELD(this, kElementsOffset, empty_array);
+  } else if (map()->has_fixed_typed_array_elements()) {
+    FixedTypedArrayBase* empty_array =
+      GetHeap()->EmptyFixedTypedArrayForMap(map());
     ASSERT(!GetHeap()->InNewSpace(empty_array));
     WRITE_FIELD(this, kElementsOffset, empty_array);
   } else {
@@ -2211,6 +2240,15 @@ MaybeObject* FixedDoubleArray::get(int index) {
 }
 
 
+Handle<Object> FixedDoubleArray::get_as_handle(int index) {
+  if (is_the_hole(index)) {
+    return GetIsolate()->factory()->the_hole_value();
+  } else {
+    return GetIsolate()->factory()->NewNumber(get_scalar(index));
+  }
+}
+
+
 void FixedDoubleArray::set(int index, double value) {
   ASSERT(map() != GetHeap()->fixed_cow_array_map() &&
          map() != GetHeap()->fixed_array_map());
@@ -2231,6 +2269,18 @@ void FixedDoubleArray::set_the_hole(int index) {
 bool FixedDoubleArray::is_the_hole(int index) {
   int offset = kHeaderSize + index * kDoubleSize;
   return is_the_hole_nan(READ_DOUBLE_FIELD(this, offset));
+}
+
+
+double* FixedDoubleArray::data_start() {
+  return reinterpret_cast<double*>(FIELD_ADDR(this, kHeaderSize));
+}
+
+
+void FixedDoubleArray::FillWithHoles(int from, int to) {
+  for (int i = from; i < to; i++) {
+    set_the_hole(i);
+  }
 }
 
 
@@ -2427,8 +2477,10 @@ void FixedArray::set_the_hole(int index) {
 }
 
 
-double* FixedDoubleArray::data_start() {
-  return reinterpret_cast<double*>(FIELD_ADDR(this, kHeaderSize));
+void FixedArray::FillWithHoles(int from, int to) {
+  for (int i = from; i < to; i++) {
+    set_the_hole(i);
+  }
 }
 
 
@@ -2940,9 +2992,12 @@ HashTable<Shape, Key>* HashTable<Shape, Key>::cast(Object* obj) {
 
 
 SMI_ACCESSORS(FixedArrayBase, length, kLengthOffset)
+SYNCHRONIZED_SMI_ACCESSORS(FixedArrayBase, length, kLengthOffset)
+
 SMI_ACCESSORS(FreeSpace, size, kSizeOffset)
 
 SMI_ACCESSORS(String, length, kLengthOffset)
+SYNCHRONIZED_SMI_ACCESSORS(String, length, kLengthOffset)
 
 
 uint32_t Name::hash_field() {
@@ -3702,33 +3757,62 @@ void ExternalFloat64Array::set(int index, double value) {
 }
 
 
-int FixedTypedArrayBase::size() {
+void* FixedTypedArrayBase::DataPtr() {
+  return FIELD_ADDR(this, kDataOffset);
+}
+
+
+int FixedTypedArrayBase::DataSize() {
   InstanceType instance_type = map()->instance_type();
   int element_size;
   switch (instance_type) {
-    case FIXED_UINT8_ARRAY_TYPE:
-    case FIXED_INT8_ARRAY_TYPE:
-    case FIXED_UINT8_CLAMPED_ARRAY_TYPE:
-      element_size = 1;
+#define TYPED_ARRAY_CASE(Type, type, TYPE, ctype, size)                       \
+    case FIXED_##TYPE##_ARRAY_TYPE:                                           \
+      element_size = size;                                                    \
       break;
-    case FIXED_UINT16_ARRAY_TYPE:
-    case FIXED_INT16_ARRAY_TYPE:
-      element_size = 2;
-      break;
-    case FIXED_UINT32_ARRAY_TYPE:
-    case FIXED_INT32_ARRAY_TYPE:
-    case FIXED_FLOAT32_ARRAY_TYPE:
-      element_size = 4;
-      break;
-    case FIXED_FLOAT64_ARRAY_TYPE:
-      element_size = 8;
-      break;
+
+    TYPED_ARRAYS(TYPED_ARRAY_CASE)
+#undef TYPED_ARRAY_CASE
     default:
       UNREACHABLE();
       return 0;
   }
-  return OBJECT_POINTER_ALIGN(kDataOffset + length() * element_size);
+  return length() * element_size;
 }
+
+
+int FixedTypedArrayBase::size() {
+  return OBJECT_POINTER_ALIGN(kDataOffset + DataSize());
+}
+
+
+uint8_t Uint8ArrayTraits::defaultValue() { return 0; }
+
+
+uint8_t Uint8ClampedArrayTraits::defaultValue() { return 0; }
+
+
+int8_t Int8ArrayTraits::defaultValue() { return 0; }
+
+
+uint16_t Uint16ArrayTraits::defaultValue() { return 0; }
+
+
+int16_t Int16ArrayTraits::defaultValue() { return 0; }
+
+
+uint32_t Uint32ArrayTraits::defaultValue() { return 0; }
+
+
+int32_t Int32ArrayTraits::defaultValue() { return 0; }
+
+
+float Float32ArrayTraits::defaultValue() {
+  return static_cast<float>(OS::nan_value());
+}
+
+
+double Float64ArrayTraits::defaultValue() { return OS::nan_value(); }
 
 
 template <class Traits>
@@ -3766,6 +3850,47 @@ void FixedTypedArray<Float64ArrayTraits>::set(
 
 
 template <class Traits>
+typename Traits::ElementType FixedTypedArray<Traits>::from_int(int value) {
+  return static_cast<ElementType>(value);
+}
+
+
+template <> inline
+uint8_t FixedTypedArray<Uint8ClampedArrayTraits>::from_int(int value) {
+  if (value < 0) return 0;
+  if (value > 0xFF) return 0xFF;
+  return static_cast<uint8_t>(value);
+}
+
+
+template <class Traits>
+typename Traits::ElementType FixedTypedArray<Traits>::from_double(
+    double value) {
+  return static_cast<ElementType>(DoubleToInt32(value));
+}
+
+
+template<> inline
+uint8_t FixedTypedArray<Uint8ClampedArrayTraits>::from_double(double value) {
+  if (value < 0) return 0;
+  if (value > 0xFF) return 0xFF;
+  return static_cast<uint8_t>(lrint(value));
+}
+
+
+template<> inline
+float FixedTypedArray<Float32ArrayTraits>::from_double(double value) {
+  return static_cast<float>(value);
+}
+
+
+template<> inline
+double FixedTypedArray<Float64ArrayTraits>::from_double(double value) {
+  return value;
+}
+
+
+template <class Traits>
 MaybeObject* FixedTypedArray<Traits>::get(int index) {
   return Traits::ToObject(GetHeap(), get_scalar(index));
 }
@@ -3776,10 +3901,10 @@ MaybeObject* FixedTypedArray<Traits>::SetValue(uint32_t index, Object* value) {
   if (index < static_cast<uint32_t>(length())) {
     if (value->IsSmi()) {
       int int_value = Smi::cast(value)->value();
-      cast_value = static_cast<ElementType>(int_value);
+      cast_value = from_int(int_value);
     } else if (value->IsHeapNumber()) {
       double double_value = HeapNumber::cast(value)->value();
-      cast_value = static_cast<ElementType>(DoubleToInt32(double_value));
+      cast_value = from_double(double_value);
     } else {
       // Clamp undefined to the default value. All other types have been
       // converted to a number type further up in the call chain.
@@ -5738,6 +5863,7 @@ ACCESSORS(Code, relocation_info, ByteArray, kRelocationInfoOffset)
 ACCESSORS(Code, handler_table, FixedArray, kHandlerTableOffset)
 ACCESSORS(Code, deoptimization_data, FixedArray, kDeoptimizationDataOffset)
 ACCESSORS(Code, raw_type_feedback_info, Object, kTypeFeedbackInfoOffset)
+ACCESSORS(Code, next_code_link, Object, kNextCodeLinkOffset)
 
 
 void Code::WipeOutHeader() {
@@ -5761,20 +5887,6 @@ Object* Code::type_feedback_info() {
 void Code::set_type_feedback_info(Object* value, WriteBarrierMode mode) {
   ASSERT(kind() == FUNCTION);
   set_raw_type_feedback_info(value, mode);
-  CONDITIONAL_WRITE_BARRIER(GetHeap(), this, kTypeFeedbackInfoOffset,
-                            value, mode);
-}
-
-
-Object* Code::next_code_link() {
-  CHECK(kind() == OPTIMIZED_FUNCTION);
-  return raw_type_feedback_info();
-}
-
-
-void Code::set_next_code_link(Object* value, WriteBarrierMode mode) {
-  CHECK(kind() == OPTIMIZED_FUNCTION);
-  set_raw_type_feedback_info(value);
   CONDITIONAL_WRITE_BARRIER(GetHeap(), this, kTypeFeedbackInfoOffset,
                             value, mode);
 }
@@ -6045,6 +6157,20 @@ bool JSObject::HasFixedTypedArrayElements() {
   ASSERT(array != NULL);
   return array->IsFixedTypedArrayBase();
 }
+
+
+#define FIXED_TYPED_ELEMENTS_CHECK(Type, type, TYPE, ctype, size)         \
+bool JSObject::HasFixed##Type##Elements() {                               \
+  HeapObject* array = elements();                                         \
+  ASSERT(array != NULL);                                                  \
+  if (!array->IsHeapObject())                                             \
+    return false;                                                         \
+  return array->map()->instance_type() == FIXED_##TYPE##_ARRAY_TYPE;      \
+}
+
+TYPED_ARRAYS(FIXED_TYPED_ELEMENTS_CHECK)
+
+#undef FIXED_TYPED_ELEMENTS_CHECK
 
 
 bool JSObject::HasNamedInterceptor() {
@@ -6543,20 +6669,20 @@ void Map::ClearCodeCache(Heap* heap) {
 }
 
 
-void JSArray::EnsureSize(int required_size) {
-  ASSERT(HasFastSmiOrObjectElements());
-  FixedArray* elts = FixedArray::cast(elements());
+void JSArray::EnsureSize(Handle<JSArray> array, int required_size) {
+  ASSERT(array->HasFastSmiOrObjectElements());
+  Handle<FixedArray> elts = handle(FixedArray::cast(array->elements()));
   const int kArraySizeThatFitsComfortablyInNewSpace = 128;
   if (elts->length() < required_size) {
     // Doubling in size would be overkill, but leave some slack to avoid
     // constantly growing.
-    Expand(required_size + (required_size >> 3));
+    Expand(array, required_size + (required_size >> 3));
     // It's a performance benefit to keep a frequently used array in new-space.
-  } else if (!GetHeap()->new_space()->Contains(elts) &&
+  } else if (!array->GetHeap()->new_space()->Contains(*elts) &&
              required_size < kArraySizeThatFitsComfortablyInNewSpace) {
     // Expand will allocate a new backing store in new space even if the size
     // we asked for isn't larger than what we had before.
-    Expand(required_size);
+    Expand(array, required_size);
   }
 }
 

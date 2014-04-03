@@ -468,31 +468,34 @@ class MemoryChunk {
   intptr_t GetFlags() { return flags_; }
 
 
-  // PARALLEL_SWEEPING_PENDING - This page is ready for parallel sweeping.
-  // PARALLEL_SWEEPING_IN_PROGRESS - This page is currently swept or was
-  // swept by a sweeper thread.
   // PARALLEL_SWEEPING_DONE - The page state when sweeping is complete or
   // sweeping must not be performed on that page.
+  // PARALLEL_SWEEPING_FINALIZE - A sweeper thread is done sweeping this
+  // page and will not touch the page memory anymore.
+  // PARALLEL_SWEEPING_IN_PROGRESS - This page is currently swept by a
+  // sweeper thread.
+  // PARALLEL_SWEEPING_PENDING - This page is ready for parallel sweeping.
   enum ParallelSweepingState {
     PARALLEL_SWEEPING_DONE,
+    PARALLEL_SWEEPING_FINALIZE,
     PARALLEL_SWEEPING_IN_PROGRESS,
     PARALLEL_SWEEPING_PENDING
   };
 
   ParallelSweepingState parallel_sweeping() {
     return static_cast<ParallelSweepingState>(
-        NoBarrier_Load(&parallel_sweeping_));
+        Acquire_Load(&parallel_sweeping_));
   }
 
   void set_parallel_sweeping(ParallelSweepingState state) {
-    NoBarrier_Store(&parallel_sweeping_, state);
+    Release_Store(&parallel_sweeping_, state);
   }
 
   bool TryParallelSweeping() {
-    return NoBarrier_CompareAndSwap(&parallel_sweeping_,
-                                    PARALLEL_SWEEPING_PENDING,
-                                    PARALLEL_SWEEPING_IN_PROGRESS) ==
-                                        PARALLEL_SWEEPING_PENDING;
+    return Acquire_CompareAndSwap(&parallel_sweeping_,
+                                  PARALLEL_SWEEPING_PENDING,
+                                  PARALLEL_SWEEPING_IN_PROGRESS) ==
+                                      PARALLEL_SWEEPING_PENDING;
   }
 
   // Manage live byte count (count of bytes known to be live,

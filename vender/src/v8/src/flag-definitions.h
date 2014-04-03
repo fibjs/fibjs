@@ -276,6 +276,7 @@ DEFINE_string(trace_hydrogen_file, NULL, "trace hydrogen to given file name")
 DEFINE_string(trace_phase, "HLZ", "trace generated IR for specified phases")
 DEFINE_bool(trace_inlining, false, "trace inlining decisions")
 DEFINE_bool(trace_load_elimination, false, "trace load elimination")
+DEFINE_bool(trace_store_elimination, false, "trace store elimination")
 DEFINE_bool(trace_alloc, false, "trace register allocator")
 DEFINE_bool(trace_all_uses, false, "trace all use positions")
 DEFINE_bool(trace_range, false, "trace range analysis")
@@ -311,6 +312,7 @@ DEFINE_bool(analyze_environment_liveness, true,
             "analyze liveness of environment slots and zap dead values")
 DEFINE_bool(load_elimination, true, "use load elimination")
 DEFINE_bool(check_elimination, true, "use check elimination")
+DEFINE_bool(store_elimination, false, "use store elimination")
 DEFINE_bool(dead_code_elimination, true, "use dead code elimination")
 DEFINE_bool(fold_constants, true, "use constant folding")
 DEFINE_bool(trace_dead_code_elimination, false, "trace dead code elimination")
@@ -347,13 +349,16 @@ DEFINE_int(concurrent_recompilation_delay, 0,
            "artificial compilation delay in ms")
 DEFINE_bool(block_concurrent_recompilation, false,
             "block queued jobs until released")
-DEFINE_bool(concurrent_osr, true,
+DEFINE_bool(concurrent_osr, false,
             "concurrent on-stack replacement")
 DEFINE_implication(concurrent_osr, concurrent_recompilation)
 
 DEFINE_bool(omit_map_checks_for_leaf_maps, true,
             "do not emit check maps for constant values that have a leaf map, "
             "deoptimize the optimized code if the layout of the maps changes.")
+
+DEFINE_int(typed_array_max_size_in_heap, 64,
+    "threshold for in-heap typed array")
 
 // Profiler flags.
 DEFINE_int(frame_count, 1, "number of stack frames inspected by the profiler")
@@ -466,9 +471,6 @@ DEFINE_bool(trace_array_abuse, false,
             "trace out-of-bounds accesses to all arrays")
 DEFINE_implication(trace_array_abuse, trace_js_array_abuse)
 DEFINE_implication(trace_array_abuse, trace_external_array_abuse)
-DEFINE_bool(debugger_auto_break, true,
-            "automatically set the debug break flag when debugger commands are "
-            "in the queue")
 DEFINE_bool(enable_liveedit, true, "enable liveedit experimental feature")
 DEFINE_bool(hard_abort, true, "abort by crashing")
 
