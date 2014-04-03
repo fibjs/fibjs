@@ -29,6 +29,7 @@ protected:
             m_handle = GetStdHandle(type);
             GetConsoleScreenBufferInfo(m_handle, &csbiInfo);
             m_Now = m_wAttr = csbiInfo.wAttributes;
+            m_wLight = m_wAttr & FOREGROUND_INTENSITY;
 
             if (type == STD_ERROR_HANDLE)
                 m_stream = stderr;
@@ -39,93 +40,115 @@ protected:
         void _out(const std::wstring &s)
         {
             LPWSTR ptr = (LPWSTR) s.c_str();
-            LPWSTR ptr1, ptr2;
+            LPWSTR ptr2;
 
-            ptr1 = ptr;
-            while (ptr2 = (LPWSTR) qstrchr(ptr1, L'\x1b'))
+            while (ptr2 = (LPWSTR) qstrchr(ptr, L'\x1b'))
             {
-                ptr1 = ptr2 + 1;
-
                 if (ptr2[1] == '[')
                 {
-                    WORD mask, val;
+                    ptr2[0] = 0;
+                    fputws(ptr, m_stream);
+                    fflush(m_stream);
 
-                    if ( qisdigit(ptr2[2]) && ptr2[3] == 'm')
+                    ptr2 += 2;
+
+                    while (true)
                     {
-                        if (ptr2 > ptr)
+                        if (ptr2[0] == 'm')
                         {
-                            ptr2[0] = 0;
-                            fputws(ptr, m_stream);
-                            fflush(m_stream);
+                            m_Now = m_wAttr;
+                            SetConsoleTextAttribute(m_handle, m_Now);
+                            ptr2 ++;
+                            break;
                         }
 
-                        ptr = ptr1 = ptr2 + 4;
-                    }
-                    else if ( ptr2[2] == '2' && qisdigit(ptr2[3]) && ptr2[4] == 'm')
-                    {
-                        if (ptr2 > ptr)
+                        if (qisdigit(ptr2[0]))
                         {
-                            ptr2[0] = 0;
-                            fputws(ptr, m_stream);
-                            fflush(m_stream);
+                            if (ptr2[1] == 'm')
+                            {
+                                if (ptr2[0] == '0')
+                                {
+                                    m_Now = m_wAttr;
+                                    SetConsoleTextAttribute(m_handle, m_Now);
+                                }
+                                ptr2 += 2;
+                                break;
+                            }
+
+                            WORD mask, val;
+                            WORD light = m_wLight;
+
+                            if (ptr2[1] == ';')
+                            {
+                                if (ptr2[0] == '0')
+                                    m_wLight = light = 0;
+                                else if (ptr2[0] == '1')
+                                    m_wLight = light = FOREGROUND_INTENSITY;
+                                ptr2 += 2;
+                            }
+
+                            if (ptr2[0] == '3')
+                            {
+                                mask = 0xf0;
+                                ptr2 ++;
+                            }
+                            else if (ptr2[0] == '4')
+                            {
+                                mask = 0x0f;
+                                ptr2 ++;
+                            }
+                            else if (ptr2[0] == '9')
+                            {
+                                mask = 0xf0;
+                                light |= FOREGROUND_INTENSITY;
+                                ptr2 ++;
+                            }
+                            else if (ptr2[0] == '1' && ptr2[1] == '0')
+                            {
+                                mask = 0x0f;
+                                light |= FOREGROUND_INTENSITY << 4;
+                                ptr2 += 2;
+                            }
+                            else
+                                break;
+
+                            if (!qisdigit(ptr2[0]))
+                                break;
+
+                            val = ptr2[0] - '0';
+
+                            if (val != 8)
+                            {
+                                if (val == 9)
+                                {
+                                    val = (m_wAttr & 0x0f) | (m_Now & 0xf0);
+
+                                    m_Now = val | light;
+                                    SetConsoleTextAttribute(m_handle, m_Now);
+                                }
+                                else
+                                {
+                                    val = (val & 2) | ((val & 1) ? 4 : 0)
+                                          | ((val & 4) ? 1 : 0);
+
+                                    if (mask == 0x0f)
+                                        val <<= 4;
+
+                                    m_Now = (m_Now & mask) | val | light;
+                                    SetConsoleTextAttribute(m_handle, m_Now);
+                                }
+                            }
+
+                            ptr2 ++;
+                            if (ptr2[0] == 'm')
+                            {
+                                ptr2 ++;
+                                break;
+                            }
                         }
-
-                        ptr = ptr1 = ptr2 + 5;
-                    }
-                    else if (ptr2[2] == '9' && ptr2[3] == '0' && ptr2[4] == 'm')
-                    {
-                        mask = 0xf0;
-                        val = FOREGROUND_BLUE | FOREGROUND_GREEN
-                              | FOREGROUND_RED;
-
-                        if (ptr2 > ptr)
-                        {
-                            ptr2[0] = 0;
-                            fputws(ptr, m_stream);
-                            fflush(m_stream);
-                        }
-
-                        m_Now = (m_Now & mask) | val;
-                        SetConsoleTextAttribute(m_handle, m_Now);
-
-                        ptr = ptr1 = ptr2 + 5;
-                    }
-                    else if ((ptr2[2] == '3' || ptr2[2] == '4')
-                             && qisdigit(ptr2[3])
-                             && ptr2[4] == 'm')
-                    {
-                        if (ptr2[2] == '3')
-                            mask = 0xf0;
-                        else
-                            mask = 0x0f;
-
-                        val = ptr2[3] - '0';
-
-                        if (val == 9)
-                            val = (mask ^ 0xff) & m_wAttr;
-                        else
-                        {
-                            val = (val & 2) | ((val & 1) ? 4 : 0)
-                                  | ((val & 4) ? 1 : 0)
-                                  | FOREGROUND_INTENSITY;
-
-                            if (mask == 0x0f)
-                                val <<= 4;
-                        }
-
-                        if (ptr2 > ptr)
-                        {
-                            ptr2[0] = 0;
-                            fputws(ptr, m_stream);
-                            fflush(m_stream);
-                        }
-
-                        m_Now = (m_Now & mask) | val;
-                        SetConsoleTextAttribute(m_handle, m_Now);
-
-                        ptr = ptr1 = ptr2 + 5;
                     }
                 }
+                ptr = ptr2;
             }
 
             fputws(ptr, m_stream);
@@ -148,10 +171,18 @@ protected:
         HANDLE m_handle;
         FILE *m_stream;
         WORD m_wAttr, m_Now;
+        WORD m_wLight;
     };
 
     class _outs
     {
+    public:
+        _outs()
+        {
+            err.init(STD_ERROR_HANDLE);
+            out.init(STD_OUTPUT_HANDLE);
+        }
+
     public:
         color_out err, out;
     };
@@ -166,8 +197,6 @@ public:
     MyAppender() :
         LayoutAppender("console"), m_outs(get_outs())
     {
-        m_outs.err.init(STD_ERROR_HANDLE);
-        m_outs.out.init(STD_OUTPUT_HANDLE);
     }
 
     virtual void close()
