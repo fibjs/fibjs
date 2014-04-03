@@ -57,6 +57,7 @@ protected:
                         if (ptr2[0] == 'm')
                         {
                             m_Now = m_wAttr;
+                            m_wLight = m_wAttr & FOREGROUND_INTENSITY;
                             SetConsoleTextAttribute(m_handle, m_Now);
                             ptr2 ++;
                             break;
@@ -69,6 +70,7 @@ protected:
                                 if (ptr2[0] == '0')
                                 {
                                     m_Now = m_wAttr;
+                                    m_wLight = m_wAttr & FOREGROUND_INTENSITY;
                                     SetConsoleTextAttribute(m_handle, m_Now);
                                 }
                                 ptr2 += 2;

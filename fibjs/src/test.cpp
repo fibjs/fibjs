@@ -15,6 +15,8 @@
 namespace fibjs
 {
 
+#define COLOR_TITLE "\x1B[1;39m"
+
 class _case;
 
 static obj_ptr<_case> s_root;
@@ -148,7 +150,9 @@ public:
                     if (stack.size() == 1)
                         asyncLog(log4cpp::Priority::INFO, "");
 
+                    str.append(COLOR_TITLE);
                     str.append(p1->m_name);
+                    str.append(COLOR_RESET);
                     asyncLog(log4cpp::Priority::INFO, str);
                     console_base::set_loglevel(loglevel);
 
@@ -210,7 +214,7 @@ public:
                     {
                         double n = d2.diff(d1);
 
-                        str.append(COLOR_GREEN "\xe2\x88\x9a " COLOR_GREY);
+                        str.append(COLOR_GREEN "\xe2\x88\x9a " COLOR_NORMAL);
                         str.append(p1->m_name);
                         if (n > s_slow / 2)
                         {
@@ -223,7 +227,6 @@ public:
 
                             str.append(buf);
                         }
-                        str.append(COLOR_NORMAL);
                     }
                 }
 
@@ -272,7 +275,7 @@ public:
             da2.now();
 
             sprintf(buf,
-                    COLOR_GREEN "  \xe2\x88\x9a %d tests completed" COLOR_GREY " (%dms)" COLOR_NORMAL,
+                    COLOR_GREEN "  \xe2\x88\x9a %d tests completed" COLOR_NORMAL " (%dms)",
                     cnt, (int) da2.diff(da1));
             asyncLog(log4cpp::Priority::INFO, buf);
         }
