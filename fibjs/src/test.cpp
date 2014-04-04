@@ -68,7 +68,7 @@ public:
     static result_t it(const char *name, v8::Local<v8::Function> block)
     {
         _case *now = s_now;
-        if (s_now == s_root)
+        if (!now || s_now == s_root)
             return CALL_E_INVALID_CALL;
 
         _case *p = new _case(name);
@@ -130,7 +130,7 @@ public:
             {
                 for (i = 0; i < (int) p->m_hooks[HOOK_BEFORE].size(); i++)
                     if (v8::Local<v8::Function>::New(isolate,
-                                                      p->m_hooks[HOOK_BEFORE][i])->Call(o, 0, NULL).IsEmpty())
+                                                     p->m_hooks[HOOK_BEFORE][i])->Call(o, 0, NULL).IsEmpty())
                     {
                         console_base::set_loglevel(oldlevel);
                         clear();
@@ -167,8 +167,8 @@ public:
                     for (i = 0; i < (int) p2->m_hooks[HOOK_BEFORECASE].size();
                             i++)
                         if (v8::Local<v8::Function>::New(isolate,
-                                                          p2->m_hooks[HOOK_BEFORECASE][i])->Call(o, 0,
-                                                                  NULL).IsEmpty())
+                                                         p2->m_hooks[HOOK_BEFORECASE][i])->Call(o, 0,
+                                                                 NULL).IsEmpty())
                         {
                             console_base::set_loglevel(oldlevel);
                             clear();
@@ -244,8 +244,8 @@ public:
                     for (i = (int) p2->m_hooks[HOOK_AFTERCASE].size() - 1;
                             i >= 0; i--)
                         if (v8::Local<v8::Function>::New(isolate,
-                                                          p2->m_hooks[HOOK_AFTERCASE][i])->Call(o, 0,
-                                                                  NULL).IsEmpty())
+                                                         p2->m_hooks[HOOK_AFTERCASE][i])->Call(o, 0,
+                                                                 NULL).IsEmpty())
                         {
                             console_base::set_loglevel(oldlevel);
                             clear();
@@ -258,7 +258,7 @@ public:
             {
                 for (i = (int) p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--)
                     if (v8::Local<v8::Function>::New(isolate,
-                                                      p->m_hooks[HOOK_AFTER][i])->Call(o, 0, NULL).IsEmpty())
+                                                     p->m_hooks[HOOK_AFTER][i])->Call(o, 0, NULL).IsEmpty())
                     {
                         console_base::set_loglevel(oldlevel);
                         clear();

@@ -5,6 +5,7 @@ var os = require('os');
 
 run("assert_test.js");
 run("expect_test.js");
+run("test_test.js");
 run("collection_test.js");
 run("buffer_test.js");
 run("path_test.js");
