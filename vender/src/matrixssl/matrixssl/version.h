@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 AuthenTec
+    Copyright 2013 INSIDE Secure Corporation
     This file is auto-generated
 */
 #ifndef _h_MATRIXSSL_VERSION
@@ -8,10 +8,10 @@
 extern "C" {
 #endif
 
-#define MATRIXSSL_VERSION      "3.3.1-OPEN"
+#define MATRIXSSL_VERSION      "3.4.2-OPEN"
 #define MATRIXSSL_VERSION_MAJOR 3
-#define MATRIXSSL_VERSION_MINOR 3
-#define MATRIXSSL_VERSION_PATCH 1
+#define MATRIXSSL_VERSION_MINOR 4
+#define MATRIXSSL_VERSION_PATCH 2
 #define MATRIXSSL_VERSION_CODE "OPEN"
 
 #ifdef __cplusplus

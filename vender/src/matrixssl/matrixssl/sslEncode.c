@@ -1,11 +1,11 @@
 /*
  *	sslEncode.c
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  *
  *	Secure Sockets Layer protocol message encoding portion of MatrixSSL
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -18,8 +18,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -53,6 +53,13 @@ static int32 encryptRecord(ssl_t *ssl, int32 type, int32 messageSize,
 static int32 writeClientKeyExchange(ssl_t *ssl, sslBuf_t *out);
 #endif /* USE_CLIENT_SIDE_SSL */
 
+#if defined(USE_SERVER_SIDE_SSL) && defined(USE_CLIENT_AUTH)
+static int32 writeCertificateRequest(ssl_t *ssl, sslBuf_t *out, int32 certLen,
+				int32 certCount);
+#endif
+#if defined(USE_CLIENT_SIDE_SSL) && defined(USE_CLIENT_AUTH)
+static int32 writeCertificateVerify(ssl_t *ssl, sslBuf_t *out); 
+#endif
 
 #ifdef USE_SERVER_SIDE_SSL
 static int32 writeServerHello(ssl_t *ssl, sslBuf_t *out);
@@ -198,7 +205,8 @@ int32 matrixSslGetEncodedSize(ssl_t *ssl, uint32 len)
 				(ssl->flags & SSL_FLAGS_TLS_1_1) &&	(ssl->enBlockSize > 1)) {
 			len += ssl->enBlockSize;
 		}
-#endif /* USE_TLS_1_1 */		
+
+#endif /* USE_TLS_1_1 */
 		
 #ifdef USE_BEAST_WORKAROUND
 		if (ssl->bFlags & BFLAG_STOP_BEAST) {
@@ -256,6 +264,7 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 {
 	int32			messageSize;
 	int32			i, rc = MATRIXSSL_ERROR;
+	uint32			alertReqLen;
 #ifdef USE_SERVER_SIDE_SSL
 	int32			totalCertLen, extSize;
 	psX509Cert_t	*cert;
@@ -263,6 +272,10 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 #ifdef USE_CLIENT_SIDE_SSL
 	int32			ckeSize;
 #endif /* USE_CLIENT_SIDE_SSL */
+#if defined(USE_SERVER_SIDE_SSL) && defined(USE_CLIENT_AUTH)
+	psX509Cert_t	*CAcert;
+	int32			certCount, certReqLen, CAcertLen;
+#endif /* USE_SERVER_SIDE_SSL && USE_CLIENT_AUTH */
 
 /*
 	We may be trying to encode an alert response if there is an error marked
@@ -272,6 +285,11 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 		rc = writeAlert(ssl, SSL_ALERT_LEVEL_FATAL, (unsigned char)ssl->err,
 			out, requiredLen);
 		if (rc == MATRIXSSL_ERROR) {
+			/* We'll be returning an error code from this call so the typical
+				alert SEND_RESPONSE handler will not be hit to set this error
+				flag for us.  We do it ourself to prevent further session use
+				and the result of this error will be that the connection is
+				silently closed rather than this alert making it out */
 			ssl->flags |= SSL_FLAGS_ERROR;
 		}
 #ifdef USE_SERVER_SIDE_SSL
@@ -302,6 +320,41 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 */
 #ifdef USE_SERVER_SIDE_SSL
 	case SSL_HS_CLIENT_KEY_EXCHANGE:
+#ifdef USE_CLIENT_AUTH
+/*
+		This message is also suitable for the client authentication case
+		where the server is in the CERTIFICATE state.
+*/
+	case SSL_HS_CERTIFICATE:
+/*
+		Account for the certificateRequest message if client auth is on.
+		First two bytes are the certificate_types member (rsa_sign (1) and
+		ecdsa_sign (64) are supported).  Remainder of length is the
+		list of BER encoded distinguished names this server is
+		willing to accept children certificates of.  If there
+		are no valid CAs to work with, client auth can't be done.
+*/
+		if (ssl->flags & SSL_FLAGS_CLIENT_AUTH) {
+			CAcert = ssl->keys->CAcerts;
+			certCount = certReqLen = CAcertLen = 0;
+			if (CAcert) {
+				certReqLen = 4 + ssl->recordHeadLen + ssl->hshakeHeadLen;
+				while (CAcert) {
+					certReqLen += 2; /* 2 bytes for specifying each cert len */
+					CAcertLen += CAcert->subject.dnencLen;
+					CAcert = CAcert->next;
+					certCount++;
+				}
+			} else {
+#ifdef SERVER_CAN_SEND_EMPTY_CERT_REQUEST			
+				certReqLen = 4 + ssl->recordHeadLen + ssl->hshakeHeadLen;
+#else				
+				psTraceInfo("No server CAs loaded for client authentication\n");
+				return MATRIXSSL_ERROR;
+#endif				
+			}
+		}
+#endif /* USE_CLIENT_AUTH */
 
 /*
 			This is the entry point for a server encoding the first flight
@@ -326,6 +379,12 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 					38 + SSL_MAX_SESSION_ID_SIZE +  /* server hello */
 					3 + (i * 3) + totalCertLen; /* certificate */
 
+#ifdef USE_CLIENT_AUTH
+			if (ssl->flags & SSL_FLAGS_CLIENT_AUTH) {
+				messageSize += certReqLen + CAcertLen; /* certificate request */
+				messageSize += secureWriteAdditions(ssl, 1);
+			}
+#endif /* USE_CLIENT_AUTH */
 
 			messageSize += secureWriteAdditions(ssl, 3);
 
@@ -374,6 +433,13 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 					rc = writeCertificate(ssl, out, 1);
 				}
 
+#ifdef USE_CLIENT_AUTH
+		if (ssl->flags & SSL_FLAGS_CLIENT_AUTH) {
+			if (rc == MATRIXSSL_SUCCESS) {	
+				rc = writeCertificateRequest(ssl, out, CAcertLen, certCount);
+			}
+		}
+#endif /* USE_CLIENT_AUTH */
 
 		if (rc == MATRIXSSL_SUCCESS) {
 			rc = writeServerHelloDone(ssl, out);
@@ -413,13 +479,7 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 		Adds explict IV overhead to the FINISHED message
 */
 		if (ssl->flags & SSL_FLAGS_TLS_1_1) {
-			if (ssl->cipher->flags & CRYPTO_FLAGS_GCM) {
-				/* The magic 1 back into messageSize is because the
-					macSize + blockSize above ends up subtracting one on GCM */
-				messageSize += TLS_GCM_TAG_LEN + TLS_GCM_NONCE_LEN + 1;
-			} else {
 				messageSize += ssl->cipher->blockSize;
-			}
 		}
 #endif /* USE_TLS_1_1 */
 		if ((out->buf + out->size) - out->end < messageSize) {
@@ -430,6 +490,8 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 		if (rc == MATRIXSSL_SUCCESS) {
 			rc = writeFinished(ssl, out);
 		} 
+
+		
 		break;
 /*
 	If we're expecting a Finished message, as a server we're doing 
@@ -484,13 +546,7 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 			because FINISHED is never accounted for in secureWriteAdditions
 */
 			if (ssl->flags & SSL_FLAGS_TLS_1_1) {
-				if (ssl->cipher->flags & CRYPTO_FLAGS_GCM) {
-					/* The magic 1 back into messageSize is because the
-						blockSize -1 above ends up subtracting one on GCM */
-					messageSize += TLS_GCM_TAG_LEN + TLS_GCM_NONCE_LEN + 1;
-				} else {
 					messageSize += ssl->cipher->blockSize; /* explicitIV */
-				}
 			}
 #endif /* USE_TLS_1_1 */
 			if ((out->buf + out->size) - out->end < messageSize) {
@@ -527,14 +583,50 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 			
 			if (ssl->flags & SSL_FLAGS_CLIENT_AUTH) {
 /*
-				No client auth support. Send a no_certificate warning for SSL3
-				or an empty CERTIFICATE otherwise
+			Client authentication requires the client to send a CERTIFICATE
+			and CERTIFICATE_VERIFY message.  Account for the length.  It
+			is possible the client didn't have a match for the requested cert.
+			Send an empty certificate message in that case (or alert for SSLv3)
 */
-				if (ssl->majVer == SSL3_MAJ_VER && ssl->minVer == SSL3_MIN_VER){
-					messageSize += 2 + ssl->recordHeadLen;
-				} else {
-					messageSize += 3 + ssl->recordHeadLen + ssl->hshakeHeadLen;
+#ifdef USE_CLIENT_AUTH
+				if (ssl->sec.certMatch > 0) {
+/*
+					Account for the certificate and certificateVerify messages
+*/
+					cert = ssl->keys->cert;
+					totalCertLen = 0;
+					for (i = 0; cert != NULL; i++) {
+						totalCertLen += cert->binLen;
+						cert = cert->next;
+					}
+					/* Are we going to have to fragment the CERT message? */
+					if ((totalCertLen + 3 + (i * 3) + ssl->hshakeHeadLen) >
+							ssl->maxPtFrag) {
+						totalCertLen += addCertFragOverhead(ssl,
+							totalCertLen + 3 + (i * 3) + ssl->hshakeHeadLen);	
+					}
+					messageSize += (2 * ssl->recordHeadLen) + 3 + (i * 3) +
+						(2 * ssl->hshakeHeadLen) + totalCertLen +
+						2 +	ssl->keys->privKey->keysize;
+
+				} else {			
+#endif /* USE_CLIENT_AUTH */				
+/*
+					SSLv3 sends a no_certificate warning alert for no match
+*/
+					if (ssl->majVer == SSL3_MAJ_VER
+							&& ssl->minVer == SSL3_MIN_VER) {
+						messageSize += 2 + ssl->recordHeadLen;
+					} else {
+/*
+						TLS just sends an empty certificate message
+*/
+						messageSize += 3 + ssl->recordHeadLen +
+							ssl->hshakeHeadLen;
+					}
+#ifdef USE_CLIENT_AUTH					
 				}
+#endif /* USE_CLIENT_AUTH */
 			}
 /*
 			Account for the header and message size for all records.  The
@@ -563,7 +655,18 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 			}
 #endif /* USE_TLS */
 			if (ssl->flags & SSL_FLAGS_CLIENT_AUTH) {
-				messageSize += secureWriteAdditions(ssl, 3);
+/*
+				Secure write for ClientKeyExchange, ChangeCipherSpec,
+				Certificate, and CertificateVerify.  Don't account for
+				Certificate and/or CertificateVerify message if no auth cert.
+				This will also cover the NO_CERTIFICATE alert sent in
+				replacement of the NULL certificate message in SSLv3.
+*/
+				if (ssl->sec.certMatch > 0) {
+					messageSize += secureWriteAdditions(ssl, 4);
+				} else {
+					messageSize += secureWriteAdditions(ssl, 3);
+				}
 			} else {
 				messageSize += secureWriteAdditions(ssl, 2);
 			}
@@ -574,13 +677,7 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 			because FINISHED is never accounted for in secureWriteAdditions
 */
 			if (ssl->flags & SSL_FLAGS_TLS_1_1) {
-				if (ssl->cipher->flags & CRYPTO_FLAGS_GCM) {
-					/* The magic 1 back into messageSize is because the
-					 blockSize -1 above ends up subtracting one on GCM */
-					messageSize += TLS_GCM_TAG_LEN + TLS_GCM_NONCE_LEN + 1;
-				} else {
 					messageSize += ssl->cipher->blockSize; /* explicitIV */
-				}
 			}
 #endif /* USE_TLS_1_1 */
 /*
@@ -610,6 +707,13 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 			if (rc == MATRIXSSL_SUCCESS) {
 				rc = writeClientKeyExchange(ssl, out);
 			}
+#ifdef USE_CLIENT_AUTH
+			if (ssl->flags & SSL_FLAGS_CLIENT_AUTH) {
+				if (rc == MATRIXSSL_SUCCESS && ssl->sec.certMatch > 0) {
+					rc = writeCertificateVerify(ssl, out);
+				}
+			}
+#endif /* USE_CLIENT_AUTH */
 
 			if (rc == MATRIXSSL_SUCCESS) {
 				rc = writeChangeCipherSpec(ssl, out);
@@ -621,8 +725,18 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 #endif /* USE_CLIENT_SIDE_SSL */
 		break;
 	}
-	if (rc == MATRIXSSL_ERROR) {
-		ssl->flags |= SSL_FLAGS_ERROR;
+
+	if (rc < MATRIXSSL_SUCCESS && rc != SSL_FULL) {
+	/* Indication one of the message creations failed and setting the flag to
+		prevent other API calls from working.  We want to send a fatal
+		internal error alert in this case.  Make sure to write to front of
+		buffer since we	can't trust the data in there due to the creation
+		failure */ 
+		ssl->err = SSL_ALERT_INTERNAL_ERROR;
+		out->end = out->start;
+		alertReqLen = out->size;
+		/* Going recursive */
+		return sslEncodeResponse(ssl, out, &alertReqLen);
 	}
 	return rc;
 }
@@ -768,7 +882,10 @@ static int32 writeRecordHeader(ssl_t *ssl, int32 type, int32 hsType,
 	if ((ssl->flags & SSL_FLAGS_WRITE_SECURE) &&
 			(ssl->flags & SSL_FLAGS_TLS_1_1) &&
 			(ssl->enBlockSize > 1)) {
-		*c += matrixSslGetPrngData(*c, ssl->enBlockSize);
+		if (matrixSslGetPrngData(*c, ssl->enBlockSize) < 0) {
+			psTraceInfo("WARNING: matrixSslGetPrngData failed\n");
+		}
+		*c += ssl->enBlockSize;
 	}
 #endif /* USE_TLS_1_1 */
 
@@ -781,6 +898,9 @@ static int32 writeRecordHeader(ssl_t *ssl, int32 type, int32 hsType,
 	}
 	return PS_SUCCESS;
 }
+
+
+
 
 /******************************************************************************/
 /*
@@ -798,11 +918,11 @@ static int32 encryptRecord(ssl_t *ssl, int32 type, int32 messageSize,
 						   sslBuf_t *out, unsigned char **c)
 {
 	unsigned char	*encryptStart;
-	void			*encryptCtx;
 	int32			rc, ptLen, divLen, modLen;
 
+
 	encryptStart = out->end + ssl->recordHeadLen;
-	
+
 	
 	ptLen = *c - encryptStart;
 #ifdef USE_TLS
@@ -827,7 +947,7 @@ static int32 encryptRecord(ssl_t *ssl, int32 type, int32 messageSize,
 				pt = encryptStart;
 			} else {
 				/* Not in-situ.  Encrypt the explict IV now */
-				if ((rc = ssl->encrypt(&ssl->sec.encryptCtx, encryptStart,
+				if ((rc = ssl->encrypt(ssl, encryptStart,
 						encryptStart, ssl->enBlockSize)) < 0) {
 					psTraceIntInfo("Error encrypting explicit IV: %d\n", rc);
 					return MATRIXSSL_ERROR;
@@ -864,14 +984,13 @@ static int32 encryptRecord(ssl_t *ssl, int32 type, int32 messageSize,
 	
 	*c += sslWritePad(*c, (unsigned char)padLen);
 
-	encryptCtx = &ssl->sec.encryptCtx;
 	
 	if (pt == encryptStart) {
 		/* In-situ encode */
-		if ((rc = ssl->encrypt(encryptCtx, pt, encryptStart, 
+		if ((rc = ssl->encrypt(ssl, pt, encryptStart, 
 				(uint32)(*c - encryptStart))) < 0 || 
 				*c - out->end != messageSize) {
-			psTraceIntInfo("Error encrypting: %d\n", rc);
+			psTraceIntInfo("Error encrypting 1: %d\n", rc);
 			return MATRIXSSL_ERROR;
 		}
 	} else {
@@ -888,29 +1007,32 @@ static int32 encryptRecord(ssl_t *ssl, int32 type, int32 messageSize,
 					modLen = 0;
 			}
 			if (divLen > 0) {
-				rc = ssl->encrypt(encryptCtx, pt, encryptStart,	divLen);
+				rc = ssl->encrypt(ssl, pt, encryptStart, divLen);
 				if (rc < 0) {
-					psTraceIntInfo("Error encrypting: %d\n", rc);
+					psTraceIntInfo("Error encrypting 2: %d\n", rc);
 					return MATRIXSSL_ERROR;
 				}
 			}
 			if (modLen > 0) {
 				memcpy(encryptStart + divLen, pt + divLen, modLen);
 			}
-			rc = ssl->encrypt(encryptCtx, encryptStart + divLen,
+			rc = ssl->encrypt(ssl, encryptStart + divLen,
 				encryptStart + divLen, modLen + ssl->cipher->macSize + padLen);
 		} else {
-			rc = ssl->encrypt(encryptCtx, pt, encryptStart, 
+			rc = ssl->encrypt(ssl, pt, encryptStart, 
 				(uint32)(*c - encryptStart));
 		}
 		if (rc < 0 || (*c - out->end != messageSize)) {
-			psTraceIntInfo("Error encrypting: %d\n", rc);
+			psTraceIntInfo("Error encrypting 3: %d\n", rc);
 			return MATRIXSSL_ERROR;
 		}
 	}
 
 	return MATRIXSSL_SUCCESS;
 }
+
+
+
 
 #ifdef USE_SERVER_SIDE_SSL
 /******************************************************************************/
@@ -1021,7 +1143,6 @@ static int32 writeServerHello(ssl_t *ssl, sslBuf_t *out)
 	*c = ssl->cipher->ident & 0xFF; c++;
 	*c = 0; c++;
 	
-
 	if (extLen != 0) {
 		extLen -= 2; /* Don't add self to total extension len */
 		*c = (extLen & 0xFF00) >> 8; c++;
@@ -1081,7 +1202,9 @@ static int32 writeServerHello(ssl_t *ssl, sslBuf_t *out)
 	serverRandom, so we can derive keys which we'll be using shortly.
 */
 	if (ssl->flags & SSL_FLAGS_RESUMED) {
-		sslCreateKeys(ssl);
+		if ((rc = sslCreateKeys(ssl)) < 0) {
+			return rc;
+		}
 	}
 /*
 	Verify that we've calculated the messageSize correctly, really this
@@ -1591,6 +1714,7 @@ static int32 writeFinished(ssl_t *ssl, sslBuf_t *out)
 	ssl->myVerifyDataLen = verifyLen;
 #endif /* ENABLE_SECURE_REHANDSHAKES */	
 
+
 	if ((rc = encryptRecord(ssl, SSL_RECORD_TYPE_HANDSHAKE, messageSize,
 			padLen, encryptStart, out, &c)) < 0) {
 		return rc;
@@ -1663,7 +1787,7 @@ int32 matrixSslEncodeClientHello(ssl_t *ssl, sslBuf_t *out, uint32 cipherSpec,
 	int32			messageSize, rc, cipherLen, cookieLen, addScsv, t;
 	psTime_t		pst;
 	tlsExtension_t	*ext;
-	uint32			extLen;
+	uint32			extLen, populateRand;
 	sslCipherSpec_t	*cipherDetails;
 
 	psTraceHs("<<< Client creating CLIENT_HELLO  message\n");
@@ -1730,6 +1854,7 @@ int32 matrixSslEncodeClientHello(ssl_t *ssl, sslBuf_t *out, uint32 cipherSpec,
 	messageSize = ssl->recordHeadLen + ssl->hshakeHeadLen +
 		5 + SSL_HS_RANDOM_SIZE + ssl->sessionIdLen + cipherLen + cookieLen;
 	
+	
 /*
 	Extension lengths
 */
@@ -1763,6 +1888,9 @@ int32 matrixSslEncodeClientHello(ssl_t *ssl, sslBuf_t *out, uint32 cipherSpec,
 #endif /* ENABLE_SECURE_REHANDSHAKES */
 
 
+
+
+
 /*
 	Add any user-provided extensions
 */
@@ -1774,6 +1902,7 @@ int32 matrixSslEncodeClientHello(ssl_t *ssl, sslBuf_t *out, uint32 cipherSpec,
 		extLen += ext->extLen + 4; /* +4 for type and length of each */ 
 		ext = ext->next;
 	}
+
 	messageSize += extLen;
 
 	c = out->end;
@@ -1786,18 +1915,20 @@ int32 matrixSslEncodeClientHello(ssl_t *ssl, sslBuf_t *out, uint32 cipherSpec,
 		return rc;
 	}
 
-/*
-	First 4 bytes of the serverRandom are the unix time to prevent replay
-	attacks, the rest are random
-*/
-	t = psGetTime(&pst);
-	ssl->sec.clientRandom[0] = (unsigned char)((t & 0xFF000000) >> 24);
-	ssl->sec.clientRandom[1] = (unsigned char)((t & 0xFF0000) >> 16);
-	ssl->sec.clientRandom[2] = (unsigned char)((t & 0xFF00) >> 8);
-	ssl->sec.clientRandom[3] = (unsigned char)(t & 0xFF);
-	if ((rc = matrixSslGetPrngData(ssl->sec.clientRandom + 4,
-			SSL_HS_RANDOM_SIZE - 4)) < PS_SUCCESS) {
-		return rc;
+	populateRand = 1;
+
+	if (populateRand) {
+		/*	First 4 bytes of the serverRandom are the unix time to prevent
+			replay attacks, the rest are random */
+		t = psGetTime(&pst);
+		ssl->sec.clientRandom[0] = (unsigned char)((t & 0xFF000000) >> 24);
+		ssl->sec.clientRandom[1] = (unsigned char)((t & 0xFF0000) >> 16);
+		ssl->sec.clientRandom[2] = (unsigned char)((t & 0xFF00) >> 8);
+		ssl->sec.clientRandom[3] = (unsigned char)(t & 0xFF);
+		if ((rc = matrixSslGetPrngData(ssl->sec.clientRandom + 4,
+				SSL_HS_RANDOM_SIZE - 4)) < PS_SUCCESS) {
+			return rc;
+		}	
 	}
 /*
 	First two fields in the ClientHello message are the maximum major 
@@ -1848,10 +1979,11 @@ int32 matrixSslEncodeClientHello(ssl_t *ssl, sslBuf_t *out, uint32 cipherSpec,
 #endif			
 	}	
 /*
-	Followed by two bytes (len and compression method (always zero))
+	Compression.  Length byte and 0 for 'none' and possibly 1 for zlib
 */
 	*c = 1; c++;
 	*c = 0; c++;
+	
 /*
 	Extensions
 */
@@ -1891,6 +2023,8 @@ int32 matrixSslEncodeClientHello(ssl_t *ssl, sslBuf_t *out, uint32 cipherSpec,
 		}
 #endif /* ENABLE_SECURE_REHANDSHAKES */	
 
+
+
 /*
 		User-provided extensions
 */
@@ -1912,6 +2046,7 @@ int32 matrixSslEncodeClientHello(ssl_t *ssl, sslBuf_t *out, uint32 cipherSpec,
 			}
 		}
 	}
+	
 
 	if ((rc = encryptRecord(ssl, SSL_RECORD_TYPE_HANDSHAKE, messageSize,
 			padLen, encryptStart, out, &c)) < 0) {
@@ -1954,8 +2089,8 @@ static int32 writeClientKeyExchange(ssl_t *ssl, sslBuf_t *out)
 	char			padLen;
 	int32			messageSize, explicitLen, rc;
 	uint32			keyLen;
-	psPool_t		*pkiPool = NULL;
 	void			*rsaData = NULL;
+	psPool_t		*pkiPool = NULL;
 
 	psTraceHs("<<< Client creating CLIENT_KEY_EXCHANGE message\n");
 
@@ -2046,12 +2181,71 @@ static int32 writeClientKeyExchange(ssl_t *ssl, sslBuf_t *out)
 	Now that we've got the premaster secret, derive the various symmetric
 	keys using it and the client and server random values
 */
-	sslCreateKeys(ssl);
+	if ((rc = sslCreateKeys(ssl)) < 0) {
+		return rc;
+	}
 
 	out->end = c;
 	return MATRIXSSL_SUCCESS;
 }
 
+#ifdef USE_CLIENT_AUTH
+/******************************************************************************/
+/*
+	Write the CertificateVerify message (client auth only)
+	The message contains the signed hash of the handshake messages.
+*/
+static int32 writeCertificateVerify(ssl_t *ssl, sslBuf_t *out)
+{
+	unsigned char	*c, *end, *encryptStart;
+	unsigned char	msgHash[SHA384_HASH_SIZE];
+	char			padLen;
+	int32			messageSize, hashSize, rc;
+	void		*rsaData = NULL;
+	psPool_t	*pkiPool = NULL;
+
+	psTraceHs("<<< Client creating CERTIFICATE_VERIFY  message\n");
+	c = out->end;
+	end = out->buf + out->size;
+
+	messageSize = ssl->recordHeadLen + ssl->hshakeHeadLen +
+		2 + ssl->keys->privKey->keysize;
+		
+
+	if ((rc = writeRecordHeader(ssl, SSL_RECORD_TYPE_HANDSHAKE,
+			SSL_HS_CERTIFICATE_VERIFY, &messageSize, &padLen,
+			&encryptStart, &end, &c)) < 0) {
+		return rc;
+	}
+	
+	sslSnapshotHSHash(ssl, msgHash, -1);
+
+
+
+/*
+	Correct to be looking at the child-most cert here because that is the
+	one associated with the private key.  
+*/
+
+		hashSize = MD5_HASH_SIZE + SHA1_HASH_SIZE;
+		*c = (ssl->keys->privKey->keysize & 0xFF00) >> 8; c++;
+		*c = (ssl->keys->privKey->keysize & 0xFF); c++;
+		c += csRsaEncryptPriv(pkiPool, ssl->keys->privKey, msgHash,
+						  hashSize, c, ssl->keys->privKey->keysize, rsaData);
+							  
+	
+	if ((rc = encryptRecord(ssl, SSL_RECORD_TYPE_HANDSHAKE, messageSize,
+			padLen, encryptStart, out, &c)) < 0) {
+		return rc;
+	}
+	if (c - out->end != messageSize) {
+		psTraceInfo("Error generating cert request for write\n");
+		return MATRIXSSL_ERROR;
+	}
+	out->end = c;
+	return MATRIXSSL_SUCCESS;
+}
+#endif /* USE_CLIENT_AUTH */
 
 #else /* USE_CLIENT_SIDE_SSL */
 /******************************************************************************/
@@ -2065,6 +2259,72 @@ int32 matrixSslEncodeClientHello(ssl_t *ssl, sslBuf_t *out, uint32 cipherSpec,
 	return PS_UNSUPPORTED_FAIL;
 }
 #endif /* USE_CLIENT_SIDE_SSL */
+
+#if defined(USE_SERVER_SIDE_SSL) && defined(USE_CLIENT_AUTH)
+/******************************************************************************/
+/*
+	Write the CertificateRequest message (client auth only)
+	The message contains the list of CAs the server is willing to accept
+	children certificates of from the client.
+*/
+static int32 writeCertificateRequest(ssl_t *ssl, sslBuf_t *out, int32 certLen,
+								   int32 certCount)
+{
+	unsigned char	*c, *end, *encryptStart;
+	psX509Cert_t	*cert;
+	char			padLen;
+	int32			messageSize, rc;
+
+	psTraceHs("<<< Server creating CERTIFICATE_REQUEST message\n");
+	c = out->end;
+	end = out->buf + out->size;
+
+	messageSize = ssl->recordHeadLen + ssl->hshakeHeadLen +
+		4 + (certCount * 2) + certLen;
+
+
+	if ((rc = writeRecordHeader(ssl, SSL_RECORD_TYPE_HANDSHAKE,
+			SSL_HS_CERTIFICATE_REQUEST, &messageSize, &padLen,
+			&encryptStart, &end, &c)) < 0) {
+		return rc;
+	}
+
+	cert = ssl->keys->CAcerts;
+	if (cert) {
+		*c++ = 1;
+		*c++ = RSA_SIGN;
+
+		*c = ((certLen + (certCount * 2))& 0xFF00) >> 8; c++;
+		*c = (certLen + (certCount * 2)) & 0xFF; c++;
+		while (cert) {
+			*c = (cert->subject.dnencLen & 0xFF00) >> 8; c++;
+			*c = cert->subject.dnencLen & 0xFF; c++;
+			memcpy(c, cert->subject.dnenc, cert->subject.dnencLen);
+			c += cert->subject.dnencLen;
+			cert = cert->next;
+		}
+	} else {
+		/* There is no CA file on the server to send match against so
+			we just have to send a guess as to what we support.  No ECC support
+			in here */
+		*c++ = 1;
+		*c++ = RSA_SIGN;
+		*c++ = 0; /* Cert len */
+		*c++ = 0;
+	}
+	if ((rc = encryptRecord(ssl, SSL_RECORD_TYPE_HANDSHAKE, messageSize,
+			padLen, encryptStart, out, &c)) < 0) {
+		return rc;
+	}
+
+	if (c - out->end != messageSize) {
+		psTraceInfo("Error generating cert request for write\n");
+		return MATRIXSSL_ERROR;
+	}
+	out->end = c;
+	return MATRIXSSL_SUCCESS;
+}
+#endif /* USE_SERVER_SIDE && USE_CLIENT_AUTH */
 
 
 

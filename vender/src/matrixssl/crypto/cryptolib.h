@@ -1,9 +1,9 @@
 /*
  *	cryptolib.h
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -16,8 +16,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -75,6 +75,9 @@
 	#endif
 #endif
 
+
+
+
 #ifdef USE_PKCS12
 	#ifndef USE_PKCS8
 	#error "Enable USE_PKCS8 in cryptoConfig.h for PKCS12 support"
@@ -127,6 +130,7 @@ extern int32 psBase64decode(const unsigned char *in,  uint32 len,
 #define OID_MD5_RSA_SIG			648 /* 42.134.72.134.247.13.1.1.4 */
 #define OID_SHA1_RSA_SIG		649 /* 42.134.72.134.247.13.1.1.5 */
 #define OID_SHA256_RSA_SIG		655 /* 42.134.72.134.247.13.1.1.11 */
+#define OID_SHA384_RSA_SIG		656 /* 42.134.72.134.247.13.1.1.11 */
 #define OID_SHA512_RSA_SIG		657 /* 42.134.72.134.247.13.1.1.13 */
 #define OID_SHA1_ECDSA_SIG		520	/* 42.134.72.206.61.4.1 */
 #define OID_SHA224_ECDSA_SIG	523 /* 42.134.72.206.61.4.3.1 */
@@ -539,6 +543,7 @@ x = (((uint64)((y)[0] & 255))<<56)|(((uint64)((y)[1] & 255))<<48)| \
 #define psPadLenPwr2(LEN, BLOCKSIZE) \
 	BLOCKSIZE <= 1 ? (unsigned char)0 : \
 	(unsigned char)(BLOCKSIZE - ((LEN) & (BLOCKSIZE - 1)))
+
 
 #endif /* _h_PS_CRYPTOLIB */
 /******************************************************************************/

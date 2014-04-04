@@ -176,6 +176,9 @@
     <ClCompile Include="src\matrixssl\crypto\keyformat\base64.c" />
     <ClCompile Include="src\matrixssl\crypto\keyformat\x509.c" />
     <ClCompile Include="src\matrixssl\crypto\math\pstm.c" />
+    <ClCompile Include="src\matrixssl\crypto\math\pstm_montgomery_reduce.c" />
+    <ClCompile Include="src\matrixssl\crypto\math\pstm_mul_comba.c" />
+    <ClCompile Include="src\matrixssl\crypto\math\pstm_sqr_comba.c" />
     <ClCompile Include="src\matrixssl\crypto\prng\prng.c" />
     <ClCompile Include="src\matrixssl\crypto\prng\yarrow.c" />
     <ClCompile Include="src\matrixssl\crypto\pubkey\pkcs.c" />
@@ -186,9 +189,10 @@
     <ClCompile Include="src\matrixssl\crypto\symmetric\des3.c" />
     <ClCompile Include="src\matrixssl\crypto\symmetric\rc2.c" />
     <ClCompile Include="src\matrixssl\matrixssl\cipherSuite.c" />
+    <ClCompile Include="src\matrixssl\matrixssl\hsHash.c" />
     <ClCompile Include="src\matrixssl\matrixssl\matrixssl.c" />
     <ClCompile Include="src\matrixssl\matrixssl\matrixsslApi.c" />
-    <ClCompile Include="src\matrixssl\matrixssl\nativeCrypto.c" />
+    <ClCompile Include="src\matrixssl\matrixssl\prf.c" />
     <ClCompile Include="src\matrixssl\matrixssl\sslDecode.c" />
     <ClCompile Include="src\matrixssl\matrixssl\sslEncode.c" />
     <ClCompile Include="src\matrixssl\matrixssl\sslv3.c" />

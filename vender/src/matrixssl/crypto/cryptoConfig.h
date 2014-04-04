@@ -1,9 +1,9 @@
 /*
  *	cryptoConfig.h
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -16,8 +16,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -36,16 +36,13 @@
 /******************************************************************************/
 /* Configurable features */
 /******************************************************************************/
+
+
 /*
 	Enable psTraceCrypto family of APIs for debugging the crypto module
 */
 /* #define USE_CRYPTO_TRACE */
 
-/******************************************************************************/
-/*
-	Public-Key Algorithms and performance settings
-*/
-#define USE_RSA
 
 /*
 	Set to either optimize for faster speed or for smaller ram usage
@@ -62,7 +59,9 @@
 /*
 	Symmetric bock ciphers (including CBC mode) and performance settings
 */
-#define USE_AES
+#define USE_AES /* Enable/Disable AES */
+
+
 #define USE_3DES
 /* #define USE_DES */
 
@@ -91,6 +90,7 @@
 
 #define USE_HMAC /* Requires USE_MD5 and/or USE_SHA1 */
 
+
 /*
 	Optionally set to improve performance at the cost of larger binary code
 	size.  Platforms vary, but digests will generally see a 5%-10% performance
@@ -107,6 +107,7 @@
 #define USE_X509
 #define USE_CERT_PARSE /* Usually required.  USE_X509 must be enabled */
 /* #define USE_FULL_CERT_PARSE */ /* USE_CERT_PARSE must be enabled */
+/* #define USE_CRL */ /* Must define USE_FULL_CERT_PARSE */
 
 #define USE_BASE64_DECODE
 
@@ -123,7 +124,7 @@
 /*
   	PRNG Algorithms 
 */
-#define USE_YARROW
+/* #define USE_YARROW */
 
 /******************************************************************************/
 /*

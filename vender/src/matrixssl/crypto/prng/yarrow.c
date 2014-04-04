@@ -1,9 +1,9 @@
 /*
  *	yarrow.c
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -16,8 +16,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 

@@ -1,6 +1,6 @@
 /*
  *	tls.c
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  *
  *	TLS (SSLv3.1+) specific code
  *	http://www.faqs.org/rfcs/rfc2246.html
@@ -8,7 +8,7 @@
  *	and handshake hashing.
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -21,8 +21,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -45,14 +45,6 @@
 #define LABEL_MASTERSEC		"master secret"
 #define LABEL_KEY_BLOCK		"key expansion"
 
-#define FINISHED_LABEL_SIZE	15
-#define LABEL_CLIENT		"client finished"
-#define LABEL_SERVER		"server finished"
-
-static int32 prf(unsigned char *sec, uint32 secLen, unsigned char *seed,
-			   uint32 seedLen, unsigned char *out, uint32 outLen);
-
-
 /******************************************************************************/
 /*
  *	Generates all key material.
@@ -61,6 +53,7 @@ int32 tlsDeriveKeys(ssl_t *ssl)
 {
 	unsigned char	msSeed[SSL_HS_RANDOM_SIZE * 2 + LABEL_SIZE];
 	uint32			reqKeyLen;
+	
 /*
 	If this session is resumed, we want to reuse the master secret to 
 	regenerate the key block with the new random values.
@@ -77,6 +70,7 @@ int32 tlsDeriveKeys(ssl_t *ssl)
 		SSL_HS_RANDOM_SIZE);
 	memcpy(msSeed + LABEL_SIZE + SSL_HS_RANDOM_SIZE,
 		ssl->sec.serverRandom, SSL_HS_RANDOM_SIZE);
+			
 	prf(ssl->sec.premaster, ssl->sec.premasterSize, msSeed,
 		(SSL_HS_RANDOM_SIZE * 2) + LABEL_SIZE, ssl->sec.masterSecret,
 		SSL_HS_MASTER_SIZE);
@@ -166,7 +160,6 @@ int32 tlsHMACSha1(ssl_t *ssl, int32 mode, unsigned char type,
 	return psHmacSha1Final(&ctx, mac);
 }
 
-
 #endif /* USE_SHA_MAC */
 
 #ifdef USE_MD5_MAC
@@ -213,158 +206,108 @@ int32 tlsHMACMd5(ssl_t *ssl, int32 mode, unsigned char type,
 }
 #endif /* USE_MD5_MAC */
 
-/******************************************************************************/
-/*
-	TLS handshake has computation
-*/
-int32 tlsGenerateFinishedHash(ssl_t *ssl, psDigestContext_t *md5,
-				psDigestContext_t *sha1, psDigestContext_t *sha256,
-				unsigned char *masterSecret, unsigned char *out, int32 sender)
-{
-	unsigned char	tmp[FINISHED_LABEL_SIZE + MD5_HASH_SIZE + SHA1_HASH_SIZE];
 
-	if (sender >= 0) {
-		memcpy(tmp, (sender & SSL_FLAGS_SERVER) ? LABEL_SERVER : LABEL_CLIENT, 
-			FINISHED_LABEL_SIZE);
-		psMd5Final(md5, tmp + FINISHED_LABEL_SIZE);
-		psSha1Final(sha1, tmp + FINISHED_LABEL_SIZE + MD5_HASH_SIZE);
-		return prf(masterSecret, SSL_HS_MASTER_SIZE, tmp, sizeof(tmp), 
-			out, TLS_HS_FINISHED_SIZE);
-	} else {
-/*
-		The handshake snapshot for client authentication is simply the
-		appended MD5 and SHA1 hashes
-*/
-		psMd5Final(md5, out);
-		psSha1Final(sha1, out + MD5_HASH_SIZE);
-		return MD5_HASH_SIZE + SHA1_HASH_SIZE;
-	}
-	return PS_FAILURE; /* Should not reach this */
+int32 sslCreateKeys(ssl_t *ssl)
+{
+#ifdef USE_TLS
+		if (ssl->flags & SSL_FLAGS_TLS) {		
+			return tlsDeriveKeys(ssl);		
+		} else {
+#ifndef DISABLE_SSLV3		
+			return sslDeriveKeys(ssl);
+#else
+			return PS_ARG_FAIL;
+#endif /* DISABLE_SSLV3 */			
+		}
+#else /* SSLv3 only below */
+#ifndef DISABLE_SSLV3
+		return sslDeriveKeys(ssl);
+#endif /* DISABLE_SSLV3 */		
+#endif /* USE_TLS */
 }
 
 /******************************************************************************/
 /*
-	MD5 portions of the prf
+	Cipher suites are chosen before they are activated with the 
+	ChangeCipherSuite message.  Additionally, the read and write cipher suites
+	are activated at different times in the handshake process.  The following
+	APIs activate the selected cipher suite callback functions.
 */
-static int32 pMd5(unsigned char *key, uint32 keyLen, 
-				unsigned char *text, uint32 textLen,
-				unsigned char *out, uint32 outLen)
+int32 sslActivateReadCipher(ssl_t *ssl)
 {
-	psHmacContext_t	ctx;
-	unsigned char	a[MD5_HASH_SIZE];
-	unsigned char	mac[MD5_HASH_SIZE];
-	unsigned char	hmacKey[MD5_HASH_SIZE];
-	int32			i, keyIter = 1;
-	uint32			hmacKeyLen;
 
-	while ((uint32)(MD5_HASH_SIZE * keyIter) < outLen) {
-		keyIter++;
-	}
-	psHmacMd5(key, keyLen, text, textLen, a, hmacKey, &hmacKeyLen);
-	if (hmacKeyLen != keyLen) {
+	ssl->decrypt = ssl->cipher->decrypt;
+	ssl->verifyMac = ssl->cipher->verifyMac;
+	ssl->deMacSize = ssl->cipher->macSize;
+	ssl->deBlockSize = ssl->cipher->blockSize;
+	ssl->deIvSize = ssl->cipher->ivSize;
 /*
-		Support for keys larger than 64 bytes.  Must take the hash of
-		the original key in these cases which is indicated by different
-		outgoing values from the passed in key and keyLen values
+	Reset the expected incoming sequence number for the new suite
 */
-		psAssert(keyLen > 64);
-		key = hmacKey;
-		keyLen = hmacKeyLen;
+	memset(ssl->sec.remSeq, 0x0, sizeof(ssl->sec.remSeq));
+
+	if (ssl->cipher->ident != SSL_NULL_WITH_NULL_NULL) {
+		ssl->flags |= SSL_FLAGS_READ_SECURE;
+		
+/*
+		Copy the newly activated read keys into the live buffers
+*/
+		memcpy(ssl->sec.readMAC, ssl->sec.rMACptr, ssl->deMacSize);
+		memcpy(ssl->sec.readKey, ssl->sec.rKeyptr, ssl->cipher->keySize);
+		memcpy(ssl->sec.readIV, ssl->sec.rIVptr, ssl->cipher->ivSize);
+/*
+		set up decrypt contexts
+*/
+		if (ssl->cipher->init) {
+			if (ssl->cipher->init(&(ssl->sec), INIT_DECRYPT_CIPHER,
+					ssl->cipher->keySize) < 0) {
+				psTraceInfo("Unable to initialize read cipher suite\n");
+				return PS_FAILURE;
+			}
+		}
+
 	}
-	for (i = 0; i < keyIter; i++) {
-		psHmacMd5Init(&ctx, key, keyLen);
-		psHmacMd5Update(&ctx, a, MD5_HASH_SIZE);
-		psHmacMd5Update(&ctx, text, textLen);
-		psHmacMd5Final(&ctx, mac);
-		if (i == keyIter - 1) {
-			memcpy(out + (MD5_HASH_SIZE*i), mac, outLen - (MD5_HASH_SIZE*i));
-		} else {
-			memcpy(out + (MD5_HASH_SIZE * i), mac, MD5_HASH_SIZE);
-			psHmacMd5(key, keyLen, a, MD5_HASH_SIZE, a, hmacKey, &hmacKeyLen);
+	return PS_SUCCESS;
+}
+
+int32 sslActivateWriteCipher(ssl_t *ssl)
+{
+
+	ssl->encrypt = ssl->cipher->encrypt;
+	ssl->generateMac = ssl->cipher->generateMac;
+	ssl->enMacSize = ssl->cipher->macSize;
+	ssl->enBlockSize = ssl->cipher->blockSize;
+	ssl->enIvSize = ssl->cipher->ivSize;
+/*
+	Reset the outgoing sequence number for the new suite
+*/
+	memset(ssl->sec.seq, 0x0, sizeof(ssl->sec.seq));
+	if (ssl->cipher->ident != SSL_NULL_WITH_NULL_NULL) {
+		ssl->flags |= SSL_FLAGS_WRITE_SECURE;
+
+		
+/*
+		Copy the newly activated write keys into the live buffers
+*/
+		memcpy(ssl->sec.writeMAC, ssl->sec.wMACptr, ssl->enMacSize);
+		memcpy(ssl->sec.writeKey, ssl->sec.wKeyptr, ssl->cipher->keySize);
+		memcpy(ssl->sec.writeIV, ssl->sec.wIVptr, ssl->cipher->ivSize);
+/*
+		set up encrypt contexts
+ */
+		if (ssl->cipher->init) {
+			if (ssl->cipher->init(&(ssl->sec), INIT_ENCRYPT_CIPHER,
+					ssl->cipher->keySize) < 0) {
+				psTraceInfo("Unable to init write cipher suite\n");
+				return PS_FAILURE;
+			}
 		}
 	}
-	return 0;
+	return PS_SUCCESS;
 }
-
-/******************************************************************************/
-/*
-	SHA1 portion of the prf
-*/
-static int32 pSha1(unsigned char *key, uint32 keyLen, 
-					unsigned char *text, uint32 textLen,
-					unsigned char *out, uint32 outLen)
-{
-	psHmacContext_t	ctx;
-	unsigned char		a[SHA1_HASH_SIZE];
-	unsigned char		mac[SHA1_HASH_SIZE];
-	unsigned char		hmacKey[SHA1_HASH_SIZE];
-	int32				i, keyIter = 1;
-	uint32				hmacKeyLen;
-
-	while ((uint32)(SHA1_HASH_SIZE * keyIter) < outLen) {
-		keyIter++;
-	}
-	psHmacSha1(key, keyLen, text, textLen, a, hmacKey, &hmacKeyLen);
-	if (hmacKeyLen != keyLen) {
-/*
-		Support for keys larger than 64 bytes.  Must take the hash of
-		the original key in these cases which is indicated by different
-		outgoing values from the passed in key and keyLen values
-*/
-		psAssert(keyLen > 64);
-		key = hmacKey;
-		keyLen = hmacKeyLen;
-	}
-	for (i = 0; i < keyIter; i++) {
-		psHmacSha1Init(&ctx, key, keyLen);
-		psHmacSha1Update(&ctx, a, SHA1_HASH_SIZE);
-		psHmacSha1Update(&ctx, text, textLen);
-		psHmacSha1Final(&ctx, mac);
-		if (i == keyIter - 1) {
-			memcpy(out + (SHA1_HASH_SIZE * i), mac,
-				outLen - (SHA1_HASH_SIZE * i));
-		} else {
-			memcpy(out + (SHA1_HASH_SIZE * i), mac, SHA1_HASH_SIZE);
-			psHmacSha1(key, keyLen, a, SHA1_HASH_SIZE, a, hmacKey,
-				&hmacKeyLen);
-		}
-	}
-	return 0;
-}
-
-
-/******************************************************************************/
-/*
-	Psuedo-random function.  TLS uses this for key generation and hashing
-*/
-static int32 prf(unsigned char *sec, uint32 secLen, unsigned char *seed,
-			   uint32 seedLen, unsigned char *out, uint32 outLen)
-{
-	unsigned char	*s1, *s2;
-	unsigned char	md5out[SSL_MAX_KEY_BLOCK_SIZE];
-	unsigned char	sha1out[SSL_MAX_KEY_BLOCK_SIZE];
-	uint32			sLen, i;
-
-	psAssert(outLen <= SSL_MAX_KEY_BLOCK_SIZE);
-
-	sLen = (secLen / 2) + (secLen % 2);
-	s1 = sec;
-	s2 = (sec + sLen) - (secLen % 2);
-	pMd5(s1, sLen, seed, seedLen, md5out, outLen);
-	pSha1(s2, sLen, seed, seedLen, sha1out, outLen);
-	for (i = 0; i < outLen; i++) {
-		out[i] = md5out[i] ^ sha1out[i];
-	}
-	return outLen;
-}
-
 
 /******************************************************************************/
 #endif /* USE_TLS */
-
-
-
-
 
 
 #ifdef USE_CLIENT_SIDE_SSL

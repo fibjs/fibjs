@@ -1,13 +1,13 @@
 /*
  *	osdep.c
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  *
  *	POSIX layer
  *		Mac OSX 10.5
  *		Linux
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -20,8 +20,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -35,7 +35,7 @@
 /******************************************************************************/
 
 /******************************************************************************/
-#ifndef _WIN32
+#ifdef POSIX
 /******************************************************************************/
 
 /*
@@ -49,6 +49,7 @@
 #include <sys/time.h>	/* gettimeofday */
 
 #include "../coreApi.h"
+
 
 /******************************************************************************/
 /*
@@ -145,11 +146,12 @@ int osdepMutexOpen(void)
 	return PS_SUCCESS; 
 }
 
-void osdepMutexClose()
+int osdepMutexClose()
 {
 	if (pthread_mutexattr_destroy(&attr) != 0) {
 		psTraceCore("pthread_mutex_destroy failed\n");
 	}
+	return PS_SUCCESS; 
 }
 
 /*

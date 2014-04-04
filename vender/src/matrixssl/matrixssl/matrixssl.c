@@ -1,11 +1,11 @@
 /*
  *	matrixssl.c
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  *
  *	The session and authentication management portions of the MatrixSSL library
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -18,8 +18,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -36,7 +36,7 @@
 /******************************************************************************/
 
 static const char copyright[] = 
-"Copyright AuthenTec Inc. All rights reserved.";
+"Copyright Inside Secure Corporation. All rights reserved.";
 
 #ifdef USE_SERVER_SIDE_SSL
 static int32 verifyReadKeys(psPool_t *pool, sslKeys_t *keys);
@@ -67,6 +67,7 @@ static int32 matrixSslLoadKeyMaterialMem(sslKeys_t *keys,
 
 static psRandom_t gMatrixsslPrng;
 
+ 
 /******************************************************************************/
 /*
 	Open and close the SSL module.  These routines are called once in the 
@@ -136,7 +137,6 @@ void matrixSslClose(void)
 #ifdef USE_MULTITHREADING		
 	psUnlockMutex(&sessionTableLock);
 	psDestroyMutex(&sessionTableLock);
-	psUnlockMutex(&prngLock);
 	psDestroyMutex(&prngLock);
 #endif /* USE_MULTITHREADING */	
 #endif /* USE_SERVER_SIDE_SSL */
@@ -170,8 +170,36 @@ int32 matrixSslNewKeys(sslKeys_t **keys)
 	return PS_SUCCESS;
 }
 
+
 #ifdef MATRIX_USE_FILE_SYSTEM
 #ifdef USE_PKCS12
+
+/* Have seen cases where the PKCS#12 files are not in a child-to-parent order */
+static void ReorderCertChain(psX509Cert_t *a_cert)
+{
+	psX509Cert_t* prevCert = NULL;
+	psX509Cert_t* nextCert = NULL;
+	psX509Cert_t* currCert = a_cert;
+ 
+	while (currCert) {
+		nextCert = currCert->next;
+        while (nextCert && memcmp(currCert->issuer.hash, nextCert->subject.hash,
+				SHA1_HASH_SIZE) != 0) {
+			prevCert = nextCert;
+			nextCert = nextCert->next;
+ 
+			if (nextCert && memcmp(currCert->issuer.hash,
+					nextCert->subject.hash, SHA1_HASH_SIZE) == 0) {
+				prevCert->next = nextCert->next;
+				nextCert->next = currCert->next;
+				currCert->next = nextCert;
+				break;
+			}
+		}
+		currCert = currCert->next;
+	}
+}
+
 /******************************************************************************/
 /*
 	File should be a binary .p12 or .pfx 
@@ -208,6 +236,7 @@ int32 matrixSslLoadPkcs12(sslKeys_t *keys, unsigned char *certFile,
 		}
 		return rc;
 	}
+	ReorderCertChain(keys->cert);
 #ifdef USE_SERVER_SIDE_SSL
 	if (verifyReadKeys(pool, keys) < PS_SUCCESS) {
 		psTraceInfo("PKCS#12 parse success but material didn't validate\n");
@@ -248,6 +277,13 @@ static int32 matrixSslLoadKeyMaterial(sslKeys_t *keys, const char *certFile,
 */
 	flags = CERT_STORE_UNPARSED_BUFFER;
 	
+#ifdef USE_CLIENT_AUTH
+/*
+	 If the CERTIFICATE_REQUEST message will possibly be needed we must
+	 save aside the Distiguished Name portion of the certs for that message.
+*/
+	flags |= CERT_STORE_DN_BUFFER;
+#endif /* USE_CLIENT_AUTH */
 
 	if (certFile) {
 #ifdef USE_SERVER_SIDE_SSL	
@@ -370,10 +406,17 @@ static int32 matrixSslLoadKeyMaterialMem(sslKeys_t *keys,
 */
 	flags = CERT_STORE_UNPARSED_BUFFER;
 	
+#ifdef USE_CLIENT_AUTH
+/*
+	Setting flag to store raw ASN.1 DN stream for CERTIFICATE_REQUEST
+*/
+	flags |= CERT_STORE_DN_BUFFER;
+#endif /* USE_CLIENT_AUTH */
 	
 	if (certBuf) {	
 #ifdef USE_SERVER_SIDE_SSL
 		if (keys->cert != NULL) {
+			psTraceInfo("WARNING: An identity certificate already exists\n");
 			return PS_UNSUPPORTED_FAIL;
 		}
 		if ((err = psX509ParseCert(pool, certBuf, (uint32)certLen, &keys->cert,
@@ -588,10 +631,12 @@ int32 matrixSslNewSession(ssl_t **ssl, sslKeys_t *keys, sslSessionId_t *session,
 	}
 #endif
 
+#ifndef USE_CLIENT_AUTH
 	if (flags & SSL_FLAGS_CLIENT_AUTH) {
 		psTraceInfo("SSL_FLAGS_CLIENT_AUTH passed to matrixSslNewSession but MatrixSSL was not compiled with USE_CLIENT_AUTH enabled\n");
 		return PS_ARG_FAIL;
 	}
+#endif
 
 	if (flags & SSL_FLAGS_SERVER) {
 		if (keys == NULL) {
@@ -701,6 +746,7 @@ int32 matrixSslNewSession(ssl_t **ssl, sslKeys_t *keys, sslSessionId_t *session,
 	return PS_SUCCESS;
 }
 
+
 /******************************************************************************/
 /*
 	Delete an SSL session.  Some information on the session may stay around
@@ -714,6 +760,10 @@ void matrixSslDeleteSession(ssl_t *ssl)
 	if (ssl == NULL) {
 		return;
 	}
+
+
+
+
 	ssl->flags |= SSL_FLAGS_CLOSED;
 /*
 	If we have a sessionId, for servers we need to clear the inUse flag in 
@@ -787,7 +837,17 @@ void matrixSslSetSessionOption(ssl_t *ssl, int32 option, void *arg)
 		ssl->sessionIdLen = 0;
 		memset(ssl->sessionId, 0x0, SSL_MAX_SESSION_ID_SIZE);
 	}
-	
+		
+#if defined(USE_CLIENT_AUTH) && defined(USE_SERVER_SIDE_SSL) 
+	if (ssl->flags & SSL_FLAGS_SERVER) {
+		if (option == SSL_OPTION_DISABLE_CLIENT_AUTH) {
+			ssl->flags &= ~SSL_FLAGS_CLIENT_AUTH;
+		} else if (option == SSL_OPTION_ENABLE_CLIENT_AUTH) {
+			ssl->flags |= SSL_FLAGS_CLIENT_AUTH;
+			matrixClearSession(ssl, 1);
+		}
+	}
+#endif /* USE_CLIENT_AUTH && USE_SERVER_SIDE_SSL */
 }
 
 /******************************************************************************/
@@ -890,6 +950,7 @@ int32 matrixRegisterSession(ssl_t *ssl)
 	if (!(ssl->flags & SSL_FLAGS_SERVER)) {
 		return PS_FAILURE;
 	}
+
 /*
 	Iterate the session table, looking for an empty entry (cipher null), or
 	the oldest entry that is not in use
@@ -1050,7 +1111,7 @@ int32 matrixResumeSession(ssl_t *ssl)
 #endif /* USE_MULTITHREADING */
 		return PS_FAILURE;
 	}
-	
+
 	memcpy(ssl->sec.masterSecret, sessionTable[i].masterSecret,
 		SSL_HS_MASTER_SIZE);
 	ssl->cipher = sessionTable[i].cipher;
@@ -1059,6 +1120,8 @@ int32 matrixResumeSession(ssl_t *ssl)
 	psUnlockMutex(&sessionTableLock);
 #endif /* USE_MULTITHREADING */	
 	return PS_SUCCESS;
+
+
 }
 
 /******************************************************************************/

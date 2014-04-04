@@ -1,11 +1,11 @@
 /*
  *	cryptoApi.h
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  *
  *	Prototypes for the Matrix crypto public APIs
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -18,8 +18,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -37,7 +37,6 @@
 
 #include "../core/coreApi.h" /* Must be first included */
 #include "cryptoConfig.h" /* Must be second included */
-
 #include "cryptolib.h"
 
 /******************************************************************************/
@@ -55,9 +54,10 @@
 #define	PS_CERT_AUTH_FAIL_BC	-32 /* BasicConstraint failure */
 #define	PS_CERT_AUTH_FAIL_DN	-33 /* DistinguishedName failure */
 #define	PS_CERT_AUTH_FAIL_SIG	-34 /* Signature validation failure */
-#define	PS_CERT_AUTH_FAIL		-35 /* Generic cert auth fail */
+#define PS_CERT_AUTH_FAIL_REVOKED -35 /* Revoked via CRL */
+#define	PS_CERT_AUTH_FAIL		-36 /* Generic cert auth fail */
 
-#define PS_SIGNATURE_MISMATCH	-36 /* Alorithms all work but sig not a match */
+#define PS_SIGNATURE_MISMATCH	-37 /* Alorithms all work but sig not a match */
 
 /******************************************************************************/
 /* Public APIs */
@@ -201,8 +201,6 @@ PSPUBLIC int32 psHmacMd5Final(psHmacContext_t *ctx, unsigned char *hash);
 /******************************************************************************/
 
 /******************************************************************************/
-#ifdef USE_RSA
-/******************************************************************************/
 /*
 	Private Key Parsing
 	PKCS#1 - RSA specific
@@ -211,6 +209,16 @@ PSPUBLIC int32 psHmacMd5Final(psHmacContext_t *ctx, unsigned char *hash);
 #ifdef USE_PRIVATE_KEY_PARSING
 PSPUBLIC int32 pkcs1ParsePrivBin(psPool_t *pool, unsigned char *p,
 				uint32 size, psPubKey_t **key);
+#ifdef MATRIX_USE_FILE_SYSTEM
+PSPUBLIC int32 pkcs1ParsePrivFile(psPool_t *pool, char *fileName,
+				char *password, psPubKey_t **outkey);
+#endif /* MATRIX_USE_FILE_SYSTEM */				
+		
+#ifdef MATRIX_USE_FILE_SYSTEM
+PSPUBLIC int32 pkcs1DecodePrivFile(psPool_t *pool, char *fileName,
+				char *password,	unsigned char **DERout, uint32 *DERlen);
+#endif /* MATRIX_USE_FILE_SYSTEM */
+						
 #ifdef USE_PKCS8
 PSPUBLIC int32 pkcs8ParsePrivBin(psPool_t *pool, unsigned char *p,
 				int32 size, char *pass, psPubKey_t **key);
@@ -223,16 +231,8 @@ PSPUBLIC int32 psPkcs12Parse(psPool_t *pool, psX509Cert_t **cert,
 #endif /* USE_PKCS12 */
 #endif /* MATRIX_USE_FILE_SYSTEM */				
 #endif /* USE_PKCS8 */
-
-#ifdef MATRIX_USE_FILE_SYSTEM
-PSPUBLIC int32 pkcs1ParsePrivFile(psPool_t *pool, char *fileName,
-				char *password, psPubKey_t **outkey);
-PSPUBLIC int32 pkcs1DecodePrivFile(psPool_t *pool, char *fileName,
-				char *password,	unsigned char **DERout, uint32 *DERlen);
-#endif /* MATRIX_USE_FILE_SYSTEM */
 #endif /* USE_PRIVATE_KEY_PARSING */
 
-#endif /* USE_RSA */
 /******************************************************************************/
 
 /******************************************************************************/
@@ -256,7 +256,6 @@ PSPUBLIC psPubKey_t *psNewPubKey(psPool_t *pool);
 PSPUBLIC void psFreePubKey(psPubKey_t *key);
 
 /******************************************************************************/
-#ifdef USE_RSA
 /******************************************************************************/
 /*
 	RSA crypto
@@ -271,10 +270,15 @@ PSPUBLIC int32 psRsaDecryptPub(psPool_t *pool, psRsaKey_t *key,
 PSPUBLIC int32 psRsaEncryptPub(psPool_t *pool, psRsaKey_t *key,
 				unsigned char *in, uint32 inlen,
 				unsigned char *out, uint32 outlen, void *data);
+PSPUBLIC int32 pubRsaDecryptSignedElement(psPool_t *pool, psPubKey_t *key, 
+				unsigned char *in, uint32 inlen, unsigned char *out,
+				uint32 outlen, void *data);
+PSPUBLIC int32 psRsaEncryptPriv(psPool_t *pool, psRsaKey_t *key,
+					unsigned char *in, uint32 inlen,
+					unsigned char *out, uint32 outlen, void *data);
 PSPUBLIC int32 psRsaCrypt(psPool_t *pool, const unsigned char *in, uint32 inlen,
 				unsigned char *out, uint32 *outlen,	psRsaKey_t *key,
 				int32 type, void *data);
-#endif /* USE_RSA */
 /******************************************************************************/
 
 /******************************************************************************/
@@ -295,6 +299,10 @@ PSPUBLIC void psX509FreeCert(psX509Cert_t *cert);
 PSPUBLIC int32 psX509AuthenticateCert(psPool_t *pool, psX509Cert_t *subjectCert,
 					psX509Cert_t *issuerCert);
 #endif
+#ifdef USE_CRL
+PSPUBLIC int32 psX509ParseCrl(psPool_t *pool, psX509Cert_t *CA, int append,
+					unsigned char *crlBin, int32 crlBinLen);
+#endif /* USE_CRL */					
 #endif /* USE_X509 */
 /******************************************************************************/
 

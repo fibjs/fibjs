@@ -1,10 +1,10 @@
 /*
  *	osdep.h
  *	Operating System and Hardware Abstraction Layer
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -17,8 +17,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -33,16 +33,6 @@
 
 #ifndef _h_PS_PLATFORM
 #define _h_PS_PLATFORM
-
-#ifdef _WIN32
-#ifndef WIN32
-#define WIN32
-#endif
-#else
-#ifndef POSIX
-#define POSIX
-#endif
-#endif
 
 /******************************************************************************/
 /*
@@ -83,7 +73,7 @@ extern void		osdepEntropyClose(void);
 #include <stdio.h>
 	
 #ifndef POSIX
-	#if defined(LINUX) || defined(OSX)
+	#ifndef WIN32
 	#define POSIX
 	#endif
 #endif
@@ -144,15 +134,15 @@ extern void		osdepEntropyClose(void);
 /*
 	Export or import functions for Windows DLLs	
 */
-//#ifdef WIN32
-//	#ifndef _USRDLL
-//	#define PSPUBLIC extern __declspec(dllimport)
-//	#else
-//	#define PSPUBLIC extern __declspec(dllexport)
-//	#endif
-//#else
+#ifdef WIN32
+	#ifndef _USRDLL
+	#define PSPUBLIC extern __declspec(dllimport)
+	#else
+	#define PSPUBLIC extern __declspec(dllexport)
+	#endif
+#else
 	#define PSPUBLIC extern
-//#endif /* !WIN */
+#endif /* !WIN */
 
 /******************************************************************************/
 /*

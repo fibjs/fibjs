@@ -1,12 +1,12 @@
 /*
  *	cipherSuite.c
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  *
  *	Wrappers for the various cipher suites.
  *	Enable specific suites at compile time in matrixsslConfig.h
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -19,8 +19,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -61,6 +61,21 @@ static int32 csArc4Init(sslSec_t *sec, int32 type, uint32 keysize)
 	}
 	return PS_SUCCESS;
 }
+int32 csArc4Encrypt(void *ssl, unsigned char *pt,
+					 unsigned char *ct, uint32 len)
+{
+	ssl_t	*lssl = ssl;
+	psCipherContext_t *ctx = (psCipherContext_t*)&lssl->sec.encryptCtx;
+	return psArc4(ctx, pt, ct, len);	
+}
+int32 csArc4Decrypt(void *ssl, unsigned char *ct,
+					 unsigned char *pt, uint32 len)
+{
+	ssl_t	*lssl = ssl;
+	psCipherContext_t *ctx = (psCipherContext_t*)&lssl->sec.decryptCtx;
+	return psArc4(ctx, ct, pt, len);	
+}
+
 #endif /* USE_ARC4_CIPHER_SUITE */
 /******************************************************************************/
 
@@ -88,6 +103,23 @@ static int32 csDes3Init(sslSec_t *sec, int32 type, uint32 keysize)
 	}
 	return PS_SUCCESS;
 }
+
+int32 csDes3Encrypt(void *ssl, unsigned char *pt,
+					 unsigned char *ct, uint32 len)
+{
+	ssl_t	*lssl = ssl;
+	psCipherContext_t *ctx = (psCipherContext_t*)&lssl->sec.encryptCtx;
+	return psDes3Encrypt(ctx, pt, ct, len);	
+}
+
+int32 csDes3Decrypt(void *ssl, unsigned char *ct,
+					 unsigned char *pt, uint32 len)
+{
+	ssl_t	*lssl = ssl;
+	psCipherContext_t *ctx = (psCipherContext_t*)&lssl->sec.decryptCtx;
+	return psDes3Decrypt(ctx, ct, pt, len);	
+}
+
 #endif /* USE_3DES_CIPHER_SUITE */
 /******************************************************************************/
 
@@ -119,14 +151,16 @@ int32 csAesInit(sslSec_t *sec, int32 type, uint32 keysize)
 int32 csAesEncrypt(void *ssl, unsigned char *pt,
 					 unsigned char *ct, uint32 len)
 {
-	psCipherContext_t *ctx = ssl;
+	ssl_t	*lssl = ssl;
+	psCipherContext_t *ctx = (psCipherContext_t*)&lssl->sec.encryptCtx;
 	return psAesEncrypt(ctx, pt, ct, len);	
 }
 
 int32 csAesDecrypt(void *ssl, unsigned char *ct,
 					 unsigned char *pt, uint32 len)
 {
-	psCipherContext_t *ctx = ssl;
+	ssl_t	*lssl = ssl;
+	psCipherContext_t *ctx = (psCipherContext_t*)&lssl->sec.decryptCtx;
 	return psAesDecrypt(ctx, ct, pt, len);	
 }
 #endif /* USE_AES_CIPHER_SUITE */
@@ -180,7 +214,7 @@ static int32 csShaGenerateMac(void *sslv, unsigned char type,
 
 #ifdef USE_TLS
 	if (ssl->flags & SSL_FLAGS_TLS) {
-		return tlsHMACSha1(ssl, HMAC_CREATE, type, data, len, mac);
+			return tlsHMACSha1(ssl, HMAC_CREATE, type, data, len, mac);
 	} else {
 #endif /* USE_TLS */
 #ifndef DISABLE_SSLV3
@@ -204,7 +238,7 @@ static int32 csShaVerifyMac(void *sslv, unsigned char type,
 	hashSize = SHA1_HASH_SIZE;
 #ifdef USE_TLS
 	if (ssl->flags & SSL_FLAGS_TLS) {
-		tlsHMACSha1(ssl, HMAC_VERIFY, type, data, len, buf);
+			tlsHMACSha1(ssl, HMAC_VERIFY, type, data, len, buf);
 	} else {
 #endif /* USE_TLS */
 #ifndef DISABLE_SSLV3
@@ -297,7 +331,9 @@ int32 csRsaEncryptPriv(psPool_t *pool, psPubKey_t *key,
 			unsigned char *in, uint32 inlen, unsigned char *out, uint32 outlen,
 			void *data)
 {
-	return PS_UNSUPPORTED_FAIL;
+	psAssert(key->type == PS_RSA);
+	return psRsaEncryptPriv(pool, (psRsaKey_t*)key->key, in, inlen, out,
+		outlen, data);
 }
 
 int32 csRsaDecryptPriv(psPool_t *pool, psPubKey_t *key, 
@@ -362,8 +398,8 @@ static sslCipherSpec_t	supportedCiphers[] = {
 		8,			/* ivSize */
 		8,			/* blocksize */
 		csDes3Init,
-		psDes3Encrypt, 
-		psDes3Decrypt,  
+		csDes3Encrypt, 
+		csDes3Decrypt,  
 		csShaGenerateMac, 
 		csShaVerifyMac},
 #endif /* USE_SSL_RSA_WITH_3DES_EDE_CBC_SHA */
@@ -377,8 +413,8 @@ static sslCipherSpec_t	supportedCiphers[] = {
 		0,			/* ivSize */
 		1,			/* blocksize */
 		csArc4Init,
-		psArc4, 
-		psArc4, 
+		csArc4Encrypt, 
+		csArc4Decrypt, 
 		csShaGenerateMac, 
 		csShaVerifyMac},
 #endif /* USE_SSL_RSA_WITH_RC4_128_SHA */
@@ -392,8 +428,8 @@ static sslCipherSpec_t	supportedCiphers[] = {
 		0,			/* ivSize */
 		1,			/* blocksize */
 		csArc4Init,
-		psArc4, 
-		psArc4,  
+		csArc4Encrypt, 
+		csArc4Decrypt,  
 		csMd5GenerateMac, 
 		csMd5VerifyMac},
 #endif /* USE_SSL_RSA_WITH_RC4_128_MD5 */
@@ -525,55 +561,138 @@ int32 matrixSslSetCipherSuiteEnabledStatus(ssl_t *ssl, uint16 cipherId,
 #endif /* USE_SERVER_SIDE_SSL */
 
 #ifdef VALIDATE_KEY_MATERIAL
+#define KEY_ALG_ANY		1
+#define KEY_ALG_FIRST	2
 /*
-	TODO: these currently allow any cert in the chain to return success but
-	it would be better to force only the parent-most(?) to be checked
+	anyOrFirst is basically a determination of whether we are looking through
+	a collection of CA files for an algorithm (ANY) or a cert chain where
+	we really only care about the child most cert because that is the one
+	that ultimately determines the authentication algorithm (FIRST)
 */
-static int32 haveCorrectKeyAlg(psX509Cert_t *cert, int32 keyAlg)
-{
+static int32 haveCorrectKeyAlg(psX509Cert_t *cert, int32 keyAlg, int anyOrFirst)
+{		
 	while (cert) {
 		if (cert->pubKeyAlgorithm == keyAlg) {
 			return PS_SUCCESS;
+		}
+		if (anyOrFirst == KEY_ALG_FIRST) {
+			return PS_FAILURE;
 		}
 		cert = cert->next;
 	}
 	return PS_FAILURE;
 }
 
+/*
+	This is the signature algorithm that the client will be using to encrypt
+	the key material based on what the cipher suite says it should be.
+	Only looking at child most cert
+*/
+static int32 haveCorrectSigAlg(psX509Cert_t *cert, int32 sigType)
+{		
+	if (sigType == RSA_TYPE_SIG) {
+		if (cert->sigAlgorithm == OID_SHA1_RSA_SIG ||
+				cert->sigAlgorithm == OID_SHA256_RSA_SIG ||
+				cert->sigAlgorithm == OID_SHA384_RSA_SIG ||
+				cert->sigAlgorithm == OID_SHA512_RSA_SIG ||
+				cert->sigAlgorithm == OID_MD5_RSA_SIG ||
+				cert->sigAlgorithm == OID_MD2_RSA_SIG) {
+			return PS_SUCCESS;
+		}
+	} else if (sigType == DSA_TYPE_SIG) {
+		if (cert->sigAlgorithm == OID_SHA1_ECDSA_SIG ||
+				cert->sigAlgorithm == OID_SHA224_ECDSA_SIG ||
+				cert->sigAlgorithm == OID_SHA256_ECDSA_SIG ||
+				cert->sigAlgorithm == OID_SHA384_ECDSA_SIG ||
+				cert->sigAlgorithm == OID_SHA512_ECDSA_SIG) {
+			return PS_SUCCESS;
+		}
+	}
 
+	return PS_FAILURE;
+}
+
+
+#ifdef USE_CLIENT_SIDE_SSL
+/* Test if agreed upon cipher suite authentication is being adhered to */
+int32 csCheckCertAgainstCipherSuite(int32 sigAlg, int32 cipherType)
+{
+	if (sigAlg == OID_MD5_RSA_SIG || sigAlg == OID_SHA1_RSA_SIG ||
+			sigAlg == OID_SHA256_RSA_SIG || sigAlg == OID_SHA384_RSA_SIG ||
+			sigAlg == OID_SHA512_RSA_SIG) {
+		if (cipherType == CS_DHE_RSA || cipherType == CS_RSA ||
+				cipherType == CS_ECDHE_RSA || cipherType == CS_ECDH_RSA) {
+			return 1;
+		}
+	}
+	if (sigAlg == OID_SHA1_ECDSA_SIG || sigAlg == OID_SHA224_ECDSA_SIG ||
+			sigAlg == OID_SHA256_ECDSA_SIG || sigAlg == OID_SHA384_ECDSA_SIG ||
+			sigAlg == OID_SHA512_ECDSA_SIG) {
+		if (cipherType == CS_ECDHE_ECDSA || cipherType == CS_ECDH_ECDSA) {
+			return 1;
+		}
+	
+	}
+	return 0; /* no match */
+}					
+#endif /* USE_CLIENT_SIDE_SSL */
+					
 /******************************************************************************/
 /*
 	Don't report a matching cipher suite if the user hasn't loaded the 
-	proper public key material to support it
+	proper public key material to support it.  We do not check the client
+	auth side of the algorithms because that authentication mechanism is
+	negotiated within the handshake itself
+	
+	The annoying #ifdef USE_SERVER_SIDE and CLIENT_SIDE are because the
+	structure members only exist one one side or the other and so are used
+	for compiling.  You can't actually get into the wrong area of the
+	SSL_FLAGS_SERVER test so no #else cases should be needed
  */
 static int32 haveKeyMaterial(ssl_t *ssl, int32 cipherType)
 {
-/*
-	Standard RSA ciphers types
-*/
-	if (cipherType == CS_RSA) {
+
+	/*	To start, capture all the cipherTypes where servers must have an
+		identity and clients have a CA so we don't repeat them everywhere */
+	if (cipherType == CS_RSA || cipherType == CS_DHE_RSA ||
+			cipherType == CS_ECDHE_RSA || cipherType == CS_ECDH_RSA ||
+			cipherType == CS_ECDHE_ECDSA || cipherType == CS_ECDH_ECDSA) {
 		if (ssl->flags & SSL_FLAGS_SERVER) {
-#ifdef USE_SERVER_SIDE_SSL		
+#ifdef USE_SERVER_SIDE_SSL	
 			if (ssl->keys == NULL || ssl->keys->cert == NULL ||
 					ssl->keys->privKey == NULL) {
 				return PS_FAILURE;
 			}
-			if (haveCorrectKeyAlg(ssl->keys->cert, OID_RSA_KEY_ALG) < 0) {
-				return PS_FAILURE;
-			}
-#else
-			return PS_FAILURE;
-#endif /* USE_SERVER_SIDE_SSL */			
-			
+#endif
 #ifdef USE_CLIENT_SIDE_SSL
-		} else {
+		} else {	
 			if (ssl->keys == NULL || ssl->keys->CAcerts == NULL) {
 				return PS_FAILURE;
 			}
-			if (haveCorrectKeyAlg(ssl->keys->CAcerts, OID_RSA_KEY_ALG) < 0) {
+#endif				
+		}
+	}
+	
+	/*	Standard RSA ciphers types - auth and exchange */
+	if (cipherType == CS_RSA) {
+		if (ssl->flags & SSL_FLAGS_SERVER) {
+#ifdef USE_SERVER_SIDE_SSL			
+			if (haveCorrectKeyAlg(ssl->keys->cert, OID_RSA_KEY_ALG,
+					KEY_ALG_FIRST) < 0) {
 				return PS_FAILURE;
 			}
-#endif /* USE_CLIENT_SIDE_SSL */
+			if (haveCorrectSigAlg(ssl->keys->cert, RSA_TYPE_SIG) < 0) {
+				return PS_FAILURE;
+			}
+#endif
+#ifdef USE_CLIENT_SIDE_SSL			
+		} else { /* Client */
+		
+			if (haveCorrectKeyAlg(ssl->keys->CAcerts, OID_RSA_KEY_ALG,
+					KEY_ALG_ANY) < 0) {
+				return PS_FAILURE;
+			}
+#endif			
 		}
 	}
 	

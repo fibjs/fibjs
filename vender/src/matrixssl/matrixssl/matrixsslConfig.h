@@ -1,11 +1,11 @@
 /*
  *	matrixsslConfig.h
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  *
  *	Configuration settings for building the MatrixSSL library.
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -18,8 +18,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -76,8 +76,6 @@ extern "C" {
 */
 #define USE_TLS			/* TLS 1.0 aka SSL 3.1 */
 #define USE_TLS_1_1
-
-
 /* #define DISABLE_TLS_1_1 */
 /* #define DISABLE_TLS_1_0 */
 #define DISABLE_SSLV3	/* Disable SSL 3.0 */
@@ -89,6 +87,27 @@ extern "C" {
 */
 #define USE_CLIENT_SIDE_SSL
 #define USE_SERVER_SIDE_SSL
+
+/******************************************************************************/
+/*
+	Client certifiate authentication
+*/
+/* #define USE_CLIENT_AUTH */
+
+/*
+	Enable if the server should send an empty CertificateRequest message if
+	no CA files have been loaded
+*/
+/* #define SERVER_CAN_SEND_EMPTY_CERT_REQUEST */
+
+/*
+	Enabling this define will allow the server to "downgrade" a client auth
+	handshake to a standard handshake if the client replies to a
+	CERTIFICATE_REQUEST with an empty CERTIFICATE message.  The user callback
+	will be called with a NULL cert in this case and the user can determine if
+	the handshake should continue in a non-client auth state. 
+*/
+/* #define SERVER_WILL_ACCEPT_EMPTY_CLIENT_CERT_MSG */
 
 
 
@@ -133,8 +152,6 @@ extern "C" {
 */
 #define SSL_SESSION_TABLE_SIZE	32
 #define SSL_SESSION_ENTRY_LIFE	86400 * 1000 /* one day */
-
-
 
 /******************************************************************************/
 /*
@@ -251,6 +268,7 @@ extern "C" {
 	only message in the record, and multiple certs are present in the chain.
 */
 /* #define USE_CERT_CHAIN_PARSING */
+
 
 /******************************************************************************/
 /*

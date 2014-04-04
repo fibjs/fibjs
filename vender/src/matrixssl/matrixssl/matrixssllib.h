@@ -1,12 +1,12 @@
 /*
  *	matrixssllib.h
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  *
  *	Internal header file used for the MatrixSSL implementation.
  *	Only modifiers of the library should be intersted in this file
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -19,8 +19,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -40,9 +40,6 @@
 extern "C" {
 #endif
 
-
-
-
 /*****************************************************************************/
 /*
 	Start with compile-time checks for the necessary proto and crypto support.
@@ -50,6 +47,7 @@ extern "C" {
 #if !defined(USE_TLS) && defined(DISABLE_SSLV3)
 #error "Must enable a protocol: USE_TLS enabled or DISABLE_SSLV3 disabled"
 #endif
+
 
 #if defined(USE_TLS_1_1) && !defined(USE_TLS)
 #error "Must define USE_TLS if defining USE_TLS_1_1"
@@ -61,7 +59,6 @@ extern "C" {
 #endif
 #endif
 
-#define USE_NATIVE_CRYPTO
 /******************************************************************************/
 /*
 	SHA1 and MD5 are essential elements for SSL key derivation during protocol
@@ -77,6 +74,9 @@ extern "C" {
 #ifndef USE_CERT_PARSE
 #ifdef USE_CLIENT_SIDE_SSL
 #error "Must enable USE_CERT_PARSE if building client with USE_CLIENT_SIDE_SSL"
+#endif
+#ifdef USE_CLIENT_AUTH
+#error "Must enable USE_CERT_PARSE if client auth (USE_CLIENT_AUTH) is needed"
 #endif
 #endif
 
@@ -114,86 +114,58 @@ extern "C" {
 	Test specific crypto features based on which cipher suites are enabled 
 */
 #ifdef USE_SSL_RSA_WITH_NULL_MD5
-	#ifndef USE_RSA
-	#error "Enable USE_RSA in cryptoConfig.h for SSL_RSA_WITH_NULL_MD5 suite"
-	#endif
 	#define USE_MD5_MAC
 	#define USE_RSA_CIPHER_SUITE
-	#define REQUIRE_RSA_KEYS
 #endif
 
 #ifdef USE_SSL_RSA_WITH_NULL_SHA
-	#ifndef USE_RSA
-	#error "Enable USE_RSA in cryptoConfig.h for SSL_RSA_WITH_NULL_SHA suite"
-	#endif
 	#define USE_SHA_MAC
 	#define USE_RSA_CIPHER_SUITE
-	#define REQUIRE_RSA_KEYS
 #endif
 
 #ifdef USE_SSL_RSA_WITH_RC4_128_SHA
-	#ifndef USE_RSA
-	#error "Enable USE_RSA in cryptoConfig.h for SSL_RSA_WITH_RC4_128_SHA suite"
-	#endif
 	#ifndef USE_ARC4
 	#error "Enable USE_ARC4 in cryptoConfig.h for SSL_RSA_WITH_RC4_128_SHA suite"
 	#endif
 	#define USE_SHA_MAC
 	#define USE_RSA_CIPHER_SUITE
 	#define USE_ARC4_CIPHER_SUITE
-	#define REQUIRE_RSA_KEYS
 #endif
 
 #ifdef USE_SSL_RSA_WITH_RC4_128_MD5
-	#ifndef USE_RSA
-	#error "Enable USE_RSA in cryptoConfig.h for SSL_RSA_WITH_RC4_128_MD5 suite"
-	#endif
 	#ifndef USE_ARC4
 	#error "Enable USE_ARC4 in cryptoConfig.h for SSL_RSA_WITH_RC4_128_MD5 suite"
 	#endif
 	#define USE_MD5_MAC
 	#define USE_RSA_CIPHER_SUITE
 	#define USE_ARC4_CIPHER_SUITE
-	#define REQUIRE_RSA_KEYS
 #endif
 
 #ifdef USE_SSL_RSA_WITH_3DES_EDE_CBC_SHA
-	#ifndef USE_RSA
-	#error "Enable USE_RSA in cryptoConfig.h for SSL_RSA_WITH_3DES_EDE_CBC_SHA"
-	#endif
 	#ifndef USE_3DES
 	#error "Enable USE_3DES in cryptoConfig.h for SSL_RSA_WITH_3DES_EDE_CBC_SHA"
 	#endif
 	#define USE_SHA_MAC
 	#define USE_RSA_CIPHER_SUITE
 	#define USE_3DES_CIPHER_SUITE
-	#define REQUIRE_RSA_KEYS
 #endif
 
 #ifdef USE_TLS_RSA_WITH_AES_128_CBC_SHA
-	#ifndef USE_RSA
-	#error "Enable USE_RSA in cryptoConfig.h for TLS_RSA_WITH_AES_128_CBC_SHA"
-	#endif
 	#ifndef USE_AES
 	#error "Enable USE_AES in cryptoConfig.h for TLS_RSA_WITH_AES_128_CBC_SHA"
 	#endif
 	#define USE_SHA_MAC
 	#define USE_AES_CIPHER_SUITE
 	#define USE_RSA_CIPHER_SUITE
-	#define REQUIRE_RSA_KEYS
 #endif
 
 #ifdef USE_TLS_RSA_WITH_AES_256_CBC_SHA
-	#ifndef USE_RSA
-	#error "Enable USE_RSA in cryptoConfig.h for TLS_RSA_WITH_AES_256_CBC_SHA"
-	#endif
 	#ifndef USE_AES
 	#error "Enable USE_AES in cryptoConfig.h for TLS_RSA_WITH_AES_256_CBC_SHA"
 	#endif
 	#define USE_SHA_MAC
 	#define USE_AES_CIPHER_SUITE
 	#define USE_RSA_CIPHER_SUITE
-	#define REQUIRE_RSA_KEYS
 #endif
 
 /******************************************************************************/
@@ -224,7 +196,7 @@ extern "C" {
 /*
 	Maximum buffer sizes for static SSL array types 
 */
-#define SSL_MAX_MAC_SIZE		32
+#define SSL_MAX_MAC_SIZE		48 /* SHA384 */
 #define SSL_MAX_IV_SIZE			16
 #define SSL_MAX_BLOCK_SIZE		16
 #define SSL_MAX_SYM_KEY_SIZE	32
@@ -253,6 +225,10 @@ extern "C" {
 	matrixSslSetSessionOption defines
 */
 #define	SSL_OPTION_FULL_HANDSHAKE		1
+#ifdef USE_CLIENT_AUTH
+#define	SSL_OPTION_DISABLE_CLIENT_AUTH	2
+#define	SSL_OPTION_ENABLE_CLIENT_AUTH	3
+#endif /* USE_CLIENT_AUTH */
 
 /*
     SSL Alert levels and descriptions
@@ -281,6 +257,7 @@ extern "C" {
 #define SSL_ALERT_DECODE_ERROR				50
 #define SSL_ALERT_DECRYPT_ERROR				51
 #define SSL_ALERT_PROTOCOL_VERSION			70
+#define SSL_ALERT_INSUFFICIENT_SECURITY		71
 #define SSL_ALERT_INTERNAL_ERROR			80
 #define SSL_ALERT_NO_RENEGOTIATION			100
 #define SSL_ALERT_UNSUPPORTED_EXTENSION		110
@@ -327,6 +304,14 @@ extern "C" {
 */
 #define CS_NULL			0
 #define CS_RSA			1
+#define CS_DHE_RSA		2
+#define CS_DH_ANON		3
+#define CS_DHE_PSK		4
+#define CS_PSK			5
+#define	CS_ECDHE_ECDSA	6
+#define CS_ECDHE_RSA	7
+#define	CS_ECDH_ECDSA	8
+#define CS_ECDH_RSA		9
 
 /*
 	These are defines rather than enums because we want to store them as char,
@@ -336,7 +321,6 @@ extern "C" {
 #define SSL_RECORD_TYPE_ALERT					21
 #define SSL_RECORD_TYPE_HANDSHAKE				22
 #define SSL_RECORD_TYPE_APPLICATION_DATA		23
-#define SSL_RECORD_TYPE_HANDSHAKE				22
 #define SSL_RECORD_TYPE_HANDSHAKE_FIRST_FRAG	90 /*    internal */
 #define SSL_RECORD_TYPE_HANDSHAKE_FRAG			91 /* non-standard types */
 
@@ -344,6 +328,7 @@ extern "C" {
 #define SSL_HS_CLIENT_HELLO			1
 #define SSL_HS_SERVER_HELLO			2
 #define SSL_HS_HELLO_VERIFY_REQUEST	3
+#define SSL_HS_NEW_SESSION_TICKET	4
 #define SSL_HS_CERTIFICATE			11
 #define SSL_HS_SERVER_KEY_EXCHANGE	12
 #define SSL_HS_CERTIFICATE_REQUEST	13
@@ -408,7 +393,7 @@ extern "C" {
 	Value is largest total among all cipher suites for
 		2*macSize + 2*keySize + 2*ivSize
 */
-#define SSL_MAX_KEY_BLOCK_SIZE			2*32 + 2*32 + 2*16 + SHA1_HASH_SIZE
+#define SSL_MAX_KEY_BLOCK_SIZE			2*48 + 2*32 + 2*16 + SHA1_HASH_SIZE
 
 /*
 	Master secret is 48 bytes, sessionId is 32 bytes max
@@ -485,20 +470,19 @@ typedef struct {
 	unsigned char	*premaster;							/* variable size */
 	uint32			premasterSize;
 
-
-	unsigned char	keyBlock[SSL_MAX_KEY_BLOCK_SIZE];	/* Storage for the next six items */
+	unsigned char	keyBlock[SSL_MAX_KEY_BLOCK_SIZE];	/* Storage for 'ptr' */
 	unsigned char	*wMACptr;
 	unsigned char	*rMACptr;
 	unsigned char	*wKeyptr;
 	unsigned char	*rKeyptr;
-	unsigned char	*wIVptr;
-	unsigned char	*rIVptr;
 	
 	/*	All maximum sizes for current cipher suites */
 	unsigned char	writeMAC[SSL_MAX_MAC_SIZE];
 	unsigned char	readMAC[SSL_MAX_MAC_SIZE];
 	unsigned char	writeKey[SSL_MAX_SYM_KEY_SIZE];
 	unsigned char	readKey[SSL_MAX_SYM_KEY_SIZE];
+	unsigned char	*wIVptr;
+	unsigned char	*rIVptr;
 	unsigned char	writeIV[SSL_MAX_IV_SIZE];
 	unsigned char	readIV[SSL_MAX_IV_SIZE];
 
@@ -516,7 +500,6 @@ typedef struct {
 
 	psDigestContext_t	msgHashMd5;
 	psDigestContext_t	msgHashSha1;
-	
 	psCipherContext_t	encryptCtx;
 	psCipherContext_t	decryptCtx;
 
@@ -544,6 +527,7 @@ typedef struct {
 	int32 (*verifyMac)(void *ssl, unsigned char type, unsigned char *data,
 		uint32 len, unsigned char *mac);
 } sslCipherSpec_t;
+
 
 typedef struct {
 	unsigned char	id[SSL_MAX_SESSION_ID_SIZE];
@@ -641,8 +625,8 @@ typedef struct ssl {
 	unsigned char	outRecType;
 
 #ifdef ENABLE_SECURE_REHANDSHAKES		
-	unsigned char	myVerifyData[MD5_HASH_SIZE + SHA1_HASH_SIZE]; /*SSLv3 max*/
-	unsigned char	peerVerifyData[MD5_HASH_SIZE + SHA1_HASH_SIZE];
+	unsigned char	myVerifyData[SHA384_HASH_SIZE]; /*SSLv3 max*/
+	unsigned char	peerVerifyData[SHA384_HASH_SIZE];
 	uint32			myVerifyDataLen;
 	uint32			peerVerifyDataLen;
 	int32			secureRenegotiationFlag;
@@ -653,7 +637,6 @@ typedef struct ssl {
 #endif /* SSL_REHANDSHAKES_ENABLED */	
 	int32			(*extCb)(void *ssl, unsigned short extType,
 						unsigned short extLen, void *e);
-
 	int32			recordHeadLen;
 	int32			hshakeHeadLen;
 } ssl_t;
@@ -759,10 +742,10 @@ extern int32 csRsaEncryptPriv(psPool_t *pool, psPubKey_t *key,
 			void *data);
 extern int32 csRsaDecryptPriv(psPool_t *pool, psPubKey_t *key, 
 			unsigned char *in, uint32 inlen, unsigned char *out, uint32 outlen,
-			void *data);
-			
-			
-					 						
+			void *data);			
+#ifdef USE_CLIENT_SIDE_SSL
+int32 csCheckCertAgainstCipherSuite(int32 sigAlg, int32 cipherType);
+#endif				 						
 
 #ifndef DISABLE_SSLV3
 /******************************************************************************/
@@ -794,16 +777,14 @@ extern int32 ssl3HMACMd5(unsigned char *key, unsigned char *seq,
 	tls.c
 */
 extern int32 tlsDeriveKeys(ssl_t *ssl);
-extern int32 tlsGenerateFinishedHash(ssl_t *ssl, psDigestContext_t *md5,
-				psDigestContext_t *sha1, psDigestContext_t *sha256,
-				unsigned char *masterSecret, unsigned char *out, int32 sender);
 
 extern int32 tlsHMACSha1(ssl_t *ssl, int32 mode, unsigned char type,	
 						unsigned char *data, uint32 len, unsigned char *mac);
 
 extern int32 tlsHMACMd5(ssl_t *ssl, int32 mode, unsigned char type,	
 						unsigned char *data, uint32 len, unsigned char *mac);
-
+extern int32 prf(unsigned char *sec, uint32 secLen, unsigned char *seed,
+			   uint32 seedLen, unsigned char *out, uint32 outLen);
 #endif /* USE_TLS */
 
 
@@ -814,6 +795,24 @@ extern int32 csAesEncrypt(void *ssl, unsigned char *pt,
 extern int32 csAesDecrypt(void *ssl, unsigned char *ct,
 					 unsigned char *pt, uint32 len);
 #endif /* USE_AES_CIPHER_SUITE */
+#ifdef USE_3DES_CIPHER_SUITE
+extern int32 csDes3Encrypt(void *ssl, unsigned char *pt,
+					 unsigned char *ct, uint32 len);
+extern int32 csDes3Decrypt(void *ssl, unsigned char *ct,
+					 unsigned char *pt, uint32 len);
+#endif /* USE_3DES_CIPHER_SUITE */
+#ifdef USE_ARC4_CIPHER_SUITE
+extern int32 csArc4Encrypt(void *ssl, unsigned char *pt,unsigned char *ct,
+					uint32 len);
+extern int32 csArc4Decrypt(void *ssl, unsigned char *pt,unsigned char *ct,
+					uint32 len);
+#endif /* USE_ARC4_CIPHER_SUITE */
+#ifdef USE_SEED_CIPHER_SUITE
+extern int32 csSeedEncrypt(void *ssl, unsigned char *pt,
+					 unsigned char *ct, uint32 len);
+extern int32 csSeedDecrypt(void *ssl, unsigned char *ct,
+					 unsigned char *pt, uint32 len);
+#endif /* USE_SEED_CIPHER_SUITE */
 
 
 
@@ -821,6 +820,7 @@ extern int32 csAesDecrypt(void *ssl, unsigned char *ct,
 
 
 /******************************************************************************/
+
 
 #ifdef __cplusplus
 }

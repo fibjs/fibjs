@@ -1,11 +1,11 @@
 /*
  *	rsa.c
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  *
  *	RSA crypto
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -18,8 +18,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -34,7 +34,6 @@
 
 #include "../cryptoApi.h"
 
-#ifdef USE_RSA
 /******************************************************************************/
 /*
  *	Free an RSA key.  pstm_clear will zero the memory of each element and free it.
@@ -111,7 +110,8 @@ int32 psRsaCrypt(psPool_t *pool, const unsigned char *in, uint32 inlen,
 				psTraceCrypto("decrypt error: pstm_mulmod qP, p\n");
 				goto error;
 			}
-			if (pstm_mul_comba(pool, &tmp, &key->q, &tmp, NULL, 0) != PS_SUCCESS){
+			if (pstm_mul_comba(pool, &tmp, &key->q, &tmp, NULL, 0)
+					!= PS_SUCCESS){
 				psTraceCrypto("decrypt error: pstm_mul q \n");
 				goto error;
 			}
@@ -171,6 +171,37 @@ done:
 	return res;
 }
 
+/******************************************************************************/
+/*
+	RSA private encryption.
+*/
+int32 psRsaEncryptPriv(psPool_t *pool, psRsaKey_t *key,
+						 unsigned char *in, uint32 inlen,
+						 unsigned char *out, uint32 outlen, void *data)
+{
+	int32	err;
+	uint32	size;
+
+	size = key->size;
+	if (outlen < size) {
+		psTraceCrypto("Error on bad outlen parameter to psRsaEncryptPriv\n");
+		return PS_ARG_FAIL;
+	}
+	if ((err = pkcs1Pad(in, inlen, out, size, PUBKEY_TYPE)) < PS_SUCCESS) {
+		psTraceCrypto("Error padding psRsaEncryptPriv. Likely data too long\n");
+		return err;
+	}
+	if ((err = psRsaCrypt(pool, out, size, out, (uint32*)&outlen, key,
+			PRIVKEY_TYPE, data)) < PS_SUCCESS) {
+		psTraceCrypto("Error performing psRsaEncryptPriv\n");	
+		return err;
+	}
+	if (outlen != size) {
+		psTraceCrypto("Encrypted size error in psRsaEncryptPriv\n");
+		return PS_FAILURE;
+	}
+	return size;
+}
 
 /******************************************************************************/
 /*
@@ -197,7 +228,7 @@ int32 psRsaEncryptPub(psPool_t *pool, psRsaKey_t *key,
 	}
 	if ((err = psRsaCrypt(pool, out, size, out, (uint32*)&outlen, key,
 			PUBKEY_TYPE, data)) < PS_SUCCESS) {
-		psTraceCrypto("Error performing psRsaEncryptPriv\n");	
+		psTraceCrypto("Error performing psRsaEncryptPub\n");	
 		return err;
 	}
 	if (outlen != size) {
@@ -268,6 +299,82 @@ int32 psRsaDecryptPub(psPool_t *pool, psRsaKey_t *key,
 	}
 	return PS_SUCCESS;
 }
-#endif /* USE_RSA */
+
+
+#define ASN_OVERHEAD_LEN_RSA_SHA2	19
+#define ASN_OVERHEAD_LEN_RSA_SHA1	15
+
+int32 pubRsaDecryptSignedElement(psPool_t *pool, psPubKey_t *key, 
+			unsigned char *in, uint32 inlen, unsigned char *out, uint32 outlen,
+			void *data)
+{
+	unsigned char	*c, *front, *end;
+	uint32			outlenWithAsn, len;
+	int32			oi, rc, plen;
+	
+	 /* The	issue here is that the standard RSA decryption routine requires
+		the user to know the output length (usually just a hash size).  With
+		these "digitally signed elements" there is an algorithm
+		identifier surrounding the hash so we use the known magic numbers as
+		additional lengths of the wrapper since it is a defined ASN sequence,
+		ASN algorithm oid, and ASN octet string */
+	if (outlen == SHA256_HASH_SIZE) {
+		outlenWithAsn = SHA256_HASH_SIZE + ASN_OVERHEAD_LEN_RSA_SHA2;
+	} else if (outlen == SHA1_HASH_SIZE) {
+		outlenWithAsn = SHA1_HASH_SIZE + ASN_OVERHEAD_LEN_RSA_SHA1;
+	} else if (outlen == SHA384_HASH_SIZE) {
+		outlenWithAsn = SHA384_HASH_SIZE + ASN_OVERHEAD_LEN_RSA_SHA2;
+	} else {
+		psTraceIntCrypto("Unsupported decryptSignedElement hash %d\n", outlen); 
+		return PS_FAILURE;
+	}
+	front = c = psMalloc(pool, outlenWithAsn);
+	if (front == NULL) {
+		return PS_MEM_FAIL;
+	}
+	
+	psAssert(key->type == PS_RSA);
+	if ((rc = psRsaDecryptPub(pool, (psRsaKey_t*)key->key, in, inlen, c,
+			outlenWithAsn, data)) < 0) {
+		psTraceCrypto("Couldn't public decrypt signed element\n");
+		psFree(front);
+		return rc;
+	}
+		
+	/* Parse it */
+	end = c + outlenWithAsn;
+	
+	if (getAsnSequence(&c, (int32)(end - c), &len) < 0) {
+		psTraceCrypto("Couldn't parse signed element sequence\n");
+		psFree(front);
+		return PS_FAILURE;
+	}
+	if (getAsnAlgorithmIdentifier(&c, (int32)(end - c), &oi, 0, &plen) < 0) {
+		psTraceCrypto("Couldn't parse signed element octet string\n");
+		psFree(front);
+		return PS_FAILURE;
+	}
+	
+	if (oi == OID_SHA256_ALG) {
+		psAssert(outlen == SHA256_HASH_SIZE);
+	} else if (oi == OID_SHA1_ALG) {
+		psAssert(outlen == SHA1_HASH_SIZE);
+	} else {
+		psAssert(outlen == SHA384_HASH_SIZE);
+	}
+	
+	if ((*c++ != ASN_OCTET_STRING) ||
+			getAsnLength(&c, (int32)(end - c), &len) < 0) {
+		psTraceCrypto("Couldn't parse signed element octet string\n");
+		psFree(front);
+		return PS_FAILURE;
+	}
+	/* Will finally be sitting at the hash now */
+	memcpy(out, c, outlen);
+	psFree(front);
+	return outlen;	
+}
+
+
 
 /******************************************************************************/

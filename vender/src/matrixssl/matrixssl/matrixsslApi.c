@@ -1,11 +1,11 @@
 /*
  *	matrixsslApi.c
- *  Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *  Release $Name: MATRIXSSL-3-4-2-OPEN $
  * 
  *	MatrixSSL Public API Layer
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -18,8 +18,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -71,7 +71,7 @@ int32 matrixSslNewClientSession(ssl_t **ssl, sslKeys_t *keys,
 		sslSessionId_t *sid, uint32 cipherSpec,
 		int32 (*certCb)(ssl_t *ssl, psX509Cert_t *cert, int32 alert),
 		tlsExtension_t *extensions, int32 (*extCb)(ssl_t *ssl,
-		unsigned short extType, unsigned short extLen, void *e))
+		unsigned short extType, unsigned short extLen, void *e), int32 flags)
 {
 	ssl_t		*lssl;
 	psBuf_t		tmp;
@@ -97,7 +97,7 @@ int32 matrixSslNewClientSession(ssl_t **ssl, sslKeys_t *keys,
 		}
 	}
 
-	if ((rc = matrixSslNewSession(&lssl, keys, sid, 0)) < 0) {
+	if ((rc = matrixSslNewSession(&lssl, keys, sid, flags)) < 0) {
 		return rc;
 	}
 
@@ -108,7 +108,6 @@ int32 matrixSslNewClientSession(ssl_t **ssl, sslKeys_t *keys,
 	if (extCb) {
 		lssl->extCb = (sslExtCb_t)extCb;
 	}
-
 
 RETRY_HELLO:
 	tmp.size = lssl->outsize;
@@ -123,16 +122,47 @@ RETRY_HELLO:
 			lssl->outbuf = tmp.buf;
 			lssl->outsize = len;
 			goto RETRY_HELLO;
-		} else {
+		} else {			
 			matrixSslDeleteSession(lssl);
 			return rc;
 		}
-	}
+	}	
 	psAssert(tmp.start == tmp.buf);
 	lssl->outlen = tmp.end - tmp.start;
 	*ssl = lssl;
 	return MATRIXSSL_REQUEST_SEND;
 }
+
+/* SessionID management functions for clients that wish to perform
+	session resumption.  This structure handles both the traditional resumption
+	mechanism and the server-stateless session ticket mechanism
+*/
+int32 matrixSslNewSessionId(sslSessionId_t **sess)
+{
+	sslSessionId_t	*ses;
+
+	if ((ses = psMalloc(MATRIX_NO_POOL, sizeof(sslSessionId_t))) == NULL) {
+		return PS_MEM_FAIL;
+	}
+	memset(ses, 0x0, sizeof(sslSessionId_t));
+	*sess = ses;
+	return PS_SUCCESS;
+}
+
+void matrixSslClearSessionId(sslSessionId_t *sess)
+{
+	memset(sess, 0x0, sizeof(sslSessionId_t));
+}
+
+void matrixSslDeleteSessionId(sslSessionId_t *sess)
+{
+	if (sess == NULL) {
+		return;
+	}
+	memset(sess, 0x0, sizeof(sslSessionId_t));
+	psFree(sess);
+}
+
 #endif /* USE_CLIENT_SIDE_SSL */
 
 #ifdef USE_SERVER_SIDE_SSL
@@ -146,23 +176,36 @@ RETRY_HELLO:
 			< 0 on error
  */
 int32 matrixSslNewServerSession(ssl_t **ssl, sslKeys_t *keys,
-			int32 (*certCb)(ssl_t *ssl, psX509Cert_t *cert, int32 alert))
+			int32 (*certCb)(ssl_t *ssl, psX509Cert_t *cert, int32 alert),
+			int32 flags)
 {
 	ssl_t		*lssl;
-	int32		flags = SSL_FLAGS_SERVER;
+	int32		lflags = SSL_FLAGS_SERVER;
 	
 	if (!ssl) {
 		return PS_ARG_FAIL;
 	}
 	
+	lflags |= flags;
 	*ssl = NULL;
 	lssl = NULL;
 	
-
-	psAssert(certCb == NULL);
-	if (matrixSslNewSession(&lssl, keys, NULL, flags) < 0) {
+#ifdef USE_CLIENT_AUTH	
+	if (certCb) {
+		lflags |= SSL_FLAGS_CLIENT_AUTH;
+		if (matrixSslNewSession(&lssl, keys, NULL, lflags) < 0) {
+			goto NEW_SVR_ERROR;
+		}
+		matrixSslSetCertValidator(lssl, (sslCertCb_t)certCb);
+	} else if (matrixSslNewSession(&lssl, keys, NULL, lflags) < 0) {
 		goto NEW_SVR_ERROR;
 	}
+#else
+	psAssert(certCb == NULL);
+	if (matrixSslNewSession(&lssl, keys, NULL, lflags) < 0) {
+		goto NEW_SVR_ERROR;
+	}
+#endif /* USE_CLIENT_AUTH */
 
 #ifdef SSL_REHANDSHAKES_ENABLED
 	lssl->rehandshakeCount = DEFAULT_RH_CREDITS;
@@ -667,6 +710,13 @@ DECODE_MORE:
 			}
 		}
 		/* Let caller access the 2 data bytes (severity and description) */
+#ifdef USE_TLS_1_1
+		/* Been ignoring the explicit IV up to this final return point. */
+		if ((ssl->flags & SSL_FLAGS_READ_SECURE) &&
+				(ssl->flags & SSL_FLAGS_TLS_1_1) &&	(ssl->enBlockSize > 1)) {
+			prevBuf += ssl->enBlockSize;
+		}
+#endif /* USE_TLS_1_1 */		
 		psAssert(len == 2);
 		*ptbuf = prevBuf;
 		*ptlen = len;
@@ -720,6 +770,7 @@ DECODE_MORE:
 			buf = ssl->inbuf + len;
 			/* Note we leave inlen untouched here */
 		} else {
+			psTraceInfo("Encoding error. Possible wrong flight messagSize\n");
 			return PS_PROTOCOL_FAIL;	/* error in our encoding */
 		}
 		goto DECODE_MORE;
@@ -751,7 +802,7 @@ DECODE_MORE:
 		psAssert(ssl->bFlags & BFLAG_HS_COMPLETE);
 #ifdef USE_TLS_1_1
 		/* Been ignoring the explicit IV up to this final return point. */
-		if ((ssl->flags & SSL_FLAGS_WRITE_SECURE) &&
+		if ((ssl->flags & SSL_FLAGS_READ_SECURE) &&
 				(ssl->flags & SSL_FLAGS_TLS_1_1) &&	(ssl->enBlockSize > 1)) {
 			len -= ssl->enBlockSize;
 			prevBuf += ssl->enBlockSize;
@@ -804,7 +855,7 @@ int32 matrixSslProcessedData(ssl_t *ssl, unsigned char **ptbuf, uint32 *ptlen)
 	psAssert(ssl->insize > 0 && ssl->inbuf != NULL);
 	/* Move any remaining data to the beginning of the buffer */
 	if (ssl->inlen > 0) {
-		ctlen = ssl->rec.len + SSL3_HEADER_LEN;
+		ctlen = ssl->rec.len + ssl->recordHeadLen;
 		memmove(ssl->inbuf, ssl->inbuf + ctlen, ssl->inlen);
 	}
 	/* Shrink inbuf to default size once inlen < default size */
@@ -909,15 +960,20 @@ int32 matrixSslEncodeRehandshake(ssl_t *ssl, sslKeys_t *keys,
 		matrixSslSetSessionOption(ssl, SSL_OPTION_FULL_HANDSHAKE, NULL);
 	}
 
-	if (certCb != NULL) { 
+	if (certCb != NULL) { 	
+		matrixSslSetSessionOption(ssl, SSL_OPTION_FULL_HANDSHAKE, NULL);
+#if defined(USE_CLIENT_AUTH) || defined(USE_CLIENT_SIDE_SSL)
+		matrixSslSetCertValidator(ssl, (sslCertCb_t)certCb);
+#endif /* USE_CLIENT_AUTH || USE_CLIENT_SIDE_SSL */
+#if defined(USE_CLIENT_AUTH) && defined(USE_SERVER_SIDE_SSL) 		
+/*
+		If server, a certCb is an explicit flag to set client auth just as
+		it is in matrixSslNewServerSession
+*/		
 		if (ssl->flags & SSL_FLAGS_SERVER) {
-			psAssert(certCb == NULL);
-#ifdef USE_CLIENT_SIDE_SSL
-		} else {
-			matrixSslSetCertValidator(ssl, (sslCertCb_t)certCb);
-			matrixSslSetSessionOption(ssl, SSL_OPTION_FULL_HANDSHAKE, NULL);
-#endif /* USE_CLIENT_SIDE_SSL */
+			matrixSslSetSessionOption(ssl, SSL_OPTION_ENABLE_CLIENT_AUTH, NULL);
 		}
+#endif /* USE_CLIENT_AUTH && USE_SERVER_SIDE_SSL */
 	}	
 	
 /*
@@ -1036,11 +1092,85 @@ int32 matrixSslSentData(ssl_t *ssl, uint32 bytes)
 #ifdef USE_SSL_INFORMATIONAL_TRACE
 		/* Client side resumed completion or server standard completion */
 		matrixSslPrintHSDetails(ssl);
-#endif		
+#endif
 	}
 	return rc;
 }
 
 
+#ifdef USE_CRL
+/*
+	Called after key load if CRL location is expected to be embedded in the CA.
+	The user callback will be invoked with the URL and the responsibility of
+	the callback is to fetch the CRL and load it to the CA with matrixSslLoadCRL
+	
+	The numLoaded parameter indicates how many successful CRLs were loaded
+	if there are multiple CA files being processed here.
+	
+	Return codes:
+	< 0 - Error loading a CRL.  numLoaded indicates if some success
+	0 - No errors encountered.  numLoaded could be 0 if no CRLs found
+*/
+int32 matrixSslGetCRL(sslKeys_t	*keys, int32 (*crlCb)(psPool_t *pool,
+			psX509Cert_t *CA, int append, char *url, uint32 urlLen),
+			int32 *numLoaded)
+{
+	psX509Cert_t		*CA;
+	x509GeneralName_t	*gn;
+	unsigned char		*crlURI;
+	int32				rc, crlURILen;
+	
+	if (keys->CAcerts == NULL || crlCb == NULL) {
+		return PS_ARG_FAIL;
+	}
+	CA = keys->CAcerts;
+	
+	*numLoaded = rc = 0;
+	while (CA) {
+		if (CA->extensions.bc.cA > 0 && CA->extensions.crlDist != NULL) {
+			gn = CA->extensions.crlDist;
+			while (gn) {
+				if (gn->id == 6) { /* Only pass on URI types */
+					crlURI = gn->data;
+					crlURILen = gn->dataLen;
+					/* Invoke user callback to go fetch and load the CRL.
+						Do not use the append flag.  The specification says
+						that multiple names must be mechanims to access the
+						same CRL. */
+					if (crlCb(keys->pool, CA, 0, (char*)crlURI,
+							crlURILen) < 0) {
+						rc = -1;
+					}
+					(*numLoaded)++; /* Callback successfully loaded this CRL */
+				} else {
+					psTraceIntInfo("Unsupported CRL distro point format %d\n",
+						gn->id);
+				}
+				gn = gn->next; 
+			}
+		}
+		CA = CA->next;
+	}
+	return rc;
+}
+
+/*
+	If user already has a CRL buffer handy or call from the callback to load
+	a fetched one 
+	
+	Return codes:
+	< 0 - Error loading CRL
+	>= 0 - Success
+*/
+int32 matrixSslLoadCRL(psPool_t *pool, psX509Cert_t *CA, int append,
+						char *CRLbin, int32 CRLbinLen)
+{
+	if (CA == NULL) {
+		return PS_ARG_FAIL;
+	}
+	
+	return psX509ParseCrl(pool, CA, append, (unsigned char*)CRLbin, CRLbinLen);	
+}
+#endif		
 /******************************************************************************/
 

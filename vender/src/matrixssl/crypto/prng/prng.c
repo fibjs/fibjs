@@ -1,11 +1,11 @@
 /*
  *	prng.c
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  *
  *	Psuedo random number generation
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -18,8 +18,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -46,7 +46,7 @@ int32 psInitPrng(psRandom_t *ctx)
 #endif
 	
 	ctx->bytecount = 0;
-	ctx->callcount = 0;
+
 	
 #if defined(USE_FORTUNA) || defined(USE_YARROW)
 	if ((rc = psGetEntropy(entropyBytes, RANDOM_ENTROPY_BYTES)) < 0) {
@@ -82,12 +82,13 @@ static int32 readRandomData(psRandom_t *ctx, unsigned char *bytes, uint32 size)
 	Return random data.  The defines above control how often to add
 	entropy and reseed the key.
 */		
-	ctx->callcount++;
 	ctx->bytecount += size;
+
 
 	
 #ifdef USE_YARROW
 	if (ctx->bytecount >= RANDOM_BYTES_BEFORE_ENTROPY) {
+		ctx->bytecount = 0;
 		if ((rc = psGetEntropy(entropyBytes, RANDOM_ENTROPY_BYTES)) < 0) {
 			return rc;
 		}
@@ -95,13 +96,9 @@ static int32 readRandomData(psRandom_t *ctx, unsigned char *bytes, uint32 size)
 				&ctx->yarrow)) < 0) {
 			return rc;
 		}
-		ctx->bytecount = 0;
-	}
-	if (ctx->callcount >= RANDOM_CALLS_BEFORE_RESEED) {
 		if ((rc = psYarrowReseed(&ctx->yarrow)) < 0) {
 			return rc;
 		}
-		ctx->callcount = 0;
 	}
 	return psYarrowRead(bytes, size, &ctx->yarrow);
 #endif

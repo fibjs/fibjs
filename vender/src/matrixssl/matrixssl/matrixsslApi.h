@@ -1,13 +1,13 @@
 /*
  *	matrixsslApi.h
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  *	
  *	Public header file for MatrixSSL
  *	Implementations interacting with the matrixssl library should
  *	only use the APIs and definitions used in this file.
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -20,8 +20,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -85,6 +85,14 @@ PSPUBLIC int32	matrixSslLoadRsaKeysMem(sslKeys_t *keys,
 PSPUBLIC int32	matrixSslLoadPkcs12(sslKeys_t *keys, unsigned char *p12File,
 						unsigned char *importPass, int32 ipasslen,
 						unsigned char *macPass, int32 mpasslen, int32 flags);
+#ifdef USE_CRL
+PSPUBLIC int32 matrixSslGetCRL(sslKeys_t *keys,
+						int32 (*crlCb)(psPool_t *pool, psX509Cert_t *CA,
+						int append, char *url, uint32 urlLen),
+						int32 *numLoaded);
+PSPUBLIC int32 matrixSslLoadCRL(psPool_t *pool, psX509Cert_t *CA, int append,
+						char *CRLbin, int32 CRLbinLen);
+#endif
 
 /******************************************************************************/
 /*
@@ -119,13 +127,15 @@ PSPUBLIC int32	matrixSslEncodeRehandshake(ssl_t *ssl, sslKeys_t *keys,
 /*
 	Client side APIs
 */
-#define	matrixSslInitSessionId(SID) SID.cipherId = SSL_NULL_WITH_NULL_NULL
-	
+PSPUBLIC int32	matrixSslNewSessionId(sslSessionId_t **sid);
+PSPUBLIC void	matrixSslClearSessionId(sslSessionId_t *sess);
+PSPUBLIC void	matrixSslDeleteSessionId(sslSessionId_t *sid);
 PSPUBLIC int32	matrixSslNewClientSession(ssl_t **ssl, sslKeys_t *keys,
 					sslSessionId_t *sid, uint32 cipherSpec,
 					int32 (*certCb)(ssl_t *ssl, psX509Cert_t *cert,int32 alert),
 					tlsExtension_t *extensions,	int32 (*extCb)(ssl_t *ssl,
-					unsigned short extType, unsigned short extLen, void *e));
+					unsigned short extType, unsigned short extLen, void *e),
+					int32 flags);
 /* Hello extension support.  RFC 3546 */
 PSPUBLIC int32	matrixSslNewHelloExtension(tlsExtension_t **extension);
 PSPUBLIC int32	matrixSslLoadHelloExtension(tlsExtension_t *extension,
@@ -140,7 +150,8 @@ PSPUBLIC void	matrixSslDeleteHelloExtension(tlsExtension_t *extension);
 	Server side APIs
 */
 PSPUBLIC int32 matrixSslNewServerSession(ssl_t **ssl, sslKeys_t *keys,
-				int32 (*certCb)(ssl_t *ssl, psX509Cert_t *cert, int32 alert));
+				int32 (*certCb)(ssl_t *ssl, psX509Cert_t *cert, int32 alert),
+				int32 flags);
 PSPUBLIC int32 matrixSslSetCipherSuiteEnabledStatus(ssl_t *ssl, uint16 cipherId,
 				uint32 status);
 #endif /* USE_SERVER_SIDE_SSL */

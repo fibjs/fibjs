@@ -1,9 +1,9 @@
 /*
  *	x509.h
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -16,8 +16,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -120,9 +120,20 @@ typedef struct {
 	unsigned char				*keyUsage;
 	int32						keyUsageLen;
 #endif /* USE_FULL_CERT_PARSE */
+#ifdef USE_CRL
+	x509GeneralName_t			*crlDist;
+#endif
 } x509v3extensions_t;
 
 #endif /* USE_CERT_PARSE */
+
+#ifdef USE_CRL
+typedef struct x509revoked {
+	unsigned char		*serial;
+	uint32				serialLen;
+	struct x509revoked	*next;
+} x509revoked_t;
+#endif
 
 typedef struct psCert {
 #ifdef USE_CERT_PARSE
@@ -131,7 +142,8 @@ typedef struct psCert {
 	uint32				serialNumberLen;
 	x509DNattributes_t	issuer;
 	x509DNattributes_t	subject;
-	int32				timeType;
+	int32				notBeforeTimeType;
+	int32				notAfterTimeType;
 	char				*notBefore;
 	char				*notAfter;
 	psPubKey_t			publicKey;
@@ -140,13 +152,16 @@ typedef struct psCert {
 	int32				sigAlgorithm; /* signature algorithm OID */
 	unsigned char		*signature;
 	uint32				signatureLen;
-	unsigned char		sigHash[MAX_HASH_SIZE]; 
 	unsigned char		*uniqueIssuerId;
 	uint32				uniqueIssuerIdLen;
 	unsigned char		*uniqueSubjectId;
 	uint32				uniqueSubjectIdLen;
 	x509v3extensions_t	extensions;
 	int32				authStatus; /* See psX509AuthenticateCert doc */
+#ifdef USE_CRL
+	x509revoked_t		*revoked;
+#endif	
+	unsigned char		sigHash[MAX_HASH_SIZE];
 #endif /* USE_CERT_PARSE */	
 	unsigned char		*unparsedBin; /* see psX509ParseCertFile */ 
 	uint32				binLen;

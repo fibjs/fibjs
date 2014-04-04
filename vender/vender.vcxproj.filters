@@ -915,9 +915,6 @@
     <ClCompile Include="src\matrixssl\matrixssl\matrixsslApi.c">
       <Filter>Source Files\matrixssl\matrixssl</Filter>
     </ClCompile>
-    <ClCompile Include="src\matrixssl\matrixssl\nativeCrypto.c">
-      <Filter>Source Files\matrixssl\matrixssl</Filter>
-    </ClCompile>
     <ClCompile Include="src\matrixssl\matrixssl\sslDecode.c">
       <Filter>Source Files\matrixssl\matrixssl</Filter>
     </ClCompile>
@@ -1589,6 +1586,21 @@
     </ClCompile>
     <ClCompile Include="src\v8\src\hydrogen-store-elimination.cc">
       <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\matrixssl\hsHash.c">
+      <Filter>Source Files\matrixssl\matrixssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\matrixssl\prf.c">
+      <Filter>Source Files\matrixssl\matrixssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\math\pstm_montgomery_reduce.c">
+      <Filter>Source Files\matrixssl\crypto\math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\math\pstm_mul_comba.c">
+      <Filter>Source Files\matrixssl\crypto\math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\matrixssl\crypto\math\pstm_sqr_comba.c">
+      <Filter>Source Files\matrixssl\crypto\math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

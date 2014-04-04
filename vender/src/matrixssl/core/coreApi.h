@@ -1,11 +1,11 @@
 /*
  *	coreApi.h
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  *
  *	Prototypes for the Matrix core public APIs
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -18,8 +18,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -66,6 +66,7 @@
 #define PS_TIMEOUT_FAIL		-13 /* A timeout occurred and MAY be an error */
 #define PS_INTERRUPT_FAIL	-14 /* An interrupt occurred and MAY be an error */
 #define PS_PENDING			-15 /* In process. Not necessarily an error */ 
+#define PS_EAGAIN			-16 /* Try again later. Not necessarily an error */ 
 
 #define	PS_TRUE		1
 #define	PS_FALSE 	0	

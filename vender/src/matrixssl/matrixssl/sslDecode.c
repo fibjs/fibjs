@@ -1,11 +1,11 @@
 /*
  *	sslDecode.c
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  *
  *	Secure Sockets Layer protocol message decoding portion of MatrixSSL
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -18,8 +18,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -45,6 +45,7 @@ static int32 parseSingleCert(ssl_t *ssl, unsigned char *c, unsigned char *end,
 						   int32 certLen);
 #endif /* USE_CERT_CHAIN_PARSING */
 
+static int32 addCompressCount(ssl_t *ssl, int32 padLen);
 /******************************************************************************/
 /*
 	Parse incoming data per http://wp.netscape.com/eng/ssl3
@@ -106,6 +107,7 @@ int32 matrixSslDecode(ssl_t *ssl, unsigned char **buf, uint32 *len,
 	int32			rc;
 	unsigned char	padLen;
 	psBuf_t			tmpout;
+	psDigestContext_t	dummyMd;
 #ifdef USE_CERT_CHAIN_PARSING
 	int32			certlen, i, nextCertLen;
 #endif /* USE_CERT_CHAIN_PARSING */
@@ -224,9 +226,23 @@ int32 matrixSslDecode(ssl_t *ssl, unsigned char **buf, uint32 *len,
 	if (ssl->hsState != SSL_HS_SERVER_HELLO &&
 			ssl->hsState != SSL_HS_CLIENT_HELLO) {
 		if (ssl->rec.majVer != ssl->majVer || ssl->rec.minVer != ssl->minVer) {
+#ifdef SSL_REHANDSHAKES_ENABLED
+			/* If in DONE state and this version doesn't match the previously
+				negotiated one that can be OK because a CLIENT_HELLO for a
+				rehandshake might be acting like a first time send and using
+				a lower version to get to the parsing phase.  Unsupported 
+				versions will be weeded out at CLIENT_HELLO parse time */
+			if (ssl->hsState != SSL_HS_DONE ||
+					ssl->rec.type != SSL_RECORD_TYPE_HANDSHAKE) {
+				ssl->err = SSL_ALERT_ILLEGAL_PARAMETER;
+				psTraceInfo("Record header version not valid\n");
+				goto encodeResponse;
+			}
+#else
 			ssl->err = SSL_ALERT_ILLEGAL_PARAMETER;
 			psTraceInfo("Record header version not valid\n");
 			goto encodeResponse;
+#endif	
 		}
 	}
 /*
@@ -375,7 +391,38 @@ SKIP_RECORD_PARSE:
 */
 	ctStart = origbuf; /* Clear-text start.  Decrypt to the front */
 
-	if (ssl->decrypt(&ssl->sec.decryptCtx, c, ctStart, ssl->rec.len) < 0) {
+
+	/* Sanity check ct len.  Step 1 of Lucky 13 MEE-TLS-CBC decryption. 
+		max{b, t + 1} is always "t + 1" because largest possible blocksize
+		is 16 and smallest possible tag len is 16. Multiple of block size test
+		is done in decrypt */
+	if ((ssl->flags & SSL_FLAGS_READ_SECURE) && (ssl->deBlockSize > 1)) {
+
+#ifdef USE_TLS_1_1
+		if (ssl->flags & SSL_FLAGS_TLS_1_1) {
+			if (ssl->rec.len < (ssl->deMacSize + 1 + ssl->deBlockSize)) {
+				ssl->err = SSL_ALERT_DECRYPTION_FAILED;
+				psTraceInfo("Ciphertext length failed sanity\n"); 
+				goto encodeResponse;
+			}
+		} else {
+			if (ssl->rec.len < (ssl->deMacSize + 1)) {
+				ssl->err = SSL_ALERT_DECRYPTION_FAILED;
+				psTraceInfo("Ciphertext length failed sanity\n"); 
+				goto encodeResponse;
+			}
+		}
+#else
+		if (ssl->rec.len < (ssl->deMacSize + 1)) {
+			ssl->err = SSL_ALERT_DECRYPTION_FAILED;
+			psTraceInfo("Ciphertext length failed sanity\n"); 
+			goto encodeResponse;
+		}
+#endif /* USE_TLS_1_1 */
+	}
+
+	/* CT to PT */
+	if (ssl->decrypt(ssl, c, ctStart, ssl->rec.len) < 0) {
 		ssl->err = SSL_ALERT_DECRYPTION_FAILED;
 		psTraceInfo("Couldn't decrypt record data\n"); 
 		goto encodeResponse;
@@ -394,16 +441,10 @@ SKIP_RECORD_PARSE:
 */
 	if (ssl->flags & SSL_FLAGS_READ_SECURE) {
 /*
-		Verify the record is at least as big as the MAC
 		Start tracking MAC errors, rather then immediately catching them to
 		stop timing and alert description attacks that differentiate between
 		a padding error and a MAC error.
 */
-		if (ssl->rec.len < ssl->deMacSize) {
-			ssl->err = SSL_ALERT_BAD_RECORD_MAC;
-			psTraceInfo("Record length too short for MAC\n");
-			goto encodeResponse;
-		}
 		macError = 0;
 /*
 		Decode padding only if blocksize is > 0 (we're using a block cipher),
@@ -414,6 +455,25 @@ SKIP_RECORD_PARSE:
 			mac = ctStart + ssl->rec.len - ssl->deMacSize;
 		} else {
 /*
+			The goal from here through completion of ssl->verifyMac call is a
+			constant processing time for a given record length.  Going to
+			follow the suggestions of the Lucky 13 research paper section
+			"Careful implementation of MEE-TLS-CBC decryption".
+			http://www.isg.rhul.ac.uk/tls/TLStiming.pdf
+
+			Consistent timing is still a "goal" here.  This implementation
+			accounts for the largest timing discrepencies but is not a 
+			strict "clock cycles" equalizer.  The complexity of the attack
+			circumstances and plaintext recovery possibilities using these
+			techniques is almost entirely in the academic realm. Improvements
+			to this code will be an ongoing process as research uncovers
+			more practical plaintext recovery threats.
+			
+			Our first step is to create a hash context that might possibly
+			be used to compress some dummy data for Step 5.
+*/
+				psSha1Init(&dummyMd);
+/*			
 			Verify the pad data for block ciphers
 			c points within the cipher text, p points within the plaintext
 			The last byte of the record is the pad length
@@ -426,14 +486,25 @@ SKIP_RECORD_PARSE:
 */
 			if (ssl->majVer == SSL3_MAJ_VER && ssl->minVer == SSL3_MIN_VER && 
 					padLen >= ssl->deBlockSize) {
-				macError++;
+				macError = 1;
 			}
 /*
 			The minimum record length is the size of the mac, plus pad bytes
 			plus one length byte
 */
 			if (ssl->rec.len < ssl->deMacSize + padLen + 1) {
-				macError++;
+				/* Step 3 of Lucky 13 MEE-TLS-CBC decryption: Run a loop as
+					if there were 256 bytes of padding, with a dummy check
+					in each iteration*/
+				for (rc = 255; rc >= 0; rc--) {
+					/* make the test a moving target so it doesn't get 
+						optimized out at compile. The loop is written
+						this way so the macError assignment will be done
+						only once */
+					if ((unsigned char)rc == padLen) {
+						macError = 1;	/* No incr to avoid any wraps */
+					}
+				}
 			}
 #ifdef USE_TLS
 /*
@@ -447,9 +518,23 @@ SKIP_RECORD_PARSE:
 					ssl->minVer >= TLS_MIN_VER) {
 				for (mac = p - padLen - 1; mac < p; mac++) {
 					if (*mac != padLen) {
-						macError = 1;	/* Don't ++, we could wrap to zero!!! */
+						macError = 1;
 					}
 				}
+				/* Lucky 13 step 4. If this fails, then run a loop as if there
+					were 256 - padlen - 1 bytes of padding, with a dummy
+					check in each iteration */
+				if (macError) {
+					for (rc = 256 - padLen - 1; rc > 0; rc--) {
+						/* make the test a moving target so it doesn't get 
+							optimized out at compile.  Again, make it so
+							the loop condition doesn't get hit more than
+							once. */
+						if ((unsigned char)rc == padLen) {
+							macError = 2; /* change value for smart compilers */
+						}
+					}
+				}	
 			}
 #endif /* USE_TLS */
 /*
@@ -459,8 +544,23 @@ SKIP_RECORD_PARSE:
 			against, we'll fail anyway, so the actual contents don't matter.
 */
 			if (!macError) {
+				/* No padding errors */
 				mac = p - padLen - 1 - ssl->deMacSize;
+				/* Lucky 13 step 5: Otherwise (the padding is now correctly
+					formatted) run a loop as if there were 256 - padlen - 1
+					bytes of padding, doing a dummy check in each iteration */
+				for (rc = 256 - padLen - 1; rc > 0; rc--) {
+					/* make this test look like the others */
+					if ((unsigned char)rc == padLen) {
+						macError = 1; /* not really an error.  reset below */
+					}
+				}	
+				macError = 0;
 			} else {
+				/* Lucky 13 step 3 and 4 condition:  Then let P' denote the ﬁrst
+					plen - t bytes of P, compute a MAC on SQN||HDR||P' and do a
+					constant-time comparison of the computed MAC with the
+					last t bytes of P. Return fatal error. */
 				mac = origbuf + ssl->rec.len - ssl->deMacSize;
 			}
 		}
@@ -471,23 +571,39 @@ SKIP_RECORD_PARSE:
 		Clear the mac in the callers buffer if we're successful
 */
 #ifdef USE_TLS_1_1
-		if ((ssl->flags & SSL_FLAGS_TLS_1_1) && (ssl->deBlockSize > 1) &&
-				(ssl->flags & SSL_FLAGS_READ_SECURE)) {
+		if ((ssl->flags & SSL_FLAGS_TLS_1_1) && (ssl->deBlockSize > 1)) {
 			ctStart += ssl->deBlockSize; /* skip explicit IV */
 		}
 #endif		
+		if (ssl->deBlockSize > 1) {
+			/* Run this helper regardless of error status thus far */
+			rc = addCompressCount(ssl, padLen);
+			if (macError == 0) {
+			/* Lucky 13 Step 5.  Doing this extra MAC compression here rather
+				than inside the real verify to keep this code patch at the
+				protocol level.
+			*/
+					while (rc > 0) {
+						sha1_compress(&dummyMd);
+						rc--;
+					}
+			}
+		}
+		
 		if (ssl->verifyMac(ssl, ssl->rec.type, ctStart, 
 				(uint32)(mac - ctStart), mac) < 0 || macError) {
 			ssl->err = SSL_ALERT_BAD_RECORD_MAC;
 			psTraceInfo("Couldn't verify MAC or pad of record data\n");
 			goto encodeResponse;
 		}
+		
 		memset(mac, 0x0, ssl->deMacSize);
 /*
 		Record data starts at ctStart and ends at mac
 */
 		p = ctStart;
 		pend = mac;
+		
 	} else {
 /*
 		The record data is the entire record as there is no MAC or padding
@@ -702,7 +818,7 @@ SKIP_RECORD_PARSE:
 
 */
 		*buf = c;
-		*remaining = *len - (c - origbuf);
+		*remaining = *len - (c - origbuf);	
 		*len = mac - origbuf;
 /*
 		SECURITY - If the mac is at the current out->end, then there is no data 
@@ -793,6 +909,8 @@ encodeResponse:
 	*alertDescription = SSL_ALERT_NONE;
 	if (rc == MATRIXSSL_SUCCESS) {
 		if (ssl->err != SSL_ALERT_NONE) {
+			/* We know this is always a fatal alert due to an error in
+				message parsing or creation so flag this session as error */
 			ssl->flags |= SSL_FLAGS_ERROR;
 /*
 			If tmpbuf has data, it is an alert that needs to be sent so let
@@ -838,6 +956,42 @@ encodeResponse:
 	return MATRIXSSL_ERROR;
 }
 
+/* Return the number of additional MAC compressions that are needed to blind
+	the padding/hmac logic for thwarting Lucky 13 style attacks
+*/
+static int32 addCompressCount(ssl_t *ssl, int32 padLen)
+{
+	int32	l1, l2, c1, c2, len;
+	
+	c1 = c2 = 0;
+	len = ssl->rec.len;
+	
+#ifdef USE_TLS_1_1
+	if (ssl->flags & SSL_FLAGS_TLS_1_1) {
+		len -= ssl->deBlockSize; /* skip explicit IV */
+	}
+#endif	
+	l1 = 13 + len - ssl->deMacSize;
+	l2 = 13 + len - padLen - 1 - ssl->deMacSize;
+	
+	if (ssl->deMacSize == SHA1_HASH_SIZE || ssl->deMacSize == SHA256_HASH_SIZE){
+		while (l1 > 64) {
+			c1++; l1 -= 64;
+		} 
+		if (l1 > 56) {
+			c1++;
+		}
+		while (l2 > 64) {
+			c2++; l2 -= 64;
+		}
+		if (l2 > 56) {
+			c2++;
+		}
+	}
+
+	return c1 - c2;
+}
+
 /******************************************************************************/
 /*
 	The workhorse for parsing handshake messages.  Also enforces the state
@@ -852,15 +1006,19 @@ encodeResponse:
 		MATRIXSSL_SUCCESS
 		SSL_PROCESS_DATA
 		MATRIXSSL_ERROR - see ssl->err for details
+		MEM_FAIL 
+		-MATRIXSSL_ERROR and MEM_FAIL will be caught and an alert sent.  If you
+			want to specifiy the alert the set ss->err.  Otherwise it will
+			be an INTERNAL_ERROR
 */
 static int32 parseSSLHandshake(ssl_t *ssl, char *inbuf, uint32 len)
 {
 	unsigned char	*c, *end;
 	unsigned char	hsType;
-	int32			rc;
+	int32			rc, i;
 	short			renegotiationExt;
 	uint32			hsLen, extLen, extType, cipher = 0;
-	unsigned char	hsMsgHash[MD5_HASH_SIZE + SHA1_HASH_SIZE];
+	unsigned char	hsMsgHash[SHA384_HASH_SIZE];
 	psPool_t	*pkiPool;
 	void		*rsaData = NULL;
 
@@ -868,6 +1026,10 @@ static int32 parseSSLHandshake(ssl_t *ssl, char *inbuf, uint32 len)
 	unsigned char	*p;
 	int32			suiteLen;
 	uint32			challengeLen, pubKeyLen;
+#ifdef USE_CLIENT_AUTH
+	int32			certVerifyLen;
+	unsigned char	certVerify[SHA384_HASH_SIZE];
+#endif /* USE_CLIENT_AUTH */
 #endif /* USE_SERVER_SIDE_SSL */
 
 #ifdef USE_CLIENT_SIDE_SSL
@@ -877,7 +1039,7 @@ static int32 parseSSLHandshake(ssl_t *ssl, char *inbuf, uint32 len)
 #endif /* USE_CLIENT_SIDE_SSL */
 
 #ifdef USE_CLIENT_SIDE_SSL
-	int32			certChainLen, i, parseLen = 0;
+	int32			certChainLen, parseLen = 0;
 	uint32			certLen;
 	psX509Cert_t	*cert, *currentCert;
 #endif /* USE_CLIENT_SIDE_SSL */
@@ -887,8 +1049,8 @@ static int32 parseSSLHandshake(ssl_t *ssl, char *inbuf, uint32 len)
 	rc = MATRIXSSL_SUCCESS;
 	c = (unsigned char*)inbuf;
 	end = (unsigned char*)(inbuf + len);
-
-	/* Immediately check if we are working with a fragmented message */
+	
+	/* Immediately check if we are working with a fragmented message. */
 	if (ssl->fragMessage != NULL) {
 		/* Just borrowing hsLen variable.  Is the rest here or do we still
 			need more? */
@@ -977,6 +1139,7 @@ parseHandshake:
 			ssl->hsState = hsType;
 			goto hsStateDetermined;
 		}
+		
 
 
 
@@ -1019,6 +1182,13 @@ hsStateDetermined:
 		sslSnapshotHSHash(ssl, hsMsgHash, 
 			(ssl->flags & SSL_FLAGS_SERVER) ? 0 : SSL_FLAGS_SERVER);
 	}
+#ifdef USE_CLIENT_AUTH
+	if (ssl->hsState == SSL_HS_CERTIFICATE_VERIFY) {
+		/* Same issue as above for client auth.  Need a handshake snapshot
+			that doesn't include this message we are about to process */
+		sslSnapshotHSHash(ssl, hsMsgHash, -1);
+	}
+#endif /* USE_CLIENT_AUTH */
 
 /*
 	Process the handshake header and update the ongoing handshake hash
@@ -1208,6 +1378,7 @@ SKIP_HSHEADER_PARSE:
 					ssl->flags &= ~SSL_FLAGS_CLIENT_AUTH;
 					ssl->flags |= SSL_FLAGS_RESUMED;
 				} else {
+					ssl->flags &= ~SSL_FLAGS_RESUMED;
 					memset(ssl->sessionId, 0, SSL_MAX_SESSION_ID_SIZE);
 					ssl->sessionIdLen = 0;
 				}
@@ -1295,7 +1466,7 @@ SKIP_HSHEADER_PARSE:
 			}
 
 /*
-			Bypass the compression parameters.  Only supporting mandatory NULL
+			Compression parameters
 */
 			if (end - c < 1) {
 				ssl->err = SSL_ALERT_DECODE_ERROR;
@@ -1403,6 +1574,8 @@ SKIP_HSHEADER_PARSE:
 /*
 			Handle the extensions that were missing or not what we wanted
 */
+
+
 #ifdef ENABLE_SECURE_REHANDSHAKES
 			if (renegotiationExt == 0) {
 #ifdef REQUIRE_SECURE_REHANDSHAKES
@@ -1538,6 +1711,14 @@ SKIP_HSHEADER_PARSE:
 		} else {
 		
 			ssl->hsState = SSL_HS_CLIENT_KEY_EXCHANGE;
+#ifdef USE_CLIENT_AUTH
+/*
+			Next state in client authentication case is to receive the cert
+*/
+			if (ssl->flags & SSL_FLAGS_CLIENT_AUTH) {
+					ssl->hsState = SSL_HS_CERTIFICATE;
+			}
+#endif /* USE_CLIENT_AUTH */
 		}
 /*
 		Now that we've parsed the ClientHello, we need to tell the caller that
@@ -1586,10 +1767,8 @@ SKIP_HSHEADER_PARSE:
 
 
 
-/*
-				Standard RSA suite
-				Now have a handshake pool to allocate the premaster storage
-*/
+				/*	Standard RSA suite. Now have a handshake pool to allocate
+					the premaster storage */
 				ssl->sec.premasterSize = SSL_HS_RSA_PREMASTER_SIZE;
 				ssl->sec.premaster = psMalloc(ssl->hsPool,
 					SSL_HS_RSA_PREMASTER_SIZE);
@@ -1601,7 +1780,7 @@ SKIP_HSHEADER_PARSE:
 
 				if ((extLen = csRsaDecryptPriv(pkiPool, ssl->keys->privKey, c,
 						pubKeyLen, ssl->sec.premaster, ssl->sec.premasterSize,
-						rsaData)) != (int32)ssl->sec.premasterSize) {
+						rsaData)) != ssl->sec.premasterSize) {
 					ssl->err = SSL_ALERT_DECRYPT_ERROR;
 					return MATRIXSSL_ERROR;
 				}
@@ -1643,13 +1822,36 @@ SKIP_HSHEADER_PARSE:
 		Update the cached session (if found) with the masterSecret and
 		negotiated cipher.	
 */
-		sslCreateKeys(ssl);
+		if (sslCreateKeys(ssl) < 0) {
+			ssl->err = SSL_ALERT_INTERNAL_ERROR;
+			return MATRIXSSL_ERROR;
+		}
 		matrixUpdateSession(ssl);
 
 		c += pubKeyLen;
 		ssl->hsState = SSL_HS_FINISHED;
 
 
+#ifdef USE_CLIENT_AUTH
+/*
+		In the non client auth case, we are done with the handshake pool
+*/
+		if (!(ssl->flags & SSL_FLAGS_CLIENT_AUTH)) {
+			ssl->hsPool = NULL;
+		}
+#else
+		ssl->hsPool = NULL;
+#endif
+
+
+#ifdef USE_CLIENT_AUTH
+/*
+		Tweak the state here for client authentication case
+*/
+		if (ssl->flags & SSL_FLAGS_CLIENT_AUTH) {	
+			ssl->hsState = SSL_HS_CERTIFICATE_VERIFY;		
+		}
+#endif /* USE_CLIENT_AUTH */
 		break;
 #endif /* USE_SERVER_SIDE_SSL */
 
@@ -1723,7 +1925,7 @@ SKIP_HSHEADER_PARSE:
 #ifdef USE_SSL_INFORMATIONAL_TRACE
 				/* Server side resumed completion */
 				matrixSslPrintHSDetails(ssl);
-#endif		
+#endif
 			}
 		} else {
 			if (ssl->flags & SSL_FLAGS_RESUMED) {
@@ -1929,12 +2131,11 @@ SKIP_HSHEADER_PARSE:
 		}
 
 /*
-		Decode the compression parameters.  Always zero.
-		There are no compression schemes defined for SSLv3
+		Decode the compression parameters.
 */
-		if (end - c < 1 || *c != 0) {
+		if (end - c < 1) {
 			ssl->err = SSL_ALERT_ILLEGAL_PARAMETER;
-			psTraceInfo("Invalid compression value\n");
+			psTraceInfo("Expected compression value\n");
 			return MATRIXSSL_ERROR;
 		}
 /*
@@ -2059,6 +2260,9 @@ SKIP_HSHEADER_PARSE:
 			psTraceInfo("Server ignored max fragment length ext request\n");
 			ssl->maxPtFrag = SSL_MAX_PLAINTEXT_LEN;
 		}
+		
+		
+		
 #ifdef ENABLE_SECURE_REHANDSHAKES
 		if (renegotiationExt == 0) {
 #ifdef REQUIRE_SECURE_REHANDSHAKES		
@@ -2089,7 +2293,10 @@ SKIP_HSHEADER_PARSE:
 		
 						
 		if (ssl->flags & SSL_FLAGS_RESUMED) {
-			sslCreateKeys(ssl);
+			if (sslCreateKeys(ssl) < 0) {
+				ssl->err = SSL_ALERT_INTERNAL_ERROR;
+				return MATRIXSSL_ERROR;
+			}
 			ssl->hsState = SSL_HS_FINISHED;
 		} else {
 			ssl->hsState = SSL_HS_CERTIFICATE;
@@ -2127,6 +2334,13 @@ SKIP_HSHEADER_PARSE:
 		certChainLen |= *c << 8; c++;
 		certChainLen |= *c; c++;
 		if (certChainLen == 0) {
+#ifdef SERVER_WILL_ACCEPT_EMPTY_CLIENT_CERT_MSG
+			if (ssl->flags & SSL_FLAGS_SERVER) {
+				ssl->err = SSL_ALERT_BAD_CERTIFICATE;
+				ssl->flags &= ~SSL_FLAGS_CLIENT_AUTH;
+				goto STRAIGHT_TO_USER_CALLBACK;
+			}
+#endif
 			if (ssl->majVer == SSL3_MAJ_VER && ssl->minVer == SSL3_MIN_VER) {
 				ssl->err = SSL_ALERT_NO_CERTIFICATE;
 			} else {
@@ -2186,7 +2400,7 @@ SKIP_HSHEADER_PARSE:
 			}
 /*
 			Extract the binary cert message into the cert structure
-*/
+*/			
 			if ((parseLen = psX509ParseCert(ssl->hsPool, c, certLen, &cert, 0))
 					< 0) {
 				psX509FreeCert(cert);
@@ -2212,6 +2426,27 @@ SKIP_HSHEADER_PARSE:
 		}
 #endif /* USE_CERT_CHAIN_PARSING */
 
+#ifdef USE_CLIENT_SIDE_SSL
+/*
+		Now want to test to see if supplied parent-most cert is the appropriate
+		authenitcation algorithm for the chosen cipher suite.  Have seen test
+		cases with OpenSSL where an RSA cert will be sent for an ECDHE_ECDSA
+		suite, for example.  Just testing on the client side because client
+		auth is a bit more flexible on the algorithm choices.
+		
+		'cert' is pointing to parent-most in chain
+*/
+		if (!(ssl->flags & SSL_FLAGS_SERVER)) {
+			if (csCheckCertAgainstCipherSuite(cert->sigAlgorithm,
+					ssl->cipher->type) == 0) {
+				psTraceIntInfo("Server sent bad sig alg for cipher suite %d\n",
+					cert->sigAlgorithm);
+				ssl->err = SSL_ALERT_UNSUPPORTED_CERTIFICATE;
+				return MATRIXSSL_ERROR;
+			}
+		}
+#endif		
+		
 /*
 		Time to authenticate the supplied cert against our CAs
 */
@@ -2239,7 +2474,9 @@ SKIP_HSHEADER_PARSE:
 			case PS_CERT_AUTH_FAIL_SIG:
 				ssl->err = SSL_ALERT_BAD_CERTIFICATE;
 				break;
-
+			case PS_CERT_AUTH_FAIL_REVOKED:
+				ssl->err = SSL_ALERT_CERTIFICATE_REVOKED;
+				break;
 			case PS_CERT_AUTH_FAIL_BC:
 			case PS_CERT_AUTH_FAIL_DN:
 /*
@@ -2296,6 +2533,9 @@ SKIP_HSHEADER_PARSE:
 			}
 		}
 
+#ifdef SERVER_WILL_ACCEPT_EMPTY_CLIENT_CERT_MSG
+STRAIGHT_TO_USER_CALLBACK:
+#endif
 
 /*
 		Return from user validation space with knowledge that there is a fatal
@@ -2368,9 +2608,9 @@ SKIP_HSHEADER_PARSE:
 			return MATRIXSSL_ERROR;
 		}
 /*
-		Currently ignoring the authentication type request because only
-		certificate based auth is supported (RSA_SIGN or ECDSA_SIGN) and
-		if a matching cert is not located, no certificate message is sent
+		Currently ignoring the authentication type request because it was
+		underspecified up to TLS 1.1 and TLS 1.2 is now taking care of this
+		with the supported_signature_algorithms handling
 */
 		certTypeLen = *c++;
 		if (end - c < certTypeLen) {
@@ -2379,6 +2619,7 @@ SKIP_HSHEADER_PARSE:
 			return MATRIXSSL_ERROR;
 		}
 		c += certTypeLen; /* Skipping (RSA_SIGN etc.) */
+	
 		certChainLen = 0;
 		if (end - c > 1) {
 			certChainLen = *c << 8; c++;
@@ -2395,6 +2636,17 @@ SKIP_HSHEADER_PARSE:
 */
 		ssl->sec.certMatch = 0;
 		
+#ifdef USE_CLIENT_AUTH		
+/*
+		If the user has actually gone to the trouble to load a certificate
+		to reply with, we flag that here so there is some flexibility as
+		to whether we want to reply with something (even if it doesn't match)
+		just in case the server is willing to do a custom test of the cert
+*/
+		if (ssl->keys != NULL && ssl->keys->cert) {
+			ssl->sec.certMatch = SSL_ALLOW_ANON_CONNECTION;
+		}
+#endif /* USE_CLIENT_AUTH */
 		
 		while (certChainLen > 0) {
 			certLen = *c << 8; c++;
@@ -2404,12 +2656,64 @@ SKIP_HSHEADER_PARSE:
 				psTraceInfo("Invalid CertificateRequest message\n");
 				return MATRIXSSL_ERROR;
 			}
+#ifdef USE_CLIENT_AUTH
+/*
+			Can parse the message, but will not look for a match.  The
+			setting of certMatch to 1 will trigger the correct response
+			in sslEncode
+*/
+			if (ssl->keys != NULL && ssl->keys->cert) {
+/*				
+				Flag a match if the hash of the DN issuer is identical
+*/ 
+				if (ssl->keys->cert->issuer.dnencLen == certLen) {
+					if (memcmp(ssl->keys->cert->issuer.dnenc, c, certLen) == 0){
+						ssl->sec.certMatch = 1;
+					}
+				}
+			}		
+#endif /* USE_CLIENT_AUTH */
 			c += certLen;
 			certChainLen -= (2 + certLen);
 		}	
 		ssl->hsState = SSL_HS_SERVER_HELLO_DONE;
 		break;
 #endif /* USE_CLIENT_SIDE_SSL */
+
+#if defined(USE_CLIENT_AUTH) && defined(USE_SERVER_SIDE_SSL)
+	case SSL_HS_CERTIFICATE_VERIFY: 
+		psTraceHs(">>> Server parsing CERTIFICATE_VERIFY message\n");
+		
+		certVerifyLen =  MD5_HASH_SIZE + SHA1_HASH_SIZE;
+			
+		pubKeyLen = *c << 8; c++;
+		pubKeyLen |= *c; c++;
+		if ((uint32)(end - c) < pubKeyLen) {
+			ssl->err = SSL_ALERT_DECODE_ERROR;
+			psTraceInfo("Invalid Certificate Verify message\n");
+			return MATRIXSSL_ERROR;
+		}
+/*
+		The server side verification of client identity.  If we can match
+		the signature we know the client has possesion of the private key.
+*/
+		pkiPool = NULL;
+		
+		if (csRsaDecryptPub(pkiPool, &ssl->sec.cert->publicKey, c,
+				pubKeyLen, certVerify, certVerifyLen, rsaData) < 0) {
+			psTraceInfo("Unable to publicly decrypt Certificate Verify message\n");
+			return MATRIXSSL_ERROR;
+		}
+		
+		if (memcmp(certVerify, hsMsgHash, certVerifyLen) != 0) {
+			psTraceInfo("Unable to verify client certificate signature\n");
+			return MATRIXSSL_ERROR;
+		}
+		
+		c += pubKeyLen;
+		ssl->hsState = SSL_HS_FINISHED;
+		break;
+#endif /* USE_SERVER_SIDE_SSL && USE_CLIENT_AUTH */
 
 
 	default:

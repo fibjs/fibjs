@@ -1,9 +1,9 @@
 /*
  *	pubkey.h
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -16,8 +16,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -65,7 +65,6 @@
 #endif
 
 /******************************************************************************/
-#ifdef USE_RSA
 /******************************************************************************/
 /*
     Primary RSA Key struct.  Define here for crypto
@@ -77,7 +76,6 @@ typedef struct {
 } psRsaKey_t;
 
 
-#endif /* USE_RSA */
 /******************************************************************************/
 
 /******************************************************************************/
@@ -95,12 +93,9 @@ typedef struct {
 	may be private keys.
 */
 /******************************************************************************/
+
 typedef union {
-#ifdef USE_RSA
     psRsaKey_t	rsa;
-#else
-	short		notEmpty; /* Prevents from being empty */
-#endif /* USE_RSA */
 } pubKeyUnion_t;
 
 typedef struct {
@@ -108,6 +103,7 @@ typedef struct {
 	uint32			keysize; /* in bytes */
 	int32			type; /* PS_RSA, PS_ECC, PS_DH */ 
 } psPubKey_t;
+
 
 /******************************************************************************/
 /*
@@ -118,9 +114,7 @@ extern int32 pkcs1Pad(unsigned char *in, uint32 inlen, unsigned char *out,
 extern int32 pkcs1Unpad(unsigned char *in, uint32 inlen, unsigned char *out,
 				uint32 outlen, int32 decryptType);
 
-#ifdef USE_RSA				
 extern void psRsaFreeKey(psRsaKey_t *key);
-#endif /* USE_RSA */
 /******************************************************************************/
 #endif /* _h_PS_PUBKEY */
 

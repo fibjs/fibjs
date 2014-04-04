@@ -1,11 +1,11 @@
 /*
  *	pkcs.c
- *	Release $Name: MATRIXSSL-3-3-1-OPEN $
+ *	Release $Name: MATRIXSSL-3-4-2-OPEN $
  *
  *	Collection of RSA PKCS standards 
  */
 /*
- *	Copyright (c) AuthenTec, Inc. 2011-2012
+ *	Copyright (c) 2013 INSIDE Secure Corporation
  *	Copyright (c) PeerSec Networks, 2002-2011
  *	All Rights Reserved
  *
@@ -18,8 +18,8 @@
  *
  *	This General Public License does NOT permit incorporating this software 
  *	into proprietary programs.  If you are unable to comply with the GPL, a 
- *	commercial license for this software may be purchased from AuthenTec at
- *	http://www.authentec.com/Products/EmbeddedSecurity/SecurityToolkits.aspx
+ *	commercial license for this software may be purchased from INSIDE at
+ *	http://www.insidesecure.com/eng/Company/Locations
  *	
  *	This program is distributed in WITHOUT ANY WARRANTY; without even the 
  *	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -152,7 +152,6 @@ int32 pkcs1Unpad(unsigned char *in, uint32 inlen, unsigned char *out,
 }
 
 #ifdef USE_PRIVATE_KEY_PARSING
-#ifdef USE_RSA
 /******************************************************************************/
 /*
 	Parse a a private key structure in DER formatted ASN.1
@@ -242,7 +241,8 @@ int32 pkcs1ParsePrivBin(psPool_t *pool, unsigned char *p,
 	(*pubkey)->keysize = key->size;
 	return PS_SUCCESS;
 }
-#endif /* USE_RSA */
+
+
 
 #ifdef USE_PKCS8
 /******************************************************************************/
@@ -398,10 +398,20 @@ int32 pkcs8ParsePrivBin(psPool_t *pool, unsigned char *p, int32 size,
 	
 	plen = (int32)(end - p);
 	if (plen > 0) {
-		/*  It is not clear in the spec, but if password encrypted
-			there are additional, non ASN.1 bytes that correspond
+		/* attributes [0] Attributes OPTIONAL */
+		if (*p == (ASN_CONTEXT_SPECIFIC | ASN_CONSTRUCTED)) {
+			/* Yeah, have some... ignoring */
+			p++;
+			if (getAsnLength(&p, (int32)(end - p), &len) < 0) {
+				psTraceCrypto("Error parsing pkcs#8 PrivateKey attributes\n");
+				return PS_FAILURE;
+			}
+			p += len;
+			plen = (int32)(end - p);
+		}
+		/*  Any remaining bytes should be non ASN.1 bytes that correspond
 			to the 3DES block padding */
-		while(p < end) {
+		while (p < end) {
 			if (*p++ != (char)plen) {
 				goto PKCS8_FAIL;	
 			}
@@ -478,11 +488,11 @@ static int32 psParseIntegrityMode(unsigned char **buf, int32 totLen)
 	
 	B.2 General method from PKCS#12
 	
-	Assumptions:  salt is 8 bytes, hash is SHA-1, password is < 64 bytes
+	Assumptions:  hash is SHA-1, password is < 64 bytes
 */
 static int32 pkcs12pbe(psPool_t *pool, unsigned char *password, uint32 passLen,
-				unsigned char *salt, int32 iter, int32 id, unsigned char **out,
-				uint32 *outlen)
+				unsigned char *salt, int saltLen, int32 iter, int32 id,
+				unsigned char **out, uint32 *outlen)
 {
 	psDigestContext_t	ctx;
 	pstm_int			bigb, bigone, bigtmp;
@@ -494,9 +504,15 @@ static int32 pkcs12pbe(psPool_t *pool, unsigned char *password, uint32 passLen,
 	*out = NULL;
 	memset(diversifier, id, 64);
 	
-	for (i = 0; i < 8; i++) {
-		memcpy(&saltpass[8 * i], salt, 8);
-	}
+	for (i = 0; i < 64;) {
+		if ((64 - i) < saltLen) {
+			memcpy(&saltpass[i], salt, 64 - i);
+			i = 64;
+		} else {
+			memcpy(&saltpass[i], salt, saltLen);
+			i += saltLen;
+		}
+	}	
 	
 	for (i = 0; i < 64; i++) {
 		saltpass[64 + i] = password[i % passLen];
@@ -673,13 +689,13 @@ static int32 pkcs12import(psPool_t *pool, unsigned char **buf, int32 bufLen,
 		if (getAsnInteger(&p, (int32)(end - p), &tmpint) < 0) {
 			return PS_PARSE_FAIL;
 		}
-		if (pkcs12pbe(pool, password, passLen, salt, tmpint,
+		if (pkcs12pbe(pool, password, passLen, salt, 8, tmpint,
 				PKCS12_KEY_ID, &decryptKey, &keyLen) < 0) {
 			psTraceCrypto("Error generating pkcs12 key\n");
 			return PS_UNSUPPORTED_FAIL;
 		}
 		ivLen = 8;
-		if (pkcs12pbe(pool, password, passLen, salt, tmpint,
+		if (pkcs12pbe(pool, password, passLen, salt, 8, tmpint,
 				PKCS12_IV_ID, &iv, &ivLen) < 0) {
 			psTraceCrypto("Error generating pkcs12 iv\n");
 			psFree(decryptKey);
@@ -1111,7 +1127,7 @@ int32 psPkcs12Parse(psPool_t *pool, psX509Cert_t **cert, psPubKey_t **privKey,
 	unsigned char	iwidePass[128]; /* 63 char password max */
 	unsigned char	mwidePass[128];
 	unsigned char	mac[SHA1_HASH_SIZE];
-	unsigned char	macSalt[8];
+	unsigned char	macSalt[20];
 	unsigned char	digest[SHA1_HASH_SIZE];
 	uint32			tmplen, digestLen, macKeyLen;
 	int32			fsize, i, j, rc, tmpint, mpassLen, ipassLen, integrity, oi;
@@ -1213,6 +1229,11 @@ int32 psPkcs12Parse(psPool_t *pool, psX509Cert_t **cert, psPubKey_t **privKey,
 			rc = PS_PARSE_FAIL;
 			goto ERR_FBUF;
 		}
+		if (tmplen > 20) {
+			psTraceCrypto("macSalt length too long\n");
+			rc = PS_PARSE_FAIL;
+			goto ERR_FBUF;
+		}
 		memcpy(macSalt, p, tmplen);
 		p += tmplen;
 		/* Iteration count */
@@ -1228,8 +1249,8 @@ int32 psPkcs12Parse(psPool_t *pool, psX509Cert_t **cert, psPubKey_t **privKey,
 				an SHA-1 HMAC is computed on the BER-encoding of the contents
 				of the content field of the authSafe field in the PFX PDU */
 				macKeyLen = 20;
-				if (pkcs12pbe(pool, mwidePass, mpassLen, macSalt, tmpint,
-						PKCS12_MAC_ID, &macKey, &macKeyLen) < 0) {
+				if (pkcs12pbe(pool, mwidePass, mpassLen, macSalt, tmplen,
+						tmpint, PKCS12_MAC_ID, &macKey, &macKeyLen) < 0) {
 					psTraceCrypto("Error generating pkcs12 hmac key\n");
 					rc = PS_UNSUPPORTED_FAIL;
 					goto ERR_FBUF;
