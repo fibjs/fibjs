@@ -151,8 +151,7 @@ result_t fs_base::umask(int32_t mask, exlib::AsyncEvent *ac)
     if (!ac)
         return CALL_E_NOSYNC;
 
-    if (::umask(mask))
-        return LastError();
+    ::umask(mask);
 
     return 0;
 }
