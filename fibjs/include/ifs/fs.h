@@ -36,7 +36,7 @@ public:
 	// fs_base
 	static result_t exists(const char* path, bool& retVal, exlib::AsyncEvent* ac);
 	static result_t unlink(const char* path, exlib::AsyncEvent* ac);
-	static result_t umask(int32_t mask, exlib::AsyncEvent* ac);
+	static result_t umask(int32_t mask, int32_t& retVal, exlib::AsyncEvent* ac);
 	static result_t mkdir(const char* path, int32_t mode, exlib::AsyncEvent* ac);
 	static result_t rmdir(const char* path, exlib::AsyncEvent* ac);
 	static result_t rename(const char* from, const char* to, exlib::AsyncEvent* ac);
@@ -73,7 +73,7 @@ public:
 public:
 	ASYNC_STATICVALUE2(fs_base, exists, const char*, bool);
 	ASYNC_STATIC1(fs_base, unlink, const char*);
-	ASYNC_STATIC1(fs_base, umask, int32_t);
+	ASYNC_STATICVALUE2(fs_base, umask, int32_t, int32_t);
 	ASYNC_STATIC2(fs_base, mkdir, const char*, int32_t);
 	ASYNC_STATIC1(fs_base, rmdir, const char*);
 	ASYNC_STATIC2(fs_base, rename, const char*, const char*);
@@ -181,13 +181,15 @@ namespace fibjs
 
 	inline void fs_base::s_umask(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
+		int32_t vr;
+
 		METHOD_ENTER(1, 1);
 
 		ARG(int32_t, 0);
 
-		hr = ac_umask(v0);
+		hr = ac_umask(v0, vr);
 
-		METHOD_VOID();
+		METHOD_RETURN();
 	}
 
 	inline void fs_base::s_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args)

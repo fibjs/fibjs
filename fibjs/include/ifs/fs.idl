@@ -29,8 +29,9 @@ class fs : module
 
 	/*! @brief 改变当前的 umask，Windows 不支持此方法
 	 @param mode 指定 umask
+	 @return 返回之前的 mask
 	 */
-	static umask(Integer mask) async;
+	static Integer umask(Integer mask) async;
 
 	/*! @brief 创建一个目录
 	 @param path 指定要创建的目录名
