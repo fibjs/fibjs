@@ -262,7 +262,7 @@ result_t fs_base::unlink(const char *path, exlib::AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::umask(int32_t mask, exlib::AsyncEvent *ac)
+result_t fs_base::umask(int32_t mask, int32_t &retVal , exlib::AsyncEvent *ac)
 {
     return CALL_E_INVALID_CALL;
 }
