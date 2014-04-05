@@ -51,8 +51,8 @@
 	The speed gain for optimizing for speed is around 5%
 	The memory savings for optimizing for ram is around 50%
 */
-#define PS_PUBKEY_OPTIMIZE_FOR_SMALLER_RAM
-/* #define PS_PUBKEY_OPTIMIZE_FOR_FASTER_SPEED */
+//#define PS_PUBKEY_OPTIMIZE_FOR_SMALLER_RAM
+#define PS_PUBKEY_OPTIMIZE_FOR_FASTER_SPEED
 
 
 /******************************************************************************/
@@ -63,7 +63,7 @@
 
 
 #define USE_3DES
-/* #define USE_DES */
+#define USE_DES
 
 /*
 	Optionally set to improve performance at the cost of larger binary code
@@ -78,8 +78,8 @@
 /*
 	Symmetric stream ciphers
 */
-/* #define USE_ARC4 */
-/* #define USE_RC2 */ /* Only PKCS#12 parse should ever want this algorithm */
+#define USE_ARC4
+#define USE_RC2 /* Only PKCS#12 parse should ever want this algorithm */
 
 /******************************************************************************/
 /*
@@ -106,8 +106,8 @@
 */
 #define USE_X509
 #define USE_CERT_PARSE /* Usually required.  USE_X509 must be enabled */
-/* #define USE_FULL_CERT_PARSE */ /* USE_CERT_PARSE must be enabled */
-/* #define USE_CRL */ /* Must define USE_FULL_CERT_PARSE */
+#define USE_FULL_CERT_PARSE /* USE_CERT_PARSE must be enabled */
+#define USE_CRL /* Must define USE_FULL_CERT_PARSE */
 
 #define USE_BASE64_DECODE
 
@@ -118,19 +118,19 @@
 #define USE_PRIVATE_KEY_PARSING
 #define USE_PKCS5 /* v2.0 3des PBKDF encrypted private keys */
 #define USE_PKCS8 /* Alternative private key storage format */
-/* #define USE_PKCS12 */ /* You must enable USE_PKCS8 if enabling PKCS12 */
+#define USE_PKCS12 /* You must enable USE_PKCS8 if enabling PKCS12 */
 
 /******************************************************************************/
 /*
   	PRNG Algorithms 
 */
-/* #define USE_YARROW */
+#define USE_YARROW
 
 /******************************************************************************/
 /*
     All below here are configurable tweaks (do not need to touch, in general)
 */
-/* #define USE_BURN_STACK */
+#define USE_BURN_STACK
 
 #endif /* _h_PS_CRYPTOCONFIG */
 /******************************************************************************/

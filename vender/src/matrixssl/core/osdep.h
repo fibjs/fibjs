@@ -74,7 +74,7 @@ extern void		osdepEntropyClose(void);
 	
 #ifndef POSIX
 	#ifndef WIN32
-	#define POSIX
+	#define POSIX 1
 	#endif
 #endif
 

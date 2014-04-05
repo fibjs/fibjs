@@ -55,7 +55,7 @@
 /*
 	Include the osdepMutex family of APIs	
 */
-/* #define USE_MULTITHREADING */
+#define USE_MULTITHREADING
 
 /******************************************************************************/
 /*

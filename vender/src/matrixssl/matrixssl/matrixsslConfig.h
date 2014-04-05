@@ -50,9 +50,9 @@ extern "C" {
 */
 #define USE_TLS_RSA_WITH_AES_128_CBC_SHA
 #define USE_TLS_RSA_WITH_AES_256_CBC_SHA
-/* #define USE_SSL_RSA_WITH_3DES_EDE_CBC_SHA */
-/* #define USE_SSL_RSA_WITH_RC4_128_SHA */
-/* #define USE_SSL_RSA_WITH_RC4_128_MD5 */
+#define USE_SSL_RSA_WITH_3DES_EDE_CBC_SHA
+#define USE_SSL_RSA_WITH_RC4_128_SHA
+#define USE_SSL_RSA_WITH_RC4_128_MD5
 
 /******************************************************************************/
 /*
@@ -78,7 +78,7 @@ extern "C" {
 #define USE_TLS_1_1
 /* #define DISABLE_TLS_1_1 */
 /* #define DISABLE_TLS_1_0 */
-#define DISABLE_SSLV3	/* Disable SSL 3.0 */
+// #define DISABLE_SSLV3	/* Disable SSL 3.0 */
 
 
 /******************************************************************************/
@@ -92,7 +92,7 @@ extern "C" {
 /*
 	Client certifiate authentication
 */
-/* #define USE_CLIENT_AUTH */
+#define USE_CLIENT_AUTH
 
 /*
 	Enable if the server should send an empty CertificateRequest message if
@@ -107,7 +107,7 @@ extern "C" {
 	will be called with a NULL cert in this case and the user can determine if
 	the handshake should continue in a non-client auth state. 
 */
-/* #define SERVER_WILL_ACCEPT_EMPTY_CLIENT_CERT_MSG */
+#define SERVER_WILL_ACCEPT_EMPTY_CLIENT_CERT_MSG
 
 
 
