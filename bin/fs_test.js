@@ -21,6 +21,12 @@ describe('fs', function() {
 		unlink(pathname1);
 	});
 
+	if (!win)
+		it("umask", function() {
+			assert.equal(fs.umask(022), 0);
+			assert.equal(fs.umask(0), 022);
+		});
+
 	it("stat", function() {
 		var st = fs.stat('.');
 
