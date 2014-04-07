@@ -88,42 +88,6 @@
     <Filter Include="Source Files\sqlite">
       <UniqueIdentifier>{e48fd9a0-ee2d-4735-8504-55bbb018d6da}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\matrixssl">
-      <UniqueIdentifier>{f7089524-9a47-4bb6-8bc0-359ddea1ff25}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\matrixssl\matrixssl">
-      <UniqueIdentifier>{beecfb1c-5c50-4ac1-92b3-1acc98896f4a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\matrixssl\core">
-      <UniqueIdentifier>{a8f646e8-d272-40ee-b4ef-f1845117c669}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\matrixssl\crypto">
-      <UniqueIdentifier>{f82c7b4c-a094-4f2c-aff4-42bd37c40ef2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\matrixssl\core\POSIX">
-      <UniqueIdentifier>{b0bef9c3-98d6-4fdf-8d78-ba63ea2a9ee1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\matrixssl\core\WIN32">
-      <UniqueIdentifier>{d6ad46f0-f780-48b2-bbe0-31ea2f7c2cbf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\matrixssl\crypto\digest">
-      <UniqueIdentifier>{75605b7e-aea5-4d3a-b1c7-3eedd6a841de}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\matrixssl\crypto\keyformat">
-      <UniqueIdentifier>{31026669-1654-462e-8d8c-38e5138147f9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\matrixssl\crypto\math">
-      <UniqueIdentifier>{6ec660fa-9b2e-43d2-84cc-1908e9f9564b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\matrixssl\crypto\prng">
-      <UniqueIdentifier>{25583191-894a-43e7-8d87-1be44516c522}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\matrixssl\crypto\pubkey">
-      <UniqueIdentifier>{e6c3b98a-7cab-48e3-9372-56afe30cf7e1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\matrixssl\crypto\symmetric">
-      <UniqueIdentifier>{c2ab8b1f-ee6a-41aa-b9dc-1c63aa244f6f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\crypto">
       <UniqueIdentifier>{c6321167-345c-452d-a970-eddc93abd721}</UniqueIdentifier>
     </Filter>
@@ -150,6 +114,12 @@
     </Filter>
     <Filter Include="Source Files\easyexif">
       <UniqueIdentifier>{6646d974-6961-4e50-b88c-897f43bd5034}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\polarssl">
+      <UniqueIdentifier>{9627b009-1c4d-420b-ac43-6eccd01e1b39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\polarssl">
+      <UniqueIdentifier>{ffd78b58-9588-4f97-bc02-4077abf3f2cf}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -906,100 +876,10 @@
     <ClCompile Include="src\sqlite\sqlite3.c">
       <Filter>Source Files\sqlite</Filter>
     </ClCompile>
-    <ClCompile Include="src\matrixssl\matrixssl\cipherSuite.c">
-      <Filter>Source Files\matrixssl\matrixssl</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\matrixssl\matrixssl.c">
-      <Filter>Source Files\matrixssl\matrixssl</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\matrixssl\matrixsslApi.c">
-      <Filter>Source Files\matrixssl\matrixssl</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\matrixssl\sslDecode.c">
-      <Filter>Source Files\matrixssl\matrixssl</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\matrixssl\sslEncode.c">
-      <Filter>Source Files\matrixssl\matrixssl</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\matrixssl\sslv3.c">
-      <Filter>Source Files\matrixssl\matrixssl</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\matrixssl\tls.c">
-      <Filter>Source Files\matrixssl\matrixssl</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\core\corelib.c">
-      <Filter>Source Files\matrixssl\core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\core\POSIX\osdep.c">
-      <Filter>Source Files\matrixssl\core\POSIX</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\digest\hmac.c">
-      <Filter>Source Files\matrixssl\crypto\digest</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\digest\md5.c">
-      <Filter>Source Files\matrixssl\crypto\digest</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\digest\sha1.c">
-      <Filter>Source Files\matrixssl\crypto\digest</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\keyformat\asn1.c">
-      <Filter>Source Files\matrixssl\crypto\keyformat</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\keyformat\base64.c">
-      <Filter>Source Files\matrixssl\crypto\keyformat</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\keyformat\x509.c">
-      <Filter>Source Files\matrixssl\crypto\keyformat</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\math\pstm.c">
-      <Filter>Source Files\matrixssl\crypto\math</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\symmetric\aes.c">
-      <Filter>Source Files\matrixssl\crypto\symmetric</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\symmetric\arc4.c">
-      <Filter>Source Files\matrixssl\crypto\symmetric</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\symmetric\des3.c">
-      <Filter>Source Files\matrixssl\crypto\symmetric</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\symmetric\rc2.c">
-      <Filter>Source Files\matrixssl\crypto\symmetric</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\pubkey\pkcs.c">
-      <Filter>Source Files\matrixssl\crypto\pubkey</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\pubkey\pubkey.c">
-      <Filter>Source Files\matrixssl\crypto\pubkey</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\pubkey\rsa.c">
-      <Filter>Source Files\matrixssl\crypto\pubkey</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\prng\prng.c">
-      <Filter>Source Files\matrixssl\crypto\prng</Filter>
-    </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\prng\yarrow.c">
-      <Filter>Source Files\matrixssl\crypto\prng</Filter>
-    </ClCompile>
     <ClCompile Include="src\umysql\mysql_sha1.cpp">
       <Filter>Source Files\umysql</Filter>
     </ClCompile>
-    <ClCompile Include="src\matrixssl\core\WIN32\osdep_w.c">
-      <Filter>Source Files\matrixssl\core\WIN32</Filter>
-    </ClCompile>
-    <ClCompile Include="src\cripto\hash_md2.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="src\cripto\hash_md4.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="src\cripto\hash_md5.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
     <ClCompile Include="src\cripto\hash_ripemd.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="src\cripto\hash_sha1.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
     <ClCompile Include="src\cripto\hash_sha2.c">
@@ -1587,20 +1467,203 @@
     <ClCompile Include="src\v8\src\hydrogen-store-elimination.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\matrixssl\matrixssl\hsHash.c">
-      <Filter>Source Files\matrixssl\matrixssl</Filter>
+    <ClCompile Include="src\polarssl\aes.c">
+      <Filter>Source Files\polarssl</Filter>
     </ClCompile>
-    <ClCompile Include="src\matrixssl\matrixssl\prf.c">
-      <Filter>Source Files\matrixssl\matrixssl</Filter>
+    <ClCompile Include="src\polarssl\aesni.c">
+      <Filter>Source Files\polarssl</Filter>
     </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\math\pstm_montgomery_reduce.c">
-      <Filter>Source Files\matrixssl\crypto\math</Filter>
+    <ClCompile Include="src\polarssl\arc4.c">
+      <Filter>Source Files\polarssl</Filter>
     </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\math\pstm_mul_comba.c">
-      <Filter>Source Files\matrixssl\crypto\math</Filter>
+    <ClCompile Include="src\polarssl\asn1parse.c">
+      <Filter>Source Files\polarssl</Filter>
     </ClCompile>
-    <ClCompile Include="src\matrixssl\crypto\math\pstm_sqr_comba.c">
-      <Filter>Source Files\matrixssl\crypto\math</Filter>
+    <ClCompile Include="src\polarssl\asn1write.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\base64.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\blowfish.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\camellia.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\certs.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\cipher.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\cipher_wrap.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\ctr_drbg.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\des.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\dhm.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\ecdh.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\ecdsa.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\ecp.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\ecp_curves.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\entropy.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\entropy_poll.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\error.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\gcm.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\havege.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\hmac_drbg.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\md.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\md_wrap.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\md2.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\md4.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\md5.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\memory_buffer_alloc.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\net.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\oid.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\padlock.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\pbkdf2.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\pem.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\pk.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\pk_wrap.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\pkcs5.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\pkcs11.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\pkcs12.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\pkparse.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\pkwrite.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\platform.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\ripemd160.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\rsa.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\sha1.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\sha256.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\sha512.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\ssl_cache.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\ssl_ciphersuites.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\ssl_cli.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\ssl_srv.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\ssl_tls.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\threading.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\timing.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\x509.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\x509_create.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\x509_crl.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\x509_crt.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\x509_csr.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\x509write_crt.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\x509write_csr.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\xtea.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\ssl_bignum.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\ssl_debug.c">
+      <Filter>Source Files\polarssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polarssl\ssl_version.c">
+      <Filter>Source Files\polarssl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1934,76 +1997,7 @@
     <ClInclude Include="src\sqlite\sqlite3.h">
       <Filter>Source Files\sqlite</Filter>
     </ClInclude>
-    <ClInclude Include="src\matrixssl\matrixssl\matrixsslApi.h">
-      <Filter>Source Files\matrixssl\matrixssl</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\matrixssl\matrixsslConfig.h">
-      <Filter>Source Files\matrixssl\matrixssl</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\matrixssl\matrixssllib.h">
-      <Filter>Source Files\matrixssl\matrixssl</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\matrixssl\version.h">
-      <Filter>Source Files\matrixssl\matrixssl</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\core\coreApi.h">
-      <Filter>Source Files\matrixssl\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\core\coreConfig.h">
-      <Filter>Source Files\matrixssl\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\core\list.h">
-      <Filter>Source Files\matrixssl\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\core\osdep.h">
-      <Filter>Source Files\matrixssl\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\core\psmalloc.h">
-      <Filter>Source Files\matrixssl\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\crypto\cryptoApi.h">
-      <Filter>Source Files\matrixssl\crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\crypto\cryptoConfig.h">
-      <Filter>Source Files\matrixssl\crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\crypto\cryptolib.h">
-      <Filter>Source Files\matrixssl\crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\crypto\digest\digest.h">
-      <Filter>Source Files\matrixssl\crypto\digest</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\crypto\keyformat\asn1.h">
-      <Filter>Source Files\matrixssl\crypto\keyformat</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\crypto\keyformat\x509.h">
-      <Filter>Source Files\matrixssl\crypto\keyformat</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\crypto\math\pstm.h">
-      <Filter>Source Files\matrixssl\crypto\math</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\crypto\symmetric\symmetric.h">
-      <Filter>Source Files\matrixssl\crypto\symmetric</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\crypto\pubkey\pubkey.h">
-      <Filter>Source Files\matrixssl\crypto\pubkey</Filter>
-    </ClInclude>
-    <ClInclude Include="src\matrixssl\crypto\prng\prng.h">
-      <Filter>Source Files\matrixssl\crypto\prng</Filter>
-    </ClInclude>
-    <ClInclude Include="include\crypto\md2.h">
-      <Filter>Header Files\crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="include\crypto\md4.h">
-      <Filter>Header Files\crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="include\crypto\md5.h">
-      <Filter>Header Files\crypto</Filter>
-    </ClInclude>
     <ClInclude Include="include\crypto\ripemd.h">
-      <Filter>Header Files\crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="include\crypto\sha1.h">
       <Filter>Header Files\crypto</Filter>
     </ClInclude>
     <ClInclude Include="include\crypto\sha2.h">
@@ -2012,19 +2006,7 @@
     <ClInclude Include="include\crypto\sha4.h">
       <Filter>Header Files\crypto</Filter>
     </ClInclude>
-    <ClInclude Include="src\cripto\md2.h">
-      <Filter>Source Files\crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="src\cripto\md4.h">
-      <Filter>Source Files\crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="src\cripto\md5.h">
-      <Filter>Source Files\crypto</Filter>
-    </ClInclude>
     <ClInclude Include="src\cripto\ripemd.h">
-      <Filter>Source Files\crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="src\cripto\sha1.h">
       <Filter>Source Files\crypto</Filter>
     </ClInclude>
     <ClInclude Include="src\cripto\sha2.h">
@@ -2926,6 +2908,195 @@
     </ClInclude>
     <ClInclude Include="src\v8\src\types-inl.h">
       <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\aes.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\aesni.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\arc4.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\asn1.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\asn1write.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\base64.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\bignum.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\blowfish.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\bn_mul.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\camellia.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\certs.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\cipher.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\cipher_wrap.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\compat-1.2.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\config.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\ctr_drbg.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\debug.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\des.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\dhm.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\ecdh.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\ecdsa.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\ecp.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\entropy.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\entropy_poll.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\error.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\gcm.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\havege.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\hmac_drbg.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\md.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\md_wrap.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\md2.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\md4.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\md5.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\memory.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\memory_buffer_alloc.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\net.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\oid.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\openssl.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\padlock.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\pbkdf2.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\pem.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\pk.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\pk_wrap.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\pkcs5.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\pkcs11.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\pkcs12.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\platform.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\ripemd160.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\rsa.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\sha1.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\sha256.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\sha512.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\ssl.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\ssl_cache.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\ssl_ciphersuites.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\threading.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\timing.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\version.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\x509.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\x509_crl.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\x509_crt.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\x509_csr.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\polarssl\xtea.h">
+      <Filter>Header Files\polarssl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
