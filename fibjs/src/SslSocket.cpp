@@ -42,7 +42,6 @@ result_t ssl_base::connect(Stream_base *s, obj_ptr<SslSocket_base> &retVal,
         return CALL_E_NOSYNC;
 
     retVal = new SslSocket();
-
     return retVal->connect(s, ac);
 }
 
@@ -53,7 +52,6 @@ result_t ssl_base::accept(Stream_base *s, obj_ptr<SslSocket_base> &retVal,
         return CALL_E_NOSYNC;
 
     retVal = new SslSocket();
-
     return retVal->accept(s, ac);
 }
 
@@ -72,6 +70,8 @@ SslSocket::SslSocket()
     ctr_drbg_init( &m_ctr_drbg, entropy_func, &m_entropy,
                    (const unsigned char *) pers,
                    strlen(pers));
+
+    m_recv_pos = 0;
 }
 
 SslSocket::~SslSocket()
@@ -87,15 +87,18 @@ int SslSocket::my_recv(unsigned char *buf, size_t len)
     if (!len)
         return 0;
 
-    puts("SslSocket: my_recv");
-    if (m_recv.empty())
+    if (m_recv_pos == m_recv.length())
+    {
+        m_recv_pos = 0;
+        m_recv.resize(0);
         return POLARSSL_ERR_NET_WANT_READ;
+    }
 
-    if (len > m_recv.length())
-        len = m_recv.length();
+    if (len > m_recv.length() - m_recv_pos)
+        len = m_recv.length() - m_recv_pos;
 
-    memcpy(buf, m_recv.c_str(), len);
-    m_recv = m_recv.substr(len);
+    memcpy(buf, m_recv.c_str() + m_recv_pos, len);
+    m_recv_pos += len;
 
     return (int)len;
 }
@@ -110,16 +113,10 @@ int SslSocket::my_send(const unsigned char *buf, size_t len)
     if (!len)
         return 0;
 
-    puts("SslSocket: my_send");
-    if (!m_send.empty())
-    {
-        puts("SslSocket: my_send  POLARSSL_ERR_NET_WANT_WRITE");
+    if (m_send.length() + len > 8192)
         return POLARSSL_ERR_NET_WANT_WRITE;
-    }
 
-    m_send.resize(len);
-    memcpy(&m_send[0], buf, len);
-
+    m_send.append((const char *)buf, len);
     return (int)len;
 }
 
@@ -138,7 +135,10 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                   exlib::AsyncEvent *ac) :
             asyncSsl(pThis, ac), m_bytes(bytes), m_retVal(retVal)
         {
-            m_buf.resize(bytes);
+            if (m_bytes == -1)
+                m_bytes = 8192;
+
+            m_buf.resize(m_bytes);
         }
 
     public:
@@ -150,6 +150,7 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
             {
                 m_buf.resize(ret);
                 m_retVal = new Buffer(m_buf);
+                return 0;
             }
 
             return ret;
@@ -164,7 +165,6 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     if (!ac)
         return CALL_E_NOSYNC;
 
-    puts("================  read");
     return (new asyncRead(this, bytes, retVal, ac))->post(0);
 }
 
@@ -182,8 +182,11 @@ result_t SslSocket::write(Buffer_base *data, exlib::AsyncEvent *ac)
     public:
         virtual int process()
         {
-            return ssl_write(&m_pThis->m_ssl, (const unsigned char *)m_buf.c_str(),
-                             m_buf.length());
+            int ret = ssl_write(&m_pThis->m_ssl, (const unsigned char *)m_buf.c_str(),
+                                m_buf.length());
+            if (ret == m_buf.length())
+                return 0;
+            return ret;
         }
 
     private:
@@ -193,7 +196,6 @@ result_t SslSocket::write(Buffer_base *data, exlib::AsyncEvent *ac)
     if (!ac)
         return CALL_E_NOSYNC;
 
-    puts("================  send");
     return (new asyncWrite(this, data, ac))->post(0);
 }
 
@@ -212,16 +214,6 @@ result_t SslSocket::copyTo(Stream_base *stm, int64_t bytes,
         return CALL_E_NOSYNC;
 
     return 0;
-}
-
-#define DEBUG_LEVEL 1
-static void my_debug( void *ctx, int level, const char *str )
-{
-    if ( level < DEBUG_LEVEL )
-    {
-        fprintf( (FILE *) ctx, "%s", str );
-        fflush(  (FILE *) ctx  );
-    }
 }
 
 result_t SslSocket::connect(Stream_base *s, exlib::AsyncEvent *ac)
@@ -250,10 +242,8 @@ result_t SslSocket::connect(Stream_base *s, exlib::AsyncEvent *ac)
 
     ssl_set_endpoint(&m_ssl, SSL_IS_CLIENT);
     ssl_set_rng(&m_ssl, ctr_drbg_random, &m_ctr_drbg);
-    ssl_set_dbg(&m_ssl, my_debug, stdout);
     ssl_set_bio(&m_ssl, my_recv, this, my_send, this);
 
-    puts("================  connect");
     return (new asyncConnect(this, ac))->post(0);
 }
 
@@ -268,16 +258,6 @@ result_t SslSocket::accept(Stream_base *s, exlib::AsyncEvent *ac)
 
     return 0;
 }
-
-struct
-{
-    int no;
-    const char *msg;
-} s_msgs[] =
-{
-    {10, ""}
-
-};
 
 result_t SslSocket::setError(int ret)
 {

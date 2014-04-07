@@ -45,7 +45,6 @@ private:
         asyncSsl(SslSocket *pThis, exlib::AsyncEvent *ac) :
             asyncState(ac), m_pThis(pThis), m_ret(0)
         {
-            puts("asyncSsl: init");
             set(process);
         }
 
@@ -61,19 +60,21 @@ private:
 
             if (pThis->m_buf)
             {
+                pThis->m_pThis->m_recv_pos = 0;
                 pThis->m_buf->toString(pThis->m_pThis->m_recv);
                 pThis->m_buf.Release();
             }
 
-            puts("asyncSsl: process");
             pThis->m_ret = pThis->process();
-
             if (pThis->m_ret == 0)
             {
-                printf("send buffer: %d, recv buffer: %d\n",
-                       pThis->m_pThis->m_send.length(),
-                       pThis->m_pThis->m_recv.length());
-                return pThis->done(0);
+                if (pThis->m_pThis->m_send.length() > 0)
+                {
+                    pThis->set(flush);
+                    return 0;
+                }
+                else
+                    return pThis->done(0);
             }
 
             pThis->set(send);
@@ -97,7 +98,6 @@ private:
             pThis->m_buf = new Buffer(m_send);
             m_send.resize(0);
 
-            puts("asyncSsl: send");
             return pThis->m_pThis->m_s->write(pThis->m_buf, pThis);
         }
 
@@ -111,8 +111,26 @@ private:
             if (pThis->m_ret == POLARSSL_ERR_NET_WANT_WRITE)
                 return 0;
 
-            puts("asyncSsl: recv");
             return pThis->m_pThis->m_s->read(-1, pThis->m_buf, pThis);
+        }
+
+        static int flush(asyncState *pState, int n)
+        {
+            asyncSsl *pThis = (asyncSsl *) pState;
+
+            std::string &m_send =  pThis->m_pThis->m_send;
+
+            pThis->m_buf = new Buffer(m_send);
+            m_send.resize(0);
+
+            pThis->set(end);
+            return pThis->m_pThis->m_s->write(pThis->m_buf, pThis);
+        }
+
+        static int end(asyncState *pState, int n)
+        {
+            asyncSsl *pThis = (asyncSsl *) pState;
+            return pThis->done(0);
         }
 
     protected:
@@ -138,6 +156,7 @@ private:
     ctr_drbg_context m_ctr_drbg;
     obj_ptr<Stream_base> m_s;
     std::string m_recv;
+    int m_recv_pos;
     std::string m_send;
 };
 
