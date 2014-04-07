@@ -9,10 +9,10 @@
 #include "Digest.h"
 #include "Buffer.h"
 #include <string.h>
-#include <crypto/md2.h>
-#include <crypto/md4.h>
-#include <crypto/md5.h>
-#include <crypto/sha1.h>
+#include <polarssl/md2.h>
+#include <polarssl/md4.h>
+#include <polarssl/md5.h>
+#include <polarssl/sha1.h>
 #include <crypto/sha2.h>
 #include <crypto/sha4.h>
 #include <crypto/ripemd.h>
