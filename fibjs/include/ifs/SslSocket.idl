@@ -1,0 +1,14 @@
+
+/*! @brief 网络套接口对象
+ */
+class SslSocket : Stream
+{
+	SslSocket();
+
+	/*! @brief 建立一个 tcp 连接 */
+	connect(Stream s) async;
+
+	/*! @brief 等待并接受一个连接
+	 */
+	accept(Stream s) async;
+};

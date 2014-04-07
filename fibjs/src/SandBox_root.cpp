@@ -20,6 +20,7 @@
 #include "ifs/io.h"
 #include "ifs/fs.h"
 #include "ifs/net.h"
+#include "ifs/ssl.h"
 #include "ifs/vm.h"
 
 #include "ifs/mq.h"
@@ -66,6 +67,7 @@ void SandBox::initRoot()
     InstallNativeModule("fs", fs_base::class_info());
     InstallNativeModule("os", os_base::class_info());
     InstallNativeModule("net", net_base::class_info());
+    InstallNativeModule("ssl", ssl_base::class_info());
 
     InstallNativeModule("mq", mq_base::class_info());
 

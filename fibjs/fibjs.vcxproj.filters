@@ -315,6 +315,9 @@
     <ClCompile Include="src\PacketHandler.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\SslSocket.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -780,6 +783,15 @@
       <Filter>Header Files\include</Filter>
     </ClInclude>
     <ClInclude Include="include\MyAppender.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\ssl.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\SslSocket.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SslSocket.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>
