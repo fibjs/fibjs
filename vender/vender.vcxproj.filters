@@ -882,12 +882,6 @@
     <ClCompile Include="src\cripto\hash_ripemd.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
-    <ClCompile Include="src\cripto\hash_sha2.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="src\cripto\hash_sha4.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
     <ClCompile Include="src\pcre\pcre_chartables.c">
       <Filter>Source Files\pcre</Filter>
     </ClCompile>
@@ -2000,19 +1994,7 @@
     <ClInclude Include="include\crypto\ripemd.h">
       <Filter>Header Files\crypto</Filter>
     </ClInclude>
-    <ClInclude Include="include\crypto\sha2.h">
-      <Filter>Header Files\crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="include\crypto\sha4.h">
-      <Filter>Header Files\crypto</Filter>
-    </ClInclude>
     <ClInclude Include="src\cripto\ripemd.h">
-      <Filter>Source Files\crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="src\cripto\sha2.h">
-      <Filter>Source Files\crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="src\cripto\sha4.h">
       <Filter>Source Files\crypto</Filter>
     </ClInclude>
     <ClInclude Include="include\ev.h">

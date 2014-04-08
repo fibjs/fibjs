@@ -13,31 +13,31 @@
 #include <polarssl/md4.h>
 #include <polarssl/md5.h>
 #include <polarssl/sha1.h>
-#include <crypto/sha2.h>
-#include <crypto/sha4.h>
+#include <polarssl/sha256.h>
+#include <polarssl/sha512.h>
 #include <crypto/ripemd.h>
 
 namespace fibjs
 {
 
-static void sha224_starts(sha2_context *ctx)
+static void sha224_starts(sha256_context *ctx)
 {
-    sha2_starts(ctx, 1);
+    sha256_starts(ctx, 1);
 }
 
-static void sha256_starts(sha2_context *ctx)
+static void sha256_starts(sha256_context *ctx)
 {
-    sha2_starts(ctx, 0);
+    sha256_starts(ctx, 0);
 }
 
-static void sha384_starts(sha4_context *ctx)
+static void sha384_starts(sha512_context *ctx)
 {
-    sha4_starts(ctx, 1);
+    sha512_starts(ctx, 1);
 }
 
-static void sha512_starts(sha4_context *ctx)
+static void sha512_starts(sha512_context *ctx)
 {
-    sha4_starts(ctx, 0);
+    sha512_starts(ctx, 0);
 }
 
 static struct hashAlgo
@@ -101,26 +101,26 @@ static struct hashAlgo
     {
         "sha224", 28, 64,
         (int (*)(void *))sha224_starts,
-        (int (*)(void *, const unsigned char *, unsigned long))sha2_update,
-        (int (*)(void *, unsigned char *))sha2_finish
+        (int (*)(void *, const unsigned char *, unsigned long))sha256_update,
+        (int (*)(void *, unsigned char *))sha256_finish
     },
     {
         "sha256", 32, 64,
         (int (*)(void *))sha256_starts,
-        (int (*)(void *, const unsigned char *, unsigned long))sha2_update,
-        (int (*)(void *, unsigned char *))sha2_finish
+        (int (*)(void *, const unsigned char *, unsigned long))sha256_update,
+        (int (*)(void *, unsigned char *))sha256_finish
     },
     {
         "sha384", 48, 128,
         (int (*)(void *))sha384_starts,
-        (int (*)(void *, const unsigned char *, unsigned long))sha4_update,
-        (int (*)(void *, unsigned char *))sha4_finish
+        (int (*)(void *, const unsigned char *, unsigned long))sha512_update,
+        (int (*)(void *, unsigned char *))sha512_finish
     },
     {
         "sha512", 64, 128,
         (int (*)(void *))sha512_starts,
-        (int (*)(void *, const unsigned char *, unsigned long))sha4_update,
-        (int (*)(void *, unsigned char *))sha4_finish
+        (int (*)(void *, const unsigned char *, unsigned long))sha512_update,
+        (int (*)(void *, unsigned char *))sha512_finish
     }
 };
 
