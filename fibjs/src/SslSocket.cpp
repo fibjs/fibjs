@@ -102,7 +102,7 @@ int SslSocket::my_recv(unsigned char *buf, size_t len)
         len = m_recv.length() - m_recv_pos;
 
     memcpy(buf, m_recv.c_str() + m_recv_pos, len);
-    m_recv_pos += len;
+    m_recv_pos += (int)len;
 
     return (int)len;
 }
