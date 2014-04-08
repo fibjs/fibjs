@@ -58,11 +58,16 @@ private:
         {
             asyncSsl *pThis = (asyncSsl *) pState;
 
-            if (pThis->m_buf)
+            if (pThis->m_ret == POLARSSL_ERR_NET_WANT_READ)
             {
-                pThis->m_pThis->m_recv_pos = 0;
-                pThis->m_buf->toString(pThis->m_pThis->m_recv);
-                pThis->m_buf.Release();
+                if (pThis->m_buf)
+                {
+                    pThis->m_pThis->m_recv_pos = 0;
+                    pThis->m_buf->toString(pThis->m_pThis->m_recv);
+                    pThis->m_buf.Release();
+                }
+                else
+                    pThis->m_pThis->m_recv_pos = -1;
             }
 
             pThis->m_ret = pThis->process();

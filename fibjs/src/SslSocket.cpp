@@ -87,6 +87,10 @@ int SslSocket::my_recv(unsigned char *buf, size_t len)
     if (!len)
         return 0;
 
+
+    if (m_recv_pos < 0)
+        return POLARSSL_ERR_NET_CONN_RESET;
+
     if (m_recv_pos == m_recv.length())
     {
         m_recv_pos = 0;
@@ -113,7 +117,7 @@ int SslSocket::my_send(const unsigned char *buf, size_t len)
     if (!len)
         return 0;
 
-    if (m_send.length() + len > 8192)
+    if (m_send.length() > 8192)
         return POLARSSL_ERR_NET_WANT_WRITE;
 
     m_send.append((const char *)buf, len);
@@ -146,7 +150,10 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
         {
             int ret = ssl_read(&m_pThis->m_ssl, (unsigned char *)&m_buf[0], m_bytes);
 
-            if (ret >= 0)
+            if (ret == 0)
+                return CALL_RETURN_NULL;
+
+            if (ret > 0)
             {
                 m_buf.resize(ret);
                 m_retVal = new Buffer(m_buf);
