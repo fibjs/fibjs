@@ -35,12 +35,12 @@ class Smtp : object
 	/*! @brief 指定发件人信箱，服务器报错则抛出错误
 	 @param address 发件人信箱
 	 */
-	from(String adress) async;
+	from(String address) async;
 
 	/*! @brief 指定收件人信箱，服务器报错则抛出错误
 	 @param address 收件人信箱
 	 */
-	to(String adress) async;
+	to(String address) async;
 
 	/*! @brief 发送文本到收件人，服务器报错则抛出错误
 	 @param txt 要发送的文本

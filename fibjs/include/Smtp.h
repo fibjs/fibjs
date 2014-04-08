@@ -22,8 +22,8 @@ public:
     virtual result_t command(const char *cmd, const char *arg, std::string &retVal, exlib::AsyncEvent *ac);
     virtual result_t hello(const char *hostname, exlib::AsyncEvent *ac);
     virtual result_t login(const char *username, const char *password, exlib::AsyncEvent *ac);
-    virtual result_t from(const char *adress, exlib::AsyncEvent *ac);
-    virtual result_t to(const char *adress, exlib::AsyncEvent *ac);
+    virtual result_t from(const char *address, exlib::AsyncEvent *ac);
+    virtual result_t to(const char *address, exlib::AsyncEvent *ac);
     virtual result_t data(const char *txt, exlib::AsyncEvent *ac);
     virtual result_t quit(exlib::AsyncEvent *ac);
     virtual result_t get_socket(obj_ptr<Socket_base> &retVal);

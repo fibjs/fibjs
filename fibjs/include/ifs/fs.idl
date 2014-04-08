@@ -28,7 +28,7 @@ class fs : module
 	static unlink(String path) async;
 
 	/*! @brief 改变当前的 umask，Windows 不支持此方法
-	 @param mode 指定 umask
+	 @param mask 指定新的掩码
 	 @return 返回之前的 mask
 	 */
 	static Integer umask(Integer mask) async;

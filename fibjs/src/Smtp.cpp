@@ -247,14 +247,14 @@ result_t Smtp::login(const char *username, const char *password,
     return (new asyncLogin(this, username, password, ac))->post(0);
 }
 
-result_t Smtp::from(const char *adress, exlib::AsyncEvent *ac)
+result_t Smtp::from(const char *address, exlib::AsyncEvent *ac)
 {
-    return command("MAIL FROM", adress, ac);
+    return command("MAIL FROM", address, ac);
 }
 
-result_t Smtp::to(const char *adress, exlib::AsyncEvent *ac)
+result_t Smtp::to(const char *address, exlib::AsyncEvent *ac)
 {
-    return command("RCPT TO", adress, ac);
+    return command("RCPT TO", address, ac);
 }
 
 result_t Smtp::data(const char *txt, exlib::AsyncEvent *ac)
