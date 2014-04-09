@@ -7,6 +7,7 @@
 
 #include "ifs/SslSocket.h"
 #include "Buffer.h"
+#include "Cipher.h"
 #include "polarssl/config.h"
 #include "polarssl/ssl.h"
 #include "polarssl/entropy.h"
@@ -87,7 +88,7 @@ private:
                     pThis->m_ret == POLARSSL_ERR_NET_WANT_WRITE)
                 return 0;
 
-            return SslSocket::setError(pThis->m_ret);
+            return Cipher::setError(pThis->m_ret);
         }
 
         static int send(asyncState *pState, int n)
@@ -150,8 +151,6 @@ private:
 
     int my_send(const unsigned char *buf, size_t len);
     static int my_send(void *ctx, const unsigned char *buf, size_t len);
-
-    static result_t setError(int ret);
 
 public:
     ssl_context m_ssl;

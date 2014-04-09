@@ -12,7 +12,6 @@
 #include <stdio.h>
 
 #include "polarssl/ssl_cache.h"
-#include "polarssl/error.h"
 
 namespace fibjs
 {
@@ -264,14 +263,6 @@ result_t SslSocket::accept(Stream_base *s, exlib::AsyncEvent *ac)
     m_s = s;
 
     return 0;
-}
-
-result_t SslSocket::setError(int ret)
-{
-    char msg[128];
-
-    polarssl_strerror(ret, msg, sizeof(msg));
-    return Runtime::setError(msg);
 }
 
 }

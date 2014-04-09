@@ -20,13 +20,15 @@
 #include "ifs/io.h"
 #include "ifs/fs.h"
 #include "ifs/net.h"
-#include "ifs/ssl.h"
 #include "ifs/vm.h"
+
+#include "ifs/hash.h"
+#include "ifs/crypto.h"
+#include "ifs/ssl.h"
 
 #include "ifs/mq.h"
 
 #include "ifs/db.h"
-#include "ifs/hash.h"
 #include "ifs/zlib.h"
 
 #include "ifs/gd.h"
@@ -67,6 +69,9 @@ void SandBox::initRoot()
     InstallNativeModule("fs", fs_base::class_info());
     InstallNativeModule("os", os_base::class_info());
     InstallNativeModule("net", net_base::class_info());
+    
+    InstallNativeModule("hash", hash_base::class_info());
+    InstallNativeModule("crypto", crypto_base::class_info());
     InstallNativeModule("ssl", ssl_base::class_info());
 
     InstallNativeModule("mq", mq_base::class_info());
@@ -75,7 +80,6 @@ void SandBox::initRoot()
     InstallNativeModule("rpc", rpc_base::class_info());
 
     InstallNativeModule("db", db_base::class_info());
-    InstallNativeModule("hash", hash_base::class_info());
     InstallNativeModule("zlib", zlib_base::class_info());
 
     InstallNativeModule("gd", gd_base::class_info());

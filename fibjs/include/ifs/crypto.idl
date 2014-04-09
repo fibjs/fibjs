@@ -1,0 +1,24 @@
+
+/*! @brief 加密算法模块
+
+ 使用方法：
+ @code
+ var crypto = require('crypto');
+ @endcode
+ */
+class crypto : module
+{
+    static Cipher new Cipher();
+
+	/*! @brief 生成指定尺寸的随机数，使用 havege 生成器
+	 @param size 指定生成的随机数尺寸
+	 @return 返回生成的随机数
+	 */
+    static Buffer randomBytes(Integer size) async;
+
+	/*! @brief 生成指定尺寸的伪随机数，使用 entropy 生成器
+	 @param size 指定生成的随机数尺寸
+	 @return 返回生成的随机数
+	 */
+    static Buffer pseudoRandomBytes(Integer size) async;
+};
