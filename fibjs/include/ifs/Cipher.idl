@@ -45,11 +45,11 @@ class Cipher: object
      @param data 指定要加密的数据
      @return 返回加密后的数据
      */
-    Buffer encrypto(Buffer data) async;
+    Buffer encrypt(Buffer data) async;
 
     /*! @brief 使用当前算法密码解密数据
      @param data 指定要解密的数据
      @return 返回解密后的数据
      */
-    Buffer decrypto(Buffer data) async;
+    Buffer decrypt(Buffer data) async;
 };

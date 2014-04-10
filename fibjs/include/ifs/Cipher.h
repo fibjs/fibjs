@@ -29,8 +29,8 @@ public:
 	virtual result_t get_keySize(int32_t& retVal) = 0;
 	virtual result_t get_ivSize(int32_t& retVal) = 0;
 	virtual result_t get_blockSize(int32_t& retVal) = 0;
-	virtual result_t encrypto(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t decrypto(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 
 	DECLARE_CLASSINFO(Cipher_base);
 
@@ -40,12 +40,12 @@ public:
 	static void s_get_keySize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_ivSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_blockSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_encrypto(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_decrypto(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-	ASYNC_MEMBERVALUE2(Cipher_base, encrypto, Buffer_base*, obj_ptr<Buffer_base>);
-	ASYNC_MEMBERVALUE2(Cipher_base, decrypto, Buffer_base*, obj_ptr<Buffer_base>);
+	ASYNC_MEMBERVALUE2(Cipher_base, encrypt, Buffer_base*, obj_ptr<Buffer_base>);
+	ASYNC_MEMBERVALUE2(Cipher_base, decrypt, Buffer_base*, obj_ptr<Buffer_base>);
 };
 
 }
@@ -58,8 +58,8 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"encrypto", s_encrypto},
-			{"decrypto", s_decrypto}
+			{"encrypt", s_encrypt},
+			{"decrypt", s_decrypt}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -160,7 +160,7 @@ namespace fibjs
 		CONSTRUCT_RETURN();
 	}
 
-	inline void Cipher_base::s_encrypto(const v8::FunctionCallbackInfo<v8::Value>& args)
+	inline void Cipher_base::s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -169,12 +169,12 @@ namespace fibjs
 
 		ARG(obj_ptr<Buffer_base>, 0);
 
-		hr = pInst->ac_encrypto(v0, vr);
+		hr = pInst->ac_encrypt(v0, vr);
 
 		METHOD_RETURN();
 	}
 
-	inline void Cipher_base::s_decrypto(const v8::FunctionCallbackInfo<v8::Value>& args)
+	inline void Cipher_base::s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Buffer_base> vr;
 
@@ -183,7 +183,7 @@ namespace fibjs
 
 		ARG(obj_ptr<Buffer_base>, 0);
 
-		hr = pInst->ac_decrypto(v0, vr);
+		hr = pInst->ac_decrypt(v0, vr);
 
 		METHOD_RETURN();
 	}

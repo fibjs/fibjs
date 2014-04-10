@@ -249,7 +249,7 @@ result_t Cipher::process(const operation_t operation, Buffer_base *data,
     return 0;
 }
 
-result_t Cipher::encrypto(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
+result_t Cipher::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                           exlib::AsyncEvent *ac)
 {
     if (!ac)
@@ -258,7 +258,7 @@ result_t Cipher::encrypto(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
     return process(POLARSSL_ENCRYPT, data, retVal);
 }
 
-result_t Cipher::decrypto(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
+result_t Cipher::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                           exlib::AsyncEvent *ac)
 {
     if (!ac)
