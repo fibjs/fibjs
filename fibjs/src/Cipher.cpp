@@ -96,6 +96,12 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base *key,
     if (keylen == 0)
         return Runtime::setError("Invalid key size");
 
+    if (keylen == 16 && provider == crypto_base::_DES_EDE3)
+    {
+        strKey.append(strKey.c_str(), 8);
+        keylen = 24;
+    }
+
     for (int i = 0; i < 3; i ++)
         if (s_sizes[provider - crypto_base::_AES][i].size == keylen * 8)
         {
