@@ -198,6 +198,15 @@ result_t Cipher::get_blockSize(int32_t &retVal)
     return 0;
 }
 
+result_t Cipher::paddingMode(int32_t mode)
+{
+    int ret = cipher_set_padding_mode(&m_ctx, (cipher_padding_t)mode);
+    if (ret != 0)
+        return Cipher::setError(ret);
+
+    return 0;
+}
+
 result_t Cipher::process(const operation_t operation, Buffer_base *data,
                          obj_ptr<Buffer_base> &retVal)
 {
@@ -250,7 +259,7 @@ result_t Cipher::process(const operation_t operation, Buffer_base *data,
 }
 
 result_t Cipher::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
-                          exlib::AsyncEvent *ac)
+                         exlib::AsyncEvent *ac)
 {
     if (!ac)
         return CALL_E_NOSYNC;
@@ -259,7 +268,7 @@ result_t Cipher::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
 }
 
 result_t Cipher::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
-                          exlib::AsyncEvent *ac)
+                         exlib::AsyncEvent *ac)
 {
     if (!ac)
         return CALL_E_NOSYNC;

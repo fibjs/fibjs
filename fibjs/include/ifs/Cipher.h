@@ -29,6 +29,7 @@ public:
 	virtual result_t get_keySize(int32_t& retVal) = 0;
 	virtual result_t get_ivSize(int32_t& retVal) = 0;
 	virtual result_t get_blockSize(int32_t& retVal) = 0;
+	virtual result_t paddingMode(int32_t mode) = 0;
 	virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 
@@ -40,6 +41,7 @@ public:
 	static void s_get_keySize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_ivSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_blockSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_paddingMode(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -58,6 +60,7 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
+			{"paddingMode", s_paddingMode},
 			{"encrypt", s_encrypt},
 			{"decrypt", s_decrypt}
 		};
@@ -73,7 +76,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Cipher", s__new, 
-			2, s_method, 0, NULL, 4, s_property, NULL, NULL,
+			3, s_method, 0, NULL, 4, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -158,6 +161,18 @@ namespace fibjs
 		hr = _new(v0, v1, v2, v3, vr);
 
 		CONSTRUCT_RETURN();
+	}
+
+	inline void Cipher_base::s_paddingMode(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(Cipher_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(int32_t, 0);
+
+		hr = pInst->paddingMode(v0);
+
+		METHOD_VOID();
 	}
 
 	inline void Cipher_base::s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -39,7 +39,12 @@ public:
 		_CFB128 = 4,
 		_OFB = 5,
 		_CTR = 6,
-		_GCM = 7
+		_GCM = 7,
+		_PADDING_PKCS7 = 0,
+		_PADDING_ONE_AND_ZEROS = 1,
+		_PADDING_ZEROS_AND_LEN = 2,
+		_PADDING_ZEROS = 3,
+		_PADDING_NONE = 4
 	};
 
 public:
@@ -65,6 +70,11 @@ public:
 	static void s_get_OFB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_CTR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_GCM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_PADDING_PKCS7(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_PADDING_ONE_AND_ZEROS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_PADDING_ZEROS_AND_LEN(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_PADDING_ZEROS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_PADDING_NONE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_pseudoRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -109,13 +119,18 @@ namespace fibjs
 			{"CFB128", s_get_CFB128, block_set, true},
 			{"OFB", s_get_OFB, block_set, true},
 			{"CTR", s_get_CTR, block_set, true},
-			{"GCM", s_get_GCM, block_set, true}
+			{"GCM", s_get_GCM, block_set, true},
+			{"PADDING_PKCS7", s_get_PADDING_PKCS7, block_set, true},
+			{"PADDING_ONE_AND_ZEROS", s_get_PADDING_ONE_AND_ZEROS, block_set, true},
+			{"PADDING_ZEROS_AND_LEN", s_get_PADDING_ZEROS_AND_LEN, block_set, true},
+			{"PADDING_ZEROS", s_get_PADDING_ZEROS, block_set, true},
+			{"PADDING_NONE", s_get_PADDING_NONE, block_set, true}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"crypto", NULL, 
-			2, s_method, 1, s_object, 15, s_property, NULL, NULL,
+			2, s_method, 1, s_object, 20, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -224,6 +239,41 @@ namespace fibjs
 	inline void crypto_base::s_get_GCM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _GCM;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_PADDING_PKCS7(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _PADDING_PKCS7;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_PADDING_ONE_AND_ZEROS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _PADDING_ONE_AND_ZEROS;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_PADDING_ZEROS_AND_LEN(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _PADDING_ZEROS_AND_LEN;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_PADDING_ZEROS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _PADDING_ZEROS;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_PADDING_NONE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _PADDING_NONE;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}

@@ -41,6 +41,11 @@ class Cipher: object
     /*! @brief 返回当前算法数据块长度，以字节为单位 */
     readonly Integer blockSize;
 
+    /*! @brief 使用填充模式
+     @param mode 指定填充模式，缺省为 PADDING_PKCS7
+     */
+    paddingMode(Integer mode);
+
     /*! @brief 使用当前算法密码加密数据
      @param data 指定要加密的数据
      @return 返回加密后的数据
