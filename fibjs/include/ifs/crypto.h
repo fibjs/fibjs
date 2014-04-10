@@ -24,6 +24,25 @@ class Buffer_base;
 class crypto_base : public module_base
 {
 public:
+	enum{
+		_AES = 1,
+		_CAMELLIA = 2,
+		_DES = 3,
+		_DES_EDE = 4,
+		_DES_EDE3 = 5,
+		_BLOWFISH = 6,
+		_ARC4 = 7,
+		_STREAM = 0,
+		_ECB = 1,
+		_CBC = 2,
+		_CFB64 = 3,
+		_CFB128 = 4,
+		_OFB = 5,
+		_CTR = 6,
+		_GCM = 7
+	};
+
+public:
 	// crypto_base
 	static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
@@ -31,6 +50,21 @@ public:
 	DECLARE_CLASSINFO(crypto_base);
 
 public:
+	static void s_get_AES(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_CAMELLIA(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_DES(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_DES_EDE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_DES_EDE3(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_BLOWFISH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_ARC4(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_ECB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_CBC(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_CFB64(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_CFB128(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_OFB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_CTR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_GCM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_pseudoRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -59,10 +93,29 @@ namespace fibjs
 			{"Cipher", Cipher_base::class_info}
 		};
 
+		static ClassData::ClassProperty s_property[] = 
+		{
+			{"AES", s_get_AES, block_set, true},
+			{"CAMELLIA", s_get_CAMELLIA, block_set, true},
+			{"DES", s_get_DES, block_set, true},
+			{"DES_EDE", s_get_DES_EDE, block_set, true},
+			{"DES_EDE3", s_get_DES_EDE3, block_set, true},
+			{"BLOWFISH", s_get_BLOWFISH, block_set, true},
+			{"ARC4", s_get_ARC4, block_set, true},
+			{"STREAM", s_get_STREAM, block_set, true},
+			{"ECB", s_get_ECB, block_set, true},
+			{"CBC", s_get_CBC, block_set, true},
+			{"CFB64", s_get_CFB64, block_set, true},
+			{"CFB128", s_get_CFB128, block_set, true},
+			{"OFB", s_get_OFB, block_set, true},
+			{"CTR", s_get_CTR, block_set, true},
+			{"GCM", s_get_GCM, block_set, true}
+		};
+
 		static ClassData s_cd = 
 		{ 
 			"crypto", NULL, 
-			2, s_method, 1, s_object, 0, NULL, NULL, NULL,
+			2, s_method, 1, s_object, 15, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -70,6 +123,110 @@ namespace fibjs
 		return s_ci;
 	}
 
+	inline void crypto_base::s_get_AES(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _AES;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_CAMELLIA(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _CAMELLIA;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_DES(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _DES;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_DES_EDE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _DES_EDE;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_DES_EDE3(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _DES_EDE3;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_BLOWFISH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _BLOWFISH;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_ARC4(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _ARC4;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _STREAM;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_ECB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _ECB;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_CBC(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _CBC;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_CFB64(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _CFB64;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_CFB128(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _CFB128;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_OFB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _OFB;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_CTR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _CTR;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_get_GCM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _GCM;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
 
 	inline void crypto_base::s_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{

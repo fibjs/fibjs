@@ -3,63 +3,53 @@
 
  Cipher 对象属于 crypto 模块，创建：
  @code
- var c = new crypto.Cipher(...);
+ var c = new crypto.Cipher(crypto.AES, crypto.ECB, ...);
  @endcode
  */
 class Cipher: object
 {
-	/*! @brief 指定对称加密算法 AES，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM */
-    const Integer AES = 1;
-
-	/*! @brief 指定对称加密算法 CAMELLIA，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM */
-    const Integer CAMELLIA = 2;
-
-	/*! @brief 指定对称加密算法 DES，支持 64 位 key，分组密码工作模式支持 ECB, CBC */
-    const Integer DES = 3;
-
-	/*! @brief 指定对称加密算法 DES-EDE，支持 128 位 key，分组密码工作模式支持 ECB, CBC */
-    const Integer DES_EDE = 4;
-
-	/*! @brief 指定对称加密算法 DES-EDE3，支持 192 位 key，分组密码工作模式支持 ECB, CBC */
-    const Integer DES_EDE3 = 5;
-
-	/*! @brief 指定对称加密算法 BLOWFISH，支持 192 位 key，分组密码工作模式支持 ECB, CBC, CFB64, CTR */
-    const Integer BLOWFISH = 6;
-
-	/*! @brief 指定对称加密算法 ARC4，支持 192 位 key */
-    const Integer ARC4 = 7;
-
-    /*! @brief 指定流密码模式 */
-    const Integer STREAM = 0;
-
-    /*! @brief 指定分组密码工作模式支持 ECB */
-    const Integer ECB = 1;
-
-    /*! @brief 指定分组密码工作模式支持 CBC */
-    const Integer CBC = 2;
-
-    /*! @brief 指定分组密码工作模式支持 CFB64 */
-    const Integer CFB64 = 3;
-
-    /*! @brief 指定分组密码工作模式支持 CFB128 */
-    const Integer CFB128 = 4;
-
-    /*! @brief 指定分组密码工作模式支持 OFB */
-    const Integer OFB = 5;
-
-    /*! @brief 指定分组密码工作模式支持 CTR */
-    const Integer CTR = 6;
-
-    /*! @brief 指定分组密码工作模式支持 GCM */
-    const Integer GCM = 7;
-
+    /*! @brief Cipher 构造函数，仅用于 ARC4 初始化
+     @param provider 指定加密算法
+     @param key 指定加密解密密码
+    */
     Cipher(Integer provider, Buffer key);
-    Cipher(Integer provider, Buffer key, Buffer iv);
+
+    /*! @brief Cipher 构造函数
+     @param provider 指定加密算法
+     @param mode 指定分组密码工作模式
+     @param key 指定加密解密密码
+    */
     Cipher(Integer provider, Integer mode, Buffer key);
+ 
+    /*! @brief Cipher 构造函数
+     @param provider 指定加密算法
+     @param mode 指定分组密码工作模式
+     @param key 指定加密解密密码
+     @param iv 指定初始向量
+    */
     Cipher(Integer provider, Integer mode, Buffer key, Buffer iv);
 
     /*! @brief 返回当前算法名称 */
     readonly String name;
 
-    cripto(object v) async;
+    /*! @brief 返回当前算法密码长度，以位为单位 */
+    readonly Integer keySize;
+
+    /*! @brief 返回当前算法初始向量长度，以字节为单位 */
+    readonly Integer ivSize;
+
+    /*! @brief 返回当前算法数据块长度，以字节为单位 */
+    readonly Integer blockSize;
+
+    /*! @brief 使用当前算法密码加密数据
+     @param data 指定要加密的数据
+     @return 返回加密后的数据
+     */
+    Buffer encrypto(Buffer data) async;
+
+    /*! @brief 使用当前算法密码解密数据
+     @param data 指定要解密的数据
+     @return 返回解密后的数据
+     */
+    Buffer decrypto(Buffer data) async;
 };

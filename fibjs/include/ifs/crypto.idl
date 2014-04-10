@@ -8,6 +8,51 @@
  */
 class crypto : module
 {
+	/*! @brief 指定对称加密算法 AES，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM */
+    const Integer AES = 1;
+
+	/*! @brief 指定对称加密算法 CAMELLIA，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM */
+    const Integer CAMELLIA = 2;
+
+	/*! @brief 指定对称加密算法 DES，支持 64 位 key，分组密码工作模式支持 ECB, CBC */
+    const Integer DES = 3;
+
+	/*! @brief 指定对称加密算法 DES-EDE，支持 128 位 key，分组密码工作模式支持 ECB, CBC */
+    const Integer DES_EDE = 4;
+
+	/*! @brief 指定对称加密算法 DES-EDE3，支持 192 位 key，分组密码工作模式支持 ECB, CBC */
+    const Integer DES_EDE3 = 5;
+
+	/*! @brief 指定对称加密算法 BLOWFISH，支持 192 位 key，分组密码工作模式支持 ECB, CBC, CFB64, CTR */
+    const Integer BLOWFISH = 6;
+
+	/*! @brief 指定对称加密算法 ARC4，支持 192 位 key */
+    const Integer ARC4 = 7;
+
+    /*! @brief 指定流密码模式 */
+    const Integer STREAM = 0;
+
+    /*! @brief 指定分组密码工作模式支持 ECB */
+    const Integer ECB = 1;
+
+    /*! @brief 指定分组密码工作模式支持 CBC */
+    const Integer CBC = 2;
+
+    /*! @brief 指定分组密码工作模式支持 CFB64 */
+    const Integer CFB64 = 3;
+
+    /*! @brief 指定分组密码工作模式支持 CFB128 */
+    const Integer CFB128 = 4;
+
+    /*! @brief 指定分组密码工作模式支持 OFB */
+    const Integer OFB = 5;
+
+    /*! @brief 指定分组密码工作模式支持 CTR */
+    const Integer CTR = 6;
+
+    /*! @brief 指定分组密码工作模式支持 GCM */
+    const Integer GCM = 7;
+
     static Cipher new Cipher();
 
 	/*! @brief 生成指定尺寸的随机数，使用 havege 生成器
