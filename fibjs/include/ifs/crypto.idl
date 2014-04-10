@@ -54,20 +54,21 @@ class crypto : module
     const Integer GCM = 7;
 
     /*! @brief 指定填充模式为 PKCS7 */
-    const Integer PADDING_PKCS7 = 0;
+    const Integer PKCS7 = 0;
 
     /*! @brief 指定填充模式为 ONE_AND_ZEROS */
-    const Integer PADDING_ONE_AND_ZEROS = 1;
+    const Integer ONE_AND_ZEROS = 1;
 
     /*! @brief 指定填充模式为 ZEROS_AND_LEN */
-    const Integer PADDING_ZEROS_AND_LEN = 2;
+    const Integer ZEROS_AND_LEN = 2;
 
     /*! @brief 指定填充模式为 ZEROS */
-    const Integer PADDING_ZEROS = 3;
+    const Integer ZEROS = 3;
 
-    /*! @brief 指定填充模式为 NONE */
-    const Integer PADDING_NONE = 4;
+    /*! @brief 指定填充模式为 NOPADDING */
+    const Integer NOPADDING = 4;
 
+    /*! @brief Cipher 构造函数，参见 Cipher */
     static Cipher new Cipher();
 
 	/*! @brief 生成指定尺寸的随机数，使用 havege 生成器

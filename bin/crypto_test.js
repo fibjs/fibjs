@@ -31,7 +31,7 @@ describe('crypto', function() {
 							encoding.hexDecode(item[3]));
 
 					if (mode == crypto.CBC)
-						c.paddingMode(crypto.PADDING_NONE);
+						c.paddingMode(crypto.NOPADDING);
 					assert.equal(c[item[1]](encoding.hexDecode(item[4])).hex(), item[5], item[0]);
 				});
 
@@ -52,4 +52,4 @@ describe('crypto', function() {
 	});
 });
 
-//test.run(console.DEBUG);
+test.run(console.DEBUG);
