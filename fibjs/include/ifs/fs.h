@@ -47,7 +47,7 @@ public:
 	static result_t tmpFile(obj_ptr<File_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t openTextStream(const char* fname, const char* flags, obj_ptr<BufferedStream_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t readFile(const char* fname, std::string& retVal, exlib::AsyncEvent* ac);
-	static result_t readLines(const char* fname, int32_t maxlines, v8::Local<v8::Array>& retVal, exlib::AsyncEvent* ac);
+	static result_t readLines(const char* fname, int32_t maxlines, v8::Local<v8::Array>& retVal);
 	static result_t writeFile(const char* fname, const char* txt, exlib::AsyncEvent* ac);
 
 	DECLARE_CLASSINFO(fs_base);
@@ -86,7 +86,6 @@ public:
 	ASYNC_STATICVALUE1(fs_base, tmpFile, obj_ptr<File_base>);
 	ASYNC_STATICVALUE3(fs_base, openTextStream, const char*, const char*, obj_ptr<BufferedStream_base>);
 	ASYNC_STATICVALUE2(fs_base, readFile, const char*, std::string);
-	ASYNC_STATICVALUE3(fs_base, readLines, const char*, int32_t, v8::Local<v8::Array>);
 	ASYNC_STATIC2(fs_base, writeFile, const char*, const char*);
 };
 
@@ -330,7 +329,7 @@ namespace fibjs
 		ARG_String(0);
 		OPT_ARG(int32_t, 1, -1);
 
-		hr = ac_readLines(v0, v1, vr);
+		hr = readLines(v0, v1, vr);
 
 		METHOD_RETURN();
 	}

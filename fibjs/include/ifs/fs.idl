@@ -106,7 +106,7 @@ class fs : module
 	 @param maxlines 指定此次读取的最大行数，缺省读取全部文本行
 	 @return 返回读取的文本行数组，若无数据可读，或者连接中断，空数组
 	 */
-	static Array readLines(String fname, Integer maxlines = -1) async;
+	static Array readLines(String fname, Integer maxlines = -1);
 
 	/*! @brief 创建文件，并写入内容
 	 @param fname 指定文件名
