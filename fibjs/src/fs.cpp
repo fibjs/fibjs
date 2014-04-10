@@ -88,6 +88,22 @@ result_t fs_base::readFile(const char *fname, std::string &retVal,
     return buf->toString(retVal);
 }
 
+result_t fs_base::readLines(const char *fname, int32_t maxlines,
+                            v8::Local<v8::Array> &retVal, exlib::AsyncEvent *ac)
+{
+    if (!ac)
+        return CALL_E_NOSYNC;
+
+    obj_ptr<BufferedStream_base> pFile;
+    result_t hr;
+
+    hr = openTextStream(fname, "r", pFile, ac);
+    if (hr < 0)
+        return hr;
+
+    return pFile->readLines(maxlines, retVal, ac);
+}
+
 result_t fs_base::writeFile(const char *fname, const char *txt,
                             exlib::AsyncEvent *ac)
 {

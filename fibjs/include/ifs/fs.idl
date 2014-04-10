@@ -101,6 +101,13 @@ class fs : module
 	 */
 	static String readFile(String fname) async;
 
+	/*! @brief 打开文件，以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:"\n"；windows:"\r\n"
+	 @param fname 指定文件名
+	 @param maxlines 指定此次读取的最大行数，缺省读取全部文本行
+	 @return 返回读取的文本行数组，若无数据可读，或者连接中断，空数组
+	 */
+	static Array readLines(String fname, Integer maxlines = -1) async;
+
 	/*! @brief 创建文件，并写入内容
 	 @param fname 指定文件名
 	 @param txt 指定要写入的字符串
