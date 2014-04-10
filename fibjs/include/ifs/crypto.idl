@@ -26,7 +26,7 @@ class crypto : module
 	/*! @brief 指定对称加密算法 BLOWFISH，支持 192 位 key，分组密码工作模式支持 ECB, CBC, CFB64, CTR */
     const Integer BLOWFISH = 6;
 
-	/*! @brief 指定对称加密算法 ARC4，支持 192 位 key */
+	/*! @brief 指定对称加密算法 ARC4，支持 40, 56, 64, 128 位 key */
     const Integer ARC4 = 7;
 
     /*! @brief 指定流密码模式 */

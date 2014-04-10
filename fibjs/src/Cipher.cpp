@@ -13,7 +13,7 @@
 namespace fibjs
 {
 
-#define SIZE_COUNT 3
+#define SIZE_COUNT 4
 #define PROVIDER_COUNT 7
 #define MODE_COUNT 8
 
@@ -52,6 +52,9 @@ static struct _cipher_size
         { "BLOWFISH" }
     },
     {
+        { "ARC4-40" },
+        { "ARC4-56" },
+        { "ARC4-64" },
         { "ARC4-128" }
     }
 };
@@ -102,7 +105,7 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base *key,
         keylen = 24;
     }
 
-    for (int i = 0; i < 3; i ++)
+    for (int i = 0; i < SIZE_COUNT; i ++)
         if (s_sizes[provider - crypto_base::_AES][i].size == keylen * 8)
         {
             info = s_sizes[provider - crypto_base::_AES][i].cis[mode - crypto_base::_STREAM];

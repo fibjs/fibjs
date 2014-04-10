@@ -1091,6 +1091,39 @@ const cipher_base_t arc4_base_info = {
     arc4_ctx_free
 };
 
+const cipher_info_t arc4_40_info = {
+    POLARSSL_CIPHER_ARC4_40,
+    POLARSSL_MODE_STREAM,
+    40,
+    "ARC4-40",
+    0,
+    0,
+    1,
+    &arc4_base_info
+};
+
+const cipher_info_t arc4_56_info = {
+    POLARSSL_CIPHER_ARC4_56,
+    POLARSSL_MODE_STREAM,
+    56,
+    "ARC4-56",
+    0,
+    0,
+    1,
+    &arc4_base_info
+};
+
+const cipher_info_t arc4_64_info = {
+    POLARSSL_CIPHER_ARC4_64,
+    POLARSSL_MODE_STREAM,
+    64,
+    "ARC4-64",
+    0,
+    0,
+    1,
+    &arc4_base_info
+};
+
 const cipher_info_t arc4_128_info = {
     POLARSSL_CIPHER_ARC4_128,
     POLARSSL_MODE_STREAM,
@@ -1187,6 +1220,9 @@ const cipher_definition_t cipher_definitions[] =
 #endif /* POLARSSL_AES_C */
 
 #if defined(POLARSSL_ARC4_C)
+    { POLARSSL_CIPHER_ARC4_40,              &arc4_40_info },
+    { POLARSSL_CIPHER_ARC4_56,              &arc4_56_info },
+    { POLARSSL_CIPHER_ARC4_64,              &arc4_64_info },
     { POLARSSL_CIPHER_ARC4_128,             &arc4_128_info },
 #endif
 
