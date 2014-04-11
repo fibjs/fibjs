@@ -88,6 +88,7 @@
     <ClCompile Include="src\PacketHandler.cpp" />
     <ClCompile Include="src\PacketMessage.cpp" />
     <ClCompile Include="src\path.cpp" />
+    <ClCompile Include="src\PKey.cpp" />
     <ClCompile Include="src\process.cpp" />
     <ClCompile Include="src\Queue.cpp" />
     <ClCompile Include="src\Regex.cpp" />
@@ -215,6 +216,7 @@
     <ClInclude Include="include\ifs\PacketHandler.h" />
     <ClInclude Include="include\ifs\PacketMessage.h" />
     <ClInclude Include="include\ifs\path.h" />
+    <ClInclude Include="include\ifs\PKey.h" />
     <ClInclude Include="include\ifs\process.h" />
     <ClInclude Include="include\ifs\Queue.h" />
     <ClInclude Include="include\ifs\re.h" />
@@ -263,6 +265,7 @@
     <ClInclude Include="include\PacketHandler.h" />
     <ClInclude Include="include\PacketMessage.h" />
     <ClInclude Include="include\parse.h" />
+    <ClInclude Include="include\PKey.h" />
     <ClInclude Include="include\qstring.h" />
     <ClInclude Include="include\Queue.h" />
     <ClInclude Include="include\QuickArray.h" />

@@ -290,6 +290,7 @@ result_t Cipher::setError(int ret)
     char msg[128];
 
     polarssl_strerror(ret, msg, sizeof(msg));
+    puts(msg);
     return Runtime::setError(msg);
 }
 

@@ -324,6 +324,9 @@
     <ClCompile Include="src\crypto.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\PKey.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -808,6 +811,12 @@
     </ClInclude>
     <ClInclude Include="include\Cipher.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\PKey.h">
+      <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\PKey.h">
+      <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -19,6 +19,7 @@ namespace fibjs
 
 class module_base;
 class Cipher_base;
+class PKey_base;
 class Buffer_base;
 
 class crypto_base : public module_base
@@ -86,6 +87,7 @@ public:
 }
 
 #include "Cipher.h"
+#include "PKey.h"
 #include "Buffer.h"
 
 namespace fibjs
@@ -100,7 +102,8 @@ namespace fibjs
 
 		static ClassData::ClassObject s_object[] = 
 		{
-			{"Cipher", Cipher_base::class_info}
+			{"Cipher", Cipher_base::class_info},
+			{"PKey", PKey_base::class_info}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -130,7 +133,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"crypto", NULL, 
-			2, s_method, 1, s_object, 20, s_property, NULL, NULL,
+			2, s_method, 2, s_object, 20, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 

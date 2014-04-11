@@ -71,6 +71,9 @@ class crypto : module
     /*! @brief Cipher 构造函数，参见 Cipher */
     static Cipher new Cipher();
 
+    /*! @brief PKey 构造函数，参见 PKey */
+    static PKey new PKey();
+
 	/*! @brief 生成指定尺寸的随机数，使用 havege 生成器
 	 @param size 指定生成的随机数尺寸
 	 @return 返回生成的随机数

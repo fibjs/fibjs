@@ -1,0 +1,19 @@
+
+/*! @brief 不对称加密算法对象
+
+ PKey 对象属于 crypto 模块，创建：
+ @code
+ var k = new crypto.PKey();
+ @endcode
+ */
+class PKey: object
+{
+    /*! @brief PKey 构造函数 */
+    PKey();
+
+    /*! @brief 生成一个 RSA 私钥 */
+    genRsaKey(Integer size) async;
+
+    /*! @brief 生成一个 EC 私钥 */
+    genEcKey(Integer size) async;
+};
