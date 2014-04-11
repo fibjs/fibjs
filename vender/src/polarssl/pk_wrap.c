@@ -64,11 +64,20 @@ static int rsa_verify_wrap( void *ctx, md_type_t md_alg,
                    const unsigned char *hash, size_t hash_len,
                    const unsigned char *sig, size_t sig_len )
 {
-    if( sig_len != ((rsa_context *) ctx)->len )
+    int ret;
+
+    if( sig_len < ((rsa_context *) ctx)->len )
         return( POLARSSL_ERR_RSA_VERIFY_FAILED );
 
-    return( rsa_pkcs1_verify( (rsa_context *) ctx, NULL, NULL,
-                RSA_PUBLIC, md_alg, (unsigned int) hash_len, hash, sig ) );
+    if( ( ret = rsa_pkcs1_verify( (rsa_context *) ctx, NULL, NULL,
+                                  RSA_PUBLIC, md_alg,
+                                  (unsigned int) hash_len, hash, sig ) ) != 0 )
+        return( ret );
+
+    if( sig_len > ((rsa_context *) ctx)->len )
+        return( POLARSSL_ERR_PK_SIG_LEN_MISMATCH );
+
+    return( 0 );
 }
 
 static int rsa_sign_wrap( void *ctx, md_type_t md_alg,
@@ -259,7 +268,7 @@ const pk_info_t eckey_info = {
 };
 
 /*
- * EC key resticted to ECDH
+ * EC key restricted to ECDH
  */
 static int eckeydh_can_do( pk_type_t type )
 {
@@ -292,10 +301,16 @@ static int ecdsa_verify_wrap( void *ctx, md_type_t md_alg,
                        const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len )
 {
+    int ret;
     ((void) md_alg);
 
-    return( ecdsa_read_signature( (ecdsa_context *) ctx,
-                hash, hash_len, sig, sig_len ) );
+    ret = ecdsa_read_signature( (ecdsa_context *) ctx,
+                                hash, hash_len, sig, sig_len );
+
+    if( ret == POLARSSL_ERR_ECP_SIG_LEN_MISMATCH )
+        return( POLARSSL_ERR_PK_SIG_LEN_MISMATCH );
+
+    return( ret );
 }
 
 static int ecdsa_sign_wrap( void *ctx, md_type_t md_alg,
@@ -357,7 +372,7 @@ static size_t rsa_alt_get_size( const void *ctx )
 {
     const rsa_alt_context *rsa_alt = (const rsa_alt_context *) ctx;
 
-    return( rsa_alt->key_len_func( rsa_alt->key ) );
+    return( 8 * rsa_alt->key_len_func( rsa_alt->key ) );
 }
 
 static int rsa_alt_sign_wrap( void *ctx, md_type_t md_alg,

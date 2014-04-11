@@ -44,6 +44,7 @@
 #endif
 
 #define POLARSSL_ERR_OID_NOT_FOUND                         -0x002E  /**< OID is not found. */
+#define POLARSSL_ERR_OID_BUF_TOO_SMALL                     -0x000B  /**< output buffer is too small */
 
 /*
  * Top level OID tuples
@@ -325,7 +326,7 @@
 #define OID_ANSI_X9_62_PRIME_FIELD  OID_ANSI_X9_62_FIELD_TYPE "\x01"
 
 /*
- * ECDSA signature identifers, from RFC 5480
+ * ECDSA signature identifiers, from RFC 5480
  */
 #define OID_ANSI_X9_62_SIG          OID_ANSI_X9_62 "\x04" /* signatures(4) */
 #define OID_ANSI_X9_62_SIG_SHA2     OID_ANSI_X9_62_SIG "\x03" /* ecdsa-with-SHA2(3) */
@@ -376,7 +377,8 @@ typedef struct {
  * \param size      size of the buffer
  * \param oid       OID to translate
  *
- * \return          POLARSSL_ERR_DEBUG_BUF_TOO_SMALL or actual length used
+ * \return          Length of the string written (excluding final NULL) or
+ *                  POLARSSL_ERR_OID_BUF_TO_SMALL in case of error
  */
 int oid_get_numeric_string( char *buf, size_t size, const asn1_buf *oid );
 

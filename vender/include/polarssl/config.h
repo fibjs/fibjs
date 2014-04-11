@@ -645,7 +645,7 @@
  * Do not add default entropy sources. These are the platform specific,
  * hardclock and HAVEGE based poll functions.
  *
- * This is useful to have more control over the added entropy sources in an 
+ * This is useful to have more control over the added entropy sources in an
  * application.
  *
  * Uncomment this macro to prevent loading of default entropy functions.
@@ -861,6 +861,16 @@
 #define POLARSSL_SSL_PROTO_TLS1_2
 
 /**
+ * \def POLARSSL_SSL_ALPN
+ *
+ * Enable support for Application Layer Protocol Negotiation.
+ * draft-ietf-tls-applayerprotoneg-05
+ *
+ * Comment this macro to disable support for ALPN.
+ */
+#define POLARSSL_SSL_ALPN
+
+/**
  * \def POLARSSL_SSL_SESSION_TICKETS
  *
  * Enable support for RFC 5077 session tickets in SSL.
@@ -946,6 +956,33 @@
  * Uncomment to prevent an error.
  */
 //#define POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
+
+/**
+ * \def POLARSSL_X509_CHECK_KEY_USAGE
+ *
+ * Enable verification of the keyUsage extension (CA and leaf certificates).
+ *
+ * Disabling this avoids problems with mis-issued and/or misused
+ * (intermediate) CA and leaf certificates.
+ *
+ * \warning Depending on your PKI use, disabling this can be a security risk!
+ *
+ * Comment to skip keyUsage checking for both CA and leaf certificates.
+ */
+#define POLARSSL_X509_CHECK_KEY_USAGE
+
+/**
+ * \def POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE
+ *
+ * Enable verification of the extendedKeyUsage extension (leaf certificates).
+ *
+ * Disabling this avoids problems with mis-issued and/or misused certificates.
+ *
+ * \warning Depending on your PKI use, disabling this can be a security risk!
+ *
+ * Comment to skip extendedKeyUsage checking for certificates.
+ */
+#define POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE
 
 /**
  * \def POLARSSL_ZLIB_SUPPORT
@@ -1366,7 +1403,7 @@
  * Module:  library/error.c
  * Caller:
  *
- * This module enables err_strerror().
+ * This module enables polarssl_strerror().
  */
 #define POLARSSL_ERROR_C
 
@@ -2040,6 +2077,8 @@
 #define MEMORY_ALIGN_MULTIPLE               4 /**< Align on multiples of this value */
 
 // Platform options
+//
+#define POLARSSL_PLATFORM_STD_MEM_HDR <stdlib.h> /**< Header to include for default allocator. Don't define if no header is needed. */
 #define POLARSSL_PLATFORM_STD_MALLOC   malloc /**< Default allocator to use, can be undefined */
 #define POLARSSL_PLATFORM_STD_FREE       free /**< Default free to use, can be undefined */
 #define POLARSSL_PLATFORM_STD_PRINTF   printf /**< Default printf to use, can be undefined */
@@ -2117,8 +2156,9 @@
     defined(POLARSSL_CONFIG_OPTIONS) && (CTR_DRBG_ENTROPY_LEN > 64)
 #error "CTR_DRBG_ENTROPY_LEN value too high"
 #endif
-#if defined(POLARSSL_ENTROPY_C) && !defined(POLARSSL_SHA512_C) &&        \
-    defined(POLARSSL_CONFIG_OPTIONS) && (CTR_DRBG_ENTROPY_LEN > 32)
+#if defined(POLARSSL_ENTROPY_C) &&                                            \
+    ( !defined(POLARSSL_SHA512_C) || defined(POLARSSL_ENTROPY_FORCE_SHA256) ) \
+    && defined(POLARSSL_CONFIG_OPTIONS) && (CTR_DRBG_ENTROPY_LEN > 32)
 #error "CTR_DRBG_ENTROPY_LEN value too high"
 #endif
 #if defined(POLARSSL_ENTROPY_C) && \

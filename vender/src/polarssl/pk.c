@@ -86,7 +86,7 @@ const pk_info_t * pk_info_from_type( pk_type_t pk_type )
         case POLARSSL_PK_ECDSA:
             return &ecdsa_info;
 #endif
-        /* POLARSSL_PK_RSA_ALT ommited on purpose */
+        /* POLARSSL_PK_RSA_ALT omitted on purpose */
         default:
             return NULL;
     }
@@ -257,6 +257,9 @@ int pk_debug( const pk_context *ctx, pk_debug_item *items )
 {
     if( ctx == NULL || ctx->pk_info == NULL )
         return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+
+    if( ctx->pk_info->debug_func == NULL )
+        return( POLARSSL_ERR_PK_TYPE_MISMATCH );
 
     ctx->pk_info->debug_func( ctx->pk_ctx, items );
     return( 0 );

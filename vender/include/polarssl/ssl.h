@@ -137,7 +137,7 @@
 #define POLARSSL_ERR_SSL_BAD_HS_NEW_SESSION_TICKET         -0x6E00  /**< Processing of the NewSessionTicket handshake message failed. */
 #define POLARSSL_ERR_SSL_SESSION_TICKET_EXPIRED            -0x6D80  /**< Session ticket has expired. */
 #define POLARSSL_ERR_SSL_PK_TYPE_MISMATCH                  -0x6D00  /**< Public key type mismatch (eg, asked for RSA key exchange and presented EC key) */
-#define POLARSSL_ERR_SSL_UNKNOWN_IDENTITY                  -0x6C80  /**< Unkown identity received (eg, PSK identity) */
+#define POLARSSL_ERR_SSL_UNKNOWN_IDENTITY                  -0x6C80  /**< Unknown identity received (eg, PSK identity) */
 #define POLARSSL_ERR_SSL_INTERNAL_ERROR                    -0x6C00  /**< Internal error (eg, unexpected failure in lower-level module) */
 #define POLARSSL_ERR_SSL_COUNTER_WRAPPING                  -0x6B80  /**< A counter would wrap (eg, too many messages exchanged). */
 
@@ -320,6 +320,7 @@
 #define SSL_ALERT_MSG_UNSUPPORTED_EXT      110  /* 0x6E */
 #define SSL_ALERT_MSG_UNRECOGNIZED_NAME    112  /* 0x70 */
 #define SSL_ALERT_MSG_UNKNOWN_PSK_IDENTITY 115  /* 0x73 */
+#define SSL_ALERT_MSG_NO_APPLICATION_PROTOCOL 120 /* 0x78 */
 
 #define SSL_HS_HELLO_REQUEST            0
 #define SSL_HS_CLIENT_HELLO             1
@@ -347,6 +348,8 @@
 #define TLS_EXT_SUPPORTED_POINT_FORMATS     11
 
 #define TLS_EXT_SIG_ALG                     13
+
+#define TLS_EXT_ALPN                        16
 
 #define TLS_EXT_SESSION_TICKET              35
 
@@ -760,6 +763,14 @@ struct _ssl_context
      */
     unsigned char *hostname;
     size_t         hostname_len;
+#endif
+
+#if defined(POLARSSL_SSL_ALPN)
+    /*
+     * ALPN extension
+     */
+    const char **alpn_list;     /*!<  ordered list of supported protocols   */
+    const char *alpn_chosen;    /*!<  negotiated protocol                   */
 #endif
 
     /*
@@ -1232,6 +1243,30 @@ void ssl_set_sni( ssl_context *ssl,
                   void *p_sni );
 #endif /* POLARSSL_SSL_SERVER_NAME_INDICATION */
 
+#if defined(POLARSSL_SSL_ALPN)
+/**
+ * \brief          Set the supported Application Layer Protocols.
+ *
+ * \param ssl      SSL context
+ * \param protos   NULL-terminated list of supported protocols,
+ *                 in decreasing preference order.
+ *
+ * \return         0 on success, or POLARSSL_ERR_SSL_BAD_INPUT_DATA.
+ */
+int ssl_set_alpn_protocols( ssl_context *ssl, const char **protos );
+
+/**
+ * \brief          Get the name of the negotiated Application Layer Protocol.
+ *                 This function should be called after the handshake is
+ *                 completed.
+ *
+ * \param ssl      SSL context
+ *
+ * \return         Protcol name, or NULL if no protocol was negotiated.
+ */
+const char *ssl_get_alpn_protocol( const ssl_context *ssl );
+#endif /* POLARSSL_SSL_ALPN */
+
 /**
  * \brief          Set the maximum supported version sent from the client side
  *                 and/or accepted at the server side
@@ -1622,6 +1657,19 @@ static inline x509_crt *ssl_own_cert( ssl_context *ssl )
     return( ssl->handshake->key_cert == NULL ? NULL
             : ssl->handshake->key_cert->cert );
 }
+
+/*
+ * Check usage of a certificate wrt extensions:
+ * keyUsage, extendedKeyUsage (later), and nSCertType (later).
+ *
+ * Warning: cert_endpoint is the endpoint of the cert (ie, of our peer when we
+ * check a cert we received from them)!
+ *
+ * Return 0 if everything is OK, -1 if not.
+ */
+int ssl_check_cert_usage( const x509_crt *cert,
+                          const ssl_ciphersuite_t *ciphersuite,
+                          int cert_endpoint );
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
 /* constant-time buffer comparison */

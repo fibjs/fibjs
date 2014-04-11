@@ -110,24 +110,27 @@
 
 /*
  * X.509 extension types
+ *
+ * Comments refer to the status for using certificates. Status can be
+ * different for writing certificates or reading CRLs or CSRs.
  */
 #define EXT_AUTHORITY_KEY_IDENTIFIER    (1 << 0)
 #define EXT_SUBJECT_KEY_IDENTIFIER      (1 << 1)
-#define EXT_KEY_USAGE                   (1 << 2)
+#define EXT_KEY_USAGE                   (1 << 2)    /* Parsed but not used */
 #define EXT_CERTIFICATE_POLICIES        (1 << 3)
 #define EXT_POLICY_MAPPINGS             (1 << 4)
-#define EXT_SUBJECT_ALT_NAME            (1 << 5)
+#define EXT_SUBJECT_ALT_NAME            (1 << 5)    /* Supported (DNS) */
 #define EXT_ISSUER_ALT_NAME             (1 << 6)
 #define EXT_SUBJECT_DIRECTORY_ATTRS     (1 << 7)
-#define EXT_BASIC_CONSTRAINTS           (1 << 8)
+#define EXT_BASIC_CONSTRAINTS           (1 << 8)    /* Supported */
 #define EXT_NAME_CONSTRAINTS            (1 << 9)
 #define EXT_POLICY_CONSTRAINTS          (1 << 10)
-#define EXT_EXTENDED_KEY_USAGE          (1 << 11)
+#define EXT_EXTENDED_KEY_USAGE          (1 << 11)   /* Parsed but not used */
 #define EXT_CRL_DISTRIBUTION_POINTS     (1 << 12)
 #define EXT_INIHIBIT_ANYPOLICY          (1 << 13)
 #define EXT_FRESHEST_CRL                (1 << 14)
 
-#define EXT_NS_CERT_TYPE                (1 << 16)
+#define EXT_NS_CERT_TYPE                (1 << 16)   /* Parsed (and then ?) */
 
 /*
  * Storage format identifiers
@@ -209,6 +212,8 @@ int x509_serial_gets( char *buf, size_t size, const x509_buf *serial );
 
 /**
  * \brief          Give an known OID, return its descriptive string.
+ *                 (Deprecated. Use oid_get_extended_key_usage() instead.)
+ *                 Warning: only works for extended_key_usage OIDs!
  *
  * \param oid      buffer containing the oid
  *
@@ -225,8 +230,8 @@ const char *x509_oid_get_description( x509_buf *oid );
  * \param size     Maximum size of buffer
  * \param oid      Buffer containing the OID
  *
- * \return         The amount of data written to the buffer, or -1 in
- *                 case of an error.
+ * \return         Length of the string written (excluding final NULL) or
+ *                 POLARSSL_ERR_OID_BUF_TO_SMALL in case of error
  */
 int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid );
 

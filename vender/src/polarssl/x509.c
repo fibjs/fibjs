@@ -274,7 +274,7 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
         memcpy( date, *p, ( len < sizeof( date ) - 1 ) ?
                 len : sizeof( date ) - 1 );
 
-        if( sscanf( date, "%2d%2d%2d%2d%2d%2d",
+        if( sscanf( date, "%2d%2d%2d%2d%2d%2dZ",
                     &time->year, &time->mon, &time->day,
                     &time->hour, &time->min, &time->sec ) < 5 )
             return( POLARSSL_ERR_X509_INVALID_DATE );
@@ -298,7 +298,7 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
         memcpy( date, *p, ( len < sizeof( date ) - 1 ) ?
                 len : sizeof( date ) - 1 );
 
-        if( sscanf( date, "%4d%2d%2d%2d%2d%2d",
+        if( sscanf( date, "%4d%2d%2d%2d%2d%2dZ",
                     &time->year, &time->mon, &time->day,
                     &time->hour, &time->min, &time->sec ) < 5 )
             return( POLARSSL_ERR_X509_INVALID_DATE );
@@ -627,7 +627,7 @@ static void x509_get_current_time( x509_time *now )
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
     SYSTEMTIME st;
 
-    GetLocalTime(&st);
+    GetSystemTime(&st);
 
     now->year = st.wYear;
     now->mon = st.wMonth;
@@ -640,7 +640,7 @@ static void x509_get_current_time( x509_time *now )
     time_t tt;
 
     tt = time( NULL );
-    localtime_r( &tt, &lt );
+    gmtime_r( &tt, &lt );
 
     now->year = lt.tm_year + 1900;
     now->mon = lt.tm_mon + 1;

@@ -38,6 +38,11 @@
 #include "polarssl/debug.h"
 #include "polarssl/ssl.h"
 
+#if defined(POLARSSL_X509_CRT_PARSE_C) && \
+    defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
+#include "polarssl/oid.h"
+#endif
+
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
@@ -2087,7 +2092,8 @@ int ssl_read_record( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_INVALID_RECORD );
         }
 
-        ssl->handshake->update_checksum( ssl, ssl->in_msg, ssl->in_hslen );
+        if( ssl->state != SSL_HANDSHAKE_OVER )
+            ssl->handshake->update_checksum( ssl, ssl->in_msg, ssl->in_hslen );
 
         return( 0 );
     }
@@ -2698,6 +2704,9 @@ int ssl_parse_certificate( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_CA_CHAIN_REQUIRED );
         }
 
+        /*
+         * Main check: verify certificate
+         */
         ret = x509_crt_verify( ssl->session_negotiate->peer_cert,
                                ssl->ca_chain, ssl->ca_crl, ssl->peer_cn,
                               &ssl->session_negotiate->verify_result,
@@ -2707,20 +2716,34 @@ int ssl_parse_certificate( ssl_context *ssl )
         {
             SSL_DEBUG_RET( 1, "x509_verify_cert", ret );
         }
+
+        /*
+         * Secondary checks: always done, but change 'ret' only if it was 0
+         */
+
 #if defined(POLARSSL_SSL_SET_CURVES)
-        else
         {
-            pk_context *pk = &ssl->session_negotiate->peer_cert->pk;
+            const pk_context *pk = &ssl->session_negotiate->peer_cert->pk;
 
             /* If certificate uses an EC key, make sure the curve is OK */
             if( pk_can_do( pk, POLARSSL_PK_ECKEY ) &&
                 ! ssl_curve_is_acceptable( ssl, pk_ec( *pk )->grp.id ) )
             {
-                SSL_DEBUG_MSG( 1, ( "bad server certificate (EC key curve)" ) );
-                ret = POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE;
+                SSL_DEBUG_MSG( 1, ( "bad certificate (EC key curve)" ) );
+                if( ret == 0 )
+                    ret = POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE;
             }
         }
 #endif
+
+        if( ssl_check_cert_usage( ssl->session_negotiate->peer_cert,
+                                  ciphersuite_info,
+                                  ! ssl->endpoint ) != 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad certificate (usage extensions)" ) );
+            if( ret == 0 )
+                ret = POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE;
+        }
 
         if( ssl->authmode != SSL_VERIFY_REQUIRED )
             ret = 0;
@@ -3520,6 +3543,10 @@ int ssl_session_reset( ssl_context *ssl )
         ssl->session = NULL;
     }
 
+#if defined(POLARSSL_SSL_ALPN)
+    ssl->alpn_chosen = NULL;
+#endif
+
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         return( ret );
 
@@ -3913,6 +3940,37 @@ void ssl_set_sni( ssl_context *ssl,
     ssl->p_sni = p_sni;
 }
 #endif /* POLARSSL_SSL_SERVER_NAME_INDICATION */
+
+#if defined(POLARSSL_SSL_ALPN)
+int ssl_set_alpn_protocols( ssl_context *ssl, const char **protos )
+{
+    size_t cur_len, tot_len;
+    const char **p;
+
+    /*
+     * "Empty strings MUST NOT be included and byte strings MUST NOT be
+     * truncated". Check lengths now rather than later.
+     */
+    tot_len = 0;
+    for( p = protos; *p != NULL; p++ )
+    {
+        cur_len = strlen( *p );
+        tot_len += cur_len;
+
+        if( cur_len == 0 || cur_len > 255 || tot_len > 65535 )
+            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    ssl->alpn_list = protos;
+
+    return( 0 );
+}
+
+const char *ssl_get_alpn_protocol( const ssl_context *ssl )
+{
+    return ssl->alpn_chosen;
+}
+#endif /* POLARSSL_SSL_ALPN */
 
 void ssl_set_max_version( ssl_context *ssl, int major, int minor )
 {
@@ -4711,3 +4769,84 @@ int ssl_curve_is_acceptable( const ssl_context *ssl, ecp_group_id grp_id )
     return( 0 );
 }
 #endif
+
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+int ssl_check_cert_usage( const x509_crt *cert,
+                          const ssl_ciphersuite_t *ciphersuite,
+                          int cert_endpoint )
+{
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+    int usage = 0;
+#endif
+#if defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
+    const char *ext_oid;
+    size_t ext_len;
+#endif
+
+#if !defined(POLARSSL_X509_CHECK_KEY_USAGE) &&          \
+    !defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
+    ((void) cert);
+    ((void) cert_endpoint);
+#endif
+
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+    if( cert_endpoint == SSL_IS_SERVER )
+    {
+        /* Server part of the key exchange */
+        switch( ciphersuite->key_exchange )
+        {
+            case POLARSSL_KEY_EXCHANGE_RSA:
+            case POLARSSL_KEY_EXCHANGE_RSA_PSK:
+                usage = KU_KEY_ENCIPHERMENT;
+                break;
+
+            case POLARSSL_KEY_EXCHANGE_DHE_RSA:
+            case POLARSSL_KEY_EXCHANGE_ECDHE_RSA:
+            case POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA:
+                usage = KU_DIGITAL_SIGNATURE;
+                break;
+
+            case POLARSSL_KEY_EXCHANGE_ECDH_RSA:
+            case POLARSSL_KEY_EXCHANGE_ECDH_ECDSA:
+                usage = KU_KEY_AGREEMENT;
+                break;
+
+            /* Don't use default: we want warnings when adding new values */
+            case POLARSSL_KEY_EXCHANGE_NONE:
+            case POLARSSL_KEY_EXCHANGE_PSK:
+            case POLARSSL_KEY_EXCHANGE_DHE_PSK:
+            case POLARSSL_KEY_EXCHANGE_ECDHE_PSK:
+                usage = 0;
+        }
+    }
+    else
+    {
+        /* Client auth: we only implement rsa_sign and ecdsa_sign for now */
+        usage = KU_DIGITAL_SIGNATURE;
+    }
+
+    if( x509_crt_check_key_usage( cert, usage ) != 0 )
+        return( -1 );
+#else
+    ((void) ciphersuite);
+#endif /* POLARSSL_X509_CHECK_KEY_USAGE */
+
+#if defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
+    if( cert_endpoint == SSL_IS_SERVER )
+    {
+        ext_oid = OID_SERVER_AUTH;
+        ext_len = OID_SIZE( OID_SERVER_AUTH );
+    }
+    else
+    {
+        ext_oid = OID_CLIENT_AUTH;
+        ext_len = OID_SIZE( OID_CLIENT_AUTH );
+    }
+
+    if( x509_crt_check_extended_key_usage( cert, ext_oid, ext_len ) != 0 )
+        return( -1 );
+#endif /* POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE */
+
+    return( 0 );
+}
+#endif /* POLARSSL_X509_CRT_PARSE_C */

@@ -245,6 +245,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "ECP - Generation of random value, such as (ephemeral) key, failed" );
         if( use_ret == -(POLARSSL_ERR_ECP_INVALID_KEY) )
             snprintf( buf, buflen, "ECP - Invalid private or public key" );
+        if( use_ret == -(POLARSSL_ERR_ECP_SIG_LEN_MISMATCH) )
+            snprintf( buf, buflen, "ECP - Signature is valid but shorter than the user-supplied length" );
 #endif /* POLARSSL_ECP_C */
 
 #if defined(POLARSSL_MD_C)
@@ -306,6 +308,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "PK - Elliptic curve is unsupported (only NIST curves are supported)" );
         if( use_ret == -(POLARSSL_ERR_PK_FEATURE_UNAVAILABLE) )
             snprintf( buf, buflen, "PK - Unavailable feature, e.g. RSA disabled for RSA key" );
+        if( use_ret == -(POLARSSL_ERR_PK_SIG_LEN_MISMATCH) )
+            snprintf( buf, buflen, "PK - The signature is valid but its length is less than expected" );
 #endif /* POLARSSL_PK_C */
 
 #if defined(POLARSSL_PKCS12_C)
@@ -430,7 +434,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_SSL_PK_TYPE_MISMATCH) )
             snprintf( buf, buflen, "SSL - Public key type mismatch (eg, asked for RSA key exchange and presented EC key)" );
         if( use_ret == -(POLARSSL_ERR_SSL_UNKNOWN_IDENTITY) )
-            snprintf( buf, buflen, "SSL - Unkown identity received (eg, PSK identity)" );
+            snprintf( buf, buflen, "SSL - Unknown identity received (eg, PSK identity)" );
         if( use_ret == -(POLARSSL_ERR_SSL_INTERNAL_ERROR) )
             snprintf( buf, buflen, "SSL - Internal error (eg, unexpected failure in lower-level module)" );
         if( use_ret == -(POLARSSL_ERR_SSL_COUNTER_WRAPPING) )
@@ -655,6 +659,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
 #if defined(POLARSSL_OID_C)
     if( use_ret == -(POLARSSL_ERR_OID_NOT_FOUND) )
         snprintf( buf, buflen, "OID - OID is not found" );
+    if( use_ret == -(POLARSSL_ERR_OID_BUF_TOO_SMALL) )
+        snprintf( buf, buflen, "OID - output buffer is too small" );
 #endif /* POLARSSL_OID_C */
 
 #if defined(POLARSSL_PADLOCK_C)

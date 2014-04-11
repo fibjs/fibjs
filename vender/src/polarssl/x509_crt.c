@@ -69,7 +69,7 @@
 
 #if defined(POLARSSL_FS_IO)
 #include <stdio.h>
-#if !defined(_WIN32)
+#if !defined(_WIN32) || defined(EFIX64) || defined(EFI32)
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
@@ -341,20 +341,15 @@ static int x509_get_subject_alt_name( unsigned char **p,
             return( POLARSSL_ERR_X509_INVALID_EXTENSIONS +
                     POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
 
+        /* Skip everything but DNS name */
         if( tag != ( ASN1_CONTEXT_SPECIFIC | 2 ) )
         {
             *p += tag_len;
             continue;
         }
 
-        buf = &(cur->buf);
-        buf->tag = tag;
-        buf->p = *p;
-        buf->len = tag_len;
-        *p += buf->len;
-
         /* Allocate and assign next pointer */
-        if (*p < end)
+        if( cur->buf.p != NULL )
         {
             cur->next = (asn1_sequence *) polarssl_malloc(
                  sizeof( asn1_sequence ) );
@@ -366,6 +361,12 @@ static int x509_get_subject_alt_name( unsigned char **p,
             memset( cur->next, 0, sizeof( asn1_sequence ) );
             cur = cur->next;
         }
+
+        buf = &(cur->buf);
+        buf->tag = tag;
+        buf->p = *p;
+        buf->len = tag_len;
+        *p += buf->len;
     }
 
     /* Set final sequence entry's next pointer to NULL */
@@ -950,7 +951,7 @@ static void _init_mutex(void){
 __declspec(allocate(".CRT$XCU")) static void (__cdecl* s_init_mutex)(void) = _init_mutex;
 
 #else
-static threading_mutex_t readdir_mutex = PTHREAD_MUTEX_INITIALIZER;
+ static threading_mutex_t readdir_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 #endif
 
@@ -1111,11 +1112,138 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
     p += (unsigned int) ret;                    \
 }
 
+static int x509_info_subject_alt_name( char **buf, size_t *size,
+                                       const x509_sequence *subject_alt_name )
+{
+    size_t i;
+    size_t n = *size;
+    char *p = *buf;
+    const x509_sequence *cur = subject_alt_name;
+    const char *sep = "";
+    size_t sep_len = 0;
+
+    while( cur != NULL )
+    {
+        if( cur->buf.len + sep_len >= n )
+        {
+            *p = '\0';
+            return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL );
+        }
+
+        n -= cur->buf.len + sep_len;
+        for( i = 0; i < sep_len; i++ )
+            *p++ = sep[i];
+        for( i = 0; i < cur->buf.len; i++ )
+            *p++ = cur->buf.p[i];
+
+        sep = ", ";
+        sep_len = 2;
+
+        cur = cur->next;
+    }
+
+    *p = '\0';
+
+    *size = n;
+    *buf = p;
+
+    return( 0 );
+}
+
+#define PRINT_ITEM(i)                           \
+    {                                           \
+        ret = snprintf( p, n, "%s" i, sep );    \
+        SAFE_SNPRINTF();                        \
+        sep = ", ";                             \
+    }
+
+#define CERT_TYPE(type,name)                    \
+    if( ns_cert_type & type )                   \
+        PRINT_ITEM( name );
+
+static int x509_info_cert_type( char **buf, size_t *size,
+                                unsigned char ns_cert_type )
+{
+    int ret;
+    size_t n = *size;
+    char *p = *buf;
+    const char *sep = "";
+
+    CERT_TYPE( NS_CERT_TYPE_SSL_CLIENT,         "SSL Client" );
+    CERT_TYPE( NS_CERT_TYPE_SSL_SERVER,         "SSL Server" );
+    CERT_TYPE( NS_CERT_TYPE_EMAIL,              "Email" );
+    CERT_TYPE( NS_CERT_TYPE_OBJECT_SIGNING,     "Object Signing" );
+    CERT_TYPE( NS_CERT_TYPE_RESERVED,           "Reserved" );
+    CERT_TYPE( NS_CERT_TYPE_SSL_CA,             "SSL CA" );
+    CERT_TYPE( NS_CERT_TYPE_EMAIL_CA,           "Email CA" );
+    CERT_TYPE( NS_CERT_TYPE_OBJECT_SIGNING_CA,  "Object Signing CA" );
+
+    *size = n;
+    *buf = p;
+
+    return( 0 );
+}
+
+#define KEY_USAGE(code,name)    \
+    if( key_usage & code )      \
+        PRINT_ITEM( name );
+
+static int x509_info_key_usage( char **buf, size_t *size,
+                                unsigned char key_usage )
+{
+    int ret;
+    size_t n = *size;
+    char *p = *buf;
+    const char *sep = "";
+
+    KEY_USAGE( KU_DIGITAL_SIGNATURE,    "Digital Signature" );
+    KEY_USAGE( KU_NON_REPUDIATION,      "Non Repudiation" );
+    KEY_USAGE( KU_KEY_ENCIPHERMENT,     "Key Encipherment" );
+    KEY_USAGE( KU_DATA_ENCIPHERMENT,    "Data Encipherment" );
+    KEY_USAGE( KU_KEY_AGREEMENT,        "Key Agreement" );
+    KEY_USAGE( KU_KEY_CERT_SIGN,        "Key Cert Sign" );
+    KEY_USAGE( KU_CRL_SIGN,             "CRL Sign" );
+
+    *size = n;
+    *buf = p;
+
+    return( 0 );
+}
+
+static int x509_info_ext_key_usage( char **buf, size_t *size,
+                                    const x509_sequence *extended_key_usage )
+{
+    int ret;
+    const char *desc;
+    size_t n = *size;
+    char *p = *buf;
+    const x509_sequence *cur = extended_key_usage;
+    const char *sep = "";
+
+    while( cur != NULL )
+    {
+        if( oid_get_extended_key_usage( &cur->buf, &desc ) != 0 )
+            desc = "???";
+
+        ret = snprintf( p, n, "%s%s", sep, desc );
+        SAFE_SNPRINTF();
+
+        sep = ", ";
+
+        cur = cur->next;
+    }
+
+    *size = n;
+    *buf = p;
+
+    return( 0 );
+}
+
 /*
  * Return an informational string about the certificate.
  */
-#define BEFORE_COLON    14
-#define BC              "14"
+#define BEFORE_COLON    18
+#define BC              "18"
 int x509_crt_info( char *buf, size_t size, const char *prefix,
                    const x509_crt *crt )
 {
@@ -1128,41 +1256,41 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
     p = buf;
     n = size;
 
-    ret = snprintf( p, n, "%scert. version : %d\n",
+    ret = snprintf( p, n, "%scert. version     : %d\n",
                                prefix, crt->version );
     SAFE_SNPRINTF();
-    ret = snprintf( p, n, "%sserial number : ",
+    ret = snprintf( p, n, "%sserial number     : ",
                                prefix );
     SAFE_SNPRINTF();
 
     ret = x509_serial_gets( p, n, &crt->serial);
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%sissuer name   : ", prefix );
+    ret = snprintf( p, n, "\n%sissuer name       : ", prefix );
     SAFE_SNPRINTF();
     ret = x509_dn_gets( p, n, &crt->issuer  );
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%ssubject name  : ", prefix );
+    ret = snprintf( p, n, "\n%ssubject name      : ", prefix );
     SAFE_SNPRINTF();
     ret = x509_dn_gets( p, n, &crt->subject );
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%sissued  on    : " \
+    ret = snprintf( p, n, "\n%sissued  on        : " \
                    "%04d-%02d-%02d %02d:%02d:%02d", prefix,
                    crt->valid_from.year, crt->valid_from.mon,
                    crt->valid_from.day,  crt->valid_from.hour,
                    crt->valid_from.min,  crt->valid_from.sec );
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%sexpires on    : " \
+    ret = snprintf( p, n, "\n%sexpires on        : " \
                    "%04d-%02d-%02d %02d:%02d:%02d", prefix,
                    crt->valid_to.year, crt->valid_to.mon,
                    crt->valid_to.day,  crt->valid_to.hour,
                    crt->valid_to.min,  crt->valid_to.sec );
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%ssigned using  : ", prefix );
+    ret = snprintf( p, n, "\n%ssigned using      : ", prefix );
     SAFE_SNPRINTF();
 
     ret = oid_get_sig_alg_desc( &crt->sig_oid1, &desc );
@@ -1172,18 +1300,120 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
         ret = snprintf( p, n, "%s", desc );
     SAFE_SNPRINTF();
 
+    /* Key size */
     if( ( ret = x509_key_size_helper( key_size_str, BEFORE_COLON,
                                       pk_get_name( &crt->pk ) ) ) != 0 )
     {
         return( ret );
     }
 
-    ret = snprintf( p, n, "\n%s%-" BC "s: %d bits\n", prefix, key_size_str,
+    ret = snprintf( p, n, "\n%s%-" BC "s: %d bits", prefix, key_size_str,
                           (int) pk_get_size( &crt->pk ) );
+    SAFE_SNPRINTF();
+
+    /*
+     * Optional extensions
+     */
+
+    if( crt->ext_types & EXT_BASIC_CONSTRAINTS )
+    {
+        ret = snprintf( p, n, "\n%sbasic constraints : CA=%s", prefix,
+                        crt->ca_istrue ? "true" : "false" );
+        SAFE_SNPRINTF();
+
+        if( crt->max_pathlen > 0 )
+        {
+            ret = snprintf( p, n, ", max_pathlen=%d", crt->max_pathlen - 1 );
+            SAFE_SNPRINTF();
+        }
+    }
+
+    if( crt->ext_types & EXT_SUBJECT_ALT_NAME )
+    {
+        ret = snprintf( p, n, "\n%ssubject alt name  : ", prefix );
+        SAFE_SNPRINTF();
+
+        if( ( ret = x509_info_subject_alt_name( &p, &n,
+                                            &crt->subject_alt_names ) ) != 0 )
+            return( ret );
+    }
+
+    if( crt->ext_types & EXT_NS_CERT_TYPE )
+    {
+        ret = snprintf( p, n, "\n%scert. type        : ", prefix );
+        SAFE_SNPRINTF();
+
+        if( ( ret = x509_info_cert_type( &p, &n, crt->ns_cert_type ) ) != 0 )
+            return( ret );
+    }
+
+    if( crt->ext_types & EXT_KEY_USAGE )
+    {
+        ret = snprintf( p, n, "\n%skey usage         : ", prefix );
+        SAFE_SNPRINTF();
+
+        if( ( ret = x509_info_key_usage( &p, &n, crt->key_usage ) ) != 0 )
+            return( ret );
+    }
+
+    if( crt->ext_types & EXT_EXTENDED_KEY_USAGE )
+    {
+        ret = snprintf( p, n, "\n%sext key usage     : ", prefix );
+        SAFE_SNPRINTF();
+
+        if( ( ret = x509_info_ext_key_usage( &p, &n,
+                                             &crt->ext_key_usage ) ) != 0 )
+            return( ret );
+    }
+
+    ret = snprintf( p, n, "\n" );
     SAFE_SNPRINTF();
 
     return( (int) ( size - n ) );
 }
+
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+int x509_crt_check_key_usage( const x509_crt *crt, int usage )
+{
+    if( ( crt->ext_types & EXT_KEY_USAGE ) != 0 &&
+        ( crt->key_usage & usage ) != usage )
+        return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
+
+    return( 0 );
+}
+#endif
+
+#if defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
+int x509_crt_check_extended_key_usage( const x509_crt *crt,
+                                       const char *usage_oid,
+                                       size_t usage_len )
+{
+    const x509_sequence *cur;
+
+    /* Extension is not mandatory, absent means no restriction */
+    if( ( crt->ext_types & EXT_EXTENDED_KEY_USAGE ) == 0 )
+        return( 0 );
+
+    /*
+     * Look for the requested usage (or wildcard ANY) in our list
+     */
+    for( cur = &crt->ext_key_usage; cur != NULL; cur = cur->next )
+    {
+        const x509_buf *cur_oid = &cur->buf;
+
+        if( cur_oid->len == usage_len &&
+            memcmp( cur_oid->p, usage_oid, usage_len ) == 0 )
+        {
+            return( 0 );
+        }
+
+        if( OID_CMP( OID_ANY_EXTENDED_KEY_USAGE, cur_oid ) )
+            return( 0 );
+    }
+
+    return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
+}
+#endif
 
 #if defined(POLARSSL_X509_CRL_PARSE_C)
 /*
@@ -1237,6 +1467,17 @@ static int x509_crt_verifycrl( x509_crt *crt, x509_crt *ca,
             crl_list = crl_list->next;
             continue;
         }
+
+        /*
+         * Check if the CA is configured to sign CRLs
+         */
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+        if( x509_crt_check_key_usage( ca, KU_CRL_SIGN ) != 0 )
+        {
+            flags |= BADCRL_NOT_TRUSTED;
+            break;
+        }
+#endif
 
         /*
          * Check if CRL is correctly signed by the trusted CA
@@ -1341,6 +1582,30 @@ static int x509_wildcard_verify( const char *cn, x509_buf *name )
     return( 0 );
 }
 
+/*
+ * Check if 'parent' is a suitable parent (signing CA) for 'child'.
+ * Return 0 if yes, -1 if not.
+ */
+static int x509_crt_check_parent( const x509_crt *child,
+                                  const x509_crt *parent )
+{
+    if( parent->version == 0 ||
+        parent->ca_istrue == 0 ||
+        child->issuer_raw.len != parent->subject_raw.len ||
+        memcmp( child->issuer_raw.p, parent->subject_raw.p,
+                child->issuer_raw.len ) != 0 )
+    {
+        return( -1 );
+    }
+
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+    if( x509_crt_check_key_usage( parent, KU_KEY_CERT_SIGN ) != 0 )
+        return( -1 );
+#endif
+
+    return( 0 );
+}
+
 static int x509_crt_verify_top(
                 x509_crt *child, x509_crt *trust_ca,
                 x509_crl *ca_crl, int path_cnt, int *flags,
@@ -1374,16 +1639,10 @@ static int x509_crt_verify_top(
     else
         md( md_info, child->tbs.p, child->tbs.len, hash );
 
-    while( trust_ca != NULL )
+    for( /* trust_ca */ ; trust_ca != NULL; trust_ca = trust_ca->next )
     {
-        if( trust_ca->version == 0 ||
-            child->issuer_raw.len != trust_ca->subject_raw.len ||
-            memcmp( child->issuer_raw.p, trust_ca->subject_raw.p,
-                    child->issuer_raw.len ) != 0 )
-        {
-            trust_ca = trust_ca->next;
+        if( x509_crt_check_parent( child, trust_ca ) != 0 )
             continue;
-        }
 
         /*
          * Reduce path_len to check against if top of the chain is
@@ -1399,7 +1658,6 @@ static int x509_crt_verify_top(
         if( trust_ca->max_pathlen > 0 &&
             trust_ca->max_pathlen < check_path_cnt )
         {
-            trust_ca = trust_ca->next;
             continue;
         }
 
@@ -1407,7 +1665,6 @@ static int x509_crt_verify_top(
             pk_verify( &trust_ca->pk, child->sig_md, hash, md_info->size,
                        child->sig.p, child->sig.len ) != 0 )
         {
-            trust_ca = trust_ca->next;
             continue;
         }
 
@@ -1472,6 +1729,9 @@ static int x509_crt_verify_child(
     x509_crt *grandparent;
     const md_info_t *md_info;
 
+    if( x509_time_expired( &child->valid_to ) )
+        *flags |= BADCERT_EXPIRED;
+
     if( x509_time_future( &child->valid_from ) )
         *flags |= BADCERT_FUTURE;
 
@@ -1500,34 +1760,27 @@ static int x509_crt_verify_child(
     *flags |= x509_crt_verifycrl(child, parent, ca_crl);
 #endif
 
-    grandparent = parent->next;
-
-    while( grandparent != NULL )
+    /* Look for a grandparent upwards the chain */
+    for( grandparent = parent->next;
+         grandparent != NULL;
+         grandparent = grandparent->next )
     {
-        if( grandparent->version == 0 ||
-            grandparent->ca_istrue == 0 ||
-            parent->issuer_raw.len != grandparent->subject_raw.len ||
-            memcmp( parent->issuer_raw.p, grandparent->subject_raw.p,
-                    parent->issuer_raw.len ) != 0 )
-        {
-            grandparent = grandparent->next;
-            continue;
-        }
-        break;
+        if( x509_crt_check_parent( parent, grandparent ) == 0 )
+            break;
     }
 
+    /* Is our parent part of the chain or at the top? */
     if( grandparent != NULL )
     {
-        /*
-         * Part of the chain
-         */
-        ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl, path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
+        ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl,
+                                path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
     else
     {
-        ret = x509_crt_verify_top( parent, trust_ca, ca_crl, path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
+        ret = x509_crt_verify_top( parent, trust_ca, ca_crl,
+                                path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
@@ -1611,37 +1864,25 @@ int x509_crt_verify( x509_crt *crt,
         }
     }
 
-    /*
-     * Iterate upwards in the given cert chain, to find our crt parent.
-     * Ignore any upper cert with CA != TRUE.
-     */
-    parent = crt->next;
-
-    while( parent != NULL && parent->version != 0 )
+    /* Look for a parent upwards the chain */
+    for( parent = crt->next; parent != NULL; parent = parent->next )
     {
-        if( parent->ca_istrue == 0 ||
-            crt->issuer_raw.len != parent->subject_raw.len ||
-            memcmp( crt->issuer_raw.p, parent->subject_raw.p,
-                    crt->issuer_raw.len ) != 0 )
-        {
-            parent = parent->next;
-            continue;
-        }
-        break;
+        if( x509_crt_check_parent( crt, parent ) == 0 )
+            break;
     }
 
+    /* Are we part of the chain or at the top? */
     if( parent != NULL )
     {
-        /*
-         * Part of the chain
-         */
-        ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl, pathlen, flags, f_vrfy, p_vrfy );
+        ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl,
+                                     pathlen, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
     else
     {
-        ret = x509_crt_verify_top( crt, trust_ca, ca_crl, pathlen, flags, f_vrfy, p_vrfy );
+        ret = x509_crt_verify_top( crt, trust_ca, ca_crl,
+                                   pathlen, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }

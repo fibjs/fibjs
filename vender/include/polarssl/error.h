@@ -60,7 +60,7 @@
  * CAMELLIA  2  0x0024-0x0026
  * XTEA      1  0x0028-0x0028
  * BASE64    2  0x002A-0x002C
- * OID       1  0x002E-0x002E
+ * OID       1  0x002E-0x002E   0x000B-0x000B
  * PADLOCK   1  0x0030-0x0030
  * DES       1  0x0032-0x0032
  * CTR_DBRG  4  0x0034-0x003A
@@ -83,11 +83,11 @@
  * PEM       1   9
  * PKCS#12   1   4 (Started from top)
  * X509      2   18
- * PK        2   13 (Started from top)
+ * PK        2   14 (Started from top, plus 0x2000)
  * DHM       3   9
  * PKCS5     3   4 (Started from top)
  * RSA       4   9
- * ECP       4   7 (Started from top)
+ * ECP       4   8 (Started from top)
  * MD        5   4
  * CIPHER    6   6
  * SSL       6   9 (Started from top)
