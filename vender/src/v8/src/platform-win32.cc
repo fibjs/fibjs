@@ -1522,8 +1522,8 @@ void Thread::SetThreadLocal(LocalStorageKey key, void* value) {
 void Thread::YieldCPU() {
   Sleep(0);
 }
-
 #endif
+
 } }  // namespace v8::internal
 
 #endif

@@ -266,14 +266,12 @@ size_t OS::AllocateAlignment() {
   return static_cast<size_t>(sysconf(_SC_PAGESIZE));
 }
 
-
 #if 0
 void OS::Sleep(int milliseconds) {
   useconds_t ms = static_cast<useconds_t>(milliseconds);
   usleep(1000 * ms);
 }
 #endif
-
 
 void OS::Abort() {
   if (FLAG_hard_abort) {
