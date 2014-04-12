@@ -449,6 +449,7 @@
     <ClCompile Include="src\v8\src\platform-macos.cc" />
     <ClCompile Include="src\v8\src\platform-openbsd.cc" />
     <ClCompile Include="src\v8\src\platform-posix.cc" />
+    <ClCompile Include="src\v8\src\platform-qnx.cc" />
     <ClCompile Include="src\v8\src\platform-solaris.cc" />
     <ClCompile Include="src\v8\src\platform-win32.cc" />
     <ClCompile Include="src\v8\src\platform\condition-variable.cc" />
@@ -640,6 +641,7 @@
     <ClInclude Include="include\v8\v8-debug.h" />
     <ClInclude Include="include\v8\v8-profiler.h" />
     <ClInclude Include="include\v8\v8-testing.h" />
+    <ClInclude Include="include\v8\v8-util.h" />
     <ClInclude Include="include\v8\v8.h" />
     <ClInclude Include="include\v8\v8config.h" />
     <ClInclude Include="include\v8\v8stdint.h" />
@@ -742,6 +744,7 @@
     <ClInclude Include="src\v8\include\v8-debug.h" />
     <ClInclude Include="src\v8\include\v8-profiler.h" />
     <ClInclude Include="src\v8\include\v8-testing.h" />
+    <ClInclude Include="src\v8\include\v8-util.h" />
     <ClInclude Include="src\v8\include\v8.h" />
     <ClInclude Include="src\v8\include\v8config.h" />
     <ClInclude Include="src\v8\include\v8stdint.h" />
@@ -760,6 +763,8 @@
     <ClInclude Include="src\v8\src\atomicops_internals_arm_gcc.h" />
     <ClInclude Include="src\v8\src\atomicops_internals_atomicword_compat.h" />
     <ClInclude Include="src\v8\src\atomicops_internals_mac.h" />
+    <ClInclude Include="src\v8\src\atomicops_internals_mips_gcc.h" />
+    <ClInclude Include="src\v8\src\atomicops_internals_tsan.h" />
     <ClInclude Include="src\v8\src\atomicops_internals_x86_gcc.h" />
     <ClInclude Include="src\v8\src\atomicops_internals_x86_msvc.h" />
     <ClInclude Include="src\v8\src\bignum-dtoa.h" />
@@ -993,6 +998,8 @@
     <ClInclude Include="src\v8\src\x64\macro-assembler-x64.h" />
     <ClInclude Include="src\v8\src\x64\regexp-macro-assembler-x64.h" />
     <ClInclude Include="src\v8\src\x64\simulator-x64.h" />
+    <ClInclude Include="src\v8\src\zone-allocator.h" />
+    <ClInclude Include="src\v8\src\zone-containers.h" />
     <ClInclude Include="src\v8\src\zone-inl.h" />
     <ClInclude Include="src\v8\src\zone.h" />
     <ClInclude Include="src\zlib\crc32.h" />

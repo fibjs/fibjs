@@ -1659,6 +1659,9 @@
     <ClCompile Include="src\polarssl\ssl_version.c">
       <Filter>Source Files\polarssl</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\platform-qnx.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -3079,6 +3082,24 @@
     </ClInclude>
     <ClInclude Include="include\polarssl\xtea.h">
       <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\v8\v8-util.h">
+      <Filter>Header Files\v8</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\include\v8-util.h">
+      <Filter>Source Files\v8\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\atomicops_internals_mips_gcc.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\atomicops_internals_tsan.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\zone-allocator.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\zone-containers.h">
+      <Filter>Source Files\v8\src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
