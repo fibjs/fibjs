@@ -17,7 +17,7 @@ result_t hash_base::digest(int32_t algo, Buffer_base *data,
     if (algo < hash_base::_MD2 || algo > hash_base::_RIPEMD160)
         return CALL_E_INVALIDARG;
 
-    retVal = new Digest((md_type_t)(algo + 1));
+    retVal = new Digest((md_type_t)algo);
     retVal->update(data);
 
     return 0;
@@ -29,7 +29,7 @@ result_t hash_base::digest(int32_t algo, const char *text,
     if (algo < hash_base::_MD2 || algo > hash_base::_RIPEMD160)
         return CALL_E_INVALIDARG;
 
-    retVal = new Digest((md_type_t)(algo + 1));
+    retVal = new Digest((md_type_t)algo);
     retVal->update(text);
 
     return 0;
@@ -134,7 +134,7 @@ result_t hash_base::hmac(int32_t algo, Buffer_base *key,
     std::string strBuf;
     key->toString(strBuf);
 
-    retVal = new Digest((md_type_t)(algo + 1), strBuf.c_str(), (int) strBuf.length());
+    retVal = new Digest((md_type_t)algo, strBuf.c_str(), (int) strBuf.length());
 
     return 0;
 }
@@ -145,7 +145,7 @@ result_t hash_base::hmac(int32_t algo, const char *key,
     if (algo < hash_base::_MD2 || algo > hash_base::_RIPEMD160)
         return CALL_E_INVALIDARG;
 
-    retVal = new Digest((md_type_t)(algo + 1), key, (int) qstrlen(key));
+    retVal = new Digest((md_type_t)algo, key, (int) qstrlen(key));
 
     return 0;
 }

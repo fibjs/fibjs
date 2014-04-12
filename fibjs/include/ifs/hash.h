@@ -25,15 +25,15 @@ class hash_base : public module_base
 {
 public:
 	enum{
-		_MD2 = 0,
-		_MD4 = 1,
-		_MD5 = 2,
-		_SHA1 = 3,
-		_SHA224 = 4,
-		_SHA256 = 5,
-		_SHA384 = 6,
-		_SHA512 = 7,
-		_RIPEMD160 = 8
+		_MD2 = 1,
+		_MD4 = 2,
+		_MD5 = 3,
+		_SHA1 = 4,
+		_SHA224 = 5,
+		_SHA256 = 6,
+		_SHA384 = 7,
+		_SHA512 = 8,
+		_RIPEMD160 = 9
 	};
 
 public:
