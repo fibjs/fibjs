@@ -449,7 +449,7 @@ void MarkCompactCollector::CollectGarbage() {
 
 #ifdef VERIFY_HEAP
   if (heap()->weak_embedded_objects_verification_enabled()) {
-    VerifyWeakEmbeddedObjectsInOptimizedCode();
+    VerifyWeakEmbeddedObjectsInCode();
   }
   if (FLAG_collect_maps && FLAG_omit_map_checks_for_leaf_maps) {
     VerifyOmittedMapChecks();
@@ -510,13 +510,13 @@ void MarkCompactCollector::VerifyMarkbitsAreClean() {
 }
 
 
-void MarkCompactCollector::VerifyWeakEmbeddedObjectsInOptimizedCode() {
+void MarkCompactCollector::VerifyWeakEmbeddedObjectsInCode() {
   HeapObjectIterator code_iterator(heap()->code_space());
   for (HeapObject* obj = code_iterator.Next();
        obj != NULL;
        obj = code_iterator.Next()) {
     Code* code = Code::cast(obj);
-    if (code->kind() != Code::OPTIMIZED_FUNCTION) continue;
+    if (!code->is_optimized_code() && !code->is_weak_stub()) continue;
     if (WillBeDeoptimized(code)) continue;
     code->VerifyEmbeddedObjectsDependency();
   }
@@ -2583,7 +2583,7 @@ void MarkCompactCollector::ClearNonLiveReferences() {
     if (map_mark.Get()) {
       ClearNonLiveDependentCode(map->dependent_code());
     } else {
-      ClearAndDeoptimizeDependentCode(map->dependent_code());
+      ClearDependentCode(map->dependent_code());
       map->set_dependent_code(DependentCode::cast(heap()->empty_fixed_array()));
     }
   }
@@ -2638,7 +2638,7 @@ void MarkCompactCollector::ClearNonLiveReferences() {
         }
         ClearNonLiveDependentCode(DependentCode::cast(value));
       } else {
-        ClearAndDeoptimizeDependentCode(DependentCode::cast(value));
+        ClearDependentCode(DependentCode::cast(value));
         table->set(key_index, heap_->the_hole_value());
         table->set(value_index, heap_->the_hole_value());
       }
@@ -2708,25 +2708,88 @@ void MarkCompactCollector::ClearNonLiveMapTransitions(Map* map,
 }
 
 
-void MarkCompactCollector::ClearAndDeoptimizeDependentCode(
+void MarkCompactCollector::ClearDependentICList(Object* head) {
+  Object* current = head;
+  Object* undefined = heap()->undefined_value();
+  while (current != undefined) {
+    Code* code = Code::cast(current);
+    if (IsMarked(code)) {
+      ASSERT(code->is_weak_stub());
+      IC::InvalidateMaps(code);
+    }
+    current = code->next_code_link();
+    code->set_next_code_link(undefined);
+  }
+}
+
+
+void MarkCompactCollector::ClearDependentCode(
     DependentCode* entries) {
   DisallowHeapAllocation no_allocation;
   DependentCode::GroupStartIndexes starts(entries);
   int number_of_entries = starts.number_of_entries();
   if (number_of_entries == 0) return;
-  for (int i = 0; i < number_of_entries; i++) {
+  int g = DependentCode::kWeakICGroup;
+  if (starts.at(g) != starts.at(g + 1)) {
+    int i = starts.at(g);
+    ASSERT(i + 1 == starts.at(g + 1));
+    Object* head = entries->object_at(i);
+    ClearDependentICList(head);
+  }
+  g = DependentCode::kWeakCodeGroup;
+  for (int i = starts.at(g); i < starts.at(g + 1); i++) {
     // If the entry is compilation info then the map must be alive,
-    // and ClearAndDeoptimizeDependentCode shouldn't be called.
+    // and ClearDependentCode shouldn't be called.
     ASSERT(entries->is_code_at(i));
     Code* code = entries->code_at(i);
-
     if (IsMarked(code) && !code->marked_for_deoptimization()) {
       code->set_marked_for_deoptimization(true);
       code->InvalidateEmbeddedObjects();
       have_code_to_deoptimize_ = true;
     }
+  }
+  for (int i = 0; i < number_of_entries; i++) {
     entries->clear_at(i);
   }
+}
+
+
+int MarkCompactCollector::ClearNonLiveDependentCodeInGroup(
+    DependentCode* entries, int group, int start, int end, int new_start) {
+  int survived = 0;
+  if (group == DependentCode::kWeakICGroup) {
+    // Dependent weak IC stubs form a linked list and only the head is stored
+    // in the dependent code array.
+    if (start != end) {
+      ASSERT(start + 1 == end);
+      Object* old_head = entries->object_at(start);
+      MarkCompactWeakObjectRetainer retainer;
+      Object* head = VisitWeakList<Code>(heap(), old_head, &retainer, true);
+      entries->set_object_at(new_start, head);
+      Object** slot = entries->slot_at(new_start);
+      RecordSlot(slot, slot, head);
+      // We do not compact this group even if the head is undefined,
+      // more dependent ICs are likely to be added later.
+      survived = 1;
+    }
+  } else {
+    for (int i = start; i < end; i++) {
+      Object* obj = entries->object_at(i);
+      ASSERT(obj->IsCode() || IsMarked(obj));
+      if (IsMarked(obj) &&
+          (!obj->IsCode() || !WillBeDeoptimized(Code::cast(obj)))) {
+        if (new_start + survived != i) {
+          entries->set_object_at(new_start + survived, obj);
+        }
+        Object** slot = entries->slot_at(new_start + survived);
+        RecordSlot(slot, slot, obj);
+        survived++;
+      }
+    }
+  }
+  entries->set_number_of_entries(
+      static_cast<DependentCode::DependencyGroup>(group), survived);
+  return survived;
 }
 
 
@@ -2738,26 +2801,9 @@ void MarkCompactCollector::ClearNonLiveDependentCode(DependentCode* entries) {
   int new_number_of_entries = 0;
   // Go through all groups, remove dead codes and compact.
   for (int g = 0; g < DependentCode::kGroupCount; g++) {
-    int group_number_of_entries = 0;
-    for (int i = starts.at(g); i < starts.at(g + 1); i++) {
-      Object* obj = entries->object_at(i);
-      ASSERT(obj->IsCode() || IsMarked(obj));
-      if (IsMarked(obj) &&
-          (!obj->IsCode() || !WillBeDeoptimized(Code::cast(obj)))) {
-        if (new_number_of_entries + group_number_of_entries != i) {
-          entries->set_object_at(
-              new_number_of_entries + group_number_of_entries, obj);
-        }
-        Object** slot = entries->slot_at(new_number_of_entries +
-                                         group_number_of_entries);
-        RecordSlot(slot, slot, obj);
-        group_number_of_entries++;
-      }
-    }
-    entries->set_number_of_entries(
-        static_cast<DependentCode::DependencyGroup>(g),
-        group_number_of_entries);
-    new_number_of_entries += group_number_of_entries;
+    int survived = ClearNonLiveDependentCodeInGroup(
+        entries, g, starts.at(g), starts.at(g + 1), new_number_of_entries);
+    new_number_of_entries += survived;
   }
   for (int i = new_number_of_entries; i < number_of_entries; i++) {
     entries->clear_at(i);
@@ -2988,25 +3034,30 @@ class PointersUpdatingVisitor: public ObjectVisitor {
 };
 
 
-static void UpdatePointer(HeapObject** p, HeapObject* object) {
-  ASSERT(*p == object);
-
-  Address old_addr = object->address();
-
-  Address new_addr = Memory::Address_at(old_addr);
+static void UpdatePointer(HeapObject** address, HeapObject* object) {
+  Address new_addr = Memory::Address_at(object->address());
 
   // The new space sweep will overwrite the map word of dead objects
   // with NULL. In this case we do not need to transfer this entry to
   // the store buffer which we are rebuilding.
+  // We perform the pointer update with a no barrier compare-and-swap. The
+  // compare and swap may fail in the case where the pointer update tries to
+  // update garbage memory which was concurrently accessed by the sweeper.
   if (new_addr != NULL) {
-    *p = HeapObject::FromAddress(new_addr);
+    NoBarrier_CompareAndSwap(
+        reinterpret_cast<AtomicWord*>(address),
+        reinterpret_cast<AtomicWord>(object),
+        reinterpret_cast<AtomicWord>(HeapObject::FromAddress(new_addr)));
   } else {
     // We have to zap this pointer, because the store buffer may overflow later,
     // and then we have to scan the entire heap and we don't want to find
     // spurious newspace pointers in the old space.
     // TODO(mstarzinger): This was changed to a sentinel value to track down
     // rare crashes, change it back to Smi::FromInt(0) later.
-    *p = reinterpret_cast<HeapObject*>(Smi::FromInt(0x0f100d00 >> 1));  // flood
+    NoBarrier_CompareAndSwap(
+        reinterpret_cast<AtomicWord*>(address),
+        reinterpret_cast<AtomicWord>(object),
+        reinterpret_cast<AtomicWord>(Smi::FromInt(0x0f100d00 >> 1)));
   }
 }
 
@@ -3409,7 +3460,7 @@ void MarkCompactCollector::InvalidateCode(Code* code) {
 
 // Return true if the given code is deoptimized or will be deoptimized.
 bool MarkCompactCollector::WillBeDeoptimized(Code* code) {
-  return code->marked_for_deoptimization();
+  return code->is_optimized_code() && code->marked_for_deoptimization();
 }
 
 

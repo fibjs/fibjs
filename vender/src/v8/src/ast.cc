@@ -78,7 +78,8 @@ bool Expression::IsUndefinedLiteral(Isolate* isolate) const {
   // The global identifier "undefined" is immutable. Everything
   // else could be reassigned.
   return var != NULL && var->location() == Variable::UNALLOCATED &&
-         var_proxy->name()->Equals(isolate->heap()->undefined_string());
+         String::Equals(var_proxy->name(),
+                        isolate->factory()->undefined_string());
 }
 
 
@@ -207,9 +208,10 @@ ObjectLiteralProperty::ObjectLiteralProperty(
   emit_store_ = true;
   key_ = key;
   value_ = value;
-  Object* k = *key->value();
+  Handle<Object> k = key->value();
   if (k->IsInternalizedString() &&
-      zone->isolate()->heap()->proto_string()->Equals(String::cast(k))) {
+      String::Equals(Handle<String>::cast(k),
+                     zone->isolate()->factory()->proto_string())) {
     kind_ = PROTOTYPE;
   } else if (value_->AsMaterializedLiteral() != NULL) {
     kind_ = MATERIALIZED_LITERAL;
@@ -378,9 +380,9 @@ void ArrayLiteral::BuildConstantElements(Isolate* isolate) {
     } else if (boilerplate_value->IsUninitialized()) {
       is_simple = false;
       JSObject::SetOwnElement(
-          array, i, handle(Smi::FromInt(0), isolate), SLOPPY);
+          array, i, handle(Smi::FromInt(0), isolate), SLOPPY).Assert();
     } else {
-      JSObject::SetOwnElement(array, i, boilerplate_value, SLOPPY);
+      JSObject::SetOwnElement(array, i, boilerplate_value, SLOPPY).Assert();
     }
   }
 

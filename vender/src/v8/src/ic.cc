@@ -435,6 +435,42 @@ void IC::PostPatching(Address address, Code* target, Code* old_target) {
 }
 
 
+void IC::RegisterWeakMapDependency(Handle<Code> stub) {
+  if (FLAG_collect_maps && FLAG_weak_embedded_maps_in_ic &&
+      stub->CanBeWeakStub()) {
+    ASSERT(!stub->is_weak_stub());
+    MapHandleList maps;
+    stub->FindAllMaps(&maps);
+    if (maps.length() == 1 && stub->IsWeakObjectInIC(*maps.at(0))) {
+      maps.at(0)->AddDependentIC(stub);
+      stub->mark_as_weak_stub();
+      if (FLAG_enable_ool_constant_pool) {
+        stub->constant_pool()->set_weak_object_state(
+            ConstantPoolArray::WEAK_OBJECTS_IN_IC);
+      }
+    }
+  }
+}
+
+
+void IC::InvalidateMaps(Code* stub) {
+  ASSERT(stub->is_weak_stub());
+  stub->mark_as_invalidated_weak_stub();
+  Isolate* isolate = stub->GetIsolate();
+  Heap* heap = isolate->heap();
+  Object* undefined = heap->undefined_value();
+  int mode_mask = RelocInfo::ModeMask(RelocInfo::EMBEDDED_OBJECT);
+  for (RelocIterator it(stub, mode_mask); !it.done(); it.next()) {
+    RelocInfo::Mode mode = it.rinfo()->rmode();
+    if (mode == RelocInfo::EMBEDDED_OBJECT &&
+        it.rinfo()->target_object()->IsMap()) {
+      it.rinfo()->set_target_object(undefined, SKIP_WRITE_BARRIER);
+    }
+  }
+  CPU::FlushICache(stub->instruction_start(), stub->instruction_size());
+}
+
+
 void IC::Clear(Isolate* isolate, Address address,
     ConstantPoolArray* constant_pool) {
   Code* target = GetTargetAtAddress(address, constant_pool);
@@ -547,7 +583,7 @@ MaybeObject* LoadIC::Load(Handle<Object> object,
   if (FLAG_use_ic) {
     // Use specialized code for getting prototype of functions.
     if (object->IsJSFunction() &&
-        name->Equals(isolate()->heap()->prototype_string()) &&
+        String::Equals(isolate()->factory()->prototype_string(), name) &&
         Handle<JSFunction>::cast(object)->should_have_prototype()) {
       Handle<Code> stub;
       if (state() == UNINITIALIZED) {
@@ -573,9 +609,10 @@ MaybeObject* LoadIC::Load(Handle<Object> object,
   if (kind() == Code::KEYED_LOAD_IC && name->AsArrayIndex(&index)) {
     // Rewrite to the generic keyed load stub.
     if (FLAG_use_ic) set_target(*generic_stub());
-    Handle<Object> result =
-        Runtime::GetElementOrCharAt(isolate(), object, index);
-    RETURN_IF_EMPTY_HANDLE(isolate(), result);
+    Handle<Object> result;
+    ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+        isolate(), result,
+        Runtime::GetElementOrCharAt(isolate(), object, index));
     return *result;
   }
 
@@ -598,11 +635,11 @@ MaybeObject* LoadIC::Load(Handle<Object> object,
 
   PropertyAttributes attr;
   // Get the property.
-  Handle<Object> result =
-      Object::GetProperty(object, object, &lookup, name, &attr);
-  RETURN_IF_EMPTY_HANDLE(isolate(), result);
-  // If the property is not present, check if we need to throw an
-  // exception.
+  Handle<Object> result;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+      isolate(), result,
+      Object::GetProperty(object, object, &lookup, name, &attr));
+  // If the property is not present, check if we need to throw an exception.
   if ((lookup.IsInterceptor() || lookup.IsHandler()) &&
       attr == ABSENT && IsUndeclaredGlobal(object)) {
     return ReferenceError("not_defined", name);
@@ -692,7 +729,7 @@ Handle<HeapType> IC::CurrentTypeOf(Handle<Object> object, Isolate* isolate) {
 Handle<Map> IC::TypeToMap(HeapType* type, Isolate* isolate) {
   if (type->Is(HeapType::Number()))
     return isolate->factory()->heap_number_map();
-  if (type->Is(HeapType::Boolean())) return isolate->factory()->oddball_map();
+  if (type->Is(HeapType::Boolean())) return isolate->factory()->boolean_map();
   if (type->IsConstant()) {
     return handle(Handle<JSGlobalObject>::cast(type->AsConstant())->map());
   }
@@ -889,13 +926,14 @@ Handle<Code> LoadIC::CompileHandler(LookupResult* lookup,
                                     Handle<String> name,
                                     Handle<Object> unused,
                                     InlineCacheHolderFlag cache_holder) {
-  if (object->IsString() && name->Equals(isolate()->heap()->length_string())) {
+  if (object->IsString() &&
+      String::Equals(isolate()->factory()->length_string(), name)) {
     int length_index = String::kLengthOffset / kPointerSize;
     return SimpleFieldLoad(length_index);
   }
 
   if (object->IsStringWrapper() &&
-      name->Equals(isolate()->heap()->length_string())) {
+      String::Equals(isolate()->factory()->length_string(), name)) {
     if (kind() == Code::LOAD_IC) {
       StringLengthStub string_length_stub;
       return string_length_stub.GetCode(isolate());
@@ -1085,8 +1123,9 @@ Handle<Code> KeyedLoadIC::LoadElementStub(Handle<JSObject> receiver) {
 
 MaybeObject* KeyedLoadIC::Load(Handle<Object> object, Handle<Object> key) {
   if (MigrateDeprecated(object)) {
-    Handle<Object> result = Runtime::GetObjectProperty(isolate(), object, key);
-    RETURN_IF_EMPTY_HANDLE(isolate(), result);
+    Handle<Object> result;
+    ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+        isolate(), result, Runtime::GetObjectProperty(isolate(), object, key));
     return *result;
   }
 
@@ -1126,8 +1165,9 @@ MaybeObject* KeyedLoadIC::Load(Handle<Object> object, Handle<Object> key) {
   }
 
   if (maybe_object != NULL) return maybe_object;
-  Handle<Object> result = Runtime::GetObjectProperty(isolate(), object, key);
-  RETURN_IF_EMPTY_HANDLE(isolate(), result);
+  Handle<Object> result;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+      isolate(), result, Runtime::GetObjectProperty(isolate(), object, key));
   return *result;
 }
 
@@ -1167,9 +1207,7 @@ static bool LookupForWrite(Handle<JSObject> receiver,
   // chain check. This avoids a double lookup, but requires us to pass in the
   // receiver when trying to fetch extra information from the transition.
   receiver->map()->LookupTransition(*holder, *name, lookup);
-  if (!lookup->IsTransition()) return false;
-  PropertyDetails target_details = lookup->GetTransitionDetails();
-  if (target_details.IsReadOnly()) return false;
+  if (!lookup->IsTransition() || lookup->IsReadOnly()) return false;
 
   // If the value that's being stored does not fit in the field that the
   // instance would transition to, create a new transition that fits the value.
@@ -1178,7 +1216,7 @@ static bool LookupForWrite(Handle<JSObject> receiver,
   // Ensure the instance and its map were migrated before trying to update the
   // transition target.
   ASSERT(!receiver->map()->is_deprecated());
-  if (!value->FitsRepresentation(target_details.representation())) {
+  if (!lookup->CanHoldValue(value)) {
     Handle<Map> target(lookup->GetTransitionTarget());
     Map::GeneralizeRepresentation(
         target, target->LastAdded(),
@@ -1199,9 +1237,11 @@ MaybeObject* StoreIC::Store(Handle<Object> object,
                             Handle<Object> value,
                             JSReceiver::StoreFromKeyed store_mode) {
   if (MigrateDeprecated(object) || object->IsJSProxy()) {
-    Handle<Object> result = JSReceiver::SetProperty(
-        Handle<JSReceiver>::cast(object), name, value, NONE, strict_mode());
-    RETURN_IF_EMPTY_HANDLE(isolate(), result);
+    Handle<JSReceiver> receiver = Handle<JSReceiver>::cast(object);
+    Handle<Object> result;
+    ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+        isolate(), result,
+        JSReceiver::SetProperty(receiver, name, value, NONE, strict_mode()));
     return *result;
   }
 
@@ -1213,7 +1253,7 @@ MaybeObject* StoreIC::Store(Handle<Object> object,
 
   // The length property of string values is read-only. Throw in strict mode.
   if (strict_mode() == STRICT && object->IsString() &&
-      name->Equals(isolate()->heap()->length_string())) {
+      String::Equals(isolate()->factory()->length_string(), name)) {
     return TypeError("strict_read_only_property", object, name);
   }
 
@@ -1226,17 +1266,20 @@ MaybeObject* StoreIC::Store(Handle<Object> object,
   // Check if the given name is an array index.
   uint32_t index;
   if (name->AsArrayIndex(&index)) {
-    Handle<Object> result =
-        JSObject::SetElement(receiver, index, value, NONE, strict_mode());
-    RETURN_IF_EMPTY_HANDLE(isolate(), result);
+    Handle<Object> result;
+    ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+        isolate(), result,
+        JSObject::SetElement(receiver, index, value, NONE, strict_mode()));
     return *value;
   }
 
   // Observed objects are always modified through the runtime.
   if (receiver->map()->is_observed()) {
-    Handle<Object> result = JSReceiver::SetProperty(
-        receiver, name, value, NONE, strict_mode(), store_mode);
-    RETURN_IF_EMPTY_HANDLE(isolate(), result);
+    Handle<Object> result;
+    ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+        isolate(), result,
+        JSReceiver::SetProperty(
+            receiver, name, value, NONE, strict_mode(), store_mode));
     return *result;
   }
 
@@ -1265,9 +1308,11 @@ MaybeObject* StoreIC::Store(Handle<Object> object,
   }
 
   // Set the property.
-  Handle<Object> result = JSReceiver::SetProperty(
-      receiver, name, value, NONE, strict_mode(), store_mode);
-  RETURN_IF_EMPTY_HANDLE(isolate(), result);
+  Handle<Object> result;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+      isolate(), result,
+      JSReceiver::SetProperty(
+          receiver, name, value, NONE, strict_mode(), store_mode));
   return *result;
 }
 
@@ -1327,93 +1372,94 @@ Handle<Code> StoreIC::CompileHandler(LookupResult* lookup,
   Handle<JSObject> holder(lookup->holder());
   // Handlers do not use strict mode.
   StoreStubCompiler compiler(isolate(), SLOPPY, kind());
-  switch (lookup->type()) {
-    case FIELD:
-      return compiler.CompileStoreField(receiver, lookup, name);
-    case TRANSITION: {
-      // Explicitly pass in the receiver map since LookupForWrite may have
-      // stored something else than the receiver in the holder.
-      Handle<Map> transition(lookup->GetTransitionTarget());
-      PropertyDetails details = transition->GetLastDescriptorDetails();
+  if (lookup->IsTransition()) {
+    // Explicitly pass in the receiver map since LookupForWrite may have
+    // stored something else than the receiver in the holder.
+    Handle<Map> transition(lookup->GetTransitionTarget());
+    PropertyDetails details = lookup->GetPropertyDetails();
 
-      if (details.type() == CALLBACKS || details.attributes() != NONE) break;
-
+    if (details.type() != CALLBACKS && details.attributes() == NONE) {
       return compiler.CompileStoreTransition(
           receiver, lookup, transition, name);
     }
-    case NORMAL:
-      if (kind() == Code::KEYED_STORE_IC) break;
-      if (receiver->IsJSGlobalProxy() || receiver->IsGlobalObject()) {
-        // The stub generated for the global object picks the value directly
-        // from the property cell. So the property must be directly on the
-        // global object.
-        Handle<GlobalObject> global = receiver->IsJSGlobalProxy()
-            ? handle(GlobalObject::cast(receiver->GetPrototype()))
-            : Handle<GlobalObject>::cast(receiver);
-        Handle<PropertyCell> cell(global->GetPropertyCell(lookup), isolate());
-        Handle<HeapType> union_type = PropertyCell::UpdatedType(cell, value);
-        StoreGlobalStub stub(
-            union_type->IsConstant(), receiver->IsJSGlobalProxy());
-        Handle<Code> code = stub.GetCodeCopyFromTemplate(
-            isolate(), global, cell);
-        // TODO(verwaest): Move caching of these NORMAL stubs outside as well.
-        HeapObject::UpdateMapCodeCache(receiver, name, code);
-        return code;
-      }
-      ASSERT(holder.is_identical_to(receiver));
-      return isolate()->builtins()->StoreIC_Normal();
-    case CALLBACKS: {
-      Handle<Object> callback(lookup->GetCallbackObject(), isolate());
-      if (callback->IsExecutableAccessorInfo()) {
-        Handle<ExecutableAccessorInfo> info =
-            Handle<ExecutableAccessorInfo>::cast(callback);
-        if (v8::ToCData<Address>(info->setter()) == 0) break;
-        if (!holder->HasFastProperties()) break;
-        if (!info->IsCompatibleReceiver(*receiver)) break;
-        return compiler.CompileStoreCallback(receiver, holder, name, info);
-      } else if (callback->IsAccessorPair()) {
-        Handle<Object> setter(
-            Handle<AccessorPair>::cast(callback)->setter(), isolate());
-        if (!setter->IsJSFunction()) break;
-        if (holder->IsGlobalObject()) break;
-        if (!holder->HasFastProperties()) break;
-        Handle<JSFunction> function = Handle<JSFunction>::cast(setter);
-        CallOptimization call_optimization(function);
-        if (call_optimization.is_simple_api_call() &&
-            call_optimization.IsCompatibleReceiver(receiver, holder)) {
-          return compiler.CompileStoreCallback(
-              receiver, holder, name, call_optimization);
+  } else {
+    switch (lookup->type()) {
+      case FIELD:
+        return compiler.CompileStoreField(receiver, lookup, name);
+      case NORMAL:
+        if (kind() == Code::KEYED_STORE_IC) break;
+        if (receiver->IsJSGlobalProxy() || receiver->IsGlobalObject()) {
+          // The stub generated for the global object picks the value directly
+          // from the property cell. So the property must be directly on the
+          // global object.
+          Handle<GlobalObject> global = receiver->IsJSGlobalProxy()
+              ? handle(GlobalObject::cast(receiver->GetPrototype()))
+              : Handle<GlobalObject>::cast(receiver);
+          Handle<PropertyCell> cell(global->GetPropertyCell(lookup), isolate());
+          Handle<HeapType> union_type = PropertyCell::UpdatedType(cell, value);
+          StoreGlobalStub stub(
+              union_type->IsConstant(), receiver->IsJSGlobalProxy());
+          Handle<Code> code = stub.GetCodeCopyFromTemplate(
+              isolate(), global, cell);
+          // TODO(verwaest): Move caching of these NORMAL stubs outside as well.
+          HeapObject::UpdateMapCodeCache(receiver, name, code);
+          return code;
         }
-        return compiler.CompileStoreViaSetter(
-            receiver, holder, name, Handle<JSFunction>::cast(setter));
-      }
-      // TODO(dcarney): Handle correctly.
-      if (callback->IsDeclaredAccessorInfo()) break;
-      ASSERT(callback->IsForeign());
+        ASSERT(holder.is_identical_to(receiver));
+        return isolate()->builtins()->StoreIC_Normal();
+      case CALLBACKS: {
+        Handle<Object> callback(lookup->GetCallbackObject(), isolate());
+        if (callback->IsExecutableAccessorInfo()) {
+          Handle<ExecutableAccessorInfo> info =
+              Handle<ExecutableAccessorInfo>::cast(callback);
+          if (v8::ToCData<Address>(info->setter()) == 0) break;
+          if (!holder->HasFastProperties()) break;
+          if (!info->IsCompatibleReceiver(*receiver)) break;
+          return compiler.CompileStoreCallback(receiver, holder, name, info);
+        } else if (callback->IsAccessorPair()) {
+          Handle<Object> setter(
+              Handle<AccessorPair>::cast(callback)->setter(), isolate());
+          if (!setter->IsJSFunction()) break;
+          if (holder->IsGlobalObject()) break;
+          if (!holder->HasFastProperties()) break;
+          Handle<JSFunction> function = Handle<JSFunction>::cast(setter);
+          CallOptimization call_optimization(function);
+          if (call_optimization.is_simple_api_call() &&
+              call_optimization.IsCompatibleReceiver(receiver, holder)) {
+            return compiler.CompileStoreCallback(
+                receiver, holder, name, call_optimization);
+          }
+          return compiler.CompileStoreViaSetter(
+              receiver, holder, name, Handle<JSFunction>::cast(setter));
+        }
+        // TODO(dcarney): Handle correctly.
+        if (callback->IsDeclaredAccessorInfo()) break;
+        ASSERT(callback->IsForeign());
 
-      // Use specialized code for setting the length of arrays with fast
-      // properties. Slow properties might indicate redefinition of the length
-      // property.
-      if (receiver->IsJSArray() &&
-          name->Equals(isolate()->heap()->length_string()) &&
-          Handle<JSArray>::cast(receiver)->AllowsSetElementsLength() &&
-          receiver->HasFastProperties()) {
-        return compiler.CompileStoreArrayLength(receiver, lookup, name);
-      }
+        // Use specialized code for setting the length of arrays with fast
+        // properties. Slow properties might indicate redefinition of the length
+        // property.
+        if (receiver->IsJSArray() &&
+            String::Equals(isolate()->factory()->length_string(), name) &&
+            Handle<JSArray>::cast(receiver)->AllowsSetElementsLength() &&
+            receiver->HasFastProperties()) {
+          return compiler.CompileStoreArrayLength(receiver, lookup, name);
+        }
 
-      // No IC support for old-style native accessors.
-      break;
+        // No IC support for old-style native accessors.
+        break;
+      }
+      case INTERCEPTOR:
+        if (kind() == Code::KEYED_STORE_IC) break;
+        ASSERT(HasInterceptorSetter(*holder));
+        return compiler.CompileStoreInterceptor(receiver, name);
+      case CONSTANT:
+        break;
+      case NONEXISTENT:
+      case HANDLER:
+        UNREACHABLE();
+        break;
     }
-    case INTERCEPTOR:
-      if (kind() == Code::KEYED_STORE_IC) break;
-      ASSERT(HasInterceptorSetter(*holder));
-      return compiler.CompileStoreInterceptor(receiver, name);
-    case CONSTANT:
-      break;
-    case NONEXISTENT:
-    case HANDLER:
-      UNREACHABLE();
-      break;
   }
   return slow_stub();
 }
@@ -1662,12 +1708,11 @@ MaybeObject* KeyedStoreIC::Store(Handle<Object> object,
                                  Handle<Object> key,
                                  Handle<Object> value) {
   if (MigrateDeprecated(object)) {
-    Handle<Object> result = Runtime::SetObjectProperty(isolate(), object,
-                                                       key,
-                                                       value,
-                                                       NONE,
-                                                       strict_mode());
-    RETURN_IF_EMPTY_HANDLE(isolate(), result);
+    Handle<Object> result;
+    ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+        isolate(), result,
+        Runtime::SetObjectProperty(
+            isolate(), object, key, value, NONE, strict_mode()));
     return *result;
   }
 
@@ -1686,6 +1731,7 @@ MaybeObject* KeyedStoreIC::Store(Handle<Object> object,
     if (maybe_object->IsFailure()) return maybe_object;
   } else {
     bool use_ic = FLAG_use_ic &&
+        !object->IsStringWrapper() &&
         !object->IsAccessCheckNeeded() &&
         !object->IsJSGlobalProxy() &&
         !(object->IsJSObject() &&
@@ -1735,11 +1781,11 @@ MaybeObject* KeyedStoreIC::Store(Handle<Object> object,
   }
 
   if (maybe_object) return maybe_object;
-  Handle<Object> result = Runtime::SetObjectProperty(isolate(), object, key,
-                                                     value,
-                                                     NONE,
-                                                     strict_mode());
-  RETURN_IF_EMPTY_HANDLE(isolate(), result);
+  Handle<Object> result;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+      isolate(), result,
+      Runtime::SetObjectProperty(
+          isolate(), object, key, value,  NONE, strict_mode()));
   return *result;
 }
 
@@ -1827,8 +1873,8 @@ RUNTIME_FUNCTION(MaybeObject*, StoreIC_ArrayLength) {
   ASSERT(debug_lookup.IsPropertyCallbacks() && !debug_lookup.IsReadOnly());
 #endif
 
-  RETURN_IF_EMPTY_HANDLE(isolate,
-                         JSArray::SetElementsLength(receiver, len));
+  RETURN_FAILURE_ON_EXCEPTION(
+      isolate, JSArray::SetElementsLength(receiver, len));
   return *len;
 }
 
@@ -1911,11 +1957,11 @@ RUNTIME_FUNCTION(MaybeObject*, StoreIC_Slow) {
   Handle<Object> key = args.at<Object>(1);
   Handle<Object> value = args.at<Object>(2);
   StrictMode strict_mode = ic.strict_mode();
-  Handle<Object> result = Runtime::SetObjectProperty(isolate, object, key,
-                                                     value,
-                                                     NONE,
-                                                     strict_mode);
-  RETURN_IF_EMPTY_HANDLE(isolate, result);
+  Handle<Object> result;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+      isolate, result,
+      Runtime::SetObjectProperty(
+          isolate, object, key, value, NONE, strict_mode));
   return *result;
 }
 
@@ -1928,11 +1974,11 @@ RUNTIME_FUNCTION(MaybeObject*, KeyedStoreIC_Slow) {
   Handle<Object> key = args.at<Object>(1);
   Handle<Object> value = args.at<Object>(2);
   StrictMode strict_mode = ic.strict_mode();
-  Handle<Object> result = Runtime::SetObjectProperty(isolate, object, key,
-                                                     value,
-                                                     NONE,
-                                                     strict_mode);
-  RETURN_IF_EMPTY_HANDLE(isolate, result);
+  Handle<Object> result;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+      isolate, result,
+      Runtime::SetObjectProperty(
+          isolate, object, key, value, NONE, strict_mode));
   return *result;
 }
 
@@ -1950,11 +1996,11 @@ RUNTIME_FUNCTION(MaybeObject*, ElementsTransitionAndStoreIC_Miss) {
     JSObject::TransitionElementsKind(Handle<JSObject>::cast(object),
                                      map->elements_kind());
   }
-  Handle<Object> result = Runtime::SetObjectProperty(isolate, object, key,
-                                                     value,
-                                                     NONE,
-                                                     strict_mode);
-  RETURN_IF_EMPTY_HANDLE(isolate, result);
+  Handle<Object> result;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+      isolate, result,
+      Runtime::SetObjectProperty(
+          isolate, object, key, value, NONE, strict_mode));
   return *result;
 }
 
@@ -2388,10 +2434,10 @@ MaybeObject* BinaryOpIC::Transition(Handle<AllocationSite> allocation_site,
   Object* builtin = isolate()->js_builtins_object()->javascript_builtin(
       TokenToJSBuiltin(state.op()));
   Handle<JSFunction> function = handle(JSFunction::cast(builtin), isolate());
-  bool caught_exception;
-  Handle<Object> result = Execution::Call(
-      isolate(), function, left, 1, &right, &caught_exception);
-  if (caught_exception) return Failure::Exception();
+  Handle<Object> result;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+      isolate(), result,
+      Execution::Call(isolate(), function, left, 1, &right));
 
   // Execution::Call can execute arbitrary JavaScript, hence potentially
   // update the state of this very IC, so we must update the stored state.

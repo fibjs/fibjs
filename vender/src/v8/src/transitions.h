@@ -85,7 +85,6 @@ class TransitionArray: public FixedArray {
       WriteBarrierMode mode = UPDATE_WRITE_BARRIER);
   inline Object** GetPrototypeTransitionsSlot();
   inline bool HasPrototypeTransitions();
-  inline HeapObject* UncheckedPrototypeTransitions();
 
   // Returns the number of transitions in the array.
   int number_of_transitions() {
@@ -96,30 +95,25 @@ class TransitionArray: public FixedArray {
 
   inline int number_of_entries() { return number_of_transitions(); }
 
-  // Allocate a new transition array with a single entry.
-  static MUST_USE_RESULT MaybeObject* NewWith(
-      SimpleTransitionFlag flag,
-      Name* key,
-      Map* target,
-      Object* back_pointer);
+  // Creates a FullTransitionArray from a SimpleTransitionArray in
+  // containing_map.
+  static Handle<TransitionArray> ExtendToFullTransitionArray(
+      Handle<Map> containing_map);
 
-  MUST_USE_RESULT MaybeObject* ExtendToFullTransitionArray();
-
-  // Copy the transition array, inserting a new transition.
+  // Create a transition array, copying from the owning map if it already has
+  // one, otherwise creating a new one according to flag.
   // TODO(verwaest): This should not cause an existing transition to be
   // overwritten.
-  MUST_USE_RESULT MaybeObject* CopyInsert(Name* name, Map* target);
-
-  // Copy a single transition from the origin array.
-  inline void NoIncrementalWriteBarrierCopyFrom(TransitionArray* origin,
-                                                int origin_transition,
-                                                int target_transition);
+  static Handle<TransitionArray> CopyInsert(Handle<Map> map,
+                                            Handle<Name> name,
+                                            Handle<Map> target,
+                                            SimpleTransitionFlag flag);
 
   // Search a transition for a given property name.
   inline int Search(Name* name);
 
   // Allocates a TransitionArray.
-  MUST_USE_RESULT static MaybeObject* Allocate(
+  static Handle<TransitionArray> Allocate(
       Isolate* isolate, int number_of_transitions);
 
   bool IsSimpleTransition() {
@@ -199,9 +193,23 @@ class TransitionArray: public FixedArray {
            kTransitionTarget;
   }
 
+  static Handle<TransitionArray> AllocateSimple(
+      Isolate* isolate, Handle<Map> target);
+
+  // Allocate a new transition array with a single entry.
+  static Handle<TransitionArray> NewWith(Handle<Map> map,
+                                         Handle<Name> name,
+                                         Handle<Map> target,
+                                         SimpleTransitionFlag flag);
+
   inline void NoIncrementalWriteBarrierSet(int transition_number,
                                            Name* key,
                                            Map* target);
+
+  // Copy a single transition from the origin array.
+  inline void NoIncrementalWriteBarrierCopyFrom(TransitionArray* origin,
+                                                int origin_transition,
+                                                int target_transition);
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(TransitionArray);
 };

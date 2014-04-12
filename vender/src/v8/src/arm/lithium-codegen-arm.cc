@@ -716,6 +716,16 @@ void LCodeGen::AddToTranslation(LEnvironment* environment,
 }
 
 
+int LCodeGen::CallCodeSize(Handle<Code> code, RelocInfo::Mode mode) {
+  int size = masm()->CallSize(code, mode);
+  if (code->kind() == Code::BINARY_OP_IC ||
+      code->kind() == Code::COMPARE_IC) {
+    size += Assembler::kInstrSize;  // extra nop() added in CallCodeGeneric.
+  }
+  return size;
+}
+
+
 void LCodeGen::CallCode(Handle<Code> code,
                         RelocInfo::Mode mode,
                         LInstruction* instr,
@@ -1471,19 +1481,21 @@ void LCodeGen::DoFlooringDivByPowerOf2I(LFlooringDivByPowerOf2I* instr) {
   if (instr->hydrogen()->CheckFlag(HValue::kBailoutOnMinusZero)) {
     DeoptimizeIf(eq, instr->environment());
   }
-  if (instr->hydrogen()->CheckFlag(HValue::kLeftCanBeMinInt)) {
-    // Note that we could emit branch-free code, but that would need one more
-    // register.
-    if (divisor == -1) {
-      DeoptimizeIf(vs, instr->environment());
-      __ mov(result, Operand(dividend, ASR, shift));
-    } else {
-      __ mov(result, Operand(kMinInt / divisor), LeaveCC, vs);
-      __ mov(result, Operand(dividend, ASR, shift), LeaveCC, vc);
-    }
-  } else {
+
+  // If the negation could not overflow, simply shifting is OK.
+  if (!instr->hydrogen()->CheckFlag(HValue::kLeftCanBeMinInt)) {
     __ mov(result, Operand(dividend, ASR, shift));
+    return;
   }
+
+  // Dividing by -1 is basically negation, unless we overflow.
+  if (divisor == -1) {
+    DeoptimizeIf(vs, instr->environment());
+    return;
+  }
+
+  __ mov(result, Operand(kMinInt / divisor), LeaveCC, vs);
+  __ mov(result, Operand(dividend, ASR, shift), LeaveCC, vc);
 }
 
 
@@ -5486,13 +5498,14 @@ Condition LCodeGen::EmitTypeofIs(Label* true_label,
                                  Handle<String> type_name) {
   Condition final_branch_condition = kNoCondition;
   Register scratch = scratch0();
-  if (type_name->Equals(heap()->number_string())) {
+  Factory* factory = isolate()->factory();
+  if (String::Equals(type_name, factory->number_string())) {
     __ JumpIfSmi(input, true_label);
     __ ldr(scratch, FieldMemOperand(input, HeapObject::kMapOffset));
     __ CompareRoot(scratch, Heap::kHeapNumberMapRootIndex);
     final_branch_condition = eq;
 
-  } else if (type_name->Equals(heap()->string_string())) {
+  } else if (String::Equals(type_name, factory->string_string())) {
     __ JumpIfSmi(input, false_label);
     __ CompareObjectType(input, scratch, no_reg, FIRST_NONSTRING_TYPE);
     __ b(ge, false_label);
@@ -5500,22 +5513,23 @@ Condition LCodeGen::EmitTypeofIs(Label* true_label,
     __ tst(scratch, Operand(1 << Map::kIsUndetectable));
     final_branch_condition = eq;
 
-  } else if (type_name->Equals(heap()->symbol_string())) {
+  } else if (String::Equals(type_name, factory->symbol_string())) {
     __ JumpIfSmi(input, false_label);
     __ CompareObjectType(input, scratch, no_reg, SYMBOL_TYPE);
     final_branch_condition = eq;
 
-  } else if (type_name->Equals(heap()->boolean_string())) {
+  } else if (String::Equals(type_name, factory->boolean_string())) {
     __ CompareRoot(input, Heap::kTrueValueRootIndex);
     __ b(eq, true_label);
     __ CompareRoot(input, Heap::kFalseValueRootIndex);
     final_branch_condition = eq;
 
-  } else if (FLAG_harmony_typeof && type_name->Equals(heap()->null_string())) {
+  } else if (FLAG_harmony_typeof &&
+             String::Equals(type_name, factory->null_string())) {
     __ CompareRoot(input, Heap::kNullValueRootIndex);
     final_branch_condition = eq;
 
-  } else if (type_name->Equals(heap()->undefined_string())) {
+  } else if (String::Equals(type_name, factory->undefined_string())) {
     __ CompareRoot(input, Heap::kUndefinedValueRootIndex);
     __ b(eq, true_label);
     __ JumpIfSmi(input, false_label);
@@ -5525,7 +5539,7 @@ Condition LCodeGen::EmitTypeofIs(Label* true_label,
     __ tst(scratch, Operand(1 << Map::kIsUndetectable));
     final_branch_condition = ne;
 
-  } else if (type_name->Equals(heap()->function_string())) {
+  } else if (String::Equals(type_name, factory->function_string())) {
     STATIC_ASSERT(NUM_OF_CALLABLE_SPEC_OBJECT_TYPES == 2);
     Register type_reg = scratch;
     __ JumpIfSmi(input, false_label);
@@ -5534,7 +5548,7 @@ Condition LCodeGen::EmitTypeofIs(Label* true_label,
     __ cmp(type_reg, Operand(JS_FUNCTION_PROXY_TYPE));
     final_branch_condition = eq;
 
-  } else if (type_name->Equals(heap()->object_string())) {
+  } else if (String::Equals(type_name, factory->object_string())) {
     Register map = scratch;
     __ JumpIfSmi(input, false_label);
     if (!FLAG_harmony_typeof) {
@@ -5672,12 +5686,12 @@ void LCodeGen::DoStackCheck(LStackCheck* instr) {
     __ LoadRoot(ip, Heap::kStackLimitRootIndex);
     __ cmp(sp, Operand(ip));
     __ b(hs, &done);
-    PredictableCodeSizeScope predictable(masm_, 2 * Assembler::kInstrSize);
+    Handle<Code> stack_check = isolate()->builtins()->StackCheck();
+    PredictableCodeSizeScope predictable(masm(),
+        CallCodeSize(stack_check, RelocInfo::CODE_TARGET));
     ASSERT(instr->context()->IsRegister());
     ASSERT(ToRegister(instr->context()).is(cp));
-    CallCode(isolate()->builtins()->StackCheck(),
-              RelocInfo::CODE_TARGET,
-              instr);
+    CallCode(stack_check, RelocInfo::CODE_TARGET, instr);
     __ bind(&done);
   } else {
     ASSERT(instr->hydrogen()->is_backwards_branch());

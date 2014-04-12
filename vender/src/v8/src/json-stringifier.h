@@ -81,8 +81,9 @@ class BasicJsonStringifier BASE_EMBEDDED {
     }
   }
 
-  Handle<Object> ApplyToJsonFunction(Handle<Object> object,
-                                     Handle<Object> key);
+  MUST_USE_RESULT MaybeHandle<Object> ApplyToJsonFunction(
+      Handle<Object> object,
+      Handle<Object> key);
 
   Result SerializeGeneric(Handle<Object> object,
                           Handle<Object> key,
@@ -304,7 +305,7 @@ MaybeObject* BasicJsonStringifier::StringifyString(Isolate* isolate,
     return stringifier.Stringify(object);
   }
 
-  FlattenString(object);
+  object = String::Flatten(object);
   ASSERT(object->IsFlat());
   if (object->IsOneByteRepresentationUnderneath()) {
     Handle<String> result = isolate->factory()->NewRawOneByteString(
@@ -361,25 +362,27 @@ void BasicJsonStringifier::Append_(const Char* chars) {
 }
 
 
-Handle<Object> BasicJsonStringifier::ApplyToJsonFunction(
+MaybeHandle<Object> BasicJsonStringifier::ApplyToJsonFunction(
     Handle<Object> object, Handle<Object> key) {
   LookupResult lookup(isolate_);
   JSObject::cast(*object)->LookupRealNamedProperty(*tojson_string_, &lookup);
   if (!lookup.IsProperty()) return object;
   PropertyAttributes attr;
-  Handle<Object> fun =
-      Object::GetProperty(object, object, &lookup, tojson_string_, &attr);
-  if (fun.is_null()) return Handle<Object>::null();
+  Handle<Object> fun;
+  ASSIGN_RETURN_ON_EXCEPTION(
+      isolate_, fun,
+      Object::GetProperty(object, object, &lookup, tojson_string_, &attr),
+      Object);
   if (!fun->IsJSFunction()) return object;
 
   // Call toJSON function.
   if (key->IsSmi()) key = factory_->NumberToString(key);
   Handle<Object> argv[] = { key };
-  bool has_exception = false;
   HandleScope scope(isolate_);
-  object = Execution::Call(isolate_, fun, object, 1, argv, &has_exception);
-  // Return empty handle to signal an exception.
-  if (has_exception) return Handle<Object>::null();
+  ASSIGN_RETURN_ON_EXCEPTION(
+      isolate_, object,
+      Execution::Call(isolate_, fun, object, 1, argv),
+      Object);
   return scope.CloseAndEscape(object);
 }
 
@@ -416,8 +419,10 @@ template <bool deferred_string_key>
 BasicJsonStringifier::Result BasicJsonStringifier::Serialize_(
     Handle<Object> object, bool comma, Handle<Object> key) {
   if (object->IsJSObject()) {
-    object = ApplyToJsonFunction(object, key);
-    if (object.is_null()) return EXCEPTION;
+    ASSIGN_RETURN_ON_EXCEPTION_VALUE(
+        isolate_, object,
+        ApplyToJsonFunction(object, key),
+        EXCEPTION);
   }
 
   if (object->IsSmi()) {
@@ -477,14 +482,15 @@ BasicJsonStringifier::Result BasicJsonStringifier::SerializeGeneric(
     bool deferred_comma,
     bool deferred_key) {
   Handle<JSObject> builtins(isolate_->native_context()->builtins());
-  Handle<JSFunction> builtin =
-      Handle<JSFunction>::cast(GetProperty(builtins, "JSONSerializeAdapter"));
+  Handle<JSFunction> builtin = Handle<JSFunction>::cast(
+      GetProperty(builtins, "JSONSerializeAdapter").ToHandleChecked());
 
   Handle<Object> argv[] = { key, object };
-  bool has_exception = false;
-  Handle<Object> result =
-      Execution::Call(isolate_, builtin, object, 2, argv, &has_exception);
-  if (has_exception) return EXCEPTION;
+  Handle<Object> result;
+  ASSIGN_RETURN_ON_EXCEPTION_VALUE(
+      isolate_, result,
+      Execution::Call(isolate_, builtin, object, 2, argv),
+      EXCEPTION);
   if (result->IsUndefined()) return UNCHANGED;
   if (deferred_key) {
     if (key->IsSmi()) key = factory_->NumberToString(key);
@@ -510,17 +516,16 @@ BasicJsonStringifier::Result BasicJsonStringifier::SerializeGeneric(
 
 BasicJsonStringifier::Result BasicJsonStringifier::SerializeJSValue(
     Handle<JSValue> object) {
-  bool has_exception = false;
   String* class_name = object->class_name();
   if (class_name == isolate_->heap()->String_string()) {
-    Handle<Object> value =
-        Execution::ToString(isolate_, object, &has_exception);
-    if (has_exception) return EXCEPTION;
+    Handle<Object> value;
+    ASSIGN_RETURN_ON_EXCEPTION_VALUE(
+        isolate_, value, Execution::ToString(isolate_, object), EXCEPTION);
     SerializeString(Handle<String>::cast(value));
   } else if (class_name == isolate_->heap()->Number_string()) {
-    Handle<Object> value =
-        Execution::ToNumber(isolate_, object, &has_exception);
-    if (has_exception) return EXCEPTION;
+    Handle<Object> value;
+    ASSIGN_RETURN_ON_EXCEPTION_VALUE(
+        isolate_, value, Execution::ToNumber(isolate_, object), EXCEPTION);
     if (value->IsSmi()) return SerializeSmi(Smi::cast(*value));
     SerializeHeapNumber(Handle<HeapNumber>::cast(value));
   } else {
@@ -620,8 +625,11 @@ BasicJsonStringifier::Result BasicJsonStringifier::SerializeJSArraySlow(
     Handle<JSArray> object, int length) {
   for (int i = 0; i < length; i++) {
     if (i > 0) Append(',');
-    Handle<Object> element = Object::GetElement(isolate_, object, i);
-    RETURN_IF_EMPTY_HANDLE_VALUE(isolate_, element, EXCEPTION);
+    Handle<Object> element;
+    ASSIGN_RETURN_ON_EXCEPTION_VALUE(
+        isolate_, element,
+        Object::GetElement(isolate_, object, i),
+        EXCEPTION);
     if (element->IsUndefined()) {
       AppendAscii("null");
     } else {
@@ -671,40 +679,45 @@ BasicJsonStringifier::Result BasicJsonStringifier::SerializeJSObject(
                            map->instance_descriptors()->GetFieldIndex(i)),
                        isolate_);
       } else {
-        property = Object::GetPropertyOrElement(object, key);
-        RETURN_IF_EMPTY_HANDLE_VALUE(isolate_, property, EXCEPTION);
+        ASSIGN_RETURN_ON_EXCEPTION_VALUE(
+            isolate_, property,
+            Object::GetPropertyOrElement(object, key),
+            EXCEPTION);
       }
       Result result = SerializeProperty(property, comma, key);
       if (!comma && result == SUCCESS) comma = true;
       if (result >= EXCEPTION) return result;
     }
   } else {
-    bool has_exception = false;
-    Handle<FixedArray> contents =
-        GetKeysInFixedArrayFor(object, LOCAL_ONLY, &has_exception);
-    if (has_exception) return EXCEPTION;
+    Handle<FixedArray> contents;
+    ASSIGN_RETURN_ON_EXCEPTION_VALUE(
+        isolate_, contents,
+        GetKeysInFixedArrayFor(object, LOCAL_ONLY),
+        EXCEPTION);
 
     for (int i = 0; i < contents->length(); i++) {
       Object* key = contents->get(i);
       Handle<String> key_handle;
-      Handle<Object> property;
+      MaybeHandle<Object> maybe_property;
       if (key->IsString()) {
         key_handle = Handle<String>(String::cast(key), isolate_);
-        property = Object::GetPropertyOrElement(object, key_handle);
+        maybe_property = Object::GetPropertyOrElement(object, key_handle);
       } else {
         ASSERT(key->IsNumber());
         key_handle = factory_->NumberToString(Handle<Object>(key, isolate_));
         uint32_t index;
         if (key->IsSmi()) {
-          property = Object::GetElement(
+          maybe_property = Object::GetElement(
               isolate_, object, Smi::cast(key)->value());
         } else if (key_handle->AsArrayIndex(&index)) {
-          property = Object::GetElement(isolate_, object, index);
+          maybe_property = Object::GetElement(isolate_, object, index);
         } else {
-          property = Object::GetPropertyOrElement(object, key_handle);
+          maybe_property = Object::GetPropertyOrElement(object, key_handle);
         }
       }
-      RETURN_IF_EMPTY_HANDLE_VALUE(isolate_, property, EXCEPTION);
+      Handle<Object> property;
+      ASSIGN_RETURN_ON_EXCEPTION_VALUE(
+          isolate_, property, maybe_property, EXCEPTION);
       Result result = SerializeProperty(property, comma, key_handle);
       if (!comma && result == SUCCESS) comma = true;
       if (result >= EXCEPTION) return result;
@@ -868,7 +881,7 @@ Vector<const uc16> BasicJsonStringifier::GetCharVector(Handle<String> string) {
 
 
 void BasicJsonStringifier::SerializeString(Handle<String> object) {
-  object = FlattenGetString(object);
+  object = String::Flatten(object);
   if (is_ascii_) {
     if (object->IsOneByteRepresentationUnderneath()) {
       SerializeString_<true, uint8_t>(object);

@@ -6,6 +6,7 @@
 #define V8_PROPERTY_H_
 
 #include "isolate.h"
+#include "factory.h"
 
 namespace v8 {
 namespace internal {
@@ -17,17 +18,15 @@ namespace internal {
 // optionally a piece of data.
 class Descriptor BASE_EMBEDDED {
  public:
-  MUST_USE_RESULT MaybeObject* KeyToUniqueName() {
+  void KeyToUniqueName() {
     if (!key_->IsUniqueName()) {
-      MaybeObject* maybe_result =
-          key_->GetIsolate()->heap()->InternalizeString(String::cast(key_));
-      if (!maybe_result->To(&key_)) return maybe_result;
+      key_ = key_->GetIsolate()->factory()->InternalizeString(
+          Handle<String>::cast(key_));
     }
-    return key_;
   }
 
-  Name* GetKey() { return key_; }
-  Object* GetValue() { return value_; }
+  Handle<Name> GetKey() { return key_; }
+  Handle<Object> GetValue() { return value_; }
   PropertyDetails GetDetails() { return details_; }
 
 #ifdef OBJECT_PRINT
@@ -37,26 +36,26 @@ class Descriptor BASE_EMBEDDED {
   void SetSortedKeyIndex(int index) { details_ = details_.set_pointer(index); }
 
  private:
-  Name* key_;
-  Object* value_;
+  Handle<Name> key_;
+  Handle<Object> value_;
   PropertyDetails details_;
 
  protected:
   Descriptor() : details_(Smi::FromInt(0)) {}
 
-  void Init(Name* key, Object* value, PropertyDetails details) {
+  void Init(Handle<Name> key, Handle<Object> value, PropertyDetails details) {
     key_ = key;
     value_ = value;
     details_ = details;
   }
 
-  Descriptor(Name* key, Object* value, PropertyDetails details)
+  Descriptor(Handle<Name> key, Handle<Object> value, PropertyDetails details)
       : key_(key),
         value_(value),
         details_(details) { }
 
-  Descriptor(Name* key,
-             Object* value,
+  Descriptor(Handle<Name> key,
+             Handle<Object> value,
              PropertyAttributes attributes,
              PropertyType type,
              Representation representation,
@@ -71,19 +70,19 @@ class Descriptor BASE_EMBEDDED {
 
 class FieldDescriptor V8_FINAL : public Descriptor {
  public:
-  FieldDescriptor(Name* key,
+  FieldDescriptor(Handle<Name> key,
                   int field_index,
                   PropertyAttributes attributes,
                   Representation representation)
-      : Descriptor(key, Smi::FromInt(0), attributes,
+      : Descriptor(key, handle(Smi::FromInt(0), key->GetIsolate()), attributes,
                    FIELD, representation, field_index) {}
 };
 
 
 class ConstantDescriptor V8_FINAL : public Descriptor {
  public:
-  ConstantDescriptor(Name* key,
-                     Object* value,
+  ConstantDescriptor(Handle<Name> key,
+                     Handle<Object> value,
                      PropertyAttributes attributes)
       : Descriptor(key, value, attributes, CONSTANT,
                    value->OptimalRepresentation()) {}
@@ -92,8 +91,8 @@ class ConstantDescriptor V8_FINAL : public Descriptor {
 
 class CallbacksDescriptor V8_FINAL : public Descriptor {
  public:
-  CallbacksDescriptor(Name* key,
-                      Object* foreign,
+  CallbacksDescriptor(Handle<Name> key,
+                      Handle<Object> foreign,
                       PropertyAttributes attributes)
       : Descriptor(key, foreign, attributes, CALLBACKS,
                    Representation::Tagged()) {}
@@ -180,16 +179,15 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
 
   bool CanHoldValue(Handle<Object> value) {
     if (IsNormal()) return true;
-    ASSERT(!IsTransition());
     return value->FitsRepresentation(details_.representation());
   }
 
   void TransitionResult(JSObject* holder, Map* target) {
     lookup_type_ = TRANSITION_TYPE;
-    details_ = PropertyDetails(NONE, TRANSITION, Representation::None());
+    number_ = target->LastAdded();
+    details_ = target->instance_descriptors()->GetDetails(number_);
     holder_ = holder;
     transition_ = target;
-    number_ = 0xAAAA;
   }
 
   void DictionaryResult(JSObject* holder, int entry) {
@@ -239,20 +237,17 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
 
   Representation representation() const {
     ASSERT(IsFound());
-    ASSERT(!IsTransition());
     ASSERT(details_.type() != NONEXISTENT);
     return details_.representation();
   }
 
   PropertyAttributes GetAttributes() const {
-    ASSERT(!IsTransition());
     ASSERT(IsFound());
     ASSERT(details_.type() != NONEXISTENT);
     return details_.attributes();
   }
 
   PropertyDetails GetPropertyDetails() const {
-    ASSERT(!IsTransition());
     return details_;
   }
 
@@ -264,38 +259,40 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
   // Property callbacks does not include transitions to callbacks.
   bool IsPropertyCallbacks() const {
     ASSERT(!(details_.type() == CALLBACKS && !IsFound()));
-    return details_.type() == CALLBACKS;
+    return !IsTransition() && details_.type() == CALLBACKS;
   }
 
   bool IsReadOnly() const {
     ASSERT(IsFound());
-    ASSERT(!IsTransition());
     ASSERT(details_.type() != NONEXISTENT);
     return details_.IsReadOnly();
   }
 
   bool IsField() const {
     ASSERT(!(details_.type() == FIELD && !IsFound()));
-    return details_.type() == FIELD;
+    return IsDescriptorOrDictionary() && type() == FIELD;
   }
 
   bool IsNormal() const {
     ASSERT(!(details_.type() == NORMAL && !IsFound()));
-    return details_.type() == NORMAL;
+    return IsDescriptorOrDictionary() && type() == NORMAL;
   }
 
   bool IsConstant() const {
     ASSERT(!(details_.type() == CONSTANT && !IsFound()));
-    return details_.type() == CONSTANT;
+    return IsDescriptorOrDictionary() && type() == CONSTANT;
   }
 
   bool IsConstantFunction() const {
-    return IsConstant() && GetValue()->IsJSFunction();
+    return IsConstant() && GetConstant()->IsJSFunction();
   }
 
   bool IsDontDelete() const { return details_.IsDontDelete(); }
   bool IsDontEnum() const { return details_.IsDontEnum(); }
   bool IsFound() const { return lookup_type_ != NOT_FOUND; }
+  bool IsDescriptorOrDictionary() const {
+    return lookup_type_ == DESCRIPTOR_TYPE || lookup_type_ == DICTIONARY_TYPE;
+  }
   bool IsTransition() const { return lookup_type_ == TRANSITION_TYPE; }
   bool IsHandler() const { return lookup_type_ == HANDLER_TYPE; }
   bool IsInterceptor() const { return lookup_type_ == INTERCEPTOR_TYPE; }
@@ -306,20 +303,30 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
   }
 
   bool IsDataProperty() const {
-    switch (type()) {
-      case FIELD:
-      case NORMAL:
-      case CONSTANT:
-        return true;
-      case CALLBACKS: {
-        Object* callback = GetCallbackObject();
-        return callback->IsAccessorInfo() || callback->IsForeign();
-      }
-      case HANDLER:
-      case INTERCEPTOR:
-      case TRANSITION:
-      case NONEXISTENT:
+    switch (lookup_type_) {
+      case NOT_FOUND:
+      case TRANSITION_TYPE:
+      case HANDLER_TYPE:
+      case INTERCEPTOR_TYPE:
         return false;
+
+      case DESCRIPTOR_TYPE:
+      case DICTIONARY_TYPE:
+        switch (type()) {
+          case FIELD:
+          case NORMAL:
+          case CONSTANT:
+            return true;
+          case CALLBACKS: {
+            Object* callback = GetCallbackObject();
+            return callback->IsAccessorInfo() || callback->IsForeign();
+          }
+          case HANDLER:
+          case INTERCEPTOR:
+          case NONEXISTENT:
+            UNREACHABLE();
+            return false;
+        }
     }
     UNREACHABLE();
     return false;
@@ -329,45 +336,52 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
   void DisallowCaching() { cacheable_ = false; }
 
   Object* GetLazyValue() const {
-    switch (type()) {
-      case FIELD:
-        return holder()->RawFastPropertyAt(GetFieldIndex().field_index());
-      case NORMAL: {
-        Object* value;
-        value = holder()->property_dictionary()->ValueAt(GetDictionaryEntry());
-        if (holder()->IsGlobalObject()) {
-          value = PropertyCell::cast(value)->value();
-        }
-        return value;
-      }
-      case CONSTANT:
-        return GetConstant();
-      case CALLBACKS:
-      case HANDLER:
-      case INTERCEPTOR:
-      case TRANSITION:
-      case NONEXISTENT:
+    switch (lookup_type_) {
+      case NOT_FOUND:
+      case TRANSITION_TYPE:
+      case HANDLER_TYPE:
+      case INTERCEPTOR_TYPE:
         return isolate()->heap()->the_hole_value();
+
+      case DESCRIPTOR_TYPE:
+      case DICTIONARY_TYPE:
+        switch (type()) {
+          case FIELD:
+            return holder()->RawFastPropertyAt(GetFieldIndex().field_index());
+          case NORMAL: {
+            Object* value = holder()->property_dictionary()->ValueAt(
+                GetDictionaryEntry());
+            if (holder()->IsGlobalObject()) {
+              value = PropertyCell::cast(value)->value();
+            }
+            return value;
+          }
+          case CONSTANT:
+            return GetConstant();
+          case CALLBACKS:
+            return isolate()->heap()->the_hole_value();
+          case HANDLER:
+          case INTERCEPTOR:
+          case NONEXISTENT:
+            UNREACHABLE();
+            return NULL;
+        }
     }
     UNREACHABLE();
     return NULL;
   }
 
   Map* GetTransitionTarget() const {
+    ASSERT(IsTransition());
     return transition_;
   }
 
-  PropertyDetails GetTransitionDetails() const {
-    ASSERT(IsTransition());
-    return transition_->GetLastDescriptorDetails();
-  }
-
   bool IsTransitionToField() const {
-    return IsTransition() && GetTransitionDetails().type() == FIELD;
+    return IsTransition() && details_.type() == FIELD;
   }
 
   bool IsTransitionToConstant() const {
-    return IsTransition() && GetTransitionDetails().type() == CONSTANT;
+    return IsTransition() && details_.type() == CONSTANT;
   }
 
   int GetDescriptorIndex() const {
@@ -376,7 +390,8 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
   }
 
   PropertyIndex GetFieldIndex() const {
-    ASSERT(lookup_type_ == DESCRIPTOR_TYPE);
+    ASSERT(lookup_type_ == DESCRIPTOR_TYPE ||
+           lookup_type_ == TRANSITION_TYPE);
     return PropertyIndex::NewFieldIndex(GetFieldIndexFromMap(holder()->map()));
   }
 
@@ -409,7 +424,8 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
   }
 
   Object* GetCallbackObject() const {
-    ASSERT(type() == CALLBACKS && !IsTransition());
+    ASSERT(!IsTransition());
+    ASSERT(type() == CALLBACKS);
     return GetValue();
   }
 
@@ -420,6 +436,8 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
   Object* GetValue() const {
     if (lookup_type_ == DESCRIPTOR_TYPE) {
       return GetValueFromMap(holder()->map());
+    } else if (lookup_type_ == TRANSITION_TYPE) {
+      return GetValueFromMap(transition_);
     }
     // In the dictionary case, the data is held in the value field.
     ASSERT(lookup_type_ == DICTIONARY_TYPE);
@@ -427,13 +445,15 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
   }
 
   Object* GetValueFromMap(Map* map) const {
-    ASSERT(lookup_type_ == DESCRIPTOR_TYPE);
+    ASSERT(lookup_type_ == DESCRIPTOR_TYPE ||
+           lookup_type_ == TRANSITION_TYPE);
     ASSERT(number_ < map->NumberOfOwnDescriptors());
     return map->instance_descriptors()->GetValue(number_);
   }
 
   int GetFieldIndexFromMap(Map* map) const {
-    ASSERT(lookup_type_ == DESCRIPTOR_TYPE);
+    ASSERT(lookup_type_ == DESCRIPTOR_TYPE ||
+           lookup_type_ == TRANSITION_TYPE);
     ASSERT(number_ < map->NumberOfOwnDescriptors());
     return map->instance_descriptors()->GetFieldIndex(number_);
   }

@@ -1322,8 +1322,23 @@ void V8HeapExplorer::ExtractMapReferences(int entry, Map* map) {
     TagObject(back_pointer, "(back pointer)");
     SetInternalReference(transitions, transitions_entry,
                          "back_pointer", back_pointer);
+
+    if (FLAG_collect_maps && map->CanTransition()) {
+      if (!transitions->IsSimpleTransition()) {
+        if (transitions->HasPrototypeTransitions()) {
+          FixedArray* prototype_transitions =
+              transitions->GetPrototypeTransitions();
+          MarkAsWeakContainer(prototype_transitions);
+          TagObject(prototype_transitions, "(prototype transitions");
+          SetInternalReference(transitions, transitions_entry,
+                               "prototype_transitions", prototype_transitions);
+        }
+        // TODO(alph): transitions keys are strong links.
+        MarkAsWeakContainer(transitions);
+      }
+    }
+
     TagObject(transitions, "(transition array)");
-    MarkAsWeakContainer(transitions);
     SetInternalReference(map, entry,
                          "transitions", transitions,
                          Map::kTransitionsOrBackPointerOffset);
@@ -1656,7 +1671,6 @@ void V8HeapExplorer::ExtractPropertyReferences(JSObject* js_obj, int entry) {
         case HANDLER:  // only in lookup results, not in descriptors
         case INTERCEPTOR:  // only in lookup results, not in descriptors
           break;
-        case TRANSITION:
         case NONEXISTENT:
           UNREACHABLE();
           break;

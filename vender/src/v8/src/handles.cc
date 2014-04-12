@@ -124,20 +124,6 @@ Address HandleScope::current_limit_address(Isolate* isolate) {
 }
 
 
-Handle<FixedArray> AddKeysFromJSArray(Handle<FixedArray> content,
-                                      Handle<JSArray> array) {
-  CALL_HEAP_FUNCTION(content->GetIsolate(),
-                     content->AddKeysFromJSArray(*array), FixedArray);
-}
-
-
-Handle<FixedArray> UnionOfKeys(Handle<FixedArray> first,
-                               Handle<FixedArray> second) {
-  CALL_HEAP_FUNCTION(first->GetIsolate(),
-                     first->UnionOfKeys(*second), FixedArray);
-}
-
-
 Handle<JSGlobalProxy> ReinitializeJSGlobalProxy(
     Handle<JSFunction> constructor,
     Handle<JSGlobalProxy> global) {
@@ -148,66 +134,12 @@ Handle<JSGlobalProxy> ReinitializeJSGlobalProxy(
 }
 
 
-void FlattenString(Handle<String> string) {
-  CALL_HEAP_FUNCTION_VOID(string->GetIsolate(), string->TryFlatten());
-}
-
-
-Handle<String> FlattenGetString(Handle<String> string) {
-  CALL_HEAP_FUNCTION(string->GetIsolate(), string->TryFlatten(), String);
-}
-
-
-Handle<Object> ForceSetProperty(Handle<JSObject> object,
-                                Handle<Object> key,
-                                Handle<Object> value,
-                                PropertyAttributes attributes) {
-  return Runtime::ForceSetObjectProperty(object->GetIsolate(), object, key,
-                                        value, attributes);
-}
-
-
-Handle<Object> DeleteProperty(Handle<JSObject> object, Handle<Object> key) {
-  Isolate* isolate = object->GetIsolate();
-  CALL_HEAP_FUNCTION(isolate,
-                     Runtime::DeleteObjectProperty(
-                         isolate, object, key, JSReceiver::NORMAL_DELETION),
-                     Object);
-}
-
-
-Handle<Object> ForceDeleteProperty(Handle<JSObject> object,
-                                   Handle<Object> key) {
-  Isolate* isolate = object->GetIsolate();
-  CALL_HEAP_FUNCTION(isolate,
-                     Runtime::DeleteObjectProperty(
-                         isolate, object, key, JSReceiver::FORCE_DELETION),
-                     Object);
-}
-
-
-Handle<Object> HasProperty(Handle<JSReceiver> obj, Handle<Object> key) {
-  Isolate* isolate = obj->GetIsolate();
-  CALL_HEAP_FUNCTION(isolate,
-                     Runtime::HasObjectProperty(isolate, obj, key), Object);
-}
-
-
-Handle<Object> GetProperty(Handle<JSReceiver> obj,
-                           const char* name) {
+MaybeHandle<Object> GetProperty(Handle<JSReceiver> obj,
+                                const char* name) {
   Isolate* isolate = obj->GetIsolate();
   Handle<String> str = isolate->factory()->InternalizeUtf8String(name);
   ASSERT(!str.is_null());
   return Object::GetPropertyOrElement(obj, str);
-}
-
-
-Handle<String> LookupSingleCharacterStringFromCode(Isolate* isolate,
-                                                   uint32_t index) {
-  CALL_HEAP_FUNCTION(
-      isolate,
-      isolate->heap()->LookupSingleCharacterStringFromCode(index),
-      String);
 }
 
 
@@ -242,14 +174,6 @@ Handle<JSValue> GetScriptWrapper(Handle<Script> script) {
   Handle<JSFunction> constructor = isolate->script_function();
   Handle<JSValue> result =
       Handle<JSValue>::cast(isolate->factory()->NewJSObject(constructor));
-
-  // The allocation might have triggered a GC, which could have called this
-  // function recursively, and a wrapper has already been created and cached.
-  // In that case, simply return a handle for the cached wrapper.
-  if (script->wrapper()->foreign_address() != NULL) {
-    return Handle<JSValue>(
-        *reinterpret_cast<JSValue**>(script->wrapper()->foreign_address()));
-  }
 
   result->set_value(*script);
 
@@ -320,7 +244,7 @@ static void CalculateLineEnds(Isolate* isolate,
 
 Handle<FixedArray> CalculateLineEnds(Handle<String> src,
                                      bool with_last_line) {
-  src = FlattenGetString(src);
+  src = String::Flatten(src);
   // Rough estimate of line count based on a roughly estimated average
   // length of (unpacked) code.
   int line_count_estimate = src->length() >> 4;
@@ -470,16 +394,15 @@ Handle<Object> GetScriptNameOrSourceURL(Handle<Script> script) {
       isolate->factory()->InternalizeOneByteString(
           STATIC_ASCII_VECTOR("nameOrSourceURL"));
   Handle<JSValue> script_wrapper = GetScriptWrapper(script);
-  Handle<Object> property =
-      Object::GetProperty(script_wrapper, name_or_source_url_key);
+  Handle<Object> property = Object::GetProperty(
+      script_wrapper, name_or_source_url_key).ToHandleChecked();
   ASSERT(property->IsJSFunction());
   Handle<JSFunction> method = Handle<JSFunction>::cast(property);
-  bool caught_exception;
-  Handle<Object> result = Execution::TryCall(method, script_wrapper, 0,
-                                             NULL, &caught_exception);
-  if (caught_exception) {
-    result = isolate->factory()->undefined_value();
-  }
+  Handle<Object> result;
+  ASSIGN_RETURN_ON_EXCEPTION_VALUE(
+      isolate, result,
+      Execution::TryCall(method, script_wrapper, 0, NULL),
+      isolate->factory()->undefined_value());
   return result;
 }
 
@@ -494,9 +417,8 @@ static bool ContainsOnlyValidKeys(Handle<FixedArray> array) {
 }
 
 
-Handle<FixedArray> GetKeysInFixedArrayFor(Handle<JSReceiver> object,
-                                          KeyCollectionType type,
-                                          bool* threw) {
+MaybeHandle<FixedArray> GetKeysInFixedArrayFor(Handle<JSReceiver> object,
+                                               KeyCollectionType type) {
   USE(ContainsOnlyValidKeys);
   Isolate* isolate = object->GetIsolate();
   Handle<FixedArray> content = isolate->factory()->empty_fixed_array();
@@ -514,14 +436,20 @@ Handle<FixedArray> GetKeysInFixedArrayFor(Handle<JSReceiver> object,
     if (p->IsJSProxy()) {
       Handle<JSProxy> proxy(JSProxy::cast(*p), isolate);
       Handle<Object> args[] = { proxy };
-      Handle<Object> names = Execution::Call(isolate,
-                                             isolate->proxy_enumerate(),
-                                             object,
-                                             ARRAY_SIZE(args),
-                                             args,
-                                             threw);
-      if (*threw) return content;
-      content = AddKeysFromJSArray(content, Handle<JSArray>::cast(names));
+      Handle<Object> names;
+      ASSIGN_RETURN_ON_EXCEPTION(
+          isolate, names,
+          Execution::Call(isolate,
+                          isolate->proxy_enumerate(),
+                          object,
+                          ARRAY_SIZE(args),
+                          args),
+          FixedArray);
+      ASSIGN_RETURN_ON_EXCEPTION(
+          isolate, content,
+          FixedArray::AddKeysFromJSArray(
+              content, Handle<JSArray>::cast(names)),
+          FixedArray);
       break;
     }
 
@@ -533,10 +461,7 @@ Handle<FixedArray> GetKeysInFixedArrayFor(Handle<JSReceiver> object,
                                         isolate->factory()->undefined_value(),
                                         v8::ACCESS_KEYS)) {
       isolate->ReportFailedAccessCheckWrapper(current, v8::ACCESS_KEYS);
-      if (isolate->has_scheduled_exception()) {
-        isolate->PromoteScheduledException();
-        *threw = true;
-      }
+      RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, FixedArray);
       break;
     }
 
@@ -544,15 +469,23 @@ Handle<FixedArray> GetKeysInFixedArrayFor(Handle<JSReceiver> object,
     Handle<FixedArray> element_keys =
         isolate->factory()->NewFixedArray(current->NumberOfEnumElements());
     current->GetEnumElementKeys(*element_keys);
-    content = UnionOfKeys(content, element_keys);
+    ASSIGN_RETURN_ON_EXCEPTION(
+        isolate, content,
+        FixedArray::UnionOfKeys(content, element_keys),
+        FixedArray);
     ASSERT(ContainsOnlyValidKeys(content));
 
     // Add the element keys from the interceptor.
     if (current->HasIndexedInterceptor()) {
       v8::Handle<v8::Array> result =
           GetKeysForIndexedInterceptor(object, current);
-      if (!result.IsEmpty())
-        content = AddKeysFromJSArray(content, v8::Utils::OpenHandle(*result));
+      if (!result.IsEmpty()) {
+        ASSIGN_RETURN_ON_EXCEPTION(
+            isolate, content,
+            FixedArray::AddKeysFromJSArray(
+                content, v8::Utils::OpenHandle(*result)),
+            FixedArray);
+      }
       ASSERT(ContainsOnlyValidKeys(content));
     }
 
@@ -573,34 +506,32 @@ Handle<FixedArray> GetKeysInFixedArrayFor(Handle<JSReceiver> object,
          !current->HasNamedInterceptor() &&
          !current->HasIndexedInterceptor());
     // Compute the property keys and cache them if possible.
-    content =
-        UnionOfKeys(content, GetEnumPropertyKeys(current, cache_enum_keys));
+    ASSIGN_RETURN_ON_EXCEPTION(
+        isolate, content,
+        FixedArray::UnionOfKeys(
+            content, GetEnumPropertyKeys(current, cache_enum_keys)),
+        FixedArray);
     ASSERT(ContainsOnlyValidKeys(content));
 
     // Add the property keys from the interceptor.
     if (current->HasNamedInterceptor()) {
       v8::Handle<v8::Array> result =
           GetKeysForNamedInterceptor(object, current);
-      if (!result.IsEmpty())
-        content = AddKeysFromJSArray(content, v8::Utils::OpenHandle(*result));
+      if (!result.IsEmpty()) {
+        ASSIGN_RETURN_ON_EXCEPTION(
+            isolate, content,
+            FixedArray::AddKeysFromJSArray(
+                content, v8::Utils::OpenHandle(*result)),
+            FixedArray);
+      }
       ASSERT(ContainsOnlyValidKeys(content));
     }
 
     // If we only want local properties we bail out after the first
     // iteration.
-    if (type == LOCAL_ONLY)
-      break;
+    if (type == LOCAL_ONLY) break;
   }
   return content;
-}
-
-
-Handle<JSArray> GetKeysFor(Handle<JSReceiver> object, bool* threw) {
-  Isolate* isolate = object->GetIsolate();
-  isolate->counters()->for_in()->Increment();
-  Handle<FixedArray> elements =
-      GetKeysInFixedArrayFor(object, INCLUDE_PROTOS, threw);
-  return isolate->factory()->NewJSArrayWithElements(elements);
 }
 
 
@@ -763,7 +694,7 @@ void AddWeakObjectToCodeDependency(Heap* heap,
                                    Handle<Code> code) {
   heap->EnsureWeakObjectToCodeTable();
   Handle<DependentCode> dep(heap->LookupWeakObjectToCodeDependency(*object));
-  dep = DependentCode::Insert(dep, DependentCode::kWeaklyEmbeddedGroup, code);
+  dep = DependentCode::Insert(dep, DependentCode::kWeakCodeGroup, code);
   CALL_HEAP_FUNCTION_VOID(heap->isolate(),
                           heap->AddWeakObjectToCodeDependency(*object, *dep));
 }

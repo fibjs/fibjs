@@ -657,10 +657,10 @@ class MacroAssembler: public Assembler {
                             Register src,
                             int shift_value);
   void SmiShiftLogicalRightConstant(Register dst,
-                                  Register src,
-                                  int shift_value,
-                                  Label* on_not_smi_result,
-                                  Label::Distance near_jump = Label::kFar);
+                                    Register src,
+                                    int shift_value,
+                                    Label* on_not_smi_result,
+                                    Label::Distance near_jump = Label::kFar);
   void SmiShiftArithmeticRightConstant(Register dst,
                                        Register src,
                                        int shift_value);
@@ -726,12 +726,12 @@ class MacroAssembler: public Assembler {
 
   void Push(Smi* smi);
 
-  // Save away a 64-bit integer on the stack as two 32-bit integers
+  // Save away a raw integer with pointer size on the stack as two integers
   // masquerading as smis so that the garbage collector skips visiting them.
-  void PushInt64AsTwoSmis(Register src, Register scratch = kScratchRegister);
-  // Reconstruct a 64-bit integer from two 32-bit integers masquerading as
-  // smis on the top of stack.
-  void PopInt64AsTwoSmis(Register dst, Register scratch = kScratchRegister);
+  void PushRegisterAsTwoSmis(Register src, Register scratch = kScratchRegister);
+  // Reconstruct a raw integer with pointer size from two integers masquerading
+  // as smis on the top of stack.
+  void PopRegisterAsTwoSmis(Register dst, Register scratch = kScratchRegister);
 
   void Test(const Operand& dst, Smi* source);
 
@@ -813,8 +813,13 @@ class MacroAssembler: public Assembler {
   // Move if the registers are not identical.
   void Move(Register target, Register source);
 
-  // Bit-field support.
-  void TestBit(const Operand& dst, int bit_index);
+  // TestBit and Load SharedFunctionInfo special field.
+  void TestBitSharedFunctionInfoSpecialField(Register base,
+                                             int offset,
+                                             int bit_index);
+  void LoadSharedFunctionInfoSpecialField(Register dst,
+                                          Register base,
+                                          int offset);
 
   // Handle support
   void Move(Register dst, Handle<Object> source);

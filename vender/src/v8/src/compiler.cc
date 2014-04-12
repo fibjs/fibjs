@@ -877,10 +877,12 @@ Handle<JSFunction> Compiler::GetFunctionFromEval(Handle<String> source,
   isolate->counters()->total_compile_size()->Increment(source_length);
 
   CompilationCache* compilation_cache = isolate->compilation_cache();
-  Handle<SharedFunctionInfo> shared_info = compilation_cache->LookupEval(
-      source, context, strict_mode, scope_position);
+  MaybeHandle<SharedFunctionInfo> maybe_shared_info =
+      compilation_cache->LookupEval(source, context, strict_mode,
+                                    scope_position);
+  Handle<SharedFunctionInfo> shared_info;
 
-  if (shared_info.is_null()) {
+  if (!maybe_shared_info.ToHandle(&shared_info)) {
     Handle<Script> script = isolate->factory()->NewScript(source);
     CompilationInfoWithZone info(script);
     info.MarkAsEval();
@@ -926,7 +928,7 @@ Handle<SharedFunctionInfo> Compiler::CompileScript(
     bool is_shared_cross_origin,
     Handle<Context> context,
     v8::Extension* extension,
-    ScriptDataImpl** cached_data,
+    ScriptData** cached_data,
     CachedDataMode cached_data_mode,
     NativesFlag natives) {
   if (cached_data_mode == NO_CACHED_DATA) {
@@ -945,25 +947,16 @@ Handle<SharedFunctionInfo> Compiler::CompileScript(
   CompilationCache* compilation_cache = isolate->compilation_cache();
 
   // Do a lookup in the compilation cache but not for extensions.
+  MaybeHandle<SharedFunctionInfo> maybe_result;
   Handle<SharedFunctionInfo> result;
   if (extension == NULL) {
-    result = compilation_cache->LookupScript(source,
-                                             script_name,
-                                             line_offset,
-                                             column_offset,
-                                             is_shared_cross_origin,
-                                             context);
+    maybe_result = compilation_cache->LookupScript(
+        source, script_name, line_offset, column_offset,
+        is_shared_cross_origin, context);
   }
 
-  if (result.is_null()) {
-    // No cache entry found. Do pre-parsing, if it makes sense, and compile
-    // the script.
-    // Building preparse data that is only used immediately after is only a
-    // saving if we might skip building the AST for lazily compiled functions.
-    // I.e., preparse data isn't relevant when the lazy flag is off, and
-    // for small sources, odds are that there aren't many functions
-    // that would be compiled lazily anyway, so we skip the preparse step
-    // in that case too.
+  if (!maybe_result.ToHandle(&result)) {
+    // No cache entry found. Compile the script.
 
     // Create a script object describing the script to be compiled.
     Handle<Script> script = isolate->factory()->NewScript(source);
@@ -988,11 +981,10 @@ Handle<SharedFunctionInfo> Compiler::CompileScript(
     if (extension == NULL && !result.is_null() && !result->dont_cache()) {
       compilation_cache->PutScript(source, context, result);
     }
+    if (result.is_null()) isolate->ReportPendingMessages();
   } else if (result->ic_age() != isolate->heap()->global_ic_age()) {
       result->ResetForNewContext(isolate->heap()->global_ic_age());
   }
-
-  if (result.is_null()) isolate->ReportPendingMessages();
   return result;
 }
 

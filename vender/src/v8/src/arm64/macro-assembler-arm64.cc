@@ -53,11 +53,23 @@ MacroAssembler::MacroAssembler(Isolate* arg_isolate,
 #endif
       has_frame_(false),
       use_real_aborts_(true),
-      sp_(jssp), tmp_list_(ip0, ip1), fptmp_list_(fp_scratch1, fp_scratch2) {
+      sp_(jssp),
+      tmp_list_(DefaultTmpList()),
+      fptmp_list_(DefaultFPTmpList()) {
   if (isolate() != NULL) {
     code_object_ = Handle<Object>(isolate()->heap()->undefined_value(),
                                   isolate());
   }
+}
+
+
+CPURegList MacroAssembler::DefaultTmpList() {
+  return CPURegList(ip0, ip1);
+}
+
+
+CPURegList MacroAssembler::DefaultFPTmpList() {
+  return CPURegList(fp_scratch1, fp_scratch2);
 }
 
 
@@ -596,6 +608,43 @@ bool MacroAssembler::NeedExtraInstructionsOrRegisterBranch(
           max_reachable_pc - kVeneerDistanceCheckMargin);
   }
   return need_longer_range;
+}
+
+
+void MacroAssembler::Adr(const Register& rd, Label* label, AdrHint hint) {
+  ASSERT(allow_macro_instructions_);
+  ASSERT(!rd.IsZero());
+
+  if (hint == kAdrNear) {
+    adr(rd, label);
+    return;
+  }
+
+  ASSERT(hint == kAdrFar);
+  UseScratchRegisterScope temps(this);
+  Register scratch = temps.AcquireX();
+  ASSERT(!AreAliased(rd, scratch));
+
+  if (label->is_bound()) {
+    int label_offset = label->pos() - pc_offset();
+    if (Instruction::IsValidPCRelOffset(label_offset)) {
+      adr(rd, label);
+    } else {
+      ASSERT(label_offset <= 0);
+      int min_adr_offset = -(1 << (Instruction::ImmPCRelRangeBitwidth - 1));
+      adr(rd, min_adr_offset);
+      Add(rd, rd, label_offset - min_adr_offset);
+    }
+  } else {
+    InstructionAccurateScope scope(
+        this, PatchingAssembler::kAdrFarPatchableNInstrs);
+    adr(rd, label);
+    for (int i = 0; i < PatchingAssembler::kAdrFarPatchableNNops; ++i) {
+      nop(ADR_FAR_NOP);
+    }
+    movz(scratch, 0);
+    add(rd, rd, scratch);
+  }
 }
 
 
@@ -4692,8 +4741,7 @@ void MacroAssembler::Abort(BailoutReason reason) {
   // We need some scratch registers for the MacroAssembler, so make sure we have
   // some. This is safe here because Abort never returns.
   RegList old_tmp_list = TmpList()->list();
-  TmpList()->Combine(ip0);
-  TmpList()->Combine(ip1);
+  TmpList()->Combine(MacroAssembler::DefaultTmpList());
 
   if (use_real_aborts()) {
     // Avoid infinite recursion; Push contains some assertions that use Abort.

@@ -179,12 +179,9 @@ template<int R>
 bool LTemplateResultInstruction<R>::MustSignExtendResult(
     LPlatformChunk* chunk) const {
   HValue* hvalue = this->hydrogen_value();
-
-  if (hvalue == NULL) return false;
-  if (!hvalue->representation().IsInteger32()) return false;
-  if (hvalue->HasRange() && !hvalue->range()->CanBeNegative()) return false;
-
-  return chunk->GetDehoistedKeyIds()->Contains(hvalue->id());
+  return hvalue != NULL &&
+      hvalue->representation().IsInteger32() &&
+      chunk->GetDehoistedKeyIds()->Contains(hvalue->id());
 }
 
 
@@ -1925,7 +1922,9 @@ LInstruction* LChunkBuilder::DoChange(HChange* instr) {
 
 LInstruction* LChunkBuilder::DoCheckHeapObject(HCheckHeapObject* instr) {
   LOperand* value = UseRegisterAtStart(instr->value());
-  return AssignEnvironment(new(zone()) LCheckNonSmi(value));
+  LInstruction* result = new(zone()) LCheckNonSmi(value);
+  if (!instr->value()->IsHeapObject()) result = AssignEnvironment(result);
+  return result;
 }
 
 

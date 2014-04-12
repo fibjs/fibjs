@@ -536,35 +536,6 @@ class ThreadLocalTop;
 // Mark-Compact collector
 class MarkCompactCollector {
  public:
-  // Type of functions to compute forwarding addresses of objects in
-  // compacted spaces.  Given an object and its size, return a (non-failure)
-  // Object* that will be the object after forwarding.  There is a separate
-  // allocation function for each (compactable) space based on the location
-  // of the object before compaction.
-  typedef MaybeObject* (*AllocationFunction)(Heap* heap,
-                                             HeapObject* object,
-                                             int object_size);
-
-  // Type of functions to encode the forwarding address for an object.
-  // Given the object, its size, and the new (non-failure) object it will be
-  // forwarded to, encode the forwarding address.  For paged spaces, the
-  // 'offset' input/output parameter contains the offset of the forwarded
-  // object from the forwarding address of the previous live object in the
-  // page as input, and is updated to contain the offset to be used for the
-  // next live object in the same page.  For spaces using a different
-  // encoding (i.e., contiguous spaces), the offset parameter is ignored.
-  typedef void (*EncodingFunction)(Heap* heap,
-                                   HeapObject* old_object,
-                                   int object_size,
-                                   Object* new_object,
-                                   int* offset);
-
-  // Type of functions to process non-live objects.
-  typedef void (*ProcessNonLiveFunction)(HeapObject* object, Isolate* isolate);
-
-  // Pointer to member function, used in IterateLiveObjects.
-  typedef int (MarkCompactCollector::*LiveObjectCallback)(HeapObject* obj);
-
   // Set the global flags, it must be called before Prepare to take effect.
   inline void SetFlags(int flags);
 
@@ -638,7 +609,7 @@ class MarkCompactCollector {
   void VerifyMarkbitsAreClean();
   static void VerifyMarkbitsAreClean(PagedSpace* space);
   static void VerifyMarkbitsAreClean(NewSpace* space);
-  void VerifyWeakEmbeddedObjectsInOptimizedCode();
+  void VerifyWeakEmbeddedObjectsInCode();
   void VerifyOmittedMapChecks();
 #endif
 
@@ -899,8 +870,11 @@ class MarkCompactCollector {
   void ClearNonLivePrototypeTransitions(Map* map);
   void ClearNonLiveMapTransitions(Map* map, MarkBit map_mark);
 
-  void ClearAndDeoptimizeDependentCode(DependentCode* dependent_code);
+  void ClearDependentCode(DependentCode* dependent_code);
+  void ClearDependentICList(Object* head);
   void ClearNonLiveDependentCode(DependentCode* dependent_code);
+  int ClearNonLiveDependentCodeInGroup(DependentCode* dependent_code, int group,
+                                       int start, int end, int new_start);
 
   // Marking detaches initial maps from SharedFunctionInfo objects
   // to make this reference weak. We need to reattach initial maps

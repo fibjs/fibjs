@@ -264,21 +264,11 @@ void Isolate::IterateThread(ThreadVisitor* v, char* t) {
 
 void Isolate::Iterate(ObjectVisitor* v, ThreadLocalTop* thread) {
   // Visit the roots from the top for a given thread.
-  Object* pending;
-  // The pending exception can sometimes be a failure.  We can't show
-  // that to the GC, which only understands objects.
-  if (thread->pending_exception_->ToObject(&pending)) {
-    v->VisitPointer(&pending);
-    thread->pending_exception_ = pending;  // In case GC updated it.
-  }
+  v->VisitPointer(&thread->pending_exception_);
   v->VisitPointer(&(thread->pending_message_obj_));
   v->VisitPointer(BitCast<Object**>(&(thread->pending_message_script_)));
   v->VisitPointer(BitCast<Object**>(&(thread->context_)));
-  Object* scheduled;
-  if (thread->scheduled_exception_->ToObject(&scheduled)) {
-    v->VisitPointer(&scheduled);
-    thread->scheduled_exception_ = scheduled;
-  }
+  v->VisitPointer(&thread->scheduled_exception_);
 
   for (v8::TryCatch* block = thread->TryCatchHandler();
        block != NULL;
@@ -573,41 +563,31 @@ Handle<JSArray> Isolate::CaptureCurrentStackTrace(
             // tag.
             column_offset += script->column_offset()->value();
           }
-          CHECK_NOT_EMPTY_HANDLE(
-              this,
-              JSObject::SetLocalPropertyIgnoreAttributes(
-                  stack_frame, column_key,
-                  Handle<Smi>(Smi::FromInt(column_offset + 1), this), NONE));
+          JSObject::SetLocalPropertyIgnoreAttributes(
+              stack_frame, column_key,
+              Handle<Smi>(Smi::FromInt(column_offset + 1), this), NONE).Check();
         }
-        CHECK_NOT_EMPTY_HANDLE(
-            this,
-            JSObject::SetLocalPropertyIgnoreAttributes(
-                stack_frame, line_key,
-                Handle<Smi>(Smi::FromInt(line_number + 1), this), NONE));
+       JSObject::SetLocalPropertyIgnoreAttributes(
+            stack_frame, line_key,
+            Handle<Smi>(Smi::FromInt(line_number + 1), this), NONE).Check();
       }
 
       if (options & StackTrace::kScriptId) {
         Handle<Smi> script_id(script->id(), this);
-        CHECK_NOT_EMPTY_HANDLE(this,
-                               JSObject::SetLocalPropertyIgnoreAttributes(
-                                   stack_frame, script_id_key, script_id,
-                                   NONE));
+        JSObject::SetLocalPropertyIgnoreAttributes(
+            stack_frame, script_id_key, script_id, NONE).Check();
       }
 
       if (options & StackTrace::kScriptName) {
         Handle<Object> script_name(script->name(), this);
-        CHECK_NOT_EMPTY_HANDLE(this,
-                               JSObject::SetLocalPropertyIgnoreAttributes(
-                                   stack_frame, script_name_key, script_name,
-                                   NONE));
+        JSObject::SetLocalPropertyIgnoreAttributes(
+            stack_frame, script_name_key, script_name, NONE).Check();
       }
 
       if (options & StackTrace::kScriptNameOrSourceURL) {
         Handle<Object> result = GetScriptNameOrSourceURL(script);
-        CHECK_NOT_EMPTY_HANDLE(this,
-                               JSObject::SetLocalPropertyIgnoreAttributes(
-                                   stack_frame, script_name_or_source_url_key,
-                                   result, NONE));
+        JSObject::SetLocalPropertyIgnoreAttributes(
+            stack_frame, script_name_or_source_url_key, result, NONE).Check();
       }
 
       if (options & StackTrace::kFunctionName) {
@@ -615,27 +595,23 @@ Handle<JSArray> Isolate::CaptureCurrentStackTrace(
         if (!fun_name->BooleanValue()) {
           fun_name = Handle<Object>(fun->shared()->inferred_name(), this);
         }
-        CHECK_NOT_EMPTY_HANDLE(this,
-                               JSObject::SetLocalPropertyIgnoreAttributes(
-                                   stack_frame, function_key, fun_name, NONE));
+        JSObject::SetLocalPropertyIgnoreAttributes(
+            stack_frame, function_key, fun_name, NONE).Check();
       }
 
       if (options & StackTrace::kIsEval) {
         Handle<Object> is_eval =
             script->compilation_type() == Script::COMPILATION_TYPE_EVAL ?
                 factory()->true_value() : factory()->false_value();
-        CHECK_NOT_EMPTY_HANDLE(this,
-                               JSObject::SetLocalPropertyIgnoreAttributes(
-                                   stack_frame, eval_key, is_eval, NONE));
+        JSObject::SetLocalPropertyIgnoreAttributes(
+            stack_frame, eval_key, is_eval, NONE).Check();
       }
 
       if (options & StackTrace::kIsConstructor) {
         Handle<Object> is_constructor = (frames[i].is_constructor()) ?
             factory()->true_value() : factory()->false_value();
-        CHECK_NOT_EMPTY_HANDLE(this,
-                               JSObject::SetLocalPropertyIgnoreAttributes(
-                                   stack_frame, constructor_key,
-                                   is_constructor, NONE));
+        JSObject::SetLocalPropertyIgnoreAttributes(
+            stack_frame, constructor_key, is_constructor, NONE).Check();
       }
 
       FixedArray::cast(stack_trace->elements())->set(frames_seen, *stack_frame);
@@ -874,16 +850,22 @@ Failure* Isolate::StackOverflow() {
   // constructor.  Instead, we copy the pre-constructed boilerplate and
   // attach the stack trace as a hidden property.
   Handle<String> key = factory()->stack_overflow_string();
-  Handle<JSObject> boilerplate =
-      Handle<JSObject>::cast(Object::GetProperty(js_builtins_object(), key));
+  Handle<JSObject> boilerplate = Handle<JSObject>::cast(
+      Object::GetProperty(js_builtins_object(), key).ToHandleChecked());
   Handle<JSObject> exception = JSObject::Copy(boilerplate);
   DoThrow(*exception, NULL);
 
   // Get stack trace limit.
-  Handle<Object> error = GetProperty(js_builtins_object(), "$Error");
+  Handle<Object> error =
+      GetProperty(js_builtins_object(), "$Error").ToHandleChecked();
   if (!error->IsJSObject()) return Failure::Exception();
+
+  Handle<String> stackTraceLimit =
+      factory()->InternalizeUtf8String("stackTraceLimit");
+  ASSERT(!stackTraceLimit.is_null());
   Handle<Object> stack_trace_limit =
-      GetProperty(Handle<JSObject>::cast(error), "stackTraceLimit");
+      JSObject::GetDataProperty(Handle<JSObject>::cast(error),
+                                stackTraceLimit);
   if (!stack_trace_limit->IsNumber()) return Failure::Exception();
   double dlimit = stack_trace_limit->Number();
   int limit = std::isnan(dlimit) ? 0 : static_cast<int>(dlimit);
@@ -926,7 +908,7 @@ Failure* Isolate::Throw(Object* exception, MessageLocation* location) {
 }
 
 
-Failure* Isolate::ReThrow(MaybeObject* exception) {
+Failure* Isolate::ReThrow(Object* exception) {
   bool can_be_caught_externally = false;
   bool catchable_by_javascript = is_catchable_by_javascript(exception);
   ShouldReportException(&can_be_caught_externally, catchable_by_javascript);
@@ -983,7 +965,7 @@ void Isolate::RestorePendingMessageFromTryCatch(v8::TryCatch* handler) {
 
 
 Failure* Isolate::PromoteScheduledException() {
-  MaybeObject* thrown = scheduled_exception();
+  Object* thrown = scheduled_exception();
   clear_scheduled_exception();
   // Re-throw the exception to avoid getting repeated error reporting.
   return ReThrow(thrown);
@@ -1070,15 +1052,17 @@ bool Isolate::ShouldReportException(bool* can_be_caught_externally,
 bool Isolate::IsErrorObject(Handle<Object> obj) {
   if (!obj->IsJSObject()) return false;
 
-  String* error_key =
-      *(factory()->InternalizeOneByteString(STATIC_ASCII_VECTOR("$Error")));
-  Object* error_constructor =
-      js_builtins_object()->GetPropertyNoExceptionThrown(error_key);
+  Handle<String> error_key =
+      factory()->InternalizeOneByteString(STATIC_ASCII_VECTOR("$Error"));
+  Handle<Object> error_constructor = Object::GetProperty(
+      js_builtins_object(), error_key).ToHandleChecked();
 
+  DisallowHeapAllocation no_gc;
   for (Object* prototype = *obj; !prototype->IsNull();
        prototype = prototype->GetPrototype(this)) {
     if (!prototype->IsJSObject()) return false;
-    if (JSObject::cast(prototype)->map()->constructor() == error_constructor) {
+    if (JSObject::cast(prototype)->map()->constructor() ==
+        *error_constructor) {
       return true;
     }
   }
@@ -1151,10 +1135,9 @@ void Isolate::DoThrow(Object* exception, MessageLocation* location) {
       // before throwing as uncaught exception.  Note that the pending
       // exception object to be set later must not be turned into a string.
       if (exception_arg->IsJSObject() && !IsErrorObject(exception_arg)) {
-        bool failed = false;
-        exception_arg =
-            Execution::ToDetailString(this, exception_arg, &failed);
-        if (failed) {
+        MaybeHandle<Object> maybe_exception =
+            Execution::ToDetailString(this, exception_arg);
+        if (!maybe_exception.ToHandle(&exception_arg)) {
           exception_arg = factory()->InternalizeOneByteString(
               STATIC_ASCII_VECTOR("exception"));
         }
@@ -1827,9 +1810,6 @@ void Isolate::PropagatePendingExceptionToExternalTryCatch() {
     try_catch_handler()->exception_ = heap()->null_value();
   } else {
     v8::TryCatch* handler = try_catch_handler();
-    // At this point all non-object (failure) exceptions have
-    // been dealt with so this shouldn't fail.
-    ASSERT(!pending_exception()->IsFailure());
     ASSERT(thread_local_top_.pending_message_obj_->IsJSMessageObject() ||
            thread_local_top_.pending_message_obj_->IsTheHole());
     ASSERT(thread_local_top_.pending_message_script_->IsScript() ||
@@ -2310,7 +2290,7 @@ Handle<JSObject> Isolate::GetSymbolRegistry() {
       Handle<String> name = factory()->InternalizeUtf8String(nested[i]);
       Handle<JSObject> obj = factory()->NewJSObjectFromMap(map);
       JSObject::NormalizeProperties(obj, KEEP_INOBJECT_PROPERTIES, 8);
-      JSObject::SetProperty(registry, name, obj, NONE, STRICT);
+      JSObject::SetProperty(registry, name, obj, NONE, STRICT).Assert();
     }
   }
   return Handle<JSObject>::cast(factory()->symbol_registry());

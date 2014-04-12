@@ -312,7 +312,8 @@ void StaticMarkingVisitor<StaticVisitor>::VisitCodeTarget(
   if (FLAG_cleanup_code_caches_at_gc && target->is_inline_cache_stub()
       && (target->ic_state() == MEGAMORPHIC || target->ic_state() == GENERIC ||
           target->ic_state() == POLYMORPHIC || heap->flush_monomorphic_ics() ||
-          Serializer::enabled() || target->ic_age() != heap->global_ic_age())) {
+          Serializer::enabled() || target->ic_age() != heap->global_ic_age() ||
+          target->is_invalidated_weak_stub())) {
     IC::Clear(target->GetIsolate(), rinfo->pc(),
               rinfo->host()->constant_pool());
     target = Code::GetCodeFromTargetAddress(rinfo->target_address());
@@ -498,8 +499,19 @@ void StaticMarkingVisitor<StaticVisitor>::VisitConstantPoolArray(
   }
   for (int i = 0; i < constant_pool->count_of_heap_ptr_entries(); i++) {
     int index = constant_pool->first_heap_ptr_index() + i;
-    StaticVisitor::VisitPointer(heap,
-                                constant_pool->RawFieldOfElementAt(index));
+    Object** slot = constant_pool->RawFieldOfElementAt(index);
+    HeapObject* object = HeapObject::cast(*slot);
+    heap->mark_compact_collector()->RecordSlot(slot, slot, object);
+    bool is_weak_object =
+        (constant_pool->get_weak_object_state() ==
+              ConstantPoolArray::WEAK_OBJECTS_IN_OPTIMIZED_CODE &&
+         Code::IsWeakObjectInOptimizedCode(object)) ||
+        (constant_pool->get_weak_object_state() ==
+              ConstantPoolArray::WEAK_OBJECTS_IN_IC &&
+         Code::IsWeakObjectInIC(object));
+    if (!is_weak_object) {
+      StaticVisitor::MarkObject(heap, object);
+    }
   }
 }
 
@@ -615,12 +627,9 @@ void StaticMarkingVisitor<StaticVisitor>::MarkMapContents(
   // array to prevent visiting it later. Skip recording the transition
   // array slot, since it will be implicitly recorded when the pointer
   // fields of this map are visited.
-  TransitionArray* transitions = map->unchecked_transition_array();
-  if (transitions->IsTransitionArray()) {
+  if (map->HasTransitionArray()) {
+    TransitionArray* transitions = map->transitions();
     MarkTransitionArray(heap, transitions);
-  } else {
-    // Already marked by marking map->GetBackPointer() above.
-    ASSERT(transitions->IsMap() || transitions->IsUndefined());
   }
 
   // Since descriptor arrays are potentially shared, ensure that only the

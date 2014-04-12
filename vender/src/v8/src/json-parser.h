@@ -43,7 +43,7 @@ namespace internal {
 template <bool seq_ascii>
 class JsonParser BASE_EMBEDDED {
  public:
-  static MaybeHandle<Object> Parse(Handle<String> source) {
+  MUST_USE_RESULT static MaybeHandle<Object> Parse(Handle<String> source) {
     return JsonParser(source).ParseJson();
   }
 
@@ -59,7 +59,7 @@ class JsonParser BASE_EMBEDDED {
         object_constructor_(isolate_->native_context()->object_function(),
                             isolate_),
         position_(-1) {
-    FlattenString(source_);
+    source_ = String::Flatten(source_);
     pretenure_ = (source_length_ >= kPretenureTreshold) ? TENURED : NOT_TENURED;
 
     // Optimized fast case where we only have ASCII characters.
@@ -257,8 +257,7 @@ MaybeHandle<Object> JsonParser<seq_ascii>::ParseJson() {
         break;
       default:
         message = "unexpected_token";
-        Handle<Object> name =
-            LookupSingleCharacterStringFromCode(isolate_, c0_);
+        Handle<Object> name = factory->LookupSingleCharacterStringFromCode(c0_);
         Handle<FixedArray> element = factory->NewFixedArray(1);
         element->set(0, *name);
         array = factory->NewJSArrayWithElements(element);
@@ -360,7 +359,7 @@ Handle<Object> JsonParser<seq_ascii>::ParseJsonObject() {
           Handle<Object> value = ParseJsonValue();
           if (value.is_null()) return ReportUnexpectedCharacter();
 
-          JSObject::SetOwnElement(json_object, index, value, SLOPPY);
+          JSObject::SetOwnElement(json_object, index, value, SLOPPY).Assert();
           continue;
         }
         // Not an index, fallback to the slow path.
@@ -442,7 +441,7 @@ Handle<Object> JsonParser<seq_ascii>::ParseJsonObject() {
       }
 
       JSObject::SetLocalPropertyIgnoreAttributes(
-          json_object, key, value, NONE);
+          json_object, key, value, NONE).Assert();
     } while (MatchSkipWhiteSpace(','));
     if (c0_ != '}') {
       return ReportUnexpectedCharacter();
@@ -540,17 +539,16 @@ Handle<Object> JsonParser<seq_ascii>::ParseJsonNumber() {
   if (seq_ascii) {
     Vector<const uint8_t> chars(seq_source_->GetChars() +  beg_pos, length);
     number = StringToDouble(isolate()->unicode_cache(),
-                             Vector<const char>::cast(chars),
-                             NO_FLAGS,  // Hex, octal or trailing junk.
-                             OS::nan_value());
+                            chars,
+                            NO_FLAGS,  // Hex, octal or trailing junk.
+                            OS::nan_value());
   } else {
     Vector<uint8_t> buffer = Vector<uint8_t>::New(length);
     String::WriteToFlat(*source_, buffer.start(), beg_pos, position_);
     Vector<const uint8_t> result =
         Vector<const uint8_t>(buffer.start(), length);
     number = StringToDouble(isolate()->unicode_cache(),
-                            // TODO(dcarney): Convert StringToDouble to uint_t.
-                            Vector<const char>::cast(result),
+                            result,
                             NO_FLAGS,  // Hex, octal or trailing junk.
                             0.0);
     buffer.Dispose();

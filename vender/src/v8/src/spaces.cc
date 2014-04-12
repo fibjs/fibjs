@@ -133,8 +133,18 @@ CodeRange::CodeRange(Isolate* isolate)
 }
 
 
-bool CodeRange::SetUp(const size_t requested) {
+bool CodeRange::SetUp(size_t requested) {
   ASSERT(code_range_ == NULL);
+
+  if (requested == 0) {
+    // On 64-bit platform(s), we put all code objects in a 512 MB range of
+    // virtual address space, so that they can call each other with near calls.
+    if (kIs64BitArch) {
+      requested = 512 * MB;
+    } else {
+      return true;
+    }
+  }
 
   code_range_ = new VirtualMemory(requested);
   CHECK(code_range_ != NULL);
@@ -146,7 +156,8 @@ bool CodeRange::SetUp(const size_t requested) {
 
   // We are sure that we have mapped a block of requested addresses.
   ASSERT(code_range_->size() == requested);
-  LOG(isolate_, NewEvent("CodeRange", code_range_->address(), requested));
+  LOG(isolate_,
+      NewEvent("CodeRange", code_range_->address(), requested));
   Address base = reinterpret_cast<Address>(code_range_->address());
   Address aligned_base =
       RoundUp(reinterpret_cast<Address>(code_range_->address()),
@@ -2017,10 +2028,13 @@ void FreeListNode::set_size(Heap* heap, int size_in_bytes) {
   // field and a next pointer, we give it a filler map that gives it the
   // correct size.
   if (size_in_bytes > FreeSpace::kHeaderSize) {
-    set_map_no_write_barrier(heap->raw_unchecked_free_space_map());
     // Can't use FreeSpace::cast because it fails during deserialization.
+    // We have to set the size first with a release store before we store
+    // the map because a concurrent store buffer scan on scavenge must not
+    // observe a map with an invalid size.
     FreeSpace* this_as_free_space = reinterpret_cast<FreeSpace*>(this);
-    this_as_free_space->set_size(size_in_bytes);
+    this_as_free_space->nobarrier_set_size(size_in_bytes);
+    synchronized_set_map_no_write_barrier(heap->raw_unchecked_free_space_map());
   } else if (size_in_bytes == kPointerSize) {
     set_map_no_write_barrier(heap->raw_unchecked_one_pointer_filler_map());
   } else if (size_in_bytes == 2 * kPointerSize) {
@@ -2064,11 +2078,11 @@ void FreeListNode::set_next(FreeListNode* next) {
   // stage.
   if (map() == GetHeap()->raw_unchecked_free_space_map()) {
     ASSERT(map() == NULL || Size() >= kNextOffset + kPointerSize);
-    Memory::Address_at(address() + kNextOffset) =
-        reinterpret_cast<Address>(next);
+    NoBarrier_Store(reinterpret_cast<AtomicWord*>(address() + kNextOffset),
+                    reinterpret_cast<AtomicWord>(next));
   } else {
-    Memory::Address_at(address() + kPointerSize) =
-        reinterpret_cast<Address>(next);
+    NoBarrier_Store(reinterpret_cast<AtomicWord*>(address() + kPointerSize),
+                    reinterpret_cast<AtomicWord>(next));
   }
 }
 
@@ -2488,7 +2502,7 @@ intptr_t FreeListCategory::SumFreeList() {
   while (cur != NULL) {
     ASSERT(cur->map() == cur->GetHeap()->raw_unchecked_free_space_map());
     FreeSpace* cur_as_free_space = reinterpret_cast<FreeSpace*>(cur);
-    sum += cur_as_free_space->Size();
+    sum += cur_as_free_space->nobarrier_size();
     cur = cur->next();
   }
   return sum;

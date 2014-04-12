@@ -522,6 +522,7 @@ void ConsString::ConsStringVerify() {
   CHECK(this->second() == GetHeap()->empty_string() ||
         this->second()->IsString());
   CHECK(this->length() >= ConsString::kMinLength);
+  CHECK(this->length() == this->first()->length() + this->second()->length());
   if (this->IsFlat()) {
     // A flat cons can only be created by String::SlowTryFlatten.
     // Afterwards, the first part may be externalized.
@@ -596,10 +597,11 @@ void JSBuiltinsObject::JSBuiltinsObjectVerify() {
 
 void Oddball::OddballVerify() {
   CHECK(IsOddball());
+  Heap* heap = GetHeap();
   VerifyHeapPointer(to_string());
   Object* number = to_number();
   if (number->IsHeapObject()) {
-    CHECK(number == HeapObject::cast(number)->GetHeap()->nan_value());
+    CHECK(number == heap->nan_value());
   } else {
     CHECK(number->IsSmi());
     int value = Smi::cast(number)->value();
@@ -607,6 +609,26 @@ void Oddball::OddballVerify() {
     const int kLeastHiddenOddballNumber = -4;
     CHECK_LE(value, 1);
     CHECK(value >= kLeastHiddenOddballNumber);
+  }
+  if (map() == heap->undefined_map()) {
+    CHECK(this == heap->undefined_value());
+  } else if (map() == heap->the_hole_map()) {
+    CHECK(this == heap->the_hole_value());
+  } else if (map() == heap->null_map()) {
+    CHECK(this == heap->null_value());
+  } else if (map() == heap->boolean_map()) {
+    CHECK(this == heap->true_value() ||
+          this == heap->false_value());
+  } else if (map() == heap->uninitialized_map()) {
+    CHECK(this == heap->uninitialized_value());
+  } else if (map() == heap->no_interceptor_result_sentinel_map()) {
+    CHECK(this == heap->no_interceptor_result_sentinel());
+  } else if (map() == heap->arguments_marker_map()) {
+    CHECK(this == heap->arguments_marker());
+  } else if (map() == heap->termination_exception_map()) {
+    CHECK(this == heap->termination_exception());
+  } else {
+    UNREACHABLE();
   }
 }
 
@@ -641,19 +663,21 @@ void Code::CodeVerify() {
 
 
 void Code::VerifyEmbeddedObjectsDependency() {
+  if (!CanContainWeakObjects()) return;
   int mode_mask = RelocInfo::ModeMask(RelocInfo::EMBEDDED_OBJECT);
   for (RelocIterator it(this, mode_mask); !it.done(); it.next()) {
     Object* obj = it.rinfo()->target_object();
     if (IsWeakObject(obj)) {
       if (obj->IsMap()) {
         Map* map = Map::cast(obj);
-        CHECK(map->dependent_code()->Contains(
-            DependentCode::kWeaklyEmbeddedGroup, this));
+        DependentCode::DependencyGroup group = is_optimized_code() ?
+            DependentCode::kWeakCodeGroup : DependentCode::kWeakICGroup;
+        CHECK(map->dependent_code()->Contains(group, this));
       } else if (obj->IsJSObject()) {
         Object* raw_table = GetIsolate()->heap()->weak_object_to_code_table();
         WeakHashTable* table = WeakHashTable::cast(raw_table);
         CHECK(DependentCode::cast(table->Lookup(obj))->Contains(
-            DependentCode::kWeaklyEmbeddedGroup, this));
+            DependentCode::kWeakCodeGroup, this));
       }
     }
   }
@@ -677,7 +701,7 @@ void JSSet::JSSetVerify() {
   CHECK(IsJSSet());
   JSObjectVerify();
   VerifyHeapPointer(table());
-  CHECK(table()->IsHashTable() || table()->IsUndefined());
+  CHECK(table()->IsOrderedHashTable() || table()->IsUndefined());
 }
 
 
@@ -685,7 +709,7 @@ void JSMap::JSMapVerify() {
   CHECK(IsJSMap());
   JSObjectVerify();
   VerifyHeapPointer(table());
-  CHECK(table()->IsHashTable() || table()->IsUndefined());
+  CHECK(table()->IsOrderedHashTable() || table()->IsUndefined());
 }
 
 

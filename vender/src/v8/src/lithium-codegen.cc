@@ -200,6 +200,10 @@ void LCodeGenBase::RegisterWeakObjectsInOptimizedCode(Handle<Code> code) {
       }
     }
   }
+  if (FLAG_enable_ool_constant_pool) {
+    code->constant_pool()->set_weak_object_state(
+        ConstantPoolArray::WEAK_OBJECTS_IN_OPTIMIZED_CODE);
+  }
 #ifdef VERIFY_HEAP
   // This disables verification of weak embedded objects after full GC.
   // AddDependentCode can cause a GC, which would observe the state where
@@ -207,7 +211,7 @@ void LCodeGenBase::RegisterWeakObjectsInOptimizedCode(Handle<Code> code) {
   NoWeakObjectVerificationScope disable_verification_of_embedded_objects;
 #endif
   for (int i = 0; i < maps.length(); i++) {
-    maps.at(i)->AddDependentCode(DependentCode::kWeaklyEmbeddedGroup, code);
+    maps.at(i)->AddDependentCode(DependentCode::kWeakCodeGroup, code);
   }
   for (int i = 0; i < objects.length(); i++) {
     AddWeakObjectToCodeDependency(isolate()->heap(), objects.at(i), code);

@@ -316,15 +316,6 @@ template <class T> class Handle {
     return New(isolate, that.val_);
   }
 
-#ifndef V8_ALLOW_ACCESS_TO_RAW_HANDLE_CONSTRUCTOR
-
- private:
-#endif
-  /**
-   * Creates a new handle for the specified value.
-   */
-  V8_INLINE explicit Handle(T* val) : val_(val) {}
-
  private:
   friend class Utils;
   template<class F, class M> friend class Persistent;
@@ -342,6 +333,11 @@ template <class T> class Handle {
   friend class HandleScope;
   friend class Object;
   friend class Private;
+
+  /**
+   * Creates a new handle for the specified value.
+   */
+  V8_INLINE explicit Handle(T* val) : val_(val) {}
 
   V8_INLINE static Handle<T> New(Isolate* isolate, T* that);
 
@@ -396,12 +392,6 @@ template <class T> class Local : public Handle<T> {
   V8_INLINE static Local<T> New(Isolate* isolate,
                                 const PersistentBase<T>& that);
 
-#ifndef V8_ALLOW_ACCESS_TO_RAW_HANDLE_CONSTRUCTOR
-
- private:
-#endif
-  template <class S> V8_INLINE Local(S* that) : Handle<T>(that) { }
-
  private:
   friend class Utils;
   template<class F> friend class Eternal;
@@ -420,6 +410,7 @@ template <class T> class Local : public Handle<T> {
   template<class F1, class F2, class F3> friend class PersistentValueMap;
   template<class F1, class F2> friend class PersistentValueVector;
 
+  template <class S> V8_INLINE Local(S* that) : Handle<T>(that) { }
   V8_INLINE static Local<T> New(Isolate* isolate, T* that);
 };
 
@@ -729,15 +720,6 @@ template <class T, class M> class Persistent : public PersistentBase<T> {
   // This will be removed.
   V8_INLINE T* ClearAndLeak();
 
-  // TODO(dcarney): remove
-#ifndef V8_ALLOW_ACCESS_TO_RAW_HANDLE_CONSTRUCTOR
-
- private:
-#endif
-  template <class S> V8_INLINE Persistent(S* that) : PersistentBase<T>(that) { }
-
-  V8_INLINE T* operator*() const { return this->val_; }
-
  private:
   friend class Isolate;
   friend class Utils;
@@ -746,6 +728,8 @@ template <class T, class M> class Persistent : public PersistentBase<T> {
   template<class F1, class F2> friend class Persistent;
   template<class F> friend class ReturnValue;
 
+  template <class S> V8_INLINE Persistent(S* that) : PersistentBase<T>(that) { }
+  V8_INLINE T* operator*() const { return this->val_; }
   template<class S, class M2>
   V8_INLINE void Copy(const Persistent<S, M2>& that);
 };
@@ -947,53 +931,6 @@ class V8_EXPORT Data {
 
 
 /**
- * Pre-compilation data that can be associated with a script.  This
- * data can be calculated for a script in advance of actually
- * compiling it, and can be stored between compilations.  When script
- * data is given to the compile method compilation will be faster.
- */
-class V8_EXPORT ScriptData {  // NOLINT
- public:
-  virtual ~ScriptData() { }
-
-  /**
-   * Pre-compiles the specified script (context-independent).
-   *
-   * NOTE: Pre-compilation using this method cannot happen on another thread
-   * without using Lockers.
-   *
-   * \param source Script source code.
-   */
-  static ScriptData* PreCompile(Handle<String> source);
-
-  /**
-   * Load previous pre-compilation data.
-   *
-   * \param data Pointer to data returned by a call to Data() of a previous
-   *   ScriptData. Ownership is not transferred.
-   * \param length Length of data.
-   */
-  static ScriptData* New(const char* data, int length);
-
-  /**
-   * Returns the length of Data().
-   */
-  virtual int Length() = 0;
-
-  /**
-   * Returns a serialized representation of this ScriptData that can later be
-   * passed to New(). NOTE: Serialized data is platform-dependent.
-   */
-  virtual const char* Data() = 0;
-
-  /**
-   * Returns true if the source code could not be parsed.
-   */
-  virtual bool HasError() = 0;
-};
-
-
-/**
  * The origin, within a file, of a script.
  */
 class ScriptOrigin {
@@ -1050,12 +987,9 @@ class V8_EXPORT Script {
  public:
   /**
    * A shorthand for ScriptCompiler::Compile().
-   * The ScriptData parameter will be deprecated; use ScriptCompiler::Compile if
-   * you want to pass it.
    */
   static Local<Script> Compile(Handle<String> source,
-                               ScriptOrigin* origin = NULL,
-                               ScriptData* script_data = NULL);
+                               ScriptOrigin* origin = NULL);
 
   // To be decprecated, use the Compile above.
   static Local<Script> Compile(Handle<String> source,
@@ -3951,11 +3885,19 @@ class V8_EXPORT ResourceConstraints {
    *
    * \param physical_memory The total amount of physical memory on the current
    *   device, in bytes.
+   * \param virtual_memory_limit The amount of virtual memory on the current
+   *   device, in bytes, or zero, if there is no limit.
    * \param number_of_processors The number of CPUs available on the current
    *   device.
    */
   void ConfigureDefaults(uint64_t physical_memory,
+                         uint64_t virtual_memory_limit,
                          uint32_t number_of_processors);
+  // Deprecated.
+  void ConfigureDefaults(uint64_t physical_memory,
+                         uint32_t number_of_processors) {
+    ConfigureDefaults(physical_memory, 0, number_of_processors);
+  }
 
   int max_young_space_size() const { return max_young_space_size_; }
   void set_max_young_space_size(int value) { max_young_space_size_ = value; }
@@ -3971,6 +3913,10 @@ class V8_EXPORT ResourceConstraints {
   void set_max_available_threads(int value) {
     max_available_threads_ = value;
   }
+  int code_range_size() const { return code_range_size_; }
+  void set_code_range_size(int value) {
+    code_range_size_ = value;
+  }
 
  private:
   int max_young_space_size_;
@@ -3978,6 +3924,7 @@ class V8_EXPORT ResourceConstraints {
   int max_executable_size_;
   uint32_t* stack_limit_;
   int max_available_threads_;
+  int code_range_size_;
 };
 
 
@@ -5274,8 +5221,13 @@ class V8_EXPORT Context {
    */
   void Exit();
 
-  /** Returns true if the context has experienced an out of memory situation. */
-  bool HasOutOfMemoryException() { return false; }
+  /**
+   * Returns true if the context has experienced an out of memory situation.
+   * Since V8 always treats OOM as fatal error, this can no longer return true.
+   * Therefore this is now deprecated.
+   * */
+  V8_DEPRECATED("This can no longer happen. OOM is a fatal error.",
+                bool HasOutOfMemoryException()) { return false; }
 
   /** Returns an isolate associated with a current context. */
   v8::Isolate* GetIsolate();
@@ -5599,7 +5551,7 @@ class Internals {
   static const int kNullValueRootIndex = 7;
   static const int kTrueValueRootIndex = 8;
   static const int kFalseValueRootIndex = 9;
-  static const int kEmptyStringRootIndex = 152;
+  static const int kEmptyStringRootIndex = 160;
 
   static const int kNodeClassIdOffset = 1 * kApiPointerSize;
   static const int kNodeFlagsOffset = 1 * kApiPointerSize + 3;

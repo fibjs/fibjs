@@ -1622,22 +1622,26 @@ void LCodeGen::DoFlooringDivByPowerOf2I(LFlooringDivByPowerOf2I* instr) {
   }
 
   // If the divisor is negative, we have to negate and handle edge cases.
-  Label not_kmin_int, done;
   __ neg(dividend);
   if (instr->hydrogen()->CheckFlag(HValue::kBailoutOnMinusZero)) {
     DeoptimizeIf(zero, instr->environment());
   }
-  if (instr->hydrogen()->CheckFlag(HValue::kLeftCanBeMinInt)) {
-    // Note that we could emit branch-free code, but that would need one more
-    // register.
-    if (divisor == -1) {
-      DeoptimizeIf(overflow, instr->environment());
-    } else {
-      __ j(no_overflow, &not_kmin_int, Label::kNear);
-      __ mov(dividend, Immediate(kMinInt / divisor));
-      __ jmp(&done, Label::kNear);
-    }
+
+  if (!instr->hydrogen()->CheckFlag(HValue::kLeftCanBeMinInt)) {
+    __ sar(dividend, shift);
+    return;
   }
+
+  // Dividing by -1 is basically negation, unless we overflow.
+  if (divisor == -1) {
+    DeoptimizeIf(overflow, instr->environment());
+    return;
+  }
+
+  Label not_kmin_int, done;
+  __ j(no_overflow, &not_kmin_int, Label::kNear);
+  __ mov(dividend, Immediate(kMinInt / divisor));
+  __ jmp(&done, Label::kNear);
   __ bind(&not_kmin_int);
   __ sar(dividend, shift);
   __ bind(&done);
@@ -6090,13 +6094,13 @@ Condition LCodeGen::EmitTypeofIs(LTypeofIsAndBranch* instr, Register input) {
   Label::Distance false_distance = right_block == next_block ? Label::kNear
                                                              : Label::kFar;
   Condition final_branch_condition = no_condition;
-  if (type_name->Equals(heap()->number_string())) {
+  if (String::Equals(type_name, factory()->number_string())) {
     __ JumpIfSmi(input, true_label, true_distance);
     __ cmp(FieldOperand(input, HeapObject::kMapOffset),
            factory()->heap_number_map());
     final_branch_condition = equal;
 
-  } else if (type_name->Equals(heap()->string_string())) {
+  } else if (String::Equals(type_name, factory()->string_string())) {
     __ JumpIfSmi(input, false_label, false_distance);
     __ CmpObjectType(input, FIRST_NONSTRING_TYPE, input);
     __ j(above_equal, false_label, false_distance);
@@ -6104,22 +6108,23 @@ Condition LCodeGen::EmitTypeofIs(LTypeofIsAndBranch* instr, Register input) {
               1 << Map::kIsUndetectable);
     final_branch_condition = zero;
 
-  } else if (type_name->Equals(heap()->symbol_string())) {
+  } else if (String::Equals(type_name, factory()->symbol_string())) {
     __ JumpIfSmi(input, false_label, false_distance);
     __ CmpObjectType(input, SYMBOL_TYPE, input);
     final_branch_condition = equal;
 
-  } else if (type_name->Equals(heap()->boolean_string())) {
+  } else if (String::Equals(type_name, factory()->boolean_string())) {
     __ cmp(input, factory()->true_value());
     __ j(equal, true_label, true_distance);
     __ cmp(input, factory()->false_value());
     final_branch_condition = equal;
 
-  } else if (FLAG_harmony_typeof && type_name->Equals(heap()->null_string())) {
+  } else if (FLAG_harmony_typeof &&
+             String::Equals(type_name, factory()->null_string())) {
     __ cmp(input, factory()->null_value());
     final_branch_condition = equal;
 
-  } else if (type_name->Equals(heap()->undefined_string())) {
+  } else if (String::Equals(type_name, factory()->undefined_string())) {
     __ cmp(input, factory()->undefined_value());
     __ j(equal, true_label, true_distance);
     __ JumpIfSmi(input, false_label, false_distance);
@@ -6129,7 +6134,7 @@ Condition LCodeGen::EmitTypeofIs(LTypeofIsAndBranch* instr, Register input) {
               1 << Map::kIsUndetectable);
     final_branch_condition = not_zero;
 
-  } else if (type_name->Equals(heap()->function_string())) {
+  } else if (String::Equals(type_name, factory()->function_string())) {
     STATIC_ASSERT(NUM_OF_CALLABLE_SPEC_OBJECT_TYPES == 2);
     __ JumpIfSmi(input, false_label, false_distance);
     __ CmpObjectType(input, JS_FUNCTION_TYPE, input);
@@ -6137,7 +6142,7 @@ Condition LCodeGen::EmitTypeofIs(LTypeofIsAndBranch* instr, Register input) {
     __ CmpInstanceType(input, JS_FUNCTION_PROXY_TYPE);
     final_branch_condition = equal;
 
-  } else if (type_name->Equals(heap()->object_string())) {
+  } else if (String::Equals(type_name, factory()->object_string())) {
     __ JumpIfSmi(input, false_label, false_distance);
     if (!FLAG_harmony_typeof) {
       __ cmp(input, factory()->null_value());
