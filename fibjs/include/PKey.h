@@ -35,6 +35,8 @@ public:
     virtual result_t import(const char *pemKey, const char *password);
     virtual result_t exportPem(std::string &retVal);
     virtual result_t exportDer(obj_ptr<Buffer_base> &retVal);
+    virtual result_t encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
+    virtual result_t decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
 
 private:
     void clear();

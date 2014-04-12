@@ -52,11 +52,12 @@ describe('crypto', function() {
 	});
 
 	describe("PKey", function() {
-		var rsa128_pem = "-----BEGIN RSA PRIVATE KEY-----\n" +
-			"MGMCAQACEQCK7VZZvuzNBbJQ7tZ1y9fNAgMBAAECEESzCLhoiYD4TJ7+EczDyKEC\n" +
-			"CQDRllawen5N0wIJAKmxOGcc0J/fAgkAzfoKSHaaGrECCQCkgYf6fnbJ5QIIdzqd\n" +
-			"8E48G5U=\n" +
-			"-----END RSA PRIVATE KEY-----\n";
+		var rsa256_pem = "-----BEGIN RSA PRIVATE KEY-----\n" +
+			"MIGsAgEAAiEAgDHZmZ0s46SYWi0KB6fipQ1+Hv1iim8eHs6I4gqq9/ECAwEAAQIg\n" +
+			"YImpzWWwrUmBNb9fIz7JjODAdp2qObSpFlThbJw5dEECEQDPvyHiP0oNIjE+i7hi\n" +
+			"suA5AhEAnfh3HJNKmMbX0CJWFezleQIRAKNSzU20mgAXSIW2jKAzpqkCEQCaVo0Z\n" +
+			"UBbL2Uo1QbbVyRQRAhEAqLmEjCZeYSKSQUESvmDNlg==\n" +
+			"-----END RSA PRIVATE KEY-----\n"
 
 		var ec_pem = "-----BEGIN EC PRIVATE KEY-----\n" +
 			"MIHcAgEBBEIB+QhtQdd9bjWeN2mgq6qoqW51ygslLwP+gwTCSP4ZVpcU0pxwigXm\n" +
@@ -68,21 +69,21 @@ describe('crypto', function() {
 
 		it("RSA PEM import/export", function() {
 			var pk = new crypto.PKey();
-			pk.import(rsa128_pem);
-			assert.equal(pk.exportPem(), rsa128_pem);
+			pk.import(rsa256_pem);
+			assert.equal(pk.exportPem(), rsa256_pem);
 		});
 
 		it("RSA Der import/export", function() {
 			var pk = new crypto.PKey();
-			pk.import(rsa128_pem);
+			pk.import(rsa256_pem);
 			var der = pk.exportDer();
 			pk.import(der);
-			assert.equal(pk.exportPem(), rsa128_pem);
+			assert.equal(pk.exportPem(), rsa256_pem);
 		});
 
 		it("RSA publicKey", function() {
 			var pk = new crypto.PKey();
-			pk.import(rsa128_pem);
+			pk.import(rsa256_pem);
 			assert.isTrue(pk.isPrivate());
 
 			var pk1 = pk.publicKey();
@@ -107,6 +108,20 @@ describe('crypto', function() {
 			pk1.genRsaKey(512);
 
 			assert.notEqual(pk.exportPem(), pk1.exportPem());
+		});
+
+		it("RSA encrypt/decrypt", function() {
+			var pk = new crypto.PKey();
+			pk.import(rsa256_pem);
+
+			var pk1 = pk.publicKey();
+
+			var d = pk1.encrypt(new Buffer("abcdefg"));
+			assert.equal(pk.decrypt(d).toString(), "abcdefg");
+
+			assert.throws(function() {
+				pk1.decrypt(d);
+			});
 		});
 
 		it("EC PEM import/export", function() {

@@ -13,6 +13,7 @@
 #include "polarssl/rsa.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
+#include "polarssl/ssl.h"
 
 namespace fibjs
 {
@@ -42,6 +43,26 @@ void PKey::clear()
     }
 }
 
+class _entropy
+{
+public:
+    _entropy()
+    {
+        entropy_init(&entropy);
+        ctr_drbg_init(&ctr_drbg, entropy_func, &entropy,
+                      (const unsigned char *) "fibjs", 5);
+    }
+
+    ~_entropy()
+    {
+        entropy_free(&entropy);
+    }
+
+public:
+    entropy_context entropy;
+    ctr_drbg_context ctr_drbg;
+};
+
 result_t PKey::genRsaKey(int32_t size, exlib::AsyncEvent *ac)
 {
     if (size < 128 || size > 8192)
@@ -50,36 +71,17 @@ result_t PKey::genRsaKey(int32_t size, exlib::AsyncEvent *ac)
     if (!ac)
         return CALL_E_NOSYNC;
 
-    clear();
-
-    char buf[1024];
-    entropy_context entropy;
-    ctr_drbg_context ctr_drbg;
-    const char *pers = "fibjs";
+    _entropy entropy;
     int ret;
 
-    memset(buf, 0, sizeof(buf));
-
-    entropy_init(&entropy);
-
-    ret = ctr_drbg_init(&ctr_drbg, entropy_func, &entropy,
-                        (const unsigned char *) pers, strlen(pers));
-    if (ret != 0)
-    {
-        entropy_free(&entropy);
-        return Cipher::setError(ret);
-    }
+    clear();
 
     ret = pk_init_ctx(&m_key, pk_info_from_type(POLARSSL_PK_RSA));
     if (ret != 0)
-    {
-        entropy_free(&entropy);
         return Cipher::setError(ret);
-    }
 
-    ret = rsa_gen_key(pk_rsa(m_key), ctr_drbg_random, &ctr_drbg,
+    ret = rsa_gen_key(pk_rsa(m_key), ctr_drbg_random, &entropy.ctr_drbg,
                       size, 65537);
-    entropy_free(&entropy);
 
     if (ret != 0)
         return Cipher::setError(ret);
@@ -93,48 +95,27 @@ result_t PKey::genEcKey(const char *curve, exlib::AsyncEvent *ac)
         return CALL_E_NOSYNC;
 
     const ecp_curve_info *curve_info;
-    char buf[1024];
-    entropy_context entropy;
-    ctr_drbg_context ctr_drbg;
-    const char *pers = "fibjs";
-    int ret;
-
     curve_info = ecp_curve_info_from_name(curve);
     if (curve_info == NULL)
         return Runtime::setError("Unknown curve");
 
+    _entropy entropy;
+    int ret;
+
     clear();
-
-    memset(buf, 0, sizeof(buf));
-
-    entropy_init(&entropy);
-
-    ret = ctr_drbg_init(&ctr_drbg, entropy_func, &entropy,
-                        (const unsigned char *) pers, strlen(pers));
-    if (ret != 0)
-    {
-        entropy_free(&entropy);
-        return Cipher::setError(ret);
-    }
 
     ret = pk_init_ctx(&m_key, pk_info_from_type(POLARSSL_PK_ECKEY));
     if (ret != 0)
-    {
-        entropy_free(&entropy);
         return Cipher::setError(ret);
-    }
 
     ret = ecp_gen_key(curve_info->grp_id, pk_ec(m_key),
-                      ctr_drbg_random, &ctr_drbg);
-    entropy_free(&entropy);
+                      ctr_drbg_random, &entropy.ctr_drbg);
 
     if (ret != 0)
         return Cipher::setError(ret);
 
     return 0;
 }
-// rsa: N, E
-// ec: grp, Q
 
 result_t PKey::isPrivate(bool &retVal)
 {
@@ -171,6 +152,10 @@ result_t PKey::publicKey(obj_ptr<PKey_base> &retVal)
             return Cipher::setError(ret);
 
         rsa_context *rsa1 = pk_rsa(pk1->m_key);
+
+        rsa1->len = rsa->len;
+        rsa1->padding = rsa->padding;
+        rsa1->hash_id = rsa->hash_id;
 
         ret = mpi_copy(&rsa1->N, &rsa->N);
         if (ret != 0)
@@ -210,7 +195,7 @@ result_t PKey::publicKey(obj_ptr<PKey_base> &retVal)
         return 0;
     }
 
-    return 0;
+    return CALL_E_INVALID_CALL;
 }
 
 result_t PKey::import(Buffer_base *DerKey, const char *password)
@@ -301,6 +286,72 @@ result_t PKey::exportDer(obj_ptr<Buffer_base> &retVal)
         return Cipher::setError(ret);
 
     retVal = new Buffer(buf.substr(buf.length() - ret));
+
+    return 0;
+}
+
+result_t PKey::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
+                       exlib::AsyncEvent *ac)
+{
+    if (!ac)
+        return CALL_E_NOSYNC;
+
+    int ret;
+    _entropy entropy;
+    std::string str;
+    std::string output;
+    size_t olen;
+
+    data->toString(str);
+    output.resize(POLARSSL_PREMASTER_SIZE);
+
+    ret = pk_encrypt(&m_key, (const unsigned char *)str.c_str(), str.length(),
+                     (unsigned char *)&output[0], &olen, output.length(),
+                     ctr_drbg_random, &entropy.ctr_drbg);
+
+    if (ret != 0)
+        return Cipher::setError(ret);
+
+    output.resize(olen);
+    retVal = new Buffer(output);
+
+    return 0;
+}
+
+result_t PKey::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
+                       exlib::AsyncEvent *ac)
+{
+    if (!ac)
+        return CALL_E_NOSYNC;
+
+    result_t hr;
+    bool priv;
+
+    hr = isPrivate(priv);
+    if (hr < 0)
+        return hr;
+
+    if (!priv)
+        return CALL_E_INVALID_CALL;
+
+    int ret;
+    _entropy entropy;
+    std::string str;
+    std::string output;
+    size_t olen;
+
+    data->toString(str);
+    output.resize(POLARSSL_PREMASTER_SIZE * 2);
+
+    ret = pk_decrypt(&m_key, (const unsigned char *)str.c_str(), str.length(),
+                     (unsigned char *)&output[0], &olen, output.length(),
+                     ctr_drbg_random, &entropy.ctr_drbg);
+
+    if (ret != 0)
+        return Cipher::setError(ret);
+
+    output.resize(olen);
+    retVal = new Buffer(output);
 
     return 0;
 }

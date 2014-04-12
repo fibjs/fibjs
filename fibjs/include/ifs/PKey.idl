@@ -52,4 +52,16 @@ class PKey: object
      @return 当前 key 的 DER 格式编码
     */
     Buffer exportDer();
+
+    /*! @brief 使用当前算法密码加密数据
+     @param data 指定要加密的数据
+     @return 返回加密后的数据
+     */
+    Buffer encrypt(Buffer data) async;
+
+    /*! @brief 使用当前算法密码解密数据
+     @param data 指定要解密的数据
+     @return 返回解密后的数据
+     */
+    Buffer decrypt(Buffer data) async;
 };

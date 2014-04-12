@@ -31,6 +31,8 @@ public:
 	virtual result_t import(const char* pemKey, const char* password) = 0;
 	virtual result_t exportPem(std::string& retVal) = 0;
 	virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
+	virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 
 	DECLARE_CLASSINFO(PKey_base);
 
@@ -43,10 +45,14 @@ public:
 	static void s_import(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_MEMBER1(PKey_base, genRsaKey, int32_t);
 	ASYNC_MEMBER1(PKey_base, genEcKey, const char*);
+	ASYNC_MEMBERVALUE2(PKey_base, encrypt, Buffer_base*, obj_ptr<Buffer_base>);
+	ASYNC_MEMBERVALUE2(PKey_base, decrypt, Buffer_base*, obj_ptr<Buffer_base>);
 };
 
 }
@@ -65,13 +71,15 @@ namespace fibjs
 			{"publicKey", s_publicKey},
 			{"import", s_import},
 			{"exportPem", s_exportPem},
-			{"exportDer", s_exportDer}
+			{"exportDer", s_exportDer},
+			{"encrypt", s_encrypt},
+			{"decrypt", s_decrypt}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"PKey", s__new, 
-			7, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			9, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -179,6 +187,34 @@ namespace fibjs
 		METHOD_ENTER(0, 0);
 
 		hr = pInst->exportDer(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void PKey_base::s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<Buffer_base> vr;
+
+		METHOD_INSTANCE(PKey_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+
+		hr = pInst->ac_encrypt(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void PKey_base::s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<Buffer_base> vr;
+
+		METHOD_INSTANCE(PKey_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+
+		hr = pInst->ac_decrypt(v0, vr);
 
 		METHOD_RETURN();
 	}
