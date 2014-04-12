@@ -142,19 +142,74 @@ result_t PKey::isPrivate(bool &retVal)
 
     if (type == POLARSSL_PK_RSA)
     {
+        retVal = rsa_check_privkey(pk_rsa(m_key)) == 0;
         return 0;
     }
 
-    if (type == POLARSSL_PK_ECKey)
+    if (type == POLARSSL_PK_ECKEY)
     {
+        ecp_keypair *ecp = pk_ec(m_key);
+        retVal = ecp_check_privkey(&ecp->grp, &ecp->d) == 0;
         return 0;
     }
 
-    return 0;
+    return CALL_E_INVALID_CALL;
 }
 
 result_t PKey::publicKey(obj_ptr<PKey_base> &retVal)
 {
+    pk_type_t type = pk_get_type(&m_key);
+    int ret;
+
+    if (type == POLARSSL_PK_RSA)
+    {
+        rsa_context *rsa = pk_rsa(m_key);
+        obj_ptr<PKey> pk1 = new PKey();
+
+        ret = pk_init_ctx(&pk1->m_key, pk_info_from_type(POLARSSL_PK_RSA));
+        if (ret != 0)
+            return Cipher::setError(ret);
+
+        rsa_context *rsa1 = pk_rsa(pk1->m_key);
+
+        ret = mpi_copy(&rsa1->N, &rsa->N);
+        if (ret != 0)
+            return Cipher::setError(ret);
+
+        ret = mpi_copy(&rsa1->E, &rsa->E);
+        if (ret != 0)
+            return Cipher::setError(ret);
+
+        retVal = pk1;
+
+        return 0;
+    }
+
+    if (type == POLARSSL_PK_ECKEY)
+    {
+        ecp_keypair *ecp = pk_ec(m_key);
+
+        obj_ptr<PKey> pk1 = new PKey();
+
+        ret = pk_init_ctx(&pk1->m_key, pk_info_from_type(POLARSSL_PK_ECKEY));
+        if (ret != 0)
+            return Cipher::setError(ret);
+
+        ecp_keypair *ecp1 = pk_ec(pk1->m_key);
+
+        ret = ecp_group_copy(&ecp1->grp, &ecp->grp);
+        if (ret != 0)
+            return Cipher::setError(ret);
+
+        ret = ecp_copy(&ecp1->Q, &ecp->Q);
+        if (ret != 0)
+            return Cipher::setError(ret);
+
+        retVal = pk1;
+
+        return 0;
+    }
+
     return 0;
 }
 
@@ -170,6 +225,10 @@ result_t PKey::import(Buffer_base *DerKey, const char *password)
     ret = pk_parse_key(&m_key, (unsigned char *)key.c_str(), key.length(),
                        *password ? (unsigned char *)password : NULL,
                        qstrlen(password));
+
+    if (ret == POLARSSL_ERR_PK_KEY_INVALID_FORMAT)
+        ret = pk_parse_public_key(&m_key, (unsigned char *)key.c_str(), key.length());
+
     if (ret != 0)
         return Cipher::setError(ret);
 
@@ -185,6 +244,10 @@ result_t PKey::import(const char *pemKey, const char *password)
     ret = pk_parse_key(&m_key, (unsigned char *)pemKey, qstrlen(pemKey),
                        *password ? (unsigned char *)password : NULL,
                        qstrlen(password));
+
+    if (ret == POLARSSL_ERR_PK_KEY_INVALID_FORMAT)
+        ret = pk_parse_public_key(&m_key, (unsigned char *)pemKey, qstrlen(pemKey));
+
     if (ret != 0)
         return Cipher::setError(ret);
 
@@ -193,11 +256,21 @@ result_t PKey::import(const char *pemKey, const char *password)
 
 result_t PKey::exportPem(std::string &retVal)
 {
+    result_t hr;
+    bool priv;
+
+    hr = isPrivate(priv);
+    if (hr < 0)
+        return hr;
+
     int ret;
     std::string buf;
 
     buf.resize(pk_get_len(&m_key) * 8 + 128);
-    ret = pk_write_key_pem(&m_key, (unsigned char *)&buf[0], buf.length());
+    if (priv)
+        ret = pk_write_key_pem(&m_key, (unsigned char *)&buf[0], buf.length());
+    else
+        ret = pk_write_pubkey_pem(&m_key, (unsigned char *)&buf[0], buf.length());
     if (ret != 0)
         return Cipher::setError(ret);
 
@@ -209,11 +282,21 @@ result_t PKey::exportPem(std::string &retVal)
 
 result_t PKey::exportDer(obj_ptr<Buffer_base> &retVal)
 {
+    result_t hr;
+    bool priv;
+
+    hr = isPrivate(priv);
+    if (hr < 0)
+        return hr;
+
     int ret;
     std::string buf;
 
-    buf.resize(pk_get_len(&m_key) * 7);
-    ret = pk_write_key_der(&m_key, (unsigned char *)&buf[0], buf.length());
+    buf.resize(8192);
+    if (priv)
+        ret = pk_write_key_der(&m_key, (unsigned char *)&buf[0], buf.length());
+    else
+        ret = pk_write_pubkey_der(&m_key, (unsigned char *)&buf[0], buf.length());
     if (ret < 0)
         return Cipher::setError(ret);
 
