@@ -88,12 +88,6 @@
     <Filter Include="Source Files\sqlite">
       <UniqueIdentifier>{e48fd9a0-ee2d-4735-8504-55bbb018d6da}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\crypto">
-      <UniqueIdentifier>{c6321167-345c-452d-a970-eddc93abd721}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\crypto">
-      <UniqueIdentifier>{6b654748-689b-413f-b1c7-4a9a77578cae}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\pcre">
       <UniqueIdentifier>{b48592f3-bc93-46d3-b5ff-3ff90ca659f6}</UniqueIdentifier>
     </Filter>
@@ -878,9 +872,6 @@
     </ClCompile>
     <ClCompile Include="src\umysql\mysql_sha1.cpp">
       <Filter>Source Files\umysql</Filter>
-    </ClCompile>
-    <ClCompile Include="src\cripto\hash_ripemd.c">
-      <Filter>Source Files\crypto</Filter>
     </ClCompile>
     <ClCompile Include="src\pcre\pcre_chartables.c">
       <Filter>Source Files\pcre</Filter>
@@ -1993,12 +1984,6 @@
     </ClInclude>
     <ClInclude Include="src\sqlite\sqlite3.h">
       <Filter>Source Files\sqlite</Filter>
-    </ClInclude>
-    <ClInclude Include="include\crypto\ripemd.h">
-      <Filter>Header Files\crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="src\cripto\ripemd.h">
-      <Filter>Source Files\crypto</Filter>
     </ClInclude>
     <ClInclude Include="include\ev.h">
       <Filter>Header Files</Filter>

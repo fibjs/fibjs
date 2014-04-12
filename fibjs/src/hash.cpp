@@ -14,10 +14,10 @@ namespace fibjs
 result_t hash_base::digest(int32_t algo, Buffer_base *data,
                            obj_ptr<Digest_base> &retVal)
 {
-    if (algo < hash_base::_MD2 || algo > hash_base::_SHA512)
+    if (algo < hash_base::_MD2 || algo > hash_base::_RIPEMD160)
         return CALL_E_INVALIDARG;
 
-    retVal = new Digest(algo);
+    retVal = new Digest((md_type_t)(algo + 1));
     retVal->update(data);
 
     return 0;
@@ -26,10 +26,10 @@ result_t hash_base::digest(int32_t algo, Buffer_base *data,
 result_t hash_base::digest(int32_t algo, const char *text,
                            obj_ptr<Digest_base> &retVal)
 {
-    if (algo < hash_base::_MD2 || algo > hash_base::_SHA512)
+    if (algo < hash_base::_MD2 || algo > hash_base::_RIPEMD160)
         return CALL_E_INVALIDARG;
 
-    retVal = new Digest(algo);
+    retVal = new Digest((md_type_t)(algo + 1));
     retVal->update(text);
 
     return 0;
@@ -115,16 +115,6 @@ result_t hash_base::sha512(const char *text, obj_ptr<Digest_base> &retVal)
     return digest(hash_base::_SHA512, text, retVal);
 }
 
-result_t hash_base::ripemd128(Buffer_base *data, obj_ptr<Digest_base> &retVal)
-{
-    return digest(hash_base::_RIPEMD128, data, retVal);
-}
-
-result_t hash_base::ripemd128(const char *text, obj_ptr<Digest_base> &retVal)
-{
-    return digest(hash_base::_RIPEMD128, text, retVal);
-}
-
 result_t hash_base::ripemd160(Buffer_base *data, obj_ptr<Digest_base> &retVal)
 {
     return digest(hash_base::_RIPEMD160, data, retVal);
@@ -135,36 +125,16 @@ result_t hash_base::ripemd160(const char *text, obj_ptr<Digest_base> &retVal)
     return digest(hash_base::_RIPEMD160, text, retVal);
 }
 
-result_t hash_base::ripemd256(Buffer_base *data, obj_ptr<Digest_base> &retVal)
-{
-    return digest(hash_base::_RIPEMD256, data, retVal);
-}
-
-result_t hash_base::ripemd256(const char *text, obj_ptr<Digest_base> &retVal)
-{
-    return digest(hash_base::_RIPEMD256, text, retVal);
-}
-
-result_t hash_base::ripemd320(Buffer_base *data, obj_ptr<Digest_base> &retVal)
-{
-    return digest(hash_base::_RIPEMD320, data, retVal);
-}
-
-result_t hash_base::ripemd320(const char *text, obj_ptr<Digest_base> &retVal)
-{
-    return digest(hash_base::_RIPEMD320, text, retVal);
-}
-
 result_t hash_base::hmac(int32_t algo, Buffer_base *key,
                          obj_ptr<Digest_base> &retVal)
 {
-    if (algo < hash_base::_MD2 || algo > hash_base::_SHA512)
+    if (algo < hash_base::_MD2 || algo > hash_base::_RIPEMD160)
         return CALL_E_INVALIDARG;
 
     std::string strBuf;
     key->toString(strBuf);
 
-    retVal = new Digest(algo, strBuf.c_str(), (int) strBuf.length());
+    retVal = new Digest((md_type_t)(algo + 1), strBuf.c_str(), (int) strBuf.length());
 
     return 0;
 }
@@ -172,10 +142,10 @@ result_t hash_base::hmac(int32_t algo, Buffer_base *key,
 result_t hash_base::hmac(int32_t algo, const char *key,
                          obj_ptr<Digest_base> &retVal)
 {
-    if (algo < hash_base::_MD2 || algo > hash_base::_SHA512)
+    if (algo < hash_base::_MD2 || algo > hash_base::_RIPEMD160)
         return CALL_E_INVALIDARG;
 
-    retVal = new Digest(algo, key, (int) qstrlen(key));
+    retVal = new Digest((md_type_t)(algo + 1), key, (int) qstrlen(key));
 
     return 0;
 }
@@ -260,18 +230,6 @@ result_t hash_base::hmac_sha512(const char *key, obj_ptr<Digest_base> &retVal)
     return hmac(hash_base::_SHA512, key, retVal);
 }
 
-result_t hash_base::hmac_ripemd128(Buffer_base *key,
-                                   obj_ptr<Digest_base> &retVal)
-{
-    return hmac(hash_base::_RIPEMD128, key, retVal);
-}
-
-result_t hash_base::hmac_ripemd128(const char *key,
-                                   obj_ptr<Digest_base> &retVal)
-{
-    return hmac(hash_base::_RIPEMD128, key, retVal);
-}
-
 result_t hash_base::hmac_ripemd160(Buffer_base *key,
                                    obj_ptr<Digest_base> &retVal)
 {
@@ -282,30 +240,6 @@ result_t hash_base::hmac_ripemd160(const char *key,
                                    obj_ptr<Digest_base> &retVal)
 {
     return hmac(hash_base::_RIPEMD160, key, retVal);
-}
-
-result_t hash_base::hmac_ripemd256(Buffer_base *key,
-                                   obj_ptr<Digest_base> &retVal)
-{
-    return hmac(hash_base::_RIPEMD256, key, retVal);
-}
-
-result_t hash_base::hmac_ripemd256(const char *key,
-                                   obj_ptr<Digest_base> &retVal)
-{
-    return hmac(hash_base::_RIPEMD256, key, retVal);
-}
-
-result_t hash_base::hmac_ripemd320(Buffer_base *key,
-                                   obj_ptr<Digest_base> &retVal)
-{
-    return hmac(hash_base::_RIPEMD320, key, retVal);
-}
-
-result_t hash_base::hmac_ripemd320(const char *key,
-                                   obj_ptr<Digest_base> &retVal)
-{
-    return hmac(hash_base::_RIPEMD320, key, retVal);
 }
 
 } /* namespace fibjs */

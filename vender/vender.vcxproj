@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\cripto\hash_ripemd.c" />
     <ClCompile Include="src\easyexif\exif.cpp" />
     <ClCompile Include="src\ev\ev.c" />
     <ClCompile Include="src\exlib\fiber\fbAsyncEvent.cpp" />
@@ -534,7 +533,6 @@
     <ClCompile Include="src\zlib\zutil.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\crypto\ripemd.h" />
     <ClInclude Include="include\ev++.h" />
     <ClInclude Include="include\ev.h" />
     <ClInclude Include="include\exif.h" />
@@ -647,7 +645,6 @@
     <ClInclude Include="include\v8\v8stdint.h" />
     <ClInclude Include="include\zconf.h" />
     <ClInclude Include="include\zlib.h" />
-    <ClInclude Include="src\cripto\ripemd.h" />
     <ClInclude Include="src\ev\config.h" />
     <ClInclude Include="src\ev\ev_vars.h" />
     <ClInclude Include="src\ev\ev_wrap.h" />

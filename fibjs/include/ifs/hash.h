@@ -28,15 +28,12 @@ public:
 		_MD2 = 0,
 		_MD4 = 1,
 		_MD5 = 2,
-		_RIPEMD128 = 3,
-		_RIPEMD160 = 4,
-		_RIPEMD256 = 5,
-		_RIPEMD320 = 6,
-		_SHA1 = 7,
-		_SHA224 = 8,
-		_SHA256 = 9,
-		_SHA384 = 10,
-		_SHA512 = 11
+		_SHA1 = 3,
+		_SHA224 = 4,
+		_SHA256 = 5,
+		_SHA384 = 6,
+		_SHA512 = 7,
+		_RIPEMD160 = 8
 	};
 
 public:
@@ -59,14 +56,8 @@ public:
 	static result_t sha384(const char* text, obj_ptr<Digest_base>& retVal);
 	static result_t sha512(Buffer_base* data, obj_ptr<Digest_base>& retVal);
 	static result_t sha512(const char* text, obj_ptr<Digest_base>& retVal);
-	static result_t ripemd128(Buffer_base* data, obj_ptr<Digest_base>& retVal);
-	static result_t ripemd128(const char* text, obj_ptr<Digest_base>& retVal);
 	static result_t ripemd160(Buffer_base* data, obj_ptr<Digest_base>& retVal);
 	static result_t ripemd160(const char* text, obj_ptr<Digest_base>& retVal);
-	static result_t ripemd256(Buffer_base* data, obj_ptr<Digest_base>& retVal);
-	static result_t ripemd256(const char* text, obj_ptr<Digest_base>& retVal);
-	static result_t ripemd320(Buffer_base* data, obj_ptr<Digest_base>& retVal);
-	static result_t ripemd320(const char* text, obj_ptr<Digest_base>& retVal);
 	static result_t hmac(int32_t algo, Buffer_base* key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac(int32_t algo, const char* key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac_md2(Buffer_base* key, obj_ptr<Digest_base>& retVal);
@@ -85,14 +76,8 @@ public:
 	static result_t hmac_sha384(const char* key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac_sha512(Buffer_base* key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac_sha512(const char* key, obj_ptr<Digest_base>& retVal);
-	static result_t hmac_ripemd128(Buffer_base* key, obj_ptr<Digest_base>& retVal);
-	static result_t hmac_ripemd128(const char* key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac_ripemd160(Buffer_base* key, obj_ptr<Digest_base>& retVal);
 	static result_t hmac_ripemd160(const char* key, obj_ptr<Digest_base>& retVal);
-	static result_t hmac_ripemd256(Buffer_base* key, obj_ptr<Digest_base>& retVal);
-	static result_t hmac_ripemd256(const char* key, obj_ptr<Digest_base>& retVal);
-	static result_t hmac_ripemd320(Buffer_base* key, obj_ptr<Digest_base>& retVal);
-	static result_t hmac_ripemd320(const char* key, obj_ptr<Digest_base>& retVal);
 
 	DECLARE_CLASSINFO(hash_base);
 
@@ -100,15 +85,12 @@ public:
 	static void s_get_MD2(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_MD4(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_MD5(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_get_RIPEMD128(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_get_RIPEMD160(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_get_RIPEMD256(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_get_RIPEMD320(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_SHA1(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_SHA224(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_SHA256(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_SHA384(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_SHA512(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_RIPEMD160(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_digest(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_md2(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_md4(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -118,10 +100,7 @@ public:
 	static void s_sha256(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_sha384(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_sha512(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_ripemd128(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_ripemd256(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_ripemd320(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_hmac(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_hmac_md2(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_hmac_md4(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -131,10 +110,7 @@ public:
 	static void s_hmac_sha256(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_hmac_sha384(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_hmac_sha512(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_hmac_ripemd128(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_hmac_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_hmac_ripemd256(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_hmac_ripemd320(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -157,10 +133,7 @@ namespace fibjs
 			{"sha256", s_sha256, true},
 			{"sha384", s_sha384, true},
 			{"sha512", s_sha512, true},
-			{"ripemd128", s_ripemd128, true},
 			{"ripemd160", s_ripemd160, true},
-			{"ripemd256", s_ripemd256, true},
-			{"ripemd320", s_ripemd320, true},
 			{"hmac", s_hmac, true},
 			{"hmac_md2", s_hmac_md2, true},
 			{"hmac_md4", s_hmac_md4, true},
@@ -170,10 +143,7 @@ namespace fibjs
 			{"hmac_sha256", s_hmac_sha256, true},
 			{"hmac_sha384", s_hmac_sha384, true},
 			{"hmac_sha512", s_hmac_sha512, true},
-			{"hmac_ripemd128", s_hmac_ripemd128, true},
-			{"hmac_ripemd160", s_hmac_ripemd160, true},
-			{"hmac_ripemd256", s_hmac_ripemd256, true},
-			{"hmac_ripemd320", s_hmac_ripemd320, true}
+			{"hmac_ripemd160", s_hmac_ripemd160, true}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -181,21 +151,18 @@ namespace fibjs
 			{"MD2", s_get_MD2, block_set, true},
 			{"MD4", s_get_MD4, block_set, true},
 			{"MD5", s_get_MD5, block_set, true},
-			{"RIPEMD128", s_get_RIPEMD128, block_set, true},
-			{"RIPEMD160", s_get_RIPEMD160, block_set, true},
-			{"RIPEMD256", s_get_RIPEMD256, block_set, true},
-			{"RIPEMD320", s_get_RIPEMD320, block_set, true},
 			{"SHA1", s_get_SHA1, block_set, true},
 			{"SHA224", s_get_SHA224, block_set, true},
 			{"SHA256", s_get_SHA256, block_set, true},
 			{"SHA384", s_get_SHA384, block_set, true},
-			{"SHA512", s_get_SHA512, block_set, true}
+			{"SHA512", s_get_SHA512, block_set, true},
+			{"RIPEMD160", s_get_RIPEMD160, block_set, true}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"hash", NULL, 
-			26, s_method, 0, NULL, 12, s_property, NULL, NULL,
+			20, s_method, 0, NULL, 9, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -220,34 +187,6 @@ namespace fibjs
 	inline void hash_base::s_get_MD5(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _MD5;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline void hash_base::s_get_RIPEMD128(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		int32_t vr = _RIPEMD128;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline void hash_base::s_get_RIPEMD160(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		int32_t vr = _RIPEMD160;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline void hash_base::s_get_RIPEMD256(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		int32_t vr = _RIPEMD256;
-		PROPERTY_ENTER();
-		METHOD_RETURN();
-	}
-
-	inline void hash_base::s_get_RIPEMD320(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-	{
-		int32_t vr = _RIPEMD320;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
@@ -283,6 +222,13 @@ namespace fibjs
 	inline void hash_base::s_get_SHA512(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
 	{
 		int32_t vr = _SHA512;
+		PROPERTY_ENTER();
+		METHOD_RETURN();
+	}
+
+	inline void hash_base::s_get_RIPEMD160(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		int32_t vr = _RIPEMD160;
 		PROPERTY_ENTER();
 		METHOD_RETURN();
 	}
@@ -460,25 +406,6 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void hash_base::s_ripemd128(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<Digest_base> vr;
-
-		METHOD_ENTER(1, 1);
-
-		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = ripemd128(v0, vr);
-
-		METHOD_OVER(1, 0);
-
-		OPT_ARG_String(0, "");
-
-		hr = ripemd128(v0, vr);
-
-		METHOD_RETURN();
-	}
-
 	inline void hash_base::s_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Digest_base> vr;
@@ -494,44 +421,6 @@ namespace fibjs
 		OPT_ARG_String(0, "");
 
 		hr = ripemd160(v0, vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void hash_base::s_ripemd256(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<Digest_base> vr;
-
-		METHOD_ENTER(1, 1);
-
-		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = ripemd256(v0, vr);
-
-		METHOD_OVER(1, 0);
-
-		OPT_ARG_String(0, "");
-
-		hr = ripemd256(v0, vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void hash_base::s_ripemd320(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<Digest_base> vr;
-
-		METHOD_ENTER(1, 1);
-
-		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = ripemd320(v0, vr);
-
-		METHOD_OVER(1, 0);
-
-		OPT_ARG_String(0, "");
-
-		hr = ripemd320(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -709,25 +598,6 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void hash_base::s_hmac_ripemd128(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<Digest_base> vr;
-
-		METHOD_ENTER(1, 1);
-
-		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = hmac_ripemd128(v0, vr);
-
-		METHOD_OVER(1, 1);
-
-		ARG_String(0);
-
-		hr = hmac_ripemd128(v0, vr);
-
-		METHOD_RETURN();
-	}
-
 	inline void hash_base::s_hmac_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		obj_ptr<Digest_base> vr;
@@ -743,44 +613,6 @@ namespace fibjs
 		ARG_String(0);
 
 		hr = hmac_ripemd160(v0, vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void hash_base::s_hmac_ripemd256(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<Digest_base> vr;
-
-		METHOD_ENTER(1, 1);
-
-		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = hmac_ripemd256(v0, vr);
-
-		METHOD_OVER(1, 1);
-
-		ARG_String(0);
-
-		hr = hmac_ripemd256(v0, vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void hash_base::s_hmac_ripemd320(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<Digest_base> vr;
-
-		METHOD_ENTER(1, 1);
-
-		ARG(obj_ptr<Buffer_base>, 0);
-
-		hr = hmac_ripemd320(v0, vr);
-
-		METHOD_OVER(1, 1);
-
-		ARG_String(0);
-
-		hr = hmac_ripemd320(v0, vr);
 
 		METHOD_RETURN();
 	}

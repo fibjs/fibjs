@@ -10,32 +10,23 @@ class hash: module
 	/*! @brief MD5 信息摘要算法标识常量 */
 	const Integer MD5 = 2;
 
-	/*! @brief RIPEMD128 信息摘要算法标识常量 */
-	const Integer RIPEMD128 = 3;
-
-	/*! @brief RIPEMD160 信息摘要算法标识常量 */
-	const Integer RIPEMD160 = 4;
-
-	/*! @brief RIPEMD256 信息摘要算法标识常量 */
-	const Integer RIPEMD256 = 5;
-
-	/*! @brief RIPEMD320 信息摘要算法标识常量 */
-	const Integer RIPEMD320 = 6;
-
 	/*! @brief SHA1 信息摘要算法标识常量 */
-	const Integer SHA1 = 7;
+	const Integer SHA1 = 3;
 
 	/*! @brief SHA224 信息摘要算法标识常量 */
-	const Integer SHA224 = 8;
+	const Integer SHA224 = 4;
 
 	/*! @brief SHA256 信息摘要算法标识常量 */
-	const Integer SHA256 = 9;
+	const Integer SHA256 = 5;
 
 	/*! @brief SHA384 信息摘要算法标识常量 */
-	const Integer SHA384 = 10;
+	const Integer SHA384 = 6;
 
 	/*! @brief SHA512 信息摘要算法标识常量 */
-	const Integer SHA512 = 11;
+	const Integer SHA512 = 7;
+
+	/*! @brief RIPEMD160 信息摘要算法标识常量 */
+	const Integer RIPEMD160 = 8;
 
 	/*! @brief 根据指定的算法标识创建一个信息摘要运算对象
 	 @param algo 指定摘要运算算法
@@ -129,16 +120,6 @@ class hash: module
 	 */
 	static Digest sha512(String text = "");
 
-	/*! @brief 创建一个 RIPEMD128 信息摘要运算对象
-	 @param data 创建同时更新的二进制数据
-	 */
-	static Digest ripemd128(Buffer data);
-
-	/*! @brief 创建一个 RIPEMD128 信息摘要运算对象
-	 @param text 创建同时更新的文本数据
-	 */
-	static Digest ripemd128(String text = "");
-
 	/*! @brief 创建一个 RIPEMD160 信息摘要运算对象
 	 @param data 创建同时更新的二进制数据
 	 */
@@ -148,26 +129,6 @@ class hash: module
 	 @param text 创建同时更新的文本数据
 	 */
 	static Digest ripemd160(String text = "");
-
-	/*! @brief 创建一个 RIPEMD256 信息摘要运算对象
-	 @param data 创建同时更新的二进制数据
-	 */
-	static Digest ripemd256(Buffer data);
-
-	/*! @brief 创建一个 RIPEMD256 信息摘要运算对象
-	 @param text 创建同时更新的文本数据
-	 */
-	static Digest ripemd256(String text = "");
-
-	/*! @brief 创建一个 RIPEMD320 信息摘要运算对象
-	 @param data 创建同时更新的二进制数据
-	 */
-	static Digest ripemd320(Buffer data);
-
-	/*! @brief 创建一个 RIPEMD320 信息摘要运算对象
-	 @param text 创建同时更新的文本数据
-	 */
-	static Digest ripemd320(String text = "");
 
 	/*! @brief 根据指定的算法标识创建一个信息摘要签名运算对象
 	 @param algo 指定摘要运算算法
@@ -261,16 +222,6 @@ class hash: module
 	 */
 	static Digest hmac_sha512(String key);
 
-	/*! @brief 创建一个 RIPEMD128 信息摘要签名运算对象
-	 @param key 二进制签名密钥
-	 */
-	static Digest hmac_ripemd128(Buffer key);
-
-	/*! @brief 创建一个 RIPEMD128 信息摘要签名运算对象
-	 @param key 文本签名密钥
-	 */
-	static Digest hmac_ripemd128(String key);
-
 	/*! @brief 创建一个 RIPEMD160 信息摘要签名运算对象
 	 @param key 二进制签名密钥
 	 */
@@ -280,25 +231,5 @@ class hash: module
 	 @param key 文本签名密钥
 	 */
 	static Digest hmac_ripemd160(String key);
-
-	/*! @brief 创建一个 RIPEMD256 信息摘要签名运算对象
-	 @param key 二进制签名密钥
-	 */
-	static Digest hmac_ripemd256(Buffer key);
-
-	/*! @brief 创建一个 RIPEMD256 信息摘要签名运算对象
-	 @param key 文本签名密钥
-	 */
-	static Digest hmac_ripemd256(String key);
-
-	/*! @brief 创建一个 RIPEMD320 信息摘要签名运算对象
-	 @param key 二进制签名密钥
-	 */
-	static Digest hmac_ripemd320(Buffer key);
-
-	/*! @brief 创建一个 RIPEMD320 信息摘要签名运算对象
-	 @param key 文本签名密钥
-	 */
-	static Digest hmac_ripemd320(String key);
 };
 

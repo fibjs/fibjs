@@ -253,17 +253,6 @@ describe(
 				hmac_case.forEach(hmac_test);
 			});
 
-		it("ripemd128_hmac", function() {
-			var hmac_case = [{
-				name: 'RIPEMD128',
-				key: 'Jefe',
-				text: 'what do ya want for nothing?',
-				hmac: '875f828862b6b334b427c55f9f7ff09b'
-			}];
-
-			hmac_case.forEach(hmac_test);
-		});
-
 		it("ripemd160_hmac", function() {
 			var hmac_case = [{
 				name: 'RIPEMD160',
@@ -277,4 +266,4 @@ describe(
 
 	});
 
-//test.run();
+//test.run(console.DEBUG);

@@ -6,6 +6,7 @@
  */
 
 #include "ifs/Digest.h"
+#include <polarssl/md.h>
 
 #ifndef DIGEST_H_
 #define DIGEST_H_
@@ -16,8 +17,9 @@ namespace fibjs
 class Digest : public Digest_base
 {
 public:
-    Digest(int32_t algo);
-    Digest(int32_t algo, const char *key, int sz);
+    Digest(md_type_t algo);
+    Digest(md_type_t algo, const char *key, int sz);
+    ~Digest();
 
 public:
     // Digest_base
@@ -31,11 +33,9 @@ public:
     result_t digest(obj_ptr<Buffer_base> &retVal);
 
 private:
-    unsigned char m_ctx[256];
+    md_context_t m_ctx;
     int m_iAlgo;
     bool m_bMac;
-    unsigned char m_ipad[128];
-    unsigned char m_opad[128];
 };
 
 } /* namespace fibjs */
