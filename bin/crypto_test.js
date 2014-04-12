@@ -70,33 +70,33 @@ describe('crypto', function() {
 
 		it("RSA PEM import/export", function() {
 			var pk = new crypto.PKey();
-			pk.import(rsa256_pem);
+			pk.importKey(rsa256_pem);
 			assert.equal(pk.exportPem(), rsa256_pem);
 		});
 
 		it("RSA Der import/export", function() {
 			var pk = new crypto.PKey();
-			pk.import(rsa256_pem);
+			pk.importKey(rsa256_pem);
 			var der = pk.exportDer();
-			pk.import(der);
+			pk.importKey(der);
 			assert.equal(pk.exportPem(), rsa256_pem);
 		});
 
 		it("RSA publicKey", function() {
 			var pk = new crypto.PKey();
-			pk.import(rsa256_pem);
+			pk.importKey(rsa256_pem);
 			assert.isTrue(pk.isPrivate());
 
 			var pk1 = pk.publicKey();
 			assert.isFalse(pk1.isPrivate());
 
 			var pk2 = new crypto.PKey();
-			pk2.import(pk1.exportPem());
+			pk2.importKey(pk1.exportPem());
 			assert.isFalse(pk2.isPrivate());
 
 			assert.equal(pk1.exportPem(), pk2.exportPem());
 
-			pk2.import(pk1.exportDer());
+			pk2.importKey(pk1.exportDer());
 			assert.isFalse(pk2.isPrivate());
 
 			assert.equal(pk1.exportPem(), pk2.exportPem());
@@ -113,7 +113,7 @@ describe('crypto', function() {
 
 		it("RSA encrypt/decrypt", function() {
 			var pk = new crypto.PKey();
-			pk.import(rsa256_pem);
+			pk.importKey(rsa256_pem);
 
 			var pk1 = pk.publicKey();
 
@@ -127,7 +127,7 @@ describe('crypto', function() {
 
 		it("RSA sign/verify", function() {
 			var pk = new crypto.PKey();
-			pk.import(rsa256_pem);
+			pk.importKey(rsa256_pem);
 
 			var pk1 = pk.publicKey();
 
@@ -144,33 +144,33 @@ describe('crypto', function() {
 
 		it("EC PEM import/export", function() {
 			var pk = new crypto.PKey();
-			pk.import(ec_pem);
+			pk.importKey(ec_pem);
 			assert.equal(pk.exportPem(), ec_pem);
 		});
 
 		it("EC Der import/export", function() {
 			var pk = new crypto.PKey();
-			pk.import(ec_pem);
+			pk.importKey(ec_pem);
 			var der = pk.exportDer();
-			pk.import(der);
+			pk.importKey(der);
 			assert.equal(pk.exportPem(), ec_pem);
 		});
 
 		it("EC publicKey", function() {
 			var pk = new crypto.PKey();
-			pk.import(ec_pem);
+			pk.importKey(ec_pem);
 			assert.isTrue(pk.isPrivate());
 
 			var pk1 = pk.publicKey();
 			assert.isFalse(pk1.isPrivate());
 
 			var pk2 = new crypto.PKey();
-			pk2.import(pk1.exportPem());
+			pk2.importKey(pk1.exportPem());
 			assert.isFalse(pk2.isPrivate());
 
 			assert.equal(pk1.exportPem(), pk2.exportPem());
 
-			pk2.import(pk1.exportDer());
+			pk2.importKey(pk1.exportDer());
 			assert.isFalse(pk2.isPrivate());
 
 			assert.equal(pk1.exportPem(), pk2.exportPem());
@@ -187,7 +187,7 @@ describe('crypto', function() {
 
 		it("EC sign/verify", function() {
 			var pk = new crypto.PKey();
-			pk.import(ec_pem);
+			pk.importKey(ec_pem);
 
 			var pk1 = pk.publicKey();
 

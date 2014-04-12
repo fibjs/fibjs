@@ -27,8 +27,8 @@ public:
 	virtual result_t genEcKey(const char* curve, exlib::AsyncEvent* ac) = 0;
 	virtual result_t isPrivate(bool& retVal) = 0;
 	virtual result_t publicKey(obj_ptr<PKey_base>& retVal) = 0;
-	virtual result_t import(Buffer_base* DerKey, const char* password) = 0;
-	virtual result_t import(const char* pemKey, const char* password) = 0;
+	virtual result_t importKey(Buffer_base* DerKey, const char* password) = 0;
+	virtual result_t importKey(const char* pemKey, const char* password) = 0;
 	virtual result_t exportPem(std::string& retVal) = 0;
 	virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
@@ -44,7 +44,7 @@ public:
 	static void s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_isPrivate(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_publicKey(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_import(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_importKey(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -75,7 +75,7 @@ namespace fibjs
 			{"genEcKey", s_genEcKey},
 			{"isPrivate", s_isPrivate},
 			{"publicKey", s_publicKey},
-			{"import", s_import},
+			{"importKey", s_importKey},
 			{"exportPem", s_exportPem},
 			{"exportDer", s_exportDer},
 			{"encrypt", s_encrypt},
@@ -155,7 +155,7 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void PKey_base::s_import(const v8::FunctionCallbackInfo<v8::Value>& args)
+	inline void PKey_base::s_importKey(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(PKey_base);
 		METHOD_ENTER(2, 1);
@@ -163,14 +163,14 @@ namespace fibjs
 		ARG(obj_ptr<Buffer_base>, 0);
 		OPT_ARG_String(1, "");
 
-		hr = pInst->import(v0, v1);
+		hr = pInst->importKey(v0, v1);
 
 		METHOD_OVER(2, 1);
 
 		ARG_String(0);
 		OPT_ARG_String(1, "");
 
-		hr = pInst->import(v0, v1);
+		hr = pInst->importKey(v0, v1);
 
 		METHOD_VOID();
 	}

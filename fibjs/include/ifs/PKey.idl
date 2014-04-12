@@ -35,13 +35,13 @@ class PKey: object
      @param pemKey DER 格式的密钥
      @param password 解密密码
     */
-    import(Buffer DerKey, String password = "");
+    importKey(Buffer DerKey, String password = "");
 
     /*! @brief 加载一个 PEM 格式的密钥
      @param pemKey PEM 格式的密钥
      @param password 解密密码
     */
-    import(String pemKey, String password = "");
+    importKey(String pemKey, String password = "");
 
     /*! @brief 返回当前 key 的 PEM 格式编码
      @return 当前 key 的 PEM 格式编码

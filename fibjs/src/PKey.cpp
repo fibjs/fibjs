@@ -198,7 +198,7 @@ result_t PKey::publicKey(obj_ptr<PKey_base> &retVal)
     return CALL_E_INVALID_CALL;
 }
 
-result_t PKey::import(Buffer_base *DerKey, const char *password)
+result_t PKey::importKey(Buffer_base *DerKey, const char *password)
 {
     int ret;
 
@@ -220,7 +220,7 @@ result_t PKey::import(Buffer_base *DerKey, const char *password)
     return 0;
 }
 
-result_t PKey::import(const char *pemKey, const char *password)
+result_t PKey::importKey(const char *pemKey, const char *password)
 {
     int ret;
 
