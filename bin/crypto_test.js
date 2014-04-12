@@ -2,6 +2,7 @@ var test = require("test");
 test.setup();
 
 var crypto = require("crypto");
+var hash = require("hash");
 var fs = require("fs");
 var encoding = require("encoding");
 
@@ -124,6 +125,23 @@ describe('crypto', function() {
 			});
 		});
 
+		it("RSA sign/verify", function() {
+			var pk = new crypto.PKey();
+			pk.import(rsa256_pem);
+
+			var pk1 = pk.publicKey();
+
+			var md = hash.md5(new Buffer("abcdefg")).digest();
+			var md1 = hash.md5(new Buffer("abcdefg1")).digest();
+			var d = pk.sign(md);
+			assert.isTrue(pk1.verify(d, md));
+			assert.isFalse(pk1.verify(d, md1));
+
+			assert.throws(function() {
+				pk1.sign(md);
+			});
+		});
+
 		it("EC PEM import/export", function() {
 			var pk = new crypto.PKey();
 			pk.import(ec_pem);
@@ -166,6 +184,24 @@ describe('crypto', function() {
 
 			assert.notEqual(pk.exportPem(), pk1.exportPem());
 		});
+
+		it("EC sign/verify", function() {
+			var pk = new crypto.PKey();
+			pk.import(ec_pem);
+
+			var pk1 = pk.publicKey();
+
+			var md = hash.md5(new Buffer("abcdefg")).digest();
+			var md1 = hash.md5(new Buffer("abcdefg1")).digest();
+			var d = pk.sign(md);
+			assert.isTrue(pk1.verify(d, md));
+			assert.isFalse(pk1.verify(d, md1));
+
+			assert.throws(function() {
+				pk1.sign(md);
+			});
+		});
+
 	});
 });
 

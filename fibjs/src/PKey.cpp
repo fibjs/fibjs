@@ -308,7 +308,6 @@ result_t PKey::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
     ret = pk_encrypt(&m_key, (const unsigned char *)str.c_str(), str.length(),
                      (unsigned char *)&output[0], &olen, output.length(),
                      ctr_drbg_random, &entropy.ctr_drbg);
-
     if (ret != 0)
         return Cipher::setError(ret);
 
@@ -346,12 +345,80 @@ result_t PKey::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
     ret = pk_decrypt(&m_key, (const unsigned char *)str.c_str(), str.length(),
                      (unsigned char *)&output[0], &olen, output.length(),
                      ctr_drbg_random, &entropy.ctr_drbg);
-
     if (ret != 0)
         return Cipher::setError(ret);
 
     output.resize(olen);
     retVal = new Buffer(output);
+
+    return 0;
+}
+
+result_t PKey::sign(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
+                    exlib::AsyncEvent *ac)
+{
+    if (!ac)
+        return CALL_E_NOSYNC;
+
+    result_t hr;
+    bool priv;
+
+    hr = isPrivate(priv);
+    if (hr < 0)
+        return hr;
+
+    if (!priv)
+        return CALL_E_INVALID_CALL;
+
+    int ret;
+    _entropy entropy;
+    std::string str;
+    std::string output;
+    size_t olen;
+
+    data->toString(str);
+    output.resize(POLARSSL_PREMASTER_SIZE);
+
+    ret = pk_sign(&m_key, POLARSSL_MD_NONE,
+                  (const unsigned char *)str.c_str(), str.length(),
+                  (unsigned char *)&output[0], &olen,
+                  ctr_drbg_random, &entropy.ctr_drbg);
+    if (ret != 0)
+        return Cipher::setError(ret);
+
+    output.resize(olen);
+    retVal = new Buffer(output);
+
+    return 0;
+}
+
+result_t PKey::verify(Buffer_base *sign, Buffer_base *data, bool &retVal,
+                      exlib::AsyncEvent *ac)
+{
+    if (!ac)
+        return CALL_E_NOSYNC;
+
+    int ret;
+    std::string str;
+    std::string strsign;
+
+    data->toString(str);
+    sign->toString(strsign);
+
+    ret = pk_verify(&m_key, POLARSSL_MD_NONE,
+                    (const unsigned char *)str.c_str(), str.length(),
+                    (const unsigned char *)strsign.c_str(), strsign.length());
+    if (ret == POLARSSL_ERR_ECP_VERIFY_FAILED ||
+            ret == POLARSSL_ERR_RSA_VERIFY_FAILED)
+    {
+        retVal = false;
+        return 0;
+    }
+
+    if (ret != 0)
+        return Cipher::setError(ret);
+
+    retVal = true;
 
     return 0;
 }

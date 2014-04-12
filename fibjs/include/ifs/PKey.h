@@ -33,6 +33,8 @@ public:
 	virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t sign(Buffer_base* data, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t verify(Buffer_base* sign, Buffer_base* data, bool& retVal, exlib::AsyncEvent* ac) = 0;
 
 	DECLARE_CLASSINFO(PKey_base);
 
@@ -47,12 +49,16 @@ public:
 	static void s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_sign(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_verify(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_MEMBER1(PKey_base, genRsaKey, int32_t);
 	ASYNC_MEMBER1(PKey_base, genEcKey, const char*);
 	ASYNC_MEMBERVALUE2(PKey_base, encrypt, Buffer_base*, obj_ptr<Buffer_base>);
 	ASYNC_MEMBERVALUE2(PKey_base, decrypt, Buffer_base*, obj_ptr<Buffer_base>);
+	ASYNC_MEMBERVALUE2(PKey_base, sign, Buffer_base*, obj_ptr<Buffer_base>);
+	ASYNC_MEMBERVALUE3(PKey_base, verify, Buffer_base*, Buffer_base*, bool);
 };
 
 }
@@ -73,13 +79,15 @@ namespace fibjs
 			{"exportPem", s_exportPem},
 			{"exportDer", s_exportDer},
 			{"encrypt", s_encrypt},
-			{"decrypt", s_decrypt}
+			{"decrypt", s_decrypt},
+			{"sign", s_sign},
+			{"verify", s_verify}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"PKey", s__new, 
-			9, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			11, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -215,6 +223,35 @@ namespace fibjs
 		ARG(obj_ptr<Buffer_base>, 0);
 
 		hr = pInst->ac_decrypt(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void PKey_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<Buffer_base> vr;
+
+		METHOD_INSTANCE(PKey_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+
+		hr = pInst->ac_sign(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void PKey_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		bool vr;
+
+		METHOD_INSTANCE(PKey_base);
+		METHOD_ENTER(2, 2);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG(obj_ptr<Buffer_base>, 1);
+
+		hr = pInst->ac_verify(v0, v1, vr);
 
 		METHOD_RETURN();
 	}

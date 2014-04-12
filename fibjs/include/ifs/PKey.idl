@@ -53,15 +53,28 @@ class PKey: object
     */
     Buffer exportDer();
 
-    /*! @brief 使用当前算法密码加密数据
+    /*! @brief 使用当前算法密码公钥加密数据
      @param data 指定要加密的数据
      @return 返回加密后的数据
      */
     Buffer encrypt(Buffer data) async;
 
-    /*! @brief 使用当前算法密码解密数据
+    /*! @brief 使用当前算法密码私钥解密数据
      @param data 指定要解密的数据
      @return 返回解密后的数据
      */
     Buffer decrypt(Buffer data) async;
+
+    /*! @brief 使用当前算法密码私钥签名数据
+     @param data 指定要签名的数据
+     @return 返回签名后的数据
+     */
+    Buffer sign(Buffer data) async;
+
+    /*! @brief 使用当前算法密码公钥验证数据
+     @param sign 指定要验证的签名
+     @param data 指定要验证的数据
+     @return 返回验证后的结果
+     */
+    Boolean verify(Buffer sign, Buffer data) async;
 };
