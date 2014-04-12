@@ -25,6 +25,8 @@ public:
 	static result_t _new(obj_ptr<PKey_base>& retVal);
 	virtual result_t genRsaKey(int32_t size, exlib::AsyncEvent* ac) = 0;
 	virtual result_t genEcKey(const char* curve, exlib::AsyncEvent* ac) = 0;
+	virtual result_t isPrivate(bool& retVal) = 0;
+	virtual result_t publicKey(obj_ptr<PKey_base>& retVal) = 0;
 	virtual result_t import(Buffer_base* DerKey, const char* password) = 0;
 	virtual result_t import(const char* pemKey, const char* password) = 0;
 	virtual result_t exportPem(std::string& retVal) = 0;
@@ -36,6 +38,8 @@ public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_isPrivate(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_publicKey(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_import(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -57,6 +61,8 @@ namespace fibjs
 		{
 			{"genRsaKey", s_genRsaKey},
 			{"genEcKey", s_genEcKey},
+			{"isPrivate", s_isPrivate},
+			{"publicKey", s_publicKey},
 			{"import", s_import},
 			{"exportPem", s_exportPem},
 			{"exportDer", s_exportDer}
@@ -65,7 +71,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"PKey", s__new, 
-			5, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			7, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -107,6 +113,30 @@ namespace fibjs
 		hr = pInst->ac_genEcKey(v0);
 
 		METHOD_VOID();
+	}
+
+	inline void PKey_base::s_isPrivate(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		bool vr;
+
+		METHOD_INSTANCE(PKey_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->isPrivate(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void PKey_base::s_publicKey(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<PKey_base> vr;
+
+		METHOD_INSTANCE(PKey_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->publicKey(vr);
+
+		METHOD_RETURN();
 	}
 
 	inline void PKey_base::s_import(const v8::FunctionCallbackInfo<v8::Value>& args)

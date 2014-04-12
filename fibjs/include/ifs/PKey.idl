@@ -21,6 +21,16 @@ class PKey: object
     */
     genEcKey(String curve = "secp521r1") async;
 
+    /*! @brief 查询当前密钥是否为私钥
+     @return 为 True 表示为私钥
+    */
+    Boolean isPrivate();
+
+    /*! @brief 返回当前密钥的公钥
+     @return 当前密钥的公钥
+    */
+    PKey publicKey();
+
     /*! @brief 加载一个 DER 格式的密钥
      @param pemKey DER 格式的密钥
      @param password 解密密码

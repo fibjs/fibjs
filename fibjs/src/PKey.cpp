@@ -133,6 +133,30 @@ result_t PKey::genEcKey(const char *curve, exlib::AsyncEvent *ac)
 
     return 0;
 }
+// rsa: N, E
+// ec: grp, Q
+
+result_t PKey::isPrivate(bool &retVal)
+{
+    pk_type_t type = pk_get_type(&m_key);
+
+    if (type == POLARSSL_PK_RSA)
+    {
+        return 0;
+    }
+
+    if (type == POLARSSL_PK_ECKey)
+    {
+        return 0;
+    }
+
+    return 0;
+}
+
+result_t PKey::publicKey(obj_ptr<PKey_base> &retVal)
+{
+    return 0;
+}
 
 result_t PKey::import(Buffer_base *DerKey, const char *password)
 {
