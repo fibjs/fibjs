@@ -11,6 +11,12 @@ class PKey: object
     /*! @brief PKey 构造函数 */
     PKey();
 
+    /*! @brief 返回当前算法名称 */
+    readonly String name;
+
+    /*! @brief 返回当前算法密码长度，以位为单位 */
+    readonly Integer keySize;
+
     /*! @brief 生成一个 RSA 私钥 
      @param size 指定 RSA 密钥长度，bit 为单位
     */

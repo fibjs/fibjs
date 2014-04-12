@@ -31,16 +31,13 @@ PKey::PKey()
 
 PKey::~PKey()
 {
-    pk_free(&m_key);
+    clear();
 }
 
 void PKey::clear()
 {
     if (pk_get_type(&m_key))
-    {
         pk_free(&m_key);
-        pk_init(&m_key);
-    }
 }
 
 class _entropy
@@ -420,6 +417,18 @@ result_t PKey::verify(Buffer_base *sign, Buffer_base *data, bool &retVal,
 
     retVal = true;
 
+    return 0;
+}
+
+result_t PKey::get_name(std::string &retVal)
+{
+    retVal = pk_get_name(&m_key);
+    return 0;
+}
+
+result_t PKey::get_keySize(int32_t &retVal)
+{
+    retVal = (int32_t)pk_get_size(&m_key);
     return 0;
 }
 

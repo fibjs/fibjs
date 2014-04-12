@@ -27,6 +27,8 @@ public:
 
 public:
     // PKey_base
+    virtual result_t get_name(std::string &retVal);
+    virtual result_t get_keySize(int32_t &retVal);
     virtual result_t genRsaKey(int32_t size, exlib::AsyncEvent *ac);
     virtual result_t genEcKey(const char *curve, exlib::AsyncEvent *ac);
     virtual result_t isPrivate(bool &retVal);

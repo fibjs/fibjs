@@ -202,6 +202,30 @@ describe('crypto', function() {
 			});
 		});
 
+		it("name", function() {
+			var pk = new crypto.PKey();
+
+			assert.equal(pk.name, "invalid PK");
+
+			pk.importKey(rsa256_pem);
+			assert.equal(pk.name, "RSA");
+
+			pk.importKey(ec_pem);
+			assert.equal(pk.name, "EC");
+		});
+
+		it("keySize", function() {
+			var pk = new crypto.PKey();
+
+			assert.equal(pk.keySize, 0);
+
+			pk.importKey(rsa256_pem);
+			assert.equal(pk.keySize, 256);
+
+			pk.importKey(ec_pem);
+			assert.equal(pk.keySize, 521);
+		});
+
 	});
 });
 
