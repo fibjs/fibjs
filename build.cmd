@@ -13,7 +13,6 @@ goto out
 :release
 devenv exlib.sln /build "Release|x64"
 cd bin\x64_Release
-makecab fibjs.exe js.cab
 fibjs ../gen_install.js
 cd ..\..
 cd installer
@@ -28,7 +27,6 @@ goto out
 :release32
 devenv exlib.sln /build "Release|Win32"
 cd bin\Win32_Release
-makecab fibjs.exe js.cab
 fibjs ../gen_install.js
 cd ..\..
 cd installer
