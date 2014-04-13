@@ -16,6 +16,7 @@
 #include <pcre.h>
 #include <tiffvers.h>
 #include <mongo/mongo.h>
+#include <polarssl/version.h>
 
 namespace fibjs
 {
@@ -58,6 +59,7 @@ result_t utils_base::buildInfo(v8::Local<v8::Object> &retVal)
         vender->Set(v8::String::NewFromUtf8(isolate, "pcre"), v8::String::NewFromUtf8(isolate,
                     STR(PCRE_MAJOR) "." STR(PCRE_MINOR)));
         vender->Set(v8::String::NewFromUtf8(isolate, "png"), v8::String::NewFromUtf8(isolate, PNG_LIBPNG_VER_STRING));
+        vender->Set(v8::String::NewFromUtf8(isolate, "polarssl"), v8::String::NewFromUtf8(isolate, POLARSSL_VERSION_STRING));
         vender->Set(v8::String::NewFromUtf8(isolate, "sqlite"), v8::String::NewFromUtf8(isolate, SQLITE_VERSION));
         vender->Set(v8::String::NewFromUtf8(isolate, "tiff"), v8::String::NewFromUtf8(isolate, TIFFLIB_VERSION_STR));
         vender->Set(v8::String::NewFromUtf8(isolate, "uuid"), v8::String::NewFromUtf8(isolate, "1.6.2"));
