@@ -70,12 +70,12 @@
 
 # Install:
 
-### install on linux/freebsd/osx:
+### on linux/freebsd/osx:
 	sudo sh bin/Release/installer.sh  // x86_64
 	sudo sh bin/Release32/installer.sh // ia32
 
 ----------------------------------
-### install on Windows(run as administrator):
+### on Windows(run as administrator):
 	bin/x64_Release/installer  // x86_64
 	bin/Win32_Release/installer // ia32
 
