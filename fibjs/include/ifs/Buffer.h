@@ -20,15 +20,19 @@ class Buffer_base : public object_base
 {
 public:
 	// Buffer_base
+	static result_t _new(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal);
 	static result_t _new(const char* str, obj_ptr<Buffer_base>& retVal);
 	virtual result_t _indexed_getter(uint32_t index, int32_t& retVal) = 0;
 	virtual result_t _indexed_setter(uint32_t index, int32_t newVal) = 0;
 	virtual result_t get_length(int32_t& retVal) = 0;
 	virtual result_t resize(int32_t sz) = 0;
+	virtual result_t write(v8::Local<v8::Array> datas) = 0;
 	virtual result_t write(const char* str) = 0;
 	virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t hex(std::string& retVal) = 0;
 	virtual result_t base64(std::string& retVal) = 0;
+	virtual result_t toString(const char* codec, std::string& retVal) = 0;
+	virtual result_t toString(std::string& retVal) = 0;
 
 	DECLARE_CLASSINFO(Buffer_base);
 
@@ -42,6 +46,7 @@ public:
 	static void s_slice(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_hex(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_base64(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -56,7 +61,8 @@ namespace fibjs
 			{"write", s_write},
 			{"slice", s_slice},
 			{"hex", s_hex},
-			{"base64", s_base64}
+			{"base64", s_base64},
+			{"toString", s_toString}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -72,7 +78,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"Buffer", s__new, 
-			5, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
+			6, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
 			&object_base::class_info()
 		};
 
@@ -119,7 +125,13 @@ namespace fibjs
 	{
 		obj_ptr<Buffer_base> vr;
 
-		CONSTRUCT_ENTER(1, 0);
+		CONSTRUCT_ENTER(1, 1);
+
+		ARG(v8::Local<v8::Array>, 0);
+
+		hr = _new(v0, vr);
+
+		METHOD_OVER(1, 0);
 
 		OPT_ARG_String(0, "");
 
@@ -144,6 +156,12 @@ namespace fibjs
 	{
 		METHOD_INSTANCE(Buffer_base);
 		METHOD_ENTER(1, 1);
+
+		ARG(v8::Local<v8::Array>, 0);
+
+		hr = pInst->write(v0);
+
+		METHOD_OVER(1, 1);
 
 		ARG_String(0);
 
@@ -187,6 +205,24 @@ namespace fibjs
 		METHOD_ENTER(0, 0);
 
 		hr = pInst->base64(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void Buffer_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		std::string vr;
+
+		METHOD_INSTANCE(Buffer_base);
+		METHOD_ENTER(1, 1);
+
+		ARG_String(0);
+
+		hr = pInst->toString(v0, vr);
+
+		METHOD_OVER(0, 0);
+
+		hr = pInst->toString(vr);
 
 		METHOD_RETURN();
 	}
