@@ -12,6 +12,13 @@ goto out
 
 :release
 devenv exlib.sln /build "Release|x64"
+cd bin\x64_Release
+makecab fibjs.exe js.cab
+fibjs ../gen_install.js
+cd ..\..
+cd installer
+devenv installer.sln /build "Release|x64"
+cd ..
 goto out
 
 :debug
@@ -20,6 +27,13 @@ goto out
 
 :release32
 devenv exlib.sln /build "Release|Win32"
+cd bin\Win32_Release
+makecab fibjs.exe js.cab
+fibjs ../gen_install.js
+cd ..\..
+cd installer
+devenv installer.sln /build "Release|Win32"
+cd ..
 goto out
 
 :debug32
@@ -28,5 +42,9 @@ goto out
 
 :clean
 devenv exlib.sln /clean
+cd installer
+devenv installer.sln /clean
+cd ..
+goto out
 
 :out

@@ -1,4 +1,5 @@
-### Prerequisites (unix):
+# Prerequisites (unix):
+
 	GCC 4.2 or newer
 	CMake 2.6 or newer
 	GNU Make 3.81 or newer
@@ -41,19 +42,44 @@
 	pkg install subversion
 	pkg install libexecinfo
 
-----------------------------------
-### build on linux/freebsd/osx:
+# Build:
+
+### on linux/freebsd/osx:
 	sh build
 
 ----------------------------------
-### install on linux/freebsd/osx:
-	sudo sh bin/Release/installer.sh
-
-----------------------------------
-### build on Windows:
+### on Windows:
 	Start
 	  All Programs
 	    Microsoft Visual Studio 2012
 	      Visual Studio Tools
 	        Developer Command Prompt for VS2012
+	        
 	build
+
+# Test:
+
+### on linux/freebsd/osx:
+	cd bin
+	Release/fibjs main.js
+
+----------------------------------
+### on Windows:
+	cd bin
+	x64_Release/fibjs main.js
+
+# Install:
+
+### install on linux/freebsd/osx:
+	sudo sh bin/Release/installer.sh  // x86_64
+	sudo sh bin/Release32/installer.sh // ia32
+
+----------------------------------
+### install on Windows(run as administrator):
+	bin/x64_Release/installer  // x86_64
+	bin/Win32_Release/installer // ia32
+
+# Run:
+
+	js
+	js stuff.js
