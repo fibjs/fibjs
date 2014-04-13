@@ -15,6 +15,6 @@ if (build)
 	process.system("makecab fibjs.exe js.cab");
 
 var txt = JSON.stringify(fs.open("js.cab").readAll());
-var src = "unsigned char js_data[] = {" + txt.substr(1, txt.length - 2).replace(/,/g, ",\n") + "};\n";
+var src = "unsigned char js_data[] = {" + txt.substr(1, txt.length - 2) + "};\n";
 if (!fs.exists("js.h") || fs.readFile("js.h") != src)
 	fs.writeFile("js.h", src);
