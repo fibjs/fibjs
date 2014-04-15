@@ -278,8 +278,15 @@ typedef int result_t;
     {} \
      
 #ifdef _MSC_VER
+
+#ifndef INFINITY
 #define INFINITY (DBL_MAX+DBL_MAX)
+#endif
+
+#ifndef NAN
 #define NAN (INFINITY-INFINITY)
+#endif
+
 #define isnan _isnan
 #endif
 
