@@ -245,6 +245,26 @@ describe('crypto', function() {
 		});
 
 	});
+
+	it("x509 cert", function() {
+		var cert = new crypto.X509Cert();
+
+		var fl = fs.readdir('cert_files/');
+		fl.forEach(function(s) {
+			if (!s.isDirectory() && s.name.match(/\.crt/))
+				cert.load(fs.readFile('cert_files/' + s.name));
+		});
+	});
+
+	it("x509 crl", function() {
+		var crl = new crypto.X509Crl();
+
+		var fl = fs.readdir('crl_files/');
+		fl.forEach(function(s) {
+			if (!s.isDirectory() && s.name.match(/\.pem/))
+				crl.load(fs.readFile('crl_files/' + s.name));
+		});
+	});
 });
 
 //test.run(console.DEBUG);

@@ -1,0 +1,23 @@
+
+/*! @brief x509 证书对象
+
+ X509Cert 对象属于 crypto 模块，创建：
+ @code
+ var k = new crypto.X509Cert();
+ @endcode
+ */
+class X509Cert: object
+{
+    /*! @brief X509Cert 构造函数 */
+    X509Cert();
+
+    /*! @brief 加载一个 DER 格式的证书
+     @param DerCrt DER 格式的证书
+    */
+    load(Buffer DerCrt);
+
+    /*! @brief 加载一个 PEM 格式的证书
+     @param pemCrt PEM 格式的证书
+    */
+    load(String pemCrt);
+};
