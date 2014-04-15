@@ -11,37 +11,37 @@ echo build [Release ^| Release32 ^| Debug ^| Debug32 ^| clean]
 goto out
 
 :release
-devenv exlib.sln /build "Release|x64"
+msbuild exlib.sln /t:Build /p:Configuration=Release;Platform=x64
 cd bin\x64_Release
 fibjs ../gen_install.js
 cd ..\..
 cd installer
-devenv installer.sln /build "Release|x64"
+msbuild installer.sln /t:Build /p:Configuration=Release;Platform=x64
 cd ..
 goto out
 
 :debug
-devenv exlib.sln /build "Debug|x64"
+msbuild exlib.sln /t:Build /p:Configuration=Debug;Platform=x64
 goto out
 
 :release32
-devenv exlib.sln /build "Release|Win32"
+msbuild exlib.sln /t:Build /p:Configuration=Release;Platform=Win32
 cd bin\Win32_Release
 fibjs ../gen_install.js
 cd ..\..
 cd installer
-devenv installer.sln /build "Release|Win32"
+msbuild installer.sln /t:Build /p:Configuration=Release;Platform=Win32
 cd ..
 goto out
 
 :debug32
-devenv exlib.sln /build "Debug|Win32"
+msbuild exlib.sln /t:Build /p:Configuration=Debug;Platform=Win32
 goto out
 
 :clean
-devenv exlib.sln /clean
+msbuild exlib.sln /t:Clean
 cd installer
-devenv installer.sln /clean
+msbuild installer.sln /t:Clean
 cd ..
 goto out
 
