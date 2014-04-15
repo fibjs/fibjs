@@ -2,6 +2,7 @@ var test = require("test");
 test.setup();
 
 var db = require('db');
+var fs = require('fs');
 
 describe(
 	"db",
@@ -110,6 +111,9 @@ describe(
 		}
 
 		describe("sqlite", function() {
+			after(function() {
+				fs.unlink("test.db");
+			});
 			_test('sqlite:test.db');
 		});
 

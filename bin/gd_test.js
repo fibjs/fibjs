@@ -131,10 +131,8 @@ describe("gd", function() {
 	});
 
 	it("flip", function() {
-		img.save('test.png', gd.PNG);
 		img1 = img.resample(220, 120);
 		img1.flip();
-		img1.save('test1.png', gd.PNG);
 	});
 });
 
