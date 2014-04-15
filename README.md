@@ -51,9 +51,9 @@
 ### on Windows:
 	Start
 	  All Programs
-	    Microsoft Visual Studio 2012
+	    Visual Studio 2013
 	      Visual Studio Tools
-	        Developer Command Prompt for VS2012
+	        Developer Command Prompt for VS2013
 	        
 	build
 
