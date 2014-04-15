@@ -29,6 +29,7 @@ public:
 	virtual result_t genEcKey(const char* curve, exlib::AsyncEvent* ac) = 0;
 	virtual result_t isPrivate(bool& retVal) = 0;
 	virtual result_t publicKey(obj_ptr<PKey_base>& retVal) = 0;
+	virtual result_t clone(obj_ptr<PKey_base>& retVal) = 0;
 	virtual result_t importKey(Buffer_base* DerKey, const char* password) = 0;
 	virtual result_t importKey(const char* pemKey, const char* password) = 0;
 	virtual result_t exportPem(std::string& retVal) = 0;
@@ -48,6 +49,7 @@ public:
 	static void s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_isPrivate(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_publicKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_importKey(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -79,6 +81,7 @@ namespace fibjs
 			{"genEcKey", s_genEcKey},
 			{"isPrivate", s_isPrivate},
 			{"publicKey", s_publicKey},
+			{"clone", s_clone},
 			{"importKey", s_importKey},
 			{"exportPem", s_exportPem},
 			{"exportDer", s_exportDer},
@@ -97,7 +100,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"PKey", s__new, 
-			11, s_method, 0, NULL, 2, s_property, NULL, NULL,
+			12, s_method, 0, NULL, 2, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -184,6 +187,18 @@ namespace fibjs
 		METHOD_ENTER(0, 0);
 
 		hr = pInst->publicKey(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void PKey_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<PKey_base> vr;
+
+		METHOD_INSTANCE(PKey_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->clone(vr);
 
 		METHOD_RETURN();
 	}

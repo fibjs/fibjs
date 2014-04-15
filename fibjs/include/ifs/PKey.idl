@@ -37,6 +37,11 @@ class PKey: object
     */
     PKey publicKey();
 
+    /*! @brief 复制当前密钥
+     @return 当前密钥的复制对象
+    */
+    PKey clone();
+
     /*! @brief 加载一个 DER 格式的密钥
      @param pemKey DER 格式的密钥
      @param password 解密密码

@@ -33,6 +33,7 @@ public:
     virtual result_t genEcKey(const char *curve, exlib::AsyncEvent *ac);
     virtual result_t isPrivate(bool &retVal);
     virtual result_t publicKey(obj_ptr<PKey_base> &retVal);
+    virtual result_t clone(obj_ptr<PKey_base> &retVal);
     virtual result_t importKey(Buffer_base *DerKey, const char *password);
     virtual result_t importKey(const char *pemKey, const char *password);
     virtual result_t exportPem(std::string &retVal);

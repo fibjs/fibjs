@@ -102,6 +102,15 @@ describe('crypto', function() {
 			assert.equal(pk1.exportPem(), pk2.exportPem());
 		});
 
+		it("RSA clone", function() {
+			var pk = new crypto.PKey();
+			pk.importKey(rsa256_pem);
+
+			var pk1 = pk.clone();
+
+			assert.equal(pk1.exportPem(), pk.exportPem());
+		});
+
 		it("RSA gen_key", function() {
 			var pk = new crypto.PKey();
 			var pk1 = new crypto.PKey();
@@ -174,6 +183,15 @@ describe('crypto', function() {
 			assert.isFalse(pk2.isPrivate());
 
 			assert.equal(pk1.exportPem(), pk2.exportPem());
+		});
+
+		it("EC clone", function() {
+			var pk = new crypto.PKey();
+			pk.importKey(ec_pem);
+
+			var pk1 = pk.clone();
+
+			assert.equal(pk1.exportPem(), pk.exportPem());
 		});
 
 		it("EC gen_key", function() {
