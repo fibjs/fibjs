@@ -399,10 +399,11 @@ Handle<Object> GetScriptNameOrSourceURL(Handle<Script> script) {
   ASSERT(property->IsJSFunction());
   Handle<JSFunction> method = Handle<JSFunction>::cast(property);
   Handle<Object> result;
-  ASSIGN_RETURN_ON_EXCEPTION_VALUE(
-      isolate, result,
-      Execution::TryCall(method, script_wrapper, 0, NULL),
-      isolate->factory()->undefined_value());
+  // Do not check against pending exception, since this function may be called
+  // when an exception has already been pending.
+  if (!Execution::TryCall(method, script_wrapper, 0, NULL).ToHandle(&result)) {
+    return isolate->factory()->undefined_value();
+  }
   return result;
 }
 
@@ -457,10 +458,9 @@ MaybeHandle<FixedArray> GetKeysInFixedArrayFor(Handle<JSReceiver> object,
 
     // Check access rights if required.
     if (current->IsAccessCheckNeeded() &&
-        !isolate->MayNamedAccessWrapper(current,
-                                        isolate->factory()->undefined_value(),
-                                        v8::ACCESS_KEYS)) {
-      isolate->ReportFailedAccessCheckWrapper(current, v8::ACCESS_KEYS);
+        !isolate->MayNamedAccess(
+            current, isolate->factory()->undefined_value(), v8::ACCESS_KEYS)) {
+      isolate->ReportFailedAccessCheck(current, v8::ACCESS_KEYS);
       RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, FixedArray);
       break;
     }
