@@ -42,9 +42,10 @@ public:
 
     void skipSpace()
     {
-        while (pos < sz)
+        char ch;
+
+        while (0 != (ch = get()))
         {
-            char ch = get();
             if (qisspace(ch))
                 skip();
             else
@@ -54,10 +55,11 @@ public:
 
     void skipWord()
     {
-        while (pos < sz)
+        char ch;
+
+        while (0 != (ch = get()))
         {
-            char ch = get();
-            if (ch == 0 || qisspace(ch))
+            if (qisspace(ch))
                 break;
             else
                 skip();
@@ -66,10 +68,11 @@ public:
 
     void skipWord(char ch1)
     {
-        while (pos < sz)
+        char ch;
+
+        while (0 != (ch = get()))
         {
-            char ch = get();
-            if (ch == 0 || qisspace(ch) || ch == ch1)
+            if (qisspace(ch) || ch == ch1)
                 break;
             else
                 skip();
@@ -78,10 +81,11 @@ public:
 
     void skipWord(char ch1, char ch2)
     {
-        while (pos < sz)
+        char ch;
+
+        while (0 != (ch = get()))
         {
-            char ch = get();
-            if (ch == 0 || qisspace(ch) || ch == ch1 || ch == ch2)
+            if (qisspace(ch) || ch == ch1 || ch == ch2)
                 break;
             else
                 skip();
@@ -90,14 +94,23 @@ public:
 
     void skipWord(char ch1, char ch2, char ch3)
     {
-        while (pos < sz)
+        char ch;
+
+        while (0 != (ch = get()))
         {
-            char ch = get();
-            if (ch == 0 || qisspace(ch) || ch == ch1 || ch == ch2 || ch == ch3)
+            if (qisspace(ch) || ch == ch1 || ch == ch2 || ch == ch3)
                 break;
             else
                 skip();
         }
+    }
+
+    char getChar()
+    {
+        char ch = get();
+        if (ch)
+            skip();
+        return ch;
     }
 
     int getWord(std::string &retVal)
@@ -146,6 +159,43 @@ public:
         p1 = pos;
         skipWord(ch1, ch2, ch3);
         p2 = pos - p1;
+
+        retVal.assign(string + p1, p2);
+
+        return p2;
+    }
+
+    int getLeft(std::string &retVal)
+    {
+        int p2 = sz - pos;
+        retVal.assign(string + pos, p2);
+        pos = sz;
+
+        return p2;
+    }
+
+    int getLine(std::string &retVal)
+    {
+        int p1, p2;
+        char ch;
+
+        p1 = pos;
+
+        while (0 != (ch = get()))
+        {
+            if (ch == '\r' || ch == '\n')
+                break;
+            else
+                skip();
+        }
+        p2 = pos - p1;
+
+        if (ch)
+        {
+            skip();
+            if (get() + ch == '\r' + '\n')
+                skip();
+        }
 
         retVal.assign(string + p1, p2);
 

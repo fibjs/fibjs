@@ -7,18 +7,35 @@ class ssl : module
     static SslSocket accept(Stream s) async;
 
     /*! @brief 加载一个 DER 格式的证书，可多次调用
-     @param DerCrt DER 格式的证书
+     @param DerCert DER 格式的证书
     */
-    static loadCert(Buffer DerCrt);
+    static loadCert(Buffer DerCert);
 
     /*! @brief 加载一个 PEM 格式的证书，可多次调用
-     @param pemCrt PEM 格式的证书
+     @param txtCert PEM 格式的证书
     */
-    static loadCert(String pemCrt);
+    static loadCert(String txtCert);
+
+    /*! @brief 导出已经加载的证书
+     @return 以数组方式导出证书链
+    */
+    static Array exportCert();
+
+    /*! @brief 清空已经加载的证书
+    */
+    static clearCert();
 
     /*! @brief 加载一个 PEM 格式的撤销证书，可多次调用
      @param pemCrl PEM 格式的撤销证书
     */
     static loadCrl(String pemCrl);
 
+    /*! @brief 导出已经加载的撤销证书
+     @return 以数组方式导出撤销证书链
+    */
+    static Array exportCrl();
+
+    /*! @brief 清空已经加载的撤销证书
+    */
+    static clearCrl();
 };

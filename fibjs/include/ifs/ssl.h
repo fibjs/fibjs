@@ -28,9 +28,13 @@ public:
 	// ssl_base
 	static result_t connect(Stream_base* s, obj_ptr<SslSocket_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t accept(Stream_base* s, obj_ptr<SslSocket_base>& retVal, exlib::AsyncEvent* ac);
-	static result_t loadCert(Buffer_base* DerCrt);
-	static result_t loadCert(const char* pemCrt);
+	static result_t loadCert(Buffer_base* DerCert);
+	static result_t loadCert(const char* txtCert);
+	static result_t exportCert(v8::Local<v8::Array>& retVal);
+	static result_t clearCert();
 	static result_t loadCrl(const char* pemCrl);
+	static result_t exportCrl(v8::Local<v8::Array>& retVal);
+	static result_t clearCrl();
 
 	DECLARE_CLASSINFO(ssl_base);
 
@@ -38,7 +42,11 @@ public:
 	static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_accept(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_exportCert(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_clearCert(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_exportCrl(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_clearCrl(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_STATICVALUE2(ssl_base, connect, Stream_base*, obj_ptr<SslSocket_base>);
@@ -60,7 +68,11 @@ namespace fibjs
 			{"connect", s_connect, true},
 			{"accept", s_accept, true},
 			{"loadCert", s_loadCert, true},
-			{"loadCrl", s_loadCrl, true}
+			{"exportCert", s_exportCert, true},
+			{"clearCert", s_clearCert, true},
+			{"loadCrl", s_loadCrl, true},
+			{"exportCrl", s_exportCrl, true},
+			{"clearCrl", s_clearCrl, true}
 		};
 
 		static ClassData::ClassObject s_object[] = 
@@ -71,7 +83,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"ssl", NULL, 
-			4, s_method, 1, s_object, 0, NULL, NULL, NULL,
+			8, s_method, 1, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -123,6 +135,26 @@ namespace fibjs
 		METHOD_VOID();
 	}
 
+	inline void ssl_base::s_exportCert(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		v8::Local<v8::Array> vr;
+
+		METHOD_ENTER(0, 0);
+
+		hr = exportCert(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void ssl_base::s_clearCert(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_ENTER(0, 0);
+
+		hr = clearCert();
+
+		METHOD_VOID();
+	}
+
 	inline void ssl_base::s_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 1);
@@ -130,6 +162,26 @@ namespace fibjs
 		ARG_String(0);
 
 		hr = loadCrl(v0);
+
+		METHOD_VOID();
+	}
+
+	inline void ssl_base::s_exportCrl(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		v8::Local<v8::Array> vr;
+
+		METHOD_ENTER(0, 0);
+
+		hr = exportCrl(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void ssl_base::s_clearCrl(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_ENTER(0, 0);
+
+		hr = clearCrl();
 
 		METHOD_VOID();
 	}

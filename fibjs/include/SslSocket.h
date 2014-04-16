@@ -12,6 +12,7 @@
 #include "polarssl/ssl.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
+#include "polarssl/ssl_cache.h"
 
 #ifndef SSLSOCKET_H_
 #define SSLSOCKET_H_
@@ -22,22 +23,30 @@ namespace fibjs
 class SslSocket: public SslSocket_base
 {
 public:
-    SslSocket();
-    ~SslSocket();
+    class _ssl
+    {
+    public:
+        _ssl()
+        {
+            x509_crt_init(&m_crt);
+            x509_crl_init(&m_crl);
+            ssl_cache_init(&m_cache);
+        }
 
-public:
-    // Stream_base
-    virtual result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                          exlib::AsyncEvent *ac);
-    virtual result_t write(Buffer_base *data, exlib::AsyncEvent *ac);
-    virtual result_t close(exlib::AsyncEvent *ac);
-    virtual result_t copyTo(Stream_base *stm, int64_t bytes,
-                            int64_t &retVal, exlib::AsyncEvent *ac);
+        ~_ssl()
+        {
+            x509_crl_free(&m_crl);
+            x509_crt_free(&m_crt);
+            ssl_cache_free(&m_cache);
+        }
 
-public:
-    // SslSocket_base
-    virtual result_t connect(Stream_base *s, exlib::AsyncEvent *ac);
-    virtual result_t accept(Stream_base *s, exlib::AsyncEvent *ac);
+    public:
+        ssl_cache_context m_cache;
+        x509_crt m_crt;
+        x509_crl m_crl;
+    };
+
+    static _ssl g_ssl;
 
 private:
     class asyncSsl: public asyncState
@@ -144,6 +153,24 @@ private:
         obj_ptr<Buffer_base> m_buf;
         int m_ret;
     };
+
+public:
+    SslSocket();
+    ~SslSocket();
+
+public:
+    // Stream_base
+    virtual result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
+                          exlib::AsyncEvent *ac);
+    virtual result_t write(Buffer_base *data, exlib::AsyncEvent *ac);
+    virtual result_t close(exlib::AsyncEvent *ac);
+    virtual result_t copyTo(Stream_base *stm, int64_t bytes,
+                            int64_t &retVal, exlib::AsyncEvent *ac);
+
+public:
+    // SslSocket_base
+    virtual result_t connect(Stream_base *s, exlib::AsyncEvent *ac);
+    virtual result_t accept(Stream_base *s, exlib::AsyncEvent *ac);
 
 private:
     int my_recv(unsigned char *buf, size_t len);

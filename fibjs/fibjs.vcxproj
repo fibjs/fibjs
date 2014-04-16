@@ -106,6 +106,7 @@
     <ClCompile Include="src\Socket_ev.cpp" />
     <ClCompile Include="src\Socket_iocp.cpp" />
     <ClCompile Include="src\SQLite.cpp" />
+    <ClCompile Include="src\ssl.cpp" />
     <ClCompile Include="src\SslSocket.cpp" />
     <ClCompile Include="src\Stat.cpp" />
     <ClCompile Include="src\Stats.cpp" />
