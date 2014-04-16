@@ -11,10 +11,19 @@ class ssl : module
     */
     static loadCert(Buffer DerCert);
 
-    /*! @brief 加载一个 PEM 格式的证书，可多次调用
+    /*! @brief 加载一个 CRT/PEM/TXT 格式的证书，可多次调用
+
+    loadCert 加载 mozilla 的 certdata,txt， 可于 http://mxr.mozilla.org/mozilla/source/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
      @param txtCert PEM 格式的证书
     */
     static loadCert(String txtCert);
+
+    /*! @brief 加载一个 CRT/PEM/DER/TXT 格式的证书，可多次调用
+
+    loadCertFile 加载 mozilla 的 certdata,txt， 可于 http://mxr.mozilla.org/mozilla/source/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
+     @param filename 证书文件名
+    */
+    static loadCertFile(String filename);
 
     /*! @brief 导出已经加载的证书
      @return 以数组方式导出证书链
@@ -29,6 +38,11 @@ class ssl : module
      @param pemCrl PEM 格式的撤销证书
     */
     static loadCrl(String pemCrl);
+
+    /*! @brief 加载一个 PEM 格式的撤销证书，可多次调用
+     @param filename 撤销证书文件名
+    */
+    static loadCrlFile(String filename);
 
     /*! @brief 导出已经加载的撤销证书
      @return 以数组方式导出撤销证书链

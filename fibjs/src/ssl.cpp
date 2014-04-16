@@ -6,6 +6,7 @@
  */
 
 #include "ifs/ssl.h"
+#include "ifs/fs.h"
 #include "SslSocket.h"
 #include <polarssl/pem.h>
 #include "parse.h"
@@ -23,7 +24,8 @@ result_t ssl_base::loadCert(Buffer_base *DerCert)
     std::string crt;
     DerCert->toString(crt);
 
-    ret = x509_crt_parse_der(&SslSocket::g_ssl.m_crt, (const unsigned char *)crt.c_str(), crt.length());
+    ret = x509_crt_parse_der(&SslSocket::g_ssl.m_crt, (const unsigned char *)crt.c_str(),
+                             crt.length());
     if (ret != 0)
         return Cipher::setError(ret);
 
@@ -36,7 +38,8 @@ result_t ssl_base::loadCert(const char *txtCert)
 
     if (qstrstr(txtCert, "BEGIN CERTIFICATE"))
     {
-        ret = x509_crt_parse(&SslSocket::g_ssl.m_crt, (const unsigned char *)txtCert, qstrlen(txtCert));
+        ret = x509_crt_parse(&SslSocket::g_ssl.m_crt, (const unsigned char *)txtCert,
+                             qstrlen(txtCert));
         if (ret != 0)
             return Cipher::setError(ret);
 
@@ -151,6 +154,28 @@ result_t ssl_base::loadCert(const char *txtCert)
     return 0;
 }
 
+result_t ssl_base::loadCertFile(const char *filename)
+{
+    result_t hr;
+    std::string data;
+    int ret;
+
+    hr = fs_base::ac_readFile(filename, data);
+    if (hr < 0)
+        return hr;
+
+    if (qstrstr(data.c_str(), "BEGIN CERTIFICATE") ||
+            qstrstr(data.c_str(), "CKO_CERTIFICATE"))
+        return loadCert(data.c_str());
+
+    ret = x509_crt_parse_der(&SslSocket::g_ssl.m_crt, (const unsigned char *)data.c_str(),
+                             data.length());
+    if (ret != 0)
+        return Cipher::setError(ret);
+
+    return 0;
+}
+
 #define PEM_BEGIN_CRT           "-----BEGIN CERTIFICATE-----\n"
 #define PEM_END_CRT             "-----END CERTIFICATE-----\n"
 
@@ -160,12 +185,11 @@ result_t ssl_base::exportCert(v8::Local<v8::Array> &retVal)
 
     const x509_crt *pCert = &SslSocket::g_ssl.m_crt;
     int ret, n = 0;
+    std::string buf;
+    size_t olen;
 
     while (pCert)
     {
-        std::string buf;
-        size_t olen;
-
         if (pCert->raw.len > 0)
         {
             buf.resize(pCert->raw.len * 2 + 64);
@@ -195,7 +219,26 @@ result_t ssl_base::loadCrl(const char *pemCrl)
 {
     int ret;
 
-    ret = x509_crl_parse(&SslSocket::g_ssl.m_crl, (const unsigned char *)pemCrl, qstrlen(pemCrl));
+    ret = x509_crl_parse(&SslSocket::g_ssl.m_crl, (const unsigned char *)pemCrl,
+                         qstrlen(pemCrl));
+    if (ret != 0)
+        return Cipher::setError(ret);
+
+    return 0;
+}
+
+result_t ssl_base::loadCrlFile(const char *filename)
+{
+    result_t hr;
+    std::string data;
+    int ret;
+
+    hr = fs_base::ac_readFile(filename, data);
+    if (hr < 0)
+        return hr;
+
+    ret = x509_crl_parse(&SslSocket::g_ssl.m_crl, (const unsigned char *)data.c_str(),
+                         data.length());
     if (ret != 0)
         return Cipher::setError(ret);
 
@@ -211,12 +254,11 @@ result_t ssl_base::exportCrl(v8::Local<v8::Array> &retVal)
 
     const x509_crl *pCrl = &SslSocket::g_ssl.m_crl;
     int ret, n = 0;
+    std::string buf;
+    size_t olen;
 
     while (pCrl)
     {
-        std::string buf;
-        size_t olen;
-
         if (pCrl->raw.len > 0)
         {
             buf.resize(pCrl->raw.len * 2 + 64);

@@ -25,12 +25,32 @@ describe('ssl', function() {
 		assert.deepEqual(ssl.exportCert(), s);
 	});
 
+	it("load x509 cert file", function() {
+		var s = ssl.exportCert();
+		ssl.clearCert();
+
+		var fl = fs.readdir('cert_files/');
+		fl.forEach(function(s) {
+			if (!s.isDirectory() && s.name.match(/\.crt/))
+				ssl.loadCertFile('cert_files/' + s.name);
+		});
+
+		assert.deepEqual(ssl.exportCert(), s);
+	});
+
 	it("certdata.txt", function() {
 		ssl.clearCert();
 		assert.deepEqual(ssl.exportCert(), []);
 
 		ssl.loadCert(fs.readFile('cert_files/certdata.txt'));
-		assert.notDeepEqual(ssl.exportCert(), []);
+		var s = ssl.exportCert();
+		assert.notDeepEqual(s, []);
+
+		ssl.clearCert();
+		assert.deepEqual(ssl.exportCert(), []);
+
+		ssl.loadCert(fs.readFile('cert_files/certdata.txt'));
+		assert.deepEqual(ssl.exportCert(), s);
 	});
 
 	it("unknown format", function() {
@@ -58,6 +78,20 @@ describe('ssl', function() {
 
 		assert.deepEqual(ssl.exportCrl(), s);
 	});
+
+	it("load x509 crl file", function() {
+		var s = ssl.exportCrl();
+		ssl.clearCrl();
+
+		var fl = fs.readdir('crl_files/');
+		fl.forEach(function(s) {
+			if (!s.isDirectory() && s.name.match(/\.pem/))
+				ssl.loadCrlFile('crl_files/' + s.name);
+		});
+
+		assert.deepEqual(ssl.exportCrl(), s);
+	});
+
 });
 
 //test.run(console.DEBUG);
