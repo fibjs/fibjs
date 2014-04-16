@@ -1,12 +1,24 @@
 /*! @brief 数据库访问模块 */
 class ssl : module
 {
-    /*! @brief 打开一个数据库，此方法为通用入口，根据提供的 connString 不同调用不同的引擎 */
-    static loadRsaKeys();
-
     static SslSocket new Socket();
 
     static SslSocket connect(Stream s) async;
     static SslSocket accept(Stream s) async;
+
+    /*! @brief 加载一个 DER 格式的证书，可多次调用
+     @param DerCrt DER 格式的证书
+    */
+    static loadCert(Buffer DerCrt);
+
+    /*! @brief 加载一个 PEM 格式的证书，可多次调用
+     @param pemCrt PEM 格式的证书
+    */
+    static loadCert(String pemCrt);
+
+    /*! @brief 加载一个 PEM 格式的撤销证书，可多次调用
+     @param pemCrl PEM 格式的撤销证书
+    */
+    static loadCrl(String pemCrl);
 
 };

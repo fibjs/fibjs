@@ -21,15 +21,55 @@ static class _ssl
 public:
     _ssl()
     {
+        x509_crt_init(&m_crt);
+        x509_crl_init(&m_crl);
         ssl_cache_init(&m_cache);
+    }
+
+    ~_ssl()
+    {
+        x509_crl_free(&m_crl);
+        x509_crt_free(&m_crt);
     }
 
 public:
     ssl_cache_context m_cache;
+    x509_crt m_crt;
+    x509_crl m_crl;
 } s_ssl;
 
-result_t ssl_base::loadRsaKeys()
+result_t ssl_base::loadCert(Buffer_base *DerCrt)
 {
+    int ret;
+
+    std::string crt;
+    DerCrt->toString(crt);
+
+    ret = x509_crt_parse_der(&s_ssl.m_crt, (const unsigned char *)crt.c_str(), crt.length());
+    if (ret != 0)
+        return Cipher::setError(ret);
+
+    return 0;
+}
+
+result_t ssl_base::loadCert(const char *pemCrt)
+{
+    int ret;
+
+    ret = x509_crt_parse(&s_ssl.m_crt, (const unsigned char *)pemCrt, qstrlen(pemCrt));
+    if (ret != 0)
+        return Cipher::setError(ret);
+
+    return 0;
+}
+
+result_t ssl_base::loadCrl(const char *pemCrl)
+{
+    int ret;
+
+    ret = x509_crl_parse(&s_ssl.m_crl, (const unsigned char *)pemCrl, qstrlen(pemCrl));
+    if (ret != 0)
+        return Cipher::setError(ret);
 
     return 0;
 }

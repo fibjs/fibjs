@@ -327,12 +327,6 @@
     <ClCompile Include="src\PKey.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\X509Crl.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\X509Cert.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -821,19 +815,7 @@
     <ClInclude Include="include\PKey.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\X509Crl.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\X509Cert.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
     <ClInclude Include="include\Cipher.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\X509Cert.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\X509Crl.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>

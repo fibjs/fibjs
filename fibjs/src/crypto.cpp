@@ -11,6 +11,8 @@
 #include <polarssl/config.h>
 #include <polarssl/havege.h>
 #include <polarssl/entropy.h>
+#include <polarssl/x509_crt.h>
+#include <polarssl/x509_crl.h>
 #include <time.h>
 
 namespace fibjs

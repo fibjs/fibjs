@@ -25,6 +25,7 @@ run("net_test.js");
 run("buffered_test.js");
 run("hash_test.js");
 run("crypto_test.js");
+run("ssl_test.js");
 run("url_test.js");
 run("http_test.js");
 run("mq_test.js");
