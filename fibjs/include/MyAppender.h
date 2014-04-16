@@ -181,12 +181,11 @@ protected:
     public:
         _outs()
         {
-            err.init(STD_ERROR_HANDLE);
             out.init(STD_OUTPUT_HANDLE);
         }
 
     public:
-        color_out err, out;
+        color_out out;
     };
 
     static _outs &get_outs()
@@ -214,7 +213,7 @@ protected:
     void _append(const log4cpp::LoggingEvent &event)
     {
         if (event.priority < log4cpp::Priority::NOTICE)
-            m_outs.err.outline(COLOR_RED + event.message + COLOR_NORMAL);
+            m_outs.out.outline(COLOR_LIGHTRED + event.message + COLOR_RESET);
         else
             m_outs.out.outline(event.message);
     }
@@ -247,15 +246,11 @@ protected:
     void _append(const log4cpp::LoggingEvent &event)
     {
         if (event.priority < log4cpp::Priority::NOTICE)
-        {
-            std::cerr << COLOR_RED << event.message << COLOR_NORMAL << std::endl;
-            std::cerr.flush();
-        }
+            std::cout << COLOR_LIGHTRED << event.message << COLOR_RESET << std::endl;
         else
-        {
             std::cout << event.message << std::endl;
-            std::cout.flush();
-        }
+
+        std::cout.flush();
     }
 };
 

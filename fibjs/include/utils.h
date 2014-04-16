@@ -603,6 +603,14 @@ private:
 #define COLOR_NORMAL "\x1b[39m" /* Normal */
 #define COLOR_GREY "\x1B[90m" /* Grey */
 
+#define COLOR_LIGHTRED "\x1b[1;31m" /* Red */
+#define COLOR_LIGHTGREEN "\x1b[1;32m" /* Green */
+#define COLOR_LIGHTYELLOW "\x1b[1;33m" /* Yellow */
+#define COLOR_LIGHTBLUE "\x1b[1;34m" /* Blue */
+#define COLOR_LIGHTMAGENTA "\x1b[1;35m" /* Magenta */
+#define COLOR_LIGHTCYAN "\x1b[1;36m" /* Cyan */
+#define COLOR_LIGHTWHITE "\x1b[1;37m" /* White */
+
 void flushLog();
 
 }

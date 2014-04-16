@@ -215,18 +215,19 @@ public:
                     {
                         double n = d2.diff(d1);
 
-                        str.append(COLOR_GREEN "\xe2\x88\x9a " COLOR_NORMAL);
+                        str.append(COLOR_GREEN "\xe2\x88\x9a " COLOR_RESET);
                         str.append(p1->m_name);
                         if (n > s_slow / 2)
                         {
                             sprintf(buf, " (%dms) ", (int) n);
 
                             if (n > s_slow)
-                                str.append(COLOR_RED);
+                                str.append(COLOR_LIGHTRED);
                             else
                                 str.append(COLOR_YELLOW);
 
                             str.append(buf);
+                            str.append(COLOR_RESET);
                         }
                     }
                 }
@@ -276,13 +277,13 @@ public:
             da2.now();
 
             sprintf(buf,
-                    COLOR_GREEN "  \xe2\x88\x9a %d tests completed" COLOR_NORMAL " (%dms)",
+                    COLOR_GREEN "  \xe2\x88\x9a %d tests completed" COLOR_RESET " (%dms)",
                     cnt, (int) da2.diff(da1));
             asyncLog(log4cpp::Priority::INFO, buf);
         }
         else
         {
-            sprintf(buf, COLOR_RED "  × %d of %d tests failed" COLOR_NORMAL,
+            sprintf(buf, COLOR_LIGHTRED "  × %d of %d tests failed" COLOR_RESET,
                     errcnt, cnt);
             asyncLog(log4cpp::Priority::ERROR, buf);
         }
