@@ -40,7 +40,7 @@ public:
 	static result_t get_loglevel(int32_t& retVal);
 	static result_t set_loglevel(int32_t newVal);
 	static result_t get_colors(obj_ptr<TextColor_base>& retVal);
-	static result_t log(const char* fmtprint, const v8::FunctionCallbackInfo<v8::Value>& args);
+	static result_t log(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t info(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t notice(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t warn(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);

@@ -45,6 +45,8 @@ class console : module
      */
     static Integer loglevel;
 
+    /*! @brief 终端输出颜色配置对象，详见 TextColor
+     */
     static readonly TextColor colors;
 
     /*! @brief 记录普通日志信息，与 info 等同
@@ -53,7 +55,7 @@ class console : module
      @param fmt 格式化字符串
      @param ... 可选参数列表
      */
-    static log(String fmtprint = "", ...);
+    static log(String fmt = "", ...);
 
     /*! @brief 记录普通日志信息，与 log 等同
 

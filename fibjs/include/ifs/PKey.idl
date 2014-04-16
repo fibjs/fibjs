@@ -43,7 +43,7 @@ class PKey: object
     PKey clone();
 
     /*! @brief 加载一个 DER 格式的密钥
-     @param pemKey DER 格式的密钥
+     @param DerKey DER 格式的密钥
      @param password 解密密码
     */
     importKey(Buffer DerKey, String password = "");
