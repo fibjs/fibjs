@@ -25,16 +25,11 @@ v8::Isolate *isolate;
 v8::Persistent<v8::Context> s_context;
 exlib::Service *g_pService;
 
-log4cpp::Appender *my_get_console(const std::string &appenderName)
-{
-    return new MyAppender();
-}
-
 void init_argv(int argc, char **argv);
 
 void _main(const char *fname)
 {
-    set_ConsoleGetter(my_get_console);
+    log4cpp::set_ConsoleGetter(MyAppender::getter);
 
     try
     {
@@ -43,7 +38,7 @@ void _main(const char *fname)
     catch (log4cpp::ConfigureFailure e)
     {
         log4cpp::Category &root = log4cpp::Category::getRoot();
-        root.addAppender(new MyAppender());
+        root.addAppender(MyAppender::getter());
         //      root.warn(e.what());
     }
 

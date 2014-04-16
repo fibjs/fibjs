@@ -62,6 +62,12 @@ result_t console_base::set_loglevel(int32_t newVal)
     return 0;
 }
 
+result_t console_base::get_colors(obj_ptr<TextColor_base> &retVal)
+{
+    retVal = MyAppender::getter()->m_colors;
+    return 0;
+}
+
 std::string Format(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args, int idx = 1)
 {
     const char *s = fmt;
@@ -136,6 +142,12 @@ result_t console_base::log(const char *fmt, const v8::FunctionCallbackInfo<v8::V
 result_t console_base::info(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     asyncLog(log4cpp::Priority::INFO, Format(fmt, args));
+    return 0;
+}
+
+result_t console_base::notice(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    asyncLog(log4cpp::Priority::NOTICE, Format(fmt, args));
     return 0;
 }
 
@@ -304,10 +316,8 @@ result_t console_base::assert(v8::Local<v8::Value> value, const char *msg)
 
 result_t console_base::print(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    MyAppender ma;
-
     flushLog();
-    ma.out(Format(fmt, args).c_str());
+    MyAppender::getter()->out(Format(fmt, args).c_str());
 
     return 0;
 }
@@ -322,9 +332,7 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
     }
 
 #ifdef _WIN32
-    MyAppender ma;
-
-    ma.out(msg);
+    MyAppender::getter()->out(msg);
     std::getline(std::cin, retVal);
 #else
     char *line;

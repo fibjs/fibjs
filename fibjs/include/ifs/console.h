@@ -18,6 +18,7 @@ namespace fibjs
 {
 
 class module_base;
+class TextColor_base;
 
 class console_base : public module_base
 {
@@ -38,8 +39,10 @@ public:
 	// console_base
 	static result_t get_loglevel(int32_t& retVal);
 	static result_t set_loglevel(int32_t newVal);
+	static result_t get_colors(obj_ptr<TextColor_base>& retVal);
 	static result_t log(const char* fmtprint, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t info(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+	static result_t notice(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t warn(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t error(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t dir(v8::Local<v8::Object> obj);
@@ -64,8 +67,10 @@ public:
 	static void s_get_NOTSET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_loglevel(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_loglevel(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_colors(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_log(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_info(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_notice(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_warn(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_error(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_dir(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -82,6 +87,7 @@ public:
 
 }
 
+#include "TextColor.h"
 
 namespace fibjs
 {
@@ -91,6 +97,7 @@ namespace fibjs
 		{
 			{"log", s_log, true},
 			{"info", s_info, true},
+			{"notice", s_notice, true},
 			{"warn", s_warn, true},
 			{"error", s_error, true},
 			{"dir", s_dir, true},
@@ -113,13 +120,14 @@ namespace fibjs
 			{"INFO", s_get_INFO, block_set, true},
 			{"DEBUG", s_get_DEBUG, block_set, true},
 			{"NOTSET", s_get_NOTSET, block_set, true},
-			{"loglevel", s_get_loglevel, s_set_loglevel}
+			{"loglevel", s_get_loglevel, s_set_loglevel},
+			{"colors", s_get_colors, block_set, true}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"console", NULL, 
-			11, s_method, 0, NULL, 10, s_property, NULL, NULL,
+			12, s_method, 0, NULL, 11, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -211,6 +219,17 @@ namespace fibjs
 		PROPERTY_SET_LEAVE();
 	}
 
+	inline void console_base::s_get_colors(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		obj_ptr<TextColor_base> vr;
+
+		PROPERTY_ENTER();
+
+		hr = get_colors(vr);
+
+		METHOD_RETURN();
+	}
+
 	inline void console_base::s_log(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(-1, 0);
@@ -229,6 +248,17 @@ namespace fibjs
 		OPT_ARG_String(0, "");
 
 		hr = info(v0, args);
+
+		METHOD_VOID();
+	}
+
+	inline void console_base::s_notice(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_ENTER(-1, 0);
+
+		OPT_ARG_String(0, "");
+
+		hr = notice(v0, args);
 
 		METHOD_VOID();
 	}

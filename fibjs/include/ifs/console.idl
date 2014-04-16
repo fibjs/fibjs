@@ -45,6 +45,8 @@ class console : module
      */
     static Integer loglevel;
 
+    static readonly TextColor colors;
+
     /*! @brief 记录普通日志信息，与 info 等同
 
      记录一般等级的日志信息。通常用于输出非错误性提示信息。
@@ -63,7 +65,15 @@ class console : module
 
     /*! @brief 记录警告日志信息
 
-     记录警告日志信息。通常用于输出非错误性调试信息。重要。
+     记录警告日志信息。通常用于输出提示性调试信息。一般重要。
+     @param fmt 格式化字符串
+     @param ... 可选参数列表
+     */
+    static notice(String fmt = "", ...);
+
+    /*! @brief 记录警告日志信息
+
+     记录警告日志信息。通常用于输出警告性调试信息。重要。
      @param fmt 格式化字符串
      @param ... 可选参数列表
      */

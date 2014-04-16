@@ -11,13 +11,29 @@
 #include <log4cpp/ConsoleAppender.hh>
 #include "utils.h"
 #include "utf8.h"
+#include "TextColor.h"
 
 namespace fibjs
 {
-#ifdef _WIN32
-
 class MyAppender: public log4cpp::LayoutAppender
 {
+public:
+    MyAppender() :
+        LayoutAppender("console")
+    {
+        m_colors = new TextColor();
+        m_colors->m_error = COLOR_LIGHTRED;
+        m_colors->m_warn = COLOR_YELLOW;
+        m_colors->m_notice = COLOR_GREEN;
+        m_colors->m_highLight = COLOR_TITLE;
+    }
+
+    virtual void close()
+    {
+    }
+
+#ifdef _WIN32
+
 protected:
     class color_out
     {
@@ -188,22 +204,7 @@ protected:
         color_out out;
     };
 
-    static _outs &get_outs()
-    {
-        static _outs s_outs;
-        return s_outs;
-    }
-
 public:
-    MyAppender() :
-        LayoutAppender("console"), m_outs(get_outs())
-    {
-    }
-
-    virtual void close()
-    {
-    }
-
     void out(const char *txt)
     {
         m_outs.out.out(txt);
@@ -212,30 +213,22 @@ public:
 protected:
     void _append(const log4cpp::LoggingEvent &event)
     {
-        if (event.priority < log4cpp::Priority::NOTICE)
-            m_outs.out.outline(COLOR_LIGHTRED + event.message + COLOR_RESET);
+        if (event.priority == log4cpp::Priority::NOTICE)
+            m_outs.out.outline(m_colors->m_notice + event.message + COLOR_RESET);
+        else if (event.priority == log4cpp::Priority::WARN)
+            m_outs.out.outline(m_colors->m_warn + event.message + COLOR_RESET);
+        else if (event.priority <= log4cpp::Priority::ERROR)
+            m_outs.out.outline(m_colors->m_error + event.message + COLOR_RESET);
         else
             m_outs.out.outline(event.message);
     }
 
 private:
-    _outs &m_outs;
-};
+    _outs m_outs;
 
 #else
 
-class MyAppender: public log4cpp::LayoutAppender
-{
 public:
-    MyAppender() :
-        LayoutAppender("console")
-    {
-    }
-
-    virtual void close()
-    {
-    }
-
     void out(const char *txt)
     {
         std::cout << txt;
@@ -245,16 +238,56 @@ public:
 protected:
     void _append(const log4cpp::LoggingEvent &event)
     {
-        if (event.priority < log4cpp::Priority::NOTICE)
-            std::cout << COLOR_LIGHTRED << event.message << COLOR_RESET << std::endl;
+        if (event.priority == log4cpp::Priority::NOTICE)
+            std::cout << m_colors->m_notice << event.message << COLOR_RESET << std::endl;
+        else if (event.priority == log4cpp::Priority::WARN)
+            std::cout << m_colors->m_warn << event.message << COLOR_RESET << std::endl;
+        else if (event.priority <= log4cpp::Priority::ERROR)
+            std::cout << m_colors->m_error << event.message << COLOR_RESET << std::endl;
         else
             std::cout << event.message << std::endl;
 
         std::cout.flush();
     }
-};
-
 #endif
+
+public:
+    static MyAppender *getter()
+    {
+        static MyAppender *s_ma = NULL;
+        if (!s_ma)
+            s_ma = new MyAppender();
+        return s_ma;
+    }
+
+    static log4cpp::Appender *getter(const std::string &appenderName)
+    {
+        return getter();
+    }
+
+    static std::string &notice()
+    {
+        return getter()->m_colors->m_notice;
+    }
+
+    static std::string &warn()
+    {
+        return getter()->m_colors->m_warn;
+    }
+
+    static std::string &error()
+    {
+        return getter()->m_colors->m_error;
+    }
+
+    static std::string &highLight()
+    {
+        return getter()->m_colors->m_highLight;
+    }
+
+public:
+    obj_ptr<TextColor> m_colors;
+};
 
 }
 
