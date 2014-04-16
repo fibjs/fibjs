@@ -71,10 +71,17 @@ result_t SandBox::repl()
     {
         if (!v.IsEmpty() && !v->IsUndefined())
         {
-            v8::String::Utf8Value s(v);
+            if (v->IsObject() && !v->IsNumberObject() &&
+                    !v->IsStringObject() && !v->IsBooleanObject() &&
+                    !v->IsFunction())
+                console_base::dir(v->ToObject());
+            else
+            {
+                v8::String::Utf8Value s(v);
 
-            if (*s)
-                asyncLog(log4cpp::Priority::INFO, *s);
+                if (*s)
+                    asyncLog(log4cpp::Priority::INFO, *s);
+            }
 
             v = v1;
         }
