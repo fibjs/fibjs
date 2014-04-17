@@ -245,6 +245,102 @@ describe('crypto', function() {
 		});
 
 	});
+
+	describe("X509 Cert", function() {
+		var cert = new crypto.X509Cert();
+
+		it("load", function() {
+			var fl = fs.readdir('cert_files/');
+			fl.forEach(function(s) {
+				if (!s.isDirectory() && s.name.match(/\.crt/))
+					cert.load(fs.readFile('cert_files/' + s.name));
+			});
+		});
+
+		it("clear/export", function() {
+			var s = cert.dump();
+			cert.clear();
+			assert.deepEqual(cert.dump(), []);
+
+			s.forEach(function(c) {
+				cert.load(c);
+			});
+
+			assert.deepEqual(cert.dump(), s);
+		});
+
+		it("load file", function() {
+			var s = cert.dump();
+			cert.clear();
+
+			var fl = fs.readdir('cert_files/');
+			fl.forEach(function(s) {
+				if (!s.isDirectory() && s.name.match(/\.crt/))
+					cert.loadFile('cert_files/' + s.name);
+			});
+
+			assert.deepEqual(cert.dump(), s);
+		});
+
+		it("certdata.txt", function() {
+			cert.clear();
+			assert.deepEqual(cert.dump(), []);
+
+			cert.load(fs.readFile('cert_files/certdata.txt'));
+			var s = cert.dump();
+			assert.notDeepEqual(s, []);
+
+			cert.clear();
+			assert.deepEqual(cert.dump(), []);
+
+			cert.load(fs.readFile('cert_files/certdata.txt'));
+			assert.deepEqual(cert.dump(), s);
+		});
+
+		it("unknown format", function() {
+			assert.throws(function() {
+				cert.load('cert_files/certdata.txt');
+			});
+		});
+	});
+
+	describe("X509 Crl", function() {
+		var crl = new crypto.X509Crl();
+
+		it("load", function() {
+			var fl = fs.readdir('crl_files/');
+			fl.forEach(function(s) {
+				if (!s.isDirectory() && s.name.match(/\.pem/))
+					crl.load(fs.readFile('crl_files/' + s.name));
+			});
+		});
+
+		it("clear/export", function() {
+			var s = crl.dump();
+			crl.clear();
+			assert.deepEqual(crl.dump(), []);
+
+			s.forEach(function(c) {
+				crl.load(c);
+			});
+
+			assert.deepEqual(crl.dump(), s);
+		});
+
+		it("load x509 crl file", function() {
+			var s = crl.dump();
+			crl.clear();
+
+			var fl = fs.readdir('crl_files/');
+			fl.forEach(function(s) {
+				if (!s.isDirectory() && s.name.match(/\.pem/))
+					crl.loadFile('crl_files/' + s.name);
+			});
+
+			assert.deepEqual(crl.dump(), s);
+		});
+
+	});
 });
 
 //test.run(console.DEBUG);

@@ -74,6 +74,12 @@ class crypto : module
     /*! @brief PKey 构造函数，参见 PKey */
     static PKey new PKey();
 
+    /*! @brief X509Cert 构造函数，参见 X509Cert */
+    static X509Cert new X509Cert();
+
+    /*! @brief X509Crl 构造函数，参见 X509Crl */
+    static X509Crl new X509Crl();
+
 	/*! @brief 生成指定尺寸的随机数，使用 havege 生成器
 	 @param size 指定生成的随机数尺寸
 	 @return 返回生成的随机数

@@ -1,0 +1,41 @@
+
+/*! @brief x509 证书对象
+
+ X509Cert 对象属于 crypto 模块，创建：
+ @code
+ var k = new crypto.X509Cert();
+ @endcode
+ */
+class X509Cert: object
+{
+    /*! @brief X509Cert 构造函数 */
+    X509Cert();
+
+    /*! @brief 加载一个 DER 格式的证书，可多次调用
+     @param DerCert DER 格式的证书
+    */
+    load(Buffer DerCert);
+
+    /*! @brief 加载一个 CRT/PEM/TXT 格式的证书，可多次调用
+
+    load 加载 mozilla 的 certdata,txt， 可于 http://mxr.mozilla.org/mozilla/source/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
+     @param txtCert PEM 格式的证书
+    */
+    load(String txtCert);
+
+    /*! @brief 加载一个 CRT/PEM/DER/TXT 格式的证书，可多次调用
+
+    loadFile 加载 mozilla 的 certdata,txt， 可于 http://mxr.mozilla.org/mozilla/source/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
+     @param filename 证书文件名
+    */
+    loadFile(String filename);
+
+    /*! @brief 导出已经加载的证书
+     @return 以数组方式导出证书链
+    */
+    Array dump();
+
+    /*! @brief 清空已经加载的证书
+    */
+    clear();
+};
