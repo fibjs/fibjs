@@ -45,6 +45,8 @@ public:
         d = exlib::FastCurrentMillis();
     }
 
+    void create(int Y, int M, int D, int h, int m, int s, int ms);
+
     date_t &operator=(double v)
     {
         d = v;

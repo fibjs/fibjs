@@ -228,6 +228,36 @@ int inline checkmask(const char *data, int len, const char *mask)
     return mask[i] == '*';
 }
 
+void date_t::create(int Y, int M, int D, int h, int m, int s, int ms)
+{
+    if (M < 1 || D < 1)
+    {
+        d = NAN;
+        return;
+    }
+
+    M --;
+    D --;
+
+    if (M > 11 || D > MaxDaysInMonth(Y, M) - 1)
+    {
+        d = NAN;
+        return;
+    }
+
+    unsigned int ElapsedDays = ElapsedYearsToDays(Y - 1);
+
+    if (IsLeapYear(Y))
+        ElapsedDays += LeapYearDaysPrecedingMonth[M];
+    else
+        ElapsedDays += NormalYearDaysPrecedingMonth[M];
+
+    ElapsedDays += D;
+
+    d = ElapsedDays * 86400000.0
+        + ((h * 60 + m) * 60 + s) * 1000 + ms - 62135596800000.0;
+}
+
 void date_t::parse(const char *str, int len)
 {
     int wYear = 0, wMonth = 0, wDay = 0, wHour = 0, wMinute = 0, wSecond = 0,
@@ -453,24 +483,7 @@ void date_t::parse(const char *str, int len)
         }
     }
 
-    if (wMonth > 11 || wDay > MaxDaysInMonth(wYear, wMonth) - 1)
-    {
-        d = NAN;
-        return;
-    }
-
-    unsigned int ElapsedDays = ElapsedYearsToDays(wYear - 1);
-
-    if (IsLeapYear(wYear))
-        ElapsedDays += LeapYearDaysPrecedingMonth[wMonth];
-    else
-        ElapsedDays += NormalYearDaysPrecedingMonth[wMonth];
-
-    ElapsedDays += wDay;
-
-    d = ElapsedDays * 86400000.0
-        + ((wHour * 60 + wMinute) * 60 + wSecond) * 1000 + wMicroSecond
-        - 62135596800000.0;
+    create(wYear, wMonth + 1, wDay + 1, wHour, wMinute, wSecond, wMicroSecond);
 
     if (bLocal)
         d = (double) Runtime::now().m_pDateCache->ToUTC((int64_t) d);
