@@ -8,11 +8,7 @@
 #include "ifs/crypto.h"
 #include "Cipher.h"
 #include "Buffer.h"
-#include <polarssl/config.h>
-#include <polarssl/havege.h>
-#include <polarssl/entropy.h>
-#include <polarssl/x509_crt.h>
-#include <polarssl/x509_crl.h>
+#include "ssl.h"
 #include <time.h>
 
 namespace fibjs
@@ -40,7 +36,7 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
     {
         ret = havege_random(&hs, buf, sizeof(buf));
         if (ret != 0)
-            return Cipher::setError(ret);
+            return _ssl::setError(ret);
 
         memcpy(&strBuf[i], buf, size - i > sizeof(buf) ? sizeof(buf) : size - i);
     }
@@ -74,7 +70,7 @@ result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base> &retV
         if (ret != 0)
         {
             entropy_free(&entropy);
-            return Cipher::setError(ret);
+            return _ssl::setError(ret);
         }
 
         memcpy(&strBuf[i], buf, size - i > sizeof(buf) ? sizeof(buf) : size - i);

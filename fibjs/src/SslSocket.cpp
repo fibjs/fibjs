@@ -18,22 +18,13 @@ result_t SslSocket_base::_new(obj_ptr<SslSocket_base> &retVal)
 
 SslSocket::SslSocket()
 {
-    const char *pers = "fibjs";
-
     ssl_init(&m_ssl);
-    entropy_init(&m_entropy);
-    ctr_drbg_init( &m_ctr_drbg, entropy_func, &m_entropy,
-                   (const unsigned char *) pers,
-                   strlen(pers));
-
     m_recv_pos = 0;
 }
 
 SslSocket::~SslSocket()
 {
     ssl_free(&m_ssl);
-    entropy_free(&m_entropy);
-
     memset(&m_ssl, 0, sizeof(m_ssl));
 }
 
@@ -203,7 +194,7 @@ result_t SslSocket::connect(Stream_base *s, exlib::AsyncEvent *ac)
     m_s = s;
 
     ssl_set_endpoint(&m_ssl, SSL_IS_CLIENT);
-    ssl_set_rng(&m_ssl, ctr_drbg_random, &m_ctr_drbg);
+    ssl_set_rng(&m_ssl, ctr_drbg_random, &g_ssl.ctr_drbg);
     ssl_set_bio(&m_ssl, my_recv, this, my_send, this);
 
     return (new asyncConnect(this, ac))->post(0);

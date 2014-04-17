@@ -31,9 +31,6 @@ public:
     virtual result_t decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
 
 public:
-    static result_t setError(int ret);
-
-public:
     result_t init(std::string &key, std::string &iv);
 
 private:

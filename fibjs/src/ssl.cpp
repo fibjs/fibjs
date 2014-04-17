@@ -9,13 +9,23 @@
 #include "ifs/fs.h"
 #include "SslSocket.h"
 #include <polarssl/pem.h>
+#include "polarssl/error.h"
 #include "parse.h"
 #include <map>
 
 namespace fibjs
 {
 
-SslSocket::_ssl SslSocket::g_ssl;
+_ssl g_ssl;
+
+result_t _ssl::setError(int ret)
+{
+    char msg[128];
+
+    polarssl_strerror(ret, msg, sizeof(msg));
+    return Runtime::setError(msg);
+}
+
 
 result_t ssl_base::loadCert(Buffer_base *DerCert)
 {
@@ -24,10 +34,10 @@ result_t ssl_base::loadCert(Buffer_base *DerCert)
     std::string crt;
     DerCert->toString(crt);
 
-    ret = x509_crt_parse_der(&SslSocket::g_ssl.m_crt, (const unsigned char *)crt.c_str(),
+    ret = x509_crt_parse_der(&g_ssl.m_crt, (const unsigned char *)crt.c_str(),
                              crt.length());
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     return 0;
 }
@@ -38,10 +48,10 @@ result_t ssl_base::loadCert(const char *txtCert)
 
     if (qstrstr(txtCert, "BEGIN CERTIFICATE"))
     {
-        ret = x509_crt_parse(&SslSocket::g_ssl.m_crt, (const unsigned char *)txtCert,
+        ret = x509_crt_parse(&g_ssl.m_crt, (const unsigned char *)txtCert,
                              qstrlen(txtCert));
         if (ret != 0)
-            return Cipher::setError(ret);
+            return _ssl::setError(ret);
 
         return 0;
     }
@@ -138,18 +148,18 @@ result_t ssl_base::loadCert(const char *txtCert)
 
         if (!cka_value.empty())
         {
-            ret = x509_crt_parse_der(&SslSocket::g_ssl.m_crt,
+            ret = x509_crt_parse_der(&g_ssl.m_crt,
                                      (const unsigned char *)cka_value.c_str(),
                                      cka_value.length());
             if (ret != 0)
-                return Cipher::setError(ret);
+                return _ssl::setError(ret);
 
             is_loaded = true;
         }
     }
 
     if (!is_loaded)
-        return Cipher::setError(POLARSSL_ERR_X509_INVALID_FORMAT);
+        return _ssl::setError(POLARSSL_ERR_X509_INVALID_FORMAT);
 
     return 0;
 }
@@ -168,10 +178,10 @@ result_t ssl_base::loadCertFile(const char *filename)
             qstrstr(data.c_str(), "CKO_CERTIFICATE"))
         return loadCert(data.c_str());
 
-    ret = x509_crt_parse_der(&SslSocket::g_ssl.m_crt, (const unsigned char *)data.c_str(),
+    ret = x509_crt_parse_der(&g_ssl.m_crt, (const unsigned char *)data.c_str(),
                              data.length());
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     return 0;
 }
@@ -183,7 +193,7 @@ result_t ssl_base::exportCert(v8::Local<v8::Array> &retVal)
 {
     retVal = v8::Array::New(isolate);
 
-    const x509_crt *pCert = &SslSocket::g_ssl.m_crt;
+    const x509_crt *pCert = &g_ssl.m_crt;
     int ret, n = 0;
     std::string buf;
     size_t olen;
@@ -197,7 +207,7 @@ result_t ssl_base::exportCert(v8::Local<v8::Array> &retVal)
                                    pCert->raw.p, pCert->raw.len,
                                    (unsigned char *)&buf[0], buf.length(), &olen);
             if (ret != 0)
-                return Cipher::setError(ret);
+                return _ssl::setError(ret);
 
             retVal->Set(n ++, v8::String::NewFromUtf8(isolate, buf.c_str(),
                         v8::String::kNormalString, (int) olen - 1));
@@ -210,8 +220,8 @@ result_t ssl_base::exportCert(v8::Local<v8::Array> &retVal)
 
 result_t ssl_base::clearCert()
 {
-    x509_crt_free(&SslSocket::g_ssl.m_crt);
-    x509_crt_init(&SslSocket::g_ssl.m_crt);
+    x509_crt_free(&g_ssl.m_crt);
+    x509_crt_init(&g_ssl.m_crt);
     return 0;
 }
 
@@ -219,10 +229,10 @@ result_t ssl_base::loadCrl(const char *pemCrl)
 {
     int ret;
 
-    ret = x509_crl_parse(&SslSocket::g_ssl.m_crl, (const unsigned char *)pemCrl,
+    ret = x509_crl_parse(&g_ssl.m_crl, (const unsigned char *)pemCrl,
                          qstrlen(pemCrl));
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     return 0;
 }
@@ -237,10 +247,10 @@ result_t ssl_base::loadCrlFile(const char *filename)
     if (hr < 0)
         return hr;
 
-    ret = x509_crl_parse(&SslSocket::g_ssl.m_crl, (const unsigned char *)data.c_str(),
+    ret = x509_crl_parse(&g_ssl.m_crl, (const unsigned char *)data.c_str(),
                          data.length());
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     return 0;
 }
@@ -252,7 +262,7 @@ result_t ssl_base::exportCrl(v8::Local<v8::Array> &retVal)
 {
     retVal = v8::Array::New(isolate);
 
-    const x509_crl *pCrl = &SslSocket::g_ssl.m_crl;
+    const x509_crl *pCrl = &g_ssl.m_crl;
     int ret, n = 0;
     std::string buf;
     size_t olen;
@@ -266,7 +276,7 @@ result_t ssl_base::exportCrl(v8::Local<v8::Array> &retVal)
                                    pCrl->raw.p, pCrl->raw.len,
                                    (unsigned char *)&buf[0], buf.length(), &olen);
             if (ret != 0)
-                return Cipher::setError(ret);
+                return _ssl::setError(ret);
 
             retVal->Set(n ++, v8::String::NewFromUtf8(isolate, buf.c_str(),
                         v8::String::kNormalString, (int) olen - 1));
@@ -279,8 +289,8 @@ result_t ssl_base::exportCrl(v8::Local<v8::Array> &retVal)
 
 result_t ssl_base::clearCrl()
 {
-    x509_crl_free(&SslSocket::g_ssl.m_crl);
-    x509_crl_init(&SslSocket::g_ssl.m_crl);
+    x509_crl_free(&g_ssl.m_crl);
+    x509_crl_init(&g_ssl.m_crl);
     return 0;
 }
 

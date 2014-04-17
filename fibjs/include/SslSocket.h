@@ -5,14 +5,11 @@
  *      Author: lion
  */
 
+#include "ssl.h"
 #include "ifs/SslSocket.h"
 #include "Buffer.h"
 #include "Cipher.h"
-#include "polarssl/config.h"
-#include "polarssl/ssl.h"
-#include "polarssl/entropy.h"
-#include "polarssl/ctr_drbg.h"
-#include "polarssl/ssl_cache.h"
+#include "ssl.h"
 
 #ifndef SSLSOCKET_H_
 #define SSLSOCKET_H_
@@ -22,32 +19,6 @@ namespace fibjs
 
 class SslSocket: public SslSocket_base
 {
-public:
-    class _ssl
-    {
-    public:
-        _ssl()
-        {
-            x509_crt_init(&m_crt);
-            x509_crl_init(&m_crl);
-            ssl_cache_init(&m_cache);
-        }
-
-        ~_ssl()
-        {
-            x509_crl_free(&m_crl);
-            x509_crt_free(&m_crt);
-            ssl_cache_free(&m_cache);
-        }
-
-    public:
-        ssl_cache_context m_cache;
-        x509_crt m_crt;
-        x509_crl m_crl;
-    };
-
-    static _ssl g_ssl;
-
 private:
     class asyncSsl: public asyncState
     {
@@ -97,7 +68,7 @@ private:
                     pThis->m_ret == POLARSSL_ERR_NET_WANT_WRITE)
                 return 0;
 
-            return Cipher::setError(pThis->m_ret);
+            return _ssl::setError(pThis->m_ret);
         }
 
         static int send(asyncState *pState, int n)
@@ -183,8 +154,6 @@ public:
     ssl_context m_ssl;
 
 private:
-    entropy_context m_entropy;
-    ctr_drbg_context m_ctr_drbg;
     obj_ptr<Stream_base> m_s;
     std::string m_recv;
     int m_recv_pos;

@@ -830,6 +830,9 @@
     <ClInclude Include="include\TextColor.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
+    <ClInclude Include="include\ssl.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl">

@@ -8,7 +8,7 @@
 #include "ifs/crypto.h"
 #include "Cipher.h"
 #include "Buffer.h"
-#include "polarssl/error.h"
+#include "ssl.h"
 
 namespace fibjs
 {
@@ -211,7 +211,7 @@ result_t Cipher::paddingMode(int32_t mode)
 {
     int ret = cipher_set_padding_mode(&m_ctx, (cipher_padding_t)mode);
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     return 0;
 }
@@ -224,11 +224,11 @@ result_t Cipher::process(const operation_t operation, Buffer_base *data,
     ret = cipher_setkey(&m_ctx, (unsigned char *)m_key.c_str(), (int)m_key.length() * 8,
                         operation);
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     ret = cipher_reset(&m_ctx);
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     std::string input;
     std::string output;
@@ -249,7 +249,7 @@ result_t Cipher::process(const operation_t operation, Buffer_base *data,
         if (ret != 0)
         {
             reset();
-            return Cipher::setError(ret);
+            return _ssl::setError(ret);
         }
 
         output.append((const char *)buffer, olen);
@@ -259,7 +259,7 @@ result_t Cipher::process(const operation_t operation, Buffer_base *data,
     reset();
 
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     output.append((const char *)buffer, olen);
     retVal = new Buffer(output);
@@ -283,14 +283,6 @@ result_t Cipher::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
         return CALL_E_NOSYNC;
 
     return process(POLARSSL_DECRYPT, data, retVal);
-}
-
-result_t Cipher::setError(int ret)
-{
-    char msg[128];
-
-    polarssl_strerror(ret, msg, sizeof(msg));
-    return Runtime::setError(msg);
 }
 
 }

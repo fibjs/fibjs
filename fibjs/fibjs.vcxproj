@@ -281,6 +281,7 @@
     <ClInclude Include="include\Socket.h" />
     <ClInclude Include="include\Socket_api.h" />
     <ClInclude Include="include\SQLite.h" />
+    <ClInclude Include="include\ssl.h" />
     <ClInclude Include="include\SslSocket.h" />
     <ClInclude Include="include\Stat.h" />
     <ClInclude Include="include\Stats.h" />

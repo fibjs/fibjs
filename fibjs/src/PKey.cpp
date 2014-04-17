@@ -9,11 +9,7 @@
 #include "PKey.h"
 #include "Cipher.h"
 #include "Buffer.h"
-#include "polarssl/ecdsa.h"
-#include "polarssl/rsa.h"
-#include "polarssl/entropy.h"
-#include "polarssl/ctr_drbg.h"
-#include "polarssl/ssl.h"
+#include "ssl.h"
 
 namespace fibjs
 {
@@ -40,26 +36,6 @@ void PKey::clear()
         pk_free(&m_key);
 }
 
-class _entropy
-{
-public:
-    _entropy()
-    {
-        entropy_init(&entropy);
-        ctr_drbg_init(&ctr_drbg, entropy_func, &entropy,
-                      (const unsigned char *) "fibjs", 5);
-    }
-
-    ~_entropy()
-    {
-        entropy_free(&entropy);
-    }
-
-public:
-    entropy_context entropy;
-    ctr_drbg_context ctr_drbg;
-};
-
 result_t PKey::genRsaKey(int32_t size, exlib::AsyncEvent *ac)
 {
     if (size < 128 || size > 8192)
@@ -68,20 +44,19 @@ result_t PKey::genRsaKey(int32_t size, exlib::AsyncEvent *ac)
     if (!ac)
         return CALL_E_NOSYNC;
 
-    _entropy entropy;
     int ret;
 
     clear();
 
     ret = pk_init_ctx(&m_key, pk_info_from_type(POLARSSL_PK_RSA));
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
-    ret = rsa_gen_key(pk_rsa(m_key), ctr_drbg_random, &entropy.ctr_drbg,
+    ret = rsa_gen_key(pk_rsa(m_key), ctr_drbg_random, &g_ssl.ctr_drbg,
                       size, 65537);
 
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     return 0;
 }
@@ -96,20 +71,19 @@ result_t PKey::genEcKey(const char *curve, exlib::AsyncEvent *ac)
     if (curve_info == NULL)
         return Runtime::setError("Unknown curve");
 
-    _entropy entropy;
     int ret;
 
     clear();
 
     ret = pk_init_ctx(&m_key, pk_info_from_type(POLARSSL_PK_ECKEY));
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     ret = ecp_gen_key(curve_info->grp_id, pk_ec(m_key),
-                      ctr_drbg_random, &entropy.ctr_drbg);
+                      ctr_drbg_random, &g_ssl.ctr_drbg);
 
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     return 0;
 }
@@ -146,7 +120,7 @@ result_t PKey::publicKey(obj_ptr<PKey_base> &retVal)
 
         ret = pk_init_ctx(&pk1->m_key, pk_info_from_type(POLARSSL_PK_RSA));
         if (ret != 0)
-            return Cipher::setError(ret);
+            return _ssl::setError(ret);
 
         rsa_context *rsa1 = pk_rsa(pk1->m_key);
 
@@ -156,11 +130,11 @@ result_t PKey::publicKey(obj_ptr<PKey_base> &retVal)
 
         ret = mpi_copy(&rsa1->N, &rsa->N);
         if (ret != 0)
-            return Cipher::setError(ret);
+            return _ssl::setError(ret);
 
         ret = mpi_copy(&rsa1->E, &rsa->E);
         if (ret != 0)
-            return Cipher::setError(ret);
+            return _ssl::setError(ret);
 
         retVal = pk1;
 
@@ -175,17 +149,17 @@ result_t PKey::publicKey(obj_ptr<PKey_base> &retVal)
 
         ret = pk_init_ctx(&pk1->m_key, pk_info_from_type(POLARSSL_PK_ECKEY));
         if (ret != 0)
-            return Cipher::setError(ret);
+            return _ssl::setError(ret);
 
         ecp_keypair *ecp1 = pk_ec(pk1->m_key);
 
         ret = ecp_group_copy(&ecp1->grp, &ecp->grp);
         if (ret != 0)
-            return Cipher::setError(ret);
+            return _ssl::setError(ret);
 
         ret = ecp_copy(&ecp1->Q, &ecp->Q);
         if (ret != 0)
-            return Cipher::setError(ret);
+            return _ssl::setError(ret);
 
         retVal = pk1;
 
@@ -207,13 +181,13 @@ result_t PKey::clone(obj_ptr<PKey_base> &retVal)
 
         ret = pk_init_ctx(&pk1->m_key, pk_info_from_type(POLARSSL_PK_RSA));
         if (ret != 0)
-            return Cipher::setError(ret);
+            return _ssl::setError(ret);
 
         rsa_context *rsa1 = pk_rsa(pk1->m_key);
 
         ret = rsa_copy(rsa1, rsa);
         if (ret != 0)
-            return Cipher::setError(ret);
+            return _ssl::setError(ret);
 
         retVal = pk1;
 
@@ -228,21 +202,21 @@ result_t PKey::clone(obj_ptr<PKey_base> &retVal)
 
         ret = pk_init_ctx(&pk1->m_key, pk_info_from_type(POLARSSL_PK_ECKEY));
         if (ret != 0)
-            return Cipher::setError(ret);
+            return _ssl::setError(ret);
 
         ecp_keypair *ecp1 = pk_ec(pk1->m_key);
 
         ret = ecp_group_copy(&ecp1->grp, &ecp->grp);
         if (ret != 0)
-            return Cipher::setError(ret);
+            return _ssl::setError(ret);
 
         ret = mpi_copy(&ecp1->d, &ecp->d);
         if (ret != 0)
-            return Cipher::setError(ret);
+            return _ssl::setError(ret);
 
         ret = ecp_copy(&ecp1->Q, &ecp->Q);
         if (ret != 0)
-            return Cipher::setError(ret);
+            return _ssl::setError(ret);
 
         retVal = pk1;
 
@@ -269,7 +243,7 @@ result_t PKey::importKey(Buffer_base *DerKey, const char *password)
         ret = pk_parse_public_key(&m_key, (unsigned char *)key.c_str(), key.length());
 
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     return 0;
 }
@@ -288,7 +262,7 @@ result_t PKey::importKey(const char *pemKey, const char *password)
         ret = pk_parse_public_key(&m_key, (unsigned char *)pemKey, qstrlen(pemKey));
 
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     return 0;
 }
@@ -311,7 +285,7 @@ result_t PKey::exportPem(std::string &retVal)
     else
         ret = pk_write_pubkey_pem(&m_key, (unsigned char *)&buf[0], buf.length());
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     buf.resize(qstrlen(buf.c_str()));
     retVal = buf;
@@ -337,7 +311,7 @@ result_t PKey::exportDer(obj_ptr<Buffer_base> &retVal)
     else
         ret = pk_write_pubkey_der(&m_key, (unsigned char *)&buf[0], buf.length());
     if (ret < 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     retVal = new Buffer(buf.substr(buf.length() - ret));
 
@@ -351,7 +325,6 @@ result_t PKey::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
         return CALL_E_NOSYNC;
 
     int ret;
-    _entropy entropy;
     std::string str;
     std::string output;
     size_t olen;
@@ -361,9 +334,9 @@ result_t PKey::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
 
     ret = pk_encrypt(&m_key, (const unsigned char *)str.c_str(), str.length(),
                      (unsigned char *)&output[0], &olen, output.length(),
-                     ctr_drbg_random, &entropy.ctr_drbg);
+                     ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     output.resize(olen);
     retVal = new Buffer(output);
@@ -388,7 +361,6 @@ result_t PKey::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
         return CALL_E_INVALID_CALL;
 
     int ret;
-    _entropy entropy;
     std::string str;
     std::string output;
     size_t olen;
@@ -398,9 +370,9 @@ result_t PKey::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
 
     ret = pk_decrypt(&m_key, (const unsigned char *)str.c_str(), str.length(),
                      (unsigned char *)&output[0], &olen, output.length(),
-                     ctr_drbg_random, &entropy.ctr_drbg);
+                     ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     output.resize(olen);
     retVal = new Buffer(output);
@@ -425,7 +397,6 @@ result_t PKey::sign(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
         return CALL_E_INVALID_CALL;
 
     int ret;
-    _entropy entropy;
     std::string str;
     std::string output;
     size_t olen;
@@ -436,9 +407,9 @@ result_t PKey::sign(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
     ret = pk_sign(&m_key, POLARSSL_MD_NONE,
                   (const unsigned char *)str.c_str(), str.length(),
                   (unsigned char *)&output[0], &olen,
-                  ctr_drbg_random, &entropy.ctr_drbg);
+                  ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     output.resize(olen);
     retVal = new Buffer(output);
@@ -470,7 +441,7 @@ result_t PKey::verify(Buffer_base *sign, Buffer_base *data, bool &retVal,
     }
 
     if (ret != 0)
-        return Cipher::setError(ret);
+        return _ssl::setError(ret);
 
     retVal = true;
 
