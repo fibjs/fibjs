@@ -267,6 +267,11 @@ describe('crypto', function() {
 			});
 
 			assert.deepEqual(cert.dump(), s);
+
+			cert.clear();
+			cert.load(s.join('\n'));
+
+			assert.deepEqual(cert.dump(), s);
 		});
 
 		it("load file", function() {
@@ -317,12 +322,18 @@ describe('crypto', function() {
 
 		it("clear/export", function() {
 			var s = crl.dump();
+
 			crl.clear();
 			assert.deepEqual(crl.dump(), []);
 
 			s.forEach(function(c) {
 				crl.load(c);
 			});
+
+			assert.deepEqual(crl.dump(), s);
+
+			crl.clear();
+			crl.load(s.join('\n'));
 
 			assert.deepEqual(crl.dump(), s);
 		});
@@ -343,4 +354,4 @@ describe('crypto', function() {
 	});
 });
 
-//test.run(console.DEBUG);
+test.run(console.DEBUG);
