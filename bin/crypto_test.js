@@ -58,7 +58,12 @@ describe('crypto', function() {
 			"YImpzWWwrUmBNb9fIz7JjODAdp2qObSpFlThbJw5dEECEQDPvyHiP0oNIjE+i7hi\n" +
 			"suA5AhEAnfh3HJNKmMbX0CJWFezleQIRAKNSzU20mgAXSIW2jKAzpqkCEQCaVo0Z\n" +
 			"UBbL2Uo1QbbVyRQRAhEAqLmEjCZeYSKSQUESvmDNlg==\n" +
-			"-----END RSA PRIVATE KEY-----\n"
+			"-----END RSA PRIVATE KEY-----\n";
+
+		var pub_rsa256_pem = "-----BEGIN PUBLIC KEY-----\n" +
+			"MDwwDQYJKoZIhvcNAQEBBQADKwAwKAIhAIAx2ZmdLOOkmFotCgen4qUNfh79Yopv\n" +
+			"Hh7OiOIKqvfxAgMBAAE=\n" +
+			"-----END PUBLIC KEY-----\n";
 
 		var ec_pem = "-----BEGIN EC PRIVATE KEY-----\n" +
 			"MIHcAgEBBEIB+QhtQdd9bjWeN2mgq6qoqW51ygslLwP+gwTCSP4ZVpcU0pxwigXm\n" +
@@ -68,155 +73,176 @@ describe('crypto', function() {
 			"EdX30QGqQ71qihogY6Jqlmn8aJAZGwyNHPeX+n+F1A==\n" +
 			"-----END EC PRIVATE KEY-----\n";
 
-		it("RSA PEM import/export", function() {
-			var pk = new crypto.PKey();
-			pk.importKey(rsa256_pem);
-			assert.equal(pk.exportPem(), rsa256_pem);
-		});
+		var pub_ec_pem = "-----BEGIN PUBLIC KEY-----\n" +
+			"MIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQBN800W66+UbGtMaheDJ9IAaBE00Oc\n" +
+			"7es3eTvi6sol1VLXhFiF2dLCb3UGb4XWX5PVcqUBjbJGfMb3DVSS+jxzTAsBIEeq\n" +
+			"uu4HqR2QRQHe+Vbf5QiSTge0p1R5PA37ubePauBm9hHV99EBqkO9aooaIGOiapZp\n" +
+			"/GiQGRsMjRz3l/p/hdQ=\n" +
+			"-----END PUBLIC KEY-----\n";
 
-		it("RSA Der import/export", function() {
-			var pk = new crypto.PKey();
-			pk.importKey(rsa256_pem);
-			var der = pk.exportDer();
-			pk.importKey(der);
-			assert.equal(pk.exportPem(), rsa256_pem);
-		});
+		describe("RSA", function() {
+			it("PEM import/export", function() {
+				var pk = new crypto.PKey();
+				pk.importKey(rsa256_pem);
+				assert.equal(pk.exportPem(), rsa256_pem);
+			});
 
-		it("RSA publicKey", function() {
-			var pk = new crypto.PKey();
-			pk.importKey(rsa256_pem);
-			assert.isTrue(pk.isPrivate());
+			it("Der import/export", function() {
+				var pk = new crypto.PKey();
+				pk.importKey(rsa256_pem);
+				var der = pk.exportDer();
+				pk.importKey(der);
+				assert.equal(pk.exportPem(), rsa256_pem);
+			});
 
-			var pk1 = pk.publicKey();
-			assert.isFalse(pk1.isPrivate());
+			it("import publicKey", function() {
+				var pk = new crypto.PKey();
+				pk.importKey(pub_rsa256_pem);
+				assert.isFalse(pk.isPrivate());
 
-			var pk2 = new crypto.PKey();
-			pk2.importKey(pk1.exportPem());
-			assert.isFalse(pk2.isPrivate());
+				assert.equal(pk, pub_rsa256_pem);
 
-			assert.equal(pk1.exportPem(), pk2.exportPem());
+				var pk1 = new crypto.PKey();
+				pk1.importKey(pk.exportDer());
+				assert.isFalse(pk1.isPrivate());
 
-			pk2.importKey(pk1.exportDer());
-			assert.isFalse(pk2.isPrivate());
+				assert.equal(pk1.exportPem(), pub_rsa256_pem);
+			});
 
-			assert.equal(pk1.exportPem(), pk2.exportPem());
-		});
+			it("publicKey", function() {
+				var pk = new crypto.PKey();
+				pk.importKey(rsa256_pem);
+				assert.isTrue(pk.isPrivate());
 
-		it("RSA clone", function() {
-			var pk = new crypto.PKey();
-			pk.importKey(rsa256_pem);
+				var pk1 = pk.publicKey();
+				assert.isFalse(pk1.isPrivate());
 
-			var pk1 = pk.clone();
+				assert.equal(pk1, pub_rsa256_pem);
+			});
 
-			assert.equal(pk1.exportPem(), pk.exportPem());
-		});
+			it("clone", function() {
+				var pk = new crypto.PKey();
+				pk.importKey(rsa256_pem);
 
-		it("RSA gen_key", function() {
-			var pk = new crypto.PKey();
-			var pk1 = new crypto.PKey();
-			pk.genRsaKey(512);
-			pk1.genRsaKey(512);
+				var pk1 = pk.clone();
 
-			assert.notEqual(pk.exportPem(), pk1.exportPem());
-		});
+				assert.equal(pk1.exportPem(), pk.exportPem());
+			});
 
-		it("RSA encrypt/decrypt", function() {
-			var pk = new crypto.PKey();
-			pk.importKey(rsa256_pem);
+			it("gen_key", function() {
+				var pk = new crypto.PKey();
+				var pk1 = new crypto.PKey();
+				pk.genRsaKey(512);
+				pk1.genRsaKey(512);
 
-			var pk1 = pk.publicKey();
+				assert.notEqual(pk.exportPem(), pk1.exportPem());
+			});
 
-			var d = pk1.encrypt(new Buffer("abcdefg"));
-			assert.equal(pk.decrypt(d).toString(), "abcdefg");
+			it("encrypt/decrypt", function() {
+				var pk = new crypto.PKey();
+				pk.importKey(rsa256_pem);
 
-			assert.throws(function() {
-				pk1.decrypt(d);
+				var pk1 = pk.publicKey();
+
+				var d = pk1.encrypt(new Buffer("abcdefg"));
+				assert.equal(pk.decrypt(d).toString(), "abcdefg");
+
+				assert.throws(function() {
+					pk1.decrypt(d);
+				});
+			});
+
+			it("sign/verify", function() {
+				var pk = new crypto.PKey();
+				pk.importKey(rsa256_pem);
+
+				var pk1 = pk.publicKey();
+
+				var md = hash.md5(new Buffer("abcdefg")).digest();
+				var md1 = hash.md5(new Buffer("abcdefg1")).digest();
+				var d = pk.sign(md);
+				assert.isTrue(pk1.verify(d, md));
+				assert.isFalse(pk1.verify(d, md1));
+
+				assert.throws(function() {
+					pk1.sign(md);
+				});
 			});
 		});
 
-		it("RSA sign/verify", function() {
-			var pk = new crypto.PKey();
-			pk.importKey(rsa256_pem);
-
-			var pk1 = pk.publicKey();
-
-			var md = hash.md5(new Buffer("abcdefg")).digest();
-			var md1 = hash.md5(new Buffer("abcdefg1")).digest();
-			var d = pk.sign(md);
-			assert.isTrue(pk1.verify(d, md));
-			assert.isFalse(pk1.verify(d, md1));
-
-			assert.throws(function() {
-				pk1.sign(md);
+		describe("EC", function() {
+			it("PEM import/export", function() {
+				var pk = new crypto.PKey();
+				pk.importKey(ec_pem);
+				assert.equal(pk.exportPem(), ec_pem);
 			});
-		});
 
-		it("EC PEM import/export", function() {
-			var pk = new crypto.PKey();
-			pk.importKey(ec_pem);
-			assert.equal(pk.exportPem(), ec_pem);
-		});
+			it("Der import/export", function() {
+				var pk = new crypto.PKey();
+				pk.importKey(ec_pem);
+				var der = pk.exportDer();
+				pk.importKey(der);
+				assert.equal(pk.exportPem(), ec_pem);
+			});
 
-		it("EC Der import/export", function() {
-			var pk = new crypto.PKey();
-			pk.importKey(ec_pem);
-			var der = pk.exportDer();
-			pk.importKey(der);
-			assert.equal(pk.exportPem(), ec_pem);
-		});
+			it("import publicKey", function() {
+				var pk = new crypto.PKey();
+				pk.importKey(pub_ec_pem);
+				assert.isFalse(pk.isPrivate());
 
-		it("EC publicKey", function() {
-			var pk = new crypto.PKey();
-			pk.importKey(ec_pem);
-			assert.isTrue(pk.isPrivate());
+				assert.equal(pk, pub_ec_pem);
 
-			var pk1 = pk.publicKey();
-			assert.isFalse(pk1.isPrivate());
+				var pk1 = new crypto.PKey();
+				pk1.importKey(pk.exportDer());
+				assert.isFalse(pk1.isPrivate());
 
-			var pk2 = new crypto.PKey();
-			pk2.importKey(pk1.exportPem());
-			assert.isFalse(pk2.isPrivate());
+				assert.equal(pk1.exportPem(), pub_ec_pem);
+			});
 
-			assert.equal(pk1.exportPem(), pk2.exportPem());
+			it("publicKey", function() {
+				var pk = new crypto.PKey();
+				pk.importKey(ec_pem);
+				assert.isTrue(pk.isPrivate());
 
-			pk2.importKey(pk1.exportDer());
-			assert.isFalse(pk2.isPrivate());
+				var pk1 = pk.publicKey();
+				assert.isFalse(pk1.isPrivate());
 
-			assert.equal(pk1.exportPem(), pk2.exportPem());
-		});
+				assert.equal(pk1, pub_ec_pem);
+			});
 
-		it("EC clone", function() {
-			var pk = new crypto.PKey();
-			pk.importKey(ec_pem);
+			it("clone", function() {
+				var pk = new crypto.PKey();
+				pk.importKey(ec_pem);
 
-			var pk1 = pk.clone();
+				var pk1 = pk.clone();
 
-			assert.equal(pk1.exportPem(), pk.exportPem());
-		});
+				assert.equal(pk1.exportPem(), pk.exportPem());
+			});
 
-		it("EC gen_key", function() {
-			var pk = new crypto.PKey();
-			var pk1 = new crypto.PKey();
-			pk.genEcKey();
-			pk1.genEcKey();
+			it("gen_key", function() {
+				var pk = new crypto.PKey();
+				var pk1 = new crypto.PKey();
+				pk.genEcKey();
+				pk1.genEcKey();
 
-			assert.notEqual(pk.exportPem(), pk1.exportPem());
-		});
+				assert.notEqual(pk.exportPem(), pk1.exportPem());
+			});
 
-		it("EC sign/verify", function() {
-			var pk = new crypto.PKey();
-			pk.importKey(ec_pem);
+			it("sign/verify", function() {
+				var pk = new crypto.PKey();
+				pk.importKey(ec_pem);
 
-			var pk1 = pk.publicKey();
+				var pk1 = pk.publicKey();
 
-			var md = hash.md5(new Buffer("abcdefg")).digest();
-			var md1 = hash.md5(new Buffer("abcdefg1")).digest();
-			var d = pk.sign(md);
-			assert.isTrue(pk1.verify(d, md));
-			assert.isFalse(pk1.verify(d, md1));
+				var md = hash.md5(new Buffer("abcdefg")).digest();
+				var md1 = hash.md5(new Buffer("abcdefg1")).digest();
+				var d = pk.sign(md);
+				assert.isTrue(pk1.verify(d, md));
+				assert.isFalse(pk1.verify(d, md1));
 
-			assert.throws(function() {
-				pk1.sign(md);
+				assert.throws(function() {
+					pk1.sign(md);
+				});
 			});
 		});
 
