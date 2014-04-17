@@ -10,6 +10,7 @@
 #include "X509Cert.h"
 #include "parse.h"
 #include <polarssl/pem.h>
+#include "PKey.h"
 
 namespace fibjs
 {
@@ -25,13 +26,23 @@ X509Cert::X509Cert()
     x509_crt_init(&m_crt);
 }
 
+X509Cert::X509Cert(X509Cert *root, int no)
+{
+    m_root = root;
+    m_no = no;
+}
+
 X509Cert::~X509Cert()
 {
-    x509_crt_free(&m_crt);
+    if (!m_root)
+        x509_crt_free(&m_crt);
 }
 
 result_t X509Cert::load(Buffer_base *DerCert)
 {
+    if (m_root)
+        return CALL_E_INVALID_CALL;
+
     int ret;
 
     std::string crt;
@@ -47,6 +58,9 @@ result_t X509Cert::load(Buffer_base *DerCert)
 
 result_t X509Cert::load(const char *txtCert)
 {
+    if (m_root)
+        return CALL_E_INVALID_CALL;
+
     int ret;
 
     if (qstrstr(txtCert, "BEGIN CERTIFICATE"))
@@ -169,6 +183,9 @@ result_t X509Cert::load(const char *txtCert)
 
 result_t X509Cert::loadFile(const char *filename)
 {
+    if (m_root)
+        return CALL_E_INVALID_CALL;
+
     result_t hr;
     std::string data;
     int ret;
@@ -194,6 +211,9 @@ result_t X509Cert::loadFile(const char *filename)
 
 result_t X509Cert::dump(v8::Local<v8::Array> &retVal)
 {
+    if (m_root)
+        return CALL_E_INVALID_CALL;
+
     retVal = v8::Array::New(isolate);
 
     const x509_crt *pCert = &m_crt;
@@ -223,8 +243,131 @@ result_t X509Cert::dump(v8::Local<v8::Array> &retVal)
 
 result_t X509Cert::clear()
 {
+    if (m_root)
+        return CALL_E_INVALID_CALL;
+
     x509_crt_free(&m_crt);
     x509_crt_init(&m_crt);
+    return 0;
+}
+
+x509_crt *X509Cert::get_crt()
+{
+    if (!m_root)
+        return &m_crt;
+
+    int n = m_no;
+    x509_crt *crt = &m_root->m_crt;
+
+    while (n && (crt = crt->next))
+        n --;
+
+    return crt;
+}
+
+result_t X509Cert::get_issuer(std::string &retVal)
+{
+    x509_crt *crt = get_crt();
+    if (!crt)
+        return CALL_E_INVALID_CALL;
+
+    int ret;
+    std::string buf;
+
+    buf.resize(1024);
+
+    ret = x509_dn_gets(&buf[0], buf.length(), &crt->issuer);
+    if (ret < 0)
+        return _ssl::setError(ret);
+
+    buf.resize(ret);
+    retVal = buf;
+
+    return 0;
+}
+
+result_t X509Cert::get_subject(std::string &retVal)
+{
+    x509_crt *crt = get_crt();
+    if (!crt)
+        return CALL_E_INVALID_CALL;
+
+    int ret;
+    std::string buf;
+
+    buf.resize(1024);
+
+    ret = x509_dn_gets(&buf[0], buf.length(), &crt->subject);
+    if (ret < 0)
+        return _ssl::setError(ret);
+
+    buf.resize(ret);
+    retVal = buf;
+
+    return 0;
+}
+
+result_t X509Cert::get_notBefore(date_t &retVal)
+{
+    x509_crt *crt = get_crt();
+    if (!crt)
+        return CALL_E_INVALID_CALL;
+
+    retVal.create(crt->valid_from.year, crt->valid_from.mon,
+                  crt->valid_from.day,  crt->valid_from.hour,
+                  crt->valid_from.min,  crt->valid_from.sec, 0);
+
+    return 0;
+}
+
+result_t X509Cert::get_notAfter(date_t &retVal)
+{
+    x509_crt *crt = get_crt();
+    if (!crt)
+        return CALL_E_INVALID_CALL;
+
+    retVal.create(crt->valid_to.year, crt->valid_to.mon,
+                  crt->valid_to.day,  crt->valid_to.hour,
+                  crt->valid_to.min,  crt->valid_to.sec, 0);
+
+    return 0;
+}
+
+result_t X509Cert::get_publicKey(obj_ptr<PKey_base> &retVal)
+{
+    x509_crt *crt = get_crt();
+    if (!crt)
+        return CALL_E_INVALID_CALL;
+
+    obj_ptr<PKey> pk1 = new PKey();
+    result_t hr;
+
+    hr = pk1->copy(crt->pk);
+    if (hr < 0)
+        return 0;
+
+    retVal = pk1;
+    return 0;
+}
+
+result_t X509Cert::get_next(obj_ptr<X509Cert_base> &retVal)
+{
+    if (m_root)
+    {
+        x509_crt *crt = get_crt();
+        if (!crt || !crt->next)
+            return CALL_RETURN_NULL;
+
+        retVal = new X509Cert(m_root, m_no + 1);
+    }
+    else
+    {
+        if (!m_crt.next)
+            return CALL_RETURN_NULL;
+
+        retVal = new X509Cert(this, 1);
+    }
+
     return 0;
 }
 

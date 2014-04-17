@@ -169,42 +169,37 @@ result_t PKey::publicKey(obj_ptr<PKey_base> &retVal)
     return CALL_E_INVALID_CALL;
 }
 
-result_t PKey::clone(obj_ptr<PKey_base> &retVal)
+result_t PKey::copy(const pk_context &key)
 {
-    pk_type_t type = pk_get_type(&m_key);
+    pk_type_t type = pk_get_type(&key);
     int ret;
 
     if (type == POLARSSL_PK_RSA)
     {
-        rsa_context *rsa = pk_rsa(m_key);
-        obj_ptr<PKey> pk1 = new PKey();
+        rsa_context *rsa = pk_rsa(key);
 
-        ret = pk_init_ctx(&pk1->m_key, pk_info_from_type(POLARSSL_PK_RSA));
+        ret = pk_init_ctx(&m_key, pk_info_from_type(POLARSSL_PK_RSA));
         if (ret != 0)
             return _ssl::setError(ret);
 
-        rsa_context *rsa1 = pk_rsa(pk1->m_key);
+        rsa_context *rsa1 = pk_rsa(m_key);
 
         ret = rsa_copy(rsa1, rsa);
         if (ret != 0)
             return _ssl::setError(ret);
-
-        retVal = pk1;
 
         return 0;
     }
 
     if (type == POLARSSL_PK_ECKEY)
     {
-        ecp_keypair *ecp = pk_ec(m_key);
+        ecp_keypair *ecp = pk_ec(key);
 
-        obj_ptr<PKey> pk1 = new PKey();
-
-        ret = pk_init_ctx(&pk1->m_key, pk_info_from_type(POLARSSL_PK_ECKEY));
+        ret = pk_init_ctx(&m_key, pk_info_from_type(POLARSSL_PK_ECKEY));
         if (ret != 0)
             return _ssl::setError(ret);
 
-        ecp_keypair *ecp1 = pk_ec(pk1->m_key);
+        ecp_keypair *ecp1 = pk_ec(m_key);
 
         ret = ecp_group_copy(&ecp1->grp, &ecp->grp);
         if (ret != 0)
@@ -218,12 +213,23 @@ result_t PKey::clone(obj_ptr<PKey_base> &retVal)
         if (ret != 0)
             return _ssl::setError(ret);
 
-        retVal = pk1;
-
         return 0;
     }
 
     return CALL_E_INVALID_CALL;
+}
+
+result_t PKey::clone(obj_ptr<PKey_base> &retVal)
+{
+    obj_ptr<PKey> pk1 = new PKey();
+    result_t hr;
+
+    hr = pk1->copy(m_key);
+    if (hr < 0)
+        return 0;
+
+    retVal = pk1;
+    return 0;
 }
 
 result_t PKey::importKey(Buffer_base *DerKey, const char *password)

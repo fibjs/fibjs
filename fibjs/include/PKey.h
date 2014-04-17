@@ -43,6 +43,9 @@ public:
     virtual result_t sign(Buffer_base *data, obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac);
     virtual result_t verify(Buffer_base *sign, Buffer_base *data, bool &retVal, exlib::AsyncEvent *ac);
 
+public:
+    result_t copy(const pk_context &key);
+
 private:
     void clear();
 

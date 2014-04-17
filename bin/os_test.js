@@ -60,4 +60,4 @@ describe('os', function() {
 	});
 });
 
-// test.run();
+//test.run(console.DEBUG);
