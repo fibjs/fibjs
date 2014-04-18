@@ -28,6 +28,7 @@ public:
 	virtual result_t loadFile(const char* filename) = 0;
 	virtual result_t exportPem(std::string& retVal) = 0;
 	virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
+	virtual result_t create(v8::Local<v8::Object> opts) = 0;
 
 	DECLARE_CLASSINFO(X509Req_base);
 
@@ -37,6 +38,7 @@ public:
 	static void s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_create(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -52,13 +54,14 @@ namespace fibjs
 			{"load", s_load},
 			{"loadFile", s_loadFile},
 			{"exportPem", s_exportPem},
-			{"exportDer", s_exportDer}
+			{"exportDer", s_exportDer},
+			{"create", s_create}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"X509Req", s__new, 
-			4, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			5, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -130,6 +133,18 @@ namespace fibjs
 		hr = pInst->exportDer(vr);
 
 		METHOD_RETURN();
+	}
+
+	inline void X509Req_base::s_create(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(X509Req_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Local<v8::Object>, 0);
+
+		hr = pInst->create(v0);
+
+		METHOD_VOID();
 	}
 
 }

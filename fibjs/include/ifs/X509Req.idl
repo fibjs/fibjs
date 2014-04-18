@@ -35,4 +35,19 @@ class X509Req: object
      @return 当前证书请求的 DER 格式编码
     */
     Buffer exportDer();
+
+    /*! @brief 根据给定的信息创建一个证书请求 
+
+    证书请求信息包含以下字段：
+     @code
+     {
+        subject: "C=CN, CN=fibjs.org",  // 证书的主题可分辨名称
+        hash: crypto.SHA1,              // 证书摘要算法，不设定则为 crypto.SHA1
+        key: [PKey object]        // 证书的公钥
+     }
+     @endcode
+    
+     @param opts 创建的信息参数
+    */
+    create(Object opts);
 };
