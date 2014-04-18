@@ -55,6 +55,7 @@ public:
 	// crypto_base
 	static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t randomArt(Buffer_base* data, const char* title, int32_t size, std::string& retVal);
 
 	DECLARE_CLASSINFO(crypto_base);
 
@@ -81,6 +82,7 @@ public:
 	static void s_get_NOPADDING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_pseudoRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_randomArt(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_STATICVALUE2(crypto_base, randomBytes, int32_t, obj_ptr<Buffer_base>);
@@ -103,7 +105,8 @@ namespace fibjs
 		static ClassData::ClassMethod s_method[] = 
 		{
 			{"randomBytes", s_randomBytes, true},
-			{"pseudoRandomBytes", s_pseudoRandomBytes, true}
+			{"pseudoRandomBytes", s_pseudoRandomBytes, true},
+			{"randomArt", s_randomArt, true}
 		};
 
 		static ClassData::ClassObject s_object[] = 
@@ -142,7 +145,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"crypto", NULL, 
-			2, s_method, 5, s_object, 20, s_property, NULL, NULL,
+			3, s_method, 5, s_object, 20, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -312,6 +315,21 @@ namespace fibjs
 		ARG(int32_t, 0);
 
 		hr = ac_pseudoRandomBytes(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void crypto_base::s_randomArt(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		std::string vr;
+
+		METHOD_ENTER(3, 2);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+		ARG_String(1);
+		OPT_ARG(int32_t, 2, 8);
+
+		hr = randomArt(v0, v1, v2, vr);
 
 		METHOD_RETURN();
 	}

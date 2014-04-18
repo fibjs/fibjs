@@ -82,4 +82,116 @@ result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base> &retV
     return 0;
 }
 
+inline int _max(int a, int b)
+{
+    return a > b ? a : b;
+}
+
+inline int _min(int a, int b)
+{
+    return a < b ? a : b;
+}
+
+char *randomart(const unsigned char *dgst_raw, size_t dgst_raw_len,
+                const char *title, int size)
+{
+    const char augmentation_string[] = " .o+=*BOX@%&#/^SE";
+    char *retval, *p;
+    unsigned char *field;
+    int i, b, n;
+    int x, y;
+    const size_t len = sizeof(augmentation_string) - 2;
+    int fieldY = size + 1;
+    int fieldX = size * 2 + 1;
+
+    retval = (char *)calloc(1, (fieldX + 3) * (fieldY + 2));
+    if (retval == NULL)
+        return NULL;
+
+    field = (unsigned char *)calloc(1, fieldX * fieldY);
+    x = fieldX / 2;
+    y = fieldY / 2;
+
+    for (i = 0; i < dgst_raw_len; i++)
+    {
+        int input;
+
+        input = dgst_raw[i];
+        for (b = 0; b < 4; b++)
+        {
+            x += (input & 0x1) ? 1 : -1;
+            y += (input & 0x2) ? 1 : -1;
+
+            x = _max(x, 0);
+            y = _max(y, 0);
+            x = _min(x, fieldX - 1);
+            y = _min(y, fieldY - 1);
+
+            if (field[x * fieldY + y] < len - 2)
+                field[x * fieldY + y]++;
+            input = input >> 2;
+        }
+    }
+
+    field[(fieldX / 2) * fieldY + fieldY / 2] = len - 1;
+    field[x * fieldY + y] = len;
+
+    p = retval;
+    *p++ = '+';
+    for (i = 0; i < fieldX; i++)
+        *p++ = '-';
+    *p++ = '+';
+    *p++ = '\n';
+
+    n = (int)qstrlen(title);
+    if (n > 0)
+    {
+        if ( n > fieldX - 2)
+            n = fieldX - 2;
+        p = retval + (fieldX - n) / 2;
+
+        *p++ = '[';
+        memcpy(p, title, n);
+        p += n;
+        *p++ = ']';
+        p = retval + fieldX + 3;
+    }
+
+    for (y = 0; y < fieldY; y++)
+    {
+        *p++ = '|';
+        for (x = 0; x < fieldX; x++)
+            *p++ = augmentation_string[_min(field[x * fieldY + y], len)];
+        *p++ = '|';
+        *p++ = '\n';
+    }
+
+    *p++ = '+';
+    for (i = 0; i < fieldX; i++)
+        *p++ = '-';
+    *p++ = '+';
+
+    free(field);
+
+    return retval;
+}
+
+result_t crypto_base::randomArt(Buffer_base *data, const char *title,
+                                int32_t size, std::string &retVal)
+{
+    std::string buf;
+
+    data->toString(buf);
+    char *str = randomart((const unsigned char *)buf.c_str(), buf.length(),
+                          title, size);
+
+    if (str)
+    {
+        retVal = str;
+        free(str);
+    }
+
+    return 0;
+}
+
 }

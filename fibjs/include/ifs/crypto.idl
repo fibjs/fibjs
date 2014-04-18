@@ -94,4 +94,12 @@ class crypto : module
 	 @return 返回生成的随机数
 	 */
     static Buffer pseudoRandomBytes(Integer size) async;
+
+    /*! @brief 生成给定数据的可视化字符图像
+     @param data 指定要展示的数据
+     @param title 指定字符图像的标题，多字节字符会导致宽度错误
+     @param size 字符图像尺寸
+     @return 返回生成的可视化字符串图像
+     */
+    static String randomArt(Buffer data, String title, Integer size = 8);
 };

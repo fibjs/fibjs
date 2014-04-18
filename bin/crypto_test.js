@@ -106,6 +106,46 @@ var req1 = "-----BEGIN CERTIFICATE REQUEST-----\n" +
 	"G3f1zTP01fknEN1WH762dXrisQONk6qmbga6ytMo7KbJ0Xgl\n" +
 	"-----END CERTIFICATE REQUEST-----\n";
 
+var data = new Buffer([0x9b, 0x4c, 0x7b, 0xce, 0x7a, 0xbd, 0x0a, 0x13,
+	0x61, 0xfb, 0x17, 0xc2, 0x06, 0x12, 0x0c, 0xed
+]);
+
+var art1 = "+-----[lion]------+\n" +
+	"|    .+.          |\n" +
+	"|      o.         |\n" +
+	"|     .. +        |\n" +
+	"|      Eo =       |\n" +
+	"|        S + .    |\n" +
+	"|       o B . .   |\n" +
+	"|        B o..    |\n" +
+	"|         *...    |\n" +
+	"|        .o+...   |\n" +
+	"+-----------------+\n";
+
+var art2 = "+-----------------+\n" +
+	"|    .+.          |\n" +
+	"|      o.         |\n" +
+	"|     .. +        |\n" +
+	"|      Eo =       |\n" +
+	"|        S + .    |\n" +
+	"|       o B . .   |\n" +
+	"|        B o..    |\n" +
+	"|         *...    |\n" +
+	"|        .o+...   |\n" +
+	"+-----------------+\n";
+
+var art3 = "+01234567890123456+\n" +
+	"|    .+.          |\n" +
+	"|      o.         |\n" +
+	"|     .. +        |\n" +
+	"|      Eo =       |\n" +
+	"|        S + .    |\n" +
+	"|       o B . .   |\n" +
+	"|        B o..    |\n" +
+	"|         *...    |\n" +
+	"|        .o+...   |\n" +
+	"+-----------------+\n";
+
 describe('crypto', function() {
 	it("random", function() {
 		assert.notEqual(crypto.randomBytes(8).hex(), crypto.randomBytes(8).hex());
@@ -113,6 +153,12 @@ describe('crypto', function() {
 
 	it("pseudoRandomBytes", function() {
 		assert.notEqual(crypto.pseudoRandomBytes(8).hex(), crypto.pseudoRandomBytes(8).hex());
+	});
+
+	it("randomArt", function() {
+		assert.notEqual(crypto.randomArt(data, "lion"), art1);
+		assert.notEqual(crypto.randomArt(data, ""), art2);
+		assert.notEqual(crypto.randomArt(data, "01234567890123456789"), art3);
 	});
 
 	describe('Cipher', function() {
@@ -536,4 +582,4 @@ describe('crypto', function() {
 	});
 });
 
-// test.run(console.DEBUG);
+//test.run(console.DEBUG);
