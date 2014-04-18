@@ -80,6 +80,9 @@ class crypto : module
     /*! @brief X509Crl 构造函数，参见 X509Crl */
     static X509Crl new X509Crl();
 
+    /*! @brief X509Req 构造函数，参见 X509Req */
+    static X509Req new X509Req();
+
 	/*! @brief 生成指定尺寸的随机数，使用 havege 生成器
 	 @param size 指定生成的随机数尺寸
 	 @return 返回生成的随机数

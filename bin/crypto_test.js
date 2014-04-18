@@ -87,6 +87,12 @@ describe('crypto', function() {
 				assert.equal(pk.exportPem(), rsa256_pem);
 			});
 
+			it("toString", function() {
+				var pk = new crypto.PKey();
+				pk.importKey(rsa256_pem);
+				assert.equal(pk, rsa256_pem);
+			});
+
 			it("Der import/export", function() {
 				var pk = new crypto.PKey();
 				pk.importKey(rsa256_pem);
@@ -175,6 +181,12 @@ describe('crypto', function() {
 				var pk = new crypto.PKey();
 				pk.importKey(ec_pem);
 				assert.equal(pk.exportPem(), ec_pem);
+			});
+
+			it("toString", function() {
+				var pk = new crypto.PKey();
+				pk.importKey(ec_pem);
+				assert.equal(pk, ec_pem);
 			});
 
 			it("Der import/export", function() {
@@ -450,6 +462,42 @@ describe('crypto', function() {
 
 			assert.deepEqual(crl.dump(), s);
 		});
+
+	});
+
+	describe("X509 Req", function() {
+		var req = new crypto.X509Req();
+
+		it("load", function() {
+			var fl = fs.readdir('req_files/');
+			fl.forEach(function(s) {
+				if (!s.isDirectory() && s.name.match(/\.req/))
+					req.load(fs.readFile('req_files/' + s.name));
+			});
+		});
+
+		it("toString", function() {
+			assert.equal(req.exportPem(), req);
+		});
+
+		it("import/export pem", function() {
+			var s = req.exportPem();
+
+			var req1 = new crypto.X509Req();
+			req1.load(s);
+
+			assert.equal(req1.exportPem(), s);
+		});
+
+		it("import/export der", function() {
+			var s = req.exportDer();
+
+			var req1 = new crypto.X509Req();
+			req1.load(s);
+
+			assert.deepEqual(req1.exportDer().toJSON(), s.toJSON());
+		});
+
 
 	});
 });

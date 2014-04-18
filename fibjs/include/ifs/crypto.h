@@ -22,6 +22,7 @@ class Cipher_base;
 class PKey_base;
 class X509Cert_base;
 class X509Crl_base;
+class X509Req_base;
 class Buffer_base;
 
 class crypto_base : public module_base
@@ -92,6 +93,7 @@ public:
 #include "PKey.h"
 #include "X509Cert.h"
 #include "X509Crl.h"
+#include "X509Req.h"
 #include "Buffer.h"
 
 namespace fibjs
@@ -109,7 +111,8 @@ namespace fibjs
 			{"Cipher", Cipher_base::class_info},
 			{"PKey", PKey_base::class_info},
 			{"X509Cert", X509Cert_base::class_info},
-			{"X509Crl", X509Crl_base::class_info}
+			{"X509Crl", X509Crl_base::class_info},
+			{"X509Req", X509Req_base::class_info}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -139,7 +142,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"crypto", NULL, 
-			2, s_method, 4, s_object, 20, s_property, NULL, NULL,
+			2, s_method, 5, s_object, 20, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 

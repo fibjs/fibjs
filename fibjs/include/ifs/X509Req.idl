@@ -1,0 +1,38 @@
+
+/*! @brief x509 证书请求对象
+
+ X509Req 对象属于 crypto 模块，创建：
+ @code
+ var k = new crypto.X509Req();
+ @endcode
+ */
+class X509Req: object
+{
+    /*! @brief X509Req 构造函数 */
+    X509Req();
+
+    /*! @brief 加载一个 DER 格式的证书请求
+     @param derReq DER 格式的证书请求
+    */
+    load(Buffer derReq);
+
+    /*! @brief 加载一个 PEM 格式的证书请求
+     @param pemReq PEM 格式的证书请求
+    */
+    load(String pemReq);
+
+    /*! @brief 加载一个 PEM 格式的证书请求，可多次调用
+     @param filename 证书请求文件名
+    */
+    loadFile(String filename);
+
+    /*! @brief 返回当前证书请求的 PEM 格式编码
+     @return 当前证书请求的 PEM 格式编码
+    */
+    String exportPem();
+
+    /*! @brief 返回当前证书请求的 DER 格式编码
+     @return 当前证书请求的 DER 格式编码
+    */
+    Buffer exportDer();
+};

@@ -123,6 +123,7 @@
     <ClCompile Include="src\Variant.cpp" />
     <ClCompile Include="src\X509Cert.cpp" />
     <ClCompile Include="src\X509Crl.cpp" />
+    <ClCompile Include="src\X509Req.cpp" />
     <ClCompile Include="src\zlib.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -249,6 +250,7 @@
     <ClInclude Include="include\ifs\vm.h" />
     <ClInclude Include="include\ifs\X509Cert.h" />
     <ClInclude Include="include\ifs\X509Crl.h" />
+    <ClInclude Include="include\ifs\X509Req.h" />
     <ClInclude Include="include\ifs\zlib.h" />
     <ClInclude Include="include\Image.h" />
     <ClInclude Include="include\inetAddr.h" />
@@ -301,6 +303,7 @@
     <ClInclude Include="include\Variant.h" />
     <ClInclude Include="include\X509Cert.h" />
     <ClInclude Include="include\X509Crl.h" />
+    <ClInclude Include="include\X509Req.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl" />
