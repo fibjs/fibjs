@@ -212,37 +212,6 @@ struct StaticInitializer {
   }
 } static_initializer;
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
-Debugger* Isolate::GetDefaultIsolateDebugger() {
-  EnsureDefaultIsolate();
-  return default_isolate_->debugger();
-}
-#endif
-
-
-StackGuard* Isolate::GetDefaultIsolateStackGuard() {
-  EnsureDefaultIsolate();
-  return default_isolate_->stack_guard();
-}
-
-
-void Isolate::EnterDefaultIsolate() {
-  EnsureDefaultIsolate();
-  ASSERT(default_isolate_ != NULL);
-
-  PerIsolateThreadData* data = CurrentPerIsolateThreadData();
-  // If not yet in default isolate - enter it.
-  if (data == NULL || data->isolate() != default_isolate_) {
-    default_isolate_->Enter();
-  }
-}
-
-
-v8::Isolate* Isolate::GetDefaultIsolateForLocking() {
-  EnsureDefaultIsolate();
-  return reinterpret_cast<v8::Isolate*>(default_isolate_);
-}
-
 
 Address Isolate::get_address_from_id(Isolate::AddressId id) {
   return isolate_addresses_[id];
@@ -550,7 +519,7 @@ Handle<JSArray> Isolate::CaptureCurrentStackTrace(
       if (options & StackTrace::kLineNumber) {
         int script_line_offset = script->line_offset()->value();
         int position = frames[i].code()->SourcePosition(frames[i].pc());
-        int line_number = GetScriptLineNumber(script, position);
+        int line_number = Script::GetLineNumber(script, position);
         // line_number is already shifted by the script_line_offset.
         int relative_line_number = line_number - script_line_offset;
         if (options & StackTrace::kColumnOffset && relative_line_number >= 0) {
@@ -585,7 +554,7 @@ Handle<JSArray> Isolate::CaptureCurrentStackTrace(
       }
 
       if (options & StackTrace::kScriptNameOrSourceURL) {
-        Handle<Object> result = GetScriptNameOrSourceURL(script);
+        Handle<Object> result = Script::GetNameOrSourceURL(script);
         JSObject::SetLocalPropertyIgnoreAttributes(
             stack_frame, script_name_or_source_url_key, result, NONE).Check();
       }
@@ -850,8 +819,8 @@ Failure* Isolate::StackOverflow() {
   DoThrow(*exception, NULL);
 
   // Get stack trace limit.
-  Handle<Object> error =
-      GetProperty(js_builtins_object(), "$Error").ToHandleChecked();
+  Handle<Object> error = Object::GetProperty(
+      this, js_builtins_object(), "$Error").ToHandleChecked();
   if (!error->IsJSObject()) return Failure::Exception();
 
   Handle<String> stackTraceLimit =
@@ -912,7 +881,6 @@ Failure* Isolate::ReThrow(Object* exception) {
 
   // Set the exception being re-thrown.
   set_pending_exception(exception);
-  if (exception->IsFailure()) return exception->ToFailureUnchecked();
   return Failure::Exception();
 }
 
@@ -1169,19 +1137,19 @@ void Isolate::DoThrow(Object* exception, MessageLocation* location) {
       // In this case we could have an extension (or an internal error
       // somewhere) and we print out the line number at which the error occured
       // to the console for easier debugging.
-      int line_number = GetScriptLineNumberSafe(location->script(),
-                                                location->start_pos());
+      int line_number =
+          location->script()->GetLineNumber(location->start_pos()) + 1;
       if (exception->IsString() && location->script()->name()->IsString()) {
         OS::PrintError(
             "Extension or internal compilation error: %s in %s at line %d.\n",
             String::cast(exception)->ToCString().get(),
             String::cast(location->script()->name())->ToCString().get(),
-            line_number + 1);
+            line_number);
       } else if (location->script()->name()->IsString()) {
         OS::PrintError(
             "Extension or internal compilation error in %s at line %d.\n",
             String::cast(location->script()->name())->ToCString().get(),
-            line_number + 1);
+            line_number);
       } else {
         OS::PrintError("Extension or internal compilation error.\n");
       }
@@ -1690,10 +1658,7 @@ Isolate::~Isolate() {
   // Has to be called while counters_ are still alive
   runtime_zone_.DeleteKeptSegment();
 
-  // The entry stack must be empty when we get here,
-  // except for the default isolate, where it can
-  // still contain up to one entry stack item
-  ASSERT(entry_stack_ == NULL || this == default_isolate_);
+  // The entry stack must be empty when we get here.
   ASSERT(entry_stack_ == NULL || entry_stack_->previous_item == NULL);
 
   delete entry_stack_;

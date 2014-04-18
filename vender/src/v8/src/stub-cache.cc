@@ -499,7 +499,7 @@ RUNTIME_FUNCTION(MaybeObject*, StoreCallbackProperty) {
   PropertyCallbackArguments
       custom_args(isolate, callback->data(), receiver, holder);
   custom_args.Call(fun, v8::Utils::ToLocal(str), v8::Utils::ToLocal(value));
-  RETURN_IF_SCHEDULED_EXCEPTION(isolate);
+  RETURN_FAILURE_IF_SCHEDULED_EXCEPTION(isolate);
   return *value;
 }
 
@@ -539,7 +539,7 @@ RUNTIME_FUNCTION(MaybeObject*, LoadPropertyWithInterceptorOnly) {
     HandleScope scope(isolate);
     v8::Handle<v8::Value> r =
         callback_args.Call(getter, v8::Utils::ToLocal(name));
-    RETURN_IF_SCHEDULED_EXCEPTION(isolate);
+    RETURN_FAILURE_IF_SCHEDULED_EXCEPTION(isolate);
     if (!r.IsEmpty()) {
       Handle<Object> result = v8::Utils::OpenHandle(*r);
       result->VerifyApiCallResultType();
@@ -901,7 +901,7 @@ void LoadStubCompiler::NonexistentHandlerFrontend(Handle<HeapType> type,
   // check that the global property cell is empty.
   if (last_map->IsJSGlobalObjectMap()) {
     Handle<JSGlobalObject> global = last.is_null()
-        ? Handle<JSGlobalObject>::cast(type->AsConstant())
+        ? Handle<JSGlobalObject>::cast(type->AsConstant()->Value())
         : Handle<JSGlobalObject>::cast(last);
     GenerateCheckPropertyCell(masm(), global, name, scratch2(), &miss);
   }

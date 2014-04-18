@@ -74,7 +74,7 @@ class JumpPatchSite BASE_EMBEDDED {
   void EmitPatchInfo() {
     if (patch_site_.is_bound()) {
       int delta_to_patch_site = masm_->SizeOfCodeGeneratedSince(&patch_site_);
-      ASSERT(is_int8(delta_to_patch_site));
+      ASSERT(is_uint8(delta_to_patch_site));
       __ test(eax, Immediate(delta_to_patch_site));
 #ifdef DEBUG
       info_emitted_ = true;
@@ -2227,7 +2227,7 @@ void FullCodeGenerator::EmitCreateIteratorResult(bool done) {
   Label gc_required;
   Label allocated;
 
-  Handle<Map> map(isolate()->native_context()->generator_result_map());
+  Handle<Map> map(isolate()->native_context()->iterator_result_map());
 
   __ Allocate(map->instance_size(), eax, ecx, edx, &gc_required, TAG_OBJECT);
   __ jmp(&allocated);

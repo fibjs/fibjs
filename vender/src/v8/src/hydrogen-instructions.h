@@ -6144,6 +6144,22 @@ class HLoadNamedField V8_FINAL : public HTemplateInstruction<2> {
  public:
   DECLARE_INSTRUCTION_FACTORY_P3(HLoadNamedField, HValue*, HValue*,
                                  HObjectAccess);
+  static HLoadNamedField* New(Zone* zone, HValue* context,
+                              HValue* object, HValue* dependency,
+                              HObjectAccess access, SmallMapList* maps,
+                              CompilationInfo* info) {
+    HLoadNamedField* load_named_field = HLoadNamedField::New(
+        zone, context, object, dependency, access);
+    for (int i = 0; i < maps->length(); ++i) {
+      Handle<Map> map(maps->at(i));
+      load_named_field->map_set_.Add(Unique<Map>(map), zone);
+      if (map->CanTransition()) {
+        Map::AddDependentCompilationInfo(
+            map, DependentCode::kPrototypeCheckGroup, info);
+      }
+    }
+    return load_named_field;
+  }
 
   HValue* object() { return OperandAt(0); }
   HValue* dependency() {
@@ -6155,6 +6171,8 @@ class HLoadNamedField V8_FINAL : public HTemplateInstruction<2> {
   Representation field_representation() const {
       return access_.representation();
   }
+
+  UniqueSet<Map> map_set() const { return map_set_; }
 
   virtual bool HasEscapingOperandAt(int index) V8_OVERRIDE { return false; }
   virtual bool HasOutOfBoundsAccess(int size) V8_OVERRIDE {
@@ -6175,13 +6193,15 @@ class HLoadNamedField V8_FINAL : public HTemplateInstruction<2> {
  protected:
   virtual bool DataEquals(HValue* other) V8_OVERRIDE {
     HLoadNamedField* b = HLoadNamedField::cast(other);
-    return access_.Equals(b->access_);
+    return access_.Equals(b->access_) && this->map_set_.Equals(&b->map_set_);
   }
 
  private:
   HLoadNamedField(HValue* object,
                   HValue* dependency,
-                  HObjectAccess access) : access_(access) {
+                  HObjectAccess access,
+                  Handle<Map> map = Handle<Map>::null())
+      : access_(access) {
     ASSERT(object != NULL);
     SetOperandAt(0, object);
     SetOperandAt(1, dependency != NULL ? dependency : object);
@@ -6215,6 +6235,7 @@ class HLoadNamedField V8_FINAL : public HTemplateInstruction<2> {
   virtual bool IsDeletable() const V8_OVERRIDE { return true; }
 
   HObjectAccess access_;
+  UniqueSet<Map> map_set_;
 };
 
 
@@ -6594,7 +6615,8 @@ class HStoreNamedField V8_FINAL : public HTemplateInstruction<3> {
     ASSERT(!has_transition());  // Only set once.
     Handle<Map> map = Handle<Map>::cast(map_constant->handle(info->isolate()));
     if (map->CanBeDeprecated()) {
-      map->AddDependentCompilationInfo(DependentCode::kTransitionGroup, info);
+      Map::AddDependentCompilationInfo(
+          map, DependentCode::kTransitionGroup, info);
     }
     SetOperandAt(2, map_constant);
     has_transition_ = true;

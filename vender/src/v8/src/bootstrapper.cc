@@ -484,17 +484,12 @@ Handle<JSFunction> Genesis::CreateEmptyFunction(Isolate* isolate) {
   // 262 15.3.4.
   Handle<String> empty_string =
       factory->InternalizeOneByteString(STATIC_ASCII_VECTOR("Empty"));
+  Handle<Code> code(isolate->builtins()->builtin(Builtins::kEmptyFunction));
   Handle<JSFunction> empty_function =
-      factory->NewFunctionWithoutPrototype(empty_string, SLOPPY);
+      factory->NewFunctionWithoutPrototype(empty_string, code);
 
   // --- E m p t y ---
-  Handle<Code> code =
-      Handle<Code>(isolate->builtins()->builtin(
-          Builtins::kEmptyFunction));
-  empty_function->set_code(*code);
-  empty_function->shared()->set_code(*code);
-  Handle<String> source =
-      factory->NewStringFromOneByte(STATIC_ASCII_VECTOR("() {}"));
+  Handle<String> source = factory->NewStringFromStaticAscii("() {}");
   Handle<Script> script = factory->NewScript(source);
   script->set_type(Smi::FromInt(Script::TYPE_NATIVE));
   empty_function->shared()->set_script(*script);
@@ -567,16 +562,14 @@ Handle<JSFunction> Genesis::GetThrowTypeErrorFunction() {
   if (throw_type_error_function.is_null()) {
     Handle<String> name = factory()->InternalizeOneByteString(
         STATIC_ASCII_VECTOR("ThrowTypeError"));
-    throw_type_error_function =
-      factory()->NewFunctionWithoutPrototype(name, SLOPPY);
     Handle<Code> code(isolate()->builtins()->builtin(
         Builtins::kStrictModePoisonPill));
+    throw_type_error_function =
+        factory()->NewFunctionWithoutPrototype(name, code);
     throw_type_error_function->set_map(native_context()->sloppy_function_map());
-    throw_type_error_function->set_code(*code);
-    throw_type_error_function->shared()->set_code(*code);
     throw_type_error_function->shared()->DontAdaptArguments();
 
-    JSObject::PreventExtensions(throw_type_error_function);
+    JSObject::PreventExtensions(throw_type_error_function).Assert();
   }
   return throw_type_error_function;
 }
@@ -766,9 +759,10 @@ Handle<JSGlobalProxy> Genesis::CreateNewGlobals(
 
   if (global_object.location() != NULL) {
     ASSERT(global_object->IsJSGlobalProxy());
-    return ReinitializeJSGlobalProxy(
-        global_proxy_function,
-        Handle<JSGlobalProxy>::cast(global_object));
+    Handle<JSGlobalProxy> global_proxy =
+        Handle<JSGlobalProxy>::cast(global_object);
+    factory()->ReinitializeJSGlobalProxy(global_proxy, global_proxy_function);
+    return global_proxy;
   } else {
     return Handle<JSGlobalProxy>::cast(
         factory()->NewJSObject(global_proxy_function, TENURED));
@@ -910,10 +904,10 @@ void Genesis::InitializeGlobal(Handle<GlobalObject> inner_global,
         Handle<Map>(native_context()->string_function()->initial_map());
     Map::EnsureDescriptorSlack(string_map, 1);
 
-    Handle<Foreign> string_length(
-        factory->NewForeign(&Accessors::StringLength));
     PropertyAttributes attribs = static_cast<PropertyAttributes>(
         DONT_ENUM | DONT_DELETE | READ_ONLY);
+    Handle<AccessorInfo> string_length(
+        Accessors::StringLengthInfo(isolate, attribs));
 
     {  // Add length.
       CallbacksDescriptor d(factory->length_string(), string_length, attribs);
@@ -1303,6 +1297,16 @@ void Genesis::InitializeExperimentalGlobal() {
                       isolate()->initial_object_prototype(),
                       Builtins::kIllegal, true, true);
     }
+    {   // -- S e t I t e r a t o r
+      Handle<Map> map = isolate()->factory()->NewMap(
+          JS_SET_ITERATOR_TYPE, JSSetIterator::kSize);
+      native_context()->set_set_iterator_map(*map);
+    }
+    {   // -- M a p I t e r a t o r
+      Handle<Map> map = isolate()->factory()->NewMap(
+          JS_MAP_ITERATOR_TYPE, JSMapIterator::kSize);
+      native_context()->set_map_iterator_map(*map);
+    }
   }
 
   if (FLAG_harmony_weak_collections) {
@@ -1357,37 +1361,38 @@ void Genesis::InitializeExperimentalGlobal() {
         *generator_object_prototype);
     native_context()->set_generator_object_prototype_map(
         *generator_object_prototype_map);
+  }
 
-    // Create a map for generator result objects.
-    ASSERT(object_function->initial_map()->inobject_properties() == 0);
+  if (FLAG_harmony_collections || FLAG_harmony_generators) {
+    // Collection forEach uses an iterator result object.
+    // Generators return iteraror result objects.
+
     STATIC_ASSERT(JSGeneratorObject::kResultPropertyCount == 2);
-    Handle<Map> generator_result_map = Map::Create(
+    Handle<JSFunction> object_function(native_context()->object_function());
+    ASSERT(object_function->initial_map()->inobject_properties() == 0);
+    Handle<Map> iterator_result_map = Map::Create(
         object_function, JSGeneratorObject::kResultPropertyCount);
-    ASSERT(generator_result_map->inobject_properties() ==
+    ASSERT(iterator_result_map->inobject_properties() ==
         JSGeneratorObject::kResultPropertyCount);
     Map::EnsureDescriptorSlack(
-        generator_result_map, JSGeneratorObject::kResultPropertyCount);
+        iterator_result_map, JSGeneratorObject::kResultPropertyCount);
 
-    Handle<String> value_string = factory()->InternalizeOneByteString(
-        STATIC_ASCII_VECTOR("value"));
-    FieldDescriptor value_descr(value_string,
+    FieldDescriptor value_descr(isolate()->factory()->value_string(),
                                 JSGeneratorObject::kResultValuePropertyIndex,
                                 NONE,
                                 Representation::Tagged());
-    generator_result_map->AppendDescriptor(&value_descr);
+    iterator_result_map->AppendDescriptor(&value_descr);
 
-    Handle<String> done_string = factory()->InternalizeOneByteString(
-        STATIC_ASCII_VECTOR("done"));
-    FieldDescriptor done_descr(done_string,
+    FieldDescriptor done_descr(isolate()->factory()->done_string(),
                                JSGeneratorObject::kResultDonePropertyIndex,
                                NONE,
                                Representation::Tagged());
-    generator_result_map->AppendDescriptor(&done_descr);
+    iterator_result_map->AppendDescriptor(&done_descr);
 
-    generator_result_map->set_unused_property_fields(0);
+    iterator_result_map->set_unused_property_fields(0);
     ASSERT_EQ(JSGeneratorObject::kResultSize,
-              generator_result_map->instance_size());
-    native_context()->set_generator_result_map(*generator_result_map);
+              iterator_result_map->instance_size());
+    native_context()->set_iterator_result_map(*iterator_result_map);
   }
 }
 
@@ -1403,10 +1408,12 @@ bool Genesis::CompileBuiltin(Isolate* isolate, int index) {
 bool Genesis::CompileExperimentalBuiltin(Isolate* isolate, int index) {
   Vector<const char> name = ExperimentalNatives::GetScriptName(index);
   Factory* factory = isolate->factory();
-  Handle<String> source_code =
+  Handle<String> source_code;
+  ASSIGN_RETURN_ON_EXCEPTION_VALUE(
+      isolate, source_code,
       factory->NewStringFromAscii(
-          ExperimentalNatives::GetRawScriptSource(index));
-  RETURN_IF_EMPTY_HANDLE_VALUE(isolate, source_code, false);
+          ExperimentalNatives::GetRawScriptSource(index)),
+      false);
   return CompileNative(isolate, name, source_code);
 }
 
@@ -1455,8 +1462,8 @@ bool Genesis::CompileScriptCached(Isolate* isolate,
   // function and insert it into the cache.
   if (cache == NULL || !cache->Lookup(name, &function_info)) {
     ASSERT(source->IsOneByteRepresentation());
-    Handle<String> script_name = factory->NewStringFromUtf8(name);
-    ASSERT(!script_name.is_null());
+    Handle<String> script_name =
+        factory->NewStringFromUtf8(name).ToHandleChecked();
     function_info = Compiler::CompileScript(
         source,
         script_name,
@@ -1681,125 +1688,108 @@ bool Genesis::InstallNatives() {
     Handle<Map> script_map = Handle<Map>(script_fun->initial_map());
     Map::EnsureDescriptorSlack(script_map, 13);
 
-    Handle<Foreign> script_source(
-        factory()->NewForeign(&Accessors::ScriptSource));
-    Handle<Foreign> script_name(factory()->NewForeign(&Accessors::ScriptName));
-    Handle<String> id_string(factory()->InternalizeOneByteString(
-        STATIC_ASCII_VECTOR("id")));
-    Handle<Foreign> script_id(factory()->NewForeign(&Accessors::ScriptId));
-    Handle<String> line_offset_string(
-        factory()->InternalizeOneByteString(
-            STATIC_ASCII_VECTOR("line_offset")));
-    Handle<Foreign> script_line_offset(
-        factory()->NewForeign(&Accessors::ScriptLineOffset));
-    Handle<String> column_offset_string(
-        factory()->InternalizeOneByteString(
-            STATIC_ASCII_VECTOR("column_offset")));
-    Handle<Foreign> script_column_offset(
-        factory()->NewForeign(&Accessors::ScriptColumnOffset));
-    Handle<String> type_string(factory()->InternalizeOneByteString(
-        STATIC_ASCII_VECTOR("type")));
-    Handle<Foreign> script_type(factory()->NewForeign(&Accessors::ScriptType));
-    Handle<String> compilation_type_string(
-        factory()->InternalizeOneByteString(
-            STATIC_ASCII_VECTOR("compilation_type")));
-    Handle<Foreign> script_compilation_type(
-        factory()->NewForeign(&Accessors::ScriptCompilationType));
-    Handle<String> line_ends_string(factory()->InternalizeOneByteString(
-        STATIC_ASCII_VECTOR("line_ends")));
-    Handle<Foreign> script_line_ends(
-        factory()->NewForeign(&Accessors::ScriptLineEnds));
-    Handle<String> context_data_string(
-        factory()->InternalizeOneByteString(
-            STATIC_ASCII_VECTOR("context_data")));
-    Handle<Foreign> script_context_data(
-        factory()->NewForeign(&Accessors::ScriptContextData));
-    Handle<String> eval_from_script_string(
-        factory()->InternalizeOneByteString(
-            STATIC_ASCII_VECTOR("eval_from_script")));
-    Handle<Foreign> script_eval_from_script(
-        factory()->NewForeign(&Accessors::ScriptEvalFromScript));
-    Handle<String> eval_from_script_position_string(
-        factory()->InternalizeOneByteString(
-            STATIC_ASCII_VECTOR("eval_from_script_position")));
-    Handle<Foreign> script_eval_from_script_position(
-        factory()->NewForeign(&Accessors::ScriptEvalFromScriptPosition));
-    Handle<String> eval_from_function_name_string(
-        factory()->InternalizeOneByteString(
-            STATIC_ASCII_VECTOR("eval_from_function_name")));
-    Handle<Foreign> script_eval_from_function_name(
-        factory()->NewForeign(&Accessors::ScriptEvalFromFunctionName));
     PropertyAttributes attribs =
         static_cast<PropertyAttributes>(DONT_ENUM | DONT_DELETE | READ_ONLY);
 
+    Handle<AccessorInfo> script_column =
+        Accessors::ScriptColumnOffsetInfo(isolate(), attribs);
+    {
+      CallbacksDescriptor d(Handle<Name>(Name::cast(script_column->name())),
+                           script_column, attribs);
+      script_map->AppendDescriptor(&d);
+    }
+
+    Handle<AccessorInfo> script_id =
+        Accessors::ScriptIdInfo(isolate(), attribs);
+    {
+      CallbacksDescriptor d(Handle<Name>(Name::cast(script_id->name())),
+                            script_id, attribs);
+      script_map->AppendDescriptor(&d);
+    }
+
+
+    Handle<AccessorInfo> script_name =
+        Accessors::ScriptNameInfo(isolate(), attribs);
+    {
+      CallbacksDescriptor d(Handle<Name>(Name::cast(script_name->name())),
+                            script_name, attribs);
+      script_map->AppendDescriptor(&d);
+    }
+
+    Handle<AccessorInfo> script_line =
+        Accessors::ScriptLineOffsetInfo(isolate(), attribs);
+    {
+      CallbacksDescriptor d(Handle<Name>(Name::cast(script_line->name())),
+                           script_line, attribs);
+      script_map->AppendDescriptor(&d);
+    }
+
+    Handle<AccessorInfo> script_source =
+        Accessors::ScriptSourceInfo(isolate(), attribs);
+    {
+      CallbacksDescriptor d(Handle<Name>(Name::cast(script_source->name())),
+                            script_source, attribs);
+      script_map->AppendDescriptor(&d);
+    }
+
+    Handle<AccessorInfo> script_type =
+        Accessors::ScriptTypeInfo(isolate(), attribs);
+    {
+      CallbacksDescriptor d(Handle<Name>(Name::cast(script_type->name())),
+                            script_type, attribs);
+      script_map->AppendDescriptor(&d);
+    }
+
+    Handle<AccessorInfo> script_compilation_type =
+        Accessors::ScriptCompilationTypeInfo(isolate(), attribs);
     {
       CallbacksDescriptor d(
-          factory()->source_string(), script_source, attribs);
+          Handle<Name>(Name::cast(script_compilation_type->name())),
+          script_compilation_type, attribs);
       script_map->AppendDescriptor(&d);
     }
 
+    Handle<AccessorInfo> script_line_ends =
+        Accessors::ScriptLineEndsInfo(isolate(), attribs);
     {
-      CallbacksDescriptor d(factory()->name_string(), script_name, attribs);
+      CallbacksDescriptor d(Handle<Name>(Name::cast(script_line_ends->name())),
+                            script_line_ends, attribs);
       script_map->AppendDescriptor(&d);
     }
 
-    {
-      CallbacksDescriptor d(id_string, script_id, attribs);
-      script_map->AppendDescriptor(&d);
-    }
-
-    {
-      CallbacksDescriptor d(line_offset_string, script_line_offset, attribs);
-      script_map->AppendDescriptor(&d);
-    }
-
+    Handle<AccessorInfo> script_context_data =
+        Accessors::ScriptContextDataInfo(isolate(), attribs);
     {
       CallbacksDescriptor d(
-          column_offset_string, script_column_offset, attribs);
+          Handle<Name>(Name::cast(script_context_data->name())),
+          script_context_data, attribs);
       script_map->AppendDescriptor(&d);
     }
 
-    {
-      CallbacksDescriptor d(type_string, script_type, attribs);
-      script_map->AppendDescriptor(&d);
-    }
-
+    Handle<AccessorInfo> script_eval_from_script =
+        Accessors::ScriptEvalFromScriptInfo(isolate(), attribs);
     {
       CallbacksDescriptor d(
-          compilation_type_string, script_compilation_type, attribs);
+          Handle<Name>(Name::cast(script_eval_from_script->name())),
+          script_eval_from_script, attribs);
       script_map->AppendDescriptor(&d);
     }
 
-    {
-      CallbacksDescriptor d(line_ends_string, script_line_ends, attribs);
-      script_map->AppendDescriptor(&d);
-    }
-
+    Handle<AccessorInfo> script_eval_from_script_position =
+        Accessors::ScriptEvalFromScriptPositionInfo(isolate(), attribs);
     {
       CallbacksDescriptor d(
-          context_data_string, script_context_data, attribs);
+          Handle<Name>(Name::cast(script_eval_from_script_position->name())),
+          script_eval_from_script_position, attribs);
       script_map->AppendDescriptor(&d);
     }
 
+    Handle<AccessorInfo> script_eval_from_function_name =
+        Accessors::ScriptEvalFromFunctionNameInfo(isolate(), attribs);
     {
       CallbacksDescriptor d(
-          eval_from_script_string, script_eval_from_script, attribs);
-      script_map->AppendDescriptor(&d);
-    }
-
-    {
-      CallbacksDescriptor d(
-          eval_from_script_position_string,
-          script_eval_from_script_position,
-          attribs);
-      script_map->AppendDescriptor(&d);
-    }
-
-    {
-      CallbacksDescriptor d(
-          eval_from_function_name_string,
-          script_eval_from_function_name,
-          attribs);
+          Handle<Name>(Name::cast(script_eval_from_function_name->name())),
+          script_eval_from_function_name, attribs);
       script_map->AppendDescriptor(&d);
     }
 
@@ -2022,10 +2012,9 @@ static Handle<JSObject> ResolveBuiltinIdHolder(
 static void InstallBuiltinFunctionId(Handle<JSObject> holder,
                                      const char* function_name,
                                      BuiltinFunctionId id) {
-  Factory* factory = holder->GetIsolate()->factory();
-  Handle<String> name = factory->InternalizeUtf8String(function_name);
+  Isolate* isolate = holder->GetIsolate();
   Handle<Object> function_object =
-      Object::GetProperty(holder, name).ToHandleChecked();
+      Object::GetProperty(isolate, holder, function_name).ToHandleChecked();
   Handle<JSFunction> function = Handle<JSFunction>::cast(function_object);
   function->shared()->set_function_data(Smi::FromInt(id));
 }
@@ -2132,7 +2121,8 @@ bool Genesis::InstallSpecialObjects(Handle<Context> native_context) {
         false);
   }
 
-  Handle<Object> Error = GetProperty(global, "Error").ToHandleChecked();
+  Handle<Object> Error = Object::GetProperty(
+      isolate, global, "Error").ToHandleChecked();
   if (Error->IsJSObject()) {
     Handle<String> name = factory->InternalizeOneByteString(
         STATIC_ASCII_VECTOR("stackTraceLimit"));
@@ -2178,12 +2168,7 @@ static uint32_t Hash(RegisteredExtension* extension) {
 }
 
 
-static bool MatchRegisteredExtensions(void* key1, void* key2) {
-  return key1 == key2;
-}
-
-Genesis::ExtensionStates::ExtensionStates()
-  : map_(MatchRegisteredExtensions, 8) { }
+Genesis::ExtensionStates::ExtensionStates() : map_(HashMap::PointersMatch, 8) {}
 
 Genesis::ExtensionTraversalState Genesis::ExtensionStates::get_state(
     RegisteredExtension* extension) {
@@ -2318,10 +2303,8 @@ bool Genesis::InstallJSBuiltins(Handle<JSBuiltinsObject> builtins) {
   HandleScope scope(isolate());
   for (int i = 0; i < Builtins::NumberOfJavaScriptBuiltins(); i++) {
     Builtins::JavaScript id = static_cast<Builtins::JavaScript>(i);
-    Handle<String> name =
-        factory()->InternalizeUtf8String(Builtins::GetName(id));
-    Handle<Object> function_object =
-        Object::GetProperty(builtins, name).ToHandleChecked();
+    Handle<Object> function_object = Object::GetProperty(
+        isolate(), builtins, Builtins::GetName(id)).ToHandleChecked();
     Handle<JSFunction> function = Handle<JSFunction>::cast(function_object);
     builtins->set_javascript_builtin(id, *function);
     if (!Compiler::EnsureCompiled(function, CLEAR_EXCEPTION)) {

@@ -49,6 +49,7 @@
 #include "macro-assembler.h"
 #include "mark-compact.h"
 #include "safepoint-table.h"
+#include "string-search.h"
 #include "string-stream.h"
 #include "utils.h"
 
@@ -59,6 +60,24 @@
 
 namespace v8 {
 namespace internal {
+
+Handle<HeapType> Object::OptimalType(Isolate* isolate,
+                                     Representation representation) {
+  if (FLAG_track_field_types) {
+    if (representation.IsNone()) return HeapType::None(isolate);
+    if (representation.IsHeapObject() && IsHeapObject()) {
+      // We can track only JavaScript objects with stable maps.
+      Handle<Map> map(HeapObject::cast(this)->map(), isolate);
+      if (map->is_stable() &&
+          map->instance_type() >= FIRST_NONCALLABLE_SPEC_OBJECT_TYPE &&
+          map->instance_type() <= LAST_NONCALLABLE_SPEC_OBJECT_TYPE) {
+        return HeapType::Class(map, isolate);
+      }
+    }
+  }
+  return HeapType::Any(isolate);
+}
+
 
 MaybeHandle<JSReceiver> Object::ToObject(Isolate* isolate,
                                          Handle<Object> object,
@@ -210,9 +229,9 @@ static inline To* CheckedCast(void *from) {
 }
 
 
-static MaybeObject* PerformCompare(const BitmaskCompareDescriptor& descriptor,
-                                   char* ptr,
-                                   Heap* heap) {
+static Handle<Object> PerformCompare(const BitmaskCompareDescriptor& descriptor,
+                                     char* ptr,
+                                     Isolate* isolate) {
   uint32_t bitmask = descriptor.bitmask;
   uint32_t compare_value = descriptor.compare_value;
   uint32_t value;
@@ -232,26 +251,27 @@ static MaybeObject* PerformCompare(const BitmaskCompareDescriptor& descriptor,
       break;
     default:
       UNREACHABLE();
-      return NULL;
+      return isolate->factory()->undefined_value();
   }
-  return heap->ToBoolean((bitmask & value) == (bitmask & compare_value));
+  return isolate->factory()->ToBoolean(
+      (bitmask & value) == (bitmask & compare_value));
 }
 
 
-static MaybeObject* PerformCompare(const PointerCompareDescriptor& descriptor,
-                                   char* ptr,
-                                   Heap* heap) {
+static Handle<Object> PerformCompare(const PointerCompareDescriptor& descriptor,
+                                     char* ptr,
+                                     Isolate* isolate) {
   uintptr_t compare_value =
       reinterpret_cast<uintptr_t>(descriptor.compare_value);
   uintptr_t value = *CheckedCast<uintptr_t>(ptr);
-  return heap->ToBoolean(compare_value == value);
+  return isolate->factory()->ToBoolean(compare_value == value);
 }
 
 
-static MaybeObject* GetPrimitiveValue(
+static Handle<Object> GetPrimitiveValue(
     const PrimitiveValueDescriptor& descriptor,
     char* ptr,
-    Heap* heap) {
+    Isolate* isolate) {
   int32_t int32_value = 0;
   switch (descriptor.data_type) {
     case kDescriptorInt8Type:
@@ -271,29 +291,36 @@ static MaybeObject* GetPrimitiveValue(
       break;
     case kDescriptorUint32Type: {
       uint32_t value = *CheckedCast<uint32_t>(ptr);
-      return heap->NumberFromUint32(value);
+      AllowHeapAllocation allow_gc;
+      return isolate->factory()->NewNumberFromUint(value);
     }
     case kDescriptorBoolType: {
       uint8_t byte = *CheckedCast<uint8_t>(ptr);
-      return heap->ToBoolean(byte & (0x1 << descriptor.bool_offset));
+      return isolate->factory()->ToBoolean(
+          byte & (0x1 << descriptor.bool_offset));
     }
     case kDescriptorFloatType: {
       float value = *CheckedCast<float>(ptr);
-      return heap->NumberFromDouble(value);
+      AllowHeapAllocation allow_gc;
+      return isolate->factory()->NewNumber(value);
     }
     case kDescriptorDoubleType: {
       double value = *CheckedCast<double>(ptr);
-      return heap->NumberFromDouble(value);
+      AllowHeapAllocation allow_gc;
+      return isolate->factory()->NewNumber(value);
     }
   }
-  return heap->NumberFromInt32(int32_value);
+  AllowHeapAllocation allow_gc;
+  return isolate->factory()->NewNumberFromInt(int32_value);
 }
 
 
-static MaybeObject* GetDeclaredAccessorProperty(Object* receiver,
-                                                DeclaredAccessorInfo* info,
-                                                Isolate* isolate) {
-  char* current = reinterpret_cast<char*>(receiver);
+static Handle<Object> GetDeclaredAccessorProperty(
+    Handle<Object> receiver,
+    Handle<DeclaredAccessorInfo> info,
+    Isolate* isolate) {
+  DisallowHeapAllocation no_gc;
+  char* current = reinterpret_cast<char*>(*receiver);
   DeclaredAccessorDescriptorIterator iterator(info->descriptor());
   while (true) {
     const DeclaredAccessorDescriptorData* data = iterator.Next();
@@ -301,7 +328,7 @@ static MaybeObject* GetDeclaredAccessorProperty(Object* receiver,
       case kDescriptorReturnObject: {
         ASSERT(iterator.Complete());
         current = *CheckedCast<char*>(current);
-        return *CheckedCast<Object*>(current);
+        return handle(*CheckedCast<Object*>(current), isolate);
       }
       case kDescriptorPointerDereference:
         ASSERT(!iterator.Complete());
@@ -324,31 +351,21 @@ static MaybeObject* GetDeclaredAccessorProperty(Object* receiver,
         ASSERT(iterator.Complete());
         return PerformCompare(data->bitmask_compare_descriptor,
                               current,
-                              isolate->heap());
+                              isolate);
       case kDescriptorPointerCompare:
         ASSERT(iterator.Complete());
         return PerformCompare(data->pointer_compare_descriptor,
                               current,
-                              isolate->heap());
+                              isolate);
       case kDescriptorPrimitiveValue:
         ASSERT(iterator.Complete());
         return GetPrimitiveValue(data->primitive_value_descriptor,
                                  current,
-                                 isolate->heap());
+                                 isolate);
     }
   }
   UNREACHABLE();
-  return NULL;
-}
-
-
-static Handle<Object> GetDeclaredAccessorProperty(
-    Handle<Object> receiver,
-    Handle<DeclaredAccessorInfo> info,
-    Isolate* isolate) {
-  CALL_HEAP_FUNCTION(isolate,
-                     GetDeclaredAccessorProperty(*receiver, *info, isolate),
-                     Object);
+  return isolate->factory()->undefined_value();
 }
 
 
@@ -392,12 +409,10 @@ MaybeHandle<Object> JSObject::GetPropertyWithCallback(Handle<JSObject> object,
     // so we do not support it for now.
     if (name->IsSymbol()) return isolate->factory()->undefined_value();
     if (structure->IsDeclaredAccessorInfo()) {
-      CALL_HEAP_FUNCTION(
-          isolate,
-          GetDeclaredAccessorProperty(*receiver,
-                                      DeclaredAccessorInfo::cast(*structure),
-                                      isolate),
-          Object);
+      return GetDeclaredAccessorProperty(
+          receiver,
+          Handle<DeclaredAccessorInfo>::cast(structure),
+          isolate);
     }
 
     Handle<ExecutableAccessorInfo> data =
@@ -406,10 +421,9 @@ MaybeHandle<Object> JSObject::GetPropertyWithCallback(Handle<JSObject> object,
         v8::ToCData<v8::AccessorGetterCallback>(data->getter());
     if (call_fun == NULL) return isolate->factory()->undefined_value();
 
-    Handle<JSObject> self = Handle<JSObject>::cast(receiver);
     Handle<String> key = Handle<String>::cast(name);
-    LOG(isolate, ApiNamedPropertyAccess("load", *self, *name));
-    PropertyCallbackArguments args(isolate, data->data(), *self, *object);
+    LOG(isolate, ApiNamedPropertyAccess("load", *object, *name));
+    PropertyCallbackArguments args(isolate, data->data(), *receiver, *object);
     v8::Handle<v8::Value> result =
         args.Call(call_fun, v8::Utils::ToLocal(key));
     RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, Object);
@@ -525,7 +539,7 @@ MaybeHandle<Object> JSObject::GetPropertyWithFailedAccessCheck(
   // No accessible property found.
   *attributes = ABSENT;
   isolate->ReportFailedAccessCheck(object, v8::ACCESS_GET);
-  RETURN_HANDLE_IF_SCHEDULED_EXCEPTION(isolate, Object);
+  RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, Object);
   return isolate->factory()->undefined_value();
 }
 
@@ -870,7 +884,7 @@ MaybeHandle<Object> Object::GetElementWithReceiver(Isolate* isolate,
     if (js_object->IsAccessCheckNeeded()) {
       if (!isolate->MayIndexedAccess(js_object, index, v8::ACCESS_GET)) {
         isolate->ReportFailedAccessCheck(js_object, v8::ACCESS_GET);
-        RETURN_HANDLE_IF_SCHEDULED_EXCEPTION(isolate, Object);
+        RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, Object);
         return isolate->factory()->undefined_value();
       }
     }
@@ -894,6 +908,7 @@ MaybeHandle<Object> Object::GetElementWithReceiver(Isolate* isolate,
 
 
 Object* Object::GetPrototype(Isolate* isolate) {
+  DisallowHeapAllocation no_alloc;
   if (IsSmi()) {
     Context* context = isolate->context()->native_context();
     return context->number_function()->instance_prototype();
@@ -922,6 +937,12 @@ Object* Object::GetPrototype(Isolate* isolate) {
   } else {
     return isolate->heap()->null_value();
   }
+}
+
+
+Handle<Object> Object::GetPrototype(Isolate* isolate,
+                                    Handle<Object> object) {
+  return handle(object->GetPrototype(isolate), isolate);
 }
 
 
@@ -1402,7 +1423,9 @@ void Map::PrintGeneralization(FILE* file,
                               int descriptors,
                               bool constant_to_field,
                               Representation old_representation,
-                              Representation new_representation) {
+                              Representation new_representation,
+                              HeapType* old_field_type,
+                              HeapType* new_field_type) {
   PrintF(file, "[generalizing ");
   constructor_name()->PrintOn(file);
   PrintF(file, "] ");
@@ -1412,13 +1435,19 @@ void Map::PrintGeneralization(FILE* file,
   } else {
     PrintF(file, "{symbol %p}", static_cast<void*>(name));
   }
+  PrintF(file, ":");
   if (constant_to_field) {
-    PrintF(file, ":c->f");
+    PrintF(file, "c");
   } else {
-    PrintF(file, ":%s->%s",
-           old_representation.Mnemonic(),
-           new_representation.Mnemonic());
+    PrintF(file, "%s", old_representation.Mnemonic());
+    PrintF(file, "{");
+    old_field_type->TypePrint(file, HeapType::SEMANTIC_DIM);
+    PrintF(file, "}");
   }
+  PrintF(file, "->%s", new_representation.Mnemonic());
+  PrintF(file, "{");
+  new_field_type->TypePrint(file, HeapType::SEMANTIC_DIM);
+  PrintF(file, "}");
   PrintF(file, " (");
   if (strlen(reason) > 0) {
     PrintF(file, "%s", reason);
@@ -1647,6 +1676,8 @@ void HeapObject::IterateBody(InstanceType type, int object_size,
     case JS_DATA_VIEW_TYPE:
     case JS_SET_TYPE:
     case JS_MAP_TYPE:
+    case JS_SET_ITERATOR_TYPE:
+    case JS_MAP_ITERATOR_TYPE:
     case JS_WEAK_MAP_TYPE:
     case JS_WEAK_SET_TYPE:
     case JS_REGEXP_TYPE:
@@ -1796,14 +1827,59 @@ String* JSReceiver::constructor_name() {
 }
 
 
-// TODO(mstarzinger): Temporary wrapper until handlified.
-static Handle<Object> NewStorageFor(Isolate* isolate,
-                                    Handle<Object> object,
-                                    Representation representation) {
-  Heap* heap = isolate->heap();
-  CALL_HEAP_FUNCTION(isolate,
-                     object->AllocateNewStorageFor(heap, representation),
-                     Object);
+MaybeHandle<Map> Map::CopyWithField(Handle<Map> map,
+                                    Handle<Name> name,
+                                    Handle<HeapType> type,
+                                    PropertyAttributes attributes,
+                                    Representation representation,
+                                    TransitionFlag flag) {
+  ASSERT(DescriptorArray::kNotFound ==
+         map->instance_descriptors()->Search(
+             *name, map->NumberOfOwnDescriptors()));
+
+  // Ensure the descriptor array does not get too big.
+  if (map->NumberOfOwnDescriptors() >= kMaxNumberOfDescriptors) {
+    return MaybeHandle<Map>();
+  }
+
+  // Normalize the object if the name is an actual name (not the
+  // hidden strings) and is not a real identifier.
+  // Normalize the object if it will have too many fast properties.
+  Isolate* isolate = map->GetIsolate();
+  if (!name->IsCacheable(isolate)) return MaybeHandle<Map>();
+
+  // Compute the new index for new field.
+  int index = map->NextFreePropertyIndex();
+
+  if (map->instance_type() == JS_CONTEXT_EXTENSION_OBJECT_TYPE) {
+    representation = Representation::Tagged();
+    type = HeapType::Any(isolate);
+  }
+
+  FieldDescriptor new_field_desc(name, index, type, attributes, representation);
+  Handle<Map> new_map = Map::CopyAddDescriptor(map, &new_field_desc, flag);
+  int unused_property_fields = new_map->unused_property_fields() - 1;
+  if (unused_property_fields < 0) {
+    unused_property_fields += JSObject::kFieldsAdded;
+  }
+  new_map->set_unused_property_fields(unused_property_fields);
+  return new_map;
+}
+
+
+MaybeHandle<Map> Map::CopyWithConstant(Handle<Map> map,
+                                       Handle<Name> name,
+                                       Handle<Object> constant,
+                                       PropertyAttributes attributes,
+                                       TransitionFlag flag) {
+  // Ensure the descriptor array does not get too big.
+  if (map->NumberOfOwnDescriptors() >= kMaxNumberOfDescriptors) {
+    return MaybeHandle<Map>();
+  }
+
+  // Allocate new instance descriptors with (name, constant) added.
+  ConstantDescriptor new_constant_desc(name, constant, attributes);
+  return Map::CopyAddDescriptor(map, &new_constant_desc, flag);
 }
 
 
@@ -1815,65 +1891,27 @@ void JSObject::AddFastProperty(Handle<JSObject> object,
                                ValueType value_type,
                                TransitionFlag flag) {
   ASSERT(!object->IsJSGlobalProxy());
-  ASSERT(DescriptorArray::kNotFound ==
-         object->map()->instance_descriptors()->Search(
-             *name, object->map()->NumberOfOwnDescriptors()));
 
-  // Normalize the object if the name is an actual name (not the
-  // hidden strings) and is not a real identifier.
-  // Normalize the object if it will have too many fast properties.
-  Isolate* isolate = object->GetIsolate();
-  if (!name->IsCacheable(isolate) ||
-      object->TooManyFastProperties(store_mode)) {
+  MaybeHandle<Map> maybe_map;
+  if (value->IsJSFunction()) {
+    maybe_map = Map::CopyWithConstant(
+        handle(object->map()), name, value, attributes, flag);
+  } else if (!object->TooManyFastProperties(store_mode)) {
+    Isolate* isolate = object->GetIsolate();
+    Representation representation = value->OptimalRepresentation(value_type);
+    maybe_map = Map::CopyWithField(
+        handle(object->map(), isolate), name,
+        value->OptimalType(isolate, representation),
+        attributes, representation, flag);
+  }
+
+  Handle<Map> new_map;
+  if (!maybe_map.ToHandle(&new_map)) {
     NormalizeProperties(object, CLEAR_INOBJECT_PROPERTIES, 0);
-    AddSlowProperty(object, name, value, attributes);
     return;
   }
 
-  // Allocate new instance descriptors with (name, index) added
-  if (object->IsJSContextExtensionObject()) value_type = FORCE_TAGGED;
-  Representation representation = value->OptimalRepresentation(value_type);
-
-  // Compute the new index for new field.
-  int index = object->map()->NextFreePropertyIndex();
-
-  FieldDescriptor new_field_desc(name, index, attributes, representation);
-  Handle<Map> new_map = Map::CopyAddDescriptor(
-      handle(object->map()), &new_field_desc, flag);
-  int unused_property_fields = new_map->unused_property_fields() - 1;
-  if (unused_property_fields < 0) {
-    unused_property_fields += JSObject::kFieldsAdded;
-  }
-  new_map->set_unused_property_fields(unused_property_fields);
-
-  JSObject::MigrateToMap(object, new_map);
-
-  if (representation.IsDouble()) {
-    // Nothing more to be done.
-    if (value->IsUninitialized()) return;
-    HeapNumber* box = HeapNumber::cast(object->RawFastPropertyAt(index));
-    box->set_value(value->Number());
-  } else {
-    object->FastPropertyAtPut(index, *value);
-  }
-}
-
-
-void JSObject::AddConstantProperty(Handle<JSObject> object,
-                                   Handle<Name> name,
-                                   Handle<Object> constant,
-                                   PropertyAttributes attributes,
-                                   TransitionFlag initial_flag) {
-  ASSERT(!object->IsGlobalObject());
-  // Don't add transitions to special properties with non-trivial attributes.
-  TransitionFlag flag = attributes != NONE ? OMIT_TRANSITION : initial_flag;
-
-  // Allocate new instance descriptors with (name, constant) added.
-  ConstantDescriptor new_constant_desc(name, constant, attributes);
-  Handle<Map> new_map = Map::CopyAddDescriptor(
-      handle(object->map()), &new_constant_desc, flag);
-
-  JSObject::MigrateToMap(object, new_map);
+  JSObject::MigrateToNewProperty(object, new_map, value);
 }
 
 
@@ -1941,25 +1979,11 @@ MaybeHandle<Object> JSObject::AddProperty(
   }
 
   if (object->HasFastProperties()) {
-    // Ensure the descriptor array does not get too big.
-    if (object->map()->NumberOfOwnDescriptors() <= kMaxNumberOfDescriptors) {
-      // TODO(verwaest): Support other constants.
-      // if (mode == ALLOW_AS_CONSTANT &&
-      //     !value->IsTheHole() &&
-      //     !value->IsConsString()) {
-      if (value->IsJSFunction()) {
-        AddConstantProperty(object, name, value, attributes, transition_flag);
-      } else {
-        AddFastProperty(object, name, value, attributes, store_mode,
-                        value_type, transition_flag);
-      }
-    } else {
-      // Normalize the object to prevent very large instance descriptors.
-      // This eliminates unwanted N^2 allocation and lookup behavior.
-      NormalizeProperties(object, CLEAR_INOBJECT_PROPERTIES, 0);
-      AddSlowProperty(object, name, value, attributes);
-    }
-  } else {
+    AddFastProperty(object, name, value, attributes, store_mode,
+                    value_type, transition_flag);
+  }
+
+  if (!object->HasFastProperties()) {
     AddSlowProperty(object, name, value, attributes);
   }
 
@@ -2218,7 +2242,7 @@ void JSObject::MigrateToMap(Handle<JSObject> object, Handle<Map> new_map) {
       if (old_details.representation().IsNone()) {
         value = handle(Smi::FromInt(0), isolate);
       }
-      value = NewStorageFor(isolate, value, details.representation());
+      value = Object::NewStorageFor(isolate, value, details.representation());
     }
     ASSERT(!(details.representation().IsDouble() && value->IsSmi()));
     int target_index = new_descriptors->GetFieldIndex(i) - inobject;
@@ -2229,12 +2253,15 @@ void JSObject::MigrateToMap(Handle<JSObject> object, Handle<Map> new_map) {
   for (int i = old_nof; i < new_nof; i++) {
     PropertyDetails details = new_descriptors->GetDetails(i);
     if (details.type() != FIELD) continue;
+    Handle<Object> value;
     if (details.representation().IsDouble()) {
-      int target_index = new_descriptors->GetFieldIndex(i) - inobject;
-      if (target_index < 0) target_index += total_size;
-      Handle<Object> box = isolate->factory()->NewHeapNumber(0);
-      array->set(target_index, *box);
+      value = isolate->factory()->NewHeapNumber(0);
+    } else {
+      value = isolate->factory()->uninitialized_value();
     }
+    int target_index = new_descriptors->GetFieldIndex(i) - inobject;
+    if (target_index < 0) target_index += total_size;
+    array->set(target_index, *value);
   }
 
   // From here on we cannot fail and we shouldn't GC anymore.
@@ -2277,9 +2304,11 @@ void JSObject::MigrateToMap(Handle<JSObject> object, Handle<Map> new_map) {
 void JSObject::GeneralizeFieldRepresentation(Handle<JSObject> object,
                                              int modify_index,
                                              Representation new_representation,
+                                             Handle<HeapType> new_field_type,
                                              StoreMode store_mode) {
   Handle<Map> new_map = Map::GeneralizeRepresentation(
-      handle(object->map()), modify_index, new_representation, store_mode);
+      handle(object->map()), modify_index, new_representation,
+      new_field_type, store_mode);
   if (object->map() == *new_map) return;
   return MigrateToMap(object, new_map);
 }
@@ -2300,16 +2329,22 @@ Handle<Map> Map::CopyGeneralizeAllRepresentations(Handle<Map> map,
                                                   StoreMode store_mode,
                                                   PropertyAttributes attributes,
                                                   const char* reason) {
+  Isolate* isolate = map->GetIsolate();
   Handle<Map> new_map = Copy(map);
 
   DescriptorArray* descriptors = new_map->instance_descriptors();
-  descriptors->InitializeRepresentations(Representation::Tagged());
+  int length = descriptors->number_of_descriptors();
+  for (int i = 0; i < length; i++) {
+    descriptors->SetRepresentation(i, Representation::Tagged());
+    if (descriptors->GetDetails(i).type() == FIELD) {
+      descriptors->SetValue(i, HeapType::Any());
+    }
+  }
 
   // Unless the instance is being migrated, ensure that modify_index is a field.
   PropertyDetails details = descriptors->GetDetails(modify_index);
   if (store_mode == FORCE_FIELD && details.type() != FIELD) {
-    FieldDescriptor d(handle(descriptors->GetKey(modify_index),
-                             map->GetIsolate()),
+    FieldDescriptor d(handle(descriptors->GetKey(modify_index), isolate),
                       new_map->NumberOfFields(),
                       attributes,
                       Representation::Tagged());
@@ -2322,11 +2357,15 @@ Handle<Map> Map::CopyGeneralizeAllRepresentations(Handle<Map> map,
   }
 
   if (FLAG_trace_generalization) {
+    HeapType* field_type = (details.type() == FIELD)
+        ? map->instance_descriptors()->GetFieldType(modify_index)
+        : NULL;
     map->PrintGeneralization(stdout, reason, modify_index,
                         new_map->NumberOfOwnDescriptors(),
                         new_map->NumberOfOwnDescriptors(),
                         details.type() == CONSTANT && store_mode == FORCE_FIELD,
-                        Representation::Tagged(), Representation::Tagged());
+                        details.representation(), Representation::Tagged(),
+                        field_type, HeapType::Any());
   }
   return new_map;
 }
@@ -2391,6 +2430,8 @@ Map* Map::FindRootMap() {
 Map* Map::FindUpdatedMap(int verbatim,
                          int length,
                          DescriptorArray* descriptors) {
+  DisallowHeapAllocation no_allocation;
+
   // This can only be called on roots of transition trees.
   ASSERT(GetBackPointer()->IsUndefined());
 
@@ -2425,6 +2466,8 @@ Map* Map::FindUpdatedMap(int verbatim,
 Map* Map::FindLastMatchMap(int verbatim,
                            int length,
                            DescriptorArray* descriptors) {
+  DisallowHeapAllocation no_allocation;
+
   // This can only be called on roots of transition trees.
   ASSERT(GetBackPointer()->IsUndefined());
 
@@ -2440,17 +2483,112 @@ Map* Map::FindLastMatchMap(int verbatim,
     Map* next = transitions->GetTarget(transition);
     DescriptorArray* next_descriptors = next->instance_descriptors();
 
-    if (next_descriptors->GetValue(i) != descriptors->GetValue(i)) break;
-
     PropertyDetails details = descriptors->GetDetails(i);
     PropertyDetails next_details = next_descriptors->GetDetails(i);
     if (details.type() != next_details.type()) break;
     if (details.attributes() != next_details.attributes()) break;
     if (!details.representation().Equals(next_details.representation())) break;
+    if (next_details.type() == FIELD) {
+      if (!descriptors->GetFieldType(i)->NowIs(
+              next_descriptors->GetFieldType(i))) break;
+    } else {
+      if (descriptors->GetValue(i) != next_descriptors->GetValue(i)) break;
+    }
 
     current = next;
   }
   return current;
+}
+
+
+Map* Map::FindFieldOwner(int descriptor) {
+  DisallowHeapAllocation no_allocation;
+  ASSERT_EQ(FIELD, instance_descriptors()->GetDetails(descriptor).type());
+  Map* result = this;
+  while (true) {
+    Object* back = result->GetBackPointer();
+    if (back->IsUndefined()) break;
+    Map* parent = Map::cast(back);
+    if (parent->NumberOfOwnDescriptors() <= descriptor) break;
+    result = parent;
+  }
+  return result;
+}
+
+
+void Map::UpdateDescriptor(int descriptor_number, Descriptor* desc) {
+  DisallowHeapAllocation no_allocation;
+  if (HasTransitionArray()) {
+    TransitionArray* transitions = this->transitions();
+    for (int i = 0; i < transitions->number_of_transitions(); ++i) {
+      transitions->GetTarget(i)->UpdateDescriptor(descriptor_number, desc);
+    }
+  }
+  instance_descriptors()->Replace(descriptor_number, desc);;
+}
+
+
+// static
+Handle<HeapType> Map::GeneralizeFieldType(Handle<HeapType> type1,
+                                          Handle<HeapType> type2,
+                                          Isolate* isolate) {
+  static const int kMaxClassesPerFieldType = 5;
+  if (type1->NowIs(type2)) return type2;
+  if (type2->NowIs(type1)) return type1;
+  if (type1->NowStable() && type2->NowStable()) {
+    Handle<HeapType> type = HeapType::Union(type1, type2, isolate);
+    if (type->NumClasses() <= kMaxClassesPerFieldType) {
+      ASSERT(type->NowStable());
+      ASSERT(type1->NowIs(type));
+      ASSERT(type2->NowIs(type));
+      return type;
+    }
+  }
+  return HeapType::Any(isolate);
+}
+
+
+// static
+void Map::GeneralizeFieldType(Handle<Map> map,
+                              int modify_index,
+                              Handle<HeapType> new_field_type) {
+  Isolate* isolate = map->GetIsolate();
+  Handle<Map> field_owner(map->FindFieldOwner(modify_index), isolate);
+  Handle<DescriptorArray> descriptors(
+      field_owner->instance_descriptors(), isolate);
+
+  // Check if we actually need to generalize the field type at all.
+  Handle<HeapType> old_field_type(
+      descriptors->GetFieldType(modify_index), isolate);
+  if (new_field_type->NowIs(old_field_type)) {
+    ASSERT(Map::GeneralizeFieldType(old_field_type,
+                                    new_field_type,
+                                    isolate)->NowIs(old_field_type));
+    return;
+  }
+
+  // Determine the generalized new field type.
+  new_field_type = Map::GeneralizeFieldType(
+      old_field_type, new_field_type, isolate);
+
+  PropertyDetails details = descriptors->GetDetails(modify_index);
+  FieldDescriptor d(handle(descriptors->GetKey(modify_index), isolate),
+                    descriptors->GetFieldIndex(modify_index),
+                    new_field_type,
+                    details.attributes(),
+                    details.representation());
+  field_owner->UpdateDescriptor(modify_index, &d);
+  field_owner->dependent_code()->DeoptimizeDependentCodeGroup(
+      isolate, DependentCode::kFieldTypeGroup);
+
+  if (FLAG_trace_generalization) {
+    map->PrintGeneralization(
+        stdout, "field type generalization",
+        modify_index, map->NumberOfOwnDescriptors(),
+        map->NumberOfOwnDescriptors(), false,
+        details.representation(), details.representation(),
+        *old_field_type, *new_field_type);
+  }
 }
 
 
@@ -2475,6 +2613,7 @@ Map* Map::FindLastMatchMap(int verbatim,
 Handle<Map> Map::GeneralizeRepresentation(Handle<Map> old_map,
                                           int modify_index,
                                           Representation new_representation,
+                                          Handle<HeapType> new_field_type,
                                           StoreMode store_mode) {
   Handle<DescriptorArray> old_descriptors(old_map->instance_descriptors());
   PropertyDetails old_details = old_descriptors->GetDetails(modify_index);
@@ -2487,11 +2626,28 @@ Handle<Map> Map::GeneralizeRepresentation(Handle<Map> old_map,
   if (old_representation.IsNone() &&
       !new_representation.IsNone() &&
       !new_representation.IsDouble()) {
+    ASSERT(old_details.type() == FIELD);
+    ASSERT(old_descriptors->GetFieldType(modify_index)->NowIs(
+            HeapType::None()));
+    if (FLAG_trace_generalization) {
+      old_map->PrintGeneralization(
+          stdout, "uninitialized field",
+          modify_index, old_map->NumberOfOwnDescriptors(),
+          old_map->NumberOfOwnDescriptors(), false,
+          old_representation, new_representation,
+          old_descriptors->GetFieldType(modify_index), *new_field_type);
+    }
     old_descriptors->SetRepresentation(modify_index, new_representation);
+    old_descriptors->SetValue(modify_index, *new_field_type);
     return old_map;
   }
 
-  int descriptors = old_map->NumberOfOwnDescriptors();
+  if (new_representation.Equals(old_representation) &&
+      old_details.type() == FIELD) {
+    Map::GeneralizeFieldType(old_map, modify_index, new_field_type);
+    return old_map;
+  }
+
   Handle<Map> root_map(old_map->FindRootMap());
 
   // Check the state of the root map.
@@ -2507,6 +2663,7 @@ Handle<Map> Map::GeneralizeRepresentation(Handle<Map> old_map,
         old_details.attributes(), "root modification");
   }
 
+  int descriptors = old_map->NumberOfOwnDescriptors();
   Map* raw_updated = root_map->FindUpdatedMap(
       verbatim, descriptors, *old_descriptors);
   if (raw_updated == NULL) {
@@ -2536,12 +2693,20 @@ Handle<Map> Map::GeneralizeRepresentation(Handle<Map> old_map,
   ASSERT(store_mode == ALLOW_AS_CONSTANT ||
          new_descriptors->GetDetails(modify_index).type() == FIELD);
 
+  Isolate* isolate = new_descriptors->GetIsolate();
   old_representation =
       new_descriptors->GetDetails(modify_index).representation();
   Representation updated_representation =
       new_representation.generalize(old_representation);
   if (!updated_representation.Equals(old_representation)) {
     new_descriptors->SetRepresentation(modify_index, updated_representation);
+  }
+  if (new_descriptors->GetDetails(modify_index).type() == FIELD) {
+    Handle<HeapType> field_type(
+        new_descriptors->GetFieldType(modify_index), isolate);
+    new_field_type = Map::GeneralizeFieldType(
+        field_type, new_field_type, isolate);
+    new_descriptors->SetValue(modify_index, *new_field_type);
   }
 
   Handle<Map> split_map(root_map->FindLastMatchMap(
@@ -2557,11 +2722,21 @@ Handle<Map> Map::GeneralizeRepresentation(Handle<Map> old_map,
       old_descriptors->GetKey(descriptor), *new_descriptors);
 
   if (FLAG_trace_generalization) {
+    PropertyDetails old_details = old_descriptors->GetDetails(modify_index);
+    PropertyDetails new_details = new_descriptors->GetDetails(modify_index);
+    Handle<HeapType> old_field_type = (old_details.type() == FIELD)
+        ? handle(old_descriptors->GetFieldType(modify_index), isolate)
+        : HeapType::Constant(handle(old_descriptors->GetValue(modify_index),
+                                    isolate), isolate);
+    Handle<HeapType> new_field_type = (new_details.type() == FIELD)
+        ? handle(new_descriptors->GetFieldType(modify_index), isolate)
+        : HeapType::Constant(handle(new_descriptors->GetValue(modify_index),
+                                    isolate), isolate);
     old_map->PrintGeneralization(
         stdout, "", modify_index, descriptor, descriptors,
-        old_descriptors->GetDetails(modify_index).type() == CONSTANT &&
-            store_mode == FORCE_FIELD,
-        old_representation, updated_representation);
+        old_details.type() == CONSTANT && store_mode == FORCE_FIELD,
+        old_details.representation(), new_details.representation(),
+        *old_field_type, *new_field_type);
   }
 
   // Add missing transitions.
@@ -2577,13 +2752,13 @@ Handle<Map> Map::GeneralizeRepresentation(Handle<Map> old_map,
 
 // Generalize the representation of all FIELD descriptors.
 Handle<Map> Map::GeneralizeAllFieldRepresentations(
-    Handle<Map> map,
-    Representation new_representation) {
+    Handle<Map> map) {
   Handle<DescriptorArray> descriptors(map->instance_descriptors());
-  for (int i = 0; i < map->NumberOfOwnDescriptors(); i++) {
-    PropertyDetails details = descriptors->GetDetails(i);
-    if (details.type() == FIELD) {
-      map = GeneralizeRepresentation(map, i, new_representation, FORCE_FIELD);
+  for (int i = 0; i < map->NumberOfOwnDescriptors(); ++i) {
+    if (descriptors->GetDetails(i).type() == FIELD) {
+      map = GeneralizeRepresentation(map, i, Representation::Tagged(),
+                                     HeapType::Any(map->GetIsolate()),
+                                     FORCE_FIELD);
     }
   }
   return map;
@@ -2725,8 +2900,7 @@ MaybeHandle<Object> JSObject::SetPropertyWithCallback(Handle<JSObject> object,
     if (call_fun == NULL) return value;
     Handle<String> key = Handle<String>::cast(name);
     LOG(isolate, ApiNamedPropertyAccess("store", *object, *name));
-    PropertyCallbackArguments args(
-        isolate, data->data(), *object, JSObject::cast(*holder));
+    PropertyCallbackArguments args(isolate, data->data(), *object, *holder);
     args.Call(call_fun,
               v8::Utils::ToLocal(key),
               v8::Utils::ToLocal(value));
@@ -3722,7 +3896,9 @@ void JSObject::MigrateInstance(Handle<JSObject> object) {
   // transition that matches the object. This achieves what is needed.
   Handle<Map> original_map(object->map());
   GeneralizeFieldRepresentation(
-      object, 0, Representation::None(), ALLOW_AS_CONSTANT);
+      object, 0, Representation::None(),
+      HeapType::None(object->GetIsolate()),
+      ALLOW_AS_CONSTANT);
   object->map()->set_migration_target(true);
   if (FLAG_trace_migration) {
     object->PrintInstanceMigration(stdout, *original_map, object->map());
@@ -3751,7 +3927,7 @@ MaybeHandle<Object> JSObject::SetPropertyUsingTransition(
   Handle<Map> transition_map(lookup->GetTransitionTarget());
   int descriptor = transition_map->LastAdded();
 
-  DescriptorArray* descriptors = transition_map->instance_descriptors();
+  Handle<DescriptorArray> descriptors(transition_map->instance_descriptors());
   PropertyDetails details = descriptors->GetDetails(descriptor);
 
   if (details.type() == CALLBACKS || attributes != details.attributes()) {
@@ -3768,58 +3944,61 @@ MaybeHandle<Object> JSObject::SetPropertyUsingTransition(
   // Keep the target CONSTANT if the same value is stored.
   // TODO(verwaest): Also support keeping the placeholder
   // (value->IsUninitialized) as constant.
-  if (!lookup->CanHoldValue(value) ||
-      (details.type() == CONSTANT &&
-       descriptors->GetValue(descriptor) != *value)) {
-    transition_map = Map::GeneralizeRepresentation(transition_map,
-        descriptor, value->OptimalRepresentation(), FORCE_FIELD);
+  if (!lookup->CanHoldValue(value)) {
+    Representation field_representation = value->OptimalRepresentation();
+    Handle<HeapType> field_type = value->OptimalType(
+        lookup->isolate(), field_representation);
+    transition_map = Map::GeneralizeRepresentation(
+        transition_map, descriptor,
+        field_representation, field_type, FORCE_FIELD);
   }
 
-  JSObject::MigrateToMap(object, transition_map);
+  JSObject::MigrateToNewProperty(object, transition_map, value);
+  return value;
+}
 
-  // Reload.
-  descriptors = transition_map->instance_descriptors();
-  details = descriptors->GetDetails(descriptor);
 
-  if (details.type() != FIELD) return value;
+void JSObject::MigrateToNewProperty(Handle<JSObject> object,
+                                    Handle<Map> map,
+                                    Handle<Object> value) {
+  JSObject::MigrateToMap(object, map);
+  if (map->GetLastDescriptorDetails().type() != FIELD) return;
+  object->WriteToField(map->LastAdded(), *value);
+}
 
-  int field_index = descriptors->GetFieldIndex(descriptor);
+
+void JSObject::WriteToField(int descriptor, Object* value) {
+  DisallowHeapAllocation no_gc;
+
+  DescriptorArray* desc = map()->instance_descriptors();
+  PropertyDetails details = desc->GetDetails(descriptor);
+
+  ASSERT(details.type() == FIELD);
+
+  int field_index = desc->GetFieldIndex(descriptor);
   if (details.representation().IsDouble()) {
     // Nothing more to be done.
-    if (value->IsUninitialized()) return value;
-    HeapNumber* box = HeapNumber::cast(object->RawFastPropertyAt(field_index));
+    if (value->IsUninitialized()) return;
+    HeapNumber* box = HeapNumber::cast(RawFastPropertyAt(field_index));
     box->set_value(value->Number());
   } else {
-    object->FastPropertyAtPut(field_index, *value);
+    FastPropertyAtPut(field_index, value);
   }
-
-  return value;
 }
 
 
 static void SetPropertyToField(LookupResult* lookup,
                                Handle<Object> value) {
-  Representation representation = lookup->representation();
-  if (!lookup->CanHoldValue(value) ||
-      lookup->type() == CONSTANT) {
+  if (lookup->type() == CONSTANT || !lookup->CanHoldValue(value)) {
+    Representation field_representation = value->OptimalRepresentation();
+    Handle<HeapType> field_type = value->OptimalType(
+        lookup->isolate(), field_representation);
     JSObject::GeneralizeFieldRepresentation(handle(lookup->holder()),
                                             lookup->GetDescriptorIndex(),
-                                            value->OptimalRepresentation(),
+                                            field_representation, field_type,
                                             FORCE_FIELD);
-    DescriptorArray* desc = lookup->holder()->map()->instance_descriptors();
-    int descriptor = lookup->GetDescriptorIndex();
-    representation = desc->GetDetails(descriptor).representation();
   }
-
-  if (representation.IsDouble()) {
-    HeapNumber* storage = HeapNumber::cast(lookup->holder()->RawFastPropertyAt(
-        lookup->GetFieldIndex().field_index()));
-    storage->set_value(value->Number());
-    return;
-  }
-
-  lookup->holder()->FastPropertyAtPut(
-      lookup->GetFieldIndex().field_index(), *value);
+  lookup->holder()->WriteToField(lookup->GetDescriptorIndex(), *value);
 }
 
 
@@ -3840,7 +4019,8 @@ static void ConvertAndSetLocalProperty(LookupResult* lookup,
   int descriptor_index = lookup->GetDescriptorIndex();
   if (lookup->GetAttributes() == attributes) {
     JSObject::GeneralizeFieldRepresentation(
-        object, descriptor_index, Representation::Tagged(), FORCE_FIELD);
+        object, descriptor_index, Representation::Tagged(),
+        HeapType::Any(lookup->isolate()), FORCE_FIELD);
   } else {
     Handle<Map> old_map(object->map());
     Handle<Map> new_map = Map::CopyGeneralizeAllRepresentations(old_map,
@@ -3848,9 +4028,7 @@ static void ConvertAndSetLocalProperty(LookupResult* lookup,
     JSObject::MigrateToMap(object, new_map);
   }
 
-  DescriptorArray* descriptors = object->map()->instance_descriptors();
-  int index = descriptors->GetDetails(descriptor_index).field_index();
-  object->FastPropertyAtPut(index, *value);
+  object->WriteToField(descriptor_index, *value);
 }
 
 
@@ -5045,9 +5223,7 @@ Handle<Object> JSObject::SetHiddenPropertiesHashTable(Handle<JSObject> object,
       int sorted_index = descriptors->GetSortedKeyIndex(0);
       if (descriptors->GetKey(sorted_index) == isolate->heap()->hidden_string()
           && sorted_index < object->map()->NumberOfOwnDescriptors()) {
-        ASSERT(descriptors->GetType(sorted_index) == FIELD);
-        object->FastPropertyAtPut(descriptors->GetFieldIndex(sorted_index),
-                                  *value);
+        object->WriteToField(sorted_index, *value);
         return object;
       }
     }
@@ -5080,8 +5256,8 @@ Handle<Object> JSObject::DeletePropertyPostInterceptor(Handle<JSObject> object,
 }
 
 
-Handle<Object> JSObject::DeletePropertyWithInterceptor(Handle<JSObject> object,
-                                                       Handle<Name> name) {
+MaybeHandle<Object> JSObject::DeletePropertyWithInterceptor(
+    Handle<JSObject> object, Handle<Name> name) {
   Isolate* isolate = object->GetIsolate();
 
   // TODO(rossberg): Support symbols in the API.
@@ -5097,7 +5273,7 @@ Handle<Object> JSObject::DeletePropertyWithInterceptor(Handle<JSObject> object,
         isolate, interceptor->data(), *object, *object);
     v8::Handle<v8::Boolean> result =
         args.Call(deleter, v8::Utils::ToLocal(Handle<String>::cast(name)));
-    RETURN_HANDLE_IF_SCHEDULED_EXCEPTION(isolate, Object);
+    RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, Object);
     if (!result.IsEmpty()) {
       ASSERT(result->IsBoolean());
       Handle<Object> result_internal = v8::Utils::OpenHandle(*result);
@@ -5108,7 +5284,6 @@ Handle<Object> JSObject::DeletePropertyWithInterceptor(Handle<JSObject> object,
   }
   Handle<Object> result =
       DeletePropertyPostInterceptor(object, name, NORMAL_DELETION);
-  RETURN_HANDLE_IF_SCHEDULED_EXCEPTION(isolate, Object);
   return result;
 }
 
@@ -5132,7 +5307,7 @@ MaybeHandle<Object> JSObject::DeleteElementWithInterceptor(
   PropertyCallbackArguments args(
       isolate, interceptor->data(), *object, *object);
   v8::Handle<v8::Boolean> result = args.Call(deleter, index);
-  RETURN_HANDLE_IF_SCHEDULED_EXCEPTION(isolate, Object);
+  RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, Object);
   if (!result.IsEmpty()) {
     ASSERT(result->IsBoolean());
     Handle<Object> result_internal = v8::Utils::OpenHandle(*result);
@@ -5156,7 +5331,7 @@ MaybeHandle<Object> JSObject::DeleteElement(Handle<JSObject> object,
   if (object->IsAccessCheckNeeded() &&
       !isolate->MayIndexedAccess(object, index, v8::ACCESS_DELETE)) {
     isolate->ReportFailedAccessCheck(object, v8::ACCESS_DELETE);
-    RETURN_HANDLE_IF_SCHEDULED_EXCEPTION(isolate, Object);
+    RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, Object);
     return factory->false_value();
   }
 
@@ -5225,7 +5400,7 @@ MaybeHandle<Object> JSObject::DeleteProperty(Handle<JSObject> object,
   if (object->IsAccessCheckNeeded() &&
       !isolate->MayNamedAccess(object, name, v8::ACCESS_DELETE)) {
     isolate->ReportFailedAccessCheck(object, v8::ACCESS_DELETE);
-    RETURN_HANDLE_IF_SCHEDULED_EXCEPTION(isolate, Object);
+    RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, Object);
     return isolate->factory()->false_value();
   }
 
@@ -5272,7 +5447,10 @@ MaybeHandle<Object> JSObject::DeleteProperty(Handle<JSObject> object,
     if (mode == FORCE_DELETION) {
       result = DeletePropertyPostInterceptor(object, name, mode);
     } else {
-      result = DeletePropertyWithInterceptor(object, name);
+      ASSIGN_RETURN_ON_EXCEPTION(
+          isolate, result,
+          DeletePropertyWithInterceptor(object, name),
+          Object);
     }
   } else {
     // Normalize object if needed.
@@ -5447,7 +5625,7 @@ bool JSObject::ReferencesObject(Object* obj) {
 }
 
 
-Handle<Object> JSObject::PreventExtensions(Handle<JSObject> object) {
+MaybeHandle<Object> JSObject::PreventExtensions(Handle<JSObject> object) {
   Isolate* isolate = object->GetIsolate();
 
   if (!object->map()->is_extensible()) return object;
@@ -5456,7 +5634,7 @@ Handle<Object> JSObject::PreventExtensions(Handle<JSObject> object) {
       !isolate->MayNamedAccess(
           object, isolate->factory()->undefined_value(), v8::ACCESS_KEYS)) {
     isolate->ReportFailedAccessCheck(object, v8::ACCESS_KEYS);
-    RETURN_HANDLE_IF_SCHEDULED_EXCEPTION(isolate, Object);
+    RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, Object);
     return isolate->factory()->false_value();
   }
 
@@ -5474,8 +5652,7 @@ Handle<Object> JSObject::PreventExtensions(Handle<JSObject> object) {
         isolate->factory()->NewTypeError(
             "cant_prevent_ext_external_array_elements",
             HandleVector(&object, 1));
-    isolate->Throw(*error);
-    return Handle<Object>();
+    return isolate->Throw<Object>(error);
   }
 
   // If there are fast elements we normalize.
@@ -5594,16 +5771,7 @@ MaybeHandle<Object> JSObject::Freeze(Handle<JSObject> object) {
     JSObject::MigrateToMap(object, transition_map);
   } else if (object->HasFastProperties() && old_map->CanHaveMoreTransitions()) {
     // Create a new descriptor array with fully-frozen properties
-    int num_descriptors = old_map->NumberOfOwnDescriptors();
-    Handle<DescriptorArray> new_descriptors =
-        DescriptorArray::CopyUpToAddAttributes(
-            handle(old_map->instance_descriptors()), num_descriptors, FROZEN);
-    Handle<Map> new_map = Map::CopyReplaceDescriptors(
-        old_map, new_descriptors, INSERT_TRANSITION,
-        isolate->factory()->frozen_symbol());
-    new_map->freeze();
-    new_map->set_is_extensible(false);
-    new_map->set_elements_kind(DICTIONARY_ELEMENTS);
+    Handle<Map> new_map = Map::CopyForFreeze(old_map);
     JSObject::MigrateToMap(object, new_map);
   } else {
     // Slow path: need to normalize properties for safety
@@ -5658,10 +5826,22 @@ void JSObject::SetObserved(Handle<JSObject> object) {
 }
 
 
+Handle<JSObject> JSObject::Copy(Handle<JSObject> object,
+                                Handle<AllocationSite> site) {
+  Isolate* isolate = object->GetIsolate();
+  CALL_HEAP_FUNCTION(isolate,
+                     isolate->heap()->CopyJSObject(
+                         *object,
+                         site.is_null() ? NULL : *site),
+                     JSObject);
+}
+
+
 Handle<JSObject> JSObject::Copy(Handle<JSObject> object) {
   Isolate* isolate = object->GetIsolate();
   CALL_HEAP_FUNCTION(isolate,
-                     isolate->heap()->CopyJSObject(*object), JSObject);
+                     isolate->heap()->CopyJSObject(*object, NULL),
+                     JSObject);
 }
 
 
@@ -5669,8 +5849,8 @@ Handle<Object> JSObject::FastPropertyAt(Handle<JSObject> object,
                                         Representation representation,
                                         int index) {
   Isolate* isolate = object->GetIsolate();
-  CALL_HEAP_FUNCTION(isolate,
-                     object->FastPropertyAt(representation, index), Object);
+  Handle<Object> raw_value(object->RawFastPropertyAt(index), isolate);
+  return Object::NewStorageFor(isolate, raw_value, representation);
 }
 
 
@@ -5732,14 +5912,7 @@ Handle<JSObject> JSObjectWalkVisitor<ContextObject>::StructureWalk(
     if (site_context()->ShouldCreateMemento(object)) {
       site_to_pass = site_context()->current();
     }
-    CALL_AND_RETRY_OR_DIE(isolate,
-                          isolate->heap()->CopyJSObject(*object,
-                              site_to_pass.is_null() ? NULL : *site_to_pass),
-                          { copy = Handle<JSObject>(JSObject::cast(__object__),
-                                                    isolate);
-                            break;
-                          },
-                          return Handle<JSObject>());
+    copy = JSObject::Copy(object, site_to_pass);
   } else {
     copy = object;
   }
@@ -5770,7 +5943,7 @@ Handle<JSObject> JSObjectWalkVisitor<ContextObject>::StructureWalk(
           RETURN_IF_EMPTY_HANDLE_VALUE(isolate, value, Handle<JSObject>());
         } else {
           Representation representation = details.representation();
-          value = NewStorageFor(isolate, value, representation);
+          value = Object::NewStorageFor(isolate, value, representation);
         }
         if (copying) {
           copy->FastPropertyAtPut(index, *value);
@@ -6078,6 +6251,247 @@ void JSObject::LookupCallbackProperty(Name* name, LookupResult* result) {
     if (result->IsPropertyCallbacks()) return;
   }
   result->NotFound();
+}
+
+
+static bool ContainsOnlyValidKeys(Handle<FixedArray> array) {
+  int len = array->length();
+  for (int i = 0; i < len; i++) {
+    Object* e = array->get(i);
+    if (!(e->IsString() || e->IsNumber())) return false;
+  }
+  return true;
+}
+
+
+static Handle<FixedArray> ReduceFixedArrayTo(
+    Handle<FixedArray> array, int length) {
+  ASSERT(array->length() >= length);
+  if (array->length() == length) return array;
+
+  Handle<FixedArray> new_array =
+      array->GetIsolate()->factory()->NewFixedArray(length);
+  for (int i = 0; i < length; ++i) new_array->set(i, array->get(i));
+  return new_array;
+}
+
+
+static Handle<FixedArray> GetEnumPropertyKeys(Handle<JSObject> object,
+                                              bool cache_result) {
+  Isolate* isolate = object->GetIsolate();
+  if (object->HasFastProperties()) {
+    int own_property_count = object->map()->EnumLength();
+    // If the enum length of the given map is set to kInvalidEnumCache, this
+    // means that the map itself has never used the present enum cache. The
+    // first step to using the cache is to set the enum length of the map by
+    // counting the number of own descriptors that are not DONT_ENUM or
+    // SYMBOLIC.
+    if (own_property_count == kInvalidEnumCacheSentinel) {
+      own_property_count = object->map()->NumberOfDescribedProperties(
+          OWN_DESCRIPTORS, DONT_SHOW);
+    } else {
+      ASSERT(own_property_count == object->map()->NumberOfDescribedProperties(
+          OWN_DESCRIPTORS, DONT_SHOW));
+    }
+
+    if (object->map()->instance_descriptors()->HasEnumCache()) {
+      DescriptorArray* desc = object->map()->instance_descriptors();
+      Handle<FixedArray> keys(desc->GetEnumCache(), isolate);
+
+      // In case the number of properties required in the enum are actually
+      // present, we can reuse the enum cache. Otherwise, this means that the
+      // enum cache was generated for a previous (smaller) version of the
+      // Descriptor Array. In that case we regenerate the enum cache.
+      if (own_property_count <= keys->length()) {
+        if (cache_result) object->map()->SetEnumLength(own_property_count);
+        isolate->counters()->enum_cache_hits()->Increment();
+        return ReduceFixedArrayTo(keys, own_property_count);
+      }
+    }
+
+    Handle<Map> map(object->map());
+
+    if (map->instance_descriptors()->IsEmpty()) {
+      isolate->counters()->enum_cache_hits()->Increment();
+      if (cache_result) map->SetEnumLength(0);
+      return isolate->factory()->empty_fixed_array();
+    }
+
+    isolate->counters()->enum_cache_misses()->Increment();
+
+    Handle<FixedArray> storage = isolate->factory()->NewFixedArray(
+        own_property_count);
+    Handle<FixedArray> indices = isolate->factory()->NewFixedArray(
+        own_property_count);
+
+    Handle<DescriptorArray> descs =
+        Handle<DescriptorArray>(object->map()->instance_descriptors(), isolate);
+
+    int size = map->NumberOfOwnDescriptors();
+    int index = 0;
+
+    for (int i = 0; i < size; i++) {
+      PropertyDetails details = descs->GetDetails(i);
+      Object* key = descs->GetKey(i);
+      if (!(details.IsDontEnum() || key->IsSymbol())) {
+        storage->set(index, key);
+        if (!indices.is_null()) {
+          if (details.type() != FIELD) {
+            indices = Handle<FixedArray>();
+          } else {
+            int field_index = descs->GetFieldIndex(i);
+            if (field_index >= map->inobject_properties()) {
+              field_index = -(field_index - map->inobject_properties() + 1);
+            }
+            field_index = field_index << 1;
+            if (details.representation().IsDouble()) {
+              field_index |= 1;
+            }
+            indices->set(index, Smi::FromInt(field_index));
+          }
+        }
+        index++;
+      }
+    }
+    ASSERT(index == storage->length());
+
+    Handle<FixedArray> bridge_storage =
+        isolate->factory()->NewFixedArray(
+            DescriptorArray::kEnumCacheBridgeLength);
+    DescriptorArray* desc = object->map()->instance_descriptors();
+    desc->SetEnumCache(*bridge_storage,
+                       *storage,
+                       indices.is_null() ? Object::cast(Smi::FromInt(0))
+                                         : Object::cast(*indices));
+    if (cache_result) {
+      object->map()->SetEnumLength(own_property_count);
+    }
+    return storage;
+  } else {
+    Handle<NameDictionary> dictionary(object->property_dictionary());
+    int length = dictionary->NumberOfEnumElements();
+    if (length == 0) {
+      return Handle<FixedArray>(isolate->heap()->empty_fixed_array());
+    }
+    Handle<FixedArray> storage = isolate->factory()->NewFixedArray(length);
+    dictionary->CopyEnumKeysTo(*storage);
+    return storage;
+  }
+}
+
+
+MaybeHandle<FixedArray> JSReceiver::GetKeys(Handle<JSReceiver> object,
+                                            KeyCollectionType type) {
+  USE(ContainsOnlyValidKeys);
+  Isolate* isolate = object->GetIsolate();
+  Handle<FixedArray> content = isolate->factory()->empty_fixed_array();
+  Handle<JSObject> arguments_boilerplate = Handle<JSObject>(
+      isolate->context()->native_context()->sloppy_arguments_boilerplate(),
+      isolate);
+  Handle<JSFunction> arguments_function = Handle<JSFunction>(
+      JSFunction::cast(arguments_boilerplate->map()->constructor()),
+      isolate);
+
+  // Only collect keys if access is permitted.
+  for (Handle<Object> p = object;
+       *p != isolate->heap()->null_value();
+       p = Handle<Object>(p->GetPrototype(isolate), isolate)) {
+    if (p->IsJSProxy()) {
+      Handle<JSProxy> proxy(JSProxy::cast(*p), isolate);
+      Handle<Object> args[] = { proxy };
+      Handle<Object> names;
+      ASSIGN_RETURN_ON_EXCEPTION(
+          isolate, names,
+          Execution::Call(isolate,
+                          isolate->proxy_enumerate(),
+                          object,
+                          ARRAY_SIZE(args),
+                          args),
+          FixedArray);
+      ASSIGN_RETURN_ON_EXCEPTION(
+          isolate, content,
+          FixedArray::AddKeysFromJSArray(
+              content, Handle<JSArray>::cast(names)),
+          FixedArray);
+      break;
+    }
+
+    Handle<JSObject> current(JSObject::cast(*p), isolate);
+
+    // Check access rights if required.
+    if (current->IsAccessCheckNeeded() &&
+        !isolate->MayNamedAccess(
+            current, isolate->factory()->undefined_value(), v8::ACCESS_KEYS)) {
+      isolate->ReportFailedAccessCheck(current, v8::ACCESS_KEYS);
+      RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, FixedArray);
+      break;
+    }
+
+    // Compute the element keys.
+    Handle<FixedArray> element_keys =
+        isolate->factory()->NewFixedArray(current->NumberOfEnumElements());
+    current->GetEnumElementKeys(*element_keys);
+    ASSIGN_RETURN_ON_EXCEPTION(
+        isolate, content,
+        FixedArray::UnionOfKeys(content, element_keys),
+        FixedArray);
+    ASSERT(ContainsOnlyValidKeys(content));
+
+    // Add the element keys from the interceptor.
+    if (current->HasIndexedInterceptor()) {
+      Handle<JSArray> result;
+      if (JSObject::GetKeysForIndexedInterceptor(
+              current, object).ToHandle(&result)) {
+        ASSIGN_RETURN_ON_EXCEPTION(
+            isolate, content,
+            FixedArray::AddKeysFromJSArray(content, result),
+            FixedArray);
+      }
+      ASSERT(ContainsOnlyValidKeys(content));
+    }
+
+    // We can cache the computed property keys if access checks are
+    // not needed and no interceptors are involved.
+    //
+    // We do not use the cache if the object has elements and
+    // therefore it does not make sense to cache the property names
+    // for arguments objects.  Arguments objects will always have
+    // elements.
+    // Wrapped strings have elements, but don't have an elements
+    // array or dictionary.  So the fast inline test for whether to
+    // use the cache says yes, so we should not create a cache.
+    bool cache_enum_keys =
+        ((current->map()->constructor() != *arguments_function) &&
+         !current->IsJSValue() &&
+         !current->IsAccessCheckNeeded() &&
+         !current->HasNamedInterceptor() &&
+         !current->HasIndexedInterceptor());
+    // Compute the property keys and cache them if possible.
+    ASSIGN_RETURN_ON_EXCEPTION(
+        isolate, content,
+        FixedArray::UnionOfKeys(
+            content, GetEnumPropertyKeys(current, cache_enum_keys)),
+        FixedArray);
+    ASSERT(ContainsOnlyValidKeys(content));
+
+    // Add the property keys from the interceptor.
+    if (current->HasNamedInterceptor()) {
+      Handle<JSArray> result;
+      if (JSObject::GetKeysForNamedInterceptor(
+              current, object).ToHandle(&result)) {
+        ASSIGN_RETURN_ON_EXCEPTION(
+            isolate, content,
+            FixedArray::AddKeysFromJSArray(content, result),
+            FixedArray);
+      }
+      ASSERT(ContainsOnlyValidKeys(content));
+    }
+
+    // If we only want local properties we bail out after the first
+    // iteration.
+    if (type == LOCAL_ONLY) break;
+  }
+  return content;
 }
 
 
@@ -6447,15 +6861,6 @@ static bool TryAccessorTransition(Handle<JSObject> self,
 }
 
 
-static Handle<Map> CopyInsertDescriptor(Handle<Map> map,
-                                        Handle<Name> name,
-                                        Handle<AccessorPair> accessors,
-                                        PropertyAttributes attributes) {
-  CallbacksDescriptor new_accessors_desc(name, accessors, attributes);
-  return Map::CopyInsertDescriptor(map, &new_accessors_desc, INSERT_TRANSITION);
-}
-
-
 bool JSObject::DefineFastAccessor(Handle<JSObject> object,
                                   Handle<Name> name,
                                   AccessorComponent component,
@@ -6520,15 +6925,18 @@ bool JSObject::DefineFastAccessor(Handle<JSObject> object,
       ? AccessorPair::Copy(Handle<AccessorPair>(source_accessors))
       : isolate->factory()->NewAccessorPair();
   accessors->set(component, *accessor);
-  Handle<Map> new_map = CopyInsertDescriptor(Handle<Map>(object->map()),
-                                             name, accessors, attributes);
+
+  CallbacksDescriptor new_accessors_desc(name, accessors, attributes);
+  Handle<Map> new_map = Map::CopyInsertDescriptor(
+      handle(object->map()), &new_accessors_desc, INSERT_TRANSITION);
+
   JSObject::MigrateToMap(object, new_map);
   return true;
 }
 
 
-Handle<Object> JSObject::SetAccessor(Handle<JSObject> object,
-                                     Handle<AccessorInfo> info) {
+MaybeHandle<Object> JSObject::SetAccessor(Handle<JSObject> object,
+                                          Handle<AccessorInfo> info) {
   Isolate* isolate = object->GetIsolate();
   Factory* factory = isolate->factory();
   Handle<Name> name(Name::cast(info->name()));
@@ -6537,7 +6945,7 @@ Handle<Object> JSObject::SetAccessor(Handle<JSObject> object,
   if (object->IsAccessCheckNeeded() &&
       !isolate->MayNamedAccess(object, name, v8::ACCESS_SET)) {
     isolate->ReportFailedAccessCheck(object, v8::ACCESS_SET);
-    RETURN_HANDLE_IF_SCHEDULED_EXCEPTION(isolate, Object);
+    RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, Object);
     return factory->undefined_value();
   }
 
@@ -6610,9 +7018,9 @@ Handle<Object> JSObject::SetAccessor(Handle<JSObject> object,
 }
 
 
-Handle<Object> JSObject::GetAccessor(Handle<JSObject> object,
-                                     Handle<Name> name,
-                                     AccessorComponent component) {
+MaybeHandle<Object> JSObject::GetAccessor(Handle<JSObject> object,
+                                          Handle<Name> name,
+                                          AccessorComponent component) {
   Isolate* isolate = object->GetIsolate();
 
   // Make sure that the top context does not change when doing callbacks or
@@ -6623,7 +7031,7 @@ Handle<Object> JSObject::GetAccessor(Handle<JSObject> object,
   if (object->IsAccessCheckNeeded() &&
       !isolate->MayNamedAccess(object, name, v8::ACCESS_HAS)) {
     isolate->ReportFailedAccessCheck(object, v8::ACCESS_HAS);
-    RETURN_HANDLE_IF_SCHEDULED_EXCEPTION(isolate, Object);
+    RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, Object);
     return isolate->factory()->undefined_value();
   }
 
@@ -6806,16 +7214,7 @@ Handle<Map> Map::ShareDescriptor(Handle<Map> map,
 Handle<Map> Map::CopyReplaceDescriptors(Handle<Map> map,
                                         Handle<DescriptorArray> descriptors,
                                         TransitionFlag flag,
-                                        SimpleTransitionFlag simple_flag) {
-  return CopyReplaceDescriptors(
-      map, descriptors, flag, Handle<Name>::null(), simple_flag);
-}
-
-
-Handle<Map> Map::CopyReplaceDescriptors(Handle<Map> map,
-                                        Handle<DescriptorArray> descriptors,
-                                        TransitionFlag flag,
-                                        Handle<Name> name,
+                                        MaybeHandle<Name> maybe_name,
                                         SimpleTransitionFlag simple_flag) {
   ASSERT(descriptors->IsSortedNoDuplicates());
 
@@ -6823,12 +7222,20 @@ Handle<Map> Map::CopyReplaceDescriptors(Handle<Map> map,
   result->InitializeDescriptors(*descriptors);
 
   if (flag == INSERT_TRANSITION && map->CanHaveMoreTransitions()) {
+    Handle<Name> name;
+    CHECK(maybe_name.ToHandle(&name));
     Handle<TransitionArray> transitions = TransitionArray::CopyInsert(
         map, name, result, simple_flag);
     map->set_transitions(*transitions);
     result->SetBackPointer(*map);
   } else {
-    descriptors->InitializeRepresentations(Representation::Tagged());
+    int length = descriptors->number_of_descriptors();
+    for (int i = 0; i < length; i++) {
+      descriptors->SetRepresentation(i, Representation::Tagged());
+      if (descriptors->GetDetails(i).type() == FIELD) {
+        descriptors->SetValue(i, HeapType::Any());
+      }
+    }
   }
 
   return result;
@@ -6953,7 +7360,8 @@ Handle<Map> Map::Copy(Handle<Map> map) {
   int number_of_own_descriptors = map->NumberOfOwnDescriptors();
   Handle<DescriptorArray> new_descriptors =
       DescriptorArray::CopyUpTo(descriptors, number_of_own_descriptors);
-  return CopyReplaceDescriptors(map, new_descriptors, OMIT_TRANSITION);
+  return CopyReplaceDescriptors(
+      map, new_descriptors, OMIT_TRANSITION, MaybeHandle<Name>());
 }
 
 
@@ -6983,6 +7391,20 @@ Handle<Map> Map::Create(Handle<JSFunction> constructor,
   copy->set_instance_size(copy->instance_size() + instance_size_delta);
   copy->set_visitor_id(StaticVisitorBase::GetVisitorId(*copy));
   return copy;
+}
+
+
+Handle<Map> Map::CopyForFreeze(Handle<Map> map) {
+  int num_descriptors = map->NumberOfOwnDescriptors();
+  Isolate* isolate = map->GetIsolate();
+  Handle<DescriptorArray> new_desc = DescriptorArray::CopyUpToAddAttributes(
+      handle(map->instance_descriptors(), isolate), num_descriptors, FROZEN);
+  Handle<Map> new_map = Map::CopyReplaceDescriptors(
+      map, new_desc, INSERT_TRANSITION, isolate->factory()->frozen_symbol());
+  new_map->freeze();
+  new_map->set_is_extensible(false);
+  new_map->set_elements_kind(DICTIONARY_ELEMENTS);
+  return new_map;
 }
 
 
@@ -7106,23 +7528,16 @@ void Map::UpdateCodeCache(Handle<Map> map,
                           Handle<Name> name,
                           Handle<Code> code) {
   Isolate* isolate = map->GetIsolate();
-  CALL_HEAP_FUNCTION_VOID(isolate,
-                          map->UpdateCodeCache(*name, *code));
-}
-
-
-MaybeObject* Map::UpdateCodeCache(Name* name, Code* code) {
+  HandleScope scope(isolate);
   // Allocate the code cache if not present.
-  if (code_cache()->IsFixedArray()) {
-    Object* result;
-    { MaybeObject* maybe_result = GetHeap()->AllocateCodeCache();
-      if (!maybe_result->ToObject(&result)) return maybe_result;
-    }
-    set_code_cache(result);
+  if (map->code_cache()->IsFixedArray()) {
+    Handle<Object> result = isolate->factory()->NewCodeCache();
+    map->set_code_cache(*result);
   }
 
   // Update the code cache.
-  return CodeCache::cast(code_cache())->Update(name, code);
+  Handle<CodeCache> code_cache(CodeCache::cast(map->code_cache()), isolate);
+  CodeCache::Update(code_cache, name, code);
 }
 
 
@@ -7359,30 +7774,29 @@ void Map::TraverseTransitionTree(TraverseCallback callback, void* data) {
 }
 
 
-MaybeObject* CodeCache::Update(Name* name, Code* code) {
+void CodeCache::Update(
+    Handle<CodeCache> code_cache, Handle<Name> name, Handle<Code> code) {
   // The number of monomorphic stubs for normal load/store/call IC's can grow to
   // a large number and therefore they need to go into a hash table. They are
   // used to load global properties from cells.
   if (code->type() == Code::NORMAL) {
     // Make sure that a hash table is allocated for the normal load code cache.
-    if (normal_type_cache()->IsUndefined()) {
-      Object* result;
-      { MaybeObject* maybe_result =
-            CodeCacheHashTable::Allocate(GetHeap(),
-                                         CodeCacheHashTable::kInitialSize);
-        if (!maybe_result->ToObject(&result)) return maybe_result;
-      }
-      set_normal_type_cache(result);
+    if (code_cache->normal_type_cache()->IsUndefined()) {
+      Handle<Object> result =
+          CodeCacheHashTable::New(code_cache->GetIsolate(),
+                                  CodeCacheHashTable::kInitialSize);
+      code_cache->set_normal_type_cache(*result);
     }
-    return UpdateNormalTypeCache(name, code);
+    UpdateNormalTypeCache(code_cache, name, code);
   } else {
-    ASSERT(default_cache()->IsFixedArray());
-    return UpdateDefaultCache(name, code);
+    ASSERT(code_cache->default_cache()->IsFixedArray());
+    UpdateDefaultCache(code_cache, name, code);
   }
 }
 
 
-MaybeObject* CodeCache::UpdateDefaultCache(Name* name, Code* code) {
+void CodeCache::UpdateDefaultCache(
+    Handle<CodeCache> code_cache, Handle<Name> name, Handle<Code> code) {
   // When updating the default code cache we disregard the type encoded in the
   // flags. This allows call constant stubs to overwrite call field
   // stubs, etc.
@@ -7390,37 +7804,40 @@ MaybeObject* CodeCache::UpdateDefaultCache(Name* name, Code* code) {
 
   // First check whether we can update existing code cache without
   // extending it.
-  FixedArray* cache = default_cache();
+  Handle<FixedArray> cache = handle(code_cache->default_cache());
   int length = cache->length();
-  int deleted_index = -1;
-  for (int i = 0; i < length; i += kCodeCacheEntrySize) {
-    Object* key = cache->get(i);
-    if (key->IsNull()) {
-      if (deleted_index < 0) deleted_index = i;
-      continue;
-    }
-    if (key->IsUndefined()) {
-      if (deleted_index >= 0) i = deleted_index;
-      cache->set(i + kCodeCacheEntryNameOffset, name);
-      cache->set(i + kCodeCacheEntryCodeOffset, code);
-      return this;
-    }
-    if (name->Equals(Name::cast(key))) {
-      Code::Flags found =
-          Code::cast(cache->get(i + kCodeCacheEntryCodeOffset))->flags();
-      if (Code::RemoveTypeFromFlags(found) == flags) {
-        cache->set(i + kCodeCacheEntryCodeOffset, code);
-        return this;
+  {
+    DisallowHeapAllocation no_alloc;
+    int deleted_index = -1;
+    for (int i = 0; i < length; i += kCodeCacheEntrySize) {
+      Object* key = cache->get(i);
+      if (key->IsNull()) {
+        if (deleted_index < 0) deleted_index = i;
+        continue;
+      }
+      if (key->IsUndefined()) {
+        if (deleted_index >= 0) i = deleted_index;
+        cache->set(i + kCodeCacheEntryNameOffset, *name);
+        cache->set(i + kCodeCacheEntryCodeOffset, *code);
+        return;
+      }
+      if (name->Equals(Name::cast(key))) {
+        Code::Flags found =
+            Code::cast(cache->get(i + kCodeCacheEntryCodeOffset))->flags();
+        if (Code::RemoveTypeFromFlags(found) == flags) {
+          cache->set(i + kCodeCacheEntryCodeOffset, *code);
+          return;
+        }
       }
     }
-  }
 
-  // Reached the end of the code cache.  If there were deleted
-  // elements, reuse the space for the first of them.
-  if (deleted_index >= 0) {
-    cache->set(deleted_index + kCodeCacheEntryNameOffset, name);
-    cache->set(deleted_index + kCodeCacheEntryCodeOffset, code);
-    return this;
+    // Reached the end of the code cache.  If there were deleted
+    // elements, reuse the space for the first of them.
+    if (deleted_index >= 0) {
+      cache->set(deleted_index + kCodeCacheEntryNameOffset, *name);
+      cache->set(deleted_index + kCodeCacheEntryCodeOffset, *code);
+      return;
+    }
   }
 
   // Extend the code cache with some new entries (at least one). Must be a
@@ -7428,29 +7845,22 @@ MaybeObject* CodeCache::UpdateDefaultCache(Name* name, Code* code) {
   int new_length = length + ((length >> 1)) + kCodeCacheEntrySize;
   new_length = new_length - new_length % kCodeCacheEntrySize;
   ASSERT((new_length % kCodeCacheEntrySize) == 0);
-  Object* result;
-  { MaybeObject* maybe_result = cache->CopySize(new_length);
-    if (!maybe_result->ToObject(&result)) return maybe_result;
-  }
+  cache = FixedArray::CopySize(cache, new_length);
 
   // Add the (name, code) pair to the new cache.
-  cache = FixedArray::cast(result);
-  cache->set(length + kCodeCacheEntryNameOffset, name);
-  cache->set(length + kCodeCacheEntryCodeOffset, code);
-  set_default_cache(cache);
-  return this;
+  cache->set(length + kCodeCacheEntryNameOffset, *name);
+  cache->set(length + kCodeCacheEntryCodeOffset, *code);
+  code_cache->set_default_cache(*cache);
 }
 
 
-MaybeObject* CodeCache::UpdateNormalTypeCache(Name* name, Code* code) {
+void CodeCache::UpdateNormalTypeCache(
+    Handle<CodeCache> code_cache, Handle<Name> name, Handle<Code> code) {
   // Adding a new entry can cause a new cache to be allocated.
-  CodeCacheHashTable* cache = CodeCacheHashTable::cast(normal_type_cache());
-  Object* new_cache;
-  { MaybeObject* maybe_new_cache = cache->Put(name, code);
-    if (!maybe_new_cache->ToObject(&new_cache)) return maybe_new_cache;
-  }
-  set_normal_type_cache(new_cache);
-  return this;
+  Handle<CodeCacheHashTable> cache(
+      CodeCacheHashTable::cast(code_cache->normal_type_cache()));
+  Handle<Object> new_cache = CodeCacheHashTable::Put(cache, name, code);
+  code_cache->set_normal_type_cache(*new_cache);
 }
 
 
@@ -7534,10 +7944,10 @@ void CodeCache::RemoveByIndex(Object* name, Code* code, int index) {
 // lookup not to create a new entry.
 class CodeCacheHashTableKey : public HashTableKey {
  public:
-  CodeCacheHashTableKey(Name* name, Code::Flags flags)
-      : name_(name), flags_(flags), code_(NULL) { }
+  CodeCacheHashTableKey(Handle<Name> name, Code::Flags flags)
+      : name_(name), flags_(flags), code_() { }
 
-  CodeCacheHashTableKey(Name* name, Code* code)
+  CodeCacheHashTableKey(Handle<Name> name, Handle<Code> code)
       : name_(name), flags_(code->flags()), code_(code) { }
 
 
@@ -7556,7 +7966,7 @@ class CodeCacheHashTableKey : public HashTableKey {
     return name->Hash() ^ flags;
   }
 
-  uint32_t Hash() { return NameFlagsHashHelper(name_, flags_); }
+  uint32_t Hash() { return NameFlagsHashHelper(*name_, flags_); }
 
   uint32_t HashForObject(Object* obj) {
     FixedArray* pair = FixedArray::cast(obj);
@@ -7566,58 +7976,60 @@ class CodeCacheHashTableKey : public HashTableKey {
   }
 
   MUST_USE_RESULT MaybeObject* AsObject(Heap* heap) {
-    ASSERT(code_ != NULL);
+    Handle<Code> code = code_.ToHandleChecked();
     Object* obj;
     { MaybeObject* maybe_obj = heap->AllocateFixedArray(2);
       if (!maybe_obj->ToObject(&obj)) return maybe_obj;
     }
     FixedArray* pair = FixedArray::cast(obj);
-    pair->set(0, name_);
-    pair->set(1, code_);
+    pair->set(0, *name_);
+    pair->set(1, *code);
     return pair;
   }
 
+  Handle<FixedArray> AsHandle() {
+    Isolate* isolate = name_->GetIsolate();
+    CALL_HEAP_FUNCTION(isolate,
+                       AsObject(isolate->heap()),
+                       FixedArray);
+  }
+
  private:
-  Name* name_;
+  Handle<Name> name_;
   Code::Flags flags_;
   // TODO(jkummerow): We should be able to get by without this.
-  Code* code_;
+  MaybeHandle<Code> code_;
 };
 
 
 Object* CodeCacheHashTable::Lookup(Name* name, Code::Flags flags) {
-  CodeCacheHashTableKey key(name, flags);
+  DisallowHeapAllocation no_alloc;
+  CodeCacheHashTableKey key(handle(name), flags);
   int entry = FindEntry(&key);
   if (entry == kNotFound) return GetHeap()->undefined_value();
   return get(EntryToIndex(entry) + 1);
 }
 
 
-MaybeObject* CodeCacheHashTable::Put(Name* name, Code* code) {
+Handle<CodeCacheHashTable> CodeCacheHashTable::Put(
+    Handle<CodeCacheHashTable> cache, Handle<Name> name, Handle<Code> code) {
   CodeCacheHashTableKey key(name, code);
-  Object* obj;
-  { MaybeObject* maybe_obj = EnsureCapacity(1, &key);
-    if (!maybe_obj->ToObject(&obj)) return maybe_obj;
-  }
 
-  // Don't use |this|, as the table might have grown.
-  CodeCacheHashTable* cache = reinterpret_cast<CodeCacheHashTable*>(obj);
+  Handle<CodeCacheHashTable> new_cache = EnsureCapacity(cache, 1, &key);
 
-  int entry = cache->FindInsertionEntry(key.Hash());
-  Object* k;
-  { MaybeObject* maybe_k = key.AsObject(GetHeap());
-    if (!maybe_k->ToObject(&k)) return maybe_k;
-  }
+  int entry = new_cache->FindInsertionEntry(key.Hash());
+  Handle<Object> k = key.AsHandle();
 
-  cache->set(EntryToIndex(entry), k);
-  cache->set(EntryToIndex(entry) + 1, code);
-  cache->ElementAdded();
-  return cache;
+  new_cache->set(EntryToIndex(entry), *k);
+  new_cache->set(EntryToIndex(entry) + 1, *code);
+  new_cache->ElementAdded();
+  return new_cache;
 }
 
 
 int CodeCacheHashTable::GetIndex(Name* name, Code::Flags flags) {
-  CodeCacheHashTableKey key(name, flags);
+  DisallowHeapAllocation no_alloc;
+  CodeCacheHashTableKey key(handle(name), flags);
   int entry = FindEntry(&key);
   return (entry == kNotFound) ? -1 : entry;
 }
@@ -7632,41 +8044,27 @@ void CodeCacheHashTable::RemoveByIndex(int index) {
 }
 
 
-void PolymorphicCodeCache::Update(Handle<PolymorphicCodeCache> cache,
+void PolymorphicCodeCache::Update(Handle<PolymorphicCodeCache> code_cache,
                                   MapHandleList* maps,
                                   Code::Flags flags,
                                   Handle<Code> code) {
-  Isolate* isolate = cache->GetIsolate();
-  CALL_HEAP_FUNCTION_VOID(isolate, cache->Update(maps, flags, *code));
-}
-
-
-MaybeObject* PolymorphicCodeCache::Update(MapHandleList* maps,
-                                          Code::Flags flags,
-                                          Code* code) {
-  // Initialize cache if necessary.
-  if (cache()->IsUndefined()) {
-    Object* result;
-    { MaybeObject* maybe_result =
-          PolymorphicCodeCacheHashTable::Allocate(
-              GetHeap(),
-              PolymorphicCodeCacheHashTable::kInitialSize);
-      if (!maybe_result->ToObject(&result)) return maybe_result;
-    }
-    set_cache(result);
+  Isolate* isolate = code_cache->GetIsolate();
+  if (code_cache->cache()->IsUndefined()) {
+    Handle<PolymorphicCodeCacheHashTable> result =
+        PolymorphicCodeCacheHashTable::New(
+            isolate,
+            PolymorphicCodeCacheHashTable::kInitialSize);
+    code_cache->set_cache(*result);
   } else {
     // This entry shouldn't be contained in the cache yet.
-    ASSERT(PolymorphicCodeCacheHashTable::cast(cache())
+    ASSERT(PolymorphicCodeCacheHashTable::cast(code_cache->cache())
                ->Lookup(maps, flags)->IsUndefined());
   }
-  PolymorphicCodeCacheHashTable* hash_table =
-      PolymorphicCodeCacheHashTable::cast(cache());
-  Object* new_cache;
-  { MaybeObject* maybe_new_cache = hash_table->Put(maps, flags, code);
-    if (!maybe_new_cache->ToObject(&new_cache)) return maybe_new_cache;
-  }
-  set_cache(new_cache);
-  return this;
+  Handle<PolymorphicCodeCacheHashTable> hash_table =
+      handle(PolymorphicCodeCacheHashTable::cast(code_cache->cache()));
+  Handle<PolymorphicCodeCacheHashTable> new_cache =
+      PolymorphicCodeCacheHashTable::Put(hash_table, maps, flags, code);
+  code_cache->set_cache(*new_cache);
 }
 
 
@@ -7688,8 +8086,10 @@ Handle<Object> PolymorphicCodeCache::Lookup(MapHandleList* maps,
 class PolymorphicCodeCacheHashTableKey : public HashTableKey {
  public:
   // Callers must ensure that |maps| outlives the newly constructed object.
-  PolymorphicCodeCacheHashTableKey(MapHandleList* maps, int code_flags)
-      : maps_(maps),
+  PolymorphicCodeCacheHashTableKey(
+      Isolate* isolate, MapHandleList* maps, int code_flags)
+      : isolate_(isolate),
+        maps_(maps),
         code_flags_(code_flags) {}
 
   bool IsMatch(Object* other) {
@@ -7755,6 +8155,12 @@ class PolymorphicCodeCacheHashTableKey : public HashTableKey {
     return list;
   }
 
+  Handle<FixedArray> AsHandle() {
+    CALL_HEAP_FUNCTION(isolate_,
+                       AsObject(isolate_->heap()),
+                       FixedArray);
+  }
+
  private:
   static MapHandleList* FromObject(Object* obj,
                                    int* code_flags,
@@ -7768,6 +8174,7 @@ class PolymorphicCodeCacheHashTableKey : public HashTableKey {
     return maps;
   }
 
+  Isolate* isolate_;
   MapHandleList* maps_;  // weak.
   int code_flags_;
   static const int kDefaultListAllocationSize = kMaxKeyedPolymorphism + 1;
@@ -7775,30 +8182,29 @@ class PolymorphicCodeCacheHashTableKey : public HashTableKey {
 
 
 Object* PolymorphicCodeCacheHashTable::Lookup(MapHandleList* maps,
-                                              int code_flags) {
-  PolymorphicCodeCacheHashTableKey key(maps, code_flags);
+                                              int code_kind) {
+  DisallowHeapAllocation no_alloc;
+  PolymorphicCodeCacheHashTableKey key(GetIsolate(), maps, code_kind);
   int entry = FindEntry(&key);
   if (entry == kNotFound) return GetHeap()->undefined_value();
   return get(EntryToIndex(entry) + 1);
 }
 
 
-MaybeObject* PolymorphicCodeCacheHashTable::Put(MapHandleList* maps,
-                                                int code_flags,
-                                                Code* code) {
-  PolymorphicCodeCacheHashTableKey key(maps, code_flags);
-  Object* obj;
-  { MaybeObject* maybe_obj = EnsureCapacity(1, &key);
-    if (!maybe_obj->ToObject(&obj)) return maybe_obj;
-  }
-  PolymorphicCodeCacheHashTable* cache =
-      reinterpret_cast<PolymorphicCodeCacheHashTable*>(obj);
+Handle<PolymorphicCodeCacheHashTable> PolymorphicCodeCacheHashTable::Put(
+      Handle<PolymorphicCodeCacheHashTable> hash_table,
+      MapHandleList* maps,
+      int code_kind,
+      Handle<Code> code) {
+  PolymorphicCodeCacheHashTableKey key(
+      hash_table->GetIsolate(), maps, code_kind);
+  Handle<PolymorphicCodeCacheHashTable> cache =
+      EnsureCapacity(hash_table, 1, &key);
   int entry = cache->FindInsertionEntry(key.Hash());
-  { MaybeObject* maybe_obj = key.AsObject(GetHeap());
-    if (!maybe_obj->ToObject(&obj)) return maybe_obj;
-  }
-  cache->set(EntryToIndex(entry), obj);
-  cache->set(EntryToIndex(entry) + 1, code);
+
+  Handle<FixedArray> obj = key.AsHandle();
+  cache->set(EntryToIndex(entry), *obj);
+  cache->set(EntryToIndex(entry) + 1, *code);
   cache->ElementAdded();
   return cache;
 }
@@ -7882,6 +8288,15 @@ MaybeObject* FixedArray::CopySize(int new_length, PretenureFlag pretenure) {
     result->set(i, get(i), mode);
   }
   return result;
+}
+
+
+Handle<FixedArray> FixedArray::CopySize(
+    Handle<FixedArray> array, int new_length, PretenureFlag pretenure) {
+  Isolate* isolate = array->GetIsolate();
+  CALL_HEAP_FUNCTION(isolate,
+                     array->CopySize(new_length, pretenure),
+                     FixedArray);
 }
 
 
@@ -8015,16 +8430,27 @@ Handle<DescriptorArray> DescriptorArray::Merge(Handle<Map> left_map,
         (left_details.type() == CONSTANT &&
          right_details.type() == CONSTANT &&
          left->GetValue(descriptor) != right->GetValue(descriptor))) {
+      ASSERT(left_details.type() == CONSTANT || left_details.type() == FIELD);
+      ASSERT(right_details.type() == CONSTANT || right_details.type() == FIELD);
       Representation representation = left_details.representation().generalize(
           right_details.representation());
-      FieldDescriptor d(handle(left->GetKey(descriptor)),
+      Handle<HeapType> left_type = (left_details.type() == FIELD)
+          ? handle(left->GetFieldType(descriptor), isolate)
+          : left->GetValue(descriptor)->OptimalType(isolate, representation);
+      Handle<HeapType> right_type = (right_details.type() == FIELD)
+          ? handle(right->GetFieldType(descriptor), isolate)
+          : right->GetValue(descriptor)->OptimalType(isolate, representation);
+      Handle<HeapType> field_type = Map::GeneralizeFieldType(
+          left_type, right_type, isolate);
+      FieldDescriptor d(handle(left->GetKey(descriptor), isolate),
                         current_offset++,
+                        field_type,
                         right_details.attributes(),
                         representation);
       result->Set(descriptor, &d);
     } else {
-      Descriptor d(handle(right->GetKey(descriptor)),
-                   handle(right->GetValue(descriptor), right->GetIsolate()),
+      Descriptor d(handle(right->GetKey(descriptor), isolate),
+                   handle(right->GetValue(descriptor), isolate),
                    right_details);
       result->Set(descriptor, &d);
     }
@@ -8033,16 +8459,27 @@ Handle<DescriptorArray> DescriptorArray::Merge(Handle<Map> left_map,
   // |valid| -> |new_size|
   for (; descriptor < new_size; descriptor++) {
     PropertyDetails right_details = right->GetDetails(descriptor);
-    if (right_details.type() == FIELD ||
-        (store_mode == FORCE_FIELD && descriptor == modify_index)) {
-      FieldDescriptor d(handle(right->GetKey(descriptor)),
+    if (right_details.type() == FIELD) {
+      FieldDescriptor d(handle(right->GetKey(descriptor), isolate),
                         current_offset++,
+                        handle(right->GetFieldType(descriptor), isolate),
                         right_details.attributes(),
                         right_details.representation());
       result->Set(descriptor, &d);
+    } else if (store_mode == FORCE_FIELD && descriptor == modify_index) {
+      ASSERT_EQ(CONSTANT, right_details.type());
+      Representation field_representation = right_details.representation();
+      Handle<HeapType> field_type = right->GetValue(descriptor)->OptimalType(
+          isolate, field_representation);
+      FieldDescriptor d(handle(right->GetKey(descriptor), isolate),
+                        current_offset++,
+                        field_type,
+                        right_details.attributes(),
+                        field_representation);
+      result->Set(descriptor, &d);
     } else {
-      Descriptor d(handle(right->GetKey(descriptor)),
-                   handle(right->GetValue(descriptor), right->GetIsolate()),
+      Descriptor d(handle(right->GetKey(descriptor), isolate),
+                   handle(right->GetValue(descriptor), isolate),
                    right_details);
       result->Set(descriptor, &d);
     }
@@ -8704,6 +9141,64 @@ void String::WriteToFlat(String* src,
       }
     }
   }
+}
+
+
+
+template <typename SourceChar>
+static void CalculateLineEndsImpl(Isolate* isolate,
+                                  List<int>* line_ends,
+                                  Vector<const SourceChar> src,
+                                  bool include_ending_line) {
+  const int src_len = src.length();
+  StringSearch<uint8_t, SourceChar> search(isolate, STATIC_ASCII_VECTOR("\n"));
+
+  // Find and record line ends.
+  int position = 0;
+  while (position != -1 && position < src_len) {
+    position = search.Search(src, position);
+    if (position != -1) {
+      line_ends->Add(position);
+      position++;
+    } else if (include_ending_line) {
+      // Even if the last line misses a line end, it is counted.
+      line_ends->Add(src_len);
+      return;
+    }
+  }
+}
+
+
+Handle<FixedArray> String::CalculateLineEnds(Handle<String> src,
+                                             bool include_ending_line) {
+  src = Flatten(src);
+  // Rough estimate of line count based on a roughly estimated average
+  // length of (unpacked) code.
+  int line_count_estimate = src->length() >> 4;
+  List<int> line_ends(line_count_estimate);
+  Isolate* isolate = src->GetIsolate();
+  { DisallowHeapAllocation no_allocation;  // ensure vectors stay valid.
+    // Dispatch on type of strings.
+    String::FlatContent content = src->GetFlatContent();
+    ASSERT(content.IsFlat());
+    if (content.IsAscii()) {
+      CalculateLineEndsImpl(isolate,
+                            &line_ends,
+                            content.ToOneByteVector(),
+                            include_ending_line);
+    } else {
+      CalculateLineEndsImpl(isolate,
+                            &line_ends,
+                            content.ToUC16Vector(),
+                            include_ending_line);
+    }
+  }
+  int line_count = line_ends.length();
+  Handle<FixedArray> array = isolate->factory()->NewFixedArray(line_count);
+  for (int i = 0; i < line_count; i++) {
+    array->set(i, Smi::FromInt(line_ends[i]));
+  }
+  return array;
 }
 
 
@@ -9899,20 +10394,171 @@ bool JSFunction::PassesFilter(const char* raw_filter) {
 }
 
 
-MaybeObject* Oddball::Initialize(Heap* heap,
-                                 const char* to_string,
-                                 Object* to_number,
-                                 byte kind) {
-  String* internalized_to_string;
-  { MaybeObject* maybe_string =
-      heap->InternalizeUtf8String(
-          CStrVector(to_string));
-    if (!maybe_string->To(&internalized_to_string)) return maybe_string;
+void Oddball::Initialize(Isolate* isolate,
+                         Handle<Oddball> oddball,
+                         const char* to_string,
+                         Handle<Object> to_number,
+                         byte kind) {
+  Handle<String> internalized_to_string =
+      isolate->factory()->InternalizeUtf8String(CStrVector(to_string));
+  oddball->set_to_string(*internalized_to_string);
+  oddball->set_to_number(*to_number);
+  oddball->set_kind(kind);
+}
+
+
+void Script::InitLineEnds(Handle<Script> script) {
+  if (!script->line_ends()->IsUndefined()) return;
+
+  Isolate* isolate = script->GetIsolate();
+
+  if (!script->source()->IsString()) {
+    ASSERT(script->source()->IsUndefined());
+    Handle<FixedArray> empty = isolate->factory()->NewFixedArray(0);
+    script->set_line_ends(*empty);
+    ASSERT(script->line_ends()->IsFixedArray());
+    return;
   }
-  set_to_string(internalized_to_string);
-  set_to_number(to_number);
-  set_kind(kind);
-  return this;
+
+  Handle<String> src(String::cast(script->source()), isolate);
+
+  Handle<FixedArray> array = String::CalculateLineEnds(src, true);
+
+  if (*array != isolate->heap()->empty_fixed_array()) {
+    array->set_map(isolate->heap()->fixed_cow_array_map());
+  }
+
+  script->set_line_ends(*array);
+  ASSERT(script->line_ends()->IsFixedArray());
+}
+
+
+int Script::GetColumnNumber(Handle<Script> script, int code_pos) {
+  int line_number = GetLineNumber(script, code_pos);
+  if (line_number == -1) return -1;
+
+  DisallowHeapAllocation no_allocation;
+  FixedArray* line_ends_array = FixedArray::cast(script->line_ends());
+  line_number = line_number - script->line_offset()->value();
+  if (line_number == 0) return code_pos + script->column_offset()->value();
+  int prev_line_end_pos =
+      Smi::cast(line_ends_array->get(line_number - 1))->value();
+  return code_pos - (prev_line_end_pos + 1);
+}
+
+
+int Script::GetLineNumberWithArray(int code_pos) {
+  DisallowHeapAllocation no_allocation;
+  ASSERT(line_ends()->IsFixedArray());
+  FixedArray* line_ends_array = FixedArray::cast(line_ends());
+  int line_ends_len = line_ends_array->length();
+  if (line_ends_len == 0) return -1;
+
+  if ((Smi::cast(line_ends_array->get(0)))->value() >= code_pos) {
+    return line_offset()->value();
+  }
+
+  int left = 0;
+  int right = line_ends_len;
+  while (int half = (right - left) / 2) {
+    if ((Smi::cast(line_ends_array->get(left + half)))->value() > code_pos) {
+      right -= half;
+    } else {
+      left += half;
+    }
+  }
+  return right + line_offset()->value();
+}
+
+
+int Script::GetLineNumber(Handle<Script> script, int code_pos) {
+  InitLineEnds(script);
+  return script->GetLineNumberWithArray(code_pos);
+}
+
+
+int Script::GetLineNumber(int code_pos) {
+  DisallowHeapAllocation no_allocation;
+  if (!line_ends()->IsUndefined()) return GetLineNumberWithArray(code_pos);
+
+  // Slow mode: we do not have line_ends. We have to iterate through source.
+  if (!source()->IsString()) return -1;
+
+  String* source_string = String::cast(source());
+  int line = 0;
+  int len = source_string->length();
+  for (int pos = 0; pos < len; pos++) {
+    if (pos == code_pos) break;
+    if (source_string->Get(pos) == '\n') line++;
+  }
+  return line;
+}
+
+
+Handle<Object> Script::GetNameOrSourceURL(Handle<Script> script) {
+  Isolate* isolate = script->GetIsolate();
+  Handle<String> name_or_source_url_key =
+      isolate->factory()->InternalizeOneByteString(
+          STATIC_ASCII_VECTOR("nameOrSourceURL"));
+  Handle<JSObject> script_wrapper = Script::GetWrapper(script);
+  Handle<Object> property = Object::GetProperty(
+      script_wrapper, name_or_source_url_key).ToHandleChecked();
+  ASSERT(property->IsJSFunction());
+  Handle<JSFunction> method = Handle<JSFunction>::cast(property);
+  Handle<Object> result;
+  // Do not check against pending exception, since this function may be called
+  // when an exception has already been pending.
+  if (!Execution::TryCall(method, script_wrapper, 0, NULL).ToHandle(&result)) {
+    return isolate->factory()->undefined_value();
+  }
+  return result;
+}
+
+
+// Wrappers for scripts are kept alive and cached in weak global
+// handles referred from foreign objects held by the scripts as long as
+// they are used. When they are not used anymore, the garbage
+// collector will call the weak callback on the global handle
+// associated with the wrapper and get rid of both the wrapper and the
+// handle.
+static void ClearWrapperCache(
+    const v8::WeakCallbackData<v8::Value, void>& data) {
+  Object** location = reinterpret_cast<Object**>(data.GetParameter());
+  JSValue* wrapper = JSValue::cast(*location);
+  Foreign* foreign = Script::cast(wrapper->value())->wrapper();
+  ASSERT_EQ(foreign->foreign_address(), reinterpret_cast<Address>(location));
+  foreign->set_foreign_address(0);
+  GlobalHandles::Destroy(location);
+  Isolate* isolate = reinterpret_cast<Isolate*>(data.GetIsolate());
+  isolate->counters()->script_wrappers()->Decrement();
+}
+
+
+Handle<JSObject> Script::GetWrapper(Handle<Script> script) {
+  if (script->wrapper()->foreign_address() != NULL) {
+    // Return a handle for the existing script wrapper from the cache.
+    return Handle<JSValue>(
+        *reinterpret_cast<JSValue**>(script->wrapper()->foreign_address()));
+  }
+  Isolate* isolate = script->GetIsolate();
+  // Construct a new script wrapper.
+  isolate->counters()->script_wrappers()->Increment();
+  Handle<JSFunction> constructor = isolate->script_function();
+  Handle<JSValue> result =
+      Handle<JSValue>::cast(isolate->factory()->NewJSObject(constructor));
+
+  result->set_value(*script);
+
+  // Create a new weak global handle and use it to cache the wrapper
+  // for future use. The cache will automatically be cleared by the
+  // garbage collector when it is not used anymore.
+  Handle<Object> handle = isolate->global_handles()->Create(*result);
+  GlobalHandles::MakeWeak(handle.location(),
+                          reinterpret_cast<void*>(handle.location()),
+                          &ClearWrapperCache);
+  script->wrapper()->set_foreign_address(
+      reinterpret_cast<Address>(handle.location()));
+  return result;
 }
 
 
@@ -11491,35 +12137,41 @@ void Map::ZapPrototypeTransitions() {
 }
 
 
-void Map::AddDependentCompilationInfo(DependentCode::DependencyGroup group,
+// static
+void Map::AddDependentCompilationInfo(Handle<Map> map,
+                                      DependentCode::DependencyGroup group,
                                       CompilationInfo* info) {
-  Handle<DependentCode> dep(dependent_code());
   Handle<DependentCode> codes =
-      DependentCode::Insert(dep, group, info->object_wrapper());
-  if (*codes != dependent_code()) set_dependent_code(*codes);
-  info->dependencies(group)->Add(Handle<HeapObject>(this), info->zone());
+      DependentCode::Insert(handle(map->dependent_code(), info->isolate()),
+                            group, info->object_wrapper());
+  if (*codes != map->dependent_code()) map->set_dependent_code(*codes);
+  info->dependencies(group)->Add(map, info->zone());
 }
 
 
-void Map::AddDependentCode(DependentCode::DependencyGroup group,
+// static
+void Map::AddDependentCode(Handle<Map> map,
+                           DependentCode::DependencyGroup group,
                            Handle<Code> code) {
   Handle<DependentCode> codes = DependentCode::Insert(
-      Handle<DependentCode>(dependent_code()), group, code);
-  if (*codes != dependent_code()) set_dependent_code(*codes);
+      Handle<DependentCode>(map->dependent_code()), group, code);
+  if (*codes != map->dependent_code()) map->set_dependent_code(*codes);
 }
 
 
-void Map::AddDependentIC(Handle<Code> stub) {
+// static
+void Map::AddDependentIC(Handle<Map> map,
+                         Handle<Code> stub) {
   ASSERT(stub->next_code_link()->IsUndefined());
-  int n = dependent_code()->number_of_entries(DependentCode::kWeakICGroup);
+  int n = map->dependent_code()->number_of_entries(DependentCode::kWeakICGroup);
   if (n == 0) {
     // Slow path: insert the head of the list with possible heap allocation.
-    AddDependentCode(DependentCode::kWeakICGroup, stub);
+    Map::AddDependentCode(map, DependentCode::kWeakICGroup, stub);
   } else {
     // Fast path: link the stub to the existing head of the list without any
     // heap allocation.
     ASSERT(n == 1);
-    dependent_code()->AddToDependentICList(stub);
+    map->dependent_code()->AddToDependentICList(stub);
   }
 }
 
@@ -11937,13 +12589,12 @@ MaybeHandle<Object> JSObject::GetElementWithCallback(
     v8::AccessorGetterCallback call_fun =
         v8::ToCData<v8::AccessorGetterCallback>(fun_obj);
     if (call_fun == NULL) return isolate->factory()->undefined_value();
-    Handle<JSObject> self = Handle<JSObject>::cast(receiver);
     Handle<JSObject> holder_handle = Handle<JSObject>::cast(holder);
     Handle<Object> number = isolate->factory()->NewNumberFromUint(index);
     Handle<String> key = isolate->factory()->NumberToString(number);
-    LOG(isolate, ApiNamedPropertyAccess("load", *self, *key));
+    LOG(isolate, ApiNamedPropertyAccess("load", *holder_handle, *key));
     PropertyCallbackArguments
-        args(isolate, data->data(), *self, *holder_handle);
+        args(isolate, data->data(), *receiver, *holder_handle);
     v8::Handle<v8::Value> result = args.Call(call_fun, v8::Utils::ToLocal(key));
     RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, Object);
     if (result.IsEmpty()) return isolate->factory()->undefined_value();
@@ -12885,26 +13536,15 @@ bool Map::IsValidElementsTransition(ElementsKind from_kind,
 void JSArray::JSArrayUpdateLengthFromIndex(Handle<JSArray> array,
                                            uint32_t index,
                                            Handle<Object> value) {
-  CALL_HEAP_FUNCTION_VOID(array->GetIsolate(),
-                          array->JSArrayUpdateLengthFromIndex(index, *value));
-}
-
-
-MaybeObject* JSArray::JSArrayUpdateLengthFromIndex(uint32_t index,
-                                                   Object* value) {
   uint32_t old_len = 0;
-  CHECK(length()->ToArrayIndex(&old_len));
+  CHECK(array->length()->ToArrayIndex(&old_len));
   // Check to see if we need to update the length. For now, we make
   // sure that the length stays within 32-bits (unsigned).
   if (index >= old_len && index != 0xffffffff) {
-    Object* len;
-    { MaybeObject* maybe_len =
-          GetHeap()->NumberFromDouble(static_cast<double>(index) + 1);
-      if (!maybe_len->ToObject(&len)) return maybe_len;
-    }
-    set_length(len);
+    Handle<Object> len = array->GetIsolate()->factory()->NewNumber(
+        static_cast<double>(index) + 1);
+    array->set_length(*len);
   }
-  return value;
 }
 
 
@@ -12927,7 +13567,7 @@ MaybeHandle<Object> JSObject::GetElementWithInterceptor(
     PropertyCallbackArguments
         args(isolate, interceptor->data(), *receiver, *object);
     v8::Handle<v8::Value> result = args.Call(getter, index);
-    RETURN_HANDLE_IF_SCHEDULED_EXCEPTION(isolate, Object);
+    RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, Object);
     if (!result.IsEmpty()) {
       Handle<Object> result_internal = v8::Utils::OpenHandle(*result);
       result_internal->VerifyApiCallResultType();
@@ -13246,6 +13886,55 @@ MaybeHandle<Object> JSObject::GetPropertyWithInterceptor(
   }
 
   return GetPropertyPostInterceptor(object, receiver, name, attributes);
+}
+
+
+// Compute the property keys from the interceptor.
+// TODO(rossberg): support symbols in API, and filter here if needed.
+MaybeHandle<JSArray> JSObject::GetKeysForNamedInterceptor(
+    Handle<JSObject> object, Handle<JSReceiver> receiver) {
+  Isolate* isolate = receiver->GetIsolate();
+  Handle<InterceptorInfo> interceptor(object->GetNamedInterceptor());
+  PropertyCallbackArguments
+      args(isolate, interceptor->data(), *receiver, *object);
+  v8::Handle<v8::Array> result;
+  if (!interceptor->enumerator()->IsUndefined()) {
+    v8::NamedPropertyEnumeratorCallback enum_fun =
+        v8::ToCData<v8::NamedPropertyEnumeratorCallback>(
+            interceptor->enumerator());
+    LOG(isolate, ApiObjectAccess("interceptor-named-enum", *object));
+    result = args.Call(enum_fun);
+  }
+  if (result.IsEmpty()) return MaybeHandle<JSArray>();
+#if ENABLE_EXTRA_CHECKS
+  CHECK(v8::Utils::OpenHandle(*result)->IsJSObject());
+#endif
+  // Rebox before returning.
+  return handle(*v8::Utils::OpenHandle(*result), isolate);
+}
+
+
+// Compute the element keys from the interceptor.
+MaybeHandle<JSArray> JSObject::GetKeysForIndexedInterceptor(
+    Handle<JSObject> object, Handle<JSReceiver> receiver) {
+  Isolate* isolate = receiver->GetIsolate();
+  Handle<InterceptorInfo> interceptor(object->GetIndexedInterceptor());
+  PropertyCallbackArguments
+      args(isolate, interceptor->data(), *receiver, *object);
+  v8::Handle<v8::Array> result;
+  if (!interceptor->enumerator()->IsUndefined()) {
+    v8::IndexedPropertyEnumeratorCallback enum_fun =
+        v8::ToCData<v8::IndexedPropertyEnumeratorCallback>(
+            interceptor->enumerator());
+    LOG(isolate, ApiObjectAccess("interceptor-indexed-enum", *object));
+    result = args.Call(enum_fun);
+  }
+  if (result.IsEmpty()) return MaybeHandle<JSArray>();
+#if ENABLE_EXTRA_CHECKS
+  CHECK(v8::Utils::OpenHandle(*result)->IsJSObject());
+#endif
+  // Rebox before returning.
+  return handle(*v8::Utils::OpenHandle(*result), isolate);
 }
 
 
@@ -14100,6 +14789,19 @@ MaybeObject* HashTable<Derived, Shape, Key>::EnsureCapacity(
 
 
 template<typename Derived, typename Shape, typename Key>
+Handle<Derived> HashTable<Derived, Shape, Key>::EnsureCapacity(
+    Handle<Derived> table,
+    int n,
+    Key key,
+    PretenureFlag pretenure) {
+  Isolate* isolate = table->GetIsolate();
+  CALL_HEAP_FUNCTION(isolate,
+                     table->EnsureCapacity(n, key, pretenure),
+                     Derived);
+}
+
+
+template<typename Derived, typename Shape, typename Key>
 Handle<Derived> HashTable<Derived, Shape, Key>::Shrink(Handle<Derived> table,
                                                        Key key) {
   int capacity = table->Capacity();
@@ -14182,6 +14884,10 @@ Dictionary<UnseededNumberDictionary, UnseededNumberDictionaryShape, uint32_t>::
 template MaybeObject* Dictionary<NameDictionary, NameDictionaryShape, Name*>::
     Allocate(Heap* heap, int n, PretenureFlag pretenure);
 
+template Handle<NameDictionary>
+Dictionary<NameDictionary, NameDictionaryShape, Name*>::
+    New(Isolate* isolate, int n, PretenureFlag pretenure);
+
 template MaybeObject*
 Dictionary<SeededNumberDictionary, SeededNumberDictionaryShape, uint32_t>::
     AtPut(uint32_t, Object*);
@@ -14233,6 +14939,10 @@ Dictionary<SeededNumberDictionary, SeededNumberDictionaryShape, uint32_t>::
                           uint32_t> >,
         int,
         JSObject::DeleteMode);
+
+template Handle<NameDictionary>
+HashTable<NameDictionary, NameDictionaryShape, Name*>::
+    New(Isolate*, int, MinimumCapacity, PretenureFlag);
 
 template Handle<NameDictionary>
 HashTable<NameDictionary, NameDictionaryShape, Name*>::
@@ -14322,107 +15032,88 @@ Handle<NameDictionary> NameDictionary::AddNameEntry(Handle<NameDictionary> dict,
 
 Handle<Object> JSObject::PrepareSlowElementsForSort(
     Handle<JSObject> object, uint32_t limit) {
-  CALL_HEAP_FUNCTION(object->GetIsolate(),
-                     object->PrepareSlowElementsForSort(limit),
-                     Object);
-}
-
-
-// Collates undefined and unexisting elements below limit from position
-// zero of the elements. The object stays in Dictionary mode.
-MaybeObject* JSObject::PrepareSlowElementsForSort(uint32_t limit) {
-  ASSERT(HasDictionaryElements());
+  ASSERT(object->HasDictionaryElements());
+  Isolate* isolate = object->GetIsolate();
   // Must stay in dictionary mode, either because of requires_slow_elements,
   // or because we are not going to sort (and therefore compact) all of the
   // elements.
-  SeededNumberDictionary* dict = element_dictionary();
-  HeapNumber* result_double = NULL;
-  if (limit > static_cast<uint32_t>(Smi::kMaxValue)) {
-    // Allocate space for result before we start mutating the object.
-    Object* new_double;
-    { MaybeObject* maybe_new_double = GetHeap()->AllocateHeapNumber(0.0);
-      if (!maybe_new_double->ToObject(&new_double)) return maybe_new_double;
-    }
-    result_double = HeapNumber::cast(new_double);
-  }
-
-  Object* obj;
-  { MaybeObject* maybe_obj =
-        SeededNumberDictionary::Allocate(GetHeap(), dict->NumberOfElements());
-    if (!maybe_obj->ToObject(&obj)) return maybe_obj;
-  }
-  SeededNumberDictionary* new_dict = SeededNumberDictionary::cast(obj);
-
-  DisallowHeapAllocation no_alloc;
+  Handle<SeededNumberDictionary> dict(object->element_dictionary(), isolate);
+  Handle<SeededNumberDictionary> new_dict =
+      isolate->factory()->NewSeededNumberDictionary(dict->NumberOfElements());
 
   uint32_t pos = 0;
   uint32_t undefs = 0;
   int capacity = dict->Capacity();
+  Handle<Smi> bailout(Smi::FromInt(-1), isolate);
+  // Entry to the new dictionary does not cause it to grow, as we have
+  // allocated one that is large enough for all entries.
+  DisallowHeapAllocation no_gc;
   for (int i = 0; i < capacity; i++) {
     Object* k = dict->KeyAt(i);
-    if (dict->IsKey(k)) {
-      ASSERT(k->IsNumber());
-      ASSERT(!k->IsSmi() || Smi::cast(k)->value() >= 0);
-      ASSERT(!k->IsHeapNumber() || HeapNumber::cast(k)->value() >= 0);
-      ASSERT(!k->IsHeapNumber() || HeapNumber::cast(k)->value() <= kMaxUInt32);
-      Object* value = dict->ValueAt(i);
-      PropertyDetails details = dict->DetailsAt(i);
-      if (details.type() == CALLBACKS || details.IsReadOnly()) {
-        // Bail out and do the sorting of undefineds and array holes in JS.
-        // Also bail out if the element is not supposed to be moved.
-        return Smi::FromInt(-1);
-      }
-      uint32_t key = NumberToUint32(k);
-      // In the following we assert that adding the entry to the new dictionary
-      // does not cause GC.  This is the case because we made sure to allocate
-      // the dictionary big enough above, so it need not grow.
-      if (key < limit) {
-        if (value->IsUndefined()) {
-          undefs++;
-        } else {
-          if (pos > static_cast<uint32_t>(Smi::kMaxValue)) {
-            // Adding an entry with the key beyond smi-range requires
-            // allocation. Bailout.
-            return Smi::FromInt(-1);
-          }
-          new_dict->AddNumberEntry(pos, value, details)->ToObjectUnchecked();
-          pos++;
-        }
+    if (!dict->IsKey(k)) continue;
+
+    ASSERT(k->IsNumber());
+    ASSERT(!k->IsSmi() || Smi::cast(k)->value() >= 0);
+    ASSERT(!k->IsHeapNumber() || HeapNumber::cast(k)->value() >= 0);
+    ASSERT(!k->IsHeapNumber() || HeapNumber::cast(k)->value() <= kMaxUInt32);
+
+    HandleScope scope(isolate);
+    Handle<Object> value(dict->ValueAt(i), isolate);
+    PropertyDetails details = dict->DetailsAt(i);
+    if (details.type() == CALLBACKS || details.IsReadOnly()) {
+      // Bail out and do the sorting of undefineds and array holes in JS.
+      // Also bail out if the element is not supposed to be moved.
+      return bailout;
+    }
+
+    uint32_t key = NumberToUint32(k);
+    if (key < limit) {
+      if (value->IsUndefined()) {
+        undefs++;
+      } else if (pos > static_cast<uint32_t>(Smi::kMaxValue)) {
+        // Adding an entry with the key beyond smi-range requires
+        // allocation. Bailout.
+        return bailout;
       } else {
-        if (key > static_cast<uint32_t>(Smi::kMaxValue)) {
-          // Adding an entry with the key beyond smi-range requires
-          // allocation. Bailout.
-          return Smi::FromInt(-1);
-        }
-        new_dict->AddNumberEntry(key, value, details)->ToObjectUnchecked();
+        Handle<Object> result = SeededNumberDictionary::AddNumberEntry(
+            new_dict, pos, value, details);
+        ASSERT(result.is_identical_to(new_dict));
+        USE(result);
+        pos++;
       }
+    } else if (key > static_cast<uint32_t>(Smi::kMaxValue)) {
+      // Adding an entry with the key beyond smi-range requires
+      // allocation. Bailout.
+      return bailout;
+    } else {
+      Handle<Object> result = SeededNumberDictionary::AddNumberEntry(
+          new_dict, key, value, details);
+      ASSERT(result.is_identical_to(new_dict));
+      USE(result);
     }
   }
 
   uint32_t result = pos;
   PropertyDetails no_details = PropertyDetails(NONE, NORMAL, 0);
-  Heap* heap = GetHeap();
   while (undefs > 0) {
     if (pos > static_cast<uint32_t>(Smi::kMaxValue)) {
       // Adding an entry with the key beyond smi-range requires
       // allocation. Bailout.
-      return Smi::FromInt(-1);
+      return bailout;
     }
-    new_dict->AddNumberEntry(pos, heap->undefined_value(), no_details)->
-        ToObjectUnchecked();
+    HandleScope scope(isolate);
+    Handle<Object> result = SeededNumberDictionary::AddNumberEntry(
+        new_dict, pos, isolate->factory()->undefined_value(), no_details);
+    ASSERT(result.is_identical_to(new_dict));
+    USE(result);
     pos++;
     undefs--;
   }
 
-  set_elements(new_dict);
+  object->set_elements(*new_dict);
 
-  if (result <= static_cast<uint32_t>(Smi::kMaxValue)) {
-    return Smi::FromInt(static_cast<int>(result));
-  }
-
-  ASSERT_NE(NULL, result_double);
-  result_double->set_value(static_cast<double>(result));
-  return result_double;
+  AllowHeapAllocation allocate_return_value;
+  return isolate->factory()->NewNumberFromUint(result);
 }
 
 
@@ -14593,11 +15284,14 @@ size_t JSTypedArray::element_size() {
 }
 
 
-Object* ExternalUint8ClampedArray::SetValue(uint32_t index, Object* value) {
+Handle<Object> ExternalUint8ClampedArray::SetValue(
+    Handle<ExternalUint8ClampedArray> array,
+    uint32_t index,
+    Handle<Object> value) {
   uint8_t clamped_value = 0;
-  if (index < static_cast<uint32_t>(length())) {
+  if (index < static_cast<uint32_t>(array->length())) {
     if (value->IsSmi()) {
-      int int_value = Smi::cast(value)->value();
+      int int_value = Handle<Smi>::cast(value)->value();
       if (int_value < 0) {
         clamped_value = 0;
       } else if (int_value > 255) {
@@ -14606,7 +15300,7 @@ Object* ExternalUint8ClampedArray::SetValue(uint32_t index, Object* value) {
         clamped_value = static_cast<uint8_t>(int_value);
       }
     } else if (value->IsHeapNumber()) {
-      double double_value = HeapNumber::cast(value)->value();
+      double double_value = Handle<HeapNumber>::cast(value)->value();
       if (!(double_value > 0)) {
         // NaN and less than zero clamp to zero.
         clamped_value = 0;
@@ -14622,32 +15316,25 @@ Object* ExternalUint8ClampedArray::SetValue(uint32_t index, Object* value) {
       // converted to a number type further up in the call chain.
       ASSERT(value->IsUndefined());
     }
-    set(index, clamped_value);
+    array->set(index, clamped_value);
   }
-  return Smi::FromInt(clamped_value);
-}
-
-
-Handle<Object> ExternalUint8ClampedArray::SetValue(
-    Handle<ExternalUint8ClampedArray> array,
-    uint32_t index,
-    Handle<Object> value) {
-  return Handle<Object>(array->SetValue(index, *value), array->GetIsolate());
+  return handle(Smi::FromInt(clamped_value), array->GetIsolate());
 }
 
 
 template<typename ExternalArrayClass, typename ValueType>
-static MaybeObject* ExternalArrayIntSetter(Heap* heap,
-                                           ExternalArrayClass* receiver,
-                                           uint32_t index,
-                                           Object* value) {
+static Handle<Object> ExternalArrayIntSetter(
+    Isolate* isolate,
+    Handle<ExternalArrayClass> receiver,
+    uint32_t index,
+    Handle<Object> value) {
   ValueType cast_value = 0;
   if (index < static_cast<uint32_t>(receiver->length())) {
     if (value->IsSmi()) {
-      int int_value = Smi::cast(value)->value();
+      int int_value = Handle<Smi>::cast(value)->value();
       cast_value = static_cast<ValueType>(int_value);
     } else if (value->IsHeapNumber()) {
-      double double_value = HeapNumber::cast(value)->value();
+      double double_value = Handle<HeapNumber>::cast(value)->value();
       cast_value = static_cast<ValueType>(DoubleToInt32(double_value));
     } else {
       // Clamp undefined to zero (default). All other types have been
@@ -14656,88 +15343,47 @@ static MaybeObject* ExternalArrayIntSetter(Heap* heap,
     }
     receiver->set(index, cast_value);
   }
-  return heap->NumberFromInt32(cast_value);
+  return isolate->factory()->NewNumberFromInt(cast_value);
 }
 
 
 Handle<Object> ExternalInt8Array::SetValue(Handle<ExternalInt8Array> array,
                                            uint32_t index,
                                            Handle<Object> value) {
-  CALL_HEAP_FUNCTION(array->GetIsolate(),
-                     array->SetValue(index, *value),
-                     Object);
+  return ExternalArrayIntSetter<ExternalInt8Array, int8_t>(
+      array->GetIsolate(), array, index, value);
 }
 
 
-MaybeObject* ExternalInt8Array::SetValue(uint32_t index, Object* value) {
-  return ExternalArrayIntSetter<ExternalInt8Array, int8_t>
-      (GetHeap(), this, index, value);
+Handle<Object> ExternalUint8Array::SetValue(Handle<ExternalUint8Array> array,
+                                            uint32_t index,
+                                            Handle<Object> value) {
+  return ExternalArrayIntSetter<ExternalUint8Array, uint8_t>(
+      array->GetIsolate(), array, index, value);
 }
 
 
-Handle<Object> ExternalUint8Array::SetValue(
-    Handle<ExternalUint8Array> array,
-    uint32_t index,
-    Handle<Object> value) {
-  CALL_HEAP_FUNCTION(array->GetIsolate(),
-                     array->SetValue(index, *value),
-                     Object);
+Handle<Object> ExternalInt16Array::SetValue(Handle<ExternalInt16Array> array,
+                                            uint32_t index,
+                                            Handle<Object> value) {
+  return ExternalArrayIntSetter<ExternalInt16Array, int16_t>(
+      array->GetIsolate(), array, index, value);
 }
 
 
-MaybeObject* ExternalUint8Array::SetValue(uint32_t index,
-                                                 Object* value) {
-  return ExternalArrayIntSetter<ExternalUint8Array, uint8_t>
-      (GetHeap(), this, index, value);
-}
-
-
-Handle<Object> ExternalInt16Array::SetValue(
-    Handle<ExternalInt16Array> array,
-    uint32_t index,
-    Handle<Object> value) {
-  CALL_HEAP_FUNCTION(array->GetIsolate(),
-                     array->SetValue(index, *value),
-                     Object);
-}
-
-
-MaybeObject* ExternalInt16Array::SetValue(uint32_t index,
-                                          Object* value) {
-  return ExternalArrayIntSetter<ExternalInt16Array, int16_t>
-      (GetHeap(), this, index, value);
-}
-
-
-Handle<Object> ExternalUint16Array::SetValue(
-    Handle<ExternalUint16Array> array,
-    uint32_t index,
-    Handle<Object> value) {
-  CALL_HEAP_FUNCTION(array->GetIsolate(),
-                     array->SetValue(index, *value),
-                     Object);
-}
-
-
-MaybeObject* ExternalUint16Array::SetValue(uint32_t index,
-                                                  Object* value) {
-  return ExternalArrayIntSetter<ExternalUint16Array, uint16_t>
-      (GetHeap(), this, index, value);
+Handle<Object> ExternalUint16Array::SetValue(Handle<ExternalUint16Array> array,
+                                             uint32_t index,
+                                             Handle<Object> value) {
+  return ExternalArrayIntSetter<ExternalUint16Array, uint16_t>(
+      array->GetIsolate(), array, index, value);
 }
 
 
 Handle<Object> ExternalInt32Array::SetValue(Handle<ExternalInt32Array> array,
-                                          uint32_t index,
-                                          Handle<Object> value) {
-  CALL_HEAP_FUNCTION(array->GetIsolate(),
-                     array->SetValue(index, *value),
-                     Object);
-}
-
-
-MaybeObject* ExternalInt32Array::SetValue(uint32_t index, Object* value) {
-  return ExternalArrayIntSetter<ExternalInt32Array, int32_t>
-      (GetHeap(), this, index, value);
+                                            uint32_t index,
+                                            Handle<Object> value) {
+  return ExternalArrayIntSetter<ExternalInt32Array, int32_t>(
+      array->GetIsolate(), array, index, value);
 }
 
 
@@ -14745,30 +15391,22 @@ Handle<Object> ExternalUint32Array::SetValue(
     Handle<ExternalUint32Array> array,
     uint32_t index,
     Handle<Object> value) {
-  CALL_HEAP_FUNCTION(array->GetIsolate(),
-                     array->SetValue(index, *value),
-                     Object);
-}
-
-
-MaybeObject* ExternalUint32Array::SetValue(uint32_t index, Object* value) {
   uint32_t cast_value = 0;
-  Heap* heap = GetHeap();
-  if (index < static_cast<uint32_t>(length())) {
+  if (index < static_cast<uint32_t>(array->length())) {
     if (value->IsSmi()) {
-      int int_value = Smi::cast(value)->value();
+      int int_value = Handle<Smi>::cast(value)->value();
       cast_value = static_cast<uint32_t>(int_value);
     } else if (value->IsHeapNumber()) {
-      double double_value = HeapNumber::cast(value)->value();
+      double double_value = Handle<HeapNumber>::cast(value)->value();
       cast_value = static_cast<uint32_t>(DoubleToUint32(double_value));
     } else {
       // Clamp undefined to zero (default). All other types have been
       // converted to a number type further up in the call chain.
       ASSERT(value->IsUndefined());
     }
-    set(index, cast_value);
+    array->set(index, cast_value);
   }
-  return heap->NumberFromUint32(cast_value);
+  return array->GetIsolate()->factory()->NewNumberFromUint(cast_value);
 }
 
 
@@ -14776,30 +15414,22 @@ Handle<Object> ExternalFloat32Array::SetValue(
     Handle<ExternalFloat32Array> array,
     uint32_t index,
     Handle<Object> value) {
-  CALL_HEAP_FUNCTION(array->GetIsolate(),
-                     array->SetValue(index, *value),
-                     Object);
-}
-
-
-MaybeObject* ExternalFloat32Array::SetValue(uint32_t index, Object* value) {
   float cast_value = static_cast<float>(OS::nan_value());
-  Heap* heap = GetHeap();
-  if (index < static_cast<uint32_t>(length())) {
+  if (index < static_cast<uint32_t>(array->length())) {
     if (value->IsSmi()) {
-      int int_value = Smi::cast(value)->value();
+      int int_value = Handle<Smi>::cast(value)->value();
       cast_value = static_cast<float>(int_value);
     } else if (value->IsHeapNumber()) {
-      double double_value = HeapNumber::cast(value)->value();
+      double double_value = Handle<HeapNumber>::cast(value)->value();
       cast_value = static_cast<float>(double_value);
     } else {
       // Clamp undefined to NaN (default). All other types have been
       // converted to a number type further up in the call chain.
       ASSERT(value->IsUndefined());
     }
-    set(index, cast_value);
+    array->set(index, cast_value);
   }
-  return heap->AllocateHeapNumber(cast_value);
+  return array->GetIsolate()->factory()->NewNumber(cast_value);
 }
 
 
@@ -14807,29 +15437,18 @@ Handle<Object> ExternalFloat64Array::SetValue(
     Handle<ExternalFloat64Array> array,
     uint32_t index,
     Handle<Object> value) {
-  CALL_HEAP_FUNCTION(array->GetIsolate(),
-                     array->SetValue(index, *value),
-                     Object);
-}
-
-
-MaybeObject* ExternalFloat64Array::SetValue(uint32_t index, Object* value) {
   double double_value = OS::nan_value();
-  Heap* heap = GetHeap();
-  if (index < static_cast<uint32_t>(length())) {
-    if (value->IsSmi()) {
-      int int_value = Smi::cast(value)->value();
-      double_value = static_cast<double>(int_value);
-    } else if (value->IsHeapNumber()) {
-      double_value = HeapNumber::cast(value)->value();
+  if (index < static_cast<uint32_t>(array->length())) {
+    if (value->IsNumber()) {
+      double_value = value->Number();
     } else {
       // Clamp undefined to NaN (default). All other types have been
       // converted to a number type further up in the call chain.
       ASSERT(value->IsUndefined());
     }
-    set(index, double_value);
+    array->set(index, double_value);
   }
-  return heap->AllocateHeapNumber(double_value);
+  return array->GetIsolate()->factory()->NewNumber(double_value);
 }
 
 
@@ -15042,7 +15661,7 @@ Handle<CompilationCacheTable> CompilationCacheTable::Put(
   Handle<SharedFunctionInfo> shared(context->closure()->shared());
   StringSharedKey key(src, shared, FLAG_use_strict ? STRICT : SLOPPY,
                       RelocInfo::kNoPosition);
-  cache = EnsureCapacityFor(cache, 1, &key);
+  cache = EnsureCapacity(cache, 1, &key);
   Handle<Object> k = key.AsObject(isolate->factory());
   int entry = cache->FindInsertionEntry(key.Hash());
   cache->set(EntryToIndex(entry), *k);
@@ -15059,7 +15678,7 @@ Handle<CompilationCacheTable> CompilationCacheTable::PutEval(
   Isolate* isolate = cache->GetIsolate();
   Handle<SharedFunctionInfo> shared(context->closure()->shared());
   StringSharedKey key(src, shared, value->strict_mode(), scope_position);
-  cache = EnsureCapacityFor(cache, 1, &key);
+  cache = EnsureCapacity(cache, 1, &key);
   Handle<Object> k = key.AsObject(isolate->factory());
   int entry = cache->FindInsertionEntry(key.Hash());
   cache->set(EntryToIndex(entry), *k);
@@ -15073,7 +15692,7 @@ Handle<CompilationCacheTable> CompilationCacheTable::PutRegExp(
       Handle<CompilationCacheTable> cache, Handle<String> src,
       JSRegExp::Flags flags, Handle<FixedArray> value) {
   RegExpKey key(src, flags);
-  cache = EnsureCapacityFor(cache, 1, &key);
+  cache = EnsureCapacity(cache, 1, &key);
   int entry = cache->FindInsertionEntry(key.Hash());
   // We store the value in the key slot, and compare the search key
   // to the stored value with a custon IsMatch function during lookups.
@@ -15081,14 +15700,6 @@ Handle<CompilationCacheTable> CompilationCacheTable::PutRegExp(
   cache->set(EntryToIndex(entry) + 1, *value);
   cache->ElementAdded();
   return cache;
-}
-
-
-Handle<CompilationCacheTable> CompilationCacheTable::EnsureCapacityFor(
-      Handle<CompilationCacheTable> cache, int n, HashTableKey* key) {
-  CALL_HEAP_FUNCTION(cache->GetIsolate(),
-                     cache->EnsureCapacity(n, key),
-                     CompilationCacheTable);
 }
 
 
@@ -15111,7 +15722,7 @@ void CompilationCacheTable::Remove(Object* value) {
 // StringsKey used for HashTable where key is array of internalized strings.
 class StringsKey : public HashTableKey {
  public:
-  explicit StringsKey(FixedArray* strings) : strings_(strings) { }
+  explicit StringsKey(Handle<FixedArray> strings) : strings_(strings) { }
 
   bool IsMatch(Object* strings) {
     FixedArray* o = FixedArray::cast(strings);
@@ -15123,7 +15734,7 @@ class StringsKey : public HashTableKey {
     return true;
   }
 
-  uint32_t Hash() { return HashForObject(strings_); }
+  uint32_t Hash() { return HashForObject(*strings_); }
 
   uint32_t HashForObject(Object* obj) {
     FixedArray* strings = FixedArray::cast(obj);
@@ -15135,34 +15746,32 @@ class StringsKey : public HashTableKey {
     return hash;
   }
 
-  Object* AsObject(Heap* heap) { return strings_; }
+  Object* AsObject(Heap* heap) { return *strings_; }
 
  private:
-  FixedArray* strings_;
+  Handle<FixedArray> strings_;
 };
 
 
 Object* MapCache::Lookup(FixedArray* array) {
-  StringsKey key(array);
+  DisallowHeapAllocation no_alloc;
+  StringsKey key(handle(array));
   int entry = FindEntry(&key);
   if (entry == kNotFound) return GetHeap()->undefined_value();
   return get(EntryToIndex(entry) + 1);
 }
 
 
-MaybeObject* MapCache::Put(FixedArray* array, Map* value) {
+Handle<MapCache> MapCache::Put(
+    Handle<MapCache> map_cache, Handle<FixedArray> array, Handle<Map> value) {
   StringsKey key(array);
-  Object* obj;
-  { MaybeObject* maybe_obj = EnsureCapacity(1, &key);
-    if (!maybe_obj->ToObject(&obj)) return maybe_obj;
-  }
 
-  MapCache* cache = reinterpret_cast<MapCache*>(obj);
-  int entry = cache->FindInsertionEntry(key.Hash());
-  cache->set(EntryToIndex(entry), array);
-  cache->set(EntryToIndex(entry) + 1, value);
-  cache->ElementAdded();
-  return cache;
+  Handle<MapCache> new_cache = EnsureCapacity(map_cache, 1, &key);
+  int entry = new_cache->FindInsertionEntry(key.Hash());
+  new_cache->set(EntryToIndex(entry), *array);
+  new_cache->set(EntryToIndex(entry) + 1, *value);
+  new_cache->ElementAdded();
+  return new_cache;
 }
 
 
@@ -15185,6 +15794,23 @@ MaybeObject* Dictionary<Derived, Shape, Key>::Allocate(
       SetNextEnumerationIndex(PropertyDetails::kInitialIndex);
   return obj;
 }
+
+
+template<typename Derived, typename Shape, typename Key>
+Handle<Derived> Dictionary<Derived, Shape, Key>::New(
+    Isolate* isolate,
+    int at_least_space_for,
+    PretenureFlag pretenure) {
+  Handle<Derived> dict = DerivedHashTable::New(isolate,
+                                               at_least_space_for,
+                                               USE_DEFAULT_MINIMUM_CAPACITY,
+                                               pretenure);
+
+  // Initialize the next enumeration index.
+  dict->SetNextEnumerationIndex(PropertyDetails::kInitialIndex);
+  return dict;
+}
+
 
 
 void NameDictionary::DoGenerateNewEnumerationIndices(
@@ -15264,6 +15890,17 @@ MaybeObject* Dictionary<Derived, Shape, Key>::EnsureCapacity(int n, Key key) {
     }
   }
   return DerivedHashTable::EnsureCapacity(n, key);
+}
+
+
+
+template<typename Derived, typename Shape, typename Key>
+Handle<Derived> Dictionary<Derived, Shape, Key>::EnsureCapacity(
+    Handle<Derived> obj, int n, Key key) {
+  Isolate* isolate = obj->GetIsolate();
+  CALL_HEAP_FUNCTION(isolate,
+                     obj->EnsureCapacity(n, key),
+                     Derived);
 }
 
 
@@ -15608,20 +16245,6 @@ Object* Dictionary<Derived, Shape, Key>::SlowReverseLookup(Object* value) {
 }
 
 
-Handle<ObjectHashTable> ObjectHashTable::EnsureCapacity(
-    Handle<ObjectHashTable> table,
-    int n,
-    Handle<Object> key,
-    PretenureFlag pretenure) {
-  Handle<HashTable<ObjectHashTable,
-                   ObjectHashTableShape,
-                   Object*> > table_base = table;
-  CALL_HEAP_FUNCTION(table_base->GetIsolate(),
-                     table_base->EnsureCapacity(n, *key, pretenure),
-                     ObjectHashTable);
-}
-
-
 Object* ObjectHashTable::Lookup(Object* key) {
   ASSERT(IsKey(key));
 
@@ -15662,7 +16285,7 @@ Handle<ObjectHashTable> ObjectHashTable::Put(Handle<ObjectHashTable> table,
   }
 
   // Check whether the hash table should be extended.
-  table = EnsureCapacity(table, 1, key);
+  table = EnsureCapacity(table, 1, *key);
   table->AddEntry(table->FindInsertionEntry(Handle<Smi>::cast(hash)->value()),
                   *key,
                   *value);
@@ -15719,15 +16342,14 @@ void WeakHashTable::AddEntry(int entry, Object* key, Object* value) {
 }
 
 
-template<class Derived, int entrysize>
-Handle<Derived> OrderedHashTable<Derived, entrysize>::Allocate(
+template<class Derived, class Iterator, int entrysize>
+Handle<Derived> OrderedHashTable<Derived, Iterator, entrysize>::Allocate(
     Isolate* isolate, int capacity, PretenureFlag pretenure) {
   // Capacity must be a power of two, since we depend on being able
   // to divide and multiple by 2 (kLoadFactor) to derive capacity
   // from number of buckets. If we decide to change kLoadFactor
   // to something other than 2, capacity should be stored as another
   // field of this object.
-  const int kMinCapacity = 4;
   capacity = RoundUpToPowerOf2(Max(kMinCapacity, capacity));
   if (capacity > kMaxCapacity) {
     v8::internal::Heap::FatalProcessOutOfMemory("invalid table size", true);
@@ -15744,12 +16366,13 @@ Handle<Derived> OrderedHashTable<Derived, entrysize>::Allocate(
   table->SetNumberOfBuckets(num_buckets);
   table->SetNumberOfElements(0);
   table->SetNumberOfDeletedElements(0);
+  table->set_iterators(isolate->heap()->undefined_value());
   return table;
 }
 
 
-template<class Derived, int entrysize>
-Handle<Derived> OrderedHashTable<Derived, entrysize>::EnsureGrowable(
+template<class Derived, class Iterator, int entrysize>
+Handle<Derived> OrderedHashTable<Derived, Iterator, entrysize>::EnsureGrowable(
     Handle<Derived> table) {
   int nof = table->NumberOfElements();
   int nod = table->NumberOfDeletedElements();
@@ -15762,8 +16385,8 @@ Handle<Derived> OrderedHashTable<Derived, entrysize>::EnsureGrowable(
 }
 
 
-template<class Derived, int entrysize>
-Handle<Derived> OrderedHashTable<Derived, entrysize>::Shrink(
+template<class Derived, class Iterator, int entrysize>
+Handle<Derived> OrderedHashTable<Derived, Iterator, entrysize>::Shrink(
     Handle<Derived> table) {
   int nof = table->NumberOfElements();
   int capacity = table->Capacity();
@@ -15772,8 +16395,31 @@ Handle<Derived> OrderedHashTable<Derived, entrysize>::Shrink(
 }
 
 
-template<class Derived, int entrysize>
-Handle<Derived> OrderedHashTable<Derived, entrysize>::Rehash(
+template<class Derived, class Iterator, int entrysize>
+Handle<Derived> OrderedHashTable<Derived, Iterator, entrysize>::Clear(
+    Handle<Derived> table) {
+  Handle<Derived> new_table =
+      Allocate(table->GetIsolate(),
+               kMinCapacity,
+               table->GetHeap()->InNewSpace(*table) ? NOT_TENURED : TENURED);
+
+  new_table->set_iterators(table->iterators());
+  table->set_iterators(table->GetHeap()->undefined_value());
+
+  DisallowHeapAllocation no_allocation;
+  for (Object* object = new_table->iterators();
+       !object->IsUndefined();
+       object = Iterator::cast(object)->next_iterator()) {
+    Iterator::cast(object)->TableCleared();
+    Iterator::cast(object)->set_table(*new_table);
+  }
+
+  return new_table;
+}
+
+
+template<class Derived, class Iterator, int entrysize>
+Handle<Derived> OrderedHashTable<Derived, Iterator, entrysize>::Rehash(
     Handle<Derived> table, int new_capacity) {
   Handle<Derived> new_table =
       Allocate(table->GetIsolate(),
@@ -15800,12 +16446,24 @@ Handle<Derived> OrderedHashTable<Derived, entrysize>::Rehash(
     ++new_entry;
   }
   new_table->SetNumberOfElements(nof);
+
+  new_table->set_iterators(table->iterators());
+  table->set_iterators(table->GetHeap()->undefined_value());
+
+  DisallowHeapAllocation no_allocation;
+  for (Object* object = new_table->iterators();
+       !object->IsUndefined();
+       object = Iterator::cast(object)->next_iterator()) {
+    Iterator::cast(object)->TableCompacted();
+    Iterator::cast(object)->set_table(*new_table);
+  }
+
   return new_table;
 }
 
 
-template<class Derived, int entrysize>
-int OrderedHashTable<Derived, entrysize>::FindEntry(Object* key) {
+template<class Derived, class Iterator, int entrysize>
+int OrderedHashTable<Derived, Iterator, entrysize>::FindEntry(Object* key) {
   ASSERT(!key->IsTheHole());
   Object* hash = key->GetHash();
   if (hash->IsUndefined()) return kNotFound;
@@ -15820,9 +16478,9 @@ int OrderedHashTable<Derived, entrysize>::FindEntry(Object* key) {
 }
 
 
-template<class Derived, int entrysize>
-int OrderedHashTable<Derived, entrysize>::AddEntry(int hash) {
-  int entry = NumberOfElements() + NumberOfDeletedElements();
+template<class Derived, class Iterator, int entrysize>
+int OrderedHashTable<Derived, Iterator, entrysize>::AddEntry(int hash) {
+  int entry = UsedCapacity();
   int bucket = HashToBucket(hash);
   int index = EntryToIndex(entry);
   Object* chain_entry = get(kHashTableStartIndex + bucket);
@@ -15833,19 +16491,74 @@ int OrderedHashTable<Derived, entrysize>::AddEntry(int hash) {
 }
 
 
-template<class Derived, int entrysize>
-void OrderedHashTable<Derived, entrysize>::RemoveEntry(int entry) {
+template<class Derived, class Iterator, int entrysize>
+void OrderedHashTable<Derived, Iterator, entrysize>::RemoveEntry(int entry) {
   int index = EntryToIndex(entry);
   for (int i = 0; i < entrysize; ++i) {
     set_the_hole(index + i);
   }
   SetNumberOfElements(NumberOfElements() - 1);
   SetNumberOfDeletedElements(NumberOfDeletedElements() + 1);
+
+  DisallowHeapAllocation no_allocation;
+  for (Object* object = iterators();
+       !object->IsUndefined();
+       object = Iterator::cast(object)->next_iterator()) {
+    Iterator::cast(object)->EntryRemoved(entry);
+  }
 }
 
 
-template class OrderedHashTable<OrderedHashSet, 1>;
-template class OrderedHashTable<OrderedHashMap, 2>;
+template Handle<OrderedHashSet>
+OrderedHashTable<OrderedHashSet, JSSetIterator, 1>::Allocate(
+    Isolate* isolate, int capacity, PretenureFlag pretenure);
+
+template Handle<OrderedHashSet>
+OrderedHashTable<OrderedHashSet, JSSetIterator, 1>::EnsureGrowable(
+    Handle<OrderedHashSet> table);
+
+template Handle<OrderedHashSet>
+OrderedHashTable<OrderedHashSet, JSSetIterator, 1>::Shrink(
+    Handle<OrderedHashSet> table);
+
+template Handle<OrderedHashSet>
+OrderedHashTable<OrderedHashSet, JSSetIterator, 1>::Clear(
+    Handle<OrderedHashSet> table);
+
+template int
+OrderedHashTable<OrderedHashSet, JSSetIterator, 1>::FindEntry(Object* key);
+
+template int
+OrderedHashTable<OrderedHashSet, JSSetIterator, 1>::AddEntry(int hash);
+
+template void
+OrderedHashTable<OrderedHashSet, JSSetIterator, 1>::RemoveEntry(int entry);
+
+
+template Handle<OrderedHashMap>
+OrderedHashTable<OrderedHashMap, JSMapIterator, 2>::Allocate(
+    Isolate* isolate, int capacity, PretenureFlag pretenure);
+
+template Handle<OrderedHashMap>
+OrderedHashTable<OrderedHashMap, JSMapIterator, 2>::EnsureGrowable(
+    Handle<OrderedHashMap> table);
+
+template Handle<OrderedHashMap>
+OrderedHashTable<OrderedHashMap, JSMapIterator, 2>::Shrink(
+    Handle<OrderedHashMap> table);
+
+template Handle<OrderedHashMap>
+OrderedHashTable<OrderedHashMap, JSMapIterator, 2>::Clear(
+    Handle<OrderedHashMap> table);
+
+template int
+OrderedHashTable<OrderedHashMap, JSMapIterator, 2>::FindEntry(Object* key);
+
+template int
+OrderedHashTable<OrderedHashMap, JSMapIterator, 2>::AddEntry(int hash);
+
+template void
+OrderedHashTable<OrderedHashMap, JSMapIterator, 2>::RemoveEntry(int entry);
 
 
 bool OrderedHashSet::Contains(Object* key) {
@@ -15871,7 +16584,6 @@ Handle<OrderedHashSet> OrderedHashSet::Remove(Handle<OrderedHashSet> table,
   int entry = table->FindEntry(*key);
   if (entry == kNotFound) return table;
   table->RemoveEntry(entry);
-  // TODO(adamk): Don't shrink if we're being iterated over
   return Shrink(table);
 }
 
@@ -15891,7 +16603,6 @@ Handle<OrderedHashMap> OrderedHashMap::Put(Handle<OrderedHashMap> table,
   if (value->IsTheHole()) {
     if (entry == kNotFound) return table;
     table->RemoveEntry(entry);
-    // TODO(adamk): Only shrink if not iterating
     return Shrink(table);
   }
 
@@ -15907,6 +16618,221 @@ Handle<OrderedHashMap> OrderedHashMap::Put(Handle<OrderedHashMap> table,
   table->set(index, *key);
   table->set(index + kValueOffset, *value);
   return table;
+}
+
+
+template<class Derived, class TableType>
+void OrderedHashTableIterator<Derived, TableType>::EntryRemoved(int index) {
+  int i = this->index()->value();
+  if (index < i) {
+    set_count(Smi::FromInt(count()->value() - 1));
+  }
+  if (index == i) {
+    Seek();
+  }
+}
+
+
+template<class Derived, class TableType>
+void OrderedHashTableIterator<Derived, TableType>::Close() {
+  if (Closed()) return;
+
+  DisallowHeapAllocation no_allocation;
+
+  Object* undefined = GetHeap()->undefined_value();
+  TableType* table = TableType::cast(this->table());
+  Object* previous = previous_iterator();
+  Object* next = next_iterator();
+
+  if (previous == undefined) {
+    ASSERT_EQ(table->iterators(), this);
+    table->set_iterators(next);
+  } else {
+    ASSERT_EQ(Derived::cast(previous)->next_iterator(), this);
+    Derived::cast(previous)->set_next_iterator(next);
+  }
+
+  if (!next->IsUndefined()) {
+    ASSERT_EQ(Derived::cast(next)->previous_iterator(), this);
+    Derived::cast(next)->set_previous_iterator(previous);
+  }
+
+  set_previous_iterator(undefined);
+  set_next_iterator(undefined);
+  set_table(undefined);
+}
+
+
+template<class Derived, class TableType>
+void OrderedHashTableIterator<Derived, TableType>::Seek() {
+  ASSERT(!Closed());
+
+  DisallowHeapAllocation no_allocation;
+
+  int index = this->index()->value();
+
+  TableType* table = TableType::cast(this->table());
+  int used_capacity = table->UsedCapacity();
+
+  while (index < used_capacity && table->KeyAt(index)->IsTheHole()) {
+    index++;
+  }
+  set_index(Smi::FromInt(index));
+}
+
+
+template<class Derived, class TableType>
+void OrderedHashTableIterator<Derived, TableType>::MoveNext() {
+  ASSERT(!Closed());
+
+  set_index(Smi::FromInt(index()->value() + 1));
+  set_count(Smi::FromInt(count()->value() + 1));
+  Seek();
+}
+
+
+template<class Derived, class TableType>
+Handle<JSObject> OrderedHashTableIterator<Derived, TableType>::Next(
+    Handle<Derived> iterator) {
+  Isolate* isolate = iterator->GetIsolate();
+  Factory* factory = isolate->factory();
+
+  Handle<Object> object(iterator->table(), isolate);
+
+  if (!object->IsUndefined()) {
+    Handle<TableType> table = Handle<TableType>::cast(object);
+    int index = iterator->index()->value();
+    if (index < table->UsedCapacity()) {
+      int entry_index = table->EntryToIndex(index);
+      iterator->MoveNext();
+      Handle<Object> value = Derived::ValueForKind(iterator, entry_index);
+      return factory->NewIteratorResultObject(value, false);
+    } else {
+      iterator->Close();
+    }
+  }
+
+  return factory->NewIteratorResultObject(factory->undefined_value(), true);
+}
+
+
+template<class Derived, class TableType>
+Handle<Derived> OrderedHashTableIterator<Derived, TableType>::CreateInternal(
+    Handle<Map> map,
+    Handle<TableType> table,
+    int kind) {
+  Isolate* isolate = table->GetIsolate();
+
+  Handle<Object> undefined = isolate->factory()->undefined_value();
+
+  Handle<Derived> new_iterator = Handle<Derived>::cast(
+      isolate->factory()->NewJSObjectFromMap(map));
+  new_iterator->set_previous_iterator(*undefined);
+  new_iterator->set_table(*table);
+  new_iterator->set_index(Smi::FromInt(0));
+  new_iterator->set_count(Smi::FromInt(0));
+  new_iterator->set_kind(Smi::FromInt(kind));
+
+  Handle<Object> old_iterator(table->iterators(), isolate);
+  if (!old_iterator->IsUndefined()) {
+    Handle<Derived>::cast(old_iterator)->set_previous_iterator(*new_iterator);
+    new_iterator->set_next_iterator(*old_iterator);
+  } else {
+    new_iterator->set_next_iterator(*undefined);
+  }
+
+  table->set_iterators(*new_iterator);
+
+  return new_iterator;
+}
+
+
+template void
+OrderedHashTableIterator<JSSetIterator, OrderedHashSet>::EntryRemoved(
+    int index);
+
+template void
+OrderedHashTableIterator<JSSetIterator, OrderedHashSet>::Close();
+
+template Handle<JSObject>
+OrderedHashTableIterator<JSSetIterator, OrderedHashSet>::Next(
+    Handle<JSSetIterator> iterator);
+
+template Handle<JSSetIterator>
+OrderedHashTableIterator<JSSetIterator, OrderedHashSet>::CreateInternal(
+      Handle<Map> map, Handle<OrderedHashSet> table, int kind);
+
+
+template void
+OrderedHashTableIterator<JSMapIterator, OrderedHashMap>::EntryRemoved(
+    int index);
+
+template void
+OrderedHashTableIterator<JSMapIterator, OrderedHashMap>::Close();
+
+template Handle<JSObject>
+OrderedHashTableIterator<JSMapIterator, OrderedHashMap>::Next(
+    Handle<JSMapIterator> iterator);
+
+template Handle<JSMapIterator>
+OrderedHashTableIterator<JSMapIterator, OrderedHashMap>::CreateInternal(
+      Handle<Map> map, Handle<OrderedHashMap> table, int kind);
+
+
+Handle<Object> JSSetIterator::ValueForKind(
+    Handle<JSSetIterator> iterator, int entry_index) {
+  int kind = iterator->kind()->value();
+  // Set.prototype only has values and entries.
+  ASSERT(kind == kKindValues || kind == kKindEntries);
+
+  Isolate* isolate = iterator->GetIsolate();
+  Factory* factory = isolate->factory();
+
+  Handle<OrderedHashSet> table(
+      OrderedHashSet::cast(iterator->table()), isolate);
+  Handle<Object> value = Handle<Object>(table->get(entry_index), isolate);
+
+  if (kind == kKindEntries) {
+    Handle<FixedArray> array = factory->NewFixedArray(2);
+    array->set(0, *value);
+    array->set(1, *value);
+    return factory->NewJSArrayWithElements(array);
+  }
+
+  return value;
+}
+
+
+Handle<Object> JSMapIterator::ValueForKind(
+    Handle<JSMapIterator> iterator, int entry_index) {
+  int kind = iterator->kind()->value();
+  ASSERT(kind == kKindKeys || kind == kKindValues || kind == kKindEntries);
+
+  Isolate* isolate = iterator->GetIsolate();
+  Factory* factory = isolate->factory();
+
+  Handle<OrderedHashMap> table(
+      OrderedHashMap::cast(iterator->table()), isolate);
+
+  switch (kind) {
+    case kKindKeys:
+      return Handle<Object>(table->get(entry_index), isolate);
+
+    case kKindValues:
+      return Handle<Object>(table->get(entry_index + 1), isolate);
+
+    case kKindEntries: {
+      Handle<Object> key(table->get(entry_index), isolate);
+      Handle<Object> value(table->get(entry_index + 1), isolate);
+      Handle<FixedArray> array = factory->NewFixedArray(2);
+      array->set(0, *key);
+      array->set(1, *value);
+      return factory->NewJSArrayWithElements(array);
+    }
+  }
+
+  UNREACHABLE();
+  return factory->undefined_value();
 }
 
 
@@ -16478,14 +17404,16 @@ void PropertyCell::SetValueInferType(Handle<PropertyCell> cell,
 }
 
 
-void PropertyCell::AddDependentCompilationInfo(CompilationInfo* info) {
-  Handle<DependentCode> dep(dependent_code());
+// static
+void PropertyCell::AddDependentCompilationInfo(Handle<PropertyCell> cell,
+                                               CompilationInfo* info) {
   Handle<DependentCode> codes =
-      DependentCode::Insert(dep, DependentCode::kPropertyCellChangedGroup,
+      DependentCode::Insert(handle(cell->dependent_code(), info->isolate()),
+                            DependentCode::kPropertyCellChangedGroup,
                             info->object_wrapper());
-  if (*codes != dependent_code()) set_dependent_code(*codes);
+  if (*codes != cell->dependent_code()) cell->set_dependent_code(*codes);
   info->dependencies(DependentCode::kPropertyCellChangedGroup)->Add(
-      Handle<HeapObject>(this), info->zone());
+      cell, info->zone());
 }
 
 

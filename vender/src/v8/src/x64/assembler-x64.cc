@@ -2953,11 +2953,6 @@ void Assembler::RecordRelocInfo(RelocInfo::Mode rmode, intptr_t data) {
   ASSERT(!RelocInfo::IsNone(rmode));
   if (rmode == RelocInfo::EXTERNAL_REFERENCE) {
     // Don't record external references unless the heap will be serialized.
-#ifdef DEBUG
-    if (!Serializer::enabled()) {
-      Serializer::TooLateToEnableNow();
-    }
-#endif
     if (!Serializer::enabled() && !emit_debug_code()) {
       return;
     }
@@ -2992,16 +2987,17 @@ void Assembler::RecordComment(const char* msg, bool force) {
 }
 
 
-MaybeObject* Assembler::AllocateConstantPool(Heap* heap) {
+Handle<ConstantPoolArray> Assembler::NewConstantPool(Isolate* isolate) {
   // No out-of-line constant pool support.
-  UNREACHABLE();
-  return NULL;
+  ASSERT(!FLAG_enable_ool_constant_pool);
+  return isolate->factory()->empty_constant_pool_array();
 }
 
 
 void Assembler::PopulateConstantPool(ConstantPoolArray* constant_pool) {
   // No out-of-line constant pool support.
-  UNREACHABLE();
+  ASSERT(!FLAG_enable_ool_constant_pool);
+  return;
 }
 
 

@@ -431,6 +431,22 @@ void StoreStubCompiler::GenerateStoreTransition(MacroAssembler* masm,
     __ JumpIfNotSmi(value_reg, miss_label);
   } else if (representation.IsHeapObject()) {
     __ JumpIfSmi(value_reg, miss_label);
+    HeapType* field_type = descriptors->GetFieldType(descriptor);
+    HeapType::Iterator<Map> it = field_type->Classes();
+    if (!it.Done()) {
+      __ ldr(scratch1, FieldMemOperand(value_reg, HeapObject::kMapOffset));
+      Label do_store;
+      while (true) {
+        __ CompareMap(scratch1, it.Current(), &do_store);
+        it.Advance();
+        if (it.Done()) {
+          __ b(ne, miss_label);
+          break;
+        }
+        __ b(eq, &do_store);
+      }
+      __ bind(&do_store);
+    }
   } else if (representation.IsDouble()) {
     Label do_store, heap_number;
     __ LoadRoot(scratch3, Heap::kHeapNumberMapRootIndex);
@@ -593,6 +609,22 @@ void StoreStubCompiler::GenerateStoreField(MacroAssembler* masm,
     __ JumpIfNotSmi(value_reg, miss_label);
   } else if (representation.IsHeapObject()) {
     __ JumpIfSmi(value_reg, miss_label);
+    HeapType* field_type = lookup->GetFieldType();
+    HeapType::Iterator<Map> it = field_type->Classes();
+    if (!it.Done()) {
+      __ ldr(scratch1, FieldMemOperand(value_reg, HeapObject::kMapOffset));
+      Label do_store;
+      while (true) {
+        __ CompareMap(scratch1, it.Current(), &do_store);
+        it.Advance();
+        if (it.Done()) {
+          __ b(ne, miss_label);
+          break;
+        }
+        __ b(eq, &do_store);
+      }
+      __ bind(&do_store);
+    }
   } else if (representation.IsDouble()) {
     // Load the double storage.
     if (index < 0) {
@@ -836,7 +868,9 @@ Register StubCompiler::CheckPrototypes(Handle<HeapType> type,
   int depth = 0;
 
   Handle<JSObject> current = Handle<JSObject>::null();
-  if (type->IsConstant()) current = Handle<JSObject>::cast(type->AsConstant());
+  if (type->IsConstant()) {
+    current = Handle<JSObject>::cast(type->AsConstant()->Value());
+  }
   Handle<JSObject> prototype = Handle<JSObject>::null();
   Handle<Map> current_map = receiver_map;
   Handle<Map> holder_map(holder->map());

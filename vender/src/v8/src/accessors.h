@@ -42,20 +42,22 @@ namespace internal {
   V(FunctionName)                   \
   V(FunctionArguments)              \
   V(FunctionCaller)                 \
-  V(ArrayLength)                    \
-  V(StringLength)                   \
-  V(ScriptSource)                   \
-  V(ScriptName)                     \
-  V(ScriptId)                       \
-  V(ScriptLineOffset)               \
+  V(ArrayLength)
+
+#define ACCESSOR_INFO_LIST(V)       \
   V(ScriptColumnOffset)             \
-  V(ScriptType)                     \
   V(ScriptCompilationType)          \
-  V(ScriptLineEnds)                 \
   V(ScriptContextData)              \
   V(ScriptEvalFromScript)           \
   V(ScriptEvalFromScriptPosition)   \
-  V(ScriptEvalFromFunctionName)
+  V(ScriptEvalFromFunctionName)     \
+  V(ScriptId)                       \
+  V(ScriptLineEnds)                 \
+  V(ScriptLineOffset)               \
+  V(ScriptName)                     \
+  V(ScriptSource)                   \
+  V(ScriptType)                     \
+  V(StringLength)
 
 // Accessors contains all predefined proxy accessors.
 
@@ -67,11 +69,30 @@ class Accessors : public AllStatic {
   ACCESSOR_DESCRIPTOR_LIST(ACCESSOR_DESCRIPTOR_DECLARATION)
 #undef ACCESSOR_DESCRIPTOR_DECLARATION
 
+#define ACCESSOR_INFO_DECLARATION(name)                   \
+  static void name##Getter(                               \
+      v8::Local<v8::String> name,                         \
+      const v8::PropertyCallbackInfo<v8::Value>& info);   \
+  static void name##Setter(                               \
+      v8::Local<v8::String> name,                         \
+      v8::Local<v8::Value> value,                         \
+      const v8::PropertyCallbackInfo<void>& info);   \
+  static Handle<AccessorInfo> name##Info(                 \
+      Isolate* isolate,                                   \
+      PropertyAttributes attributes);
+  ACCESSOR_INFO_LIST(ACCESSOR_INFO_DECLARATION)
+#undef ACCESSOR_INFO_DECLARATION
+
   enum DescriptorId {
 #define ACCESSOR_DESCRIPTOR_DECLARATION(name) \
     k##name,
   ACCESSOR_DESCRIPTOR_LIST(ACCESSOR_DESCRIPTOR_DECLARATION)
 #undef ACCESSOR_DESCRIPTOR_DECLARATION
+#define ACCESSOR_INFO_DECLARATION(name) \
+    k##name##Getter, \
+    k##name##Setter,
+  ACCESSOR_INFO_LIST(ACCESSOR_INFO_DECLARATION)
+#undef ACCESSOR_INFO_DECLARATION
     descriptorCount
   };
 
@@ -91,7 +112,6 @@ class Accessors : public AllStatic {
   static bool IsJSObjectFieldAccessor(typename T::TypeHandle type,
                                       Handle<String> name,
                                       int* object_offset);
-
 
  private:
   // Accessor functions only used through the descriptor.
@@ -117,35 +137,6 @@ class Accessors : public AllStatic {
                                      Object*,
                                      void*);
   static MaybeObject* ArrayGetLength(Isolate* isolate, Object* object, void*);
-  static MaybeObject* StringGetLength(Isolate* isolate, Object* object, void*);
-  static MaybeObject* ScriptGetName(Isolate* isolate, Object* object, void*);
-  static MaybeObject* ScriptGetId(Isolate* isolate, Object* object, void*);
-  static MaybeObject* ScriptGetSource(Isolate* isolate, Object* object, void*);
-  static MaybeObject* ScriptGetLineOffset(Isolate* isolate,
-                                          Object* object,
-                                          void*);
-  static MaybeObject* ScriptGetColumnOffset(Isolate* isolate,
-                                            Object* object,
-                                            void*);
-  static MaybeObject* ScriptGetType(Isolate* isolate, Object* object, void*);
-  static MaybeObject* ScriptGetCompilationType(Isolate* isolate,
-                                               Object* object,
-                                               void*);
-  static MaybeObject* ScriptGetLineEnds(Isolate* isolate,
-                                        Object* object,
-                                        void*);
-  static MaybeObject* ScriptGetContextData(Isolate* isolate,
-                                           Object* object,
-                                           void*);
-  static MaybeObject* ScriptGetEvalFromScript(Isolate* isolate,
-                                              Object* object,
-                                              void*);
-  static MaybeObject* ScriptGetEvalFromScriptPosition(Isolate* isolate,
-                                                      Object* object,
-                                                      void*);
-  static MaybeObject* ScriptGetEvalFromFunctionName(Isolate* isolate,
-                                                    Object* object,
-                                                    void*);
 
   // Helper functions.
   static Handle<Object> FlattenNumber(Isolate* isolate, Handle<Object> value);

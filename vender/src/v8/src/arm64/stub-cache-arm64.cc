@@ -393,6 +393,22 @@ void StoreStubCompiler::GenerateStoreTransition(MacroAssembler* masm,
     __ JumpIfNotSmi(value_reg, miss_label);
   } else if (representation.IsHeapObject()) {
     __ JumpIfSmi(value_reg, miss_label);
+    HeapType* field_type = descriptors->GetFieldType(descriptor);
+    HeapType::Iterator<Map> it = field_type->Classes();
+    if (!it.Done()) {
+      __ Ldr(scratch1, FieldMemOperand(value_reg, HeapObject::kMapOffset));
+      Label do_store;
+      while (true) {
+        __ CompareMap(scratch1, it.Current());
+        it.Advance();
+        if (it.Done()) {
+          __ B(ne, miss_label);
+          break;
+        }
+        __ B(eq, &do_store);
+      }
+      __ Bind(&do_store);
+    }
   } else if (representation.IsDouble()) {
     UseScratchRegisterScope temps(masm);
     DoubleRegister temp_double = temps.AcquireD();
@@ -542,6 +558,22 @@ void StoreStubCompiler::GenerateStoreField(MacroAssembler* masm,
     __ JumpIfNotSmi(value_reg, miss_label);
   } else if (representation.IsHeapObject()) {
     __ JumpIfSmi(value_reg, miss_label);
+    HeapType* field_type = lookup->GetFieldType();
+    HeapType::Iterator<Map> it = field_type->Classes();
+    if (!it.Done()) {
+      __ Ldr(scratch1, FieldMemOperand(value_reg, HeapObject::kMapOffset));
+      Label do_store;
+      while (true) {
+        __ CompareMap(scratch1, it.Current());
+        it.Advance();
+        if (it.Done()) {
+          __ B(ne, miss_label);
+          break;
+        }
+        __ B(eq, &do_store);
+      }
+      __ Bind(&do_store);
+    }
   } else if (representation.IsDouble()) {
     UseScratchRegisterScope temps(masm);
     DoubleRegister temp_double = temps.AcquireD();
@@ -788,7 +820,7 @@ Register StubCompiler::CheckPrototypes(Handle<HeapType> type,
 
   Handle<JSObject> current = Handle<JSObject>::null();
   if (type->IsConstant()) {
-    current = Handle<JSObject>::cast(type->AsConstant());
+    current = Handle<JSObject>::cast(type->AsConstant()->Value());
   }
   Handle<JSObject> prototype = Handle<JSObject>::null();
   Handle<Map> current_map = receiver_map;

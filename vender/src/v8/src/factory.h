@@ -14,6 +14,11 @@ namespace internal {
 
 class Factory V8_FINAL {
  public:
+  Handle<Oddball> NewOddball(Handle<Map> map,
+                             const char* to_string,
+                             Handle<Object> to_number,
+                             byte kind);
+
   // Allocates a fixed array initialized with undefined values.
   Handle<FixedArray> NewFixedArray(
       int size,
@@ -113,11 +118,28 @@ class Factory V8_FINAL {
   //     two byte.
   //
   // ASCII strings are pretenured when used as keys in the SourceCodeCache.
-  Handle<String> NewStringFromOneByte(
+  MUST_USE_RESULT MaybeHandle<String> NewStringFromOneByte(
       Vector<const uint8_t> str,
       PretenureFlag pretenure = NOT_TENURED);
+
+  template<size_t N>
+  inline Handle<String> NewStringFromStaticAscii(
+      const char (&str)[N],
+      PretenureFlag pretenure = NOT_TENURED) {
+    ASSERT(N == StrLength(str) + 1);
+    return NewStringFromOneByte(
+        STATIC_ASCII_VECTOR(str), pretenure).ToHandleChecked();
+  }
+
+  inline Handle<String> NewStringFromAsciiChecked(
+      const char* str,
+      PretenureFlag pretenure = NOT_TENURED) {
+    return NewStringFromOneByte(
+        OneByteVector(str), pretenure).ToHandleChecked();
+  }
+
   // TODO(dcarney): remove this function.
-  inline Handle<String> NewStringFromAscii(
+  MUST_USE_RESULT inline MaybeHandle<String> NewStringFromAscii(
       Vector<const char> str,
       PretenureFlag pretenure = NOT_TENURED) {
     return NewStringFromOneByte(Vector<const uint8_t>::cast(str), pretenure);
@@ -125,11 +147,11 @@ class Factory V8_FINAL {
 
   // UTF8 strings are pretenured when used for regexp literal patterns and
   // flags in the parser.
-  Handle<String> NewStringFromUtf8(
+  MUST_USE_RESULT MaybeHandle<String> NewStringFromUtf8(
       Vector<const char> str,
       PretenureFlag pretenure = NOT_TENURED);
 
-  Handle<String> NewStringFromTwoByte(
+  MUST_USE_RESULT MaybeHandle<String> NewStringFromTwoByte(
       Vector<const uc16> str,
       PretenureFlag pretenure = NOT_TENURED);
 
@@ -171,7 +193,8 @@ class Factory V8_FINAL {
   // Creates a new external String object.  There are two String encodings
   // in the system: ASCII and two byte.  Unlike other String types, it does
   // not make sense to have a UTF-8 factory function for external strings,
-  // because we cannot change the underlying buffer.
+  // because we cannot change the underlying buffer.  Note that these strings
+  // are backed by a string resource that resides outside the V8 heap.
   MUST_USE_RESULT MaybeHandle<String> NewExternalStringFromAscii(
       const ExternalAsciiString::Resource* resource);
   MUST_USE_RESULT MaybeHandle<String> NewExternalStringFromTwoByte(
@@ -214,6 +237,8 @@ class Factory V8_FINAL {
   // the old generation).
   Handle<Struct> NewStruct(InstanceType type);
 
+  Handle<CodeCache> NewCodeCache();
+
   Handle<AliasedArgumentsEntry> NewAliasedArgumentsEntry(
       int aliased_context_slot);
 
@@ -253,12 +278,17 @@ class Factory V8_FINAL {
 
   Handle<PropertyCell> NewPropertyCell(Handle<Object> value);
 
+  // Allocate a tenured AllocationSite. It's payload is null.
   Handle<AllocationSite> NewAllocationSite();
 
   Handle<Map> NewMap(
       InstanceType type,
       int instance_size,
       ElementsKind elements_kind = TERMINAL_FAST_ELEMENTS_KIND);
+
+  Handle<HeapObject> NewFillerObject(int size,
+                                     bool double_align,
+                                     AllocationSpace space);
 
   Handle<JSObject> NewFunctionPrototype(Handle<JSFunction> function);
 
@@ -279,6 +309,7 @@ class Factory V8_FINAL {
       Handle<ConstantPoolArray> array);
 
   // Numbers (e.g. literals) are pretenured by the parser.
+  // The return value may be a smi or a heap number.
   Handle<Object> NewNumber(double value,
                            PretenureFlag pretenure = NOT_TENURED);
 
@@ -322,9 +353,6 @@ class Factory V8_FINAL {
       PretenureFlag pretenure = NOT_TENURED,
       bool allocate_properties = true,
       Handle<AllocationSite> allocation_site = Handle<AllocationSite>::null());
-
-  Handle<JSObject> NewJSObjectFromMapForDeoptimizer(
-      Handle<Map> map, PretenureFlag pretenure = NOT_TENURED);
 
   // JS modules are pretenured.
   Handle<JSModule> NewJSModule(Handle<Context> context,
@@ -386,7 +414,28 @@ class Factory V8_FINAL {
 
   Handle<JSDataView> NewJSDataView();
 
+  // Allocates a Harmony proxy.
   Handle<JSProxy> NewJSProxy(Handle<Object> handler, Handle<Object> prototype);
+
+  // Allocates a Harmony function proxy.
+  Handle<JSProxy> NewJSFunctionProxy(Handle<Object> handler,
+                                     Handle<Object> call_trap,
+                                     Handle<Object> construct_trap,
+                                     Handle<Object> prototype);
+
+  // Reinitialize a JSReceiver into an (empty) JS object of respective type and
+  // size, but keeping the original prototype.  The receiver must have at least
+  // the size of the new object.  The object is reinitialized and behaves as an
+  // object that has been freshly allocated.
+  void ReinitializeJSReceiver(
+      Handle<JSReceiver> object, InstanceType type, int size);
+
+  // Reinitialize an JSGlobalProxy based on a constructor.  The object
+  // must have the same size as objects allocated using the
+  // constructor.  The object is reinitialized and behaves as an
+  // object that has been freshly allocated using the constructor.
+  void ReinitializeJSGlobalProxy(Handle<JSGlobalProxy> global,
+                                 Handle<JSFunction> constructor);
 
   // Change the type of the argument into a JS object/function and reinitialize.
   void BecomeJSObject(Handle<JSReceiver> object);
@@ -395,21 +444,26 @@ class Factory V8_FINAL {
   Handle<JSFunction> NewFunction(Handle<String> name,
                                  Handle<Object> prototype);
 
-  Handle<JSFunction> NewFunctionWithoutPrototype(
-      Handle<String> name,
-      StrictMode strict_mode);
-
-  Handle<JSFunction> NewFunction(Handle<Object> super, bool is_global);
-
-  Handle<JSFunction> BaseNewFunctionFromSharedFunctionInfo(
-      Handle<SharedFunctionInfo> function_info,
-      Handle<Map> function_map,
-      PretenureFlag pretenure);
-
   Handle<JSFunction> NewFunctionFromSharedFunctionInfo(
       Handle<SharedFunctionInfo> function_info,
       Handle<Context> context,
       PretenureFlag pretenure = TENURED);
+
+  Handle<JSFunction> NewFunction(Handle<String> name,
+                                 InstanceType type,
+                                 int instance_size,
+                                 Handle<Code> code,
+                                 bool force_initial_map);
+
+  Handle<JSFunction> NewFunctionWithPrototype(Handle<String> name,
+                                              InstanceType type,
+                                              int instance_size,
+                                              Handle<JSObject> prototype,
+                                              Handle<Code> code,
+                                              bool force_initial_map);
+
+  Handle<JSFunction> NewFunctionWithoutPrototype(Handle<String> name,
+                                                 Handle<Code> code);
 
   // Create a serialized scope info.
   Handle<ScopeInfo> NewScopeInfo(int length);
@@ -417,6 +471,9 @@ class Factory V8_FINAL {
   // Create an External object for V8's external API.
   Handle<JSObject> NewExternal(void* value);
 
+  // The reference to the Code object is stored in self_reference.
+  // This allows generated code to reference its own Code object
+  // by containing this handle.
   Handle<Code> NewCode(const CodeDesc& desc,
                        Code::Flags flags,
                        Handle<Object> self_reference,
@@ -465,29 +522,14 @@ class Factory V8_FINAL {
   Handle<Object> NewEvalError(const char* message,
                               Vector< Handle<Object> > args);
 
+  Handle<JSObject> NewIteratorResultObject(Handle<Object> value, bool done);
 
-  Handle<JSFunction> NewFunction(Handle<String> name,
-                                 InstanceType type,
-                                 int instance_size,
-                                 Handle<Code> code,
-                                 bool force_initial_map);
+  Handle<String> NumberToString(Handle<Object> number,
+                                bool check_number_string_cache = true);
 
-  Handle<JSFunction> NewFunction(Handle<Map> function_map,
-      Handle<SharedFunctionInfo> shared, Handle<Object> prototype);
-
-
-  Handle<JSFunction> NewFunctionWithPrototype(Handle<String> name,
-                                              InstanceType type,
-                                              int instance_size,
-                                              Handle<JSObject> prototype,
-                                              Handle<Code> code,
-                                              bool force_initial_map);
-
-  Handle<JSFunction> NewFunctionWithoutPrototype(Handle<String> name,
-                                                 Handle<Code> code);
-
-  Handle<String> NumberToString(Handle<Object> number);
-  Handle<String> Uint32ToString(uint32_t value);
+  Handle<String> Uint32ToString(uint32_t value) {
+    return NumberToString(NewNumberFromUint(value));
+  }
 
   enum ApiInstanceType {
     JavaScriptObject,
@@ -535,6 +577,7 @@ class Factory V8_FINAL {
     return Handle<String>(&isolate()->heap()->hidden_string_);
   }
 
+  // Allocates a new SharedFunctionInfo object.
   Handle<SharedFunctionInfo> NewSharedFunctionInfo(
       Handle<String> name,
       int number_of_literals,
@@ -543,6 +586,7 @@ class Factory V8_FINAL {
       Handle<ScopeInfo> scope_info);
   Handle<SharedFunctionInfo> NewSharedFunctionInfo(Handle<String> name);
 
+  // Allocates a new JSMessageObject object.
   Handle<JSMessageObject> NewJSMessageObject(
       Handle<String> type,
       Handle<JSArray> arguments,
@@ -597,12 +641,31 @@ class Factory V8_FINAL {
  private:
   Isolate* isolate() { return reinterpret_cast<Isolate*>(this); }
 
-  Handle<JSFunction> NewFunctionHelper(Handle<String> name,
-                                       Handle<Object> prototype);
+  // Creates a heap object based on the map. The fields of the heap object are
+  // not initialized by New<>() functions. It's the responsibility of the caller
+  // to do that.
+  template<typename T>
+  Handle<T> New(Handle<Map> map, AllocationSpace space);
 
-  Handle<JSFunction> NewFunctionWithoutPrototypeHelper(
-      Handle<String> name,
-      StrictMode strict_mode);
+  template<typename T>
+  Handle<T> New(Handle<Map> map,
+                AllocationSpace space,
+                Handle<AllocationSite> allocation_site);
+
+  // Initializes a function with a shared part and prototype.
+  // Note: this code was factored out of NewFunction such that other parts of
+  // the VM could use it. Specifically, a function that creates instances of
+  // type JS_FUNCTION_TYPE benefit from the use of this function.
+  inline void InitializeFunction(Handle<JSFunction> function,
+                                 Handle<SharedFunctionInfo> info,
+                                 Handle<Context> context,
+                                 MaybeHandle<Object> maybe_prototype);
+
+  // Creates a function initialized with a shared part.
+  inline Handle<JSFunction> NewFunction(Handle<SharedFunctionInfo> info,
+                                        Handle<Context> context,
+                                        MaybeHandle<Object> maybe_prototype,
+                                        PretenureFlag pretenure = TENURED);
 
   // Create a new map cache.
   Handle<MapCache> NewMapCache(int at_least_space_for);
@@ -611,6 +674,13 @@ class Factory V8_FINAL {
   Handle<MapCache> AddToMapCache(Handle<Context> context,
                                  Handle<FixedArray> keys,
                                  Handle<Map> map);
+
+  // Attempt to find the number in a small cache.  If we finds it, return
+  // the string representation of the number.  Otherwise return undefined.
+  Handle<Object> GetNumberStringCache(Handle<Object> number);
+
+  // Update the cache with a new number-string pair.
+  void SetNumberStringCache(Handle<Object> number, Handle<String> string);
 };
 
 } }  // namespace v8::internal

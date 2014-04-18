@@ -529,6 +529,21 @@ void StoreStubCompiler::GenerateStoreTransition(MacroAssembler* masm,
       __ JumpIfNotSmi(value_reg, miss_label);
   } else if (representation.IsHeapObject()) {
     __ JumpIfSmi(value_reg, miss_label);
+    HeapType* field_type = descriptors->GetFieldType(descriptor);
+    HeapType::Iterator<Map> it = field_type->Classes();
+    if (!it.Done()) {
+      Label do_store;
+      while (true) {
+        __ CompareMap(value_reg, it.Current());
+        it.Advance();
+        if (it.Done()) {
+          __ j(not_equal, miss_label);
+          break;
+        }
+        __ j(equal, &do_store, Label::kNear);
+      }
+      __ bind(&do_store);
+    }
   } else if (representation.IsDouble()) {
     Label do_store, heap_number;
     __ AllocateHeapNumber(storage_reg, scratch1, scratch2, slow);
@@ -699,6 +714,21 @@ void StoreStubCompiler::GenerateStoreField(MacroAssembler* masm,
     __ JumpIfNotSmi(value_reg, miss_label);
   } else if (representation.IsHeapObject()) {
     __ JumpIfSmi(value_reg, miss_label);
+    HeapType* field_type = lookup->GetFieldType();
+    HeapType::Iterator<Map> it = field_type->Classes();
+    if (!it.Done()) {
+      Label do_store;
+      while (true) {
+        __ CompareMap(value_reg, it.Current());
+        it.Advance();
+        if (it.Done()) {
+          __ j(not_equal, miss_label);
+          break;
+        }
+        __ j(equal, &do_store, Label::kNear);
+      }
+      __ bind(&do_store);
+    }
   } else if (representation.IsDouble()) {
     // Load the double storage.
     if (index < 0) {
@@ -824,7 +854,8 @@ Register StubCompiler::CheckPrototypes(Handle<HeapType> type,
   int depth = 0;
 
   Handle<JSObject> current = Handle<JSObject>::null();
-  if (type->IsConstant()) current = Handle<JSObject>::cast(type->AsConstant());
+  if (type->IsConstant()) current =
+      Handle<JSObject>::cast(type->AsConstant()->Value());
   Handle<JSObject> prototype = Handle<JSObject>::null();
   Handle<Map> current_map = receiver_map;
   Handle<Map> holder_map(holder->map());

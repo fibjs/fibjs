@@ -276,9 +276,20 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
       ACCESSOR, \
       Accessors::k##name, \
       "Accessors::" #name);
-
   ACCESSOR_DESCRIPTOR_LIST(ACCESSOR_DESCRIPTOR_DECLARATION)
 #undef ACCESSOR_DESCRIPTOR_DECLARATION
+
+#define ACCESSOR_INFO_DECLARATION(name) \
+  Add(FUNCTION_ADDR(&Accessors::name##Getter), \
+      ACCESSOR, \
+      Accessors::k##name##Getter, \
+      "Accessors::" #name "Getter"); \
+  Add(FUNCTION_ADDR(&Accessors::name##Setter), \
+      ACCESSOR, \
+      Accessors::k##name##Setter, \
+      "Accessors::" #name "Setter");
+  ACCESSOR_INFO_LIST(ACCESSOR_INFO_DECLARATION)
+#undef ACCESSOR_INFO_DECLARATION
 
   StubCache* stub_cache = isolate->stub_cache();
 
@@ -575,7 +586,7 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
 
 
 ExternalReferenceEncoder::ExternalReferenceEncoder(Isolate* isolate)
-    : encodings_(Match),
+    : encodings_(HashMap::PointersMatch),
       isolate_(isolate) {
   ExternalReferenceTable* external_references =
       ExternalReferenceTable::instance(isolate_);
@@ -638,10 +649,7 @@ ExternalReferenceDecoder::~ExternalReferenceDecoder() {
   DeleteArray(encodings_);
 }
 
-
-bool Serializer::serialization_enabled_ = false;
-bool Serializer::too_late_to_enable_now_ = false;
-
+AtomicWord Serializer::serialization_state_ = SERIALIZER_STATE_UNINITIALIZED;
 
 class CodeAddressMap: public CodeEventLogger {
  public:
@@ -669,7 +677,7 @@ class CodeAddressMap: public CodeEventLogger {
  private:
   class NameMap {
    public:
-    NameMap() : impl_(&PointerEquals) {}
+    NameMap() : impl_(HashMap::PointersMatch) {}
 
     ~NameMap() {
       for (HashMap::Entry* p = impl_.Start(); p != NULL; p = impl_.Next(p)) {
@@ -709,10 +717,6 @@ class CodeAddressMap: public CodeEventLogger {
     }
 
    private:
-    static bool PointerEquals(void* lhs, void* rhs) {
-      return lhs == rhs;
-    }
-
     static char* CopyName(const char* name, int name_size) {
       char* result = NewArray<char>(name_size + 1);
       for (int i = 0; i < name_size; ++i) {
@@ -758,22 +762,42 @@ class CodeAddressMap: public CodeEventLogger {
 CodeAddressMap* Serializer::code_address_map_ = NULL;
 
 
-void Serializer::Enable(Isolate* isolate) {
-  if (!serialization_enabled_) {
-    ASSERT(!too_late_to_enable_now_);
-  }
-  if (serialization_enabled_) return;
-  serialization_enabled_ = true;
+void Serializer::RequestEnable(Isolate* isolate) {
   isolate->InitializeLoggingAndCounters();
   code_address_map_ = new CodeAddressMap(isolate);
 }
 
 
-void Serializer::Disable() {
-  if (!serialization_enabled_) return;
-  serialization_enabled_ = false;
-  delete code_address_map_;
-  code_address_map_ = NULL;
+void Serializer::InitializeOncePerProcess() {
+  // InitializeOncePerProcess is called by V8::InitializeOncePerProcess, a
+  // method guaranteed to be called only once in a process lifetime.
+  // serialization_state_ is read by many threads, hence the use of
+  // Atomic primitives. Here, we don't need a barrier or mutex to
+  // write it because V8 initialization is done by one thread, and gates
+  // all reads of serialization_state_.
+  ASSERT(NoBarrier_Load(&serialization_state_) ==
+         SERIALIZER_STATE_UNINITIALIZED);
+  SerializationState state = code_address_map_
+      ? SERIALIZER_STATE_ENABLED
+      : SERIALIZER_STATE_DISABLED;
+  NoBarrier_Store(&serialization_state_, state);
+}
+
+
+void Serializer::TearDown() {
+  // TearDown is called by V8::TearDown() for the default isolate. It's safe
+  // to shut down the serializer by that point. Just to be safe, we restore
+  // serialization_state_ to uninitialized.
+  ASSERT(NoBarrier_Load(&serialization_state_) !=
+         SERIALIZER_STATE_UNINITIALIZED);
+  if (code_address_map_) {
+    ASSERT(NoBarrier_Load(&serialization_state_) ==
+           SERIALIZER_STATE_ENABLED);
+    delete code_address_map_;
+    code_address_map_ = NULL;
+  }
+
+  NoBarrier_Store(&serialization_state_, SERIALIZER_STATE_UNINITIALIZED);
 }
 
 
@@ -865,7 +889,8 @@ void Deserializer::DeserializePartial(Isolate* isolate, Object** root) {
 
 
 Deserializer::~Deserializer() {
-  ASSERT(source_->AtEOF());
+  // TODO(svenpanne) Re-enable this assertion when v8 initialization is fixed.
+  // ASSERT(source_->AtEOF());
   if (external_reference_decoder_) {
     delete external_reference_decoder_;
     external_reference_decoder_ = NULL;

@@ -48,6 +48,7 @@ namespace internal {
 #ifdef DEBUG
 bool CpuFeatures::initialized_ = false;
 #endif
+bool CpuFeatures::hint_creating_snapshot_ = false;
 unsigned CpuFeatures::supported_ = 0;
 unsigned CpuFeatures::found_by_runtime_probing_only_ = 0;
 unsigned CpuFeatures::cross_compile_ = 0;
@@ -100,10 +101,27 @@ const char* DwVfpRegister::AllocationIndexToString(int index) {
 }
 
 
+void CpuFeatures::SetHintCreatingSnapshot() {
+  hint_creating_snapshot_ = true;
+}
+
+
+void CpuFeatures::ProbeWithoutIsolate() {
+  Probe(hint_creating_snapshot_);
+}
+
+
 void CpuFeatures::Probe() {
+  // The Serializer can only be queried after isolate initialization.
+  Probe(Serializer::enabled());
+}
+
+
+void CpuFeatures::Probe(bool serializer_enabled) {
   uint64_t standard_features = static_cast<unsigned>(
       OS::CpuFeaturesImpliedByPlatform()) | CpuFeaturesImpliedByCompiler();
-  ASSERT(supported_ == 0 || supported_ == standard_features);
+  ASSERT(supported_ == 0 ||
+         (supported_ & standard_features) == standard_features);
 #ifdef DEBUG
   initialized_ = true;
 #endif
@@ -113,7 +131,7 @@ void CpuFeatures::Probe() {
   // snapshot.
   supported_ |= standard_features;
 
-  if (Serializer::enabled()) {
+  if (serializer_enabled) {
     // No probing for features if we might serialize (generate snapshot).
     printf("   ");
     PrintFeatures();
@@ -1079,11 +1097,6 @@ static bool fits_shifter(uint32_t imm32,
 // encoded.
 bool Operand::must_output_reloc_info(const Assembler* assembler) const {
   if (rmode_ == RelocInfo::EXTERNAL_REFERENCE) {
-#ifdef DEBUG
-    if (!Serializer::enabled()) {
-      Serializer::TooLateToEnableNow();
-    }
-#endif  // def DEBUG
     if (assembler != NULL && assembler->predictable_code_size()) return true;
     return Serializer::enabled();
   } else if (RelocInfo::IsNone(rmode_)) {
@@ -3267,11 +3280,6 @@ void Assembler::RecordRelocInfo(const RelocInfo& rinfo) {
   if (!RelocInfo::IsNone(rinfo.rmode())) {
     // Don't record external references unless the heap will be serialized.
     if (rinfo.rmode() == RelocInfo::EXTERNAL_REFERENCE) {
-#ifdef DEBUG
-      if (!Serializer::enabled()) {
-        Serializer::TooLateToEnableNow();
-      }
-#endif
       if (!Serializer::enabled() && !emit_debug_code()) {
         return;
       }
@@ -3548,14 +3556,15 @@ void Assembler::CheckConstPool(bool force_emit, bool require_jump) {
 }
 
 
-MaybeObject* Assembler::AllocateConstantPool(Heap* heap) {
-  ASSERT(FLAG_enable_ool_constant_pool);
-  return constant_pool_builder_.Allocate(heap);
+Handle<ConstantPoolArray> Assembler::NewConstantPool(Isolate* isolate) {
+  if (!FLAG_enable_ool_constant_pool) {
+    return isolate->factory()->empty_constant_pool_array();
+  }
+  return constant_pool_builder_.New(isolate);
 }
 
 
 void Assembler::PopulateConstantPool(ConstantPoolArray* constant_pool) {
-  ASSERT(FLAG_enable_ool_constant_pool);
   constant_pool_builder_.Populate(this, constant_pool);
 }
 
@@ -3655,12 +3664,14 @@ void ConstantPoolBuilder::Relocate(int pc_delta) {
 }
 
 
-MaybeObject* ConstantPoolBuilder::Allocate(Heap* heap) {
+Handle<ConstantPoolArray> ConstantPoolBuilder::New(Isolate* isolate) {
   if (IsEmpty()) {
-    return heap->empty_constant_pool_array();
+    return isolate->factory()->empty_constant_pool_array();
   } else {
-    return heap->AllocateConstantPoolArray(count_of_64bit_, count_of_code_ptr_,
-                                           count_of_heap_ptr_, count_of_32bit_);
+    return isolate->factory()->NewConstantPoolArray(count_of_64bit_,
+                                                    count_of_code_ptr_,
+                                                    count_of_heap_ptr_,
+                                                    count_of_32bit_);
   }
 }
 

@@ -442,7 +442,7 @@ void IC::RegisterWeakMapDependency(Handle<Code> stub) {
     MapHandleList maps;
     stub->FindAllMaps(&maps);
     if (maps.length() == 1 && stub->IsWeakObjectInIC(*maps.at(0))) {
-      maps.at(0)->AddDependentIC(stub);
+      Map::AddDependentIC(maps.at(0), stub);
       stub->mark_as_weak_stub();
       if (FLAG_enable_ool_constant_pool) {
         stub->constant_pool()->set_weak_object_state(
@@ -680,7 +680,8 @@ bool IC::UpdatePolymorphicIC(Handle<HeapType> type,
 
   for (int i = 0; i < number_of_types; i++) {
     Handle<HeapType> current_type = types.at(i);
-    if (current_type->IsClass() && current_type->AsClass()->is_deprecated()) {
+    if (current_type->IsClass() &&
+        current_type->AsClass()->Map()->is_deprecated()) {
       // Filter out deprecated maps to ensure their instances get migrated.
       ++deprecated_types;
     } else if (type->NowIs(current_type)) {
@@ -691,8 +692,8 @@ bool IC::UpdatePolymorphicIC(Handle<HeapType> type,
     } else if (handler_to_overwrite == -1 &&
                current_type->IsClass() &&
                type->IsClass() &&
-               IsTransitionOfMonomorphicTarget(*current_type->AsClass(),
-                                               *type->AsClass())) {
+               IsTransitionOfMonomorphicTarget(*current_type->AsClass()->Map(),
+                                               *type->AsClass()->Map())) {
       handler_to_overwrite = i;
     }
   }
@@ -734,10 +735,11 @@ Handle<Map> IC::TypeToMap(HeapType* type, Isolate* isolate) {
     return isolate->factory()->heap_number_map();
   if (type->Is(HeapType::Boolean())) return isolate->factory()->boolean_map();
   if (type->IsConstant()) {
-    return handle(Handle<JSGlobalObject>::cast(type->AsConstant())->map());
+    return handle(
+        Handle<JSGlobalObject>::cast(type->AsConstant()->Value())->map());
   }
   ASSERT(type->IsClass());
-  return type->AsClass();
+  return type->AsClass()->Map();
 }
 
 
@@ -1231,9 +1233,12 @@ static bool LookupForWrite(Handle<JSObject> receiver,
   ASSERT(!receiver->map()->is_deprecated());
   if (!lookup->CanHoldValue(value)) {
     Handle<Map> target(lookup->GetTransitionTarget());
+    Representation field_representation = value->OptimalRepresentation();
+    Handle<HeapType> field_type = value->OptimalType(
+        lookup->isolate(), field_representation);
     Map::GeneralizeRepresentation(
         target, target->LastAdded(),
-        value->OptimalRepresentation(), FORCE_FIELD);
+        field_representation, field_type, FORCE_FIELD);
     // Lookup the transition again since the transition tree may have changed
     // entirely by the migration above.
     receiver->map()->LookupTransition(*holder, *name, lookup);
