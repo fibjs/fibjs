@@ -43,4 +43,10 @@ class X509Req: object
      @param hash 证书摘要算法，缺省为 hash.SHA1
     */
     create(String subject, PKey key, Integer hash = hash.SHA1);
+
+    /*! @brief 获取证书的主题可分辨名称 */
+    readonly String subject;
+
+    /*! @brief 获取证书的公钥 */
+    readonly PKey publicKey;
 };

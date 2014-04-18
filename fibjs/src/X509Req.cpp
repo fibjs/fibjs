@@ -165,4 +165,34 @@ result_t X509Req::create(const char *subject, PKey_base *key, int32_t hash)
     return 0;
 }
 
+result_t X509Req::get_subject(std::string &retVal)
+{
+    int ret;
+    std::string buf;
+
+    buf.resize(1024);
+
+    ret = x509_dn_gets(&buf[0], buf.length(), &m_csr.subject);
+    if (ret < 0)
+        return _ssl::setError(ret);
+
+    buf.resize(ret);
+    retVal = buf;
+
+    return 0;
+}
+
+result_t X509Req::get_publicKey(obj_ptr<PKey_base> &retVal)
+{
+    obj_ptr<PKey> pk1 = new PKey();
+    result_t hr;
+
+    hr = pk1->copy(m_csr.pk);
+    if (hr < 0)
+        return 0;
+
+    retVal = pk1;
+    return 0;
+}
+
 }

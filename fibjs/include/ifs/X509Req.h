@@ -31,6 +31,8 @@ public:
 	virtual result_t exportPem(std::string& retVal) = 0;
 	virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
 	virtual result_t create(const char* subject, PKey_base* key, int32_t hash) = 0;
+	virtual result_t get_subject(std::string& retVal) = 0;
+	virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
 
 	DECLARE_CLASSINFO(X509Req_base);
 
@@ -41,6 +43,8 @@ public:
 	static void s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_create(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_get_subject(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
 }
@@ -62,10 +66,16 @@ namespace fibjs
 			{"create", s_create}
 		};
 
+		static ClassData::ClassProperty s_property[] = 
+		{
+			{"subject", s_get_subject, block_set},
+			{"publicKey", s_get_publicKey, block_set}
+		};
+
 		static ClassData s_cd = 
 		{ 
 			"X509Req", s__new, 
-			5, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			5, s_method, 0, NULL, 2, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -73,6 +83,29 @@ namespace fibjs
 		return s_ci;
 	}
 
+	inline void X509Req_base::s_get_subject(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		std::string vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(X509Req_base);
+
+		hr = pInst->get_subject(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void X509Req_base::s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		obj_ptr<PKey_base> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(X509Req_base);
+
+		hr = pInst->get_publicKey(vr);
+
+		METHOD_RETURN();
+	}
 
 	inline void X509Req_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{

@@ -527,7 +527,12 @@ describe('crypto', function() {
 			assert.deepEqual(req.exportPem(), req1);
 		})
 
+		it("info", function() {
+			req.load(req1);
+			assert.equal(req.subject, "C=CN, O=baoz.cn, CN=baoz.me");
+			assert.equal(req.publicKey, pub_rsa1024_pem);
+		});
 	});
 });
 
-//test.run(console.DEBUG);
+// test.run(console.DEBUG);

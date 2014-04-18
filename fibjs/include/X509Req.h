@@ -32,6 +32,8 @@ public:
     virtual result_t exportPem(std::string &retVal);
     virtual result_t exportDer(obj_ptr<Buffer_base> &retVal);
     virtual result_t create(const char *subject, PKey_base *key, int32_t hash);
+    virtual result_t get_subject(std::string &retVal);
+    virtual result_t get_publicKey(obj_ptr<PKey_base> &retVal);
 
 private:
     void clear();
