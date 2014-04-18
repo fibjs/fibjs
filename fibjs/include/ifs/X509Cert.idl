@@ -12,9 +12,9 @@ class X509Cert: object
     X509Cert();
 
     /*! @brief 加载一个 DER 格式的证书，可多次调用
-     @param DerCert DER 格式的证书
+     @param derCert DER 格式的证书
     */
-    load(Buffer DerCert);
+    load(Buffer derCert);
 
     /*! @brief 加载一个 CRT/PEM/TXT 格式的证书，可多次调用
 

@@ -23,7 +23,7 @@ public:
 
 public:
     // X509Cert_base
-    virtual result_t load(Buffer_base *DerCert);
+    virtual result_t load(Buffer_base *derCert);
     virtual result_t load(const char *txtCert);
     virtual result_t loadFile(const char *filename);
     virtual result_t dump(v8::Local<v8::Array> &retVal);

@@ -38,7 +38,7 @@ X509Cert::~X509Cert()
         x509_crt_free(&m_crt);
 }
 
-result_t X509Cert::load(Buffer_base *DerCert)
+result_t X509Cert::load(Buffer_base *derCert)
 {
     if (m_root)
         return CALL_E_INVALID_CALL;
@@ -46,7 +46,7 @@ result_t X509Cert::load(Buffer_base *DerCert)
     int ret;
 
     std::string crt;
-    DerCert->toString(crt);
+    derCert->toString(crt);
 
     ret = x509_crt_parse_der(&m_crt, (const unsigned char *)crt.c_str(),
                              crt.length());
