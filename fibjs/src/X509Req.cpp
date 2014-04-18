@@ -21,6 +21,21 @@ result_t X509Req_base::_new(obj_ptr<X509Req_base> &retVal)
     return 0;
 }
 
+result_t X509Req_base::_new(const char *subject, PKey_base *key,
+                            int32_t hash, obj_ptr<X509Req_base> &retVal)
+{
+    obj_ptr<X509Req> req = new X509Req();
+    result_t hr;
+
+    hr = req->create(subject, key, hash);
+    if (hr < 0)
+        return hr;
+
+    retVal = req;
+
+    return 0;
+}
+
 X509Req::X509Req()
 {
     x509_csr_init(&m_csr);
@@ -35,6 +50,40 @@ void X509Req::clear()
 {
     x509_csr_free(&m_csr);
     x509_csr_init(&m_csr);
+}
+
+result_t X509Req::create(const char *subject, PKey_base *key, int32_t hash)
+{
+    clear();
+
+    x509write_csr csr;
+    int ret;
+
+    x509write_csr_init(&csr);
+
+    if (hash < POLARSSL_MD_MD2 || hash > POLARSSL_MD_RIPEMD160)
+        return CALL_E_INVALIDARG;
+
+    x509write_csr_set_md_alg(&csr, (md_type_t)hash);
+    x509write_csr_set_subject_name(&csr, subject);
+
+    pk_context *k = &((PKey *)(PKey_base *)key)->m_key;
+    x509write_csr_set_key(&csr, k);
+
+    std::string buf;
+    buf.resize(pk_get_size(k) * 8 + 128);
+
+    ret = x509write_csr_pem(&csr, (unsigned char *)&buf[0], buf.length(),
+                            ctr_drbg_random, &g_ssl.ctr_drbg);
+    x509write_csr_free(&csr);
+    if (ret != 0)
+        return _ssl::setError(ret);
+
+    ret = x509_csr_parse(&m_csr, (const unsigned char *)buf.c_str(), qstrlen(buf.c_str()));
+    if (ret != 0)
+        return _ssl::setError(ret);
+
+    return 0;
 }
 
 result_t X509Req::load(Buffer_base *derReq)
@@ -129,40 +178,6 @@ result_t X509Req::exportDer(obj_ptr<Buffer_base> &retVal)
 result_t X509Req::toString(std::string &retVal)
 {
     return exportPem(retVal);
-}
-
-result_t X509Req::create(const char *subject, PKey_base *key, int32_t hash)
-{
-    clear();
-
-    x509write_csr csr;
-    int ret;
-
-    x509write_csr_init(&csr);
-
-    if (hash < POLARSSL_MD_MD2 || hash > POLARSSL_MD_RIPEMD160)
-        return CALL_E_INVALIDARG;
-
-    x509write_csr_set_md_alg(&csr, (md_type_t)hash);
-    x509write_csr_set_subject_name(&csr, subject);
-
-    pk_context *k = &((PKey *)(PKey_base *)key)->m_key;
-    x509write_csr_set_key(&csr, k);
-
-    std::string buf;
-    buf.resize(pk_get_size(k) * 8 + 128);
-
-    ret = x509write_csr_pem(&csr, (unsigned char *)&buf[0], buf.length(),
-                            ctr_drbg_random, &g_ssl.ctr_drbg);
-    x509write_csr_free(&csr);
-    if (ret != 0)
-        return _ssl::setError(ret);
-
-    ret = x509_csr_parse(&m_csr, (const unsigned char *)buf.c_str(), qstrlen(buf.c_str()));
-    if (ret != 0)
-        return _ssl::setError(ret);
-
-    return 0;
 }
 
 result_t X509Req::get_subject(std::string &retVal)

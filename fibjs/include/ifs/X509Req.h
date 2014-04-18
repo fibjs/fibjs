@@ -16,21 +16,21 @@
 namespace fibjs
 {
 
-class Buffer_base;
 class PKey_base;
 class hash_base;
+class Buffer_base;
 
 class X509Req_base : public object_base
 {
 public:
 	// X509Req_base
 	static result_t _new(obj_ptr<X509Req_base>& retVal);
+	static result_t _new(const char* subject, PKey_base* key, int32_t hash, obj_ptr<X509Req_base>& retVal);
 	virtual result_t load(Buffer_base* derReq) = 0;
 	virtual result_t load(const char* pemReq) = 0;
 	virtual result_t loadFile(const char* filename) = 0;
 	virtual result_t exportPem(std::string& retVal) = 0;
 	virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
-	virtual result_t create(const char* subject, PKey_base* key, int32_t hash) = 0;
 	virtual result_t get_subject(std::string& retVal) = 0;
 	virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
 
@@ -42,16 +42,15 @@ public:
 	static void s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_create(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_subject(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
 }
 
-#include "Buffer.h"
 #include "PKey.h"
 #include "hash.h"
+#include "Buffer.h"
 
 namespace fibjs
 {
@@ -62,8 +61,7 @@ namespace fibjs
 			{"load", s_load},
 			{"loadFile", s_loadFile},
 			{"exportPem", s_exportPem},
-			{"exportDer", s_exportDer},
-			{"create", s_create}
+			{"exportDer", s_exportDer}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -75,7 +73,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"X509Req", s__new, 
-			5, s_method, 0, NULL, 2, s_property, NULL, NULL,
+			4, s_method, 0, NULL, 2, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -114,6 +112,14 @@ namespace fibjs
 		CONSTRUCT_ENTER(0, 0);
 
 		hr = _new(vr);
+
+		METHOD_OVER(3, 2);
+
+		ARG_String(0);
+		ARG(obj_ptr<PKey_base>, 1);
+		OPT_ARG(int32_t, 2, hash_base::_SHA1);
+
+		hr = _new(v0, v1, v2, vr);
 
 		CONSTRUCT_RETURN();
 	}
@@ -170,20 +176,6 @@ namespace fibjs
 		hr = pInst->exportDer(vr);
 
 		METHOD_RETURN();
-	}
-
-	inline void X509Req_base::s_create(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(X509Req_base);
-		METHOD_ENTER(3, 2);
-
-		ARG_String(0);
-		ARG(obj_ptr<PKey_base>, 1);
-		OPT_ARG(int32_t, 2, hash_base::_SHA1);
-
-		hr = pInst->create(v0, v1, v2);
-
-		METHOD_VOID();
 	}
 
 }

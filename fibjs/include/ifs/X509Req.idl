@@ -11,6 +11,14 @@ class X509Req: object
     /*! @brief X509Req 构造函数 */
     X509Req();
 
+    /*! @brief X509Req 构造函数，根据给定的信息创建一个证书请求 
+
+     @param subject 证书的主题可分辨名称
+     @param key 证书的公钥
+     @param hash 证书摘要算法，缺省为 hash.SHA1
+    */
+    X509Req(String subject, PKey key, Integer hash = hash.SHA1);
+
     /*! @brief 加载一个 DER 格式的证书请求
      @param derReq DER 格式的证书请求
     */
@@ -35,14 +43,6 @@ class X509Req: object
      @return 当前证书请求的 DER 格式编码
     */
     Buffer exportDer();
-
-    /*! @brief 根据给定的信息创建一个证书请求 
-
-     @param subject 证书的主题可分辨名称
-     @param key 证书的公钥
-     @param hash 证书摘要算法，缺省为 hash.SHA1
-    */
-    create(String subject, PKey key, Integer hash = hash.SHA1);
 
     /*! @brief 获取证书的主题可分辨名称 */
     readonly String subject;
