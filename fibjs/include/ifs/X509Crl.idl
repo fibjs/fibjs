@@ -11,6 +11,11 @@ class X509Crl: object
     /*! @brief X509Crl 构造函数 */
     X509Crl();
 
+    /*! @brief 加载一个 DER 格式的撤销证书，可多次调用
+     @param derCrl DER 格式的撤销证书
+    */
+    load(Buffer derCrl);
+
     /*! @brief 加载一个 PEM 格式的撤销证书，可多次调用
      @param pemCrl PEM 格式的撤销证书
     */

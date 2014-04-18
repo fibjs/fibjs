@@ -16,11 +16,14 @@
 namespace fibjs
 {
 
+class Buffer_base;
+
 class X509Crl_base : public object_base
 {
 public:
 	// X509Crl_base
 	static result_t _new(obj_ptr<X509Crl_base>& retVal);
+	virtual result_t load(Buffer_base* derCrl) = 0;
 	virtual result_t load(const char* pemCrl) = 0;
 	virtual result_t loadFile(const char* filename) = 0;
 	virtual result_t dump(v8::Local<v8::Array>& retVal) = 0;
@@ -37,6 +40,8 @@ public:
 };
 
 }
+
+#include "Buffer.h"
 
 namespace fibjs
 {
@@ -77,6 +82,12 @@ namespace fibjs
 	{
 		METHOD_INSTANCE(X509Crl_base);
 		METHOD_ENTER(1, 1);
+
+		ARG(obj_ptr<Buffer_base>, 0);
+
+		hr = pInst->load(v0);
+
+		METHOD_OVER(1, 1);
 
 		ARG_String(0);
 

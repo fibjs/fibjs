@@ -29,6 +29,21 @@ X509Crl::~X509Crl()
     x509_crl_free(&m_crl);
 }
 
+result_t X509Crl::load(Buffer_base *derCrl)
+{
+    int ret;
+
+    std::string crl;
+    derCrl->toString(crl);
+
+    ret = x509_crl_parse(&m_crl, (const unsigned char *)crl.c_str(),
+                         crl.length());
+    if (ret != 0)
+        return _ssl::setError(ret);
+
+    return 0;
+}
+
 result_t X509Crl::load(const char *pemCrl)
 {
     int ret;
