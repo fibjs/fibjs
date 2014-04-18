@@ -38,4 +38,6 @@ run("db_test.js");
 
 run('BUG_simple_api_call.js');
 
-test.run();
+(function() {
+	test.run();
+}).start().join();
