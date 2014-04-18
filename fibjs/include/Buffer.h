@@ -16,10 +16,16 @@ public:
     {
     }
 
-    Buffer(std::string strData) :
+    Buffer(const std::string &strData) :
         m_data(strData)
     {
-        extMemory((int)strData.length());
+        extMemory((int)m_data.length());
+    }
+
+    Buffer(const void *pData, size_t n) :
+        m_data((const char *)pData, n)
+    {
+        extMemory((int)m_data.length());
     }
 
 public:
