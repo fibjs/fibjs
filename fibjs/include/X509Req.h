@@ -31,7 +31,7 @@ public:
     virtual result_t loadFile(const char *filename);
     virtual result_t exportPem(std::string &retVal);
     virtual result_t exportDer(obj_ptr<Buffer_base> &retVal);
-    virtual result_t create(v8::Local<v8::Object> opts);
+    virtual result_t create(const char *subject, PKey_base *key, int32_t hash);
 
 private:
     void clear();

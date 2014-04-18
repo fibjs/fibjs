@@ -131,47 +131,22 @@ result_t X509Req::toString(std::string &retVal)
     return exportPem(retVal);
 }
 
-result_t X509Req::create(v8::Local<v8::Object> opts)
+result_t X509Req::create(const char *subject, PKey_base *key, int32_t hash)
 {
     clear();
 
     x509write_csr csr;
-    v8::Local<v8::Value> v;
     int ret;
 
     x509write_csr_init(&csr);
 
-    v = opts->Get(v8::String::NewFromUtf8(isolate, "hash",
-                                          v8::String::kNormalString, 4));
-    if (!IsEmpty(v))
-    {
-        int n = (int)v->NumberValue();
-        if (n < POLARSSL_MD_MD2 || n > POLARSSL_MD_RIPEMD160)
-            return CALL_E_INVALIDARG;
-
-        x509write_csr_set_md_alg(&csr, (md_type_t)n);
-    }
-    else
-        x509write_csr_set_md_alg(&csr, POLARSSL_MD_SHA1);
-
-    v = opts->Get(v8::String::NewFromUtf8(isolate, "subject",
-                                          v8::String::kNormalString, 7));
-    if (IsEmpty(v))
+    if (hash < POLARSSL_MD_MD2 || hash > POLARSSL_MD_RIPEMD160)
         return CALL_E_INVALIDARG;
 
-    v8::String::Utf8Value s(v);
-    if (!*s)
-        return CALL_E_INVALIDARG;
+    x509write_csr_set_md_alg(&csr, (md_type_t)hash);
+    x509write_csr_set_subject_name(&csr, subject);
 
-    x509write_csr_set_subject_name(&csr, *s);
-
-    v = opts->Get(v8::String::NewFromUtf8(isolate, "key",
-                                          v8::String::kNormalString, 3));
-    obj_ptr<PKey_base> pk = PKey_base::getInstance(v);
-    if (!pk)
-        return CALL_E_INVALIDARG;
-
-    pk_context *k = &((PKey *)(PKey_base *)pk)->m_key;
+    pk_context *k = &((PKey *)(PKey_base *)key)->m_key;
     x509write_csr_set_key(&csr, k);
 
     std::string buf;

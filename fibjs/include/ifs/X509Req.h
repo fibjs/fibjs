@@ -17,6 +17,8 @@ namespace fibjs
 {
 
 class Buffer_base;
+class PKey_base;
+class hash_base;
 
 class X509Req_base : public object_base
 {
@@ -28,7 +30,7 @@ public:
 	virtual result_t loadFile(const char* filename) = 0;
 	virtual result_t exportPem(std::string& retVal) = 0;
 	virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
-	virtual result_t create(v8::Local<v8::Object> opts) = 0;
+	virtual result_t create(const char* subject, PKey_base* key, int32_t hash) = 0;
 
 	DECLARE_CLASSINFO(X509Req_base);
 
@@ -44,6 +46,8 @@ public:
 }
 
 #include "Buffer.h"
+#include "PKey.h"
+#include "hash.h"
 
 namespace fibjs
 {
@@ -138,11 +142,13 @@ namespace fibjs
 	inline void X509Req_base::s_create(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_INSTANCE(X509Req_base);
-		METHOD_ENTER(1, 1);
+		METHOD_ENTER(3, 2);
 
-		ARG(v8::Local<v8::Object>, 0);
+		ARG_String(0);
+		ARG(obj_ptr<PKey_base>, 1);
+		OPT_ARG(int32_t, 2, hash_base::_SHA1);
 
-		hr = pInst->create(v0);
+		hr = pInst->create(v0, v1, v2);
 
 		METHOD_VOID();
 	}

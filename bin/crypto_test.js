@@ -522,12 +522,7 @@ describe('crypto', function() {
 		it("create", function() {
 			var pk = new crypto.PKey();
 			pk.importKey(rsa1024_pem);
-
-			req.create({
-				subject: "C=CN, O=baoz.cn, CN=baoz.me",
-				hash: crypto.SHA1,
-				key: pk
-			});
+			req.create("C=CN, O=baoz.cn, CN=baoz.me", pk);
 
 			assert.deepEqual(req.exportPem(), req1);
 		})
