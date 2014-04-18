@@ -29,10 +29,10 @@ public:
     // PKey_base
     virtual result_t get_name(std::string &retVal);
     virtual result_t get_keySize(int32_t &retVal);
+    virtual result_t get_publicKey(obj_ptr<PKey_base> &retVal);
     virtual result_t genRsaKey(int32_t size, exlib::AsyncEvent *ac);
     virtual result_t genEcKey(const char *curve, exlib::AsyncEvent *ac);
     virtual result_t isPrivate(bool &retVal);
-    virtual result_t publicKey(obj_ptr<PKey_base> &retVal);
     virtual result_t clone(obj_ptr<PKey_base> &retVal);
     virtual result_t importKey(Buffer_base *DerKey, const char *password);
     virtual result_t importKey(const char *pemKey, const char *password);
@@ -49,7 +49,7 @@ public:
 private:
     void clear();
 
-private:
+public:
     pk_context m_key;
 };
 

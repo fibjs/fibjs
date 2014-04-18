@@ -53,16 +53,27 @@ describe('crypto', function() {
 	});
 
 	describe("PKey", function() {
-		var rsa256_pem = "-----BEGIN RSA PRIVATE KEY-----\n" +
-			"MIGsAgEAAiEAgDHZmZ0s46SYWi0KB6fipQ1+Hv1iim8eHs6I4gqq9/ECAwEAAQIg\n" +
-			"YImpzWWwrUmBNb9fIz7JjODAdp2qObSpFlThbJw5dEECEQDPvyHiP0oNIjE+i7hi\n" +
-			"suA5AhEAnfh3HJNKmMbX0CJWFezleQIRAKNSzU20mgAXSIW2jKAzpqkCEQCaVo0Z\n" +
-			"UBbL2Uo1QbbVyRQRAhEAqLmEjCZeYSKSQUESvmDNlg==\n" +
+		var rsa1024_pem = "-----BEGIN RSA PRIVATE KEY-----\n" +
+			"MIICXQIBAAKBgQDSbmW8qlarL0lLu1XYcg+ocJgcuq5K7EgLcXyy2shAsko7etmZ\n" +
+			"NP3opOeGw58E7tjVsjuadPQ8Hf+9wd316RYwShklDDsy4Hwp4z9afnj56UmvkM0u\n" +
+			"TlsymlIbFftme6aJcYbnX9fdin78Rsa0MbzQbFdeLHsy5zKjsrbm4TS5bwIDAQAB\n" +
+			"AoGAagN2O9NxMHL1MTMi75WfL9Pxvl+KWXKqZSF6mjzAsF9iKI8euyHIXYFepzU8\n" +
+			"kual1RsjDhCnzvWqFvZplW8lXqrHf/P+rS/9Y4gBUw6pjnI/DnFIRwWHRvrUHHSC\n" +
+			"fWOdTCIKdOTkgLZuGFuhEY3RMIW0WSYejjLtftwy0RVxAzkCQQDprgbWqZ/BaafV\n" +
+			"uKKA3shUWWRst/2hV7qDus6YfEj6GfUZHEoNJW4BSuZHUiG4Cdxr0zTLtIP7tNSz\n" +
+			"rCM7FbFrAkEA5ofkxFKdPBD0CQHMb9q13AMHUVe0rJ+hSjqqIBrmqApUOneyAcMV\n" +
+			"76M0QyIQnI2p3POa4Qu/7XChDwRVl7LlDQJBANplxohsAh5fI/hQVriA/tQus/gU\n" +
+			"QdzARFaHijzjs8Tj67mrQd5lhBl7KhuwPEloFfVEcUyNiuj9yeme0VKQZL8CQQCh\n" +
+			"qCfm99vk1Cqc6lL3GRKwPrtx8iPzbVlIWU0ViGe47M1V1rvP+oK2cebjMM8fSUQV\n" +
+			"egpgx8GF+pYmlq6C22M9AkB2oRCDE2Y5UWsXizvvqFOp4LqgQOKVrwS+lVvYXZm/\n" +
+			"AA4uMJDro6IBkrUGJgYepTLQ16o2a2WwtK4ERlBm+pnC\n" +
 			"-----END RSA PRIVATE KEY-----\n";
 
-		var pub_rsa256_pem = "-----BEGIN PUBLIC KEY-----\n" +
-			"MDwwDQYJKoZIhvcNAQEBBQADKwAwKAIhAIAx2ZmdLOOkmFotCgen4qUNfh79Yopv\n" +
-			"Hh7OiOIKqvfxAgMBAAE=\n" +
+		var pub_rsa1024_pem = "-----BEGIN PUBLIC KEY-----\n" +
+			"MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDSbmW8qlarL0lLu1XYcg+ocJgc\n" +
+			"uq5K7EgLcXyy2shAsko7etmZNP3opOeGw58E7tjVsjuadPQ8Hf+9wd316RYwShkl\n" +
+			"DDsy4Hwp4z9afnj56UmvkM0uTlsymlIbFftme6aJcYbnX9fdin78Rsa0MbzQbFde\n" +
+			"LHsy5zKjsrbm4TS5bwIDAQAB\n" +
 			"-----END PUBLIC KEY-----\n";
 
 		var ec_pem = "-----BEGIN EC PRIVATE KEY-----\n" +
@@ -83,52 +94,52 @@ describe('crypto', function() {
 		describe("RSA", function() {
 			it("PEM import/export", function() {
 				var pk = new crypto.PKey();
-				pk.importKey(rsa256_pem);
-				assert.equal(pk.exportPem(), rsa256_pem);
+				pk.importKey(rsa1024_pem);
+				assert.equal(pk.exportPem(), rsa1024_pem);
 			});
 
 			it("toString", function() {
 				var pk = new crypto.PKey();
-				pk.importKey(rsa256_pem);
-				assert.equal(pk, rsa256_pem);
+				pk.importKey(rsa1024_pem);
+				assert.equal(pk, rsa1024_pem);
 			});
 
 			it("Der import/export", function() {
 				var pk = new crypto.PKey();
-				pk.importKey(rsa256_pem);
+				pk.importKey(rsa1024_pem);
 				var der = pk.exportDer();
 				pk.importKey(der);
-				assert.equal(pk.exportPem(), rsa256_pem);
+				assert.equal(pk.exportPem(), rsa1024_pem);
 			});
 
 			it("import publicKey", function() {
 				var pk = new crypto.PKey();
-				pk.importKey(pub_rsa256_pem);
+				pk.importKey(pub_rsa1024_pem);
 				assert.isFalse(pk.isPrivate());
 
-				assert.equal(pk, pub_rsa256_pem);
+				assert.equal(pk, pub_rsa1024_pem);
 
 				var pk1 = new crypto.PKey();
 				pk1.importKey(pk.exportDer());
 				assert.isFalse(pk1.isPrivate());
 
-				assert.equal(pk1.exportPem(), pub_rsa256_pem);
+				assert.equal(pk1.exportPem(), pub_rsa1024_pem);
 			});
 
 			it("publicKey", function() {
 				var pk = new crypto.PKey();
-				pk.importKey(rsa256_pem);
+				pk.importKey(rsa1024_pem);
 				assert.isTrue(pk.isPrivate());
 
-				var pk1 = pk.publicKey();
+				var pk1 = pk.publicKey;
 				assert.isFalse(pk1.isPrivate());
 
-				assert.equal(pk1, pub_rsa256_pem);
+				assert.equal(pk1, pub_rsa1024_pem);
 			});
 
 			it("clone", function() {
 				var pk = new crypto.PKey();
-				pk.importKey(rsa256_pem);
+				pk.importKey(rsa1024_pem);
 
 				var pk1 = pk.clone();
 
@@ -146,9 +157,9 @@ describe('crypto', function() {
 
 			it("encrypt/decrypt", function() {
 				var pk = new crypto.PKey();
-				pk.importKey(rsa256_pem);
+				pk.importKey(rsa1024_pem);
 
-				var pk1 = pk.publicKey();
+				var pk1 = pk.publicKey;
 
 				var d = pk1.encrypt(new Buffer("abcdefg"));
 				assert.equal(pk.decrypt(d).toString(), "abcdefg");
@@ -160,9 +171,9 @@ describe('crypto', function() {
 
 			it("sign/verify", function() {
 				var pk = new crypto.PKey();
-				pk.importKey(rsa256_pem);
+				pk.importKey(rsa1024_pem);
 
-				var pk1 = pk.publicKey();
+				var pk1 = pk.publicKey;
 
 				var md = hash.md5(new Buffer("abcdefg")).digest();
 				var md1 = hash.md5(new Buffer("abcdefg1")).digest();
@@ -216,7 +227,7 @@ describe('crypto', function() {
 				pk.importKey(ec_pem);
 				assert.isTrue(pk.isPrivate());
 
-				var pk1 = pk.publicKey();
+				var pk1 = pk.publicKey;
 				assert.isFalse(pk1.isPrivate());
 
 				assert.equal(pk1, pub_ec_pem);
@@ -244,7 +255,7 @@ describe('crypto', function() {
 				var pk = new crypto.PKey();
 				pk.importKey(ec_pem);
 
-				var pk1 = pk.publicKey();
+				var pk1 = pk.publicKey;
 
 				var md = hash.md5(new Buffer("abcdefg")).digest();
 				var md1 = hash.md5(new Buffer("abcdefg1")).digest();
@@ -263,7 +274,7 @@ describe('crypto', function() {
 
 			assert.equal(pk.name, "invalid PK");
 
-			pk.importKey(rsa256_pem);
+			pk.importKey(rsa1024_pem);
 			assert.equal(pk.name, "RSA");
 
 			pk.importKey(ec_pem);
@@ -275,8 +286,8 @@ describe('crypto', function() {
 
 			assert.equal(pk.keySize, 0);
 
-			pk.importKey(rsa256_pem);
-			assert.equal(pk.keySize, 256);
+			pk.importKey(rsa1024_pem);
+			assert.equal(pk.keySize, 1024);
 
 			pk.importKey(ec_pem);
 			assert.equal(pk.keySize, 521);
@@ -497,8 +508,6 @@ describe('crypto', function() {
 
 			assert.deepEqual(req1.exportDer().toJSON(), s.toJSON());
 		});
-
-
 	});
 });
 

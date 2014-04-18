@@ -108,7 +108,7 @@ result_t PKey::isPrivate(bool &retVal)
     return CALL_E_INVALID_CALL;
 }
 
-result_t PKey::publicKey(obj_ptr<PKey_base> &retVal)
+result_t PKey::get_publicKey(obj_ptr<PKey_base> &retVal)
 {
     pk_type_t type = pk_get_type(&m_key);
     int ret;

@@ -25,10 +25,10 @@ public:
 	static result_t _new(obj_ptr<PKey_base>& retVal);
 	virtual result_t get_name(std::string& retVal) = 0;
 	virtual result_t get_keySize(int32_t& retVal) = 0;
+	virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
 	virtual result_t genRsaKey(int32_t size, exlib::AsyncEvent* ac) = 0;
 	virtual result_t genEcKey(const char* curve, exlib::AsyncEvent* ac) = 0;
 	virtual result_t isPrivate(bool& retVal) = 0;
-	virtual result_t publicKey(obj_ptr<PKey_base>& retVal) = 0;
 	virtual result_t clone(obj_ptr<PKey_base>& retVal) = 0;
 	virtual result_t importKey(Buffer_base* DerKey, const char* password) = 0;
 	virtual result_t importKey(const char* pemKey, const char* password) = 0;
@@ -45,10 +45,10 @@ public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_keySize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_isPrivate(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_publicKey(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_importKey(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -80,7 +80,6 @@ namespace fibjs
 			{"genRsaKey", s_genRsaKey},
 			{"genEcKey", s_genEcKey},
 			{"isPrivate", s_isPrivate},
-			{"publicKey", s_publicKey},
 			{"clone", s_clone},
 			{"importKey", s_importKey},
 			{"exportPem", s_exportPem},
@@ -94,13 +93,14 @@ namespace fibjs
 		static ClassData::ClassProperty s_property[] = 
 		{
 			{"name", s_get_name, block_set},
-			{"keySize", s_get_keySize, block_set}
+			{"keySize", s_get_keySize, block_set},
+			{"publicKey", s_get_publicKey, block_set}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"PKey", s__new, 
-			12, s_method, 0, NULL, 2, s_property, NULL, NULL,
+			11, s_method, 0, NULL, 3, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -128,6 +128,18 @@ namespace fibjs
 		PROPERTY_INSTANCE(PKey_base);
 
 		hr = pInst->get_keySize(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void PKey_base::s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		obj_ptr<PKey_base> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(PKey_base);
+
+		hr = pInst->get_publicKey(vr);
 
 		METHOD_RETURN();
 	}
@@ -175,18 +187,6 @@ namespace fibjs
 		METHOD_ENTER(0, 0);
 
 		hr = pInst->isPrivate(vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void PKey_base::s_publicKey(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<PKey_base> vr;
-
-		METHOD_INSTANCE(PKey_base);
-		METHOD_ENTER(0, 0);
-
-		hr = pInst->publicKey(vr);
 
 		METHOD_RETURN();
 	}

@@ -17,6 +17,11 @@ class PKey: object
     /*! @brief 返回当前算法密码长度，以位为单位 */
     readonly Integer keySize;
 
+    /*! @brief 返回当前密钥的公钥
+     @return 当前密钥的公钥
+    */
+    readonly PKey publicKey;
+
     /*! @brief 生成一个 RSA 私钥 
      @param size 指定 RSA 密钥长度，bit 为单位
     */
@@ -31,11 +36,6 @@ class PKey: object
      @return 为 True 表示为私钥
     */
     Boolean isPrivate();
-
-    /*! @brief 返回当前密钥的公钥
-     @return 当前密钥的公钥
-    */
-    PKey publicKey();
 
     /*! @brief 复制当前密钥
      @return 当前密钥的复制对象
