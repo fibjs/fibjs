@@ -65,7 +65,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
 // WIN32 stuff 
 //-----------------------------------------------------------------------------
-#include <Windows.h>
+#include <windows.h>
 
 #else
 //-----------------------------------------------------------------------------
@@ -73,22 +73,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
 #include <sys/types.h>
 
-#ifndef u_int8_t
-typedef unsigned char u_int8_t;
-typedef unsigned short u_int16_t;
-typedef unsigned int u_int32_t;
-typedef unsigned long long u_int64_t;
-#endif
+typedef unsigned char UINT8;
+typedef unsigned short UINT16;
+typedef unsigned int UINT32;
+typedef unsigned long long UINT64;
 
-typedef u_int8_t UINT8;
-typedef u_int16_t UINT16;
-typedef u_int32_t UINT32;
-typedef u_int64_t UINT64;
-
-typedef int8_t INT8;
-typedef int16_t INT16;
-typedef int32_t INT32;
-typedef int64_t INT64;
+typedef char INT8;
+typedef short INT16;
+typedef int INT32;
+typedef long long INT64;
 #endif
 
 #include <string.h>

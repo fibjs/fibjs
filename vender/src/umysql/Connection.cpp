@@ -63,10 +63,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "SHA1.h"
 #include <stdio.h>
 #include <time.h>
-#include <alloca.h>
 
 #ifdef _WIN32
 #define snprintf _snprintf
+#else
+#include <alloca.h>
 #endif
 
 //#define PRINTMARK() fprintf(stderr, "%08x:%s:%s MARK(%d)\n", GetTickCount(), __FILE__, __FUNCTION__, __LINE__)		
