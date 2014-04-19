@@ -2383,4 +2383,16 @@
 #error "POLARSSL_X509_CSR_WRITE_C defined, but not all prerequisites"
 #endif
 
+#if defined(POLARSSL_HAVE_ASM) &&  \
+    ( defined(__amd64__) || defined(__x86_64__) )   &&  \
+    ! defined(POLARSSL_HAVE_X86_64)
+#if __GNUC__ > 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ > 2 || \
+    ( __GNUC_MINOR__ == 2 && __GNUC_PATCHLEVEL__ > 4)))
+#define POLARSSL_HAVE_X86_64
+#elif __clang_major__ > 4 || (__clang_major__ == 4 && (__clang_minor__ > 2 || \
+    ( __clang_minor__ == 2 && __clang_patchlevel__ > 4)))
+#define POLARSSL_HAVE_X86_64
+#endif
+#endif
+
 #endif /* config.h */
