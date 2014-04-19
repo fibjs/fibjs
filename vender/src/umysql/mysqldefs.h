@@ -73,6 +73,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
 #include <sys/types.h>
 
+#ifndef u_int8_t
+typedef unsigned char u_int8_t;
+typedef unsigned short u_int16_t;
+typedef unsigned int u_int32_t;
+typedef unsigned long long u_int64_t;
+#endif
+
 typedef u_int8_t UINT8;
 typedef u_int16_t UINT16;
 typedef u_int32_t UINT32;

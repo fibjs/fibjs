@@ -63,6 +63,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "SHA1.h"
 #include <stdio.h>
 #include <time.h>
+#include <alloca.h>
 
 #ifdef _WIN32
 #define snprintf _snprintf

@@ -58,7 +58,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 #ifndef __UMCONNECTION_H__
-#define __UMCONNECTION_H___
+#define __UMCONNECTION_H__
 
 #include <string>
 #include "umysql.h"

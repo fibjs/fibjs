@@ -60,6 +60,8 @@
 /* Define to 1 if you have the <sys/inotify.h> header file. */
 #define HAVE_SYS_INOTIFY_H 1
 
+#elif defined(Solaris)
+
 #else
 /* Define to 1 if you have the `kqueue' function. */
 #define HAVE_KQUEUE 1
