@@ -25,9 +25,11 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "arm64/instrument-arm64.h"
+#include "v8.h"
 
 #if V8_TARGET_ARCH_ARM64
+
+#include "arm64/instrument-arm64.h"
 
 namespace v8 {
 namespace internal {

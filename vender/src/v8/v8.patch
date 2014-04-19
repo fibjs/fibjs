@@ -84,17 +84,19 @@
 +
 +#endif
 --- /Users/lion/Downloads/source/js/v8/src/arm64/instrument-arm64.cc	2014-04-12 13:42:03.000000000 +0800
-+++ src/arm64/instrument-arm64.cc	2014-04-19 00:21:30.000000000 +0800
-@@ -27,6 +27,8 @@
++++ src/arm64/instrument-arm64.cc	2014-04-19 21:52:11.000000000 +0800
+@@ -25,6 +25,10 @@
+ // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
- #include "arm64/instrument-arm64.h"
- 
++#include "v8.h"
++
 +#if V8_TARGET_ARCH_ARM64
 +
- namespace v8 {
- namespace internal {
+ #include "arm64/instrument-arm64.h"
  
-@@ -616,3 +618,5 @@
+ namespace v8 {
+@@ -616,3 +620,5 @@
  
  
  } }  // namespace v8::internal
