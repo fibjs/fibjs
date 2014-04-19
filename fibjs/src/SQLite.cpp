@@ -93,7 +93,7 @@ result_t SQLite::execute(const char *sql, int sLen,
     }
 
     if (!stmt)
-        return CALL_RETURN_NULL;
+        return Runtime::setError("Query was empty");
 
     int columns = sqlite3_column_count(stmt);
     obj_ptr<DBResult> res;
