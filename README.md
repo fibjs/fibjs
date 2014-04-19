@@ -16,6 +16,7 @@
 
 ### 32bit on ubuntu:
 	apt-get install g++-multilib
+	apt-get install lib32readline-dev
 
 ----------------------------------
 ### on fedora:
@@ -41,6 +42,13 @@
 	pkg install cmake
 	pkg install subversion
 	pkg install libexecinfo
+
+----------------------------------
+### on sunos:
+	pkg install gcc-45
+	pkg install system/header
+	pkg install developer/build/cmake
+	pkg install developer/versioning/subversion
 
 # Build:
 
