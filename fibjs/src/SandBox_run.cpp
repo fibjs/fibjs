@@ -96,7 +96,8 @@ result_t doDefine(v8::Local<v8::Object> &mod);
 result_t SandBox::addScript(const char *srcname, const char *script,
                             v8::Local<v8::Value> &retVal)
 {
-    v8::Local<v8::Context> context(v8::Context::New (isolate));
+    v8::Local<v8::Context> context(v8::Context::New(isolate, NULL,
+                                   fibjs::global_base::class_info().getTemplate()));
     v8::Context::Scope context_scope(context);
     result_t hr;
 
@@ -120,9 +121,6 @@ result_t SandBox::addScript(const char *srcname, const char *script,
     def->ToObject()->Set(v8::String::NewFromUtf8(isolate, "amd"), v8::Object::New(isolate),
                          v8::ReadOnly);
     glob->Set(strDefine, def, v8::ReadOnly);
-
-    // clone global function
-    fibjs::global_base::class_info().Attach(glob);
 
     // clone Function.start
     fibjs::Function_base::class_info().Attach(

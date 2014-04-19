@@ -143,6 +143,11 @@ public:
         return o->ToObject()->GetAlignedPointerFromInternalField(0);
     }
 
+    v8::Local<v8::ObjectTemplate> getTemplate()
+    {
+        return v8::Local<v8::FunctionTemplate>::New(isolate, m_class)->InstanceTemplate();
+    }
+
     v8::Local<v8::Object> CreateInstance()
     {
         return v8::Local<v8::Object>::New(isolate, m_cache)->Clone();
