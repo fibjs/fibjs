@@ -260,14 +260,12 @@ result_t SandBox::run(const char *fname)
     if (hr < 0)
         return hr;
 
-    v8::Local<v8::Context> context(v8::Context::New (isolate));
+    v8::Local<v8::Context> context(v8::Context::New(isolate, NULL,
+                                   fibjs::global_base::class_info().getTemplate()));
     v8::Context::Scope context_scope(context);
 
     v8::Local<v8::Object> glob = context->Global();
     glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "SandBox"), wrap());
-
-    // clone global function
-    fibjs::global_base::class_info().Attach(glob);
 
     // clone Function.start
     fibjs::Function_base::class_info().Attach(
