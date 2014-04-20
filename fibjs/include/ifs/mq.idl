@@ -22,11 +22,13 @@ class mq : module
 
 	/*! @brief 创建一个消息处理器链处理对象，参见 Chain
 	 @param hdlrs 处理器数组
+	 @return 返回初始化的 Chain 对象
 	 */
 	static Chain chain(Array hdlrs);
 
 	/*! @brief 创建一个消息处理器路由对象，参见 Routing
 	 @param map 初始化路由参数
+	 @return 返回初始化的 Routing 对象
 	 */
 	static Routing routing(Object map);
 

@@ -281,6 +281,7 @@ class Image : object
 	/*! @brief 根据图像拉伸生成一个新尺寸的图像
 	 @param width 指定拉伸的宽度
 	 @param height 指定拉伸的高度
+	 @return 返回新图像对象
 	 */
 	Image resample(Integer width, Integer height) async;
 

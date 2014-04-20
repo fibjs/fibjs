@@ -18,7 +18,9 @@ class List : object
 	/*! @brief 获取数组的尺寸 */
 	readonly Integer length;
 
-	/*! @brief 修改数组尺寸 */
+	/*! @brief 修改数组尺寸
+	 @param sz 指定新尺寸
+	 */
 	resize(Integer sz);
 
 	/*! @brief 在数组结尾添加一个元素

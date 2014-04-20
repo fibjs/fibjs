@@ -45,8 +45,7 @@ class console : module
      */
     static Integer loglevel;
 
-    /*! @brief 终端输出颜色配置对象，详见 TextColor
-     */
+    /*! @brief 终端输出颜色配置对象，详见 TextColor */
     static readonly TextColor colors;
 
     /*! @brief 记录普通日志信息，与 info 等同

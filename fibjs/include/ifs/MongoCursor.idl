@@ -51,7 +51,9 @@ class MongoCursor: object
 	 */
 	Array map(Function func);
 
-	/*! @brief 返回当前游标全部记录的数组 */
+	/*! @brief 返回当前游标全部记录的数组 
+	 @return 返回包含全部数据的 Javascript 数组
+	*/
 	Array toArray();
 
 	/*! @brief 修改 mongodb 服务器缺省索引策略，使用指定的索引进行查询

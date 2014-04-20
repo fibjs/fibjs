@@ -58,10 +58,12 @@ class Buffer : object
 
 	/*! @brief 返回二进制数据的编码字符串
 	 @param codec 指定编码格式，允许值为："hex", "base64", "utf8"
+	 @return 返回对象的字符串表示
 	*/
 	String toString(String codec);
 
 	/*! @brief 返回二进制数据的 utf8 编码字符串
+	 @return 返回对象的字符串表示
 	*/
 	String toString();
 };

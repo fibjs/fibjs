@@ -19,6 +19,7 @@ class fs : module
 
 	/*! @brief 查询指定的文件或目录是否存在
 	 @param path 指定要查询的路径
+	 @return 返回 True 表示文件或目录存在
 	 */
 	static Boolean exists(String path) async;
 

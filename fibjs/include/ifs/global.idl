@@ -22,6 +22,7 @@ class global : module
 
 	/*! @brief 加载一个模块并返回模块对象，更多信息参阅 @ref module
 	 @param id 指定要加载的模块名称
+	 @return 返回加载模块的引出对象
 	 */
 	static Value require(String id);
 

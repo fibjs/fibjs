@@ -8,13 +8,17 @@ class SeekableStream : Stream
 	 */
 	seek(Long offset, Integer whence);
 
-	/*! @brief 查询流当前位置 */
+	/*! @brief 查询流当前位置
+	 @return 返回流当前位置
+	 */
 	Long tell();
 
 	/*! @brief 移动当前位置到流开头 */
 	rewind();
 
-	/*! @brief 查询流尺寸 */
+	/*! @brief 查询流尺寸
+	 @return 返回流尺寸
+	 */
 	Long size();
 
 	/*! @brief 从流内读取剩余的全部数据

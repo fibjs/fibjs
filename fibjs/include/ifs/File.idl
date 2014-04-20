@@ -15,7 +15,9 @@ class File: SeekableStream
 	 */
 	truncate(Long bytes) async;
 
-	/*! @brief 查询文件是否到结尾 */
+	/*! @brief 查询文件是否到结尾
+	 @return 返回 True 表示结尾
+	 */
 	Boolean eof();
 
 	/*! @brief 将文件缓冲区内容写入物理设备 */

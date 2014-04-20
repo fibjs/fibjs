@@ -10,7 +10,7 @@ class utils : module
 	
 	/*! @brief 查询当前引擎及各组件版本信息
 	 
-	 结构如下：
+	 @return 返回结构如下：
 	 @code
 	 {
 	   "fibjs": "0.1.0",
