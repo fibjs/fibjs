@@ -143,10 +143,8 @@ typedef int result_t;
 
 #if 0
 #define V8_SCOPE()  v8::HandleScope handle_scope(isolate)
-#define V8_RETURN(v)  handle_scope.Close(v)
 #else
 #define V8_SCOPE()
-#define V8_RETURN(v)  (v)
 #endif
 
 #define PROPERTY_ENTER() \
@@ -189,12 +187,12 @@ typedef int result_t;
 #define METHOD_RETURN() \
     }while(0); \
     if(hr == CALL_RETURN_NULL){ args.GetReturnValue().SetNull(); return;} \
-    if(hr >= 0){ args.GetReturnValue().Set(V8_RETURN(GetReturnValue(vr))); return;} \
+    if(hr >= 0){ args.GetReturnValue().Set(GetReturnValue(vr)); return;} \
     if(hr == CALL_E_JAVASCRIPT){ args.GetReturnValue().Set(v8::Local<v8::Value>()); return;} \
     ThrowResult(hr); return;
 
 #define METHOD_RETURN1() \
-    }while(0); args.GetReturnValue().Set(V8_RETURN(vr)); return;
+    }while(0); args.GetReturnValue().Set(vr); return;
 
 #define METHOD_VOID() \
     }while(0); \
