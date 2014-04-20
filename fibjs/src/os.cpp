@@ -47,6 +47,26 @@ result_t os_base::time(const char *tmString, date_t &retVal)
     return 0;
 }
 
+result_t os_base::dateAdd(date_t d, int32_t num, const char *part, date_t &retVal)
+{
+    retVal = d;
+    if (!qstrcmp(part, "year"))
+        retVal.add(num, date_t::_YEAR);
+    else if (!qstrcmp(part, "month"))
+        retVal.add(num, date_t::_MONTH);
+    else if (!qstrcmp(part, "day"))
+        retVal.add(num, date_t::_DAY);
+    else if (!qstrcmp(part, "hour"))
+        retVal.add(num, date_t::_HOUR);
+    else if (!qstrcmp(part, "minute"))
+        retVal.add(num, date_t::_MINUTE);
+    else if (!qstrcmp(part, "second"))
+        retVal.add(num, date_t::_SECOND);
+    else return CALL_E_INVALIDARG;
+
+    return 0;
+}
+
 result_t os_base::get_timezone(int32_t &retVal)
 {
     retVal = Runtime::now().m_pDateCache->LocalOffset();

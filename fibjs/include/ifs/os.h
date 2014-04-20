@@ -36,6 +36,7 @@ public:
 	static result_t CPUs(int32_t& retVal);
 	static result_t networkInfo(v8::Local<v8::Object>& retVal);
 	static result_t time(const char* tmString, date_t& retVal);
+	static result_t dateAdd(date_t d, int32_t num, const char* part, date_t& retVal);
 	static result_t get_execPath(std::string& retVal);
 	static result_t memoryUsage(v8::Local<v8::Object>& retVal);
 
@@ -55,6 +56,7 @@ public:
 	static void s_CPUs(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_networkInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_time(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_dateAdd(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -76,6 +78,7 @@ namespace fibjs
 			{"CPUs", s_CPUs, true},
 			{"networkInfo", s_networkInfo, true},
 			{"time", s_time, true},
+			{"dateAdd", s_dateAdd, true},
 			{"memoryUsage", s_memoryUsage, true}
 		};
 
@@ -92,7 +95,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"os", NULL, 
-			9, s_method, 0, NULL, 6, s_property, NULL, NULL,
+			10, s_method, 0, NULL, 6, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -252,6 +255,21 @@ namespace fibjs
 		OPT_ARG_String(0, "");
 
 		hr = time(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void os_base::s_dateAdd(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		date_t vr;
+
+		METHOD_ENTER(3, 3);
+
+		ARG(date_t, 0);
+		ARG(int32_t, 1);
+		ARG_String(2);
+
+		hr = dateAdd(v0, v1, v2, vr);
 
 		METHOD_RETURN();
 	}

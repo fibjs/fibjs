@@ -64,6 +64,14 @@ class os : module
 	 */
 	static Date time(String tmString = "");
 
+	/*! @brief 时间计算函数，根据 part 指定计算时间
+	 @param d 指定用于计算 Date 对象
+	 @param num 指定运算的数值
+	 @param part 指定运算的时间部位，接收值为："year", "month", "day", "hour", "minute", "second"
+	 @return 返回 javascript Date 对象
+	 */
+	static Date dateAdd(Date d, Integer num, String part);
+
 	/*! @brief 查询当前运行执行文件完整路径 */
 	static readonly String execPath;
 

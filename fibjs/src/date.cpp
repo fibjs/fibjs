@@ -508,6 +508,68 @@ void inline putInt(char  *&ptrBuf, int v, int n)
     ptrBuf += n1;
 }
 
+class _date_split
+{
+public:
+    _date_split(double d)
+    {
+        wYear = 0;
+        wMonth = 1;
+        wHour = 0;
+        wMinute = 0;
+        wSecond = 0;
+        wDayOfWeek = 0;
+
+        int64_t d1 = (int64_t) (d + 62135596800000ll);
+        int NumberOf400s, NumberOf100s, NumberOf4s;
+
+        wDay = (int) (d1 / 86400000);
+        wMillisecond = d1 % 86400000;
+
+        wDayOfWeek = (short) ((wDay + 1) % 7);
+
+        NumberOf400s = wDay / 146097;
+        wDay -= NumberOf400s * 146097;
+
+        NumberOf100s = (wDay * 100 + 75) / 3652425;
+        wDay -= NumberOf100s * 36524;
+
+        NumberOf4s = wDay / 1461;
+        wDay -= NumberOf4s * 1461;
+
+        wYear = (NumberOf400s * 400) + (NumberOf100s * 100) + (NumberOf4s * 4)
+                + (wDay * 100 + 75) / 36525 + 1;
+
+        wDay = wDay - (wDay * 100 + 75) / 36525 * 365;
+
+        if (IsLeapYear(wYear))
+        {
+            wMonth = LeapYearDayToMonth[wDay];
+            wDay = wDay - LeapYearDaysPrecedingMonth[wMonth];
+        }
+        else
+        {
+            wMonth = NormalYearDayToMonth[wDay];
+            wDay = wDay - NormalYearDaysPrecedingMonth[wMonth];
+        }
+
+        wSecond = wMillisecond / 1000;
+        wMillisecond = wMillisecond % 1000;
+
+        wMinute = wSecond / 60;
+        wSecond = wSecond % 60;
+
+        wHour = wMinute / 60;
+        wMinute = wMinute % 60;
+
+    }
+
+public:
+    int wYear, wMonth, wHour, wMinute,
+        wSecond, wDayOfWeek, wDay, wMillisecond;
+};
+
+
 void date_t::toGMTString(std::string &retVal)
 {
     if (isnan(d))
@@ -521,68 +583,43 @@ void date_t::toGMTString(std::string &retVal)
     static char szDays[][4] =
     { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 
-    int wYear = 0, wMonth = 1, wHour = 0, wMinute = 0, wSecond = 0, wDayOfWeek =
-                                           0;
-
-    int Days, Milliseconds, NumberOf400s, NumberOf100s, NumberOf4s;
-    int64_t d1 = (int64_t) (d + 62135596800000ll);
-
-    Days = (int) (d1 / 86400000);
-    Milliseconds = d1 % 86400000;
-
-    wDayOfWeek = (short) ((Days + 1) % 7);
-
-    NumberOf400s = Days / 146097;
-    Days -= NumberOf400s * 146097;
-
-    NumberOf100s = (Days * 100 + 75) / 3652425;
-    Days -= NumberOf100s * 36524;
-
-    NumberOf4s = Days / 1461;
-    Days -= NumberOf4s * 1461;
-
-    wYear = (NumberOf400s * 400) + (NumberOf100s * 100) + (NumberOf4s * 4)
-            + (Days * 100 + 75) / 36525 + 1;
-
-    Days = Days - (Days * 100 + 75) / 36525 * 365;
-
-    if (IsLeapYear(wYear))
-    {
-        wMonth = LeapYearDayToMonth[Days];
-        Days = Days - LeapYearDaysPrecedingMonth[wMonth];
-    }
-    else
-    {
-        wMonth = NormalYearDayToMonth[Days];
-        Days = Days - NormalYearDaysPrecedingMonth[wMonth];
-    }
-
-    wSecond = Milliseconds / 1000;
-    Milliseconds = Milliseconds % 1000;
-
-    wMinute = wSecond / 60;
-    wSecond = wSecond % 60;
-
-    wHour = wMinute / 60;
-    wMinute = wMinute % 60;
+    _date_split ds(d);
 
     retVal.resize(29);
     char *ptrBuf = &retVal[0];
 
-    putStr(ptrBuf, szDays[wDayOfWeek], 3);
+    putStr(ptrBuf, szDays[ds.wDayOfWeek], 3);
     putStr(ptrBuf, ", ", 2);
-    putInt(ptrBuf, Days + 1, 2);
+    putInt(ptrBuf, ds.wDay + 1, 2);
     *ptrBuf++ = ' ';
-    putStr(ptrBuf, szMonth[wMonth], 3);
+    putStr(ptrBuf, szMonth[ds.wMonth], 3);
     *ptrBuf++ = ' ';
-    putInt(ptrBuf, wYear, 4);
+    putInt(ptrBuf, ds.wYear, 4);
     *ptrBuf++ = ' ';
-    putInt(ptrBuf, wHour, 2);
+    putInt(ptrBuf, ds.wHour, 2);
     *ptrBuf++ = ':';
-    putInt(ptrBuf, wMinute, 2);
+    putInt(ptrBuf, ds.wMinute, 2);
     *ptrBuf++ = ':';
-    putInt(ptrBuf, wSecond, 2);
+    putInt(ptrBuf, ds.wSecond, 2);
     putStr(ptrBuf, " GMT", 4);
+}
+
+void date_t::toX509String(std::string &retVal)
+{
+    if (isnan(d))
+        return;
+
+    _date_split ds(d);
+
+    retVal.resize(14);
+    char *ptrBuf = &retVal[0];
+
+    putInt(ptrBuf, ds.wYear, 4);
+    putInt(ptrBuf, ds.wMonth + 1, 2);
+    putInt(ptrBuf, ds.wDay + 1, 2);
+    putInt(ptrBuf, ds.wHour, 2);
+    putInt(ptrBuf, ds.wMinute, 2);
+    putInt(ptrBuf, ds.wSecond, 2);
 }
 
 void date_t::sqlString(std::string &retVal)
@@ -590,62 +627,70 @@ void date_t::sqlString(std::string &retVal)
     if (isnan(d))
         return;
 
-    int wYear = 0, wMonth = 1, wHour = 0, wMinute = 0, wSecond = 0;
-
-    int Days, Milliseconds, NumberOf400s, NumberOf100s, NumberOf4s;
-    int64_t d1 = (int64_t) (Runtime::now().m_pDateCache->ToLocal((int64_t) d) + 62135596800000ll);
-
-    Days = (int) (d1 / 86400000);
-    Milliseconds = d1 % 86400000;
-
-    NumberOf400s = Days / 146097;
-    Days -= NumberOf400s * 146097;
-
-    NumberOf100s = (Days * 100 + 75) / 3652425;
-    Days -= NumberOf100s * 36524;
-
-    NumberOf4s = Days / 1461;
-    Days -= NumberOf4s * 1461;
-
-    wYear = (NumberOf400s * 400) + (NumberOf100s * 100) + (NumberOf4s * 4)
-            + (Days * 100 + 75) / 36525 + 1;
-
-    Days = Days - (Days * 100 + 75) / 36525 * 365;
-
-    if (IsLeapYear(wYear))
-    {
-        wMonth = LeapYearDayToMonth[Days];
-        Days = Days - LeapYearDaysPrecedingMonth[wMonth];
-    }
-    else
-    {
-        wMonth = NormalYearDayToMonth[Days];
-        Days = Days - NormalYearDaysPrecedingMonth[wMonth];
-    }
-
-    wSecond = Milliseconds / 1000;
-    Milliseconds = Milliseconds % 1000;
-
-    wMinute = wSecond / 60;
-    wSecond = wSecond % 60;
-
-    wHour = wMinute / 60;
-    wMinute = wMinute % 60;
+    _date_split ds((double)Runtime::now().m_pDateCache->ToLocal((int64_t) d));
 
     retVal.resize(19);
     char *ptrBuf = &retVal[0];
 
-    putInt(ptrBuf, wYear, 4);
+    putInt(ptrBuf, ds.wYear, 4);
     *ptrBuf++ = '-';
-    putInt(ptrBuf, wMonth + 1, 2);
+    putInt(ptrBuf, ds.wMonth + 1, 2);
     *ptrBuf++ = '-';
-    putInt(ptrBuf, Days + 1, 2);
+    putInt(ptrBuf, ds.wDay + 1, 2);
     *ptrBuf++ = ' ';
-    putInt(ptrBuf, wHour, 2);
+    putInt(ptrBuf, ds.wHour, 2);
     *ptrBuf++ = ':';
-    putInt(ptrBuf, wMinute, 2);
+    putInt(ptrBuf, ds.wMinute, 2);
     *ptrBuf++ = ':';
-    putInt(ptrBuf, wSecond, 2);
+    putInt(ptrBuf, ds.wSecond, 2);
+}
+
+void date_t::add(int num, int part)
+{
+    if (isnan(d))
+        return;
+
+    if (part == _SECOND)
+        d += (int64_t)num * 1000;
+    else if (part == _MINUTE)
+        d += (int64_t)num * 60 * 1000;
+    else if (part == _HOUR)
+        d += (int64_t)num * 60 * 60 * 1000;
+    else if (part == _DAY)
+        d += (int64_t)num * 60 * 60 * 24 * 1000;
+    else
+    {
+        _date_split ds(d);
+        int day = MaxDaysInMonth(ds.wYear, ds.wMonth) - 1;
+        bool isLastday = ds.wDay == day;
+
+        if (part == _MONTH)
+        {
+            if (num >= 12)
+            {
+                ds.wYear += num / 12;
+                num = num % 12;
+            }
+
+            ds.wMonth += num;
+            if (ds.wMonth > 11)
+            {
+                ds.wMonth -= 12;
+                ds.wYear ++;
+            }
+        }
+        else if (part == _YEAR)
+            ds.wYear += num;
+        else
+            return;
+
+        day = MaxDaysInMonth(ds.wYear, ds.wMonth) - 1;
+        if (ds.wDay > day || isLastday)
+            ds.wDay = day;
+
+        create(ds.wYear, ds.wMonth + 1, ds.wDay + 1, ds.wHour,
+               ds.wMinute, ds.wSecond, ds.wMillisecond);
+    }
 }
 
 void date_t::toLocal()
