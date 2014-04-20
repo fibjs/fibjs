@@ -281,7 +281,6 @@ result_t encoding_base::decodeURI(const char *url, std::string &retVal)
 
 static v8::Persistent<v8::Object> s_json;
 static v8::Persistent<v8::Function> s_stringify;
-static v8::Persistent<v8::Function> s_parse;
 
 inline void initJSON()
 {
@@ -318,16 +317,7 @@ result_t encoding_base::jsonEncode(v8::Local<v8::Value> data,
 result_t encoding_base::jsonDecode(const char *data,
                                    v8::Local<v8::Value> &retVal)
 {
-    initJSON();
-
-    v8::Local<v8::Object> _json = v8::Local<v8::Object>::New(isolate, s_json);
-
-    if (s_parse.IsEmpty())
-        s_parse.Reset(isolate,
-                      v8::Local<v8::Function>::Cast(_json->Get(v8::String::NewFromUtf8(isolate, "parse"))));
-
-    v8::Local<v8::Value> v = v8::String::NewFromUtf8(isolate, data);
-    retVal = v8::Local<v8::Function>::New(isolate, s_parse)->Call(_json, 1, &v);
+    retVal = v8::JSON::Parse(v8::String::NewFromUtf8(isolate, data));
     if (retVal.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
