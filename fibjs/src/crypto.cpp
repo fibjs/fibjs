@@ -112,7 +112,7 @@ char *randomart(const unsigned char *dgst_raw, size_t dgst_raw_len,
     x = fieldX / 2;
     y = fieldY / 2;
 
-    for (i = 0; i < dgst_raw_len; i++)
+    for (i = 0; i < (int)dgst_raw_len; i++)
     {
         int input;
 
