@@ -15,6 +15,32 @@
 namespace fibjs
 {
 
+X509Cert::_name X509Cert::g_usages[] =
+{
+    {KU_DIGITAL_SIGNATURE, "digitalSignature"},
+    {KU_NON_REPUDIATION, "nonRepudiation"},
+    {KU_KEY_ENCIPHERMENT, "keyEncipherment"},
+    {KU_DATA_ENCIPHERMENT, "dataEncipherment"},
+    {KU_KEY_AGREEMENT, "keyAgreement"},
+    {KU_KEY_CERT_SIGN, "keyCertSign"},
+    {KU_CRL_SIGN, "cRLSign"},
+    {0,}
+};
+
+X509Cert::_name X509Cert::g_types[] =
+{
+    {NS_CERT_TYPE_SSL_CLIENT, "client"},
+    {NS_CERT_TYPE_SSL_SERVER, "server"},
+    {NS_CERT_TYPE_EMAIL, "email"},
+    {NS_CERT_TYPE_OBJECT_SIGNING, "objsign"},
+    {NS_CERT_TYPE_RESERVED, "reserved"},
+    {NS_CERT_TYPE_SSL_CA, "sslCA"},
+    {NS_CERT_TYPE_EMAIL_CA, "emailCA"},
+    {NS_CERT_TYPE_OBJECT_SIGNING_CA, "objCA"},
+    {0}
+};
+
+
 result_t X509Cert_base::_new(obj_ptr<X509Cert_base> &retVal)
 {
     retVal = new X509Cert();
@@ -206,6 +232,25 @@ result_t X509Cert::loadFile(const char *filename)
     return 0;
 }
 
+result_t X509Cert::verify(X509Cert_base *cert, bool &retVal, exlib::AsyncEvent *ac)
+{
+    int ret;
+    int flags;
+
+    ret = x509_crt_verify(&(((X509Cert *)cert)->m_crt), &m_crt, NULL, NULL, &flags,
+                          NULL, NULL);
+    if (ret == POLARSSL_ERR_X509_CERT_VERIFY_FAILED)
+    {
+        retVal = false;
+        return 0;
+    }
+    else if (ret != 0)
+        return _ssl::setError(ret);
+
+    retVal = true;
+    return 0;
+}
+
 #define PEM_BEGIN_CRT           "-----BEGIN CERTIFICATE-----\n"
 #define PEM_END_CRT             "-----END CERTIFICATE-----\n"
 
@@ -263,6 +308,43 @@ x509_crt *X509Cert::get_crt()
         n --;
 
     return crt;
+}
+
+result_t X509Cert::get_version(int32_t &retVal)
+{
+    x509_crt *crt = get_crt();
+    if (!crt)
+        return CALL_E_INVALID_CALL;
+
+    retVal = crt->version;
+    return 0;
+}
+
+result_t X509Cert::get_serial(std::string &retVal)
+{
+    x509_crt *crt = get_crt();
+    if (!crt)
+        return CALL_E_INVALID_CALL;
+
+    int ret;
+    mpi serial;
+
+    mpi_init(&serial);
+    ret = mpi_read_binary(&serial, crt->serial.p, crt->serial.len);
+    if (ret != 0)
+        return _ssl::setError(ret);
+
+    retVal.resize(8192);
+    size_t sz = retVal.length();
+
+    ret = mpi_write_string(&serial, 10, &retVal[0], &sz);
+    mpi_free(&serial);
+    if (ret != 0)
+        return _ssl::setError(ret);
+
+    retVal.resize(sz);
+
+    return 0;
 }
 
 result_t X509Cert::get_issuer(std::string &retVal)
@@ -329,6 +411,72 @@ result_t X509Cert::get_notAfter(date_t &retVal)
     retVal.create(crt->valid_to.year, crt->valid_to.mon,
                   crt->valid_to.day,  crt->valid_to.hour,
                   crt->valid_to.min,  crt->valid_to.sec, 0);
+
+    return 0;
+}
+
+result_t X509Cert::get_ca(bool &retVal)
+{
+    x509_crt *crt = get_crt();
+    if (!crt)
+        return CALL_E_INVALID_CALL;
+
+    retVal = crt->ca_istrue != 0;
+    return 0;
+}
+
+result_t X509Cert::get_pathlen(int32_t &retVal)
+{
+    x509_crt *crt = get_crt();
+    if (!crt)
+        return CALL_E_INVALID_CALL;
+
+    retVal = crt->max_pathlen;
+    return 0;
+}
+
+result_t X509Cert::get_usage(std::string &retVal)
+{
+    x509_crt *crt = get_crt();
+    if (!crt)
+        return CALL_E_INVALID_CALL;
+
+    int key_usage = crt->key_usage;
+
+    _name *p = g_usages;
+    while (p->id)
+    {
+        if (key_usage & p->id)
+        {
+            if (!retVal.empty())
+                retVal.append(", ", 2);
+            retVal.append(p->name);
+        }
+        p ++;
+    }
+
+    return 0;
+}
+
+result_t X509Cert::get_type(std::string &retVal)
+{
+    x509_crt *crt = get_crt();
+    if (!crt)
+        return CALL_E_INVALID_CALL;
+
+    int cert_type = crt->ns_cert_type;
+
+    _name *p = g_types;
+    while (p->id)
+    {
+        if (cert_type & p->id)
+        {
+            if (!retVal.empty())
+                retVal.append(", ", 2);
+            retVal.append(p->name);
+        }
+        p ++;
+    }
 
     return 0;
 }

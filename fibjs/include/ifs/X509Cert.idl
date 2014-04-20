@@ -30,6 +30,12 @@ class X509Cert: object
     */
     loadFile(String filename);
 
+    /*! @brief 使用当前证书链验证给定的证书
+     @param cert 给定需要验证的证书
+     @return 如果验证成功则返回 True
+    */
+    Boolean verify(X509Cert cert) async;
+
     /*! @brief 导出已经加载的证书
      @return 以数组方式导出证书链
     */
@@ -37,6 +43,12 @@ class X509Cert: object
 
     /*! @brief 清空已经加载的证书 */
     clear();
+
+    /*! @brief 获取证书的版本 */
+    readonly Integer version;
+
+    /*! @brief 获取证书的序列号 */
+    readonly String serial;
 
     /*! @brief 获取证书颁发者的可分辨名称 */
     readonly String issuer;
@@ -49,6 +61,24 @@ class X509Cert: object
 
     /*! @brief 获取证书的到期时间 */
     readonly Date notAfter;
+
+    /*! @brief 获取证书是否是 ca 证书 */
+    readonly Boolean ca;
+
+    /*! @brief 获取证书的 pathlen */
+    readonly Integer pathlen;
+
+    /*! @brief 获取证书的使用范围 
+
+    结果为全部或部分以下内容：digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign
+    */
+    readonly String usage;
+
+    /*! @brief 获取证书的 Netscape 证书类型
+
+    结果为全部或部分以下内容：client, server, email, objsign, reserved, sslCA, emailCA, objCA
+     */
+    readonly String type;
 
     /*! @brief 获取证书的公钥 */
     readonly PKey publicKey;

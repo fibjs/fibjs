@@ -4,6 +4,7 @@ test.setup();
 var crypto = require("crypto");
 var hash = require("hash");
 var fs = require("fs");
+var os = require("os");
 var encoding = require("encoding");
 
 var rsa1024_pem = "-----BEGIN RSA PRIVATE KEY-----\n" +
@@ -65,6 +66,7 @@ var ca1 = "-----BEGIN CERTIFICATE-----\n" +
 	"96kp08B2wL8GQHwO1aR8iuIybhau2mQfsFV8293xpLpEfLOZWNI0bgDql2wUOvIQ\n" +
 	"HgqiSRB2AfTyyBj9zGNGEosJG/GU5g==\n" +
 	"-----END CERTIFICATE-----\n";
+
 var ca2 = "-----BEGIN CERTIFICATE-----\n" +
 	"MIIDQjCCAiqgAwIBAgIBCDANBgkqhkiG9w0BAQ4FADA7MQswCQYDVQQGEwJOTDER\n" +
 	"MA8GA1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwHhcN\n" +
@@ -85,6 +87,7 @@ var ca2 = "-----BEGIN CERTIFICATE-----\n" +
 	"FxWaiEKk0JDAo6Lh3faVbTudcaYeniwe2/Zfk0Ms7VNwVVBW382WbNWRD7Gn9LcX\n" +
 	"nR8L9gv4/ud83sEgt/xpE7riYZulYg==\n" +
 	"-----END CERTIFICATE-----\n";
+
 var pk = "-----BEGIN PUBLIC KEY-----\n" +
 	"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuTxKxcijjpAXpJ5SqnF1\n" +
 	"JmGA58e1bYz/qrZBJre+Ea1ccxYMZBFIBP/W4TsF24m7s5cJ1RwU3WiHObA9ccvi\n" +
@@ -475,6 +478,10 @@ describe('crypto', function() {
 			assert.equal(cert.subject, "C=NL, O=PolarSSL, CN=www.example.com");
 			assert.deepEqual(cert.notBefore, new Date("May 10 13:23:41 2012 GMT"));
 			assert.deepEqual(cert.notAfter, new Date("May 11 13:23:41 2022 GMT"));
+			assert.equal(cert.ca, false);
+			assert.equal(cert.pathlen, 0);
+			assert.equal(cert.usage, "");
+			assert.equal(cert.type, "");
 			assert.equal(cert.publicKey, pk);
 
 			cert.load(ca2);
@@ -484,6 +491,10 @@ describe('crypto', function() {
 			assert.equal(cert1.subject, "C=NL, O=PolarSSL, CN=PolarSSL Cert SHA224");
 			assert.deepEqual(cert1.notBefore, new Date("Feb 12 14:44:07 2011 GMT"));
 			assert.deepEqual(cert1.notAfter, new Date("Feb 12 14:44:07 2021 GMT"));
+			assert.equal(cert1.ca, false);
+			assert.equal(cert1.pathlen, 0);
+			assert.equal(cert1.usage, "");
+			assert.equal(cert1.type, "");
 			assert.equal(cert1.publicKey, pk);
 		});
 	});
@@ -578,6 +589,88 @@ describe('crypto', function() {
 			req.load(req1);
 			assert.equal(req.subject, "C=CN, O=baoz.cn, CN=baoz.me");
 			assert.equal(req.publicKey, pub_rsa1024_pem);
+		});
+	});
+
+	describe("CA sign/verify", function() {
+		var req;
+		var ca;
+		var pk;
+
+		before(function() {
+			pk = new crypto.PKey();
+			pk.importKey(rsa1024_pem);
+			req = new crypto.X509Req("C=CN, O=baoz.cn, CN=baoz.me", pk);
+		});
+
+		it("sign", function() {
+			cert = req.sign("C=CN, O=baoz.cn", pk);
+			assert.equal(cert.issuer, "C=CN, O=baoz.cn");
+			assert.equal(cert.subject, "C=CN, O=baoz.cn, CN=baoz.me");
+			assert.equal(cert.publicKey.exportPem(), pub_rsa1024_pem);
+		});
+
+		it("ca/pathlen", function() {
+			cert = req.sign("C=CN, O=baoz.cn", pk);
+			assert.isFalse(cert.ca);
+			assert.equal(cert.pathlen, 0);
+
+			cert = req.sign("C=CN, O=baoz.cn", pk, {
+				ca: true,
+				pathlen: 10
+			});
+			assert.isTrue(cert.ca);
+			assert.equal(cert.pathlen, 11);
+		});
+
+		it("before/after", function() {
+			cert = req.sign("C=CN, O=baoz.cn", pk);
+			assert.deepEqual(os.dateAdd(cert.notBefore, 1, "year"), cert.notAfter);
+
+			cert = req.sign("C=CN, O=baoz.cn", pk, {
+				notBefore: new Date("2014-12-20 20:20:20")
+			});
+			assert.deepEqual(cert.notBefore, new Date("2014-12-20 20:20:20"));
+			assert.deepEqual(cert.notAfter, new Date("2015-12-20 20:20:20"));
+
+			cert = req.sign("C=CN, O=baoz.cn", pk, {
+				notBefore: new Date("2014-12-20 20:20:20"),
+				notAfter: new Date("2018-12-20 20:20:20")
+			});
+			assert.deepEqual(cert.notBefore, new Date("2014-12-20 20:20:20"));
+			assert.deepEqual(cert.notAfter, new Date("2018-12-20 20:20:20"));
+		});
+
+		it("usage/type", function() {
+			cert = req.sign("C=CN, O=baoz.cn", pk);
+			assert.equal(cert.usage, "");
+			assert.equal(cert.type, "");
+
+			cert = req.sign("C=CN, O=baoz.cn", pk, {
+				usage: "",
+				type: ""
+			});
+			assert.equal(cert.usage, "");
+			assert.equal(cert.type, "");
+
+			cert = req.sign("C=CN, O=baoz.cn", pk, {
+				usage: "digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign",
+				type: "client, server, email, objsign, reserved, sslCA, emailCA, objCA"
+			});
+			assert.equal(cert.usage, "digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign");
+			assert.equal(cert.type, "client, server, email, objsign, reserved, sslCA, emailCA, objCA");
+		});
+
+		it("self-sign", function() {
+			req = new crypto.X509Req("C=CN, O=baoz.cn, CN=baoz.me", pk);
+			ca = req.sign("C=CN, O=baoz.cn, CN=baoz.me", pk, {
+				ca: true
+			});
+		});
+
+		it("verify", function() {
+			assert.isTrue(ca.verify(ca));
+			assert.isFalse(ca.verify(req.sign("C=CN, O=baoz.cn", pk)));
 		});
 	});
 });

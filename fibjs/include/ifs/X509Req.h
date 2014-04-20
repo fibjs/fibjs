@@ -19,6 +19,7 @@ namespace fibjs
 class PKey_base;
 class hash_base;
 class Buffer_base;
+class X509Cert_base;
 
 class X509Req_base : public object_base
 {
@@ -31,6 +32,7 @@ public:
 	virtual result_t loadFile(const char* filename) = 0;
 	virtual result_t exportPem(std::string& retVal) = 0;
 	virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
+	virtual result_t sign(const char* issuer, PKey_base* key, v8::Local<v8::Object> opts, obj_ptr<X509Cert_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t get_subject(std::string& retVal) = 0;
 	virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
 
@@ -42,8 +44,12 @@ public:
 	static void s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_sign(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_subject(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+
+public:
+	ASYNC_MEMBERVALUE4(X509Req_base, sign, const char*, PKey_base*, v8::Local<v8::Object>, obj_ptr<X509Cert_base>);
 };
 
 }
@@ -51,6 +57,7 @@ public:
 #include "PKey.h"
 #include "hash.h"
 #include "Buffer.h"
+#include "X509Cert.h"
 
 namespace fibjs
 {
@@ -61,7 +68,8 @@ namespace fibjs
 			{"load", s_load},
 			{"loadFile", s_loadFile},
 			{"exportPem", s_exportPem},
-			{"exportDer", s_exportDer}
+			{"exportDer", s_exportDer},
+			{"sign", s_sign}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -73,7 +81,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"X509Req", s__new, 
-			4, s_method, 0, NULL, 2, s_property, NULL, NULL,
+			5, s_method, 0, NULL, 2, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -174,6 +182,22 @@ namespace fibjs
 		METHOD_ENTER(0, 0);
 
 		hr = pInst->exportDer(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void X509Req_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<X509Cert_base> vr;
+
+		METHOD_INSTANCE(X509Req_base);
+		METHOD_ENTER(3, 2);
+
+		ARG_String(0);
+		ARG(obj_ptr<PKey_base>, 1);
+		OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+
+		hr = pInst->ac_sign(v0, v1, v2, vr);
 
 		METHOD_RETURN();
 	}
