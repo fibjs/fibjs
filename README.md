@@ -27,6 +27,11 @@
 	yum install subversion
 	yum install readline-devel
 
+### 32bit on ubuntu:
+	yum install glibc-devel.i686
+	yum install libstdc++-static.i686
+	yum install readline-devel.i686
+
 ----------------------------------
 ### on osx:
 	brew install cmake
