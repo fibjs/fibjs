@@ -67,6 +67,8 @@ class net : module
 	/*! @brief 创建一个 Url 对象，参见 Url */
 	static Url new Url();
 
-	/*! @brief 查询当前系统异步网络引擎 */
+	/*! @brief 查询当前系统异步网络引擎 
+	 @return 返回网络引擎名称
+	*/
 	static String backend();
 };
