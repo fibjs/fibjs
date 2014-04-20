@@ -19,6 +19,17 @@ extern v8::Isolate *isolate;
 class date_t
 {
 public:
+    enum
+    {
+        _YEAR = 0,
+        _MONTH = 1,
+        _DAY = 2,
+        _HOUR = 3,
+        _MINUTE = 4,
+        _SECOND = 5
+    };
+
+public:
     date_t(double v = 0) :
         d(v)
     {
@@ -80,11 +91,14 @@ public:
         return d - d1.d;
     }
 
+    void add(int num, int part = _SECOND);
+
     void toLocal();
     void toUTC();
 
     void parse(const char *str, int len = -1);
     void toGMTString(std::string &retVal);
+    void toX509String(std::string &retVal);
     void sqlString(std::string &retVal);
 
 private:
