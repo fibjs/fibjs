@@ -25,13 +25,13 @@ class SslSocket_base : public Stream_base
 {
 public:
 	// SslSocket_base
-	static result_t _new(obj_ptr<SslSocket_base>& retVal);
+	static result_t _new(v8::Local<v8::Array> certs, obj_ptr<SslSocket_base>& retVal);
 	static result_t _new(X509Cert_base* crt, PKey_base* key, obj_ptr<SslSocket_base>& retVal);
 	virtual result_t get_verification(int32_t& retVal) = 0;
 	virtual result_t set_verification(int32_t newVal) = 0;
 	virtual result_t get_peerCert(obj_ptr<X509Cert_base>& retVal) = 0;
-	virtual result_t connect(Stream_base* s, int32_t& retVal, exlib::AsyncEvent* ac) = 0;
-	virtual result_t accept(Stream_base* s, int32_t& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t connect(Stream_base* s, const char* server_name, int32_t& retVal, exlib::AsyncEvent* ac) = 0;
+	virtual result_t accept(Stream_base* s, obj_ptr<SslSocket_base>& retVal, exlib::AsyncEvent* ac) = 0;
 
 	DECLARE_CLASSINFO(SslSocket_base);
 
@@ -44,8 +44,8 @@ public:
 	static void s_accept(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-	ASYNC_MEMBERVALUE2(SslSocket_base, connect, Stream_base*, int32_t);
-	ASYNC_MEMBERVALUE2(SslSocket_base, accept, Stream_base*, int32_t);
+	ASYNC_MEMBERVALUE3(SslSocket_base, connect, Stream_base*, const char*, int32_t);
+	ASYNC_MEMBERVALUE2(SslSocket_base, accept, Stream_base*, obj_ptr<SslSocket_base>);
 };
 
 }
@@ -119,9 +119,11 @@ namespace fibjs
 	{
 		obj_ptr<SslSocket_base> vr;
 
-		CONSTRUCT_ENTER(0, 0);
+		CONSTRUCT_ENTER(1, 0);
 
-		hr = _new(vr);
+		OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
+
+		hr = _new(v0, vr);
 
 		METHOD_OVER(2, 2);
 
@@ -138,18 +140,19 @@ namespace fibjs
 		int32_t vr;
 
 		METHOD_INSTANCE(SslSocket_base);
-		METHOD_ENTER(1, 1);
+		METHOD_ENTER(2, 1);
 
 		ARG(obj_ptr<Stream_base>, 0);
+		OPT_ARG_String(1, "");
 
-		hr = pInst->ac_connect(v0, vr);
+		hr = pInst->ac_connect(v0, v1, vr);
 
 		METHOD_RETURN();
 	}
 
 	inline void SslSocket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		int32_t vr;
+		obj_ptr<SslSocket_base> vr;
 
 		METHOD_INSTANCE(SslSocket_base);
 		METHOD_ENTER(1, 1);

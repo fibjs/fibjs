@@ -12,12 +12,6 @@
 namespace fibjs
 {
 
-result_t SslSocket_base::_new(obj_ptr<SslSocket_base> &retVal)
-{
-    retVal = new SslSocket();
-    return 0;
-}
-
 result_t SslSocket_base::_new(X509Cert_base *crt, PKey_base *key,
                               obj_ptr<SslSocket_base> &retVal)
 {
@@ -30,15 +24,58 @@ result_t SslSocket_base::_new(X509Cert_base *crt, PKey_base *key,
     return 0;
 }
 
+result_t SslSocket_base::_new(v8::Local<v8::Array> certs,
+                              obj_ptr<SslSocket_base> &retVal)
+{
+    obj_ptr<SslSocket> ss = new SslSocket();
+
+    int32_t sz = certs->Length();
+
+    if (sz)
+    {
+        v8::Local<v8::Value> sCrt = v8::String::NewFromUtf8(isolate, "crt",
+                                    v8::String::kNormalString, 3);
+        v8::Local<v8::Value> sKey = v8::String::NewFromUtf8(isolate, "key",
+                                    v8::String::kNormalString, 3);
+        int32_t i;
+
+        for (i = 0; i < sz; i ++)
+        {
+            v8::Local<v8::Value> v = certs->Get(i);
+
+            if (v->IsObject())
+            {
+                v8::Local<v8::Object> o = v->ToObject();
+
+                obj_ptr<X509Cert_base> crt = X509Cert_base::getInstance(o->Get(sCrt));
+                if (!crt)
+                    return CALL_E_INVALIDARG;
+
+                obj_ptr<PKey_base> key = PKey_base::getInstance(o->Get(sKey));
+                if (!key)
+                    return CALL_E_INVALIDARG;
+
+
+                result_t hr = ss->setCert(crt, key);
+                if (hr < 0)
+                    return hr;
+            }
+            else
+                return CALL_E_INVALIDARG;
+
+        }
+    }
+
+    retVal = ss;
+    return 0;
+}
+
 SslSocket::SslSocket()
 {
     ssl_init(&m_ssl);
 
     ssl_set_authmode(&m_ssl, g_ssl.m_authmode);
-    ssl_set_ca_chain(&m_ssl, &g_ssl.m_ca->m_crt, NULL, NULL);
-
     ssl_set_rng(&m_ssl, ctr_drbg_random, &g_ssl.ctr_drbg);
-
     ssl_set_bio(&m_ssl, my_recv, this, my_send, this);
 
     m_recv_pos = 0;
@@ -52,13 +89,23 @@ SslSocket::~SslSocket()
 
 result_t SslSocket::setCert(X509Cert_base *crt, PKey_base *key)
 {
+    result_t hr;
+    bool priv;
+
+    hr = key->isPrivate(priv);
+    if (hr < 0)
+        return hr;
+
+    if (!priv)
+        return CALL_E_INVALIDARG;
+
     int ret = ssl_set_own_cert(&m_ssl, &((X509Cert *)crt)->m_crt,
                                &((PKey *)key)->m_key);
     if (ret != 0)
         return _ssl::setError(ret);
 
-    m_crt = crt;
-    m_key = key;
+    m_crts.push_back(crt);
+    m_keys.push_back(key);
 
     return 0;
 }
@@ -67,7 +114,6 @@ int SslSocket::my_recv(unsigned char *buf, size_t len)
 {
     if (!len)
         return 0;
-
 
     if (m_recv_pos < 0)
         return POLARSSL_ERR_NET_CONN_RESET;
@@ -130,10 +176,6 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
         virtual int process()
         {
             int ret = ssl_read(&m_pThis->m_ssl, (unsigned char *)&m_buf[0], m_bytes);
-
-            if (ret == 0)
-                return CALL_RETURN_NULL;
-
             if (ret > 0)
             {
                 m_buf.resize(ret);
@@ -141,7 +183,17 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                 return 0;
             }
 
-            return ret;
+            if (ret == POLARSSL_ERR_NET_WANT_READ ||
+                    ret == POLARSSL_ERR_NET_WANT_WRITE)
+                return ret;
+
+            m_pThis->m_send.resize(0);
+            return 0;
+        }
+
+        virtual int finally()
+        {
+            return m_retVal ? 0 : CALL_RETURN_NULL;
         }
 
     private:
@@ -231,42 +283,6 @@ result_t SslSocket::set_verification(int32_t newVal)
     return 0;
 }
 
-result_t SslSocket::connect(Stream_base *s, int32_t &retVal, exlib::AsyncEvent *ac)
-{
-    class asyncConnect: public asyncSsl
-    {
-    public:
-        asyncConnect(SslSocket *pThis, int32_t &retVal, exlib::AsyncEvent *ac) :
-            asyncSsl(pThis, ac), m_retVal(retVal)
-        {
-        }
-
-    public:
-        virtual int process()
-        {
-            return ssl_handshake(&m_pThis->m_ssl);
-        }
-
-        virtual void finally()
-        {
-            m_retVal = ssl_get_verify_result(&m_pThis->m_ssl);
-        }
-
-    private:
-        int32_t &m_retVal;
-    };
-
-    if (!ac)
-        return CALL_E_NOSYNC;
-
-    if (!s)
-        return CALL_E_INVALIDARG;
-    m_s = s;
-
-    ssl_set_endpoint(&m_ssl, SSL_IS_CLIENT);
-    return (new asyncConnect(this, retVal, ac))->post(0);
-}
-
 result_t SslSocket::get_peerCert(obj_ptr<X509Cert_base> &retVal)
 {
     const x509_crt *crt = ssl_get_peer_cert(&m_ssl);
@@ -285,16 +301,91 @@ result_t SslSocket::get_peerCert(obj_ptr<X509Cert_base> &retVal)
     return 0;
 }
 
-result_t SslSocket::accept(Stream_base *s, int32_t &retVal, exlib::AsyncEvent *ac)
+result_t SslSocket::handshake(int32_t *retVal, exlib::AsyncEvent *ac)
 {
+    class asyncHandshake: public asyncSsl
+    {
+    public:
+        asyncHandshake(SslSocket *pThis, int32_t *retVal, exlib::AsyncEvent *ac) :
+            asyncSsl(pThis, ac), m_retVal(retVal)
+        {
+        }
+
+    public:
+        virtual int process()
+        {
+            return ssl_handshake(&m_pThis->m_ssl);
+        }
+
+        virtual int finally()
+        {
+            if (m_retVal)
+                *m_retVal = ssl_get_verify_result(&m_pThis->m_ssl);
+
+            return 0;
+        }
+
+    private:
+        int32_t *m_retVal;
+    };
+
+    return (new asyncHandshake(this, retVal, ac))->post(0);
+}
+
+result_t SslSocket::connect(Stream_base *s, const char *server_name,
+                            int32_t &retVal, exlib::AsyncEvent *ac)
+{
+
     if (!ac)
         return CALL_E_NOSYNC;
 
     if (!s)
         return CALL_E_INVALIDARG;
+
     m_s = s;
 
-    return 0;
+    ssl_set_endpoint(&m_ssl, SSL_IS_CLIENT);
+    ssl_set_ca_chain(&m_ssl, &g_ssl.m_ca->m_crt, NULL, NULL);
+
+    if (server_name && *server_name)
+        ssl_set_hostname(&m_ssl, server_name);
+
+    return handshake(&retVal, ac);
+}
+
+result_t SslSocket::accept(Stream_base *s, exlib::AsyncEvent *ac)
+{
+    m_s = s;
+
+    ssl_set_authmode(&m_ssl, m_ssl.authmode);
+    ssl_set_endpoint(&m_ssl, SSL_IS_SERVER);
+
+    ssl_set_session_cache(&m_ssl, ssl_cache_get, &g_ssl.m_cache,
+                          ssl_cache_set, &g_ssl.m_cache);
+
+    return handshake(NULL, ac);
+}
+
+result_t SslSocket::accept(Stream_base *s, obj_ptr<SslSocket_base> &retVal,
+                           exlib::AsyncEvent *ac)
+{
+    if (!ac)
+        return CALL_E_NOSYNC;
+
+    obj_ptr<SslSocket> ss = new SslSocket();
+    retVal = ss;
+    int sz = m_crts.size();
+    int i;
+    result_t hr;
+
+    for (i = 0; i < sz; i ++)
+    {
+        hr = ss->setCert(m_crts[i], m_keys[i]);
+        if (hr < 0)
+            return hr;
+    }
+
+    return ss->accept(s, ac);
 }
 
 }

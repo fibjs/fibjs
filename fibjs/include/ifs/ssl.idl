@@ -17,6 +17,5 @@ class ssl : module
 	/*! @brief 设定证书验证模式，缺省为 VERIFY_REQUIRED */
 	static Integer verification;
 
-    static SslSocket connect(Stream s) async;
-    static SslSocket accept(Stream s) async;
+    static SslSocket connect(Stream s, String server_name) async;
 };

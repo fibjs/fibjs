@@ -3,7 +3,7 @@
  */
 class SslSocket : Stream
 {
-	SslSocket();
+	SslSocket(Array certs = []);
 
 	SslSocket(X509Cert crt, PKey key);
 
@@ -13,9 +13,9 @@ class SslSocket : Stream
 	readonly X509Cert peerCert;
 
 	/*! @brief 建立一个 tcp 连接 */
-	Integer connect(Stream s) async;
+	Integer connect(Stream s, String server_name = "") async;
 
 	/*! @brief 等待并接受一个连接
 	 */
-	Integer accept(Stream s) async;
+	SslSocket accept(Stream s) async;
 };

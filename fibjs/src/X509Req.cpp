@@ -235,6 +235,15 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
                        exlib::AsyncEvent *ac)
 {
     result_t hr;
+    bool priv;
+
+    hr = key->isPrivate(priv);
+    if (hr < 0)
+        return hr;
+
+    if (!priv)
+        return CALL_E_INVALIDARG;
+
     int ret;
     std::string subject;
     pk_context *pk;
