@@ -497,7 +497,7 @@ result_t X509Req::get_publicKey(obj_ptr<PKey_base> &retVal)
 
     hr = pk1->copy(m_csr.pk);
     if (hr < 0)
-        return 0;
+        return hr;
 
     retVal = pk1;
     return 0;

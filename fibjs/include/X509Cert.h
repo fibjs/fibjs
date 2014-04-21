@@ -42,6 +42,10 @@ public:
     virtual result_t get_publicKey(obj_ptr<PKey_base> &retVal);
     virtual result_t get_next(obj_ptr<X509Cert_base> &retVal);
 
+
+public:
+    result_t load(const x509_crt *crt);
+
 public:
     struct _name
     {
@@ -52,11 +56,13 @@ public:
     static _name g_usages[];
     static _name g_types[];
 
+public:
+    x509_crt m_crt;
+
 private:
     x509_crt *get_crt();
 
 private:
-    x509_crt m_crt;
     obj_ptr<X509Cert> m_root;
     int m_no;
 };

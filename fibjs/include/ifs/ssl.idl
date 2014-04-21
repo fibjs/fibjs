@@ -1,7 +1,21 @@
 /*! @brief 数据库访问模块 */
 class ssl : module
 {
+    const Integer VERIFY_NONE = 0;
+    const Integer VERIFY_OPTIONAL = 1;
+    const Integer VERIFY_REQUIRED = 2;
+
+    const Integer BADCERT_EXPIRED = 1;
+    const Integer BADCERT_REVOKED = 2;
+    const Integer BADCERT_CN_MISMATCH = 4;
+    const Integer BADCERT_NOT_TRUSTED = 8;
+
     static SslSocket new Socket();
+
+    static readonly X509Cert ca;
+
+	/*! @brief 设定证书验证模式，缺省为 VERIFY_REQUIRED */
+	static Integer verification;
 
     static SslSocket connect(Stream s) async;
     static SslSocket accept(Stream s) async;

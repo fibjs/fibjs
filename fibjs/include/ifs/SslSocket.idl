@@ -5,10 +5,17 @@ class SslSocket : Stream
 {
 	SslSocket();
 
+	SslSocket(X509Cert crt, PKey key);
+
+	/*! @brief 设定证书验证模式，缺省为 VERIFY_REQUIRED */
+	Integer verification;
+
+	readonly X509Cert peerCert;
+
 	/*! @brief 建立一个 tcp 连接 */
-	connect(Stream s) async;
+	Integer connect(Stream s) async;
 
 	/*! @brief 等待并接受一个连接
 	 */
-	accept(Stream s) async;
+	Integer accept(Stream s) async;
 };

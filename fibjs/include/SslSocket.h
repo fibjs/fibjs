@@ -30,9 +30,9 @@ private:
         }
 
     public:
-        virtual int process()
+        virtual int process() = 0;
+        virtual void finally()
         {
-            return 0;
         }
 
         static int process(asyncState *pState, int n)
@@ -60,7 +60,10 @@ private:
                     return 0;
                 }
                 else
+                {
+                    pThis->finally();
                     return pThis->done(0);
+                }
             }
 
             pThis->set(send);
@@ -116,6 +119,7 @@ private:
         static int end(asyncState *pState, int n)
         {
             asyncSsl *pThis = (asyncSsl *) pState;
+            pThis->finally();
             return pThis->done(0);
         }
 
@@ -140,8 +144,11 @@ public:
 
 public:
     // SslSocket_base
-    virtual result_t connect(Stream_base *s, exlib::AsyncEvent *ac);
-    virtual result_t accept(Stream_base *s, exlib::AsyncEvent *ac);
+    virtual result_t get_verification(int32_t &retVal);
+    virtual result_t set_verification(int32_t newVal);
+    virtual result_t get_peerCert(obj_ptr<X509Cert_base> &retVal);
+    virtual result_t connect(Stream_base *s, int32_t &retVal, exlib::AsyncEvent *ac);
+    virtual result_t accept(Stream_base *s, int32_t &retVal, exlib::AsyncEvent *ac);
 
 private:
     int my_recv(unsigned char *buf, size_t len);
@@ -151,9 +158,14 @@ private:
     static int my_send(void *ctx, const unsigned char *buf, size_t len);
 
 public:
+    result_t setCert(X509Cert_base *crt, PKey_base *key);
+
+public:
     ssl_context m_ssl;
 
 private:
+    obj_ptr<X509Cert_base> m_crt;
+    obj_ptr<PKey_base> m_key;
     obj_ptr<Stream_base> m_s;
     std::string m_recv;
     int m_recv_pos;

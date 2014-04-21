@@ -82,6 +82,20 @@ result_t X509Cert::load(Buffer_base *derCert)
     return 0;
 }
 
+result_t X509Cert::load(const x509_crt *crt)
+{
+    if (m_root)
+        return CALL_E_INVALID_CALL;
+
+    int ret;
+
+    ret = x509_crt_parse_der(&m_crt, crt->raw.p, crt->raw.len);
+    if (ret != 0)
+        return _ssl::setError(ret);
+
+    return 0;
+}
+
 result_t X509Cert::load(const char *txtCert)
 {
     if (m_root)
@@ -492,7 +506,7 @@ result_t X509Cert::get_publicKey(obj_ptr<PKey_base> &retVal)
 
     hr = pk1->copy(crt->pk);
     if (hr < 0)
-        return 0;
+        return hr;
 
     retVal = pk1;
     return 0;

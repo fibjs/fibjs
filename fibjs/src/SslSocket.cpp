@@ -6,6 +6,8 @@
  */
 
 #include "SslSocket.h"
+#include "Stream.h"
+#include "PKey.h"
 
 namespace fibjs
 {
@@ -16,9 +18,29 @@ result_t SslSocket_base::_new(obj_ptr<SslSocket_base> &retVal)
     return 0;
 }
 
+result_t SslSocket_base::_new(X509Cert_base *crt, PKey_base *key,
+                              obj_ptr<SslSocket_base> &retVal)
+{
+    obj_ptr<SslSocket> ss = new SslSocket();
+    result_t hr = ss->setCert(crt, key);
+    if (hr < 0)
+        return hr;
+
+    retVal = ss;
+    return 0;
+}
+
 SslSocket::SslSocket()
 {
     ssl_init(&m_ssl);
+
+    ssl_set_authmode(&m_ssl, g_ssl.m_authmode);
+    ssl_set_ca_chain(&m_ssl, &g_ssl.m_ca->m_crt, NULL, NULL);
+
+    ssl_set_rng(&m_ssl, ctr_drbg_random, &g_ssl.ctr_drbg);
+
+    ssl_set_bio(&m_ssl, my_recv, this, my_send, this);
+
     m_recv_pos = 0;
 }
 
@@ -26,6 +48,19 @@ SslSocket::~SslSocket()
 {
     ssl_free(&m_ssl);
     memset(&m_ssl, 0, sizeof(m_ssl));
+}
+
+result_t SslSocket::setCert(X509Cert_base *crt, PKey_base *key)
+{
+    int ret = ssl_set_own_cert(&m_ssl, &((X509Cert *)crt)->m_crt,
+                               &((PKey *)key)->m_key);
+    if (ret != 0)
+        return _ssl::setError(ret);
+
+    m_crt = crt;
+    m_key = key;
+
+    return 0;
 }
 
 int SslSocket::my_recv(unsigned char *buf, size_t len)
@@ -154,28 +189,55 @@ result_t SslSocket::write(Buffer_base *data, exlib::AsyncEvent *ac)
 
 result_t SslSocket::close(exlib::AsyncEvent *ac)
 {
+    class asyncClose: public asyncSsl
+    {
+    public:
+        asyncClose(SslSocket *pThis, exlib::AsyncEvent *ac) :
+            asyncSsl(pThis, ac)
+        {
+        }
+
+    public:
+        virtual int process()
+        {
+            return ssl_close_notify(&m_pThis->m_ssl);
+        }
+    };
+
     if (!ac)
         return CALL_E_NOSYNC;
 
-    return 0;
+    return (new asyncClose(this, ac))->post(0);
 }
 
 result_t SslSocket::copyTo(Stream_base *stm, int64_t bytes,
                            int64_t &retVal, exlib::AsyncEvent *ac)
 {
-    if (!ac)
-        return CALL_E_NOSYNC;
+    return copyStream(this, stm, bytes, retVal, ac);
+}
 
+result_t SslSocket::get_verification(int32_t &retVal)
+{
+    retVal = m_ssl.authmode;
     return 0;
 }
 
-result_t SslSocket::connect(Stream_base *s, exlib::AsyncEvent *ac)
+result_t SslSocket::set_verification(int32_t newVal)
+{
+    if (newVal < ssl_base::_VERIFY_NONE || newVal > ssl_base::_VERIFY_REQUIRED)
+        return CALL_E_INVALIDARG;
+
+    ssl_set_authmode(&m_ssl, newVal);
+    return 0;
+}
+
+result_t SslSocket::connect(Stream_base *s, int32_t &retVal, exlib::AsyncEvent *ac)
 {
     class asyncConnect: public asyncSsl
     {
     public:
-        asyncConnect(SslSocket *pThis, exlib::AsyncEvent *ac) :
-            asyncSsl(pThis, ac)
+        asyncConnect(SslSocket *pThis, int32_t &retVal, exlib::AsyncEvent *ac) :
+            asyncSsl(pThis, ac), m_retVal(retVal)
         {
         }
 
@@ -184,6 +246,14 @@ result_t SslSocket::connect(Stream_base *s, exlib::AsyncEvent *ac)
         {
             return ssl_handshake(&m_pThis->m_ssl);
         }
+
+        virtual void finally()
+        {
+            m_retVal = ssl_get_verify_result(&m_pThis->m_ssl);
+        }
+
+    private:
+        int32_t &m_retVal;
     };
 
     if (!ac)
@@ -194,13 +264,28 @@ result_t SslSocket::connect(Stream_base *s, exlib::AsyncEvent *ac)
     m_s = s;
 
     ssl_set_endpoint(&m_ssl, SSL_IS_CLIENT);
-    ssl_set_rng(&m_ssl, ctr_drbg_random, &g_ssl.ctr_drbg);
-    ssl_set_bio(&m_ssl, my_recv, this, my_send, this);
-
-    return (new asyncConnect(this, ac))->post(0);
+    return (new asyncConnect(this, retVal, ac))->post(0);
 }
 
-result_t SslSocket::accept(Stream_base *s, exlib::AsyncEvent *ac)
+result_t SslSocket::get_peerCert(obj_ptr<X509Cert_base> &retVal)
+{
+    const x509_crt *crt = ssl_get_peer_cert(&m_ssl);
+
+    if (!crt)
+        return CALL_RETURN_NULL;
+
+    obj_ptr<X509Cert> crtObject = new X509Cert();
+
+    result_t hr = crtObject->load(crt);
+    if (hr < 0)
+        return hr;
+
+    retVal = crtObject;
+
+    return 0;
+}
+
+result_t SslSocket::accept(Stream_base *s, int32_t &retVal, exlib::AsyncEvent *ac)
 {
     if (!ac)
         return CALL_E_NOSYNC;
