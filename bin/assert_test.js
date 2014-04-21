@@ -129,47 +129,81 @@ describe(
 			}, "expected 5 to not equal 5");
 		});
 
-		it(
-			'deepEqual',
-			function() {
-				assert.deepEqual({
-					tea: 'chai'
-				}, {
+		it('deepEqual', function() {
+			assert.deepEqual({
+				tea: 'chai'
+			}, {
+				tea: 'chai'
+			});
+
+			assert.throws(function() {
+					assert.deepEqual({
+						tea: 'chai'
+					}, {
+						tea: 'black'
+					});
+				},
+				"expected { tea: \'chai\' } to deeply equal { tea: \'black\' }");
+
+			var obja = Object.create({
+				tea: 'chai'
+			}),
+				objb = Object.create({
 					tea: 'chai'
 				});
 
-				assert
-					.throws(function() {
-							assert.deepEqual({
-								tea: 'chai'
-							}, {
-								tea: 'black'
-							});
-						},
-						"expected { tea: \'chai\' } to deeply equal { tea: \'black\' }");
+			assert.deepEqual(obja, objb);
 
-				var obja = Object.create({
-					tea: 'chai'
-				}),
-					objb = Object.create({
-						tea: 'chai'
-					});
+			var obj1 = Object.create({
+				tea: 'chai'
+			}),
+				obj2 = Object.create({
+					tea: 'black'
+				});
 
-				assert.deepEqual(obja, objb);
+			assert.throws(function() {
+					assert.deepEqual(obj1, obj2);
+				},
+				"expected { tea: \'chai\' } to deeply equal { tea: \'black\' }");
 
-				var obj1 = Object.create({
-					tea: 'chai'
-				}),
-					obj2 = Object.create({
-						tea: 'black'
-					});
-
-				assert
-					.throws(function() {
-							assert.deepEqual(obj1, obj2);
-						},
-						"expected { tea: \'chai\' } to deeply equal { tea: \'black\' }");
+			assert.throws(function() {
+				assert.deepEqual({
+					"100": 2,
+					"5": 2
+				}, {
+					"100": 2,
+					"5": 4
+				});
 			});
+
+			assert.throws(function() {
+				assert.deepEqual({
+					"100": 2,
+					"5": 2
+				}, {
+					"1": 2,
+					"5": 2
+				});
+			});
+
+			assert.notDeepEqual({
+				"100": 2,
+				"5": 2
+			}, {
+				"1": 2,
+				"5": 4
+			});
+
+			assert.throws(function() {
+				assert.notDeepEqual({
+					"100": 2,
+					"5": 2
+				}, {
+					"100": 2,
+					"5": 2
+				});
+			});
+		});
 
 		it('deepEqual (ordering)', function() {
 			var a = {
@@ -202,65 +236,59 @@ describe(
 			assert.notDeepEqual(a, {});
 		});
 
-		it(
-			'deepEqual (circular)',
-			function() {
-				var circularObject = {}, secondCircularObject = {};
-				circularObject.field = circularObject;
-				secondCircularObject.field = secondCircularObject;
+		it('deepEqual (circular)', function() {
+			var circularObject = {}, secondCircularObject = {};
+			circularObject.field = circularObject;
+			secondCircularObject.field = secondCircularObject;
 
-				assert.deepEqual(circularObject, secondCircularObject);
+			assert.deepEqual(circularObject, secondCircularObject);
 
-				assert
-					.throws(
-						function() {
-							secondCircularObject.field2 = secondCircularObject;
-							assert.deepEqual(circularObject,
-								secondCircularObject);
-						},
-						"expected { field: [Circular] } to deeply equal { Object (field, field2) }");
+			assert
+				.throws(
+					function() {
+						secondCircularObject.field2 = secondCircularObject;
+						assert.deepEqual(circularObject,
+							secondCircularObject);
+					},
+					"expected { field: [Circular] } to deeply equal { Object (field, field2) }");
+		});
+
+		it('notDeepEqual', function() {
+			assert.notDeepEqual({
+				tea: 'jasmine'
+			}, {
+				tea: 'chai'
 			});
 
-		it(
-			'notDeepEqual',
-			function() {
-				assert.notDeepEqual({
+			assert
+				.throws(function() {
+						assert.notDeepEqual({
+							tea: 'chai'
+						}, {
+							tea: 'chai'
+						});
+					},
+					"expected { tea: \'chai\' } to not deeply equal { tea: \'chai\' }");
+		});
+
+		it('notDeepEqual (circular)', function() {
+			var circularObject = {}, secondCircularObject = {
 					tea: 'jasmine'
-				}, {
-					tea: 'chai'
-				});
+				};
+			circularObject.field = circularObject;
+			secondCircularObject.field = secondCircularObject;
 
-				assert
-					.throws(function() {
-							assert.notDeepEqual({
-								tea: 'chai'
-							}, {
-								tea: 'chai'
-							});
-						},
-						"expected { tea: \'chai\' } to not deeply equal { tea: \'chai\' }");
-			});
+			assert.notDeepEqual(circularObject,
+				secondCircularObject);
 
-		it(
-			'notDeepEqual (circular)',
-			function() {
-				var circularObject = {}, secondCircularObject = {
-						tea: 'jasmine'
-					};
-				circularObject.field = circularObject;
-				secondCircularObject.field = secondCircularObject;
-
-				assert.notDeepEqual(circularObject,
-					secondCircularObject);
-
-				assert
-					.throws(function() {
-							delete secondCircularObject.tea;
-							assert.notDeepEqual(circularObject,
-								secondCircularObject);
-						},
-						"expected { field: [Circular] } to not deeply equal { field: [Circular] }");
-			});
+			assert
+				.throws(function() {
+						delete secondCircularObject.tea;
+						assert.notDeepEqual(circularObject,
+							secondCircularObject);
+					},
+					"expected { field: [Circular] } to not deeply equal { field: [Circular] }");
+		});
 
 		it('isNull', function() {
 			assert.isNull(null);
@@ -439,38 +467,34 @@ describe(
 			}, "expected { foo: { bar: 'baz' } } to not have a deep property 'foo.bar' of 'baz'");
 		});
 
-		it(
-			'throws',
-			function() {
-				assert.throws(function() {
-					throw new Error('foo');
-				});
-				assert.throws(function() {
-					throw new Error('bar');
-				}, 'bar');
-				assert.throws(function() {
-					throw new Error('bar');
-				}, /bar/);
-
-				assert.throws(function() {
-					assert.throws(function() {});
-				}, "expected [Function] to throw an error");
+		it('throws', function() {
+			assert.throws(function() {
+				throw new Error('foo');
 			});
+			assert.throws(function() {
+				throw new Error('bar');
+			}, 'bar');
+			assert.throws(function() {
+				throw new Error('bar');
+			}, /bar/);
 
-		it(
-			'doesNotThrow',
-			function() {
-				assert.doesNotThrow(function() {});
-				assert.doesNotThrow(function() {}, 'foo');
+			assert.throws(function() {
+				assert.throws(function() {});
+			}, "expected [Function] to throw an error");
+		});
 
-				assert
-					.throws(function() {
-							assert.doesNotThrow(function() {
-								throw new Error('foo');
-							});
-						},
-						'expected [Function] to not throw an error but [Error: foo] was thrown');
-			});
+		it('doesNotThrow', function() {
+			assert.doesNotThrow(function() {});
+			assert.doesNotThrow(function() {}, 'foo');
+
+			assert
+				.throws(function() {
+						assert.doesNotThrow(function() {
+							throw new Error('foo');
+						});
+					},
+					'expected [Function] to not throw an error but [Error: foo] was thrown');
+		});
 
 		it('closeTo', function() {
 			assert.closeTo(1.5, 1.0, 0.5);

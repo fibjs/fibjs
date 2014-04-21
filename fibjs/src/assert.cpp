@@ -274,17 +274,13 @@ bool objectEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
     for (i = 0; i < len; i++)
     {
         v8::Local<v8::Value> ks = keys->Get(i);
+        v8::Local<v8::String> k = v8::Local<v8::String>::Cast(ks);
 
-        if (!ks->IsNumber() && !ks->IsNumberObject())
+        if (!deepEquals(act->Get(k), exp->Get(k)))
         {
-            v8::Local<v8::String> k = v8::Local<v8::String>::Cast(ks);
-
-            if (!deepEquals(act->Get(k), exp->Get(k)))
-            {
-                s_acts.pop();
-                s_exps.pop();
-                return false;
-            }
+            s_acts.pop();
+            s_exps.pop();
+            return false;
         }
     }
 
@@ -857,7 +853,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         object = v->Get(v8::String::NewFromUtf8(isolate, p,
                                                 v8::String::kNormalString,
                                                 (int)(p1 - p)));
-        
+
         if (object.IsEmpty() || (!object->IsObject() && !object->IsString()))
         {
             retVal = false;
