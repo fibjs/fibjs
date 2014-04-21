@@ -374,7 +374,7 @@ result_t SslSocket::accept(Stream_base *s, obj_ptr<SslSocket_base> &retVal,
 
     obj_ptr<SslSocket> ss = new SslSocket();
     retVal = ss;
-    int sz = m_crts.size();
+    int sz = (int)m_crts.size();
     int i;
     result_t hr;
 
