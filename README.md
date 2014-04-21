@@ -27,7 +27,7 @@
 	yum install subversion
 	yum install readline-devel
 
-### 32bit on ubuntu:
+### 32bit on fedora:
 	yum install glibc-devel.i686
 	yum install libstdc++-static.i686
 	yum install readline-devel.i686
