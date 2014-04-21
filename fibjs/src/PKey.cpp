@@ -110,6 +110,16 @@ result_t PKey::isPrivate(bool &retVal)
 
 result_t PKey::get_publicKey(obj_ptr<PKey_base> &retVal)
 {
+    result_t hr;
+    bool priv;
+
+    hr = isPrivate(priv);
+    if (hr < 0)
+        return hr;
+
+    if (!priv)
+        return CALL_RETURN_NULL;
+
     pk_type_t type = pk_get_type(&m_key);
     int ret;
 
