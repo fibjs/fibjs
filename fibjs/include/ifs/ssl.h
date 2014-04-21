@@ -19,6 +19,7 @@ namespace fibjs
 
 class module_base;
 class SslSocket_base;
+class SslHandler_base;
 class X509Cert_base;
 class Stream_base;
 
@@ -64,6 +65,7 @@ public:
 }
 
 #include "SslSocket.h"
+#include "SslHandler.h"
 #include "X509Cert.h"
 #include "Stream.h"
 
@@ -78,7 +80,8 @@ namespace fibjs
 
 		static ClassData::ClassObject s_object[] = 
 		{
-			{"Socket", SslSocket_base::class_info}
+			{"Socket", SslSocket_base::class_info},
+			{"Handler", SslHandler_base::class_info}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -97,7 +100,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"ssl", NULL, 
-			1, s_method, 1, s_object, 9, s_property, NULL, NULL,
+			1, s_method, 2, s_object, 9, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 

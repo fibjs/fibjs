@@ -11,6 +11,7 @@ class ssl : module
     const Integer BADCERT_NOT_TRUSTED = 8;
 
     static SslSocket new Socket();
+    static SslHandler new Handler();
 
     static readonly X509Cert ca;
 
