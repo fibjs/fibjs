@@ -342,7 +342,7 @@ result_t X509Cert::get_serial(std::string &retVal)
     if (ret != 0)
         return _ssl::setError(ret);
 
-    retVal.resize(sz);
+    retVal.resize(sz - 1);
 
     return 0;
 }
