@@ -293,8 +293,8 @@
  *      TLS_DHE_RSA_WITH_DES_CBC_SHA
  *
  * Uncomment this macro to enable weak ciphersuites
-#define POLARSSL_ENABLE_WEAK_CIPHERSUITES
  */
+#define POLARSSL_ENABLE_WEAK_CIPHERSUITES
 
 /**
  * \def POLARSSL_ECP_XXXX_ENABLED
@@ -637,7 +637,7 @@
  *
  * Enable functions that use the filesystem.
  */
-#define POLARSSL_FS_IO
+//#define POLARSSL_FS_IO
 
 /**
  * \def POLARSSL_NO_DEFAULT_ENTROPY_SOURCES
@@ -1002,7 +1002,7 @@
  *
  * Uncomment to enable use of ZLIB
  */
-#define POLARSSL_ZLIB_SUPPORT
+//#define POLARSSL_ZLIB_SUPPORT
 /* \} name SECTION: PolarSSL feature support */
 
 /**
@@ -1295,7 +1295,7 @@
  *
  * This module provides debugging functions.
  */
-#define POLARSSL_DEBUG_C
+//#define POLARSSL_DEBUG_C
 
 /**
  * \def POLARSSL_DES_C
