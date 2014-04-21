@@ -105,17 +105,27 @@ describe('ssl', function() {
 		svr.asyncRun();
 	});
 
+	function test_handshake() {
+		var s = new net.Socket();
+		s.connect("127.0.0.1", 9080);
+
+		var ss = new ssl.Socket();
+		ss.connect(s);
+		ss.close();
+		s.close();
+	}
+
+	function test_client_cert() {
+		var s = new net.Socket();
+		s.connect("127.0.0.1", 9080);
+
+		var ss = new ssl.Socket(crt, pk);
+		ss.connect(s);
+		ss.close();
+		s.close();
+	}
+
 	it("client verify", function() {
-		function test_handshake() {
-			var s = new net.Socket();
-			s.connect("127.0.0.1", 9080);
-
-			var ss = new ssl.Socket();
-			ss.connect(s);
-			ss.close();
-			s.close();
-		}
-
 		ssl.verification = ssl.VERIFY_OPTIONAL;
 		test_handshake();
 
@@ -127,21 +137,13 @@ describe('ssl', function() {
 	});
 
 	it("server verify", function() {
-		function test_client_cert() {
-			var s = new net.Socket();
-			s.connect("127.0.0.1", 9080);
-
-			var ss = new ssl.Socket(crt, pk);
-			ss.connect(s);
-			ss.close();
-			s.close();
-		}
-
 		sss.verification = ssl.VERIFY_REQUIRED;
 		assert.throws(test_client_cert);
 
 		sss.ca.load(ca_pem);
 		test_client_cert();
+
+		assert.throws(test_handshake);
 	});
 
 	it("echo", function() {
