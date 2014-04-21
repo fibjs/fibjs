@@ -10,6 +10,8 @@ class SslSocket : Stream
 	/*! @brief 设定证书验证模式，缺省为 VERIFY_REQUIRED */
 	Integer verification;
 
+	readonly X509Cert ca;
+
 	readonly X509Cert peerCert;
 
 	/*! @brief 建立一个 tcp 连接 */

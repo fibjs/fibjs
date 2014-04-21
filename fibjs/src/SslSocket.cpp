@@ -202,6 +202,9 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
         obj_ptr<Buffer_base> &m_retVal;
     };
 
+    if (!m_s)
+        return CALL_E_INVALID_CALL;
+
     if (!ac)
         return CALL_E_NOSYNC;
 
@@ -233,6 +236,9 @@ result_t SslSocket::write(Buffer_base *data, exlib::AsyncEvent *ac)
         std::string m_buf;
     };
 
+    if (!m_s)
+        return CALL_E_INVALID_CALL;
+
     if (!ac)
         return CALL_E_NOSYNC;
 
@@ -255,6 +261,9 @@ result_t SslSocket::close(exlib::AsyncEvent *ac)
             return ssl_close_notify(&m_pThis->m_ssl);
         }
     };
+
+    if (!m_s)
+        return CALL_E_INVALID_CALL;
 
     if (!ac)
         return CALL_E_NOSYNC;
@@ -280,6 +289,15 @@ result_t SslSocket::set_verification(int32_t newVal)
         return CALL_E_INVALIDARG;
 
     ssl_set_authmode(&m_ssl, newVal);
+    return 0;
+}
+
+result_t SslSocket::get_ca(obj_ptr<X509Cert_base> &retVal)
+{
+    if (!m_ca)
+        m_ca = new X509Cert();
+
+    retVal = m_ca;
     return 0;
 }
 
@@ -335,17 +353,20 @@ result_t SslSocket::handshake(int32_t *retVal, exlib::AsyncEvent *ac)
 result_t SslSocket::connect(Stream_base *s, const char *server_name,
                             int32_t &retVal, exlib::AsyncEvent *ac)
 {
+    if (m_s)
+        return CALL_E_INVALID_CALL;
 
     if (!ac)
         return CALL_E_NOSYNC;
 
-    if (!s)
-        return CALL_E_INVALIDARG;
-
     m_s = s;
 
     ssl_set_endpoint(&m_ssl, SSL_IS_CLIENT);
-    ssl_set_ca_chain(&m_ssl, &g_ssl.m_ca->m_crt, NULL, NULL);
+
+    if (!m_ca)
+        m_ca = g_ssl.m_ca;
+
+    ssl_set_ca_chain(&m_ssl, &m_ca->m_crt, NULL, NULL);
 
     if (server_name && *server_name)
         ssl_set_hostname(&m_ssl, server_name);
@@ -353,22 +374,12 @@ result_t SslSocket::connect(Stream_base *s, const char *server_name,
     return handshake(&retVal, ac);
 }
 
-result_t SslSocket::accept(Stream_base *s, exlib::AsyncEvent *ac)
-{
-    m_s = s;
-
-    ssl_set_authmode(&m_ssl, m_ssl.authmode);
-    ssl_set_endpoint(&m_ssl, SSL_IS_SERVER);
-
-    ssl_set_session_cache(&m_ssl, ssl_cache_get, &g_ssl.m_cache,
-                          ssl_cache_set, &g_ssl.m_cache);
-
-    return handshake(NULL, ac);
-}
-
 result_t SslSocket::accept(Stream_base *s, obj_ptr<SslSocket_base> &retVal,
                            exlib::AsyncEvent *ac)
 {
+    if (m_s)
+        return CALL_E_INVALID_CALL;
+
     if (!ac)
         return CALL_E_NOSYNC;
 
@@ -385,7 +396,21 @@ result_t SslSocket::accept(Stream_base *s, obj_ptr<SslSocket_base> &retVal,
             return hr;
     }
 
-    return ss->accept(s, ac);
+    ss->m_s = s;
+
+    ssl_set_authmode(&ss->m_ssl, m_ssl.authmode);
+    ssl_set_endpoint(&ss->m_ssl, SSL_IS_SERVER);
+
+    if (m_ca)
+    {
+        ss->m_ca = m_ca;
+        ssl_set_ca_chain(&ss->m_ssl, &m_ca->m_crt, NULL, NULL);
+    }
+
+    ssl_set_session_cache(&ss->m_ssl, ssl_cache_get, &g_ssl.m_cache,
+                          ssl_cache_set, &g_ssl.m_cache);
+
+    return ss->handshake(NULL, ac);
 }
 
 }

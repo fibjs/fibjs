@@ -132,6 +132,27 @@ public:
     ~SslSocket();
 
 public:
+    virtual void enter()
+    {
+        if (!m_s)
+            return;
+
+        if (!m_lock.trylock())
+        {
+            v8::Unlocker unlocker(isolate);
+            m_lock.lock();
+        }
+    }
+
+    virtual void leave()
+    {
+        if (!m_s)
+            return;
+
+        m_lock.unlock();
+    }
+
+public:
     // Stream_base
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                           exlib::AsyncEvent *ac);
@@ -144,6 +165,7 @@ public:
     // SslSocket_base
     virtual result_t get_verification(int32_t &retVal);
     virtual result_t set_verification(int32_t newVal);
+    virtual result_t get_ca(obj_ptr<X509Cert_base> &retVal);
     virtual result_t get_peerCert(obj_ptr<X509Cert_base> &retVal);
     virtual result_t connect(Stream_base *s, const char *server_name, int32_t &retVal, exlib::AsyncEvent *ac);
     virtual result_t accept(Stream_base *s, obj_ptr<SslSocket_base> &retVal, exlib::AsyncEvent *ac);
@@ -156,7 +178,6 @@ private:
     static int my_send(void *ctx, const unsigned char *buf, size_t len);
 
     result_t handshake(int32_t *retVal, exlib::AsyncEvent *ac);
-    result_t accept(Stream_base *s, exlib::AsyncEvent *ac);
 
 public:
     result_t setCert(X509Cert_base *crt, PKey_base *key);
@@ -165,6 +186,7 @@ public:
     ssl_context m_ssl;
 
 private:
+    obj_ptr<X509Cert> m_ca;
     std::vector<obj_ptr<X509Cert_base> > m_crts;
     std::vector<obj_ptr<PKey_base> > m_keys;
     obj_ptr<Stream_base> m_s;

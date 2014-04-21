@@ -29,6 +29,7 @@ public:
 	static result_t _new(X509Cert_base* crt, PKey_base* key, obj_ptr<SslSocket_base>& retVal);
 	virtual result_t get_verification(int32_t& retVal) = 0;
 	virtual result_t set_verification(int32_t newVal) = 0;
+	virtual result_t get_ca(obj_ptr<X509Cert_base>& retVal) = 0;
 	virtual result_t get_peerCert(obj_ptr<X509Cert_base>& retVal) = 0;
 	virtual result_t connect(Stream_base* s, const char* server_name, int32_t& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t accept(Stream_base* s, obj_ptr<SslSocket_base>& retVal, exlib::AsyncEvent* ac) = 0;
@@ -39,6 +40,7 @@ public:
 	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_get_peerCert(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_accept(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -66,13 +68,14 @@ namespace fibjs
 		static ClassData::ClassProperty s_property[] = 
 		{
 			{"verification", s_get_verification, s_set_verification},
+			{"ca", s_get_ca, block_set},
 			{"peerCert", s_get_peerCert, block_set}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"SslSocket", s__new, 
-			2, s_method, 0, NULL, 2, s_property, NULL, NULL,
+			2, s_method, 0, NULL, 3, s_property, NULL, NULL,
 			&Stream_base::class_info()
 		};
 
@@ -101,6 +104,18 @@ namespace fibjs
 		hr = pInst->set_verification(v0);
 
 		PROPERTY_SET_LEAVE();
+	}
+
+	inline void SslSocket_base::s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		obj_ptr<X509Cert_base> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(SslSocket_base);
+
+		hr = pInst->get_ca(vr);
+
+		METHOD_RETURN();
 	}
 
 	inline void SslSocket_base::s_get_peerCert(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
