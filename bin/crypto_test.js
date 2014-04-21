@@ -474,6 +474,8 @@ describe('crypto', function() {
 			assert.deepEqual(cert.dump(), []);
 
 			cert.load(ca1);
+			assert.equal(cert.version, 3);
+			assert.equal(cert.serial, "17");
 			assert.equal(cert.issuer, "C=NL, O=PolarSSL, CN=PolarSSL Test CA");
 			assert.equal(cert.subject, "C=NL, O=PolarSSL, CN=www.example.com");
 			assert.deepEqual(cert.notBefore, new Date("May 10 13:23:41 2012 GMT"));
@@ -607,7 +609,7 @@ describe('crypto', function() {
 			cert = req.sign("C=CN, O=baoz.cn", pk);
 			assert.equal(cert.issuer, "C=CN, O=baoz.cn");
 			assert.equal(cert.subject, "C=CN, O=baoz.cn, CN=baoz.me");
-			assert.equal(cert.publicKey.exportPem(), pub_rsa1024_pem);
+			assert.equal(cert.publicKey, pub_rsa1024_pem);
 		});
 
 		it("ca/pathlen", function() {
