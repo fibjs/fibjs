@@ -1,7 +1,16 @@
 
 /*! @brief ssl 协议转换处理器
 
- 用以将数据流转换为 ssl 流协议
+ 用以将数据流转换为 ssl 流协议。SslHandler 是对 SslSocket 的封装，用于构建服务器，逻辑上相当于：
+ @code
+ var ss = new ssl.Socket(crt, key);
+
+ function(s){
+ 	var s1 = ss.accept(s);
+ 	hdlr.invoke(s1);
+ 	s1.close();
+ }
+ @endcode
  */
 class SslHandler: Handler
 {

@@ -1,5 +1,20 @@
 
 /*! @brief ssl 服务器对象，可方便创建一个标准多纤程 ssl 服务器
+
+SslServer 对象是将 TcpServer 和 SslHandler 组合封装的对象，方便快速搭建服务器，逻辑上相当于：
+ @code
+ var svr = new net.TcpServer(addr, port, new ssl.Handler(crt, key, function(req){
+	...
+ }));
+ @endcode
+
+ 创建方法：
+ @code
+ var ssl = require("ssl");
+ var svr = new http.Server(crt, key, function(req){
+     ...
+ });
+ @endcode
  */
 class SslServer : object
 {
