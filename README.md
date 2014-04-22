@@ -4,7 +4,6 @@
 	CMake 2.6 or newer
 	GNU Make 3.81 or newer
 	libexecinfo (FreeBSD and OpenBSD only)
-	libreadline
 
 ----------------------------------
 ### on ubuntu:
@@ -12,11 +11,9 @@
 	apt-get install make
 	apt-get install cmake
 	apt-get install subversion
-	apt-get install libreadline-dev
 
 ### 32bit on ubuntu:
 	apt-get install g++-multilib
-	apt-get install lib32readline-dev
 
 ----------------------------------
 ### on fedora:
@@ -25,12 +22,10 @@
 	yum install make
 	yum install cmake
 	yum install subversion
-	yum install readline-devel
 
 ### 32bit on fedora:
 	yum install glibc-devel.i686
 	yum install libstdc++-static.i686
-	yum install readline-devel.i686
 
 ----------------------------------
 ### on osx:
