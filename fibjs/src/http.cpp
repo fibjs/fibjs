@@ -16,6 +16,7 @@
 #include "HttpRequest.h"
 #include "SslSocket.h"
 #include "BufferedStream.h"
+#include "map"
 
 namespace fibjs
 {
@@ -139,53 +140,85 @@ result_t http_base::request(const char *method, const char *url,
                             SeekableStream_base *body, v8::Local<v8::Object> headers,
                             obj_ptr<HttpResponse_base> &retVal)
 {
-    result_t hr;
-    std::string hostname;
-    int nPort = 80;
-    bool ssl = false;
-    obj_ptr<HttpRequest> req;
+    std::string location;
+    std::map<std::string, bool> urls;
 
+    while (true)
     {
-        obj_ptr<Url> u = new Url();
+        urls[url] = true;
 
-        hr = u->parse(url);
+        result_t hr;
+        std::string hostname;
+        int nPort = 80;
+        int32_t status;
+        bool ssl = false;
+        obj_ptr<HttpRequest> req;
+        Variant v;
+
+        {
+            obj_ptr<Url> u = new Url();
+
+            hr = u->parse(url);
+            if (hr < 0)
+                return hr;
+
+            std::string host, port, path;
+            std::string protocol;
+
+            u->get_protocol(protocol);
+
+            if (!qstrcmp(protocol.c_str(), "https:"))
+                ssl = true;
+            else if (qstrcmp(protocol.c_str(), "http:"))
+                return Runtime::setError("unknown protocol");
+
+            u->get_host(host);
+            if (host.empty())
+                return Runtime::setError("unknown host");
+
+            u->get_hostname(hostname);
+            u->get_port(port);
+            u->get_path(path);
+
+            if (!port.empty())
+                nPort = atoi(port.c_str());
+            else
+                nPort = ssl ? 443 : 80;
+
+            req = new HttpRequest();
+
+            req->set_address(path.c_str());
+            req->addHeader("host", host.c_str());
+            req->addHeader(headers);
+
+            if (body)
+                req->set_body(body);
+        }
+
+        hr = ac_request(hostname.c_str(), nPort, req, ssl, retVal);
         if (hr < 0)
             return hr;
 
-        std::string host, port, path;
-        std::string protocol;
+        hr = retVal->get_status(status);
+        if (hr < 0)
+            return hr;
 
-        u->get_protocol(protocol);
+        if (status != 302 && status != 301)
+            return 0;
 
-        if (!qstrcmp(protocol.c_str(), "https:"))
-            ssl = true;
-        else if (qstrcmp(protocol.c_str(), "http:"))
-            return Runtime::setError("bad url.");
+        hr = retVal->firstHeader("location", v);
+        if (hr < 0)
+            return hr;
 
-        u->get_host(host);
-        if (host.empty())
-            return Runtime::setError("bad url.");
+        location = v.string();
 
-        u->get_hostname(hostname);
-        u->get_port(port);
-        u->get_path(path);
+        if (urls.find(location) != urls.end())
+            return Runtime::setError("redirect cycle");
 
-        if (!port.empty())
-            nPort = atoi(port.c_str());
-        else
-            nPort = ssl ? 443 : 80;
-
-        req = new HttpRequest();
-
-        req->set_address(path.c_str());
-        req->addHeader("host", host.c_str());
-        req->addHeader(headers);
-
-        if (body)
-            req->set_body(body);
+        url = location.c_str();
     }
 
-    return ac_request(hostname.c_str(), nPort, req, ssl, retVal);
+    return 0;
 }
 
 result_t http_base::request(const char *method, const char *url,
