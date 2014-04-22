@@ -25,24 +25,6 @@ result_t _new_httpServer(const char *addr, int32_t port,
     return 0;
 }
 
-result_t HttpServer_base::_new(int32_t port, const char *root,
-                               obj_ptr<HttpServer_base> &retVal)
-{
-    return _new("", port, root, retVal);
-}
-
-result_t HttpServer_base::_new(const char *addr, int32_t port,
-                               const char *root, obj_ptr<HttpServer_base> &retVal)
-{
-    obj_ptr<Handler_base> hdlr;
-
-    result_t hr = http_base::fileHandler(root, hdlr);
-    if (hr < 0)
-        return hr;
-
-    return _new_httpServer(addr, port, hdlr, retVal);
-}
-
 result_t HttpServer_base::_new(int32_t port, v8::Local<v8::Value> hdlr,
                                obj_ptr<HttpServer_base> &retVal)
 {
