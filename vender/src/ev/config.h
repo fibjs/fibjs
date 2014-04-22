@@ -13,7 +13,7 @@
 #define HAVE_FLOOR 1
 
 /* Define to 1 if you have the `inotify_init' function. */
-#define HAVE_INOTIFY_INIT 1
+#define HAVE_INOTIFY_INIT 0
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
@@ -46,19 +46,19 @@
 
 #ifdef Linux
 /* Define to 1 if you have the `eventfd' function. */
-#define HAVE_EVENTFD 1
+#define HAVE_EVENTFD 0
 
 /* Define to 1 if you have the `signalfd' function. */
-#define HAVE_SIGNALFD 1
+#define HAVE_SIGNALFD 0
 
 /* Define to 1 if you have the <sys/epoll.h> header file. */
 #define HAVE_SYS_EPOLL_H 1
 
 /* Define to 1 to use the syscall interface for clock_gettime */
-#define HAVE_CLOCK_SYSCALL 1
+#define HAVE_CLOCK_SYSCALL 0
 
 /* Define to 1 if you have the <sys/inotify.h> header file. */
-#define HAVE_SYS_INOTIFY_H 1
+#define HAVE_SYS_INOTIFY_H 0
 
 #elif defined(Solaris)
 
