@@ -1,26 +1,26 @@
 /*
- * HttpServer.h
+ * HttpsServer.h
  *
- *  Created on: Dec 8, 2013
+ *  Created on: Apr 22, 2014
  *      Author: lion
  */
 
-#ifndef HTTPSERVER_H_
-#define HTTPSERVER_H_
+#ifndef _fj_HTTPSSERVER_H_
+#define _fj_HTTPSSERVER_H_
 
-#include "ifs/HttpServer.h"
-#include "TcpServer.h"
+#include "ifs/HttpsServer.h"
+#include "SslServer.h"
 #include "HttpHandler.h"
 
 namespace fibjs
 {
 
-class HttpServer: public HttpServer_base
+class HttpsServer: public HttpsServer_base
 {
     FIBER_FREE();
 
 public:
-    // HttpServer_base
+    // HttpsServer_base
     virtual result_t run(exlib::AsyncEvent *ac);
     virtual result_t asyncRun();
     virtual result_t get_socket(obj_ptr<Socket_base> &retVal);
@@ -32,17 +32,21 @@ public:
     virtual result_t set_maxHeadersCount(int32_t newVal);
     virtual result_t get_maxUploadSize(int32_t &retVal);
     virtual result_t set_maxUploadSize(int32_t newVal);
+    virtual result_t get_verification(int32_t &retVal);
+    virtual result_t set_verification(int32_t newVal);
+    virtual result_t get_ca(obj_ptr<X509Cert_base> &retVal);
     virtual result_t get_httpStats(obj_ptr<Stats_base> &retVal);
     virtual result_t get_tcpStats(obj_ptr<Stats_base> &retVal);
 
 public:
-    result_t create(const char *addr, int32_t port, v8::Local<v8::Value> hdlr);
+    result_t create(v8::Local<v8::Array> certs, const char *addr, int32_t port, v8::Local<v8::Value> hdlr);
+    result_t create(X509Cert_base *crt, PKey_base *key, const char *addr, int32_t port, v8::Local<v8::Value> hdlr);
 
 private:
-    obj_ptr<TcpServer> m_server;
+    obj_ptr<SslServer_base> m_server;
     obj_ptr<HttpHandler> m_handler;
 };
 
 } /* namespace fibjs */
 
-#endif /* HTTPSERVER_H_ */
+#endif /* _fj_HTTPSSERVER_H_ */

@@ -50,7 +50,7 @@ result_t SslHandler::init(v8::Local<v8::Array> certs, v8::Local<v8::Value> hdlr)
     if (hr < 0)
         return hr;
 
-    m_socket->set_verification(ssl_base::_VERIFY_OPTIONAL);
+    m_socket->set_verification(ssl_base::_VERIFY_NONE);
     return 0;
 }
 result_t SslHandler::init(X509Cert_base *crt, PKey_base *key, v8::Local<v8::Value> hdlr)
@@ -65,7 +65,7 @@ result_t SslHandler::init(X509Cert_base *crt, PKey_base *key, v8::Local<v8::Valu
     if (hr < 0)
         return hr;
 
-    m_socket->set_verification(ssl_base::_VERIFY_OPTIONAL);
+    m_socket->set_verification(ssl_base::_VERIFY_NONE);
     return 0;
 }
 

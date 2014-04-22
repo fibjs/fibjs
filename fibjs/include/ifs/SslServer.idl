@@ -1,0 +1,59 @@
+
+/*! @brief tcp 服务器对象，可方便创建一个标准多纤程 tcp 服务器
+ */
+class SslServer : object
+{
+	/*! @brief TcpServer 构造函数，在所有本机地址侦听
+	  @param port 指定 tcp 服务器侦听端口
+	  @param listener 指定 tcp 接收到的内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+	 */
+	SslServer(Array certs, Integer port, Value listener);
+
+	/*! @brief TcpServer 构造函数
+	  @param addr 指定 tcp 服务器侦听地址，为 "" 则在本机所有地址侦听
+	  @param port 指定 tcp 服务器侦听端口
+	  @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+	 */
+	SslServer(Array certs, String addr, Integer port, Value listener);
+	
+	/*! @brief TcpServer 构造函数，在所有本机地址侦听
+	  @param port 指定 tcp 服务器侦听端口
+	  @param listener 指定 tcp 接收到的内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+	 */
+	SslServer(X509Cert crt, PKey key, Integer port, Value listener);
+
+	/*! @brief TcpServer 构造函数
+	  @param addr 指定 tcp 服务器侦听地址，为 "" 则在本机所有地址侦听
+	  @param port 指定 tcp 服务器侦听端口
+	  @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+	 */
+	SslServer(X509Cert crt, PKey key, String addr, Integer port, Value listener);
+
+	/*! @brief 运行 tcp 服务器并开始接收和分发连接，此函数不会返回 */
+	run() async;
+
+	/*! @brief 异步运行 tcp 服务器并开始接收和分发连接，调用后立即返回，服务器在后台运行 */
+	asyncRun();
+
+	/*! @brief tcp 服务器当前侦听的 Socket 对象  */
+	readonly Socket socket;
+	
+	/*! @brief 设定证书验证模式，缺省为 VERIFY_REQUIRED */
+	Integer verification;
+
+	readonly X509Cert ca;
+
+	/*! @brief 查询当前服务器运行状态
+	 
+	  返回的结果为一个 Stats 对象，初始化计数器如下：
+	  @code
+	  {
+	      total : 1000,      // 总计处理的连接
+	      connections : 100, // 当前正在处理的连接
+	      accept : 10,       // 上次查询后新建的连接
+	      close : 10         // 上次查询后关闭的连接
+	  }
+	  @endcode
+	 */
+	readonly Stats stats;
+};

@@ -12,19 +12,6 @@
 namespace fibjs
 {
 
-result_t _new_httpServer(const char *addr, int32_t port,
-                         Handler_base *hdlr, obj_ptr<HttpServer_base> &retVal)
-{
-    obj_ptr<HttpServer> svr = new HttpServer();
-    result_t hr = svr->create(addr, port, hdlr);
-    if (hr < 0)
-        return hr;
-
-    retVal = svr;
-
-    return 0;
-}
-
 result_t HttpServer_base::_new(int32_t port, v8::Local<v8::Value> hdlr,
                                obj_ptr<HttpServer_base> &retVal)
 {
@@ -34,18 +21,29 @@ result_t HttpServer_base::_new(int32_t port, v8::Local<v8::Value> hdlr,
 result_t HttpServer_base::_new(const char *addr, int32_t port, v8::Local<v8::Value> hdlr,
                                obj_ptr<HttpServer_base> &retVal)
 {
-    obj_ptr<Handler_base> hdlr1;
-    result_t hr = JSHandler::New(hdlr, hdlr1);
+    result_t hr;
+
+    obj_ptr<HttpServer> svr = new HttpServer();
+    hr = svr->create(addr, port, hdlr);
     if (hr < 0)
         return hr;
 
-    return _new_httpServer(addr, port, hdlr1, retVal);
+    retVal = svr;
+    return 0;
 }
 
-result_t HttpServer::create(const char *addr, int32_t port, Handler_base *hdlr)
+result_t HttpServer::create(const char *addr, int32_t port, v8::Local<v8::Value> hdlr)
 {
+    obj_ptr<Handler_base> hdlr1;
+    result_t hr;
+
+    hr = JSHandler::New(hdlr, hdlr1);
+    if (hr < 0)
+        return hr;
+
     m_server = new TcpServer();
-    m_handler = new HttpHandler(hdlr);
+    m_handler = new HttpHandler(hdlr1);
+
     return m_server->create(addr, port, m_handler);
 }
 

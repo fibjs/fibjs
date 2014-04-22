@@ -12,6 +12,7 @@ class ssl : module
 
     static SslSocket new Socket();
     static SslHandler new Handler();
+    static SslServer new Server();
 
     static readonly X509Cert ca;
 
