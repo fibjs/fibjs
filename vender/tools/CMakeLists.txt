@@ -5,7 +5,7 @@ project(vender)
 file(GLOB_RECURSE src_list "../src/*.c*")
 add_library(vender ${src_list})
 
-set(flags "-c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections")
+set(flags "-c -fshort-wchar -minline-all-stringops -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections")
 set(link_flags "")
 
 if(${BUILD_TYPE} STREQUAL "Release")
