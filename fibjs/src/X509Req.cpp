@@ -301,7 +301,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
         else
         {
             mpi_init(&serial);
-            mpi_lset(&serial, 0);
+            mpi_lset(&serial, 1);
         }
 
         ret = x509write_crt_set_serial(&m_crt, &serial);

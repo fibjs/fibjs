@@ -610,6 +610,7 @@ describe('crypto', function() {
 			assert.equal(cert.issuer, "C=CN, O=baoz.cn");
 			assert.equal(cert.subject, "C=CN, O=baoz.cn, CN=baoz.me");
 			assert.equal(cert.publicKey, pub_rsa1024_pem);
+			assert.equal(cert.serial, "1");
 		});
 
 		it("ca/pathlen", function() {
