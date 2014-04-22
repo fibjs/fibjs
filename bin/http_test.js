@@ -9,6 +9,19 @@ var encoding = require('encoding');
 var zlib = require('zlib');
 var coroutine = require("coroutine");
 
+var ssl = require("ssl");
+var crypto = require("crypto");
+
+var pk = new crypto.PKey();
+pk.genRsaKey(1024);
+
+var crt = new crypto.X509Req("CN=localhost", pk).sign("CN=baoz.me", pk);
+var ca = new crypto.X509Req("CN=baoz.me", pk).sign("CN=baoz.me", pk, {
+	ca: true
+});
+
+var ca_pem = ca.dump()[0];
+
 function Step() {
 	this.step = 0;
 	this.wait = function(n) {
@@ -732,6 +745,76 @@ describe(
 				});
 			});
 		});
+
+		describe("https server/https request", function() {
+			ssl.ca.load(ca_pem);
+
+			it("server", function() {
+				new http.HttpsServer(crt, pk, 8883, function(r) {
+					r.response.body.write(new Buffer(r.address));
+					r.body.copyTo(r.response.body);
+					if (r.hasHeader("test_header"))
+						r.response.body.write(new Buffer(r
+							.firstHeader("test_header")));
+				}).asyncRun();
+			});
+
+			describe("request", function() {
+				it("simple", function() {
+					assert.equal(http.request("GET",
+							"https://127.0.0.1:8883/request").body.read()
+						.toString(), "/request");
+				});
+
+				it("body", function() {
+					assert.equal(http.request("GET",
+							"https://127.0.0.1:8883/request:", "body").body
+						.read().toString(), "/request:body");
+				});
+
+				it("header", function() {
+					assert.equal(http.request("GET",
+						"https://127.0.0.1:8883/request:", {
+							"test_header": "header"
+						}).body.read().toString(), "/request:header");
+				});
+			});
+
+			describe("get", function() {
+				it("simple", function() {
+					assert.equal(
+						http.get("https://127.0.0.1:8883/request").body
+						.read().toString(), "/request");
+				});
+
+				it("header", function() {
+					assert.equal(http.get("https://127.0.0.1:8883/request:", {
+						"test_header": "header"
+					}).body.read().toString(), "/request:header");
+				});
+			});
+
+			describe("post", function() {
+				it("simple", function() {
+					assert.equal(
+						http.post("https://127.0.0.1:8883/request").body
+						.read().toString(), "/request");
+				});
+
+				it("body", function() {
+					assert.equal(http.post(
+							"https://127.0.0.1:8883/request:", "body").body
+						.read().toString(), "/request:body");
+				});
+
+				it("header", function() {
+					assert.equal(http.post(
+						"https://127.0.0.1:8883/request:", {
+							"test_header": "header"
+						}).body.read().toString(), "/request:header");
+				});
+			});
+		});
 	});
 
-// test.run(console.DEBUG);
+//test.run(console.DEBUG);
