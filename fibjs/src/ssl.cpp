@@ -44,16 +44,4 @@ result_t ssl_base::set_verification(int32_t newVal)
     return 0;
 }
 
-result_t ssl_base::connect(Stream_base *s, const char *server_name,
-                           obj_ptr<SslSocket_base> &retVal, exlib::AsyncEvent *ac)
-{
-    if (!ac)
-        return CALL_E_NOSYNC;
-
-    int32_t ret;
-
-    retVal = new SslSocket();
-    return retVal->connect(s, server_name, ret, ac);
-}
-
 }

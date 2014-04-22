@@ -1,23 +1,39 @@
-/*! @brief 数据库访问模块 */
+/*! @brief ssl/tls 模块 */
 class ssl : module
 {
+    /*! @brief 证书验证模式，不验证 */
     const Integer VERIFY_NONE = 0;
+
+    /*! @brief 证书验证模式，可选验证，允许验证不通过 */
     const Integer VERIFY_OPTIONAL = 1;
+
+    /*! @brief 证书验证模式，要求验证，验证不通过则中断 */
     const Integer VERIFY_REQUIRED = 2;
 
+    /*! @brief 证书验证结果，证书超时 */
     const Integer BADCERT_EXPIRED = 1;
+
+    /*! @brief 证书验证结果，证书被撤销 */
     const Integer BADCERT_REVOKED = 2;
+
+    /*! @brief 证书验证结果，证书名错误 */
     const Integer BADCERT_CN_MISMATCH = 4;
+
+    /*! @brief 证书验证结果，证书不可信 */
     const Integer BADCERT_NOT_TRUSTED = 8;
 
+    /*! @brief 创建一个 SslSocket 对象，参见 SslSocket */
     static SslSocket new Socket();
+
+    /*! @brief 创建一个 SslHandler 对象，参见 SslHandler */
     static SslHandler new Handler();
+
+    /*! @brief 创建一个 SslServer 对象，参见 SslServer */
     static SslServer new Server();
 
+    /*! @brief 全局证书，用于 ssl 客户端模式验证服务器证书 */
     static readonly X509Cert ca;
 
 	/*! @brief 设定证书验证模式，缺省为 VERIFY_REQUIRED */
 	static Integer verification;
-
-    static SslSocket connect(Stream s, String server_name) async;
 };

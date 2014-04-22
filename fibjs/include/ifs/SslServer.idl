@@ -1,15 +1,41 @@
 
-/*! @brief tcp 服务器对象，可方便创建一个标准多纤程 tcp 服务器
+/*! @brief ssl 服务器对象，可方便创建一个标准多纤程 ssl 服务器
  */
 class SslServer : object
 {
 	/*! @brief TcpServer 构造函数，在所有本机地址侦听
+	  @param certs 服务器证书列表，格式为
+	  	@code
+	  	[
+	  		{
+				crt: [X509Cert object],
+				key: [PKey object]
+	  		},
+	  		{
+				crt: [X509Cert object],
+				key: [PKey object]
+	  		}
+	  	]
+	  	@endcode
 	  @param port 指定 tcp 服务器侦听端口
 	  @param listener 指定 tcp 接收到的内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
 	 */
 	SslServer(Array certs, Integer port, Value listener);
 
 	/*! @brief TcpServer 构造函数
+	  @param certs 服务器证书列表，格式为
+	  	@code
+	  	[
+	  		{
+				crt: [X509Cert object],
+				key: [PKey object]
+	  		},
+	  		{
+				crt: [X509Cert object],
+				key: [PKey object]
+	  		}
+	  	]
+	  	@endcode
 	  @param addr 指定 tcp 服务器侦听地址，为 "" 则在本机所有地址侦听
 	  @param port 指定 tcp 服务器侦听端口
 	  @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
@@ -17,12 +43,16 @@ class SslServer : object
 	SslServer(Array certs, String addr, Integer port, Value listener);
 	
 	/*! @brief TcpServer 构造函数，在所有本机地址侦听
+	  @param crt X509Cert 证书，用于客户端验证服务器
+	  @param key PKey 私钥，用于与客户端会话
 	  @param port 指定 tcp 服务器侦听端口
 	  @param listener 指定 tcp 接收到的内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
 	 */
 	SslServer(X509Cert crt, PKey key, Integer port, Value listener);
 
 	/*! @brief TcpServer 构造函数
+	  @param crt X509Cert 证书，用于客户端验证服务器
+	  @param key PKey 私钥，用于与客户端会话
 	  @param addr 指定 tcp 服务器侦听地址，为 "" 则在本机所有地址侦听
 	  @param port 指定 tcp 服务器侦听端口
 	  @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
@@ -41,6 +71,7 @@ class SslServer : object
 	/*! @brief 设定证书验证模式，缺省为 VERIFY_REQUIRED */
 	Integer verification;
 
+	/*! @brief 客户端证书验证证书链*/
 	readonly X509Cert ca;
 
 	/*! @brief 查询当前服务器运行状态

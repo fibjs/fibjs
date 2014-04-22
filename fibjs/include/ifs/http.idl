@@ -11,6 +11,7 @@ class http : module
 	/*! @brief 创建一个 http 服务器，参见 HttpServer */
 	static HttpServer new Server();
 
+	/*! @brief 创建一个 https 服务器，参见 HttpsServer */
 	static HttpsServer new HttpsServer();
 
 	/*! @brief 创建一个 http 协议处理器对象，将流对象的数据转变为 http 消息对象
@@ -32,7 +33,7 @@ class http : module
 	 @param host 指定服务器的域名或地址
 	 @param port 指定服务器的端口
 	 @param req 要发送的 HttpRequest 对象
-	 @param https 指定使用 ssl 连接服务器
+	 @param ssl 指定使用 ssl 连接服务器
 	 @return 返回服务器响应，缺省为 false
 	 */
 	static HttpResponse request(String host, Integer port, HttpRequest req, Boolean ssl = false) async;
