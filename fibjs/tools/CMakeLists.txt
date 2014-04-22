@@ -11,18 +11,18 @@ set(flags "-c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -W
 set(link_flags " ")
 
 if(${OS_TYPE} STREQUAL "Darwin")
-	target_link_libraries(fibjs pthread dl readline)
+	target_link_libraries(fibjs pthread dl)
 endif()
 
 if(${OS_TYPE} STREQUAL "Linux")
 	set(link_flags "-static-libgcc -static-libstdc++ -Wl,--no-as-needed")
-	target_link_libraries(fibjs pthread dl rt readline)
+	target_link_libraries(fibjs pthread dl rt)
 endif()
 
 if(${OS_TYPE} STREQUAL "FreeBSD")
 	find_library(execinfo execinfo "/usr/local/lib" "/usr/lib")
 	target_link_libraries(fibjs ${execinfo})
-	target_link_libraries(fibjs pthread kvm readline)
+	target_link_libraries(fibjs pthread kvm)
 endif()
 
 

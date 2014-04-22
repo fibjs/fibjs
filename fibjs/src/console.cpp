@@ -31,9 +31,8 @@ inline int64_t Ticks()
 }
 
 #else
+#include <dlfcn.h>
 #include <sys/time.h>
-#include <readline/readline.h>
-#include <readline/history.h>
 
 inline int64_t Ticks()
 {
@@ -325,25 +324,53 @@ result_t console_base::print(const char *fmt, const v8::FunctionCallbackInfo<v8:
 result_t console_base::readLine(const char *msg, std::string &retVal,
                                 exlib::AsyncEvent *ac)
 {
+#ifndef _WIN32
+    static bool _init = false;
+    static char *(*_readline)(const char *);
+    static void (*_add_history)(char *);
+
+    if (!_init)
+    {
+        _init = true;
+
+#ifdef MacOS
+        void *handle = dlopen("libreadline.dylib", RTLD_LAZY);
+#else
+        void *handle = dlopen("libreadline.so", RTLD_LAZY);
+#endif
+
+        if (handle)
+        {
+            _readline = (char *(*)(const char *))dlsym(handle, "readline");
+            _add_history = (void (*)(char *))dlsym(handle, "add_history");
+        }
+    }
+#endif
+
     if (!ac)
     {
         flushLog();
         return CALL_E_NOSYNC;
     }
 
-#ifdef _WIN32
-    MyAppender::getter()->out(msg);
-    std::getline(std::cin, retVal);
-#else
-    char *line;
-
-    line = readline(msg);
-    if (line != NULL && *line)
+#ifndef _WIN32
+    if (_readline && _add_history)
     {
-        add_history(line);
-        retVal = line;
+        char *line;
+
+        line = _readline(msg);
+        if (line != NULL && *line)
+        {
+            _add_history(line);
+            retVal = line;
+        }
     }
+    else
 #endif
+    {
+        MyAppender::getter()->out(msg);
+        std::getline(std::cin, retVal);
+    }
 
     return 0;
 }
