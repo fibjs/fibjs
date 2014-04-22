@@ -33,7 +33,7 @@ public:
 	// http_base
 	static result_t handler(v8::Local<v8::Value> hdlr, obj_ptr<HttpHandler_base>& retVal);
 	static result_t fileHandler(const char* root, obj_ptr<Handler_base>& retVal);
-	static result_t request(const char* host, int32_t port, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t request(const char* host, int32_t port, HttpRequest_base* req, bool ssl, obj_ptr<HttpResponse_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t request(const char* method, const char* url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 	static result_t request(const char* method, const char* url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 	static result_t request(const char* method, const char* url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
@@ -54,7 +54,7 @@ public:
 	static void s_post(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-	ASYNC_STATICVALUE4(http_base, request, const char*, int32_t, HttpRequest_base*, obj_ptr<HttpResponse_base>);
+	ASYNC_STATICVALUE5(http_base, request, const char*, int32_t, HttpRequest_base*, bool, obj_ptr<HttpResponse_base>);
 };
 
 }
@@ -131,13 +131,14 @@ namespace fibjs
 	{
 		obj_ptr<HttpResponse_base> vr;
 
-		METHOD_ENTER(3, 3);
+		METHOD_ENTER(4, 3);
 
 		ARG_String(0);
 		ARG(int32_t, 1);
 		ARG(obj_ptr<HttpRequest_base>, 2);
+		OPT_ARG(bool, 3, false);
 
-		hr = ac_request(v0, v1, v2, vr);
+		hr = ac_request(v0, v1, v2, v3, vr);
 
 		METHOD_OVER(3, 2);
 
