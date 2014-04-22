@@ -6,7 +6,7 @@ file(GLOB_RECURSE src_list "../src/*.c*")
 add_executable(fibjs ${src_list})
 
 
-set(flags "-c -fshort-wchar -minline-all-stringops -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections")
+set(flags "-c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections")
 
 set(link_flags " ")
 
@@ -15,7 +15,7 @@ if(${OS_TYPE} STREQUAL "Darwin")
 endif()
 
 if(${OS_TYPE} STREQUAL "Linux")
-	set(link_flags "-static-libgcc -static-libstdc++ -Wl,--no-as-needed")
+	set(link_flags "-static-libgcc -static-libstdc++ -Wl,--no-as-needed -Wl,--wrap=memcpy")
 	target_link_libraries(fibjs pthread dl rt)
 endif()
 
