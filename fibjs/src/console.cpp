@@ -11,6 +11,7 @@
 #include "ifs/process.h"
 #include <sstream>
 #include "MyAppender.h"
+ #include <stdlib.h>
 
 #ifdef _WIN32
 #include <windows.h>
