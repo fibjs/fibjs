@@ -135,9 +135,8 @@ public:
     void *getInstance(void *o);
     void *getInstance(v8::Local<v8::Value> o)
     {
-        if (o.IsEmpty() || !o->IsObject()
-                || !v8::Local<v8::FunctionTemplate>::New(isolate, m_class)->HasInstance(
-                    o))
+        if (o.IsEmpty() || !o->IsObject() ||
+                !v8::Local<v8::FunctionTemplate>::New(isolate, m_class)->HasInstance(o))
             return NULL;
 
         return o->ToObject()->GetAlignedPointerFromInternalField(0);

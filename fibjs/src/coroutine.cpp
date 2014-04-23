@@ -166,12 +166,13 @@ result_t coroutine_base::current(obj_ptr<Fiber_base> &retVal)
     return 0;
 }
 
-result_t coroutine_base::sleep(int32_t ms)
+result_t coroutine_base::sleep(int32_t ms, exlib::AsyncEvent* ac)
 {
-    v8::Unlocker unlocker(isolate);
-    exlib::Fiber::sleep(ms);
+    if (!ac)
+        return CALL_E_NOSYNC;
 
-    return 0;
+    ac->sleep(ms);
+    return CALL_E_PENDDING;
 }
 
 }

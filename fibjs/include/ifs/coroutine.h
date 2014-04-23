@@ -35,7 +35,7 @@ public:
 	static result_t parallel(v8::Local<v8::Array> data, v8::Local<v8::Function> func, v8::Local<v8::Array>& retVal);
 	static result_t parallel(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
 	static result_t current(obj_ptr<Fiber_base>& retVal);
-	static result_t sleep(int32_t ms);
+	static result_t sleep(int32_t ms, exlib::AsyncEvent* ac);
 
 	DECLARE_CLASSINFO(coroutine_base);
 
@@ -44,6 +44,9 @@ public:
 	static void s_parallel(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_current(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_sleep(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+	ASYNC_STATIC1(coroutine_base, sleep, int32_t);
 };
 
 }
@@ -144,7 +147,7 @@ namespace fibjs
 
 		OPT_ARG(int32_t, 0, 0);
 
-		hr = sleep(v0);
+		hr = ac_sleep(v0);
 
 		METHOD_VOID();
 	}
