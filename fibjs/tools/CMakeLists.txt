@@ -15,7 +15,7 @@ if(${OS_TYPE} STREQUAL "Darwin")
 endif()
 
 if(${OS_TYPE} STREQUAL "Linux")
-	set(link_flags "-static-libgcc -static-libstdc++ -Wl,--no-as-needed -Wl,--wrap=memcpy")
+	set(link_flags "-static-libgcc -static-libstdc++ -Wl,--no-as-needed")
 	target_link_libraries(fibjs pthread dl rt)
 endif()
 
@@ -28,7 +28,7 @@ endif()
 
 if(${BUILD_TYPE} STREQUAL "Release")
 	set(flags "${flags} -O3 -m64")
-	set(link_flags "${link_flags} -m64")
+	set(link_flags "${link_flags} -Wl,--wrap=memcpy -m64")
 	add_definitions("-DNDEBUG=1")
 endif()
 
