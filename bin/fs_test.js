@@ -167,6 +167,13 @@ describe('fs', function() {
 		f.close();
 	});
 
+	it("seek 64 bits", function() {
+		f = fs.open('fs_test.js');
+		f.seek(f.size() + 8589934592, fs.SEEK_SET);
+		assert.equal(f.tell(), f.size() + 8589934592);
+		f.close();
+	});
+
 	it("copyTo", function() {
 		f = fs.open('fs_test.js');
 		f1 = fs.open('fs_test.js.bak', 'w');
