@@ -1,4 +1,5 @@
 #include "ifs/File.h"
+#include "Stat.h"
 
 #ifndef _fj_FILE_H
 #define _fj_FILE_H
@@ -9,8 +10,11 @@ namespace fibjs
 class File : public File_base
 {
 public:
-    File(FILE *file = NULL, bool pipe = false) :
-        m_file(file), m_pipe(pipe)
+    File(FILE *pipe) : m_pipe(pipe), m_fd(_fileno(pipe))
+    {
+    }
+
+    File() : m_pipe(NULL), m_fd(-1)
     {
     }
 
@@ -50,8 +54,8 @@ public:
 
 protected:
     std::string name;
-    FILE *m_file;
-    bool m_pipe;
+    FILE *m_pipe;
+    int m_fd;
 };
 
 }

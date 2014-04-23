@@ -11,15 +11,7 @@
 #include "ifs/Stat.h"
 #include <sys/stat.h>
 
-#ifdef MacOS
-
-#define ftello64 ftell
-#define fseeko64 fseek
-#define stat64 stat
-#define fstat64 fstat
-#define ftruncate64 ftruncate
-
-#elif defined(_WIN32)
+#ifdef _WIN32
 
 #define MINGW_HAS_SECURE_API
 #include <io.h>
@@ -39,8 +31,6 @@ inline int ftruncate64(int fd, __int64 where)
 
 #ifdef _MSC_VER
 #define stat64 _stati64
-#define ftello64 _ftelli64
-#define fseeko64 _fseeki64
 #define fstat64 _fstati64
 
 #define S_IRUSR S_IREAD
@@ -48,12 +38,20 @@ inline int ftruncate64(int fd, __int64 where)
 #define S_IXUSR S_IEXEC
 #endif
 
-#elif defined(FreeBSD) || defined(OpenBSD)
-#define ftello64 ftello
-#define fseeko64 fseeko
+#else
+
+#define _fileno fileno
+#define _lseeki64 lseek
+#define _read read
+#define _write write
+#define _close close
+
+#ifndef Linux
 #define stat64 stat
 #define fstat64 fstat
 #define ftruncate64 ftruncate
+#endif
+
 #endif
 
 namespace fibjs

@@ -89,7 +89,7 @@ result_t process_base::exec(const char *cmd,
     if (pPipe == NULL)
         return LastError();
 
-    retVal = new BufferedStream(new File(pPipe, true));
+    retVal = new BufferedStream(new File(pPipe));
     retVal->set_EOL("\n");
 
     return 0;
