@@ -40,17 +40,6 @@ Fiber* Fiber::Current()
 	return NULL;
 }
 
-void Fiber::join()
-{
-	Service* pService = Service::getFiberService();
-
-	if (pService)
-	{
-		m_join = pService->m_running;
-		pService->switchtonext();
-	}
-}
-
 void Fiber::yield()
 {
 	Service* pService = Service::getFiberService();
