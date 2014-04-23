@@ -231,23 +231,25 @@ private:
 public:
     void out(const char *txt)
     {
-        std::cout << txt;
-        std::cout.flush();
+        fputs(txt, stdout);
+        fflush(stdout);
     }
 
 protected:
     void _append(const log4cpp::LoggingEvent &event)
     {
+        std::string txt;
         if (event.priority == log4cpp::Priority::NOTICE)
-            std::cout << m_colors->m_notice << event.message << COLOR_RESET << std::endl;
+            txt = m_colors->m_notice + event.message + COLOR_RESET + "\n";
         else if (event.priority == log4cpp::Priority::WARN)
-            std::cout << m_colors->m_warn << event.message << COLOR_RESET << std::endl;
+            txt = m_colors->m_warn + event.message + COLOR_RESET + "\n";
         else if (event.priority <= log4cpp::Priority::ERROR)
-            std::cout << m_colors->m_error << event.message << COLOR_RESET << std::endl;
+            txt = m_colors->m_error + event.message + COLOR_RESET + "\n";
         else
-            std::cout << event.message << std::endl;
+            txt = event.message + "\n";
 
-        std::cout.flush();
+        fputs(txt.c_str(), stdout);
+        fflush(stdout);
     }
 #endif
 

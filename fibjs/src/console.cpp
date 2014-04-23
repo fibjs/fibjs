@@ -321,6 +321,22 @@ result_t console_base::print(const char *fmt, const v8::FunctionCallbackInfo<v8:
     return 0;
 }
 
+char *read_line()
+{
+    char *text = (char *)malloc(1024);
+
+    if (fgets(text, 1024, stdin) != NULL)
+    {
+        int textLen = (int)qstrlen(text);
+        if (textLen > 0 && text[textLen - 1] == '\n')
+            text[textLen - 1] = '\0';     // getting rid of newline character
+        return text;
+    }
+
+    free(text);
+    return NULL;
+}
+
 result_t console_base::readLine(const char *msg, std::string &retVal,
                                 exlib::AsyncEvent *ac)
 {
@@ -358,18 +374,28 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
     {
         char *line;
 
-        line = _readline(msg);
-        if (line != NULL && *line)
+        if ((line = _readline(msg)) != NULL)
         {
-            _add_history(line);
-            retVal = line;
+            if (*line)
+            {
+                _add_history(line);
+                retVal = line;
+            }
+            free(line);
         }
     }
     else
 #endif
     {
+        char *line;
+
         MyAppender::getter()->out(msg);
-        std::getline(std::cin, retVal);
+
+        if ((line = read_line()) != NULL)
+        {
+            retVal = line;
+            free(line);
+        }
     }
 
     return 0;
