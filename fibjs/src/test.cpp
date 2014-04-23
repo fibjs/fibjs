@@ -9,7 +9,6 @@
 #include "ifs/assert.h"
 #include "QuickArray.h"
 #include "Expect.h"
-#include <log4cpp/Category.hh>
 #include "date.h"
 #include "MyAppender.h"
 
@@ -147,13 +146,13 @@ public:
                 {
                     console_base::set_loglevel(oldlevel);
                     if (stack.size() == 1)
-                        asyncLog(log4cpp::Priority::INFO, "");
+                        asyncLog(console_base::_INFO, "");
 
                     str.append(MyAppender::highLight());
                     str.append(p1->m_name);
                     str.append(COLOR_RESET);
 
-                    asyncLog(log4cpp::Priority::INFO, str);
+                    asyncLog(console_base::_INFO, str);
                     console_base::set_loglevel(loglevel);
 
                     stack.append(p1);
@@ -190,9 +189,9 @@ public:
                         sprintf(buf, "%d) ", ++errcnt);
 
                         p1->m_error = true;
-                        if (loglevel > log4cpp::Priority::ERROR)
+                        if (loglevel > console_base::_ERROR)
                             ReportException(try_catch, 0);
-                        else if (loglevel == log4cpp::Priority::ERROR)
+                        else if (loglevel == console_base::_ERROR)
                         {
                             std::string str1(buf);
 
@@ -234,8 +233,8 @@ public:
                 console_base::set_loglevel(oldlevel);
                 asyncLog(
                     p1->m_error ?
-                    log4cpp::Priority::ERROR :
-                    log4cpp::Priority::INFO, str);
+                    console_base::_ERROR :
+                    console_base::_INFO, str);
                 console_base::set_loglevel(loglevel);
 
                 for (j = (int) stack.size() - 1; j >= 0; j--)
@@ -269,7 +268,7 @@ public:
         }
 
         console_base::set_loglevel(oldlevel);
-        asyncLog(log4cpp::Priority::INFO, "");
+        asyncLog(console_base::_INFO, "");
 
         if (errcnt == 0)
         {
@@ -278,21 +277,21 @@ public:
             sprintf(buf,
                     (MyAppender::notice() + "  \xe2\x88\x9a %d tests completed" COLOR_RESET " (%dms)").c_str(),
                     cnt, (int) da2.diff(da1));
-            asyncLog(log4cpp::Priority::INFO, buf);
+            asyncLog(console_base::_INFO, buf);
         }
         else
         {
             sprintf(buf, (MyAppender::error() + "  × %d of %d tests failed" COLOR_RESET).c_str(),
                     errcnt, cnt);
-            asyncLog(log4cpp::Priority::ERROR, buf);
+            asyncLog(console_base::_ERROR, buf);
         }
 
-        asyncLog(log4cpp::Priority::INFO, "");
+        asyncLog(console_base::_INFO, "");
 
         for (i = 0; i < (int) msgs.size(); i++)
         {
-            asyncLog(log4cpp::Priority::INFO, names[i]);
-            asyncLog(log4cpp::Priority::ERROR, msgs[i]);
+            asyncLog(console_base::_INFO, names[i]);
+            asyncLog(console_base::_ERROR, msgs[i]);
         }
 
         clear();

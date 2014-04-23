@@ -1,4 +1,5 @@
 #include "ifs/os.h"
+#include "ifs/console.h"
 #include <log4cpp/Category.hh>
 #include <exlib/thread.h>
 #include "ifs/coroutine.h"
@@ -59,7 +60,7 @@ public:
 static AsyncLogQueue s_acLog;
 static bool s_logEmpty;
 
-int32_t g_loglevel = log4cpp::Priority::NOTSET;
+int32_t g_loglevel = console_base::_NOTSET;
 
 void asyncLog(int priority, std::string msg)
 {

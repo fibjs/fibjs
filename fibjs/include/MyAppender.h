@@ -12,6 +12,7 @@
 #include "utils.h"
 #include "utf8.h"
 #include "TextColor.h"
+#include "ifs/console.h"
 
 namespace fibjs
 {
@@ -213,11 +214,11 @@ public:
 protected:
     void _append(const log4cpp::LoggingEvent &event)
     {
-        if (event.priority == log4cpp::Priority::NOTICE)
+        if (event.priority == console_base::_NOTICE)
             m_outs.out.outline(m_colors->m_notice + event.message + COLOR_RESET);
-        else if (event.priority == log4cpp::Priority::WARN)
+        else if (event.priority == console_base::_WARN)
             m_outs.out.outline(m_colors->m_warn + event.message + COLOR_RESET);
-        else if (event.priority <= log4cpp::Priority::ERROR)
+        else if (event.priority <= console_base::_ERROR)
             m_outs.out.outline(m_colors->m_error + event.message + COLOR_RESET);
         else
             m_outs.out.outline(event.message);
@@ -239,11 +240,11 @@ protected:
     void _append(const log4cpp::LoggingEvent &event)
     {
         std::string txt;
-        if (event.priority == log4cpp::Priority::NOTICE)
+        if (event.priority == console_base::_NOTICE)
             txt = m_colors->m_notice + event.message + COLOR_RESET + "\n";
-        else if (event.priority == log4cpp::Priority::WARN)
+        else if (event.priority == console_base::_WARN)
             txt = m_colors->m_warn + event.message + COLOR_RESET + "\n";
-        else if (event.priority <= log4cpp::Priority::ERROR)
+        else if (event.priority <= console_base::_ERROR)
             txt = m_colors->m_error + event.message + COLOR_RESET + "\n";
         else
             txt = event.message + "\n";

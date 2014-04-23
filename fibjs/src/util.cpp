@@ -1,9 +1,9 @@
 #include "utils.h"
 #include "object.h"
+#include "ifs/console.h"
 #include <string.h>
 #include <stdio.h>
 #include <sstream>
-#include <log4cpp/Category.hh>
 #include "utf8.h"
 
 namespace fibjs
@@ -155,7 +155,7 @@ std::string GetException(v8::TryCatch &try_catch, result_t hr)
 void ReportException(v8::TryCatch &try_catch, result_t hr)
 {
     if (try_catch.HasCaught() ||  hr < 0)
-        asyncLog(log4cpp::Priority::ERROR, GetException(try_catch, hr));
+        asyncLog(console_base::_ERROR, GetException(try_catch, hr));
 }
 
 std::string traceInfo()

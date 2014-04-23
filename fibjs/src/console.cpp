@@ -9,7 +9,6 @@
 #include "ifs/assert.h"
 #include "ifs/encoding.h"
 #include "ifs/process.h"
-#include <log4cpp/Category.hh>
 #include <sstream>
 #include "MyAppender.h"
 
@@ -134,31 +133,31 @@ std::string Format(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &a
 
 result_t console_base::log(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    asyncLog(log4cpp::Priority::INFO, Format(fmt, args));
+    asyncLog(_INFO, Format(fmt, args));
     return 0;
 }
 
 result_t console_base::info(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    asyncLog(log4cpp::Priority::INFO, Format(fmt, args));
+    asyncLog(_INFO, Format(fmt, args));
     return 0;
 }
 
 result_t console_base::notice(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    asyncLog(log4cpp::Priority::NOTICE, Format(fmt, args));
+    asyncLog(_NOTICE, Format(fmt, args));
     return 0;
 }
 
 result_t console_base::warn(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    asyncLog(log4cpp::Priority::WARN, Format(fmt, args));
+    asyncLog(_WARN, Format(fmt, args));
     return 0;
 }
 
 result_t console_base::error(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    asyncLog(log4cpp::Priority::ERROR, Format(fmt, args));
+    asyncLog(_ERROR, Format(fmt, args));
     return 0;
 }
 
@@ -259,7 +258,7 @@ result_t console_base::dir(v8::Local<v8::Object> obj)
         }
     }
 
-    asyncLog(log4cpp::Priority::INFO, strBuffer.str());
+    asyncLog(_INFO, strBuffer.str());
     return 0;
 }
 
@@ -282,7 +281,7 @@ result_t console_base::timeEnd(const char *label)
 
     strBuffer << label << ": " << (t / 1000.0) << "ms";
 
-    asyncLog(log4cpp::Priority::INFO, strBuffer.str());
+    asyncLog(_INFO, strBuffer.str());
 
     return 0;
 }
@@ -299,7 +298,7 @@ result_t console_base::trace(const char *label)
     strBuffer << "console.trace: " << label;
     strBuffer << traceInfo();
 
-    asyncLog(log4cpp::Priority::WARN, strBuffer.str());
+    asyncLog(_WARN, strBuffer.str());
 
     return 0;
 }

@@ -14,8 +14,6 @@
 
 #include "ifs/Function.h"
 
-#include <log4cpp/Category.hh>
-
 namespace fibjs
 {
 
@@ -23,7 +21,7 @@ void repl_command(std::string &line)
 {
     if (!qstrcmp(line.c_str(), ".help"))
     {
-        asyncLog(log4cpp::Priority::INFO,
+        asyncLog(console_base::_INFO,
                  ".exit   Exit the repl\n"
                  ".help   Show repl options\n"
                  ".info   Show fibjs build information"
@@ -80,7 +78,7 @@ result_t SandBox::repl()
                 v8::String::Utf8Value s(v);
 
                 if (*s)
-                    asyncLog(log4cpp::Priority::INFO, *s);
+                    asyncLog(console_base::_INFO, *s);
             }
 
             v = v1;

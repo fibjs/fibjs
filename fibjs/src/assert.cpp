@@ -8,7 +8,6 @@
 #include "ifs/assert.h"
 #include "ifs/encoding.h"
 #include "QuickArray.h"
-#include <log4cpp/Category.hh>
 #include <sstream>
 
 namespace fibjs

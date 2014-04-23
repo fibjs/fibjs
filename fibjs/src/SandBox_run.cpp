@@ -16,7 +16,7 @@
 #include "ifs/global.h"
 #include "ifs/Function.h"
 
-#include <log4cpp/Category.hh>
+#include <sstream>
 
 namespace fibjs
 {
