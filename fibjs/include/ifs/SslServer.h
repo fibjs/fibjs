@@ -163,7 +163,7 @@ namespace fibjs
 		METHOD_OVER(4, 4);
 
 		ARG(v8::Local<v8::Array>, 0);
-		ARG_String(1);
+		ARG(arg_string, 1);
 		ARG(int32_t, 2);
 		ARG(v8::Local<v8::Value>, 3);
 
@@ -182,7 +182,7 @@ namespace fibjs
 
 		ARG(obj_ptr<X509Cert_base>, 0);
 		ARG(obj_ptr<PKey_base>, 1);
-		ARG_String(2);
+		ARG(arg_string, 2);
 		ARG(int32_t, 3);
 		ARG(v8::Local<v8::Value>, 4);
 

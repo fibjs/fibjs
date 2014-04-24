@@ -234,7 +234,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(-1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = log(v0, args);
 
@@ -245,7 +245,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(-1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = info(v0, args);
 
@@ -256,7 +256,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(-1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = notice(v0, args);
 
@@ -267,7 +267,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(-1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = warn(v0, args);
 
@@ -278,7 +278,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(-1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = error(v0, args);
 
@@ -300,7 +300,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(1, 0);
 
-		OPT_ARG_String(0, "time");
+		OPT_ARG(arg_string, 0, "time");
 
 		hr = time(v0);
 
@@ -311,7 +311,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(1, 0);
 
-		OPT_ARG_String(0, "time");
+		OPT_ARG(arg_string, 0, "time");
 
 		hr = timeEnd(v0);
 
@@ -322,7 +322,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(1, 0);
 
-		OPT_ARG_String(0, "trace");
+		OPT_ARG(arg_string, 0, "trace");
 
 		hr = trace(v0);
 
@@ -334,7 +334,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = assert(v0, v1);
 
@@ -345,7 +345,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(-1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = print(v0, args);
 
@@ -358,7 +358,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = ac_readLine(v0, vr);
 

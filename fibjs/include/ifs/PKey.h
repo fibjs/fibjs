@@ -172,7 +172,7 @@ namespace fibjs
 		METHOD_INSTANCE(PKey_base);
 		METHOD_ENTER(1, 0);
 
-		OPT_ARG_String(0, "secp521r1");
+		OPT_ARG(arg_string, 0, "secp521r1");
 
 		hr = pInst->ac_genEcKey(v0);
 
@@ -209,14 +209,14 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(obj_ptr<Buffer_base>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = pInst->importKey(v0, v1);
 
 		METHOD_OVER(2, 1);
 
-		ARG_String(0);
-		OPT_ARG_String(1, "");
+		ARG(arg_string, 0);
+		OPT_ARG(arg_string, 1, "");
 
 		hr = pInst->importKey(v0, v1);
 

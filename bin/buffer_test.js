@@ -2,10 +2,19 @@ var test = require("test");
 test.setup();
 
 describe('Buffer', function() {
+	it('new Buffer(Integr)', function() {
+		var buf = new Buffer(100);
+		assert.equal(buf.length, 100);
+	});
+
 	it('new Buffer(String)', function() {
 		var buf = new Buffer("abcd");
 		assert.equal(buf.length, 4);
 		assert.equal(buf.toString(), "abcd");
+
+		var buf = new Buffer("100");
+		assert.equal(buf.length, 3);
+		assert.equal(buf.toString(), "100");
 	});
 
 	it('new Buffer(Array)', function() {

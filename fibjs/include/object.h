@@ -223,7 +223,7 @@ public:
 
 private:
     v8::Local<v8::Array> GetHiddenArray(const char *k, bool create = false,
-                                         bool autoDelete = false);
+                                        bool autoDelete = false);
 
 private:
     int m_nTriggers;
@@ -390,7 +390,7 @@ inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value> &arg
     METHOD_INSTANCE(object_base);
     METHOD_ENTER(1, 0);
 
-    OPT_ARG_String(0, "");
+    OPT_ARG(arg_string, 0, "");
 
     hr = pInst->toJSON(v0, vr);
 

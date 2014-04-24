@@ -149,7 +149,7 @@ typedef int result_t;
 
 #define PROPERTY_ENTER() \
     V8_SCOPE(); \
-    result_t hr = 0;do{
+    result_t hr = 0;bool bStrict=false;do{do{
 
 #define METHOD_OVER(c, o) \
     }while(0); \
@@ -161,8 +161,8 @@ typedef int result_t;
 
 #define METHOD_ENTER(c, o) \
     V8_SCOPE(); \
-    result_t hr = CALL_E_BADPARAMCOUNT; do{\
-        METHOD_OVER(c, o)
+    result_t hr = CALL_E_BADPARAMCOUNT;bool bStrict=true;do{do{\
+            METHOD_OVER(c, o)
 
 #define CONSTRUCT_ENTER(c, o) \
     static bool s_bInit = false; \
@@ -180,66 +180,54 @@ typedef int result_t;
     if(pInst == NULL){hr = CALL_E_NOTINSTANCE;break;} \
     scope l(pInst);
 
-#define PROPERTY_SET_LEAVE() \
+#define CHECK_ARGUMENT() \
     }while(0); \
+    if(!bStrict||(hr!=CALL_E_BADPARAMCOUNT && hr!=CALL_E_PARAMNOTOPTIONAL && hr!=CALL_E_INVALIDARG))break;\
+    bStrict = false;\
+    }while(true);
+
+#define PROPERTY_SET_LEAVE() \
+    CHECK_ARGUMENT() \
     if(hr < 0)ThrowResult(hr);
 
+#define THROW_ERROR() \
+    if(hr == CALL_E_JAVASCRIPT){ args.GetReturnValue().Set(v8::Local<v8::Value>()); return;} \
+    ThrowResult(hr); return;
+
 #define METHOD_RETURN() \
-    }while(0); \
+    CHECK_ARGUMENT() \
     if(hr == CALL_RETURN_NULL){ args.GetReturnValue().SetNull(); return;} \
     if(hr >= 0){ args.GetReturnValue().Set(GetReturnValue(vr)); return;} \
-    if(hr == CALL_E_JAVASCRIPT){ args.GetReturnValue().Set(v8::Local<v8::Value>()); return;} \
-    ThrowResult(hr); return;
+    THROW_ERROR()
 
 #define METHOD_RETURN1() \
-    }while(0); args.GetReturnValue().Set(vr); return;
+    CHECK_ARGUMENT() args.GetReturnValue().Set(vr); return;
 
 #define METHOD_VOID() \
-    }while(0); \
-    if(hr >= 0){ args.GetReturnValue().Set(v8::Undefined(isolate)); return;} \
-    if(hr == CALL_E_JAVASCRIPT){ args.GetReturnValue().Set(v8::Local<v8::Value>()); return;} \
-    ThrowResult(hr); return;
+    CHECK_ARGUMENT() \
+    if(hr >= 0){ args.GetReturnValue().SetUndefined(); return;} \
+    THROW_ERROR()
 
 #define CONSTRUCT_RETURN() \
-    }while(0); \
+    CHECK_ARGUMENT() \
     if(hr >= 0){ vr->wrap(args.This()); return;} \
-    if(hr == CALL_E_JAVASCRIPT){ args.GetReturnValue().Set(v8::Local<v8::Value>()); return;} \
-    ThrowResult(hr); return;
-
-#define ARG_String(n) \
-    v8::String::Utf8Value tv##n(args[n]); \
-    const char* v##n = *tv##n; \
-    if(v##n == NULL){hr = CALL_E_INVALIDARG;break;}
-
-#define OPT_ARG_String(n, d) \
-    v8::Local<v8::Value> tvv##n; \
-    if(n < argc)tvv##n = args[n]; \
-    v8::String::Utf8Value tv##n(tvv##n); \
-    const char* v##n = ((n) < argc && !args[n]->IsUndefined()) ? *tv##n : (d); \
-    if(v##n == NULL){hr = CALL_E_INVALIDARG;break;}
-
-#define PROPERTY_VAL_String() \
-    v8::String::Utf8Value tv0(value); \
-    const char* v0 = *tv0; \
-    if(v0 == NULL){hr = CALL_E_INVALIDARG;break;}
+    THROW_ERROR()
 
 #define PROPERTY_VAL(t) \
     t v0; \
-    hr = SafeGetValue(value, v0); \
+    hr = SafeGetValue(value, v0, bStrict); \
     if(hr < 0)break;
 
 #define ARG(t, n) \
     t v##n; \
-    hr = SafeGetValue(args[n], v##n); \
+    hr = SafeGetValue(args[n], v##n, bStrict); \
     if(hr < 0)break;
 
 #define OPT_ARG(t, n, d) \
-    t v##n; \
-    if((n) < argc){ \
-        if(args[n]->IsUndefined())v##n = (d); \
-        else {hr = SafeGetValue(args[n], v##n); \
-            if(hr < 0)break;} \
-    }else v##n = (d);
+    t v##n = (d); \
+    if((n) < argc && !args[n]->IsUndefined()){ \
+        hr = SafeGetValue(args[n], v##n, bStrict); \
+        if(hr < 0)break;}
 
 #define DECLARE_CLASSINFO(c) \
     public: \
@@ -288,13 +276,65 @@ typedef int result_t;
 #define isnan _isnan
 #endif
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, double &n)
+class arg_string
+{
+public:
+    arg_string(const char *p = NULL) : tmp(NULL), m_v(p)
+    {
+    }
+
+    ~arg_string()
+    {
+        if (tmp)
+            delete tmp;
+    }
+
+    result_t set_value(v8::Local<v8::Value> v)
+    {
+        tmp = new v8::String::Utf8Value(v);
+        m_v = **tmp;
+
+        if (m_v == NULL)
+        {
+            delete tmp;
+            tmp = NULL;
+            return CALL_E_INVALIDARG;
+        }
+        return 0;
+    }
+
+public:
+    operator const char *() const
+    {
+        return m_v;
+    }
+
+private:
+    v8::String::Utf8Value *tmp;
+    const char *m_v;
+};
+
+inline result_t SafeGetValue(v8::Local<v8::Value> v, arg_string &n, bool bStrict)
+{
+    if (v.IsEmpty())
+        return CALL_E_INVALIDARG;
+
+    if (bStrict && !v->IsString() && !v->IsStringObject())
+        return CALL_E_INVALIDARG;
+
+    return n.set_value(v);
+}
+
+inline result_t SafeGetValue(v8::Local<v8::Value> v, double &n, bool bStrict)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
 
     if (!v->IsNumber() && !v->IsNumberObject())
     {
+        if (bStrict)
+            return CALL_E_INVALIDARG;
+
         v = v->ToNumber();
         if (v.IsEmpty())
             return CALL_E_INVALIDARG;
@@ -307,11 +347,11 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, double &n)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, int64_t &n)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, int64_t &n, bool bStrict)
 {
     double num;
 
-    result_t hr = SafeGetValue(v, num);
+    result_t hr = SafeGetValue(v, num, bStrict);
     if (hr < 0)
         return hr;
 
@@ -323,11 +363,11 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, int64_t &n)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, int32_t &n)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, int32_t &n, bool bStrict)
 {
     double num;
 
-    result_t hr = SafeGetValue(v, num);
+    result_t hr = SafeGetValue(v, num, bStrict);
     if (hr < 0)
         return hr;
 
@@ -339,16 +379,19 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, int32_t &n)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, bool &n)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, bool &n, bool bStrict)
 {
     if (v.IsEmpty())
+        return CALL_E_INVALIDARG;
+
+    if (bStrict && !v->IsBoolean() && !v->IsBooleanObject())
         return CALL_E_INVALIDARG;
 
     n = v->BooleanValue();
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, date_t &d)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, date_t &d, bool bStrict)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -360,14 +403,14 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, date_t &d)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, Variant &d)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, Variant &d, bool bStrict)
 {
     d = v;
     return 0;
 }
 
 template<class T>
-inline result_t SafeGetValue(v8::Local<v8::Value> v, obj_ptr<T> &vr)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, obj_ptr<T> &vr, bool bStrict)
 {
     vr = T::getInstance(v);
     if (vr == NULL)
@@ -376,8 +419,7 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, obj_ptr<T> &vr)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v,
-                             v8::Local<v8::Object> &vr)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Object> &vr, bool bStrict)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -389,7 +431,7 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v,
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Array> &vr)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Array> &vr, bool bStrict)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -401,14 +443,13 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Array> &vr)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Value> &vr)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Value> &vr, bool bStrict)
 {
     vr = v;
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v,
-                             v8::Local<v8::Function> &vr)
+inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Function> &vr, bool bStrict)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;

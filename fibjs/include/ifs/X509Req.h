@@ -123,7 +123,7 @@ namespace fibjs
 
 		METHOD_OVER(3, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(obj_ptr<PKey_base>, 1);
 		OPT_ARG(int32_t, 2, hash_base::_SHA1);
 
@@ -143,7 +143,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->load(v0);
 
@@ -155,7 +155,7 @@ namespace fibjs
 		METHOD_INSTANCE(X509Req_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->loadFile(v0);
 
@@ -193,7 +193,7 @@ namespace fibjs
 		METHOD_INSTANCE(X509Req_base);
 		METHOD_ENTER(3, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(obj_ptr<PKey_base>, 1);
 		OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 

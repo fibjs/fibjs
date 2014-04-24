@@ -69,7 +69,7 @@ namespace fibjs
 		METHOD_INSTANCE(SandBox_base);
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(v8::Local<v8::Value>, 1);
 
 		hr = pInst->add(v0, v1);
@@ -90,8 +90,8 @@ namespace fibjs
 		METHOD_INSTANCE(SandBox_base);
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
-		ARG_String(1);
+		ARG(arg_string, 0);
+		ARG(arg_string, 1);
 
 		hr = pInst->addScript(v0, v1, vr);
 
@@ -103,7 +103,7 @@ namespace fibjs
 		METHOD_INSTANCE(SandBox_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->remove(v0);
 
@@ -115,7 +115,7 @@ namespace fibjs
 		METHOD_INSTANCE(SandBox_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->run(v0);
 
@@ -129,7 +129,7 @@ namespace fibjs
 		METHOD_INSTANCE(SandBox_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->require(v0, vr);
 

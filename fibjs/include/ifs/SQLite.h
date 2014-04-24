@@ -106,7 +106,7 @@ namespace fibjs
 		METHOD_INSTANCE(SQLite_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->backup(v0);
 

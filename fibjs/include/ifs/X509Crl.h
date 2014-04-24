@@ -89,7 +89,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->load(v0);
 
@@ -101,7 +101,7 @@ namespace fibjs
 		METHOD_INSTANCE(X509Crl_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->loadFile(v0);
 

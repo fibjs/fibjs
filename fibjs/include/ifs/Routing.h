@@ -67,7 +67,7 @@ namespace fibjs
 
 		METHOD_OVER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(v8::Local<v8::Value>, 1);
 
 		hr = pInst->append(v0, v1);

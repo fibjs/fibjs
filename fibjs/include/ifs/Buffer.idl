@@ -14,9 +14,14 @@ class Buffer : object
 	Buffer(Array datas);
 
 	/*! @brief 缓存对象构造函数
+	 @param size 初始化缓冲区大小
+	 */
+	Buffer(Integer size = 0);
+
+	/*! @brief 缓存对象构造函数
 	 @param str 初始化字符串，字符串将以 utf-8 格式写入，缺省则创建一个空对象
 	 */
-	Buffer(String str = "");
+	Buffer(String str);
 
 	/*! @brief 缓存对象可使用下标直接访问二进制数据*/
 	Integer operator[];

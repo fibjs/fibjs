@@ -117,7 +117,7 @@ namespace fibjs
 		METHOD_INSTANCE(DbConnection_base);
 		METHOD_ENTER(-1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->execute(v0, args, vr);
 
@@ -131,7 +131,7 @@ namespace fibjs
 		METHOD_INSTANCE(DbConnection_base);
 		METHOD_ENTER(-1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->format(v0, args, vr);
 

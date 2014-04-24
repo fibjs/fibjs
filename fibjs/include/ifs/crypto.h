@@ -326,7 +326,7 @@ namespace fibjs
 		METHOD_ENTER(3, 2);
 
 		ARG(obj_ptr<Buffer_base>, 0);
-		ARG_String(1);
+		ARG(arg_string, 1);
 		OPT_ARG(int32_t, 2, 8);
 
 		hr = randomArt(v0, v1, v2, vr);

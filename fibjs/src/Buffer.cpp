@@ -10,6 +10,12 @@ result_t Buffer_base::_new(const char *str, obj_ptr<Buffer_base> &retVal)
     return retVal->write(str);
 }
 
+result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base> &retVal)
+{
+    retVal = new Buffer();
+    return retVal->resize(size);
+}
+
 result_t Buffer_base::_new(v8::Local<v8::Array> datas,
                            obj_ptr<Buffer_base> &retVal)
 {
@@ -71,7 +77,7 @@ result_t Buffer::write(v8::Local<v8::Array> datas)
             v8::Local<v8::Value> v = datas->Get(i);
             int32_t num;
 
-            hr = SafeGetValue(v, num);
+            hr = SafeGetValue(v, num, false);
             if (hr < 0)
                 return hr;
 

@@ -201,7 +201,7 @@ namespace fibjs
 		METHOD_INSTANCE(Socket_base);
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(int32_t, 1);
 
 		hr = pInst->ac_connect(v0, v1);
@@ -221,7 +221,7 @@ namespace fibjs
 
 		METHOD_OVER(3, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(int32_t, 1);
 		OPT_ARG(bool, 2, true);
 
@@ -300,7 +300,7 @@ namespace fibjs
 		METHOD_ENTER(3, 3);
 
 		ARG(obj_ptr<Buffer_base>, 0);
-		ARG_String(1);
+		ARG(arg_string, 1);
 		ARG(int32_t, 2);
 
 		hr = pInst->sendto(v0, v1, v2);

@@ -252,7 +252,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = time(v0, vr);
 
@@ -267,7 +267,7 @@ namespace fibjs
 
 		ARG(date_t, 0);
 		ARG(int32_t, 1);
-		ARG_String(2);
+		ARG(arg_string, 2);
 
 		hr = dateAdd(v0, v1, v2, vr);
 

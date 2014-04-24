@@ -146,7 +146,7 @@ namespace fibjs
 
 		METHOD_ENTER(2, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		OPT_ARG(int32_t, 1, _AF_INET);
 
 		hr = ac_resolve(v0, v1, vr);
@@ -160,7 +160,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = ac_ip(v0, vr);
 
@@ -173,7 +173,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = ac_ipv6(v0, vr);
 
@@ -186,7 +186,7 @@ namespace fibjs
 
 		METHOD_ENTER(3, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(int32_t, 1);
 		OPT_ARG(int32_t, 2, net_base::_AF_INET);
 
@@ -201,7 +201,7 @@ namespace fibjs
 
 		METHOD_ENTER(3, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(int32_t, 1);
 		OPT_ARG(int32_t, 2, net_base::_AF_INET);
 

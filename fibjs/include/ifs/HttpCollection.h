@@ -156,7 +156,7 @@ namespace fibjs
 		METHOD_INSTANCE(HttpCollection_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->has(v0, vr);
 
@@ -170,7 +170,7 @@ namespace fibjs
 		METHOD_INSTANCE(HttpCollection_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->first(v0, vr);
 
@@ -184,7 +184,7 @@ namespace fibjs
 		METHOD_INSTANCE(HttpCollection_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->all(v0, vr);
 
@@ -202,7 +202,7 @@ namespace fibjs
 
 		METHOD_OVER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(Variant, 1);
 
 		hr = pInst->add(v0, v1);
@@ -221,7 +221,7 @@ namespace fibjs
 
 		METHOD_OVER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(Variant, 1);
 
 		hr = pInst->set(v0, v1);
@@ -234,7 +234,7 @@ namespace fibjs
 		METHOD_INSTANCE(HttpCollection_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->remove(v0);
 

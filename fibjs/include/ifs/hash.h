@@ -247,7 +247,7 @@ namespace fibjs
 		METHOD_OVER(2, 1);
 
 		ARG(int32_t, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = digest(v0, v1, vr);
 
@@ -266,7 +266,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = md2(v0, vr);
 
@@ -285,7 +285,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = md4(v0, vr);
 
@@ -304,7 +304,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = md5(v0, vr);
 
@@ -323,7 +323,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = sha1(v0, vr);
 
@@ -342,7 +342,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = sha224(v0, vr);
 
@@ -361,7 +361,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = sha256(v0, vr);
 
@@ -380,7 +380,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = sha384(v0, vr);
 
@@ -399,7 +399,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = sha512(v0, vr);
 
@@ -418,7 +418,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = ripemd160(v0, vr);
 
@@ -439,7 +439,7 @@ namespace fibjs
 		METHOD_OVER(2, 2);
 
 		ARG(int32_t, 0);
-		ARG_String(1);
+		ARG(arg_string, 1);
 
 		hr = hmac(v0, v1, vr);
 
@@ -458,7 +458,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = hmac_md2(v0, vr);
 
@@ -477,7 +477,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = hmac_md4(v0, vr);
 
@@ -496,7 +496,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = hmac_md5(v0, vr);
 
@@ -515,7 +515,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = hmac_sha1(v0, vr);
 
@@ -534,7 +534,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = hmac_sha224(v0, vr);
 
@@ -553,7 +553,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = hmac_sha256(v0, vr);
 
@@ -572,7 +572,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = hmac_sha384(v0, vr);
 
@@ -591,7 +591,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = hmac_sha512(v0, vr);
 
@@ -610,7 +610,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = hmac_ripemd160(v0, vr);
 

@@ -129,7 +129,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = ac_system(v0, vr);
 
@@ -142,7 +142,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = ac_exec(v0, vr);
 

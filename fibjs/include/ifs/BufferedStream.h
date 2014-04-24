@@ -129,7 +129,7 @@ namespace fibjs
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(BufferedStream_base);
 
-		PROPERTY_VAL_String();
+		PROPERTY_VAL(arg_string);
 		hr = pInst->set_EOL(v0);
 
 		PROPERTY_SET_LEAVE();
@@ -197,7 +197,7 @@ namespace fibjs
 		METHOD_INSTANCE(BufferedStream_base);
 		METHOD_ENTER(2, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		OPT_ARG(int32_t, 1, -1);
 
 		hr = pInst->ac_readUntil(v0, v1, vr);
@@ -224,7 +224,7 @@ namespace fibjs
 		METHOD_INSTANCE(BufferedStream_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->ac_writeText(v0);
 
@@ -236,7 +236,7 @@ namespace fibjs
 		METHOD_INSTANCE(BufferedStream_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->ac_writeLine(v0);
 

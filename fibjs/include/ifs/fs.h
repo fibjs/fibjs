@@ -164,7 +164,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = ac_exists(v0, vr);
 
@@ -175,7 +175,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = ac_unlink(v0);
 
@@ -199,7 +199,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		OPT_ARG(int32_t, 1, 0777);
 
 		hr = ac_mkdir(v0, v1);
@@ -211,7 +211,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = ac_rmdir(v0);
 
@@ -222,8 +222,8 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
-		ARG_String(1);
+		ARG(arg_string, 0);
+		ARG(arg_string, 1);
 
 		hr = ac_rename(v0, v1);
 
@@ -234,7 +234,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(int32_t, 1);
 
 		hr = ac_chmod(v0, v1);
@@ -248,7 +248,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = ac_stat(v0, vr);
 
@@ -261,7 +261,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = ac_readdir(v0, vr);
 
@@ -274,8 +274,8 @@ namespace fibjs
 
 		METHOD_ENTER(2, 1);
 
-		ARG_String(0);
-		OPT_ARG_String(1, "r");
+		ARG(arg_string, 0);
+		OPT_ARG(arg_string, 1, "r");
 
 		hr = ac_open(v0, v1, vr);
 
@@ -299,8 +299,8 @@ namespace fibjs
 
 		METHOD_ENTER(2, 1);
 
-		ARG_String(0);
-		OPT_ARG_String(1, "r");
+		ARG(arg_string, 0);
+		OPT_ARG(arg_string, 1, "r");
 
 		hr = ac_openTextStream(v0, v1, vr);
 
@@ -313,7 +313,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = ac_readFile(v0, vr);
 
@@ -326,7 +326,7 @@ namespace fibjs
 
 		METHOD_ENTER(2, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		OPT_ARG(int32_t, 1, -1);
 
 		hr = readLines(v0, v1, vr);
@@ -338,8 +338,8 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
-		ARG_String(1);
+		ARG(arg_string, 0);
+		ARG(arg_string, 1);
 
 		hr = ac_writeFile(v0, v1);
 

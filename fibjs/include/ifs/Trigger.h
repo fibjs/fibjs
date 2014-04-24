@@ -81,7 +81,7 @@ namespace fibjs
 		METHOD_INSTANCE(Trigger_base);
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(v8::Local<v8::Function>, 1);
 
 		hr = pInst->on(v0, v1);
@@ -100,7 +100,7 @@ namespace fibjs
 		METHOD_INSTANCE(Trigger_base);
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(v8::Local<v8::Function>, 1);
 
 		hr = pInst->once(v0, v1);
@@ -119,7 +119,7 @@ namespace fibjs
 		METHOD_INSTANCE(Trigger_base);
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(v8::Local<v8::Function>, 1);
 
 		hr = pInst->off(v0, v1);
@@ -138,7 +138,7 @@ namespace fibjs
 		METHOD_INSTANCE(Trigger_base);
 		METHOD_ENTER(-1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->trigger(v0, args);
 

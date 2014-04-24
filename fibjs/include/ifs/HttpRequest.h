@@ -101,7 +101,7 @@ namespace fibjs
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpRequest_base);
 
-		PROPERTY_VAL_String();
+		PROPERTY_VAL(arg_string);
 		hr = pInst->set_method(v0);
 
 		PROPERTY_SET_LEAVE();
@@ -124,7 +124,7 @@ namespace fibjs
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpRequest_base);
 
-		PROPERTY_VAL_String();
+		PROPERTY_VAL(arg_string);
 		hr = pInst->set_address(v0);
 
 		PROPERTY_SET_LEAVE();
@@ -147,7 +147,7 @@ namespace fibjs
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpRequest_base);
 
-		PROPERTY_VAL_String();
+		PROPERTY_VAL(arg_string);
 		hr = pInst->set_queryString(v0);
 
 		PROPERTY_SET_LEAVE();

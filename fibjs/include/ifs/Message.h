@@ -119,7 +119,7 @@ namespace fibjs
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(Message_base);
 
-		PROPERTY_VAL_String();
+		PROPERTY_VAL(arg_string);
 		hr = pInst->set_value(v0);
 
 		PROPERTY_SET_LEAVE();

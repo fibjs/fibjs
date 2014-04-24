@@ -201,7 +201,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = ok(v0, v1);
 
@@ -213,7 +213,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = notOk(v0, v1);
 
@@ -226,7 +226,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
-		OPT_ARG_String(2, "");
+		OPT_ARG(arg_string, 2, "");
 
 		hr = equal(v0, v1, v2);
 
@@ -239,7 +239,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
-		OPT_ARG_String(2, "");
+		OPT_ARG(arg_string, 2, "");
 
 		hr = notEqual(v0, v1, v2);
 
@@ -252,7 +252,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
-		OPT_ARG_String(2, "");
+		OPT_ARG(arg_string, 2, "");
 
 		hr = strictEqual(v0, v1, v2);
 
@@ -265,7 +265,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
-		OPT_ARG_String(2, "");
+		OPT_ARG(arg_string, 2, "");
 
 		hr = notStrictEqual(v0, v1, v2);
 
@@ -278,7 +278,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
-		OPT_ARG_String(2, "");
+		OPT_ARG(arg_string, 2, "");
 
 		hr = deepEqual(v0, v1, v2);
 
@@ -291,7 +291,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
-		OPT_ARG_String(2, "");
+		OPT_ARG(arg_string, 2, "");
 
 		hr = notDeepEqual(v0, v1, v2);
 
@@ -305,7 +305,7 @@ namespace fibjs
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
 		ARG(v8::Local<v8::Value>, 2);
-		OPT_ARG_String(3, "");
+		OPT_ARG(arg_string, 3, "");
 
 		hr = closeTo(v0, v1, v2, v3);
 
@@ -319,7 +319,7 @@ namespace fibjs
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
 		ARG(v8::Local<v8::Value>, 2);
-		OPT_ARG_String(3, "");
+		OPT_ARG(arg_string, 3, "");
 
 		hr = notCloseTo(v0, v1, v2, v3);
 
@@ -332,7 +332,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
-		OPT_ARG_String(2, "");
+		OPT_ARG(arg_string, 2, "");
 
 		hr = lessThan(v0, v1, v2);
 
@@ -345,7 +345,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
-		OPT_ARG_String(2, "");
+		OPT_ARG(arg_string, 2, "");
 
 		hr = notLessThan(v0, v1, v2);
 
@@ -358,7 +358,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
-		OPT_ARG_String(2, "");
+		OPT_ARG(arg_string, 2, "");
 
 		hr = greaterThan(v0, v1, v2);
 
@@ -371,7 +371,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
-		OPT_ARG_String(2, "");
+		OPT_ARG(arg_string, 2, "");
 
 		hr = notGreaterThan(v0, v1, v2);
 
@@ -383,7 +383,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = exist(v0, v1);
 
@@ -395,7 +395,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = notExist(v0, v1);
 
@@ -407,7 +407,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isTrue(v0, v1);
 
@@ -419,7 +419,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isNotTrue(v0, v1);
 
@@ -431,7 +431,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isFalse(v0, v1);
 
@@ -443,7 +443,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isNotFalse(v0, v1);
 
@@ -455,7 +455,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isNull(v0, v1);
 
@@ -467,7 +467,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isNotNull(v0, v1);
 
@@ -479,7 +479,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isUndefined(v0, v1);
 
@@ -491,7 +491,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isDefined(v0, v1);
 
@@ -503,7 +503,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isFunction(v0, v1);
 
@@ -515,7 +515,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isNotFunction(v0, v1);
 
@@ -527,7 +527,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isObject(v0, v1);
 
@@ -539,7 +539,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isNotObject(v0, v1);
 
@@ -551,7 +551,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isArray(v0, v1);
 
@@ -563,7 +563,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isNotArray(v0, v1);
 
@@ -575,7 +575,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isString(v0, v1);
 
@@ -587,7 +587,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isNotString(v0, v1);
 
@@ -599,7 +599,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isNumber(v0, v1);
 
@@ -611,7 +611,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isNotNumber(v0, v1);
 
@@ -623,7 +623,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isBoolean(v0, v1);
 
@@ -635,7 +635,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = isNotBoolean(v0, v1);
 
@@ -647,8 +647,8 @@ namespace fibjs
 		METHOD_ENTER(3, 2);
 
 		ARG(v8::Local<v8::Value>, 0);
-		ARG_String(1);
-		OPT_ARG_String(2, "");
+		ARG(arg_string, 1);
+		OPT_ARG(arg_string, 2, "");
 
 		hr = typeOf(v0, v1, v2);
 
@@ -660,8 +660,8 @@ namespace fibjs
 		METHOD_ENTER(3, 2);
 
 		ARG(v8::Local<v8::Value>, 0);
-		ARG_String(1);
-		OPT_ARG_String(2, "");
+		ARG(arg_string, 1);
+		OPT_ARG(arg_string, 2, "");
 
 		hr = notTypeOf(v0, v1, v2);
 
@@ -674,7 +674,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
-		OPT_ARG_String(2, "");
+		OPT_ARG(arg_string, 2, "");
 
 		hr = property(v0, v1, v2);
 
@@ -687,7 +687,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
-		OPT_ARG_String(2, "");
+		OPT_ARG(arg_string, 2, "");
 
 		hr = notProperty(v0, v1, v2);
 
@@ -700,7 +700,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
-		OPT_ARG_String(2, "");
+		OPT_ARG(arg_string, 2, "");
 
 		hr = deepProperty(v0, v1, v2);
 
@@ -713,7 +713,7 @@ namespace fibjs
 
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
-		OPT_ARG_String(2, "");
+		OPT_ARG(arg_string, 2, "");
 
 		hr = notDeepProperty(v0, v1, v2);
 
@@ -727,7 +727,7 @@ namespace fibjs
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
 		ARG(v8::Local<v8::Value>, 2);
-		OPT_ARG_String(3, "");
+		OPT_ARG(arg_string, 3, "");
 
 		hr = propertyVal(v0, v1, v2, v3);
 
@@ -741,7 +741,7 @@ namespace fibjs
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
 		ARG(v8::Local<v8::Value>, 2);
-		OPT_ARG_String(3, "");
+		OPT_ARG(arg_string, 3, "");
 
 		hr = propertyNotVal(v0, v1, v2, v3);
 
@@ -755,7 +755,7 @@ namespace fibjs
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
 		ARG(v8::Local<v8::Value>, 2);
-		OPT_ARG_String(3, "");
+		OPT_ARG(arg_string, 3, "");
 
 		hr = deepPropertyVal(v0, v1, v2, v3);
 
@@ -769,7 +769,7 @@ namespace fibjs
 		ARG(v8::Local<v8::Value>, 0);
 		ARG(v8::Local<v8::Value>, 1);
 		ARG(v8::Local<v8::Value>, 2);
-		OPT_ARG_String(3, "");
+		OPT_ARG(arg_string, 3, "");
 
 		hr = deepPropertyNotVal(v0, v1, v2, v3);
 
@@ -781,7 +781,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Function>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = throws(v0, v1);
 
@@ -793,7 +793,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Function>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = doesNotThrow(v0, v1);
 

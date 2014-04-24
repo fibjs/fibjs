@@ -121,7 +121,7 @@ namespace fibjs
 		METHOD_INSTANCE(LruCache_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->has(v0, vr);
 
@@ -135,7 +135,7 @@ namespace fibjs
 		METHOD_INSTANCE(LruCache_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->get(v0, vr);
 
@@ -147,7 +147,7 @@ namespace fibjs
 		METHOD_INSTANCE(LruCache_base);
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(v8::Local<v8::Value>, 1);
 
 		hr = pInst->set(v0, v1);
@@ -160,7 +160,7 @@ namespace fibjs
 		METHOD_INSTANCE(LruCache_base);
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(v8::Local<v8::Value>, 1);
 
 		hr = pInst->put(v0, v1);
@@ -179,7 +179,7 @@ namespace fibjs
 		METHOD_INSTANCE(LruCache_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->remove(v0);
 

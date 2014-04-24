@@ -115,7 +115,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = base32Decode(v0, vr);
 
@@ -141,7 +141,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = base64Decode(v0, vr);
 
@@ -167,7 +167,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = hexDecode(v0, vr);
 
@@ -180,7 +180,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = jsstr(v0, vr);
 
@@ -193,7 +193,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = encodeURI(v0, vr);
 
@@ -206,7 +206,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = encodeURIComponent(v0, vr);
 
@@ -219,7 +219,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = decodeURI(v0, vr);
 
@@ -245,7 +245,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = jsonDecode(v0, vr);
 

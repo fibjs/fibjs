@@ -127,7 +127,7 @@ namespace fibjs
 		METHOD_INSTANCE(Stats_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->inc(v0);
 
@@ -139,7 +139,7 @@ namespace fibjs
 		METHOD_INSTANCE(Stats_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->dec(v0);
 
@@ -151,7 +151,7 @@ namespace fibjs
 		METHOD_INSTANCE(Stats_base);
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(int32_t, 1);
 
 		hr = pInst->add(v0, v1);

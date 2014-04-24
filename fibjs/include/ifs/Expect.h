@@ -468,7 +468,7 @@ namespace fibjs
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->a(v0);
 
@@ -480,7 +480,7 @@ namespace fibjs
 		METHOD_INSTANCE(Expect_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->an(v0);
 

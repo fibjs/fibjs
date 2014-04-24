@@ -21,6 +21,7 @@ class Buffer_base : public object_base
 public:
 	// Buffer_base
 	static result_t _new(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal);
+	static result_t _new(int32_t size, obj_ptr<Buffer_base>& retVal);
 	static result_t _new(const char* str, obj_ptr<Buffer_base>& retVal);
 	virtual result_t _indexed_getter(uint32_t index, int32_t& retVal) = 0;
 	virtual result_t _indexed_setter(uint32_t index, int32_t newVal) = 0;
@@ -133,7 +134,13 @@ namespace fibjs
 
 		METHOD_OVER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(int32_t, 0, 0);
+
+		hr = _new(v0, vr);
+
+		METHOD_OVER(1, 1);
+
+		ARG(arg_string, 0);
 
 		hr = _new(v0, vr);
 
@@ -163,7 +170,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->write(v0);
 
@@ -216,7 +223,7 @@ namespace fibjs
 		METHOD_INSTANCE(Buffer_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->toString(v0, vr);
 

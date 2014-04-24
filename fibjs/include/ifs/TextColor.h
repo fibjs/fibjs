@@ -84,7 +84,7 @@ namespace fibjs
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(TextColor_base);
 
-		PROPERTY_VAL_String();
+		PROPERTY_VAL(arg_string);
 		hr = pInst->set_notice(v0);
 
 		PROPERTY_SET_LEAVE();
@@ -107,7 +107,7 @@ namespace fibjs
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(TextColor_base);
 
-		PROPERTY_VAL_String();
+		PROPERTY_VAL(arg_string);
 		hr = pInst->set_warn(v0);
 
 		PROPERTY_SET_LEAVE();
@@ -130,7 +130,7 @@ namespace fibjs
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(TextColor_base);
 
-		PROPERTY_VAL_String();
+		PROPERTY_VAL(arg_string);
 		hr = pInst->set_error(v0);
 
 		PROPERTY_SET_LEAVE();
@@ -153,7 +153,7 @@ namespace fibjs
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(TextColor_base);
 
-		PROPERTY_VAL_String();
+		PROPERTY_VAL(arg_string);
 		hr = pInst->set_highLight(v0);
 
 		PROPERTY_SET_LEAVE();

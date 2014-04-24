@@ -131,7 +131,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = uuid(v0, vr);
 
@@ -156,7 +156,7 @@ namespace fibjs
 		METHOD_ENTER(2, 2);
 
 		ARG(int32_t, 0);
-		ARG_String(1);
+		ARG(arg_string, 1);
 
 		hr = md5(v0, v1, vr);
 
@@ -181,7 +181,7 @@ namespace fibjs
 		METHOD_ENTER(2, 2);
 
 		ARG(int32_t, 0);
-		ARG_String(1);
+		ARG(arg_string, 1);
 
 		hr = sha1(v0, v1, vr);
 

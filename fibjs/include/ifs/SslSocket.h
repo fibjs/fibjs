@@ -158,7 +158,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(obj_ptr<Stream_base>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = pInst->ac_connect(v0, v1, vr);
 

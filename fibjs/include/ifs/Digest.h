@@ -89,7 +89,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->update(v0);
 
@@ -109,7 +109,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = pInst->digest(v0, vr);
 

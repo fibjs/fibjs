@@ -258,7 +258,7 @@ namespace fibjs
 
 		METHOD_OVER(2, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
 		hr = pInst->runCommand(v0, v1, vr);
@@ -308,7 +308,7 @@ namespace fibjs
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->dropIndex(v0, vr);
 
@@ -346,7 +346,7 @@ namespace fibjs
 		METHOD_INSTANCE(MongoCollection_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->getCollection(v0, vr);
 

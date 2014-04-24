@@ -94,7 +94,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = run(v0);
 
@@ -105,7 +105,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(3, 3);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(v8::Local<v8::Array>, 1);
 		ARG(v8::Local<v8::Value>, 2);
 
@@ -120,7 +120,7 @@ namespace fibjs
 
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = require(v0, vr);
 

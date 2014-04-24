@@ -63,8 +63,8 @@ namespace fibjs
 
 		METHOD_ENTER(2, 1);
 
-		ARG_String(0);
-		OPT_ARG_String(1, "");
+		ARG(arg_string, 0);
+		OPT_ARG(arg_string, 1, "");
 
 		hr = compile(v0, v1, vr);
 

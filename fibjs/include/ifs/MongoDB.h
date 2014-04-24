@@ -131,7 +131,7 @@ namespace fibjs
 		METHOD_INSTANCE(MongoDB_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->getCollection(v0, vr);
 
@@ -151,7 +151,7 @@ namespace fibjs
 
 		METHOD_OVER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(v8::Local<v8::Value>, 1);
 
 		hr = pInst->runCommand(v0, v1, vr);
@@ -166,7 +166,7 @@ namespace fibjs
 		METHOD_INSTANCE(MongoDB_base);
 		METHOD_ENTER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = pInst->oid(v0, vr);
 

@@ -162,7 +162,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(v8::Local<v8::Function>, 1);
 
 		hr = describe(v0, v1);
@@ -174,7 +174,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(v8::Local<v8::Function>, 1);
 
 		hr = xdescribe(v0, v1);
@@ -186,7 +186,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(v8::Local<v8::Function>, 1);
 
 		hr = it(v0, v1);
@@ -198,7 +198,7 @@ namespace fibjs
 	{
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(v8::Local<v8::Function>, 1);
 
 		hr = xit(v0, v1);
@@ -268,7 +268,7 @@ namespace fibjs
 		METHOD_ENTER(2, 1);
 
 		ARG(v8::Local<v8::Value>, 0);
-		OPT_ARG_String(1, "");
+		OPT_ARG(arg_string, 1, "");
 
 		hr = expect(v0, v1, vr);
 

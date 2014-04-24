@@ -137,7 +137,7 @@ namespace fibjs
 		METHOD_INSTANCE(Regex_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->exec(v0, vr);
 
@@ -151,7 +151,7 @@ namespace fibjs
 		METHOD_INSTANCE(Regex_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->test(v0, vr);
 

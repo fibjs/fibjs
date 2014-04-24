@@ -111,7 +111,7 @@ namespace fibjs
 		METHOD_INSTANCE(GridFS_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->retrieve(v0, vr);
 
@@ -123,14 +123,14 @@ namespace fibjs
 		METHOD_INSTANCE(GridFS_base);
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(obj_ptr<Stream_base>, 1);
 
 		hr = pInst->store(v0, v1);
 
 		METHOD_OVER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(obj_ptr<Buffer_base>, 1);
 
 		hr = pInst->store(v0, v1);
@@ -145,7 +145,7 @@ namespace fibjs
 		METHOD_INSTANCE(GridFS_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->exists(v0, vr);
 
@@ -157,7 +157,7 @@ namespace fibjs
 		METHOD_INSTANCE(GridFS_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->remove(v0);
 

@@ -124,7 +124,7 @@ namespace fibjs
 		METHOD_INSTANCE(Smtp_base);
 		METHOD_ENTER(3, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(int32_t, 1);
 		OPT_ARG(int32_t, 2, net_base::_AF_INET);
 
@@ -140,8 +140,8 @@ namespace fibjs
 		METHOD_INSTANCE(Smtp_base);
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
-		ARG_String(1);
+		ARG(arg_string, 0);
+		ARG(arg_string, 1);
 
 		hr = pInst->ac_command(v0, v1, vr);
 
@@ -153,7 +153,7 @@ namespace fibjs
 		METHOD_INSTANCE(Smtp_base);
 		METHOD_ENTER(1, 0);
 
-		OPT_ARG_String(0, "localhost");
+		OPT_ARG(arg_string, 0, "localhost");
 
 		hr = pInst->ac_hello(v0);
 
@@ -165,8 +165,8 @@ namespace fibjs
 		METHOD_INSTANCE(Smtp_base);
 		METHOD_ENTER(2, 2);
 
-		ARG_String(0);
-		ARG_String(1);
+		ARG(arg_string, 0);
+		ARG(arg_string, 1);
 
 		hr = pInst->ac_login(v0, v1);
 
@@ -178,7 +178,7 @@ namespace fibjs
 		METHOD_INSTANCE(Smtp_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->ac_from(v0);
 
@@ -190,7 +190,7 @@ namespace fibjs
 		METHOD_INSTANCE(Smtp_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->ac_to(v0);
 
@@ -202,7 +202,7 @@ namespace fibjs
 		METHOD_INSTANCE(Smtp_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->ac_data(v0);
 

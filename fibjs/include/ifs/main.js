@@ -572,9 +572,9 @@ function parserIDL(fname) {
 
 				if (type === "String") {
 					if (value == "")
-						argVars += "		ARG_String(" + argCount + ");\n";
+						argVars += "		ARG(arg_string, " + argCount + ");\n";
 					else
-						argVars += "		OPT_ARG_String(" + argCount + ", " + value + ");\n";
+						argVars += "		OPT_ARG(arg_string, " + argCount + ", " + value + ");\n";
 				} else {
 					if (value == "")
 						argVars += "		ARG(" + map_type(type) + ", " + argCount + ");\n";
@@ -722,7 +722,7 @@ function parserIDL(fname) {
 						.push("	static void s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);");
 					fnStr = "	inline void " + ns + "_base::s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)\n	{\n		PROPERTY_ENTER();\n";
 					if (ftype === "String")
-						fnStr += "		PROPERTY_VAL_String();\n";
+						fnStr += "		PROPERTY_VAL(arg_string);\n";
 					else
 						fnStr += "		PROPERTY_VAL(" + map_type(ftype) + ");\n\n";
 					fnStr += "		hr = set_" + fname + "(v0);\n\n		PROPERTY_SET_LEAVE();\n	}\n";
@@ -760,7 +760,7 @@ function parserIDL(fname) {
 						fnStr = "	inline void " + ns + "_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)\n	{\n		PROPERTY_ENTER();\n";
 						fnStr += "		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 						if (ftype === "String")
-							fnStr += "		PROPERTY_VAL_String();\n";
+							fnStr += "		PROPERTY_VAL(arg_string);\n";
 						else
 							fnStr += "		PROPERTY_VAL(" + map_type(ftype) + ");\n";
 						fnStr += "		hr = pInst->_indexed_setter(index, v0);\n\n		METHOD_VOID();\n	}\n";
@@ -806,7 +806,7 @@ function parserIDL(fname) {
 						fnStr = "	inline void " + ns + "_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)\n	{\n		PROPERTY_ENTER();\n";
 						fnStr += "		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 						if (ftype === "String")
-							fnStr += "		PROPERTY_VAL_String();\n";
+							fnStr += "		PROPERTY_VAL(arg_string);\n";
 						else
 							fnStr += "		PROPERTY_VAL(" + map_type(ftype) + ");\n";
 						fnStr += "		v8::String::Utf8Value k(property);\n		if(class_info().has(*k))return;\n\n"
@@ -863,7 +863,7 @@ function parserIDL(fname) {
 					fnStr = "	inline void " + ns + "_base::s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)\n	{\n		PROPERTY_ENTER();\n";
 					fnStr += "		PROPERTY_INSTANCE(" + ns + "_base);\n\n";
 					if (ftype === "String")
-						fnStr += "		PROPERTY_VAL_String();\n";
+						fnStr += "		PROPERTY_VAL(arg_string);\n";
 					else
 						fnStr += "		PROPERTY_VAL(" + map_type(ftype) + ");\n";
 					fnStr += "		hr = pInst->set_" + fname + "(v0);\n\n		PROPERTY_SET_LEAVE();\n	}\n";

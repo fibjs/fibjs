@@ -104,7 +104,7 @@ namespace fibjs
 		METHOD_INSTANCE(HttpResponse_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->redirect(v0);
 

@@ -363,7 +363,7 @@ namespace fibjs
 
 		METHOD_OVER(3, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		OPT_ARG(int32_t, 1, gd_base::_PNG);
 		OPT_ARG(int32_t, 2, 85);
 

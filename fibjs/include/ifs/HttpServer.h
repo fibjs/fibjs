@@ -239,7 +239,7 @@ namespace fibjs
 
 		METHOD_OVER(3, 3);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(int32_t, 1);
 		ARG(v8::Local<v8::Value>, 2);
 

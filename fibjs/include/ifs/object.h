@@ -88,7 +88,7 @@ namespace fibjs
 		METHOD_INSTANCE(object_base);
 		METHOD_ENTER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = pInst->toJSON(v0, vr);
 

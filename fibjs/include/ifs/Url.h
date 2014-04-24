@@ -288,7 +288,7 @@ namespace fibjs
 
 		METHOD_OVER(1, 0);
 
-		OPT_ARG_String(0, "");
+		OPT_ARG(arg_string, 0, "");
 
 		hr = _new(v0, vr);
 
@@ -300,7 +300,7 @@ namespace fibjs
 		METHOD_INSTANCE(Url_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->parse(v0);
 
@@ -326,7 +326,7 @@ namespace fibjs
 		METHOD_INSTANCE(Url_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->resolve(v0, vr);
 

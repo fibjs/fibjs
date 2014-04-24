@@ -117,7 +117,7 @@ namespace fibjs
 		PROPERTY_ENTER();
 		PROPERTY_INSTANCE(HttpMessage_base);
 
-		PROPERTY_VAL_String();
+		PROPERTY_VAL(arg_string);
 		hr = pInst->set_protocol(v0);
 
 		PROPERTY_SET_LEAVE();
@@ -211,7 +211,7 @@ namespace fibjs
 		METHOD_INSTANCE(HttpMessage_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->hasHeader(v0, vr);
 
@@ -225,7 +225,7 @@ namespace fibjs
 		METHOD_INSTANCE(HttpMessage_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->firstHeader(v0, vr);
 
@@ -239,7 +239,7 @@ namespace fibjs
 		METHOD_INSTANCE(HttpMessage_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->allHeader(v0, vr);
 
@@ -257,7 +257,7 @@ namespace fibjs
 
 		METHOD_OVER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(Variant, 1);
 
 		hr = pInst->addHeader(v0, v1);
@@ -276,7 +276,7 @@ namespace fibjs
 
 		METHOD_OVER(2, 2);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 		ARG(Variant, 1);
 
 		hr = pInst->setHeader(v0, v1);
@@ -289,7 +289,7 @@ namespace fibjs
 		METHOD_INSTANCE(HttpMessage_base);
 		METHOD_ENTER(1, 1);
 
-		ARG_String(0);
+		ARG(arg_string, 0);
 
 		hr = pInst->removeHeader(v0);
 
