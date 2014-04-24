@@ -262,30 +262,26 @@ describe('expect', function() {
       foo: {
         bar: 'baz'
       }
-    })
-      .to.have.deep.property('foo.bar', 'baz');
+    }).to.have.deep.property('foo.bar', 'baz');
 
     assert.throws(function() {
       expect({
         foo: {
           bar: 'baz'
         }
-      })
-        .to.have.deep.property('foo.bar', 'quux', 'blah');
+      }).to.have.deep.property('foo.bar', 'quux', 'blah');
     }, "blah: expected { foo: { bar: 'baz' } } to have a deep property 'foo.bar' of 'quux', but got 'baz'");
     assert.throws(function() {
       expect({
         foo: {
           bar: 'baz'
         }
-      })
-        .to.not.have.deep.property('foo.bar', 'baz', 'blah');
+      }).to.not.have.deep.property('foo.bar', 'baz', 'blah');
     }, "blah: expected { foo: { bar: 'baz' } } to not have a deep property 'foo.bar' of 'baz'");
     assert.throws(function() {
       expect({
         foo: 5
-      })
-        .to.not.have.deep.property('foo.bar', 'baz', 'blah');
+      }).to.not.have.deep.property('foo.bar', 'baz', 'blah');
     }, "blah: { foo: 5 } has no deep property 'foo.bar'");
   });
 

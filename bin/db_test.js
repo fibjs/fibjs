@@ -43,8 +43,7 @@ describe("db", function() {
 		it(
 			"create table",
 			function() {
-				conn
-					.execute('create table test(t1 int, t2 varchar(128), t3 blob, t4 datetime);');
+				conn.execute('create table test(t1 int, t2 varchar(128), t3 blob, t4 datetime);');
 			});
 
 		it("intert", function() {
