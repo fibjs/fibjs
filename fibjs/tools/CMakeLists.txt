@@ -6,7 +6,7 @@ file(GLOB_RECURSE src_list "../src/*.c*")
 add_executable(fibjs ${src_list})
 
 
-set(flags "-c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -D_FILE_OFFSET_BITS=64")
+set(flags "-c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-exceptions -D_FILE_OFFSET_BITS=64")
 
 set(link_flags " ")
 

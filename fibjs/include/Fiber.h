@@ -8,7 +8,6 @@
 #include "ifs/coroutine.h"
 #include "ifs/Fiber.h"
 #include "Runtime.h"
-#include <vector>
 #include "QuickArray.h"
 
 #ifndef FIBER_H_

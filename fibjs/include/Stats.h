@@ -9,7 +9,6 @@
 #define STATS_H_
 
 #include "ifs/Stats.h"
-#include <vector>
 
 namespace fibjs
 {

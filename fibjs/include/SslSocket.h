@@ -10,7 +10,6 @@
 #include "Buffer.h"
 #include "Cipher.h"
 #include "ssl.h"
-#include "vector"
 
 #ifndef SSLSOCKET_H_
 #define SSLSOCKET_H_

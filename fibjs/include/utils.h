@@ -74,6 +74,7 @@ typedef int SOCKET;
 #include <v8/v8.h>
 #include <string>
 #include <math.h>
+#include <vector>
 
 #include "qstring.h"
 #include "date.h"

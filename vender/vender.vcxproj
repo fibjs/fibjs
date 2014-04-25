@@ -114,51 +114,6 @@
     <ClCompile Include="src\jpeg\jquant2.c" />
     <ClCompile Include="src\jpeg\jutils.c" />
     <ClCompile Include="src\jpeg\transupp.c" />
-    <ClCompile Include="src\log4cpp\AbortAppender.cpp" />
-    <ClCompile Include="src\log4cpp\Appender.cpp" />
-    <ClCompile Include="src\log4cpp\AppendersFactory.cpp" />
-    <ClCompile Include="src\log4cpp\AppenderSkeleton.cpp" />
-    <ClCompile Include="src\log4cpp\BasicConfigurator.cpp" />
-    <ClCompile Include="src\log4cpp\BasicLayout.cpp" />
-    <ClCompile Include="src\log4cpp\BufferingAppender.cpp" />
-    <ClCompile Include="src\log4cpp\Category.cpp" />
-    <ClCompile Include="src\log4cpp\CategoryStream.cpp" />
-    <ClCompile Include="src\log4cpp\Configurator.cpp" />
-    <ClCompile Include="src\log4cpp\ConsoleAppenfer.cpp" />
-    <ClCompile Include="src\log4cpp\DummyThreads.cpp" />
-    <ClCompile Include="src\log4cpp\FactoryParams.cpp" />
-    <ClCompile Include="src\log4cpp\FileAppender.cpp" />
-    <ClCompile Include="src\log4cpp\Filter.cpp" />
-    <ClCompile Include="src\log4cpp\FixedContextCategory.cpp" />
-    <ClCompile Include="src\log4cpp\HierarchyMaintainer.cpp" />
-    <ClCompile Include="src\log4cpp\IdsaAppender.cpp" />
-    <ClCompile Include="src\log4cpp\LayoutAppender.cpp" />
-    <ClCompile Include="src\log4cpp\LayoutsFactory.cpp" />
-    <ClCompile Include="src\log4cpp\LevelEvaluator.cpp" />
-    <ClCompile Include="src\log4cpp\Localtime.cpp" />
-    <ClCompile Include="src\log4cpp\LoggingEvent.cpp" />
-    <ClCompile Include="src\log4cpp\MSThreads.cpp" />
-    <ClCompile Include="src\log4cpp\NDC.cpp" />
-    <ClCompile Include="src\log4cpp\NTEventLogAppender.cpp" />
-    <ClCompile Include="src\log4cpp\OmniThreads.cpp" />
-    <ClCompile Include="src\log4cpp\OstreamAppender.cpp" />
-    <ClCompile Include="src\log4cpp\PassThroughLayout.cpp" />
-    <ClCompile Include="src\log4cpp\PatternLayout.cpp" />
-    <ClCompile Include="src\log4cpp\PortabilityImpl.cpp" />
-    <ClCompile Include="src\log4cpp\Priority.cpp" />
-    <ClCompile Include="src\log4cpp\Properties.cpp" />
-    <ClCompile Include="src\log4cpp\PropertyConfigurator.cpp" />
-    <ClCompile Include="src\log4cpp\PropertyConfiguratorImpl.cpp" />
-    <ClCompile Include="src\log4cpp\PThreads.cpp" />
-    <ClCompile Include="src\log4cpp\RemoteSyslogAppender.cpp" />
-    <ClCompile Include="src\log4cpp\RollingFileAppender.cpp" />
-    <ClCompile Include="src\log4cpp\SimpleLayout.cpp" />
-    <ClCompile Include="src\log4cpp\StringQueueAppender.cpp" />
-    <ClCompile Include="src\log4cpp\StringUtil.cpp" />
-    <ClCompile Include="src\log4cpp\SyslogAppender.cpp" />
-    <ClCompile Include="src\log4cpp\TimeStamp.cpp" />
-    <ClCompile Include="src\log4cpp\TriggeringEventEvaluatorFactory.cpp" />
-    <ClCompile Include="src\log4cpp\Win32DebugAppender.cpp" />
     <ClCompile Include="src\mongo\bcon.c" />
     <ClCompile Include="src\mongo\bson.c" />
     <ClCompile Include="src\mongo\encoding.c" />
@@ -551,11 +506,6 @@
     <ClInclude Include="include\jpegint.h" />
     <ClInclude Include="include\jpeglib.h" />
     <ClInclude Include="include\lfds.h" />
-    <ClInclude Include="include\log4cpp\config-MinGW32.h" />
-    <ClInclude Include="include\log4cpp\config-openvms.h" />
-    <ClInclude Include="include\log4cpp\config-win32.h" />
-    <ClInclude Include="include\log4cpp\config.h" />
-    <ClInclude Include="include\log4cpp\convenience.h" />
     <ClInclude Include="include\mongo\bson.h" />
     <ClInclude Include="include\mongo\env.h" />
     <ClInclude Include="include\mongo\gridfs.h" />
@@ -1019,59 +969,6 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">obj\fb_switch.obj</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">obj\fb_switch.obj</Outputs>
     </CustomBuild>
-    <None Include="include\log4cpp\AbortAppender.hh" />
-    <None Include="include\log4cpp\Appender.hh" />
-    <None Include="include\log4cpp\AppendersFactory.hh" />
-    <None Include="include\log4cpp\AppenderSkeleton.hh" />
-    <None Include="include\log4cpp\BasicConfigurator.hh" />
-    <None Include="include\log4cpp\BasicLayout.hh" />
-    <None Include="include\log4cpp\BufferingAppender.hh" />
-    <None Include="include\log4cpp\Category.hh" />
-    <None Include="include\log4cpp\CategoryStream.hh" />
-    <None Include="include\log4cpp\Configurator.hh" />
-    <None Include="include\log4cpp\ConsoleAppender.hh" />
-    <None Include="include\log4cpp\Export.hh" />
-    <None Include="include\log4cpp\FactoryParams.hh" />
-    <None Include="include\log4cpp\FileAppender.hh" />
-    <None Include="include\log4cpp\Filter.hh" />
-    <None Include="include\log4cpp\FixedContextCategory.hh" />
-    <None Include="include\log4cpp\HierarchyMaintainer.hh" />
-    <None Include="include\log4cpp\IdsaAppender.hh" />
-    <None Include="include\log4cpp\Layout.hh" />
-    <None Include="include\log4cpp\LayoutAppender.hh" />
-    <None Include="include\log4cpp\LayoutsFactory.hh" />
-    <None Include="include\log4cpp\LevelEvaluator.hh" />
-    <None Include="include\log4cpp\LoggingEvent.hh" />
-    <None Include="include\log4cpp\Manipulator.hh" />
-    <None Include="include\log4cpp\NDC.hh" />
-    <None Include="include\log4cpp\NTEventLogAppender.hh" />
-    <None Include="include\log4cpp\OstreamAppender.hh" />
-    <None Include="include\log4cpp\PassThroughLayout.hh" />
-    <None Include="include\log4cpp\PatternLayout.hh" />
-    <None Include="include\log4cpp\Portability.hh" />
-    <None Include="include\log4cpp\Priority.hh" />
-    <None Include="include\log4cpp\PropertyConfigurator.hh" />
-    <None Include="include\log4cpp\RemoteSyslogAppender.hh" />
-    <None Include="include\log4cpp\RollingFileAppender.hh" />
-    <None Include="include\log4cpp\SimpleConfigurator.hh" />
-    <None Include="include\log4cpp\SimpleLayout.hh" />
-    <None Include="include\log4cpp\StringQueueAppender.hh" />
-    <None Include="include\log4cpp\SyslogAppender.hh" />
-    <None Include="include\log4cpp\threading\BoostThreads.hh" />
-    <None Include="include\log4cpp\threading\DummyThreads.hh" />
-    <None Include="include\log4cpp\threading\MSThreads.hh" />
-    <None Include="include\log4cpp\threading\OmniThreads.hh" />
-    <None Include="include\log4cpp\threading\PThreads.hh" />
-    <None Include="include\log4cpp\threading\Threading.hh" />
-    <None Include="include\log4cpp\TimeStamp.hh" />
-    <None Include="include\log4cpp\TriggeringEventEvaluator.hh" />
-    <None Include="include\log4cpp\TriggeringEventEvaluatorFactory.hh" />
-    <None Include="include\log4cpp\Win32DebugAppender.hh" />
-    <None Include="log4cpp\Localtime.hh" />
-    <None Include="log4cpp\PortabilityImpl.hh" />
-    <None Include="log4cpp\Properties.hh" />
-    <None Include="log4cpp\PropertyConfiguratorImpl.hh" />
-    <None Include="log4cpp\StringUtil.hh" />
     <None Include="src\ev\ev_epoll.inl" />
     <None Include="src\ev\ev_kqueue.inl" />
     <None Include="src\ev\ev_poll.inl" />
@@ -1154,6 +1051,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1174,6 +1072,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ExceptionHandling>false</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1188,15 +1087,16 @@
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;ENABLE_DEBUGGER_SUPPORT;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
       <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1221,10 +1121,11 @@
       <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
       <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <ExceptionHandling>false</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
