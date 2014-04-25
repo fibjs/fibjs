@@ -22,7 +22,7 @@ endif()
 if(${OS_TYPE} STREQUAL "FreeBSD")
 	find_library(execinfo execinfo "/usr/local/lib" "/usr/lib")
 	target_link_libraries(fibjs ${execinfo})
-	target_link_libraries(fibjs pthread kvm)
+	target_link_libraries(fibjs pthread)
 endif()
 
 

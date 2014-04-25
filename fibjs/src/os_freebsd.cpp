@@ -11,6 +11,7 @@
 
 #include "ifs/os.h"
 #include <kvm.h>
+#include <dlfcn.h>
 #include <fcntl.h>
 #include <paths.h>
 #include <sys/user.h>
@@ -251,16 +252,36 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
     int nprocs;
     size_t page_size = getpagesize();
 
+    static bool _init = false;
+    static kvm_t *(*_kvm_open)(char *, const char *, char *, int, const char *);
+    static void (*_kvm_close)(kvm_t *);
+    static struct kinfo_proc* (*_kvm_getprocs)(kvm_t *, int, int, int *);
+
+    if (!_init)
+    {
+        void *handle = dlopen("libkvm.so", RTLD_LAZY);
+
+        if (handle)
+        {
+            _kvm_open = (kvm_t * (*)(char *, const char *, char *, int, const char *))dlsym(handle, "kvm_open");
+            _kvm_getprocs = (struct kinfo_proc * (*)(kvm_t *, int, int, int *))dlsym(handle, "kvm_getprocs");
+            _kvm_close = (void (*)(kvm_t *))dlsym(handle, "kvm_close");
+        }
+    }
+
+    if (!_kvm_open)
+        return CALL_E_INVALID_CALL;
+
     pid = getpid();
 
-    kd = kvm_open(NULL, _PATH_DEVNULL, NULL, O_RDONLY, "kvm_open");
+    kd = _kvm_open(NULL, _PATH_DEVNULL, NULL, O_RDONLY, "kvm_open");
     if (kd == NULL)
         return LastError();
 
-    kinfo = kvm_getprocs(kd, KERN_PROC_PID, pid, &nprocs);
+    kinfo = _kvm_getprocs(kd, KERN_PROC_PID, pid, &nprocs);
     if (kinfo == NULL)
     {
-        kvm_close(kd);
+        _kvm_close(kd);
         return LastError();
     }
 
@@ -269,7 +290,7 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
 #else
     rss = kinfo->ki_rssize * page_size;
 #endif
-    kvm_close(kd);
+    _kvm_close(kd);
 
     v8::Local<v8::Object> info = v8::Object::New(isolate);
 
