@@ -397,6 +397,7 @@ public:
 
 double FastCurrentMillis();
 
+typedef lockfree<AsyncEvent> AsyncQueue;
 }
 
 #endif

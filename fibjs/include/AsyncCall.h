@@ -6,8 +6,7 @@
 namespace fibjs
 {
 
-typedef exlib::lockfree<asyncEvent> AsyncQueue;
-extern AsyncQueue s_acPool;
+extern exlib::AsyncQueue s_acPool;
 
 class AsyncCall: public asyncEvent
 {
@@ -122,21 +121,6 @@ private:
     int m_av;
     int (*m_state)(asyncState *, int);
 };
-
-class AsyncLog: public asyncEvent
-{
-public:
-    AsyncLog(int priority, std::string msg) :
-        m_priority(priority), m_msg(msg)
-    {
-    }
-
-public:
-    int m_priority;
-    std::string m_msg;
-};
-
-typedef exlib::lockfree<AsyncLog> AsyncLogQueue;
 
 }
 

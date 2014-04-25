@@ -354,6 +354,9 @@
     <ClCompile Include="src\fuck_sym.c">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\console_std.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -818,9 +821,6 @@
     <ClInclude Include="include\DateCache.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
-    <ClInclude Include="include\MyAppender.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
     <ClInclude Include="include\ifs\ssl.h">
       <Filter>Header Files\include\ifs</Filter>
     </ClInclude>
@@ -886,6 +886,9 @@
     </ClInclude>
     <ClInclude Include="include\ifs\HttpsServer.h">
       <Filter>Header Files\include\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\console.h">
+      <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,13 +1,14 @@
 #include "ifs/os.h"
 #include "ifs/console.h"
-#include <log4cpp/Category.hh>
 #include <exlib/thread.h>
 #include "ifs/coroutine.h"
+#include "console.h"
+#include "map"
 
 namespace fibjs
 {
 
-AsyncQueue s_acPool;
+exlib::AsyncQueue s_acPool;
 
 static int32_t s_threads;
 static int32_t s_idleThreads;
@@ -49,7 +50,7 @@ public:
                 break;
             }
 
-            p = s_acPool.wait();
+            p = (asyncEvent *)s_acPool.wait();
             exlib::atom_dec(&s_idleThreads);
 
             p->invoke();
@@ -57,7 +58,7 @@ public:
     }
 } s_ac;
 
-static AsyncLogQueue s_acLog;
+static exlib::AsyncQueue s_acLog;
 static bool s_logEmpty;
 
 int32_t g_loglevel = console_base::_NOTSET;
@@ -67,7 +68,7 @@ void asyncLog(int priority, std::string msg)
     if (priority <= g_loglevel)
     {
         //  log4cpp::Category::getRoot().log(priority, msg);
-        s_acLog.put(new AsyncLog(priority, msg));
+        s_acLog.put(new logger::item(priority, msg));
     }
 }
 
@@ -75,6 +76,21 @@ void flushLog()
 {
     while (!s_acLog.empty() || !s_logEmpty)
         coroutine_base::ac_sleep(1);
+}
+
+inline void _append(int32_t priority, std::string &msg)
+{
+    std::string txt;
+    if (priority == console_base::_NOTICE)
+        txt = logger::notice() + msg + COLOR_RESET + "\n";
+    else if (priority == console_base::_WARN)
+        txt = logger::warn() + msg + COLOR_RESET + "\n";
+    else if (priority <= console_base::_ERROR)
+        txt = logger::error() + msg + COLOR_RESET + "\n";
+    else
+        txt = msg + "\n";
+
+    logger::std_out(txt.c_str());
 }
 
 static class _loggerThread: public exlib::OSThread
@@ -88,22 +104,21 @@ public:
     virtual void Run()
     {
         std::multimap<int64_t, AsyncCall *>::iterator e;
-        AsyncLog *p1, *p2, *pn;
+        logger::item *p1, *p2, *pn;
 
         while (1)
         {
             s_logEmpty = false;
 
-            p1 = s_acLog.getList();
+            p1 = (logger::item *)s_acLog.getList();
             while (p1)
             {
-                log4cpp::Category &root = log4cpp::Category::getRoot();
                 pn = NULL;
 
                 while (p1)
                 {
                     p2 = p1;
-                    p1 = (AsyncLog *) p1->m_next;
+                    p1 = (logger::item *) p1->m_next;
                     p2->m_next = pn;
                     pn = p2;
                 }
@@ -111,12 +126,12 @@ public:
                 while (pn)
                 {
                     p1 = pn;
-                    pn = (AsyncLog *) pn->m_next;
-                    root.log(p1->m_priority, p1->m_msg);
+                    pn = (logger::item *) pn->m_next;
+                    _append(p1->m_priority, p1->m_msg);
                     delete p1;
                 }
 
-                p1 = s_acLog.getList();
+                p1 = (logger::item *)s_acLog.getList();
             }
 
             s_logEmpty = true;

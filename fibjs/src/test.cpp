@@ -10,7 +10,7 @@
 #include "QuickArray.h"
 #include "Expect.h"
 #include "date.h"
-#include "MyAppender.h"
+#include "console.h"
 
 namespace fibjs
 {
@@ -148,7 +148,7 @@ public:
                     if (stack.size() == 1)
                         asyncLog(console_base::_INFO, "");
 
-                    str.append(MyAppender::highLight());
+                    str.append(logger::highLight());
                     str.append(p1->m_name);
                     str.append(COLOR_RESET);
 
@@ -201,7 +201,7 @@ public:
                                 str1.append(" ", 1);
                             }
                             str1.append(p1->m_name);
-                            names.append(MyAppender::highLight() + str1 + COLOR_RESET);
+                            names.append(logger::highLight() + str1 + COLOR_RESET);
 
                             msgs.append(GetException(try_catch, 0));
                         }
@@ -213,16 +213,16 @@ public:
                     {
                         double n = d2.diff(d1);
 
-                        str.append(MyAppender::notice() + "\xe2\x88\x9a " COLOR_RESET);
+                        str.append(logger::notice() + "\xe2\x88\x9a " COLOR_RESET);
                         str.append(p1->m_name);
                         if (n > s_slow / 2)
                         {
                             sprintf(buf, " (%dms) ", (int) n);
 
                             if (n > s_slow)
-                                str.append(MyAppender::error());
+                                str.append(logger::error());
                             else
-                                str.append(MyAppender::warn());
+                                str.append(logger::warn());
 
                             str.append(buf);
                             str.append(COLOR_RESET);
@@ -275,13 +275,13 @@ public:
             da2.now();
 
             sprintf(buf,
-                    (MyAppender::notice() + "  \xe2\x88\x9a %d tests completed" COLOR_RESET " (%dms)").c_str(),
+                    (logger::notice() + "  \xe2\x88\x9a %d tests completed" COLOR_RESET " (%dms)").c_str(),
                     cnt, (int) da2.diff(da1));
             asyncLog(console_base::_INFO, buf);
         }
         else
         {
-            sprintf(buf, (MyAppender::error() + "  × %d of %d tests failed" COLOR_RESET).c_str(),
+            sprintf(buf, (logger::error() + "  × %d of %d tests failed" COLOR_RESET).c_str(),
                     errcnt, cnt);
             asyncLog(console_base::_ERROR, buf);
         }

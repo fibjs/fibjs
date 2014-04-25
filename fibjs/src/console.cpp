@@ -9,9 +9,9 @@
 #include "ifs/assert.h"
 #include "ifs/encoding.h"
 #include "ifs/process.h"
-#include <sstream>
-#include "MyAppender.h"
- #include <stdlib.h>
+#include <map>
+#include "console.h"
+#include <stdlib.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -63,8 +63,107 @@ result_t console_base::set_loglevel(int32_t newVal)
 
 result_t console_base::get_colors(obj_ptr<TextColor_base> &retVal)
 {
-    retVal = MyAppender::getter()->m_colors;
+    retVal = logger::get_std_color();
     return 0;
+}
+
+inline void newline(std::string &strBuffer, int padding)
+{
+    static char s_spc[] = "                                                                ";
+    int n, n1;
+
+    strBuffer.append("\n", 1);
+    if (padding > 0)
+    {
+        n = padding;
+        while (n)
+        {
+            n1 = n > 64 ? 64 : n;
+            strBuffer.append(s_spc, n1);
+            n -= n1;
+        }
+    }
+}
+
+inline std::string dir_format(v8::Local<v8::Value> obj)
+{
+    const char *p;
+    int padding = 0;
+    char ch;
+    bool bStrMode = false;
+    bool bNewLine = false;
+    const int tab_size = 2;
+    std::string strBuffer;
+    std::string s;
+    encoding_base::jsonEncode(obj, s);
+
+    p = s.c_str();
+    while ((ch = *p++) != 0)
+    {
+        if (bStrMode)
+        {
+            if (ch == '\\' && *p == '\"')
+            {
+                strBuffer.append(&ch, 1);
+                ch = *p++;
+            }
+            else if (ch == '\"')
+                bStrMode = false;
+        }
+        else
+        {
+            switch (ch)
+            {
+            case '[':
+                if (*p == ']')
+                {
+                    strBuffer.append(&ch, 1);
+                    ch = *p ++;
+                    break;
+                }
+
+                bNewLine = true;
+                padding += tab_size;
+                break;
+            case '{':
+                if (*p == '}')
+                {
+                    strBuffer.append(&ch, 1);
+                    ch = *p ++;
+                    break;
+                }
+
+                bNewLine = true;
+                padding += tab_size;
+                break;
+            case '}':
+            case ']':
+                padding -= tab_size;
+                newline(strBuffer, padding);
+                break;
+            case ',':
+                bNewLine = true;
+                break;
+            case ':':
+                strBuffer.append(&ch, 1);
+                ch = ' ';
+                break;
+            case '\"':
+                bStrMode = true;
+                break;
+            }
+        }
+
+        strBuffer.append(&ch, 1);
+
+        if (bNewLine)
+        {
+            newline(strBuffer, padding);
+            bNewLine = false;
+        }
+    }
+
+    return strBuffer;
 }
 
 std::string Format(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args, int idx = 1)
@@ -73,7 +172,7 @@ std::string Format(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &a
     const char *s1;
     char ch;
     int argc = args.Length();
-    std::stringstream strBuffer;
+    std::string strBuffer;
 
     if (argc == 1)
         return fmt;
@@ -82,7 +181,7 @@ std::string Format(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &a
     {
         if (idx >= argc)
         {
-            strBuffer << s;
+            strBuffer.append(s);
             break;
         }
 
@@ -90,7 +189,7 @@ std::string Format(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &a
         while ((ch = *s++) && (ch != '%'))
             ;
 
-        strBuffer.write(s1, s - s1 - 1);
+        strBuffer.append(s1, s - s1 - 1);
 
         if (ch == '%')
         {
@@ -101,20 +200,20 @@ std::string Format(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &a
             {
                 v8::String::Utf8Value s(args[idx++]);
                 if (*s)
-                    strBuffer << *s;
+                    strBuffer.append(*s);
             }
             break;
             case 'j':
             {
                 std::string s;
-                encoding_base::jsonEncode(args[idx++], s);
-                strBuffer << s;
+                s = dir_format(args[idx++]);
+                strBuffer.append(s);
             }
             break;
             default:
-                strBuffer << '%';
+                strBuffer.append("%", 1);
             case '%':
-                strBuffer << ch;
+                strBuffer.append(&ch, 1);
                 break;
             }
         }
@@ -126,10 +225,13 @@ std::string Format(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &a
     {
         v8::String::Utf8Value s(args[idx++]);
         if (*s)
-            strBuffer << ' ' << *s;
+        {
+            strBuffer.append(" ", 1);
+            strBuffer.append(*s);
+        }
     }
 
-    return strBuffer.str();
+    return strBuffer;
 }
 
 result_t console_base::log(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
@@ -162,104 +264,10 @@ result_t console_base::error(const char *fmt, const v8::FunctionCallbackInfo<v8:
     return 0;
 }
 
-inline void newline(std::stringstream &strBuffer, int padding)
-{
-    static char s_spc[] =
-        "                                                                ";
-    int n, n1;
-
-    strBuffer << std::endl;
-    if (padding > 0)
-    {
-        n = padding;
-        while (n)
-        {
-            n1 = n > 64 ? 64 : n;
-            strBuffer.write(s_spc, n1);
-            n -= n1;
-        }
-    }
-}
-
 result_t console_base::dir(v8::Local<v8::Object> obj)
 {
-    std::stringstream strBuffer;
-    std::string s;
-    encoding_base::jsonEncode(obj, s);
-    const char *p;
-    int padding = 0;
-    char ch;
-    bool bStrMode = false;
-    bool bNewLine = false;
-    const int tab_size = 2;
-
-    p = s.c_str();
-    while ((ch = *p++) != 0)
-    {
-        if (bStrMode)
-        {
-            if (ch == '\\' && *p == '\"')
-            {
-                strBuffer << ch;
-                ch = *p++;
-            }
-            else if (ch == '\"')
-                bStrMode = false;
-        }
-        else
-        {
-            switch (ch)
-            {
-            case '[':
-                if (*p == ']')
-                {
-                    strBuffer << ch;
-                    ch = *p ++;
-                    break;
-                }
-
-                bNewLine = true;
-                padding += tab_size;
-                break;
-            case '{':
-                if (*p == '}')
-                {
-                    strBuffer << ch;
-                    ch = *p ++;
-                    break;
-                }
-
-                bNewLine = true;
-                padding += tab_size;
-                break;
-            case '}':
-            case ']':
-                padding -= tab_size;
-                newline(strBuffer, padding);
-                break;
-            case ',':
-                bNewLine = true;
-                break;
-            case ':':
-                strBuffer << ch;
-                ch = ' ';
-                break;
-            case '\"':
-                bStrMode = true;
-                break;
-            }
-        }
-
-        strBuffer << ch;
-
-        if (bNewLine)
-        {
-            newline(strBuffer, padding);
-            bNewLine = false;
-        }
-    }
-
-    asyncLog(_INFO, strBuffer.str());
+    std::string strBuffer = dir_format(obj);
+    asyncLog(_INFO, strBuffer);
     return 0;
 }
 
@@ -278,12 +286,17 @@ result_t console_base::timeEnd(const char *label)
 
     s_timers.erase(label);
 
-    std::stringstream strBuffer;
+    std::string strBuffer;
+    char numStr[64];
 
-    strBuffer << label << ": " << (t / 1000.0) << "ms";
+    sprintf(numStr, "%.3g", t / 1000.0);
 
-    asyncLog(_INFO, strBuffer.str());
+    strBuffer.append(label);
+    strBuffer.append(": ", 2);
+    strBuffer.append(numStr);
+    strBuffer.append("ms", 2);
 
+    asyncLog(_INFO, strBuffer);
     return 0;
 }
 
@@ -294,13 +307,13 @@ inline const char *ToCString(const v8::String::Utf8Value &value)
 
 result_t console_base::trace(const char *label)
 {
-    std::stringstream strBuffer;
+    std::string strBuffer;
 
-    strBuffer << "console.trace: " << label;
-    strBuffer << traceInfo();
+    strBuffer.append("console.trace: ", 15);
+    strBuffer.append(label);
+    strBuffer.append(traceInfo());
 
-    asyncLog(_WARN, strBuffer.str());
-
+    asyncLog(_WARN, strBuffer);
     return 0;
 }
 
@@ -316,7 +329,7 @@ result_t console_base::assert(v8::Local<v8::Value> value, const char *msg)
 result_t console_base::print(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     flushLog();
-    MyAppender::getter()->out(Format(fmt, args).c_str());
+    logger::std_out(Format(fmt, args).c_str());
 
     return 0;
 }
@@ -389,7 +402,7 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
     {
         char *line;
 
-        MyAppender::getter()->out(msg);
+        logger::std_out(msg);
 
         if ((line = read_line()) != NULL)
         {

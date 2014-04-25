@@ -1,71 +1,56 @@
 /*
- * MyAppender.h
+ * console_std.cpp
  *
- *  Created on: Mar 29, 2014
+ *  Created on: Apr 25, 2014
  *      Author: lion
  */
 
-#ifndef MYAPPENDER_H_
-#define MYAPPENDER_H_
-
-#include <log4cpp/ConsoleAppender.hh>
-#include "utils.h"
+#include "console.h"
 #include "utf8.h"
-#include "TextColor.h"
-#include "ifs/console.h"
 
 namespace fibjs
 {
-class MyAppender: public log4cpp::LayoutAppender
-{
-public:
-    MyAppender() :
-        LayoutAppender("console")
-    {
-        m_colors = new TextColor();
-        m_colors->m_error = COLOR_LIGHTRED;
-        m_colors->m_warn = COLOR_YELLOW;
-        m_colors->m_notice = COLOR_GREEN;
-        m_colors->m_highLight = COLOR_TITLE;
-    }
 
-    virtual void close()
-    {
-    }
+TextColor *logger::get_std_color()
+{
+    static obj_ptr<TextColor> s_tc;
+
+    if (!s_tc)
+        s_tc = new TextColor;
+
+    return s_tc;
+}
+
+void logger::std_out(const char *txt)
+{
 
 #ifdef _WIN32
-
-protected:
     class color_out
     {
     public:
-        void init(DWORD type)
+        color_out()
         {
             CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
 
-            m_handle = GetStdHandle(type);
+            m_handle = GetStdHandle(STD_OUTPUT_HANDLE);
             GetConsoleScreenBufferInfo(m_handle, &csbiInfo);
             m_Now = m_wAttr = csbiInfo.wAttributes;
             m_wLight = m_wAttr & FOREGROUND_INTENSITY;
-
-            if (type == STD_ERROR_HANDLE)
-                m_stream = stderr;
-            else if (type == STD_OUTPUT_HANDLE)
-                m_stream = stdout;
         }
 
-        void _out(const std::wstring &s)
+        void out(const char *s, FILE *stream)
         {
-            LPWSTR ptr = (LPWSTR) s.c_str();
-            LPWSTR ptr2;
+            std::wstring ws = utf8to16String(s);
+            wchar_t *ptr = &ws[0];
+            wchar_t *ptr2;
 
-            while (ptr2 = (LPWSTR) qstrchr(ptr, L'\x1b'))
+            while (ptr2 = (wchar_t *) qstrchr(ptr, L'\x1b'))
             {
                 if (ptr2[1] == '[')
                 {
                     ptr2[0] = 0;
-                    fputws(ptr, m_stream);
-                    fflush(m_stream);
+                    fputws(ptr, stream);
+                    fflush(stream);
 
                     ptr2 += 2;
 
@@ -170,128 +155,32 @@ protected:
                 ptr = ptr2;
             }
 
-            fputws(ptr, m_stream);
-            fflush(m_stream);
-        }
-
-        void out(const std::string &message)
-        {
-            _out(UTF8_W(message));
-        }
-
-        void outline(const std::string &message)
-        {
-            std::wstring s = UTF8_W(message);
-            s.append(L"\n", 1);
-            _out(s);
+            fputws(ptr, stream);
+            fflush(stream);
         }
 
     private:
         HANDLE m_handle;
-        FILE *m_stream;
         WORD m_wAttr, m_Now;
         WORD m_wLight;
     };
+    static color_out s_out;
 
-    class _outs
-    {
-    public:
-        _outs()
-        {
-            out.init(STD_OUTPUT_HANDLE);
-        }
-
-    public:
-        color_out out;
-    };
-
-public:
-    void out(const char *txt)
-    {
-        m_outs.out.out(txt);
-    }
-
-protected:
-    void _append(const log4cpp::LoggingEvent &event)
-    {
-        if (event.priority == console_base::_NOTICE)
-            m_outs.out.outline(m_colors->m_notice + event.message + COLOR_RESET);
-        else if (event.priority == console_base::_WARN)
-            m_outs.out.outline(m_colors->m_warn + event.message + COLOR_RESET);
-        else if (event.priority <= console_base::_ERROR)
-            m_outs.out.outline(m_colors->m_error + event.message + COLOR_RESET);
-        else
-            m_outs.out.outline(event.message);
-    }
-
-private:
-    _outs m_outs;
-
+    s_out.out(txt, stdout);
 #else
-
-public:
-    void out(const char *txt)
-    {
-        fputs(txt, stdout);
-        fflush(stdout);
-    }
-
-protected:
-    void _append(const log4cpp::LoggingEvent &event)
-    {
-        std::string txt;
-        if (event.priority == console_base::_NOTICE)
-            txt = m_colors->m_notice + event.message + COLOR_RESET + "\n";
-        else if (event.priority == console_base::_WARN)
-            txt = m_colors->m_warn + event.message + COLOR_RESET + "\n";
-        else if (event.priority <= console_base::_ERROR)
-            txt = m_colors->m_error + event.message + COLOR_RESET + "\n";
-        else
-            txt = event.message + "\n";
-
-        fputs(txt.c_str(), stdout);
-        fflush(stdout);
-    }
+    fputs(txt, stdout);
 #endif
 
+    fflush(stdout);
+}
+
+class std_logger : public logger
+{
 public:
-    static MyAppender *getter()
+    virtual result_t write(const item *data, exlib::AsyncEvent *ac)
     {
-        static MyAppender *s_ma = NULL;
-        if (!s_ma)
-            s_ma = new MyAppender();
-        return s_ma;
+        return 0;
     }
-
-    static log4cpp::Appender *getter(const std::string &appenderName)
-    {
-        return getter();
-    }
-
-    static std::string &notice()
-    {
-        return getter()->m_colors->m_notice;
-    }
-
-    static std::string &warn()
-    {
-        return getter()->m_colors->m_warn;
-    }
-
-    static std::string &error()
-    {
-        return getter()->m_colors->m_error;
-    }
-
-    static std::string &highLight()
-    {
-        return getter()->m_colors->m_highLight;
-    }
-
-public:
-    obj_ptr<TextColor> m_colors;
 };
 
 }
-
-#endif /* MYAPPENDER_H_ */

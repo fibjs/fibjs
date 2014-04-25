@@ -13,8 +13,7 @@
 namespace fibjs
 {
 
-extern AsyncQueue s_acPool;
-extern AsyncQueue s_acSleep;
+extern exlib::AsyncQueue s_acPool;
 void asyncLog(int priority, std::string msg);
 
 }

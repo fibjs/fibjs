@@ -1,9 +1,5 @@
 
 #include <v8/v8.h>
-
-#include <log4cpp/Category.hh>
-#include <log4cpp/PropertyConfigurator.hh>
-
 #include <locale.h>
 
 #ifdef assert
@@ -17,7 +13,6 @@
 #include "Fiber.h"
 #include "utf8.h"
 #include <exlib/thread.h>
-#include "MyAppender.h"
 
 namespace fibjs
 {
@@ -29,19 +24,6 @@ void init_argv(int argc, char **argv);
 
 void _main(const char *fname)
 {
-    log4cpp::set_ConsoleGetter(MyAppender::getter);
-
-    try
-    {
-        log4cpp::PropertyConfigurator::configure("log.ini");
-    }
-    catch (log4cpp::ConfigureFailure e)
-    {
-        log4cpp::Category &root = log4cpp::Category::getRoot();
-        root.addAppender(MyAppender::getter());
-        //      root.warn(e.what());
-    }
-
     exlib::Service::init();
     g_pService = exlib::Service::getFiberService();
 

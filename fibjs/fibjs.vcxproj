@@ -29,6 +29,7 @@
     <ClCompile Include="src\Cipher.cpp" />
     <ClCompile Include="src\Condition.cpp" />
     <ClCompile Include="src\Console.cpp" />
+    <ClCompile Include="src\console_std.cpp" />
     <ClCompile Include="src\coroutine.cpp" />
     <ClCompile Include="src\crypto.cpp" />
     <ClCompile Include="src\date.cpp" />
@@ -146,6 +147,7 @@
     <ClInclude Include="include\Cipher.h" />
     <ClInclude Include="include\ClassInfo.h" />
     <ClInclude Include="include\Condition.h" />
+    <ClInclude Include="include\console.h" />
     <ClInclude Include="include\date.h" />
     <ClInclude Include="include\DateCache.h" />
     <ClInclude Include="include\DBField.h" />
@@ -273,7 +275,6 @@
     <ClInclude Include="include\MongoCursor.h" />
     <ClInclude Include="include\MongoDB.h" />
     <ClInclude Include="include\MongoID.h" />
-    <ClInclude Include="include\MyAppender.h" />
     <ClInclude Include="include\mysql.h" />
     <ClInclude Include="include\NullHandler.h" />
     <ClInclude Include="include\object.h" />

@@ -53,7 +53,6 @@ result_t utils_base::buildInfo(v8::Local<v8::Object> &retVal)
         vender->Set(v8::String::NewFromUtf8(isolate, "gd"), v8::String::NewFromUtf8(isolate, GD_VERSION_STRING));
         vender->Set(v8::String::NewFromUtf8(isolate, "jpeg"), v8::String::NewFromUtf8(isolate,
                     STR(JPEG_LIB_VERSION_MAJOR) "." STR(JPEG_LIB_VERSION_MINOR)));
-        vender->Set(v8::String::NewFromUtf8(isolate, "log4cpp"), v8::String::NewFromUtf8(isolate, "1.0"));
         vender->Set(v8::String::NewFromUtf8(isolate, "mongo"), v8::String::NewFromUtf8(isolate,
                     STR(MONGO_MAJOR) "." STR(MONGO_MINOR)));
         vender->Set(v8::String::NewFromUtf8(isolate, "pcre"), v8::String::NewFromUtf8(isolate,

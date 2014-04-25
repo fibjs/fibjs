@@ -38,6 +38,15 @@ namespace fibjs
 class TextColor: public TextColor_base
 {
 public:
+    TextColor()
+    {
+        m_error = COLOR_LIGHTRED;
+        m_warn = COLOR_YELLOW;
+        m_notice = COLOR_GREEN;
+        m_highLight = COLOR_TITLE;
+    }
+
+public:
     // TextColor_base
     virtual result_t get_notice(std::string &retVal);
     virtual result_t set_notice(const char *newVal);
