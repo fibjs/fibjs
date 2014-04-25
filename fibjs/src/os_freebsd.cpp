@@ -269,7 +269,7 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
         }
     }
 
-    if (!_kvm_open)
+    if (!_kvm_open || !_kvm_getprocs || !_kvm_close)
         return CALL_E_INVALID_CALL;
 
     pid = getpid();
