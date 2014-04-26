@@ -106,6 +106,9 @@
     <Filter Include="Source Files\polarssl">
       <UniqueIdentifier>{ffd78b58-9588-4f97-bc02-4077abf3f2cf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\win_iconv">
+      <UniqueIdentifier>{16b7dd26-1027-497e-9b92-ca32c58b4f06}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zlib\adler32.c">
@@ -1508,6 +1511,9 @@
     </ClCompile>
     <ClCompile Include="src\v8\src\platform-qnx.cc">
       <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win_iconv\win_iconv.c">
+      <Filter>Source Files\win_iconv</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2926,6 +2932,9 @@
     </ClInclude>
     <ClInclude Include="src\v8\src\zone-containers.h">
       <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="include\win_iconv.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

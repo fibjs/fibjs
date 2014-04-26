@@ -22,33 +22,6 @@
 typedef void *iconv_t;
 #endif
 
-#ifndef HAVE_ICONV
-#define ICONV_CONST /**/
-  iconv_t iconv_open (const char *, const char *);
-size_t iconv (iconv_t, ICONV_CONST char **, size_t *, char **, size_t *);
-int iconv_close (iconv_t);
-
-iconv_t
-iconv_open (const char *tocode, const char *fromcode)
-{
-  return (iconv_t) (-1);
-}
-
-size_t
-iconv (iconv_t cd, ICONV_CONST char **inbuf, size_t * inbytesleft,
-       char **outbuf, size_t * outbytesleft)
-{
-  return 0;
-}
-
-int
-iconv_close (iconv_t cd)
-{
-  return 0;
-}
-
-#endif /* !HAVE_ICONV */
-
 #define LIBNAME "any2eucjp()"
 
 #if defined(__MSC__) || defined(__BORLANDC__) || defined(__TURBOC__) || defined(_Windows) || defined(MSDOS)

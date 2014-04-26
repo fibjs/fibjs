@@ -13,887 +13,881 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\src">
-      <UniqueIdentifier>{bf6bbfaf-c9c3-4801-8492-c7387a69f764}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\include">
-      <UniqueIdentifier>{e879a06f-b83d-4000-89bd-5c2c69ef638e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\include\ifs">
+    <Filter Include="Header Files\ifs">
       <UniqueIdentifier>{6dd29b21-8e3a-4aac-b4d7-6d9011b3c331}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\fibjs.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Console.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\os.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\File.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Buffer.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Function.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\global.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\test.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
     <ClCompile Include="src\acPool.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\path.cpp">
-      <Filter>Source Files\src</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\assert.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\define.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\encoding.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\coroutine.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Stat.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Event.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\utf8.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\util.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Socket.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\module.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Socket_ev.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Trigger.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Lock.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Semaphore.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Condition.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Socket_iocp.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Stream.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\io.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MemoryStream.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MemoryCloneStream.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\BufferedStream.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\uuidVar.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\inetAddr.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Url.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mysql.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\db.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DBResult.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Runtime.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Fiber.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DBRow.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\date.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Variant.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SQLite.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Digest.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\hash.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\HttpRequest.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\HttpCollection.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\HttpMessage.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\HttpResponse.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Regex.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Map.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mq.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\JSHandler.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\HttpHandler.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Routing.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Chain.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NullHandler.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\HttpFileHandler.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\http.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\List.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\HttpUploadCollection.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\HttpUploadData.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Message.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\JsonRpcHandler.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\rpc.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Image.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\zlib.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\fs.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\process.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\encoding_bson.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SandBox_run.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SandBox_root.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SandBox_repl.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SandBox.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Socket_api.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MongoCollection.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MongoDB.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MongoCursor.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GridFS.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\os_osx.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\os_linux.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\os_win.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\os_posix.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\os_freebsd.cpp">
-      <Filter>Source Files\src</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\AsyncWaitHandler.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Expect.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Stats.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Queue.cpp">
-      <Filter>Source Files\src</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\BlockQueue.cpp">
-      <Filter>Source Files\src</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Smtp.cpp">
-      <Filter>Source Files\src</Filter>
+    <ClCompile Include="src\Buffer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\net.cpp">
-      <Filter>Source Files\src</Filter>
+    <ClCompile Include="src\BufferedStream.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\LruCache.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\HttpServer.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TcpServer.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\utils.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PacketMessage.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PacketHandler.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SslSocket.cpp">
-      <Filter>Source Files\src</Filter>
+    <ClCompile Include="src\Chain.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Cipher.cpp">
-      <Filter>Source Files\src</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\crypto.cpp">
-      <Filter>Source Files\src</Filter>
+    <ClCompile Include="src\Condition.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\PKey.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TextColor.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ssl.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\X509Crl.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\X509Cert.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\X509Req.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SslHandler.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SslServer.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\HttpsServer.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\fuck_sym.c">
-      <Filter>Source Files\src</Filter>
+    <ClCompile Include="src\Console.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\console_std.cpp">
-      <Filter>Source Files\src</Filter>
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\coroutine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\crypto.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\date.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\db.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DBResult.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DBRow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\define.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Digest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\encoding.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\encoding_bson.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Event.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Expect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Fiber.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fibjs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\File.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fuck_sym.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Function.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\global.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GridFS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\http.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HttpCollection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HttpFileHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HttpHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HttpMessage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HttpRequest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HttpResponse.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HttpServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HttpsServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HttpUploadCollection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HttpUploadData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\inetAddr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\io.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JSHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JsonRpcHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\List.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Lock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LruCache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Map.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MemoryCloneStream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MemoryStream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Message.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\module.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MongoCollection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MongoCursor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MongoDB.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mq.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mysql.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\net.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NullHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\os.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\os_freebsd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\os_linux.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\os_osx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\os_posix.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\os_win.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PacketHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PacketMessage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\path.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PKey.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\process.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Queue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Regex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Routing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rpc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Runtime.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SandBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SandBox_repl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SandBox_root.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SandBox_run.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Semaphore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Smtp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Socket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Socket_api.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Socket_ev.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Socket_iocp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SQLite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ssl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SslHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SslServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SslSocket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Stat.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Stats.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Stream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TcpServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TextColor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Trigger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Url.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utf8.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\uuidVar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Variant.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\X509Cert.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\X509Crl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\X509Req.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zlib.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\os.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\file.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\File.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Buffer.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Fiber.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Function.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\global.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\object.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\stream.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Buffer.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\AsyncCall.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ClassInfo.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\object.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\utils.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\assert.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\path.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\acPool.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Event.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Stat.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\coroutine.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\encoding.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Event.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\module.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Stat.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\utf8.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\net.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Socket.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Socket.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Condition.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Lock.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Semaphore.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Trigger.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Condition.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Lock.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Trigger.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Stream.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\io.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\MemoryStream.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\MemoryStream.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\BufferedStream.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\BufferedStream.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\uuidVar.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\uuid.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\uuidValue.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\inetAddr.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Url.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Url.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\db.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\DbConnection.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\mysql.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\DBResult.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Runtime.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Fiber.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\DBResult.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\DBRow.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\MySQL.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\date.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\DBField.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\DBRow.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\obj_ptr.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\qstring.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Variant.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\QuickArray.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\SQLite.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SQLite.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Digest.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\hash.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\http.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\HttpCollection.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\HttpMessage.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\HttpRequest.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\HttpResponse.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\HttpCollection.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\HttpRequest.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\SeekableStream.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Digest.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\StringBuffer.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\parse.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\HttpMessage.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\HttpResponse.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Regex.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\re.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Regex.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Semaph.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\collection.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Map.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Message.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Map.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Chain.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Handler.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\mq.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Routing.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\JSHandler.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Chain.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\HttpHandler.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Routing.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\NullHandler.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\HttpFileHandler.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\List.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\HttpUploadData.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\HttpUploadCollection.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\HttpUploadData.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Message.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\rpc.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\JsonRpcHandler.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\HttpHandler.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\List.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\gd.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Image.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Image.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\zlib.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\fs.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\process.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\SandBox.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\vm.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SandBox.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Socket_api.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\MongoCollection.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\MongoDB.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\MongoCollection.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\MongoDB.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\MongoID.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\encoding_bson.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\MongoID.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\MongoCursor.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\MongoCursor.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\GridFS.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\GridFS.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\AsyncWait.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\AsyncWaitHandler.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\test.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Expect.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Expect.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Stats.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Stats.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Queue.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Queue.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\BlockQueue.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\BlockQueue.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Smtp.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\utils.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Smtp.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\LruCache.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\LruCache.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\HttpServer.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\HttpServer.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\TcpServer.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TcpServer.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\PacketHandler.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\PacketMessage.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\PacketMessage.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\PacketHandler.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\DateCache.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\ssl.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\SslSocket.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SslSocket.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Cipher.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\crypto.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\PKey.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\PKey.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Cipher.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\TextColor.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TextColor.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ssl.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\X509Cert.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\X509Crl.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\X509Crl.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\X509Cert.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\X509Req.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\X509Req.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\SslHandler.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SslHandler.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\SslServer.h">
-      <Filter>Header Files\include\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SslServer.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\HttpsServer.h">
-      <Filter>Header Files\include\ifs</Filter>
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\acPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\AsyncCall.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\AsyncWaitHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\BlockQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\BufferedStream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Chain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Cipher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ClassInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Condition.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\console.h">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\date.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DateCache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DBField.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DBResult.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DBRow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Digest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\encoding_bson.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Event.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Expect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Fiber.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\File.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GridFS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HttpCollection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HttpFileHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HttpHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HttpMessage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HttpRequest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HttpResponse.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HttpServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HttpUploadCollection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HttpUploadData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\inetAddr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\JSHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\JsonRpcHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\List.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Lock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\LruCache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Map.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MemoryStream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Message.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MongoCollection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MongoCursor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MongoDB.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MongoID.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mysql.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\NullHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\obj_ptr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\object.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\PacketHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\PacketMessage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\parse.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\PKey.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\qstring.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\QuickArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Regex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Routing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Runtime.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SandBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Semaph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Smtp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Socket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Socket_api.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SQLite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ssl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SslHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SslServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SslSocket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Stat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Stats.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Stream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\StringBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TcpServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TextColor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Trigger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Url.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utf8.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uuidVar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Variant.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\X509Cert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\X509Crl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\X509Req.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl">
-      <Filter>Header Files\include</Filter>
+      <Filter>Header Files</Filter>
     </None>
   </ItemGroup>
 </Project>
