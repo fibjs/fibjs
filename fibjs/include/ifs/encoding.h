@@ -30,6 +30,8 @@ public:
 	static result_t base64Decode(const char* data, obj_ptr<Buffer_base>& retVal);
 	static result_t hexEncode(Buffer_base* data, std::string& retVal);
 	static result_t hexDecode(const char* data, obj_ptr<Buffer_base>& retVal);
+	static result_t iconvEncode(const char* charset, const char* data, obj_ptr<Buffer_base>& retVal);
+	static result_t iconvDecode(const char* charset, Buffer_base* data, std::string& retVal);
 	static result_t jsstr(const char* str, std::string& retVal);
 	static result_t encodeURI(const char* url, std::string& retVal);
 	static result_t encodeURIComponent(const char* url, std::string& retVal);
@@ -48,6 +50,8 @@ public:
 	static void s_base64Decode(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_hexEncode(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_hexDecode(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_iconvEncode(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_iconvDecode(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_jsstr(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_encodeURI(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_encodeURIComponent(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -74,6 +78,8 @@ namespace fibjs
 			{"base64Decode", s_base64Decode, true},
 			{"hexEncode", s_hexEncode, true},
 			{"hexDecode", s_hexDecode, true},
+			{"iconvEncode", s_iconvEncode, true},
+			{"iconvDecode", s_iconvDecode, true},
 			{"jsstr", s_jsstr, true},
 			{"encodeURI", s_encodeURI, true},
 			{"encodeURIComponent", s_encodeURIComponent, true},
@@ -87,7 +93,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"encoding", NULL, 
-			14, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			16, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -170,6 +176,34 @@ namespace fibjs
 		ARG(arg_string, 0);
 
 		hr = hexDecode(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void encoding_base::s_iconvEncode(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<Buffer_base> vr;
+
+		METHOD_ENTER(2, 2);
+
+		ARG(arg_string, 0);
+		ARG(arg_string, 1);
+
+		hr = iconvEncode(v0, v1, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void encoding_base::s_iconvDecode(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		std::string vr;
+
+		METHOD_ENTER(2, 2);
+
+		ARG(arg_string, 0);
+		ARG(obj_ptr<Buffer_base>, 1);
+
+		hr = iconvDecode(v0, v1, vr);
 
 		METHOD_RETURN();
 	}

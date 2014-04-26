@@ -14,14 +14,20 @@ class Buffer : object
 	Buffer(Array datas);
 
 	/*! @brief 缓存对象构造函数
+	 @param data 初始化二进制数据
+	 */
+	Buffer(Buffer data);
+
+	/*! @brief 缓存对象构造函数
 	 @param size 初始化缓冲区大小
 	 */
 	Buffer(Integer size = 0);
 
 	/*! @brief 缓存对象构造函数
 	 @param str 初始化字符串，字符串将以 utf-8 格式写入，缺省则创建一个空对象
+	 @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
 	 */
-	Buffer(String str);
+	Buffer(String str, String codec = "utf8");
 
 	/*! @brief 缓存对象可使用下标直接访问二进制数据*/
 	Integer operator[];
@@ -39,10 +45,16 @@ class Buffer : object
 	 */
 	write(Array datas);
 
+	/*! @brief 向缓存对象写入一组二进制数据
+	 @param data 初始化二进制数据
+	 */
+	write(Buffer data);
+
 	/*! @brief 向缓存对象写入字符串，字符串将以 utf-8 格式写入
 	 @param str 要写入的字符串
+	 @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
 	 */
-	write(String str);
+	write(String str, String codec = "utf8");
 
 	/*! @brief 返回一个新缓存对象，包含指定范围的数据，若范围超出缓存，则只返回有效部分数据
 	 @param start 指定范围的起始，缺省从头开始
@@ -62,7 +74,7 @@ class Buffer : object
 	String base64();
 
 	/*! @brief 返回二进制数据的编码字符串
-	 @param codec 指定编码格式，允许值为："hex", "base64", "utf8"
+	 @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
 	 @return 返回对象的字符串表示
 	*/
 	String toString(String codec);

@@ -4,10 +4,17 @@
 namespace fibjs
 {
 
-result_t Buffer_base::_new(const char *str, obj_ptr<Buffer_base> &retVal)
+result_t Buffer_base::_new(const char *str, const char *codec,
+                           obj_ptr<Buffer_base> &retVal)
 {
     retVal = new Buffer();
-    return retVal->write(str);
+    return retVal->write(str, codec);
+}
+
+result_t Buffer_base::_new(Buffer_base *data, obj_ptr<Buffer_base> &retVal)
+{
+    retVal = new Buffer();
+    return retVal->write(data);
 }
 
 result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base> &retVal)
@@ -94,13 +101,41 @@ result_t Buffer::write(v8::Local<v8::Array> datas)
     return 0;
 }
 
-result_t Buffer::write(const char *str)
+result_t Buffer::write(Buffer_base *data)
 {
-    size_t sz = qstrlen(str);
+    std::string strBuf;
+    data->toString(strBuf);
 
-    extMemory((int) sz);
-    m_data.append(str, sz);
+    extMemory((int) strBuf.length());
+    m_data.append(strBuf);
     return 0;
+}
+
+result_t Buffer::write(const char *str, const char *codec)
+{
+    if (!qstricmp(codec, "utf8") || !qstricmp(codec, "utf-8"))
+    {
+        size_t sz = qstrlen(str);
+
+        extMemory((int) sz);
+        m_data.append(str, sz);
+        return 0;
+    }
+
+    obj_ptr<Buffer_base> data;
+    result_t hr;
+
+    if (!qstrcmp(codec, "hex"))
+        hr = encoding_base::hexDecode(str, data);
+    else if (!qstrcmp(codec, "base64"))
+        hr = encoding_base::base64Decode(str, data);
+    else
+        hr = encoding_base::iconvEncode(codec, str, data);
+
+    if (hr < 0)
+        return hr;
+
+    return write(data);
 }
 
 result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal)
@@ -141,7 +176,7 @@ result_t Buffer::base64(std::string &retVal)
 
 result_t Buffer::toString(const char *codec, std::string &retVal)
 {
-    if (!qstrcmp(codec, "utf8"))
+    if (!qstricmp(codec, "utf8") || !qstricmp(codec, "utf-8"))
     {
         retVal = m_data;
         return 0;
@@ -153,7 +188,8 @@ result_t Buffer::toString(const char *codec, std::string &retVal)
     if (!qstrcmp(codec, "base64"))
         return base64(retVal);
 
-    return CALL_E_INVALIDARG;
+    obj_ptr<Buffer_base> data = this;
+    return encoding_base::iconvDecode(codec, data, retVal);
 }
 
 result_t Buffer::toJSON(const char *key, v8::Local<v8::Value> &retVal)

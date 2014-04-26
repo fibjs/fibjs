@@ -5,6 +5,12 @@
  *      Author: lion
  */
 
+#ifdef _WIN32
+#include <win_iconv.h>
+#else
+#include <iconv.h>
+#endif
+
 #include "ifs/encoding.h"
 #include "Buffer.h"
 #include "utf8.h"
@@ -198,6 +204,77 @@ result_t encoding_base::hexDecode(const char *data,
     }
 
     retVal = new Buffer(strBuf);
+
+    return 0;
+}
+
+result_t encoding_base::iconvEncode(const char *charset, const char *data,
+                                    obj_ptr<Buffer_base> &retVal)
+{
+    std::string strBuf;
+
+    if (!qstricmp(charset, "utf8") || !qstricmp(charset, "utf-8"))
+        strBuf = data;
+    else
+    {
+        iconv_t cd = iconv_open(charset, "utf8");
+        if (cd == (iconv_t)(-1))
+            return Runtime::setError("Unknown charset.");
+
+        size_t sz = qstrlen(data);
+        char *ptr = (char *)data;
+
+        strBuf.resize(sz * 2);
+        char *output_buf = &strBuf[0];
+        size_t output_size = strBuf.length();
+
+        size_t n = iconv(cd, &ptr, &sz, &output_buf, &output_size);
+        iconv_close(cd);
+
+        if (n == (size_t) - 1)
+            return Runtime::setError("convert error.");
+
+        strBuf.resize(strBuf.length() - output_size);
+    }
+
+    retVal = new Buffer(strBuf);
+
+    return 0;
+}
+
+result_t encoding_base::iconvDecode(const char *charset, Buffer_base *data,
+                                    std::string &retVal)
+{
+    if (!qstricmp(charset, "utf8") || !qstricmp(charset, "utf-8"))
+        data->toString(retVal);
+    else
+    {
+        std::string strData;
+        std::string strBuf;
+
+        data->toString(strData);
+
+        iconv_t cd = iconv_open("utf8", charset);
+        if (cd == (iconv_t)(-1))
+            return Runtime::setError("Unknown charset.");
+
+        size_t sz = strData.length();
+        char *ptr = (char *)strData.c_str();
+
+        strBuf.resize(sz * 2);
+        char *output_buf = &strBuf[0];
+        size_t output_size = strBuf.length();
+
+        size_t n = iconv(cd, &ptr, &sz, &output_buf, &output_size);
+        iconv_close(cd);
+
+        if (n == (size_t) - 1)
+            return Runtime::setError("convert error.");
+
+        strBuf.resize(strBuf.length() - output_size);
+
+        retVal = strBuf;
+    }
 
     return 0;
 }

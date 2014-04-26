@@ -23,6 +23,13 @@ describe('Buffer', function() {
 		assert.equal(buf.toString(), "1234");
 	});
 
+	it('new Buffer(Buffer)', function() {
+		var b = new Buffer("1234");
+		var buf = new Buffer(b);
+		assert.equal(buf.length, 4);
+		assert.equal(buf.toString(), "1234");
+	});
+
 	it('toJSON', function() {
 		var buf = new Buffer([1, 2, 3, 4]);
 		assert.deepEqual(buf.toJSON(), [1, 2, 3, 4]);
@@ -44,6 +51,20 @@ describe('Buffer', function() {
 
 		buf.write([0x31, 0x32, 0x33, 0x34]);
 		assert.equal(buf.toString(), "1234abcd1234");
+
+		buf.write("3132", "hex");
+		assert.equal(buf.toString(), "1234abcd123412");
+
+		buf.write("MTIzNA==", "base64");
+		assert.equal(buf.toString(), "1234abcd1234121234");
+	});
+
+	it('charset', function() {
+		assert.equal(new Buffer("哈哈哈").toString(), "哈哈哈");
+		assert.deepEqual(new Buffer("哈哈哈哈", "gbk").toJSON(), [
+			185, 254, 185, 254, 185, 254, 185, 254
+		]);
+		assert.equal(new Buffer("哈哈哈", "gbk").toString("gbk"), "哈哈哈");
 	});
 
 	it('resize', function() {
