@@ -27,10 +27,10 @@ class db_base : public module_base
 {
 public:
 	// db_base
-	static result_t open(const char* connString, obj_ptr<object_base>& retVal);
-	static result_t openMySQL(const char* connString, obj_ptr<MySQL_base>& retVal);
-	static result_t openSQLite(const char* connString, obj_ptr<SQLite_base>& retVal);
-	static result_t openMongoDB(const char* connString, obj_ptr<MongoDB_base>& retVal);
+	static result_t open(const char* connString, obj_ptr<object_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t openMySQL(const char* connString, obj_ptr<MySQL_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t openSQLite(const char* connString, obj_ptr<SQLite_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t openMongoDB(const char* connString, obj_ptr<MongoDB_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);
 	static result_t formatMySQL(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal);
 	static result_t escape(const char* str, bool mysql, std::string& retVal);
@@ -45,6 +45,12 @@ public:
 	static void s_format(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_formatMySQL(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_escape(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+	ASYNC_STATICVALUE2(db_base, open, const char*, obj_ptr<object_base>);
+	ASYNC_STATICVALUE2(db_base, openMySQL, const char*, obj_ptr<MySQL_base>);
+	ASYNC_STATICVALUE2(db_base, openSQLite, const char*, obj_ptr<SQLite_base>);
+	ASYNC_STATICVALUE2(db_base, openMongoDB, const char*, obj_ptr<MongoDB_base>);
 };
 
 }
@@ -88,7 +94,7 @@ namespace fibjs
 
 		ARG(arg_string, 0);
 
-		hr = open(v0, vr);
+		hr = ac_open(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -101,7 +107,7 @@ namespace fibjs
 
 		ARG(arg_string, 0);
 
-		hr = openMySQL(v0, vr);
+		hr = ac_openMySQL(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -114,7 +120,7 @@ namespace fibjs
 
 		ARG(arg_string, 0);
 
-		hr = openSQLite(v0, vr);
+		hr = ac_openSQLite(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -127,7 +133,7 @@ namespace fibjs
 
 		ARG(arg_string, 0);
 
-		hr = openMongoDB(v0, vr);
+		hr = ac_openMongoDB(v0, vr);
 
 		METHOD_RETURN();
 	}

@@ -5,7 +5,7 @@ class MySQL : DbConnection
 	/*! @brief 选择当前数据库连接的缺省数据库
 	 @param dbName 指定数据库名
 	 */
-	use(String dbName);
+	use(String dbName) async;
 
 	/*! @brief 数据库连接接收缓存尺寸 */
 	Integer rxBufferSize;

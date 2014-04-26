@@ -26,7 +26,7 @@ public:
 	virtual result_t get_fileName(std::string& retVal) = 0;
 	virtual result_t get_timeout(int32_t& retVal) = 0;
 	virtual result_t set_timeout(int32_t newVal) = 0;
-	virtual result_t backup(const char* fileName) = 0;
+	virtual result_t backup(const char* fileName, exlib::AsyncEvent* ac) = 0;
 
 	DECLARE_CLASSINFO(SQLite_base);
 
@@ -35,6 +35,9 @@ public:
 	static void s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_backup(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+	ASYNC_MEMBER1(SQLite_base, backup, const char*);
 };
 
 }
@@ -108,7 +111,7 @@ namespace fibjs
 
 		ARG(arg_string, 0);
 
-		hr = pInst->backup(v0);
+		hr = pInst->ac_backup(v0);
 
 		METHOD_VOID();
 	}

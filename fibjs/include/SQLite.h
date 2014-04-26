@@ -24,15 +24,16 @@ public:
 
     ~SQLite()
     {
-        close();
+        ac_close();
     }
 
 public:
     // DbConnection_base
-    virtual result_t close();
-    virtual result_t begin();
-    virtual result_t commit();
-    virtual result_t rollback();
+    virtual result_t close(exlib::AsyncEvent *ac);
+    virtual result_t begin(exlib::AsyncEvent *ac);
+    virtual result_t commit(exlib::AsyncEvent *ac);
+    virtual result_t rollback(exlib::AsyncEvent *ac);
+    virtual result_t execute(const char *sql, obj_ptr<DBResult_base> &retVal, exlib::AsyncEvent *ac);
     virtual result_t execute(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<DBResult_base> &retVal);
     virtual result_t format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args, std::string &retVal);
 
@@ -41,17 +42,16 @@ public:
     virtual result_t get_fileName(std::string &retVal);
     virtual result_t get_timeout(int32_t &retVal);
     virtual result_t set_timeout(int32_t newVal);
-    virtual result_t backup(const char *fileName);
+    virtual result_t backup(const char *fileName, exlib::AsyncEvent *ac);
 
 public:
-    result_t execute(const char *sql, int sLen, obj_ptr<DBResult_base> &retVal);
-    result_t open(const char *file);
+    result_t execute(const char *sql, int sLen, obj_ptr<DBResult_base> &retVal, exlib::AsyncEvent *ac);
+    result_t open(const char *file, exlib::AsyncEvent *ac);
 
 private:
     std::string m_file;
     sqlite3 *m_db;
     int m_nCmdTimeout;
-    v8::Local<v8::Function> m_func;
 };
 
 } /* namespace fibjs */

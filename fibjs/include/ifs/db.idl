@@ -12,25 +12,25 @@ class db : module
 	 @param connString 数据库描述，如：mysql://user:pass\@host/db
 	 @return 返回数据库连接对象
 	 */
-	static object open(String connString);
+	static object open(String connString) async;
 
 	/*! @brief 打开一个 mysql 数据库
 	 @param connString 数据库描述，如：mysql://user:pass\@host/db
 	 @return 返回数据库连接对象
 	 */
-	static MySQL openMySQL(String connString);
+	static MySQL openMySQL(String connString) async;
 
 	/*! @brief 打开一个 sqlite 数据库
 	 @param connString 数据库描述，如：sqlite:test.db 或者 test.db
 	 @return 返回数据库连接对象
 	 */
-	static SQLite openSQLite(String connString);
+	static SQLite openSQLite(String connString) async;
 
 	/*! @brief 打开一个 mongodb 数据库
 	 @param connString 数据库描述
 	 @return 返回数据库连接对象
 	 */
-	static MongoDB openMongoDB(String connString);
+	static MongoDB openMongoDB(String connString) async;
 
 	/*! @brief 格式化一个 sql 命令，并返回格式化结果
 	

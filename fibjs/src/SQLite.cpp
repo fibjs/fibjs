@@ -14,15 +14,18 @@ namespace fibjs
 {
 
 result_t db_base::openSQLite(const char *connString,
-                             obj_ptr<SQLite_base> &retVal)
+                             obj_ptr<SQLite_base> &retVal, exlib::AsyncEvent *ac)
 {
+    if (!ac)
+        return CALL_E_NOSYNC;
+
     result_t hr;
 
     if (!qstrcmp(connString, "sqlite:", 7))
         connString += 7;
 
     obj_ptr<SQLite> db = new SQLite();
-    hr = db->open(connString);
+    hr = db->open(connString, ac);
     if (hr < 0)
         return hr;
 
@@ -31,8 +34,11 @@ result_t db_base::openSQLite(const char *connString,
     return 0;
 }
 
-result_t SQLite::open(const char *file)
+result_t SQLite::open(const char *file, exlib::AsyncEvent *ac)
 {
+    if (!ac)
+        return CALL_E_NOSYNC;
+
     if (sqlite3_open(file, &m_db))
     {
         result_t hr = Runtime::setError(sqlite3_errmsg(m_db));
@@ -46,8 +52,11 @@ result_t SQLite::open(const char *file)
     return 0;
 }
 
-result_t SQLite::close()
+result_t SQLite::close(exlib::AsyncEvent *ac)
 {
+    if (!ac)
+        return CALL_E_NOSYNC;
+
     if (!m_db)
         return CALL_E_INVALID_CALL;
 
@@ -57,27 +66,39 @@ result_t SQLite::close()
     return 0;
 }
 
-result_t SQLite::begin()
+result_t SQLite::begin(exlib::AsyncEvent *ac)
 {
+    if (!ac)
+        return CALL_E_NOSYNC;
+
     obj_ptr<DBResult_base> retVal;
-    return execute("BEGIN", 5, retVal);
+    return execute("BEGIN", 5, retVal, ac);
 }
 
-result_t SQLite::commit()
+result_t SQLite::commit(exlib::AsyncEvent *ac)
 {
+    if (!ac)
+        return CALL_E_NOSYNC;
+
     obj_ptr<DBResult_base> retVal;
-    return execute("COMMIT", 6, retVal);
+    return execute("COMMIT", 6, retVal, ac);
 }
 
-result_t SQLite::rollback()
+result_t SQLite::rollback(exlib::AsyncEvent *ac)
 {
+    if (!ac)
+        return CALL_E_NOSYNC;
+
     obj_ptr<DBResult_base> retVal;
-    return execute("ROLLBACK", 8, retVal);
+    return execute("ROLLBACK", 8, retVal, ac);
 }
 
 result_t SQLite::execute(const char *sql, int sLen,
-                         obj_ptr<DBResult_base> &retVal)
+                         obj_ptr<DBResult_base> &retVal, exlib::AsyncEvent *ac)
 {
+    if (!ac)
+        return CALL_E_NOSYNC;
+
     if (!m_db)
         return CALL_E_INVALID_CALL;
 
@@ -172,23 +193,6 @@ result_t SQLite::execute(const char *sql, int sLen,
                     res->rowValue(i, v);
                 }
                 res->endRow();
-
-                if (!m_func.IsEmpty())
-                {
-                    Variant val;
-
-                    res->_indexed_getter(0, val);
-                    res->resize(0);
-
-                    v8::Local<v8::Value> v;
-                    v = val;
-                    v8::Local<v8::Value> r = m_func->Call(wrap(), 1, &v);
-                    if (r.IsEmpty())
-                    {
-                        sqlite3_finalize(stmt);
-                        return CALL_E_JAVASCRIPT;
-                    }
-                }
             }
             else if (r == SQLITE_DONE)
                 break;
@@ -219,6 +223,14 @@ result_t SQLite::execute(const char *sql, int sLen,
     return 0;
 }
 
+result_t SQLite::execute(const char *sql, obj_ptr<DBResult_base> &retVal, exlib::AsyncEvent *ac)
+{
+    if (!ac)
+        return CALL_E_NOSYNC;
+
+    return execute(sql, (int) qstrlen(sql), retVal, ac);
+}
+
 result_t SQLite::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
                          obj_ptr<DBResult_base> &retVal)
 {
@@ -228,13 +240,8 @@ result_t SQLite::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Val
         return hr;
 
     v8::Local<v8::Value> v = args[args.Length() - 1];
-    if (v->IsFunction())
-        m_func = v8::Local<v8::Function>::Cast(v);
 
-    hr = execute(str.c_str(), (int) str.length(), retVal);
-    m_func.Clear();
-
-    return hr;
+    return ac_execute(str.c_str(), retVal);
 }
 
 result_t SQLite::format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
@@ -271,8 +278,11 @@ result_t SQLite::set_timeout(int32_t newVal)
     return 0;
 }
 
-result_t SQLite::backup(const char *fileName)
+result_t SQLite::backup(const char *fileName, exlib::AsyncEvent *ac)
 {
+    if (!ac)
+        return CALL_E_NOSYNC;
+
     if (!m_db)
         return CALL_E_INVALID_CALL;
 

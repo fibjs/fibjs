@@ -23,7 +23,7 @@ class MySQL_base : public DbConnection_base
 {
 public:
 	// MySQL_base
-	virtual result_t use(const char* dbName) = 0;
+	virtual result_t use(const char* dbName, exlib::AsyncEvent* ac) = 0;
 	virtual result_t get_rxBufferSize(int32_t& retVal) = 0;
 	virtual result_t set_rxBufferSize(int32_t newVal) = 0;
 	virtual result_t get_txBufferSize(int32_t& retVal) = 0;
@@ -37,6 +37,9 @@ public:
 	static void s_set_rxBufferSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_txBufferSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_txBufferSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+
+public:
+	ASYNC_MEMBER1(MySQL_base, use, const char*);
 };
 
 }
@@ -121,7 +124,7 @@ namespace fibjs
 
 		ARG(arg_string, 0);
 
-		hr = pInst->use(v0);
+		hr = pInst->ac_use(v0);
 
 		METHOD_VOID();
 	}

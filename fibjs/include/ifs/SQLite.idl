@@ -10,5 +10,5 @@ class SQLite : DbConnection
 
 	/*! @brief 备份当前数据库到新文件
 	 @param fileName 指定备份的数据库文件名 */
-	backup(String fileName);
+	backup(String fileName) async;
 };

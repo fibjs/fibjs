@@ -22,10 +22,11 @@ class DbConnection_base : public object_base
 {
 public:
 	// DbConnection_base
-	virtual result_t close() = 0;
-	virtual result_t begin() = 0;
-	virtual result_t commit() = 0;
-	virtual result_t rollback() = 0;
+	virtual result_t close(exlib::AsyncEvent* ac) = 0;
+	virtual result_t begin(exlib::AsyncEvent* ac) = 0;
+	virtual result_t commit(exlib::AsyncEvent* ac) = 0;
+	virtual result_t rollback(exlib::AsyncEvent* ac) = 0;
+	virtual result_t execute(const char* sql, obj_ptr<DBResult_base>& retVal, exlib::AsyncEvent* ac) = 0;
 	virtual result_t execute(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<DBResult_base>& retVal) = 0;
 	virtual result_t format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, std::string& retVal) = 0;
 
@@ -38,6 +39,13 @@ public:
 	static void s_rollback(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_execute(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_format(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+	ASYNC_MEMBER0(DbConnection_base, close);
+	ASYNC_MEMBER0(DbConnection_base, begin);
+	ASYNC_MEMBER0(DbConnection_base, commit);
+	ASYNC_MEMBER0(DbConnection_base, rollback);
+	ASYNC_MEMBERVALUE2(DbConnection_base, execute, const char*, obj_ptr<DBResult_base>);
 };
 
 }
@@ -75,7 +83,7 @@ namespace fibjs
 		METHOD_INSTANCE(DbConnection_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->close();
+		hr = pInst->ac_close();
 
 		METHOD_VOID();
 	}
@@ -85,7 +93,7 @@ namespace fibjs
 		METHOD_INSTANCE(DbConnection_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->begin();
+		hr = pInst->ac_begin();
 
 		METHOD_VOID();
 	}
@@ -95,7 +103,7 @@ namespace fibjs
 		METHOD_INSTANCE(DbConnection_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->commit();
+		hr = pInst->ac_commit();
 
 		METHOD_VOID();
 	}
@@ -105,7 +113,7 @@ namespace fibjs
 		METHOD_INSTANCE(DbConnection_base);
 		METHOD_ENTER(0, 0);
 
-		hr = pInst->rollback();
+		hr = pInst->ac_rollback();
 
 		METHOD_VOID();
 	}
@@ -115,7 +123,13 @@ namespace fibjs
 		obj_ptr<DBResult_base> vr;
 
 		METHOD_INSTANCE(DbConnection_base);
-		METHOD_ENTER(-1, 1);
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = pInst->ac_execute(v0, vr);
+
+		METHOD_OVER(-1, 1);
 
 		ARG(arg_string, 0);
 

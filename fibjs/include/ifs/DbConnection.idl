@@ -3,18 +3,25 @@
 class DbConnection : object
 {
 	/*! @brief 关闭当前数据库连接 */
-	close();
+	close() async;
 
 	/*! @brief 在当前数据库连接上启动一个事务 */
-	begin();
+	begin() async;
 
 	/*! @brief 提交当前数据库连接上的事务 */
-	commit();
+	commit() async;
 
 	/*! @brief 回滚当前数据库连接上的事务 */
-	rollback();
+	rollback() async;
 
 	/*! @brief 执行一个 sql 命令，并返回执行结果
+	
+	 @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
+	 @return 返回 sql 命令执行结果
+	 */
+	DBResult execute(String sql) async;
+
+	/*! @brief 执行一个 sql 命令，并返回执行结果，可根据参数格式化字符串
 	
 	 @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
 	 @param ... 可选参数列表
