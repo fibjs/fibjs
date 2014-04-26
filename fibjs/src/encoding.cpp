@@ -5,11 +5,7 @@
  *      Author: lion
  */
 
-#ifdef _WIN32
 #include <win_iconv.h>
-#else
-#include <iconv.h>
-#endif
 
 #include "ifs/encoding.h"
 #include "Buffer.h"
@@ -222,13 +218,12 @@ result_t encoding_base::iconvEncode(const char *charset, const char *data,
             return Runtime::setError("Unknown charset.");
 
         size_t sz = qstrlen(data);
-        char *ptr = (char *)data;
 
         strBuf.resize(sz * 2);
         char *output_buf = &strBuf[0];
         size_t output_size = strBuf.length();
 
-        size_t n = iconv(cd, &ptr, &sz, &output_buf, &output_size);
+        size_t n = iconv(cd, &data, &sz, &output_buf, &output_size);
         iconv_close(cd);
 
         if (n == (size_t) - 1)
@@ -259,7 +254,7 @@ result_t encoding_base::iconvDecode(const char *charset, Buffer_base *data,
             return Runtime::setError("Unknown charset.");
 
         size_t sz = strData.length();
-        char *ptr = (char *)strData.c_str();
+        const char *ptr = strData.c_str();
 
         strBuf.resize(sz * 2);
         char *output_buf = &strBuf[0];

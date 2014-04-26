@@ -16,13 +16,13 @@ endif()
 
 if(${OS_TYPE} STREQUAL "Linux")
 	set(link_flags "-static-libgcc -static-libstdc++ -Wl,--no-as-needed")
-	target_link_libraries(fibjs dl rt iconv pthread)
+	target_link_libraries(fibjs dl rt pthread)
 endif()
 
 if(${OS_TYPE} STREQUAL "FreeBSD")
 	find_library(execinfo execinfo "/usr/local/lib" "/usr/lib")
 	target_link_libraries(fibjs ${execinfo})
-	target_link_libraries(fibjs iconv pthread)
+	target_link_libraries(fibjs pthread)
 endif()
 
 
