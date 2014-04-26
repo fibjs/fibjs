@@ -5,7 +5,11 @@
  *      Author: lion
  */
 
+#ifdef _WIN32
 #include <win_iconv.h>
+#else
+#include <iconv.h>
+#endif
 
 #include "ifs/encoding.h"
 #include "Buffer.h"
@@ -204,6 +208,9 @@ result_t encoding_base::hexDecode(const char *data,
     return 0;
 }
 
+static size_t (*_iconv)(iconv_t, const char **, size_t *, char **, size_t *) =
+    (size_t (*)(iconv_t, const char **, size_t *, char **, size_t *))iconv;
+
 result_t encoding_base::iconvEncode(const char *charset, const char *data,
                                     obj_ptr<Buffer_base> &retVal)
 {
@@ -223,7 +230,7 @@ result_t encoding_base::iconvEncode(const char *charset, const char *data,
         char *output_buf = &strBuf[0];
         size_t output_size = strBuf.length();
 
-        size_t n = iconv(cd, &data, &sz, &output_buf, &output_size);
+        size_t n = _iconv(cd, &data, &sz, &output_buf, &output_size);
         iconv_close(cd);
 
         if (n == (size_t) - 1)
@@ -260,7 +267,7 @@ result_t encoding_base::iconvDecode(const char *charset, Buffer_base *data,
         char *output_buf = &strBuf[0];
         size_t output_size = strBuf.length();
 
-        size_t n = iconv(cd, &ptr, &sz, &output_buf, &output_size);
+        size_t n = _iconv(cd, &ptr, &sz, &output_buf, &output_size);
         iconv_close(cd);
 
         if (n == (size_t) - 1)
