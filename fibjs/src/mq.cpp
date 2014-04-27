@@ -98,12 +98,6 @@ result_t mq_base::jsHandler(v8::Local<v8::Value> hdlr,
     return JSHandler::New(hdlr, retVal);
 }
 
-result_t mq_base::moduleHandler(const char *id, const char *method,
-                                obj_ptr<Handler_base> &retVal)
-{
-    return JSHandler::New(id, method, retVal);
-}
-
 result_t mq_base::await(obj_ptr<AsyncWait_base> &retVal)
 {
     retVal = new AsyncWaitHandler();

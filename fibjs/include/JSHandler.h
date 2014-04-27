@@ -44,37 +44,12 @@ public:
         return 0;
     }
 
-    static result_t New(const char *id, const char *method,
-                        obj_ptr<Handler_base> &retVal)
-    {
-        if (!*id)
-            return CALL_E_INVALIDARG;
-
-        obj_ptr<JSHandler> r = new JSHandler();
-
-        result_t hr = vm_base::current(r->m_sbox);
-        if (hr < 0)
-            return hr;
-
-        r->m_id = id;
-        r->m_method = method;
-
-        if (isPathSlash(r->m_id[r->m_id.length() - 1]) && *method)
-            return CALL_E_INVALIDARG;
-
-        retVal = r;
-
-        return 0;
-    }
-
 public:
     static result_t js_invoke(Handler_base *hdlr, object_base *v,
                               obj_ptr<Handler_base> &retVal, exlib::AsyncEvent *ac);
 
 private:
     v8::Persistent<v8::Value> m_handler;
-    std::string m_id;
-    std::string m_method;
     obj_ptr<SandBox_base> m_sbox;
 };
 

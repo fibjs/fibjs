@@ -37,7 +37,6 @@ public:
 	static result_t chain(v8::Local<v8::Array> hdlrs, obj_ptr<Chain_base>& retVal);
 	static result_t routing(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
 	static result_t jsHandler(v8::Local<v8::Value> hdlr, obj_ptr<Handler_base>& retVal);
-	static result_t moduleHandler(const char* id, const char* method, obj_ptr<Handler_base>& retVal);
 	static result_t await(obj_ptr<AsyncWait_base>& retVal);
 	static result_t nullHandler(obj_ptr<Handler_base>& retVal);
 	static result_t invoke(Handler_base* hdlr, object_base* v, exlib::AsyncEvent* ac);
@@ -50,7 +49,6 @@ public:
 	static void s_chain(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_routing(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_jsHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_moduleHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_await(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_nullHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -81,7 +79,6 @@ namespace fibjs
 			{"chain", s_chain, true},
 			{"routing", s_routing, true},
 			{"jsHandler", s_jsHandler, true},
-			{"moduleHandler", s_moduleHandler, true},
 			{"await", s_await, true},
 			{"nullHandler", s_nullHandler, true},
 			{"invoke", s_invoke, true}
@@ -96,7 +93,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"mq", NULL, 
-			9, s_method, 2, s_object, 0, NULL, NULL, NULL,
+			8, s_method, 2, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -166,20 +163,6 @@ namespace fibjs
 		ARG(v8::Local<v8::Value>, 0);
 
 		hr = jsHandler(v0, vr);
-
-		METHOD_RETURN();
-	}
-
-	inline void mq_base::s_moduleHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<Handler_base> vr;
-
-		METHOD_ENTER(2, 1);
-
-		ARG(arg_string, 0);
-		OPT_ARG(arg_string, 1, "");
-
-		hr = moduleHandler(v0, v1, vr);
 
 		METHOD_RETURN();
 	}

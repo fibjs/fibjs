@@ -120,59 +120,6 @@ describe("mq", function() {
 		});
 	})
 
-	describe("module handler", function() {
-		var mod;
-
-		it("function", function() {
-			mod = mq.moduleHandler("mq_test/t1", "foo");
-			m.value = 'a';
-			mod.invoke(m);
-			assert.equal(m.value, 'a100');
-		});
-
-		it("path to argument", function() {
-			mod = mq.moduleHandler("mq_test/t1");
-
-			m.value = '/foo/b';
-			mod.invoke(m);
-			assert.equal(m.value, 'b100');
-		});
-
-		it("error path", function() {
-			assert.throws(function() {
-				m.value = '/foo1/b';
-				mod.invoke(m);
-			});
-		});
-
-		it("module folder", function() {
-			mod = mq.moduleHandler("mq_test/");
-
-			m.value = 't1.foo.a';
-			mod.invoke(m);
-			assert.equal(m.value, 'a100');
-
-			m.value = '/t1/foo/123456789';
-			mod.invoke(m);
-			assert.equal(m.value, '123456789100');
-
-			assert.throws(function() {
-				m.value = '/t1/foo1/b';
-				mod.invoke(m);
-			});
-
-			assert.throws(function() {
-				m.value = '/t2/foo/b';
-				mod.invoke(m);
-			});
-
-			assert.throws(function() {
-				m.value = '/t3/foo/b';
-				mod.invoke(m);
-			});
-		});
-	});
-
 	describe("chain handler", function() {
 		it("chain invoke",
 			function() {

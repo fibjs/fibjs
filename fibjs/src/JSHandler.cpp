@@ -55,41 +55,6 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     result_t hr;
     bool bResult = false;
 
-    if (hdlr.IsEmpty())
-    {
-        std::string id = m_id;
-
-        if (isPathSlash(id[id.length() - 1]))
-        {
-            if (msg == NULL)
-                return CALL_E_BADVARTYPE;
-
-            std::string method;
-            hr = msgMethod(msg, method);
-            if (hr < 0)
-                return hr;
-
-            id.append(method);
-        }
-
-        hr = m_sbox->require(id.c_str(), hdlr);
-        if (hr < 0)
-            return hr;
-
-        if (!m_method.empty())
-        {
-            if (!hdlr->IsObject())
-                return CALL_E_INVALID_CALL;
-
-            hdlr = v8::Local<v8::Object>::Cast(hdlr)->Get(
-                       v8::String::NewFromUtf8(isolate, m_method.c_str(),
-                                               v8::String::kNormalString,
-                                               (int) m_method.length()));
-            if (IsEmpty (hdlr))
-                return CALL_E_INVALID_CALL;
-        }
-    }
-
     while (true)
     {
         if (hdlr->IsFunction())
