@@ -34,6 +34,18 @@ enum
     HTTP_ERROR_500
 };
 
+result_t HttpHandler_base::_new(v8::Local<v8::Value> hdlr,
+                                obj_ptr<HttpHandler_base> &retVal)
+{
+    obj_ptr<Handler_base> hdlr1;
+    result_t hr = JSHandler::New(hdlr, hdlr1);
+    if (hr < 0)
+        return hr;
+
+    retVal = new HttpHandler(hdlr1);
+    return 0;
+}
+
 HttpHandler::HttpHandler(Handler_base *hdlr) :
     m_hdlr(hdlr), m_crossDomain(false), m_forceGZIP(false), m_maxHeadersCount(
         128), m_maxUploadSize(67108864)

@@ -11,11 +11,8 @@ class mq : module
 	/*! @brief 创建一个 Packet 包处理器，参见 PacketHandler */
 	static PacketHandler new PacketHandler();
 
-	/*! @brief 创建一个 http 协议处理器对象，将流对象的数据转变为 http 消息对象
-	 @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
-	 @return 返回一个可以将流对象数据转变为 http 消息的内置消息处理器
-	 */
-	static HttpHandler httpHandler(Value hdlr);
+	/*! @brief 创建一个 http 协议处理器对象，参见 HttpHandler */
+	static HttpHandler new HttpHandler();
 
 	/*! @brief 创建一个消息处理器链处理对象，参见 Chain
 	 @param hdlrs 处理器数组

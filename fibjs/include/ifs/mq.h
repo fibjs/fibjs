@@ -32,7 +32,6 @@ class mq_base : public module_base
 {
 public:
 	// mq_base
-	static result_t httpHandler(v8::Local<v8::Value> hdlr, obj_ptr<HttpHandler_base>& retVal);
 	static result_t chain(v8::Local<v8::Array> hdlrs, obj_ptr<Chain_base>& retVal);
 	static result_t routing(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
 	static result_t jsHandler(v8::Local<v8::Value> hdlr, obj_ptr<Handler_base>& retVal);
@@ -43,7 +42,6 @@ public:
 	DECLARE_CLASSINFO(mq_base);
 
 public:
-	static void s_httpHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_chain(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_routing(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_jsHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -72,7 +70,6 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"httpHandler", s_httpHandler, true},
 			{"chain", s_chain, true},
 			{"routing", s_routing, true},
 			{"jsHandler", s_jsHandler, true},
@@ -85,13 +82,14 @@ namespace fibjs
 		{
 			{"Message", Message_base::class_info},
 			{"PacketMessage", PacketMessage_base::class_info},
-			{"PacketHandler", PacketHandler_base::class_info}
+			{"PacketHandler", PacketHandler_base::class_info},
+			{"HttpHandler", HttpHandler_base::class_info}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"mq", NULL, 
-			7, s_method, 3, s_object, 0, NULL, NULL, NULL,
+			6, s_method, 4, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -99,19 +97,6 @@ namespace fibjs
 		return s_ci;
 	}
 
-
-	inline void mq_base::s_httpHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		obj_ptr<HttpHandler_base> vr;
-
-		METHOD_ENTER(1, 1);
-
-		ARG(v8::Local<v8::Value>, 0);
-
-		hr = httpHandler(v0, vr);
-
-		METHOD_RETURN();
-	}
 
 	inline void mq_base::s_chain(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{

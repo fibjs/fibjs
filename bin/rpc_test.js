@@ -97,7 +97,7 @@ describe("rpc", function() {
 	});
 
 	it("over tcp", function() {
-		var hdlr = http.handler(rpc.json({
+		var hdlr = new http.Handler(rpc.json({
 			update: function(v) {
 				return 1;
 			}

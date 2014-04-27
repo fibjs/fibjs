@@ -24,6 +24,7 @@ class HttpHandler_base : public Handler_base
 {
 public:
 	// HttpHandler_base
+	static result_t _new(v8::Local<v8::Value> hdlr, obj_ptr<HttpHandler_base>& retVal);
 	virtual result_t get_crossDomain(bool& retVal) = 0;
 	virtual result_t set_crossDomain(bool newVal) = 0;
 	virtual result_t get_forceGZIP(bool& retVal) = 0;
@@ -37,6 +38,7 @@ public:
 	DECLARE_CLASSINFO(HttpHandler_base);
 
 public:
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_crossDomain(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_crossDomain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_forceGZIP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -67,7 +69,7 @@ namespace fibjs
 
 		static ClassData s_cd = 
 		{ 
-			"HttpHandler", NULL, 
+			"HttpHandler", s__new, 
 			0, NULL, 0, NULL, 5, s_property, NULL, NULL,
 			&Handler_base::class_info()
 		};
@@ -178,6 +180,19 @@ namespace fibjs
 		hr = pInst->get_stats(vr);
 
 		METHOD_RETURN();
+	}
+
+	inline void HttpHandler_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<HttpHandler_base> vr;
+
+		CONSTRUCT_ENTER(1, 1);
+
+		ARG(v8::Local<v8::Value>, 0);
+
+		hr = _new(v0, vr);
+
+		CONSTRUCT_RETURN();
 	}
 
 }

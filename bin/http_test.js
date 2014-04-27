@@ -402,7 +402,7 @@ describe("http", function() {
 		var st;
 
 		before(function() {
-			hdr = http.handler(function(r) {
+			hdr = new http.Handler(function(r) {
 				if (r.value == '/throw')
 					throw new Error('throw test');
 				else if (r.value == '/not_found')

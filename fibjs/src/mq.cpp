@@ -110,16 +110,4 @@ result_t mq_base::nullHandler(obj_ptr<Handler_base> &retVal)
     return 0;
 }
 
-result_t mq_base::httpHandler(v8::Local<v8::Value> hdlr,
-                              obj_ptr<HttpHandler_base> &retVal)
-{
-    obj_ptr<Handler_base> hdlr1;
-    result_t hr = JSHandler::New(hdlr, hdlr1);
-    if (hr < 0)
-        return hr;
-
-    retVal = new HttpHandler(hdlr1);
-    return 0;
-}
-
 }

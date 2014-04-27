@@ -1,10 +1,22 @@
 
 /*! @brief http 协议转换处理器
 
- 用以将数据流转换为 http 协议消息
+  用以将数据流转换为 http 协议消息，创建方式：
+  @code
+  var hdlr = new mq.HttpHandler(...);
+  @endcode
+  或者：
+  @code
+  var hdlr = new http.Handler(...);
+  @endcode
  */
 class HttpHandler: Handler
 {
+	/*! @brief 创建一个 http 协议处理器对象，将流对象的数据转变为 http 消息对象
+	 @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+	 */
+	HttpHandler(Value hdlr);
+
 	/*! @brief 查询和设置是否允许跨域请求，缺省为 false */
 	Boolean crossDomain;
 
