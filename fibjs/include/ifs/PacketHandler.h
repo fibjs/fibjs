@@ -24,6 +24,7 @@ class PacketHandler_base : public Handler_base
 {
 public:
 	// PacketHandler_base
+	static result_t _new(v8::Local<v8::Value> hdlr, obj_ptr<PacketHandler_base>& retVal);
 	virtual result_t get_maxSize(int32_t& retVal) = 0;
 	virtual result_t set_maxSize(int32_t newVal) = 0;
 	virtual result_t get_stats(obj_ptr<Stats_base>& retVal) = 0;
@@ -31,6 +32,7 @@ public:
 	DECLARE_CLASSINFO(PacketHandler_base);
 
 public:
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_maxSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_maxSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_stats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -52,7 +54,7 @@ namespace fibjs
 
 		static ClassData s_cd = 
 		{ 
-			"PacketHandler", NULL, 
+			"PacketHandler", s__new, 
 			0, NULL, 0, NULL, 2, s_property, NULL, NULL,
 			&Handler_base::class_info()
 		};
@@ -94,6 +96,19 @@ namespace fibjs
 		hr = pInst->get_stats(vr);
 
 		METHOD_RETURN();
+	}
+
+	inline void PacketHandler_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<PacketHandler_base> vr;
+
+		CONSTRUCT_ENTER(1, 1);
+
+		ARG(v8::Local<v8::Value>, 0);
+
+		hr = _new(v0, vr);
+
+		CONSTRUCT_RETURN();
 	}
 
 }

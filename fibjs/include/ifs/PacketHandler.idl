@@ -1,10 +1,18 @@
 
 /*! @brief Packet 包协议转换处理器
 
- 用以将数据流转换为 Packet 包协议消息
+  用以将数据流转换为 Packet 包协议消息。创建方式：
+  @code
+  var pkghdlr = new mq.PacketHandler(...);
+  @endcode
  */
 class PacketHandler: Handler
 {
+	/*! @brief Packet 包处理器构造函数
+	 @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+	 */
+	PacketHandler(Value hdlr);
+
 	/*! @brief 查询和设置最大包尺寸，以 MB 为单位，缺省为 64 */
 	Integer maxSize;
 

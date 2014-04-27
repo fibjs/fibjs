@@ -335,7 +335,7 @@ describe("mq", function() {
 	});
 
 	it("PacketHandler", function() {
-		var s = new net.TcpServer(8884, mq.packetHandler(function(r) {
+		var s = new net.TcpServer(8884, new mq.PacketHandler(function(r) {
 			var d = r.body.readAll();
 			r.clear();
 			r.body.write(new Buffer(d.toString().toUpperCase()));
