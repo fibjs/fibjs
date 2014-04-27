@@ -63,19 +63,6 @@ result_t mq_base::invoke(Handler_base *hdlr, object_base *v,
     return (new asyncInvoke(hdlr, v, ac))->post(0);
 }
 
-result_t mq_base::chain(v8::Local<v8::Array> hdlrs,
-                        obj_ptr<Chain_base> &retVal)
-{
-    obj_ptr<Chain_base> chain = new Chain();
-    result_t hr = chain->append(hdlrs);
-    if (hr < 0)
-        return hr;
-
-    retVal = chain;
-
-    return 0;
-}
-
 result_t mq_base::routing(v8::Local<v8::Object> map,
                           obj_ptr<Routing_base> &retVal)
 {

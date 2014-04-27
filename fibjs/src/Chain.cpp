@@ -12,6 +12,19 @@
 namespace fibjs
 {
 
+result_t Chain_base::_new(v8::Local<v8::Array> hdlrs,
+                          obj_ptr<Chain_base> &retVal)
+{
+    obj_ptr<Chain_base> chain = new Chain();
+    result_t hr = chain->append(hdlrs);
+    if (hr < 0)
+        return hr;
+
+    retVal = chain;
+
+    return 0;
+}
+
 result_t Chain::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                        exlib::AsyncEvent *ac)
 {

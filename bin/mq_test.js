@@ -123,7 +123,7 @@ describe("mq", function() {
 	describe("chain handler", function() {
 		it("chain invoke",
 			function() {
-				var chain = mq.chain([hdlr1, hdlr2,
+				var chain = new mq.Chain([hdlr1, hdlr2,
 					mq.jsHandler(hdlr3)
 				]);
 
@@ -142,7 +142,7 @@ describe("mq", function() {
 				assert.equal(p2, "b1234");
 			}
 
-			var chain1 = mq.chain([chain_params, chain_params,
+			var chain1 = new mq.Chain([chain_params, chain_params,
 				mq.jsHandler(chain_params)
 			]);
 
@@ -154,7 +154,7 @@ describe("mq", function() {
 		});
 
 		it("Message", function() {
-			var handler = mq.chain([
+			var handler = new mq.Chain([
 
 				function(v) {
 					return {};
@@ -169,7 +169,7 @@ describe("mq", function() {
 			mq.invoke(handler, req);
 			assert.equal("aaa[object Object]", req.result);
 
-			var handler = mq.chain([
+			var handler = new mq.Chain([
 
 				function(v) {
 					v.params[0] = {};
