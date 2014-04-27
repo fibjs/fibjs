@@ -1,5 +1,11 @@
 
-/*! @brief sqlite 数据库连接对象 */
+/*! @brief sqlite 数据库连接对象 
+
+ 使用 db.open 或 db.openSQLite 创建，创建方式：
+ @code
+ var slite = db.openSQLite("sqlite:/path/to/db");
+ @endcode
+*/
 class SQLite : DbConnection
 {
 	/*! @brief 当前数据库文件名 */
