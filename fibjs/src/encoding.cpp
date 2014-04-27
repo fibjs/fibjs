@@ -14,6 +14,9 @@
 #if !defined(FreeBSD) || defined(__clang_major__)
 #include <iconv.h>
 #else
+
+#include <stddef.h>
+
 typedef void *iconv_t;
 
 iconv_t iconv_open(const char *tocode, const char *fromcode)
