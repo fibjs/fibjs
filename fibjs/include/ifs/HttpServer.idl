@@ -2,7 +2,7 @@
 
  http 服务器对象是将 TcpServer 和 HttpHandler 组合封装的对象，方便快速搭建服务器，逻辑上相当于：
  @code
- var svr = new net.TcpServer(addr, port, http.handler(function(req){
+ var svr = new net.TcpServer(addr, port, new http.Handler(function(req){
 	...
  }));
  @endcode
