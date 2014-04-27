@@ -11,8 +11,8 @@
 namespace fibjs
 {
 
-result_t vm_base::create(v8::Local<v8::Object> mods,
-                         obj_ptr<SandBox_base> &retVal)
+result_t SandBox_base::_new(v8::Local<v8::Object> mods,
+                            obj_ptr<SandBox_base> &retVal)
 {
     obj_ptr<SandBox_base> sbox = new SandBox();
     result_t hr = sbox->add(mods);
@@ -24,8 +24,9 @@ result_t vm_base::create(v8::Local<v8::Object> mods,
     return 0;
 }
 
-result_t vm_base::create(v8::Local<v8::Object> mods,
-                         v8::Local<v8::Function> require, obj_ptr<SandBox_base> &retVal)
+result_t SandBox_base::_new(v8::Local<v8::Object> mods,
+                            v8::Local<v8::Function> require,
+                            obj_ptr<SandBox_base> &retVal)
 {
     obj_ptr<SandBox> sbox = new SandBox();
     sbox->initRequire(require);

@@ -20,6 +20,8 @@ class SandBox_base : public object_base
 {
 public:
 	// SandBox_base
+	static result_t _new(v8::Local<v8::Object> mods, obj_ptr<SandBox_base>& retVal);
+	static result_t _new(v8::Local<v8::Object> mods, v8::Local<v8::Function> require, obj_ptr<SandBox_base>& retVal);
 	virtual result_t add(const char* id, v8::Local<v8::Value> mod) = 0;
 	virtual result_t add(v8::Local<v8::Object> mods) = 0;
 	virtual result_t addScript(const char* srcname, const char* script, v8::Local<v8::Value>& retVal) = 0;
@@ -30,6 +32,7 @@ public:
 	DECLARE_CLASSINFO(SandBox_base);
 
 public:
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_addScript(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -54,7 +57,7 @@ namespace fibjs
 
 		static ClassData s_cd = 
 		{ 
-			"SandBox", NULL, 
+			"SandBox", s__new, 
 			5, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&object_base::class_info()
 		};
@@ -63,6 +66,26 @@ namespace fibjs
 		return s_ci;
 	}
 
+
+	inline void SandBox_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<SandBox_base> vr;
+
+		CONSTRUCT_ENTER(1, 1);
+
+		ARG(v8::Local<v8::Object>, 0);
+
+		hr = _new(v0, vr);
+
+		METHOD_OVER(2, 2);
+
+		ARG(v8::Local<v8::Object>, 0);
+		ARG(v8::Local<v8::Function>, 1);
+
+		hr = _new(v0, v1, vr);
+
+		CONSTRUCT_RETURN();
+	}
 
 	inline void SandBox_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{

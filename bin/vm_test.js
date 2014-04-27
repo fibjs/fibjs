@@ -11,7 +11,7 @@ describe("vm", function() {
 			a: 1000
 		}
 
-		sbox = vm.create({
+		sbox = new vm.SandBox({
 			a: 100,
 			assert: assert,
 			b: b
