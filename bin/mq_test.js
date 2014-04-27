@@ -230,7 +230,7 @@ describe("mq", function() {
 			n = 'param3: ' + p1 + ',' + p2;
 		}
 
-		var r = mq.routing({
+		var r = new mq.Routing({
 			'^a$': hdlr1,
 			'^c$': hdlr3,
 			'^b$': mq.jsHandler(hdlr2),
@@ -300,7 +300,7 @@ describe("mq", function() {
 		});
 
 		it("path to value", function() {
-			var r = mq.routing({
+			var r = new mq.Routing({
 				"^/api/a$": function(v) {},
 				"^/api/a(/.*)$": function(v) {}
 			});

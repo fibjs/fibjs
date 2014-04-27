@@ -11,7 +11,6 @@ class Chain: Handler
 {
 	/*! @brief 构造一个消息处理器链处理对象
 	 @param hdlrs 处理器数组
-	 @return 返回初始化的 Chain 对象
 	 */
 	Chain(Array hdlrs);
 

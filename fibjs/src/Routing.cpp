@@ -13,6 +13,19 @@
 namespace fibjs
 {
 
+result_t Routing_base::_new(v8::Local<v8::Object> map,
+                            obj_ptr<Routing_base> &retVal)
+{
+    obj_ptr<Routing_base> r = new Routing();
+
+    result_t hr = r->append(map);
+    if (hr < 0)
+        return hr;
+
+    retVal = r;
+    return 0;
+}
+
 #define RE_SIZE 64
 result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                          exlib::AsyncEvent *ac)

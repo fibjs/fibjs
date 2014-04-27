@@ -63,19 +63,6 @@ result_t mq_base::invoke(Handler_base *hdlr, object_base *v,
     return (new asyncInvoke(hdlr, v, ac))->post(0);
 }
 
-result_t mq_base::routing(v8::Local<v8::Object> map,
-                          obj_ptr<Routing_base> &retVal)
-{
-    obj_ptr<Routing_base> r = new Routing();
-
-    result_t hr = r->append(map);
-    if (hr < 0)
-        return hr;
-
-    retVal = r;
-    return 0;
-}
-
 result_t mq_base::jsHandler(v8::Local<v8::Value> hdlr,
                             obj_ptr<Handler_base> &retVal)
 {

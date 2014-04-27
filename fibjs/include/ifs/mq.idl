@@ -17,11 +17,8 @@ class mq : module
 	/*! @brief 创建一个消息处理器链处理对象，参见 Chain */
 	static Chain new Chain();
 
-	/*! @brief 创建一个消息处理器路由对象，参见 Routing
-	 @param map 初始化路由参数
-	 @return 返回初始化的 Routing 对象
-	 */
-	static Routing routing(Object map);
+	/*! @brief 创建一个消息处理器路由对象，参见 Routing*/
+	static Routing new Routing();
 
 	/*! @brief 创建一个 javascript 消息处理器对象，传递值内置处理器则直接返回
 	 @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，处理器将自动映射子对象及函数

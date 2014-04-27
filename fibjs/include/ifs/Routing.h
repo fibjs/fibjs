@@ -23,12 +23,14 @@ class Routing_base : public Handler_base
 {
 public:
 	// Routing_base
+	static result_t _new(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
 	virtual result_t append(v8::Local<v8::Object> map) = 0;
 	virtual result_t append(const char* pattern, v8::Local<v8::Value> hdlr) = 0;
 
 	DECLARE_CLASSINFO(Routing_base);
 
 public:
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_append(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
@@ -46,7 +48,7 @@ namespace fibjs
 
 		static ClassData s_cd = 
 		{ 
-			"Routing", NULL, 
+			"Routing", s__new, 
 			1, s_method, 0, NULL, 0, NULL, NULL, NULL,
 			&Handler_base::class_info()
 		};
@@ -55,6 +57,19 @@ namespace fibjs
 		return s_ci;
 	}
 
+
+	inline void Routing_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<Routing_base> vr;
+
+		CONSTRUCT_ENTER(1, 1);
+
+		ARG(v8::Local<v8::Object>, 0);
+
+		hr = _new(v0, vr);
+
+		CONSTRUCT_RETURN();
+	}
 
 	inline void Routing_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
