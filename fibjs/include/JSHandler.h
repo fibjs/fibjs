@@ -36,11 +36,14 @@ public:
                 (!hdlr->IsFunction() && !hdlr->IsObject()))
             return CALL_E_BADVARTYPE;
 
+        retVal = Handler_base::getInstance(hdlr);
+        if (retVal)
+            return 0;
+
         obj_ptr<JSHandler> r = new JSHandler();
         r->m_handler.Reset(isolate, hdlr);
 
         retVal = r;
-
         return 0;
     }
 
