@@ -13,6 +13,10 @@
 namespace fibjs
 {
 
+#define SQLITE_OPEN_FLAGS \
+    SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | \
+    SQLITE_OPEN_SHAREDCACHE | SQLITE_OPEN_NOMUTEX
+
 result_t db_base::openSQLite(const char *connString,
                              obj_ptr<SQLite_base> &retVal, exlib::AsyncEvent *ac)
 {
@@ -39,7 +43,7 @@ result_t SQLite::open(const char *file, exlib::AsyncEvent *ac)
     if (!ac)
         return CALL_E_NOSYNC;
 
-    if (sqlite3_open(file, &m_db))
+    if (sqlite3_open_v2(file, &m_db, SQLITE_OPEN_FLAGS, 0))
     {
         result_t hr = Runtime::setError(sqlite3_errmsg(m_db));
         sqlite3_close(m_db);
@@ -93,6 +97,21 @@ result_t SQLite::rollback(exlib::AsyncEvent *ac)
     return execute("ROLLBACK", 8, retVal, ac);
 }
 
+int sqlite3_step_sleep(sqlite3_stmt *stmt, int ms)
+{
+    while (true)
+    {
+        int r = sqlite3_step(stmt);
+        if (r != SQLITE_LOCKED || ms <= 0)
+            return r;
+
+        sqlite3_sleep(1);
+        ms --;
+    }
+}
+
+#define SQLITE_SLEEP_TIME   10000
+
 result_t SQLite::execute(const char *sql, int sLen,
                          obj_ptr<DBResult_base> &retVal, exlib::AsyncEvent *ac)
 {
@@ -132,7 +151,7 @@ result_t SQLite::execute(const char *sql, int sLen,
 
         while (true)
         {
-            int r = sqlite3_step(stmt);
+            int r = sqlite3_step_sleep(stmt, SQLITE_SLEEP_TIME);
             if (r == SQLITE_ROW)
             {
                 res->beginRow();
@@ -205,7 +224,7 @@ result_t SQLite::execute(const char *sql, int sLen,
     }
     else
     {
-        int r = sqlite3_step(stmt);
+        int r = sqlite3_step_sleep(stmt, SQLITE_SLEEP_TIME);
         if (r == SQLITE_DONE)
             res = new DBResult(sqlite3_changes(m_db),
                                sqlite3_last_insert_rowid(m_db));
@@ -290,7 +309,7 @@ result_t SQLite::backup(const char *fileName, exlib::AsyncEvent *ac)
     struct sqlite3 *db2 = NULL;
     sqlite3_backup *pBackup;
 
-    if (sqlite3_open(fileName, &db2))
+    if (sqlite3_open_v2(fileName, &db2, SQLITE_OPEN_FLAGS, 0))
     {
         result_t hr = Runtime::setError(sqlite3_errmsg(db2));
         sqlite3_close(m_db);
