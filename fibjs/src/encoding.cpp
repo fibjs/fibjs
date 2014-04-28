@@ -260,11 +260,8 @@ inline void init_iconv()
     {
         _init = true;
 
-#ifdef MacOS
-        void *handle = dlopen("libiconv.dylib", RTLD_LAZY);
-#else
+#if defined(FreeBSD) && !defined(__clang_major__)
         void *handle = dlopen("libiconv.so", RTLD_LAZY);
-#endif
 
         if (handle)
         {
@@ -280,6 +277,7 @@ inline void init_iconv()
             if (!_iconv_close)
                 _iconv_close = (int (*)(iconv_t))dlsym(handle, "libiconv_close");
         }
+#endif
 
         if (!_iconv || !_iconv_open || !_iconv_close)
         {
