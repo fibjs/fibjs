@@ -113,21 +113,15 @@ void FiberBase::start()
         v8::Local<v8::Object> co = m_caller->wrap();
         v8::Local<v8::Object> o = wrap();
 
-        v8::Local<v8::Array> ks = co->GetPropertyNames();
+        v8::Local<v8::Array> ks = co->GetOwnPropertyNames();
         int len = ks->Length();
 
-        v8::Local<v8::Array> ks1 = o->GetPropertyNames();
-        int len1 = ks1->Length();
-
-        int i, j;
+        int i;
 
         for (i = 0; i < len; i++)
         {
             v8::Local<v8::Value> k = ks->Get(i);
-
-            for (j = 0; j < len1 && !ks1->Get(j)->Equals(k); j++);
-            if (j == len1)
-                o->Set(k, co->Get(k));
+            o->Set(k, co->Get(k));
         }
     }
 
