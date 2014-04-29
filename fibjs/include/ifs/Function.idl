@@ -9,9 +9,9 @@ class Function : module
 	 function func(v1, v2)
 	 {
 	     if(v1 > v2)
-	         print(v1);
+	         console.log(v1);
 	     else
-	         print(v2);
+	         console.log(v2);
 	 }
 	
 	 var fb = func.start(100, 200);
