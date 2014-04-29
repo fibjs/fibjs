@@ -20,7 +20,6 @@ extern int g_tlsCurrent;
 
 class FiberBase: public Fiber_base, asyncEvent
 {
-    EVENT_SUPPORT();
     FIBER_FREE();
 
 public:
@@ -50,16 +49,6 @@ public:
         return 0;
     }
 
-    result_t onerror(v8::Local<v8::Function> trigger)
-    {
-        return on("error", trigger);
-    }
-
-    result_t onexit(v8::Local<v8::Function> trigger)
-    {
-        return on("exit", trigger);
-    }
-
 public:
     static void *fiber_proc(void *p);
     void start();
@@ -78,10 +67,6 @@ public:
 
 class JSFiber: public FiberBase
 {
-    EVENT_SUPPORT()
-    ; FIBER_FREE()
-    ;
-
 public:
     class scope
     {

@@ -55,10 +55,6 @@ public:
 
 static class null_fiber_data: public Fiber_base
 {
-    EVENT_SUPPORT()
-    ; FIBER_FREE()
-    ;
-
 public:
     null_fiber_data()
     {
@@ -73,16 +69,6 @@ public:
     result_t get_caller(obj_ptr<Fiber_base> &retVal)
     {
         return CALL_E_INVALID_CALL;
-    }
-
-    result_t onerror(v8::Local<v8::Function> trigger)
-    {
-        return 0;
-    }
-
-    result_t onexit(v8::Local<v8::Function> trigger)
-    {
-        return 0;
     }
 
 } s_null;
@@ -122,6 +108,29 @@ void FiberBase::start()
 {
     m_caller = (Fiber_base *) g_pService->tlsGet(g_tlsCurrent);
 
+    if (m_caller)
+    {
+        v8::Local<v8::Object> co = m_caller->wrap();
+        v8::Local<v8::Object> o = wrap();
+
+        v8::Local<v8::Array> ks = co->GetPropertyNames();
+        int len = ks->Length();
+
+        v8::Local<v8::Array> ks1 = o->GetPropertyNames();
+        int len1 = ks1->Length();
+
+        int i, j;
+
+        for (i = 0; i < len; i++)
+        {
+            v8::Local<v8::Value> k = ks->Get(i);
+
+            for (j = 0; j < len1 && !ks1->Get(j)->Equals(k); j++);
+            if (j == len1)
+                o->Set(k, co->Get(k));
+        }
+    }
+
     g_jobs.put(this);
     Ref();
 }
@@ -137,7 +146,6 @@ void JSFiber::callFunction1(v8::Local<v8::Function> func,
         v8::Local<v8::Value> err = try_catch.Exception();
         m_error = true;
 
-        _trigger("error", &err, 1);
         ReportException(try_catch, 0);
     }
 }
@@ -156,15 +164,7 @@ void JSFiber::callFunction(v8::Local<v8::Value> &retVal)
                   argv.data(), (int) argv.size(), retVal);
 
     if (!IsEmpty(retVal))
-    {
         m_result.Reset(isolate, retVal);
-        _trigger("exit", &retVal, 1);
-    }
-    else
-    {
-        v8::Local<v8::Value> v = v8::Null(isolate);
-        _trigger("exit", &v, 1);
-    }
 }
 
 void JSFiber::js_callback()

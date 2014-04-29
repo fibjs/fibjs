@@ -90,44 +90,27 @@ describe('coroutine', function() {
 		assert.equal(n, 1534);
 	});
 
-	it('onexit', function() {
-		n = 0;
-
-		function t_fiber4(a1, a2) {
-			return a1 + a2 + 123;
+	it('inherit local storage', function() {
+		function t_fiber4() {
+			n = coroutine.current().v;
 		}
 
-		t_fiber4.start(100, 200).onexit(function(r) {
-			n = r + 1000;
-		});
-		coroutine.sleep();
-		assert.equal(n, 1423);
-	});
-
-	it('on[exit, error]', function() {
-		function t_fiber5(a1, a2) {
-			return a1 + a2 + 123 + notExistsValue;
-		}
-
-		var n1 = 0;
 		n = 0;
 
-		t_fiber5.start(100, 200).on({
-			exit: function(r) {
-				assert.equal(r, undefined);
-				n = 1000;
-			},
-			error: function(e) {
-				n1 = 2000;
-			}
-		});
-		coroutine.sleep();
+		coroutine.current().v = 1000;
+
+		var f = t_fiber4.start();
+		assert.equal(n, 0);
+
+		coroutine.current().v = 2000;
+
+		f.join();
 		assert.equal(n, 1000);
-		assert.equal(n1, 2000);
 	});
 
 	it('parallel', function() {
 		var funs = [
+
 			function() {
 				coroutine.sleep(100);
 				return 1;
@@ -331,4 +314,4 @@ describe('coroutine', function() {
 	});
 });
 
-// test.run();
+// test.run(console.DEBUG);
