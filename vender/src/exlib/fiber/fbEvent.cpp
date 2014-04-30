@@ -12,45 +12,41 @@ namespace exlib
 {
 void Event::wait()
 {
-	if (!m_set)
-	{
-		Service* pService = Service::getFiberService();
+    if (!m_set)
+    {
+        Service *pService = Service::getFiberService();
 
-		if (pService)
-		{
-			m_blocks.put(pService->m_running);
-			pService->switchtonext();
-		}
-	}
+        if (pService)
+        {
+            m_blocks.put(pService->m_running);
+            pService->switchtonext();
+        }
+    }
 }
 
 void Event::pulse()
 {
-	Service* pService = Service::getFiberService();
-	Fiber* cntxt;
+    Service *pService = Service::getFiberService();
 
-	if (pService)
-		while (!m_blocks.empty())
-		{
-			cntxt = m_blocks.get();
-			pService->m_resume.put(cntxt);
-		}
+    if (pService)
+        while (!m_blocks.empty())
+            pService->m_resume.put((Fiber *)m_blocks.get());
 }
 
 void Event::set()
 {
-	m_set = true;
-	pulse();
+    m_set = true;
+    pulse();
 }
 
 void Event::reset()
 {
-	m_set = false;
+    m_set = false;
 }
 
 bool Event::isSet()
 {
-	return m_set;
+    return m_set;
 }
 
 }

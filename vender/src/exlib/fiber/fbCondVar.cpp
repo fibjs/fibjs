@@ -11,54 +11,42 @@
 namespace exlib
 {
 
-void CondVar::wait(Locker& l)
+void CondVar::wait(Locker &l)
 {
-	Service* pService = Service::getFiberService();
+    Service *pService = Service::getFiberService();
 
-	if (pService)
-	{
-		l.unlock();
+    if (pService)
+    {
+        l.unlock();
 
-		m_blocks.put(pService->m_running);
-		pService->switchtonext();
+        m_blocks.put(pService->m_running);
+        pService->switchtonext();
 
-		l.lock();
-	}
+        l.lock();
+    }
 }
 
 void CondVar::notify_one()
 {
-	if (!m_blocks.empty())
-	{
-		Service* pService = Service::getFiberService();
+    if (!m_blocks.empty())
+    {
+        Service *pService = Service::getFiberService();
 
-		if (pService)
-		{
-			Fiber* cntxt;
-
-			cntxt = m_blocks.get();
-			pService->m_resume.put(cntxt);
-		}
-	}
+        if (pService)
+            pService->m_resume.put((Fiber *)m_blocks.get());
+    }
 }
 
 void CondVar::notify_all()
 {
-	if (!m_blocks.empty())
-	{
-		Service* pService = Service::getFiberService();
+    if (!m_blocks.empty())
+    {
+        Service *pService = Service::getFiberService();
 
-		if (pService)
-		{
-			Fiber* cntxt;
-
-			while (!m_blocks.empty())
-			{
-				cntxt = m_blocks.get();
-				pService->m_resume.put(cntxt);
-			}
-		}
-	}
+        if (pService)
+            while (!m_blocks.empty())
+                pService->m_resume.put((Fiber *)m_blocks.get());
+    }
 }
 
 }

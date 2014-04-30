@@ -7,7 +7,7 @@
  */
 
 #include <osconfig.h>
-#include "lockfree.h"
+#include "event.h"
 
 #ifndef _ex_fiber_h__
 #define _ex_fiber_h__
@@ -18,6 +18,8 @@ namespace exlib
 #pragma pack (1)
 #if defined(x64)
 
+typedef unsigned long long reg_type;
+
 typedef struct
 {
     unsigned long long Part[2];
@@ -25,18 +27,18 @@ typedef struct
 
 typedef struct
 {
-    unsigned long long Rbp;
-    unsigned long long Rbx;
-    unsigned long long Rcx;
-    unsigned long long Rdx;
-    unsigned long long Rsi;
-    unsigned long long Rdi;
-    unsigned long long R12;
-    unsigned long long R13;
-    unsigned long long R14;
-    unsigned long long R15;
-    unsigned long long Rsp;
-    unsigned long long Rip;
+    reg_type Rbp;
+    reg_type Rbx;
+    reg_type Rcx;
+    reg_type Rdx;
+    reg_type Rsi;
+    reg_type Rdi;
+    reg_type R12;
+    reg_type R13;
+    reg_type R14;
+    reg_type R15;
+    reg_type Rsp;
+    reg_type Rip;
     SETJMP_FLOAT128 Xmm6;
     SETJMP_FLOAT128 Xmm7;
     SETJMP_FLOAT128 Xmm8;
@@ -51,16 +53,18 @@ typedef struct
 
 #else
 
+typedef unsigned long reg_type;
+
 typedef struct __JUMP_BUFFER
 {
-    unsigned long Ebp;
-    unsigned long Ebx;
-    unsigned long Ecx;
-    unsigned long Edx;
-    unsigned long Esi;
-    unsigned long Edi;
-    unsigned long Esp;
-    unsigned long Eip;
+    reg_type Ebp;
+    reg_type Ebx;
+    reg_type Ecx;
+    reg_type Edx;
+    reg_type Esi;
+    reg_type Edi;
+    reg_type Esp;
+    reg_type Eip;
 } context;
 
 #endif
@@ -68,212 +72,10 @@ typedef struct __JUMP_BUFFER
 
 #define TLS_SIZE    8
 
-#define FB_RESUME 1
-#define FB_SUSPEND 2
-#define FB_TERMINATE 3
-
-class Fiber;
-
-template<class T>
-class List
-{
-public:
-    List() :
-        m_first(0), m_last(0), m_count(0)
-    {
-    }
-
-    void put(T *pNew)
-    {
-        if (m_last)
-            m_last->m_next = pNew;
-        else
-            m_first = pNew;
-
-        m_last = pNew;
-
-        m_count++;
-    }
-
-    T *get()
-    {
-        T *pNow = (T *)m_first;
-
-        if (pNow)
-        {
-            m_first = (T *)pNow->m_next;
-            if (m_first == 0)
-                m_last = 0;
-
-            pNow->m_next = 0;
-
-            m_count--;
-        }
-
-        return pNow;
-    }
-
-    bool empty() const
-    {
-        return m_count == 0;
-    }
-
-    int count() const
-    {
-        return m_count;
-    }
-
-private:
-    volatile T *m_first;
-    volatile T *m_last;
-    int m_count;
-};
-
 #define FIBER_STACK_SIZE    (65536 * 2)
 
-class Locker
-{
-public:
-    Locker() :
-        m_locked(false), m_count(0), m_locker(0)
-    {
-    }
-
-public:
-    void lock();
-    void unlock();
-    bool trylock();
-    bool owned();
-
-    int blocked() const
-    {
-        return m_blocks.count();
-    }
-
-private:
-    bool m_locked;
-    int m_count;
-    Fiber *m_locker;
-    List<Fiber> m_blocks;
-};
-
-class autoLocker
-{
-public:
-    autoLocker(Locker &l) :
-        m_l(l)
-    {
-        m_l.lock();
-    }
-
-    ~autoLocker()
-    {
-        m_l.unlock();
-    }
-
-private:
-    Locker &m_l;
-};
-
-class Event
-{
-public:
-    Event()
-    {
-        m_set = false;
-    }
-
-public:
-    void wait();
-    void pulse();
-    void set();
-    void reset();
-    bool isSet();
-
-private:
-    bool m_set;
-    List<Fiber> m_blocks;
-};
-
-class CondVar
-{
-public:
-    void wait(Locker &l);
-    void notify_one();
-    void notify_all();
-
-    int blocked() const
-    {
-        return m_blocks.count();
-    }
-
-private:
-    List<Fiber> m_blocks;
-};
-
-class Semaphore
-{
-public:
-    Semaphore(int count = 0) :
-        m_count(count)
-    {
-    }
-
-public:
-    void wait();
-    void post();
-    bool trywait();
-
-    int blocked() const
-    {
-        return m_blocks.count();
-    }
-
-private:
-    int m_count;
-    List<Fiber> m_blocks;
-};
-
-template<class T>
-class Queue
-{
-public:
-    void put(T *pNew)
-    {
-        m_list.put(pNew);
-        m_sem.post();
-    }
-
-    T *get()
-    {
-        m_sem.wait();
-        return m_list.get();
-    }
-
-    T *tryget()
-    {
-        if (!m_sem.trywait())
-            return NULL;
-        return m_list.get();
-    }
-
-    bool empty() const
-    {
-        return m_list.empty();
-    }
-
-    int count() const
-    {
-        return m_list.count();
-    }
-
-public:
-    List<T> m_list;
-    Semaphore m_sem;
-};
-
 class Service;
-class AsyncEvent
+class AsyncEvent : public linkitem
 {
 public:
     AsyncEvent(Service *pService);
@@ -309,16 +111,13 @@ public:
 
     void sleep(int ms);
 
-public:
-    AsyncEvent *m_next;
-
 private:
     Event weak;
     Service *m_service;
     int m_v;
 };
 
-class Fiber
+class Fiber : public linkitem
 {
 public:
     void Ref()
@@ -345,11 +144,10 @@ private:
     void destroy();
 
 public:
+    reg_type refs_;
     context m_cntxt;
-    Fiber *m_next;
     Event m_joins;
     void *m_data;
-    int refs_;
     void *m_tls[TLS_SIZE];
 };
 
