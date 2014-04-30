@@ -68,7 +68,7 @@ public:
     {
         if (internalUnref() == 0)
         {
-            if (v8::Isolate::GetCurrent())
+            if (exlib::Service::hasService())
             {
                 if (!handle_.IsEmpty())
                     handle_.SetWeak(this, WeakCallback);
@@ -208,7 +208,7 @@ public:
 
             if (ext != 0)
             {
-                if (v8::Isolate::GetCurrent())
+                if (exlib::Service::hasService())
                 {
                     isolate->AdjustAmountOfExternalAllocatedMemory(ext);
                     m_nExtMemory += ext;
