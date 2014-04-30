@@ -12,10 +12,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef MacOS
-#include <sys/sysctl.h>
-#endif
-
 namespace exlib
 {
 
@@ -29,182 +25,62 @@ extern "C" int nix_switch(context *from, context *to);
 #define fb_switch nix_switch
 #endif
 
-static bool s_bRootThread = true;
+Service *Service::root;
 
-#ifdef MacOS
+#ifdef _WIN32
 
-static pthread_key_t keyService;
-static pthread_once_t once = PTHREAD_ONCE_INIT;
-static intptr_t kMacTlsBaseOffset = -1;
-
-intptr_t MacTlsBaseOffset()
-{
-    if (kMacTlsBaseOffset == -1)
-    {
-        const size_t kBufferSize = 128;
-        char buffer[kBufferSize];
-        size_t buffer_size = kBufferSize;
-        int ctl_name[] =
-        { CTL_KERN, KERN_OSRELEASE };
-        sysctl(ctl_name, 2, buffer, &buffer_size, NULL, 0);
-        buffer[kBufferSize - 1] = '\0';
-        char *period_pos = strchr(buffer, '.');
-        *period_pos = '\0';
-        int kernel_version_major = static_cast<int>(strtol(buffer, NULL, 10));
-
-        if (kernel_version_major < 11)
-        {
-#if defined(I386)
-            kMacTlsBaseOffset = 0x48;
-#else
-            kMacTlsBaseOffset = 0x60;
-#endif
-        }
-        else
-        {
-            kMacTlsBaseOffset = 0;
-        }
-    }
-
-    return kMacTlsBaseOffset;
-}
-
-inline intptr_t FastThreadLocal(intptr_t index)
-{
-    intptr_t result;
-#if defined(I386)
-    asm("movl %%gs:(%1,%2,4), %0;"
-        :"=r"(result)
-        :"r"(kMacTlsBaseOffset), "r"(index));
-#else
-    asm("movq %%gs:(%1,%2,8), %0;"
-        :"=r"(result)
-        :"r"(kMacTlsBaseOffset), "r"(index));
-#endif
-    return result;
-}
-
-static void once_run(void)
-{
-    MacTlsBaseOffset();
-    pthread_key_create(&keyService, NULL);
-}
+static DWORD s_main;
 
 Service *Service::getFiberService()
 {
-    pthread_once(&once, once_run);
-
-    Service *pService = (Service *) FastThreadLocal(keyService);
-    //  Service* pService = (Service*) pthread_getspecific(keyService);
-
-    if (pService == NULL && s_bRootThread)
+    if (!s_main)
     {
-        s_bRootThread = false;
-        pService = new Service();
-        pthread_setspecific(keyService, pService);
+        root = new Service();
+        s_main = GetCurrentThreadId();
     }
+    else if (s_main != GetCurrentThreadId())
+        return NULL;
 
-    return pService;
-}
-
-void Service::init()
-{
-    Service *pService = (Service *) FastThreadLocal(keyService);
-    //  Service* pService = (Service*) pthread_getspecific(keyService);
-
-    if (pService == NULL)
-    {
-        pService = new Service();
-        pthread_setspecific(keyService, pService);
-    }
+    return root;
 }
 
 bool Service::hasService()
 {
-    return !!FastThreadLocal(keyService);
-}
-
-#elif defined(OpenBSD)
-
-static pthread_key_t keyService;
-static pthread_once_t once = PTHREAD_ONCE_INIT;
-
-static void once_run(void)
-{
-    pthread_key_create(&keyService, NULL);
-}
-
-Service *Service::getFiberService()
-{
-    pthread_once(&once, once_run);
-
-    Service *pService = (Service *) pthread_getspecific(keyService);
-
-    if (pService == NULL && s_bRootThread)
-    {
-        s_bRootThread = false;
-        pService = new Service();
-        pthread_setspecific(keyService, pService);
-    }
-
-    return pService;
-}
-
-void Service::init()
-{
-    Service *pService = (Service *) pthread_getspecific(keyService);
-
-    if (pService == NULL)
-    {
-        pService = new Service();
-        pthread_setspecific(keyService, pService);
-    }
-}
-
-bool Service::hasService()
-{
-    return !!pthread_getspecific(keyService);
+    return s_main == GetCurrentThreadId();
 }
 
 #else
 
-#if defined(_MSC_VER)
-__declspec(thread) Service *th_Service = NULL;
-#else
-__thread Service *th_Service = NULL;
-#endif
+static pthread_t s_main;
 
 Service *Service::getFiberService()
 {
-    Service *pService = th_Service;
-
-    if (pService == NULL && s_bRootThread)
+    if (!s_main)
     {
-        s_bRootThread = false;
-        pService = new Service();
-        th_Service = pService;
+        root = new Service();
+        s_main = pthread_self();
     }
+    else if (s_main != pthread_self())
+        return NULL;
 
-    return pService;
-}
-
-void Service::init()
-{
-    Service *pService = th_Service;
-
-    if (pService == NULL)
-    {
-        pService = new Service();
-        th_Service = pService;
-    }
+    return root;
 }
 
 bool Service::hasService()
 {
-    return !!th_Service;
+    return s_main == pthread_self();
 }
 
 #endif
+
+static class _service_init
+{
+public:
+    _service_init()
+    {
+        exlib::Service::getFiberService();
+    }
+} s_service_init;
 
 Service::Service()
 {
@@ -215,64 +91,53 @@ Service::Service()
     memset(&m_tls, 0, sizeof(m_tls));
 }
 
-static void fiber_proc(void *(*func)(void *), Service *pService)
+static void fiber_proc(void *(*func)(void *), void *data)
 {
-    Fiber *now = pService->m_running;
+    func(data);
 
-    func(now->m_data);
-
-    pService->m_recycle = now;
-    pService->switchtonext();
+    Service::root->m_recycle = Service::root->m_running;
+    Service::root->switchtonext();
 }
 
 Fiber *Service::CreateFiber(void *(*func)(void *), void *data, int stacksize)
 {
-    Service *pService = Service::getFiberService();
+    Fiber *fb;
+    void **stack;
 
-    if (pService)
-    {
-        Fiber *fb;
-        void **stack;
+    stacksize = (stacksize + FB_STK_ALIGN - 1) & ~(FB_STK_ALIGN - 1);
+    fb = (Fiber *) malloc(stacksize);
+    if (fb == NULL)
+        return NULL;
+    stack = (void **) fb + stacksize / sizeof(void *) - 5;
 
-        stacksize = (stacksize + FB_STK_ALIGN - 1) & ~(FB_STK_ALIGN - 1);
-        fb = (Fiber *) malloc(stacksize);
-        if (fb == NULL)
-            return NULL;
-        stack = (void **) fb + stacksize / sizeof(void *) - 5;
-
-        memset(fb, 0, sizeof(Fiber));
-
-        fb->m_data = data;
+    memset(fb, 0, sizeof(Fiber));
 
 #if defined(x64)
-        fb->m_cntxt.Rip = (unsigned long long) fiber_proc;
-        fb->m_cntxt.Rsp = (unsigned long long) stack;
+    fb->m_cntxt.Rip = (unsigned long long) fiber_proc;
+    fb->m_cntxt.Rsp = (unsigned long long) stack;
 
 #ifdef _WIN32
-        fb->m_cntxt.Rcx = (unsigned long long) func;
-        fb->m_cntxt.Rdx = (unsigned long long) pService;
+    fb->m_cntxt.Rcx = (unsigned long long) func;
+    fb->m_cntxt.Rdx = (unsigned long long) data;
 #else
-        fb->m_cntxt.Rdi = (unsigned long long) func;
-        fb->m_cntxt.Rsi = (unsigned long long) pService;
+    fb->m_cntxt.Rdi = (unsigned long long) func;
+    fb->m_cntxt.Rsi = (unsigned long long) data;
 #endif
 
 #else
-        fb->m_cntxt.Eip = (unsigned long) fiber_proc;
-        fb->m_cntxt.Esp = (unsigned long) stack;
+    fb->m_cntxt.Eip = (unsigned long) fiber_proc;
+    fb->m_cntxt.Esp = (unsigned long) stack;
 
-        stack[1] = (void *)func;
-        stack[2] = pService;
+    stack[1] = (void *)func;
+    stack[2] = data;
 #endif
 
-        pService->m_resume.put(fb);
+    root->m_resume.put(fb);
 
-        fb->Ref();
-        fb->Ref();
+    fb->Ref();
+    fb->Ref();
 
-        return fb;
-    }
-
-    return NULL;
+    return fb;
 }
 
 void Service::switchtonext()
@@ -337,7 +202,7 @@ void Service::switchtonext()
 
 void Service::yield()
 {
-    AsyncEvent ae(this);
+    AsyncEvent ae;
     m_yieldList.put(&ae);
     ae.wait();
 }

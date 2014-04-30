@@ -24,34 +24,28 @@ static int32_t s_fibers;
 int g_tlsCurrent;
 DateCache FiberBase::g_dc;
 
-static class _fiber_init
+static void onIdle()
 {
-public:
-    _fiber_init()
+    if (!g_jobs.empty() && (s_fibers < s_cpus * FIBER_PER_CPU))
     {
-        if (os_base::CPUs(s_cpus) < 0)
-            s_cpus = 4;
-        s_fibers = 0;
-
-        exlib::Service *pService = exlib::Service::getFiberService();
-
-        g_tlsCurrent = pService->tlsAlloc();
-        s_oldIdle = pService->onIdle(onIdle);
+        s_fibers++;
+        exlib::Service::CreateFiber(FiberBase::fiber_proc, NULL,
+                                    stack_size * 1024)->Unref();
     }
 
-    static void onIdle()
-    {
-        if (!g_jobs.empty() && (s_fibers < s_cpus * FIBER_PER_CPU))
-        {
-            s_fibers++;
-            exlib::Service::CreateFiber(FiberBase::fiber_proc, NULL,
-                                        stack_size * 1024)->Unref();
-        }
+    if (s_oldIdle)
+        s_oldIdle();
+}
 
-        if (s_oldIdle)
-            s_oldIdle();
-    }
-} s_fiber_init;
+void fiber_init()
+{
+    if (os_base::CPUs(s_cpus) < 0)
+        s_cpus = 4;
+    s_fibers = 0;
+
+    g_tlsCurrent = exlib::Service::tlsAlloc();
+    s_oldIdle = exlib::Service::root->onIdle(onIdle);
+}
 
 static class null_fiber_data: public Fiber_base
 {
@@ -106,7 +100,7 @@ void *FiberBase::fiber_proc(void *p)
 
 void FiberBase::start()
 {
-    m_caller = (Fiber_base *) g_pService->tlsGet(g_tlsCurrent);
+    m_caller = (Fiber_base *) exlib::Service::tlsGet(g_tlsCurrent);
 
     if (m_caller)
     {

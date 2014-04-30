@@ -18,14 +18,12 @@ namespace fibjs
 {
 v8::Isolate *isolate;
 v8::Persistent<v8::Context> s_context;
-exlib::Service *g_pService;
 
 void init_argv(int argc, char **argv);
 
 void _main(const char *fname)
 {
-    exlib::Service::init();
-    g_pService = exlib::Service::getFiberService();
+    fiber_init();
 
     v8::V8::Initialize();
 
@@ -40,7 +38,7 @@ void _main(const char *fname)
     v8::Context::Scope context_scope(_context);
 
     Fiber_base *fb = new JSFiber();
-    g_pService->tlsPut(g_tlsCurrent, fb);
+    exlib::Service::tlsPut(g_tlsCurrent, fb);
     fb->Ref();
 
     {

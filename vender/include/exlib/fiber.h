@@ -74,11 +74,9 @@ typedef struct __JUMP_BUFFER
 
 #define FIBER_STACK_SIZE    (65536 * 2)
 
-class Service;
 class AsyncEvent : public linkitem
 {
 public:
-    AsyncEvent(Service *pService);
     virtual ~AsyncEvent()
     {}
 
@@ -113,7 +111,6 @@ public:
 
 private:
     Event weak;
-    Service *m_service;
     int m_v;
 };
 
@@ -147,7 +144,6 @@ public:
     reg_type refs_;
     context m_cntxt;
     Event m_joins;
-    void *m_data;
     void *m_tls[TLS_SIZE];
 };
 
@@ -171,7 +167,6 @@ public:
     void switchtonext();
     void yield();
     static Service *getFiberService();
-    static void init();
     static bool hasService();
 
     IDLE_PROC onIdle(IDLE_PROC proc)
@@ -191,6 +186,8 @@ public:
     List<AsyncEvent> m_yieldList;
 
     IDLE_PROC m_Idle;
+
+    static Service *root;
 };
 
 double FastCurrentMillis();

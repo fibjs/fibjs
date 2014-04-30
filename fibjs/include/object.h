@@ -30,12 +30,6 @@ namespace fibjs
 class asyncEvent: public exlib::AsyncEvent
 {
 public:
-    asyncEvent() :
-        exlib::AsyncEvent(g_pService)
-    {
-    }
-
-public:
     virtual void js_callback()
     {
     }

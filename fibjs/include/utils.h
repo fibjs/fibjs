@@ -563,8 +563,6 @@ inline result_t SocketError()
 #endif
 }
 
-extern exlib::Service *g_pService;
-
 std::string traceInfo();
 std::string getResultMessage(result_t hr);
 v8::Local<v8::Value> ThrowResult(result_t hr);

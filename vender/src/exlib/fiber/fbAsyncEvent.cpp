@@ -11,16 +11,10 @@
 namespace exlib
 {
 
-AsyncEvent::AsyncEvent(Service* pService)
-{
-    m_next = 0;
-    m_service = pService;
-}
-
 int AsyncEvent::post(int v)
 {
 	m_v = v;
-    m_service->m_aEvents.put(this);
+    Service::root->m_aEvents.put(this);
 
     return 0;
 }

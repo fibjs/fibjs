@@ -88,7 +88,7 @@ static pthread_once_t once = PTHREAD_ONCE_INIT;
 
 static void once_run(void)
 {
-        pthread_key_create(&keyRuntime, NULL);
+    pthread_key_create(&keyRuntime, NULL);
 }
 
 void Runtime::reg(Runtime *rt)
@@ -114,10 +114,8 @@ void Runtime::reg(Runtime *rt)
 
 Runtime &Runtime::now()
 {
-    exlib::Service *pService = exlib::Service::getFiberService();
-
-    if (pService)
-        return ((JSFiber *) pService->tlsGet(g_tlsCurrent))->runtime();
+    if (exlib::Service::hasService())
+        return ((JSFiber *) exlib::Service::tlsGet(g_tlsCurrent))->runtime();
 
 #ifdef MacOS
     return *(Runtime *) FastThreadLocal(keyRuntime);

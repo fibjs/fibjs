@@ -77,14 +77,14 @@ public:
             if (fb == NULL)
                 m_pFiber = new JSFiber();
 
-            m_pNext = g_pService->tlsGet(g_tlsCurrent);
-            g_pService->tlsPut(g_tlsCurrent, m_pFiber);
+            m_pNext = exlib::Service::tlsGet(g_tlsCurrent);
+            exlib::Service::tlsPut(g_tlsCurrent, m_pFiber);
         }
 
         ~scope()
         {
             ReportException(try_catch, m_hr);
-            g_pService->tlsPut(g_tlsCurrent, m_pNext);
+            exlib::Service::tlsPut(g_tlsCurrent, m_pNext);
         }
 
         JSFiber *operator->()
@@ -154,7 +154,7 @@ public:
     static void call(v8::Local<v8::Function> func, v8::Local<v8::Value> *args,
                      int argCount, v8::Local<v8::Value> &retVal)
     {
-        JSFiber *fb = (JSFiber *) g_pService->tlsGet(g_tlsCurrent);
+        JSFiber *fb = (JSFiber *) exlib::Service::tlsGet(g_tlsCurrent);
 
         if (fb)
             fb->callFunction1(func, args, argCount, retVal);
@@ -198,6 +198,8 @@ private:
     v8::Persistent<v8::Value> m_result;
     bool m_error;
 };
+
+void fiber_init();
 
 } /* namespace fibjs */
 #endif /* FIBER_H_ */
