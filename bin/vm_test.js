@@ -6,7 +6,7 @@ var vm = require('vm');
 describe("vm", function() {
 	var sbox;
 
-	it("sandbox.add", function() {
+	it("add", function() {
 		var b = {
 			a: 1000
 		}
@@ -27,7 +27,7 @@ describe("vm", function() {
 		assert.equal(1000, b.a);
 	});
 
-	it("sandbox.addScript", function() {
+	it("addScript", function() {
 		var a = sbox.addScript("t1.js", "module.exports = {a : 100};");
 		assert.equal(100, a.a);
 		assert.equal(100, sbox.require("t1").a);
@@ -36,6 +36,56 @@ describe("vm", function() {
 		assert.equal(100, b.a);
 		assert.equal(100, sbox.require("t2").a);
 	});
+
+	it("callback", function() {
+		var b = 200;
+		var o = {
+			a: 100,
+			b: 200
+		};
+
+		sbox = new vm.SandBox({
+			b: b
+		}, function(n) {
+			if (n == 'c')
+				return 100;
+			if (n == 'o')
+				return o;
+		});
+
+		assert.equal(200, sbox.require("b"));
+		assert.equal(100, sbox.require("c"));
+
+		var o1 = sbox.require("o");
+		assert.notEqual(o, o1);
+		assert.deepEqual(o, o1);
+	});
+
+	it("add native object", function() {
+		var b = new Buffer();
+
+		sbox = new vm.SandBox({
+			b: b
+		});
+
+		var b1 = sbox.require("b");
+		assert.equal(b, b1);
+	});
+
+	it("add javascript object", function() {
+		var b = {
+			a: 100,
+			b: 200
+		};
+
+		sbox = new vm.SandBox({
+			b: b
+		});
+
+		var b1 = sbox.require("b");
+		assert.notEqual(b, b1);
+		assert.deepEqual(b, b1);
+	});
 });
 
-//test.run();
+//test.run(console.DEBUG);
