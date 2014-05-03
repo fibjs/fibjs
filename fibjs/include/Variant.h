@@ -24,6 +24,7 @@ inline bool IsEmpty(v8::Local<v8::Value> &v)
 inline void extend(const v8::Local<v8::Object> src,
                    v8::Local<v8::Object> &dest, bool bDataOnly = true)
 {
+    v8::TryCatch try_catch;
     v8::Local<v8::Array> ks = src->GetPropertyNames();
     int len = ks->Length();
     int i;
