@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "api.h"
 
@@ -106,7 +83,7 @@ namespace v8 {
 
 #define EXCEPTION_BAILOUT_CHECK_DO_CALLBACK(isolate, value)                    \
   EXCEPTION_BAILOUT_CHECK_GENERIC(                                             \
-      isolate, value, i::V8::FireCallCompletedCallback(isolate);)
+      isolate, value, isolate->FireCallCompletedCallback();)
 
 
 #define EXCEPTION_BAILOUT_CHECK(isolate, value)                                \
@@ -694,7 +671,7 @@ static i::Handle<i::FixedArray> EmbedderDataFor(Context* context,
     return i::Handle<i::FixedArray>();
   }
   int new_size = i::Max(index, data->length() << 1) + 1;
-  data = env->GetIsolate()->factory()->CopySizeFixedArray(data, new_size);
+  data = i::FixedArray::CopySize(data, new_size);
   env->set_embedder_data(*data);
   return data;
 }
@@ -3167,7 +3144,8 @@ bool v8::Object::SetPrototype(Handle<Value> value) {
   // to propagate outside.
   TryCatch try_catch;
   EXCEPTION_PREAMBLE(isolate);
-  i::Handle<i::Object> result = i::JSObject::SetPrototype(self, value_obj);
+  i::MaybeHandle<i::Object> result = i::JSObject::SetPrototype(
+      self, value_obj);
   has_pending_exception = result.is_null();
   EXCEPTION_BAILOUT_CHECK(isolate, false);
   return true;
@@ -3533,7 +3511,7 @@ Local<Value> v8::Object::GetRealNamedPropertyInPrototypeChain(
   i::Handle<i::JSObject> self_obj = Utils::OpenHandle(this);
   i::Handle<i::String> key_obj = Utils::OpenHandle(*key);
   i::LookupResult lookup(isolate);
-  self_obj->LookupRealNamedPropertyInPrototypes(*key_obj, &lookup);
+  self_obj->LookupRealNamedPropertyInPrototypes(key_obj, &lookup);
   return GetPropertyByLookup(isolate, self_obj, key_obj, &lookup);
 }
 
@@ -3546,7 +3524,7 @@ Local<Value> v8::Object::GetRealNamedProperty(Handle<String> key) {
   i::Handle<i::JSObject> self_obj = Utils::OpenHandle(this);
   i::Handle<i::String> key_obj = Utils::OpenHandle(*key);
   i::LookupResult lookup(isolate);
-  self_obj->LookupRealNamedProperty(*key_obj, &lookup);
+  self_obj->LookupRealNamedProperty(key_obj, &lookup);
   return GetPropertyByLookup(isolate, self_obj, key_obj, &lookup);
 }
 
@@ -3582,25 +3560,10 @@ Local<v8::Object> v8::Object::Clone() {
   ENTER_V8(isolate);
   i::Handle<i::JSObject> self = Utils::OpenHandle(this);
   EXCEPTION_PREAMBLE(isolate);
-  i::Handle<i::JSObject> result = i::JSObject::Copy(self);
+  i::Handle<i::JSObject> result = isolate->factory()->CopyJSObject(self);
   has_pending_exception = result.is_null();
   EXCEPTION_BAILOUT_CHECK(isolate, Local<Object>());
   return Utils::ToLocal(result);
-}
-
-
-static i::Context* GetCreationContext(i::JSObject* object) {
-  i::Object* constructor = object->map()->constructor();
-  i::JSFunction* function;
-  if (!constructor->IsJSFunction()) {
-    // Functions have null as a constructor,
-    // but any JSFunction knows its context immediately.
-    ASSERT(object->IsJSFunction());
-    function = i::JSFunction::cast(object);
-  } else {
-    function = i::JSFunction::cast(constructor);
-  }
-  return function->context()->native_context();
 }
 
 
@@ -3610,7 +3573,7 @@ Local<v8::Context> v8::Object::CreationContext() {
              "v8::Object::CreationContext()", return Local<v8::Context>());
   ENTER_V8(isolate);
   i::Handle<i::JSObject> self = Utils::OpenHandle(this);
-  i::Context* context = GetCreationContext(*self);
+  i::Context* context = self->GetCreationContext();
   return Utils::ToLocal(i::Handle<i::Context>(context));
 }
 
@@ -3653,7 +3616,7 @@ v8::Local<v8::Value> v8::Object::GetHiddenValue(v8::Handle<v8::String> key) {
   i::Handle<i::String> key_obj = Utils::OpenHandle(*key);
   i::Handle<i::String> key_string =
       isolate->factory()->InternalizeString(key_obj);
-  i::Handle<i::Object> result(self->GetHiddenProperty(*key_string), isolate);
+  i::Handle<i::Object> result(self->GetHiddenProperty(key_string), isolate);
   if (result->IsTheHole()) return v8::Local<v8::Value>();
   return Utils::ToLocal(result);
 }
@@ -4022,7 +3985,7 @@ Handle<Value> Function::GetDisplayName() const {
       isolate->factory()->InternalizeOneByteString(
           STATIC_ASCII_VECTOR("displayName"));
   i::LookupResult lookup(isolate);
-  func->LookupRealNamedProperty(*property_name, &lookup);
+  func->LookupRealNamedProperty(property_name, &lookup);
   if (lookup.IsFound()) {
     i::Object* value = lookup.GetLazyValue();
     if (value && value->IsString()) {
@@ -5329,7 +5292,7 @@ MUST_USE_RESULT
 inline i::MaybeHandle<i::String> NewString(i::Factory* factory,
                                            String::NewStringType type,
                                            i::Vector<const char> string) {
-  if (type ==String::kInternalizedString) {
+  if (type == String::kInternalizedString) {
     return factory->InternalizeUtf8String(string);
   }
   return factory->NewStringFromUtf8(string);
@@ -5796,7 +5759,8 @@ Local<Object> Array::CloneElementAt(uint32_t index) {
   i::Handle<i::JSObject> paragon_handle(i::JSObject::cast(paragon));
   EXCEPTION_PREAMBLE(isolate);
   ENTER_V8(isolate);
-  i::Handle<i::JSObject> result = i::JSObject::Copy(paragon_handle);
+  i::Handle<i::JSObject> result =
+      isolate->factory()->CopyJSObject(paragon_handle);
   has_pending_exception = result.is_null();
   EXCEPTION_BAILOUT_CHECK(isolate, Local<Object>());
   return Utils::ToLocal(result);
@@ -6490,33 +6454,18 @@ void V8::RemoveMemoryAllocationCallback(MemoryAllocationCallback callback) {
 }
 
 
-void V8::AddCallCompletedCallback(CallCompletedCallback callback) {
-  if (callback == NULL) return;
-  i::V8::AddCallCompletedCallback(callback);
-}
-
-
 void V8::RunMicrotasks(Isolate* isolate) {
-  i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
-  i::HandleScope scope(i_isolate);
-  i::V8::RunMicrotasks(i_isolate);
+  isolate->RunMicrotasks();
 }
 
 
 void V8::EnqueueMicrotask(Isolate* isolate, Handle<Function> microtask) {
-  i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
-  ENTER_V8(i_isolate);
-  i::Execution::EnqueueMicrotask(i_isolate, Utils::OpenHandle(*microtask));
+  isolate->EnqueueMicrotask(microtask);
 }
 
 
 void V8::SetAutorunMicrotasks(Isolate* isolate, bool autorun) {
-  reinterpret_cast<i::Isolate*>(isolate)->set_autorun_microtasks(autorun);
-}
-
-
-void V8::RemoveCallCompletedCallback(CallCompletedCallback callback) {
-  i::V8::RemoveCallCompletedCallback(callback);
+  isolate->SetAutorunMicrotasks(autorun);
 }
 
 
@@ -6640,6 +6589,18 @@ Isolate::AllowJavascriptExecutionScope::~AllowJavascriptExecutionScope() {
 }
 
 
+Isolate::SuppressMicrotaskExecutionScope::SuppressMicrotaskExecutionScope(
+    Isolate* isolate)
+    : isolate_(reinterpret_cast<i::Isolate*>(isolate)) {
+  isolate_->handle_scope_implementer()->IncrementCallDepth();
+}
+
+
+Isolate::SuppressMicrotaskExecutionScope::~SuppressMicrotaskExecutionScope() {
+  isolate_->handle_scope_implementer()->DecrementCallDepth();
+}
+
+
 void Isolate::GetHeapStatistics(HeapStatistics* heap_statistics) {
   i::Isolate* isolate = reinterpret_cast<i::Isolate*>(this);
   if (!isolate->IsInitialized()) {
@@ -6668,14 +6629,33 @@ void Isolate::SetEventLogger(LogEventCallback that) {
 
 void Isolate::AddCallCompletedCallback(CallCompletedCallback callback) {
   if (callback == NULL) return;
-  // TODO(jochen): Make this per isolate.
-  i::V8::AddCallCompletedCallback(callback);
+  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(this);
+  isolate->AddCallCompletedCallback(callback);
 }
 
 
 void Isolate::RemoveCallCompletedCallback(CallCompletedCallback callback) {
-  // TODO(jochen): Make this per isolate.
-  i::V8::RemoveCallCompletedCallback(callback);
+  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(this);
+  isolate->RemoveCallCompletedCallback(callback);
+}
+
+
+void Isolate::RunMicrotasks() {
+  i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(this);
+  i::HandleScope scope(i_isolate);
+  i_isolate->RunMicrotasks();
+}
+
+
+void Isolate::EnqueueMicrotask(Handle<Function> microtask) {
+  i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(this);
+  ENTER_V8(i_isolate);
+  i::Execution::EnqueueMicrotask(i_isolate, Utils::OpenHandle(*microtask));
+}
+
+
+void Isolate::SetAutorunMicrotasks(bool autorun) {
+  reinterpret_cast<i::Isolate*>(this)->set_autorun_microtasks(autorun);
 }
 
 
@@ -6807,8 +6787,6 @@ Local<Value> Exception::Error(v8::Handle<v8::String> raw_message) {
 
 
 // --- D e b u g   S u p p o r t ---
-
-#ifdef ENABLE_DEBUGGER_SUPPORT
 
 bool Debug::SetDebugEventListener2(EventCallback2 that, Handle<Value> data) {
   i::Isolate* isolate = i::Isolate::Current();
@@ -6974,9 +6952,6 @@ void Debug::SetLiveEditEnabled(Isolate* isolate, bool enable) {
 }
 
 
-#endif  // ENABLE_DEBUGGER_SUPPORT
-
-
 Handle<String> CpuProfileNode::GetFunctionName() const {
   i::Isolate* isolate = i::Isolate::Current();
   const i::ProfileNode* node = reinterpret_cast<const i::ProfileNode*>(this);
@@ -7082,15 +7057,21 @@ const CpuProfileNode* CpuProfile::GetSample(int index) const {
 }
 
 
+int64_t CpuProfile::GetSampleTimestamp(int index) const {
+  const i::CpuProfile* profile = reinterpret_cast<const i::CpuProfile*>(this);
+  return (profile->sample_timestamp(index) - i::TimeTicks()).InMicroseconds();
+}
+
+
 int64_t CpuProfile::GetStartTime() const {
   const i::CpuProfile* profile = reinterpret_cast<const i::CpuProfile*>(this);
-  return (profile->start_time() - i::Time::UnixEpoch()).InMicroseconds();
+  return (profile->start_time() - i::TimeTicks()).InMicroseconds();
 }
 
 
 int64_t CpuProfile::GetEndTime() const {
   const i::CpuProfile* profile = reinterpret_cast<const i::CpuProfile*>(this);
-  return (profile->end_time() - i::Time::UnixEpoch()).InMicroseconds();
+  return (profile->end_time() - i::TimeTicks()).InMicroseconds();
 }
 
 

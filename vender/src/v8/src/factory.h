@@ -33,12 +33,14 @@ class Factory V8_FINAL {
   Handle<FixedArray> NewUninitializedFixedArray(int size);
 
   // Allocate a new uninitialized fixed double array.
-  Handle<FixedDoubleArray> NewFixedDoubleArray(
+  // The function returns a pre-allocated empty fixed array for capacity = 0,
+  // so the return type must be the general fixed array class.
+  Handle<FixedArrayBase> NewFixedDoubleArray(
       int size,
       PretenureFlag pretenure = NOT_TENURED);
 
   // Allocate a new fixed double array with hole values.
-  Handle<FixedDoubleArray> NewFixedDoubleArrayWithHoles(
+  Handle<FixedArrayBase> NewFixedDoubleArrayWithHoles(
       int size,
       PretenureFlag pretenure = NOT_TENURED);
 
@@ -48,29 +50,8 @@ class Factory V8_FINAL {
       int number_of_heap_ptr_entries,
       int number_of_int32_entries);
 
-  Handle<SeededNumberDictionary> NewSeededNumberDictionary(
-      int at_least_space_for);
-
-  Handle<UnseededNumberDictionary> NewUnseededNumberDictionary(
-      int at_least_space_for);
-
-  Handle<NameDictionary> NewNameDictionary(int at_least_space_for);
-
-  Handle<ObjectHashTable> NewObjectHashTable(
-      int at_least_space_for,
-      MinimumCapacity capacity_option = USE_DEFAULT_MINIMUM_CAPACITY);
-
   Handle<OrderedHashSet> NewOrderedHashSet();
   Handle<OrderedHashMap> NewOrderedHashMap();
-
-  Handle<WeakHashTable> NewWeakHashTable(int at_least_space_for);
-
-  Handle<DeoptimizationInputData> NewDeoptimizationInputData(
-      int deopt_entry_count,
-      PretenureFlag pretenure);
-  Handle<DeoptimizationOutputData> NewDeoptimizationOutputData(
-      int deopt_entry_count,
-      PretenureFlag pretenure);
 
   // Create a new boxed value.
   Handle<Box> NewBox(Handle<Object> value);
@@ -81,6 +62,8 @@ class Factory V8_FINAL {
   // Create an empty TypeFeedbackInfo.
   Handle<TypeFeedbackInfo> NewTypeFeedbackInfo();
 
+  // Finds the internalized copy for string in the string table.
+  // If not found, a new string is added to the table and returned.
   Handle<String> InternalizeUtf8String(Vector<const char> str);
   Handle<String> InternalizeUtf8String(const char* str) {
     return InternalizeUtf8String(CStrVector(str));
@@ -155,6 +138,29 @@ class Factory V8_FINAL {
       Vector<const uc16> str,
       PretenureFlag pretenure = NOT_TENURED);
 
+  // Allocates an internalized string in old space based on the character
+  // stream.
+  MUST_USE_RESULT Handle<String> NewInternalizedStringFromUtf8(
+      Vector<const char> str,
+      int chars,
+      uint32_t hash_field);
+
+  MUST_USE_RESULT Handle<String> NewOneByteInternalizedString(
+        Vector<const uint8_t> str,
+        uint32_t hash_field);
+
+  MUST_USE_RESULT Handle<String> NewTwoByteInternalizedString(
+        Vector<const uc16> str,
+        uint32_t hash_field);
+
+  MUST_USE_RESULT Handle<String> NewInternalizedStringImpl(
+      Handle<String> string, int chars, uint32_t hash_field);
+
+  // Compute the matching internalized string map for a string if possible.
+  // Empty handle is returned if string is in new space or not flattened.
+  MUST_USE_RESULT MaybeHandle<Map> InternalizedStringMapForString(
+      Handle<String> string);
+
   // Allocates and partially initializes an ASCII or TwoByte String. The
   // characters of the string are uninitialized. Currently used in regexp code
   // only, where they are pretenured.
@@ -165,13 +171,13 @@ class Factory V8_FINAL {
       int length,
       PretenureFlag pretenure = NOT_TENURED);
 
-  Handle<String> LookupSingleCharacterStringFromCode(uint32_t index);
+  // Creates a single character string where the character has given code.
+  // A cache is used for ASCII codes.
+  Handle<String> LookupSingleCharacterStringFromCode(uint32_t code);
 
   // Create a new cons string object which consists of a pair of strings.
   MUST_USE_RESULT MaybeHandle<String> NewConsString(Handle<String> left,
                                                     Handle<String> right);
-
-  Handle<ConsString> NewRawConsString(String::Encoding encoding);
 
   // Create a new sequential string containing the concatenation of the inputs.
   Handle<String> NewFlatConcatString(Handle<String> first,
@@ -187,8 +193,6 @@ class Factory V8_FINAL {
     if (begin == 0 && end == str->length()) return str;
     return NewProperSubString(str, begin, end);
   }
-
-  Handle<SlicedString> NewRawSlicedString(String::Encoding encoding);
 
   // Creates a new external String object.  There are two String encodings
   // in the system: ASCII and two byte.  Unlike other String types, it does
@@ -292,15 +296,19 @@ class Factory V8_FINAL {
 
   Handle<JSObject> NewFunctionPrototype(Handle<JSFunction> function);
 
+  Handle<JSObject> CopyJSObject(Handle<JSObject> object);
+
+  Handle<JSObject> CopyJSObjectWithAllocationSite(Handle<JSObject> object,
+                                                  Handle<AllocationSite> site);
+
+  Handle<FixedArray> CopyFixedArrayWithMap(Handle<FixedArray> array,
+                                           Handle<Map> map);
+
   Handle<FixedArray> CopyFixedArray(Handle<FixedArray> array);
 
   // This method expects a COW array in new space, and creates a copy
   // of it in old space.
   Handle<FixedArray> CopyAndTenureFixedCOWArray(Handle<FixedArray> array);
-
-  Handle<FixedArray> CopySizeFixedArray(Handle<FixedArray> array,
-                                        int new_length,
-                                        PretenureFlag pretenure = NOT_TENURED);
 
   Handle<FixedDoubleArray> CopyFixedDoubleArray(
       Handle<FixedDoubleArray> array);
@@ -331,7 +339,9 @@ class Factory V8_FINAL {
 
   // These objects are used by the api to create env-independent data
   // structures in the heap.
-  Handle<JSObject> NewNeanderObject();
+  inline Handle<JSObject> NewNeanderObject() {
+    return NewJSObjectFromMap(neander_map());
+  }
 
   Handle<JSObject> NewArgumentsObject(Handle<Object> callee, int length);
 
@@ -442,13 +452,24 @@ class Factory V8_FINAL {
   void BecomeJSFunction(Handle<JSReceiver> object);
 
   Handle<JSFunction> NewFunction(Handle<String> name,
-                                 Handle<Object> prototype);
+                                 Handle<Code> code,
+                                 MaybeHandle<Object> maybe_prototype =
+                                     MaybeHandle<Object>());
+
+  Handle<JSFunction> NewFunctionWithPrototype(Handle<String> name,
+                                              Handle<Object> prototype);
 
   Handle<JSFunction> NewFunctionFromSharedFunctionInfo(
       Handle<SharedFunctionInfo> function_info,
       Handle<Context> context,
       PretenureFlag pretenure = TENURED);
 
+  Handle<JSFunction> NewFunction(MaybeHandle<Object> maybe_prototype,
+                                 Handle<String> name,
+                                 InstanceType type,
+                                 int instance_size,
+                                 Handle<Code> code,
+                                 bool force_initial_map);
   Handle<JSFunction> NewFunction(Handle<String> name,
                                  InstanceType type,
                                  int instance_size,
@@ -461,9 +482,6 @@ class Factory V8_FINAL {
                                               Handle<JSObject> prototype,
                                               Handle<Code> code,
                                               bool force_initial_map);
-
-  Handle<JSFunction> NewFunctionWithoutPrototype(Handle<String> name,
-                                                 Handle<Code> code);
 
   // Create a serialized scope info.
   Handle<ScopeInfo> NewScopeInfo(int length);
@@ -539,6 +557,7 @@ class Factory V8_FINAL {
 
   Handle<JSFunction> CreateApiFunction(
       Handle<FunctionTemplateInfo> data,
+      Handle<Object> prototype,
       ApiInstanceType type = JavaScriptObject);
 
   Handle<JSFunction> InstallMembers(Handle<JSFunction> function);
@@ -573,6 +592,10 @@ class Factory V8_FINAL {
   INTERNALIZED_STRING_LIST(STRING_ACCESSOR)
 #undef STRING_ACCESSOR
 
+  inline void set_string_table(Handle<StringTable> table) {
+    isolate()->heap()->set_string_table(*table);
+  }
+
   Handle<String> hidden_string() {
     return Handle<String>(&isolate()->heap()->hidden_string_);
   }
@@ -583,8 +606,12 @@ class Factory V8_FINAL {
       int number_of_literals,
       bool is_generator,
       Handle<Code> code,
-      Handle<ScopeInfo> scope_info);
+      Handle<ScopeInfo> scope_info,
+      Handle<FixedArray> feedback_vector);
   Handle<SharedFunctionInfo> NewSharedFunctionInfo(Handle<String> name);
+
+  // Allocate a new type feedback vector
+  Handle<FixedArray> NewTypeFeedbackVector(int slot_count);
 
   // Allocates a new JSMessageObject object.
   Handle<JSMessageObject> NewJSMessageObject(
@@ -595,19 +622,7 @@ class Factory V8_FINAL {
       Handle<Object> script,
       Handle<Object> stack_frames);
 
-  Handle<SeededNumberDictionary> DictionaryAtNumberPut(
-      Handle<SeededNumberDictionary>,
-      uint32_t key,
-      Handle<Object> value);
-
-  Handle<UnseededNumberDictionary> DictionaryAtNumberPut(
-      Handle<UnseededNumberDictionary>,
-      uint32_t key,
-      Handle<Object> value);
-
-#ifdef ENABLE_DEBUGGER_SUPPORT
   Handle<DebugInfo> NewDebugInfo(Handle<SharedFunctionInfo> shared);
-#endif
 
   // Return a map using the map cache in the native context.
   // The key the an ordered set of property names.
@@ -651,6 +666,9 @@ class Factory V8_FINAL {
   Handle<T> New(Handle<Map> map,
                 AllocationSpace space,
                 Handle<AllocationSite> allocation_site);
+
+  // Creates a code object that is not yet fully initialized yet.
+  inline Handle<Code> NewCodeRaw(int object_size, bool immovable);
 
   // Initializes a function with a shared part and prototype.
   // Note: this code was factored out of NewFunction such that other parts of

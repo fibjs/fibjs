@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include <stdlib.h>
 
@@ -807,7 +784,7 @@ const char* const Isolate::kStackOverflowMessage =
   "Uncaught RangeError: Maximum call stack size exceeded";
 
 
-Failure* Isolate::StackOverflow() {
+Object* Isolate::StackOverflow() {
   HandleScope scope(this);
   // At this point we cannot create an Error object using its javascript
   // constructor.  Instead, we copy the pre-constructed boilerplate and
@@ -815,13 +792,13 @@ Failure* Isolate::StackOverflow() {
   Handle<String> key = factory()->stack_overflow_string();
   Handle<JSObject> boilerplate = Handle<JSObject>::cast(
       Object::GetProperty(js_builtins_object(), key).ToHandleChecked());
-  Handle<JSObject> exception = JSObject::Copy(boilerplate);
+  Handle<JSObject> exception = factory()->CopyJSObject(boilerplate);
   DoThrow(*exception, NULL);
 
   // Get stack trace limit.
   Handle<Object> error = Object::GetProperty(
       this, js_builtins_object(), "$Error").ToHandleChecked();
-  if (!error->IsJSObject()) return Failure::Exception();
+  if (!error->IsJSObject()) return heap()->exception();
 
   Handle<String> stackTraceLimit =
       factory()->InternalizeUtf8String("stackTraceLimit");
@@ -829,7 +806,7 @@ Failure* Isolate::StackOverflow() {
   Handle<Object> stack_trace_limit =
       JSObject::GetDataProperty(Handle<JSObject>::cast(error),
                                 stackTraceLimit);
-  if (!stack_trace_limit->IsNumber()) return Failure::Exception();
+  if (!stack_trace_limit->IsNumber()) return heap()->exception();
   double dlimit = stack_trace_limit->Number();
   int limit = std::isnan(dlimit) ? 0 : static_cast<int>(dlimit);
 
@@ -838,13 +815,13 @@ Failure* Isolate::StackOverflow() {
   JSObject::SetHiddenProperty(exception,
                               factory()->hidden_stack_trace_string(),
                               stack_trace);
-  return Failure::Exception();
+  return heap()->exception();
 }
 
 
-Failure* Isolate::TerminateExecution() {
+Object* Isolate::TerminateExecution() {
   DoThrow(heap_.termination_exception(), NULL);
-  return Failure::Exception();
+  return heap()->exception();
 }
 
 
@@ -865,13 +842,13 @@ void Isolate::CancelTerminateExecution() {
 }
 
 
-Failure* Isolate::Throw(Object* exception, MessageLocation* location) {
+Object* Isolate::Throw(Object* exception, MessageLocation* location) {
   DoThrow(exception, location);
-  return Failure::Exception();
+  return heap()->exception();
 }
 
 
-Failure* Isolate::ReThrow(Object* exception) {
+Object* Isolate::ReThrow(Object* exception) {
   bool can_be_caught_externally = false;
   bool catchable_by_javascript = is_catchable_by_javascript(exception);
   ShouldReportException(&can_be_caught_externally, catchable_by_javascript);
@@ -881,17 +858,17 @@ Failure* Isolate::ReThrow(Object* exception) {
 
   // Set the exception being re-thrown.
   set_pending_exception(exception);
-  return Failure::Exception();
+  return heap()->exception();
 }
 
 
-Failure* Isolate::ThrowIllegalOperation() {
+Object* Isolate::ThrowIllegalOperation() {
   if (FLAG_stack_trace_on_illegal) PrintStack(stdout);
   return Throw(heap_.illegal_access_string());
 }
 
 
-Failure* Isolate::ThrowInvalidStringLength() {
+Object* Isolate::ThrowInvalidStringLength() {
   return Throw(*factory()->NewRangeError(
       "invalid_string_length", HandleVector<Object>(NULL, 0)));
 }
@@ -926,7 +903,7 @@ void Isolate::RestorePendingMessageFromTryCatch(v8::TryCatch* handler) {
 }
 
 
-Failure* Isolate::PromoteScheduledException() {
+Object* Isolate::PromoteScheduledException() {
   Object* thrown = scheduled_exception();
   clear_scheduled_exception();
   // Re-throw the exception to avoid getting repeated error reporting.
@@ -1052,12 +1029,10 @@ void Isolate::DoThrow(Object* exception, MessageLocation* location) {
 
   thread_local_top()->rethrowing_message_ = false;
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
   // Notify debugger of exception.
   if (catchable_by_javascript) {
     debugger_->OnException(exception_handle, report_exception);
   }
-#endif
 
   // Generate the message if required.
   if (report_exception || try_catch_needs_message) {
@@ -1075,7 +1050,7 @@ void Isolate::DoThrow(Object* exception, MessageLocation* location) {
       if (capture_stack_trace_for_uncaught_exceptions_) {
         if (IsErrorObject(exception_handle)) {
           // We fetch the stack trace that corresponds to this error object.
-          String* key = heap()->hidden_stack_trace_string();
+          Handle<String> key = factory()->hidden_stack_trace_string();
           Object* stack_property =
               JSObject::cast(*exception_handle)->GetHiddenProperty(key);
           // Property lookup may have failed.  In this case it's probably not
@@ -1216,7 +1191,7 @@ void Isolate::ReportPendingMessages() {
 
   HandleScope scope(this);
   if (thread_local_top_.pending_exception_ ==
-             heap()->termination_exception()) {
+          heap()->termination_exception()) {
     // Do nothing: if needed, the exception has been already propagated to
     // v8::TryCatch.
   } else {
@@ -1326,7 +1301,6 @@ Handle<Context> Isolate::global_context() {
 
 Handle<Context> Isolate::GetCallingNativeContext() {
   JavaScriptFrameIterator it(this);
-#ifdef ENABLE_DEBUGGER_SUPPORT
   if (debug_->InDebugger()) {
     while (!it.done()) {
       JavaScriptFrame* frame = it.frame();
@@ -1338,7 +1312,6 @@ Handle<Context> Isolate::GetCallingNativeContext() {
       }
     }
   }
-#endif  // ENABLE_DEBUGGER_SUPPORT
   if (it.done()) return Handle<Context>::null();
   JavaScriptFrame* frame = it.frame();
   Context* context = Context::cast(frame->context());
@@ -1510,10 +1483,8 @@ Isolate::Isolate()
   memset(&js_spill_information_, 0, sizeof(js_spill_information_));
 #endif
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
   debug_ = NULL;
   debugger_ = NULL;
-#endif
 
   handle_scope_data_.Initialize();
 
@@ -1569,9 +1540,7 @@ void Isolate::Deinit() {
   if (state_ == INITIALIZED) {
     TRACE_ISOLATE(deinit);
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
     debugger()->UnloadDebugger();
-#endif
 
     if (concurrent_recompilation_enabled()) {
       optimizing_compiler_thread_->Stop();
@@ -1739,12 +1708,10 @@ Isolate::~Isolate() {
   delete random_number_generator_;
   random_number_generator_ = NULL;
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
   delete debugger_;
   debugger_ = NULL;
   delete debug_;
   debug_ = NULL;
-#endif
 }
 
 
@@ -1798,14 +1765,12 @@ void Isolate::InitializeLoggingAndCounters() {
 
 
 void Isolate::InitializeDebugger() {
-#ifdef ENABLE_DEBUGGER_SUPPORT
   LockGuard<RecursiveMutex> lock_guard(debugger_access());
   if (NoBarrier_Load(&debugger_initialized_)) return;
   InitializeLoggingAndCounters();
   debug_ = new Debug(this);
   debugger_ = new Debugger(this);
   Release_Store(&debugger_initialized_, true);
-#endif
 }
 
 
@@ -1818,8 +1783,8 @@ bool Isolate::Init(Deserializer* des) {
   has_fatal_error_ = false;
 
   use_crankshaft_ = FLAG_crankshaft
-      && !Serializer::enabled()
-      && CPU::SupportsCrankshaft();
+      && !Serializer::enabled(this)
+      && CpuFeatures::SupportsCrankshaft();
 
   if (function_entry_hook() != NULL) {
     // When function entry hooking is in effect, we have to create the code
@@ -1950,9 +1915,7 @@ bool Isolate::Init(Deserializer* des) {
     }
   }
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
   debug_->SetUp(create_heap_objects);
-#endif
 
   // If we are deserializing, read the state into the now-empty heap.
   if (!create_heap_objects) {
@@ -2012,7 +1975,7 @@ bool Isolate::Init(Deserializer* des) {
         kDeoptTableSerializeEntryCount - 1);
   }
 
-  if (!Serializer::enabled()) {
+  if (!Serializer::enabled(this)) {
     // Ensure that all stubs which need to be generated ahead of time, but
     // cannot be serialized into the snapshot have been generated.
     HandleScope scope(this);
@@ -2253,6 +2216,52 @@ Handle<JSObject> Isolate::GetSymbolRegistry() {
     }
   }
   return Handle<JSObject>::cast(factory()->symbol_registry());
+}
+
+
+void Isolate::AddCallCompletedCallback(CallCompletedCallback callback) {
+  for (int i = 0; i < call_completed_callbacks_.length(); i++) {
+    if (callback == call_completed_callbacks_.at(i)) return;
+  }
+  call_completed_callbacks_.Add(callback);
+}
+
+
+void Isolate::RemoveCallCompletedCallback(CallCompletedCallback callback) {
+  for (int i = 0; i < call_completed_callbacks_.length(); i++) {
+    if (callback == call_completed_callbacks_.at(i)) {
+      call_completed_callbacks_.Remove(i);
+    }
+  }
+}
+
+
+void Isolate::FireCallCompletedCallback() {
+  bool has_call_completed_callbacks = !call_completed_callbacks_.is_empty();
+  bool run_microtasks = autorun_microtasks() && microtask_pending();
+  if (!has_call_completed_callbacks && !run_microtasks) return;
+
+  if (!handle_scope_implementer()->CallDepthIsZero()) return;
+  // Fire callbacks.  Increase call depth to prevent recursive callbacks.
+  handle_scope_implementer()->IncrementCallDepth();
+  if (run_microtasks) Execution::RunMicrotasks(this);
+  for (int i = 0; i < call_completed_callbacks_.length(); i++) {
+    call_completed_callbacks_.at(i)();
+  }
+  handle_scope_implementer()->DecrementCallDepth();
+}
+
+
+void Isolate::RunMicrotasks() {
+  if (!microtask_pending())
+    return;
+
+  ASSERT(handle_scope_implementer()->CallDepthIsZero());
+
+  // Increase call depth to prevent recursive callbacks.
+  handle_scope_implementer()->IncrementCallDepth();
+  Execution::RunMicrotasks(this);
+  handle_scope_implementer()->DecrementCallDepth();
 }
 
 

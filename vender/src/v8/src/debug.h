@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef V8_DEBUG_H_
 #define V8_DEBUG_H_
@@ -41,7 +18,6 @@
 #include "string-stream.h"
 #include "v8threads.h"
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
 #include "../include/v8-debug.h"
 
 namespace v8 {
@@ -259,6 +235,12 @@ class Debug {
   void FloodHandlerWithOneShot();
   void ChangeBreakOnException(ExceptionBreakType type, bool enable);
   bool IsBreakOnException(ExceptionBreakType type);
+
+  void PromiseHandlePrologue(Handle<JSFunction> promise_getter);
+  void PromiseHandleEpilogue();
+  // Returns a promise if it does not have a reject handler.
+  Handle<Object> GetPromiseForUncaughtException();
+
   void PrepareStep(StepAction step_action,
                    int step_count,
                    StackFrame::Id frame_id);
@@ -430,6 +412,7 @@ class Debug {
 
   // Code generator routines.
   static void GenerateSlot(MacroAssembler* masm);
+  static void GenerateCallICStubDebugBreak(MacroAssembler* masm);
   static void GenerateLoadICDebugBreak(MacroAssembler* masm);
   static void GenerateStoreICDebugBreak(MacroAssembler* masm);
   static void GenerateKeyedLoadICDebugBreak(MacroAssembler* masm);
@@ -437,7 +420,6 @@ class Debug {
   static void GenerateCompareNilICDebugBreak(MacroAssembler* masm);
   static void GenerateReturnDebugBreak(MacroAssembler* masm);
   static void GenerateCallFunctionStubDebugBreak(MacroAssembler* masm);
-  static void GenerateCallFunctionStubRecordDebugBreak(MacroAssembler* masm);
   static void GenerateCallConstructStubDebugBreak(MacroAssembler* masm);
   static void GenerateCallConstructStubRecordDebugBreak(MacroAssembler* masm);
   static void GenerateSlotDebugBreak(MacroAssembler* masm);
@@ -448,9 +430,6 @@ class Debug {
   // There is no calling conventions here, because it never actually gets
   // called, it only gets returned to.
   static void GenerateFrameDropperLiveEdit(MacroAssembler* masm);
-
-  // Called from stub-cache.cc.
-  static void GenerateCallICDebugBreak(MacroAssembler* masm);
 
   // Describes how exactly a frame has been dropped from stack.
   enum FrameDropMode {
@@ -565,6 +544,14 @@ class Debug {
   bool break_on_exception_;
   bool break_on_uncaught_exception_;
 
+  // When a promise is being resolved, we may want to trigger a debug event for
+  // the case we catch a throw.  For this purpose we remember the try-catch
+  // handler address that would catch the exception.  We also hold onto a
+  // closure that returns a promise if the exception is considered uncaught.
+  // Due to the possibility of reentry we use a list to form a stack.
+  List<StackHandler*> promise_catch_handlers_;
+  List<Handle<JSFunction> > promise_getters_;
+
   // Per-thread data.
   class ThreadLocal {
    public:
@@ -637,7 +624,7 @@ class Debug {
 };
 
 
-DECLARE_RUNTIME_FUNCTION(Object*, Debug_Break);
+DECLARE_RUNTIME_FUNCTION(Debug_Break);
 
 
 // Message delivered to the message handler callback. This is either a debugger
@@ -793,7 +780,9 @@ class Debugger {
   MUST_USE_RESULT MaybeHandle<Object> MakeBreakEvent(
       Handle<Object> break_points_hit);
   MUST_USE_RESULT MaybeHandle<Object> MakeExceptionEvent(
-      Handle<Object> exception, bool uncaught);
+      Handle<Object> exception,
+      bool uncaught,
+      Handle<Object> promise);
   MUST_USE_RESULT MaybeHandle<Object> MakeCompileEvent(
       Handle<Script> script, bool before);
   MUST_USE_RESULT MaybeHandle<Object> MakeScriptCollectedEvent(int id);
@@ -1061,7 +1050,5 @@ class MessageDispatchHelperThread: public Thread {
 
 
 } }  // namespace v8::internal
-
-#endif  // ENABLE_DEBUGGER_SUPPORT
 
 #endif  // V8_DEBUG_H_

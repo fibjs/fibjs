@@ -1,37 +1,14 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "v8.h"
 
 #include "arguments.h"
-#include "objects.h"
+#include "conversions.h"
 #include "elements.h"
+#include "objects.h"
 #include "utils.h"
-#include "v8conversions.h"
 
 // Each concrete ElementsAccessor can handle exactly one ElementsKind,
 // several abstract ElementsAccessor classes are used to allow sharing
@@ -596,8 +573,6 @@ class ElementsAccessorBase : public ElementsAccessor {
 
   static void ValidateImpl(Handle<JSObject> holder) {
     Handle<FixedArrayBase> fixed_array_base(holder->elements());
-    // When objects are first allocated, its elements are Failures.
-    if (fixed_array_base->IsFailure()) return;
     if (!fixed_array_base->IsHeapObject()) return;
     // Arrays that have been shifted in place can't be verified.
     if (fixed_array_base->IsFiller()) return;
@@ -1469,7 +1444,7 @@ class DictionaryElementsAccessor
       DisallowHeapAllocation no_gc;
       // Remove elements that should be deleted.
       int removed_entries = 0;
-      Object* the_hole_value = isolate->heap()->the_hole_value();
+      Handle<Object> the_hole_value = isolate->factory()->the_hole_value();
       for (int i = 0; i < capacity; i++) {
         Object* key = dict->KeyAt(i);
         if (key->IsNumber()) {
@@ -1873,9 +1848,10 @@ MaybeHandle<Object> ElementsAccessorBase<ElementsAccessorSubclass,
   Handle<JSArray> array = Handle<JSArray>::cast(obj);
 
   // Fast case: The new length fits into a Smi.
-  Handle<Object> smi_length = Object::ToSmi(isolate, length);
+  Handle<Object> smi_length;
 
-  if (!smi_length.is_null() && smi_length->IsSmi()) {
+  if (Object::ToSmi(isolate, length).ToHandle(&smi_length) &&
+      smi_length->IsSmi()) {
     const int value = Handle<Smi>::cast(smi_length)->value();
     if (value >= 0) {
       Handle<Object> new_length = ElementsAccessorSubclass::

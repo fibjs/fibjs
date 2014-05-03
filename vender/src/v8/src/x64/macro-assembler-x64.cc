@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "v8.h"
 
@@ -83,7 +60,7 @@ int64_t MacroAssembler::RootRegisterDelta(ExternalReference other) {
 
 Operand MacroAssembler::ExternalOperand(ExternalReference target,
                                         Register scratch) {
-  if (root_array_available_ && !Serializer::enabled()) {
+  if (root_array_available_ && !Serializer::enabled(isolate())) {
     int64_t delta = RootRegisterDelta(target);
     if (delta != kInvalidRootRegisterDelta && is_int32(delta)) {
       return Operand(kRootRegister, static_cast<int32_t>(delta));
@@ -95,7 +72,7 @@ Operand MacroAssembler::ExternalOperand(ExternalReference target,
 
 
 void MacroAssembler::Load(Register destination, ExternalReference source) {
-  if (root_array_available_ && !Serializer::enabled()) {
+  if (root_array_available_ && !Serializer::enabled(isolate())) {
     int64_t delta = RootRegisterDelta(source);
     if (delta != kInvalidRootRegisterDelta && is_int32(delta)) {
       movp(destination, Operand(kRootRegister, static_cast<int32_t>(delta)));
@@ -113,7 +90,7 @@ void MacroAssembler::Load(Register destination, ExternalReference source) {
 
 
 void MacroAssembler::Store(ExternalReference destination, Register source) {
-  if (root_array_available_ && !Serializer::enabled()) {
+  if (root_array_available_ && !Serializer::enabled(isolate())) {
     int64_t delta = RootRegisterDelta(destination);
     if (delta != kInvalidRootRegisterDelta && is_int32(delta)) {
       movp(Operand(kRootRegister, static_cast<int32_t>(delta)), source);
@@ -132,7 +109,7 @@ void MacroAssembler::Store(ExternalReference destination, Register source) {
 
 void MacroAssembler::LoadAddress(Register destination,
                                  ExternalReference source) {
-  if (root_array_available_ && !Serializer::enabled()) {
+  if (root_array_available_ && !Serializer::enabled(isolate())) {
     int64_t delta = RootRegisterDelta(source);
     if (delta != kInvalidRootRegisterDelta && is_int32(delta)) {
       leap(destination, Operand(kRootRegister, static_cast<int32_t>(delta)));
@@ -145,7 +122,7 @@ void MacroAssembler::LoadAddress(Register destination,
 
 
 int MacroAssembler::LoadAddressSize(ExternalReference source) {
-  if (root_array_available_ && !Serializer::enabled()) {
+  if (root_array_available_ && !Serializer::enabled(isolate())) {
     // This calculation depends on the internals of LoadAddress.
     // It's correctness is ensured by the asserts in the Call
     // instruction below.
@@ -167,7 +144,7 @@ int MacroAssembler::LoadAddressSize(ExternalReference source) {
 
 void MacroAssembler::PushAddress(ExternalReference source) {
   int64_t address = reinterpret_cast<int64_t>(source.address());
-  if (is_int32(address) && !Serializer::enabled()) {
+  if (is_int32(address) && !Serializer::enabled(isolate())) {
     if (emit_debug_code()) {
       Move(kScratchRegister, kZapValue, Assembler::RelocInfoNone());
     }
@@ -259,7 +236,7 @@ void MacroAssembler::RememberedSetHelper(Register object,  // For debug tests.
     j(equal, &done, Label::kNear);
   }
   StoreBufferOverflowStub store_buffer_overflow =
-      StoreBufferOverflowStub(save_fp);
+      StoreBufferOverflowStub(isolate(), save_fp);
   CallStub(&store_buffer_overflow);
   if (and_then == kReturnAtEnd) {
     ret(0);
@@ -275,7 +252,7 @@ void MacroAssembler::InNewSpace(Register object,
                                 Condition cc,
                                 Label* branch,
                                 Label::Distance distance) {
-  if (Serializer::enabled()) {
+  if (Serializer::enabled(isolate())) {
     // Can't do arithmetic on external references if it might get serialized.
     // The mask isn't really an address.  We load it as an external reference in
     // case the size of the new space is different between the snapshot maker
@@ -437,7 +414,8 @@ void MacroAssembler::RecordWrite(Register object,
                 &done,
                 Label::kNear);
 
-  RecordWriteStub stub(object, value, address, remembered_set_action, fp_mode);
+  RecordWriteStub stub(isolate(), object, value, address, remembered_set_action,
+                       fp_mode);
   CallStub(&stub);
 
   bind(&done);
@@ -544,12 +522,12 @@ void MacroAssembler::Abort(BailoutReason reason) {
 
 void MacroAssembler::CallStub(CodeStub* stub, TypeFeedbackId ast_id) {
   ASSERT(AllowThisStubCall(stub));  // Calls are not allowed in some stubs
-  Call(stub->GetCode(isolate()), RelocInfo::CODE_TARGET, ast_id);
+  Call(stub->GetCode(), RelocInfo::CODE_TARGET, ast_id);
 }
 
 
 void MacroAssembler::TailCallStub(CodeStub* stub) {
-  Jump(stub->GetCode(isolate()), RelocInfo::CODE_TARGET);
+  Jump(stub->GetCode(), RelocInfo::CODE_TARGET);
 }
 
 
@@ -608,7 +586,7 @@ void MacroAssembler::CallRuntime(const Runtime::Function* f,
   // smarter.
   Set(rax, num_arguments);
   LoadAddress(rbx, ExternalReference(f, isolate()));
-  CEntryStub ces(f->result_size, save_doubles);
+  CEntryStub ces(isolate(), f->result_size, save_doubles);
   CallStub(&ces);
 }
 
@@ -618,7 +596,7 @@ void MacroAssembler::CallExternalReference(const ExternalReference& ext,
   Set(rax, num_arguments);
   LoadAddress(rbx, ext);
 
-  CEntryStub stub(1);
+  CEntryStub stub(isolate(), 1);
   CallStub(&stub);
 }
 
@@ -666,7 +644,7 @@ void MacroAssembler::PrepareCallApiFunction(int arg_stack_space) {
 
 void MacroAssembler::CallApiFunctionAndReturn(
     Register function_address,
-    Address thunk_address,
+    ExternalReference thunk_ref,
     Register thunk_last_arg,
     int stack_space,
     Operand return_value_operand,
@@ -713,16 +691,13 @@ void MacroAssembler::CallApiFunctionAndReturn(
 
   Label profiler_disabled;
   Label end_profiler_check;
-  bool* is_profiling_flag =
-      isolate()->cpu_profiler()->is_profiling_address();
-  STATIC_ASSERT(sizeof(*is_profiling_flag) == 1);
-  Move(rax, is_profiling_flag, RelocInfo::EXTERNAL_REFERENCE);
+  Move(rax, ExternalReference::is_profiling_address(isolate()));
   cmpb(Operand(rax, 0), Immediate(0));
   j(zero, &profiler_disabled);
 
   // Third parameter is the address of the actual getter function.
   Move(thunk_last_arg, function_address);
-  Move(rax, thunk_address, RelocInfo::EXTERNAL_REFERENCE);
+  Move(rax, thunk_ref);
   jmp(&end_profiler_check);
 
   bind(&profiler_disabled);
@@ -827,8 +802,8 @@ void MacroAssembler::JumpToExternalReference(const ExternalReference& ext,
                                              int result_size) {
   // Set the entry point and jump to the C entry runtime stub.
   LoadAddress(rbx, ext);
-  CEntryStub ces(result_size);
-  jmp(ces.GetCode(isolate()), RelocInfo::CODE_TARGET);
+  CEntryStub ces(isolate(), result_size);
+  jmp(ces.GetCode(), RelocInfo::CODE_TARGET);
 }
 
 
@@ -987,7 +962,6 @@ void MacroAssembler::Set(const Operand& dst, intptr_t x) {
       movp(dst, kScratchRegister);
     }
   } else {
-    ASSERT(kPointerSize == kInt32Size);
     movp(dst, Immediate(static_cast<int32_t>(x)));
   }
 }
@@ -1004,11 +978,18 @@ bool MacroAssembler::IsUnsafeInt(const int32_t x) {
 
 void MacroAssembler::SafeMove(Register dst, Smi* src) {
   ASSERT(!dst.is(kScratchRegister));
-  ASSERT(SmiValuesAre32Bits());  // JIT cookie can be converted to Smi.
   if (IsUnsafeInt(src->value()) && jit_cookie() != 0) {
-    Move(dst, Smi::FromInt(src->value() ^ jit_cookie()));
-    Move(kScratchRegister, Smi::FromInt(jit_cookie()));
-    xorq(dst, kScratchRegister);
+    if (SmiValuesAre32Bits()) {
+      // JIT cookie can be converted to Smi.
+      Move(dst, Smi::FromInt(src->value() ^ jit_cookie()));
+      Move(kScratchRegister, Smi::FromInt(jit_cookie()));
+      xorp(dst, kScratchRegister);
+    } else {
+      ASSERT(SmiValuesAre31Bits());
+      int32_t value = static_cast<int32_t>(reinterpret_cast<intptr_t>(src));
+      movp(dst, Immediate(value ^ jit_cookie()));
+      xorp(dst, Immediate(jit_cookie()));
+    }
   } else {
     Move(dst, src);
   }
@@ -1016,11 +997,18 @@ void MacroAssembler::SafeMove(Register dst, Smi* src) {
 
 
 void MacroAssembler::SafePush(Smi* src) {
-  ASSERT(SmiValuesAre32Bits());  // JIT cookie can be converted to Smi.
   if (IsUnsafeInt(src->value()) && jit_cookie() != 0) {
-    Push(Smi::FromInt(src->value() ^ jit_cookie()));
-    Move(kScratchRegister, Smi::FromInt(jit_cookie()));
-    xorq(Operand(rsp, 0), kScratchRegister);
+    if (SmiValuesAre32Bits()) {
+      // JIT cookie can be converted to Smi.
+      Push(Smi::FromInt(src->value() ^ jit_cookie()));
+      Move(kScratchRegister, Smi::FromInt(jit_cookie()));
+      xorp(Operand(rsp, 0), kScratchRegister);
+    } else {
+      ASSERT(SmiValuesAre31Bits());
+      int32_t value = static_cast<int32_t>(reinterpret_cast<intptr_t>(src));
+      Push(Immediate(value ^ jit_cookie()));
+      xorp(Operand(rsp, 0), Immediate(jit_cookie()));
+    }
   } else {
     Push(src);
   }
@@ -2271,35 +2259,66 @@ void MacroAssembler::SelectNonSmi(Register dst,
 SmiIndex MacroAssembler::SmiToIndex(Register dst,
                                     Register src,
                                     int shift) {
-  ASSERT(is_uint6(shift));
-  // There is a possible optimization if shift is in the range 60-63, but that
-  // will (and must) never happen.
-  if (!dst.is(src)) {
-    movq(dst, src);
-  }
-  if (shift < kSmiShift) {
-    sarq(dst, Immediate(kSmiShift - shift));
+  if (SmiValuesAre32Bits()) {
+    ASSERT(is_uint6(shift));
+    // There is a possible optimization if shift is in the range 60-63, but that
+    // will (and must) never happen.
+    if (!dst.is(src)) {
+      movp(dst, src);
+    }
+    if (shift < kSmiShift) {
+      sarp(dst, Immediate(kSmiShift - shift));
+    } else {
+      shlp(dst, Immediate(shift - kSmiShift));
+    }
+    return SmiIndex(dst, times_1);
   } else {
-    shlq(dst, Immediate(shift - kSmiShift));
+    ASSERT(SmiValuesAre31Bits());
+    ASSERT(shift >= times_1 && shift <= (static_cast<int>(times_8) + 1));
+    if (!dst.is(src)) {
+      movp(dst, src);
+    }
+    // We have to sign extend the index register to 64-bit as the SMI might
+    // be negative.
+    movsxlq(dst, dst);
+    if (shift == times_1) {
+      sarq(dst, Immediate(kSmiShift));
+      return SmiIndex(dst, times_1);
+    }
+    return SmiIndex(dst, static_cast<ScaleFactor>(shift - 1));
   }
-  return SmiIndex(dst, times_1);
 }
+
 
 SmiIndex MacroAssembler::SmiToNegativeIndex(Register dst,
                                             Register src,
                                             int shift) {
-  // Register src holds a positive smi.
-  ASSERT(is_uint6(shift));
-  if (!dst.is(src)) {
-    movq(dst, src);
-  }
-  negq(dst);
-  if (shift < kSmiShift) {
-    sarq(dst, Immediate(kSmiShift - shift));
+  if (SmiValuesAre32Bits()) {
+    // Register src holds a positive smi.
+    ASSERT(is_uint6(shift));
+    if (!dst.is(src)) {
+      movp(dst, src);
+    }
+    negp(dst);
+    if (shift < kSmiShift) {
+      sarp(dst, Immediate(kSmiShift - shift));
+    } else {
+      shlp(dst, Immediate(shift - kSmiShift));
+    }
+    return SmiIndex(dst, times_1);
   } else {
-    shlq(dst, Immediate(shift - kSmiShift));
+    ASSERT(SmiValuesAre31Bits());
+    ASSERT(shift >= times_1 && shift <= (static_cast<int>(times_8) + 1));
+    if (!dst.is(src)) {
+      movp(dst, src);
+    }
+    negq(dst);
+    if (shift == times_1) {
+      sarq(dst, Immediate(kSmiShift));
+      return SmiIndex(dst, times_1);
+    }
+    return SmiIndex(dst, static_cast<ScaleFactor>(shift - 1));
   }
-  return SmiIndex(dst, times_1);
 }
 
 
@@ -2666,11 +2685,24 @@ void MacroAssembler::Drop(int stack_elements) {
 }
 
 
+void MacroAssembler::DropUnderReturnAddress(int stack_elements,
+                                            Register scratch) {
+  ASSERT(stack_elements > 0);
+  if (kPointerSize == kInt64Size && stack_elements == 1) {
+    popq(MemOperand(rsp, 0));
+    return;
+  }
+
+  PopReturnAddressTo(scratch);
+  Drop(stack_elements);
+  PushReturnAddressFrom(scratch);
+}
+
+
 void MacroAssembler::Push(Register src) {
   if (kPointerSize == kInt64Size) {
     pushq(src);
   } else {
-    ASSERT(kPointerSize == kInt32Size);
     // x32 uses 64-bit push for rbp in the prologue.
     ASSERT(src.code() != rbp.code());
     leal(rsp, Operand(rsp, -4));
@@ -2683,10 +2715,19 @@ void MacroAssembler::Push(const Operand& src) {
   if (kPointerSize == kInt64Size) {
     pushq(src);
   } else {
-    ASSERT(kPointerSize == kInt32Size);
     movp(kScratchRegister, src);
     leal(rsp, Operand(rsp, -4));
     movp(Operand(rsp, 0), kScratchRegister);
+  }
+}
+
+
+void MacroAssembler::PushQuad(const Operand& src) {
+  if (kPointerSize == kInt64Size) {
+    pushq(src);
+  } else {
+    movp(kScratchRegister, src);
+    pushq(kScratchRegister);
   }
 }
 
@@ -2695,7 +2736,6 @@ void MacroAssembler::Push(Immediate value) {
   if (kPointerSize == kInt64Size) {
     pushq(value);
   } else {
-    ASSERT(kPointerSize == kInt32Size);
     leal(rsp, Operand(rsp, -4));
     movp(Operand(rsp, 0), value);
   }
@@ -2706,7 +2746,6 @@ void MacroAssembler::PushImm32(int32_t imm32) {
   if (kPointerSize == kInt64Size) {
     pushq_imm32(imm32);
   } else {
-    ASSERT(kPointerSize == kInt32Size);
     leal(rsp, Operand(rsp, -4));
     movp(Operand(rsp, 0), Immediate(imm32));
   }
@@ -2717,7 +2756,6 @@ void MacroAssembler::Pop(Register dst) {
   if (kPointerSize == kInt64Size) {
     popq(dst);
   } else {
-    ASSERT(kPointerSize == kInt32Size);
     // x32 uses 64-bit pop for rbp in the epilogue.
     ASSERT(dst.code() != rbp.code());
     movp(dst, Operand(rsp, 0));
@@ -2730,7 +2768,6 @@ void MacroAssembler::Pop(const Operand& dst) {
   if (kPointerSize == kInt64Size) {
     popq(dst);
   } else {
-    ASSERT(kPointerSize == kInt32Size);
     Register scratch = dst.AddressUsesRegister(kScratchRegister)
         ? kSmiConstantRegister : kScratchRegister;
     movp(scratch, Operand(rsp, 0));
@@ -2742,6 +2779,16 @@ void MacroAssembler::Pop(const Operand& dst) {
            reinterpret_cast<void*>(Smi::FromInt(kSmiConstantRegisterValue)),
            Assembler::RelocInfoNone());
     }
+  }
+}
+
+
+void MacroAssembler::PopQuad(const Operand& dst) {
+  if (kPointerSize == kInt64Size) {
+    popq(dst);
+  } else {
+    popq(kScratchRegister);
+    movp(dst, kScratchRegister);
   }
 }
 
@@ -2787,7 +2834,6 @@ void MacroAssembler::Jump(const Operand& op) {
   if (kPointerSize == kInt64Size) {
     jmp(op);
   } else {
-    ASSERT(kPointerSize == kInt32Size);
     movp(kScratchRegister, op);
     jmp(kScratchRegister);
   }
@@ -2829,7 +2875,6 @@ void MacroAssembler::Call(const Operand& op) {
   if (kPointerSize == kInt64Size) {
     call(op);
   } else {
-    ASSERT(kPointerSize == kInt32Size);
     movp(kScratchRegister, op);
     call(kScratchRegister);
   }
@@ -3302,8 +3347,8 @@ void MacroAssembler::LoadUint32(XMMRegister dst,
 void MacroAssembler::SlowTruncateToI(Register result_reg,
                                      Register input_reg,
                                      int offset) {
-  DoubleToIStub stub(input_reg, result_reg, offset, true);
-  call(stub.GetCode(isolate()), RelocInfo::CODE_TARGET);
+  DoubleToIStub stub(isolate(), input_reg, result_reg, offset, true);
+  call(stub.GetCode(), RelocInfo::CODE_TARGET);
 }
 
 
@@ -3691,15 +3736,13 @@ void MacroAssembler::DecrementCounter(StatsCounter* counter, int value) {
 }
 
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
 void MacroAssembler::DebugBreak() {
   Set(rax, 0);  // No arguments.
   LoadAddress(rbx, ExternalReference(Runtime::kDebugBreak, isolate()));
-  CEntryStub ces(1);
+  CEntryStub ces(isolate(), 1);
   ASSERT(AllowThisStubCall(&ces));
-  Call(ces.GetCode(isolate()), RelocInfo::DEBUG_BREAK);
+  Call(ces.GetCode(), RelocInfo::DEBUG_BREAK);
 }
-#endif  // ENABLE_DEBUGGER_SUPPORT
 
 
 void MacroAssembler::InvokeCode(Register code,

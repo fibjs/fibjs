@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "v8.h"
 
@@ -462,7 +439,7 @@ LPlatformChunk* LChunkBuilder::Build() {
 }
 
 
-void LCodeGen::Abort(BailoutReason reason) {
+void LChunkBuilder::Abort(BailoutReason reason) {
   info()->set_bailout_reason(reason);
   status_ = ABORTED;
 }
@@ -894,7 +871,8 @@ void LChunkBuilder::VisitInstruction(HInstruction* current) {
     // the it was just a plain use), so it is free to move the split child into
     // the same register that is used for the use-at-start.
     // See https://code.google.com/p/chromium/issues/detail?id=201590
-    if (!(instr->ClobbersRegisters() && instr->ClobbersDoubleRegisters())) {
+    if (!(instr->ClobbersRegisters() &&
+          instr->ClobbersDoubleRegisters(isolate()))) {
       int fixed = 0;
       int used_at_start = 0;
       for (UseIterator it(instr); !it.Done(); it.Advance()) {
@@ -1621,6 +1599,8 @@ LInstruction* LChunkBuilder::DoCompareGeneric(HCompareGeneric* instr) {
 
 LInstruction* LChunkBuilder::DoCompareNumericAndBranch(
     HCompareNumericAndBranch* instr) {
+  LInstruction* goto_instr = CheckElideControlInstruction(instr);
+  if (goto_instr != NULL) return goto_instr;
   Representation r = instr->representation();
   if (r.IsSmiOrInteger32()) {
     ASSERT(instr->left()->representation().Equals(r));
@@ -1789,9 +1769,16 @@ LInstruction* LChunkBuilder::DoSeqStringSetChar(HSeqStringSetChar* instr) {
 
 
 LInstruction* LChunkBuilder::DoBoundsCheck(HBoundsCheck* instr) {
-  LOperand* value = UseRegisterOrConstantAtStart(instr->index());
-  LOperand* length = Use(instr->length());
-  return AssignEnvironment(new(zone()) LBoundsCheck(value, length));
+  if (!FLAG_debug_code && instr->skip_check()) return NULL;
+  LOperand* index = UseRegisterOrConstantAtStart(instr->index());
+  LOperand* length = !index->IsConstantOperand()
+      ? UseOrConstantAtStart(instr->length())
+      : UseAtStart(instr->length());
+  LInstruction* result = new(zone()) LBoundsCheck(index, length);
+  if (!FLAG_debug_code || !instr->skip_check()) {
+    result = AssignEnvironment(result);
+  }
+  return result;
 }
 
 
@@ -2420,7 +2407,7 @@ LInstruction* LChunkBuilder::DoParameter(HParameter* instr) {
   } else {
     ASSERT(info()->IsStub());
     CodeStubInterfaceDescriptor* descriptor =
-        info()->code_stub()->GetInterfaceDescriptor(info()->isolate());
+        info()->code_stub()->GetInterfaceDescriptor();
     int index = static_cast<int>(instr->index());
     Register reg = descriptor->GetParameterRegister(index);
     return DefineFixed(result, reg);
@@ -2537,6 +2524,7 @@ LInstruction* LChunkBuilder::DoStackCheck(HStackCheck* instr) {
 
 LInstruction* LChunkBuilder::DoEnterInlined(HEnterInlined* instr) {
   HEnvironment* outer = current_block_->last_environment();
+  outer->set_ast_id(instr->ReturnId());
   HConstant* undefined = graph()->GetConstantUndefined();
   HEnvironment* inner = outer->CopyForInlining(instr->closure(),
                                                instr->arguments_count(),

@@ -48,7 +48,6 @@ namespace internal {
 #ifdef DEBUG
 bool CpuFeatures::initialized_ = false;
 #endif
-bool CpuFeatures::hint_creating_snapshot_ = false;
 unsigned CpuFeatures::supported_ = 0;
 unsigned CpuFeatures::found_by_runtime_probing_only_ = 0;
 unsigned CpuFeatures::cross_compile_ = 0;
@@ -101,22 +100,6 @@ const char* DwVfpRegister::AllocationIndexToString(int index) {
 }
 
 
-void CpuFeatures::SetHintCreatingSnapshot() {
-  hint_creating_snapshot_ = true;
-}
-
-
-void CpuFeatures::ProbeWithoutIsolate() {
-  Probe(hint_creating_snapshot_);
-}
-
-
-void CpuFeatures::Probe() {
-  // The Serializer can only be queried after isolate initialization.
-  Probe(Serializer::enabled());
-}
-
-
 void CpuFeatures::Probe(bool serializer_enabled) {
   uint64_t standard_features = static_cast<unsigned>(
       OS::CpuFeaturesImpliedByPlatform()) | CpuFeaturesImpliedByCompiler();
@@ -133,8 +116,6 @@ void CpuFeatures::Probe(bool serializer_enabled) {
 
   if (serializer_enabled) {
     // No probing for features if we might serialize (generate snapshot).
-    printf("   ");
-    PrintFeatures();
     return;
   }
 
@@ -1095,10 +1076,11 @@ static bool fits_shifter(uint32_t imm32,
 // if they can be encoded in the ARM's 12 bits of immediate-offset instruction
 // space.  There is no guarantee that the relocated location can be similarly
 // encoded.
-bool Operand::must_output_reloc_info(const Assembler* assembler) const {
+bool Operand::must_output_reloc_info(Isolate* isolate,
+                                     const Assembler* assembler) const {
   if (rmode_ == RelocInfo::EXTERNAL_REFERENCE) {
     if (assembler != NULL && assembler->predictable_code_size()) return true;
-    return Serializer::enabled();
+    return Serializer::enabled(isolate);
   } else if (RelocInfo::IsNone(rmode_)) {
     return false;
   }
@@ -1106,7 +1088,8 @@ bool Operand::must_output_reloc_info(const Assembler* assembler) const {
 }
 
 
-static bool use_mov_immediate_load(const Operand& x,
+static bool use_mov_immediate_load(Isolate* isolate,
+                                   const Operand& x,
                                    const Assembler* assembler) {
   if (assembler != NULL && !assembler->can_use_constant_pool()) {
     // If there is no constant pool available, we must use an mov immediate.
@@ -1117,7 +1100,7 @@ static bool use_mov_immediate_load(const Operand& x,
              (assembler == NULL || !assembler->predictable_code_size())) {
     // Prefer movw / movt to constant pool if it is more efficient on the CPU.
     return true;
-  } else if (x.must_output_reloc_info(assembler)) {
+  } else if (x.must_output_reloc_info(isolate, assembler)) {
     // Prefer constant pool if data is likely to be patched.
     return false;
   } else {
@@ -1127,17 +1110,18 @@ static bool use_mov_immediate_load(const Operand& x,
 }
 
 
-bool Operand::is_single_instruction(const Assembler* assembler,
+bool Operand::is_single_instruction(Isolate* isolate,
+                                    const Assembler* assembler,
                                     Instr instr) const {
   if (rm_.is_valid()) return true;
   uint32_t dummy1, dummy2;
-  if (must_output_reloc_info(assembler) ||
+  if (must_output_reloc_info(isolate, assembler) ||
       !fits_shifter(imm32_, &dummy1, &dummy2, &instr)) {
     // The immediate operand cannot be encoded as a shifter operand, or use of
     // constant pool is required. For a mov instruction not setting the
     // condition code additional instruction conventions can be used.
     if ((instr & ~kCondMask) == 13*B21) {  // mov, S not set
-      return !use_mov_immediate_load(*this, assembler);
+      return !use_mov_immediate_load(isolate, *this, assembler);
     } else {
       // If this is not a mov or mvn instruction there will always an additional
       // instructions - either mov or ldr. The mov might actually be two
@@ -1157,15 +1141,16 @@ void Assembler::move_32_bit_immediate(Register rd,
                                       const Operand& x,
                                       Condition cond) {
   RelocInfo rinfo(pc_, x.rmode_, x.imm32_, NULL);
-  if (x.must_output_reloc_info(this)) {
+  if (x.must_output_reloc_info(isolate(), this)) {
     RecordRelocInfo(rinfo);
   }
 
-  if (use_mov_immediate_load(x, this)) {
+  if (use_mov_immediate_load(isolate(), x, this)) {
     Register target = rd.code() == pc.code() ? ip : rd;
     // TODO(rmcilroy): add ARMv6 support for immediate loads.
     ASSERT(CpuFeatures::IsSupported(ARMv7));
-    if (!FLAG_enable_ool_constant_pool && x.must_output_reloc_info(this)) {
+    if (!FLAG_enable_ool_constant_pool &&
+        x.must_output_reloc_info(isolate(), this)) {
       // Make sure the movw/movt doesn't get separated.
       BlockConstPoolFor(2);
     }
@@ -1193,7 +1178,7 @@ void Assembler::addrmod1(Instr instr,
     // Immediate.
     uint32_t rotate_imm;
     uint32_t immed_8;
-    if (x.must_output_reloc_info(this) ||
+    if (x.must_output_reloc_info(isolate(), this) ||
         !fits_shifter(x.imm32_, &rotate_imm, &immed_8, &instr)) {
       // The immediate operand cannot be encoded as a shifter operand, so load
       // it first to register ip and change the original instruction to use ip.
@@ -1875,7 +1860,7 @@ void Assembler::msr(SRegisterFieldMask fields, const Operand& src,
     // Immediate.
     uint32_t rotate_imm;
     uint32_t immed_8;
-    if (src.must_output_reloc_info(this) ||
+    if (src.must_output_reloc_info(isolate(), this) ||
         !fits_shifter(src.imm32_, &rotate_imm, &immed_8, NULL)) {
       // Immediate operand cannot be encoded, load it first to register ip.
       move_32_bit_immediate(ip, src);
@@ -3175,9 +3160,7 @@ void Assembler::RecordComment(const char* msg) {
 void Assembler::RecordConstPool(int size) {
   // We only need this for debugger support, to correctly compute offsets in the
   // code.
-#ifdef ENABLE_DEBUGGER_SUPPORT
   RecordRelocInfo(RelocInfo::CONST_POOL, static_cast<intptr_t>(size));
-#endif
 }
 
 
@@ -3280,7 +3263,7 @@ void Assembler::RecordRelocInfo(const RelocInfo& rinfo) {
   if (!RelocInfo::IsNone(rinfo.rmode())) {
     // Don't record external references unless the heap will be serialized.
     if (rinfo.rmode() == RelocInfo::EXTERNAL_REFERENCE) {
-      if (!Serializer::enabled() && !emit_debug_code()) {
+      if (!Serializer::enabled(isolate()) && !emit_debug_code()) {
         return;
       }
     }
@@ -3511,7 +3494,8 @@ void Assembler::CheckConstPool(bool force_emit, bool require_jump) {
         //   data
 
         bool found = false;
-        if (!Serializer::enabled() && (rinfo.rmode() >= RelocInfo::CELL)) {
+        if (!Serializer::enabled(isolate()) &&
+            (rinfo.rmode() >= RelocInfo::CELL)) {
           for (int j = 0; j < i; j++) {
             RelocInfo& rinfo2 = pending_32_bit_reloc_info_[j];
 
@@ -3615,7 +3599,7 @@ void ConstantPoolBuilder::AddEntry(Assembler* assm,
   // Try to merge entries which won't be patched.
   int merged_index = -1;
   if (RelocInfo::IsNone(rmode) ||
-      (!Serializer::enabled() && (rmode >= RelocInfo::CELL))) {
+      (!Serializer::enabled(assm->isolate()) && (rmode >= RelocInfo::CELL))) {
     size_t i;
     std::vector<RelocInfo>::const_iterator it;
     for (it = entries_.begin(), i = 0; it != entries_.end(); it++, i++) {

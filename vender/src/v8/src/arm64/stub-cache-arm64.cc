@@ -1,29 +1,6 @@
 // Copyright 2013 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "v8.h"
 
@@ -785,7 +762,7 @@ void StubCompiler::GenerateFastApiCall(MacroAssembler* masm,
   __ Mov(api_function_address, ref);
 
   // Jump to stub.
-  CallApiFunctionStub stub(is_store, call_data_undefined, argc);
+  CallApiFunctionStub stub(isolate, is_store, call_data_undefined, argc);
   __ TailCallStub(&stub);
 }
 
@@ -844,7 +821,7 @@ Register StubCompiler::CheckPrototypes(Handle<HeapType> type,
         name = factory()->InternalizeString(Handle<String>::cast(name));
       }
       ASSERT(current.is_null() ||
-             (current->property_dictionary()->FindEntry(*name) ==
+             (current->property_dictionary()->FindEntry(name) ==
               NameDictionary::kNotFound));
 
       GenerateDictionaryNegativeLookup(masm(), miss, reg, name,
@@ -994,15 +971,17 @@ void LoadStubCompiler::GenerateLoadField(Register reg,
                                          Representation representation) {
   __ Mov(receiver(), reg);
   if (kind() == Code::LOAD_IC) {
-    LoadFieldStub stub(field.is_inobject(holder),
+    LoadFieldStub stub(isolate(),
+                       field.is_inobject(holder),
                        field.translate(holder),
                        representation);
-    GenerateTailCall(masm(), stub.GetCode(isolate()));
+    GenerateTailCall(masm(), stub.GetCode());
   } else {
-    KeyedLoadFieldStub stub(field.is_inobject(holder),
+    KeyedLoadFieldStub stub(isolate(),
+                            field.is_inobject(holder),
                             field.translate(holder),
                             representation);
-    GenerateTailCall(masm(), stub.GetCode(isolate()));
+    GenerateTailCall(masm(), stub.GetCode());
   }
 }
 
@@ -1064,7 +1043,7 @@ void LoadStubCompiler::GenerateLoadCallback(
   ExternalReference ref = ExternalReference(&fun, type, isolate());
   __ Mov(getter_address_reg, ref);
 
-  CallApiGetterStub stub;
+  CallApiGetterStub stub(isolate());
   __ TailCallStub(&stub);
 }
 

@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "v8.h"
 
@@ -1247,6 +1224,13 @@ bool HBranch::KnownSuccessorBlock(HBasicBlock** block) {
 }
 
 
+void HBranch::PrintDataTo(StringStream* stream) {
+  HUnaryControlInstruction::PrintDataTo(stream);
+  stream->Add(" ");
+  expected_input_types().Print(stream);
+}
+
+
 void HCompareMap::PrintDataTo(StringStream* stream) {
   value()->PrintNameTo(stream);
   stream->Add(" (%p)", *map().handle());
@@ -1682,25 +1666,6 @@ void HCheckInstanceType::GetCheckMaskAndTag(uint8_t* mask, uint8_t* tag) {
     default:
       UNREACHABLE();
   }
-}
-
-
-bool HCheckMaps::HandleSideEffectDominator(GVNFlag side_effect,
-                                           HValue* dominator) {
-  ASSERT(side_effect == kMaps);
-  // TODO(mstarzinger): For now we specialize on HStoreNamedField, but once
-  // type information is rich enough we should generalize this to any HType
-  // for which the map is known.
-  if (HasNoUses() && dominator->IsStoreNamedField()) {
-    HStoreNamedField* store = HStoreNamedField::cast(dominator);
-    if (!store->has_transition() || store->object() != value()) return false;
-    HConstant* transition = HConstant::cast(store->transition());
-    if (map_set_.Contains(Unique<Map>::cast(transition->GetUnique()))) {
-      DeleteAndReplaceWith(NULL);
-      return true;
-    }
-  }
-  return false;
 }
 
 
@@ -3303,6 +3268,21 @@ void HCompareHoleAndBranch::InferRepresentation(
 }
 
 
+bool HCompareNumericAndBranch::KnownSuccessorBlock(HBasicBlock** block) {
+  if (left() == right() &&
+      left()->representation().IsSmiOrInteger32()) {
+    *block = (token() == Token::EQ ||
+              token() == Token::EQ_STRICT ||
+              token() == Token::LTE ||
+              token() == Token::GTE)
+        ? FirstSuccessor() : SecondSuccessor();
+    return true;
+  }
+  *block = NULL;
+  return false;
+}
+
+
 bool HCompareMinusZeroAndBranch::KnownSuccessorBlock(HBasicBlock** block) {
   if (FLAG_fold_constants && value()->IsConstant()) {
     HConstant* constant = HConstant::cast(value());
@@ -3699,6 +3679,12 @@ HType HChange::CalculateInferredType() {
 
 
 Representation HUnaryMathOperation::RepresentationFromInputs() {
+  if (SupportsFlexibleFloorAndRound() &&
+      (op_ == kMathFloor || op_ == kMathRound)) {
+    // Floor and Round always take a double input. The integral result can be
+    // used as an integer or a double. Infer the representation from the uses.
+    return Representation::None();
+  }
   Representation rep = representation();
   // If any of the actual input representation is more general than what we
   // have so far but not Tagged, use that representation instead.
@@ -4167,6 +4153,43 @@ HInstruction* HUnaryMathOperation::New(
 }
 
 
+Representation HUnaryMathOperation::RepresentationFromUses() {
+  if (op_ != kMathFloor && op_ != kMathRound) {
+    return HValue::RepresentationFromUses();
+  }
+
+  // The instruction can have an int32 or double output. Prefer a double
+  // representation if there are double uses.
+  bool use_double = false;
+
+  for (HUseIterator it(uses()); !it.Done(); it.Advance()) {
+    HValue* use = it.value();
+    int use_index = it.index();
+    Representation rep_observed = use->observed_input_representation(use_index);
+    Representation rep_required = use->RequiredInputRepresentation(use_index);
+    use_double |= (rep_observed.IsDouble() || rep_required.IsDouble());
+    if (use_double && !FLAG_trace_representation) {
+      // Having seen one double is enough.
+      break;
+    }
+    if (FLAG_trace_representation) {
+      if (!rep_required.IsDouble() || rep_observed.IsDouble()) {
+        PrintF("#%d %s is used by #%d %s as %s%s\n",
+               id(), Mnemonic(), use->id(),
+               use->Mnemonic(), rep_observed.Mnemonic(),
+               (use->CheckFlag(kTruncatingToInt32) ? "-trunc" : ""));
+      } else {
+        PrintF("#%d %s is required by #%d %s as %s%s\n",
+               id(), Mnemonic(), use->id(),
+               use->Mnemonic(), rep_required.Mnemonic(),
+               (use->CheckFlag(kTruncatingToInt32) ? "-trunc" : ""));
+      }
+    }
+  }
+  return use_double ? Representation::Double() : Representation::Integer32();
+}
+
+
 HInstruction* HPower::New(Zone* zone,
                           HValue* context,
                           HValue* left,
@@ -4482,7 +4505,7 @@ void HPhi::Verify() {
 
 void HSimulate::Verify() {
   HInstruction::Verify();
-  ASSERT(HasAstId());
+  ASSERT(HasAstId() || next()->IsEnterInlined());
 }
 
 

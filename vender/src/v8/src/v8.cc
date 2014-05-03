@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "v8.h"
 
@@ -53,7 +30,6 @@ namespace internal {
 
 V8_DECLARE_ONCE(init_once);
 
-List<CallCompletedCallback>* V8::call_completed_callbacks_ = NULL;
 v8::ArrayBuffer::Allocator* V8::array_buffer_allocator_ = NULL;
 v8::Platform* V8::platform_ = NULL;
 
@@ -94,9 +70,6 @@ void V8::TearDown() {
   RegisteredExtension::UnregisterAll();
   Isolate::GlobalTearDown();
 
-  delete call_completed_callbacks_;
-  call_completed_callbacks_ = NULL;
-
   Sampler::TearDown();
   Serializer::TearDown();
 
@@ -111,63 +84,6 @@ void V8::TearDown() {
 void V8::SetReturnAddressLocationResolver(
       ReturnAddressLocationResolver resolver) {
   StackFrame::SetReturnAddressLocationResolver(resolver);
-}
-
-
-void V8::AddCallCompletedCallback(CallCompletedCallback callback) {
-  if (call_completed_callbacks_ == NULL) {  // Lazy init.
-    call_completed_callbacks_ = new List<CallCompletedCallback>();
-  }
-  for (int i = 0; i < call_completed_callbacks_->length(); i++) {
-    if (callback == call_completed_callbacks_->at(i)) return;
-  }
-  call_completed_callbacks_->Add(callback);
-}
-
-
-void V8::RemoveCallCompletedCallback(CallCompletedCallback callback) {
-  if (call_completed_callbacks_ == NULL) return;
-  for (int i = 0; i < call_completed_callbacks_->length(); i++) {
-    if (callback == call_completed_callbacks_->at(i)) {
-      call_completed_callbacks_->Remove(i);
-    }
-  }
-}
-
-
-void V8::FireCallCompletedCallback(Isolate* isolate) {
-  bool has_call_completed_callbacks = call_completed_callbacks_ != NULL;
-  bool run_microtasks = isolate->autorun_microtasks() &&
-                        isolate->microtask_pending();
-  if (!has_call_completed_callbacks && !run_microtasks) return;
-
-  HandleScopeImplementer* handle_scope_implementer =
-      isolate->handle_scope_implementer();
-  if (!handle_scope_implementer->CallDepthIsZero()) return;
-  // Fire callbacks.  Increase call depth to prevent recursive callbacks.
-  handle_scope_implementer->IncrementCallDepth();
-  if (run_microtasks) Execution::RunMicrotasks(isolate);
-  if (has_call_completed_callbacks) {
-    for (int i = 0; i < call_completed_callbacks_->length(); i++) {
-      call_completed_callbacks_->at(i)();
-    }
-  }
-  handle_scope_implementer->DecrementCallDepth();
-}
-
-
-void V8::RunMicrotasks(Isolate* isolate) {
-  if (!isolate->microtask_pending())
-    return;
-
-  HandleScopeImplementer* handle_scope_implementer =
-      isolate->handle_scope_implementer();
-  ASSERT(handle_scope_implementer->CallDepthIsZero());
-
-  // Increase call depth to prevent recursive callbacks.
-  handle_scope_implementer->IncrementCallDepth();
-  Execution::RunMicrotasks(isolate);
-  handle_scope_implementer->DecrementCallDepth();
 }
 
 
@@ -190,7 +106,9 @@ void V8::InitializeOncePerProcessImpl() {
   platform_ = new DefaultPlatform;
 #endif
   Sampler::SetUp();
-  CPU::SetUp();
+  // TODO(svenpanne) Clean this up when Serializer is a real object.
+  bool serializer_enabled = Serializer::enabled(NULL);
+  CpuFeatures::Probe(serializer_enabled);
   OS::PostSetUp();
   ElementsAccessor::InitializeOncePerProcess();
   LOperand::SetUpCaches();

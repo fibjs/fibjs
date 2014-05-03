@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "v8.h"
 
@@ -102,13 +79,11 @@ UnaryMathFunction CreateExpFunction() {
 
 #if defined(V8_HOST_ARCH_ARM)
 OS::MemCopyUint8Function CreateMemCopyUint8Function(
-      OS::MemCopyUint8Function stub) {
+    OS::MemCopyUint8Function stub) {
 #if defined(USE_SIMULATOR)
   return stub;
 #else
-  if (Serializer::enabled() || !CpuFeatures::IsSupported(UNALIGNED_ACCESSES)) {
-    return stub;
-  }
+  if (!CpuFeatures::IsSupported(UNALIGNED_ACCESSES)) return stub;
   size_t actual_size;
   byte* buffer = static_cast<byte*>(OS::Allocate(1 * KB, &actual_size, true));
   if (buffer == NULL) return stub;
@@ -260,13 +235,11 @@ OS::MemCopyUint8Function CreateMemCopyUint8Function(
 
 // Convert 8 to 16. The number of character to copy must be at least 8.
 OS::MemCopyUint16Uint8Function CreateMemCopyUint16Uint8Function(
-      OS::MemCopyUint16Uint8Function stub) {
+    OS::MemCopyUint16Uint8Function stub) {
 #if defined(USE_SIMULATOR)
   return stub;
 #else
-  if (Serializer::enabled() || !CpuFeatures::IsSupported(UNALIGNED_ACCESSES)) {
-    return stub;
-  }
+  if (!CpuFeatures::IsSupported(UNALIGNED_ACCESSES)) return stub;
   size_t actual_size;
   byte* buffer = static_cast<byte*>(OS::Allocate(1 * KB, &actual_size, true));
   if (buffer == NULL) return stub;

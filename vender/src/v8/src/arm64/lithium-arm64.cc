@@ -1,29 +1,6 @@
 // Copyright 2013 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "v8.h"
 
@@ -706,7 +683,8 @@ void LChunkBuilder::VisitInstruction(HInstruction* current) {
     // the it was just a plain use), so it is free to move the split child into
     // the same register that is used for the use-at-start.
     // See https://code.google.com/p/chromium/issues/detail?id=201590
-    if (!(instr->ClobbersRegisters() && instr->ClobbersDoubleRegisters())) {
+    if (!(instr->ClobbersRegisters() &&
+          instr->ClobbersDoubleRegisters(isolate()))) {
       int fixed = 0;
       int used_at_start = 0;
       for (UseIterator it(instr); !it.Done(); it.Advance()) {
@@ -951,9 +929,16 @@ LInstruction* LChunkBuilder::DoBlockEntry(HBlockEntry* instr) {
 
 
 LInstruction* LChunkBuilder::DoBoundsCheck(HBoundsCheck* instr) {
-  LOperand* value = UseRegisterOrConstantAtStart(instr->index());
-  LOperand* length = UseRegister(instr->length());
-  return AssignEnvironment(new(zone()) LBoundsCheck(value, length));
+  if (!FLAG_debug_code && instr->skip_check()) return NULL;
+  LOperand* index = UseRegisterOrConstantAtStart(instr->index());
+  LOperand* length = !index->IsConstantOperand()
+      ? UseRegisterOrConstantAtStart(instr->length())
+      : UseRegisterAtStart(instr->length());
+  LInstruction* result = new(zone()) LBoundsCheck(index, length);
+  if (!FLAG_debug_code || !instr->skip_check()) {
+    result = AssignEnvironment(result);
+  }
+  return result;
 }
 
 
@@ -1246,8 +1231,9 @@ LInstruction* LChunkBuilder::DoClassOfTestAndBranch(
 
 LInstruction* LChunkBuilder::DoCompareNumericAndBranch(
     HCompareNumericAndBranch* instr) {
+  LInstruction* goto_instr = CheckElideControlInstruction(instr);
+  if (goto_instr != NULL) return goto_instr;
   Representation r = instr->representation();
-
   if (r.IsSmiOrInteger32()) {
     ASSERT(instr->left()->representation().Equals(r));
     ASSERT(instr->right()->representation().Equals(r));
@@ -1448,6 +1434,7 @@ LInstruction* LChunkBuilder::DoDummyUse(HDummyUse* instr) {
 
 LInstruction* LChunkBuilder::DoEnterInlined(HEnterInlined* instr) {
   HEnvironment* outer = current_block_->last_environment();
+  outer->set_ast_id(instr->ReturnId());
   HConstant* undefined = graph()->GetConstantUndefined();
   HEnvironment* inner = outer->CopyForInlining(instr->closure(),
                                                instr->arguments_count(),
@@ -1660,9 +1647,10 @@ LInstruction* LChunkBuilder::DoLoadKeyed(HLoadKeyed* instr) {
   ASSERT(instr->key()->representation().IsSmiOrInteger32());
   ElementsKind elements_kind = instr->elements_kind();
   LOperand* elements = UseRegister(instr->elements());
-  LOperand* key = UseRegisterOrConstantAtStart(instr->key());
 
   if (!instr->is_typed_elements()) {
+    LOperand* key = UseRegisterOrConstantAtStart(instr->key());
+
     if (instr->representation().IsDouble()) {
       LOperand* temp = (!instr->key()->IsConstant() ||
                         instr->RequiresHoleCheck())
@@ -1690,6 +1678,7 @@ LInstruction* LChunkBuilder::DoLoadKeyed(HLoadKeyed* instr) {
            (instr->representation().IsDouble() &&
             IsDoubleOrFloatElementsKind(instr->elements_kind())));
 
+    LOperand* key = UseRegisterOrConstant(instr->key());
     LOperand* temp = instr->key()->IsConstant() ? NULL : TempRegister();
     LInstruction* result = DefineAsRegister(
         new(zone()) LLoadKeyedExternal(elements, key, temp));
@@ -1955,7 +1944,7 @@ LInstruction* LChunkBuilder::DoParameter(HParameter* instr) {
   } else {
     ASSERT(info()->IsStub());
     CodeStubInterfaceDescriptor* descriptor =
-        info()->code_stub()->GetInterfaceDescriptor(info()->isolate());
+        info()->code_stub()->GetInterfaceDescriptor();
     int index = static_cast<int>(instr->index());
     Register reg = descriptor->GetParameterRegister(index);
     return DefineFixed(result, reg);
@@ -2182,7 +2171,6 @@ LInstruction* LChunkBuilder::DoStoreKeyed(HStoreKeyed* instr) {
   LOperand* temp = NULL;
   LOperand* elements = NULL;
   LOperand* val = NULL;
-  LOperand* key = UseRegisterOrConstantAtStart(instr->key());
 
   if (!instr->is_typed_elements() &&
       instr->value()->representation().IsTagged() &&
@@ -2206,16 +2194,19 @@ LInstruction* LChunkBuilder::DoStoreKeyed(HStoreKeyed* instr) {
             instr->elements()->representation().IsTagged()) ||
            (instr->is_external() &&
             instr->elements()->representation().IsExternal()));
+    LOperand* key = UseRegisterOrConstant(instr->key());
     return new(zone()) LStoreKeyedExternal(elements, key, val, temp);
 
   } else if (instr->value()->representation().IsDouble()) {
     ASSERT(instr->elements()->representation().IsTagged());
+    LOperand* key = UseRegisterOrConstantAtStart(instr->key());
     return new(zone()) LStoreKeyedFixedDouble(elements, key, val, temp);
 
   } else {
     ASSERT(instr->elements()->representation().IsTagged());
     ASSERT(instr->value()->representation().IsSmiOrTagged() ||
            instr->value()->representation().IsInteger32());
+    LOperand* key = UseRegisterOrConstantAtStart(instr->key());
     return new(zone()) LStoreKeyedFixed(elements, key, val, temp);
   }
 }
@@ -2456,14 +2447,16 @@ LInstruction* LChunkBuilder::DoUnaryMathOperation(HUnaryMathOperation* instr) {
       return DefineAsRegister(result);
     }
     case kMathFloor: {
-      ASSERT(instr->representation().IsInteger32());
       ASSERT(instr->value()->representation().IsDouble());
-      // TODO(jbramley): ARM64 can easily handle a double argument with frintm,
-      // but we're never asked for it here. At the moment, we fall back to the
-      // runtime if the result doesn't fit, like the other architectures.
       LOperand* input = UseRegisterAtStart(instr->value());
-      LMathFloor* result = new(zone()) LMathFloor(input);
-      return AssignEnvironment(AssignPointerMap(DefineAsRegister(result)));
+      if (instr->representation().IsInteger32()) {
+        LMathFloorI* result = new(zone()) LMathFloorI(input);
+        return AssignEnvironment(AssignPointerMap(DefineAsRegister(result)));
+      } else {
+        ASSERT(instr->representation().IsDouble());
+        LMathFloorD* result = new(zone()) LMathFloorD(input);
+        return DefineAsRegister(result);
+      }
     }
     case kMathLog: {
       ASSERT(instr->representation().IsDouble());
@@ -2479,14 +2472,16 @@ LInstruction* LChunkBuilder::DoUnaryMathOperation(HUnaryMathOperation* instr) {
       return DefineAsRegister(new(zone()) LMathPowHalf(input));
     }
     case kMathRound: {
-      ASSERT(instr->representation().IsInteger32());
       ASSERT(instr->value()->representation().IsDouble());
-      // TODO(jbramley): As with kMathFloor, we can probably handle double
-      // results fairly easily, but we are never asked for them.
       LOperand* input = UseRegister(instr->value());
-      LOperand* temp = FixedTemp(d24);  // Choosen arbitrarily.
-      LMathRound* result = new(zone()) LMathRound(input, temp);
-      return AssignEnvironment(DefineAsRegister(result));
+      if (instr->representation().IsInteger32()) {
+        LMathRoundI* result = new(zone()) LMathRoundI(input, FixedTemp(d24));
+        return AssignEnvironment(DefineAsRegister(result));
+      } else {
+        ASSERT(instr->representation().IsDouble());
+        LMathRoundD* result = new(zone()) LMathRoundD(input);
+        return DefineAsRegister(result);
+      }
     }
     case kMathSqrt: {
       ASSERT(instr->representation().IsDouble());

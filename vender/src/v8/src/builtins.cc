@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "v8.h"
 
@@ -127,28 +104,28 @@ BUILTIN_LIST_C(DEF_ARG_TYPE)
 #ifdef DEBUG
 
 #define BUILTIN(name)                                            \
-  MUST_USE_RESULT static MaybeObject* Builtin_Impl_##name(       \
+  MUST_USE_RESULT static Object* Builtin_Impl_##name(            \
       name##ArgumentsType args, Isolate* isolate);               \
-  MUST_USE_RESULT static MaybeObject* Builtin_##name(            \
+  MUST_USE_RESULT static Object* Builtin_##name(                 \
       int args_length, Object** args_object, Isolate* isolate) { \
     name##ArgumentsType args(args_length, args_object);          \
     args.Verify();                                               \
     return Builtin_Impl_##name(args, isolate);                   \
   }                                                              \
-  MUST_USE_RESULT static MaybeObject* Builtin_Impl_##name(       \
+  MUST_USE_RESULT static Object* Builtin_Impl_##name(            \
       name##ArgumentsType args, Isolate* isolate)
 
 #else  // For release mode.
 
 #define BUILTIN(name)                                            \
-  static MaybeObject* Builtin_impl##name(                        \
+  static Object* Builtin_impl##name(                             \
       name##ArgumentsType args, Isolate* isolate);               \
-  static MaybeObject* Builtin_##name(                            \
+  static Object* Builtin_##name(                                 \
       int args_length, Object** args_object, Isolate* isolate) { \
     name##ArgumentsType args(args_length, args_object);          \
     return Builtin_impl##name(args, isolate);                    \
   }                                                              \
-  static MaybeObject* Builtin_impl##name(                        \
+  static Object* Builtin_impl##name(                             \
       name##ArgumentsType args, Isolate* isolate)
 #endif
 
@@ -302,8 +279,8 @@ static inline MaybeHandle<FixedArrayBase> EnsureJSArrayWithWritableFastElements(
   if (!receiver->IsJSArray()) return MaybeHandle<FixedArrayBase>();
   Handle<JSArray> array = Handle<JSArray>::cast(receiver);
   // If there may be elements accessors in the prototype chain, the fast path
-  // cannot be used.
-  if (array->map()->DictionaryElementsInPrototypeChainOnly()) {
+  // cannot be used if there arguments to add to the array.
+  if (args != NULL && array->map()->DictionaryElementsInPrototypeChainOnly()) {
     return MaybeHandle<FixedArrayBase>();
   }
   if (array->map()->is_observed()) return MaybeHandle<FixedArrayBase>();
@@ -366,7 +343,7 @@ static inline bool IsJSArrayFastElementMovingAllowed(Heap* heap,
 }
 
 
-MUST_USE_RESULT static MaybeObject* CallJsBuiltin(
+MUST_USE_RESULT static Object* CallJsBuiltin(
     Isolate* isolate,
     const char* name,
     BuiltinArguments<NO_EXTRA_ARGUMENTS> args) {
@@ -470,7 +447,10 @@ BUILTIN(ArrayPush) {
     if (new_length > elms_len) {
       // New backing storage is needed.
       int capacity = new_length + (new_length >> 1) + 16;
-      new_elms = isolate->factory()->NewFixedDoubleArray(capacity);
+      // Create new backing store; since capacity > 0, we can
+      // safely cast to FixedDoubleArray.
+      new_elms = Handle<FixedDoubleArray>::cast(
+          isolate->factory()->NewFixedDoubleArray(capacity));
 
       ElementsAccessor* accessor = array->GetElementsAccessor();
       accessor->CopyElements(
@@ -520,15 +500,11 @@ BUILTIN(ArrayPop) {
 
   ElementsAccessor* accessor = array->GetElementsAccessor();
   int new_length = len - 1;
-  MaybeHandle<Object> maybe_element;
-  if (accessor->HasElement(array, array, new_length, elms_obj)) {
-    maybe_element = accessor->Get(array, array, new_length, elms_obj);
-  } else {
-    Handle<Object> proto(array->GetPrototype(), isolate);
-    maybe_element = Object::GetElement(isolate, proto, len - 1);
+  Handle<Object> element =
+      accessor->Get(array, array, new_length, elms_obj).ToHandleChecked();
+  if (element->IsTheHole()) {
+    return CallJsBuiltin(isolate, "ArrayPop", args);
   }
-  Handle<Object> element;
-  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, element, maybe_element);
   RETURN_FAILURE_ON_EXCEPTION(
       isolate,
       accessor->SetLength(array, handle(Smi::FromInt(new_length), isolate)));
@@ -556,11 +532,10 @@ BUILTIN(ArrayShift) {
 
   // Get first element
   ElementsAccessor* accessor = array->GetElementsAccessor();
-  Handle<Object> first;
-  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
-      isolate, first, accessor->Get(receiver, array, 0, elms_obj));
+  Handle<Object> first =
+    accessor->Get(array, array, 0, elms_obj).ToHandleChecked();
   if (first->IsTheHole()) {
-    first = isolate->factory()->undefined_value();
+    return CallJsBuiltin(isolate, "ArrayShift", args);
   }
 
   if (heap->CanMoveObjectStart(*elms_obj)) {
@@ -1166,7 +1141,7 @@ static inline Object* TypeCheck(Heap* heap,
 
 
 template <bool is_construct>
-MUST_USE_RESULT static MaybeObject* HandleApiCallHelper(
+MUST_USE_RESULT static Object* HandleApiCallHelper(
     BuiltinArguments<NEEDS_CALLED_FUNCTION> args, Isolate* isolate) {
   ASSERT(is_construct == CalledAsConstructor(isolate));
   Heap* heap = isolate->heap();
@@ -1252,7 +1227,7 @@ BUILTIN(HandleApiCallConstruct) {
 // Helper function to handle calls to non-function objects created through the
 // API. The object can be called as either a constructor (using new) or just as
 // a function (without new).
-MUST_USE_RESULT static MaybeObject* HandleApiCallAsFunctionOrConstructor(
+MUST_USE_RESULT static Object* HandleApiCallAsFunctionOrConstructor(
     Isolate* isolate,
     bool is_construct_call,
     BuiltinArguments<NO_EXTRA_ARGUMENTS> args) {
@@ -1445,7 +1420,11 @@ static void Generate_KeyedStoreIC_SloppyArguments(MacroAssembler* masm) {
 }
 
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
+static void Generate_CallICStub_DebugBreak(MacroAssembler* masm) {
+  Debug::GenerateCallICStubDebugBreak(masm);
+}
+
+
 static void Generate_LoadIC_DebugBreak(MacroAssembler* masm) {
   Debug::GenerateLoadICDebugBreak(masm);
 }
@@ -1481,12 +1460,6 @@ static void Generate_CallFunctionStub_DebugBreak(MacroAssembler* masm) {
 }
 
 
-static void Generate_CallFunctionStub_Recording_DebugBreak(
-    MacroAssembler* masm) {
-  Debug::GenerateCallFunctionStubRecordDebugBreak(masm);
-}
-
-
 static void Generate_CallConstructStub_DebugBreak(MacroAssembler* masm) {
   Debug::GenerateCallConstructStubDebugBreak(masm);
 }
@@ -1511,7 +1484,6 @@ static void Generate_PlainReturn_LiveEdit(MacroAssembler* masm) {
 static void Generate_FrameDropper_LiveEdit(MacroAssembler* masm) {
   Debug::GenerateFrameDropperLiveEdit(masm);
 }
-#endif
 
 
 Builtins::Builtins() : initialized_(false) {

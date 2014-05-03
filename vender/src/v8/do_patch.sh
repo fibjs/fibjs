@@ -8,6 +8,8 @@ cp $V8_PATH/include/*.h ../../include/v8/
 cp $V8_PATH/src/*.h src/
 cp $V8_PATH/src/*.cc src/
 
+cp $V8_PATH/src/base/*.h src/base/
+
 cp $V8_PATH/out/ia32.release/obj/gen/libraries.cc src/
 cp $V8_PATH/out/ia32.release/obj/gen/trig-table.cc src/
 cp $V8_PATH/out/ia32.release/obj/gen/experimental-libraries.cc src/

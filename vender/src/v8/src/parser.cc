@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "v8.h"
 
@@ -996,7 +973,6 @@ FunctionLiteral* Parser::DoParseProgram(CompilationInfo* info,
           FunctionLiteral::kNotGenerator,
           0);
       result->set_ast_properties(factory()->visitor()->ast_properties());
-      result->set_slot_processor(factory()->visitor()->slot_processor());
       result->set_dont_optimize_reason(
           factory()->visitor()->dont_optimize_reason());
     } else if (stack_overflow()) {
@@ -3258,7 +3234,6 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
   FunctionLiteral::IsParenthesizedFlag parenthesized = parenthesized_function_
       ? FunctionLiteral::kIsParenthesized
       : FunctionLiteral::kNotParenthesized;
-  DeferredFeedbackSlotProcessor* slot_processor;
   AstProperties ast_properties;
   BailoutReason dont_optimize_reason = kNoReason;
   // Parse function body.
@@ -3429,7 +3404,6 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
                         CHECK_OK);
     }
     ast_properties = *factory()->visitor()->ast_properties();
-    slot_processor = factory()->visitor()->slot_processor();
     dont_optimize_reason = factory()->visitor()->dont_optimize_reason();
   }
 
@@ -3456,7 +3430,6 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
                                     pos);
   function_literal->set_function_token_position(function_token_pos);
   function_literal->set_ast_properties(&ast_properties);
-  function_literal->set_slot_processor(slot_processor);
   function_literal->set_dont_optimize_reason(dont_optimize_reason);
 
   if (fni_ != NULL && should_infer_name) fni_->AddFunction(function_literal);
@@ -3842,8 +3815,7 @@ bool RegExpParser::simple() {
 
 RegExpTree* RegExpParser::ReportError(Vector<const char> message) {
   failed_ = true;
-  *error_ = isolate()->factory()->NewStringFromAscii(
-      message, NOT_TENURED).ToHandleChecked();
+  *error_ = isolate()->factory()->NewStringFromAscii(message).ToHandleChecked();
   // Zip to the end to make sure the no more input is read.
   current_ = kEndMarker;
   next_pos_ = in()->length();

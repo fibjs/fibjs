@@ -1,29 +1,6 @@
 // Copyright 2013 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef V8_ARM64_LITHIUM_ARM64_H_
 #define V8_ARM64_LITHIUM_ARM64_H_
@@ -138,11 +115,13 @@ class LCodeGen;
   V(MathAbsTagged)                              \
   V(MathClz32)                                  \
   V(MathExp)                                    \
-  V(MathFloor)                                  \
+  V(MathFloorD)                                 \
+  V(MathFloorI)                                 \
   V(MathLog)                                    \
   V(MathMinMax)                                 \
   V(MathPowHalf)                                \
-  V(MathRound)                                  \
+  V(MathRoundD)                                 \
+  V(MathRoundI)                                 \
   V(MathSqrt)                                   \
   V(ModByConstI)                                \
   V(ModByPowerOf2I)                             \
@@ -270,7 +249,9 @@ class LInstruction : public ZoneObject {
   // Interface to the register allocator and iterators.
   bool ClobbersTemps() const { return IsCall(); }
   bool ClobbersRegisters() const { return IsCall(); }
-  virtual bool ClobbersDoubleRegisters() const { return IsCall(); }
+  virtual bool ClobbersDoubleRegisters(Isolate* isolate) const {
+    return IsCall();
+  }
   bool IsMarkedAsCall() const { return IsCall(); }
 
   virtual bool HasResult() const = 0;
@@ -887,7 +868,7 @@ class LCallRuntime V8_FINAL : public LTemplateInstruction<1, 1, 0> {
   DECLARE_CONCRETE_INSTRUCTION(CallRuntime, "call-runtime")
   DECLARE_HYDROGEN_ACCESSOR(CallRuntime)
 
-  virtual bool ClobbersDoubleRegisters() const V8_OVERRIDE {
+  virtual bool ClobbersDoubleRegisters(Isolate* isolate) const V8_OVERRIDE {
     return save_doubles() == kDontSaveFPRegs;
   }
 
@@ -1930,10 +1911,19 @@ class LMathExp V8_FINAL : public LUnaryMathOperation<4> {
 };
 
 
-class LMathFloor V8_FINAL : public LUnaryMathOperation<0> {
+// Math.floor with a double result.
+class LMathFloorD V8_FINAL : public LUnaryMathOperation<0> {
  public:
-  explicit LMathFloor(LOperand* value) : LUnaryMathOperation<0>(value) { }
-  DECLARE_CONCRETE_INSTRUCTION(MathFloor, "math-floor")
+  explicit LMathFloorD(LOperand* value) : LUnaryMathOperation<0>(value) { }
+  DECLARE_CONCRETE_INSTRUCTION(MathFloorD, "math-floor-d")
+};
+
+
+// Math.floor with an integer result.
+class LMathFloorI V8_FINAL : public LUnaryMathOperation<0> {
+ public:
+  explicit LMathFloorI(LOperand* value) : LUnaryMathOperation<0>(value) { }
+  DECLARE_CONCRETE_INSTRUCTION(MathFloorI, "math-floor-i")
 };
 
 
@@ -2029,16 +2019,28 @@ class LMathPowHalf V8_FINAL : public LUnaryMathOperation<0> {
 };
 
 
-class LMathRound V8_FINAL : public LUnaryMathOperation<1> {
+// Math.round with an integer result.
+class LMathRoundD V8_FINAL : public LUnaryMathOperation<0> {
  public:
-  LMathRound(LOperand* value, LOperand* temp1)
+  explicit LMathRoundD(LOperand* value)
+      : LUnaryMathOperation<0>(value) {
+  }
+
+  DECLARE_CONCRETE_INSTRUCTION(MathRoundD, "math-round-d")
+};
+
+
+// Math.round with an integer result.
+class LMathRoundI V8_FINAL : public LUnaryMathOperation<1> {
+ public:
+  LMathRoundI(LOperand* value, LOperand* temp1)
       : LUnaryMathOperation<1>(value) {
     temps_[0] = temp1;
   }
 
   LOperand* temp1() { return temps_[0]; }
 
-  DECLARE_CONCRETE_INSTRUCTION(MathRound, "math-round")
+  DECLARE_CONCRETE_INSTRUCTION(MathRoundI, "math-round-i")
 };
 
 
@@ -2500,7 +2502,6 @@ class LStoreNamedField V8_FINAL : public LTemplateInstruction<0, 2, 2> {
 
   virtual void PrintDataTo(StringStream* stream) V8_OVERRIDE;
 
-  Handle<Map> transition() const { return hydrogen()->transition_map(); }
   Representation representation() const {
     return hydrogen()->field_representation();
   }

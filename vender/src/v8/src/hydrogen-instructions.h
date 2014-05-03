@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef V8_HYDROGEN_INSTRUCTIONS_H_
 #define V8_HYDROGEN_INSTRUCTIONS_H_
@@ -32,13 +9,13 @@
 
 #include "allocation.h"
 #include "code-stubs.h"
+#include "conversions.h"
 #include "data-flow.h"
 #include "deoptimizer.h"
 #include "small-pointer-list.h"
 #include "string-stream.h"
 #include "unique.h"
-#include "v8conversions.h"
-#include "v8utils.h"
+#include "utils.h"
 #include "zone.h"
 
 namespace v8 {
@@ -184,7 +161,6 @@ class LChunkBuilder;
   V(WrapReceiver)
 
 #define GVN_TRACKED_FLAG_LIST(V)               \
-  V(Maps)                                      \
   V(NewSpacePromotion)
 
 #define GVN_UNTRACKED_FLAG_LIST(V)             \
@@ -200,6 +176,7 @@ class LChunkBuilder;
   V(ElementsPointer)                           \
   V(GlobalVars)                                \
   V(InobjectFields)                            \
+  V(Maps)                                      \
   V(OsrEntries)                                \
   V(ExternalMemory)                            \
   V(StringChars)                               \
@@ -972,7 +949,7 @@ class HValue : public ZoneObject {
   virtual Representation RepresentationFromInputs() {
     return representation();
   }
-  Representation RepresentationFromUses();
+  virtual Representation RepresentationFromUses();
   Representation RepresentationFromUseRequirements();
   bool HasNonSmiUse();
   virtual void UpdateRepresentation(Representation new_rep,
@@ -1543,6 +1520,8 @@ class HBranch V8_FINAL : public HUnaryControlInstruction {
 
   virtual bool KnownSuccessorBlock(HBasicBlock** block) V8_OVERRIDE;
 
+  virtual void PrintDataTo(StringStream* stream) V8_OVERRIDE;
+
   ToBooleanStub::Types expected_input_types() const {
     return expected_input_types_;
   }
@@ -2083,14 +2062,15 @@ class HEnterInlined V8_FINAL : public HTemplateInstruction<0> {
  public:
   static HEnterInlined* New(Zone* zone,
                             HValue* context,
+                            BailoutId return_id,
                             Handle<JSFunction> closure,
                             int arguments_count,
                             FunctionLiteral* function,
                             InliningKind inlining_kind,
                             Variable* arguments_var,
                             HArgumentsObject* arguments_object) {
-    return new(zone) HEnterInlined(closure, arguments_count, function,
-                                   inlining_kind, arguments_var,
+    return new(zone) HEnterInlined(return_id, closure, arguments_count,
+                                   function, inlining_kind, arguments_var,
                                    arguments_object, zone);
   }
 
@@ -2105,6 +2085,7 @@ class HEnterInlined V8_FINAL : public HTemplateInstruction<0> {
   void set_arguments_pushed() { arguments_pushed_ = true; }
   FunctionLiteral* function() const { return function_; }
   InliningKind inlining_kind() const { return inlining_kind_; }
+  BailoutId ReturnId() const { return return_id_; }
 
   virtual Representation RequiredInputRepresentation(int index) V8_OVERRIDE {
     return Representation::None();
@@ -2116,14 +2097,16 @@ class HEnterInlined V8_FINAL : public HTemplateInstruction<0> {
   DECLARE_CONCRETE_INSTRUCTION(EnterInlined)
 
  private:
-  HEnterInlined(Handle<JSFunction> closure,
+  HEnterInlined(BailoutId return_id,
+                Handle<JSFunction> closure,
                 int arguments_count,
                 FunctionLiteral* function,
                 InliningKind inlining_kind,
                 Variable* arguments_var,
                 HArgumentsObject* arguments_object,
                 Zone* zone)
-      : closure_(closure),
+      : return_id_(return_id),
+        closure_(closure),
         arguments_count_(arguments_count),
         arguments_pushed_(false),
         function_(function),
@@ -2133,6 +2116,7 @@ class HEnterInlined V8_FINAL : public HTemplateInstruction<0> {
         return_targets_(2, zone) {
   }
 
+  BailoutId return_id_;
   Handle<JSFunction> closure_;
   int arguments_count_;
   bool arguments_pushed_;
@@ -2654,6 +2638,7 @@ class HUnaryMathOperation V8_FINAL : public HTemplateInstruction<2> {
   virtual Range* InferRange(Zone* zone) V8_OVERRIDE;
 
   virtual HValue* Canonicalize() V8_OVERRIDE;
+  virtual Representation RepresentationFromUses() V8_OVERRIDE;
   virtual Representation RepresentationFromInputs() V8_OVERRIDE;
 
   BuiltinFunctionId op() const { return op_; }
@@ -2668,6 +2653,15 @@ class HUnaryMathOperation V8_FINAL : public HTemplateInstruction<2> {
   }
 
  private:
+  // Indicates if we support a double (and int32) output for Math.floor and
+  // Math.round.
+  bool SupportsFlexibleFloorAndRound() const {
+#ifdef V8_TARGET_ARCH_ARM64
+    return true;
+#else
+    return false;
+#endif
+  }
   HUnaryMathOperation(HValue* context, HValue* value, BuiltinFunctionId op)
       : HTemplateInstruction<2>(HType::TaggedNumber()), op_(op) {
     SetOperandAt(0, context);
@@ -2675,6 +2669,12 @@ class HUnaryMathOperation V8_FINAL : public HTemplateInstruction<2> {
     switch (op) {
       case kMathFloor:
       case kMathRound:
+        if (SupportsFlexibleFloorAndRound()) {
+          SetFlag(kFlexibleRepresentation);
+        } else {
+          set_representation(Representation::Integer32());
+        }
+        break;
       case kMathClz32:
         set_representation(Representation::Integer32());
         break;
@@ -2762,15 +2762,13 @@ class HCheckMaps V8_FINAL : public HTemplateInstruction<2> {
   virtual Representation RequiredInputRepresentation(int index) V8_OVERRIDE {
     return Representation::Tagged();
   }
-  virtual bool HandleSideEffectDominator(GVNFlag side_effect,
-                                         HValue* dominator) V8_OVERRIDE;
   virtual void PrintDataTo(StringStream* stream) V8_OVERRIDE;
 
   HValue* value() { return OperandAt(0); }
   HValue* typecheck() { return OperandAt(1); }
 
   Unique<Map> first_map() const { return map_set_.at(0); }
-  UniqueSet<Map> map_set() const { return map_set_; }
+  const UniqueSet<Map>* map_set() const { return &map_set_; }
 
   void set_map_set(UniqueSet<Map>* maps, Zone *zone) {
     map_set_.Clear();
@@ -2813,7 +2811,6 @@ class HCheckMaps V8_FINAL : public HTemplateInstruction<2> {
     SetOperandAt(1, typecheck != NULL ? typecheck : value);
     set_representation(Representation::Tagged());
     SetFlag(kUseGVN);
-    SetFlag(kTrackSideEffectDominators);
   }
 
   bool omit_;
@@ -4218,6 +4215,9 @@ class HCompareNumericAndBranch : public HTemplateControlInstruction<2, 2> {
   virtual Representation observed_input_representation(int index) V8_OVERRIDE {
     return observed_input_representation_[index];
   }
+
+  virtual bool KnownSuccessorBlock(HBasicBlock** block) V8_OVERRIDE;
+
   virtual void PrintDataTo(StringStream* stream) V8_OVERRIDE;
 
   void SetOperandPositions(Zone* zone,
@@ -6172,7 +6172,7 @@ class HLoadNamedField V8_FINAL : public HTemplateInstruction<2> {
       return access_.representation();
   }
 
-  UniqueSet<Map> map_set() const { return map_set_; }
+  const UniqueSet<Map>* map_set() const { return &map_set_; }
 
   virtual bool HasEscapingOperandAt(int index) V8_OVERRIDE { return false; }
   virtual bool HasOutOfBoundsAccess(int size) V8_OVERRIDE {
@@ -6611,14 +6611,9 @@ class HStoreNamedField V8_FINAL : public HTemplateInstruction<3> {
     }
   }
 
-  void SetTransition(HConstant* map_constant, CompilationInfo* info) {
+  void SetTransition(HConstant* transition) {
     ASSERT(!has_transition());  // Only set once.
-    Handle<Map> map = Handle<Map>::cast(map_constant->handle(info->isolate()));
-    if (map->CanBeDeprecated()) {
-      Map::AddDependentCompilationInfo(
-          map, DependentCode::kTransitionGroup, info);
-    }
-    SetOperandAt(2, map_constant);
+    SetOperandAt(2, transition);
     has_transition_ = true;
   }
 

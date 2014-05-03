@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include <limits.h>  // For LONG_MIN, LONG_MAX.
 
@@ -100,7 +77,9 @@ int MacroAssembler::CallSize(
   int size = 2 * kInstrSize;
   Instr mov_instr = cond | MOV | LeaveCC;
   intptr_t immediate = reinterpret_cast<intptr_t>(target);
-  if (!Operand(immediate, rmode).is_single_instruction(this, mov_instr)) {
+  if (!Operand(immediate, rmode).is_single_instruction(isolate(),
+                                                       this,
+                                                       mov_instr)) {
     size += kInstrSize;
   }
   return size;
@@ -109,17 +88,20 @@ int MacroAssembler::CallSize(
 
 int MacroAssembler::CallStubSize(
     CodeStub* stub, TypeFeedbackId ast_id, Condition cond) {
-  return CallSize(
-      stub->GetCode(isolate()), RelocInfo::CODE_TARGET, ast_id, cond);
+  return CallSize(stub->GetCode(), RelocInfo::CODE_TARGET, ast_id, cond);
 }
 
 
-int MacroAssembler::CallSizeNotPredictableCodeSize(
-    Address target, RelocInfo::Mode rmode, Condition cond) {
+int MacroAssembler::CallSizeNotPredictableCodeSize(Isolate* isolate,
+                                                   Address target,
+                                                   RelocInfo::Mode rmode,
+                                                   Condition cond) {
   int size = 2 * kInstrSize;
   Instr mov_instr = cond | MOV | LeaveCC;
   intptr_t immediate = reinterpret_cast<intptr_t>(target);
-  if (!Operand(immediate, rmode).is_single_instruction(NULL, mov_instr)) {
+  if (!Operand(immediate, rmode).is_single_instruction(isolate,
+                                                       NULL,
+                                                       mov_instr)) {
     size += kInstrSize;
   }
   return size;
@@ -279,11 +261,11 @@ void MacroAssembler::Move(DwVfpRegister dst, DwVfpRegister src) {
 void MacroAssembler::And(Register dst, Register src1, const Operand& src2,
                          Condition cond) {
   if (!src2.is_reg() &&
-      !src2.must_output_reloc_info(this) &&
+      !src2.must_output_reloc_info(isolate(), this) &&
       src2.immediate() == 0) {
     mov(dst, Operand::Zero(), LeaveCC, cond);
-  } else if (!src2.is_single_instruction(this) &&
-             !src2.must_output_reloc_info(this) &&
+  } else if (!src2.is_single_instruction(isolate(), this) &&
+             !src2.must_output_reloc_info(isolate(), this) &&
              CpuFeatures::IsSupported(ARMv7) &&
              IsPowerOf2(src2.immediate() + 1)) {
     ubfx(dst, src1, 0,
@@ -556,7 +538,8 @@ void MacroAssembler::RecordWrite(Register object,
   if (lr_status == kLRHasNotBeenSaved) {
     push(lr);
   }
-  RecordWriteStub stub(object, value, address, remembered_set_action, fp_mode);
+  RecordWriteStub stub(isolate(), object, value, address, remembered_set_action,
+                       fp_mode);
   CallStub(&stub);
   if (lr_status == kLRHasNotBeenSaved) {
     pop(lr);
@@ -605,7 +588,7 @@ void MacroAssembler::RememberedSetHelper(Register object,  // For debug tests.
   }
   push(lr);
   StoreBufferOverflowStub store_buffer_overflow =
-      StoreBufferOverflowStub(fp_mode);
+      StoreBufferOverflowStub(isolate(), fp_mode);
   CallStub(&store_buffer_overflow);
   pop(lr);
   bind(&done);
@@ -657,7 +640,7 @@ void MacroAssembler::PopSafepointRegisters() {
 
 void MacroAssembler::PushSafepointRegistersAndDoubles() {
   // Number of d-regs not known at snapshot time.
-  ASSERT(!Serializer::enabled());
+  ASSERT(!Serializer::enabled(isolate()));
   PushSafepointRegisters();
   // Only save allocatable registers.
   ASSERT(kScratchDoubleReg.is(d15) && kDoubleRegZero.is(d14));
@@ -671,7 +654,7 @@ void MacroAssembler::PushSafepointRegistersAndDoubles() {
 
 void MacroAssembler::PopSafepointRegistersAndDoubles() {
   // Number of d-regs not known at snapshot time.
-  ASSERT(!Serializer::enabled());
+  ASSERT(!Serializer::enabled(isolate()));
   // Only save allocatable registers.
   ASSERT(kScratchDoubleReg.is(d15) && kDoubleRegZero.is(d14));
   ASSERT(DwVfpRegister::NumReservedRegisters() == 2);
@@ -713,7 +696,7 @@ MemOperand MacroAssembler::SafepointRegisterSlot(Register reg) {
 
 MemOperand MacroAssembler::SafepointRegistersAndDoublesSlot(Register reg) {
   // Number of d-regs not known at snapshot time.
-  ASSERT(!Serializer::enabled());
+  ASSERT(!Serializer::enabled(isolate()));
   // General purpose registers are pushed last on the stack.
   int doubles_size = DwVfpRegister::NumAllocatableRegisters() * kDoubleSize;
   int register_offset = SafepointRegisterStackIndex(reg.code()) * kPointerSize;
@@ -1335,15 +1318,13 @@ void MacroAssembler::IsObjectNameType(Register object,
 }
 
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
 void MacroAssembler::DebugBreak() {
   mov(r0, Operand::Zero());
   mov(r1, Operand(ExternalReference(Runtime::kDebugBreak, isolate())));
-  CEntryStub ces(1);
+  CEntryStub ces(isolate(), 1);
   ASSERT(AllowThisStubCall(&ces));
-  Call(ces.GetCode(isolate()), RelocInfo::DEBUG_BREAK);
+  Call(ces.GetCode(), RelocInfo::DEBUG_BREAK);
 }
-#endif
 
 
 void MacroAssembler::PushTryHandler(StackHandler::Kind kind,
@@ -1769,7 +1750,7 @@ void MacroAssembler::Allocate(int object_size,
       object_size -= bits;
       shift += 8;
       Operand bits_operand(bits);
-      ASSERT(bits_operand.is_single_instruction(this));
+      ASSERT(bits_operand.is_single_instruction(isolate(), this));
       add(scratch2, source, bits_operand, SetCC, cond);
       source = scratch2;
       cond = cc;
@@ -2319,12 +2300,12 @@ void MacroAssembler::CallStub(CodeStub* stub,
                               TypeFeedbackId ast_id,
                               Condition cond) {
   ASSERT(AllowThisStubCall(stub));  // Stub calls are not allowed in some stubs.
-  Call(stub->GetCode(isolate()), RelocInfo::CODE_TARGET, ast_id, cond);
+  Call(stub->GetCode(), RelocInfo::CODE_TARGET, ast_id, cond);
 }
 
 
 void MacroAssembler::TailCallStub(CodeStub* stub, Condition cond) {
-  Jump(stub->GetCode(isolate()), RelocInfo::CODE_TARGET, cond);
+  Jump(stub->GetCode(), RelocInfo::CODE_TARGET, cond);
 }
 
 
@@ -2353,10 +2334,7 @@ void MacroAssembler::CallApiFunctionAndReturn(
 
   Label profiler_disabled;
   Label end_profiler_check;
-  bool* is_profiling_flag =
-      isolate()->cpu_profiler()->is_profiling_address();
-  STATIC_ASSERT(sizeof(*is_profiling_flag) == 1);
-  mov(r9, Operand(reinterpret_cast<int32_t>(is_profiling_flag)));
+  mov(r9, Operand(ExternalReference::is_profiling_address(isolate())));
   ldrb(r9, MemOperand(r9, 0));
   cmp(r9, Operand(0));
   b(eq, &profiler_disabled);
@@ -2389,7 +2367,7 @@ void MacroAssembler::CallApiFunctionAndReturn(
   // Native call returns to the DirectCEntry stub which redirects to the
   // return address pushed on stack (could have moved after GC).
   // DirectCEntry stub itself is generated early and never moves.
-  DirectCEntryStub stub;
+  DirectCEntryStub stub(isolate());
   stub.GenerateCall(this, r3);
 
   if (FLAG_log_timer_events) {
@@ -2594,7 +2572,7 @@ void MacroAssembler::TruncateDoubleToI(Register result,
   sub(sp, sp, Operand(kDoubleSize));  // Put input on stack.
   vstr(double_input, MemOperand(sp, 0));
 
-  DoubleToIStub stub(sp, result, 0, true, true);
+  DoubleToIStub stub(isolate(), sp, result, 0, true, true);
   CallStub(&stub);
 
   add(sp, sp, Operand(kDoubleSize));
@@ -2616,7 +2594,8 @@ void MacroAssembler::TruncateHeapNumberToI(Register result,
 
   // If we fell through then inline version didn't succeed - call stub instead.
   push(lr);
-  DoubleToIStub stub(object,
+  DoubleToIStub stub(isolate(),
+                     object,
                      result,
                      HeapNumber::kValueOffset - kHeapObjectTag,
                      true,
@@ -2682,7 +2661,7 @@ void MacroAssembler::CallRuntime(const Runtime::Function* f,
   // smarter.
   mov(r0, Operand(num_arguments));
   mov(r1, Operand(ExternalReference(f, isolate())));
-  CEntryStub stub(1, save_doubles);
+  CEntryStub stub(isolate(), 1, save_doubles);
   CallStub(&stub);
 }
 
@@ -2692,7 +2671,7 @@ void MacroAssembler::CallExternalReference(const ExternalReference& ext,
   mov(r0, Operand(num_arguments));
   mov(r1, Operand(ext));
 
-  CEntryStub stub(1);
+  CEntryStub stub(isolate(), 1);
   CallStub(&stub);
 }
 
@@ -2724,8 +2703,8 @@ void MacroAssembler::JumpToExternalReference(const ExternalReference& builtin) {
   ASSERT((reinterpret_cast<intptr_t>(builtin.address()) & 1) == 1);
 #endif
   mov(r1, Operand(builtin));
-  CEntryStub stub(1);
-  Jump(stub.GetCode(isolate()), RelocInfo::CODE_TARGET);
+  CEntryStub stub(isolate(), 1);
+  Jump(stub.GetCode(), RelocInfo::CODE_TARGET);
 }
 
 

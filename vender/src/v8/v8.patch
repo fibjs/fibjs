@@ -1,6 +1,6 @@
---- /Users/lion/Downloads/source/js/v8/src/arm/deoptimizer-arm.cc	2014-04-12 13:42:03.000000000 +0800
-+++ src/arm/deoptimizer-arm.cc	2014-04-19 00:21:30.000000000 +0800
-@@ -27,6 +27,8 @@
+--- /Users/lion/Downloads/source/js/v8/src/arm/deoptimizer-arm.cc	2014-05-03 21:43:54.000000000 +0800
++++ src/arm/deoptimizer-arm.cc	2014-05-03 21:55:56.000000000 +0800
+@@ -4,6 +4,8 @@
  
  #include "v8.h"
  
@@ -9,15 +9,15 @@
  #include "codegen.h"
  #include "deoptimizer.h"
  #include "full-codegen.h"
-@@ -382,3 +384,5 @@
+@@ -360,3 +362,5 @@
  #undef __
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/arm/lithium-arm.cc	2014-04-12 13:42:03.000000000 +0800
-+++ src/arm/lithium-arm.cc	2014-04-19 00:21:30.000000000 +0800
-@@ -27,6 +27,8 @@
+--- /Users/lion/Downloads/source/js/v8/src/arm/lithium-arm.cc	2014-05-03 21:43:54.000000000 +0800
++++ src/arm/lithium-arm.cc	2014-05-03 21:55:56.000000000 +0800
+@@ -4,6 +4,8 @@
  
  #include "v8.h"
  
@@ -26,15 +26,15 @@
  #include "lithium-allocator-inl.h"
  #include "arm/lithium-arm.h"
  #include "arm/lithium-codegen-arm.h"
-@@ -2578,3 +2580,5 @@
+@@ -2566,3 +2568,5 @@
  }
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/arm/lithium-codegen-arm.cc	2014-04-18 23:48:26.000000000 +0800
-+++ src/arm/lithium-codegen-arm.cc	2014-04-19 00:21:30.000000000 +0800
-@@ -27,6 +27,8 @@
+--- /Users/lion/Downloads/source/js/v8/src/arm/lithium-codegen-arm.cc	2014-05-03 21:43:54.000000000 +0800
++++ src/arm/lithium-codegen-arm.cc	2014-05-03 21:55:56.000000000 +0800
+@@ -4,6 +4,8 @@
  
  #include "v8.h"
  
@@ -43,15 +43,15 @@
  #include "arm/lithium-codegen-arm.h"
  #include "arm/lithium-gap-resolver-arm.h"
  #include "code-stubs.h"
-@@ -5871,3 +5873,5 @@
+@@ -5837,3 +5839,5 @@
  #undef __
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/arm/lithium-gap-resolver-arm.cc	2014-04-12 13:42:03.000000000 +0800
-+++ src/arm/lithium-gap-resolver-arm.cc	2014-04-19 00:21:30.000000000 +0800
-@@ -27,6 +27,8 @@
+--- /Users/lion/Downloads/source/js/v8/src/arm/lithium-gap-resolver-arm.cc	2014-05-03 21:43:54.000000000 +0800
++++ src/arm/lithium-gap-resolver-arm.cc	2014-05-03 21:55:56.000000000 +0800
+@@ -4,6 +4,8 @@
  
  #include "v8.h"
  
@@ -60,15 +60,15 @@
  #include "arm/lithium-gap-resolver-arm.h"
  #include "arm/lithium-codegen-arm.h"
  
-@@ -316,3 +318,5 @@
+@@ -300,3 +302,5 @@
  #undef __
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/arm64/deoptimizer-arm64.cc	2014-04-12 13:42:03.000000000 +0800
-+++ src/arm64/deoptimizer-arm64.cc	2014-04-19 00:21:30.000000000 +0800
-@@ -27,6 +27,8 @@
+--- /Users/lion/Downloads/source/js/v8/src/arm64/deoptimizer-arm64.cc	2014-05-03 21:43:44.000000000 +0800
++++ src/arm64/deoptimizer-arm64.cc	2014-05-03 21:55:56.000000000 +0800
+@@ -4,6 +4,8 @@
  
  #include "v8.h"
  
@@ -77,17 +77,17 @@
  #include "codegen.h"
  #include "deoptimizer.h"
  #include "full-codegen.h"
-@@ -411,3 +413,5 @@
+@@ -388,3 +390,5 @@
  #undef __
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/arm64/instrument-arm64.cc	2014-04-12 13:42:03.000000000 +0800
-+++ src/arm64/instrument-arm64.cc	2014-04-19 21:52:11.000000000 +0800
-@@ -25,6 +25,10 @@
- // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+--- /Users/lion/Downloads/source/js/v8/src/arm64/instrument-arm64.cc	2014-05-03 21:43:44.000000000 +0800
++++ src/arm64/instrument-arm64.cc	2014-05-03 21:55:56.000000000 +0800
+@@ -2,6 +2,10 @@
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
  
 +#include "v8.h"
 +
@@ -96,15 +96,15 @@
  #include "arm64/instrument-arm64.h"
  
  namespace v8 {
-@@ -616,3 +620,5 @@
+@@ -593,3 +597,5 @@
  
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/arm64/lithium-arm64.cc	2014-04-12 13:42:03.000000000 +0800
-+++ src/arm64/lithium-arm64.cc	2014-04-19 00:21:30.000000000 +0800
-@@ -27,6 +27,8 @@
+--- /Users/lion/Downloads/source/js/v8/src/arm64/lithium-arm64.cc	2014-05-03 21:43:44.000000000 +0800
++++ src/arm64/lithium-arm64.cc	2014-05-03 21:55:56.000000000 +0800
+@@ -4,6 +4,8 @@
  
  #include "v8.h"
  
@@ -113,15 +113,15 @@
  #include "lithium-allocator-inl.h"
  #include "arm64/lithium-arm64.h"
  #include "arm64/lithium-codegen-arm64.h"
-@@ -2570,3 +2572,5 @@
+@@ -2565,3 +2567,5 @@
  
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/arm64/lithium-codegen-arm64.cc	2014-04-18 23:48:25.000000000 +0800
-+++ src/arm64/lithium-codegen-arm64.cc	2014-04-19 00:21:30.000000000 +0800
-@@ -27,6 +27,8 @@
+--- /Users/lion/Downloads/source/js/v8/src/arm64/lithium-codegen-arm64.cc	2014-05-03 21:43:44.000000000 +0800
++++ src/arm64/lithium-codegen-arm64.cc	2014-05-03 21:55:56.000000000 +0800
+@@ -4,6 +4,8 @@
  
  #include "v8.h"
  
@@ -130,15 +130,15 @@
  #include "arm64/lithium-codegen-arm64.h"
  #include "arm64/lithium-gap-resolver-arm64.h"
  #include "code-stubs.h"
-@@ -5936,3 +5938,5 @@
+@@ -5950,3 +5952,5 @@
  }
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/arm64/lithium-gap-resolver-arm64.cc	2014-04-12 13:42:03.000000000 +0800
-+++ src/arm64/lithium-gap-resolver-arm64.cc	2014-04-19 00:21:30.000000000 +0800
-@@ -27,6 +27,8 @@
+--- /Users/lion/Downloads/source/js/v8/src/arm64/lithium-gap-resolver-arm64.cc	2014-05-03 21:43:44.000000000 +0800
++++ src/arm64/lithium-gap-resolver-arm64.cc	2014-05-03 21:55:56.000000000 +0800
+@@ -4,6 +4,8 @@
  
  #include "v8.h"
  
@@ -147,15 +147,15 @@
  #include "arm64/lithium-gap-resolver-arm64.h"
  #include "arm64/lithium-codegen-arm64.h"
  
-@@ -332,3 +334,5 @@
+@@ -309,3 +311,5 @@
  }
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/platform-freebsd.cc	2014-04-12 13:42:03.000000000 +0800
-+++ src/platform-freebsd.cc	2014-04-19 00:21:30.000000000 +0800
-@@ -28,6 +28,10 @@
+--- /Users/lion/Downloads/source/js/v8/src/platform-freebsd.cc	2014-05-03 21:43:50.000000000 +0800
++++ src/platform-freebsd.cc	2014-05-03 21:55:56.000000000 +0800
+@@ -5,6 +5,10 @@
  // Platform-specific code for FreeBSD goes here. For the POSIX-compatible
  // parts, the implementation is in platform-posix.cc.
  
@@ -166,15 +166,15 @@
  #include <pthread.h>
  #include <semaphore.h>
  #include <signal.h>
-@@ -330,3 +334,5 @@
+@@ -306,3 +310,5 @@
  }
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/platform-linux.cc	2014-04-12 13:42:03.000000000 +0800
-+++ src/platform-linux.cc	2014-04-19 00:21:30.000000000 +0800
-@@ -28,6 +28,10 @@
+--- /Users/lion/Downloads/source/js/v8/src/platform-linux.cc	2014-05-03 21:43:43.000000000 +0800
++++ src/platform-linux.cc	2014-05-03 21:55:56.000000000 +0800
+@@ -5,6 +5,10 @@
  // Platform-specific code for Linux goes here. For the POSIX-compatible
  // parts, the implementation is in platform-posix.cc.
  
@@ -185,15 +185,15 @@
  #include <pthread.h>
  #include <semaphore.h>
  #include <signal.h>
-@@ -456,3 +460,5 @@
+@@ -432,3 +436,5 @@
  }
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/platform-macos.cc	2014-04-12 13:42:03.000000000 +0800
-+++ src/platform-macos.cc	2014-04-19 00:21:30.000000000 +0800
-@@ -28,6 +28,10 @@
+--- /Users/lion/Downloads/source/js/v8/src/platform-macos.cc	2014-05-03 21:43:50.000000000 +0800
++++ src/platform-macos.cc	2014-05-03 21:55:56.000000000 +0800
+@@ -5,6 +5,10 @@
  // Platform-specific code for MacOS goes here. For the POSIX-compatible
  // parts, the implementation is in platform-posix.cc.
  
@@ -204,15 +204,15 @@
  #include <dlfcn.h>
  #include <unistd.h>
  #include <sys/mman.h>
-@@ -333,3 +337,5 @@
+@@ -308,3 +312,5 @@
  }
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/platform-openbsd.cc	2014-04-12 13:42:03.000000000 +0800
-+++ src/platform-openbsd.cc	2014-04-19 00:21:30.000000000 +0800
-@@ -28,6 +28,10 @@
+--- /Users/lion/Downloads/source/js/v8/src/platform-openbsd.cc	2014-05-03 21:43:43.000000000 +0800
++++ src/platform-openbsd.cc	2014-05-03 21:55:56.000000000 +0800
+@@ -5,6 +5,10 @@
  // Platform-specific code for OpenBSD and NetBSD goes here. For the
  // POSIX-compatible parts, the implementation is in platform-posix.cc.
  
@@ -223,15 +223,15 @@
  #include <pthread.h>
  #include <semaphore.h>
  #include <signal.h>
-@@ -362,3 +366,5 @@
+@@ -338,3 +342,5 @@
  }
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/platform-posix.cc	2014-04-12 13:42:03.000000000 +0800
-+++ src/platform-posix.cc	2014-04-19 00:21:30.000000000 +0800
-@@ -29,6 +29,10 @@
+--- /Users/lion/Downloads/source/js/v8/src/platform-posix.cc	2014-05-03 21:43:54.000000000 +0800
++++ src/platform-posix.cc	2014-05-03 21:55:56.000000000 +0800
+@@ -6,6 +6,10 @@
  // own, but contains the parts which are the same across the POSIX platforms
  // Linux, MacOS, FreeBSD, OpenBSD, NetBSD and QNX.
  
@@ -242,7 +242,7 @@
  #include <dlfcn.h>
  #include <pthread.h>
  #if defined(__DragonFly__) || defined(__FreeBSD__) || defined(__OpenBSD__)
-@@ -268,12 +272,12 @@
+@@ -245,12 +249,12 @@
    return static_cast<size_t>(sysconf(_SC_PAGESIZE));
  }
  
@@ -257,7 +257,7 @@
  
  void OS::Abort() {
    if (FLAG_hard_abort) {
-@@ -582,7 +586,7 @@
+@@ -559,7 +563,7 @@
    strncpy(dest.start(), src, n);
  }
  
@@ -266,7 +266,7 @@
  // ----------------------------------------------------------------------------
  // POSIX thread support.
  //
-@@ -816,6 +820,8 @@
+@@ -793,6 +797,8 @@
    ASSERT_EQ(0, result);
    USE(result);
  }
@@ -276,9 +276,9 @@
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/platform-qnx.cc	2014-04-12 13:42:03.000000000 +0800
-+++ src/platform-qnx.cc	2014-04-19 00:21:30.000000000 +0800
-@@ -28,6 +28,10 @@
+--- /Users/lion/Downloads/source/js/v8/src/platform-qnx.cc	2014-05-03 21:43:43.000000000 +0800
++++ src/platform-qnx.cc	2014-05-03 21:55:56.000000000 +0800
+@@ -5,6 +5,10 @@
  // Platform-specific code for QNX goes here. For the POSIX-compatible
  // parts the implementation is in platform-posix.cc.
  
@@ -289,15 +289,15 @@
  #include <pthread.h>
  #include <semaphore.h>
  #include <signal.h>
-@@ -399,3 +403,5 @@
+@@ -375,3 +379,5 @@
  }
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/platform-solaris.cc	2014-04-12 13:42:03.000000000 +0800
-+++ src/platform-solaris.cc	2014-04-19 00:21:30.000000000 +0800
-@@ -28,6 +28,10 @@
+--- /Users/lion/Downloads/source/js/v8/src/platform-solaris.cc	2014-05-03 21:43:44.000000000 +0800
++++ src/platform-solaris.cc	2014-05-03 21:55:56.000000000 +0800
+@@ -5,6 +5,10 @@
  // Platform-specific code for Solaris 10 goes here. For the POSIX-compatible
  // parts, the implementation is in platform-posix.cc.
  
@@ -308,15 +308,15 @@
  #ifdef __sparc
  # error "V8 does not support the SPARC CPU architecture."
  #endif
-@@ -342,3 +346,5 @@
+@@ -318,3 +322,5 @@
  }
  
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/platform-win32.cc	2014-04-12 13:42:03.000000000 +0800
-+++ src/platform-win32.cc	2014-04-19 00:21:30.000000000 +0800
-@@ -27,6 +27,10 @@
+--- /Users/lion/Downloads/source/js/v8/src/platform-win32.cc	2014-05-03 21:43:43.000000000 +0800
++++ src/platform-win32.cc	2014-05-03 21:55:56.000000000 +0800
+@@ -4,6 +4,10 @@
  
  // Platform-specific code for Win32.
  
@@ -327,7 +327,7 @@
  // Secure API functions are not available using MinGW with msvcrt.dll
  // on Windows XP. Make sure MINGW_HAS_SECURE_API is not defined to
  // disable definition of secure API functions in standard headers that
-@@ -925,11 +929,11 @@
+@@ -900,11 +904,11 @@
    VirtualProtect(address, size, PAGE_NOACCESS, &oldprotect);
  }
  
@@ -341,7 +341,7 @@
  
  void OS::Abort() {
    if (FLAG_hard_abort) {
-@@ -1416,7 +1420,7 @@
+@@ -1391,7 +1395,7 @@
    return false;
  }
  
@@ -350,7 +350,7 @@
  // ----------------------------------------------------------------------------
  // Win32 thread support.
  
-@@ -1518,5 +1522,8 @@
+@@ -1493,5 +1497,8 @@
  void Thread::YieldCPU() {
    Sleep(0);
  }
@@ -359,9 +359,9 @@
  } }  // namespace v8::internal
 +
 +#endif
---- /Users/lion/Downloads/source/js/v8/src/platform.h	2014-04-12 13:42:03.000000000 +0800
-+++ src/platform.h	2014-04-19 00:21:30.000000000 +0800
-@@ -108,6 +108,8 @@
+--- /Users/lion/Downloads/source/js/v8/src/platform.h	2014-05-03 21:43:44.000000000 +0800
++++ src/platform.h	2014-05-03 21:55:56.000000000 +0800
+@@ -86,6 +86,8 @@
  // ----------------------------------------------------------------------------
  // Fast TLS support
  

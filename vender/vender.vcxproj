@@ -451,9 +451,7 @@
     <ClCompile Include="src\v8\src\utils\random-number-generator.cc" />
     <ClCompile Include="src\v8\src\v8-counters.cc" />
     <ClCompile Include="src\v8\src\v8.cc" />
-    <ClCompile Include="src\v8\src\v8conversions.cc" />
     <ClCompile Include="src\v8\src\v8threads.cc" />
-    <ClCompile Include="src\v8\src\v8utils.cc" />
     <ClCompile Include="src\v8\src\variables.cc" />
     <ClCompile Include="src\v8\src\version.cc" />
     <ClCompile Include="src\v8\src\win32-math.cc" />
@@ -716,6 +714,7 @@
     <ClInclude Include="src\v8\src\atomicops_internals_tsan.h" />
     <ClInclude Include="src\v8\src\atomicops_internals_x86_gcc.h" />
     <ClInclude Include="src\v8\src\atomicops_internals_x86_msvc.h" />
+    <ClInclude Include="src\v8\src\base\macros.h" />
     <ClInclude Include="src\v8\src\bignum-dtoa.h" />
     <ClInclude Include="src\v8\src\bignum.h" />
     <ClInclude Include="src\v8\src\bootstrapper.h" />
@@ -925,12 +924,11 @@
     <ClInclude Include="src\v8\src\v8-counters.h" />
     <ClInclude Include="src\v8\src\v8.h" />
     <ClInclude Include="src\v8\src\v8checks.h" />
-    <ClInclude Include="src\v8\src\v8conversions.h" />
     <ClInclude Include="src\v8\src\v8globals.h" />
     <ClInclude Include="src\v8\src\v8memory.h" />
     <ClInclude Include="src\v8\src\v8threads.h" />
-    <ClInclude Include="src\v8\src\v8utils.h" />
     <ClInclude Include="src\v8\src\variables.h" />
+    <ClInclude Include="src\v8\src\vector.h" />
     <ClInclude Include="src\v8\src\version.h" />
     <ClInclude Include="src\v8\src\vm-state-inl.h" />
     <ClInclude Include="src\v8\src\vm-state.h" />

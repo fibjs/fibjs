@@ -1,29 +1,6 @@
 // Copyright 2011 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "v8.h"
 
@@ -582,10 +559,6 @@ void MemoryChunk::InsertAfter(MemoryChunk* other) {
 
 
 void MemoryChunk::Unlink() {
-  if (!InNewSpace() && IsFlagSet(SCAN_ON_SCAVENGE)) {
-    heap_->decrement_scan_on_scavenge_pages();
-    ClearFlag(SCAN_ON_SCAVENGE);
-  }
   MemoryChunk* next_element = next_chunk();
   MemoryChunk* prev_element = prev_chunk();
   next_element->set_prev_chunk(prev_element);
@@ -953,8 +926,8 @@ PagedSpace::PagedSpace(Heap* heap,
     : Space(heap, id, executable),
       free_list_(this),
       was_swept_conservatively_(false),
-      first_unswept_page_(Page::FromAddress(NULL)),
-      unswept_free_bytes_(0) {
+      unswept_free_bytes_(0),
+      end_of_unswept_pages_(NULL) {
   if (id == CODE_SPACE) {
     area_size_ = heap->isolate()->memory_allocator()->
         CodePageAreaSize();
@@ -1005,11 +978,11 @@ size_t PagedSpace::CommittedPhysicalMemory() {
 }
 
 
-MaybeObject* PagedSpace::FindObject(Address addr) {
+Object* PagedSpace::FindObject(Address addr) {
   // Note: this function can only be called on precisely swept spaces.
   ASSERT(!heap()->mark_compact_collector()->in_use());
 
-  if (!Contains(addr)) return Failure::Exception();
+  if (!Contains(addr)) return Smi::FromInt(0);  // Signaling not found.
 
   Page* p = Page::FromAddress(addr);
   HeapObjectIterator it(p, NULL);
@@ -1020,7 +993,7 @@ MaybeObject* PagedSpace::FindObject(Address addr) {
   }
 
   UNREACHABLE();
-  return Failure::Exception();
+  return Smi::FromInt(0);
 }
 
 
@@ -1084,7 +1057,9 @@ intptr_t PagedSpace::SizeOfFirstPage() {
         // upgraded to handle small pages.
         size = AreaSize();
       } else {
-        size = 480 * KB * FullCodeGenerator::kBootCodeSizeMultiplier / 100;
+        size = RoundUp(
+            480 * KB * FullCodeGenerator::kBootCodeSizeMultiplier / 100,
+            kPointerSize);
       }
       break;
     default:
@@ -1127,17 +1102,9 @@ void PagedSpace::IncreaseCapacity(int size) {
 }
 
 
-void PagedSpace::ReleasePage(Page* page, bool unlink) {
+void PagedSpace::ReleasePage(Page* page) {
   ASSERT(page->LiveBytes() == 0);
   ASSERT(AreaSize() == page->area_size());
-
-  // Adjust list of unswept pages if the page is the head of the list.
-  if (first_unswept_page_ == page) {
-    first_unswept_page_ = page->next_page();
-    if (first_unswept_page_ == anchor()) {
-      first_unswept_page_ = Page::FromAddress(NULL);
-    }
-  }
 
   if (page->WasSwept()) {
     intptr_t size = free_list_.EvictFreeListItems(page);
@@ -1147,19 +1114,19 @@ void PagedSpace::ReleasePage(Page* page, bool unlink) {
     DecreaseUnsweptFreeBytes(page);
   }
 
-  // TODO(hpayer): This check is just used for debugging purpose and
-  // should be removed or turned into an assert after investigating the
-  // crash in concurrent sweeping.
-  CHECK(!free_list_.ContainsPageFreeListItems(page));
+  if (page->IsFlagSet(MemoryChunk::SCAN_ON_SCAVENGE)) {
+    heap()->decrement_scan_on_scavenge_pages();
+    page->ClearFlag(MemoryChunk::SCAN_ON_SCAVENGE);
+  }
+
+  ASSERT(!free_list_.ContainsPageFreeListItems(page));
 
   if (Page::FromAllocationTop(allocation_info_.top()) == page) {
     allocation_info_.set_top(NULL);
     allocation_info_.set_limit(NULL);
   }
 
-  if (unlink) {
-    page->Unlink();
-  }
+  page->Unlink();
   if (page->IsFlagSet(MemoryChunk::CONTAINS_ONLY_DATA)) {
     heap()->isolate()->memory_allocator()->Free(page);
   } else {
@@ -1432,7 +1399,7 @@ bool NewSpace::AddFreshPage() {
 }
 
 
-MaybeObject* NewSpace::SlowAllocateRaw(int size_in_bytes) {
+AllocationResult NewSpace::SlowAllocateRaw(int size_in_bytes) {
   Address old_top = allocation_info_.top();
   Address high = to_space_.page_high();
   if (allocation_info_.limit() < high) {
@@ -1454,7 +1421,7 @@ MaybeObject* NewSpace::SlowAllocateRaw(int size_in_bytes) {
     top_on_previous_step_ = to_space_.page_low();
     return AllocateRaw(size_in_bytes);
   } else {
-    return Failure::RetryAfterGC();
+    return AllocationResult::Retry();
   }
 }
 
@@ -2555,24 +2522,8 @@ void PagedSpace::PrepareForMarkCompact() {
   // on the first allocation after the sweep.
   EmptyAllocationInfo();
 
-  // Stop lazy sweeping and clear marking bits for unswept pages.
-  if (first_unswept_page_ != NULL) {
-    Page* p = first_unswept_page_;
-    do {
-      // Do not use ShouldBeSweptLazily predicate here.
-      // New evacuation candidates were selected but they still have
-      // to be swept before collection starts.
-      if (!p->WasSwept()) {
-        Bitmap::Clear(p);
-        if (FLAG_gc_verbose) {
-          PrintF("Sweeping 0x%" V8PRIxPTR " lazily abandoned.\n",
-                 reinterpret_cast<intptr_t>(p));
-        }
-      }
-      p = p->next_page();
-    } while (p != anchor());
-  }
-  first_unswept_page_ = Page::FromAddress(NULL);
+  // This counter will be increased for pages which will be swept by the
+  // sweeper threads.
   unswept_free_bytes_ = 0;
 
   // Clear the free list before a full GC---it will be rebuilt afterward.
@@ -2581,7 +2532,8 @@ void PagedSpace::PrepareForMarkCompact() {
 
 
 intptr_t PagedSpace::SizeOfObjects() {
-  ASSERT(!heap()->IsSweepingComplete() || (unswept_free_bytes_ == 0));
+  ASSERT(heap()->mark_compact_collector()->IsConcurrentSweepingInProgress() ||
+         (unswept_free_bytes_ == 0));
   return Size() - unswept_free_bytes_ - (limit() - top());
 }
 
@@ -2592,39 +2544,6 @@ intptr_t PagedSpace::SizeOfObjects() {
 // fix them.
 void PagedSpace::RepairFreeListsAfterBoot() {
   free_list_.RepairLists(heap());
-}
-
-
-bool PagedSpace::AdvanceSweeper(intptr_t bytes_to_sweep) {
-  if (IsLazySweepingComplete()) return true;
-
-  intptr_t freed_bytes = 0;
-  Page* p = first_unswept_page_;
-  do {
-    Page* next_page = p->next_page();
-    if (ShouldBeSweptLazily(p)) {
-      if (FLAG_gc_verbose) {
-        PrintF("Sweeping 0x%" V8PRIxPTR " lazily advanced.\n",
-               reinterpret_cast<intptr_t>(p));
-      }
-      DecreaseUnsweptFreeBytes(p);
-      freed_bytes +=
-          MarkCompactCollector::
-              SweepConservatively<MarkCompactCollector::SWEEP_SEQUENTIALLY>(
-                  this, NULL, p);
-    }
-    p = next_page;
-  } while (p != anchor() && freed_bytes < bytes_to_sweep);
-
-  if (p == anchor()) {
-    first_unswept_page_ = Page::FromAddress(NULL);
-  } else {
-    first_unswept_page_ = p;
-  }
-
-  heap()->FreeQueuedChunks();
-
-  return IsLazySweepingComplete();
 }
 
 
@@ -2644,35 +2563,13 @@ void PagedSpace::EvictEvacuationCandidatesFromFreeLists() {
 }
 
 
-bool PagedSpace::EnsureSweeperProgress(intptr_t size_in_bytes) {
-  MarkCompactCollector* collector = heap()->mark_compact_collector();
-  if (collector->AreSweeperThreadsActivated()) {
-    if (collector->IsConcurrentSweepingInProgress()) {
-      if (collector->RefillFreeLists(this) < size_in_bytes) {
-        if (!collector->sequential_sweeping()) {
-          collector->WaitUntilSweepingCompleted();
-          return true;
-        }
-      }
-      return false;
-    }
-    return true;
-  } else {
-    return AdvanceSweeper(size_in_bytes);
-  }
-}
-
-
 HeapObject* PagedSpace::SlowAllocateRaw(int size_in_bytes) {
   // Allocation in this space has failed.
 
-  // If there are unswept pages advance lazy sweeper a bounded number of times
-  // until we find a size_in_bytes contiguous piece of memory
-  const int kMaxSweepingTries = 5;
-  bool sweeping_complete = false;
-
-  for (int i = 0; i < kMaxSweepingTries && !sweeping_complete; i++) {
-    sweeping_complete = EnsureSweeperProgress(size_in_bytes);
+  // If sweeper threads are active, try to re-fill the free-lists.
+  MarkCompactCollector* collector = heap()->mark_compact_collector();
+  if (collector->IsConcurrentSweepingInProgress()) {
+    collector->RefillFreeList(this);
 
     // Retry the free list allocation.
     HeapObject* object = free_list_.Allocate(size_in_bytes);
@@ -2693,12 +2590,12 @@ HeapObject* PagedSpace::SlowAllocateRaw(int size_in_bytes) {
     return free_list_.Allocate(size_in_bytes);
   }
 
-  // Last ditch, sweep all the remaining pages to try to find space.  This may
-  // cause a pause.
-  if (!IsLazySweepingComplete()) {
-    EnsureSweeperProgress(kMaxInt);
+  // If sweeper threads are active, wait for them at that point.
+  if (collector->IsConcurrentSweepingInProgress()) {
+    collector->WaitUntilSweepingCompleted();
 
-    // Retry the free list allocation.
+    // After waiting for the sweeper threads, there may be new free-list
+    // entries.
     HeapObject* object = free_list_.Allocate(size_in_bytes);
     if (object != NULL) return object;
   }
@@ -2947,22 +2844,22 @@ void LargeObjectSpace::TearDown() {
 }
 
 
-MaybeObject* LargeObjectSpace::AllocateRaw(int object_size,
-                                           Executability executable) {
+AllocationResult LargeObjectSpace::AllocateRaw(int object_size,
+                                               Executability executable) {
   // Check if we want to force a GC before growing the old space further.
   // If so, fail the allocation.
   if (!heap()->always_allocate() &&
       heap()->OldGenerationAllocationLimitReached()) {
-    return Failure::RetryAfterGC(identity());
+    return AllocationResult::Retry(identity());
   }
 
   if (Size() + object_size > max_capacity_) {
-    return Failure::RetryAfterGC(identity());
+    return AllocationResult::Retry(identity());
   }
 
   LargePage* page = heap()->isolate()->memory_allocator()->
       AllocateLargePage(object_size, this, executable);
-  if (page == NULL) return Failure::RetryAfterGC(identity());
+  if (page == NULL) return AllocationResult::Retry(identity());
   ASSERT(page->area_size() >= object_size);
 
   size_ += static_cast<int>(page->size());
@@ -3015,12 +2912,12 @@ size_t LargeObjectSpace::CommittedPhysicalMemory() {
 
 
 // GC support
-MaybeObject* LargeObjectSpace::FindObject(Address a) {
+Object* LargeObjectSpace::FindObject(Address a) {
   LargePage* page = FindPage(a);
   if (page != NULL) {
     return page->GetObject();
   }
-  return Failure::Exception();
+  return Smi::FromInt(0);  // Signaling not found.
 }
 
 
@@ -3101,7 +2998,7 @@ bool LargeObjectSpace::Contains(HeapObject* object) {
 
   bool owned = (chunk->owner() == this);
 
-  SLOW_ASSERT(!owned || !FindObject(address)->IsFailure());
+  SLOW_ASSERT(!owned || FindObject(address)->IsHeapObject());
 
   return owned;
 }

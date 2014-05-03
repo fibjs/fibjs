@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef V8_HEAP_H_
 #define V8_HEAP_H_
@@ -60,6 +37,7 @@ namespace internal {
   V(Oddball, true_value, TrueValue)                                            \
   V(Oddball, false_value, FalseValue)                                          \
   V(Oddball, uninitialized_value, UninitializedValue)                          \
+  V(Oddball, exception, Exception)                                             \
   V(Map, cell_map, CellMap)                                                    \
   V(Map, global_property_cell_map, GlobalPropertyCellMap)                      \
   V(Map, shared_function_info_map, SharedFunctionInfoMap)                      \
@@ -187,6 +165,7 @@ namespace internal {
   V(Map, uninitialized_map, UninitializedMap)                                  \
   V(Map, arguments_marker_map, ArgumentsMarkerMap)                             \
   V(Map, no_interceptor_result_sentinel_map, NoInterceptorResultSentinelMap)   \
+  V(Map, exception_map, ExceptionMap)                                          \
   V(Map, termination_exception_map, TerminationExceptionMap)                   \
   V(Map, message_object_map, JSMessageObjectMap)                               \
   V(Map, foreign_map, ForeignMap)                                              \
@@ -703,65 +682,11 @@ class Heap {
     return old_data_space_->allocation_limit_address();
   }
 
-  // Allocates and initializes a new JavaScript object based on a
-  // constructor.
-  // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
-  // failed.
-  // If allocation_site is non-null, then a memento is emitted after the object
-  // that points to the site.
-  // Please note this does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* AllocateJSObject(
-      JSFunction* constructor,
-      PretenureFlag pretenure = NOT_TENURED,
-      AllocationSite* allocation_site = NULL);
-
   // Returns a deep copy of the JavaScript object.
   // Properties and elements are copied too.
-  // Returns failure if allocation failed.
   // Optionally takes an AllocationSite to be appended in an AllocationMemento.
-  MUST_USE_RESULT MaybeObject* CopyJSObject(JSObject* source,
-                                            AllocationSite* site = NULL);
-
-  // Allocates and initializes a new JavaScript object based on a map.
-  // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
-  // failed.
-  // Passing an allocation site means that a memento will be created that
-  // points to the site.
-  // Please note this does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* AllocateJSObjectFromMap(
-      Map* map,
-      PretenureFlag pretenure = NOT_TENURED,
-      bool alloc_props = true,
-      AllocationSite* allocation_site = NULL);
-
-  // Allocates a heap object based on the map.
-  // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
-  // failed.
-  // Please note this function does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* Allocate(Map* map, AllocationSpace space,
-                                        AllocationSite* allocation_site = NULL);
-
-  // Allocates a JS Map in the heap.
-  // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
-  // failed.
-  // Please note this function does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* AllocateMap(
-      InstanceType instance_type,
-      int instance_size,
-      ElementsKind elements_kind = TERMINAL_FAST_ELEMENTS_KIND);
-
-  // Allocates a partial map for bootstrapping.
-  MUST_USE_RESULT MaybeObject* AllocatePartialMap(InstanceType instance_type,
-                                                  int instance_size);
-
-  // Allocate a block of memory in the given space (filled with a filler).
-  // Used as a fall-back for generated code when the space is full.
-  MUST_USE_RESULT MaybeObject* AllocateFillerObject(int size,
-                                                    bool double_align,
-                                                    AllocationSpace space);
-
-  // Allocates an empty PolymorphicCodeCache.
-  MUST_USE_RESULT MaybeObject* AllocatePolymorphicCodeCache();
+  MUST_USE_RESULT AllocationResult CopyJSObject(JSObject* source,
+                                                AllocationSite* site = NULL);
 
   // Clear the Instanceof cache (used when a prototype changes).
   inline void ClearInstanceofCache();
@@ -772,172 +697,12 @@ class Heap {
   // For use during bootup.
   void RepairFreeListsAfterBoot();
 
-  // Allocates and fully initializes a String.  There are two String
-  // encodings: ASCII and two byte. One should choose between the three string
-  // allocation functions based on the encoding of the string buffer used to
-  // initialized the string.
-  //   - ...FromAscii initializes the string from a buffer that is ASCII
-  //     encoded (it does not check that the buffer is ASCII encoded) and the
-  //     result will be ASCII encoded.
-  //   - ...FromUTF8 initializes the string from a buffer that is UTF-8
-  //     encoded.  If the characters are all single-byte characters, the
-  //     result will be ASCII encoded, otherwise it will converted to two
-  //     byte.
-  //   - ...FromTwoByte initializes the string from a buffer that is two-byte
-  //     encoded.  If the characters are all single-byte characters, the
-  //     result will be converted to ASCII, otherwise it will be left as
-  //     two-byte.
-  // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
-  // failed.
-  // Please note this does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* AllocateStringFromUtf8Slow(
-      Vector<const char> str,
-      int non_ascii_start,
-      PretenureFlag pretenure = NOT_TENURED);
-  MUST_USE_RESULT MaybeObject* AllocateStringFromTwoByte(
-      Vector<const uc16> str,
-      PretenureFlag pretenure = NOT_TENURED);
-
-  // Allocates an internalized string in old space based on the character
-  // stream. Returns Failure::RetryAfterGC(requested_bytes, space) if the
-  // allocation failed.
-  // Please note this function does not perform a garbage collection.
-  MUST_USE_RESULT inline MaybeObject* AllocateInternalizedStringFromUtf8(
-      Vector<const char> str,
-      int chars,
-      uint32_t hash_field);
-
-  MUST_USE_RESULT inline MaybeObject* AllocateOneByteInternalizedString(
-        Vector<const uint8_t> str,
-        uint32_t hash_field);
-
-  MUST_USE_RESULT inline MaybeObject* AllocateTwoByteInternalizedString(
-        Vector<const uc16> str,
-        uint32_t hash_field);
-
   template<typename T>
   static inline bool IsOneByte(T t, int chars);
-
-  template<typename T>
-  MUST_USE_RESULT inline MaybeObject* AllocateInternalizedStringImpl(
-      T t, int chars, uint32_t hash_field);
-
-  template<bool is_one_byte, typename T>
-  MUST_USE_RESULT MaybeObject* AllocateInternalizedStringImpl(
-      T t, int chars, uint32_t hash_field);
-
-  // Computes a single character string where the character has code.
-  // A cache is used for ASCII codes.
-  // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
-  // failed. Please note this does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* LookupSingleCharacterStringFromCode(
-      uint16_t code);
-
-  // Allocate a byte array of the specified length
-  // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
-  // failed.
-  // Please note this does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* AllocateByteArray(
-      int length,
-      PretenureFlag pretenure = NOT_TENURED);
-
-  // Allocates an external array of the specified length and type.
-  // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
-  // failed.
-  // Please note this does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* AllocateExternalArray(
-      int length,
-      ExternalArrayType array_type,
-      void* external_pointer,
-      PretenureFlag pretenure);
-
-  // Allocates a fixed typed array of the specified length and type.
-  // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
-  // failed.
-  // Please note this does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* AllocateFixedTypedArray(
-      int length,
-      ExternalArrayType array_type,
-      PretenureFlag pretenure);
-
-  // Allocate a symbol in old space.
-  // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
-  // failed.
-  // Please note this does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* AllocateSymbol();
-  MUST_USE_RESULT MaybeObject* AllocatePrivateSymbol();
-
-  // Allocates a fixed array initialized with undefined values
-  // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
-  // failed.
-  // Please note this does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* AllocateFixedArray(
-      int length,
-      PretenureFlag pretenure = NOT_TENURED);
-
-  // Allocates an uninitialized fixed array. It must be filled by the caller.
-  //
-  // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
-  // failed.
-  // Please note this does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* AllocateUninitializedFixedArray(int length);
 
   // Move len elements within a given array from src_index index to dst_index
   // index.
   void MoveElements(FixedArray* array, int dst_index, int src_index, int len);
-
-  // Make a copy of src and return it. Returns
-  // Failure::RetryAfterGC(requested_bytes, space) if the allocation failed.
-  MUST_USE_RESULT inline MaybeObject* CopyFixedArray(FixedArray* src);
-
-  // Make a copy of src and return it. Returns
-  // Failure::RetryAfterGC(requested_bytes, space) if the allocation failed.
-  MUST_USE_RESULT MaybeObject* CopyAndTenureFixedCOWArray(FixedArray* src);
-
-  // Make a copy of src, set the map, and return the copy. Returns
-  // Failure::RetryAfterGC(requested_bytes, space) if the allocation failed.
-  MUST_USE_RESULT MaybeObject* CopyFixedArrayWithMap(FixedArray* src, Map* map);
-
-  // Make a copy of src and return it. Returns
-  // Failure::RetryAfterGC(requested_bytes, space) if the allocation failed.
-  MUST_USE_RESULT inline MaybeObject* CopyFixedDoubleArray(
-      FixedDoubleArray* src);
-
-  // Make a copy of src, set the map, and return the copy. Returns
-  // Failure::RetryAfterGC(requested_bytes, space) if the allocation failed.
-  MUST_USE_RESULT MaybeObject* CopyFixedDoubleArrayWithMap(
-      FixedDoubleArray* src, Map* map);
-
-  // Make a copy of src and return it. Returns
-  // Failure::RetryAfterGC(requested_bytes, space) if the allocation failed.
-  MUST_USE_RESULT inline MaybeObject* CopyConstantPoolArray(
-      ConstantPoolArray* src);
-
-  // Make a copy of src, set the map, and return the copy. Returns
-  // Failure::RetryAfterGC(requested_bytes, space) if the allocation failed.
-  MUST_USE_RESULT MaybeObject* CopyConstantPoolArrayWithMap(
-      ConstantPoolArray* src, Map* map);
-
-  MUST_USE_RESULT MaybeObject* AllocateConstantPoolArray(
-      int number_of_int64_entries,
-      int number_of_code_ptr_entries,
-      int number_of_heap_ptr_entries,
-      int number_of_int32_entries);
-
-  // Allocates a fixed double array with uninitialized values. Returns
-  // Failure::RetryAfterGC(requested_bytes, space) if the allocation failed.
-  // Please note this does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* AllocateUninitializedFixedDoubleArray(
-      int length,
-      PretenureFlag pretenure = NOT_TENURED);
-
-  // AllocateHashTable is identical to AllocateFixedArray except
-  // that the resulting object has hash_table_map as map.
-  MUST_USE_RESULT MaybeObject* AllocateHashTable(
-      int length, PretenureFlag pretenure = NOT_TENURED);
-
-  // Allocates a new utility object in the old generation.
-  MUST_USE_RESULT MaybeObject* AllocateStruct(InstanceType type);
 
   // Sloppy mode arguments object size.
   static const int kSloppyArgumentsObjectSize =
@@ -949,31 +714,6 @@ class Heap {
   static const int kArgumentsLengthIndex = 0;
   // callee is only valid in sloppy mode.
   static const int kArgumentsCalleeIndex = 1;
-
-  // Allocates an arguments object - optionally with an elements array.
-  // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
-  // failed.
-  // Please note this does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* AllocateArgumentsObject(
-      Object* callee, int length);
-
-  // Allocated a HeapNumber from value.
-  MUST_USE_RESULT MaybeObject* AllocateHeapNumber(
-      double value, PretenureFlag pretenure = NOT_TENURED);
-
-  // Converts an int into either a Smi or a HeapNumber object.
-  // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
-  // failed.
-  // Please note this does not perform a garbage collection.
-  MUST_USE_RESULT inline MaybeObject* NumberFromUint32(
-      uint32_t value, PretenureFlag pretenure = NOT_TENURED);
-
-  // Allocates a new foreign object.
-  // Returns Failure::RetryAfterGC(requested_bytes, space) if the allocation
-  // failed.
-  // Please note this does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* AllocateForeign(
-      Address address, PretenureFlag pretenure = NOT_TENURED);
 
   // Finalizes an external string by deleting the associated external
   // data and clearing the resource pointer.
@@ -989,34 +729,6 @@ class Heap {
 
   // Maintain marking consistency for IncrementalMarking.
   void AdjustLiveBytes(Address address, int by, InvocationMode mode);
-
-  MUST_USE_RESULT MaybeObject* AllocateCode(int object_size, bool immovable);
-
-  MUST_USE_RESULT MaybeObject* CopyCode(Code* code);
-
-  // Copy the code and scope info part of the code object, but insert
-  // the provided data as the relocation information.
-  MUST_USE_RESULT MaybeObject* CopyCode(Code* code, Vector<byte> reloc_info);
-
-  // Finds the internalized copy for string in the string table.
-  // If not found, a new string is added to the table and returned.
-  // Returns Failure::RetryAfterGC(requested_bytes, space) if allocation
-  // failed.
-  // Please note this function does not perform a garbage collection.
-  MUST_USE_RESULT MaybeObject* InternalizeUtf8String(const char* str) {
-    return InternalizeUtf8String(CStrVector(str));
-  }
-  MUST_USE_RESULT MaybeObject* InternalizeUtf8String(Vector<const char> str);
-
-  MUST_USE_RESULT MaybeObject* InternalizeString(String* str);
-  MUST_USE_RESULT MaybeObject* InternalizeStringWithKey(HashTableKey* key);
-
-  bool InternalizeStringIfExists(String* str, String** result);
-  bool InternalizeTwoCharsStringIfExists(String* str, String** result);
-
-  // Compute the matching internalized string map for a string if possible.
-  // NULL is returned if string is in new space or not flattened.
-  Map* InternalizedStringMapForString(String* str);
 
   // Converts the given boolean condition to JavaScript boolean value.
   inline Object* ToBoolean(bool condition);
@@ -1319,7 +1031,7 @@ class Heap {
   // Support for the API.
   //
 
-  bool CreateApiObjects();
+  void CreateApiObjects();
 
   // Adjusts the amount of registered external memory.
   // Returns the adjusted value.
@@ -1564,20 +1276,6 @@ class Heap {
     return &incremental_marking_;
   }
 
-  bool IsSweepingComplete() {
-    return !mark_compact_collector()->IsConcurrentSweepingInProgress() &&
-           old_data_space()->IsLazySweepingComplete() &&
-           old_pointer_space()->IsLazySweepingComplete();
-  }
-
-  bool AdvanceSweepers(int step_size);
-
-  bool EnsureSweepersProgressed(int step_size) {
-    bool sweeping_complete = old_data_space()->EnsureSweeperProgress(step_size);
-    sweeping_complete &= old_pointer_space()->EnsureSweeperProgress(step_size);
-    return sweeping_complete;
-  }
-
   ExternalStringTable* external_string_table() {
     return &external_string_table_;
   }
@@ -1714,9 +1412,10 @@ class Heap {
     Heap* heap_;
   };
 
-  MaybeObject* AddWeakObjectToCodeDependency(Object* obj, DependentCode* dep);
+  void AddWeakObjectToCodeDependency(Handle<Object> obj,
+                                     Handle<DependentCode> dep);
 
-  DependentCode* LookupWeakObjectToCodeDependency(Object* obj);
+  DependentCode* LookupWeakObjectToCodeDependency(Handle<Object> obj);
 
   void InitializeWeakObjectToCodeTable() {
     set_weak_object_to_code_table(undefined_value());
@@ -1726,6 +1425,58 @@ class Heap {
 
   static void FatalProcessOutOfMemory(const char* location,
                                       bool take_snapshot = false);
+
+ protected:
+  // Methods made available to tests.
+
+  // Allocates a JS Map in the heap.
+  MUST_USE_RESULT AllocationResult AllocateMap(
+      InstanceType instance_type,
+      int instance_size,
+      ElementsKind elements_kind = TERMINAL_FAST_ELEMENTS_KIND);
+
+  // Allocates and initializes a new JavaScript object based on a
+  // constructor.
+  // If allocation_site is non-null, then a memento is emitted after the object
+  // that points to the site.
+  MUST_USE_RESULT AllocationResult AllocateJSObject(
+      JSFunction* constructor,
+      PretenureFlag pretenure = NOT_TENURED,
+      AllocationSite* allocation_site = NULL);
+
+  // Allocates and initializes a new JavaScript object based on a map.
+  // Passing an allocation site means that a memento will be created that
+  // points to the site.
+  MUST_USE_RESULT AllocationResult AllocateJSObjectFromMap(
+      Map* map,
+      PretenureFlag pretenure = NOT_TENURED,
+      bool alloc_props = true,
+      AllocationSite* allocation_site = NULL);
+
+  // Allocated a HeapNumber from value.
+  MUST_USE_RESULT AllocationResult AllocateHeapNumber(
+      double value, PretenureFlag pretenure = NOT_TENURED);
+
+  // Allocate a byte array of the specified length
+  MUST_USE_RESULT AllocationResult AllocateByteArray(
+      int length,
+      PretenureFlag pretenure = NOT_TENURED);
+
+  // Allocates an arguments object - optionally with an elements array.
+  MUST_USE_RESULT AllocationResult AllocateArgumentsObject(
+      Object* callee, int length);
+
+  // Copy the code and scope info part of the code object, but insert
+  // the provided data as the relocation information.
+  MUST_USE_RESULT AllocationResult CopyCode(Code* code,
+                                            Vector<byte> reloc_info);
+
+  MUST_USE_RESULT AllocationResult CopyCode(Code* code);
+
+  // Allocates a fixed array initialized with undefined values
+  MUST_USE_RESULT AllocationResult AllocateFixedArray(
+      int length,
+      PretenureFlag pretenure = NOT_TENURED);
 
  private:
   Heap();
@@ -1979,30 +1730,21 @@ class Heap {
   // hardware and OS allow.  This is the single choke-point for allocations
   // performed by the runtime and should not be bypassed (to extend this to
   // inlined allocations, use the Heap::DisableInlineAllocation() support).
-  MUST_USE_RESULT inline MaybeObject* AllocateRaw(int size_in_bytes,
-                                                  AllocationSpace space,
-                                                  AllocationSpace retry_space);
+  MUST_USE_RESULT inline AllocationResult AllocateRaw(
+      int size_in_bytes,
+      AllocationSpace space,
+      AllocationSpace retry_space);
 
-  // Allocate an uninitialized fixed array.
-  MUST_USE_RESULT MaybeObject* AllocateRawFixedArray(
-      int length, PretenureFlag pretenure);
+  // Allocates a heap object based on the map.
+  MUST_USE_RESULT AllocationResult Allocate(
+      Map* map,
+      AllocationSpace space,
+      AllocationSite* allocation_site = NULL);
 
-  // Allocate an uninitialized fixed double array.
-  MUST_USE_RESULT MaybeObject* AllocateRawFixedDoubleArray(
-      int length, PretenureFlag pretenure);
-
-  // Allocate an initialized fixed array with the given filler value.
-  MUST_USE_RESULT MaybeObject* AllocateFixedArrayWithFiller(
-      int length, PretenureFlag pretenure, Object* filler);
-
-  // Allocate and partially initializes a String.  There are two String
-  // encodings: ASCII and two byte.  These functions allocate a string of the
-  // given length and set its map and length fields.  The characters of the
-  // string are uninitialized.
-  MUST_USE_RESULT MaybeObject* AllocateRawOneByteString(
-      int length, PretenureFlag pretenure);
-  MUST_USE_RESULT MaybeObject* AllocateRawTwoByteString(
-      int length, PretenureFlag pretenure);
+  // Allocates a partial map for bootstrapping.
+  MUST_USE_RESULT AllocationResult AllocatePartialMap(
+      InstanceType instance_type,
+      int instance_size);
 
   // Initializes a JSObject based on its map.
   void InitializeJSObjectFromMap(JSObject* obj,
@@ -2011,8 +1753,147 @@ class Heap {
   void InitializeAllocationMemento(AllocationMemento* memento,
                                    AllocationSite* allocation_site);
 
+  // Allocate a block of memory in the given space (filled with a filler).
+  // Used as a fall-back for generated code when the space is full.
+  MUST_USE_RESULT AllocationResult AllocateFillerObject(int size,
+                                                    bool double_align,
+                                                    AllocationSpace space);
+
+  // Allocate an uninitialized fixed array.
+  MUST_USE_RESULT AllocationResult AllocateRawFixedArray(
+      int length, PretenureFlag pretenure);
+
+  // Allocate an uninitialized fixed double array.
+  MUST_USE_RESULT AllocationResult AllocateRawFixedDoubleArray(
+      int length, PretenureFlag pretenure);
+
+  // Allocate an initialized fixed array with the given filler value.
+  MUST_USE_RESULT AllocationResult AllocateFixedArrayWithFiller(
+      int length, PretenureFlag pretenure, Object* filler);
+
+  // Allocate and partially initializes a String.  There are two String
+  // encodings: ASCII and two byte.  These functions allocate a string of the
+  // given length and set its map and length fields.  The characters of the
+  // string are uninitialized.
+  MUST_USE_RESULT AllocationResult AllocateRawOneByteString(
+      int length, PretenureFlag pretenure);
+  MUST_USE_RESULT AllocationResult AllocateRawTwoByteString(
+      int length, PretenureFlag pretenure);
+
+  // Allocates and fully initializes a String.  There are two String
+  // encodings: ASCII and two byte. One should choose between the three string
+  // allocation functions based on the encoding of the string buffer used to
+  // initialized the string.
+  //   - ...FromAscii initializes the string from a buffer that is ASCII
+  //     encoded (it does not check that the buffer is ASCII encoded) and the
+  //     result will be ASCII encoded.
+  //   - ...FromUTF8 initializes the string from a buffer that is UTF-8
+  //     encoded.  If the characters are all single-byte characters, the
+  //     result will be ASCII encoded, otherwise it will converted to two
+  //     byte.
+  //   - ...FromTwoByte initializes the string from a buffer that is two-byte
+  //     encoded.  If the characters are all single-byte characters, the
+  //     result will be converted to ASCII, otherwise it will be left as
+  //     two-byte.
+  MUST_USE_RESULT AllocationResult AllocateStringFromUtf8Slow(
+      Vector<const char> str,
+      int non_ascii_start,
+      PretenureFlag pretenure = NOT_TENURED);
+  MUST_USE_RESULT AllocationResult AllocateStringFromTwoByte(
+      Vector<const uc16> str,
+      PretenureFlag pretenure = NOT_TENURED);
+
   bool CreateInitialMaps();
-  bool CreateInitialObjects();
+  void CreateInitialObjects();
+
+  // Allocates an internalized string in old space based on the character
+  // stream.
+  MUST_USE_RESULT inline AllocationResult AllocateInternalizedStringFromUtf8(
+      Vector<const char> str,
+      int chars,
+      uint32_t hash_field);
+
+  MUST_USE_RESULT inline AllocationResult AllocateOneByteInternalizedString(
+        Vector<const uint8_t> str,
+        uint32_t hash_field);
+
+  MUST_USE_RESULT inline AllocationResult AllocateTwoByteInternalizedString(
+        Vector<const uc16> str,
+        uint32_t hash_field);
+
+  template<bool is_one_byte, typename T>
+  MUST_USE_RESULT AllocationResult AllocateInternalizedStringImpl(
+      T t, int chars, uint32_t hash_field);
+
+  template<typename T>
+  MUST_USE_RESULT inline AllocationResult AllocateInternalizedStringImpl(
+      T t, int chars, uint32_t hash_field);
+
+  // Allocates an uninitialized fixed array. It must be filled by the caller.
+  MUST_USE_RESULT AllocationResult AllocateUninitializedFixedArray(int length);
+
+  // Make a copy of src and return it. Returns
+  // Failure::RetryAfterGC(requested_bytes, space) if the allocation failed.
+  MUST_USE_RESULT inline AllocationResult CopyFixedArray(FixedArray* src);
+
+  // Make a copy of src, set the map, and return the copy. Returns
+  // Failure::RetryAfterGC(requested_bytes, space) if the allocation failed.
+  MUST_USE_RESULT AllocationResult CopyFixedArrayWithMap(FixedArray* src,
+                                                         Map* map);
+
+  // Make a copy of src and return it. Returns
+  // Failure::RetryAfterGC(requested_bytes, space) if the allocation failed.
+  MUST_USE_RESULT inline AllocationResult CopyFixedDoubleArray(
+      FixedDoubleArray* src);
+
+  // Make a copy of src and return it. Returns
+  // Failure::RetryAfterGC(requested_bytes, space) if the allocation failed.
+  MUST_USE_RESULT inline AllocationResult CopyConstantPoolArray(
+      ConstantPoolArray* src);
+
+
+  // Computes a single character string where the character has code.
+  // A cache is used for ASCII codes.
+  MUST_USE_RESULT AllocationResult LookupSingleCharacterStringFromCode(
+      uint16_t code);
+
+  // Allocate a symbol in old space.
+  MUST_USE_RESULT AllocationResult AllocateSymbol();
+
+  // Make a copy of src, set the map, and return the copy.
+  MUST_USE_RESULT AllocationResult CopyConstantPoolArrayWithMap(
+      ConstantPoolArray* src, Map* map);
+
+  MUST_USE_RESULT AllocationResult AllocateConstantPoolArray(
+      int number_of_int64_entries,
+      int number_of_code_ptr_entries,
+      int number_of_heap_ptr_entries,
+      int number_of_int32_entries);
+
+  // Allocates an external array of the specified length and type.
+  MUST_USE_RESULT AllocationResult AllocateExternalArray(
+      int length,
+      ExternalArrayType array_type,
+      void* external_pointer,
+      PretenureFlag pretenure);
+
+  // Allocates a fixed typed array of the specified length and type.
+  MUST_USE_RESULT AllocationResult AllocateFixedTypedArray(
+      int length,
+      ExternalArrayType array_type,
+      PretenureFlag pretenure);
+
+  // Make a copy of src and return it.
+  MUST_USE_RESULT AllocationResult CopyAndTenureFixedCOWArray(FixedArray* src);
+
+  // Make a copy of src, set the map, and return the copy.
+  MUST_USE_RESULT AllocationResult CopyFixedDoubleArrayWithMap(
+      FixedDoubleArray* src, Map* map);
+
+  // Allocates a fixed double array with uninitialized values. Returns
+  MUST_USE_RESULT AllocationResult AllocateUninitializedFixedDoubleArray(
+      int length,
+      PretenureFlag pretenure = NOT_TENURED);
 
   // These five Create*EntryStub functions are here and forced to not be inlined
   // because of a gcc-4.4 bug that assigns wrong vtable entries.
@@ -2022,24 +1903,38 @@ class Heap {
   void CreateFixedStubs();
 
   // Allocate empty fixed array.
-  MUST_USE_RESULT MaybeObject* AllocateEmptyFixedArray();
+  MUST_USE_RESULT AllocationResult AllocateEmptyFixedArray();
 
   // Allocate empty external array of given type.
-  MUST_USE_RESULT MaybeObject* AllocateEmptyExternalArray(
+  MUST_USE_RESULT AllocationResult AllocateEmptyExternalArray(
       ExternalArrayType array_type);
 
   // Allocate empty fixed typed array of given type.
-  MUST_USE_RESULT MaybeObject* AllocateEmptyFixedTypedArray(
+  MUST_USE_RESULT AllocationResult AllocateEmptyFixedTypedArray(
       ExternalArrayType array_type);
 
   // Allocate empty constant pool array.
-  MUST_USE_RESULT MaybeObject* AllocateEmptyConstantPoolArray();
+  MUST_USE_RESULT AllocationResult AllocateEmptyConstantPoolArray();
 
   // Allocate a tenured simple cell.
-  MUST_USE_RESULT MaybeObject* AllocateCell(Object* value);
+  MUST_USE_RESULT AllocationResult AllocateCell(Object* value);
 
   // Allocate a tenured JS global property cell initialized with the hole.
-  MUST_USE_RESULT MaybeObject* AllocatePropertyCell();
+  MUST_USE_RESULT AllocationResult AllocatePropertyCell();
+
+  // Allocates a new utility object in the old generation.
+  MUST_USE_RESULT AllocationResult AllocateStruct(InstanceType type);
+
+  // Allocates a new foreign object.
+  MUST_USE_RESULT AllocationResult AllocateForeign(
+      Address address, PretenureFlag pretenure = NOT_TENURED);
+
+  MUST_USE_RESULT AllocationResult AllocateCode(int object_size,
+                                                bool immovable);
+
+  MUST_USE_RESULT AllocationResult InternalizeStringWithKey(HashTableKey* key);
+
+  MUST_USE_RESULT AllocationResult InternalizeString(String* str);
 
   // Performs a minor collection in new generation.
   void Scavenge();
@@ -2096,15 +1991,10 @@ class Heap {
 
   GCTracer* tracer_;
 
-  // Allocates a small number to string cache.
-  MUST_USE_RESULT MaybeObject* AllocateInitialNumberStringCache();
   // Creates and installs the full-sized number string cache.
   int FullSizeNumberStringCacheLength();
   // Flush the number to string cache.
   void FlushNumberStringCache();
-
-  // Allocates a fixed-size allocation sites scratchpad.
-  MUST_USE_RESULT MaybeObject* AllocateAllocationSitesScratchpad();
 
   // Sets used allocation sites entries to undefined.
   void FlushAllocationSitesScratchpad();
@@ -2521,10 +2411,10 @@ class HeapIterator BASE_EMBEDDED {
 class KeyedLookupCache {
  public:
   // Lookup field offset for (map, name). If absent, -1 is returned.
-  int Lookup(Map* map, Name* name);
+  int Lookup(Handle<Map> map, Handle<Name> name);
 
   // Update an element in the cache.
-  void Update(Map* map, Name* name, int field_offset);
+  void Update(Handle<Map> map, Handle<Name> name, int field_offset);
 
   // Clear the cache.
   void Clear();
@@ -2549,7 +2439,7 @@ class KeyedLookupCache {
     }
   }
 
-  static inline int Hash(Map* map, Name* name);
+  static inline int Hash(Handle<Map> map, Handle<Name> name);
 
   // Get the address of the keys and field_offsets arrays.  Used in
   // generated code to perform cache lookups.

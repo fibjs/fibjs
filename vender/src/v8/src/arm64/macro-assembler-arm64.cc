@@ -1,29 +1,6 @@
 // Copyright 2013 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "v8.h"
 
@@ -79,7 +56,7 @@ void MacroAssembler::LogicalMacro(const Register& rd,
                                   LogicalOp op) {
   UseScratchRegisterScope temps(this);
 
-  if (operand.NeedsRelocation()) {
+  if (operand.NeedsRelocation(isolate())) {
     Register temp = temps.AcquireX();
     LoadRelocated(temp, operand);
     Logical(rd, rn, temp, op);
@@ -270,7 +247,7 @@ void MacroAssembler::Mov(const Register& rd,
   UseScratchRegisterScope temps(this);
   Register dst = (rd.IsSP()) ? temps.AcquireSameSizeAs(rd) : rd;
 
-  if (operand.NeedsRelocation()) {
+  if (operand.NeedsRelocation(isolate())) {
     LoadRelocated(dst, operand);
 
   } else if (operand.IsImmediate()) {
@@ -318,7 +295,7 @@ void MacroAssembler::Mov(const Register& rd,
 void MacroAssembler::Mvn(const Register& rd, const Operand& operand) {
   ASSERT(allow_macro_instructions_);
 
-  if (operand.NeedsRelocation()) {
+  if (operand.NeedsRelocation(isolate())) {
     LoadRelocated(rd, operand);
     mvn(rd, rd);
 
@@ -373,7 +350,7 @@ void MacroAssembler::ConditionalCompareMacro(const Register& rn,
                                              Condition cond,
                                              ConditionalCompareOp op) {
   ASSERT((cond != al) && (cond != nv));
-  if (operand.NeedsRelocation()) {
+  if (operand.NeedsRelocation(isolate())) {
     UseScratchRegisterScope temps(this);
     Register temp = temps.AcquireX();
     LoadRelocated(temp, operand);
@@ -439,12 +416,12 @@ void MacroAssembler::AddSubMacro(const Register& rd,
                                  FlagsUpdate S,
                                  AddSubOp op) {
   if (operand.IsZero() && rd.Is(rn) && rd.Is64Bits() && rn.Is64Bits() &&
-      !operand.NeedsRelocation() && (S == LeaveFlags)) {
+      !operand.NeedsRelocation(isolate()) && (S == LeaveFlags)) {
     // The instruction would be a nop. Avoid generating useless code.
     return;
   }
 
-  if (operand.NeedsRelocation()) {
+  if (operand.NeedsRelocation(isolate())) {
     UseScratchRegisterScope temps(this);
     Register temp = temps.AcquireX();
     LoadRelocated(temp, operand);
@@ -470,7 +447,7 @@ void MacroAssembler::AddSubWithCarryMacro(const Register& rd,
   ASSERT(rd.SizeInBits() == rn.SizeInBits());
   UseScratchRegisterScope temps(this);
 
-  if (operand.NeedsRelocation()) {
+  if (operand.NeedsRelocation(isolate())) {
     Register temp = temps.AcquireX();
     LoadRelocated(temp, operand);
     AddSubWithCarryMacro(rd, rn, temp, S, op);
@@ -1537,9 +1514,9 @@ void MacroAssembler::Throw(BailoutReason reason) {
 }
 
 
-void MacroAssembler::ThrowIf(Condition cc, BailoutReason reason) {
+void MacroAssembler::ThrowIf(Condition cond, BailoutReason reason) {
   Label ok;
-  B(InvertCondition(cc), &ok);
+  B(InvertCondition(cond), &ok);
   Throw(reason);
   Bind(&ok);
 }
@@ -1621,12 +1598,12 @@ void MacroAssembler::AssertString(Register object) {
 
 void MacroAssembler::CallStub(CodeStub* stub, TypeFeedbackId ast_id) {
   ASSERT(AllowThisStubCall(stub));  // Stub calls are not allowed in some stubs.
-  Call(stub->GetCode(isolate()), RelocInfo::CODE_TARGET, ast_id);
+  Call(stub->GetCode(), RelocInfo::CODE_TARGET, ast_id);
 }
 
 
 void MacroAssembler::TailCallStub(CodeStub* stub) {
-  Jump(stub->GetCode(isolate()), RelocInfo::CODE_TARGET);
+  Jump(stub->GetCode(), RelocInfo::CODE_TARGET);
 }
 
 
@@ -1651,7 +1628,7 @@ void MacroAssembler::CallRuntime(const Runtime::Function* f,
   Mov(x0, num_arguments);
   Mov(x1, ExternalReference(f, isolate()));
 
-  CEntryStub stub(1, save_doubles);
+  CEntryStub stub(isolate(), 1, save_doubles);
   CallStub(&stub);
 }
 
@@ -1683,9 +1660,7 @@ void MacroAssembler::CallApiFunctionAndReturn(
 
   Label profiler_disabled;
   Label end_profiler_check;
-  bool* is_profiling_flag = isolate()->cpu_profiler()->is_profiling_address();
-  STATIC_ASSERT(sizeof(*is_profiling_flag) == 1);
-  Mov(x10, reinterpret_cast<uintptr_t>(is_profiling_flag));
+  Mov(x10, ExternalReference::is_profiling_address(isolate()));
   Ldrb(w10, MemOperand(x10));
   Cbz(w10, &profiler_disabled);
   Mov(x3, thunk_ref);
@@ -1729,7 +1704,7 @@ void MacroAssembler::CallApiFunctionAndReturn(
   // Native call returns to the DirectCEntry stub which redirects to the
   // return address pushed on stack (could have moved after GC).
   // DirectCEntry stub itself is generated early and never moves.
-  DirectCEntryStub stub;
+  DirectCEntryStub stub(isolate());
   stub.GenerateCall(this, x3);
 
   if (FLAG_log_timer_events) {
@@ -1813,15 +1788,15 @@ void MacroAssembler::CallExternalReference(const ExternalReference& ext,
   Mov(x0, num_arguments);
   Mov(x1, ext);
 
-  CEntryStub stub(1);
+  CEntryStub stub(isolate(), 1);
   CallStub(&stub);
 }
 
 
 void MacroAssembler::JumpToExternalReference(const ExternalReference& builtin) {
   Mov(x1, builtin);
-  CEntryStub stub(1);
-  Jump(stub.GetCode(isolate()), RelocInfo::CODE_TARGET);
+  CEntryStub stub(isolate(), 1);
+  Jump(stub.GetCode(), RelocInfo::CODE_TARGET);
 }
 
 
@@ -2286,11 +2261,11 @@ void MacroAssembler::LookupNumberStringCache(Register object,
 }
 
 
-void MacroAssembler::TryConvertDoubleToInt(Register as_int,
-                                           FPRegister value,
-                                           FPRegister scratch_d,
-                                           Label* on_successful_conversion,
-                                           Label* on_failed_conversion) {
+void MacroAssembler::TryRepresentDoubleAsInt(Register as_int,
+                                             FPRegister value,
+                                             FPRegister scratch_d,
+                                             Label* on_successful_conversion,
+                                             Label* on_failed_conversion) {
   // Convert to an int and back again, then compare with the original value.
   Fcvtzs(as_int, value);
   Scvtf(scratch_d, as_int);
@@ -2919,7 +2894,8 @@ void MacroAssembler::TruncateDoubleToI(Register result,
   Push(lr);
   Push(double_input);  // Put input on stack.
 
-  DoubleToIStub stub(jssp,
+  DoubleToIStub stub(isolate(),
+                     jssp,
                      result,
                      0,
                      true,   // is_truncating
@@ -2947,7 +2923,8 @@ void MacroAssembler::TruncateHeapNumberToI(Register result,
 
   // If we fell through then inline version didn't succeed - call stub instead.
   Push(lr);
-  DoubleToIStub stub(object,
+  DoubleToIStub stub(isolate(),
+                     object,
                      result,
                      HeapNumber::kValueOffset - kHeapObjectTag,
                      true,   // is_truncating
@@ -3184,15 +3161,13 @@ void MacroAssembler::LoadContext(Register dst, int context_chain_length) {
 }
 
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
 void MacroAssembler::DebugBreak() {
   Mov(x0, 0);
   Mov(x1, ExternalReference(Runtime::kDebugBreak, isolate()));
-  CEntryStub ces(1);
+  CEntryStub ces(isolate(), 1);
   ASSERT(AllowThisStubCall(&ces));
-  Call(ces.GetCode(isolate()), RelocInfo::DEBUG_BREAK);
+  Call(ces.GetCode(), RelocInfo::DEBUG_BREAK);
 }
-#endif
 
 
 void MacroAssembler::PushTryHandler(StackHandler::Kind kind,
@@ -3309,8 +3284,7 @@ void MacroAssembler::Allocate(int object_size,
 
   // Calculate new top and bail out if new space is exhausted.
   Adds(scratch3, result, object_size);
-  B(vs, gc_required);
-  Cmp(scratch3, allocation_limit);
+  Ccmp(scratch3, allocation_limit, CFlag, cc);
   B(hi, gc_required);
   Str(scratch3, MemOperand(top_address));
 
@@ -3391,8 +3365,7 @@ void MacroAssembler::Allocate(Register object_size,
     Check(eq, kUnalignedAllocationInNewSpace);
   }
 
-  B(vs, gc_required);
-  Cmp(scratch3, allocation_limit);
+  Ccmp(scratch3, allocation_limit, CFlag, cc);
   B(hi, gc_required);
   Str(scratch3, MemOperand(top_address));
 
@@ -4203,7 +4176,7 @@ void MacroAssembler::RememberedSetHelper(Register object,  // For debug tests.
   Bind(&store_buffer_overflow);
   Push(lr);
   StoreBufferOverflowStub store_buffer_overflow_stub =
-      StoreBufferOverflowStub(fp_mode);
+      StoreBufferOverflowStub(isolate(), fp_mode);
   CallStub(&store_buffer_overflow_stub);
   Pop(lr);
 
@@ -4396,7 +4369,8 @@ void MacroAssembler::RecordWrite(Register object,
   if (lr_status == kLRHasNotBeenSaved) {
     Push(lr);
   }
-  RecordWriteStub stub(object, value, address, remembered_set_action, fp_mode);
+  RecordWriteStub stub(isolate(), object, value, address, remembered_set_action,
+                       fp_mode);
   CallStub(&stub);
   if (lr_status == kLRHasNotBeenSaved) {
     Pop(lr);

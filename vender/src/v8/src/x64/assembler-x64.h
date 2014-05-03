@@ -450,7 +450,7 @@ class CpuFeatures : public AllStatic {
  public:
   // Detect features of the target CPU. Set safe defaults if the serializer
   // is enabled (snapshots must be portable).
-  static void Probe();
+  static void Probe(bool serializer_enabled);
 
   // Check whether a feature is supported by the target CPU.
   static bool IsSupported(CpuFeature f) {
@@ -468,10 +468,10 @@ class CpuFeatures : public AllStatic {
     return Check(f, found_by_runtime_probing_only_);
   }
 
-  static bool IsSafeForSnapshot(CpuFeature f) {
+  static bool IsSafeForSnapshot(Isolate* isolate, CpuFeature f) {
     return Check(f, cross_compile_) ||
            (IsSupported(f) &&
-            (!Serializer::enabled() || !IsFoundByRuntimeProbingOnly(f)));
+            (!Serializer::enabled(isolate) || !IsFoundByRuntimeProbingOnly(f)));
   }
 
   static bool VerifyCrossCompiling() {
@@ -483,6 +483,8 @@ class CpuFeatures : public AllStatic {
     return cross_compile_ == 0 ||
            (cross_compile_ & mask) == mask;
   }
+
+  static bool SupportsCrankshaft() { return true; }
 
  private:
   static bool Check(CpuFeature f, uint64_t set) {

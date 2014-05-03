@@ -56,12 +56,7 @@ class CpuFeatures : public AllStatic {
  public:
   // Detect features of the target CPU. Set safe defaults if the serializer
   // is enabled (snapshots must be portable).
-  static void Probe();
-
-  // A special case for printing target and features, which we want to do
-  // before initializing the isolate
-  static void SetHintCreatingSnapshot();
-  static void ProbeWithoutIsolate();
+  static void Probe(bool serializer_enabled);
 
   // Display target use when compiling.
   static void PrintTarget();
@@ -80,10 +75,10 @@ class CpuFeatures : public AllStatic {
     return Check(f, found_by_runtime_probing_only_);
   }
 
-  static bool IsSafeForSnapshot(CpuFeature f) {
+  static bool IsSafeForSnapshot(Isolate* isolate, CpuFeature f) {
     return Check(f, cross_compile_) ||
            (IsSupported(f) &&
-            (!Serializer::enabled() || !IsFoundByRuntimeProbingOnly(f)));
+            (!Serializer::enabled(isolate) || !IsFoundByRuntimeProbingOnly(f)));
   }
 
   static unsigned cache_line_size() { return cache_line_size_; }
@@ -98,10 +93,9 @@ class CpuFeatures : public AllStatic {
            (cross_compile_ & mask) == mask;
   }
 
- private:
-  static void Probe(bool serializer_enabled);
-  static bool hint_creating_snapshot_;
+  static bool SupportsCrankshaft() { return CpuFeatures::IsSupported(VFP3); }
 
+ private:
   static bool Check(CpuFeature f, unsigned set) {
     return (set & flag2set(f)) != 0;
   }
@@ -598,8 +592,11 @@ class Operand BASE_EMBEDDED {
   // the instruction this operand is used for is a MOV or MVN instruction the
   // actual instruction to use is required for this calculation. For other
   // instructions instr is ignored.
-  bool is_single_instruction(const Assembler* assembler, Instr instr = 0) const;
-  bool must_output_reloc_info(const Assembler* assembler) const;
+  bool is_single_instruction(Isolate* isolate,
+                             const Assembler* assembler,
+                             Instr instr = 0) const;
+  bool must_output_reloc_info(Isolate* isolate,
+                              const Assembler* assembler) const;
 
   inline int32_t immediate() const {
     ASSERT(!rm_.is_valid());
@@ -736,6 +733,8 @@ class ConstantPoolBuilder BASE_EMBEDDED {
   bool IsCodePtrEntry(RelocInfo::Mode rmode);
   bool IsHeapPtrEntry(RelocInfo::Mode rmode);
 
+  // TODO(rmcilroy): This should ideally be a ZoneList, however that would mean
+  // RelocInfo would need to subclass ZoneObject which it currently doesn't.
   std::vector<RelocInfo> entries_;
   std::vector<int> merged_indexes_;
   int count_of_64bit_;

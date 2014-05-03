@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "v8.h"
 
@@ -208,7 +185,6 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
               isolate);
   }
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
   // Debug addresses
   Add(Debug_Address(Debug::k_after_break_target_address).address(isolate),
       DEBUG_ADDRESS,
@@ -226,7 +202,6 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
       DEBUG_ADDRESS,
       Debug::k_restarter_frame_function_pointer << kDebugIdShift,
       "Debug::restarter_frame_function_pointer_address()");
-#endif
 
   // Stat counters
   struct StatsRefTableEntry {
@@ -271,14 +246,6 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
   }
 
   // Accessors
-#define ACCESSOR_DESCRIPTOR_DECLARATION(name) \
-  Add((Address)&Accessors::name, \
-      ACCESSOR, \
-      Accessors::k##name, \
-      "Accessors::" #name);
-  ACCESSOR_DESCRIPTOR_LIST(ACCESSOR_DESCRIPTOR_DECLARATION)
-#undef ACCESSOR_DESCRIPTOR_DECLARATION
-
 #define ACCESSOR_INFO_DECLARATION(name) \
   Add(FUNCTION_ADDR(&Accessors::name##Getter), \
       ACCESSOR, \
@@ -320,15 +287,6 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
       "StubCache::secondary_->map");
 
   // Runtime entries
-  Add(ExternalReference::perform_gc_function(isolate).address(),
-      RUNTIME_ENTRY,
-      1,
-      "Runtime::PerformGC");
-  // Runtime entries
-  Add(ExternalReference::out_of_memory_function(isolate).address(),
-      RUNTIME_ENTRY,
-      2,
-      "Runtime::OutOfMemory");
   Add(ExternalReference::delete_handle_scope_extensions(isolate).address(),
       RUNTIME_ENTRY,
       4,
@@ -383,10 +341,6 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
       UNCLASSIFIED,
       11,
       "Heap::NewSpaceMask()");
-  Add(ExternalReference::heap_always_allocate_scope_depth(isolate).address(),
-      UNCLASSIFIED,
-      12,
-      "Heap::always_allocate_scope_depth()");
   Add(ExternalReference::new_space_allocation_limit_address(isolate).address(),
       UNCLASSIFIED,
       14,
@@ -395,7 +349,6 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
       UNCLASSIFIED,
       15,
       "Heap::NewSpaceAllocationTopAddress()");
-#ifdef ENABLE_DEBUGGER_SUPPORT
   Add(ExternalReference::debug_break(isolate).address(),
       UNCLASSIFIED,
       16,
@@ -404,7 +357,6 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
       UNCLASSIFIED,
       17,
       "Debug::step_in_fp_addr()");
-#endif
   Add(ExternalReference::mod_two_doubles_operation(isolate).address(),
       UNCLASSIFIED,
       22,
@@ -570,6 +522,26 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
       UNCLASSIFIED,
       62,
       "Code::MarkCodeAsExecuted");
+
+  Add(ExternalReference::is_profiling_address(isolate).address(),
+      UNCLASSIFIED,
+      63,
+      "CpuProfiler::is_profiling");
+
+  Add(ExternalReference::scheduled_exception_address(isolate).address(),
+      UNCLASSIFIED,
+      64,
+      "Isolate::scheduled_exception");
+
+  Add(ExternalReference::invoke_function_callback(isolate).address(),
+      UNCLASSIFIED,
+      65,
+      "InvokeFunctionCallback");
+
+  Add(ExternalReference::invoke_accessor_getter_callback(isolate).address(),
+      UNCLASSIFIED,
+      66,
+      "InvokeAccessorGetterCallback");
 
   // Add a small set of deopt entry addresses to encoder without generating the
   // deopt table code, which isn't possible at deserialization time.
@@ -1374,7 +1346,7 @@ void Serializer::VisitPointers(Object** start, Object** end) {
 // deserialized objects.
 void SerializerDeserializer::Iterate(Isolate* isolate,
                                      ObjectVisitor* visitor) {
-  if (Serializer::enabled()) return;
+  if (Serializer::enabled(isolate)) return;
   for (int i = 0; ; i++) {
     if (isolate->serialize_partial_snapshot_cache_length() <= i) {
       // Extend the array ready to get a value from the visitor when

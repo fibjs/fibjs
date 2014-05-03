@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 
 #include "v8.h"
@@ -44,10 +21,6 @@
 
 namespace v8 {
 namespace internal {
-
-
-#ifdef ENABLE_DEBUGGER_SUPPORT
-
 
 void SetElementSloppy(Handle<JSObject> object,
                       uint32_t index,
@@ -637,6 +610,7 @@ void FunctionInfoWrapper::SetInitialProperties(Handle<String> name,
                                                int end_position,
                                                int param_num,
                                                int literal_count,
+                                               int slot_count,
                                                int parent_index) {
   HandleScope scope(isolate());
   this->SetField(kFunctionNameOffset_, name);
@@ -644,6 +618,7 @@ void FunctionInfoWrapper::SetInitialProperties(Handle<String> name,
   this->SetSmiValueField(kEndPositionOffset_, end_position);
   this->SetSmiValueField(kParamNumOffset_, param_num);
   this->SetSmiValueField(kLiteralNumOffset_, literal_count);
+  this->SetSmiValueField(kSlotNumOffset_, slot_count);
   this->SetSmiValueField(kParentIndexOffset_, parent_index);
 }
 
@@ -671,6 +646,26 @@ Handle<Code> FunctionInfoWrapper::GetFunctionCode() {
   Handle<Object> raw_result = UnwrapJSValue(value_wrapper);
   CHECK(raw_result->IsCode());
   return Handle<Code>::cast(raw_result);
+}
+
+
+Handle<FixedArray> FunctionInfoWrapper::GetFeedbackVector() {
+  Handle<Object> element = this->GetField(kSharedFunctionInfoOffset_);
+  Handle<FixedArray> result;
+  if (element->IsJSValue()) {
+    Handle<JSValue> value_wrapper = Handle<JSValue>::cast(element);
+    Handle<Object> raw_result = UnwrapJSValue(value_wrapper);
+    Handle<SharedFunctionInfo> shared =
+        Handle<SharedFunctionInfo>::cast(raw_result);
+    result = Handle<FixedArray>(shared->feedback_vector(), isolate());
+    CHECK_EQ(result->length(), GetSlotCount());
+  } else {
+    // Scripts may never have a SharedFunctionInfo created, so
+    // create a type feedback vector here.
+    int slot_count = GetSlotCount();
+    result = isolate()->factory()->NewTypeFeedbackVector(slot_count);
+  }
+  return result;
 }
 
 
@@ -714,6 +709,7 @@ class FunctionInfoListener {
     info.SetInitialProperties(fun->name(), fun->start_position(),
                               fun->end_position(), fun->parameter_count(),
                               fun->materialized_literal_count(),
+                              fun->slot_count(),
                               current_parent_index_);
     current_parent_index_ = len_;
     SetElementSloppy(result_, len_, info.GetJSArray());
@@ -1179,6 +1175,10 @@ void LiveEdit::ReplaceFunctionCode(
       shared_info->set_scope_info(ScopeInfo::cast(*code_scope_info));
     }
     shared_info->DisableOptimization(kLiveEdit);
+    // Update the type feedback vector
+    Handle<FixedArray> feedback_vector =
+        compile_info_wrapper.GetFeedbackVector();
+    shared_info->set_feedback_vector(*feedback_vector);
   }
 
   if (shared_info->debug_info()->IsDebugInfo()) {
@@ -1975,37 +1975,5 @@ void LiveEditFunctionTracker::RecordRootFunctionInfo(Handle<Code> code) {
 bool LiveEditFunctionTracker::IsActive(Isolate* isolate) {
   return isolate->active_function_info_listener() != NULL;
 }
-
-
-#else  // ENABLE_DEBUGGER_SUPPORT
-
-// This ifdef-else-endif section provides working or stub implementation of
-// LiveEditFunctionTracker.
-LiveEditFunctionTracker::LiveEditFunctionTracker(Isolate* isolate,
-                                                 FunctionLiteral* fun) {
-}
-
-
-LiveEditFunctionTracker::~LiveEditFunctionTracker() {
-}
-
-
-void LiveEditFunctionTracker::RecordFunctionInfo(
-    Handle<SharedFunctionInfo> info, FunctionLiteral* lit,
-    Zone* zone) {
-}
-
-
-void LiveEditFunctionTracker::RecordRootFunctionInfo(Handle<Code> code) {
-}
-
-
-bool LiveEditFunctionTracker::IsActive(Isolate* isolate) {
-  return false;
-}
-
-#endif  // ENABLE_DEBUGGER_SUPPORT
-
-
 
 } }  // namespace v8::internal

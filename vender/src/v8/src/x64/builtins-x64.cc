@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "v8.h"
 
@@ -163,13 +140,11 @@ static void Generate_JSConstructStubHelper(MacroAssembler* masm,
     if (FLAG_inline_new) {
       Label undo_allocation;
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
       ExternalReference debug_step_in_fp =
           ExternalReference::debug_step_in_fp_address(masm->isolate());
       __ Move(kScratchRegister, debug_step_in_fp);
       __ cmpp(Operand(kScratchRegister, 0), Immediate(0));
       __ j(not_equal, &rt_call);
-#endif
 
       // Verified that the constructor is a JSFunction.
       // Load the initial map and verify that it is in fact a map.
@@ -600,7 +575,7 @@ static void Generate_JSEntryTrampolineHelper(MacroAssembler* masm,
       // No type feedback cell is available
       __ LoadRoot(rbx, Heap::kUndefinedValueRootIndex);
       // Expects rdi to hold function pointer.
-      CallConstructStub stub(NO_CALL_FUNCTION_FLAGS);
+      CallConstructStub stub(masm->isolate(), NO_CALL_CONSTRUCTOR_FLAGS);
       __ CallStub(&stub);
     } else {
       ParameterCount actual(rax);
@@ -749,7 +724,7 @@ static void Generate_NotifyStubFailureHelper(MacroAssembler* masm,
     // Tear down internal frame.
   }
 
-  __ Pop(MemOperand(rsp, 0));  // Ignore state offset
+  __ DropUnderReturnAddress(1);  // Ignore state offset
   __ ret(0);  // Return to IC Miss stub, continuation still on stack.
 }
 
@@ -926,12 +901,13 @@ void Builtins::Generate_FunctionCall(MacroAssembler* masm) {
   __ bind(&shift_arguments);
   { Label loop;
     __ movp(rcx, rax);
+    StackArgumentsAccessor args(rsp, rcx);
     __ bind(&loop);
-    __ movp(rbx, Operand(rsp, rcx, times_pointer_size, 0));
-    __ movp(Operand(rsp, rcx, times_pointer_size, 1 * kPointerSize), rbx);
+    __ movp(rbx, args.GetArgumentOperand(1));
+    __ movp(args.GetArgumentOperand(0), rbx);
     __ decp(rcx);
-    __ j(not_sign, &loop);  // While non-negative (to copy return address).
-    __ popq(rbx);  // Discard copy of return address.
+    __ j(not_zero, &loop);  // While non-zero.
+    __ DropUnderReturnAddress(1, rbx);  // Drop one slot under return address.
     __ decp(rax);  // One fewer argument (first argument is new receiver).
   }
 

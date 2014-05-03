@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 /** \mainpage V8 API Reference Guide
  *
@@ -2522,7 +2499,7 @@ class PropertyCallbackInfo {
  public:
   V8_INLINE Isolate* GetIsolate() const;
   V8_INLINE Local<Value> Data() const;
-  V8_INLINE Local<Object> This() const;
+  V8_INLINE Local<Value> This() const;
   V8_INLINE Local<Object> Holder() const;
   V8_INLINE ReturnValue<T> GetReturnValue() const;
   // This shouldn't be public, but the arm compiler needs it.
@@ -4136,6 +4113,24 @@ class V8_EXPORT Isolate {
   };
 
   /**
+   * Do not run microtasks while this scope is active, even if microtasks are
+   * automatically executed otherwise.
+   */
+  class V8_EXPORT SuppressMicrotaskExecutionScope {
+   public:
+    explicit SuppressMicrotaskExecutionScope(Isolate* isolate);
+    ~SuppressMicrotaskExecutionScope();
+
+   private:
+    internal::Isolate* isolate_;
+
+    // Prevent copying of Scope objects.
+    SuppressMicrotaskExecutionScope(const SuppressMicrotaskExecutionScope&);
+    SuppressMicrotaskExecutionScope& operator=(
+        const SuppressMicrotaskExecutionScope&);
+  };
+
+  /**
    * Types of garbage collections that can be requested via
    * RequestGarbageCollectionForTesting.
    */
@@ -4383,6 +4378,22 @@ class V8_EXPORT Isolate {
    * Removes callback that was installed by AddCallCompletedCallback.
    */
   void RemoveCallCompletedCallback(CallCompletedCallback callback);
+
+  /**
+   * Experimental: Runs the Microtask Work Queue until empty
+   */
+  void RunMicrotasks();
+
+  /**
+   * Experimental: Enqueues the callback to the Microtask Work Queue
+   */
+  void EnqueueMicrotask(Handle<Function> microtask);
+
+   /**
+   * Experimental: Controls whether the Microtask Work Queue is automatically
+   * run when the script call depth decrements to zero.
+   */
+  void SetAutorunMicrotasks(bool autorun);
 
  private:
   template<class K, class V, class Traits> friend class PersistentValueMap;
@@ -4746,36 +4757,24 @@ class V8_EXPORT V8 {
   static void RemoveMemoryAllocationCallback(MemoryAllocationCallback callback);
 
   /**
-   * Adds a callback to notify the host application when a script finished
-   * running.  If a script re-enters the runtime during executing, the
-   * CallCompletedCallback is only invoked when the outer-most script
-   * execution ends.  Executing scripts inside the callback do not trigger
-   * further callbacks.
-   *
-   * Will be deprecated soon. Use Isolate::AddCallCompletedCallback.
-   */
-  static void AddCallCompletedCallback(CallCompletedCallback callback);
-
-  /**
-   * Removes callback that was installed by AddCallCompletedCallback.
-   *
-   * Will be deprecated soon. Use Isolate::RemoveCallCompletedCallback.
-   */
-  static void RemoveCallCompletedCallback(CallCompletedCallback callback);
-
-  /**
    * Experimental: Runs the Microtask Work Queue until empty
+   *
+   * Deprecated: Use methods on Isolate instead.
    */
   static void RunMicrotasks(Isolate* isolate);
 
   /**
    * Experimental: Enqueues the callback to the Microtask Work Queue
+   *
+   * Deprecated: Use methods on Isolate instead.
    */
   static void EnqueueMicrotask(Isolate* isolate, Handle<Function> microtask);
 
    /**
    * Experimental: Controls whether the Microtask Work Queue is automatically
    * run when the script call depth decrements to zero.
+   *
+   * Deprecated: Use methods on Isolate instead.
    */
   static void SetAutorunMicrotasks(Isolate *source, bool autorun);
 
@@ -5533,7 +5532,7 @@ class Internals {
   static const int kJSObjectHeaderSize = 3 * kApiPointerSize;
   static const int kFixedArrayHeaderSize = 2 * kApiPointerSize;
   static const int kContextHeaderSize = 2 * kApiPointerSize;
-  static const int kContextEmbedderDataIndex = 65;
+  static const int kContextEmbedderDataIndex = 74;
   static const int kFullStringRepresentationMask = 0x07;
   static const int kStringEncodingMask = 0x4;
   static const int kExternalTwoByteRepresentationTag = 0x02;
@@ -5545,7 +5544,7 @@ class Internals {
   static const int kNullValueRootIndex = 7;
   static const int kTrueValueRootIndex = 8;
   static const int kFalseValueRootIndex = 9;
-  static const int kEmptyStringRootIndex = 160;
+  static const int kEmptyStringRootIndex = 162;
 
   static const int kNodeClassIdOffset = 1 * kApiPointerSize;
   static const int kNodeFlagsOffset = 1 * kApiPointerSize + 3;
@@ -6495,8 +6494,8 @@ Local<Value> PropertyCallbackInfo<T>::Data() const {
 
 
 template<typename T>
-Local<Object> PropertyCallbackInfo<T>::This() const {
-  return Local<Object>(reinterpret_cast<Object*>(&args_[kThisIndex]));
+Local<Value> PropertyCallbackInfo<T>::This() const {
+  return Local<Value>(reinterpret_cast<Value*>(&args_[kThisIndex]));
 }
 
 

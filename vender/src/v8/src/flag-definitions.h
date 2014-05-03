@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 // This file defines all of the flags.  It is separated into different section,
 // for Debug, Release, Logging and Profiling, etc.  To add a new flag, find the
@@ -538,8 +515,8 @@ DEFINE_bool(trace_incremental_marking, false,
             "trace progress of the incremental marking")
 DEFINE_bool(track_gc_object_stats, false,
             "track object counts and memory usage")
-DEFINE_bool(parallel_sweeping, true, "enable parallel sweeping")
-DEFINE_bool(concurrent_sweeping, false, "enable concurrent sweeping")
+DEFINE_bool(parallel_sweeping, false, "enable parallel sweeping")
+DEFINE_bool(concurrent_sweeping, true, "enable concurrent sweeping")
 DEFINE_int(sweeper_threads, 0,
            "number of parallel and concurrent sweeping threads")
 DEFINE_bool(job_based_sweeping, false, "enable job based sweeping")
@@ -565,8 +542,6 @@ DEFINE_bool(native_code_counters, false,
 
 // mark-compact.cc
 DEFINE_bool(always_compact, false, "Perform compaction on every full GC")
-DEFINE_bool(lazy_sweeping, true,
-            "Use lazy sweeping for old pointer and data spaces")
 DEFINE_bool(never_compact, false,
             "Never perform compaction on full GC - testing only")
 DEFINE_bool(compact_code_space, true,
@@ -653,7 +628,13 @@ DEFINE_string(testing_serialization_file, "/tmp/serdes",
 
 // mksnapshot.cc
 DEFINE_string(extra_code, NULL, "A filename with extra code to be included in"
-                  " the snapshot (mksnapshot only)")
+                                " the snapshot (mksnapshot only)")
+DEFINE_string(raw_file, NULL, "A file to write the raw snapshot bytes to. "
+                              "(mksnapshot only)")
+DEFINE_string(raw_context_file, NULL, "A file to write the raw context "
+                                      "snapshot bytes to. (mksnapshot only)")
+DEFINE_bool(omit, false, "Omit raw snapshot bytes in generated code. "
+                         "(mksnapshot only)")
 
 // code-stubs-hydrogen.cc
 DEFINE_bool(profile_hydrogen_code_stub_compilation, false,
@@ -673,13 +654,11 @@ DEFINE_neg_implication(predictable, parallel_sweeping)
 DEFINE_bool(help, false, "Print usage message, including flags, on console")
 DEFINE_bool(dump_counters, false, "Dump counters on exit")
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
 DEFINE_bool(debugger, false, "Enable JavaScript debugger")
 DEFINE_bool(remote_debugger, false, "Connect JavaScript debugger to the "
                                     "debugger agent in another process")
 DEFINE_bool(debugger_agent, false, "Enable debugger agent")
 DEFINE_int(debugger_port, 5858, "Port to use for remote debugging")
-#endif  // ENABLE_DEBUGGER_SUPPORT
 
 DEFINE_string(map_counters, "", "Map counters to a file")
 DEFINE_args(js_arguments,

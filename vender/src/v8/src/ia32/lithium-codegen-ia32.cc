@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "v8.h"
 
@@ -41,9 +18,10 @@ namespace v8 {
 namespace internal {
 
 
-static SaveFPRegsMode GetSaveFPRegsMode() {
+static SaveFPRegsMode GetSaveFPRegsMode(Isolate* isolate) {
   // We don't need to save floating point regs when generating the snapshot
-  return CpuFeatures::IsSafeForSnapshot(SSE2) ? kSaveFPRegs : kDontSaveFPRegs;
+  return CpuFeatures::IsSafeForSnapshot(isolate, SSE2) ? kSaveFPRegs
+                                                       : kDontSaveFPRegs;
 }
 
 
@@ -108,13 +86,6 @@ void LCodeGen::FinishCode(Handle<Code> code) {
   if (!info()->IsStub()) {
     Deoptimizer::EnsureRelocSpaceForLazyDeoptimization(code);
   }
-  info()->CommitDependencies(code);
-}
-
-
-void LCodeGen::Abort(BailoutReason reason) {
-  info()->set_bailout_reason(reason);
-  status_ = ABORTED;
 }
 
 
@@ -293,7 +264,7 @@ bool LCodeGen::GeneratePrologue() {
     Comment(";;; Allocate local context");
     // Argument to NewContext is the function, which is still in edi.
     if (heap_slots <= FastNewContextStub::kMaximumSlots) {
-      FastNewContextStub stub(heap_slots);
+      FastNewContextStub stub(isolate(), heap_slots);
       __ CallStub(&stub);
     } else {
       __ push(edi);
@@ -406,7 +377,7 @@ void LCodeGen::GenerateBodyInstructionPost(LInstruction* instr) {
       x87_stack_.LeavingBlock(current_block_, LGoto::cast(instr));
     } else if (FLAG_debug_code && FLAG_enable_slow_asserts &&
                !instr->IsGap() && !instr->IsReturn()) {
-      if (instr->ClobbersDoubleRegisters()) {
+      if (instr->ClobbersDoubleRegisters(isolate())) {
         if (instr->HasDoubleRegisterResult()) {
           ASSERT_EQ(1, x87_stack_.depth());
         } else {
@@ -705,7 +676,7 @@ void LCodeGen::X87PrepareBinaryOp(
 
 
 void LCodeGen::X87Stack::FlushIfNecessary(LInstruction* instr, LCodeGen* cgen) {
-  if (stack_depth_ > 0 && instr->ClobbersDoubleRegisters()) {
+  if (stack_depth_ > 0 && instr->ClobbersDoubleRegisters(isolate())) {
     bool double_inputs = instr->HasDoubleRegisterInput();
 
     // Flush stack from tos down, since FreeX87() will mess with tos
@@ -1176,7 +1147,7 @@ void LCodeGen::PopulateDeoptimizationData(Handle<Code> code) {
   int length = deoptimizations_.length();
   if (length == 0) return;
   Handle<DeoptimizationInputData> data =
-      factory()->NewDeoptimizationInputData(length, TENURED);
+      DeoptimizationInputData::New(isolate(), length, TENURED);
 
   Handle<ByteArray> translations =
       translations_.CreateByteArray(isolate()->factory());
@@ -1350,18 +1321,18 @@ void LCodeGen::DoCallStub(LCallStub* instr) {
   ASSERT(ToRegister(instr->result()).is(eax));
   switch (instr->hydrogen()->major_key()) {
     case CodeStub::RegExpExec: {
-      RegExpExecStub stub;
-      CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
+      RegExpExecStub stub(isolate());
+      CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
       break;
     }
     case CodeStub::SubString: {
-      SubStringStub stub;
-      CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
+      SubStringStub stub(isolate());
+      CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
       break;
     }
     case CodeStub::StringCompare: {
-      StringCompareStub stub;
-      CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
+      StringCompareStub stub(isolate());
+      CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
       break;
     }
     default:
@@ -1992,7 +1963,7 @@ void LCodeGen::DoConstantD(LConstantD* instr) {
   int32_t upper = static_cast<int32_t>(int_val >> (kBitsPerInt));
   ASSERT(instr->result()->IsDoubleRegister());
 
-  if (!CpuFeatures::IsSafeForSnapshot(SSE2)) {
+  if (!CpuFeatures::IsSafeForSnapshot(isolate(), SSE2)) {
     __ push(Immediate(upper));
     __ push(Immediate(lower));
     X87Register reg = ToX87Register(instr->result());
@@ -2265,7 +2236,7 @@ void LCodeGen::DoMathMinMax(LMathMinMax* instr) {
 
 
 void LCodeGen::DoArithmeticD(LArithmeticD* instr) {
-  if (CpuFeatures::IsSafeForSnapshot(SSE2)) {
+  if (CpuFeatures::IsSafeForSnapshot(isolate(), SSE2)) {
     CpuFeatureScope scope(masm(), SSE2);
     XMMRegister left = ToDoubleRegister(instr->left());
     XMMRegister right = ToDoubleRegister(instr->right());
@@ -2357,8 +2328,8 @@ void LCodeGen::DoArithmeticT(LArithmeticT* instr) {
   ASSERT(ToRegister(instr->right()).is(eax));
   ASSERT(ToRegister(instr->result()).is(eax));
 
-  BinaryOpICStub stub(instr->op(), NO_OVERWRITE);
-  CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
+  BinaryOpICStub stub(isolate(), instr->op(), NO_OVERWRITE);
+  CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
 }
 
 
@@ -2510,7 +2481,7 @@ void LCodeGen::DoBranch(LBranch* instr) {
         __ cmp(FieldOperand(reg, HeapObject::kMapOffset),
                factory()->heap_number_map());
         __ j(not_equal, &not_heap_number, Label::kNear);
-        if (CpuFeatures::IsSafeForSnapshot(SSE2)) {
+        if (CpuFeatures::IsSafeForSnapshot(isolate(), SSE2)) {
           CpuFeatureScope scope(masm(), SSE2);
           XMMRegister xmm_scratch = double_scratch0();
           __ xorps(xmm_scratch, xmm_scratch);
@@ -2597,7 +2568,7 @@ void LCodeGen::DoCompareNumericAndBranch(LCompareNumericAndBranch* instr) {
     EmitGoto(next_block);
   } else {
     if (instr->is_double()) {
-      if (CpuFeatures::IsSafeForSnapshot(SSE2)) {
+      if (CpuFeatures::IsSafeForSnapshot(isolate(), SSE2)) {
         CpuFeatureScope scope(masm(), SSE2);
         __ ucomisd(ToDoubleRegister(left), ToDoubleRegister(right));
       } else {
@@ -2975,8 +2946,8 @@ void LCodeGen::DoCmpMapAndBranch(LCmpMapAndBranch* instr) {
 void LCodeGen::DoInstanceOf(LInstanceOf* instr) {
   // Object and function are in fixed registers defined by the stub.
   ASSERT(ToRegister(instr->context()).is(esi));
-  InstanceofStub stub(InstanceofStub::kArgsInRegisters);
-  CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
+  InstanceofStub stub(isolate(), InstanceofStub::kArgsInRegisters);
+  CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
 
   Label true_value, done;
   __ test(eax, Operand(eax));
@@ -3064,7 +3035,7 @@ void LCodeGen::DoDeferredInstanceOfKnownGlobal(LInstanceOfKnownGlobal* instr,
       flags | InstanceofStub::kCallSiteInlineCheck);
   flags = static_cast<InstanceofStub::Flags>(
       flags | InstanceofStub::kReturnTrueFalseObject);
-  InstanceofStub stub(flags);
+  InstanceofStub stub(isolate(), flags);
 
   // Get the temp register reserved by the instruction. This needs to be a
   // register which is pushed last by PushSafepointRegisters as top of the
@@ -3077,7 +3048,7 @@ void LCodeGen::DoDeferredInstanceOfKnownGlobal(LInstanceOfKnownGlobal* instr,
   int delta = masm_->SizeOfCodeGeneratedSince(map_check) + kAdditionalDelta;
   __ mov(temp, Immediate(delta));
   __ StoreToSafepointRegisterSlot(temp, temp);
-  CallCodeGeneric(stub.GetCode(isolate()),
+  CallCodeGeneric(stub.GetCode(),
                   RelocInfo::CODE_TARGET,
                   instr,
                   RECORD_SAFEPOINT_WITH_REGISTERS_AND_NO_ARGUMENTS);
@@ -3273,7 +3244,7 @@ void LCodeGen::DoStoreContextSlot(LStoreContextSlot* instr) {
                               offset,
                               value,
                               temp,
-                              GetSaveFPRegsMode(),
+                              GetSaveFPRegsMode(isolate()),
                               EMIT_REMEMBERED_SET,
                               check_needed);
   }
@@ -4167,7 +4138,7 @@ void LCodeGen::DoPower(LPower* instr) {
   ASSERT(ToDoubleRegister(instr->result()).is(xmm3));
 
   if (exponent_type.IsSmi()) {
-    MathPowStub stub(MathPowStub::TAGGED);
+    MathPowStub stub(isolate(), MathPowStub::TAGGED);
     __ CallStub(&stub);
   } else if (exponent_type.IsTagged()) {
     Label no_deopt;
@@ -4175,14 +4146,14 @@ void LCodeGen::DoPower(LPower* instr) {
     __ CmpObjectType(eax, HEAP_NUMBER_TYPE, ecx);
     DeoptimizeIf(not_equal, instr->environment());
     __ bind(&no_deopt);
-    MathPowStub stub(MathPowStub::TAGGED);
+    MathPowStub stub(isolate(), MathPowStub::TAGGED);
     __ CallStub(&stub);
   } else if (exponent_type.IsInteger32()) {
-    MathPowStub stub(MathPowStub::INTEGER);
+    MathPowStub stub(isolate(), MathPowStub::INTEGER);
     __ CallStub(&stub);
   } else {
     ASSERT(exponent_type.IsDouble());
-    MathPowStub stub(MathPowStub::DOUBLE);
+    MathPowStub stub(isolate(), MathPowStub::DOUBLE);
     __ CallStub(&stub);
   }
 }
@@ -4275,8 +4246,8 @@ void LCodeGen::DoCallFunction(LCallFunction* instr) {
   ASSERT(ToRegister(instr->result()).is(eax));
 
   int arity = instr->arity();
-  CallFunctionStub stub(arity, instr->hydrogen()->function_flags());
-  CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
+  CallFunctionStub stub(isolate(), arity, instr->hydrogen()->function_flags());
+  CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
 }
 
 
@@ -4287,9 +4258,9 @@ void LCodeGen::DoCallNew(LCallNew* instr) {
 
   // No cell in ebx for construct type feedback in optimized code
   __ mov(ebx, isolate()->factory()->undefined_value());
-  CallConstructStub stub(NO_CALL_FUNCTION_FLAGS);
+  CallConstructStub stub(isolate(), NO_CALL_CONSTRUCTOR_FLAGS);
   __ Move(eax, Immediate(instr->arity()));
-  CallCode(stub.GetCode(isolate()), RelocInfo::CONSTRUCT_CALL, instr);
+  CallCode(stub.GetCode(), RelocInfo::CONSTRUCT_CALL, instr);
 }
 
 
@@ -4307,8 +4278,8 @@ void LCodeGen::DoCallNewArray(LCallNewArray* instr) {
           : DONT_OVERRIDE;
 
   if (instr->arity() == 0) {
-    ArrayNoArgumentConstructorStub stub(kind, override_mode);
-    CallCode(stub.GetCode(isolate()), RelocInfo::CONSTRUCT_CALL, instr);
+    ArrayNoArgumentConstructorStub stub(isolate(), kind, override_mode);
+    CallCode(stub.GetCode(), RelocInfo::CONSTRUCT_CALL, instr);
   } else if (instr->arity() == 1) {
     Label done;
     if (IsFastPackedElementsKind(kind)) {
@@ -4320,18 +4291,20 @@ void LCodeGen::DoCallNewArray(LCallNewArray* instr) {
       __ j(zero, &packed_case, Label::kNear);
 
       ElementsKind holey_kind = GetHoleyElementsKind(kind);
-      ArraySingleArgumentConstructorStub stub(holey_kind, override_mode);
-      CallCode(stub.GetCode(isolate()), RelocInfo::CONSTRUCT_CALL, instr);
+      ArraySingleArgumentConstructorStub stub(isolate(),
+                                              holey_kind,
+                                              override_mode);
+      CallCode(stub.GetCode(), RelocInfo::CONSTRUCT_CALL, instr);
       __ jmp(&done, Label::kNear);
       __ bind(&packed_case);
     }
 
-    ArraySingleArgumentConstructorStub stub(kind, override_mode);
-    CallCode(stub.GetCode(isolate()), RelocInfo::CONSTRUCT_CALL, instr);
+    ArraySingleArgumentConstructorStub stub(isolate(), kind, override_mode);
+    CallCode(stub.GetCode(), RelocInfo::CONSTRUCT_CALL, instr);
     __ bind(&done);
   } else {
-    ArrayNArgumentsConstructorStub stub(kind, override_mode);
-    CallCode(stub.GetCode(isolate()), RelocInfo::CONSTRUCT_CALL, instr);
+    ArrayNArgumentsConstructorStub stub(isolate(), kind, override_mode);
+    CallCode(stub.GetCode(), RelocInfo::CONSTRUCT_CALL, instr);
   }
 }
 
@@ -4364,7 +4337,7 @@ void LCodeGen::DoInnerAllocatedObject(LInnerAllocatedObject* instr) {
 
 
 void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
-  Representation representation = instr->representation();
+  Representation representation = instr->hydrogen()->field_representation();
 
   HObjectAccess access = instr->hydrogen()->access();
   int offset = access.offset();
@@ -4386,7 +4359,6 @@ void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
   }
 
   Register object = ToRegister(instr->object());
-  Handle<Map> transition = instr->transition();
   SmiCheck check_needed =
       instr->hydrogen()->value()->IsHeapObject()
           ? OMIT_SMI_CHECK : INLINE_SMI_CHECK;
@@ -4411,8 +4383,8 @@ void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
       }
     }
   } else if (representation.IsDouble()) {
-    ASSERT(transition.is_null());
     ASSERT(access.IsInobject());
+    ASSERT(!instr->hydrogen()->has_transition());
     ASSERT(!instr->hydrogen()->NeedsWriteBarrier());
     if (CpuFeatures::IsSupported(SSE2)) {
       CpuFeatureScope scope(masm(), SSE2);
@@ -4425,7 +4397,9 @@ void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
     return;
   }
 
-  if (!transition.is_null()) {
+  if (instr->hydrogen()->has_transition()) {
+    Handle<Map> transition = instr->hydrogen()->transition_map();
+    AddDeprecationDependency(transition);
     if (!instr->hydrogen()->NeedsWriteBarrierForMap()) {
       __ mov(FieldOperand(object, HeapObject::kMapOffset), transition);
     } else {
@@ -4438,7 +4412,7 @@ void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
                           HeapObject::kMapOffset,
                           temp_map,
                           temp,
-                          GetSaveFPRegsMode(),
+                          GetSaveFPRegsMode(isolate()),
                           OMIT_REMEMBERED_SET,
                           OMIT_SMI_CHECK);
     }
@@ -4479,7 +4453,7 @@ void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
                         offset,
                         value,
                         temp,
-                        GetSaveFPRegsMode(),
+                        GetSaveFPRegsMode(isolate()),
                         EMIT_REMEMBERED_SET,
                         check_needed);
   }
@@ -4497,34 +4471,27 @@ void LCodeGen::DoStoreNamedGeneric(LStoreNamedGeneric* instr) {
 }
 
 
-void LCodeGen::ApplyCheckIf(Condition cc, LBoundsCheck* check) {
-  if (FLAG_debug_code && check->hydrogen()->skip_check()) {
+void LCodeGen::DoBoundsCheck(LBoundsCheck* instr) {
+  Condition cc = instr->hydrogen()->allow_equality() ? above : above_equal;
+  if (instr->index()->IsConstantOperand()) {
+    __ cmp(ToOperand(instr->length()),
+           ToImmediate(LConstantOperand::cast(instr->index()),
+                       instr->hydrogen()->length()->representation()));
+    cc = ReverseCondition(cc);
+  } else if (instr->length()->IsConstantOperand()) {
+    __ cmp(ToOperand(instr->index()),
+           ToImmediate(LConstantOperand::cast(instr->length()),
+                       instr->hydrogen()->index()->representation()));
+  } else {
+    __ cmp(ToRegister(instr->index()), ToOperand(instr->length()));
+  }
+  if (FLAG_debug_code && instr->hydrogen()->skip_check()) {
     Label done;
     __ j(NegateCondition(cc), &done, Label::kNear);
     __ int3();
     __ bind(&done);
   } else {
-    DeoptimizeIf(cc, check->environment());
-  }
-}
-
-
-void LCodeGen::DoBoundsCheck(LBoundsCheck* instr) {
-  if (instr->hydrogen()->skip_check() && !FLAG_debug_code) return;
-
-  if (instr->index()->IsConstantOperand()) {
-    Immediate immediate =
-        ToImmediate(LConstantOperand::cast(instr->index()),
-                    instr->hydrogen()->length()->representation());
-    __ cmp(ToOperand(instr->length()), immediate);
-    Condition condition =
-        instr->hydrogen()->allow_equality() ? below : below_equal;
-    ApplyCheckIf(condition, instr);
-  } else {
-    __ cmp(ToRegister(instr->index()), ToOperand(instr->length()));
-    Condition condition =
-        instr->hydrogen()->allow_equality() ? above : above_equal;
-    ApplyCheckIf(condition, instr);
+    DeoptimizeIf(cc, instr->environment());
   }
 }
 
@@ -4546,7 +4513,7 @@ void LCodeGen::DoStoreKeyedExternalArray(LStoreKeyed* instr) {
       instr->additional_index()));
   if (elements_kind == EXTERNAL_FLOAT32_ELEMENTS ||
       elements_kind == FLOAT32_ELEMENTS) {
-    if (CpuFeatures::IsSafeForSnapshot(SSE2)) {
+    if (CpuFeatures::IsSafeForSnapshot(isolate(), SSE2)) {
       CpuFeatureScope scope(masm(), SSE2);
       XMMRegister xmm_scratch = double_scratch0();
       __ cvtsd2ss(xmm_scratch, ToDoubleRegister(instr->value()));
@@ -4557,7 +4524,7 @@ void LCodeGen::DoStoreKeyedExternalArray(LStoreKeyed* instr) {
     }
   } else if (elements_kind == EXTERNAL_FLOAT64_ELEMENTS ||
              elements_kind == FLOAT64_ELEMENTS) {
-    if (CpuFeatures::IsSafeForSnapshot(SSE2)) {
+    if (CpuFeatures::IsSafeForSnapshot(isolate(), SSE2)) {
       CpuFeatureScope scope(masm(), SSE2);
       __ movsd(operand, ToDoubleRegister(instr->value()));
     } else {
@@ -4616,7 +4583,7 @@ void LCodeGen::DoStoreKeyedFixedDoubleArray(LStoreKeyed* instr) {
       FixedDoubleArray::kHeaderSize - kHeapObjectTag,
       instr->additional_index());
 
-  if (CpuFeatures::IsSafeForSnapshot(SSE2)) {
+  if (CpuFeatures::IsSafeForSnapshot(isolate(), SSE2)) {
     CpuFeatureScope scope(masm(), SSE2);
     XMMRegister value = ToDoubleRegister(instr->value());
 
@@ -4718,7 +4685,7 @@ void LCodeGen::DoStoreKeyedFixedArray(LStoreKeyed* instr) {
     __ RecordWrite(elements,
                    key,
                    value,
-                   GetSaveFPRegsMode(),
+                   GetSaveFPRegsMode(isolate()),
                    EMIT_REMEMBERED_SET,
                    check_needed);
   }
@@ -4790,7 +4757,7 @@ void LCodeGen::DoTransitionElementsKind(LTransitionElementsKind* instr) {
     PushSafepointRegistersScope scope(this);
     __ mov(ebx, to_map);
     bool is_js_array = from_map->instance_type() == JS_ARRAY_TYPE;
-    TransitionElementsKindStub stub(from_kind, to_kind, is_js_array);
+    TransitionElementsKindStub stub(isolate(), from_kind, to_kind, is_js_array);
     __ CallStub(&stub);
     RecordSafepointWithLazyDeopt(instr,
         RECORD_SAFEPOINT_WITH_REGISTERS_AND_NO_ARGUMENTS);
@@ -4914,9 +4881,10 @@ void LCodeGen::DoStringAdd(LStringAdd* instr) {
   ASSERT(ToRegister(instr->context()).is(esi));
   ASSERT(ToRegister(instr->left()).is(edx));
   ASSERT(ToRegister(instr->right()).is(eax));
-  StringAddStub stub(instr->hydrogen()->flags(),
+  StringAddStub stub(isolate(),
+                     instr->hydrogen()->flags(),
                      instr->hydrogen()->pretenure_flag());
-  CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
+  CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
 }
 
 
@@ -5454,7 +5422,7 @@ void LCodeGen::DoDoubleToI(LDoubleToI* instr) {
   Register result_reg = ToRegister(result);
 
   if (instr->truncating()) {
-    if (CpuFeatures::IsSafeForSnapshot(SSE2)) {
+    if (CpuFeatures::IsSafeForSnapshot(isolate(), SSE2)) {
       CpuFeatureScope scope(masm(), SSE2);
       XMMRegister input_reg = ToDoubleRegister(input);
       __ TruncateDoubleToI(result_reg, input_reg);
@@ -5465,7 +5433,7 @@ void LCodeGen::DoDoubleToI(LDoubleToI* instr) {
     }
   } else {
     Label bailout, done;
-    if (CpuFeatures::IsSafeForSnapshot(SSE2)) {
+    if (CpuFeatures::IsSafeForSnapshot(isolate(), SSE2)) {
       CpuFeatureScope scope(masm(), SSE2);
       XMMRegister input_reg = ToDoubleRegister(input);
       XMMRegister xmm_scratch = double_scratch0();
@@ -5493,7 +5461,7 @@ void LCodeGen::DoDoubleToSmi(LDoubleToSmi* instr) {
   Register result_reg = ToRegister(result);
 
   Label bailout, done;
-  if (CpuFeatures::IsSafeForSnapshot(SSE2)) {
+  if (CpuFeatures::IsSafeForSnapshot(isolate(), SSE2)) {
     CpuFeatureScope scope(masm(), SSE2);
     XMMRegister input_reg = ToDoubleRegister(input);
     XMMRegister xmm_scratch = double_scratch0();
@@ -5638,15 +5606,15 @@ void LCodeGen::DoCheckMaps(LCheckMaps* instr) {
     __ bind(deferred->check_maps());
   }
 
-  UniqueSet<Map> map_set = instr->hydrogen()->map_set();
+  const UniqueSet<Map>* map_set = instr->hydrogen()->map_set();
   Label success;
-  for (int i = 0; i < map_set.size() - 1; i++) {
-    Handle<Map> map = map_set.at(i).handle();
+  for (int i = 0; i < map_set->size() - 1; i++) {
+    Handle<Map> map = map_set->at(i).handle();
     __ CompareMap(reg, map);
     __ j(equal, &success, Label::kNear);
   }
 
-  Handle<Map> map = map_set.at(map_set.size() - 1).handle();
+  Handle<Map> map = map_set->at(map_set->size() - 1).handle();
   __ CompareMap(reg, map);
   if (instr->hydrogen()->has_migration_target()) {
     __ j(not_equal, deferred->entry());
@@ -6050,10 +6018,11 @@ void LCodeGen::DoFunctionLiteral(LFunctionLiteral* instr) {
   // space for nested functions that don't need literals cloning.
   bool pretenure = instr->hydrogen()->pretenure();
   if (!pretenure && instr->hydrogen()->has_no_literals()) {
-    FastNewClosureStub stub(instr->hydrogen()->strict_mode(),
+    FastNewClosureStub stub(isolate(),
+                            instr->hydrogen()->strict_mode(),
                             instr->hydrogen()->is_generator());
     __ mov(ebx, Immediate(instr->hydrogen()->shared_info()));
-    CallCode(stub.GetCode(isolate()), RelocInfo::CODE_TARGET, instr);
+    CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
   } else {
     __ push(esi);
     __ push(Immediate(instr->hydrogen()->shared_info()));

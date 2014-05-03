@@ -109,6 +109,9 @@
     <Filter Include="Source Files\win_iconv">
       <UniqueIdentifier>{16b7dd26-1027-497e-9b92-ca32c58b4f06}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\v8\src\base">
+      <UniqueIdentifier>{4b94d01a-5108-4813-964a-30ef3a3126cf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zlib\adler32.c">
@@ -1257,16 +1260,10 @@
     <ClCompile Include="src\v8\src\v8.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\v8\src\v8conversions.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
     <ClCompile Include="src\v8\src\v8-counters.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
     <ClCompile Include="src\v8\src\v8threads.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\v8utils.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
     <ClCompile Include="src\v8\src\variables.cc">
@@ -2642,9 +2639,6 @@
     <ClInclude Include="src\v8\src\v8checks.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\v8\src\v8conversions.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
     <ClInclude Include="src\v8\src\v8-counters.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
@@ -2655,9 +2649,6 @@
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\v8threads.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\v8utils.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\variables.h">
@@ -2935,6 +2926,12 @@
     </ClInclude>
     <ClInclude Include="include\win_iconv.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\base\macros.h">
+      <Filter>Source Files\v8\src\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\vector.h">
+      <Filter>Source Files\v8\src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

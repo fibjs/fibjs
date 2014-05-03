@@ -66,6 +66,7 @@ class Descriptor BASE_EMBEDDED {
         details_(attributes, type, representation, field_index) { }
 
   friend class DescriptorArray;
+  friend class Map;
 };
 
 
@@ -344,7 +345,8 @@ class LookupResult V8_FINAL BASE_EMBEDDED {
             return true;
           case CALLBACKS: {
             Object* callback = GetCallbackObject();
-            return callback->IsAccessorInfo() || callback->IsForeign();
+            ASSERT(!callback->IsForeign());
+            return callback->IsAccessorInfo();
           }
           case HANDLER:
           case INTERCEPTOR:

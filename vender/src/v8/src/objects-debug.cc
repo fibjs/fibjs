@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "v8.h"
 
@@ -37,16 +14,6 @@ namespace v8 {
 namespace internal {
 
 #ifdef VERIFY_HEAP
-
-void MaybeObject::Verify() {
-  Object* this_as_object;
-  if (ToObject(&this_as_object)) {
-    this_as_object->ObjectVerify();
-  } else {
-    Failure::cast(this)->FailureVerify();
-  }
-}
-
 
 void Object::ObjectVerify() {
   if (IsSmi()) {
@@ -68,11 +35,6 @@ void Object::VerifyPointer(Object* p) {
 
 void Smi::SmiVerify() {
   CHECK(IsSmi());
-}
-
-
-void Failure::FailureVerify() {
-  CHECK(IsFailure());
 }
 
 
@@ -385,7 +347,6 @@ void PolymorphicCodeCache::PolymorphicCodeCacheVerify() {
 void TypeFeedbackInfo::TypeFeedbackInfoVerify() {
   VerifyObjectField(kStorage1Offset);
   VerifyObjectField(kStorage2Offset);
-  VerifyHeapPointer(feedback_vector());
 }
 
 
@@ -566,6 +527,7 @@ void SharedFunctionInfo::SharedFunctionInfoVerify() {
   VerifyObjectField(kNameOffset);
   VerifyObjectField(kCodeOffset);
   VerifyObjectField(kOptimizedCodeMapOffset);
+  VerifyObjectField(kFeedbackVectorOffset);
   VerifyObjectField(kScopeInfoOffset);
   VerifyObjectField(kInstanceClassNameOffset);
   VerifyObjectField(kFunctionDataOffset);
@@ -618,7 +580,7 @@ void Oddball::OddballVerify() {
     CHECK(number->IsSmi());
     int value = Smi::cast(number)->value();
     // Hidden oddballs have negative smis.
-    const int kLeastHiddenOddballNumber = -4;
+    const int kLeastHiddenOddballNumber = -5;
     CHECK_LE(value, 1);
     CHECK(value >= kLeastHiddenOddballNumber);
   }
@@ -639,6 +601,8 @@ void Oddball::OddballVerify() {
     CHECK(this == heap->arguments_marker());
   } else if (map() == heap->termination_exception_map()) {
     CHECK(this == heap->termination_exception());
+  } else if (map() == heap->exception_map()) {
+    CHECK(this == heap->exception());
   } else {
     UNREACHABLE();
   }
@@ -676,6 +640,9 @@ void Code::CodeVerify() {
 
 void Code::VerifyEmbeddedObjectsDependency() {
   if (!CanContainWeakObjects()) return;
+  DisallowHeapAllocation no_gc;
+  Isolate* isolate = GetIsolate();
+  HandleScope scope(isolate);
   int mode_mask = RelocInfo::ModeMask(RelocInfo::EMBEDDED_OBJECT);
   for (RelocIterator it(this, mode_mask); !it.done(); it.next()) {
     Object* obj = it.rinfo()->target_object();
@@ -688,7 +655,8 @@ void Code::VerifyEmbeddedObjectsDependency() {
       } else if (obj->IsJSObject()) {
         Object* raw_table = GetIsolate()->heap()->weak_object_to_code_table();
         WeakHashTable* table = WeakHashTable::cast(raw_table);
-        CHECK(DependentCode::cast(table->Lookup(obj))->Contains(
+        Handle<Object> key_obj(obj, isolate);
+        CHECK(DependentCode::cast(table->Lookup(key_obj))->Contains(
             DependentCode::kWeakCodeGroup, this));
       }
     }
@@ -1047,7 +1015,7 @@ void NormalizedMapCache::NormalizedMapCacheVerify() {
   FixedArray::cast(this)->FixedArrayVerify();
   if (FLAG_enable_slow_asserts) {
     for (int i = 0; i < length(); i++) {
-      Object* e = get(i);
+      Object* e = FixedArray::get(i);
       if (e->IsMap()) {
         Map::cast(e)->SharedMapVerify();
       } else {
@@ -1058,7 +1026,6 @@ void NormalizedMapCache::NormalizedMapCacheVerify() {
 }
 
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
 void DebugInfo::DebugInfoVerify() {
   CHECK(IsDebugInfo());
   VerifyPointer(shared());
@@ -1075,7 +1042,6 @@ void BreakPointInfo::BreakPointInfoVerify() {
   statement_position()->SmiVerify();
   VerifyPointer(break_point_objects());
 }
-#endif  // ENABLE_DEBUGGER_SUPPORT
 #endif  // VERIFY_HEAP
 
 #ifdef DEBUG

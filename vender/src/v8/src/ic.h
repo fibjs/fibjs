@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef V8_IC_H_
 #define V8_IC_H_
@@ -42,6 +19,7 @@ const int kMaxKeyedPolymorphism = 4;
 #define IC_UTIL_LIST(ICU)                             \
   ICU(LoadIC_Miss)                                    \
   ICU(KeyedLoadIC_Miss)                               \
+  ICU(CallIC_Miss)                                    \
   ICU(StoreIC_Miss)                                   \
   ICU(StoreIC_ArrayLength)                            \
   ICU(StoreIC_Slow)                                   \
@@ -127,6 +105,10 @@ class IC {
   bool IsStoreStub() const {
     return target()->is_store_stub() || target()->is_keyed_store_stub();
   }
+
+  bool IsCallStub() const {
+    return target()->is_call_stub();
+  }
 #endif
 
   // Determines which map must be used for keeping the code stub.
@@ -170,14 +152,12 @@ class IC {
   Address pc() const { return *pc_address_; }
   Isolate* isolate() const { return isolate_; }
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
   // Get the shared function info of the caller.
   SharedFunctionInfo* GetSharedFunctionInfo() const;
   // Get the code object of the caller.
   Code* GetCode() const;
   // Get the original (non-breakpointed) code object of the caller.
   Code* GetOriginalCode() const;
-#endif
 
   // Set the call-site target.
   void set_target(Code* code) {
@@ -347,6 +327,78 @@ class IC_Utility {
  private:
   Address address_;
   IC::UtilityId id_;
+};
+
+
+class CallIC: public IC {
+ public:
+  enum CallType { METHOD, FUNCTION };
+
+  class State V8_FINAL BASE_EMBEDDED {
+   public:
+    explicit State(ExtraICState extra_ic_state);
+
+    static State DefaultCallState(int argc, CallType call_type) {
+      return State(argc, call_type);
+    }
+
+    static State MegamorphicCallState(int argc, CallType call_type) {
+      return State(argc, call_type);
+    }
+
+    InlineCacheState GetICState() const { return ::v8::internal::GENERIC; }
+
+    ExtraICState GetExtraICState() const;
+
+    static void GenerateAheadOfTime(
+        Isolate*, void (*Generate)(Isolate*, const State&));
+
+    int arg_count() const { return argc_; }
+    CallType call_type() const { return call_type_; }
+
+    bool CallAsMethod() const { return call_type_ == METHOD; }
+
+    void Print(StringStream* stream) const;
+
+    bool operator==(const State& other_state) const {
+      return (argc_ == other_state.argc_ &&
+              call_type_ == other_state.call_type_);
+    }
+
+    bool operator!=(const State& other_state) const {
+      return !(*this == other_state);
+    }
+
+   private:
+    State(int argc,
+          CallType call_type)
+        : argc_(argc),
+        call_type_(call_type) {
+    }
+
+    class ArgcBits: public BitField<int, 0, Code::kArgumentsBits> {};
+    class CallTypeBits: public BitField<CallType, Code::kArgumentsBits, 1> {};
+
+    const int argc_;
+    const CallType call_type_;
+  };
+
+  explicit CallIC(Isolate* isolate)
+      : IC(EXTRA_CALL_FRAME, isolate) {
+  }
+
+  void HandleMiss(Handle<Object> receiver,
+                  Handle<Object> function,
+                  Handle<FixedArray> vector,
+                  Handle<Smi> slot);
+
+  // Code generator routines.
+  static Handle<Code> initialize_stub(Isolate* isolate,
+                                      int argc,
+                                      CallType call_type);
+
+  static void Clear(Isolate* isolate, Address address, Code* target,
+                    ConstantPoolArray* constant_pool);
 };
 
 
@@ -743,11 +795,11 @@ class BinaryOpIC: public IC {
  public:
   class State V8_FINAL BASE_EMBEDDED {
    public:
-    explicit State(ExtraICState extra_ic_state);
+    State(Isolate* isolate, ExtraICState extra_ic_state);
 
-    State(Token::Value op, OverwriteMode mode)
+    State(Isolate* isolate, Token::Value op, OverwriteMode mode)
         : op_(op), mode_(mode), left_kind_(NONE), right_kind_(NONE),
-          result_kind_(NONE) {
+          result_kind_(NONE), isolate_(isolate) {
       ASSERT_LE(FIRST_TOKEN, op);
       ASSERT_LE(op, LAST_TOKEN);
     }
@@ -824,6 +876,8 @@ class BinaryOpIC: public IC {
                 Handle<Object> right,
                 Handle<Object> result);
 
+    Isolate* isolate() const { return isolate_; }
+
    private:
     enum Kind { NONE, SMI, INT32, NUMBER, STRING, GENERIC };
 
@@ -854,6 +908,7 @@ class BinaryOpIC: public IC {
     Kind right_kind_;
     Kind result_kind_;
     Maybe<int> fixed_right_arg_;
+    Isolate* isolate_;
   };
 
   explicit BinaryOpIC(Isolate* isolate) : IC(EXTRA_CALL_FRAME, isolate) { }
@@ -969,15 +1024,15 @@ class ToBooleanIC: public IC {
 enum InlinedSmiCheck { ENABLE_INLINED_SMI_CHECK, DISABLE_INLINED_SMI_CHECK };
 void PatchInlinedSmiCode(Address address, InlinedSmiCheck check);
 
-DECLARE_RUNTIME_FUNCTION(MaybeObject*, KeyedLoadIC_MissFromStubFailure);
-DECLARE_RUNTIME_FUNCTION(MaybeObject*, KeyedStoreIC_MissFromStubFailure);
-DECLARE_RUNTIME_FUNCTION(MaybeObject*, UnaryOpIC_Miss);
-DECLARE_RUNTIME_FUNCTION(MaybeObject*, StoreIC_MissFromStubFailure);
-DECLARE_RUNTIME_FUNCTION(MaybeObject*, ElementsTransitionAndStoreIC_Miss);
-DECLARE_RUNTIME_FUNCTION(MaybeObject*, BinaryOpIC_Miss);
-DECLARE_RUNTIME_FUNCTION(MaybeObject*, BinaryOpIC_MissWithAllocationSite);
-DECLARE_RUNTIME_FUNCTION(MaybeObject*, CompareNilIC_Miss);
-DECLARE_RUNTIME_FUNCTION(MaybeObject*, ToBooleanIC_Miss);
+DECLARE_RUNTIME_FUNCTION(KeyedLoadIC_MissFromStubFailure);
+DECLARE_RUNTIME_FUNCTION(KeyedStoreIC_MissFromStubFailure);
+DECLARE_RUNTIME_FUNCTION(UnaryOpIC_Miss);
+DECLARE_RUNTIME_FUNCTION(StoreIC_MissFromStubFailure);
+DECLARE_RUNTIME_FUNCTION(ElementsTransitionAndStoreIC_Miss);
+DECLARE_RUNTIME_FUNCTION(BinaryOpIC_Miss);
+DECLARE_RUNTIME_FUNCTION(BinaryOpIC_MissWithAllocationSite);
+DECLARE_RUNTIME_FUNCTION(CompareNilIC_Miss);
+DECLARE_RUNTIME_FUNCTION(ToBooleanIC_Miss);
 
 
 } }  // namespace v8::internal

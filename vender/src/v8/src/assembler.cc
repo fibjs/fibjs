@@ -39,6 +39,7 @@
 #include "builtins.h"
 #include "counters.h"
 #include "cpu.h"
+#include "cpu-profiler.h"
 #include "debug.h"
 #include "deoptimizer.h"
 #include "execution.h"
@@ -190,7 +191,7 @@ PredictableCodeSizeScope::~PredictableCodeSizeScope() {
 #ifdef DEBUG
 CpuFeatureScope::CpuFeatureScope(AssemblerBase* assembler, CpuFeature f)
     : assembler_(assembler) {
-  ASSERT(CpuFeatures::IsSafeForSnapshot(f));
+  ASSERT(CpuFeatures::IsSafeForSnapshot(assembler_->isolate(), f));
   old_enabled_ = assembler_->enabled_cpu_features();
   uint64_t mask = static_cast<uint64_t>(1) << f;
   // TODO(svenpanne) This special case below doesn't belong here!
@@ -213,13 +214,14 @@ CpuFeatureScope::~CpuFeatureScope() {
 // -----------------------------------------------------------------------------
 // Implementation of PlatformFeatureScope
 
-PlatformFeatureScope::PlatformFeatureScope(CpuFeature f)
-    : old_cross_compile_(CpuFeatures::cross_compile_) {
+PlatformFeatureScope::PlatformFeatureScope(Isolate* isolate, CpuFeature f)
+    : isolate_(isolate), old_cross_compile_(CpuFeatures::cross_compile_) {
   // CpuFeatures is a global singleton, therefore this is only safe in
   // single threaded code.
-  ASSERT(Serializer::enabled());
+  ASSERT(Serializer::enabled(isolate));
   uint64_t mask = static_cast<uint64_t>(1) << f;
   CpuFeatures::cross_compile_ |= mask;
+  USE(isolate_);
 }
 
 
@@ -779,9 +781,6 @@ const char* RelocInfo::RelocModeName(RelocInfo::Mode rmode) {
     case RelocInfo::CONSTRUCT_CALL:
       return "code target (js construct call)";
     case RelocInfo::DEBUG_BREAK:
-#ifndef ENABLE_DEBUGGER_SUPPORT
-      UNREACHABLE();
-#endif
       return "debug break";
     case RelocInfo::CODE_TARGET:
       return "code target";
@@ -808,9 +807,6 @@ const char* RelocInfo::RelocModeName(RelocInfo::Mode rmode) {
     case RelocInfo::VENEER_POOL:
       return "veneer pool";
     case RelocInfo::DEBUG_BREAK_SLOT:
-#ifndef ENABLE_DEBUGGER_SUPPORT
-      UNREACHABLE();
-#endif
       return "debug break slot";
     case RelocInfo::CODE_AGE_SEQUENCE:
       return "code_age_sequence";
@@ -869,10 +865,6 @@ void RelocInfo::Verify() {
       Object::VerifyPointer(target_cell());
       break;
     case DEBUG_BREAK:
-#ifndef ENABLE_DEBUGGER_SUPPORT
-      UNREACHABLE();
-      break;
-#endif
     case CONSTRUCT_CALL:
     case CODE_TARGET_WITH_ID:
     case CODE_TARGET: {
@@ -1014,11 +1006,9 @@ ExternalReference::ExternalReference(const IC_Utility& ic_utility,
                                      Isolate* isolate)
   : address_(Redirect(isolate, ic_utility.address())) {}
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
 ExternalReference::ExternalReference(const Debug_Address& debug_address,
                                      Isolate* isolate)
   : address_(debug_address.address(isolate)) {}
-#endif
 
 ExternalReference::ExternalReference(StatsCounter* counter)
   : address_(reinterpret_cast<Address>(counter->GetInternalPointer())) {}
@@ -1050,18 +1040,6 @@ ExternalReference ExternalReference::
 
 ExternalReference ExternalReference::flush_icache_function(Isolate* isolate) {
   return ExternalReference(Redirect(isolate, FUNCTION_ADDR(CPU::FlushICache)));
-}
-
-
-ExternalReference ExternalReference::perform_gc_function(Isolate* isolate) {
-  return
-      ExternalReference(Redirect(isolate, FUNCTION_ADDR(Runtime::PerformGC)));
-}
-
-
-ExternalReference ExternalReference::out_of_memory_function(Isolate* isolate) {
-  return
-      ExternalReference(Redirect(isolate, FUNCTION_ADDR(Runtime::OutOfMemory)));
 }
 
 
@@ -1340,6 +1318,30 @@ ExternalReference ExternalReference::address_of_uint32_bias() {
 }
 
 
+ExternalReference ExternalReference::is_profiling_address(Isolate* isolate) {
+  return ExternalReference(isolate->cpu_profiler()->is_profiling_address());
+}
+
+
+ExternalReference ExternalReference::invoke_function_callback(
+    Isolate* isolate) {
+  Address thunk_address = FUNCTION_ADDR(&InvokeFunctionCallback);
+  ExternalReference::Type thunk_type = ExternalReference::PROFILING_API_CALL;
+  ApiFunction thunk_fun(thunk_address);
+  return ExternalReference(&thunk_fun, thunk_type, isolate);
+}
+
+
+ExternalReference ExternalReference::invoke_accessor_getter_callback(
+    Isolate* isolate) {
+  Address thunk_address = FUNCTION_ADDR(&InvokeAccessorGetterCallback);
+  ExternalReference::Type thunk_type =
+      ExternalReference::PROFILING_GETTER_CALL;
+  ApiFunction thunk_fun(thunk_address);
+  return ExternalReference(&thunk_fun, thunk_type, isolate);
+}
+
+
 #ifndef V8_INTERPRETED_REGEXP
 
 ExternalReference ExternalReference::re_check_stack_guard_state(
@@ -1538,7 +1540,6 @@ ExternalReference ExternalReference::mod_two_doubles_operation(
 }
 
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
 ExternalReference ExternalReference::debug_break(Isolate* isolate) {
   return ExternalReference(Redirect(isolate, FUNCTION_ADDR(Debug_Break)));
 }
@@ -1548,7 +1549,6 @@ ExternalReference ExternalReference::debug_step_in_fp_address(
     Isolate* isolate) {
   return ExternalReference(isolate->debug()->step_in_fp_addr());
 }
-#endif
 
 
 void PositionsRecorder::RecordPosition(int pos) {

@@ -1,29 +1,6 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-//       copyright notice, this list of conditions and the following
-//       disclaimer in the documentation and/or other materials provided
-//       with the distribution.
-//     * Neither the name of Google Inc. nor the names of its
-//       contributors may be used to endorse or promote products derived
-//       from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef V8_ISOLATE_H_
 #define V8_ISOLATE_H_
@@ -95,11 +72,9 @@ template <StateTag Tag> class VMState;
 typedef void* ExternalReferenceRedirectorPointer();
 
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
 class Debug;
 class Debugger;
 class DebuggerAgent;
-#endif
 
 #if !defined(__arm__) && V8_TARGET_ARCH_ARM || \
     !defined(__aarch64__) && V8_TARGET_ARCH_ARM64 || \
@@ -125,27 +100,6 @@ typedef ZoneList<Handle<Object> > ZoneObjectList;
     }                                                     \
   } while (false)
 
-// TODO(yangguo): Remove after we completely changed to MaybeHandles.
-#define RETURN_IF_EMPTY_HANDLE_VALUE(isolate, call, value)  \
-  do {                                                      \
-    if ((call).is_null()) {                                 \
-      ASSERT((isolate)->has_pending_exception());           \
-      return (value);                                       \
-    }                                                       \
-  } while (false)
-
-// TODO(yangguo): Remove after we completely changed to MaybeHandles.
-#define CHECK_NOT_EMPTY_HANDLE(isolate, call)     \
-  do {                                            \
-    ASSERT(!(isolate)->has_pending_exception());  \
-    CHECK(!(call).is_null());                     \
-  } while (false)
-
-// TODO(yangguo): Remove after we completely changed to MaybeHandles.
-#define RETURN_IF_EMPTY_HANDLE(isolate, call)  \
-  RETURN_IF_EMPTY_HANDLE_VALUE(isolate, call, Failure::Exception())
-
-
 // Macros for MaybeHandle.
 
 #define RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, T)  \
@@ -166,7 +120,8 @@ typedef ZoneList<Handle<Object> > ZoneObjectList;
   } while (false)
 
 #define ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, dst, call)  \
-  ASSIGN_RETURN_ON_EXCEPTION_VALUE(isolate, dst, call, Failure::Exception())
+  ASSIGN_RETURN_ON_EXCEPTION_VALUE(                             \
+      isolate, dst, call, isolate->heap()->exception())
 
 #define ASSIGN_RETURN_ON_EXCEPTION(isolate, dst, call, T)  \
   ASSIGN_RETURN_ON_EXCEPTION_VALUE(isolate, dst, call, MaybeHandle<T>())
@@ -180,7 +135,7 @@ typedef ZoneList<Handle<Object> > ZoneObjectList;
   } while (false)
 
 #define RETURN_FAILURE_ON_EXCEPTION(isolate, call)  \
-  RETURN_ON_EXCEPTION_VALUE(isolate, call, Failure::Exception())
+  RETURN_ON_EXCEPTION_VALUE(isolate, call, isolate->heap()->exception())
 
 #define RETURN_ON_EXCEPTION(isolate, call, T)  \
   RETURN_ON_EXCEPTION_VALUE(isolate, call, MaybeHandle<T>())
@@ -330,17 +285,6 @@ class ThreadLocalTop BASE_EMBEDDED {
 };
 
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
-
-#define ISOLATE_DEBUGGER_INIT_LIST(V)                                          \
-  V(DebuggerAgent*, debugger_agent_instance, NULL)
-#else
-
-#define ISOLATE_DEBUGGER_INIT_LIST(V)
-
-#endif
-
-
 #if V8_TARGET_ARCH_ARM && !defined(__arm__) || \
     V8_TARGET_ARCH_ARM64 && !defined(__aarch64__) || \
     V8_TARGET_ARCH_MIPS && !defined(__mips__)
@@ -413,8 +357,8 @@ typedef List<HeapObject*> DebugObjectCache;
   V(bool, fp_stubs_generated, false)                                           \
   V(int, max_available_threads, 0)                                             \
   V(uint32_t, per_isolate_assert_data, 0xFFFFFFFFu)                            \
-  ISOLATE_INIT_SIMULATOR_LIST(V)                                               \
-  ISOLATE_DEBUGGER_INIT_LIST(V)
+  V(DebuggerAgent*, debugger_agent_instance, NULL)                             \
+  ISOLATE_INIT_SIMULATOR_LIST(V)
 
 #define THREAD_LOCAL_TOP_ACCESSOR(type, name)                        \
   inline void set_##name(type v) { thread_local_top_.name##_ = v; }  \
@@ -588,17 +532,17 @@ class Isolate {
   // Interface to pending exception.
   Object* pending_exception() {
     ASSERT(has_pending_exception());
-    ASSERT(!thread_local_top_.pending_exception_->IsFailure());
+    ASSERT(!thread_local_top_.pending_exception_->IsException());
     return thread_local_top_.pending_exception_;
   }
 
-  void set_pending_exception(Object* exception) {
-    ASSERT(!exception->IsFailure());
-    thread_local_top_.pending_exception_ = exception;
+  void set_pending_exception(Object* exception_obj) {
+    ASSERT(!exception_obj->IsException());
+    thread_local_top_.pending_exception_ = exception_obj;
   }
 
   void clear_pending_exception() {
-    ASSERT(!thread_local_top_.pending_exception_->IsFailure());
+    ASSERT(!thread_local_top_.pending_exception_->IsException());
     thread_local_top_.pending_exception_ = heap_.the_hole_value();
   }
 
@@ -607,7 +551,7 @@ class Isolate {
   }
 
   bool has_pending_exception() {
-    ASSERT(!thread_local_top_.pending_exception_->IsFailure());
+    ASSERT(!thread_local_top_.pending_exception_->IsException());
     return !thread_local_top_.pending_exception_->IsTheHole();
   }
 
@@ -649,15 +593,15 @@ class Isolate {
 
   Object* scheduled_exception() {
     ASSERT(has_scheduled_exception());
-    ASSERT(!thread_local_top_.scheduled_exception_->IsFailure());
+    ASSERT(!thread_local_top_.scheduled_exception_->IsException());
     return thread_local_top_.scheduled_exception_;
   }
   bool has_scheduled_exception() {
-    ASSERT(!thread_local_top_.scheduled_exception_->IsFailure());
+    ASSERT(!thread_local_top_.scheduled_exception_->IsException());
     return thread_local_top_.scheduled_exception_ != heap_.the_hole_value();
   }
   void clear_scheduled_exception() {
-    ASSERT(!thread_local_top_.scheduled_exception_->IsFailure());
+    ASSERT(!thread_local_top_.scheduled_exception_->IsException());
     thread_local_top_.scheduled_exception_ = heap_.the_hole_value();
   }
 
@@ -719,8 +663,8 @@ class Isolate {
   class ExceptionScope {
    public:
     explicit ExceptionScope(Isolate* isolate) :
-      // Scope currently can only be used for regular exceptions, not
-      // failures like OOM or termination exception.
+      // Scope currently can only be used for regular exceptions,
+      // not termination exception.
       isolate_(isolate),
       pending_exception_(isolate_->pending_exception(), isolate_),
       catcher_(isolate_->catcher())
@@ -775,7 +719,7 @@ class Isolate {
 
   // Exception throwing support. The caller should use the result
   // of Throw() as its return value.
-  Failure* Throw(Object* exception, MessageLocation* location = NULL);
+  Object* Throw(Object* exception, MessageLocation* location = NULL);
 
   template <typename T>
   MUST_USE_RESULT MaybeHandle<T> Throw(Handle<Object> exception,
@@ -787,7 +731,7 @@ class Isolate {
   // Re-throw an exception.  This involves no error reporting since
   // error reporting was handled when the exception was thrown
   // originally.
-  Failure* ReThrow(Object* exception);
+  Object* ReThrow(Object* exception);
   void ScheduleThrow(Object* exception);
   // Re-set pending message, script and positions reported to the TryCatch
   // back to the TLS for re-use when rethrowing.
@@ -795,11 +739,11 @@ class Isolate {
   void ReportPendingMessages();
   // Return pending location if any or unfilled structure.
   MessageLocation GetMessageLocation();
-  Failure* ThrowIllegalOperation();
-  Failure* ThrowInvalidStringLength();
+  Object* ThrowIllegalOperation();
+  Object* ThrowInvalidStringLength();
 
   // Promote a scheduled exception to pending. Asserts has_scheduled_exception.
-  Failure* PromoteScheduledException();
+  Object* PromoteScheduledException();
   void DoThrow(Object* exception, MessageLocation* location);
   // Checks if exception should be reported and finds out if it's
   // caught externally.
@@ -811,8 +755,8 @@ class Isolate {
   void ComputeLocation(MessageLocation* target);
 
   // Out of resource exception helpers.
-  Failure* StackOverflow();
-  Failure* TerminateExecution();
+  Object* StackOverflow();
+  Object* TerminateExecution();
   void CancelTerminateExecution();
 
   // Administration
@@ -984,7 +928,6 @@ class Isolate {
 
   inline bool IsCodePreAgingActive();
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
   Debugger* debugger() {
     if (!NoBarrier_Load(&debugger_initialized_)) InitializeDebugger();
     return debugger_;
@@ -993,7 +936,6 @@ class Isolate {
     if (!NoBarrier_Load(&debugger_initialized_)) InitializeDebugger();
     return debug_;
   }
-#endif
 
   inline bool IsDebuggerActive();
   inline bool DebuggerHasBreakPoints();
@@ -1130,6 +1072,12 @@ class Isolate {
 
   // Get (and lazily initialize) the registry for per-isolate symbols.
   Handle<JSObject> GetSymbolRegistry();
+
+  void AddCallCompletedCallback(CallCompletedCallback callback);
+  void RemoveCallCompletedCallback(CallCompletedCallback callback);
+  void FireCallCompletedCallback();
+
+  void RunMicrotasks();
 
  private:
   Isolate();
@@ -1312,10 +1260,8 @@ class Isolate {
   JSObject::SpillInformation js_spill_information_;
 #endif
 
-#ifdef ENABLE_DEBUGGER_SUPPORT
   Debugger* debugger_;
   Debug* debug_;
-#endif
   CpuProfiler* cpu_profiler_;
   HeapProfiler* heap_profiler_;
   FunctionEntryHook function_entry_hook_;
@@ -1350,6 +1296,9 @@ class Isolate {
   unsigned int stress_deopt_count_;
 
   int next_optimization_id_;
+
+  // List of callbacks when a Call completes.
+  List<CallCompletedCallback> call_completed_callbacks_;
 
   friend class ExecutionAccess;
   friend class HandleScopeImplementer;
