@@ -568,6 +568,7 @@ std::string getResultMessage(result_t hr);
 v8::Local<v8::Value> ThrowResult(result_t hr);
 void ReportException(v8::TryCatch &try_catch, result_t hr);
 std::string GetException(v8::TryCatch &try_catch, result_t hr);
+result_t throwSyntaxError(v8::TryCatch &try_catch);
 
 #ifdef _WIN32
 

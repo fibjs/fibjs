@@ -6,6 +6,8 @@
  */
 
 #include "ifs/SandBox.h"
+#include "ifs/Global.h"
+#include "ifs/Function.h"
 #include <map>
 
 #ifndef SANDBOX_H_
@@ -45,6 +47,80 @@ public:
     }
 
     result_t repl();
+
+private:
+    class Context
+    {
+    public:
+        Context(SandBox *sb, const char *id) :
+            context(v8::Context::New(isolate, NULL,
+                                     global_base::class_info().getTemplate()))
+        {
+            context->Enter();
+
+            glob = context->Global();
+            glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "SandBox"), sb->wrap());
+
+            // clone Function.start
+            Function_base::class_info().Attach(
+                glob->Get(v8::String::NewFromUtf8(isolate, "Function"))->ToObject()->GetPrototype()->ToObject());
+
+            // module.id
+            v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate, id,
+                                             v8::String::kNormalString,
+                                             (int) qstrlen(id));
+            glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "id"), strFname);
+        }
+
+        ~Context()
+        {
+            context->Exit();
+        }
+
+        result_t run(std::string &src, const char *name)
+        {
+            v8::Local<v8::Script> script;
+            {
+                v8::TryCatch try_catch;
+
+                script = v8::Script::Compile(
+                             v8::String::NewFromUtf8(isolate, src.c_str(),
+                                                     v8::String::kNormalString, (int) src.length()),
+                             v8::String::NewFromUtf8(isolate, name));
+                if (script.IsEmpty())
+                    return throwSyntaxError(try_catch);
+            }
+
+            if (script->Run().IsEmpty())
+                return CALL_E_JAVASCRIPT;
+
+            return 0;
+        }
+
+        result_t run(const char *src, const char *name)
+        {
+            v8::Local<v8::Script> script;
+            {
+                v8::TryCatch try_catch;
+
+                script = v8::Script::Compile(
+                             v8::String::NewFromUtf8(isolate, src,
+                                                     v8::String::kNormalString, (int) qstrlen(src)),
+                             v8::String::NewFromUtf8(isolate, name));
+                if (script.IsEmpty())
+                    return throwSyntaxError(try_catch);
+            }
+
+            if (script->Run().IsEmpty())
+                return CALL_E_JAVASCRIPT;
+
+            return 0;
+        }
+
+    public:
+        v8::Local<v8::Context> context;
+        v8::Local<v8::Object> glob;
+    };
 
 private:
     std::map<std::string, VariantEx > m_mods;

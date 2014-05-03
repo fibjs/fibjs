@@ -21,41 +21,6 @@
 namespace fibjs
 {
 
-inline const char *ToCString(const v8::String::Utf8Value &value)
-{
-    return *value ? *value : "<string conversion failed>";
-}
-
-inline result_t throwSyntaxError(v8::TryCatch &try_catch)
-{
-    v8::String::Utf8Value exception(try_catch.Exception());
-
-    v8::Local<v8::Message> message = try_catch.Message();
-    if (message.IsEmpty())
-        ThrowError(ToCString(exception));
-    else
-    {
-        std::stringstream strError;
-
-        v8::String::Utf8Value filename(message->GetScriptResourceName());
-
-        if (qstrcmp(ToCString(exception), "SyntaxError: ", 13))
-            strError << ToCString(exception) << "\n    at ";
-        else
-            strError << (ToCString(exception) + 13) << "\n    at ";
-
-        strError << ToCString(filename);
-        int lineNumber = message->GetLineNumber();
-        if (lineNumber > 0)
-            strError << ':' << lineNumber << ':'
-                     << (message->GetStartColumn() + 1);
-
-        return Runtime::setError(strError.str());
-    }
-
-    return CALL_E_JAVASCRIPT;
-}
-
 inline std::string resolvePath(const char *id)
 {
     std::string fname;
@@ -96,23 +61,18 @@ result_t doDefine(v8::Local<v8::Object> &mod);
 result_t SandBox::addScript(const char *srcname, const char *script,
                             v8::Local<v8::Value> &retVal)
 {
-    v8::Local<v8::Context> context(v8::Context::New(isolate, NULL,
-                                   fibjs::global_base::class_info().getTemplate()));
-    v8::Context::Scope context_scope(context);
+    std::string fname(srcname);
+    Context context(this, srcname);
     result_t hr;
 
-    v8::Local<v8::Object> glob = context->Global();
     v8::Local<v8::Object> mod;
     v8::Local<v8::Object> exports;
-
-    glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "SandBox"), wrap());
 
     // cache string
     v8::Local<v8::String> strRequire = v8::String::NewFromUtf8(isolate, "require");
     v8::Local<v8::String> strExports = v8::String::NewFromUtf8(isolate, "exports");
     v8::Local<v8::String> strModule = v8::String::NewFromUtf8(isolate, "module");
     v8::Local<v8::String> strDefine = v8::String::NewFromUtf8(isolate, "define");
-    v8::Local<v8::String> strId = v8::String::NewFromUtf8(isolate, "id");
 
     // attach define function first.
     v8::Local<v8::Function> def =
@@ -120,80 +80,55 @@ result_t SandBox::addScript(const char *srcname, const char *script,
 
     def->ToObject()->Set(v8::String::NewFromUtf8(isolate, "amd"), v8::Object::New(isolate),
                          v8::ReadOnly);
-    glob->Set(strDefine, def, v8::ReadOnly);
-
-    // clone Function.start
-    fibjs::Function_base::class_info().Attach(
-        glob->Get(v8::String::NewFromUtf8(isolate, "Function"))->ToObject()->GetPrototype()->ToObject());
-
-    // module.id
-    std::string fname(srcname);
-    fname.resize(fname.length() - 3);
-    v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate, fname.c_str(),
-                                     v8::String::kNormalString,
-                                     (int) fname.length());
-    glob->SetHiddenValue(strId, strFname);
+    context.glob->Set(strDefine, def, v8::ReadOnly);
 
     exports = v8::Object::New(isolate);
 
     // module and exports object
-    if (mod.IsEmpty())
-        mod = v8::Object::New(isolate);
+    mod = v8::Object::New(isolate);
 
     // init module
     mod->Set(strExports, exports);
-    mod->Set(strRequire, glob->Get(strRequire), v8::ReadOnly);
-
-    mod->Set(strId, strFname, v8::ReadOnly);
+    mod->Set(strRequire, context.glob->Get(strRequire), v8::ReadOnly);
 
     // add to modules
-    InstallModule(fname, exports);
+    std::string id(fname, 0, fname.length() - 3);
+    InstallModule(id, exports);
 
     // attach to global
-    glob->Set(strModule, mod, v8::ReadOnly);
-    glob->Set(strExports, exports, v8::ReadOnly);
+    context.glob->Set(strModule, mod, v8::ReadOnly);
+    context.glob->Set(strExports, exports, v8::ReadOnly);
 
-    v8::Local<v8::Script> oscript;
-    {
-        v8::TryCatch try_catch;
-
-        oscript = v8::Script::Compile(
-                      v8::String::NewFromUtf8(isolate, script,
-                                              v8::String::kNormalString, (int) qstrlen(script)),
-                      v8::String::NewFromUtf8(isolate, srcname));
-        if (oscript.IsEmpty())
-            return throwSyntaxError(try_catch);
-    }
-
-    if (oscript->Run().IsEmpty())
+    hr = context.run(script, srcname);
+    if (hr < 0)
     {
         // delete from modules
-        m_mods.erase(fname);
-        return CALL_E_JAVASCRIPT;
+        m_mods.erase(id);
+        return hr;
     }
 
     // remove commonjs function
-    glob->ForceDelete(strDefine);
-    glob->ForceDelete(strModule);
-    glob->ForceDelete(strExports);
+    context.glob->ForceDelete(strDefine);
+    context.glob->ForceDelete(strModule);
+    context.glob->ForceDelete(strExports);
 
     // process defined modules
     hr = doDefine(mod);
     if (hr < 0)
     {
         // delete from modules
-        m_mods.erase(fname);
+        m_mods.erase(id);
         return hr;
     }
 
     // attach again
-    glob->Set(strModule, mod, v8::ReadOnly);
-    glob->Set(strExports, exports, v8::ReadOnly);
+    context.glob->Set(strModule, mod, v8::ReadOnly);
+    context.glob->Set(strExports, exports, v8::ReadOnly);
 
     // use module.exports as result value
     v8::Local<v8::Value> v = mod->Get(strExports);
     if (!exports->Equals(v))
-        InstallModule(fname, v);
+        InstallModule(id, v);
 
     retVal = v;
 
@@ -260,43 +195,11 @@ result_t SandBox::run(const char *fname)
     if (hr < 0)
         return hr;
 
-    v8::Local<v8::Context> context(v8::Context::New(isolate, NULL,
-                                   fibjs::global_base::class_info().getTemplate()));
-    v8::Context::Scope context_scope(context);
+    if (buf[0] == '#' && buf[1] == '!')
+        buf = "//" + buf;
 
-    v8::Local<v8::Object> glob = context->Global();
-    glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "SandBox"), wrap());
-
-    // clone Function.start
-    fibjs::Function_base::class_info().Attach(
-        glob->Get(v8::String::NewFromUtf8(isolate, "Function"))->ToObject()->GetPrototype()->ToObject());
-
-    // module.id
-    sfname.resize(sfname.length() - 3);
-    v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate, sfname.c_str(),
-                                     v8::String::kNormalString,
-                                     (int) sfname.length());
-    glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "id"), strFname);
-
-    v8::Local<v8::Script> script;
-    {
-        v8::TryCatch try_catch;
-
-        if (buf[0] == '#' && buf[1] == '!')
-            buf = "//" + buf;
-
-        script = v8::Script::Compile(
-                     v8::String::NewFromUtf8(isolate, buf.c_str(),
-                                             v8::String::kNormalString, (int) buf.length()),
-                     v8::String::NewFromUtf8(isolate, pname));
-        if (script.IsEmpty())
-            return throwSyntaxError(try_catch);
-    }
-
-    if (script->Run().IsEmpty())
-        return CALL_E_JAVASCRIPT;
-
-    return 0;
+    Context context(this, pname);
+    return context.run(buf, pname);
 }
 
 }

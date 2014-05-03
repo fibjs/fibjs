@@ -3,7 +3,6 @@
 #include "ifs/console.h"
 #include <string.h>
 #include <stdio.h>
-#include <sstream>
 #include "utf8.h"
 
 namespace fibjs
@@ -104,7 +103,7 @@ std::string getResultMessage(result_t hr)
 v8::Local<v8::Value> ThrowResult(result_t hr)
 {
     v8::Local<v8::Value> e = v8::Exception::Error(
-                                  v8::String::NewFromUtf8(isolate, getResultMessage(hr).c_str()));
+                                 v8::String::NewFromUtf8(isolate, getResultMessage(hr).c_str()));
     e->ToObject()->Set(v8::String::NewFromUtf8(isolate, "number"), v8::Int32::New(isolate, -hr));
 
     return isolate->ThrowException(e);
@@ -134,22 +133,86 @@ std::string GetException(v8::TryCatch &try_catch, result_t hr)
                 return ToCString(stack_trace);
             }
 
-            std::stringstream strError;
+            std::string strError;
 
             v8::String::Utf8Value filename(message->GetScriptResourceName());
-            strError << ToCString(exception) << "\n    at ";
-            strError << ToCString(filename);
-            int lineNumber = message->GetLineNumber();
-            strError << ':' << lineNumber << ':'
-                     << (message->GetStartColumn() + 1);
 
-            return strError.str();
+            if (qstrcmp(ToCString(exception), "SyntaxError: ", 13))
+            {
+                strError.append(ToCString(exception));
+                strError.append("\n    at ");
+            }
+            else
+            {
+                strError.append((ToCString(exception) + 13));
+                strError.append("\n    at ");
+            }
+
+            strError.append(ToCString(filename));
+            int lineNumber = message->GetLineNumber();
+            if (lineNumber > 0)
+            {
+                char numStr[32];
+
+                strError.append(":", 1);
+                sprintf(numStr, "%d", lineNumber);
+                strError.append(numStr);
+                strError.append(":", 1);
+                sprintf(numStr, "%d", message->GetStartColumn() + 1);
+                strError.append(numStr);
+            }
+
+            return strError;
         }
     }
     else if (hr < 0)
         return getResultMessage(hr);
 
     return "";
+}
+
+result_t throwSyntaxError(v8::TryCatch &try_catch)
+{
+    v8::String::Utf8Value exception(try_catch.Exception());
+
+    v8::Local<v8::Message> message = try_catch.Message();
+    if (message.IsEmpty())
+        ThrowError(ToCString(exception));
+    else
+    {
+        std::string strError;
+
+        v8::String::Utf8Value filename(message->GetScriptResourceName());
+
+        if (qstrcmp(ToCString(exception), "SyntaxError: ", 13))
+        {
+            strError.append(ToCString(exception));
+            strError.append("\n    at ");
+        }
+        else
+        {
+            strError.append((ToCString(exception) + 13));
+            strError.append("\n    at ");
+        }
+
+        strError.append(ToCString(filename));
+        int lineNumber = message->GetLineNumber();
+        if (lineNumber > 0)
+        {
+            char numStr[32];
+
+            strError.append(":", 1);
+            sprintf(numStr, "%d", lineNumber);
+            strError.append(numStr);
+            strError.append(":", 1);
+            sprintf(numStr, "%d", message->GetStartColumn() + 1);
+            strError.append(numStr);
+        }
+
+        return Runtime::setError(strError);
+    }
+
+    return CALL_E_JAVASCRIPT;
 }
 
 void ReportException(v8::TryCatch &try_catch, result_t hr)
@@ -164,28 +227,38 @@ std::string traceInfo()
             isolate, 10, v8::StackTrace::kOverview);
     int count = stackTrace->GetFrameCount();
     int i;
-    std::stringstream strBuffer;
+    std::string strBuffer;
 
     for (i = 0; i < count; i++)
     {
+        char numStr[32];
         v8::Local<v8::StackFrame> f = stackTrace->GetFrame(i);
 
         v8::String::Utf8Value funname(f->GetFunctionName());
         v8::String::Utf8Value filename(f->GetScriptName());
 
-        strBuffer << "\n    at ";
+        strBuffer.append("\n    at ");
 
         if (**funname)
-            strBuffer << *funname << " (";
+        {
+            strBuffer.append(*funname);
+            strBuffer.append(" (", 2);
+        }
 
-        strBuffer << *filename << ':' << f->GetLineNumber() << ':'
-                  << f->GetColumn();
+        strBuffer.append(*filename);
+        strBuffer.append(":", 1);
+
+        sprintf(numStr, "%d", f->GetLineNumber());
+        strBuffer.append(numStr);
+        sprintf(numStr, "%d", f->GetColumn());
+        strBuffer.append(numStr);
+        strBuffer.append(":", 1);
 
         if (**funname)
-            strBuffer << ')';
+            strBuffer.append(")", 1);
     }
 
-    return strBuffer.str();
+    return strBuffer;
 }
 
 }

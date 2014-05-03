@@ -44,26 +44,12 @@ void repl_command(std::string &line)
 
 result_t SandBox::repl()
 {
-    v8::Local<v8::Context> context(v8::Context::New (isolate));
-    v8::Context::Scope context_scope(context);
-
-    v8::Local<v8::Object> glob = context->Global();
-    glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "SandBox"), wrap());
-
-    // clone global function
-    fibjs::global_base::class_info().Attach(glob);
-
-    // clone Function.start
-    fibjs::Function_base::class_info().Attach(
-        glob->Get(v8::String::NewFromUtf8(isolate, "Function"))->ToObject()->GetPrototype()->ToObject());
-
-    // module.id
-    v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate, "repl",
-                                     v8::String::kNormalString, 4);
-    glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "id"), strFname);
+    Context context(this, "repl");
 
     std::string buf;
     v8::Local<v8::Value> v, v1;
+    v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate, "repl",
+                                     v8::String::kNormalString, 4);
 
     while (true)
     {
