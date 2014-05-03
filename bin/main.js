@@ -1,7 +1,6 @@
 #!/bin/js
 
 var test = require("test");
-var os = require('os');
 
 run("assert_test.js");
 run("expect_test.js");

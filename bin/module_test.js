@@ -6,6 +6,10 @@ var coroutine = require('coroutine');
 var a, b;
 
 describe("module", function() {
+	it("native module toJSON", function() {
+		JSON.stringify(require("os"));
+	});
+
 	it("absolute identifiers", function() {
 		a = require('module/a');
 		b = require('b');
@@ -28,7 +32,7 @@ describe("module", function() {
 		var foo = a.foo;
 		assert.strictEqual(a.foo(), a, 'calling a module member');
 		assert.deepEqual(foo(), (function() {
-			return this
+			return this;
 		})(), 'members not implicitly bound');
 		a.set(10);
 		assert.strictEqual(a.get(), 10, 'get and set')
