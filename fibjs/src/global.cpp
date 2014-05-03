@@ -1,6 +1,7 @@
 #include "ifs/global.h"
 #include "ifs/coroutine.h"
 #include "ifs/vm.h"
+#include "SandBox.h"
 
 namespace fibjs
 {
@@ -31,6 +32,19 @@ result_t global_base::run(const char *fname)
         return hr;
 
     return sbox->run(fname);
+}
+
+result_t global_base::repl()
+{
+    v8::Local<v8::Context> ctx = isolate->GetCallingContext();
+
+    if (!ctx.IsEmpty())
+    {
+        v8::Context::Scope context_scope(ctx);
+        SandBox::Context::repl();
+    }
+
+    return 0;
 }
 
 result_t global_base::require(const char *id, v8::Local<v8::Value> &retVal)

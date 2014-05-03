@@ -48,22 +48,34 @@ public:
 
     result_t repl();
 
-private:
+public:
     class Context
     {
     public:
         Context(SandBox *sb, const char *id) :
-            context(v8::Context::New(isolate, NULL,
-                                     global_base::class_info().getTemplate()))
+            context(v8::Context::New(isolate))
         {
+            v8::Local<v8::Context> ctx = isolate->GetCallingContext();
+            static const char *s_skips_root[] =
+            {
+                "define", 0
+            };
+            static const char *s_skips[] =
+            {
+                "repl", "define", 0
+            };
+
             context->Enter();
 
             glob = context->Global();
+            global_base::class_info().Attach(glob, ctx.IsEmpty() ? s_skips_root : s_skips);
+
             glob->SetHiddenValue(v8::String::NewFromUtf8(isolate, "SandBox"), sb->wrap());
 
             // clone Function.start
             Function_base::class_info().Attach(
-                glob->Get(v8::String::NewFromUtf8(isolate, "Function"))->ToObject()->GetPrototype()->ToObject());
+                glob->Get(v8::String::NewFromUtf8(isolate, "Function"))->ToObject()->GetPrototype()->ToObject(),
+                NULL);
 
             // module.id
             v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate, id,
@@ -77,7 +89,7 @@ private:
             context->Exit();
         }
 
-        result_t run(std::string &src, const char *name)
+        static result_t run(std::string &src, const char *name)
         {
             v8::Local<v8::Script> script;
             {
@@ -97,7 +109,7 @@ private:
             return 0;
         }
 
-        result_t run(const char *src, const char *name)
+        static result_t run(const char *src, const char *name)
         {
             v8::Local<v8::Script> script;
             {
@@ -116,6 +128,8 @@ private:
 
             return 0;
         }
+
+        static result_t repl();
 
     public:
         v8::Local<v8::Context> context;

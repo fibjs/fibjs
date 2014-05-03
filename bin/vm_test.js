@@ -86,6 +86,12 @@ describe("vm", function() {
 		assert.notEqual(b, b1);
 		assert.deepEqual(b, b1);
 	});
+
+	it("disable global.repl", function() {
+		assert.throws(function() {
+			repl.toString();
+		});
+	});
 });
 
 //test.run(console.DEBUG);

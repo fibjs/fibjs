@@ -13,6 +13,9 @@ class global : module
 	 */
 	static run(String fname);
 
+	/*! @brief 进入交互执行模式，此方法仅在主 js 下有效 */
+	static repl();
+
 	/*! @brief 定义一个模块，更多信息参阅 @ref module
 	 @param id 定义的模块名称
 	 @param deps 依赖模块列表

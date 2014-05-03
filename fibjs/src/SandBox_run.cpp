@@ -21,8 +21,7 @@ inline std::string resolvePath(const char *id)
 {
     std::string fname;
 
-    if (id[0] == '.'
-            && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
+    if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
     {
         v8::Local<v8::Context> ctx = isolate->GetCallingContext();
 

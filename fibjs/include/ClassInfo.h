@@ -176,23 +176,37 @@ public:
         return m_cd.name;
     }
 
-    void Attach(v8::Local<v8::Object> o)
+    inline bool is_skip(const char *name, const char **skips)
+    {
+        if (!skips)
+            return false;
+
+        while (*skips && qstrcmp(*skips, name))
+            skips++;
+
+        return !!*skips;
+    }
+
+    void Attach(v8::Local<v8::Object> o, const char **skips)
     {
         int i;
 
         for (i = 0; i < m_cd.mc; i++)
-            o->Set(v8::String::NewFromUtf8(isolate, m_cd.cms[i].name),
-                   v8::FunctionTemplate::New(isolate, m_cd.cms[i].invoker)->GetFunction(),
-                   v8::ReadOnly);
+            if (!is_skip(m_cd.cms[i].name, skips))
+                o->Set(v8::String::NewFromUtf8(isolate, m_cd.cms[i].name),
+                       v8::FunctionTemplate::New(isolate, m_cd.cms[i].invoker)->GetFunction(),
+                       v8::ReadOnly);
 
         for (i = 0; i < m_cd.oc; i++)
-            o->Set(v8::String::NewFromUtf8(isolate, m_cd.cos[i].name),
-                   v8::Local<v8::Function>::New(isolate, m_cd.cos[i].invoker().m_function),
-                   v8::ReadOnly);
+            if (!is_skip(m_cd.cos[i].name, skips))
+                o->Set(v8::String::NewFromUtf8(isolate, m_cd.cos[i].name),
+                       v8::Local<v8::Function>::New(isolate, m_cd.cos[i].invoker().m_function),
+                       v8::ReadOnly);
 
         for (i = 0; i < m_cd.pc; i++)
-            o->SetAccessor(v8::String::NewFromUtf8(isolate, m_cd.cps[i].name),
-                           m_cd.cps[i].getter, m_cd.cps[i].setter);
+            if (!is_skip(m_cd.cps[i].name, skips))
+                o->SetAccessor(v8::String::NewFromUtf8(isolate, m_cd.cps[i].name),
+                               m_cd.cps[i].getter, m_cd.cps[i].setter);
     }
 
 private:

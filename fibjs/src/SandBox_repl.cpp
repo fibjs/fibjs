@@ -42,7 +42,11 @@ void repl_command(std::string &line)
 result_t SandBox::repl()
 {
     Context context(this, "repl");
+    return Context::repl();
+}
 
+result_t SandBox::Context::repl()
+{
     std::string buf;
     v8::Local<v8::Value> v, v1;
     v8::Local<v8::String> strFname = v8::String::NewFromUtf8(isolate, "repl",
