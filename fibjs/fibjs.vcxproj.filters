@@ -183,9 +183,6 @@
     <ClCompile Include="src\Message.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\module.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\MongoCollection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
