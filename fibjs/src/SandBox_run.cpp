@@ -161,7 +161,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
 
         if (!IsEmpty(retVal))
         {
-            if (retVal->IsObject())
+            if (retVal->IsObject() && !object_base::getInstance(retVal))
                 retVal = retVal->ToObject()->Clone();
             InstallModule(fname, retVal);
 

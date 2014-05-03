@@ -68,7 +68,7 @@ void SandBox::InstallModule(std::string fname, v8::Local<v8::Value> o)
 
 result_t SandBox::add(const char *id, v8::Local<v8::Value> mod)
 {
-    if (mod->IsObject())
+    if (mod->IsObject() && !object_base::getInstance(mod))
         mod = mod->ToObject()->Clone();
     InstallModule(id, mod);
 
