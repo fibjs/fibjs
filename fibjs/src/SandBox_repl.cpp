@@ -7,12 +7,9 @@
 
 #include "SandBox.h"
 
-#include "ifs/global.h"
 #include "ifs/process.h"
 #include "ifs/console.h"
 #include "ifs/utils.h"
-
-#include "ifs/Function.h"
 
 namespace fibjs
 {

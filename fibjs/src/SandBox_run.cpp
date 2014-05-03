@@ -10,11 +10,7 @@
 #include "ifs/vm.h"
 #include "ifs/fs.h"
 #include "ifs/path.h"
-#include "ifs/console.h"
-
 #include "ifs/Stat.h"
-#include "ifs/global.h"
-#include "ifs/Function.h"
 
 #include <sstream>
 

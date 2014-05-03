@@ -6,7 +6,7 @@
  */
 
 #include "ifs/SandBox.h"
-#include "ifs/Global.h"
+#include "ifs/global.h"
 #include "ifs/Function.h"
 #include <map>
 
