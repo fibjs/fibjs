@@ -7,7 +7,7 @@ var fs = require('fs');
 describe("gd", function() {
 	var img = gd.create(440, 240);
 
-	var w = img.colorAllocate(255, 255, 255);
+	var w = img.colorAllocate(0xffff);
 	var blk = img.colorAllocate(0, 0, 0);
 	var r = img.colorAllocate(255, 0, 0);
 	var g = img.colorAllocate(0, 255, 0);
@@ -26,6 +26,37 @@ describe("gd", function() {
 		assert.equal(img1.format, fmt);
 	}
 
+	it("rgb color", function() {
+		assert.equal(gd.rgb(255, 0, 0), 0xff0000);
+		assert.equal(gd.rgb(0, 255, 0), 0x00ff00);
+		assert.equal(gd.rgb(0, 0, 255), 0x0000ff);
+
+		assert.equal(gd.rgba(0, 255, 0, .5), 0x3f00ff00);
+	});
+
+	it("hsl color", function() {
+		assert.equal(gd.hsl(0, 1, .5), 0xff0000);
+		assert.equal(gd.hsl(120, 1, .5), 0x00ff00);
+		assert.equal(gd.hsl(240, 1, .5), 0x0000ff);
+
+		assert.equal(gd.hsl(0, 0, .8), 0xcccccc);
+		assert.equal(gd.hsl(210, .5, .6), 0x6699cc);
+
+		assert.equal(gd.hsla(120, 1, .5, .5), 0x3f00ff00);
+	});
+
+	it("color string", function() {
+		assert.equal(gd.color("ff0000"), 0xff0000);
+		assert.equal(gd.color("00ff00"), 0x00ff00);
+		assert.equal(gd.color("0000ff"), 0x0000ff);
+
+		assert.equal(gd.color("f00"), 0xff0000);
+		assert.equal(gd.color("0f0"), 0x00ff00);
+		assert.equal(gd.color("00f"), 0x0000ff);
+
+		assert.equal(gd.color("#ff0000"), 0xff0000);
+	});
+
 	it("pixel", function() {
 		img.setPixel(10, 10, w);
 		assert.equal(img.getPixel(10, 10), w);
@@ -40,8 +71,7 @@ describe("gd", function() {
 		img.rectangle(40, 40, 50, 50, r);
 		img.filledRectangle(60, 40, 70, 50, img.colorAllocate(255, 255, 0));
 
-		img.filledRectangle(20, 20, 70, 50, img.colorAllocateAlpha(255, 255,
-			255, 64));
+		img.filledRectangle(20, 20, 70, 50, img.colorAllocateAlpha(0x3fffffff));
 	});
 
 	it("transparent", function() {
@@ -136,4 +166,4 @@ describe("gd", function() {
 	});
 });
 
-//test.run();
+//test.run(console.DEBUG);

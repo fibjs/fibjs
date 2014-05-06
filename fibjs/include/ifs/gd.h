@@ -53,6 +53,11 @@ public:
 	static result_t load(Buffer_base* data, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t load(SeekableStream_base* stm, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
 	static result_t load(const char* fname, obj_ptr<Image_base>& retVal, exlib::AsyncEvent* ac);
+	static result_t rgb(int32_t red, int32_t green, int32_t blue, int32_t& retVal);
+	static result_t rgba(int32_t red, int32_t green, int32_t blue, double alpha, int32_t& retVal);
+	static result_t hsl(double hue, double saturation, double lightness, int32_t& retVal);
+	static result_t hsla(double hue, double saturation, double lightness, double alpha, int32_t& retVal);
+	static result_t color(const char* color, int32_t& retVal);
 
 	DECLARE_CLASSINFO(gd_base);
 
@@ -78,6 +83,11 @@ public:
 	static void s_get_RIGHT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_create(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_load(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_rgb(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_rgba(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_hsl(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_hsla(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_color(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
 	ASYNC_STATICVALUE4(gd_base, create, int32_t, int32_t, int32_t, obj_ptr<Image_base>);
@@ -99,7 +109,12 @@ namespace fibjs
 		static ClassData::ClassMethod s_method[] = 
 		{
 			{"create", s_create, true},
-			{"load", s_load, true}
+			{"load", s_load, true},
+			{"rgb", s_rgb, true},
+			{"rgba", s_rgba, true},
+			{"hsl", s_hsl, true},
+			{"hsla", s_hsla, true},
+			{"color", s_color, true}
 		};
 
 		static ClassData::ClassProperty s_property[] = 
@@ -128,7 +143,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"gd", NULL, 
-			2, s_method, 0, NULL, 19, s_property, NULL, NULL,
+			7, s_method, 0, NULL, 19, s_property, NULL, NULL,
 			&module_base::class_info()
 		};
 
@@ -305,6 +320,81 @@ namespace fibjs
 		ARG(arg_string, 0);
 
 		hr = ac_load(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void gd_base::s_rgb(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_ENTER(3, 3);
+
+		ARG(int32_t, 0);
+		ARG(int32_t, 1);
+		ARG(int32_t, 2);
+
+		hr = rgb(v0, v1, v2, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void gd_base::s_rgba(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_ENTER(4, 4);
+
+		ARG(int32_t, 0);
+		ARG(int32_t, 1);
+		ARG(int32_t, 2);
+		ARG(double, 3);
+
+		hr = rgba(v0, v1, v2, v3, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void gd_base::s_hsl(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_ENTER(3, 3);
+
+		ARG(double, 0);
+		ARG(double, 1);
+		ARG(double, 2);
+
+		hr = hsl(v0, v1, v2, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void gd_base::s_hsla(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_ENTER(4, 4);
+
+		ARG(double, 0);
+		ARG(double, 1);
+		ARG(double, 2);
+		ARG(double, 3);
+
+		hr = hsla(v0, v1, v2, v3, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void gd_base::s_color(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_ENTER(1, 1);
+
+		ARG(arg_string, 0);
+
+		hr = color(v0, vr);
 
 		METHOD_RETURN();
 	}

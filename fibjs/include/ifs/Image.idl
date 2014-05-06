@@ -59,19 +59,26 @@ class Image : object
 	 */
 	Integer colorAllocate(Integer red, Integer green, Integer blue);
 
+	/*! @brief 为指定的颜色申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+	 @return 返回颜色号，不成功返回 -1
+	 */
+	Integer colorAllocate(Integer color);
+
 	/*! @brief 为指定的颜色及透明申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
 	 @param red 红色分量，范围为 0-255
 	 @param green 绿色分量，范围为 0-255
 	 @param blue 蓝色分量，范围为 0-255
-	 @param alpha 透明分量，范围为 0-127
+	 @param alpha 透明分量，范围为 0-1.0
 	 @return 返回颜色号，不成功返回 -1
 	 */
-	Integer colorAllocateAlpha(Integer red, Integer green, Integer blue, Integer alpha);
+	Integer colorAllocateAlpha(Integer red, Integer green, Integer blue, Number alpha);
 
-	/*! @brief 释放指定的颜色号，释放的颜色号将会被再次申请后替换
-	 @param color 指定要释放的颜色号
+	/*! @brief 为指定的颜色及透明申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
+	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+	 @return 返回颜色号，不成功返回 -1
 	 */
-	colorDeallocate(Integer color);
+	Integer colorAllocateAlpha(Integer color);
 
 	/*! @brief 为指定的颜色查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
 	 @param red 红色分量，范围为 0-255
@@ -81,6 +88,12 @@ class Image : object
 	 */
 	Integer colorClosest(Integer red, Integer green, Integer blue);
 
+	/*! @brief 为指定的颜色查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+	 @return 返回颜色号，不成功返回 -1
+	 */
+	Integer colorClosest(Integer color);
+
 	/*! @brief 为指定的颜色查找一个最接近的颜色号，此方法使用 Hue/White/Black 计算查找最接近颜色，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
 	 @param red 红色分量，范围为 0-255
 	 @param green 绿色分量，范围为 0-255
@@ -89,14 +102,26 @@ class Image : object
 	 */
 	Integer colorClosestHWB(Integer red, Integer green, Integer blue);
 
+	/*! @brief 为指定的颜色查找一个最接近的颜色号，此方法使用 Hue/White/Black 计算查找最接近颜色，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+	 @return 返回颜色号，不成功返回 -1
+	 */
+	Integer colorClosestHWB(Integer color);
+
 	/*! @brief 为指定的颜色及透明查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
 	 @param red 红色分量，范围为 0-255
 	 @param green 绿色分量，范围为 0-255
 	 @param blue 蓝色分量，范围为 0-255
-	 @param alpha 透明分量，范围为 0-127
+	 @param alpha 透明分量，范围为 0-1.0
 	 @return 返回颜色号，不成功返回 -1
 	 */
-	Integer colorClosestAlpha(Integer red, Integer green, Integer blue, Integer alpha);
+	Integer colorClosestAlpha(Integer red, Integer green, Integer blue, Number alpha);
+
+	/*! @brief 为指定的颜色及透明查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
+	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+	 @return 返回颜色号，不成功返回 -1
+	 */
+	Integer colorClosestAlpha(Integer color);
 
 	/*! @brief 查找指定的颜色对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
 	 @param red 红色分量，范围为 0-255
@@ -106,14 +131,26 @@ class Image : object
 	 */
 	Integer colorExact(Integer red, Integer green, Integer blue);
 
+	/*! @brief 查找指定的颜色对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+	 @return 返回颜色号，不成功返回 -1
+	 */
+	Integer colorExact(Integer color);
+
 	/*! @brief 查找指定的颜色及透明对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
 	 @param red 红色分量，范围为 0-255
 	 @param green 绿色分量，范围为 0-255
 	 @param blue 蓝色分量，范围为 0-255
-	 @param alpha 透明分量，范围为 0-127
+	 @param alpha 透明分量，范围为 0-1.0
 	 @return 返回颜色号，不成功返回 -1
 	 */
-	Integer colorExactAlpha(Integer red, Integer green, Integer blue, Integer alpha);
+	Integer colorExactAlpha(Integer red, Integer green, Integer blue, Number alpha);
+
+	/*! @brief 查找指定的颜色及透明对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
+	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+	 @return 返回颜色号，不成功返回 -1
+	 */
+	Integer colorExactAlpha(Integer color);
 
 	/*! @brief 查找指定的颜色对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
 	 @param red 红色分量，范围为 0-255
@@ -123,14 +160,31 @@ class Image : object
 	 */
 	Integer colorResolve(Integer red, Integer green, Integer blue);
 
+	/*! @brief 查找指定的颜色对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+	 @return 返回颜色号，不成功返回 -1
+	 */
+	Integer colorResolve(Integer color);
+
 	/*! @brief 查找指定的颜色及透明对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
 	 @param red 红色分量，范围为 0-255
 	 @param green 绿色分量，范围为 0-255
 	 @param blue 蓝色分量，范围为 0-255
-	 @param alpha 透明分量，范围为 0-127
+	 @param alpha 透明分量，范围为 0-1.0
 	 @return 返回颜色号，不成功返回 -1
 	 */
-	Integer colorResolveAlpha(Integer red, Integer green, Integer blue, Integer alpha);
+	Integer colorResolveAlpha(Integer red, Integer green, Integer blue, Number alpha);
+
+	/*! @brief 查找指定的颜色及透明对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
+	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+	 @return 返回颜色号，不成功返回 -1
+	 */
+	Integer colorResolveAlpha(Integer color);
+
+	/*! @brief 释放指定的颜色号，释放的颜色号将会被再次申请后替换
+	 @param color 指定要释放的颜色号
+	 */
+	colorDeallocate(Integer color);
 
 	/*! @brief 设定绘图的剪切窗口，设定后，所有的绘制将被剪切在窗口内部
 	 @param x1 剪切窗口的左上 x 坐标

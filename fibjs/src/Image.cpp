@@ -166,6 +166,120 @@ result_t gd_base::load(const char *fname, obj_ptr<Image_base> &retVal,
     return (new asyncLoad(fname, retVal, ac))->post(0);
 }
 
+result_t gd_base::rgb(int32_t red, int32_t green, int32_t blue, int32_t &retVal)
+{
+    if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
+            || blue > 255)
+        return CALL_E_INVALIDARG;
+
+    retVal = gdTrueColor(red, green, blue);
+    return 0;
+}
+
+result_t gd_base::rgba(int32_t red, int32_t green, int32_t blue,
+                       double alpha, int32_t &retVal)
+{
+    if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
+            || blue > 255 || alpha < 0 || alpha > 1)
+        return CALL_E_INVALIDARG;
+
+    retVal = gdTrueColorAlpha(red, green, blue, (int32_t)(alpha * 127));
+    return 0;
+}
+
+inline int32_t rgb_quant(double p, double q, double h)
+{
+    if (h < 0)
+        h += 360;
+
+    if (h >= 360 )
+        h -= 360;
+
+    if (h < 60)
+        return (int32_t)((p + (q - p) * h / 60) * 255 + .5);
+
+    if (h < 180)
+        return (int32_t)(q * 255 + .5);
+
+    if (h < 240)
+        return (int32_t)((p + (q - p) * (240 - h) / 60) * 255 + .5);
+
+    return (int32_t)(p * 255 + .5);
+}
+
+inline int32_t hsl2rgb(double h, double s, double l)
+{
+    double p, q;
+
+    if (s == 0)
+    {
+        int32_t c = (int32_t)(l * 255);
+        return gdTrueColor(c, c, c);
+    }
+
+    if (l <= 0.5)
+    {
+        p = l * (1 - s);
+        q = 2 * l - p;
+    }
+    else
+    {
+        q = l + s - (l * s);
+        p = 2 * l - q;
+    }
+
+    return gdTrueColor(rgb_quant(p, q, h + 120),
+                       rgb_quant(p, q, h),
+                       rgb_quant(p, q, h - 120));
+}
+
+result_t gd_base::hsl(double hue, double saturation, double lightness, int32_t &retVal)
+{
+    if (hue < 0 || hue > 360 || saturation < 0 || saturation > 1 || lightness < 0
+            || lightness > 1)
+        return CALL_E_INVALIDARG;
+
+    retVal = hsl2rgb(hue, saturation, lightness);
+    return 0;
+}
+
+result_t gd_base::hsla(double hue, double saturation, double lightness,
+                       double alpha, int32_t &retVal)
+{
+    if (hue < 0 || hue > 360 || saturation < 0 || saturation > 1 || lightness < 0
+            || lightness > 1 || alpha < 0 || alpha > 1)
+        return CALL_E_INVALIDARG;
+
+    retVal = ((int32_t)(alpha * 127) << 24) | hsl2rgb(hue, saturation, lightness);
+    return 0;
+}
+
+result_t gd_base::color(const char *color, int32_t &retVal)
+{
+    if (*color == '#')
+        color ++;
+
+    if (!qisxdigit(color[0]) || !qisxdigit(color[1]) || !qisxdigit(color[2]))
+        return CALL_E_INVALIDARG;
+
+    if (!color[3])
+        retVal = gdTrueColor(qhex(color[0]) * 17,
+                             qhex(color[1]) * 17,
+                             qhex(color[2]) * 17);
+    else
+    {
+        if (!qisxdigit(color[3]) || !qisxdigit(color[4]) || !qisxdigit(color[5])
+                || color[6])
+            return CALL_E_INVALIDARG;
+
+        retVal = gdTrueColor((qhex(color[0]) << 4) | qhex(color[1]),
+                             (qhex(color[2]) << 4) | qhex(color[3]),
+                             (qhex(color[4]) << 4) | qhex(color[5]));
+    }
+
+    return 0;
+}
+
 result_t Image::create(int32_t width, int32_t height, int32_t color)
 {
     if (color == gd_base::_PALETTE)
@@ -519,27 +633,29 @@ result_t Image::colorAllocate(int32_t red, int32_t green, int32_t blue,
     return 0;
 }
 
+result_t Image::colorAllocate(int32_t color, int32_t &retVal)
+{
+    return colorAllocate((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff, retVal);
+}
+
 result_t Image::colorAllocateAlpha(int32_t red, int32_t green, int32_t blue,
-                                   int32_t alpha, int32_t &retVal)
+                                   double alpha, int32_t &retVal)
 {
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
     if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
-            || blue > 255 || alpha < 0 || alpha > 127)
+            || blue > 255 || alpha < 0 || alpha > 1)
         return CALL_E_INVALIDARG;
 
-    retVal = gdImageColorAllocateAlpha(m_image, red, green, blue, alpha);
+    retVal = gdImageColorAllocateAlpha(m_image, red, green, blue, (int32_t)(alpha * 127));
     return 0;
 }
 
-result_t Image::colorDeallocate(int32_t colorIndex)
+result_t Image::colorAllocateAlpha(int32_t color, int32_t &retVal)
 {
-    if (!m_image)
-        return CALL_E_INVALID_CALL;
-
-    gdImageColorDeallocate(m_image, colorIndex);
-    return 0;
+    return colorAllocateAlpha((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff,
+                              ((color >> 24) & 0xff) / 127.0, retVal);
 }
 
 result_t Image::colorClosest(int32_t red, int32_t green, int32_t blue,
@@ -556,6 +672,11 @@ result_t Image::colorClosest(int32_t red, int32_t green, int32_t blue,
     return 0;
 }
 
+result_t Image::colorClosest(int32_t color, int32_t &retVal)
+{
+    return colorClosest((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff, retVal);
+}
+
 result_t Image::colorClosestHWB(int32_t red, int32_t green, int32_t blue,
                                 int32_t &retVal)
 {
@@ -570,18 +691,29 @@ result_t Image::colorClosestHWB(int32_t red, int32_t green, int32_t blue,
     return 0;
 }
 
+result_t Image::colorClosestHWB(int32_t color, int32_t &retVal)
+{
+    return colorClosestHWB((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff, retVal);
+}
+
 result_t Image::colorClosestAlpha(int32_t red, int32_t green, int32_t blue,
-                                  int32_t alpha, int32_t &retVal)
+                                  double alpha, int32_t &retVal)
 {
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
     if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
-            || blue > 255 || alpha < 0 || alpha > 127)
+            || blue > 255 || alpha < 0 || alpha > 1)
         return CALL_E_INVALIDARG;
 
-    retVal = gdImageColorClosestAlpha(m_image, red, green, blue, alpha);
+    retVal = gdImageColorClosestAlpha(m_image, red, green, blue, (int32_t)(alpha * 127));
     return 0;
+}
+
+result_t Image::colorClosestAlpha(int32_t color, int32_t &retVal)
+{
+    return colorClosestAlpha((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff,
+                             ((color >> 24) & 0xff) / 127.0, retVal);
 }
 
 result_t Image::colorExact(int32_t red, int32_t green, int32_t blue,
@@ -598,18 +730,29 @@ result_t Image::colorExact(int32_t red, int32_t green, int32_t blue,
     return 0;
 }
 
+result_t Image::colorExact(int32_t color, int32_t &retVal)
+{
+    return colorExact((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff, retVal);
+}
+
 result_t Image::colorExactAlpha(int32_t red, int32_t green, int32_t blue,
-                                int32_t alpha, int32_t &retVal)
+                                double alpha, int32_t &retVal)
 {
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
     if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
-            || blue > 255 || alpha < 0 || alpha > 127)
+            || blue > 255 || alpha < 0 || alpha > 1)
         return CALL_E_INVALIDARG;
 
-    retVal = gdImageColorExactAlpha(m_image, red, green, blue, alpha);
+    retVal = gdImageColorExactAlpha(m_image, red, green, blue, (int32_t)(alpha * 127));
     return 0;
+}
+
+result_t Image::colorExactAlpha(int32_t color, int32_t &retVal)
+{
+    return colorExactAlpha((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff,
+                           ((color >> 24) & 0xff) / 127.0, retVal);
 }
 
 result_t Image::colorResolve(int32_t red, int32_t green, int32_t blue,
@@ -626,17 +769,37 @@ result_t Image::colorResolve(int32_t red, int32_t green, int32_t blue,
     return 0;
 }
 
+result_t Image::colorResolve(int32_t color, int32_t &retVal)
+{
+    return colorResolve((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff, retVal);
+}
+
 result_t Image::colorResolveAlpha(int32_t red, int32_t green, int32_t blue,
-                                  int32_t alpha, int32_t &retVal)
+                                  double alpha, int32_t &retVal)
 {
     if (!m_image)
         return CALL_E_INVALID_CALL;
 
     if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
-            || blue > 255 || alpha < 0 || alpha > 127)
+            || blue > 255 || alpha < 0 || alpha > 1)
         return CALL_E_INVALIDARG;
 
-    retVal = gdImageColorResolveAlpha(m_image, red, green, blue, alpha);
+    retVal = gdImageColorResolveAlpha(m_image, red, green, blue, (int32_t)(alpha * 127));
+    return 0;
+}
+
+result_t Image::colorResolveAlpha(int32_t color, int32_t &retVal)
+{
+    return colorResolveAlpha((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff,
+                             ((color >> 24) & 0xff) / 127.0, retVal);
+}
+
+result_t Image::colorDeallocate(int32_t colorIndex)
+{
+    if (!m_image)
+        return CALL_E_INVALID_CALL;
+
+    gdImageColorDeallocate(m_image, colorIndex);
     return 0;
 }
 

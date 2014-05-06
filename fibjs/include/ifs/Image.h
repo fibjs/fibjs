@@ -37,15 +37,24 @@ public:
 	virtual result_t save(Stream_base* stm, int32_t format, int32_t quality, exlib::AsyncEvent* ac) = 0;
 	virtual result_t save(const char* fname, int32_t format, int32_t quality, exlib::AsyncEvent* ac) = 0;
 	virtual result_t colorAllocate(int32_t red, int32_t green, int32_t blue, int32_t& retVal) = 0;
-	virtual result_t colorAllocateAlpha(int32_t red, int32_t green, int32_t blue, int32_t alpha, int32_t& retVal) = 0;
-	virtual result_t colorDeallocate(int32_t color) = 0;
+	virtual result_t colorAllocate(int32_t color, int32_t& retVal) = 0;
+	virtual result_t colorAllocateAlpha(int32_t red, int32_t green, int32_t blue, double alpha, int32_t& retVal) = 0;
+	virtual result_t colorAllocateAlpha(int32_t color, int32_t& retVal) = 0;
 	virtual result_t colorClosest(int32_t red, int32_t green, int32_t blue, int32_t& retVal) = 0;
+	virtual result_t colorClosest(int32_t color, int32_t& retVal) = 0;
 	virtual result_t colorClosestHWB(int32_t red, int32_t green, int32_t blue, int32_t& retVal) = 0;
-	virtual result_t colorClosestAlpha(int32_t red, int32_t green, int32_t blue, int32_t alpha, int32_t& retVal) = 0;
+	virtual result_t colorClosestHWB(int32_t color, int32_t& retVal) = 0;
+	virtual result_t colorClosestAlpha(int32_t red, int32_t green, int32_t blue, double alpha, int32_t& retVal) = 0;
+	virtual result_t colorClosestAlpha(int32_t color, int32_t& retVal) = 0;
 	virtual result_t colorExact(int32_t red, int32_t green, int32_t blue, int32_t& retVal) = 0;
-	virtual result_t colorExactAlpha(int32_t red, int32_t green, int32_t blue, int32_t alpha, int32_t& retVal) = 0;
+	virtual result_t colorExact(int32_t color, int32_t& retVal) = 0;
+	virtual result_t colorExactAlpha(int32_t red, int32_t green, int32_t blue, double alpha, int32_t& retVal) = 0;
+	virtual result_t colorExactAlpha(int32_t color, int32_t& retVal) = 0;
 	virtual result_t colorResolve(int32_t red, int32_t green, int32_t blue, int32_t& retVal) = 0;
-	virtual result_t colorResolveAlpha(int32_t red, int32_t green, int32_t blue, int32_t alpha, int32_t& retVal) = 0;
+	virtual result_t colorResolve(int32_t color, int32_t& retVal) = 0;
+	virtual result_t colorResolveAlpha(int32_t red, int32_t green, int32_t blue, double alpha, int32_t& retVal) = 0;
+	virtual result_t colorResolveAlpha(int32_t color, int32_t& retVal) = 0;
+	virtual result_t colorDeallocate(int32_t color) = 0;
 	virtual result_t clip(int32_t x1, int32_t y1, int32_t x2, int32_t y2) = 0;
 	virtual result_t getPixel(int32_t x, int32_t y, int32_t& retVal) = 0;
 	virtual result_t getTrueColorPixel(int32_t x, int32_t y, int32_t& retVal) = 0;
@@ -93,7 +102,6 @@ public:
 	static void s_save(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_colorAllocate(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_colorAllocateAlpha(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void s_colorDeallocate(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_colorClosest(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_colorClosestHWB(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_colorClosestAlpha(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -101,6 +109,7 @@ public:
 	static void s_colorExactAlpha(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_colorResolve(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_colorResolveAlpha(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_colorDeallocate(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_clip(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_getPixel(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_getTrueColorPixel(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -167,7 +176,6 @@ namespace fibjs
 			{"save", s_save},
 			{"colorAllocate", s_colorAllocate},
 			{"colorAllocateAlpha", s_colorAllocateAlpha},
-			{"colorDeallocate", s_colorDeallocate},
 			{"colorClosest", s_colorClosest},
 			{"colorClosestHWB", s_colorClosestHWB},
 			{"colorClosestAlpha", s_colorClosestAlpha},
@@ -175,6 +183,7 @@ namespace fibjs
 			{"colorExactAlpha", s_colorExactAlpha},
 			{"colorResolve", s_colorResolve},
 			{"colorResolveAlpha", s_colorResolveAlpha},
+			{"colorDeallocate", s_colorDeallocate},
 			{"clip", s_clip},
 			{"getPixel", s_getPixel},
 			{"getTrueColorPixel", s_getTrueColorPixel},
@@ -385,6 +394,12 @@ namespace fibjs
 
 		hr = pInst->colorAllocate(v0, v1, v2, vr);
 
+		METHOD_OVER(1, 1);
+
+		ARG(int32_t, 0);
+
+		hr = pInst->colorAllocate(v0, vr);
+
 		METHOD_RETURN();
 	}
 
@@ -398,23 +413,17 @@ namespace fibjs
 		ARG(int32_t, 0);
 		ARG(int32_t, 1);
 		ARG(int32_t, 2);
-		ARG(int32_t, 3);
+		ARG(double, 3);
 
 		hr = pInst->colorAllocateAlpha(v0, v1, v2, v3, vr);
 
-		METHOD_RETURN();
-	}
-
-	inline void Image_base::s_colorDeallocate(const v8::FunctionCallbackInfo<v8::Value>& args)
-	{
-		METHOD_INSTANCE(Image_base);
-		METHOD_ENTER(1, 1);
+		METHOD_OVER(1, 1);
 
 		ARG(int32_t, 0);
 
-		hr = pInst->colorDeallocate(v0);
+		hr = pInst->colorAllocateAlpha(v0, vr);
 
-		METHOD_VOID();
+		METHOD_RETURN();
 	}
 
 	inline void Image_base::s_colorClosest(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -429,6 +438,12 @@ namespace fibjs
 		ARG(int32_t, 2);
 
 		hr = pInst->colorClosest(v0, v1, v2, vr);
+
+		METHOD_OVER(1, 1);
+
+		ARG(int32_t, 0);
+
+		hr = pInst->colorClosest(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -446,6 +461,12 @@ namespace fibjs
 
 		hr = pInst->colorClosestHWB(v0, v1, v2, vr);
 
+		METHOD_OVER(1, 1);
+
+		ARG(int32_t, 0);
+
+		hr = pInst->colorClosestHWB(v0, vr);
+
 		METHOD_RETURN();
 	}
 
@@ -459,9 +480,15 @@ namespace fibjs
 		ARG(int32_t, 0);
 		ARG(int32_t, 1);
 		ARG(int32_t, 2);
-		ARG(int32_t, 3);
+		ARG(double, 3);
 
 		hr = pInst->colorClosestAlpha(v0, v1, v2, v3, vr);
+
+		METHOD_OVER(1, 1);
+
+		ARG(int32_t, 0);
+
+		hr = pInst->colorClosestAlpha(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -479,6 +506,12 @@ namespace fibjs
 
 		hr = pInst->colorExact(v0, v1, v2, vr);
 
+		METHOD_OVER(1, 1);
+
+		ARG(int32_t, 0);
+
+		hr = pInst->colorExact(v0, vr);
+
 		METHOD_RETURN();
 	}
 
@@ -492,9 +525,15 @@ namespace fibjs
 		ARG(int32_t, 0);
 		ARG(int32_t, 1);
 		ARG(int32_t, 2);
-		ARG(int32_t, 3);
+		ARG(double, 3);
 
 		hr = pInst->colorExactAlpha(v0, v1, v2, v3, vr);
+
+		METHOD_OVER(1, 1);
+
+		ARG(int32_t, 0);
+
+		hr = pInst->colorExactAlpha(v0, vr);
 
 		METHOD_RETURN();
 	}
@@ -512,6 +551,12 @@ namespace fibjs
 
 		hr = pInst->colorResolve(v0, v1, v2, vr);
 
+		METHOD_OVER(1, 1);
+
+		ARG(int32_t, 0);
+
+		hr = pInst->colorResolve(v0, vr);
+
 		METHOD_RETURN();
 	}
 
@@ -525,11 +570,29 @@ namespace fibjs
 		ARG(int32_t, 0);
 		ARG(int32_t, 1);
 		ARG(int32_t, 2);
-		ARG(int32_t, 3);
+		ARG(double, 3);
 
 		hr = pInst->colorResolveAlpha(v0, v1, v2, v3, vr);
 
+		METHOD_OVER(1, 1);
+
+		ARG(int32_t, 0);
+
+		hr = pInst->colorResolveAlpha(v0, vr);
+
 		METHOD_RETURN();
+	}
+
+	inline void Image_base::s_colorDeallocate(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(Image_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(int32_t, 0);
+
+		hr = pInst->colorDeallocate(v0);
+
+		METHOD_VOID();
 	}
 
 	inline void Image_base::s_clip(const v8::FunctionCallbackInfo<v8::Value>& args)
