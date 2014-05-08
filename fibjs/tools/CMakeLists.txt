@@ -64,5 +64,5 @@ include_directories("${PROJECT_SOURCE_DIR}/../include" "${PROJECT_SOURCE_DIR}/..
 
 set_target_properties(fibjs PROPERTIES LINK_FLAGS ${link_flags})
 
-find_library(lib_list vender "${PROJECT_SOURCE_DIR}/../../vender/${BUILD_TYPE}")
+find_library(lib_list vender "${PROJECT_SOURCE_DIR}/../../vender/out/${OS_TYPE}_${BUILD_TYPE}")
 target_link_libraries(fibjs ${lib_list})

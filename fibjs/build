@@ -8,20 +8,8 @@ if [ $# -lt 1 ]; then
 fi
 
 if [ $1 = 'clean' ]; then
-	if [ -e "Release" ]; then
-		rm -r -f "Release"
-	fi
-
-	if [ -e "Release32" ]; then
-		rm -r -f "Release32"
-	fi
-
-	if [ -e "Debug" ]; then
-		rm -r -f "Debug"
-	fi
-
-	if [ -e "Debug32" ]; then
-		rm -r -f "Debug32"
+	if [ -e "out" ]; then
+		rm -r -f "out"
 	fi
 
 	exit 0
@@ -34,36 +22,40 @@ if [ $1 != 'Release' ] && [ $1 != 'Release32' ] && [ $1 != 'Debug' ] && [ $1 != 
 	exit 0
 fi
 
-if [ ! -e "$1" ]; then
-	mkdir "$1"
+OS=`uname`
+
+if [ ! -e "out" ]; then
+	mkdir "out"
+fi
+
+if [ ! -e "out/${OS}_$1" ]; then
+	mkdir "out/${OS}_$1"
 fi
 
 
 SVN_INFO=`svn info | sed -n 's/Revision: /-DSVN_INFO=/p'`
 
-OS=`uname`
-
-cd "$1"
-cmake -DBUILD_TYPE=$1 -DOS_TYPE=$OS $SVN_INFO ../tools
+cd "out/${OS}_$1"
+cmake -DBUILD_TYPE=$1 -DOS_TYPE=$OS $SVN_INFO ../../tools
 make
 
 if [ $1 = 'Release' ] || [ $1 = 'Release32' ]; then
-	cp "../installer.txt" "installer.sh"
+	cp "../../installer.txt" "installer.sh"
 	strip fibjs -o js
 	tar -zcf js.tar.gz js
 	cat js.tar.gz >> installer.sh
 fi
 
-cd ..
+cd ../..
 
-echo "copy $1/fibjs to bin"
+echo "copy fibjs to bin"
 
-if [ ! -e "../bin/$1" ]; then
-	mkdir "../bin/$1"
+if [ ! -e "../bin/${OS}_$1" ]; then
+	mkdir "../bin/${OS}_$1"
 fi
 
-cp "$1/fibjs" "../bin/$1/fibjs"
+cp "out/${OS}_$1/fibjs" "../bin/${OS}_$1/fibjs"
 
 if [ $1 = 'Release' ] || [ $1 = 'Release32' ]; then
-	cp "$1/installer.sh" "../bin/$1/installer.sh"
+	cp "out/${OS}_$1/installer.sh" "../bin/${OS}_$1/installer.sh"
 fi

@@ -8,20 +8,8 @@ if [ $# -lt 1 ]; then
 fi
 
 if [ $1 = 'clean' ]; then
-	if [ -e "Release" ]; then
-		rm -r -f "Release"
-	fi
-
-	if [ -e "Release32" ]; then
-		rm -r -f "Release32"
-	fi
-
-	if [ -e "Debug" ]; then
-		rm -r -f "Debug"
-	fi
-
-	if [ -e "Debug32" ]; then
-		rm -r -f "Debug32"
+	if [ -e "out" ]; then
+		rm -r -f "out"
 	fi
 
 	exit 0
@@ -34,12 +22,19 @@ if [ $1 != 'Release' ] && [ $1 != 'Release32' ] && [ $1 != 'Debug' ] && [ $1 != 
 	exit 0
 fi
 
-if [ ! -e "$1" ]; then
-	mkdir "$1"
+OS=`uname`
+
+if [ ! -e "out" ]; then
+	mkdir "out"
 fi
 
-cd "$1"
-cmake -DBUILD_TYPE=$1 ../tools
+if [ ! -e "out/${OS}_$1" ]; then
+	mkdir "out/${OS}_$1"
+fi
+
+echo "${OS}_$1"
+cd "out/${OS}_$1"
+cmake -DBUILD_TYPE=$1 ../../tools
 make
 
-cd ..
+cd ../..
