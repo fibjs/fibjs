@@ -4,9 +4,9 @@
 #include "stdafx.h"
 
 #if defined(_M_X64)
-#include "..\bin\x64_Release\js.h"
+#include "..\bin\Windows_Release\js.h"
 #elif defined(_M_IX86)
-#include "..\bin\Win32_Release\js.h"
+#include "..\bin\Windows_Release32\js.h"
 #endif
 
 int _tmain(int argc, _TCHAR *argv[])
