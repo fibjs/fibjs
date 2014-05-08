@@ -50,6 +50,10 @@ cd ../..
 
 echo "copy fibjs to bin"
 
+if [ ! -e "../bin" ]; then
+	mkdir "../bin"
+fi
+
 if [ ! -e "../bin/${OS}_$1" ]; then
 	mkdir "../bin/${OS}_$1"
 fi

@@ -13,7 +13,7 @@ goto out
 :release
 msbuild exlib.sln /t:Build /p:Configuration=Release;Platform=x64
 cd bin\Windows_Release
-fibjs ../gen_install.js
+fibjs ../../fibjs/gen_install.js
 cd ..\..
 cd installer
 msbuild installer.sln /t:Build /p:Configuration=Release;Platform=x64
@@ -27,7 +27,7 @@ goto out
 :release32
 msbuild exlib.sln /t:Build /p:Configuration=Release;Platform=Win32
 cd bin\Windows_Release32
-fibjs ../gen_install.js
+fibjs ../../fibjs/gen_install.js
 cd ..\..
 cd installer
 msbuild installer.sln /t:Build /p:Configuration=Release;Platform=Win32
