@@ -964,10 +964,10 @@
   <ItemGroup>
     <CustomBuild Include="src\exlib\fiber\fb_switch.asm">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ml64 /c /Foobj\fb_switch.obj src\exlib\fiber\fb_switch.asm</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml64 /c /Foobj\fb_switch.obj src\exlib\fiber\fb_switch.asm</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">obj\fb_switch.obj</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">obj\fb_switch.obj</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ml64 /c /Foout\Windows_Debug\fb_switch.obj src\exlib\fiber\fb_switch.asm</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml64 /c /Foout\Windows_Release\fb_switch.obj src\exlib\fiber\fb_switch.asm</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">out\Windows_Debug\fb_switch.obj</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">out\Windows_Release\fb_switch.obj</Outputs>
     </CustomBuild>
     <None Include="src\ev\ev_epoll.inl" />
     <None Include="src\ev\ev_kqueue.inl" />
@@ -1026,19 +1026,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>c:\temp\$(Platform)_$(Configuration)\</OutDir>
-    <IntDir>obj\$(Platform)_$(Configuration)\</IntDir>
+    <IntDir>out\Windows_Debug32\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>c:\temp\$(Platform)_$(Configuration)\</OutDir>
-    <IntDir>obj\$(Platform)_$(Configuration)\</IntDir>
+    <IntDir>out\Windows_Release32\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>c:\temp\$(Platform)_$(Configuration)\</OutDir>
-    <IntDir>obj\$(Platform)_$(Configuration)\</IntDir>
+    <IntDir>out\Windows_Debug\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>c:\temp\$(Platform)_$(Configuration)\</OutDir>
-    <IntDir>obj\$(Platform)_$(Configuration)\</IntDir>
+    <IntDir>out\Windows_Release\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

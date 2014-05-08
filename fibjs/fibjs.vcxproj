@@ -367,23 +367,23 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\$(Platform)_$(Configuration)\</OutDir>
-    <IntDir>obj\$(Platform)_$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin\Windows_Debug32\</OutDir>
+    <IntDir>out\Windows_Debug32\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\$(Platform)_$(Configuration)\</OutDir>
-    <IntDir>obj\$(Platform)_$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin\Windows_Debug\</OutDir>
+    <IntDir>out\Windows_Debug\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\$(Platform)_$(Configuration)\</OutDir>
-    <IntDir>obj\$(Platform)_$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin\Windows_Release32\</OutDir>
+    <IntDir>out\Windows_Release32\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\$(Platform)_$(Configuration)\</OutDir>
-    <IntDir>obj\$(Platform)_$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin\Windows_Release\</OutDir>
+    <IntDir>out\Windows_Release\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
