@@ -21,3 +21,9 @@ cd ..
 cd fibjs
 sh build $1
 cd ..
+
+if [ $1 = 'clean' ]; then
+	if [ -e "bin" ]; then
+		rm -rf "bin"
+	fi
+fi
