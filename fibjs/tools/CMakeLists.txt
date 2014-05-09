@@ -11,11 +11,13 @@ set(flags "-c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -W
 set(link_flags " ")
 
 if(${OS_TYPE} STREQUAL "Darwin")
+	set(link_flags "${link_flags} -mmacosx-version-min=10.6")
+	set(flags "${flags} -mmacosx-version-min=10.6")
 	target_link_libraries(fibjs dl iconv pthread)
 endif()
 
 if(${OS_TYPE} STREQUAL "Linux")
-	set(link_flags "-static-libgcc -static-libstdc++ -Wl,--no-as-needed")
+	set(link_flags "${link_flags} -static-libgcc -static-libstdc++ -Wl,--no-as-needed")
 	target_link_libraries(fibjs dl rt pthread)
 endif()
 

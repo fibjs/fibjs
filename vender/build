@@ -9,7 +9,7 @@ fi
 
 if [ $1 = 'clean' ]; then
 	if [ -e "out" ]; then
-		rm -r -f "out"
+		rm -rf "out"
 	fi
 
 	exit 0
@@ -34,7 +34,7 @@ fi
 
 echo "${OS}_$1"
 cd "out/${OS}_$1"
-cmake -DBUILD_TYPE=$1 ../../tools
+cmake -DBUILD_TYPE=$1 -DOS_TYPE=$OS ../../tools
 make
 
 cd ../..

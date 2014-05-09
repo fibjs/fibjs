@@ -6,7 +6,11 @@ file(GLOB_RECURSE src_list "../src/*.c*")
 add_library(vender ${src_list})
 
 set(flags "-c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -Wno-strict-aliasing -ffunction-sections -fno-exceptions -D_FILE_OFFSET_BITS=64")
-set(link_flags "")
+set(link_flags " ")
+
+if(${OS_TYPE} STREQUAL "Darwin")
+	set(flags "${flags} -mmacosx-version-min=10.6")
+endif()
 
 if(${BUILD_TYPE} STREQUAL "Release")
 	set(flags "${flags} -O3 -m64")

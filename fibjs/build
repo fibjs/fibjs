@@ -9,7 +9,7 @@ fi
 
 if [ $1 = 'clean' ]; then
 	if [ -e "out" ]; then
-		rm -r -f "out"
+		rm -rf "out"
 	fi
 
 	exit 0
