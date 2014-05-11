@@ -11,31 +11,14 @@
 #include <win_iconv.h>
 #else
 
-#if !defined(FreeBSD) || defined(__clang_major__)
+#include "config.h"
+
+#ifdef HAVE_ICONV_H
 #include <iconv.h>
 #else
-
 #include <stddef.h>
-
-typedef void *iconv_t;
-
-iconv_t iconv_open(const char *tocode, const char *fromcode)
-{
-    return (iconv_t) - 1;
-}
-
-int iconv_close(iconv_t cd)
-{
-    return 0;
-}
-
-size_t iconv(iconv_t cd, const char **inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft)
-{
-    return 0;
-}
-#endif
-
 #include <dlfcn.h>
+#endif
 
 #endif
 
@@ -248,6 +231,35 @@ inline void init_iconv()
 
 #else
 
+#ifdef HAVE_ICONV_H
+
+#define _iconv_open iconv_open
+#define _iconv_close iconv_close
+#define _iconv ((size_t (*)(iconv_t, const char **, size_t *, char **, size_t *))&iconv)
+
+inline void init_iconv()
+{
+}
+
+#else
+
+typedef void *iconv_t;
+
+iconv_t iconv_open(const char *tocode, const char *fromcode)
+{
+    return (iconv_t) - 1;
+}
+
+int iconv_close(iconv_t cd)
+{
+    return 0;
+}
+
+size_t iconv(iconv_t cd, const char **inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft)
+{
+    return 0;
+}
+
 static size_t (*_iconv)(iconv_t, const char **, size_t *, char **, size_t *);
 static iconv_t (*_iconv_open)(const char *, const char *);
 static int (*_iconv_close)(iconv_t);
@@ -260,7 +272,6 @@ inline void init_iconv()
     {
         _init = true;
 
-#if defined(FreeBSD) && !defined(__clang_major__)
         void *handle = dlopen("libiconv.so", RTLD_LAZY);
 
         if (handle)
@@ -277,7 +288,6 @@ inline void init_iconv()
             if (!_iconv_close)
                 _iconv_close = (int (*)(iconv_t))dlsym(handle, "libiconv_close");
         }
-#endif
 
         if (!_iconv || !_iconv_open || !_iconv_close)
         {
@@ -287,6 +297,8 @@ inline void init_iconv()
         }
     }
 }
+
+#endif
 
 #endif
 
