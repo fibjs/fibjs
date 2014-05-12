@@ -52,7 +52,7 @@
 
 # Build:
 
-### on linux/freebsd/osx:
+### on unix:
 	sh build
 
 ----------------------------------
@@ -67,25 +67,19 @@
 
 # Test:
 
-### on linux/freebsd/osx:
-	cd bin
-	Release/fibjs main.js
-
-----------------------------------
-### on Windows:
-	cd bin
-	x64_Release/fibjs main.js
+	cd test
+	../bin/{OS}_Release/fibjs main.js
 
 # Install:
 
 ### on linux/freebsd/osx:
-	sudo sh bin/Release/installer.sh  // x86_64
-	sudo sh bin/Release32/installer.sh // ia32
+	sudo sh bin/{OS}_Release/installer.sh  // x86_64
+	sudo sh bin/{OS}_Release32/installer.sh // ia32
 
 ----------------------------------
 ### on Windows(run as administrator):
-	bin/x64_Release/installer  // x86_64
-	bin/Win32_Release/installer // ia32
+	bin/Windows_Release/installer  // x86_64
+	bin/Windows_Release32/installer // ia32
 
 # Run:
 
