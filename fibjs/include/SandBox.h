@@ -19,6 +19,15 @@ namespace fibjs
 class SandBox: public fibjs::SandBox_base
 {
 public:
+    SandBox(const char *name = NULL)
+    {
+        if (name && *name)
+        {
+            m_name = name;
+            m_name.append(":", 1);
+        }
+    }
+
     ~SandBox()
     {
         m_require.Reset();
@@ -139,6 +148,7 @@ public:
 private:
     std::map<std::string, VariantEx > m_mods;
     v8::Persistent<v8::Function> m_require;
+    std::string m_name;
 };
 
 } /* namespace fibjs */

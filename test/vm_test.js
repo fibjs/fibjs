@@ -87,11 +87,22 @@ describe("vm", function() {
 		assert.deepEqual(b, b1);
 	});
 
-	it("disable global.repl", function() {
+	xit("disable global.repl", function() {
 		assert.throws(function() {
 			repl.toString();
 		});
 	});
+
+	it("name", function() {
+		sbox = new vm.SandBox({
+			assert: assert
+		}, "test");
+
+		sbox.run("./vm_test/name_test1.js");
+		var t1 = sbox.require("./vm_test/name_test2.js");
+		t1.func();
+	});
+
 });
 
 //test.run(console.DEBUG);

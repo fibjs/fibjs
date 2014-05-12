@@ -94,6 +94,13 @@ result_t SandBox::addScript(const char *srcname, const char *script,
     context.glob->Set(strModule, mod, v8::ReadOnly);
     context.glob->Set(strExports, exports, v8::ReadOnly);
 
+    std::string sname;
+    if (!m_name.empty())
+    {
+        sname = m_name + srcname;
+        srcname = sname.c_str();
+    }
+
     hr = context.run(script, srcname);
     if (hr < 0)
     {
@@ -194,6 +201,14 @@ result_t SandBox::run(const char *fname)
         buf = "//" + buf;
 
     Context context(this, pname);
+
+    std::string sname;
+    if (!m_name.empty())
+    {
+        sname = m_name + sfname;
+        pname = sname.c_str();
+    }
+
     return context.run(buf, pname);
 }
 

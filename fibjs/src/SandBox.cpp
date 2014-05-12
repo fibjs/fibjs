@@ -11,10 +11,10 @@
 namespace fibjs
 {
 
-result_t SandBox_base::_new(v8::Local<v8::Object> mods,
+result_t SandBox_base::_new(v8::Local<v8::Object> mods, const char *name,
                             obj_ptr<SandBox_base> &retVal)
 {
-    obj_ptr<SandBox_base> sbox = new SandBox();
+    obj_ptr<SandBox_base> sbox = new SandBox(name);
     result_t hr = sbox->add(mods);
     if (hr < 0)
         return hr;
@@ -26,9 +26,10 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods,
 
 result_t SandBox_base::_new(v8::Local<v8::Object> mods,
                             v8::Local<v8::Function> require,
+                            const char *name,
                             obj_ptr<SandBox_base> &retVal)
 {
-    obj_ptr<SandBox> sbox = new SandBox();
+    obj_ptr<SandBox> sbox = new SandBox(name);
     sbox->initRequire(require);
     result_t hr = sbox->add(mods);
     if (hr < 0)
