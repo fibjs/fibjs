@@ -17,8 +17,9 @@
 #include <iconv.h>
 #else
 #include <stddef.h>
-#include <dlfcn.h>
 #endif
+
+#include <dlfcn.h>
 
 #endif
 
@@ -229,9 +230,7 @@ inline void init_iconv()
 {
 }
 
-#else
-
-#ifdef HAVE_ICONV_H
+#elif !defined(FreeBSD)
 
 #define _iconv_open iconv_open
 #define _iconv_close iconv_close
@@ -242,6 +241,8 @@ inline void init_iconv()
 }
 
 #else
+
+#ifndef HAVE_ICONV_H
 
 typedef void *iconv_t;
 
@@ -259,6 +260,8 @@ size_t iconv(iconv_t cd, const char **inbuf, size_t *inbytesleft, char **outbuf,
 {
     return 0;
 }
+
+#endif
 
 static size_t (*_iconv)(iconv_t, const char **, size_t *, char **, size_t *);
 static iconv_t (*_iconv_open)(const char *, const char *);
@@ -297,8 +300,6 @@ inline void init_iconv()
         }
     }
 }
-
-#endif
 
 #endif
 
