@@ -13,6 +13,10 @@ set(flags "-c -fshort-wchar -fmessage-length=0 -Wno-long-long -fdata-sections -W
 
 set(link_flags " ")
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	set(link_flags "${link_flags} -static-libgcc -static-libstdc++ -Wl,--no-as-needed")
+endif()
+
 if(${OS_TYPE} STREQUAL "Darwin")
 	set(link_flags "${link_flags} -mmacosx-version-min=10.6")
 	set(flags "${flags} -mmacosx-version-min=10.6")
@@ -20,7 +24,6 @@ if(${OS_TYPE} STREQUAL "Darwin")
 endif()
 
 if(${OS_TYPE} STREQUAL "Linux")
-	set(link_flags "${link_flags} -static-libgcc -static-libstdc++ -Wl,--no-as-needed")
 	target_link_libraries(fibjs dl rt pthread)
 endif()
 
