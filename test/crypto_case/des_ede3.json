@@ -1,0 +1,8 @@
+[
+	["3DES-ECB 2Key Encrypt OpenSSL Test Vector #1", "encrypt", "ECB", "0000000000000000ffffffffffffffff", "0000000000000000", "9295b59bb384736e"],
+	["3DES-ECB 2Key Encrypt OpenSSL Test Vector #2", "encrypt", "ECB", "ffffffffffffffff3000000000000000", "ffffffffffffffff", "199e9d6df39aa816"],
+	["3DES-ECB 2Key Decrypt OpenSSL Test Vector #1", "decrypt", "ECB", "0000000000000000ffffffffffffffff", "9295b59bb384736e", "0000000000000000"],
+	["3DES-ECB 2Key Decrypt OpenSSL Test Vector #2", "decrypt", "ECB", "ffffffffffffffff3000000000000000", "199e9d6df39aa816", "ffffffffffffffff"],
+	["3DES-CBC 3Key Encrypt OpenSSL Test Vector #1", "encrypt", "CBC", "0123456789abcdeff1e0d3c2b5a49786fedcba9876543210", "37363534333231204e6f77206973207468652074696d6520", "3fe301c962ac01d02213763c1cbd4cdc799657c064ecf5d4", "fedcba9876543210"],
+	["3DES-CBC 3Key Decrypt OpenSSL Test Vector #1", "decrypt", "CBC", "0123456789abcdeff1e0d3c2b5a49786fedcba9876543210", "3fe301c962ac01d02213763c1cbd4cdc799657c064ecf5d4", "37363534333231204e6f77206973207468652074696d6520", "fedcba9876543210"]
+]

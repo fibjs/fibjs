@@ -1,0 +1,189 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
+<title>{FibJS: Fiber Javascript}: console.idl 源文件</title>
+<link href="../../tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../jquery.js"></script>
+<script type="text/javascript" src="../../dynsections.js"></script>
+<link href="../../navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../resize.js"></script>
+<script type="text/javascript" src="../../navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
+<link href="../../search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="../../doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">{FibJS: Fiber Javascript}
+   </div>
+   <div id="projectbrief">基于 Google v8 引擎实现的协程应用开发框架</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.8.6 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="../../index.html"><span>首页</span></a></li>
+      <li><a href="../../pages.html"><span>相关页面</span></a></li>
+      <li><a href="../../annotated.html"><span>类</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="../../search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="../../search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('d5/dc9/console_8idl_source.html','../../');});
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="headertitle">
+<div class="title">console.idl</div>  </div>
+</div><!--header-->
+<div class="contents">
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;</div>
+<div class="line"><a name="l00015"></a><span class="lineno"><a class="line" href="../../d6/df8/classconsole.html">   15</a></span>&#160;<span class="keyword">class </span><a class="code" href="../../d6/df8/classconsole.html">console</a> : <a class="code" href="../../d0/dd3/classmodule.html">module</a></div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;{</div>
+<div class="line"><a name="l00018"></a><span class="lineno"><a class="line" href="../../d6/df8/classconsole.html#af2febf98c41ce04e211f506926bea7d9">   18</a></span>&#160;    <span class="keyword">const</span> Integer <a class="code" href="../../d6/df8/classconsole.html#af2febf98c41ce04e211f506926bea7d9">FATAL</a> = 0;</div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;</div>
+<div class="line"><a name="l00021"></a><span class="lineno"><a class="line" href="../../d6/df8/classconsole.html#aa8fd69bb52fd75fb7d68ef5c78205ceb">   21</a></span>&#160;    <span class="keyword">const</span> Integer <a class="code" href="../../d6/df8/classconsole.html#aa8fd69bb52fd75fb7d68ef5c78205ceb">ALERT</a> = 100;</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;</div>
+<div class="line"><a name="l00024"></a><span class="lineno"><a class="line" href="../../d6/df8/classconsole.html#a0a9c19825a7e11769d5646cb24002d1b">   24</a></span>&#160;    <span class="keyword">const</span> Integer <a class="code" href="../../d6/df8/classconsole.html#a0a9c19825a7e11769d5646cb24002d1b">CRIT</a> = 200;</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;</div>
+<div class="line"><a name="l00027"></a><span class="lineno"><a class="line" href="../../d6/df8/classconsole.html#a60c0dd0c74056a542643ec7202b5954d">   27</a></span>&#160;    <span class="keyword">const</span> Integer <a class="code" href="../../d6/df8/classconsole.html#a60c0dd0c74056a542643ec7202b5954d">ERROR</a> = 300;</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;</div>
+<div class="line"><a name="l00030"></a><span class="lineno"><a class="line" href="../../d6/df8/classconsole.html#ae02c4729b8e8c15a3b166ec5d4c08365">   30</a></span>&#160;    <span class="keyword">const</span> Integer <a class="code" href="../../d6/df8/classconsole.html#ae02c4729b8e8c15a3b166ec5d4c08365">WARN</a> = 400;</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;</div>
+<div class="line"><a name="l00033"></a><span class="lineno"><a class="line" href="../../d6/df8/classconsole.html#a69ec2512f58da156a3622655f50a583e">   33</a></span>&#160;    <span class="keyword">const</span> Integer <a class="code" href="../../d6/df8/classconsole.html#a69ec2512f58da156a3622655f50a583e">NOTICE</a> = 500;</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;</div>
+<div class="line"><a name="l00036"></a><span class="lineno"><a class="line" href="../../d6/df8/classconsole.html#add424d51dfc7bd19ac906d010b9c7694">   36</a></span>&#160;    <span class="keyword">const</span> Integer <a class="code" href="../../d6/df8/classconsole.html#add424d51dfc7bd19ac906d010b9c7694">INFO</a> = 600;</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;</div>
+<div class="line"><a name="l00039"></a><span class="lineno"><a class="line" href="../../d6/df8/classconsole.html#aea2731ad3aa0e877f14a6e99d964b432">   39</a></span>&#160;    <span class="keyword">const</span> Integer <a class="code" href="../../d6/df8/classconsole.html#aea2731ad3aa0e877f14a6e99d964b432">DEBUG</a> = 700;</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;</div>
+<div class="line"><a name="l00042"></a><span class="lineno"><a class="line" href="../../d6/df8/classconsole.html#a4835a70d20c127694e4e4e557c2ed16b">   42</a></span>&#160;    <span class="keyword">const</span> Integer <a class="code" href="../../d6/df8/classconsole.html#a4835a70d20c127694e4e4e557c2ed16b">NOTSET</a> = 800;</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;</div>
+<div class="line"><a name="l00046"></a><span class="lineno"><a class="line" href="../../d6/df8/classconsole.html#a903b5848bef37d438c976f38338569db">   46</a></span>&#160;    <span class="keyword">static</span> Integer <a class="code" href="../../d6/df8/classconsole.html#a903b5848bef37d438c976f38338569db">loglevel</a>;</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;</div>
+<div class="line"><a name="l00049"></a><span class="lineno"><a class="line" href="../../d6/df8/classconsole.html#ac66c67c224cee71b91094d3d6d6da15d">   49</a></span>&#160;    <span class="keyword">static</span> readonly <a class="code" href="../../df/d0e/classTextColor.html">TextColor</a> <a class="code" href="../../d6/df8/classconsole.html#ac66c67c224cee71b91094d3d6d6da15d">colors</a>;</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d6/df8/classconsole.html#a8a35465941f1668e1fa88c9d37ac997b">log</a>(String fmt = <span class="stringliteral">&quot;&quot;</span>, ...);</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d6/df8/classconsole.html#acb78168ce343fe7d763362ddf772358f">info</a>(String fmt = <span class="stringliteral">&quot;&quot;</span>, ...);</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d6/df8/classconsole.html#ab820b4465ace93ddf6d3c5f0177c2aa7">notice</a>(String fmt = <span class="stringliteral">&quot;&quot;</span>, ...);</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d6/df8/classconsole.html#adb7cbfa9d8af3db9efc1ff8670c4123c">warn</a>(String fmt = <span class="stringliteral">&quot;&quot;</span>, ...);</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d6/df8/classconsole.html#a3a51fd7a0065454f1b3ec1e41ffcd621">error</a>(String fmt = <span class="stringliteral">&quot;&quot;</span>, ...);</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d6/df8/classconsole.html#a6779bc26fdbd66d34bf259c28d695678">dir</a>(Object obj);</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d6/df8/classconsole.html#aafdd7ca53b206fdeb5ca882510374475">time</a>(String label = <span class="stringliteral">&quot;time&quot;</span>);</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d6/df8/classconsole.html#ab53e089924e192a2fa616e362f0bb71c">timeEnd</a>(String label = <span class="stringliteral">&quot;time&quot;</span>);</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;</div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d6/df8/classconsole.html#aa60d1f56ec155161db3f3d0e48c2c2d3">trace</a>(String label = <span class="stringliteral">&quot;trace&quot;</span>);</div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d6/df8/classconsole.html#abb065e74e5380ca19bfd6e9a6b2a4117">assert</a>(Value value, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;</div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d6/df8/classconsole.html#a7ceda26b6990dfd337728b3ebb45d92c">print</a>(String fmt = <span class="stringliteral">&quot;&quot;</span>, ...);</div>
+<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;</div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;    <span class="keyword">static</span> String <a class="code" href="../../d6/df8/classconsole.html#a99e8e4d13c991dad4750cbd6a7a9e6c8">readLine</a>(String msg = <span class="stringliteral">&quot;&quot;</span>) async;</div>
+<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;};</div>
+<div class="ttc" id="classTextColor_html"><div class="ttname"><a href="../../df/d0e/classTextColor.html">TextColor</a></div><div class="ttdoc">终端输出颜色配置对象 </div><div class="ttdef"><b>Definition:</b> TextColor.idl:4</div></div>
+<div class="ttc" id="classconsole_html_a7ceda26b6990dfd337728b3ebb45d92c"><div class="ttname"><a href="../../d6/df8/classconsole.html#a7ceda26b6990dfd337728b3ebb45d92c">console::print</a></div><div class="ttdeci">static print(String fmt=&quot;&quot;,...)</div><div class="ttdoc">向控制台输出格式化文本，输出内容不会记入日志系统，输出文本后不会自动换行，可连续输出 </div></div>
+<div class="ttc" id="classconsole_html"><div class="ttname"><a href="../../d6/df8/classconsole.html">console</a></div><div class="ttdoc">控制台访问对象 </div><div class="ttdef"><b>Definition:</b> console.idl:15</div></div>
+<div class="ttc" id="classconsole_html_a6779bc26fdbd66d34bf259c28d695678"><div class="ttname"><a href="../../d6/df8/classconsole.html#a6779bc26fdbd66d34bf259c28d695678">console::dir</a></div><div class="ttdeci">static dir(Object obj)</div><div class="ttdoc">用 JSON 格式输出对象 </div></div>
+<div class="ttc" id="classconsole_html_aa60d1f56ec155161db3f3d0e48c2c2d3"><div class="ttname"><a href="../../d6/df8/classconsole.html#aa60d1f56ec155161db3f3d0e48c2c2d3">console::trace</a></div><div class="ttdeci">static trace(String label=&quot;trace&quot;)</div><div class="ttdoc">输出当前调用堆栈 </div></div>
+<div class="ttc" id="classconsole_html_a903b5848bef37d438c976f38338569db"><div class="ttname"><a href="../../d6/df8/classconsole.html#a903b5848bef37d438c976f38338569db">console::loglevel</a></div><div class="ttdeci">static Integer loglevel</div><div class="ttdoc">输出级别，用以过滤输出信息，缺省为 NOTSET，全部输出 </div><div class="ttdef"><b>Definition:</b> console.idl:46</div></div>
+<div class="ttc" id="classconsole_html_a3a51fd7a0065454f1b3ec1e41ffcd621"><div class="ttname"><a href="../../d6/df8/classconsole.html#a3a51fd7a0065454f1b3ec1e41ffcd621">console::error</a></div><div class="ttdeci">static error(String fmt=&quot;&quot;,...)</div><div class="ttdoc">记录错误日志信息 </div></div>
+<div class="ttc" id="classconsole_html_aea2731ad3aa0e877f14a6e99d964b432"><div class="ttname"><a href="../../d6/df8/classconsole.html#aea2731ad3aa0e877f14a6e99d964b432">console::DEBUG</a></div><div class="ttdeci">const Integer DEBUG</div><div class="ttdoc">loglevel 级别常量 </div><div class="ttdef"><b>Definition:</b> console.idl:39</div></div>
+<div class="ttc" id="classconsole_html_a99e8e4d13c991dad4750cbd6a7a9e6c8"><div class="ttname"><a href="../../d6/df8/classconsole.html#a99e8e4d13c991dad4750cbd6a7a9e6c8">console::readLine</a></div><div class="ttdeci">static String readLine(String msg=&quot;&quot;) async</div><div class="ttdoc">从控制台读取用户输入 </div></div>
+<div class="ttc" id="classconsole_html_ac66c67c224cee71b91094d3d6d6da15d"><div class="ttname"><a href="../../d6/df8/classconsole.html#ac66c67c224cee71b91094d3d6d6da15d">console::colors</a></div><div class="ttdeci">static readonly TextColor colors</div><div class="ttdoc">终端输出颜色配置对象，详见 TextColor </div><div class="ttdef"><b>Definition:</b> console.idl:49</div></div>
+<div class="ttc" id="classconsole_html_ab53e089924e192a2fa616e362f0bb71c"><div class="ttname"><a href="../../d6/df8/classconsole.html#ab53e089924e192a2fa616e362f0bb71c">console::timeEnd</a></div><div class="ttdeci">static timeEnd(String label=&quot;time&quot;)</div><div class="ttdoc">统计指定计时器的数值 </div></div>
+<div class="ttc" id="classconsole_html_a8a35465941f1668e1fa88c9d37ac997b"><div class="ttname"><a href="../../d6/df8/classconsole.html#a8a35465941f1668e1fa88c9d37ac997b">console::log</a></div><div class="ttdeci">static log(String fmt=&quot;&quot;,...)</div><div class="ttdoc">记录普通日志信息，与 info 等同 </div></div>
+<div class="ttc" id="classconsole_html_adb7cbfa9d8af3db9efc1ff8670c4123c"><div class="ttname"><a href="../../d6/df8/classconsole.html#adb7cbfa9d8af3db9efc1ff8670c4123c">console::warn</a></div><div class="ttdeci">static warn(String fmt=&quot;&quot;,...)</div><div class="ttdoc">记录警告日志信息 </div></div>
+<div class="ttc" id="classconsole_html_abb065e74e5380ca19bfd6e9a6b2a4117"><div class="ttname"><a href="../../d6/df8/classconsole.html#abb065e74e5380ca19bfd6e9a6b2a4117">console::assert</a></div><div class="ttdeci">static assert(Value value, String msg=&quot;&quot;)</div><div class="ttdoc">断言测试，如果测试值为假，则报错 </div></div>
+<div class="ttc" id="classconsole_html_aafdd7ca53b206fdeb5ca882510374475"><div class="ttname"><a href="../../d6/df8/classconsole.html#aafdd7ca53b206fdeb5ca882510374475">console::time</a></div><div class="ttdeci">static time(String label=&quot;time&quot;)</div><div class="ttdoc">启动一个计时器 </div></div>
+<div class="ttc" id="classconsole_html_acb78168ce343fe7d763362ddf772358f"><div class="ttname"><a href="../../d6/df8/classconsole.html#acb78168ce343fe7d763362ddf772358f">console::info</a></div><div class="ttdeci">static info(String fmt=&quot;&quot;,...)</div><div class="ttdoc">记录普通日志信息，与 log 等同 </div></div>
+<div class="ttc" id="classconsole_html_ae02c4729b8e8c15a3b166ec5d4c08365"><div class="ttname"><a href="../../d6/df8/classconsole.html#ae02c4729b8e8c15a3b166ec5d4c08365">console::WARN</a></div><div class="ttdeci">const Integer WARN</div><div class="ttdoc">loglevel 级别常量 </div><div class="ttdef"><b>Definition:</b> console.idl:30</div></div>
+<div class="ttc" id="classconsole_html_a69ec2512f58da156a3622655f50a583e"><div class="ttname"><a href="../../d6/df8/classconsole.html#a69ec2512f58da156a3622655f50a583e">console::NOTICE</a></div><div class="ttdeci">const Integer NOTICE</div><div class="ttdoc">loglevel 级别常量 </div><div class="ttdef"><b>Definition:</b> console.idl:33</div></div>
+<div class="ttc" id="classconsole_html_add424d51dfc7bd19ac906d010b9c7694"><div class="ttname"><a href="../../d6/df8/classconsole.html#add424d51dfc7bd19ac906d010b9c7694">console::INFO</a></div><div class="ttdeci">const Integer INFO</div><div class="ttdoc">loglevel 级别常量 </div><div class="ttdef"><b>Definition:</b> console.idl:36</div></div>
+<div class="ttc" id="classconsole_html_aa8fd69bb52fd75fb7d68ef5c78205ceb"><div class="ttname"><a href="../../d6/df8/classconsole.html#aa8fd69bb52fd75fb7d68ef5c78205ceb">console::ALERT</a></div><div class="ttdeci">const Integer ALERT</div><div class="ttdoc">loglevel 级别常量 </div><div class="ttdef"><b>Definition:</b> console.idl:21</div></div>
+<div class="ttc" id="classconsole_html_ab820b4465ace93ddf6d3c5f0177c2aa7"><div class="ttname"><a href="../../d6/df8/classconsole.html#ab820b4465ace93ddf6d3c5f0177c2aa7">console::notice</a></div><div class="ttdeci">static notice(String fmt=&quot;&quot;,...)</div><div class="ttdoc">记录警告日志信息 </div></div>
+<div class="ttc" id="classconsole_html_a60c0dd0c74056a542643ec7202b5954d"><div class="ttname"><a href="../../d6/df8/classconsole.html#a60c0dd0c74056a542643ec7202b5954d">console::ERROR</a></div><div class="ttdeci">const Integer ERROR</div><div class="ttdoc">loglevel 级别常量 </div><div class="ttdef"><b>Definition:</b> console.idl:27</div></div>
+<div class="ttc" id="classconsole_html_af2febf98c41ce04e211f506926bea7d9"><div class="ttname"><a href="../../d6/df8/classconsole.html#af2febf98c41ce04e211f506926bea7d9">console::FATAL</a></div><div class="ttdeci">const Integer FATAL</div><div class="ttdoc">loglevel 级别常量 </div><div class="ttdef"><b>Definition:</b> console.idl:18</div></div>
+<div class="ttc" id="classconsole_html_a4835a70d20c127694e4e4e557c2ed16b"><div class="ttname"><a href="../../d6/df8/classconsole.html#a4835a70d20c127694e4e4e557c2ed16b">console::NOTSET</a></div><div class="ttdeci">const Integer NOTSET</div><div class="ttdoc">loglevel 级别常量 </div><div class="ttdef"><b>Definition:</b> console.idl:42</div></div>
+<div class="ttc" id="classmodule_html"><div class="ttname"><a href="../../d0/dd3/classmodule.html">module</a></div><div class="ttdoc">基础模块对象，所有模块对象均继承于此 </div><div class="ttdef"><b>Definition:</b> module.idl:3</div></div>
+<div class="ttc" id="classconsole_html_a0a9c19825a7e11769d5646cb24002d1b"><div class="ttname"><a href="../../d6/df8/classconsole.html#a0a9c19825a7e11769d5646cb24002d1b">console::CRIT</a></div><div class="ttdeci">const Integer CRIT</div><div class="ttdoc">loglevel 级别常量 </div><div class="ttdef"><b>Definition:</b> console.idl:24</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><b>console.idl</b></li>
+    <li class="footer">制作者
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
+  </ul>
+</div>
+</body>
+</html>

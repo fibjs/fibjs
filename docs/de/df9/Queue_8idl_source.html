@@ -1,0 +1,149 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
+<title>{FibJS: Fiber Javascript}: Queue.idl 源文件</title>
+<link href="../../tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../jquery.js"></script>
+<script type="text/javascript" src="../../dynsections.js"></script>
+<link href="../../navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../resize.js"></script>
+<script type="text/javascript" src="../../navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
+<link href="../../search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="../../doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">{FibJS: Fiber Javascript}
+   </div>
+   <div id="projectbrief">基于 Google v8 引擎实现的协程应用开发框架</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.8.6 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="../../index.html"><span>首页</span></a></li>
+      <li><a href="../../pages.html"><span>相关页面</span></a></li>
+      <li><a href="../../annotated.html"><span>类</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="../../search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="../../search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('de/df9/Queue_8idl_source.html','../../');});
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="headertitle">
+<div class="title">Queue.idl</div>  </div>
+</div><!--header-->
+<div class="contents">
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;</div>
+<div class="line"><a name="l00009"></a><span class="lineno"><a class="line" href="../../d7/d56/classQueue.html">    9</a></span>&#160;<span class="keyword">class </span><a class="code" href="../../d7/d56/classQueue.html">Queue</a> : <a class="code" href="../../dc/dd8/classobject.html">object</a></div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;{</div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;    <a class="code" href="../../d7/d56/classQueue.html#a01107ca7cd53af62fb9ed599054c8843">Queue</a>(Integer size);</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;    Boolean <a class="code" href="../../d7/d56/classQueue.html#a494413e4d871dd9076a8ec8b379c3f5c">add</a>(Value e);</div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    </div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;    Boolean <a class="code" href="../../d7/d56/classQueue.html#a0b29d2db0a4fa1114fa4278416d41644">offer</a>(Value e);</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;    </div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    Value <span class="keyword">remove</span>();</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    Value <a class="code" href="../../d7/d56/classQueue.html#af17aa223359d90dd6682a37eff715399">poll</a>();</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    </div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    Value <a class="code" href="../../d7/d56/classQueue.html#a675d1b56201b831730dc0a4767ba00e1">element</a>();</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    Value <a class="code" href="../../d7/d56/classQueue.html#a527294456fbc8531dd4f6197eec1fc96">peek</a>();</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    <a class="code" href="../../d7/d56/classQueue.html#a0d245f8b5cd9e660ef6f33afd9773d7d">clear</a>();</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    </div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    Array <a class="code" href="../../d7/d56/classQueue.html#a41b4a1b5c0945b260c91e950bad6a8a2">toArray</a>();</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;</div>
+<div class="line"><a name="l00057"></a><span class="lineno"><a class="line" href="../../d7/d56/classQueue.html#a5d54db5509dc75de10b7c15f3bb1996b">   57</a></span>&#160;    readonly Integer <a class="code" href="../../d7/d56/classQueue.html#a5d54db5509dc75de10b7c15f3bb1996b">length</a>;</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;};</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;</div>
+<div class="ttc" id="classQueue_html_a0d245f8b5cd9e660ef6f33afd9773d7d"><div class="ttname"><a href="../../d7/d56/classQueue.html#a0d245f8b5cd9e660ef6f33afd9773d7d">Queue::clear</a></div><div class="ttdeci">clear()</div><div class="ttdoc">清除当前队列 </div></div>
+<div class="ttc" id="classQueue_html_a0b29d2db0a4fa1114fa4278416d41644"><div class="ttname"><a href="../../d7/d56/classQueue.html#a0b29d2db0a4fa1114fa4278416d41644">Queue::offer</a></div><div class="ttdeci">Boolean offer(Value e)</div><div class="ttdoc">插入一个新的元素到队列，成功返回 True，队列满则返回 False </div></div>
+<div class="ttc" id="classQueue_html_af17aa223359d90dd6682a37eff715399"><div class="ttname"><a href="../../d7/d56/classQueue.html#af17aa223359d90dd6682a37eff715399">Queue::poll</a></div><div class="ttdeci">Value poll()</div><div class="ttdoc">从队列中移除一个元素并返回 </div></div>
+<div class="ttc" id="classQueue_html_a494413e4d871dd9076a8ec8b379c3f5c"><div class="ttname"><a href="../../d7/d56/classQueue.html#a494413e4d871dd9076a8ec8b379c3f5c">Queue::add</a></div><div class="ttdeci">Boolean add(Value e)</div><div class="ttdoc">插入一个新的元素到队列，成功返回 True，队列满则抛出错误 </div></div>
+<div class="ttc" id="classQueue_html"><div class="ttname"><a href="../../d7/d56/classQueue.html">Queue</a></div><div class="ttdoc">FIFO（先进先出）队列对象 </div><div class="ttdef"><b>Definition:</b> Queue.idl:9</div></div>
+<div class="ttc" id="classQueue_html_a5d54db5509dc75de10b7c15f3bb1996b"><div class="ttname"><a href="../../d7/d56/classQueue.html#a5d54db5509dc75de10b7c15f3bb1996b">Queue::length</a></div><div class="ttdeci">readonly Integer length</div><div class="ttdoc">返回当前队列尺寸 </div><div class="ttdef"><b>Definition:</b> Queue.idl:57</div></div>
+<div class="ttc" id="classQueue_html_a41b4a1b5c0945b260c91e950bad6a8a2"><div class="ttname"><a href="../../d7/d56/classQueue.html#a41b4a1b5c0945b260c91e950bad6a8a2">Queue::toArray</a></div><div class="ttdeci">Array toArray()</div><div class="ttdoc">返回队列的 js 数组 </div></div>
+<div class="ttc" id="classobject_html"><div class="ttname"><a href="../../dc/dd8/classobject.html">object</a></div><div class="ttdoc">基础对象，所有对象均继承于此 </div><div class="ttdef"><b>Definition:</b> object.idl:2</div></div>
+<div class="ttc" id="classQueue_html_a675d1b56201b831730dc0a4767ba00e1"><div class="ttname"><a href="../../d7/d56/classQueue.html#a675d1b56201b831730dc0a4767ba00e1">Queue::element</a></div><div class="ttdeci">Value element()</div><div class="ttdoc">从队列中返回一个元素，但不移除，队列为空则抛出错误 </div></div>
+<div class="ttc" id="classQueue_html_a01107ca7cd53af62fb9ed599054c8843"><div class="ttname"><a href="../../d7/d56/classQueue.html#a01107ca7cd53af62fb9ed599054c8843">Queue::Queue</a></div><div class="ttdeci">Queue(Integer size)</div><div class="ttdoc">队列对象构造函数 </div></div>
+<div class="ttc" id="classQueue_html_a527294456fbc8531dd4f6197eec1fc96"><div class="ttname"><a href="../../d7/d56/classQueue.html#a527294456fbc8531dd4f6197eec1fc96">Queue::peek</a></div><div class="ttdeci">Value peek()</div><div class="ttdoc">从队列中返回一个元素，但不移除 </div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><b>Queue.idl</b></li>
+    <li class="footer">制作者
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
+  </ul>
+</div>
+</body>
+</html>

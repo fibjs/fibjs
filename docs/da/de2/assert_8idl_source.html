@@ -1,0 +1,264 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
+<title>{FibJS: Fiber Javascript}: assert.idl 源文件</title>
+<link href="../../tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../jquery.js"></script>
+<script type="text/javascript" src="../../dynsections.js"></script>
+<link href="../../navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../resize.js"></script>
+<script type="text/javascript" src="../../navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
+<link href="../../search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="../../doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">{FibJS: Fiber Javascript}
+   </div>
+   <div id="projectbrief">基于 Google v8 引擎实现的协程应用开发框架</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.8.6 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="../../index.html"><span>首页</span></a></li>
+      <li><a href="../../pages.html"><span>相关页面</span></a></li>
+      <li><a href="../../annotated.html"><span>类</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="../../search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="../../search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('da/de2/assert_8idl_source.html','../../');});
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="headertitle">
+<div class="title">assert.idl</div>  </div>
+</div><!--header-->
+<div class="contents">
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;</div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;</div>
+<div class="line"><a name="l00019"></a><span class="lineno"><a class="line" href="../../de/d1c/classassert.html">   19</a></span>&#160;<span class="keyword">class </span><a class="code" href="../../de/d1c/classassert.html">assert</a> : <a class="code" href="../../d0/dd3/classmodule.html">module</a></div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;{</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a6bc7d80bbf7943df46c671087f7cfce2">ok</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#ac587cf8bf42a5f632c7c03e672040de8">notOk</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#af37037ca6be593c635dc7a312e45f17e">equal</a>(Value actual, Value expected, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a2685f5cac15c1818fdd1be92cbf369c1">notEqual</a>(Value actual, Value expected, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a2cb47b83fabc213b290b9b4ce7564f35">strictEqual</a>(Value actual, Value expected, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a49a140f439d16080cdf86fbc02bf76cf">notStrictEqual</a>(Value actual, Value expected, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#aa4fc0c264fe253b71659fa15bd444d34">deepEqual</a>(Value actual, Value expected, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#af2e1f574fd2ccb3c2c36717d14e33f67">notDeepEqual</a>(Value actual, Value expected, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a57f9d7269de9767896481d6c6491b053">closeTo</a>(Value actual, Value expected, Value delta, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a785eff37919f22095e68cc20d85b0020">notCloseTo</a>(Value actual, Value expected, Value delta, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a4b1b450014e4539994cd105a8f9d0eb9">lessThan</a>(Value actual, Value expected, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a552b2247c9920297cad7068a1fb007f0">notLessThan</a>(Value actual, Value expected, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a402e1e36f03b891ad44a3281a64642a2">greaterThan</a>(Value actual, Value expected, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#ac0a045550d46df6659c6a97f2b1554b6">notGreaterThan</a>(Value actual, Value expected, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;    </div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#ae5e2442dccceb697ae9f41bce599cc48">exist</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;</div>
+<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a3d4e62849c9d75031ece79a91c96aa39">notExist</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a20f89c88bfd5356e32731af24821968b">isTrue</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;</div>
+<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#affe6ecae30a890a57dec8b1b5148831e">isNotTrue</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;</div>
+<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#ad5c6df12d35b760fb09c4e34aa5fa2c0">isFalse</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;</div>
+<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a4e525c0ded5e3f6112a15ea878dbc4e2">isNotFalse</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;</div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a86a30af0aa338b8db74bb1a805f497f7">isNull</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;</div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a353d3f0a16ba816b10eca0f4f55ad3ed">isNotNull</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;</div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#ad7fedc8b1050fad9fc39df83da013809">isUndefined</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;</div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a558fc550572cebc80cf2ca4545db5ab3">isDefined</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;</div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a71a0eef48d3394bbd2f5659990f363e9">isFunction</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;</div>
+<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a23848bb515a658f542169a3d4a19879b">isNotFunction</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;</div>
+<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a817ff68d658d03fe86f8582be05dfe96">isObject</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;</div>
+<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a9f20f8dc42056ee6bfa98761a1b8dd1c">isNotObject</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;</div>
+<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a4942ac3b5ab6bc9c09d4cc807101fb13">isArray</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;</div>
+<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a019ae93c17fd2e99fd799028d6d3ee96">isNotArray</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;</div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#ad8d4452d1c18ac0762f27ad30d754d3e">isString</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;</div>
+<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#ae837cf0658bfa0eac5295ff9fcf0ce65">isNotString</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;</div>
+<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a3185e0e120d14e566e94a451ace5d1af">isNumber</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;</div>
+<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#af658587b29f21876f994e35ace690f1d">isNotNumber</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;</div>
+<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a52d954e5c3dd124d0839f5a6e2b181fd">isBoolean</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;</div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a8d631ec59b0bb32668c8ac410d2a5f87">isNotBoolean</a>(Value actual, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;    </div>
+<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a6accf1f518a6bea5c608ea513742cad3">typeOf</a>(Value actual, String type, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;</div>
+<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a78f313247072ec02fc062842d25203f3">notTypeOf</a>(Value actual, String type, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;    </div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#aad5f5c5d5948e086adbe453e7efa957f">property</a>(Value <span class="keywordtype">object</span>, Value prop, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;    </div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#ae0e3e69d65ed263243ac2370a2d36c7e">notProperty</a>(Value <span class="keywordtype">object</span>, Value prop, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;</div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a5129660776f5965ef0fc8e045a9d51d4">deepProperty</a>(Value <span class="keywordtype">object</span>, Value prop, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;    </div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a202a5d1189e44f0cbab67cfcbdfb4fae">notDeepProperty</a>(Value <span class="keywordtype">object</span>, Value prop, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;</div>
+<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#af1a7b26c9b66ed3ed7cd017316b56f7b">propertyVal</a>(Value <span class="keywordtype">object</span>, Value prop, Value value, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;    </div>
+<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a5c45a31ca66fedc3926f3d68544fa189">propertyNotVal</a>(Value <span class="keywordtype">object</span>, Value prop, Value value, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;</div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a3a807667d3596b22f245aec1837a1d3d">deepPropertyVal</a>(Value <span class="keywordtype">object</span>, Value prop, Value value, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;    </div>
+<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#a2fe6b107e4c006046154d31897370d69">deepPropertyNotVal</a>(Value <span class="keywordtype">object</span>, Value prop, Value value, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;</div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;    <span class="keyword">static</span> <span class="keywordflow">throws</span>(<a class="code" href="../../de/d65/classFunction.html">Function</a> block, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;</div>
+<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../de/d1c/classassert.html#aa41904a1025725f280feab1e7312fa5a">doesNotThrow</a>(<a class="code" href="../../de/d65/classFunction.html">Function</a> block, String msg = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;};</div>
+<div class="ttc" id="classassert_html_a6accf1f518a6bea5c608ea513742cad3"><div class="ttname"><a href="../../de/d1c/classassert.html#a6accf1f518a6bea5c608ea513742cad3">assert::typeOf</a></div><div class="ttdeci">static typeOf(Value actual, String type, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值为给定类型，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a23848bb515a658f542169a3d4a19879b"><div class="ttname"><a href="../../de/d1c/classassert.html#a23848bb515a658f542169a3d4a19879b">assert::isNotFunction</a></div><div class="ttdeci">static isNotFunction(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值不为函数，否则断言失败 </div></div>
+<div class="ttc" id="classFunction_html"><div class="ttname"><a href="../../de/d65/classFunction.html">Function</a></div><div class="ttdoc">Function 模块不可直接引用，仅用于实现对 javascript Function 对象的扩展 </div><div class="ttdef"><b>Definition:</b> Function.idl:3</div></div>
+<div class="ttc" id="classassert_html_a019ae93c17fd2e99fd799028d6d3ee96"><div class="ttname"><a href="../../de/d1c/classassert.html#a019ae93c17fd2e99fd799028d6d3ee96">assert::isNotArray</a></div><div class="ttdeci">static isNotArray(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值不为数组，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_af1a7b26c9b66ed3ed7cd017316b56f7b"><div class="ttname"><a href="../../de/d1c/classassert.html#af1a7b26c9b66ed3ed7cd017316b56f7b">assert::propertyVal</a></div><div class="ttdeci">static propertyVal(Value object, Value prop, Value value, String msg=&quot;&quot;)</div><div class="ttdoc">测试对象中指定属性的值为给定值，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a9f20f8dc42056ee6bfa98761a1b8dd1c"><div class="ttname"><a href="../../de/d1c/classassert.html#a9f20f8dc42056ee6bfa98761a1b8dd1c">assert::isNotObject</a></div><div class="ttdeci">static isNotObject(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值不为对象，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_aa41904a1025725f280feab1e7312fa5a"><div class="ttname"><a href="../../de/d1c/classassert.html#aa41904a1025725f280feab1e7312fa5a">assert::doesNotThrow</a></div><div class="ttdeci">static doesNotThrow(Function block, String msg=&quot;&quot;)</div><div class="ttdoc">测试给定的代码不会抛出错误，抛出则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a558fc550572cebc80cf2ca4545db5ab3"><div class="ttname"><a href="../../de/d1c/classassert.html#a558fc550572cebc80cf2ca4545db5ab3">assert::isDefined</a></div><div class="ttdeci">static isDefined(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值不为 undefined，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_ac0a045550d46df6659c6a97f2b1554b6"><div class="ttname"><a href="../../de/d1c/classassert.html#ac0a045550d46df6659c6a97f2b1554b6">assert::notGreaterThan</a></div><div class="ttdeci">static notGreaterThan(Value actual, Value expected, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值不大于预期值，大于则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a5c45a31ca66fedc3926f3d68544fa189"><div class="ttname"><a href="../../de/d1c/classassert.html#a5c45a31ca66fedc3926f3d68544fa189">assert::propertyNotVal</a></div><div class="ttdeci">static propertyNotVal(Value object, Value prop, Value value, String msg=&quot;&quot;)</div><div class="ttdoc">测试对象中指定属性的值不为给定值，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a71a0eef48d3394bbd2f5659990f363e9"><div class="ttname"><a href="../../de/d1c/classassert.html#a71a0eef48d3394bbd2f5659990f363e9">assert::isFunction</a></div><div class="ttdeci">static isFunction(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值为函数，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_affe6ecae30a890a57dec8b1b5148831e"><div class="ttname"><a href="../../de/d1c/classassert.html#affe6ecae30a890a57dec8b1b5148831e">assert::isNotTrue</a></div><div class="ttdeci">static isNotTrue(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值不为布尔值真，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a52d954e5c3dd124d0839f5a6e2b181fd"><div class="ttname"><a href="../../de/d1c/classassert.html#a52d954e5c3dd124d0839f5a6e2b181fd">assert::isBoolean</a></div><div class="ttdeci">static isBoolean(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值为布尔，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_aa4fc0c264fe253b71659fa15bd444d34"><div class="ttname"><a href="../../de/d1c/classassert.html#aa4fc0c264fe253b71659fa15bd444d34">assert::deepEqual</a></div><div class="ttdeci">static deepEqual(Value actual, Value expected, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值深度等于预期值，不相等则断言失败 </div></div>
+<div class="ttc" id="classassert_html_ad7fedc8b1050fad9fc39df83da013809"><div class="ttname"><a href="../../de/d1c/classassert.html#ad7fedc8b1050fad9fc39df83da013809">assert::isUndefined</a></div><div class="ttdeci">static isUndefined(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值为 undefined，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a817ff68d658d03fe86f8582be05dfe96"><div class="ttname"><a href="../../de/d1c/classassert.html#a817ff68d658d03fe86f8582be05dfe96">assert::isObject</a></div><div class="ttdeci">static isObject(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值为对象，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a20f89c88bfd5356e32731af24821968b"><div class="ttname"><a href="../../de/d1c/classassert.html#a20f89c88bfd5356e32731af24821968b">assert::isTrue</a></div><div class="ttdeci">static isTrue(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值为布尔值真，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_ae0e3e69d65ed263243ac2370a2d36c7e"><div class="ttname"><a href="../../de/d1c/classassert.html#ae0e3e69d65ed263243ac2370a2d36c7e">assert::notProperty</a></div><div class="ttdeci">static notProperty(Value object, Value prop, String msg=&quot;&quot;)</div><div class="ttdoc">测试对象中不包含指定属性，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a4e525c0ded5e3f6112a15ea878dbc4e2"><div class="ttname"><a href="../../de/d1c/classassert.html#a4e525c0ded5e3f6112a15ea878dbc4e2">assert::isNotFalse</a></div><div class="ttdeci">static isNotFalse(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值不为布尔值假，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_af37037ca6be593c635dc7a312e45f17e"><div class="ttname"><a href="../../de/d1c/classassert.html#af37037ca6be593c635dc7a312e45f17e">assert::equal</a></div><div class="ttdeci">static equal(Value actual, Value expected, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值等于预期值，不相等则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a4b1b450014e4539994cd105a8f9d0eb9"><div class="ttname"><a href="../../de/d1c/classassert.html#a4b1b450014e4539994cd105a8f9d0eb9">assert::lessThan</a></div><div class="ttdeci">static lessThan(Value actual, Value expected, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值小于预期值，大于或等于则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a57f9d7269de9767896481d6c6491b053"><div class="ttname"><a href="../../de/d1c/classassert.html#a57f9d7269de9767896481d6c6491b053">assert::closeTo</a></div><div class="ttdeci">static closeTo(Value actual, Value expected, Value delta, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值近似等于预期值，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a785eff37919f22095e68cc20d85b0020"><div class="ttname"><a href="../../de/d1c/classassert.html#a785eff37919f22095e68cc20d85b0020">assert::notCloseTo</a></div><div class="ttdeci">static notCloseTo(Value actual, Value expected, Value delta, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值不近似等于预期值，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a78f313247072ec02fc062842d25203f3"><div class="ttname"><a href="../../de/d1c/classassert.html#a78f313247072ec02fc062842d25203f3">assert::notTypeOf</a></div><div class="ttdeci">static notTypeOf(Value actual, String type, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值不为给定类型，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_af2e1f574fd2ccb3c2c36717d14e33f67"><div class="ttname"><a href="../../de/d1c/classassert.html#af2e1f574fd2ccb3c2c36717d14e33f67">assert::notDeepEqual</a></div><div class="ttdeci">static notDeepEqual(Value actual, Value expected, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值不深度等于预期值，相等则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a552b2247c9920297cad7068a1fb007f0"><div class="ttname"><a href="../../de/d1c/classassert.html#a552b2247c9920297cad7068a1fb007f0">assert::notLessThan</a></div><div class="ttdeci">static notLessThan(Value actual, Value expected, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值不小于预期值，小于则断言失败 </div></div>
+<div class="ttc" id="classassert_html_aad5f5c5d5948e086adbe453e7efa957f"><div class="ttname"><a href="../../de/d1c/classassert.html#aad5f5c5d5948e086adbe453e7efa957f">assert::property</a></div><div class="ttdeci">static property(Value object, Value prop, String msg=&quot;&quot;)</div><div class="ttdoc">测试对象中包含指定属性，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a86a30af0aa338b8db74bb1a805f497f7"><div class="ttname"><a href="../../de/d1c/classassert.html#a86a30af0aa338b8db74bb1a805f497f7">assert::isNull</a></div><div class="ttdeci">static isNull(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值为 Null，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a2685f5cac15c1818fdd1be92cbf369c1"><div class="ttname"><a href="../../de/d1c/classassert.html#a2685f5cac15c1818fdd1be92cbf369c1">assert::notEqual</a></div><div class="ttdeci">static notEqual(Value actual, Value expected, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值不等于预期值，相等则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a5129660776f5965ef0fc8e045a9d51d4"><div class="ttname"><a href="../../de/d1c/classassert.html#a5129660776f5965ef0fc8e045a9d51d4">assert::deepProperty</a></div><div class="ttdeci">static deepProperty(Value object, Value prop, String msg=&quot;&quot;)</div><div class="ttdoc">深度测试对象中包含指定属性，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a4942ac3b5ab6bc9c09d4cc807101fb13"><div class="ttname"><a href="../../de/d1c/classassert.html#a4942ac3b5ab6bc9c09d4cc807101fb13">assert::isArray</a></div><div class="ttdeci">static isArray(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值为数组，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_ae5e2442dccceb697ae9f41bce599cc48"><div class="ttname"><a href="../../de/d1c/classassert.html#ae5e2442dccceb697ae9f41bce599cc48">assert::exist</a></div><div class="ttdeci">static exist(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试变量存在，为假则断言失败 </div></div>
+<div class="ttc" id="classassert_html_ac587cf8bf42a5f632c7c03e672040de8"><div class="ttname"><a href="../../de/d1c/classassert.html#ac587cf8bf42a5f632c7c03e672040de8">assert::notOk</a></div><div class="ttdeci">static notOk(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值为假，为真则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a353d3f0a16ba816b10eca0f4f55ad3ed"><div class="ttname"><a href="../../de/d1c/classassert.html#a353d3f0a16ba816b10eca0f4f55ad3ed">assert::isNotNull</a></div><div class="ttdeci">static isNotNull(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值不为 Null，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html"><div class="ttname"><a href="../../de/d1c/classassert.html">assert</a></div><div class="ttdoc">断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出 </div><div class="ttdef"><b>Definition:</b> assert.idl:19</div></div>
+<div class="ttc" id="classassert_html_a8d631ec59b0bb32668c8ac410d2a5f87"><div class="ttname"><a href="../../de/d1c/classassert.html#a8d631ec59b0bb32668c8ac410d2a5f87">assert::isNotBoolean</a></div><div class="ttdeci">static isNotBoolean(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值不为布尔，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a402e1e36f03b891ad44a3281a64642a2"><div class="ttname"><a href="../../de/d1c/classassert.html#a402e1e36f03b891ad44a3281a64642a2">assert::greaterThan</a></div><div class="ttdeci">static greaterThan(Value actual, Value expected, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值大于预期值，小于或等于则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a3d4e62849c9d75031ece79a91c96aa39"><div class="ttname"><a href="../../de/d1c/classassert.html#a3d4e62849c9d75031ece79a91c96aa39">assert::notExist</a></div><div class="ttdeci">static notExist(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试变量不存在，为真则断言失败 </div></div>
+<div class="ttc" id="classassert_html_ad8d4452d1c18ac0762f27ad30d754d3e"><div class="ttname"><a href="../../de/d1c/classassert.html#ad8d4452d1c18ac0762f27ad30d754d3e">assert::isString</a></div><div class="ttdeci">static isString(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值为字符串，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_af658587b29f21876f994e35ace690f1d"><div class="ttname"><a href="../../de/d1c/classassert.html#af658587b29f21876f994e35ace690f1d">assert::isNotNumber</a></div><div class="ttdeci">static isNotNumber(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值不为数字，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a202a5d1189e44f0cbab67cfcbdfb4fae"><div class="ttname"><a href="../../de/d1c/classassert.html#a202a5d1189e44f0cbab67cfcbdfb4fae">assert::notDeepProperty</a></div><div class="ttdeci">static notDeepProperty(Value object, Value prop, String msg=&quot;&quot;)</div><div class="ttdoc">深度测试对象中不包含指定属性，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a2cb47b83fabc213b290b9b4ce7564f35"><div class="ttname"><a href="../../de/d1c/classassert.html#a2cb47b83fabc213b290b9b4ce7564f35">assert::strictEqual</a></div><div class="ttdeci">static strictEqual(Value actual, Value expected, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值严格等于预期值，不相等则断言失败 </div></div>
+<div class="ttc" id="classassert_html_ad5c6df12d35b760fb09c4e34aa5fa2c0"><div class="ttname"><a href="../../de/d1c/classassert.html#ad5c6df12d35b760fb09c4e34aa5fa2c0">assert::isFalse</a></div><div class="ttdeci">static isFalse(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值为布尔值假，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a6bc7d80bbf7943df46c671087f7cfce2"><div class="ttname"><a href="../../de/d1c/classassert.html#a6bc7d80bbf7943df46c671087f7cfce2">assert::ok</a></div><div class="ttdeci">static ok(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值为真，为假则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a3a807667d3596b22f245aec1837a1d3d"><div class="ttname"><a href="../../de/d1c/classassert.html#a3a807667d3596b22f245aec1837a1d3d">assert::deepPropertyVal</a></div><div class="ttdeci">static deepPropertyVal(Value object, Value prop, Value value, String msg=&quot;&quot;)</div><div class="ttdoc">深度测试对象中指定属性的值为给定值，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_ae837cf0658bfa0eac5295ff9fcf0ce65"><div class="ttname"><a href="../../de/d1c/classassert.html#ae837cf0658bfa0eac5295ff9fcf0ce65">assert::isNotString</a></div><div class="ttdeci">static isNotString(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值不为字符串，否则断言失败 </div></div>
+<div class="ttc" id="classmodule_html"><div class="ttname"><a href="../../d0/dd3/classmodule.html">module</a></div><div class="ttdoc">基础模块对象，所有模块对象均继承于此 </div><div class="ttdef"><b>Definition:</b> module.idl:3</div></div>
+<div class="ttc" id="classassert_html_a49a140f439d16080cdf86fbc02bf76cf"><div class="ttname"><a href="../../de/d1c/classassert.html#a49a140f439d16080cdf86fbc02bf76cf">assert::notStrictEqual</a></div><div class="ttdeci">static notStrictEqual(Value actual, Value expected, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值不严格等于预期值，相等则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a2fe6b107e4c006046154d31897370d69"><div class="ttname"><a href="../../de/d1c/classassert.html#a2fe6b107e4c006046154d31897370d69">assert::deepPropertyNotVal</a></div><div class="ttdeci">static deepPropertyNotVal(Value object, Value prop, Value value, String msg=&quot;&quot;)</div><div class="ttdoc">深度测试对象中指定属性的值不为给定值，否则断言失败 </div></div>
+<div class="ttc" id="classassert_html_a3185e0e120d14e566e94a451ace5d1af"><div class="ttname"><a href="../../de/d1c/classassert.html#a3185e0e120d14e566e94a451ace5d1af">assert::isNumber</a></div><div class="ttdeci">static isNumber(Value actual, String msg=&quot;&quot;)</div><div class="ttdoc">测试数值为数字，否则断言失败 </div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><b>assert.idl</b></li>
+    <li class="footer">制作者
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
+  </ul>
+</div>
+</body>
+</html>

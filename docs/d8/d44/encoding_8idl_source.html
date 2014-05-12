@@ -1,0 +1,169 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
+<title>{FibJS: Fiber Javascript}: encoding.idl 源文件</title>
+<link href="../../tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../jquery.js"></script>
+<script type="text/javascript" src="../../dynsections.js"></script>
+<link href="../../navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../resize.js"></script>
+<script type="text/javascript" src="../../navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
+<link href="../../search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="../../doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">{FibJS: Fiber Javascript}
+   </div>
+   <div id="projectbrief">基于 Google v8 引擎实现的协程应用开发框架</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.8.6 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="../../index.html"><span>首页</span></a></li>
+      <li><a href="../../pages.html"><span>相关页面</span></a></li>
+      <li><a href="../../annotated.html"><span>类</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="../../search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="../../search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('d8/d44/encoding_8idl_source.html','../../');});
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="headertitle">
+<div class="title">encoding.idl</div>  </div>
+</div><!--header-->
+<div class="contents">
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;</div>
+<div class="line"><a name="l00008"></a><span class="lineno"><a class="line" href="../../d0/d52/classencoding.html">    8</a></span>&#160;<span class="keyword">class </span><a class="code" href="../../d0/d52/classencoding.html">encoding</a> : <a class="code" href="../../d0/dd3/classmodule.html">module</a></div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;{</div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;    <span class="keyword">static</span> String <a class="code" href="../../d0/d52/classencoding.html#a6281fc34698267ebe0fed8d8146ee03a">base32Encode</a>(<a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> data);</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> <a class="code" href="../../d0/d52/classencoding.html#afd0cc46a761399a7b782c9c0b4e486b5">base32Decode</a>(String data);</div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;    <span class="keyword">static</span> String <a class="code" href="../../d0/d52/classencoding.html#aacc50ee5350d3fc2c0f60efc310eda64">base64Encode</a>(<a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> data);</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> <a class="code" href="../../d0/d52/classencoding.html#a11cb68fd78e0421b3a0a1bada7cff38e">base64Decode</a>(String data);</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    <span class="keyword">static</span> String <a class="code" href="../../d0/d52/classencoding.html#afaded7ab09c1a8882e73a4613a9716fd">hexEncode</a>(<a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> data);</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> <a class="code" href="../../d0/d52/classencoding.html#af057caa3f173428c397e8b13185940c6">hexDecode</a>(String data);</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> <a class="code" href="../../d0/d52/classencoding.html#a381c1c5e4d9e24edb4b56f904dfe7372">iconvEncode</a>(String charset, String data);</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    <span class="keyword">static</span> String <a class="code" href="../../d0/d52/classencoding.html#aa1d988f384e1866928bdd8bbc5b6f127">iconvDecode</a>(String charset, <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> data);</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;    <span class="keyword">static</span> String <a class="code" href="../../d0/d52/classencoding.html#a4e83f8f9cfe63970fbb9e19bd5e23fb5">jsstr</a>(String str);</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;    <span class="keyword">static</span> String <a class="code" href="../../d0/d52/classencoding.html#adb05f8f3455536f38d2ee61484f3f2b5">encodeURI</a>(String url);</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;    <span class="keyword">static</span> String <a class="code" href="../../d0/d52/classencoding.html#a80b109e00081be72ca81ac4f9f033fb6">encodeURIComponent</a>(String url);</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;    <span class="keyword">static</span> String <a class="code" href="../../d0/d52/classencoding.html#aeb50ecb378e2b4da3d3a5b0ba24c6907">decodeURI</a>(String url);</div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    <span class="keyword">static</span> String <a class="code" href="../../d0/d52/classencoding.html#a9af13c91fcc4d15dd070c5d5a58240ed">jsonEncode</a>(Value data);</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    <span class="keyword">static</span> Value <a class="code" href="../../d0/d52/classencoding.html#a78566728786c4b2b80c03ff6b417e5ca">jsonDecode</a>(String data);</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> <a class="code" href="../../d0/d52/classencoding.html#aa347199ad7dca52b72ca3653a9ec293f">bsonEncode</a>(Object data);</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;    <span class="keyword">static</span> Object <a class="code" href="../../d0/d52/classencoding.html#a17c2e82897b90e8fab350c667f077d1a">bsonDecode</a>(<a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> data);</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;};</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;</div>
+<div class="ttc" id="classencoding_html_a11cb68fd78e0421b3a0a1bada7cff38e"><div class="ttname"><a href="../../d0/d52/classencoding.html#a11cb68fd78e0421b3a0a1bada7cff38e">encoding::base64Decode</a></div><div class="ttdeci">static Buffer base64Decode(String data)</div><div class="ttdoc">以 base64 方式解码字符串为二进制数据 </div></div>
+<div class="ttc" id="classencoding_html_a9af13c91fcc4d15dd070c5d5a58240ed"><div class="ttname"><a href="../../d0/d52/classencoding.html#a9af13c91fcc4d15dd070c5d5a58240ed">encoding::jsonEncode</a></div><div class="ttdeci">static String jsonEncode(Value data)</div><div class="ttdoc">以 json 格式编码变量 </div></div>
+<div class="ttc" id="classencoding_html_aacc50ee5350d3fc2c0f60efc310eda64"><div class="ttname"><a href="../../d0/d52/classencoding.html#aacc50ee5350d3fc2c0f60efc310eda64">encoding::base64Encode</a></div><div class="ttdeci">static String base64Encode(Buffer data)</div><div class="ttdoc">以 base64 方式编码数据 </div></div>
+<div class="ttc" id="classencoding_html_a78566728786c4b2b80c03ff6b417e5ca"><div class="ttname"><a href="../../d0/d52/classencoding.html#a78566728786c4b2b80c03ff6b417e5ca">encoding::jsonDecode</a></div><div class="ttdeci">static Value jsonDecode(String data)</div><div class="ttdoc">以 json 方式解码字符串为一个变量 </div></div>
+<div class="ttc" id="classencoding_html_aeb50ecb378e2b4da3d3a5b0ba24c6907"><div class="ttname"><a href="../../d0/d52/classencoding.html#aeb50ecb378e2b4da3d3a5b0ba24c6907">encoding::decodeURI</a></div><div class="ttdeci">static String decodeURI(String url)</div><div class="ttdoc">url 安全字符串解码 </div></div>
+<div class="ttc" id="classencoding_html_a381c1c5e4d9e24edb4b56f904dfe7372"><div class="ttname"><a href="../../d0/d52/classencoding.html#a381c1c5e4d9e24edb4b56f904dfe7372">encoding::iconvEncode</a></div><div class="ttdeci">static Buffer iconvEncode(String charset, String data)</div><div class="ttdoc">用 iconv 将文本转换为二进制数据 </div></div>
+<div class="ttc" id="classencoding_html_afd0cc46a761399a7b782c9c0b4e486b5"><div class="ttname"><a href="../../d0/d52/classencoding.html#afd0cc46a761399a7b782c9c0b4e486b5">encoding::base32Decode</a></div><div class="ttdeci">static Buffer base32Decode(String data)</div><div class="ttdoc">以 base32 方式解码字符串为二进制数据 </div></div>
+<div class="ttc" id="classencoding_html_adb05f8f3455536f38d2ee61484f3f2b5"><div class="ttname"><a href="../../d0/d52/classencoding.html#adb05f8f3455536f38d2ee61484f3f2b5">encoding::encodeURI</a></div><div class="ttdeci">static String encodeURI(String url)</div><div class="ttdoc">url 字符串安全编码 </div></div>
+<div class="ttc" id="classBuffer_html"><div class="ttname"><a href="../../d0/d11/classBuffer.html">Buffer</a></div><div class="ttdoc">二进制数据缓存对象，用于 io 读写的数据处理 </div><div class="ttdef"><b>Definition:</b> Buffer.idl:9</div></div>
+<div class="ttc" id="classencoding_html_aa1d988f384e1866928bdd8bbc5b6f127"><div class="ttname"><a href="../../d0/d52/classencoding.html#aa1d988f384e1866928bdd8bbc5b6f127">encoding::iconvDecode</a></div><div class="ttdeci">static String iconvDecode(String charset, Buffer data)</div><div class="ttdoc">用 iconv 将 Buffer 内容转换为文本 </div></div>
+<div class="ttc" id="classencoding_html_a4e83f8f9cfe63970fbb9e19bd5e23fb5"><div class="ttname"><a href="../../d0/d52/classencoding.html#a4e83f8f9cfe63970fbb9e19bd5e23fb5">encoding::jsstr</a></div><div class="ttdeci">static String jsstr(String str)</div><div class="ttdoc">将字符串编码为 javascript 转义字符串，用以在 javascript 代码中包含文本 </div></div>
+<div class="ttc" id="classencoding_html_a17c2e82897b90e8fab350c667f077d1a"><div class="ttname"><a href="../../d0/d52/classencoding.html#a17c2e82897b90e8fab350c667f077d1a">encoding::bsonDecode</a></div><div class="ttdeci">static Object bsonDecode(Buffer data)</div><div class="ttdoc">以 bson 方式解码字符串为一个变量 </div></div>
+<div class="ttc" id="classencoding_html_afaded7ab09c1a8882e73a4613a9716fd"><div class="ttname"><a href="../../d0/d52/classencoding.html#afaded7ab09c1a8882e73a4613a9716fd">encoding::hexEncode</a></div><div class="ttdeci">static String hexEncode(Buffer data)</div><div class="ttdoc">以 hex 方式编码数据 </div></div>
+<div class="ttc" id="classencoding_html_aa347199ad7dca52b72ca3653a9ec293f"><div class="ttname"><a href="../../d0/d52/classencoding.html#aa347199ad7dca52b72ca3653a9ec293f">encoding::bsonEncode</a></div><div class="ttdeci">static Buffer bsonEncode(Object data)</div><div class="ttdoc">以 bson 格式编码变量 </div></div>
+<div class="ttc" id="classencoding_html_af057caa3f173428c397e8b13185940c6"><div class="ttname"><a href="../../d0/d52/classencoding.html#af057caa3f173428c397e8b13185940c6">encoding::hexDecode</a></div><div class="ttdeci">static Buffer hexDecode(String data)</div><div class="ttdoc">以 hex 方式解码字符串为二进制数据 </div></div>
+<div class="ttc" id="classencoding_html_a6281fc34698267ebe0fed8d8146ee03a"><div class="ttname"><a href="../../d0/d52/classencoding.html#a6281fc34698267ebe0fed8d8146ee03a">encoding::base32Encode</a></div><div class="ttdeci">static String base32Encode(Buffer data)</div><div class="ttdoc">以 base32 方式编码数据 </div></div>
+<div class="ttc" id="classencoding_html"><div class="ttname"><a href="../../d0/d52/classencoding.html">encoding</a></div><div class="ttdoc">编码与解码模块，用于处理不同的数据编码格式与二进制之间的转换 引用方式： </div><div class="ttdef"><b>Definition:</b> encoding.idl:8</div></div>
+<div class="ttc" id="classmodule_html"><div class="ttname"><a href="../../d0/dd3/classmodule.html">module</a></div><div class="ttdoc">基础模块对象，所有模块对象均继承于此 </div><div class="ttdef"><b>Definition:</b> module.idl:3</div></div>
+<div class="ttc" id="classencoding_html_a80b109e00081be72ca81ac4f9f033fb6"><div class="ttname"><a href="../../d0/d52/classencoding.html#a80b109e00081be72ca81ac4f9f033fb6">encoding::encodeURIComponent</a></div><div class="ttdeci">static String encodeURIComponent(String url)</div><div class="ttdoc">url 部件字符串安全编码 </div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><b>encoding.idl</b></li>
+    <li class="footer">制作者
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
+  </ul>
+</div>
+</body>
+</html>

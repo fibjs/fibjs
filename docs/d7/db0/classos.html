@@ -1,0 +1,632 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
+<title>{FibJS: Fiber Javascript}: os类 参考</title>
+<link href="../../tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../jquery.js"></script>
+<script type="text/javascript" src="../../dynsections.js"></script>
+<link href="../../navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../resize.js"></script>
+<script type="text/javascript" src="../../navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
+<link href="../../search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="../../doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">{FibJS: Fiber Javascript}
+   </div>
+   <div id="projectbrief">基于 Google v8 引擎实现的协程应用开发框架</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.8.6 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="../../index.html"><span>首页</span></a></li>
+      <li><a href="../../pages.html"><span>相关页面</span></a></li>
+      <li class="current"><a href="../../annotated.html"><span>类</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="../../search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="../../search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="../../annotated.html"><span>类列表</span></a></li>
+      <li><a href="../../inherits.html"><span>类继承关系</span></a></li>
+      <li><a href="../../functions.html"><span>类成员</span></a></li>
+    </ul>
+  </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('d7/db0/classos.html','../../');});
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-static-methods">静态 Public 成员函数</a> &#124;
+<a href="#pub-static-attribs">静态 Public 属性</a> &#124;
+<a href="../../d0/d30/classos-members.html">所有成员列表</a>  </div>
+  <div class="headertitle">
+<div class="title">os类 参考</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>操作系统与文件系统处理模块  
+ <a href="../../d7/db0/classos.html#details">更多...</a></p>
+<div class="dynheader">
+类 os 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d3/dbb/classos__inherit__graph.svg" width="139" height="392"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
+静态 Public 成员函数</h2></td></tr>
+<tr class="memitem:a7fa90fa210d31f489f824de639820d42"><td class="memItemLeft" align="right" valign="top">static Number&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/db0/classos.html#a7fa90fa210d31f489f824de639820d42">uptime</a> ()</td></tr>
+<tr class="memdesc:a7fa90fa210d31f489f824de639820d42"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询运行环境运行时间，以秒为单位  <a href="#a7fa90fa210d31f489f824de639820d42">更多...</a><br/></td></tr>
+<tr class="separator:a7fa90fa210d31f489f824de639820d42"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af568dca7b66ce796e676741b24a4303a"><td class="memItemLeft" align="right" valign="top">static Array&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/db0/classos.html#af568dca7b66ce796e676741b24a4303a">loadavg</a> ()</td></tr>
+<tr class="memdesc:af568dca7b66ce796e676741b24a4303a"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询运行环境 1分钟，5分钟，15分钟平均负载  <a href="#af568dca7b66ce796e676741b24a4303a">更多...</a><br/></td></tr>
+<tr class="separator:af568dca7b66ce796e676741b24a4303a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1542770b2fd24d002d726fbbff0c0a2e"><td class="memItemLeft" align="right" valign="top">static Long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/db0/classos.html#a1542770b2fd24d002d726fbbff0c0a2e">totalmem</a> ()</td></tr>
+<tr class="memdesc:a1542770b2fd24d002d726fbbff0c0a2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询运行环境总内存，以字节为单位  <a href="#a1542770b2fd24d002d726fbbff0c0a2e">更多...</a><br/></td></tr>
+<tr class="separator:a1542770b2fd24d002d726fbbff0c0a2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a571d36775ad176acbc76f7d12fb03bf1"><td class="memItemLeft" align="right" valign="top">static Long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/db0/classos.html#a571d36775ad176acbc76f7d12fb03bf1">freemem</a> ()</td></tr>
+<tr class="memdesc:a571d36775ad176acbc76f7d12fb03bf1"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询运行环境可用内存，以字节为单位  <a href="#a571d36775ad176acbc76f7d12fb03bf1">更多...</a><br/></td></tr>
+<tr class="separator:a571d36775ad176acbc76f7d12fb03bf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2fe28e658af2fa4ed18aff69a99fff0c"><td class="memItemLeft" align="right" valign="top">static Array&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/db0/classos.html#a2fe28e658af2fa4ed18aff69a99fff0c">CPUInfo</a> ()</td></tr>
+<tr class="memdesc:a2fe28e658af2fa4ed18aff69a99fff0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询当前运行环境 cpu 个数和参数  <a href="#a2fe28e658af2fa4ed18aff69a99fff0c">更多...</a><br/></td></tr>
+<tr class="separator:a2fe28e658af2fa4ed18aff69a99fff0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a693209d07a04870c1d24fb8bb17605ac"><td class="memItemLeft" align="right" valign="top">static Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/db0/classos.html#a693209d07a04870c1d24fb8bb17605ac">CPUs</a> ()</td></tr>
+<tr class="memdesc:a693209d07a04870c1d24fb8bb17605ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询当前运行环境 cpu 个数  <a href="#a693209d07a04870c1d24fb8bb17605ac">更多...</a><br/></td></tr>
+<tr class="separator:a693209d07a04870c1d24fb8bb17605ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ade138388eb17cb0d8804d3a615402a0e"><td class="memItemLeft" align="right" valign="top">static Object&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/db0/classos.html#ade138388eb17cb0d8804d3a615402a0e">networkInfo</a> ()</td></tr>
+<tr class="memdesc:ade138388eb17cb0d8804d3a615402a0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询当前运行环境网络信息  <a href="#ade138388eb17cb0d8804d3a615402a0e">更多...</a><br/></td></tr>
+<tr class="separator:ade138388eb17cb0d8804d3a615402a0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38a7252c2af6bb54a57fb80d75ab6b6c"><td class="memItemLeft" align="right" valign="top">static Date&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/db0/classos.html#a38a7252c2af6bb54a57fb80d75ab6b6c">time</a> (String tmString=&quot;&quot;)</td></tr>
+<tr class="memdesc:a38a7252c2af6bb54a57fb80d75ab6b6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">解析时间字符串或查询运行环境当前时间  <a href="#a38a7252c2af6bb54a57fb80d75ab6b6c">更多...</a><br/></td></tr>
+<tr class="separator:a38a7252c2af6bb54a57fb80d75ab6b6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acc7b083abafccb5d71e9b83c99683635"><td class="memItemLeft" align="right" valign="top">static Date&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/db0/classos.html#acc7b083abafccb5d71e9b83c99683635">dateAdd</a> (Date d, Integer num, String part)</td></tr>
+<tr class="memdesc:acc7b083abafccb5d71e9b83c99683635"><td class="mdescLeft">&#160;</td><td class="mdescRight">时间计算函数，根据 part 指定计算时间  <a href="#acc7b083abafccb5d71e9b83c99683635">更多...</a><br/></td></tr>
+<tr class="separator:acc7b083abafccb5d71e9b83c99683635"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a655f15d1790c184db42267a0bdef22cd"><td class="memItemLeft" align="right" valign="top">static Object&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/db0/classos.html#a655f15d1790c184db42267a0bdef22cd">memoryUsage</a> ()</td></tr>
+<tr class="memdesc:a655f15d1790c184db42267a0bdef22cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询当前进程内存使用报告  <a href="#a655f15d1790c184db42267a0bdef22cd">更多...</a><br/></td></tr>
+<tr class="separator:a655f15d1790c184db42267a0bdef22cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
+静态 Public 属性</h2></td></tr>
+<tr class="memitem:a10d119aa110a46714071e81522b0645c"><td class="memItemLeft" align="right" valign="top">static readonly String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/db0/classos.html#a10d119aa110a46714071e81522b0645c">hostname</a></td></tr>
+<tr class="memdesc:a10d119aa110a46714071e81522b0645c"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询当前运行环境主机名  <a href="#a10d119aa110a46714071e81522b0645c">更多...</a><br/></td></tr>
+<tr class="separator:a10d119aa110a46714071e81522b0645c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a14a15c5f48a949b3ed548d59ffcc05e2"><td class="memItemLeft" align="right" valign="top">static readonly String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/db0/classos.html#a14a15c5f48a949b3ed548d59ffcc05e2">type</a></td></tr>
+<tr class="memdesc:a14a15c5f48a949b3ed548d59ffcc05e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询当前运行环境操作系统名称  <a href="#a14a15c5f48a949b3ed548d59ffcc05e2">更多...</a><br/></td></tr>
+<tr class="separator:a14a15c5f48a949b3ed548d59ffcc05e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c3e53a918b2455b73d33dc896a0d831"><td class="memItemLeft" align="right" valign="top">static readonly String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/db0/classos.html#a2c3e53a918b2455b73d33dc896a0d831">version</a></td></tr>
+<tr class="memdesc:a2c3e53a918b2455b73d33dc896a0d831"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询当前运行环境操作系统版本  <a href="#a2c3e53a918b2455b73d33dc896a0d831">更多...</a><br/></td></tr>
+<tr class="separator:a2c3e53a918b2455b73d33dc896a0d831"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a694ff78df5a8febb2a7a69c7722f7c34"><td class="memItemLeft" align="right" valign="top">static readonly String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/db0/classos.html#a694ff78df5a8febb2a7a69c7722f7c34">arch</a></td></tr>
+<tr class="memdesc:a694ff78df5a8febb2a7a69c7722f7c34"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询当前运行环境  <a href="#a694ff78df5a8febb2a7a69c7722f7c34">更多...</a><br/></td></tr>
+<tr class="separator:a694ff78df5a8febb2a7a69c7722f7c34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9628c5429b13f4979df6569d374b5815"><td class="memItemLeft" align="right" valign="top">static readonly Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/db0/classos.html#a9628c5429b13f4979df6569d374b5815">timezone</a></td></tr>
+<tr class="memdesc:a9628c5429b13f4979df6569d374b5815"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询运行环境当前时区  <a href="#a9628c5429b13f4979df6569d374b5815">更多...</a><br/></td></tr>
+<tr class="separator:a9628c5429b13f4979df6569d374b5815"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab093bc75a863a2f57ef93277e1b11a2a"><td class="memItemLeft" align="right" valign="top">static readonly String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/db0/classos.html#ab093bc75a863a2f57ef93277e1b11a2a">execPath</a></td></tr>
+<tr class="memdesc:ab093bc75a863a2f57ef93277e1b11a2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询当前运行执行文件完整路径  <a href="#ab093bc75a863a2f57ef93277e1b11a2a">更多...</a><br/></td></tr>
+<tr class="separator:ab093bc75a863a2f57ef93277e1b11a2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>操作系统与文件系统处理模块 </p>
+<p>使用方法： </p>
+<div class="fragment"><div class="line">var <a class="code" href="../../d7/db0/classos.html">os</a> = require(<span class="stringliteral">&#39;os&#39;</span>);</div>
+</div><!-- fragment --> </div><h2 class="groupheader">成员函数说明</h2>
+<a class="anchor" id="a7fa90fa210d31f489f824de639820d42"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Number os::uptime </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询运行环境运行时间，以秒为单位 </p>
+<dl class="section return"><dt>返回</dt><dd>返回表示时间的数值 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="af568dca7b66ce796e676741b24a4303a"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Array os::loadavg </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询运行环境 1分钟，5分钟，15分钟平均负载 </p>
+<dl class="section return"><dt>返回</dt><dd>返回包含三个负载数据的数组 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a1542770b2fd24d002d726fbbff0c0a2e"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Long os::totalmem </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询运行环境总内存，以字节为单位 </p>
+<dl class="section return"><dt>返回</dt><dd>返回内存数据 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a571d36775ad176acbc76f7d12fb03bf1"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Long os::freemem </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询运行环境可用内存，以字节为单位 </p>
+<dl class="section return"><dt>返回</dt><dd>返回内存数据 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a2fe28e658af2fa4ed18aff69a99fff0c"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Array os::CPUInfo </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询当前运行环境 cpu 个数和参数 </p>
+<dl class="section return"><dt>返回</dt><dd>返回包含 cpu 参数的数组，每一项对应一个 cpu </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a693209d07a04870c1d24fb8bb17605ac"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Integer os::CPUs </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询当前运行环境 cpu 个数 </p>
+<dl class="section return"><dt>返回</dt><dd>返回 cpu 个数 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ade138388eb17cb0d8804d3a615402a0e"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Object os::networkInfo </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询当前运行环境网络信息 </p>
+<dl class="section return"><dt>返回</dt><dd>返回网卡信息 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a38a7252c2af6bb54a57fb80d75ab6b6c"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Date os::time </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>tmString</em> = <code>&quot;&quot;</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>解析时间字符串或查询运行环境当前时间 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">tmString</td><td>时间字符串，缺省则查询当前时间 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回 javascript Date 对象 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="acc7b083abafccb5d71e9b83c99683635"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Date os::dateAdd </td>
+          <td>(</td>
+          <td class="paramtype">Date&#160;</td>
+          <td class="paramname"><em>d</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Integer&#160;</td>
+          <td class="paramname"><em>num</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>part</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>时间计算函数，根据 part 指定计算时间 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">d</td><td>指定用于计算 Date 对象 </td></tr>
+    <tr><td class="paramname">num</td><td>指定运算的数值 </td></tr>
+    <tr><td class="paramname">part</td><td>指定运算的时间部位，接收值为："year", "month", "day", "hour", "minute", "second" </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回 javascript Date 对象 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a655f15d1790c184db42267a0bdef22cd"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Object os::memoryUsage </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询当前进程内存使用报告 </p>
+<dl class="section return"><dt>返回</dt><dd>返回包含内存报告</dd></dl>
+<p>内存报告生成类似以下结果： </p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">  <span class="stringliteral">&quot;rss&quot;</span>: 8622080,</div>
+<div class="line">  <span class="stringliteral">&quot;heapTotal&quot;</span>: 4083456,</div>
+<div class="line">  <span class="stringliteral">&quot;heapUsed&quot;</span>: 1621800,</div>
+<div class="line">  <span class="stringliteral">&quot;nativeObjects&quot;</span>: 122</div>
+<div class="line">}</div>
+</div><!-- fragment --><p> 其中：</p>
+<ul>
+<li>rss 返回进程当前占用物理内存大小</li>
+<li>heapTotal 返回 v8 引擎堆内存大小</li>
+<li>heapUsed 返回 v8 引擎正在使用堆内存大小</li>
+<li>nativeObjects 返回当前有效内置对象数 </li>
+</ul>
+
+</div>
+</div>
+<h2 class="groupheader">类成员变量说明</h2>
+<a class="anchor" id="a10d119aa110a46714071e81522b0645c"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">readonly String os::hostname</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询当前运行环境主机名 </p>
+
+</div>
+</div>
+<a class="anchor" id="a14a15c5f48a949b3ed548d59ffcc05e2"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">readonly String os::type</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询当前运行环境操作系统名称 </p>
+
+</div>
+</div>
+<a class="anchor" id="a2c3e53a918b2455b73d33dc896a0d831"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">readonly String os::version</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询当前运行环境操作系统版本 </p>
+
+</div>
+</div>
+<a class="anchor" id="a694ff78df5a8febb2a7a69c7722f7c34"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">readonly String os::arch</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询当前运行环境 </p>
+
+</div>
+</div>
+<a class="anchor" id="a9628c5429b13f4979df6569d374b5815"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">readonly Integer os::timezone</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询运行环境当前时区 </p>
+
+</div>
+</div>
+<a class="anchor" id="ab093bc75a863a2f57ef93277e1b11a2a"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">readonly String os::execPath</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询当前运行执行文件完整路径 </p>
+
+</div>
+</div>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="../../d7/db0/classos.html">os</a></li>
+    <li class="footer">制作者
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
+  </ul>
+</div>
+</body>
+</html>

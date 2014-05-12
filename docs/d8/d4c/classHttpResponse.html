@@ -1,0 +1,1009 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
+<title>{FibJS: Fiber Javascript}: HttpResponse类 参考</title>
+<link href="../../tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../jquery.js"></script>
+<script type="text/javascript" src="../../dynsections.js"></script>
+<link href="../../navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../resize.js"></script>
+<script type="text/javascript" src="../../navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
+<link href="../../search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="../../doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">{FibJS: Fiber Javascript}
+   </div>
+   <div id="projectbrief">基于 Google v8 引擎实现的协程应用开发框架</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.8.6 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="../../index.html"><span>首页</span></a></li>
+      <li><a href="../../pages.html"><span>相关页面</span></a></li>
+      <li class="current"><a href="../../annotated.html"><span>类</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="../../search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="../../search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="../../annotated.html"><span>类列表</span></a></li>
+      <li><a href="../../inherits.html"><span>类继承关系</span></a></li>
+      <li><a href="../../functions.html"><span>类成员</span></a></li>
+    </ul>
+  </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('d8/d4c/classHttpResponse.html','../../');});
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="#pub-attribs">Public 属性</a> &#124;
+<a href="../../de/d9e/classHttpResponse-members.html">所有成员列表</a>  </div>
+  <div class="headertitle">
+<div class="title">HttpResponse类 参考</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>http 响应消息对象  
+ <a href="../../d8/d4c/classHttpResponse.html#details">更多...</a></p>
+<div class="dynheader">
+类 HttpResponse 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d4/db5/classHttpResponse__inherit__graph.svg" width="155" height="755"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:ab2e6cd363b5ea437643017766f882066"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d4c/classHttpResponse.html#ab2e6cd363b5ea437643017766f882066">HttpResponse</a> ()</td></tr>
+<tr class="memdesc:ab2e6cd363b5ea437643017766f882066"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="../../d8/d4c/classHttpResponse.html" title="http 响应消息对象 ">HttpResponse</a> 构造函数，创建一个新的 <a class="el" href="../../d8/d4c/classHttpResponse.html" title="http 响应消息对象 ">HttpResponse</a> 对象  <a href="#ab2e6cd363b5ea437643017766f882066">更多...</a><br/></td></tr>
+<tr class="separator:ab2e6cd363b5ea437643017766f882066"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b4a9739aa8441aba59090faeca184da"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d4c/classHttpResponse.html#a3b4a9739aa8441aba59090faeca184da">redirect</a> (String url)</td></tr>
+<tr class="memdesc:a3b4a9739aa8441aba59090faeca184da"><td class="mdescLeft">&#160;</td><td class="mdescRight">发送重定向到客户端  <a href="#a3b4a9739aa8441aba59090faeca184da">更多...</a><br/></td></tr>
+<tr class="separator:a3b4a9739aa8441aba59090faeca184da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9bafc9a247f9378904788642ab903e03"><td class="memItemLeft" align="right" valign="top">Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d77/classHttpMessage.html#a9bafc9a247f9378904788642ab903e03">hasHeader</a> (String name)</td></tr>
+<tr class="memdesc:a9bafc9a247f9378904788642ab903e03"><td class="mdescLeft">&#160;</td><td class="mdescRight">检查是否存在指定键值的消息头  <a href="#a9bafc9a247f9378904788642ab903e03">更多...</a><br/></td></tr>
+<tr class="separator:a9bafc9a247f9378904788642ab903e03"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5db3f91a4a32b70e2fcbd188d8a452c9"><td class="memItemLeft" align="right" valign="top">Variant&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d77/classHttpMessage.html#a5db3f91a4a32b70e2fcbd188d8a452c9">firstHeader</a> (String name)</td></tr>
+<tr class="memdesc:a5db3f91a4a32b70e2fcbd188d8a452c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询指定键值的第一个消息头  <a href="#a5db3f91a4a32b70e2fcbd188d8a452c9">更多...</a><br/></td></tr>
+<tr class="separator:a5db3f91a4a32b70e2fcbd188d8a452c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aae6c77df3dc7e9bb61e58fcd2cab6e3a"><td class="memItemLeft" align="right" valign="top">Array&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d77/classHttpMessage.html#aae6c77df3dc7e9bb61e58fcd2cab6e3a">allHeader</a> (String name)</td></tr>
+<tr class="memdesc:aae6c77df3dc7e9bb61e58fcd2cab6e3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询指定键值的全部消息头  <a href="#aae6c77df3dc7e9bb61e58fcd2cab6e3a">更多...</a><br/></td></tr>
+<tr class="separator:aae6c77df3dc7e9bb61e58fcd2cab6e3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c8a4dcbe3777feec747c1fe1cefb88e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d77/classHttpMessage.html#a7c8a4dcbe3777feec747c1fe1cefb88e">addHeader</a> (Object map)</td></tr>
+<tr class="memdesc:a7c8a4dcbe3777feec747c1fe1cefb88e"><td class="mdescLeft">&#160;</td><td class="mdescRight">添加一个消息头，添加数据并不修改已存在的键值的消息头  <a href="#a7c8a4dcbe3777feec747c1fe1cefb88e">更多...</a><br/></td></tr>
+<tr class="separator:a7c8a4dcbe3777feec747c1fe1cefb88e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab3b564f6d8124ed9c889d378bca12f03"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d77/classHttpMessage.html#ab3b564f6d8124ed9c889d378bca12f03">addHeader</a> (String name, Variant <a class="el" href="../../d6/d28/classMessage.html#a572dd6923c69839d8e29da3e342b8f76">value</a>)</td></tr>
+<tr class="memdesc:ab3b564f6d8124ed9c889d378bca12f03"><td class="mdescLeft">&#160;</td><td class="mdescRight">添加一个消息头，添加数据并不修改已存在的键值的消息头  <a href="#ab3b564f6d8124ed9c889d378bca12f03">更多...</a><br/></td></tr>
+<tr class="separator:ab3b564f6d8124ed9c889d378bca12f03"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac5626cfdbeb975e16ab3b127b76b1864"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d77/classHttpMessage.html#ac5626cfdbeb975e16ab3b127b76b1864">setHeader</a> (Object map)</td></tr>
+<tr class="memdesc:ac5626cfdbeb975e16ab3b127b76b1864"><td class="mdescLeft">&#160;</td><td class="mdescRight">设定一个消息头，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余消息头  <a href="#ac5626cfdbeb975e16ab3b127b76b1864">更多...</a><br/></td></tr>
+<tr class="separator:ac5626cfdbeb975e16ab3b127b76b1864"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a080e5427207dcae84985d7085f54761c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d77/classHttpMessage.html#a080e5427207dcae84985d7085f54761c">setHeader</a> (String name, Variant <a class="el" href="../../d6/d28/classMessage.html#a572dd6923c69839d8e29da3e342b8f76">value</a>)</td></tr>
+<tr class="memdesc:a080e5427207dcae84985d7085f54761c"><td class="mdescLeft">&#160;</td><td class="mdescRight">设定一个消息头，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余消息头  <a href="#a080e5427207dcae84985d7085f54761c">更多...</a><br/></td></tr>
+<tr class="separator:a080e5427207dcae84985d7085f54761c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a527c0eba05ae52d3b2c9a2cf284277bd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d77/classHttpMessage.html#a527c0eba05ae52d3b2c9a2cf284277bd">removeHeader</a> (String name)</td></tr>
+<tr class="memdesc:a527c0eba05ae52d3b2c9a2cf284277bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">删除指定键值的全部消息头  <a href="#a527c0eba05ae52d3b2c9a2cf284277bd">更多...</a><br/></td></tr>
+<tr class="separator:a527c0eba05ae52d3b2c9a2cf284277bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8ed24470ab5214955c70bb108209f9d4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d28/classMessage.html#a8ed24470ab5214955c70bb108209f9d4">clear</a> ()</td></tr>
+<tr class="memdesc:a8ed24470ab5214955c70bb108209f9d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">清除消息的内容  <a href="#a8ed24470ab5214955c70bb108209f9d4">更多...</a><br/></td></tr>
+<tr class="separator:a8ed24470ab5214955c70bb108209f9d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c456b35a88228f954974592e9b5c5ab"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d28/classMessage.html#a8c456b35a88228f954974592e9b5c5ab">sendTo</a> (<a class="el" href="../../dc/de8/classStream.html">Stream</a> stm) async</td></tr>
+<tr class="memdesc:a8c456b35a88228f954974592e9b5c5ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">发送格式化消息到给定的流对象  <a href="#a8c456b35a88228f954974592e9b5c5ab">更多...</a><br/></td></tr>
+<tr class="separator:a8c456b35a88228f954974592e9b5c5ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4a8dc64a0be31e60e98c671bc630203"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d28/classMessage.html#ad4a8dc64a0be31e60e98c671bc630203">readFrom</a> (<a class="el" href="../../d2/dee/classBufferedStream.html">BufferedStream</a> stm) async</td></tr>
+<tr class="memdesc:ad4a8dc64a0be31e60e98c671bc630203"><td class="mdescLeft">&#160;</td><td class="mdescRight">从给定的缓存流对象中读取格式化消息，并解析填充对象  <a href="#ad4a8dc64a0be31e60e98c671bc630203">更多...</a><br/></td></tr>
+<tr class="separator:ad4a8dc64a0be31e60e98c671bc630203"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b88dbc459449d2280338e5b702a68b4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dd8/classobject.html#a6b88dbc459449d2280338e5b702a68b4">dispose</a> ()</td></tr>
+<tr class="memdesc:a6b88dbc459449d2280338e5b702a68b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">强制回收对象，调用此方法后，对象资源将立即释放  <a href="#a6b88dbc459449d2280338e5b702a68b4">更多...</a><br/></td></tr>
+<tr class="separator:a6b88dbc459449d2280338e5b702a68b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac61f07a7d6c5471293371086af3186bd"><td class="memItemLeft" align="right" valign="top">String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dd8/classobject.html#ac61f07a7d6c5471293371086af3186bd">toString</a> ()</td></tr>
+<tr class="memdesc:ac61f07a7d6c5471293371086af3186bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回对象的字符串表示，一般返回 "[Native Object]"，对象可以根据自己的特性重新实现  <a href="#ac61f07a7d6c5471293371086af3186bd">更多...</a><br/></td></tr>
+<tr class="separator:ac61f07a7d6c5471293371086af3186bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad66be13eb5b7c5f560fd8511565138c4"><td class="memItemLeft" align="right" valign="top">Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dd8/classobject.html#ad66be13eb5b7c5f560fd8511565138c4">toJSON</a> (String key=&quot;&quot;)</td></tr>
+<tr class="memdesc:ad66be13eb5b7c5f560fd8511565138c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回对象的 JSON 格式表示，一般返回对象定义的可读属性集合  <a href="#ad66be13eb5b7c5f560fd8511565138c4">更多...</a><br/></td></tr>
+<tr class="separator:ad66be13eb5b7c5f560fd8511565138c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a561030ca5d5b23349b5bab2cc8afa739"><td class="memItemLeft" align="right" valign="top">Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dd8/classobject.html#a561030ca5d5b23349b5bab2cc8afa739">ValueOf</a> ()</td></tr>
+<tr class="memdesc:a561030ca5d5b23349b5bab2cc8afa739"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回对象本身的数值  <a href="#a561030ca5d5b23349b5bab2cc8afa739">更多...</a><br/></td></tr>
+<tr class="separator:a561030ca5d5b23349b5bab2cc8afa739"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
+Public 属性</h2></td></tr>
+<tr class="memitem:a418ebc4d556401052e637162210dcadd"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d4c/classHttpResponse.html#a418ebc4d556401052e637162210dcadd">status</a></td></tr>
+<tr class="memdesc:a418ebc4d556401052e637162210dcadd"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询和设置响应消息的返回状态  <a href="#a418ebc4d556401052e637162210dcadd">更多...</a><br/></td></tr>
+<tr class="separator:a418ebc4d556401052e637162210dcadd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a336551e60570807abff96b539b914d25"><td class="memItemLeft" align="right" valign="top">String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d77/classHttpMessage.html#a336551e60570807abff96b539b914d25">protocol</a></td></tr>
+<tr class="memdesc:a336551e60570807abff96b539b914d25"><td class="mdescLeft">&#160;</td><td class="mdescRight">协议版本信息，允许的格式为：HTTP/#.#  <a href="#a336551e60570807abff96b539b914d25">更多...</a><br/></td></tr>
+<tr class="separator:a336551e60570807abff96b539b914d25"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aedc41fa258d4d5cf91d2f850dd49ece4"><td class="memItemLeft" align="right" valign="top">readonly <a class="el" href="../../d6/dbd/classHttpCollection.html">HttpCollection</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d77/classHttpMessage.html#aedc41fa258d4d5cf91d2f850dd49ece4">headers</a></td></tr>
+<tr class="memdesc:aedc41fa258d4d5cf91d2f850dd49ece4"><td class="mdescLeft">&#160;</td><td class="mdescRight">包含消息中 http 消息头的容器，只读属性  <a href="#aedc41fa258d4d5cf91d2f850dd49ece4">更多...</a><br/></td></tr>
+<tr class="separator:aedc41fa258d4d5cf91d2f850dd49ece4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aacc29dd266d58f65858aa117b77f9f7d"><td class="memItemLeft" align="right" valign="top">Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d77/classHttpMessage.html#aacc29dd266d58f65858aa117b77f9f7d">keepAlive</a></td></tr>
+<tr class="memdesc:aacc29dd266d58f65858aa117b77f9f7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询和设定是否保持连接  <a href="#aacc29dd266d58f65858aa117b77f9f7d">更多...</a><br/></td></tr>
+<tr class="separator:aacc29dd266d58f65858aa117b77f9f7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6650a9dcb99102b5e70cf1e3fa034cb9"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d77/classHttpMessage.html#a6650a9dcb99102b5e70cf1e3fa034cb9">maxHeadersCount</a></td></tr>
+<tr class="memdesc:a6650a9dcb99102b5e70cf1e3fa034cb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询和设置最大请求头个数，缺省为 128  <a href="#a6650a9dcb99102b5e70cf1e3fa034cb9">更多...</a><br/></td></tr>
+<tr class="separator:a6650a9dcb99102b5e70cf1e3fa034cb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac79f330568ff19112fe82806362fc004"><td class="memItemLeft" align="right" valign="top">Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d77/classHttpMessage.html#ac79f330568ff19112fe82806362fc004">maxUploadSize</a></td></tr>
+<tr class="memdesc:ac79f330568ff19112fe82806362fc004"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询和设置最大上传尺寸，以字节为单位，缺省为 67108864(64M)  <a href="#ac79f330568ff19112fe82806362fc004">更多...</a><br/></td></tr>
+<tr class="separator:ac79f330568ff19112fe82806362fc004"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a572dd6923c69839d8e29da3e342b8f76"><td class="memItemLeft" align="right" valign="top">String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d28/classMessage.html#a572dd6923c69839d8e29da3e342b8f76">value</a></td></tr>
+<tr class="memdesc:a572dd6923c69839d8e29da3e342b8f76"><td class="mdescLeft">&#160;</td><td class="mdescRight">消息的基本内容  <a href="#a572dd6923c69839d8e29da3e342b8f76">更多...</a><br/></td></tr>
+<tr class="separator:a572dd6923c69839d8e29da3e342b8f76"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d9a47e71f4a592898d50e0ea410a19f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/da9/classList.html">List</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d28/classMessage.html#a9d9a47e71f4a592898d50e0ea410a19f">params</a></td></tr>
+<tr class="memdesc:a9d9a47e71f4a592898d50e0ea410a19f"><td class="mdescLeft">&#160;</td><td class="mdescRight">消息的基本参数  <a href="#a9d9a47e71f4a592898d50e0ea410a19f">更多...</a><br/></td></tr>
+<tr class="separator:a9d9a47e71f4a592898d50e0ea410a19f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff37dc807536324e1b576ffec75770b0"><td class="memItemLeft" align="right" valign="top">Variant&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d28/classMessage.html#aff37dc807536324e1b576ffec75770b0">result</a></td></tr>
+<tr class="memdesc:aff37dc807536324e1b576ffec75770b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">消息的返回结果  <a href="#aff37dc807536324e1b576ffec75770b0">更多...</a><br/></td></tr>
+<tr class="separator:aff37dc807536324e1b576ffec75770b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a102e4b9b4a800bf24fd01a66df49b489"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../db/d67/classSeekableStream.html">SeekableStream</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d28/classMessage.html#a102e4b9b4a800bf24fd01a66df49b489">body</a></td></tr>
+<tr class="memdesc:a102e4b9b4a800bf24fd01a66df49b489"><td class="mdescLeft">&#160;</td><td class="mdescRight">包含消息数据部分的流对象  <a href="#a102e4b9b4a800bf24fd01a66df49b489">更多...</a><br/></td></tr>
+<tr class="separator:a102e4b9b4a800bf24fd01a66df49b489"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a26e77ec52998a43c1b97fd4b7229283c"><td class="memItemLeft" align="right" valign="top">readonly Long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d28/classMessage.html#a26e77ec52998a43c1b97fd4b7229283c">length</a></td></tr>
+<tr class="memdesc:a26e77ec52998a43c1b97fd4b7229283c"><td class="mdescLeft">&#160;</td><td class="mdescRight">消息数据部分的长度  <a href="#a26e77ec52998a43c1b97fd4b7229283c">更多...</a><br/></td></tr>
+<tr class="separator:a26e77ec52998a43c1b97fd4b7229283c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b19686184c56df8c1fca416751a71b3"><td class="memItemLeft" align="right" valign="top">readonly <a class="el" href="../../dc/de8/classStream.html">Stream</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d28/classMessage.html#a9b19686184c56df8c1fca416751a71b3">stream</a></td></tr>
+<tr class="memdesc:a9b19686184c56df8c1fca416751a71b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询消息 readFrom 时的流对象  <a href="#a9b19686184c56df8c1fca416751a71b3">更多...</a><br/></td></tr>
+<tr class="separator:a9b19686184c56df8c1fca416751a71b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>http 响应消息对象 </p>
+</div><h2 class="groupheader">构造及析构函数说明</h2>
+<a class="anchor" id="ab2e6cd363b5ea437643017766f882066"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">HttpResponse::HttpResponse </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><a class="el" href="../../d8/d4c/classHttpResponse.html" title="http 响应消息对象 ">HttpResponse</a> 构造函数，创建一个新的 <a class="el" href="../../d8/d4c/classHttpResponse.html" title="http 响应消息对象 ">HttpResponse</a> 对象 </p>
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a class="anchor" id="a3b4a9739aa8441aba59090faeca184da"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">HttpResponse::redirect </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>url</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>发送重定向到客户端 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">url</td><td>重定向的地址 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a9bafc9a247f9378904788642ab903e03"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Boolean HttpMessage::hasHeader </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>检查是否存在指定键值的消息头 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>指定要检查的键值 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回键值是否存在 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a5db3f91a4a32b70e2fcbd188d8a452c9"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Variant HttpMessage::firstHeader </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询指定键值的第一个消息头 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>指定要查询的键值 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回键值所对应的值，若不存在，则返回 undefined </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="aae6c77df3dc7e9bb61e58fcd2cab6e3a"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Array HttpMessage::allHeader </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询指定键值的全部消息头 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>指定要查询的键值 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回键值所对应全部值的数组，若数据不存在，则返回 null </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a7c8a4dcbe3777feec747c1fe1cefb88e"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">HttpMessage::addHeader </td>
+          <td>(</td>
+          <td class="paramtype">Object&#160;</td>
+          <td class="paramname"><em>map</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>添加一个消息头，添加数据并不修改已存在的键值的消息头 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">map</td><td>指定要添加的键值数据字典 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ab3b564f6d8124ed9c889d378bca12f03"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">HttpMessage::addHeader </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Variant&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>添加一个消息头，添加数据并不修改已存在的键值的消息头 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>指定要添加的键值 </td></tr>
+    <tr><td class="paramname">value</td><td>指定要添加的数据 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ac5626cfdbeb975e16ab3b127b76b1864"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">HttpMessage::setHeader </td>
+          <td>(</td>
+          <td class="paramtype">Object&#160;</td>
+          <td class="paramname"><em>map</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>设定一个消息头，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余消息头 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">map</td><td>指定要设定的键值数据字典 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a080e5427207dcae84985d7085f54761c"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">HttpMessage::setHeader </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Variant&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>设定一个消息头，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余消息头 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>指定要设定的键值 </td></tr>
+    <tr><td class="paramname">value</td><td>指定要设定的数据 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a527c0eba05ae52d3b2c9a2cf284277bd"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">HttpMessage::removeHeader </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>删除指定键值的全部消息头 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>指定要删除的键值 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a8ed24470ab5214955c70bb108209f9d4"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Message::clear </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>清除消息的内容 </p>
+
+</div>
+</div>
+<a class="anchor" id="a8c456b35a88228f954974592e9b5c5ab"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Message::sendTo </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../dc/de8/classStream.html">Stream</a>&#160;</td>
+          <td class="paramname"><em>stm</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>发送格式化消息到给定的流对象 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">stm</td><td>指定接收格式化消息的流对象 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ad4a8dc64a0be31e60e98c671bc630203"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Message::readFrom </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d2/dee/classBufferedStream.html">BufferedStream</a>&#160;</td>
+          <td class="paramname"><em>stm</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>从给定的缓存流对象中读取格式化消息，并解析填充对象 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">stm</td><td>指定读取格式化消息的流对象 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a6b88dbc459449d2280338e5b702a68b4"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">object::dispose </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>强制回收对象，调用此方法后，对象资源将立即释放 </p>
+
+</div>
+</div>
+<a class="anchor" id="ac61f07a7d6c5471293371086af3186bd"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">String object::toString </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回对象的字符串表示，一般返回 "[Native Object]"，对象可以根据自己的特性重新实现 </p>
+<dl class="section return"><dt>返回</dt><dd>返回对象的字符串表示 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ad66be13eb5b7c5f560fd8511565138c4"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Value object::toJSON </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>key</em> = <code>&quot;&quot;</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回对象的 JSON 格式表示，一般返回对象定义的可读属性集合 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>未使用 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回包含可 JSON 序列化的值 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a561030ca5d5b23349b5bab2cc8afa739"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Value object::ValueOf </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回对象本身的数值 </p>
+<dl class="section return"><dt>返回</dt><dd>返回对象本身的数值 </dd></dl>
+
+</div>
+</div>
+<h2 class="groupheader">类成员变量说明</h2>
+<a class="anchor" id="a418ebc4d556401052e637162210dcadd"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Integer HttpResponse::status</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>查询和设置响应消息的返回状态 </p>
+
+</div>
+</div>
+<a class="anchor" id="a336551e60570807abff96b539b914d25"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">String HttpMessage::protocol</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>协议版本信息，允许的格式为：HTTP/#.# </p>
+
+</div>
+</div>
+<a class="anchor" id="aedc41fa258d4d5cf91d2f850dd49ece4"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">readonly <a class="el" href="../../d6/dbd/classHttpCollection.html">HttpCollection</a> HttpMessage::headers</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>包含消息中 http 消息头的容器，只读属性 </p>
+
+</div>
+</div>
+<a class="anchor" id="aacc29dd266d58f65858aa117b77f9f7d"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Boolean HttpMessage::keepAlive</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询和设定是否保持连接 </p>
+
+</div>
+</div>
+<a class="anchor" id="a6650a9dcb99102b5e70cf1e3fa034cb9"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Integer HttpMessage::maxHeadersCount</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询和设置最大请求头个数，缺省为 128 </p>
+
+</div>
+</div>
+<a class="anchor" id="ac79f330568ff19112fe82806362fc004"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Integer HttpMessage::maxUploadSize</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询和设置最大上传尺寸，以字节为单位，缺省为 67108864(64M) </p>
+
+</div>
+</div>
+<a class="anchor" id="a572dd6923c69839d8e29da3e342b8f76"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">String Message::value</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>消息的基本内容 </p>
+
+</div>
+</div>
+<a class="anchor" id="a9d9a47e71f4a592898d50e0ea410a19f"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d6/da9/classList.html">List</a> Message::params</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>消息的基本参数 </p>
+
+</div>
+</div>
+<a class="anchor" id="aff37dc807536324e1b576ffec75770b0"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Variant Message::result</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>消息的返回结果 </p>
+
+</div>
+</div>
+<a class="anchor" id="a102e4b9b4a800bf24fd01a66df49b489"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../db/d67/classSeekableStream.html">SeekableStream</a> Message::body</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>包含消息数据部分的流对象 </p>
+
+</div>
+</div>
+<a class="anchor" id="a26e77ec52998a43c1b97fd4b7229283c"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">readonly Long Message::length</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>消息数据部分的长度 </p>
+
+</div>
+</div>
+<a class="anchor" id="a9b19686184c56df8c1fca416751a71b3"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">readonly <a class="el" href="../../dc/de8/classStream.html">Stream</a> Message::stream</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询消息 readFrom 时的流对象 </p>
+
+</div>
+</div>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="../../d8/d4c/classHttpResponse.html">HttpResponse</a></li>
+    <li class="footer">制作者
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
+  </ul>
+</div>
+</body>
+</html>

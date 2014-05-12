@@ -1,0 +1,552 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
+<title>{FibJS: Fiber Javascript}: LruCache类 参考</title>
+<link href="../../tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../jquery.js"></script>
+<script type="text/javascript" src="../../dynsections.js"></script>
+<link href="../../navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../resize.js"></script>
+<script type="text/javascript" src="../../navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
+<link href="../../search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="../../doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">{FibJS: Fiber Javascript}
+   </div>
+   <div id="projectbrief">基于 Google v8 引擎实现的协程应用开发框架</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.8.6 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="../../index.html"><span>首页</span></a></li>
+      <li><a href="../../pages.html"><span>相关页面</span></a></li>
+      <li class="current"><a href="../../annotated.html"><span>类</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="../../search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="../../search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="../../annotated.html"><span>类列表</span></a></li>
+      <li><a href="../../inherits.html"><span>类继承关系</span></a></li>
+      <li><a href="../../functions.html"><span>类成员</span></a></li>
+    </ul>
+  </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('de/d0f/classLruCache.html','../../');});
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="#pub-attribs">Public 属性</a> &#124;
+<a href="../../d9/dcf/classLruCache-members.html">所有成员列表</a>  </div>
+  <div class="headertitle">
+<div class="title">LruCache类 参考</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>LRU(least recently used) 缓存对象  
+ <a href="../../de/d0f/classLruCache.html#details">更多...</a></p>
+<div class="dynheader">
+类 LruCache 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../dd/d16/classLruCache__inherit__graph.svg" width="111" height="352"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:a6fce7c256bb93ea2a366e4258cb2a39f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d0f/classLruCache.html#a6fce7c256bb93ea2a366e4258cb2a39f">LruCache</a> (Integer <a class="el" href="../../de/d0f/classLruCache.html#aee1e7aea2978a02636cb4314bdb11420">size</a>, Integer timeout=0)</td></tr>
+<tr class="memdesc:a6fce7c256bb93ea2a366e4258cb2a39f"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="../../de/d0f/classLruCache.html" title="LRU(least recently used) 缓存对象 ">LruCache</a> 对象构造函数  <a href="#a6fce7c256bb93ea2a366e4258cb2a39f">更多...</a><br/></td></tr>
+<tr class="separator:a6fce7c256bb93ea2a366e4258cb2a39f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a712f2067f0af560e382de4e5a8df6759"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d0f/classLruCache.html#a712f2067f0af560e382de4e5a8df6759">clear</a> ()</td></tr>
+<tr class="memdesc:a712f2067f0af560e382de4e5a8df6759"><td class="mdescLeft">&#160;</td><td class="mdescRight">清除容器数据  <a href="#a712f2067f0af560e382de4e5a8df6759">更多...</a><br/></td></tr>
+<tr class="separator:a712f2067f0af560e382de4e5a8df6759"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f47f0c7f03ead1191f99b340edc0576"><td class="memItemLeft" align="right" valign="top">Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d0f/classLruCache.html#a1f47f0c7f03ead1191f99b340edc0576">has</a> (String name)</td></tr>
+<tr class="memdesc:a1f47f0c7f03ead1191f99b340edc0576"><td class="mdescLeft">&#160;</td><td class="mdescRight">检查容器内是否存在指定键值的数据  <a href="#a1f47f0c7f03ead1191f99b340edc0576">更多...</a><br/></td></tr>
+<tr class="separator:a1f47f0c7f03ead1191f99b340edc0576"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ce4671eff7a52fb7dd6be130180447f"><td class="memItemLeft" align="right" valign="top">Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d0f/classLruCache.html#a1ce4671eff7a52fb7dd6be130180447f">get</a> (String name)</td></tr>
+<tr class="memdesc:a1ce4671eff7a52fb7dd6be130180447f"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询指定键值的值  <a href="#a1ce4671eff7a52fb7dd6be130180447f">更多...</a><br/></td></tr>
+<tr class="separator:a1ce4671eff7a52fb7dd6be130180447f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac47180244d82cfa49c6cbfc3c6ae93a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d0f/classLruCache.html#aac47180244d82cfa49c6cbfc3c6ae93a">set</a> (String name, Value value)</td></tr>
+<tr class="memdesc:aac47180244d82cfa49c6cbfc3c6ae93a"><td class="mdescLeft">&#160;</td><td class="mdescRight">修改一个键值数据，键值不存在则不作任何操作  <a href="#aac47180244d82cfa49c6cbfc3c6ae93a">更多...</a><br/></td></tr>
+<tr class="separator:aac47180244d82cfa49c6cbfc3c6ae93a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a35dd33c18d9de9c510a0971b32eab49e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d0f/classLruCache.html#a35dd33c18d9de9c510a0971b32eab49e">put</a> (String name, Value value)</td></tr>
+<tr class="memdesc:a35dd33c18d9de9c510a0971b32eab49e"><td class="mdescLeft">&#160;</td><td class="mdescRight">设定一个键值数据，键值不存在则插入一条新数据  <a href="#a35dd33c18d9de9c510a0971b32eab49e">更多...</a><br/></td></tr>
+<tr class="separator:a35dd33c18d9de9c510a0971b32eab49e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a465c1810f15a128978e0d419be5efa75"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d0f/classLruCache.html#a465c1810f15a128978e0d419be5efa75">put</a> (Object map)</td></tr>
+<tr class="memdesc:a465c1810f15a128978e0d419be5efa75"><td class="mdescLeft">&#160;</td><td class="mdescRight">设定一个键值数据，键值不存在则插入新数据  <a href="#a465c1810f15a128978e0d419be5efa75">更多...</a><br/></td></tr>
+<tr class="separator:a465c1810f15a128978e0d419be5efa75"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab481b1854c24e5b1ad3055a84dfb2561"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d0f/classLruCache.html#ab481b1854c24e5b1ad3055a84dfb2561">remove</a> (String name)</td></tr>
+<tr class="memdesc:ab481b1854c24e5b1ad3055a84dfb2561"><td class="mdescLeft">&#160;</td><td class="mdescRight">删除指定键值的全部值  <a href="#ab481b1854c24e5b1ad3055a84dfb2561">更多...</a><br/></td></tr>
+<tr class="separator:ab481b1854c24e5b1ad3055a84dfb2561"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9bbd359547d2f97c9945cbae947cd053"><td class="memItemLeft" align="right" valign="top">Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d0f/classLruCache.html#a9bbd359547d2f97c9945cbae947cd053">isEmpty</a> ()</td></tr>
+<tr class="memdesc:a9bbd359547d2f97c9945cbae947cd053"><td class="mdescLeft">&#160;</td><td class="mdescRight">检查容器是否为空  <a href="#a9bbd359547d2f97c9945cbae947cd053">更多...</a><br/></td></tr>
+<tr class="separator:a9bbd359547d2f97c9945cbae947cd053"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b88dbc459449d2280338e5b702a68b4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dd8/classobject.html#a6b88dbc459449d2280338e5b702a68b4">dispose</a> ()</td></tr>
+<tr class="memdesc:a6b88dbc459449d2280338e5b702a68b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">强制回收对象，调用此方法后，对象资源将立即释放  <a href="#a6b88dbc459449d2280338e5b702a68b4">更多...</a><br/></td></tr>
+<tr class="separator:a6b88dbc459449d2280338e5b702a68b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac61f07a7d6c5471293371086af3186bd"><td class="memItemLeft" align="right" valign="top">String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dd8/classobject.html#ac61f07a7d6c5471293371086af3186bd">toString</a> ()</td></tr>
+<tr class="memdesc:ac61f07a7d6c5471293371086af3186bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回对象的字符串表示，一般返回 "[Native Object]"，对象可以根据自己的特性重新实现  <a href="#ac61f07a7d6c5471293371086af3186bd">更多...</a><br/></td></tr>
+<tr class="separator:ac61f07a7d6c5471293371086af3186bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad66be13eb5b7c5f560fd8511565138c4"><td class="memItemLeft" align="right" valign="top">Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dd8/classobject.html#ad66be13eb5b7c5f560fd8511565138c4">toJSON</a> (String key=&quot;&quot;)</td></tr>
+<tr class="memdesc:ad66be13eb5b7c5f560fd8511565138c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回对象的 JSON 格式表示，一般返回对象定义的可读属性集合  <a href="#ad66be13eb5b7c5f560fd8511565138c4">更多...</a><br/></td></tr>
+<tr class="separator:ad66be13eb5b7c5f560fd8511565138c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a561030ca5d5b23349b5bab2cc8afa739"><td class="memItemLeft" align="right" valign="top">Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dd8/classobject.html#a561030ca5d5b23349b5bab2cc8afa739">ValueOf</a> ()</td></tr>
+<tr class="memdesc:a561030ca5d5b23349b5bab2cc8afa739"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回对象本身的数值  <a href="#a561030ca5d5b23349b5bab2cc8afa739">更多...</a><br/></td></tr>
+<tr class="separator:a561030ca5d5b23349b5bab2cc8afa739"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
+Public 属性</h2></td></tr>
+<tr class="memitem:aee1e7aea2978a02636cb4314bdb11420"><td class="memItemLeft" align="right" valign="top">readonly Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d0f/classLruCache.html#aee1e7aea2978a02636cb4314bdb11420">size</a></td></tr>
+<tr class="memdesc:aee1e7aea2978a02636cb4314bdb11420"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询容器内数值个数  <a href="#aee1e7aea2978a02636cb4314bdb11420">更多...</a><br/></td></tr>
+<tr class="separator:aee1e7aea2978a02636cb4314bdb11420"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>LRU(least recently used) 缓存对象 </p>
+<p><a class="el" href="../../de/d0f/classLruCache.html" title="LRU(least recently used) 缓存对象 ">LruCache</a> 用以维护一个 LRU 缓存，创建方法： </p>
+<div class="fragment"><div class="line">var <a class="code" href="../../dc/d22/classutils.html">utils</a> = require(<span class="stringliteral">&quot;utils&quot;</span>);</div>
+<div class="line">var c = <span class="keyword">new</span> utils.LruCache(10, 100);</div>
+</div><!-- fragment --> </div><h2 class="groupheader">构造及析构函数说明</h2>
+<a class="anchor" id="a6fce7c256bb93ea2a366e4258cb2a39f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">LruCache::LruCache </td>
+          <td>(</td>
+          <td class="paramtype">Integer&#160;</td>
+          <td class="paramname"><em>size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Integer&#160;</td>
+          <td class="paramname"><em>timeout</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><a class="el" href="../../de/d0f/classLruCache.html" title="LRU(least recently used) 缓存对象 ">LruCache</a> 对象构造函数 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">size</td><td>缓存最大尺寸 </td></tr>
+    <tr><td class="paramname">timeout</td><td>元素失效时间，单位是 ms，小于等于 0 不失效，缺省为 0 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a class="anchor" id="a712f2067f0af560e382de4e5a8df6759"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">LruCache::clear </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>清除容器数据 </p>
+
+</div>
+</div>
+<a class="anchor" id="a1f47f0c7f03ead1191f99b340edc0576"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Boolean LruCache::has </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>检查容器内是否存在指定键值的数据 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>指定要检查的键值 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回键值是否存在 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a1ce4671eff7a52fb7dd6be130180447f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Value LruCache::get </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>查询指定键值的值 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>指定要查询的键值 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回键值所对应的值，若不存在，则返回 null </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="aac47180244d82cfa49c6cbfc3c6ae93a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">LruCache::set </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Value&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>修改一个键值数据，键值不存在则不作任何操作 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>指定要设定的键值 </td></tr>
+    <tr><td class="paramname">value</td><td>指定要设定的数据 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a35dd33c18d9de9c510a0971b32eab49e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">LruCache::put </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Value&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>设定一个键值数据，键值不存在则插入一条新数据 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>指定要设定的键值 </td></tr>
+    <tr><td class="paramname">value</td><td>指定要设定的数据 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a465c1810f15a128978e0d419be5efa75"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">LruCache::put </td>
+          <td>(</td>
+          <td class="paramtype">Object&#160;</td>
+          <td class="paramname"><em>map</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>设定一个键值数据，键值不存在则插入新数据 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">map</td><td>指定要设定的键值数据字典 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ab481b1854c24e5b1ad3055a84dfb2561"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">LruCache::remove </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>删除指定键值的全部值 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>指定要删除的键值 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a9bbd359547d2f97c9945cbae947cd053"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Boolean LruCache::isEmpty </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>检查容器是否为空 </p>
+<dl class="section return"><dt>返回</dt><dd>容器内无数值则返回 true </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a6b88dbc459449d2280338e5b702a68b4"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">object::dispose </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>强制回收对象，调用此方法后，对象资源将立即释放 </p>
+
+</div>
+</div>
+<a class="anchor" id="ac61f07a7d6c5471293371086af3186bd"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">String object::toString </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回对象的字符串表示，一般返回 "[Native Object]"，对象可以根据自己的特性重新实现 </p>
+<dl class="section return"><dt>返回</dt><dd>返回对象的字符串表示 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ad66be13eb5b7c5f560fd8511565138c4"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Value object::toJSON </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>key</em> = <code>&quot;&quot;</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回对象的 JSON 格式表示，一般返回对象定义的可读属性集合 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>未使用 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回包含可 JSON 序列化的值 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a561030ca5d5b23349b5bab2cc8afa739"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Value object::ValueOf </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回对象本身的数值 </p>
+<dl class="section return"><dt>返回</dt><dd>返回对象本身的数值 </dd></dl>
+
+</div>
+</div>
+<h2 class="groupheader">类成员变量说明</h2>
+<a class="anchor" id="aee1e7aea2978a02636cb4314bdb11420"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">readonly Integer LruCache::size</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>查询容器内数值个数 </p>
+
+</div>
+</div>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="../../de/d0f/classLruCache.html">LruCache</a></li>
+    <li class="footer">制作者
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
+  </ul>
+</div>
+</body>
+</html>

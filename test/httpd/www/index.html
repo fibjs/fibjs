@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Sample of web_socket.js</title>
+	<script type="text/javascript" src="/xjs/base.js"></script>
+	<script type="text/javascript" src="/xjs/event.js"></script>
+	<script type="text/javascript" src="/xjs/define.js"></script>
+	<script type="text/javascript" src="/xjs/json2.js"></script>
+	<script type="text/javascript" src="/xjs/transport.js"></script>
+ 	<script type="text/javascript" src="/xjs/rpc.js"></script>
+
+<style>
+	.bg {background: #ff0000;}
+	.c {background: #00ff00;color: #fff;}
+</style>	
+
+  <script type="text/javascript">
+  $ = jModo;
+
+    function test_rpc() {
+		$.enableWebSocket = false;
+		$.enableXMLHttpRequest = true;
+		$.enableFlashHttp = false;
+		$.enableIFRAME = false;
+    	
+    	var d = [{
+    		"icon":"8fef80c7ac8a6b433ca64a91e3a6e5e6",
+    		"icon_crop_size":175,
+    		"icon_crop_left":53,
+    		"icon_crop_top":81,
+    		"id":1}];
+
+    	$.rpc('/xhr/test/test', "fun", d, function(m) {
+			alert(m.result);
+    	});
+    }
+
+	
+document.write(JSON.stringify($.browser));
+document.write(navigator.userAgent);
+
+function tm() {
+	$.load('/test', function(v) {
+		$('data').txt(v + ', ' + new Date());
+	});
+}
+
+setInterval(tm, 1000);
+
+  </script>
+</head><body>
+<br>
+    <button onclick="test_rpc();">test</button>
+  <div id="data"></div>
+  <div id="log"></div>
+</body></html>
+
+
+
+
+
+
+
+

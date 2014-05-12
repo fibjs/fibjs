@@ -1,0 +1,8 @@
+.svn
+bin
+build
+build.cmd
+exlib.sln
+fibjs
+installer
+vender

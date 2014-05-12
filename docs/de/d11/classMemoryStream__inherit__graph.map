@@ -1,0 +1,5 @@
+<map id="MemoryStream" name="MemoryStream">
+<area shape="rect" id="node2" href="$db/d67/classSeekableStream.html" title="可移动当前指针的流对象接口 " alt="" coords="12,328,132,468"/>
+<area shape="rect" id="node3" href="$dc/de8/classStream.html" title="流操作对象，用于二进制数据流读写 " alt="" coords="30,167,114,280"/>
+<area shape="rect" id="node4" href="$dc/dd8/classobject.html" title="基础对象，所有对象均继承于此 " alt="" coords="27,5,116,119"/>
+</map>

@@ -1,0 +1,167 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
+<title>{FibJS: Fiber Javascript}: http.idl 源文件</title>
+<link href="../../tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../jquery.js"></script>
+<script type="text/javascript" src="../../dynsections.js"></script>
+<link href="../../navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../resize.js"></script>
+<script type="text/javascript" src="../../navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
+<link href="../../search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="../../doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">{FibJS: Fiber Javascript}
+   </div>
+   <div id="projectbrief">基于 Google v8 引擎实现的协程应用开发框架</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.8.6 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="../../index.html"><span>首页</span></a></li>
+      <li><a href="../../pages.html"><span>相关页面</span></a></li>
+      <li><a href="../../annotated.html"><span>类</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="../../search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="../../search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('de/d65/http_8idl_source.html','../../');});
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="headertitle">
+<div class="title">http.idl</div>  </div>
+</div><!--header-->
+<div class="contents">
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;</div>
+<div class="line"><a name="l00003"></a><span class="lineno"><a class="line" href="../../d6/da8/classhttp.html">    3</a></span>&#160;<span class="keyword">class </span><a class="code" href="../../d6/da8/classhttp.html">http</a> : <a class="code" href="../../d0/dd3/classmodule.html">module</a></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;{</div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d5/d1b/classHttpRequest.html">HttpRequest</a> <span class="keyword">new</span> <a class="code" href="../../d6/da8/classhttp.html#af42dded35bbc45313730fc90e9eb8f83">Request</a>();</div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;</div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d8/d4c/classHttpResponse.html">HttpResponse</a> <span class="keyword">new</span> <a class="code" href="../../d6/da8/classhttp.html#a70902187780a1f3b2927b2a2f50213b5">Response</a>();</div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;</div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../dd/dab/classHttpServer.html">HttpServer</a> <span class="keyword">new</span> <a class="code" href="../../d6/da8/classhttp.html#ad4fe0324266eb7ca3209352741b33f84">Server</a>();</div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d5/d3b/classHttpsServer.html">HttpsServer</a> <span class="keyword">new</span> <a class="code" href="../../d6/da8/classhttp.html#a5b21533b4e601a05f64dc3c814ba7b87">HttpsServer</a>();</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;</div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d3/df3/classHttpHandler.html">HttpHandler</a> <span class="keyword">new</span> <a class="code" href="../../d6/da8/classhttp.html#aeb7ec4214a199d4df745d067aaf71a3d">Handler</a>();</div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;    <span class="keyword">static</span> Handler <a class="code" href="../../d6/da8/classhttp.html#ad14af9130d2ab78b19d9f538fde2eafe">fileHandler</a>(String root);</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    </div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d8/d4c/classHttpResponse.html">HttpResponse</a> <a class="code" href="../../d6/da8/classhttp.html#a7a64ec8d96a0fecb0bfa6ae5749e2b9e">request</a>(String host, Integer port, <a class="code" href="../../d5/d1b/classHttpRequest.html">HttpRequest</a> req, Boolean <a class="code" href="../../dd/d36/classssl.html">ssl</a> = <span class="keyword">false</span>) async;</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d8/d4c/classHttpResponse.html">HttpResponse</a> <a class="code" href="../../d6/da8/classhttp.html#a7a64ec8d96a0fecb0bfa6ae5749e2b9e">request</a>(String method, String url, Object headers = {});</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d8/d4c/classHttpResponse.html">HttpResponse</a> <a class="code" href="../../d6/da8/classhttp.html#a7a64ec8d96a0fecb0bfa6ae5749e2b9e">request</a>(String method, String url, <a class="code" href="../../db/d67/classSeekableStream.html">SeekableStream</a> body, Object headers = {});</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d8/d4c/classHttpResponse.html">HttpResponse</a> <a class="code" href="../../d6/da8/classhttp.html#a7a64ec8d96a0fecb0bfa6ae5749e2b9e">request</a>(String method, String url, <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> body, Object headers = {});</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d8/d4c/classHttpResponse.html">HttpResponse</a> <a class="code" href="../../d6/da8/classhttp.html#a7a64ec8d96a0fecb0bfa6ae5749e2b9e">request</a>(String method, String url, String body, Object headers = {});</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d8/d4c/classHttpResponse.html">HttpResponse</a> <span class="keyword">get</span>(String url, Object headers = {});</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d8/d4c/classHttpResponse.html">HttpResponse</a> <a class="code" href="../../d6/da8/classhttp.html#a440654041e83c0ece6ac4e69d88b5c17">post</a>(String url, Object headers = {});</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d8/d4c/classHttpResponse.html">HttpResponse</a> <a class="code" href="../../d6/da8/classhttp.html#a440654041e83c0ece6ac4e69d88b5c17">post</a>(String url, <a class="code" href="../../db/d67/classSeekableStream.html">SeekableStream</a> body, Object headers = {});</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d8/d4c/classHttpResponse.html">HttpResponse</a> <a class="code" href="../../d6/da8/classhttp.html#a440654041e83c0ece6ac4e69d88b5c17">post</a>(String url, <a class="code" href="../../d0/d11/classBuffer.html">Buffer</a> body, Object headers = {});</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    <span class="keyword">static</span> <a class="code" href="../../d8/d4c/classHttpResponse.html">HttpResponse</a> <a class="code" href="../../d6/da8/classhttp.html#a440654041e83c0ece6ac4e69d88b5c17">post</a>(String url, String body, Object headers = {});</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;};</div>
+<div class="ttc" id="classhttp_html_ad4fe0324266eb7ca3209352741b33f84"><div class="ttname"><a href="../../d6/da8/classhttp.html#ad4fe0324266eb7ca3209352741b33f84">http::Server</a></div><div class="ttdeci">static HttpServer new Server()</div><div class="ttdoc">创建一个 http 服务器，参见 HttpServer </div></div>
+<div class="ttc" id="classhttp_html_aeb7ec4214a199d4df745d067aaf71a3d"><div class="ttname"><a href="../../d6/da8/classhttp.html#aeb7ec4214a199d4df745d067aaf71a3d">http::Handler</a></div><div class="ttdeci">static HttpHandler new Handler()</div><div class="ttdoc">创建一个 http 协议处理器对象，参见 HttpHandler </div></div>
+<div class="ttc" id="classHttpHandler_html"><div class="ttname"><a href="../../d3/df3/classHttpHandler.html">HttpHandler</a></div><div class="ttdoc">http 协议转换处理器 </div><div class="ttdef"><b>Definition:</b> HttpHandler.idl:13</div></div>
+<div class="ttc" id="classSeekableStream_html"><div class="ttname"><a href="../../db/d67/classSeekableStream.html">SeekableStream</a></div><div class="ttdoc">可移动当前指针的流对象接口 </div><div class="ttdef"><b>Definition:</b> SeekableStream.idl:3</div></div>
+<div class="ttc" id="classBuffer_html"><div class="ttname"><a href="../../d0/d11/classBuffer.html">Buffer</a></div><div class="ttdoc">二进制数据缓存对象，用于 io 读写的数据处理 </div><div class="ttdef"><b>Definition:</b> Buffer.idl:9</div></div>
+<div class="ttc" id="classhttp_html_a7a64ec8d96a0fecb0bfa6ae5749e2b9e"><div class="ttname"><a href="../../d6/da8/classhttp.html#a7a64ec8d96a0fecb0bfa6ae5749e2b9e">http::request</a></div><div class="ttdeci">static HttpResponse request(String host, Integer port, HttpRequest req, Boolean ssl=false) async</div><div class="ttdoc">发送 http 请求到指定的服务器，并返回结果 </div></div>
+<div class="ttc" id="classssl_html"><div class="ttname"><a href="../../dd/d36/classssl.html">ssl</a></div><div class="ttdoc">ssl/tls 模块 </div><div class="ttdef"><b>Definition:</b> ssl.idl:2</div></div>
+<div class="ttc" id="classHttpsServer_html"><div class="ttname"><a href="../../d5/d3b/classHttpsServer.html">HttpsServer</a></div><div class="ttdoc">https 服务器对象 </div><div class="ttdef"><b>Definition:</b> HttpsServer.idl:18</div></div>
+<div class="ttc" id="classHttpServer_html"><div class="ttname"><a href="../../dd/dab/classHttpServer.html">HttpServer</a></div><div class="ttdoc">http 服务器对象 </div><div class="ttdef"><b>Definition:</b> HttpServer.idl:18</div></div>
+<div class="ttc" id="classHttpRequest_html"><div class="ttname"><a href="../../d5/d1b/classHttpRequest.html">HttpRequest</a></div><div class="ttdoc">http 请求消息对象 </div><div class="ttdef"><b>Definition:</b> HttpRequest.idl:3</div></div>
+<div class="ttc" id="classhttp_html"><div class="ttname"><a href="../../d6/da8/classhttp.html">http</a></div><div class="ttdoc">超文本传输协议模块，用以支持 http 协议处理 </div><div class="ttdef"><b>Definition:</b> http.idl:3</div></div>
+<div class="ttc" id="classhttp_html_a70902187780a1f3b2927b2a2f50213b5"><div class="ttname"><a href="../../d6/da8/classhttp.html#a70902187780a1f3b2927b2a2f50213b5">http::Response</a></div><div class="ttdeci">static HttpResponse new Response()</div><div class="ttdoc">创建一个 http 响应对象，参见 HttpResponse </div></div>
+<div class="ttc" id="classhttp_html_ad14af9130d2ab78b19d9f538fde2eafe"><div class="ttname"><a href="../../d6/da8/classhttp.html#ad14af9130d2ab78b19d9f538fde2eafe">http::fileHandler</a></div><div class="ttdeci">static Handler fileHandler(String root)</div><div class="ttdoc">创建一个 http 静态文件处理器，用以用静态文件响应 http 消息 </div></div>
+<div class="ttc" id="classhttp_html_a440654041e83c0ece6ac4e69d88b5c17"><div class="ttname"><a href="../../d6/da8/classhttp.html#a440654041e83c0ece6ac4e69d88b5c17">http::post</a></div><div class="ttdeci">static HttpResponse post(String url, Object headers={})</div><div class="ttdoc">用 POST 方法请求指定的 url，并返回结果，等同于 request(&quot;POST&quot;, ...) </div></div>
+<div class="ttc" id="classhttp_html_af42dded35bbc45313730fc90e9eb8f83"><div class="ttname"><a href="../../d6/da8/classhttp.html#af42dded35bbc45313730fc90e9eb8f83">http::Request</a></div><div class="ttdeci">static HttpRequest new Request()</div><div class="ttdoc">创建一个 http 请求对象，参见 HttpRequest </div></div>
+<div class="ttc" id="classmodule_html"><div class="ttname"><a href="../../d0/dd3/classmodule.html">module</a></div><div class="ttdoc">基础模块对象，所有模块对象均继承于此 </div><div class="ttdef"><b>Definition:</b> module.idl:3</div></div>
+<div class="ttc" id="classhttp_html_a5b21533b4e601a05f64dc3c814ba7b87"><div class="ttname"><a href="../../d6/da8/classhttp.html#a5b21533b4e601a05f64dc3c814ba7b87">http::HttpsServer</a></div><div class="ttdeci">static HttpsServer new HttpsServer()</div><div class="ttdoc">创建一个 https 服务器，参见 HttpsServer </div></div>
+<div class="ttc" id="classHttpResponse_html"><div class="ttname"><a href="../../d8/d4c/classHttpResponse.html">HttpResponse</a></div><div class="ttdoc">http 响应消息对象 </div><div class="ttdef"><b>Definition:</b> HttpResponse.idl:3</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><b>http.idl</b></li>
+    <li class="footer">制作者
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
+  </ul>
+</div>
+</body>
+</html>
