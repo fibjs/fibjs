@@ -66,6 +66,9 @@
 #  endif
 # endif
 
+# if defined(__AARCH64EL__)
+#  define arm64
+# endif
 
 # if defined(__ARMEL__)
 #  define arm

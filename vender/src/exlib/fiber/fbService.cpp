@@ -124,12 +124,20 @@ Fiber *Service::CreateFiber(void *(*func)(void *), void *data, int stacksize)
     fb->m_cntxt.Rsi = (unsigned long long) data;
 #endif
 
-#else
+#elif defined(I386)
     fb->m_cntxt.Eip = (unsigned long) fiber_proc;
     fb->m_cntxt.Esp = (unsigned long) stack;
 
     stack[1] = (void *)func;
     stack[2] = data;
+
+#elif defined(arm)
+    fb->m_cntxt.r14 = (unsigned long) fiber_proc;
+    fb->m_cntxt.r13 = (unsigned long) stack;
+    fb->m_cntxt.r10 = (unsigned long) (fb + 1);
+
+    fb->m_cntxt.r0 = (unsigned long long) func;
+    fb->m_cntxt.r1 = (unsigned long long) data;
 #endif
 
     root->m_resume.put(fb);

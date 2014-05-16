@@ -21,17 +21,6 @@ win_switch:
 	mov	rax, [rsp]
 	mov	[rcx + 058h], rax
 
-	movdqa	[rcx + 060h], xmm6
-	movdqa	[rcx + 070h], xmm7
-	movdqa	[rcx + 080h], xmm8
-	movdqa	[rcx + 090h], xmm9
-	movdqa	[rcx + 0a0h], xmm10
-	movdqa	[rcx + 0b0h], xmm11
-	movdqa	[rcx + 0c0h], xmm12
-	movdqa	[rcx + 0d0h], xmm13
-	movdqa	[rcx + 0e0h], xmm14
-	movdqa	[rcx + 0f0h], xmm15
-
     mov	rcx, rdx
 
 	mov	rbp, [rcx]
@@ -46,16 +35,7 @@ win_switch:
 	mov	r15, [rcx + 048h]
 	mov	rsp, [rcx + 050h]
 	mov	rax, [rcx + 058h]
-	movdqa	xmm6, [rcx + 060h]
-	movdqa	xmm7, [rcx + 070h]
-	movdqa	xmm8, [rcx + 080h]
-	movdqa	xmm9, [rcx + 090h]
-	movdqa	xmm10, [rcx + 0a0h]
-	movdqa	xmm11, [rcx + 0b0h]
-	movdqa	xmm12, [rcx + 0c0h]
-	movdqa	xmm13, [rcx + 0d0h]
-	movdqa	xmm14, [rcx + 0e0h]
-	movdqa	xmm15, [rcx + 0f0h]
+
 	mov	rcx, [rcx + 010h]
 	push	rax
 	xor		rax, rax

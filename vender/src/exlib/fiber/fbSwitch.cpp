@@ -69,17 +69,6 @@ asm("    movq    %rax,0x50(%rdi)");
 asm("    movq    (%rsp),%rax");
 asm("    movq    %rax,0x58(%rdi)");
 
-asm("    movdqa  %xmm6, 0x60(%rdi)");
-asm("    movdqa  %xmm7, 0x70(%rdi)");
-asm("    movdqa  %xmm8, 0x80(%rdi)");
-asm("    movdqa  %xmm9, 0x90(%rdi)");
-asm("    movdqa  %xmm10, 0xa0(%rdi)");
-asm("    movdqa  %xmm11, 0xb0(%rdi)");
-asm("    movdqa  %xmm12, 0xc0(%rdi)");
-asm("    movdqa  %xmm13, 0xd0(%rdi)");
-asm("    movdqa  %xmm14, 0xe0(%rdi)");
-asm("    movdqa  %xmm15, 0xf0(%rdi)");
-
 asm("    movq    %rsi, %rdi");
 
 asm("    movq    (%rdi), %rbp");
@@ -95,17 +84,6 @@ asm("    movq    0x48(%rdi), %r15");
 asm("    movq    0x50(%rdi), %rsp");
 
 asm("    movq    0x58(%rdi), %rax");
-
-asm("    movdqa  0x60(%rdi), %xmm6");
-asm("    movdqa  0x70(%rdi), %xmm7");
-asm("    movdqa  0x80(%rdi), %xmm8");
-asm("    movdqa  0x90(%rdi), %xmm9");
-asm("    movdqa  0xa0(%rdi), %xmm10");
-asm("    movdqa  0xb0(%rdi), %xmm11");
-asm("    movdqa  0xc0(%rdi), %xmm12");
-asm("    movdqa  0xd0(%rdi), %xmm13");
-asm("    movdqa  0xe0(%rdi), %xmm14");
-asm("    movdqa  0xf0(%rdi), %xmm15");
 
 asm("    movq    0x28(%rdi), %rdi");
 
@@ -142,6 +120,41 @@ asm("    xorl    %eax, %eax");
 asm("    ret");
 
 #elif defined(arm)
+
+asm("    str r0, [r0]");
+asm("    str r1, [r0,#4]");
+asm("    str r2, [r0,#8]");
+asm("    str r3, [r0,#12]");
+asm("    str r4, [r0,#16]");
+asm("    str r5, [r0,#20]");
+asm("    str r6, [r0,#24]");
+asm("    str r7, [r0,#28]");
+asm("    str r8, [r0,#32]");
+asm("    str r9, [r0,#36]");
+asm("    str r10, [r0,#40]");
+asm("    str r11, [r0,#44]");
+asm("    str r12, [r0,#48]");
+asm("    str r13, [r0,#52]");
+asm("    str r14, [r0,#56]");
+
+asm("    mov r0, r1");
+
+asm("    ldr r1, [r0,#4]");
+asm("    ldr r2, [r0,#8]");
+asm("    ldr r3, [r0,#12]");
+asm("    ldr r4, [r0,#16]");
+asm("    ldr r5, [r0,#20]");
+asm("    ldr r6, [r0,#24]");
+asm("    ldr r7, [r0,#28]");
+asm("    ldr r8, [r0,#32]");
+asm("    ldr r9, [r0,#36]");
+asm("    ldr r10, [r0,#40]");
+asm("    ldr r11, [r0,#44]");
+asm("    ldr r12, [r0,#48]");
+asm("    ldr r13, [r0,#52]");
+asm("    ldr r14, [r0,#56]");
+asm("    ldr r0, [r0]");
+asm("    mov pc, lr");
 
 #endif
 

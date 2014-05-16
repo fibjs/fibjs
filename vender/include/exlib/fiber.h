@@ -16,14 +16,10 @@ namespace exlib
 {
 
 #pragma pack (1)
+
 #if defined(x64)
 
 typedef unsigned long long reg_type;
-
-typedef struct
-{
-    unsigned long long Part[2];
-} SETJMP_FLOAT128;
 
 typedef struct
 {
@@ -39,19 +35,9 @@ typedef struct
     reg_type R15;
     reg_type Rsp;
     reg_type Rip;
-    SETJMP_FLOAT128 Xmm6;
-    SETJMP_FLOAT128 Xmm7;
-    SETJMP_FLOAT128 Xmm8;
-    SETJMP_FLOAT128 Xmm9;
-    SETJMP_FLOAT128 Xmm10;
-    SETJMP_FLOAT128 Xmm11;
-    SETJMP_FLOAT128 Xmm12;
-    SETJMP_FLOAT128 Xmm13;
-    SETJMP_FLOAT128 Xmm14;
-    SETJMP_FLOAT128 Xmm15;
 } context;
 
-#else
+#elif defined(I386)
 
 typedef unsigned long reg_type;
 
@@ -65,6 +51,29 @@ typedef struct __JUMP_BUFFER
     reg_type Edi;
     reg_type Esp;
     reg_type Eip;
+} context;
+
+#elif defined(arm)
+
+typedef unsigned long reg_type;
+
+typedef struct __JUMP_BUFFER
+{
+    reg_type r0;
+    reg_type r1;
+    reg_type r2;
+    reg_type r3;
+    reg_type r4;
+    reg_type r5;
+    reg_type r6;
+    reg_type r7;
+    reg_type r8;
+    reg_type r9;
+    reg_type r10;
+    reg_type r11;
+    reg_type r12;
+    reg_type r13;
+    reg_type r14;
 } context;
 
 #endif

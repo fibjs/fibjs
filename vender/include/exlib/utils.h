@@ -44,56 +44,60 @@ template<typename T>
 inline T *CompareAndSwap(T **ptr, T *old_value, T *new_value)
 {
     T *oldval, *res;
-
     do
     {
-        __asm volatile("@ __cmpxchg4\n"
-                       "ldrex %1, [%2]\n"
-                       "mov %0, #0\n"
-                       "teq %1, %3\n"
-                       "strexeq %0, %4, [%2]\n"
-                       : "=&r" (res), "=&r" (oldval)
-                       : "r" (ptr), "Ir" (old_value), "r" (new_value)
-                       : "memory", "cc");
+        __asm__ __volatile__(
+            "ldrex %0, [%3]\n"
+            "mov %1, #0\n"
+            "cmp %0, %4\n"
+#ifdef __thumb2__
+            "it eq\n"
+#endif
+            "strexeq %1, %5, [%3]\n"
+            : "=&r"(oldval), "=&r"(res), "+m"(*ptr)
+            : "r"(ptr), "r"(old_value), "r"(new_value)
+            : "cc", "memory");
     }
-    while (res);
-
+    while (res != 0);
     return oldval;
+
 }
 
 inline int atom_add(__volatile__ int *dest, int incr)
 {
-    unsigned long tmp;
-    int result;
+    unsigned long value;
+    int res;
 
-    __asm__ __volatile__("@ atomic_add_return/n"
-                         "1:ldrex %0, [%2]/n"
-                         "add %0, %0, %3/n"
-                         "strex %1, %0, [%2]/n"
-                         "teq %1, #0/n"
-                         "bne 1b"
-                         : "=&r" (result), "=&r" (tmp)
-                         : "r" (dest), "Ir" (incr)
-                         : "cc");
-
-    return result;
+    do
+    {
+        __asm__ __volatile__(
+            "ldrex %0, [%3]\n"
+            "add %0, %0, %4\n"
+            "strex %1, %0, [%3]\n"
+            : "=&r"(value), "=&r"(res), "+m"(*dest)
+            : "r"(dest), "r"(incr)
+            : "cc", "memory");
+    }
+    while (res);
+    return value;
 }
 
 inline int atom_xchg(int *ptr, int new_value)
 {
-    int prev;
-    int tmp;
+    int old_value;
+    int res;
 
-    __asm __volatile("@ __xchg4\n"
-                     "1:ldrex %0, [%3]\n"
-                     "strex %1, %2, [%3]\n"
-                     "teq %1, #0\n"
-                     "bne 1b"
-                     : "=&r" (prev), "=&r" (tmp)
-                     : "r" (new_value), "r" (ptr)
-                     : "memory", "cc");
-
-    return prev;
+    do
+    {
+        __asm__ __volatile__(
+            "ldrex %0, [%3]\n"
+            "strex %1, %4, [%3]\n"
+            : "=&r"(old_value), "=&r"(res), "+m"(*ptr)
+            : "r"(ptr), "r"(new_value)
+            : "cc", "memory");
+    }
+    while (res != 0);
+    return old_value;
 }
 
 #else
@@ -104,10 +108,11 @@ template<typename T>
 inline T *CompareAndSwap(T **ptr, T *old_value, T *new_value)
 {
     T *prev;
-    __asm__ __volatile__("lock; cmpxchgq %1,%2"
-                         : "=a" (prev)
-                         : "q" (new_value), "m" (*ptr), "0" (old_value)
-                         : "memory");
+    __asm__ __volatile__(
+        "lock; cmpxchgq %1,%2"
+        : "=a" (prev)
+        : "q" (new_value), "m" (*ptr), "0" (old_value)
+        : "memory");
     return prev;
 }
 
@@ -117,10 +122,11 @@ template<typename T>
 inline T *CompareAndSwap(T **ptr, T *old_value, T *new_value)
 {
     T *prev;
-    __asm__ __volatile__("lock; cmpxchgl %1,%2"
-                         : "=a" (prev)
-                         : "q" (new_value), "m" (*ptr), "0" (old_value)
-                         : "memory");
+    __asm__ __volatile__(
+        "lock; cmpxchgl %1,%2"
+        : "=a" (prev)
+        : "q" (new_value), "m" (*ptr), "0" (old_value)
+        : "memory");
     return prev;
 }
 
@@ -129,10 +135,11 @@ inline T *CompareAndSwap(T **ptr, T *old_value, T *new_value)
 inline int atom_add(__volatile__ int *dest, int incr)
 {
     int ret;
-    __asm__ __volatile__("lock; xaddl %0,(%1)"
-                         : "=r"(ret)
-                         : "r"(dest), "0"(incr)
-                         : "memory");
+    __asm__ __volatile__(
+        "lock; xaddl %0,(%1)"
+        : "=r"(ret)
+        : "r"(dest), "0"(incr)
+        : "memory");
     return ret + incr;
 }
 
@@ -140,7 +147,7 @@ inline int atom_xchg(int *ptr, int new_value)
 {
     int prev;
 
-    __asm __volatile(
+    __asm__ __volatile__(
         "lock xchgl %2,(%1)"
         : "=r" (prev)
         : "r" (ptr), "0" (new_value)

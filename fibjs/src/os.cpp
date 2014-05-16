@@ -30,8 +30,10 @@ result_t os_base::get_arch(std::string &retVal)
 {
 #ifdef x64
     retVal = "x86_64";
-#else
+#elif defined(I386)
     retVal = "i686";
+#elif defined(arm)
+    retVal = "arm";
 #endif
 
     return 0;
