@@ -111,7 +111,7 @@ result_t os_base::CPUs(int32_t &retVal)
     if (fpModel)
     {
         while (fgets(line, 511, fpModel) != NULL)
-            if (strncmp(line, "model name", 10) == 0)
+            if (strncmp(line, "processor", 9) == 0)
                 numcpus++;
         fclose(fpModel);
 
@@ -134,7 +134,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
     int numcpus = 0, i = 0;
     unsigned long long ticks_user, ticks_sys, ticks_idle, ticks_nice,
              ticks_intr;
-    char line[512], speedPath[256], model[512];
+    char line[512], speedPath[256], model[512] = "";
     FILE *fpStat = fopen("/proc/stat", "r");
     FILE *fpModel = fopen("/proc/cpuinfo", "r");
     FILE *fpSpeed;
@@ -143,9 +143,10 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
     {
         while (fgets(line, 511, fpModel) != NULL)
         {
-            if (strncmp(line, "model name", 10) == 0)
-            {
+            if (strncmp(line, "processor", 9) == 0)
                 numcpus++;
+            else if (strncmp(line, "model name", 10) == 0)
+            {
                 if (numcpus == 1)
                 {
                     char *p = strchr(line, ':') + 2;
@@ -202,7 +203,8 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
             cputimes->Set(v8::String::NewFromUtf8(isolate, "irq"),
                           v8::Number::New(isolate, ticks_intr * multiplier));
 
-            cpuinfo->Set(v8::String::NewFromUtf8(isolate, "model"), v8::String::NewFromUtf8(isolate, model));
+            if (model[0])
+                cpuinfo->Set(v8::String::NewFromUtf8(isolate, "model"), v8::String::NewFromUtf8(isolate, model));
             cpuinfo->Set(v8::String::NewFromUtf8(isolate, "speed"), v8::Number::New(isolate, cpuspeed));
 
             cpuinfo->Set(v8::String::NewFromUtf8(isolate, "times"), cputimes);
