@@ -13,12 +13,11 @@ extern int stack_size;
 namespace fibjs
 {
 
-#define FIBER_PER_CPU   3000
+#define MAX_FIBER   10000
 extern v8::Persistent<v8::Context> s_context;
 
 static exlib::Queue<asyncEvent> g_jobs;
 static exlib::IDLE_PROC s_oldIdle;
-static int32_t s_cpus;
 static int32_t s_fibers;
 
 int g_tlsCurrent;
@@ -26,7 +25,7 @@ DateCache FiberBase::g_dc;
 
 static void onIdle()
 {
-    if (!g_jobs.empty() && (s_fibers < s_cpus * FIBER_PER_CPU))
+    if (!g_jobs.empty() && (s_fibers < MAX_FIBER))
     {
         s_fibers++;
         exlib::Service::CreateFiber(FiberBase::fiber_proc, NULL,
@@ -39,8 +38,6 @@ static void onIdle()
 
 void fiber_init()
 {
-    if (os_base::CPUs(s_cpus) < 0)
-        s_cpus = 4;
     s_fibers = 0;
 
     g_tlsCurrent = exlib::Service::tlsAlloc();
