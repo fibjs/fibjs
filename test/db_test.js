@@ -46,7 +46,7 @@ describe("db", function() {
 				conn.execute('create table test(t1 int, t2 varchar(128), t3 blob, t4 datetime);');
 			});
 
-		it("intert", function() {
+		it("insert", function() {
 			conn.execute("insert into test values(?,?,?,?);", 1123,
 				'aaaaa', new Buffer('DDDDDDDDDD'), new Date(
 					'1998-04-14 12:12:12'));
