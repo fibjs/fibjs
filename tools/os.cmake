@@ -49,5 +49,3 @@ string(REPLACE "cmake_OS " "" OS "${OS}")
 if (NOT OS)
     set(OS unknown)
 endif()
-
-message(${OS})
