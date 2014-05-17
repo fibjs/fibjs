@@ -36,7 +36,7 @@ fi
 SVN_INFO=`svn info | sed -n 's/Revision: /-DSVN_INFO=/p'`
 
 cd "out/${OS}_$1"
-cmake -DBUILD_TYPE=$1 -DOS_TYPE=$OS $SVN_INFO ../../tools
+cmake -DBUILD_TYPE=$1 $SVN_INFO ../../tools
 make
 
 if [ $1 = 'Release' ] || [ $1 = 'Release32' ]; then

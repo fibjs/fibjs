@@ -34,7 +34,7 @@ fi
 
 echo "${OS}_$1"
 cd "out/${OS}_$1"
-cmake -DBUILD_TYPE=$1 -DOS_TYPE=$OS ../../tools
+cmake -DBUILD_TYPE=$1 ../../tools
 make
 
 cd ../..
