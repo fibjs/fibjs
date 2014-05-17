@@ -36,7 +36,7 @@
 # endif
 
 # if (defined(__FreeBSD__) || defined(__DragonFly__) || \
-		defined(__FreeBSD_kernel__)) && !defined(FREEBSD)
+        defined(__FreeBSD_kernel__)) && !defined(FREEBSD)
 #  ifndef FreeBSD
 #   define FreeBSD
 #  endif
@@ -60,18 +60,42 @@
 #  endif
 # endif
 
-# if defined(__amd64) || defined(__x86_64__) || defined(__ia64) || defined(__ia64__) || defined(_M_X64) || defined(_M_IA64)
+# if defined(__amd64) || defined(__x86_64__) || defined(_M_X64)
 #  ifndef x64
 #   define x64
 #  endif
 # endif
 
+# if defined(__ia64) || defined(__ia64__) || defined(_M_IA64)
+#  ifndef IA64
+#   define IA64
+#  endif
+# endif
+
 # if defined(__AARCH64EL__)
-#  define arm64
+#  ifndef arm64
+#   define arm64
+#  endif
 # endif
 
 # if defined(__ARMEL__)
-#  define arm
+#  ifndef arm
+#   define arm
+#  endif
 # endif
+
+#if defined(__ppc__) || defined(__ppc) || defined(__powerpc__) \
+      || defined(_ARCH_COM) || defined(_ARCH_PWR) || defined(_ARCH_PPC)  \
+      || defined(_M_MPPC) || defined(_M_PPC)
+#  if defined(__ppc64__) || defined(__powerpc64__) || defined(__64BIT__)
+#    ifndef ppc64
+#      define ppc64
+#    endif
+#  else
+#    ifndef ppc
+#      define ppc
+#    endif
+#  endif
+#endif
 
 #endif /* OSCONFIG_H_ */
