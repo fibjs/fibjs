@@ -24,7 +24,7 @@ set(os_c_code "
 # endif
 
 # if defined(macosx) || (defined(__APPLE__) && defined(__MACH__))
-#error cmake_OS OSX
+#error cmake_OS Darwin
 # endif
 
 #error cmake_OS unknown
