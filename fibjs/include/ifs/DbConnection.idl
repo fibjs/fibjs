@@ -1,0 +1,39 @@
+
+/*! @brief 数据库连接对象，用于建立和维护一个数据库连接会话。*/
+class DbConnection : object
+{
+	/*! @brief 关闭当前数据库连接 */
+	close() async;
+
+	/*! @brief 在当前数据库连接上启动一个事务 */
+	begin() async;
+
+	/*! @brief 提交当前数据库连接上的事务 */
+	commit() async;
+
+	/*! @brief 回滚当前数据库连接上的事务 */
+	rollback() async;
+
+	/*! @brief 执行一个 sql 命令，并返回执行结果
+	
+	 @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
+	 @return 返回 sql 命令执行结果
+	 */
+	DBResult execute(String sql) async;
+
+	/*! @brief 执行一个 sql 命令，并返回执行结果，可根据参数格式化字符串
+	
+	 @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
+	 @param ... 可选参数列表
+	 @return 返回 sql 命令执行结果
+	 */
+	DBResult execute(String sql, ...);
+
+	/*! @brief 格式化一个 sql 命令，并返回格式化结果
+	
+	 @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
+	 @param ... 可选参数列表
+	 @return 返回格式化之后的 sql 命令
+	 */
+	String format(String sql, ...);
+};

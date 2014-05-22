@@ -1,0 +1,16 @@
+
+/*! @brief 远程过程调用消息转换模块
+
+ 使用方法：
+ @code
+ var rpc = require('rpc');
+ @endcode
+ */
+class rpc: module
+{
+	/*! @brief 生成一个 json-rpc 消息转换处理器
+	 @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+	 @return 生成的消息转换处理器
+	 */
+	static Handler json(Value hdlr);
+};

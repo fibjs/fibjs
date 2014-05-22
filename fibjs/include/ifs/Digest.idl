@@ -1,0 +1,28 @@
+/*! @brief 信息摘要对象 */
+class Digest : object
+{
+	/*! @brief 更新二进制摘要信息
+	 @param data 二进制数据块
+	 */
+	update(Buffer data);
+
+	/*! @brief 更新文本摘要信息，文本将以 utf8 编码更新
+	 @param text 文本信息
+	 */
+	update(String text);
+
+	/*! @brief 计算并返回摘要
+	 @param data 二进制数据块，此数据块将在计算前更新进摘要
+	 @return 返回摘要的二进制数据
+	 */
+	Buffer digest(Buffer data);
+
+	/*! @brief 计算并返回摘要
+	  @param text 文本信息，此文本将在计算前更新进摘要
+	  @return 返回摘要的二进制数据
+	 */
+	Buffer digest(String text = "");
+
+	/*! @brief 查询当前信息摘要算法的摘要字节数 */
+	readonly Integer size;
+};

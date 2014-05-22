@@ -1,0 +1,231 @@
+/***************************************************************************
+ *   Copyright (C) 2012 by Leo Hoo                                         *
+ *   lion@9465.net                                                         *
+ *                                                                         *
+ ***************************************************************************/
+
+#ifndef _MongoCursor_base_H_
+#define _MongoCursor_base_H_
+
+/**
+ @author Leo Hoo <lion@9465.net>
+ */
+
+#include "../object.h"
+
+namespace fibjs
+{
+
+class MongoCursor_base : public object_base
+{
+public:
+	// MongoCursor_base
+	virtual result_t skip(int32_t num, obj_ptr<MongoCursor_base>& retVal) = 0;
+	virtual result_t limit(int32_t size, obj_ptr<MongoCursor_base>& retVal) = 0;
+	virtual result_t sort(v8::Local<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal) = 0;
+	virtual result_t hasNext(bool& retVal) = 0;
+	virtual result_t next(v8::Local<v8::Object>& retVal) = 0;
+	virtual result_t count(bool applySkipLimit, int32_t& retVal) = 0;
+	virtual result_t size(int32_t& retVal) = 0;
+	virtual result_t forEach(v8::Local<v8::Function> func) = 0;
+	virtual result_t map(v8::Local<v8::Function> func, v8::Local<v8::Array>& retVal) = 0;
+	virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
+	virtual result_t hint(v8::Local<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal) = 0;
+
+	DECLARE_CLASSINFO(MongoCursor_base);
+
+public:
+	static void s_skip(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_limit(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_sort(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_hasNext(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_next(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_count(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_size(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_map(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_hint(const v8::FunctionCallbackInfo<v8::Value>& args);
+};
+
+}
+
+namespace fibjs
+{
+	inline ClassInfo& MongoCursor_base::class_info()
+	{
+		static ClassData::ClassMethod s_method[] = 
+		{
+			{"skip", s_skip},
+			{"limit", s_limit},
+			{"sort", s_sort},
+			{"hasNext", s_hasNext},
+			{"next", s_next},
+			{"count", s_count},
+			{"size", s_size},
+			{"forEach", s_forEach},
+			{"map", s_map},
+			{"toArray", s_toArray},
+			{"hint", s_hint}
+		};
+
+		static ClassData s_cd = 
+		{ 
+			"MongoCursor", NULL, 
+			11, s_method, 0, NULL, 0, NULL, NULL, NULL,
+			&object_base::class_info()
+		};
+
+		static ClassInfo s_ci(s_cd);
+		return s_ci;
+	}
+
+
+	inline void MongoCursor_base::s_skip(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<MongoCursor_base> vr;
+
+		METHOD_INSTANCE(MongoCursor_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(int32_t, 0);
+
+		hr = pInst->skip(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void MongoCursor_base::s_limit(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<MongoCursor_base> vr;
+
+		METHOD_INSTANCE(MongoCursor_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(int32_t, 0);
+
+		hr = pInst->limit(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void MongoCursor_base::s_sort(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<MongoCursor_base> vr;
+
+		METHOD_INSTANCE(MongoCursor_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Local<v8::Object>, 0);
+
+		hr = pInst->sort(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void MongoCursor_base::s_hasNext(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		bool vr;
+
+		METHOD_INSTANCE(MongoCursor_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->hasNext(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void MongoCursor_base::s_next(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		v8::Local<v8::Object> vr;
+
+		METHOD_INSTANCE(MongoCursor_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->next(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void MongoCursor_base::s_count(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_INSTANCE(MongoCursor_base);
+		METHOD_ENTER(1, 0);
+
+		OPT_ARG(bool, 0, false);
+
+		hr = pInst->count(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void MongoCursor_base::s_size(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		int32_t vr;
+
+		METHOD_INSTANCE(MongoCursor_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->size(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void MongoCursor_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		METHOD_INSTANCE(MongoCursor_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Local<v8::Function>, 0);
+
+		hr = pInst->forEach(v0);
+
+		METHOD_VOID();
+	}
+
+	inline void MongoCursor_base::s_map(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		v8::Local<v8::Array> vr;
+
+		METHOD_INSTANCE(MongoCursor_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Local<v8::Function>, 0);
+
+		hr = pInst->map(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void MongoCursor_base::s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		v8::Local<v8::Array> vr;
+
+		METHOD_INSTANCE(MongoCursor_base);
+		METHOD_ENTER(0, 0);
+
+		hr = pInst->toArray(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void MongoCursor_base::s_hint(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		obj_ptr<MongoCursor_base> vr;
+
+		METHOD_INSTANCE(MongoCursor_base);
+		METHOD_ENTER(1, 1);
+
+		ARG(v8::Local<v8::Object>, 0);
+
+		hr = pInst->hint(v0, vr);
+
+		METHOD_RETURN();
+	}
+
+}
+
+#endif
+

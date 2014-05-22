@@ -1,0 +1,467 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\acPool.cpp" />
+    <ClCompile Include="src\assert.cpp" />
+    <ClCompile Include="src\AsyncWaitHandler.cpp" />
+    <ClCompile Include="src\BlockQueue.cpp" />
+    <ClCompile Include="src\Buffer.cpp" />
+    <ClCompile Include="src\BufferedStream.cpp" />
+    <ClCompile Include="src\Chain.cpp" />
+    <ClCompile Include="src\Cipher.cpp" />
+    <ClCompile Include="src\Condition.cpp" />
+    <ClCompile Include="src\Console.cpp" />
+    <ClCompile Include="src\console_std.cpp" />
+    <ClCompile Include="src\coroutine.cpp" />
+    <ClCompile Include="src\crypto.cpp" />
+    <ClCompile Include="src\date.cpp" />
+    <ClCompile Include="src\db.cpp" />
+    <ClCompile Include="src\DBResult.cpp" />
+    <ClCompile Include="src\DBRow.cpp" />
+    <ClCompile Include="src\define.cpp" />
+    <ClCompile Include="src\Digest.cpp" />
+    <ClCompile Include="src\encoding.cpp" />
+    <ClCompile Include="src\encoding_bson.cpp" />
+    <ClCompile Include="src\Event.cpp" />
+    <ClCompile Include="src\Expect.cpp" />
+    <ClCompile Include="src\Fiber.cpp" />
+    <ClCompile Include="src\fibjs.cpp" />
+    <ClCompile Include="src\File.cpp" />
+    <ClCompile Include="src\fs.cpp" />
+    <ClCompile Include="src\fuck_sym.c" />
+    <ClCompile Include="src\Function.cpp" />
+    <ClCompile Include="src\global.cpp" />
+    <ClCompile Include="src\GridFS.cpp" />
+    <ClCompile Include="src\hash.cpp" />
+    <ClCompile Include="src\http.cpp" />
+    <ClCompile Include="src\HttpCollection.cpp" />
+    <ClCompile Include="src\HttpFileHandler.cpp" />
+    <ClCompile Include="src\HttpHandler.cpp" />
+    <ClCompile Include="src\HttpMessage.cpp" />
+    <ClCompile Include="src\HttpRequest.cpp" />
+    <ClCompile Include="src\HttpResponse.cpp" />
+    <ClCompile Include="src\HttpServer.cpp" />
+    <ClCompile Include="src\HttpsServer.cpp" />
+    <ClCompile Include="src\HttpUploadCollection.cpp" />
+    <ClCompile Include="src\HttpUploadData.cpp" />
+    <ClCompile Include="src\Image.cpp" />
+    <ClCompile Include="src\inetAddr.cpp" />
+    <ClCompile Include="src\io.cpp" />
+    <ClCompile Include="src\JSHandler.cpp" />
+    <ClCompile Include="src\JsonRpcHandler.cpp" />
+    <ClCompile Include="src\List.cpp" />
+    <ClCompile Include="src\Lock.cpp" />
+    <ClCompile Include="src\LruCache.cpp" />
+    <ClCompile Include="src\Map.cpp" />
+    <ClCompile Include="src\MemoryCloneStream.cpp" />
+    <ClCompile Include="src\MemoryStream.cpp" />
+    <ClCompile Include="src\Message.cpp" />
+    <ClCompile Include="src\MongoCollection.cpp" />
+    <ClCompile Include="src\MongoCursor.cpp" />
+    <ClCompile Include="src\MongoDB.cpp" />
+    <ClCompile Include="src\mq.cpp" />
+    <ClCompile Include="src\mysql.cpp" />
+    <ClCompile Include="src\net.cpp" />
+    <ClCompile Include="src\NullHandler.cpp" />
+    <ClCompile Include="src\os.cpp" />
+    <ClCompile Include="src\os_freebsd.cpp" />
+    <ClCompile Include="src\os_linux.cpp" />
+    <ClCompile Include="src\os_osx.cpp" />
+    <ClCompile Include="src\os_posix.cpp" />
+    <ClCompile Include="src\os_win.cpp" />
+    <ClCompile Include="src\PacketHandler.cpp" />
+    <ClCompile Include="src\PacketMessage.cpp" />
+    <ClCompile Include="src\path.cpp" />
+    <ClCompile Include="src\PKey.cpp" />
+    <ClCompile Include="src\process.cpp" />
+    <ClCompile Include="src\Queue.cpp" />
+    <ClCompile Include="src\Regex.cpp" />
+    <ClCompile Include="src\Routing.cpp" />
+    <ClCompile Include="src\rpc.cpp" />
+    <ClCompile Include="src\Runtime.cpp" />
+    <ClCompile Include="src\SandBox.cpp" />
+    <ClCompile Include="src\SandBox_repl.cpp" />
+    <ClCompile Include="src\SandBox_root.cpp" />
+    <ClCompile Include="src\SandBox_run.cpp" />
+    <ClCompile Include="src\Semaphore.cpp" />
+    <ClCompile Include="src\Smtp.cpp" />
+    <ClCompile Include="src\Socket.cpp" />
+    <ClCompile Include="src\Socket_api.cpp" />
+    <ClCompile Include="src\Socket_ev.cpp" />
+    <ClCompile Include="src\Socket_iocp.cpp" />
+    <ClCompile Include="src\SQLite.cpp" />
+    <ClCompile Include="src\ssl.cpp" />
+    <ClCompile Include="src\SslHandler.cpp" />
+    <ClCompile Include="src\SslServer.cpp" />
+    <ClCompile Include="src\SslSocket.cpp" />
+    <ClCompile Include="src\Stat.cpp" />
+    <ClCompile Include="src\Stats.cpp" />
+    <ClCompile Include="src\Stream.cpp" />
+    <ClCompile Include="src\TcpServer.cpp" />
+    <ClCompile Include="src\test.cpp" />
+    <ClCompile Include="src\TextColor.cpp" />
+    <ClCompile Include="src\Trigger.cpp" />
+    <ClCompile Include="src\Url.cpp" />
+    <ClCompile Include="src\utf8.cpp" />
+    <ClCompile Include="src\util.cpp" />
+    <ClCompile Include="src\utils.cpp" />
+    <ClCompile Include="src\uuidVar.cpp" />
+    <ClCompile Include="src\Variant.cpp" />
+    <ClCompile Include="src\X509Cert.cpp" />
+    <ClCompile Include="src\X509Crl.cpp" />
+    <ClCompile Include="src\X509Req.cpp" />
+    <ClCompile Include="src\zlib.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\vender\vender.vcxproj">
+      <Project>{1f77ab58-706b-4bb5-be73-5af083d21df6}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\acPool.h" />
+    <ClInclude Include="include\AsyncCall.h" />
+    <ClInclude Include="include\AsyncWaitHandler.h" />
+    <ClInclude Include="include\BlockQueue.h" />
+    <ClInclude Include="include\Buffer.h" />
+    <ClInclude Include="include\BufferedStream.h" />
+    <ClInclude Include="include\Chain.h" />
+    <ClInclude Include="include\Cipher.h" />
+    <ClInclude Include="include\ClassInfo.h" />
+    <ClInclude Include="include\Condition.h" />
+    <ClInclude Include="include\console.h" />
+    <ClInclude Include="include\date.h" />
+    <ClInclude Include="include\DateCache.h" />
+    <ClInclude Include="include\DBField.h" />
+    <ClInclude Include="include\DBResult.h" />
+    <ClInclude Include="include\DBRow.h" />
+    <ClInclude Include="include\Digest.h" />
+    <ClInclude Include="include\encoding_bson.h" />
+    <ClInclude Include="include\Event.h" />
+    <ClInclude Include="include\Expect.h" />
+    <ClInclude Include="include\Fiber.h" />
+    <ClInclude Include="include\File.h" />
+    <ClInclude Include="include\GridFS.h" />
+    <ClInclude Include="include\HttpCollection.h" />
+    <ClInclude Include="include\HttpFileHandler.h" />
+    <ClInclude Include="include\HttpHandler.h" />
+    <ClInclude Include="include\HttpMessage.h" />
+    <ClInclude Include="include\HttpRequest.h" />
+    <ClInclude Include="include\HttpResponse.h" />
+    <ClInclude Include="include\HttpServer.h" />
+    <ClInclude Include="include\HttpUploadCollection.h" />
+    <ClInclude Include="include\HttpUploadData.h" />
+    <ClInclude Include="include\ifs\assert.h" />
+    <ClInclude Include="include\ifs\AsyncWait.h" />
+    <ClInclude Include="include\ifs\BlockQueue.h" />
+    <ClInclude Include="include\ifs\Buffer.h" />
+    <ClInclude Include="include\ifs\BufferedStream.h" />
+    <ClInclude Include="include\ifs\Chain.h" />
+    <ClInclude Include="include\ifs\Cipher.h" />
+    <ClInclude Include="include\ifs\collection.h" />
+    <ClInclude Include="include\ifs\Condition.h" />
+    <ClInclude Include="include\ifs\console.h" />
+    <ClInclude Include="include\ifs\coroutine.h" />
+    <ClInclude Include="include\ifs\crypto.h" />
+    <ClInclude Include="include\ifs\db.h" />
+    <ClInclude Include="include\ifs\DbConnection.h" />
+    <ClInclude Include="include\ifs\DBResult.h" />
+    <ClInclude Include="include\ifs\DBRow.h" />
+    <ClInclude Include="include\ifs\Digest.h" />
+    <ClInclude Include="include\ifs\encoding.h" />
+    <ClInclude Include="include\ifs\Event.h" />
+    <ClInclude Include="include\ifs\Expect.h" />
+    <ClInclude Include="include\ifs\Fiber.h" />
+    <ClInclude Include="include\ifs\File.h" />
+    <ClInclude Include="include\ifs\fs.h" />
+    <ClInclude Include="include\ifs\Function.h" />
+    <ClInclude Include="include\ifs\gd.h" />
+    <ClInclude Include="include\ifs\global.h" />
+    <ClInclude Include="include\ifs\GridFS.h" />
+    <ClInclude Include="include\ifs\Handler.h" />
+    <ClInclude Include="include\ifs\hash.h" />
+    <ClInclude Include="include\ifs\http.h" />
+    <ClInclude Include="include\ifs\HttpCollection.h" />
+    <ClInclude Include="include\ifs\HttpHandler.h" />
+    <ClInclude Include="include\ifs\HttpMessage.h" />
+    <ClInclude Include="include\ifs\HttpRequest.h" />
+    <ClInclude Include="include\ifs\HttpResponse.h" />
+    <ClInclude Include="include\ifs\HttpServer.h" />
+    <ClInclude Include="include\ifs\HttpsServer.h" />
+    <ClInclude Include="include\ifs\HttpUploadData.h" />
+    <ClInclude Include="include\ifs\Image.h" />
+    <ClInclude Include="include\ifs\io.h" />
+    <ClInclude Include="include\ifs\List.h" />
+    <ClInclude Include="include\ifs\Lock.h" />
+    <ClInclude Include="include\ifs\LruCache.h" />
+    <ClInclude Include="include\ifs\Map.h" />
+    <ClInclude Include="include\ifs\MemoryStream.h" />
+    <ClInclude Include="include\ifs\Message.h" />
+    <ClInclude Include="include\ifs\module.h" />
+    <ClInclude Include="include\ifs\MongoCollection.h" />
+    <ClInclude Include="include\ifs\MongoCursor.h" />
+    <ClInclude Include="include\ifs\MongoDB.h" />
+    <ClInclude Include="include\ifs\MongoID.h" />
+    <ClInclude Include="include\ifs\mq.h" />
+    <ClInclude Include="include\ifs\MySQL.h" />
+    <ClInclude Include="include\ifs\net.h" />
+    <ClInclude Include="include\ifs\object.h" />
+    <ClInclude Include="include\ifs\os.h" />
+    <ClInclude Include="include\ifs\PacketHandler.h" />
+    <ClInclude Include="include\ifs\PacketMessage.h" />
+    <ClInclude Include="include\ifs\path.h" />
+    <ClInclude Include="include\ifs\PKey.h" />
+    <ClInclude Include="include\ifs\process.h" />
+    <ClInclude Include="include\ifs\Queue.h" />
+    <ClInclude Include="include\ifs\re.h" />
+    <ClInclude Include="include\ifs\Regex.h" />
+    <ClInclude Include="include\ifs\Routing.h" />
+    <ClInclude Include="include\ifs\rpc.h" />
+    <ClInclude Include="include\ifs\SandBox.h" />
+    <ClInclude Include="include\ifs\SeekableStream.h" />
+    <ClInclude Include="include\ifs\Semaphore.h" />
+    <ClInclude Include="include\ifs\Smtp.h" />
+    <ClInclude Include="include\ifs\Socket.h" />
+    <ClInclude Include="include\ifs\SQLite.h" />
+    <ClInclude Include="include\ifs\ssl.h" />
+    <ClInclude Include="include\ifs\SslHandler.h" />
+    <ClInclude Include="include\ifs\SslServer.h" />
+    <ClInclude Include="include\ifs\SslSocket.h" />
+    <ClInclude Include="include\ifs\Stat.h" />
+    <ClInclude Include="include\ifs\Stats.h" />
+    <ClInclude Include="include\ifs\Stream.h" />
+    <ClInclude Include="include\ifs\TcpServer.h" />
+    <ClInclude Include="include\ifs\test.h" />
+    <ClInclude Include="include\ifs\TextColor.h" />
+    <ClInclude Include="include\ifs\Trigger.h" />
+    <ClInclude Include="include\ifs\Url.h" />
+    <ClInclude Include="include\ifs\utils.h" />
+    <ClInclude Include="include\ifs\uuid.h" />
+    <ClInclude Include="include\ifs\uuidValue.h" />
+    <ClInclude Include="include\ifs\vm.h" />
+    <ClInclude Include="include\ifs\X509Cert.h" />
+    <ClInclude Include="include\ifs\X509Crl.h" />
+    <ClInclude Include="include\ifs\X509Req.h" />
+    <ClInclude Include="include\ifs\zlib.h" />
+    <ClInclude Include="include\Image.h" />
+    <ClInclude Include="include\inetAddr.h" />
+    <ClInclude Include="include\JSHandler.h" />
+    <ClInclude Include="include\JsonRpcHandler.h" />
+    <ClInclude Include="include\List.h" />
+    <ClInclude Include="include\Lock.h" />
+    <ClInclude Include="include\LruCache.h" />
+    <ClInclude Include="include\Map.h" />
+    <ClInclude Include="include\MemoryStream.h" />
+    <ClInclude Include="include\Message.h" />
+    <ClInclude Include="include\MongoCollection.h" />
+    <ClInclude Include="include\MongoCursor.h" />
+    <ClInclude Include="include\MongoDB.h" />
+    <ClInclude Include="include\MongoID.h" />
+    <ClInclude Include="include\mysql.h" />
+    <ClInclude Include="include\NullHandler.h" />
+    <ClInclude Include="include\object.h" />
+    <ClInclude Include="include\obj_ptr.h" />
+    <ClInclude Include="include\PacketHandler.h" />
+    <ClInclude Include="include\PacketMessage.h" />
+    <ClInclude Include="include\parse.h" />
+    <ClInclude Include="include\PKey.h" />
+    <ClInclude Include="include\qstring.h" />
+    <ClInclude Include="include\Queue.h" />
+    <ClInclude Include="include\QuickArray.h" />
+    <ClInclude Include="include\Regex.h" />
+    <ClInclude Include="include\Routing.h" />
+    <ClInclude Include="include\Runtime.h" />
+    <ClInclude Include="include\SandBox.h" />
+    <ClInclude Include="include\Semaph.h" />
+    <ClInclude Include="include\Smtp.h" />
+    <ClInclude Include="include\Socket.h" />
+    <ClInclude Include="include\Socket_api.h" />
+    <ClInclude Include="include\SQLite.h" />
+    <ClInclude Include="include\ssl.h" />
+    <ClInclude Include="include\SslHandler.h" />
+    <ClInclude Include="include\SslServer.h" />
+    <ClInclude Include="include\SslSocket.h" />
+    <ClInclude Include="include\Stat.h" />
+    <ClInclude Include="include\Stats.h" />
+    <ClInclude Include="include\Stream.h" />
+    <ClInclude Include="include\StringBuffer.h" />
+    <ClInclude Include="include\TcpServer.h" />
+    <ClInclude Include="include\TextColor.h" />
+    <ClInclude Include="include\Trigger.h" />
+    <ClInclude Include="include\Url.h" />
+    <ClInclude Include="include\utf8.h" />
+    <ClInclude Include="include\utils.h" />
+    <ClInclude Include="include\uuidVar.h" />
+    <ClInclude Include="include\Variant.h" />
+    <ClInclude Include="include\X509Cert.h" />
+    <ClInclude Include="include\X509Crl.h" />
+    <ClInclude Include="include\X509Req.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="include\object_async.inl" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{05654A7E-DBAF-4211-886A-C23565833D05}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>fibjs</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120_xp</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120_xp</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120_xp</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120_xp</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\Windows_Debug32\</OutDir>
+    <IntDir>out\Windows_Debug32\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\Windows_Debug\</OutDir>
+    <IntDir>out\Windows_Debug\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\Windows_Release32\</OutDir>
+    <IntDir>out\Windows_Release32\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\Windows_Release\</OutDir>
+    <IntDir>out\Windows_Release\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>..\vender\include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>..\vender\include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>..\vender\include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\vender\include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

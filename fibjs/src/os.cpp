@@ -1,0 +1,79 @@
+/*
+ * os.cpp
+ *
+ *  Created on: Apr 7, 2012
+ *      Author: lion
+ */
+
+#include "ifs/os.h"
+
+#ifndef _WIN32
+# include <unistd.h>  // gethostname, sysconf
+# include <sys/utsname.h>
+#endif
+
+namespace fibjs
+{
+
+result_t os_base::get_hostname(std::string &retVal)
+{
+    char s[255];
+
+    if (gethostname(s, 255) < 0)
+        return LastError();
+
+    retVal = s;
+    return 0;
+}
+
+result_t os_base::get_arch(std::string &retVal)
+{
+#ifdef x64
+    retVal = "x86_64";
+#elif defined(I386)
+    retVal = "i686";
+#elif defined(arm)
+    retVal = "arm";
+#endif
+
+    return 0;
+}
+
+result_t os_base::time(const char *tmString, date_t &retVal)
+{
+    if (!tmString || !*tmString)
+        retVal.now();
+    else
+        retVal.parse(tmString);
+
+    return 0;
+}
+
+result_t os_base::dateAdd(date_t d, int32_t num, const char *part, date_t &retVal)
+{
+    retVal = d;
+    if (!qstrcmp(part, "year"))
+        retVal.add(num, date_t::_YEAR);
+    else if (!qstrcmp(part, "month"))
+        retVal.add(num, date_t::_MONTH);
+    else if (!qstrcmp(part, "day"))
+        retVal.add(num, date_t::_DAY);
+    else if (!qstrcmp(part, "hour"))
+        retVal.add(num, date_t::_HOUR);
+    else if (!qstrcmp(part, "minute"))
+        retVal.add(num, date_t::_MINUTE);
+    else if (!qstrcmp(part, "second"))
+        retVal.add(num, date_t::_SECOND);
+    else return CALL_E_INVALIDARG;
+
+    return 0;
+}
+
+result_t os_base::get_timezone(int32_t &retVal)
+{
+    retVal = Runtime::now().m_pDateCache->LocalOffset();
+    return 0;
+}
+
+}
+

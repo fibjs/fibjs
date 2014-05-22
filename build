@@ -1,0 +1,29 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then
+	echo ""
+	echo "build [Release | Release32 | Debug | Debug32 | clean]"
+	echo ""
+	exit 0
+fi
+
+if [ $1 != 'Release' ] && [ $1 != 'Release32' ] && [ $1 != 'Debug' ] && [ $1 != 'Debug32' ] && [ $1 != 'clean' ]; then
+	echo ""
+	echo "build [Release | Release32 | Debug | Debug32 | clean]"
+	echo ""
+	exit 0
+fi
+
+cd vender
+sh build $1
+cd ..
+
+cd fibjs
+sh build $1
+cd ..
+
+if [ $1 = 'clean' ]; then
+	if [ -e "bin" ]; then
+		rm -rf "bin"
+	fi
+fi

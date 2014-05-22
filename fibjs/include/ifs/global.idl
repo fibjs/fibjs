@@ -1,0 +1,34 @@
+
+/*! @brief 全局对象，所有脚本均可以访问的基础对象*/
+class global : module
+{
+	/*! @brief 二进制数据缓存对象，用于 io 读写的数据处理，参见 Buffer 对象。*/
+	static Buffer new Buffer();
+
+	/*! @brief 控制台访问对象*/
+	static readonly console console;
+
+	/*! @brief 运行一个脚本
+	 @param fname 指定要运行的脚本路径
+	 */
+	static run(String fname);
+
+	/*! @brief 进入交互执行模式，此方法仅在主 js 下有效 */
+	static repl();
+
+	/*! @brief 定义一个模块，更多信息参阅 @ref module
+	 @param id 定义的模块名称
+	 @param deps 依赖模块列表
+	 @param factory 模块定义
+	 */
+	static define(String id, Array deps, Value factory);
+
+	/*! @brief 加载一个模块并返回模块对象，更多信息参阅 @ref module
+	 @param id 指定要加载的模块名称
+	 @return 返回加载模块的引出对象
+	 */
+	static Value require(String id);
+
+	/*! @brief 强制要求进行垃圾回收*/
+	static GC();
+};

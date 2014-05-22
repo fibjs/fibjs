@@ -1,0 +1,78 @@
+
+/*! @brief 网络套接口对象
+
+ Socket 属于 net 模块，创建方法
+ \code
+ var s = new net.Socket();
+ \endcode
+ */
+class Socket : Stream
+{
+	/*! @brief Socket 构造函数，创建一个新的 Socket 对象
+	 @param family 指定地址集，缺省为 AF_INET，ipv4
+	 @param type 指定协议族，缺省为 SOCK_STREAM，tcp
+	 */
+	Socket(Integer family = net.AF_INET, Integer type = net.SOCK_STREAM);
+
+	/*! @brief 查询当前 Socket 对象的地址集 */
+	readonly Integer family;
+
+	/*! @brief 查询当前 Socket 对象的协议族 */
+	readonly Integer type;
+
+	/*! @brief 查询当前连接的对方地址 */
+	readonly String remoteAddress;
+
+	/*! @brief 查询当前连接的对方端口 */
+	readonly Integer remotePort;
+
+	/*! @brief 查询当前连接的本地地址 */
+	readonly String localAddress;
+
+	/*! @brief 查询当前连接的本地端口 */
+	readonly Integer localPort;
+
+	/*! @brief 建立一个 tcp 连接
+	 @param host 指定对方地址或主机名
+	 @param port 指定对方端口
+	 */
+	connect(String host, Integer port) async;
+
+	/*! @brief 将当前 Socket 绑定至本地所有地址的指定端口
+	 @param port 指定绑定的端口
+	 @param allowIPv4 指定是否接受 ipv4 连接，缺省为 true。本参数在 ipv6 时有效，并依赖于操作系统
+	 */
+	bind(Integer port, Boolean allowIPv4 = true);
+
+	/*! @brief 将当前 Socket 绑定至指定地址的指定端口
+	 @param addr 指定绑定的地址
+	 @param port 指定绑定的端口
+	 @param allowIPv4 指定是否接受 ipv4 连接，缺省为 true。本参数在 ipv6 时有效，并依赖于操作系统
+	 */
+	bind(String addr, Integer port, Boolean allowIPv4 = true);
+
+	/*! @brief 开始监听连接请求
+	 @param backlog 指定请求队列长度，超出的请求将被拒绝，缺省为 120
+	 */
+	listen(Integer backlog = 120);
+
+	/*! @brief 等待并接受一个连接
+	 @return 返回接收到得连接对象
+	 */
+	Socket accept() async;
+
+	/*! @brief 从连接读取指定大小的数据，不同于 read 方法，recv 并不保证读完要求的数据，而是在读取到数据后立即返回
+	 @param bytes 指定要读取的数据量，缺省读取任意尺寸的数据
+	 @return 返回从连接读取的数据
+	 */
+	Buffer recv(Integer bytes = -1) async;
+
+	Buffer recvFrom(Integer bytes = -1);
+
+	/*! @brief 将给定的数据写入连接，此方法等效于 write 方法
+	 @param data 给定要写入的数据
+	 */
+	send(Buffer data) async;
+
+	sendto(Buffer data, String host, Integer port);
+};

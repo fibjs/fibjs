@@ -1,0 +1,15 @@
+
+/*! @brief http 响应消息对象 */
+class HttpResponse : HttpMessage
+{
+	/*! @brief HttpResponse 构造函数，创建一个新的 HttpResponse 对象 */
+	HttpResponse();
+
+	/*! @brief 查询和设置响应消息的返回状态 */
+	Integer status;
+
+	/*! @brief 发送重定向到客户端
+	 @param url 重定向的地址
+	 */
+	redirect(String url);
+};

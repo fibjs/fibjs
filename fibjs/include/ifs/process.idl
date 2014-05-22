@@ -1,0 +1,50 @@
+/*! @brief 进程处理模块，用以管理当前进程的资源
+
+ 引用方法：
+ @code
+ var process = require('process');
+ @endcode
+ */
+class process : module
+{
+	/*! @brief 返回当前进程的命令行参数 */
+	static readonly Array argv;
+
+	/*! @brief 查询当前运行执行文件完整路径 */
+	static readonly String execPath;
+
+	/*! @brief 退出当前进程，并返回结果
+	 @param code 返回进程结果
+	 */
+	static exit(Integer code);
+
+	/*! @brief 查询当前进程内存使用报告
+	 @return 返回包含内存报告
+	
+	 内存报告生成类似以下结果：
+	 @code
+	 {
+	   "rss": 8622080,
+	   "heapTotal": 4083456,
+	   "heapUsed": 1621800
+	 }
+	 @endcode
+	 其中：
+	 - rss 返回进程当前占用物理内存大小
+	 - heapTotal 返回 v8 引擎堆内存大小
+	 - heapUsed 返回 v8 引擎正在使用堆内存大小
+	 */
+	static Object memoryUsage();
+
+	/*! @brief 运行指定的命令行，并返回运行结果
+	 @param cmd 指定运行的命令行
+	 @return 返回包含进程运行结果
+	 */
+	static Integer system(String cmd) async;
+
+	/*! @brief 运行指定的命令行，并访问命令的输出结果
+	 @param cmd 指定运行的命令行
+	 @return 返回包含运行结果的文件对象
+	 */
+	static BufferedStream exec(String cmd) async;
+};

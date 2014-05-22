@@ -1,0 +1,60 @@
+
+/*! @brief 对称加密算法对象
+
+ Cipher 对象属于 crypto 模块，创建：
+ @code
+ var c = new crypto.Cipher(crypto.AES, crypto.ECB, ...);
+ @endcode
+ */
+class Cipher: object
+{
+    /*! @brief Cipher 构造函数，仅用于 ARC4 初始化
+     @param provider 指定加密算法
+     @param key 指定加密解密密码
+    */
+    Cipher(Integer provider, Buffer key);
+
+    /*! @brief Cipher 构造函数
+     @param provider 指定加密算法
+     @param mode 指定分组密码工作模式
+     @param key 指定加密解密密码
+    */
+    Cipher(Integer provider, Integer mode, Buffer key);
+ 
+    /*! @brief Cipher 构造函数
+     @param provider 指定加密算法
+     @param mode 指定分组密码工作模式
+     @param key 指定加密解密密码
+     @param iv 指定初始向量
+    */
+    Cipher(Integer provider, Integer mode, Buffer key, Buffer iv);
+
+    /*! @brief 返回当前算法名称 */
+    readonly String name;
+
+    /*! @brief 返回当前算法密码长度，以位为单位 */
+    readonly Integer keySize;
+
+    /*! @brief 返回当前算法初始向量长度，以字节为单位 */
+    readonly Integer ivSize;
+
+    /*! @brief 返回当前算法数据块长度，以字节为单位 */
+    readonly Integer blockSize;
+
+    /*! @brief 使用填充模式
+     @param mode 指定填充模式，缺省为 PADDING_PKCS7
+     */
+    paddingMode(Integer mode);
+
+    /*! @brief 使用当前算法密码加密数据
+     @param data 指定要加密的数据
+     @return 返回加密后的数据
+     */
+    Buffer encrypt(Buffer data) async;
+
+    /*! @brief 使用当前算法密码解密数据
+     @param data 指定要解密的数据
+     @return 返回解密后的数据
+     */
+    Buffer decrypt(Buffer data) async;
+};

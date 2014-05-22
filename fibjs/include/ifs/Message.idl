@@ -1,0 +1,45 @@
+
+/*! @brief 基础消息对象 
+ 
+ Message 对象兼容于 mq 各个模块，可用于构建自定义消息处理系统，创建方法：
+ @code
+ var mq = require("mq");
+ var m = new mq.Message();
+ @endcode 
+ *  */
+class Message: object
+{
+	/*! @brief 消息对象构造函数 */
+	Message();
+
+	/*! @brief 消息的基本内容 */
+	String value;
+
+	/*! @brief 消息的基本参数 */
+	List params;
+
+	/*! @brief 消息的返回结果 */
+	Variant result;
+
+	/*! @brief 包含消息数据部分的流对象 */
+	SeekableStream body;
+
+	/*! @brief 消息数据部分的长度 */
+	readonly Long length;
+
+	/*! @brief 清除消息的内容 */
+	clear();
+
+	/*! @brief 发送格式化消息到给定的流对象
+	 @param stm 指定接收格式化消息的流对象
+	 */
+	sendTo(Stream stm) async;
+
+	/*! @brief 从给定的缓存流对象中读取格式化消息，并解析填充对象
+	 @param stm 指定读取格式化消息的流对象
+	 */
+	readFrom(BufferedStream stm) async;
+
+	/*! @brief 查询消息 readFrom 时的流对象 */
+	readonly Stream stream;
+};

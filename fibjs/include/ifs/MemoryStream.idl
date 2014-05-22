@@ -1,0 +1,26 @@
+
+/*! @brief 内存流对象
+
+ MemoryStream 对象创建一个基于内存的流对象，创建方法：
+ @code
+ var ms = new io.MemoryStream();
+ @endcode
+ */
+class MemoryStream : SeekableStream
+{
+	/*! @brief MemoryStream 构造函数 */
+	MemoryStream();
+
+	/*! @brief 强制设定内存流对象的最后更新时间
+	 @param d 指定要设定的时间
+	 */
+	setTime(Date d);
+
+	/*! @brief 创建当前内存流的一个只读副本
+	 @return 返回只读的内存流对象
+	 */
+	MemoryStream clone();
+
+	/*! @brief 清空内存文件数据，复位指针 */
+	clear();
+};

@@ -1,0 +1,25 @@
+/*! @brief 阻塞 FIFO（先进先出）队列对象
+ 
+ 用以创建和管理阻塞先进先出数据队列，创建方法：
+ @code
+ var coroutine = require("coroutine");
+ var q = new coroutine.BlockQueue(100);
+ @endcode
+ */
+class BlockQueue : Queue
+{
+	/*! @brief 队列对象构造函数
+	 @param size 指定队列尺寸
+	 */
+	BlockQueue(Integer size);
+
+	/*! @brief 插入一个新的元素到队列，成功返回 True，队列满则等待
+	 @param e 要插入的元素
+	 */
+	put(Value e);
+	
+	/*! @brief 从队列中移除一个元素并返回，如果队列为空则等待
+	 @return 返回取出的元素
+	 */
+	Value take();
+};

@@ -1,0 +1,8 @@
+/*! @brief 消息处理器异步等待对象
+
+ */
+class AsyncWait: Handler
+{
+	/*! @brief 结束等待，继续处理消息 */
+	end();
+};

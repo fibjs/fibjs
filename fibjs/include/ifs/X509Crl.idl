@@ -1,0 +1,37 @@
+
+/*! @brief x509 撤销证书对象
+
+ X509Crl 对象属于 crypto 模块，创建：
+ @code
+ var k = new crypto.X509Crl();
+ @endcode
+ */
+class X509Crl: object
+{
+    /*! @brief X509Crl 构造函数 */
+    X509Crl();
+
+    /*! @brief 加载一个 DER 格式的撤销证书，可多次调用
+     @param derCrl DER 格式的撤销证书
+    */
+    load(Buffer derCrl);
+
+    /*! @brief 加载一个 PEM 格式的撤销证书，可多次调用
+     @param pemCrl PEM 格式的撤销证书
+    */
+    load(String pemCrl);
+
+    /*! @brief 加载一个 PEM 格式的撤销证书，可多次调用
+     @param filename 撤销证书文件名
+    */
+    loadFile(String filename);
+
+    /*! @brief 导出已经加载的撤销证书
+     @return 以数组方式导出撤销证书链
+    */
+    Array dump();
+
+    /*! @brief 清空已经加载的撤销证书
+    */
+    clear();
+};

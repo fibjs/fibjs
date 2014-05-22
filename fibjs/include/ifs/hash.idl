@@ -1,0 +1,275 @@
+/*! @brief 信息摘要计算模块，可用于计算信息摘要和摘要签名 */
+class hash: module
+{
+	/*! @brief MD2 信息摘要算法标识常量 */
+	const Integer MD2 = 1;
+
+	/*! @brief MD4 信息摘要算法标识常量 */
+	const Integer MD4 = 2;
+
+	/*! @brief MD5 信息摘要算法标识常量 */
+	const Integer MD5 = 3;
+
+	/*! @brief SHA1 信息摘要算法标识常量 */
+	const Integer SHA1 = 4;
+
+	/*! @brief SHA224 信息摘要算法标识常量 */
+	const Integer SHA224 = 5;
+
+	/*! @brief SHA256 信息摘要算法标识常量 */
+	const Integer SHA256 = 6;
+
+	/*! @brief SHA384 信息摘要算法标识常量 */
+	const Integer SHA384 = 7;
+
+	/*! @brief SHA512 信息摘要算法标识常量 */
+	const Integer SHA512 = 8;
+
+	/*! @brief RIPEMD160 信息摘要算法标识常量 */
+	const Integer RIPEMD160 = 9;
+
+	/*! @brief 根据指定的算法标识创建一个信息摘要运算对象
+	 @param algo 指定摘要运算算法
+	 @param data 创建同时更新的二进制数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest digest(Integer algo, Buffer data);
+
+	/*! @brief 根据指定的算法标识创建一个信息摘要运算对象
+	 @param algo 指定摘要运算算法
+	 @param text 创建同时更新的文本数据，缺省不添加数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest digest(Integer algo, String text = "");
+
+	/*! @brief 创建一个 MD2 信息摘要运算对象
+	 @param data 创建同时更新的二进制数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest md2(Buffer data);
+
+	/*! @brief 创建一个 MD2 信息摘要运算对象
+	 @param text 创建同时更新的文本数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest md2(String text = "");
+
+	/*! @brief 创建一个 MD4 信息摘要运算对象
+	 @param data 创建同时更新的二进制数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest md4(Buffer data);
+
+	/*! @brief 创建一个 MD4 信息摘要运算对象
+	 @param text 创建同时更新的文本数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest md4(String text = "");
+
+	/*! @brief 创建一个 MD5 信息摘要运算对象
+	 @param data 创建同时更新的二进制数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest md5(Buffer data);
+
+	/*! @brief 创建一个 MD5 信息摘要运算对象
+	 @param text 创建同时更新的文本数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest md5(String text = "");
+
+	/*! @brief 创建一个 SHA1 信息摘要运算对象
+	 @param data 创建同时更新的二进制数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest sha1(Buffer data);
+
+	/*! @brief 创建一个 SHA1 信息摘要运算对象
+	 @param text 创建同时更新的文本数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest sha1(String text = "");
+
+	/*! @brief 创建一个 SHA224 信息摘要运算对象
+	 @param data 创建同时更新的二进制数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest sha224(Buffer data);
+
+	/*! @brief 创建一个 SHA224 信息摘要运算对象
+	 @param text 创建同时更新的文本数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest sha224(String text = "");
+
+	/*! @brief 创建一个 SHA256 信息摘要运算对象
+	 @param data 创建同时更新的二进制数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest sha256(Buffer data);
+
+	/*! @brief 创建一个 SHA256 信息摘要运算对象
+	 @param text 创建同时更新的文本数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest sha256(String text = "");
+
+	/*! @brief 创建一个 SHA384 信息摘要运算对象
+	 @param data 创建同时更新的二进制数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest sha384(Buffer data);
+
+	/*! @brief 创建一个 SHA384 信息摘要运算对象
+	 @param text 创建同时更新的文本数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest sha384(String text = "");
+
+	/*! @brief 创建一个 SHA512 信息摘要运算对象
+	 @param data 创建同时更新的二进制数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest sha512(Buffer data);
+
+	/*! @brief 创建一个 SHA512 信息摘要运算对象
+	 @param text 创建同时更新的文本数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest sha512(String text = "");
+
+	/*! @brief 创建一个 RIPEMD160 信息摘要运算对象
+	 @param data 创建同时更新的二进制数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest ripemd160(Buffer data);
+
+	/*! @brief 创建一个 RIPEMD160 信息摘要运算对象
+	 @param text 创建同时更新的文本数据
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest ripemd160(String text = "");
+
+	/*! @brief 根据指定的算法标识创建一个信息摘要签名运算对象
+	 @param algo 指定摘要运算算法
+	 @param key 二进制签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac(Integer algo, Buffer key);
+
+	/*! @brief 根据指定的算法标识创建一个信息摘要签名运算对象
+	 @param algo 指定摘要运算算法
+	 @param key 文本签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac(Integer algo, String key);
+
+	/*! @brief 创建一个 MD2 信息摘要签名运算对象
+	 @param key 二进制签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_md2(Buffer key);
+
+	/*! @brief 创建一个 MD2 信息摘要签名运算对象
+	 @param key 文本签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_md2(String key);
+
+	/*! @brief 创建一个 MD4 信息摘要签名运算对象
+	 @param key 二进制签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_md4(Buffer key);
+
+	/*! @brief 创建一个 MD4 信息摘要签名运算对象
+	 @param key 文本签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_md4(String key);
+
+	/*! @brief 创建一个 MD5 信息摘要签名运算对象
+	 @param key 二进制签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_md5(Buffer key);
+
+	/*! @brief 创建一个 MD5 信息摘要签名运算对象
+	 @param key 文本签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_md5(String key);
+
+	/*! @brief 创建一个 SHA1 信息摘要签名运算对象
+	 @param key 二进制签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_sha1(Buffer key);
+
+	/*! @brief 创建一个 SHA1 信息摘要签名运算对象
+	 @param key 文本签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_sha1(String key);
+
+	/*! @brief 创建一个 SHA224 信息摘要签名运算对象
+	 @param key 二进制签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_sha224(Buffer key);
+
+	/*! @brief 创建一个 SHA224 信息摘要签名运算对象
+	 @param key 文本签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_sha224(String key);
+
+	/*! @brief 创建一个 SHA256 信息摘要签名运算对象
+	 @param key 二进制签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_sha256(Buffer key);
+
+	/*! @brief 创建一个 SHA256 信息摘要签名运算对象
+	 @param key 文本签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_sha256(String key);
+
+	/*! @brief 创建一个 SHA384 信息摘要签名运算对象
+	 @param key 二进制签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_sha384(Buffer key);
+
+	/*! @brief 创建一个 SHA384 信息摘要签名运算对象
+	 @param key 文本签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_sha384(String key);
+
+	/*! @brief 创建一个 SHA512 信息摘要签名运算对象
+	 @param key 二进制签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_sha512(Buffer key);
+
+	/*! @brief 创建一个 SHA512 信息摘要签名运算对象
+	 @param key 文本签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_sha512(String key);
+
+	/*! @brief 创建一个 RIPEMD160 信息摘要签名运算对象
+	 @param key 二进制签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_ripemd160(Buffer key);
+
+	/*! @brief 创建一个 RIPEMD160 信息摘要签名运算对象
+	 @param key 文本签名密钥
+	 @return 返回构造的信息摘要对象
+	 */
+	static Digest hmac_ripemd160(String key);
+};
+

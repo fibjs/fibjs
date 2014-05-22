@@ -1,0 +1,63 @@
+/*! @brief 安全沙箱对象，用于管理一个独立的运行空间
+
+ 下面的示例创建一个沙箱，限制只允许访问全局基础模块中的 assert 模块，并添加 a 和 b 两个定制模块：
+ @code
+ var vm = require('vm');
+ var sbox = new vm.SandBox({
+   a: 100,
+   b: 200,
+   assert: require('assert')
+ });
+
+ var mod_in_sbox = sbox.require('./path/to/mod');
+ @endcode
+ */
+class SandBox: object
+{
+	/*! @brief 构造一个新的安全沙箱对象，并初始化基础模块
+	 @param mods 指定要添加的模块对象字典
+	 @param name 沙箱名称，命名沙箱会在抛出错误时回报所在沙箱
+	 */
+	SandBox(Object mods, String name = "");
+
+	/*! @brief 构造一个新的安全沙箱对象，并初始化基础模块
+	 @param mods 指定要添加的模块对象字典
+	 @param require 自定义 require 函数，当模块不存在时，先调用自定义函数，无返回再从文件中加载
+	 @param name 沙箱名称，命名沙箱会在抛出错误时回报所在沙箱
+	 */
+	SandBox(Object mods, Function require, String name = "");
+
+	/*! @brief 向沙箱中添加一个基础模块
+	 @param id 指定要添加的模块名称
+	 @param mod 指定要添加的模块对象
+	 */
+	add(String id, Value mod);
+
+	/*! @brief 向沙箱中添加一组基础模块
+	 @param mods 指定要添加的模块对象字典，添加的 javascript 模块将会生成一份复制，以避免沙箱修改对象产生互相干扰
+	 */
+	add(Object mods);
+
+	/*! @brief 向沙箱中添加一个脚本模块
+	 @param srcname 指定要添加的脚本名称
+	 @param script 指定要添加的脚本代码
+	 @return 返回加载的模块对象
+	 */
+	Value addScript(String srcname, String script);
+
+	/*! @brief 从沙箱中删除指定的基础模块
+	 @param id 指定要删除的模块名称
+	 */
+	remove(String id);
+
+	/*! @brief 运行一个脚本
+	 @param fname 指定要运行的脚本路径
+	 */
+	run(String fname);
+
+	/*! @brief 加载一个模块并返回模块对象，更多信息参阅 @ref module
+	 @param id 指定要加载的模块名称
+	 @return 返回加载的模块对象
+	 */
+	Value require(String id);
+};

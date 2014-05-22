@@ -1,0 +1,91 @@
+
+/*! @brief 不对称加密算法对象
+
+ PKey 对象属于 crypto 模块，创建：
+ @code
+ var k = new crypto.PKey();
+ @endcode
+ */
+class PKey: object
+{
+    /*! @brief PKey 构造函数 */
+    PKey();
+
+    /*! @brief 返回当前算法名称 */
+    readonly String name;
+
+    /*! @brief 返回当前算法密码长度，以位为单位 */
+    readonly Integer keySize;
+
+    /*! @brief 返回当前密钥的公钥
+     @return 当前密钥的公钥
+    */
+    readonly PKey publicKey;
+
+    /*! @brief 生成一个 RSA 私钥 
+     @param size 指定 RSA 密钥长度，bit 为单位
+    */
+    genRsaKey(Integer size) async;
+
+    /*! @brief 生成一个 EC 私钥
+     @param curve 指定预置椭圆曲线，可选值为："secp521r1", "brainpoolP512r1", "secp384r1", "brainpoolP384r1", "secp256r1", "secp256k1", "brainpoolP256r1", "secp224r1", "secp224k1", "secp192r1", "secp192k1"
+    */
+    genEcKey(String curve = "secp521r1") async;
+
+    /*! @brief 查询当前密钥是否为私钥
+     @return 为 True 表示为私钥
+    */
+    Boolean isPrivate();
+
+    /*! @brief 复制当前密钥
+     @return 当前密钥的复制对象
+    */
+    PKey clone();
+
+    /*! @brief 加载一个 DER 格式的密钥
+     @param DerKey DER 格式的密钥
+     @param password 解密密码
+    */
+    importKey(Buffer DerKey, String password = "");
+
+    /*! @brief 加载一个 PEM 格式的密钥
+     @param pemKey PEM 格式的密钥
+     @param password 解密密码
+    */
+    importKey(String pemKey, String password = "");
+
+    /*! @brief 返回当前 key 的 PEM 格式编码
+     @return 当前 key 的 PEM 格式编码
+    */
+    String exportPem();
+
+    /*! @brief 返回当前 key 的 DER 格式编码
+     @return 当前 key 的 DER 格式编码
+    */
+    Buffer exportDer();
+
+    /*! @brief 使用当前算法密码公钥加密数据
+     @param data 指定要加密的数据
+     @return 返回加密后的数据
+     */
+    Buffer encrypt(Buffer data) async;
+
+    /*! @brief 使用当前算法密码私钥解密数据
+     @param data 指定要解密的数据
+     @return 返回解密后的数据
+     */
+    Buffer decrypt(Buffer data) async;
+
+    /*! @brief 使用当前算法密码私钥签名数据
+     @param data 指定要签名的数据
+     @return 返回签名后的数据
+     */
+    Buffer sign(Buffer data) async;
+
+    /*! @brief 使用当前算法密码公钥验证数据
+     @param sign 指定要验证的签名
+     @param data 指定要验证的数据
+     @return 返回验证后的结果
+     */
+    Boolean verify(Buffer sign, Buffer data) async;
+};

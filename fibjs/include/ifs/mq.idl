@@ -1,0 +1,86 @@
+
+/*! @brief 消息队列模块 */
+class mq : module
+{
+	/*! @brief 创建一个消息对象，参见 Message */
+	static Message new Message();
+	
+	/*! @brief 创建一个包处理消息对象，参见 PacketMessage */
+	static PacketMessage new PacketMessage();
+
+	/*! @brief 创建一个 Packet 包处理器，参见 PacketHandler */
+	static PacketHandler new PacketHandler();
+
+	/*! @brief 创建一个 http 协议处理器对象，参见 HttpHandler */
+	static HttpHandler new HttpHandler();
+
+	/*! @brief 创建一个消息处理器链处理对象，参见 Chain */
+	static Chain new Chain();
+
+	/*! @brief 创建一个消息处理器路由对象，参见 Routing*/
+	static Routing new Routing();
+
+	/*! @brief 创建一个 javascript 消息处理器对象，传递值内置处理器则直接返回
+	 @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，处理器将自动映射子对象及函数
+	 @return 返回封装了处理函数的处理器
+	
+	 消息处理函数语法如下：
+	 @code
+	 function func(v){
+	 }
+	 @endcode
+	 参数 v 为正在处理的消息，返回结果允许有三种:
+	 - Object javascript 对象，下一阶段将使用此对象进行消息映射
+	 - Function javascript 函数，将使用此函数进行下一阶段处理
+	 - Handler 内置处理器，将使用此处理器进行下一阶段处理
+	 无返回或者其他的返回结果将结束消息处理。
+	
+	 使用消息映射对象处理器将根据对象属性嵌套逻辑处理消息，如下所示：
+	 @code
+	 hdlr = mq.jsHandler({
+	     // fun1
+	    fun1 : function(v){},
+	    sub : {
+	        // sub.fun2 或者 sub/fun2
+	        fun2 : function(v){},
+	        // sub.hdlr 或者 sub/hdlr
+	        hdlr: myHandler
+	    }
+	 });
+	 @endcode
+	 示例中 fun1 和 fun2 为普通的 javascript 处理函数，sub 为子对象，myHandler 为其他处理器对象
+	 */
+	static Handler jsHandler(Value hdlr);
+
+	/*! @brief 创建一个异步等待处理器
+	  @return 返回创建的处理器
+	
+	 异步等待处理器用于需要异步处理的消息处理模式，示例如下：
+	 @code
+	 function func(v){
+	     var await = mq.await();
+	
+	     call_some_async_func(v1, v2, v3, function() {
+	             await.end();
+	         });
+	
+	     return await;
+	 }
+	 @endcode
+	 示例是一个 javascript 消息处理函数，当函数返回时，消息处理引擎将等待 await，直到 await.end 被调用，才继续下一阶段的处理。
+	 */
+	static AsyncWait await();
+
+	/*! @brief 创建一个空处理器对象，次处理对象不做任何处理直接返回
+	 @return 返回空处理函数
+	 */
+	static Handler nullHandler();
+
+	/*! @brief 使用给定的处理器处理一个消息或对象
+	 @param hdlr 指定使用的处理器
+	 @param v 指定要处理的消息或对象
+	
+	 不同于处理器的 invoke 方法，此方法将循环调用每个处理器的返回处理器，直到处理器返回 null 为止。
+	 */
+	static invoke(Handler hdlr, object v) async;
+};

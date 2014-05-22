@@ -1,0 +1,65 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then
+	echo ""
+	echo "build [Release | Release32 | Debug | Debug32 | clean]"
+	echo ""
+	exit 0
+fi
+
+if [ $1 = 'clean' ]; then
+	if [ -e "out" ]; then
+		rm -rf "out"
+	fi
+
+	exit 0
+fi
+
+if [ $1 != 'Release' ] && [ $1 != 'Release32' ] && [ $1 != 'Debug' ] && [ $1 != 'Debug32' ]; then
+	echo ""
+	echo "build [Release | Release32 | Debug | Debug32 | clean]"
+	echo ""
+	exit 0
+fi
+
+OS=`uname`
+
+if [ ! -e "out" ]; then
+	mkdir "out"
+fi
+
+if [ ! -e "out/${OS}_$1" ]; then
+	mkdir "out/${OS}_$1"
+fi
+
+
+SVN_INFO=`svn info | sed -n 's/Revision: /-DSVN_INFO=/p'`
+
+cd "out/${OS}_$1"
+cmake -DBUILD_TYPE=$1 $SVN_INFO ../../tools
+make
+
+if [ $1 = 'Release' ] || [ $1 = 'Release32' ]; then
+	cp "../../installer.txt" "installer.sh"
+	strip fibjs -o js
+	tar -zcf js.tar.gz js
+	cat js.tar.gz >> installer.sh
+fi
+
+cd ../..
+
+echo "copy fibjs to bin"
+
+if [ ! -e "../bin" ]; then
+	mkdir "../bin"
+fi
+
+if [ ! -e "../bin/${OS}_$1" ]; then
+	mkdir "../bin/${OS}_$1"
+fi
+
+cp "out/${OS}_$1/fibjs" "../bin/${OS}_$1/fibjs"
+
+if [ $1 = 'Release' ] || [ $1 = 'Release32' ]; then
+	cp "out/${OS}_$1/installer.sh" "../bin/${OS}_$1/installer.sh"
+fi

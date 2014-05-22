@@ -1,0 +1,49 @@
+
+/*! @brief http 协议转换处理器
+
+  用以将数据流转换为 http 协议消息，创建方式：
+  @code
+  var hdlr = new mq.HttpHandler(...);
+  @endcode
+  或者：
+  @code
+  var hdlr = new http.Handler(...);
+  @endcode
+ */
+class HttpHandler: Handler
+{
+	/*! @brief 创建一个 http 协议处理器对象，将流对象的数据转变为 http 消息对象
+	 @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+	 */
+	HttpHandler(Value hdlr);
+
+	/*! @brief 查询和设置是否允许跨域请求，缺省为 false */
+	Boolean crossDomain;
+
+	/*! @brief 查询和设置是否允强制使用 gzip 压缩输出，缺省为 false */
+	Boolean forceGZIP;
+
+	/*! @brief 查询和设置最大请求头个数，缺省为 128 */
+	Integer maxHeadersCount;
+
+	/*! @brief 查询和设置最大上传尺寸，以字节为单位，缺省为 67108864(64M) */
+	Integer maxUploadSize;
+
+	/*! @brief 查询 http 协议转换处理器的工作状态
+	 
+	  返回的结果为一个 Stats 对象，结构如下：
+	  @code
+	  {
+	      total : 1000,    // 总计处理的请求
+	      pendding : 100,  // 当前正在处理的请求
+	      request : 10,    // 新建的请求
+	      response : 10,   // 发送的响应
+	      error : 100,     // 发生的错误（不计入 404）
+	      error_400 : 10,  // 发生的请求错误
+	      error_404 : 12,  // 文件未找到的数量
+	      error_500 : 2    // 内部处理错误
+	  }
+	  @endcode
+	 */
+	readonly Stats stats;
+};

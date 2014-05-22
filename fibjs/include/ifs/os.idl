@@ -1,0 +1,97 @@
+
+/*! @brief 操作系统与文件系统处理模块
+
+ 使用方法：
+ @code
+ var os = require('os');
+ @endcode
+ */
+class os : module
+{
+	/*! @brief 查询当前运行环境主机名 */
+	static readonly String hostname;
+
+	/*! @brief 查询当前运行环境操作系统名称 */
+	static readonly String type;
+
+	/*! @brief 查询当前运行环境操作系统版本 */
+	static readonly String version;
+
+	/*! @brief 查询当前运行环境 */
+	static readonly String arch;
+
+	/*! @brief 查询运行环境当前时区 */
+	static readonly Integer timezone;
+
+	/*! @brief 查询运行环境运行时间，以秒为单位 
+	 @return 返回表示时间的数值
+	*/
+	static Number uptime();
+
+	/*! @brief 查询运行环境 1分钟，5分钟，15分钟平均负载 
+	 @return 返回包含三个负载数据的数组
+	*/
+	static Array loadavg();
+
+	/*! @brief 查询运行环境总内存，以字节为单位 
+	 @return 返回内存数据
+	*/
+	static Long totalmem();
+
+	/*! @brief 查询运行环境可用内存，以字节为单位 
+	 @return 返回内存数据
+	*/
+	static Long freemem();
+
+	/*! @brief 查询当前运行环境 cpu 个数和参数 
+	 @return 返回包含 cpu 参数的数组，每一项对应一个 cpu
+	*/
+	static Array CPUInfo();
+
+	/*! @brief 查询当前运行环境 cpu 个数 
+	 @return 返回 cpu 个数
+	*/
+	static Integer CPUs();
+
+	/*! @brief 查询当前运行环境网络信息 
+	 @return 返回网卡信息
+	*/
+	static Object networkInfo();
+
+	/*! @brief 解析时间字符串或查询运行环境当前时间
+	 @param tmString 时间字符串，缺省则查询当前时间
+	 @return 返回 javascript Date 对象
+	 */
+	static Date time(String tmString = "");
+
+	/*! @brief 时间计算函数，根据 part 指定计算时间
+	 @param d 指定用于计算 Date 对象
+	 @param num 指定运算的数值
+	 @param part 指定运算的时间部位，接收值为："year", "month", "day", "hour", "minute", "second"
+	 @return 返回 javascript Date 对象
+	 */
+	static Date dateAdd(Date d, Integer num, String part);
+
+	/*! @brief 查询当前运行执行文件完整路径 */
+	static readonly String execPath;
+
+	/*! @brief 查询当前进程内存使用报告
+	 @return 返回包含内存报告
+	
+	 内存报告生成类似以下结果：
+	 @code
+	 {
+	   "rss": 8622080,
+	   "heapTotal": 4083456,
+	   "heapUsed": 1621800,
+	   "nativeObjects": 122
+	 }
+	 @endcode
+	 其中：
+	 - rss 返回进程当前占用物理内存大小
+	 - heapTotal 返回 v8 引擎堆内存大小
+	 - heapUsed 返回 v8 引擎正在使用堆内存大小
+	 - nativeObjects 返回当前有效内置对象数
+	 */
+	static Object memoryUsage();
+};

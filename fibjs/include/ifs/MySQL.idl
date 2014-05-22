@@ -1,0 +1,21 @@
+
+/*! @brief mysql 数据库连接对象 
+
+ 使用 db.open 或 db.openMySQL 创建，创建方式：
+ @code
+ var msql = db.openSQLite("mysql://user:pass@host/db");
+ @endcode
+*/
+class MySQL : DbConnection
+{
+	/*! @brief 选择当前数据库连接的缺省数据库
+	 @param dbName 指定数据库名
+	 */
+	use(String dbName) async;
+
+	/*! @brief 数据库连接接收缓存尺寸 */
+	Integer rxBufferSize;
+
+	/*! @brief 数据库连接发送缓存尺寸 */
+	Integer txBufferSize;
+};
