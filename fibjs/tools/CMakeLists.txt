@@ -63,8 +63,8 @@ endif()
 
 set_target_properties(fibjs PROPERTIES COMPILE_FLAGS ${flags})
 
-if(DEFINED SVN_INFO)
-	add_definitions("-DSVN_INFO=${SVN_INFO}")
+if(DEFINED GIT_INFO)
+	add_definitions("-DGIT_INFO=${GIT_INFO}")
 endif()
 
 include_directories("${PROJECT_SOURCE_DIR}/../include" "${PROJECT_SOURCE_DIR}/../../vender/include" "${CMAKE_CURRENT_BINARY_DIR}")

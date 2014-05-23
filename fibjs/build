@@ -33,10 +33,10 @@ if [ ! -e "out/${OS}_$1" ]; then
 fi
 
 
-SVN_INFO=`svn info | sed -n 's/Revision: /-DSVN_INFO=/p'`
+GIT_INFO=`git show | sed -n 's/commit /-DGIT_INFO=/p'`
 
 cd "out/${OS}_$1"
-cmake -DBUILD_TYPE=$1 $SVN_INFO ../../tools
+cmake -DBUILD_TYPE=$1 $GIT_INFO ../../tools
 make
 
 if [ $1 = 'Release' ] || [ $1 = 'Release32' ]; then
