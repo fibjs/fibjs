@@ -37,7 +37,6 @@ github 中有全部文档的源码和生成文档，为方便查阅，我在线�
 	apt-get install g++
 	apt-get install make
 	apt-get install cmake
-	apt-get install subversion
 
 ### 32bit on ubuntu:
 	apt-get install g++-multilib
@@ -48,7 +47,6 @@ github 中有全部文档的源码和生成文档，为方便查阅，我在线�
 	yum install libstdc++-static
 	yum install make
 	yum install cmake
-	yum install subversion
 
 ### 32bit on fedora:
 	yum install glibc-devel.i686
@@ -61,13 +59,11 @@ github 中有全部文档的源码和生成文档，为方便查阅，我在线�
 ----------------------------------
 ### on freebsd (8,9):
 	pkg_add -r cmake
-	pkg_add -r subversion
 	pkg_add -r libexecinfo
 
 ----------------------------------
 ### on freebsd 10+:
 	pkg install cmake
-	pkg install subversion
 	pkg install libexecinfo
 
 ----------------------------------
@@ -75,7 +71,6 @@ github 中有全部文档的源码和生成文档，为方便查阅，我在线�
 	pkg install gcc-45
 	pkg install system/header
 	pkg install developer/build/cmake
-	pkg install developer/versioning/subversion
 
 ## Build
 
