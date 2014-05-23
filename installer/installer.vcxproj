@@ -43,11 +43,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)..\bin\Windows_Release32\</OutDir>
-    <IntDir>$(Platform)_$(Configuration)\</IntDir>
+    <IntDir>out\$(Platform)_$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>$(Platform)_$(Configuration)\</IntDir>
+    <IntDir>out\$(Platform)_$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)..\bin\Windows_Release\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

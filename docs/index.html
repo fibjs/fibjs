@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.6"/>
+<meta name="generator" content="Doxygen 1.8.7"/>
 <title>{FibJS: Fiber Javascript}: 快速入门</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -38,7 +38,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- 制作者 Doxygen 1.8.6 -->
+<!-- 制作者 Doxygen 1.8.7 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'搜索');
 </script>
@@ -100,7 +100,7 @@ $(document).ready(function(){initNavTree('index.html','');});
 </div><!--header-->
 <div class="contents">
 <div class="toc"><h3>目录</h3>
-<ul><li class="level1"><a href="#intro_sec">什么是 FibJS</a></li>
+<ul><li class="level1"><a href="#intro_sec">什么是 fibjs</a></li>
 <li class="level1"><a href="#install_sec">编译执行版本</a><ul><li class="level2"><a href="#install_step1">第一步：准备编译环境</a></li>
 <li class="level2"><a href="#install_step2">第二步：获取代码</a></li>
 <li class="level2"><a href="#install_step3">第三步：编译命令及说明</a></li>
@@ -111,42 +111,33 @@ $(document).ready(function(){initNavTree('index.html','');});
 </ul>
 </div>
 <div class="textblock"><h1><a class="anchor" id="intro_sec"></a>
-什么是 FibJS</h1>
-<p>FibJS 是一个建立在 Google v8 Javascript 引擎基础上的应用服务器开发框架，不同于 node.js，FibJS 采用 fiber 解决 v8 引擎的多路复用，并通过大量 c++ 组件，将重负荷运算委托给后台线程，释放 v8 线程，争取更大的并发时间。</p>
+什么是 fibjs</h1>
+<p>fibjs 是一个建立在 Google v8 Javascript 引擎基础上的应用服务器开发框架，不同于 node.js，fibjs 采用 fiber 解决 v8 引擎的多路复用，并通过大量 c++ 组件，将重负荷运算委托给后台线程，释放 v8 线程，争取更大的并发时间。</p>
 <h1><a class="anchor" id="install_sec"></a>
 编译执行版本</h1>
 <h2><a class="anchor" id="install_step1"></a>
 第一步：准备编译环境</h2>
 <p><b>Windows</b> 下需要安装 vs.net 2011。</p>
-<p>*nix 下编译 <b>FibJS</b> 需要依赖以下工具： </p>
-<div class="fragment"><div class="line">cmake</div>
+<p>*nix 下编译 <b>fibjs</b> 需要依赖以下工具： </p><div class="fragment"><div class="line">cmake</div>
 <div class="line">make</div>
-<div class="line">subversion</div>
 <div class="line">libexecinfo</div>
-</div><!-- fragment --><p><b>MacOSX</b> 下，除需要安装 xcode 及命令行工具外，以 Brew 为例，准备环境命令如下： </p>
-<div class="fragment"><div class="line">brew install cmake</div>
-</div><!-- fragment --><p><b>Ubuntu</b> 准备环境命令如下： </p>
-<div class="fragment"><div class="line">sudo apt-<span class="keyword">get</span> install g++</div>
+</div><!-- fragment --><p><b>MacOSX</b> 下，除需要安装 xcode 及命令行工具外，以 Brew 为例，准备环境命令如下： </p><div class="fragment"><div class="line">brew install cmake</div>
+</div><!-- fragment --><p><b>Ubuntu</b> 准备环境命令如下： </p><div class="fragment"><div class="line">sudo apt-<span class="keyword">get</span> install g++</div>
 <div class="line">sudo apt-<span class="keyword">get</span> install make</div>
 <div class="line">sudo apt-<span class="keyword">get</span> install cmake</div>
-<div class="line">sudo apt-<span class="keyword">get</span> install subversion</div>
-</div><!-- fragment --><p>如果要编译 32 位版本，另需要安装 multilib： </p>
-<div class="fragment"><div class="line">sudo apt-<span class="keyword">get</span> install g++-multilib</div>
-</div><!-- fragment --><p><b>FreeBSD</b> 准备环境命令如下： </p>
-<div class="fragment"><div class="line">sudo pkg_add -r cmake</div>
-<div class="line">sudo pkg_add -r subversion</div>
+</div><!-- fragment --><p>如果要编译 32 位版本，另需要安装 multilib： </p><div class="fragment"><div class="line">sudo apt-<span class="keyword">get</span> install g++-multilib</div>
+</div><!-- fragment --><p><b>FreeBSD</b> 准备环境命令如下： </p><div class="fragment"><div class="line">sudo pkg_add -r cmake</div>
 <div class="line">sudo pkg_add -r libexecinfo</div>
 </div><!-- fragment --><h2><a class="anchor" id="install_step2"></a>
 第二步：获取代码</h2>
-<p>FibJS 当前 svn 地址为：http://www.tooscript.org/svn/exlib/</p>
-<p>在合适的位置执行以下命令： </p>
-<div class="fragment"><div class="line">mkdir fibjs</div>
+<p>fibjs 当前 github 地址为：https://github.com/xicilion/fibjs</p>
+<p>在合适的位置执行以下命令： </p><div class="fragment"><div class="line">mkdir fibjs</div>
 <div class="line">cd fibjs</div>
-<div class="line">svn co http:<span class="comment">//www.tooscript.org/svn/exlib/ .</span></div>
+<div class="line">git clone https:<span class="comment">//github.com/xicilion/fibjs .</span></div>
 </div><!-- fragment --><h2><a class="anchor" id="install_step3"></a>
 第三步：编译命令及说明</h2>
 <p><b>Windows</b> 下直接使用 vs.net 打开项目文件，即可编译。</p>
-<p>*nix 环境，在 FibJS 项目根目录，有一个 build 的 shell 脚本，可用于 FibJS 编译。 编译参数有五个：</p>
+<p>*nix 环境，在 fibjs 项目根目录，有一个 build 的 shell 脚本，可用于 fibjs 编译。 编译参数有五个：</p>
 <ul>
 <li><code><b>clean:</b> 清除编译结果，便于全部重新编译</code> </li>
 <li><code><b>Release:</b> 以发布方式编译</code> </li>
@@ -154,13 +145,11 @@ $(document).ready(function(){initNavTree('index.html','');});
 <li><code><b>Release32:</b> 以</code> 32 位发布方式编译 </li>
 <li><code><b>Debug32:</b> 以</code> 32 位调试方式编译</li>
 </ul>
-<p><b>Release</b> 模式编译命令如下： </p>
-<div class="fragment"><div class="line">sh build Release</div>
+<p><b>Release</b> 模式编译命令如下： </p><div class="fragment"><div class="line">sh build Release</div>
 </div><!-- fragment --><h2><a class="anchor" id="install_step4"></a>
 第四步：测试全部用例</h2>
-<p>进入 <b>bin</b> 目录，执行 <b>Release/fibjs</b> ( <b>Windows</b> 下执行命令为 <b>x64_Release/fibjs</b> ), 即可开始执行 FibJS 全部测试用例。</p>
-<p>当你看到类似以下结果，表示测试用例全部运行正常： </p>
-<div class="fragment"><div class="line">.......</div>
+<p>进入 <b>test</b> 目录，执行 <b></b>../bin/{$OS}_Release/fibjs main.js , 即可开始执行 fibjs 全部测试用例。{$OS} 内容自行查阅。</p>
+<p>当你看到类似以下结果，表示测试用例全部运行正常： </p><div class="fragment"><div class="line">.......</div>
 <div class="line">db</div>
 <div class="line">  √ escape</div>
 <div class="line">  √ formatMySQL</div>
@@ -178,7 +167,7 @@ $(document).ready(function(){initNavTree('index.html','');});
 <div class="line">√ 312 tests completed (6727ms)</div>
 </div><!-- fragment --><h2><a class="anchor" id="install_step5"></a>
 第五步：歇一会，喝点什么</h2>
-<p>到现在为止，你已经有一个可以执行的 FibJS 版本了，可以庆祝一下，给自己一点奖励。咖啡，啤酒，还是可乐，随你的兴趣。</p>
+<p>到现在为止，你已经有一个可以执行的 fibjs 版本了，可以庆祝一下，给自己一点奖励。咖啡，啤酒，还是可乐，随你的兴趣。</p>
 <p>我一般会喝点可乐，不乱神，不乱性，又能补充能量。天冷的时候就喝点热的果珍，虽然里面什么水果成分都没有。:&lt; </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
@@ -187,7 +176,7 @@ $(document).ready(function(){initNavTree('index.html','');});
   <ul>
     <li class="footer">制作者
     <a href="http://www.doxygen.org/index.html">
-    <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
+    <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.7 </li>
   </ul>
 </div>
 </body>

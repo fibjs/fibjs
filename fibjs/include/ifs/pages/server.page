@@ -2,17 +2,17 @@
 @tableofcontents
 @section web_file 静态文件服务器
 
-使用 FibJS 创建一个简单的 web 服务器是一件很方便的事情。
+使用 fibjs 创建一个简单的 web 服务器是一件很方便的事情。
 @code
 var http = require('http');
 
-var svr = new http.Server(80, 'www');
+var svr = new http.Server(80, http.fileHandler('../fibjs/docs'));
 svr.run();
 @endcode
 
 这个 web 服务器已经足够强大，支持自动压缩，支持预压缩，支持更新检查，作为普通的静态文件服务已经足够。
 
-然而我们显然不会满足于发布静态文件，因为无论是 apache 还是 nginx，都可以更专业地完成这一点，FibJS 的静态 web 服务器仅仅用于辅助完成一些不是很大量的前端文件下载。
+然而我们显然不会满足于发布静态文件，因为无论是 apache 还是 nginx，都可以更专业地完成这一点，fibjs 的静态 web 服务器仅仅用于辅助完成一些不是很大量的前端文件下载。
 
 @section web_script 动态服务器
 
@@ -35,7 +35,8 @@ var http = require('http');
 var mq = require('mq');
 
 var svr = new http.Server(8080, mq.routing({
-	'^/www(/.*)': http.fileHandler('../fibjs/docs'),
+	'^/www(/.*)': http.fileHandler('../fibjs
+/docs'),
 	'^/rpc(/.*)': function(r) {
 		r.response.body.write(new Buffer('Hello, World!'));
 	}

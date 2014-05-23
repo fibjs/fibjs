@@ -1,8 +1,5 @@
 .svn
 bin
-build
-build.cmd
-exlib.sln
-fibjs
-installer
-vender
+fibjs/out
+installer/out
+vender/out

@@ -1,8 +1,8 @@
 /*! @mainpage 快速入门
 @tableofcontents
-@section intro_sec 什么是 FibJS
+@section intro_sec 什么是 fibjs
 
- FibJS 是一个建立在 Google v8 Javascript 引擎基础上的应用服务器开发框架，不同于 node.js，FibJS 采用 fiber 解决 v8 引擎的多路复用，并通过大量 c++ 组件，将重负荷运算委托给后台线程，释放 v8 线程，争取更大的并发时间。
+ fibjs 是一个建立在 Google v8 Javascript 引擎基础上的应用服务器开发框架，不同于 node.js，fibjs 采用 fiber 解决 v8 引擎的多路复用，并通过大量 c++ 组件，将重负荷运算委托给后台线程，释放 v8 线程，争取更大的并发时间。
 
 @section install_sec 编译执行版本
 
@@ -10,11 +10,10 @@
 
 @b Windows 下需要安装 vs.net 2011。
 
-\*nix 下编译 @b FibJS 需要依赖以下工具：
+\*nix 下编译 @b fibjs 需要依赖以下工具：
 @code
 cmake
 make
-subversion
 libexecinfo
 @endcode
 
@@ -28,7 +27,6 @@ brew install cmake
 sudo apt-get install g++
 sudo apt-get install make
 sudo apt-get install cmake
-sudo apt-get install subversion
 @endcode
 
 如果要编译 32 位版本，另需要安装 multilib：
@@ -39,26 +37,25 @@ sudo apt-get install g++-multilib
 @b FreeBSD 准备环境命令如下：
 @code
 sudo pkg_add -r cmake
-sudo pkg_add -r subversion
 sudo pkg_add -r libexecinfo
 @endcode
 
 @subsection install_step2 第二步：获取代码
 
-FibJS 当前 svn 地址为：http://www.tooscript.org/svn/exlib/
+fibjs 当前 github 地址为：https://github.com/xicilion/fibjs
 
 在合适的位置执行以下命令：
 @code
 mkdir fibjs
 cd fibjs
-svn co http://www.tooscript.org/svn/exlib/ .
+git clone https://github.com/xicilion/fibjs .
 @endcode
 
 @subsection install_step3 第三步：编译命令及说明
 
 @b Windows 下直接使用 vs.net 打开项目文件，即可编译。
 
-\*nix 环境，在 FibJS 项目根目录，有一个 build 的 shell 脚本，可用于 FibJS 编译。
+\*nix 环境，在 fibjs 项目根目录，有一个 build 的 shell 脚本，可用于 fibjs 编译。
 编译参数有五个：
 
 @li @c @b clean: 清除编译结果，便于全部重新编译
@@ -74,7 +71,7 @@ sh build Release
 
 @subsection install_step4 第四步：测试全部用例
 
-进入 @b bin 目录，执行 @b Release/fibjs ( @b Windows 下执行命令为 @b x64_Release/fibjs ), 即可开始执行 FibJS 全部测试用例。
+进入 @b test 目录，执行 @b ../bin/{$OS}_Release/fibjs main.js , 即可开始执行 fibjs 全部测试用例。{$OS} 内容自行查阅。
 
 当你看到类似以下结果，表示测试用例全部运行正常：
 @code
@@ -98,7 +95,7 @@ sh build Release
 
 @subsection install_step5 第五步：歇一会，喝点什么
 
-到现在为止，你已经有一个可以执行的 FibJS 版本了，可以庆祝一下，给自己一点奖励。咖啡，啤酒，还是可乐，随你的兴趣。
+到现在为止，你已经有一个可以执行的 fibjs 版本了，可以庆祝一下，给自己一点奖励。咖啡，啤酒，还是可乐，随你的兴趣。
 
 我一般会喝点可乐，不乱神，不乱性，又能补充能量。天冷的时候就喝点热的果珍，虽然里面什么水果成分都没有。:<
 
