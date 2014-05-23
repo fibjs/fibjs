@@ -153,7 +153,7 @@ result_t Routing::append(v8::Local<v8::Object> map)
     int i;
     result_t hr;
 
-    for (i = 0; i < len; i++)
+    for (i = len - 1; i >= 0; i--)
     {
         v8::Local<v8::Value> k = ks->Get(i);
 
