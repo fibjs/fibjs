@@ -2,3 +2,5 @@ bin
 fibjs/out
 installer/out
 vender/out
+*.sdf
+*.suo
