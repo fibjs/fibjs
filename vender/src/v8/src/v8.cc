@@ -53,16 +53,6 @@ bool V8::Initialize(Deserializer* des) {
 
 
 void V8::TearDown() {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate->IsDefaultIsolate());
-  if (!isolate->IsInitialized()) return;
-
-  // The isolate has to be torn down before clearing the LOperand
-  // caches so that the optimizing compiler thread (if running)
-  // doesn't see an inconsistent view of the lithium instructions.
-  isolate->TearDown();
-  delete isolate;
-
   Bootstrapper::TearDownExtensions();
   ElementsAccessor::TearDown();
   LOperand::TearDownCaches();
@@ -71,7 +61,6 @@ void V8::TearDown() {
   Isolate::GlobalTearDown();
 
   Sampler::TearDown();
-  Serializer::TearDown();
 
 #ifdef V8_USE_DEFAULT_PLATFORM
   DefaultPlatform* platform = static_cast<DefaultPlatform*>(platform_);
@@ -89,7 +78,6 @@ void V8::SetReturnAddressLocationResolver(
 
 void V8::InitializeOncePerProcessImpl() {
   FlagList::EnforceFlagImplications();
-  Serializer::InitializeOncePerProcess();
 
   if (FLAG_predictable && FLAG_random_seed == 0) {
     // Avoid random seeds in predictable mode.
@@ -99,17 +87,21 @@ void V8::InitializeOncePerProcessImpl() {
   if (FLAG_stress_compaction) {
     FLAG_force_marking_deque_overflows = true;
     FLAG_gc_global = true;
-    FLAG_max_new_space_size = (1 << (kPageSizeBits - 10)) * 2;
+    FLAG_max_semi_space_size = 1;
   }
 
 #ifdef V8_USE_DEFAULT_PLATFORM
   platform_ = new DefaultPlatform;
 #endif
   Sampler::SetUp();
-  // TODO(svenpanne) Clean this up when Serializer is a real object.
-  bool serializer_enabled = Serializer::enabled(NULL);
-  CpuFeatures::Probe(serializer_enabled);
+  CpuFeatures::Probe(false);
   OS::PostSetUp();
+  // The custom exp implementation needs 16KB of lookup data; initialize it
+  // on demand.
+  init_fast_sqrt_function();
+#ifdef _WIN64
+  init_modulo_function();
+#endif
   ElementsAccessor::InitializeOncePerProcess();
   LOperand::SetUpCaches();
   SetUpJSCallerSavedCodeData();

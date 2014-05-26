@@ -25,7 +25,7 @@ bool BreakLocationIterator::IsDebugBreakAtReturn()  {
 void BreakLocationIterator::SetDebugBreakAtReturn()  {
   ASSERT(Assembler::kJSReturnSequenceLength >= Assembler::kCallSequenceLength);
   rinfo()->PatchCodeWithCall(
-      debug_info_->GetIsolate()->debug()->debug_break_return()->entry(),
+      debug_info_->GetIsolate()->builtins()->Return_DebugBreak()->entry(),
       Assembler::kJSReturnSequenceLength - Assembler::kCallSequenceLength);
 }
 
@@ -55,7 +55,7 @@ bool BreakLocationIterator::IsDebugBreakAtSlot() {
 void BreakLocationIterator::SetDebugBreakAtSlot() {
   ASSERT(IsDebugBreakSlot());
   rinfo()->PatchCodeWithCall(
-      debug_info_->GetIsolate()->debug()->debug_break_slot()->entry(),
+      debug_info_->GetIsolate()->builtins()->Slot_DebugBreak()->entry(),
       Assembler::kDebugBreakSlotLength - Assembler::kCallSequenceLength);
 }
 
@@ -146,7 +146,7 @@ static void Generate_DebugBreakCallHelper(MacroAssembler* masm,
   // jumping to the target address intended by the caller and that was
   // overwritten by the address of DebugBreakXXX.
   ExternalReference after_break_target =
-      ExternalReference(Debug_Address::AfterBreakTarget(), masm->isolate());
+      ExternalReference::debug_after_break_target_address(masm->isolate());
   __ Move(kScratchRegister, after_break_target);
   __ Jump(Operand(kScratchRegister, 0));
 }
@@ -285,8 +285,8 @@ void Debug::GeneratePlainReturnLiveEdit(MacroAssembler* masm) {
 
 void Debug::GenerateFrameDropperLiveEdit(MacroAssembler* masm) {
   ExternalReference restarter_frame_function_slot =
-      ExternalReference(Debug_Address::RestarterFrameFunctionPointer(),
-                        masm->isolate());
+      ExternalReference::debug_restarter_frame_function_pointer_address(
+          masm->isolate());
   __ Move(rax, restarter_frame_function_slot);
   __ movp(Operand(rax, 0), Immediate(0));
 

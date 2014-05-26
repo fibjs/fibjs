@@ -8,18 +8,11 @@
 
 #if V8_TARGET_ARCH_ARM64
 
-#include "arm64/cpu-arm64.h"
+#include "cpu.h"
 #include "arm64/utils-arm64.h"
 
 namespace v8 {
 namespace internal {
-
-#ifdef DEBUG
-bool CpuFeatures::initialized_ = false;
-#endif
-unsigned CpuFeatures::supported_ = 0;
-unsigned CpuFeatures::cross_compile_ = 0;
-
 
 class CacheLineSizes {
  public:
@@ -31,15 +24,16 @@ class CacheLineSizes {
     __asm__ __volatile__ ("mrs %[ctr], ctr_el0"  // NOLINT
                           : [ctr] "=r" (cache_type_register_));
 #endif
-  };
+  }
 
   uint32_t icache_line_size() const { return ExtractCacheLineSize(0); }
   uint32_t dcache_line_size() const { return ExtractCacheLineSize(16); }
 
  private:
   uint32_t ExtractCacheLineSize(int cache_line_size_shift) const {
-    // The cache type register holds the size of the caches as a power of two.
-    return 1 << ((cache_type_register_ >> cache_line_size_shift) & 0xf);
+    // The cache type register holds the size of cache lines in words as a
+    // power of two.
+    return 4 << ((cache_type_register_ >> cache_line_size_shift) & 0xf);
   }
 
   uint32_t cache_type_register_;
@@ -123,17 +117,6 @@ void CPU::FlushICache(void* address, size_t length) {
   );  // NOLINT
 #endif
 }
-
-
-void CpuFeatures::Probe(bool serializer_enabled) {
-  // AArch64 has no configuration options, no further probing is required.
-  supported_ = 0;
-
-#ifdef DEBUG
-  initialized_ = true;
-#endif
-}
-
 
 } }  // namespace v8::internal
 

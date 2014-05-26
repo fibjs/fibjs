@@ -149,7 +149,11 @@ bool LCodeGen::GeneratePrologue() {
   if (NeedsEagerFrame()) {
     ASSERT(!frame_is_built_);
     frame_is_built_ = true;
-    __ Prologue(info()->IsStub() ? BUILD_STUB_FRAME : BUILD_FUNCTION_FRAME);
+    if (info()->IsStub()) {
+      __ StubPrologue();
+    } else {
+      __ Prologue(info()->IsCodePreAgingActive());
+    }
     info()->AddNoFrameRange(0, masm_->pc_offset());
   }
 
@@ -187,10 +191,13 @@ bool LCodeGen::GeneratePrologue() {
   int heap_slots = info_->num_heap_slots() - Context::MIN_CONTEXT_SLOTS;
   if (heap_slots > 0) {
     Comment(";;; Allocate local context");
+    bool need_write_barrier = true;
     // Argument to NewContext is the function, which is still in rdi.
     if (heap_slots <= FastNewContextStub::kMaximumSlots) {
       FastNewContextStub stub(isolate(), heap_slots);
       __ CallStub(&stub);
+      // Result of FastNewContextStub is always in new space.
+      need_write_barrier = false;
     } else {
       __ Push(rdi);
       __ CallRuntime(Runtime::kHiddenNewFunctionContext, 1);
@@ -214,7 +221,14 @@ bool LCodeGen::GeneratePrologue() {
         int context_offset = Context::SlotOffset(var->index());
         __ movp(Operand(rsi, context_offset), rax);
         // Update the write barrier. This clobbers rax and rbx.
-        __ RecordWriteContextSlot(rsi, context_offset, rax, rbx, kSaveFPRegs);
+        if (need_write_barrier) {
+          __ RecordWriteContextSlot(rsi, context_offset, rax, rbx, kSaveFPRegs);
+        } else if (FLAG_debug_code) {
+          Label done;
+          __ JumpIfInNewSpace(rsi, rax, &done, Label::kNear);
+          __ Abort(kExpectedNewSpaceObject);
+          __ bind(&done);
+        }
       }
     }
     Comment(";;; End allocate local context");
@@ -1601,11 +1615,11 @@ void LCodeGen::DoShiftI(LShiftI* instr) {
         }
         break;
       case Token::SHR:
-        if (shift_count == 0 && instr->can_deopt()) {
+        if (shift_count != 0) {
+          __ shrl(ToRegister(left), Immediate(shift_count));
+        } else if (instr->can_deopt()) {
           __ testl(ToRegister(left), ToRegister(left));
           DeoptimizeIf(negative, instr->environment());
-        } else {
-          __ shrl(ToRegister(left), Immediate(shift_count));
         }
         break;
       case Token::SHL:
@@ -1691,8 +1705,9 @@ void LCodeGen::DoConstantE(LConstantE* instr) {
 
 
 void LCodeGen::DoConstantT(LConstantT* instr) {
-  Handle<Object> value = instr->value(isolate());
-  __ Move(ToRegister(instr->result()), value);
+  Handle<Object> object = instr->value(isolate());
+  AllowDeferredHandleDereference smi_check;
+  __ Move(ToRegister(instr->result()), object);
 }
 
 
@@ -2222,7 +2237,9 @@ inline Condition LCodeGen::TokenToCondition(Token::Value op, bool is_unsigned) {
 void LCodeGen::DoCompareNumericAndBranch(LCompareNumericAndBranch* instr) {
   LOperand* left = instr->left();
   LOperand* right = instr->right();
-  Condition cc = TokenToCondition(instr->op(), instr->is_double());
+  bool is_unsigned =
+      instr->is_double() || instr->hydrogen()->CheckFlag(HInstruction::kUint32);
+  Condition cc = TokenToCondition(instr->op(), is_unsigned);
 
   if (left->IsConstantOperand() && right->IsConstantOperand()) {
     // We can statically evaluate the comparison.
@@ -3017,15 +3034,11 @@ void LCodeGen::DoAccessArgumentsAt(LAccessArgumentsAt* instr) {
 void LCodeGen::DoLoadKeyedExternalArray(LLoadKeyed* instr) {
   ElementsKind elements_kind = instr->elements_kind();
   LOperand* key = instr->key();
-  int base_offset = instr->is_fixed_typed_array()
-    ? FixedTypedArrayBase::kDataOffset - kHeapObjectTag
-    : 0;
   Operand operand(BuildFastArrayOperand(
       instr->elements(),
       key,
       elements_kind,
-      base_offset,
-      instr->additional_index()));
+      instr->base_offset()));
 
   if (elements_kind == EXTERNAL_FLOAT32_ELEMENTS ||
       elements_kind == FLOAT32_ELEMENTS) {
@@ -3091,14 +3104,11 @@ void LCodeGen::DoLoadKeyedFixedDoubleArray(LLoadKeyed* instr) {
   XMMRegister result(ToDoubleRegister(instr->result()));
   LOperand* key = instr->key();
   if (instr->hydrogen()->RequiresHoleCheck()) {
-    int offset = FixedDoubleArray::kHeaderSize - kHeapObjectTag +
-        sizeof(kHoleNanLower32);
     Operand hole_check_operand = BuildFastArrayOperand(
         instr->elements(),
         key,
         FAST_DOUBLE_ELEMENTS,
-        offset,
-        instr->additional_index());
+        instr->base_offset() + sizeof(kHoleNanLower32));
     __ cmpl(hole_check_operand, Immediate(kHoleNanUpper32));
     DeoptimizeIf(equal, instr->environment());
   }
@@ -3107,8 +3117,7 @@ void LCodeGen::DoLoadKeyedFixedDoubleArray(LLoadKeyed* instr) {
       instr->elements(),
       key,
       FAST_DOUBLE_ELEMENTS,
-      FixedDoubleArray::kHeaderSize - kHeapObjectTag,
-      instr->additional_index());
+      instr->base_offset());
   __ movsd(result, double_load_operand);
 }
 
@@ -3118,8 +3127,8 @@ void LCodeGen::DoLoadKeyedFixedArray(LLoadKeyed* instr) {
   Register result = ToRegister(instr->result());
   LOperand* key = instr->key();
   bool requires_hole_check = hinstr->RequiresHoleCheck();
-  int offset = FixedArray::kHeaderSize - kHeapObjectTag;
   Representation representation = hinstr->representation();
+  int offset = instr->base_offset();
 
   if (representation.IsInteger32() && SmiValuesAre32Bits() &&
       hinstr->elements_kind() == FAST_SMI_ELEMENTS) {
@@ -3130,8 +3139,7 @@ void LCodeGen::DoLoadKeyedFixedArray(LLoadKeyed* instr) {
               BuildFastArrayOperand(instr->elements(),
                                     key,
                                     FAST_ELEMENTS,
-                                    offset,
-                                    instr->additional_index()),
+                                    offset),
               Representation::Smi());
       __ AssertSmi(scratch);
     }
@@ -3145,8 +3153,7 @@ void LCodeGen::DoLoadKeyedFixedArray(LLoadKeyed* instr) {
           BuildFastArrayOperand(instr->elements(),
                                 key,
                                 FAST_ELEMENTS,
-                                offset,
-                                instr->additional_index()),
+                                offset),
           representation);
 
   // Check for the hole value.
@@ -3177,8 +3184,7 @@ Operand LCodeGen::BuildFastArrayOperand(
     LOperand* elements_pointer,
     LOperand* key,
     ElementsKind elements_kind,
-    uint32_t offset,
-    uint32_t additional_index) {
+    uint32_t offset) {
   Register elements_pointer_reg = ToRegister(elements_pointer);
   int shift_size = ElementsKindToShiftSize(elements_kind);
   if (key->IsConstantOperand()) {
@@ -3187,14 +3193,13 @@ Operand LCodeGen::BuildFastArrayOperand(
       Abort(kArrayIndexConstantValueTooBig);
     }
     return Operand(elements_pointer_reg,
-                   ((constant_value + additional_index) << shift_size)
-                       + offset);
+                   (constant_value << shift_size) + offset);
   } else {
     ScaleFactor scale_factor = static_cast<ScaleFactor>(shift_size);
     return Operand(elements_pointer_reg,
                    ToRegister(key),
                    scale_factor,
-                   offset + (additional_index << shift_size));
+                   offset);
   }
 }
 
@@ -3632,7 +3637,7 @@ void LCodeGen::DoMathFloor(LMathFloor* instr) {
       __ testq(output_reg, Immediate(1));
       DeoptimizeIf(not_zero, instr->environment());
       __ Set(output_reg, 0);
-      __ jmp(&done, Label::kNear);
+      __ jmp(&done);
       __ bind(&positive_sign);
     }
 
@@ -4177,15 +4182,11 @@ void LCodeGen::DoBoundsCheck(LBoundsCheck* instr) {
 void LCodeGen::DoStoreKeyedExternalArray(LStoreKeyed* instr) {
   ElementsKind elements_kind = instr->elements_kind();
   LOperand* key = instr->key();
-  int base_offset = instr->is_fixed_typed_array()
-    ? FixedTypedArrayBase::kDataOffset - kHeapObjectTag
-    : 0;
   Operand operand(BuildFastArrayOperand(
       instr->elements(),
       key,
       elements_kind,
-      base_offset,
-      instr->additional_index()));
+      instr->base_offset()));
 
   if (elements_kind == EXTERNAL_FLOAT32_ELEMENTS ||
       elements_kind == FLOAT32_ELEMENTS) {
@@ -4257,8 +4258,7 @@ void LCodeGen::DoStoreKeyedFixedDoubleArray(LStoreKeyed* instr) {
       instr->elements(),
       key,
       FAST_DOUBLE_ELEMENTS,
-      FixedDoubleArray::kHeaderSize - kHeapObjectTag,
-      instr->additional_index());
+      instr->base_offset());
 
   __ movsd(double_store_operand, value);
 }
@@ -4267,7 +4267,7 @@ void LCodeGen::DoStoreKeyedFixedDoubleArray(LStoreKeyed* instr) {
 void LCodeGen::DoStoreKeyedFixedArray(LStoreKeyed* instr) {
   HStoreKeyed* hinstr = instr->hydrogen();
   LOperand* key = instr->key();
-  int offset = FixedArray::kHeaderSize - kHeapObjectTag;
+  int offset = instr->base_offset();
   Representation representation = hinstr->value()->representation();
 
   if (representation.IsInteger32() && SmiValuesAre32Bits()) {
@@ -4279,8 +4279,7 @@ void LCodeGen::DoStoreKeyedFixedArray(LStoreKeyed* instr) {
               BuildFastArrayOperand(instr->elements(),
                                     key,
                                     FAST_ELEMENTS,
-                                    offset,
-                                    instr->additional_index()),
+                                    offset),
               Representation::Smi());
       __ AssertSmi(scratch);
     }
@@ -4294,9 +4293,7 @@ void LCodeGen::DoStoreKeyedFixedArray(LStoreKeyed* instr) {
       BuildFastArrayOperand(instr->elements(),
                             key,
                             FAST_ELEMENTS,
-                            offset,
-                            instr->additional_index());
-
+                            offset);
   if (instr->value()->IsRegister()) {
     __ Store(operand, ToRegister(instr->value()), representation);
   } else {
@@ -4389,6 +4386,15 @@ void LCodeGen::DoTransitionElementsKind(LTransitionElementsKind* instr) {
     RecordSafepointWithLazyDeopt(instr, RECORD_SAFEPOINT_WITH_REGISTERS, 0);
   }
   __ bind(&not_applicable);
+}
+
+
+void LCodeGen::DoArrayShift(LArrayShift* instr) {
+  ASSERT(ToRegister(instr->context()).is(rsi));
+  ASSERT(ToRegister(instr->object()).is(rax));
+  ASSERT(ToRegister(instr->result()).is(rax));
+  ArrayShiftStub stub(isolate(), instr->hydrogen()->kind());
+  CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
 }
 
 
@@ -4535,11 +4541,8 @@ void LCodeGen::DoInteger32ToDouble(LInteger32ToDouble* instr) {
 void LCodeGen::DoUint32ToDouble(LUint32ToDouble* instr) {
   LOperand* input = instr->value();
   LOperand* output = instr->result();
-  LOperand* temp = instr->temp();
 
-  __ LoadUint32(ToDoubleRegister(output),
-                ToRegister(input),
-                ToDoubleRegister(temp));
+  __ LoadUint32(ToDoubleRegister(output), ToRegister(input));
 }
 
 
@@ -4586,8 +4589,7 @@ void LCodeGen::DoDeferredNumberTagU(LNumberTagU* instr) {
   // Load value into temp_xmm which will be preserved across potential call to
   // runtime (MacroAssembler::EnterExitFrameEpilogue preserves only allocatable
   // XMM registers on x64).
-  XMMRegister xmm_scratch = double_scratch0();
-  __ LoadUint32(temp_xmm, reg, xmm_scratch);
+  __ LoadUint32(temp_xmm, reg);
 
   if (FLAG_inline_new) {
     __ AllocateHeapNumber(reg, tmp, &slow);
@@ -5013,29 +5015,35 @@ void LCodeGen::DoCheckMaps(LCheckMaps* instr) {
     Register object_;
   };
 
-  if (instr->hydrogen()->CanOmitMapChecks()) return;
+  if (instr->hydrogen()->IsStabilityCheck()) {
+    const UniqueSet<Map>* maps = instr->hydrogen()->maps();
+    for (int i = 0; i < maps->size(); ++i) {
+      AddStabilityDependency(maps->at(i).handle());
+    }
+    return;
+  }
 
   LOperand* input = instr->value();
   ASSERT(input->IsRegister());
   Register reg = ToRegister(input);
 
   DeferredCheckMaps* deferred = NULL;
-  if (instr->hydrogen()->has_migration_target()) {
+  if (instr->hydrogen()->HasMigrationTarget()) {
     deferred = new(zone()) DeferredCheckMaps(this, instr, reg);
     __ bind(deferred->check_maps());
   }
 
-  const UniqueSet<Map>* map_set = instr->hydrogen()->map_set();
+  const UniqueSet<Map>* maps = instr->hydrogen()->maps();
   Label success;
-  for (int i = 0; i < map_set->size() - 1; i++) {
-    Handle<Map> map = map_set->at(i).handle();
+  for (int i = 0; i < maps->size() - 1; i++) {
+    Handle<Map> map = maps->at(i).handle();
     __ CompareMap(reg, map);
     __ j(equal, &success, Label::kNear);
   }
 
-  Handle<Map> map = map_set->at(map_set->size() - 1).handle();
+  Handle<Map> map = maps->at(maps->size() - 1).handle();
   __ CompareMap(reg, map);
-  if (instr->hydrogen()->has_migration_target()) {
+  if (instr->hydrogen()->HasMigrationTarget()) {
     __ j(not_equal, deferred->entry());
   } else {
     DeoptimizeIf(not_equal, instr->environment());

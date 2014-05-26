@@ -222,9 +222,13 @@ class IncrementalMarkingMarkingVisitor
   static void VisitNativeContextIncremental(Map* map, HeapObject* object) {
     Context* context = Context::cast(object);
 
-    // We will mark cache black with a separate pass
-    // when we finish marking.
-    MarkObjectGreyDoNotEnqueue(context->normalized_map_cache());
+    // We will mark cache black with a separate pass when we finish marking.
+    // Note that GC can happen when the context is not fully initialized,
+    // so the cache can be undefined.
+    Object* cache = context->get(Context::NORMALIZED_MAP_CACHE_INDEX);
+    if (!cache->IsUndefined()) {
+      MarkObjectGreyDoNotEnqueue(cache);
+    }
     VisitNativeContext(map, context);
   }
 
@@ -235,8 +239,6 @@ class IncrementalMarkingMarkingVisitor
                                        JSWeakCollection::kPropertiesOffset),
                   HeapObject::RawField(object, JSWeakCollection::kSize));
   }
-
-  static void BeforeVisitingSharedFunctionInfo(HeapObject* object) {}
 
   INLINE(static void VisitPointer(Heap* heap, Object** p)) {
     Object* obj = *p;
@@ -459,7 +461,7 @@ bool IncrementalMarking::WorthActivating() {
   return FLAG_incremental_marking &&
       FLAG_incremental_marking_steps &&
       heap_->gc_state() == Heap::NOT_IN_GC &&
-      !Serializer::enabled(heap_->isolate()) &&
+      !heap_->isolate()->serializer_enabled() &&
       heap_->isolate()->IsInitialized() &&
       heap_->PromotedSpaceSizeOfObjects() > kActivationThreshold;
 }
@@ -537,7 +539,7 @@ void IncrementalMarking::Start(CompactionFlag flag) {
   ASSERT(FLAG_incremental_marking_steps);
   ASSERT(state_ == STOPPED);
   ASSERT(heap_->gc_state() == Heap::NOT_IN_GC);
-  ASSERT(!Serializer::enabled(heap_->isolate()));
+  ASSERT(!heap_->isolate()->serializer_enabled());
   ASSERT(heap_->isolate()->IsInitialized());
 
   ResetStepCounters();
@@ -797,7 +799,7 @@ void IncrementalMarking::Abort() {
       }
     }
   }
-  heap_->isolate()->stack_guard()->Continue(GC_REQUEST);
+  heap_->isolate()->stack_guard()->ClearGC();
   state_ = STOPPED;
   is_compacting_ = false;
 }
@@ -814,7 +816,7 @@ void IncrementalMarking::Finalize() {
                                           RecordWriteStub::STORE_BUFFER_ONLY);
   DeactivateIncrementalWriteBarrier();
   ASSERT(marking_deque_.IsEmpty());
-  heap_->isolate()->stack_guard()->Continue(GC_REQUEST);
+  heap_->isolate()->stack_guard()->ClearGC();
 }
 
 

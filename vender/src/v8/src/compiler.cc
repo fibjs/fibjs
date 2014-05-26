@@ -110,9 +110,9 @@ void CompilationInfo::Initialize(Isolate* isolate,
   }
   mode_ = mode;
   abort_due_to_dependency_ = false;
-  if (script_->type()->value() == Script::TYPE_NATIVE) {
-    MarkAsNative();
-  }
+  if (script_->type()->value() == Script::TYPE_NATIVE) MarkAsNative();
+  if (isolate_->debugger()->is_active()) MarkAsDebug();
+
   if (!shared_info_.is_null()) {
     ASSERT(strict_mode() == SLOPPY);
     SetStrictMode(shared_info_->strict_mode());
@@ -279,21 +279,6 @@ class HOptimizedGraphBuilderWithPositions: public HOptimizedGraphBuilder {
 };
 
 
-// Determine whether to use the full compiler for all code. If the flag
-// --always-full-compiler is specified this is the case. For the virtual frame
-// based compiler the full compiler is also used if a debugger is connected, as
-// the code from the full compiler supports mode precise break points. For the
-// crankshaft adaptive compiler debugging the optimized code is not possible at
-// all. However crankshaft support recompilation of functions, so in this case
-// the full compiler need not be be used if a debugger is attached, but only if
-// break points has actually been set.
-static bool IsDebuggerActive(Isolate* isolate) {
-  return isolate->use_crankshaft() ?
-    isolate->debug()->has_break_points() :
-    isolate->debugger()->IsDebuggerActive();
-}
-
-
 OptimizedCompileJob::Status OptimizedCompileJob::CreateGraph() {
   ASSERT(isolate()->use_crankshaft());
   ASSERT(info()->IsOptimizing());
@@ -311,7 +296,9 @@ OptimizedCompileJob::Status OptimizedCompileJob::CreateGraph() {
   // to use the Hydrogen-based optimizing compiler. We already have
   // generated code for this from the shared function object.
   if (FLAG_always_full_compiler) return AbortOptimization();
-  if (IsDebuggerActive(isolate())) return AbortOptimization(kDebuggerIsActive);
+
+  // Do not use crankshaft if compiling for debugging.
+  if (info()->is_debug()) return AbortOptimization(kDebuggerIsActive);
 
   // Limit the number of times we re-compile a functions with
   // the optimizing compiler.
@@ -469,6 +456,20 @@ OptimizedCompileJob::Status OptimizedCompileJob::GenerateCode() {
     if (optimized_code.is_null()) {
       if (info()->bailout_reason() == kNoReason) {
         info_->set_bailout_reason(kCodeGenerationFailed);
+      } else if (info()->bailout_reason() == kMapBecameDeprecated) {
+        if (FLAG_trace_opt) {
+          PrintF("[aborted optimizing ");
+          info()->closure()->ShortPrint();
+          PrintF(" because a map became deprecated]\n");
+        }
+        return AbortOptimization();
+      } else if (info()->bailout_reason() == kMapBecameUnstable) {
+        if (FLAG_trace_opt) {
+          PrintF("[aborted optimizing ");
+          info()->closure()->ShortPrint();
+          PrintF(" because a map became unstable]\n");
+        }
+        return AbortOptimization();
       }
       return AbortAndDisableOptimization();
     }
@@ -521,9 +522,6 @@ void OptimizedCompileJob::RecordOptimizationStats() {
 // Sets the expected number of properties based on estimate from compiler.
 void SetExpectedNofPropertiesFromEstimate(Handle<SharedFunctionInfo> shared,
                                           int estimate) {
-  // See the comment in SetExpectedNofProperties.
-  if (shared->live_objects_may_exist()) return;
-
   // If no properties are added in the constructor, they are more likely
   // to be added later.
   if (estimate == 0) estimate = 2;
@@ -531,7 +529,7 @@ void SetExpectedNofPropertiesFromEstimate(Handle<SharedFunctionInfo> shared,
   // TODO(yangguo): check whether those heuristics are still up-to-date.
   // We do not shrink objects that go into a snapshot (yet), so we adjust
   // the estimate conservatively.
-  if (Serializer::enabled(shared->GetIsolate())) {
+  if (shared->GetIsolate()->serializer_enabled()) {
     estimate += 2;
   } else if (FLAG_clever_optimizations) {
     // Inobject slack tracking will reclaim redundant inobject space later,
@@ -710,6 +708,8 @@ MaybeHandle<Code> Compiler::GetCodeForDebugging(Handle<JSFunction> function) {
   CompilationInfoWithZone info(function);
   Isolate* isolate = info.isolate();
   VMState<COMPILER> state(isolate);
+
+  info.MarkAsDebug();
 
   ASSERT(!isolate->has_pending_exception());
   Handle<Code> old_code(function->shared()->code());

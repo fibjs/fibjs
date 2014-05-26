@@ -304,7 +304,6 @@
     <ClCompile Include="src\v8\src\data-flow.cc" />
     <ClCompile Include="src\v8\src\date.cc" />
     <ClCompile Include="src\v8\src\dateparser.cc" />
-    <ClCompile Include="src\v8\src\debug-agent.cc" />
     <ClCompile Include="src\v8\src\debug.cc" />
     <ClCompile Include="src\v8\src\deoptimizer.cc" />
     <ClCompile Include="src\v8\src\disassembler.cc" />
@@ -449,7 +448,6 @@
     <ClCompile Include="src\v8\src\unicode.cc" />
     <ClCompile Include="src\v8\src\utils.cc" />
     <ClCompile Include="src\v8\src\utils\random-number-generator.cc" />
-    <ClCompile Include="src\v8\src\v8-counters.cc" />
     <ClCompile Include="src\v8\src\v8.cc" />
     <ClCompile Include="src\v8\src\v8threads.cc" />
     <ClCompile Include="src\v8\src\variables.cc" />
@@ -743,7 +741,6 @@
     <ClInclude Include="src\v8\src\date.h" />
     <ClInclude Include="src\v8\src\dateparser-inl.h" />
     <ClInclude Include="src\v8\src\dateparser.h" />
-    <ClInclude Include="src\v8\src\debug-agent.h" />
     <ClInclude Include="src\v8\src\debug.h" />
     <ClInclude Include="src\v8\src\deoptimizer.h" />
     <ClInclude Include="src\v8\src\disasm.h" />
@@ -921,10 +918,8 @@
     <ClInclude Include="src\v8\src\utils-inl.h" />
     <ClInclude Include="src\v8\src\utils.h" />
     <ClInclude Include="src\v8\src\utils\random-number-generator.h" />
-    <ClInclude Include="src\v8\src\v8-counters.h" />
     <ClInclude Include="src\v8\src\v8.h" />
     <ClInclude Include="src\v8\src\v8checks.h" />
-    <ClInclude Include="src\v8\src\v8globals.h" />
     <ClInclude Include="src\v8\src\v8memory.h" />
     <ClInclude Include="src\v8\src\v8threads.h" />
     <ClInclude Include="src\v8\src\variables.h" />

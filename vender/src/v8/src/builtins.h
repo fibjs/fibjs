@@ -59,15 +59,14 @@ enum BuiltinExtraArguments {
   V(HandleApiCallAsFunction, NO_EXTRA_ARGUMENTS)                    \
   V(HandleApiCallAsConstructor, NO_EXTRA_ARGUMENTS)                 \
                                                                     \
-  V(StrictModePoisonPill, NO_EXTRA_ARGUMENTS)
+  V(StrictModePoisonPill, NO_EXTRA_ARGUMENTS)                       \
+  V(GeneratorPoisonPill, NO_EXTRA_ARGUMENTS)
 
 // Define list of builtins implemented in assembly.
 #define BUILTIN_LIST_A(V)                                               \
   V(ArgumentsAdaptorTrampoline,     BUILTIN, UNINITIALIZED,             \
                                     kNoExtraICState)                    \
   V(InOptimizationQueue,            BUILTIN, UNINITIALIZED,             \
-                                    kNoExtraICState)                    \
-  V(JSConstructStubCountdown,       BUILTIN, UNINITIALIZED,             \
                                     kNoExtraICState)                    \
   V(JSConstructStubGeneric,         BUILTIN, UNINITIALIZED,             \
                                     kNoExtraICState)                    \
@@ -339,7 +338,6 @@ class Builtins {
   static void Generate_InOptimizationQueue(MacroAssembler* masm);
   static void Generate_CompileOptimized(MacroAssembler* masm);
   static void Generate_CompileOptimizedConcurrent(MacroAssembler* masm);
-  static void Generate_JSConstructStubCountdown(MacroAssembler* masm);
   static void Generate_JSConstructStubGeneric(MacroAssembler* masm);
   static void Generate_JSConstructStubApi(MacroAssembler* masm);
   static void Generate_JSEntryTrampoline(MacroAssembler* masm);

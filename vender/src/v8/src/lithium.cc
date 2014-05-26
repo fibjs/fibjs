@@ -5,6 +5,7 @@
 #include "v8.h"
 #include "lithium.h"
 #include "scopes.h"
+#include "serialize.h"
 
 #if V8_TARGET_ARCH_IA32
 #include "ia32/lithium-ia32.h"
@@ -21,6 +22,9 @@
 #elif V8_TARGET_ARCH_ARM64
 #include "arm64/lithium-arm64.h"
 #include "arm64/lithium-codegen-arm64.h"
+#elif V8_TARGET_ARCH_X87
+#include "x87/lithium-x87.h"
+#include "x87/lithium-codegen-x87.h"
 #else
 #error "Unknown architecture."
 #endif
@@ -61,6 +65,9 @@ void LOperand::PrintTo(StringStream* stream) {
         }
         case LUnallocated::MUST_HAVE_REGISTER:
           stream->Add("(R)");
+          break;
+        case LUnallocated::MUST_HAVE_DOUBLE_REGISTER:
+          stream->Add("(D)");
           break;
         case LUnallocated::WRITABLE_REGISTER:
           stream->Add("(WR)");
@@ -234,7 +241,8 @@ LChunk::LChunk(CompilationInfo* info, HGraph* graph)
       instructions_(32, graph->zone()),
       pointer_maps_(8, graph->zone()),
       inlined_closures_(1, graph->zone()),
-      deprecation_dependencies_(MapLess(), MapAllocator(graph->zone())) {
+      deprecation_dependencies_(MapLess(), MapAllocator(graph->zone())),
+      stability_dependencies_(MapLess(), MapAllocator(graph->zone())) {
 }
 
 
@@ -382,6 +390,14 @@ void LChunk::CommitDependencies(Handle<Code> code) const {
     Map::AddDependentCode(map, DependentCode::kTransitionGroup, code);
   }
 
+  for (MapSet::const_iterator it = stability_dependencies_.begin(),
+       iend = stability_dependencies_.end(); it != iend; ++it) {
+    Handle<Map> map = *it;
+    ASSERT(map->is_stable());
+    ASSERT(map->CanTransition());
+    Map::AddDependentCode(map, DependentCode::kPrototypeCheckGroup, code);
+  }
+
   info_->CommitDependencies(code);
 }
 
@@ -437,6 +453,9 @@ Handle<Code> LChunk::Codegen() {
                    CodeEndLinePosInfoRecordEvent(*code, jit_handler_data));
 
     CodeGenerator::PrintCode(code, info());
+    ASSERT(!(info()->isolate()->serializer_enabled() &&
+             info()->GetMustNotHaveEagerFrame() &&
+             generator.NeedsEagerFrame()));
     return code;
   }
   assembler.AbortedCodeGeneration();
@@ -493,7 +512,7 @@ LEnvironment* LChunkBuilderBase::CreateEnvironment(
 
     LOperand* op;
     HValue* value = hydrogen_env->values()->at(i);
-    CHECK(!value->IsPushArgument());  // Do not deopt outgoing arguments
+    CHECK(!value->IsPushArguments());  // Do not deopt outgoing arguments
     if (value->IsArgumentsObject() || value->IsCapturedObject()) {
       op = LEnvironment::materialization_marker();
     } else {
@@ -574,7 +593,7 @@ void LChunkBuilderBase::AddObjectToMaterialize(HValue* value,
       // Insert a hole for nested objects
       op = LEnvironment::materialization_marker();
     } else {
-      ASSERT(!arg_value->IsPushArgument());
+      ASSERT(!arg_value->IsPushArguments());
       // For ordinary values, tell the register allocator we need the value
       // to be alive here
       op = UseAny(arg_value);

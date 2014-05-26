@@ -402,7 +402,7 @@ void FullCodeGenerator::Initialize() {
   // we disable the production of debug code in the full compiler if we are
   // either generating a snapshot or we booted from a snapshot.
   generate_debug_code_ = FLAG_debug_code &&
-                         !Serializer::enabled(isolate()) &&
+                         !masm_->serializer_enabled() &&
                          !Snapshot::HaveASnapshotToStartFrom();
   masm_->set_emit_debug_code(generate_debug_code_);
   masm_->set_predictable_code_size(true);
@@ -452,9 +452,12 @@ void FullCodeGenerator::PrepareForBailoutForId(BailoutId id, State state) {
   unsigned pc_and_state =
       StateField::encode(state) | PcField::encode(masm_->pc_offset());
   ASSERT(Smi::IsValid(pc_and_state));
+#ifdef DEBUG
+  for (int i = 0; i < bailout_entries_.length(); ++i) {
+    ASSERT(bailout_entries_[i].id != id);
+  }
+#endif
   BailoutEntry entry = { id, pc_and_state };
-  ASSERT(!prepared_bailout_ids_.Contains(id.ToInt()));
-  prepared_bailout_ids_.Add(id.ToInt(), zone());
   bailout_entries_.Add(entry, zone());
 }
 
@@ -805,7 +808,7 @@ void FullCodeGenerator::SetReturnPosition(FunctionLiteral* fun) {
 
 
 void FullCodeGenerator::SetStatementPosition(Statement* stmt) {
-  if (!isolate()->debugger()->IsDebuggerActive()) {
+  if (!info_->is_debug()) {
     CodeGenerator::RecordPositions(masm_, stmt->position());
   } else {
     // Check if the statement will be breakable without adding a debug break
@@ -827,7 +830,7 @@ void FullCodeGenerator::SetStatementPosition(Statement* stmt) {
 
 
 void FullCodeGenerator::SetExpressionPosition(Expression* expr) {
-  if (!isolate()->debugger()->IsDebuggerActive()) {
+  if (!info_->is_debug()) {
     CodeGenerator::RecordPositions(masm_, expr->position());
   } else {
     // Check if the expression will be breakable without adding a debug break

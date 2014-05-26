@@ -170,7 +170,7 @@ void FullCodeGenerator::Generate() {
   //  Push(lr, fp, cp, x1);
   //  Add(fp, jssp, 2 * kPointerSize);
   info->set_prologue_offset(masm_->pc_offset());
-  __ Prologue(BUILD_FUNCTION_FRAME);
+  __ Prologue(info->IsCodePreAgingActive());
   info->AddNoFrameRange(0, masm_->pc_offset());
 
   // Reserve space on the stack for locals.
@@ -211,6 +211,7 @@ void FullCodeGenerator::Generate() {
   if (heap_slots > 0) {
     // Argument to NewContext is the function, which is still in x1.
     Comment cmnt(masm_, "[ Allocate context");
+    bool need_write_barrier = true;
     if (FLAG_harmony_scoping && info->scope()->is_global_scope()) {
       __ Mov(x10, Operand(info->scope()->GetScopeInfo()));
       __ Push(x1, x10);
@@ -218,6 +219,8 @@ void FullCodeGenerator::Generate() {
     } else if (heap_slots <= FastNewContextStub::kMaximumSlots) {
       FastNewContextStub stub(isolate(), heap_slots);
       __ CallStub(&stub);
+      // Result of FastNewContextStub is always in new space.
+      need_write_barrier = false;
     } else {
       __ Push(x1);
       __ CallRuntime(Runtime::kHiddenNewFunctionContext, 1);
@@ -241,8 +244,15 @@ void FullCodeGenerator::Generate() {
         __ Str(x10, target);
 
         // Update the write barrier.
-        __ RecordWriteContextSlot(
-            cp, target.offset(), x10, x11, kLRHasBeenSaved, kDontSaveFPRegs);
+        if (need_write_barrier) {
+          __ RecordWriteContextSlot(
+              cp, target.offset(), x10, x11, kLRHasBeenSaved, kDontSaveFPRegs);
+        } else if (FLAG_debug_code) {
+          Label done;
+          __ JumpIfInNewSpace(cp, &done);
+          __ Abort(kExpectedNewSpaceObject);
+          __ bind(&done);
+        }
       }
     }
   }
@@ -347,7 +357,7 @@ void FullCodeGenerator::EmitProfilingCounterDecrement(int delta) {
 
 void FullCodeGenerator::EmitProfilingCounterReset() {
   int reset_value = FLAG_interrupt_budget;
-  if (isolate()->IsDebuggerActive()) {
+  if (info_->is_debug()) {
     // Detect debug break requests as soon as possible.
     reset_value = FLAG_interrupt_budget >> 4;
   }
@@ -1655,7 +1665,7 @@ void FullCodeGenerator::VisitObjectLiteral(ObjectLiteral* expr) {
   const int max_cloned_properties =
       FastCloneShallowObjectStub::kMaximumClonedProperties;
   if (expr->may_store_doubles() || expr->depth() > 1 ||
-      Serializer::enabled(isolate()) || flags != ObjectLiteral::kFastElements ||
+      masm()->serializer_enabled() || flags != ObjectLiteral::kFastElements ||
       properties_count > max_cloned_properties) {
     __ Push(x3, x2, x1, x0);
     __ CallRuntime(Runtime::kHiddenCreateObjectLiteral, 4);
@@ -1795,35 +1805,12 @@ void FullCodeGenerator::VisitArrayLiteral(ArrayLiteral* expr) {
   __ Ldr(x3, FieldMemOperand(x3, JSFunction::kLiteralsOffset));
   __ Mov(x2, Smi::FromInt(expr->literal_index()));
   __ Mov(x1, Operand(constant_elements));
-  if (has_fast_elements && constant_elements_values->map() ==
-      isolate()->heap()->fixed_cow_array_map()) {
-    FastCloneShallowArrayStub stub(
-        isolate(),
-        FastCloneShallowArrayStub::COPY_ON_WRITE_ELEMENTS,
-        allocation_site_mode,
-        length);
-    __ CallStub(&stub);
-    __ IncrementCounter(
-        isolate()->counters()->cow_arrays_created_stub(), 1, x10, x11);
-  } else if ((expr->depth() > 1) || Serializer::enabled(isolate()) ||
-             length > FastCloneShallowArrayStub::kMaximumClonedLength) {
+  if (expr->depth() > 1) {
     __ Mov(x0, Smi::FromInt(flags));
     __ Push(x3, x2, x1, x0);
     __ CallRuntime(Runtime::kHiddenCreateArrayLiteral, 4);
   } else {
-    ASSERT(IsFastSmiOrObjectElementsKind(constant_elements_kind) ||
-           FLAG_smi_only_arrays);
-    FastCloneShallowArrayStub::Mode mode =
-        FastCloneShallowArrayStub::CLONE_ANY_ELEMENTS;
-
-    if (has_fast_elements) {
-      mode = FastCloneShallowArrayStub::CLONE_ELEMENTS;
-    }
-
-    FastCloneShallowArrayStub stub(isolate(),
-                                   mode,
-                                   allocation_site_mode,
-                                   length);
+    FastCloneShallowArrayStub stub(isolate(), allocation_site_mode);
     __ CallStub(&stub);
   }
 
@@ -3061,28 +3048,6 @@ void FullCodeGenerator::EmitClassOf(CallRuntime* expr) {
   // All done.
   __ Bind(&done);
 
-  context()->Plug(x0);
-}
-
-
-void FullCodeGenerator::EmitLog(CallRuntime* expr) {
-  // Conditionally generate a log call.
-  // Args:
-  //   0 (literal string): The type of logging (corresponds to the flags).
-  //     This is used to determine whether or not to generate the log call.
-  //   1 (string): Format string.  Access the string at argument index 2
-  //     with '%2s' (see Logger::LogRuntime for all the formats).
-  //   2 (array): Arguments to the format string.
-  ZoneList<Expression*>* args = expr->arguments();
-  ASSERT_EQ(args->length(), 3);
-  if (CodeGenerator::ShouldGenerateLog(isolate(), args->at(0))) {
-    VisitForStackValue(args->at(1));
-    VisitForStackValue(args->at(2));
-    __ CallRuntime(Runtime::kHiddenLog, 2);
-  }
-
-  // Finally, we're expected to leave a value on the top of the stack.
-  __ LoadRoot(x0, Heap::kUndefinedValueRootIndex);
   context()->Plug(x0);
 }
 

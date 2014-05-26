@@ -185,24 +185,6 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
               isolate);
   }
 
-  // Debug addresses
-  Add(Debug_Address(Debug::k_after_break_target_address).address(isolate),
-      DEBUG_ADDRESS,
-      Debug::k_after_break_target_address << kDebugIdShift,
-      "Debug::after_break_target_address()");
-  Add(Debug_Address(Debug::k_debug_break_slot_address).address(isolate),
-      DEBUG_ADDRESS,
-      Debug::k_debug_break_slot_address << kDebugIdShift,
-      "Debug::debug_break_slot_address()");
-  Add(Debug_Address(Debug::k_debug_break_return_address).address(isolate),
-      DEBUG_ADDRESS,
-      Debug::k_debug_break_return_address << kDebugIdShift,
-      "Debug::debug_break_return_address()");
-  Add(Debug_Address(Debug::k_restarter_frame_function_pointer).address(isolate),
-      DEBUG_ADDRESS,
-      Debug::k_restarter_frame_function_pointer << kDebugIdShift,
-      "Debug::restarter_frame_function_pointer_address()");
-
   // Stat counters
   struct StatsRefTableEntry {
     StatsCounter* (Counters::*counter)();
@@ -505,43 +487,50 @@ void ExternalReferenceTable::PopulateTable(Isolate* isolate) {
       UNCLASSIFIED,
       58,
       "Heap::OldDataSpaceAllocationLimitAddress");
-  Add(ExternalReference::new_space_high_promotion_mode_active_address(isolate).
-      address(),
-      UNCLASSIFIED,
-      59,
-      "Heap::NewSpaceAllocationLimitAddress");
   Add(ExternalReference::allocation_sites_list_address(isolate).address(),
       UNCLASSIFIED,
-      60,
+      59,
       "Heap::allocation_sites_list_address()");
   Add(ExternalReference::address_of_uint32_bias().address(),
       UNCLASSIFIED,
-      61,
+      60,
       "uint32_bias");
   Add(ExternalReference::get_mark_code_as_executed_function(isolate).address(),
       UNCLASSIFIED,
-      62,
+      61,
       "Code::MarkCodeAsExecuted");
 
   Add(ExternalReference::is_profiling_address(isolate).address(),
       UNCLASSIFIED,
-      63,
+      62,
       "CpuProfiler::is_profiling");
 
   Add(ExternalReference::scheduled_exception_address(isolate).address(),
       UNCLASSIFIED,
-      64,
+      63,
       "Isolate::scheduled_exception");
 
   Add(ExternalReference::invoke_function_callback(isolate).address(),
       UNCLASSIFIED,
-      65,
+      64,
       "InvokeFunctionCallback");
 
   Add(ExternalReference::invoke_accessor_getter_callback(isolate).address(),
       UNCLASSIFIED,
-      66,
+      65,
       "InvokeAccessorGetterCallback");
+
+  // Debug addresses
+  Add(ExternalReference::debug_after_break_target_address(isolate).address(),
+      UNCLASSIFIED,
+      66,
+      "Debug::after_break_target_address()");
+
+  Add(ExternalReference::debug_restarter_frame_function_pointer_address(
+          isolate).address(),
+      UNCLASSIFIED,
+      67,
+      "Debug::restarter_frame_function_pointer_address()");
 
   // Add a small set of deopt entry addresses to encoder without generating the
   // deopt table code, which isn't possible at deserialization time.
@@ -571,7 +560,7 @@ ExternalReferenceEncoder::ExternalReferenceEncoder(Isolate* isolate)
 uint32_t ExternalReferenceEncoder::Encode(Address key) const {
   int index = IndexOf(key);
   ASSERT(key == NULL || index >= 0);
-  return index >=0 ?
+  return index >= 0 ?
          ExternalReferenceTable::instance(isolate_)->code(index) : 0;
 }
 
@@ -621,7 +610,6 @@ ExternalReferenceDecoder::~ExternalReferenceDecoder() {
   DeleteArray(encodings_);
 }
 
-AtomicWord Serializer::serialization_state_ = SERIALIZER_STATE_UNINITIALIZED;
 
 class CodeAddressMap: public CodeEventLogger {
  public:
@@ -636,6 +624,9 @@ class CodeAddressMap: public CodeEventLogger {
 
   virtual void CodeMoveEvent(Address from, Address to) {
     address_to_name_map_.Move(from, to);
+  }
+
+  virtual void CodeDisableOptEvent(Code* code, SharedFunctionInfo* shared) {
   }
 
   virtual void CodeDeleteEvent(Address from) {
@@ -729,48 +720,6 @@ class CodeAddressMap: public CodeEventLogger {
   NameMap address_to_name_map_;
   Isolate* isolate_;
 };
-
-
-CodeAddressMap* Serializer::code_address_map_ = NULL;
-
-
-void Serializer::RequestEnable(Isolate* isolate) {
-  isolate->InitializeLoggingAndCounters();
-  code_address_map_ = new CodeAddressMap(isolate);
-}
-
-
-void Serializer::InitializeOncePerProcess() {
-  // InitializeOncePerProcess is called by V8::InitializeOncePerProcess, a
-  // method guaranteed to be called only once in a process lifetime.
-  // serialization_state_ is read by many threads, hence the use of
-  // Atomic primitives. Here, we don't need a barrier or mutex to
-  // write it because V8 initialization is done by one thread, and gates
-  // all reads of serialization_state_.
-  ASSERT(NoBarrier_Load(&serialization_state_) ==
-         SERIALIZER_STATE_UNINITIALIZED);
-  SerializationState state = code_address_map_
-      ? SERIALIZER_STATE_ENABLED
-      : SERIALIZER_STATE_DISABLED;
-  NoBarrier_Store(&serialization_state_, state);
-}
-
-
-void Serializer::TearDown() {
-  // TearDown is called by V8::TearDown() for the default isolate. It's safe
-  // to shut down the serializer by that point. Just to be safe, we restore
-  // serialization_state_ to uninitialized.
-  ASSERT(NoBarrier_Load(&serialization_state_) !=
-         SERIALIZER_STATE_UNINITIALIZED);
-  if (code_address_map_) {
-    ASSERT(NoBarrier_Load(&serialization_state_) ==
-           SERIALIZER_STATE_ENABLED);
-    delete code_address_map_;
-    code_address_map_ = NULL;
-  }
-
-  NoBarrier_Store(&serialization_state_, SERIALIZER_STATE_UNINITIALIZED);
-}
 
 
 Deserializer::Deserializer(SnapshotByteSource* source)
@@ -1270,7 +1219,8 @@ Serializer::Serializer(Isolate* isolate, SnapshotByteSink* sink)
     : isolate_(isolate),
       sink_(sink),
       external_reference_encoder_(new ExternalReferenceEncoder(isolate)),
-      root_index_wave_front_(0) {
+      root_index_wave_front_(0),
+      code_address_map_(NULL) {
   // The serializer is meant to be used only to generate initial heap images
   // from a context in which there is only one isolate.
   for (int i = 0; i <= LAST_SPACE; i++) {
@@ -1281,6 +1231,7 @@ Serializer::Serializer(Isolate* isolate, SnapshotByteSink* sink)
 
 Serializer::~Serializer() {
   delete external_reference_encoder_;
+  if (code_address_map_ != NULL) delete code_address_map_;
 }
 
 
@@ -1346,7 +1297,7 @@ void Serializer::VisitPointers(Object** start, Object** end) {
 // deserialized objects.
 void SerializerDeserializer::Iterate(Isolate* isolate,
                                      ObjectVisitor* visitor) {
-  if (Serializer::enabled(isolate)) return;
+  if (isolate->serializer_enabled()) return;
   for (int i = 0; ; i++) {
     if (isolate->serialize_partial_snapshot_cache_length() <= i) {
       // Extend the array ready to get a value from the visitor when
@@ -1586,12 +1537,14 @@ void Serializer::ObjectSerializer::Serialize() {
              "ObjectSerialization");
   sink_->PutInt(size >> kObjectAlignmentBits, "Size in words");
 
-  ASSERT(code_address_map_);
-  const char* code_name = code_address_map_->Lookup(object_->address());
-  LOG(serializer_->isolate_,
-      CodeNameEvent(object_->address(), sink_->Position(), code_name));
-  LOG(serializer_->isolate_,
-      SnapshotPositionEvent(object_->address(), sink_->Position()));
+  if (serializer_->code_address_map_) {
+    const char* code_name =
+        serializer_->code_address_map_->Lookup(object_->address());
+    LOG(serializer_->isolate_,
+        CodeNameEvent(object_->address(), sink_->Position(), code_name));
+    LOG(serializer_->isolate_,
+        SnapshotPositionEvent(object_->address(), sink_->Position()));
+  }
 
   // Mark this object as already serialized.
   int offset = serializer_->Allocate(space, size);
@@ -1868,6 +1821,12 @@ void Serializer::Pad() {
   for (unsigned i = 0; i < sizeof(int32_t) - 1; i++) {
     sink_->Put(kNop, "Padding");
   }
+}
+
+
+void Serializer::InitializeCodeAddressMap() {
+  isolate_->InitializeLoggingAndCounters();
+  code_address_map_ = new CodeAddressMap(isolate_);
 }
 
 

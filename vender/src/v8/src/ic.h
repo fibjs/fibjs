@@ -333,20 +333,34 @@ class IC_Utility {
 class CallIC: public IC {
  public:
   enum CallType { METHOD, FUNCTION };
+  enum StubType { DEFAULT, MONOMORPHIC_ARRAY };
 
   class State V8_FINAL BASE_EMBEDDED {
    public:
     explicit State(ExtraICState extra_ic_state);
 
+    static State MonomorphicArrayCallState(int argc, CallType call_type) {
+      return State(argc, call_type, MONOMORPHIC_ARRAY);
+    }
+
     static State DefaultCallState(int argc, CallType call_type) {
-      return State(argc, call_type);
+      return State(argc, call_type, DEFAULT);
     }
 
-    static State MegamorphicCallState(int argc, CallType call_type) {
-      return State(argc, call_type);
+    // Transition from the current state to another.
+    State ToGenericState() const {
+      return DefaultCallState(arg_count(), call_type());
     }
 
-    InlineCacheState GetICState() const { return ::v8::internal::GENERIC; }
+    State ToMonomorphicArrayCallState() const {
+      return MonomorphicArrayCallState(arg_count(), call_type());
+    }
+
+    InlineCacheState GetICState() const {
+      return stub_type_ == CallIC::DEFAULT
+          ? ::v8::internal::GENERIC
+          : ::v8::internal::MONOMORPHIC;
+    }
 
     ExtraICState GetExtraICState() const;
 
@@ -355,6 +369,7 @@ class CallIC: public IC {
 
     int arg_count() const { return argc_; }
     CallType call_type() const { return call_type_; }
+    StubType stub_type() const { return stub_type_; }
 
     bool CallAsMethod() const { return call_type_ == METHOD; }
 
@@ -362,7 +377,8 @@ class CallIC: public IC {
 
     bool operator==(const State& other_state) const {
       return (argc_ == other_state.argc_ &&
-              call_type_ == other_state.call_type_);
+              call_type_ == other_state.call_type_ &&
+              stub_type_ == other_state.stub_type_);
     }
 
     bool operator!=(const State& other_state) const {
@@ -370,17 +386,20 @@ class CallIC: public IC {
     }
 
    private:
-    State(int argc,
-          CallType call_type)
+    State(int argc, CallType call_type, StubType stub_type)
         : argc_(argc),
-        call_type_(call_type) {
+        call_type_(call_type),
+        stub_type_(stub_type) {
     }
 
     class ArgcBits: public BitField<int, 0, Code::kArgumentsBits> {};
     class CallTypeBits: public BitField<CallType, Code::kArgumentsBits, 1> {};
+    class StubTypeBits:
+        public BitField<StubType, Code::kArgumentsBits + 1, 1> {};  // NOLINT
 
     const int argc_;
     const CallType call_type_;
+    const StubType stub_type_;
   };
 
   explicit CallIC(Isolate* isolate)
@@ -391,6 +410,13 @@ class CallIC: public IC {
                   Handle<Object> function,
                   Handle<FixedArray> vector,
                   Handle<Smi> slot);
+
+  // Returns true if a custom handler was installed.
+  bool DoCustomHandler(Handle<Object> receiver,
+                       Handle<Object> function,
+                       Handle<FixedArray> vector,
+                       Handle<Smi> slot,
+                       const State& new_state);
 
   // Code generator routines.
   static Handle<Code> initialize_stub(Isolate* isolate,
@@ -780,7 +806,7 @@ class KeyedStoreIC: public StoreIC {
                                     Handle<Object> key,
                                     Handle<Object> value);
 
-  Handle<Map> ComputeTransitionedMap(Handle<JSObject> receiver,
+  Handle<Map> ComputeTransitionedMap(Handle<Map> map,
                                      KeyedAccessStoreMode store_mode);
 
   friend class IC;
@@ -893,14 +919,13 @@ class BinaryOpIC: public IC {
     STATIC_ASSERT(LAST_TOKEN - FIRST_TOKEN < (1 << 4));
     class OpField:                 public BitField<int, 0, 4> {};
     class OverwriteModeField:      public BitField<OverwriteMode, 4, 2> {};
-    class SSE2Field:               public BitField<bool, 6, 1> {};
-    class ResultKindField:         public BitField<Kind, 7, 3> {};
-    class LeftKindField:           public BitField<Kind, 10,  3> {};
+    class ResultKindField:         public BitField<Kind, 6, 3> {};
+    class LeftKindField:           public BitField<Kind, 9,  3> {};
     // When fixed right arg is set, we don't need to store the right kind.
     // Thus the two fields can overlap.
-    class HasFixedRightArgField:   public BitField<bool, 13, 1> {};
-    class FixedRightArgValueField: public BitField<int,  14, 4> {};
-    class RightKindField:          public BitField<Kind, 14, 3> {};
+    class HasFixedRightArgField:   public BitField<bool, 12, 1> {};
+    class FixedRightArgValueField: public BitField<int,  13, 4> {};
+    class RightKindField:          public BitField<Kind, 13, 3> {};
 
     Token::Value op_;
     OverwriteMode mode_;

@@ -74,6 +74,7 @@ class FullCodeGenerator: public AstVisitor {
                          info->zone()),
         back_edges_(2, info->zone()),
         ic_total_count_(0) {
+    ASSERT(!info->IsStub());
     Initialize();
   }
 
@@ -98,7 +99,7 @@ class FullCodeGenerator: public AstVisitor {
   static const int kMaxBackEdgeWeight = 127;
 
   // Platform-specific code size multiplier.
-#if V8_TARGET_ARCH_IA32
+#if V8_TARGET_ARCH_IA32 || V8_TARGET_ARCH_X87
   static const int kCodeSizeMultiplier = 105;
   static const int kBootCodeSizeMultiplier = 100;
 #elif V8_TARGET_ARCH_X64
@@ -216,7 +217,7 @@ class FullCodeGenerator: public AstVisitor {
         ++(*context_length);
       }
       return previous_;
-    };
+    }
   };
 
   // The try block of a try/catch statement.
@@ -819,7 +820,6 @@ class FullCodeGenerator: public AstVisitor {
   int module_index_;
   const ExpressionContext* context_;
   ZoneList<BailoutEntry> bailout_entries_;
-  GrowableBitVector prepared_bailout_ids_;
   ZoneList<BackEdgeEntry> back_edges_;
   int ic_total_count_;
   Handle<FixedArray> handler_table_;

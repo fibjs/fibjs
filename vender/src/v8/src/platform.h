@@ -25,8 +25,8 @@
 
 #include "platform/mutex.h"
 #include "platform/semaphore.h"
+#include "globals.h"
 #include "vector.h"
-#include "v8globals.h"
 
 #ifdef __sun
 # ifndef signbit
@@ -52,7 +52,7 @@ int strncasecmp(const char* s1, const char* s2, int n);
 #if (_MSC_VER < 1800)
 inline int lrint(double flt) {
   int intgr;
-#if V8_TARGET_ARCH_IA32
+#if V8_TARGET_ARCH_IA32 || V8_TARGET_ARCH_X87
   __asm {
     fld flt
     fistp intgr
@@ -73,16 +73,6 @@ inline int lrint(double flt) {
 namespace v8 {
 namespace internal {
 
-double modulo(double x, double y);
-
-// Custom implementation of math functions.
-double fast_exp(double input);
-double fast_sqrt(double input);
-// The custom exp implementation needs 16KB of lookup data; initialize it
-// on demand.
-void lazily_initialize_fast_exp();
-
-
 // ----------------------------------------------------------------------------
 // Fast TLS support
 
@@ -90,7 +80,7 @@ void lazily_initialize_fast_exp();
 
 #ifndef V8_NO_FAST_TLS
 
-#if defined(_MSC_VER) && V8_HOST_ARCH_IA32
+#if defined(_MSC_VER) && (V8_HOST_ARCH_IA32)
 
 #define V8_FAST_TLS_SUPPORTED 1
 
@@ -280,12 +270,14 @@ class OS {
   static void SignalCodeMovingGC();
 
   // The return value indicates the CPU features we are sure of because of the
-  // OS.  For example MacOSX doesn't run on any x86 CPUs that don't have SSE2
-  // instructions.
+  // OS.
   // This is a little messy because the interpretation is subject to the cross
   // of the CPU and the OS.  The bits in the answer correspond to the bit
   // positions indicated by the members of the CpuFeature enum from globals.h
-  static uint64_t CpuFeaturesImpliedByPlatform();
+  static unsigned CpuFeaturesImpliedByPlatform();
+
+  // Returns the number of processors online.
+  static int NumberOfProcessorsOnline();
 
   // The total amount of physical memory available on the current system.
   static uint64_t TotalPhysicalMemory();
@@ -305,7 +297,7 @@ class OS {
   // the platform doesn't care. Guaranteed to be a power of two.
   static int ActivationFrameAlignment();
 
-#if defined(V8_TARGET_ARCH_IA32)
+#if defined(V8_TARGET_ARCH_IA32) || defined(V8_TARGET_ARCH_X87)
   // Limit below which the extra overhead of the MemCopy function is likely
   // to outweigh the benefits of faster copying.
   static const int kMinComplexMemCopy = 64;

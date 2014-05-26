@@ -26,6 +26,7 @@ class LCodeGen;
   V(ArgumentsLength)                            \
   V(ArithmeticD)                                \
   V(ArithmeticT)                                \
+  V(ArrayShift)                                 \
   V(BitI)                                       \
   V(BoundsCheck)                                \
   V(Branch)                                     \
@@ -45,9 +46,7 @@ class LCodeGen;
   V(ClampDToUint8)                              \
   V(ClampIToUint8)                              \
   V(ClampTToUint8)                              \
-  V(ClampTToUint8NoSSE2)                        \
   V(ClassOfTestAndBranch)                       \
-  V(ClobberDoubles)                             \
   V(CompareMinusZeroAndBranch)                  \
   V(CompareNumericAndBranch)                    \
   V(CmpObjectEqAndBranch)                       \
@@ -239,10 +238,7 @@ class LInstruction : public ZoneObject {
   bool ClobbersTemps() const { return IsCall(); }
   bool ClobbersRegisters() const { return IsCall(); }
   virtual bool ClobbersDoubleRegisters(Isolate* isolate) const {
-    return IsCall() ||
-           // We only have rudimentary X87Stack tracking, thus in general
-           // cannot handle phi-nodes.
-        (!CpuFeatures::IsSafeForSnapshot(isolate, SSE2) && IsControl());
+    return IsCall();
   }
 
   virtual bool HasResult() const = 0;
@@ -250,7 +246,6 @@ class LInstruction : public ZoneObject {
 
   bool HasDoubleRegisterResult();
   bool HasDoubleRegisterInput();
-  bool IsDoubleInput(X87Register reg, LCodeGen* cgen);
 
   LOperand* FirstInput() { return InputAt(0); }
   LOperand* Output() { return HasResult() ? result() : NULL; }
@@ -372,20 +367,6 @@ class LInstructionGap V8_FINAL : public LGap {
   }
 
   DECLARE_CONCRETE_INSTRUCTION(InstructionGap, "gap")
-};
-
-
-class LClobberDoubles V8_FINAL : public LTemplateInstruction<0, 0, 0> {
- public:
-  explicit LClobberDoubles(Isolate* isolate) {
-    ASSERT(!CpuFeatures::IsSafeForSnapshot(isolate, SSE2));
-  }
-
-  virtual bool ClobbersDoubleRegisters(Isolate* isolate) const V8_OVERRIDE {
-    return true;
-  }
-
-  DECLARE_CONCRETE_INSTRUCTION(ClobberDoubles, "clobber-d")
 };
 
 
@@ -1661,7 +1642,7 @@ class LLoadKeyed V8_FINAL : public LTemplateInstruction<1, 2, 0> {
   DECLARE_HYDROGEN_ACCESSOR(LoadKeyed)
 
   virtual void PrintDataTo(StringStream* stream) V8_OVERRIDE;
-  uint32_t additional_index() const { return hydrogen()->index_offset(); }
+  uint32_t base_offset() const { return hydrogen()->base_offset(); }
   bool key_is_smi() {
     return hydrogen()->key()->representation().IsTagged();
   }
@@ -2016,15 +1997,13 @@ class LInteger32ToDouble V8_FINAL : public LTemplateInstruction<1, 1, 0> {
 };
 
 
-class LUint32ToDouble V8_FINAL : public LTemplateInstruction<1, 1, 1> {
+class LUint32ToDouble V8_FINAL : public LTemplateInstruction<1, 1, 0> {
  public:
-  explicit LUint32ToDouble(LOperand* value, LOperand* temp) {
+  explicit LUint32ToDouble(LOperand* value) {
     inputs_[0] = value;
-    temps_[0] = temp;
   }
 
   LOperand* value() { return inputs_[0]; }
-  LOperand* temp() { return temps_[0]; }
 
   DECLARE_CONCRETE_INSTRUCTION(Uint32ToDouble, "uint32-to-double")
 };
@@ -2044,17 +2023,15 @@ class LNumberTagI V8_FINAL : public LTemplateInstruction<1, 1, 1> {
 };
 
 
-class LNumberTagU V8_FINAL : public LTemplateInstruction<1, 1, 2> {
+class LNumberTagU V8_FINAL : public LTemplateInstruction<1, 1, 1> {
  public:
-  LNumberTagU(LOperand* value, LOperand* temp1, LOperand* temp2) {
+  LNumberTagU(LOperand* value, LOperand* temp) {
     inputs_[0] = value;
-    temps_[0] = temp1;
-    temps_[1] = temp2;
+    temps_[0] = temp;
   }
 
   LOperand* value() { return inputs_[0]; }
-  LOperand* temp1() { return temps_[0]; }
-  LOperand* temp2() { return temps_[1]; }
+  LOperand* temp() { return temps_[0]; }
 
   DECLARE_CONCRETE_INSTRUCTION(NumberTagU, "number-tag-u")
 };
@@ -2241,7 +2218,7 @@ class LStoreKeyed V8_FINAL : public LTemplateInstruction<0, 3, 0> {
   DECLARE_HYDROGEN_ACCESSOR(StoreKeyed)
 
   virtual void PrintDataTo(StringStream* stream) V8_OVERRIDE;
-  uint32_t additional_index() const { return hydrogen()->index_offset(); }
+  uint32_t base_offset() const { return hydrogen()->base_offset(); }
   bool NeedsCanonicalization() { return hydrogen()->NeedsCanonicalization(); }
 };
 
@@ -2301,6 +2278,21 @@ class LTransitionElementsKind V8_FINAL : public LTemplateInstruction<0, 2, 2> {
   }
   ElementsKind from_kind() { return hydrogen()->from_kind(); }
   ElementsKind to_kind() { return hydrogen()->to_kind(); }
+};
+
+
+class LArrayShift V8_FINAL : public LTemplateInstruction<1, 2, 0> {
+ public:
+  LArrayShift(LOperand* context, LOperand* object) {
+    inputs_[0] = context;
+    inputs_[1] = object;
+  }
+
+  LOperand* context() const { return inputs_[0]; }
+  LOperand* object() const { return inputs_[1]; }
+
+  DECLARE_CONCRETE_INSTRUCTION(ArrayShift, "array-shift")
+  DECLARE_HYDROGEN_ACCESSOR(ArrayShift)
 };
 
 
@@ -2399,7 +2391,7 @@ class LCheckInstanceType V8_FINAL : public LTemplateInstruction<0, 1, 1> {
 
 class LCheckMaps V8_FINAL : public LTemplateInstruction<0, 1, 0> {
  public:
-  explicit LCheckMaps(LOperand* value) {
+  explicit LCheckMaps(LOperand* value = NULL) {
     inputs_[0] = value;
   }
 
@@ -2457,30 +2449,6 @@ class LClampTToUint8 V8_FINAL : public LTemplateInstruction<1, 1, 1> {
   LOperand* temp_xmm() { return temps_[0]; }
 
   DECLARE_CONCRETE_INSTRUCTION(ClampTToUint8, "clamp-t-to-uint8")
-};
-
-
-// Truncating conversion from a tagged value to an int32.
-class LClampTToUint8NoSSE2 V8_FINAL : public LTemplateInstruction<1, 1, 3> {
- public:
-  LClampTToUint8NoSSE2(LOperand* unclamped,
-                       LOperand* temp1,
-                       LOperand* temp2,
-                       LOperand* temp3) {
-    inputs_[0] = unclamped;
-    temps_[0] = temp1;
-    temps_[1] = temp2;
-    temps_[2] = temp3;
-  }
-
-  LOperand* unclamped() { return inputs_[0]; }
-  LOperand* scratch() { return temps_[0]; }
-  LOperand* scratch2() { return temps_[1]; }
-  LOperand* scratch3() { return temps_[2]; }
-
-  DECLARE_CONCRETE_INSTRUCTION(ClampTToUint8NoSSE2,
-                               "clamp-t-to-uint8-nosse2")
-  DECLARE_HYDROGEN_ACCESSOR(UnaryOperation)
 };
 
 
@@ -2778,7 +2746,6 @@ class LChunkBuilder V8_FINAL : public LChunkBuilderBase {
   // Methods for getting operands for Use / Define / Temp.
   LUnallocated* ToUnallocated(Register reg);
   LUnallocated* ToUnallocated(XMMRegister reg);
-  LUnallocated* ToUnallocated(X87Register reg);
 
   // Methods for setting up define-use relationships.
   MUST_USE_RESULT LOperand* Use(HValue* value, LUnallocated* operand);
@@ -2840,7 +2807,6 @@ class LChunkBuilder V8_FINAL : public LChunkBuilderBase {
                             Register reg);
   LInstruction* DefineFixedDouble(LTemplateResultInstruction<1>* instr,
                                   XMMRegister reg);
-  LInstruction* DefineX87TOS(LTemplateResultInstruction<1>* instr);
   // Assigns an environment to an instruction.  An instruction which can
   // deoptimize must have an environment.
   LInstruction* AssignEnvironment(LInstruction* instr);
@@ -2861,6 +2827,7 @@ class LChunkBuilder V8_FINAL : public LChunkBuilderBase {
       CanDeoptimize can_deoptimize = CANNOT_DEOPTIMIZE_EAGERLY);
 
   void VisitInstruction(HInstruction* current);
+  void AddInstruction(LInstruction* instr, HInstruction* current);
 
   void DoBasicBlock(HBasicBlock* block, HBasicBlock* next_block);
   LInstruction* DoShift(Token::Value op, HBitwiseBinaryOperation* instr);

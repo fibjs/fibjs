@@ -417,8 +417,6 @@ void MarkCompactCollector::CollectGarbage() {
 
   SweepSpaces();
 
-  if (!FLAG_collect_maps) ReattachInitialMaps();
-
 #ifdef DEBUG
   if (FLAG_verify_native_context_separation) {
     VerifyNativeContextSeparation(heap_);
@@ -1474,11 +1472,6 @@ class MarkCompactMarkingVisitor
     return true;
   }
 
-  INLINE(static void BeforeVisitingSharedFunctionInfo(HeapObject* object)) {
-    SharedFunctionInfo* shared = SharedFunctionInfo::cast(object);
-    shared->BeforeVisitingPointers();
-  }
-
   static void VisitWeakCollection(Map* map, HeapObject* object) {
     MarkCompactCollector* collector = map->GetHeap()->mark_compact_collector();
     JSWeakCollection* weak_collection =
@@ -2077,6 +2070,7 @@ int MarkCompactCollector::DiscoverAndPromoteBlackObjectsOnPage(
                     object,
                     size,
                     NEW_SPACE);
+      heap()->IncrementSemiSpaceCopiedObjectSize(size);
     }
     *cells = 0;
   }
@@ -2483,7 +2477,7 @@ void MarkCompactCollector::AfterMarking() {
 
 
 void MarkCompactCollector::ProcessMapCaches() {
-  Object* raw_context = heap()->native_contexts_list_;
+  Object* raw_context = heap()->native_contexts_list();
   while (raw_context != heap()->undefined_value()) {
     Context* context = reinterpret_cast<Context*>(raw_context);
     if (IsMarked(context)) {
@@ -2533,23 +2527,6 @@ void MarkCompactCollector::ProcessMapCaches() {
 }
 
 
-void MarkCompactCollector::ReattachInitialMaps() {
-  HeapObjectIterator map_iterator(heap()->map_space());
-  for (HeapObject* obj = map_iterator.Next();
-       obj != NULL;
-       obj = map_iterator.Next()) {
-    Map* map = Map::cast(obj);
-
-    STATIC_ASSERT(LAST_TYPE == LAST_JS_RECEIVER_TYPE);
-    if (map->instance_type() < FIRST_JS_RECEIVER_TYPE) continue;
-
-    if (map->attached_to_shared_function_info()) {
-      JSFunction::cast(map->constructor())->shared()->AttachInitialMap(map);
-    }
-  }
-}
-
-
 void MarkCompactCollector::ClearNonLiveReferences() {
   // Iterate over the map space, setting map transitions that go from
   // a marked map to an unmarked map to null transitions.  This action
@@ -2563,13 +2540,6 @@ void MarkCompactCollector::ClearNonLiveReferences() {
     if (!map->CanTransition()) continue;
 
     MarkBit map_mark = Marking::MarkBitFrom(map);
-    if (map_mark.Get() && map->attached_to_shared_function_info()) {
-      // This map is used for inobject slack tracking and has been detached
-      // from SharedFunctionInfo during the mark phase.
-      // Since it survived the GC, reattach it now.
-      JSFunction::cast(map->constructor())->shared()->AttachInitialMap(map);
-    }
-
     ClearNonLivePrototypeTransitions(map);
     ClearNonLiveMapTransitions(map, map_mark);
 
@@ -2634,6 +2604,7 @@ void MarkCompactCollector::ClearNonLiveReferences() {
         ClearDependentCode(DependentCode::cast(value));
         table->set(key_index, heap_->the_hole_value());
         table->set(value_index, heap_->the_hole_value());
+        table->ElementRemoved();
       }
     }
   }
@@ -2757,7 +2728,7 @@ int MarkCompactCollector::ClearNonLiveDependentCodeInGroup(
       ASSERT(start + 1 == end);
       Object* old_head = entries->object_at(start);
       MarkCompactWeakObjectRetainer retainer;
-      Object* head = VisitWeakList<Code>(heap(), old_head, &retainer, true);
+      Object* head = VisitWeakList<Code>(heap(), old_head, &retainer);
       entries->set_object_at(new_start, head);
       Object** slot = entries->slot_at(new_start);
       RecordSlot(slot, slot, head);
@@ -3082,8 +3053,7 @@ bool MarkCompactCollector::TryPromoteObject(HeapObject* object,
                   object,
                   object_size,
                   target_space->identity());
-    heap()->mark_compact_collector()->tracer()->
-        increment_promoted_objects_size(object_size);
+    heap()->IncrementPromotedObjectsSize(object_size);
     return true;
   }
 
@@ -3641,9 +3611,6 @@ void MarkCompactCollector::EvacuateNewSpaceAndCandidates() {
       PropertyCell::BodyDescriptor::IterateBody(cell, &updating_visitor);
     }
   }
-
-  // Update the head of the native contexts list in the heap.
-  updating_visitor.VisitPointer(heap_->native_contexts_list_address());
 
   heap_->string_table()->Iterate(&updating_visitor);
   updating_visitor.VisitPointer(heap_->weak_object_to_code_table_address());

@@ -151,6 +151,9 @@ class HBasicBlock V8_FINAL : public ZoneObject {
     dominates_loop_successors_ = true;
   }
 
+  bool IsOrdered() const { return is_ordered_; }
+  void MarkAsOrdered() { is_ordered_ = true; }
+
   void MarkSuccEdgeUnreachable(int succ);
 
   inline Zone* zone() const;
@@ -207,6 +210,7 @@ class HBasicBlock V8_FINAL : public ZoneObject {
   bool is_reachable_ : 1;
   bool dominates_loop_successors_ : 1;
   bool is_osr_entry_ : 1;
+  bool is_ordered_ : 1;
 };
 
 
@@ -1291,6 +1295,10 @@ class HGraphBuilder {
 
   void AddSimulate(BailoutId id, RemovableSimulate removable = FIXED_SIMULATE);
 
+  // When initializing arrays, we'll unfold the loop if the number of elements
+  // is known at compile time and is <= kElementLoopUnrollThreshold.
+  static const int kElementLoopUnrollThreshold = 8;
+
  protected:
   virtual bool BuildGraph() = 0;
 
@@ -1298,7 +1306,6 @@ class HGraphBuilder {
   HBasicBlock* CreateLoopHeaderBlock();
 
   HValue* BuildCheckHeapObject(HValue* object);
-  HValue* BuildCheckMap(HValue* obj, Handle<Map> map);
   HValue* BuildCheckString(HValue* string);
   HValue* BuildWrapReceiver(HValue* object, HValue* function);
 
@@ -1385,20 +1392,12 @@ class HGraphBuilder {
 
   HInstruction* AddLoadStringInstanceType(HValue* string);
   HInstruction* AddLoadStringLength(HValue* string);
-  HStoreNamedField* AddStoreMapNoWriteBarrier(HValue* object, HValue* map) {
-    HStoreNamedField* store_map = Add<HStoreNamedField>(
-        object, HObjectAccess::ForMap(), map);
-    store_map->SkipWriteBarrier();
-    return store_map;
+  HStoreNamedField* AddStoreMapConstant(HValue* object, Handle<Map> map) {
+    return Add<HStoreNamedField>(object, HObjectAccess::ForMap(),
+                                 Add<HConstant>(map));
   }
-  HStoreNamedField* AddStoreMapConstant(HValue* object, Handle<Map> map);
-  HStoreNamedField* AddStoreMapConstantNoWriteBarrier(HValue* object,
-                                                      Handle<Map> map) {
-    HStoreNamedField* store_map = AddStoreMapConstant(object, map);
-    store_map->SkipWriteBarrier();
-    return store_map;
-  }
-  HLoadNamedField* AddLoadElements(HValue* object);
+  HLoadNamedField* AddLoadElements(HValue* object,
+                                   HValue* dependency = NULL);
 
   bool MatchRotateRight(HValue* left,
                         HValue* right,
@@ -1414,7 +1413,12 @@ class HGraphBuilder {
                                Maybe<int> fixed_right_arg,
                                HAllocationMode allocation_mode);
 
-  HLoadNamedField* AddLoadFixedArrayLength(HValue *object);
+  HLoadNamedField* AddLoadFixedArrayLength(HValue *object,
+                                           HValue *dependency = NULL);
+
+  HLoadNamedField* AddLoadArrayLength(HValue *object,
+                                      ElementsKind kind,
+                                      HValue *dependency = NULL);
 
   HValue* AddLoadJSBuiltin(Builtins::JavaScript builtin);
 
@@ -1666,9 +1670,6 @@ class HGraphBuilder {
 
   HValue* BuildNewElementsCapacity(HValue* old_capacity);
 
-  void BuildNewSpaceArrayCheck(HValue* length,
-                               ElementsKind kind);
-
   class JSArrayBuilder V8_FINAL {
    public:
     JSArrayBuilder(HGraphBuilder* builder,
@@ -1757,18 +1758,33 @@ class HGraphBuilder {
                                  HValue* from,
                                  HValue* to);
 
-  void BuildCopyElements(HValue* from_elements,
+  void BuildCopyElements(HValue* array,
+                         HValue* from_elements,
                          ElementsKind from_elements_kind,
                          HValue* to_elements,
                          ElementsKind to_elements_kind,
                          HValue* length,
                          HValue* capacity);
 
-  HValue* BuildCloneShallowArray(HValue* boilerplate,
-                                 HValue* allocation_site,
-                                 AllocationSiteMode mode,
-                                 ElementsKind kind,
-                                 int length);
+  HValue* BuildCloneShallowArrayCommon(HValue* boilerplate,
+                                       HValue* allocation_site,
+                                       HValue* extra_size,
+                                       HValue** return_elements,
+                                       AllocationSiteMode mode);
+
+  HValue* BuildCloneShallowArrayCow(HValue* boilerplate,
+                                    HValue* allocation_site,
+                                    AllocationSiteMode mode,
+                                    ElementsKind kind);
+
+  HValue* BuildCloneShallowArrayEmpty(HValue* boilerplate,
+                                      HValue* allocation_site,
+                                      AllocationSiteMode mode);
+
+  HValue* BuildCloneShallowArrayNonEmpty(HValue* boilerplate,
+                                         HValue* allocation_site,
+                                         AllocationSiteMode mode,
+                                         ElementsKind kind);
 
   HValue* BuildElementIndexHash(HValue* index);
 
@@ -1781,8 +1797,7 @@ class HGraphBuilder {
                                     HValue* previous_object_size,
                                     HValue* payload);
 
-  HInstruction* BuildConstantMapCheck(Handle<JSObject> constant,
-                                      CompilationInfo* info);
+  HInstruction* BuildConstantMapCheck(Handle<JSObject> constant);
   HInstruction* BuildCheckPrototypeMaps(Handle<JSObject> prototype,
                                         Handle<JSObject> holder);
 
@@ -2231,6 +2246,11 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
   // Try to optimize fun.apply(receiver, arguments) pattern.
   bool TryCallApply(Call* expr);
 
+  bool TryHandleArrayCall(Call* expr, HValue* function);
+  bool TryHandleArrayCallNew(CallNew* expr, HValue* function);
+  void BuildArrayCall(Expression* expr, int arguments_count, HValue* function,
+                      Handle<AllocationSite> cell);
+
   HValue* ImplicitReceiverFor(HValue* function,
                               Handle<JSFunction> target);
 
@@ -2314,8 +2334,13 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
       ElementsKind fixed_elements_kind,
       HValue* byte_length, HValue* length);
 
-  bool IsCallNewArrayInlineable(CallNew* expr);
-  void BuildInlinedCallNewArray(CallNew* expr);
+  Handle<JSFunction> array_function() {
+    return handle(isolate()->native_context()->array_function());
+  }
+
+  bool IsCallArrayInlineable(int argument_count, Handle<AllocationSite> site);
+  void BuildInlinedCallArray(Expression* expression, int argument_count,
+                             Handle<AllocationSite> site);
 
   class PropertyAccessInfo {
    public:
@@ -2328,6 +2353,7 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
           access_type_(access_type),
           type_(type),
           name_(name),
+          field_type_(HType::Tagged()),
           access_(HObjectAccess::ForMap()) { }
 
     // Checkes whether this PropertyAccessInfo can be handled as a monomorphic
@@ -2394,6 +2420,7 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
     Handle<Object> constant() { return constant_; }
     Handle<Map> transition() { return handle(lookup_.GetTransitionTarget()); }
     SmallMapList* field_maps() { return &field_maps_; }
+    HType field_type() const { return field_type_; }
     HObjectAccess access() { return access_; }
 
    private:
@@ -2424,6 +2451,7 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
     Handle<JSObject> api_holder_;
     Handle<Object> constant_;
     SmallMapList field_maps_;
+    HType field_type_;
     HObjectAccess access_;
   };
 

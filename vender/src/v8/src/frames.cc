@@ -450,7 +450,7 @@ StackFrame::Type StackFrame::GetCallerState(State* state) const {
 
 
 Address StackFrame::UnpaddedFP() const {
-#if V8_TARGET_ARCH_IA32
+#if V8_TARGET_ARCH_IA32 || V8_TARGET_ARCH_X87
   if (!is_optimized()) return fp();
   int32_t alignment_state = Memory::int32_at(
     fp() + JavaScriptFrameConstants::kDynamicAlignmentStateOffset);
@@ -640,7 +640,7 @@ void StandardFrame::IterateCompiledFrame(ObjectVisitor* v) const {
   // Skip saved double registers.
   if (safepoint_entry.has_doubles()) {
     // Number of doubles not known at snapshot time.
-    ASSERT(!Serializer::enabled(isolate()));
+    ASSERT(!isolate()->serializer_enabled());
     parameters_base += DoubleRegister::NumAllocatableRegisters() *
         kDoubleSize / kPointerSize;
   }

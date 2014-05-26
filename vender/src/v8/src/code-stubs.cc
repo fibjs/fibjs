@@ -22,6 +22,7 @@ CodeStubInterfaceDescriptor::CodeStubInterfaceDescriptor()
       hint_stack_parameter_count_(-1),
       function_mode_(NOT_JS_FUNCTION_STUB_MODE),
       register_params_(NULL),
+      register_param_representations_(NULL),
       deoptimization_handler_(NULL),
       handler_arguments_mode_(DONT_PASS_ARGUMENTS),
       miss_handler_(),
@@ -105,11 +106,6 @@ Handle<Code> PlatformCodeStub::GenerateCode() {
 }
 
 
-void CodeStub::VerifyPlatformFeatures() {
-  ASSERT(CpuFeatures::VerifyCrossCompiling());
-}
-
-
 Handle<Code> CodeStub::GetCode() {
   Heap* heap = isolate()->heap();
   Code* code;
@@ -119,10 +115,6 @@ Handle<Code> CodeStub::GetCode() {
     ASSERT(GetCodeKind() == code->kind());
     return Handle<Code>(code);
   }
-
-#ifdef DEBUG
-  VerifyPlatformFeatures();
-#endif
 
   {
     HandleScope scope(isolate());
@@ -733,9 +725,7 @@ void FastNewContextStub::InstallDescriptors(Isolate* isolate) {
 
 // static
 void FastCloneShallowArrayStub::InstallDescriptors(Isolate* isolate) {
-  FastCloneShallowArrayStub stub(isolate,
-                                 FastCloneShallowArrayStub::CLONE_ELEMENTS,
-                                 DONT_TRACK_ALLOCATION_SITE, 0);
+  FastCloneShallowArrayStub stub(isolate, DONT_TRACK_ALLOCATION_SITE);
   InstallDescriptor(isolate, &stub);
 }
 

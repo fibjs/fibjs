@@ -924,9 +924,6 @@
     <ClCompile Include="src\v8\src\debug.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\v8\src\debug-agent.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
     <ClCompile Include="src\v8\src\deoptimizer.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
@@ -1258,9 +1255,6 @@
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
     <ClCompile Include="src\v8\src\v8.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\v8-counters.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
     <ClCompile Include="src\v8\src\v8threads.cc">
@@ -2192,9 +2186,6 @@
     <ClInclude Include="src\v8\src\debug.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\v8\src\debug-agent.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
     <ClInclude Include="src\v8\src\deoptimizer.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
@@ -2637,12 +2628,6 @@
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\v8checks.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\v8-counters.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\v8globals.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\v8memory.h">

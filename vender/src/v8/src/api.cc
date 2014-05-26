@@ -5,6 +5,9 @@
 #include "api.h"
 
 #include <string.h>  // For memcpy, strlen.
+#ifdef V8_USE_ADDRESS_SANITIZER
+#include <sanitizer/asan_interface.h>
+#endif  // V8_USE_ADDRESS_SANITIZER
 #include <cmath>  // For isnan.
 #include "../include/v8-debug.h"
 #include "../include/v8-profiler.h"
@@ -37,6 +40,7 @@
 #include "runtime.h"
 #include "runtime-profiler.h"
 #include "scanner-character-streams.h"
+#include "simulator.h"
 #include "snapshot.h"
 #include "unicode-inl.h"
 #include "utils/random-number-generator.h"
@@ -419,7 +423,7 @@ Extension::Extension(const char* name,
 
 
 ResourceConstraints::ResourceConstraints()
-    : max_new_space_size_(0),
+    : max_semi_space_size_(0),
       max_old_space_size_(0),
       max_executable_size_(0),
       stack_limit_(NULL),
@@ -442,19 +446,19 @@ void ResourceConstraints::ConfigureDefaults(uint64_t physical_memory,
 #endif
 
   if (physical_memory <= low_limit) {
-    set_max_new_space_size(i::Heap::kMaxNewSpaceSizeLowMemoryDevice);
+    set_max_semi_space_size(i::Heap::kMaxSemiSpaceSizeLowMemoryDevice);
     set_max_old_space_size(i::Heap::kMaxOldSpaceSizeLowMemoryDevice);
     set_max_executable_size(i::Heap::kMaxExecutableSizeLowMemoryDevice);
   } else if (physical_memory <= medium_limit) {
-    set_max_new_space_size(i::Heap::kMaxNewSpaceSizeMediumMemoryDevice);
+    set_max_semi_space_size(i::Heap::kMaxSemiSpaceSizeMediumMemoryDevice);
     set_max_old_space_size(i::Heap::kMaxOldSpaceSizeMediumMemoryDevice);
     set_max_executable_size(i::Heap::kMaxExecutableSizeMediumMemoryDevice);
   } else if (physical_memory <= high_limit) {
-    set_max_new_space_size(i::Heap::kMaxNewSpaceSizeHighMemoryDevice);
+    set_max_semi_space_size(i::Heap::kMaxSemiSpaceSizeHighMemoryDevice);
     set_max_old_space_size(i::Heap::kMaxOldSpaceSizeHighMemoryDevice);
     set_max_executable_size(i::Heap::kMaxExecutableSizeHighMemoryDevice);
   } else {
-    set_max_new_space_size(i::Heap::kMaxNewSpaceSizeHugeMemoryDevice);
+    set_max_semi_space_size(i::Heap::kMaxSemiSpaceSizeHugeMemoryDevice);
     set_max_old_space_size(i::Heap::kMaxOldSpaceSizeHugeMemoryDevice);
     set_max_executable_size(i::Heap::kMaxExecutableSizeHugeMemoryDevice);
   }
@@ -465,7 +469,7 @@ void ResourceConstraints::ConfigureDefaults(uint64_t physical_memory,
     // Reserve no more than 1/8 of the memory for the code range, but at most
     // 512 MB.
     set_code_range_size(
-        i::Min(512 * i::MB, static_cast<int>(virtual_memory_limit >> 3)));
+        i::Min(512, static_cast<int>((virtual_memory_limit >> 3) / i::MB)));
   }
 }
 
@@ -473,16 +477,16 @@ void ResourceConstraints::ConfigureDefaults(uint64_t physical_memory,
 bool SetResourceConstraints(Isolate* v8_isolate,
                             ResourceConstraints* constraints) {
   i::Isolate* isolate = reinterpret_cast<i::Isolate*>(v8_isolate);
-  int new_space_size = constraints->max_new_space_size();
-  int old_gen_size = constraints->max_old_space_size();
+  int semi_space_size = constraints->max_semi_space_size();
+  int old_space_size = constraints->max_old_space_size();
   int max_executable_size = constraints->max_executable_size();
   int code_range_size = constraints->code_range_size();
-  if (new_space_size != 0 || old_gen_size != 0 || max_executable_size != 0 ||
-      code_range_size != 0) {
+  if (semi_space_size != 0 || old_space_size != 0 ||
+      max_executable_size != 0 || code_range_size != 0) {
     // After initialization it's too late to change Heap constraints.
     ASSERT(!isolate->IsInitialized());
-    bool result = isolate->heap()->ConfigureHeap(new_space_size / 2,
-                                                 old_gen_size,
+    bool result = isolate->heap()->ConfigureHeap(semi_space_size,
+                                                 old_space_size,
                                                  max_executable_size,
                                                  code_range_size);
     if (!result) return false;
@@ -1582,13 +1586,13 @@ int UnboundScript::GetId() {
 
 
 int UnboundScript::GetLineNumber(int code_pos) {
-  i::Handle<i::HeapObject> obj =
-      i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
+  i::Handle<i::SharedFunctionInfo> obj =
+      i::Handle<i::SharedFunctionInfo>::cast(Utils::OpenHandle(this));
   i::Isolate* isolate = obj->GetIsolate();
   ON_BAILOUT(isolate, "v8::UnboundScript::GetLineNumber()", return -1);
   LOG_API(isolate, "UnboundScript::GetLineNumber");
-  if (obj->IsScript()) {
-    i::Handle<i::Script> script(i::Script::cast(*obj));
+  if (obj->script()->IsScript()) {
+    i::Handle<i::Script> script(i::Script::cast(obj->script()));
     return i::Script::GetLineNumber(script, code_pos);
   } else {
     return -1;
@@ -1597,14 +1601,14 @@ int UnboundScript::GetLineNumber(int code_pos) {
 
 
 Handle<Value> UnboundScript::GetScriptName() {
-  i::Handle<i::HeapObject> obj =
-      i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
+  i::Handle<i::SharedFunctionInfo> obj =
+      i::Handle<i::SharedFunctionInfo>::cast(Utils::OpenHandle(this));
   i::Isolate* isolate = obj->GetIsolate();
   ON_BAILOUT(isolate, "v8::UnboundScript::GetName()",
              return Handle<String>());
   LOG_API(isolate, "UnboundScript::GetName");
-  if (obj->IsScript()) {
-    i::Object* name = i::Script::cast(*obj)->name();
+  if (obj->script()->IsScript()) {
+    i::Object* name = i::Script::cast(obj->script())->name();
     return Utils::ToLocal(i::Handle<i::Object>(name, isolate));
   } else {
     return Handle<String>();
@@ -1724,6 +1728,13 @@ Local<UnboundScript> ScriptCompiler::CompileUnbound(
                                    cached_data_mode,
                                    i::NOT_NATIVES_CODE);
     has_pending_exception = result.is_null();
+    if (has_pending_exception && cached_data_mode == i::CONSUME_CACHED_DATA) {
+      // This case won't happen during normal operation; we have compiled
+      // successfully and produced cached data, and but the second compilation
+      // of the same source code fails.
+      delete script_data_impl;
+      script_data_impl = NULL;
+    }
     EXCEPTION_BAILOUT_CHECK(isolate, Local<UnboundScript>());
     raw_result = *result;
     if ((options & kProduceDataToCache) && script_data_impl != NULL) {
@@ -1746,12 +1757,10 @@ Local<Script> ScriptCompiler::Compile(
     Source* source,
     CompileOptions options) {
   i::Isolate* isolate = reinterpret_cast<i::Isolate*>(v8_isolate);
-  ON_BAILOUT(isolate, "v8::ScriptCompiler::Compile()",
-             return Local<Script>());
+  ON_BAILOUT(isolate, "v8::ScriptCompiler::Compile()", return Local<Script>());
   LOG_API(isolate, "ScriptCompiler::CompiletBound()");
   ENTER_V8(isolate);
-  Local<UnboundScript> generic =
-      CompileUnbound(v8_isolate, source, options);
+  Local<UnboundScript> generic = CompileUnbound(v8_isolate, source, options);
   if (generic.IsEmpty()) return Local<Script>();
   return generic->BindToCurrentContext();
 }
@@ -1785,13 +1794,26 @@ Local<Script> Script::Compile(v8::Handle<String> source,
 
 v8::TryCatch::TryCatch()
     : isolate_(i::Isolate::Current()),
-      next_(isolate_->try_catch_handler_address()),
+      next_(isolate_->try_catch_handler()),
       is_verbose_(false),
       can_continue_(true),
       capture_message_(true),
       rethrow_(false),
       has_terminated_(false) {
   Reset();
+  js_stack_comparable_address_ = this;
+#ifdef V8_USE_ADDRESS_SANITIZER
+  void* asan_fake_stack_handle = __asan_get_current_fake_stack();
+  if (asan_fake_stack_handle != NULL) {
+    js_stack_comparable_address_ = __asan_addr_is_in_fake_stack(
+        asan_fake_stack_handle, js_stack_comparable_address_, NULL, NULL);
+    CHECK(js_stack_comparable_address_ != NULL);
+  }
+#endif
+  // Special handling for simulators which have a separate JS stack.
+  js_stack_comparable_address_ = reinterpret_cast<void*>(
+      v8::internal::SimulatorStack::RegisterCTryCatch(
+          reinterpret_cast<uintptr_t>(js_stack_comparable_address_)));
   isolate_->RegisterTryCatchHandler(this);
 }
 
@@ -1811,10 +1833,12 @@ v8::TryCatch::~TryCatch() {
       isolate_->RestorePendingMessageFromTryCatch(this);
     }
     isolate_->UnregisterTryCatchHandler(this);
+    v8::internal::SimulatorStack::UnregisterCTryCatch();
     reinterpret_cast<Isolate*>(isolate_)->ThrowException(exc);
     ASSERT(!isolate_->thread_local_top()->rethrowing_message_);
   } else {
     isolate_->UnregisterTryCatchHandler(this);
+    v8::internal::SimulatorStack::UnregisterCTryCatch();
   }
 }
 
@@ -2115,6 +2139,9 @@ Local<StackTrace> StackTrace::CurrentStackTrace(
     StackTraceOptions options) {
   i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
   ENTER_V8(i_isolate);
+  // TODO(dcarney): remove when ScriptDebugServer is fixed.
+  options = static_cast<StackTraceOptions>(
+      static_cast<int>(options) | kExposeFramesAcrossSecurityOrigins);
   i::Handle<i::JSArray> stackTrace =
       i_isolate->CaptureCurrentStackTrace(frame_limit, options);
   return Utils::StackTraceToLocal(stackTrace);
@@ -3037,8 +3064,8 @@ bool v8::Object::ForceSet(v8::Handle<Value> key,
 
 
 bool v8::Object::SetPrivate(v8::Handle<Private> key, v8::Handle<Value> value) {
-  return Set(v8::Handle<Value>(reinterpret_cast<Value*>(*key)),
-             value, DontEnum);
+  return ForceSet(v8::Handle<Value>(reinterpret_cast<Value*>(*key)),
+                  value, DontEnum);
 }
 
 
@@ -3125,8 +3152,7 @@ PropertyAttribute v8::Object::GetPropertyAttributes(v8::Handle<Value> key) {
 
 Local<Value> v8::Object::GetPrototype() {
   i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
-  ON_BAILOUT(isolate, "v8::Object::GetPrototype()",
-             return Local<v8::Value>());
+  ON_BAILOUT(isolate, "v8::Object::GetPrototype()", return Local<v8::Value>());
   ENTER_V8(isolate);
   i::Handle<i::Object> self = Utils::OpenHandle(this);
   i::Handle<i::Object> result(self->GetPrototype(isolate), isolate);
@@ -3202,7 +3228,7 @@ Local<Array> v8::Object::GetOwnPropertyNames() {
   EXCEPTION_PREAMBLE(isolate);
   i::Handle<i::FixedArray> value;
   has_pending_exception = !i::JSReceiver::GetKeys(
-      self, i::JSReceiver::LOCAL_ONLY).ToHandle(&value);
+      self, i::JSReceiver::OWN_ONLY).ToHandle(&value);
   EXCEPTION_BAILOUT_CHECK(isolate, Local<v8::Array>());
   // Because we use caching to speed up enumeration it is important
   // to never change the result of the basic enumeration function so
@@ -3327,6 +3353,8 @@ bool v8::Object::Has(v8::Handle<Value> key) {
 
 
 bool v8::Object::HasPrivate(v8::Handle<Private> key) {
+  // TODO(rossberg): this should use HasOwnProperty, but we'd need to
+  // generalise that to a (noy yet existant) Name argument first.
   return Has(v8::Handle<Value>(reinterpret_cast<Value*>(*key)));
 }
 
@@ -3430,7 +3458,7 @@ bool v8::Object::HasOwnProperty(Handle<String> key) {
   i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
   ON_BAILOUT(isolate, "v8::Object::HasOwnProperty()",
              return false);
-  return i::JSReceiver::HasLocalProperty(
+  return i::JSReceiver::HasOwnProperty(
       Utils::OpenHandle(this), Utils::OpenHandle(*key));
 }
 
@@ -3584,8 +3612,7 @@ int v8::Object::GetIdentityHash() {
   ENTER_V8(isolate);
   i::HandleScope scope(isolate);
   i::Handle<i::JSObject> self = Utils::OpenHandle(this);
-  return i::Handle<i::Smi>::cast(
-      i::JSReceiver::GetOrCreateIdentityHash(self))->value();
+  return i::JSReceiver::GetOrCreateIdentityHash(self)->value();
 }
 
 
@@ -4958,12 +4985,6 @@ void v8::V8::SetArrayBufferAllocator(
 
 
 bool v8::V8::Dispose() {
-  i::Isolate* isolate = i::Isolate::Current();
-  if (!Utils::ApiCheck(isolate != NULL && isolate->IsDefaultIsolate(),
-                       "v8::V8::Dispose()",
-                       "Use v8::Isolate::Dispose() for non-default isolate.")) {
-    return false;
-  }
   i::V8::TearDown();
   return true;
 }
@@ -5769,7 +5790,7 @@ Local<Object> Array::CloneElementAt(uint32_t index) {
 
 bool Value::IsPromise() const {
   i::Handle<i::Object> val = Utils::OpenHandle(this);
-  if (!i::FLAG_harmony_promises || !val->IsJSObject()) return false;
+  if (!val->IsJSObject()) return false;
   i::Handle<i::JSObject> obj = i::Handle<i::JSObject>::cast(val);
   i::Isolate* isolate = obj->GetIsolate();
   LOG_API(isolate, "IsPromise");
@@ -6454,23 +6475,9 @@ void V8::RemoveMemoryAllocationCallback(MemoryAllocationCallback callback) {
 }
 
 
-void V8::RunMicrotasks(Isolate* isolate) {
-  isolate->RunMicrotasks();
-}
-
-
-void V8::EnqueueMicrotask(Isolate* isolate, Handle<Function> microtask) {
-  isolate->EnqueueMicrotask(microtask);
-}
-
-
-void V8::SetAutorunMicrotasks(Isolate* isolate, bool autorun) {
-  isolate->SetAutorunMicrotasks(autorun);
-}
-
-
 void V8::TerminateExecution(Isolate* isolate) {
-  reinterpret_cast<i::Isolate*>(isolate)->stack_guard()->TerminateExecution();
+  i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
+  i_isolate->stack_guard()->RequestTerminateExecution();
 }
 
 
@@ -6483,18 +6490,24 @@ bool V8::IsExecutionTerminating(Isolate* isolate) {
 
 void V8::CancelTerminateExecution(Isolate* isolate) {
   i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
-  i_isolate->stack_guard()->CancelTerminateExecution();
+  i_isolate->stack_guard()->ClearTerminateExecution();
+  i_isolate->CancelTerminateExecution();
 }
 
 
 void Isolate::RequestInterrupt(InterruptCallback callback, void* data) {
-  reinterpret_cast<i::Isolate*>(this)->stack_guard()->RequestInterrupt(
-      callback, data);
+  i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(this);
+  i_isolate->set_api_interrupt_callback(callback);
+  i_isolate->set_api_interrupt_callback_data(data);
+  i_isolate->stack_guard()->RequestApiInterrupt();
 }
 
 
 void Isolate::ClearInterrupt() {
-  reinterpret_cast<i::Isolate*>(this)->stack_guard()->ClearInterrupt();
+  i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(this);
+  i_isolate->stack_guard()->ClearApiInterrupt();
+  i_isolate->set_api_interrupt_callback(NULL);
+  i_isolate->set_api_interrupt_callback_data(NULL);
 }
 
 
@@ -6641,21 +6654,23 @@ void Isolate::RemoveCallCompletedCallback(CallCompletedCallback callback) {
 
 
 void Isolate::RunMicrotasks() {
-  i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(this);
-  i::HandleScope scope(i_isolate);
-  i_isolate->RunMicrotasks();
+  reinterpret_cast<i::Isolate*>(this)->RunMicrotasks();
 }
 
 
 void Isolate::EnqueueMicrotask(Handle<Function> microtask) {
-  i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(this);
-  ENTER_V8(i_isolate);
-  i::Execution::EnqueueMicrotask(i_isolate, Utils::OpenHandle(*microtask));
+  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(this);
+  isolate->EnqueueMicrotask(Utils::OpenHandle(*microtask));
 }
 
 
 void Isolate::SetAutorunMicrotasks(bool autorun) {
   reinterpret_cast<i::Isolate*>(this)->set_autorun_microtasks(autorun);
+}
+
+
+bool Isolate::WillAutorunMicrotasks() const {
+  return reinterpret_cast<const i::Isolate*>(this)->autorun_microtasks();
 }
 
 
@@ -6788,10 +6803,10 @@ Local<Value> Exception::Error(v8::Handle<v8::String> raw_message) {
 
 // --- D e b u g   S u p p o r t ---
 
-bool Debug::SetDebugEventListener2(EventCallback2 that, Handle<Value> data) {
+bool Debug::SetDebugEventListener(EventCallback that, Handle<Value> data) {
   i::Isolate* isolate = i::Isolate::Current();
-  EnsureInitializedForIsolate(isolate, "v8::Debug::SetDebugEventListener2()");
-  ON_BAILOUT(isolate, "v8::Debug::SetDebugEventListener2()", return false);
+  EnsureInitializedForIsolate(isolate, "v8::Debug::SetDebugEventListener()");
+  ON_BAILOUT(isolate, "v8::Debug::SetDebugEventListener()", return false);
   ENTER_V8(isolate);
   i::HandleScope scope(isolate);
   i::Handle<i::Object> foreign = isolate->factory()->undefined_value();
@@ -6804,25 +6819,14 @@ bool Debug::SetDebugEventListener2(EventCallback2 that, Handle<Value> data) {
 }
 
 
-bool Debug::SetDebugEventListener(v8::Handle<v8::Object> that,
-                                  Handle<Value> data) {
-  i::Isolate* isolate = i::Isolate::Current();
-  ON_BAILOUT(isolate, "v8::Debug::SetDebugEventListener()", return false);
-  ENTER_V8(isolate);
-  isolate->debugger()->SetEventListener(Utils::OpenHandle(*that),
-                                        Utils::OpenHandle(*data, true));
-  return true;
-}
-
-
 void Debug::DebugBreak(Isolate* isolate) {
-  reinterpret_cast<i::Isolate*>(isolate)->stack_guard()->DebugBreak();
+  reinterpret_cast<i::Isolate*>(isolate)->stack_guard()->RequestDebugBreak();
 }
 
 
 void Debug::CancelDebugBreak(Isolate* isolate) {
   i::Isolate* internal_isolate = reinterpret_cast<i::Isolate*>(isolate);
-  internal_isolate->stack_guard()->Continue(i::DEBUGBREAK);
+  internal_isolate->stack_guard()->ClearDebugBreak();
 }
 
 
@@ -6832,7 +6836,7 @@ void Debug::DebugBreakForCommand(Isolate* isolate, ClientData* data) {
 }
 
 
-void Debug::SetMessageHandler2(v8::Debug::MessageHandler2 handler) {
+void Debug::SetMessageHandler(v8::Debug::MessageHandler handler) {
   i::Isolate* isolate = i::Isolate::Current();
   EnsureInitializedForIsolate(isolate, "v8::Debug::SetMessageHandler");
   ENTER_V8(isolate);
@@ -6845,29 +6849,8 @@ void Debug::SendCommand(Isolate* isolate,
                         int length,
                         ClientData* client_data) {
   i::Isolate* internal_isolate = reinterpret_cast<i::Isolate*>(isolate);
-  internal_isolate->debugger()->ProcessCommand(
+  internal_isolate->debugger()->EnqueueCommandMessage(
       i::Vector<const uint16_t>(command, length), client_data);
-}
-
-
-void Debug::SetHostDispatchHandler(HostDispatchHandler handler,
-                                   int period) {
-  i::Isolate* isolate = i::Isolate::Current();
-  EnsureInitializedForIsolate(isolate, "v8::Debug::SetHostDispatchHandler");
-  ENTER_V8(isolate);
-  isolate->debugger()->SetHostDispatchHandler(
-      handler, i::TimeDelta::FromMilliseconds(period));
-}
-
-
-void Debug::SetDebugMessageDispatchHandler(
-    DebugMessageDispatchHandler handler, bool provide_locker) {
-  i::Isolate* isolate = i::Isolate::Current();
-  EnsureInitializedForIsolate(isolate,
-                              "v8::Debug::SetDebugMessageDispatchHandler");
-  ENTER_V8(isolate);
-  isolate->debugger()->SetDebugMessageDispatchHandler(
-      handler, provide_locker);
 }
 
 
@@ -6919,17 +6902,6 @@ Local<Value> Debug::GetMirror(v8::Handle<v8::Value> obj) {
   }
   EXCEPTION_BAILOUT_CHECK(isolate, Local<Value>());
   return scope.Escape(result);
-}
-
-
-bool Debug::EnableAgent(const char* name, int port, bool wait_for_connection) {
-  return i::Isolate::Current()->debugger()->StartAgent(name, port,
-                                                       wait_for_connection);
-}
-
-
-void Debug::DisableAgent() {
-  return i::Isolate::Current()->debugger()->StopAgent();
 }
 
 

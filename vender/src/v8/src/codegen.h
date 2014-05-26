@@ -55,6 +55,8 @@ enum TypeofState { INSIDE_TYPEOF, NOT_INSIDE_TYPEOF };
 #include "arm/codegen-arm.h"
 #elif V8_TARGET_ARCH_MIPS
 #include "mips/codegen-mips.h"
+#elif V8_TARGET_ARCH_X87
+#include "x87/codegen-x87.h"
 #else
 #error Unsupported target architecture.
 #endif
@@ -79,8 +81,6 @@ class CodeGenerator {
   // Print the code after compiling it.
   static void PrintCode(Handle<Code> code, CompilationInfo* info);
 
-  static bool ShouldGenerateLog(Isolate* isolate, Expression* type);
-
   static bool RecordPositions(MacroAssembler* masm,
                               int pos,
                               bool right_here = false);
@@ -97,6 +97,18 @@ typedef double (*UnaryMathFunction)(double x);
 
 UnaryMathFunction CreateExpFunction();
 UnaryMathFunction CreateSqrtFunction();
+
+
+double modulo(double x, double y);
+
+// Custom implementation of math functions.
+double fast_exp(double input);
+double fast_sqrt(double input);
+#ifdef _WIN64
+void init_modulo_function();
+#endif
+void lazily_initialize_fast_exp();
+void init_fast_sqrt_function();
 
 
 class ElementsTransitionGenerator : public AllStatic {
@@ -119,6 +131,33 @@ class ElementsTransitionGenerator : public AllStatic {
 
 static const int kNumberDictionaryProbes = 4;
 
+
+class CodeAgingHelper {
+ public:
+  CodeAgingHelper();
+
+  uint32_t young_sequence_length() const { return young_sequence_.length(); }
+  bool IsYoung(byte* candidate) const {
+    return memcmp(candidate,
+                  young_sequence_.start(),
+                  young_sequence_.length()) == 0;
+  }
+  void CopyYoungSequenceTo(byte* new_buffer) const {
+    CopyBytes(new_buffer, young_sequence_.start(), young_sequence_.length());
+  }
+
+#ifdef DEBUG
+  bool IsOld(byte* candidate) const;
+#endif
+
+ protected:
+  const EmbeddedVector<byte, kNoCodeAgeSequenceLength> young_sequence_;
+#ifdef DEBUG
+#ifdef V8_TARGET_ARCH_ARM64
+  const EmbeddedVector<byte, kNoCodeAgeSequenceLength> old_sequence_;
+#endif
+#endif
+};
 
 } }  // namespace v8::internal
 

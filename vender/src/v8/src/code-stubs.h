@@ -16,6 +16,7 @@ namespace internal {
 
 // List of code stubs used on all platforms.
 #define CODE_STUB_LIST_ALL_PLATFORMS(V)  \
+  V(ArrayShift)                          \
   V(CallFunction)                        \
   V(CallConstruct)                       \
   V(BinaryOpIC)                          \
@@ -190,12 +191,8 @@ class CodeStub BASE_EMBEDDED {
   Isolate* isolate() const { return isolate_; }
 
  protected:
-  static bool CanUseFPRegisters();
-
   // Generates the assembler code for the stub.
   virtual Handle<Code> GenerateCode() = 0;
-
-  virtual void VerifyPlatformFeatures();
 
   // Returns whether the code generated for this stub needs to be allocated as
   // a fixed (non-moveable) code object.
@@ -278,6 +275,11 @@ struct CodeStubInterfaceDescriptor {
   int hint_stack_parameter_count_;
   StubFunctionMode function_mode_;
   Register* register_params_;
+  // Specifies Representations for the stub's parameter. Points to an array of
+  // Representations of the same length of the numbers of parameters to the
+  // stub, or if NULL (the default value), Representation of each parameter
+  // assumed to be Tagged()
+  Representation* register_param_representations_;
 
   Address deoptimization_handler_;
   HandlerArgumentsMode handler_arguments_mode_;
@@ -444,6 +446,8 @@ class RuntimeCallHelper {
 #include "arm/code-stubs-arm.h"
 #elif V8_TARGET_ARCH_MIPS
 #include "mips/code-stubs-mips.h"
+#elif V8_TARGET_ARCH_X87
+#include "x87/code-stubs-x87.h"
 #else
 #error Unsupported target architecture.
 #endif
@@ -582,50 +586,18 @@ class FastNewContextStub V8_FINAL : public HydrogenCodeStub {
 class FastCloneShallowArrayStub : public HydrogenCodeStub {
  public:
   // Maximum length of copied elements array.
-  static const int kMaximumClonedLength = 8;
-  enum Mode {
-    CLONE_ELEMENTS,
-    CLONE_DOUBLE_ELEMENTS,
-    COPY_ON_WRITE_ELEMENTS,
-    CLONE_ANY_ELEMENTS,
-    LAST_CLONE_MODE = CLONE_ANY_ELEMENTS
-  };
-
-  static const int kFastCloneModeCount = LAST_CLONE_MODE + 1;
+  static const int kMaximumInlinedCloneLength = 8;
 
   FastCloneShallowArrayStub(Isolate* isolate,
-                            Mode mode,
-                            AllocationSiteMode allocation_site_mode,
-                            int length)
+                            AllocationSiteMode allocation_site_mode)
       : HydrogenCodeStub(isolate),
-        mode_(mode),
-        allocation_site_mode_(allocation_site_mode),
-        length_((mode == COPY_ON_WRITE_ELEMENTS) ? 0 : length) {
-    ASSERT_GE(length_, 0);
-    ASSERT_LE(length_, kMaximumClonedLength);
-  }
+      allocation_site_mode_(allocation_site_mode) {}
 
-  Mode mode() const { return mode_; }
-  int length() const { return length_; }
   AllocationSiteMode allocation_site_mode() const {
     return allocation_site_mode_;
   }
 
-  ElementsKind ComputeElementsKind() const {
-    switch (mode()) {
-      case CLONE_ELEMENTS:
-      case COPY_ON_WRITE_ELEMENTS:
-        return FAST_ELEMENTS;
-      case CLONE_DOUBLE_ELEMENTS:
-        return FAST_DOUBLE_ELEMENTS;
-      case CLONE_ANY_ELEMENTS:
-        /*fall-through*/;
-    }
-    UNREACHABLE();
-    return LAST_ELEMENTS_KIND;
-  }
-
-  virtual Handle<Code> GenerateCode() V8_OVERRIDE;
+  virtual Handle<Code> GenerateCode();
 
   virtual void InitializeInterfaceDescriptor(
       CodeStubInterfaceDescriptor* descriptor) V8_OVERRIDE;
@@ -633,22 +605,13 @@ class FastCloneShallowArrayStub : public HydrogenCodeStub {
   static void InstallDescriptors(Isolate* isolate);
 
  private:
-  Mode mode_;
   AllocationSiteMode allocation_site_mode_;
-  int length_;
 
   class AllocationSiteModeBits: public BitField<AllocationSiteMode, 0, 1> {};
-  class ModeBits: public BitField<Mode, 1, 4> {};
-  class LengthBits: public BitField<int, 5, 4> {};
   // Ensure data fits within available bits.
-  STATIC_ASSERT(LAST_ALLOCATION_SITE_MODE == 1);
-  STATIC_ASSERT(kFastCloneModeCount < 16);
-  STATIC_ASSERT(kMaximumClonedLength < 16);
   Major MajorKey() { return FastCloneShallowArray; }
   int NotMissMinorKey() {
-    return AllocationSiteModeBits::encode(allocation_site_mode_)
-        | ModeBits::encode(mode_)
-        | LengthBits::encode(length_);
+    return AllocationSiteModeBits::encode(allocation_site_mode_);
   }
 };
 
@@ -861,6 +824,8 @@ class CallICStub: public PlatformCodeStub {
 
   // Code generation helpers.
   void GenerateMiss(MacroAssembler* masm);
+  void Generate_CustomFeedbackCall(MacroAssembler* masm);
+  void Generate_MonomorphicArray(MacroAssembler* masm, Label* miss);
 
   CallIC::State state_;
 };
@@ -1167,10 +1132,6 @@ class BinaryOpICStub : public HydrogenCodeStub {
     return state_.GetExtraICState();
   }
 
-  virtual void VerifyPlatformFeatures() V8_FINAL V8_OVERRIDE {
-    ASSERT(CpuFeatures::VerifyCrossCompiling(SSE2));
-  }
-
   virtual Handle<Code> GenerateCode() V8_OVERRIDE;
 
   const BinaryOpIC::State& state() const { return state_; }
@@ -1222,10 +1183,6 @@ class BinaryOpICWithAllocationSiteStub V8_FINAL : public PlatformCodeStub {
 
   virtual ExtraICState GetExtraICState() V8_OVERRIDE {
     return state_.GetExtraICState();
-  }
-
-  virtual void VerifyPlatformFeatures() V8_OVERRIDE {
-    ASSERT(CpuFeatures::VerifyCrossCompiling(SSE2));
   }
 
   virtual void Generate(MacroAssembler* masm) V8_OVERRIDE;
@@ -1305,10 +1262,6 @@ class StringAddStub V8_FINAL : public HydrogenCodeStub {
 
   PretenureFlag pretenure_flag() const {
     return PretenureFlagBits::decode(bit_field_);
-  }
-
-  virtual void VerifyPlatformFeatures() V8_OVERRIDE {
-    ASSERT(CpuFeatures::VerifyCrossCompiling(SSE2));
   }
 
   virtual Handle<Code> GenerateCode() V8_OVERRIDE;
@@ -1519,11 +1472,6 @@ class CEntryStub : public PlatformCodeStub {
   // their code generation.  On machines that always have gp registers (x64) we
   // can generate both variants ahead of time.
   static void GenerateAheadOfTime(Isolate* isolate);
-
- protected:
-  virtual void VerifyPlatformFeatures() V8_OVERRIDE {
-    ASSERT(CpuFeatures::VerifyCrossCompiling(SSE2));
-  };
 
  private:
   // Number of pointers/values returned.
@@ -1919,9 +1867,7 @@ class DoubleToIStub : public PlatformCodeStub {
       OffsetBits::encode(offset) |
       IsTruncatingBits::encode(is_truncating) |
       SkipFastPathBits::encode(skip_fastpath) |
-      SSEBits::encode(
-          CpuFeatures::IsSafeForSnapshot(isolate, SSE2) ?
-          CpuFeatures::IsSafeForSnapshot(isolate, SSE3) ? 2 : 1 : 0);
+      SSE3Bits::encode(CpuFeatures::IsSupported(SSE3) ? 1 : 0);
   }
 
   Register source() {
@@ -1948,11 +1894,6 @@ class DoubleToIStub : public PlatformCodeStub {
 
   virtual bool SometimesSetsUpAFrame() { return false; }
 
- protected:
-  virtual void VerifyPlatformFeatures() V8_OVERRIDE {
-    ASSERT(CpuFeatures::VerifyCrossCompiling(SSE2));
-  }
-
  private:
   static const int kBitsPerRegisterNumber = 6;
   STATIC_ASSERT((1L << kBitsPerRegisterNumber) >= Register::kNumRegisters);
@@ -1967,8 +1908,8 @@ class DoubleToIStub : public PlatformCodeStub {
       public BitField<int, 2 * kBitsPerRegisterNumber + 1, 3> {};  // NOLINT
   class SkipFastPathBits:
       public BitField<int, 2 * kBitsPerRegisterNumber + 4, 1> {};  // NOLINT
-  class SSEBits:
-      public BitField<int, 2 * kBitsPerRegisterNumber + 5, 2> {};  // NOLINT
+  class SSE3Bits:
+      public BitField<int, 2 * kBitsPerRegisterNumber + 5, 1> {};  // NOLINT
 
   Major MajorKey() { return DoubleToI; }
   int MinorKey() { return bit_field_; }
@@ -2309,15 +2250,13 @@ class KeyedStoreElementStub : public PlatformCodeStub {
       : PlatformCodeStub(isolate),
         is_js_array_(is_js_array),
         elements_kind_(elements_kind),
-        store_mode_(store_mode),
-        fp_registers_(CanUseFPRegisters()) { }
+        store_mode_(store_mode) { }
 
   Major MajorKey() { return KeyedStoreElement; }
   int MinorKey() {
     return ElementsKindBits::encode(elements_kind_) |
         IsJSArrayBits::encode(is_js_array_) |
-        StoreModeBits::encode(store_mode_) |
-        FPRegisters::encode(fp_registers_);
+        StoreModeBits::encode(store_mode_);
   }
 
   void Generate(MacroAssembler* masm);
@@ -2326,12 +2265,10 @@ class KeyedStoreElementStub : public PlatformCodeStub {
   class ElementsKindBits: public BitField<ElementsKind,      0, 8> {};
   class StoreModeBits: public BitField<KeyedAccessStoreMode, 8, 4> {};
   class IsJSArrayBits: public BitField<bool,                12, 1> {};
-  class FPRegisters: public BitField<bool,                  13, 1> {};
 
   bool is_js_array_;
   ElementsKind elements_kind_;
   KeyedAccessStoreMode store_mode_;
-  bool fp_registers_;
 
   DISALLOW_COPY_AND_ASSIGN(KeyedStoreElementStub);
 };
@@ -2466,20 +2403,46 @@ class ElementsTransitionAndStoreStub : public HydrogenCodeStub {
 };
 
 
+class ArrayShiftStub V8_FINAL : public HydrogenCodeStub {
+ public:
+  ArrayShiftStub(Isolate* isolate, ElementsKind kind)
+      : HydrogenCodeStub(isolate), kind_(kind) { }
+
+  ElementsKind kind() const { return kind_; }
+
+  virtual Handle<Code> GenerateCode() V8_OVERRIDE;
+
+  virtual void InitializeInterfaceDescriptor(
+      CodeStubInterfaceDescriptor* descriptor) V8_OVERRIDE;
+
+  // Inline Array.shift() for arrays up to this length.
+  static const int kInlineThreshold = 16;
+
+  // Parameters accessed via CodeStubGraphBuilder::GetParameter()
+  static const int kReceiver = 0;
+
+ private:
+  Major MajorKey() { return ArrayShift; }
+  int NotMissMinorKey() {
+    return kind_;
+  }
+
+  ElementsKind kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(ArrayShiftStub);
+};
+
+
 class StoreArrayLiteralElementStub : public PlatformCodeStub {
  public:
   explicit StoreArrayLiteralElementStub(Isolate* isolate)
-      : PlatformCodeStub(isolate), fp_registers_(CanUseFPRegisters()) { }
+      : PlatformCodeStub(isolate) { }
 
  private:
-  class FPRegisters: public BitField<bool,                0, 1> {};
-
   Major MajorKey() { return StoreArrayLiteralElement; }
-  int MinorKey() { return FPRegisters::encode(fp_registers_); }
+  int MinorKey() { return 0; }
 
   void Generate(MacroAssembler* masm);
-
-  bool fp_registers_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreArrayLiteralElementStub);
 };
@@ -2489,24 +2452,20 @@ class StubFailureTrampolineStub : public PlatformCodeStub {
  public:
   StubFailureTrampolineStub(Isolate* isolate, StubFunctionMode function_mode)
       : PlatformCodeStub(isolate),
-        fp_registers_(CanUseFPRegisters()),
         function_mode_(function_mode) {}
 
   static void GenerateAheadOfTime(Isolate* isolate);
 
  private:
-  class FPRegisters:       public BitField<bool,                0, 1> {};
-  class FunctionModeField: public BitField<StubFunctionMode,    1, 1> {};
+  class FunctionModeField: public BitField<StubFunctionMode,    0, 1> {};
 
   Major MajorKey() { return StubFailureTrampoline; }
   int MinorKey() {
-    return FPRegisters::encode(fp_registers_) |
-        FunctionModeField::encode(function_mode_);
+    return FunctionModeField::encode(function_mode_);
   }
 
   void Generate(MacroAssembler* masm);
 
-  bool fp_registers_;
   StubFunctionMode function_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(StubFailureTrampolineStub);

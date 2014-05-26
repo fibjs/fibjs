@@ -32,7 +32,7 @@ void BreakLocationIterator::SetDebugBreakAtReturn() {
   patcher.masm()->ldr(v8::internal::ip, MemOperand(v8::internal::pc, 0));
   patcher.masm()->blx(v8::internal::ip);
   patcher.Emit(
-      debug_info_->GetIsolate()->debug()->debug_break_return()->entry());
+      debug_info_->GetIsolate()->builtins()->Return_DebugBreak()->entry());
   patcher.masm()->bkpt(0);
 }
 
@@ -73,7 +73,7 @@ void BreakLocationIterator::SetDebugBreakAtSlot() {
   patcher.masm()->ldr(v8::internal::ip, MemOperand(v8::internal::pc, 0));
   patcher.masm()->blx(v8::internal::ip);
   patcher.Emit(
-      debug_info_->GetIsolate()->debug()->debug_break_slot()->entry());
+      debug_info_->GetIsolate()->builtins()->Slot_DebugBreak()->entry());
 }
 
 
@@ -148,7 +148,7 @@ static void Generate_DebugBreakCallHelper(MacroAssembler* masm,
   // jumping to the target address intended by the caller and that was
   // overwritten by the address of DebugBreakXXX.
   ExternalReference after_break_target =
-      ExternalReference(Debug_Address::AfterBreakTarget(), masm->isolate());
+      ExternalReference::debug_after_break_target_address(masm->isolate());
   __ mov(ip, Operand(after_break_target));
   __ ldr(ip, MemOperand(ip));
   __ Jump(ip);

@@ -542,7 +542,7 @@ void JSGlobalProxy::JSGlobalProxyVerify() {
   VerifyObjectField(JSGlobalProxy::kNativeContextOffset);
   // Make sure that this object has no properties, elements.
   CHECK_EQ(0, properties()->length());
-  CHECK(HasFastObjectElements());
+  CHECK(HasFastSmiElements());
   CHECK_EQ(0, FixedArray::cast(elements())->length());
 }
 
@@ -627,8 +627,9 @@ void Code::CodeVerify() {
                   kCodeAlignment));
   relocation_info()->ObjectVerify();
   Address last_gc_pc = NULL;
+  Isolate* isolate = GetIsolate();
   for (RelocIterator it(this); !it.done(); it.next()) {
-    it.rinfo()->Verify();
+    it.rinfo()->Verify(isolate);
     // Ensure that GC will not iterate twice over the same pointer.
     if (RelocInfo::IsGCRelocMode(it.rinfo()->rmode())) {
       CHECK(it.rinfo()->pc() != last_gc_pc);
@@ -701,13 +702,7 @@ void JSSetIterator::JSSetIteratorVerify() {
   VerifyHeapPointer(table());
   CHECK(table()->IsOrderedHashTable() || table()->IsUndefined());
   CHECK(index()->IsSmi());
-  CHECK(count()->IsSmi());
   CHECK(kind()->IsSmi());
-  VerifyHeapPointer(next_iterator());
-  CHECK(next_iterator()->IsJSSetIterator() || next_iterator()->IsUndefined());
-  VerifyHeapPointer(table());
-  CHECK(previous_iterator()->IsJSSetIterator()
-        || previous_iterator()->IsUndefined());
 }
 
 
@@ -717,13 +712,7 @@ void JSMapIterator::JSMapIteratorVerify() {
   VerifyHeapPointer(table());
   CHECK(table()->IsOrderedHashTable() || table()->IsUndefined());
   CHECK(index()->IsSmi());
-  CHECK(count()->IsSmi());
   CHECK(kind()->IsSmi());
-  VerifyHeapPointer(next_iterator());
-  CHECK(next_iterator()->IsJSMapIterator() || next_iterator()->IsUndefined());
-  VerifyHeapPointer(table());
-  CHECK(previous_iterator()->IsJSMapIterator()
-        || previous_iterator()->IsUndefined());
 }
 
 

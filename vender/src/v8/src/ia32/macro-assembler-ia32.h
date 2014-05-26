@@ -7,7 +7,7 @@
 
 #include "assembler.h"
 #include "frames.h"
-#include "v8globals.h"
+#include "globals.h"
 
 namespace v8 {
 namespace internal {
@@ -204,7 +204,8 @@ class MacroAssembler: public Assembler {
   void DebugBreak();
 
   // Generates function and stub prologue code.
-  void Prologue(PrologueFrameMode frame_mode);
+  void StubPrologue();
+  void Prologue(bool code_pre_aging);
 
   // Enter specific kind of exit frame. Expects the number of
   // arguments in register eax and sets up the number of arguments in
@@ -370,7 +371,6 @@ class MacroAssembler: public Assembler {
                                    Register scratch1,
                                    XMMRegister scratch2,
                                    Label* fail,
-                                   bool specialize_for_processor,
                                    int offset = 0);
 
   // Compare an object's map with the specified map.
@@ -439,12 +439,9 @@ class MacroAssembler: public Assembler {
 
   void TruncateHeapNumberToI(Register result_reg, Register input_reg);
   void TruncateDoubleToI(Register result_reg, XMMRegister input_reg);
-  void TruncateX87TOSToI(Register result_reg);
 
   void DoubleToI(Register result_reg, XMMRegister input_reg,
       XMMRegister scratch, MinusZeroMode minus_zero_mode,
-      Label* conversion_failed, Label::Distance dst = Label::kFar);
-  void X87TOSToI(Register result_reg, MinusZeroMode minus_zero_mode,
       Label* conversion_failed, Label::Distance dst = Label::kFar);
 
   void TaggedToI(Register result_reg, Register input_reg, XMMRegister temp,
@@ -468,8 +465,7 @@ class MacroAssembler: public Assembler {
     j(not_carry, is_smi);
   }
 
-  void LoadUint32(XMMRegister dst, Register src, XMMRegister scratch);
-  void LoadUint32NoSSE2(Register src);
+  void LoadUint32(XMMRegister dst, Register src);
 
   // Jump the register contains a smi.
   inline void JumpIfSmi(Register value,
@@ -500,7 +496,7 @@ class MacroAssembler: public Assembler {
   template<typename Field>
   void DecodeField(Register reg) {
     static const int shift = Field::kShift;
-    static const int mask = (Field::kMask >> Field::kShift) << kSmiTagSize;
+    static const int mask = Field::kMask >> Field::kShift;
     sar(reg, shift);
     and_(reg, Immediate(mask));
   }
@@ -702,10 +698,6 @@ class MacroAssembler: public Assembler {
                                Label* miss,
                                bool miss_on_bound_function = false);
 
-  // Generates code for reporting that an illegal operation has
-  // occurred.
-  void IllegalOperation(int num_arguments);
-
   // Picks out an array index from the hash field.
   // Register use:
   //   hash - holds the index's hash. Clobbered.
@@ -834,9 +826,6 @@ class MacroAssembler: public Assembler {
     ASSERT(!code_object_.is_null());
     return code_object_;
   }
-
-  // Insert code to verify that the x87 stack has the specified depth (0-7)
-  void VerifyX87StackDepth(uint32_t depth);
 
   // Emit code for a truncating division by a constant. The dividend register is
   // unchanged, the result is in edx, and eax gets clobbered.

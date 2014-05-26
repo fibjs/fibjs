@@ -453,35 +453,27 @@ class Factory V8_FINAL {
 
   Handle<JSFunction> NewFunction(Handle<String> name,
                                  Handle<Code> code,
-                                 MaybeHandle<Object> maybe_prototype =
-                                     MaybeHandle<Object>());
-
-  Handle<JSFunction> NewFunctionWithPrototype(Handle<String> name,
-                                              Handle<Object> prototype);
+                                 Handle<Object> prototype,
+                                 bool read_only_prototype = false);
+  Handle<JSFunction> NewFunction(Handle<String> name);
+  Handle<JSFunction> NewFunctionWithoutPrototype(Handle<String> name,
+                                                 Handle<Code> code);
 
   Handle<JSFunction> NewFunctionFromSharedFunctionInfo(
       Handle<SharedFunctionInfo> function_info,
       Handle<Context> context,
       PretenureFlag pretenure = TENURED);
 
-  Handle<JSFunction> NewFunction(MaybeHandle<Object> maybe_prototype,
-                                 Handle<String> name,
-                                 InstanceType type,
-                                 int instance_size,
-                                 Handle<Code> code,
-                                 bool force_initial_map);
   Handle<JSFunction> NewFunction(Handle<String> name,
+                                 Handle<Code> code,
+                                 Handle<Object> prototype,
                                  InstanceType type,
                                  int instance_size,
+                                 bool read_only_prototype = false);
+  Handle<JSFunction> NewFunction(Handle<String> name,
                                  Handle<Code> code,
-                                 bool force_initial_map);
-
-  Handle<JSFunction> NewFunctionWithPrototype(Handle<String> name,
-                                              InstanceType type,
-                                              int instance_size,
-                                              Handle<JSObject> prototype,
-                                              Handle<Code> code,
-                                              bool force_initial_map);
+                                 InstanceType type,
+                                 int instance_size);
 
   // Create a serialized scope info.
   Handle<ScopeInfo> NewScopeInfo(int length);
@@ -497,7 +489,8 @@ class Factory V8_FINAL {
                        Handle<Object> self_reference,
                        bool immovable = false,
                        bool crankshafted = false,
-                       int prologue_offset = Code::kPrologueOffsetNotSet);
+                       int prologue_offset = Code::kPrologueOffsetNotSet,
+                       bool is_debug = false);
 
   Handle<Code> CopyCode(Handle<Code> code);
 
@@ -608,7 +601,8 @@ class Factory V8_FINAL {
       Handle<Code> code,
       Handle<ScopeInfo> scope_info,
       Handle<FixedArray> feedback_vector);
-  Handle<SharedFunctionInfo> NewSharedFunctionInfo(Handle<String> name);
+  Handle<SharedFunctionInfo> NewSharedFunctionInfo(Handle<String> name,
+                                                   MaybeHandle<Code> code);
 
   // Allocate a new type feedback vector
   Handle<FixedArray> NewTypeFeedbackVector(int slot_count);
@@ -670,21 +664,6 @@ class Factory V8_FINAL {
   // Creates a code object that is not yet fully initialized yet.
   inline Handle<Code> NewCodeRaw(int object_size, bool immovable);
 
-  // Initializes a function with a shared part and prototype.
-  // Note: this code was factored out of NewFunction such that other parts of
-  // the VM could use it. Specifically, a function that creates instances of
-  // type JS_FUNCTION_TYPE benefit from the use of this function.
-  inline void InitializeFunction(Handle<JSFunction> function,
-                                 Handle<SharedFunctionInfo> info,
-                                 Handle<Context> context,
-                                 MaybeHandle<Object> maybe_prototype);
-
-  // Creates a function initialized with a shared part.
-  inline Handle<JSFunction> NewFunction(Handle<SharedFunctionInfo> info,
-                                        Handle<Context> context,
-                                        MaybeHandle<Object> maybe_prototype,
-                                        PretenureFlag pretenure = TENURED);
-
   // Create a new map cache.
   Handle<MapCache> NewMapCache(int at_least_space_for);
 
@@ -699,6 +678,24 @@ class Factory V8_FINAL {
 
   // Update the cache with a new number-string pair.
   void SetNumberStringCache(Handle<Object> number, Handle<String> string);
+
+  // Initializes a function with a shared part and prototype.
+  // Note: this code was factored out of NewFunction such that other parts of
+  // the VM could use it. Specifically, a function that creates instances of
+  // type JS_FUNCTION_TYPE benefit from the use of this function.
+  inline void InitializeFunction(Handle<JSFunction> function,
+                                 Handle<SharedFunctionInfo> info,
+                                 Handle<Context> context);
+
+  // Creates a function initialized with a shared part.
+  Handle<JSFunction> NewFunction(Handle<Map> map,
+                                 Handle<SharedFunctionInfo> info,
+                                 Handle<Context> context,
+                                 PretenureFlag pretenure = TENURED);
+
+  Handle<JSFunction> NewFunction(Handle<Map> map,
+                                 Handle<String> name,
+                                 MaybeHandle<Code> maybe_code);
 };
 
 } }  // namespace v8::internal

@@ -63,6 +63,11 @@ void FastCloneShallowArrayStub::InitializeInterfaceDescriptor(
   static Register registers[] = { eax, ebx, ecx };
   descriptor->register_param_count_ = 3;
   descriptor->register_params_ = registers;
+  static Representation representations[] = {
+    Representation::Tagged(),
+    Representation::Smi(),
+    Representation::Tagged() };
+  descriptor->register_param_representations_ = representations;
   descriptor->deoptimization_handler_ =
       Runtime::FunctionForId(
           Runtime::kHiddenCreateArrayLiteralStubBailout)->entry;
@@ -194,6 +199,11 @@ static void InitializeArrayConstructorDescriptor(
     descriptor->stack_parameter_count_ = eax;
     descriptor->register_param_count_ = 3;
     descriptor->register_params_ = registers_variable_args;
+    static Representation representations[] = {
+        Representation::Tagged(),
+        Representation::Tagged(),
+        Representation::Integer32() };
+    descriptor->register_param_representations_ = representations;
   }
 
   descriptor->hint_stack_parameter_count_ = constant_stack_parameter_count;
@@ -221,6 +231,10 @@ static void InitializeInternalArrayConstructorDescriptor(
     descriptor->stack_parameter_count_ = eax;
     descriptor->register_param_count_ = 2;
     descriptor->register_params_ = registers_variable_args;
+    static Representation representations[] = {
+        Representation::Tagged(),
+        Representation::Integer32() };
+    descriptor->register_param_representations_ = representations;
   }
 
   descriptor->hint_stack_parameter_count_ = constant_stack_parameter_count;
@@ -306,6 +320,16 @@ void ElementsTransitionAndStoreStub::InitializeInterfaceDescriptor(
   descriptor->register_params_ = registers;
   descriptor->deoptimization_handler_ =
       FUNCTION_ADDR(ElementsTransitionAndStoreIC_Miss);
+}
+
+
+void ArrayShiftStub::InitializeInterfaceDescriptor(
+    CodeStubInterfaceDescriptor* descriptor) {
+  static Register registers[] = { eax };
+  descriptor->register_param_count_ = 1;
+  descriptor->register_params_ = registers;
+  descriptor->deoptimization_handler_ =
+      Builtins::c_function_address(Builtins::c_ArrayShift);
 }
 
 
@@ -456,9 +480,8 @@ void StoreBufferOverflowStub::Generate(MacroAssembler* masm) {
   // restore them.
   __ pushad();
   if (save_doubles_ == kSaveFPRegs) {
-    CpuFeatureScope scope(masm, SSE2);
-    __ sub(esp, Immediate(kDoubleSize * XMMRegister::kNumRegisters));
-    for (int i = 0; i < XMMRegister::kNumRegisters; i++) {
+    __ sub(esp, Immediate(kDoubleSize * XMMRegister::kMaxNumRegisters));
+    for (int i = 0; i < XMMRegister::kMaxNumRegisters; i++) {
       XMMRegister reg = XMMRegister::from_code(i);
       __ movsd(Operand(esp, i * kDoubleSize), reg);
     }
@@ -473,12 +496,11 @@ void StoreBufferOverflowStub::Generate(MacroAssembler* masm) {
       ExternalReference::store_buffer_overflow_function(isolate()),
       argument_count);
   if (save_doubles_ == kSaveFPRegs) {
-    CpuFeatureScope scope(masm, SSE2);
-    for (int i = 0; i < XMMRegister::kNumRegisters; i++) {
+    for (int i = 0; i < XMMRegister::kMaxNumRegisters; i++) {
       XMMRegister reg = XMMRegister::from_code(i);
       __ movsd(reg, Operand(esp, i * kDoubleSize));
     }
-    __ add(esp, Immediate(kDoubleSize * XMMRegister::kNumRegisters));
+    __ add(esp, Immediate(kDoubleSize * XMMRegister::kMaxNumRegisters));
   }
   __ popad();
   __ ret(0);
@@ -607,15 +629,7 @@ void DoubleToIStub::Generate(MacroAssembler* masm) {
     __ shrd(result_reg, scratch1);
     __ shr_cl(result_reg);
     __ test(ecx, Immediate(32));
-    if (CpuFeatures::IsSupported(CMOV)) {
-      CpuFeatureScope use_cmov(masm, CMOV);
-      __ cmov(not_equal, scratch1, result_reg);
-    } else {
-      Label skip_mov;
-      __ j(equal, &skip_mov, Label::kNear);
-      __ mov(scratch1, result_reg);
-      __ bind(&skip_mov);
-    }
+    __ cmov(not_equal, scratch1, result_reg);
   }
 
   // If the double was negative, negate the integer result.
@@ -627,15 +641,7 @@ void DoubleToIStub::Generate(MacroAssembler* masm) {
   } else {
     __ cmp(exponent_operand, Immediate(0));
   }
-  if (CpuFeatures::IsSupported(CMOV)) {
-    CpuFeatureScope use_cmov(masm, CMOV);
     __ cmov(greater, result_reg, scratch1);
-  } else {
-    Label skip_mov;
-    __ j(less_equal, &skip_mov, Label::kNear);
-    __ mov(result_reg, scratch1);
-    __ bind(&skip_mov);
-  }
 
   // Restore registers
   __ bind(&done);
@@ -726,7 +732,6 @@ void FloatingPointHelper::CheckFloatOperands(MacroAssembler* masm,
 
 
 void MathPowStub::Generate(MacroAssembler* masm) {
-  CpuFeatureScope use_sse2(masm, SSE2);
   Factory* factory = isolate()->factory();
   const Register exponent = eax;
   const Register base = edx;
@@ -2041,48 +2046,18 @@ void ICCompareStub::GenerateGeneric(MacroAssembler* masm) {
   Label non_number_comparison;
   Label unordered;
   __ bind(&generic_heap_number_comparison);
-  if (CpuFeatures::IsSupported(SSE2)) {
-    CpuFeatureScope use_sse2(masm, SSE2);
-    CpuFeatureScope use_cmov(masm, CMOV);
 
-    FloatingPointHelper::LoadSSE2Operands(masm, &non_number_comparison);
-    __ ucomisd(xmm0, xmm1);
+  FloatingPointHelper::LoadSSE2Operands(masm, &non_number_comparison);
+  __ ucomisd(xmm0, xmm1);
+  // Don't base result on EFLAGS when a NaN is involved.
+  __ j(parity_even, &unordered, Label::kNear);
 
-    // Don't base result on EFLAGS when a NaN is involved.
-    __ j(parity_even, &unordered, Label::kNear);
-    // Return a result of -1, 0, or 1, based on EFLAGS.
-    __ mov(eax, 0);  // equal
-    __ mov(ecx, Immediate(Smi::FromInt(1)));
-    __ cmov(above, eax, ecx);
-    __ mov(ecx, Immediate(Smi::FromInt(-1)));
-    __ cmov(below, eax, ecx);
-    __ ret(0);
-  } else {
-    FloatingPointHelper::CheckFloatOperands(
-        masm, &non_number_comparison, ebx);
-    FloatingPointHelper::LoadFloatOperand(masm, eax);
-    FloatingPointHelper::LoadFloatOperand(masm, edx);
-    __ FCmp();
-
-    // Don't base result on EFLAGS when a NaN is involved.
-    __ j(parity_even, &unordered, Label::kNear);
-
-    Label below_label, above_label;
-    // Return a result of -1, 0, or 1, based on EFLAGS.
-    __ j(below, &below_label, Label::kNear);
-    __ j(above, &above_label, Label::kNear);
-
-    __ Move(eax, Immediate(0));
-    __ ret(0);
-
-    __ bind(&below_label);
-    __ mov(eax, Immediate(Smi::FromInt(-1)));
-    __ ret(0);
-
-    __ bind(&above_label);
-    __ mov(eax, Immediate(Smi::FromInt(1)));
-    __ ret(0);
-  }
+  __ mov(eax, 0);  // equal
+  __ mov(ecx, Immediate(Smi::FromInt(1)));
+  __ cmov(above, eax, ecx);
+  __ mov(ecx, Immediate(Smi::FromInt(-1)));
+  __ cmov(below, eax, ecx);
+  __ ret(0);
 
   // If one of the numbers was NaN, then the result is always false.
   // The cc is never not-equal.
@@ -2360,11 +2335,13 @@ static void EmitWrapCase(MacroAssembler* masm, int argc, Label* cont) {
 }
 
 
-void CallFunctionStub::Generate(MacroAssembler* masm) {
+static void CallFunctionNoFeedback(MacroAssembler* masm,
+                                   int argc, bool needs_checks,
+                                   bool call_as_method) {
   // edi : the function to call
   Label slow, non_function, wrap, cont;
 
-  if (NeedsChecks()) {
+  if (needs_checks) {
     // Check that the function really is a JavaScript function.
     __ JumpIfSmi(edi, &non_function);
 
@@ -2374,17 +2351,17 @@ void CallFunctionStub::Generate(MacroAssembler* masm) {
   }
 
   // Fast-case: Just invoke the function.
-  ParameterCount actual(argc_);
+  ParameterCount actual(argc);
 
-  if (CallAsMethod()) {
-    if (NeedsChecks()) {
+  if (call_as_method) {
+    if (needs_checks) {
       EmitContinueIfStrictOrNative(masm, &cont);
     }
 
     // Load the receiver from the stack.
-    __ mov(eax, Operand(esp, (argc_ + 1) * kPointerSize));
+    __ mov(eax, Operand(esp, (argc + 1) * kPointerSize));
 
-    if (NeedsChecks()) {
+    if (call_as_method) {
       __ JumpIfSmi(eax, &wrap);
 
       __ CmpObjectType(eax, FIRST_SPEC_OBJECT_TYPE, ecx);
@@ -2398,17 +2375,22 @@ void CallFunctionStub::Generate(MacroAssembler* masm) {
 
   __ InvokeFunction(edi, actual, JUMP_FUNCTION, NullCallWrapper());
 
-  if (NeedsChecks()) {
+  if (needs_checks) {
     // Slow-case: Non-function called.
     __ bind(&slow);
     // (non_function is bound in EmitSlowCase)
-    EmitSlowCase(isolate(), masm, argc_, &non_function);
+    EmitSlowCase(masm->isolate(), masm, argc, &non_function);
   }
 
-  if (CallAsMethod()) {
+  if (call_as_method) {
     __ bind(&wrap);
-    EmitWrapCase(masm, argc_, &cont);
+    EmitWrapCase(masm, argc, &cont);
   }
+}
+
+
+void CallFunctionStub::Generate(MacroAssembler* masm) {
+  CallFunctionNoFeedback(masm, argc_, NeedsChecks(), CallAsMethod());
 }
 
 
@@ -2488,6 +2470,51 @@ static void EmitLoadTypeFeedbackVector(MacroAssembler* masm, Register vector) {
 }
 
 
+void CallICStub::Generate_MonomorphicArray(MacroAssembler* masm, Label* miss) {
+  // edi - function
+  // ebx - feedback vector
+  // edx - slot id
+  __ LoadGlobalFunction(Context::ARRAY_FUNCTION_INDEX, ecx);
+  __ cmp(edi, ecx);
+  __ j(not_equal, miss);
+
+  __ mov(eax, arg_count());
+  __ mov(ebx, FieldOperand(ebx, edx, times_half_pointer_size,
+                           FixedArray::kHeaderSize));
+  // Verify that ecx contains an AllocationSite
+  __ AssertUndefinedOrAllocationSite(ebx);
+  ArrayConstructorStub stub(masm->isolate(), arg_count());
+  __ TailCallStub(&stub);
+}
+
+
+void CallICStub::Generate_CustomFeedbackCall(MacroAssembler* masm) {
+  // edi - function
+  // ebx - feedback vector
+  // edx - slot id
+  Label miss;
+
+  if (state_.stub_type() == CallIC::MONOMORPHIC_ARRAY) {
+    Generate_MonomorphicArray(masm, &miss);
+  } else {
+    // So far there is only one customer for our custom feedback scheme.
+    UNREACHABLE();
+  }
+
+  __ bind(&miss);
+  GenerateMiss(masm);
+
+  // The slow case, we need this no matter what to complete a call after a miss.
+  CallFunctionNoFeedback(masm,
+                         arg_count(),
+                         true,
+                         CallAsMethod());
+
+  // Unreachable.
+  __ int3();
+}
+
+
 void CallICStub::Generate(MacroAssembler* masm) {
   // edi - function
   // edx - slot id
@@ -2499,6 +2526,11 @@ void CallICStub::Generate(MacroAssembler* masm) {
   ParameterCount actual(argc);
 
   EmitLoadTypeFeedbackVector(masm, ebx);
+
+  if (state_.stub_type() != CallIC::DEFAULT) {
+    Generate_CustomFeedbackCall(masm);
+    return;
+  }
 
   // The checks. First, does edi match the recorded monomorphic target?
   __ cmp(edi, FieldOperand(ebx, edx, times_half_pointer_size,
@@ -2604,28 +2636,20 @@ void CodeStub::GenerateStubsAheadOfTime(Isolate* isolate) {
   // It is important that the store buffer overflow stubs are generated first.
   ArrayConstructorStubBase::GenerateStubsAheadOfTime(isolate);
   CreateAllocationSiteStub::GenerateAheadOfTime(isolate);
-  if (Serializer::enabled(isolate)) {
-    PlatformFeatureScope sse2(isolate, SSE2);
-    BinaryOpICStub::GenerateAheadOfTime(isolate);
-    BinaryOpICWithAllocationSiteStub::GenerateAheadOfTime(isolate);
-  } else {
-    BinaryOpICStub::GenerateAheadOfTime(isolate);
-    BinaryOpICWithAllocationSiteStub::GenerateAheadOfTime(isolate);
-  }
+  BinaryOpICStub::GenerateAheadOfTime(isolate);
+  BinaryOpICWithAllocationSiteStub::GenerateAheadOfTime(isolate);
 }
 
 
 void CodeStub::GenerateFPStubs(Isolate* isolate) {
-  if (CpuFeatures::IsSupported(SSE2)) {
-    CEntryStub save_doubles(isolate, 1, kSaveFPRegs);
-    // Stubs might already be in the snapshot, detect that and don't regenerate,
-    // which would lead to code stub initialization state being messed up.
-    Code* save_doubles_code;
-    if (!save_doubles.FindCodeInCache(&save_doubles_code)) {
-      save_doubles_code = *(save_doubles.GetCode());
-    }
-    isolate->set_fp_stubs_generated(true);
+  CEntryStub save_doubles(isolate, 1, kSaveFPRegs);
+  // Stubs might already be in the snapshot, detect that and don't regenerate,
+  // which would lead to code stub initialization state being messed up.
+  Code* save_doubles_code;
+  if (!save_doubles.FindCodeInCache(&save_doubles_code)) {
+    save_doubles_code = *(save_doubles.GetCode());
   }
+  isolate->set_fp_stubs_generated(true);
 }
 
 
@@ -3246,7 +3270,7 @@ void StringHelper::GenerateHashInit(MacroAssembler* masm,
                                     Register character,
                                     Register scratch) {
   // hash = (seed + character) + ((seed + character) << 10);
-  if (Serializer::enabled(masm->isolate())) {
+  if (masm->serializer_enabled()) {
     __ LoadRoot(scratch, Heap::kHashSeedRootIndex);
     __ SmiUntag(scratch);
     __ add(scratch, character);
@@ -3773,64 +3797,46 @@ void ICCompareStub::GenerateNumbers(MacroAssembler* masm) {
     __ JumpIfNotSmi(eax, &miss);
   }
 
-  // Inlining the double comparison and falling back to the general compare
-  // stub if NaN is involved or SSE2 or CMOV is unsupported.
-  if (CpuFeatures::IsSupported(SSE2) && CpuFeatures::IsSupported(CMOV)) {
-    CpuFeatureScope scope1(masm, SSE2);
-    CpuFeatureScope scope2(masm, CMOV);
+  // Load left and right operand.
+  Label done, left, left_smi, right_smi;
+  __ JumpIfSmi(eax, &right_smi, Label::kNear);
+  __ cmp(FieldOperand(eax, HeapObject::kMapOffset),
+         isolate()->factory()->heap_number_map());
+  __ j(not_equal, &maybe_undefined1, Label::kNear);
+  __ movsd(xmm1, FieldOperand(eax, HeapNumber::kValueOffset));
+  __ jmp(&left, Label::kNear);
+  __ bind(&right_smi);
+  __ mov(ecx, eax);  // Can't clobber eax because we can still jump away.
+  __ SmiUntag(ecx);
+  __ Cvtsi2sd(xmm1, ecx);
 
-    // Load left and right operand.
-    Label done, left, left_smi, right_smi;
-    __ JumpIfSmi(eax, &right_smi, Label::kNear);
-    __ cmp(FieldOperand(eax, HeapObject::kMapOffset),
-           isolate()->factory()->heap_number_map());
-    __ j(not_equal, &maybe_undefined1, Label::kNear);
-    __ movsd(xmm1, FieldOperand(eax, HeapNumber::kValueOffset));
-    __ jmp(&left, Label::kNear);
-    __ bind(&right_smi);
-    __ mov(ecx, eax);  // Can't clobber eax because we can still jump away.
-    __ SmiUntag(ecx);
-    __ Cvtsi2sd(xmm1, ecx);
+  __ bind(&left);
+  __ JumpIfSmi(edx, &left_smi, Label::kNear);
+  __ cmp(FieldOperand(edx, HeapObject::kMapOffset),
+         isolate()->factory()->heap_number_map());
+  __ j(not_equal, &maybe_undefined2, Label::kNear);
+  __ movsd(xmm0, FieldOperand(edx, HeapNumber::kValueOffset));
+  __ jmp(&done);
+  __ bind(&left_smi);
+  __ mov(ecx, edx);  // Can't clobber edx because we can still jump away.
+  __ SmiUntag(ecx);
+  __ Cvtsi2sd(xmm0, ecx);
 
-    __ bind(&left);
-    __ JumpIfSmi(edx, &left_smi, Label::kNear);
-    __ cmp(FieldOperand(edx, HeapObject::kMapOffset),
-           isolate()->factory()->heap_number_map());
-    __ j(not_equal, &maybe_undefined2, Label::kNear);
-    __ movsd(xmm0, FieldOperand(edx, HeapNumber::kValueOffset));
-    __ jmp(&done);
-    __ bind(&left_smi);
-    __ mov(ecx, edx);  // Can't clobber edx because we can still jump away.
-    __ SmiUntag(ecx);
-    __ Cvtsi2sd(xmm0, ecx);
+  __ bind(&done);
+  // Compare operands.
+  __ ucomisd(xmm0, xmm1);
 
-    __ bind(&done);
-    // Compare operands.
-    __ ucomisd(xmm0, xmm1);
+  // Don't base result on EFLAGS when a NaN is involved.
+  __ j(parity_even, &unordered, Label::kNear);
 
-    // Don't base result on EFLAGS when a NaN is involved.
-    __ j(parity_even, &unordered, Label::kNear);
-
-    // Return a result of -1, 0, or 1, based on EFLAGS.
-    // Performing mov, because xor would destroy the flag register.
-    __ mov(eax, 0);  // equal
-    __ mov(ecx, Immediate(Smi::FromInt(1)));
-    __ cmov(above, eax, ecx);
-    __ mov(ecx, Immediate(Smi::FromInt(-1)));
-    __ cmov(below, eax, ecx);
-    __ ret(0);
-  } else {
-    __ mov(ecx, edx);
-    __ and_(ecx, eax);
-    __ JumpIfSmi(ecx, &generic_stub, Label::kNear);
-
-    __ cmp(FieldOperand(eax, HeapObject::kMapOffset),
-           isolate()->factory()->heap_number_map());
-    __ j(not_equal, &maybe_undefined1, Label::kNear);
-    __ cmp(FieldOperand(edx, HeapObject::kMapOffset),
-           isolate()->factory()->heap_number_map());
-    __ j(not_equal, &maybe_undefined2, Label::kNear);
-  }
+  // Return a result of -1, 0, or 1, based on EFLAGS.
+  // Performing mov, because xor would destroy the flag register.
+  __ mov(eax, 0);  // equal
+  __ mov(ecx, Immediate(Smi::FromInt(1)));
+  __ cmov(above, eax, ecx);
+  __ mov(ecx, Immediate(Smi::FromInt(-1)));
+  __ cmov(below, eax, ecx);
+  __ ret(0);
 
   __ bind(&unordered);
   __ bind(&generic_stub);
@@ -4322,15 +4328,8 @@ void StoreBufferOverflowStub::GenerateFixedRegStubsAheadOfTime(
     Isolate* isolate) {
   StoreBufferOverflowStub stub(isolate, kDontSaveFPRegs);
   stub.GetCode();
-  if (CpuFeatures::IsSafeForSnapshot(isolate, SSE2)) {
-    StoreBufferOverflowStub stub2(isolate, kSaveFPRegs);
-    stub2.GetCode();
-  }
-}
-
-
-bool CodeStub::CanUseFPRegisters() {
-  return CpuFeatures::IsSupported(SSE2);
+  StoreBufferOverflowStub stub2(isolate, kSaveFPRegs);
+  stub2.GetCode();
 }
 
 
@@ -4606,15 +4605,14 @@ void StoreArrayLiteralElementStub::Generate(MacroAssembler* masm) {
                                  ecx,
                                  edi,
                                  xmm0,
-                                 &slow_elements_from_double,
-                                 false);
+                                 &slow_elements_from_double);
   __ pop(edx);
   __ ret(0);
 }
 
 
 void StubFailureTrampolineStub::Generate(MacroAssembler* masm) {
-  CEntryStub ces(isolate(), 1, fp_registers_ ? kSaveFPRegs : kDontSaveFPRegs);
+  CEntryStub ces(isolate(), 1, kSaveFPRegs);
   __ call(ces.GetCode(), RelocInfo::CODE_TARGET);
   int parameter_count_offset =
       StubFailureTrampolineFrame::kCallerStackParameterCountFrameOffset;

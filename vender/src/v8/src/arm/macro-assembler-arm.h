@@ -7,7 +7,7 @@
 
 #include "assembler.h"
 #include "frames.h"
-#include "v8globals.h"
+#include "globals.h"
 
 namespace v8 {
 namespace internal {
@@ -519,7 +519,8 @@ class MacroAssembler: public Assembler {
                          Label* not_int32);
 
   // Generates function and stub prologue code.
-  void Prologue(PrologueFrameMode frame_mode);
+  void StubPrologue();
+  void Prologue(bool code_pre_aging);
 
   // Enter exit frame.
   // stack_space - extra stack space, used for alignment before call to C.
@@ -929,10 +930,6 @@ class MacroAssembler: public Assembler {
     return eq;
   }
 
-
-  // Generates code for reporting that an illegal operation has
-  // occurred.
-  void IllegalOperation(int num_arguments);
 
   // Picks out an array index from the hash field.
   // Register use:
@@ -1359,11 +1356,19 @@ class MacroAssembler: public Assembler {
   void NumberOfOwnDescriptors(Register dst, Register map);
 
   template<typename Field>
-  void DecodeField(Register reg) {
+  void DecodeField(Register dst, Register src) {
     static const int shift = Field::kShift;
-    static const int mask = (Field::kMask >> shift) << kSmiTagSize;
-    mov(reg, Operand(reg, LSR, shift));
-    and_(reg, reg, Operand(mask));
+    static const int mask = Field::kMask >> shift;
+    static const int size = Field::kSize;
+    mov(dst, Operand(src, LSR, shift));
+    if (shift + size != 32) {
+      and_(dst, dst, Operand(mask));
+    }
+  }
+
+  template<typename Field>
+  void DecodeField(Register reg) {
+    DecodeField<Field>(reg, reg);
   }
 
   // Activation support.

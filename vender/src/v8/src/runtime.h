@@ -26,21 +26,21 @@ namespace internal {
   F(GetProperty, 2, 1) \
   F(KeyedGetProperty, 2, 1) \
   F(DeleteProperty, 3, 1) \
-  F(HasLocalProperty, 2, 1) \
+  F(HasOwnProperty, 2, 1) \
   F(HasProperty, 2, 1) \
   F(HasElement, 2, 1) \
   F(IsPropertyEnumerable, 2, 1) \
   F(GetPropertyNames, 1, 1) \
   F(GetPropertyNamesFast, 1, 1) \
-  F(GetLocalPropertyNames, 2, 1) \
-  F(GetLocalElementNames, 1, 1) \
+  F(GetOwnPropertyNames, 2, 1) \
+  F(GetOwnElementNames, 1, 1) \
   F(GetInterceptorInfo, 1, 1) \
   F(GetNamedInterceptorPropertyNames, 1, 1) \
   F(GetIndexedInterceptorElementNames, 1, 1) \
   F(GetArgumentsProperty, 1, 1) \
   F(ToFastProperties, 1, 1) \
   F(FinishArrayPrototypeSetup, 1, 1) \
-  F(SpecialArrayFunctions, 1, 1) \
+  F(SpecialArrayFunctions, 0, 1) \
   F(IsSloppyModeFunction, 1, 1) \
   F(GetDefaultReceiver, 1, 1) \
   \
@@ -138,9 +138,9 @@ namespace internal {
   F(MathAcos, 1, 1) \
   F(MathAsin, 1, 1) \
   F(MathAtan, 1, 1) \
-  F(MathFloor, 1, 1) \
+  F(MathFloorRT, 1, 1) \
   F(MathAtan2, 2, 1) \
-  F(MathExp, 1, 1) \
+  F(MathExpRT, 1, 1) \
   F(RoundNumber, 1, 1) \
   F(MathFround, 1, 1) \
   \
@@ -180,7 +180,6 @@ namespace internal {
   F(FunctionSetInstanceClassName, 2, 1) \
   F(FunctionSetLength, 2, 1) \
   F(FunctionSetPrototype, 2, 1) \
-  F(FunctionSetReadOnlyPrototype, 1, 1) \
   F(FunctionGetName, 1, 1) \
   F(FunctionSetName, 2, 1) \
   F(FunctionNameShouldPrintAsAnonymous, 1, 1) \
@@ -201,7 +200,6 @@ namespace internal {
   F(GetV8Version, 0, 1) \
   \
   F(SetCode, 2, 1) \
-  F(SetExpectedNumberOfProperties, 2, 1) \
   \
   F(CreateApiFunction, 2, 1) \
   F(IsTemplate, 1, 1) \
@@ -245,9 +243,6 @@ namespace internal {
   /* ES5 */ \
   F(ObjectFreeze, 1, 1) \
   \
-  /* Harmony microtasks */ \
-  F(GetMicrotaskState, 0, 1) \
-  \
   /* Harmony modules */ \
   F(IsJSModule, 1, 1) \
   \
@@ -280,7 +275,6 @@ namespace internal {
   F(SetCreateIterator, 2, 1) \
   \
   F(SetIteratorNext, 1, 1) \
-  F(SetIteratorClose, 1, 1) \
   \
   /* Harmony maps */ \
   F(MapInitialize, 1, 1) \
@@ -293,7 +287,6 @@ namespace internal {
   F(MapCreateIterator, 2, 1) \
   \
   F(MapIteratorNext, 1, 1) \
-  F(MapIteratorClose, 1, 1) \
   \
   /* Harmony weak maps and sets */ \
   F(WeakCollectionInitialize, 1, 1) \
@@ -303,7 +296,7 @@ namespace internal {
   F(WeakCollectionSet, 3, 1) \
   \
   /* Harmony events */ \
-  F(SetMicrotaskPending, 1, 1) \
+  F(EnqueueMicrotask, 1, 1) \
   F(RunMicrotasks, 0, 1) \
   \
   /* Harmony observe */ \
@@ -362,7 +355,7 @@ namespace internal {
   F(Abort, 1, 1) \
   F(AbortJS, 1, 1) \
   /* ES5 */ \
-  F(LocalKeys, 1, 1) \
+  F(OwnKeys, 1, 1) \
   \
   /* Message objects */ \
   F(MessageGetStartPosition, 1, 1) \
@@ -544,7 +537,6 @@ namespace internal {
   F(SubString, 3, 1) \
   F(StringCompare, 2, 1) \
   F(StringCharCodeAt, 2, 1) \
-  F(Log, 3, 1) \
   F(GetFromCache, 2, 1) \
   \
   /* Compilation */ \
@@ -657,7 +649,6 @@ namespace internal {
   F(DebugBreakInOptimizedCode, 0, 1)                                         \
   F(ClassOf, 1, 1)                                                           \
   F(StringCharCodeAt, 2, 1)                                                  \
-  F(Log, 3, 1)                                                               \
   F(StringAdd, 2, 1)                                                         \
   F(SubString, 3, 1)                                                         \
   F(StringCompare, 2, 1)                                                     \
@@ -687,8 +678,8 @@ namespace internal {
   F(ConstructDouble, 2, 1)                                                   \
   F(DoubleHi, 1, 1)                                                          \
   F(DoubleLo, 1, 1)                                                          \
-  F(MathSqrt, 1, 1)                                                          \
-  F(MathLog, 1, 1)                                                           \
+  F(MathSqrtRT, 1, 1)                                                        \
+  F(MathLogRT, 1, 1)                                                         \
   /* Debugger */                                                             \
   F(DebugCallbackSupportsStepping, 1, 1)
 

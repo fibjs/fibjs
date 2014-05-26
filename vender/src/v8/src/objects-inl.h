@@ -1566,7 +1566,7 @@ inline bool AllocationSite::IncrementMementoFoundCount() {
 
   int value = memento_found_count();
   set_memento_found_count(value + 1);
-  return value == 0;
+  return value == kPretenureMinimumCreated;
 }
 
 
@@ -1587,7 +1587,10 @@ inline bool AllocationSite::DigestPretenuringFeedback() {
           static_cast<double>(found_count) / create_count : 0.0;
   PretenureFlag current_mode = GetPretenureMode();
 
-  if (minimum_mementos_created) {
+  // TODO(hpayer): Add an intermediate state MAYBE_TENURE which collects
+  // more lifetime feedback for tenuring candidates. In the meantime, we
+  // just allow transitions from undecided to tenured or not tenured.
+  if (minimum_mementos_created && pretenure_decision() == kUndecided) {
     PretenureDecision result = ratio >= kPretenureRatio
         ? kTenure
         : kDontTenure;
@@ -4033,12 +4036,12 @@ bool Map::has_non_instance_prototype() {
 
 
 void Map::set_function_with_prototype(bool value) {
-  set_bit_field3(FunctionWithPrototype::update(bit_field3(), value));
+  set_bit_field(FunctionWithPrototype::update(bit_field(), value));
 }
 
 
 bool Map::function_with_prototype() {
-  return FunctionWithPrototype::decode(bit_field3());
+  return FunctionWithPrototype::decode(bit_field());
 }
 
 
@@ -4066,19 +4069,6 @@ void Map::set_is_extensible(bool value) {
 
 bool Map::is_extensible() {
   return ((1 << kIsExtensible) & bit_field2()) != 0;
-}
-
-
-void Map::set_attached_to_shared_function_info(bool value) {
-  if (value) {
-    set_bit_field2(bit_field2() | (1 << kAttachedToSharedFunctionInfo));
-  } else {
-    set_bit_field2(bit_field2() & ~(1 << kAttachedToSharedFunctionInfo));
-  }
-}
-
-bool Map::attached_to_shared_function_info() {
-  return ((1 << kAttachedToSharedFunctionInfo) & bit_field2()) != 0;
 }
 
 
@@ -4145,6 +4135,26 @@ void Map::set_migration_target(bool value) {
 
 bool Map::is_migration_target() {
   return IsMigrationTarget::decode(bit_field3());
+}
+
+
+void Map::set_done_inobject_slack_tracking(bool value) {
+  set_bit_field3(DoneInobjectSlackTracking::update(bit_field3(), value));
+}
+
+
+bool Map::done_inobject_slack_tracking() {
+  return DoneInobjectSlackTracking::decode(bit_field3());
+}
+
+
+void Map::set_construction_count(int value) {
+  set_bit_field3(ConstructionCount::update(bit_field3(), value));
+}
+
+
+int Map::construction_count() {
+  return ConstructionCount::decode(bit_field3());
 }
 
 
@@ -4753,16 +4763,15 @@ ACCESSORS(Map, instance_descriptors, DescriptorArray, kDescriptorsOffset)
 
 
 void Map::set_bit_field3(uint32_t bits) {
-  // Ensure the upper 2 bits have the same value by sign extending it. This is
-  // necessary to be able to use the 31st bit.
-  int value = bits << 1;
-  WRITE_FIELD(this, kBitField3Offset, Smi::FromInt(value >> 1));
+  if (kInt32Size != kPointerSize) {
+    WRITE_UINT32_FIELD(this, kBitField3Offset + kInt32Size, 0);
+  }
+  WRITE_UINT32_FIELD(this, kBitField3Offset, bits);
 }
 
 
 uint32_t Map::bit_field3() {
-  Object* value = READ_FIELD(this, kBitField3Offset);
-  return Smi::cast(value)->value();
+  return READ_UINT32_FIELD(this, kBitField3Offset);
 }
 
 
@@ -4921,6 +4930,7 @@ ACCESSORS(GlobalObject, global_context, Context, kGlobalContextOffset)
 ACCESSORS(GlobalObject, global_receiver, JSObject, kGlobalReceiverOffset)
 
 ACCESSORS(JSGlobalProxy, native_context, Object, kNativeContextOffset)
+ACCESSORS(JSGlobalProxy, hash, Object, kHashOffset)
 
 ACCESSORS(AccessorInfo, name, Object, kNameOffset)
 ACCESSORS_TO_SMI(AccessorInfo, flag, kFlagOffset)
@@ -5048,7 +5058,6 @@ ACCESSORS(SharedFunctionInfo, optimized_code_map, Object,
 ACCESSORS(SharedFunctionInfo, construct_stub, Code, kConstructStubOffset)
 ACCESSORS(SharedFunctionInfo, feedback_vector, FixedArray,
           kFeedbackVectorOffset)
-ACCESSORS(SharedFunctionInfo, initial_map, Object, kInitialMapOffset)
 ACCESSORS(SharedFunctionInfo, instance_class_name, Object,
           kInstanceClassNameOffset)
 ACCESSORS(SharedFunctionInfo, function_data, Object, kFunctionDataOffset)
@@ -5125,7 +5134,7 @@ SMI_ACCESSORS(SharedFunctionInfo, profiler_ticks, kProfilerTicksOffset)
   void holder::set_##name(int value) {                            \
     ASSERT(kHeapObjectTag == 1);                                  \
     ASSERT((value & 0xC0000000) == 0xC0000000 ||                  \
-           (value & 0xC0000000) == 0x000000000);                  \
+           (value & 0xC0000000) == 0x0);                          \
     WRITE_INT_FIELD(this,                                         \
                     offset,                                       \
                     (value << 1) & ~kHeapObjectTag);              \
@@ -5171,28 +5180,6 @@ PSEUDO_SMI_ACCESSORS_HI(SharedFunctionInfo,
                         kProfilerTicksOffset)
 
 #endif
-
-
-int SharedFunctionInfo::construction_count() {
-  return READ_BYTE_FIELD(this, kConstructionCountOffset);
-}
-
-
-void SharedFunctionInfo::set_construction_count(int value) {
-  ASSERT(0 <= value && value < 256);
-  WRITE_BYTE_FIELD(this, kConstructionCountOffset, static_cast<byte>(value));
-}
-
-
-BOOL_ACCESSORS(SharedFunctionInfo,
-               compiler_hints,
-               live_objects_may_exist,
-               kLiveObjectsMayExist)
-
-
-bool SharedFunctionInfo::IsInobjectSlackTrackingInProgress() {
-  return initial_map() != GetHeap()->undefined_value();
-}
 
 
 BOOL_GETTER(SharedFunctionInfo,
@@ -5243,11 +5230,6 @@ BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, dont_inline, kDontInline)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, dont_cache, kDontCache)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, dont_flush, kDontFlush)
 BOOL_ACCESSORS(SharedFunctionInfo, compiler_hints, is_generator, kIsGenerator)
-
-void SharedFunctionInfo::BeforeVisitingPointers() {
-  if (IsInobjectSlackTrackingInProgress()) DetachInitialMap();
-}
-
 
 ACCESSORS(CodeCache, default_cache, FixedArray, kDefaultCacheOffset)
 ACCESSORS(CodeCache, normal_type_cache, Object, kNormalTypeCacheOffset)
@@ -5470,6 +5452,12 @@ bool JSFunction::IsInOptimizationQueue() {
 }
 
 
+bool JSFunction::IsInobjectSlackTrackingInProgress() {
+  return has_initial_map() &&
+      initial_map()->construction_count() != JSFunction::kNoSlackTracking;
+}
+
+
 Code* JSFunction::code() {
   return Code::cast(
       Code::GetObjectFromEntryAddress(FIELD_ADDR(this, kCodeEntryOffset)));
@@ -5680,12 +5668,7 @@ ACCESSORS(JSMap, table, Object, kTableOffset)
 
 ORDERED_HASH_TABLE_ITERATOR_ACCESSORS(table, Object, kTableOffset)
 ORDERED_HASH_TABLE_ITERATOR_ACCESSORS(index, Smi, kIndexOffset)
-ORDERED_HASH_TABLE_ITERATOR_ACCESSORS(count, Smi, kCountOffset)
 ORDERED_HASH_TABLE_ITERATOR_ACCESSORS(kind, Smi, kKindOffset)
-ORDERED_HASH_TABLE_ITERATOR_ACCESSORS(next_iterator, Object,
-                                      kNextIteratorOffset)
-ORDERED_HASH_TABLE_ITERATOR_ACCESSORS(previous_iterator, Object,
-                                      kPreviousIteratorOffset)
 
 #undef ORDERED_HASH_TABLE_ITERATOR_ACCESSORS
 
@@ -5711,6 +5694,19 @@ SMI_ACCESSORS(JSGeneratorObject, continuation, kContinuationOffset)
 ACCESSORS(JSGeneratorObject, operand_stack, FixedArray, kOperandStackOffset)
 SMI_ACCESSORS(JSGeneratorObject, stack_handler_index, kStackHandlerIndexOffset)
 
+bool JSGeneratorObject::is_suspended() {
+  ASSERT_LT(kGeneratorExecuting, kGeneratorClosed);
+  ASSERT_EQ(kGeneratorClosed, 0);
+  return continuation() > 0;
+}
+
+bool JSGeneratorObject::is_closed() {
+  return continuation() == kGeneratorClosed;
+}
+
+bool JSGeneratorObject::is_executing() {
+  return continuation() == kGeneratorExecuting;
+}
 
 JSGeneratorObject* JSGeneratorObject::cast(Object* obj) {
   ASSERT(obj->IsJSGeneratorObject());
@@ -6273,13 +6269,12 @@ bool JSReceiver::HasProperty(Handle<JSReceiver> object,
 }
 
 
-bool JSReceiver::HasLocalProperty(Handle<JSReceiver> object,
-                                  Handle<Name> name) {
+bool JSReceiver::HasOwnProperty(Handle<JSReceiver> object, Handle<Name> name) {
   if (object->IsJSProxy()) {
     Handle<JSProxy> proxy = Handle<JSProxy>::cast(object);
     return JSProxy::HasPropertyWithHandler(proxy, name);
   }
-  return GetLocalPropertyAttribute(object, name) != ABSENT;
+  return GetOwnPropertyAttribute(object, name) != ABSENT;
 }
 
 
@@ -6314,7 +6309,7 @@ bool JSGlobalProxy::IsDetachedFrom(GlobalObject* global) {
 }
 
 
-Handle<Object> JSReceiver::GetOrCreateIdentityHash(Handle<JSReceiver> object) {
+Handle<Smi> JSReceiver::GetOrCreateIdentityHash(Handle<JSReceiver> object) {
   return object->IsJSProxy()
       ? JSProxy::GetOrCreateIdentityHash(Handle<JSProxy>::cast(object))
       : JSObject::GetOrCreateIdentityHash(Handle<JSObject>::cast(object));
@@ -6338,7 +6333,7 @@ bool JSReceiver::HasElement(Handle<JSReceiver> object, uint32_t index) {
 }
 
 
-bool JSReceiver::HasLocalElement(Handle<JSReceiver> object, uint32_t index) {
+bool JSReceiver::HasOwnElement(Handle<JSReceiver> object, uint32_t index) {
   if (object->IsJSProxy()) {
     Handle<JSProxy> proxy = Handle<JSProxy>::cast(object);
     return JSProxy::HasElementWithHandler(proxy, index);
@@ -6348,7 +6343,7 @@ bool JSReceiver::HasLocalElement(Handle<JSReceiver> object, uint32_t index) {
 }
 
 
-PropertyAttributes JSReceiver::GetLocalElementAttribute(
+PropertyAttributes JSReceiver::GetOwnElementAttribute(
     Handle<JSReceiver> object, uint32_t index) {
   if (object->IsJSProxy()) {
     return JSProxy::GetElementAttributeWithHandler(

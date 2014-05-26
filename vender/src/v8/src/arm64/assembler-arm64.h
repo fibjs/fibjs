@@ -8,12 +8,12 @@
 #include <list>
 #include <map>
 
+#include "cpu.h"
 #include "globals.h"
 #include "utils.h"
 #include "assembler.h"
 #include "serialize.h"
 #include "arm64/instructions-arm64.h"
-#include "arm64/cpu-arm64.h"
 
 
 namespace v8 {
@@ -66,6 +66,7 @@ struct CPURegister {
   bool IsValidFPRegister() const;
   bool IsNone() const;
   bool Is(const CPURegister& other) const;
+  bool Aliases(const CPURegister& other) const;
 
   bool IsZero() const;
   bool IsSP() const;
@@ -561,6 +562,11 @@ class CPURegList {
     return size_in_bits / kBitsPerByte;
   }
 
+  unsigned TotalSizeInBytes() const {
+    ASSERT(IsValid());
+    return RegisterSizeInBytes() * Count();
+  }
+
  private:
   RegList list_;
   unsigned size_;
@@ -649,7 +655,7 @@ class Operand {
   // Relocation information.
   RelocInfo::Mode rmode() const { return rmode_; }
   void set_rmode(RelocInfo::Mode rmode) { rmode_ = rmode; }
-  bool NeedsRelocation(Isolate* isolate) const;
+  bool NeedsRelocation(const Assembler* assembler) const;
 
   // Helpers
   inline static Operand UntagSmi(Register smi);
@@ -669,6 +675,7 @@ class Operand {
 // MemOperand represents a memory operand in a load or store instruction.
 class MemOperand {
  public:
+  inline explicit MemOperand();
   inline explicit MemOperand(Register base,
                              ptrdiff_t offset = 0,
                              AddrMode addrmode = Offset);
@@ -781,11 +788,15 @@ class Assembler : public AssemblerBase {
                                           ConstantPoolArray* constant_pool);
   inline static void set_target_address_at(Address pc,
                                            ConstantPoolArray* constant_pool,
-                                           Address target);
+                                           Address target,
+                                           ICacheFlushMode icache_flush_mode =
+                                               FLUSH_ICACHE_IF_NEEDED);
   static inline Address target_address_at(Address pc, Code* code);
   static inline void set_target_address_at(Address pc,
                                            Code* code,
-                                           Address target);
+                                           Address target,
+                                           ICacheFlushMode icache_flush_mode =
+                                               FLUSH_ICACHE_IF_NEEDED);
 
   // Return the code target address at a call site from the return address of
   // that call in the instruction stream.
@@ -1748,6 +1759,13 @@ class Assembler : public AssemblerBase {
   inline static Instr ImmCondCmp(unsigned imm);
   inline static Instr Nzcv(StatusFlags nzcv);
 
+  static bool IsImmAddSub(int64_t immediate);
+  static bool IsImmLogical(uint64_t value,
+                           unsigned width,
+                           unsigned* n,
+                           unsigned* imm_s,
+                           unsigned* imm_r);
+
   // MemOperand offset encoding.
   inline static Instr ImmLSUnsigned(int imm12);
   inline static Instr ImmLS(int imm9);
@@ -1861,11 +1879,6 @@ class Assembler : public AssemblerBase {
                         unsigned imm_s,
                         unsigned imm_r,
                         LogicalOp op);
-  static bool IsImmLogical(uint64_t value,
-                           unsigned width,
-                           unsigned* n,
-                           unsigned* imm_s,
-                           unsigned* imm_r);
 
   void ConditionalCompare(const Register& rn,
                           const Operand& operand,
@@ -1896,7 +1909,6 @@ class Assembler : public AssemblerBase {
               const Operand& operand,
               FlagsUpdate S,
               AddSubOp op);
-  static bool IsImmAddSub(int64_t immediate);
 
   static bool IsImmFP32(float imm);
   static bool IsImmFP64(double imm);

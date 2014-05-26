@@ -450,7 +450,7 @@ void StubCompiler::GenerateCheckPropertyCell(MacroAssembler* masm,
       JSGlobalObject::EnsurePropertyCell(global, name);
   ASSERT(cell->value()->IsTheHole());
   Handle<Oddball> the_hole = masm->isolate()->factory()->the_hole_value();
-  if (Serializer::enabled(masm->isolate())) {
+  if (masm->serializer_enabled()) {
     __ mov(scratch, Immediate(cell));
     __ cmp(FieldOperand(scratch, PropertyCell::kValueOffset),
            Immediate(the_hole));
@@ -527,34 +527,17 @@ void StoreStubCompiler::GenerateStoreTransition(MacroAssembler* masm,
 
     __ JumpIfNotSmi(value_reg, &heap_number);
     __ SmiUntag(value_reg);
-    if (CpuFeatures::IsSupported(SSE2)) {
-      CpuFeatureScope use_sse2(masm, SSE2);
-      __ Cvtsi2sd(xmm0, value_reg);
-    } else {
-      __ push(value_reg);
-      __ fild_s(Operand(esp, 0));
-      __ pop(value_reg);
-    }
+    __ Cvtsi2sd(xmm0, value_reg);
     __ SmiTag(value_reg);
     __ jmp(&do_store);
 
     __ bind(&heap_number);
     __ CheckMap(value_reg, masm->isolate()->factory()->heap_number_map(),
                 miss_label, DONT_DO_SMI_CHECK);
-    if (CpuFeatures::IsSupported(SSE2)) {
-      CpuFeatureScope use_sse2(masm, SSE2);
-      __ movsd(xmm0, FieldOperand(value_reg, HeapNumber::kValueOffset));
-    } else {
-      __ fld_d(FieldOperand(value_reg, HeapNumber::kValueOffset));
-    }
+    __ movsd(xmm0, FieldOperand(value_reg, HeapNumber::kValueOffset));
 
     __ bind(&do_store);
-    if (CpuFeatures::IsSupported(SSE2)) {
-      CpuFeatureScope use_sse2(masm, SSE2);
-      __ movsd(FieldOperand(storage_reg, HeapNumber::kValueOffset), xmm0);
-    } else {
-      __ fstp_d(FieldOperand(storage_reg, HeapNumber::kValueOffset));
-    }
+    __ movsd(FieldOperand(storage_reg, HeapNumber::kValueOffset), xmm0);
   }
 
   // Stub never generated for non-global objects that require access
@@ -721,32 +704,15 @@ void StoreStubCompiler::GenerateStoreField(MacroAssembler* masm,
     Label do_store, heap_number;
     __ JumpIfNotSmi(value_reg, &heap_number);
     __ SmiUntag(value_reg);
-    if (CpuFeatures::IsSupported(SSE2)) {
-      CpuFeatureScope use_sse2(masm, SSE2);
-      __ Cvtsi2sd(xmm0, value_reg);
-    } else {
-      __ push(value_reg);
-      __ fild_s(Operand(esp, 0));
-      __ pop(value_reg);
-    }
+    __ Cvtsi2sd(xmm0, value_reg);
     __ SmiTag(value_reg);
     __ jmp(&do_store);
     __ bind(&heap_number);
     __ CheckMap(value_reg, masm->isolate()->factory()->heap_number_map(),
                 miss_label, DONT_DO_SMI_CHECK);
-    if (CpuFeatures::IsSupported(SSE2)) {
-      CpuFeatureScope use_sse2(masm, SSE2);
-      __ movsd(xmm0, FieldOperand(value_reg, HeapNumber::kValueOffset));
-    } else {
-      __ fld_d(FieldOperand(value_reg, HeapNumber::kValueOffset));
-    }
+    __ movsd(xmm0, FieldOperand(value_reg, HeapNumber::kValueOffset));
     __ bind(&do_store);
-    if (CpuFeatures::IsSupported(SSE2)) {
-      CpuFeatureScope use_sse2(masm, SSE2);
-      __ movsd(FieldOperand(scratch1, HeapNumber::kValueOffset), xmm0);
-    } else {
-      __ fstp_d(FieldOperand(scratch1, HeapNumber::kValueOffset));
-    }
+    __ movsd(FieldOperand(scratch1, HeapNumber::kValueOffset), xmm0);
     // Return the value (register eax).
     ASSERT(value_reg.is(eax));
     __ ret(0);
@@ -1177,17 +1143,6 @@ void LoadStubCompiler::GenerateLoadInterceptor(
 }
 
 
-void StubCompiler::GenerateBooleanCheck(Register object, Label* miss) {
-  Label success;
-  // Check that the object is a boolean.
-  __ cmp(object, factory()->true_value());
-  __ j(equal, &success);
-  __ cmp(object, factory()->false_value());
-  __ j(not_equal, miss);
-  __ bind(&success);
-}
-
-
 Handle<Code> StoreStubCompiler::CompileStoreCallback(
     Handle<JSObject> object,
     Handle<JSObject> holder,
@@ -1424,7 +1379,7 @@ Handle<Code> LoadStubCompiler::CompileLoadGlobal(
 
   HandlerFrontendHeader(type, receiver(), global, name, &miss);
   // Get the value from the cell.
-  if (Serializer::enabled(isolate())) {
+  if (masm()->serializer_enabled()) {
     __ mov(eax, Immediate(cell));
     __ mov(eax, FieldOperand(eax, PropertyCell::kValueOffset));
   } else {

@@ -56,7 +56,7 @@ static V8_INLINE void __cpuid(int cpu_info[4], int info_type) {
 
 #endif  // !V8_LIBC_MSVCRT
 
-#elif V8_HOST_ARCH_ARM || V8_HOST_ARCH_MIPS
+#elif V8_HOST_ARCH_ARM || V8_HOST_ARCH_ARM64 || V8_HOST_ARCH_MIPS
 
 #if V8_OS_LINUX
 
@@ -206,6 +206,7 @@ class CPUInfo V8_FINAL BASE_EMBEDDED {
   size_t datalen_;
 };
 
+#if V8_HOST_ARCH_ARM || V8_HOST_ARCH_MIPS
 
 // Checks that a space-separated list of items contains one given 'item'.
 static bool HasListItem(const char* list, const char* item) {
@@ -230,6 +231,8 @@ static bool HasListItem(const char* list, const char* item) {
   }
   return false;
 }
+
+#endif  // V8_HOST_ARCH_ARM || V8_HOST_ARCH_MIPS
 
 #endif  // V8_OS_LINUX
 
@@ -464,18 +467,32 @@ CPU::CPU() : stepping_(0),
   has_fpu_ = HasListItem(cpu_model, "FPU");
   delete[] cpu_model;
 
-#endif
-}
+#elif V8_HOST_ARCH_ARM64
 
+  CPUInfo cpu_info;
 
-// static
-int CPU::NumberOfProcessorsOnline() {
-#if V8_OS_WIN
-  SYSTEM_INFO info;
-  GetSystemInfo(&info);
-  return info.dwNumberOfProcessors;
-#else
-  return static_cast<int>(sysconf(_SC_NPROCESSORS_ONLN));
+  // Extract implementor from the "CPU implementer" field.
+  char* implementer = cpu_info.ExtractField("CPU implementer");
+  if (implementer != NULL) {
+    char* end ;
+    implementer_ = strtol(implementer, &end, 0);
+    if (end == implementer) {
+      implementer_ = 0;
+    }
+    delete[] implementer;
+  }
+
+  // Extract part number from the "CPU part" field.
+  char* part = cpu_info.ExtractField("CPU part");
+  if (part != NULL) {
+    char* end ;
+    part_ = strtol(part, &end, 0);
+    if (end == part) {
+      part_ = 0;
+    }
+    delete[] part;
+  }
+
 #endif
 }
 

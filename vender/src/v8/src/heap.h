@@ -9,6 +9,7 @@
 
 #include "allocation.h"
 #include "assert-scope.h"
+#include "counters.h"
 #include "globals.h"
 #include "incremental-marking.h"
 #include "list.h"
@@ -17,8 +18,6 @@
 #include "spaces.h"
 #include "splay-tree-inl.h"
 #include "store-buffer.h"
-#include "v8-counters.h"
-#include "v8globals.h"
 
 namespace v8 {
 namespace internal {
@@ -196,7 +195,7 @@ namespace internal {
   V(Symbol, megamorphic_symbol, MegamorphicSymbol)                             \
   V(FixedArray, materialized_objects, MaterializedObjects)                     \
   V(FixedArray, allocation_sites_scratchpad, AllocationSitesScratchpad)        \
-  V(JSObject, microtask_state, MicrotaskState)
+  V(FixedArray, microtask_queue, MicrotaskQueue)
 
 // Entries in this list are limited to Smis and are not visited during GC.
 #define SMI_ROOT_LIST(V)                                                       \
@@ -546,12 +545,12 @@ enum ArrayStorageAllocationMode {
 
 class Heap {
  public:
-  // Configure heap size before setup. Return false if the heap has been
+  // Configure heap size in MB before setup. Return false if the heap has been
   // set up already.
-  bool ConfigureHeap(int max_semispace_size,
-                     intptr_t max_old_gen_size,
-                     intptr_t max_executable_size,
-                     intptr_t code_range_size);
+  bool ConfigureHeap(int max_semi_space_size,
+                     int max_old_space_size,
+                     int max_executable_size,
+                     int code_range_size);
   bool ConfigureHeapDefault();
 
   // Prepares the heap, setting up memory areas that are needed in the isolate
@@ -581,7 +580,7 @@ class Heap {
   intptr_t MaxReserved() {
     return 4 * reserved_semispace_size_ + max_old_generation_size_;
   }
-  int MaxSemiSpaceSize() { return max_semispace_size_; }
+  int MaxSemiSpaceSize() { return max_semi_space_size_; }
   int ReservedSemiSpaceSize() { return reserved_semispace_size_; }
   int InitialSemiSpaceSize() { return initial_semispace_size_; }
   intptr_t MaxOldGenerationSize() { return max_old_generation_size_; }
@@ -767,7 +766,7 @@ class Heap {
 
   // Ensure that we have swept all spaces in such a way that we can iterate
   // over all objects.  May cause a GC.
-  void EnsureHeapIsIterable();
+  void MakeHeapIterable();
 
   // Notify the heap that a context has been disposed.
   int NotifyContextDisposed();
@@ -833,17 +832,19 @@ class Heap {
   void set_native_contexts_list(Object* object) {
     native_contexts_list_ = object;
   }
-  Object* native_contexts_list() { return native_contexts_list_; }
+  Object* native_contexts_list() const { return native_contexts_list_; }
 
   void set_array_buffers_list(Object* object) {
     array_buffers_list_ = object;
   }
-  Object* array_buffers_list() { return array_buffers_list_; }
+  Object* array_buffers_list() const { return array_buffers_list_; }
 
   void set_allocation_sites_list(Object* object) {
     allocation_sites_list_ = object;
   }
   Object* allocation_sites_list() { return allocation_sites_list_; }
+
+  // Used in CreateAllocationSiteStub and the (de)serializer.
   Object** allocation_sites_list_address() { return &allocation_sites_list_; }
 
   Object* weak_object_to_code_table() { return weak_object_to_code_table_; }
@@ -934,11 +935,6 @@ class Heap {
 
   Address* store_buffer_top_address() {
     return reinterpret_cast<Address*>(&roots_[kStoreBufferTopRootIndex]);
-  }
-
-  // Get address of native contexts list for serialization support.
-  Object** native_contexts_list_address() {
-    return &native_contexts_list_;
   }
 
 #ifdef VERIFY_HEAP
@@ -1038,20 +1034,10 @@ class Heap {
   inline int64_t AdjustAmountOfExternalAllocatedMemory(
       int64_t change_in_bytes);
 
-  // This is only needed for testing high promotion mode.
-  void SetNewSpaceHighPromotionModeActive(bool mode) {
-    new_space_high_promotion_mode_active_ = mode;
-  }
-
   // Returns the allocation mode (pre-tenuring) based on observed promotion
   // rates of previous collections.
   inline PretenureFlag GetPretenureMode() {
-    return FLAG_pretenuring && new_space_high_promotion_mode_active_
-        ? TENURED : NOT_TENURED;
-  }
-
-  inline Address* NewSpaceHighPromotionModeActiveAddress() {
-    return reinterpret_cast<Address*>(&new_space_high_promotion_mode_active_);
+    return FLAG_pretenuring ? TENURED : NOT_TENURED;
   }
 
   inline intptr_t PromotedTotalSize() {
@@ -1072,25 +1058,39 @@ class Heap {
   static const intptr_t kMinimumOldGenerationAllocationLimit =
       8 * (Page::kPageSize > MB ? Page::kPageSize : MB);
 
-  static const int kLumpOfMemory = (i::kPointerSize / 4) * i::MB;
+  static const int kPointerMultiplier = i::kPointerSize / 4;
 
-  // The new space size has to be a power of 2.
-  static const int kMaxNewSpaceSizeLowMemoryDevice = 2 * kLumpOfMemory;
-  static const int kMaxNewSpaceSizeMediumMemoryDevice = 8 * kLumpOfMemory;
-  static const int kMaxNewSpaceSizeHighMemoryDevice = 16 * kLumpOfMemory;
-  static const int kMaxNewSpaceSizeHugeMemoryDevice = 16 * kLumpOfMemory;
+  // The new space size has to be a power of 2. Sizes are in MB.
+  static const int kMaxSemiSpaceSizeLowMemoryDevice =
+      1 * kPointerMultiplier;
+  static const int kMaxSemiSpaceSizeMediumMemoryDevice =
+      4 * kPointerMultiplier;
+  static const int kMaxSemiSpaceSizeHighMemoryDevice =
+      8 * kPointerMultiplier;
+  static const int kMaxSemiSpaceSizeHugeMemoryDevice =
+      8 * kPointerMultiplier;
 
   // The old space size has to be a multiple of Page::kPageSize.
-  static const int kMaxOldSpaceSizeLowMemoryDevice = 128 * kLumpOfMemory;
-  static const int kMaxOldSpaceSizeMediumMemoryDevice = 256 * kLumpOfMemory;
-  static const int kMaxOldSpaceSizeHighMemoryDevice = 512 * kLumpOfMemory;
-  static const int kMaxOldSpaceSizeHugeMemoryDevice = 700 * kLumpOfMemory;
+  // Sizes are in MB.
+  static const int kMaxOldSpaceSizeLowMemoryDevice =
+      128 * kPointerMultiplier;
+  static const int kMaxOldSpaceSizeMediumMemoryDevice =
+      256 * kPointerMultiplier;
+  static const int kMaxOldSpaceSizeHighMemoryDevice =
+      512 * kPointerMultiplier;
+  static const int kMaxOldSpaceSizeHugeMemoryDevice =
+      700 * kPointerMultiplier;
 
   // The executable size has to be a multiple of Page::kPageSize.
-  static const int kMaxExecutableSizeLowMemoryDevice = 128 * kLumpOfMemory;
-  static const int kMaxExecutableSizeMediumMemoryDevice = 256 * kLumpOfMemory;
-  static const int kMaxExecutableSizeHighMemoryDevice = 512 * kLumpOfMemory;
-  static const int kMaxExecutableSizeHugeMemoryDevice = 700 * kLumpOfMemory;
+  // Sizes are in MB.
+  static const int kMaxExecutableSizeLowMemoryDevice =
+      128 * kPointerMultiplier;
+  static const int kMaxExecutableSizeMediumMemoryDevice =
+      256 * kPointerMultiplier;
+  static const int kMaxExecutableSizeHighMemoryDevice =
+      512 * kPointerMultiplier;
+  static const int kMaxExecutableSizeHugeMemoryDevice =
+      700 * kPointerMultiplier;
 
   intptr_t OldGenerationAllocationLimit(intptr_t old_gen_size) {
     intptr_t limit = FLAG_stress_compaction
@@ -1176,9 +1176,18 @@ class Heap {
   // Check new space expansion criteria and expand semispaces if it was hit.
   void CheckNewSpaceExpansionCriteria();
 
+  inline void IncrementPromotedObjectsSize(int object_size) {
+    ASSERT(object_size > 0);
+    promoted_objects_size_ += object_size;
+  }
+
+  inline void IncrementSemiSpaceCopiedObjectSize(int object_size) {
+    ASSERT(object_size > 0);
+    semi_space_copied_object_size_ += object_size;
+  }
+
   inline void IncrementYoungSurvivorsCounter(int survived) {
     ASSERT(survived >= 0);
-    young_survivors_after_last_gc_ = survived;
     survived_since_last_expansion_ += survived;
   }
 
@@ -1489,7 +1498,7 @@ class Heap {
 
   intptr_t code_range_size_;
   int reserved_semispace_size_;
-  int max_semispace_size_;
+  int max_semi_space_size_;
   int initial_semispace_size_;
   intptr_t max_old_generation_size_;
   intptr_t max_executable_size_;
@@ -1529,6 +1538,7 @@ class Heap {
   LargeObjectSpace* lo_space_;
   HeapState gc_state_;
   int gc_post_processing_depth_;
+  Address new_space_top_after_last_gc_;
 
   // Returns the amount of external memory registered since last global gc.
   int64_t PromotedExternalMemorySize();
@@ -1560,11 +1570,6 @@ class Heap {
   // remain until the next failure and garbage collection.
   int allocation_timeout_;
 #endif  // DEBUG
-
-  // Indicates that the new space should be kept small due to high promotion
-  // rates caused by the mutator allocating a lot of long-lived objects.
-  // TODO(hpayer): change to bool if no longer accessed from generated code
-  intptr_t new_space_high_promotion_mode_active_;
 
   // Limit that triggers a global GC on the next (normally caused) GC.  This
   // is checked when we have already decided to do a GC to help determine
@@ -1963,9 +1968,9 @@ class Heap {
   // Code to be run before and after mark-compact.
   void MarkCompactPrologue();
 
-  void ProcessNativeContexts(WeakObjectRetainer* retainer, bool record_slots);
-  void ProcessArrayBuffers(WeakObjectRetainer* retainer, bool record_slots);
-  void ProcessAllocationSites(WeakObjectRetainer* retainer, bool record_slots);
+  void ProcessNativeContexts(WeakObjectRetainer* retainer);
+  void ProcessArrayBuffers(WeakObjectRetainer* retainer);
+  void ProcessAllocationSites(WeakObjectRetainer* retainer);
 
   // Deopts all code that contains allocation instruction which are tenured or
   // not tenured. Moreover it clears the pretenuring allocation site statistics.
@@ -2006,71 +2011,23 @@ class Heap {
   void AddAllocationSiteToScratchpad(AllocationSite* site,
                                      ScratchpadSlotMode mode);
 
-  void UpdateSurvivalRateTrend(int start_new_space_size);
-
-  enum SurvivalRateTrend { INCREASING, STABLE, DECREASING, FLUCTUATING };
+  void UpdateSurvivalStatistics(int start_new_space_size);
 
   static const int kYoungSurvivalRateHighThreshold = 90;
-  static const int kYoungSurvivalRateLowThreshold = 10;
   static const int kYoungSurvivalRateAllowedDeviation = 15;
 
-  static const int kOldSurvivalRateLowThreshold = 20;
+  static const int kOldSurvivalRateLowThreshold = 10;
 
-  int young_survivors_after_last_gc_;
   int high_survival_rate_period_length_;
-  int low_survival_rate_period_length_;
-  double survival_rate_;
-  SurvivalRateTrend previous_survival_rate_trend_;
-  SurvivalRateTrend survival_rate_trend_;
+  intptr_t promoted_objects_size_;
+  double promotion_rate_;
+  intptr_t semi_space_copied_object_size_;
+  double semi_space_copied_rate_;
 
-  void set_survival_rate_trend(SurvivalRateTrend survival_rate_trend) {
-    ASSERT(survival_rate_trend != FLUCTUATING);
-    previous_survival_rate_trend_ = survival_rate_trend_;
-    survival_rate_trend_ = survival_rate_trend;
-  }
-
-  SurvivalRateTrend survival_rate_trend() {
-    if (survival_rate_trend_ == STABLE) {
-      return STABLE;
-    } else if (previous_survival_rate_trend_ == STABLE) {
-      return survival_rate_trend_;
-    } else if (survival_rate_trend_ != previous_survival_rate_trend_) {
-      return FLUCTUATING;
-    } else {
-      return survival_rate_trend_;
-    }
-  }
-
-  bool IsStableOrIncreasingSurvivalTrend() {
-    switch (survival_rate_trend()) {
-      case STABLE:
-      case INCREASING:
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  bool IsStableOrDecreasingSurvivalTrend() {
-    switch (survival_rate_trend()) {
-      case STABLE:
-      case DECREASING:
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  bool IsIncreasingSurvivalTrend() {
-    return survival_rate_trend() == INCREASING;
-  }
-
+  // TODO(hpayer): Allocation site pretenuring may make this method obsolete.
+  // Re-visit incremental marking heuristics.
   bool IsHighSurvivalRate() {
     return high_survival_rate_period_length_ > 0;
-  }
-
-  bool IsLowSurvivalRate() {
-    return low_survival_rate_period_length_ > 0;
   }
 
   void SelectScavengingVisitorsTable();
@@ -2368,6 +2325,9 @@ class SpaceIterator : public Malloced {
 // aggregates the specific iterators for the different spaces as
 // these can only iterate over one space only.
 //
+// HeapIterator ensures there is no allocation during its lifetime
+// (using an embedded DisallowHeapAllocation instance).
+//
 // HeapIterator can skip free list nodes (that is, de-allocated heap
 // objects that still remain in the heap). As implementation of free
 // nodes filtering uses GC marks, it can't be used during MS/MC GC
@@ -2390,12 +2350,18 @@ class HeapIterator BASE_EMBEDDED {
   void reset();
 
  private:
+  struct MakeHeapIterableHelper {
+    explicit MakeHeapIterableHelper(Heap* heap) { heap->MakeHeapIterable(); }
+  };
+
   // Perform the initialization.
   void Init();
   // Perform all necessary shutdown (destruction) work.
   void Shutdown();
   HeapObject* NextObject();
 
+  MakeHeapIterableHelper make_heap_iterable_helper_;
+  DisallowHeapAllocation no_heap_allocation_;
   Heap* heap_;
   HeapObjectsFiltering filtering_;
   HeapObjectsFilter* filter_;
@@ -2589,10 +2555,6 @@ class GCTracer BASE_EMBEDDED {
   // Sets the full GC count.
   void set_full_gc_count(int count) { full_gc_count_ = count; }
 
-  void increment_promoted_objects_size(int object_size) {
-    promoted_objects_size_ += object_size;
-  }
-
   void increment_nodes_died_in_new_space() {
     nodes_died_in_new_space_++;
   }
@@ -2645,9 +2607,6 @@ class GCTracer BASE_EMBEDDED {
   // Amount of time spent in mutator that is time elapsed between end of the
   // previous collection and the beginning of the current one.
   double spent_in_mutator_;
-
-  // Size of objects promoted during the current collection.
-  intptr_t promoted_objects_size_;
 
   // Number of died nodes in the new space.
   int nodes_died_in_new_space_;

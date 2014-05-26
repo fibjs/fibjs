@@ -347,7 +347,7 @@ inline Condition ReverseCondition(Condition cc) {
       return greater_equal;
     default:
       return cc;
-  };
+  }
 }
 
 
@@ -437,84 +437,6 @@ class Operand BASE_EMBEDDED {
 };
 
 
-// CpuFeatures keeps track of which features are supported by the target CPU.
-// Supported features must be enabled by a CpuFeatureScope before use.
-// Example:
-//   if (assembler->IsSupported(SSE3)) {
-//     CpuFeatureScope fscope(assembler, SSE3);
-//     // Generate SSE3 floating point code.
-//   } else {
-//     // Generate standard SSE2 floating point code.
-//   }
-class CpuFeatures : public AllStatic {
- public:
-  // Detect features of the target CPU. Set safe defaults if the serializer
-  // is enabled (snapshots must be portable).
-  static void Probe(bool serializer_enabled);
-
-  // Check whether a feature is supported by the target CPU.
-  static bool IsSupported(CpuFeature f) {
-    if (Check(f, cross_compile_)) return true;
-    ASSERT(initialized_);
-    if (f == SSE3 && !FLAG_enable_sse3) return false;
-    if (f == SSE4_1 && !FLAG_enable_sse4_1) return false;
-    if (f == CMOV && !FLAG_enable_cmov) return false;
-    if (f == SAHF && !FLAG_enable_sahf) return false;
-    return Check(f, supported_);
-  }
-
-  static bool IsFoundByRuntimeProbingOnly(CpuFeature f) {
-    ASSERT(initialized_);
-    return Check(f, found_by_runtime_probing_only_);
-  }
-
-  static bool IsSafeForSnapshot(Isolate* isolate, CpuFeature f) {
-    return Check(f, cross_compile_) ||
-           (IsSupported(f) &&
-            (!Serializer::enabled(isolate) || !IsFoundByRuntimeProbingOnly(f)));
-  }
-
-  static bool VerifyCrossCompiling() {
-    return cross_compile_ == 0;
-  }
-
-  static bool VerifyCrossCompiling(CpuFeature f) {
-    uint64_t mask = flag2set(f);
-    return cross_compile_ == 0 ||
-           (cross_compile_ & mask) == mask;
-  }
-
-  static bool SupportsCrankshaft() { return true; }
-
- private:
-  static bool Check(CpuFeature f, uint64_t set) {
-    return (set & flag2set(f)) != 0;
-  }
-
-  static uint64_t flag2set(CpuFeature f) {
-    return static_cast<uint64_t>(1) << f;
-  }
-
-  // Safe defaults include CMOV for X64. It is always available, if
-  // anyone checks, but they shouldn't need to check.
-  // The required user mode extensions in X64 are (from AMD64 ABI Table A.1):
-  //   fpu, tsc, cx8, cmov, mmx, sse, sse2, fxsr, syscall
-  static const uint64_t kDefaultCpuFeatures = (1 << CMOV);
-
-#ifdef DEBUG
-  static bool initialized_;
-#endif
-  static uint64_t supported_;
-  static uint64_t found_by_runtime_probing_only_;
-
-  static uint64_t cross_compile_;
-
-  friend class ExternalReference;
-  friend class PlatformFeatureScope;
-  DISALLOW_COPY_AND_ASSIGN(CpuFeatures);
-};
-
-
 #define ASSEMBLER_INSTRUCTION_LIST(V)   \
   V(add)                                \
   V(and)                                \
@@ -596,16 +518,20 @@ class Assembler : public AssemblerBase {
                                           ConstantPoolArray* constant_pool);
   static inline void set_target_address_at(Address pc,
                                            ConstantPoolArray* constant_pool,
-                                           Address target);
+                                           Address target,
+                                           ICacheFlushMode icache_flush_mode =
+                                               FLUSH_ICACHE_IF_NEEDED) ;
   static inline Address target_address_at(Address pc, Code* code) {
     ConstantPoolArray* constant_pool = code ? code->constant_pool() : NULL;
     return target_address_at(pc, constant_pool);
   }
   static inline void set_target_address_at(Address pc,
                                            Code* code,
-                                           Address target) {
+                                           Address target,
+                                           ICacheFlushMode icache_flush_mode =
+                                               FLUSH_ICACHE_IF_NEEDED) {
     ConstantPoolArray* constant_pool = code ? code->constant_pool() : NULL;
-    set_target_address_at(pc, constant_pool, target);
+    set_target_address_at(pc, constant_pool, target, icache_flush_mode);
   }
 
   // Return the code target address at a call site from the return address

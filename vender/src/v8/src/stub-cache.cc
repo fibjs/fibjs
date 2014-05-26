@@ -759,7 +759,7 @@ Handle<Code> StubCompiler::GetCodeWithFlags(Code::Flags flags,
 void StubCompiler::LookupPostInterceptor(Handle<JSObject> holder,
                                          Handle<Name> name,
                                          LookupResult* lookup) {
-  holder->LocalLookupRealNamedProperty(name, lookup);
+  holder->LookupOwnRealNamedProperty(name, lookup);
   if (lookup->IsFound()) return;
   if (holder->GetPrototype()->IsNull()) return;
   holder->GetPrototype()->Lookup(name, lookup);
@@ -784,9 +784,6 @@ Register LoadStubCompiler::HandlerFrontendHeader(
   } else if (type->Is(HeapType::Number())) {
     function_index = Context::NUMBER_FUNCTION_INDEX;
   } else if (type->Is(HeapType::Boolean())) {
-    // Booleans use the generic oddball map, so an additional check is needed to
-    // ensure the receiver is really a boolean.
-    GenerateBooleanCheck(object_reg, miss);
     function_index = Context::BOOLEAN_FUNCTION_INDEX;
   } else {
     check_type = SKIP_RECEIVER;

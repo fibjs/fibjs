@@ -14,15 +14,21 @@ namespace v8 {
 namespace internal {
 
 
-void RelocInfo::apply(intptr_t delta) {
+bool CpuFeatures::SupportsCrankshaft() { return true; }
+
+
+void RelocInfo::apply(intptr_t delta, ICacheFlushMode icache_flush_mode) {
   UNIMPLEMENTED();
 }
 
 
-void RelocInfo::set_target_address(Address target, WriteBarrierMode mode) {
+void RelocInfo::set_target_address(Address target,
+                                   WriteBarrierMode write_barrier_mode,
+                                   ICacheFlushMode icache_flush_mode) {
   ASSERT(IsCodeTarget(rmode_) || IsRuntimeEntry(rmode_));
-  Assembler::set_target_address_at(pc_, host_, target);
-  if (mode == UPDATE_WRITE_BARRIER && host() != NULL && IsCodeTarget(rmode_)) {
+  Assembler::set_target_address_at(pc_, host_, target, icache_flush_mode);
+  if (write_barrier_mode == UPDATE_WRITE_BARRIER && host() != NULL &&
+      IsCodeTarget(rmode_)) {
     Object* target_code = Code::GetCodeFromTargetAddress(target);
     host()->GetHeap()->incremental_marking()->RecordWriteIntoCode(
         host(), this, HeapObject::cast(target_code));
@@ -109,8 +115,13 @@ inline bool CPURegister::IsNone() const {
 
 inline bool CPURegister::Is(const CPURegister& other) const {
   ASSERT(IsValidOrNone() && other.IsValidOrNone());
-  return (reg_code == other.reg_code) && (reg_size == other.reg_size) &&
-         (reg_type == other.reg_type);
+  return Aliases(other) && (reg_size == other.reg_size);
+}
+
+
+inline bool CPURegister::Aliases(const CPURegister& other) const {
+  ASSERT(IsValidOrNone() && other.IsValidOrNone());
+  return (reg_code == other.reg_code) && (reg_type == other.reg_type);
 }
 
 
@@ -195,16 +206,22 @@ inline void CPURegList::Remove(int code) {
 
 
 inline Register Register::XRegFromCode(unsigned code) {
-  // This function returns the zero register when code = 31. The stack pointer
-  // can not be returned.
-  ASSERT(code < kNumberOfRegisters);
-  return Register::Create(code, kXRegSizeInBits);
+  if (code == kSPRegInternalCode) {
+    return csp;
+  } else {
+    ASSERT(code < kNumberOfRegisters);
+    return Register::Create(code, kXRegSizeInBits);
+  }
 }
 
 
 inline Register Register::WRegFromCode(unsigned code) {
-  ASSERT(code < kNumberOfRegisters);
-  return Register::Create(code, kWRegSizeInBits);
+  if (code == kSPRegInternalCode) {
+    return wcsp;
+  } else {
+    ASSERT(code < kNumberOfRegisters);
+    return Register::Create(code, kWRegSizeInBits);
+  }
 }
 
 
@@ -411,6 +428,12 @@ Operand Operand::UntagSmiAndScale(Register smi, int scale) {
 }
 
 
+MemOperand::MemOperand()
+  : base_(NoReg), regoffset_(NoReg), offset_(0), addrmode_(Offset),
+    shift_(NO_SHIFT), extend_(NO_EXTEND), shift_amount_(0) {
+}
+
+
 MemOperand::MemOperand(Register base, ptrdiff_t offset, AddrMode addrmode)
   : base_(base), regoffset_(NoReg), offset_(offset), addrmode_(addrmode),
     shift_(NO_SHIFT), extend_(NO_EXTEND), shift_amount_(0) {
@@ -605,7 +628,8 @@ void Assembler::deserialization_set_special_target_at(
 
 void Assembler::set_target_address_at(Address pc,
                                       ConstantPoolArray* constant_pool,
-                                      Address target) {
+                                      Address target,
+                                      ICacheFlushMode icache_flush_mode) {
   Memory::Address_at(target_pointer_address_at(pc)) = target;
   // Intuitively, we would think it is necessary to always flush the
   // instruction cache after patching a target address in the code as follows:
@@ -620,9 +644,10 @@ void Assembler::set_target_address_at(Address pc,
 
 void Assembler::set_target_address_at(Address pc,
                                       Code* code,
-                                      Address target) {
+                                      Address target,
+                                      ICacheFlushMode icache_flush_mode) {
   ConstantPoolArray* constant_pool = code ? code->constant_pool() : NULL;
-  set_target_address_at(pc, constant_pool, target);
+  set_target_address_at(pc, constant_pool, target, icache_flush_mode);
 }
 
 
@@ -664,12 +689,15 @@ Handle<Object> RelocInfo::target_object_handle(Assembler* origin) {
 }
 
 
-void RelocInfo::set_target_object(Object* target, WriteBarrierMode mode) {
+void RelocInfo::set_target_object(Object* target,
+                                  WriteBarrierMode write_barrier_mode,
+                                  ICacheFlushMode icache_flush_mode) {
   ASSERT(IsCodeTarget(rmode_) || rmode_ == EMBEDDED_OBJECT);
   ASSERT(!target->IsConsString());
   Assembler::set_target_address_at(pc_, host_,
-                                   reinterpret_cast<Address>(target));
-  if (mode == UPDATE_WRITE_BARRIER &&
+                                   reinterpret_cast<Address>(target),
+                                   icache_flush_mode);
+  if (write_barrier_mode == UPDATE_WRITE_BARRIER &&
       host() != NULL &&
       target->IsHeapObject()) {
     host()->GetHeap()->incremental_marking()->RecordWrite(
@@ -691,9 +719,12 @@ Address RelocInfo::target_runtime_entry(Assembler* origin) {
 
 
 void RelocInfo::set_target_runtime_entry(Address target,
-                                         WriteBarrierMode mode) {
+                                         WriteBarrierMode write_barrier_mode,
+                                         ICacheFlushMode icache_flush_mode) {
   ASSERT(IsRuntimeEntry(rmode_));
-  if (target_address() != target) set_target_address(target, mode);
+  if (target_address() != target) {
+    set_target_address(target, write_barrier_mode, icache_flush_mode);
+  }
 }
 
 
@@ -710,12 +741,14 @@ Cell* RelocInfo::target_cell() {
 }
 
 
-void RelocInfo::set_target_cell(Cell* cell, WriteBarrierMode mode) {
+void RelocInfo::set_target_cell(Cell* cell,
+                                WriteBarrierMode write_barrier_mode,
+                                ICacheFlushMode icache_flush_mode) {
   UNIMPLEMENTED();
 }
 
 
-static const int kCodeAgeSequenceSize = 5 * kInstructionSize;
+static const int kNoCodeAgeSequenceLength = 5 * kInstructionSize;
 static const int kCodeAgeStubEntryOffset = 3 * kInstructionSize;
 
 
@@ -727,16 +760,16 @@ Handle<Object> RelocInfo::code_age_stub_handle(Assembler* origin) {
 
 Code* RelocInfo::code_age_stub() {
   ASSERT(rmode_ == RelocInfo::CODE_AGE_SEQUENCE);
-  ASSERT(!Code::IsYoungSequence(pc_));
   // Read the stub entry point from the code age sequence.
   Address stub_entry_address = pc_ + kCodeAgeStubEntryOffset;
   return Code::GetCodeFromTargetAddress(Memory::Address_at(stub_entry_address));
 }
 
 
-void RelocInfo::set_code_age_stub(Code* stub) {
+void RelocInfo::set_code_age_stub(Code* stub,
+                                  ICacheFlushMode icache_flush_mode) {
   ASSERT(rmode_ == RelocInfo::CODE_AGE_SEQUENCE);
-  ASSERT(!Code::IsYoungSequence(pc_));
+  ASSERT(!Code::IsYoungSequence(stub->GetIsolate(), pc_));
   // Overwrite the stub entry point in the code age sequence. This is loaded as
   // a literal so there is no need to call FlushICache here.
   Address stub_entry_address = pc_ + kCodeAgeStubEntryOffset;

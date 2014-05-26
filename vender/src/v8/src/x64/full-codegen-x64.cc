@@ -157,7 +157,7 @@ void FullCodeGenerator::Generate() {
   FrameScope frame_scope(masm_, StackFrame::MANUAL);
 
   info->set_prologue_offset(masm_->pc_offset());
-  __ Prologue(BUILD_FUNCTION_FRAME);
+  __ Prologue(info->IsCodePreAgingActive());
   info->AddNoFrameRange(0, masm_->pc_offset());
 
   { Comment cmnt(masm_, "[ Allocate locals");
@@ -199,6 +199,7 @@ void FullCodeGenerator::Generate() {
   int heap_slots = info->scope()->num_heap_slots() - Context::MIN_CONTEXT_SLOTS;
   if (heap_slots > 0) {
     Comment cmnt(masm_, "[ Allocate context");
+    bool need_write_barrier = true;
     // Argument to NewContext is the function, which is still in rdi.
     if (FLAG_harmony_scoping && info->scope()->is_global_scope()) {
       __ Push(rdi);
@@ -207,6 +208,8 @@ void FullCodeGenerator::Generate() {
     } else if (heap_slots <= FastNewContextStub::kMaximumSlots) {
       FastNewContextStub stub(isolate(), heap_slots);
       __ CallStub(&stub);
+      // Result of FastNewContextStub is always in new space.
+      need_write_barrier = false;
     } else {
       __ Push(rdi);
       __ CallRuntime(Runtime::kHiddenNewFunctionContext, 1);
@@ -230,8 +233,15 @@ void FullCodeGenerator::Generate() {
         int context_offset = Context::SlotOffset(var->index());
         __ movp(Operand(rsi, context_offset), rax);
         // Update the write barrier.  This clobbers rax and rbx.
-        __ RecordWriteContextSlot(
-            rsi, context_offset, rax, rbx, kDontSaveFPRegs);
+        if (need_write_barrier) {
+          __ RecordWriteContextSlot(
+              rsi, context_offset, rax, rbx, kDontSaveFPRegs);
+        } else if (FLAG_debug_code) {
+          Label done;
+          __ JumpIfInNewSpace(rsi, rax, &done, Label::kNear);
+          __ Abort(kExpectedNewSpaceObject);
+          __ bind(&done);
+        }
       }
     }
   }
@@ -1628,7 +1638,7 @@ void FullCodeGenerator::VisitObjectLiteral(ObjectLiteral* expr) {
       : ObjectLiteral::kNoFlags;
   int properties_count = constant_properties->length() / 2;
   if (expr->may_store_doubles() || expr->depth() > 1 ||
-      Serializer::enabled(isolate()) || flags != ObjectLiteral::kFastElements ||
+      masm()->serializer_enabled() || flags != ObjectLiteral::kFastElements ||
       properties_count > FastCloneShallowObjectStub::kMaximumClonedProperties) {
     __ movp(rdi, Operand(rbp, JavaScriptFrameConstants::kFunctionOffset));
     __ Push(FieldOperand(rdi, JSFunction::kLiteralsOffset));
@@ -1766,24 +1776,7 @@ void FullCodeGenerator::VisitArrayLiteral(ArrayLiteral* expr) {
     allocation_site_mode = DONT_TRACK_ALLOCATION_SITE;
   }
 
-  Heap* heap = isolate()->heap();
-  if (has_constant_fast_elements &&
-      constant_elements_values->map() == heap->fixed_cow_array_map()) {
-    // If the elements are already FAST_*_ELEMENTS, the boilerplate cannot
-    // change, so it's possible to specialize the stub in advance.
-    __ IncrementCounter(isolate()->counters()->cow_arrays_created_stub(), 1);
-    __ movp(rbx, Operand(rbp, JavaScriptFrameConstants::kFunctionOffset));
-    __ movp(rax, FieldOperand(rbx, JSFunction::kLiteralsOffset));
-    __ Move(rbx, Smi::FromInt(expr->literal_index()));
-    __ Move(rcx, constant_elements);
-    FastCloneShallowArrayStub stub(
-        isolate(),
-        FastCloneShallowArrayStub::COPY_ON_WRITE_ELEMENTS,
-        allocation_site_mode,
-        length);
-    __ CallStub(&stub);
-  } else if (expr->depth() > 1 || Serializer::enabled(isolate()) ||
-             length > FastCloneShallowArrayStub::kMaximumClonedLength) {
+  if (expr->depth() > 1) {
     __ movp(rbx, Operand(rbp, JavaScriptFrameConstants::kFunctionOffset));
     __ Push(FieldOperand(rbx, JSFunction::kLiteralsOffset));
     __ Push(Smi::FromInt(expr->literal_index()));
@@ -1791,24 +1784,11 @@ void FullCodeGenerator::VisitArrayLiteral(ArrayLiteral* expr) {
     __ Push(Smi::FromInt(flags));
     __ CallRuntime(Runtime::kHiddenCreateArrayLiteral, 4);
   } else {
-    ASSERT(IsFastSmiOrObjectElementsKind(constant_elements_kind) ||
-           FLAG_smi_only_arrays);
-    FastCloneShallowArrayStub::Mode mode =
-        FastCloneShallowArrayStub::CLONE_ANY_ELEMENTS;
-
-    // If the elements are already FAST_*_ELEMENTS, the boilerplate cannot
-    // change, so it's possible to specialize the stub in advance.
-    if (has_constant_fast_elements) {
-      mode = FastCloneShallowArrayStub::CLONE_ELEMENTS;
-    }
-
     __ movp(rbx, Operand(rbp, JavaScriptFrameConstants::kFunctionOffset));
     __ movp(rax, FieldOperand(rbx, JSFunction::kLiteralsOffset));
     __ Move(rbx, Smi::FromInt(expr->literal_index()));
     __ Move(rcx, constant_elements);
-    FastCloneShallowArrayStub stub(isolate(),
-                                   mode,
-                                   allocation_site_mode, length);
+    FastCloneShallowArrayStub stub(isolate(), allocation_site_mode);
     __ CallStub(&stub);
   }
 
@@ -2977,10 +2957,7 @@ void FullCodeGenerator::EmitIsStringWrapperSafeForDefaultValueOf(
   // rcx: valid entries in the descriptor array.
   // Calculate the end of the descriptor array.
   __ imulp(rcx, rcx, Immediate(DescriptorArray::kDescriptorSize));
-  SmiIndex index = masm_->SmiToIndex(rdx, rcx, kPointerSizeLog2);
-  __ leap(rcx,
-         Operand(
-             r8, index.reg, index.scale, DescriptorArray::kFirstOffset));
+  __ leap(rcx, Operand(r8, rcx, times_8, DescriptorArray::kFirstOffset));
   // Calculate location of the first key name.
   __ addp(r8, Immediate(DescriptorArray::kFirstOffset));
   // Loop through all the keys in the descriptor array. If one of these is the
@@ -3264,27 +3241,6 @@ void FullCodeGenerator::EmitClassOf(CallRuntime* expr) {
   // All done.
   __ bind(&done);
 
-  context()->Plug(rax);
-}
-
-
-void FullCodeGenerator::EmitLog(CallRuntime* expr) {
-  // Conditionally generate a log call.
-  // Args:
-  //   0 (literal string): The type of logging (corresponds to the flags).
-  //     This is used to determine whether or not to generate the log call.
-  //   1 (string): Format string.  Access the string at argument index 2
-  //     with '%2s' (see Logger::LogRuntime for all the formats).
-  //   2 (array): Arguments to the format string.
-  ZoneList<Expression*>* args = expr->arguments();
-  ASSERT_EQ(args->length(), 3);
-  if (CodeGenerator::ShouldGenerateLog(isolate(), args->at(0))) {
-    VisitForStackValue(args->at(1));
-    VisitForStackValue(args->at(2));
-    __ CallRuntime(Runtime::kHiddenLog, 2);
-  }
-  // Finally, we're expected to leave a value on the top of the stack.
-  __ LoadRoot(rax, Heap::kUndefinedValueRootIndex);
   context()->Plug(rax);
 }
 

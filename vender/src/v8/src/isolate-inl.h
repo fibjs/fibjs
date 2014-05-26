@@ -25,17 +25,6 @@ SaveContext::SaveContext(Isolate* isolate)
 }
 
 
-bool Isolate::IsCodePreAgingActive() {
-  return FLAG_optimize_for_size && FLAG_age_code && !IsDebuggerActive();
-}
-
-
-bool Isolate::IsDebuggerActive() {
-  if (!NoBarrier_Load(&debugger_initialized_)) return false;
-  return debugger()->IsDebuggerActive();
-}
-
-
 bool Isolate::DebuggerHasBreakPoints() {
   return debug()->has_break_points();
 }

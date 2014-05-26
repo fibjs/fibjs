@@ -339,7 +339,7 @@ void LLoadKeyed::PrintDataTo(StringStream* stream) {
   stream->Add("[");
   key()->PrintTo(stream);
   if (hydrogen()->IsDehoisted()) {
-    stream->Add(" + %d]", additional_index());
+    stream->Add(" + %d]", base_offset());
   } else {
     stream->Add("]");
   }
@@ -351,7 +351,7 @@ void LStoreKeyed::PrintDataTo(StringStream* stream) {
   stream->Add("[");
   key()->PrintTo(stream);
   if (hydrogen()->IsDehoisted()) {
-    stream->Add(" + %d] <-", additional_index());
+    stream->Add(" + %d] <-", base_offset());
   } else {
     stream->Add("] <- ");
   }
@@ -837,69 +837,76 @@ void LChunkBuilder::VisitInstruction(HInstruction* current) {
   ASSERT(argument_count_ >= 0);
 
   if (instr != NULL) {
-    // Associate the hydrogen instruction first, since we may need it for
-    // the ClobbersRegisters() or ClobbersDoubleRegisters() calls below.
-    instr->set_hydrogen_value(current);
+    AddInstruction(instr, current);
+  }
+
+  current_instruction_ = old_current;
+}
+
+
+void LChunkBuilder::AddInstruction(LInstruction* instr,
+                                   HInstruction* hydrogen_val) {
+  // Associate the hydrogen instruction first, since we may need it for
+  // the ClobbersRegisters() or ClobbersDoubleRegisters() calls below.
+  instr->set_hydrogen_value(hydrogen_val);
 
 #if DEBUG
-    // Make sure that the lithium instruction has either no fixed register
-    // constraints in temps or the result OR no uses that are only used at
-    // start. If this invariant doesn't hold, the register allocator can decide
-    // to insert a split of a range immediately before the instruction due to an
-    // already allocated register needing to be used for the instruction's fixed
-    // register constraint. In this case, The register allocator won't see an
-    // interference between the split child and the use-at-start (it would if
-    // the it was just a plain use), so it is free to move the split child into
-    // the same register that is used for the use-at-start.
-    // See https://code.google.com/p/chromium/issues/detail?id=201590
-    if (!(instr->ClobbersRegisters() &&
-          instr->ClobbersDoubleRegisters(isolate()))) {
-      int fixed = 0;
-      int used_at_start = 0;
-      for (UseIterator it(instr); !it.Done(); it.Advance()) {
-        LUnallocated* operand = LUnallocated::cast(it.Current());
-        if (operand->IsUsedAtStart()) ++used_at_start;
-      }
-      if (instr->Output() != NULL) {
-        if (LUnallocated::cast(instr->Output())->HasFixedPolicy()) ++fixed;
-      }
-      for (TempIterator it(instr); !it.Done(); it.Advance()) {
-        LUnallocated* operand = LUnallocated::cast(it.Current());
-        if (operand->HasFixedPolicy()) ++fixed;
-      }
-      ASSERT(fixed == 0 || used_at_start == 0);
+  // Make sure that the lithium instruction has either no fixed register
+  // constraints in temps or the result OR no uses that are only used at
+  // start. If this invariant doesn't hold, the register allocator can decide
+  // to insert a split of a range immediately before the instruction due to an
+  // already allocated register needing to be used for the instruction's fixed
+  // register constraint. In this case, The register allocator won't see an
+  // interference between the split child and the use-at-start (it would if
+  // the it was just a plain use), so it is free to move the split child into
+  // the same register that is used for the use-at-start.
+  // See https://code.google.com/p/chromium/issues/detail?id=201590
+  if (!(instr->ClobbersRegisters() &&
+        instr->ClobbersDoubleRegisters(isolate()))) {
+    int fixed = 0;
+    int used_at_start = 0;
+    for (UseIterator it(instr); !it.Done(); it.Advance()) {
+      LUnallocated* operand = LUnallocated::cast(it.Current());
+      if (operand->IsUsedAtStart()) ++used_at_start;
     }
+    if (instr->Output() != NULL) {
+      if (LUnallocated::cast(instr->Output())->HasFixedPolicy()) ++fixed;
+    }
+    for (TempIterator it(instr); !it.Done(); it.Advance()) {
+      LUnallocated* operand = LUnallocated::cast(it.Current());
+      if (operand->HasFixedPolicy()) ++fixed;
+    }
+    ASSERT(fixed == 0 || used_at_start == 0);
+  }
 #endif
 
-    if (FLAG_stress_pointer_maps && !instr->HasPointerMap()) {
-      instr = AssignPointerMap(instr);
-    }
-    if (FLAG_stress_environments && !instr->HasEnvironment()) {
-      instr = AssignEnvironment(instr);
-    }
-    chunk_->AddInstruction(instr, current_block_);
+  if (FLAG_stress_pointer_maps && !instr->HasPointerMap()) {
+    instr = AssignPointerMap(instr);
+  }
+  if (FLAG_stress_environments && !instr->HasEnvironment()) {
+    instr = AssignEnvironment(instr);
+  }
+  chunk_->AddInstruction(instr, current_block_);
 
-    if (instr->IsCall()) {
-      HValue* hydrogen_value_for_lazy_bailout = current;
-      LInstruction* instruction_needing_environment = NULL;
-      if (current->HasObservableSideEffects()) {
-        HSimulate* sim = HSimulate::cast(current->next());
-        instruction_needing_environment = instr;
-        sim->ReplayEnvironment(current_block_->last_environment());
-        hydrogen_value_for_lazy_bailout = sim;
-      }
-      LInstruction* bailout = AssignEnvironment(new(zone()) LLazyBailout());
-      bailout->set_hydrogen_value(hydrogen_value_for_lazy_bailout);
-      chunk_->AddInstruction(bailout, current_block_);
-      if (instruction_needing_environment != NULL) {
-        // Store the lazy deopt environment with the instruction if needed.
-        // Right now it is only used for LInstanceOfKnownGlobal.
-        instruction_needing_environment->
-            SetDeferredLazyDeoptimizationEnvironment(bailout->environment());
-      }
+  if (instr->IsCall()) {
+    HValue* hydrogen_value_for_lazy_bailout = hydrogen_val;
+    LInstruction* instruction_needing_environment = NULL;
+    if (hydrogen_val->HasObservableSideEffects()) {
+      HSimulate* sim = HSimulate::cast(hydrogen_val->next());
+      instruction_needing_environment = instr;
+      sim->ReplayEnvironment(current_block_->last_environment());
+      hydrogen_value_for_lazy_bailout = sim;
+    }
+    LInstruction* bailout = AssignEnvironment(new(zone()) LLazyBailout());
+    bailout->set_hydrogen_value(hydrogen_value_for_lazy_bailout);
+    chunk_->AddInstruction(bailout, current_block_);
+    if (instruction_needing_environment != NULL) {
+      // Store the lazy deopt environment with the instruction if needed.
+      // Right now it is only used for LInstanceOfKnownGlobal.
+      instruction_needing_environment->
+          SetDeferredLazyDeoptimizationEnvironment(bailout->environment());
     }
   }
-  current_instruction_ = old_current;
 }
 
 
@@ -1000,9 +1007,13 @@ LInstruction* LChunkBuilder::DoApplyArguments(HApplyArguments* instr) {
 }
 
 
-LInstruction* LChunkBuilder::DoPushArgument(HPushArgument* instr) {
-  LOperand* argument = Use(instr->argument());
-  return new(zone()) LPushArgument(argument);
+LInstruction* LChunkBuilder::DoPushArguments(HPushArguments* instr) {
+  int argc = instr->OperandCount();
+  for (int i = 0; i < argc; ++i) {
+    LOperand* argument = Use(instr->argument(i));
+    AddInstruction(new(zone()) LPushArgument(argument), instr);
+  }
+  return NULL;
 }
 
 
@@ -1978,15 +1989,12 @@ LInstruction* LChunkBuilder::DoCheckValue(HCheckValue* instr) {
 
 
 LInstruction* LChunkBuilder::DoCheckMaps(HCheckMaps* instr) {
-  LOperand* value = NULL;
-  if (!instr->CanOmitMapChecks()) {
-    value = UseRegisterAtStart(instr->value());
-    if (instr->has_migration_target()) info()->MarkAsDeferredCalling();
-  }
-  LInstruction* result = new(zone()) LCheckMaps(value);
-  if (!instr->CanOmitMapChecks()) {
-    result = AssignEnvironment(result);
-    if (instr->has_migration_target()) result = AssignPointerMap(result);
+  if (instr->IsStabilityCheck()) return new(zone()) LCheckMaps;
+  LOperand* value = UseRegisterAtStart(instr->value());
+  LInstruction* result = AssignEnvironment(new(zone()) LCheckMaps(value));
+  if (instr->HasMigrationTarget()) {
+    info()->MarkAsDeferredCalling();
+    result = AssignPointerMap(result);
   }
   return result;
 }
@@ -2260,6 +2268,14 @@ LInstruction* LChunkBuilder::DoTransitionElementsKind(
         new(zone()) LTransitionElementsKind(object, context, NULL);
     return MarkAsCall(result, instr);
   }
+}
+
+
+LInstruction* LChunkBuilder::DoArrayShift(HArrayShift* instr) {
+  LOperand* object = UseFixed(instr->object(), r0);
+  LOperand* context = UseFixed(instr->context(), cp);
+  LArrayShift* result = new(zone()) LArrayShift(context, object);
+  return MarkAsCall(DefineFixed(result, r0), instr, CANNOT_DEOPTIMIZE_EAGERLY);
 }
 
 
@@ -2561,7 +2577,7 @@ LInstruction* LChunkBuilder::DoCheckMapValue(HCheckMapValue* instr) {
 
 LInstruction* LChunkBuilder::DoLoadFieldByIndex(HLoadFieldByIndex* instr) {
   LOperand* object = UseRegister(instr->object());
-  LOperand* index = UseRegister(instr->index());
+  LOperand* index = UseTempRegister(instr->index());
   LLoadFieldByIndex* load = new(zone()) LLoadFieldByIndex(object, index);
   LInstruction* result = DefineSameAsFirst(load);
   return AssignPointerMap(result);

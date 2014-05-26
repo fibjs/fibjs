@@ -120,6 +120,11 @@ struct MaybeBoolFlag {
 #else
 # define ENABLE_32DREGS_DEFAULT false
 #endif
+#if (defined CAN_USE_NEON) || !(defined ARM_TEST)
+# define ENABLE_NEON_DEFAULT true
+#else
+# define ENABLE_NEON_DEFAULT false
+#endif
 
 #define DEFINE_bool(nam, def, cmt)   FLAG(BOOL, bool, nam, def, cmt)
 #define DEFINE_maybe_bool(nam, cmt)  FLAG(MAYBE_BOOL, MaybeBoolFlag, nam,  \
@@ -150,14 +155,10 @@ DEFINE_bool(harmony_typeof, false, "enable harmony semantics for typeof")
 DEFINE_bool(harmony_scoping, false, "enable harmony block scoping")
 DEFINE_bool(harmony_modules, false,
             "enable harmony modules (implies block scoping)")
-DEFINE_bool(harmony_symbols, false,
-            "enable harmony symbols (a.k.a. private names)")
-DEFINE_bool(harmony_promises, false, "enable harmony promises")
+DEFINE_bool(harmony_symbols, false, "enable harmony symbols")
 DEFINE_bool(harmony_proxies, false, "enable harmony proxies")
 DEFINE_bool(harmony_collections, false,
-            "enable harmony collections (sets, maps, weak sets, weak maps)")
-DEFINE_bool(harmony_weak_collections, false,
-            "enable only harmony weak collections (weak sets and maps)")
+            "enable harmony collections (sets, maps)")
 DEFINE_bool(harmony_generators, false, "enable harmony generators")
 DEFINE_bool(harmony_iteration, false, "enable harmony iteration (for-of)")
 DEFINE_bool(harmony_numeric_literals, false,
@@ -169,7 +170,6 @@ DEFINE_bool(harmony, false, "enable all harmony features (except typeof)")
 
 DEFINE_implication(harmony, harmony_scoping)
 DEFINE_implication(harmony, harmony_modules)
-DEFINE_implication(harmony, harmony_symbols)
 DEFINE_implication(harmony, harmony_proxies)
 DEFINE_implication(harmony, harmony_collections)
 DEFINE_implication(harmony, harmony_generators)
@@ -177,14 +177,11 @@ DEFINE_implication(harmony, harmony_iteration)
 DEFINE_implication(harmony, harmony_numeric_literals)
 DEFINE_implication(harmony, harmony_strings)
 DEFINE_implication(harmony, harmony_arrays)
-DEFINE_implication(harmony_collections, harmony_weak_collections)
-DEFINE_implication(harmony_promises, harmony_weak_collections)
 DEFINE_implication(harmony_modules, harmony_scoping)
 
 DEFINE_implication(harmony, es_staging)
 DEFINE_implication(es_staging, harmony_maths)
-DEFINE_implication(es_staging, harmony_promises)
-DEFINE_implication(es_staging, harmony_weak_collections)
+DEFINE_implication(es_staging, harmony_symbols)
 
 // Flags for experimental implementation features.
 DEFINE_bool(packed_arrays, true, "optimizes arrays that have no holes")
@@ -262,6 +259,7 @@ DEFINE_bool(trace_all_uses, false, "trace all use positions")
 DEFINE_bool(trace_range, false, "trace range analysis")
 DEFINE_bool(trace_gvn, false, "trace global value numbering")
 DEFINE_bool(trace_representation, false, "trace representation types")
+DEFINE_bool(trace_removable_simulates, false, "trace removable simulates")
 DEFINE_bool(trace_escape_analysis, false, "trace hydrogen escape analysis")
 DEFINE_bool(trace_allocation_folding, false, "trace allocation folding")
 DEFINE_bool(trace_track_allocation_sites, false,
@@ -356,21 +354,17 @@ DEFINE_implication(trace_opt_verbose, trace_opt)
 DEFINE_bool(debug_code, false,
             "generate extra code (assertions) for debugging")
 DEFINE_bool(code_comments, false, "emit comments in code disassembly")
-DEFINE_bool(enable_sse2, true,
-            "enable use of SSE2 instructions if available")
 DEFINE_bool(enable_sse3, true,
             "enable use of SSE3 instructions if available")
 DEFINE_bool(enable_sse4_1, true,
             "enable use of SSE4.1 instructions if available")
-DEFINE_bool(enable_cmov, true,
-            "enable use of CMOV instruction if available")
 DEFINE_bool(enable_sahf, true,
             "enable use of SAHF instruction if available (X64 only)")
 DEFINE_bool(enable_vfp3, ENABLE_VFP3_DEFAULT,
             "enable use of VFP3 instructions if available")
 DEFINE_bool(enable_armv7, ENABLE_ARMV7_DEFAULT,
             "enable use of ARMv7 instructions if available (ARM only)")
-DEFINE_bool(enable_neon, true,
+DEFINE_bool(enable_neon, ENABLE_NEON_DEFAULT,
             "enable use of NEON instructions if available (ARM only)")
 DEFINE_bool(enable_sudiv, true,
             "enable use of SDIV and UDIV instructions if available (ARM only)")
@@ -385,6 +379,11 @@ DEFINE_bool(enable_vldr_imm, false,
             "enable use of constant pools for double immediate (ARM only)")
 DEFINE_bool(force_long_branches, false,
             "force all emitted branches to be in long mode (MIPS only)")
+
+// cpu-arm64.cc
+DEFINE_bool(enable_always_align_csp, true,
+            "enable alignment of csp to 16 bytes on platforms which prefer "
+            "the register to always be aligned (ARM64 only)")
 
 // bootstrapper.cc
 DEFINE_string(expose_natives_as, NULL, "expose natives in global object")
@@ -469,8 +468,13 @@ DEFINE_bool(always_inline_smi_code, false,
             "always inline smi code in non-opt code")
 
 // heap.cc
-DEFINE_int(max_new_space_size, 0, "max size of the new generation (in kBytes)")
-DEFINE_int(max_old_space_size, 0, "max size of the old generation (in Mbytes)")
+DEFINE_int(min_semi_space_size, 0,
+    "min size of a semi-space (in MBytes), the new space consists of two"
+    "semi-spaces")
+DEFINE_int(max_semi_space_size, 0,
+    "max size of a semi-space (in MBytes), the new space consists of two"
+    "semi-spaces")
+DEFINE_int(max_old_space_size, 0, "max size of the old space (in Mbytes)")
 DEFINE_int(max_executable_size, 0, "max size of executable memory (in Mbytes)")
 DEFINE_bool(gc_global, false, "always perform global GCs")
 DEFINE_int(gc_interval, -1, "garbage collect after <n> allocations")
@@ -655,25 +659,10 @@ DEFINE_bool(help, false, "Print usage message, including flags, on console")
 DEFINE_bool(dump_counters, false, "Dump counters on exit")
 
 DEFINE_bool(debugger, false, "Enable JavaScript debugger")
-DEFINE_bool(remote_debugger, false, "Connect JavaScript debugger to the "
-                                    "debugger agent in another process")
-DEFINE_bool(debugger_agent, false, "Enable debugger agent")
-DEFINE_int(debugger_port, 5858, "Port to use for remote debugging")
 
 DEFINE_string(map_counters, "", "Map counters to a file")
 DEFINE_args(js_arguments,
             "Pass all remaining arguments to the script. Alias for \"--\".")
-
-#if defined(WEBOS__)
-DEFINE_bool(debug_compile_events, false, "Enable debugger compile events")
-DEFINE_bool(debug_script_collected_events, false,
-            "Enable debugger script collected events")
-#else
-DEFINE_bool(debug_compile_events, true, "Enable debugger compile events")
-DEFINE_bool(debug_script_collected_events, true,
-            "Enable debugger script collected events")
-#endif
-
 
 //
 // GDB JIT integration flags.
@@ -774,7 +763,6 @@ DEFINE_bool(trace_regexp_assembler, false,
 DEFINE_bool(log, false,
             "Minimal logging (no API, code, GC, suspect, or handles samples).")
 DEFINE_bool(log_all, false, "Log all events to the log file.")
-DEFINE_bool(log_runtime, false, "Activate runtime system %Log call.")
 DEFINE_bool(log_api, false, "Log API events to the log file.")
 DEFINE_bool(log_code, false,
             "Log code events to the log file without profiling.")

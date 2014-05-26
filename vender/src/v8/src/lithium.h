@@ -81,6 +81,7 @@ class LUnallocated : public LOperand {
     FIXED_REGISTER,
     FIXED_DOUBLE_REGISTER,
     MUST_HAVE_REGISTER,
+    MUST_HAVE_DOUBLE_REGISTER,
     WRITABLE_REGISTER,
     SAME_AS_FIRST_INPUT
   };
@@ -189,6 +190,10 @@ class LUnallocated : public LOperand {
     return basic_policy() == EXTENDED_POLICY && (
         extended_policy() == WRITABLE_REGISTER ||
         extended_policy() == MUST_HAVE_REGISTER);
+  }
+  bool HasDoubleRegisterPolicy() const {
+    return basic_policy() == EXTENDED_POLICY &&
+        extended_policy() == MUST_HAVE_DOUBLE_REGISTER;
   }
   bool HasSameAsInputPolicy() const {
     return basic_policy() == EXTENDED_POLICY &&
@@ -652,6 +657,13 @@ class LChunk : public ZoneObject {
     deprecation_dependencies_.insert(map);
   }
 
+  void AddStabilityDependency(Handle<Map> map) {
+    ASSERT(map->is_stable());
+    if (!map->CanTransition()) return;
+    ASSERT(!info_->IsStub());
+    stability_dependencies_.insert(map);
+  }
+
   Zone* zone() const { return info_->zone(); }
 
   Handle<Code> Codegen();
@@ -680,6 +692,7 @@ class LChunk : public ZoneObject {
   ZoneList<LPointerMap*> pointer_maps_;
   ZoneList<Handle<JSFunction> > inlined_closures_;
   MapSet deprecation_dependencies_;
+  MapSet stability_dependencies_;
 };
 
 

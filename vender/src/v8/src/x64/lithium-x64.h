@@ -26,6 +26,7 @@ class LCodeGen;
   V(ArgumentsLength)                            \
   V(ArithmeticD)                                \
   V(ArithmeticT)                                \
+  V(ArrayShift)                                 \
   V(BitI)                                       \
   V(BoundsCheck)                                \
   V(Branch)                                     \
@@ -1627,7 +1628,7 @@ class LLoadKeyed V8_FINAL : public LTemplateInstruction<1, 2, 0> {
   LOperand* elements() { return inputs_[0]; }
   LOperand* key() { return inputs_[1]; }
   virtual void PrintDataTo(StringStream* stream) V8_OVERRIDE;
-  uint32_t additional_index() const { return hydrogen()->index_offset(); }
+  uint32_t base_offset() const { return hydrogen()->base_offset(); }
   ElementsKind elements_kind() const {
     return hydrogen()->elements_kind();
   }
@@ -1966,15 +1967,13 @@ class LInteger32ToDouble V8_FINAL : public LTemplateInstruction<1, 1, 0> {
 };
 
 
-class LUint32ToDouble V8_FINAL : public LTemplateInstruction<1, 1, 1> {
+class LUint32ToDouble V8_FINAL : public LTemplateInstruction<1, 1, 0> {
  public:
-  explicit LUint32ToDouble(LOperand* value, LOperand* temp) {
+  explicit LUint32ToDouble(LOperand* value) {
     inputs_[0] = value;
-    temps_[0] = temp;
   }
 
   LOperand* value() { return inputs_[0]; }
-  LOperand* temp() { return temps_[0]; }
 
   DECLARE_CONCRETE_INSTRUCTION(Uint32ToDouble, "uint32-to-double")
 };
@@ -2183,7 +2182,7 @@ class LStoreKeyed V8_FINAL : public LTemplateInstruction<0, 3, 0> {
 
   virtual void PrintDataTo(StringStream* stream) V8_OVERRIDE;
   bool NeedsCanonicalization() { return hydrogen()->NeedsCanonicalization(); }
-  uint32_t additional_index() const { return hydrogen()->index_offset(); }
+  uint32_t base_offset() const { return hydrogen()->base_offset(); }
 };
 
 
@@ -2242,6 +2241,21 @@ class LTransitionElementsKind V8_FINAL : public LTemplateInstruction<0, 2, 2> {
   }
   ElementsKind from_kind() { return hydrogen()->from_kind(); }
   ElementsKind to_kind() { return hydrogen()->to_kind(); }
+};
+
+
+class LArrayShift V8_FINAL : public LTemplateInstruction<1, 2, 0> {
+ public:
+  LArrayShift(LOperand* context, LOperand* object) {
+    inputs_[0] = context;
+    inputs_[1] = object;
+  }
+
+  LOperand* context() const { return inputs_[0]; }
+  LOperand* object() const { return inputs_[1]; }
+
+  DECLARE_CONCRETE_INSTRUCTION(ArrayShift, "array-shift")
+  DECLARE_HYDROGEN_ACCESSOR(ArrayShift)
 };
 
 
@@ -2338,7 +2352,7 @@ class LCheckInstanceType V8_FINAL : public LTemplateInstruction<0, 1, 0> {
 
 class LCheckMaps V8_FINAL : public LTemplateInstruction<0, 1, 0> {
  public:
-  explicit LCheckMaps(LOperand* value) {
+  explicit LCheckMaps(LOperand* value = NULL) {
     inputs_[0] = value;
   }
 
@@ -2790,6 +2804,7 @@ class LChunkBuilder V8_FINAL : public LChunkBuilderBase {
       CanDeoptimize can_deoptimize = CANNOT_DEOPTIMIZE_EAGERLY);
 
   void VisitInstruction(HInstruction* current);
+  void AddInstruction(LInstruction* instr, HInstruction* current);
 
   void DoBasicBlock(HBasicBlock* block, HBasicBlock* next_block);
   LInstruction* DoShift(Token::Value op, HBitwiseBinaryOperation* instr);

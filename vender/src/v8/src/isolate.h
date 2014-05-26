@@ -54,6 +54,7 @@ class InlineRuntimeFunctionsTable;
 class InnerPointerToCodeCache;
 class MaterializedObjectStore;
 class NoAllocationStringAllocator;
+class CodeAgingHelper;
 class RandomNumberGenerator;
 class RegExpStack;
 class SaveContext;
@@ -74,7 +75,6 @@ typedef void* ExternalReferenceRedirectorPointer();
 
 class Debug;
 class Debugger;
-class DebuggerAgent;
 
 #if !defined(__arm__) && V8_TARGET_ARCH_ARM || \
     !defined(__aarch64__) && V8_TARGET_ARCH_ARM64 || \
@@ -213,10 +213,10 @@ class ThreadLocalTop BASE_EMBEDDED {
 
   // Get the top C++ try catch handler or NULL if none are registered.
   //
-  // This method is not guarenteed to return an address that can be
+  // This method is not guaranteed to return an address that can be
   // used for comparison with addresses into the JS stack.  If such an
   // address is needed, use try_catch_handler_address.
-  v8::TryCatch* TryCatchHandler();
+  FIELD_ACCESSOR(v8::TryCatch*, try_catch_handler)
 
   // Get the address of the top C++ try catch handler or NULL if
   // none are registered.
@@ -228,12 +228,15 @@ class ThreadLocalTop BASE_EMBEDDED {
   // stack, try_catch_handler_address returns a JS stack address that
   // corresponds to the place on the JS stack where the C++ handler
   // would have been if the stack were not separate.
-  FIELD_ACCESSOR(Address, try_catch_handler_address)
+  Address try_catch_handler_address() {
+    return reinterpret_cast<Address>(
+        v8::TryCatch::JSStackComparableAddress(try_catch_handler()));
+  }
 
   void Free() {
     ASSERT(!has_pending_message_);
     ASSERT(!external_caught_exception_);
-    ASSERT(try_catch_handler_address_ == NULL);
+    ASSERT(try_catch_handler_ == NULL);
   }
 
   Isolate* isolate_;
@@ -281,7 +284,7 @@ class ThreadLocalTop BASE_EMBEDDED {
  private:
   void InitializeInternal();
 
-  Address try_catch_handler_address_;
+  v8::TryCatch* try_catch_handler_;
 };
 
 
@@ -349,7 +352,7 @@ typedef List<HeapObject*> DebugObjectCache;
   /* AstNode state. */                                                         \
   V(int, ast_node_id, 0)                                                       \
   V(unsigned, ast_node_count, 0)                                               \
-  V(bool, microtask_pending, false)                                            \
+  V(int, pending_microtask_count, 0)                                           \
   V(bool, autorun_microtasks, true)                                            \
   V(HStatistics*, hstatistics, NULL)                                           \
   V(HTracer*, htracer, NULL)                                                   \
@@ -357,7 +360,8 @@ typedef List<HeapObject*> DebugObjectCache;
   V(bool, fp_stubs_generated, false)                                           \
   V(int, max_available_threads, 0)                                             \
   V(uint32_t, per_isolate_assert_data, 0xFFFFFFFFu)                            \
-  V(DebuggerAgent*, debugger_agent_instance, NULL)                             \
+  V(InterruptCallback, api_interrupt_callback, NULL)                           \
+  V(void*, api_interrupt_callback_data, NULL)                                  \
   ISOLATE_INIT_SIMULATOR_LIST(V)
 
 #define THREAD_LOCAL_TOP_ACCESSOR(type, name)                        \
@@ -477,8 +481,6 @@ class Isolate {
 
   static void GlobalTearDown();
 
-  bool IsDefaultIsolate() const { return this == default_isolate_; }
-
   static void SetCrashIfDefaultIsolateInitialized();
   // Ensures that process-wide resources and the default isolate have been
   // allocated. It is only necessary to call this method in rare cases, for
@@ -510,9 +512,6 @@ class Isolate {
 
   // Mutex for serializing access to break control structures.
   RecursiveMutex* break_access() { return &break_access_; }
-
-  // Mutex for serializing access to debugger.
-  RecursiveMutex* debugger_access() { return &debugger_access_; }
 
   Address get_address_from_id(AddressId id);
 
@@ -563,7 +562,7 @@ class Isolate {
     thread_local_top_.pending_message_script_ = heap_.the_hole_value();
   }
   v8::TryCatch* try_catch_handler() {
-    return thread_local_top_.TryCatchHandler();
+    return thread_local_top_.try_catch_handler();
   }
   Address try_catch_handler_address() {
     return thread_local_top_.try_catch_handler_address();
@@ -759,6 +758,8 @@ class Isolate {
   Object* TerminateExecution();
   void CancelTerminateExecution();
 
+  void InvokeApiInterruptCallback();
+
   // Administration
   void Iterate(ObjectVisitor* v);
   void Iterate(ObjectVisitor* v, ThreadLocalTop* t);
@@ -836,6 +837,7 @@ class Isolate {
   Heap* heap() { return &heap_; }
   StatsTable* stats_table();
   StubCache* stub_cache() { return stub_cache_; }
+  CodeAgingHelper* code_aging_helper() { return code_aging_helper_; }
   DeoptimizerData* deoptimizer_data() { return deoptimizer_data_; }
   ThreadLocalTop* thread_local_top() { return &thread_local_top_; }
   MaterializedObjectStore* materialized_object_store() {
@@ -926,18 +928,9 @@ class Isolate {
     return &interp_canonicalize_mapping_;
   }
 
-  inline bool IsCodePreAgingActive();
+  Debugger* debugger() {  return debugger_; }
+  Debug* debug() { return debug_; }
 
-  Debugger* debugger() {
-    if (!NoBarrier_Load(&debugger_initialized_)) InitializeDebugger();
-    return debugger_;
-  }
-  Debug* debug() {
-    if (!NoBarrier_Load(&debugger_initialized_)) InitializeDebugger();
-    return debug_;
-  }
-
-  inline bool IsDebuggerActive();
   inline bool DebuggerHasBreakPoints();
 
   CpuProfiler* cpu_profiler() const { return cpu_profiler_; }
@@ -970,10 +963,18 @@ class Isolate {
 
   THREAD_LOCAL_TOP_ACCESSOR(LookupResult*, top_lookup_result)
 
+  void enable_serializer() {
+    // The serializer can only be enabled before the isolate init.
+    ASSERT(state_ != INITIALIZED);
+    serializer_enabled_ = true;
+  }
+
+  bool serializer_enabled() const { return serializer_enabled_; }
+
   bool IsDead() { return has_fatal_error_; }
   void SignalFatalError() { has_fatal_error_ = true; }
 
-  bool use_crankshaft() const { return use_crankshaft_; }
+  bool use_crankshaft() const;
 
   bool initialized_from_snapshot() { return initialized_from_snapshot_; }
 
@@ -1077,6 +1078,7 @@ class Isolate {
   void RemoveCallCompletedCallback(CallCompletedCallback callback);
   void FireCallCompletedCallback();
 
+  void EnqueueMicrotask(Handle<JSFunction> microtask);
   void RunMicrotasks();
 
  private:
@@ -1138,14 +1140,12 @@ class Isolate {
     DISALLOW_COPY_AND_ASSIGN(EntryStackItem);
   };
 
-  // This mutex protects highest_thread_id_, thread_data_table_ and
-  // default_isolate_.
+  // This mutex protects highest_thread_id_ and thread_data_table_.
   static Mutex process_wide_mutex_;
 
   static Thread::LocalStorageKey per_isolate_thread_data_key_;
   static Thread::LocalStorageKey isolate_key_;
   static Thread::LocalStorageKey thread_id_key_;
-  static Isolate* default_isolate_;
   static ThreadDataTable* thread_data_table_;
 
   // A global counter for all generated Isolates, might overflow.
@@ -1182,8 +1182,6 @@ class Isolate {
 
   void PropagatePendingExceptionToExternalTryCatch();
 
-  void InitializeDebugger();
-
   // Traverse prototype chain to find out whether the object is derived from
   // the Error object.
   bool IsErrorObject(Handle<Object> obj);
@@ -1200,11 +1198,11 @@ class Isolate {
   CodeRange* code_range_;
   RecursiveMutex break_access_;
   Atomic32 debugger_initialized_;
-  RecursiveMutex debugger_access_;
   Logger* logger_;
   StackGuard stack_guard_;
   StatsTable* stats_table_;
   StubCache* stub_cache_;
+  CodeAgingHelper* code_aging_helper_;
   DeoptimizerData* deoptimizer_data_;
   MaterializedObjectStore* materialized_object_store_;
   ThreadLocalTop thread_local_top_;
@@ -1242,11 +1240,11 @@ class Isolate {
   CallInterfaceDescriptor* call_descriptors_;
   RandomNumberGenerator* random_number_generator_;
 
+  // Whether the isolate has been created for snapshotting.
+  bool serializer_enabled_;
+
   // True if fatal error has been signaled for this isolate.
   bool has_fatal_error_;
-
-  // True if we are using the Crankshaft optimizing compiler.
-  bool use_crankshaft_;
 
   // True if this isolate was initialized from a snapshot.
   bool initialized_from_snapshot_;

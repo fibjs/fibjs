@@ -127,9 +127,9 @@ bool CodeStubGraphBuilderBase::BuildGraph() {
   bool runtime_stack_params = descriptor_->stack_parameter_count_.is_valid();
   HInstruction* stack_parameter_count = NULL;
   for (int i = 0; i < param_count; ++i) {
-    Representation r = descriptor_->IsParameterCountRegister(i)
-        ? Representation::Integer32()
-        : Representation::Tagged();
+    Representation r = descriptor_->register_param_representations_ == NULL
+        ? Representation::Tagged()
+        : descriptor_->register_param_representations_[i];
     HParameter* param = Add<HParameter>(i, HParameter::REGISTER_PARAMETER, r);
     start_environment->Bind(i, param);
     parameters_[i] = param;
@@ -298,7 +298,7 @@ HValue* CodeStubGraphBuilder<ToNumberStub>::BuildCodeStub() {
 
   // Convert the parameter to number using the builtin.
   HValue* function = AddLoadJSBuiltin(Builtins::TO_NUMBER);
-  Add<HPushArgument>(value);
+  Add<HPushArguments>(zone(), value);
   Push(Add<HInvokeFunction>(function, 1));
 
   if_number.End();
@@ -330,8 +330,10 @@ HValue* CodeStubGraphBuilder<FastCloneShallowArrayStub>::BuildCodeStub() {
   Factory* factory = isolate()->factory();
   HValue* undefined = graph()->GetConstantUndefined();
   AllocationSiteMode alloc_site_mode = casted_stub()->allocation_site_mode();
-  FastCloneShallowArrayStub::Mode mode = casted_stub()->mode();
-  int length = casted_stub()->length();
+
+  // This stub is very performance sensitive, the generated code must be tuned
+  // so that it doesn't build and eager frame.
+  info()->MarkMustNotHaveEagerFrame();
 
   HInstruction* allocation_site = Add<HLoadKeyed>(GetParameter(0),
                                                   GetParameter(1),
@@ -346,46 +348,40 @@ HValue* CodeStubGraphBuilder<FastCloneShallowArrayStub>::BuildCodeStub() {
       AllocationSite::kTransitionInfoOffset);
   HInstruction* boilerplate = Add<HLoadNamedField>(
       allocation_site, static_cast<HValue*>(NULL), access);
-  HValue* push_value;
-  if (mode == FastCloneShallowArrayStub::CLONE_ANY_ELEMENTS) {
-    HValue* elements = AddLoadElements(boilerplate);
+  HValue* elements = AddLoadElements(boilerplate);
+  HValue* capacity = AddLoadFixedArrayLength(elements);
+  IfBuilder zero_capacity(this);
+  zero_capacity.If<HCompareNumericAndBranch>(capacity, graph()->GetConstant0(),
+                                           Token::EQ);
+  zero_capacity.Then();
+  Push(BuildCloneShallowArrayEmpty(boilerplate,
+                                   allocation_site,
+                                   alloc_site_mode));
+  zero_capacity.Else();
+  IfBuilder if_fixed_cow(this);
+  if_fixed_cow.If<HCompareMap>(elements, factory->fixed_cow_array_map());
+  if_fixed_cow.Then();
+  Push(BuildCloneShallowArrayCow(boilerplate,
+                                 allocation_site,
+                                 alloc_site_mode,
+                                 FAST_ELEMENTS));
+  if_fixed_cow.Else();
+  IfBuilder if_fixed(this);
+  if_fixed.If<HCompareMap>(elements, factory->fixed_array_map());
+  if_fixed.Then();
+  Push(BuildCloneShallowArrayNonEmpty(boilerplate,
+                                      allocation_site,
+                                      alloc_site_mode,
+                                      FAST_ELEMENTS));
 
-    IfBuilder if_fixed_cow(this);
-    if_fixed_cow.If<HCompareMap>(elements, factory->fixed_cow_array_map());
-    if_fixed_cow.Then();
-    push_value = BuildCloneShallowArray(boilerplate,
-                                        allocation_site,
-                                        alloc_site_mode,
-                                        FAST_ELEMENTS,
-                                        0/*copy-on-write*/);
-    environment()->Push(push_value);
-    if_fixed_cow.Else();
-
-    IfBuilder if_fixed(this);
-    if_fixed.If<HCompareMap>(elements, factory->fixed_array_map());
-    if_fixed.Then();
-    push_value = BuildCloneShallowArray(boilerplate,
-                                        allocation_site,
-                                        alloc_site_mode,
-                                        FAST_ELEMENTS,
-                                        length);
-    environment()->Push(push_value);
-    if_fixed.Else();
-    push_value = BuildCloneShallowArray(boilerplate,
-                                        allocation_site,
-                                        alloc_site_mode,
-                                        FAST_DOUBLE_ELEMENTS,
-                                        length);
-    environment()->Push(push_value);
-  } else {
-    ElementsKind elements_kind = casted_stub()->ComputeElementsKind();
-    push_value = BuildCloneShallowArray(boilerplate,
-                                        allocation_site,
-                                        alloc_site_mode,
-                                        elements_kind,
-                                        length);
-    environment()->Push(push_value);
-  }
+  if_fixed.Else();
+  Push(BuildCloneShallowArrayNonEmpty(boilerplate,
+                                      allocation_site,
+                                      alloc_site_mode,
+                                      FAST_DOUBLE_ELEMENTS));
+  if_fixed.End();
+  if_fixed_cow.End();
+  zero_capacity.End();
 
   checker.ElseDeopt("Uninitialized boilerplate literals");
   checker.End();
@@ -504,7 +500,7 @@ HValue* CodeStubGraphBuilder<CreateAllocationSiteStub>::BuildCodeStub() {
   // Store an empty fixed array for the code dependency.
   HConstant* empty_fixed_array =
     Add<HConstant>(isolate()->factory()->empty_fixed_array());
-  HStoreNamedField* store = Add<HStoreNamedField>(
+  Add<HStoreNamedField>(
       object,
       HObjectAccess::ForAllocationSiteOffset(
           AllocationSite::kDependentCodeOffset),
@@ -516,10 +512,15 @@ HValue* CodeStubGraphBuilder<CreateAllocationSiteStub>::BuildCodeStub() {
   HValue* site = Add<HLoadNamedField>(
       site_list, static_cast<HValue*>(NULL),
       HObjectAccess::ForAllocationSiteList());
-  store = Add<HStoreNamedField>(object,
+  // TODO(mvstanton): This is a store to a weak pointer, which we may want to
+  // mark as such in order to skip the write barrier, once we have a unified
+  // system for weakness. For now we decided to keep it like this because having
+  // an initial write barrier backed store makes this pointer strong until the
+  // next GC, and allocation sites are designed to survive several GCs anyway.
+  Add<HStoreNamedField>(
+      object,
       HObjectAccess::ForAllocationSiteOffset(AllocationSite::kWeakNextOffset),
       site);
-  store->SkipWriteBarrier();
   Add<HStoreNamedField>(site_list, HObjectAccess::ForAllocationSiteList(),
                         object);
 
@@ -644,6 +645,9 @@ HValue* CodeStubGraphBuilderBase::BuildArrayConstructor(
   HValue* result = NULL;
   switch (argument_class) {
     case NONE:
+      // This stub is very performance sensitive, the generated code must be
+      // tuned so that it doesn't build and eager frame.
+      info()->MarkMustNotHaveEagerFrame();
       result = array_builder.AllocateEmptyArray();
       break;
     case SINGLE:
@@ -667,6 +671,9 @@ HValue* CodeStubGraphBuilderBase::BuildInternalArrayConstructor(
   HValue* result = NULL;
   switch (argument_class) {
     case NONE:
+      // This stub is very performance sensitive, the generated code must be
+      // tuned so that it doesn't build and eager frame.
+      info()->MarkMustNotHaveEagerFrame();
       result = array_builder.AllocateEmptyArray();
       break;
     case SINGLE:
@@ -1042,7 +1049,7 @@ HValue* CodeStubGraphBuilder<StoreGlobalStub>::BuildCodeInitializedStub() {
     Handle<Map> placeholder_map = isolate()->factory()->meta_map();
     HValue* global = Add<HConstant>(
         StoreGlobalStub::global_placeholder(isolate()));
-    Add<HCheckMaps>(global, placeholder_map, top_info());
+    Add<HCheckMaps>(global, placeholder_map);
   }
 
   HValue* cell = Add<HConstant>(placeholder_cell);
@@ -1109,6 +1116,86 @@ HValue* CodeStubGraphBuilder<ElementsTransitionAndStoreStub>::BuildCodeStub() {
 
 
 Handle<Code> ElementsTransitionAndStoreStub::GenerateCode() {
+  return DoGenerateCode(this);
+}
+
+
+template <>
+HValue* CodeStubGraphBuilder<ArrayShiftStub>::BuildCodeStub() {
+  HValue* receiver = GetParameter(ArrayShiftStub::kReceiver);
+  ElementsKind kind = casted_stub()->kind();
+
+  // We may use double registers for copying.
+  if (IsFastDoubleElementsKind(kind)) info()->MarkAsSavesCallerDoubles();
+
+  HValue* length = Add<HLoadNamedField>(
+      receiver, static_cast<HValue*>(NULL),
+      HObjectAccess::ForArrayLength(kind));
+
+  IfBuilder if_lengthiszero(this);
+  HValue* lengthiszero = if_lengthiszero.If<HCompareNumericAndBranch>(
+      length, graph()->GetConstant0(), Token::EQ);
+  if_lengthiszero.Then();
+  {
+    Push(graph()->GetConstantUndefined());
+  }
+  if_lengthiszero.Else();
+  {
+    // Check if array length is below threshold.
+    IfBuilder if_inline(this);
+    if_inline.If<HCompareNumericAndBranch>(
+        length, Add<HConstant>(ArrayShiftStub::kInlineThreshold), Token::LTE);
+    if_inline.Then();
+    if_inline.ElseDeopt("Array length exceeds threshold");
+    if_inline.End();
+
+    // We cannot handle copy-on-write backing stores here.
+    HValue* elements = AddLoadElements(receiver);
+    if (IsFastSmiOrObjectElementsKind(kind)) {
+      Add<HCheckMaps>(elements, isolate()->factory()->fixed_array_map());
+    }
+
+    // Remember the result.
+    Push(AddElementAccess(elements, graph()->GetConstant0(), NULL,
+                          lengthiszero, kind, LOAD));
+
+    // Compute the new length.
+    HValue* new_length = AddUncasted<HSub>(length, graph()->GetConstant1());
+    new_length->ClearFlag(HValue::kCanOverflow);
+
+    // Copy the remaining elements.
+    LoopBuilder loop(this, context(), LoopBuilder::kPostIncrement);
+    {
+      HValue* new_key = loop.BeginBody(
+          graph()->GetConstant0(), new_length, Token::LT);
+      HValue* key = AddUncasted<HAdd>(new_key, graph()->GetConstant1());
+      key->ClearFlag(HValue::kCanOverflow);
+      HValue* element = AddUncasted<HLoadKeyed>(
+          elements, key, lengthiszero, kind, ALLOW_RETURN_HOLE);
+      HStoreKeyed* store = Add<HStoreKeyed>(elements, new_key, element, kind);
+      store->SetFlag(HValue::kAllowUndefinedAsNaN);
+    }
+    loop.EndBody();
+
+    // Put a hole at the end.
+    HValue* hole = IsFastSmiOrObjectElementsKind(kind)
+        ? Add<HConstant>(isolate()->factory()->the_hole_value())
+        : Add<HConstant>(FixedDoubleArray::hole_nan_as_double());
+    if (IsFastSmiOrObjectElementsKind(kind)) kind = FAST_HOLEY_ELEMENTS;
+    Add<HStoreKeyed>(elements, new_length, hole, kind, INITIALIZING_STORE);
+
+    // Remember new length.
+    Add<HStoreNamedField>(
+        receiver, HObjectAccess::ForArrayLength(kind),
+        new_length, STORE_TO_INITIALIZED_ENTRY);
+  }
+  if_lengthiszero.End();
+
+  return Pop();
+}
+
+
+Handle<Code> ArrayShiftStub::GenerateCode() {
   return DoGenerateCode(this);
 }
 
@@ -1400,6 +1487,8 @@ HValue* CodeStubGraphBuilder<RegExpConstructResultStub>::BuildCodeStub() {
   HValue* length = GetParameter(RegExpConstructResultStub::kLength);
   HValue* index = GetParameter(RegExpConstructResultStub::kIndex);
   HValue* input = GetParameter(RegExpConstructResultStub::kInput);
+
+  info()->MarkMustNotHaveEagerFrame();
 
   return BuildRegExpConstructResult(length, index, input);
 }

@@ -1039,10 +1039,10 @@ class V8_EXPORT ScriptCompiler {
     int length;
     BufferPolicy buffer_policy;
 
-  private:
-     // Prevent copying. Not implemented.
-     CachedData(const CachedData&);
-     CachedData& operator=(const CachedData&);
+   private:
+    // Prevent copying. Not implemented.
+    CachedData(const CachedData&);
+    CachedData& operator=(const CachedData&);
   };
 
   /**
@@ -1065,7 +1065,7 @@ class V8_EXPORT ScriptCompiler {
 
    private:
     friend class ScriptCompiler;
-     // Prevent copying. Not implemented.
+    // Prevent copying. Not implemented.
     Source(const Source&);
     Source& operator=(const Source&);
 
@@ -1129,12 +1129,6 @@ class V8_EXPORT Message {
    * the error originates.
    */
   Handle<Value> GetScriptResourceName() const;
-
-  /**
-   * Returns the resource data for the script from where the function causing
-   * the error originates.
-   */
-  Handle<Value> GetScriptData() const;
 
   /**
    * Exception stack trace. By default stack traces are not captured for
@@ -1207,6 +1201,7 @@ class V8_EXPORT StackTrace {
     kIsConstructor = 1 << 5,
     kScriptNameOrSourceURL = 1 << 6,
     kScriptId = 1 << 7,
+    kExposeFramesAcrossSecurityOrigins = 1 << 8,
     kOverview = kLineNumber | kColumnOffset | kScriptName | kFunctionName,
     kDetailed = kOverview | kIsEval | kIsConstructor | kScriptNameOrSourceURL
   };
@@ -2102,7 +2097,7 @@ class V8_EXPORT Object : public Value {
 
   bool Set(uint32_t index, Handle<Value> value);
 
-  // Sets a local property on this object bypassing interceptors and
+  // Sets an own property on this object bypassing interceptors and
   // overriding accessors or read-only properties.
   //
   // Note that if the object has an interceptor the property will be set
@@ -2435,6 +2430,10 @@ class ReturnValue {
   // Convenience getter for Isolate
   V8_INLINE Isolate* GetIsolate();
 
+  // Pointer setter: Uncompilable to prevent inadvertent misuse.
+  template <typename S>
+  V8_INLINE void Set(S* whatever);
+
  private:
   template<class F> friend class ReturnValue;
   template<class F> friend class FunctionCallbackInfo;
@@ -2499,7 +2498,7 @@ class PropertyCallbackInfo {
  public:
   V8_INLINE Isolate* GetIsolate() const;
   V8_INLINE Local<Value> Data() const;
-  V8_INLINE Local<Value> This() const;
+  V8_INLINE Local<Object> This() const;
   V8_INLINE Local<Object> Holder() const;
   V8_INLINE ReturnValue<T> GetReturnValue() const;
   // This shouldn't be public, but the arm compiler needs it.
@@ -3871,8 +3870,8 @@ class V8_EXPORT ResourceConstraints {
                          uint64_t virtual_memory_limit,
                          uint32_t number_of_processors);
 
-  int max_new_space_size() const { return max_new_space_size_; }
-  void set_max_new_space_size(int value) { max_new_space_size_ = value; }
+  int max_semi_space_size() const { return max_semi_space_size_; }
+  void set_max_semi_space_size(int value) { max_semi_space_size_ = value; }
   int max_old_space_size() const { return max_old_space_size_; }
   void set_max_old_space_size(int value) { max_old_space_size_ = value; }
   int max_executable_size() const { return max_executable_size_; }
@@ -3891,7 +3890,7 @@ class V8_EXPORT ResourceConstraints {
   }
 
  private:
-  int max_new_space_size_;
+  int max_semi_space_size_;
   int max_old_space_size_;
   int max_executable_size_;
   uint32_t* stack_limit_;
@@ -4395,6 +4394,12 @@ class V8_EXPORT Isolate {
    */
   void SetAutorunMicrotasks(bool autorun);
 
+  /**
+   * Experimental: Returns whether the Microtask Work Queue is automatically
+   * run when the script call depth decrements to zero.
+   */
+  bool WillAutorunMicrotasks() const;
+
  private:
   template<class K, class V, class Traits> friend class PersistentValueMap;
 
@@ -4757,28 +4762,6 @@ class V8_EXPORT V8 {
   static void RemoveMemoryAllocationCallback(MemoryAllocationCallback callback);
 
   /**
-   * Experimental: Runs the Microtask Work Queue until empty
-   *
-   * Deprecated: Use methods on Isolate instead.
-   */
-  static void RunMicrotasks(Isolate* isolate);
-
-  /**
-   * Experimental: Enqueues the callback to the Microtask Work Queue
-   *
-   * Deprecated: Use methods on Isolate instead.
-   */
-  static void EnqueueMicrotask(Isolate* isolate, Handle<Function> microtask);
-
-   /**
-   * Experimental: Controls whether the Microtask Work Queue is automatically
-   * run when the script call depth decrements to zero.
-   *
-   * Deprecated: Use methods on Isolate instead.
-   */
-  static void SetAutorunMicrotasks(Isolate *source, bool autorun);
-
-  /**
    * Initializes from snapshot if possible. Otherwise, attempts to
    * initialize from scratch.  This function is called implicitly if
    * you use the API without calling it first.
@@ -5093,6 +5076,22 @@ class V8_EXPORT TryCatch {
    */
   void SetCaptureMessage(bool value);
 
+  /**
+   * There are cases when the raw address of C++ TryCatch object cannot be
+   * used for comparisons with addresses into the JS stack. The cases are:
+   * 1) ARM, ARM64 and MIPS simulators which have separate JS stack.
+   * 2) Address sanitizer allocates local C++ object in the heap when
+   *    UseAfterReturn mode is enabled.
+   * This method returns address that can be used for comparisons with
+   * addresses into the JS stack. When neither simulator nor ASAN's
+   * UseAfterReturn is enabled, then the address returned will be the address
+   * of the C++ try catch handler itself.
+   */
+  static void* JSStackComparableAddress(v8::TryCatch* handler) {
+    if (handler == NULL) return NULL;
+    return handler->js_stack_comparable_address_;
+  }
+
  private:
   // Make it hard to create heap-allocated TryCatch blocks.
   TryCatch(const TryCatch&);
@@ -5101,10 +5100,11 @@ class V8_EXPORT TryCatch {
   void operator delete(void*, size_t);
 
   v8::internal::Isolate* isolate_;
-  void* next_;
+  v8::TryCatch* next_;
   void* exception_;
   void* message_obj_;
   void* message_script_;
+  void* js_stack_comparable_address_;
   int message_start_pos_;
   int message_end_pos_;
   bool is_verbose_ : 1;
@@ -5532,7 +5532,7 @@ class Internals {
   static const int kJSObjectHeaderSize = 3 * kApiPointerSize;
   static const int kFixedArrayHeaderSize = 2 * kApiPointerSize;
   static const int kContextHeaderSize = 2 * kApiPointerSize;
-  static const int kContextEmbedderDataIndex = 74;
+  static const int kContextEmbedderDataIndex = 75;
   static const int kFullStringRepresentationMask = 0x07;
   static const int kStringEncodingMask = 0x4;
   static const int kExternalTwoByteRepresentationTag = 0x02;
@@ -5648,13 +5648,14 @@ class Internals {
     return reinterpret_cast<internal::Object**>(addr + index * kApiPointerSize);
   }
 
-  template <typename T> V8_INLINE static T ReadField(Object* ptr, int offset) {
+  template <typename T>
+  V8_INLINE static T ReadField(internal::Object* ptr, int offset) {
     uint8_t* addr = reinterpret_cast<uint8_t*>(ptr) + offset - kHeapObjectTag;
     return *reinterpret_cast<T*>(addr);
   }
 
   template <typename T>
-  V8_INLINE static T ReadEmbedderData(Context* context, int index) {
+  V8_INLINE static T ReadEmbedderData(v8::Context* context, int index) {
     typedef internal::Object O;
     typedef internal::Internals I;
     O* ctx = *reinterpret_cast<O**>(context);
@@ -5665,14 +5666,6 @@ class Internals {
         I::kFixedArrayHeaderSize + (internal::kApiPointerSize * index);
     return I::ReadField<T>(embedder_data, value_offset);
   }
-
-  V8_INLINE static bool CanCastToHeapObject(void* o) { return false; }
-  V8_INLINE static bool CanCastToHeapObject(Context* o) { return true; }
-  V8_INLINE static bool CanCastToHeapObject(String* o) { return true; }
-  V8_INLINE static bool CanCastToHeapObject(Object* o) { return true; }
-  V8_INLINE static bool CanCastToHeapObject(Message* o) { return true; }
-  V8_INLINE static bool CanCastToHeapObject(StackTrace* o) { return true; }
-  V8_INLINE static bool CanCastToHeapObject(StackFrame* o) { return true; }
 };
 
 }  // namespace internal
@@ -5977,6 +5970,13 @@ template<typename T>
 Isolate* ReturnValue<T>::GetIsolate() {
   // Isolate is always the pointer below the default value on the stack.
   return *reinterpret_cast<Isolate**>(&value_[-2]);
+}
+
+template<typename T>
+template<typename S>
+void ReturnValue<T>::Set(S* whatever) {
+  // Uncompilable to prevent inadvertent misuse.
+  TYPE_CHECK(S*, Primitive);
 }
 
 template<typename T>
@@ -6494,8 +6494,8 @@ Local<Value> PropertyCallbackInfo<T>::Data() const {
 
 
 template<typename T>
-Local<Value> PropertyCallbackInfo<T>::This() const {
-  return Local<Value>(reinterpret_cast<Value*>(&args_[kThisIndex]));
+Local<Object> PropertyCallbackInfo<T>::This() const {
+  return Local<Object>(reinterpret_cast<Object*>(&args_[kThisIndex]));
 }
 
 

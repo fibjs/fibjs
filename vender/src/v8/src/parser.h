@@ -89,13 +89,8 @@ class ScriptData {
   Scanner::Location MessageLocation() const;
   bool IsReferenceError() const;
   const char* BuildMessage() const;
-  Vector<const char*> BuildArgs() const;
+  const char* BuildArg() const;
 
-  int symbol_count() {
-    return (store_.length() > PreparseDataConstants::kHeaderSize)
-        ? store_[PreparseDataConstants::kSymbolCountOffset]
-        : 0;
-  }
   int function_count() {
     int functions_size =
         static_cast<int>(store_[PreparseDataConstants::kFunctionsSizeOffset]);
@@ -520,14 +515,14 @@ class ParserTraits {
   // Reporting errors.
   void ReportMessageAt(Scanner::Location source_location,
                        const char* message,
-                       Vector<const char*> args,
+                       const char* arg,
                        bool is_reference_error = false);
   void ReportMessage(const char* message,
-                     Vector<Handle<String> > args,
+                     MaybeHandle<String> arg,
                      bool is_reference_error = false);
   void ReportMessageAt(Scanner::Location source_location,
                        const char* message,
-                       Vector<Handle<String> > args,
+                       MaybeHandle<String> arg,
                        bool is_reference_error = false);
 
   // "null" return type creators.
@@ -658,7 +653,6 @@ class Parser : public ParserBase<ParserTraits> {
     } else {
       ASSERT(data != NULL);
       cached_data_ = data;
-      symbol_cache_.Initialize(*data ? (*data)->symbol_count() : 0, zone());
     }
   }
 
@@ -724,6 +718,10 @@ class Parser : public ParserBase<ParserTraits> {
                                   Expression* each,
                                   Expression* subject,
                                   Statement* body);
+  Statement* DesugarLetBindingsInForStatement(
+      Scope* inner_scope, ZoneStringList* names, ForStatement* loop,
+      Statement* init, Expression* cond, Statement* next, Statement* body,
+      bool* ok);
 
   FunctionLiteral* ParseFunctionLiteral(
       Handle<String> name,
@@ -769,8 +767,6 @@ class Parser : public ParserBase<ParserTraits> {
 
   Scope* NewScope(Scope* parent, ScopeType type);
 
-  Handle<String> LookupCachedSymbol(int symbol_id);
-
   // Skip over a lazy function, either using cached data if we have it, or
   // by parsing the function with PreParser. Consumes the ending }.
   void SkipLazyFunctionBody(Handle<String> function_name,
@@ -789,8 +785,9 @@ class Parser : public ParserBase<ParserTraits> {
                                                bool is_generator,
                                                bool* ok);
 
+  void ThrowPendingError();
+
   Isolate* isolate_;
-  ZoneList<Handle<String> > symbol_cache_;
 
   Handle<Script> script_;
   Scanner scanner_;
@@ -801,6 +798,14 @@ class Parser : public ParserBase<ParserTraits> {
   CachedDataMode cached_data_mode_;
 
   CompilationInfo* info_;
+
+  // Pending errors.
+  bool has_pending_error_;
+  Scanner::Location pending_error_location_;
+  const char* pending_error_message_;
+  MaybeHandle<String> pending_error_arg_;
+  const char* pending_error_char_arg_;
+  bool pending_error_is_reference_error_;
 };
 
 

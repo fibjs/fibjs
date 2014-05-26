@@ -66,6 +66,8 @@
 #include "arm/assembler-arm-inl.h"
 #elif V8_TARGET_ARCH_MIPS
 #include "mips/assembler-mips-inl.h"
+#elif V8_TARGET_ARCH_X87
+#include "x87/assembler-x87-inl.h"
 #else
 #error "Unknown architecture."
 #endif
@@ -82,6 +84,8 @@
 #include "arm/regexp-macro-assembler-arm.h"
 #elif V8_TARGET_ARCH_MIPS
 #include "mips/regexp-macro-assembler-mips.h"
+#elif V8_TARGET_ARCH_X87
+#include "x87/regexp-macro-assembler-x87.h"
 #else  // Unknown architecture.
 #error "Unknown architecture."
 #endif  // Target architecture.
@@ -123,7 +127,9 @@ AssemblerBase::AssemblerBase(Isolate* isolate, void* buffer, int buffer_size)
       jit_cookie_(0),
       enabled_cpu_features_(0),
       emit_debug_code_(FLAG_debug_code),
-      predictable_code_size_(false) {
+      predictable_code_size_(false),
+      // We may use the assembler without an isolate.
+      serializer_enabled_(isolate && isolate->serializer_enabled()) {
   if (FLAG_mask_constants_with_cookie && isolate != NULL)  {
     jit_cookie_ = isolate->random_number_generator()->NextInt();
   }
@@ -191,7 +197,7 @@ PredictableCodeSizeScope::~PredictableCodeSizeScope() {
 #ifdef DEBUG
 CpuFeatureScope::CpuFeatureScope(AssemblerBase* assembler, CpuFeature f)
     : assembler_(assembler) {
-  ASSERT(CpuFeatures::IsSafeForSnapshot(assembler_->isolate(), f));
+  ASSERT(CpuFeatures::IsSupported(f));
   old_enabled_ = assembler_->enabled_cpu_features();
   uint64_t mask = static_cast<uint64_t>(1) << f;
   // TODO(svenpanne) This special case below doesn't belong here!
@@ -211,23 +217,9 @@ CpuFeatureScope::~CpuFeatureScope() {
 #endif
 
 
-// -----------------------------------------------------------------------------
-// Implementation of PlatformFeatureScope
-
-PlatformFeatureScope::PlatformFeatureScope(Isolate* isolate, CpuFeature f)
-    : isolate_(isolate), old_cross_compile_(CpuFeatures::cross_compile_) {
-  // CpuFeatures is a global singleton, therefore this is only safe in
-  // single threaded code.
-  ASSERT(Serializer::enabled(isolate));
-  uint64_t mask = static_cast<uint64_t>(1) << f;
-  CpuFeatures::cross_compile_ |= mask;
-  USE(isolate_);
-}
-
-
-PlatformFeatureScope::~PlatformFeatureScope() {
-  CpuFeatures::cross_compile_ = old_cross_compile_;
-}
+bool CpuFeatures::initialized_ = false;
+unsigned CpuFeatures::supported_ = 0;
+unsigned CpuFeatures::cache_line_size_ = 0;
 
 
 // -----------------------------------------------------------------------------
@@ -724,7 +716,10 @@ RelocIterator::RelocIterator(Code* code, int mode_mask) {
   last_id_ = 0;
   last_position_ = 0;
   byte* sequence = code->FindCodeAgeSequence();
-  if (sequence != NULL && !Code::IsYoungSequence(sequence)) {
+  // We get the isolate from the map, because at serialization time
+  // the code pointer has been cloned and isn't really in heap space.
+  Isolate* isolate = code->map()->GetIsolate();
+  if (sequence != NULL && !Code::IsYoungSequence(isolate, sequence)) {
     code_age_sequence_ = sequence;
   } else {
     code_age_sequence_ = NULL;
@@ -856,7 +851,7 @@ void RelocInfo::Print(Isolate* isolate, FILE* out) {
 
 
 #ifdef VERIFY_HEAP
-void RelocInfo::Verify() {
+void RelocInfo::Verify(Isolate* isolate) {
   switch (rmode_) {
     case EMBEDDED_OBJECT:
       Object::VerifyPointer(target_object());
@@ -873,7 +868,7 @@ void RelocInfo::Verify() {
       CHECK(addr != NULL);
       // Check that we can find the right code object.
       Code* code = Code::GetCodeFromTargetAddress(addr);
-      Object* found = code->GetIsolate()->FindCodeObject(addr);
+      Object* found = isolate->FindCodeObject(addr);
       CHECK(found->IsCode());
       CHECK(code->address() == HeapObject::cast(found)->address());
       break;
@@ -895,7 +890,7 @@ void RelocInfo::Verify() {
       UNREACHABLE();
       break;
     case CODE_AGE_SEQUENCE:
-      ASSERT(Code::IsYoungSequence(pc_) || code_age_stub()->IsCode());
+      ASSERT(Code::IsYoungSequence(isolate, pc_) || code_age_stub()->IsCode());
       break;
   }
 }
@@ -1006,9 +1001,6 @@ ExternalReference::ExternalReference(const IC_Utility& ic_utility,
                                      Isolate* isolate)
   : address_(Redirect(isolate, ic_utility.address())) {}
 
-ExternalReference::ExternalReference(const Debug_Address& debug_address,
-                                     Isolate* isolate)
-  : address_(debug_address.address(isolate)) {}
 
 ExternalReference::ExternalReference(StatsCounter* counter)
   : address_(reinterpret_cast<Address>(counter->GetInternalPointer())) {}
@@ -1212,13 +1204,6 @@ ExternalReference ExternalReference::old_data_space_allocation_limit_address(
 }
 
 
-ExternalReference ExternalReference::
-    new_space_high_promotion_mode_active_address(Isolate* isolate) {
-  return ExternalReference(
-      isolate->heap()->NewSpaceHighPromotionModeActiveAddress());
-}
-
-
 ExternalReference ExternalReference::handle_scope_level_address(
     Isolate* isolate) {
   return ExternalReference(HandleScope::current_level_address(isolate));
@@ -1357,6 +1342,8 @@ ExternalReference ExternalReference::re_check_stack_guard_state(
   function = FUNCTION_ADDR(RegExpMacroAssemblerARM::CheckStackGuardState);
 #elif V8_TARGET_ARCH_MIPS
   function = FUNCTION_ADDR(RegExpMacroAssemblerMIPS::CheckStackGuardState);
+#elif V8_TARGET_ARCH_X87
+  function = FUNCTION_ADDR(RegExpMacroAssemblerX87::CheckStackGuardState);
 #else
   UNREACHABLE();
 #endif
@@ -1432,6 +1419,26 @@ ExternalReference ExternalReference::page_flags(Page* page) {
 
 ExternalReference ExternalReference::ForDeoptEntry(Address entry) {
   return ExternalReference(entry);
+}
+
+
+ExternalReference ExternalReference::cpu_features() {
+  ASSERT(CpuFeatures::initialized_);
+  return ExternalReference(&CpuFeatures::supported_);
+}
+
+
+ExternalReference ExternalReference::debug_after_break_target_address(
+    Isolate* isolate) {
+  return ExternalReference(isolate->debug()->after_break_target_address());
+}
+
+
+ExternalReference
+    ExternalReference::debug_restarter_frame_function_pointer_address(
+        Isolate* isolate) {
+  return ExternalReference(
+      isolate->debug()->restarter_frame_function_pointer_address());
 }
 
 

@@ -28,6 +28,7 @@ class LCodeGen;
   V(ArgumentsLength)                            \
   V(ArithmeticD)                                \
   V(ArithmeticT)                                \
+  V(ArrayShift)                                 \
   V(BitI)                                       \
   V(BitS)                                       \
   V(BoundsCheck)                                \
@@ -135,7 +136,8 @@ class LCodeGen;
   V(OsrEntry)                                   \
   V(Parameter)                                  \
   V(Power)                                      \
-  V(PushArgument)                               \
+  V(PreparePushArguments)                       \
+  V(PushArguments)                              \
   V(RegExpLiteral)                              \
   V(Return)                                     \
   V(SeqStringGetChar)                           \
@@ -565,7 +567,14 @@ class LAddE V8_FINAL : public LTemplateInstruction<1, 2, 0> {
 
 class LAddI V8_FINAL : public LTemplateInstruction<1, 2, 0> {
  public:
-  LAddI(LOperand* left, LOperand* right) {
+  LAddI(LOperand* left, LOperand* right)
+      : shift_(NO_SHIFT), shift_amount_(0)  {
+    inputs_[0] = left;
+    inputs_[1] = right;
+  }
+
+  LAddI(LOperand* left, LOperand* right, Shift shift, LOperand* shift_amount)
+      : shift_(shift), shift_amount_(shift_amount)  {
     inputs_[0] = left;
     inputs_[1] = right;
   }
@@ -573,8 +582,15 @@ class LAddI V8_FINAL : public LTemplateInstruction<1, 2, 0> {
   LOperand* left() { return inputs_[0]; }
   LOperand* right() { return inputs_[1]; }
 
+  Shift shift() const { return shift_; }
+  LOperand* shift_amount() const { return shift_amount_; }
+
   DECLARE_CONCRETE_INSTRUCTION(AddI, "add-i")
   DECLARE_HYDROGEN_ACCESSOR(Add)
+
+ protected:
+  Shift shift_;
+  LOperand* shift_amount_;
 };
 
 
@@ -734,7 +750,14 @@ class LBoundsCheck V8_FINAL : public LTemplateInstruction<0, 2, 0> {
 
 class LBitI V8_FINAL : public LTemplateInstruction<1, 2, 0> {
  public:
-  LBitI(LOperand* left, LOperand* right) {
+  LBitI(LOperand* left, LOperand* right)
+      : shift_(NO_SHIFT), shift_amount_(0)  {
+    inputs_[0] = left;
+    inputs_[1] = right;
+  }
+
+  LBitI(LOperand* left, LOperand* right, Shift shift, LOperand* shift_amount)
+      : shift_(shift), shift_amount_(shift_amount)  {
     inputs_[0] = left;
     inputs_[1] = right;
   }
@@ -742,10 +765,17 @@ class LBitI V8_FINAL : public LTemplateInstruction<1, 2, 0> {
   LOperand* left() { return inputs_[0]; }
   LOperand* right() { return inputs_[1]; }
 
+  Shift shift() const { return shift_; }
+  LOperand* shift_amount() const { return shift_amount_; }
+
   Token::Value op() const { return hydrogen()->op(); }
 
   DECLARE_CONCRETE_INSTRUCTION(BitI, "bit-i")
   DECLARE_HYDROGEN_ACCESSOR(Bitwise)
+
+ protected:
+  Shift shift_;
+  LOperand* shift_amount_;
 };
 
 
@@ -908,7 +938,7 @@ class LCheckInstanceType V8_FINAL : public LTemplateInstruction<0, 1, 1> {
 
 class LCheckMaps V8_FINAL : public LTemplateInstruction<0, 1, 1> {
  public:
-  explicit LCheckMaps(LOperand* value, LOperand* temp) {
+  LCheckMaps(LOperand* value = NULL, LOperand* temp = NULL) {
     inputs_[0] = value;
     temps_[0] = temp;
   }
@@ -1012,17 +1042,15 @@ class LDoubleBits V8_FINAL : public LTemplateInstruction<1, 1, 0> {
 };
 
 
-class LConstructDouble V8_FINAL : public LTemplateInstruction<1, 2, 1> {
+class LConstructDouble V8_FINAL : public LTemplateInstruction<1, 2, 0> {
  public:
-  LConstructDouble(LOperand* hi, LOperand* lo, LOperand* temp) {
+  LConstructDouble(LOperand* hi, LOperand* lo) {
     inputs_[0] = hi;
     inputs_[1] = lo;
-    temps_[0] = temp;
   }
 
   LOperand* hi() { return inputs_[0]; }
   LOperand* lo() { return inputs_[1]; }
-  LOperand* temp() { return temps_[0]; }
 
   DECLARE_CONCRETE_INSTRUCTION(ConstructDouble, "construct-double")
 };
@@ -1730,15 +1758,15 @@ class LLoadKeyed : public LTemplateInstruction<1, 2, T> {
   bool is_typed_elements() const {
     return is_external() || is_fixed_typed_array();
   }
-  uint32_t additional_index() const {
-    return this->hydrogen()->index_offset();
+  uint32_t base_offset() const {
+    return this->hydrogen()->base_offset();
   }
   void PrintDataTo(StringStream* stream) V8_OVERRIDE {
     this->elements()->PrintTo(stream);
     stream->Add("[");
     this->key()->PrintTo(stream);
-    if (this->hydrogen()->IsDehoisted()) {
-      stream->Add(" + %d]", this->additional_index());
+    if (this->base_offset() != 0) {
+      stream->Add(" + %d]", this->base_offset());
     } else {
       stream->Add("]");
     }
@@ -2222,15 +2250,50 @@ class LPower V8_FINAL : public LTemplateInstruction<1, 2, 0> {
 };
 
 
-class LPushArgument V8_FINAL : public LTemplateInstruction<0, 1, 0> {
+class LPreparePushArguments V8_FINAL : public LTemplateInstruction<0, 0, 0> {
  public:
-  explicit LPushArgument(LOperand* value) {
-    inputs_[0] = value;
+  explicit LPreparePushArguments(int argc) : argc_(argc) {}
+
+  inline int argc() const { return argc_; }
+
+  DECLARE_CONCRETE_INSTRUCTION(PreparePushArguments, "prepare-push-arguments")
+
+ protected:
+  int argc_;
+};
+
+
+class LPushArguments V8_FINAL : public LTemplateResultInstruction<0> {
+ public:
+  explicit LPushArguments(Zone* zone,
+                          int capacity = kRecommendedMaxPushedArgs)
+      : zone_(zone), inputs_(capacity, zone) {}
+
+  LOperand* argument(int i) { return inputs_[i]; }
+  int ArgumentCount() const { return inputs_.length(); }
+
+  void AddArgument(LOperand* arg) { inputs_.Add(arg, zone_); }
+
+  DECLARE_CONCRETE_INSTRUCTION(PushArguments, "push-arguments")
+
+  // It is better to limit the number of arguments pushed simultaneously to
+  // avoid pressure on the register allocator.
+  static const int kRecommendedMaxPushedArgs = 4;
+  bool ShouldSplitPush() const {
+    return inputs_.length() >= kRecommendedMaxPushedArgs;
   }
 
-  LOperand* value() { return inputs_[0]; }
+ protected:
+  Zone* zone_;
+  ZoneList<LOperand*> inputs_;
 
-  DECLARE_CONCRETE_INSTRUCTION(PushArgument, "push-argument")
+ private:
+  // Iterator support.
+  virtual int InputCount() V8_FINAL V8_OVERRIDE { return inputs_.length(); }
+  virtual LOperand* InputAt(int i) V8_FINAL V8_OVERRIDE { return inputs_[i]; }
+
+  virtual int TempCount() V8_FINAL V8_OVERRIDE { return 0; }
+  virtual LOperand* TempAt(int i) V8_FINAL V8_OVERRIDE { return NULL; }
 };
 
 
@@ -2386,16 +2449,20 @@ class LStoreKeyed : public LTemplateInstruction<0, 3, T> {
   }
 
   bool NeedsCanonicalization() {
+    if (hydrogen()->value()->IsAdd() || hydrogen()->value()->IsSub() ||
+        hydrogen()->value()->IsMul() || hydrogen()->value()->IsDiv()) {
+      return false;
+    }
     return this->hydrogen()->NeedsCanonicalization();
   }
-  uint32_t additional_index() const { return this->hydrogen()->index_offset(); }
+  uint32_t base_offset() const { return this->hydrogen()->base_offset(); }
 
   void PrintDataTo(StringStream* stream) V8_OVERRIDE {
     this->elements()->PrintTo(stream);
     stream->Add("[");
     this->key()->PrintTo(stream);
-    if (this->hydrogen()->IsDehoisted()) {
-      stream->Add(" + %d] <-", this->additional_index());
+    if (this->base_offset() != 0) {
+      stream->Add(" + %d] <-", this->base_offset());
     } else {
       stream->Add("] <- ");
     }
@@ -2419,7 +2486,7 @@ class LStoreKeyedExternal V8_FINAL : public LStoreKeyed<1> {
                       LOperand* temp) :
       LStoreKeyed<1>(elements, key, value) {
     temps_[0] = temp;
-  };
+  }
 
   LOperand* temp() { return temps_[0]; }
 
@@ -2433,7 +2500,7 @@ class LStoreKeyedFixed V8_FINAL : public LStoreKeyed<1> {
                    LOperand* temp) :
       LStoreKeyed<1>(elements, key, value) {
     temps_[0] = temp;
-  };
+  }
 
   LOperand* temp() { return temps_[0]; }
 
@@ -2447,7 +2514,7 @@ class LStoreKeyedFixedDouble V8_FINAL : public LStoreKeyed<1> {
                          LOperand* temp) :
       LStoreKeyed<1>(elements, key, value) {
     temps_[0] = temp;
-  };
+  }
 
   LOperand* temp() { return temps_[0]; }
 
@@ -2726,7 +2793,14 @@ class LStoreGlobalCell V8_FINAL : public LTemplateInstruction<0, 1, 2> {
 
 class LSubI V8_FINAL : public LTemplateInstruction<1, 2, 0> {
  public:
-  LSubI(LOperand* left, LOperand* right) {
+  LSubI(LOperand* left, LOperand* right)
+      : shift_(NO_SHIFT), shift_amount_(0)  {
+    inputs_[0] = left;
+    inputs_[1] = right;
+  }
+
+  LSubI(LOperand* left, LOperand* right, Shift shift, LOperand* shift_amount)
+      : shift_(shift), shift_amount_(shift_amount)  {
     inputs_[0] = left;
     inputs_[1] = right;
   }
@@ -2734,8 +2808,15 @@ class LSubI V8_FINAL : public LTemplateInstruction<1, 2, 0> {
   LOperand* left() { return inputs_[0]; }
   LOperand* right() { return inputs_[1]; }
 
+  Shift shift() const { return shift_; }
+  LOperand* shift_amount() const { return shift_amount_; }
+
   DECLARE_CONCRETE_INSTRUCTION(SubI, "sub-i")
   DECLARE_HYDROGEN_ACCESSOR(Sub)
+
+ protected:
+  Shift shift_;
+  LOperand* shift_amount_;
 };
 
 
@@ -2803,6 +2884,21 @@ class LTransitionElementsKind V8_FINAL : public LTemplateInstruction<0, 2, 2> {
   }
   ElementsKind from_kind() const { return hydrogen()->from_kind(); }
   ElementsKind to_kind() const { return hydrogen()->to_kind(); }
+};
+
+
+class LArrayShift V8_FINAL : public LTemplateInstruction<1, 2, 0> {
+ public:
+  LArrayShift(LOperand* context, LOperand* object) {
+    inputs_[0] = context;
+    inputs_[1] = object;
+  }
+
+  LOperand* context() const { return inputs_[0]; }
+  LOperand* object() const { return inputs_[1]; }
+
+  DECLARE_CONCRETE_INSTRUCTION(ArrayShift, "array-shift")
+  DECLARE_HYDROGEN_ACCESSOR(ArrayShift)
 };
 
 
@@ -3043,6 +3139,9 @@ class LChunkBuilder V8_FINAL : public LChunkBuilderBase {
   // Temporary operand that must be in a register.
   MUST_USE_RESULT LUnallocated* TempRegister();
 
+  // Temporary operand that must be in a double register.
+  MUST_USE_RESULT LUnallocated* TempDoubleRegister();
+
   // Temporary operand that must be in a fixed double register.
   MUST_USE_RESULT LOperand* FixedTemp(DoubleRegister reg);
 
@@ -3074,7 +3173,41 @@ class LChunkBuilder V8_FINAL : public LChunkBuilderBase {
   LInstruction* AssignEnvironment(LInstruction* instr);
 
   void VisitInstruction(HInstruction* current);
+  void AddInstruction(LInstruction* instr, HInstruction* current);
   void DoBasicBlock(HBasicBlock* block);
+
+  int JSShiftAmountFromHConstant(HValue* constant) {
+    return HConstant::cast(constant)->Integer32Value() & 0x1f;
+  }
+  bool LikelyFitsImmField(HInstruction* instr, int imm) {
+    if (instr->IsAdd() || instr->IsSub()) {
+      return Assembler::IsImmAddSub(imm) || Assembler::IsImmAddSub(-imm);
+    } else {
+      ASSERT(instr->IsBitwise());
+      unsigned unused_n, unused_imm_s, unused_imm_r;
+      return Assembler::IsImmLogical(imm, kWRegSizeInBits,
+                                     &unused_n, &unused_imm_s, &unused_imm_r);
+    }
+  }
+
+  // Indicates if a sequence of the form
+  //   lsl x8, x9, #imm
+  //   add x0, x1, x8
+  // can be replaced with:
+  //   add x0, x1, x9 LSL #imm
+  // If this is not possible, the function returns NULL. Otherwise it returns a
+  // pointer to the shift instruction that would be optimized away.
+  HBitwiseBinaryOperation* CanTransformToShiftedOp(HValue* val,
+                                                   HValue** left = NULL);
+  // Checks if all uses of the shift operation can optimize it away.
+  bool ShiftCanBeOptimizedAway(HBitwiseBinaryOperation* shift);
+  // Attempts to merge the binary operation and an eventual previous shift
+  // operation into a single operation. Returns the merged instruction on
+  // success, and NULL otherwise.
+  LInstruction* TryDoOpWithShiftedRightOperand(HBinaryOperation* op);
+  LInstruction* DoShiftedBinaryOp(HBinaryOperation* instr,
+                                  HValue* left,
+                                  HBitwiseBinaryOperation* shift);
 
   LInstruction* DoShift(Token::Value op, HBitwiseBinaryOperation* instr);
   LInstruction* DoArithmeticD(Token::Value op,
