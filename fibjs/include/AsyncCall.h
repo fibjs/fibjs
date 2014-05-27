@@ -7,6 +7,7 @@ namespace fibjs
 {
 
 extern exlib::AsyncQueue s_acPool;
+void asyncLog(int priority, std::string msg);
 
 class AsyncCall: public asyncEvent
 {

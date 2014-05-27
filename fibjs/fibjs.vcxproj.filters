@@ -626,9 +626,6 @@
     <ClInclude Include="include\ifs\HttpsServer.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\acPool.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\AsyncCall.h">
       <Filter>Header Files</Filter>
     </ClInclude>

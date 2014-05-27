@@ -136,7 +136,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\acPool.h" />
     <ClInclude Include="include\AsyncCall.h" />
     <ClInclude Include="include\AsyncWaitHandler.h" />
     <ClInclude Include="include\BlockQueue.h" />
