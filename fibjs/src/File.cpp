@@ -85,7 +85,7 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 
         while (sz)
         {
-            int n = (int) ::_read(m_fd, p, sz > 65536 ? 65536 : sz);
+            int n = (int) ::_read(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
             if (n < 0)
                 return LastError();
             if (n == 0)
@@ -143,7 +143,7 @@ result_t File::readAll(obj_ptr<Buffer_base> &retVal, exlib::AsyncEvent *ac)
 
         while (sz)
         {
-            int n = (int) ::_read(m_fd, p, sz > 65536 ? 65536 : sz);
+            int n = (int) ::_read(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
             if (n < 0)
                 return LastError();
             if (n == 0)
@@ -171,7 +171,7 @@ result_t File::Write(const char *p, int sz)
 
     while (sz)
     {
-        int n = (int) ::_write(m_fd, p, sz > 65536 ? 65536 : sz);
+        int n = (int) ::_write(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
         if (n < 0)
             return LastError();
 
