@@ -220,20 +220,28 @@ result_t SslSocket::write(Buffer_base *data, exlib::AsyncEvent *ac)
             asyncSsl(pThis, ac)
         {
             data->toString(m_buf);
+            m_pos = 0;
         }
 
     public:
         virtual int process()
         {
-            int ret = ssl_write(&m_pThis->m_ssl, (const unsigned char *)m_buf.c_str(),
-                                m_buf.length());
-            if (ret == m_buf.length())
-                return 0;
+            int ret;
+
+            while ((ret = ssl_write(&m_pThis->m_ssl, (const unsigned char *)m_buf.c_str() + m_pos,
+                                    m_buf.length() - m_pos)) > 0)
+            {
+                m_pos += ret;
+                if (m_pos == m_buf.length())
+                    return 0;
+            }
+
             return ret;
         }
 
     private:
         std::string m_buf;
+        int32_t m_pos;
     };
 
     if (!m_s)
