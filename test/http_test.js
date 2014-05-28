@@ -663,10 +663,15 @@ describe("http", function() {
 	describe("server/request", function() {
 		it("server", function() {
 			new http.Server(8882, function(r) {
-				r.response.body.write(new Buffer(r.address));
-				r.body.copyTo(r.response.body);
-				if (r.hasHeader("test_header"))
-					r.response.body.write(new Buffer(r.firstHeader("test_header")));
+				if (r.address != "/gzip_test") {
+					r.response.body.write(new Buffer(r.address));
+					r.body.copyTo(r.response.body);
+					if (r.hasHeader("test_header"))
+						r.response.body.write(new Buffer(r.firstHeader("test_header")));
+				} else {
+					r.response.addHeader("Content-Type", "text/html");
+					r.response.body.write(new Buffer("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"));
+				}
 			}).asyncRun();
 		});
 
@@ -685,6 +690,11 @@ describe("http", function() {
 				assert.equal(http.request("GET", "http://127.0.0.1:8882/request:", {
 					"test_header": "header"
 				}).body.read().toString(), "/request:header");
+			});
+
+			it("gzip", function() {
+				assert.equal(http.get("http://127.0.0.1:8882/gzip_test").body.read().toString(),
+					"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
 			});
 		});
 
@@ -725,10 +735,15 @@ describe("http", function() {
 
 		it("server", function() {
 			new http.HttpsServer(crt, pk, 8883, function(r) {
-				r.response.body.write(new Buffer(r.address));
-				r.body.copyTo(r.response.body);
-				if (r.hasHeader("test_header"))
-					r.response.body.write(new Buffer(r.firstHeader("test_header")));
+				if (r.address != "/gzip_test") {
+					r.response.body.write(new Buffer(r.address));
+					r.body.copyTo(r.response.body);
+					if (r.hasHeader("test_header"))
+						r.response.body.write(new Buffer(r.firstHeader("test_header")));
+				} else {
+					r.response.addHeader("Content-Type", "text/html");
+					r.response.body.write(new Buffer("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"));
+				}
 			}).asyncRun();
 		});
 
@@ -747,6 +762,11 @@ describe("http", function() {
 				assert.equal(http.request("GET", "https://127.0.0.1:8883/request:", {
 					"test_header": "header"
 				}).body.read().toString(), "/request:header");
+			});
+
+			it("gzip", function() {
+				assert.equal(http.get("https://127.0.0.1:8883/gzip_test").body.read().toString(),
+					"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
 			});
 		});
 

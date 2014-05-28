@@ -17,6 +17,7 @@
 #include "SslSocket.h"
 #include "BufferedStream.h"
 #include "map"
+#include "ifs/zlib.h"
 
 namespace fibjs
 {
@@ -85,13 +86,48 @@ result_t http_base::request(const char *host, int32_t port, HttpRequest_base *re
             pThis->m_bs = new BufferedStream(pThis->m_strm);
             pThis->m_bs->set_EOL("\r\n");
 
-            pThis->set(close);
+            pThis->set(unzip);
             return pThis->m_retVal->readFrom(pThis->m_bs, pThis);
+        }
+
+        static int unzip(asyncState *pState, int n)
+        {
+            asyncRequest *pThis = (asyncRequest *) pState;
+
+            pThis->set(close);
+
+            Variant hdr;
+
+            if (pThis->m_retVal->firstHeader("Content-Encoding",
+                                             hdr) != CALL_RETURN_NULL)
+            {
+                pThis->m_retVal->removeHeader("Content-Encoding");
+
+                pThis->m_retVal->get_body(pThis->m_body);
+                pThis->m_unzip = new MemoryStream();
+
+                std::string str = hdr.string();
+
+                if (!qstrcmp(str.c_str(), "gzip"))
+                    return zlib_base::gunzipTo(pThis->m_body,
+                                               pThis->m_unzip, pThis);
+                else if (!qstrcmp(str.c_str(), "defalte"))
+                    return zlib_base::inflateTo(pThis->m_body,
+                                                pThis->m_unzip, pThis);
+            }
+
+            return 0;
         }
 
         static int close(asyncState *pState, int n)
         {
             asyncRequest *pThis = (asyncRequest *) pState;
+
+            if (pThis->m_unzip)
+            {
+                pThis->m_unzip->rewind();
+                pThis->m_retVal->set_body(pThis->m_unzip);
+            }
 
             pThis->set(ok);
             if (!pThis->m_ssl)
@@ -115,6 +151,8 @@ result_t http_base::request(const char *host, int32_t port, HttpRequest_base *re
         obj_ptr<SslSocket> m_ssl_sock;
         obj_ptr<Stream_base> m_strm;
         obj_ptr<BufferedStream> m_bs;
+        obj_ptr<MemoryStream> m_unzip;
+        obj_ptr<SeekableStream_base> m_body;
         int m_temp;
     };
 
@@ -177,6 +215,7 @@ result_t http_base::request(const char *method, const char *url,
 
             req->set_address(path.c_str());
             req->addHeader("host", host.c_str());
+            req->setHeader("Accept-Encoding", "gzip,deflate");
             req->addHeader(headers);
 
             if (body)
