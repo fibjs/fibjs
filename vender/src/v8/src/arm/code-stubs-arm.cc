@@ -2497,8 +2497,8 @@ void RegExpExecStub::Generate(MacroAssembler* masm) {
   STATIC_ASSERT(kSeqStringTag == 0);
   __ tst(r0, Operand(kStringRepresentationMask));
   // The underlying external string is never a short external string.
-  STATIC_CHECK(ExternalString::kMaxShortLength < ConsString::kMinLength);
-  STATIC_CHECK(ExternalString::kMaxShortLength < SlicedString::kMinLength);
+  STATIC_ASSERT(ExternalString::kMaxShortLength < ConsString::kMinLength);
+  STATIC_ASSERT(ExternalString::kMaxShortLength < SlicedString::kMinLength);
   __ b(ne, &external_string);  // Go to (7).
 
   // (5) Sequential string.  Load regexp code according to encoding.
@@ -3066,13 +3066,18 @@ static void EmitLoadTypeFeedbackVector(MacroAssembler* masm, Register vector) {
 }
 
 
-void CallICStub::Generate_MonomorphicArray(MacroAssembler* masm, Label* miss) {
+void CallIC_ArrayStub::Generate(MacroAssembler* masm) {
   // r1 - function
-  // r2 - feedback vector
   // r3 - slot id
+  Label miss;
+  int argc = state_.arg_count();
+  ParameterCount actual(argc);
+
+  EmitLoadTypeFeedbackVector(masm, r2);
+
   __ LoadGlobalFunction(Context::ARRAY_FUNCTION_INDEX, r4);
   __ cmp(r1, r4);
-  __ b(ne, miss);
+  __ b(ne, &miss);
 
   __ mov(r0, Operand(arg_count()));
   __ add(r4, r2, Operand::PointerOffsetFromSmiKey(r3));
@@ -3081,24 +3086,9 @@ void CallICStub::Generate_MonomorphicArray(MacroAssembler* masm, Label* miss) {
   __ AssertUndefinedOrAllocationSite(r2, r4);
   ArrayConstructorStub stub(masm->isolate(), arg_count());
   __ TailCallStub(&stub);
-}
-
-
-void CallICStub::Generate_CustomFeedbackCall(MacroAssembler* masm) {
-  // r1 - function
-  // r2 - feedback vector
-  // r3 - slot id
-  Label miss;
-
-  if (state_.stub_type() == CallIC::MONOMORPHIC_ARRAY) {
-    Generate_MonomorphicArray(masm, &miss);
-  } else {
-    // So far there is only one customer for our custom feedback scheme.
-    UNREACHABLE();
-  }
 
   __ bind(&miss);
-  GenerateMiss(masm);
+  GenerateMiss(masm, IC::kCallIC_Customization_Miss);
 
   // The slow case, we need this no matter what to complete a call after a miss.
   CallFunctionNoFeedback(masm,
@@ -3121,11 +3111,6 @@ void CallICStub::Generate(MacroAssembler* masm) {
   ParameterCount actual(argc);
 
   EmitLoadTypeFeedbackVector(masm, r2);
-
-  if (state_.stub_type() != CallIC::DEFAULT) {
-    Generate_CustomFeedbackCall(masm);
-    return;
-  }
 
   // The checks. First, does r1 match the recorded monomorphic target?
   __ add(r4, r2, Operand::PointerOffsetFromSmiKey(r3));
@@ -3174,7 +3159,7 @@ void CallICStub::Generate(MacroAssembler* masm) {
 
   // We are here because tracing is on or we are going monomorphic.
   __ bind(&miss);
-  GenerateMiss(masm);
+  GenerateMiss(masm, IC::kCallIC_Miss);
 
   // the slow case
   __ bind(&slow_start);
@@ -3189,7 +3174,7 @@ void CallICStub::Generate(MacroAssembler* masm) {
 }
 
 
-void CallICStub::GenerateMiss(MacroAssembler* masm) {
+void CallICStub::GenerateMiss(MacroAssembler* masm, IC::UtilityId id) {
   // Get the receiver of the function from the stack; 1 ~ return address.
   __ ldr(r4, MemOperand(sp, (state_.arg_count() + 1) * kPointerSize));
 
@@ -3200,7 +3185,7 @@ void CallICStub::GenerateMiss(MacroAssembler* masm) {
     __ Push(r4, r1, r2, r3);
 
     // Call the entry.
-    ExternalReference miss = ExternalReference(IC_Utility(IC::kCallIC_Miss),
+    ExternalReference miss = ExternalReference(IC_Utility(id),
                                                masm->isolate());
     __ CallExternalReference(miss, 4);
 
@@ -3677,7 +3662,7 @@ void SubStringStub::Generate(MacroAssembler* masm) {
 
   // Handle external string.
   // Rule out short external strings.
-  STATIC_CHECK(kShortExternalStringTag != 0);
+  STATIC_ASSERT(kShortExternalStringTag != 0);
   __ tst(r1, Operand(kShortExternalStringTag));
   __ b(ne, &runtime);
   __ ldr(r5, FieldMemOperand(r5, ExternalString::kResourceDataOffset));
@@ -5134,7 +5119,7 @@ void InternalArrayConstructorStub::Generate(MacroAssembler* masm) {
   // but the following bit field extraction takes care of that anyway.
   __ ldr(r3, FieldMemOperand(r3, Map::kBitField2Offset));
   // Retrieve elements_kind from bit field 2.
-  __ Ubfx(r3, r3, Map::kElementsKindShift, Map::kElementsKindBitCount);
+  __ DecodeField<Map::ElementsKindBits>(r3);
 
   if (FLAG_debug_code) {
     Label done;

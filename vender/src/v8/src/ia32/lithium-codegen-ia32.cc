@@ -3708,9 +3708,9 @@ void LCodeGen::DoMathRound(LMathRound* instr) {
 
 
 void LCodeGen::DoMathSqrt(LMathSqrt* instr) {
-  XMMRegister input_reg = ToDoubleRegister(instr->value());
-  ASSERT(ToDoubleRegister(instr->result()).is(input_reg));
-  __ sqrtsd(input_reg, input_reg);
+  Operand input = ToOperand(instr->value());
+  XMMRegister output = ToDoubleRegister(instr->result());
+  __ sqrtsd(output, input);
 }
 
 
@@ -3978,30 +3978,12 @@ void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
   }
 
   Register object = ToRegister(instr->object());
-  SmiCheck check_needed =
-      instr->hydrogen()->value()->IsHeapObject()
-          ? OMIT_SMI_CHECK : INLINE_SMI_CHECK;
+  __ AssertNotSmi(object);
 
-  ASSERT(!(representation.IsSmi() &&
-           instr->value()->IsConstantOperand() &&
-           !IsSmi(LConstantOperand::cast(instr->value()))));
-  if (representation.IsHeapObject()) {
-    if (instr->value()->IsConstantOperand()) {
-      LConstantOperand* operand_value = LConstantOperand::cast(instr->value());
-      if (chunk_->LookupConstant(operand_value)->HasSmiValue()) {
-        DeoptimizeIf(no_condition, instr->environment());
-      }
-    } else {
-      if (!instr->hydrogen()->value()->type().IsHeapObject()) {
-        Register value = ToRegister(instr->value());
-        __ test(value, Immediate(kSmiTagMask));
-        DeoptimizeIf(zero, instr->environment());
-
-        // We know now that value is not a smi, so we can omit the check below.
-        check_needed = OMIT_SMI_CHECK;
-      }
-    }
-  } else if (representation.IsDouble()) {
+  ASSERT(!representation.IsSmi() ||
+         !instr->value()->IsConstantOperand() ||
+         IsSmi(LConstantOperand::cast(instr->value())));
+  if (representation.IsDouble()) {
     ASSERT(access.IsInobject());
     ASSERT(!instr->hydrogen()->has_transition());
     ASSERT(!instr->hydrogen()->NeedsWriteBarrier());
@@ -4068,7 +4050,7 @@ void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
                         temp,
                         kSaveFPRegs,
                         EMIT_REMEMBERED_SET,
-                        check_needed);
+                        instr->hydrogen()->SmiCheckForWriteBarrier());
   }
 }
 

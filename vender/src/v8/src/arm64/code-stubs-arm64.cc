@@ -2721,8 +2721,8 @@ void RegExpExecStub::Generate(MacroAssembler* masm) {
   __ Ldrb(string_type, FieldMemOperand(x10, Map::kInstanceTypeOffset));
   STATIC_ASSERT(kSeqStringTag == 0);
   // The underlying external string is never a short external string.
-  STATIC_CHECK(ExternalString::kMaxShortLength < ConsString::kMinLength);
-  STATIC_CHECK(ExternalString::kMaxShortLength < SlicedString::kMinLength);
+  STATIC_ASSERT(ExternalString::kMaxShortLength < ConsString::kMinLength);
+  STATIC_ASSERT(ExternalString::kMaxShortLength < SlicedString::kMinLength);
   __ TestAndBranchIfAnySet(string_type.X(),
                            kStringRepresentationMask,
                            &external_string);  // Go to (7).
@@ -3360,18 +3360,20 @@ static void EmitLoadTypeFeedbackVector(MacroAssembler* masm, Register vector) {
 }
 
 
-void CallICStub::Generate_MonomorphicArray(MacroAssembler* masm, Label* miss) {
+void CallIC_ArrayStub::Generate(MacroAssembler* masm) {
   // x1 - function
-  // x2 - feedback vector
   // x3 - slot id
+  Label miss;
   Register function = x1;
   Register feedback_vector = x2;
   Register index = x3;
   Register scratch = x4;
 
+  EmitLoadTypeFeedbackVector(masm, feedback_vector);
+
   __ LoadGlobalFunction(Context::ARRAY_FUNCTION_INDEX, scratch);
   __ Cmp(function, scratch);
-  __ B(ne, miss);
+  __ B(ne, &miss);
 
   Register allocation_site = feedback_vector;
   __ Mov(x0, Operand(arg_count()));
@@ -3384,24 +3386,9 @@ void CallICStub::Generate_MonomorphicArray(MacroAssembler* masm, Label* miss) {
   __ AssertUndefinedOrAllocationSite(allocation_site, scratch);
   ArrayConstructorStub stub(masm->isolate(), arg_count());
   __ TailCallStub(&stub);
-}
-
-
-void CallICStub::Generate_CustomFeedbackCall(MacroAssembler* masm) {
-  // x1 - function
-  // x2 - feedback vector
-  // x3 - slot id
-  Label miss;
-
-  if (state_.stub_type() == CallIC::MONOMORPHIC_ARRAY) {
-    Generate_MonomorphicArray(masm, &miss);
-  } else {
-    // So far there is only one customer for our custom feedback scheme.
-    UNREACHABLE();
-  }
 
   __ bind(&miss);
-  GenerateMiss(masm);
+  GenerateMiss(masm, IC::kCallIC_Customization_Miss);
 
   // The slow case, we need this no matter what to complete a call after a miss.
   CallFunctionNoFeedback(masm,
@@ -3430,11 +3417,6 @@ void CallICStub::Generate(MacroAssembler* masm) {
   Register type = x4;
 
   EmitLoadTypeFeedbackVector(masm, feedback_vector);
-
-  if (state_.stub_type() != CallIC::DEFAULT) {
-    Generate_CustomFeedbackCall(masm);
-    return;
-  }
 
   // The checks. First, does x1 match the recorded monomorphic target?
   __ Add(x4, feedback_vector,
@@ -3487,7 +3469,7 @@ void CallICStub::Generate(MacroAssembler* masm) {
 
   // We are here because tracing is on or we are going monomorphic.
   __ bind(&miss);
-  GenerateMiss(masm);
+  GenerateMiss(masm, IC::kCallIC_Miss);
 
   // the slow case
   __ bind(&slow_start);
@@ -3501,7 +3483,7 @@ void CallICStub::Generate(MacroAssembler* masm) {
 }
 
 
-void CallICStub::GenerateMiss(MacroAssembler* masm) {
+void CallICStub::GenerateMiss(MacroAssembler* masm, IC::UtilityId id) {
   ASM_LOCATION("CallICStub[Miss]");
 
   // Get the receiver of the function from the stack; 1 ~ return address.
@@ -3514,7 +3496,7 @@ void CallICStub::GenerateMiss(MacroAssembler* masm) {
     __ Push(x4, x1, x2, x3);
 
     // Call the entry.
-    ExternalReference miss = ExternalReference(IC_Utility(IC::kCallIC_Miss),
+    ExternalReference miss = ExternalReference(IC_Utility(id),
                                                masm->isolate());
     __ CallExternalReference(miss, 4);
 
@@ -4687,7 +4669,7 @@ void StoreArrayLiteralElementStub::Generate(MacroAssembler* masm) {
   __ JumpIfSmi(value, &smi_element);
 
   // Jump if array's ElementsKind is not FAST_ELEMENTS or FAST_HOLEY_ELEMENTS.
-  __ Tbnz(bitfield2, MaskToBit(FAST_ELEMENTS << Map::kElementsKindShift),
+  __ Tbnz(bitfield2, MaskToBit(FAST_ELEMENTS << Map::ElementsKindBits::kShift),
           &fast_elements);
 
   // Store into the array literal requires an elements transition. Call into

@@ -67,10 +67,6 @@ void BreakLocationIterator::ClearDebugBreakAtSlot() {
 }
 
 
-// All debug break stubs support padding for LiveEdit.
-const bool Debug::FramePaddingLayout::kIsSupported = true;
-
-
 #define __ ACCESS_MASM(masm)
 
 static void Generate_DebugBreakCallHelper(MacroAssembler* masm,
@@ -82,11 +78,10 @@ static void Generate_DebugBreakCallHelper(MacroAssembler* masm,
     FrameScope scope(masm, StackFrame::INTERNAL);
 
     // Load padding words on stack.
-    for (int i = 0; i < Debug::FramePaddingLayout::kInitialSize; i++) {
-      __ push(Immediate(Smi::FromInt(
-          Debug::FramePaddingLayout::kPaddingValue)));
+    for (int i = 0; i < LiveEdit::kFramePaddingInitialSize; i++) {
+      __ push(Immediate(Smi::FromInt(LiveEdit::kFramePaddingValue)));
     }
-    __ push(Immediate(Smi::FromInt(Debug::FramePaddingLayout::kInitialSize)));
+    __ push(Immediate(Smi::FromInt(LiveEdit::kFramePaddingInitialSize)));
 
     // Store the registers containing live values on the expression stack to
     // make sure that these are correctly updated during GC. Non object values
@@ -172,7 +167,7 @@ static void Generate_DebugBreakCallHelper(MacroAssembler* masm,
 }
 
 
-void Debug::GenerateCallICStubDebugBreak(MacroAssembler* masm) {
+void DebugCodegen::GenerateCallICStubDebugBreak(MacroAssembler* masm) {
   // Register state for CallICStub
   // ----------- S t a t e -------------
   //  -- edx    : type feedback slot (smi)
@@ -183,7 +178,7 @@ void Debug::GenerateCallICStubDebugBreak(MacroAssembler* masm) {
 }
 
 
-void Debug::GenerateLoadICDebugBreak(MacroAssembler* masm) {
+void DebugCodegen::GenerateLoadICDebugBreak(MacroAssembler* masm) {
   // Register state for IC load call (from ic-ia32.cc).
   // ----------- S t a t e -------------
   //  -- ecx    : name
@@ -193,7 +188,7 @@ void Debug::GenerateLoadICDebugBreak(MacroAssembler* masm) {
 }
 
 
-void Debug::GenerateStoreICDebugBreak(MacroAssembler* masm) {
+void DebugCodegen::GenerateStoreICDebugBreak(MacroAssembler* masm) {
   // Register state for IC store call (from ic-ia32.cc).
   // ----------- S t a t e -------------
   //  -- eax    : value
@@ -205,7 +200,7 @@ void Debug::GenerateStoreICDebugBreak(MacroAssembler* masm) {
 }
 
 
-void Debug::GenerateKeyedLoadICDebugBreak(MacroAssembler* masm) {
+void DebugCodegen::GenerateKeyedLoadICDebugBreak(MacroAssembler* masm) {
   // Register state for keyed IC load call (from ic-ia32.cc).
   // ----------- S t a t e -------------
   //  -- ecx    : key
@@ -215,7 +210,7 @@ void Debug::GenerateKeyedLoadICDebugBreak(MacroAssembler* masm) {
 }
 
 
-void Debug::GenerateKeyedStoreICDebugBreak(MacroAssembler* masm) {
+void DebugCodegen::GenerateKeyedStoreICDebugBreak(MacroAssembler* masm) {
   // Register state for keyed IC load call (from ic-ia32.cc).
   // ----------- S t a t e -------------
   //  -- eax    : value
@@ -227,7 +222,7 @@ void Debug::GenerateKeyedStoreICDebugBreak(MacroAssembler* masm) {
 }
 
 
-void Debug::GenerateCompareNilICDebugBreak(MacroAssembler* masm) {
+void DebugCodegen::GenerateCompareNilICDebugBreak(MacroAssembler* masm) {
   // Register state for CompareNil IC
   // ----------- S t a t e -------------
   //  -- eax    : value
@@ -236,7 +231,7 @@ void Debug::GenerateCompareNilICDebugBreak(MacroAssembler* masm) {
 }
 
 
-void Debug::GenerateReturnDebugBreak(MacroAssembler* masm) {
+void DebugCodegen::GenerateReturnDebugBreak(MacroAssembler* masm) {
   // Register state just before return from JS function (from codegen-ia32.cc).
   // ----------- S t a t e -------------
   //  -- eax: return value
@@ -245,7 +240,7 @@ void Debug::GenerateReturnDebugBreak(MacroAssembler* masm) {
 }
 
 
-void Debug::GenerateCallFunctionStubDebugBreak(MacroAssembler* masm) {
+void DebugCodegen::GenerateCallFunctionStubDebugBreak(MacroAssembler* masm) {
   // Register state for CallFunctionStub (from code-stubs-ia32.cc).
   // ----------- S t a t e -------------
   //  -- edi: function
@@ -254,7 +249,7 @@ void Debug::GenerateCallFunctionStubDebugBreak(MacroAssembler* masm) {
 }
 
 
-void Debug::GenerateCallConstructStubDebugBreak(MacroAssembler* masm) {
+void DebugCodegen::GenerateCallConstructStubDebugBreak(MacroAssembler* masm) {
   // Register state for CallConstructStub (from code-stubs-ia32.cc).
   // eax is the actual number of arguments not encoded as a smi see comment
   // above IC call.
@@ -267,7 +262,8 @@ void Debug::GenerateCallConstructStubDebugBreak(MacroAssembler* masm) {
 }
 
 
-void Debug::GenerateCallConstructStubRecordDebugBreak(MacroAssembler* masm) {
+void DebugCodegen::GenerateCallConstructStubRecordDebugBreak(
+    MacroAssembler* masm) {
   // Register state for CallConstructStub (from code-stubs-ia32.cc).
   // eax is the actual number of arguments not encoded as a smi see comment
   // above IC call.
@@ -283,7 +279,7 @@ void Debug::GenerateCallConstructStubRecordDebugBreak(MacroAssembler* masm) {
 }
 
 
-void Debug::GenerateSlot(MacroAssembler* masm) {
+void DebugCodegen::GenerateSlot(MacroAssembler* masm) {
   // Generate enough nop's to make space for a call instruction.
   Label check_codesize;
   __ bind(&check_codesize);
@@ -294,19 +290,19 @@ void Debug::GenerateSlot(MacroAssembler* masm) {
 }
 
 
-void Debug::GenerateSlotDebugBreak(MacroAssembler* masm) {
+void DebugCodegen::GenerateSlotDebugBreak(MacroAssembler* masm) {
   // In the places where a debug break slot is inserted no registers can contain
   // object pointers.
   Generate_DebugBreakCallHelper(masm, 0, 0, true);
 }
 
 
-void Debug::GeneratePlainReturnLiveEdit(MacroAssembler* masm) {
+void DebugCodegen::GeneratePlainReturnLiveEdit(MacroAssembler* masm) {
   masm->ret(0);
 }
 
 
-void Debug::GenerateFrameDropperLiveEdit(MacroAssembler* masm) {
+void DebugCodegen::GenerateFrameDropperLiveEdit(MacroAssembler* masm) {
   ExternalReference restarter_frame_function_slot =
       ExternalReference::debug_restarter_frame_function_pointer_address(
           masm->isolate());
@@ -330,7 +326,8 @@ void Debug::GenerateFrameDropperLiveEdit(MacroAssembler* masm) {
   __ jmp(edx);
 }
 
-const bool Debug::kFrameDropperSupported = true;
+
+const bool LiveEdit::kFrameDropperSupported = true;
 
 #undef __
 

@@ -1449,8 +1449,8 @@ void RegExpExecStub::Generate(MacroAssembler* masm) {
   // (5b) Is subject external?  If yes, go to (8).
   __ testb(rbx, Immediate(kStringRepresentationMask));
   // The underlying external string is never a short external string.
-  STATIC_CHECK(ExternalString::kMaxShortLength < ConsString::kMinLength);
-  STATIC_CHECK(ExternalString::kMaxShortLength < SlicedString::kMinLength);
+  STATIC_ASSERT(ExternalString::kMaxShortLength < ConsString::kMinLength);
+  STATIC_ASSERT(ExternalString::kMaxShortLength < SlicedString::kMinLength);
   __ j(not_zero, &external_string);  // Go to (8)
 
   // (6) One byte sequential.  Load regexp code for one byte.
@@ -2364,13 +2364,19 @@ static void EmitLoadTypeFeedbackVector(MacroAssembler* masm, Register vector) {
 }
 
 
-void CallICStub::Generate_MonomorphicArray(MacroAssembler* masm, Label* miss) {
+void CallIC_ArrayStub::Generate(MacroAssembler* masm) {
   // rdi - function
-  // rbx - feedback vector
   // rdx - slot id (as integer)
+  Label miss;
+  int argc = state_.arg_count();
+  ParameterCount actual(argc);
+
+  EmitLoadTypeFeedbackVector(masm, rbx);
+  __ SmiToInteger32(rdx, rdx);
+
   __ LoadGlobalFunction(Context::ARRAY_FUNCTION_INDEX, rcx);
   __ cmpq(rdi, rcx);
-  __ j(not_equal, miss);
+  __ j(not_equal, &miss);
 
   __ movq(rax, Immediate(arg_count()));
   __ movp(rbx, FieldOperand(rbx, rdx, times_pointer_size,
@@ -2380,26 +2386,9 @@ void CallICStub::Generate_MonomorphicArray(MacroAssembler* masm, Label* miss) {
   __ AssertUndefinedOrAllocationSite(rbx);
   ArrayConstructorStub stub(masm->isolate(), arg_count());
   __ TailCallStub(&stub);
-}
-
-
-void CallICStub::Generate_CustomFeedbackCall(MacroAssembler* masm) {
-  // rdi - function
-  // rbx - feedback vector
-  // rdx - slot id
-  Label miss;
-
-  __ SmiToInteger32(rdx, rdx);
-
-  if (state_.stub_type() == CallIC::MONOMORPHIC_ARRAY) {
-    Generate_MonomorphicArray(masm, &miss);
-  } else {
-    // So far there is only one customer for our custom feedback scheme.
-    UNREACHABLE();
-  }
 
   __ bind(&miss);
-  GenerateMiss(masm);
+  GenerateMiss(masm, IC::kCallIC_Customization_Miss);
 
   // The slow case, we need this no matter what to complete a call after a miss.
   CallFunctionNoFeedback(masm,
@@ -2425,11 +2414,6 @@ void CallICStub::Generate(MacroAssembler* masm) {
   ParameterCount actual(argc);
 
   EmitLoadTypeFeedbackVector(masm, rbx);
-
-  if (state_.stub_type() != CallIC::DEFAULT) {
-    Generate_CustomFeedbackCall(masm);
-    return;
-  }
 
   // The checks. First, does rdi match the recorded monomorphic target?
   __ SmiToInteger32(rdx, rdx);
@@ -2482,7 +2466,7 @@ void CallICStub::Generate(MacroAssembler* masm) {
 
   // We are here because tracing is on or we are going monomorphic.
   __ bind(&miss);
-  GenerateMiss(masm);
+  GenerateMiss(masm, IC::kCallIC_Miss);
 
   // the slow case
   __ bind(&slow_start);
@@ -2498,7 +2482,7 @@ void CallICStub::Generate(MacroAssembler* masm) {
 }
 
 
-void CallICStub::GenerateMiss(MacroAssembler* masm) {
+void CallICStub::GenerateMiss(MacroAssembler* masm, IC::UtilityId id) {
   // Get the receiver of the function from the stack; 1 ~ return address.
   __ movp(rcx, Operand(rsp, (state_.arg_count() + 1) * kPointerSize));
 
@@ -2513,7 +2497,7 @@ void CallICStub::GenerateMiss(MacroAssembler* masm) {
     __ Push(rdx);
 
     // Call the entry.
-    ExternalReference miss = ExternalReference(IC_Utility(IC::kCallIC_Miss),
+    ExternalReference miss = ExternalReference(IC_Utility(id),
                                                masm->isolate());
     __ CallExternalReference(miss, 4);
 
@@ -3423,7 +3407,7 @@ void SubStringStub::Generate(MacroAssembler* masm) {
 
   // Handle external string.
   // Rule out short external strings.
-  STATIC_CHECK(kShortExternalStringTag != 0);
+  STATIC_ASSERT(kShortExternalStringTag != 0);
   __ testb(rbx, Immediate(kShortExternalStringMask));
   __ j(not_zero, &runtime);
   __ movp(rdi, FieldOperand(rdi, ExternalString::kResourceDataOffset));
@@ -4895,8 +4879,7 @@ void InternalArrayConstructorStub::Generate(MacroAssembler* masm) {
   // but the following masking takes care of that anyway.
   __ movzxbp(rcx, FieldOperand(rcx, Map::kBitField2Offset));
   // Retrieve elements_kind from bit field 2.
-  __ andp(rcx, Immediate(Map::kElementsKindMask));
-  __ shrp(rcx, Immediate(Map::kElementsKindShift));
+  __ DecodeField<Map::ElementsKindBits>(rcx);
 
   if (FLAG_debug_code) {
     Label done;
