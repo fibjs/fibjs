@@ -16,6 +16,8 @@
 namespace fibjs
 {
 
+extern v8::Persistent<v8::Value> s_token;
+
 class SandBox: public fibjs::SandBox_base
 {
 public:
@@ -74,6 +76,7 @@ public:
                 "repl", "define", 0
             };
 
+            context->SetSecurityToken(v8::Local<v8::Value>::New(isolate, s_token));
             context->Enter();
 
             glob = context->Global();

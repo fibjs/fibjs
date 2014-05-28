@@ -18,6 +18,7 @@ namespace fibjs
 {
 v8::Isolate *isolate;
 v8::Persistent<v8::Context> s_context;
+v8::Persistent<v8::Value> s_token;
 
 void init_argv(int argc, char **argv);
 
@@ -34,7 +35,10 @@ void _main(const char *fname)
     v8::HandleScope handle_scope(isolate);
 
     v8::Local<v8::Context> _context = v8::Context::New(isolate);
+
     s_context.Reset(isolate, _context);
+    s_token.Reset(isolate, _context->GetSecurityToken());
+
     v8::Context::Scope context_scope(_context);
 
     Fiber_base *fb = new JSFiber();

@@ -54,6 +54,10 @@ describe("module", function() {
 	it("transitive", function() {
 		assert.strictEqual(require('module/a4').foo(), 1, 'transitive');
 	});
+
+	it("strack", function() {
+		assert.ok(require("module/stack").func().match(/module_test/));
+	});
 });
 
 //test.run(console.DEBUG);
