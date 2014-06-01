@@ -1053,6 +1053,9 @@
     <ClCompile Include="src\v8\src\hydrogen-sce.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\hydrogen-types.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
     <ClCompile Include="src\v8\src\hydrogen-uint32-analysis.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
@@ -2346,6 +2349,9 @@
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\hydrogen-sce.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\hydrogen-types.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\hydrogen-uint32-analysis.h">
