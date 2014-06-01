@@ -59,6 +59,28 @@ describe("module", function() {
 		});
 	});
 
+	describe("package.json", function() {
+		it("main", function() {
+			var a = require('module/p1');
+			assert.deepEqual(a, {
+				"a": 100
+			});
+
+			assert.equal(a, require('module/p1'));
+			assert.equal(a, require('module/p1/main'));
+		});
+
+		it("default entry", function() {
+			var a = require('module/p2');
+			assert.deepEqual(a, {
+				"a": 200
+			});
+
+			assert.equal(a, require('module/p2'));
+			assert.equal(a, require('module/p2/index'));
+		});
+	});
+
 	it("strack", function() {
 		assert.ok(require("module/stack").func().match(/module_test/));
 	});

@@ -203,6 +203,39 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
     if (hr >= 0)
         return addScript(fname.c_str(), buf.c_str(), retVal);
 
+    fname = stdId + "/package.json";
+    hr = fs_base::ac_readFile(fname.c_str(), buf);
+    if (hr >= 0)
+    {
+        v8::Local<v8::Value> v;
+        hr = encoding_base::jsonDecode(buf.c_str(), v);
+        if (hr < 0)
+            return hr;
+
+        v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
+        v8::Local<v8::Value> main = o->Get(v8::String::NewFromUtf8(isolate, "main",
+                                           v8::String::kNormalString, 4));
+        if (!IsEmpty(main))
+        {
+            if (!main->IsString() && !main->IsStringObject())
+                return Runtime::setError("Invalid package.json");
+            fname = stdId + "/";
+            fname += *v8::String::Utf8Value(main);
+
+            if (fname.length() > 3 && !qstrcmp(&fname[fname.length() - 3], ".js"))
+                fname.resize(fname.length() - 3);
+        }
+        else
+            fname = stdId + "/index";
+
+        hr = require(fname.c_str(), retVal);
+        if (hr < 0)
+            return hr;
+
+        InstallModule(stdId, retVal);
+        return 0;
+    }
+
     return hr;
 }
 
