@@ -64,7 +64,7 @@ result_t SandBox::addScript(const char *srcname, const char *script,
     // add to modules
     std::string id(fname);
 
-    if (id.length() > 5 && !qstrcmp(&id[id.length() - 5], ".json"))
+    if (id.length() > 5 && !qstrcmp(id.c_str() + id.length() - 5, ".json"))
     {
         id.resize(id.length() - 5);
 
@@ -78,7 +78,7 @@ result_t SandBox::addScript(const char *srcname, const char *script,
         retVal = v;
         return 0;
     }
-    else if (id.length() > 3 && !qstrcmp(&id[id.length() - 3], ".js"))
+    else if (id.length() > 3 && !qstrcmp(id.c_str() + id.length() - 3, ".js"))
     {
         id.resize(id.length() - 3);
 
@@ -165,10 +165,22 @@ result_t SandBox::addScript(const char *srcname, const char *script,
 
 result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, int32_t mode)
 {
-    std::string stdId = resolvePath(id);
+    std::string strId = resolvePath(id);
+    std::string fname;
     std::map<std::string, VariantEx >::iterator it;
 
-    it = m_mods.find(stdId);
+    if (strId.length() > 5 && !qstrcmp(strId.c_str() + strId.length() - 5, ".json"))
+    {
+        fname = strId;
+        strId.resize(strId.length() - 5);
+    }
+    else if (strId.length() > 3 && !qstrcmp(strId.c_str() + strId.length() - 3, ".js"))
+    {
+        fname = strId;
+        strId.resize(strId.length() - 3);
+    }
+
+    it = m_mods.find(strId);
 
     if (it != m_mods.end())
     {
@@ -178,7 +190,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, int32_t 
 
     if (!m_require.IsEmpty())
     {
-        v8::Local<v8::Value> arg = v8::String::NewFromUtf8(isolate, stdId.c_str());
+        v8::Local<v8::Value> arg = v8::String::NewFromUtf8(isolate, strId.c_str());
         retVal = v8::Local<v8::Function>::New(isolate, m_require)->Call(wrap(), 1, &arg);
         if (retVal.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -187,7 +199,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, int32_t 
         {
             if (retVal->IsObject() && !object_base::getInstance(retVal))
                 retVal = retVal->ToObject()->Clone();
-            InstallModule(stdId, retVal);
+            InstallModule(strId, retVal);
 
             return 0;
         }
@@ -195,60 +207,68 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, int32_t 
 
     result_t hr;
     std::string buf;
-    std::string fname;
 
-    fname = stdId + ".js";
-    hr = fs_base::ac_readFile(fname.c_str(), buf);
-    if (hr >= 0)
-        return addScript(fname.c_str(), buf.c_str(), retVal);
-
-    fname = stdId + ".json";
-    hr = fs_base::ac_readFile(fname.c_str(), buf);
-    if (hr >= 0)
-        return addScript(fname.c_str(), buf.c_str(), retVal);
-
-    if (mode <= FILE_ONLY)
-        return hr;
-
-    fname = stdId + PATH_SLASH + "package.json";
-    hr = fs_base::ac_readFile(fname.c_str(), buf);
-    if (hr >= 0)
+    if (!fname.empty())
     {
-        v8::Local<v8::Value> v;
-        hr = encoding_base::jsonDecode(buf.c_str(), v);
-        if (hr < 0)
-            return hr;
-
-        v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
-        v8::Local<v8::Value> main = o->Get(v8::String::NewFromUtf8(isolate, "main",
-                                           v8::String::kNormalString, 4));
-        if (!IsEmpty(main))
-        {
-            if (!main->IsString() && !main->IsStringObject())
-                return Runtime::setError("Invalid package.json");
-            fname = stdId + PATH_SLASH;
-            fname += *v8::String::Utf8Value(main);
-
-            if (fname.length() > 3 && !qstrcmp(&fname[fname.length() - 3], ".js"))
-                fname.resize(fname.length() - 3);
-        }
-        else
-            fname = stdId + PATH_SLASH + "index";
-
-        hr = require(fname.c_str(), retVal, FILE_ONLY);
-        if (hr < 0)
-            return hr;
-
-        InstallModule(stdId, retVal);
-        return 0;
+        hr = fs_base::ac_readFile(fname.c_str(), buf);
+        if (hr >= 0)
+            return addScript(fname.c_str(), buf.c_str(), retVal);
     }
-
-    fname = stdId + PATH_SLASH + "index";
-    hr = require(fname.c_str(), retVal, FILE_ONLY);
-    if (hr >= 0)
+    else
     {
-        InstallModule(stdId, retVal);
-        return 0;
+        fname = strId + ".js";
+        hr = fs_base::ac_readFile(fname.c_str(), buf);
+        if (hr >= 0)
+            return addScript(fname.c_str(), buf.c_str(), retVal);
+
+        fname = strId + ".json";
+        hr = fs_base::ac_readFile(fname.c_str(), buf);
+        if (hr >= 0)
+            return addScript(fname.c_str(), buf.c_str(), retVal);
+
+        if (mode <= FILE_ONLY)
+            return hr;
+
+        fname = strId + PATH_SLASH + "package.json";
+        hr = fs_base::ac_readFile(fname.c_str(), buf);
+        if (hr >= 0)
+        {
+            v8::Local<v8::Value> v;
+            hr = encoding_base::jsonDecode(buf.c_str(), v);
+            if (hr < 0)
+                return hr;
+
+            v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
+            v8::Local<v8::Value> main = o->Get(v8::String::NewFromUtf8(isolate, "main",
+                                               v8::String::kNormalString, 4));
+            if (!IsEmpty(main))
+            {
+                if (!main->IsString() && !main->IsStringObject())
+                    return Runtime::setError("Invalid package.json");
+                fname = strId + PATH_SLASH;
+                fname += *v8::String::Utf8Value(main);
+
+                if (fname.length() > 3 && !qstrcmp(fname.c_str() + fname.length() - 3, ".js"))
+                    fname.resize(fname.length() - 3);
+            }
+            else
+                fname = strId + PATH_SLASH + "index";
+
+            hr = require(fname.c_str(), retVal, FILE_ONLY);
+            if (hr < 0)
+                return hr;
+
+            InstallModule(strId, retVal);
+            return 0;
+        }
+
+        fname = strId + PATH_SLASH + "index";
+        hr = require(fname.c_str(), retVal, FILE_ONLY);
+        if (hr >= 0)
+        {
+            InstallModule(strId, retVal);
+            return 0;
+        }
     }
 
     if (mode <= NO_SEARCH)
@@ -284,13 +304,13 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, int32_t 
                     str1 += PATH_SLASH;
                 str1 += ".modules";
                 str1 += PATH_SLASH;
-                str1 += stdId;
+                str1 += strId;
                 path_base::normalize(str1.c_str(), fname);
 
                 hr = require(fname.c_str(), retVal, NO_SEARCH);
                 if (hr >= 0)
                 {
-                    InstallModule(stdId, retVal);
+                    InstallModule(strId, retVal);
                     return 0;
                 }
 

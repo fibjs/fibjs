@@ -12,7 +12,7 @@ describe("module", function() {
 
 	it("absolute identifiers", function() {
 		a = require('module/a');
-		b = require('b');
+		b = require('b.js');
 		assert.strictEqual(a.foo().foo, b.foo,
 			'require works with absolute identifiers');
 	});
