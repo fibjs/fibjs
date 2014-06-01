@@ -159,7 +159,7 @@ Public 成员函数</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
 <div class="textblock"><p>安全沙箱对象，用于管理一个独立的运行空间 </p>
-<p>下面的示例创建一个沙箱，限制只允许访问全局基础模块中的 assert 模块，并添加 a 和 b 两个定制模块： </p><div class="fragment"><div class="line">var <a class="code" href="../../d0/d0a/classvm.html">vm</a> = <a class="code" href="../../d1/d3c/classSandBox.html#a134871a1c0b138d7b582225810ed6e9e">require</a>(<span class="stringliteral">&#39;vm&#39;</span>);</div>
+<p>所有的代码都运行在自己的沙箱中，全局的 require 会调用当前沙箱加载模块，沙箱会通过 require 传递给加载的沙箱。下面的示例创建一个沙箱，限制只允许访问全局基础模块中的 assert 模块，并添加 a 和 b 两个定制模块： </p><div class="fragment"><div class="line">var <a class="code" href="../../d0/d0a/classvm.html">vm</a> = <a class="code" href="../../d1/d3c/classSandBox.html#a134871a1c0b138d7b582225810ed6e9e">require</a>(<span class="stringliteral">&#39;vm&#39;</span>);</div>
 <div class="line">var sbox = <span class="keyword">new</span> vm.SandBox({</div>
 <div class="line">  a: 100,</div>
 <div class="line">  b: 200,</div>
@@ -404,6 +404,10 @@ Public 成员函数</h2></td></tr>
 </div><div class="memdoc">
 
 <p>加载一个模块并返回模块对象，更多信息参阅 <a class="el" href="../../d0/db5/module.html">模块管理</a> </p>
+<p>require 可用于加载基础模块，文件模块。</p>
+<p>基础模块是沙箱创建时初始化的模块，引用时只需传递相应的 id，比如 require("net")。</p>
+<p>文件模块是用户自定义模块，引用时需传递以 ./ 或 ../ 开头的相对路径。文件模块支持 .js 和 .json 文件。</p>
+<p>若引用路径不是 ./ 或 ../ 开头，并且非基础模块，require 则先在启动路径查找，然后从当前模块所在路径下的 .modules 查找，并上级目录递归。</p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">id</td><td>指定要加载的模块名称 </td></tr>
