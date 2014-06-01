@@ -31,13 +31,13 @@ inline std::string resolvePath(const char *id)
             v8::Local<v8::Value> path = ctx->Global()->GetHiddenValue(
                                             v8::String::NewFromUtf8(isolate, "id"));
 
-            if (!path.IsEmpty())
+            if (!IsEmpty(path))
             {
                 std::string strPath;
 
                 path_base::dirname(*v8::String::Utf8Value(path), strPath);
                 if (strPath.length())
-                    strPath += '/';
+                    strPath += PATH_SLASH;
                 strPath += id;
                 path_base::normalize(strPath.c_str(), fname);
 
@@ -159,7 +159,7 @@ result_t SandBox::addScript(const char *srcname, const char *script,
     return 0;
 }
 
-result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
+result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, bool bModules)
 {
     std::string stdId = resolvePath(id);
     std::map<std::string, VariantEx >::iterator it;
@@ -203,7 +203,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
     if (hr >= 0)
         return addScript(fname.c_str(), buf.c_str(), retVal);
 
-    fname = stdId + "/package.json";
+    fname = stdId + PATH_SLASH + "package.json";
     hr = fs_base::ac_readFile(fname.c_str(), buf);
     if (hr >= 0)
     {
@@ -219,14 +219,14 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
         {
             if (!main->IsString() && !main->IsStringObject())
                 return Runtime::setError("Invalid package.json");
-            fname = stdId + "/";
+            fname = stdId + PATH_SLASH;
             fname += *v8::String::Utf8Value(main);
 
             if (fname.length() > 3 && !qstrcmp(&fname[fname.length() - 3], ".js"))
                 fname.resize(fname.length() - 3);
         }
         else
-            fname = stdId + "/index";
+            fname = stdId + PATH_SLASH + "index";
 
         hr = require(fname.c_str(), retVal);
         if (hr < 0)
@@ -236,7 +236,61 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
         return 0;
     }
 
+    if (!bModules)
+        return hr;
+
+    if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
+        return hr;
+
+    v8::Local<v8::Context> ctx = isolate->GetCallingContext();
+
+    if (!ctx.IsEmpty())
+    {
+        v8::Local<v8::Value> path = ctx->Global()->GetHiddenValue(
+                                        v8::String::NewFromUtf8(isolate, "id"));
+
+        if (!IsEmpty(path))
+        {
+            std::string str, str1;
+
+            str = *v8::String::Utf8Value(path);
+            while (true)
+            {
+                path_base::dirname(str.c_str(), str1);
+                if (str.length() == str1.length())
+                    break;
+
+                str = str1;
+
+                if (str1.length())
+                    str1 += PATH_SLASH;
+                str1 += ".modules";
+                str1 += PATH_SLASH;
+                str1 += stdId;
+                path_base::normalize(str1.c_str(), fname);
+
+                hr = require(fname.c_str(), retVal, false);
+                if (hr >= 0)
+                {
+                    InstallModule(stdId, retVal);
+                    return 0;
+                }
+
+                if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
+                {
+                    printf("*************** %s: %d\n", fname.c_str(), hr);
+                    return hr;
+                }
+            }
+        }
+    }
+
     return hr;
+}
+
+result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
+{
+    return require(id, retVal, true);
 }
 
 result_t SandBox::run(const char *fname)

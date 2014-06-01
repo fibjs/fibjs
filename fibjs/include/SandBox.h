@@ -59,6 +59,8 @@ public:
 
     result_t repl();
 
+    result_t require(const char *id, v8::Local<v8::Value> &retVal, bool bModules);
+
 public:
     class Context
     {

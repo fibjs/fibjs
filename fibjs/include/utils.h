@@ -142,6 +142,14 @@ typedef int result_t;
 
 #define CALL_E_MIN              -100100
 
+#ifndef _WIN32
+#define CALL_E_FILE_NOT_FOUND   (-ENOENT)
+#define CALL_E_PATH_NOT_FOUND   (-ENOENT)
+#else
+#define CALL_E_FILE_NOT_FOUND   (-ERROR_FILE_NOT_FOUND)
+#define CALL_E_PATH_NOT_FOUND   (-ERROR_PATH_NOT_FOUND)
+#endif
+
 #if 0
 #define V8_SCOPE()  v8::HandleScope handle_scope(isolate)
 #else
