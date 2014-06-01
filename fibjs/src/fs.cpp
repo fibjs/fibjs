@@ -329,7 +329,7 @@ result_t fs_base::readdir(const char *path, obj_ptr<List_base> &retVal, exlib::A
     obj_ptr<List> oa;
 
     fpath = utf8to16String(path);
-    fpath.append(L"/*", 2);
+    fpath.append(L"\\*", 2);
 
     hFind = FindFirstFileW(fpath.c_str(), &fd);
     if (hFind == INVALID_HANDLE_VALUE)
