@@ -79,6 +79,16 @@ describe("module", function() {
 			assert.equal(a, require('module/p2'));
 			assert.equal(a, require('module/p2/index'));
 		});
+
+		it("no json", function() {
+			var a = require('module/p3');
+			assert.deepEqual(a, {
+				"a": 300
+			});
+
+			assert.equal(a, require('module/p3'));
+			assert.equal(a, require('module/p3/index'));
+		});
 	});
 
 	describe(".modules", function() {

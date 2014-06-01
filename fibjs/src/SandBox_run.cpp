@@ -159,7 +159,11 @@ result_t SandBox::addScript(const char *srcname, const char *script,
     return 0;
 }
 
-result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, bool bModules)
+#define FILE_ONLY   1
+#define NO_SEARCH   2
+#define FULL_SEARCH 3
+
+result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, int32_t mode)
 {
     std::string stdId = resolvePath(id);
     std::map<std::string, VariantEx >::iterator it;
@@ -203,6 +207,9 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, bool bMo
     if (hr >= 0)
         return addScript(fname.c_str(), buf.c_str(), retVal);
 
+    if (mode <= FILE_ONLY)
+        return hr;
+
     fname = stdId + PATH_SLASH + "package.json";
     hr = fs_base::ac_readFile(fname.c_str(), buf);
     if (hr >= 0)
@@ -228,7 +235,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, bool bMo
         else
             fname = stdId + PATH_SLASH + "index";
 
-        hr = require(fname.c_str(), retVal);
+        hr = require(fname.c_str(), retVal, FILE_ONLY);
         if (hr < 0)
             return hr;
 
@@ -236,7 +243,18 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, bool bMo
         return 0;
     }
 
-    if (!bModules)
+    fname = stdId + PATH_SLASH + "index";
+    hr = require(fname.c_str(), retVal, FILE_ONLY);
+    if (hr >= 0)
+    {
+        InstallModule(stdId, retVal);
+        return 0;
+    }
+
+    if (mode <= NO_SEARCH)
+        return hr;
+
+    if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
         return hr;
 
     if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
@@ -269,7 +287,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, bool bMo
                 str1 += stdId;
                 path_base::normalize(str1.c_str(), fname);
 
-                hr = require(fname.c_str(), retVal, false);
+                hr = require(fname.c_str(), retVal, NO_SEARCH);
                 if (hr >= 0)
                 {
                     InstallModule(stdId, retVal);
@@ -277,10 +295,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, bool bMo
                 }
 
                 if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
-                {
-                    printf("*************** %s: %d\n", fname.c_str(), hr);
                     return hr;
-                }
             }
         }
     }
@@ -290,7 +305,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, bool bMo
 
 result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
 {
-    return require(id, retVal, true);
+    return require(id, retVal, FULL_SEARCH);
 }
 
 result_t SandBox::run(const char *fname)
