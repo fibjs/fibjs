@@ -62,4 +62,5 @@ cp "out/${OS}_$1/fibjs" "../bin/${OS}_$1/fibjs"
 
 if [ $1 = 'Release' ] || [ $1 = 'Release32' ]; then
 	cp "out/${OS}_$1/installer.sh" "../bin/${OS}_$1/installer.sh"
+	chmod 777 "../bin/${OS}_$1/installer.sh"
 fi
