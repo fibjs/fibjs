@@ -11,6 +11,7 @@
 #include "ifs/fs.h"
 #include "ifs/path.h"
 #include "ifs/Stat.h"
+#include "ifs/encoding.h"
 
 #include <sstream>
 
@@ -60,93 +61,110 @@ result_t SandBox::addScript(const char *srcname, const char *script,
     Context context(this, srcname);
     result_t hr;
 
-    v8::Local<v8::Object> mod;
-    v8::Local<v8::Object> exports;
-
-    // cache string
-    v8::Local<v8::String> strRequire = v8::String::NewFromUtf8(isolate, "require");
-    v8::Local<v8::String> strExports = v8::String::NewFromUtf8(isolate, "exports");
-    v8::Local<v8::String> strModule = v8::String::NewFromUtf8(isolate, "module");
-    v8::Local<v8::String> strDefine = v8::String::NewFromUtf8(isolate, "define");
-
-    // attach define function first.
-    v8::Local<v8::Function> def =
-        v8::FunctionTemplate::New(isolate, _define)->GetFunction();
-
-    def->ToObject()->Set(v8::String::NewFromUtf8(isolate, "amd"), v8::Object::New(isolate),
-                         v8::ReadOnly);
-    context.glob->Set(strDefine, def, v8::ReadOnly);
-
-    exports = v8::Object::New(isolate);
-
-    // module and exports object
-    mod = v8::Object::New(isolate);
-
-    // init module
-    mod->Set(strExports, exports);
-    mod->Set(strRequire, context.glob->Get(strRequire), v8::ReadOnly);
-
     // add to modules
-    std::string id(fname, 0, fname.length() - 3);
-    InstallModule(id, exports);
+    std::string id(fname);
 
-    // attach to global
-    context.glob->Set(strModule, mod, v8::ReadOnly);
-    context.glob->Set(strExports, exports, v8::ReadOnly);
-
-    std::string sname;
-    if (!m_name.empty())
+    if (id.length() > 5 && !qstrcmp(&id[id.length() - 5], ".json"))
     {
-        sname = m_name + srcname;
-        srcname = sname.c_str();
-    }
+        id.resize(id.length() - 5);
 
-    hr = context.run(script, srcname);
-    if (hr < 0)
-    {
-        // delete from modules
-        m_mods.erase(id);
-        return hr;
-    }
+        v8::Local<v8::Value> v;
+        hr = encoding_base::jsonDecode(script, v);
+        if (hr < 0)
+            return hr;
 
-    // remove commonjs function
-    context.glob->ForceDelete(strDefine);
-    context.glob->ForceDelete(strModule);
-    context.glob->ForceDelete(strExports);
-
-    // process defined modules
-    hr = doDefine(mod);
-    if (hr < 0)
-    {
-        // delete from modules
-        m_mods.erase(id);
-        return hr;
-    }
-
-    // attach again
-    context.glob->Set(strModule, mod, v8::ReadOnly);
-    context.glob->Set(strExports, exports, v8::ReadOnly);
-
-    // use module.exports as result value
-    v8::Local<v8::Value> v = mod->Get(strExports);
-    if (!exports->Equals(v))
         InstallModule(id, v);
 
-    retVal = v;
+        retVal = v;
+        return 0;
+    }
+    else if (id.length() > 3 && !qstrcmp(&id[id.length() - 3], ".js"))
+    {
+        id.resize(id.length() - 3);
+
+        v8::Local<v8::Object> mod;
+        v8::Local<v8::Object> exports;
+
+        // cache string
+        v8::Local<v8::String> strRequire = v8::String::NewFromUtf8(isolate, "require");
+        v8::Local<v8::String> strExports = v8::String::NewFromUtf8(isolate, "exports");
+        v8::Local<v8::String> strModule = v8::String::NewFromUtf8(isolate, "module");
+        v8::Local<v8::String> strDefine = v8::String::NewFromUtf8(isolate, "define");
+
+        // attach define function first.
+        v8::Local<v8::Function> def =
+            v8::FunctionTemplate::New(isolate, _define)->GetFunction();
+
+        def->ToObject()->Set(v8::String::NewFromUtf8(isolate, "amd"), v8::Object::New(isolate),
+                             v8::ReadOnly);
+        context.glob->Set(strDefine, def, v8::ReadOnly);
+
+        exports = v8::Object::New(isolate);
+
+        // module and exports object
+        mod = v8::Object::New(isolate);
+
+        // init module
+        mod->Set(strExports, exports);
+        mod->Set(strRequire, context.glob->Get(strRequire), v8::ReadOnly);
+
+        InstallModule(id, exports);
+
+        // attach to global
+        context.glob->Set(strModule, mod, v8::ReadOnly);
+        context.glob->Set(strExports, exports, v8::ReadOnly);
+
+        std::string sname;
+        if (!m_name.empty())
+        {
+            sname = m_name + srcname;
+            srcname = sname.c_str();
+        }
+
+        hr = context.run(script, srcname);
+        if (hr < 0)
+        {
+            // delete from modules
+            m_mods.erase(id);
+            return hr;
+        }
+
+        // remove commonjs function
+        context.glob->ForceDelete(strDefine);
+        context.glob->ForceDelete(strModule);
+        context.glob->ForceDelete(strExports);
+
+        // process defined modules
+        hr = doDefine(mod);
+        if (hr < 0)
+        {
+            // delete from modules
+            m_mods.erase(id);
+            return hr;
+        }
+
+        // attach again
+        context.glob->Set(strModule, mod, v8::ReadOnly);
+        context.glob->Set(strExports, exports, v8::ReadOnly);
+
+        // use module.exports as result value
+        v8::Local<v8::Value> v = mod->Get(strExports);
+        if (!exports->Equals(v))
+            InstallModule(id, v);
+
+        retVal = v;
+        return 0;
+    }
 
     return 0;
 }
 
 result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
 {
-    std::string fname = resolvePath(id);
+    std::string stdId = resolvePath(id);
     std::map<std::string, VariantEx >::iterator it;
 
-    // remove .js ext name if exists
-    if (fname.length() > 3 && !qstrcmp(&fname[fname.length() - 3], ".js"))
-        fname.resize(fname.length() - 3);
-
-    it = m_mods.find(fname);
+    it = m_mods.find(stdId);
 
     if (it != m_mods.end())
     {
@@ -156,7 +174,7 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
 
     if (!m_require.IsEmpty())
     {
-        v8::Local<v8::Value> arg = v8::String::NewFromUtf8(isolate, fname.c_str());
+        v8::Local<v8::Value> arg = v8::String::NewFromUtf8(isolate, stdId.c_str());
         retVal = v8::Local<v8::Function>::New(isolate, m_require)->Call(wrap(), 1, &arg);
         if (retVal.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -165,24 +183,27 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
         {
             if (retVal->IsObject() && !object_base::getInstance(retVal))
                 retVal = retVal->ToObject()->Clone();
-            InstallModule(fname, retVal);
+            InstallModule(stdId, retVal);
 
             return 0;
         }
     }
 
-    // append .js ext name
-    fname += ".js";
-
     result_t hr;
-    const char *pname = fname.c_str();
-
     std::string buf;
-    hr = fs_base::ac_readFile(pname, buf);
-    if (hr < 0)
-        return hr;
+    std::string fname;
 
-    return addScript(pname, buf.c_str(), retVal);
+    fname = stdId + ".js";
+    hr = fs_base::ac_readFile(fname.c_str(), buf);
+    if (hr >= 0)
+        return addScript(fname.c_str(), buf.c_str(), retVal);
+
+    fname = stdId + ".json";
+    hr = fs_base::ac_readFile(fname.c_str(), buf);
+    if (hr >= 0)
+        return addScript(fname.c_str(), buf.c_str(), retVal);
+
+    return hr;
 }
 
 result_t SandBox::run(const char *fname)

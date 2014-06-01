@@ -99,7 +99,7 @@ describe("vm", function() {
 		}, "test");
 
 		sbox.run("./vm_test/name_test1.js");
-		var t1 = sbox.require("./vm_test/name_test2.js");
+		var t1 = sbox.require("./vm_test/name_test2");
 		t1.func();
 	});
 

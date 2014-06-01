@@ -52,6 +52,13 @@ describe("module", function() {
 		assert.strictEqual(require('module/a4').foo(), 1, 'transitive');
 	});
 
+	it("require json", function() {
+		assert.deepEqual(require('module/data'), {
+			"a": 100,
+			"b": 200
+		});
+	});
+
 	it("strack", function() {
 		assert.ok(require("module/stack").func().match(/module_test/));
 	});
