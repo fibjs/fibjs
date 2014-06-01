@@ -831,9 +831,6 @@
     <ClCompile Include="src\v8\src\platform\semaphore.cc">
       <Filter>Source Files\v8\src\platform</Filter>
     </ClCompile>
-    <ClCompile Include="src\v8\src\platform\socket.cc">
-      <Filter>Source Files\v8\src\platform</Filter>
-    </ClCompile>
     <ClCompile Include="src\v8\src\platform\time.cc">
       <Filter>Source Files\v8\src\platform</Filter>
     </ClCompile>
@@ -2052,9 +2049,6 @@
       <Filter>Source Files\v8\src\platform</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\platform\semaphore.h">
-      <Filter>Source Files\v8\src\platform</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\platform\socket.h">
       <Filter>Source Files\v8\src\platform</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\platform\time.h">

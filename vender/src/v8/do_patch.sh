@@ -36,7 +36,6 @@ cp $V8_PATH/src/libplatform/*.h src/libplatform/
 cp $V8_PATH/src/libplatform/*.cc src/libplatform/
 
 cp $V8_PATH/src/platform/elapsed-timer.h src/platform/
-cp $V8_PATH/src/platform/socket* src/platform/
 cp $V8_PATH/src/platform/time* src/platform/
 
 cp $V8_PATH/src/third_party/valgrind/valgrind.h src/third_party/valgrind/

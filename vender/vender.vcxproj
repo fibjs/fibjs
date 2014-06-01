@@ -409,7 +409,6 @@
     <ClCompile Include="src\v8\src\platform\condition-variable.cc" />
     <ClCompile Include="src\v8\src\platform\mutex.cc" />
     <ClCompile Include="src\v8\src\platform\semaphore.cc" />
-    <ClCompile Include="src\v8\src\platform\socket.cc" />
     <ClCompile Include="src\v8\src\platform\time.cc" />
     <ClCompile Include="src\v8\src\platform\_date_cache.cc" />
     <ClCompile Include="src\v8\src\preparse-data.cc" />
@@ -860,7 +859,6 @@
     <ClInclude Include="src\v8\src\platform\elapsed-timer.h" />
     <ClInclude Include="src\v8\src\platform\mutex.h" />
     <ClInclude Include="src\v8\src\platform\semaphore.h" />
-    <ClInclude Include="src\v8\src\platform\socket.h" />
     <ClInclude Include="src\v8\src\platform\time.h" />
     <ClInclude Include="src\v8\src\preparse-data-format.h" />
     <ClInclude Include="src\v8\src\preparse-data.h" />
