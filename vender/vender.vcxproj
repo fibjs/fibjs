@@ -284,7 +284,8 @@
     <ClCompile Include="src\v8\src\assembler.cc" />
     <ClCompile Include="src\v8\src\assert-scope.cc" />
     <ClCompile Include="src\v8\src\ast.cc" />
-    <ClCompile Include="src\v8\src\atomicops_internals_x86_gcc.cc" />
+    <ClCompile Include="src\v8\src\base\atomicops_internals_x86_gcc.cc" />
+    <ClCompile Include="src\v8\src\base\once.cc" />
     <ClCompile Include="src\v8\src\bignum-dtoa.cc" />
     <ClCompile Include="src\v8\src\bignum.cc" />
     <ClCompile Include="src\v8\src\bootstrapper.cc" />
@@ -320,6 +321,7 @@
     <ClCompile Include="src\v8\src\extensions\trigger-failure-extension.cc" />
     <ClCompile Include="src\v8\src\factory.cc" />
     <ClCompile Include="src\v8\src\fast-dtoa.cc" />
+    <ClCompile Include="src\v8\src\field-index.cc" />
     <ClCompile Include="src\v8\src\fixed-dtoa.cc" />
     <ClCompile Include="src\v8\src\flags.cc" />
     <ClCompile Include="src\v8\src\frames.cc" />
@@ -394,7 +396,6 @@
     <ClCompile Include="src\v8\src\objects-printer.cc" />
     <ClCompile Include="src\v8\src\objects-visiting.cc" />
     <ClCompile Include="src\v8\src\objects.cc" />
-    <ClCompile Include="src\v8\src\once.cc" />
     <ClCompile Include="src\v8\src\optimizing-compiler-thread.cc" />
     <ClCompile Include="src\v8\src\parser.cc" />
     <ClCompile Include="src\v8\src\platform-fiber.cc" />
@@ -432,6 +433,8 @@
     <ClCompile Include="src\v8\src\serialize.cc" />
     <ClCompile Include="src\v8\src\snapshot-common.cc" />
     <ClCompile Include="src\v8\src\snapshot-empty.cc" />
+    <ClCompile Include="src\v8\src\snapshot-external.cc" />
+    <ClCompile Include="src\v8\src\snapshot-source-sink.cc" />
     <ClCompile Include="src\v8\src\spaces.cc" />
     <ClCompile Include="src\v8\src\store-buffer.cc" />
     <ClCompile Include="src\v8\src\string-search.cc" />
@@ -694,7 +697,6 @@
     <ClInclude Include="src\v8\include\v8config.h" />
     <ClInclude Include="src\v8\include\v8stdint.h" />
     <ClInclude Include="src\v8\src\accessors.h" />
-    <ClInclude Include="src\v8\src\allocation-inl.h" />
     <ClInclude Include="src\v8\src\allocation-site-scopes.h" />
     <ClInclude Include="src\v8\src\allocation-tracker.h" />
     <ClInclude Include="src\v8\src\allocation.h" />
@@ -703,16 +705,20 @@
     <ClInclude Include="src\v8\src\assembler.h" />
     <ClInclude Include="src\v8\src\assert-scope.h" />
     <ClInclude Include="src\v8\src\ast.h" />
-    <ClInclude Include="src\v8\src\atomicops.h" />
-    <ClInclude Include="src\v8\src\atomicops_internals_arm64_gcc.h" />
-    <ClInclude Include="src\v8\src\atomicops_internals_arm_gcc.h" />
-    <ClInclude Include="src\v8\src\atomicops_internals_atomicword_compat.h" />
-    <ClInclude Include="src\v8\src\atomicops_internals_mac.h" />
-    <ClInclude Include="src\v8\src\atomicops_internals_mips_gcc.h" />
-    <ClInclude Include="src\v8\src\atomicops_internals_tsan.h" />
-    <ClInclude Include="src\v8\src\atomicops_internals_x86_gcc.h" />
-    <ClInclude Include="src\v8\src\atomicops_internals_x86_msvc.h" />
+    <ClInclude Include="src\v8\src\base\atomicops.h" />
+    <ClInclude Include="src\v8\src\base\atomicops_internals_arm64_gcc.h" />
+    <ClInclude Include="src\v8\src\base\atomicops_internals_arm_gcc.h" />
+    <ClInclude Include="src\v8\src\base\atomicops_internals_atomicword_compat.h" />
+    <ClInclude Include="src\v8\src\base\atomicops_internals_mac.h" />
+    <ClInclude Include="src\v8\src\base\atomicops_internals_mips_gcc.h" />
+    <ClInclude Include="src\v8\src\base\atomicops_internals_tsan.h" />
+    <ClInclude Include="src\v8\src\base\atomicops_internals_x86_gcc.h" />
+    <ClInclude Include="src\v8\src\base\atomicops_internals_x86_msvc.h" />
+    <ClInclude Include="src\v8\src\base\build_config.h" />
+    <ClInclude Include="src\v8\src\base\lazy-instance.h" />
     <ClInclude Include="src\v8\src\base\macros.h" />
+    <ClInclude Include="src\v8\src\base\once.h" />
+    <ClInclude Include="src\v8\src\base\win32-headers.h" />
     <ClInclude Include="src\v8\src\bignum-dtoa.h" />
     <ClInclude Include="src\v8\src\bignum.h" />
     <ClInclude Include="src\v8\src\bootstrapper.h" />
@@ -760,6 +766,8 @@
     <ClInclude Include="src\v8\src\factory.h" />
     <ClInclude Include="src\v8\src\fast-dtoa.h" />
     <ClInclude Include="src\v8\src\feedback-slots.h" />
+    <ClInclude Include="src\v8\src\field-index-inl.h" />
+    <ClInclude Include="src\v8\src\field-index.h" />
     <ClInclude Include="src\v8\src\fixed-dtoa.h" />
     <ClInclude Include="src\v8\src\flag-definitions.h" />
     <ClInclude Include="src\v8\src\flags.h" />
@@ -829,7 +837,6 @@
     <ClInclude Include="src\v8\src\json-stringifier.h" />
     <ClInclude Include="src\v8\src\jsregexp-inl.h" />
     <ClInclude Include="src\v8\src\jsregexp.h" />
-    <ClInclude Include="src\v8\src\lazy-instance.h" />
     <ClInclude Include="src\v8\src\list-inl.h" />
     <ClInclude Include="src\v8\src\list.h" />
     <ClInclude Include="src\v8\src\lithium-allocator-inl.h" />
@@ -851,7 +858,6 @@
     <ClInclude Include="src\v8\src\objects-visiting-inl.h" />
     <ClInclude Include="src\v8\src\objects-visiting.h" />
     <ClInclude Include="src\v8\src\objects.h" />
-    <ClInclude Include="src\v8\src\once.h" />
     <ClInclude Include="src\v8\src\optimizing-compiler-thread.h" />
     <ClInclude Include="src\v8\src\parser.h" />
     <ClInclude Include="src\v8\src\platform.h" />
@@ -888,6 +894,7 @@
     <ClInclude Include="src\v8\src\simulator.h" />
     <ClInclude Include="src\v8\src\small-pointer-list.h" />
     <ClInclude Include="src\v8\src\smart-pointers.h" />
+    <ClInclude Include="src\v8\src\snapshot-source-sink.h" />
     <ClInclude Include="src\v8\src\snapshot.h" />
     <ClInclude Include="src\v8\src\spaces-inl.h" />
     <ClInclude Include="src\v8\src\spaces.h" />
@@ -927,7 +934,6 @@
     <ClInclude Include="src\v8\src\version.h" />
     <ClInclude Include="src\v8\src\vm-state-inl.h" />
     <ClInclude Include="src\v8\src\vm-state.h" />
-    <ClInclude Include="src\v8\src\win32-headers.h" />
     <ClInclude Include="src\v8\src\win32-math.h" />
     <ClInclude Include="src\v8\src\x64\assembler-x64-inl.h" />
     <ClInclude Include="src\v8\src\x64\assembler-x64.h" />
@@ -1041,8 +1047,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;ENABLE_DEBUGGER_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -1061,8 +1067,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;ENABLE_DEBUGGER_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -1083,8 +1089,8 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;ENABLE_DEBUGGER_SUPPORT;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -1109,8 +1115,8 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;ENABLE_DEBUGGER_SUPPORT;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
       <WholeProgramOptimization>false</WholeProgramOptimization>

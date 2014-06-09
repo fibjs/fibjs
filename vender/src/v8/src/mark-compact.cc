@@ -2,24 +2,25 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "v8.h"
+#include "src/v8.h"
 
-#include "code-stubs.h"
-#include "compilation-cache.h"
-#include "cpu-profiler.h"
-#include "deoptimizer.h"
-#include "execution.h"
-#include "gdb-jit.h"
-#include "global-handles.h"
-#include "heap-profiler.h"
-#include "ic-inl.h"
-#include "incremental-marking.h"
-#include "mark-compact.h"
-#include "objects-visiting.h"
-#include "objects-visiting-inl.h"
-#include "spaces-inl.h"
-#include "stub-cache.h"
-#include "sweeper-thread.h"
+#include "src/base/atomicops.h"
+#include "src/code-stubs.h"
+#include "src/compilation-cache.h"
+#include "src/cpu-profiler.h"
+#include "src/deoptimizer.h"
+#include "src/execution.h"
+#include "src/gdb-jit.h"
+#include "src/global-handles.h"
+#include "src/heap-profiler.h"
+#include "src/ic-inl.h"
+#include "src/incremental-marking.h"
+#include "src/mark-compact.h"
+#include "src/objects-visiting.h"
+#include "src/objects-visiting-inl.h"
+#include "src/spaces-inl.h"
+#include "src/stub-cache.h"
+#include "src/sweeper-thread.h"
 
 namespace v8 {
 namespace internal {
@@ -51,7 +52,6 @@ MarkCompactCollector::MarkCompactCollector(Heap* heap) :  // NOLINT
       migration_slots_buffer_(NULL),
       heap_(heap),
       code_flusher_(NULL),
-      encountered_weak_collections_(NULL),
       have_code_to_deoptimize_(false) { }
 
 #ifdef VERIFY_HEAP
@@ -2738,7 +2738,7 @@ void MarkCompactCollector::ClearNonLiveDependentCode(DependentCode* entries) {
 
 void MarkCompactCollector::ProcessWeakCollections() {
   GCTracer::Scope gc_scope(tracer_, GCTracer::Scope::MC_WEAKCOLLECTION_PROCESS);
-  Object* weak_collection_obj = encountered_weak_collections();
+  Object* weak_collection_obj = heap()->encountered_weak_collections();
   while (weak_collection_obj != Smi::FromInt(0)) {
     JSWeakCollection* weak_collection =
         reinterpret_cast<JSWeakCollection*>(weak_collection_obj);
@@ -2765,7 +2765,7 @@ void MarkCompactCollector::ProcessWeakCollections() {
 
 void MarkCompactCollector::ClearWeakCollections() {
   GCTracer::Scope gc_scope(tracer_, GCTracer::Scope::MC_WEAKCOLLECTION_CLEAR);
-  Object* weak_collection_obj = encountered_weak_collections();
+  Object* weak_collection_obj = heap()->encountered_weak_collections();
   while (weak_collection_obj != Smi::FromInt(0)) {
     JSWeakCollection* weak_collection =
         reinterpret_cast<JSWeakCollection*>(weak_collection_obj);
@@ -2782,7 +2782,7 @@ void MarkCompactCollector::ClearWeakCollections() {
     weak_collection_obj = weak_collection->next();
     weak_collection->set_next(heap()->undefined_value());
   }
-  set_encountered_weak_collections(Smi::FromInt(0));
+  heap()->set_encountered_weak_collections(Smi::FromInt(0));
 }
 
 
@@ -2847,10 +2847,11 @@ void MarkCompactCollector::MigrateObject(HeapObject* dst,
                            SlotsBuffer::IGNORE_OVERFLOW);
       }
     } else if (compacting_ && dst->IsConstantPoolArray()) {
-      ConstantPoolArray* constant_pool = ConstantPoolArray::cast(dst);
-      for (int i = 0; i < constant_pool->count_of_code_ptr_entries(); i++) {
+      ConstantPoolArray* array = ConstantPoolArray::cast(dst);
+      ConstantPoolArray::Iterator code_iter(array, ConstantPoolArray::CODE_PTR);
+      while (!code_iter.is_finished()) {
         Address code_entry_slot =
-            dst_addr + constant_pool->OffsetOfElementAt(i);
+            dst_addr + array->OffsetOfElementAt(code_iter.next_index());
         Address code_entry = Memory::Address_at(code_entry_slot);
 
         if (Page::FromAddress(code_entry)->IsEvacuationCandidate()) {
@@ -2972,20 +2973,20 @@ static void UpdatePointer(HeapObject** address, HeapObject* object) {
   // compare and swap may fail in the case where the pointer update tries to
   // update garbage memory which was concurrently accessed by the sweeper.
   if (new_addr != NULL) {
-    NoBarrier_CompareAndSwap(
-        reinterpret_cast<AtomicWord*>(address),
-        reinterpret_cast<AtomicWord>(object),
-        reinterpret_cast<AtomicWord>(HeapObject::FromAddress(new_addr)));
+    base::NoBarrier_CompareAndSwap(
+        reinterpret_cast<base::AtomicWord*>(address),
+        reinterpret_cast<base::AtomicWord>(object),
+        reinterpret_cast<base::AtomicWord>(HeapObject::FromAddress(new_addr)));
   } else {
     // We have to zap this pointer, because the store buffer may overflow later,
     // and then we have to scan the entire heap and we don't want to find
     // spurious newspace pointers in the old space.
     // TODO(mstarzinger): This was changed to a sentinel value to track down
     // rare crashes, change it back to Smi::FromInt(0) later.
-    NoBarrier_CompareAndSwap(
-        reinterpret_cast<AtomicWord*>(address),
-        reinterpret_cast<AtomicWord>(object),
-        reinterpret_cast<AtomicWord>(Smi::FromInt(0x0f100d00 >> 1)));
+    base::NoBarrier_CompareAndSwap(
+        reinterpret_cast<base::AtomicWord*>(address),
+        reinterpret_cast<base::AtomicWord>(object),
+        reinterpret_cast<base::AtomicWord>(Smi::FromInt(0x0f100d00 >> 1)));
   }
 }
 
@@ -3030,7 +3031,6 @@ void MarkCompactCollector::EvacuateNewSpace() {
   // sweep collection by failing allocations.  But since we are already in
   // a mark-sweep allocation, there is no sense in trying to trigger one.
   AlwaysAllocateScope scope(isolate());
-  heap()->CheckNewSpaceExpansionCriteria();
 
   NewSpace* new_space = heap()->new_space();
 
@@ -4248,7 +4248,7 @@ void MarkCompactCollector::ParallelSweepSpacesComplete() {
 
 
 void MarkCompactCollector::EnableCodeFlushing(bool enable) {
-  if (isolate()->debug()->IsLoaded() ||
+  if (isolate()->debug()->is_loaded() ||
       isolate()->debug()->has_break_points()) {
     enable = false;
   }

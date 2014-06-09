@@ -9,6 +9,7 @@ cp $V8_PATH/src/*.h src/
 cp $V8_PATH/src/*.cc src/
 
 cp $V8_PATH/src/base/*.h src/base/
+cp $V8_PATH/src/base/*.cc src/base/
 
 cp $V8_PATH/out/ia32.release/obj/gen/libraries.cc src/
 cp $V8_PATH/out/ia32.release/obj/gen/trig-table.cc src/
@@ -48,5 +49,6 @@ rm src/i18n.*
 rm src/mksnapshot.cc
 rm src/v8dll-main.cc
 rm src/platform-cygwin.cc
+rm src/natives-*.cc
 
 patch -p0 --no-backup-if-mismatch < v8.patch

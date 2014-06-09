@@ -5,11 +5,11 @@
 #ifndef V8_X64_LITHIUM_X64_H_
 #define V8_X64_LITHIUM_X64_H_
 
-#include "hydrogen.h"
-#include "lithium-allocator.h"
-#include "lithium.h"
-#include "safepoint-table.h"
-#include "utils.h"
+#include "src/hydrogen.h"
+#include "src/lithium-allocator.h"
+#include "src/lithium.h"
+#include "src/safepoint-table.h"
+#include "src/utils.h"
 
 namespace v8 {
 namespace internal {
@@ -21,12 +21,12 @@ class LCodeGen;
   V(AccessArgumentsAt)                          \
   V(AddI)                                       \
   V(Allocate)                                   \
+  V(AllocateBlockContext)                       \
   V(ApplyArguments)                             \
   V(ArgumentsElements)                          \
   V(ArgumentsLength)                            \
   V(ArithmeticD)                                \
   V(ArithmeticT)                                \
-  V(ArrayShift)                                 \
   V(BitI)                                       \
   V(BoundsCheck)                                \
   V(Branch)                                     \
@@ -138,6 +138,7 @@ class LCodeGen;
   V(StackCheck)                                 \
   V(StoreCodeEntry)                             \
   V(StoreContextSlot)                           \
+  V(StoreFrameContext)                          \
   V(StoreGlobalCell)                            \
   V(StoreKeyed)                                 \
   V(StoreKeyedGeneric)                          \
@@ -1834,7 +1835,7 @@ class LCallJSFunction V8_FINAL : public LTemplateInstruction<1, 1, 0> {
 class LCallWithDescriptor V8_FINAL : public LTemplateResultInstruction<1> {
  public:
   LCallWithDescriptor(const CallInterfaceDescriptor* descriptor,
-                      ZoneList<LOperand*>& operands,
+                      const ZoneList<LOperand*>& operands,
                       Zone* zone)
     : inputs_(descriptor->environment_length() + 1, zone) {
     ASSERT(descriptor->environment_length() + 1 == operands.length());
@@ -2245,21 +2246,6 @@ class LTransitionElementsKind V8_FINAL : public LTemplateInstruction<0, 2, 2> {
 };
 
 
-class LArrayShift V8_FINAL : public LTemplateInstruction<1, 2, 0> {
- public:
-  LArrayShift(LOperand* context, LOperand* object) {
-    inputs_[0] = context;
-    inputs_[1] = object;
-  }
-
-  LOperand* context() const { return inputs_[0]; }
-  LOperand* object() const { return inputs_[1]; }
-
-  DECLARE_CONCRETE_INSTRUCTION(ArrayShift, "array-shift")
-  DECLARE_HYDROGEN_ACCESSOR(ArrayShift)
-};
-
-
 class LTrapAllocationMemento V8_FINAL : public LTemplateInstruction<0, 1, 1> {
  public:
   LTrapAllocationMemento(LOperand* object,
@@ -2643,6 +2629,35 @@ class LLoadFieldByIndex V8_FINAL : public LTemplateInstruction<1, 2, 0> {
 };
 
 
+class LStoreFrameContext: public LTemplateInstruction<0, 1, 0> {
+ public:
+  explicit LStoreFrameContext(LOperand* context) {
+    inputs_[0] = context;
+  }
+
+  LOperand* context() { return inputs_[0]; }
+
+  DECLARE_CONCRETE_INSTRUCTION(StoreFrameContext, "store-frame-context")
+};
+
+
+class LAllocateBlockContext: public LTemplateInstruction<1, 2, 0> {
+ public:
+  LAllocateBlockContext(LOperand* context, LOperand* function) {
+    inputs_[0] = context;
+    inputs_[1] = function;
+  }
+
+  LOperand* context() { return inputs_[0]; }
+  LOperand* function() { return inputs_[1]; }
+
+  Handle<ScopeInfo> scope_info() { return hydrogen()->scope_info(); }
+
+  DECLARE_CONCRETE_INSTRUCTION(AllocateBlockContext, "allocate-block-context")
+  DECLARE_HYDROGEN_ACCESSOR(AllocateBlockContext)
+};
+
+
 class LChunkBuilder;
 class LPlatformChunk V8_FINAL : public LChunk {
  public:
@@ -2679,8 +2694,6 @@ class LChunkBuilder V8_FINAL : public LChunkBuilderBase {
 
   // Build the sequence for the graph.
   LPlatformChunk* Build();
-
-  LInstruction* CheckElideControlInstruction(HControlInstruction* instr);
 
   // Declare methods that deal with the individual node types.
 #define DECLARE_DO(type) LInstruction* Do##type(H##type* node);

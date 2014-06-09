@@ -3,21 +3,21 @@
 // found in the LICENSE file.
 
 
-#include "v8.h"
+#include "src/v8.h"
 
-#include "liveedit.h"
+#include "src/liveedit.h"
 
-#include "code-stubs.h"
-#include "compilation-cache.h"
-#include "compiler.h"
-#include "debug.h"
-#include "deoptimizer.h"
-#include "global-handles.h"
-#include "messages.h"
-#include "parser.h"
-#include "scopeinfo.h"
-#include "scopes.h"
-#include "v8memory.h"
+#include "src/code-stubs.h"
+#include "src/compilation-cache.h"
+#include "src/compiler.h"
+#include "src/debug.h"
+#include "src/deoptimizer.h"
+#include "src/global-handles.h"
+#include "src/messages.h"
+#include "src/parser.h"
+#include "src/scopeinfo.h"
+#include "src/scopes.h"
+#include "src/v8memory.h"
 
 namespace v8 {
 namespace internal {
@@ -1188,8 +1188,6 @@ void LiveEdit::ReplaceFunctionCode(
 
   Handle<SharedFunctionInfo> shared_info = shared_info_wrapper.GetInfo();
 
-  isolate->heap()->MakeHeapIterable();
-
   if (IsJSFunctionCode(shared_info->code())) {
     Handle<Code> code = compile_info_wrapper.GetFunctionCode();
     ReplaceCodeObject(Handle<Code>(shared_info->code()), code);
@@ -1424,8 +1422,6 @@ void LiveEdit::PatchFunctionPositions(Handle<JSArray> shared_info_array,
   info->set_start_position(new_function_start);
   info->set_end_position(new_function_end);
   info->set_function_token_position(new_function_token_pos);
-
-  info->GetIsolate()->heap()->MakeHeapIterable();
 
   if (IsJSFunctionCode(info->code())) {
     // Patch relocation info section of the code.
@@ -1743,7 +1739,7 @@ class MultipleFunctionTarget {
       LiveEdit::FunctionPatchabilityStatus status) {
     return CheckActivation(m_shared_info_array, m_result, frame, status);
   }
-  const char* GetNotFoundMessage() {
+  const char* GetNotFoundMessage() const {
     return NULL;
   }
  private:
@@ -1755,7 +1751,9 @@ class MultipleFunctionTarget {
 // Drops all call frame matched by target and all frames above them.
 template<typename TARGET>
 static const char* DropActivationsInActiveThreadImpl(
-    Isolate* isolate, TARGET& target, bool do_drop) {
+    Isolate* isolate,
+    TARGET& target,  // NOLINT
+    bool do_drop) {
   Debug* debug = isolate->debug();
   Zone zone(isolate);
   Vector<StackFrame*> frames = CreateStackMap(isolate, &zone);
@@ -1850,8 +1848,8 @@ static const char* DropActivationsInActiveThreadImpl(
       break;
     }
   }
-  debug->FramesHaveBeenDropped(new_id, drop_mode,
-                               restarter_frame_function_pointer);
+  debug->FramesHaveBeenDropped(
+      new_id, drop_mode, restarter_frame_function_pointer);
   return NULL;
 }
 
@@ -2013,7 +2011,7 @@ class SingleFrameTarget {
     }
     return false;
   }
-  const char* GetNotFoundMessage() {
+  const char* GetNotFoundMessage() const {
     return "Failed to found requested frame";
   }
   LiveEdit::FunctionPatchabilityStatus saved_status() {

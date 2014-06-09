@@ -5,10 +5,10 @@
 #ifndef V8_HYDROGEN_UNIQUE_H_
 #define V8_HYDROGEN_UNIQUE_H_
 
-#include "handles.h"
-#include "objects.h"
-#include "utils.h"
-#include "zone.h"
+#include "src/handles.h"
+#include "src/objects.h"
+#include "src/utils.h"
+#include "src/zone.h"
 
 namespace v8 {
 namespace internal {
@@ -272,6 +272,26 @@ class UniqueSet V8_FINAL : public ZoneObject {
     while (j < that->size_) out->array_[k++] = that->array_[j++];
 
     out->size_ = k;
+    return out;
+  }
+
+  // Returns a new set representing all elements from this set which are not in
+  // that set. O(|this| * |that|).
+  UniqueSet<T>* Subtract(const UniqueSet<T>* that, Zone* zone) const {
+    if (that->size_ == 0) return this->Copy(zone);
+
+    UniqueSet<T>* out = new(zone) UniqueSet<T>(this->size_, zone);
+
+    int i = 0, j = 0;
+    while (i < this->size_) {
+      Unique<T> cand = this->array_[i];
+      if (!that->Contains(cand)) {
+        out->array_[j++] = cand;
+      }
+      i++;
+    }
+
+    out->size_ = j;
     return out;
   }
 

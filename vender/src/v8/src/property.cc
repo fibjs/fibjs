@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "property.h"
+#include "src/property.h"
 
-#include "handles-inl.h"
+#include "src/handles-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -47,7 +47,8 @@ void LookupResult::Print(FILE* out) {
       break;
     case FIELD:
       PrintF(out, " -type = field\n");
-      PrintF(out, " -index = %d\n", GetFieldIndex().field_index());
+      PrintF(out, " -index = %d\n",
+             GetFieldIndex().property_index());
       PrintF(out, " -field type:\n");
       GetFieldType()->TypePrint(out);
       break;

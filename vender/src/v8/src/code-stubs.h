@@ -5,18 +5,17 @@
 #ifndef V8_CODE_STUBS_H_
 #define V8_CODE_STUBS_H_
 
-#include "allocation.h"
-#include "assembler.h"
-#include "codegen.h"
-#include "globals.h"
-#include "macro-assembler.h"
+#include "src/allocation.h"
+#include "src/assembler.h"
+#include "src/codegen.h"
+#include "src/globals.h"
+#include "src/macro-assembler.h"
 
 namespace v8 {
 namespace internal {
 
 // List of code stubs used on all platforms.
 #define CODE_STUB_LIST_ALL_PLATFORMS(V)  \
-  V(ArrayShift)                          \
   V(CallFunction)                        \
   V(CallConstruct)                       \
   V(BinaryOpIC)                          \
@@ -438,17 +437,17 @@ class RuntimeCallHelper {
 } }  // namespace v8::internal
 
 #if V8_TARGET_ARCH_IA32
-#include "ia32/code-stubs-ia32.h"
+#include "src/ia32/code-stubs-ia32.h"
 #elif V8_TARGET_ARCH_X64
-#include "x64/code-stubs-x64.h"
+#include "src/x64/code-stubs-x64.h"
 #elif V8_TARGET_ARCH_ARM64
-#include "arm64/code-stubs-arm64.h"
+#include "src/arm64/code-stubs-arm64.h"
 #elif V8_TARGET_ARCH_ARM
-#include "arm/code-stubs-arm.h"
+#include "src/arm/code-stubs-arm.h"
 #elif V8_TARGET_ARCH_MIPS
-#include "mips/code-stubs-mips.h"
+#include "src/mips/code-stubs-mips.h"
 #elif V8_TARGET_ARCH_X87
-#include "x87/code-stubs-x87.h"
+#include "src/x87/code-stubs-x87.h"
 #else
 #error Unsupported target architecture.
 #endif
@@ -898,11 +897,9 @@ class HandlerStub: public HICStub {
 
 class LoadFieldStub: public HandlerStub {
  public:
-  LoadFieldStub(Isolate* isolate,
-                bool inobject,
-                int index, Representation representation)
-      : HandlerStub(isolate) {
-    Initialize(Code::LOAD_IC, inobject, index, representation);
+  LoadFieldStub(Isolate* isolate, FieldIndex index)
+    : HandlerStub(isolate), index_(index) {
+    Initialize(Code::LOAD_IC);
   }
 
   virtual Handle<Code> GenerateCode() V8_OVERRIDE;
@@ -919,42 +916,30 @@ class LoadFieldStub: public HandlerStub {
     return KindBits::decode(bit_field_);
   }
 
-  bool is_inobject() {
-    return InobjectBits::decode(bit_field_);
-  }
-
-  int offset() {
-    int index = IndexBits::decode(bit_field_);
-    int offset = index * kPointerSize;
-    if (is_inobject()) return offset;
-    return FixedArray::kHeaderSize + offset;
-  }
+  FieldIndex index() const { return index_; }
 
   bool unboxed_double() {
-    return UnboxedDoubleBits::decode(bit_field_);
+    return index_.is_double();
   }
 
   virtual Code::StubType GetStubType() { return Code::FAST; }
 
  protected:
-  explicit LoadFieldStub(Isolate* isolate) : HandlerStub(isolate) { }
+  explicit LoadFieldStub(Isolate* isolate);
 
-  void Initialize(Code::Kind kind,
-                  bool inobject,
-                  int index,
-                  Representation representation) {
-    bit_field_ = KindBits::encode(kind)
-        | InobjectBits::encode(inobject)
-        | IndexBits::encode(index)
-        | UnboxedDoubleBits::encode(representation.IsDouble());
+  void Initialize(Code::Kind kind) {
+    int property_index_key = index_.GetLoadFieldStubKey();
+    // Save a copy of the essence of the property index into the bit field to
+    // make sure that hashing of unique stubs works correctly..
+    bit_field_ = KindBits::encode(kind) |
+        EncodedLoadFieldByIndexBits::encode(property_index_key);
   }
 
  private:
   STATIC_ASSERT(KindBits::kSize == 4);
-  class InobjectBits: public BitField<bool, 4, 1> {};
-  class IndexBits: public BitField<int, 5, 11> {};
-  class UnboxedDoubleBits: public BitField<bool, 16, 1> {};
+  class EncodedLoadFieldByIndexBits: public BitField<int, 4, 13> {};
   virtual CodeStub::Major MajorKey() { return LoadField; }
+  FieldIndex index_;
 };
 
 
@@ -1099,11 +1084,9 @@ class CallApiGetterStub : public PlatformCodeStub {
 
 class KeyedLoadFieldStub: public LoadFieldStub {
  public:
-  KeyedLoadFieldStub(Isolate* isolate,
-                     bool inobject,
-                     int index, Representation representation)
-      : LoadFieldStub(isolate) {
-    Initialize(Code::KEYED_LOAD_IC, inobject, index, representation);
+  KeyedLoadFieldStub(Isolate* isolate, FieldIndex index)
+      : LoadFieldStub(isolate, index) {
+    Initialize(Code::KEYED_LOAD_IC);
   }
 
   virtual void InitializeInterfaceDescriptor(
@@ -2409,36 +2392,6 @@ class ElementsTransitionAndStoreStub : public HydrogenCodeStub {
   KeyedAccessStoreMode store_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(ElementsTransitionAndStoreStub);
-};
-
-
-class ArrayShiftStub V8_FINAL : public HydrogenCodeStub {
- public:
-  ArrayShiftStub(Isolate* isolate, ElementsKind kind)
-      : HydrogenCodeStub(isolate), kind_(kind) { }
-
-  ElementsKind kind() const { return kind_; }
-
-  virtual Handle<Code> GenerateCode() V8_OVERRIDE;
-
-  virtual void InitializeInterfaceDescriptor(
-      CodeStubInterfaceDescriptor* descriptor) V8_OVERRIDE;
-
-  // Inline Array.shift() for arrays up to this length.
-  static const int kInlineThreshold = 16;
-
-  // Parameters accessed via CodeStubGraphBuilder::GetParameter()
-  static const int kReceiver = 0;
-
- private:
-  Major MajorKey() { return ArrayShift; }
-  int NotMissMinorKey() {
-    return kind_;
-  }
-
-  ElementsKind kind_;
-
-  DISALLOW_COPY_AND_ASSIGN(ArrayShiftStub);
 };
 
 

@@ -2,19 +2,20 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "v8.h"
+#include "src/v8.h"
 
-#include "api.h"
-#include "arguments.h"
-#include "bootstrapper.h"
-#include "builtins.h"
-#include "cpu-profiler.h"
-#include "gdb-jit.h"
-#include "ic-inl.h"
-#include "heap-profiler.h"
-#include "mark-compact.h"
-#include "stub-cache.h"
-#include "vm-state-inl.h"
+#include "src/api.h"
+#include "src/arguments.h"
+#include "src/base/once.h"
+#include "src/bootstrapper.h"
+#include "src/builtins.h"
+#include "src/cpu-profiler.h"
+#include "src/gdb-jit.h"
+#include "src/ic-inl.h"
+#include "src/heap-profiler.h"
+#include "src/mark-compact.h"
+#include "src/stub-cache.h"
+#include "src/vm-state-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -1534,11 +1535,11 @@ struct BuiltinDesc {
 class BuiltinFunctionTable {
  public:
   BuiltinDesc* functions() {
-    CallOnce(&once_, &Builtins::InitBuiltinFunctionTable);
+    base::CallOnce(&once_, &Builtins::InitBuiltinFunctionTable);
     return functions_;
   }
 
-  OnceType once_;
+  base::OnceType once_;
   BuiltinDesc functions_[Builtins::builtin_count + 1];
 
   friend class Builtins;

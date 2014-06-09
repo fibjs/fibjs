@@ -2,11 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "v8.h"
+#include "src/v8.h"
 
-#include "code-stubs.h"
-#include "hydrogen.h"
-#include "lithium.h"
+#include "src/code-stubs.h"
+#include "src/field-index.h"
+#include "src/hydrogen.h"
+#include "src/lithium.h"
 
 namespace v8 {
 namespace internal {
@@ -59,9 +60,7 @@ class CodeStubGraphBuilderBase : public HGraphBuilder {
   Isolate* isolate() { return info_.isolate(); }
 
   HLoadNamedField* BuildLoadNamedField(HValue* object,
-                                       Representation representation,
-                                       int offset,
-                                       bool is_inobject);
+                                       FieldIndex index);
 
   enum ArgumentClass {
     NONE,
@@ -298,7 +297,7 @@ HValue* CodeStubGraphBuilder<ToNumberStub>::BuildCodeStub() {
 
   // Convert the parameter to number using the builtin.
   HValue* function = AddLoadJSBuiltin(Builtins::TO_NUMBER);
-  Add<HPushArguments>(zone(), value);
+  Add<HPushArguments>(value);
   Push(Add<HInvokeFunction>(function, 1));
 
   if_number.End();
@@ -553,14 +552,15 @@ Handle<Code> KeyedLoadFastElementStub::GenerateCode() {
 
 
 HLoadNamedField* CodeStubGraphBuilderBase::BuildLoadNamedField(
-    HValue* object,
-    Representation representation,
-    int offset,
-    bool is_inobject) {
-  HObjectAccess access = is_inobject
+    HValue* object, FieldIndex index) {
+  Representation representation = index.is_double()
+      ? Representation::Double()
+      : Representation::Tagged();
+  int offset = index.offset();
+  HObjectAccess access = index.is_inobject()
       ? HObjectAccess::ForObservableJSObjectOffset(offset, representation)
       : HObjectAccess::ForBackingStoreOffset(offset, representation);
-  if (representation.IsDouble()) {
+  if (index.is_double()) {
     // Load the heap number.
     object = Add<HLoadNamedField>(
         object, static_cast<HValue*>(NULL),
@@ -574,10 +574,7 @@ HLoadNamedField* CodeStubGraphBuilderBase::BuildLoadNamedField(
 
 template<>
 HValue* CodeStubGraphBuilder<LoadFieldStub>::BuildCodeStub() {
-  return BuildLoadNamedField(GetParameter(0),
-                             casted_stub()->representation(),
-                             casted_stub()->offset(),
-                             casted_stub()->is_inobject());
+  return BuildLoadNamedField(GetParameter(0), casted_stub()->index());
 }
 
 
@@ -588,10 +585,10 @@ Handle<Code> LoadFieldStub::GenerateCode() {
 
 template<>
 HValue* CodeStubGraphBuilder<StringLengthStub>::BuildCodeStub() {
-  HValue* string = BuildLoadNamedField(
-      GetParameter(0), Representation::Tagged(), JSValue::kValueOffset, true);
-  return BuildLoadNamedField(
-      string, Representation::Tagged(), String::kLengthOffset, true);
+  HValue* string = BuildLoadNamedField(GetParameter(0),
+      FieldIndex::ForInObjectOffset(JSValue::kValueOffset));
+  return BuildLoadNamedField(string,
+      FieldIndex::ForInObjectOffset(String::kLengthOffset));
 }
 
 
@@ -724,6 +721,7 @@ HValue* CodeStubGraphBuilderBase::BuildArrayNArgumentsConstructor(
       ? JSArrayBuilder::FILL_WITH_HOLE
       : JSArrayBuilder::DONT_FILL_WITH_HOLE;
   HValue* new_object = array_builder->AllocateArray(checked_length,
+                                                    max_alloc_length,
                                                     checked_length,
                                                     fill_mode);
   HValue* elements = array_builder->GetElementsLocation();
@@ -1116,86 +1114,6 @@ HValue* CodeStubGraphBuilder<ElementsTransitionAndStoreStub>::BuildCodeStub() {
 
 
 Handle<Code> ElementsTransitionAndStoreStub::GenerateCode() {
-  return DoGenerateCode(this);
-}
-
-
-template <>
-HValue* CodeStubGraphBuilder<ArrayShiftStub>::BuildCodeStub() {
-  HValue* receiver = GetParameter(ArrayShiftStub::kReceiver);
-  ElementsKind kind = casted_stub()->kind();
-
-  // We may use double registers for copying.
-  if (IsFastDoubleElementsKind(kind)) info()->MarkAsSavesCallerDoubles();
-
-  HValue* length = Add<HLoadNamedField>(
-      receiver, static_cast<HValue*>(NULL),
-      HObjectAccess::ForArrayLength(kind));
-
-  IfBuilder if_lengthiszero(this);
-  HValue* lengthiszero = if_lengthiszero.If<HCompareNumericAndBranch>(
-      length, graph()->GetConstant0(), Token::EQ);
-  if_lengthiszero.Then();
-  {
-    Push(graph()->GetConstantUndefined());
-  }
-  if_lengthiszero.Else();
-  {
-    // Check if array length is below threshold.
-    IfBuilder if_inline(this);
-    if_inline.If<HCompareNumericAndBranch>(
-        length, Add<HConstant>(ArrayShiftStub::kInlineThreshold), Token::LTE);
-    if_inline.Then();
-    if_inline.ElseDeopt("Array length exceeds threshold");
-    if_inline.End();
-
-    // We cannot handle copy-on-write backing stores here.
-    HValue* elements = AddLoadElements(receiver);
-    if (IsFastSmiOrObjectElementsKind(kind)) {
-      Add<HCheckMaps>(elements, isolate()->factory()->fixed_array_map());
-    }
-
-    // Remember the result.
-    Push(AddElementAccess(elements, graph()->GetConstant0(), NULL,
-                          lengthiszero, kind, LOAD));
-
-    // Compute the new length.
-    HValue* new_length = AddUncasted<HSub>(length, graph()->GetConstant1());
-    new_length->ClearFlag(HValue::kCanOverflow);
-
-    // Copy the remaining elements.
-    LoopBuilder loop(this, context(), LoopBuilder::kPostIncrement);
-    {
-      HValue* new_key = loop.BeginBody(
-          graph()->GetConstant0(), new_length, Token::LT);
-      HValue* key = AddUncasted<HAdd>(new_key, graph()->GetConstant1());
-      key->ClearFlag(HValue::kCanOverflow);
-      HValue* element = AddUncasted<HLoadKeyed>(
-          elements, key, lengthiszero, kind, ALLOW_RETURN_HOLE);
-      HStoreKeyed* store = Add<HStoreKeyed>(elements, new_key, element, kind);
-      store->SetFlag(HValue::kAllowUndefinedAsNaN);
-    }
-    loop.EndBody();
-
-    // Put a hole at the end.
-    HValue* hole = IsFastSmiOrObjectElementsKind(kind)
-        ? Add<HConstant>(isolate()->factory()->the_hole_value())
-        : Add<HConstant>(FixedDoubleArray::hole_nan_as_double());
-    if (IsFastSmiOrObjectElementsKind(kind)) kind = FAST_HOLEY_ELEMENTS;
-    Add<HStoreKeyed>(elements, new_length, hole, kind, INITIALIZING_STORE);
-
-    // Remember new length.
-    Add<HStoreNamedField>(
-        receiver, HObjectAccess::ForArrayLength(kind),
-        new_length, STORE_TO_INITIALIZED_ENTRY);
-  }
-  if_lengthiszero.End();
-
-  return Pop();
-}
-
-
-Handle<Code> ArrayShiftStub::GenerateCode() {
   return DoGenerateCode(this);
 }
 

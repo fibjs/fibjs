@@ -858,9 +858,6 @@
     <ClCompile Include="src\v8\src\ast.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\v8\src\atomicops_internals_x86_gcc.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
     <ClCompile Include="src\v8\src\bignum.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
@@ -1114,9 +1111,6 @@
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
     <ClCompile Include="src\v8\src\objects-visiting.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\v8\src\once.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
     <ClCompile Include="src\v8\src\optimizing-compiler-thread.cc">
@@ -1505,6 +1499,21 @@
     </ClCompile>
     <ClCompile Include="src\win_iconv\win_iconv.c">
       <Filter>Source Files\win_iconv</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\field-index.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\snapshot-external.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\snapshot-source-sink.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\base\atomicops_internals_x86_gcc.cc">
+      <Filter>Source Files\v8\src\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\base\once.cc">
+      <Filter>Source Files\v8\src\base</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2063,9 +2072,6 @@
     <ClInclude Include="src\v8\src\allocation.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\v8\src\allocation-inl.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
     <ClInclude Include="src\v8\src\allocation-site-scopes.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
@@ -2082,18 +2088,6 @@
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\ast.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\atomicops.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\atomicops_internals_arm_gcc.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\atomicops_internals_x86_gcc.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\atomicops_internals_x86_msvc.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\bignum.h">
@@ -2390,9 +2384,6 @@
     <ClInclude Include="src\v8\src\jsregexp-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\v8\src\lazy-instance.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
     <ClInclude Include="src\v8\src\list.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
@@ -2454,9 +2445,6 @@
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\objects-visiting-inl.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\once.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\optimizing-compiler-thread.h">
@@ -2648,9 +2636,6 @@
     <ClInclude Include="src\v8\src\vm-state-inl.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\v8\src\win32-headers.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
     <ClInclude Include="src\v8\src\win32-math.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
@@ -2682,15 +2667,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\feedback-slots.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\atomicops_internals_atomicword_compat.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\atomicops_internals_mac.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\atomicops_internals_arm64_gcc.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\property-details-inl.h">
@@ -2897,12 +2873,6 @@
     <ClInclude Include="src\v8\include\v8-util.h">
       <Filter>Source Files\v8\include</Filter>
     </ClInclude>
-    <ClInclude Include="src\v8\src\atomicops_internals_mips_gcc.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\atomicops_internals_tsan.h">
-      <Filter>Source Files\v8\src</Filter>
-    </ClInclude>
     <ClInclude Include="src\v8\src\zone-allocator.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
@@ -2917,6 +2887,54 @@
     </ClInclude>
     <ClInclude Include="src\v8\src\vector.h">
       <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\field-index.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\field-index-inl.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\snapshot-source-sink.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\base\atomicops.h">
+      <Filter>Source Files\v8\src\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\base\atomicops_internals_arm_gcc.h">
+      <Filter>Source Files\v8\src\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\base\atomicops_internals_arm64_gcc.h">
+      <Filter>Source Files\v8\src\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\base\atomicops_internals_atomicword_compat.h">
+      <Filter>Source Files\v8\src\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\base\atomicops_internals_mac.h">
+      <Filter>Source Files\v8\src\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\base\atomicops_internals_mips_gcc.h">
+      <Filter>Source Files\v8\src\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\base\atomicops_internals_tsan.h">
+      <Filter>Source Files\v8\src\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\base\atomicops_internals_x86_gcc.h">
+      <Filter>Source Files\v8\src\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\base\atomicops_internals_x86_msvc.h">
+      <Filter>Source Files\v8\src\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\base\build_config.h">
+      <Filter>Source Files\v8\src\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\base\lazy-instance.h">
+      <Filter>Source Files\v8\src\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\base\once.h">
+      <Filter>Source Files\v8\src\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\base\win32-headers.h">
+      <Filter>Source Files\v8\src\base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

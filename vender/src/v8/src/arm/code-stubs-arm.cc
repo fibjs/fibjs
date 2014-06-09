@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "v8.h"
+#include "src/v8.h"
 
 #if V8_TARGET_ARCH_ARM
 
-#include "bootstrapper.h"
-#include "code-stubs.h"
-#include "regexp-macro-assembler.h"
-#include "stub-cache.h"
+#include "src/bootstrapper.h"
+#include "src/code-stubs.h"
+#include "src/regexp-macro-assembler.h"
+#include "src/stub-cache.h"
 
 namespace v8 {
 namespace internal {
@@ -316,16 +316,6 @@ void ElementsTransitionAndStoreStub::InitializeInterfaceDescriptor(
   descriptor->register_params_ = registers;
   descriptor->deoptimization_handler_ =
       FUNCTION_ADDR(ElementsTransitionAndStoreIC_Miss);
-}
-
-
-void ArrayShiftStub::InitializeInterfaceDescriptor(
-    CodeStubInterfaceDescriptor* descriptor) {
-  static Register registers[] = { r0 };
-  descriptor->register_param_count_ = 1;
-  descriptor->register_params_ = registers;
-  descriptor->deoptimization_handler_ =
-      Builtins::c_function_address(Builtins::c_ArrayShift);
 }
 
 

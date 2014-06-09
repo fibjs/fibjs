@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "v8.h"
+#include "src/v8.h"
 
 #if V8_TARGET_ARCH_ARM64
 
-#include "arm64/instrument-arm64.h"
+#include "src/arm64/instrument-arm64.h"
 
 namespace v8 {
 namespace internal {

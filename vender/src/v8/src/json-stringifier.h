@@ -5,9 +5,9 @@
 #ifndef V8_JSON_STRINGIFIER_H_
 #define V8_JSON_STRINGIFIER_H_
 
-#include "v8.h"
-#include "conversions.h"
-#include "utils.h"
+#include "src/v8.h"
+#include "src/conversions.h"
+#include "src/utils.h"
 
 namespace v8 {
 namespace internal {
@@ -657,10 +657,8 @@ BasicJsonStringifier::Result BasicJsonStringifier::SerializeJSObject(
       if (details.IsDontEnum()) continue;
       Handle<Object> property;
       if (details.type() == FIELD && *map == object->map()) {
-        property = Handle<Object>(
-                       object->RawFastPropertyAt(
-                           map->instance_descriptors()->GetFieldIndex(i)),
-                       isolate_);
+        property = Handle<Object>(object->RawFastPropertyAt(
+            FieldIndex::ForDescriptor(*map, i)), isolate_);
       } else {
         ASSIGN_RETURN_ON_EXCEPTION_VALUE(
             isolate_, property,

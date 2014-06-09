@@ -2,13 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "store-buffer.h"
+#include "src/store-buffer.h"
 
 #include <algorithm>
 
-#include "v8.h"
-#include "counters.h"
-#include "store-buffer-inl.h"
+#include "src/v8.h"
+
+#include "src/base/atomicops.h"
+#include "src/counters.h"
+#include "src/store-buffer-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -345,7 +347,7 @@ void StoreBuffer::VerifyPointers(LargeObjectSpace* space) {
         // checks that pointers which satisfy predicate point into
         // the active semispace.
         Object* object = reinterpret_cast<Object*>(
-            NoBarrier_Load(reinterpret_cast<AtomicWord*>(slot)));
+            base::NoBarrier_Load(reinterpret_cast<base::AtomicWord*>(slot)));
         heap_->InNewSpace(object);
         slot_address += kPointerSize;
       }
@@ -382,7 +384,7 @@ void StoreBuffer::FindPointersToNewSpaceInRegion(
        slot_address += kPointerSize) {
     Object** slot = reinterpret_cast<Object**>(slot_address);
     Object* object = reinterpret_cast<Object*>(
-        NoBarrier_Load(reinterpret_cast<AtomicWord*>(slot)));
+        base::NoBarrier_Load(reinterpret_cast<base::AtomicWord*>(slot)));
     if (heap_->InNewSpace(object)) {
       HeapObject* heap_object = reinterpret_cast<HeapObject*>(object);
       ASSERT(heap_object->IsHeapObject());
@@ -391,7 +393,7 @@ void StoreBuffer::FindPointersToNewSpaceInRegion(
       if (clear_maps) ClearDeadObject(heap_object);
       slot_callback(reinterpret_cast<HeapObject**>(slot), heap_object);
       object = reinterpret_cast<Object*>(
-          NoBarrier_Load(reinterpret_cast<AtomicWord*>(slot)));
+          base::NoBarrier_Load(reinterpret_cast<base::AtomicWord*>(slot)));
       if (heap_->InNewSpace(object)) {
         EnterDirectlyIntoStoreBuffer(slot_address);
       }
@@ -470,7 +472,7 @@ void StoreBuffer::IteratePointersInStoreBuffer(
 #endif
       Object** slot = reinterpret_cast<Object**>(*current);
       Object* object = reinterpret_cast<Object*>(
-          NoBarrier_Load(reinterpret_cast<AtomicWord*>(slot)));
+          base::NoBarrier_Load(reinterpret_cast<base::AtomicWord*>(slot)));
       if (heap_->InFromSpace(object)) {
         HeapObject* heap_object = reinterpret_cast<HeapObject*>(object);
         // The new space object was not promoted if it still contains a map
@@ -478,7 +480,7 @@ void StoreBuffer::IteratePointersInStoreBuffer(
         if (clear_maps) ClearDeadObject(heap_object);
         slot_callback(reinterpret_cast<HeapObject**>(slot), heap_object);
         object = reinterpret_cast<Object*>(
-            NoBarrier_Load(reinterpret_cast<AtomicWord*>(slot)));
+            base::NoBarrier_Load(reinterpret_cast<base::AtomicWord*>(slot)));
         if (heap_->InNewSpace(object)) {
           EnterDirectlyIntoStoreBuffer(reinterpret_cast<Address>(slot));
         }

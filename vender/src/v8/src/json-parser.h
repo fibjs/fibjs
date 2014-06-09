@@ -5,13 +5,13 @@
 #ifndef V8_JSON_PARSER_H_
 #define V8_JSON_PARSER_H_
 
-#include "v8.h"
+#include "src/v8.h"
 
-#include "char-predicates-inl.h"
-#include "conversions.h"
-#include "messages.h"
-#include "spaces-inl.h"
-#include "token.h"
+#include "src/char-predicates-inl.h"
+#include "src/conversions.h"
+#include "src/messages.h"
+#include "src/spaces-inl.h"
+#include "src/token.h"
 
 namespace v8 {
 namespace internal {
@@ -414,7 +414,8 @@ Handle<Object> JsonParser<seq_ascii>::ParseJsonObject() {
         int length = properties.length();
         for (int i = 0; i < length; i++) {
           Handle<Object> value = properties[i];
-          json_object->FastPropertyAtPut(i, *value);
+          FieldIndex index = FieldIndex::ForPropertyIndex(*map, i);
+          json_object->FastPropertyAtPut(index, *value);
         }
       } else {
         key = ParseJsonInternalizedString();
@@ -438,7 +439,8 @@ Handle<Object> JsonParser<seq_ascii>::ParseJsonObject() {
       int length = properties.length();
       for (int i = 0; i < length; i++) {
         Handle<Object> value = properties[i];
-        json_object->FastPropertyAtPut(i, *value);
+        FieldIndex index = FieldIndex::ForPropertyIndex(*map, i);
+        json_object->FastPropertyAtPut(index, *value);
       }
     }
   }

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "sampler.h"
+#include "src/sampler.h"
 
 #if V8_OS_POSIX && !V8_OS_CYGWIN
 
@@ -38,20 +38,20 @@
 
 #elif V8_OS_WIN || V8_OS_CYGWIN
 
-#include "win32-headers.h"
+#include "src/base/win32-headers.h"
 
 #endif
 
-#include "v8.h"
+#include "src/v8.h"
 
-#include "cpu-profiler-inl.h"
-#include "flags.h"
-#include "frames-inl.h"
-#include "log.h"
-#include "platform.h"
-#include "simulator.h"
-#include "v8threads.h"
-#include "vm-state-inl.h"
+#include "src/cpu-profiler-inl.h"
+#include "src/flags.h"
+#include "src/frames-inl.h"
+#include "src/log.h"
+#include "src/platform.h"
+#include "src/simulator.h"
+#include "src/v8threads.h"
+#include "src/vm-state-inl.h"
 
 
 #if V8_OS_ANDROID && !defined(__BIONIC_HAVE_UCONTEXT_T)
@@ -654,7 +654,7 @@ void Sampler::Stop() {
 
 
 void Sampler::IncreaseProfilingDepth() {
-  NoBarrier_AtomicIncrement(&profiling_, 1);
+  base::NoBarrier_AtomicIncrement(&profiling_, 1);
 #if defined(USE_SIGNALS)
   SignalHandler::IncreaseSamplerCount();
 #endif
@@ -665,7 +665,7 @@ void Sampler::DecreaseProfilingDepth() {
 #if defined(USE_SIGNALS)
   SignalHandler::DecreaseSamplerCount();
 #endif
-  NoBarrier_AtomicIncrement(&profiling_, -1);
+  base::NoBarrier_AtomicIncrement(&profiling_, -1);
 }
 
 

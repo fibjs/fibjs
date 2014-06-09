@@ -36,9 +36,9 @@ class ConditionVariable V8_FINAL {
   DISALLOW_COPY_AND_ASSIGN(ConditionVariable);
 };
 
-typedef LazyStaticInstance<ConditionVariable,
-                           DefaultConstructTrait<ConditionVariable>,
-                           ThreadSafeInitOnceTrait>::type LazyConditionVariable;
+typedef base::LazyStaticInstance<ConditionVariable,
+                           base::DefaultConstructTrait<ConditionVariable>,
+                           base::ThreadSafeInitOnceTrait>::type LazyConditionVariable;
 
 #define LAZY_CONDITION_VARIABLE_INITIALIZER LAZY_STATIC_INSTANCE_INITIALIZER
 

@@ -2,25 +2,25 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "v8.h"
+#include "src/v8.h"
 
-#include "double.h"
-#include "factory.h"
-#include "hydrogen-infer-representation.h"
-#include "property-details-inl.h"
+#include "src/double.h"
+#include "src/factory.h"
+#include "src/hydrogen-infer-representation.h"
+#include "src/property-details-inl.h"
 
 #if V8_TARGET_ARCH_IA32
-#include "ia32/lithium-ia32.h"
+#include "src/ia32/lithium-ia32.h"
 #elif V8_TARGET_ARCH_X64
-#include "x64/lithium-x64.h"
+#include "src/x64/lithium-x64.h"
 #elif V8_TARGET_ARCH_ARM64
-#include "arm64/lithium-arm64.h"
+#include "src/arm64/lithium-arm64.h"
 #elif V8_TARGET_ARCH_ARM
-#include "arm/lithium-arm.h"
+#include "src/arm/lithium-arm.h"
 #elif V8_TARGET_ARCH_MIPS
-#include "mips/lithium-mips.h"
+#include "src/mips/lithium-mips.h"
 #elif V8_TARGET_ARCH_X87
-#include "x87/lithium-x87.h"
+#include "src/x87/lithium-x87.h"
 #else
 #error Unsupported target architecture.
 #endif
@@ -724,6 +724,21 @@ void HInstruction::InsertAfter(HInstruction* previous) {
 }
 
 
+bool HInstruction::Dominates(HInstruction* other) {
+  if (block() != other->block()) {
+    return block()->Dominates(other->block());
+  }
+  // Both instructions are in the same basic block. This instruction
+  // should precede the other one in order to dominate it.
+  for (HInstruction* instr = next(); instr != NULL; instr = instr->next()) {
+    if (instr == other) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 #ifdef DEBUG
 void HInstruction::Verify() {
   // Verify that input operands are defined before use.
@@ -779,11 +794,9 @@ bool HInstruction::CanDeoptimize() {
     case HValue::kArgumentsElements:
     case HValue::kArgumentsLength:
     case HValue::kArgumentsObject:
-    case HValue::kArrayShift:
     case HValue::kBlockEntry:
     case HValue::kBoundsCheckBaseIndexInformation:
     case HValue::kCallFunction:
-    case HValue::kCallJSFunction:
     case HValue::kCallNew:
     case HValue::kCallNewArray:
     case HValue::kCallStub:
@@ -833,6 +846,7 @@ bool HInstruction::CanDeoptimize() {
     case HValue::kReturn:
     case HValue::kSeqStringGetChar:
     case HValue::kStoreCodeEntry:
+    case HValue::kStoreFrameContext:
     case HValue::kStoreKeyed:
     case HValue::kStoreNamedField:
     case HValue::kStoreNamedGeneric:
@@ -845,10 +859,12 @@ bool HInstruction::CanDeoptimize() {
       return false;
 
     case HValue::kAdd:
+    case HValue::kAllocateBlockContext:
     case HValue::kApplyArguments:
     case HValue::kBitwise:
     case HValue::kBoundsCheck:
     case HValue::kBranch:
+    case HValue::kCallJSFunction:
     case HValue::kCallRuntime:
     case HValue::kChange:
     case HValue::kCheckHeapObject:
@@ -1119,6 +1135,13 @@ void HAccessArgumentsAt::PrintDataTo(StringStream* stream) {
   index()->PrintNameTo(stream);
   stream->Add("], length ");
   length()->PrintNameTo(stream);
+}
+
+
+void HAllocateBlockContext::PrintDataTo(StringStream* stream) {
+  context()->PrintNameTo(stream);
+  stream->Add(" ");
+  function()->PrintNameTo(stream);
 }
 
 
@@ -2434,6 +2457,12 @@ Range* HMathMinMax::InferRange(Zone* zone) {
 }
 
 
+void HPushArguments::AddInput(HValue* value) {
+  inputs_.Add(NULL, value->block()->zone());
+  SetOperandAt(OperandCount() - 1, value);
+}
+
+
 void HPhi::PrintTo(StringStream* stream) {
   stream->Add("[");
   for (int i = 0; i < OperandCount(); ++i) {
@@ -3251,9 +3280,25 @@ bool HIsObjectAndBranch::KnownSuccessorBlock(HBasicBlock** block) {
 
 
 bool HIsStringAndBranch::KnownSuccessorBlock(HBasicBlock** block) {
+  if (known_successor_index() != kNoKnownSuccessorIndex) {
+    *block = SuccessorAt(known_successor_index());
+    return true;
+  }
   if (FLAG_fold_constants && value()->IsConstant()) {
     *block = HConstant::cast(value())->HasStringValue()
         ? FirstSuccessor() : SecondSuccessor();
+    return true;
+  }
+  if (value()->type().IsString()) {
+    *block = FirstSuccessor();
+    return true;
+  }
+  if (value()->type().IsSmi() ||
+      value()->type().IsNull() ||
+      value()->type().IsBoolean() ||
+      value()->type().IsUndefined() ||
+      value()->type().IsJSObject()) {
+    *block = SecondSuccessor();
     return true;
   }
   *block = NULL;
@@ -3603,12 +3648,6 @@ void HTransitionElementsKind::PrintDataTo(StringStream* stream) {
 }
 
 
-void HArrayShift::PrintDataTo(StringStream* stream) {
-  object()->PrintNameTo(stream);
-  stream->Add(" [%s]", ElementsAccessor::ForKind(kind())->name());
-}
-
-
 void HLoadGlobalCell::PrintDataTo(StringStream* stream) {
   stream->Add("[%p]", *cell().handle());
   if (!details_.IsDontDelete()) stream->Add(" (deleteable)");
@@ -3731,10 +3770,10 @@ bool HAllocate::HandleSideEffectDominator(GVNFlag side_effect,
   HValue* current_size = size();
 
   // TODO(hpayer): Add support for non-constant allocation in dominator.
-  if (!current_size->IsInteger32Constant() ||
-      !dominator_size->IsInteger32Constant()) {
+  if (!dominator_size->IsInteger32Constant()) {
     if (FLAG_trace_allocation_folding) {
-      PrintF("#%d (%s) cannot fold into #%d (%s), dynamic allocation size\n",
+      PrintF("#%d (%s) cannot fold into #%d (%s), "
+             "dynamic allocation size in dominator\n",
           id(), Mnemonic(), dominator->id(), dominator->Mnemonic());
     }
     return false;
@@ -3743,6 +3782,32 @@ bool HAllocate::HandleSideEffectDominator(GVNFlag side_effect,
   dominator_allocate = GetFoldableDominator(dominator_allocate);
   if (dominator_allocate == NULL) {
     return false;
+  }
+
+  if (!has_size_upper_bound()) {
+    if (FLAG_trace_allocation_folding) {
+      PrintF("#%d (%s) cannot fold into #%d (%s), "
+             "can't estimate total allocation size\n",
+          id(), Mnemonic(), dominator->id(), dominator->Mnemonic());
+    }
+    return false;
+  }
+
+  if (!current_size->IsInteger32Constant()) {
+    // If it's not constant then it is a size_in_bytes calculation graph
+    // like this: (const_header_size + const_element_size * size).
+    ASSERT(current_size->IsInstruction());
+
+    HInstruction* current_instr = HInstruction::cast(current_size);
+    if (!current_instr->Dominates(dominator_allocate)) {
+      if (FLAG_trace_allocation_folding) {
+        PrintF("#%d (%s) cannot fold into #%d (%s), dynamic size "
+               "value does not dominate target allocation\n",
+            id(), Mnemonic(), dominator_allocate->id(),
+            dominator_allocate->Mnemonic());
+      }
+      return false;
+    }
   }
 
   ASSERT((IsNewSpaceAllocation() &&
@@ -3757,19 +3822,15 @@ bool HAllocate::HandleSideEffectDominator(GVNFlag side_effect,
   int32_t original_object_size =
       HConstant::cast(dominator_size)->GetInteger32Constant();
   int32_t dominator_size_constant = original_object_size;
-  int32_t current_size_constant =
-      HConstant::cast(current_size)->GetInteger32Constant();
-  int32_t new_dominator_size = dominator_size_constant + current_size_constant;
 
   if (MustAllocateDoubleAligned()) {
-    if (!dominator_allocate->MustAllocateDoubleAligned()) {
-      dominator_allocate->MakeDoubleAligned();
-    }
     if ((dominator_size_constant & kDoubleAlignmentMask) != 0) {
       dominator_size_constant += kDoubleSize / 2;
-      new_dominator_size += kDoubleSize / 2;
     }
   }
+
+  int32_t current_size_max_value = size_upper_bound()->GetInteger32Constant();
+  int32_t new_dominator_size = dominator_size_constant + current_size_max_value;
 
   // Since we clear the first word after folded memory, we cannot use the
   // whole Page::kMaxRegularHeapObjectSize memory.
@@ -3782,13 +3843,41 @@ bool HAllocate::HandleSideEffectDominator(GVNFlag side_effect,
     return false;
   }
 
-  HInstruction* new_dominator_size_constant = HConstant::CreateAndInsertBefore(
-      zone,
-      context(),
-      new_dominator_size,
-      Representation::None(),
-      dominator_allocate);
-  dominator_allocate->UpdateSize(new_dominator_size_constant);
+  HInstruction* new_dominator_size_value;
+
+  if (current_size->IsInteger32Constant()) {
+    new_dominator_size_value =
+        HConstant::CreateAndInsertBefore(zone,
+                                         context(),
+                                         new_dominator_size,
+                                         Representation::None(),
+                                         dominator_allocate);
+  } else {
+    HValue* new_dominator_size_constant =
+        HConstant::CreateAndInsertBefore(zone,
+                                         context(),
+                                         dominator_size_constant,
+                                         Representation::Integer32(),
+                                         dominator_allocate);
+
+    // Add old and new size together and insert.
+    current_size->ChangeRepresentation(Representation::Integer32());
+
+    new_dominator_size_value = HAdd::New(zone, context(),
+        new_dominator_size_constant, current_size);
+    new_dominator_size_value->ClearFlag(HValue::kCanOverflow);
+    new_dominator_size_value->ChangeRepresentation(Representation::Integer32());
+
+    new_dominator_size_value->InsertBefore(dominator_allocate);
+  }
+
+  dominator_allocate->UpdateSize(new_dominator_size_value);
+
+  if (MustAllocateDoubleAligned()) {
+    if (!dominator_allocate->MustAllocateDoubleAligned()) {
+      dominator_allocate->MakeDoubleAligned();
+    }
+  }
 
   bool keep_new_space_iterable = FLAG_log_gc || FLAG_heap_stats;
 #ifdef VERIFY_HEAP

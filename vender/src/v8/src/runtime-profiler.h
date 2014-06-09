@@ -5,8 +5,7 @@
 #ifndef V8_RUNTIME_PROFILER_H_
 #define V8_RUNTIME_PROFILER_H_
 
-#include "allocation.h"
-#include "atomicops.h"
+#include "src/allocation.h"
 
 namespace v8 {
 namespace internal {

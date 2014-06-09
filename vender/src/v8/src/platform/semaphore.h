@@ -1,11 +1,11 @@
 #ifndef V8_PLATFORM_SEMAPHORE_H_
 #define V8_PLATFORM_SEMAPHORE_H_
 
-#include "lazy-instance.h"
+#include "../base/lazy-instance.h"
 #include <exlib/event.h>
 
 #if V8_OS_WIN
-#include "../win32-headers.h"
+#include "../base/win32-headers.h"
 #endif
 
 namespace v8
@@ -55,8 +55,8 @@ V8_FINAL
 	template<int N>
 	struct LazySemaphore
 	{
-		typedef typename LazyDynamicInstance<Semaphore, CreateSemaphoreTrait<N>,
-				ThreadSafeInitOnceTrait>::type type;
+		typedef typename base::LazyDynamicInstance<Semaphore, CreateSemaphoreTrait<N>,
+				base::ThreadSafeInitOnceTrait>::type type;
 	};
 
 #define LAZY_SEMAPHORE_INITIALIZER LAZY_DYNAMIC_INSTANCE_INITIALIZER

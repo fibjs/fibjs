@@ -2,11 +2,11 @@
 #ifndef V8_PLATFORM_MUTEX_H_
 #define V8_PLATFORM_MUTEX_H_
 
-#include "lazy-instance.h"
+#include "../base/lazy-instance.h"
 #include <exlib/event.h>
 
 #if V8_OS_WIN
-#include "../win32-headers.h"
+#include "../base/win32-headers.h"
 #endif
 
 namespace v8 {
@@ -45,9 +45,9 @@ class Mutex V8_FINAL {
 };
 
 
-typedef LazyStaticInstance<Mutex,
-                           DefaultConstructTrait<Mutex>,
-                           ThreadSafeInitOnceTrait>::type LazyMutex;
+typedef base::LazyStaticInstance<Mutex,
+                           base::DefaultConstructTrait<Mutex>,
+                           base::ThreadSafeInitOnceTrait>::type LazyMutex;
 
 #define LAZY_MUTEX_INITIALIZER LAZY_STATIC_INSTANCE_INITIALIZER
 
@@ -76,9 +76,9 @@ class RecursiveMutex V8_FINAL {
 };
 
 
-typedef LazyStaticInstance<RecursiveMutex,
-                           DefaultConstructTrait<RecursiveMutex>,
-                           ThreadSafeInitOnceTrait>::type LazyRecursiveMutex;
+typedef base::LazyStaticInstance<RecursiveMutex,
+                           base::DefaultConstructTrait<RecursiveMutex>,
+                           base::ThreadSafeInitOnceTrait>::type LazyRecursiveMutex;
 
 #define LAZY_RECURSIVE_MUTEX_INITIALIZER LAZY_STATIC_INSTANCE_INITIALIZER
 

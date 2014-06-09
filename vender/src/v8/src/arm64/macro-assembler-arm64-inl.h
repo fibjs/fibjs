@@ -7,12 +7,12 @@
 
 #include <ctype.h>
 
-#include "globals.h"
+#include "src/globals.h"
 
-#include "arm64/assembler-arm64.h"
-#include "arm64/assembler-arm64-inl.h"
-#include "arm64/macro-assembler-arm64.h"
-#include "arm64/instrument-arm64.h"
+#include "src/arm64/assembler-arm64.h"
+#include "src/arm64/assembler-arm64-inl.h"
+#include "src/arm64/macro-assembler-arm64.h"
+#include "src/arm64/instrument-arm64.h"
 
 
 namespace v8 {
@@ -1347,6 +1347,18 @@ void MacroAssembler::SmiUntagToFloat(FPRegister dst,
     AssertSmi(src);
   }
   Scvtf(dst, src, kSmiShift);
+}
+
+
+void MacroAssembler::SmiTagAndPush(Register src) {
+  STATIC_ASSERT((kSmiShift == 32) && (kSmiTag == 0));
+  Push(src.W(), wzr);
+}
+
+
+void MacroAssembler::SmiTagAndPush(Register src1, Register src2) {
+  STATIC_ASSERT((kSmiShift == 32) && (kSmiTag == 0));
+  Push(src1.W(), wzr, src2.W(), wzr);
 }
 
 

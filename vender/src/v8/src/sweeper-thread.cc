@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "sweeper-thread.h"
+#include "src/sweeper-thread.h"
 
-#include "v8.h"
+#include "src/v8.h"
 
-#include "isolate.h"
-#include "v8threads.h"
+#include "src/isolate.h"
+#include "src/v8threads.h"
 
 namespace v8 {
 namespace internal {
@@ -23,7 +23,7 @@ SweeperThread::SweeperThread(Isolate* isolate)
        end_sweeping_semaphore_(0),
        stop_semaphore_(0) {
   ASSERT(!FLAG_job_based_sweeping);
-  NoBarrier_Store(&stop_thread_, static_cast<AtomicWord>(false));
+  base::NoBarrier_Store(&stop_thread_, static_cast<base::AtomicWord>(false));
 }
 
 
@@ -36,7 +36,7 @@ void SweeperThread::Run() {
   while (true) {
     start_sweeping_semaphore_.Wait();
 
-    if (Acquire_Load(&stop_thread_)) {
+    if (base::Acquire_Load(&stop_thread_)) {
       stop_semaphore_.Signal();
       return;
     }
@@ -49,7 +49,7 @@ void SweeperThread::Run() {
 
 
 void SweeperThread::Stop() {
-  Release_Store(&stop_thread_, static_cast<AtomicWord>(true));
+  base::Release_Store(&stop_thread_, static_cast<base::AtomicWord>(true));
   start_sweeping_semaphore_.Signal();
   stop_semaphore_.Wait();
   Join();

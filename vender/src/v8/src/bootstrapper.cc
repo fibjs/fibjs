@@ -2,19 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "bootstrapper.h"
+#include "src/bootstrapper.h"
 
-#include "accessors.h"
-#include "isolate-inl.h"
-#include "natives.h"
-#include "snapshot.h"
-#include "trig-table.h"
-#include "extensions/externalize-string-extension.h"
-#include "extensions/free-buffer-extension.h"
-#include "extensions/gc-extension.h"
-#include "extensions/statistics-extension.h"
-#include "extensions/trigger-failure-extension.h"
-#include "code-stubs.h"
+#include "src/accessors.h"
+#include "src/isolate-inl.h"
+#include "src/natives.h"
+#include "src/snapshot.h"
+#include "src/trig-table.h"
+#include "src/extensions/externalize-string-extension.h"
+#include "src/extensions/free-buffer-extension.h"
+#include "src/extensions/gc-extension.h"
+#include "src/extensions/statistics-extension.h"
+#include "src/extensions/trigger-failure-extension.h"
+#include "src/code-stubs.h"
 
 namespace v8 {
 namespace internal {
@@ -1071,7 +1071,7 @@ void Genesis::InitializeGlobal(Handle<GlobalObject> inner_global,
     native_context()->set_json_object(*json_object);
   }
 
-  { // -- A r r a y B u f f e r
+  {  // -- A r r a y B u f f e r
     Handle<JSFunction> array_buffer_fun =
         InstallFunction(
             global, "ArrayBuffer", JS_ARRAY_BUFFER_TYPE,
@@ -1081,7 +1081,7 @@ void Genesis::InitializeGlobal(Handle<GlobalObject> inner_global,
     native_context()->set_array_buffer_fun(*array_buffer_fun);
   }
 
-  { // -- T y p e d A r r a y s
+  {  // -- T y p e d A r r a y s
 #define INSTALL_TYPED_ARRAY(Type, type, TYPE, ctype, size)                    \
     {                                                                         \
       Handle<JSFunction> fun;                                                 \
@@ -1145,11 +1145,13 @@ void Genesis::InitializeGlobal(Handle<GlobalObject> inner_global,
     LookupResult lookup(isolate);
     result->LookupOwn(factory->callee_string(), &lookup);
     ASSERT(lookup.IsField());
-    ASSERT(lookup.GetFieldIndex().field_index() == Heap::kArgumentsCalleeIndex);
+    ASSERT(lookup.GetFieldIndex().property_index() ==
+           Heap::kArgumentsCalleeIndex);
 
     result->LookupOwn(factory->length_string(), &lookup);
     ASSERT(lookup.IsField());
-    ASSERT(lookup.GetFieldIndex().field_index() == Heap::kArgumentsLengthIndex);
+    ASSERT(lookup.GetFieldIndex().property_index() ==
+           Heap::kArgumentsLengthIndex);
 
     ASSERT(result->map()->inobject_properties() > Heap::kArgumentsCalleeIndex);
     ASSERT(result->map()->inobject_properties() > Heap::kArgumentsLengthIndex);
@@ -1245,7 +1247,8 @@ void Genesis::InitializeGlobal(Handle<GlobalObject> inner_global,
     LookupResult lookup(isolate);
     result->LookupOwn(factory->length_string(), &lookup);
     ASSERT(lookup.IsField());
-    ASSERT(lookup.GetFieldIndex().field_index() == Heap::kArgumentsLengthIndex);
+    ASSERT(lookup.GetFieldIndex().property_index() ==
+           Heap::kArgumentsLengthIndex);
 
     ASSERT(result->map()->inobject_properties() > Heap::kArgumentsLengthIndex);
 
@@ -1343,16 +1346,24 @@ void Genesis::InitializeExperimentalGlobal() {
     InstallFunction(global, "Set", JS_SET_TYPE, JSSet::kSize,
                     isolate()->initial_object_prototype(), Builtins::kIllegal);
     {   // -- S e t I t e r a t o r
-      Handle<Map> map = isolate()->factory()->NewMap(
-          JS_SET_ITERATOR_TYPE, JSSetIterator::kSize);
-      map->set_constructor(native_context()->closure());
-      native_context()->set_set_iterator_map(*map);
+      Handle<JSObject> builtins(native_context()->builtins());
+      Handle<JSFunction> set_iterator_function =
+          InstallFunction(builtins, "SetIterator", JS_SET_ITERATOR_TYPE,
+                          JSSetIterator::kSize,
+                          isolate()->initial_object_prototype(),
+                          Builtins::kIllegal);
+      native_context()->set_set_iterator_map(
+          set_iterator_function->initial_map());
     }
     {   // -- M a p I t e r a t o r
-      Handle<Map> map = isolate()->factory()->NewMap(
-          JS_MAP_ITERATOR_TYPE, JSMapIterator::kSize);
-      map->set_constructor(native_context()->closure());
-      native_context()->set_map_iterator_map(*map);
+      Handle<JSObject> builtins(native_context()->builtins());
+      Handle<JSFunction> map_iterator_function =
+          InstallFunction(builtins, "MapIterator", JS_MAP_ITERATOR_TYPE,
+                          JSMapIterator::kSize,
+                          isolate()->initial_object_prototype(),
+                          Builtins::kIllegal);
+      native_context()->set_map_iterator_map(
+          map_iterator_function->initial_map());
     }
   }
 
@@ -1477,7 +1488,7 @@ bool Genesis::CompileNative(Isolate* isolate,
                             Vector<const char> name,
                             Handle<String> source) {
   HandleScope scope(isolate);
-  Debug::IgnoreScope compiling_natives(isolate->debug());
+  SuppressDebug compiling_natives(isolate->debug());
   // During genesis, the boilerplate for stack overflow won't work until the
   // environment has been at least partially initialized. Add a stack check
   // before entering JS code to catch overflow early.
@@ -2009,6 +2020,7 @@ bool Genesis::InstallExperimentalNatives() {
     INSTALL_EXPERIMENTAL_NATIVE(i, symbols, "symbol.js")
     INSTALL_EXPERIMENTAL_NATIVE(i, proxies, "proxy.js")
     INSTALL_EXPERIMENTAL_NATIVE(i, collections, "collection.js")
+    INSTALL_EXPERIMENTAL_NATIVE(i, collections, "collection-iterator.js")
     INSTALL_EXPERIMENTAL_NATIVE(i, generators, "generator.js")
     INSTALL_EXPERIMENTAL_NATIVE(i, iteration, "array-iterator.js")
     INSTALL_EXPERIMENTAL_NATIVE(i, strings, "harmony-string.js")
@@ -2408,7 +2420,7 @@ void Genesis::TransferNamedProperties(Handle<JSObject> from,
         case FIELD: {
           HandleScope inner(isolate());
           Handle<Name> key = Handle<Name>(descs->GetKey(i));
-          int index = descs->GetFieldIndex(i);
+          FieldIndex index = FieldIndex::ForDescriptor(from->map(), i);
           ASSERT(!descs->GetDetails(i).representation().IsDouble());
           Handle<Object> value = Handle<Object>(from->RawFastPropertyAt(index),
                                                 isolate());

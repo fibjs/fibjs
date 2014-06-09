@@ -2,19 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "v8.h"
+#include "src/v8.h"
 
 #if V8_TARGET_ARCH_X64
 
-#include "bootstrapper.h"
-#include "codegen.h"
-#include "cpu-profiler.h"
-#include "assembler-x64.h"
-#include "macro-assembler-x64.h"
-#include "serialize.h"
-#include "debug.h"
-#include "heap.h"
-#include "isolate-inl.h"
+#include "src/bootstrapper.h"
+#include "src/codegen.h"
+#include "src/cpu-profiler.h"
+#include "src/x64/assembler-x64.h"
+#include "src/x64/macro-assembler-x64.h"
+#include "src/serialize.h"
+#include "src/debug.h"
+#include "src/heap.h"
+#include "src/isolate-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -292,7 +292,8 @@ void MacroAssembler::RecordWriteField(
     Register dst,
     SaveFPRegsMode save_fp,
     RememberedSetAction remembered_set_action,
-    SmiCheck smi_check) {
+    SmiCheck smi_check,
+    PointersToHereCheck pointers_to_here_check_for_value) {
   // First, check if a write barrier is even needed. The tests below
   // catch stores of Smis.
   Label done;
@@ -315,8 +316,8 @@ void MacroAssembler::RecordWriteField(
     bind(&ok);
   }
 
-  RecordWrite(
-      object, dst, value, save_fp, remembered_set_action, OMIT_SMI_CHECK);
+  RecordWrite(object, dst, value, save_fp, remembered_set_action,
+              OMIT_SMI_CHECK, pointers_to_here_check_for_value);
 
   bind(&done);
 
@@ -329,12 +330,14 @@ void MacroAssembler::RecordWriteField(
 }
 
 
-void MacroAssembler::RecordWriteArray(Register object,
-                                      Register value,
-                                      Register index,
-                                      SaveFPRegsMode save_fp,
-                                      RememberedSetAction remembered_set_action,
-                                      SmiCheck smi_check) {
+void MacroAssembler::RecordWriteArray(
+    Register object,
+    Register value,
+    Register index,
+    SaveFPRegsMode save_fp,
+    RememberedSetAction remembered_set_action,
+    SmiCheck smi_check,
+    PointersToHereCheck pointers_to_here_check_for_value) {
   // First, check if a write barrier is even needed. The tests below
   // catch stores of Smis.
   Label done;
@@ -349,8 +352,8 @@ void MacroAssembler::RecordWriteArray(Register object,
   leap(dst, Operand(object, index, times_pointer_size,
                    FixedArray::kHeaderSize - kHeapObjectTag));
 
-  RecordWrite(
-      object, dst, value, save_fp, remembered_set_action, OMIT_SMI_CHECK);
+  RecordWrite(object, dst, value, save_fp, remembered_set_action,
+              OMIT_SMI_CHECK, pointers_to_here_check_for_value);
 
   bind(&done);
 
@@ -363,12 +366,85 @@ void MacroAssembler::RecordWriteArray(Register object,
 }
 
 
-void MacroAssembler::RecordWrite(Register object,
-                                 Register address,
-                                 Register value,
-                                 SaveFPRegsMode fp_mode,
-                                 RememberedSetAction remembered_set_action,
-                                 SmiCheck smi_check) {
+void MacroAssembler::RecordWriteForMap(Register object,
+                                       Register map,
+                                       Register dst,
+                                       SaveFPRegsMode fp_mode) {
+  ASSERT(!object.is(kScratchRegister));
+  ASSERT(!object.is(map));
+  ASSERT(!object.is(dst));
+  ASSERT(!map.is(dst));
+  AssertNotSmi(object);
+
+  if (emit_debug_code()) {
+    Label ok;
+    if (map.is(kScratchRegister)) pushq(map);
+    CompareMap(map, isolate()->factory()->meta_map());
+    if (map.is(kScratchRegister)) popq(map);
+    j(equal, &ok, Label::kNear);
+    int3();
+    bind(&ok);
+  }
+
+  if (!FLAG_incremental_marking) {
+    return;
+  }
+
+  if (emit_debug_code()) {
+    Label ok;
+    if (map.is(kScratchRegister)) pushq(map);
+    cmpp(map, FieldOperand(object, HeapObject::kMapOffset));
+    if (map.is(kScratchRegister)) popq(map);
+    j(equal, &ok, Label::kNear);
+    int3();
+    bind(&ok);
+  }
+
+  // Compute the address.
+  leap(dst, FieldOperand(object, HeapObject::kMapOffset));
+
+  // Count number of write barriers in generated code.
+  isolate()->counters()->write_barriers_static()->Increment();
+  IncrementCounter(isolate()->counters()->write_barriers_dynamic(), 1);
+
+  // First, check if a write barrier is even needed. The tests below
+  // catch stores of smis and stores into the young generation.
+  Label done;
+
+  // A single check of the map's pages interesting flag suffices, since it is
+  // only set during incremental collection, and then it's also guaranteed that
+  // the from object's page's interesting flag is also set.  This optimization
+  // relies on the fact that maps can never be in new space.
+  CheckPageFlag(map,
+                map,  // Used as scratch.
+                MemoryChunk::kPointersToHereAreInterestingMask,
+                zero,
+                &done,
+                Label::kNear);
+
+  RecordWriteStub stub(isolate(), object, map, dst, OMIT_REMEMBERED_SET,
+                       fp_mode);
+  CallStub(&stub);
+
+  bind(&done);
+
+  // Clobber clobbered registers when running with the debug-code flag
+  // turned on to provoke errors.
+  if (emit_debug_code()) {
+    Move(dst, kZapValue, Assembler::RelocInfoNone());
+    Move(map, kZapValue, Assembler::RelocInfoNone());
+  }
+}
+
+
+void MacroAssembler::RecordWrite(
+    Register object,
+    Register address,
+    Register value,
+    SaveFPRegsMode fp_mode,
+    RememberedSetAction remembered_set_action,
+    SmiCheck smi_check,
+    PointersToHereCheck pointers_to_here_check_for_value) {
   ASSERT(!object.is(value));
   ASSERT(!object.is(address));
   ASSERT(!value.is(address));
@@ -400,12 +476,14 @@ void MacroAssembler::RecordWrite(Register object,
     JumpIfSmi(value, &done);
   }
 
-  CheckPageFlag(value,
-                value,  // Used as scratch.
-                MemoryChunk::kPointersToHereAreInterestingMask,
-                zero,
-                &done,
-                Label::kNear);
+  if (pointers_to_here_check_for_value != kPointersToHereAreAlwaysInteresting) {
+    CheckPageFlag(value,
+                  value,  // Used as scratch.
+                  MemoryChunk::kPointersToHereAreInterestingMask,
+                  zero,
+                  &done,
+                  Label::kNear);
+  }
 
   CheckPageFlag(object,
                 value,  // Used as scratch.
@@ -4247,6 +4325,41 @@ void MacroAssembler::LoadAllocationTopHelper(Register result,
 }
 
 
+void MacroAssembler::MakeSureDoubleAlignedHelper(Register result,
+                                                 Register scratch,
+                                                 Label* gc_required,
+                                                 AllocationFlags flags) {
+  if (kPointerSize == kDoubleSize) {
+    if (FLAG_debug_code) {
+      testl(result, Immediate(kDoubleAlignmentMask));
+      Check(zero, kAllocationIsNotDoubleAligned);
+    }
+  } else {
+    // Align the next allocation. Storing the filler map without checking top
+    // is safe in new-space because the limit of the heap is aligned there.
+    ASSERT(kPointerSize * 2 == kDoubleSize);
+    ASSERT((flags & PRETENURE_OLD_POINTER_SPACE) == 0);
+    ASSERT(kPointerAlignment * 2 == kDoubleAlignment);
+    // Make sure scratch is not clobbered by this function as it might be
+    // used in UpdateAllocationTopHelper later.
+    ASSERT(!scratch.is(kScratchRegister));
+    Label aligned;
+    testl(result, Immediate(kDoubleAlignmentMask));
+    j(zero, &aligned, Label::kNear);
+    if ((flags & PRETENURE_OLD_DATA_SPACE) != 0) {
+      ExternalReference allocation_limit =
+          AllocationUtils::GetAllocationLimitReference(isolate(), flags);
+      cmpp(result, ExternalOperand(allocation_limit));
+      j(above_equal, gc_required);
+    }
+    LoadRoot(kScratchRegister, Heap::kOnePointerFillerMapRootIndex);
+    movp(Operand(result, 0), kScratchRegister);
+    addp(result, Immediate(kDoubleSize / 2));
+    bind(&aligned);
+  }
+}
+
+
 void MacroAssembler::UpdateAllocationTopHelper(Register result_end,
                                                Register scratch,
                                                AllocationFlags flags) {
@@ -4295,11 +4408,8 @@ void MacroAssembler::Allocate(int object_size,
   // Load address of new object into result.
   LoadAllocationTopHelper(result, scratch, flags);
 
-  // Align the next allocation. Storing the filler map without checking top is
-  // safe in new-space because the limit of the heap is aligned there.
-  if (((flags & DOUBLE_ALIGNMENT) != 0) && FLAG_debug_code) {
-    testq(result, Immediate(kDoubleAlignmentMask));
-    Check(zero, kAllocationIsNotDoubleAligned);
+  if ((flags & DOUBLE_ALIGNMENT) != 0) {
+    MakeSureDoubleAlignedHelper(result, scratch, gc_required, flags);
   }
 
   // Calculate new top and bail out if new space is exhausted.
@@ -4374,11 +4484,8 @@ void MacroAssembler::Allocate(Register object_size,
   // Load address of new object into result.
   LoadAllocationTopHelper(result, scratch, flags);
 
-  // Align the next allocation. Storing the filler map without checking top is
-  // safe in new-space because the limit of the heap is aligned there.
-  if (((flags & DOUBLE_ALIGNMENT) != 0) && FLAG_debug_code) {
-    testq(result, Immediate(kDoubleAlignmentMask));
-    Check(zero, kAllocationIsNotDoubleAligned);
+  if ((flags & DOUBLE_ALIGNMENT) != 0) {
+    MakeSureDoubleAlignedHelper(result, scratch, gc_required, flags);
   }
 
   // Calculate new top and bail out if new space is exhausted.

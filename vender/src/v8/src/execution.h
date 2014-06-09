@@ -5,7 +5,7 @@
 #ifndef V8_EXECUTION_H_
 #define V8_EXECUTION_H_
 
-#include "handles.h"
+#include "src/handles.h"
 
 namespace v8 {
 namespace internal {
@@ -103,9 +103,6 @@ class Execution V8_FINAL : public AllStatic {
                                           Handle<JSFunction> fun,
                                           Handle<Object> pos,
                                           Handle<Object> is_global);
-
-  static void DebugBreakHelper(Isolate* isolate);
-  static void ProcessDebugMessages(Isolate* isolate, bool debug_command_only);
 
   // Get a function delegate (or undefined) for the given non-function
   // object. Used for support calling objects as functions.
@@ -206,7 +203,7 @@ enum InterruptFlag {
   bool CheckInterrupt(int flagbit);
   void RequestInterrupt(int flagbit);
   void ClearInterrupt(int flagbit);
-  bool CheckAndClearInterrupt(InterruptFlag flag, const ExecutionAccess& lock);
+  bool CheckAndClearInterrupt(InterruptFlag flag);
 
   // You should hold the ExecutionAccess lock when calling this method.
   bool has_pending_interrupts(const ExecutionAccess& lock) {

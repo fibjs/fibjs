@@ -2,17 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "v8.h"
+#include "src/v8.h"
 
 #if V8_TARGET_ARCH_IA32
 
-#include "ia32/lithium-codegen-ia32.h"
-#include "ic.h"
-#include "code-stubs.h"
-#include "deoptimizer.h"
-#include "stub-cache.h"
-#include "codegen.h"
-#include "hydrogen-osr.h"
+#include "src/ia32/lithium-codegen-ia32.h"
+#include "src/ic.h"
+#include "src/code-stubs.h"
+#include "src/deoptimizer.h"
+#include "src/stub-cache.h"
+#include "src/codegen.h"
+#include "src/hydrogen-osr.h"
 
 namespace v8 {
 namespace internal {
@@ -2270,8 +2270,8 @@ void LCodeGen::DoCompareNumericAndBranch(LCompareNumericAndBranch* instr) {
       } else if (left->IsConstantOperand()) {
         __ cmp(ToOperand(right),
                ToImmediate(left, instr->hydrogen()->representation()));
-        // We transposed the operands. Reverse the condition.
-        cc = ReverseCondition(cc);
+        // We commuted the operands, so commute the condition.
+        cc = CommuteCondition(cc);
       } else {
         __ cmp(ToRegister(left), ToOperand(right));
       }
@@ -3995,21 +3995,12 @@ void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
   if (instr->hydrogen()->has_transition()) {
     Handle<Map> transition = instr->hydrogen()->transition_map();
     AddDeprecationDependency(transition);
-    if (!instr->hydrogen()->NeedsWriteBarrierForMap()) {
-      __ mov(FieldOperand(object, HeapObject::kMapOffset), transition);
-    } else {
+    __ mov(FieldOperand(object, HeapObject::kMapOffset), transition);
+    if (instr->hydrogen()->NeedsWriteBarrierForMap()) {
       Register temp = ToRegister(instr->temp());
       Register temp_map = ToRegister(instr->temp_map());
-      __ mov(temp_map, transition);
-      __ mov(FieldOperand(object, HeapObject::kMapOffset), temp_map);
       // Update the write barrier for the map field.
-      __ RecordWriteField(object,
-                          HeapObject::kMapOffset,
-                          temp_map,
-                          temp,
-                          kSaveFPRegs,
-                          OMIT_REMEMBERED_SET,
-                          OMIT_SMI_CHECK);
+      __ RecordWriteForMap(object, transition, temp_map, temp, kSaveFPRegs);
     }
   }
 
@@ -4050,7 +4041,8 @@ void LCodeGen::DoStoreNamedField(LStoreNamedField* instr) {
                         temp,
                         kSaveFPRegs,
                         EMIT_REMEMBERED_SET,
-                        instr->hydrogen()->SmiCheckForWriteBarrier());
+                        instr->hydrogen()->SmiCheckForWriteBarrier(),
+                        instr->hydrogen()->PointersToHereCheckForValue());
   }
 }
 
@@ -4072,7 +4064,7 @@ void LCodeGen::DoBoundsCheck(LBoundsCheck* instr) {
     __ cmp(ToOperand(instr->length()),
            ToImmediate(LConstantOperand::cast(instr->index()),
                        instr->hydrogen()->length()->representation()));
-    cc = ReverseCondition(cc);
+    cc = CommuteCondition(cc);
   } else if (instr->length()->IsConstantOperand()) {
     __ cmp(ToOperand(instr->index()),
            ToImmediate(LConstantOperand::cast(instr->length()),
@@ -4219,7 +4211,8 @@ void LCodeGen::DoStoreKeyedFixedArray(LStoreKeyed* instr) {
                    value,
                    kSaveFPRegs,
                    EMIT_REMEMBERED_SET,
-                   check_needed);
+                   check_needed,
+                   instr->hydrogen()->PointersToHereCheckForValue());
   }
 }
 
@@ -4295,15 +4288,6 @@ void LCodeGen::DoTransitionElementsKind(LTransitionElementsKind* instr) {
         RECORD_SAFEPOINT_WITH_REGISTERS_AND_NO_ARGUMENTS);
   }
   __ bind(&not_applicable);
-}
-
-
-void LCodeGen::DoArrayShift(LArrayShift* instr) {
-  ASSERT(ToRegister(instr->context()).is(esi));
-  ASSERT(ToRegister(instr->object()).is(eax));
-  ASSERT(ToRegister(instr->result()).is(eax));
-  ArrayShiftStub stub(isolate(), instr->hydrogen()->kind());
-  CallCode(stub.GetCode(), RelocInfo::CODE_TARGET, instr);
 }
 
 
@@ -5657,6 +5641,21 @@ void LCodeGen::DoLoadFieldByIndex(LLoadFieldByIndex* instr) {
                               FixedArray::kHeaderSize - kPointerSize));
   __ bind(deferred->exit());
   __ bind(&done);
+}
+
+
+void LCodeGen::DoStoreFrameContext(LStoreFrameContext* instr) {
+  Register context = ToRegister(instr->context());
+  __ mov(Operand(ebp, StandardFrameConstants::kContextOffset), context);
+}
+
+
+void LCodeGen::DoAllocateBlockContext(LAllocateBlockContext* instr) {
+  Handle<ScopeInfo> scope_info = instr->scope_info();
+  __ Push(scope_info);
+  __ push(ToRegister(instr->function()));
+  CallRuntime(Runtime::kHiddenPushBlockContext, 2, instr);
+  RecordSafepoint(Safepoint::kNoLazyDeopt);
 }
 
 

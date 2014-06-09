@@ -5,24 +5,24 @@
 #ifndef V8_ISOLATE_H_
 #define V8_ISOLATE_H_
 
-#include "../include/v8-debug.h"
-#include "allocation.h"
-#include "assert-scope.h"
-#include "atomicops.h"
-#include "builtins.h"
-#include "contexts.h"
-#include "execution.h"
-#include "frames.h"
-#include "date.h"
-#include "global-handles.h"
-#include "handles.h"
-#include "hashmap.h"
-#include "heap.h"
-#include "optimizing-compiler-thread.h"
-#include "regexp-stack.h"
-#include "runtime-profiler.h"
-#include "runtime.h"
-#include "zone.h"
+#include "include/v8-debug.h"
+#include "src/allocation.h"
+#include "src/assert-scope.h"
+#include "src/base/atomicops.h"
+#include "src/builtins.h"
+#include "src/contexts.h"
+#include "src/execution.h"
+#include "src/frames.h"
+#include "src/date.h"
+#include "src/global-handles.h"
+#include "src/handles.h"
+#include "src/hashmap.h"
+#include "src/heap.h"
+#include "src/optimizing-compiler-thread.h"
+#include "src/regexp-stack.h"
+#include "src/runtime-profiler.h"
+#include "src/runtime.h"
+#include "src/zone.h"
 
 namespace v8 {
 namespace internal {
@@ -191,7 +191,7 @@ class ThreadId {
 
   int id_;
 
-  static Atomic32 highest_thread_id_;
+  static base::Atomic32 highest_thread_id_;
 
   friend class Isolate;
 };
@@ -1077,7 +1077,7 @@ class Isolate {
   void RemoveCallCompletedCallback(CallCompletedCallback callback);
   void FireCallCompletedCallback();
 
-  void EnqueueMicrotask(Handle<JSFunction> microtask);
+  void EnqueueMicrotask(Handle<Object> microtask);
   void RunMicrotasks();
 
  private:
@@ -1148,7 +1148,7 @@ class Isolate {
   static ThreadDataTable* thread_data_table_;
 
   // A global counter for all generated Isolates, might overflow.
-  static Atomic32 isolate_counter_;
+  static base::Atomic32 isolate_counter_;
 
   void Deinit();
 
@@ -1185,7 +1185,7 @@ class Isolate {
   // the Error object.
   bool IsErrorObject(Handle<Object> obj);
 
-  Atomic32 id_;
+  base::Atomic32 id_;
   EntryStackItem* entry_stack_;
   int stack_trace_nesting_level_;
   StringStream* incomplete_message_;
@@ -1196,7 +1196,7 @@ class Isolate {
   Counters* counters_;
   CodeRange* code_range_;
   RecursiveMutex break_access_;
-  Atomic32 debugger_initialized_;
+  base::Atomic32 debugger_initialized_;
   Logger* logger_;
   StackGuard stack_guard_;
   StatsTable* stats_table_;

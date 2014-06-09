@@ -5,13 +5,13 @@
 #ifndef V8_OPTIMIZING_COMPILER_THREAD_H_
 #define V8_OPTIMIZING_COMPILER_THREAD_H_
 
-#include "atomicops.h"
-#include "flags.h"
-#include "list.h"
-#include "platform.h"
-#include "platform/mutex.h"
-#include "platform/time.h"
-#include "unbound-queue-inl.h"
+#include "src/base/atomicops.h"
+#include "src/flags.h"
+#include "src/list.h"
+#include "src/platform.h"
+#include "src/platform/mutex.h"
+#include "src/platform/time.h"
+#include "src/unbound-queue-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -38,7 +38,8 @@ class OptimizingCompilerThread : public Thread {
       osr_hits_(0),
       osr_attempts_(0),
       blocked_jobs_(0) {
-    NoBarrier_Store(&stop_thread_, static_cast<AtomicWord>(CONTINUE));
+    base::NoBarrier_Store(&stop_thread_,
+                          static_cast<base::AtomicWord>(CONTINUE));
     input_queue_ = NewArray<OptimizedCompileJob*>(input_queue_capacity_);
     if (FLAG_concurrent_osr) {
       // Allocate and mark OSR buffer slots as empty.
@@ -126,7 +127,7 @@ class OptimizingCompilerThread : public Thread {
   int osr_buffer_capacity_;
   int osr_buffer_cursor_;
 
-  volatile AtomicWord stop_thread_;
+  volatile base::AtomicWord stop_thread_;
   TimeDelta time_spent_compiling_;
   TimeDelta time_spent_total_;
 

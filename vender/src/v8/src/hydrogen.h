@@ -5,15 +5,15 @@
 #ifndef V8_HYDROGEN_H_
 #define V8_HYDROGEN_H_
 
-#include "v8.h"
+#include "src/v8.h"
 
-#include "accessors.h"
-#include "allocation.h"
-#include "ast.h"
-#include "compiler.h"
-#include "hydrogen-instructions.h"
-#include "zone.h"
-#include "scopes.h"
+#include "src/accessors.h"
+#include "src/allocation.h"
+#include "src/ast.h"
+#include "src/compiler.h"
+#include "src/hydrogen-instructions.h"
+#include "src/zone.h"
+#include "src/scopes.h"
 
 namespace v8 {
 namespace internal {
@@ -1042,9 +1042,13 @@ class HGraphBuilder {
       : info_(info),
         graph_(NULL),
         current_block_(NULL),
+        scope_(info->scope()),
         position_(HSourcePosition::Unknown()),
         start_position_(0) {}
   virtual ~HGraphBuilder() {}
+
+  Scope* scope() const { return scope_; }
+  void set_scope(Scope* scope) { scope_ = scope; }
 
   HBasicBlock* current_block() const { return current_block_; }
   void set_current_block(HBasicBlock* block) { current_block_ = block; }
@@ -1396,6 +1400,8 @@ class HGraphBuilder {
     return Add<HStoreNamedField>(object, HObjectAccess::ForMap(),
                                  Add<HConstant>(map));
   }
+  HLoadNamedField* AddLoadMap(HValue* object,
+                              HValue* dependency = NULL);
   HLoadNamedField* AddLoadElements(HValue* object,
                                    HValue* dependency = NULL);
 
@@ -1688,10 +1694,24 @@ class HGraphBuilder {
     };
 
     ElementsKind kind() { return kind_; }
+    HAllocate* elements_location() { return elements_location_; }
 
-    HValue* AllocateEmptyArray();
-    HValue* AllocateArray(HValue* capacity, HValue* length_field,
-                          FillMode fill_mode = FILL_WITH_HOLE);
+    HAllocate* AllocateEmptyArray();
+    HAllocate* AllocateArray(HValue* capacity,
+                             HValue* length_field,
+                             FillMode fill_mode = FILL_WITH_HOLE);
+    // Use these allocators when capacity could be unknown at compile time
+    // but its limit is known. For constant |capacity| the value of
+    // |capacity_upper_bound| is ignored and the actual |capacity|
+    // value is used as an upper bound.
+    HAllocate* AllocateArray(HValue* capacity,
+                             int capacity_upper_bound,
+                             HValue* length_field,
+                             FillMode fill_mode = FILL_WITH_HOLE);
+    HAllocate* AllocateArray(HValue* capacity,
+                             HConstant* capacity_upper_bound,
+                             HValue* length_field,
+                             FillMode fill_mode = FILL_WITH_HOLE);
     HValue* GetElementsLocation() { return elements_location_; }
     HValue* EmitMapCode();
 
@@ -1708,25 +1728,23 @@ class HGraphBuilder {
     }
 
     HValue* EmitInternalMapCode();
-    HValue* EstablishEmptyArrayAllocationSize();
-    HValue* EstablishAllocationSize(HValue* length_node);
-    HValue* AllocateArray(HValue* size_in_bytes, HValue* capacity,
-                          HValue* length_field,
-                          FillMode fill_mode = FILL_WITH_HOLE);
 
     HGraphBuilder* builder_;
     ElementsKind kind_;
     AllocationSiteMode mode_;
     HValue* allocation_site_payload_;
     HValue* constructor_function_;
-    HInnerAllocatedObject* elements_location_;
+    HAllocate* elements_location_;
   };
 
   HValue* BuildAllocateArrayFromLength(JSArrayBuilder* array_builder,
                                        HValue* length_argument);
+  HValue* BuildCalculateElementsSize(ElementsKind kind,
+                                     HValue* capacity);
+  HAllocate* AllocateJSArrayObject(AllocationSiteMode mode);
+  HConstant* EstablishElementsAllocationSize(ElementsKind kind, int capacity);
 
-  HValue* BuildAllocateElements(ElementsKind kind,
-                                HValue* capacity);
+  HAllocate* BuildAllocateElements(ElementsKind kind, HValue* size_in_bytes);
 
   void BuildInitializeElementsHeader(HValue* elements,
                                      ElementsKind kind,
@@ -1735,16 +1753,17 @@ class HGraphBuilder {
   HValue* BuildAllocateElementsAndInitializeElementsHeader(ElementsKind kind,
                                                            HValue* capacity);
 
-  // array must have been allocated with enough room for
-  // 1) the JSArray, 2) a AllocationMemento if mode requires it,
-  // 3) a FixedArray or FixedDoubleArray.
-  // A pointer to the Fixed(Double)Array is returned.
-  HInnerAllocatedObject* BuildJSArrayHeader(HValue* array,
-                                            HValue* array_map,
-                                            AllocationSiteMode mode,
-                                            ElementsKind elements_kind,
-                                            HValue* allocation_site_payload,
-                                            HValue* length_field);
+  // |array| must have been allocated with enough room for
+  // 1) the JSArray and 2) an AllocationMemento if mode requires it.
+  // If the |elements| value provided is NULL then the array elements storage
+  // is initialized with empty array.
+  void BuildJSArrayHeader(HValue* array,
+                          HValue* array_map,
+                          HValue* elements,
+                          AllocationSiteMode mode,
+                          ElementsKind elements_kind,
+                          HValue* allocation_site_payload,
+                          HValue* length_field);
 
   HValue* BuildGrowElementsCapacity(HValue* object,
                                     HValue* elements,
@@ -1753,24 +1772,23 @@ class HGraphBuilder {
                                     HValue* length,
                                     HValue* new_capacity);
 
+  void BuildFillElementsWithValue(HValue* elements,
+                                  ElementsKind elements_kind,
+                                  HValue* from,
+                                  HValue* to,
+                                  HValue* value);
+
   void BuildFillElementsWithHole(HValue* elements,
                                  ElementsKind elements_kind,
                                  HValue* from,
                                  HValue* to);
 
-  void BuildCopyElements(HValue* array,
-                         HValue* from_elements,
+  void BuildCopyElements(HValue* from_elements,
                          ElementsKind from_elements_kind,
                          HValue* to_elements,
                          ElementsKind to_elements_kind,
                          HValue* length,
                          HValue* capacity);
-
-  HValue* BuildCloneShallowArrayCommon(HValue* boilerplate,
-                                       HValue* allocation_site,
-                                       HValue* extra_size,
-                                       HValue** return_elements,
-                                       AllocationSiteMode mode);
 
   HValue* BuildCloneShallowArrayCow(HValue* boilerplate,
                                     HValue* allocation_site,
@@ -1856,6 +1874,7 @@ class HGraphBuilder {
   CompilationInfo* info_;
   HGraph* graph_;
   HBasicBlock* current_block_;
+  Scope* scope_;
   HSourcePosition position_;
   int start_position_;
 };
@@ -1983,10 +2002,12 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
   class BreakAndContinueInfo V8_FINAL BASE_EMBEDDED {
    public:
     explicit BreakAndContinueInfo(BreakableStatement* target,
+                                  Scope* scope,
                                   int drop_extra = 0)
         : target_(target),
           break_block_(NULL),
           continue_block_(NULL),
+          scope_(scope),
           drop_extra_(drop_extra) {
     }
 
@@ -1995,12 +2016,14 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
     void set_break_block(HBasicBlock* block) { break_block_ = block; }
     HBasicBlock* continue_block() { return continue_block_; }
     void set_continue_block(HBasicBlock* block) { continue_block_ = block; }
+    Scope* scope() { return scope_; }
     int drop_extra() { return drop_extra_; }
 
    private:
     BreakableStatement* target_;
     HBasicBlock* break_block_;
     HBasicBlock* continue_block_;
+    Scope* scope_;
     int drop_extra_;
   };
 
@@ -2022,7 +2045,8 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
 
     // Search the break stack for a break or continue target.
     enum BreakType { BREAK, CONTINUE };
-    HBasicBlock* Get(BreakableStatement* stmt, BreakType type, int* drop_extra);
+    HBasicBlock* Get(BreakableStatement* stmt, BreakType type,
+                     Scope** scope, int* drop_extra);
 
    private:
     BreakAndContinueInfo* info_;
@@ -2132,8 +2156,7 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
 
   bool PreProcessOsrEntry(IterationStatement* statement);
   void VisitLoopBody(IterationStatement* stmt,
-                     HBasicBlock* loop_entry,
-                     BreakAndContinueInfo* break_info);
+                     HBasicBlock* loop_entry);
 
   // Create a back edge in the flow graph.  body_exit is the predecessor
   // block and loop_entry is the successor block.  loop_successor is the
@@ -2250,6 +2273,12 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
   bool TryHandleArrayCallNew(CallNew* expr, HValue* function);
   void BuildArrayCall(Expression* expr, int arguments_count, HValue* function,
                       Handle<AllocationSite> cell);
+
+  enum ArrayIndexOfMode { kFirstIndexOf, kLastIndexOf };
+  HValue* BuildArrayIndexOf(HValue* receiver,
+                            HValue* search_element,
+                            ElementsKind kind,
+                            ArrayIndexOfMode mode);
 
   HValue* ImplicitReceiverFor(HValue* function,
                               Handle<JSFunction> target);

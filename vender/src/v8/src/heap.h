@@ -7,17 +7,17 @@
 
 #include <cmath>
 
-#include "allocation.h"
-#include "assert-scope.h"
-#include "counters.h"
-#include "globals.h"
-#include "incremental-marking.h"
-#include "list.h"
-#include "mark-compact.h"
-#include "objects-visiting.h"
-#include "spaces.h"
-#include "splay-tree-inl.h"
-#include "store-buffer.h"
+#include "src/allocation.h"
+#include "src/assert-scope.h"
+#include "src/counters.h"
+#include "src/globals.h"
+#include "src/incremental-marking.h"
+#include "src/list.h"
+#include "src/mark-compact.h"
+#include "src/objects-visiting.h"
+#include "src/spaces.h"
+#include "src/splay-tree-inl.h"
+#include "src/store-buffer.h"
 
 namespace v8 {
 namespace internal {
@@ -764,10 +764,6 @@ class Heap {
   // Check whether the heap is currently iterable.
   bool IsHeapIterable();
 
-  // Ensure that we have swept all spaces in such a way that we can iterate
-  // over all objects.  May cause a GC.
-  void MakeHeapIterable();
-
   // Notify the heap that a context has been disposed.
   int NotifyContextDisposed();
 
@@ -848,6 +844,13 @@ class Heap {
   Object** allocation_sites_list_address() { return &allocation_sites_list_; }
 
   Object* weak_object_to_code_table() { return weak_object_to_code_table_; }
+
+  void set_encountered_weak_collections(Object* weak_collection) {
+    encountered_weak_collections_ = weak_collection;
+  }
+  Object* encountered_weak_collections() const {
+    return encountered_weak_collections_;
+  }
 
   // Number of mark-sweeps.
   unsigned int ms_count() { return ms_count_; }
@@ -1028,11 +1031,6 @@ class Heap {
   //
 
   void CreateApiObjects();
-
-  // Adjusts the amount of registered external memory.
-  // Returns the adjusted value.
-  inline int64_t AdjustAmountOfExternalAllocatedMemory(
-      int64_t change_in_bytes);
 
   inline intptr_t PromotedTotalSize() {
     int64_t total = PromotedSpaceSizeOfObjects() + PromotedExternalMemorySize();
@@ -1359,6 +1357,14 @@ class Heap {
 
   void DeoptMarkedAllocationSites();
 
+  bool MaximumSizeScavenge() {
+    return maximum_size_scavenges_ > 0;
+  }
+
+  bool DeoptMaybeTenuredAllocationSites() {
+    return new_space_.IsAtMaximumCapacity() && maximum_size_scavenges_ == 0;
+  }
+
   // ObjectStats are kept in two arrays, counts and sizes. Related stats are
   // stored in a contiguous linear buffer. Stats groups are stored one after
   // another.
@@ -1485,6 +1491,13 @@ class Heap {
  private:
   Heap();
 
+  // The amount of external memory registered through the API kept alive
+  // by global handles
+  int64_t amount_of_external_allocated_memory_;
+
+  // Caches the amount of external memory registered at the last global gc.
+  int64_t amount_of_external_allocated_memory_at_last_global_gc_;
+
   // This can be calculated directly from a pointer to the heap; however, it is
   // more expedient to get at the isolate directly from within Heap methods.
   Isolate* isolate_;
@@ -1575,17 +1588,6 @@ class Heap {
   // Used to adjust the limits that control the timing of the next GC.
   intptr_t size_of_old_gen_at_last_old_space_gc_;
 
-  // Limit on the amount of externally allocated memory allowed
-  // between global GCs. If reached a global GC is forced.
-  intptr_t external_allocation_limit_;
-
-  // The amount of external memory registered through the API kept alive
-  // by global handles
-  int64_t amount_of_external_allocated_memory_;
-
-  // Caches the amount of external memory registered at the last global gc.
-  int64_t amount_of_external_allocated_memory_at_last_global_gc_;
-
   // Indicates that an allocation has failed in the old generation since the
   // last GC.
   bool old_gen_exhausted_;
@@ -1604,6 +1606,11 @@ class Heap {
   // code list. It is initilized lazily and contains the undefined_value at
   // start.
   Object* weak_object_to_code_table_;
+
+  // List of encountered weak collections (JSWeakMap and JSWeakSet) during
+  // marking. It is initialized during marking, destroyed after marking and
+  // contains Smi(0) while marking is not active.
+  Object* encountered_weak_collections_;
 
   StoreBufferRebuilder store_buffer_rebuilder_;
 
@@ -1695,6 +1702,10 @@ class Heap {
   // so that the GC does not confuse some unintialized/stale memory
   // with the allocation memento of the object at the top
   void EnsureFillerObjectAtTop();
+
+  // Ensure that we have swept all spaces in such a way that we can iterate
+  // over all objects.  May cause a GC.
+  void MakeHeapIterable();
 
   // Performs garbage collection operation.
   // Returns whether there is a chance that another major GC could
@@ -1865,10 +1876,11 @@ class Heap {
       ConstantPoolArray* src, Map* map);
 
   MUST_USE_RESULT AllocationResult AllocateConstantPoolArray(
-      int number_of_int64_entries,
-      int number_of_code_ptr_entries,
-      int number_of_heap_ptr_entries,
-      int number_of_int32_entries);
+      const ConstantPoolArray::NumberOfEntries& small);
+
+  MUST_USE_RESULT AllocationResult AllocateExtendedConstantPoolArray(
+      const ConstantPoolArray::NumberOfEntries& small,
+      const ConstantPoolArray::NumberOfEntries& extended);
 
   // Allocates an external array of the specified length and type.
   MUST_USE_RESULT AllocationResult AllocateExternalArray(
@@ -2019,6 +2031,12 @@ class Heap {
   intptr_t semi_space_copied_object_size_;
   double semi_space_copied_rate_;
 
+  // This is the pretenuring trigger for allocation sites that are in maybe
+  // tenure state. When we switched to the maximum new space size we deoptimize
+  // the code that belongs to the allocation site and derive the lifetime
+  // of the allocation site.
+  unsigned int maximum_size_scavenges_;
+
   // TODO(hpayer): Allocation site pretenuring may make this method obsolete.
   // Re-visit incremental marking heuristics.
   bool IsHighSurvivalRate() {
@@ -2153,10 +2171,11 @@ class Heap {
 
   int gc_callbacks_depth_;
 
-  friend class Factory;
-  friend class GCTracer;
   friend class AlwaysAllocateScope;
-  friend class Page;
+  friend class Factory;
+  friend class GCCallbacksScope;
+  friend class GCTracer;
+  friend class HeapIterator;
   friend class Isolate;
   friend class MarkCompactCollector;
   friend class MarkCompactMarkingVisitor;
@@ -2164,7 +2183,7 @@ class Heap {
 #ifdef VERIFY_HEAP
   friend class NoWeakObjectVerificationScope;
 #endif
-  friend class GCCallbacksScope;
+  friend class Page;
 
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };
@@ -2702,7 +2721,7 @@ class IntrusiveMarking {
 
  private:
   static const uintptr_t kNotMarkedBit = 0x1;
-  STATIC_ASSERT((kHeapObjectTag & kNotMarkedBit) != 0);
+  STATIC_ASSERT((kHeapObjectTag & kNotMarkedBit) != 0);  // NOLINT
 };
 
 
@@ -2716,6 +2735,9 @@ class PathTracer : public ObjectVisitor {
     FIND_ALL,   // Will find all matches.
     FIND_FIRST  // Will stop the search after first match.
   };
+
+  // Tags 0, 1, and 3 are used. Use 2 for marking visited HeapObject.
+  static const int kMarkTag = 2;
 
   // For the WhatToFind arg, if FIND_FIRST is specified, tracing will stop
   // after the first match.  If FIND_ALL is specified, then tracing will be
@@ -2747,9 +2769,6 @@ class PathTracer : public ObjectVisitor {
   void MarkRecursively(Object** p, MarkVisitor* mark_visitor);
   void UnmarkRecursively(Object** p, UnmarkVisitor* unmark_visitor);
   virtual void ProcessResults();
-
-  // Tags 0, 1, and 3 are used. Use 2 for marking visited HeapObject.
-  static const int kMarkTag = 2;
 
   Object* search_target_;
   bool found_target_;

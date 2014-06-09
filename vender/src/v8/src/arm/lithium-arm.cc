@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "v8.h"
+#include "src/v8.h"
 
 #if V8_TARGET_ARCH_ARM
 
-#include "lithium-allocator-inl.h"
-#include "arm/lithium-arm.h"
-#include "arm/lithium-codegen-arm.h"
-#include "hydrogen-osr.h"
+#include "src/lithium-allocator-inl.h"
+#include "src/arm/lithium-arm.h"
+#include "src/arm/lithium-codegen-arm.h"
+#include "src/hydrogen-osr.h"
 
 namespace v8 {
 namespace internal {
@@ -843,7 +843,14 @@ void LChunkBuilder::VisitInstruction(HInstruction* current) {
       chunk_->AddInstruction(dummy, current_block_);
     }
   } else {
-    instr = current->CompileToLithium(this);
+    HBasicBlock* successor;
+    if (current->IsControlInstruction() &&
+        HControlInstruction::cast(current)->KnownSuccessorBlock(&successor) &&
+        successor != NULL) {
+      instr = new(zone()) LGoto(successor);
+    } else {
+      instr = current->CompileToLithium(this);
+    }
   }
 
   argument_count_ += current->argument_delta();
@@ -929,9 +936,6 @@ LInstruction* LChunkBuilder::DoGoto(HGoto* instr) {
 
 
 LInstruction* LChunkBuilder::DoBranch(HBranch* instr) {
-  LInstruction* goto_instr = CheckElideControlInstruction(instr);
-  if (goto_instr != NULL) return goto_instr;
-
   HValue* value = instr->value();
   Representation r = value->representation();
   HType type = value->type();
@@ -956,9 +960,6 @@ LInstruction* LChunkBuilder::DoDebugBreak(HDebugBreak* instr) {
 
 
 LInstruction* LChunkBuilder::DoCompareMap(HCompareMap* instr) {
-  LInstruction* goto_instr = CheckElideControlInstruction(instr);
-  if (goto_instr != NULL) return goto_instr;
-
   ASSERT(instr->value()->representation().IsTagged());
   LOperand* value = UseRegisterAtStart(instr->value());
   LOperand* temp = TempRegister();
@@ -1684,8 +1685,6 @@ LInstruction* LChunkBuilder::DoCompareGeneric(HCompareGeneric* instr) {
 
 LInstruction* LChunkBuilder::DoCompareNumericAndBranch(
     HCompareNumericAndBranch* instr) {
-  LInstruction* goto_instr = CheckElideControlInstruction(instr);
-  if (goto_instr != NULL) return goto_instr;
   Representation r = instr->representation();
   if (r.IsSmiOrInteger32()) {
     ASSERT(instr->left()->representation().Equals(r));
@@ -1706,8 +1705,6 @@ LInstruction* LChunkBuilder::DoCompareNumericAndBranch(
 
 LInstruction* LChunkBuilder::DoCompareObjectEqAndBranch(
     HCompareObjectEqAndBranch* instr) {
-  LInstruction* goto_instr = CheckElideControlInstruction(instr);
-  if (goto_instr != NULL) return goto_instr;
   LOperand* left = UseRegisterAtStart(instr->left());
   LOperand* right = UseRegisterAtStart(instr->right());
   return new(zone()) LCmpObjectEqAndBranch(left, right);
@@ -1723,8 +1720,6 @@ LInstruction* LChunkBuilder::DoCompareHoleAndBranch(
 
 LInstruction* LChunkBuilder::DoCompareMinusZeroAndBranch(
     HCompareMinusZeroAndBranch* instr) {
-  LInstruction* goto_instr = CheckElideControlInstruction(instr);
-  if (goto_instr != NULL) return goto_instr;
   LOperand* value = UseRegister(instr->value());
   LOperand* scratch = TempRegister();
   return new(zone()) LCompareMinusZeroAndBranch(value, scratch);
@@ -2291,14 +2286,6 @@ LInstruction* LChunkBuilder::DoTransitionElementsKind(
 }
 
 
-LInstruction* LChunkBuilder::DoArrayShift(HArrayShift* instr) {
-  LOperand* object = UseFixed(instr->object(), r0);
-  LOperand* context = UseFixed(instr->context(), cp);
-  LArrayShift* result = new(zone()) LArrayShift(context, object);
-  return MarkAsCall(DefineFixed(result, r0), instr, CANNOT_DEOPTIMIZE_EAGERLY);
-}
-
-
 LInstruction* LChunkBuilder::DoTrapAllocationMemento(
     HTrapAllocationMemento* instr) {
   LOperand* object = UseRegister(instr->object());
@@ -2497,9 +2484,6 @@ LInstruction* LChunkBuilder::DoTypeof(HTypeof* instr) {
 
 
 LInstruction* LChunkBuilder::DoTypeofIsAndBranch(HTypeofIsAndBranch* instr) {
-  LInstruction* goto_instr = CheckElideControlInstruction(instr);
-  if (goto_instr != NULL) return goto_instr;
-
   return new(zone()) LTypeofIsAndBranch(UseRegister(instr->value()));
 }
 
@@ -2595,6 +2579,22 @@ LInstruction* LChunkBuilder::DoLoadFieldByIndex(HLoadFieldByIndex* instr) {
   LLoadFieldByIndex* load = new(zone()) LLoadFieldByIndex(object, index);
   LInstruction* result = DefineSameAsFirst(load);
   return AssignPointerMap(result);
+}
+
+
+LInstruction* LChunkBuilder::DoStoreFrameContext(HStoreFrameContext* instr) {
+  LOperand* context = UseRegisterAtStart(instr->context());
+  return new(zone()) LStoreFrameContext(context);
+}
+
+
+LInstruction* LChunkBuilder::DoAllocateBlockContext(
+    HAllocateBlockContext* instr) {
+  LOperand* context = UseFixed(instr->context(), cp);
+  LOperand* function = UseRegisterAtStart(instr->function());
+  LAllocateBlockContext* result =
+      new(zone()) LAllocateBlockContext(context, function);
+  return MarkAsCall(DefineFixed(result, cp), instr);
 }
 
 } }  // namespace v8::internal

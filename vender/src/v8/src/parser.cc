@@ -2,22 +2,22 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "v8.h"
+#include "src/v8.h"
 
-#include "api.h"
-#include "ast.h"
-#include "bootstrapper.h"
-#include "char-predicates-inl.h"
-#include "codegen.h"
-#include "compiler.h"
-#include "messages.h"
-#include "parser.h"
-#include "platform.h"
-#include "preparser.h"
-#include "runtime.h"
-#include "scanner-character-streams.h"
-#include "scopeinfo.h"
-#include "string-stream.h"
+#include "src/api.h"
+#include "src/ast.h"
+#include "src/bootstrapper.h"
+#include "src/char-predicates-inl.h"
+#include "src/codegen.h"
+#include "src/compiler.h"
+#include "src/messages.h"
+#include "src/parser.h"
+#include "src/platform.h"
+#include "src/preparser.h"
+#include "src/runtime.h"
+#include "src/scanner-character-streams.h"
+#include "src/scopeinfo.h"
+#include "src/string-stream.h"
 
 namespace v8 {
 namespace internal {
@@ -525,7 +525,7 @@ Expression* ParserTraits::BuildUnaryExpression(
     Expression* expression, Token::Value op, int pos,
     AstNodeFactory<AstConstructionVisitor>* factory) {
   ASSERT(expression != NULL);
-  if (expression->AsLiteral() != NULL) {
+  if (expression->IsLiteral()) {
     Handle<Object> literal = expression->AsLiteral()->value();
     if (op == Token::NOT) {
       // Convert the literal to a boolean condition and negate it.
@@ -2107,7 +2107,7 @@ Block* Parser::ParseVariableDeclarations(
     Declare(declaration, mode != VAR, CHECK_OK);
     nvars++;
     if (declaration_scope->num_var_or_const() > kMaxNumFunctionLocals) {
-      ReportMessageAt(scanner()->location(), "too_many_variables");
+      ReportMessage("too_many_variables");
       *ok = false;
       return NULL;
     }
@@ -2287,11 +2287,13 @@ Block* Parser::ParseVariableDeclarations(
 
 static bool ContainsLabel(ZoneStringList* labels, Handle<String> label) {
   ASSERT(!label.is_null());
-  if (labels != NULL)
-    for (int i = labels->length(); i-- > 0; )
-      if (labels->at(i).is_identical_to(label))
+  if (labels != NULL) {
+    for (int i = labels->length(); i-- > 0; ) {
+      if (labels->at(i).is_identical_to(label)) {
         return true;
-
+      }
+    }
+  }
   return false;
 }
 
@@ -2405,7 +2407,7 @@ Statement* Parser::ParseContinueStatement(bool* ok) {
     if (!label.is_null()) {
       message = "unknown_label";
     }
-    ParserTraits::ReportMessageAt(scanner()->location(), message, label);
+    ParserTraits::ReportMessage(message, label);
     *ok = false;
     return NULL;
   }
@@ -2441,7 +2443,7 @@ Statement* Parser::ParseBreakStatement(ZoneStringList* labels, bool* ok) {
     if (!label.is_null()) {
       message = "unknown_label";
     }
-    ParserTraits::ReportMessageAt(scanner()->location(), message, label);
+    ParserTraits::ReportMessage(message, label);
     *ok = false;
     return NULL;
   }
@@ -2948,7 +2950,7 @@ Statement* Parser::DesugarLetBindingsInForStatement(
       Expression* const1 = factory()->NewLiteral(smi1, RelocInfo::kNoPosition);
       VariableProxy* flag_proxy = factory()->NewVariableProxy(flag);
       compare = factory()->NewCompareOperation(
-          Token::EQ, flag_proxy, const1, RelocInfo::kNoPosition);
+          Token::EQ, flag_proxy, const1, pos);
     }
     Statement* clear_flag = NULL;
     // Make statement: flag = 0.
@@ -2971,7 +2973,7 @@ Statement* Parser::DesugarLetBindingsInForStatement(
     BreakableStatement* t = LookupBreakTarget(Handle<String>(), CHECK_OK);
     Statement* stop = factory()->NewBreakStatement(t, RelocInfo::kNoPosition);
     Statement* if_not_cond_break = factory()->NewIfStatement(
-        cond, empty, stop, RelocInfo::kNoPosition);
+        cond, empty, stop, cond->position());
     inner_block->AddStatement(if_not_cond_break, zone());
   }
 
@@ -3224,7 +3226,7 @@ void Parser::ReportInvalidCachedData(Handle<String> name, bool* ok) {
 
 
 bool CompileTimeValue::IsCompileTimeValue(Expression* expression) {
-  if (expression->AsLiteral() != NULL) return true;
+  if (expression->IsLiteral()) return true;
   MaterializedLiteral* lit = expression->AsMaterializedLiteral();
   return lit != NULL && lit->is_simple();
 }
@@ -3389,7 +3391,7 @@ FunctionLiteral* Parser::ParseFunctionLiteral(
       scope_->DeclareParameter(param_name, VAR);
       num_parameters++;
       if (num_parameters > Code::kMaxArguments) {
-        ReportMessageAt(scanner()->location(), "too_many_parameters");
+        ReportMessage("too_many_parameters");
         *ok = false;
         return NULL;
       }

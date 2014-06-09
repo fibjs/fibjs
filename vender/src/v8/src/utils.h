@@ -9,11 +9,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "allocation.h"
-#include "checks.h"
-#include "globals.h"
-#include "platform.h"
-#include "vector.h"
+#include "src/allocation.h"
+#include "src/checks.h"
+#include "src/globals.h"
+#include "src/list.h"
+#include "src/platform.h"
+#include "src/vector.h"
 
 namespace v8 {
 namespace internal {
@@ -247,6 +248,7 @@ class BitFieldBase {
   static const U kMask = ((kOne << shift) << size) - (kOne << shift);
   static const U kShift = shift;
   static const U kSize = size;
+  static const U kNext = kShift + kSize;
 
   // Value for the field with all bits set.
   static const T kMax = static_cast<T>((1U << size) - 1);

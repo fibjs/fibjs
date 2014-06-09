@@ -2,22 +2,22 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "v8.h"
+#include "src/v8.h"
 
 #if V8_TARGET_ARCH_ARM64
 
-#include "code-stubs.h"
-#include "codegen.h"
-#include "compiler.h"
-#include "debug.h"
-#include "full-codegen.h"
-#include "isolate-inl.h"
-#include "parser.h"
-#include "scopes.h"
-#include "stub-cache.h"
+#include "src/code-stubs.h"
+#include "src/codegen.h"
+#include "src/compiler.h"
+#include "src/debug.h"
+#include "src/full-codegen.h"
+#include "src/isolate-inl.h"
+#include "src/parser.h"
+#include "src/scopes.h"
+#include "src/stub-cache.h"
 
-#include "arm64/code-stubs-arm64.h"
-#include "arm64/macro-assembler-arm64.h"
+#include "src/arm64/code-stubs-arm64.h"
+#include "src/arm64/macro-assembler-arm64.h"
 
 namespace v8 {
 namespace internal {
@@ -711,7 +711,7 @@ void FullCodeGenerator::Split(Condition cond,
     __ B(cond, if_true);
   } else if (if_true == fall_through) {
     ASSERT(if_false != fall_through);
-    __ B(InvertCondition(cond), if_false);
+    __ B(NegateCondition(cond), if_false);
   } else {
     __ B(cond, if_true);
     __ B(if_false);
@@ -1175,11 +1175,8 @@ void FullCodeGenerator::VisitForInStatement(ForInStatement* stmt) {
          FieldMemOperand(x2, DescriptorArray::kEnumCacheBridgeCacheOffset));
 
   // Set up the four remaining stack slots.
-  __ Push(x0);  // Map.
-  __ Mov(x0, Smi::FromInt(0));
-  // Push enumeration cache, enumeration cache length (as smi) and zero.
-  __ SmiTag(x1);
-  __ Push(x2, x1, x0);
+  __ Push(x0, x2);              // Map, enumeration cache.
+  __ SmiTagAndPush(x1, xzr);    // Enum cache length, zero (both as smis).
   __ B(&loop);
 
   __ Bind(&no_descriptors);
@@ -2244,7 +2241,7 @@ void FullCodeGenerator::EmitNamedPropertyAssignment(Assignment* expr) {
   // Assignment to a property, using a named store IC.
   Property* prop = expr->target()->AsProperty();
   ASSERT(prop != NULL);
-  ASSERT(prop->key()->AsLiteral() != NULL);
+  ASSERT(prop->key()->IsLiteral());
 
   // Record source code position before IC call.
   SetSourcePosition(expr->position());

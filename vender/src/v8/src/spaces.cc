@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "v8.h"
+#include "src/v8.h"
 
-#include "full-codegen.h"
-#include "macro-assembler.h"
-#include "mark-compact.h"
-#include "msan.h"
-#include "platform.h"
+#include "src/full-codegen.h"
+#include "src/macro-assembler.h"
+#include "src/mark-compact.h"
+#include "src/msan.h"
+#include "src/platform.h"
 
 namespace v8 {
 namespace internal {
@@ -2046,11 +2046,13 @@ void FreeListNode::set_next(FreeListNode* next) {
   // stage.
   if (map() == GetHeap()->raw_unchecked_free_space_map()) {
     ASSERT(map() == NULL || Size() >= kNextOffset + kPointerSize);
-    NoBarrier_Store(reinterpret_cast<AtomicWord*>(address() + kNextOffset),
-                    reinterpret_cast<AtomicWord>(next));
+    base::NoBarrier_Store(
+        reinterpret_cast<base::AtomicWord*>(address() + kNextOffset),
+        reinterpret_cast<base::AtomicWord>(next));
   } else {
-    NoBarrier_Store(reinterpret_cast<AtomicWord*>(address() + kPointerSize),
-                    reinterpret_cast<AtomicWord>(next));
+    base::NoBarrier_Store(
+        reinterpret_cast<base::AtomicWord*>(address() + kPointerSize),
+        reinterpret_cast<base::AtomicWord>(next));
   }
 }
 
@@ -2071,7 +2073,7 @@ intptr_t FreeListCategory::Concatenate(FreeListCategory* category) {
       category->end()->set_next(top());
     }
     set_top(category->top());
-    NoBarrier_Store(&top_, category->top_);
+    base::NoBarrier_Store(&top_, category->top_);
     available_ += category->available();
     category->Reset();
   }
