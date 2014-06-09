@@ -1,5 +1,5 @@
 
-/*! @brief 纤程操作对象，此对象不可直接创建
+/*! @brief Smtp模块
  
  */
 class Smtp : object
