@@ -49,6 +49,5 @@ rm src/i18n.*
 rm src/mksnapshot.cc
 rm src/v8dll-main.cc
 rm src/platform-cygwin.cc
-rm src/natives-*.cc
 
 patch -p0 --no-backup-if-mismatch < v8.patch
