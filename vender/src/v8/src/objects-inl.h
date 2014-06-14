@@ -29,6 +29,7 @@
 #include "src/incremental-marking.h"
 #include "src/transitions-inl.h"
 #include "src/objects-visiting.h"
+#include "src/lookup.h"
 
 namespace v8 {
 namespace internal {
@@ -664,8 +665,7 @@ bool Object::IsJSObject() {
 
 bool Object::IsJSProxy() {
   if (!Object::IsHeapObject()) return false;
-  InstanceType type = HeapObject::cast(this)->map()->instance_type();
-  return FIRST_JS_PROXY_TYPE <= type && type <= LAST_JS_PROXY_TYPE;
+  return  HeapObject::cast(this)->map()->IsJSProxyMap();
 }
 
 
@@ -1053,8 +1053,8 @@ bool Object::HasSpecificClassOf(String* name) {
 
 MaybeHandle<Object> Object::GetProperty(Handle<Object> object,
                                         Handle<Name> name) {
-  PropertyAttributes attributes;
-  return GetPropertyWithReceiver(object, object, name, &attributes);
+  LookupIterator it(object, name);
+  return GetProperty(&it);
 }
 
 
@@ -2738,6 +2738,9 @@ FixedArrayBase* Map::GetInitialElements() {
       GetHeap()->EmptyFixedTypedArrayForMap(this);
     ASSERT(!GetHeap()->InNewSpace(empty_array));
     return empty_array;
+  } else if (has_dictionary_elements()) {
+    ASSERT(!GetHeap()->InNewSpace(GetHeap()->empty_slow_element_dictionary()));
+    return GetHeap()->empty_slow_element_dictionary();
   } else {
     UNREACHABLE();
   }
@@ -6418,7 +6421,7 @@ bool JSReceiver::HasProperty(Handle<JSReceiver> object,
     Handle<JSProxy> proxy = Handle<JSProxy>::cast(object);
     return JSProxy::HasPropertyWithHandler(proxy, name);
   }
-  return GetPropertyAttribute(object, name) != ABSENT;
+  return GetPropertyAttributes(object, name) != ABSENT;
 }
 
 
@@ -6427,17 +6430,18 @@ bool JSReceiver::HasOwnProperty(Handle<JSReceiver> object, Handle<Name> name) {
     Handle<JSProxy> proxy = Handle<JSProxy>::cast(object);
     return JSProxy::HasPropertyWithHandler(proxy, name);
   }
-  return GetOwnPropertyAttribute(object, name) != ABSENT;
+  return GetOwnPropertyAttributes(object, name) != ABSENT;
 }
 
 
-PropertyAttributes JSReceiver::GetPropertyAttribute(Handle<JSReceiver> object,
-                                                    Handle<Name> key) {
+PropertyAttributes JSReceiver::GetPropertyAttributes(Handle<JSReceiver> object,
+                                                     Handle<Name> key) {
   uint32_t index;
   if (object->IsJSObject() && key->AsArrayIndex(&index)) {
     return GetElementAttribute(object, index);
   }
-  return GetPropertyAttributeWithReceiver(object, object, key);
+  LookupIterator it(object, key);
+  return GetPropertyAttributes(&it);
 }
 
 

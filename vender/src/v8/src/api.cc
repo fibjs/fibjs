@@ -28,7 +28,9 @@
 #include "src/icu_util.h"
 #include "src/json-parser.h"
 #include "src/messages.h"
+#ifdef COMPRESS_STARTUP_DATA_BZ2
 #include "src/natives.h"
+#endif
 #include "src/parser.h"
 #include "src/platform.h"
 #include "src/platform/time.h"
@@ -351,24 +353,6 @@ void V8::SetDecompressedStartupData(StartupData* decompressed_data) {
 }
 
 
-void V8::SetNativesDataBlob(StartupData* natives_blob) {
-#ifdef V8_USE_EXTERNAL_STARTUP_DATA
-  i::SetNativesFromFile(natives_blob);
-#else
-  CHECK(false);
-#endif
-}
-
-
-void V8::SetSnapshotDataBlob(StartupData* snapshot_blob) {
-#ifdef V8_USE_EXTERNAL_STARTUP_DATA
-  i::SetSnapshotFromFile(snapshot_blob);
-#else
-  CHECK(false);
-#endif
-}
-
-
 void V8::SetFatalErrorHandler(FatalErrorCallback that) {
   i::Isolate* isolate = i::Isolate::UncheckedCurrent();
   isolate->set_exception_behavior(that);
@@ -481,11 +465,12 @@ void ResourceConstraints::ConfigureDefaults(uint64_t physical_memory,
 
   set_max_available_threads(i::Max(i::Min(number_of_processors, 4u), 1u));
 
-  if (virtual_memory_limit > 0 && i::kIs64BitArch) {
+  if (virtual_memory_limit > 0 && i::kRequiresCodeRange) {
     // Reserve no more than 1/8 of the memory for the code range, but at most
-    // 512 MB.
+    // kMaximalCodeRangeSize.
     set_code_range_size(
-        i::Min(512, static_cast<int>((virtual_memory_limit >> 3) / i::MB)));
+        i::Min(i::kMaximalCodeRangeSize / i::MB,
+               static_cast<size_t>((virtual_memory_limit >> 3) / i::MB)));
   }
 }
 
@@ -496,7 +481,7 @@ bool SetResourceConstraints(Isolate* v8_isolate,
   int semi_space_size = constraints->max_semi_space_size();
   int old_space_size = constraints->max_old_space_size();
   int max_executable_size = constraints->max_executable_size();
-  int code_range_size = constraints->code_range_size();
+  size_t code_range_size = constraints->code_range_size();
   if (semi_space_size != 0 || old_space_size != 0 ||
       max_executable_size != 0 || code_range_size != 0) {
     // After initialization it's too late to change Heap constraints.
@@ -1208,14 +1193,14 @@ static i::Handle<i::AccessorInfo> MakeAccessorInfo(
 
 
 Local<ObjectTemplate> FunctionTemplate::InstanceTemplate() {
-  i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
-  if (!Utils::ApiCheck(this != NULL,
+  i::Handle<i::FunctionTemplateInfo> handle = Utils::OpenHandle(this, true);
+  if (!Utils::ApiCheck(!handle.is_null(),
                        "v8::FunctionTemplate::InstanceTemplate()",
                        "Reading from empty handle")) {
     return Local<ObjectTemplate>();
   }
+  i::Isolate* isolate = handle->GetIsolate();
   ENTER_V8(isolate);
-  i::Handle<i::FunctionTemplateInfo> handle = Utils::OpenHandle(this);
   if (handle->instance_template()->IsUndefined()) {
     Local<ObjectTemplate> templ =
         ObjectTemplate::New(isolate, ToApiHandle<FunctionTemplate>(handle));
@@ -1632,12 +1617,11 @@ Handle<Value> UnboundScript::GetScriptName() {
 
 
 Local<Value> Script::Run() {
+  i::Handle<i::Object> obj = Utils::OpenHandle(this, true);
   // If execution is terminating, Compile(..)->Run() requires this
   // check.
-  if (this == NULL) return Local<Value>();
-  i::Handle<i::HeapObject> obj =
-      i::Handle<i::HeapObject>::cast(Utils::OpenHandle(this));
-  i::Isolate* isolate = obj->GetIsolate();
+  if (obj.is_null()) return Local<Value>();
+  i::Isolate* isolate = i::Handle<i::HeapObject>::cast(obj)->GetIsolate();
   ON_BAILOUT(isolate, "v8::Script::Run()", return Local<Value>());
   LOG_API(isolate, "Script::Run");
   ENTER_V8(isolate);
@@ -2928,14 +2912,14 @@ int32_t Value::Int32Value() const {
 
 bool Value::Equals(Handle<Value> that) const {
   i::Isolate* isolate = i::Isolate::Current();
-  if (!Utils::ApiCheck(this != NULL && !that.IsEmpty(),
+  i::Handle<i::Object> obj = Utils::OpenHandle(this, true);
+  if (!Utils::ApiCheck(!obj.is_null() && !that.IsEmpty(),
                        "v8::Value::Equals()",
                        "Reading from empty handle")) {
     return false;
   }
   LOG_API(isolate, "Equals");
   ENTER_V8(isolate);
-  i::Handle<i::Object> obj = Utils::OpenHandle(this);
   i::Handle<i::Object> other = Utils::OpenHandle(*that);
   // If both obj and other are JSObjects, we'd better compare by identity
   // immediately when going into JS builtin.  The reason is Invoke
@@ -2955,13 +2939,13 @@ bool Value::Equals(Handle<Value> that) const {
 
 bool Value::StrictEquals(Handle<Value> that) const {
   i::Isolate* isolate = i::Isolate::Current();
-  if (!Utils::ApiCheck(this != NULL && !that.IsEmpty(),
+  i::Handle<i::Object> obj = Utils::OpenHandle(this, true);
+  if (!Utils::ApiCheck(!obj.is_null() && !that.IsEmpty(),
                        "v8::Value::StrictEquals()",
                        "Reading from empty handle")) {
     return false;
   }
   LOG_API(isolate, "StrictEquals");
-  i::Handle<i::Object> obj = Utils::OpenHandle(this);
   i::Handle<i::Object> other = Utils::OpenHandle(*that);
   // Must check HeapNumber first, since NaN !== NaN.
   if (obj->IsHeapNumber()) {
@@ -2987,12 +2971,12 @@ bool Value::StrictEquals(Handle<Value> that) const {
 
 
 bool Value::SameValue(Handle<Value> that) const {
-  if (!Utils::ApiCheck(this != NULL && !that.IsEmpty(),
+  i::Handle<i::Object> obj = Utils::OpenHandle(this, true);
+  if (!Utils::ApiCheck(!obj.is_null() && !that.IsEmpty(),
                        "v8::Value::SameValue()",
                        "Reading from empty handle")) {
     return false;
   }
-  i::Handle<i::Object> obj = Utils::OpenHandle(this);
   i::Handle<i::Object> other = Utils::OpenHandle(*that);
   return obj->SameValue(*other);
 }
@@ -3145,7 +3129,7 @@ Local<Value> v8::Object::GetPrivate(v8::Handle<Private> key) {
 
 PropertyAttribute v8::Object::GetPropertyAttributes(v8::Handle<Value> key) {
   i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
-  ON_BAILOUT(isolate, "v8::Object::GetPropertyAttribute()",
+  ON_BAILOUT(isolate, "v8::Object::GetPropertyAttributes()",
              return static_cast<PropertyAttribute>(NONE));
   ENTER_V8(isolate);
   i::HandleScope scope(isolate);
@@ -3159,7 +3143,7 @@ PropertyAttribute v8::Object::GetPropertyAttributes(v8::Handle<Value> key) {
   }
   i::Handle<i::Name> key_name = i::Handle<i::Name>::cast(key_obj);
   PropertyAttributes result =
-      i::JSReceiver::GetPropertyAttribute(self, key_name);
+      i::JSReceiver::GetPropertyAttributes(self, key_name);
   if (result == ABSENT) return static_cast<PropertyAttribute>(NONE);
   return static_cast<PropertyAttribute>(result);
 }
@@ -3534,10 +3518,11 @@ static Local<Value> GetPropertyByLookup(i::Isolate* isolate,
   // If the property being looked up is a callback, it can throw
   // an exception.
   EXCEPTION_PREAMBLE(isolate);
-  PropertyAttributes ignored;
+  i::LookupIterator it(
+      receiver, name, i::Handle<i::JSReceiver>(lookup->holder(), isolate),
+      i::LookupIterator::SKIP_INTERCEPTOR);
   i::Handle<i::Object> result;
-  has_pending_exception = !i::Object::GetProperty(
-      receiver, receiver, lookup, name, &ignored).ToHandle(&result);
+  has_pending_exception = !i::Object::GetProperty(&it).ToHandle(&result);
   EXCEPTION_BAILOUT_CHECK(isolate, Local<Value>());
 
   return Utils::ToLocal(result);
@@ -5917,6 +5902,26 @@ Local<Promise> Promise::Catch(Handle<Function> handler) {
       isolate,
       handle(isolate->context()->global_object()->native_context()->
              promise_catch()),
+      promise,
+      ARRAY_SIZE(argv), argv,
+      false).ToHandle(&result);
+  EXCEPTION_BAILOUT_CHECK(isolate, Local<Promise>());
+  return Local<Promise>::Cast(Utils::ToLocal(result));
+}
+
+
+Local<Promise> Promise::Then(Handle<Function> handler) {
+  i::Handle<i::JSObject> promise = Utils::OpenHandle(this);
+  i::Isolate* isolate = promise->GetIsolate();
+  LOG_API(isolate, "Promise::Then");
+  ENTER_V8(isolate);
+  EXCEPTION_PREAMBLE(isolate);
+  i::Handle<i::Object> argv[] = { Utils::OpenHandle(*handler) };
+  i::Handle<i::Object> result;
+  has_pending_exception = !i::Execution::Call(
+      isolate,
+      handle(isolate->context()->global_object()->native_context()->
+             promise_then()),
       promise,
       ARRAY_SIZE(argv), argv,
       false).ToHandle(&result);

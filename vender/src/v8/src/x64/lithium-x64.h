@@ -1608,6 +1608,22 @@ class LLoadRoot V8_FINAL : public LTemplateInstruction<1, 0, 0> {
 };
 
 
+inline static bool ExternalArrayOpRequiresTemp(
+    Representation key_representation,
+    ElementsKind elements_kind) {
+  // Operations that require the key to be divided by two to be converted into
+  // an index cannot fold the scale operation into a load and need an extra
+  // temp register to do the work.
+  return SmiValuesAre31Bits() && key_representation.IsSmi() &&
+      (elements_kind == EXTERNAL_INT8_ELEMENTS ||
+       elements_kind == EXTERNAL_UINT8_ELEMENTS ||
+       elements_kind == EXTERNAL_UINT8_CLAMPED_ELEMENTS ||
+       elements_kind == UINT8_ELEMENTS ||
+       elements_kind == INT8_ELEMENTS ||
+       elements_kind == UINT8_CLAMPED_ELEMENTS);
+}
+
+
 class LLoadKeyed V8_FINAL : public LTemplateInstruction<1, 2, 0> {
  public:
   LLoadKeyed(LOperand* elements, LOperand* key) {
@@ -1981,13 +1997,17 @@ class LUint32ToDouble V8_FINAL : public LTemplateInstruction<1, 1, 0> {
 };
 
 
-class LNumberTagI V8_FINAL : public LTemplateInstruction<1, 1, 0> {
+class LNumberTagI V8_FINAL : public LTemplateInstruction<1, 1, 2> {
  public:
-  explicit LNumberTagI(LOperand* value) {
+  LNumberTagI(LOperand* value, LOperand* temp1, LOperand* temp2) {
     inputs_[0] = value;
+    temps_[0] = temp1;
+    temps_[1] = temp2;
   }
 
   LOperand* value() { return inputs_[0]; }
+  LOperand* temp1() { return temps_[0]; }
+  LOperand* temp2() { return temps_[1]; }
 
   DECLARE_CONCRETE_INSTRUCTION(NumberTagI, "number-tag-i")
 };

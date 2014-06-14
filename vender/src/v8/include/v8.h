@@ -2614,6 +2614,7 @@ class V8_EXPORT Promise : public Object {
    */
   Local<Promise> Chain(Handle<Function> handler);
   Local<Promise> Catch(Handle<Function> handler);
+  Local<Promise> Then(Handle<Function> handler);
 
   V8_INLINE static Promise* Cast(Value* obj);
 
@@ -3864,8 +3865,8 @@ class V8_EXPORT ResourceConstraints {
   void set_max_available_threads(int value) {
     max_available_threads_ = value;
   }
-  int code_range_size() const { return code_range_size_; }
-  void set_code_range_size(int value) {
+  size_t code_range_size() const { return code_range_size_; }
+  void set_code_range_size(size_t value) {
     code_range_size_ = value;
   }
 
@@ -3875,7 +3876,7 @@ class V8_EXPORT ResourceConstraints {
   int max_executable_size_;
   uint32_t* stack_limit_;
   int max_available_threads_;
-  int code_range_size_;
+  size_t code_range_size_;
 };
 
 
@@ -4641,24 +4642,6 @@ class V8_EXPORT V8 {
   static int GetCompressedStartupDataCount();
   static void GetCompressedStartupData(StartupData* compressed_data);
   static void SetDecompressedStartupData(StartupData* decompressed_data);
-
-  /**
-   * Hand startup data to V8, in case the embedder has chosen to build
-   * V8 with external startup data.
-   *
-   * Note:
-   * - By default the startup data is linked into the V8 library, in which
-   *   case this function is not meaningful.
-   * - If this needs to be called, it needs to be called before V8
-   *   tries to make use of its built-ins.
-   * - To avoid unnecessary copies of data, V8 will point directly into the
-   *   given data blob, so pretty please keep it around until V8 exit.
-   * - Compression of the startup blob might be useful, but needs to
-   *   handled entirely on the embedders' side.
-   * - The call will abort if the data is invalid.
-   */
-  static void SetNativesDataBlob(StartupData* startup_blob);
-  static void SetSnapshotDataBlob(StartupData* startup_blob);
 
   /**
    * Adds a message listener.
@@ -5542,7 +5525,7 @@ class Internals {
   static const int kJSObjectHeaderSize = 3 * kApiPointerSize;
   static const int kFixedArrayHeaderSize = 2 * kApiPointerSize;
   static const int kContextHeaderSize = 2 * kApiPointerSize;
-  static const int kContextEmbedderDataIndex = 75;
+  static const int kContextEmbedderDataIndex = 76;
   static const int kFullStringRepresentationMask = 0x07;
   static const int kStringEncodingMask = 0x4;
   static const int kExternalTwoByteRepresentationTag = 0x02;
@@ -5560,7 +5543,7 @@ class Internals {
   static const int kNullValueRootIndex = 7;
   static const int kTrueValueRootIndex = 8;
   static const int kFalseValueRootIndex = 9;
-  static const int kEmptyStringRootIndex = 162;
+  static const int kEmptyStringRootIndex = 160;
 
   // The external allocation limit should be below 256 MB on all architectures
   // to avoid that resource-constrained embedders run low on memory.

@@ -22,11 +22,12 @@
 #define V8_PLATFORM_H_
 
 #include <stdarg.h>
+#include <string>
+#include <vector>
 
+#include "src/base/build_config.h"
 #include "src/platform/mutex.h"
 #include "src/platform/semaphore.h"
-#include "src/globals.h"
-#include "src/vector.h"
 
 #ifdef __sun
 # ifndef signbit
@@ -91,6 +92,7 @@ inline intptr_t InternalGetExistingThreadLocal(intptr_t index) {
   const intptr_t kTibExtraTlsOffset = 0xF94;
   const intptr_t kMaxInlineSlots = 64;
   const intptr_t kMaxSlots = kMaxInlineSlots + 1024;
+  const intptr_t kPointerSize = sizeof(void*);
   ASSERT(0 <= index && index < kMaxSlots);
   if (index < kMaxInlineSlots) {
     return static_cast<intptr_t>(__readfsdword(kTibInlineTlsOffset +
@@ -247,30 +249,34 @@ class OS {
 
   // Safe formatting print. Ensures that str is always null-terminated.
   // Returns the number of chars written, or -1 if output was truncated.
-  static int SNPrintF(Vector<char> str, const char* format, ...);
-  static int VSNPrintF(Vector<char> str,
+  static int SNPrintF(char* str, int length, const char* format, ...);
+  static int VSNPrintF(char* str,
+                       int length,
                        const char* format,
                        va_list args);
 
   static char* StrChr(char* str, int c);
-  static void StrNCpy(Vector<char> dest, const char* src, size_t n);
+  static void StrNCpy(char* dest, int length, const char* src, size_t n);
 
   // Support for the profiler.  Can do nothing, in which case ticks
   // occuring in shared libraries will not be properly accounted for.
-  static void LogSharedLibraryAddresses(Isolate* isolate);
+  struct SharedLibraryAddress {
+    SharedLibraryAddress(
+        const std::string& library_path, uintptr_t start, uintptr_t end)
+        : library_path(library_path), start(start), end(end) {}
+
+    std::string library_path;
+    uintptr_t start;
+    uintptr_t end;
+  };
+
+  static std::vector<SharedLibraryAddress> GetSharedLibraryAddresses();
 
   // Support for the profiler.  Notifies the external profiling
   // process that a code moving garbage collection starts.  Can do
   // nothing, in which case the code objects must not move (e.g., by
   // using --never-compact) if accurate profiling is desired.
   static void SignalCodeMovingGC();
-
-  // The return value indicates the CPU features we are sure of because of the
-  // OS.
-  // This is a little messy because the interpretation is subject to the cross
-  // of the CPU and the OS.  The bits in the answer correspond to the bit
-  // positions indicated by the members of the CpuFeature enum from globals.h
-  static unsigned CpuFeaturesImpliedByPlatform();
 
   // Returns the number of processors online.
   static int NumberOfProcessorsOnline();
@@ -405,13 +411,7 @@ class VirtualMemory {
 class Thread {
  public:
   // Opaque data type for thread-local storage keys.
-  // LOCAL_STORAGE_KEY_MIN_VALUE and LOCAL_STORAGE_KEY_MAX_VALUE are specified
-  // to ensure that enumeration type has correct value range (see Issue 830 for
-  // more details).
-  enum LocalStorageKey {
-    LOCAL_STORAGE_KEY_MIN_VALUE = kMinInt,
-    LOCAL_STORAGE_KEY_MAX_VALUE = kMaxInt
-  };
+  typedef int32_t LocalStorageKey;
 
   class Options {
    public:

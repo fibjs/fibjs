@@ -1309,6 +1309,16 @@ class HGraphBuilder {
   HBasicBlock* CreateBasicBlock(HEnvironment* env);
   HBasicBlock* CreateLoopHeaderBlock();
 
+  template <class BitFieldClass>
+  HValue* BuildDecodeField(HValue* encoded_field) {
+    HValue* shifted_field = AddUncasted<HShr>(encoded_field,
+        Add<HConstant>(static_cast<int>(BitFieldClass::kShift)));
+    HValue* mask_value = Add<HConstant>(static_cast<int>(BitFieldClass::kMask));
+    return AddUncasted<HBitwise>(Token::BIT_AND, shifted_field, mask_value);
+  }
+
+  HValue* BuildGetElementsKind(HValue* object);
+
   HValue* BuildCheckHeapObject(HValue* object);
   HValue* BuildCheckString(HValue* string);
   HValue* BuildWrapReceiver(HValue* object, HValue* function);
@@ -1335,8 +1345,32 @@ class HGraphBuilder {
 
   HValue* BuildNumberToString(HValue* object, Type* type);
 
+  void BuildJSObjectCheck(HValue* receiver,
+                          int bit_field_mask);
+
+  // Checks a key value that's being used for a keyed element access context. If
+  // the key is a index, i.e. a smi or a number in a unique string with a cached
+  // numeric value, the "true" of the continuation is joined. Otherwise,
+  // if the key is a name or a unique string, the "false" of the continuation is
+  // joined. Otherwise, a deoptimization is triggered. In both paths of the
+  // continuation, the key is pushed on the top of the environment.
+  void BuildKeyedIndexCheck(HValue* key,
+                            HIfContinuation* join_continuation);
+
+  // Checks the properties of an object if they are in dictionary case, in which
+  // case "true" of continuation is taken, otherwise the "false"
+  void BuildTestForDictionaryProperties(HValue* object,
+                                        HIfContinuation* continuation);
+
+  void BuildNonGlobalObjectCheck(HValue* receiver);
+
+  HValue* BuildKeyedLookupCacheHash(HValue* object,
+                                    HValue* key);
+
   HValue* BuildUncheckedDictionaryElementLoad(HValue* receiver,
-                                              HValue* key);
+                                              HValue* elements,
+                                              HValue* key,
+                                              HValue* hash);
 
   HValue* BuildRegExpConstructResult(HValue* length,
                                      HValue* index,
@@ -1673,6 +1707,27 @@ class HGraphBuilder {
     Direction direction_;
     bool finished_;
   };
+
+  template <class A, class P1>
+  void DeoptimizeIf(P1 p1, char* const reason) {
+    IfBuilder builder(this);
+    builder.If<A>(p1);
+    builder.ThenDeopt(reason);
+  }
+
+  template <class A, class P1, class P2>
+  void DeoptimizeIf(P1 p1, P2 p2, const char* reason) {
+    IfBuilder builder(this);
+    builder.If<A>(p1, p2);
+    builder.ThenDeopt(reason);
+  }
+
+  template <class A, class P1, class P2, class P3>
+  void DeoptimizeIf(P1 p1, P2 p2, P3 p3, const char* reason) {
+    IfBuilder builder(this);
+    builder.If<A>(p1, p2, p3);
+    builder.ThenDeopt(reason);
+  }
 
   HValue* BuildNewElementsCapacity(HValue* old_capacity);
 
@@ -2266,8 +2321,13 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
   void EnsureArgumentsArePushedForAccess();
   bool TryArgumentsAccess(Property* expr);
 
-  // Try to optimize fun.apply(receiver, arguments) pattern.
-  bool TryCallApply(Call* expr);
+  // Shared code for .call and .apply optimizations.
+  void HandleIndirectCall(Call* expr, HValue* function, int arguments_count);
+  // Try to optimize indirect calls such as fun.apply(receiver, arguments)
+  // or fun.call(...).
+  bool TryIndirectCall(Call* expr);
+  void BuildFunctionApply(Call* expr);
+  void BuildFunctionCall(Call* expr);
 
   bool TryHandleArrayCall(Call* expr, HValue* function);
   bool TryHandleArrayCallNew(CallNew* expr, HValue* function);
@@ -2303,12 +2363,13 @@ class HOptimizedGraphBuilder : public HGraphBuilder, public AstVisitor {
                        BailoutId id,
                        BailoutId assignment_id,
                        HValue* implicit_return_value);
-  bool TryInlineApply(Handle<JSFunction> function,
-                      Call* expr,
-                      int arguments_count);
+  bool TryInlineIndirectCall(Handle<JSFunction> function,
+                             Call* expr,
+                             int arguments_count);
   bool TryInlineBuiltinMethodCall(Call* expr,
-                                  HValue* receiver,
-                                  Handle<Map> receiver_map);
+                                  Handle<JSFunction> function,
+                                  Handle<Map> receiver_map,
+                                  int args_count_no_receiver);
   bool TryInlineBuiltinFunctionCall(Call* expr);
   enum ApiCallType {
     kCallApiFunction,
@@ -2747,12 +2808,12 @@ class HTracer V8_FINAL : public Malloced {
   explicit HTracer(int isolate_id)
       : trace_(&string_allocator_), indent_(0) {
     if (FLAG_trace_hydrogen_file == NULL) {
-      OS::SNPrintF(filename_,
-                   "hydrogen-%d-%d.cfg",
-                   OS::GetCurrentProcessId(),
-                   isolate_id);
+      SNPrintF(filename_,
+               "hydrogen-%d-%d.cfg",
+               OS::GetCurrentProcessId(),
+               isolate_id);
     } else {
-      OS::StrNCpy(filename_, FLAG_trace_hydrogen_file, filename_.length());
+      StrNCpy(filename_, FLAG_trace_hydrogen_file, filename_.length());
     }
     WriteChars(filename_.start(), "", 0, false);
   }

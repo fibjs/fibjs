@@ -275,6 +275,11 @@ void LCodeGen::GenerateBodyInstructionPost(LInstruction* instr) {
   }
 
   if (instr->HasResult() && instr->MustSignExtendResult(chunk())) {
+    // We sign extend the dehoisted key at the definition point when the pointer
+    // size is 64-bit. For x32 port, we sign extend the dehoisted key at the use
+    // points and MustSignExtendResult is always false. We can't use
+    // STATIC_ASSERT here as the pointer size is 32-bit for x32.
+    ASSERT(kPointerSize == kInt64Size);
     if (instr->result()->IsRegister()) {
       Register result_reg = ToRegister(instr->result());
       __ movsxlq(result_reg, result_reg);
@@ -431,8 +436,17 @@ bool LCodeGen::IsSmiConstant(LConstantOperand* op) const {
 
 
 int32_t LCodeGen::ToInteger32(LConstantOperand* op) const {
+  return ToRepresentation(op, Representation::Integer32());
+}
+
+
+int32_t LCodeGen::ToRepresentation(LConstantOperand* op,
+                                   const Representation& r) const {
   HConstant* constant = chunk_->LookupConstant(op);
-  return constant->Integer32Value();
+  int32_t value = constant->Integer32Value();
+  if (r.IsInteger32()) return value;
+  ASSERT(SmiValuesAre31Bits() && r.IsSmiOrTagged());
+  return static_cast<int32_t>(reinterpret_cast<intptr_t>(Smi::FromInt(value)));
 }
 
 
@@ -1134,16 +1148,17 @@ void LCodeGen::DoFlooringDivByPowerOf2I(LFlooringDivByPowerOf2I* instr) {
     DeoptimizeIf(zero, instr->environment());
   }
 
-  // If the negation could not overflow, simply shifting is OK.
-  if (!instr->hydrogen()->CheckFlag(HValue::kLeftCanBeMinInt)) {
-    __ sarl(dividend, Immediate(shift));
+  // Dividing by -1 is basically negation, unless we overflow.
+  if (divisor == -1) {
+    if (instr->hydrogen()->CheckFlag(HValue::kLeftCanBeMinInt)) {
+      DeoptimizeIf(overflow, instr->environment());
+    }
     return;
   }
 
-  // Note that we could emit branch-free code, but that would need one more
-  // register.
-  if (divisor == -1) {
-    DeoptimizeIf(overflow, instr->environment());
+  // If the negation could not overflow, simply shifting is OK.
+  if (!instr->hydrogen()->CheckFlag(HValue::kLeftCanBeMinInt)) {
+    __ sarl(dividend, Immediate(shift));
     return;
   }
 
@@ -1457,8 +1472,11 @@ void LCodeGen::DoMulI(LMulI* instr) {
     }
     __ j(not_zero, &done, Label::kNear);
     if (right->IsConstantOperand()) {
-      // Constant can't be represented as Smi due to immediate size limit.
-      ASSERT(!instr->hydrogen_value()->representation().IsSmi());
+      // Constant can't be represented as 32-bit Smi due to immediate size
+      // limit.
+      ASSERT(SmiValuesAre32Bits()
+          ? !instr->hydrogen_value()->representation().IsSmi()
+          : SmiValuesAre31Bits());
       if (ToInteger32(LConstantOperand::cast(right)) < 0) {
         DeoptimizeIf(no_condition, instr->environment());
       } else if (ToInteger32(LConstantOperand::cast(right)) == 0) {
@@ -1493,7 +1511,9 @@ void LCodeGen::DoBitI(LBitI* instr) {
   ASSERT(left->IsRegister());
 
   if (right->IsConstantOperand()) {
-    int32_t right_operand = ToInteger32(LConstantOperand::cast(right));
+    int32_t right_operand =
+        ToRepresentation(LConstantOperand::cast(right),
+                         instr->hydrogen()->right()->representation());
     switch (instr->op()) {
       case Token::BIT_AND:
         __ andl(ToRegister(left), Immediate(right_operand));
@@ -1625,7 +1645,20 @@ void LCodeGen::DoShiftI(LShiftI* instr) {
       case Token::SHL:
         if (shift_count != 0) {
           if (instr->hydrogen_value()->representation().IsSmi()) {
-            __ shlp(ToRegister(left), Immediate(shift_count));
+            if (SmiValuesAre32Bits()) {
+              __ shlp(ToRegister(left), Immediate(shift_count));
+            } else {
+              ASSERT(SmiValuesAre31Bits());
+              if (instr->can_deopt()) {
+                if (shift_count != 1) {
+                  __ shll(ToRegister(left), Immediate(shift_count - 1));
+                }
+                __ Integer32ToSmi(ToRegister(left), ToRegister(left));
+                DeoptimizeIf(overflow, instr->environment());
+              } else {
+                __ shll(ToRegister(left), Immediate(shift_count));
+              }
+            }
           } else {
             __ shll(ToRegister(left), Immediate(shift_count));
           }
@@ -1645,8 +1678,10 @@ void LCodeGen::DoSubI(LSubI* instr) {
   ASSERT(left->Equals(instr->result()));
 
   if (right->IsConstantOperand()) {
-    __ subl(ToRegister(left),
-            Immediate(ToInteger32(LConstantOperand::cast(right))));
+    int32_t right_operand =
+        ToRepresentation(LConstantOperand::cast(right),
+                         instr->hydrogen()->right()->representation());
+    __ subl(ToRegister(left), Immediate(right_operand));
   } else if (right->IsRegister()) {
     if (instr->hydrogen_value()->representation().IsSmi()) {
       __ subp(ToRegister(left), ToRegister(right));
@@ -1847,8 +1882,11 @@ void LCodeGen::DoAddI(LAddI* instr) {
 
   if (LAddI::UseLea(instr->hydrogen()) && !left->Equals(instr->result())) {
     if (right->IsConstantOperand()) {
-      ASSERT(!target_rep.IsSmi());  // No support for smi-immediates.
-      int32_t offset = ToInteger32(LConstantOperand::cast(right));
+      // No support for smi-immediates for 32-bit SMI.
+      ASSERT(SmiValuesAre32Bits() ? !target_rep.IsSmi() : SmiValuesAre31Bits());
+      int32_t offset =
+          ToRepresentation(LConstantOperand::cast(right),
+                           instr->hydrogen()->right()->representation());
       if (is_p) {
         __ leap(ToRegister(instr->result()),
                 MemOperand(ToRegister(left), offset));
@@ -1866,13 +1904,15 @@ void LCodeGen::DoAddI(LAddI* instr) {
     }
   } else {
     if (right->IsConstantOperand()) {
-      ASSERT(!target_rep.IsSmi());  // No support for smi-immediates.
+      // No support for smi-immediates for 32-bit SMI.
+      ASSERT(SmiValuesAre32Bits() ? !target_rep.IsSmi() : SmiValuesAre31Bits());
+      int32_t right_operand =
+          ToRepresentation(LConstantOperand::cast(right),
+                           instr->hydrogen()->right()->representation());
       if (is_p) {
-        __ addp(ToRegister(left),
-                Immediate(ToInteger32(LConstantOperand::cast(right))));
+        __ addp(ToRegister(left), Immediate(right_operand));
       } else {
-        __ addl(ToRegister(left),
-                Immediate(ToInteger32(LConstantOperand::cast(right))));
+        __ addl(ToRegister(left), Immediate(right_operand));
       }
     } else if (right->IsRegister()) {
       if (is_p) {
@@ -1906,9 +1946,12 @@ void LCodeGen::DoMathMinMax(LMathMinMax* instr) {
         : greater_equal;
     Register left_reg = ToRegister(left);
     if (right->IsConstantOperand()) {
-      Immediate right_imm =
-          Immediate(ToInteger32(LConstantOperand::cast(right)));
-      ASSERT(!instr->hydrogen_value()->representation().IsSmi());
+      Immediate right_imm = Immediate(
+          ToRepresentation(LConstantOperand::cast(right),
+                           instr->hydrogen()->right()->representation()));
+      ASSERT(SmiValuesAre32Bits()
+          ? !instr->hydrogen()->representation().IsSmi()
+          : SmiValuesAre31Bits());
       __ cmpl(left_reg, right_imm);
       __ j(condition, &return_left, Label::kNear);
       __ movp(left_reg, right_imm);
@@ -2238,7 +2281,9 @@ void LCodeGen::DoCompareNumericAndBranch(LCompareNumericAndBranch* instr) {
   LOperand* left = instr->left();
   LOperand* right = instr->right();
   bool is_unsigned =
-      instr->is_double() || instr->hydrogen()->CheckFlag(HInstruction::kUint32);
+      instr->is_double() ||
+      instr->hydrogen()->left()->CheckFlag(HInstruction::kUint32) ||
+      instr->hydrogen()->right()->CheckFlag(HInstruction::kUint32);
   Condition cc = TokenToCondition(instr->op(), is_unsigned);
 
   if (left->IsConstantOperand() && right->IsConstantOperand()) {
@@ -3034,9 +3079,22 @@ void LCodeGen::DoAccessArgumentsAt(LAccessArgumentsAt* instr) {
 void LCodeGen::DoLoadKeyedExternalArray(LLoadKeyed* instr) {
   ElementsKind elements_kind = instr->elements_kind();
   LOperand* key = instr->key();
+  if (kPointerSize == kInt32Size && !key->IsConstantOperand()) {
+    Register key_reg = ToRegister(key);
+    Representation key_representation =
+        instr->hydrogen()->key()->representation();
+    if (ExternalArrayOpRequiresTemp(key_representation, elements_kind)) {
+      __ SmiToInteger64(key_reg, key_reg);
+    } else if (instr->hydrogen()->IsDehoisted()) {
+      // Sign extend key because it could be a 32 bit negative value
+      // and the dehoisted address computation happens in 64 bits
+      __ movsxlq(key_reg, key_reg);
+    }
+  }
   Operand operand(BuildFastArrayOperand(
       instr->elements(),
       key,
+      instr->hydrogen()->key()->representation(),
       elements_kind,
       instr->base_offset()));
 
@@ -3103,10 +3161,17 @@ void LCodeGen::DoLoadKeyedExternalArray(LLoadKeyed* instr) {
 void LCodeGen::DoLoadKeyedFixedDoubleArray(LLoadKeyed* instr) {
   XMMRegister result(ToDoubleRegister(instr->result()));
   LOperand* key = instr->key();
+  if (kPointerSize == kInt32Size && !key->IsConstantOperand() &&
+      instr->hydrogen()->IsDehoisted()) {
+    // Sign extend key because it could be a 32 bit negative value
+    // and the dehoisted address computation happens in 64 bits
+    __ movsxlq(ToRegister(key), ToRegister(key));
+  }
   if (instr->hydrogen()->RequiresHoleCheck()) {
     Operand hole_check_operand = BuildFastArrayOperand(
         instr->elements(),
         key,
+        instr->hydrogen()->key()->representation(),
         FAST_DOUBLE_ELEMENTS,
         instr->base_offset() + sizeof(kHoleNanLower32));
     __ cmpl(hole_check_operand, Immediate(kHoleNanUpper32));
@@ -3116,6 +3181,7 @@ void LCodeGen::DoLoadKeyedFixedDoubleArray(LLoadKeyed* instr) {
   Operand double_load_operand = BuildFastArrayOperand(
       instr->elements(),
       key,
+      instr->hydrogen()->key()->representation(),
       FAST_DOUBLE_ELEMENTS,
       instr->base_offset());
   __ movsd(result, double_load_operand);
@@ -3130,6 +3196,12 @@ void LCodeGen::DoLoadKeyedFixedArray(LLoadKeyed* instr) {
   Representation representation = hinstr->representation();
   int offset = instr->base_offset();
 
+  if (kPointerSize == kInt32Size && !key->IsConstantOperand() &&
+      instr->hydrogen()->IsDehoisted()) {
+    // Sign extend key because it could be a 32 bit negative value
+    // and the dehoisted address computation happens in 64 bits
+    __ movsxlq(ToRegister(key), ToRegister(key));
+  }
   if (representation.IsInteger32() && SmiValuesAre32Bits() &&
       hinstr->elements_kind() == FAST_SMI_ELEMENTS) {
     ASSERT(!requires_hole_check);
@@ -3138,6 +3210,7 @@ void LCodeGen::DoLoadKeyedFixedArray(LLoadKeyed* instr) {
       __ Load(scratch,
               BuildFastArrayOperand(instr->elements(),
                                     key,
+                                    instr->hydrogen()->key()->representation(),
                                     FAST_ELEMENTS,
                                     offset),
               Representation::Smi());
@@ -3152,6 +3225,7 @@ void LCodeGen::DoLoadKeyedFixedArray(LLoadKeyed* instr) {
   __ Load(result,
           BuildFastArrayOperand(instr->elements(),
                                 key,
+                                instr->hydrogen()->key()->representation(),
                                 FAST_ELEMENTS,
                                 offset),
           representation);
@@ -3183,6 +3257,7 @@ void LCodeGen::DoLoadKeyed(LLoadKeyed* instr) {
 Operand LCodeGen::BuildFastArrayOperand(
     LOperand* elements_pointer,
     LOperand* key,
+    Representation key_representation,
     ElementsKind elements_kind,
     uint32_t offset) {
   Register elements_pointer_reg = ToRegister(elements_pointer);
@@ -3195,6 +3270,11 @@ Operand LCodeGen::BuildFastArrayOperand(
     return Operand(elements_pointer_reg,
                    (constant_value << shift_size) + offset);
   } else {
+    // Take the tag bit into account while computing the shift size.
+    if (key_representation.IsSmi() && (shift_size >= 1)) {
+      ASSERT(SmiValuesAre31Bits());
+      shift_size -= kSmiTagSize;
+    }
     ScaleFactor scale_factor = static_cast<ScaleFactor>(shift_size);
     return Operand(elements_pointer_reg,
                    ToRegister(key),
@@ -4168,9 +4248,22 @@ void LCodeGen::DoBoundsCheck(LBoundsCheck* instr) {
 void LCodeGen::DoStoreKeyedExternalArray(LStoreKeyed* instr) {
   ElementsKind elements_kind = instr->elements_kind();
   LOperand* key = instr->key();
+  if (kPointerSize == kInt32Size && !key->IsConstantOperand()) {
+    Register key_reg = ToRegister(key);
+    Representation key_representation =
+        instr->hydrogen()->key()->representation();
+    if (ExternalArrayOpRequiresTemp(key_representation, elements_kind)) {
+      __ SmiToInteger64(key_reg, key_reg);
+    } else if (instr->hydrogen()->IsDehoisted()) {
+      // Sign extend key because it could be a 32 bit negative value
+      // and the dehoisted address computation happens in 64 bits
+      __ movsxlq(key_reg, key_reg);
+    }
+  }
   Operand operand(BuildFastArrayOperand(
       instr->elements(),
       key,
+      instr->hydrogen()->key()->representation(),
       elements_kind,
       instr->base_offset()));
 
@@ -4227,6 +4320,12 @@ void LCodeGen::DoStoreKeyedExternalArray(LStoreKeyed* instr) {
 void LCodeGen::DoStoreKeyedFixedDoubleArray(LStoreKeyed* instr) {
   XMMRegister value = ToDoubleRegister(instr->value());
   LOperand* key = instr->key();
+  if (kPointerSize == kInt32Size && !key->IsConstantOperand() &&
+      instr->hydrogen()->IsDehoisted()) {
+    // Sign extend key because it could be a 32 bit negative value
+    // and the dehoisted address computation happens in 64 bits
+    __ movsxlq(ToRegister(key), ToRegister(key));
+  }
   if (instr->NeedsCanonicalization()) {
     Label have_value;
 
@@ -4243,6 +4342,7 @@ void LCodeGen::DoStoreKeyedFixedDoubleArray(LStoreKeyed* instr) {
   Operand double_store_operand = BuildFastArrayOperand(
       instr->elements(),
       key,
+      instr->hydrogen()->key()->representation(),
       FAST_DOUBLE_ELEMENTS,
       instr->base_offset());
 
@@ -4256,6 +4356,12 @@ void LCodeGen::DoStoreKeyedFixedArray(LStoreKeyed* instr) {
   int offset = instr->base_offset();
   Representation representation = hinstr->value()->representation();
 
+  if (kPointerSize == kInt32Size && !key->IsConstantOperand() &&
+      instr->hydrogen()->IsDehoisted()) {
+    // Sign extend key because it could be a 32 bit negative value
+    // and the dehoisted address computation happens in 64 bits
+    __ movsxlq(ToRegister(key), ToRegister(key));
+  }
   if (representation.IsInteger32() && SmiValuesAre32Bits()) {
     ASSERT(hinstr->store_mode() == STORE_TO_INITIALIZED_ENTRY);
     ASSERT(hinstr->elements_kind() == FAST_SMI_ELEMENTS);
@@ -4264,6 +4370,7 @@ void LCodeGen::DoStoreKeyedFixedArray(LStoreKeyed* instr) {
       __ Load(scratch,
               BuildFastArrayOperand(instr->elements(),
                                     key,
+                                    instr->hydrogen()->key()->representation(),
                                     FAST_ELEMENTS,
                                     offset),
               Representation::Smi());
@@ -4278,6 +4385,7 @@ void LCodeGen::DoStoreKeyedFixedArray(LStoreKeyed* instr) {
   Operand operand =
       BuildFastArrayOperand(instr->elements(),
                             key,
+                            instr->hydrogen()->key()->representation(),
                             FAST_ELEMENTS,
                             offset);
   if (instr->value()->IsRegister()) {
@@ -4524,11 +4632,32 @@ void LCodeGen::DoUint32ToDouble(LUint32ToDouble* instr) {
 
 
 void LCodeGen::DoNumberTagI(LNumberTagI* instr) {
+  class DeferredNumberTagI V8_FINAL : public LDeferredCode {
+   public:
+    DeferredNumberTagI(LCodeGen* codegen, LNumberTagI* instr)
+        : LDeferredCode(codegen), instr_(instr) { }
+    virtual void Generate() V8_OVERRIDE {
+      codegen()->DoDeferredNumberTagIU(instr_, instr_->value(), instr_->temp1(),
+                                       instr_->temp2(), SIGNED_INT32);
+    }
+    virtual LInstruction* instr() V8_OVERRIDE { return instr_; }
+   private:
+    LNumberTagI* instr_;
+  };
+
   LOperand* input = instr->value();
   ASSERT(input->IsRegister() && input->Equals(instr->result()));
   Register reg = ToRegister(input);
 
-  __ Integer32ToSmi(reg, reg);
+  if (SmiValuesAre32Bits()) {
+    __ Integer32ToSmi(reg, reg);
+  } else {
+    ASSERT(SmiValuesAre31Bits());
+    DeferredNumberTagI* deferred = new(zone()) DeferredNumberTagI(this, instr);
+    __ Integer32ToSmi(reg, reg);
+    __ j(overflow, deferred->entry());
+    __ bind(deferred->exit());
+  }
 }
 
 
@@ -4538,7 +4667,8 @@ void LCodeGen::DoNumberTagU(LNumberTagU* instr) {
     DeferredNumberTagU(LCodeGen* codegen, LNumberTagU* instr)
         : LDeferredCode(codegen), instr_(instr) { }
     virtual void Generate() V8_OVERRIDE {
-      codegen()->DoDeferredNumberTagU(instr_);
+      codegen()->DoDeferredNumberTagIU(instr_, instr_->value(), instr_->temp1(),
+                                       instr_->temp2(), UNSIGNED_INT32);
     }
     virtual LInstruction* instr() V8_OVERRIDE { return instr_; }
    private:
@@ -4557,16 +4687,31 @@ void LCodeGen::DoNumberTagU(LNumberTagU* instr) {
 }
 
 
-void LCodeGen::DoDeferredNumberTagU(LNumberTagU* instr) {
+void LCodeGen::DoDeferredNumberTagIU(LInstruction* instr,
+                                     LOperand* value,
+                                     LOperand* temp1,
+                                     LOperand* temp2,
+                                     IntegerSignedness signedness) {
   Label done, slow;
-  Register reg = ToRegister(instr->value());
-  Register tmp = ToRegister(instr->temp1());
-  XMMRegister temp_xmm = ToDoubleRegister(instr->temp2());
+  Register reg = ToRegister(value);
+  Register tmp = ToRegister(temp1);
+  XMMRegister temp_xmm = ToDoubleRegister(temp2);
 
   // Load value into temp_xmm which will be preserved across potential call to
   // runtime (MacroAssembler::EnterExitFrameEpilogue preserves only allocatable
   // XMM registers on x64).
-  __ LoadUint32(temp_xmm, reg);
+  if (signedness == SIGNED_INT32) {
+    ASSERT(SmiValuesAre31Bits());
+    // There was overflow, so bits 30 and 31 of the original integer
+    // disagree. Try to allocate a heap number in new space and store
+    // the value in there. If that fails, call the runtime system.
+    __ SmiToInteger32(reg, reg);
+    __ xorl(reg, Immediate(0x80000000));
+    __ cvtlsi2sd(temp_xmm, reg);
+  } else {
+    ASSERT(signedness == UNSIGNED_INT32);
+    __ LoadUint32(temp_xmm, reg);
+  }
 
   if (FLAG_inline_new) {
     __ AllocateHeapNumber(reg, tmp, &slow);
@@ -4584,7 +4729,7 @@ void LCodeGen::DoDeferredNumberTagU(LNumberTagU* instr) {
     // Preserve the value of all registers.
     PushSafepointRegistersScope scope(this);
 
-    // NumberTagU uses the context from the frame, rather than
+    // NumberTagIU uses the context from the frame, rather than
     // the environment's HContext or HInlinedContext value.
     // They only call Runtime::kHiddenAllocateHeapNumber.
     // The corresponding HChange instructions are added in a phase that does
@@ -4661,8 +4806,8 @@ void LCodeGen::DoSmiTag(LSmiTag* instr) {
   Register output = ToRegister(instr->result());
   if (hchange->CheckFlag(HValue::kCanOverflow) &&
       hchange->value()->CheckFlag(HValue::kUint32)) {
-    __ testl(input, input);
-    DeoptimizeIf(sign, instr->environment());
+    Condition is_smi = __ CheckUInteger32ValidSmiValue(input);
+    DeoptimizeIf(NegateCondition(is_smi), instr->environment());
   }
   __ Integer32ToSmi(output, input);
   if (hchange->CheckFlag(HValue::kCanOverflow) &&

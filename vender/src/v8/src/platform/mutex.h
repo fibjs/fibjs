@@ -4,6 +4,7 @@
 
 #include "../base/lazy-instance.h"
 #include <exlib/event.h>
+#include "src/checks.h"
 
 #if V8_OS_WIN
 #include "../base/win32-headers.h"

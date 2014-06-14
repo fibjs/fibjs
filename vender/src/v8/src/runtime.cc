@@ -245,13 +245,14 @@ MUST_USE_RESULT static MaybeHandle<Object> CreateObjectLiteralBoilerplate(
   int length = constant_properties->length();
   bool should_transform =
       !is_result_from_cache && boilerplate->HasFastProperties();
-  if (should_transform || has_function_literal) {
-    // Normalize the properties of object to avoid n^2 behavior
-    // when extending the object multiple properties. Indicate the number of
-    // properties to be added.
+  bool should_normalize = should_transform || has_function_literal;
+  if (should_normalize) {
+    // TODO(verwaest): We might not want to ever normalize here.
     JSObject::NormalizeProperties(
         boilerplate, KEEP_INOBJECT_PROPERTIES, length / 2);
   }
+  Object::ValueType value_type = should_normalize
+      ? Object::FORCE_TAGGED : Object::OPTIMAL_REPRESENTATION;
 
   // TODO(verwaest): Support tracking representations in the boilerplate.
   for (int index = 0; index < length; index +=2) {
@@ -279,7 +280,7 @@ MUST_USE_RESULT static MaybeHandle<Object> CreateObjectLiteralBoilerplate(
         ASSERT(!name->AsArrayIndex(&element_index));
         maybe_result = JSObject::SetOwnPropertyIgnoreAttributes(
             boilerplate, name, value, NONE,
-            Object::OPTIMAL_REPRESENTATION, mode);
+            value_type, mode);
       }
     } else if (key->ToArrayIndex(&element_index)) {
       // Array index (uint32).
@@ -295,7 +296,7 @@ MUST_USE_RESULT static MaybeHandle<Object> CreateObjectLiteralBoilerplate(
       Handle<String> name = isolate->factory()->NewStringFromAsciiChecked(str);
       maybe_result = JSObject::SetOwnPropertyIgnoreAttributes(
           boilerplate, name, value, NONE,
-          Object::OPTIMAL_REPRESENTATION, mode);
+          value_type, mode);
     }
     // If setting the property on the boilerplate throws an
     // exception, the exception is converted to an empty handle in
@@ -2022,7 +2023,7 @@ MUST_USE_RESULT static MaybeHandle<Object> GetOwnProperty(Isolate* isolate,
     case ACCESS_ABSENT: return factory->undefined_value();
   }
 
-  PropertyAttributes attrs = JSReceiver::GetOwnPropertyAttribute(obj, name);
+  PropertyAttributes attrs = JSReceiver::GetOwnPropertyAttributes(obj, name);
   if (attrs == ABSENT) {
     RETURN_EXCEPTION_IF_SCHEDULED_EXCEPTION(isolate, Object);
     return factory->undefined_value();
@@ -2279,7 +2280,7 @@ RUNTIME_FUNCTION(RuntimeHidden_DeclareGlobals) {
         // We found an existing property. Unless it was an interceptor
         // that claims the property is absent, skip this declaration.
         if (!lookup.IsInterceptor()) continue;
-        if (JSReceiver::GetPropertyAttribute(global, name) != ABSENT) continue;
+        if (JSReceiver::GetPropertyAttributes(global, name) != ABSENT) continue;
         // Fall-through and introduce the absent property by using
         // SetProperty.
       }
@@ -2470,7 +2471,7 @@ RUNTIME_FUNCTION(Runtime_InitializeVarGlobal) {
   if (lookup.IsInterceptor()) {
     Handle<JSObject> holder(lookup.holder());
     PropertyAttributes intercepted =
-        JSReceiver::GetPropertyAttribute(holder, name);
+        JSReceiver::GetPropertyAttributes(holder, name);
     if (intercepted != ABSENT && (intercepted & READ_ONLY) == 0) {
       // Found an interceptor that's not read only.
       if (assign) {
@@ -5560,16 +5561,17 @@ RUNTIME_FUNCTION(Runtime_StoreArrayLiteralElement) {
     HeapNumber* number = HeapNumber::cast(*value);
     double_array->set(store_index, number->Number());
   } else {
-    ASSERT(IsFastSmiElementsKind(elements_kind) ||
-           IsFastDoubleElementsKind(elements_kind));
-    ElementsKind transitioned_kind = IsFastHoleyElementsKind(elements_kind)
-        ? FAST_HOLEY_ELEMENTS
-        : FAST_ELEMENTS;
-    JSObject::TransitionElementsKind(object, transitioned_kind);
-    if (IsMoreGeneralElementsKindTransition(
-            boilerplate_object->GetElementsKind(),
-            transitioned_kind)) {
-      JSObject::TransitionElementsKind(boilerplate_object, transitioned_kind);
+    if (!IsFastObjectElementsKind(elements_kind)) {
+      ElementsKind transitioned_kind = IsFastHoleyElementsKind(elements_kind)
+          ? FAST_HOLEY_ELEMENTS
+          : FAST_ELEMENTS;
+      JSObject::TransitionElementsKind(object, transitioned_kind);
+      ElementsKind boilerplate_elements_kind =
+          boilerplate_object->GetElementsKind();
+      if (IsMoreGeneralElementsKindTransition(boilerplate_elements_kind,
+                                              transitioned_kind)) {
+        JSObject::TransitionElementsKind(boilerplate_object, transitioned_kind);
+      }
     }
     FixedArray* object_array = FixedArray::cast(object->elements());
     object_array->set(store_index, *value);
@@ -5766,7 +5768,7 @@ RUNTIME_FUNCTION(Runtime_IsPropertyEnumerable) {
   CONVERT_ARG_HANDLE_CHECKED(JSObject, object, 0);
   CONVERT_ARG_HANDLE_CHECKED(Name, key, 1);
 
-  PropertyAttributes att = JSReceiver::GetOwnPropertyAttribute(object, key);
+  PropertyAttributes att = JSReceiver::GetOwnPropertyAttributes(object, key);
   if (att == ABSENT || (att & DONT_ENUM) != 0) {
     RETURN_FAILURE_IF_SCHEDULED_EXCEPTION(isolate);
     return isolate->heap()->false_value();
@@ -8190,8 +8192,9 @@ RUNTIME_FUNCTION(Runtime_FunctionBindArguments) {
   HandleScope scope(isolate);
   ASSERT(args.length() == 4);
   CONVERT_ARG_HANDLE_CHECKED(JSFunction, bound_function, 0);
-  RUNTIME_ASSERT(args[3]->IsNumber());
-  Handle<Object> bindee = args.at<Object>(1);
+  CONVERT_ARG_HANDLE_CHECKED(Object, bindee, 1);
+  CONVERT_ARG_HANDLE_CHECKED(Object, this_object, 2);
+  CONVERT_NUMBER_ARG_HANDLE_CHECKED(new_length, 3);
 
   // TODO(lrn): Create bound function in C++ code from premade shared info.
   bound_function->shared()->set_bound(true);
@@ -8201,10 +8204,10 @@ RUNTIME_FUNCTION(Runtime_FunctionBindArguments) {
       GetCallerArguments(isolate, 0, &argc);
   // Don't count the this-arg.
   if (argc > 0) {
-    RUNTIME_ASSERT(*arguments[0] == args[2]);
+    RUNTIME_ASSERT(arguments[0].is_identical_to(this_object));
     argc--;
   } else {
-    RUNTIME_ASSERT(args[2]->IsUndefined());
+    RUNTIME_ASSERT(this_object->IsUndefined());
   }
   // Initialize array of bindings (function, this, and any existing arguments
   // if the function was already bound).
@@ -8226,7 +8229,7 @@ RUNTIME_FUNCTION(Runtime_FunctionBindArguments) {
     int array_size = JSFunction::kBoundArgumentsStartIndex + argc;
     new_bindings = isolate->factory()->NewFixedArray(array_size);
     new_bindings->set(JSFunction::kBoundFunctionIndex, *bindee);
-    new_bindings->set(JSFunction::kBoundThisIndex, args[2]);
+    new_bindings->set(JSFunction::kBoundThisIndex, *this_object);
     i = 2;
   }
   // Copy arguments, skipping the first which is "this_arg".
@@ -8237,13 +8240,19 @@ RUNTIME_FUNCTION(Runtime_FunctionBindArguments) {
       isolate->heap()->fixed_cow_array_map());
   bound_function->set_function_bindings(*new_bindings);
 
-  // Update length.
+  // Update length. Have to remove the prototype first so that map migration
+  // is happy about the number of fields.
+  RUNTIME_ASSERT(bound_function->RemovePrototype());
+  Handle<Map> bound_function_map(
+      isolate->native_context()->bound_function_map());
+  JSObject::MigrateToMap(bound_function, bound_function_map);
   Handle<String> length_string = isolate->factory()->length_string();
-  Handle<Object> new_length(args.at<Object>(3));
   PropertyAttributes attr =
       static_cast<PropertyAttributes>(DONT_DELETE | DONT_ENUM | READ_ONLY);
-  Runtime::ForceSetObjectProperty(
-      bound_function, length_string, new_length, attr).Assert();
+  RETURN_FAILURE_ON_EXCEPTION(
+      isolate,
+      JSObject::SetOwnPropertyIgnoreAttributes(bound_function, length_string,
+                                               new_length, attr));
   return *bound_function;
 }
 
@@ -9453,7 +9462,7 @@ RUNTIME_FUNCTION(RuntimeHidden_StoreContextSlot) {
 
   // Set the property if it's not read only or doesn't yet exist.
   if ((attributes & READ_ONLY) == 0 ||
-      (JSReceiver::GetOwnPropertyAttribute(object, name) == ABSENT)) {
+      (JSReceiver::GetOwnPropertyAttributes(object, name) == ABSENT)) {
     RETURN_FAILURE_ON_EXCEPTION(
         isolate,
         JSReceiver::SetProperty(object, name, value, NONE, strict_mode));
@@ -9635,6 +9644,7 @@ RUNTIME_FUNCTION(Runtime_DebugTrace) {
 RUNTIME_FUNCTION(Runtime_DateCurrentTime) {
   HandleScope scope(isolate);
   ASSERT(args.length() == 0);
+  if (FLAG_log_timer_events) LOG(isolate, CurrentTimeEvent());
 
   // According to ECMA-262, section 15.9.1, page 117, the precision of
   // the number in a Date object representing a particular instant in
@@ -9782,6 +9792,59 @@ bool CodeGenerationFromStringsAllowed(Isolate* isolate,
 }
 
 
+// Walk up the stack expecting:
+//  - Runtime_CompileString
+//  - JSFunction callee (eval, Function constructor, etc)
+//  - call() (maybe)
+//  - apply() (maybe)
+//  - bind() (maybe)
+// - JSFunction caller (maybe)
+//
+// return true if the caller has the same security token as the callee
+// or if an exit frame was hit, in which case allow it through, as it could
+// have come through the api.
+static bool TokensMatchForCompileString(Isolate* isolate) {
+  MaybeHandle<JSFunction> callee;
+  bool exit_handled = true;
+  bool tokens_match = true;
+  bool done = false;
+  for (StackFrameIterator it(isolate); !it.done() && !done; it.Advance()) {
+    StackFrame* raw_frame = it.frame();
+    if (!raw_frame->is_java_script()) {
+      if (raw_frame->is_exit()) exit_handled = false;
+      continue;
+    }
+    JavaScriptFrame* outer_frame = JavaScriptFrame::cast(raw_frame);
+    List<FrameSummary> frames(FLAG_max_inlining_levels + 1);
+    outer_frame->Summarize(&frames);
+    for (int i = frames.length() - 1; i >= 0 && !done; --i) {
+      FrameSummary& frame = frames[i];
+      Handle<JSFunction> fun = frame.function();
+      // Capture the callee function.
+      if (callee.is_null()) {
+        callee = fun;
+        exit_handled = true;
+        continue;
+      }
+      // Exit condition.
+      Handle<Context> context(callee.ToHandleChecked()->context());
+      if (!fun->context()->HasSameSecurityTokenAs(*context)) {
+        tokens_match = false;
+        done = true;
+        continue;
+      }
+      // Skip bound functions in correct origin.
+      if (fun->shared()->bound()) {
+        exit_handled = true;
+        continue;
+      }
+      done = true;
+    }
+  }
+  return !exit_handled || tokens_match;
+}
+
+
 RUNTIME_FUNCTION(Runtime_CompileString) {
   HandleScope scope(isolate);
   ASSERT(args.length() == 2);
@@ -9790,6 +9853,11 @@ RUNTIME_FUNCTION(Runtime_CompileString) {
 
   // Extract native context.
   Handle<Context> context(isolate->context()->native_context());
+
+  // Filter cross security context calls.
+  if (!TokensMatchForCompileString(isolate)) {
+    return isolate->heap()->undefined_value();
+  }
 
   // Check if native context allows code generation from
   // strings. Throw an exception if it doesn't.
@@ -10787,7 +10855,7 @@ static Handle<Object> DebugLookupResultValue(Isolate* isolate,
       Handle<Object> structure(result->GetCallbackObject(), isolate);
       ASSERT(!structure->IsForeign());
       if (structure->IsAccessorInfo()) {
-        MaybeHandle<Object> obj = JSObject::GetPropertyWithCallback(
+        MaybeHandle<Object> obj = JSObject::GetPropertyWithAccessor(
             receiver, name, handle(result->holder(), isolate), structure);
         if (!obj.ToHandle(&value)) {
           value = handle(isolate->pending_exception(), isolate);
@@ -10968,11 +11036,10 @@ RUNTIME_FUNCTION(Runtime_DebugNamedInterceptorPropertyValue) {
   RUNTIME_ASSERT(obj->HasNamedInterceptor());
   CONVERT_ARG_HANDLE_CHECKED(Name, name, 1);
 
-  PropertyAttributes attributes;
   Handle<Object> result;
+  LookupIterator it(obj, name, obj);
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
-      isolate, result,
-      JSObject::GetPropertyWithInterceptor(obj, obj, name, &attributes));
+      isolate, result, JSObject::GetProperty(&it));
   return *result;
 }
 
@@ -14550,7 +14617,7 @@ RUNTIME_FUNCTION(Runtime_LoadMutableDouble) {
   CONVERT_ARG_HANDLE_CHECKED(Smi, index, 1);
   RUNTIME_ASSERT((index->value() & 1) == 1);
   FieldIndex field_index =
-      FieldIndex::ForLoadByFieldIndex(object->map(), index->value() >> 1);
+      FieldIndex::ForLoadByFieldIndex(object->map(), index->value());
   if (field_index.is_inobject()) {
     RUNTIME_ASSERT(field_index.property_index() <
                    object->map()->inobject_properties());

@@ -179,6 +179,8 @@ DEFINE_implication(harmony, harmony_strings)
 DEFINE_implication(harmony, harmony_arrays)
 DEFINE_implication(harmony_modules, harmony_scoping)
 DEFINE_implication(harmony_collections, harmony_symbols)
+DEFINE_implication(harmony_generators, harmony_symbols)
+DEFINE_implication(harmony_iteration, harmony_symbols)
 
 DEFINE_implication(harmony, es_staging)
 DEFINE_implication(es_staging, harmony_maths)
@@ -190,6 +192,8 @@ DEFINE_bool(packed_arrays, true, "optimizes arrays that have no holes")
 DEFINE_bool(smi_only_arrays, true, "tracks arrays with only smi values")
 DEFINE_bool(compiled_keyed_dictionary_loads, true,
             "use optimizing compiler to generate keyed dictionary load stubs")
+DEFINE_bool(compiled_keyed_generic_loads, false,
+            "use optimizing compiler to generate keyed generic load stubs")
 DEFINE_bool(clever_optimizations, true,
             "Optimize object size, Array shift, DOM strings and string +")
 // TODO(hpayer): We will remove this flag as soon as we have pretenuring
@@ -369,6 +373,8 @@ DEFINE_bool(enable_neon, ENABLE_NEON_DEFAULT,
             "enable use of NEON instructions if available (ARM only)")
 DEFINE_bool(enable_sudiv, true,
             "enable use of SDIV and UDIV instructions if available (ARM only)")
+DEFINE_bool(enable_mls, true,
+            "enable use of MLS instructions if available (ARM only)")
 DEFINE_bool(enable_movw_movt, false,
             "enable loading 32-bit constant by means of movw/movt "
             "instruction pairs (ARM only)")
@@ -635,8 +641,8 @@ DEFINE_string(raw_file, NULL, "A file to write the raw snapshot bytes to. "
                               "(mksnapshot only)")
 DEFINE_string(raw_context_file, NULL, "A file to write the raw context "
                                       "snapshot bytes to. (mksnapshot only)")
-DEFINE_string(startup_blob, NULL, "Write V8 startup blob file. "
-                                  "(mksnapshot only)")
+DEFINE_bool(omit, false, "Omit raw snapshot bytes in generated code. "
+                         "(mksnapshot only)")
 
 // code-stubs-hydrogen.cc
 DEFINE_bool(profile_hydrogen_code_stub_compilation, false,

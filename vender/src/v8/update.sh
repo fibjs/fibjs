@@ -5,8 +5,7 @@ V8_PATH=~/Downloads/source/js/v8
 WORK_PATH=`pwd`
 cd $V8_PATH
 
-svn revert -R .
-svn up
+git pull
 make ia32.release
 
 cd $WORK_PATH

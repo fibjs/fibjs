@@ -277,15 +277,11 @@ namespace internal {
   V(constructor_string, "constructor")                                   \
   V(dot_result_string, ".result")                                        \
   V(dot_for_string, ".for.")                                             \
-  V(dot_iterator_string, ".iterator")                                    \
-  V(dot_generator_object_string, ".generator_object")                    \
   V(eval_string, "eval")                                                 \
   V(empty_string, "")                                                    \
   V(function_string, "function")                                         \
   V(length_string, "length")                                             \
-  V(module_string, "module")                                             \
   V(name_string, "name")                                                 \
-  V(native_string, "native")                                             \
   V(null_string, "null")                                                 \
   V(number_string, "number")                                             \
   V(Number_string, "Number")                                             \
@@ -311,7 +307,6 @@ namespace internal {
   V(private_api_string, "private_api")                                   \
   V(private_intern_string, "private_intern")                             \
   V(Date_string, "Date")                                                 \
-  V(this_string, "this")                                                 \
   V(to_string_string, "toString")                                        \
   V(char_at_string, "CharAt")                                            \
   V(undefined_string, "undefined")                                       \
@@ -334,19 +329,13 @@ namespace internal {
   V(cell_value_string, "%cell_value")                                    \
   V(function_class_string, "Function")                                   \
   V(illegal_argument_string, "illegal argument")                         \
-  V(MakeReferenceError_string, "MakeReferenceError")                     \
-  V(MakeSyntaxError_string, "MakeSyntaxError")                           \
-  V(MakeTypeError_string, "MakeTypeError")                               \
-  V(unknown_label_string, "unknown_label")                               \
   V(space_string, " ")                                                   \
   V(exec_string, "exec")                                                 \
   V(zero_string, "0")                                                    \
   V(global_eval_string, "GlobalEval")                                    \
   V(identity_hash_string, "v8::IdentityHash")                            \
   V(closure_string, "(closure)")                                         \
-  V(use_strict_string, "use strict")                                     \
   V(dot_string, ".")                                                     \
-  V(anonymous_function_string, "(anonymous function)")                   \
   V(compare_ic_string, "==")                                             \
   V(strict_compare_ic_string, "===")                                     \
   V(infinity_string, "Infinity")                                         \
@@ -550,7 +539,7 @@ class Heap {
   bool ConfigureHeap(int max_semi_space_size,
                      int max_old_space_size,
                      int max_executable_size,
-                     int code_range_size);
+                     size_t code_range_size);
   bool ConfigureHeapDefault();
 
   // Prepares the heap, setting up memory areas that are needed in the isolate
@@ -1085,9 +1074,23 @@ class Heap {
       700 * kPointerMultiplier;
 
   intptr_t OldGenerationAllocationLimit(intptr_t old_gen_size) {
-    intptr_t limit = FLAG_stress_compaction
-        ? old_gen_size + old_gen_size / 10
-        : old_gen_size * old_space_growing_factor_;
+    intptr_t limit;
+    if (FLAG_stress_compaction) {
+      limit = old_gen_size + old_gen_size / 10;
+    } else if (old_gen_size < max_old_generation_size_ / 8) {
+      if (max_old_generation_size_ <= kMaxOldSpaceSizeMediumMemoryDevice) {
+        limit = old_gen_size * 2;
+      } else {
+        limit = old_gen_size * 4;
+      }
+    } else if (old_gen_size < max_old_generation_size_ / 4) {
+      limit = static_cast<intptr_t>(old_gen_size * 1.5);
+    } else if (old_gen_size < max_old_generation_size_ / 2) {
+      limit = static_cast<intptr_t>(old_gen_size * 1.2);
+    } else {
+      limit = static_cast<intptr_t>(old_gen_size * 1.1);
+    }
+
     limit = Max(limit, kMinimumOldGenerationAllocationLimit);
     limit += new_space_.Capacity();
     intptr_t halfway_to_the_max = (old_gen_size + max_old_generation_size_) / 2;
@@ -1504,18 +1507,13 @@ class Heap {
 
   Object* roots_[kRootListLength];
 
-  intptr_t code_range_size_;
+  size_t code_range_size_;
   int reserved_semispace_size_;
   int max_semi_space_size_;
   int initial_semispace_size_;
   intptr_t max_old_generation_size_;
   intptr_t max_executable_size_;
   intptr_t maximum_committed_;
-
-  // The old space growing factor is used in the old space heap growing
-  // strategy. The new old space size is the current old space size times
-  // old_space_growing_factor_.
-  int old_space_growing_factor_;
 
   // For keeping track of how much data has survived
   // scavenge since last new space expansion.
@@ -2404,6 +2402,9 @@ class KeyedLookupCache {
   static const int kMapHashShift = 5;
   static const int kHashMask = -4;  // Zero the last two bits.
   static const int kEntriesPerBucket = 4;
+  static const int kEntryLength = 2;
+  static const int kMapIndex = 0;
+  static const int kKeyIndex = 1;
   static const int kNotFound = -1;
 
   // kEntriesPerBucket should be a power of 2.

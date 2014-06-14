@@ -155,12 +155,12 @@ class TimezoneCache {
     // To properly resolve the resource identifier requires a library load,
     // which is not possible in a sandbox.
     if (std_tz_name_[0] == '\0' || std_tz_name_[0] == '@') {
-      OS::SNPrintF(Vector<char>(std_tz_name_, kTzNameSize - 1),
+      OS::SNPrintF(std_tz_name_, kTzNameSize - 1,
                    "%s Standard Time",
                    GuessTimezoneNameFromBias(tzinfo_.Bias));
     }
     if (dst_tz_name_[0] == '\0' || dst_tz_name_[0] == '@') {
-      OS::SNPrintF(Vector<char>(dst_tz_name_, kTzNameSize - 1),
+      OS::SNPrintF(dst_tz_name_, kTzNameSize - 1,
                    "%s Daylight Time",
                    GuessTimezoneNameFromBias(tzinfo_.Bias));
     }
@@ -555,9 +555,9 @@ static void VPrintHelper(FILE* stream, const char* format, va_list args) {
     // It is important to use safe print here in order to avoid
     // overflowing the buffer. We might truncate the output, but this
     // does not crash.
-    EmbeddedVector<char, 4096> buffer;
-    OS::VSNPrintF(buffer, format, args);
-    OutputDebugStringA(buffer.start());
+    char buffer[4096];
+    OS::VSNPrintF(buffer, sizeof(buffer), format, args);
+    OutputDebugStringA(buffer);
   } else {
     vfprintf(stream, format, args);
   }
@@ -642,22 +642,22 @@ void OS::VPrintError(const char* format, va_list args) {
 }
 
 
-int OS::SNPrintF(Vector<char> str, const char* format, ...) {
+int OS::SNPrintF(char* str, int length, const char* format, ...) {
   va_list args;
   va_start(args, format);
-  int result = VSNPrintF(str, format, args);
+  int result = VSNPrintF(str, length, format, args);
   va_end(args);
   return result;
 }
 
 
-int OS::VSNPrintF(Vector<char> str, const char* format, va_list args) {
-  int n = _vsnprintf_s(str.start(), str.length(), _TRUNCATE, format, args);
+int OS::VSNPrintF(char* str, int length, const char* format, va_list args) {
+  int n = _vsnprintf_s(str, length, _TRUNCATE, format, args);
   // Make sure to zero-terminate the string if the output was
   // truncated or if there was an error.
-  if (n < 0 || n >= str.length()) {
-    if (str.length() > 0)
-      str[str.length() - 1] = '\0';
+  if (n < 0 || n >= length) {
+    if (length > 0)
+      str[length - 1] = '\0';
     return -1;
   } else {
     return n;
@@ -670,12 +670,12 @@ char* OS::StrChr(char* str, int c) {
 }
 
 
-void OS::StrNCpy(Vector<char> dest, const char* src, size_t n) {
+void OS::StrNCpy(char* dest, int length, const char* src, size_t n) {
   // Use _TRUNCATE or strncpy_s crashes (by design) if buffer is too small.
-  size_t buffer_size = static_cast<size_t>(dest.length());
+  size_t buffer_size = static_cast<size_t>(length);
   if (n + 1 > buffer_size)  // count for trailing '\0'
     n = _TRUNCATE;
-  int result = strncpy_s(dest.start(), dest.length(), src, n);
+  int result = strncpy_s(dest, length, src, n);
   USE(result);
   ASSERT(result == 0 || (n == _TRUNCATE && result == STRUNCATE));
 }
@@ -770,10 +770,7 @@ void* OS::Allocate(const size_t requested,
                                         MEM_COMMIT | MEM_RESERVE,
                                         prot);
 
-  if (mbase == NULL) {
-    LOG(Isolate::Current(), StringEvent("OS::Allocate", "VirtualAlloc failed"));
-    return NULL;
-  }
+  if (mbase == NULL) return NULL;
 
   ASSERT(IsAligned(reinterpret_cast<size_t>(mbase), OS::AllocateAlignment()));
 
@@ -1067,10 +1064,13 @@ TLHELP32_FUNCTION_LIST(DLL_FUNC_LOADED)
 
 
 // Load the symbols for generating stack traces.
-static bool LoadSymbols(Isolate* isolate, HANDLE process_handle) {
+static std::vector<OS::SharedLibraryAddress> LoadSymbols(
+    HANDLE process_handle) {
+  static std::vector<OS::SharedLibraryAddress> result;
+
   static bool symbols_loaded = false;
 
-  if (symbols_loaded) return true;
+  if (symbols_loaded) return result;
 
   BOOL ok;
 
@@ -1078,7 +1078,7 @@ static bool LoadSymbols(Isolate* isolate, HANDLE process_handle) {
   ok = _SymInitialize(process_handle,  // hProcess
                       NULL,            // UserSearchPath
                       false);          // fInvadeProcess
-  if (!ok) return false;
+  if (!ok) return result;
 
   DWORD options = _SymGetOptions();
   options |= SYMOPT_LOAD_LINES;
@@ -1090,13 +1090,13 @@ static bool LoadSymbols(Isolate* isolate, HANDLE process_handle) {
   if (!ok) {
     int err = GetLastError();
     PrintF("%d\n", err);
-    return false;
+    return result;
   }
 
   HANDLE snapshot = _CreateToolhelp32Snapshot(
       TH32CS_SNAPMODULE,       // dwFlags
       GetCurrentProcessId());  // th32ProcessId
-  if (snapshot == INVALID_HANDLE_VALUE) return false;
+  if (snapshot == INVALID_HANDLE_VALUE) return result;
   MODULEENTRY32W module_entry;
   module_entry.dwSize = sizeof(module_entry);  // Set the size of the structure.
   BOOL cont = _Module32FirstW(snapshot, &module_entry);
@@ -1114,31 +1114,37 @@ static bool LoadSymbols(Isolate* isolate, HANDLE process_handle) {
     if (base == 0) {
       int err = GetLastError();
       if (err != ERROR_MOD_NOT_FOUND &&
-          err != ERROR_INVALID_HANDLE) return false;
+          err != ERROR_INVALID_HANDLE) {
+        result.clear();
+        return result;
+      }
     }
-    LOG(isolate,
-        SharedLibraryEvent(
-            module_entry.szExePath,
-            reinterpret_cast<unsigned int>(module_entry.modBaseAddr),
-            reinterpret_cast<unsigned int>(module_entry.modBaseAddr +
-                                           module_entry.modBaseSize)));
+    int lib_name_length = WideCharToMultiByte(
+        CP_UTF8, 0, module_entry.szExePath, -1, NULL, 0, NULL, NULL);
+    std::string lib_name(lib_name_length, 0);
+    WideCharToMultiByte(CP_UTF8, 0, module_entry.szExePath, -1, &lib_name[0],
+                        lib_name_length, NULL, NULL);
+    result.push_back(OS::SharedLibraryAddress(
+        lib_name, reinterpret_cast<unsigned int>(module_entry.modBaseAddr),
+        reinterpret_cast<unsigned int>(module_entry.modBaseAddr +
+                                       module_entry.modBaseSize)));
     cont = _Module32NextW(snapshot, &module_entry);
   }
   CloseHandle(snapshot);
 
   symbols_loaded = true;
-  return true;
+  return result;
 }
 
 
-void OS::LogSharedLibraryAddresses(Isolate* isolate) {
+std::vector<OS::SharedLibraryAddress> OS::GetSharedLibraryAddresses() {
   // SharedLibraryEvents are logged when loading symbol information.
   // Only the shared libraries loaded at the time of the call to
-  // LogSharedLibraryAddresses are logged.  DLLs loaded after
+  // GetSharedLibraryAddresses are logged.  DLLs loaded after
   // initialization are not accounted for.
-  if (!LoadDbgHelpAndTlHelp32()) return;
+  if (!LoadDbgHelpAndTlHelp32()) return std::vector<OS::SharedLibraryAddress>();
   HANDLE process_handle = GetCurrentProcess();
-  LoadSymbols(isolate, process_handle);
+  return LoadSymbols(process_handle);
 }
 
 
@@ -1159,14 +1165,13 @@ uint64_t OS::TotalPhysicalMemory() {
 
 
 #else  // __MINGW32__
-void OS::LogSharedLibraryAddresses(Isolate* isolate) { }
+std::vector<OS::SharedLibraryAddress> OS::GetSharedLibraryAddresses() {
+  return std::vector<OS::SharedLibraryAddress>();
+}
+
+
 void OS::SignalCodeMovingGC() { }
 #endif  // __MINGW32__
-
-
-unsigned OS::CpuFeaturesImpliedByPlatform() {
-  return 0;  // Windows runs on anything.
-}
 
 
 int OS::NumberOfProcessorsOnline() {
@@ -1343,7 +1348,7 @@ Thread::Thread(const Options& options)
 
 
 void Thread::set_name(const char* name) {
-  OS::StrNCpy(Vector<char>(name_, sizeof(name_)), name, strlen(name));
+  OS::StrNCpy(name_, sizeof(name_), name, strlen(name));
   name_[sizeof(name_) - 1] = '\0';
 }
 
