@@ -5,7 +5,7 @@
  *      Author: lion
  */
 
-#include "ifs/utils.h"
+#include "ifs/util.h"
 #include <v8/v8.h>
 #include <zlib.h>
 #include <sqlite3.h>
@@ -26,7 +26,7 @@ namespace fibjs
 
 static const char s_version[] = "0.1.0";
 
-result_t utils_base::buildInfo(v8::Local<v8::Object> &retVal)
+result_t util_base::buildInfo(v8::Local<v8::Object> &retVal)
 {
     retVal = v8::Object::New(isolate);
 

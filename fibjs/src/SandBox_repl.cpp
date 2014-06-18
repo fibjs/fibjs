@@ -9,7 +9,7 @@
 
 #include "ifs/process.h"
 #include "ifs/console.h"
-#include "ifs/utils.h"
+#include "ifs/util.h"
 
 namespace fibjs
 {
@@ -33,7 +33,7 @@ void repl_command(std::string &line)
     {
         v8::Local<v8::Object> o;
 
-        utils_base::buildInfo(o);
+        util_base::buildInfo(o);
         console_base::dir(o);
         return;
     }

@@ -4,8 +4,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _utils_base_H_
-#define _utils_base_H_
+#ifndef _util_base_H_
+#define _util_base_H_
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -21,13 +21,13 @@ class module_base;
 class Stats_base;
 class LruCache_base;
 
-class utils_base : public module_base
+class util_base : public module_base
 {
 public:
-	// utils_base
+	// util_base
 	static result_t buildInfo(v8::Local<v8::Object>& retVal);
 
-	DECLARE_CLASSINFO(utils_base);
+	DECLARE_CLASSINFO(util_base);
 
 public:
 	static void s_buildInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -40,7 +40,7 @@ public:
 
 namespace fibjs
 {
-	inline ClassInfo& utils_base::class_info()
+	inline ClassInfo& util_base::class_info()
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
@@ -55,7 +55,7 @@ namespace fibjs
 
 		static ClassData s_cd = 
 		{ 
-			"utils", NULL, 
+			"util", NULL, 
 			1, s_method, 2, s_object, 0, NULL, NULL, NULL,
 			&module_base::class_info()
 		};
@@ -65,7 +65,7 @@ namespace fibjs
 	}
 
 
-	inline void utils_base::s_buildInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
+	inline void util_base::s_buildInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Local<v8::Object> vr;
 

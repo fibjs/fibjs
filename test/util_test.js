@@ -1,22 +1,22 @@
 var test = require("test");
 test.setup();
 
-var utils = require('utils');
+var util = require('util');
 var coroutine = require('coroutine');
 
-describe('utils', function() {
+describe('util', function() {
 	describe('Stats', function() {
 		var s;
 
 		it("new", function() {
-			s = new utils.Stats(['a'], ['b', 'c']);
+			s = new util.Stats(['a'], ['b', 'c']);
 			assert.deepEqual(s.toJSON(), {
 				"a": 0,
 				"b": 0,
 				"c": 0
 			});
 
-			var s1 = new utils.Stats(['a', 'b', 'c']);
+			var s1 = new util.Stats(['a', 'b', 'c']);
 			assert.deepEqual(s1.toJSON(), {
 				"a": 0,
 				"b": 0,
@@ -24,7 +24,7 @@ describe('utils', function() {
 			});
 
 			assert.throws(function() {
-				var s = new utils.Stats();
+				var s = new util.Stats();
 			});
 		});
 
@@ -91,7 +91,7 @@ describe('utils', function() {
 		}
 
 		it("new", function() {
-			c = new utils.LruCache(3, 100);
+			c = new util.LruCache(3, 100);
 			deepEqual(c.toJSON(), {});
 		});
 

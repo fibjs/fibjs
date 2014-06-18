@@ -1,6 +1,6 @@
 
 /*! @brief 常用工具模块 */
-class utils : module
+class util : module
 {
 	/*! @brief 数据统计对象，用以构建应用运行时数据收集，参见 Stats 对象。*/
 	static Stats new Stats();

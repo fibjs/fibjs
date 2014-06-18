@@ -41,7 +41,7 @@
 
 #include "ifs/rpc.h"
 
-#include "ifs/utils.h"
+#include "ifs/util.h"
 
 namespace fibjs
 {
@@ -84,7 +84,7 @@ void SandBox::initRoot()
 
     InstallNativeModule("gd", gd_base::class_info());
 
-    InstallNativeModule("utils", utils_base::class_info());
+    InstallNativeModule("util", util_base::class_info());
 }
 
 }
