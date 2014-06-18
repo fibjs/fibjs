@@ -22,7 +22,7 @@ class PKey: object
     */
     readonly PKey publicKey;
 
-    /*! @brief 生成一个 RSA 私钥 
+    /*! @brief 生成一个 RSA 私钥
      @param size 指定 RSA 密钥长度，bit 为单位
     */
     genRsaKey(Integer size) async;

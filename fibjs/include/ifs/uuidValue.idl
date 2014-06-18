@@ -9,13 +9,13 @@
  */
 class uuidValue : object
 {
-	/*! @brief 返回 uuid 的二进制数据
-	 @return 返回数据
-	 */
-	Buffer data();
+    /*! @brief 返回 uuid 的二进制数据
+     @return 返回数据
+     */
+    Buffer data();
 
-	/*! @brief 返回 uuid 的详细描述
-	 @return 返回包含描述的字符串
-	 */
-	String detail();
+    /*! @brief 返回 uuid 的详细描述
+     @return 返回包含描述的字符串
+     */
+    String detail();
 };

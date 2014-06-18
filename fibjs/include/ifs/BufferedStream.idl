@@ -8,60 +8,60 @@
  */
 class BufferedStream : Stream
 {
-	/*! @brief BufferedStream 构造函数
-	  @param stm BufferedStream 的二进制基础流对象
-	 */
-	BufferedStream(Stream stm);
+    /*! @brief BufferedStream 构造函数
+      @param stm BufferedStream 的二进制基础流对象
+     */
+    BufferedStream(Stream stm);
 
-	/*! @brief 读取指定字符的文本
-	 @param size 指定读取的文本字符个数，以 utf8 编码字节数为准
-	 @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
-	 */
-	String readText(Integer size) async;
+    /*! @brief 读取指定字符的文本
+     @param size 指定读取的文本字符个数，以 utf8 编码字节数为准
+     @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     */
+    String readText(Integer size) async;
 
-	/*! @brief 读取一行文本，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
-	 @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
-	 @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
-	 */
-	String readLine(Integer maxlen = -1) async;
+    /*! @brief 读取一行文本，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
+     @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
+     @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     */
+    String readLine(Integer maxlen = -1) async;
 
-	/*! @brief 以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
-	 @param maxlines 指定此次读取的最大行数，缺省读取全部文本行
-	 @return 返回读取的文本行数组，若无数据可读，或者连接中断，空数组
-	 */
-	Array readLines(Integer maxlines = -1);
+    /*! @brief 以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
+     @param maxlines 指定此次读取的最大行数，缺省读取全部文本行
+     @return 返回读取的文本行数组，若无数据可读，或者连接中断，空数组
+     */
+    Array readLines(Integer maxlines = -1);
 
-	/*! @brief 读取一个文本字符串，以指定的字节为结尾
-	 @param mk 指定结尾的字符串
-	 @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
-	 @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
-	 */
-	String readUntil(String mk, Integer maxlen = -1) async;
+    /*! @brief 读取一个文本字符串，以指定的字节为结尾
+     @param mk 指定结尾的字符串
+     @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
+     @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     */
+    String readUntil(String mk, Integer maxlen = -1) async;
 
-	/*! @brief 读取一个二进制数据包
-	 @param limit 指定此次读取的最大字节数，超出则抛出错误
-	 @return 返回读取的二进制数据块，若无数据可读，或者连接中断，则返回 null
-	 */
-	Buffer readPacket(Integer limit = -1) async;
+    /*! @brief 读取一个二进制数据包
+     @param limit 指定此次读取的最大字节数，超出则抛出错误
+     @return 返回读取的二进制数据块，若无数据可读，或者连接中断，则返回 null
+     */
+    Buffer readPacket(Integer limit = -1) async;
 
-	/*! @brief 写入一个字符串
-	 @param txt 指定写入的字符串
-	 */
-	writeText(String txt) async;
+    /*! @brief 写入一个字符串
+     @param txt 指定写入的字符串
+     */
+    writeText(String txt) async;
 
-	/*! @brief 写入一个字符串，并写入换行符
-	 @param txt 指定写入的字符串
-	 */
-	writeLine(String txt) async;
+    /*! @brief 写入一个字符串，并写入换行符
+     @param txt 指定写入的字符串
+     */
+    writeLine(String txt) async;
 
-	/*! @brief 写入一个二进制数据包
-	 @param data 指定写入的二进制数据
-	 */
-	writePacket(Buffer data) async;
+    /*! @brief 写入一个二进制数据包
+     @param data 指定写入的二进制数据
+     */
+    writePacket(Buffer data) async;
 
-	/*! @brief 查询创建缓存对象时的流对象 */
-	readonly Stream stream;
+    /*! @brief 查询创建缓存对象时的流对象 */
+    readonly Stream stream;
 
-	/*! @brief 查询和设置行结尾标识，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"	 */
-	String EOL;
+    /*! @brief 查询和设置行结尾标识，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"   */
+    String EOL;
 };

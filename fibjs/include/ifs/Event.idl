@@ -3,14 +3,14 @@
  */
 class Event : Lock
 {
-	Event(Boolean value = false);
+    Event(Boolean value = false);
 
-	Boolean isSet();
+    Boolean isSet();
 
-	set();
-	pulse();
+    set();
+    pulse();
 
-	clear();
+    clear();
 
-	wait();
+    wait();
 };

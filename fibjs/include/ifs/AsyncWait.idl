@@ -3,6 +3,6 @@
  */
 class AsyncWait: Handler
 {
-	/*! @brief 结束等待，继续处理消息 */
-	end();
+    /*! @brief 结束等待，继续处理消息 */
+    end();
 };

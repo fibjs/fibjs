@@ -2,12 +2,12 @@
 /*! @brief 数据库结果集合对象 */
 class DBResult : List
 {
-	/*! @brief 查询当前操作插入数据库的 rowid */
-	readonly Long insertId;
+    /*! @brief 查询当前操作插入数据库的 rowid */
+    readonly Long insertId;
 
-	/*! @brief 查询当前操作影响的数据库条目数 */
-	readonly Long affected;
+    /*! @brief 查询当前操作影响的数据库条目数 */
+    readonly Long affected;
 
-	/*! @brief 查询当前结果的字段名数组 */
-	readonly Array fields;
+    /*! @brief 查询当前结果的字段名数组 */
+    readonly Array fields;
 };

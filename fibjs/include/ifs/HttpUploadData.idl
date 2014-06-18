@@ -2,15 +2,15 @@
 /*! @brief 包含 multipart 的一个条目数据 */
 class HttpUploadData : object
 {
-	/*! @brief 包含本条目数据的文件名 */
-	readonly String fileName;
+    /*! @brief 包含本条目数据的文件名 */
+    readonly String fileName;
 
-	/*! @brief 包含本条目数据的类型 */
-	readonly String contentType;
+    /*! @brief 包含本条目数据的类型 */
+    readonly String contentType;
 
-	/*! @brief 包含本条目数据的传输编码类型 */
-	readonly String contentTransferEncoding;
+    /*! @brief 包含本条目数据的传输编码类型 */
+    readonly String contentTransferEncoding;
 
-	/*! @brief 包含本条目数据部分的流对象 */
-	readonly SeekableStream body;
+    /*! @brief 包含本条目数据部分的流对象 */
+    readonly SeekableStream body;
 };

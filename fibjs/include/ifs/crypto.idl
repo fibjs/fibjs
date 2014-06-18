@@ -8,25 +8,25 @@
  */
 class crypto : module
 {
-	/*! @brief 指定对称加密算法 AES，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM */
+    /*! @brief 指定对称加密算法 AES，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM */
     const Integer AES = 1;
 
-	/*! @brief 指定对称加密算法 CAMELLIA，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM */
+    /*! @brief 指定对称加密算法 CAMELLIA，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM */
     const Integer CAMELLIA = 2;
 
-	/*! @brief 指定对称加密算法 DES，支持 64 位 key，分组密码工作模式支持 ECB, CBC */
+    /*! @brief 指定对称加密算法 DES，支持 64 位 key，分组密码工作模式支持 ECB, CBC */
     const Integer DES = 3;
 
-	/*! @brief 指定对称加密算法 DES-EDE，支持 128 位 key，分组密码工作模式支持 ECB, CBC */
+    /*! @brief 指定对称加密算法 DES-EDE，支持 128 位 key，分组密码工作模式支持 ECB, CBC */
     const Integer DES_EDE = 4;
 
-	/*! @brief 指定对称加密算法 DES-EDE3，支持 192 位 key，分组密码工作模式支持 ECB, CBC */
+    /*! @brief 指定对称加密算法 DES-EDE3，支持 192 位 key，分组密码工作模式支持 ECB, CBC */
     const Integer DES_EDE3 = 5;
 
-	/*! @brief 指定对称加密算法 BLOWFISH，支持 192 位 key，分组密码工作模式支持 ECB, CBC, CFB64, CTR */
+    /*! @brief 指定对称加密算法 BLOWFISH，支持 192 位 key，分组密码工作模式支持 ECB, CBC, CFB64, CTR */
     const Integer BLOWFISH = 6;
 
-	/*! @brief 指定对称加密算法 ARC4，支持 40, 56, 64, 128 位 key */
+    /*! @brief 指定对称加密算法 ARC4，支持 40, 56, 64, 128 位 key */
     const Integer ARC4 = 7;
 
     /*! @brief 指定流密码模式 */
@@ -83,16 +83,16 @@ class crypto : module
     /*! @brief X509Req 构造函数，参见 X509Req */
     static X509Req new X509Req();
 
-	/*! @brief 生成指定尺寸的随机数，使用 havege 生成器
-	 @param size 指定生成的随机数尺寸
-	 @return 返回生成的随机数
-	 */
+    /*! @brief 生成指定尺寸的随机数，使用 havege 生成器
+     @param size 指定生成的随机数尺寸
+     @return 返回生成的随机数
+     */
     static Buffer randomBytes(Integer size) async;
 
-	/*! @brief 生成指定尺寸的伪随机数，使用 entropy 生成器
-	 @param size 指定生成的随机数尺寸
-	 @return 返回生成的随机数
-	 */
+    /*! @brief 生成指定尺寸的伪随机数，使用 entropy 生成器
+     @param size 指定生成的随机数尺寸
+     @return 返回生成的随机数
+     */
     static Buffer pseudoRandomBytes(Integer size) async;
 
     /*! @brief 生成给定数据的可视化字符图像

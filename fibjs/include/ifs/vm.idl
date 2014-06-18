@@ -20,8 +20,8 @@ class vm : module
     /*! @brief 创建一个 SandBox 对象，参见 SandBox */
     static SandBox new SandBox();
 
-	/*! @brief 获取当前安全沙箱对象
-	 @return 返回当前安全沙箱对象
-	 */
-	static SandBox current();
+    /*! @brief 获取当前安全沙箱对象
+     @return 返回当前安全沙箱对象
+     */
+    static SandBox current();
 };

@@ -2,38 +2,38 @@
 /*! @brief 常用工具模块 */
 class util : module
 {
-	/*! @brief 数据统计对象，用以构建应用运行时数据收集，参见 Stats 对象。*/
-	static Stats new Stats();
-	
-	/*! @brief LRU(least recently used) 缓存对象，参见 LruCache 对象。*/
-	static LruCache new LruCache();
-	
-	/*! @brief 查询当前引擎及各组件版本信息
-	 
-	 @return 返回结构如下：
-	 @code
-	 {
-	   "fibjs": "0.1.0",
-	   "svn": 1753,
-	   "build": "Dec 10 2013 21:44:17",
-	   "vender": {
-	     "ev": "4.11",
-	     "exif": "0.6.21",
-	     "gd": "2.1.0-alpha",
-	     "jpeg": "8.3",
-	     "log4cpp": "1.0",
-	     "mongo": "0.7",
-	     "pcre": "8.21",
-	     "png": "1.5.4",
-	     "sqlite": "3.8.1",
-	     "tiff": "3.9.5",
-	     "uuid": "1.6.2",
-	     "v8": "3.23.17 (candidate)",
-	     "zlib": "1.2.7",
-	     "zmq": "3.1"
-	   }
-	 }
-	 @endcode
-	 */
-	static Object buildInfo();
+    /*! @brief 数据统计对象，用以构建应用运行时数据收集，参见 Stats 对象。*/
+    static Stats new Stats();
+
+    /*! @brief LRU(least recently used) 缓存对象，参见 LruCache 对象。*/
+    static LruCache new LruCache();
+
+    /*! @brief 查询当前引擎及各组件版本信息
+
+     @return 返回结构如下：
+     @code
+     {
+       "fibjs": "0.1.0",
+       "svn": 1753,
+       "build": "Dec 10 2013 21:44:17",
+       "vender": {
+         "ev": "4.11",
+         "exif": "0.6.21",
+         "gd": "2.1.0-alpha",
+         "jpeg": "8.3",
+         "log4cpp": "1.0",
+         "mongo": "0.7",
+         "pcre": "8.21",
+         "png": "1.5.4",
+         "sqlite": "3.8.1",
+         "tiff": "3.9.5",
+         "uuid": "1.6.2",
+         "v8": "3.23.17 (candidate)",
+         "zlib": "1.2.7",
+         "zmq": "3.1"
+       }
+     }
+     @endcode
+     */
+    static Object buildInfo();
 };

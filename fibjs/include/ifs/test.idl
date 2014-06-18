@@ -8,79 +8,79 @@
  */
 class test : module
 {
-	/*! @brief 定义 BDD(Behavior Drive Development) 测试环境，支持 describe, xdescribe, it, xit, before, after, beforeEach 和 afterEach，同时初始化 assert 和expect
-	 */
-	const Integer BDD = 0;
+    /*! @brief 定义 BDD(Behavior Drive Development) 测试环境，支持 describe, xdescribe, it, xit, before, after, beforeEach 和 afterEach，同时初始化 assert 和expect
+     */
+    const Integer BDD = 0;
 
-	/*! @brief 定义 TDD(Test Drive Development) 测试环境，支持 suite, xsuite, test, xtest, setup, teardown, suiteSetup 和 suiteTeardown，同时初始化 assert 和expect
-	 */
-	const Integer TDD = 1;
-	
-	/*! @brief 定义一个测试模块，可嵌套定义
-	 @param name 定义模块名称
-	 @param block 模块初始化代码
-	 */
-	static describe(String name, Function block);
+    /*! @brief 定义 TDD(Test Drive Development) 测试环境，支持 suite, xsuite, test, xtest, setup, teardown, suiteSetup 和 suiteTeardown，同时初始化 assert 和expect
+     */
+    const Integer TDD = 1;
 
-	/*! @brief 停止测试的模块定义
-	 @param name 定义模块名称
-	 @param block 模块初始化代码
-	 */
-	static xdescribe(String name, Function block);
+    /*! @brief 定义一个测试模块，可嵌套定义
+     @param name 定义模块名称
+     @param block 模块初始化代码
+     */
+    static describe(String name, Function block);
 
-	/*! @brief 定义一个测试项目
-	 @param name 定义项目名称
-	 @param block 测试内容
-	 */
-	static it(String name, Function block);
+    /*! @brief 停止测试的模块定义
+     @param name 定义模块名称
+     @param block 模块初始化代码
+     */
+    static xdescribe(String name, Function block);
 
-	/*! @brief 禁止测试的项目定义
-	 @param name 定义项目名称
-	 @param block 测试内容
-	 */
-	static xit(String name, Function block);
+    /*! @brief 定义一个测试项目
+     @param name 定义项目名称
+     @param block 测试内容
+     */
+    static it(String name, Function block);
 
-	/*! @brief 定义当前测试模块进入事件
-	 @param func 事件函数
-	 */
-	static before(Function func);
+    /*! @brief 禁止测试的项目定义
+     @param name 定义项目名称
+     @param block 测试内容
+     */
+    static xit(String name, Function block);
 
-	/*! @brief 定义当前测试模块退出事件
-	 @param func 事件函数
-	 */
-	static after(Function func);
+    /*! @brief 定义当前测试模块进入事件
+     @param func 事件函数
+     */
+    static before(Function func);
 
-	/*! @brief 定义当前测试模块测试项目进入事件
-	 @param func 事件函数
-	 */
-	static beforeEach(Function func);
+    /*! @brief 定义当前测试模块退出事件
+     @param func 事件函数
+     */
+    static after(Function func);
 
-	/*! @brief 定义当前测试模块测试项目退出事件
-	 @param func 事件函数
-	 */
-	static afterEach(Function func);
+    /*! @brief 定义当前测试模块测试项目进入事件
+     @param func 事件函数
+     */
+    static beforeEach(Function func);
 
-	/*! @brief 开始执行定义的测试模块
-	 @param loglevel 指定进行测试时的日志输出级别，ERROR 时，项目报错信息集中在报告后显示，低于 ERROR 时，输出信息随时显示，高于 ERROR 时，只显示报告
-	 */
-	static run(Integer loglevel = console.ERROR);
-	
-	/*! @brief 断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出 */
-	static readonly assert assert;
+    /*! @brief 定义当前测试模块测试项目退出事件
+     @param func 事件函数
+     */
+    static afterEach(Function func);
 
-	/*! @brief expect 语法测试引擎
-	 @param actual 指定要测试的数值
-	 @param msg 断言失败时的提示信息
-	 @return 返回 Expect 对象用以链式调用
-	 */
-	static Expect expect(Value actual, String msg = "");
-	
-	/*! @brief 初始化当前脚本的测试环境，将 test 模块方法复制为当前脚本全局变量
-	 @param mode 指定初始化的模式，缺省为 BDD
-	 */
-	static setup(Integer mode = BDD);
-	
-	/*! @brief 设置和查询慢速测试警告阀值，以 ms 为单位，缺省为 75
-	 */
-	static Integer slow;
+    /*! @brief 开始执行定义的测试模块
+     @param loglevel 指定进行测试时的日志输出级别，ERROR 时，项目报错信息集中在报告后显示，低于 ERROR 时，输出信息随时显示，高于 ERROR 时，只显示报告
+     */
+    static run(Integer loglevel = console.ERROR);
+
+    /*! @brief 断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出 */
+    static readonly assert assert;
+
+    /*! @brief expect 语法测试引擎
+     @param actual 指定要测试的数值
+     @param msg 断言失败时的提示信息
+     @return 返回 Expect 对象用以链式调用
+     */
+    static Expect expect(Value actual, String msg = "");
+
+    /*! @brief 初始化当前脚本的测试环境，将 test 模块方法复制为当前脚本全局变量
+     @param mode 指定初始化的模式，缺省为 BDD
+     */
+    static setup(Integer mode = BDD);
+
+    /*! @brief 设置和查询慢速测试警告阀值，以 ms 为单位，缺省为 75
+     */
+    static Integer slow;
 };

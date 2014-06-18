@@ -1,55 +1,55 @@
 
 /*! @brief Smtp对象
- 
+
  */
 class Smtp : object
 {
-	/*! @brief Smtp 对象构造函数 */
-	Smtp();
+    /*! @brief Smtp 对象构造函数 */
+    Smtp();
 
-	/*! @brief 建立到指定的服务器
-	 @param host 指定对方地址或主机名
-	 @param port 指定对方端口
-	 @param family 指定地址集，缺省为 AF_INET，ipv4
-	 */
-	connect(String host, Integer port, Integer family = net.AF_INET) async;
-	
-	/*! @brief 发送指定命令，并返回响应，服务器报错则抛出错误
-	 @param cmd 命令名
-	 @param arg 参数
-	 @return 如果成功，返回服务器响应
-	 */
-	String command(String cmd, String arg) async;
-	
-	/*! @brief 发送 HELO 命令，服务器报错则抛出错误
-	 @param hostname 主机名，缺省为“localhost”
-	 */
-	hello(String hostname = "localhost") async;
-	
-	/*! @brief 用指定的用户及密码登录服务器，服务器报错则抛出错误
-	 @param username 用户名
-	 @param password 密码
-	 */
-	login(String username, String password) async;
+    /*! @brief 建立到指定的服务器
+     @param host 指定对方地址或主机名
+     @param port 指定对方端口
+     @param family 指定地址集，缺省为 AF_INET，ipv4
+     */
+    connect(String host, Integer port, Integer family = net.AF_INET) async;
 
-	/*! @brief 指定发件人信箱，服务器报错则抛出错误
-	 @param address 发件人信箱
-	 */
-	from(String address) async;
+    /*! @brief 发送指定命令，并返回响应，服务器报错则抛出错误
+     @param cmd 命令名
+     @param arg 参数
+     @return 如果成功，返回服务器响应
+     */
+    String command(String cmd, String arg) async;
 
-	/*! @brief 指定收件人信箱，服务器报错则抛出错误
-	 @param address 收件人信箱
-	 */
-	to(String address) async;
+    /*! @brief 发送 HELO 命令，服务器报错则抛出错误
+     @param hostname 主机名，缺省为“localhost”
+     */
+    hello(String hostname = "localhost") async;
 
-	/*! @brief 发送文本到收件人，服务器报错则抛出错误
-	 @param txt 要发送的文本
-	 */
-	data(String txt) async;
-	
-	/*! @brief 退出并关闭连接，服务器报错则抛出错误 */
-	quit() async;
-	
-	/*! @brief 查询 Smtp 对象当前连接的 Socket */
-	readonly Socket socket;
+    /*! @brief 用指定的用户及密码登录服务器，服务器报错则抛出错误
+     @param username 用户名
+     @param password 密码
+     */
+    login(String username, String password) async;
+
+    /*! @brief 指定发件人信箱，服务器报错则抛出错误
+     @param address 发件人信箱
+     */
+    from(String address) async;
+
+    /*! @brief 指定收件人信箱，服务器报错则抛出错误
+     @param address 收件人信箱
+     */
+    to(String address) async;
+
+    /*! @brief 发送文本到收件人，服务器报错则抛出错误
+     @param txt 要发送的文本
+     */
+    data(String txt) async;
+
+    /*! @brief 退出并关闭连接，服务器报错则抛出错误 */
+    quit() async;
+
+    /*! @brief 查询 Smtp 对象当前连接的 Socket */
+    readonly Socket socket;
 };

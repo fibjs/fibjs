@@ -9,430 +9,430 @@
  */
 class Image : object
 {
-	/*! @brief 查询图像宽度 */
-	readonly Integer width;
+    /*! @brief 查询图像宽度 */
+    readonly Integer width;
 
-	/*! @brief 查询图像高度 */
-	readonly Integer height;
+    /*! @brief 查询图像高度 */
+    readonly Integer height;
 
-	/*! @brief 查询图像来源格式，结果为 gd.PNG, gd.JPEG, gd.GIF, gd.BMP, gd.GD, gd.GD2 */
-	readonly Integer format;
+    /*! @brief 查询图像来源格式，结果为 gd.PNG, gd.JPEG, gd.GIF, gd.BMP, gd.GD, gd.GD2 */
+    readonly Integer format;
 
-	/*! @brief 查询图像类型，结果为 gd.TRUECOLOR, gd.PALETTE */
-	readonly Integer type;
+    /*! @brief 查询图像类型，结果为 gd.TRUECOLOR, gd.PALETTE */
+    readonly Integer type;
 
-	/*! @brief 查询图像颜色表内的颜色总数 */
-	readonly Integer colorsTotal;
+    /*! @brief 查询图像颜色表内的颜色总数 */
+    readonly Integer colorsTotal;
 
-	/*! @brief查询和设定指定的颜色为透明色 */
-	Integer transparent;
+    /*! @brief查询和设定指定的颜色为透明色 */
+    Integer transparent;
 
-	/*! @brief查询和设定绘图时是否计算 alpha 层，缺省为 true */
-	Boolean alphaBlending;
+    /*! @brief查询和设定绘图时是否计算 alpha 层，缺省为 true */
+    Boolean alphaBlending;
 
-	/*! @brief 按照指定的格式返回图像数据
-	 @param format 指定返回数据的格式，允许值为 gd.PNG, gd.JPEG, gd.GIF, gd.BMP, gd.GD, gd.GD2, 缺省为 gd.PNG
-	 @param quality 当格式为 gd.JPEG 时用于指定压缩质量，缺省为 85，其他格式忽略此参数
-	 @return 返回格式化的数据
-	 */
-	Buffer getData(Integer format = gd.PNG, Integer quality = 85) async;
+    /*! @brief 按照指定的格式返回图像数据
+     @param format 指定返回数据的格式，允许值为 gd.PNG, gd.JPEG, gd.GIF, gd.BMP, gd.GD, gd.GD2, 缺省为 gd.PNG
+     @param quality 当格式为 gd.JPEG 时用于指定压缩质量，缺省为 85，其他格式忽略此参数
+     @return 返回格式化的数据
+     */
+    Buffer getData(Integer format = gd.PNG, Integer quality = 85) async;
 
-	/*! @brief 按照指定的格式将图像数据存入流对象
-	 @param stm 指定要存入的流对象
-	 @param format 指定返回数据的格式，允许值为 gd.PNG, gd.JPEG, gd.GIF, gd.BMP, gd.GD, gd.GD2, 缺省为 gd.PNG
-	 @param quality 当格式为 gd.JPEG 时用于指定压缩质量，缺省为 85，其他格式忽略此参数
-	 */
-	save(Stream stm, Integer format = gd.PNG, Integer quality = 85) async;
+    /*! @brief 按照指定的格式将图像数据存入流对象
+     @param stm 指定要存入的流对象
+     @param format 指定返回数据的格式，允许值为 gd.PNG, gd.JPEG, gd.GIF, gd.BMP, gd.GD, gd.GD2, 缺省为 gd.PNG
+     @param quality 当格式为 gd.JPEG 时用于指定压缩质量，缺省为 85，其他格式忽略此参数
+     */
+    save(Stream stm, Integer format = gd.PNG, Integer quality = 85) async;
 
-	/*! @brief 按照指定的格式将图像数据存入指定文件，文件将被强制覆盖
-	 @param fname 指定文件名
-	 @param format 指定返回数据的格式，允许值为 gd.PNG, gd.JPEG, gd.GIF, gd.BMP, gd.GD, gd.GD2, 缺省为 gd.PNG
-	 @param quality 当格式为 gd.JPEG 时用于指定压缩质量，缺省为 85，其他格式忽略此参数
-	 */
-	save(String fname, Integer format = gd.PNG, Integer quality = 85) async;
+    /*! @brief 按照指定的格式将图像数据存入指定文件，文件将被强制覆盖
+     @param fname 指定文件名
+     @param format 指定返回数据的格式，允许值为 gd.PNG, gd.JPEG, gd.GIF, gd.BMP, gd.GD, gd.GD2, 缺省为 gd.PNG
+     @param quality 当格式为 gd.JPEG 时用于指定压缩质量，缺省为 85，其他格式忽略此参数
+     */
+    save(String fname, Integer format = gd.PNG, Integer quality = 85) async;
 
-	/*! @brief 为指定的颜色申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
-	 @param red 红色分量，范围为 0-255
-	 @param green 绿色分量，范围为 0-255
-	 @param blue 蓝色分量，范围为 0-255
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorAllocate(Integer red, Integer green, Integer blue);
+    /*! @brief 为指定的颜色申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+     @param red 红色分量，范围为 0-255
+     @param green 绿色分量，范围为 0-255
+     @param blue 蓝色分量，范围为 0-255
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorAllocate(Integer red, Integer green, Integer blue);
 
-	/*! @brief 为指定的颜色申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
-	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorAllocate(Integer color);
+    /*! @brief 为指定的颜色申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+     @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorAllocate(Integer color);
 
-	/*! @brief 为指定的颜色及透明申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
-	 @param red 红色分量，范围为 0-255
-	 @param green 绿色分量，范围为 0-255
-	 @param blue 蓝色分量，范围为 0-255
-	 @param alpha 透明分量，范围为 0-1.0
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorAllocateAlpha(Integer red, Integer green, Integer blue, Number alpha);
+    /*! @brief 为指定的颜色及透明申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
+     @param red 红色分量，范围为 0-255
+     @param green 绿色分量，范围为 0-255
+     @param blue 蓝色分量，范围为 0-255
+     @param alpha 透明分量，范围为 0-1.0
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorAllocateAlpha(Integer red, Integer green, Integer blue, Number alpha);
 
-	/*! @brief 为指定的颜色及透明申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
-	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorAllocateAlpha(Integer color);
+    /*! @brief 为指定的颜色及透明申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
+     @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorAllocateAlpha(Integer color);
 
-	/*! @brief 为指定的颜色查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
-	 @param red 红色分量，范围为 0-255
-	 @param green 绿色分量，范围为 0-255
-	 @param blue 蓝色分量，范围为 0-255
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorClosest(Integer red, Integer green, Integer blue);
+    /*! @brief 为指定的颜色查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+     @param red 红色分量，范围为 0-255
+     @param green 绿色分量，范围为 0-255
+     @param blue 蓝色分量，范围为 0-255
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorClosest(Integer red, Integer green, Integer blue);
 
-	/*! @brief 为指定的颜色查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
-	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorClosest(Integer color);
+    /*! @brief 为指定的颜色查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+     @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorClosest(Integer color);
 
-	/*! @brief 为指定的颜色查找一个最接近的颜色号，此方法使用 Hue/White/Black 计算查找最接近颜色，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
-	 @param red 红色分量，范围为 0-255
-	 @param green 绿色分量，范围为 0-255
-	 @param blue 蓝色分量，范围为 0-255
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorClosestHWB(Integer red, Integer green, Integer blue);
+    /*! @brief 为指定的颜色查找一个最接近的颜色号，此方法使用 Hue/White/Black 计算查找最接近颜色，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+     @param red 红色分量，范围为 0-255
+     @param green 绿色分量，范围为 0-255
+     @param blue 蓝色分量，范围为 0-255
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorClosestHWB(Integer red, Integer green, Integer blue);
 
-	/*! @brief 为指定的颜色查找一个最接近的颜色号，此方法使用 Hue/White/Black 计算查找最接近颜色，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
-	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorClosestHWB(Integer color);
+    /*! @brief 为指定的颜色查找一个最接近的颜色号，此方法使用 Hue/White/Black 计算查找最接近颜色，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+     @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorClosestHWB(Integer color);
 
-	/*! @brief 为指定的颜色及透明查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
-	 @param red 红色分量，范围为 0-255
-	 @param green 绿色分量，范围为 0-255
-	 @param blue 蓝色分量，范围为 0-255
-	 @param alpha 透明分量，范围为 0-1.0
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorClosestAlpha(Integer red, Integer green, Integer blue, Number alpha);
+    /*! @brief 为指定的颜色及透明查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
+     @param red 红色分量，范围为 0-255
+     @param green 绿色分量，范围为 0-255
+     @param blue 蓝色分量，范围为 0-255
+     @param alpha 透明分量，范围为 0-1.0
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorClosestAlpha(Integer red, Integer green, Integer blue, Number alpha);
 
-	/*! @brief 为指定的颜色及透明查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
-	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorClosestAlpha(Integer color);
+    /*! @brief 为指定的颜色及透明查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
+     @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorClosestAlpha(Integer color);
 
-	/*! @brief 查找指定的颜色对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
-	 @param red 红色分量，范围为 0-255
-	 @param green 绿色分量，范围为 0-255
-	 @param blue 蓝色分量，范围为 0-255
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorExact(Integer red, Integer green, Integer blue);
+    /*! @brief 查找指定的颜色对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+     @param red 红色分量，范围为 0-255
+     @param green 绿色分量，范围为 0-255
+     @param blue 蓝色分量，范围为 0-255
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorExact(Integer red, Integer green, Integer blue);
 
-	/*! @brief 查找指定的颜色对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
-	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorExact(Integer color);
+    /*! @brief 查找指定的颜色对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+     @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorExact(Integer color);
 
-	/*! @brief 查找指定的颜色及透明对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
-	 @param red 红色分量，范围为 0-255
-	 @param green 绿色分量，范围为 0-255
-	 @param blue 蓝色分量，范围为 0-255
-	 @param alpha 透明分量，范围为 0-1.0
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorExactAlpha(Integer red, Integer green, Integer blue, Number alpha);
+    /*! @brief 查找指定的颜色及透明对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
+     @param red 红色分量，范围为 0-255
+     @param green 绿色分量，范围为 0-255
+     @param blue 蓝色分量，范围为 0-255
+     @param alpha 透明分量，范围为 0-1.0
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorExactAlpha(Integer red, Integer green, Integer blue, Number alpha);
 
-	/*! @brief 查找指定的颜色及透明对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
-	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorExactAlpha(Integer color);
+    /*! @brief 查找指定的颜色及透明对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
+     @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorExactAlpha(Integer color);
 
-	/*! @brief 查找指定的颜色对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
-	 @param red 红色分量，范围为 0-255
-	 @param green 绿色分量，范围为 0-255
-	 @param blue 蓝色分量，范围为 0-255
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorResolve(Integer red, Integer green, Integer blue);
+    /*! @brief 查找指定的颜色对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+     @param red 红色分量，范围为 0-255
+     @param green 绿色分量，范围为 0-255
+     @param blue 蓝色分量，范围为 0-255
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorResolve(Integer red, Integer green, Integer blue);
 
-	/*! @brief 查找指定的颜色对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
-	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorResolve(Integer color);
+    /*! @brief 查找指定的颜色对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+     @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorResolve(Integer color);
 
-	/*! @brief 查找指定的颜色及透明对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
-	 @param red 红色分量，范围为 0-255
-	 @param green 绿色分量，范围为 0-255
-	 @param blue 蓝色分量，范围为 0-255
-	 @param alpha 透明分量，范围为 0-1.0
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorResolveAlpha(Integer red, Integer green, Integer blue, Number alpha);
+    /*! @brief 查找指定的颜色及透明对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
+     @param red 红色分量，范围为 0-255
+     @param green 绿色分量，范围为 0-255
+     @param blue 蓝色分量，范围为 0-255
+     @param alpha 透明分量，范围为 0-1.0
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorResolveAlpha(Integer red, Integer green, Integer blue, Number alpha);
 
-	/*! @brief 查找指定的颜色及透明对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
-	 @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
-	 @return 返回颜色号，不成功返回 -1
-	 */
-	Integer colorResolveAlpha(Integer color);
+    /*! @brief 查找指定的颜色及透明对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
+     @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     @return 返回颜色号，不成功返回 -1
+     */
+    Integer colorResolveAlpha(Integer color);
 
-	/*! @brief 释放指定的颜色号，释放的颜色号将会被再次申请后替换
-	 @param color 指定要释放的颜色号
-	 */
-	colorDeallocate(Integer color);
+    /*! @brief 释放指定的颜色号，释放的颜色号将会被再次申请后替换
+     @param color 指定要释放的颜色号
+     */
+    colorDeallocate(Integer color);
 
-	/*! @brief 设定绘图的剪切窗口，设定后，所有的绘制将被剪切在窗口内部
-	 @param x1 剪切窗口的左上 x 坐标
-	 @param y1 剪切窗口的左上 y 坐标
-	 @param x2 剪切窗口的右下 x 坐标
-	 @param y2 剪切窗口的右下 y 坐标
-	 */
-	clip(Integer x1, Integer y1, Integer x2, Integer y2);
+    /*! @brief 设定绘图的剪切窗口，设定后，所有的绘制将被剪切在窗口内部
+     @param x1 剪切窗口的左上 x 坐标
+     @param y1 剪切窗口的左上 y 坐标
+     @param x2 剪切窗口的右下 x 坐标
+     @param y2 剪切窗口的右下 y 坐标
+     */
+    clip(Integer x1, Integer y1, Integer x2, Integer y2);
 
-	/*! @brief 查询指定位置点的颜色
-	 @param x 指定查询的 x 坐标
-	 @param y 指定查询的 y 坐标
-	 @return 返回指定点的颜色号
-	 */
-	Integer getPixel(Integer x, Integer y);
+    /*! @brief 查询指定位置点的颜色
+     @param x 指定查询的 x 坐标
+     @param y 指定查询的 y 坐标
+     @return 返回指定点的颜色号
+     */
+    Integer getPixel(Integer x, Integer y);
 
-	/*! @brief 查询指定位置点的真彩色颜色
-	 @param x 指定查询的 x 坐标
-	 @param y 指定查询的 y 坐标
-	 @return 返回指定点的颜色号
-	 */
-	Integer getTrueColorPixel(Integer x, Integer y);
+    /*! @brief 查询指定位置点的真彩色颜色
+     @param x 指定查询的 x 坐标
+     @param y 指定查询的 y 坐标
+     @return 返回指定点的颜色号
+     */
+    Integer getTrueColorPixel(Integer x, Integer y);
 
-	/*! @brief 在指定位置画一个点
-	 @param x 指定画点的 x 坐标
-	 @param y 指定画点的 y 坐标
-	 @param color 指定画点的颜色号
-	 */
-	setPixel(Integer x, Integer y, Integer color);
+    /*! @brief 在指定位置画一个点
+     @param x 指定画点的 x 坐标
+     @param y 指定画点的 y 坐标
+     @param color 指定画点的颜色号
+     */
+    setPixel(Integer x, Integer y, Integer color);
 
-	/*! @brief 设定画线的宽度，line, rectangle, arc 等方法画线时缺省宽度为一个像素，可使用此方法改变线的宽度
-	 @param thickness 画线的宽度
-	 */
-	setThickness(Integer thickness);
+    /*! @brief 设定画线的宽度，line, rectangle, arc 等方法画线时缺省宽度为一个像素，可使用此方法改变线的宽度
+     @param thickness 画线的宽度
+     */
+    setThickness(Integer thickness);
 
-	/*! @brief 在指定的位置画一条线
-	 @param x1 指定画线的起始 x 坐标
-	 @param y1 指定画线的起始 y 坐标
-	 @param x2 指定画线的结束 x 坐标
-	 @param y2 指定画线的结束 y 坐标
-	 @param color 指定画线的颜色号
-	 */
-	line(Integer x1, Integer y1, Integer x2, Integer y2, Integer color);
+    /*! @brief 在指定的位置画一条线
+     @param x1 指定画线的起始 x 坐标
+     @param y1 指定画线的起始 y 坐标
+     @param x2 指定画线的结束 x 坐标
+     @param y2 指定画线的结束 y 坐标
+     @param color 指定画线的颜色号
+     */
+    line(Integer x1, Integer y1, Integer x2, Integer y2, Integer color);
 
-	/*! @brief 在指定的位置画一个矩形
-	 @param x1 指定左上角 x 坐标
-	 @param y1 指定左上角 y 坐标
-	 @param x2 指定右下角 x 坐标
-	 @param y2 指定右下角 y 坐标
-	 @param color 指定矩形的颜色号
-	 */
-	rectangle(Integer x1, Integer y1, Integer x2, Integer y2, Integer color);
+    /*! @brief 在指定的位置画一个矩形
+     @param x1 指定左上角 x 坐标
+     @param y1 指定左上角 y 坐标
+     @param x2 指定右下角 x 坐标
+     @param y2 指定右下角 y 坐标
+     @param color 指定矩形的颜色号
+     */
+    rectangle(Integer x1, Integer y1, Integer x2, Integer y2, Integer color);
 
-	/*! @brief 在指定的位置画一个填充的矩形
-	 @param x1 指定左上角 x 坐标
-	 @param y1 指定左上角 y 坐标
-	 @param x2 指定右下角 x 坐标
-	 @param y2 指定右下角 y 坐标
-	 @param color 指定矩形的颜色号
-	 */
-	filledRectangle(Integer x1, Integer y1, Integer x2, Integer y2, Integer color);
+    /*! @brief 在指定的位置画一个填充的矩形
+     @param x1 指定左上角 x 坐标
+     @param y1 指定左上角 y 坐标
+     @param x2 指定右下角 x 坐标
+     @param y2 指定右下角 y 坐标
+     @param color 指定矩形的颜色号
+     */
+    filledRectangle(Integer x1, Integer y1, Integer x2, Integer y2, Integer color);
 
-	/*! @brief 根据给定的点绘制一个多边形
-	 @param points 包含多边形点的数组，如 [[1, 1], [1, 10], [10, 15], [10, 20]]
-	 @param color 指定矩形的颜色号
-	 */
-	polygon(Array points, Integer color);
+    /*! @brief 根据给定的点绘制一个多边形
+     @param points 包含多边形点的数组，如 [[1, 1], [1, 10], [10, 15], [10, 20]]
+     @param color 指定矩形的颜色号
+     */
+    polygon(Array points, Integer color);
 
-	/*! @brief 根据给定的点绘制一个开放多边形
-	 @param points 包含多边形点的数组，如 [[1, 1], [1, 10], [10, 15], [10, 20]]
-	 @param color 指定矩形的颜色号
-	 */
-	openPolygon(Array points, Integer color);
+    /*! @brief 根据给定的点绘制一个开放多边形
+     @param points 包含多边形点的数组，如 [[1, 1], [1, 10], [10, 15], [10, 20]]
+     @param color 指定矩形的颜色号
+     */
+    openPolygon(Array points, Integer color);
 
-	/*! @brief 根据给定的点绘制一个填充多边形
-	 @param points 包含多边形点的数组，如 [[1, 1], [1, 10], [10, 15], [10, 20]]
-	 @param color 指定矩形的颜色号
-	 */
-	filledPolygon(Array points, Integer color);
+    /*! @brief 根据给定的点绘制一个填充多边形
+     @param points 包含多边形点的数组，如 [[1, 1], [1, 10], [10, 15], [10, 20]]
+     @param color 指定矩形的颜色号
+     */
+    filledPolygon(Array points, Integer color);
 
-	/*! @brief 画一个椭圆
-	 @param x 椭圆中心的 x 坐标
-	 @param y 椭圆中心的 y 坐标
-	 @param width 椭圆的宽度
-	 @param height 椭圆的高度
-	 @param color 指定矩形的颜色号
-	 */
-	ellipse(Integer x, Integer y, Integer width, Integer height, Integer color);
+    /*! @brief 画一个椭圆
+     @param x 椭圆中心的 x 坐标
+     @param y 椭圆中心的 y 坐标
+     @param width 椭圆的宽度
+     @param height 椭圆的高度
+     @param color 指定矩形的颜色号
+     */
+    ellipse(Integer x, Integer y, Integer width, Integer height, Integer color);
 
-	/*! @brief 画一个填充的椭圆
-	 @param x 椭圆中心的 x 坐标
-	 @param y 椭圆中心的 y 坐标
-	 @param width 椭圆的宽度
-	 @param height 椭圆的高度
-	 @param color 指定矩形的颜色号
-	 */
-	filledEllipse(Integer x, Integer y, Integer width, Integer height, Integer color);
+    /*! @brief 画一个填充的椭圆
+     @param x 椭圆中心的 x 坐标
+     @param y 椭圆中心的 y 坐标
+     @param width 椭圆的宽度
+     @param height 椭圆的高度
+     @param color 指定矩形的颜色号
+     */
+    filledEllipse(Integer x, Integer y, Integer width, Integer height, Integer color);
 
-	/*! @brief 画一个扇形
-	 @param x 扇形中心的 x 坐标
-	 @param y 扇形中心的 y 坐标
-	 @param width 扇形所在椭圆的宽度
-	 @param height 扇形所在椭圆的高度
-	 @param start 扇形开始的角度，范围为 0-360
-	 @param end 扇形结束的角度，范围为 0-360
-	 @param color 指定矩形的颜色号
-	 */
-	arc(Integer x, Integer y, Integer width, Integer height, Integer start, Integer end, Integer color);
+    /*! @brief 画一个扇形
+     @param x 扇形中心的 x 坐标
+     @param y 扇形中心的 y 坐标
+     @param width 扇形所在椭圆的宽度
+     @param height 扇形所在椭圆的高度
+     @param start 扇形开始的角度，范围为 0-360
+     @param end 扇形结束的角度，范围为 0-360
+     @param color 指定矩形的颜色号
+     */
+    arc(Integer x, Integer y, Integer width, Integer height, Integer start, Integer end, Integer color);
 
-	/*! @brief 画一个填充扇形
-	 @param x 扇形中心的 x 坐标
-	 @param y 扇形中心的 y 坐标
-	 @param width 扇形所在椭圆的宽度
-	 @param height 扇形所在椭圆的高度
-	 @param start 扇形开始的角度，范围为 0-360
-	 @param end 扇形结束的角度，范围为 0-360
-	 @param color 指定矩形的颜色号
-	 @param style 指定扇形的样式，允许的值有 gd.ARC, gd.CHORD, gd.NOFILL, gd.EDGED 及其组合
-	 */
-	filledArc(Integer x, Integer y, Integer width, Integer height, Integer start, Integer end, Integer color, Integer style = gd.ARC);
+    /*! @brief 画一个填充扇形
+     @param x 扇形中心的 x 坐标
+     @param y 扇形中心的 y 坐标
+     @param width 扇形所在椭圆的宽度
+     @param height 扇形所在椭圆的高度
+     @param start 扇形开始的角度，范围为 0-360
+     @param end 扇形结束的角度，范围为 0-360
+     @param color 指定矩形的颜色号
+     @param style 指定扇形的样式，允许的值有 gd.ARC, gd.CHORD, gd.NOFILL, gd.EDGED 及其组合
+     */
+    filledArc(Integer x, Integer y, Integer width, Integer height, Integer start, Integer end, Integer color, Integer style = gd.ARC);
 
-	/*! @brief 从指定的点开始填充封闭区域
-	 @param x 开始填充的 x 坐标
-	 @param y 开始填充的 y 坐标
-	 @param color 指定填充的颜色号
-	 */
-	fill(Integer x, Integer y, Integer color);
+    /*! @brief 从指定的点开始填充封闭区域
+     @param x 开始填充的 x 坐标
+     @param y 开始填充的 y 坐标
+     @param color 指定填充的颜色号
+     */
+    fill(Integer x, Integer y, Integer color);
 
-	/*! @brief 从指定的点开始在指定颜色的边框内填充封闭区域
-	 @param x 开始填充的 x 坐标
-	 @param y 开始填充的 y 坐标
-	 @param borderColor 指定边框的颜色号
-	 @param color 指定填充的颜色号
-	 */
-	fillToBorder(Integer x, Integer y, Integer borderColor, Integer color);
+    /*! @brief 从指定的点开始在指定颜色的边框内填充封闭区域
+     @param x 开始填充的 x 坐标
+     @param y 开始填充的 y 坐标
+     @param borderColor 指定边框的颜色号
+     @param color 指定填充的颜色号
+     */
+    fillToBorder(Integer x, Integer y, Integer borderColor, Integer color);
 
-	/*! @brief 替换图像中指定的颜色为新颜色
-	 @param src 指定要替换的颜色
-	 @param dst 指定新颜色
-	 */
-	colorReplace(Integer src, Integer dst) async;
+    /*! @brief 替换图像中指定的颜色为新颜色
+     @param src 指定要替换的颜色
+     @param dst 指定新颜色
+     */
+    colorReplace(Integer src, Integer dst) async;
 
-	/*! @brief 复制当前图像为一个新图像
-	 @return 返回复制的新图像对象
-	 */
-	Image clone() async;
+    /*! @brief 复制当前图像为一个新图像
+     @return 返回复制的新图像对象
+     */
+    Image clone() async;
 
-	/*! @brief 根据图像拉伸生成一个新尺寸的图像
-	 @param width 指定拉伸的宽度
-	 @param height 指定拉伸的高度
-	 @return 返回新图像对象
-	 */
-	Image resample(Integer width, Integer height) async;
+    /*! @brief 根据图像拉伸生成一个新尺寸的图像
+     @param width 指定拉伸的宽度
+     @param height 指定拉伸的高度
+     @return 返回新图像对象
+     */
+    Image resample(Integer width, Integer height) async;
 
-	/*! @brief 剪切图像的一部分为一个新的图像
-	 @param x 剪切窗口的左上 x 坐标
-	 @param y 剪切窗口的左上 y 坐标
-	 @param width 剪切窗口的宽度
-	 @param height 剪切窗口的高度
-	 @return 返回剪切出的图像
-	 */
-	Image crop(Integer x, Integer y, Integer width, Integer height) async;
+    /*! @brief 剪切图像的一部分为一个新的图像
+     @param x 剪切窗口的左上 x 坐标
+     @param y 剪切窗口的左上 y 坐标
+     @param width 剪切窗口的宽度
+     @param height 剪切窗口的高度
+     @return 返回剪切出的图像
+     */
+    Image crop(Integer x, Integer y, Integer width, Integer height) async;
 
-	/*! @brief 镜像当前图像
-	 @param dir 镜像方向，允许值为 gd.BOTH,gd.HORIZONTAL, gd.VERTICAL, 缺省为 gd.HORIZONTAL
-	 */
-	flip(Integer dir = gd.HORIZONTAL) async;
+    /*! @brief 镜像当前图像
+     @param dir 镜像方向，允许值为 gd.BOTH,gd.HORIZONTAL, gd.VERTICAL, 缺省为 gd.HORIZONTAL
+     */
+    flip(Integer dir = gd.HORIZONTAL) async;
 
-	/*! @brief 旋转当前图像
-	 @param dir 旋转方向，允许值为 gd.LEFT, gd.RIGHT
-	 */
-	rotate(Integer dir) async;
+    /*! @brief 旋转当前图像
+     @param dir 旋转方向，允许值为 gd.LEFT, gd.RIGHT
+     */
+    rotate(Integer dir) async;
 
-	/*! @brief 转换当前图像类型
-	 @param color 指定图像类型，允许值为 gd.TRUECOLOR 或 gd.PALETTE
-	 */
-	convert(Integer color = gd.TRUECOLOR) async;
+    /*! @brief 转换当前图像类型
+     @param color 指定图像类型，允许值为 gd.TRUECOLOR 或 gd.PALETTE
+     */
+    convert(Integer color = gd.TRUECOLOR) async;
 
-	/*! @brief 从一个图像中复制一个区域到指定的位置
-	 @param source 源图像对象
-	 @param dstX 指定复制目标的 x 坐标
-	 @param dstY 指定复制目标的 y 坐标
-	 @param srcX 指定复制源左上角的 x 坐标
-	 @param srcY 指定复制源左上角的 y 坐标
-	 @param width 指定复制的宽度
-	 @param height 指定复制的高度
-	 */
-	copy(Image source, Integer dstX, Integer dstY, Integer srcX, Integer srcY, Integer width, Integer height) async;
+    /*! @brief 从一个图像中复制一个区域到指定的位置
+     @param source 源图像对象
+     @param dstX 指定复制目标的 x 坐标
+     @param dstY 指定复制目标的 y 坐标
+     @param srcX 指定复制源左上角的 x 坐标
+     @param srcY 指定复制源左上角的 y 坐标
+     @param width 指定复制的宽度
+     @param height 指定复制的高度
+     */
+    copy(Image source, Integer dstX, Integer dstY, Integer srcX, Integer srcY, Integer width, Integer height) async;
 
-	/*! @brief 从一个图像中复制一个区域覆盖到指定的位置
-	 @param source 源图像对象
-	 @param dstX 指定复制目标的 x 坐标
-	 @param dstY 指定复制目标的 y 坐标
-	 @param srcX 指定复制源左上角的 x 坐标
-	 @param srcY 指定复制源左上角的 y 坐标
-	 @param width 指定复制的宽度
-	 @param height 指定复制的高度
-	 @param percent 指定覆盖的透明度
-	 */
-	copyMerge(Image source, Integer dstX, Integer dstY, Integer srcX, Integer srcY, Integer width, Integer height, Integer percent) async;
+    /*! @brief 从一个图像中复制一个区域覆盖到指定的位置
+     @param source 源图像对象
+     @param dstX 指定复制目标的 x 坐标
+     @param dstY 指定复制目标的 y 坐标
+     @param srcX 指定复制源左上角的 x 坐标
+     @param srcY 指定复制源左上角的 y 坐标
+     @param width 指定复制的宽度
+     @param height 指定复制的高度
+     @param percent 指定覆盖的透明度
+     */
+    copyMerge(Image source, Integer dstX, Integer dstY, Integer srcX, Integer srcY, Integer width, Integer height, Integer percent) async;
 
-	/*! @brief 从一个图像中复制一个区域的灰度覆盖到指定的位置
-	 @param source 源图像对象
-	 @param dstX 指定复制目标的 x 坐标
-	 @param dstY 指定复制目标的 y 坐标
-	 @param srcX 指定复制源左上角的 x 坐标
-	 @param srcY 指定复制源左上角的 y 坐标
-	 @param width 指定复制的宽度
-	 @param height 指定复制的高度
-	 @param percent 指定覆盖的透明度
-	 */
-	copyMergeGray(Image source, Integer dstX, Integer dstY, Integer srcX, Integer srcY, Integer width, Integer height, Integer percent) async;
+    /*! @brief 从一个图像中复制一个区域的灰度覆盖到指定的位置
+     @param source 源图像对象
+     @param dstX 指定复制目标的 x 坐标
+     @param dstY 指定复制目标的 y 坐标
+     @param srcX 指定复制源左上角的 x 坐标
+     @param srcY 指定复制源左上角的 y 坐标
+     @param width 指定复制的宽度
+     @param height 指定复制的高度
+     @param percent 指定覆盖的透明度
+     */
+    copyMergeGray(Image source, Integer dstX, Integer dstY, Integer srcX, Integer srcY, Integer width, Integer height, Integer percent) async;
 
-	/*! @brief 将一个图像中的一个区域拉伸后复制到指定的位置
-	 @param source 源图像对象
-	 @param dstX 指定复制目标的 x 坐标
-	 @param dstY 指定复制目标的 y 坐标
-	 @param srcX 指定复制源左上角的 x 坐标
-	 @param srcY 指定复制源左上角的 y 坐标
-	 @param dstW 指定复制的拉伸宽度
-	 @param dstH 指定复制的拉伸高度
-	 @param srcW 指定复制的源宽度
-	 @param srcH 指定复制的源高度
-	 */
-	copyResized(Image source, Integer dstX, Integer dstY, Integer srcX, Integer srcY, Integer dstW, Integer dstH, Integer srcW, Integer srcH) async;
+    /*! @brief 将一个图像中的一个区域拉伸后复制到指定的位置
+     @param source 源图像对象
+     @param dstX 指定复制目标的 x 坐标
+     @param dstY 指定复制目标的 y 坐标
+     @param srcX 指定复制源左上角的 x 坐标
+     @param srcY 指定复制源左上角的 y 坐标
+     @param dstW 指定复制的拉伸宽度
+     @param dstH 指定复制的拉伸高度
+     @param srcW 指定复制的源宽度
+     @param srcH 指定复制的源高度
+     */
+    copyResized(Image source, Integer dstX, Integer dstY, Integer srcX, Integer srcY, Integer dstW, Integer dstH, Integer srcW, Integer srcH) async;
 
-	/*! @brief 将一个图像中的一个区域拉伸后复制到指定的位置，不同与 copyResized，此方法拉伸时会对图像进行抖动
-	 @param source 源图像对象
-	 @param dstX 指定复制目标的 x 坐标
-	 @param dstY 指定复制目标的 y 坐标
-	 @param srcX 指定复制源左上角的 x 坐标
-	 @param srcY 指定复制源左上角的 y 坐标
-	 @param dstW 指定复制的拉伸宽度
-	 @param dstH 指定复制的拉伸高度
-	 @param srcW 指定复制的源宽度
-	 @param srcH 指定复制的源高度
-	 */
-	copyResampled(Image source, Integer dstX, Integer dstY, Integer srcX, Integer srcY, Integer dstW, Integer dstH, Integer srcW, Integer srcH) async;
+    /*! @brief 将一个图像中的一个区域拉伸后复制到指定的位置，不同与 copyResized，此方法拉伸时会对图像进行抖动
+     @param source 源图像对象
+     @param dstX 指定复制目标的 x 坐标
+     @param dstY 指定复制目标的 y 坐标
+     @param srcX 指定复制源左上角的 x 坐标
+     @param srcY 指定复制源左上角的 y 坐标
+     @param dstW 指定复制的拉伸宽度
+     @param dstH 指定复制的拉伸高度
+     @param srcW 指定复制的源宽度
+     @param srcH 指定复制的源高度
+     */
+    copyResampled(Image source, Integer dstX, Integer dstY, Integer srcX, Integer srcY, Integer dstW, Integer dstH, Integer srcW, Integer srcH) async;
 
-	/*! @brief 将一个图像中的一个区域旋转后复制到指定的位置
-	 @param source 源图像对象
-	 @param dstX 指定复制目标的 x 坐标
-	 @param dstY 指定复制目标的 y 坐标
-	 @param srcX 指定复制源左上角的 x 坐标
-	 @param srcY 指定复制源左上角的 y 坐标
-	 @param width 指定复制的宽度
-	 @param height 指定复制的高度
-	 @param angle 指定旋转的角度
-	 */
-	copyRotated(Image source, Number dstX, Number dstY, Integer srcX, Integer srcY, Integer width, Integer height, Integer angle) async;
+    /*! @brief 将一个图像中的一个区域旋转后复制到指定的位置
+     @param source 源图像对象
+     @param dstX 指定复制目标的 x 坐标
+     @param dstY 指定复制目标的 y 坐标
+     @param srcX 指定复制源左上角的 x 坐标
+     @param srcY 指定复制源左上角的 y 坐标
+     @param width 指定复制的宽度
+     @param height 指定复制的高度
+     @param angle 指定旋转的角度
+     */
+    copyRotated(Image source, Number dstX, Number dstY, Integer srcX, Integer srcY, Integer width, Integer height, Integer angle) async;
 };

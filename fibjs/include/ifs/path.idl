@@ -8,39 +8,39 @@
  */
 class path : module
 {
-	/*! @brief 标准化路径，处理路径中父目录等信息
-	
-	 @param path 给定的未处理的路径
-	 @return 返回经过处理的路径
-	 */
-	static String normalize(String path);
+    /*! @brief 标准化路径，处理路径中父目录等信息
 
-	/*! @brief 查询路径中的文件名称，若指定扩展名，则自动取消匹配的扩展名
-	
-	 @param path 给定查询的路径
-	 @param ext 指定扩展名，若文件名中有符合条件的扩展名，将自动取消
-	 @return 返回文件名称
-	 */
-	static String basename(String path, String ext = "");
+     @param path 给定的未处理的路径
+     @return 返回经过处理的路径
+     */
+    static String normalize(String path);
 
-	/*! @brief 查询路径中的文件扩展名
-	
-	 @param path 给定查询的路径
-	 @return 返回得到的扩展名
-	 */
-	static String extname(String path);
+    /*! @brief 查询路径中的文件名称，若指定扩展名，则自动取消匹配的扩展名
 
-	/*! @brief 查询路径中的目录路径
-	
-	 @param path 给定查询的路径
-	 @return 返回得到的目录的路径
-	 */
-	static String dirname(String path);
+     @param path 给定查询的路径
+     @param ext 指定扩展名，若文件名中有符合条件的扩展名，将自动取消
+     @return 返回文件名称
+     */
+    static String basename(String path, String ext = "");
 
-	/*! @brief 合并一系列路径成为一个单一路径
-	
-	 @param ... 一个或多个相关的路径
-	 @return 返回得到的新路径
-	 */
-	static String combine(...);
+    /*! @brief 查询路径中的文件扩展名
+
+     @param path 给定查询的路径
+     @return 返回得到的扩展名
+     */
+    static String extname(String path);
+
+    /*! @brief 查询路径中的目录路径
+
+     @param path 给定查询的路径
+     @return 返回得到的目录的路径
+     */
+    static String dirname(String path);
+
+    /*! @brief 合并一系列路径成为一个单一路径
+
+     @param ... 一个或多个相关的路径
+     @return 返回得到的新路径
+     */
+    static String combine(...);
 };

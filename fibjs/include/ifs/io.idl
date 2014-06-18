@@ -8,9 +8,9 @@
  */
 class io : module
 {
-	/*! @brief 创建一个内存流对象，参见 MemoryStream */
-	static MemoryStream new MemoryStream();
+    /*! @brief 创建一个内存流对象，参见 MemoryStream */
+    static MemoryStream new MemoryStream();
 
-	/*! @brief 创建一个缓存流读取对象，参见 BufferedStream */
-	static BufferedStream new BufferedStream();
+    /*! @brief 创建一个缓存流读取对象，参见 BufferedStream */
+    static BufferedStream new BufferedStream();
 };

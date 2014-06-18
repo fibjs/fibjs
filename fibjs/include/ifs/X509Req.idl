@@ -11,7 +11,7 @@ class X509Req: object
     /*! @brief X509Req 构造函数 */
     X509Req();
 
-    /*! @brief X509Req 构造函数，根据给定的信息创建一个证书请求 
+    /*! @brief X509Req 构造函数，根据给定的信息创建一个证书请求
 
      @param subject 证书的主题可分辨名称
      @param key 证书的公钥

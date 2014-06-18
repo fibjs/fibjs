@@ -8,110 +8,110 @@
  */
 class fs : module
 {
-	/*! @brief seek 方式常量，移动到绝对位置 */
-	const Integer SEEK_SET = 0;
+    /*! @brief seek 方式常量，移动到绝对位置 */
+    const Integer SEEK_SET = 0;
 
-	/*! @brief seek 方式常量，移动到当前位置的相对位置 */
-	const Integer SEEK_CUR = 1;
+    /*! @brief seek 方式常量，移动到当前位置的相对位置 */
+    const Integer SEEK_CUR = 1;
 
-	/*! @brief seek 方式常量，移动到文件结尾的相对位置 */
-	const Integer SEEK_END = 2;
+    /*! @brief seek 方式常量，移动到文件结尾的相对位置 */
+    const Integer SEEK_END = 2;
 
-	/*! @brief 查询指定的文件或目录是否存在
-	 @param path 指定要查询的路径
-	 @return 返回 True 表示文件或目录存在
-	 */
-	static Boolean exists(String path) async;
+    /*! @brief 查询指定的文件或目录是否存在
+     @param path 指定要查询的路径
+     @return 返回 True 表示文件或目录存在
+     */
+    static Boolean exists(String path) async;
 
-	/*! @brief 删除指定的文件
-	 @param path 指定要删除的路径
-	 */
-	static unlink(String path) async;
+    /*! @brief 删除指定的文件
+     @param path 指定要删除的路径
+     */
+    static unlink(String path) async;
 
-	/*! @brief 改变当前的 umask，Windows 不支持此方法
-	 @param mask 指定新的掩码
-	 @return 返回之前的 mask
-	 */
-	static Integer umask(Integer mask) async;
+    /*! @brief 改变当前的 umask，Windows 不支持此方法
+     @param mask 指定新的掩码
+     @return 返回之前的 mask
+     */
+    static Integer umask(Integer mask) async;
 
-	/*! @brief 创建一个目录
-	 @param path 指定要创建的目录名
-	 @param mode 指定文件权限，Windows 忽略此参数
-	 */
-	static mkdir(String path, Integer mode = 0777) async;
+    /*! @brief 创建一个目录
+     @param path 指定要创建的目录名
+     @param mode 指定文件权限，Windows 忽略此参数
+     */
+    static mkdir(String path, Integer mode = 0777) async;
 
-	/*! @brief 删除一个目录
-	 @param path 指定要删除的目录名
-	 */
-	static rmdir(String path) async;
+    /*! @brief 删除一个目录
+     @param path 指定要删除的目录名
+     */
+    static rmdir(String path) async;
 
-	/*! @brief 重新命名一个文件
-	 @param from 指定更名的文件
-	 @param to 指定要修改的新文件名
-	 */
-	static rename(String from, String to) async;
+    /*! @brief 重新命名一个文件
+     @param from 指定更名的文件
+     @param to 指定要修改的新文件名
+     */
+    static rename(String from, String to) async;
 
-	/*! @brief 查询指定文件的访问权限，Windows 不支持此方法
-	 @param path 指定操作的文件
-	 @param mode 指定设定的访问权限
-	 */
-	static chmod(String path, Integer mode) async;
+    /*! @brief 查询指定文件的访问权限，Windows 不支持此方法
+     @param path 指定操作的文件
+     @param mode 指定设定的访问权限
+     */
+    static chmod(String path, Integer mode) async;
 
-	/*! @brief 查询指定文件的基础信息
-	 @param path 指定查询的文件
-	 @return 返回文件的基础信息
-	 */
-	static Stat stat(String path) async;
+    /*! @brief 查询指定文件的基础信息
+     @param path 指定查询的文件
+     @return 返回文件的基础信息
+     */
+    static Stat stat(String path) async;
 
-	/*! @brief 读取指定目录的文件信息
-	 @param path 指定查询的目录
-	 @return 返回目录的文件信息数组
-	 */
-	static List readdir(String path) async;
+    /*! @brief 读取指定目录的文件信息
+     @param path 指定查询的目录
+     @return 返回目录的文件信息数组
+     */
+    static List readdir(String path) async;
 
-	/*! @brief 打开文件，用于读取，写入，或者同时读写
-	 @param fname 指定文件名
-	 @param flags 指定文件打开方式，缺省为 "r"，只读方式。支持的方式如下：
-	 - 'r' 只读方式，文件不存在则抛出错误。
-	 - 'r+' 读写方式，文件不存在则抛出错误。
-	 - 'w' 只写方式，文件不存在则自动创建，存在则将被清空。
-	 - 'w+' 读写方式，文件不存在则自动创建。
-	 - 'a' 只写添加方式，文件不存在则自动创建。
-	 - 'a+' 读写添加方式，文件不存在则自动创建。
-	 @return 返回打开的文件对象
-	 */
-	static File open(String fname, String flags = "r") async;
-	static File tmpFile() async;
+    /*! @brief 打开文件，用于读取，写入，或者同时读写
+     @param fname 指定文件名
+     @param flags 指定文件打开方式，缺省为 "r"，只读方式。支持的方式如下：
+     - 'r' 只读方式，文件不存在则抛出错误。
+     - 'r+' 读写方式，文件不存在则抛出错误。
+     - 'w' 只写方式，文件不存在则自动创建，存在则将被清空。
+     - 'w+' 读写方式，文件不存在则自动创建。
+     - 'a' 只写添加方式，文件不存在则自动创建。
+     - 'a+' 读写添加方式，文件不存在则自动创建。
+     @return 返回打开的文件对象
+     */
+    static File open(String fname, String flags = "r") async;
+    static File tmpFile() async;
 
-	/*! @brief 打开文本文件，用于读取，写入，或者同时读写
-	 @param fname 指定文件名
-	 @param flags 指定文件打开方式，缺省为 "r"，只读方式。支持的方式如下：
-	 - 'r' 只读方式，文件不存在则抛出错误。
-	 - 'r+' 读写方式，文件不存在则抛出错误。
-	 - 'w' 只写方式，文件不存在则自动创建，存在则将被清空。
-	 - 'w+' 读写方式，文件不存在则自动创建。
-	 - 'a' 只写添加方式，文件不存在则自动创建。
-	 - 'a+' 读写添加方式，文件不存在则自动创建。
-	 @return 返回打开的文件对象
-	 */
-	static BufferedStream openTextStream(String fname, String flags = "r") async;
+    /*! @brief 打开文本文件，用于读取，写入，或者同时读写
+     @param fname 指定文件名
+     @param flags 指定文件打开方式，缺省为 "r"，只读方式。支持的方式如下：
+     - 'r' 只读方式，文件不存在则抛出错误。
+     - 'r+' 读写方式，文件不存在则抛出错误。
+     - 'w' 只写方式，文件不存在则自动创建，存在则将被清空。
+     - 'w+' 读写方式，文件不存在则自动创建。
+     - 'a' 只写添加方式，文件不存在则自动创建。
+     - 'a+' 读写添加方式，文件不存在则自动创建。
+     @return 返回打开的文件对象
+     */
+    static BufferedStream openTextStream(String fname, String flags = "r") async;
 
-	/*! @brief 打开文件，并读取内容
-	 @param fname 指定文件名
-	 @return 返回文件文本内容
-	 */
-	static String readFile(String fname) async;
+    /*! @brief 打开文件，并读取内容
+     @param fname 指定文件名
+     @return 返回文件文本内容
+     */
+    static String readFile(String fname) async;
 
-	/*! @brief 打开文件，以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:"\n"；windows:"\r\n"
-	 @param fname 指定文件名
-	 @param maxlines 指定此次读取的最大行数，缺省读取全部文本行
-	 @return 返回读取的文本行数组，若无数据可读，或者连接中断，空数组
-	 */
-	static Array readLines(String fname, Integer maxlines = -1);
+    /*! @brief 打开文件，以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:"\n"；windows:"\r\n"
+     @param fname 指定文件名
+     @param maxlines 指定此次读取的最大行数，缺省读取全部文本行
+     @return 返回读取的文本行数组，若无数据可读，或者连接中断，空数组
+     */
+    static Array readLines(String fname, Integer maxlines = -1);
 
-	/*! @brief 创建文件，并写入内容
-	 @param fname 指定文件名
-	 @param txt 指定要写入的字符串
-	 */
-	static writeFile(String fname, String txt) async;
+    /*! @brief 创建文件，并写入内容
+     @param fname 指定文件名
+     @param txt 指定要写入的字符串
+     */
+    static writeFile(String fname, String txt) async;
 };
