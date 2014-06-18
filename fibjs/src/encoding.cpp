@@ -479,9 +479,10 @@ result_t encoding_base::jsonEncode(v8::Local<v8::Value> data,
         s_stringify.Reset(isolate,
                           v8::Local<v8::Function>::Cast(_json->Get(v8::String::NewFromUtf8(isolate, "stringify"))));
 
+    v8::TryCatch try_catch;
     v8::Local<v8::Value> str = v8::Local<v8::Function>::New(isolate, s_stringify)->Call(_json, 1, &data);
-    if (str.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+    if (try_catch.HasCaught())
+        return Runtime::setError(*v8::String::Utf8Value(try_catch.Exception()));
 
     v8::String::Utf8Value v(str);
     retVal.assign(*v, v.length());
@@ -492,9 +493,10 @@ result_t encoding_base::jsonEncode(v8::Local<v8::Value> data,
 result_t encoding_base::jsonDecode(const char *data,
                                    v8::Local<v8::Value> &retVal)
 {
+    v8::TryCatch try_catch;
     retVal = v8::JSON::Parse(v8::String::NewFromUtf8(isolate, data));
-    if (retVal.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+    if (try_catch.HasCaught())
+        return Runtime::setError(*v8::String::Utf8Value(try_catch.Exception()));
 
     return 0;
 }
