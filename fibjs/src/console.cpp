@@ -9,6 +9,7 @@
 #include "ifs/assert.h"
 #include "ifs/encoding.h"
 #include "ifs/process.h"
+#include "ifs/util.h"
 #include <map>
 #include "console.h"
 #include <stdlib.h>
@@ -67,206 +68,74 @@ result_t console_base::get_colors(obj_ptr<TextColor_base> &retVal)
     return 0;
 }
 
-inline void newline(std::string &strBuffer, int padding)
+void _log(int32_t type, const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    static char s_spc[] = "                                                                ";
-    int n, n1;
+    std::string str;
 
-    strBuffer.append("\n", 1);
-    if (padding > 0)
-    {
-        n = padding;
-        while (n)
-        {
-            n1 = n > 64 ? 64 : n;
-            strBuffer.append(s_spc, n1);
-            n -= n1;
-        }
-    }
-}
-
-inline std::string dir_format(v8::Local<v8::Value> obj)
-{
-    const char *p;
-    int padding = 0;
-    char ch;
-    bool bStrMode = false;
-    bool bNewLine = false;
-    const int tab_size = 2;
-    std::string strBuffer;
-    std::string s;
-    encoding_base::jsonEncode(obj, s);
-
-    p = s.c_str();
-    while ((ch = *p++) != 0)
-    {
-        if (bStrMode)
-        {
-            if (ch == '\\' && *p == '\"')
-            {
-                strBuffer.append(&ch, 1);
-                ch = *p++;
-            }
-            else if (ch == '\"')
-                bStrMode = false;
-        }
-        else
-        {
-            switch (ch)
-            {
-            case '[':
-                if (*p == ']')
-                {
-                    strBuffer.append(&ch, 1);
-                    ch = *p ++;
-                    break;
-                }
-
-                bNewLine = true;
-                padding += tab_size;
-                break;
-            case '{':
-                if (*p == '}')
-                {
-                    strBuffer.append(&ch, 1);
-                    ch = *p ++;
-                    break;
-                }
-
-                bNewLine = true;
-                padding += tab_size;
-                break;
-            case '}':
-            case ']':
-                padding -= tab_size;
-                newline(strBuffer, padding);
-                break;
-            case ',':
-                bNewLine = true;
-                break;
-            case ':':
-                strBuffer.append(&ch, 1);
-                ch = ' ';
-                break;
-            case '\"':
-                bStrMode = true;
-                break;
-            }
-        }
-
-        strBuffer.append(&ch, 1);
-
-        if (bNewLine)
-        {
-            newline(strBuffer, padding);
-            bNewLine = false;
-        }
-    }
-
-    return strBuffer;
-}
-
-std::string Format(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args, int idx = 1)
-{
-    const char *s = fmt;
-    const char *s1;
-    char ch;
-    int argc = args.Length();
-    std::string strBuffer;
-
-    if (argc == 1)
-        return fmt;
-
-    while (1)
-    {
-        if (idx >= argc)
-        {
-            strBuffer.append(s);
-            break;
-        }
-
-        s1 = s;
-        while ((ch = *s++) && (ch != '%'))
-            ;
-
-        strBuffer.append(s1, s - s1 - 1);
-
-        if (ch == '%')
-        {
-            switch (ch = *s++)
-            {
-            case 's':
-            case 'd':
-            {
-                v8::String::Utf8Value s(args[idx++]);
-                if (*s)
-                    strBuffer.append(*s);
-            }
-            break;
-            case 'j':
-            {
-                std::string s;
-                s = dir_format(args[idx++]);
-                strBuffer.append(s);
-            }
-            break;
-            default:
-                strBuffer.append("%", 1);
-            case '%':
-                strBuffer.append(&ch, 1);
-                break;
-            }
-        }
-        else
-            break;
-    }
-
-    while (idx < argc)
-    {
-        v8::String::Utf8Value s(args[idx++]);
-        if (*s)
-        {
-            strBuffer.append(" ", 1);
-            strBuffer.append(*s);
-        }
-    }
-
-    return strBuffer;
+    util_base::format(fmt, args, str);
+    asyncLog(type, str);
 }
 
 result_t console_base::log(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    asyncLog(_INFO, Format(fmt, args));
+    _log(_INFO, fmt, args);
     return 0;
+}
+
+result_t console_base::log(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    return log(NULL, args);
 }
 
 result_t console_base::info(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    asyncLog(_INFO, Format(fmt, args));
+    _log(_INFO, fmt, args);
     return 0;
+}
+
+result_t console_base::info(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    return info(NULL, args);
 }
 
 result_t console_base::notice(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    asyncLog(_NOTICE, Format(fmt, args));
+    _log(_NOTICE, fmt, args);
     return 0;
+}
+
+result_t console_base::notice(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    return notice(NULL, args);
 }
 
 result_t console_base::warn(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    asyncLog(_WARN, Format(fmt, args));
+    _log(_WARN, fmt, args);
     return 0;
+}
+
+result_t console_base::warn(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    return warn(NULL, args);
 }
 
 result_t console_base::error(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    asyncLog(_ERROR, Format(fmt, args));
+    _log(_ERROR, fmt, args);
     return 0;
 }
 
+result_t console_base::error(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    return error(NULL, args);
+}
+
+std::string json_format(v8::Local<v8::Value> obj);
+
 result_t console_base::dir(v8::Local<v8::Object> obj)
 {
-    std::string strBuffer = dir_format(obj);
+    std::string strBuffer = json_format(obj);
     asyncLog(_INFO, strBuffer);
     return 0;
 }
@@ -329,9 +198,17 @@ result_t console_base::assert(v8::Local<v8::Value> value, const char *msg)
 result_t console_base::print(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     flushLog();
-    logger::std_out(Format(fmt, args).c_str());
+
+    std::string str;
+    util_base::format(fmt, args, str);
+    logger::std_out(str.c_str());
 
     return 0;
+}
+
+result_t console_base::print(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    return print(NULL, args);
 }
 
 char *read_line()

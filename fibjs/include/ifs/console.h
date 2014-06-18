@@ -41,16 +41,22 @@ public:
 	static result_t set_loglevel(int32_t newVal);
 	static result_t get_colors(obj_ptr<TextColor_base>& retVal);
 	static result_t log(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+	static result_t log(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t info(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+	static result_t info(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t notice(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+	static result_t notice(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t warn(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+	static result_t warn(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t error(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+	static result_t error(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t dir(v8::Local<v8::Object> obj);
 	static result_t time(const char* label);
 	static result_t timeEnd(const char* label);
 	static result_t trace(const char* label);
 	static result_t assert(v8::Local<v8::Value> value, const char* msg);
 	static result_t print(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+	static result_t print(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t readLine(const char* msg, std::string& retVal, exlib::AsyncEvent* ac);
 
 	DECLARE_CLASSINFO(console_base);
@@ -232,55 +238,75 @@ namespace fibjs
 
 	inline void console_base::s_log(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		METHOD_ENTER(-1, 0);
+		METHOD_ENTER(-1, 1);
 
-		OPT_ARG(arg_string, 0, "");
+		ARG(arg_string, 0);
 
 		hr = log(v0, args);
+
+		METHOD_OVER(-1, 0);
+
+		hr = log(args);
 
 		METHOD_VOID();
 	}
 
 	inline void console_base::s_info(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		METHOD_ENTER(-1, 0);
+		METHOD_ENTER(-1, 1);
 
-		OPT_ARG(arg_string, 0, "");
+		ARG(arg_string, 0);
 
 		hr = info(v0, args);
+
+		METHOD_OVER(-1, 0);
+
+		hr = info(args);
 
 		METHOD_VOID();
 	}
 
 	inline void console_base::s_notice(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		METHOD_ENTER(-1, 0);
+		METHOD_ENTER(-1, 1);
 
-		OPT_ARG(arg_string, 0, "");
+		ARG(arg_string, 0);
 
 		hr = notice(v0, args);
+
+		METHOD_OVER(-1, 0);
+
+		hr = notice(args);
 
 		METHOD_VOID();
 	}
 
 	inline void console_base::s_warn(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		METHOD_ENTER(-1, 0);
+		METHOD_ENTER(-1, 1);
 
-		OPT_ARG(arg_string, 0, "");
+		ARG(arg_string, 0);
 
 		hr = warn(v0, args);
+
+		METHOD_OVER(-1, 0);
+
+		hr = warn(args);
 
 		METHOD_VOID();
 	}
 
 	inline void console_base::s_error(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		METHOD_ENTER(-1, 0);
+		METHOD_ENTER(-1, 1);
 
-		OPT_ARG(arg_string, 0, "");
+		ARG(arg_string, 0);
 
 		hr = error(v0, args);
+
+		METHOD_OVER(-1, 0);
+
+		hr = error(args);
 
 		METHOD_VOID();
 	}
@@ -343,11 +369,15 @@ namespace fibjs
 
 	inline void console_base::s_print(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		METHOD_ENTER(-1, 0);
+		METHOD_ENTER(-1, 1);
 
-		OPT_ARG(arg_string, 0, "");
+		ARG(arg_string, 0);
 
 		hr = print(v0, args);
+
+		METHOD_OVER(-1, 0);
+
+		hr = print(args);
 
 		METHOD_VOID();
 	}
