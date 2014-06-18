@@ -5,6 +5,146 @@ var util = require('util');
 var coroutine = require('coroutine');
 
 describe('util', function() {
+
+	it("isArray", function() {
+		assert.isTrue(util.isArray([]));
+		assert.isTrue(util.isArray(Array()));
+		assert.isTrue(util.isArray(new Array()));
+		assert.isTrue(util.isArray(new Array(5)));
+		assert.isTrue(util.isArray(new Array('with', 'some', 'entries')));
+		assert.isFalse(util.isArray({}));
+		assert.isFalse(util.isArray({
+			push: function() {}
+		}));
+		assert.isFalse(util.isArray(/regexp/));
+		assert.isFalse(util.isArray(new Error));
+		assert.isFalse(util.isArray(Object.create(Array.prototype)));
+	});
+
+	it("isRegExp", function() {
+		assert.isTrue(util.isRegExp(/regexp/));
+		assert.isTrue(util.isRegExp(RegExp()));
+		assert.isTrue(util.isRegExp(new RegExp()));
+		assert.isFalse(util.isRegExp({}));
+		assert.isFalse(util.isRegExp([]));
+		assert.isFalse(util.isRegExp(new Date()));
+		assert.isFalse(util.isRegExp(Object.create(RegExp.prototype)));
+	});
+
+	it("isObject", function() {
+		assert.isTrue(util.isObject({}));
+	});
+
+	it('isNull', function() {
+		assert.isTrue(util.isNull(null));
+		assert.isFalse(util.isNull(undefined));
+		assert.isFalse(util.isNull(100));
+	});
+
+	it('isUndefined', function() {
+		assert.isFalse(util.isUndefined(null));
+		assert.isTrue(util.isUndefined(undefined));
+		assert.isFalse(util.isUndefined(100));
+	});
+
+	it('isNullOrUndefined', function() {
+		assert.isTrue(util.isNullOrUndefined(null));
+		assert.isTrue(util.isNullOrUndefined(undefined));
+		assert.isFalse(util.isNullOrUndefined(100));
+	});
+
+	it('isNumber', function() {
+		assert.isTrue(util.isNumber(1));
+		assert.isTrue(util.isNumber(Number('3')));
+
+		assert.isFalse(util.isNumber('1'));
+
+		assert.isFalse(util.isNumber('hello'));
+		assert.isFalse(util.isNumber([5]));
+	});
+
+	it('isString', function() {
+		assert.isTrue(util.isString('Foo'));
+		assert.isTrue(util.isString(new String('foo')));
+
+		assert.isFalse(util.isString(1));
+
+		assert.isFalse(util.isString(3));
+		assert.isFalse(util.isString(['hello']));
+	});
+
+	it('isRegExp', function() {
+		assert.isTrue(util.isRegExp(/a/));
+		assert.isTrue(util.isRegExp(new RegExp("a")));
+		assert.isFalse(util.isRegExp("a"));
+	});
+
+	it('isFunction', function() {
+		assert.isTrue(util.isFunction(function() {}));
+		assert.isFalse(util.isFunction({}));
+		assert.isFalse(util.isFunction(5));
+	});
+
+	it('isBuffer', function() {
+		assert.isTrue(util.isBuffer(new Buffer(10)));
+		assert.isFalse(util.isBuffer({}));
+		assert.isFalse(util.isBuffer(5));
+	});
+
+	describe('format', function() {
+		it("basic", function() {
+			assert.equal(util.format(), '');
+			assert.equal(util.format(''), '');
+			assert.equal(util.format([]), '[]');
+			assert.equal(util.format({}), '{}');
+			assert.equal(util.format(null), 'null');
+			assert.equal(util.format(true), 'true');
+			assert.equal(util.format(false), 'false');
+			assert.equal(util.format('test'), 'test');
+
+			// CHECKME this is for console.log() compatibility - but is it *right*?
+			assert.equal(util.format('foo', 'bar', 'baz'), 'foo bar baz');
+		});
+
+		it("%d", function() {
+			assert.equal(util.format('%d', 42.0), '42');
+			assert.equal(util.format('%d', 42), '42');
+			assert.equal(util.format('%s', 42), '42');
+			assert.equal(util.format('%j', 42), '42');
+
+			assert.equal(util.format('%d', '42.0'), '42');
+			assert.equal(util.format('%d', '42'), '42');
+			assert.equal(util.format('%s', '42'), '42');
+		});
+
+		it("%j", function() {
+			assert.equal(util.format('%j', '42'), '"42"');
+		});
+
+		it("%s", function() {
+			assert.equal(util.format('%%s%s', 'foo'), '%sfoo');
+
+			assert.equal(util.format('%s'), '%s');
+			assert.equal(util.format('%s', undefined), 'undefined');
+			assert.equal(util.format('%s', 'foo'), 'foo');
+			assert.equal(util.format('%s:%s'), '%s:%s');
+			assert.equal(util.format('%s:%s', undefined), 'undefined:%s');
+			assert.equal(util.format('%s:%s', 'foo'), 'foo:%s');
+			assert.equal(util.format('%s:%s', 'foo', 'bar'), 'foo:bar');
+			assert.equal(util.format('%s:%s', 'foo', 'bar', 'baz'), 'foo:bar baz');
+			assert.equal(util.format('%%%s%%', 'hi'), '%hi%');
+			assert.equal(util.format('%%%s%%%%', 'hi'), '%hi%%');
+		});
+
+		it("Circular", function() {
+			(function() {
+				var o = {};
+				o.o = o;
+				assert.equal(util.format('%j', o), '[Circular]');
+			})();
+		});
+	});
+
 	describe('Stats', function() {
 		var s;
 
@@ -187,4 +327,4 @@ describe('util', function() {
 	});
 });
 
-// test.run();
+//test.run(console.DEBUG);

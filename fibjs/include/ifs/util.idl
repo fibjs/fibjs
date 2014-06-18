@@ -2,6 +2,105 @@
 /*! @brief 常用工具模块 */
 class util : module
 {
+    /*! @brief 按照指定的格式格式化变量
+
+     @param fmt 格式化字符串
+     @param ... 可选参数列表
+     @return 返回格式化后的字符串
+     */
+    static String format(String fmt, ...);
+
+    /*! @brief 格式格式化变量
+
+     @param ... 可选参数列表
+     @return 返回格式化后的字符串
+     */
+    static String format(...);
+
+    /*! @brief 检测给定的变量是否是数组
+
+     @param v 给定需要检测的变量
+     @return 如果是数组则返回 True
+     */
+    static Boolean isArray(Value v);
+
+    /*! @brief 检测给定的变量是否是 Boolean
+
+     @param v 给定需要检测的变量
+     @return 如果是 Boolean 则返回 True
+     */
+    static Boolean isBoolean(Value v);
+
+    /*! @brief 检测给定的变量是否是 Null
+
+     @param v 给定需要检测的变量
+     @return 如果是 Null 则返回 True
+     */
+    static Boolean isNull(Value v);
+
+    /*! @brief 检测给定的变量是否是 Null 或者 Undefined
+
+     @param v 给定需要检测的变量
+     @return 如果是 Null 或者 Undefined 则返回 True
+     */
+    static Boolean isNullOrUndefined(Value v);
+
+    /*! @brief 检测给定的变量是否是数字
+
+     @param v 给定需要检测的变量
+     @return 如果是数字则返回 True
+     */
+    static Boolean isNumber(Value v);
+
+    /*! @brief 检测给定的变量是否是字符串
+
+     @param v 给定需要检测的变量
+     @return 如果是字符串则返回 True
+     */
+    static Boolean isString(Value v);
+
+    /*! @brief 检测给定的变量是否是 Undefined
+
+     @param v 给定需要检测的变量
+     @return 如果是 Undefined 则返回 True
+     */
+    static Boolean isUndefined(Value v);
+
+    /*! @brief 检测给定的变量是否是正则对象
+
+     @param v 给定需要检测的变量
+     @return 如果是正则对象则返回 True
+     */
+    static Boolean isRegExp(Value v);
+
+    /*! @brief 检测给定的变量是否是对象
+
+     @param v 给定需要检测的变量
+     @return 如果是对象则返回 True
+     */
+    static Boolean isObject(Value v);
+
+    /*! @brief 检测给定的变量是否是日期对象
+
+     @param v 给定需要检测的变量
+     @return 如果是日期对象则返回 True
+     */
+    static Boolean isDate(Value v);
+
+    /*! @brief 检测给定的变量是否是函数对象
+
+     @param v 给定需要检测的变量
+     @return 如果是函数对象则返回 True
+     */
+    static Boolean isFunction(Value v);
+
+    /*! @brief 检测给定的变量是否是函数 Buffer 对象
+
+     @param v 给定需要检测的变量
+     @return 如果是函数 Buffer 对象则返回 True
+     */
+    static Boolean isBuffer(Value v);
+
     /*! @brief 数据统计对象，用以构建应用运行时数据收集，参见 Stats 对象。*/
     static Stats new Stats();
 
