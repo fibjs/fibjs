@@ -1,0 +1,761 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.7"/>
+<title>{FibJS: Fiber Javascript}: util类 参考</title>
+<link href="../../tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../jquery.js"></script>
+<script type="text/javascript" src="../../dynsections.js"></script>
+<link href="../../navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../resize.js"></script>
+<script type="text/javascript" src="../../navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
+<link href="../../search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="../../doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">{FibJS: Fiber Javascript}
+   </div>
+   <div id="projectbrief">基于 Google v8 引擎实现的协程应用开发框架</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.8.7 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "../../search",false,'搜索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="../../index.html"><span>首页</span></a></li>
+      <li><a href="../../pages.html"><span>相关页面</span></a></li>
+      <li class="current"><a href="../../annotated.html"><span>类</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="../../search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="搜索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="../../search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="../../annotated.html"><span>类列表</span></a></li>
+      <li><a href="../../inherits.html"><span>类继承关系</span></a></li>
+      <li><a href="../../functions.html"><span>类成员</span></a></li>
+    </ul>
+  </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('d8/d61/classutil.html','../../');});
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全部</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>类</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>函数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>变量</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>页</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-static-methods">静态 Public 成员函数</a> &#124;
+<a href="../../df/dc2/classutil-members.html">所有成员列表</a>  </div>
+  <div class="headertitle">
+<div class="title">util类 参考</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>常用工具模块  
+ <a href="../../d8/d61/classutil.html#details">更多...</a></p>
+<div class="dynheader">
+类 util 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../db/dfd/classutil__inherit__graph.svg" width="160" height="419"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
+静态 Public 成员函数</h2></td></tr>
+<tr class="memitem:a0e62c6dffcb92af6c4d397f66d49aeda"><td class="memItemLeft" align="right" valign="top">static String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d61/classutil.html#a0e62c6dffcb92af6c4d397f66d49aeda">format</a> (String fmt,...)</td></tr>
+<tr class="memdesc:a0e62c6dffcb92af6c4d397f66d49aeda"><td class="mdescLeft">&#160;</td><td class="mdescRight">按照指定的格式格式化变量  <a href="#a0e62c6dffcb92af6c4d397f66d49aeda">更多...</a><br /></td></tr>
+<tr class="separator:a0e62c6dffcb92af6c4d397f66d49aeda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a622d3f4ba0f379119973e8c5b3d06841"><td class="memItemLeft" align="right" valign="top">static String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d61/classutil.html#a622d3f4ba0f379119973e8c5b3d06841">format</a> (...)</td></tr>
+<tr class="memdesc:a622d3f4ba0f379119973e8c5b3d06841"><td class="mdescLeft">&#160;</td><td class="mdescRight">格式格式化变量  <a href="#a622d3f4ba0f379119973e8c5b3d06841">更多...</a><br /></td></tr>
+<tr class="separator:a622d3f4ba0f379119973e8c5b3d06841"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3750ee06a6344f1b775b3c7cdcfcbbc"><td class="memItemLeft" align="right" valign="top">static Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d61/classutil.html#ad3750ee06a6344f1b775b3c7cdcfcbbc">isArray</a> (Value v)</td></tr>
+<tr class="memdesc:ad3750ee06a6344f1b775b3c7cdcfcbbc"><td class="mdescLeft">&#160;</td><td class="mdescRight">检测给定的变量是否是数组  <a href="#ad3750ee06a6344f1b775b3c7cdcfcbbc">更多...</a><br /></td></tr>
+<tr class="separator:ad3750ee06a6344f1b775b3c7cdcfcbbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e8ba3944a9a4ba546ab32a82ac6ee75"><td class="memItemLeft" align="right" valign="top">static Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d61/classutil.html#a2e8ba3944a9a4ba546ab32a82ac6ee75">isBoolean</a> (Value v)</td></tr>
+<tr class="memdesc:a2e8ba3944a9a4ba546ab32a82ac6ee75"><td class="mdescLeft">&#160;</td><td class="mdescRight">检测给定的变量是否是 Boolean  <a href="#a2e8ba3944a9a4ba546ab32a82ac6ee75">更多...</a><br /></td></tr>
+<tr class="separator:a2e8ba3944a9a4ba546ab32a82ac6ee75"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a398963fdc1a176c77f5c8ff432e76751"><td class="memItemLeft" align="right" valign="top">static Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d61/classutil.html#a398963fdc1a176c77f5c8ff432e76751">isNull</a> (Value v)</td></tr>
+<tr class="memdesc:a398963fdc1a176c77f5c8ff432e76751"><td class="mdescLeft">&#160;</td><td class="mdescRight">检测给定的变量是否是 Null  <a href="#a398963fdc1a176c77f5c8ff432e76751">更多...</a><br /></td></tr>
+<tr class="separator:a398963fdc1a176c77f5c8ff432e76751"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a339eedde3e882a57f529205c1004816e"><td class="memItemLeft" align="right" valign="top">static Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d61/classutil.html#a339eedde3e882a57f529205c1004816e">isNullOrUndefined</a> (Value v)</td></tr>
+<tr class="memdesc:a339eedde3e882a57f529205c1004816e"><td class="mdescLeft">&#160;</td><td class="mdescRight">检测给定的变量是否是 Null 或者 Undefined  <a href="#a339eedde3e882a57f529205c1004816e">更多...</a><br /></td></tr>
+<tr class="separator:a339eedde3e882a57f529205c1004816e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70aba7b6339267e79399dd1f3532393e"><td class="memItemLeft" align="right" valign="top">static Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d61/classutil.html#a70aba7b6339267e79399dd1f3532393e">isNumber</a> (Value v)</td></tr>
+<tr class="memdesc:a70aba7b6339267e79399dd1f3532393e"><td class="mdescLeft">&#160;</td><td class="mdescRight">检测给定的变量是否是数字  <a href="#a70aba7b6339267e79399dd1f3532393e">更多...</a><br /></td></tr>
+<tr class="separator:a70aba7b6339267e79399dd1f3532393e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53b05938f4a3601a494f3733d1015d26"><td class="memItemLeft" align="right" valign="top">static Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d61/classutil.html#a53b05938f4a3601a494f3733d1015d26">isString</a> (Value v)</td></tr>
+<tr class="memdesc:a53b05938f4a3601a494f3733d1015d26"><td class="mdescLeft">&#160;</td><td class="mdescRight">检测给定的变量是否是字符串  <a href="#a53b05938f4a3601a494f3733d1015d26">更多...</a><br /></td></tr>
+<tr class="separator:a53b05938f4a3601a494f3733d1015d26"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a714d17751c410e69c111fc0d849b1cf8"><td class="memItemLeft" align="right" valign="top">static Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d61/classutil.html#a714d17751c410e69c111fc0d849b1cf8">isUndefined</a> (Value v)</td></tr>
+<tr class="memdesc:a714d17751c410e69c111fc0d849b1cf8"><td class="mdescLeft">&#160;</td><td class="mdescRight">检测给定的变量是否是 Undefined  <a href="#a714d17751c410e69c111fc0d849b1cf8">更多...</a><br /></td></tr>
+<tr class="separator:a714d17751c410e69c111fc0d849b1cf8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a197f6d19eb64708964feb8aeb51bc7a3"><td class="memItemLeft" align="right" valign="top">static Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d61/classutil.html#a197f6d19eb64708964feb8aeb51bc7a3">isRegExp</a> (Value v)</td></tr>
+<tr class="memdesc:a197f6d19eb64708964feb8aeb51bc7a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">检测给定的变量是否是正则对象  <a href="#a197f6d19eb64708964feb8aeb51bc7a3">更多...</a><br /></td></tr>
+<tr class="separator:a197f6d19eb64708964feb8aeb51bc7a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e2502fcac90ea85c1b5250b12b9136f"><td class="memItemLeft" align="right" valign="top">static Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d61/classutil.html#a9e2502fcac90ea85c1b5250b12b9136f">isObject</a> (Value v)</td></tr>
+<tr class="memdesc:a9e2502fcac90ea85c1b5250b12b9136f"><td class="mdescLeft">&#160;</td><td class="mdescRight">检测给定的变量是否是对象  <a href="#a9e2502fcac90ea85c1b5250b12b9136f">更多...</a><br /></td></tr>
+<tr class="separator:a9e2502fcac90ea85c1b5250b12b9136f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a021ed90060f67225f96dc44d2a5fbcb9"><td class="memItemLeft" align="right" valign="top">static Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d61/classutil.html#a021ed90060f67225f96dc44d2a5fbcb9">isDate</a> (Value v)</td></tr>
+<tr class="memdesc:a021ed90060f67225f96dc44d2a5fbcb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">检测给定的变量是否是日期对象  <a href="#a021ed90060f67225f96dc44d2a5fbcb9">更多...</a><br /></td></tr>
+<tr class="separator:a021ed90060f67225f96dc44d2a5fbcb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a6991dfe0aa363fbebb231e67f5d118"><td class="memItemLeft" align="right" valign="top">static Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d61/classutil.html#a1a6991dfe0aa363fbebb231e67f5d118">isFunction</a> (Value v)</td></tr>
+<tr class="memdesc:a1a6991dfe0aa363fbebb231e67f5d118"><td class="mdescLeft">&#160;</td><td class="mdescRight">检测给定的变量是否是函数对象  <a href="#a1a6991dfe0aa363fbebb231e67f5d118">更多...</a><br /></td></tr>
+<tr class="separator:a1a6991dfe0aa363fbebb231e67f5d118"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b04005af45be1e1f72010fc527ee4ba"><td class="memItemLeft" align="right" valign="top">static Boolean&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d61/classutil.html#a9b04005af45be1e1f72010fc527ee4ba">isBuffer</a> (Value v)</td></tr>
+<tr class="memdesc:a9b04005af45be1e1f72010fc527ee4ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">检测给定的变量是否是函数 <a class="el" href="../../d0/d11/classBuffer.html" title="二进制数据缓存对象，用于 io 读写的数据处理 ">Buffer</a> 对象  <a href="#a9b04005af45be1e1f72010fc527ee4ba">更多...</a><br /></td></tr>
+<tr class="separator:a9b04005af45be1e1f72010fc527ee4ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a345a3de75e6748ef3237bda10c84c92d"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="../../db/df7/classStats.html">Stats</a> new&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d61/classutil.html#a345a3de75e6748ef3237bda10c84c92d">Stats</a> ()</td></tr>
+<tr class="memdesc:a345a3de75e6748ef3237bda10c84c92d"><td class="mdescLeft">&#160;</td><td class="mdescRight">数据统计对象，用以构建应用运行时数据收集，参见 <a class="el" href="../../db/df7/classStats.html" title="数据统计对象，用以构建应用运行时数据收集 ">Stats</a> 对象。  <a href="#a345a3de75e6748ef3237bda10c84c92d">更多...</a><br /></td></tr>
+<tr class="separator:a345a3de75e6748ef3237bda10c84c92d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a236142a9837f80ea1f39d2cacd9b733c"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="../../de/d0f/classLruCache.html">LruCache</a> new&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d61/classutil.html#a236142a9837f80ea1f39d2cacd9b733c">LruCache</a> ()</td></tr>
+<tr class="memdesc:a236142a9837f80ea1f39d2cacd9b733c"><td class="mdescLeft">&#160;</td><td class="mdescRight">LRU(least recently used) 缓存对象，参见 <a class="el" href="../../de/d0f/classLruCache.html" title="LRU(least recently used) 缓存对象 ">LruCache</a> 对象。  <a href="#a236142a9837f80ea1f39d2cacd9b733c">更多...</a><br /></td></tr>
+<tr class="separator:a236142a9837f80ea1f39d2cacd9b733c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38b22f190ce11008314b51470042ce2b"><td class="memItemLeft" align="right" valign="top">static Object&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d61/classutil.html#a38b22f190ce11008314b51470042ce2b">buildInfo</a> ()</td></tr>
+<tr class="memdesc:a38b22f190ce11008314b51470042ce2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询当前引擎及各组件版本信息  <a href="#a38b22f190ce11008314b51470042ce2b">更多...</a><br /></td></tr>
+<tr class="separator:a38b22f190ce11008314b51470042ce2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>常用工具模块 </p>
+</div><h2 class="groupheader">成员函数说明</h2>
+<a class="anchor" id="a0e62c6dffcb92af6c4d397f66d49aeda"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static String util::format </td>
+          <td>(</td>
+          <td class="paramtype">String&#160;</td>
+          <td class="paramname"><em>fmt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>按照指定的格式格式化变量 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">fmt</td><td>格式化字符串 </td></tr>
+    <tr><td class="paramname">...</td><td>可选参数列表 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回格式化后的字符串 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a622d3f4ba0f379119973e8c5b3d06841"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static String util::format </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>格式格式化变量 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">...</td><td>可选参数列表 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>返回格式化后的字符串 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ad3750ee06a6344f1b775b3c7cdcfcbbc"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Boolean util::isArray </td>
+          <td>(</td>
+          <td class="paramtype">Value&#160;</td>
+          <td class="paramname"><em>v</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>检测给定的变量是否是数组 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">v</td><td>给定需要检测的变量 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>如果是数组则返回 True </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a2e8ba3944a9a4ba546ab32a82ac6ee75"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Boolean util::isBoolean </td>
+          <td>(</td>
+          <td class="paramtype">Value&#160;</td>
+          <td class="paramname"><em>v</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>检测给定的变量是否是 Boolean </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">v</td><td>给定需要检测的变量 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>如果是 Boolean 则返回 True </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a398963fdc1a176c77f5c8ff432e76751"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Boolean util::isNull </td>
+          <td>(</td>
+          <td class="paramtype">Value&#160;</td>
+          <td class="paramname"><em>v</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>检测给定的变量是否是 Null </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">v</td><td>给定需要检测的变量 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>如果是 Null 则返回 True </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a339eedde3e882a57f529205c1004816e"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Boolean util::isNullOrUndefined </td>
+          <td>(</td>
+          <td class="paramtype">Value&#160;</td>
+          <td class="paramname"><em>v</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>检测给定的变量是否是 Null 或者 Undefined </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">v</td><td>给定需要检测的变量 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>如果是 Null 或者 Undefined 则返回 True </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a70aba7b6339267e79399dd1f3532393e"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Boolean util::isNumber </td>
+          <td>(</td>
+          <td class="paramtype">Value&#160;</td>
+          <td class="paramname"><em>v</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>检测给定的变量是否是数字 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">v</td><td>给定需要检测的变量 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>如果是数字则返回 True </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a53b05938f4a3601a494f3733d1015d26"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Boolean util::isString </td>
+          <td>(</td>
+          <td class="paramtype">Value&#160;</td>
+          <td class="paramname"><em>v</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>检测给定的变量是否是字符串 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">v</td><td>给定需要检测的变量 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>如果是字符串则返回 True </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a714d17751c410e69c111fc0d849b1cf8"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Boolean util::isUndefined </td>
+          <td>(</td>
+          <td class="paramtype">Value&#160;</td>
+          <td class="paramname"><em>v</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>检测给定的变量是否是 Undefined </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">v</td><td>给定需要检测的变量 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>如果是 Undefined 则返回 True </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a197f6d19eb64708964feb8aeb51bc7a3"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Boolean util::isRegExp </td>
+          <td>(</td>
+          <td class="paramtype">Value&#160;</td>
+          <td class="paramname"><em>v</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>检测给定的变量是否是正则对象 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">v</td><td>给定需要检测的变量 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>如果是正则对象则返回 True </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a9e2502fcac90ea85c1b5250b12b9136f"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Boolean util::isObject </td>
+          <td>(</td>
+          <td class="paramtype">Value&#160;</td>
+          <td class="paramname"><em>v</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>检测给定的变量是否是对象 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">v</td><td>给定需要检测的变量 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>如果是对象则返回 True </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a021ed90060f67225f96dc44d2a5fbcb9"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Boolean util::isDate </td>
+          <td>(</td>
+          <td class="paramtype">Value&#160;</td>
+          <td class="paramname"><em>v</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>检测给定的变量是否是日期对象 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">v</td><td>给定需要检测的变量 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>如果是日期对象则返回 True </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a1a6991dfe0aa363fbebb231e67f5d118"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Boolean util::isFunction </td>
+          <td>(</td>
+          <td class="paramtype">Value&#160;</td>
+          <td class="paramname"><em>v</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>检测给定的变量是否是函数对象 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">v</td><td>给定需要检测的变量 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>如果是函数对象则返回 True </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a9b04005af45be1e1f72010fc527ee4ba"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Boolean util::isBuffer </td>
+          <td>(</td>
+          <td class="paramtype">Value&#160;</td>
+          <td class="paramname"><em>v</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>检测给定的变量是否是函数 <a class="el" href="../../d0/d11/classBuffer.html" title="二进制数据缓存对象，用于 io 读写的数据处理 ">Buffer</a> 对象 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">v</td><td>给定需要检测的变量 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>如果是函数 <a class="el" href="../../d0/d11/classBuffer.html" title="二进制数据缓存对象，用于 io 读写的数据处理 ">Buffer</a> 对象则返回 True </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a345a3de75e6748ef3237bda10c84c92d"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="../../db/df7/classStats.html">Stats</a> new util::Stats </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>数据统计对象，用以构建应用运行时数据收集，参见 <a class="el" href="../../db/df7/classStats.html" title="数据统计对象，用以构建应用运行时数据收集 ">Stats</a> 对象。 </p>
+
+</div>
+</div>
+<a class="anchor" id="a236142a9837f80ea1f39d2cacd9b733c"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="../../de/d0f/classLruCache.html">LruCache</a> new util::LruCache </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>LRU(least recently used) 缓存对象，参见 <a class="el" href="../../de/d0f/classLruCache.html" title="LRU(least recently used) 缓存对象 ">LruCache</a> 对象。 </p>
+
+</div>
+</div>
+<a class="anchor" id="a38b22f190ce11008314b51470042ce2b"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Object util::buildInfo </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>查询当前引擎及各组件版本信息 </p>
+<dl class="section return"><dt>返回</dt><dd>返回结构如下： <div class="fragment"><div class="line">{</div>
+<div class="line">  <span class="stringliteral">&quot;fibjs&quot;</span>: <span class="stringliteral">&quot;0.1.0&quot;</span>,</div>
+<div class="line">  <span class="stringliteral">&quot;svn&quot;</span>: 1753,</div>
+<div class="line">  <span class="stringliteral">&quot;build&quot;</span>: <span class="stringliteral">&quot;Dec 10 2013 21:44:17&quot;</span>,</div>
+<div class="line">  <span class="stringliteral">&quot;vender&quot;</span>: {</div>
+<div class="line">    <span class="stringliteral">&quot;ev&quot;</span>: <span class="stringliteral">&quot;4.11&quot;</span>,</div>
+<div class="line">    <span class="stringliteral">&quot;exif&quot;</span>: <span class="stringliteral">&quot;0.6.21&quot;</span>,</div>
+<div class="line">    <span class="stringliteral">&quot;gd&quot;</span>: <span class="stringliteral">&quot;2.1.0-alpha&quot;</span>,</div>
+<div class="line">    <span class="stringliteral">&quot;jpeg&quot;</span>: <span class="stringliteral">&quot;8.3&quot;</span>,</div>
+<div class="line">    <span class="stringliteral">&quot;log4cpp&quot;</span>: <span class="stringliteral">&quot;1.0&quot;</span>,</div>
+<div class="line">    <span class="stringliteral">&quot;mongo&quot;</span>: <span class="stringliteral">&quot;0.7&quot;</span>,</div>
+<div class="line">    <span class="stringliteral">&quot;pcre&quot;</span>: <span class="stringliteral">&quot;8.21&quot;</span>,</div>
+<div class="line">    <span class="stringliteral">&quot;png&quot;</span>: <span class="stringliteral">&quot;1.5.4&quot;</span>,</div>
+<div class="line">    <span class="stringliteral">&quot;sqlite&quot;</span>: <span class="stringliteral">&quot;3.8.1&quot;</span>,</div>
+<div class="line">    <span class="stringliteral">&quot;tiff&quot;</span>: <span class="stringliteral">&quot;3.9.5&quot;</span>,</div>
+<div class="line">    <span class="stringliteral">&quot;uuid&quot;</span>: <span class="stringliteral">&quot;1.6.2&quot;</span>,</div>
+<div class="line">    <span class="stringliteral">&quot;v8&quot;</span>: <span class="stringliteral">&quot;3.23.17 (candidate)&quot;</span>,</div>
+<div class="line">    <span class="stringliteral">&quot;zlib&quot;</span>: <span class="stringliteral">&quot;1.2.7&quot;</span>,</div>
+<div class="line">    <span class="stringliteral">&quot;zmq&quot;</span>: <span class="stringliteral">&quot;3.1&quot;</span></div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --> </dd></dl>
+
+</div>
+</div>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="../../d8/d61/classutil.html">util</a></li>
+    <li class="footer">制作者
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.8.7 </li>
+  </ul>
+</div>
+</body>
+</html>

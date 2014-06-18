@@ -15,8 +15,8 @@ var searchData=
   ['localaddress',['localAddress',['../d4/d33/classSocket.html#a0501ceb52579d56a7eb406e1bbc2f697',1,'Socket']]],
   ['localport',['localPort',['../d4/d33/classSocket.html#a1ae0c4a75caaaf1010430520dd8beca1',1,'Socket']]],
   ['lock',['Lock',['../d6/d83/classLock.html',1,'Lock'],['../d2/dd1/classcoroutine.html#aeab21c924c4513dade92623907574c5f',1,'coroutine::Lock()'],['../d6/d83/classLock.html#a9944623567d8138b95e74fadc7190adb',1,'Lock::Lock()']]],
-  ['log',['log',['../d6/df8/classconsole.html#a8a35465941f1668e1fa88c9d37ac997b',1,'console']]],
+  ['log',['log',['../d6/df8/classconsole.html#a93b42645d56e3b4da5d2dc28ba6593cf',1,'console::log(String fmt,...)'],['../d6/df8/classconsole.html#ac3cab060d14c380024c402df70f73877',1,'console::log(...)']]],
   ['login',['login',['../d5/d6b/classSmtp.html#a84a3ae6b9df42198f4a6bf26d4fc61b4',1,'Smtp']]],
   ['loglevel',['loglevel',['../d6/df8/classconsole.html#a903b5848bef37d438c976f38338569db',1,'console']]],
-  ['lrucache',['LruCache',['../de/d0f/classLruCache.html',1,'LruCache'],['../de/d0f/classLruCache.html#a6fce7c256bb93ea2a366e4258cb2a39f',1,'LruCache::LruCache()'],['../dc/d22/classutils.html#a22dcdab2ff3b36051fb0431ce218f679',1,'utils::LruCache()']]]
+  ['lrucache',['LruCache',['../de/d0f/classLruCache.html',1,'LruCache'],['../de/d0f/classLruCache.html#a6fce7c256bb93ea2a366e4258cb2a39f',1,'LruCache::LruCache()'],['../d8/d61/classutil.html#a236142a9837f80ea1f39d2cacd9b733c',1,'util::LruCache()']]]
 ];

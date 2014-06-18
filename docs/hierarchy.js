@@ -24,7 +24,7 @@ var hierarchy =
       [ "rpc", "de/d2a/classrpc.html", null ],
       [ "ssl", "dd/d36/classssl.html", null ],
       [ "test", "de/d01/classtest.html", null ],
-      [ "utils", "dc/d22/classutils.html", null ],
+      [ "util", "d8/d61/classutil.html", null ],
       [ "uuid", "d9/d4e/classuuid.html", null ],
       [ "vm", "d0/d0a/classvm.html", null ],
       [ "zlib", "d8/d09/classzlib.html", null ]

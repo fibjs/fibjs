@@ -157,9 +157,9 @@ Public 属性</h2></td></tr>
 <p>用以将数据流转换为 ssl 流协议。SslHandler 是对 <a class="el" href="../../d7/d3f/classSslSocket.html" title="ssl 网络套接口对象 ">SslSocket</a> 的封装，用于构建服务器，逻辑上相当于： </p><div class="fragment"><div class="line">var ss = <span class="keyword">new</span> <a class="code" href="../../dd/d36/classssl.html">ssl</a>.<a class="code" href="../../dd/d36/classssl.html#a3e693a484518479be1381ed0251b7c82">Socket</a>(crt, key);</div>
 <div class="line"></div>
 <div class="line"><span class="keyword">function</span>(s){</div>
-<div class="line">    var s1 = ss.<a class="code" href="../../d7/d3f/classSslSocket.html#a88752950a708f6bc5cf40bf2c3e498d0">accept</a>(s);</div>
-<div class="line">    hdlr.invoke(s1);</div>
-<div class="line">    s1.<a class="code" href="../../dc/de8/classStream.html#a52b486b973a47fb3fc79668a9742360f">close</a>();</div>
+<div class="line">   var s1 = ss.<a class="code" href="../../d7/d3f/classSslSocket.html#a88752950a708f6bc5cf40bf2c3e498d0">accept</a>(s);</div>
+<div class="line">   hdlr.invoke(s1);</div>
+<div class="line">   s1.<a class="code" href="../../dc/de8/classStream.html#a52b486b973a47fb3fc79668a9742360f">close</a>();</div>
 <div class="line">}</div>
 </div><!-- fragment --> </div><h2 class="groupheader">构造及析构函数说明</h2>
 <a class="anchor" id="a40a6cc77561afea02e8f6468a66dbd2c"></a>
@@ -191,12 +191,12 @@ Public 属性</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">certs</td><td>服务器证书列表，格式为 <div class="fragment"><div class="line">[</div>
 <div class="line">    {</div>
-<div class="line">    crt: [<a class="code" href="../../d1/d66/classX509Cert.html">X509Cert</a> <a class="code" href="../../dc/dd8/classobject.html">object</a>],</div>
-<div class="line">    key: [<a class="code" href="../../d0/d82/classPKey.html">PKey</a> <a class="code" href="../../dc/dd8/classobject.html">object</a>]</div>
+<div class="line">        crt: [<a class="code" href="../../d1/d66/classX509Cert.html">X509Cert</a> <a class="code" href="../../dc/dd8/classobject.html">object</a>],</div>
+<div class="line">        key: [<a class="code" href="../../d0/d82/classPKey.html">PKey</a> <a class="code" href="../../dc/dd8/classobject.html">object</a>]</div>
 <div class="line">    },</div>
 <div class="line">    {</div>
-<div class="line">    crt: [<a class="code" href="../../d1/d66/classX509Cert.html">X509Cert</a> <a class="code" href="../../dc/dd8/classobject.html">object</a>],</div>
-<div class="line">    key: [<a class="code" href="../../d0/d82/classPKey.html">PKey</a> <a class="code" href="../../dc/dd8/classobject.html">object</a>]</div>
+<div class="line">        crt: [<a class="code" href="../../d1/d66/classX509Cert.html">X509Cert</a> <a class="code" href="../../dc/dd8/classobject.html">object</a>],</div>
+<div class="line">        key: [<a class="code" href="../../d0/d82/classPKey.html">PKey</a> <a class="code" href="../../dc/dd8/classobject.html">object</a>]</div>
 <div class="line">    }</div>
 <div class="line">]</div>
 </div><!-- fragment --> </td></tr>

@@ -31,7 +31,7 @@ var searchData=
   ['sslsocket',['SslSocket',['../d7/d3f/classSslSocket.html#aaa1ff2e967332f3fbb8de3fa3d49d896',1,'SslSocket::SslSocket(Array certs=[])'],['../d7/d3f/classSslSocket.html#a7ec64273a450f8eb1de94a04b970de0b',1,'SslSocket::SslSocket(X509Cert crt, PKey key)']]],
   ['start',['start',['../d2/dd1/classcoroutine.html#aab30743ccc280e7950189c50a0afabde',1,'coroutine::start()'],['../de/d65/classFunction.html#ad906fb642705bd95fa917f53e3d8a608',1,'Function::start()']]],
   ['stat',['stat',['../dc/d2f/classfs.html#a51eb9e7e0bebba7af47eeff6ddcb6425',1,'fs::stat()'],['../db/d67/classSeekableStream.html#a18f7e1862399c42a167a2b30009592d0',1,'SeekableStream::stat()']]],
-  ['stats',['Stats',['../db/df7/classStats.html#a5529e542d61824715b210fa103c9939b',1,'Stats::Stats(Array keys)'],['../db/df7/classStats.html#acb5cc49c1e2f36ccf98066c862ff326c',1,'Stats::Stats(Array staticKeys, Array keys)'],['../dc/d22/classutils.html#a40030184cca731b9860965ecc32b3911',1,'utils::Stats()']]],
+  ['stats',['Stats',['../db/df7/classStats.html#a5529e542d61824715b210fa103c9939b',1,'Stats::Stats(Array keys)'],['../db/df7/classStats.html#acb5cc49c1e2f36ccf98066c862ff326c',1,'Stats::Stats(Array staticKeys, Array keys)'],['../d8/d61/classutil.html#a345a3de75e6748ef3237bda10c84c92d',1,'util::Stats()']]],
   ['store',['store',['../d9/de8/classGridFS.html#ae6b355ca7a7e7fae976d3b3789c35045',1,'GridFS::store(String name, Stream src)'],['../d9/de8/classGridFS.html#a811549d931a6845bfae574cd32dd1085',1,'GridFS::store(String name, Buffer data)']]],
   ['strictequal',['strictEqual',['../de/d1c/classassert.html#a2cb47b83fabc213b290b9b4ce7564f35',1,'assert']]],
   ['system',['system',['../d4/d82/classprocess.html#a8ba452b49b82fff2709f27929faa57cf',1,'process']]]

@@ -14,7 +14,7 @@ var searchData=
   ['eol',['EOL',['../d2/dee/classBufferedStream.html#adaa9b52ec60c27e739b762a26b3f0a8d',1,'BufferedStream']]],
   ['eql',['eql',['../dd/d7a/classExpect.html#ab1800257df8c06dd9d759c9c2dd91f72',1,'Expect']]],
   ['equal',['equal',['../de/d1c/classassert.html#af37037ca6be593c635dc7a312e45f17e',1,'assert::equal()'],['../dd/d7a/classExpect.html#aa8507593476087851d862726b802d7f1',1,'Expect::equal()']]],
-  ['error',['error',['../df/d0e/classTextColor.html#a56f6aeb7a8f24f3f294c61e1199f7e0b',1,'TextColor::error()'],['../d6/df8/classconsole.html#a3a51fd7a0065454f1b3ec1e41ffcd621',1,'console::error(String fmt=&quot;&quot;,...)'],['../d6/df8/classconsole.html#a60c0dd0c74056a542643ec7202b5954d',1,'console::ERROR()']]],
+  ['error',['error',['../df/d0e/classTextColor.html#a56f6aeb7a8f24f3f294c61e1199f7e0b',1,'TextColor::error()'],['../d6/df8/classconsole.html#a3525bdec50b085e03d6ca5625a057914',1,'console::error(String fmt,...)'],['../d6/df8/classconsole.html#abc33daf6e70210aa03b78832c2d6eea3',1,'console::error(...)'],['../d6/df8/classconsole.html#a60c0dd0c74056a542643ec7202b5954d',1,'console::ERROR()']]],
   ['escape',['escape',['../de/d5f/classdb.html#aeb2f02c2858d45aeab3cd686e99ceabd',1,'db']]],
   ['event',['Event',['../d5/da5/classEvent.html',1,'Event'],['../d2/dd1/classcoroutine.html#ad0f8ed469664e3397be2684930305150',1,'coroutine::Event()']]],
   ['every',['every',['../d6/da9/classList.html#a751f05572731dcf0814f3f6ef74a2c44',1,'List']]],

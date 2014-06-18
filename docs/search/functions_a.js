@@ -10,7 +10,7 @@ var searchData=
   ['loadavg',['loadavg',['../d7/db0/classos.html#af568dca7b66ce796e676741b24a4303a',1,'os']]],
   ['loadfile',['loadFile',['../d1/d66/classX509Cert.html#ad8d1c50338644b4a1ac00c8d2015e763',1,'X509Cert::loadFile()'],['../d6/df6/classX509Crl.html#a55412e415ce4cbeebc1c4bec9625ec44',1,'X509Crl::loadFile()'],['../d4/d6e/classX509Req.html#acb052d3624c830fd12ce39e25e552c17',1,'X509Req::loadFile()']]],
   ['lock',['Lock',['../d2/dd1/classcoroutine.html#aeab21c924c4513dade92623907574c5f',1,'coroutine::Lock()'],['../d6/d83/classLock.html#a9944623567d8138b95e74fadc7190adb',1,'Lock::Lock()']]],
-  ['log',['log',['../d6/df8/classconsole.html#a8a35465941f1668e1fa88c9d37ac997b',1,'console']]],
+  ['log',['log',['../d6/df8/classconsole.html#a93b42645d56e3b4da5d2dc28ba6593cf',1,'console::log(String fmt,...)'],['../d6/df8/classconsole.html#ac3cab060d14c380024c402df70f73877',1,'console::log(...)']]],
   ['login',['login',['../d5/d6b/classSmtp.html#a84a3ae6b9df42198f4a6bf26d4fc61b4',1,'Smtp']]],
-  ['lrucache',['LruCache',['../de/d0f/classLruCache.html#a6fce7c256bb93ea2a366e4258cb2a39f',1,'LruCache::LruCache()'],['../dc/d22/classutils.html#a22dcdab2ff3b36051fb0431ce218f679',1,'utils::LruCache()']]]
+  ['lrucache',['LruCache',['../de/d0f/classLruCache.html#a6fce7c256bb93ea2a366e4258cb2a39f',1,'LruCache::LruCache()'],['../d8/d61/classutil.html#a236142a9837f80ea1f39d2cacd9b733c',1,'util::LruCache()']]]
 ];

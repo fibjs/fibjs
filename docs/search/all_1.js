@@ -33,5 +33,5 @@ var searchData=
   ['bsonencode',['bsonEncode',['../d0/d52/classencoding.html#aa347199ad7dca52b72ca3653a9ec293f',1,'encoding']]],
   ['buffer',['Buffer',['../d0/d11/classBuffer.html',1,'Buffer'],['../d0/d11/classBuffer.html#af19634a31b59ee8f2f4031715bf89952',1,'Buffer::Buffer(Array datas)'],['../d0/d11/classBuffer.html#ac814f31740222ee1e1402a2b3df5513c',1,'Buffer::Buffer(Buffer data)'],['../d0/d11/classBuffer.html#a09fe57b4916e313b00c53a215445e469',1,'Buffer::Buffer(Integer size=0)'],['../d0/d11/classBuffer.html#ab9e33ff0da7a8dd5c812330c1ed08c17',1,'Buffer::Buffer(String str, String codec=&quot;utf8&quot;)'],['../df/d84/classglobal.html#a77b5ab3a88955255ac7abc7251919fbc',1,'global::Buffer()']]],
   ['bufferedstream',['BufferedStream',['../d2/dee/classBufferedStream.html',1,'BufferedStream'],['../d2/dee/classBufferedStream.html#a6dde4ed97e788d9a9963b3548d1a837b',1,'BufferedStream::BufferedStream()'],['../d9/da1/classio.html#a555ba063f09dc4745b6beb5a91395df5',1,'io::BufferedStream()']]],
-  ['buildinfo',['buildInfo',['../dc/d22/classutils.html#a628aa35e76af2d90fb0c3464650e9c1c',1,'utils']]]
+  ['buildinfo',['buildInfo',['../d8/d61/classutil.html#a38b22f190ce11008314b51470042ce2b',1,'util']]]
 ];

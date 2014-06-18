@@ -16,7 +16,7 @@ var searchData=
   ['flip',['flip',['../d8/d00/classImage.html#aba81dd690e0c232a4b988480dccb06ad',1,'Image']]],
   ['flush',['flush',['../db/d30/classFile.html#acfb3dabde3a0b975724e82e8bd03950d',1,'File']]],
   ['foreach',['forEach',['../d6/da9/classList.html#ad8b80fe919fe0ef22f731773487e3228',1,'List::forEach()'],['../db/d7d/classMongoCursor.html#a84611a0b25226ce2a282838a2b46ff4b',1,'MongoCursor::forEach()']]],
-  ['format',['format',['../de/d5f/classdb.html#a34aceab3cf280744a6293fd472a6cbcc',1,'db::format()'],['../d6/d91/classDbConnection.html#ae6d31f438b2c274f32aade526f92da2f',1,'DbConnection::format()'],['../df/d6b/classUrl.html#ad2ff6a6d6440f76c7cdaaa2b740003a8',1,'Url::format()']]],
+  ['format',['format',['../de/d5f/classdb.html#a34aceab3cf280744a6293fd472a6cbcc',1,'db::format()'],['../d6/d91/classDbConnection.html#ae6d31f438b2c274f32aade526f92da2f',1,'DbConnection::format()'],['../df/d6b/classUrl.html#ad2ff6a6d6440f76c7cdaaa2b740003a8',1,'Url::format()'],['../d8/d61/classutil.html#a0e62c6dffcb92af6c4d397f66d49aeda',1,'util::format(String fmt,...)'],['../d8/d61/classutil.html#a622d3f4ba0f379119973e8c5b3d06841',1,'util::format(...)']]],
   ['formatmysql',['formatMySQL',['../de/d5f/classdb.html#a730e29b155df6b5c9a5c1b2ce97c8386',1,'db']]],
   ['freemem',['freemem',['../d7/db0/classos.html#a571d36775ad176acbc76f7d12fb03bf1',1,'os']]],
   ['from',['from',['../d5/d6b/classSmtp.html#ad8eb1e574533147e12bbb50ca32eda0b',1,'Smtp']]]

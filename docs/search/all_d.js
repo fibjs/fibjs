@@ -19,7 +19,7 @@ var searchData=
   ['notequal',['notEqual',['../de/d1c/classassert.html#a2685f5cac15c1818fdd1be92cbf369c1',1,'assert']]],
   ['notexist',['notExist',['../de/d1c/classassert.html#a3d4e62849c9d75031ece79a91c96aa39',1,'assert']]],
   ['notgreaterthan',['notGreaterThan',['../de/d1c/classassert.html#ac0a045550d46df6659c6a97f2b1554b6',1,'assert']]],
-  ['notice',['NOTICE',['../d6/df8/classconsole.html#a69ec2512f58da156a3622655f50a583e',1,'console::NOTICE()'],['../df/d0e/classTextColor.html#a9b7bce159ed5ec43137063a20a9e0e16',1,'TextColor::notice()'],['../d6/df8/classconsole.html#ab820b4465ace93ddf6d3c5f0177c2aa7',1,'console::notice()']]],
+  ['notice',['notice',['../df/d0e/classTextColor.html#a9b7bce159ed5ec43137063a20a9e0e16',1,'TextColor::notice()'],['../d6/df8/classconsole.html#a7bd9f400a69ccc58045bea58edc43614',1,'console::notice(String fmt,...)'],['../d6/df8/classconsole.html#a9772882f183a2f91d26f8973ca95df3c',1,'console::notice(...)'],['../d6/df8/classconsole.html#a69ec2512f58da156a3622655f50a583e',1,'console::NOTICE()']]],
   ['notlessthan',['notLessThan',['../de/d1c/classassert.html#a552b2247c9920297cad7068a1fb007f0',1,'assert']]],
   ['notok',['notOk',['../de/d1c/classassert.html#ac587cf8bf42a5f632c7c03e672040de8',1,'assert']]],
   ['notproperty',['notProperty',['../de/d1c/classassert.html#ae0e3e69d65ed263243ac2370a2d36c7e',1,'assert']]],

@@ -21,7 +21,7 @@ var searchData=
   ['pop',['pop',['../d6/da9/classList.html#a576664822a395ecf272fc5c1cd637526',1,'List']]],
   ['port',['port',['../df/d6b/classUrl.html#ac69114ed8fad0b7cb381812694407403',1,'Url']]],
   ['post',['post',['../d6/da8/classhttp.html#a440654041e83c0ece6ac4e69d88b5c17',1,'http::post(String url, Object headers={})'],['../d6/da8/classhttp.html#aa08e3830d32a214ccc4f586f117b1da2',1,'http::post(String url, SeekableStream body, Object headers={})'],['../d6/da8/classhttp.html#a10ad303eed6fdb7a0a37d5ef8b735919',1,'http::post(String url, Buffer body, Object headers={})'],['../d6/da8/classhttp.html#ae495117ba28443394937f57fcd57a06f',1,'http::post(String url, String body, Object headers={})'],['../d6/d72/classSemaphore.html#a2b45b66bfcb4fd6a03c998dd8e21d27e',1,'Semaphore::post()']]],
-  ['print',['print',['../d6/df8/classconsole.html#a7ceda26b6990dfd337728b3ebb45d92c',1,'console']]],
+  ['print',['print',['../d6/df8/classconsole.html#aa6fdaace53b2b761e09d73e3a1092442',1,'console::print(String fmt,...)'],['../d6/df8/classconsole.html#a1448b275c7cc42856cf5ff8a0bd795ae',1,'console::print(...)']]],
   ['process',['process',['../d4/d82/classprocess.html',1,'']]],
   ['property',['property',['../de/d1c/classassert.html#aad5f5c5d5948e086adbe453e7efa957f',1,'assert::property()'],['../dd/d7a/classExpect.html#a359caa66686e380b8cad24a84911a25c',1,'Expect::property(Value prop)'],['../dd/d7a/classExpect.html#ab6b9e0f41589eaae6b968a8585885548',1,'Expect::property(Value prop, Value value)']]],
   ['propertynotval',['propertyNotVal',['../de/d1c/classassert.html#a5c45a31ca66fedc3926f3d68544fa189',1,'assert']]],

@@ -84,7 +84,7 @@ var annotated =
     [ "TextColor", "df/d0e/classTextColor.html", "df/d0e/classTextColor" ],
     [ "Trigger", "d7/d1d/classTrigger.html", "d7/d1d/classTrigger" ],
     [ "Url", "df/d6b/classUrl.html", "df/d6b/classUrl" ],
-    [ "utils", "dc/d22/classutils.html", "dc/d22/classutils" ],
+    [ "util", "d8/d61/classutil.html", "d8/d61/classutil" ],
     [ "uuid", "d9/d4e/classuuid.html", "d9/d4e/classuuid" ],
     [ "uuidValue", "d1/dd4/classuuidValue.html", "d1/dd4/classuuidValue" ],
     [ "vm", "d0/d0a/classvm.html", "d0/d0a/classvm" ],
