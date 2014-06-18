@@ -251,7 +251,7 @@
     <ClInclude Include="include\ifs\TextColor.h" />
     <ClInclude Include="include\ifs\Trigger.h" />
     <ClInclude Include="include\ifs\Url.h" />
-    <ClInclude Include="include\ifs\utils.h" />
+    <ClInclude Include="include\ifs\util.h" />
     <ClInclude Include="include\ifs\uuid.h" />
     <ClInclude Include="include\ifs\uuidValue.h" />
     <ClInclude Include="include\ifs\vm.h" />

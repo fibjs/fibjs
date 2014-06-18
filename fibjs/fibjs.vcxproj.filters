@@ -572,7 +572,7 @@
     <ClInclude Include="include\ifs\Smtp.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\utils.h">
+    <ClInclude Include="include\ifs\util.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\LruCache.h">
