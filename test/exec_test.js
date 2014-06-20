@@ -4,10 +4,10 @@ var coroutine = require('coroutine');
 var process = require('process');
 
 for (i = 0; i < 2; i++) {
+	coroutine.sleep(1000);
 	console.log(new Date());
 	console.print('console.print....');
 	console.log();
-	coroutine.sleep(100);
 }
 
 process.exit(100);

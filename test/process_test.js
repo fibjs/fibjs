@@ -17,12 +17,17 @@ describe('fiber', function() {
 	});
 
 	it("stdout", function() {
-		var sa = bs.readLines();
+		assert.equal(bs.readLine(), "exec testing....");
 
-		assert.equal(sa.length, 5);
-		assert.equal(sa[0], "exec testing....");
-		assert.equal(sa[2], "console.print....");
-		assert.equal(sa[4], "console.print....");
+		var t0 = new Date().getTime();
+
+		bs.readLine();
+		assert.equal(bs.readLine(), "console.print....");
+		assert.closeTo(new Date().getTime() - t0, 1000, 500);
+
+		bs.readLine();
+		assert.equal(bs.readLine(), "console.print....");
+		assert.closeTo(new Date().getTime() - t0, 2000, 500);
 	});
 
 	it("system", function() {
@@ -38,4 +43,4 @@ describe('fiber', function() {
 	});
 });
 
-//test.run();
+//test.run(console.DEBUG);

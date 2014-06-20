@@ -36,25 +36,7 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     if (bytes < 0)
     {
         if (m_pipe)
-        {
-#ifndef _WIN32
-            int sz;
-
-            if (!ioctl(m_fd, FIONREAD, &sz))
-            {
-                if (sz == 0)
-                    bytes = 1;
-                else if (sz > STREAM_BUFF_SIZE)
-                    bytes = STREAM_BUFF_SIZE;
-                else
-                    bytes = sz;
-            }
-            else
-                bytes = 1024;
-#else
-            bytes = 1024;
-#endif
-        }
+            bytes = STREAM_BUFF_SIZE;
         else
         {
             int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
