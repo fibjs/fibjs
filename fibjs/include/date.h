@@ -6,10 +6,23 @@
  */
 
 #include <string>
-#include <exlib/fiber.h>
 
 #ifndef DATE_H_
 #define DATE_H_
+
+namespace v8
+{
+namespace internal
+{
+
+class OS
+{
+public:
+    static double TimeCurrentMillis();
+};
+
+}
+}
 
 namespace fibjs
 {
@@ -53,7 +66,7 @@ public:
 
     void now()
     {
-        d = exlib::FastCurrentMillis();
+        d = v8::internal::OS::TimeCurrentMillis();
     }
 
     void create(int Y, int M, int D, int h, int m, int s, int ms);
