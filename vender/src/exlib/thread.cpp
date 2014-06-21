@@ -43,7 +43,6 @@ void OSThread::detach()
 
 void OSThread::start()
 {
-    DWORD threadid;
     thread_ = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadEntry, this, 0, &threadid);
 }
 
