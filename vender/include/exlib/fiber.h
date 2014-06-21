@@ -199,8 +199,6 @@ public:
     static Service *root;
 };
 
-double FastCurrentMillis();
-
 typedef lockfree<AsyncEvent> AsyncQueue;
 }
 
