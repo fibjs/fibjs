@@ -18,12 +18,6 @@
 #define WM_SLEEP    (WM_USER + 1)
 #else
 #include <map>
-#include <semaphore.h>
-#ifdef MacOS
-#include <mach/mach_init.h>
-#include <mach/task.h>
-#include <mach/semaphore.h>
-#endif
 #endif
 
 namespace v8
@@ -77,10 +71,6 @@ static class _timerThread: public OSThread
 public:
     _timerThread()
     {
-#ifndef _WIN32
-        init();
-#endif
-
         start();
     }
 
@@ -121,16 +111,10 @@ public:
             }
     }
 #else
+    OSSemaphore m_sem;
     double now;
 
 #ifdef MacOS
-    semaphore_t m_sem;
-
-    void init()
-    {
-        semaphore_create(mach_task_self(), &m_sem, SYNC_POLICY_FIFO, 0);
-    }
-
     void wait()
     {
         std::multimap<double, AsyncEvent *>::iterator e;
@@ -144,25 +128,13 @@ public:
             mts.tv_sec = tm / 1000;
             mts.tv_nsec = (tm % 1000) * 1000000;
 
-            semaphore_timedwait(m_sem, mts);
+            semaphore_timedwait(m_sem.m_sem, mts);
         }
         else
-            semaphore_wait(m_sem);
-    }
-
-    void post()
-    {
-        semaphore_signal(m_sem);
+            m_sem.Wait();
     }
 
 #else
-    sem_t m_sem;
-
-    void init()
-    {
-        sem_init(&m_sem, 0, 0);
-    }
-
     void wait()
     {
         std::multimap<double, AsyncEvent *>::iterator e;
@@ -175,15 +147,10 @@ public:
             tm.tv_sec = (time_t)(e->first / 1000);
             tm.tv_nsec = (e->first - (double)tm.tv_sec * 1000) * 1000000;
 
-            sem_timedwait(&m_sem, &tm);
+            sem_timedwait(&m_sem.m_sem, &tm);
         }
         else
-            sem_wait(&m_sem);
-    }
-
-    void post()
-    {
-        sem_post(&m_sem);
+            m_sem.Wait();
     }
 
 #endif
@@ -236,7 +203,7 @@ void _timerThread::post(AsyncEvent *p)
     PostThreadMessage(s_timer.threadid, WM_SLEEP, 0, (LPARAM)p);
 #else
     s_acSleep.put(p);
-    s_timer.post();
+    s_timer.m_sem.Post();
 #endif
 }
 
