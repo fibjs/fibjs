@@ -283,6 +283,10 @@ class MemoryChunk {
   static MemoryChunk* FromAddress(Address a) {
     return reinterpret_cast<MemoryChunk*>(OffsetFrom(a) & ~kAlignmentMask);
   }
+  static const MemoryChunk* FromAddress(const byte* a) {
+    return reinterpret_cast<const MemoryChunk*>(
+        OffsetFrom(a) & ~kAlignmentMask);
+  }
 
   // Only works for addresses in pointer spaces, not data or code spaces.
   static inline MemoryChunk* FromAnyPointerAddress(Heap* heap, Address addr);
@@ -627,7 +631,7 @@ class MemoryChunk {
   void InsertAfter(MemoryChunk* other);
   void Unlink();
 
-  inline Heap* heap() { return heap_; }
+  inline Heap* heap() const { return heap_; }
 
   static const int kFlagsOffset = kPointerSize;
 
@@ -985,8 +989,8 @@ class CodeRange {
   // Finds a block on the allocation list that contains at least the
   // requested amount of memory.  If none is found, sorts and merges
   // the existing free memory blocks, and searches again.
-  // If none can be found, terminates V8 with FatalProcessOutOfMemory.
-  void GetNextAllocationBlock(size_t requested);
+  // If none can be found, returns false.
+  bool GetNextAllocationBlock(size_t requested);
   // Compares the start addresses of two free blocks.
   static int CompareFreeBlockAddress(const FreeBlock* left,
                                      const FreeBlock* right);

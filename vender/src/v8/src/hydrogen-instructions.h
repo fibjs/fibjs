@@ -663,6 +663,9 @@ class HValue : public ZoneObject {
   void DeleteAndReplaceWith(HValue* other);
   void ReplaceAllUsesWith(HValue* other);
   bool HasNoUses() const { return use_list_ == NULL; }
+  bool HasOneUse() const {
+    return use_list_ != NULL && use_list_->tail() == NULL;
+  }
   bool HasMultipleUses() const {
     return use_list_ != NULL && use_list_->tail() != NULL;
   }
@@ -3760,7 +3763,7 @@ class HBinaryOperation : public HTemplateInstruction<3> {
     // Otherwise, if there is only one use of the right operand, it would be
     // better off on the left for platforms that only have 2-arg arithmetic
     // ops (e.g ia32, x64) that clobber the left operand.
-    return right()->UseCount() == 1;
+    return right()->HasOneUse();
   }
 
   HValue* BetterLeftOperand() {
@@ -6091,10 +6094,12 @@ class HObjectAccess V8_FINAL {
   }
 
   static HObjectAccess ForMapInstanceTypeAndBitField() {
-    STATIC_ASSERT((Map::kInstanceTypeOffset & 1) == 0);
-    STATIC_ASSERT(Map::kBitFieldOffset == Map::kInstanceTypeOffset + 1);
+    STATIC_ASSERT((Map::kInstanceTypeAndBitFieldOffset & 1) == 0);
+    // Ensure the two fields share one 16-bit word, endian-independent.
+    STATIC_ASSERT((Map::kBitFieldOffset & ~1) ==
+                  (Map::kInstanceTypeOffset & ~1));
     return HObjectAccess(kInobject,
-                         Map::kInstanceTypeOffset,
+                         Map::kInstanceTypeAndBitFieldOffset,
                          Representation::UInteger16());
   }
 
@@ -6202,14 +6207,7 @@ class HObjectAccess V8_FINAL {
   void PrintTo(StringStream* stream) const;
 
   inline bool Equals(HObjectAccess that) const {
-    return value_ == that.value_;
-  }
-
-  // Returns true if |this| access refers to the same field as |that|, which
-  // means that both have same |offset| and |portion| values.
-  inline bool SameField(HObjectAccess that) const {
-    uint32_t mask = PortionField::kMask | OffsetField::kMask;
-    return (value_ & mask) == (that.value_ & mask);
+    return value_ == that.value_;  // portion and offset must match
   }
 
  protected:

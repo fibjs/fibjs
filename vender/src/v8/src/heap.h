@@ -277,11 +277,16 @@ namespace internal {
   V(constructor_string, "constructor")                                   \
   V(dot_result_string, ".result")                                        \
   V(dot_for_string, ".for.")                                             \
+  V(dot_iterable_string, ".iterable")                                    \
+  V(dot_iterator_string, ".iterator")                                    \
+  V(dot_generator_object_string, ".generator_object")                    \
   V(eval_string, "eval")                                                 \
   V(empty_string, "")                                                    \
   V(function_string, "function")                                         \
   V(length_string, "length")                                             \
+  V(module_string, "module")                                             \
   V(name_string, "name")                                                 \
+  V(native_string, "native")                                             \
   V(null_string, "null")                                                 \
   V(number_string, "number")                                             \
   V(Number_string, "Number")                                             \
@@ -307,6 +312,7 @@ namespace internal {
   V(private_api_string, "private_api")                                   \
   V(private_intern_string, "private_intern")                             \
   V(Date_string, "Date")                                                 \
+  V(this_string, "this")                                                 \
   V(to_string_string, "toString")                                        \
   V(char_at_string, "CharAt")                                            \
   V(undefined_string, "undefined")                                       \
@@ -329,13 +335,19 @@ namespace internal {
   V(cell_value_string, "%cell_value")                                    \
   V(function_class_string, "Function")                                   \
   V(illegal_argument_string, "illegal argument")                         \
+  V(MakeReferenceError_string, "MakeReferenceError")                     \
+  V(MakeSyntaxError_string, "MakeSyntaxError")                           \
+  V(MakeTypeError_string, "MakeTypeError")                               \
+  V(unknown_label_string, "unknown_label")                               \
   V(space_string, " ")                                                   \
   V(exec_string, "exec")                                                 \
   V(zero_string, "0")                                                    \
   V(global_eval_string, "GlobalEval")                                    \
   V(identity_hash_string, "v8::IdentityHash")                            \
   V(closure_string, "(closure)")                                         \
+  V(use_strict_string, "use strict")                                     \
   V(dot_string, ".")                                                     \
+  V(anonymous_function_string, "(anonymous function)")                   \
   V(compare_ic_string, "==")                                             \
   V(strict_compare_ic_string, "===")                                     \
   V(infinity_string, "Infinity")                                         \
@@ -644,9 +656,6 @@ class Heap {
   bool always_allocate() { return always_allocate_scope_depth_ != 0; }
   Address always_allocate_scope_depth_address() {
     return reinterpret_cast<Address>(&always_allocate_scope_depth_);
-  }
-  bool linear_allocation() {
-    return linear_allocation_scope_depth_ != 0;
   }
 
   Address* NewSpaceAllocationTopAddress() {
@@ -965,6 +974,13 @@ class Heap {
 #endif
   }
 
+  // Number of "runtime allocations" done so far.
+  uint32_t allocations_count() { return allocations_count_; }
+
+  // Returns deterministic "time" value in ms. Works only with
+  // FLAG_verify_predictable.
+  double synthetic_time() { return allocations_count_ / 100.0; }
+
   // Print short heap statistics.
   void PrintShortHeapStatistics();
 
@@ -1074,23 +1090,9 @@ class Heap {
       700 * kPointerMultiplier;
 
   intptr_t OldGenerationAllocationLimit(intptr_t old_gen_size) {
-    intptr_t limit;
-    if (FLAG_stress_compaction) {
-      limit = old_gen_size + old_gen_size / 10;
-    } else if (old_gen_size < max_old_generation_size_ / 8) {
-      if (max_old_generation_size_ <= kMaxOldSpaceSizeMediumMemoryDevice) {
-        limit = old_gen_size * 2;
-      } else {
-        limit = old_gen_size * 4;
-      }
-    } else if (old_gen_size < max_old_generation_size_ / 4) {
-      limit = static_cast<intptr_t>(old_gen_size * 1.5);
-    } else if (old_gen_size < max_old_generation_size_ / 2) {
-      limit = static_cast<intptr_t>(old_gen_size * 1.2);
-    } else {
-      limit = static_cast<intptr_t>(old_gen_size * 1.1);
-    }
-
+    intptr_t limit = FLAG_stress_compaction
+        ? old_gen_size + old_gen_size / 10
+        : old_gen_size * old_space_growing_factor_;
     limit = Max(limit, kMinimumOldGenerationAllocationLimit);
     limit += new_space_.Capacity();
     intptr_t halfway_to_the_max = (old_gen_size + max_old_generation_size_) / 2;
@@ -1439,6 +1441,17 @@ class Heap {
   static void FatalProcessOutOfMemory(const char* location,
                                       bool take_snapshot = false);
 
+  // This event is triggered after successful allocation of a new object made
+  // by runtime. Allocations of target space for object evacuation do not
+  // trigger the event. In order to track ALL allocations one must turn off
+  // FLAG_inline_new and FLAG_use_allocation_folding.
+  inline void OnAllocationEvent(HeapObject* object, int size_in_bytes);
+
+  // This event is triggered after object is moved to a new place.
+  inline void OnMoveEvent(HeapObject* target,
+                          HeapObject* source,
+                          int size_in_bytes);
+
  protected:
   // Methods made available to tests.
 
@@ -1515,6 +1528,11 @@ class Heap {
   intptr_t max_executable_size_;
   intptr_t maximum_committed_;
 
+  // The old space growing factor is used in the old space heap growing
+  // strategy. The new old space size is the current old space size times
+  // old_space_growing_factor_.
+  int old_space_growing_factor_;
+
   // For keeping track of how much data has survived
   // scavenge since last new space expansion.
   int survived_since_last_expansion_;
@@ -1523,7 +1541,6 @@ class Heap {
   int sweep_generation_;
 
   int always_allocate_scope_depth_;
-  int linear_allocation_scope_depth_;
 
   // For keeping track of context disposals.
   int contexts_disposed_;
@@ -1549,8 +1566,20 @@ class Heap {
   // Returns the amount of external memory registered since last global gc.
   int64_t PromotedExternalMemorySize();
 
-  unsigned int ms_count_;  // how many mark-sweep collections happened
-  unsigned int gc_count_;  // how many gc happened
+  // How many "runtime allocations" happened.
+  uint32_t allocations_count_;
+
+  // Running hash over allocations performed.
+  uint32_t raw_allocations_hash_;
+
+  // Countdown counter, dumps allocation hash when 0.
+  uint32_t dump_allocations_hash_countdown_;
+
+  // How many mark-sweep collections happened.
+  unsigned int ms_count_;
+
+  // How many gc happened.
+  unsigned int gc_count_;
 
   // For post mortem debugging.
   static const int kRememberedUnmappedPages = 128;
@@ -1788,29 +1817,6 @@ class Heap {
       int length, PretenureFlag pretenure);
   MUST_USE_RESULT AllocationResult AllocateRawTwoByteString(
       int length, PretenureFlag pretenure);
-
-  // Allocates and fully initializes a String.  There are two String
-  // encodings: ASCII and two byte. One should choose between the three string
-  // allocation functions based on the encoding of the string buffer used to
-  // initialized the string.
-  //   - ...FromAscii initializes the string from a buffer that is ASCII
-  //     encoded (it does not check that the buffer is ASCII encoded) and the
-  //     result will be ASCII encoded.
-  //   - ...FromUTF8 initializes the string from a buffer that is UTF-8
-  //     encoded.  If the characters are all single-byte characters, the
-  //     result will be ASCII encoded, otherwise it will converted to two
-  //     byte.
-  //   - ...FromTwoByte initializes the string from a buffer that is two-byte
-  //     encoded.  If the characters are all single-byte characters, the
-  //     result will be converted to ASCII, otherwise it will be left as
-  //     two-byte.
-  MUST_USE_RESULT AllocationResult AllocateStringFromUtf8Slow(
-      Vector<const char> str,
-      int non_ascii_start,
-      PretenureFlag pretenure = NOT_TENURED);
-  MUST_USE_RESULT AllocationResult AllocateStringFromTwoByte(
-      Vector<const uc16> str,
-      PretenureFlag pretenure = NOT_TENURED);
 
   bool CreateInitialMaps();
   void CreateInitialObjects();
@@ -2083,6 +2089,10 @@ class Heap {
   Object** weak_object_to_code_table_address() {
     return &weak_object_to_code_table_;
   }
+
+  inline void UpdateAllocationsHash(HeapObject* object);
+  inline void UpdateAllocationsHash(uint32_t value);
+  inline void PrintAlloctionsHash();
 
   static const int kInitialStringTableSize = 2048;
   static const int kInitialEvalCacheSize = 64;

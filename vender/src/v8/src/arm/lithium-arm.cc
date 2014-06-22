@@ -6,10 +6,10 @@
 
 #if V8_TARGET_ARCH_ARM
 
-#include "src/lithium-allocator-inl.h"
 #include "src/arm/lithium-arm.h"
 #include "src/arm/lithium-codegen-arm.h"
 #include "src/hydrogen-osr.h"
+#include "src/lithium-allocator-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -1502,8 +1502,8 @@ LInstruction* LChunkBuilder::DoMul(HMul* instr) {
     return DefineAsRegister(mul);
 
   } else if (instr->representation().IsDouble()) {
-    if (instr->UseCount() == 1 && (instr->uses().value()->IsAdd() ||
-                                   instr->uses().value()->IsSub())) {
+    if (instr->HasOneUse() && (instr->uses().value()->IsAdd() ||
+                               instr->uses().value()->IsSub())) {
       HBinaryOperation* use = HBinaryOperation::cast(instr->uses().value());
 
       if (use->IsAdd() && instr == use->left()) {
@@ -1549,7 +1549,7 @@ LInstruction* LChunkBuilder::DoSub(HSub* instr) {
     }
     return result;
   } else if (instr->representation().IsDouble()) {
-    if (instr->right()->IsMul()) {
+    if (instr->right()->IsMul() && instr->right()->HasOneUse()) {
       return DoMultiplySub(instr->left(), HMul::cast(instr->right()));
     }
 
@@ -1620,12 +1620,12 @@ LInstruction* LChunkBuilder::DoAdd(HAdd* instr) {
     LInstruction* result = DefineAsRegister(add);
     return result;
   } else if (instr->representation().IsDouble()) {
-    if (instr->left()->IsMul()) {
+    if (instr->left()->IsMul() && instr->left()->HasOneUse()) {
       return DoMultiplyAdd(HMul::cast(instr->left()), instr->right());
     }
 
-    if (instr->right()->IsMul()) {
-      ASSERT(!instr->left()->IsMul());
+    if (instr->right()->IsMul() && instr->right()->HasOneUse()) {
+      ASSERT(!instr->left()->IsMul() || !instr->left()->HasOneUse());
       return DoMultiplyAdd(HMul::cast(instr->right()), instr->left());
     }
 

@@ -5,12 +5,13 @@
 #ifndef V8_PREPARSER_H
 #define V8_PREPARSER_H
 
+#include "src/v8.h"
+
 #include "src/func-name-inferrer.h"
 #include "src/hashmap.h"
+#include "src/scanner.h"
 #include "src/scopes.h"
 #include "src/token.h"
-#include "src/scanner.h"
-#include "src/v8.h"
 
 namespace v8 {
 namespace internal {
@@ -149,8 +150,7 @@ class ParserBase : public Traits {
         FunctionState** function_state_stack,
         typename Traits::Type::Scope** scope_stack,
         typename Traits::Type::Scope* scope,
-        typename Traits::Type::Zone* zone = NULL,
-        AstValueFactory* ast_value_factory = NULL);
+        typename Traits::Type::Zone* zone = NULL);
     ~FunctionState();
 
     int NextMaterializedLiteralIndex() {
@@ -334,6 +334,44 @@ class ParserBase : public Traits {
     }
   }
 
+  // Validates strict mode for function parameter lists. This has to be
+  // done after parsing the function, since the function can declare
+  // itself strict.
+  void CheckStrictFunctionNameAndParameters(
+      IdentifierT function_name,
+      bool function_name_is_strict_reserved,
+      const Scanner::Location& function_name_loc,
+      const Scanner::Location& eval_args_error_loc,
+      const Scanner::Location& dupe_error_loc,
+      const Scanner::Location& reserved_loc,
+      bool* ok) {
+    if (this->IsEvalOrArguments(function_name)) {
+      Traits::ReportMessageAt(function_name_loc, "strict_eval_arguments");
+      *ok = false;
+      return;
+    }
+    if (function_name_is_strict_reserved) {
+      Traits::ReportMessageAt(function_name_loc, "unexpected_strict_reserved");
+      *ok = false;
+      return;
+    }
+    if (eval_args_error_loc.IsValid()) {
+      Traits::ReportMessageAt(eval_args_error_loc, "strict_eval_arguments");
+      *ok = false;
+      return;
+    }
+    if (dupe_error_loc.IsValid()) {
+      Traits::ReportMessageAt(dupe_error_loc, "strict_param_dupe");
+      *ok = false;
+      return;
+    }
+    if (reserved_loc.IsValid()) {
+      Traits::ReportMessageAt(reserved_loc, "unexpected_strict_reserved");
+      *ok = false;
+      return;
+    }
+  }
+
   // Determine precedence of given token.
   static int Precedence(Token::Value token, bool accept_IN) {
     if (token == Token::IN && !accept_IN)
@@ -357,9 +395,7 @@ class ParserBase : public Traits {
 
   void ReportMessageAt(Scanner::Location location, const char* message,
                        bool is_reference_error = false) {
-    Traits::ReportMessageAt(location, message,
-                            reinterpret_cast<const char*>(NULL),
-                            is_reference_error);
+    Traits::ReportMessageAt(location, message, NULL, is_reference_error);
   }
 
   void ReportUnexpectedToken(Token::Value token);
@@ -746,9 +782,9 @@ class PreParserScope {
 
 class PreParserFactory {
  public:
-  explicit PreParserFactory(void* extra_param1, void* extra_param2) {}
-  PreParserExpression NewStringLiteral(PreParserIdentifier identifier,
-                                       int pos) {
+  explicit PreParserFactory(void* extra_param) {}
+  PreParserExpression NewLiteral(PreParserIdentifier identifier,
+                                 int pos) {
     return PreParserExpression::Default();
   }
   PreParserExpression NewNumberLiteral(double number,
@@ -1000,8 +1036,8 @@ class PreParserTraits {
 
   // Producing data during the recursive descent.
   PreParserIdentifier GetSymbol(Scanner* scanner);
-
-  static PreParserIdentifier GetNextSymbol(Scanner* scanner) {
+  static PreParserIdentifier NextLiteralString(Scanner* scanner,
+                                               PretenureFlag tenured) {
     return PreParserIdentifier::Default();
   }
 
@@ -1047,6 +1083,7 @@ class PreParserTraits {
       bool is_generator,
       int function_token_position,
       FunctionLiteral::FunctionType type,
+      FunctionLiteral::ArityRestriction arity_restriction,
       bool* ok);
 
  private:
@@ -1176,6 +1213,7 @@ class PreParser : public ParserBase<PreParserTraits> {
       bool is_generator,
       int function_token_pos,
       FunctionLiteral::FunctionType function_type,
+      FunctionLiteral::ArityRestriction arity_restriction,
       bool* ok);
   void ParseLazyFunctionLiteralBody(bool* ok);
 
@@ -1187,8 +1225,7 @@ ParserBase<Traits>::FunctionState::FunctionState(
     FunctionState** function_state_stack,
     typename Traits::Type::Scope** scope_stack,
     typename Traits::Type::Scope* scope,
-    typename Traits::Type::Zone* extra_param,
-    AstValueFactory* ast_value_factory)
+    typename Traits::Type::Zone* extra_param)
     : next_materialized_literal_index_(JSFunction::kLiteralsPrefixSize),
       next_handler_index_(0),
       expected_property_count_(0),
@@ -1200,7 +1237,7 @@ ParserBase<Traits>::FunctionState::FunctionState(
       outer_scope_(*scope_stack),
       saved_ast_node_id_(0),
       extra_param_(extra_param),
-      factory_(extra_param, ast_value_factory) {
+      factory_(extra_param) {
   *scope_stack_ = scope;
   *function_state_stack = this;
   Traits::SetUpFunctionState(this, extra_param);
@@ -1326,14 +1363,14 @@ typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParseRegExpLiteral(
 
   int literal_index = function_state_->NextMaterializedLiteralIndex();
 
-  IdentifierT js_pattern = this->GetNextSymbol(scanner());
+  IdentifierT js_pattern = this->NextLiteralString(scanner(), TENURED);
   if (!scanner()->ScanRegExpFlags()) {
     Next();
     ReportMessage("invalid_regexp_flags");
     *ok = false;
     return Traits::EmptyExpression();
   }
-  IdentifierT js_flags = this->GetNextSymbol(scanner());
+  IdentifierT js_flags = this->NextLiteralString(scanner(), TENURED);
   Next();
   return factory()->NewRegExpLiteral(js_pattern, js_flags, literal_index, pos);
 }
@@ -1556,9 +1593,9 @@ typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParseObjectLiteral(
                   false,  // reserved words are allowed here
                   false,  // not a generator
                   RelocInfo::kNoPosition, FunctionLiteral::ANONYMOUS_EXPRESSION,
+                  is_getter ? FunctionLiteral::GETTER_ARITY
+                            : FunctionLiteral::SETTER_ARITY,
                   CHECK_OK);
-          // Allow any number of parameters for compatibilty with JSC.
-          // Specification only allows zero parameters for get and one for set.
           typename Traits::Type::ObjectLiteralProperty property =
               factory()->NewObjectLiteralProperty(is_getter, value, next_pos);
           if (this->IsBoilerplateProperty(property)) {
@@ -1578,7 +1615,7 @@ typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParseObjectLiteral(
         }
         // Failed to parse as get/set property, so it's just a normal property
         // (which might be called "get" or "set" or something else).
-        key = factory()->NewStringLiteral(id, next_pos);
+        key = factory()->NewLiteral(id, next_pos);
         break;
       }
       case Token::STRING: {
@@ -1590,7 +1627,7 @@ typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParseObjectLiteral(
           key = factory()->NewNumberLiteral(index, next_pos);
           break;
         }
-        key = factory()->NewStringLiteral(string, next_pos);
+        key = factory()->NewLiteral(string, next_pos);
         break;
       }
       case Token::NUMBER: {
@@ -1603,7 +1640,7 @@ typename ParserBase<Traits>::ExpressionT ParserBase<Traits>::ParseObjectLiteral(
         if (Token::IsKeyword(next)) {
           Consume(next);
           IdentifierT string = this->GetSymbol(scanner_);
-          key = factory()->NewStringLiteral(string, next_pos);
+          key = factory()->NewLiteral(string, next_pos);
         } else {
           Token::Value next = Next();
           ReportUnexpectedToken(next);
@@ -1972,7 +2009,7 @@ ParserBase<Traits>::ParseLeftHandSideExpression(bool* ok) {
         int pos = position();
         IdentifierT name = ParseIdentifierName(CHECK_OK);
         result = factory()->NewProperty(
-            result, factory()->NewStringLiteral(name, pos), pos);
+            result, factory()->NewLiteral(name, pos), pos);
         if (fni_ != NULL) this->PushLiteralName(fni_, name);
         break;
       }
@@ -2060,6 +2097,7 @@ ParserBase<Traits>::ParseMemberExpression(bool* ok) {
                                         is_generator,
                                         function_token_position,
                                         function_type,
+                                        FunctionLiteral::NORMAL_ARITY,
                                         CHECK_OK);
   } else {
     result = ParsePrimaryExpression(CHECK_OK);
@@ -2094,7 +2132,7 @@ ParserBase<Traits>::ParseMemberExpressionContinuation(ExpressionT expression,
         int pos = position();
         IdentifierT name = ParseIdentifierName(CHECK_OK);
         expression = factory()->NewProperty(
-            expression, factory()->NewStringLiteral(name, pos), pos);
+            expression, factory()->NewLiteral(name, pos), pos);
         if (fni_ != NULL) {
           this->PushLiteralName(fni_, name);
         }

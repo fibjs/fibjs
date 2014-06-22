@@ -1509,9 +1509,6 @@
     <ClCompile Include="src\v8\src\base\once.cc">
       <Filter>Source Files\v8\src\base</Filter>
     </ClCompile>
-    <ClCompile Include="src\v8\src\ast-value-factory.cc">
-      <Filter>Source Files\v8\src</Filter>
-    </ClCompile>
     <ClCompile Include="src\v8\src\lookup.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
@@ -2932,9 +2929,6 @@
     </ClInclude>
     <ClInclude Include="src\v8\src\base\win32-headers.h">
       <Filter>Source Files\v8\src\base</Filter>
-    </ClInclude>
-    <ClInclude Include="src\v8\src\ast-value-factory.h">
-      <Filter>Source Files\v8\src</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\lookup.h">
       <Filter>Source Files\v8\src</Filter>

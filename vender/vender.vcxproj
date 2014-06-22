@@ -283,7 +283,6 @@
     <ClCompile Include="src\v8\src\arguments.cc" />
     <ClCompile Include="src\v8\src\assembler.cc" />
     <ClCompile Include="src\v8\src\assert-scope.cc" />
-    <ClCompile Include="src\v8\src\ast-value-factory.cc" />
     <ClCompile Include="src\v8\src\ast.cc" />
     <ClCompile Include="src\v8\src\base\atomicops_internals_x86_gcc.cc" />
     <ClCompile Include="src\v8\src\base\once.cc" />
@@ -704,7 +703,6 @@
     <ClInclude Include="src\v8\src\arguments.h" />
     <ClInclude Include="src\v8\src\assembler.h" />
     <ClInclude Include="src\v8\src\assert-scope.h" />
-    <ClInclude Include="src\v8\src\ast-value-factory.h" />
     <ClInclude Include="src\v8\src\ast.h" />
     <ClInclude Include="src\v8\src\base\atomicops.h" />
     <ClInclude Include="src\v8\src\base\atomicops_internals_arm64_gcc.h" />

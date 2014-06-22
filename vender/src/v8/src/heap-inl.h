@@ -7,6 +7,7 @@
 
 #include <cmath>
 
+#include "src/cpu-profiler.h"
 #include "src/heap.h"
 #include "src/heap-profiler.h"
 #include "src/isolate.h"
@@ -98,9 +99,7 @@ AllocationResult Heap::AllocateInternalizedStringImpl(
 AllocationResult Heap::AllocateOneByteInternalizedString(
     Vector<const uint8_t> str,
     uint32_t hash_field) {
-  if (str.length() > String::kMaxLength) {
-    return isolate()->ThrowInvalidStringLength();
-  }
+  CHECK_GE(String::kMaxLength, str.length());
   // Compute map and object size.
   Map* map = ascii_internalized_string_map();
   int size = SeqOneByteString::SizeFor(str.length());
@@ -131,9 +130,7 @@ AllocationResult Heap::AllocateOneByteInternalizedString(
 
 AllocationResult Heap::AllocateTwoByteInternalizedString(Vector<const uc16> str,
                                                          uint32_t hash_field) {
-  if (str.length() > String::kMaxLength) {
-    return isolate()->ThrowInvalidStringLength();
-  }
+  CHECK_GE(String::kMaxLength, str.length());
   // Compute map and object size.
   Map* map = internalized_string_map();
   int size = SeqTwoByteString::SizeFor(str.length());
@@ -184,7 +181,6 @@ AllocationResult Heap::AllocateRaw(int size_in_bytes,
   ASSERT(AllowHandleAllocation::IsAllowed());
   ASSERT(AllowHeapAllocation::IsAllowed());
   ASSERT(gc_state_ == NOT_IN_GC);
-  HeapProfiler* profiler = isolate_->heap_profiler();
 #ifdef DEBUG
   if (FLAG_gc_interval >= 0 &&
       AllowAllocationFailure::IsAllowed(isolate_) &&
@@ -204,8 +200,8 @@ AllocationResult Heap::AllocateRaw(int size_in_bytes,
         retry_space != NEW_SPACE) {
       space = retry_space;
     } else {
-      if (profiler->is_tracking_allocations() && allocation.To(&object)) {
-        profiler->AllocationEvent(object->address(), size_in_bytes);
+      if (allocation.To(&object)) {
+        OnAllocationEvent(object, size_in_bytes);
       }
       return allocation;
     }
@@ -216,7 +212,12 @@ AllocationResult Heap::AllocateRaw(int size_in_bytes,
   } else if (OLD_DATA_SPACE == space) {
     allocation = old_data_space_->AllocateRaw(size_in_bytes);
   } else if (CODE_SPACE == space) {
-    allocation = code_space_->AllocateRaw(size_in_bytes);
+    if (size_in_bytes <= code_space()->AreaSize()) {
+      allocation = code_space_->AllocateRaw(size_in_bytes);
+    } else {
+      // Large code objects are allocated in large object space.
+      allocation = lo_space_->AllocateRaw(size_in_bytes, EXECUTABLE);
+    }
   } else if (LO_SPACE == space) {
     allocation = lo_space_->AllocateRaw(size_in_bytes, NOT_EXECUTABLE);
   } else if (CELL_SPACE == space) {
@@ -227,11 +228,96 @@ AllocationResult Heap::AllocateRaw(int size_in_bytes,
     ASSERT(MAP_SPACE == space);
     allocation = map_space_->AllocateRaw(size_in_bytes);
   }
-  if (allocation.IsRetry()) old_gen_exhausted_ = true;
-  if (profiler->is_tracking_allocations() && allocation.To(&object)) {
-    profiler->AllocationEvent(object->address(), size_in_bytes);
+  if (allocation.To(&object)) {
+    OnAllocationEvent(object, size_in_bytes);
+  } else {
+    old_gen_exhausted_ = true;
   }
   return allocation;
+}
+
+
+void Heap::OnAllocationEvent(HeapObject* object, int size_in_bytes) {
+  HeapProfiler* profiler = isolate_->heap_profiler();
+  if (profiler->is_tracking_allocations()) {
+    profiler->AllocationEvent(object->address(), size_in_bytes);
+  }
+
+  if (FLAG_verify_predictable) {
+    ++allocations_count_;
+
+    UpdateAllocationsHash(object);
+    UpdateAllocationsHash(size_in_bytes);
+
+    if ((FLAG_dump_allocations_digest_at_alloc > 0) &&
+        (--dump_allocations_hash_countdown_ == 0)) {
+      dump_allocations_hash_countdown_ = FLAG_dump_allocations_digest_at_alloc;
+      PrintAlloctionsHash();
+    }
+  }
+}
+
+
+void Heap::OnMoveEvent(HeapObject* target,
+                       HeapObject* source,
+                       int size_in_bytes) {
+  HeapProfiler* heap_profiler = isolate_->heap_profiler();
+  if (heap_profiler->is_tracking_object_moves()) {
+    heap_profiler->ObjectMoveEvent(source->address(), target->address(),
+                                   size_in_bytes);
+  }
+
+  if (isolate_->logger()->is_logging_code_events() ||
+      isolate_->cpu_profiler()->is_profiling()) {
+    if (target->IsSharedFunctionInfo()) {
+      PROFILE(isolate_, SharedFunctionInfoMoveEvent(
+          source->address(), target->address()));
+    }
+  }
+
+  if (FLAG_verify_predictable) {
+    ++allocations_count_;
+
+    UpdateAllocationsHash(source);
+    UpdateAllocationsHash(target);
+    UpdateAllocationsHash(size_in_bytes);
+
+    if ((FLAG_dump_allocations_digest_at_alloc > 0) &&
+        (--dump_allocations_hash_countdown_ == 0)) {
+      dump_allocations_hash_countdown_ = FLAG_dump_allocations_digest_at_alloc;
+      PrintAlloctionsHash();
+    }
+  }
+}
+
+
+void Heap::UpdateAllocationsHash(HeapObject* object) {
+  Address object_address = object->address();
+  MemoryChunk* memory_chunk = MemoryChunk::FromAddress(object_address);
+  AllocationSpace allocation_space = memory_chunk->owner()->identity();
+
+  STATIC_ASSERT(kSpaceTagSize + kPageSizeBits <= 32);
+  uint32_t value =
+      static_cast<uint32_t>(object_address - memory_chunk->address()) |
+      (static_cast<uint32_t>(allocation_space) << kPageSizeBits);
+
+  UpdateAllocationsHash(value);
+}
+
+
+void Heap::UpdateAllocationsHash(uint32_t value) {
+  uint16_t c1 = static_cast<uint16_t>(value);
+  uint16_t c2 = static_cast<uint16_t>(value >> 16);
+  raw_allocations_hash_ =
+      StringHasher::AddCharacterCore(raw_allocations_hash_, c1);
+  raw_allocations_hash_ =
+      StringHasher::AddCharacterCore(raw_allocations_hash_, c2);
+}
+
+
+void Heap::PrintAlloctionsHash() {
+  uint32_t hash = StringHasher::GetHashCore(raw_allocations_hash_);
+  PrintF("\n### Allocations = %u, hash = 0x%08x\n", allocations_count_, hash);
 }
 
 
@@ -540,10 +626,9 @@ Isolate* Heap::isolate() {
 // Warning: Do not use the identifiers __object__, __maybe_object__ or
 // __scope__ in a call to this macro.
 
-#define RETURN_OBJECT_UNLESS_EXCEPTION(ISOLATE, RETURN_VALUE, RETURN_EMPTY)    \
-  if (!__allocation__.IsRetry()) {                                             \
-    __object__ = __allocation__.ToObjectChecked();                             \
-    if (__object__ == (ISOLATE)->heap()->exception()) { RETURN_EMPTY; }        \
+#define RETURN_OBJECT_UNLESS_RETRY(ISOLATE, RETURN_VALUE)                      \
+  if (__allocation__.To(&__object__)) {                                        \
+    ASSERT(__object__ != (ISOLATE)->heap()->exception());                      \
     RETURN_VALUE;                                                              \
   }
 
@@ -551,18 +636,18 @@ Isolate* Heap::isolate() {
   do {                                                                         \
     AllocationResult __allocation__ = FUNCTION_CALL;                           \
     Object* __object__ = NULL;                                                 \
-    RETURN_OBJECT_UNLESS_EXCEPTION(ISOLATE, RETURN_VALUE, RETURN_EMPTY)        \
+    RETURN_OBJECT_UNLESS_RETRY(ISOLATE, RETURN_VALUE)                          \
     (ISOLATE)->heap()->CollectGarbage(__allocation__.RetrySpace(),             \
                                       "allocation failure");                   \
     __allocation__ = FUNCTION_CALL;                                            \
-    RETURN_OBJECT_UNLESS_EXCEPTION(ISOLATE, RETURN_VALUE, RETURN_EMPTY)        \
+    RETURN_OBJECT_UNLESS_RETRY(ISOLATE, RETURN_VALUE)                          \
     (ISOLATE)->counters()->gc_last_resort_from_handles()->Increment();         \
     (ISOLATE)->heap()->CollectAllAvailableGarbage("last resort gc");           \
     {                                                                          \
       AlwaysAllocateScope __scope__(ISOLATE);                                  \
       __allocation__ = FUNCTION_CALL;                                          \
     }                                                                          \
-    RETURN_OBJECT_UNLESS_EXCEPTION(ISOLATE, RETURN_VALUE, RETURN_EMPTY)        \
+    RETURN_OBJECT_UNLESS_RETRY(ISOLATE, RETURN_VALUE)                          \
       /* TODO(1181417): Fix this. */                                           \
     v8::internal::Heap::FatalProcessOutOfMemory("CALL_AND_RETRY_LAST", true);  \
     RETURN_EMPTY;                                                              \

@@ -11,17 +11,17 @@
 #include "src/base/atomicops.h"
 #include "src/builtins.h"
 #include "src/contexts.h"
+#include "src/date.h"
 #include "src/execution.h"
 #include "src/frames.h"
-#include "src/date.h"
 #include "src/global-handles.h"
 #include "src/handles.h"
 #include "src/hashmap.h"
 #include "src/heap.h"
 #include "src/optimizing-compiler-thread.h"
 #include "src/regexp-stack.h"
-#include "src/runtime-profiler.h"
 #include "src/runtime.h"
+#include "src/runtime-profiler.h"
 #include "src/zone.h"
 
 namespace v8 {
@@ -1390,15 +1390,20 @@ class ExecutionAccess BASE_EMBEDDED {
 };
 
 
-// Support for checking for stack-overflows in C++ code.
+// Support for checking for stack-overflows.
 class StackLimitCheck BASE_EMBEDDED {
  public:
   explicit StackLimitCheck(Isolate* isolate) : isolate_(isolate) { }
 
-  bool HasOverflowed() const {
+  // Use this to check for stack-overflows in C++ code.
+  inline bool HasOverflowed() const {
     StackGuard* stack_guard = isolate_->stack_guard();
-    return (reinterpret_cast<uintptr_t>(this) < stack_guard->real_climit());
+    return reinterpret_cast<uintptr_t>(this) < stack_guard->real_climit();
   }
+
+  // Use this to check for stack-overflow when entering runtime from JS code.
+  bool JsHasOverflowed() const;
+
  private:
   Isolate* isolate_;
 };

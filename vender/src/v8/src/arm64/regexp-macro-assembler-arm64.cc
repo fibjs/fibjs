@@ -6,13 +6,14 @@
 
 #if V8_TARGET_ARCH_ARM64
 
-#include "src/cpu-profiler.h"
-#include "src/unicode.h"
-#include "src/log.h"
 #include "src/code-stubs.h"
-#include "src/regexp-stack.h"
+#include "src/cpu-profiler.h"
+#include "src/log.h"
 #include "src/macro-assembler.h"
 #include "src/regexp-macro-assembler.h"
+#include "src/regexp-stack.h"
+#include "src/unicode.h"
+
 #include "src/arm64/regexp-macro-assembler-arm64.h"
 
 namespace v8 {
@@ -1289,7 +1290,8 @@ int RegExpMacroAssemblerARM64::CheckStackGuardState(Address* return_address,
                                                   const byte** input_start,
                                                   const byte** input_end) {
   Isolate* isolate = frame_entry<Isolate*>(re_frame, kIsolate);
-  if (isolate->stack_guard()->IsStackOverflow()) {
+  StackLimitCheck check(isolate);
+  if (check.JsHasOverflowed()) {
     isolate->StackOverflow();
     return EXCEPTION;
   }

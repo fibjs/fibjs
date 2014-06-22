@@ -6,8 +6,8 @@
 
 #if V8_TARGET_ARCH_ARM
 
-#include "src/arm/lithium-gap-resolver-arm.h"
 #include "src/arm/lithium-codegen-arm.h"
+#include "src/arm/lithium-gap-resolver-arm.h"
 
 namespace v8 {
 namespace internal {
