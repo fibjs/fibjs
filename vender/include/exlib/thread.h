@@ -12,6 +12,11 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <unistd.h>
+#ifdef MacOS
+#include <mach/mach_init.h>
+#include <mach/task.h>
+#include <mach/semaphore.h>
+#endif
 #endif
 
 #ifndef _ex_thread_h__
@@ -50,7 +55,7 @@ public:
         return !!TryEnterCriticalSection(&cs_);
     }
 
-private:
+public:
     CRITICAL_SECTION cs_;
 };
 
@@ -79,7 +84,7 @@ public:
         return WaitForSingleObject(m_handle, 0) == WAIT_OBJECT_0;
     }
 
-private:
+public:
     HANDLE m_handle;
 };
 
@@ -116,10 +121,38 @@ public:
         return !pthread_mutex_trylock(&mutex_);
     }
 
-private:
+public:
     pthread_mutex_t mutex_;
 };
 
+#ifdef MacOS
+class OSSemaphore
+{
+public:
+    OSSemaphore(int start_val = 0)
+    {
+        semaphore_create(mach_task_self(), &m_sem, SYNC_POLICY_FIFO, start_val);
+    }
+
+    ~OSSemaphore()
+    {
+        semaphore_destroy(mach_task_self(), m_sem);
+    }
+
+    void Post()
+    {
+        semaphore_signal(m_sem);
+    }
+
+    void Wait()
+    {
+        semaphore_wait(m_sem);
+    }
+
+public:
+    semaphore_t m_sem;
+};
+#else
 class OSSemaphore
 {
 public:
@@ -148,9 +181,10 @@ public:
         return sem_trywait(&m_sem) == 0;
     }
 
-private:
+public:
     sem_t m_sem;
 };
+#endif
 
 #endif
 
