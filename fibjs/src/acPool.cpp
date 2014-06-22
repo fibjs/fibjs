@@ -59,6 +59,7 @@ public:
 } s_ac;
 
 static exlib::AsyncQueue s_acLog;
+static exlib::OSSemaphore s_sem;
 static bool s_logEmpty;
 
 int32_t g_loglevel = console_base::_NOTSET;
@@ -69,6 +70,7 @@ void asyncLog(int priority, std::string msg)
     {
         //  log4cpp::Category::getRoot().log(priority, msg);
         s_acLog.put(new logger::item(priority, msg));
+        s_sem.Post();
     }
 }
 
@@ -152,7 +154,7 @@ public:
             else
                 s_idleCount = 0;
 
-            Sleep(10);
+            s_sem.Wait();
         }
     }
 } s_logger;
