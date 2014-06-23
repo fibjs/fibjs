@@ -15,6 +15,8 @@ namespace fibjs
 
 class JsonRpcHandler: public Handler_base
 {
+    FIBER_FREE();
+
 public:
     JsonRpcHandler(Handler_base *hdlr) :
         m_hdlr(hdlr)

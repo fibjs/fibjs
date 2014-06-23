@@ -79,8 +79,11 @@ class HttpsServer: object
     /*! @brief 异步运行 http 服务器并开始接收和分发连接，调用后立即返回，服务器在后台运行 */
     asyncRun();
 
-    /*! @brief http 服务器当前侦听的 Socket 对象  */
+    /*! @brief https 服务器当前侦听的 Socket 对象  */
     readonly Socket socket;
+
+    /*! @brief https 服务器当前事件处理接口对象 */
+    Handler handler;
 
     /*! @brief 查询和设置是否允许跨域请求，缺省为 false */
     Boolean crossDomain;

@@ -111,6 +111,16 @@ result_t HttpsServer::get_socket(obj_ptr<Socket_base> &retVal)
     return m_server->get_socket(retVal);
 }
 
+result_t HttpsServer::get_handler(obj_ptr<Handler_base> &retVal)
+{
+    return m_handler->get_handler(retVal);
+}
+
+result_t HttpsServer::set_handler(Handler_base *newVal)
+{
+    return m_handler->set_handler(newVal);
+}
+
 result_t HttpsServer::get_crossDomain(bool &retVal)
 {
     return m_handler->get_crossDomain(retVal);

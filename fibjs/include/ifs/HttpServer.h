@@ -17,6 +17,7 @@ namespace fibjs
 {
 
 class Socket_base;
+class Handler_base;
 class Stats_base;
 
 class HttpServer_base : public object_base
@@ -28,6 +29,8 @@ public:
 	virtual result_t run(exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncRun() = 0;
 	virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
+	virtual result_t get_handler(obj_ptr<Handler_base>& retVal) = 0;
+	virtual result_t set_handler(Handler_base* newVal) = 0;
 	virtual result_t get_crossDomain(bool& retVal) = 0;
 	virtual result_t set_crossDomain(bool newVal) = 0;
 	virtual result_t get_forceGZIP(bool& retVal) = 0;
@@ -46,6 +49,8 @@ public:
 	static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_asyncRun(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_crossDomain(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_crossDomain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_forceGZIP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -64,6 +69,7 @@ public:
 }
 
 #include "Socket.h"
+#include "Handler.h"
 #include "Stats.h"
 
 namespace fibjs
@@ -79,6 +85,7 @@ namespace fibjs
 		static ClassData::ClassProperty s_property[] = 
 		{
 			{"socket", s_get_socket, block_set},
+			{"handler", s_get_handler, s_set_handler},
 			{"crossDomain", s_get_crossDomain, s_set_crossDomain},
 			{"forceGZIP", s_get_forceGZIP, s_set_forceGZIP},
 			{"maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount},
@@ -90,7 +97,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"HttpServer", s__new, 
-			2, s_method, 0, NULL, 7, s_property, NULL, NULL,
+			2, s_method, 0, NULL, 8, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -108,6 +115,29 @@ namespace fibjs
 		hr = pInst->get_socket(vr);
 
 		METHOD_RETURN();
+	}
+
+	inline void HttpServer_base::s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		obj_ptr<Handler_base> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(HttpServer_base);
+
+		hr = pInst->get_handler(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void HttpServer_base::s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+	{
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(HttpServer_base);
+
+		PROPERTY_VAL(obj_ptr<Handler_base>);
+		hr = pInst->set_handler(v0);
+
+		PROPERTY_SET_LEAVE();
 	}
 
 	inline void HttpServer_base::s_get_crossDomain(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)

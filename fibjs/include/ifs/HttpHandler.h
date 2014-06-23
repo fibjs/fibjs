@@ -33,6 +33,8 @@ public:
 	virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
 	virtual result_t get_maxUploadSize(int32_t& retVal) = 0;
 	virtual result_t set_maxUploadSize(int32_t newVal) = 0;
+	virtual result_t get_handler(obj_ptr<Handler_base>& retVal) = 0;
+	virtual result_t set_handler(Handler_base* newVal) = 0;
 	virtual result_t get_stats(obj_ptr<Stats_base>& retVal) = 0;
 
 	DECLARE_CLASSINFO(HttpHandler_base);
@@ -47,6 +49,8 @@ public:
 	static void s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_maxUploadSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_maxUploadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+	static void s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_stats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 };
 
@@ -64,13 +68,14 @@ namespace fibjs
 			{"forceGZIP", s_get_forceGZIP, s_set_forceGZIP},
 			{"maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount},
 			{"maxUploadSize", s_get_maxUploadSize, s_set_maxUploadSize},
+			{"handler", s_get_handler, s_set_handler},
 			{"stats", s_get_stats, block_set}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"HttpHandler", s__new, 
-			0, NULL, 0, NULL, 5, s_property, NULL, NULL,
+			0, NULL, 0, NULL, 6, s_property, NULL, NULL,
 			&Handler_base::class_info()
 		};
 
@@ -166,6 +171,29 @@ namespace fibjs
 
 		PROPERTY_VAL(int32_t);
 		hr = pInst->set_maxUploadSize(v0);
+
+		PROPERTY_SET_LEAVE();
+	}
+
+	inline void HttpHandler_base::s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		obj_ptr<Handler_base> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(HttpHandler_base);
+
+		hr = pInst->get_handler(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void HttpHandler_base::s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+	{
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(HttpHandler_base);
+
+		PROPERTY_VAL(obj_ptr<Handler_base>);
+		hr = pInst->set_handler(v0);
 
 		PROPERTY_SET_LEAVE();
 	}

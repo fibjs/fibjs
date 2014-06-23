@@ -105,6 +105,16 @@ result_t SslServer::get_socket(obj_ptr<Socket_base> &retVal)
     return m_server->get_socket(retVal);
 }
 
+result_t SslServer::get_handler(obj_ptr<Handler_base> &retVal)
+{
+    return m_handler->get_handler(retVal);
+}
+
+result_t SslServer::set_handler(Handler_base *newVal)
+{
+    return m_handler->set_handler(newVal);
+}
+
 result_t SslServer::get_verification(int32_t &retVal)
 {
     return m_handler->get_verification(retVal);

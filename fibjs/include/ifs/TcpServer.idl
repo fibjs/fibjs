@@ -40,6 +40,9 @@ class TcpServer : object
     /*! @brief tcp 服务器当前侦听的 Socket 对象  */
     readonly Socket socket;
 
+    /*! @brief tcp 服务器当前事件处理接口对象 */
+    Handler handler;
+
     /*! @brief 查询当前服务器运行状态
 
       返回的结果为一个 Stats 对象，初始化计数器如下：

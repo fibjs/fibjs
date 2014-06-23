@@ -19,6 +19,7 @@ namespace fibjs
 class X509Cert_base;
 class PKey_base;
 class Socket_base;
+class Handler_base;
 class Stats_base;
 
 class SslServer_base : public object_base
@@ -32,6 +33,8 @@ public:
 	virtual result_t run(exlib::AsyncEvent* ac) = 0;
 	virtual result_t asyncRun() = 0;
 	virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
+	virtual result_t get_handler(obj_ptr<Handler_base>& retVal) = 0;
+	virtual result_t set_handler(Handler_base* newVal) = 0;
 	virtual result_t get_verification(int32_t& retVal) = 0;
 	virtual result_t set_verification(int32_t newVal) = 0;
 	virtual result_t get_ca(obj_ptr<X509Cert_base>& retVal) = 0;
@@ -44,6 +47,8 @@ public:
 	static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_asyncRun(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -58,6 +63,7 @@ public:
 #include "X509Cert.h"
 #include "PKey.h"
 #include "Socket.h"
+#include "Handler.h"
 #include "Stats.h"
 
 namespace fibjs
@@ -73,6 +79,7 @@ namespace fibjs
 		static ClassData::ClassProperty s_property[] = 
 		{
 			{"socket", s_get_socket, block_set},
+			{"handler", s_get_handler, s_set_handler},
 			{"verification", s_get_verification, s_set_verification},
 			{"ca", s_get_ca, block_set},
 			{"stats", s_get_stats, block_set}
@@ -81,7 +88,7 @@ namespace fibjs
 		static ClassData s_cd = 
 		{ 
 			"SslServer", s__new, 
-			2, s_method, 0, NULL, 4, s_property, NULL, NULL,
+			2, s_method, 0, NULL, 5, s_property, NULL, NULL,
 			&object_base::class_info()
 		};
 
@@ -99,6 +106,29 @@ namespace fibjs
 		hr = pInst->get_socket(vr);
 
 		METHOD_RETURN();
+	}
+
+	inline void SslServer_base::s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		obj_ptr<Handler_base> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(SslServer_base);
+
+		hr = pInst->get_handler(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void SslServer_base::s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+	{
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(SslServer_base);
+
+		PROPERTY_VAL(obj_ptr<Handler_base>);
+		hr = pInst->set_handler(v0);
+
+		PROPERTY_SET_LEAVE();
 	}
 
 	inline void SslServer_base::s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)

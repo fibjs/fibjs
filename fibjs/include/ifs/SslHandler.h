@@ -30,6 +30,8 @@ public:
 	virtual result_t get_verification(int32_t& retVal) = 0;
 	virtual result_t set_verification(int32_t newVal) = 0;
 	virtual result_t get_ca(obj_ptr<X509Cert_base>& retVal) = 0;
+	virtual result_t get_handler(obj_ptr<Handler_base>& retVal) = 0;
+	virtual result_t set_handler(Handler_base* newVal) = 0;
 
 	DECLARE_CLASSINFO(SslHandler_base);
 
@@ -38,6 +40,8 @@ public:
 	static void s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+	static void s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 };
 
 }
@@ -52,13 +56,14 @@ namespace fibjs
 		static ClassData::ClassProperty s_property[] = 
 		{
 			{"verification", s_get_verification, s_set_verification},
-			{"ca", s_get_ca, block_set}
+			{"ca", s_get_ca, block_set},
+			{"handler", s_get_handler, s_set_handler}
 		};
 
 		static ClassData s_cd = 
 		{ 
 			"SslHandler", s__new, 
-			0, NULL, 0, NULL, 2, s_property, NULL, NULL,
+			0, NULL, 0, NULL, 3, s_property, NULL, NULL,
 			&Handler_base::class_info()
 		};
 
@@ -99,6 +104,29 @@ namespace fibjs
 		hr = pInst->get_ca(vr);
 
 		METHOD_RETURN();
+	}
+
+	inline void SslHandler_base::s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+	{
+		obj_ptr<Handler_base> vr;
+
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(SslHandler_base);
+
+		hr = pInst->get_handler(vr);
+
+		METHOD_RETURN();
+	}
+
+	inline void SslHandler_base::s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+	{
+		PROPERTY_ENTER();
+		PROPERTY_INSTANCE(SslHandler_base);
+
+		PROPERTY_VAL(obj_ptr<Handler_base>);
+		hr = pInst->set_handler(v0);
+
+		PROPERTY_SET_LEAVE();
 	}
 
 	inline void SslHandler_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -15,6 +15,8 @@ namespace fibjs
 
 class NullHandler: public Handler_base
 {
+    FIBER_FREE();
+
 public:
     // Handler_base
     virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal, exlib::AsyncEvent *ac);

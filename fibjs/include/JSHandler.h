@@ -16,6 +16,8 @@ namespace fibjs
 
 class JSHandler: public Handler_base
 {
+    FIBER_FREE();
+
 public:
     ~JSHandler()
     {

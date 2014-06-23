@@ -15,6 +15,8 @@ namespace fibjs
 
 class HttpFileHandler: public Handler_base
 {
+    FIBER_FREE();
+
 public:
     HttpFileHandler(const char *root) :
         m_root(root)

@@ -16,6 +16,8 @@ namespace fibjs
 
 class PacketHandler: public PacketHandler_base
 {
+    FIBER_FREE();
+
 public:
     PacketHandler(Handler_base *hdlr);
 
@@ -26,8 +28,8 @@ public:
 
 public:
     // PacketHandler_base
-	virtual result_t get_maxSize(int32_t& retVal);
-	virtual result_t set_maxSize(int32_t newVal);
+    virtual result_t get_maxSize(int32_t &retVal);
+    virtual result_t set_maxSize(int32_t newVal);
     virtual result_t get_stats(obj_ptr<Stats_base> &retVal);
 
 public:

@@ -44,4 +44,7 @@ class SslHandler: Handler
 
     /*! @brief 客户端证书验证证书链*/
     readonly X509Cert ca;
+
+    /*! @brief ssl 协议转换处理器当前事件处理接口对象 */
+    Handler handler;
 };

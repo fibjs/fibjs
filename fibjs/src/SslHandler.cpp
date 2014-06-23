@@ -142,5 +142,17 @@ result_t SslHandler::get_ca(obj_ptr<X509Cert_base> &retVal)
     return m_socket->get_ca(retVal);
 }
 
+result_t SslHandler::get_handler(obj_ptr<Handler_base> &retVal)
+{
+    retVal = m_hdlr;
+    return 0;
+}
+
+result_t SslHandler::set_handler(Handler_base *newVal)
+{
+    m_hdlr = newVal;
+    return 0;
+}
+
 }
 

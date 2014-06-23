@@ -201,6 +201,18 @@ result_t TcpServer::get_socket(obj_ptr<Socket_base> &retVal)
     return 0;
 }
 
+result_t TcpServer::get_handler(obj_ptr<Handler_base> &retVal)
+{
+    retVal = m_hdlr;
+    return 0;
+}
+
+result_t TcpServer::set_handler(Handler_base *newVal)
+{
+    m_hdlr = newVal;
+    return 0;
+}
+
 result_t TcpServer::get_stats(obj_ptr<Stats_base> &retVal)
 {
     retVal = m_stats;

@@ -39,6 +39,9 @@ class HttpServer: object
     /*! @brief http 服务器当前侦听的 Socket 对象  */
     readonly Socket socket;
 
+    /*! @brief http 服务器当前事件处理接口对象 */
+    Handler handler;
+
     /*! @brief 查询和设置是否允许跨域请求，缺省为 false */
     Boolean crossDomain;
 

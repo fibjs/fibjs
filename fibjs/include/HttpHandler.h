@@ -16,6 +16,8 @@ namespace fibjs
 
 class HttpHandler: public HttpHandler_base
 {
+    FIBER_FREE();
+
 public:
     HttpHandler(Handler_base *hdlr);
 
@@ -34,6 +36,8 @@ public:
     virtual result_t set_maxHeadersCount(int32_t newVal);
     virtual result_t get_maxUploadSize(int32_t &retVal);
     virtual result_t set_maxUploadSize(int32_t newVal);
+    virtual result_t get_handler(obj_ptr<Handler_base> &retVal);
+    virtual result_t set_handler(Handler_base *newVal);
     virtual result_t get_stats(obj_ptr<Stats_base> &retVal);
 
 public:

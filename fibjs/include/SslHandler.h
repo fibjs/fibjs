@@ -16,6 +16,8 @@ namespace fibjs
 
 class SslHandler: public SslHandler_base
 {
+    FIBER_FREE();
+    
 public:
     // Handler_base
     virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal,
@@ -26,6 +28,8 @@ public:
     virtual result_t get_verification(int32_t &retVal);
     virtual result_t set_verification(int32_t newVal);
     virtual result_t get_ca(obj_ptr<X509Cert_base> &retVal);
+    virtual result_t get_handler(obj_ptr<Handler_base> &retVal);
+    virtual result_t set_handler(Handler_base *newVal);
 
 public:
     result_t init(v8::Local<v8::Array> certs, v8::Local<v8::Value> hdlr);
