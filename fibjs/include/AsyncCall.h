@@ -2,11 +2,31 @@
 #define _fj_ASYNCCALL_H
 
 #include <string>
+#include <exlib/thread.h>
 
 namespace fibjs
 {
 
-extern exlib::AsyncQueue s_acPool;
+class BlockedAsyncQueue: public exlib::AsyncQueue
+{
+public:
+    void put(exlib::AsyncEvent *o)
+    {
+        exlib::AsyncQueue::put(o);
+        m_sem.Post();
+    }
+
+    exlib::AsyncEvent *wait()
+    {
+        m_sem.Wait();
+        return exlib::AsyncQueue::get();
+    }
+
+private:
+    exlib::OSSemaphore m_sem;
+};
+
+extern BlockedAsyncQueue s_acPool;
 void asyncLog(int priority, std::string msg);
 
 class AsyncCall: public asyncEvent

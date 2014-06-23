@@ -8,7 +8,7 @@
 namespace fibjs
 {
 
-exlib::AsyncQueue s_acPool;
+BlockedAsyncQueue s_acPool;
 
 static int32_t s_threads;
 static int32_t s_idleThreads;
