@@ -9,5 +9,6 @@ var classTcpServer =
     [ "toJSON", "de/df9/classTcpServer.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
     [ "ValueOf", "de/df9/classTcpServer.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
     [ "socket", "de/df9/classTcpServer.html#a65ac0b9f39100986818c71192a7a1ef7", null ],
+    [ "handler", "de/df9/classTcpServer.html#a4cc96bf996809c60c59c2e8df5daa653", null ],
     [ "stats", "de/df9/classTcpServer.html#ac39165a6d1da69beae4283af1905fe98", null ]
 ];

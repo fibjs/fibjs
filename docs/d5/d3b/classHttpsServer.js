@@ -11,6 +11,7 @@ var classHttpsServer =
     [ "toJSON", "d5/d3b/classHttpsServer.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
     [ "ValueOf", "d5/d3b/classHttpsServer.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
     [ "socket", "d5/d3b/classHttpsServer.html#a68af1d2943fbb023a5af7f5f2100361f", null ],
+    [ "handler", "d5/d3b/classHttpsServer.html#a88373ec3d65ef6fcaafe79eef4c7fe1a", null ],
     [ "crossDomain", "d5/d3b/classHttpsServer.html#a4579a042f3a3a28b0b99db5af2bbd93c", null ],
     [ "forceGZIP", "d5/d3b/classHttpsServer.html#a7062218721463081e49de195fd4bf139", null ],
     [ "maxHeadersCount", "d5/d3b/classHttpsServer.html#a36f44f118f86e64e5aaf3ca87b987e21", null ],

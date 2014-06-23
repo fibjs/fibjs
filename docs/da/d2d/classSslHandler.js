@@ -8,5 +8,6 @@ var classSslHandler =
     [ "toJSON", "da/d2d/classSslHandler.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
     [ "ValueOf", "da/d2d/classSslHandler.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
     [ "verification", "da/d2d/classSslHandler.html#a5aaada7d1b3790a9de4a20fbf9eddebc", null ],
-    [ "ca", "da/d2d/classSslHandler.html#a68800976bf3edb9f4f51ea9354c5f1d0", null ]
+    [ "ca", "da/d2d/classSslHandler.html#a68800976bf3edb9f4f51ea9354c5f1d0", null ],
+    [ "handler", "da/d2d/classSslHandler.html#aaa16369650afb205fdac2e5f5a8f3028", null ]
 ];

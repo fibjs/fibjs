@@ -9,6 +9,7 @@ var classHttpServer =
     [ "toJSON", "dd/dab/classHttpServer.html#ad66be13eb5b7c5f560fd8511565138c4", null ],
     [ "ValueOf", "dd/dab/classHttpServer.html#a561030ca5d5b23349b5bab2cc8afa739", null ],
     [ "socket", "dd/dab/classHttpServer.html#a979cf31e3b033005fef2812962dc36b0", null ],
+    [ "handler", "dd/dab/classHttpServer.html#a0bfc225e7d914d289035131f663fcfca", null ],
     [ "crossDomain", "dd/dab/classHttpServer.html#a113023f684bec5d69809b283afcdcca4", null ],
     [ "forceGZIP", "dd/dab/classHttpServer.html#aa802ab792b939d7492447bdd253bda9a", null ],
     [ "maxHeadersCount", "dd/dab/classHttpServer.html#a232a50ee5dcdb467f7176988ac9d833e", null ],

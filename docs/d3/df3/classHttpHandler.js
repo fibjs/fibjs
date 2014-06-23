@@ -10,5 +10,6 @@ var classHttpHandler =
     [ "forceGZIP", "d3/df3/classHttpHandler.html#a2e5ab62678914f83f438f6e95d0cbb18", null ],
     [ "maxHeadersCount", "d3/df3/classHttpHandler.html#aa3d3073109d381dcc4f0241c68546ff7", null ],
     [ "maxUploadSize", "d3/df3/classHttpHandler.html#a6c48f6c423cf50e69d94f81a610e1fab", null ],
+    [ "handler", "d3/df3/classHttpHandler.html#a31b90c96f95c0b9e80643aa2c7a52091", null ],
     [ "stats", "d3/df3/classHttpHandler.html#acf6c3dfa3ceb95d3195a96adde981d61", null ]
 ];
