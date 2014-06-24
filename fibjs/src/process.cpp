@@ -50,7 +50,7 @@ result_t process_base::exit(int32_t code)
 {
     flushLog();
 
-    ::exit(code);
+    ::_exit(code);
     return 0;
 }
 
