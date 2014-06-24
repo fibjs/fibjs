@@ -114,10 +114,10 @@ result_t SandBox::addScript(const char *srcname, const char *script,
         context.glob->Set(strModule, mod, v8::ReadOnly);
         context.glob->Set(strExports, exports, v8::ReadOnly);
 
-        std::string sname;
-        if (!m_name.empty())
+        std::string sname = name();
+        if (!sname.empty())
         {
-            sname = m_name + srcname;
+            sname.append(srcname);
             srcname = sname.c_str();
         }
 
@@ -125,7 +125,7 @@ result_t SandBox::addScript(const char *srcname, const char *script,
         if (hr < 0)
         {
             // delete from modules
-            m_mods.erase(id);
+            remove(id.c_str());
             return hr;
         }
 
@@ -139,7 +139,7 @@ result_t SandBox::addScript(const char *srcname, const char *script,
         if (hr < 0)
         {
             // delete from modules
-            m_mods.erase(id);
+            remove(id.c_str());
             return hr;
         }
 
@@ -180,18 +180,19 @@ result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal, int32_t 
         strId.resize(strId.length() - 3);
     }
 
-    it = m_mods.find(strId);
-
-    if (it != m_mods.end())
-    {
-        retVal = it->second;
+    retVal = v8::Local<v8::Object>::New(isolate, _mods)->Get(
+                 v8::String::NewFromUtf8(isolate, strId.c_str(),
+                                         v8::String::kNormalString,
+                                         (int)strId.length()));
+    if (!IsEmpty(retVal))
         return 1;
-    }
 
-    if (!m_require.IsEmpty())
+    v8::Local<v8::Value> func = v8::Local<v8::Object>::New(isolate, _mods)->GetHiddenValue(
+                                    v8::String::NewFromUtf8(isolate, "require"));
+    if (!IsEmpty(func))
     {
         v8::Local<v8::Value> arg = v8::String::NewFromUtf8(isolate, strId.c_str());
-        retVal = v8::Local<v8::Function>::New(isolate, m_require)->Call(wrap(), 1, &arg);
+        retVal = v8::Local<v8::Function>::Cast(func)->Call(wrap(), 1, &arg);
         if (retVal.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
@@ -345,10 +346,10 @@ result_t SandBox::run(const char *fname)
 
     Context context(this, pname);
 
-    std::string sname;
-    if (!m_name.empty())
+    std::string sname = name();
+    if (!sname.empty())
     {
-        sname = m_name + sfname;
+        sname.append(sfname);
         pname = sname.c_str();
     }
 

@@ -47,24 +47,21 @@ result_t vm_base::current(obj_ptr<SandBox_base> &retVal)
     if (ctx.IsEmpty())
         return CALL_E_INVALID_CALL;
 
-    v8::Local<v8::Value> sbox = ctx->Global()->GetHiddenValue(
-                                    v8::String::NewFromUtf8(isolate, "SandBox"));
+    v8::Local<v8::Value> v = ctx->Global()->GetHiddenValue(
+                                 v8::String::NewFromUtf8(isolate, "_mods"));
 
-    if (sbox.IsEmpty())
+    if (v.IsEmpty() || !v->IsObject())
         return CALL_E_INTERNAL;
 
-    retVal = SandBox_base::getInstance(sbox);
-    return retVal ? 0 : CALL_E_INTERNAL;
+    retVal = new SandBox(v->ToObject());
+    return 0;
 }
 
 void SandBox::InstallModule(std::string fname, v8::Local<v8::Value> o)
 {
-    std::map<std::string, VariantEx >::iterator it = m_mods.find(fname);
-
-    if (it == m_mods.end())
-        m_mods[fname] = o;
-    else
-        it->second = o;
+    v8::Local<v8::Object>::New(isolate, _mods)->Set(
+        v8::String::NewFromUtf8(isolate, fname.c_str(), v8::String::kNormalString,
+                                (int)fname.length()), o);
 }
 
 result_t SandBox::add(const char *id, v8::Local<v8::Value> mod)
@@ -95,7 +92,8 @@ result_t SandBox::add(v8::Local<v8::Object> mods)
 
 result_t SandBox::remove(const char *id)
 {
-    m_mods.erase(id);
+    v8::Local<v8::Object>::New(isolate, _mods)->Delete(
+        v8::String::NewFromUtf8(isolate, id));
     return 0;
 }
 

@@ -2,6 +2,7 @@ var test = require("test");
 test.setup();
 
 var vm = require('vm');
+var os = require('os');
 
 describe("vm", function() {
 	var sbox;
@@ -103,6 +104,22 @@ describe("vm", function() {
 		t1.func();
 	});
 
+	it("Garbage Collection", function() {
+		sbox = undefined;
+		GC();
+		no1 = os.memoryUsage().nativeObjects;
+
+		sbox = new vm.SandBox({});
+		assert.equal(no1 + 1, os.memoryUsage().nativeObjects);
+
+		var a = sbox.addScript("t1.js", "module.exports = {a : new Buffer()};");
+		assert.equal(no1 + 2, os.memoryUsage().nativeObjects);
+
+		sbox = undefined;
+		a = undefined;
+		GC();
+		assert.equal(no1, os.memoryUsage().nativeObjects);
+	});
 });
 
 //test.run(console.DEBUG);
