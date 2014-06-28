@@ -80,14 +80,14 @@ HANDLE CreateUniqueDumpFile()
 
     puts("core dump....");
     l = GetCurrentDirectory(MAX_PATH, fname);
-    memcpy(fname + l, "\\core.", 14);
-    l += 10;
+    memcpy(fname + l, "\\core.", 6);
+    l += 6;
 
     for (i = 0; i < 104; i++)
     {
         _itoa_s(i, fname + l, 10, 10);
         memcpy(fname + l + (i > 999 ? 4 : (i > 99 ? 3 : (i > 9 ? 2 : 1))),
-               L".dmp", 10);
+               ".dmp", 5);
 
         hFile = CreateFile(fname, GENERIC_READ | GENERIC_WRITE, 0, NULL,
                            CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
