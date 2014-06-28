@@ -28,9 +28,7 @@
 #include "src/icu_util.h"
 #include "src/json-parser.h"
 #include "src/messages.h"
-#ifdef COMPRESS_STARTUP_DATA_BZ2
 #include "src/natives.h"
-#endif
 #include "src/parser.h"
 #include "src/platform.h"
 #include "src/platform/time.h"
@@ -349,6 +347,24 @@ void V8::SetDecompressedStartupData(StartupData* decompressed_data) {
       decompressed_data[kExperimentalLibraries].data,
       decompressed_data[kExperimentalLibraries].raw_size);
   i::ExperimentalNatives::SetRawScriptsSource(exp_libraries_source);
+#endif
+}
+
+
+void V8::SetNativesDataBlob(StartupData* natives_blob) {
+#ifdef V8_USE_EXTERNAL_STARTUP_DATA
+  i::SetNativesFromFile(natives_blob);
+#else
+  CHECK(false);
+#endif
+}
+
+
+void V8::SetSnapshotDataBlob(StartupData* snapshot_blob) {
+#ifdef V8_USE_EXTERNAL_STARTUP_DATA
+  i::SetSnapshotFromFile(snapshot_blob);
+#else
+  CHECK(false);
 #endif
 }
 
@@ -833,6 +849,8 @@ void Template::SetAccessorProperty(
     v8::Local<FunctionTemplate> setter,
     v8::PropertyAttribute attribute,
     v8::AccessControl access_control) {
+  // TODO(verwaest): Remove |access_control|.
+  ASSERT_EQ(v8::DEFAULT, access_control);
   i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
   ENTER_V8(isolate);
   ASSERT(!name.IsEmpty());
@@ -844,8 +862,7 @@ void Template::SetAccessorProperty(
     name,
     getter,
     setter,
-    v8::Integer::New(v8_isolate, attribute),
-    v8::Integer::New(v8_isolate, access_control)};
+    v8::Integer::New(v8_isolate, attribute)};
   TemplateSet(isolate, this, kSize, data);
 }
 
@@ -3013,6 +3030,9 @@ uint32_t Value::Uint32Value() const {
 }
 
 
+// TODO(verwaest): Remove the attribs argument, since it doesn't make sense for
+// existing properties. Use ForceSet instead to define or redefine properties
+// with specific attributes.
 bool v8::Object::Set(v8::Handle<Value> key, v8::Handle<Value> value,
                      v8::PropertyAttribute attribs) {
   i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
@@ -3024,12 +3044,8 @@ bool v8::Object::Set(v8::Handle<Value> key, v8::Handle<Value> value,
   i::Handle<i::Object> value_obj = Utils::OpenHandle(*value);
   EXCEPTION_PREAMBLE(isolate);
   has_pending_exception = i::Runtime::SetObjectProperty(
-      isolate,
-      self,
-      key_obj,
-      value_obj,
-      static_cast<PropertyAttributes>(attribs),
-      i::SLOPPY).is_null();
+      isolate, self, key_obj, value_obj, i::SLOPPY,
+      static_cast<PropertyAttributes>(attribs)).is_null();
   EXCEPTION_BAILOUT_CHECK(isolate, false);
   return true;
 }
@@ -3061,7 +3077,7 @@ bool v8::Object::ForceSet(v8::Handle<Value> key,
   i::Handle<i::Object> key_obj = Utils::OpenHandle(*key);
   i::Handle<i::Object> value_obj = Utils::OpenHandle(*value);
   EXCEPTION_PREAMBLE(isolate);
-  has_pending_exception = i::Runtime::ForceSetObjectProperty(
+  has_pending_exception = i::Runtime::DefineObjectProperty(
       self,
       key_obj,
       value_obj,
@@ -3415,7 +3431,7 @@ static inline bool ObjectSetAccessor(Object* obj,
       i::JSObject::SetAccessor(Utils::OpenHandle(obj), info),
       false);
   if (result->IsUndefined()) return false;
-  if (fast) i::JSObject::TransformToFastProperties(Utils::OpenHandle(obj), 0);
+  if (fast) i::JSObject::MigrateSlowToFast(Utils::OpenHandle(obj), 0);
   return true;
 }
 
@@ -3446,6 +3462,8 @@ void Object::SetAccessorProperty(Local<String> name,
                                  Handle<Function> setter,
                                  PropertyAttribute attribute,
                                  AccessControl settings) {
+  // TODO(verwaest): Remove |settings|.
+  ASSERT_EQ(v8::DEFAULT, settings);
   i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
   ON_BAILOUT(isolate, "v8::Object::SetAccessorProperty()", return);
   ENTER_V8(isolate);
@@ -3457,8 +3475,7 @@ void Object::SetAccessorProperty(Local<String> name,
                               v8::Utils::OpenHandle(*name),
                               getter_i,
                               setter_i,
-                              static_cast<PropertyAttributes>(attribute),
-                              settings);
+                              static_cast<PropertyAttributes>(attribute));
 }
 
 
@@ -3582,7 +3599,7 @@ void v8::Object::TurnOnAccessCheck() {
 
   i::Handle<i::Map> new_map = i::Map::Copy(i::Handle<i::Map>(obj->map()));
   new_map->set_is_access_check_needed(true);
-  obj->set_map(*new_map);
+  i::JSObject::MigrateToMap(obj, new_map);
 }
 
 
@@ -6713,6 +6730,11 @@ void Isolate::SetAutorunMicrotasks(bool autorun) {
 
 bool Isolate::WillAutorunMicrotasks() const {
   return reinterpret_cast<const i::Isolate*>(this)->autorun_microtasks();
+}
+
+
+void Isolate::SetUseCounterCallback(UseCounterCallback callback) {
+  reinterpret_cast<i::Isolate*>(this)->SetUseCounterCallback(callback);
 }
 
 

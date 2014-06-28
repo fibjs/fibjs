@@ -283,6 +283,7 @@
     <ClCompile Include="src\v8\src\arguments.cc" />
     <ClCompile Include="src\v8\src\assembler.cc" />
     <ClCompile Include="src\v8\src\assert-scope.cc" />
+    <ClCompile Include="src\v8\src\ast-value-factory.cc" />
     <ClCompile Include="src\v8\src\ast.cc" />
     <ClCompile Include="src\v8\src\base\atomicops_internals_x86_gcc.cc" />
     <ClCompile Include="src\v8\src\base\once.cc" />
@@ -398,6 +399,7 @@
     <ClCompile Include="src\v8\src\objects-visiting.cc" />
     <ClCompile Include="src\v8\src\objects.cc" />
     <ClCompile Include="src\v8\src\optimizing-compiler-thread.cc" />
+    <ClCompile Include="src\v8\src\ostreams.cc" />
     <ClCompile Include="src\v8\src\parser.cc" />
     <ClCompile Include="src\v8\src\platform-fiber.cc" />
     <ClCompile Include="src\v8\src\platform-freebsd.cc" />
@@ -434,6 +436,7 @@
     <ClCompile Include="src\v8\src\serialize.cc" />
     <ClCompile Include="src\v8\src\snapshot-common.cc" />
     <ClCompile Include="src\v8\src\snapshot-empty.cc" />
+    <ClCompile Include="src\v8\src\snapshot-source-sink.cc" />
     <ClCompile Include="src\v8\src\spaces.cc" />
     <ClCompile Include="src\v8\src\store-buffer.cc" />
     <ClCompile Include="src\v8\src\string-search.cc" />
@@ -703,6 +706,7 @@
     <ClInclude Include="src\v8\src\arguments.h" />
     <ClInclude Include="src\v8\src\assembler.h" />
     <ClInclude Include="src\v8\src\assert-scope.h" />
+    <ClInclude Include="src\v8\src\ast-value-factory.h" />
     <ClInclude Include="src\v8\src\ast.h" />
     <ClInclude Include="src\v8\src\base\atomicops.h" />
     <ClInclude Include="src\v8\src\base\atomicops_internals_arm64_gcc.h" />
@@ -859,6 +863,7 @@
     <ClInclude Include="src\v8\src\objects-visiting.h" />
     <ClInclude Include="src\v8\src\objects.h" />
     <ClInclude Include="src\v8\src\optimizing-compiler-thread.h" />
+    <ClInclude Include="src\v8\src\ostreams.h" />
     <ClInclude Include="src\v8\src\parser.h" />
     <ClInclude Include="src\v8\src\platform.h" />
     <ClInclude Include="src\v8\src\platform\condition-variable.h" />
@@ -894,6 +899,7 @@
     <ClInclude Include="src\v8\src\simulator.h" />
     <ClInclude Include="src\v8\src\small-pointer-list.h" />
     <ClInclude Include="src\v8\src\smart-pointers.h" />
+    <ClInclude Include="src\v8\src\snapshot-source-sink.h" />
     <ClInclude Include="src\v8\src\snapshot.h" />
     <ClInclude Include="src\v8\src\spaces-inl.h" />
     <ClInclude Include="src\v8\src\spaces.h" />

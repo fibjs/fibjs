@@ -38,7 +38,9 @@ CompilationInfo::CompilationInfo(Handle<Script> script,
       osr_ast_id_(BailoutId::None()),
       parameter_count_(0),
       this_has_uses_(true),
-      optimization_id_(-1) {
+      optimization_id_(-1),
+      ast_value_factory_(NULL),
+      ast_value_factory_owned_(false) {
   Initialize(script->GetIsolate(), BASE, zone);
 }
 
@@ -51,7 +53,9 @@ CompilationInfo::CompilationInfo(Handle<SharedFunctionInfo> shared_info,
       osr_ast_id_(BailoutId::None()),
       parameter_count_(0),
       this_has_uses_(true),
-      optimization_id_(-1) {
+      optimization_id_(-1),
+      ast_value_factory_(NULL),
+      ast_value_factory_owned_(false) {
   Initialize(script_->GetIsolate(), BASE, zone);
 }
 
@@ -66,7 +70,9 @@ CompilationInfo::CompilationInfo(Handle<JSFunction> closure,
       osr_ast_id_(BailoutId::None()),
       parameter_count_(0),
       this_has_uses_(true),
-      optimization_id_(-1) {
+      optimization_id_(-1),
+      ast_value_factory_(NULL),
+      ast_value_factory_owned_(false) {
   Initialize(script_->GetIsolate(), BASE, zone);
 }
 
@@ -78,7 +84,9 @@ CompilationInfo::CompilationInfo(HydrogenCodeStub* stub,
       osr_ast_id_(BailoutId::None()),
       parameter_count_(0),
       this_has_uses_(true),
-      optimization_id_(-1) {
+      optimization_id_(-1),
+      ast_value_factory_(NULL),
+      ast_value_factory_owned_(false) {
   Initialize(isolate, STUB, zone);
   code_stub_ = stub;
 }
@@ -131,6 +139,7 @@ void CompilationInfo::Initialize(Isolate* isolate,
 CompilationInfo::~CompilationInfo() {
   delete deferred_handles_;
   delete no_frame_ranges_;
+  if (ast_value_factory_owned_) delete ast_value_factory_;
 #ifdef DEBUG
   // Check that no dependent maps have been added or added dependent maps have
   // been rolled back or committed.
@@ -297,8 +306,10 @@ OptimizedCompileJob::Status OptimizedCompileJob::CreateGraph() {
   // generated code for this from the shared function object.
   if (FLAG_always_full_compiler) return AbortOptimization();
 
-  // Do not use crankshaft if compiling for debugging.
-  if (info()->is_debug()) return AbortOptimization(kDebuggerIsActive);
+  // Do not use crankshaft if we need to be able to set break points.
+  if (isolate()->DebuggerHasBreakPoints()) {
+    return AbortOptimization(kDebuggerHasBreakPoints);
+  }
 
   // Limit the number of times we re-compile a functions with
   // the optimizing compiler.
@@ -385,7 +396,7 @@ OptimizedCompileJob::Status OptimizedCompileJob::CreateGraph() {
   // Type-check the function.
   AstTyper::Run(info());
 
-  graph_builder_ = FLAG_hydrogen_track_positions
+  graph_builder_ = (FLAG_hydrogen_track_positions || FLAG_trace_ic)
       ? new(info()->zone()) HOptimizedGraphBuilderWithPositions(info())
       : new(info()->zone()) HOptimizedGraphBuilder(info());
 
@@ -443,6 +454,7 @@ OptimizedCompileJob::Status OptimizedCompileJob::GenerateCode() {
   ASSERT(last_status() == SUCCEEDED);
   ASSERT(!info()->HasAbortedDueToDependencyChange());
   DisallowCodeDependencyChange no_dependency_change;
+  DisallowJavascriptExecution no_js(isolate());
   {  // Scope for timer.
     Timer timer(this, &time_taken_to_codegen_);
     ASSERT(chunk_ != NULL);
@@ -849,7 +861,7 @@ static Handle<SharedFunctionInfo> CompileToplevel(CompilationInfo* info) {
     live_edit_tracker.RecordFunctionInfo(result, lit, info->zone());
   }
 
-  isolate->debug()->OnAfterCompile(script, Debug::NO_AFTER_COMPILE_FLAGS);
+  isolate->debug()->OnAfterCompile(script);
 
   return result;
 }
@@ -1041,6 +1053,8 @@ MUST_USE_RESULT static MaybeHandle<Code> GetCodeFromOptimizedCodeMap(
     BailoutId osr_ast_id) {
   if (FLAG_cache_optimized_code) {
     Handle<SharedFunctionInfo> shared(function->shared());
+    // Bound functions are not cached.
+    if (shared->bound()) return MaybeHandle<Code>();
     DisallowHeapAllocation no_gc;
     int index = shared->SearchOptimizedCodeMap(
         function->context()->native_context(), osr_ast_id);
@@ -1070,6 +1084,8 @@ static void InsertCodeIntoOptimizedCodeMap(CompilationInfo* info) {
   if (FLAG_cache_optimized_code) {
     Handle<JSFunction> function = info->closure();
     Handle<SharedFunctionInfo> shared(function->shared());
+    // Do not cache bound functions.
+    if (shared->bound()) return;
     Handle<FixedArray> literals(function->literals());
     Handle<Context> native_context(function->context()->native_context());
     SharedFunctionInfo::AddToOptimizedCodeMap(

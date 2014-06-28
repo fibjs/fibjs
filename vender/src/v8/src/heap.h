@@ -277,16 +277,11 @@ namespace internal {
   V(constructor_string, "constructor")                                   \
   V(dot_result_string, ".result")                                        \
   V(dot_for_string, ".for.")                                             \
-  V(dot_iterable_string, ".iterable")                                    \
-  V(dot_iterator_string, ".iterator")                                    \
-  V(dot_generator_object_string, ".generator_object")                    \
   V(eval_string, "eval")                                                 \
   V(empty_string, "")                                                    \
   V(function_string, "function")                                         \
   V(length_string, "length")                                             \
-  V(module_string, "module")                                             \
   V(name_string, "name")                                                 \
-  V(native_string, "native")                                             \
   V(null_string, "null")                                                 \
   V(number_string, "number")                                             \
   V(Number_string, "Number")                                             \
@@ -312,7 +307,6 @@ namespace internal {
   V(private_api_string, "private_api")                                   \
   V(private_intern_string, "private_intern")                             \
   V(Date_string, "Date")                                                 \
-  V(this_string, "this")                                                 \
   V(to_string_string, "toString")                                        \
   V(char_at_string, "CharAt")                                            \
   V(undefined_string, "undefined")                                       \
@@ -335,19 +329,13 @@ namespace internal {
   V(cell_value_string, "%cell_value")                                    \
   V(function_class_string, "Function")                                   \
   V(illegal_argument_string, "illegal argument")                         \
-  V(MakeReferenceError_string, "MakeReferenceError")                     \
-  V(MakeSyntaxError_string, "MakeSyntaxError")                           \
-  V(MakeTypeError_string, "MakeTypeError")                               \
-  V(unknown_label_string, "unknown_label")                               \
   V(space_string, " ")                                                   \
   V(exec_string, "exec")                                                 \
   V(zero_string, "0")                                                    \
   V(global_eval_string, "GlobalEval")                                    \
   V(identity_hash_string, "v8::IdentityHash")                            \
   V(closure_string, "(closure)")                                         \
-  V(use_strict_string, "use strict")                                     \
   V(dot_string, ".")                                                     \
-  V(anonymous_function_string, "(anonymous function)")                   \
   V(compare_ic_string, "==")                                             \
   V(strict_compare_ic_string, "===")                                     \
   V(infinity_string, "Infinity")                                         \
@@ -1089,15 +1077,8 @@ class Heap {
   static const int kMaxExecutableSizeHugeMemoryDevice =
       700 * kPointerMultiplier;
 
-  intptr_t OldGenerationAllocationLimit(intptr_t old_gen_size) {
-    intptr_t limit = FLAG_stress_compaction
-        ? old_gen_size + old_gen_size / 10
-        : old_gen_size * old_space_growing_factor_;
-    limit = Max(limit, kMinimumOldGenerationAllocationLimit);
-    limit += new_space_.Capacity();
-    intptr_t halfway_to_the_max = (old_gen_size + max_old_generation_size_) / 2;
-    return Min(limit, halfway_to_the_max);
-  }
+  intptr_t OldGenerationAllocationLimit(intptr_t old_gen_size,
+                                        int freed_global_handles);
 
   // Indicates whether inline bump-pointer allocation has been disabled.
   bool inline_allocation_disabled() { return inline_allocation_disabled_; }
@@ -1212,10 +1193,8 @@ class Heap {
 
   void VisitExternalResources(v8::ExternalResourceVisitor* visitor);
 
-  // Helper function that governs the promotion policy from new space to
-  // old.  If the object's old address lies below the new space's age
-  // mark or if we've already filled the bottom 1/16th of the to space,
-  // we try to promote this object.
+  // An object should be promoted if the object has survived a
+  // scavenge operation.
   inline bool ShouldBePromoted(Address old_address, int object_size);
 
   void ClearJSFunctionResultCaches();
@@ -1528,11 +1507,6 @@ class Heap {
   intptr_t max_executable_size_;
   intptr_t maximum_committed_;
 
-  // The old space growing factor is used in the old space heap growing
-  // strategy. The new old space size is the current old space size times
-  // old_space_growing_factor_.
-  int old_space_growing_factor_;
-
   // For keeping track of how much data has survived
   // scavenge since last new space expansion.
   int survived_since_last_expansion_;
@@ -1611,9 +1585,6 @@ class Heap {
   // which collector to invoke, before expanding a paged space in the old
   // generation and on every allocation in large object space.
   intptr_t old_generation_allocation_limit_;
-
-  // Used to adjust the limits that control the timing of the next GC.
-  intptr_t size_of_old_gen_at_last_old_space_gc_;
 
   // Indicates that an allocation has failed in the old generation since the
   // last GC.
@@ -2536,6 +2507,9 @@ class GCTracer BASE_EMBEDDED {
       MC_SWEEP,
       MC_SWEEP_NEWSPACE,
       MC_SWEEP_OLDSPACE,
+      MC_SWEEP_CODE,
+      MC_SWEEP_CELL,
+      MC_SWEEP_MAP,
       MC_EVACUATE_PAGES,
       MC_UPDATE_NEW_TO_NEW_POINTERS,
       MC_UPDATE_ROOT_TO_NEW_POINTERS,

@@ -46,6 +46,8 @@ cp $V8_PATH/src/utils/*.cc src/utils/
 
 rm src/d8*
 rm src/i18n.*
+rm src/natives-external.cc
+rm src/snapshot-external.cc
 rm src/mksnapshot.cc
 rm src/v8dll-main.cc
 rm src/platform-cygwin.cc

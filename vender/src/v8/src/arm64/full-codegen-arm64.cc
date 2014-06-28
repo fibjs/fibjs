@@ -198,7 +198,7 @@ void FullCodeGenerator::Generate() {
     if (FLAG_harmony_scoping && info->scope()->is_global_scope()) {
       __ Mov(x10, Operand(info->scope()->GetScopeInfo()));
       __ Push(x1, x10);
-      __ CallRuntime(Runtime::kHiddenNewGlobalContext, 2);
+      __ CallRuntime(Runtime::kNewGlobalContext, 2);
     } else if (heap_slots <= FastNewContextStub::kMaximumSlots) {
       FastNewContextStub stub(isolate(), heap_slots);
       __ CallStub(&stub);
@@ -206,7 +206,7 @@ void FullCodeGenerator::Generate() {
       need_write_barrier = false;
     } else {
       __ Push(x1);
-      __ CallRuntime(Runtime::kHiddenNewFunctionContext, 1);
+      __ CallRuntime(Runtime::kNewFunctionContext, 1);
     }
     function_in_register_x1 = false;
     // Context is returned in x0.  It replaces the context passed to us.
@@ -859,7 +859,7 @@ void FullCodeGenerator::VisitVariableDeclaration(
         // Pushing 0 (xzr) indicates no initial value.
         __ Push(cp, x2, x1, xzr);
       }
-      __ CallRuntime(Runtime::kHiddenDeclareContextSlot, 4);
+      __ CallRuntime(Runtime::kDeclareContextSlot, 4);
       break;
     }
   }
@@ -915,7 +915,7 @@ void FullCodeGenerator::VisitFunctionDeclaration(
       __ Push(cp, x2, x1);
       // Push initial value for function declaration.
       VisitForStackValue(declaration->fun());
-      __ CallRuntime(Runtime::kHiddenDeclareContextSlot, 4);
+      __ CallRuntime(Runtime::kDeclareContextSlot, 4);
       break;
     }
   }
@@ -990,7 +990,7 @@ void FullCodeGenerator::DeclareGlobals(Handle<FixedArray> pairs) {
   __ Mov(flags, Smi::FromInt(DeclareGlobalsFlags()));
   }
   __ Push(cp, x11, flags);
-  __ CallRuntime(Runtime::kHiddenDeclareGlobals, 3);
+  __ CallRuntime(Runtime::kDeclareGlobals, 3);
   // Return value is ignored.
 }
 
@@ -998,7 +998,7 @@ void FullCodeGenerator::DeclareGlobals(Handle<FixedArray> pairs) {
 void FullCodeGenerator::DeclareModules(Handle<FixedArray> descriptions) {
   // Call the runtime to declare the modules.
   __ Push(descriptions);
-  __ CallRuntime(Runtime::kHiddenDeclareModules, 1);
+  __ CallRuntime(Runtime::kDeclareModules, 1);
   // Return value is ignored.
 }
 
@@ -1338,7 +1338,7 @@ void FullCodeGenerator::EmitNewClosure(Handle<SharedFunctionInfo> info,
     __ LoadRoot(x10, pretenure ? Heap::kTrueValueRootIndex
                                : Heap::kFalseValueRootIndex);
     __ Push(cp, x11, x10);
-    __ CallRuntime(Runtime::kHiddenNewClosure, 3);
+    __ CallRuntime(Runtime::kNewClosure, 3);
   }
   context()->Plug(x0);
 }
@@ -1393,8 +1393,8 @@ void FullCodeGenerator::EmitLoadGlobalCheckExtensions(Variable* var,
     __ Bind(&fast);
   }
 
-  __ Ldr(x0, GlobalObjectMemOperand());
-  __ Mov(x2, Operand(var->name()));
+  __ Ldr(LoadIC::ReceiverRegister(), GlobalObjectMemOperand());
+  __ Mov(LoadIC::NameRegister(), Operand(var->name()));
   ContextualMode mode = (typeof_state == INSIDE_TYPEOF) ? NOT_CONTEXTUAL
                                                         : CONTEXTUAL;
   CallLoadIC(mode);
@@ -1454,7 +1454,7 @@ void FullCodeGenerator::EmitDynamicLookupFastCase(Variable* var,
       } else {  // LET || CONST
         __ Mov(x0, Operand(var->name()));
         __ Push(x0);
-        __ CallRuntime(Runtime::kHiddenThrowReferenceError, 1);
+        __ CallRuntime(Runtime::kThrowReferenceError, 1);
       }
     }
     __ B(done);
@@ -1472,10 +1472,8 @@ void FullCodeGenerator::EmitVariableLoad(VariableProxy* proxy) {
   switch (var->location()) {
     case Variable::UNALLOCATED: {
       Comment cmnt(masm_, "Global variable");
-      // Use inline caching. Variable name is passed in x2 and the global
-      // object (receiver) in x0.
-      __ Ldr(x0, GlobalObjectMemOperand());
-      __ Mov(x2, Operand(var->name()));
+      __ Ldr(LoadIC::ReceiverRegister(), GlobalObjectMemOperand());
+      __ Mov(LoadIC::NameRegister(), Operand(var->name()));
       CallLoadIC(CONTEXTUAL);
       context()->Plug(x0);
       break;
@@ -1532,7 +1530,7 @@ void FullCodeGenerator::EmitVariableLoad(VariableProxy* proxy) {
             // binding in harmony mode.
             __ Mov(x0, Operand(var->name()));
             __ Push(x0);
-            __ CallRuntime(Runtime::kHiddenThrowReferenceError, 1);
+            __ CallRuntime(Runtime::kThrowReferenceError, 1);
             __ Bind(&done);
           } else {
             // Uninitalized const bindings outside of harmony mode are unholed.
@@ -1557,7 +1555,7 @@ void FullCodeGenerator::EmitVariableLoad(VariableProxy* proxy) {
       Comment cmnt(masm_, "Lookup variable");
       __ Mov(x1, Operand(var->name()));
       __ Push(cp, x1);  // Context and name.
-      __ CallRuntime(Runtime::kHiddenLoadContextSlot, 2);
+      __ CallRuntime(Runtime::kLoadContextSlot, 2);
       __ Bind(&done);
       context()->Plug(x0);
       break;
@@ -1589,7 +1587,7 @@ void FullCodeGenerator::VisitRegExpLiteral(RegExpLiteral* expr) {
   __ Mov(x2, Operand(expr->pattern()));
   __ Mov(x1, Operand(expr->flags()));
   __ Push(x4, x3, x2, x1);
-  __ CallRuntime(Runtime::kHiddenMaterializeRegExpLiteral, 4);
+  __ CallRuntime(Runtime::kMaterializeRegExpLiteral, 4);
   __ Mov(x5, x0);
 
   __ Bind(&materialized);
@@ -1601,7 +1599,7 @@ void FullCodeGenerator::VisitRegExpLiteral(RegExpLiteral* expr) {
   __ Bind(&runtime_allocate);
   __ Mov(x10, Smi::FromInt(size));
   __ Push(x5, x10);
-  __ CallRuntime(Runtime::kHiddenAllocateInNewSpace, 1);
+  __ CallRuntime(Runtime::kAllocateInNewSpace, 1);
   __ Pop(x5);
 
   __ Bind(&allocated);
@@ -1647,7 +1645,7 @@ void FullCodeGenerator::VisitObjectLiteral(ObjectLiteral* expr) {
       masm()->serializer_enabled() || flags != ObjectLiteral::kFastElements ||
       properties_count > max_cloned_properties) {
     __ Push(x3, x2, x1, x0);
-    __ CallRuntime(Runtime::kHiddenCreateObjectLiteral, 4);
+    __ CallRuntime(Runtime::kCreateObjectLiteral, 4);
   } else {
     FastCloneShallowObjectStub stub(isolate(), properties_count);
     __ CallStub(&stub);
@@ -1700,7 +1698,7 @@ void FullCodeGenerator::VisitObjectLiteral(ObjectLiteral* expr) {
           VisitForStackValue(value);
           __ Mov(x0, Smi::FromInt(NONE));  // PropertyAttributes
           __ Push(x0);
-          __ CallRuntime(Runtime::kSetProperty, 4);
+          __ CallRuntime(Runtime::kAddProperty, 4);
         } else {
           VisitForEffect(key);
           VisitForEffect(value);
@@ -1738,7 +1736,7 @@ void FullCodeGenerator::VisitObjectLiteral(ObjectLiteral* expr) {
       EmitAccessor(it->second->setter);
       __ Mov(x10, Smi::FromInt(NONE));
       __ Push(x10);
-      __ CallRuntime(Runtime::kDefineOrRedefineAccessorProperty, 5);
+      __ CallRuntime(Runtime::kDefineAccessorPropertyUnchecked, 5);
   }
 
   if (expr->has_function()) {
@@ -1787,7 +1785,7 @@ void FullCodeGenerator::VisitArrayLiteral(ArrayLiteral* expr) {
   if (expr->depth() > 1 || length > JSObject::kInitialMaxFastElementArray) {
     __ Mov(x0, Smi::FromInt(flags));
     __ Push(x3, x2, x1, x0);
-    __ CallRuntime(Runtime::kHiddenCreateArrayLiteral, 4);
+    __ CallRuntime(Runtime::kCreateArrayLiteral, 4);
   } else {
     FastCloneShallowArrayStub stub(isolate(), allocation_site_mode);
     __ CallStub(&stub);
@@ -1949,7 +1947,7 @@ void FullCodeGenerator::VisitAssignment(Assignment* expr) {
 void FullCodeGenerator::EmitNamedPropertyLoad(Property* prop) {
   SetSourcePosition(prop->position());
   Literal* key = prop->key()->AsLiteral();
-  __ Mov(x2, Operand(key->value()));
+  __ Mov(LoadIC::NameRegister(), Operand(key->value()));
   // Call load IC. It has arguments receiver and property name x0 and x2.
   CallLoadIC(NOT_CONTEXTUAL, prop->PropertyFeedbackId());
 }
@@ -2149,7 +2147,7 @@ void FullCodeGenerator::EmitCallStoreContextSlot(
   // jssp[16] : context.
   // jssp[24] : value.
   __ Push(x0, cp, x11, x10);
-  __ CallRuntime(Runtime::kHiddenStoreContextSlot, 4);
+  __ CallRuntime(Runtime::kStoreContextSlot, 4);
 }
 
 
@@ -2169,7 +2167,7 @@ void FullCodeGenerator::EmitVariableAssignment(Variable* var,
       __ Push(x0);
       __ Mov(x0, Operand(var->name()));
       __ Push(cp, x0);  // Context and name.
-      __ CallRuntime(Runtime::kHiddenInitializeConstContextSlot, 3);
+      __ CallRuntime(Runtime::kInitializeConstContextSlot, 3);
     } else {
       ASSERT(var->IsStackLocal() || var->IsContextSlot());
       Label skip;
@@ -2192,7 +2190,7 @@ void FullCodeGenerator::EmitVariableAssignment(Variable* var,
       __ JumpIfNotRoot(x10, Heap::kTheHoleValueRootIndex, &assign);
       __ Mov(x10, Operand(var->name()));
       __ Push(x10);
-      __ CallRuntime(Runtime::kHiddenThrowReferenceError, 1);
+      __ CallRuntime(Runtime::kThrowReferenceError, 1);
       // Perform the assignment.
       __ Bind(&assign);
       EmitStoreToStackLocalOrContextSlot(var, location);
@@ -2262,13 +2260,15 @@ void FullCodeGenerator::VisitProperty(Property* expr) {
 
   if (key->IsPropertyName()) {
     VisitForAccumulatorValue(expr->obj());
+    ASSERT(x0.is(LoadIC::ReceiverRegister()));
     EmitNamedPropertyLoad(expr);
     PrepareForBailoutForId(expr->LoadId(), TOS_REG);
     context()->Plug(x0);
   } else {
     VisitForStackValue(expr->obj());
     VisitForAccumulatorValue(expr->key());
-    __ Pop(x1);
+    ASSERT(x0.is(KeyedLoadIC::NameRegister()));
+    __ Pop(KeyedLoadIC::ReceiverRegister());
     EmitKeyedPropertyLoad(expr);
     context()->Plug(x0);
   }
@@ -2304,7 +2304,7 @@ void FullCodeGenerator::EmitCallWithLoadIC(Call* expr) {
   } else {
     // Load the function from the receiver.
     ASSERT(callee->IsProperty());
-    __ Peek(x0, 0);
+    __ Peek(LoadIC::ReceiverRegister(), 0);
     EmitNamedPropertyLoad(callee->AsProperty());
     PrepareForBailoutForId(callee->AsProperty()->LoadId(), TOS_REG);
     // Push the target function under the receiver.
@@ -2321,12 +2321,13 @@ void FullCodeGenerator::EmitKeyedCallWithLoadIC(Call* expr,
                                                 Expression* key) {
   // Load the key.
   VisitForAccumulatorValue(key);
+  ASSERT(x0.is(KeyedLoadIC::NameRegister()));
 
   Expression* callee = expr->expression();
 
   // Load the function from the receiver.
   ASSERT(callee->IsProperty());
-  __ Peek(x1, 0);
+  __ Peek(KeyedLoadIC::ReceiverRegister(), 0);
   EmitKeyedPropertyLoad(callee->AsProperty());
   PrepareForBailoutForId(callee->AsProperty()->LoadId(), TOS_REG);
 
@@ -2391,7 +2392,7 @@ void FullCodeGenerator::EmitResolvePossiblyDirectEval(int arg_count) {
   __ Push(x10, x11);
 
   // Do the runtime call.
-  __ CallRuntime(Runtime::kHiddenResolvePossiblyDirectEval, 5);
+  __ CallRuntime(Runtime::kResolvePossiblyDirectEval, 5);
 }
 
 
@@ -2468,7 +2469,7 @@ void FullCodeGenerator::VisitCall(Call* expr) {
     __ Push(context_register());
     __ Mov(x10, Operand(proxy->name()));
     __ Push(x10);
-    __ CallRuntime(Runtime::kHiddenLoadContextSlot, 2);
+    __ CallRuntime(Runtime::kLoadContextSlot, 2);
     __ Push(x0, x1);  // Receiver, function.
 
     // If fast case code has been generated, emit code to push the
@@ -3116,7 +3117,7 @@ void FullCodeGenerator::EmitDateField(CallRuntime* expr) {
   }
 
   __ Bind(&not_date_object);
-  __ CallRuntime(Runtime::kHiddenThrowNotDateError, 0);
+  __ CallRuntime(Runtime::kThrowNotDateError, 0);
   __ Bind(&done);
   context()->Plug(x0);
 }
@@ -3463,7 +3464,7 @@ void FullCodeGenerator::EmitGetFromCache(CallRuntime* expr) {
 
   // Call runtime to perform the lookup.
   __ Push(cache, key);
-  __ CallRuntime(Runtime::kHiddenGetFromCache, 2);
+  __ CallRuntime(Runtime::kGetFromCache, 2);
 
   __ Bind(&done);
   context()->Plug(x0);
@@ -3720,6 +3721,17 @@ void FullCodeGenerator::EmitFastAsciiArrayJoin(CallRuntime* expr) {
 }
 
 
+void FullCodeGenerator::EmitDebugIsActive(CallRuntime* expr) {
+  ASSERT(expr->arguments()->length() == 0);
+  ExternalReference debug_is_active =
+      ExternalReference::debug_is_active_address(isolate());
+  __ Mov(x10, debug_is_active);
+  __ Ldrb(x0, MemOperand(x10));
+  __ SmiTag(x0);
+  context()->Plug(x0);
+}
+
+
 void FullCodeGenerator::VisitCallRuntime(CallRuntime* expr) {
   if (expr->function() != NULL &&
       expr->function()->intrinsic_type == Runtime::INLINE) {
@@ -3735,12 +3747,13 @@ void FullCodeGenerator::VisitCallRuntime(CallRuntime* expr) {
   if (expr->is_jsruntime()) {
     // Push the builtins object as the receiver.
     __ Ldr(x10, GlobalObjectMemOperand());
-    __ Ldr(x0, FieldMemOperand(x10, GlobalObject::kBuiltinsOffset));
-    __ Push(x0);
+    __ Ldr(LoadIC::ReceiverRegister(),
+           FieldMemOperand(x10, GlobalObject::kBuiltinsOffset));
+    __ Push(LoadIC::ReceiverRegister());
 
     // Load the function from the receiver.
     Handle<String> name = expr->name();
-    __ Mov(x2, Operand(name));
+    __ Mov(LoadIC::NameRegister(), Operand(name));
     CallLoadIC(NOT_CONTEXTUAL, expr->CallRuntimeFeedbackId());
 
     // Push the target function under the receiver.
@@ -3810,7 +3823,7 @@ void FullCodeGenerator::VisitUnaryOperation(UnaryOperation* expr) {
           // context where the variable was introduced.
           __ Mov(x2, Operand(var->name()));
           __ Push(context_register(), x2);
-          __ CallRuntime(Runtime::kHiddenDeleteContextSlot, 2);
+          __ CallRuntime(Runtime::kDeleteContextSlot, 2);
           context()->Plug(x0);
         }
       } else {
@@ -3916,14 +3929,16 @@ void FullCodeGenerator::VisitCountOperation(CountOperation* expr) {
     if (assign_type == NAMED_PROPERTY) {
       // Put the object both on the stack and in the accumulator.
       VisitForAccumulatorValue(prop->obj());
-      __ Push(x0);
+      ASSERT(x0.is(LoadIC::ReceiverRegister()));
+      __ Push(LoadIC::ReceiverRegister());
       EmitNamedPropertyLoad(prop);
     } else {
       // KEYED_PROPERTY
       VisitForStackValue(prop->obj());
       VisitForAccumulatorValue(prop->key());
-      __ Peek(x1, 0);
-      __ Push(x0);
+      ASSERT(x0.is(KeyedLoadIC::NameRegister()));
+      __ Peek(KeyedLoadIC::ReceiverRegister(), 0);
+      __ Push(KeyedLoadIC::NameRegister());
       EmitKeyedPropertyLoad(prop);
     }
   }
@@ -4073,8 +4088,8 @@ void FullCodeGenerator::VisitForTypeofValue(Expression* expr) {
   VariableProxy* proxy = expr->AsVariableProxy();
   if (proxy != NULL && proxy->var()->IsUnallocated()) {
     Comment cmnt(masm_, "Global variable");
-    __ Ldr(x0, GlobalObjectMemOperand());
-    __ Mov(x2, Operand(proxy->name()));
+    __ Ldr(LoadIC::ReceiverRegister(), GlobalObjectMemOperand());
+    __ Mov(LoadIC::NameRegister(), Operand(proxy->name()));
     // Use a regular load, not a contextual load, to avoid a reference
     // error.
     CallLoadIC(NOT_CONTEXTUAL);
@@ -4090,7 +4105,7 @@ void FullCodeGenerator::VisitForTypeofValue(Expression* expr) {
     __ Bind(&slow);
     __ Mov(x0, Operand(proxy->name()));
     __ Push(cp, x0);
-    __ CallRuntime(Runtime::kHiddenLoadContextSlotNoReferenceError, 2);
+    __ CallRuntime(Runtime::kLoadContextSlotNoReferenceError, 2);
     PrepareForBailout(expr, TOS_REG);
     __ Bind(&done);
 
@@ -4342,7 +4357,7 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
       __ Cmp(__ StackPointer(), x1);
       __ B(eq, &post_runtime);
       __ Push(x0);  // generator object
-      __ CallRuntime(Runtime::kHiddenSuspendJSGeneratorObject, 1);
+      __ CallRuntime(Runtime::kSuspendJSGeneratorObject, 1);
       __ Ldr(cp, MemOperand(fp, StandardFrameConstants::kContextOffset));
       __ Bind(&post_runtime);
       __ Pop(result_register());
@@ -4413,7 +4428,7 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
       __ Mov(x1, cp);
       __ RecordWriteField(x0, JSGeneratorObject::kContextOffset, x1, x2,
                           kLRHasBeenSaved, kDontSaveFPRegs);
-      __ CallRuntime(Runtime::kHiddenSuspendJSGeneratorObject, 1);
+      __ CallRuntime(Runtime::kSuspendJSGeneratorObject, 1);
       __ Ldr(cp, MemOperand(fp, StandardFrameConstants::kContextOffset));
       __ Pop(x0);                                        // result
       EmitReturnSequence();
@@ -4422,14 +4437,19 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
 
       // receiver = iter; f = 'next'; arg = received;
       __ Bind(&l_next);
+      Register keyedload_receiver = KeyedLoadIC::ReceiverRegister();
+      Register keyedload_name = KeyedLoadIC::NameRegister();
+      ASSERT(keyedload_receiver.is(x1));
+      ASSERT(keyedload_name.is(x0));
+
       __ LoadRoot(x2, Heap::knext_stringRootIndex);  // "next"
       __ Peek(x3, 1 * kPointerSize);                 // iter
       __ Push(x2, x3, x0);                           // "next", iter, received
 
       // result = receiver[f](arg);
       __ Bind(&l_call);
-      __ Peek(x1, 1 * kPointerSize);
-      __ Peek(x0, 2 * kPointerSize);
+      __ Peek(keyedload_receiver, 1 * kPointerSize);
+      __ Peek(keyedload_name, 2 * kPointerSize);
       Handle<Code> ic = isolate()->builtins()->KeyedLoadIC_Initialize();
       CallIC(ic, TypeFeedbackId::None());
       __ Mov(x1, x0);
@@ -4442,19 +4462,23 @@ void FullCodeGenerator::VisitYield(Yield* expr) {
 
       // if (!result.done) goto l_try;
       __ Bind(&l_loop);
-      __ Push(x0);                                       // save result
-      __ LoadRoot(x2, Heap::kdone_stringRootIndex);      // "done"
-      CallLoadIC(NOT_CONTEXTUAL);                        // result.done in x0
+      Register load_receiver = LoadIC::ReceiverRegister();
+      Register load_name = LoadIC::NameRegister();
+      ASSERT(load_receiver.is(x0));
+      ASSERT(load_name.is(x2));
+      __ Push(load_receiver);                               // save result
+      __ LoadRoot(load_name, Heap::kdone_stringRootIndex);  // "done"
+      CallLoadIC(NOT_CONTEXTUAL);                           // x0=result.done
       // The ToBooleanStub argument (result.done) is in x0.
       Handle<Code> bool_ic = ToBooleanStub::GetUninitialized(isolate());
       CallIC(bool_ic);
       __ Cbz(x0, &l_try);
 
       // result.value
-      __ Pop(x0);                                        // result
-      __ LoadRoot(x2, Heap::kvalue_stringRootIndex);     // "value"
-      CallLoadIC(NOT_CONTEXTUAL);                        // result.value in x0
-      context()->DropAndPlug(2, x0);                     // drop iter and g
+      __ Pop(load_receiver);                                 // result
+      __ LoadRoot(load_name, Heap::kvalue_stringRootIndex);  // "value"
+      CallLoadIC(NOT_CONTEXTUAL);                            // x0=result.value
+      context()->DropAndPlug(2, x0);                         // drop iter and g
       break;
     }
   }
@@ -4472,7 +4496,7 @@ void FullCodeGenerator::EmitGeneratorResume(Expression *generator,
   Register function = x4;
 
   // The value stays in x0, and is ultimately read by the resumed generator, as
-  // if CallRuntime(Runtime::kHiddenSuspendJSGeneratorObject) returned it. Or it
+  // if CallRuntime(Runtime::kSuspendJSGeneratorObject) returned it. Or it
   // is read to throw the value when the resumed generator is already closed. r1
   // will hold the generator object until the activation has been resumed.
   VisitForStackValue(generator);
@@ -4554,7 +4578,7 @@ void FullCodeGenerator::EmitGeneratorResume(Expression *generator,
 
   __ Mov(x10, Smi::FromInt(resume_mode));
   __ Push(generator_object, result_register(), x10);
-  __ CallRuntime(Runtime::kHiddenResumeJSGeneratorObject, 3);
+  __ CallRuntime(Runtime::kResumeJSGeneratorObject, 3);
   // Not reached: the runtime call returns elsewhere.
   __ Unreachable();
 
@@ -4569,14 +4593,14 @@ void FullCodeGenerator::EmitGeneratorResume(Expression *generator,
   } else {
     // Throw the provided value.
     __ Push(value_reg);
-    __ CallRuntime(Runtime::kHiddenThrow, 1);
+    __ CallRuntime(Runtime::kThrow, 1);
   }
   __ B(&done);
 
   // Throw error if we attempt to operate on a running generator.
   __ Bind(&wrong_state);
   __ Push(generator_object);
-  __ CallRuntime(Runtime::kHiddenThrowGeneratorStateError, 1);
+  __ CallRuntime(Runtime::kThrowGeneratorStateError, 1);
 
   __ Bind(&done);
   context()->Plug(result_register());
@@ -4597,7 +4621,7 @@ void FullCodeGenerator::EmitCreateIteratorResult(bool done) {
 
   __ Bind(&gc_required);
   __ Push(Smi::FromInt(map->instance_size()));
-  __ CallRuntime(Runtime::kHiddenAllocateInNewSpace, 1);
+  __ CallRuntime(Runtime::kAllocateInNewSpace, 1);
   __ Ldr(context_register(),
          MemOperand(fp, StandardFrameConstants::kContextOffset));
 

@@ -562,7 +562,6 @@ class FullCodeGenerator: public AstVisitor {
   void SetReturnPosition(FunctionLiteral* fun);
   void SetStatementPosition(Statement* stmt);
   void SetExpressionPosition(Expression* expr);
-  void SetStatementPosition(int pos);
   void SetSourcePosition(int pos);
 
   // Non-local control flow support.
@@ -890,10 +889,8 @@ class BackEdgeTable {
     OSR_AFTER_STACK_CHECK
   };
 
-  // Patch all interrupts with allowed loop depth in the unoptimized code to
-  // unconditionally call replacement_code.
-  static void Patch(Isolate* isolate,
-                    Code* unoptimized_code);
+  // Increase allowed loop nesting level by one and patch those matching loops.
+  static void Patch(Isolate* isolate, Code* unoptimized_code);
 
   // Patch the back edge to the target state, provided the correct callee.
   static void PatchAt(Code* unoptimized_code,
@@ -919,9 +916,7 @@ class BackEdgeTable {
 
 #ifdef DEBUG
   // Verify that all back edges of a certain loop depth are patched.
-  static bool Verify(Isolate* isolate,
-                     Code* unoptimized_code,
-                     int loop_nesting_level);
+  static bool Verify(Isolate* isolate, Code* unoptimized_code);
 #endif  // DEBUG
 
  private:

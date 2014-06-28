@@ -331,6 +331,16 @@ void LAccessArgumentsAt::PrintDataTo(StringStream* stream) {
 
 
 int LPlatformChunk::GetNextSpillIndex(RegisterKind kind) {
+  if (kind == DOUBLE_REGISTERS && kDoubleSize == 2 * kPointerSize) {
+    // Skip a slot if for a double-width slot for x32 port.
+    spill_slot_count_++;
+    // The spill slot's address is at rbp - (index + 1) * kPointerSize -
+    // StandardFrameConstants::kFixedFrameSizeFromFp. kFixedFrameSizeFromFp is
+    // 2 * kPointerSize, if rbp is aligned at 8-byte boundary, the below "|= 1"
+    // will make sure the spilled doubles are aligned at 8-byte boundary.
+    // TODO(haitao): make sure rbp is aligned at 8-byte boundary for x32 port.
+    spill_slot_count_ |= 1;
+  }
   return spill_slot_count_++;
 }
 
@@ -2030,7 +2040,8 @@ LInstruction* LChunkBuilder::DoLoadGlobalCell(HLoadGlobalCell* instr) {
 
 LInstruction* LChunkBuilder::DoLoadGlobalGeneric(HLoadGlobalGeneric* instr) {
   LOperand* context = UseFixed(instr->context(), rsi);
-  LOperand* global_object = UseFixed(instr->global_object(), rax);
+  LOperand* global_object = UseFixed(instr->global_object(),
+                                     LoadIC::ReceiverRegister());
   LLoadGlobalGeneric* result =
       new(zone()) LLoadGlobalGeneric(context, global_object);
   return MarkAsCall(DefineFixed(result, rax), instr);
@@ -2097,7 +2108,7 @@ LInstruction* LChunkBuilder::DoLoadNamedField(HLoadNamedField* instr) {
 
 LInstruction* LChunkBuilder::DoLoadNamedGeneric(HLoadNamedGeneric* instr) {
   LOperand* context = UseFixed(instr->context(), rsi);
-  LOperand* object = UseFixed(instr->object(), rax);
+  LOperand* object = UseFixed(instr->object(), LoadIC::ReceiverRegister());
   LLoadNamedGeneric* result = new(zone()) LLoadNamedGeneric(context, object);
   return MarkAsCall(DefineFixed(result, rax), instr);
 }
@@ -2183,8 +2194,8 @@ LInstruction* LChunkBuilder::DoLoadKeyed(HLoadKeyed* instr) {
 
 LInstruction* LChunkBuilder::DoLoadKeyedGeneric(HLoadKeyedGeneric* instr) {
   LOperand* context = UseFixed(instr->context(), rsi);
-  LOperand* object = UseFixed(instr->object(), rdx);
-  LOperand* key = UseFixed(instr->key(), rax);
+  LOperand* object = UseFixed(instr->object(), KeyedLoadIC::ReceiverRegister());
+  LOperand* key = UseFixed(instr->key(), KeyedLoadIC::NameRegister());
 
   LLoadKeyedGeneric* result =
       new(zone()) LLoadKeyedGeneric(context, object, key);

@@ -33,7 +33,7 @@ const char* Variable::Mode2String(VariableMode mode) {
 
 
 Variable::Variable(Scope* scope,
-                   Handle<String> name,
+                   const AstRawString* name,
                    VariableMode mode,
                    bool is_valid_ref,
                    Kind kind,
@@ -50,10 +50,9 @@ Variable::Variable(Scope* scope,
     is_valid_ref_(is_valid_ref),
     force_context_allocation_(false),
     is_used_(false),
+    maybe_assigned_(false),
     initialization_flag_(initialization_flag),
     interface_(interface) {
-  // Names must be canonicalized for fast equality checks.
-  ASSERT(name->IsInternalizedString());
   // Var declared variables never need initialization.
   ASSERT(!(mode == VAR && initialization_flag == kNeedsInitialization));
 }

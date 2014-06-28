@@ -843,7 +843,7 @@ void MacroAssembler::CallApiFunctionAndReturn(
   bind(&promote_scheduled_exception);
   {
     FrameScope frame(this, StackFrame::INTERNAL);
-    CallRuntime(Runtime::kHiddenPromoteScheduledException, 0);
+    CallRuntime(Runtime::kPromoteScheduledException, 0);
   }
   jmp(&exception_handled);
 
@@ -1100,7 +1100,7 @@ void MacroAssembler::LoadSmiConstant(Register dst, Smi* source) {
   if (emit_debug_code()) {
     Move(dst, Smi::FromInt(kSmiConstantRegisterValue),
          Assembler::RelocInfoNone());
-    cmpq(dst, kSmiConstantRegister);
+    cmpp(dst, kSmiConstantRegister);
     Assert(equal, kUninitializedKSmiConstantRegister);
   }
   int value = source->value();

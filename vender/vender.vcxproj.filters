@@ -1512,6 +1512,15 @@
     <ClCompile Include="src\v8\src\lookup.cc">
       <Filter>Source Files\v8\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\v8\src\ast-value-factory.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\ostreams.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8\src\snapshot-source-sink.cc">
+      <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\zlib\crc32.h">
@@ -2931,6 +2940,15 @@
       <Filter>Source Files\v8\src\base</Filter>
     </ClInclude>
     <ClInclude Include="src\v8\src\lookup.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\ast-value-factory.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\ostreams.h">
+      <Filter>Source Files\v8\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v8\src\snapshot-source-sink.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
   </ItemGroup>

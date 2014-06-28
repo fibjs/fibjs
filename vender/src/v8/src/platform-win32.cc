@@ -21,10 +21,11 @@
 
 #include "src/base/win32-headers.h"
 
-#include "src/v8.h"
-
-#include "src/isolate-inl.h"
+#include "src/base/lazy-instance.h"
 #include "src/platform.h"
+#include "src/platform/time.h"
+#include "src/utils.h"
+#include "src/utils/random-number-generator.h"
 
 #ifdef _MSC_VER
 
@@ -105,6 +106,12 @@ int strncpy_s(char* dest, size_t dest_size, const char* source, size_t count) {
 
 namespace v8 {
 namespace internal {
+
+namespace {
+
+bool g_hard_abort = false;
+
+}  // namespace
 
 intptr_t OS::MaxVirtualMemory() {
   return 0;
@@ -712,31 +719,37 @@ size_t OS::AllocateAlignment() {
 }
 
 
-void* OS::GetRandomMmapAddr() {
-  Isolate* isolate = Isolate::UncheckedCurrent();
-  // Note that the current isolate isn't set up in a call path via
-  // CpuFeatures::Probe. We don't care about randomization in this case because
-  // the code page is immediately freed.
-  if (isolate != NULL) {
-    // The address range used to randomize RWX allocations in OS::Allocate
-    // Try not to map pages into the default range that windows loads DLLs
-    // Use a multiple of 64k to prevent committing unused memory.
-    // Note: This does not guarantee RWX regions will be within the
-    // range kAllocationRandomAddressMin to kAllocationRandomAddressMax
-#ifdef V8_HOST_ARCH_64_BIT
-    static const intptr_t kAllocationRandomAddressMin = 0x0000000080000000;
-    static const intptr_t kAllocationRandomAddressMax = 0x000003FFFFFF0000;
-#else
-    static const intptr_t kAllocationRandomAddressMin = 0x04000000;
-    static const intptr_t kAllocationRandomAddressMax = 0x3FFF0000;
-#endif
-    uintptr_t address =
-        (isolate->random_number_generator()->NextInt() << kPageSizeBits) |
-        kAllocationRandomAddressMin;
-    address &= kAllocationRandomAddressMax;
-    return reinterpret_cast<void *>(address);
+static base::LazyInstance<RandomNumberGenerator>::type
+    platform_random_number_generator = LAZY_INSTANCE_INITIALIZER;
+
+
+void OS::Initialize(int64_t random_seed, bool hard_abort,
+                    const char* const gc_fake_mmap) {
+  if (random_seed) {
+    platform_random_number_generator.Pointer()->SetSeed(random_seed);
   }
-  return NULL;
+  g_hard_abort = hard_abort;
+}
+
+
+void* OS::GetRandomMmapAddr() {
+  // The address range used to randomize RWX allocations in OS::Allocate
+  // Try not to map pages into the default range that windows loads DLLs
+  // Use a multiple of 64k to prevent committing unused memory.
+  // Note: This does not guarantee RWX regions will be within the
+  // range kAllocationRandomAddressMin to kAllocationRandomAddressMax
+#ifdef V8_HOST_ARCH_64_BIT
+  static const intptr_t kAllocationRandomAddressMin = 0x0000000080000000;
+  static const intptr_t kAllocationRandomAddressMax = 0x000003FFFFFF0000;
+#else
+  static const intptr_t kAllocationRandomAddressMin = 0x04000000;
+  static const intptr_t kAllocationRandomAddressMax = 0x3FFF0000;
+#endif
+  uintptr_t address =
+      (platform_random_number_generator.Pointer()->NextInt() << kPageSizeBits) |
+      kAllocationRandomAddressMin;
+  address &= kAllocationRandomAddressMax;
+  return reinterpret_cast<void *>(address);
 }
 
 
@@ -811,7 +824,7 @@ void OS::Sleep(int milliseconds) {
 
 
 void OS::Abort() {
-  if (FLAG_hard_abort) {
+  if (g_hard_abort) {
     V8_IMMEDIATE_CRASH();
   }
   // Make the MSVCRT do a silent abort.
@@ -1220,7 +1233,7 @@ VirtualMemory::VirtualMemory(size_t size, size_t alignment)
                                 static_cast<intptr_t>(OS::AllocateAlignment()));
   void* address = ReserveRegion(request_size);
   if (address == NULL) return;
-  Address base = RoundUp(static_cast<Address>(address), alignment);
+  uint8_t* base = RoundUp(static_cast<uint8_t*>(address), alignment);
   // Try reducing the size by freeing and then reallocating a specific area.
   bool result = ReleaseRegion(address, request_size);
   USE(result);
@@ -1228,7 +1241,7 @@ VirtualMemory::VirtualMemory(size_t size, size_t alignment)
   address = VirtualAlloc(base, size, MEM_RESERVE, PAGE_NOACCESS);
   if (address != NULL) {
     request_size = size;
-    ASSERT(base == static_cast<Address>(address));
+    ASSERT(base == static_cast<uint8_t*>(address));
   } else {
     // Resizing failed, just go with a bigger area.
     address = ReserveRegion(request_size);
@@ -1328,7 +1341,7 @@ static unsigned int __stdcall ThreadEntry(void* arg) {
 }
 
 
-class Thread::PlatformData : public Malloced {
+class Thread::PlatformData {
  public:
   explicit PlatformData(HANDLE thread) : thread_(thread) {}
   HANDLE thread_;

@@ -368,13 +368,11 @@ bool ScopeInfo::CopyContextLocalsToScopeObject(Handle<ScopeInfo> scope_info,
     int context_index = Context::MIN_CONTEXT_SLOTS + i;
     RETURN_ON_EXCEPTION_VALUE(
         isolate,
-        Runtime::SetObjectProperty(
-            isolate,
+        Runtime::DefineObjectProperty(
             scope_object,
             Handle<String>(String::cast(scope_info->get(i + start))),
             Handle<Object>(context->get(context_index), isolate),
-            ::NONE,
-            SLOPPY),
+            ::NONE),
         false);
   }
   return true;
@@ -540,7 +538,7 @@ Handle<ModuleInfo> ModuleInfo::Create(
   for (Interface::Iterator it = interface->iterator();
        !it.done(); it.Advance(), ++i) {
     Variable* var = scope->LookupLocal(it.name());
-    info->set_name(i, *it.name());
+    info->set_name(i, *(it.name()->string()));
     info->set_mode(i, var->mode());
     ASSERT((var->mode() == MODULE) == (it.interface()->IsModule()));
     if (var->mode() == MODULE) {

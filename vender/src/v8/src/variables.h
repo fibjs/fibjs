@@ -5,6 +5,7 @@
 #ifndef V8_VARIABLES_H_
 #define V8_VARIABLES_H_
 
+#include "src/ast-value-factory.h"
 #include "src/interface.h"
 #include "src/zone.h"
 
@@ -52,7 +53,7 @@ class Variable: public ZoneObject {
   };
 
   Variable(Scope* scope,
-           Handle<String> name,
+           const AstRawString* name,
            VariableMode mode,
            bool is_valid_ref,
            Kind kind,
@@ -70,7 +71,8 @@ class Variable: public ZoneObject {
   // scope is only used to follow the context chain length.
   Scope* scope() const { return scope_; }
 
-  Handle<String> name() const { return name_; }
+  Handle<String> name() const { return name_->string(); }
+  const AstRawString* raw_name() const { return name_; }
   VariableMode mode() const { return mode_; }
   bool has_forced_context_allocation() const {
     return force_context_allocation_;
@@ -80,7 +82,9 @@ class Variable: public ZoneObject {
     force_context_allocation_ = true;
   }
   bool is_used() { return is_used_; }
-  void set_is_used(bool flag) { is_used_ = flag; }
+  void set_is_used() { is_used_ = true; }
+  bool maybe_assigned() { return maybe_assigned_; }
+  void set_maybe_assigned() { maybe_assigned_ = true; }
 
   int initializer_position() { return initializer_position_; }
   void set_initializer_position(int pos) { initializer_position_ = pos; }
@@ -136,7 +140,7 @@ class Variable: public ZoneObject {
 
  private:
   Scope* scope_;
-  Handle<String> name_;
+  const AstRawString* name_;
   VariableMode mode_;
   Kind kind_;
   Location location_;
@@ -155,6 +159,7 @@ class Variable: public ZoneObject {
   // Usage info.
   bool force_context_allocation_;  // set by variable resolver
   bool is_used_;
+  bool maybe_assigned_;
   InitializationFlag initialization_flag_;
 
   // Module type info.

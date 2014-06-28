@@ -342,10 +342,10 @@ Handle<Context> Bootstrapper::CreateEnvironment(
 
 static void SetObjectPrototype(Handle<JSObject> object, Handle<Object> proto) {
   // object.__proto__ = proto;
-  Handle<Map> old_to_map = Handle<Map>(object->map());
-  Handle<Map> new_to_map = Map::Copy(old_to_map);
-  new_to_map->set_prototype(*proto);
-  object->set_map(*new_to_map);
+  Handle<Map> old_map = Handle<Map>(object->map());
+  Handle<Map> new_map = Map::Copy(old_map);
+  new_map->set_prototype(*proto);
+  JSObject::MigrateToMap(object, new_map);
 }
 
 
@@ -855,11 +855,11 @@ void Genesis::HookUpInnerGlobal(Handle<GlobalObject> inner_global) {
   native_context()->set_security_token(*inner_global);
   static const PropertyAttributes attributes =
       static_cast<PropertyAttributes>(READ_ONLY | DONT_DELETE);
-  Runtime::ForceSetObjectProperty(builtins_global,
-                                  factory()->InternalizeOneByteString(
-                                      STATIC_ASCII_VECTOR("global")),
-                                  inner_global,
-                                  attributes).Assert();
+  Runtime::DefineObjectProperty(builtins_global,
+                                factory()->InternalizeOneByteString(
+                                    STATIC_ASCII_VECTOR("global")),
+                                inner_global,
+                                attributes).Assert();
   // Set up the reference from the global object to the builtins object.
   JSGlobalObject::cast(*inner_global)->set_builtins(*builtins_global);
   TransferNamedProperties(inner_global_from_snapshot, inner_global);
@@ -2052,6 +2052,7 @@ bool Genesis::InstallExperimentalNatives() {
     INSTALL_EXPERIMENTAL_NATIVE(i, collections, "collection-iterator.js")
     INSTALL_EXPERIMENTAL_NATIVE(i, generators, "generator.js")
     INSTALL_EXPERIMENTAL_NATIVE(i, iteration, "array-iterator.js")
+    INSTALL_EXPERIMENTAL_NATIVE(i, iteration, "string-iterator.js")
     INSTALL_EXPERIMENTAL_NATIVE(i, strings, "harmony-string.js")
     INSTALL_EXPERIMENTAL_NATIVE(i, arrays, "harmony-array.js")
     INSTALL_EXPERIMENTAL_NATIVE(i, maths, "harmony-math.js")
@@ -2540,10 +2541,8 @@ void Genesis::TransferObject(Handle<JSObject> from, Handle<JSObject> to) {
   TransferIndexedProperties(from, to);
 
   // Transfer the prototype (new map is needed).
-  Handle<Map> old_to_map = Handle<Map>(to->map());
-  Handle<Map> new_to_map = Map::Copy(old_to_map);
-  new_to_map->set_prototype(from->map()->prototype());
-  to->set_map(*new_to_map);
+  Handle<Object> proto(from->map()->prototype(), isolate());
+  SetObjectPrototype(to, proto);
 }
 
 
@@ -2670,11 +2669,11 @@ Genesis::Genesis(Isolate* isolate,
     Utils::OpenHandle(*buffer)->set_should_be_freed(true);
     v8::Local<v8::Uint32Array> ta = v8::Uint32Array::New(buffer, 0, num_elems);
     Handle<JSBuiltinsObject> builtins(native_context()->builtins());
-    Runtime::ForceSetObjectProperty(builtins,
-                                    factory()->InternalizeOneByteString(
-                                        STATIC_ASCII_VECTOR("rngstate")),
-                                    Utils::OpenHandle(*ta),
-                                    NONE).Assert();
+    Runtime::DefineObjectProperty(builtins,
+                                  factory()->InternalizeOneByteString(
+                                      STATIC_ASCII_VECTOR("rngstate")),
+                                  Utils::OpenHandle(*ta),
+                                  NONE).Assert();
 
     // Initialize trigonometric lookup tables and constants.
     const int table_num_bytes = TrigonometricLookupTable::table_num_bytes();
@@ -2689,25 +2688,25 @@ Genesis::Genesis(Isolate* isolate,
     v8::Local<v8::Float64Array> cos_table = v8::Float64Array::New(
         cos_buffer, 0, TrigonometricLookupTable::table_size());
 
-    Runtime::ForceSetObjectProperty(builtins,
-                                    factory()->InternalizeOneByteString(
-                                        STATIC_ASCII_VECTOR("kSinTable")),
-                                    Utils::OpenHandle(*sin_table),
-                                    NONE).Assert();
-    Runtime::ForceSetObjectProperty(
+    Runtime::DefineObjectProperty(builtins,
+                                  factory()->InternalizeOneByteString(
+                                      STATIC_ASCII_VECTOR("kSinTable")),
+                                  Utils::OpenHandle(*sin_table),
+                                  NONE).Assert();
+    Runtime::DefineObjectProperty(
         builtins,
         factory()->InternalizeOneByteString(
             STATIC_ASCII_VECTOR("kCosXIntervalTable")),
         Utils::OpenHandle(*cos_table),
         NONE).Assert();
-    Runtime::ForceSetObjectProperty(
+    Runtime::DefineObjectProperty(
         builtins,
         factory()->InternalizeOneByteString(
             STATIC_ASCII_VECTOR("kSamples")),
         factory()->NewHeapNumber(
             TrigonometricLookupTable::samples()),
         NONE).Assert();
-    Runtime::ForceSetObjectProperty(
+    Runtime::DefineObjectProperty(
         builtins,
         factory()->InternalizeOneByteString(
             STATIC_ASCII_VECTOR("kIndexConvert")),

@@ -12,6 +12,7 @@
 
 #include <dlfcn.h>
 #include <errno.h>
+#include <limits.h>
 #include <pthread.h>
 #if defined(__DragonFly__) || defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <pthread_np.h>  // for pthread_set_name_np
@@ -45,10 +46,14 @@
 #include <android/log.h>  // NOLINT
 #endif
 
-#include "src/v8.h"
+#include <cmath>
+#include <cstdlib>
 
-#include "src/isolate-inl.h"
+#include "src/base/lazy-instance.h"
+#include "src/base/macros.h"
 #include "src/platform.h"
+#include "src/platform/time.h"
+#include "src/utils/random-number-generator.h"
 
 #ifdef V8_FAST_TLS_SUPPORTED
 #include "src/base/atomicops.h"
@@ -57,8 +62,16 @@
 namespace v8 {
 namespace internal {
 
+namespace {
+
 // 0 is never a valid thread id.
-static const pthread_t kNoThread = (pthread_t) 0;
+const pthread_t kNoThread = (pthread_t) 0;
+
+bool g_hard_abort = false;
+
+const char* g_gc_fake_mmap = NULL;
+
+}  // namespace
 
 
 int OS::NumberOfProcessorsOnline() {
@@ -190,6 +203,25 @@ void OS::Guard(void* address, const size_t size) {
 }
 
 
+static base::LazyInstance<RandomNumberGenerator>::type
+    platform_random_number_generator = LAZY_INSTANCE_INITIALIZER;
+
+
+void OS::Initialize(int64_t random_seed, bool hard_abort,
+                    const char* const gc_fake_mmap) {
+  if (random_seed) {
+    platform_random_number_generator.Pointer()->SetSeed(random_seed);
+  }
+  g_hard_abort = hard_abort;
+  g_gc_fake_mmap = gc_fake_mmap;
+}
+
+
+const char* OS::GetGCFakeMMapFile() {
+  return g_gc_fake_mmap;
+}
+
+
 void* OS::GetRandomMmapAddr() {
 #if V8_OS_NACL
   // TODO(bradchen): restore randomization once Native Client gets
@@ -202,42 +234,36 @@ void* OS::GetRandomMmapAddr() {
   // Dynamic tools do not support custom mmap addresses.
   return NULL;
 #endif
-  Isolate* isolate = Isolate::UncheckedCurrent();
-  // Note that the current isolate isn't set up in a call path via
-  // CpuFeatures::Probe. We don't care about randomization in this case because
-  // the code page is immediately freed.
-  if (isolate != NULL) {
-    uintptr_t raw_addr;
-    isolate->random_number_generator()->NextBytes(&raw_addr, sizeof(raw_addr));
+  uintptr_t raw_addr;
+  platform_random_number_generator.Pointer()->NextBytes(&raw_addr,
+                                                        sizeof(raw_addr));
 #if V8_TARGET_ARCH_X64
-    // Currently available CPUs have 48 bits of virtual addressing.  Truncate
-    // the hint address to 46 bits to give the kernel a fighting chance of
-    // fulfilling our placement request.
-    raw_addr &= V8_UINT64_C(0x3ffffffff000);
+  // Currently available CPUs have 48 bits of virtual addressing.  Truncate
+  // the hint address to 46 bits to give the kernel a fighting chance of
+  // fulfilling our placement request.
+  raw_addr &= V8_UINT64_C(0x3ffffffff000);
 #else
-    raw_addr &= 0x3ffff000;
+  raw_addr &= 0x3ffff000;
 
 # ifdef __sun
-    // For our Solaris/illumos mmap hint, we pick a random address in the bottom
-    // half of the top half of the address space (that is, the third quarter).
-    // Because we do not MAP_FIXED, this will be treated only as a hint -- the
-    // system will not fail to mmap() because something else happens to already
-    // be mapped at our random address. We deliberately set the hint high enough
-    // to get well above the system's break (that is, the heap); Solaris and
-    // illumos will try the hint and if that fails allocate as if there were
-    // no hint at all. The high hint prevents the break from getting hemmed in
-    // at low values, ceding half of the address space to the system heap.
-    raw_addr += 0x80000000;
+  // For our Solaris/illumos mmap hint, we pick a random address in the bottom
+  // half of the top half of the address space (that is, the third quarter).
+  // Because we do not MAP_FIXED, this will be treated only as a hint -- the
+  // system will not fail to mmap() because something else happens to already
+  // be mapped at our random address. We deliberately set the hint high enough
+  // to get well above the system's break (that is, the heap); Solaris and
+  // illumos will try the hint and if that fails allocate as if there were
+  // no hint at all. The high hint prevents the break from getting hemmed in
+  // at low values, ceding half of the address space to the system heap.
+  raw_addr += 0x80000000;
 # else
-    // The range 0x20000000 - 0x60000000 is relatively unpopulated across a
-    // variety of ASLR modes (PAE kernel, NX compat mode, etc) and on macos
-    // 10.6 and 10.7.
-    raw_addr += 0x20000000;
+  // The range 0x20000000 - 0x60000000 is relatively unpopulated across a
+  // variety of ASLR modes (PAE kernel, NX compat mode, etc) and on macos
+  // 10.6 and 10.7.
+  raw_addr += 0x20000000;
 # endif
 #endif
-    return reinterpret_cast<void*>(raw_addr);
-  }
-  return NULL;
+  return reinterpret_cast<void*>(raw_addr);
 }
 
 
@@ -253,7 +279,7 @@ void OS::Sleep(int milliseconds) {
 #endif
 
 void OS::Abort() {
-  if (FLAG_hard_abort) {
+  if (g_hard_abort) {
     V8_IMMEDIATE_CRASH();
   }
   // Redirect to std abort to signal abnormal program termination.
@@ -470,7 +496,7 @@ void OS::StrNCpy(char* dest, int length, const char* src, size_t n) {
 // POSIX thread support.
 //
 
-class Thread::PlatformData : public Malloced {
+class Thread::PlatformData {
  public:
   PlatformData() : thread_(kNoThread) {}
   pthread_t thread_;  // Thread handle for pthread.

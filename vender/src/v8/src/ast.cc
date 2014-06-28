@@ -55,25 +55,23 @@ bool Expression::IsUndefinedLiteral(Isolate* isolate) const {
   // The global identifier "undefined" is immutable. Everything
   // else could be reassigned.
   return var != NULL && var->location() == Variable::UNALLOCATED &&
-         String::Equals(var_proxy->name(),
-                        isolate->factory()->undefined_string());
+         var_proxy->raw_name()->IsOneByteEqualTo("undefined");
 }
 
 
 VariableProxy::VariableProxy(Zone* zone, Variable* var, int position)
     : Expression(zone, position),
-      name_(var->name()),
+      name_(var->raw_name()),
       var_(NULL),  // Will be set by the call to BindTo.
       is_this_(var->is_this()),
-      is_trivial_(false),
-      is_lvalue_(false),
+      is_assigned_(false),
       interface_(var->interface()) {
   BindTo(var);
 }
 
 
 VariableProxy::VariableProxy(Zone* zone,
-                             Handle<String> name,
+                             const AstRawString* name,
                              bool is_this,
                              Interface* interface,
                              int position)
@@ -81,11 +79,8 @@ VariableProxy::VariableProxy(Zone* zone,
       name_(name),
       var_(NULL),
       is_this_(is_this),
-      is_trivial_(false),
-      is_lvalue_(false),
+      is_assigned_(false),
       interface_(interface) {
-  // Names must be canonicalized for fast equality checks.
-  ASSERT(name->IsInternalizedString());
 }
 
 
@@ -93,14 +88,14 @@ void VariableProxy::BindTo(Variable* var) {
   ASSERT(var_ == NULL);  // must be bound only once
   ASSERT(var != NULL);  // must bind
   ASSERT(!FLAG_harmony_modules || interface_->IsUnified(var->interface()));
-  ASSERT((is_this() && var->is_this()) || name_.is_identical_to(var->name()));
+  ASSERT((is_this() && var->is_this()) || name_ == var->raw_name());
   // Ideally CONST-ness should match. However, this is very hard to achieve
   // because we don't know the exact semantics of conflicting (const and
   // non-const) multiple variable declarations, const vars introduced via
   // eval() etc.  Const-ness and variable declarations are a complete mess
   // in JS. Sigh...
   var_ = var;
-  var->set_is_used(true);
+  var->set_is_used();
 }
 
 
@@ -180,15 +175,13 @@ void FunctionLiteral::InitializeSharedInfo(
 }
 
 
-ObjectLiteralProperty::ObjectLiteralProperty(
-    Zone* zone, Literal* key, Expression* value) {
+ObjectLiteralProperty::ObjectLiteralProperty(Zone* zone,
+                                             AstValueFactory* ast_value_factory,
+                                             Literal* key, Expression* value) {
   emit_store_ = true;
   key_ = key;
   value_ = value;
-  Handle<Object> k = key->value();
-  if (k->IsInternalizedString() &&
-      String::Equals(Handle<String>::cast(k),
-                     zone->isolate()->factory()->proto_string())) {
+  if (key->raw_value()->EqualsString(ast_value_factory->proto_string())) {
     kind_ = PROTOTYPE;
   } else if (value_->AsMaterializedLiteral() != NULL) {
     kind_ = MATERIALIZED_LITERAL;
@@ -1121,14 +1114,6 @@ void AstConstructionVisitor::VisitCallRuntime(CallRuntime* node) {
     // Don't try to inline JS runtime calls because we don't (currently) even
     // optimize them.
     add_flag(kDontInline);
-  } else if (node->function()->intrinsic_type == Runtime::INLINE &&
-      (node->name()->IsOneByteEqualTo(
-          STATIC_ASCII_VECTOR("_ArgumentsLength")) ||
-       node->name()->IsOneByteEqualTo(STATIC_ASCII_VECTOR("_Arguments")))) {
-    // Don't inline the %_ArgumentsLength or %_Arguments because their
-    // implementation will not work.  There is no stack frame to get them
-    // from.
-    add_flag(kDontInline);
   }
 }
 
@@ -1139,17 +1124,17 @@ void AstConstructionVisitor::VisitCallRuntime(CallRuntime* node) {
 
 
 Handle<String> Literal::ToString() {
-  if (value_->IsString()) return Handle<String>::cast(value_);
+  if (value_->IsString()) return value_->AsString()->string();
   ASSERT(value_->IsNumber());
   char arr[100];
   Vector<char> buffer(arr, ARRAY_SIZE(arr));
   const char* str;
-  if (value_->IsSmi()) {
+  if (value()->IsSmi()) {
     // Optimization only, the heap number case would subsume this.
-    SNPrintF(buffer, "%d", Smi::cast(*value_)->value());
+    SNPrintF(buffer, "%d", Smi::cast(*value())->value());
     str = arr;
   } else {
-    str = DoubleToCString(value_->Number(), buffer);
+    str = DoubleToCString(value()->Number(), buffer);
   }
   return isolate_->factory()->NewStringFromAsciiChecked(str);
 }
