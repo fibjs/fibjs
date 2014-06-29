@@ -27,7 +27,7 @@
 <area shape="rect" id="node42" href="$d7/d56/classQueue.html" title="FIFO（先进先出）队列对象 " alt="" coords="140,1189,201,1215"/>
 <area shape="rect" id="node44" href="$d8/d28/classRegex.html" title="正则表达式对象 " alt="" coords="141,1239,201,1264"/>
 <area shape="rect" id="node45" href="$d1/d3c/classSandBox.html" title="安全沙箱对象，用于管理一个独立的运行空间 " alt="" coords="133,1288,208,1313"/>
-<area shape="rect" id="node46" href="$d5/d6b/classSmtp.html" title="纤程操作对象，此对象不可直接创建 " alt="" coords="144,1337,197,1363"/>
+<area shape="rect" id="node46" href="$d5/d6b/classSmtp.html" title="Smtp对象 " alt="" coords="144,1337,197,1363"/>
 <area shape="rect" id="node47" href="$d8/d4d/classSslServer.html" title="ssl 服务器对象，可方便创建一个标准多纤程 ssl 服务器 " alt="" coords="131,1387,210,1412"/>
 <area shape="rect" id="node48" href="$dc/d81/classStat.html" title="文件的基础信息对象 " alt="" coords="148,1436,193,1461"/>
 <area shape="rect" id="node49" href="$db/df7/classStats.html" title="数据统计对象，用以构建应用运行时数据收集 " alt="" coords="145,1485,196,1511"/>
