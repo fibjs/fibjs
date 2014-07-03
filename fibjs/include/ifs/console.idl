@@ -41,7 +41,7 @@ class console : module
     /*! @brief loglevel 级别常量 */
     const Integer NOTSET = 10;
 
-    /*! @brief 输出级别，用以过滤输出信息，缺省为 NOTSET，全部输出
+    /*! @brief 输出级别，用以过滤输出信息，缺省为 NOTSET，全部输出。信息过滤之后才会输出给 config 设定的各个设备。
      */
     static Integer loglevel;
 
@@ -56,9 +56,12 @@ class console : module
 
      @code
      console.config(["console", {
-        type: "syslog"
+        type: "syslog",
+        levels: ["info", "error"]
      }]);
      @endcode
+
+     其中 type 用于指定设备类型，levels 用于指定输出过滤，只有指定的 log 级别会被输出，不设定则输出全部级别。
 
      @param cfg 输出配置数组
      */
