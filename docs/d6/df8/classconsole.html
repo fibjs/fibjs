@@ -277,7 +277,7 @@ Public 属性</h2></td></tr>
 <p>cfg 为配置参数数组，每一项指定一个输出设备，可以为设备名称字符串，也可以为一个设备配置对象，目前支持的设备为 console 和 syslog。</p>
 <div class="fragment"><div class="line"><a class="code" href="../../d6/df8/classconsole.html">console</a>.<a class="code" href="../../d6/df8/classconsole.html#afff0a8dd8f85952e5242a5cd24d0b021">config</a>([<span class="stringliteral">&quot;console&quot;</span>, {</div>
 <div class="line">   type: <span class="stringliteral">&quot;syslog&quot;</span>,</div>
-<div class="line">   levels: [<span class="stringliteral">&quot;info&quot;</span>, <span class="stringliteral">&quot;error&quot;</span>]</div>
+<div class="line">   levels: [<a class="code" href="../../d6/df8/classconsole.html">console</a>.<a class="code" href="../../d6/df8/classconsole.html#add424d51dfc7bd19ac906d010b9c7694">INFO</a>, <a class="code" href="../../d6/df8/classconsole.html">console</a>.<a class="code" href="../../d6/df8/classconsole.html#a60c0dd0c74056a542643ec7202b5954d">ERROR</a>]</div>
 <div class="line">}]);</div>
 </div><!-- fragment --><p>其中 type 用于指定设备类型，levels 用于指定输出过滤，只有指定的 log 级别会被输出，不设定则输出全部级别。</p>
 <dl class="params"><dt>参数</dt><dd>
