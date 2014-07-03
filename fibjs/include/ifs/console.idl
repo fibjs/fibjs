@@ -63,7 +63,7 @@ class console : module
 
      其中 type 用于指定设备类型，levels 用于指定输出过滤，只有指定的 log 级别会被输出，不设定则输出全部级别。
 
-     @param cfg 输出配置数组
+     @param cfg 输出配置数组，最多配置十个输出设备
      */
     static config(Array cfg);
 
