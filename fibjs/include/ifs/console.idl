@@ -57,7 +57,7 @@ class console : module
      @code
      console.config(["console", {
         type: "syslog",
-        levels: ["info", "error"]
+        levels: [console.INFO, console.ERROR]
      }]);
      @endcode
 

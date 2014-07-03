@@ -44,12 +44,13 @@ public:
         start();
     }
 
-    result_t config(v8::Local<v8::Object> o)
+    virtual result_t config(v8::Local<v8::Object> o)
     {
         int32_t i;
+        result_t hr;
 
-        v8::Local<v8::Value> v = o->Get( v8::String::NewFromUtf8(isolate, "levels",
-                                         v8::String::kNormalString, 6));
+        v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate, "levels",
+                                        v8::String::kNormalString, 6));
 
         if (v->IsArray())
         {
@@ -62,29 +63,16 @@ public:
             for (i = 0; i < sz; i ++)
             {
                 v8::Local<v8::Value> l = levels->Get(i);
-                v8::String::Utf8Value s(l);
+                int32_t num;
 
-                if (*s)
-                {
-                    if (!qstrcmp(*s, "debug"))
-                        m_levels[console_base::_DEBUG] = true;
-                    else if (!qstrcmp(*s, "info"))
-                        m_levels[console_base::_INFO] = true;
-                    else if (!qstrcmp(*s, "notice"))
-                        m_levels[console_base::_NOTICE] = true;
-                    else if (!qstrcmp(*s, "warn"))
-                        m_levels[console_base::_WARN] = true;
-                    else if (!qstrcmp(*s, "error"))
-                        m_levels[console_base::_ERROR] = true;
-                    else if (!qstrcmp(*s, "crit"))
-                        m_levels[console_base::_CRIT] = true;
-                    else if (!qstrcmp(*s, "alert"))
-                        m_levels[console_base::_ALERT] = true;
-                    else if (!qstrcmp(*s, "fatal"))
-                        m_levels[console_base::_FATAL] = true;
-                    else
-                        return CALL_E_INVALIDARG;
-                }
+                hr = GetArgumentValue(l, num);
+                if (hr < 0)
+                    return hr;
+
+                if (num >= 0 && num < console_base::_NOTSET)
+                    m_levels[num] = true;
+                else
+                    return CALL_E_INVALIDARG;
             }
         }
         else
