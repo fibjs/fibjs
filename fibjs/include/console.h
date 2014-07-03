@@ -40,11 +40,11 @@ public:
         for (i = 0; i < console_base::_NOTSET; i ++)
             m_levels[i] = true;
 
+        Ref();
         start();
     }
 
-    logger(v8::Local<v8::Object> o) :
-        m_logEmpty(true), m_bStop(false)
+    result_t config(v8::Local<v8::Object> o)
     {
         int32_t i;
 
@@ -82,6 +82,8 @@ public:
                         m_levels[console_base::_ALERT] = true;
                     else if (!qstrcmp(*s, "fatal"))
                         m_levels[console_base::_FATAL] = true;
+                    else
+                        return CALL_E_INVALIDARG;
                 }
             }
         }
@@ -91,7 +93,7 @@ public:
                 m_levels[i] = true;
         }
 
-        start();
+        return 0;
     }
 
     virtual void Run()
@@ -120,6 +122,8 @@ public:
 
             m_logEmpty = true;
         }
+
+        Unref();
     }
 
 public:
@@ -180,31 +184,12 @@ private:
 class std_logger : public logger
 {
 public:
-    std_logger()
-    {
-    }
-
-    std_logger(v8::Local<v8::Object> o) : logger(o)
-    {
-    }
-
-public:
     virtual void write(item *pn);
-
     static void out(const char *txt);
 };
 
 class sys_logger : public logger
 {
-public:
-    sys_logger()
-    {
-    }
-
-    sys_logger(v8::Local<v8::Object> o) : logger(o)
-    {
-    }
-
 public:
     virtual void write(item *pn);
 };

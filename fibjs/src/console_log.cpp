@@ -23,8 +23,15 @@ void asyncLog(int priority, std::string msg)
     {
         int32_t i;
 
-        for (i = 0; i < MAX_LOGGER && s_logs[i]; i ++)
-            s_logs[i]->log(priority, msg);
+        for (i = 0; i < MAX_LOGGER; i ++)
+        {
+            obj_ptr<logger> lgr = s_logs[i];
+
+            if (lgr)
+                lgr->log(priority, msg);
+            else
+                break;
+        }
 
         if (i == 0)
             s_std.log(priority, msg);
@@ -35,8 +42,15 @@ void flushLog()
 {
     int32_t i;
 
-    for (i = 0; i < MAX_LOGGER && s_logs[i]; i ++)
-        s_logs[i]->flush();
+    for (i = 0; i < MAX_LOGGER; i ++)
+    {
+        obj_ptr<logger> lgr = s_logs[i];
+
+        if (lgr)
+            lgr->flush();
+        else
+            break;
+    }
 
     s_std.flush();
 }
@@ -64,7 +78,10 @@ result_t console_base::config(v8::Local<v8::Array> cfg)
     reset();
 
     int32_t sz = cfg->Length();
-    int32_t i;
+    int32_t i, n;
+
+    if (sz > MAX_LOGGER)
+        return CALL_E_INVALIDARG;
 
     for (i = 0; i < sz; i ++)
     {
@@ -93,16 +110,28 @@ result_t console_base::config(v8::Local<v8::Array> cfg)
         if (!*s)
             return CALL_E_INVALIDARG;
 
+
+        obj_ptr<logger> lgr;
+
         if (!qstrcmp(*s, "console"))
-            s_logs[i] = new std_logger(o);
+            lgr = new std_logger();
         else if (!qstrcmp(*s, "syslog"))
         {
 #ifndef _WIN32
-            s_logs[i] = new sys_logger(o);
+            lgr = new sys_logger();
 #endif
         }
         else
             return CALL_E_INVALIDARG;
+
+        if (lgr)
+        {
+            result_t hr = lgr->config(o);
+            if (hr < 0)
+                return hr;
+
+            s_logs[n++] = lgr;
+        }
     }
 
     return 0;
@@ -113,11 +142,17 @@ result_t console_base::reset()
     int32_t i;
 
     for (i = 0; i < MAX_LOGGER; i ++)
-        if (s_logs[i])
+    {
+        obj_ptr<logger> lgr = s_logs[i];
+
+        if (lgr)
         {
-            s_logs[i]->stop();
+            lgr->stop();
             s_logs[i].Release();
         }
+        else
+            break;
+    }
 
     return 0;
 }
