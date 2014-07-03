@@ -234,7 +234,7 @@ Public 属性</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
 静态 Public 属性</h2></td></tr>
 <tr class="memitem:a903b5848bef37d438c976f38338569db"><td class="memItemLeft" align="right" valign="top">static Integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/df8/classconsole.html#a903b5848bef37d438c976f38338569db">loglevel</a></td></tr>
-<tr class="memdesc:a903b5848bef37d438c976f38338569db"><td class="mdescLeft">&#160;</td><td class="mdescRight">输出级别，用以过滤输出信息，缺省为 NOTSET，全部输出  <a href="#a903b5848bef37d438c976f38338569db">更多...</a><br /></td></tr>
+<tr class="memdesc:a903b5848bef37d438c976f38338569db"><td class="mdescLeft">&#160;</td><td class="mdescRight">输出级别，用以过滤输出信息，缺省为 NOTSET，全部输出。信息过滤之后才会输出给 config 设定的各个设备。  <a href="#a903b5848bef37d438c976f38338569db">更多...</a><br /></td></tr>
 <tr class="separator:a903b5848bef37d438c976f38338569db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac66c67c224cee71b91094d3d6d6da15d"><td class="memItemLeft" align="right" valign="top">static readonly <a class="el" href="../../df/d0e/classTextColor.html">TextColor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/df8/classconsole.html#ac66c67c224cee71b91094d3d6d6da15d">colors</a></td></tr>
 <tr class="memdesc:ac66c67c224cee71b91094d3d6d6da15d"><td class="mdescLeft">&#160;</td><td class="mdescRight">终端输出颜色配置对象，详见 <a class="el" href="../../df/d0e/classTextColor.html" title="终端输出颜色配置对象 ">TextColor</a>  <a href="#ac66c67c224cee71b91094d3d6d6da15d">更多...</a><br /></td></tr>
@@ -276,9 +276,11 @@ Public 属性</h2></td></tr>
 <p>通过配置 console，可以将程序输出和系统错误发往不同设备，用于运行环境信息收集。</p>
 <p>cfg 为配置参数数组，每一项指定一个输出设备，可以为设备名称字符串，也可以为一个设备配置对象，目前支持的设备为 console 和 syslog。</p>
 <div class="fragment"><div class="line"><a class="code" href="../../d6/df8/classconsole.html">console</a>.<a class="code" href="../../d6/df8/classconsole.html#afff0a8dd8f85952e5242a5cd24d0b021">config</a>([<span class="stringliteral">&quot;console&quot;</span>, {</div>
-<div class="line">   type: <span class="stringliteral">&quot;syslog&quot;</span></div>
+<div class="line">   type: <span class="stringliteral">&quot;syslog&quot;</span>,</div>
+<div class="line">   levels: [<span class="stringliteral">&quot;info&quot;</span>, <span class="stringliteral">&quot;error&quot;</span>]</div>
 <div class="line">}]);</div>
-</div><!-- fragment --><dl class="params"><dt>参数</dt><dd>
+</div><!-- fragment --><p>其中 type 用于指定设备类型，levels 用于指定输出过滤，只有指定的 log 级别会被输出，不设定则输出全部级别。</p>
+<dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">cfg</td><td>输出配置数组 </td></tr>
   </table>
@@ -1337,7 +1339,7 @@ Public 属性</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>输出级别，用以过滤输出信息，缺省为 NOTSET，全部输出 </p>
+<p>输出级别，用以过滤输出信息，缺省为 NOTSET，全部输出。信息过滤之后才会输出给 config 设定的各个设备。 </p>
 
 </div>
 </div>
