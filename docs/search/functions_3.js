@@ -2,6 +2,7 @@ var searchData=
 [
   ['data',['data',['../d5/d6b/classSmtp.html#a3c97e94446fb2eefccd442dcafc2c769',1,'Smtp::data()'],['../d1/dd4/classuuidValue.html#ae6a30c7c71dbfd82b2f10d7325e4c73b',1,'uuidValue::data()']]],
   ['dateadd',['dateAdd',['../d7/db0/classos.html#acc7b083abafccb5d71e9b83c99683635',1,'os']]],
+  ['debug',['debug',['../d6/df8/classconsole.html#adff204aa3e37763481680087157754a1',1,'console::debug(String fmt,...)'],['../d6/df8/classconsole.html#aec6d50753570141dda375e85594b5b6d',1,'console::debug(...)']]],
   ['dec',['dec',['../db/df7/classStats.html#a0b2c6d2c38c43e2e0c2394237fd10608',1,'Stats']]],
   ['decodeuri',['decodeURI',['../d0/d52/classencoding.html#aeb50ecb378e2b4da3d3a5b0ba24c6907',1,'encoding']]],
   ['decrypt',['decrypt',['../d6/d2e/classCipher.html#ad8540db73a6b68b8372d908c48ad26fc',1,'Cipher::decrypt()'],['../d0/d82/classPKey.html#a8357b8385141031a683ccf41058dbed0',1,'PKey::decrypt()']]],

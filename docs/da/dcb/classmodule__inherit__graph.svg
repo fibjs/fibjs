@@ -104,23 +104,27 @@
 <!-- Node4 -->
 <g id="node4" class="node"><title>Node4</title>
 <g id="a_node4"><a xlink:href="../../d6/df8/classconsole.html" target="_top" xlink:title="控制台访问对象 ">
-<polygon fill="white" stroke="black" points="218.198,-100.5 218.198,-424.5 288.397,-424.5 288.397,-100.5 218.198,-100.5"/>
-<text text-anchor="middle" x="253.297" y="-412.5" font-family="Helvetica,sans-Serif" font-size="10.00">console</text>
-<polyline fill="none" stroke="black" points="218.198,-406.5 288.397,-406.5 "/>
-<text text-anchor="start" x="226.198" y="-394.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ FATAL</text>
-<text text-anchor="start" x="226.198" y="-384.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ ALERT</text>
-<text text-anchor="start" x="226.198" y="-374.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ CRIT</text>
-<text text-anchor="start" x="226.198" y="-364.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ ERROR</text>
-<text text-anchor="start" x="226.198" y="-354.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ WARN</text>
-<text text-anchor="start" x="226.198" y="-344.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ NOTICE</text>
-<text text-anchor="start" x="226.198" y="-334.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ INFO</text>
-<text text-anchor="start" x="226.198" y="-324.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ DEBUG</text>
-<text text-anchor="start" x="226.198" y="-314.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ NOTSET</text>
-<text text-anchor="start" x="226.198" y="-304.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ loglevel</text>
-<text text-anchor="start" x="226.198" y="-294.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ colors</text>
-<polyline fill="none" stroke="black" points="218.198,-288.5 288.397,-288.5 "/>
-<text text-anchor="start" x="226.198" y="-276.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ log()</text>
-<text text-anchor="start" x="226.198" y="-266.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ log()</text>
+<polygon fill="white" stroke="black" points="218.198,-60.5 218.198,-464.5 288.397,-464.5 288.397,-60.5 218.198,-60.5"/>
+<text text-anchor="middle" x="253.297" y="-452.5" font-family="Helvetica,sans-Serif" font-size="10.00">console</text>
+<polyline fill="none" stroke="black" points="218.198,-446.5 288.397,-446.5 "/>
+<text text-anchor="start" x="226.198" y="-434.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ FATAL</text>
+<text text-anchor="start" x="226.198" y="-424.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ ALERT</text>
+<text text-anchor="start" x="226.198" y="-414.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ CRIT</text>
+<text text-anchor="start" x="226.198" y="-404.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ ERROR</text>
+<text text-anchor="start" x="226.198" y="-394.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ WARN</text>
+<text text-anchor="start" x="226.198" y="-384.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ NOTICE</text>
+<text text-anchor="start" x="226.198" y="-374.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ INFO</text>
+<text text-anchor="start" x="226.198" y="-364.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ DEBUG</text>
+<text text-anchor="start" x="226.198" y="-354.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ NOTSET</text>
+<text text-anchor="start" x="226.198" y="-344.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ loglevel</text>
+<text text-anchor="start" x="226.198" y="-334.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ colors</text>
+<polyline fill="none" stroke="black" points="218.198,-328.5 288.397,-328.5 "/>
+<text text-anchor="start" x="226.198" y="-316.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ config()</text>
+<text text-anchor="start" x="226.198" y="-306.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ reset()</text>
+<text text-anchor="start" x="226.198" y="-296.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ log()</text>
+<text text-anchor="start" x="226.198" y="-286.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ log()</text>
+<text text-anchor="start" x="226.198" y="-276.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ debug()</text>
+<text text-anchor="start" x="226.198" y="-266.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ debug()</text>
 <text text-anchor="start" x="226.198" y="-256.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ info()</text>
 <text text-anchor="start" x="226.198" y="-246.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ info()</text>
 <text text-anchor="start" x="226.198" y="-236.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ notice()</text>
@@ -129,20 +133,24 @@
 <text text-anchor="start" x="226.198" y="-206.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ warn()</text>
 <text text-anchor="start" x="226.198" y="-196.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ error()</text>
 <text text-anchor="start" x="226.198" y="-186.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ error()</text>
-<text text-anchor="start" x="226.198" y="-176.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ dir()</text>
-<text text-anchor="start" x="226.198" y="-166.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ time()</text>
-<text text-anchor="start" x="226.198" y="-156.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ timeEnd()</text>
-<text text-anchor="start" x="226.198" y="-146.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ trace()</text>
-<text text-anchor="start" x="226.198" y="-136.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ assert()</text>
-<text text-anchor="start" x="226.198" y="-126.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ print()</text>
-<text text-anchor="start" x="226.198" y="-116.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ print()</text>
-<text text-anchor="start" x="226.198" y="-106.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readLine()</text>
+<text text-anchor="start" x="226.198" y="-176.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ crit()</text>
+<text text-anchor="start" x="226.198" y="-166.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ crit()</text>
+<text text-anchor="start" x="226.198" y="-156.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ alert()</text>
+<text text-anchor="start" x="226.198" y="-146.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ alert()</text>
+<text text-anchor="start" x="226.198" y="-136.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ dir()</text>
+<text text-anchor="start" x="226.198" y="-126.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ time()</text>
+<text text-anchor="start" x="226.198" y="-116.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ timeEnd()</text>
+<text text-anchor="start" x="226.198" y="-106.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ trace()</text>
+<text text-anchor="start" x="226.198" y="-96.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ assert()</text>
+<text text-anchor="start" x="226.198" y="-86.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ print()</text>
+<text text-anchor="start" x="226.198" y="-76.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ print()</text>
+<text text-anchor="start" x="226.198" y="-66.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ readLine()</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node4 -->
 <g id="edge3" class="edge"><title>Node1&#45;&gt;Node4</title>
-<path fill="none" stroke="midnightblue" d="M1445.79,-586.882C1255.5,-583.327 341.285,-564.242 297.297,-525 268.612,-499.409 253.958,-462.692 247.234,-424.829"/>
+<path fill="none" stroke="midnightblue" d="M1445.79,-586.882C1255.5,-583.327 341.285,-564.242 297.297,-525 278.918,-508.604 266.299,-487.64 257.835,-464.733"/>
 <polygon fill="none" stroke="midnightblue" points="1445.73,-590.382 1455.79,-587.067 1445.86,-583.383 1445.73,-590.382"/>
 </g>
 <!-- Node5 -->

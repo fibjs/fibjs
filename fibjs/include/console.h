@@ -33,7 +33,13 @@ public:
     };
 
 public:
-    logger() : m_logEmpty(true)
+    logger() : m_logEmpty(true), m_bStop(false)
+    {
+        start();
+    }
+
+    logger(v8::Local<v8::Object> o) :
+        m_logEmpty(true), m_bStop(false)
     {
         start();
     }
@@ -42,7 +48,7 @@ public:
     {
         logger::item *p1, *p2, *pn;
 
-        while (1)
+        while (!m_bStop)
         {
             m_sem.Wait();
 
@@ -59,7 +65,8 @@ public:
                 pn = p2;
             }
 
-            write(pn);
+            if (pn)
+                write(pn);
 
             m_logEmpty = true;
         }
@@ -78,6 +85,12 @@ public:
     {
         while (!m_acLog.empty() || !m_logEmpty)
             coroutine_base::ac_sleep(1);
+    }
+
+    void stop()
+    {
+        m_bStop = true;
+        m_sem.Post();
     }
 
 public:
@@ -107,14 +120,39 @@ public:
     exlib::AsyncQueue m_acLog;
     exlib::OSSemaphore m_sem;
     bool m_logEmpty;
+    bool m_bStop;
 };
 
 class std_logger : public logger
 {
 public:
+    std_logger()
+    {
+    }
+
+    std_logger(v8::Local<v8::Object> o)
+    {
+    }
+
+public:
     virtual void write(item *pn);
 
     static void out(const char *txt);
+};
+
+class sys_logger : public logger
+{
+public:
+    sys_logger()
+    {
+    }
+
+    sys_logger(v8::Local<v8::Object> o)
+    {
+    }
+
+public:
+    virtual void write(item *pn);
 };
 
 }

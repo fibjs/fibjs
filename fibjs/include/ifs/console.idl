@@ -18,28 +18,28 @@ class console : module
     const Integer FATAL = 0;
 
     /*! @brief loglevel 级别常量 */
-    const Integer ALERT = 100;
+    const Integer ALERT = 1;
 
     /*! @brief loglevel 级别常量 */
-    const Integer CRIT = 200;
+    const Integer CRIT = 2;
 
     /*! @brief loglevel 级别常量 */
-    const Integer ERROR = 300;
+    const Integer ERROR = 3;
 
     /*! @brief loglevel 级别常量 */
-    const Integer WARN = 400;
+    const Integer WARN = 4;
 
     /*! @brief loglevel 级别常量 */
-    const Integer NOTICE = 500;
+    const Integer NOTICE = 5;
 
     /*! @brief loglevel 级别常量 */
-    const Integer INFO = 600;
+    const Integer INFO = 6;
 
     /*! @brief loglevel 级别常量 */
-    const Integer DEBUG = 700;
+    const Integer DEBUG = 7;
 
     /*! @brief loglevel 级别常量 */
-    const Integer NOTSET = 800;
+    const Integer NOTSET = 10;
 
     /*! @brief 输出级别，用以过滤输出信息，缺省为 NOTSET，全部输出
      */
@@ -48,8 +48,24 @@ class console : module
     /*! @brief 终端输出颜色配置对象，详见 TextColor */
     static readonly TextColor colors;
 
-    
+    /*! @brief 配置 console 输出系统
+
+     通过配置 console，可以将程序输出和系统错误发往不同设备，用于运行环境信息收集。
+
+     cfg 为配置参数数组，每一项指定一个输出设备，可以为设备名称字符串，也可以为一个设备配置对象，目前支持的设备为 console 和 syslog。
+
+     @code
+     console.config(["console", {
+        type: "syslog"
+     }]);
+     @endcode
+
+     @param cfg 输出配置数组
+     */
     static config(Array cfg);
+
+    /*! @brief 初始化到缺省设置，只在 console 输出信息 */
+    static reset();
 
     /*! @brief 记录普通日志信息，与 info 等同
 
@@ -65,6 +81,21 @@ class console : module
      @param ... 可选参数列表
      */
     static log(...);
+
+    /*! @brief 记录调试日志信息
+
+     记录调试日志信息。通常用于输出调试信息。不重要。
+     @param fmt 格式化字符串
+     @param ... 可选参数列表
+     */
+    static debug(String fmt, ...);
+
+    /*! @brief 记录调试日志信息
+
+     记录调试日志信息。通常用于输出调试信息。不重要。
+     @param ... 可选参数列表
+     */
+    static debug(...);
 
     /*! @brief 记录普通日志信息，与 log 等同
 
@@ -114,7 +145,7 @@ class console : module
 
     /*! @brief 记录错误日志信息
 
-     记录用于错误日志信息。通常用于输出非错误性调试信息。非常重要。系统的出错信息也会以此等级记录。
+     记录用于错误日志信息。通常用于输出错误信息。非常重要。系统的出错信息也会以此等级记录。
      @param fmt 格式化字符串
      @param ... 可选参数列表
      */
@@ -122,10 +153,40 @@ class console : module
 
     /*! @brief 记录错误日志信息
 
-     记录用于错误日志信息。通常用于输出非错误性调试信息。非常重要。系统的出错信息也会以此等级记录。
+     记录用于错误日志信息。通常用于输出错误信息。非常重要。系统的出错信息也会以此等级记录。
      @param ... 可选参数列表
      */
     static error(...);
+
+    /*! @brief 记录关键错误日志信息
+
+     记录用于关键错误日志信息。通常用于输出关键错误信息。非常重要。
+     @param fmt 格式化字符串
+     @param ... 可选参数列表
+     */
+    static crit(String fmt, ...);
+
+    /*! @brief 记录关键错误日志信息
+
+     记录用于关键错误日志信息。通常用于输出关键错误信息。非常重要。
+     @param ... 可选参数列表
+     */
+    static crit(...);
+
+    /*! @brief 记录警报错误日志信息
+
+     记录用于警报错误日志信息。通常用于输出警报错误信息。非常重要。为最高级别信息。
+     @param fmt 格式化字符串
+     @param ... 可选参数列表
+     */
+    static alert(String fmt, ...);
+
+    /*! @brief 记录警报错误日志信息
+
+     记录用于警报错误日志信息。通常用于输出警报错误信息。非常重要。为最高级别信息。
+     @param ... 可选参数列表
+     */
+    static alert(...);
 
     /*! @brief 用 JSON 格式输出对象
      @param obj 给定要显示的对象

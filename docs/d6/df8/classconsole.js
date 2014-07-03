@@ -1,7 +1,11 @@
 var classconsole =
 [
+    [ "config", "d6/df8/classconsole.html#afff0a8dd8f85952e5242a5cd24d0b021", null ],
+    [ "reset", "d6/df8/classconsole.html#ac5c17a9ecdac8ec7966bff0754f3122b", null ],
     [ "log", "d6/df8/classconsole.html#a93b42645d56e3b4da5d2dc28ba6593cf", null ],
     [ "log", "d6/df8/classconsole.html#ac3cab060d14c380024c402df70f73877", null ],
+    [ "debug", "d6/df8/classconsole.html#adff204aa3e37763481680087157754a1", null ],
+    [ "debug", "d6/df8/classconsole.html#aec6d50753570141dda375e85594b5b6d", null ],
     [ "info", "d6/df8/classconsole.html#a195000bab966ff5ccbf1ea69cf1cc12e", null ],
     [ "info", "d6/df8/classconsole.html#a88b9f04ef243106f58cbd0866072b7b5", null ],
     [ "notice", "d6/df8/classconsole.html#a7bd9f400a69ccc58045bea58edc43614", null ],
@@ -10,6 +14,10 @@ var classconsole =
     [ "warn", "d6/df8/classconsole.html#a4731e95e6360c7bdf0513236bc0ea032", null ],
     [ "error", "d6/df8/classconsole.html#a3525bdec50b085e03d6ca5625a057914", null ],
     [ "error", "d6/df8/classconsole.html#abc33daf6e70210aa03b78832c2d6eea3", null ],
+    [ "crit", "d6/df8/classconsole.html#aafeccfedf3222b47114d8ec262f10294", null ],
+    [ "crit", "d6/df8/classconsole.html#adf1c772e176fe40eb4ffae758cf22c64", null ],
+    [ "alert", "d6/df8/classconsole.html#a9ed78376361d4d5bf88eb622bd03e7dc", null ],
+    [ "alert", "d6/df8/classconsole.html#af984caa1459a336e9420496f0b7d9f6c", null ],
     [ "dir", "d6/df8/classconsole.html#a6779bc26fdbd66d34bf259c28d695678", null ],
     [ "time", "d6/df8/classconsole.html#aafdd7ca53b206fdeb5ca882510374475", null ],
     [ "timeEnd", "d6/df8/classconsole.html#ab53e089924e192a2fa616e362f0bb71c", null ],

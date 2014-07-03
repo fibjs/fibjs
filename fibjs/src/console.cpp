@@ -48,43 +48,7 @@ inline int64_t Ticks()
 namespace fibjs
 {
 
-static int32_t s_loglevel = console_base::_NOTSET;
-
-static std_logger s_std;
-
-void asyncLog(int priority, std::string msg)
-{
-    if (priority <= s_loglevel)
-        s_std.log(priority, msg);
-}
-
-void flushLog()
-{
-    s_std.flush();
-}
-
-result_t console_base::get_loglevel(int32_t &retVal)
-{
-    retVal = s_loglevel;
-    return 0;
-}
-
-result_t console_base::set_loglevel(int32_t newVal)
-{
-    s_loglevel = newVal;
-    return 0;
-}
-
-result_t console_base::get_colors(obj_ptr<TextColor_base> &retVal)
-{
-    retVal = logger::get_std_color();
-    return 0;
-}
-
-result_t console_base::config(v8::Local<v8::Array> cfg)
-{
-    return 0;
-}
+extern std_logger s_std;
 
 void _log(int32_t type, const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
@@ -103,6 +67,17 @@ result_t console_base::log(const char *fmt, const v8::FunctionCallbackInfo<v8::V
 result_t console_base::log(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     return log(NULL, args);
+}
+
+result_t console_base::debug(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    _log(_DEBUG, fmt, args);
+    return 0;
+}
+
+result_t console_base::debug(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    return debug(NULL, args);
 }
 
 result_t console_base::info(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
@@ -147,6 +122,28 @@ result_t console_base::error(const char *fmt, const v8::FunctionCallbackInfo<v8:
 result_t console_base::error(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     return error(NULL, args);
+}
+
+result_t console_base::crit(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    _log(_CRIT, fmt, args);
+    return 0;
+}
+
+result_t console_base::crit(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    return crit(NULL, args);
+}
+
+result_t console_base::alert(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    _log(_ALERT, fmt, args);
+    return 0;
+}
+
+result_t console_base::alert(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    return alert(NULL, args);
 }
 
 std::string json_format(v8::Local<v8::Value> obj);

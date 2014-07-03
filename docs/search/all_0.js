@@ -14,7 +14,7 @@ var searchData=
   ['affected',['affected',['../d0/de2/classDBResult.html#a76af35f41832f6ebd616bee6af603afe',1,'DBResult']]],
   ['after',['after',['../de/d01/classtest.html#a227f44f6942de86a78a0cef531de0bd2',1,'test']]],
   ['aftereach',['afterEach',['../de/d01/classtest.html#a5e2d4ee95a3dfbcc80378c677728114d',1,'test']]],
-  ['alert',['ALERT',['../d6/df8/classconsole.html#aa8fd69bb52fd75fb7d68ef5c78205ceb',1,'console']]],
+  ['alert',['alert',['../d6/df8/classconsole.html#a9ed78376361d4d5bf88eb622bd03e7dc',1,'console::alert(String fmt,...)'],['../d6/df8/classconsole.html#af984caa1459a336e9420496f0b7d9f6c',1,'console::alert(...)'],['../d6/df8/classconsole.html#aa8fd69bb52fd75fb7d68ef5c78205ceb',1,'console::ALERT()']]],
   ['all',['all',['../d6/dbd/classHttpCollection.html#abed6d14998a2831a2f4ae38953097574',1,'HttpCollection']]],
   ['allheader',['allHeader',['../dd/d77/classHttpMessage.html#aae6c77df3dc7e9bb61e58fcd2cab6e3a',1,'HttpMessage']]],
   ['alphablending',['alphaBlending',['../d8/d00/classImage.html#ac974ee7d1a7b5f3da2f744b7db75accd',1,'Image']]],
