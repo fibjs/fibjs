@@ -1,5 +1,5 @@
 /*
- * console_std.cpp
+ * console_log.cpp
  *
  *  Created on: Jul 13, 2014
  *      Author: lion
