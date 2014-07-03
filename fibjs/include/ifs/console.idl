@@ -48,6 +48,9 @@ class console : module
     /*! @brief 终端输出颜色配置对象，详见 TextColor */
     static readonly TextColor colors;
 
+    
+    static config(Array cfg);
+
     /*! @brief 记录普通日志信息，与 info 等同
 
      记录一般等级的日志信息。通常用于输出非错误性提示信息。
