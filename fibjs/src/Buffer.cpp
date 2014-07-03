@@ -84,7 +84,7 @@ result_t Buffer::write(v8::Local<v8::Array> datas)
             v8::Local<v8::Value> v = datas->Get(i);
             int32_t num;
 
-            hr = SafeGetValue(v, num, false);
+            hr = GetArgumentValue(v, num);
             if (hr < 0)
                 return hr;
 

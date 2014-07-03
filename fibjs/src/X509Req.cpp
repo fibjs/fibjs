@@ -262,7 +262,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
                                               v8::String::kNormalString, 4));
         if (!IsEmpty(v))
         {
-            hr = SafeGetValue(v, hash, false);
+            hr = GetArgumentValue(v, hash);
             if (hr < 0)
                 goto exit;
         }
@@ -321,7 +321,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
                                               v8::String::kNormalString, 9));
         if (!IsEmpty(v))
         {
-            hr = SafeGetValue(v, d1, false);
+            hr = GetArgumentValue(v, d1);
             if (hr < 0)
                 goto exit;
         }
@@ -334,7 +334,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
                                               v8::String::kNormalString, 8));
         if (!IsEmpty(v))
         {
-            hr = SafeGetValue(v, d2, false);
+            hr = GetArgumentValue(v, d2);
             if (hr < 0)
                 goto exit;
         }
@@ -357,7 +357,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
                                               v8::String::kNormalString, 2));
         if (!IsEmpty(v))
         {
-            hr = SafeGetValue(v, is_ca, false);
+            hr = GetArgumentValue(v, is_ca);
             if (hr < 0)
                 goto exit;
         }
@@ -367,7 +367,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
                                               v8::String::kNormalString, 7));
         if (!IsEmpty(v))
         {
-            hr = SafeGetValue(v, pathlen, false);
+            hr = GetArgumentValue(v, pathlen);
             if (hr < 0)
                 goto exit;
         }

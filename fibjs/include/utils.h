@@ -224,18 +224,18 @@ typedef int result_t;
 
 #define PROPERTY_VAL(t) \
     t v0; \
-    hr = SafeGetValue(value, v0, bStrict); \
+    hr = GetArgumentValue(value, v0, bStrict); \
     if(hr < 0)break;
 
 #define ARG(t, n) \
     t v##n; \
-    hr = SafeGetValue(args[n], v##n, bStrict); \
+    hr = GetArgumentValue(args[n], v##n, bStrict); \
     if(hr < 0)break;
 
 #define OPT_ARG(t, n, d) \
     t v##n = (d); \
     if((n) < argc && !args[n]->IsUndefined()){ \
-        hr = SafeGetValue(args[n], v##n, bStrict); \
+        hr = GetArgumentValue(args[n], v##n, bStrict); \
         if(hr < 0)break;}
 
 #define DECLARE_CLASSINFO(c) \
@@ -323,7 +323,7 @@ private:
     const char *m_v;
 };
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, arg_string &n, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, arg_string &n, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -334,7 +334,19 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, arg_string &n, bool bStrict
     return n.set_value(v);
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, double &n, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, std::string &n, bool bStrict = false)
+{
+    arg_string str;
+
+    result_t hr = GetArgumentValue(v, str, bStrict);
+    if (hr < 0)
+        return hr;
+
+    n = str;
+    return 0;
+}
+
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, double &n, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -356,11 +368,11 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, double &n, bool bStrict)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, int64_t &n, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, int64_t &n, bool bStrict = false)
 {
     double num;
 
-    result_t hr = SafeGetValue(v, num, bStrict);
+    result_t hr = GetArgumentValue(v, num, bStrict);
     if (hr < 0)
         return hr;
 
@@ -372,11 +384,11 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, int64_t &n, bool bStrict)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, int32_t &n, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, int32_t &n, bool bStrict = false)
 {
     double num;
 
-    result_t hr = SafeGetValue(v, num, bStrict);
+    result_t hr = GetArgumentValue(v, num, bStrict);
     if (hr < 0)
         return hr;
 
@@ -388,7 +400,7 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, int32_t &n, bool bStrict)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, bool &n, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, bool &n, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -400,7 +412,7 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, bool &n, bool bStrict)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, date_t &d, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, date_t &d, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -412,14 +424,14 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, date_t &d, bool bStrict)
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, Variant &d, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, Variant &d, bool bStrict = false)
 {
     d = v;
     return 0;
 }
 
 template<class T>
-inline result_t SafeGetValue(v8::Local<v8::Value> v, obj_ptr<T> &vr, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, obj_ptr<T> &vr, bool bStrict = false)
 {
     vr = T::getInstance(v);
     if (vr == NULL)
@@ -428,7 +440,7 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, obj_ptr<T> &vr, bool bStric
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Object> &vr, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Object> &vr, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -440,7 +452,7 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Object> &vr, 
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Array> &vr, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Array> &vr, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
@@ -452,13 +464,13 @@ inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Array> &vr, b
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Value> &vr, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Value> &vr, bool bStrict = false)
 {
     vr = v;
     return 0;
 }
 
-inline result_t SafeGetValue(v8::Local<v8::Value> v, v8::Local<v8::Function> &vr, bool bStrict)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Function> &vr, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_INVALIDARG;
