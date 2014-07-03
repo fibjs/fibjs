@@ -101,6 +101,8 @@ result_t console_base::config(v8::Local<v8::Array> cfg)
             s_logs[i] = new sys_logger(o);
 #endif
         }
+        else
+            return CALL_E_INVALIDARG;
     }
 
     return 0;
