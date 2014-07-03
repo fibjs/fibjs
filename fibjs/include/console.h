@@ -35,12 +35,62 @@ public:
 public:
     logger() : m_logEmpty(true), m_bStop(false)
     {
+        int32_t i;
+
+        for (i = 0; i < console_base::_NOTSET; i ++)
+            m_levels[i] = true;
+
         start();
     }
 
     logger(v8::Local<v8::Object> o) :
         m_logEmpty(true), m_bStop(false)
     {
+        int32_t i;
+
+        v8::Local<v8::Value> v = o->Get( v8::String::NewFromUtf8(isolate, "levels",
+                                         v8::String::kNormalString, 6));
+
+        if (v->IsArray())
+        {
+            for (i = 0; i < console_base::_NOTSET; i ++)
+                m_levels[i] = false;
+
+            v8::Local<v8::Array> levels = v8::Local<v8::Array>::Cast(v);
+            int32_t sz = levels->Length();
+
+            for (i = 0; i < sz; i ++)
+            {
+                v8::Local<v8::Value> l = levels->Get(i);
+                v8::String::Utf8Value s(l);
+
+                if (*s)
+                {
+                    if (!qstrcmp(*s, "debug"))
+                        m_levels[console_base::_DEBUG] = true;
+                    else if (!qstrcmp(*s, "info"))
+                        m_levels[console_base::_INFO] = true;
+                    else if (!qstrcmp(*s, "notice"))
+                        m_levels[console_base::_NOTICE] = true;
+                    else if (!qstrcmp(*s, "warn"))
+                        m_levels[console_base::_WARN] = true;
+                    else if (!qstrcmp(*s, "error"))
+                        m_levels[console_base::_ERROR] = true;
+                    else if (!qstrcmp(*s, "crit"))
+                        m_levels[console_base::_CRIT] = true;
+                    else if (!qstrcmp(*s, "alert"))
+                        m_levels[console_base::_ALERT] = true;
+                    else if (!qstrcmp(*s, "fatal"))
+                        m_levels[console_base::_FATAL] = true;
+                }
+            }
+        }
+        else
+        {
+            for (i = 0; i < console_base::_NOTSET; i ++)
+                m_levels[i] = true;
+        }
+
         start();
     }
 
@@ -77,8 +127,11 @@ public:
 
     void log(int priority, std::string msg)
     {
-        m_acLog.put(new item(priority, msg));
-        m_sem.Post();
+        if (priority >= 0 && priority < console_base::_NOTSET && m_levels[priority])
+        {
+            m_acLog.put(new item(priority, msg));
+            m_sem.Post();
+        }
     }
 
     void flush()
@@ -116,11 +169,12 @@ public:
 
     static TextColor *get_std_color();
 
-public:
+private:
     exlib::AsyncQueue m_acLog;
     exlib::OSSemaphore m_sem;
     bool m_logEmpty;
     bool m_bStop;
+    bool m_levels[console_base::_NOTSET];
 };
 
 class std_logger : public logger
@@ -130,7 +184,7 @@ public:
     {
     }
 
-    std_logger(v8::Local<v8::Object> o)
+    std_logger(v8::Local<v8::Object> o) : logger(o)
     {
     }
 
@@ -147,7 +201,7 @@ public:
     {
     }
 
-    sys_logger(v8::Local<v8::Object> o)
+    sys_logger(v8::Local<v8::Object> o) : logger(o)
     {
     }
 
