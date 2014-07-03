@@ -21,7 +21,7 @@ TextColor *logger::get_std_color()
     return s_tc;
 }
 
-void logger::std_out(const char *txt)
+void std_logger::out(const char *txt)
 {
 
 #ifdef _WIN32
@@ -174,13 +174,29 @@ void logger::std_out(const char *txt)
     fflush(stdout);
 }
 
-class std_logger : public logger
+void std_logger::write(item *pn)
 {
-public:
-    virtual result_t write(const item *data, exlib::AsyncEvent *ac)
+    item *p1;
+
+    while (pn)
     {
-        return 0;
+        p1 = pn;
+        pn = (logger::item *) pn->m_next;
+
+        std::string txt;
+        if (p1->m_priority == console_base::_NOTICE)
+            txt = logger::notice() + p1->m_msg + COLOR_RESET + "\n";
+        else if (p1->m_priority == console_base::_WARN)
+            txt = logger::warn() + p1->m_msg + COLOR_RESET + "\n";
+        else if (p1->m_priority <= console_base::_ERROR)
+            txt = logger::error() + p1->m_msg + COLOR_RESET + "\n";
+        else
+            txt = p1->m_msg + "\n";
+
+        out(txt.c_str());
+
+        delete p1;
     }
-};
+}
 
 }

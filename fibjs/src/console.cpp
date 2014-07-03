@@ -48,23 +48,41 @@ inline int64_t Ticks()
 namespace fibjs
 {
 
-extern int32_t g_loglevel;
+static int32_t s_loglevel = console_base::_NOTSET;
+
+static std_logger s_std;
+
+void asyncLog(int priority, std::string msg)
+{
+    if (priority <= s_loglevel)
+        s_std.log(priority, msg);
+}
+
+void flushLog()
+{
+    s_std.flush();
+}
 
 result_t console_base::get_loglevel(int32_t &retVal)
 {
-    retVal = g_loglevel;
+    retVal = s_loglevel;
     return 0;
 }
 
 result_t console_base::set_loglevel(int32_t newVal)
 {
-    g_loglevel = newVal;
+    s_loglevel = newVal;
     return 0;
 }
 
 result_t console_base::get_colors(obj_ptr<TextColor_base> &retVal)
 {
     retVal = logger::get_std_color();
+    return 0;
+}
+
+result_t console_base::config(v8::Local<v8::Array> cfg)
+{
     return 0;
 }
 
@@ -201,7 +219,7 @@ result_t console_base::print(const char *fmt, const v8::FunctionCallbackInfo<v8:
 
     std::string str;
     util_base::format(fmt, args, str);
-    logger::std_out(str.c_str());
+    s_std.out(str.c_str());
 
     return 0;
 }
@@ -279,7 +297,7 @@ result_t console_base::readLine(const char *msg, std::string &retVal,
     {
         char *line;
 
-        logger::std_out(msg);
+        s_std.out(msg);
 
         if ((line = read_line()) != NULL)
         {

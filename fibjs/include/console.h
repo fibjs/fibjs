@@ -10,11 +10,13 @@
 
 #include "utils.h"
 #include "TextColor.h"
+#include "ifs/console.h"
+#include "ifs/coroutine.h"
 
 namespace fibjs
 {
 
-class logger : public obj_base
+class logger : public obj_base, exlib::OSThread
 {
 public:
     class item : public asyncEvent
@@ -29,6 +31,54 @@ public:
         int32_t m_priority;
         std::string m_msg;
     };
+
+public:
+    logger() : m_logEmpty(false)
+    {
+        start();
+    }
+
+    virtual void Run()
+    {
+        logger::item *p1, *p2, *pn;
+
+        while (1)
+        {
+            m_sem.Wait();
+
+            m_logEmpty = false;
+
+            p1 = (logger::item *)m_acLog.getList();
+            pn = NULL;
+
+            while (p1)
+            {
+                p2 = p1;
+                p1 = (logger::item *) p1->m_next;
+                p2->m_next = pn;
+                pn = p2;
+            }
+
+            write(pn);
+
+            m_logEmpty = true;
+        }
+    }
+
+public:
+    virtual void write(item *pn) = 0;
+
+    void log(int priority, std::string msg)
+    {
+        m_acLog.put(new item(priority, msg));
+        m_sem.Post();
+    }
+
+    void flush()
+    {
+        while (!m_acLog.empty() || !m_logEmpty)
+            coroutine_base::ac_sleep(1);
+    }
 
 public:
     static std::string &notice()
@@ -53,10 +103,18 @@ public:
 
     static TextColor *get_std_color();
 
-    static void std_out(const char *txt);
-
 public:
-    virtual result_t write(const item *data, exlib::AsyncEvent *ac) = 0;
+    exlib::AsyncQueue m_acLog;
+    exlib::OSSemaphore m_sem;
+    bool m_logEmpty;
+};
+
+class std_logger : public logger
+{
+public:
+    virtual void write(item *pn);
+
+    static void out(const char *txt);
 };
 
 }
