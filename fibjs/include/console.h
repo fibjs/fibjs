@@ -33,7 +33,7 @@ public:
     };
 
 public:
-    logger() : m_logEmpty(false)
+    logger() : m_logEmpty(true)
     {
         start();
     }
