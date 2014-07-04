@@ -10,7 +10,7 @@ github 中有全部文档的源码和生成文档，为方便查阅，我在线�
 
 了解 fibjs 的并发: http://prj.baoz.cn/docs/fibjs/d2/de8/start_prog.html
 
-官方交流社区: http://baoz.me/#!/fibjs
+官方交流社区: http://baoz.me/fibjs
 
 ## Install
 
