@@ -258,16 +258,11 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
 
         x509write_crt_init(&m_crt);
 
-        v = opts->Get(v8::String::NewFromUtf8(isolate, "hash",
-                                              v8::String::kNormalString, 4));
-        if (!IsEmpty(v))
-        {
-            hr = GetArgumentValue(v, hash);
-            if (hr < 0)
-                goto exit;
-        }
-        else
+        hr = GetConfigValue(opts, "hash", hash);
+        if (hr == CALL_E_PARAMNOTOPTIONAL)
             hash = m_csr.sig_md;
+        else if (hr < 0)
+            goto exit;
 
         if (hash < POLARSSL_MD_MD2 || hash > POLARSSL_MD_RIPEMD160)
         {
@@ -317,32 +312,22 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
         date_t d1, d2;
         std::string s1, s2;
 
-        v = opts->Get(v8::String::NewFromUtf8(isolate, "notBefore",
-                                              v8::String::kNormalString, 9));
-        if (!IsEmpty(v))
-        {
-            hr = GetArgumentValue(v, d1);
-            if (hr < 0)
-                goto exit;
-        }
-        else
+        hr = GetConfigValue(opts, "notBefore", d1);
+        if (hr == CALL_E_PARAMNOTOPTIONAL)
             d1.now();
+        else if (hr < 0)
+            goto exit;
         d1.toX509String(s1);
 
 
-        v = opts->Get(v8::String::NewFromUtf8(isolate, "notAfter",
-                                              v8::String::kNormalString, 8));
-        if (!IsEmpty(v))
-        {
-            hr = GetArgumentValue(v, d2);
-            if (hr < 0)
-                goto exit;
-        }
-        else
+        hr = GetConfigValue(opts, "notAfter", d2);
+        if (hr == CALL_E_PARAMNOTOPTIONAL)
         {
             d2 = d1;
             d2.add(1, date_t::_YEAR);
         }
+        else if (hr < 0)
+            goto exit;
         d2.toX509String(s2);
 
         ret = x509write_crt_set_validity(&m_crt, s1.c_str(), s2.c_str());
@@ -353,24 +338,14 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
         }
 
         bool is_ca = false;
-        v = opts->Get(v8::String::NewFromUtf8(isolate, "ca",
-                                              v8::String::kNormalString, 2));
-        if (!IsEmpty(v))
-        {
-            hr = GetArgumentValue(v, is_ca);
-            if (hr < 0)
-                goto exit;
-        }
+        hr = GetConfigValue(opts, "ca", is_ca);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            goto exit;
 
         int32_t pathlen = -1;
-        v = opts->Get(v8::String::NewFromUtf8(isolate, "pathlen",
-                                              v8::String::kNormalString, 7));
-        if (!IsEmpty(v))
-        {
-            hr = GetArgumentValue(v, pathlen);
-            if (hr < 0)
-                goto exit;
-        }
+        hr = GetConfigValue(opts, "pathlen", pathlen);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            goto exit;
 
         if (pathlen < -1 || pathlen > 127)
         {

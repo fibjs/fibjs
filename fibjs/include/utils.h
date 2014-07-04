@@ -482,6 +482,16 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Function>
     return 0;
 }
 
+template<typename T>
+result_t GetConfigValue(v8::Local<v8::Object> o, const char *key, T &n, bool bStrict = false)
+{
+    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate, key));
+    if (IsEmpty(v))
+        return CALL_E_PARAMNOTOPTIONAL;
+
+    return GetArgumentValue(v, n, bStrict);
+}
+
 inline v8::Local<v8::Value> GetReturnValue(int32_t v)
 {
     return v8::Int32::New(isolate, v);
