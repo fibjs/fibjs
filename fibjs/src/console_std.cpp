@@ -181,7 +181,6 @@ void std_logger::write(item *pn)
     while (pn)
     {
         p1 = pn;
-        pn = (logger::item *) pn->m_next;
 
         std::string txt;
         if (p1->m_priority == console_base::_NOTICE)
@@ -196,6 +195,8 @@ void std_logger::write(item *pn)
         out(txt.c_str());
 
         delete p1;
+
+        pn = (logger::item *) pn->m_next;
     }
 }
 

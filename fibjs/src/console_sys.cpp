@@ -21,10 +21,11 @@ void sys_logger::write(item *pn)
     while (pn)
     {
         p1 = pn;
-        pn = (logger::item *) pn->m_next;
 
         ::syslog(p1->m_priority, "%s", p1->m_msg.c_str());
         delete p1;
+
+        pn = (logger::item *) pn->m_next;
     }
 }
 
