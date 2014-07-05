@@ -78,7 +78,7 @@ result_t console_base::config(v8::Local<v8::Array> cfg)
     reset();
 
     int32_t sz = cfg->Length();
-    int32_t i, n;
+    int32_t i, n = 0;
 
     if (sz > MAX_LOGGER)
         return CALL_E_INVALIDARG;
@@ -110,7 +110,6 @@ result_t console_base::config(v8::Local<v8::Array> cfg)
         if (!*s)
             return CALL_E_INVALIDARG;
 
-
         obj_ptr<logger> lgr;
 
         if (!qstrcmp(*s, "console"))
@@ -128,7 +127,10 @@ result_t console_base::config(v8::Local<v8::Array> cfg)
         {
             result_t hr = lgr->config(o);
             if (hr < 0)
+            {
+                lgr->stop();
                 return hr;
+            }
 
             s_logs[n++] = lgr;
         }
