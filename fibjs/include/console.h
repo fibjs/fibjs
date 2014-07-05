@@ -224,10 +224,12 @@ public:
     virtual void write(item *pn);
 
 private:
+    void clearFile();
     result_t initFile();
 
 private:
     std::string m_path;
+    std::string m_folder;
     int32_t m_split_mode;
     int64_t m_split_size;
     int32_t m_count;
