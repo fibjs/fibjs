@@ -283,6 +283,13 @@ public:
 
     bool toString(std::string &retVal);
 
+    obj_base *object() const
+    {
+        if (type() != VT_Object)
+            return NULL;
+        return m_Val.objVal;
+    }
+
 private:
     Variant &operator=(obj_base *v)
     {
