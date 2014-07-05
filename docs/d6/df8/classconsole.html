@@ -117,17 +117,16 @@ $(document).ready(function(){initNavTree('d6/df8/classconsole.html','../../');})
 <div class="dynheader">
 类 console 继承关系图:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d4/dab/classconsole__inherit__graph.svg" width="104" height="686"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
-</div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d4/dab/classconsole__inherit__graph.svg" width="104" height="686"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 静态 Public 成员函数</h2></td></tr>
 <tr class="memitem:aed5a7fd6fee0b6c8360ef8bb1009ba9d"><td class="memItemLeft" align="right" valign="top">static&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/df8/classconsole.html#aed5a7fd6fee0b6c8360ef8bb1009ba9d">add</a> (Array cfg)</td></tr>
-<tr class="memdesc:aed5a7fd6fee0b6c8360ef8bb1009ba9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">配置 console 输出系统  <a href="#aed5a7fd6fee0b6c8360ef8bb1009ba9d">更多...</a><br /></td></tr>
+<tr class="memdesc:aed5a7fd6fee0b6c8360ef8bb1009ba9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">批量添加 console 输出系统，支持的设备为 console, syslog 和 file，最多可以添加 10 个输出  <a href="#aed5a7fd6fee0b6c8360ef8bb1009ba9d">更多...</a><br /></td></tr>
 <tr class="separator:aed5a7fd6fee0b6c8360ef8bb1009ba9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0b8dfb79a4fdde0c10b7e7d66d69694a"><td class="memItemLeft" align="right" valign="top">static&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/df8/classconsole.html#a0b8dfb79a4fdde0c10b7e7d66d69694a">add</a> (Value cfg)</td></tr>
-<tr class="memdesc:a0b8dfb79a4fdde0c10b7e7d66d69694a"><td class="mdescLeft">&#160;</td><td class="mdescRight">添加个 console 输出系统  <a href="#a0b8dfb79a4fdde0c10b7e7d66d69694a">更多...</a><br /></td></tr>
+<tr class="memdesc:a0b8dfb79a4fdde0c10b7e7d66d69694a"><td class="mdescLeft">&#160;</td><td class="mdescRight">添加 console 输出系统，支持的设备为 console, syslog 和 file，最多可以添加 10 个输出  <a href="#a0b8dfb79a4fdde0c10b7e7d66d69694a">更多...</a><br /></td></tr>
 <tr class="separator:a0b8dfb79a4fdde0c10b7e7d66d69694a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac5c17a9ecdac8ec7966bff0754f3122b"><td class="memItemLeft" align="right" valign="top">static&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/df8/classconsole.html#ac5c17a9ecdac8ec7966bff0754f3122b">reset</a> ()</td></tr>
 <tr class="memdesc:ac5c17a9ecdac8ec7966bff0754f3122b"><td class="mdescLeft">&#160;</td><td class="mdescRight">初始化到缺省设置，只在 console 输出信息  <a href="#ac5c17a9ecdac8ec7966bff0754f3122b">更多...</a><br /></td></tr>
@@ -276,17 +275,15 @@ Public 属性</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>配置 console 输出系统 </p>
+<p>批量添加 console 输出系统，支持的设备为 console, syslog 和 file，最多可以添加 10 个输出 </p>
 <p>通过配置 console，可以将程序输出和系统错误发往不同设备，用于运行环境信息收集。</p>
-<p>cfg 为配置参数数组，每一项指定一个输出设备，可以为设备名称字符串，也可以为一个设备配置对象，目前支持的设备为 console 和 syslog。</p>
 <div class="fragment"><div class="line"><a class="code" href="../../d6/df8/classconsole.html">console</a>.<a class="code" href="../../d6/df8/classconsole.html#aed5a7fd6fee0b6c8360ef8bb1009ba9d">add</a>([<span class="stringliteral">&quot;console&quot;</span>, {</div>
 <div class="line">   type: <span class="stringliteral">&quot;syslog&quot;</span>,</div>
 <div class="line">   levels: [<a class="code" href="../../d6/df8/classconsole.html">console</a>.<a class="code" href="../../d6/df8/classconsole.html#add424d51dfc7bd19ac906d010b9c7694">INFO</a>, <a class="code" href="../../d6/df8/classconsole.html">console</a>.<a class="code" href="../../d6/df8/classconsole.html#a60c0dd0c74056a542643ec7202b5954d">ERROR</a>]</div>
 <div class="line">}]);</div>
-</div><!-- fragment --><p>其中 type 用于指定设备类型，levels 用于指定输出过滤，只有指定的 log 级别会被输出，不设定则输出全部级别。</p>
-<dl class="params"><dt>参数</dt><dd>
+</div><!-- fragment --><dl class="params"><dt>参数</dt><dd>
   <table class="params">
-    <tr><td class="paramname">cfg</td><td>输出配置数组，最多配置十个输出设备 </td></tr>
+    <tr><td class="paramname">cfg</td><td>输出配置数组 </td></tr>
   </table>
   </dd>
 </dl>
@@ -315,12 +312,26 @@ Public 属性</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>添加个 console 输出系统 </p>
+<p>添加 console 输出系统，支持的设备为 console, syslog 和 file，最多可以添加 10 个输出 </p>
 <p>通过配置 console，可以将程序输出和系统错误发往不同设备，用于运行环境信息收集。</p>
-<p>cfg 为配置参数数组，每一项指定一个输出设备，可以为设备名称字符串，也可以为一个设备配置对象，目前支持的设备为 console 和 syslog。</p>
+<p>cfg 为配置，可以为设备名称字符串：</p>
 <div class="fragment"><div class="line"><a class="code" href="../../d6/df8/classconsole.html">console</a>.<a class="code" href="../../d6/df8/classconsole.html#aed5a7fd6fee0b6c8360ef8bb1009ba9d">add</a>(<span class="stringliteral">&quot;console&quot;</span>);</div>
-</div><!-- fragment --><p>其中 type 用于指定设备类型，levels 用于指定输出过滤，只有指定的 log 级别会被输出，不设定则输出全部级别。</p>
-<dl class="params"><dt>参数</dt><dd>
+</div><!-- fragment --><p>也可以为一个设备配置对象： </p><div class="fragment"><div class="line"><a class="code" href="../../d6/df8/classconsole.html">console</a>.<a class="code" href="../../d6/df8/classconsole.html#aed5a7fd6fee0b6c8360ef8bb1009ba9d">add</a>({</div>
+<div class="line">   type: <span class="stringliteral">&quot;console&quot;</span>,</div>
+<div class="line">   levels: [<a class="code" href="../../d6/df8/classconsole.html">console</a>.<a class="code" href="../../d6/df8/classconsole.html#add424d51dfc7bd19ac906d010b9c7694">INFO</a>, <a class="code" href="../../d6/df8/classconsole.html">console</a>.<a class="code" href="../../d6/df8/classconsole.html#a60c0dd0c74056a542643ec7202b5954d">ERROR</a>]  <span class="comment">// 选项，省略则输出全部级别日志</span></div>
+<div class="line">});</div>
+</div><!-- fragment --><p>syslog 仅在 posix 平台有效： </p><div class="fragment"><div class="line"><a class="code" href="../../d6/df8/classconsole.html">console</a>.<a class="code" href="../../d6/df8/classconsole.html#aed5a7fd6fee0b6c8360ef8bb1009ba9d">add</a>({</div>
+<div class="line">   type: <span class="stringliteral">&quot;syslog&quot;</span>,</div>
+<div class="line">   levels: [<a class="code" href="../../d6/df8/classconsole.html">console</a>.<a class="code" href="../../d6/df8/classconsole.html#add424d51dfc7bd19ac906d010b9c7694">INFO</a>, <a class="code" href="../../d6/df8/classconsole.html">console</a>.<a class="code" href="../../d6/df8/classconsole.html#a60c0dd0c74056a542643ec7202b5954d">ERROR</a>]</div>
+<div class="line">});</div>
+</div><!-- fragment --><p>file 日志不支持简单调用： </p><div class="fragment"><div class="line"><a class="code" href="../../d6/df8/classconsole.html">console</a>.<a class="code" href="../../d6/df8/classconsole.html#aed5a7fd6fee0b6c8360ef8bb1009ba9d">add</a>({</div>
+<div class="line">   type: <span class="stringliteral">&quot;file&quot;</span>,</div>
+<div class="line">   levels: [<a class="code" href="../../d6/df8/classconsole.html">console</a>.<a class="code" href="../../d6/df8/classconsole.html#add424d51dfc7bd19ac906d010b9c7694">INFO</a>, <a class="code" href="../../d6/df8/classconsole.html">console</a>.<a class="code" href="../../d6/df8/classconsole.html#a60c0dd0c74056a542643ec7202b5954d">ERROR</a>],</div>
+<div class="line">   <a class="code" href="../../dc/d8a/classpath.html">path</a>: <span class="stringliteral">&quot;path/to/file&quot;</span>,  <span class="comment">// 必选项</span></div>
+<div class="line">   split: <span class="stringliteral">&quot;30m&quot;</span>,  <span class="comment">// 选项，可选值为 &quot;day&quot;, &quot;hour&quot;, &quot;minute&quot;, &quot;###k&quot;, &quot;###m&quot;, &quot;###g&quot;</span></div>
+<div class="line">   count: 10 <span class="comment">// 选项，可选范围为 2-128，指定此项时必须提供 split</span></div>
+<div class="line">});</div>
+</div><!-- fragment --><dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">cfg</td><td>输出配置 </td></tr>
   </table>
