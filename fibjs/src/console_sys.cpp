@@ -22,10 +22,10 @@ void sys_logger::write(item *pn)
     {
         p1 = pn;
 
-        ::syslog(p1->m_priority, "%s", p1->m_msg.c_str());
-        delete p1;
+        ::syslog(p1->m_priority, "%s", p1->full().c_str());
 
-        pn = (logger::item *) pn->m_next;
+        pn = (logger::item *) p1->m_next;
+        delete p1;
     }
 }
 

@@ -194,9 +194,8 @@ void std_logger::write(item *pn)
 
         out(txt.c_str());
 
+        pn = (logger::item *) p1->m_next;
         delete p1;
-
-        pn = (logger::item *) pn->m_next;
     }
 }
 
