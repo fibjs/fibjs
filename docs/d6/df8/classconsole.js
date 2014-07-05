@@ -1,6 +1,7 @@
 var classconsole =
 [
-    [ "config", "d6/df8/classconsole.html#afff0a8dd8f85952e5242a5cd24d0b021", null ],
+    [ "add", "d6/df8/classconsole.html#aed5a7fd6fee0b6c8360ef8bb1009ba9d", null ],
+    [ "add", "d6/df8/classconsole.html#a0b8dfb79a4fdde0c10b7e7d66d69694a", null ],
     [ "reset", "d6/df8/classconsole.html#ac5c17a9ecdac8ec7966bff0754f3122b", null ],
     [ "log", "d6/df8/classconsole.html#a93b42645d56e3b4da5d2dc28ba6593cf", null ],
     [ "log", "d6/df8/classconsole.html#ac3cab060d14c380024c402df70f73877", null ],

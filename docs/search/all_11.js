@@ -32,7 +32,7 @@ var searchData=
   ['reset',['reset',['../d6/df8/classconsole.html#ac5c17a9ecdac8ec7966bff0754f3122b',1,'console::reset()'],['../db/df7/classStats.html#ab62c5543881b3e0f775e4e03f1790517',1,'Stats::reset()']]],
   ['resize',['resize',['../d0/d11/classBuffer.html#a551023131e4c63b198902143e5e5b274',1,'Buffer::resize()'],['../d6/da9/classList.html#a65b48a28764f7cfd800e98771770940a',1,'List::resize()']]],
   ['resolve',['resolve',['../d3/d75/classnet.html#a733a23e8a51fdc5e2b1e3cafaf6f0010',1,'net::resolve()'],['../df/d6b/classUrl.html#aa205a8a31485774d1c830dc559f032ff',1,'Url::resolve()']]],
-  ['response',['response',['../d5/d1b/classHttpRequest.html#aac83331072158243ff0e42c62039ae6a',1,'HttpRequest::response()'],['../d6/da8/classhttp.html#a70902187780a1f3b2927b2a2f50213b5',1,'http::Response()']]],
+  ['response',['Response',['../d6/da8/classhttp.html#a70902187780a1f3b2927b2a2f50213b5',1,'http::Response()'],['../d5/d1b/classHttpRequest.html#aac83331072158243ff0e42c62039ae6a',1,'HttpRequest::response()']]],
   ['result',['result',['../d6/d28/classMessage.html#aff37dc807536324e1b576ffec75770b0',1,'Message']]],
   ['retrieve',['retrieve',['../d9/de8/classGridFS.html#a5c4af1ca1182a02bbbc4be877bfe374b',1,'GridFS']]],
   ['rewind',['rewind',['../db/d67/classSeekableStream.html#a96c92db52bea85a8080771db0d89c024',1,'SeekableStream']]],

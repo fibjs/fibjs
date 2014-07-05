@@ -1,7 +1,7 @@
 <map id="module" name="module">
 <area shape="rect" id="node2" href="$de/d1c/classassert.html" title="断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出 " alt="" coords="5,127,166,827"/>
 <area shape="rect" id="node3" href="$d3/d2d/classcollection.html" title="基础容器模块 " alt="" coords="190,427,272,527"/>
-<area shape="rect" id="node4" href="$d6/df8/classconsole.html" title="控制台访问对象 " alt="" coords="296,207,390,747"/>
+<area shape="rect" id="node4" href="$d6/df8/classconsole.html" title="控制台访问对象 " alt="" coords="296,200,390,753"/>
 <area shape="rect" id="node5" href="$d2/dd1/classcoroutine.html" title="并发控制模块 " alt="" coords="414,367,528,587"/>
 <area shape="rect" id="node6" href="$d8/d48/classcrypto.html" title="加密算法模块 " alt="" coords="552,267,721,687"/>
 <area shape="rect" id="node7" href="$de/d5f/classdb.html" title="数据库访问模块 " alt="" coords="744,400,875,553"/>
