@@ -40,7 +40,8 @@ public:
 	static result_t get_loglevel(int32_t& retVal);
 	static result_t set_loglevel(int32_t newVal);
 	static result_t get_colors(obj_ptr<TextColor_base>& retVal);
-	static result_t config(v8::Local<v8::Array> cfg);
+	static result_t add(v8::Local<v8::Array> cfg);
+	static result_t add(v8::Local<v8::Value> cfg);
 	static result_t reset();
 	static result_t log(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
 	static result_t log(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -82,7 +83,7 @@ public:
 	static void s_get_loglevel(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 	static void s_set_loglevel(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 	static void s_get_colors(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-	static void s_config(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_reset(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_log(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void s_debug(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -114,7 +115,7 @@ namespace fibjs
 	{
 		static ClassData::ClassMethod s_method[] = 
 		{
-			{"config", s_config, true},
+			{"add", s_add, true},
 			{"reset", s_reset, true},
 			{"log", s_log, true},
 			{"debug", s_debug, true},
@@ -254,13 +255,19 @@ namespace fibjs
 		METHOD_RETURN();
 	}
 
-	inline void console_base::s_config(const v8::FunctionCallbackInfo<v8::Value>& args)
+	inline void console_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		METHOD_ENTER(1, 1);
 
 		ARG(v8::Local<v8::Array>, 0);
 
-		hr = config(v0);
+		hr = add(v0);
+
+		METHOD_OVER(1, 1);
+
+		ARG(v8::Local<v8::Value>, 0);
+
+		hr = add(v0);
 
 		METHOD_VOID();
 	}

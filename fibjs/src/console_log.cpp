@@ -73,69 +73,80 @@ result_t console_base::get_colors(obj_ptr<TextColor_base> &retVal)
     return 0;
 }
 
-result_t console_base::config(v8::Local<v8::Array> cfg)
+result_t console_base::add(v8::Local<v8::Value> cfg)
 {
-    reset();
+    int32_t n = 0;
 
-    int32_t sz = cfg->Length();
-    int32_t i, n = 0;
+    for (n = 0; s_logs[n]; n ++);
 
-    if (sz > MAX_LOGGER)
+    if (n >= MAX_LOGGER)
+        return Runtime::setError("Too many items.");
+
+    v8::Local<v8::Value> type;
+    v8::Local<v8::Object> o;
+
+    if (cfg->IsString() || cfg->IsStringObject())
+    {
+        type = cfg;
+        o = v8::Object::New(isolate);
+    }
+    else if (cfg->IsObject())
+    {
+        o = v8::Local<v8::Object>::Cast(cfg);
+        type = o->Get( v8::String::NewFromUtf8(isolate, "type",
+                                               v8::String::kNormalString, 4));
+
+        if (IsEmpty(type))
+            return Runtime::setError("Missing log type.");
+    }
+    else
         return CALL_E_INVALIDARG;
+
+    v8::String::Utf8Value s(type);
+    if (!*s)
+        return Runtime::setError("Unknown log type.");
+
+    obj_ptr<logger> lgr;
+
+    if (!qstrcmp(*s, "console"))
+        lgr = new std_logger();
+    else if (!qstrcmp(*s, "syslog"))
+    {
+#ifndef _WIN32
+        lgr = new sys_logger();
+#endif
+    }
+    else if (!qstrcmp(*s, "file"))
+        lgr = new file_logger();
+    else
+        return Runtime::setError("Unknown log type.");
+
+    if (lgr)
+    {
+        result_t hr = lgr->config(o);
+        if (hr < 0)
+        {
+            lgr->stop();
+            return hr;
+        }
+
+        s_logs[n] = lgr;
+    }
+
+    return 0;
+}
+
+result_t console_base::add(v8::Local<v8::Array> cfg)
+{
+    int32_t sz = cfg->Length();
+    int32_t i;
+    result_t hr;
 
     for (i = 0; i < sz; i ++)
     {
-        v8::Local<v8::Value> v = cfg->Get(i);
-        v8::Local<v8::Value> type;
-        v8::Local<v8::Object> o;
-
-        if (v->IsString() || v->IsStringObject())
-        {
-            type = v;
-            o = v8::Object::New(isolate);
-        }
-        else if (v->IsObject())
-        {
-            o = v8::Local<v8::Object>::Cast(v);
-            type = o->Get( v8::String::NewFromUtf8(isolate, "type",
-                                                   v8::String::kNormalString, 4));
-
-            if (IsEmpty(type))
-                return CALL_E_INVALIDARG;
-        }
-        else
-            return CALL_E_INVALIDARG;
-
-        v8::String::Utf8Value s(type);
-        if (!*s)
-            return CALL_E_INVALIDARG;
-
-        obj_ptr<logger> lgr;
-
-        if (!qstrcmp(*s, "console"))
-            lgr = new std_logger();
-        else if (!qstrcmp(*s, "syslog"))
-        {
-#ifndef _WIN32
-            lgr = new sys_logger();
-#endif
-        }
-        else if (!qstrcmp(*s, "file"))
-            lgr = new file_logger();
-        else
-            return CALL_E_INVALIDARG;
-
-        if (lgr)
-        {
-            result_t hr = lgr->config(o);
-            if (hr < 0)
-            {
-                lgr->stop();
-                return hr;
-            }
-
-            s_logs[n++] = lgr;
-        }
+        hr = add(cfg->Get(i));
+        if (hr < 0)
+            return hr;
     }
 
     return 0;
