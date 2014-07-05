@@ -34,14 +34,14 @@ public:
         {
             static const char *s_levels[] =
             {
-                "FATAL ",
-                "ALERT ",
-                "CRIT ",
-                "ERROR ",
-                "WARN ",
-                "NOTICE ",
-                "INFO ",
-                "DEBUG ",
+                " FATAL  - ",
+                " ALERT  - ",
+                " CRIT   - ",
+                " ERROR  - ",
+                " WARN   - ",
+                " NOTICE - ",
+                " INFO   - ",
+                " DEBUG  - ",
                 " ",
                 " ",
                 " "
@@ -84,8 +84,6 @@ public:
         hr = GetConfigValue(o, "levels", levels);
         if (hr == CALL_E_PARAMNOTOPTIONAL)
         {
-            for (i = 0; i < console_base::_NOTSET; i ++)
-                m_levels[i] = true;
         }
         else if (hr < 0)
             return hr;
