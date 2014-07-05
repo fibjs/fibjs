@@ -30,22 +30,22 @@ result_t file_logger::config(v8::Local<v8::Object> o)
     if (hr >= 0)
     {
         if (!qstrcmp(split.c_str(), "day"))
-            m_split_mode =  24 * 60 * 60;
+            m_split_mode =  24 * 60 * 60 * 1000;
         else if (!qstrcmp(split.c_str(), "hour"))
-            m_split_mode =  60 * 60;
+            m_split_mode =  60 * 60 * 1000;
         else if (!qstrcmp(split.c_str(), "minute"))
-            m_split_mode =  60;
+            m_split_mode =  60 * 1000;
         else
         {
             int32_t l = (int32_t)split.length();
             int32_t i;
 
             if (l > 4 || l < 2)
-                return CALL_E_INVALIDARG;
+                return Runtime::setError("Unknown split mode.");
 
             for (i = 0; i < l - 1; i ++)
                 if (!qisdigit(split[i]))
-                    return CALL_E_INVALIDARG;
+                    return Runtime::setError("Unknown split mode.");
                 else
                     m_split_size = m_split_size * 10 + split[i] - '0';
 
@@ -56,7 +56,7 @@ result_t file_logger::config(v8::Local<v8::Object> o)
             else if (split[i] == 'g')
                 m_split_size <<= 30;
             else
-                return CALL_E_INVALIDARG;
+                return Runtime::setError("Unknown split mode.");
         }
     }
     else if (hr != CALL_E_PARAMNOTOPTIONAL)
@@ -64,26 +64,50 @@ result_t file_logger::config(v8::Local<v8::Object> o)
 
     hr = GetConfigValue(o, "count", m_count);
     if (hr == CALL_E_PARAMNOTOPTIONAL)
-        m_count = 1;
+        m_count = INT_MAX;
     else if (hr < 0)
         return hr;
+    else
+    {
+        if (m_split_size == 0 && m_split_mode == 0)
+            return Runtime::setError("Missing split mode.");
 
-    if (m_count < 1 || m_count > 128)
-        return CALL_E_INVALIDARG;
+        if (m_count < 2 || m_count > 128)
+            return Runtime::setError("Count must between 2 to 128.");
+    }
 
     return 0;
 }
 
 result_t file_logger::initFile()
 {
+    if (m_split_mode && m_file)
+    {
+        date_t d;
+
+        d.now();
+        if (d.diff(m_date) >= m_split_mode)
+            m_file.Release();
+    }
+
     result_t hr;
     exlib::AsyncEvent ac;
 
     if (!m_file)
     {
         obj_ptr<File> f = new File();
+        std::string name(m_path);
 
-        hr = f->open(m_path.c_str(), "a+", &ac);
+        if (m_count > 1)
+        {
+            std::string tm;
+
+            m_date.now();
+            m_date.stamp(tm);
+            name.append(tm);
+        }
+
+        hr = f->open(name.c_str(), "a+", &ac);
         if (hr < 0)
             return hr;
 
@@ -107,17 +131,36 @@ void file_logger::write(item *pn)
         std::string outBuffer;
         result_t hr;
 
-        initFile();
+        hr = initFile();
+        if (hr < 0)
+        {
+            while (pn)
+            {
+                p1 = pn;
+                pn = (logger::item *) p1->m_next;
+                delete p1;
+            }
+
+            break;
+        }
 
         while (pn)
         {
             p1 = pn;
 
             outBuffer.append(p1->full());
+
+#ifdef _WIN32
+            outBuffer.append("\r\n", 2);
+#else
             outBuffer.append("\n", 1);
+#endif
 
             pn = (logger::item *) p1->m_next;
             delete p1;
+
+            if (m_split_size && m_size + outBuffer.length() >= m_split_size)
+                break;
         }
 
         if (m_file)
@@ -126,6 +169,10 @@ void file_logger::write(item *pn)
 
             hr = m_file->write(buf, &ac);
             if (hr < 0)
+                m_file.Release();
+
+            m_size += outBuffer.length();
+            if (m_size >= m_split_size)
                 m_file.Release();
         }
     }

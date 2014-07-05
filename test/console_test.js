@@ -70,9 +70,17 @@ describe("console", function() {
 			console.add({
 				type: "file",
 				path: "test_log",
-				count: 0
+				count: 10
 			});
-		});
+		}, "Missing split mode.");
+
+		assert.throws(function() {
+			console.add({
+				type: "file",
+				path: "test_log",
+				count: 1
+			});
+		}, "Too few file count.");
 
 		assert.throws(function() {
 			console.add({
@@ -166,4 +174,4 @@ describe("console", function() {
 	});
 });
 
-//test.run(console.DEBUG);
+test.run(console.DEBUG);

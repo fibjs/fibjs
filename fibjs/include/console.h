@@ -234,6 +234,7 @@ private:
 
     obj_ptr<Stream_base> m_file;
     int64_t m_size;
+    date_t m_date;
 };
 
 }
