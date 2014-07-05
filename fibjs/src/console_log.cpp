@@ -120,6 +120,8 @@ result_t console_base::config(v8::Local<v8::Array> cfg)
             lgr = new sys_logger();
 #endif
         }
+        else if (!qstrcmp(*s, "file"))
+            lgr = new file_logger();
         else
             return CALL_E_INVALIDARG;
 

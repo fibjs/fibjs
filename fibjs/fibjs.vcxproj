@@ -29,6 +29,7 @@
     <ClCompile Include="src\Cipher.cpp" />
     <ClCompile Include="src\Condition.cpp" />
     <ClCompile Include="src\Console.cpp" />
+    <ClCompile Include="src\console_file.cpp" />
     <ClCompile Include="src\console_log.cpp" />
     <ClCompile Include="src\console_std.cpp" />
     <ClCompile Include="src\console_sys.cpp" />

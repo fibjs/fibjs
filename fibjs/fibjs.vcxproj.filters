@@ -354,6 +354,9 @@
     <ClCompile Include="src\console_sys.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\console_file.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
