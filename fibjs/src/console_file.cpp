@@ -224,12 +224,7 @@ void file_logger::write(item *pn)
             p1 = pn;
 
             outBuffer.append(p1->full());
-
-#ifdef _WIN32
-            outBuffer.append("\r\n", 2);
-#else
             outBuffer.append("\n", 1);
-#endif
 
             pn = (logger::item *) p1->m_next;
             delete p1;
