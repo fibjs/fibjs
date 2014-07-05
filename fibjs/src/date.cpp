@@ -645,6 +645,24 @@ void date_t::sqlString(std::string &retVal)
     putInt(ptrBuf, ds.wSecond, 2);
 }
 
+void date_t::stamp(std::string &retVal)
+{
+    if (isnan(d))
+        return;
+
+    _date_split ds((double)Runtime::now().m_pDateCache->ToLocal((int64_t) d));
+
+    retVal.resize(14);
+    char *ptrBuf = &retVal[0];
+
+    putInt(ptrBuf, ds.wYear, 4);
+    putInt(ptrBuf, ds.wMonth + 1, 2);
+    putInt(ptrBuf, ds.wDay + 1, 2);
+    putInt(ptrBuf, ds.wHour, 2);
+    putInt(ptrBuf, ds.wMinute, 2);
+    putInt(ptrBuf, ds.wSecond, 2);
+}
+
 void date_t::add(int num, int part)
 {
     if (isnan(d))

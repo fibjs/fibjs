@@ -113,6 +113,7 @@ public:
     void toGMTString(std::string &retVal);
     void toX509String(std::string &retVal);
     void sqlString(std::string &retVal);
+    void stamp(std::string &retVal);
 
 private:
     double d;
