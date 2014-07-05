@@ -40,7 +40,7 @@ result_t file_logger::config(v8::Local<v8::Object> o)
             int32_t l = (int32_t)split.length();
             int32_t i;
 
-            if (l > 4 || l < 2 || split[0] < '1' || split[0] > '9')
+            if (l > 4 || l < 2)
                 return CALL_E_INVALIDARG;
 
             for (i = 0; i < l - 1; i ++)
@@ -49,12 +49,14 @@ result_t file_logger::config(v8::Local<v8::Object> o)
                 else
                     m_split_size = m_split_size * 10 + split[i] - '0';
 
-            if (split[i] == 'K')
+            if (split[i] == 'k')
                 m_split_size <<= 10;
-            else if (split[i] == 'M')
+            else if (split[i] == 'm')
                 m_split_size <<= 20;
-            else if (split[i] == 'G')
+            else if (split[i] == 'g')
                 m_split_size <<= 30;
+            else
+                return CALL_E_INVALIDARG;
         }
     }
     else if (hr != CALL_E_PARAMNOTOPTIONAL)
