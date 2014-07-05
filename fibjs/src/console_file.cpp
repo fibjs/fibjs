@@ -62,11 +62,11 @@ result_t file_logger::config(v8::Local<v8::Object> o)
 
     hr = GetConfigValue(o, "count", m_count);
     if (hr == CALL_E_PARAMNOTOPTIONAL)
-        m_count = 0;
+        m_count = 1;
     else if (hr < 0)
         return hr;
 
-    if (m_count > 128)
+    if (m_count < 1 || m_count > 128)
         return CALL_E_INVALIDARG;
 
     return 0;
