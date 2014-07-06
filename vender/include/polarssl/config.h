@@ -312,7 +312,7 @@
  *
  * Uncomment this macro to enable weak ciphersuites
  */
-//#define POLARSSL_ENABLE_WEAK_CIPHERSUITES
+#define POLARSSL_ENABLE_WEAK_CIPHERSUITES
 
 /**
  * \def POLARSSL_ECP_XXXX_ENABLED
@@ -655,7 +655,7 @@
  *
  * Enable functions that use the filesystem.
  */
-#define POLARSSL_FS_IO
+//#define POLARSSL_FS_IO
 
 /**
  * \def POLARSSL_NO_DEFAULT_ENTROPY_SOURCES
@@ -953,7 +953,7 @@
  *
  * Uncomment this to enable pthread mutexes.
  */
-//#define POLARSSL_THREADING_PTHREAD
+#define POLARSSL_THREADING_PTHREAD
 
 /**
  * \def POLARSSL_VERSION_FEATURES
@@ -976,7 +976,7 @@
  *
  * Uncomment to prevent an error.
  */
-//#define POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3
+#define POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3
 
 /**
  * \def POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
@@ -1326,7 +1326,7 @@
  *
  * This module provides debugging functions.
  */
-#define POLARSSL_DEBUG_C
+//#define POLARSSL_DEBUG_C
 
 /**
  * \def POLARSSL_DES_C
@@ -1473,7 +1473,7 @@
  *
  * Uncomment to enable the HAVEGE random generator.
  */
-//#define POLARSSL_HAVEGE_C
+#define POLARSSL_HAVEGE_C
 
 /**
  * \def POLARSSL_HMAC_DRBG_C
@@ -1511,7 +1511,7 @@
  *
  * Uncomment to enable support for (rare) MD2-signed X.509 certs.
  */
-//#define POLARSSL_MD2_C
+#define POLARSSL_MD2_C
 
 /**
  * \def POLARSSL_MD4_C
@@ -1523,7 +1523,7 @@
  *
  * Uncomment to enable support for (rare) MD4-signed X.509 certs.
  */
-//#define POLARSSL_MD4_C
+#define POLARSSL_MD4_C
 
 /**
  * \def POLARSSL_MD5_C
@@ -1914,7 +1914,7 @@
  *
  * Enable this layer to allow use of mutexes within PolarSSL
  */
-//#define POLARSSL_THREADING_C
+#define POLARSSL_THREADING_C
 
 /**
  * \def POLARSSL_TIMING_C
