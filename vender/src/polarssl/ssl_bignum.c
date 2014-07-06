@@ -30,7 +30,11 @@
  *  http://math.libtomcrypt.com/files/tommath.pdf
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_BIGNUM_C)
 
@@ -309,7 +313,7 @@ int mpi_set_bit( mpi *X, size_t pos, unsigned char val )
 
     if( val != 0 && val != 1 )
         return POLARSSL_ERR_MPI_BAD_INPUT_DATA;
-        
+
     if( X->n * biL <= pos )
     {
         if( val == 0 )
@@ -322,7 +326,7 @@ int mpi_set_bit( mpi *X, size_t pos, unsigned char val )
     X->p[off] |= (t_uint) val << idx;
 
 cleanup:
-    
+
     return( ret );
 }
 
@@ -856,7 +860,7 @@ int mpi_add_abs( mpi *X, const mpi *A, const mpi *B )
 
     if( X != A )
         MPI_CHK( mpi_copy( X, A ) );
-   
+
     /*
      * X should always be positive as a result of unsigned additions.
      */
@@ -1079,7 +1083,7 @@ void mpi_mul_hlp( size_t i, t_uint *s, t_uint *d, t_uint b )
         MULADDC_CORE
         MULADDC_STOP
     }
-#else
+#else /* MULADDC_HUIT */
     for( ; i >= 16; i -= 16 )
     {
         MULADDC_INIT
@@ -1112,7 +1116,7 @@ void mpi_mul_hlp( size_t i, t_uint *s, t_uint *d, t_uint b )
         MULADDC_CORE
         MULADDC_STOP
     }
-#endif
+#endif /* MULADDC_HUIT */
 
     t++;
 
@@ -1465,7 +1469,8 @@ static void mpi_montg_init( t_uint *mm, const mpi *N )
 /*
  * Montgomery multiplication: A = A * B * R^-1 mod N  (HAC 14.36)
  */
-static void mpi_montmul( mpi *A, const mpi *B, const mpi *N, t_uint mm, const mpi *T )
+static void mpi_montmul( mpi *A, const mpi *B, const mpi *N, t_uint mm,
+                         const mpi *T )
 {
     size_t i, n, m;
     t_uint u0, u1, *d;
@@ -1773,16 +1778,25 @@ cleanup:
     return( ret );
 }
 
+/*
+ * Fill X with size bytes of random.
+ *
+ * Use a temporary bytes representation to make sure the result is the same
+ * regardless of the platform endianness (useful when f_rng is actually
+ * deterministic, eg for tests).
+ */
 int mpi_fill_random( mpi *X, size_t size,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
     int ret;
+    unsigned char buf[POLARSSL_MPI_MAX_SIZE];
 
-    MPI_CHK( mpi_grow( X, CHARS_TO_LIMBS( size ) ) );
-    MPI_CHK( mpi_lset( X, 0 ) );
+    if( size > POLARSSL_MPI_MAX_SIZE )
+        return( POLARSSL_ERR_MPI_BAD_INPUT_DATA );
 
-    MPI_CHK( f_rng( p_rng, (unsigned char *) X->p, size ) );
+    MPI_CHK( f_rng( p_rng, buf, size ) );
+    MPI_CHK( mpi_read_binary( X, buf, size ) );
 
 cleanup:
     return( ret );
@@ -2320,6 +2334,6 @@ cleanup:
     return( ret );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_BIGNUM_C */
