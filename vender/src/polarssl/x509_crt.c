@@ -945,7 +945,19 @@ int x509_crt_parse_file( x509_crt *chain, const char *path )
 }
 
 #if defined(POLARSSL_THREADING_PTHREAD)
+#ifdef _WIN32
+static threading_mutex_t readdir_mutex;
+
+static void _init_mutex(void){
+    polarssl_mutex_init( &readdir_mutex );
+}
+
+#pragma section(".CRT$XCU",read)
+__declspec(allocate(".CRT$XCU")) static void (__cdecl* s_init_mutex)(void) = _init_mutex;
+
+#else
 static threading_mutex_t readdir_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
 #endif
 
 int x509_crt_parse_path( x509_crt *chain, const char *path )

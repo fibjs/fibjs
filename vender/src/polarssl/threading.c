@@ -34,6 +34,48 @@
 #include "polarssl/threading.h"
 
 #if defined(POLARSSL_THREADING_PTHREAD)
+
+#ifdef _WIN32
+static int threading_mutex_init_pthread( threading_mutex_t *mutex )
+{
+    if( mutex == NULL )
+        return( POLARSSL_ERR_THREADING_BAD_INPUT_DATA );
+
+    InitializeCriticalSection( mutex );
+
+    return( 0 );
+}
+
+static int threading_mutex_free_pthread( threading_mutex_t *mutex )
+{
+    if( mutex == NULL )
+        return( POLARSSL_ERR_THREADING_BAD_INPUT_DATA );
+
+    DeleteCriticalSection( mutex );
+
+    return( 0 );
+}
+
+static int threading_mutex_lock_pthread( threading_mutex_t *mutex )
+{
+    if( mutex == NULL )
+        return( POLARSSL_ERR_THREADING_BAD_INPUT_DATA );
+
+    EnterCriticalSection( mutex );
+
+    return( 0 );
+}
+
+static int threading_mutex_unlock_pthread( threading_mutex_t *mutex )
+{
+    if( mutex == NULL )
+        return( POLARSSL_ERR_THREADING_BAD_INPUT_DATA );
+
+    LeaveCriticalSection( mutex );
+
+    return( 0 );
+}
+#else
 static int threading_mutex_init_pthread( threading_mutex_t *mutex )
 {
     if( mutex == NULL )
@@ -77,6 +119,7 @@ static int threading_mutex_unlock_pthread( threading_mutex_t *mutex )
 
     return( 0 );
 }
+#endif
 
 int (*polarssl_mutex_init)( threading_mutex_t * ) = threading_mutex_init_pthread;
 int (*polarssl_mutex_free)( threading_mutex_t * ) = threading_mutex_free_pthread;
