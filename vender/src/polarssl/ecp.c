@@ -44,7 +44,11 @@
  *     <http://eprint.iacr.org/2004/342.pdf>
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_ECP_C)
 
@@ -1125,7 +1129,7 @@ static int ecp_randomize_jac( const ecp_group *grp, ecp_point *pt,
         mpi_fill_random( &l, p_size, f_rng, p_rng );
 
         while( mpi_cmp_mpi( &l, &grp->P ) >= 0 )
-            mpi_shift_r( &l, 1 );
+            MPI_CHK( mpi_shift_r( &l, 1 ) );
 
         if( count++ > 10 )
             return( POLARSSL_ERR_ECP_RANDOM_FAILED );
@@ -1510,7 +1514,7 @@ static int ecp_randomize_mxz( const ecp_group *grp, ecp_point *P,
         mpi_fill_random( &l, p_size, f_rng, p_rng );
 
         while( mpi_cmp_mpi( &l, &grp->P ) >= 0 )
-            mpi_shift_r( &l, 1 );
+            MPI_CHK( mpi_shift_r( &l, 1 ) );
 
         if( count++ > 10 )
             return( POLARSSL_ERR_ECP_RANDOM_FAILED );
@@ -1598,7 +1602,7 @@ static int ecp_mul_mxz( ecp_group *grp, ecp_point *R,
     ecp_point_init( &RP ); mpi_init( &PX );
 
     /* Save PX and read from P before writing to R, in case P == R */
-    mpi_copy( &PX, &P->X );
+    MPI_CHK( mpi_copy( &PX, &P->X ) );
     MPI_CHK( ecp_copy( &RP, P ) );
 
     /* Set R to zero in modified x/z coordinates */
@@ -1772,7 +1776,7 @@ int ecp_check_privkey( const ecp_group *grp, const mpi *d )
         else
             return( 0 );
     }
-#endif
+#endif /* POLARSSL_ECP_MONTGOMERY */
 #if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
     if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
     {
@@ -1783,7 +1787,7 @@ int ecp_check_privkey( const ecp_group *grp, const mpi *d )
         else
             return( 0 );
     }
-#endif
+#endif /* POLARSSL_ECP_SHORT_WEIERSTRASS */
 
     return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 }
@@ -1819,7 +1823,7 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
         MPI_CHK( mpi_set_bit( d, 2, 0 ) );
     }
     else
-#endif
+#endif /* POLARSSL_ECP_MONTGOMERY */
 #if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
     if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
     {
@@ -1856,7 +1860,7 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
                mpi_cmp_mpi( d, &grp->N ) >= 0 );
     }
     else
-#endif
+#endif /* POLARSSL_ECP_SHORT_WEIERSTRASS */
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
 cleanup:
@@ -2009,6 +2013,6 @@ cleanup:
     return( ret );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_ECP_C */

@@ -28,7 +28,11 @@
  *  http://csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_SHA256_C)
 
@@ -239,7 +243,8 @@ void sha256_process( sha256_context *ctx, const unsigned char data[64] )
 /*
  * SHA-256 process buffer
  */
-void sha256_update( sha256_context *ctx, const unsigned char *input, size_t ilen )
+void sha256_update( sha256_context *ctx, const unsigned char *input,
+                    size_t ilen )
 {
     size_t fill;
     uint32_t left;
@@ -403,7 +408,8 @@ void sha256_hmac_starts( sha256_context *ctx, const unsigned char *key,
 /*
  * SHA-256 HMAC process buffer
  */
-void sha256_hmac_update( sha256_context *ctx, const unsigned char *input, size_t ilen )
+void sha256_hmac_update( sha256_context *ctx, const unsigned char *input,
+                         size_t ilen )
 {
     sha256_update( ctx, input, ilen );
 }
@@ -457,7 +463,7 @@ void sha256_hmac( const unsigned char *key, size_t keylen,
 /*
  * FIPS-180-2 test vectors
  */
-static unsigned char sha256_test_buf[3][57] = 
+static unsigned char sha256_test_buf[3][57] =
 {
     { "abc" },
     { "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" },
@@ -706,6 +712,6 @@ int sha256_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_SHA256_C */

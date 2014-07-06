@@ -3,7 +3,7 @@
  *
  * \brief Object Identifier (OID) database
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -25,7 +25,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_OID_C)
 
@@ -194,6 +198,38 @@ static const oid_x520_attr_t oid_x520_attr_type[] =
     {
         { ADD_LEN( OID_AT_POSTAL_CODE ), "id-at-postalCode",               "Postal code" },
         "postalCode",
+    },
+    {
+        { ADD_LEN( OID_AT_SUR_NAME ),    "id-at-surName",                  "Surname" },
+        "SN",
+    },
+    {
+        { ADD_LEN( OID_AT_GIVEN_NAME ),  "id-at-givenName",                "Given name" },
+        "GN",
+    },
+    {
+        { ADD_LEN( OID_AT_INITIALS ),    "id-at-initials",                 "Initials" },
+        "initials",
+    },
+    {
+        { ADD_LEN( OID_AT_GENERATION_QUALIFIER ), "id-at-generationQualifier", "Generation qualifier" },
+        "generationQualifier",
+    },
+    {
+        { ADD_LEN( OID_AT_TITLE ),       "id-at-title",                    "Title" },
+        "title",
+    },
+    {
+        { ADD_LEN( OID_AT_DN_QUALIFIER ),"id-at-dnQualifier",              "Distinguished Name qualifier" },
+        "dnQualifier",
+    },
+    {
+        { ADD_LEN( OID_AT_PSEUDONYM ),   "id-at-pseudonym",                "Pseudonym" },
+        "pseudonym",
+    },
+    {
+        { ADD_LEN( OID_DOMAIN_COMPONENT ), "id-domainComponent",           "Domain component" },
+        "DC",
     },
     {
         { NULL, 0, NULL, NULL },
@@ -588,7 +624,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
 }
 
 #define snprintf compat_snprintf
-#endif
+#endif /* _MSC_VER && !snprintf && !EFIX64 && !EFI32 */
 
 #define SAFE_SNPRINTF()                         \
 {                                               \

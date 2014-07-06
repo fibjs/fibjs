@@ -34,7 +34,11 @@
  *  http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_X509_USE_C)
 
@@ -464,7 +468,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
 }
 
 #define snprintf compat_snprintf
-#endif
+#endif /* _MSC_VER && !snprintf && !EFIX64 && !EFI32 */
 
 #define POLARSSL_ERR_DEBUG_BUF_TOO_SMALL    -2
 
@@ -648,7 +652,7 @@ static void x509_get_current_time( x509_time *now )
     now->hour = lt.tm_hour;
     now->min = lt.tm_min;
     now->sec = lt.tm_sec;
-#endif
+#endif /* _WIN32 && !EFIX64 && !EFI32 */
 }
 
 /*
@@ -735,7 +739,7 @@ int x509_time_future( const x509_time *from )
  */
 int x509_self_test( int verbose )
 {
-#if defined(POLARSSL_CERTS_C) && defined(POLARSSL_MD5_C)
+#if defined(POLARSSL_CERTS_C) && defined(POLARSSL_SHA1_C)
     int ret;
     int flags;
     x509_crt cacert;
@@ -792,9 +796,9 @@ int x509_self_test( int verbose )
 #else
     ((void) verbose);
     return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
-#endif
+#endif /* POLARSSL_CERTS_C && POLARSSL_SHA1_C */
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
 #endif /* POLARSSL_X509_USE_C */

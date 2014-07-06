@@ -3,7 +3,7 @@
  *
  * \brief SSL/TLS functions.
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,7 +27,11 @@
 #ifndef POLARSSL_SSL_H
 #define POLARSSL_SSL_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 #include "net.h"
 #include "bignum.h"
 
@@ -164,10 +168,10 @@
 #else
 #if defined(POLARSSL_SSL_PROTO_TLS1_2)
 #define SSL_MIN_MINOR_VERSION           SSL_MINOR_VERSION_3
-#endif
-#endif
-#endif
-#endif
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* POLARSSL_SSL_PROTO_TLS1_1 */
+#endif /* POLARSSL_SSL_PROTO_TLS1   */
+#endif /* POLARSSL_SSL_PROTO_SSL3   */
 
 /* Determine maximum supported version */
 #define SSL_MAX_MAJOR_VERSION           SSL_MAJOR_VERSION_3
@@ -183,10 +187,10 @@
 #else
 #if defined(POLARSSL_SSL_PROTO_SSL3)
 #define SSL_MAX_MINOR_VERSION           SSL_MINOR_VERSION_0
-#endif
-#endif
-#endif
-#endif
+#endif /* POLARSSL_SSL_PROTO_SSL3   */
+#endif /* POLARSSL_SSL_PROTO_TLS1   */
+#endif /* POLARSSL_SSL_PROTO_TLS1_1 */
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
 /* RFC 6066 section 4, see also mfl_code_to_length in ssl_tls.c
  * NONE must be zero so that memset()ing structure to zero works */
@@ -228,9 +232,17 @@
 #define SSL_SESSION_TICKETS_DISABLED     0
 #define SSL_SESSION_TICKETS_ENABLED      1
 
-#if !defined(POLARSSL_CONFIG_OPTIONS)
+/**
+ * \name SECTION: Module settings
+ *
+ * The configuration options you can set for this module are in this section.
+ * Either change them in config.h or define them on the compiler command line.
+ * \{
+ */
+
+#if !defined(SSL_DEFAULT_TICKET_LIFETIME)
 #define SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
-#endif /* !POLARSSL_CONFIG_OPTIONS */
+#endif
 
 /*
  * Size of the input / output buffer.
@@ -239,9 +251,11 @@
  * communicate with you anymore. Only change this value if you control
  * both sides of the connection and have it reduced at both sides!
  */
-#if !defined(POLARSSL_CONFIG_OPTIONS)
+#if !defined(SSL_MAX_CONTENT_LEN)
 #define SSL_MAX_CONTENT_LEN         16384   /**< Size of the input / output buffer */
-#endif /* !POLARSSL_CONFIG_OPTIONS */
+#endif
+
+/* \} name SECTION: Module settings */
 
 /*
  * Allow an extra 301 bytes for the record header
@@ -381,7 +395,7 @@ extern "C" {
  */
 typedef int (*rsa_decrypt_func)( void *ctx, int mode, size_t *olen,
                         const unsigned char *input, unsigned char *output,
-                        size_t output_max_len ); 
+                        size_t output_max_len );
 typedef int (*rsa_sign_func)( void *ctx,
                      int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                      int mode, md_type_t md_alg, unsigned int hashlen,
@@ -531,7 +545,7 @@ struct _ssl_handshake_params
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
     ssl_key_cert *sni_key_cert;         /*!<  key/cert list from SNI  */
 #endif
-#endif
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
     /*
      * Checksum contexts
@@ -800,7 +814,7 @@ extern int (*ssl_hw_record_reset)(ssl_context *ssl);
 extern int (*ssl_hw_record_write)(ssl_context *ssl);
 extern int (*ssl_hw_record_read)(ssl_context *ssl);
 extern int (*ssl_hw_record_finish)(ssl_context *ssl);
-#endif
+#endif /* POLARSSL_SSL_HW_RECORD_ACCEL */
 
 /**
  * \brief Returns the list of ciphersuites supported by the SSL/TLS module.
@@ -811,8 +825,8 @@ extern int (*ssl_hw_record_finish)(ssl_context *ssl);
 const int *ssl_list_ciphersuites( void );
 
 /**
- * \brief               Return the name of the ciphersuite associated with the given
- *                      ID
+ * \brief               Return the name of the ciphersuite associated with the
+ *                      given ID
  *
  * \param ciphersuite_id SSL ciphersuite ID
  *
@@ -821,8 +835,8 @@ const int *ssl_list_ciphersuites( void );
 const char *ssl_get_ciphersuite_name( const int ciphersuite_id );
 
 /**
- * \brief               Return the ID of the ciphersuite associated with the given
- *                      name
+ * \brief               Return the ID of the ciphersuite associated with the
+ *                      given name
  *
  * \param ciphersuite_name SSL ciphersuite name
  *
@@ -1181,7 +1195,7 @@ int ssl_set_dh_param( ssl_context *ssl, const char *dhm_P, const char *dhm_G );
  * \return         0 if successful
  */
 int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
-#endif
+#endif /* POLARSSL_DHM_C */
 
 #if defined(POLARSSL_SSL_SET_CURVES)
 /**
@@ -1203,7 +1217,7 @@ int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
  *                 terminated by POLARSSL_ECP_DP_NONE.
  */
 void ssl_set_curves( ssl_context *ssl, const ecp_group_id *curves );
-#endif
+#endif /* POLARSSL_SSL_SET_CURVES */
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
 /**
@@ -1381,7 +1395,7 @@ void ssl_set_renegotiation( ssl_context *ssl, int renegotiation );
 /**
  * \brief          Prevent or allow legacy renegotiation.
  *                 (Default: SSL_LEGACY_NO_RENEGOTIATION)
- *                 
+ *
  *                 SSL_LEGACY_NO_RENEGOTIATION allows connections to
  *                 be established even if the peer does not support
  *                 secure renegotiation, but does not allow renegotiation
@@ -1628,7 +1642,8 @@ int ssl_write_change_cipher_spec( ssl_context *ssl );
 int ssl_parse_finished( ssl_context *ssl );
 int ssl_write_finished( ssl_context *ssl );
 
-void ssl_optimize_checksum( ssl_context *ssl, const ssl_ciphersuite_t *ciphersuite_info );
+void ssl_optimize_checksum( ssl_context *ssl,
+                            const ssl_ciphersuite_t *ciphersuite_info );
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
 int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex );

@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_PK_C)
 
@@ -330,7 +334,7 @@ static int ecdsa_sign_wrap( void *ctx, md_type_t md_alg,
 
     return( ecdsa_write_signature( (ecdsa_context *) ctx,
                 hash, hash_len, sig, sig_len, f_rng, p_rng ) );
-#endif
+#endif /* POLARSSL_ECDSA_DETERMINISTIC */
 }
 
 static void *ecdsa_alloc_wrap( void )

@@ -29,7 +29,11 @@
  *  http://www.ietf.org/rfc/rfc1320.txt
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_MD4_C)
 
@@ -320,7 +324,8 @@ int md4_file( const char *path, unsigned char output[16] )
 /*
  * MD4 HMAC context setup
  */
-void md4_hmac_starts( md4_context *ctx, const unsigned char *key, size_t keylen )
+void md4_hmac_starts( md4_context *ctx, const unsigned char *key,
+                      size_t keylen )
 {
     size_t i;
     unsigned char sum[16];
@@ -350,7 +355,8 @@ void md4_hmac_starts( md4_context *ctx, const unsigned char *key, size_t keylen 
 /*
  * MD4 HMAC process buffer
  */
-void md4_hmac_update( md4_context *ctx, const unsigned char *input, size_t ilen )
+void md4_hmac_update( md4_context *ctx, const unsigned char *input,
+                      size_t ilen )
 {
     md4_update( ctx, input, ilen );
 }
@@ -403,7 +409,7 @@ void md4_hmac( const unsigned char *key, size_t keylen,
  */
 static const char md4_test_str[7][81] =
 {
-    { "" }, 
+    { "" },
     { "a" },
     { "abc" },
     { "message digest" },
@@ -465,6 +471,6 @@ int md4_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_MD4_C */

@@ -27,7 +27,11 @@
 #ifndef POLARSSL_THREADING_H
 #define POLARSSL_THREADING_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #include <stdlib.h>
 
@@ -40,13 +44,8 @@ extern "C" {
 #define POLARSSL_ERR_THREADING_MUTEX_ERROR                 -0x001E  /**< Locking / unlocking / free failed with error code. */
 
 #if defined(POLARSSL_THREADING_PTHREAD)
-#ifdef _WIN32
-#include <windows.h>
-typedef CRITICAL_SECTION threading_mutex_t;
-#else
 #include <pthread.h>
 typedef pthread_mutex_t threading_mutex_t;
-#endif
 #endif
 
 #if defined(POLARSSL_THREADING_ALT)

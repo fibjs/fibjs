@@ -133,6 +133,24 @@
 //#define POLARSSL_PLATFORM_MEMORY
 
 /**
+ * \def POLARSSL_PLATFORM_NO_STD_FUNCTIONS
+ *
+ * Do not assign standard functions in the platform layer (e.g. malloc() to
+ * POLARSSL_PLATFORM_STD_MALLOC and printf() to POLARSSL_PLATFORM_STD_PRINTF)
+ *
+ * This makes sure there are no linking errors on platforms that do not support
+ * these functions. You will HAVE to provide alternatives, either at runtime
+ * via the platform_set_xxx() functions or at compile time by setting
+ * the POLARSSL_PLATFORM_STD_XXX defines.
+ *
+ * Requires: POLARSSL_PLATFORM_C
+ *
+ * Uncomment to prevent default assignment of standard functions in the
+ * platform layer.
+ */
+//#define POLARSSL_PLATFORM_NO_STD_FUNCTIONS
+
+/**
  * \def POLARSSL_PLATFORM_XXX_ALT
  *
  * Uncomment a macro to let PolarSSL support the function in the platform
@@ -263,8 +281,8 @@
  *      TLS_PSK_WITH_NULL_SHA
  *
  * Uncomment this macro to enable the NULL cipher and ciphersuites
-#define POLARSSL_CIPHER_NULL_CIPHER
  */
+//#define POLARSSL_CIPHER_NULL_CIPHER
 
 /**
  * \def POLARSSL_CIPHER_PADDING_XXX
@@ -294,7 +312,7 @@
  *
  * Uncomment this macro to enable weak ciphersuites
  */
-#define POLARSSL_ENABLE_WEAK_CIPHERSUITES
+//#define POLARSSL_ENABLE_WEAK_CIPHERSUITES
 
 /**
  * \def POLARSSL_ECP_XXXX_ENABLED
@@ -637,7 +655,7 @@
  *
  * Enable functions that use the filesystem.
  */
-//#define POLARSSL_FS_IO
+#define POLARSSL_FS_IO
 
 /**
  * \def POLARSSL_NO_DEFAULT_ENTROPY_SOURCES
@@ -935,7 +953,20 @@
  *
  * Uncomment this to enable pthread mutexes.
  */
-#define POLARSSL_THREADING_PTHREAD
+//#define POLARSSL_THREADING_PTHREAD
+
+/**
+ * \def POLARSSL_VERSION_FEATURES
+ *
+ * Allow run-time checking of compile-time enabled features. Thus allowing users
+ * to check at run-time if the library is for instance compiled with threading
+ * support via version_check_feature().
+ *
+ * Requires: POLARSSL_VERSION_C
+ *
+ * Comment this to disable run-time checking and save ROM space
+ */
+#define POLARSSL_VERSION_FEATURES
 
 /**
  * \def POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3
@@ -945,7 +976,7 @@
  *
  * Uncomment to prevent an error.
  */
-#define POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3
+//#define POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3
 
 /**
  * \def POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
@@ -1295,7 +1326,7 @@
  *
  * This module provides debugging functions.
  */
-//#define POLARSSL_DEBUG_C
+#define POLARSSL_DEBUG_C
 
 /**
  * \def POLARSSL_DES_C
@@ -1442,7 +1473,7 @@
  *
  * Uncomment to enable the HAVEGE random generator.
  */
-#define POLARSSL_HAVEGE_C
+//#define POLARSSL_HAVEGE_C
 
 /**
  * \def POLARSSL_HMAC_DRBG_C
@@ -1480,7 +1511,7 @@
  *
  * Uncomment to enable support for (rare) MD2-signed X.509 certs.
  */
-#define POLARSSL_MD2_C
+//#define POLARSSL_MD2_C
 
 /**
  * \def POLARSSL_MD4_C
@@ -1492,7 +1523,7 @@
  *
  * Uncomment to enable support for (rare) MD4-signed X.509 certs.
  */
-#define POLARSSL_MD4_C
+//#define POLARSSL_MD4_C
 
 /**
  * \def POLARSSL_MD5_C
@@ -1698,7 +1729,7 @@
  * This module enables SSL/TLS PKCS #11 smartcard support.
  * Requires the presence of the PKCS#11 helper library (libpkcs11-helper)
  */
-// #define POLARSSL_PKCS11_C
+//#define POLARSSL_PKCS11_C
 
 /**
  * \def POLARSSL_PKCS12_C
@@ -1883,7 +1914,7 @@
  *
  * Enable this layer to allow use of mutexes within PolarSSL
  */
-#define POLARSSL_THREADING_C
+//#define POLARSSL_THREADING_C
 
 /**
  * \def POLARSSL_TIMING_C
@@ -2026,373 +2057,64 @@
  * This section allows for the setting of module specific sizes and
  * configuration options. The default values are already present in the
  * relevant header files and should suffice for the regular use cases.
- * Our advice is to enable POLARSSL_CONFIG_OPTIONS and change values here
- * only if you have a good reason and know the consequences.
  *
- * If POLARSSL_CONFIG_OPTIONS is undefined here the options in the module
- * header file take precedence.
+ * Our advice is to enable options and change their values here
+ * only if you have a good reason and know the consequences.
  *
  * Please check the respective header file for documentation on these
  * parameters (to prevent duplicate documentation).
- *
- * Uncomment POLARSSL_CONFIG_OPTIONS to enable using the values defined here.
  * \{
  */
-//#define POLARSSL_CONFIG_OPTIONS   /**< Enable config.h module value configuration */
 
-#if defined(POLARSSL_CONFIG_OPTIONS)
-
-// MPI / BIGNUM options
-//
-#define POLARSSL_MPI_WINDOW_SIZE            6 /**< Maximum windows size used. */
-#define POLARSSL_MPI_MAX_SIZE             512 /**< Maximum number of bytes for usable MPIs. */
-
-// CTR_DRBG options
-//
-#define CTR_DRBG_ENTROPY_LEN               48 /**< Amount of entropy used per seed by default (48 with SHA-512, 32 with SHA-256) */
-#define CTR_DRBG_RESEED_INTERVAL        10000 /**< Interval before reseed is performed by default */
-#define CTR_DRBG_MAX_INPUT                256 /**< Maximum number of additional input bytes */
-#define CTR_DRBG_MAX_REQUEST             1024 /**< Maximum number of requested bytes per call */
-#define CTR_DRBG_MAX_SEED_INPUT           384 /**< Maximum size of (re)seed buffer */
-
-// HMAC_DRBG options
-//
-#define POLARSSL_HMAC_DRBG_RESEED_INTERVAL   10000 /**< Interval before reseed is performed by default */
-#define POLARSSL_HMAC_DRBG_MAX_INPUT           256 /**< Maximum number of additional input bytes */
-#define POLARSSL_HMAC_DRBG_MAX_REQUEST        1024 /**< Maximum number of requested bytes per call */
-#define POLARSSL_HMAC_DRBG_MAX_SEED_INPUT      384 /**< Maximum size of (re)seed buffer */
-
-// ECP options
-//
-#define POLARSSL_ECP_MAX_BITS             521 /**< Maximum bit size of groups */
-#define POLARSSL_ECP_WINDOW_SIZE            6 /**< Maximum window size used */
-#define POLARSSL_ECP_FIXED_POINT_OPTIM      1 /**< Enable fixed-point speed-up */
-
-// Entropy options
-//
-#define ENTROPY_MAX_SOURCES                20 /**< Maximum number of sources supported */
-#define ENTROPY_MAX_GATHER                128 /**< Maximum amount requested from entropy sources */
-
-// Memory buffer allocator options
-#define MEMORY_ALIGN_MULTIPLE               4 /**< Align on multiples of this value */
-
-// Platform options
-//
-#define POLARSSL_PLATFORM_STD_MEM_HDR <stdlib.h> /**< Header to include for default allocator. Don't define if no header is needed. */
-#define POLARSSL_PLATFORM_STD_MALLOC   malloc /**< Default allocator to use, can be undefined */
-#define POLARSSL_PLATFORM_STD_FREE       free /**< Default free to use, can be undefined */
-#define POLARSSL_PLATFORM_STD_PRINTF   printf /**< Default printf to use, can be undefined */
-#define POLARSSL_PLATFORM_STD_FPRINTF fprintf /**< Default fprintf to use, can be undefined */
-
-// SSL Cache options
-//
-#define SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */
-#define SSL_CACHE_DEFAULT_MAX_ENTRIES      50 /**< Maximum entries in cache */
-
-// SSL options
-//
-#define SSL_MAX_CONTENT_LEN             16384 /**< Size of the input / output buffer */
-#define SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
-
-#endif /* POLARSSL_CONFIG_OPTIONS */
-
-/* \} name */
-
-/*
- * Sanity checks on defines and dependencies
- */
-#if defined(POLARSSL_AESNI_C) && !defined(POLARSSL_HAVE_ASM)
-#error "POLARSSL_AESNI_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_CERTS_C) && !defined(POLARSSL_PEM_PARSE_C)
-#error "POLARSSL_CERTS_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_CTR_DRBG_C) && !defined(POLARSSL_AES_C)
-#error "POLARSSL_CTR_DRBG_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_DHM_C) && !defined(POLARSSL_BIGNUM_C)
-#error "POLARSSL_DHM_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_ECDH_C) && !defined(POLARSSL_ECP_C)
-#error "POLARSSL_ECDH_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_ECDSA_C) &&            \
-    ( !defined(POLARSSL_ECP_C) ||           \
-      !defined(POLARSSL_ASN1_PARSE_C) ||    \
-      !defined(POLARSSL_ASN1_WRITE_C) )
-#error "POLARSSL_ECDSA_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_ECDSA_DETERMINISTIC) && !defined(POLARSSL_HMAC_DRBG_C)
-#error "POLARSSL_ECDSA_DETERMINISTIC defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_ECP_C) && ( !defined(POLARSSL_BIGNUM_C) || (   \
-    !defined(POLARSSL_ECP_DP_SECP192R1_ENABLED) &&                  \
-    !defined(POLARSSL_ECP_DP_SECP224R1_ENABLED) &&                  \
-    !defined(POLARSSL_ECP_DP_SECP256R1_ENABLED) &&                  \
-    !defined(POLARSSL_ECP_DP_SECP384R1_ENABLED) &&                  \
-    !defined(POLARSSL_ECP_DP_SECP521R1_ENABLED) &&                  \
-    !defined(POLARSSL_ECP_DP_BP256R1_ENABLED)   &&                  \
-    !defined(POLARSSL_ECP_DP_BP384R1_ENABLED)   &&                  \
-    !defined(POLARSSL_ECP_DP_BP512R1_ENABLED)   &&                  \
-    !defined(POLARSSL_ECP_DP_M255_ENABLED)      &&                  \
-    !defined(POLARSSL_ECP_DP_SECP192K1_ENABLED) &&                  \
-    !defined(POLARSSL_ECP_DP_SECP224K1_ENABLED) &&                  \
-    !defined(POLARSSL_ECP_DP_SECP256K1_ENABLED) ) )
-#error "POLARSSL_ECP_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_ENTROPY_C) && (!defined(POLARSSL_SHA512_C) &&      \
-                                    !defined(POLARSSL_SHA256_C))
-#error "POLARSSL_ENTROPY_C defined, but not all prerequisites"
-#endif
-#if defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_SHA512_C) &&         \
-    defined(POLARSSL_CONFIG_OPTIONS) && (CTR_DRBG_ENTROPY_LEN > 64)
-#error "CTR_DRBG_ENTROPY_LEN value too high"
-#endif
-#if defined(POLARSSL_ENTROPY_C) &&                                            \
-    ( !defined(POLARSSL_SHA512_C) || defined(POLARSSL_ENTROPY_FORCE_SHA256) ) \
-    && defined(POLARSSL_CONFIG_OPTIONS) && (CTR_DRBG_ENTROPY_LEN > 32)
-#error "CTR_DRBG_ENTROPY_LEN value too high"
-#endif
-#if defined(POLARSSL_ENTROPY_C) && \
-    defined(POLARSSL_ENTROPY_FORCE_SHA256) && !defined(POLARSSL_SHA256_C)
-#error "POLARSSL_ENTROPY_FORCE_SHA256 defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_GCM_C) && (                                        \
-        !defined(POLARSSL_AES_C) && !defined(POLARSSL_CAMELLIA_C) )
-#error "POLARSSL_GCM_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_HAVEGE_C) && !defined(POLARSSL_TIMING_C)
-#error "POLARSSL_HAVEGE_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_HMAC_DRBG) && !defined(POLARSSL_MD_C)
-#error "POLARSSL_HMAC_DRBG_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) &&                 \
-    ( !defined(POLARSSL_ECDH_C) || !defined(POLARSSL_X509_CRT_PARSE_C) )
-#error "POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED) &&                 \
-    ( !defined(POLARSSL_ECDH_C) || !defined(POLARSSL_X509_CRT_PARSE_C) )
-#error "POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) && !defined(POLARSSL_DHM_C)
-#error "POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED) &&                     \
-    !defined(POLARSSL_ECDH_C)
-#error "POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) &&                   \
-    ( !defined(POLARSSL_DHM_C) || !defined(POLARSSL_RSA_C) ||           \
-      !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_PKCS1_V15) )
-#error "POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) &&                 \
-    ( !defined(POLARSSL_ECDH_C) || !defined(POLARSSL_RSA_C) ||          \
-      !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_PKCS1_V15) )
-#error "POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) &&                 \
-    ( !defined(POLARSSL_ECDH_C) || !defined(POLARSSL_ECDSA_C) ||          \
-      !defined(POLARSSL_X509_CRT_PARSE_C) )
-#error "POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED) &&                   \
-    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) ||\
-      !defined(POLARSSL_PKCS1_V15) )
-#error "POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED) &&                       \
-    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) ||\
-      !defined(POLARSSL_PKCS1_V15) )
-#error "POLARSSL_KEY_EXCHANGE_RSA_ENABLED defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) &&                          \
-    ( !defined(POLARSSL_PLATFORM_C) || !defined(POLARSSL_PLATFORM_MEMORY) )
-#error "POLARSSL_MEMORY_BUFFER_ALLOC_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_PADLOCK_C) && !defined(POLARSSL_HAVE_ASM)
-#error "POLARSSL_PADLOCK_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_PBKDF2_C) && !defined(POLARSSL_MD_C)
-#error "POLARSSL_PBKDF2_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_PEM_PARSE_C) && !defined(POLARSSL_BASE64_C)
-#error "POLARSSL_PEM_PARSE_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_PEM_WRITE_C) && !defined(POLARSSL_BASE64_C)
-#error "POLARSSL_PEM_WRITE_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_PK_PARSE_C) && !defined(POLARSSL_PK_C)
-#error "POLARSSL_PK_PARSE_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_PK_WRITE_C) && !defined(POLARSSL_PK_C)
-#error "POLARSSL_PK_WRITE_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_PKCS11_C) && !defined(POLARSSL_PK_C)
-#error "POLARSSL_PKCS11_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_RSA_C) && ( !defined(POLARSSL_BIGNUM_C) ||         \
-    !defined(POLARSSL_OID_C) )
-#error "POLARSSL_RSA_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_SSL_PROTO_SSL3) && ( !defined(POLARSSL_MD5_C) ||     \
-    !defined(POLARSSL_SHA1_C) )
-#error "POLARSSL_SSL_PROTO_SSL3 defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_SSL_PROTO_TLS1) && ( !defined(POLARSSL_MD5_C) ||     \
-    !defined(POLARSSL_SHA1_C) )
-#error "POLARSSL_SSL_PROTO_TLS1 defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_SSL_PROTO_TLS1_1) && ( !defined(POLARSSL_MD5_C) ||     \
-    !defined(POLARSSL_SHA1_C) )
-#error "POLARSSL_SSL_PROTO_TLS1_1 defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_SSL_PROTO_TLS1_2) && ( !defined(POLARSSL_SHA1_C) &&     \
-    !defined(POLARSSL_SHA256_C) && !defined(POLARSSL_SHA512_C) )
-#error "POLARSSL_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_SSL_CLI_C) && !defined(POLARSSL_SSL_TLS_C)
-#error "POLARSSL_SSL_CLI_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_SSL_TLS_C) && ( !defined(POLARSSL_CIPHER_C) ||     \
-    !defined(POLARSSL_MD_C) )
-#error "POLARSSL_SSL_TLS_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_SSL_SRV_C) && !defined(POLARSSL_SSL_TLS_C)
-#error "POLARSSL_SSL_SRV_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_SSL_TLS_C) && (!defined(POLARSSL_SSL_PROTO_SSL3) && \
-    !defined(POLARSSL_SSL_PROTO_TLS1) && !defined(POLARSSL_SSL_PROTO_TLS1_1) && \
-    !defined(POLARSSL_SSL_PROTO_TLS1_2))
-#error "POLARSSL_SSL_TLS_C defined, but no protocols are active"
-#endif
-
-#if defined(POLARSSL_SSL_TLS_C) && (defined(POLARSSL_SSL_PROTO_SSL3) && \
-    defined(POLARSSL_SSL_PROTO_TLS1_1) && !defined(POLARSSL_SSL_PROTO_TLS1))
-#error "Illegal protocol selection"
-#endif
-
-#if defined(POLARSSL_SSL_TLS_C) && (defined(POLARSSL_SSL_PROTO_TLS1) && \
-    defined(POLARSSL_SSL_PROTO_TLS1_2) && !defined(POLARSSL_SSL_PROTO_TLS1_1))
-#error "Illegal protocol selection"
-#endif
-
-#if defined(POLARSSL_SSL_TLS_C) && (defined(POLARSSL_SSL_PROTO_SSL3) && \
-    defined(POLARSSL_SSL_PROTO_TLS1_2) && (!defined(POLARSSL_SSL_PROTO_TLS1) || \
-    !defined(POLARSSL_SSL_PROTO_TLS1_1)))
-#error "Illegal protocol selection"
-#endif
-
-#if defined(POLARSSL_SSL_SESSION_TICKETS) && defined(POLARSSL_SSL_TLS_C) && \
-    ( !defined(POLARSSL_AES_C) || !defined(POLARSSL_SHA256_C) ||            \
-      !defined(POLARSSL_CIPHER_MODE_CBC) )
-#error "POLARSSL_SSL_SESSION_TICKETS_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION) && \
-        !defined(POLARSSL_X509_CRT_PARSE_C)
-#error "POLARSSL_SSL_SERVER_NAME_INDICATION defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_THREADING_PTHREAD)
-#if !defined(POLARSSL_THREADING_C) || defined(POLARSSL_THREADING_IMPL)
-#error "POLARSSL_THREADING_PTHREAD defined, but not all prerequisites"
-#endif
-#define POLARSSL_THREADING_IMPL
-#endif
-
-#if defined(POLARSSL_THREADING_ALT)
-#if !defined(POLARSSL_THREADING_C) || defined(POLARSSL_THREADING_IMPL)
-#error "POLARSSL_THREADING_ALT defined, but not all prerequisites"
-#endif
-#define POLARSSL_THREADING_IMPL
-#endif
-
-#if defined(POLARSSL_THREADING_C) && !defined(POLARSSL_THREADING_IMPL)
-#error "POLARSSL_THREADING_C defined, single threading implementation required"
-#endif
-#undef POLARSSL_THREADING_IMPL
-
-#if defined(POLARSSL_X509_USE_C) && ( !defined(POLARSSL_BIGNUM_C) ||  \
-    !defined(POLARSSL_OID_C) || !defined(POLARSSL_ASN1_PARSE_C) ||      \
-    !defined(POLARSSL_PK_PARSE_C) )
-#error "POLARSSL_X509_USE_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_X509_CREATE_C) && ( !defined(POLARSSL_BIGNUM_C) ||  \
-    !defined(POLARSSL_OID_C) || !defined(POLARSSL_ASN1_WRITE_C) ||       \
-    !defined(POLARSSL_PK_WRITE_C) )
-#error "POLARSSL_X509_CREATE_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_X509_CRT_PARSE_C) && ( !defined(POLARSSL_X509_USE_C) )
-#error "POLARSSL_X509_CRT_PARSE_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_X509_CRL_PARSE_C) && ( !defined(POLARSSL_X509_USE_C) )
-#error "POLARSSL_X509_CRL_PARSE_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_X509_CSR_PARSE_C) && ( !defined(POLARSSL_X509_USE_C) )
-#error "POLARSSL_X509_CSR_PARSE_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_X509_CRT_WRITE_C) && ( !defined(POLARSSL_X509_CREATE_C) )
-#error "POLARSSL_X509_CRT_WRITE_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_X509_CSR_WRITE_C) && ( !defined(POLARSSL_X509_CREATE_C) )
-#error "POLARSSL_X509_CSR_WRITE_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_HAVE_ASM) &&  \
-    ( defined(__amd64__) || defined(__x86_64__) )   &&  \
-    ! defined(POLARSSL_HAVE_X86_64)
-#if __GNUC__ > 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ > 2 || \
-    ( __GNUC_MINOR__ == 2 && __GNUC_PATCHLEVEL__ > 4)))
-#define POLARSSL_HAVE_X86_64
-#elif __clang_major__ > 4 || (__clang_major__ == 4 && (__clang_minor__ > 2 || \
-    ( __clang_minor__ == 2 && __clang_patchlevel__ > 4)))
-#define POLARSSL_HAVE_X86_64
-#endif
-#endif
-
-#endif /* config.h */
+/* MPI / BIGNUM options */
+//#define POLARSSL_MPI_WINDOW_SIZE            6 /**< Maximum windows size used. */
+//#define POLARSSL_MPI_MAX_SIZE             512 /**< Maximum number of bytes for usable MPIs. */
+
+/* CTR_DRBG options */
+//#define CTR_DRBG_ENTROPY_LEN               48 /**< Amount of entropy used per seed by default (48 with SHA-512, 32 with SHA-256) */
+//#define CTR_DRBG_RESEED_INTERVAL        10000 /**< Interval before reseed is performed by default */
+//#define CTR_DRBG_MAX_INPUT                256 /**< Maximum number of additional input bytes */
+//#define CTR_DRBG_MAX_REQUEST             1024 /**< Maximum number of requested bytes per call */
+//#define CTR_DRBG_MAX_SEED_INPUT           384 /**< Maximum size of (re)seed buffer */
+
+/* HMAC_DRBG options */
+//#define POLARSSL_HMAC_DRBG_RESEED_INTERVAL   10000 /**< Interval before reseed is performed by default */
+//#define POLARSSL_HMAC_DRBG_MAX_INPUT           256 /**< Maximum number of additional input bytes */
+//#define POLARSSL_HMAC_DRBG_MAX_REQUEST        1024 /**< Maximum number of requested bytes per call */
+//#define POLARSSL_HMAC_DRBG_MAX_SEED_INPUT      384 /**< Maximum size of (re)seed buffer */
+
+/* ECP options */
+//#define POLARSSL_ECP_MAX_BITS             521 /**< Maximum bit size of groups */
+//#define POLARSSL_ECP_WINDOW_SIZE            6 /**< Maximum window size used */
+//#define POLARSSL_ECP_FIXED_POINT_OPTIM      1 /**< Enable fixed-point speed-up */
+
+/* Entropy options */
+//#define ENTROPY_MAX_SOURCES                20 /**< Maximum number of sources supported */
+//#define ENTROPY_MAX_GATHER                128 /**< Maximum amount requested from entropy sources */
+
+/* Memory buffer allocator options */
+//#define MEMORY_ALIGN_MULTIPLE               4 /**< Align on multiples of this value */
+
+/* Platform options */
+//#define POLARSSL_PLATFORM_STD_MEM_HDR <stdlib.h> /**< Header to include if POLARSSL_PLATFORM_NO_STD_FUNCTIONS is defined. Don't define if no header is needed. */
+//#define POLARSSL_PLATFORM_STD_MALLOC   malloc /**< Default allocator to use, can be undefined */
+//#define POLARSSL_PLATFORM_STD_FREE       free /**< Default free to use, can be undefined */
+//#define POLARSSL_PLATFORM_STD_PRINTF   printf /**< Default printf to use, can be undefined */
+//#define POLARSSL_PLATFORM_STD_FPRINTF fprintf /**< Default fprintf to use, can be undefined */
+
+/* SSL Cache options */
+//#define SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */
+//#define SSL_CACHE_DEFAULT_MAX_ENTRIES      50 /**< Maximum entries in cache */
+
+/* SSL options */
+//#define SSL_MAX_CONTENT_LEN             16384 /**< Size of the input / output buffer */
+//#define SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
+
+/* Debug options */
+//#define POLARSSL_DEBUG_DFL_MODE POLARSSL_DEBUG_LOG_FULL /**< Default log: Full or Raw */
+
+/* \} name SECTION: Module configuration options */
+
+#include "check_config.h"
+
+#endif /* POLARSSL_CONFIG_H */

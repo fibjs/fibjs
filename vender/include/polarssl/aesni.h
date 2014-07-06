@@ -32,6 +32,12 @@
 #define POLARSSL_AESNI_AES      0x02000000u
 #define POLARSSL_AESNI_CLMUL    0x00000002u
 
+#if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) &&  \
+    ( defined(__amd64__) || defined(__x86_64__) )   &&  \
+    ! defined(POLARSSL_HAVE_X86_64)
+#define POLARSSL_HAVE_X86_64
+#endif
+
 #if defined(POLARSSL_HAVE_X86_64)
 
 /**

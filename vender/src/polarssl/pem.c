@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_PEM_PARSE_C) || defined(POLARSSL_PEM_WRITE_C)
 #include "polarssl/pem.h"
@@ -53,7 +57,8 @@ void pem_init( pem_context *ctx )
 /*
  * Read a 16-byte hex string and convert it to binary
  */
-static int pem_get_iv( const unsigned char *s, unsigned char *iv, size_t iv_len )
+static int pem_get_iv( const unsigned char *s, unsigned char *iv,
+                       size_t iv_len )
 {
     size_t i, j, k;
 

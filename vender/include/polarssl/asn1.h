@@ -27,7 +27,11 @@
 #ifndef POLARSSL_ASN1_H
 #define POLARSSL_ASN1_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_BIGNUM_C)
 #include "bignum.h"
@@ -35,15 +39,15 @@
 
 #include <string.h>
 
-/** 
+/**
  * \addtogroup asn1_module
- * \{ 
+ * \{
  */
- 
+
 /**
  * \name ASN1 Error codes
  * These error codes are OR'ed to X509 error codes for
- * higher error granularity. 
+ * higher error granularity.
  * ASN1 is a standard to specify data structures.
  * \{
  */
@@ -270,7 +274,7 @@ int asn1_get_sequence_of( unsigned char **p,
 int asn1_get_mpi( unsigned char **p,
                   const unsigned char *end,
                   mpi *X );
-#endif
+#endif /* POLARSSL_BIGNUM_C */
 
 /**
  * \brief       Retrieve an AlgorithmIdentifier ASN.1 sequence.

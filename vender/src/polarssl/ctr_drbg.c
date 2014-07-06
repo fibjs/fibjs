@@ -28,7 +28,11 @@
  *  http://csrc.nist.gov/publications/nistpubs/800-90/SP800-90revised_March2007.pdf
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_CTR_DRBG_C)
 
@@ -282,7 +286,7 @@ int ctr_drbg_reseed( ctr_drbg_context *ctx,
 
     return( 0 );
 }
-    
+
 int ctr_drbg_random_with_add( void *p_rng,
                               unsigned char *output, size_t output_len,
                               const unsigned char *additional, size_t add_len )
@@ -332,7 +336,8 @@ int ctr_drbg_random_with_add( void *p_rng,
          */
         aes_crypt_ecb( &ctx->aes_ctx, AES_ENCRYPT, ctx->counter, tmp );
 
-        use_len = (output_len > CTR_DRBG_BLOCKSIZE ) ? CTR_DRBG_BLOCKSIZE : output_len;
+        use_len = (output_len > CTR_DRBG_BLOCKSIZE ) ? CTR_DRBG_BLOCKSIZE :
+                                                       output_len;
         /*
          * Copy random block to destination
          */
@@ -520,6 +525,6 @@ int ctr_drbg_self_test( int verbose )
 
     return( 0 );
 }
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_CTR_DRBG_C */

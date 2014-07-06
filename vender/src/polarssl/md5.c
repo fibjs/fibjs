@@ -28,7 +28,11 @@
  *  http://www.ietf.org/rfc/rfc1321.txt
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_MD5_C)
 
@@ -157,7 +161,7 @@ void md5_process( md5_context *ctx, const unsigned char data[64] )
     P( B, C, D, A, 12, 20, 0x8D2A4C8A );
 
 #undef F
-    
+
 #define F(x,y,z) (x ^ y ^ z)
 
     P( A, B, C, D,  5,  4, 0xFFFA3942 );
@@ -337,7 +341,8 @@ int md5_file( const char *path, unsigned char output[16] )
 /*
  * MD5 HMAC context setup
  */
-void md5_hmac_starts( md5_context *ctx, const unsigned char *key, size_t keylen )
+void md5_hmac_starts( md5_context *ctx, const unsigned char *key,
+                      size_t keylen )
 {
     size_t i;
     unsigned char sum[16];
@@ -367,7 +372,8 @@ void md5_hmac_starts( md5_context *ctx, const unsigned char *key, size_t keylen 
 /*
  * MD5 HMAC process buffer
  */
-void md5_hmac_update( md5_context *ctx, const unsigned char *input, size_t ilen )
+void md5_hmac_update( md5_context *ctx, const unsigned char *input,
+                      size_t ilen )
 {
     md5_update( ctx, input, ilen );
 }
@@ -419,7 +425,7 @@ void md5_hmac( const unsigned char *key, size_t keylen,
  */
 static unsigned char md5_test_buf[7][81] =
 {
-    { "" }, 
+    { "" },
     { "a" },
     { "abc" },
     { "message digest" },
@@ -586,6 +592,6 @@ int md5_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_MD5_C */

@@ -28,7 +28,11 @@
  *  http://groups.google.com/group/sci.crypt/msg/10a300c9d21afca0
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_ARC4_C)
 
@@ -45,7 +49,8 @@
 /*
  * ARC4 key schedule
  */
-void arc4_setup( arc4_context *ctx, const unsigned char *key, unsigned int keylen )
+void arc4_setup( arc4_context *ctx, const unsigned char *key,
+                 unsigned int keylen )
 {
     int i, j, a;
     unsigned int k;
@@ -174,6 +179,6 @@ int arc4_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_ARC4_C */

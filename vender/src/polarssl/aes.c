@@ -29,7 +29,11 @@
  *  http://csrc.nist.gov/publications/fips/fips197/fips-197.pdf
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_AES_C)
 
@@ -342,16 +346,16 @@ static const uint32_t RCON[10] =
     0x0000001B, 0x00000036
 };
 
-#else
+#else /* POLARSSL_AES_ROM_TABLES */
 
 /*
  * Forward S-box & tables
  */
 static unsigned char FSb[256];
-static uint32_t FT0[256]; 
-static uint32_t FT1[256]; 
-static uint32_t FT2[256]; 
-static uint32_t FT3[256]; 
+static uint32_t FT0[256];
+static uint32_t FT1[256];
+static uint32_t FT2[256];
+static uint32_t FT3[256];
 
 /*
  * Reverse S-box & tables
@@ -452,12 +456,13 @@ static void aes_gen_tables( void )
     }
 }
 
-#endif
+#endif /* POLARSSL_AES_ROM_TABLES */
 
 /*
  * AES key schedule (encryption)
  */
-int aes_setkey_enc( aes_context *ctx, const unsigned char *key, unsigned int keysize )
+int aes_setkey_enc( aes_context *ctx, const unsigned char *key,
+                    unsigned int keysize )
 {
     unsigned int i;
     uint32_t *RK;
@@ -572,7 +577,8 @@ int aes_setkey_enc( aes_context *ctx, const unsigned char *key, unsigned int key
 /*
  * AES key schedule (decryption)
  */
-int aes_setkey_dec( aes_context *ctx, const unsigned char *key, unsigned int keysize )
+int aes_setkey_dec( aes_context *ctx, const unsigned char *key,
+                    unsigned int keysize )
 {
     int i, j;
     aes_context cty;
@@ -822,7 +828,7 @@ int aes_crypt_cbc( aes_context *ctx,
     {
         if( padlock_xcryptcbc( ctx, mode, length, iv, input, output ) == 0 )
             return( 0 );
-        
+
         // If padlock data misaligned, we just fall back to
         // unaccelerated mode
         //
@@ -1383,7 +1389,8 @@ int aes_self_test( int verbose )
             len = aes_test_ctr_len[u];
             memcpy( buf, aes_test_ctr_ct[u], len );
 
-            aes_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block, buf, buf );
+            aes_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block,
+                           buf, buf );
 
             if( memcmp( buf, aes_test_ctr_pt[u], len ) != 0 )
             {
@@ -1398,7 +1405,8 @@ int aes_self_test( int verbose )
             len = aes_test_ctr_len[u];
             memcpy( buf, aes_test_ctr_pt[u], len );
 
-            aes_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block, buf, buf );
+            aes_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block,
+                           buf, buf );
 
             if( memcmp( buf, aes_test_ctr_ct[u], len ) != 0 )
             {
@@ -1420,6 +1428,6 @@ int aes_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_AES_C */

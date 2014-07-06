@@ -3,7 +3,7 @@
  *
  * \brief SHA-384 and SHA-512 cryptographic hash function
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,7 +27,11 @@
 #ifndef POLARSSL_SHA512_H
 #define POLARSSL_SHA512_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #include <string.h>
 
@@ -79,7 +83,8 @@ void sha512_starts( sha512_context *ctx, int is384 );
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void sha512_update( sha512_context *ctx, const unsigned char *input, size_t ilen );
+void sha512_update( sha512_context *ctx, const unsigned char *input,
+                    size_t ilen );
 
 /**
  * \brief          SHA-512 final digest
@@ -141,7 +146,8 @@ void sha512_hmac_starts( sha512_context *ctx, const unsigned char *key,
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void sha512_hmac_update( sha512_context *ctx, const unsigned char *input, size_t ilen );
+void sha512_hmac_update( sha512_context *ctx, const unsigned char *input,
+                         size_t ilen );
 
 /**
  * \brief          SHA-512 HMAC final digest

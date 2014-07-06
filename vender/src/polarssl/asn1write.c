@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_ASN1_WRITE_C)
 
@@ -109,7 +113,7 @@ int asn1_write_mpi( unsigned char **p, unsigned char *start, mpi *X )
         return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
     (*p) -= len;
-    mpi_write_binary( X, *p, len );
+    MPI_CHK( mpi_write_binary( X, *p, len ) );
 
     // DER format assumes 2s complement for numbers, so the leftmost bit
     // should be 0 for positive numbers and 1 for negative numbers.
@@ -126,7 +130,10 @@ int asn1_write_mpi( unsigned char **p, unsigned char *start, mpi *X )
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_INTEGER ) );
 
-    return( (int) len );
+    ret = (int) len;
+
+cleanup:
+    return( ret );
 }
 #endif /* POLARSSL_BIGNUM_C */
 
@@ -356,4 +363,4 @@ asn1_named_data *asn1_store_named_data( asn1_named_data **head,
 
     return( cur );
 }
-#endif
+#endif /* POLARSSL_ASN1_WRITE_C */

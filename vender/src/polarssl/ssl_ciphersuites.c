@@ -3,7 +3,7 @@
  *
  * \brief SSL ciphersuites for PolarSSL
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -25,7 +25,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_SSL_TLS_C)
 
@@ -42,11 +46,11 @@
 /*
  * Ordered from most preferred to least preferred in terms of security.
  *
- * Current rule (except weak and null which come last):
+ * Current rule (except rc4, weak and null which come last):
  * 1. By key exchange:
  *    Forward-secure non-PSK > forward-secure PSK > other non-PSK > other PSK
  * 2. By key length and cipher:
- *    AES-256 > Camellia-256 > AES-128 > Camellia-128 > 3DES > RC4
+ *    AES-256 > Camellia-256 > AES-128 > Camellia-128 > 3DES
  * 3. By cipher mode when relevant GCM > CBC
  * 4. By hash function used
  * 5. By key exchange/auth again: EC > non-EC
@@ -97,8 +101,6 @@ static const int ciphersuite_preference[] =
     TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,
     TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
     TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA,
-    TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
-    TLS_ECDHE_RSA_WITH_RC4_128_SHA,
 
     /* The PSK ephemeral suites */
     TLS_DHE_PSK_WITH_AES_256_GCM_SHA384,
@@ -121,8 +123,6 @@ static const int ciphersuite_preference[] =
 
     TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA,
     TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA,
-    TLS_ECDHE_PSK_WITH_RC4_128_SHA,
-    TLS_DHE_PSK_WITH_RC4_128_SHA,
 
     /* All AES-256 suites */
     TLS_RSA_WITH_AES_256_GCM_SHA384,
@@ -166,12 +166,8 @@ static const int ciphersuite_preference[] =
 
     /* All remaining >= 128-bit suites */
     TLS_RSA_WITH_3DES_EDE_CBC_SHA,
-    TLS_RSA_WITH_RC4_128_SHA,
-    TLS_RSA_WITH_RC4_128_MD5,
     TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,
-    TLS_ECDH_RSA_WITH_RC4_128_SHA,
     TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,
-    TLS_ECDH_ECDSA_WITH_RC4_128_SHA,
 
     /* The RSA PSK suites */
     TLS_RSA_PSK_WITH_AES_256_GCM_SHA384,
@@ -187,7 +183,6 @@ static const int ciphersuite_preference[] =
     TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256,
 
     TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA,
-    TLS_RSA_PSK_WITH_RC4_128_SHA,
 
     /* The PSK suites */
     TLS_PSK_WITH_AES_256_GCM_SHA384,
@@ -203,6 +198,17 @@ static const int ciphersuite_preference[] =
     TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256,
 
     TLS_PSK_WITH_3DES_EDE_CBC_SHA,
+
+    /* RC4 suites */
+    TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
+    TLS_ECDHE_RSA_WITH_RC4_128_SHA,
+    TLS_ECDHE_PSK_WITH_RC4_128_SHA,
+    TLS_DHE_PSK_WITH_RC4_128_SHA,
+    TLS_RSA_WITH_RC4_128_SHA,
+    TLS_RSA_WITH_RC4_128_MD5,
+    TLS_ECDH_RSA_WITH_RC4_128_SHA,
+    TLS_ECDH_ECDSA_WITH_RC4_128_SHA,
+    TLS_RSA_PSK_WITH_RC4_128_SHA,
     TLS_PSK_WITH_RC4_128_SHA,
 
     /* Weak suites */
@@ -1569,7 +1575,8 @@ const int *ssl_list_ciphersuites( void )
     return supported_ciphersuites;
 };
 
-const ssl_ciphersuite_t *ssl_ciphersuite_from_string( const char *ciphersuite_name )
+const ssl_ciphersuite_t *ssl_ciphersuite_from_string(
+                                                const char *ciphersuite_name )
 {
     const ssl_ciphersuite_t *cur = ciphersuite_definitions;
 
@@ -1648,7 +1655,7 @@ pk_type_t ssl_get_ciphersuite_sig_pk_alg( const ssl_ciphersuite_t *info )
             return( POLARSSL_PK_NONE );
     }
 }
-#endif
+#endif /* POLARSSL_PK_C */
 
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
 int ssl_ciphersuite_uses_ec( const ssl_ciphersuite_t *info )
@@ -1666,7 +1673,7 @@ int ssl_ciphersuite_uses_ec( const ssl_ciphersuite_t *info )
             return( 0 );
     }
 }
-#endif
+#endif /* POLARSSL_ECDH_C || POLARSSL_ECDSA_C */
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
 int ssl_ciphersuite_uses_psk( const ssl_ciphersuite_t *info )
@@ -1683,6 +1690,6 @@ int ssl_ciphersuite_uses_psk( const ssl_ciphersuite_t *info )
             return( 0 );
     }
 }
-#endif
+#endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
-#endif
+#endif /* POLARSSL_SSL_TLS_C */

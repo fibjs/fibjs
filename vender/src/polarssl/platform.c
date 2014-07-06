@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_PLATFORM_C)
 
@@ -96,7 +100,7 @@ static int platform_fprintf_uninit( FILE *stream, const char *format, ... )
     return( 0 );
 }
 
-#define POLARSSL_PLATFORM_STD_fPRINTF   platform_fprintf_uninit
+#define POLARSSL_PLATFORM_STD_FPRINTF   platform_fprintf_uninit
 #endif /* !POLARSSL_PLATFORM_STD_FPRINTF */
 
 int (*polarssl_fprintf)( FILE *, const char *, ... ) =

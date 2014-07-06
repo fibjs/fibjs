@@ -27,7 +27,11 @@
 #ifndef POLARSSL_PLATFORM_H
 #define POLARSSL_PLATFORM_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #include <stdio.h>
 
@@ -35,17 +39,35 @@
 extern "C" {
 #endif
 
-#if !defined(POLARSSL_CONFIG_OPTIONS)
+/**
+ * \name SECTION: Module settings
+ *
+ * The configuration options you can set for this module are in this section.
+ * Either change them in config.h or define them on the compiler command line.
+ * \{
+ */
+
+#if !defined(POLARSSL_PLATFORM_NO_STD_FUNCTIONS)
 #include <stdlib.h>
+#if !defined(POLARSSL_PLATFORM_STD_PRINTF)
 #define POLARSSL_PLATFORM_STD_PRINTF   printf /**< Default printf to use  */
+#endif
+#if !defined(POLARSSL_PLATFORM_STD_FPRINTF)
 #define POLARSSL_PLATFORM_STD_FPRINTF fprintf /**< Default fprintf to use */
+#endif
+#if !defined(POLARSSL_PLATFORM_STD_MALLOC)
 #define POLARSSL_PLATFORM_STD_MALLOC   malloc /**< Default allocator to use */
+#endif
+#if !defined(POLARSSL_PLATFORM_STD_FREE)
 #define POLARSSL_PLATFORM_STD_FREE       free /**< Default free to use */
-#else /* POLARSSL_CONFIG_OPTIONS */
+#endif
+#else /* POLARSSL_PLATFORM_NO_STD_FUNCTIONS */
 #if defined(POLARSSL_PLATFORM_STD_MEM_HDR)
 #include POLARSSL_PLATFORM_STD_MEM_HDR
 #endif
-#endif /* POLARSSL_CONFIG_OPTIONS */
+#endif /* POLARSSL_PLATFORM_NO_STD_FUNCTIONS */
+
+/* \} name SECTION: Module settings */
 
 /*
  * The function pointers for malloc and free
@@ -64,10 +86,10 @@ extern void (*polarssl_free)( void *ptr );
  */
 int platform_set_malloc_free( void * (*malloc_func)( size_t ),
                               void (*free_func)( void * ) );
-#else
+#else /* POLARSSL_PLATFORM_ENTROPY */
 #define polarssl_malloc     malloc
 #define polarssl_free       free
-#endif
+#endif /* POLARSSL_PLATFORM_ENTROPY */
 
 /*
  * The function pointers for printf
@@ -83,9 +105,9 @@ extern int (*polarssl_printf)( const char *format, ... );
  * \return              0
  */
 int platform_set_printf( int (*printf_func)( const char *, ... ) );
-#else
+#else /* POLARSSL_PLATFORM_PRINTF_ALT */
 #define polarssl_printf     printf
-#endif
+#endif /* POLARSSL_PLATFORM_PRINTF_ALT */
 
 /*
  * The function pointers for fprintf

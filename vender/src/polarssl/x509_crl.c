@@ -34,7 +34,11 @@
  *  http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_X509_CRL_PARSE_C)
 
@@ -154,7 +158,7 @@ static int x509_get_crl_entry_ext( unsigned char **p,
         return( POLARSSL_ERR_X509_INVALID_EXTENSIONS + ret );
     }
 
-	end = *p + ext->len;
+    end = *p + ext->len;
 
     if( end != *p + ext->len )
         return( POLARSSL_ERR_X509_INVALID_EXTENSIONS +
@@ -220,10 +224,12 @@ static int x509_get_entries( unsigned char **p,
         if( ( ret = x509_get_serial( p, end2, &cur_entry->serial ) ) != 0 )
             return( ret );
 
-        if( ( ret = x509_get_time( p, end2, &cur_entry->revocation_date ) ) != 0 )
+        if( ( ret = x509_get_time( p, end2,
+                                   &cur_entry->revocation_date ) ) != 0 )
             return( ret );
 
-        if( ( ret = x509_get_crl_entry_ext( p, end2, &cur_entry->entry_ext ) ) != 0 )
+        if( ( ret = x509_get_crl_entry_ext( p, end2,
+                                            &cur_entry->entry_ext ) ) != 0 )
             return( ret );
 
         if ( *p < end )
@@ -312,7 +318,7 @@ int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen )
         return( ret );
     }
     else
-#endif
+#endif /* POLARSSL_PEM_PARSE_C */
     {
         /*
          * nope, copy the raw DER data
@@ -579,7 +585,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
 }
 
 #define snprintf compat_snprintf
-#endif
+#endif /* _MSC_VER && !snprintf && !EFIX64 && !EFI32 */
 
 #define POLARSSL_ERR_DEBUG_BUF_TOO_SMALL    -2
 
@@ -747,4 +753,4 @@ void x509_crl_free( x509_crl *crl )
     while( crl_cur != NULL );
 }
 
-#endif
+#endif /* POLARSSL_X509_CRL_PARSE_C */

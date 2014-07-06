@@ -54,7 +54,8 @@ int pkcs11_x509_cert_init( x509_crt *cert, pkcs11h_certificate_t pkcs11_cert )
         goto cleanup;
     }
 
-    if( pkcs11h_certificate_getCertificateBlob( pkcs11_cert, NULL, &cert_blob_size ) != CKR_OK )
+    if( pkcs11h_certificate_getCertificateBlob( pkcs11_cert, NULL,
+                                                &cert_blob_size ) != CKR_OK )
     {
         ret = 3;
         goto cleanup;
@@ -67,7 +68,8 @@ int pkcs11_x509_cert_init( x509_crt *cert, pkcs11h_certificate_t pkcs11_cert )
         goto cleanup;
     }
 
-    if( pkcs11h_certificate_getCertificateBlob( pkcs11_cert, cert_blob, &cert_blob_size ) != CKR_OK )
+    if( pkcs11h_certificate_getCertificateBlob( pkcs11_cert, cert_blob,
+                                                &cert_blob_size ) != CKR_OK )
     {
         ret = 5;
         goto cleanup;
@@ -189,7 +191,7 @@ int pkcs11_sign( pkcs11_context *ctx,
     }
 
     sig_len = ctx->len;
-    if ( hashlen > ctx_len || asn_len > sig_len ||
+    if ( hashlen > sig_len || asn_len > sig_len ||
          hashlen + asn_len > sig_len )
     {
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );

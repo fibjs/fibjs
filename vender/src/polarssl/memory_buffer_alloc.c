@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
 
@@ -277,7 +281,8 @@ static void *buffer_alloc_malloc( size_t len )
 
     // Found location, split block if > memory_header + 4 room left
     //
-    if( cur->size - len < sizeof(memory_header) + POLARSSL_MEMORY_ALIGN_MULTIPLE )
+    if( cur->size - len < sizeof(memory_header) +
+                          POLARSSL_MEMORY_ALIGN_MULTIPLE )
     {
         cur->alloc = 1;
 
@@ -535,7 +540,7 @@ static void buffer_alloc_free_mutexed( void *ptr )
     buffer_alloc_free( ptr );
     polarssl_mutex_unlock( &heap.mutex );
 }
-#endif
+#endif /* POLARSSL_THREADING_C */
 
 int memory_buffer_alloc_init( unsigned char *buf, size_t len )
 {

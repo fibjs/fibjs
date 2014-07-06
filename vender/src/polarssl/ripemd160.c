@@ -29,7 +29,11 @@
  *  http://ehash.iaik.tugraz.at/wiki/RIPEMD-160
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_RIPEMD160_C)
 
@@ -626,6 +630,6 @@ int ripemd160_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_RIPEMD160_C */

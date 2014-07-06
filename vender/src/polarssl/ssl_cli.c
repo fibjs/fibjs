@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_SSL_CLI_C)
 
@@ -492,7 +496,7 @@ static int ssl_write_client_hello( ssl_context *ssl )
         return( ret );
 
     p += 4;
-#endif
+#endif /* POLARSSL_HAVE_TIME */
 
     if( ( ret = ssl->f_rng( ssl->p_rng, p, 28 ) ) != 0 )
         return( ret );
@@ -603,7 +607,7 @@ static int ssl_write_client_hello( ssl_context *ssl )
 
     *p++ = 1;
     *p++ = SSL_COMPRESS_NULL;
-#endif
+#endif /* POLARSSL_ZLIB_SUPPORT */
 
     // First write extensions, then the total length
     //
@@ -651,9 +655,12 @@ static int ssl_write_client_hello( ssl_context *ssl )
     SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %d",
                    ext_len ) );
 
-    *p++ = (unsigned char)( ( ext_len >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( ext_len      ) & 0xFF );
-    p += ext_len;
+    if( ext_len > 0 )
+    {
+        *p++ = (unsigned char)( ( ext_len >> 8 ) & 0xFF );
+        *p++ = (unsigned char)( ( ext_len      ) & 0xFF );
+        p += ext_len;
+    }
 
     ssl->out_msglen  = p - buf;
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;
@@ -911,8 +918,8 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     if( ssl->minor_ver < ssl->min_minor_ver )
     {
         SSL_DEBUG_MSG( 1, ( "server only supports ssl smaller than minimum"
-                            " [%d:%d] < [%d:%d]", ssl->major_ver, ssl->minor_ver,
-                            buf[4], buf[5] ) );
+                            " [%d:%d] < [%d:%d]", ssl->major_ver,
+                            ssl->minor_ver, buf[4], buf[5] ) );
 
         ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,
                                      SSL_ALERT_MSG_PROTOCOL_VERSION );
@@ -1067,7 +1074,8 @@ static int ssl_parse_server_hello( ssl_context *ssl )
             SSL_DEBUG_MSG( 3, ( "found renegotiation extension" ) );
             renegotiation_info_seen = 1;
 
-            if( ( ret = ssl_parse_renegotiation_info( ssl, ext + 4, ext_size ) ) != 0 )
+            if( ( ret = ssl_parse_renegotiation_info( ssl, ext + 4,
+                                                      ext_size ) ) != 0 )
                 return( ret );
 
             break;
@@ -1261,8 +1269,11 @@ static int ssl_check_server_ecdh_params( const ssl_context *ssl )
 
     return( 0 );
 }
-#endif
-
+#endif /* POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 
 #if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
@@ -1532,7 +1543,8 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     }
     ((void) p);
     ((void) end);
-#endif
+#endif /* POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 
     if( ( ret = ssl_read_record( ssl ) ) != 0 )
     {
@@ -1654,7 +1666,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
             }
         }
         else
-#endif
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 #if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
     defined(POLARSSL_SSL_PROTO_TLS1_1)
         if( ssl->minor_ver < SSL_MINOR_VERSION_3 )
@@ -1740,7 +1752,8 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
              *     ServerDHParams params;
              * };
              */
-            if( ( ret = md_init_ctx( &ctx, md_info_from_type( md_alg ) ) ) != 0 )
+            if( ( ret = md_init_ctx( &ctx,
+                                     md_info_from_type( md_alg ) ) ) != 0 )
             {
                 SSL_DEBUG_RET( 1, "md_init_ctx", ret );
                 return( ret );
@@ -2601,4 +2614,4 @@ int ssl_handshake_client_step( ssl_context *ssl )
 
     return( ret );
 }
-#endif
+#endif /* POLARSSL_SSL_CLI_C */

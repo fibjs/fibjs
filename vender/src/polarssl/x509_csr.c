@@ -34,7 +34,11 @@
  *  http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_X509_CSR_PARSE_C)
 
@@ -125,7 +129,7 @@ int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
         return( ret );
     }
     else
-#endif
+#endif /* POLARSSL_PEM_PARSE_C */
     {
         /*
          * nope, copy the raw DER data
@@ -328,7 +332,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
 }
 
 #define snprintf compat_snprintf
-#endif
+#endif /* _MSC_VER && !snprintf && !EFIX64 && !EFI32 */
 
 #define POLARSSL_ERR_DEBUG_BUF_TOO_SMALL    -2
 

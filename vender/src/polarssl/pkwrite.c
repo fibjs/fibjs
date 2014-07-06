@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_PK_WRITE_C)
 
@@ -69,7 +73,8 @@ static int pk_write_rsa_pubkey( unsigned char **p, unsigned char *start,
     ASN1_CHK_ADD( len, asn1_write_mpi( p, start, &rsa->N ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED |
+                                                 ASN1_SEQUENCE ) );
 
     return( (int) len );
 }
@@ -187,7 +192,8 @@ int pk_write_pubkey_der( pk_context *key, unsigned char *buf, size_t size )
                                                         par_len ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED |
+                                                ASN1_SEQUENCE ) );
 
     return( (int) len );
 }
@@ -214,10 +220,11 @@ int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
         ASN1_CHK_ADD( len, asn1_write_int( &c, buf, 0 ) );
 
         ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
-        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED |
+                                                    ASN1_SEQUENCE ) );
     }
     else
-#endif
+#endif /* POLARSSL_RSA_C */
 #if defined(POLARSSL_ECP_C)
     if( pk_get_type( key ) == POLARSSL_PK_ECKEY )
     {
@@ -267,10 +274,11 @@ int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
         ASN1_CHK_ADD( len, asn1_write_int( &c, buf, 1 ) );
 
         ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
-        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED |
+                                                    ASN1_SEQUENCE ) );
     }
     else
-#endif
+#endif /* POLARSSL_ECP_C */
         return( POLARSSL_ERR_PK_FEATURE_UNAVAILABLE );
 
     return( (int) len );
@@ -289,7 +297,7 @@ int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
 int pk_write_pubkey_pem( pk_context *key, unsigned char *buf, size_t size )
 {
     int ret;
-    unsigned char output_buf[8192];
+    unsigned char output_buf[4096];
     size_t olen = 0;
 
     if( ( ret = pk_write_pubkey_der( key, output_buf,
@@ -311,7 +319,7 @@ int pk_write_pubkey_pem( pk_context *key, unsigned char *buf, size_t size )
 int pk_write_key_pem( pk_context *key, unsigned char *buf, size_t size )
 {
     int ret;
-    unsigned char output_buf[8192];
+    unsigned char output_buf[4096];
     const char *begin, *end;
     size_t olen = 0;
 

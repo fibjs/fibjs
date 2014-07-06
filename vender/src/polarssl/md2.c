@@ -29,7 +29,11 @@
  *  http://www.ietf.org/rfc/rfc1319.txt
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_MD2_C)
 
@@ -224,7 +228,8 @@ int md2_file( const char *path, unsigned char output[16] )
 /*
  * MD2 HMAC context setup
  */
-void md2_hmac_starts( md2_context *ctx, const unsigned char *key, size_t keylen )
+void md2_hmac_starts( md2_context *ctx, const unsigned char *key,
+                      size_t keylen )
 {
     size_t i;
     unsigned char sum[16];
@@ -254,7 +259,8 @@ void md2_hmac_starts( md2_context *ctx, const unsigned char *key, size_t keylen 
 /*
  * MD2 HMAC process buffer
  */
-void md2_hmac_update( md2_context *ctx, const unsigned char *input, size_t ilen )
+void md2_hmac_update( md2_context *ctx, const unsigned char *input,
+                      size_t ilen )
 {
     md2_update( ctx, input, ilen );
 }
@@ -369,6 +375,6 @@ int md2_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_MD2_C */

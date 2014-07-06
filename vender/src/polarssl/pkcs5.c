@@ -33,7 +33,11 @@
  * http://tools.ietf.org/html/rfc6070 (Test vectors)
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_PKCS5_C)
 
@@ -158,8 +162,11 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
     if( md_info == NULL )
         return( POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE );
 
-    if( ( ret = asn1_get_alg( &p, end, &enc_scheme_oid, &enc_scheme_params ) ) != 0 )
+    if( ( ret = asn1_get_alg( &p, end, &enc_scheme_oid,
+                              &enc_scheme_params ) ) != 0 )
+    {
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
+    }
 
     if ( oid_get_cipher_alg( &enc_scheme_oid, &cipher_alg ) != 0 )
         return( POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE );
@@ -325,7 +332,7 @@ uint32_t key_len[MAX_TESTS] =
     { 20, 20, 20, 20, 25, 16 };
 
 
-unsigned char result_key[MAX_TESTS][32] = 
+unsigned char result_key[MAX_TESTS][32] =
 {
     { 0x0c, 0x60, 0xc8, 0x0f, 0x96, 0x1f, 0x0e, 0x71,
       0xf3, 0xa9, 0xb5, 0x24, 0xaf, 0x60, 0x12, 0x06,
@@ -362,7 +369,7 @@ int pkcs5_self_test( int verbose )
         return( 1 );
 
     if( verbose != 0 )
-        polarssl_printf( "  PBKDF2 warning: test #3 may be slow!\n" );
+        polarssl_printf( "  PBKDF2 note: test #3 may be slow!\n" );
 
     for( i = 0; i < MAX_TESTS; i++ )
     {

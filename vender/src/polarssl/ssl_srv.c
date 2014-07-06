@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_SSL_SRV_C)
 
@@ -487,7 +491,7 @@ static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
             ssl->handshake->sig_alg = SSL_HASH_SHA384;
             break;
         }
-#endif
+#endif /* POLARSSL_SHA512_C */
 #if defined(POLARSSL_SHA256_C)
         if( p[0] == SSL_HASH_SHA256 )
         {
@@ -499,7 +503,7 @@ static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
             ssl->handshake->sig_alg = SSL_HASH_SHA224;
             break;
         }
-#endif
+#endif /* POLARSSL_SHA256_C */
         if( p[0] == SSL_HASH_SHA1 )
         {
             ssl->handshake->sig_alg = SSL_HASH_SHA1;
@@ -548,7 +552,7 @@ static int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
     if( ( curves = polarssl_malloc( our_size * sizeof( *curves ) ) ) == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
-	/* explicit void pointer cast for buggy MS compiler */
+    /* explicit void pointer cast for buggy MS compiler */
     memset( (void *) curves, 0, our_size * sizeof( *curves ) );
     ssl->handshake->curves = curves;
 
@@ -949,7 +953,8 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
     if( ssl->minor_ver < ssl->min_minor_ver )
     {
         SSL_DEBUG_MSG( 1, ( "client only supports ssl smaller than minimum"
-                            " [%d:%d] < [%d:%d]", ssl->major_ver, ssl->minor_ver,
+                            " [%d:%d] < [%d:%d]",
+                            ssl->major_ver, ssl->minor_ver,
                             ssl->min_major_ver, ssl->min_minor_ver ) );
 
         ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,
@@ -1024,7 +1029,8 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
 
     p = buf + 6 + ciph_len;
     ssl->session_negotiate->length = sess_len;
-    memset( ssl->session_negotiate->id, 0, sizeof( ssl->session_negotiate->id ) );
+    memset( ssl->session_negotiate->id, 0,
+            sizeof( ssl->session_negotiate->id ) );
     memcpy( ssl->session_negotiate->id, p, ssl->session_negotiate->length );
 
     p += sess_len;
@@ -1172,7 +1178,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
     n = ( buf[3] << 8 ) | buf[4];
 
-    if( n < 45 || n > 2048 )
+    if( n < 45 || n > SSL_MAX_CONTENT_LEN )
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
@@ -1287,7 +1293,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     ciph_len = ( buf[39 + sess_len] << 8 )
              | ( buf[40 + sess_len]      );
 
-    if( ciph_len < 2 || ciph_len > 256 || ( ciph_len % 2 ) != 0 )
+    if( ciph_len < 2 || ( ciph_len % 2 ) != 0 )
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
@@ -1794,7 +1800,7 @@ static int ssl_write_server_hello( ssl_context *ssl )
         return( ret );
 
     p += 4;
-#endif
+#endif /* POLARSSL_HAVE_TIME */
 
     if( ( ret = ssl->f_rng( ssl->p_rng, p, 28 ) ) != 0 )
         return( ret );
@@ -1921,9 +1927,12 @@ static int ssl_write_server_hello( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 3, ( "server hello, total extension length: %d", ext_len ) );
 
-    *p++ = (unsigned char)( ( ext_len >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( ext_len      ) & 0xFF );
-    p += ext_len;
+    if( ext_len > 0 )
+    {
+        *p++ = (unsigned char)( ( ext_len >> 8 ) & 0xFF );
+        *p++ = (unsigned char)( ( ext_len      ) & 0xFF );
+        p += ext_len;
+    }
 
     ssl->out_msglen  = p - buf;
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;
@@ -1990,7 +1999,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
      *     4  .   4   cert type count
      *     5  .. m-1  cert types
      *     m  .. m+1  sig alg length (TLS 1.2 only)
-     *    m+1 .. n-1  SignatureAndHashAlgorithms (TLS 1.2 only) 
+     *    m+1 .. n-1  SignatureAndHashAlgorithms (TLS 1.2 only)
      *     n  .. n+1  length of all DNs
      *    n+2 .. n+3  length of DN 1
      *    n+4 .. ...  Distinguished Name #1
@@ -2073,7 +2082,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     crt = ssl->ca_chain;
 
     total_dn_size = 0;
-    while( crt != NULL )
+    while( crt != NULL && crt->version != 0 )
     {
         if( p - buf > 4096 )
             break;
@@ -2215,9 +2224,8 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         }
 
         if( ( ret = dhm_make_params( &ssl->handshake->dhm_ctx,
-                                      (int) mpi_size( &ssl->handshake->dhm_ctx.P ),
-                                      p,
-                                      &len, ssl->f_rng, ssl->p_rng ) ) != 0 )
+                        (int) mpi_size( &ssl->handshake->dhm_ctx.P ),
+                        p, &len, ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "dhm_make_params", ret );
             return( ret );
@@ -2250,7 +2258,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
          *     ECPoint      public;
          * } ServerECDHParams;
          */
-        const ecp_curve_info **curve;
+        const ecp_curve_info **curve = NULL;
 #if defined(POLARSSL_SSL_SET_CURVES)
         const ecp_group_id *gid;
 
@@ -2751,7 +2759,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDH_ECDSA )
     {
         if( ( ret = ecdh_read_public( &ssl->handshake->ecdh_ctx,
-                                       ssl->in_msg + 4, ssl->in_hslen - 4 ) ) != 0 )
+                        ssl->in_msg + 4, ssl->in_hslen - 4 ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "ecdh_read_public", ret );
             return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
@@ -3030,7 +3038,8 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         }
     }
     else
-#endif
+#endif /* POLARSSL_SSL_PROTO_SSL3 || POLARSSL_SSL_PROTO_TLS1 ||
+          POLARSSL_SSL_PROTO_TLS1_1 */
 #if defined(POLARSSL_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
     {
@@ -3275,4 +3284,4 @@ int ssl_handshake_server_step( ssl_context *ssl )
 
     return( ret );
 }
-#endif
+#endif /* POLARSSL_SSL_SRV_C */
