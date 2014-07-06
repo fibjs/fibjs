@@ -2951,6 +2951,9 @@
     <ClInclude Include="src\v8\src\snapshot-source-sink.h">
       <Filter>Source Files\v8\src</Filter>
     </ClInclude>
+    <ClInclude Include="include\polarssl\check_config.h">
+      <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\ev\ev_epoll.inl">
