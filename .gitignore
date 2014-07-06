@@ -1,6 +1,7 @@
 bin
 fibjs/out
 installer/out
+temp
 vender/out
 *.sdf
 *.suo
