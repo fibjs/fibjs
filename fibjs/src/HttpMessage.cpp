@@ -306,7 +306,7 @@ void HttpMessage::addHeader(const char *name, int szName, const char *value,
                             int szValue)
 {
     if (szName == 10 && !qstricmp(name, "connection", szName))
-        m_keepAlive = !qstricmp(value, "keep-alive", 10);
+        m_keepAlive = !!qstristr(value, "keep-alive");
     else
         m_headers->add(name, szName, value, szValue);
 }
