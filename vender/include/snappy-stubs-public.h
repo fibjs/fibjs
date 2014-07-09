@@ -36,20 +36,24 @@
 #ifndef UTIL_SNAPPY_OPENSOURCE_SNAPPY_STUBS_PUBLIC_H_
 #define UTIL_SNAPPY_OPENSOURCE_SNAPPY_STUBS_PUBLIC_H_
 
-#define HAVE_STDINT 1
-#define HAVE_STDDEF 1
-#define HAVE_SYSUIO 1
+#ifdef WIN32
 
-#if HAVE_STDINT
+#ifndef ssize_t
+typedef long ssize_t;
+#endif
+
+struct iovec {
+	void* iov_base;
+	size_t iov_len;
+};
+#else
+#include <sys/uio.h>
+#endif
+
 #include <stdint.h>
-#endif
-
-#if HAVE_STDDEF
 #include <stddef.h>
-#endif
 
 #if HAVE_SYSUIO
-#include <sys/uio.h>
 #endif
 
 #define SNAPPY_MAJOR 1
@@ -62,7 +66,6 @@
 
 namespace snappy {
 
-#if HAVE_STDINT
 typedef int8_t int8;
 typedef uint8_t uint8;
 typedef int16_t int16;
@@ -71,31 +74,12 @@ typedef int32_t int32;
 typedef uint32_t uint32;
 typedef int64_t int64;
 typedef uint64_t uint64;
-#else
-typedef signed char int8;
-typedef unsigned char uint8;
-typedef short int16;
-typedef unsigned short uint16;
-typedef int int32;
-typedef unsigned int uint32;
-typedef long long int64;
-typedef unsigned long long uint64;
-#endif
 
 typedef std::string string;
 
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName&);               \
   void operator=(const TypeName&)
-
-#if !HAVE_SYSUIO
-// Windows does not have an iovec type, yet the concept is universally useful.
-// It is simple to define it ourselves, so we put it inside our own namespace.
-struct iovec {
-	void* iov_base;
-	size_t iov_len;
-};
-#endif
 
 }  // namespace snappy
 
