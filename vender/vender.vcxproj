@@ -224,6 +224,10 @@
     <ClCompile Include="src\polarssl\x509_crt.c" />
     <ClCompile Include="src\polarssl\x509_csr.c" />
     <ClCompile Include="src\polarssl\xtea.c" />
+    <ClCompile Include="src\snappy\snappy-c.cc" />
+    <ClCompile Include="src\snappy\snappy-sinksource.cc" />
+    <ClCompile Include="src\snappy\snappy-stubs-internal.cc" />
+    <ClCompile Include="src\snappy\snappy.cc" />
     <ClCompile Include="src\sqlite\sqlite3.c" />
     <ClCompile Include="src\tiff\tif_aux.c" />
     <ClCompile Include="src\tiff\tif_close.c" />
@@ -581,6 +585,8 @@
     <ClInclude Include="include\polarssl\x509_crt.h" />
     <ClInclude Include="include\polarssl\x509_csr.h" />
     <ClInclude Include="include\polarssl\xtea.h" />
+    <ClInclude Include="include\snappy-stubs-public.h" />
+    <ClInclude Include="include\snappy.h" />
     <ClInclude Include="include\sqlite3.h" />
     <ClInclude Include="include\tiff.h" />
     <ClInclude Include="include\tiffio.h" />
@@ -662,6 +668,12 @@
     <ClInclude Include="src\png\pnginfo.h" />
     <ClInclude Include="src\png\pngpriv.h" />
     <ClInclude Include="src\png\pngstruct.h" />
+    <ClInclude Include="src\snappy\snappy-c.h" />
+    <ClInclude Include="src\snappy\snappy-internal.h" />
+    <ClInclude Include="src\snappy\snappy-sinksource.h" />
+    <ClInclude Include="src\snappy\snappy-stubs-internal.h" />
+    <ClInclude Include="src\snappy\snappy-stubs-public.h" />
+    <ClInclude Include="src\snappy\snappy.h" />
     <ClInclude Include="src\sqlite\sqlite3.h" />
     <ClInclude Include="src\tiff\t4.h" />
     <ClInclude Include="src\tiff\tiff.h" />

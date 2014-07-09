@@ -112,6 +112,9 @@
     <Filter Include="Source Files\v8\src\base">
       <UniqueIdentifier>{4b94d01a-5108-4813-964a-30ef3a3126cf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\snappy">
+      <UniqueIdentifier>{6b3eb7f3-5258-4c68-af82-2ec786372206}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zlib\adler32.c">
@@ -1520,6 +1523,18 @@
     </ClCompile>
     <ClCompile Include="src\v8\src\snapshot-source-sink.cc">
       <Filter>Source Files\v8\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\snappy\snappy.cc">
+      <Filter>Source Files\snappy</Filter>
+    </ClCompile>
+    <ClCompile Include="src\snappy\snappy-c.cc">
+      <Filter>Source Files\snappy</Filter>
+    </ClCompile>
+    <ClCompile Include="src\snappy\snappy-sinksource.cc">
+      <Filter>Source Files\snappy</Filter>
+    </ClCompile>
+    <ClCompile Include="src\snappy\snappy-stubs-internal.cc">
+      <Filter>Source Files\snappy</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2953,6 +2968,30 @@
     </ClInclude>
     <ClInclude Include="include\polarssl\check_config.h">
       <Filter>Header Files\polarssl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\snappy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\snappy-stubs-public.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\snappy\snappy.h">
+      <Filter>Source Files\snappy</Filter>
+    </ClInclude>
+    <ClInclude Include="src\snappy\snappy-c.h">
+      <Filter>Source Files\snappy</Filter>
+    </ClInclude>
+    <ClInclude Include="src\snappy\snappy-internal.h">
+      <Filter>Source Files\snappy</Filter>
+    </ClInclude>
+    <ClInclude Include="src\snappy\snappy-sinksource.h">
+      <Filter>Source Files\snappy</Filter>
+    </ClInclude>
+    <ClInclude Include="src\snappy\snappy-stubs-internal.h">
+      <Filter>Source Files\snappy</Filter>
+    </ClInclude>
+    <ClInclude Include="src\snappy\snappy-stubs-public.h">
+      <Filter>Source Files\snappy</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
