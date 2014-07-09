@@ -114,6 +114,46 @@
     <ClCompile Include="src\jpeg\jquant2.c" />
     <ClCompile Include="src\jpeg\jutils.c" />
     <ClCompile Include="src\jpeg\transupp.c" />
+    <ClCompile Include="src\leveldb\db\builder.cc" />
+    <ClCompile Include="src\leveldb\db\dbformat.cc" />
+    <ClCompile Include="src\leveldb\db\db_impl.cc" />
+    <ClCompile Include="src\leveldb\db\db_iter.cc" />
+    <ClCompile Include="src\leveldb\db\filename.cc" />
+    <ClCompile Include="src\leveldb\db\log_reader.cc" />
+    <ClCompile Include="src\leveldb\db\log_writer.cc" />
+    <ClCompile Include="src\leveldb\db\memtable.cc" />
+    <ClCompile Include="src\leveldb\db\repair.cc" />
+    <ClCompile Include="src\leveldb\db\table_cache.cc" />
+    <ClCompile Include="src\leveldb\db\version_edit.cc" />
+    <ClCompile Include="src\leveldb\db\version_set.cc" />
+    <ClCompile Include="src\leveldb\db\write_batch.cc" />
+    <ClCompile Include="src\leveldb\table\block.cc" />
+    <ClCompile Include="src\leveldb\table\block_builder.cc" />
+    <ClCompile Include="src\leveldb\table\filter_block.cc" />
+    <ClCompile Include="src\leveldb\table\format.cc" />
+    <ClCompile Include="src\leveldb\table\iterator.cc" />
+    <ClCompile Include="src\leveldb\table\merger.cc" />
+    <ClCompile Include="src\leveldb\table\table.cc" />
+    <ClCompile Include="src\leveldb\table\table_builder.cc" />
+    <ClCompile Include="src\leveldb\table\two_level_iterator.cc" />
+    <ClCompile Include="src\leveldb\util\arena.cc" />
+    <ClCompile Include="src\leveldb\util\bloom.cc" />
+    <ClCompile Include="src\leveldb\util\cache.cc" />
+    <ClCompile Include="src\leveldb\util\coding.cc" />
+    <ClCompile Include="src\leveldb\util\comparator.cc" />
+    <ClCompile Include="src\leveldb\util\crc32c.cc" />
+    <ClCompile Include="src\leveldb\util\env.cc" />
+    <ClCompile Include="src\leveldb\util\env_posix.cc" />
+    <ClCompile Include="src\leveldb\util\env_win.cc" />
+    <ClCompile Include="src\leveldb\util\filter_policy.cc" />
+    <ClCompile Include="src\leveldb\util\hash.cc" />
+    <ClCompile Include="src\leveldb\util\histogram.cc" />
+    <ClCompile Include="src\leveldb\util\logging.cc" />
+    <ClCompile Include="src\leveldb\util\options.cc" />
+    <ClCompile Include="src\leveldb\util\status.cc" />
+    <ClCompile Include="src\leveldb\util\testharness.cc" />
+    <ClCompile Include="src\leveldb\util\testutil.cc" />
+    <ClCompile Include="src\leveldb\util\win_logger.cc" />
     <ClCompile Include="src\mongo\bcon.c" />
     <ClCompile Include="src\mongo\bson.c" />
     <ClCompile Include="src\mongo\encoding.c" />
@@ -516,6 +556,18 @@
     <ClInclude Include="include\jmorecfg.h" />
     <ClInclude Include="include\jpegint.h" />
     <ClInclude Include="include\jpeglib.h" />
+    <ClInclude Include="include\leveldb\cache.h" />
+    <ClInclude Include="include\leveldb\comparator.h" />
+    <ClInclude Include="include\leveldb\db.h" />
+    <ClInclude Include="include\leveldb\env.h" />
+    <ClInclude Include="include\leveldb\filter_policy.h" />
+    <ClInclude Include="include\leveldb\iterator.h" />
+    <ClInclude Include="include\leveldb\options.h" />
+    <ClInclude Include="include\leveldb\slice.h" />
+    <ClInclude Include="include\leveldb\status.h" />
+    <ClInclude Include="include\leveldb\table.h" />
+    <ClInclude Include="include\leveldb\table_builder.h" />
+    <ClInclude Include="include\leveldb\write_batch.h" />
     <ClInclude Include="include\lfds.h" />
     <ClInclude Include="include\mongo\bson.h" />
     <ClInclude Include="include\mongo\env.h" />
@@ -641,6 +693,42 @@
     <ClInclude Include="src\jpeg\jpegint.h" />
     <ClInclude Include="src\jpeg\jversion.h" />
     <ClInclude Include="src\jpeg\transupp.h" />
+    <ClInclude Include="src\leveldb\db\builder.h" />
+    <ClInclude Include="src\leveldb\db\dbformat.h" />
+    <ClInclude Include="src\leveldb\db\db_impl.h" />
+    <ClInclude Include="src\leveldb\db\db_iter.h" />
+    <ClInclude Include="src\leveldb\db\filename.h" />
+    <ClInclude Include="src\leveldb\db\log_format.h" />
+    <ClInclude Include="src\leveldb\db\log_reader.h" />
+    <ClInclude Include="src\leveldb\db\log_writer.h" />
+    <ClInclude Include="src\leveldb\db\memtable.h" />
+    <ClInclude Include="src\leveldb\db\skiplist.h" />
+    <ClInclude Include="src\leveldb\db\snapshot.h" />
+    <ClInclude Include="src\leveldb\db\table_cache.h" />
+    <ClInclude Include="src\leveldb\db\version_edit.h" />
+    <ClInclude Include="src\leveldb\db\version_set.h" />
+    <ClInclude Include="src\leveldb\db\write_batch_internal.h" />
+    <ClInclude Include="src\leveldb\port\port.h" />
+    <ClInclude Include="src\leveldb\port\thread_annotations.h" />
+    <ClInclude Include="src\leveldb\table\block.h" />
+    <ClInclude Include="src\leveldb\table\block_builder.h" />
+    <ClInclude Include="src\leveldb\table\filter_block.h" />
+    <ClInclude Include="src\leveldb\table\format.h" />
+    <ClInclude Include="src\leveldb\table\iterator_wrapper.h" />
+    <ClInclude Include="src\leveldb\table\merger.h" />
+    <ClInclude Include="src\leveldb\table\two_level_iterator.h" />
+    <ClInclude Include="src\leveldb\util\arena.h" />
+    <ClInclude Include="src\leveldb\util\coding.h" />
+    <ClInclude Include="src\leveldb\util\crc32c.h" />
+    <ClInclude Include="src\leveldb\util\hash.h" />
+    <ClInclude Include="src\leveldb\util\histogram.h" />
+    <ClInclude Include="src\leveldb\util\logging.h" />
+    <ClInclude Include="src\leveldb\util\mutexlock.h" />
+    <ClInclude Include="src\leveldb\util\posix_logger.h" />
+    <ClInclude Include="src\leveldb\util\random.h" />
+    <ClInclude Include="src\leveldb\util\testharness.h" />
+    <ClInclude Include="src\leveldb\util\testutil.h" />
+    <ClInclude Include="src\leveldb\util\win_logger.h" />
     <ClInclude Include="src\mongo\bcon.h" />
     <ClInclude Include="src\mongo\bson.h" />
     <ClInclude Include="src\mongo\encoding.h" />
@@ -1070,8 +1158,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;$(ProjectDir)\src\leveldb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -1090,8 +1178,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;$(ProjectDir)\src\leveldb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -1112,8 +1200,8 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NDEBUG;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;$(ProjectDir)\src\leveldb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -1138,8 +1226,8 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_RAND_S;NDEBUG;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\v8\src;$(ProjectDir)\src\v8;$(ProjectDir)\src\leveldb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalOptions>/wd4351 /wd4355 /wd4800 %(AdditionalOptions)</AdditionalOptions>
       <WholeProgramOptimization>false</WholeProgramOptimization>

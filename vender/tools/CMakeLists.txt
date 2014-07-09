@@ -41,4 +41,4 @@ if(link_flags)
 	set_target_properties(vender PROPERTIES LINK_FLAGS ${link_flags})
 endif()
 
-include_directories("${PROJECT_SOURCE_DIR}/../include/" "${PROJECT_SOURCE_DIR}/../src/v8/src/" "${PROJECT_SOURCE_DIR}/../src/v8/" "/usr/local/include/")
+include_directories("${PROJECT_SOURCE_DIR}/../include/" "${PROJECT_SOURCE_DIR}/../src/v8/src/" "${PROJECT_SOURCE_DIR}/../src/v8/" "${PROJECT_SOURCE_DIR}/../src/leveldb/" "/usr/local/include/")
