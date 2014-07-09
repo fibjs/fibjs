@@ -390,7 +390,7 @@ result_t os_base::get_execPath(std::string &retVal)
     return 0;
 }
 
-int g_obj_refs;
+int32_t g_obj_refs;
 result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
 {
     size_t rss = 0;

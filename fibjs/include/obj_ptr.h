@@ -14,7 +14,7 @@
 namespace fibjs
 {
 
-extern int g_obj_refs;
+extern int32_t g_obj_refs;
 
 class obj_base
 {
@@ -49,18 +49,18 @@ public:
     }
 
 protected:
-    int internalRef()
+    int32_t internalRef()
     {
         return exlib::atom_inc(&refs_);
     }
 
-    int internalUnref()
+    int32_t internalUnref()
     {
         return exlib::atom_dec(&refs_);
     }
 
 private:
-    int refs_;
+    int32_t refs_;
 };
 
 template<class T>

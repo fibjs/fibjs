@@ -636,9 +636,9 @@ public:
         return sc;
     }
 
-    void chk(int n, const char *file, int line)
+    void chk(int32_t n, const char *file, int line)
     {
-        int n1 = exlib::atom_inc(&m_step);
+        int32_t n1 = exlib::atom_inc(&m_step);
         if (n1 != n)
             printf("[%s:%d]: %d, %d\n", file, line, n, n1);
     }
@@ -654,7 +654,7 @@ private:
     {
     }
 
-    int m_step;
+    int32_t m_step;
 };
 
 #define STEP_CHECK(n) _step_checker::g().chk((n), __FILE__, __LINE__)

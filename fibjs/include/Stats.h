@@ -70,7 +70,7 @@ private:
 private:
     int m_static, m_size;
     std::vector<std::string> m_keys;
-    std::vector<int> m_counters;
+    std::vector<int32_t> m_counters;
     date_t m_date;
 };
 
