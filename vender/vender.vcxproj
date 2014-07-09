@@ -497,10 +497,15 @@
     <ClInclude Include="include\ev++.h" />
     <ClInclude Include="include\ev.h" />
     <ClInclude Include="include\exif.h" />
+    <ClInclude Include="include\exlib\event.h" />
     <ClInclude Include="include\exlib\fiber.h" />
     <ClInclude Include="include\exlib\lockfree.h" />
     <ClInclude Include="include\exlib\thread.h" />
     <ClInclude Include="include\exlib\utils.h" />
+    <ClInclude Include="include\exlib\utils_arm.h" />
+    <ClInclude Include="include\exlib\utils_win.h" />
+    <ClInclude Include="include\exlib\utils_x64.h" />
+    <ClInclude Include="include\exlib\utils_x86.h" />
     <ClInclude Include="include\gd.h" />
     <ClInclude Include="include\gdcache.h" />
     <ClInclude Include="include\gdfonts.h" />

@@ -2993,6 +2993,21 @@
     <ClInclude Include="src\snappy\snappy-stubs-public.h">
       <Filter>Source Files\snappy</Filter>
     </ClInclude>
+    <ClInclude Include="include\exlib\event.h">
+      <Filter>Header Files\exlib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\exlib\utils_arm.h">
+      <Filter>Header Files\exlib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\exlib\utils_win.h">
+      <Filter>Header Files\exlib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\exlib\utils_x64.h">
+      <Filter>Header Files\exlib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\exlib\utils_x86.h">
+      <Filter>Header Files\exlib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\ev\ev_epoll.inl">
