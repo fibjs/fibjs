@@ -6,6 +6,8 @@
  *  lion@9465.net
  */
 
+#include <osconfig.h>
+
 #ifdef _WIN32
 #include <windows.h>
 #else
@@ -18,6 +20,9 @@
 #include <mach/semaphore.h>
 #endif
 #endif
+
+#include <stdint.h>
+#include "utils.h"
 
 #ifndef _ex_thread_h__
 #define _ex_thread_h__
@@ -55,6 +60,8 @@ public:
         return !!TryEnterCriticalSection(&cs_);
     }
 
+    void AssertHeld() {}
+
 public:
     CRITICAL_SECTION cs_;
 };
@@ -86,6 +93,91 @@ public:
 
 public:
     HANDLE m_handle;
+};
+
+class OSCondVarOld
+{
+public:
+    OSCondVarOld(OSMutex *user_lock);
+    ~OSCondVarOld();
+
+    void Wait()
+    {
+        TimedWait(INFINITE);
+    }
+
+    void TimedWait(DWORD dwMilliseconds);
+    void Signal();
+    void SignalAll();
+private:
+    class Event
+    {
+    public:
+        Event();
+        ~Event();
+
+        void InitListElement();
+
+        bool IsEmpty() const;
+        void PushBack(Event *other);
+        Event *PopFront();
+        Event *PopBack();
+
+        HANDLE handle() const;
+        Event *Extract();
+
+        bool IsSingleton() const;
+
+    private:
+        bool ValidateAsDistinct(Event *other) const;
+        bool ValidateAsItem() const;
+        bool ValidateAsList() const;
+        bool ValidateLinks() const;
+
+        HANDLE handle_;
+        Event *next_;
+        Event *prev_;
+    };
+
+private:
+    enum RunState { SHUTDOWN = 0, RUNNING = 64213 };
+
+    Event *GetEventForWaiting();
+    void RecycleEvent(Event *used_event);
+
+    RunState run_state_;
+    OSMutex internal_lock_;
+    OSMutex &user_lock_;
+    Event waiting_list_;
+    Event recycling_list_;
+    int recycling_list_size_;
+    int allocation_counter_;
+};
+
+class OSCondVarNew
+{
+public:
+    OSCondVarNew(OSMutex *mu);
+    ~OSCondVarNew();
+    void Wait();
+    void Signal();
+    void SignalAll();
+private:
+    CONDITION_VARIABLE _cv;
+    OSMutex *_mu;
+};
+
+class OSCondVar
+{
+public:
+    OSCondVar(OSMutex *mu);
+    ~OSCondVar();
+    void Wait();
+    void Signal();
+    void SignalAll();
+
+private:
+    void *_cd;
 };
 
 #else
@@ -120,6 +212,8 @@ public:
     {
         return !pthread_mutex_trylock(&mutex_);
     }
+
+    void AssertHeld() {}
 
 public:
     pthread_mutex_t mutex_;
@@ -186,7 +280,71 @@ public:
 };
 #endif
 
+
+class OSCondVar
+{
+public:
+    OSCondVar(OSMutex *mu) : mu_(mu)
+    {
+        pthread_cond_init(&cv_, NULL);
+    }
+
+    ~OSCondVar()
+    {
+        pthread_cond_destroy(&cv_);
+    }
+
+    void Wait()
+    {
+        pthread_cond_wait(&cv_, &mu_->mutex_);
+    }
+
+    void Signal()
+    {
+        pthread_cond_signal(&cv_);
+    }
+
+    void SignalAll()
+    {
+        pthread_cond_broadcast(&cv_);
+    }
+
+private:
+    pthread_cond_t cv_;
+    OSMutex *mu_;
+};
+
 #endif
+
+class AutoLock
+{
+public:
+    AutoLock(OSMutex &mu) : _mu(mu)
+    {
+        _mu.Lock();
+    }
+    ~AutoLock()
+    {
+        _mu.Unlock();
+    }
+private:
+    OSMutex &_mu;
+};
+
+class AutoUnlock
+{
+public:
+    AutoUnlock(OSMutex &mu) : _mu(mu)
+    {
+        _mu.Unlock();
+    }
+    ~AutoUnlock()
+    {
+        _mu.Lock();
+    }
+private:
+    OSMutex &_mu;
+};
 
 class OSThread
 {
@@ -216,6 +374,21 @@ public:
     pthread_t thread_;
 #endif
 };
+
+inline void InitOnce(int32_t *once, void (*initializer)())
+{
+    int32_t state = CompareAndSwap(once, 0, 1);
+    if (state == 0)
+    {
+        initializer();
+        *once = 2;
+    }
+    else if (state == 1)
+    {
+        while (*once != 2)
+            OSThread::Sleep(0);
+    }
+}
 
 }
 
