@@ -48,7 +48,7 @@ public:
 public:
     result_t connect(const char *host, int port, const char *username,
                      const char *password, const char *dbName);
-    result_t execute(const char *sql, int sLen, obj_ptr<DBResult_base> &retVal, exlib::AsyncEvent *ac);
+    result_t execute(const char *sql, int sLen, obj_ptr<DBResult_base> &retVal);
 
 private:
     inline result_t error()

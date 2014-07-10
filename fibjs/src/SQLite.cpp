@@ -29,7 +29,7 @@ result_t db_base::openSQLite(const char *connString,
         connString += 7;
 
     obj_ptr<SQLite> db = new SQLite();
-    hr = db->open(connString, ac);
+    hr = db->open(connString);
     if (hr < 0)
         return hr;
 
@@ -38,11 +38,8 @@ result_t db_base::openSQLite(const char *connString,
     return 0;
 }
 
-result_t SQLite::open(const char *file, exlib::AsyncEvent *ac)
+result_t SQLite::open(const char *file)
 {
-    if (!ac)
-        return CALL_E_NOSYNC;
-
     if (sqlite3_open_v2(file, &m_db, SQLITE_OPEN_FLAGS, 0))
     {
         result_t hr = Runtime::setError(sqlite3_errmsg(m_db));
@@ -76,7 +73,7 @@ result_t SQLite::begin(exlib::AsyncEvent *ac)
         return CALL_E_NOSYNC;
 
     obj_ptr<DBResult_base> retVal;
-    return execute("BEGIN", 5, retVal, ac);
+    return execute("BEGIN", 5, retVal);
 }
 
 result_t SQLite::commit(exlib::AsyncEvent *ac)
@@ -85,7 +82,7 @@ result_t SQLite::commit(exlib::AsyncEvent *ac)
         return CALL_E_NOSYNC;
 
     obj_ptr<DBResult_base> retVal;
-    return execute("COMMIT", 6, retVal, ac);
+    return execute("COMMIT", 6, retVal);
 }
 
 result_t SQLite::rollback(exlib::AsyncEvent *ac)
@@ -94,7 +91,7 @@ result_t SQLite::rollback(exlib::AsyncEvent *ac)
         return CALL_E_NOSYNC;
 
     obj_ptr<DBResult_base> retVal;
-    return execute("ROLLBACK", 8, retVal, ac);
+    return execute("ROLLBACK", 8, retVal);
 }
 
 int sqlite3_step_sleep(sqlite3_stmt *stmt, int ms)
@@ -113,11 +110,8 @@ int sqlite3_step_sleep(sqlite3_stmt *stmt, int ms)
 #define SQLITE_SLEEP_TIME   10000
 
 result_t SQLite::execute(const char *sql, int sLen,
-                         obj_ptr<DBResult_base> &retVal, exlib::AsyncEvent *ac)
+                         obj_ptr<DBResult_base> &retVal)
 {
-    if (!ac)
-        return CALL_E_NOSYNC;
-
     if (!m_db)
         return CALL_E_INVALID_CALL;
 
@@ -247,7 +241,7 @@ result_t SQLite::execute(const char *sql, obj_ptr<DBResult_base> &retVal, exlib:
     if (!ac)
         return CALL_E_NOSYNC;
 
-    return execute(sql, (int) qstrlen(sql), retVal, ac);
+    return execute(sql, (int) qstrlen(sql), retVal);
 }
 
 result_t SQLite::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,

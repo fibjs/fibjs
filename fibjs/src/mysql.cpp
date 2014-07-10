@@ -216,29 +216,29 @@ result_t mysql::use(const char *dbName, exlib::AsyncEvent *ac)
     obj_ptr<DBResult_base> retVal;
     std::string s("USE ", 4);
     s.append(dbName);
-    return execute(s.c_str(), (int) s.length(), retVal, ac);
+    return execute(s.c_str(), (int) s.length(), retVal);
 }
 
 result_t mysql::begin(exlib::AsyncEvent *ac)
 {
     obj_ptr<DBResult_base> retVal;
-    return execute("BEGIN", 5, retVal, ac);
+    return execute("BEGIN", 5, retVal);
 }
 
 result_t mysql::commit(exlib::AsyncEvent *ac)
 {
     obj_ptr<DBResult_base> retVal;
-    return execute("COMMIT", 6, retVal, ac);
+    return execute("COMMIT", 6, retVal);
 }
 
 result_t mysql::rollback(exlib::AsyncEvent *ac)
 {
     obj_ptr<DBResult_base> retVal;
-    return execute("ROLLBACK", 8, retVal, ac);
+    return execute("ROLLBACK", 8, retVal);
 }
 
 result_t mysql::execute(const char *sql, int sLen,
-                        obj_ptr<DBResult_base> &retVal, exlib::AsyncEvent *ac)
+                        obj_ptr<DBResult_base> &retVal)
 {
     if (!m_conn)
         return CALL_E_INVALID_CALL;
@@ -255,7 +255,7 @@ result_t mysql::execute(const char *sql, int sLen,
 
 result_t mysql::execute(const char *sql, obj_ptr<DBResult_base> &retVal, exlib::AsyncEvent *ac)
 {
-    return execute(sql, (int) qstrlen(sql), retVal, ac);
+    return execute(sql, (int) qstrlen(sql), retVal);
 }
 
 result_t mysql::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
@@ -268,7 +268,7 @@ result_t mysql::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Valu
 
     v8::Local<v8::Value> v = args[args.Length() - 1];
 
-    return execute(str.c_str(), (int) str.length(), retVal, NULL);
+    return execute(str.c_str(), (int) str.length(), retVal);
 }
 
 result_t mysql::format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
